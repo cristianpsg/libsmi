@@ -4,6 +4,9 @@
 
 	* mibs/ietf/FRSLD-MIB: added (RFC 3202).
 
+	* tools/smidiff.c: Fixed warning messages on group membership
+	changes. Thanks to Bill.
+	
 2001-12-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-perl.c: Martin Schulz submitted a patch to fix

@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.33 2001/11/23 15:45:43 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.34 2001/12/05 16:22:49 schoenw Exp $ 
  */
 
 #include <config.h>
@@ -230,11 +230,11 @@ static Error errors[] = {
     { 3, ERR_LENGTH_ADDED, "range-added",
       "size `%s' added to type used in `%s'" },
     { 2, ERR_MEMBER_ADDED, "member-added",
-      "member `%s' added" },
+      "member `%s' added to group `%s'" },
     { 2, ERR_MEMBER_REMOVED, "member-removed",
-      "member `%s' removed" },
+      "member `%s' removed from group `%s'" },
     { 3, ERR_MEMBER_CHANGED, "member-changed",
-      "member `%s' changed" },
+      "member `%s' changed in group `%s'" },
     { 3, ERR_OBJECT_ADDED, "object-added",
       "object `%s' added" },
     { 2, ERR_OBJECT_REMOVED, "object-removed",
@@ -2181,7 +2181,8 @@ checkMember(SmiModule *oldModule, const char *oldTag,
 	}
 	if (! newElem) {
 	    printErrorAtLine(oldModule, ERR_MEMBER_REMOVED,
-			     smiGetNodeLine(oldNode), oldNode->name);
+			     smiGetNodeLine(oldNode),
+			     oldElemNode->name, oldNode->name);
 	}
 	smiInit(oldTag);
     }
@@ -2200,7 +2201,8 @@ checkMember(SmiModule *oldModule, const char *oldTag,
 	}
 	if (! oldElem) {
 	    printErrorAtLine(newModule, ERR_MEMBER_ADDED,
-			     smiGetNodeLine(newNode), newNode->name);
+			     smiGetNodeLine(newNode),
+			     newElemNode->name, newNode->name);
 	}
 	smiInit(newTag);
     }
