@@ -8,21 +8,16 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.53 2000/04/06 13:39:28 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.54 2000/04/10 07:34:49 strauss Exp $
  */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <strings.h>
-#include <errno.h>
-#include <ctype.h>
 #include <stdarg.h>
+#include <string.h>
+#include <ctype.h>
 #include <time.h>
 
 #include "smi.h"

@@ -9,20 +9,13 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.26 2000/03/02 09:22:34 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.27 2000/03/29 16:09:09 strauss Exp $
  */
 
 #include <config.h>
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <string.h>
-#include <strings.h>
-#include <errno.h>
-#include <stdarg.h>
 
 #include "smi.h"
 #include "smidump.h"

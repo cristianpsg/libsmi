@@ -9,17 +9,13 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.16 2000/03/22 09:46:14 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.17 2000/04/06 13:39:28 strauss Exp $
  */
 
 #include <config.h>
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <errno.h>
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "smi.h"

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.12 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.13 2000/02/17 09:00:54 strauss Exp $
  */
 
 /*
@@ -25,15 +25,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <string.h>
-#include <strings.h>
-#include <errno.h>
 #include <ctype.h>
-#include <stdarg.h>
-#include <time.h>
 
 #include "smi.h"
 #include "smidump.h"

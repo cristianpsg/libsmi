@@ -8,14 +8,13 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.24 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.25 2000/02/22 18:27:02 strauss Exp $
  */
 
 #include <config.h>
 
-#include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #ifdef HAVE_GETOPT_H

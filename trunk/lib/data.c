@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.75 2000/03/02 09:22:29 strauss Exp $
+ * @(#) $Id: data.c,v 1.76 2000/03/22 09:45:43 strauss Exp $
  */
 
 #include <config.h>
@@ -32,6 +32,12 @@ extern int smiparse();
 #ifdef BACKEND_SMING
 #include "scanner-sming.h"
 extern int smingparse();
+#endif
+
+#ifdef _WIN32
+#define PATH_SEPARATOR  ";"
+#else
+#define PATH_SEPARATOR  ":"
 #endif
 
 
@@ -3469,7 +3475,8 @@ loadModule(modulename)
 	}
 	
 	smipath = util_strdup(smiPath);
-	for (dir = strtok(smipath, ":"); dir; dir = strtok(NULL, ":")) {
+	for (dir = strtok(smipath, PATH_SEPARATOR);
+	     dir; dir = strtok(NULL, PATH_SEPARATOR)) {
 	    path = malloc(strlen(dir)+strlen(modulename)+8);
 	    sprintf(path, "%s/%s", dir, modulename);
 	    if (! access(path, R_OK)) {

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.83 2000/02/28 16:36:12 strauss Exp $
+ * @(#) $Id: smi.c,v 1.84 2000/03/02 09:22:29 strauss Exp $
  */
 
 #include <config.h>
@@ -52,6 +52,11 @@
 #define MAX(a, b)       ((a) < (b) ? (b) : (a))
 #endif
 
+#ifdef _WIN32
+#define PATH_SEPARATOR	';'
+#else
+#define PATH_SEPARATOR	':'
+#endif
 
 
 const char *smi_library_version = SMI_LIBRARY_VERSION;
@@ -232,10 +237,10 @@ int smiInit(const char *tag)
     /* setup the smi MIB module search path */
     p = getenv("SMIPATH");
     if (p) {
-	if (p[0] == ':') {
+	if (p[0] == PATH_SEPARATOR) {
 	    smiPath = util_malloc(strlen(p) + strlen(DEFAULT_SMIPATH));
 	    sprintf(smiPath, "%s%s", DEFAULT_SMIPATH, p);
-	} else if (p[strlen(p)-1] == ':') {
+	} else if (p[strlen(p)-1] == PATH_SEPARATOR) {
 	    smiPath = util_malloc(strlen(p) + strlen(DEFAULT_SMIPATH));
 	    sprintf(smiPath, "%s%s", p, DEFAULT_SMIPATH);
 	} else {
