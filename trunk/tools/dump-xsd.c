@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.45 2002/10/02 17:43:12 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.46 2002/10/24 13:01:44 tklie Exp $
  */
 
 #include <config.h>
@@ -1974,7 +1974,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
     
     fprintf(f, "            xmlns=\"%s%s\"\n",
 	   schemaLocation, smiModule->name);
-    fprintf(f, "            xmlns:xmn=\"http://www.w3.org/XML/1998/namespace\"\n");
+/*    fprintf(f, "            xmlns:xmn=\"http://www.w3.org/XML/1998/namespace\"\n"); */
     fprintf(f, "            xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
     fprintf(f, "            xmlns:smi=\"http://www.ibr.cs.tu-bs.de/~tklie/smi\"\n");
     
@@ -1990,7 +1990,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
 	lastModName = iterImp->module;
     }
   
-    fprintf(f, "            xmn:lang=\"en\"\n");
+    fprintf(f, "            xml:lang=\"en\"\n");
     fprintf(f, "            elementFormDefault=\"qualified\"\n");
     fprintf(f, "            attributeFormDefault=\"unqualified\">\n\n");
 }
