@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.16 2003/09/30 11:51:31 schoenw Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.17 2003/09/30 11:57:30 schoenw Exp $
  */
 
 #include <config.h>
@@ -30,6 +30,7 @@ static int identifierLen = 0;
 
 static int showlines = 0;
 static int showpath = 0;
+static int ctagfmt = 0;
 
 
 static char *smiStringNodekind(SmiNodekind nodekind)
@@ -61,17 +62,25 @@ static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 	     smiNode;
 	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	    if (smiNode->name) {
-		fprintf(f, "%*s",
-			-moduleLen, showpath ? modv[i]->path : modv[i]->name);
-		if (showlines) {
-		    fprintf(f, ":%d:", smiGetNodeLine(smiNode));
+		if (ctagfmt) {
+		    fprintf(f, "%*s", -identifierLen, smiNode->name);
+		    fprintf(f, " %d", smiGetNodeLine(smiNode));
+		    fprintf(f, " %*s", -moduleLen, modv[i]->path);
+		    fprintf(f, " %s OBJECT-TYPE -- %s\n", smiNode->name,
+			    smiStringNodekind(smiNode->nodekind));
+		} else {
+		    fprintf(f, "%*s",
+			    -moduleLen, showpath ? modv[i]->path : modv[i]->name);
+		    if (showlines) {
+			    fprintf(f, ":%d:", smiGetNodeLine(smiNode));
+		    }
+		    fprintf(f, " %*s %-12s ", -identifierLen, smiNode->name,
+			    smiStringNodekind(smiNode->nodekind));
+		    for (j = 0; j < smiNode->oidlen; j++) {
+			    fprintf(f, j ? ".%u" : "%u", smiNode->oid[j]);
+		    }
+		    fprintf(f, "\n");
 		}
-		fprintf(f, " %*s %-12s ", -identifierLen, smiNode->name,
-			smiStringNodekind(smiNode->nodekind));
-		for (j = 0; j < smiNode->oidlen; j++) {
-		    fprintf(f, j ? ".%u" : "%u", smiNode->oid[j]);
-		}
-		fprintf(f, "\n");
 	    }
 	}
     }
@@ -89,6 +98,12 @@ static void fprintTypeIdentifiers(FILE *f, int modc, SmiModule **modv)
 	     smiType;
 	     smiType = smiGetNextType(smiType)) {
 	    if (smiType->name) {
+		if (ctagfmt) {
+		    fprintf(f, "%*s", -identifierLen, smiType->name);
+		    fprintf(f, " %d", smiGetTypeLine(smiType));
+		    fprintf(f, " %*s", -moduleLen, modv[i]->path);
+		    fprintf(f, " %s TEXTUAL-CONVENTION\n", smiType->name);
+		} else {
 		fprintf(f, "%*s",
 			-moduleLen, showpath ? modv[i]->path : modv[i]->name);
 		if (showlines) {
@@ -96,6 +111,7 @@ static void fprintTypeIdentifiers(FILE *f, int modc, SmiModule **modv)
 		}
 		fprintf(f, " %*s %-12s\n", -identifierLen, smiType->name,
 			"type");
+		    }
 	    }
 	}
     }
@@ -177,10 +193,12 @@ void initIdentifiers()
 {
     
     static SmidumpDriverOption opt[] = {
-	{ "show-lines", OPT_FLAG, &showlines, 0,
+	{ "lines", OPT_FLAG, &showlines, 0,
 	  "show line numbers"},
-	{ "show-path", OPT_FLAG, &showpath, 0,
+	{ "path", OPT_FLAG, &showpath, 0,
 	  "show file path instead of module name"},
+	{ "ctag", OPT_FLAG, &ctagfmt, 0,
+	  "show symbols in [g]ctag format"},
         { 0, OPT_END, 0, 0 }
     };
 
