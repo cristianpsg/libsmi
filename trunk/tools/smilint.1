@@ -1,21 +1,15 @@
 .\"
-.\" $Id: smilint.1,v 1.5 1999/05/08 20:56:48 strauss Exp $
+.\" $Id: smilint.1,v 1.1 1999/05/28 14:52:13 strauss Exp $
 .\"
-.TH smilint 1  "May 5, 1999" "IBR" "SMI Tools"
+.TH smilint 1  "June 1, 1999" "IBR" "SMI Tools"
 .SH NAME
 smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
 .B smilint
 [
-.B "-sSvV"
+.B "-Vhvs"
 ] [
 .BI "-l " level
-] [
-.BI "-d " level
-] [
-.BI "-c " config
-] [
-.BI "-L " location
 ]
 .I "module"
 .SH DESCRIPTION
@@ -27,19 +21,7 @@ The rules that \fBsmilint\fP is based on are taken from RFC 1155, RFC
 1212 and RFC 1215 for SMIv1, RFCs 2578-2580 for SMIv2 and the
 specifications of SMIng that are part of a master's thesis at the
 Technical University of Braunschweig, Germany.
-.PP
-\fBSmilint\fP first reads the global libsmi configuration file
-\fB/usr/local/etc/smi.conf\fP, as any libsmi application does. Then
-the command line options are interpreted and finally, the
-\fB/usr/local/etc/smilint.conf\fP configuration file is read, if present,
-before \fBsmilint\fP starts its main operation.
 .SH OPTIONS
-.TP
-.B "-s"
-Report some per module statistics to stderr.
-.TP
-.B "-S"
-Don't report statistics (default).
 .TP
 .B "-v"
 On errors, do print the current line of input to stderr after the
@@ -48,10 +30,13 @@ stream. Note that the corresponding point of error usually lies before
 this marker.
 .TP
 .B "-V"
-Don't print error lines (default).
+Show the smilint version and exit.
 .TP
-.BI "-d " level
-Print libsmi debugging messages at the given \fIlevel\fP (default: 0).
+.B "-h"
+Show a help text and exit.
+.TP
+.B "-s"
+Report some per module statistics to stderr.
 .TP
 .BI "-l " level
 Report errors and warnings up to the given \fIlevel\fP to stderr.
@@ -74,32 +59,21 @@ level 5 does. Note that errors up to level 3 are errors violating the
 specification and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP
-.BI "-c " config
-Read the configuration from \fIfile\fP. See smi_config(3) section
-CONFIGURATION FILES for its format.
-.TP
-.BI "-L " location
-Add \fIlocation\fP to the list of locations to search for MIB modules.
-See smi_config(3) section MODULE LOCATIONS for location details.
-.TP
 .I module
-This is the module to be checked. Note that this module is searched in
-the list of known locations. If the module shall be taken from an
-SMIv1/v2 file in the current directory, a "\fB-L smi:.\fP" option
-should be added to the command line.
-.SH "FILES"
-.nf
-/usr/local/etc/smi.conf     general configuration file
-/usr/local/etc/smilint.conf smilint configuration file
-.fi
-.SH "NOTES"
-Libsmi and this tool are work in progress. Expect changes in near
-future.
+This is the module to be checked. If it represents a path name
+(identified by containing at least one dot or slash character), this
+is assumed to be the exact file to read. Otherwise, if a module is
+identified by its plain module name, the correspondant file (either
+SMIv1/2 or SMIng) is searched along a path, which is initialized by
+the \fBSMIPATH\fP environment variable or by @prefix@/lib/smi if
+\fBSMIPATH\fP is not set. Files with a \fB.sming\fP extension are
+expected to be SMIng module files. Files with a \fB.my\fP or without
+any extension are expected to be SMIv1/v2 module files.
 .SH "SEE ALSO"
 The SMIng and
 .BR libsmi (3)
 project is documented at
-.BR "http://www.ibr.cs.tu-bs.de/~strauss/sming/" "."
+.BR "http://www.ibr.cs.tu-bs.de/projects/sming/" "."
 Other commonly used MIB checkers are
 .BR mosy "(1) and "
 .BR smicng "(1)."

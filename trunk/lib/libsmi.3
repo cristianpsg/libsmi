@@ -1,7 +1,7 @@
 .\"
 .\" $Id: libsmi.3,v 1.1 1999/05/28 14:52:06 strauss Exp $
 .\"
-.TH libsmi 3  "May 31, 1999" "IBR" "SMI Management Information Library"
+.TH libsmi 3  "June 1, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 libsmi \- library to access SMI management information
 .SH DESCRIPTION
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     SmiNode *smiNode;
     
     if (argc != 2) {
-        fprintf(stderr, "Usage: smisubtree oid\n");
+        fprintf(stderr, "Usage: smisubtree oid\\n");
         exit(1);
     }
  
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     for(; smiNode && (strstr(smiNode->oid, oid) == smiNode->oid);
         smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
  
-        printf("%s.%-26s [%s]\n",
+        printf("%s.%-26s [%s]\\n",
                smiNode->module, smiNode->name, smiNode->oid);
         
     };

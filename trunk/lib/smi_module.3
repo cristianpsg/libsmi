@@ -1,9 +1,9 @@
 .\"
-.\" $Id: smi_module.3,v 1.5 1999/05/08 20:56:59 strauss Exp $
+.\" $Id: smi_module.3,v 1.1 1999/05/28 14:52:08 strauss Exp $
 .\"
-.TH smi_module 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.TH smi_module 3  "June 1, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
-smiGetModule, smiFreeModule, smiGetImports, smiIsImported, smiGetFirstRevision, smiGetNextRevision, smiFreeRevision \- SMI module information routines
+smiGetModule, smiGetFirstModule, smiGetNextModule, smiFreeModule, smiGetFirstImport, smiGetNextImport, smiFreeImport, smiIsImported, smiGetFirstRevision, smiGetNextRevision, smiFreeRevision \- SMI module information routines
 .SH SYNOPSIS
 .nf
 .B #include <time.h>
@@ -11,22 +11,34 @@ smiGetModule, smiFreeModule, smiGetImports, smiIsImported, smiGetFirstRevision, 
 .RS
 .RE
 .sp
-.BI "SmiModule *smiGetModule(char *" spec );
+.BI "SmiModule *smiGetModule(char *" module );
+.RE
+.sp
+.BI "SmiModule *smiGetFirstModule();
+.RE
+.sp
+.BI "SmiModule *smiGetNextModule(SmiModule *" smiModulePtr );
 .RE
 .sp
 .BI "void smiFreeModule(SmiModule *" smiModulePtr );
 .RE
 .sp
-.BI "char **smiGetImports(char *" spec ", char *" mod );
+.BI "SmiImport *smiGetFirstImport(char *" module );
 .RE
 .sp
-.BI "int smiIsImported(char *" modulename ", char *" fullname );
+.BI "SmiImport *smiGetNextImport(SmiImport *" smiInportPtr );
 .RE
 .sp
-.BI "SmiRevision *smiGetFirstRevision(char *" modulename );
+.BI "void smiFreeImport(SmiImport *" smiInportPtr );
 .RE
 .sp
-.BI "SmiRevision *smiGetNextRevision(char *" modulename ", time_t " date );
+.BI "int smiIsImported(char *" module ", char *" importmodule ", char *" importname );
+.RE
+.sp
+.BI "SmiRevision *smiGetFirstRevision(char *" module );
+.RE
+.sp
+.BI "SmiRevision *smiGetNextRevision(SmiRevision *" smiRevisionPtr );
 .RE
 .sp
 .BI "void smiFreeRevision(SmiRevision *" smiRevisionPtr );
@@ -34,7 +46,7 @@ smiGetModule, smiFreeModule, smiGetImports, smiIsImported, smiGetFirstRevision, 
 
 typedef struct SmiModule {
     SmiIdentifier     name;
-    SmiQIdentifier    object; /* module identity object */
+    SmiIdentifier     object; /* module identity object */
     time_t            lastupdated;
     char              *organization;
     char              *contactinfo;
@@ -42,7 +54,14 @@ typedef struct SmiModule {
     char              *reference;
 } SmiModule;
 
+typedef struct SmiImport {
+    SmiIdentifier     module;
+    SmiIdentifier     importmodule;
+    SmiIdentifier     importname;
+} SmiImport;
+
 typedef struct SmiRevision {
+    SmiIdentifier     module;
     time_t            date;
     char              *description;
 } SmiRevision;
@@ -50,51 +69,60 @@ typedef struct SmiRevision {
 .fi
 .SH DESCRIPTION
 These functions retrieve different meta information on MIB
-modules. The functions to retrieve the definitions within a module are
+modules. Other functions to retrieve the definitions within a module are
 documented in smi_type(3), smi_node(3), and smi_macro(3).
 .PP
 The \fBsmiGetModule()\fP function retrieves a \fBstruct SmiModule\fP
 that represents the module named \fBspec\fP. Elements not available
 or not present in the module contain NULL.
 .PP
+The \fBsmiGetFirstModule()\fP and \fBsmiGetNextModule()\fP functions are
+used to iteratively retrieve \fBstruct SmiModule\fPs.
+\fBsmiGetFirstModule()\fP returns the first known module.
+Subsequent calls to \fBsmiGetNextModule()\fP release \fIsmiModulePtr\fP
+and return the following ones. If there are no
+more modules NULL is returned.
+.PP
 The \fBsmiFreeModule()\fP function should be called when a retrieved
 \fBstruct SmiModule\fP is no longer needed to release its memory.
 .PP
-The \fBsmiGetImports()\fP function returns an array  of all fully
-qualified descriptors imported in \fImodulename\fP.
+The \fBsmiGetFirstImport()\fP and \fBsmiGetNextImport()\fP functions are
+used to iteratively retrieve \fBstruct SmiImport\fPs.
+\fBsmiGetFirstImport()\fP returns the first identifier imported by
+module \fImodule\fP.
+Subsequent calls to \fBsmiGetNextImport()\fP release \fIsmiImportPtr\fP
+and return the following ones. If there are no
+more imported identifiers NULL is returned.
 .PP
 The \fBsmiIsImported()\fP function returns a positive value if the
-fully qualified descriptor \fIfullname\fP is imported in module
-\fImodulename\fP, or zero otherwise.
+identifier \fIimportname\fP from module \fIimportmodule\fP is imported
+in module \fImodule\fP, or zero otherwise.
 .PP
 The \fBsmiGetFirstRevision()\fP and \fBsmiGetNextRevision()\fP
 functions are used to iteratively retrieve \fBstruct SmiModule\fPs.
-\fBsmiGetFirstRevision()\fP returns the first (in the module that is
+\fBsmiGetFirstRevision()\fP returns the first (that is
 most recent) revision information on module
-\fImodulename\fP. Subsequent calls to \fBsmiGetNextRevision()\fP
-return the revision after (timely before) that one specified by
-\fIdate\fP which is usually the date of the last revision.  If there
-are no more revisions NULL is returned.
+\fImodule\fP. Subsequent calls to \fBsmiGetNextRevision()\fP
+release \fIsmiRevisionPtr\fP and return the revision after
+(timely before) that one.  If there are no more revisions NULL is returned.
 .PP
 The \fBsmiFreeRevision()\fP function should be called for each retrieved
 \fBstruct SmiRevision\fP that is no longer needed to release its memory.
 .SH "RETURN VALUES"
 The retrieval functions \fBsmiGetModule()\fP,
+\fBsmiGetFirstModule()\fP, \fBsmiGetNextModule()\fP,
+\fBsmiGetFirstImport()\fP, \fBsmiGetNextImport()\fP,
 \fBsmiGetFirstRevision()\fP, and \fBsmiGetNextRevision()\fP return
 the requested structure on success, or NULL on error. Structures
-should be released after use by calling \fBsmiFreeModule()\fP, or
-\fBsmiFreeRevision()\fP, respectively.
+should be released after use by calling \fBsmiFreeModule()\fP,
+\fBsmiFreeImport()\fP, or \fBsmiFreeRevision()\fP, respectively.
 .PP
-\fBsmiGetImports()\fP returns an array of strings, or NULL on
-error. \fBsmiIsImported()\fP returns an appropriate integer truth
+\fBsmiIsImported()\fP returns an appropriate integer truth
 value. Other functions are void.
 .SH "FILES"
 .nf
 /usr/local/include/smi.h    SMI library header file
 .fi
-.SH "NOTES"
-Libsmi is work in progress. Interface inconsistencies and deficiencies
-will be removed in near future.
 .SH "SEE ALSO"
 .BR libsmi "(3), "
 .BR smi.h

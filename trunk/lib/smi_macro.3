@@ -1,7 +1,7 @@
 .\"
 .\" $Id: smi_macro.3,v 1.1 1999/05/28 14:52:07 strauss Exp $
 .\"
-.TH smi_macro 3  "May 31, 1999" "IBR" "SMI Management Information Library"
+.TH smi_macro 3  "June 1, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiGetMacro, smiFreeMacro \- SMI statement information routines
 .SH SYNOPSIS
@@ -41,8 +41,8 @@ The \fBsmiGetFirstMacro()\fP and \fBsmiGetNextMacro()\fP functions are
 used to iteratively retrieve \fBstruct SmiMacro\fPs.
 \fBsmiGetFirstMacro()\fP returns the first one defined in module
 \fImodule\fP.
-Subsequent calls to \fBsmiGetNextMacro()\fP return the following ones after
-that one specified by \fIsmiMacroPtr\fP. If there are no
+Subsequent calls to \fBsmiGetNextMacro()\fP release \fIsmiMacroPtr\fP
+and return the following ones. If there are no
 more extension or macro definitions in the module NULL is returned.
 .PP
 The \fBsmiFreeMacro()\fP function should be called when a retrieved
