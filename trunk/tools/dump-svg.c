@@ -1973,7 +1973,7 @@ static void parseTooltip(char *input, char *output)
 	switch (input[i]) {
 	case '\n':
 	case ' ':
-	    if (input[i+1] != '\n' && input[i+1] != ' ')
+	    if (i != 0 && input[i+1] != '\n' && input[i+1] != ' ')
 		output[j++] = ' ';
 	    break;
 	case '\'':
@@ -1990,7 +1990,13 @@ static void parseTooltip(char *input, char *output)
 	    output[j++] = '\\';
 	    output[j++] = '\'';
 	    break;
+	// '&' should not appear in a tag in a xml-document...
+	//FIXME
+	case '&':
+	    output[j++] = '+';
+	    break;
 	// '<' and '>' should not appear in a tag in a xml-document...
+	//FIXME
 	case '<':
 	    output[j++] = '(';
 	    break;
@@ -2002,6 +2008,17 @@ static void parseTooltip(char *input, char *output)
 	}
     }
     output[j++] = '\0';
+}
+
+static char *getStatusString(SmiStatus status)
+{
+    return
+	(status == SMI_STATUS_CURRENT)     ? "current" :
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
+	(status == SMI_STATUS_MANDATORY)   ? "current" :
+	(status == SMI_STATUS_OPTIONAL)    ? "current" :
+					     "<unknown>";
 }
 
 /*
@@ -2043,8 +2060,8 @@ static void printSVGAttribute(SmiNode *node, int index,
     char        *tooltip;
     char        *typeDescription;
 
-    printf("    <text x=\"%.2f\" y=\"%.2f\"",
-				*textXOffset + ATTRSPACESIZE, *textYOffset);
+    printf("    <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"",
+			node->name, *textXOffset + ATTRSPACESIZE, *textYOffset);
 
     *textYOffset += TABLEELEMHEIGHT;
 
@@ -2063,29 +2080,27 @@ static void printSVGAttribute(SmiNode *node, int index,
 	printf("         +");
     }
 
+    printf("<tspan");
     if (node->description) {
 	tooltip = (char *)xmalloc(2*strlen(node->description));
 	parseTooltip(node->description, tooltip);
-	printf("<tspan onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-	printf(" onmouseout=\"HideTooltip(evt)\">%s:</tspan> \n",node->name);
+	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	printf(" onmouseout=\"HideTooltip(evt)\"");
 	xfree(tooltip);
-    } else {
-	printf("<tspan>%s:</tspan> \n",node->name);
     }
+    printf(">%s:</tspan> \n", node->name);
 
+    printf("         <tspan");
     if (typeDescription = algGetTypeDescription(node)) {
 	tooltip = (char *)xmalloc(2*strlen(typeDescription));
 	parseTooltip(typeDescription, tooltip);
-	printf("<tspan onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-	printf(" onmouseout=\"HideTooltip(evt)\">");
-    } else {
-	printf("<tspan>");
+	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	printf(" onmouseout=\"HideTooltip(evt)\"");
     }
-
     if (index) {
-	printf("%s%s</tspan></text>\n", algGetTypeName(node), INDEXPROPERTY);
+	printf(">%s%s</tspan></text>\n", algGetTypeName(node), INDEXPROPERTY);
     } else {
-	printf("%s</tspan></text>\n", algGetTypeName(node));
+	printf(">%s</tspan></text>\n", algGetTypeName(node));
     }
 }
 
@@ -2646,8 +2661,13 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
     printf("    cty=curtrans.y;\n");
     printf("    ttrelem.setAttribute(\"x\",posx-ctx+10);\n");
     printf("    ttrelem.setAttribute(\"y\",posy-cty-20+10);\n");
-    printf("    ttrelem.setAttribute(\"width\",");
+    printf("    if(maxbreite>sollbreite) {\n");
+    printf("        ttrelem.setAttribute(\"width\",");
 			    printf("maxbreite+2*(maxbreite-sollbreite)+3);\n");
+    printf("    } else {\n");
+    printf("        ttrelem.setAttribute(\"width\",");
+			    printf("maxbreite+2*(sollbreite-maxbreite)+3);\n");
+    printf("    }\n");
     printf("    ttrelem.setAttribute(\"height\",anz*15+3);\n");
     printf("    ttrelem.setAttribute(\"style\",");
 		printf("\"fill: #FFC; stroke: #000; stroke-width: 0.5px\");\n");
@@ -2677,6 +2697,10 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
     printf("        scalFac[i] = %.1f;\n", STARTSCALE);
     printf("    }\n");
     printf("    getSVGDoc(evt);\n");
+    printf("}\n\n");
+    printf("function colorText(object, color) {\n");
+    printf("    var obj = svgDocument.getElementById(object);\n");
+    printf("    obj.setAttribute(\"style\",\"fill: \"+color);");
     printf("}\n\n");
     printf("function enlarge(classNr) {\n");
     printf("    var obj = svgDocument.getElementById(classNr);\n");
@@ -2867,22 +2891,23 @@ static GraphNode *calcGroupSize(int group)
 }
 
 
-static void printModuleIdentity(int modc, SmiModule **modv, float x, float y)
+static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
 {
     int         i, j;
     char        *tooltip;
     SmiNode     *smiNode;
+    SmiElement  *smiElement;
     SmiRevision *smiRevision;
 
     y += TABLEELEMHEIGHT;
+    //ModuleIdentity
     printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-IDENTITY</text>\n", x, y);
     y += TABLEELEMHEIGHT;
-
     for (i = 0; i < modc; i++) {
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
-	    //name and description of the node.
+	    //name and description of the module.
 	    x += TABLEELEMHEIGHT;
 	    if (modv[i]->description) {
 		tooltip = (char *)xmalloc(2*strlen(modv[i]->description));
@@ -2899,7 +2924,7 @@ static void printModuleIdentity(int modc, SmiModule **modv, float x, float y)
 	    y += TABLEELEMHEIGHT;
 	    x -= TABLEELEMHEIGHT;
 
-	    //revision history of the node.
+	    //revision history of the module.
 	    x += 2*TABLEELEMHEIGHT;
 	    smiRevision = smiGetFirstRevision(modv[i]);
 	    if (!smiRevision) {
@@ -2924,6 +2949,85 @@ static void printModuleIdentity(int modc, SmiModule **modv, float x, float y)
 		    printf(">%s</text>\n", getTimeString(smiRevision->date));
 		    y += TABLEELEMHEIGHT;
 		}
+	    }
+	    x -= 2*TABLEELEMHEIGHT;
+	}
+    }
+
+    y += TABLEELEMHEIGHT;
+    //Notifications
+    //FIXME: NOTIFICATION-TYPE or Notifications ???
+    printf(" <text x=\"%.2f\" y=\"%.2f\">NOTIFICATION-TYPE</text>\n", x, y);
+    y += TABLEELEMHEIGHT;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+
+	    //name of the module
+	    x += TABLEELEMHEIGHT;
+	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
+							x, y, smiNode->name);
+	    y += TABLEELEMHEIGHT;
+	    x -= TABLEELEMHEIGHT;
+
+	    //name, status and description of the notification
+	    //TODO print text in different grey colors for different statuses.
+	    x += 2*TABLEELEMHEIGHT;
+	    for(smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+		printf(" <text x=\"%.2f\" y=\"%.2f\"><tspan", x, y);
+
+		smiElement = smiGetFirstElement(smiNode);
+		if (smiElement || smiNode->description) {
+		    printf(" onmousemove=\"");
+		}
+		if (smiNode->description) {
+		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
+		    parseTooltip(smiNode->description, tooltip);
+		    printf("ShowTooltipMZ(evt,'%s')", tooltip);
+		    xfree(tooltip);
+		}
+		if (smiElement && smiNode->description) {
+		    printf(";");
+		}
+		for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s','red')",
+					smiGetElementNode(smiElement)->name);
+		}
+		if (smiElement || smiNode->description) {
+		    printf("\"");
+		}
+
+		smiElement = smiGetFirstElement(smiNode);
+		if (smiElement || smiNode->description) {
+		    printf(" onmouseout=\"");
+		}
+		if (smiNode->description) {
+		    printf("HideTooltip(evt)");
+		}
+		if (smiElement && smiNode->description) {
+		    printf(";");
+		}
+		for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s','black')",
+					smiGetElementNode(smiElement)->name);
+		}
+		if (smiElement || smiNode->description) {
+		    printf("\"");
+		}
+
+		printf(">%s</tspan>", smiNode->name);
+		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		y += TABLEELEMHEIGHT;
 	    }
 	    x -= 2*TABLEELEMHEIGHT;
 	}
@@ -3333,7 +3437,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     //print MODULE-IDENTITY
-    printModuleIdentity(modc, modv, 100, 0);
+    printModuleInformation(modc, modv, 100, 0);
 
     //output of svg to stdout ends here
     printSVGClose(xMin, yMin, xMax, yMax);
