@@ -34,8 +34,9 @@ extern const char *smi_version_string;
 #define SMI_FLAG_ERRORS    0x2000 /* print parser errors.                    */
 #define SMI_FLAG_RECURSIVE 0x4000 /* recursively parse imported modules.     */
 #define SMI_FLAG_STATS     0x8000 /* print statistics after parsing module.  */
+#define SMI_FLAG_BE_LAX   0x10000 /* allow some illegal chars in identifiers */
 #define SMI_FLAG_MASK      (SMI_FLAG_NODESCR|SMI_FLAG_VIEWALL|SMI_FLAG_STATS|\
-			    SMI_FLAG_RECURSIVE|SMI_FLAG_ERRORS)
+			    SMI_FLAG_RECURSIVE|SMI_FLAG_ERRORS|SMI_FLAG_BE_LAX)
 
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.64 2000/07/04 13:01:24 strauss Exp $
+ * @(#) $Id: data.h,v 1.65 2000/07/06 14:40:42 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -41,7 +41,7 @@ typedef enum Kind {
 
 
 
-typedef unsigned short ParserFlags;
+typedef unsigned int ParserFlags;
 typedef unsigned short ModuleFlags;
 typedef unsigned short ObjectFlags;
 typedef unsigned short NodeFlags;

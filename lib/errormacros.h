@@ -144,3 +144,5 @@
 #define ERR_NOTIFICATION_NOT_IN_GROUP            143
 #define ERR_INVALID_GROUP_MEMBER                 144
 #define ERR_MIXED_GROUP_MEMBERS                  145
+#define ERR_BAD_LOWER_IDENTIFIER_CASE            146
+#define ERR_UNDERSCORE_IN_IDENTIFIER             147

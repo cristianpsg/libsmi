@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.119 2000/07/05 11:58:40 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.120 2000/07/06 14:40:42 strauss Exp $
  */
 
 %{
@@ -817,6 +817,7 @@ checkDate(Parser *parserPtr, char *date)
 %type  <id>typeName
 %type  <id>typeSMI
 %type  <err>typeTag
+%type  <id>fuzzy_lowercase_identifier
 %type  <err>valueDeclaration
 %type  <typePtr>conceptualTable
 %type  <typePtr>row
@@ -1338,7 +1339,25 @@ choiceClause:		CHOICE
 /*
  * The only ASN.1 value declarations are for OIDs, REF:RFC1902,491 .
  */
-valueDeclaration:	LOWERCASE_IDENTIFIER
+fuzzy_lowercase_identifier:	LOWERCASE_IDENTIFIER
+			{
+			  $$ = $1;
+			}
+	|
+			UPPERCASE_IDENTIFIER
+			{
+			    smiPrintError (thisParserPtr,
+					   ERR_BAD_LOWER_IDENTIFIER_CASE,
+					   $1);
+			    if ((thisParserPtr->flags & SMI_FLAG_BE_LAX) == 0) {
+			        YYERROR;
+			    }
+			  $$ = $1;
+			}
+	;
+
+/* valueDeclaration:	LOWERCASE_IDENTIFIER */
+valueDeclaration:	fuzzy_lowercase_identifier
 			{
 			    firstStatementLine = thisParserPtr->line;
 
@@ -2042,7 +2061,7 @@ descriptionClause:	/* empty */
 			}
 	;
 
-trapTypeClause:		LOWERCASE_IDENTIFIER
+trapTypeClause:		fuzzy_lowercase_identifier
 			{
 			    firstStatementLine = thisParserPtr->line;
 			    
@@ -3807,7 +3826,8 @@ subidentifiers:
         ;
 
 subidentifier:
-			LOWERCASE_IDENTIFIER
+			/* LOWERCASE_IDENTIFIER */
+			fuzzy_lowercase_identifier
 			{
 			    Object *objectPtr;
 			    Import *importPtr;

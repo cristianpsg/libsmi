@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.19 2000/06/28 16:01:29 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.20 2000/07/17 09:34:48 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -34,8 +34,9 @@ extern const char *smi_version_string;
 #define SMI_FLAG_ERRORS    0x2000 /* print parser errors.                    */
 #define SMI_FLAG_RECURSIVE 0x4000 /* recursively parse imported modules.     */
 #define SMI_FLAG_STATS     0x8000 /* print statistics after parsing module.  */
+#define SMI_FLAG_BE_LAX   0x10000 /* allow some illegal chars in identifiers */
 #define SMI_FLAG_MASK      (SMI_FLAG_NODESCR|SMI_FLAG_VIEWALL|SMI_FLAG_STATS|\
-			    SMI_FLAG_RECURSIVE|SMI_FLAG_ERRORS)
+			    SMI_FLAG_RECURSIVE|SMI_FLAG_ERRORS|SMI_FLAG_BE_LAX)
 
 
 
