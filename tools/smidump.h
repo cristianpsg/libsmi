@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.2 1999/11/24 19:02:41 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.3 2000/02/16 15:45:24 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -40,6 +40,8 @@ extern int dumpMosy(char *modulename, int flags);
 
 extern int dumpCorbaIdl(char *modulename, int flags);
 extern int dumpCorbaOid(char *modulename, int flags);
+
+extern int dumpSql(char *modulename, int flags);
 
 extern int dumpUcdH(char *modulename, int flags);
 extern int dumpUcdC(char *modulename, int flags);
