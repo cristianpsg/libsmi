@@ -1,3 +1,8 @@
+2000-01-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/MIP-MIB: Bert Helthuis gave a hint on a slight bug
+	in MIP-MIB.
+
 2000-01-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Added TRAP-TYPE handling. Changed

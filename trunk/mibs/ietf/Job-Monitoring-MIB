@@ -917,13 +917,13 @@ jmGeneralEntry  OBJECT-TYPE
 
 
 JmGeneralEntry ::= SEQUENCE {
-    jmGeneralJobSetIndex                  Integer32 (1..32767),
-    jmGeneralNumberOfActiveJobs           Integer32 (0..2147483647),
-    jmGeneralOldestActiveJobIndex         Integer32 (0..2147483647),
-    jmGeneralNewestActiveJobIndex         Integer32 (0..2147483647),
-    jmGeneralJobPersistence               Integer32 (15..2147483647),
-    jmGeneralAttributePersistence         Integer32 (15..2147483647),
-    jmGeneralJobSetName                   JmUTF8StringTC (SIZE(0..63))
+    jmGeneralJobSetIndex                  Integer32,
+    jmGeneralNumberOfActiveJobs           Integer32,
+    jmGeneralOldestActiveJobIndex         Integer32,
+    jmGeneralNewestActiveJobIndex         Integer32,
+    jmGeneralJobPersistence               Integer32,
+    jmGeneralAttributePersistence         Integer32,
+    jmGeneralJobSetName                   JmUTF8StringTC
 }
 
 
@@ -1135,9 +1135,9 @@ jmJobIDEntry  OBJECT-TYPE
     ::= { jmJobIDTable 1 }
 
 JmJobIDEntry ::= SEQUENCE {
-    jmJobSubmissionID                     OCTET STRING(SIZE(48)),
-    jmJobIDJobSetIndex                    Integer32 (0..32767),
-    jmJobIDJobIndex                       Integer32 (0..2147483647)
+    jmJobSubmissionID                     OCTET STRING,
+    jmJobIDJobSetIndex                    Integer32,
+    jmJobIDJobIndex                       Integer32
 }
 
 
@@ -1260,15 +1260,15 @@ jmJobEntry  OBJECT-TYPE
     ::= { jmJobTable 1 }
 
 JmJobEntry ::= SEQUENCE {
-    jmJobIndex                            Integer32 (1..2147483647),
+    jmJobIndex                            Integer32,
     jmJobState                            JmJobStateTC,
     jmJobStateReasons1                    JmJobStateReasons1TC,
-    jmNumberOfInterveningJobs             Integer32 (-2..2147483647),
-    jmJobKOctetsPerCopyRequested          Integer32 (-2..2147483647),
-    jmJobKOctetsProcessed                 Integer32 (-2..2147483647),
-    jmJobImpressionsPerCopyRequested      Integer32 (-2..2147483647),
-    jmJobImpressionsCompleted             Integer32 (-2..2147483647),
-    jmJobOwner                            JmJobStringTC (SIZE(0..63))
+    jmNumberOfInterveningJobs             Integer32,
+    jmJobKOctetsPerCopyRequested          Integer32,
+    jmJobKOctetsProcessed                 Integer32,
+    jmJobImpressionsPerCopyRequested      Integer32,
+    jmJobImpressionsCompleted             Integer32,
+    jmJobOwner                            JmJobStringTC
 }
 
 
@@ -1578,9 +1578,9 @@ jmAttributeEntry  OBJECT-TYPE
 
 JmAttributeEntry ::= SEQUENCE {
     jmAttributeTypeIndex                  JmAttributeTypeTC,
-    jmAttributeInstanceIndex              Integer32 (1..32767),
-    jmAttributeValueAsInteger             Integer32 (-2..2147483647),
-    jmAttributeValueAsOctets              OCTET STRING(SIZE(0..63))
+    jmAttributeInstanceIndex              Integer32,
+    jmAttributeValueAsInteger             Integer32,
+    jmAttributeValueAsOctets              OCTET STRING
 }
 
 
