@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.57 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.58 2000/05/18 11:47:42 strauss Exp $
  */
 
 #include <config.h>
@@ -804,7 +804,7 @@ static void printIndex(SmiNode *indexNode, const int comment)
 
 
 
-static void printImports(char *modulename)
+static void printImports()
 {
     Import        *import;
     char	  *lastModulename = NULL;
@@ -1621,15 +1621,11 @@ static void printModuleCompliances(SmiModule *smiModule)
 
 
 
-static int dumpSmi(char *modulename)
+static void dumpSmi(Module *module)
 {
     SmiModule	 *smiModule;
 
-    smiModule = smiGetModule(modulename);
-    if (!smiModule) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
+    smiModule = module->smiModule;
 
     createImportList(smiModule);
     
@@ -1639,7 +1635,7 @@ static int dumpSmi(char *modulename)
     print("--\n\n");
     print("%s DEFINITIONS ::= BEGIN\n\n", smiModule->name);
 	
-    printImports(modulename);
+    printImports();
     printModuleIdentity(smiModule);
     printTypeDefinitions(smiModule);
     printTextualConventions(smiModule);
@@ -1648,25 +1644,23 @@ static int dumpSmi(char *modulename)
     printGroups(smiModule);
     printModuleCompliances(smiModule);
     
-    print("END -- end of module %s.\n", modulename);
+    print("END -- end of module %s.\n", smiModule->name);
 
     freeImportList();
-
-    return 0;
 }
 
 
-int dumpSmiV1(char *modulename, int flags)
+void dumpSmiV1(Module *module)
 {
     smiv1 = 1;
-    silent = (flags & SMIDUMP_FLAG_SILENT);
-    return dumpSmi(modulename);
+    silent = (module->flags & SMIDUMP_FLAG_SILENT);
+    dumpSmi(module);
 }
 
 
-int dumpSmiV2(char *modulename, int flags)
+void dumpSmiV2(Module *module)
 {
     smiv1 = 0;
-    silent = (flags & SMIDUMP_FLAG_SILENT);
-    return dumpSmi(modulename);
+    silent = (module->flags & SMIDUMP_FLAG_SILENT);
+    dumpSmi(module);
 }

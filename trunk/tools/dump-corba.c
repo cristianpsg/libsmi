@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.26 2000/04/10 14:20:27 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.27 2000/05/02 12:57:17 strauss Exp $
  */
 
 #include <config.h>
@@ -1369,16 +1369,14 @@ static void printDisplayHints(SmiModule *smiModule)
 
 
 
-int dumpCorbaIdl(char *modulename, int flags)
+void dumpCorbaIdl(Module *module)
 {
-    SmiModule    *smiModule;
-    char	 *idlModuleName;
+    SmiModule   *smiModule;
+    char	*idlModuleName;
+    int		flags;
 
-    smiModule = smiGetModule(modulename);
-    if (!smiModule) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
+    smiModule = module->smiModule;
+    flags = module->flags;
 
     silent = (flags & SMIDUMP_FLAG_SILENT);
 
@@ -1415,8 +1413,6 @@ int dumpCorbaIdl(char *modulename, int flags)
     dictFree(&idlNodeNameList);
     dictFree(&idlTypeNameList);
     dictFree(&idlVBTypeNameList);
-
-    return 0;
 }
 
 
@@ -1442,17 +1438,15 @@ static void printNameAndOid(SmiNode *smiNode, SmiNode *smiParentNode)
 
 
 
-int dumpCorbaOid(char *modulename, int flags)
+void dumpCorbaOid(Module *module)
 {
     SmiModule *smiModule;
     SmiNode   *smiNode;
     SmiType   *smiType;
+    int	      flags;
 
-    smiModule = smiGetModule(modulename);
-    if (!smiModule) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
+    smiModule = module->smiModule;
+    flags = module->flags;
 
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
@@ -1518,6 +1512,4 @@ int dumpCorbaOid(char *modulename, int flags)
 	    break;
 	}
     }
-
-    return 0;
 }

@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.10 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.11 2000/05/20 12:51:11 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -18,7 +18,23 @@
 
 
 /*
- * The flags that can be passed to output drivers.
+ * Smidump allocates the following structure for each module given on
+ * the command line. A pointer to this structure is passed to the
+ * output drivers. The structure is in fact the root of a linked list
+ * of all modules already passed to the output driver, which is useful
+ * when generating united output.
+ */
+
+typedef struct Module {
+    SmiModule	  *smiModule;	/* SMI module to dump (may be NULL) */
+    int		  flags;	/* flags passed to the output driver */
+    struct Module *nextPtr;	/* next already processed module */
+} Module;
+
+
+/*
+ * The following flags can be passed to output drivers in the flags
+ * member of the struct above.
  */
 
 #define SMIDUMP_FLAG_SILENT	0x01
@@ -28,43 +44,37 @@
 #define SMIDUMP_FLAG_OBSOLETE	0x08
 #define SMIDUMP_FLAG_COMPACT	0x10
 
+
 /*
- * The output drivers that currently exist for smidump.
+ * The entry points for the output drivers that currently exist for
+ * smidump.
  */
 
-extern int dumpSmiV1(char *modulename, int flags);
-extern int dumpSmiV2(char *modulename, int flags);
-extern int dumpSming(char *modulename, int flags);
+extern void dumpSmiV1(Module *module);
+extern void dumpSmiV2(Module *module);
+extern void dumpSming(Module *module);
+extern void dumpImports(Module *module);
+extern void dumpTypes(Module *module);
+extern void dumpTree(Module *module);
+extern void dumpMetrics(Module *module);
+extern void dumpMosy(Module *module);
+extern void dumpXml(Module *module);
+extern void dumpCorbaIdl(Module *module);
+extern void dumpCorbaOid(Module *module);
+extern void dumpCMDia(Module *module);
+extern void dumpCMXplain(Module *module);
+extern void dumpUcdH(Module *module);
+extern void dumpUcdC(Module *module);
+extern void dumpJax(Module *module);
 
-extern int dumpImports(char *modulename, int flags);
-extern int dumpTypes(char *modulename, int flags);
-extern int dumpTree(char *modulename, int flags);
+extern void dumpSql(Module *module);
+extern void dumpFigTree(Module *module);
+extern void dumpFigUml(Module *module);
 
-extern int dumpMosy(char *modulename, int flags);
-
-extern int dumpCorbaIdl(char *modulename, int flags);
-extern int dumpCorbaOid(char *modulename, int flags);
-
-extern int dumpSql(char *modulename, int flags);
-
-extern int dumpUcdH(char *modulename, int flags);
-extern int dumpUcdC(char *modulename, int flags);
-
-extern int dumpJax(char *modulename, int flags);
-
-extern int dumpXml(char *modulename, int flags);
-
-extern int dumpMetrics(char *modulename, int flags);
-
-extern int dumpFigTree(char *modulename, int flags);
-extern int dumpFigUml(char *modulename, int flags);
-
-extern int dumpCMDia(char *modulename, int flags);
-extern int dumpCMXplain(char *modulename, int flags);
 
 /*
- * The functions are wrappers around the malloc functions
- * that handle any memory allocation errors.
+ * The functions are wrappers for the malloc functions which handle
+ * memory allocation errors by terminating the program.
  */
 
 extern void *xmalloc(size_t size);
@@ -74,4 +84,3 @@ extern void xfree(void *ptr);
 
 
 #endif /* _SMIDUMP_H */
-

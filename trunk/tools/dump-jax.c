@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.15 2000/05/24 16:24:44 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.16 2000/05/24 16:25:28 strauss Exp $
  */
 
 #include <config.h>
@@ -1366,16 +1366,12 @@ static void dumpScalarImpl(SmiNode *smiNode)
 }
 
 
-int dumpJax(char *modulename, int flags)
+void dumpJax(Module *module)
 {
     SmiModule    *smiModule;
     SmiNode      *smiNode;
     
-    smiModule = smiGetModule(modulename);
-    if (!smiModule) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
+    smiModule = module->smiModule;
 
     for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
 	smiNode;
@@ -1399,7 +1395,4 @@ int dumpJax(char *modulename, int flags)
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 	dumpNotif(smiNode);
     }
-    
-    
-    return 0;
 }

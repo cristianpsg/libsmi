@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.11 2000/05/04 21:13:38 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.13 2000/05/23 12:50:37 strauss Exp $
  */
 
 
@@ -18,6 +18,7 @@
  * im unified : smallest common prefix angleichen
  *
  * Berechnungen der UML Diagramme debuggen
+ *
  */
 
 
@@ -64,7 +65,7 @@ typedef enum GraphEnhIndex {
 } GraphEnhIndex;
 
 /*
- * Definitions for the dia output driver.
+ * Definition used by the dia output driver.
  */
 
 #define DIA_PRINT_FLAG	0x01
@@ -106,24 +107,25 @@ typedef struct Graph {
     GraphEdge *edges;
 } Graph;
 
-typedef struct Module {
-    char          *moduleName;
-    struct Module *nextPtr;
-} Module;
+/*
+ * definitions for the algorithm
+ */
+static char *pointer[]       = {"Index", NULL};
+static char *suffix[]        = {"OrZero", NULL};
+static char *supportObjs[]   = {"RowStatus", "StorageType", NULL};
+static char *baseTypes[]     = {"Integer32", "OctetString",
+				"Unsigned32", "Integer64",
+				"Unsigned64", "Float32",
+				"Float64", "Float128",
+				"Enumeration", "Counter32",
+				"Counter64","Bits",
+				"Gauge","Gauge32","Integer",
+				"TimeTicks","IpAddress","Opaque",
+				"Object Identifier", NULL};
 
-static char  *suffix[]        = {"OrZero", NULL};
-static char  *support[]       = {"RowStatus", "StorageType", NULL};
-static char  *baseTypes[]     = {"Integer32", "OctetString",
-				   "Unsigned32", "Integer64",
-				   "Unsigned64", "Float32",
-				   "Float64", "Float128",
-				   "Enumeration", "Counter32",
-				   "Counter64","Bits",
-				   "Gauge","Gauge32","Integer",
-				   "TimeTicks","IpAddress","Opaque",
-				   "Object Identifier", NULL};
-
-/* layout for the nodes */
+/*
+ * definitions for the dia output driver (node layout)
+ */
 static const float HEADFONTSIZETABLE   = 0.51;
 static const float HEADSPACESIZETABLE  = 0.6;
 static const float HEADFONTSIZESCALAR  = 0.545;
@@ -136,31 +138,95 @@ static const float SCALARHEIGHT        = 1.4;
 static const float TABLEHEIGHT         = 2.8; /*1.8*/
 static const float TABLEELEMHEIGHT     = 0.6;
 
-/* global graph layout */
-static const float YSPACING            = 3.0;
-static const float XSPACING            = 4.0;
-static const float NEWLINEDISTANCE     = 40.0;
-static const float XOFFSET             = 2.0;
-static const float YOFFSET             = 5.0;
+/*
+ * global dia graph layout
+ */
+static const float YSPACING            = 3.0;  /* y space between nodes */
+static const float XSPACING            = 4.0;  /* x space between nodes */ 
+static const float NEWLINEDISTANCE     = 40.0; /* length of one line */
+static const float XOFFSET             = 2.0;  /* left upper start of graph */
+static const float YOFFSET             = 5.0;  /* left upper start of graph */
 
-/* note positions */
-static const float XNOTE               = 1.0;
-static const float YNOTE               = 1.0;
+/*
+ * position of the dia info note 
+ */
+static const float XNOTE               = 1.0;  /* left upper corner of note */
+static const float YNOTE               = 1.0;  /* left upper corner of note */
 
-/* output control */
-static int       XPLAIN                = 0; //false
-static int       SUPPRESSDEPRECATED    = 1; //true
-static int       PRINTDETAILEDATTR     = 1; //true
-static int       IGNOREIMPORTEDNODES   = 1; //true
+/*
+ * Stereotype Name
+ */
+static const char* STEREOTYPE          = "smi mib class";
 
-static Graph     *graph  = NULL;            //the graph
-static Module    *moduleList = NULL;        //list of loaded MIB modules
+static const char* INDEXPROPERTY       = " {index}";
 
+/*
+ * driver output control
+ */
+static int       XPLAIN                = 0; /* false, generates ASCII output */
+static int       SUPPRESSDEPRECATED    = 1; /* true */
+static int       PRINTDETAILEDATTR     = 1; /* true */
+static int       IGNOREIMPORTEDNODES   = 1; /* true */
+
+/*
+ * global variables
+ */
+static Graph     *graph  = NULL;            /* the graph */
+static Module    *moduleList = NULL;        /* list of loaded MIB modules */
+
+/*
+ * help funcktions
+ */
 #define max(a, b) ((a < b) ? b : a)
 #define min(a, b) ((a < b) ? a : b)
 
 
 
+
+
+
+
+/* ------ Misc. -----------------                                            */
+
+
+
+
+
+/*
+ * cmpSmiNodes
+ *
+ * Compares two SmiNode and returns 1 if they are equal and 0 otherwise.
+ */
+static int cmpSmiNodes(SmiNode *node1, SmiNode *node2)
+{
+    SmiModule *module1, *module2;
+
+    module1 = smiGetNodeModule(node1);
+    module2 = smiGetNodeModule(node2);
+    
+    if (!node1 || !node2 || !module1 || !module2) return 0;
+    
+    return (strcmp(node1->name, node2->name) == 0 &&
+	    strcmp(module1->name, module2->name) == 0);
+}
+
+/*
+ * strpfxlen
+ *
+ * Returns the number of identical characters at the beginning of s1 and s2.
+ */
+static int strpfxlen(const char *s1, const char *s2)
+{
+    int i;
+
+    for (i = 0; s1[i] && s2[i]; i++) {
+	if (s1[i] != s2[i]) {
+	    break;
+	}
+    }
+    
+    return i;
+}
 
 
 
@@ -317,8 +383,10 @@ static GraphEdge *graphGetFirstEdgeByNode(Graph *graph, GraphNode *node)
     }
     
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	if (tEdge->startNode->smiNode->name == node->smiNode->name ||
-	    tEdge->endNode->smiNode->name == node->smiNode->name) break;
+	/*if (tEdge->startNode->smiNode->name == node->smiNode->name ||
+	  tEdge->endNode->smiNode->name == node->smiNode->name) break;*/
+	if (cmpSmiNodes(tEdge->startNode->smiNode, node->smiNode) ||
+	    cmpSmiNodes(tEdge->endNode->smiNode, node->smiNode)) break;
     }
 
     return tEdge;
@@ -341,15 +409,20 @@ static GraphEdge *graphGetNextEdgeByNode(Graph *graph,
     }
     
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	if (tEdge->startNode->smiNode->name ==
+	/*if (tEdge->startNode->smiNode->name ==
 	    edge->startNode->smiNode->name &&
 	    tEdge->endNode->smiNode->name ==
-	    edge->endNode->smiNode->name) break;
+	    edge->endNode->smiNode->name) break;*/
+	if (cmpSmiNodes(tEdge->startNode->smiNode,edge->startNode->smiNode) &&
+	    cmpSmiNodes(tEdge->endNode->smiNode,edge->endNode->smiNode))
+	    break;
     }
   
     for (tEdge = tEdge->nextPtr; tEdge; tEdge = tEdge->nextPtr) {
-	if (tEdge->startNode->smiNode->name == node->smiNode->name ||
-	    tEdge->endNode->smiNode->name == node->smiNode->name) break;
+	/*if (tEdge->startNode->smiNode->name == node->smiNode->name ||
+	  tEdge->endNode->smiNode->name == node->smiNode->name) break;*/
+	if (cmpSmiNodes(tEdge->startNode->smiNode, node->smiNode) ||
+	    cmpSmiNodes(tEdge->endNode->smiNode, node->smiNode)) break;
     }
 
     return tEdge;
@@ -371,65 +444,16 @@ static int graphCheckForRedundantEdge(Graph *graph,
     }
     
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	if (tEdge->startNode->smiNode->name == startNode->smiNode->name &&
-	    tEdge->endNode->smiNode->name == endNode->smiNode->name) {
+	/*if (tEdge->startNode->smiNode->name == startNode->smiNode->name &&
+	  tEdge->endNode->smiNode->name == endNode->smiNode->name) {*/
+	if (cmpSmiNodes(tEdge->startNode->smiNode, startNode->smiNode) &&
+	    cmpSmiNodes(tEdge->endNode->smiNode, endNode->smiNode)) {
+	    
 	    return 1;
 	}
     }
     
     return 0;
-}
-
-/*
- * graphGetLastNode
- *
- * Returns the last node of the list representing the graph nodes.
- */
-static GraphNode *graphGetLastNode(Graph *graph) 
-{
-    GraphNode *tNode;
-
-    if (!graph->nodes) {
-	return NULL;
-    }
-    
-    for (tNode = graph->nodes; tNode->nextPtr; tNode = tNode->nextPtr) {}
-
-    return tNode;
-}
-
-/*
- * graphGetFirstNode
- *
- * Returns the first node of the graph.
- */
-static GraphNode *graphGetFirstNode(Graph *graph)
-{
-    return (graph->nodes) ? (GraphNode *)graph->nodes : NULL;
-}
-
-/*
- * graphGetNextNode
- *
- * Returns the next graph node after the given node.
- */
-static GraphNode *graphGetNextNode(Graph *graph, GraphNode *node) 
-{
-    GraphNode *tNode;
-
-    if (!graph->nodes || !node) {
-	return NULL;
-    }
-    
-    for (tNode = graphGetFirstNode(graph); tNode; tNode = tNode->nextPtr) {
-	if (tNode->smiNode->name == node->smiNode->name) break;
-    }
-  
-    if (tNode->nextPtr == NULL) {
-	return NULL;
-    }
-    
-    return tNode->nextPtr;
 }
 
 /*
@@ -445,9 +469,7 @@ static GraphNode *graphGetNode(Graph *graph, SmiNode *smiNode)
 	return NULL;
     }
     
-    for (tNode = graphGetFirstNode(graph); 
-	 tNode; 
-	 tNode = graphGetNextNode(graph, tNode)) {
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->smiNode->name == smiNode->name) {
 	    break;
 	}
@@ -470,9 +492,7 @@ static void graphShowNodes(Graph *graph)
 	return;
     }
 
-    for (tNode = graphGetFirstNode(graph); 
-	 tNode; 
-	 tNode = graphGetNextNode(graph,tNode)) {
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE)
 	    printf(" [TABLE]");
 	else printf("[SCALAR]");
@@ -593,23 +613,6 @@ static void graphShowEdges(Graph *graph)
 
 
 
-/*
- * cmpSmiNodes
- *
- * Compares two SmiNode and returns 1 if they are equal and 0 otherwise.
- */
-static int cmpSmiNodes(SmiNode *node1, SmiNode *node2)
-{
-    SmiModule *module1, *module2;
-
-    module1 = smiGetNodeModule(node1);
-    module2 = smiGetNodeModule(node2);
-    
-    if (!node1 || !node2 || !module1 || !module2) return 0;
-    
-    return (strcmp(node1->name, node2->name) == 0 &&
-	    strcmp(module1->name, module2->name) == 0);
-}
 
 /*
  * algCountElements
@@ -686,9 +689,7 @@ static int algGetGroupByFatherNode(SmiNode *smiNode)
 {
     GraphNode *tNode;
     
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR &&
 	    !graphGetFirstEdgeByNode(graph, tNode)) {
 	    if (cmpSmiNodes(smiGetParentNode(smiNode),
@@ -702,24 +703,6 @@ static int algGetGroupByFatherNode(SmiNode *smiNode)
 }
 
 /*
- * strpfxlen
- *
- * Returns the number of identical characters at the beginning of s1 and s2.
- */
-static int strpfxlen(const char *s1, const char *s2)
-{
-    int i;
-  
-    for (i = 0; s1[i] && s2[i]; i++) {
-	if (s1[i] != s2[i]) {
-	    break;
-	}
-    }
-  
-    return i;
-}
-
-/*
  * algGetNumberOfGroups
  *
  * Returns the number of groups.
@@ -730,9 +713,8 @@ static int algGetNumberOfGroups()
     int       maxGroup;
 
     maxGroup = 0;
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
+
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	maxGroup = max(maxGroup, tNode->group); 
     }
 
@@ -748,9 +730,7 @@ static void algPrintGroup(int group)
 {
     GraphNode *tNode;
     
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {   
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) {
 	    printf("%2d - %35s\n", group, tNode->smiNode->name);
 	}
@@ -840,11 +820,12 @@ static int algGetNumberOfRows(SmiNode *smiNode)
 	    break;
 	}
 	
-	for (i = 0; support[i]; i++) {
-	    if (strcasecmp(algGetTypeName(tSmiNode), support[i]) == 0) break;
+	for (i = 0; supportObjs[i]; i++) {
+	    if (strcasecmp(algGetTypeName(tSmiNode),
+			   supportObjs[i]) == 0) break;
 	}
 
-	if (! support[i]) elemCount--;
+	if (!supportObjs[i]) elemCount--;
     }
 
     return elemCount;
@@ -867,9 +848,7 @@ static SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
     
     typeName = algGetTypeName(typeNode);
 
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
 	    tSmiNode = tNode->smiNode;
@@ -925,12 +904,12 @@ static int isBaseType(SmiNode *node)
 
     if (!firstRow->nodekind == SMI_NODEKIND_ROW ||
 	!secondRow->nodekind == SMI_NODEKIND_ROW) {
-	//printf("no row entries\n");
+	/* printf("no row entries\n"); */
 	return 3;
     }
 
     if (cmpSmiNodes(firstRow, secondRow) == 1) {
-	//printf("same objects\n");
+	/* printf("same objects\n"); */
 	return 3;
     }
     
@@ -938,7 +917,7 @@ static int isBaseType(SmiNode *node)
     number2 = algCountElements(secondRow);
 
     if (number1 != number2) {
-	//printf("Different number of elements\n");
+	/* printf("Different number of elements\n"); */
 	return 2;
     }
 
@@ -963,7 +942,7 @@ static int isBaseType(SmiNode *node)
 	if (!elemSecond) break;
     }
     if (!elemFirst) {
-	//printf("totaly equal\n");
+	/* printf("totaly equal\n"); */
 	return 0;
     }
 
@@ -986,11 +965,11 @@ static int isBaseType(SmiNode *node)
     }
 
     if (!elemFirst) {
-	//printf("Equal\n");
+	/* printf("Equal\n"); */
 	return 1;
     }
     else {
-	//printf("inequal");
+	/* printf("inequal"); */
 	return 2;
     }
 }
@@ -1050,9 +1029,6 @@ static void algCheckForExpandRel(SmiNode *smiNode)
 	tNode = smiGetParentNode(tNode);
 	tNode = smiGetParentNode(tNode);
 
-	/*if (tNode->name == expTable->name) {
-	    break;
-	    }*/
 	if (cmpSmiNodes(tNode, expTable) == 1) break;
 	
 	baseTable = tNode;
@@ -1190,9 +1166,9 @@ static void algCheckForReorderRel(SmiNode *smiNode)
 	return;
     }
 
-    for (graphNode = graphGetFirstNode(graph);
+    for (graphNode = graph->nodes;
 	 graphNode;
-	 graphNode = graphGetNextNode(graph, graphNode)) {
+	 graphNode = graphNode->nextPtr) {	
 	tNode = graphNode->smiNode;
 	if (tNode->nodekind == SMI_NODEKIND_TABLE) {
 	    if (equalElements(smiNode, smiGetFirstChildNode(tNode)) == 1) {
@@ -1240,10 +1216,9 @@ static void algLinkTables()
     SmiNode    *tSmiNode;
 
     /* linking the tables */
-    for (tGraphNode = graphGetFirstNode(graph); 
-	 tGraphNode; 
-	 tGraphNode = graphGetNextNode(graph, tGraphNode)) {
-
+    for (tGraphNode = graph->nodes;
+	 tGraphNode;
+	 tGraphNode = tGraphNode->nextPtr) {
 	node = tGraphNode->smiNode;
 
 	if (node->nodekind == SMI_NODEKIND_TABLE) {
@@ -1288,27 +1263,32 @@ static void algLinkTables()
  * there is better connection with more identical characters at the beginning.
  * The starting node must be same as in the expand relationship to make sure
  * that there are no unrelated tables are linked.
+ * Only legal overlappings lead to a new edge. A illegal overlap is :
+ * - when the next character in both strings is a lower case character
+ *   because if something like this is detected the two strings are
+ *   corresponding in the middle of their names and not at defined points
+ *   like suffix or prefix (-> the next character must be upper case or NULL)
  */
 static void algCheckLinksByName() 
 {
     GraphEdge *tEdge, *tEdge2, *newEdge;
     char      *start, *end, *end2;
-    int       overlap, longestOverlap;
+    int       overlap, longestOverlap, i;
 
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 
-	/* only EXPAND-relatiobships are examined */
 	if (tEdge->indexkind == SMI_INDEX_EXPAND) {
 
 	    start = tEdge->startNode->smiNode->name;
 	    end = tEdge->endNode->smiNode->name;
 
-	    /* getting the start overlap */
 	    overlap = strpfxlen(start,end);
       
-	    /* looking for better connection with longer overlap */
-	    /* maybe better to traverse the edges with graphGetNextEdgeByNode
-	       using tEdge->startNode */
+	    /*
+	     * looking for better connection with longer overlap
+	     * maybe better to traverse the edges with graphGetNextEdgeByNode
+	     * using tEdge->startNode
+	     */  
 	    newEdge = NULL;
 	    longestOverlap = overlap;
 	    for (tEdge2 = graphGetFirstEdgeByNode(graph,tEdge->startNode);
@@ -1316,13 +1296,27 @@ static void algCheckLinksByName()
 		 tEdge2 = graphGetNextEdgeByNode(graph, tEdge2,
 						 tEdge->startNode)) {
 	
-		/* must be a sparse relationship to get a correct new edge */
+		/*
+		 * must be a sparse relationship to get a correct new edge
+		 */
 		if (tEdge2->indexkind == SMI_INDEX_SPARSE) {
 		    end2 = tEdge2->endNode->smiNode->name;
 	  
-		    /* new overlap longer and different tables ? */
-		    if (overlap < strpfxlen(end,end2) && end != end2) {
-			longestOverlap=strpfxlen(end,end2);
+		    /*
+		     * new overlap longer and different tables ? 
+		     */
+		    i = strpfxlen(end,end2);
+		    if (overlap < i &&
+			!cmpSmiNodes(tEdge->endNode->smiNode,
+				     tEdge2->endNode->smiNode)) {
+			/*
+			 * legal overlap ?
+			 */
+			if (islower(end[i]) && islower(end2[i])) {
+			    break;
+			}
+
+			longestOverlap=i;
 			newEdge = tEdge2;
 		    }
 		}
@@ -1354,26 +1348,18 @@ static void algLinkObjectsByNames()
 
     /* getting the min. overlap for all nodes */
     minoverlap = 10000;
-    tNode2 = graphGetFirstNode(graph);
-    for (tNode = graphGetNextNode(graph,tNode2);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
+    tNode2 = graph->nodes;
+    for (tNode = tNode2->nextPtr; tNode; tNode = tNode->nextPtr) {	
 	minoverlap = min(minoverlap, strpfxlen(tNode->smiNode->name,
 					       tNode2->smiNode->name));
     }
 
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
-    
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {    
 	if (!graphGetFirstEdgeByNode(graph, tNode)) {
  
 	    overlap = 0;
 	    newNode = NULL;
-	    for (tNode2 = graphGetFirstNode(graph);
-		 tNode2;
-		 tNode2 = graphGetNextNode(graph, tNode2)) {
-		
+	    for (tNode2 = graph->nodes; tNode2; tNode2 = tNode2->nextPtr) {
 		if (strpfxlen(tNode->smiNode->name,tNode2->smiNode->name) >
 		    overlap &&
 		    strpfxlen(tNode->smiNode->name,tNode2->smiNode->name) >
@@ -1421,10 +1407,7 @@ static void algGroupScalars()
     int       actGroup, fGroup;
     
     actGroup = 0;
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
-	
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
 	if (!graphGetFirstEdgeByNode(graph, tNode) &&
 	    tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 	    fGroup = algGetGroupByFatherNode(tNode->smiNode);
@@ -1467,9 +1450,7 @@ static void algLinkLonelyTables()
     GraphNode  *tNode, *tNode2;
     int        i;
 
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!graphGetFirstEdgeByNode(graph, tNode) &&
 	    tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
@@ -1478,10 +1459,9 @@ static void algLinkLonelyTables()
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
 
-		for (tNode2 = graphGetFirstNode(graph);
+		for (tNode2 = graph->nodes;
 		     tNode2;
-		     tNode2 = graphGetNextNode(graph, tNode2)) {
-
+		     tNode2 = tNode2->nextPtr) {
 		    if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE &&
 			tNode != tNode2) {
 
@@ -1661,7 +1641,7 @@ static void algCheckForDependency()
 /*
  * Creates the graph nodes of the given module
  */
-static void createNodes(SmiModule *module)
+static void algCreateNodes(SmiModule *module)
 {
     SmiNode *node;
     
@@ -1692,7 +1672,7 @@ static void createNodes(SmiModule *module)
 
 
 
-static void printHeader()
+static void diaPrintXMLHeader()
 {
     printf("<?xml version=\"1.0\"?>\n");
     printf("<diagram xmlns:dia=\"http://www.lysator.liu.se/~alla/dia/\">\n");
@@ -1732,7 +1712,7 @@ static void printHeader()
     printf("  <layer name=\"Background\" visible=\"true\">\n");   
 }
 
-static void printCloseXML()
+static void diaPrintXMLClose()
 {
     printf("  </layer>\n");
     printf("</diagram>\n");
@@ -1741,10 +1721,15 @@ static void printCloseXML()
 /*
  * prints the type of a given node
  */  
-static void printXMLType(SmiNode *smiNode)
+static void diaPrintXMLType(SmiNode *smiNode, int index)
 {
     printf("          <attribute name=\"type\">\n");
-    printf("            <string>#%s#</string>\n", algGetTypeName(smiNode));
+    if (index) {
+	printf("            <string>#%s%s#</string>\n",
+	       algGetTypeName(smiNode), INDEXPROPERTY);
+    } else {
+	printf("            <string>#%s#</string>\n", algGetTypeName(smiNode));
+    }
     printf("          </attribute>\n");    
 }
 
@@ -1752,24 +1737,24 @@ static void printXMLType(SmiNode *smiNode)
  * index = 0 -> no index element
  * index = 1 -> index element -> printed with "+"
  */
-static void printXMLAttribute(SmiNode *node, int index)
+static void diaPrintXMLAttribute(SmiNode *node, int index)
 {
     printf("        <composite type=\"umlattribute\">\n");
     printf("          <attribute name=\"name\">\n");
     printf("            <string>#%s#</string>\n", node->name);
     printf("          </attribute>\n");
     
-    printXMLType(node);
+    diaPrintXMLType(node,index);
     
     printf("          <attribute name=\"value\">\n");
     printf("            <string/>\n");
     printf("          </attribute>\n");
     printf("          <attribute name=\"visibility\">\n");
 
-    if (index) {
-	printf("            <enum val=\"0\"/>\n");
+    if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
+	printf("            <enum val=\"1\"/>\n");
     } else {
-	printf("            <enum val=\"3\"/>\n");
+	printf("            <enum val=\"0\"/>\n");
     }
     
     printf("          </attribute>\n");
@@ -1791,7 +1776,7 @@ static void printXMLAttribute(SmiNode *node, int index)
 /*
  * prints the related scalars for a given table
  */
-static void printXMLRelatedScalars(GraphNode *node)
+static void diaPrintXMLRelatedScalars(GraphNode *node)
 {
     GraphEdge *tEdge;
     
@@ -1803,15 +1788,34 @@ static void printXMLRelatedScalars(GraphNode *node)
 	    tEdge->dia.flags |= DIA_PRINT_FLAG;
 	    tEdge->endNode->dia.flags |= DIA_PRINT_FLAG;
 
-	    printXMLAttribute(tEdge->endNode->smiNode,0);
+	    diaPrintXMLAttribute(tEdge->endNode->smiNode,0);
 	}
     }
 }
-    
+
 /*
- * prints all columns objcets of the given node
+ * Returns 1 is the smiNode is an index objects and otherwise 0.
  */
-static void printXMLAllColumns(GraphNode *node)
+static int isElementObject(SmiNode *table, SmiNode *smiNode)
+{
+    SmiElement *smiElement;
+    SmiNode    *tNode;
+
+    tNode = smiGetFirstChildNode(table);
+    
+    for (smiElement = smiGetFirstElement(tNode);
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	if (cmpSmiNodes(smiGetElementNode(smiElement), smiNode)) return 1;
+    }
+
+    return 0;
+}
+
+/*
+ * prints all columns objects of the given node
+ */
+static void diaPrintXMLAllColumns(GraphNode *node)
 {
     SmiModule *module  = NULL;
     SmiNode   *smiNode = NULL;
@@ -1825,12 +1829,13 @@ static void printXMLAllColumns(GraphNode *node)
 	ppNode = smiGetParentNode(smiNode);
 	ppNode = smiGetParentNode(ppNode);
 	
-	if (cmpSmiNodes(node->smiNode, ppNode))
-	    printXMLAttribute(smiNode, 0);
+	if (!isElementObject(node->smiNode, smiNode) &&
+	    cmpSmiNodes(node->smiNode, ppNode))
+	    diaPrintXMLAttribute(smiNode, 0);
     }
 }
 
-static void printXMLObject(GraphNode *node, float x, float y)
+static void diaPrintXMLObject(GraphNode *node, float x, float y)
 {
     SmiElement *smiElement;
     
@@ -1839,7 +1844,7 @@ static void printXMLObject(GraphNode *node, float x, float y)
 
     node->dia.x = x;
     node->dia.y = y;
-    node->dia.flags |= DIA_PRINT_FLAG; //object is now printed
+    node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
     
     printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
 	   node->smiNode->name);
@@ -1862,7 +1867,7 @@ static void printXMLObject(GraphNode *node, float x, float y)
     printf("       <string>#%s#</string>\n",node->smiNode->name);
     printf("     </attribute>\n");
     printf("     <attribute name=\"stereotype\">\n");
-    printf("        <string>#Table#</string>\n");
+    printf("        <string>#%s#</string>\n", STEREOTYPE);
     printf("     </attribute>\n");
     printf("     <attribute name=\"abstract\">\n");
     printf("       <boolean val=\"false\"/>\n");
@@ -1882,18 +1887,19 @@ static void printXMLObject(GraphNode *node, float x, float y)
 
     printf("     <attribute name=\"attributes\">\n");
 
-    for (smiElement = smiGetFirstElement(smiGetFirstChildNode(node->smiNode));
-	 smiElement;
-	 smiElement = smiGetNextElement(smiElement)) {
-	printXMLAttribute(smiGetElementNode(smiElement),1);
-    }
-    
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
-	printXMLRelatedScalars(node);
+	diaPrintXMLRelatedScalars(node);
 	
+	for (smiElement = smiGetFirstElement(
+	    smiGetFirstChildNode(node->smiNode));
+	     smiElement;
+	     smiElement = smiGetNextElement(smiElement)) {
+	    diaPrintXMLAttribute(smiGetElementNode(smiElement),1);
+	}
+
 	if (PRINTDETAILEDATTR) {
-	    printXMLAllColumns(node);
+	    diaPrintXMLAllColumns(node);
 	}
     }
     
@@ -1908,13 +1914,11 @@ static void printXMLObject(GraphNode *node, float x, float y)
 }
 
 /* prints a group of scalars denoted by group */
-static void printXMLGroup(int group, float x, float y)
+static void diaPrintXMLGroup(int group, float x, float y)
 {
     GraphNode *tNode;
 
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) break;
     }
 
@@ -1942,7 +1946,7 @@ static void printXMLGroup(int group, float x, float y)
 	   smiGetParentNode(tNode->smiNode)->name);
     printf("     </attribute>\n");
     printf("     <attribute name=\"stereotype\">\n");
-    printf("         <string>#Scalar-Group#</string>\n");
+    printf("         <string>#%s#</string>\n", STEREOTYPE);
     printf("     </attribute>\n");
     printf("     <attribute name=\"abstract\">\n");
     printf("       <boolean val=\"false\"/>\n");
@@ -1962,12 +1966,9 @@ static void printXMLGroup(int group, float x, float y)
 
     printf("     <attribute name=\"attributes\">\n");
 
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph,tNode)){
-
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) {
-	    printXMLAttribute(tNode->smiNode,0);
+	    diaPrintXMLAttribute(tNode->smiNode,0);
 	}
     }
     
@@ -2129,7 +2130,7 @@ static float getObjYRel(GraphEdge *edge, int con)
  *
  * prints and calculates the coordinates of a given edge
  */
-static void printCoordinates(GraphEdge *tEdge)
+static void diaPrintXMLCoordinates(GraphEdge *tEdge)
 {
     int scon, econ;
 
@@ -2165,11 +2166,11 @@ static void printCoordinates(GraphEdge *tEdge)
 }
 
 /*
- * printConPoints
+ * diaPrintXMLConPoints
  *
  * prints the connection points of an edge
  */
-static void printConPoints(GraphEdge *tEdge)
+static void diaPrintXMLConPoints(GraphEdge *tEdge)
 {
     int scon, econ;
 
@@ -2184,7 +2185,7 @@ static void printConPoints(GraphEdge *tEdge)
     printf("    </connections>\n");    
 }
 
-static void printXMLDependency(GraphEdge *tEdge)
+static void diaPrintXMLDependency(GraphEdge *tEdge)
 {
     if (tEdge->dia.flags & DIA_PRINT_FLAG) return;
     tEdge->dia.flags |= DIA_PRINT_FLAG;
@@ -2194,7 +2195,7 @@ static void printXMLDependency(GraphEdge *tEdge)
 	   tEdge->startNode->smiNode->name,
 	   tEdge->endNode->smiNode->name);    
 
-    printCoordinates(tEdge);
+    diaPrintXMLCoordinates(tEdge);
     
     printf("     <attribute name=\"orth_orient\">\n");
     printf("       <enum val=\"1\"/>\n");
@@ -2211,7 +2212,7 @@ static void printXMLDependency(GraphEdge *tEdge)
     printf("      <string/>\n");
     printf("    </attribute>\n");
 
-    printConPoints(tEdge);
+    diaPrintXMLConPoints(tEdge);
     
     printf("    </object>\n");
 }
@@ -2220,7 +2221,7 @@ static void printXMLDependency(GraphEdge *tEdge)
  * Aggregation is a special case of the association.
  * If aggregate = 1 it is an aggregation if 0 it is an association.
  */
-static void printXMLAssociation(GraphEdge *tEdge, int aggregate)
+static void diaPrintXMLAssociation(GraphEdge *tEdge, int aggregate)
 {
     if (tEdge->dia.flags & DIA_PRINT_FLAG) return;
     tEdge->dia.flags |= DIA_PRINT_FLAG;
@@ -2232,7 +2233,7 @@ static void printXMLAssociation(GraphEdge *tEdge, int aggregate)
 	   tEdge->startNode->smiNode->name,
 	   tEdge->endNode->smiNode->name);
     
-    printCoordinates(tEdge);
+    diaPrintXMLCoordinates(tEdge);
     
     printf("      <attribute name=\"orth_orient\">\n");
     printf("        <enum val=\"1\"/>\n");
@@ -2283,7 +2284,7 @@ static void printXMLAssociation(GraphEdge *tEdge, int aggregate)
     }
     
     printf("      </attribute>\n");
-    printf("      <attribute name=\"direction\">\n");
+    printf("      <attribute name=\"direction\">\n"); 
     printf("        <enum val=\"0\"/>\n");
     printf("      </attribute>\n");
     printf("      <attribute name=\"ends\">\n");
@@ -2360,35 +2361,35 @@ static void printXMLAssociation(GraphEdge *tEdge, int aggregate)
     printf("        </composite>\n");
     printf("      </attribute>\n");
 
-    printConPoints(tEdge);
+    diaPrintXMLConPoints(tEdge);
     
     printf("    </object>\n");
 }
 
-static void printXMLConnection(GraphEdge *tEdge)
+static void diaPrintXMLConnection(GraphEdge *tEdge)
 {
     switch (tEdge->connection) {
     case GRAPH_CON_UNKNOWN:
 	break;
     case GRAPH_CON_AGGREGATION :
-	printXMLAssociation(tEdge,1);
+	diaPrintXMLAssociation(tEdge,1);
 	break;
     case GRAPH_CON_DEPENDENCY :
-	printXMLDependency(tEdge);
+	diaPrintXMLDependency(tEdge);
 	break;
     case GRAPH_CON_ASSOCIATION :
-	printXMLAssociation(tEdge,0);
+	diaPrintXMLAssociation(tEdge,0);
 	break;	    
     }
 }
 
 /*
- * printNote
+ * diaPrintXMLInfoNote
  *
  * Prints an UML note with a short information on it (Modulename and
  * smidump version).
  */
-static void printInfoNote()
+static void diaPrintXMLInfoNote()
 {
     int     length;
     float   width;
@@ -2404,7 +2405,7 @@ static void printInfoNote()
     
     length = strlen(s1) + strlen(s2) + 1;
     for (tModule = moduleList; tModule; tModule = tModule->nextPtr) {
-	length += strlen(tModule->moduleName)+1;
+	length += strlen(tModule->smiModule->name)+1;
     }
 
     /*
@@ -2414,7 +2415,7 @@ static void printInfoNote()
     note = xmalloc(length);
     strcpy(note, s1);
     for (tModule = moduleList; tModule; tModule = tModule->nextPtr) {
-	strcat(note, tModule->moduleName);
+	strcat(note, tModule->smiModule->name);
 	strcat(note, " ");
     }
     strcat(note, s2);
@@ -2466,11 +2467,11 @@ static void printInfoNote()
 }
 
 /*
- * calcSize
+ * diaCalcSize
  *
  * Calculates the size of a given node for the UML representation.
  */
-static GraphNode *calcSize(GraphNode *node)
+static GraphNode *diaCalcSize(GraphNode *node)
 {
     GraphEdge  *tEdge;
     SmiNode    *tNode,*ppNode;
@@ -2491,7 +2492,8 @@ static GraphNode *calcSize(GraphNode *node)
 	tNode = smiGetElementNode(smiElement);
 	
 	node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-				strlen(algGetTypeName(tNode)))
+					strlen(algGetTypeName(tNode)) +
+					strlen(INDEXPROPERTY))
 		      * ATTRFONTSIZE
 		      + ATTRSPACESIZE);
 	node->dia.h += TABLEELEMHEIGHT;
@@ -2534,7 +2536,7 @@ static GraphNode *calcSize(GraphNode *node)
     return node;
 }
 
-static float printNode(GraphNode *node, float x, float y)
+static float diaPrintNode(GraphNode *node, float x, float y)
 {
     GraphEdge *tEdge;
 
@@ -2544,14 +2546,13 @@ static float printNode(GraphNode *node, float x, float y)
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
 	    if (node == tEdge->startNode) {
 		y += tEdge->endNode->dia.h + YSPACING;    
-		printXMLObject(tEdge->endNode,x,y);
-		printXMLConnection(tEdge);
+		diaPrintXMLObject(tEdge->endNode, x, y);
+		diaPrintXMLConnection(tEdge);
 
-		y = printNode(tEdge->startNode,
-			      x,y);
-			      //(x+tEdge->startNode->dia.w+XSPACING),y);
+		y = diaPrintNode(tEdge->startNode, x, y);
+		/* (x+tEdge->startNode->dia.w+XSPACING),y); */
 		
-		y = printNode(tEdge->endNode,
+		y = diaPrintNode(tEdge->endNode,
 		  (x+tEdge->startNode->dia.w+XSPACING), y);
 	    }
 	}
@@ -2560,22 +2561,20 @@ static float printNode(GraphNode *node, float x, float y)
     return y;
 }
 
-static void printXML()
+static void diaPrintXML()
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
     float     x,y,ydiff;
     int       group;
     
-    printHeader();
+    diaPrintXMLHeader();
 
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
-	tNode = calcSize(tNode);
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
+	tNode = diaCalcSize(tNode);
     }
 
-    printInfoNote();
+    diaPrintXMLInfoNote();
     
     x = XOFFSET;
     y = YOFFSET;
@@ -2583,16 +2582,16 @@ static void printXML()
     
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
-	    printXMLObject(tEdge->startNode, x, y);
+	    diaPrintXMLObject(tEdge->startNode, x, y);
 	    x = x + tEdge->startNode->dia.w + XSPACING;
 
-	    printXMLObject(tEdge->endNode, x, y);
-	    printXMLConnection(tEdge);
+	    diaPrintXMLObject(tEdge->endNode, x, y);
+	    diaPrintXMLConnection(tEdge);
 	    
 	    ydiff = tEdge->startNode->dia.h;
 
-      	    y = printNode(tEdge->startNode,x,y);
-	    y = printNode(tEdge->endNode,x,y);    
+      	    y = diaPrintNode(tEdge->startNode,x,y);
+	    y = diaPrintNode(tEdge->endNode,x,y);    
 
 	    y = y + ydiff + YSPACING;
 	    x = XOFFSET;
@@ -2604,13 +2603,10 @@ static void printXML()
     ydiff = 0;
     
     /* printing singular tables */
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
-
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!graphGetFirstEdgeByNode(graph,tNode) &&
 	    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
-	    printXMLObject(tNode,x,y);
+	    diaPrintXMLObject(tNode,x,y);
 	    
 	    x += tNode->dia.w + XSPACING;
 	    ydiff = max(ydiff, tNode->dia.h);
@@ -2627,72 +2623,35 @@ static void printXML()
     for (group = 1;
 	 group <= algGetNumberOfGroups();
 	 group++) {
-	printXMLGroup(group,x,y);
+	diaPrintXMLGroup(group,x,y);
 	x += 2;
 	y += 2;
     }
     
-    printCloseXML();
+    diaPrintXMLClose();
 }
 
 
 
 /* ------------------------------------------------------------------------- */
 
-static void printModuleNames()
+static void printModuleNames(Module *module)
 {
     Module *mPtr;
 
     printf("Conceptual model of : ");
 
-    mPtr = moduleList;
-    
-    for (mPtr = moduleList; mPtr; mPtr = mPtr->nextPtr) {
-	printf("%s ",mPtr->moduleName);
+    if (module->smiModule) {
+	printf("%s ", module->smiModule->name);
+    }  else {
+	for (mPtr = module; mPtr; mPtr = mPtr->nextPtr) {
+	    if (mPtr->smiModule) {
+		printf("%s ", mPtr->smiModule->name);
+	    }
+	}
     }
 
     printf("(generated by smidump " VERSION ")\n\n");
-}
-
-static void addToModuleList(char *name)
-{
-    Module *mPtr;
-
-    mPtr = xmalloc(sizeof(Module));
-    mPtr->moduleName = xstrdup(name);
-    mPtr->nextPtr = moduleList;
-    moduleList = mPtr;
-}
-
-static void freeModules()
-{
-    Module *mPtr;
-
-    while (moduleList) {
-	mPtr = moduleList;
-	moduleList = moduleList->nextPtr;
-	xfree(mPtr->moduleName);
-	xfree(mPtr);
-    }
-}
-
-static void addModule(char *modulename)
-{
-    addToModuleList(modulename);
-    
-    if (!modulename) {
-	fprintf(stderr,"smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
-
-    if (!graph) {
-	graph        = xmalloc(sizeof(Graph));
-	graph->nodes = NULL;
-	graph->edges = NULL;
-    }
-
-    createNodes(smiGetModule(modulename));
-
 }
 
 /*
@@ -2701,20 +2660,32 @@ static void addModule(char *modulename)
  * Main function called by the interface functions dumpCMDia and
  * dumpCMXplain.
  */
-static int dumpCM(char *modulename, int flags)
+
+static void dumpCM(Module *module)
 {
-    int unite;
+    SmiModule *smiModule;
+    int       flags, unite;
+
+    smiModule = module->smiModule;
+    flags = module->flags;
     
     unite = flags & SMIDUMP_FLAG_UNITE;
 
-    if (modulename) {
-	addModule(modulename);
+    if (smiModule) {
+
+	if (!graph) {
+	    graph = xmalloc(sizeof(Graph));
+	    graph->nodes = NULL;
+	    graph->edges = NULL;
+	}
+	
+	algCreateNodes(smiModule);
     }
 
-    if ((modulename && !unite) || (!modulename && unite)) {
+    if ((smiModule && !unite) || (!smiModule && unite)) {
 
 	if (XPLAIN) {
-	    printModuleNames();
+	    printModuleNames(module);
 	    graphShowNodes(graph);
 	}
 	
@@ -2724,37 +2695,32 @@ static int dumpCM(char *modulename, int flags)
 	algCheckForDependency();
 	
 	if (!XPLAIN) {
-	    printXML();
+	    diaPrintXML();
 	}
 	
 	graphExit(graph);
-	freeModules();
+	graph = NULL;
     }
-
-    return 0;
 }
 
 /*
  * called interface function for UML output in dia format
  */
-int dumpCMDia(char *modulename, int flags)
+
+void dumpCMDia(Module *module)
 {
     XPLAIN = 0;
     
-    dumpCM(modulename, flags);
-
-    return 0;
+    dumpCM(module);
 }
 
 /*
  * called interface function for ASCII output with explanations
  */
-int dumpCMXplain(char *modulename, int flags)
-{
 
+void dumpCMXplain(Module *module)
+{
     XPLAIN = 1;
     
-    dumpCM(modulename, flags);
-
-    return 0;
+    dumpCM(module);
 }
