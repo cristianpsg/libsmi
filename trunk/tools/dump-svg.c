@@ -60,11 +60,6 @@ static const float STARTSCALE          =(float)0.5;
 //used by the springembedder
 static const int ITERATIONS            =100;
 
-/*
- * Property String for index objects
- */
-static const char* INDEXPROPERTY       = " {index}";
-
 
 
 /* ------ Misc. -----------------                                            */
@@ -277,19 +272,17 @@ static void printSVGAttribute(SmiNode *node, int index,
     char        *tooltip;
     char        *typeDescription;
 
-    printf("    <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"",
-			node->name, *textXOffset + ATTRSPACESIZE, *textYOffset);
+    printf("    <text ");
+    if (!index) {
+	printf("id=\"%s\" ", node->name);
+    }
+    printf("x=\"%.2f\" y=\"%.2f\">\n",
+				*textXOffset + ATTRSPACESIZE, *textYOffset);
 
     *textYOffset += TABLEELEMHEIGHT;
 
     //FIXME
     //printf(" textLength=\"100\" lengthAdjust=\"spacingAndGlyphs\"");
-
-    if (node->nodekind == SMI_NODEKIND_SCALAR) {
-	printf(" style=\"text-decoration:underline\">\n");
-    } else {
-	printf(">\n");
-    }
 
     if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
 	printf("         -");
@@ -317,11 +310,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    xfree(tooltip);
 	}
     }
-    if (index) {
-	printf(">%s%s</tspan></text>\n", algGetTypeName(node), INDEXPROPERTY);
-    } else {
-	printf(">%s</tspan></text>\n", algGetTypeName(node));
-    }
+    printf(">%s</tspan></text>\n", algGetTypeName(node));
 }
 
 /*
@@ -1085,8 +1074,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 		    tNode = smiGetElementNode(smiElement);
 
 		    node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-					    strlen(algGetTypeName(tNode)) +
-					    strlen(INDEXPROPERTY) + 3)
+					    strlen(algGetTypeName(tNode)) + 3)
 						    * ATTRFONTSIZE
 						    + ATTRSPACESIZE);
 		    node->dia.h += TABLEELEMHEIGHT;
@@ -1104,8 +1092,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	tNode = smiGetElementNode(smiElement);
 	
 	node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-					strlen(algGetTypeName(tNode)) +
-					strlen(INDEXPROPERTY) + 3)
+					strlen(algGetTypeName(tNode)) + 3)
 		      * ATTRFONTSIZE
 		      + ATTRSPACESIZE);
 	node->dia.h += TABLEELEMHEIGHT;
