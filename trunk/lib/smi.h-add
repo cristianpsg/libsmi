@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.3 1999/03/16 17:24:11 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.4 1999/03/17 19:09:09 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -30,14 +30,13 @@
 #define SMI_FLAGMASK    (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
 
 
-#define smiStringAccess(access) ( \
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" : \
-	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" : \
-	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" : \
-	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" : \
-	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" : \
-	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" : \
-						"<unknown>" )
+#define smingStringStatus(status) ( \
+	(status == SMI_STATUS_CURRENT)     ? "current" : \
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" : \
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" : \
+	(status == SMI_STATUS_MANDATORY)   ? "current" : \
+	(status == SMI_STATUS_OPTIONAL)    ? "current" : \
+					     "<unknown>" )
 
 #define smiStringStatus(status) ( \
 	(status == SMI_STATUS_CURRENT)     ? "current" : \
@@ -46,6 +45,15 @@
 	(status == SMI_STATUS_MANDATORY)   ? "mandatory" : \
 	(status == SMI_STATUS_OPTIONAL)    ? "optional" : \
 					     "<unknown>" )
+
+#define smiStringAccess(access) ( \
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" : \
+	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" : \
+	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" : \
+	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" : \
+	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" : \
+	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" : \
+						"<unknown>" )
 
 #define smiStringDecl(macro) ( \
 	(macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" : \
@@ -83,6 +91,8 @@
 
 extern time_t smiMkTime(const char *s);
 
+extern char *smiCTime(time_t t);
+
 extern char *smiModule(smi_fullname smiFullname);
 
 extern char *smiDescriptor(smi_fullname smiFullname);
@@ -117,11 +127,21 @@ extern int smiLoadModule(smi_descriptor modulename);
 
 extern smi_module *smiGetModule(smi_descriptor spec);
 
+extern smi_revision *smiGetFirstRevision(smi_descriptor modulename);
+
+extern smi_revision *smiGetNextRevision(smi_descriptor modulename,
+					time_t date);
+
 extern smi_node *smiGetNode(smi_fullname spec,
 			    smi_descriptor mod);
 
 extern smi_type *smiGetType(smi_fullname spec,
 			    smi_descriptor mod);
+
+extern smi_type *smiGetFirstType(smi_descriptor modulename);
+
+extern smi_type *smiGetNextType(smi_descriptor modulename,
+			    	smi_descriptor name);
 
 extern smi_macro *smiGetMacro(smi_fullname spec,
 			      smi_descriptor mod);

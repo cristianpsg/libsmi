@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.1 1999/03/11 17:33:05 strauss Exp $
+% * @(#) $Id: smi.x,v 1.3 1999/03/16 20:47:33 strauss Exp $
 % */
 %
 
@@ -97,11 +97,6 @@ enum smi_decl {
     SMI_DECL_COMPLIANCE		= 42
 };
 
-struct smi_getspec {
-    smi_fullname	name;
-    int			wantdescr;
-};
-
 struct smi_module {
     smi_descriptor	name;
     smi_descriptor	object;
@@ -110,7 +105,12 @@ struct smi_module {
     smi_string		contactinfo;
     smi_string		description;
     smi_string		reference;
-    /* TODO: revisions */
+    int			revisions;
+};
+
+struct smi_revision {
+    long	        date;
+    smi_string		description;
 };
 
 struct smi_node {
@@ -127,6 +127,7 @@ struct smi_node {
     smi_access		access;
     smi_status		status;
     smi_string		format;
+    smi_string		units;
     smi_string		description;
     smi_string		reference;
 };
@@ -137,6 +138,7 @@ struct smi_type {
     smi_syntax		syntax;
     smi_decl		decl;
     smi_string		format;
+    smi_string		units;
     smi_status		status;
     smi_string		description;
     smi_string		reference;
@@ -164,30 +166,34 @@ program SMIPROG {
     version SMIVERS {
 	/*
 	 * SMIPROC_MODULE returns the module information. The input's
-	 * smi_getspec.smi_fullname value must be a module name.
+	 * smi_fullname value must be a module name.
 	 */
-	smi_module	SMIPROC_MODULE(smi_getspec)	= 1;
+	smi_module	SMIPROC_MODULE(smi_fullname)	= 1;
+	/*
+	 * SMIPROC_REVISION returns the n'th revision...
+	 */
+	smi_revision	SMIPROC_REVISION(smi_fullname)	= 2;
 	/*
 	 * SMIPROC_NODE returns the node information. The input's
-	 * smi_getspec.smi_fullname might also be an object instance
+	 * smi_fullname might also be an object instance
 	 * identifier to retrieve the corresponding object type node.
 	 */
-	smi_node	SMIPROC_NODE(smi_getspec)	= 2;
+	smi_node	SMIPROC_NODE(smi_fullname)	= 3;
 	/*
 	 * SMIPROC_TYPE
 	 */
-	smi_type	SMIPROC_TYPE(smi_getspec)	= 3;
+	smi_type	SMIPROC_TYPE(smi_fullname)	= 4;
 	/*
 	 * SMIPROC_MACRO
 	 */
-	smi_macro	SMIPROC_MACRO(smi_fullname)	= 4;
+	smi_macro	SMIPROC_MACRO(smi_fullname)	= 5;
 	/*
 	 * SMIPROC_NAMES returns a blank-separated list of fully
 	 * qualified smi_fullnames that match the given input,
 	 * which might be a non-unique descriptor or an OID that
 	 * is defined in multiple modules.
 	 */
-	smi_namelist	SMIPROC_NAMES(smi_fullname) 	= 5;
+	smi_namelist	SMIPROC_NAMES(smi_fullname) 	= 6;
 	/*
 	 * SMIPROC_CHILDREN returns a blank-separated list of fully
 	 * qualified smi_fullnames representing all child nodes of
@@ -197,7 +203,7 @@ program SMIPROG {
 	 *	 ranges. Problem: Then the client cannot filter out the
 	 *	 children that do not belong to its view by modules.
 	 */
-	smi_namelist	SMIPROC_CHILDREN(smi_fullname) 	= 6;
+	smi_namelist	SMIPROC_CHILDREN(smi_fullname) 	= 7;
 	/*
 	 * SMIPROC_MEMBERS returns a blank-separated list of fully
 	 * qualified smi_fullnames representing
@@ -214,11 +220,11 @@ program SMIPROG {
 	 * - [??? all augmentation elements if it represents a table
 	 *   augmentation object type. ???]
 	 */
-	smi_namelist	SMIPROC_MEMBERS(smi_fullname) 	= 7;
+	smi_namelist	SMIPROC_MEMBERS(smi_fullname) 	= 8;
 	/*
 	 * SMIPROC_PARENT returns a fully qualified smi_fullname
 	 * representing the parent of the given input node.
 	 */
-	smi_fullname	SMIPROC_PARENT(smi_fullname) 	= 8;
+	smi_fullname	SMIPROC_PARENT(smi_fullname) 	= 9;
     } = 1;
 } = 0x22315258; /* User-defined range: 0x20000000 - 0x3fffffff */

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-data.h,v 1.1 1999/03/16 17:24:12 strauss Exp $
  */
 
 #ifndef _DUMP_DATA_H
@@ -17,6 +17,8 @@
 
 
 extern void dumpMibTree();
+
+extern void dumpTypes();
 
 
 

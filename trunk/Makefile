@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.11 1999/03/15 11:07:06 strauss Exp $
+# @(#) $Id: Makefile,v 1.13 1999/03/16 20:47:29 strauss Exp $
 #
 
 MIBDIR		= ../scotty/tnm/mibs
@@ -11,7 +11,8 @@ DEFINES		= -DTEXTS_IN_MEMORY=20000 -DRPC_SVC_FG -DDEBUG -DBACKEND_RPC -DBACKEND_
 CC		= gcc
 CFLAGS		= -I. -Ilib -Wall -g $(DEFINES)
 LD		= gcc
-LDFLAGS		=
+#LDFLAGS		= -ldbmalloc
+LDFLAGS		= 
 RANLIB		= ranlib
 AR		= ar
 RPCGEN		= rpcgen
@@ -59,25 +60,45 @@ $(LIBSMI_STATIC): lib/smi.h $(LIBSMI_OBJS)
 tools: tools/smilint tools/smidump tools/smiquery tools/smiclient tools/smid
 
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
-	$(LD) $(LD_FLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -ll -lnsl
+	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -ll -lnsl
 
 tools/smidump: tools/smidump.o tools/dump-sming.o tools/dump-data.o $(LIBSMI_STATIC)
-	$(LD) $(LD_FLAGS) -o tools/smidump $^ -ll -lnsl
+	$(LD) $(LDFLAGS) -o tools/smidump $^ -ll -lnsl
 
 tools/smiquery: $(LIBSMI_STATIC) tools/smiquery.o
-	$(LD) $(LD_FLAGS) -o tools/smiquery tools/smiquery.o $(LIBSMI_STATIC) -ll -lnsl
+	$(LD) $(LDFLAGS) -o tools/smiquery tools/smiquery.o $(LIBSMI_STATIC) -ll -lnsl
 
 clean:
-	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c
+	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser.y.html
+
+install: install-prg install-conf install-dev install-lib install-html
+
+install-prg: tools/smilint tools/smidump tools/smiclient tools/smiquery tools/smid doc/smilint.1
+	cp tools/smilint tools/smidump tools/smiclient tools/smiquery tools/smid ${PREFIX}/bin
+	cp doc/smilint.1 ${PREFIX}/man/man1
+
+install-conf:
+	cp etc/smi*.conf ${PREFIX}/etc
+
+install-dev: lib/smi.h lib/libsmi.a
+	cp lib/smi.h ${PREFIX}/include
+	cp lib/libsmi.a ${PREFIX}/lib
+
+install-lib:
+	if [ ! -d ${PREFIX}/lib/smi ] ; then mkdir ${PREFIX}/lib/smi ; fi
+	if [ ! -d ${PREFIX}/lib/smi/mibs ] ; then mkdir ${PREFIX}/lib/smi/mibs ; fi
+	cp mibs/SNMP* mibs/RFC* ${PREFIX}/lib/smi/mibs
+
+install-html: doc/parser.y.html
+#	if [ -d /usr/home/strauss/WWW/sming ] ; then \
+#		cp doc/parser.y.html /usr/home/strauss/WWW/sming ; \
+#	fi
+
+doc/parser.y.html: lib/parser-smi.y
+#	make -C src parser.y.html
 
 
 
-
-
-
-
-parser.y.html: src/parser.y
-	make -C src parser.y.html
 
 clobber: clean
 	rm -f miblint libsmi.h libsmi.a parser.y.html smid smiclient smiquery
@@ -89,31 +110,8 @@ dist:
 
 test: test-miblint
 
-install: install-prg install-html
-
 test-miblint: miblint
 	for f in ${MIBDIR}/* ; do \
 	    if [ -f $$f ] ; then ./miblint -l9 $$f ; fi ; \
 	done
-
-install-prg: miblint smiclient smiquery smid smi.h libsmi.a
-	cp smi.conf ${PREFIX}/etc/smi.conf
-	cp smid.conf ${PREFIX}/etc/smid.conf
-	cp smiquery.conf ${PREFIX}/etc/smiquery.conf
-	#cp smiscotty.conf ${PREFIX}/etc/smiscotty.conf
-	cp miblint ${PREFIX}/bin
-	cp smiclient ${PREFIX}/bin
-	cp smiquery ${PREFIX}/bin
-	cp smid ${PREFIX}/sbin
-	cp smi.h ${PREFIX}/include
-	cp libsmi.a ${PREFIX}/lib
-	cp miblint.1 ${PREFIX}/man/man1/miblint.1
-	if [ ! -d ${PREFIX}/lib/smi ] ; then mkdir ${PREFIX}/lib/smi ; fi
-	if [ ! -d ${PREFIX}/lib/smi/mibs ] ; then mkdir ${PREFIX}/lib/smi/mibs ; fi
-	cp mibs/SNMP* mibs/RFC* ${PREFIX}/lib/smi/mibs
-
-install-html: parser.y.html
-	if [ -d /usr/home/strauss/WWW/sming ] ; then \
-		cp parser.y.html /usr/home/strauss/WWW/sming ; \
-	fi
 

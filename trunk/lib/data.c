@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.6 1999/03/16 20:47:30 strauss Exp $
+ * @(#) $Id: data.c,v 1.7 1999/03/17 19:09:06 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -291,10 +291,8 @@ addModule(modulename, path, locationPtr, fileoffset, flags, parserPtr)
     modulePtr->lastMacroPtr			= NULL;
     modulePtr->firstImportPtr			= NULL;
     modulePtr->lastImportPtr			= NULL;
-#if 0
     modulePtr->firstRevisionPtr			= NULL;
     modulePtr->lastRevisionPtr			= NULL;
-#endif
     
     modulePtr->numImportedIdentifiers		= 0;
     modulePtr->numStatements			= 0;
@@ -485,6 +483,59 @@ findModuleByName(modulename)
     printDebug(6, " = NULL\n");
 #endif
     return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * addRevision --
+ *
+ *      Adds a revision entry for the given module.
+ *
+ * Results:
+ *      0 on success or -1 on an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Revision *
+addRevision(date, description, parserPtr)
+    time_t	  date;
+    const char	  *description;
+    Parser	  *parserPtr;
+{
+    Revision	  *revisionPtr;
+    Module	  *modulePtr;
+#ifdef DEBUG
+    printDebug(4, "addRevision(%ld, %s, 0x%x)\n",
+	       date, description, parserPtr);
+#endif
+
+    revisionPtr = (Revision *)util_malloc(sizeof(Revision));
+    if (!revisionPtr) {
+	printError(parserPtr, ERR_ALLOCATING_REVISION, strerror(errno));
+	return (NULL);
+    }
+
+    modulePtr = parserPtr->modulePtr;
+    
+    revisionPtr->date		       	 = date;
+    revisionPtr->description	       	 = util_strdup(description);
+    
+    revisionPtr->nextPtr		 = NULL;
+    revisionPtr->prevPtr		 = modulePtr->lastRevisionPtr;
+    if (!modulePtr->firstRevisionPtr)
+	modulePtr->firstRevisionPtr	 = revisionPtr;
+    if (modulePtr->lastRevisionPtr)
+	modulePtr->lastRevisionPtr->nextPtr = revisionPtr;
+    modulePtr->lastRevisionPtr		 = revisionPtr;
+    
+    return (revisionPtr);
 }
 
 
@@ -762,6 +813,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->flags				= flags;
     objectPtr->description			= NULL;
     objectPtr->reference			= NULL;
+    objectPtr->units				= NULL;
     
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -850,12 +902,9 @@ duplicateObject(templatePtr, flags, parserPtr)
     nodePtr   = templatePtr->nodePtr;
     
     objectPtr->modulePtr		              = modulePtr;
-    objectPtr->nodePtr				      = nodePtr;
-    objectPtr->flags				      = flags;
     objectPtr->name				      = NULL;
     objectPtr->fileoffset			      = -1;
-    objectPtr->prevPtr				      = NULL;
-    objectPtr->nextPtr				      = NULL;
+    objectPtr->nodePtr				      = nodePtr;
     objectPtr->prevSameNodePtr			      = NULL;
     objectPtr->nextSameNodePtr			      = NULL;
     objectPtr->typePtr				      = NULL;
@@ -863,16 +912,22 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->decl				      = SMI_DECL_UNKNOWN;
     objectPtr->access				      = SMI_ACCESS_UNKNOWN;
     objectPtr->status				      = SMI_STATUS_UNKNOWN;
+    objectPtr->flags				      = flags;
     objectPtr->description			      = NULL;
     objectPtr->reference			      = NULL;
+    objectPtr->units				      = NULL;
 
     objectPtr->nextPtr				= NULL;
-    objectPtr->prevPtr				= modulePtr->lastObjectPtr;
-    if (!modulePtr->firstObjectPtr)
-	modulePtr->firstObjectPtr		= objectPtr;
-    if (modulePtr->lastObjectPtr)
-	modulePtr->lastObjectPtr->nextPtr	= objectPtr;
-    modulePtr->lastObjectPtr			= objectPtr;
+    if (modulePtr) {
+        objectPtr->prevPtr			= modulePtr->lastObjectPtr;
+	if (!modulePtr->firstObjectPtr)
+	    modulePtr->firstObjectPtr		= objectPtr;
+	if (modulePtr->lastObjectPtr)
+	    modulePtr->lastObjectPtr->nextPtr	= objectPtr;
+	modulePtr->lastObjectPtr		= objectPtr;
+    } else {
+	objectPtr->prevPtr			= NULL;
+    }
     
     objectPtr->prevSameNodePtr			      = nodePtr->lastObjectPtr;
     if (!nodePtr->firstObjectPtr)
@@ -1127,7 +1182,7 @@ setObjectName(objectPtr, name)
 	 * the next pointer.
 	 */
 	nextPtr = nodePtr->nextPtr;
-	
+
 	if (!strcmp(nodePtr->firstObjectPtr->name, name)) {
 
 	    /*
@@ -1353,6 +1408,37 @@ setObjectReference(objectPtr, reference)
 #endif
 
     objectPtr->reference = util_strdup(reference);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectUnits --
+ *
+ *      Set the units of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectUnits(objectPtr, units)
+    Object    *objectPtr;
+    char      *units;
+{
+#ifdef DEBUG
+    printDebug(5, "setObjectUnits(0x%x(%s), %s)\n",
+	       objectPtr, objectPtr->name, units);
+#endif
+
+    objectPtr->units = util_strdup(units);
 }
 
 
@@ -2043,6 +2129,7 @@ addType(typename, syntax, flags, parserPtr)
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
     typePtr->format			= NULL;
+    typePtr->units			= NULL;
 
     typePtr->nextPtr			= NULL;
     if (modulePtr) {
@@ -2115,6 +2202,7 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
     typePtr->format			= NULL;
+    typePtr->units			= NULL;
 
     typePtr->nextPtr			= NULL;
     typePtr->prevPtr			= modulePtr->lastTypePtr;
@@ -2324,6 +2412,38 @@ setTypeFormat(typePtr, format)
 #endif
     
     typePtr->format = util_strdup(format);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeUnits --
+ *
+ *      Set the units of a given Type. Note: units of types are only
+ *	present in SMIng, not in SMIv2.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeUnits(typePtr, units)
+    Type           *typePtr;
+    char	   *units;
+{
+#ifdef DEBUG
+    printDebug(5, "setTypeUnits(0x%x(%s), %s)\n",
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", units);
+#endif
+    
+    typePtr->units = util_strdup(units);
 }
 
 
@@ -2901,7 +3021,6 @@ loadModule(modulename)
     Location	    *locationPtr;
     Parser	    parser;
     Module	    *modulePtr;
-    smi_getspec	    getspec;
     smi_module	    *smimodule;
     char	    s[200];
     char	    *path;
@@ -2922,9 +3041,7 @@ loadModule(modulename)
 #ifdef BACKEND_RPC
 	if (locationPtr->type == LOCATION_RPC) {
 	    
-	    getspec.name = modulename;
-	    getspec.wantdescr = 1;
-	    smimodule = smiproc_module_1(&getspec, locationPtr->cl);
+	    smimodule = smiproc_module_1(&modulename, locationPtr->cl);
 	    if (smimodule && strlen(smimodule->name)) {
 	        /* the RPC server knows this module */
 		modulePtr = addModule(modulename, "", locationPtr, 0, 0, NULL);

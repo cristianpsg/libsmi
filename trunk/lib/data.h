@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.6 1999/03/16 20:47:31 strauss Exp $
+ * @(#) $Id: data.h,v 1.7 1999/03/17 19:09:07 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -115,31 +115,29 @@ typedef struct View {
 
 typedef struct Module {
     smi_descriptor name;
-    char	   *path;
-    Location	   *locationPtr;
-    off_t	   fileoffset;
-    struct Object  *firstObjectPtr;
-    struct Object  *lastObjectPtr;
-    struct Type	   *firstTypePtr;
-    struct Type	   *lastTypePtr;
-    struct Macro   *firstMacroPtr;
-    struct Macro   *lastMacroPtr;
-    struct Import  *firstImportPtr;
-    struct Import  *lastImportPtr;
-    time_t	   lastUpdated;
-    char	   *organization;
-    char	   *contactInfo;
-    struct Object  *objectPtr;
-#if 0
-    Revision       *firstRevisionPtr;
-    Revision       *lastRevisionPtr;
-#endif
-    ModuleFlags	   flags;
-    int		   numImportedIdentifiers;
-    int		   numStatements;
-    int		   numModuleIdentities;
-    struct Module  *nextPtr;
-    struct Module  *prevPtr;
+    char	    *path;
+    Location	    *locationPtr;
+    off_t	    fileoffset;
+    struct Object   *firstObjectPtr;
+    struct Object   *lastObjectPtr;
+    struct Type	    *firstTypePtr;
+    struct Type	    *lastTypePtr;
+    struct Macro    *firstMacroPtr;
+    struct Macro    *lastMacroPtr;
+    struct Import   *firstImportPtr;
+    struct Import   *lastImportPtr;
+    time_t	    lastUpdated;
+    char	    *organization;
+    char	    *contactInfo;
+    struct Object   *objectPtr;
+    struct Revision *firstRevisionPtr;
+    struct Revision *lastRevisionPtr;
+    ModuleFlags	    flags;
+    int		    numImportedIdentifiers;
+    int		    numStatements;
+    int		    numModuleIdentities;
+    struct Module   *nextPtr;
+    struct Module   *prevPtr;
 } Module;
 
 
@@ -154,6 +152,15 @@ typedef struct Import {
 
 
 
+typedef struct Revision {
+    time_t          date;
+    char	    *description;
+    struct Revision *nextPtr;
+    struct Revision *prevPtr;
+} Revision;
+
+
+
 typedef struct Type {
     Module         *modulePtr;
     smi_descriptor name;
@@ -161,6 +168,7 @@ typedef struct Type {
     smi_syntax	   syntax;
     smi_decl	   decl;
     char	   *format;
+    char	   *units;
     smi_status	   status;
     struct List	   *sequencePtr;
     char	   *description;
@@ -189,6 +197,7 @@ typedef struct Object {
     struct List	   *indexPtr;
     char	   *description;
     char	   *reference;
+    char	   *units;
     struct Node	   *nodePtr;
     struct Object  *prevPtr;		/* chain of Objects in this Module */
     struct Object  *nextPtr;
@@ -279,6 +288,12 @@ extern void setModuleContactInfo(Module *modulePtr,
 				 char *contactInfo);
 
 extern Module *findModuleByName(const char *modulename);
+
+
+
+extern Revision *addRevision(time_t date,
+			     const char *description,
+			     Parser *parserPtr);
 
 
 
