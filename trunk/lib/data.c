@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.77 2000/04/10 14:20:14 strauss Exp $
+ * @(#) $Id: data.c,v 1.78 2000/04/11 09:00:24 strauss Exp $
  */
 
 #include <config.h>
@@ -733,6 +733,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     Node	     *nodePtr;
     Module	     *modulePtr;
 
+
     objectPtr = (Object *)util_malloc(sizeof(Object));
 
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
@@ -774,18 +775,17 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     } else {
 	objectPtr->prevPtr			= NULL;
     }
-    
+
     /*
      * Link it into the tree.
      */
-    if ((parentNodePtr == pendingNodePtr) ||
-	(!(nodePtr = findNodeByParentAndSubid(parentNodePtr, subid)))) {
+    nodePtr = findNodeByParentAndSubid(parentNodePtr, subid);
+    if ((parentNodePtr == pendingNodePtr) || (!nodePtr)) {
 
 	/* a new Node has to be created for this Object */
 	nodePtr = addNode(parentNodePtr, subid, flags, parserPtr);
 	nodePtr->firstObjectPtr			      = objectPtr;
 	nodePtr->lastObjectPtr			      = objectPtr;
-	
     } else {
 
         objectPtr->prevSameNodePtr		      = nodePtr->lastObjectPtr;
@@ -1234,8 +1234,20 @@ setObjectName(objectPtr, name)
 		pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
 	    }
 
+#if 0
 	    objectPtr->nodePtr->firstObjectPtr = NULL;
 	    objectPtr->nodePtr->lastObjectPtr = NULL;
+#else
+	    if (objectPtr->nodePtr->lastObjectPtr != NULL) {
+		if (objectPtr->nodePtr->lastObjectPtr->export.oid == NULL) {
+		    objectPtr->nodePtr->lastObjectPtr = 
+			objectPtr->nodePtr->lastObjectPtr->prevSameNodePtr;
+		    if (objectPtr->nodePtr->lastObjectPtr == NULL) {
+			objectPtr->nodePtr->firstObjectPtr = NULL;
+		    }
+		}
+	    }
+#endif
 	    
 	    newObjectPtr = nodePtr->firstObjectPtr;
 	    modulePtr = newObjectPtr->modulePtr;
@@ -1772,7 +1784,7 @@ findNodeByParentAndSubid(parentNodePtr, subid)
 {
     Node *nodePtr;
     
-    if (parentNodePtr) {
+    if (parentNodePtr && (parentNodePtr != pendingNodePtr)) {
 	for (nodePtr = parentNodePtr->firstChildPtr; nodePtr;
 	     nodePtr = nodePtr->nextPtr) {
 	    if (nodePtr->subid == subid) {
