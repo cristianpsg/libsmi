@@ -1,3 +1,12 @@
+2004-07-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y, lib/error.c, lib/data.c: Added checks for
+	revision clauses that reveal revisions after LAST-UPDATED,
+	revisions that are not in reverse chronological order and
+	missing revisions for the LAST-UPDATED timestamp. Besides that,
+	revisions are now implcitly sorted in reverse chronological
+	order.
+
 2004-06-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/{MPLS-TE-STD-MIB,MPLS-LSR-STD-MIB,MPLS-FTN-STD-MIB,
