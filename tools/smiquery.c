@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.48 2000/02/13 13:20:53 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.49 2000/02/22 17:11:14 strauss Exp $
  */
 
 #include <config.h>
@@ -232,13 +232,13 @@ char *formatvalue(const SmiValue *value)
 	if (value->format == SMI_VALUEFORMAT_TEXT) {
 	    sprintf(s, "\"%s\"", value->value.ptr);
 	} else if (value->format == SMI_VALUEFORMAT_HEXSTRING) {
-	    sprintf(s, "'%*s'H", 2 * value->len, " ");
+	    sprintf(s, "'%*s'H", 2 * value->len, "");
 	    for (i=0; i < value->len; i++) {
 		sprintf(ss, "%02x", value->value.ptr[i]);
 		strncpy(&s[1+2*i], ss, 2);
 	    }
 	} else if (value->format == SMI_VALUEFORMAT_BINSTRING) {
-	    sprintf(s, "'%*s'B", 8 * value->len, " ");
+	    sprintf(s, "'%*s'B", 8 * value->len, "");
 	    for (i=0; i < value->len; i++) {
 		/* TODO */
 		sprintf(ss, "%02x", value->value.ptr[i]);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smitree.c,v 1.3 1999/12/17 10:44:24 strauss Exp $
+ * @(#) $Id: smitree.c,v 1.4 2000/02/17 09:00:54 strauss Exp $
  */
 
 #include <stdio.h>
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	smiNode;
         smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
-        printf("%*s%s::%s\n", smiNode->oidlen * 2, " ",
+        printf("%*s%s::%s\n", smiNode->oidlen * 2, "",
                smiModule->name, smiNode->name);
         
     };

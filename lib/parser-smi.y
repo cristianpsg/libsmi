@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.91 2000/02/24 10:35:39 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.92 2000/02/24 14:33:51 strauss Exp $
  */
 
 %{
@@ -1517,6 +1517,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 Syntax:			ObjectSyntax
 			{
 			    $$ = $1;
+			    defaultBasetype = $$->export.basetype;
 			}
 	|		BITS '{' NamedBits '}'
 			/* TODO: standalone `BITS' ok? seen in RMON2-MIB */
@@ -2096,19 +2097,16 @@ ObjectSyntax:		SimpleSyntax
 			}
 	|		conceptualTable	     /* TODO: possible? row? entry? */
 			{
-			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			    /* TODO */
 			    $$ = $1;
 			}
 	|		row		     /* the uppercase name of a row  */
 			{
-			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			    /* TODO */
 			    $$ = $1;
 			}
 	|		entryType	     /* SEQUENCE { ... } phrase */
 			{
-			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			    /* TODO */
 			    $$ = $1;
 			}

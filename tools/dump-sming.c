@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.65 2000/02/22 17:11:14 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.66 2000/02/24 14:33:53 strauss Exp $
  */
 
 #include <config.h>
@@ -377,7 +377,7 @@ static char *getValueString(SmiValue *valuePtr)
 	    (valuePtr->len == 0)) {
 	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
 	} else {
-	    sprintf(s, "0x%*s", 2 * valuePtr->len, " ");
+	    sprintf(s, "0x%*s", 2 * valuePtr->len, "");
 	    for (i=0; i < valuePtr->len; i++) {
 		sprintf(ss, "%02x", valuePtr->value.ptr[i]);
 		strncpy(&s[2+2*i], ss, 2);

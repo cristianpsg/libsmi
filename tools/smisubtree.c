@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smisubtree.c,v 1.10 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: smisubtree.c,v 1.11 2000/02/17 09:00:54 strauss Exp $
  */
 
 #include <stdio.h>
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY), first = 0) {
  
         printf("%*s%-32s\n",
-	       (smiNode->oidlen - oidlen + 1) * 2, " ",
+	       (smiNode->oidlen - oidlen + 1) * 2, "",
 	       smiNode->name);
         
     };
