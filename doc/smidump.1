@@ -1,0 +1,113 @@
+.\"
+.\" $Id$
+.\"
+.TH smidump 1  "May 5, 1999" "IBR" "SMI Tools"
+.SH NAME
+smidump \- dump and convert SMIv1/v2/ng modules
+.SH SYNOPSIS
+.B smidump
+[
+.B "-sSvV"
+] [
+.BI "-l " level
+] [
+.BI "-d " level
+] [
+.BI "-c " config
+] [
+.BI "-L " location
+] [
+.BI "-D " format
+]
+.I "module"
+.SH DESCRIPTION
+The \fBsmidump\fP program is used to dump the contents of a single MIB
+module to stdout in a selectable format. This format may be a simple
+list of objects or types but also a format fully compliant to SMIv2
+or SMIng. This allows to convert modules from SMIv2 to SMIng and from
+SMIng to SMIv2.
+.PP
+\fBSmidump\fP first reads the global libsmi configuration file
+\fB/usr/local/etc/smi.conf\fP, as any libsmi application does. Then
+the command line options are interpreted and finally, the
+\fB/usr/local/etc/smidump.conf\fP configuration file is read, if present,
+before \fBsmidump\fP starts its main operation.
+.SH OPTIONS
+.TP
+.B "-s"
+Report some per module statistics to stderr.
+.TP
+.B "-S"
+Don't report statistics (default).
+.TP
+.B "-v"
+On errors, do print the current line of input to stderr after the
+error message and a marker pointing to the current token in the input
+stream. Note that the corresponding point of error usually lies before
+this marker.
+.TP
+.B "-V"
+Don't print error lines (default).
+.TP
+.BI "-d " level
+Print libsmi debugging messages at the given \fIlevel\fP (default: 0).
+.TP
+.BI "-l " level
+Report errors and warnings up to the given \fIlevel\fP to stderr.
+A higher level shows more warnings. The actual levels are:
+.sp
+.nf
+ 0   internal error, no recovery possible,
+ 1   major SMI error, recovery somehow possible but
+     may lead to severe problems,
+ 2   SMI error, probably tolerated by some
+     implementations,
+ 3   SMI error, tolerated by many implementations,
+ 4   something which is recommended to be changed,
+ 5   something that might be ok, but might not be
+     recommended under some circumstances.
+.fi
+.sp
+Higher levels are actually not used and lead to the same effects as
+level 5 does. Note that errors up to level 3 are errors violating the
+specification and must be fixed by the responsible author. Level 3 is
+the default level.
+.TP
+.BI "-c " config
+Read the configuration from \fIfile\fP. See smi_config(3) section
+CONFIGURATION FILES for its format.
+.TP
+.BI "-L " location
+Add \fIlocation\fP to the list of locations to search for MIB modules.
+See smi_config(3) section MODULE LOCATIONS for location details.
+.TP
+.I module
+This is the module to be checked. Note that this module is searched in
+the list of known locations. If the module shall be taken from an
+SMIv1/v2 file in the current directory, a "\fB-L smi:.\fP" option
+should be added to the command line.
+.SH "EXAMPLE"
+This example converts the SMIv2 module IF-MIB in the current directory
+with the highest parser error verbosity to IF-MIB.sming in SMIng format.
+.nf
+
+  $ smidump -Lsmi:. -l9 -Dsming IF-MIB > IF-MIB.sming
+.fi
+.SH "FILES"
+.nf
+/usr/local/etc/smi.conf     general configuration file
+/usr/local/etc/smidump.conf smidump configuration file
+.fi
+.SH "NOTES"
+Libsmi and this tool are work in progress. Expect changes in near
+future.
+.SH "SEE ALSO"
+The SMIng and
+.BR libsmi (3)
+project is documented at
+.BR "http://www.ibr.cs.tu-bs.de/~strauss/sming/" "."
+.PP
+.BR smilint "(1)"
+.SH "AUTHOR"
+Frank Strauss <strauss@ibr.cs.tu-bs.de>
+.br

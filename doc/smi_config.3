@@ -1,5 +1,5 @@
 .\"
-.\" $Id$
+.\" $Id: smi_config.3,v 1.1 1999/05/04 23:26:26 strauss Exp $
 .\"
 .TH smi_config 3  "May 5, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -54,7 +54,7 @@ level is 0.
 The \fBsmiSetErrorLevel()\fP function sets the pedantic level (0-9) of
 the SMI parsers of the SMI library, currently SMIv1/v2 and SMIng
 (which might but should not be turned off at library compile
-time). The higher the level, the louder it complains. Values up to 4
+time). The higher the level, the louder it complains. Values up to 3
 should be regarded as errors, higher level could be interpreted as
 warnings.  But note that this classification is some kind of personal
 taste.  The default level is 0, since usually only MIB checkers want
@@ -137,6 +137,9 @@ turns the error logging of imported modules on or off, see
 .I \fBerrorlines\fP \fI1|0\fP
 turns the output of marked erroneous lines on or off, see
 \fBsmiSetFlags()\fP above.
+.PP
+The global configuration file \fB/usr/local/etc/smi.conf\fP is read
+before any other libsmi operation.
 .SH "FILES"
 .nf
 /usr/local/include/smi.h    SMI library header file
@@ -145,9 +148,10 @@ turns the output of marked erroneous lines on or off, see
 .fi
 .SH "NOTES"
 Libsmi is work in progress. Interface inconsistencies and deficiencies
-will change in near future.
+will be removed in near future.
 .SH "SEE ALSO"
-.BR smi.h ", " libsmi "(3)"
+.BR libsmi "(3), "
+.BR smi.h
 .SH "AUTHOR"
 Frank Strauss <strauss@ibr.cs.tu-bs.de>
 .br
