@@ -101,3 +101,6 @@ o import loops cause endless `smidump -f imports' loops.
 o rename test modules: TUBS-IBR prefix.
 
 o make libsmi aware of annotations (when SMIng supports annotations).
+
+o dump-identifiers: print types, hide toplevel node `0'?, smidump.1.in,
+  sort by oid, -u option
