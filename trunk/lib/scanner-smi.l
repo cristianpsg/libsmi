@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.11 1999/12/17 13:28:47 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.12 1999/12/22 14:44:03 strauss Exp $
  */
 
 %option noyywrap
@@ -32,14 +32,18 @@ static char            *currentString;
 static int	       currentStringLength;
 static int	       currentStringMaxLength;
 static int	       currentStringColumn;
-static int	       currentStringFetchLine; 
+static int	       currentStringFetchLine;
+
 
  
 #define thisParser (*(Parser *) parser)
 
 
 
-#define MAX_NUMBER		"18446744073709551615" /* max Counter64 */
+#define MAX_UNSIGNED32		4294967295
+#define MIN_UNSIGNED32		0
+#define MAX_INTEGER32		2147483647
+#define MIN_INTEGER32		-2147483648
 #define MAX_BIN_STRING_LENGTH	128
 #define MAX_HEX_STRING_LENGTH	128
 #define MAX_QUOTED_STRING_LENGTH 65535
@@ -680,7 +684,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = strdup(yytext);
+    yylval.id = util_strdup(yytext);
     return UPPERCASE_IDENTIFIER;
 }
 
@@ -690,7 +694,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = strdup(yytext);
+    yylval.id = util_strdup(yytext);
     return LOWERCASE_IDENTIFIER;
 }
 
@@ -707,13 +711,22 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <INITIAL>([1-9][0-9]*|0)/[^0-9] {
     smiTrackInput(0, parser);
-    if ((strlen(yytext) > sizeof(MAX_NUMBER)-1) ||
-	((strlen(yytext) == sizeof(MAX_NUMBER)-1) &&
-	 (strcmp(yytext, MAX_NUMBER) > 0))) {
-	printError(parser, ERR_NUMBER_TO_LARGE, yytext);
+    errno = 0;
+    yylval.unsigned32 = strtoul(yytext, NULL, 10);
+    if (errno == ERANGE) {
+	printError(parser, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, yytext);
     }
-    yylval.id = strdup(yytext);
     return NUMBER;
+}
+
+<INITIAL>-([1-9][0-9]*|0)/[^0-9] {
+    smiTrackInput(0, parser);
+    errno = 0;
+    yylval.integer32 = strtol(yytext, NULL, 10);
+    if (errno == ERANGE) {
+	printError(parser, ERR_SMIV2_SIGNED_NUMBER_RANGE, yytext);
+    }
+    return NEGATIVENUMBER;
 }
 
  /*
@@ -724,7 +737,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentStringLength = 0;
     currentString[0] = '\0';
@@ -766,7 +779,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = yytext[0];
     currentString[currentStringLength+1] = '\0';
@@ -778,7 +791,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = yytext[0];
     currentString[currentStringLength+1] = '\0';
@@ -790,7 +803,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     currentStringColumn = thisParser.column+1;
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentStringLength = 0;
     currentString[0] = '\0';
@@ -817,7 +830,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = yytext[0];
     currentString[currentStringLength+1] = '\0';
@@ -829,7 +842,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     if (currentStringFetchLine || (thisParser.column >= currentStringColumn)) {
 	currentString[currentStringLength] = yytext[0];
@@ -843,7 +856,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(1, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = '\n';
     currentString[currentStringLength+1] = '\0';
@@ -857,7 +870,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = yytext[0];
     currentString[currentStringLength+1] = '\0';

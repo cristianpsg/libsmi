@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.48 1999/12/21 09:16:23 strauss Exp $
+ * @(#) $Id: data.c,v 1.49 1999/12/22 14:44:02 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -84,10 +84,6 @@ addView(modulename)
     View	      *viewPtr;
 
     viewPtr = (View *)util_malloc(sizeof(View));
-    if (!viewPtr) {
-	printError(NULL, ERR_ALLOCATING_VIEW, strerror(errno));
-	return (NULL);
-    }
 
     viewPtr->name				= util_strdup(modulename);
     viewPtr->nextPtr				= NULL;
@@ -164,10 +160,6 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     Module	      *modulePtr;
 
     modulePtr = (Module *)util_malloc(sizeof(Module));
-    if (!modulePtr) {
-	printError(parserPtr, ERR_ALLOCATING_MIBMODULE, strerror(errno));
-	return (NULL);
-    }
 
     modulePtr->name				= util_strdup(modulename);
     modulePtr->path			        = util_strdup(path);
@@ -371,10 +363,6 @@ addRevision(date, description, parserPtr)
     Module	  *modulePtr;
 
     revisionPtr = (Revision *)util_malloc(sizeof(Revision));
-    if (!revisionPtr) {
-	printError(parserPtr, ERR_ALLOCATING_REVISION, strerror(errno));
-	return (NULL);
-    }
 
     modulePtr = parserPtr->modulePtr;
 
@@ -423,10 +411,6 @@ addImport(name, parserPtr)
     Module	  *modulePtr;
 
     importPtr = (Import *)util_malloc(sizeof(Import));
-    if (!importPtr) {
-	printError(parserPtr, ERR_ALLOCATING_IMPORT, strerror(errno));
-	return (NULL);
-    }
 
     modulePtr = parserPtr->modulePtr;
 
@@ -638,10 +622,6 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     Module	     *modulePtr;
 
     objectPtr = (Object *)util_malloc(sizeof(Object));
-    if (!objectPtr) {
-	printError(parserPtr, ERR_ALLOCATING_OBJECT, strerror(errno));
-	return (NULL);
-    }
 
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
@@ -735,10 +715,6 @@ duplicateObject(templatePtr, flags, parserPtr)
     Module		  *modulePtr;
     
     objectPtr = (Object *)util_malloc(sizeof(Object));
-    if (!objectPtr) {
-	printError(parserPtr, ERR_ALLOCATING_OBJECT, strerror(errno));
-	return (NULL);
-    }
 
     modulePtr = parserPtr->modulePtr;
     nodePtr   = templatePtr->nodePtr;
@@ -817,10 +793,6 @@ addNode (parentNodePtr, subid, flags, parserPtr)
     Node	    *c;
 
     nodePtr = (Node *)util_malloc(sizeof(Node));
-    if (!nodePtr) {
-	printError(parserPtr, ERR_ALLOCATING_NODE, strerror(errno));
-	return (NULL);
-    }
     
     nodePtr->flags				= flags;
     nodePtr->subid				= subid;
@@ -1958,10 +1930,6 @@ addType(typename, basetype, flags, parserPtr)
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
     typePtr = util_malloc(sizeof(Type));
-    if (!typePtr) {
-	printError(parserPtr, ERR_ALLOCATING_TYPE, strerror(errno));
-	return (NULL);
-    }
 
     if (typename) {
 	typePtr->name	                = util_strdup(typename);
@@ -2028,10 +1996,6 @@ duplicateType(templatePtr, flags, parserPtr)
     Module		  *modulePtr;
     
     typePtr = (Type *)util_malloc(sizeof(Type));
-    if (!typePtr) {
-	printError(parserPtr, ERR_ALLOCATING_TYPE, strerror(errno));
-	return (NULL);
-    }
 
     modulePtr = parserPtr->modulePtr;
     
@@ -2696,11 +2660,6 @@ addMacro(macroname, fileoffset, flags, parserPtr)
     /* TODO: Check wheather this macro already exists?? */
 
     macroPtr = (Macro *)util_malloc(sizeof(Macro));
-    if (!macroPtr) {
-	printError(parserPtr, ERR_ALLOCATING_MACRO, strerror(errno));
-	return (NULL);
-    }
-
 	    
     macroPtr->modulePtr  = parserPtr->modulePtr;
     macroPtr->name	 = util_strdup(macroname);
@@ -3168,7 +3127,7 @@ loadModule(modulename)
 
     if (sming == 0) {
 #ifdef BACKEND_SMI
-	parser.path			= strdup(path);
+	parser.path			= util_strdup(path);
 	parser.flags			= smiFlags;
 	parser.modulePtr		= NULL;
 	parser.file			= file;
@@ -3198,7 +3157,7 @@ loadModule(modulename)
 
     if (sming == 1) {
 #ifdef BACKEND_SMING
-	parser.path			= strdup(path);
+	parser.path			= util_strdup(path);
 	parser.flags			= smiFlags;
 	parser.modulePtr		= NULL;
 	parser.file			= file;
