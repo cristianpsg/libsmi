@@ -916,7 +916,7 @@ mtaGroupErrorEntry OBJECT-TYPE
 
 MtaGroupErrorEntry ::= SEQUENCE {
    mtaStatusCode
-       INTEGER (4000000..5999999),
+       INTEGER,
    mtaGroupInboundErrorCount
        Counter32,
    mtaGroupInternalErrorCount
