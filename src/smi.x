@@ -1,20 +1,22 @@
-/*
- * smi.x --
- *
- *      RPC interface definition for the SMI service.
- *
- * Copyright (c) 1998 Technical University of Braunschweig.
- *
- * See the file "license.terms" for information on usage and redistribution
- * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
- *
- * @(#) $Id$
- */
+%
+%/*
+% * smi.x -- ( smi.h smi_clnt.c smi_svc.c smi_xdr.c )
+% *
+% *      RPC interface definition for the SMI service.
+% *
+% * Copyright (c) 1998 Technical University of Braunschweig.
+% *
+% * See the file "license.terms" for information on usage and redistribution
+% * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+% *
+% * @(#) $Id: smi.x,v 1.1 1998/11/04 23:44:50 strauss Exp $
+% */
+%
 
-#define SMI_MAX_DESCRIPTOR	64
-#define SMI_MAX_OID		1407		/* 128 * 10 + 127 */
-#define SMI_MAX_STRING		65535
-#define SMI_MAX_FULLNAME	129		/* 64 + 1 + 64 */
+const SMI_MAX_DESCRIPTOR	= 64;
+const SMI_MAX_OID		= 1407;		/* 128 * 10 + 127 */
+const SMI_MAX_STRING		= 65535;
+const SMI_MAX_FULLNAME		= 129;		/* 64 + 1 + 64 */
 
 typedef string smi_descriptor<SMI_MAX_DESCRIPTOR>;
 typedef string smi_oid<SMI_MAX_OID>;
@@ -39,44 +41,42 @@ enum smi_syntax {
 };
 
 enum smi_status {
-    SMI_STATUS_UNKNOWN	 	= 0 ,
-    SMI_STATUS_CURRENT	 	= 1 ,
-    SMI_STATUS_DEPRECATED	= 2 ,
-    SMI_STATUS_MANDATORY	= 3 ,
-    SMI_STATUS_OPTIONAL	 	= 4 ,    
+    SMI_STATUS_UNKNOWN	 	= 0,
+    SMI_STATUS_CURRENT	 	= 1,
+    SMI_STATUS_DEPRECATED	= 2,
+    SMI_STATUS_MANDATORY	= 3,
+    SMI_STATUS_OPTIONAL	 	= 4,    
     SMI_STATUS_OBSOLETE	 	= 5
 };
 
 enum smi_access {
-    SMI_ACCESS_UNKNOWN	 	= 0 ,
-    SMI_ACCESS_NOT		= 1 ,
-    SMI_ACCESS_NOTIFY	 	= 2 ,
-    SMI_ACCESS_READ_ONLY	= 3 ,
-    SMI_ACCESS_READ_WRITE	= 4 ,
-    SMI_ACCESS_READ_CREATE	= 5 ,
+    SMI_ACCESS_UNKNOWN	 	= 0,
+    SMI_ACCESS_NOT_ACCESSIBLE	= 1,
+    SMI_ACCESS_NOTIFY	 	= 2,
+    SMI_ACCESS_READ_ONLY	= 3,
+    SMI_ACCESS_READ_WRITE	= 4,
+    SMI_ACCESS_READ_CREATE	= 5,
     SMI_ACCESS_WRITE_ONLY	= 6
 };
 
 enum smi_decl {
-    SMI_DECL_UNKNOWN		= 0 ,
-    SMI_DECL_SIMPLEASSIGNMENT  	= 1 ,
-    SMI_DECL_OBJECTTYPE	     	= 2 ,
-    SMI_DECL_OBJECTIDENTITY     = 3 ,
-    SMI_DECL_MODULEIDENTITY     = 4 ,
-    SMI_DECL_NOTIFICATIONTYPE   = 5 ,
-    SMI_DECL_TRAPTYPE	     	= 6 ,
-    SMI_DECL_OBJECTGROUP	= 7 ,
-    SMI_DECL_NOTIFICATIONGROUP  = 8 ,
-    SMI_DECL_MODULECOMPLIANCE   = 9 ,
+    SMI_DECL_UNKNOWN		= 0,
+    SMI_DECL_SIMPLEASSIGNMENT  	= 1,
+    SMI_DECL_OBJECTTYPE	     	= 2,
+    SMI_DECL_OBJECTIDENTITY     = 3,
+    SMI_DECL_MODULEIDENTITY     = 4,
+    SMI_DECL_NOTIFICATIONTYPE   = 5,
+    SMI_DECL_TRAPTYPE	     	= 6,
+    SMI_DECL_OBJECTGROUP	= 7, 
+    SMI_DECL_NOTIFICATIONGROUP  = 8,
+    SMI_DECL_MODULECOMPLIANCE   = 9,
     SMI_DECL_AGENTCAPABILITIES  = 10,
     SMI_DECL_TEXTUALCONVENTION	= 11
 };
 
-
-
 struct smi_getspec {
     smi_namespec	name;
-    boolean		wantdescr;
+    int			wantdescr;
 };
 
 struct smi_module {
@@ -118,17 +118,59 @@ struct smi_type {
     /* TODO: restrictions */
 };
 
+/*
+ * smi_namelist represents a string containing a blank-separated list
+ * of elements. These elements are usually fully qualified smi_namespecs
+ * representing mib nodes or types.
+ *
+ * TODO: think about length limitations.
+ */
 struct smi_namelist {
-    smi_string		namelist; /* containing blank-separated elements. */
+    smi_string		namelist;
 };
 
 program SMIPROG {
     version SMIVERS {
+	/*
+	 * SMIPROC_MODULE returns the module information. The input's
+	 * smi_getspec.smi_namespec value must be a module name.
+	 */
 	smi_module	SMIPROC_MODULE(smi_getspec)	= 1;
+	/*
+	 * SMIPROC_NODE returns the node information. The input's
+	 * smi_getspec.smi_namespec might also be an object instance
+	 * identifiers to retrieve the corresponding object type node.
+	 */
 	smi_node	SMIPROC_NODE(smi_getspec)	= 2;
+	/*
+	 * SMIPROC_TYPE
+	 */
 	smi_type	SMIPROC_TYPE(smi_getspec)	= 3;
+	/*
+	 * SMIPROC_NAMES returns a blank-separated list of fully
+	 * qualified smi_namespecs that match the given input,
+	 * which might be not unique.
+	 */
 	smi_namelist	SMIPROC_NAMES(smi_namespec) 	= 4;
+	/*
+	 * SMIPROC_CHILDREN returns a blank-separated list of fully
+	 * qualified smi_namespecs representing all child nodes of
+	 * the given input node.
+	 */
 	smi_namelist	SMIPROC_CHILDREN(smi_namespec) 	= 5;
+	/*
+	 * SMIPROC_MEMBERS returns a blank-separated list of fully
+	 * qualified smi_namespecs representing all members of the
+	 * given input node if it represents an object group or
+	 * a notification group or all variables that must be present
+	 * in a notification if the input represents a notification
+	 * node.
+	 */
 	smi_namelist	SMIPROC_MEMBERS(smi_namespec) 	= 6;
+	/*
+	 * SMIPROC_PARENT returns a fully qualified smi_namespec
+	 * representing the parent of the given input node.
+	 */
+	smi_fullname	SMIPROC_PARENT(smi_namespec) 	= 6;
     } = 1;
 } = 0x22315258; /* User-defined range: 0x20000000 - 0x3fffffff */
