@@ -74,6 +74,8 @@ typedef struct DiaNode {
 
 typedef struct DiaEdge {
     int   flags;		/* flags for the dia xml output driver */
+    float startX, startY;	/* Intersection of edge and startNode */
+    float endX, endY;		/* Intersection of edge and endNode */
 } DiaEdge;
 
 /*
