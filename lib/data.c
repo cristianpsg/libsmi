@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.14 1999/03/30 22:27:29 strauss Exp $
+ * @(#) $Id: data.c,v 1.15 1999/03/31 17:24:22 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -50,7 +50,14 @@ Location	*firstLocationPtr, *lastLocationPtr;
 Module          *firstModulePtr, *lastModulePtr;
 Node		*rootNodePtr;
 Node		*pendingNodePtr;
-Type		*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
+Type		*typeSmiIntegerPtr, *typeSmiOctetStringPtr,
+		*typeSmiObjectIdentifierPtr;
+Type		*typeSmingOctetStringPtr, *typeSmingObjectIdentifierPtr,
+		*typeSmingInteger32Ptr, *typeSmingUnsigned32Ptr,
+		*typeSmingInteger64Ptr, *typeSmingUnsigned64Ptr,
+		*typeSmingFloat32Ptr, *typeSmingFloat64Ptr,
+		*typeSmingFloat128Ptr,
+		*typeSmingEnumPtr, *typeSmingBitsPtr;
 int		smiFlags;
 
 
@@ -857,6 +864,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->description			= NULL;
     objectPtr->reference			= NULL;
     objectPtr->units				= NULL;
+    objectPtr->format				= NULL;
     objectPtr->valuePtr				= NULL;
     
     objectPtr->nextPtr				= NULL;
@@ -961,6 +969,8 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->description			      = NULL;
     objectPtr->reference			      = NULL;
     objectPtr->units				      = NULL;
+    objectPtr->format				      = NULL;
+    objectPtr->valuePtr				      = NULL;
 
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -1100,7 +1110,7 @@ createNodes(oid)
     const char		*oid;
 {
     char		*p, *elements;
-    Node		*parentNodePtr;
+    Node		*parentNodePtr, *nodePtr;
     SmiSubid		subid;
 
 #ifdef DEBUG
@@ -1113,10 +1123,11 @@ createNodes(oid)
     p = strtok(elements, ".");
     do {
 	subid = (unsigned int)strtoul(p, NULL, 0);
-	if (!(parentNodePtr = findNodeByParentAndSubid(parentNodePtr,
+	if (!(nodePtr = findNodeByParentAndSubid(parentNodePtr,
 						       subid))) {
-	    parentNodePtr = addNode(parentNodePtr, subid, 0, NULL);
+	    nodePtr = addNode(parentNodePtr, subid, 0, NULL);
 	}
+	parentNodePtr = nodePtr;
     } while ((p = strtok(NULL, ".")));
 
     free(elements);
@@ -1451,6 +1462,37 @@ setObjectReference(objectPtr, reference)
 /*
  *----------------------------------------------------------------------
  *
+ * setObjectFormat --
+ *
+ *      Set the format of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectFormat(objectPtr, format)
+    Object    *objectPtr;
+    char      *format;
+{
+#ifdef DEBUG
+    printDebug(5, "setObjectFormat(0x%x(%s), %s)\n",
+	       objectPtr, objectPtr->name, format);
+#endif
+
+    objectPtr->format = util_strdup(format);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * setObjectUnits --
  *
  *      Set the units of a given Object.
@@ -1742,6 +1784,50 @@ findNodeByParentAndSubid(parentNodePtr, subid)
     printDebug(4, " = NULL\n");
 #endif
     return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findNodeByOidString --
+ *
+ *      Lookup a Node by a given string of concatinated numerical subids.
+ *
+ * Results:
+ *      A pointer to the Node structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Node *
+findNodeByOidString(oid)
+    char            *oid;
+{
+    Node *nodePtr;
+    char *s;
+    char *p;
+    
+#ifdef DEBUG
+    printDebug(4, "findNodeByOidString(%s)", oid);
+#endif
+
+    s = util_strdup(oid);
+    nodePtr = rootNodePtr;
+    for(p = strtok(s, ". "); p && nodePtr; p = strtok(NULL, ". ")) {
+	nodePtr = findNodeByParentAndSubid(nodePtr, atoi(p));
+    }
+    
+#ifdef DEBUG
+    printDebug(4, " = %p\n", nodePtr);
+#endif
+    free(s);
+    return (nodePtr);
 }
 
 
@@ -3286,24 +3372,35 @@ initData()
      * Initialize the well-known ASN.1 Types for SMIv1/v2 and
      * the well-known SMIng Types.
      */
-    typeIntegerPtr          = addType("INTEGER",
+    typeSmiIntegerPtr          = addType("INTEGER",
 				      SMI_BASETYPE_INTEGER32, 0, &parser);
-    typeOctetStringPtr      = addType("OCTET STRING",
+    typeSmiOctetStringPtr      = addType("OCTET STRING",
 				      SMI_BASETYPE_OCTETSTRING, 0, &parser);
-    typeObjectIdentifierPtr = addType("OBJECT IDENTIFIER",
+    typeSmiObjectIdentifierPtr = addType("OBJECT IDENTIFIER",
 				      SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
 
-    addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, NULL);
-    addType("ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, 0, NULL);
-    addType("Integer32", SMI_BASETYPE_INTEGER32, 0, NULL);
-    addType("Unsigned32", SMI_BASETYPE_UNSIGNED32, 0, NULL);
-    addType("Integer64", SMI_BASETYPE_INTEGER64, 0, NULL);
-    addType("Unsigned64", SMI_BASETYPE_UNSIGNED64, 0, NULL);
-    addType("Float32", SMI_BASETYPE_FLOAT32, 0, NULL);
-    addType("Float64", SMI_BASETYPE_FLOAT64, 0, NULL);
-    addType("Float128", SMI_BASETYPE_FLOAT128, 0, NULL);
-    addType("Enum", SMI_BASETYPE_ENUM, 0, NULL);
-    addType("Bits", SMI_BASETYPE_BITS, 0, NULL);
+    typeSmingOctetStringPtr =
+	addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, NULL);
+    typeSmingObjectIdentifierPtr =
+	addType("ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, 0, NULL);
+    typeSmingInteger32Ptr =
+	addType("Integer32", SMI_BASETYPE_INTEGER32, 0, NULL);
+    typeSmingUnsigned32Ptr =
+	addType("Unsigned32", SMI_BASETYPE_UNSIGNED32, 0, NULL);
+    typeSmingInteger64Ptr =
+	addType("Integer64", SMI_BASETYPE_INTEGER64, 0, NULL);
+    typeSmingUnsigned64Ptr =
+	addType("Unsigned64", SMI_BASETYPE_UNSIGNED64, 0, NULL);
+    typeSmingFloat32Ptr =
+	addType("Float32", SMI_BASETYPE_FLOAT32, 0, NULL);
+    typeSmingFloat64Ptr =
+	addType("Float64", SMI_BASETYPE_FLOAT64, 0, NULL);
+    typeSmingFloat128Ptr =
+	addType("Float128", SMI_BASETYPE_FLOAT128, 0, NULL);
+    typeSmingEnumPtr =
+	addType("Enum", SMI_BASETYPE_ENUM, 0, NULL);
+    typeSmingBitsPtr =
+	addType("Bits", SMI_BASETYPE_BITS, 0, NULL);
 
     return (0);
 }

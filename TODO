@@ -287,4 +287,8 @@ x shift/reduce conflict at
 
 . BIN and HEX DEFVALs in SMIv1/v2 Parser.
 
+. how to differ type in a default clause:
+  0	int, uint, (float), oid
+  0.0	float, oid?
 
+  -> must be determined from context!
