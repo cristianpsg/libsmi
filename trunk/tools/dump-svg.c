@@ -67,6 +67,7 @@ typedef enum GraphEnhIndex {
  * Definition used by the dia output driver.
  */
 
+//FIXME Do we need this any more?
 #define DIA_PRINT_FLAG	0x01
 
 typedef struct DiaNode {
@@ -2074,11 +2075,12 @@ static void printSVGObject(GraphNode *node, int *classNr)
     textXOffset = xOrigin;
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
-           node->dia.x, node->dia.y);
+           node->dia.x + node->cluster->xOffset,
+           node->dia.y + node->cluster->yOffset);
     printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
-    printf("          fill=\"none\" stroke=\"black\"/>\n");
+    printf("          fill=\"white\" stroke=\"black\"/>\n");
     printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
@@ -2140,7 +2142,7 @@ static void printSVGObject(GraphNode *node, int *classNr)
 /*
  * prints a group of scalars denoted by group
  */
-static void diaPrintXMLGroup(int group, int *classNr)
+static void printSVGGroup(int group, int *classNr)
 {
     GraphNode *tNode;
     float textXOffset, textYOffset, xOrigin, yOrigin;
@@ -2162,11 +2164,12 @@ static void diaPrintXMLGroup(int group, int *classNr)
     textXOffset = xOrigin;
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
-           tNode->dia.x, tNode->dia.y);
+           tNode->dia.x + tNode->cluster->xOffset,
+           tNode->dia.y + tNode->cluster->yOffset);
     printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
-    printf("          fill=\"none\" stroke=\"black\"/>\n");
+    printf("          fill=\"white\" stroke=\"black\"/>\n");
     printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + tNode->dia.w, yOrigin + TABLEHEIGHT);
@@ -3024,7 +3027,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
     int          group, nodecount = 0, classNr = 0;
-    float        xMin = 0, yMin = 0, xMax = 0, yMax = 0;
+    float        x = 10, xMin = 0, yMin = 0, xMax = 0, yMax = 0, maxHeight = 0;
 
     //find edges which are supposed to be drawn
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
@@ -3046,6 +3049,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
 	    if (tNode->degree == 0) {
+		//single nodes are members of the first cluster.
 		if (tCluster->firstClusterNode == NULL) {
 		    tCluster->firstClusterNode = tNode;
 		} else {
@@ -3053,14 +3057,18 @@ static void diaPrintXML(int modc, SmiModule **modv)
 		}
 		lastNode = tNode;
 		tNode->cluster = tCluster;
-		tNode->dia.x = 0;
+		tNode->dia.x = x + tNode->dia.w/2*STARTSCALE;
+		x += 10 + tNode->dia.w*STARTSCALE;
 		tNode->dia.y = 0;
+		if (tNode->dia.h*STARTSCALE > maxHeight)
+		    maxHeight = tNode->dia.h*STARTSCALE;
 	    }
 	}
     }
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
 	tNode = calcGroupSize(group);
 	nodecount++;
+	//groupnodes are members of the first cluster.
 	if (tCluster->firstClusterNode == NULL) {
 	    tCluster->firstClusterNode = tNode;
 	} else {
@@ -3068,9 +3076,13 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	}
 	lastNode = tNode;
 	tNode->cluster = tCluster;
-	tNode->dia.x = 0;
+	tNode->dia.x = x + tNode->dia.w/2*STARTSCALE;
+	x += 10 + tNode->dia.w*STARTSCALE;
 	tNode->dia.y = 0;
+	if (tNode->dia.h*STARTSCALE > maxHeight)
+	    maxHeight = tNode->dia.h*STARTSCALE;
     }
+    xMax = x;
 
     //cluster the graph
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
@@ -3083,56 +3095,95 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	}
     }
 
-    //layout the cluster
-    for (tCluster = graph->clusters->nextPtr;
-	 tCluster; tCluster = tCluster->nextPtr) {
+    //layout cluster (except first) and calculate bounding boxes and offsets
+    x = 10;
+    for (tCluster = graph->clusters->nextPtr; tCluster;
+						tCluster = tCluster->nextPtr) {
 	layoutCluster(nodecount, tCluster, 0, 0);
 	layoutCluster(nodecount, tCluster, 1, 0);
 	//layoutCluster(nodecount, tCluster, 1, 1);
-    }
 
-    //calculate bounding box and write some debug-information to stderr
-    //FIXME move this into a function?
+	for (tNode = tCluster->firstClusterNode; tNode;
+					tNode = tNode->nextClusterNode) {
+	    if (tNode->dia.x - STARTSCALE*tNode->dia.w/2 < tCluster->xMin)
+		tCluster->xMin = tNode->dia.x - STARTSCALE*tNode->dia.w/2;
+	    if (tNode->dia.x + STARTSCALE*tNode->dia.w/2 > tCluster->xMax)
+		tCluster->xMax = tNode->dia.x + STARTSCALE*tNode->dia.w/2;
+	    if (tNode->dia.y - STARTSCALE*tNode->dia.h/2 < tCluster->yMin)
+		tCluster->yMin = tNode->dia.y - STARTSCALE*tNode->dia.h/2;
+	    if (tNode->dia.y + STARTSCALE*tNode->dia.h/2 > tCluster->yMax)
+		tCluster->yMax = tNode->dia.y + STARTSCALE*tNode->dia.h/2;
+	}
+
+	tCluster->xOffset = x - tCluster->xMin;
+	x += 10 + tCluster->xMax - tCluster->xMin;
+	tCluster->yOffset = -0.5*(tCluster->yMin+tCluster->yMax);
+	if (tCluster->yMin + tCluster->yOffset < yMin)
+	    yMin = tCluster->yMin + tCluster->yOffset;
+	if (tCluster->yMax + tCluster->yOffset > yMax)
+	    yMax = tCluster->yMax + tCluster->yOffset;
+    }
+    yMin -= 10;
+    yMax += 10;
+    if (x > xMax)
+	xMax = x;
+
+    //adjust values for the first cluster (cluster of single nodes)
+    graph->clusters->yOffset = yMax + maxHeight/2;
+    yMax += maxHeight + 10;
+
+    //write some debug-information to stderr
+    fprintf(stderr, "xMin\tyMin\txMax\tyMax\txOffset\tyOffset\n");
+    for (tCluster = graph->clusters->nextPtr; tCluster;
+						tCluster = tCluster->nextPtr) {
+	fprintf(stderr, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", tCluster->xMin, tCluster->yMin, tCluster->xMax, tCluster->yMax, tCluster->xOffset, tCluster->yOffset);
+    }
+    fprintf(stderr, "xMin\tyMin\txMax\tyMax\n");
+    fprintf(stderr, "%.2f\t%.2f\t%.2f\t%.2f\n", xMin, yMin, xMax, yMax);
     fprintf(stderr, "group\tdegree\tposition\n");
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
 	fprintf(stderr, "%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->dia.x, tNode->dia.y);
-	if (tNode->dia.x - STARTSCALE*tNode->dia.w/2 < xMin)
-	    xMin = tNode->dia.x - STARTSCALE*tNode->dia.w/2;
-	if (tNode->dia.x + STARTSCALE*tNode->dia.w/2 > xMax)
-	    xMax = tNode->dia.x + STARTSCALE*tNode->dia.w/2;
-	if (tNode->dia.y - STARTSCALE*tNode->dia.h/2 < yMin)
-	    yMin = tNode->dia.y - STARTSCALE*tNode->dia.h/2;
-	if (tNode->dia.y + STARTSCALE*tNode->dia.h/2 > yMax)
-	    yMax = tNode->dia.y + STARTSCALE*tNode->dia.h/2;
     }
-    fprintf(stderr, "%.2f %.2f %.2f %.2f\n", xMin, yMin, xMax, yMax);
 
     printSVGHeaderAndTitle(modc, modv, nodecount, xMin, yMin, xMax, yMax);
-    
-    //print the nodes
-    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
-	if (!tNode->use)
-	    continue;
+
+    //loop through cluster (except first) to print edges and nodes
+    for (tCluster = graph->clusters->nextPtr; tCluster;
+						tCluster = tCluster->nextPtr) {
+	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+	    if (!tEdge->use || tEdge->startNode->cluster != tCluster)
+		continue;
+	    //TODO * label edges!
+	    //     * move into own function
+	    printf(" <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
+		tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
+		tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
+		tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
+		tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
+	    printf("       fill=\"none\" stroke=\"black\"/>\n");
+	}
+	for (tNode = tCluster->firstClusterNode; tNode;
+					tNode = tNode->nextClusterNode) {
+	    printSVGObject(tNode, &classNr);
+	}
+	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
+		tCluster->xMin + tCluster->xOffset,
+		tCluster->yMin + tCluster->yOffset,
+		tCluster->xMax - tCluster->xMin,
+		tCluster->yMax - tCluster->yMin);
+	printf("       fill=\"none\" stroke=\"green\" stroke-width=\"1\"/>\n");
+    }
+
+    //print single nodes
+    for (tNode = graph->clusters->firstClusterNode; tNode;
+		    			tNode = tNode->nextClusterNode) {
 	if (tNode->group == 0) {
 	    printSVGObject(tNode, &classNr);
 	} else {
-	    diaPrintXMLGroup(tNode->group, &classNr);
+	    printSVGGroup(tNode->group, &classNr);
 	}
-    }
-
-    //print the edges
-    //TODO: bend edges orthogonal
-    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	if (!tEdge->use)
-	    continue;
-	printf(" <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
-	       tEdge->startNode->dia.x,
-	       tEdge->startNode->dia.y,
-	       tEdge->endNode->dia.x,
-	       tEdge->endNode->dia.y);
-	printf("       fill=\"none\" stroke=\"black\"/>\n");
     }
 
     printSVGClose(xMin, yMin, xMax, yMax);
