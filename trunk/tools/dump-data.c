@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.c,v 1.9 1999/06/07 15:44:12 strauss Exp $
+ * @(#) $Id: dump-data.c,v 1.10 1999/07/02 14:04:04 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -152,10 +152,11 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	case SMI_NODEKIND_SCALAR:
 	case SMI_NODEKIND_COLUMN:
 	    c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
-	    printf("%s-- %s %-*s %s(%u)\n", prefix,
+	    printf("%s-- %s %-*s %s.%s(%u)\n", prefix,
 		   getFlags(smiNode),
 		   typefieldlen,
 		   smiNode->typename,
+		   smiNode->module,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    if (c) {
@@ -166,7 +167,8 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	    if (prefixlen) {
 		c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
 	    }
-	    printf("%s--%s(%u) [", prefix,
+	    printf("%s--%s.%s(%u) [", prefix,
+		   smiNode->module,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    printIndex(smiNode);
@@ -179,7 +181,8 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	    if (prefixlen) {
 		c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
 	    }
-	    printf("%s--%s(%u) [", prefix,
+	    printf("%s--%s.%s(%u) [", prefix,
+		   smiNode->module,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    printObjects(smiNode);
@@ -192,7 +195,8 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	    if (prefixlen) {
 		c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
 	    }
-	    printf("%s--%s(%u)\n", prefix,
+	    printf("%s--%s.%s(%u)\n", prefix,
+		   smiNode->module,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    if (c) {

@@ -76,3 +76,9 @@ o warnings: hyphens in named-numbers
 o warnings: integer(signed) in index
 
 o FreeBSD, Win32
+
+o smiGetXXXChildNode() returns definitions from modules not in the view.
+  smidump -f tree IF-MIB returns strange ifEntry information.
+  see x.c
+
+
