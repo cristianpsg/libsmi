@@ -1,0 +1,17 @@
+A DEFINITIONS ::= BEGIN
+
+-- org OBJECT IDENTIFIER ::= { iso 3 }
+
+a OBJECT IDENTIFIER ::= { iso 1 }
+c OBJECT IDENTIFIER ::= { b 3 }
+e OBJECT IDENTIFIER ::= { c 5 }
+d OBJECT IDENTIFIER ::= { c 4 }
+b OBJECT IDENTIFIER ::= { a 2 }
+f OBJECT IDENTIFIER ::= { c 6 }
+
+-- c OBJECT IDENTIFIER ::= { b 3 }
+
+-- d OBJECT IDENTIFIER ::= { b 3 4 }
+-- b OBJECT IDENTIFIER ::= { 1 }
+
+END

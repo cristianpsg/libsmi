@@ -1,0 +1,63 @@
+A DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY,
+	NOTIFICATION-TYPE, experimental,
+        Integer32, IpAddress, Counter32, Gauge32,
+        TimeTicks, Opaque, NsapAddress, Counter64,
+        UInteger32
+                FROM SNMPv2-SMI
+	TEXTUAL-CONVENTION, DisplayString
+		FROM SNMPv2-TC
+        OBJECT-GROUP, MODULE-COMPLIANCE, AGENT-CAPABILITIES
+                FROM SNMPv2-CONF;
+
+
+a MODULE-IDENTITY
+        LAST-UPDATED "9403240002Z"
+        ORGANIZATION "MIBs R Us"
+        CONTACT-INFO
+            "Fred Flintstone
+
+             201 Bedrock Lane
+             Granite City, CA  95051
+             US
+             Tel: +1 508 555 1212
+             E-mail: fred@mibrus.com"
+        DESCRIPTION
+            "An Example Module Identity"
+        ::= { experimental 11999 0 }
+
+
+ATC1 ::= TEXTUAL-CONVENTION 
+	STATUS current
+	DESCRIPTION "forbidden umlauts: ü
+ü
+ü"
+	ERROR
+	SYNTAX INTEGER( 1 .. 0100 | 00200 | -300 | - 00300 | 00 )
+
+
+aa- OBJECT IDENTIFIER ::= { experimental 11999 }
+
+a-a OBJECT IDENTIFIER ::= { 0 1111111111111111111111110 }
+
+b OBJECT-TYPE 
+       SYNTAX      Integer32
+       ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "The number of network interfaces (regardless of their
+               current state) present on this system."
+       ::= { interfaces 1 }
+
+
+ANY
+
+END
+
+
+
+Empty DEFINITIONS ::= BEGIN
+
+END

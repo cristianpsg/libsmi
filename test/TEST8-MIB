@@ -1,0 +1,28 @@
+TEST8-MIB DEFINITIONS ::= BEGIN
+
+a MODULE-COMPLIANCE
+    STATUS obsolete
+    DESCRIPTION ""
+    MODULE  -- this module
+        MANDATORY-GROUPS { x1, x2 }
+    ::= { iso 1 }
+
+x1 OBJECT-GROUP
+    OBJECTS { y1 }
+    STATUS  obsolete
+    DESCRIPTION ""
+    ::= { x 1 }
+
+x2 OBJECT-GROUP
+    OBJECTS { y2 }
+    STATUS  obsolete
+    DESCRIPTION ""
+    ::= { x 2 }
+
+x3 OBJECT-GROUP
+    OBJECTS { y3 }
+    STATUS  obsolete
+    DESCRIPTION ""
+    ::= { x 3 }
+
+END
