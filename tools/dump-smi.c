@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.66 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.67 2000/11/29 16:35:27 strauss Exp $
  */
 
 #include <config.h>
@@ -1660,7 +1660,7 @@ static void dumpSmi(FILE *f, SmiModule *smiModule)
 }
 
 
-void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output)
+static void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output)
 {
     int  i;
     FILE *f = stdout;
@@ -1687,7 +1687,7 @@ void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output)
 }
 
 
-void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output)
+static void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output)
 {
     int  i;
     FILE *f = stdout;
@@ -1715,7 +1715,7 @@ void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_smi()
+void initSmi()
 {
     static SmidumpDriver driver1 = {
 	"smiv1",

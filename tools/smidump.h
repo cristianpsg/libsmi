@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.16 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.17 2000/11/29 16:35:27 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -86,26 +86,23 @@ typedef struct SmidumpDriver {
  * smidump.
  */
 
-extern void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpSming(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpImports(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpTypes(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpTree(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpIdentifiers(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpMetrics(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpMosy(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpXml(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpCorba(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpCMDia(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpCMXplain(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpNetSnmp(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpJax(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpPython(int modc, SmiModule **modv, int flags, char *output);
+extern void initSmi();
+extern void initSming();
+extern void initImports();
+extern void initTypes();
+extern void initTree();
+extern void initIdentifiers();
+extern void initMetrics();
+extern void initMosy();
+extern void initXml();
+extern void initCorba();
+extern void initCm();
+extern void initNetsnmp();
+extern void initJax();
+extern void initPython();
 
-extern void dumpSql(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpFigTree(int modc, SmiModule **modv, int flags, char *output);
-extern void dumpFigUml(int modc, SmiModule **modv, int flags, char *output);
+extern void initSql();
+extern void initFig();
 
 
 /*

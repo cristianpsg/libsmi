@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.31 2000/11/28 09:19:36 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.32 2000/11/29 16:35:26 strauss Exp $
  */
 
 #include <config.h>
@@ -1371,7 +1371,7 @@ static void dumpScalarImpl(SmiNode *smiNode)
 }
 
 
-void dumpJax(int modc, SmiModule **modv, int flags, char *output)
+static void dumpJax(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiNode     *smiNode;
     int		i;
@@ -1405,7 +1405,7 @@ void dumpJax(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_jax()
+void initJax()
 {
     static SmidumpDriver driver = {
 	"jax",

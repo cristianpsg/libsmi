@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.35 2000/11/20 15:45:10 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.36 2000/11/29 16:35:26 strauss Exp $
  */
 
 #include <config.h>
@@ -1426,7 +1426,7 @@ static void fprintDisplayHints(FILE *f, SmiModule *smiModule)
 
 
 
-void dumpIdl(SmiModule *smiModule)
+static void dumpIdl(SmiModule *smiModule)
 {
     char      *idlModuleName;
     FILE      *f;
@@ -1497,7 +1497,7 @@ static void fprintNameAndOid(FILE *f, SmiNode *smiNode, SmiNode *smiParentNode)
 
 
 
-void dumpOid(SmiModule *smiModule)
+static void dumpOid(SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     SmiType   *smiType;
@@ -1578,7 +1578,7 @@ void dumpOid(SmiModule *smiModule)
 }
 
 
-void dumpCorba(int modc, SmiModule **modv, int flags, char *output)
+static void dumpCorba(int modc, SmiModule **modv, int flags, char *output)
 {
     int       i;
 
@@ -1592,7 +1592,7 @@ void dumpCorba(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_corba()
+void initCorba()
 {
     
     static SmidumpDriver driver = {

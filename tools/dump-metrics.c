@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.4 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: dump-metrics.c,v 1.5 2000/11/29 16:35:26 strauss Exp $
  */
 
 /*
@@ -127,7 +127,7 @@ static void printMetrics(FILE *f, Metrics *metrics)
 
 
 
-void dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
+static void dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 {
     Metrics   metrics;
     int       i;
@@ -171,7 +171,7 @@ void dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_metrics()
+void initMetrics()
 {
     
     static SmidumpDriver driver = {

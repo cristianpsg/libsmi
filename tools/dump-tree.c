@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.23 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.24 2000/11/29 16:35:27 strauss Exp $
  */
 
 #include <config.h>
@@ -304,7 +304,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 
 
 
-void dumpTree(int modc, SmiModule **modv, int flags, char *output)
+static void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiNode   *smiNode;
     int	      i;
@@ -344,7 +344,7 @@ void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_tree()
+void initTree()
 {
     
     static SmidumpDriver driver = {

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.49 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.50 2000/11/29 16:35:27 strauss Exp $
  */
 
 #include <config.h>
@@ -188,7 +188,7 @@ static void usage()
 
 
 static void version() { printf("smidump " SMI_VERSION_STRING "\n"); }
-static void config(char *filename) { smiReadConfig(filename, "smiquery"); }
+static void config(char *filename) { smiReadConfig(filename, "smidump"); }
 static void level(int lev) { smiSetErrorLevel(lev); }
 static void silent() { flags |= SMIDUMP_FLAG_SILENT; }
 static void preload(char *module) { smiLoadModule(module); }
@@ -213,7 +213,6 @@ static void format(char *form)
 
 int main(int argc, char *argv[])
 {
-    char c;
     char *modulename;
     SmiModule *smiModule;
     int smiflags, i;
@@ -227,26 +226,26 @@ int main(int argc, char *argv[])
     opt = xmalloc(sizeof(genericOpt));
     memcpy(opt, genericOpt, sizeof(genericOpt));
 
-    init_cm();
-    init_corba();
+    initCm();
+    initCorba();
 #if 0
-    init_fig();
+    initFig();
 #endif
-    init_identifiers();
-    init_imports();
-    init_jax();
-    init_metrics();
-    init_mosy();
-    init_netsnmp();
-    init_python();
-    init_sming();                defaultDriver = lastDriver;
-    init_smi();
+    initIdentifiers();
+    initImports();
+    initJax();
+    initMetrics();
+    initMosy();
+    initNetsnmp();
+    initPython();
+    initSming();                defaultDriver = lastDriver;
+    initSmi();
 #if 0
-    init_sql();
+    initSql();
 #endif
-    init_tree();
-    init_types();
-    init_xml();
+    initTree();
+    initTypes();
+    initXml();
     
     for (i = 1; i < argc; i++)
 	if ((strstr(argv[i], "-c") == argv[i]) ||
@@ -283,11 +282,11 @@ int main(int argc, char *argv[])
 	output = NULL;
     }
 
-    modv = (SmiModule **) xmalloc((argc - optind) * sizeof(SmiModule *));
+    modv = (SmiModule **) xmalloc((argc) * sizeof(SmiModule *));
     modc = 0;
     
-    while (optind < argc) {
-	modulename = smiLoadModule(argv[optind]);
+    for (i = 1; i < argc; i++) {
+	modulename = smiLoadModule(argv[i]);
 	smiModule = modulename ? smiGetModule(modulename) : NULL;
 	if (smiModule) {
 	    if ((smiModule->conformance) && (smiModule->conformance < 3)) {
@@ -295,15 +294,14 @@ int main(int argc, char *argv[])
 		    fprintf(stderr,
 			    "smidump: module `%s' contains errors, "
 			    "expect flawed output\n",
-			    argv[optind]);
+			    argv[i]);
 		}
 	    }
 	    modv[modc++] = smiModule;
 	} else {
 	    fprintf(stderr, "smidump: cannot locate module `%s'\n",
-		    argv[optind]);
+		    argv[i]);
 	}
-	optind++;
     }
 
     (driver->func)(modc, modv, flags, output);

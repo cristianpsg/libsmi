@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.85 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.86 2000/11/29 16:35:27 strauss Exp $
  */
 
 #include <config.h>
@@ -1180,7 +1180,7 @@ static void printCompliances(SmiModule *smiModule)
 
 
 
-void dumpSming(int modc, SmiModule **modv, int flags, char *output)
+static void dumpSming(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiModule   *smiModule;
     SmiNode	*smiNode;
@@ -1262,7 +1262,7 @@ void dumpSming(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_sming()
+void initSming()
 {
     static SmidumpDriver driver = {
 	"sming",

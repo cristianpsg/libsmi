@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.34 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.35 2000/11/29 16:35:26 strauss Exp $
  */
 
 #include <config.h>
@@ -465,7 +465,7 @@ static void printCompliances(FILE *f, SmiModule *smiModule)
 
 
 
-void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
+static void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiNode	*smiNode;
     int		i;
@@ -513,7 +513,7 @@ void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_mosy()
+void initMosy()
 {
     
     static SmidumpDriver driver = {

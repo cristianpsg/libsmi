@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.25 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.26 2000/11/29 16:35:27 strauss Exp $
  */
 
 /*
@@ -550,7 +550,7 @@ static void addType(SmiType *smiType)
 
 
 
-void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
+static void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiNode	  *smiNode;
     SmiType       *smiType;
@@ -632,7 +632,7 @@ void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_types()
+void initTypes()
 {
     
     static SmidumpDriver driver = {
