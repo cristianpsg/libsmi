@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.10 2001/08/27 11:52:05 strauss Exp $
+# @(#) $Id: makefile,v 1.11 2001/08/27 13:08:53 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -97,7 +97,8 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-identifiers.obj		\
 	$(TMPDIR)\dump-python.obj		\
 	$(TMPDIR)\dump-perl.obj			\
-	$(TMPDIR)\dump-scli.obj
+	$(TMPDIR)\dump-scli.obj			\
+	$(TMPDIR)\dump-xsd.obj
 
 SMILIB = smi.lib
 
@@ -184,6 +185,8 @@ install-mibs:
 	$(CP) ..\mibs\ietf\*.* $(MIBDIR)\ietf
 	$(MKDIR) $(MIBDIR)\irtf
 	$(CP) ..\mibs\irtf\*.* $(MIBDIR)\irtf
+	$(MKDIR) $(MIBDIR)\tubs
+	$(CP) ..\mibs\tubs\*.* $(MIBDIR)\tubs
 	$(MKDIR) $(MIBDIR)\site
 
 
