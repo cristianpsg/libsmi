@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.34 2000/01/03 17:07:40 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.35 2000/01/06 15:30:56 strauss Exp $
  */
 
 %{
@@ -74,7 +74,7 @@ static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
 #define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
  
 
-Type *
+static Type *
 findType(spec, parserPtr)
     char *spec;
     Parser *parserPtr; 
@@ -104,7 +104,7 @@ findType(spec, parserPtr)
  
 
 			    
-Object *
+static Object *
 findObject(spec, parserPtr)
     char *spec;
     Parser *parserPtr; 

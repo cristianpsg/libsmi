@@ -6,7 +6,7 @@ o error detection: detect IMPORTs of SMIv1 specific and SMIv2 specific
 o error detection: does table node have exactly one row sub node
   with oid == 1? (2578.7.10)
 
-o warning detection: non continious sub oids in column node list?
+o warning detection: non continuous sub oids in column node list?
 
 o warning detection: warning on NotificationName/ObjectName/ExtUTCTime
   definitions.
@@ -15,7 +15,7 @@ o warning detection: integer(signed) in index
 
 o error detection: parser-smi.y: remember SEQUENCE contents and check them
 
-o warning detection: check, wheather OIDs of indexed columns might be
+o warning detection: check, whether OIDs of indexed columns might be
   longer than 128 subids.
 
 o warning detection: enumerations SHOULD NOT contain signedNumber's.
@@ -28,7 +28,7 @@ o warning detection: zeroDotZero defined locally instead of
 
 
 o parser-smi.y: handle forbidden WS at some places
-  ( - number, Module . label, ...)
+  ( Module . label, ...)
 
 o dump-sming.c: ensure an order without forward references in typedef's.
 
@@ -43,13 +43,13 @@ o smi.c: smiGetNames() is not yet implemented
 o thread safety (global vars? static vars? strtok() and other funcs?)
   different views
 
-o if `parse error' occurs, the database is left in an incosistent state,
+o if `parse error' occurs, the database is left in an inconsistent state,
   e.g. index labels of sming modules are not adjusted.
 
 o need a handle to distinguish different views.
 
-o clearly separate language dependant information at the API: SMI_STATUS_*
-  map STATUS to a non-language-dependant type
+o clearly separate language dependent information at the API: SMI_STATUS_*
+  map STATUS to a non-language-dependent type
 
 o OID/Name Lookup Service (continue work on smid?)
 
@@ -71,8 +71,7 @@ o collapsing of type forward references in smiv2 parser. e.g.
 o smilint on orig (RFC 1567) DSA-MIB crashes.
 
 o new feature: passing options to dump modules to allow some format
-  dependant adjustments like
-  - removing comments
+  dependent adjustments like
   - imports: showing imported modules just once
   - ...
 
@@ -82,4 +81,4 @@ o Web online conversion to SMIng?
 
 o make check: parse every mib once
 
-o handle TRAP-TYPE correctly (->NOTIFICATION-TYPE instead of ignore)
+o special handling for well-known traps (reversibility?)
