@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.12 1999/05/04 13:33:16 strauss Exp $
+ * @(#) $Id: smi.h,v 1.13 1999/05/04 17:04:59 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -352,4 +352,3 @@ extern char **smiGetChildren(char *spec,
 
 
 #endif /* _SMI_H */
-
