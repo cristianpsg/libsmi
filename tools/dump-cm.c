@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.13 2000/05/23 12:50:37 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.14 2000/05/26 16:17:49 strauss Exp $
  */
 
 
@@ -19,6 +19,10 @@
  *
  * Berechnungen der UML Diagramme debuggen
  *
+ * bei expand/aufgment die Index-Objekte mit in die erweiterte Tabelle
+ * uebernehmen
+ *
+ * Table und Scalar-Verbindungen durch Namen ueberpruefen
  */
 
 
@@ -108,6 +112,14 @@ typedef struct Graph {
 } Graph;
 
 /*
+ * list of modules for unified output
+ */
+/*typedef struct Module {
+    char          *moduleName;
+    struct Module *nextPtr;
+    } Module;*/
+
+/*
  * definitions for the algorithm
  */
 static char *pointer[]       = {"Index", NULL};
@@ -175,7 +187,7 @@ static Graph     *graph  = NULL;            /* the graph */
 static Module    *moduleList = NULL;        /* list of loaded MIB modules */
 
 /*
- * help funcktions
+ * help functions
  */
 #define max(a, b) ((a < b) ? b : a)
 #define min(a, b) ((a < b) ? a : b)
@@ -974,6 +986,24 @@ static int isBaseType(SmiNode *node)
     }
 }
 
+/*
+ * Returns 1 is the smiNode is an index objects and otherwise 0.
+ */
+static int isElementObject(SmiNode *table, SmiNode *smiNode)
+{
+    SmiElement *smiElement;
+    SmiNode    *tNode;
+
+    tNode = smiGetFirstChildNode(table);
+    
+    for (smiElement = smiGetFirstElement(tNode);
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	if (cmpSmiNodes(smiGetElementNode(smiElement), smiNode)) return 1;
+    }
+
+    return 0;
+}
 
 /* -------------- main functions ------------------------------------------- */
 
@@ -1344,7 +1374,7 @@ static void algCheckLinksByName()
 static void algLinkObjectsByNames()
 {
     GraphNode *tNode, *tNode2, *newNode;
-    int       overlap,minoverlap;
+    int       overlap,minoverlap,new;
 
     /* getting the min. overlap for all nodes */
     minoverlap = 10000;
@@ -1356,36 +1386,33 @@ static void algLinkObjectsByNames()
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {    
 	if (!graphGetFirstEdgeByNode(graph, tNode)) {
- 
-	    overlap = 0;
-	    newNode = NULL;
+	    overlap = minoverlap + 1;
+	    
 	    for (tNode2 = graph->nodes; tNode2; tNode2 = tNode2->nextPtr) {
-		if (strpfxlen(tNode->smiNode->name,tNode2->smiNode->name) >
-		    overlap &&
-		    strpfxlen(tNode->smiNode->name,tNode2->smiNode->name) >
-		    minoverlap+1 &&  
-		    tNode->smiNode->name != tNode2->smiNode->name) {
-		    overlap = strpfxlen(tNode->smiNode->name,
-					tNode2->smiNode->name);
-		    newNode = tNode2;
-		}
-	    }
+		if (cmpSmiNodes(tNode->smiNode, tNode2->smiNode)) continue;
+		
+		new = strpfxlen(tNode->smiNode->name, tNode2->smiNode->name);
+		
+		if (new > overlap) {
+		    if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR &&
+			tNode2->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
+			continue;
+		    }
 
-	    if (newNode) {
-		/* no scalar - scalar edge */
-		if (newNode->smiNode->nodekind != SMI_NODEKIND_SCALAR ||
-		    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
+		    if (tNode->smiNode->name[new] &&
+			tNode2->smiNode->name[new]) {
+			if (!isupper(tNode->smiNode->name[new]) ||
+			    !isupper(tNode2->smiNode->name[new])) continue;
+		    }
+		    
+		    overlap = new;
 
-		    /* getting the direction of the edge : table-scalar */
-		    if (newNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
-			algInsertEdge(newNode->smiNode,
-				      tNode->smiNode,
+		    if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
+			algInsertEdge(tNode2->smiNode, tNode->smiNode,
 				      SMI_INDEX_UNKNOWN,
 				      GRAPH_ENHINDEX_NAMES);
-		    }
-		    else {
-			algInsertEdge(tNode->smiNode, 
-				      newNode->smiNode,
+		    } else {
+			algInsertEdge(tNode->smiNode, tNode2->smiNode,
 				      SMI_INDEX_UNKNOWN,
 				      GRAPH_ENHINDEX_NAMES);
 		    }
@@ -1633,8 +1660,100 @@ static void algCheckForDependency()
     }
 
     if (XPLAIN) {
-	printf("\n--- Fourth Phase - checking for dependency connections\n\n");
+	printf("\n--- Fourth Phase - checking for dependency relationships\n\n");
 	graphShowEdges(graph);
+    }
+}
+
+/*
+ *
+ */
+static SmiNode *algFindTable(SmiNode *node)
+{
+    GraphNode  *tNode;
+    SmiNode    *smiNode;
+    SmiElement *smiElement;
+    char       *toFind;
+    int        i,j;
+    
+    if (!node) return NULL;
+
+    i = strlen(smiGetParentNode(node)->name) - strlen("Entry");
+    toFind = xmalloc(strlen(node->name)  - i);
+    for (j = i; node->name[j]; j++) {
+	toFind[j-i] = node->name[j];
+    }
+    
+    //printf("%s\n",toFind);
+		     
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
+	    if (cmpSmiNodes(node, tNode->smiNode)) continue;
+	    smiNode = smiGetFirstChildNode(tNode->smiNode);
+	    
+	    for (smiElement = smiGetFirstElement(smiNode);
+		 smiElement;
+		 smiElement = smiGetNextElement(smiElement)) {
+		smiNode = smiGetElementNode(smiElement);
+		//printf("Checking ... %s\n",smiNode->name);
+		if (strstr(smiNode->name, toFind)) {
+		    //printf("Found %s \n",smiNode->name);
+		    xfree(toFind);
+		    return smiGetParentNode(smiGetParentNode(smiNode));
+		}
+	    }
+	}
+    }
+
+    xfree(toFind);
+    
+    return NULL;
+}
+
+/*
+ *
+ */
+static void algCheckForPointerRels()
+{
+    GraphNode *tNode;
+    SmiModule *module;
+    SmiNode   *smiNode = NULL;
+    SmiNode   *ppNode, *table;
+    int       i;
+    
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
+
+	    module  = smiGetNodeModule(tNode->smiNode);
+
+	    for (smiNode = smiGetFirstNode(module, SMI_NODEKIND_COLUMN);
+		 smiNode;
+		 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COLUMN)) {
+		ppNode = smiGetParentNode(smiNode);
+		ppNode = smiGetParentNode(ppNode);
+	
+		if (!isElementObject(tNode->smiNode, smiNode) &&
+		    cmpSmiNodes(tNode->smiNode, ppNode)) {
+
+		    for (i = 0; pointer[i]; i++) {
+			if (strstr(smiNode->name, pointer[i])) {
+			    //printf("%s \n",smiNode->name);
+			    table = algFindTable(smiNode);
+			    if (table) {
+				algInsertEdge(table, tNode->smiNode,
+					      SMI_INDEX_UNKNOWN,
+					      GRAPH_ENHINDEX_INDEX);
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+    if (XPLAIN) {
+	printf("\n--- Fifth Phase - checking for pointer relationships\n\n");
+	graphShowEdges(graph);	
     }
 }
 
@@ -1794,25 +1913,6 @@ static void diaPrintXMLRelatedScalars(GraphNode *node)
 }
 
 /*
- * Returns 1 is the smiNode is an index objects and otherwise 0.
- */
-static int isElementObject(SmiNode *table, SmiNode *smiNode)
-{
-    SmiElement *smiElement;
-    SmiNode    *tNode;
-
-    tNode = smiGetFirstChildNode(table);
-    
-    for (smiElement = smiGetFirstElement(tNode);
-	 smiElement;
-	 smiElement = smiGetNextElement(smiElement)) {
-	if (cmpSmiNodes(smiGetElementNode(smiElement), smiNode)) return 1;
-    }
-
-    return 0;
-}
-
-/*
  * prints all columns objects of the given node
  */
 static void diaPrintXMLAllColumns(GraphNode *node)
@@ -1864,7 +1964,8 @@ static void diaPrintXMLObject(GraphNode *node, float x, float y)
     printf("       <real val=\"%f\"/>\n",node->dia.h);
     printf("     </attribute>\n");
     printf("     <attribute name=\"name\">\n");
-    printf("       <string>#%s#</string>\n",node->smiNode->name);
+    printf("       <string>#%s#</string>\n",
+	   smiGetFirstChildNode(node->smiNode)->name);
     printf("     </attribute>\n");
     printf("     <attribute name=\"stereotype\">\n");
     printf("        <string>#%s#</string>\n", STEREOTYPE);
@@ -1913,7 +2014,9 @@ static void diaPrintXMLObject(GraphNode *node, float x, float y)
     printf("   </object>\n");
 }
 
-/* prints a group of scalars denoted by group */
+/*
+ * prints a group of scalars denoted by group
+ */
 static void diaPrintXMLGroup(int group, float x, float y)
 {
     GraphNode *tNode;
@@ -2126,7 +2229,7 @@ static float getObjYRel(GraphEdge *edge, int con)
 }
 
 /*
- * printCoordinates
+ * diaPrintXMLCoordinates
  *
  * prints and calculates the coordinates of a given edge
  */
@@ -2546,11 +2649,12 @@ static float diaPrintNode(GraphNode *node, float x, float y)
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
 	    if (node == tEdge->startNode) {
 		y += tEdge->endNode->dia.h + YSPACING;    
-		diaPrintXMLObject(tEdge->endNode, x, y);
+		diaPrintXMLObject(tEdge->endNode,x,y);
 		diaPrintXMLConnection(tEdge);
 
-		y = diaPrintNode(tEdge->startNode, x, y);
-		/* (x+tEdge->startNode->dia.w+XSPACING),y); */
+		y = diaPrintNode(tEdge->startNode,
+			      x,y);
+			      //(x+tEdge->startNode->dia.w+XSPACING),y);
 		
 		y = diaPrintNode(tEdge->endNode,
 		  (x+tEdge->startNode->dia.w+XSPACING), y);
@@ -2693,6 +2797,7 @@ static void dumpCM(Module *module)
 	algCheckLinksByName();
 	algConnectLonelyNodes();
 	algCheckForDependency();
+	algCheckForPointerRels();
 	
 	if (!XPLAIN) {
 	    diaPrintXML();
