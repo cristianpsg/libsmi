@@ -80,6 +80,7 @@ MibNode *parent;
  */
 %union {
     String text;				/* scanned quoted text       */
+    String *textp;				/* scanned quoted text       */
     char *id;					/* identifier name           */
     int err;					/* actually just a dummy     */
     MibNode *mibnode;				/* object identifier         */
@@ -212,7 +213,7 @@ MibNode *parent;
 %type  <err>objectIdentityClause
 %type  <err>objectTypeClause
 %type  <err>trapTypeClause
-%type  <text>descriptionClause
+%type  <textp>descriptionClause
 %type  <err>VarPart
 %type  <err>VarTypes
 %type  <err>VarType
@@ -240,8 +241,8 @@ MibNode *parent;
 %type  <err>enumItem
 %type  <status>Status
 %type  <status>Status_Capabilities
-%type  <text>DisplayPart
-%type  <text>UnitsPart
+%type  <textp>DisplayPart
+%type  <textp>UnitsPart
 %type  <access>Access
 %type  <err>IndexPart
 %type  <err>IndexTypes
@@ -265,7 +266,7 @@ MibNode *parent;
 %type  <err>NotificationsPart
 %type  <err>Notifications
 %type  <err>Notification
-%type  <text>Text
+%type  <textp>Text
 %type  <err>ExtUTCTime
 %type  <mibnode>objectIdentifier
 %type  <mibnode>subidentifiers
@@ -845,32 +846,23 @@ typeName:		UPPERCASE_IDENTIFIER
 			     * rule will not add a new Descriptor for this
 			     * already known type.
 			     */
-			    strcpy($$, "");
+			    /* strcpy($$, ""); */
 			}
 	;
 
-typeSMI:		INTEGER32
-	|		IPADDRESS
-	|		COUNTER32
-	|		GAUGE32
-	|		UNSIGNED32
-	|		TIMETICKS
-	|		OPAQUE
-	|		COUNTER64
+typeSMI:		INTEGER32   { $$ = strdup($1); }
+	|		IPADDRESS   { $$ = strdup($1); }
+	|		COUNTER32   { $$ = strdup($1); }
+	|		GAUGE32     { $$ = strdup($1); }
+	|		UNSIGNED32  { $$ = strdup($1); }
+	|		TIMETICKS   { $$ = strdup($1); }
+	|		OPAQUE      { $$ = strdup($1); }
+	|		COUNTER64   { $$ = strdup($1); }
 	;
 
 typeDeclarationRHS:	Syntax
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType($1, SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
-			    } else {
-				$$ = NULL;
-			    }
+			    $$ = $1;
 			}
 	|		TEXTUAL_CONVENTION
 			DisplayPart
@@ -880,20 +872,31 @@ typeDeclarationRHS:	Syntax
 			SYNTAX Syntax
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
-				/* TODO: if Syntax is a reference to a
-				 * base type (flags & PERMANENT?), then
-				 * create a new inherited type and aply
-				 * restrictions to that one.
-				 */
-				$$ = addType($9, SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
-				setTypeDescription($$, &$6);
+				if (($9) && !($9->flags & FLAG_PERMANENT)) {
+				    /*
+				     * If the Type we found has just been
+				     * defined, we don't have to allocate
+				     * a new one.
+				     */
+				    $$ = $9;
+				} else {
+				    /*
+				     * Otherwise, we have to allocate a
+				     * new Type struct, inherited from $9.
+				     */
+				    $$ = addType($9, SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				}
+				setTypeDescription($$, $6);
 				setTypeStatus($$, $4);
-				setTypeDisplayHint($$, &$2);
+				if ($2) {
+				    setTypeDisplayHint($$, $2);
+				}
 				setTypeMacro($$, MACRO_TC);
 			    } else {
 				$$ = NULL;
@@ -911,7 +914,7 @@ conceptualTable:	SEQUENCE OF row
 			    if ($3) {
 				if (thisParser->flags & FLAG_ACTIVE) {
 				    $$ = addType($3,
-						 SYNTAX_SEQUENCEOF,
+						 SYNTAX_SEQUENCE_OF,
 						 thisModule,
 						 (thisParser->flags &
 						  (FLAG_WHOLEMOD |
@@ -1073,7 +1076,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 						? (FLAG_MODULE|FLAG_REGISTERED)
 						: 0);
 				setMibNodeStatus($11, $5);
-				setMibNodeDescription($11, &$7);
+				setMibNodeDescription($11, $7);
 #if 0
 				setMibNodeReferences($11, $8);
 #endif
@@ -1124,7 +1127,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				/* TODO setMibNodeSyntax($16, $5); */
 				setMibNodeAccess($16, $7);
 				setMibNodeStatus($16, $9);
-				setMibNodeDescription($16, &$10);
+				if ($10) {
+				    setMibNodeDescription($16, $10);
+				}
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1138,19 +1143,11 @@ descriptionClause:	/* empty */
 				printError(parser,
 					   ERR_MISSING_DESCRIPTION);
 			    }
-#ifdef TEXTS_IN_MEMORY
-			    $$.ptr = NULL;
-#endif
-			    $$.fileoffset = thisParser->character;
-			    $$.length = 0;
+			    $$ = NULL;
 			}
 	|		DESCRIPTION Text
 			{
-#ifdef TEXTS_IN_MEMORY
-			    $$.ptr = $2.ptr;
-#endif
-			    $$.fileoffset = $2.fileoffset;
-			    $$.length = $2.length;
+			    $$ = $2;
 			}
 	;
 
@@ -1253,7 +1250,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 						    FLAG_REGISTERED);
 				}
 				setMibNodeStatus($12, $6);
-				setMibNodeDescription($12, &$8);
+				setMibNodeDescription($12, $8);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1307,7 +1304,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setMibNodeDescription($16, &$12);
+				setMibNodeDescription($16, $12);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1873,31 +1870,23 @@ Status_Capabilities:	LOWERCASE_IDENTIFIER
 			}
         ;
 
-DisplayPart:		DISPLAY_HINT QUOTED_STRING
+DisplayPart:		DISPLAY_HINT Text
 			{
-			    $$.ptr = NULL;
-			    $$.fileoffset = 0;
-			    $$.length = 0;
+			    $$ = $2;
 			}
         |		/* empty */
 			{
-			    $$.ptr = NULL;
-			    $$.fileoffset = 0;
-			    $$.length = 0;
+			    $$ = NULL;
 			}
         ;
 
-UnitsPart:		UNITS QUOTED_STRING
+UnitsPart:		UNITS Text
 			{
-			    $$.ptr = NULL;
-			    $$.fileoffset = 0;
-			    $$.length = 0;
+			    $$ = $2;
 			}
         |		/* empty */
 			{
-			    $$.ptr = NULL;
-			    $$.fileoffset = 0;
-			    $$.length = 0;
+			    $$ = NULL;
 			}
         ;
 
@@ -2070,20 +2059,26 @@ Notification:		NotificationName
 
 Text:			QUOTED_STRING
 			{
+			    $$ = malloc(sizeof(struct String));
+			    if ($$) {
 #ifdef TEXTS_IN_MEMORY
-			    if ($1.length <= TEXTS_IN_MEMORY) { 
-				$$.ptr = malloc($1.length+1);
-				if ($$.ptr) {
-				    memcpy($$.ptr, $1.ptr, $1.length+1);
+				if ($1.length <= TEXTS_IN_MEMORY) { 
+				    $$->ptr = malloc($1.length+1);
+				    if ($$->ptr) {
+					memcpy($$->ptr, $1.ptr, $1.length+1);
+				    } else {
+					/* TODO */
+				    }
 				} else {
-				    /* TODO */
+				    $$->ptr = NULL;
 				}
-			    } else {
-				$$.ptr = NULL;
-			    }
 #endif
-			    $$.fileoffset = $1.fileoffset;
-			    $$.length = $1.length;
+				$$->fileoffset = $1.fileoffset;
+				$$->length = $1.length;
+			    } else {
+				/* TODO */
+				$$ = NULL;
+			    }
 			}
 	;
 
@@ -2330,7 +2325,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 						    FLAG_REGISTERED);
 				}
 				setMibNodeStatus($12, $6);
-				setMibNodeDescription($12, &$8);
+				setMibNodeDescription($12, $8);
 #if 0
 				setMibNodeReferences($12, $9);
 #endif
@@ -2376,7 +2371,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 						    FLAG_REGISTERED);
 				}
 				setMibNodeStatus($12, $6);
-				setMibNodeDescription($12, &$8);
+				setMibNodeDescription($12, $8);
 #if 0
 				setMibNodeReferences($12, $9);
 #endif
@@ -2421,7 +2416,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 						    FLAG_REGISTERED);
 				}
 				setMibNodeStatus($12, $5);
-				setMibNodeDescription($12, &$7);
+				setMibNodeDescription($12, $7);
 #if 0
 				setMibNodeReferences($12, $8);
 #endif
@@ -2564,7 +2559,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 						    FLAG_REGISTERED);
 				}
 				setMibNodeStatus($14, $7);
-				setMibNodeDescription($14, &$9);
+				setMibNodeDescription($14, $9);
 #if 0
 				setMibNodeReferences($14, $10);
 #endif
