@@ -27,6 +27,14 @@ o smiGetNames()
 
 o thread safety
 
-o man pages
+o update man pages
 
 o SmiDecl is language dependant.
+
+o smi_errno ?!
+
+o grouping of error and warning messages
+
+o problem if SMIPATH is not set?
+o clean up mibs dir
+o smiAddPath()

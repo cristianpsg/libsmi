@@ -1,7 +1,7 @@
 .\"
-.\" $Id: libsmi.3,v 1.6 1999/05/08 20:56:48 strauss Exp $
+.\" $Id: libsmi.3,v 1.1 1999/05/28 14:52:06 strauss Exp $
 .\"
-.TH libsmi 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.TH libsmi 3  "May 31, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 libsmi \- library to access SMI management information
 .SH DESCRIPTION
@@ -11,13 +11,12 @@ currently directories containing SMIv1/v2 and SMIng MIB module files.
 .PP
 The libsmi API is defined in \fBsmi.h\fP. Functions are
 documented in \fBsmi_config\fP(3), \fBsmi_module\fP(3),
-\fBsmi_node\fP(3), \fBsmi_type\fP(3), \fBsmi_macro\fP(3), and
-\fBsmi_string\fP(3).
+\fBsmi_node\fP(3), \fBsmi_type\fP(3), and \fBsmi_macro\fP(3).
 .PP
-The purpose of libsmi is to separate the weird parsing and
-handling of MIB modules from management applications. MIB modules
-conforming to SMIv1, SMIv2 and SMIng - a new language for management
-information, developed at the Technical University of Braunschweig, Germany - can
+The purpose of libsmi is to separate the weird parsing and handling of
+MIB modules from management applications. MIB modules conforming to
+SMIv1, SMIv2 and SMIng - a new language for management information,
+developed at the Technical University of Braunschweig, Germany - can
 be handled by libsmi.
 .PP
 .SH "EXAMPLE"
@@ -28,41 +27,41 @@ be handled by libsmi.
  
 int main(int argc, char *argv[])
 {
-    char *modulename, *fullname;
-    SmiNode *smiNode, *smiStartNode;
- 
+    char *modulename, *fullname, *oid;
+    SmiNode *smiNode;
+    
     if (argc != 2) {
-        fprintf(stderr, "Usage: smisubtree oid\\n");
+        fprintf(stderr, "Usage: smisubtree oid\n");
         exit(1);
     }
  
-    smiInit();
- 
     fullname   = argv[1];
     modulename = smiModule(fullname);
+    
+    smiInit();
  
     smiLoadModule(modulename);
  
-    for(smiNode = smiStartNode = smiGetNode(fullname, NULL);
-        smiNode &&
-        strstr(smiNode->oid, smiStartNode->oid) == smiNode->oid;
-        smiNode = smiGetNextNode(smiNode->name, modulename)) {
+    smiNode = smiGetNode(NULL, fullname);
+    if (smiNode) oid = smiNode->oid;
  
-        printf("%s::%-16s   [%s]\\n",
-               smiNode->module, smiNode->name,
-               smiStringBasetype(smiNode->basetype));
-    }
+    for(; smiNode && (strstr(smiNode->oid, oid) == smiNode->oid);
+        smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
+ 
+        printf("%s.%-26s [%s]\n",
+               smiNode->module, smiNode->name, smiNode->oid);
+        
+    };
+    
+    smiFreeNode(smiNode);
+    free(modulename);
+    exit(0);
 }
 .fi
 .SH "FILES"
 .nf
 /usr/local/include/smi.h    SMI library header file
-/usr/local/etc/smi.conf     global configuration file
-/usr/local/etc/smi*.conf    other configuration files
 .fi
-.SH "NOTES"
-Libsmi is work in progress. Interface inconsistencies and deficiencies
-will be removed in near future.
 .SH "SEE ALSO"
 .BR "RFCs 2578-2580"
 specify the SMIv2 standard.  SMIng is specified as part of a
@@ -76,7 +75,6 @@ Network Management Working Group (NMRG) (draft-irtf-nmrg-sming).
 .BR smi_node "(3), "
 .BR smi_type "(3), "
 .BR smi_macro "(3), "
-.BR smi_string "(3)"
 .SH "AUTHOR"
 (C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br
