@@ -1,3 +1,8 @@
+2000-10-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/scanner-smi.l: Fixed lex'ing of comments. Thanks to
+	Bill Fenner.
+
 2000-10-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: Changed all function header to ANSI style.
