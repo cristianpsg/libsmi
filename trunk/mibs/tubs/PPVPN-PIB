@@ -12,7 +12,7 @@
             FROM SNMPv2-SMI 
        TruthValue, DisplayString
                FROM SNMPv2-TC 
-       RoleCombination, PrcIdentifier, AttrIdentifier 
+       RoleCombination, AttrIdentifier 
                FROM FRAMEWORK-TC-PIB
        InetAddress, InetAddressType
                FROM INET-ADDRESS-MIB

@@ -16,7 +16,7 @@ IMPORTS
             FROM ACCOUNTING-FRAMEWORK-PIB
      TruthValue, TEXTUAL-CONVENTION  
             FROM SNMPv2-TC 
-     RoleCombination, PrcIdentifier 
+     RoleCombination
             FROM FRAMEWORK-TC-PIB 
      SnmpAdminString 
             FROM SNMP-FRAMEWORK-MIB; 
