@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.43 1999/12/13 16:15:58 strauss Exp $
+ * @(#) $Id: data.c,v 1.44 1999/12/14 12:00:09 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2140,8 +2140,9 @@ setTypeName(typePtr, name)
 	    type2Ptr->flags        = typePtr->flags;
 	    type2Ptr->line         = typePtr->line;
 
+
 	    util_free(typePtr);
-	    
+
 	    return type2Ptr;
 	}
     }
@@ -2843,6 +2844,7 @@ initData()
     parser.path			= NULL;
     parser.flags		= smiFlags;
     parser.file			= NULL;
+    parser.line			= -1;
     parser.modulePtr = addModule("", "", 0, 0, NULL);
 
     addView("");
@@ -2907,7 +2909,7 @@ freeData()
     Type       *typePtr, *nextTypePtr;
     Object     *objectPtr, *nextObjectPtr;
 
-    return;
+    /* return; */ /* XXX */
     /* TODO: some weired ptrs :-(, waiting for purify... */
     
     for (viewPtr = firstViewPtr; viewPtr; viewPtr = nextViewPtr) {
@@ -2951,9 +2953,18 @@ freeData()
 		    (typePtr->basetype == SMI_BASETYPE_ENUM)) {
 		    util_free(((NamedNumber *)(listPtr->ptr))->name);
 		    util_free((NamedNumber *)(listPtr->ptr));
-		} else {
-		    util_free(((Range *)(listPtr->ptr))->minValuePtr);
-		    util_free(((Range *)(listPtr->ptr))->maxValuePtr);
+		} else if ((typePtr->basetype == SMI_BASETYPE_INTEGER32) ||
+			   (typePtr->basetype == SMI_BASETYPE_INTEGER64) ||
+			   (typePtr->basetype == SMI_BASETYPE_UNSIGNED32) ||
+			   (typePtr->basetype == SMI_BASETYPE_UNSIGNED64) ||
+			   (typePtr->basetype == SMI_BASETYPE_OCTETSTRING)) {
+		    if (((Range *)(listPtr->ptr))->minValuePtr ==
+			((Range *)(listPtr->ptr))->maxValuePtr) {
+			util_free(((Range *)(listPtr->ptr))->minValuePtr);
+		    } else {
+			util_free(((Range *)(listPtr->ptr))->minValuePtr);
+			util_free(((Range *)(listPtr->ptr))->maxValuePtr);
+		    }
 		    util_free((Range *)(listPtr->ptr));
 		}
 		util_free(listPtr);
@@ -3132,7 +3143,7 @@ loadModule(modulename)
 	    smiLeaveLexRecursion();
 	    fclose(parser.file);
 	}
-	free(path);
+	util_free(path);
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMI_NOT_SUPPORTED, parser.path);
@@ -3168,7 +3179,7 @@ loadModule(modulename)
 	    smingLeaveLexRecursion();
 	    fclose(parser.file);
 	}
-	free(path);
+	util_free(path);
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMING_NOT_SUPPORTED, parser.path);
