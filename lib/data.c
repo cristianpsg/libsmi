@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.122 2004/07/21 10:38:06 schoenw Exp $
+ * @(#) $Id: data.c,v 1.123 2004/07/21 10:58:20 schoenw Exp $
  */
 
 #include <config.h>
@@ -512,7 +512,7 @@ Module *findModuleByName(const char *modulename)
 
 Revision *addRevision(time_t date, char *description, Parser *parserPtr)
 {
-    Revision	  *revisionPtr;
+    Revision	  *revisionPtr, *r;
     Module	  *modulePtr;
 
     revisionPtr = (Revision *) smiMalloc(sizeof(Revision));
@@ -529,16 +529,30 @@ Revision *addRevision(time_t date, char *description, Parser *parserPtr)
     }
     revisionPtr->line			 = parserPtr ? parserPtr->line : -1;
 
-    /* TODO: probably, we should sort revisions by date by inserting
-       new ones at the right position!? */
-    revisionPtr->nextPtr		 = NULL;
-    revisionPtr->prevPtr		 = modulePtr->lastRevisionPtr;
-    if (!modulePtr->firstRevisionPtr)
-	modulePtr->firstRevisionPtr	 = revisionPtr;
-    if (modulePtr->lastRevisionPtr)
-	modulePtr->lastRevisionPtr->nextPtr = revisionPtr;
-    modulePtr->lastRevisionPtr		 = revisionPtr;
-    
+    for (r = modulePtr->lastRevisionPtr; r; r = r->prevPtr) {
+	if (r->export.date > date) break;
+    }
+    if (r) {
+	revisionPtr->nextPtr = r->nextPtr;
+	revisionPtr->prevPtr = r;
+	if (r->nextPtr) {
+	    r->nextPtr->prevPtr = revisionPtr;
+	} else {
+	    modulePtr->lastRevisionPtr = revisionPtr;
+	}
+	r->nextPtr = revisionPtr;
+    } else {
+	revisionPtr->prevPtr = NULL;
+	if (modulePtr->firstRevisionPtr) {
+	    modulePtr->firstRevisionPtr->prevPtr = revisionPtr;
+	    revisionPtr->nextPtr = modulePtr->firstRevisionPtr;
+	} else {
+	    modulePtr->lastRevisionPtr = revisionPtr;
+	    revisionPtr->nextPtr = NULL;
+	}
+	modulePtr->firstRevisionPtr = revisionPtr;
+    }
+
     return (revisionPtr);
 }
 

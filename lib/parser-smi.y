@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.200 2004/03/13 22:21:32 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.203 2004/07/09 13:55:33 strauss Exp $
  */
 
 %{
@@ -3530,38 +3530,50 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
                         {
                           /* do nothing at the moment */
                         }
-			LAST_UPDATED ExtUTCTime      /* old 5-7, new $7-9 */
+			LAST_UPDATED ExtUTCTime
 			{
 			    setModuleLastUpdated(thisParserPtr->modulePtr, $8);
 			}
-			ORGANIZATION Text            /* old 8-10, new $10-12 */
+			ORGANIZATION Text
 			{
 			    if ($11 && !strlen($11)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_ORGANIZATION);
 			    }
 			}
-			CONTACT_INFO Text             /* old 11-13, new 13-15 */
+			CONTACT_INFO Text
 			{
 			    if ($14 && !strlen($14)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_CONTACT);
 			    }
 			}
-			DESCRIPTION Text              /* old 14-16, new 16-18 */
+			DESCRIPTION Text
 			{
 			    if ($17 && !strlen($17)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_DESCRIPTION);
 			    }
 			}
-			RevisionPart                  /* old 17, new 19 */
+			RevisionPart
+                        {
+			    if ((!thisModulePtr->firstRevisionPtr) ||
+				(thisModulePtr->firstRevisionPtr->export.date !=
+				 thisModulePtr->lastUpdated)) {
+				smiPrintError(thisParserPtr,
+					      ERR_REVISION_MISSING);
+				addRevision(thisModulePtr->lastUpdated,
+					    smiStrdup(
+						"[Revision added by libsmi due to a LAST-UPDATED clause.]"),
+					    thisParserPtr);
+			    }
+			}
 			COLON_COLON_EQUAL
-			'{' objectIdentifier '}'      /* old 19-21, new 21-23 */
+			'{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $22;
+			    objectPtr = $23;
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
 			    thisParserPtr->modulePtr->numModuleIdentities++;
@@ -5763,15 +5775,7 @@ ReferPart:		REFERENCE Text
 RevisionPart:		Revisions
 			{ $$ = 0; }
 	|		/* empty */
-			{
-			    if (!thisModulePtr->firstRevisionPtr) {
-				addRevision(thisModulePtr->lastUpdated,
-					    smiStrdup(
-	           "[Revision added by libsmi due to a LAST-UPDATED clause.]"),
-					    thisParserPtr);
-			    }
-			    $$ = 0;
-			}
+			{ $$ = 0; }
 	;
 
 Revisions:		Revision
@@ -5783,23 +5787,21 @@ Revisions:		Revision
 Revision:		REVISION ExtUTCTime
 			{
 			    firstRevisionLine = thisParserPtr->line;
+
+			    if (thisParserPtr->modulePtr->lastRevisionPtr &&
+				($2 >= thisParserPtr->modulePtr->lastRevisionPtr->export.date)) {
+				smiPrintError(thisParserPtr,
+					      ERR_REVISION_NOT_DESCENDING);
+			    }
+
+			    if ($2 > thisParserPtr->modulePtr->lastUpdated) {
+				smiPrintError(thisParserPtr,
+					      ERR_REVISION_AFTER_LAST_UPDATE);
+			    }
 			}
 			DESCRIPTION Text
 			{
 			    Revision *revisionPtr;
-
-			    /*
-			     * If the first REVISION (which is the newest)
-			     * has another date than the LAST-UPDATED clause,
-			     * we add an implicit Revision structure.
-			     */
-			    if ((!thisModulePtr->firstRevisionPtr) &&
-				($2 != thisModulePtr->lastUpdated)) {
-				addRevision(thisModulePtr->lastUpdated,
-					    smiStrdup(
-	           "[Revision added by libsmi due to a LAST-UPDATED clause.]"),
-					    thisParserPtr);
-			    }
 
 			    if ($5 && !strlen($5)) {
 				smiPrintError(thisParserPtr,
