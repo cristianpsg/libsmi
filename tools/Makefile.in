@@ -72,11 +72,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
-DLLTOOL = @DLLTOOL@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -84,7 +82,6 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
@@ -142,7 +139,7 @@ smiquery.1.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 SOURCES = $(smiquery_SOURCES) $(smilint_SOURCES) $(smidump_SOURCES)
 OBJECTS = $(smiquery_OBJECTS) $(smilint_OBJECTS) $(smidump_OBJECTS)
