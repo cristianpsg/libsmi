@@ -2,12 +2,12 @@
 LIBSMI -- A LIBRARY FOR SMI MANAGEMENT INFORMATION
 ==================================================
 
-Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
+Copyright (c) 1999-2001 Frank Strauss, Technical University of Braunschweig.
 
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.22 2000/11/01 09:30:00 strauss Exp $
+@(#) $Id: README,v 1.23 2000/11/14 13:27:54 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -23,7 +23,7 @@ TODO					incomplete list of things to be done
 configure				configure script
 lib/					library source code
 tools/					tools source code
-doc/draft-irtf-nmrg-sming-02.txt	SMIng specification
+doc/draft-irtf-nmrg-sming-02.txt	old SMIng specification
 mibs/					MIB modules to be installed
 test/					some test patterns
 win/					Win32 port source code
@@ -95,9 +95,13 @@ FURTHER READING
 ===============
 
 Read the man pages for library concepts and usage and for the tools.
-Read the SMIng specification (doc/draft-irtf-nmrg-sming-02.txt) for
-details on SMIng. You may find further information online, along with
-the subscription information on the libsmi mailing list at
+Please note that SMIng is currently in a quite inconsistent and outdated
+state. It does not reflect what is being discussed in the IETF SMING WG
+as of spring 2001. See the old specs in doc/draft-irtf-nmrg-sming-02.txt
+for details on SMIng as it is implemented so far. 
+
+You may find further information online, along with the subscription
+information on the libsmi mailing list at
 
 	http://www.ibr.cs.tu-bs.de/projects/libsmi/.
 

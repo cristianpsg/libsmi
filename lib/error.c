@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.66 2001/03/01 14:36:36 strauss Exp $
+ * @(#) $Id: error.c,v 1.67 2001/03/05 17:57:49 strauss Exp $
  */
 
 #include <config.h>
@@ -319,7 +319,7 @@ static Error errors[] = {
     { 3, ERR_ROW_ACCESS, "access-row-illegal", 
       "row node `%s' must be `not-accessible'" },
     { 2, ERR_ENUM_SUBTYPE, "subtype-enumeration-illegal", 
-      "named number `%s' illegal in sub-type of `%s'" },
+      "named number `%s(%d)' illegal in sub-type of `%s'" },
     { 2, ERR_BITS_SUBTYPE, "subtype-bits-illegal", 
       "named number `%s' illegal in sub-type of `%s'" },
     { 2, ERR_ENUM_NAME_REDEFINITION, "enum-name-redefinition", 
@@ -401,9 +401,9 @@ static Error errors[] = {
     { 3, ERR_SEQUENCE_MISSING_COLUMN, "sequence-missing-column", 
       "SEQUENCE of `%s' is missing columnar object `%s'" },
     { 4, ERR_ILLEGAL_ROWSTATUS_DEFAULT, "rowstatus-default", 
-      "illegal RowStatus default value `%s'" },
+      "illegal `RowStatus' default value `%s'" },
     { 4, ERR_ILLEGAL_STORAGETYPE_DEFAULT, "storagetype-default", 
-      "illegal StorageType default value `%s'" },
+      "illegal `StorageType' default value `%s'" },
     { 2, ERR_DEFVAL_OUT_OF_BASETYPE, "defval-basetype", 
       "DEFVAL exceeds range of underlying basetype" },
     { 2, ERR_DEFVAL_OUT_OF_RANGE, "defval-range", 
@@ -411,7 +411,13 @@ static Error errors[] = {
     { 2, ERR_DEFVAL_OUT_OF_ENUM, "defval-enum", 
       "DEFVAL does not match underlying enumeration type" },
     { 5, ERR_TADDRESS_WITHOUT_TDOMAIN, "taddress-tdomain", 
-      "TAddress object should have an accompanied preceding TDomain object" },
+      "`TAddress' object should have an accompanied preceding `TDomain' object" },
+    { 5, ERR_INETADDRESS_WITHOUT_TYPE, "inetaddress-inetaddresstype", 
+      "`InetAddress' object should have an accompanied preceding `InetAdressType' object" },
+    { 5, ERR_INETADDRESSTYPE_SUBTYPED, "inetaddresstype-subtyped", 
+      "`InetAddressType' should not be subtyped" },
+    { 5, ERR_INETADDRESS_SPECIFIC, "inetaddress-specific", 
+      "`InetAddress' should be used instead of `%s'" },
     { 0, 0, NULL, NULL }
 };
 
