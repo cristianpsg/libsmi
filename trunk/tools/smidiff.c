@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.38 2003/02/26 15:31:57 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.39 2003/04/24 13:11:52 strauss Exp $ 
  */
 
 #include <config.h>
@@ -216,17 +216,17 @@ static Error errors[] = {
       "default value removed from `%s'", NULL },
     { 3, ERR_DEFVAL_CHANGED, "defval-changed",
       "default value of `%s' changed", NULL },
-    { 3, ERR_ORGA_ADDED, "organization-added",
+    { 5, ERR_ORGA_ADDED, "organization-added",
       "organization added to `%s'", NULL },
     { 3, ERR_ORGA_REMOVED, "organization-removed",
       "organization removed from `%s'", NULL },
-    { 3, ERR_ORGA_CHANGED, "organization-changed",
+    { 5, ERR_ORGA_CHANGED, "organization-changed",
       "organization of `%s' changed", NULL },
-    { 3, ERR_CONTACT_ADDED, "contact-added",
+    { 5, ERR_CONTACT_ADDED, "contact-added",
       "contact added to `%s'", NULL },
     { 3, ERR_CONTACT_REMOVED, "contact-removed",
       "contact removed from `%s'", NULL },
-    { 3, ERR_CONTACT_CHANGED, "contact-changed",
+    { 5, ERR_CONTACT_CHANGED, "contact-changed",
       "contact of `%s' changed", NULL },
     { 3, ERR_SMIVERSION_CHANGED, "smi-version-changed",
       "SMI version changed", NULL },
@@ -234,7 +234,7 @@ static Error errors[] = {
       "revision `%s' added", NULL },
     { 3, ERR_REVISION_REMOVED, "revision-removed",
       "revision `%s' removed", NULL },
-    { 3, ERR_REVISION_CHANGED, "revision-changed",
+    { 5, ERR_REVISION_CHANGED, "revision-changed",
       "revision `%s' changed", NULL },
     { 3, ERR_LENGTH_CHANGED, "range-changed",
       "size of type used in `%s' changed from `%s' to `%s'", NULL },
