@@ -8,13 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.39 2002/07/23 23:12:20 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.40 2002/07/24 11:54:18 strauss Exp $
  */
 
 #ifndef _SMI_H
 #define _SMI_H
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <time.h>
 
 
@@ -440,6 +441,14 @@ extern char *smiRenderType(SmiType *smiTypePtr, int flags);
 #define SMI_RENDER_ALL       0xff /* render as `human friendly' as possible */
 
 #define SMI_UNKNOWN_LABEL "<unknown>"
+
+   
+
+extern int smiAsprintf(char **strp, const char *format, ...);
+
+extern int smiVasprintf(char **strp, const char *format, va_list ap);
+
+
 
 #ifdef __cplusplus
 }

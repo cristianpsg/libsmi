@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.31 2002/07/23 11:48:14 strauss Exp $
+ * @(#) $Id: util.c,v 1.32 2002/07/23 18:12:54 strauss Exp $
  */
 
 #include <config.h>
@@ -135,31 +135,6 @@ void smiFree(void *ptr)
 }
 
 #endif
-
-int smiAsprintf(char **strp, const char *format, ...)
-{
-    int rc;
-    va_list ap;
-
-    va_start(ap, format);
-    rc = vasprintf(strp, format, ap);
-    va_end(ap);
-    if (! strp) {
-	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
-    }
-    return rc;
-}
-
-int smiVasprintf(char **strp, const char *format, va_list ap)
-{
-    int rc;
-
-    rc = vasprintf(strp, format, ap);
-    if (! strp) {
-	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
-    }
-    return rc;
-}
 
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.116 2002/09/06 08:11:49 strauss Exp $
+ * @(#) $Id: smi.c,v 1.117 2002/11/13 12:28:04 schoenw Exp $
  */
 
 #include <config.h>
@@ -1234,6 +1234,8 @@ SmiType *smiGetNodeType(SmiNode *smiNodePtr)
     return &typePtr->export;
 }
 
+
+
 int smiGetNodeLine(SmiNode *smiNodePtr)
 {
     return ((Object *)smiNodePtr)->line;
@@ -1484,6 +1486,8 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
     
     return s;
 }
+
+
 
 char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 {
@@ -1924,6 +1928,8 @@ char *smiRenderNode(SmiNode *smiNodePtr, int flags)
     return s;
 }
 
+
+
 char *smiRenderType(SmiType *smiTypePtr, int flags)
 {
     char *s;
@@ -1947,3 +1953,33 @@ char *smiRenderType(SmiType *smiTypePtr, int flags)
     }
     return s;
 }
+
+
+
+int smiAsprintf(char **strp, const char *format, ...)
+{
+    int rc;
+    va_list ap;
+
+    va_start(ap, format);
+    rc = vasprintf(strp, format, ap);
+    va_end(ap);
+    if (! strp) {
+	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    return rc;
+}
+
+
+
+int smiVasprintf(char **strp, const char *format, va_list ap)
+{
+    int rc;
+
+    rc = vasprintf(strp, format, ap);
+    if (! strp) {
+	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    return rc;
+}
+
