@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.50 2000/03/22 09:46:14 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.51 2000/03/29 16:09:09 strauss Exp $
  */
 
 #include <config.h>
@@ -312,7 +312,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 
     s[0] = 0;
     for (i=0; i < smiNode->oidlen; i++) {
-	if (i) strcat(s, ".");
+	if (i) strcat(s, " ");
 	sprintf(&s[strlen(s)], "%u", smiNode->oid[i]);
     }
     return s;
@@ -708,14 +708,14 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 
 
 
-static void printSubtype(SmiType *smiType)
+static void printSubtype(SmiType *smiType, const int comment)
 {
     SmiRange       *range;
     SmiNamedNumber *nn;
     char	   s[100];
     int		   i, c;
 
-    c = (smiv1 && smiType->basetype == SMI_BASETYPE_BITS);
+    c = comment || (smiv1 && smiType->basetype == SMI_BASETYPE_BITS);
     
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
 	(smiType->basetype == SMI_BASETYPE_BITS)) {
@@ -951,7 +951,7 @@ static void printTypeDefinitions(SmiModule *smiModule)
 	    printSegment(INDENT, "", 0, invalid);
 	    print("%s", getTypeString(smiModule->name, smiType->basetype,
 				      smiGetParentType(smiType)));
-	    printSubtype(smiType);
+	    printSubtype(smiType, invalid);
 	    print("\n\n");
 	}
     }
@@ -973,7 +973,7 @@ static void printTextualConventions(SmiModule *smiModule)
 		printSegment(INDENT, "", 0, invalid);
 		print("%s", getTypeString(smiModule->name, smiType->basetype,
 					  smiGetParentType(smiType)));
-		printSubtype(smiType);
+		printSubtype(smiType, invalid);
 		print("\n\n");
 	    }
 
@@ -1014,7 +1014,7 @@ static void printTextualConventions(SmiModule *smiModule)
 		print("%s",
 		      getTypeString(smiModule->name, smiType->basetype,
 				    smiGetParentType(smiType)));
-		printSubtype(smiType);
+		printSubtype(smiType, smiv1 || invalid);
 		print("\n\n");
 	    }
 	}
@@ -1118,7 +1118,7 @@ static void printObjects(SmiModule *smiModule)
 		    print("%s", getTypeString(smiModule->name,
 					      smiType->basetype,
 					      smiGetParentType(smiType)));
-		    printSubtype(smiType);
+		    printSubtype(smiType, invalid);
 		    print("\n");
 		} else {
 		    print("%s\n",
@@ -1270,6 +1270,9 @@ static void printNotifications(SmiModule *smiModule)
 	if (smiv1) {
 	    print("%s TRAP-TYPE\n", smiNode->name);
 	    parentNode = smiGetParentNode(smiNode);
+	    while (!parentNode->name) {
+		parentNode = smiGetParentNode(parentNode);
+	    }
 	    printSegment(INDENT, "ENTERPRISE", INDENTVALUE, 0);
 	    print("%s\n", parentNode->name);
 	} else {
@@ -1529,7 +1532,7 @@ static void printModuleCompliances(SmiModule *smiModule)
 			    print("%s",
 				  getTypeString(module, smiType->basetype,
 						smiGetParentType(smiType)));
-			    printSubtype(smiType);
+			    printSubtype(smiType, smiv1);
 			    print("\n");
 			}
 			
@@ -1540,7 +1543,7 @@ static void printModuleCompliances(SmiModule *smiModule)
 			    print("%s",
 				  getTypeString(module, smiType->basetype,
 						smiGetParentType(smiType)));
-			    printSubtype(smiType);
+			    printSubtype(smiType, smiv1);
 			    print("\n");
 			}
 			
