@@ -5,11 +5,12 @@
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 1999 J. Schoenwaelder, Technical University of Braunschweig.
+ * Copyright (c) 2002 J. Schoenwaelder, University of Osnabrueck.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.34 2002/11/13 12:29:47 schoenw Exp $
+ * @(#) $Id: dump-tree.c,v 1.35 2002/11/29 15:27:15 schoenw Exp $
  */
 
 #include <config.h>
@@ -151,11 +152,36 @@ static void fprintObjects(FILE *f, SmiNode *smiNode)
 
 
 
-static int pruneSubTree(SmiNode *smiNode)
+static int isPartOfLoadedModules(SmiNode *smiNode)
 {
     SmiModule *smiModule;
+    int i;
+    
+    smiModule = smiGetNodeModule(smiNode);
+
+    for (i = 0; i < pmodc; i++) {
+	if (strcmp(pmodv[i]->name, smiModule->name) == 0) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+/*
+ * The following function pruneSubTree() is tricky. There are some
+ * interactions between the supported options. See the detailed
+ * comments below. Good examples to test the implemented behaviour
+ * are:
+ *
+ * smidump -u -f tree --tree-no-leaf IF-MIB ETHER-CHIPSET-MIB
+ *
+ * (And the example above does _not_ work in combination with
+ * --tree-no-conformance so the code below is still broken.)
+ */
+
+static int pruneSubTree(SmiNode *smiNode)
+{
     SmiNode   *childNode;
-    int       i;
 
     const int confmask = (SMI_NODEKIND_GROUP | SMI_NODEKIND_COMPLIANCE);
     const int leafmask = (SMI_NODEKIND_GROUP | SMI_NODEKIND_COMPLIANCE
@@ -168,39 +194,66 @@ static int pruneSubTree(SmiNode *smiNode)
 
     /*
      * First, prune all nodes which the user has told us to ignore.
+     * In the case of ignoreleafs, we have to special case nodes with
+     * an unknown status (which actually represent OBJECT-IDENTITY
+     * definitions). More special case code is needed to exclude
+     * module identity nodes.
      */
 
     if (ignoreconformance && (smiNode->nodekind & confmask)) {
 	return 1;
     }
 
-    if (ignoreleafs && (smiNode->nodekind & leafmask)) {
-	return 1;
-    }
-
-    /*
-     * Next, prune all nodes that do not belong to the set of modules
-     * we are looking at.
-     */
-
-    smiModule = smiGetNodeModule(smiNode);
-    for (i = 0; i < pmodc; i++) {
-	if (strcmp(pmodv[i]->name, smiModule->name) == 0) {
-	    if (!ignoreconformance || !smiGetFirstChildNode(smiNode)) {
-		return 0;
+    if (ignoreleafs) {
+	if (smiNode->nodekind & leafmask) {
+	    return 1;
+	}
+	if (smiNode->nodekind == SMI_NODEKIND_NODE
+	    && smiNode->status != SMI_STATUS_UNKNOWN) {
+	    SmiModule *smiModule = smiGetNodeModule(smiNode);
+	    if (smiModule && smiNode != smiGetModuleIdentityNode(smiModule)) {
+		return 1;
 	    }
 	}
     }
 
     /*
-     * Finally, prune all nodes where all child nodes are pruned. This
-     * actually prunes too much in the case of ignoreleafs since we
-     * still want to see the path to the leaves we have pruned. XXX
+     * Next, generally do not prune nodes that belong to the set of
+     * modules we are looking at.
+     */
+
+    if (isPartOfLoadedModules(smiNode)) {
+	if (!ignoreconformance || !smiGetFirstChildNode(smiNode)) {
+	    return 0;
+	}
+    }
+
+    /*
+     * Finally, prune all nodes where all child nodes are pruned.
      */
 
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
+
+	/*
+	 * In the case of ignoreleafs, we have to peek at the child
+	 * nodes. Otherwise, we would prune too much. we still want to
+	 * see the path to the leafs we have pruned away. This also
+	 * interact with the semantics of ignoreconformance since we
+	 * still want in combination with ignoreleafs to see the path
+	 * to the pruned conformance leafs.
+	 */
+	
+	if (ignoreleafs && (childNode->nodekind & leafmask)) {
+	    if (isPartOfLoadedModules(childNode)) {
+		if (ignoreconformance && (childNode->nodekind & confmask)) {
+		    return 1;
+		}
+		return 0;
+	    }
+	}
+ 
 	if (! pruneSubTree(childNode)) {
 	    return 0;
 	}
