@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.114 2000/06/16 13:53:57 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.115 2000/06/20 15:17:07 strauss Exp $
  */
 
 %{
@@ -235,7 +235,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    && objectPtr->export.nodekind != SMI_NODEKIND_NODE
 	    && (! objectPtr->export.description
 		|| ! objectPtr->export.description[0])) {
-	    fprintf(stderr, "** %p\n", objectPtr->export.description);
 	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
 				objectPtr->line, objectPtr->export.name);
 	}

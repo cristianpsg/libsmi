@@ -15,19 +15,27 @@
 #ifndef _WIN_H
 #define _WIN_H
 
-#include <io.h>
+/*
+ * The Win32 API provides use with stricmp(), which is a string
+ * lowercase compare function. This should be equivalent with
+ * strcasecmp().
+ */
 
-#ifndef __MINGW32__
+#define strcasecmp stricmp
 
 /*
  * The access() function exists in the Win32 API, but there are no
  * defines for the mode parameter. So we provided them here.
  */
 
+#ifndef F_OK
 #define F_OK	00
+#endif
+#ifndef W_OK
 #define W_OK	02
+#endif
+#ifndef R_OK
 #define R_OK	04
-
 #endif
 
 /*

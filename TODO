@@ -88,3 +88,5 @@ o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
   smidump -f tree -u SNA-SDLC-MIB IF-MIB : e.g. ifEntry differences.
 
 o import loops cause endless `smidump -f imports' loops.
+
+o rename test modules: TUBS-IBR prefix.

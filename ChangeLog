@@ -1,3 +1,7 @@
+2000-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* win/: Juergen changed some win things.
+
 2000-06-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/RFC-1212: fixed recursive import.

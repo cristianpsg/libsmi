@@ -10,7 +10,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile.vc,v 1.2 2000/06/19 13:44:10 strauss Exp $
+# @(#) $Id: makefile,v 1.1 2000/04/11 09:00:46 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -21,28 +21,29 @@
 ##
 ROOT	= .\..
 TMPDIR	= .
-TOOLS32	= c:\msdev
+#TOOLS32	= C:\MSDEV
+TOOLS32	= C:\PROGRA~1\MICROS~6\VC98
 
 ##
 ## Installation paths: 
 ##
-## MIBROOT  -- definition for default search path (unix-style;
-##	       check aginst config.h)
+## MIBROOT  -- definition for default search path (unix-style)
 ## MIBDIR   -- same in windows style
 ## BINDIR   -- destination for the binaries (smidump.exe, ...)
+## LIBDIR   -- destination for the library (smi.lib)
 ##
-MIBROOT = /smi/mibs
-INSTROOT = \smi
+MIBROOT = c:/smi/mibs
+INSTROOT = c:\smi
 MIBDIR = $(INSTROOT)\mibs
 BINDIR = $(INSTROOT)\bin
+LIBDIR = $(INSTROOT)\lib
 
 ##
 ## Visual C++ tools
 ##
 PATH=$(TOOLS32)\bin;$(PATH)
 
-CC32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
-IMPLIB  = $(TOOLS32)\bin\lib
+cc32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
 CP      = copy
 RM      = del
 MKDIR	= md
@@ -51,10 +52,10 @@ MKDIR	= md
 ## Definitions:
 ##
 # DEBUG = -W3 -Zi -Od /Yd
-INCLUDES = -I$(ROOT)\lib -I$(ROOT)/win -I$(TOOLS32)\include
+INCLUDES = -I$(ROOT)\lib -I$(ROOT)\win -I$(TOOLS32)\include
 DEFINES = $(DEBUG)
 
-!include <ntwin32.mak>
+!include <win32.mak>
 
 ## 
 ## Global makefile settings
@@ -62,18 +63,22 @@ DEFINES = $(DEBUG)
 LIBSMIOBJS = \
 	$(TMPDIR)\win.obj \
 	$(TMPDIR)\data.obj \
+	$(TMPDIR)\check.obj \
 	$(TMPDIR)\error.obj \
 	$(TMPDIR)\util.obj \
-	$(TMPDIR)\check.obj \
 	$(TMPDIR)\smi.obj \
 	$(TMPDIR)\parser-smi.tab.obj \
 	$(TMPDIR)\scanner-smi.obj \
 	$(TMPDIR)\parser-sming.tab.obj \
 	$(TMPDIR)\scanner-sming.obj
 
-TOOLSOBJS = \
-	$(TMPDIR)\smiquery.obj \
-	$(TMPDIR)\smilint.obj \
+SMIQUERYOBJS = \
+	$(TMPDIR)\smiquery.obj
+
+SMILINTOBJS = \
+	$(TMPDIR)\smilint.obj
+
+SMIDUMPOBJS = \
 	$(TMPDIR)\smidump.obj \
 	$(TMPDIR)\dump-sming.obj \
 	$(TMPDIR)\dump-smi.obj \
@@ -83,9 +88,9 @@ TOOLSOBJS = \
 	$(TMPDIR)\dump-mosy.obj \
 	$(TMPDIR)\dump-corba.obj \
 	$(TMPDIR)\dump-ucdsnmp.obj \
-	$(TMPDIR)\dump-cm.obj \
 	$(TMPDIR)\dump-jax.obj \
 	$(TMPDIR)\dump-xml.obj \
+	$(TMPDIR)\dump-cm.obj \
 	$(TMPDIR)\dump-metrics.obj
 
 SMILIB = smi.lib
@@ -94,13 +99,13 @@ SMILIB = smi.lib
 ## Implicit Targets
 ##
 .c.obj:
-	$(CC32) $(cdebug) $(cflags) $(INCLUDES) \
+	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
 {$(ROOT)\lib}.c{$(TMPDIR)}.obj:
-	$(CC32) $(cdebug) $(cflags) $(INCLUDES) \
+	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
 {$(ROOT)\tools}.c{$(TMPDIR)}.obj:
-	$(CC32) $(cdebug) $(cflags) $(INCLUDES) \
+	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
 
 ##
@@ -111,22 +116,19 @@ all:	libs tools
 libs:	$(SMILIB)
 
 $(SMILIB):	$(LIBSMIOBJS)
-	$(IMPLIB) /out:smi.lib $(LIBSMIOBJS)
+	$(implib) /out:smi.lib $(LIBSMIOBJS)
 
 tools:	smiquery.exe smilint.exe smidump.exe
 
-smiquery.exe:	$(TOOLSOBJS) $(SMILIB)
-	$(CC32) $(DEFINES) /osmiquery.exe smiquery.obj $(SMILIB)
+smiquery.exe:	$(SMIQUERYOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) /osmiquery.exe $(SMIQUERYOBJS) $(SMILIB)
 
-smilint.exe:	$(TOOLSOBJS) $(SMILIB)
-	$(CC32) $(DEFINES) /osmilint.exe smilint.obj $(SMILIB)
+smilint.exe:	$(SMILINTOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) /osmilint.exe $(SMILINTOBJS) $(SMILIB)
 
-smidump.exe:	$(TOOLSOBJS) $(SMILIB)
-	$(CC32) $(DEFINES) \
-		/osmidump.exe smidump.obj dump-sming.obj dump-smi.obj \
-		dump-imports.obj dump-types.obj dump-tree.obj dump-mosy.obj \
-		dump-corba.obj dump-ucdsnmp.obj dump-jax.obj dump-cm.obj \
-		dump-xml.obj dump-metrics.obj $(SMILIB)
+smidump.exe:	$(SMIDUMPOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) \
+		/osmidump.exe $(SMIDUMPOBJS) $(SMILIB)
 
 clean:
 	del *.lib
@@ -136,7 +138,7 @@ clean:
 	del *.pdb
 	del *.mdp
 
-install:	all install-doc install-bin install-mibs
+install:	all install-doc install-bin install-lib install-mibs
 
 install-doc:
 	$(MKDIR) $(INSTROOT)
@@ -149,7 +151,11 @@ install-doc:
 
 install-bin:
 	$(MKDIR) $(BINDIR)
-	$(CP) *.exe $(BINDIR) /y
+	$(CP) *.exe $(BINDIR)
+
+install-lib:
+	$(MKDIR) $(LIBDIR)
+	$(CP) *.lib $(LIBDIR)
 
 install-mibs:
 	$(MKDIR) $(MIBDIR)
@@ -159,9 +165,6 @@ install-mibs:
 	$(CP) ..\mibs\ietf\*.* $(MIBDIR)\ietf
 	$(MKDIR) $(MIBDIR)\irtf
 	$(CP) ..\mibs\irtf\*.* $(MIBDIR)\irtf
-	$(MKDIR) $(MIBDIR)\tubs
-	$(CP) ..\mibs\tubs\*.* $(MIBDIR)\tubs
 	$(MKDIR) $(MIBDIR)\site
-	$(CP) ..\mibs\site\*.* $(MIBDIR)\site
 
 ##
