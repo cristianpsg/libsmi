@@ -351,6 +351,11 @@ installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
+anoncvs:
+	rsync -a $(HOME)/.cvs-repository/libsmi /usr/local/cvsroot-anon
+	chgrp -R anoncvs /usr/local/cvsroot-anon/libsmi
+	chmod -R g+w /usr/local/cvsroot-anon/libsmi
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

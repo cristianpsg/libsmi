@@ -59,18 +59,12 @@ o OID/Name Lookup Service (continue work on smid?)
 o how to convert SMIng types derived from other defined types correctly
   to SMIv2?
 
-o use purify: data.c:freeData() is broken
-
 o various dump modules don't print identifiers fully qualified where
   appropriate
 
 o collapsing of type forward references in smiv2 parser. e.g.
   smiquery type CHARACTER-MIB.CharSessEntry
   should display the definition by a SEQUENCE statement, not `unknown'.
-
-o smilint on orig (RFC 1567) DSA-MIB crashes.
-
-o currently, make check passes only after make install
 
 o Web online conversion to SMIng?
 
@@ -80,16 +74,9 @@ o special handling for well-known traps (reversibility?)
 
 o ERR_DATE_YEAR_2DIGITS for years < 90 ?!
 
-o how to handle SMIv2 agent caps?
-
-o smidump -f tree RMON2-MIB:
-  dumps some definitions from IF-MIB and RMON-MIB that are external
-
 o smidump -f tree ATM-ACCOUNTING-INFORMATION-MIB: endless loop
 
-o util:timegm: use POSIX putenv instead of BSD setenv/unsetenv
-
-o smiquery: if values are not present, don't print anything instead of `-'.
+o util.c:timegm(): use POSIX putenv instead of BSD setenv/unsetenv
 
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
@@ -98,7 +85,5 @@ o add -c cfg options to all tools (reading ONLY cfg)
 
 o think about `SmiListItem's
 
-o remove `module's from API structs and `basetype' from SmiNode.
-
-o support parsing (but ignoring) SMIv2 AGENT-CAPABILITIES.
+o support parsing (but ignore) SMIv2 AGENT-CAPABILITIES.
 
