@@ -3788,7 +3788,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	if (tCluster->yMax + tCluster->yOffset > yMax)
 	    yMax = tCluster->yMax + tCluster->yOffset;
     }
-    yMin -= 10;
+    if (graph->clusters->nextPtr)
+	yMin -= 10;
     yMax += 10;
     if (x > xMax)
 	xMax = x;
