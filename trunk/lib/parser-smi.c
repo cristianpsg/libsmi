@@ -773,7 +773,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		for (listPtr = objectPtr->typePtr->listPtr; listPtr;
 		     listPtr = listPtr->nextPtr) {
 		    if (!strcmp(((NamedNumber *)(listPtr->ptr))->export.name,
-				objectPtr->export.value.value.ptr)) {
+				(char *)objectPtr->export.value.value.ptr)) {
 			smiFree(objectPtr->export.value.value.ptr);
 			objectPtr->export.value.value.integer32 =
 			    ((NamedNumber *)(listPtr->ptr))->
@@ -4192,7 +4192,7 @@ case 175:
 			    } else {
 				yyval.valuePtr->basetype = defaultBasetype;
 				yyval.valuePtr->len = -1;  /* indicates unresolved ptr */
-				yyval.valuePtr->value.ptr = yyvsp[0].id;   /* JS: needs strdup? */
+				yyval.valuePtr->value.ptr = (unsigned char *)yyvsp[0].id; /* JS: needs strdup? */
 			    }
 			;
     break;}
@@ -4201,7 +4201,7 @@ case 176:
 {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_OCTETSTRING;
-			    yyval.valuePtr->value.ptr = smiStrdup(yyvsp[0].text);
+			    yyval.valuePtr->value.ptr = (unsigned char *)smiStrdup(yyvsp[0].text);
 			    yyval.valuePtr->len = strlen(yyvsp[0].text);
 			;
     break;}
