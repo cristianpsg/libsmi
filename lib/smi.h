@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.10 2000/02/12 14:31:54 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.11 2000/02/12 16:23:12 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -94,16 +94,15 @@ typedef enum SmiAccess {
 /* SmiNodekind -- type or statement that leads to a definition               */
 typedef unsigned int SmiNodekind;
 #define SMI_NODEKIND_UNKNOWN      0x0000     /* should not occur             */
-#define SMI_NODEKIND_MODULE       0x0001
-#define SMI_NODEKIND_NODE         0x0002
-#define SMI_NODEKIND_SCALAR       0x0004
-#define SMI_NODEKIND_TABLE        0x0008
-#define SMI_NODEKIND_ROW          0x0010
-#define SMI_NODEKIND_COLUMN       0x0020
-#define SMI_NODEKIND_NOTIFICATION 0x0040
-#define SMI_NODEKIND_GROUP        0x0080
-#define SMI_NODEKIND_COMPLIANCE   0x0100
-#define SMI_NODEKIND_CAPABILITIES 0x0200
+#define SMI_NODEKIND_NODE         0x0001
+#define SMI_NODEKIND_SCALAR       0x0002
+#define SMI_NODEKIND_TABLE        0x0004
+#define SMI_NODEKIND_ROW          0x0008
+#define SMI_NODEKIND_COLUMN       0x0010
+#define SMI_NODEKIND_NOTIFICATION 0x0020
+#define SMI_NODEKIND_GROUP        0x0040
+#define SMI_NODEKIND_COMPLIANCE   0x0080
+#define SMI_NODEKIND_CAPABILITIES 0x0100
 #define SMI_NODEKIND_ANY          0xffff
 
 /* SmiDecl -- type or statement that leads to a definition                   */

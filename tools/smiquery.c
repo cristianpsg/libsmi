@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.46 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.47 2000/02/12 14:31:55 strauss Exp $
  */
 
 #include <config.h>
@@ -93,7 +93,6 @@ char *smiStringNodekind(SmiNodekind nodekind)
 {
     return
         (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<unknown>" :
-        (nodekind == SMI_NODEKIND_MODULE)       ? "module" :
         (nodekind == SMI_NODEKIND_NODE)         ? "node" :
         (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
         (nodekind == SMI_NODEKIND_TABLE)        ? "table" :

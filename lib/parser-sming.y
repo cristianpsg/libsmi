@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.47 2000/02/12 16:06:25 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.48 2000/02/12 16:23:11 strauss Exp $
  */
 
 %{
@@ -586,70 +586,39 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    thisParserPtr->firstIndexlabelPtr = NULL;
 			    thisParserPtr->identityObjectName = NULL;
 			}
-			sep lcIdentifier
-			{
-			    thisParserPtr->identityObjectName = $6;
-			}
 			optsep '{' stmtsep
 			importStatement_stmtsep_0n
-			oidStatement stmtsep
-			{
-			    /*
-			     * Note: Due to parsing imported modules
-			     * the contents of moduleObjectPtr got
-			     * invalid. Therefore, we created the
-			     * module identity object above as
-			     * incomplete, and now we add it's
-			     * registration information.
-			     */
-
-			    if ($12) {
-				moduleObjectPtr = addObject(
-				             thisParserPtr->identityObjectName,
-							    $12->parentPtr,
-							    $12->subid,
-							    0, thisParserPtr);
-				setObjectDecl(moduleObjectPtr,
-					      SMI_DECL_MODULE);
-				setObjectNodekind(moduleObjectPtr,
-						  SMI_NODEKIND_MODULE);
-				addObjectFlags(moduleObjectPtr,
-					       FLAG_REGISTERED);
-				setModuleIdentityObject(
-				    thisParserPtr->modulePtr, moduleObjectPtr);
-			    }
-			}
 			organizationStatement stmtsep
 			{
-			    if ($15) {
+			    if ($9) {
 				setModuleOrganization(thisParserPtr->modulePtr,
-						      $15);
+						      $9);
 			    }
 			}
 			contactStatement stmtsep
 			{
-			    if ($18) {
+			    if ($12) {
 				setModuleContactInfo(thisParserPtr->modulePtr,
-						     $18);
+						     $12);
 			    }
 			}
 			descriptionStatement stmtsep
 			{
-			    if ($21) {
+			    if ($15) {
 				setModuleDescription(thisParserPtr->modulePtr,
-						     $21);
+						     $15);
 				if (moduleObjectPtr) {
-				    setObjectDescription(moduleObjectPtr, $21);
+				    setObjectDescription(moduleObjectPtr, $15);
 				}
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
-			    if ($24) {
+			    if ($18) {
 				setModuleReference(thisParserPtr->modulePtr,
-						   $24);
+						   $18);
 				if (moduleObjectPtr) {
-				    setObjectReference(moduleObjectPtr, $24);
+				    setObjectReference(moduleObjectPtr, $18);
 				}
 			    }
 			}
@@ -1014,6 +983,15 @@ nodeStatement:		nodeKeyword sep lcIdentifier
 			}
 			'}' optsep ';'
 			{
+			    /*
+			     * The first node definition is registered
+			     * as the module identity node.
+			     */
+			    if (!thisParserPtr->modulePtr->objectPtr) {
+				setModuleIdentityObject(
+				    thisParserPtr->modulePtr, nodeObjectPtr);
+			    }
+			    
 			    $$ = nodeObjectPtr;
 			    nodeObjectPtr = NULL;
 			    free(nodeIdentifier);
