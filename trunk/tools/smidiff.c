@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.12 2001/09/28 10:29:52 schoenw Exp $
+ * @(#) $Id: smidiff.c,v 1.13 2001/10/04 17:17:03 tklie Exp $
  */
 
 #include <stdlib.h>
@@ -89,9 +89,6 @@ typedef struct Error {
 #define ERR_REVISION_ADDED		44
 #define ERR_REVISION_REMOVED		45
 #define ERR_REVISION_CHANGED		46
-#define ERR_GROUP_ADDED			47
-#define ERR_GROUP_REMOVED		48
-#define ERR_GROUP_CHANGED		49
 #define ERR_MEMBER_ADDED		50
 #define ERR_MEMBER_REMOVED		51
 #define ERR_MEMBER_CHANGED		52
@@ -100,8 +97,9 @@ typedef struct Error {
 #define ERR_OBJECT_CHANGED		55
 #define ERR_NAMED_NUMBER_ADDED          56
 #define ERR_NAMED_NUMBER_REMOVED        57
-#define ERR_NAMED_NUMBER_CHANED         58
+#define ERR_NAMED_NUMBER_CHANGED        58
 #define ERR_NAMED_BIT_ADDED_OLD_BYTE    59
+#define ERR_NODEKIND_CHANGED		60
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -111,9 +109,9 @@ static Error errors[] = {
     { 5, ERR_TYPE_ADDED, "type-added",
       "type `%s' has been added" },
     { 1, ERR_NODE_REMOVED, "node-removed",
-      "node `%s' has been deleted" },
+      "%s `%s' has been deleted" },
     { 5, ERR_NODE_ADDED, "node-added",
-      "node `%s' has been added" },
+      "%s `%s' has been added" },
     { 1, ERR_BASETYPE_CHANGED, "basetype-changed",
       "base type of `%s' changed" },
     { 5, ERR_DECL_CHANGED, "decl-changed",
@@ -196,12 +194,6 @@ static Error errors[] = {
       "revision `%s' removed" },
     { 3, ERR_REVISION_CHANGED, "revision-changed",
       "revision `%s' changed" },
-    { 3, ERR_GROUP_ADDED, "group-added",
-      "group `%s' added" },
-    { 2, ERR_GROUP_REMOVED, "group-removed",
-      "group `%s' removed" },
-    { 3, ERR_GROUP_CHANGED, "group-changed",
-      "group `%s' changed" },
     { 2, ERR_MEMBER_ADDED, "member-added",
       "member `%s' added" },
     { 2, ERR_MEMBER_REMOVED, "member-removed",
@@ -218,10 +210,12 @@ static Error errors[] = {
       "named number `%s' added" },
     { 2, ERR_NAMED_NUMBER_REMOVED, "named-number-removed",
       "named number `%s' removed" },
-    { 5, ERR_NAMED_NUMBER_CHANED, "named-number-changed",
+    { 5, ERR_NAMED_NUMBER_CHANGED, "named-number-changed",
       "named number `%s' changed to `%s'" },
     { 3, ERR_NAMED_BIT_ADDED_OLD_BYTE, "named-bit-added-old-byte",
       "named bit `%s' added without starting in a new byte" },
+    { 2, ERR_NODEKIND_CHANGED, "nodekind-changed",
+      "node kind of `%s' changed" },
     { 0, 0, NULL, NULL }
 };
 
@@ -292,18 +286,7 @@ printErrorAtLine(SmiModule *smiModule, int id, int line, ...)
     va_end(ap);
 }
 
-static char*
-makeValidString( char *str,  const char *alt )
-{
-    if( str ) {
-	return str;
-    }
-    else {
-	char *ret = (char*)malloc( sizeof( alt ) );
-	strcpy( ret, alt );
-	return ret;
-    }
-}
+
 
 static char*
 getStringTime(time_t t)
@@ -320,6 +303,25 @@ getStringTime(time_t t)
 
 
 
+static char*
+getStringNodekind(SmiNodekind nodekind)
+{
+    return
+	(nodekind == SMI_NODEKIND_UNKNOWN)      ? "unknown" :
+	(nodekind == SMI_NODEKIND_NODE)         ? "node" :
+	(nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
+	(nodekind == SMI_NODEKIND_TABLE)        ? "table" :
+	(nodekind == SMI_NODEKIND_ROW)          ? "row" :
+	(nodekind == SMI_NODEKIND_COLUMN)       ? "column" :
+	(nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
+	(nodekind == SMI_NODEKIND_GROUP)        ? "group" :
+	(nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
+	(nodekind == SMI_NODEKIND_CAPABILITIES) ? "capabilities" :
+                                                  "<unknown>";
+}
+
+
+
 static int
 diffStrings(const char *s1, const char *s2)
 {
@@ -328,6 +330,7 @@ diffStrings(const char *s1, const char *s2)
     for (i = 0, j = 0; s1[i] && s2[j]; i++, j++) {
 	while (s1[i] && isspace((int) s1[i])) i++;
 	while (s2[j] && isspace((int) s2[j])) j++;
+	if (! s1[i] || ! s2[j]) break;
 	if (s1[i] != s2[j]) {
 	    return 1;
 	}
@@ -546,6 +549,8 @@ findTypeWithRange(SmiType *smiType)
     return NULL;
 }
 
+
+
 static int 
 cmpSmiValues( SmiValue a, SmiValue b )
 {
@@ -577,7 +582,7 @@ cmpSmiValues( SmiValue a, SmiValue b )
     case SMI_BASETYPE_OCTETSTRING:
     case SMI_BASETYPE_BITS:
 	changed = (a.len - b.len)
-	    || memcmp(a.value.ptr, b.value.ptr, a.len != 0);
+	    || (memcmp(a.value.ptr, b.value.ptr, a.len) != 0);
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	changed = (a.len - b.len);
@@ -587,7 +592,6 @@ cmpSmiValues( SmiValue a, SmiValue b )
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	/* this should not occur */
-	
 	/*
 	 * xxx: what do we do, if it does occur ?
 	 * return 0, 1 or print error message ?
@@ -595,7 +599,7 @@ cmpSmiValues( SmiValue a, SmiValue b )
 	break;
     }
 
-  return changed;
+    return changed;
 }
 
   
@@ -609,12 +613,16 @@ checkRanges(SmiModule *oldModule, int oldLine,
     SmiType *oldTwR, *newTwR; /* parent types with ranges */
 
     if( ! name ) {
-	name = makeValidString( name, "implicit type" );
+	name = "implicit type";
     }
     
     oldTwR = findTypeWithRange(oldType);
     newTwR = findTypeWithRange(newType);
-    
+
+    /* xxx The oldModule/newModule, oldLine/newLine are generally not
+       be correct for oldTwR and newTwR. This can lead to strange
+       "previous" output. */
+
     if (!oldTwR && newTwR) {
 	printErrorAtLine(newModule, ERR_RANGE_ADDED, newLine, name);
     }
@@ -697,6 +705,7 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 }
 
 
+
 static void
 checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		  SmiModule *newModule, int newLine,
@@ -721,9 +730,10 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 	else if( !oldNN && newNN ) {
 	    /* check if new byte has been started (bits only) */
 	    if( newType->basetype == SMI_BASETYPE_BITS ) {
-		SmiNamedNumber *veryOldNN, *iterNN;
+		SmiNamedNumber *veryOldNN = NULL, *iterNN;
 
 		/* find largest old named number */
+		/* xxx does libsmi ensure they are in ascending order? */
 		for( iterNN = smiGetFirstNamedNumber( oldType );
 		     iterNN; iterNN = smiGetNextNamedNumber( iterNN ) ) {
 		    veryOldNN = iterNN;
@@ -767,7 +777,7 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 	    }
 	    else {
 		if( strcmp( oldNN->name, newNN->name ) ) {
-		    printErrorAtLine( newModule, ERR_NAMED_NUMBER_CHANED,
+		    printErrorAtLine( newModule, ERR_NAMED_NUMBER_CHANGED,
 				      smiGetTypeLine( newType ),
 				      oldNN->name, newNN->name );
 		    printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
@@ -780,6 +790,8 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 	}
     }
 }
+
+
 
 static void
 checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
@@ -800,7 +812,7 @@ checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
 	}
 	else {
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			     smiGetTypeLine(oldType) );
+			     smiGetTypeLine(oldType) );		/* xxx broken */
 	}
     }
     
@@ -816,6 +828,7 @@ checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
 		oldType,
 		newType);
 }
+
 
 
 static void
@@ -916,15 +929,41 @@ diffTypes(SmiModule *oldModule, const char *oldTag,
 
 
 static void
+checkIndex(SmiModule *oldModule, SmiNode *oldNode,
+	   SmiModule *newModule, SmiNode *newNode)
+{
+    if (newNode->indexkind == SMI_INDEX_UNKNOWN
+	&& oldNode->indexkind == SMI_INDEX_UNKNOWN) {
+	return;
+    }
+#if 0
+    fprintf(stderr, "xxx checking index (%s, %s)...\n", oldNode->name, newNode->name);
+    /* switch (newNode->indexkind) { */
+#endif
+}
+
+
+
+static void
 checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    SmiModule *newModule, SmiNode *newNode)
 {
     SmiType *oldType, *newType;
+
+    const int oldLine = smiGetNodeLine(oldNode);
+    const int newLine = smiGetNodeLine(newNode);
+
     oldType = smiGetNodeType(oldNode);
     newType = smiGetNodeType(newNode);
     
-    checkName(oldModule, smiGetNodeLine(oldNode),
-	      newModule, smiGetNodeLine(newNode),
+    if (oldNode->nodekind != newNode->nodekind) {
+	printErrorAtLine(newModule, ERR_NODEKIND_CHANGED,
+			 newLine, newNode->name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 oldLine, oldNode->name);
+    }
+
+    checkName(oldModule, oldLine, newModule, newLine,
 	      oldNode->name, newNode->name);
     
     if (oldType && newType) {
@@ -941,51 +980,39 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 			     newType->name, oldNode->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
-	    checkTypeCompatibility(oldModule, oldType, newModule, newType);
+	    checkTypeCompatibility(smiGetTypeModule(oldType), oldType,
+				   smiGetTypeModule(newType), newType);
 	} else {
-	    checkTypes(oldModule, oldType, newModule, newType);
+	    checkTypes(smiGetTypeModule(oldType), oldType,
+		       smiGetTypeModule(newType), newType);
 	}
     }
 
-    checkDecl(oldModule, smiGetNodeLine(oldNode),
-	      newModule, smiGetNodeLine(newNode),
+    checkDecl(oldModule, oldLine, newModule, newLine,
 	      newNode->name, oldNode->decl, newNode->decl);
 
-    checkStatus(oldModule, smiGetNodeLine(oldNode),
-		newModule, smiGetNodeLine(newNode),
+    checkStatus(oldModule, oldLine, newModule, newLine,
 		newNode->name, oldNode->status, newNode->status);
 
-    checkAccess(oldModule, smiGetNodeLine(oldNode),
-		newModule, smiGetNodeLine(newNode),
+    checkAccess(oldModule, oldLine, newModule, newLine,
 		newNode->name, oldNode->access, newNode->access);
 
-    /* check nodekind */
-    /* check index */
+    checkIndex(oldModule, oldNode, newModule, newNode);
 
-    checkDefVal(oldModule, smiGetNodeLine(oldNode),
-		newModule, smiGetNodeLine(newNode),
-		newNode->name,
-		oldNode->value, newNode->value);
+    checkDefVal(oldModule, oldLine, newModule, newLine,
+		newNode->name, oldNode->value, newNode->value);
 
-    checkFormat(oldModule, smiGetNodeLine(oldNode),
-		newModule, smiGetNodeLine(newNode),
-		newNode->name,
-		oldNode->format, newNode->format);
+    checkFormat(oldModule, oldLine, newModule, newLine,
+		newNode->name, oldNode->format, newNode->format);
 
-    checkUnits(oldModule, smiGetNodeLine(oldNode),
-	       newModule, smiGetNodeLine(newNode),
-	       newNode->name,
-	       oldNode->units, newNode->units);
+    checkUnits(oldModule, oldLine, newModule, newLine,
+	       newNode->name, oldNode->units, newNode->units);
 
-    checkDescription(oldModule, smiGetNodeLine(oldNode),
-		     newModule, smiGetNodeLine(newNode),
-		     newNode->name,
+    checkDescription(oldModule, oldLine, newModule, newLine, newNode->name,
 		     oldNode->description, newNode->description);
 
-    checkReference(oldModule, smiGetNodeLine(oldNode),
-		   newModule, smiGetNodeLine(newNode),
-		   newNode->name,
-		   oldNode->reference, newNode->reference);
+    checkReference(oldModule, oldLine, newModule, newLine,
+		   newNode->name, oldNode->reference, newNode->reference);
 }
 
 
@@ -1017,8 +1044,17 @@ diffObjects(SmiModule *oldModule, const char *oldTag,
 	    && smiGetNodeModule(newNode) == newModule) {
 	    checkObject(oldModule, oldNode, newModule, newNode);
 	} else {
+	    switch (oldNode->nodekind) {
+	    case SMI_NODEKIND_NODE:
+	    case SMI_NODEKIND_TABLE:
+	    case SMI_NODEKIND_ROW:
+	    case SMI_NODEKIND_COLUMN:
+	    case SMI_NODEKIND_SCALAR:
+	    }
 	    printErrorAtLine(oldModule, ERR_NODE_REMOVED,
-			     smiGetNodeLine(oldNode), oldNode->name);
+			     smiGetNodeLine(oldNode),
+			     getStringNodekind(oldNode->nodekind),
+			     oldNode->name);
 	}
 	smiInit(oldTag);
     }
@@ -1038,7 +1074,9 @@ diffObjects(SmiModule *oldModule, const char *oldTag,
 	    || newNode->oidlen != oldNode->oidlen
 	    || smiGetNodeModule(oldNode) != oldModule) {
 	    printErrorAtLine(newModule, ERR_NODE_ADDED,
-			     smiGetNodeLine(newNode), newNode->name);
+			     smiGetNodeLine(newNode),
+			     getStringNodekind(newNode->nodekind),
+			     newNode->name);
 	}
 	smiInit(newTag);
     }
@@ -1149,7 +1187,9 @@ diffNotifications(SmiModule *oldModule, const char *oldTag,
 			      newNode, oldNode);
 	} else {
 	    printErrorAtLine(oldModule, ERR_NODE_REMOVED,
-			     smiGetNodeLine(oldNode), oldNode->name);
+			     smiGetNodeLine(oldNode),
+			     getStringNodekind(oldNode->nodekind),
+			     oldNode->name);
 	}
 	smiInit(oldTag);
     }
@@ -1169,7 +1209,9 @@ diffNotifications(SmiModule *oldModule, const char *oldTag,
 	    || newNode->oidlen != oldNode->oidlen
 	    || smiGetNodeModule(oldNode) != oldModule) {
 	    printErrorAtLine(newModule, ERR_NODE_ADDED,
-			     smiGetNodeLine(newNode), newNode->name);
+			     smiGetNodeLine(newNode),
+			     getStringNodekind(newNode->nodekind),
+			     newNode->name);
 	}
 	smiInit(newTag);
     }
@@ -1228,18 +1270,6 @@ checkContact(SmiModule *oldModule, int oldLine,
 
 
 static void
-checkRevision(SmiModule *oldModule, const char *oldTag,
-	      SmiModule *newModule, const char *newTag,
-	      char *name,
-	      SmiRevision *oldRev, SmiRevision *newRev)
-{
-    checkDescription(oldModule, -1, newModule, -1, newModule->name,
-		     oldRev->description, newRev->description);
-}
-
-
-
-static void
 diffModules(SmiModule *oldModule, const char *oldTag,
 	    SmiModule *newModule, const char *newTag)
 {
@@ -1291,10 +1321,17 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 	    }
 	}
 	if (newRev) {
-	    checkRevision(oldModule, oldTag, newModule, newTag,
-			  newModule->name, oldRev, newRev);
+	    if (diffStrings(oldRev->description, newRev->description)) {
+		printErrorAtLine(newModule, ERR_REVISION_CHANGED,
+				 smiGetRevisionLine(newRev),
+				 getStringTime(newRev->date));
+		printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+				 smiGetRevisionLine(oldRev),
+				 getStringTime(oldRev->date));
+	    }
 	} else {
-	    printErrorAtLine(oldModule, ERR_REVISION_REMOVED, oldLine,
+	    printErrorAtLine(oldModule, ERR_REVISION_REMOVED,
+			     smiGetRevisionLine(oldRev),
 			     getStringTime(oldRev->date));
 	}
 	smiInit(oldTag);
@@ -1315,7 +1352,8 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 	    }
 	}
 	if (!oldRev) {
-	    printErrorAtLine(newModule, ERR_REVISION_ADDED, newLine,
+	    printErrorAtLine(newModule, ERR_REVISION_ADDED,
+			     smiGetRevisionLine(newRev),
 			     getStringTime(newRev->date));
 	}
 	smiInit(newTag);
@@ -1428,8 +1466,10 @@ diffGroups(SmiModule *oldModule, const char *oldTag,
 	    && smiGetNodeModule(newNode) == newModule) {
 	    checkGroup(oldModule, oldTag, newModule, newTag, oldNode, newNode);
 	} else {
-	    printErrorAtLine(oldModule, ERR_GROUP_REMOVED,
-			     smiGetNodeLine(oldNode), oldNode->name);
+	    printErrorAtLine(oldModule, ERR_NODE_REMOVED,
+			     smiGetNodeLine(oldNode),
+			     getStringNodekind(oldNode->nodekind),
+			     oldNode->name);
 	}
 	smiInit(oldTag);
     }
@@ -1448,8 +1488,10 @@ diffGroups(SmiModule *oldModule, const char *oldTag,
 	if (! oldNode
 	    || newNode->oidlen != oldNode->oidlen
 	    || smiGetNodeModule(oldNode) != oldModule) {
-	    printErrorAtLine(newModule, ERR_GROUP_ADDED,
-			     smiGetNodeLine(newNode), newNode->name);
+	    printErrorAtLine(newModule, ERR_NODE_ADDED,
+			     smiGetNodeLine(newNode),
+			     getStringNodekind(newNode->nodekind),
+			     newNode->name);
 	}
 	smiInit(newTag);
     }
