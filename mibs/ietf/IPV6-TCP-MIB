@@ -67,9 +67,9 @@ ipv6TcpConnEntry OBJECT-TYPE
 
 Ipv6TcpConnEntry ::=
    SEQUENCE { ipv6TcpConnLocalAddress    Ipv6Address,
-              ipv6TcpConnLocalPort       INTEGER (0..65535),
+              ipv6TcpConnLocalPort       INTEGER,
               ipv6TcpConnRemAddress      Ipv6Address,
-              ipv6TcpConnRemPort         INTEGER (0..65535),
+              ipv6TcpConnRemPort         INTEGER,
               ipv6TcpConnIfIndex         Ipv6IfIndexOrZero,
               ipv6TcpConnState           INTEGER }
 

@@ -647,7 +647,7 @@ ipv6IfLastChange OBJECT-TYPE
 
  Ipv6AddrPrefixEntry ::= SEQUENCE {
       ipv6AddrPrefix                     Ipv6AddressPrefix,
-      ipv6AddrPrefixLength               INTEGER (0..128),
+      ipv6AddrPrefixLength               INTEGER,
       ipv6AddrPrefixOnLinkFlag           TruthValue,
       ipv6AddrPrefixAutonomousFlag       TruthValue,
       ipv6AddrPrefixAdvPreferredLifetime Unsigned32,

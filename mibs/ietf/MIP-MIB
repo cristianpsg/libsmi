@@ -8,7 +8,7 @@
         TEXTUAL-CONVENTION
                                         FROM SNMPv2-TC
         MODULE-COMPLIANCE, OBJECT-GROUP,
-	NOTIFICATION-GROUP
+        NOTIFICATION-GROUP
                                         FROM SNMPv2-CONF;
 
     mipMIB    MODULE-IDENTITY

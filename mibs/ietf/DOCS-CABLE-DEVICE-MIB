@@ -1427,8 +1427,8 @@ docsDevFilterTosEntry OBJECT-TYPE
 DocsDevFilterTosEntry ::= SEQUENCE {
             docsDevFilterTosIndex   Integer32,
             docsDevFilterTosStatus  RowStatus,
-            docsDevFilterTosAndMask OCTET STRING (SIZE (1)),
-            docsDevFilterTosOrMask  OCTET STRING (SIZE (1))
+            docsDevFilterTosAndMask OCTET STRING,
+            docsDevFilterTosOrMask  OCTET STRING
         }
 
 docsDevFilterTosIndex OBJECT-TYPE
