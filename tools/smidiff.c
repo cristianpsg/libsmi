@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.42 2003/05/19 14:33:58 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.43 2003/06/24 09:54:05 schoenw Exp $ 
  */
 
 #include <config.h>
@@ -341,17 +341,17 @@ static char *smiStringDecl(SmiDecl macro)
         (macro == SMI_DECL_TYPEASSIGNMENT)    ? "type assignment" :
         (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "implicit sequence-of construct" :
         (macro == SMI_DECL_VALUEASSIGNMENT)   ? "value assignment" :
-        (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE clause" :
-        (macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY clause" :
-        (macro == SMI_DECL_MODULEIDENTITY)    ? "module" :
-        (macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATION-TYPE clause" :
-        (macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE clause" :
-        (macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP clause" :
-        (macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP clause" :
-        (macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE clause" :
-        (macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES clause" :
-        (macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION clause" :
-        (macro == SMI_DECL_MACRO)             ? "MACRO clause" :
+        (macro == SMI_DECL_OBJECTTYPE)        ? "object definition" :
+        (macro == SMI_DECL_OBJECTIDENTITY)    ? "object identity definition" :
+        (macro == SMI_DECL_MODULEIDENTITY)    ? "module identity definition" :
+        (macro == SMI_DECL_NOTIFICATIONTYPE)  ? "notification definition" :
+        (macro == SMI_DECL_TRAPTYPE)          ? "trap definition" :
+        (macro == SMI_DECL_OBJECTGROUP)       ? "object group definition" :
+        (macro == SMI_DECL_NOTIFICATIONGROUP) ? "notification group definition" :
+        (macro == SMI_DECL_MODULECOMPLIANCE)  ? "module compliance definition" :
+        (macro == SMI_DECL_AGENTCAPABILITIES) ? "agent capabilities definition" :
+        (macro == SMI_DECL_TEXTUALCONVENTION) ? "textual convention definition" :
+        (macro == SMI_DECL_MACRO)             ? "macro definition" :
         (macro == SMI_DECL_COMPL_GROUP)       ? "optional group" :
         (macro == SMI_DECL_COMPL_OBJECT)      ? "object refinement" :
         (macro == SMI_DECL_MODULE)	      ? "module" :
