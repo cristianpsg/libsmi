@@ -28,8 +28,6 @@
 #define DIR_SEPARATOR '/'
 
 /* The 64 bit integer types, their formats, and their min/max values. */
-#define UINT64_TYPE uint64_t
-#define INT64_TYPE int64_t
 #define UINT64_FORMAT "%llu"
 #define INT64_FORMAT "%lld"
 #define LIBSMI_UINT64_MAX 18446744073709551615ULL
