@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smisubtree.c,v 1.11 2000/02/17 09:00:54 strauss Exp $
+ * @(#) $Id: smisubtree.c,v 1.12 2000/02/24 15:30:01 strauss Exp $
  */
 
 #include <stdio.h>
@@ -26,11 +26,17 @@ int main(int argc, char *argv[])
     }
  
     smiInit(NULL);
+
+    smiNode = smiGetNode(NULL, argv[1]);
+    if (! smiNode) {
+	fprintf(stderr, "smisubtree: node `%s' not found\n", argv[1]);
+	exit(2);
+    }
  
-    for((smiNode = smiGetNode(NULL, argv[1])), oidlen = smiNode->oidlen;
-	smiNode && (first || smiNode->oidlen > oidlen);
-        smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY), first = 0) {
- 
+    for (oidlen = smiNode->oidlen;
+	 smiNode && (first || smiNode->oidlen > oidlen);
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY), first = 0) {
+	
         printf("%*s%-32s\n",
 	       (smiNode->oidlen - oidlen + 1) * 2, "",
 	       smiNode->name);
