@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.17 2001/10/12 16:20:05 tklie Exp $	 
+ * @(#) $Id: smidiff.c,v 1.18 2001/10/17 11:47:00 tklie Exp $	 
  */
 
 #include <stdlib.h>
@@ -101,6 +101,7 @@ typedef struct Error {
 #define ERR_NAMED_BIT_ADDED_OLD_BYTE    59
 #define ERR_NODEKIND_CHANGED		60
 #define ERR_INDEXKIND_CHANGED           61
+#define ERR_INDEX_CHANGED               62
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -219,6 +220,8 @@ static Error errors[] = {
       "node kind of `%s' changed" },
     { 2, ERR_INDEXKIND_CHANGED, "indexkind-changed",
       "changed kind of index in node `%s'" },
+    { 2, ERR_INDEX_CHANGED, "index-changed",
+      "index of node `%s' changed" },
     { 0, 0, NULL, NULL }
 };
 
@@ -1046,17 +1049,82 @@ checkIndex(SmiModule *oldModule, SmiNode *oldNode,
 			  smiGetNodeLine( newNode ), oldNode->name );
 	
     }
-#if 0
-    fprintf(stderr, "xxx checking index (%s, %s)...\n", oldNode->name, newNode->name);
 
     switch (newNode->indexkind) {
-    case SMI_INDEX_INDEX:
+	SmiElement *oldElement, *newElement;
+	SmiNode *oldRelNode, *newRelNode;
+	int i;
 	
+    case SMI_INDEX_INDEX:
+	/* compare OIDs of all index elements */
+	oldElement = smiGetFirstElement( oldNode );
+	newElement = smiGetFirstElement( newNode );
+	while( oldElement && newElement ) {
+	    SmiNode *oldIndexNode, *newIndexNode;
+	    
+	    oldIndexNode = smiGetElementNode( oldElement );
+	    newIndexNode = smiGetElementNode( newElement );
+
+	    if( oldIndexNode->oidlen != newIndexNode->oidlen ) {
+		printErrorAtLine( newModule, ERR_INDEX_CHANGED,
+				  smiGetNodeLine( newNode ), oldNode->name );
+		printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
+				  smiGetNodeLine( oldNode ), oldNode->name );
+		return;
+	    }
+
+	    for( i = 0; i < oldIndexNode->oidlen; i++ ) {
+		if( oldIndexNode->oid[i] != newIndexNode->oid[i] ) {
+		    printErrorAtLine( newModule, ERR_INDEX_CHANGED,
+				      smiGetNodeLine( newNode ),
+				      oldNode->name );
+		    printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
+				      smiGetNodeLine( oldNode ),
+				      oldNode->name );
+		}
+	    }
+	    oldElement = smiGetNextElement( oldElement );
+	    newElement = smiGetNextElement( newElement );
+	}
+	break;
+	
+    case SMI_INDEX_AUGMENT:
+	/* compare OIDs of related nodes */
+	oldRelNode = smiGetRelatedNode( oldNode );
+	newRelNode = smiGetRelatedNode( newNode );
+
+	if( !oldRelNode || !newRelNode ) {
+	    /* should not occur */
+	    return;
+	}
+	if( oldRelNode->oidlen != newRelNode->oidlen ) {
+	    printErrorAtLine( newModule, ERR_INDEX_CHANGED,
+			      smiGetNodeLine( newNode ), oldNode->name );
+	    printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
+			      smiGetNodeLine( oldNode ), oldNode->name );
+	    return;
+	}
+	for( i = 0; i < oldRelNode->oidlen; i++ ) {
+	    if( oldRelNode->oid[i] != newRelNode->oid[i] ) {
+		printErrorAtLine( newModule, ERR_INDEX_CHANGED,
+				  smiGetNodeLine( newNode ),
+				  oldNode->name );
+		printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
+				  smiGetNodeLine( oldNode ), oldNode->name );
+	    }
+	}
+	break;
+
+    case SMI_INDEX_UNKNOWN:
+	return;
+	
+    case SMI_INDEX_REORDER:
+    case SMI_INDEX_SPARSE:
+    case SMI_INDEX_EXPAND:
+	/* xxx do things for SMI-NG */
 	break;
     }
-#endif
 }
-
 
 
 static void
