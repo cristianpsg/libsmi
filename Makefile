@@ -1,13 +1,14 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.25 1999/04/12 17:21:26 strauss Exp $
+# @(#) $Id: Makefile,v 1.26 1999/05/05 16:13:33 strauss Exp $
 #
 
 #MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
 #TESTMIBS	= `cd $(MIBDIR) ; ls -1 IAN* IF-MIB ATM-* SNMPv2-MIB SNMPv2-TC`
 MIBDIR		= mibs/smiv2
-TESTMIBS	= `cd $(MIBDIR) ; ls -1 *`
+#TESTMIBS	= `cd $(MIBDIR) ; ls -1 *`
+TESTMIBS	= ""
 PREFIX		= /usr/local
 
 DEFINES_RPC	= -DRPC_SVC_FG -DBACKEND_RPC
@@ -30,7 +31,7 @@ LIBSMI_OBJS	= lib/data.o lib/error.o lib/util.o lib/smi.o lib/scanner.o \
 
 LIBSMI_STATIC	= lib/libsmi.a
 
-all: tools/smilint tools/smidump tools/smiquery tools/smisubtree
+all: tools/smilint tools/smidump tools/smiquery
 
 
 tools/smid.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c: lib/smi-rpc.x
@@ -69,7 +70,7 @@ $(LIBSMI_STATIC): $(LIBSMI_OBJS)
 	$(AR) ruv $@ $(LIBSMI_OBJS)
 	$(RANLIB) $@
 	
-tools: tools/smilint tools/smidump tools/smiquery tools/smisubtree tools/smiclient tools/smid
+tools: tools/smilint tools/smidump tools/smiquery
 
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
 	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -lnsl
@@ -138,7 +139,7 @@ doc/yacc2html: doc/yacc2html.o
 
 test: test-smilint test-smidump-smi-sming test-smidump-sming-sming test-diffs
 
-test-smilint: tools/smilint
+test-smilint: test-dir tools/smilint
 	rm -f test/smilint.log
 	for mib in $(TESTMIBS) ; do \
 	    echo "### Testing: smilint $$mib" ; \
@@ -150,7 +151,7 @@ test-smilint: tools/smilint
 	@echo "### See test/smilint.log for smilint test protocol."
 	@echo ""
 
-test-smidump-smi-sming: tools/smidump
+test-smidump-smi-sming: test-dir tools/smidump
 	rm -rf test/smidump-smi-sming
 	mkdir test/smidump-smi-sming
 	for mib in $(TESTMIBS) ; do \
@@ -162,7 +163,7 @@ test-smidump-smi-sming: tools/smidump
 	@echo "### See files in test/smidump-smi-sming/ for smidump output."
 	@echo ""
 
-test-smidump-sming-sming: tools/smidump
+test-smidump-sming-sming: test-dir tools/smidump
 	rm -rf test/smidump-sming-sming
 	mkdir test/smidump-sming-sming
 	for mib in $(TESTMIBS) ; do \
@@ -183,30 +184,9 @@ test-diffs: test-smidump-smi-sming test-smidump-sming-sming
 		 test/smidump-sming-sming/$$mib > test/smidump-diffs/$$mib ; \
 	done
 
-
-
-test-smidump-sming: tools/smidump
-	rm -f test/smidump-sming.log
-	for mib in $(TESTMIBS) ; do \
-	    echo "### Testing: smidump -Dsming $$mib" ; \
-	    tools/smidump -l0 -Lsmi:$(MIBDIR) -Dsming $$mib \
-					          >> test/smidump-sming.log ; \
-	done
-	@echo ""
-	@echo "### See test/smidump-sming.log for smidump output."
-	@echo ""
-
-
-
-
-
-
-
-clobber: clean
-	rm -f miblint libsmi.h libsmi.a parser-smi.y.html smid smiclient smiquery
+test-dir:
+	if [ ! -d test ] ; then mkdir test ; fi
 
 dist:
-	rm -f mibs.tar.gz
-	cd .. ; tar cvf mibs/mibs.tar libsmi
-	gzip mibs.tar
+	cd .. ; tar cvzf libsmi/libsmi.tar.gz `cat libsmi/MANIFEST | sed -e 's!^!libsmi/!'`
 
