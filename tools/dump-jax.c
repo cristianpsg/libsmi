@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.16 2000/05/24 16:25:28 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.17 2000/05/26 16:17:49 strauss Exp $
  */
 
 #include <config.h>
@@ -311,7 +311,7 @@ static void dumpTable(SmiNode *smiNode)
 	    "    the table %s defined in %s.\n"
 	    "\n"
 	    "    @version 1\n"
-	    "    @author  smidump\n"
+	    "    @author  smidump " VERSION "\n"
 	    "    @see     AgentXTable\n"
 	    " */\n\n", parentNode->name, smiGetNodeModule(smiNode)->name);
     
@@ -481,7 +481,7 @@ static void dumpEntry(SmiNode *smiNode)
 	    "    the table row %s defined in %s.\n"
 	    "\n"
 	    "    @version 1\n"
-	    "    @author  smidump\n"
+	    "    @author  smidump " VERSION "\n"
 	    "    @see     AgentXTable, AgentXEntry\n"
 	    " */\n\n", smiNode->name, smiGetNodeModule(smiNode)->name);
     
@@ -872,7 +872,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 	    "    the scalar group %s defined in %s.\n"
 	    "\n"
 	    "    @version 1\n"
-	    "    @author  smidump\n"
+	    "    @author  smidump " VERSION "\n"
 	    "    @see     AgentXGroup, AgentXScalars\n"
 	    " */\n\n", parentNode->name, smiGetNodeModule(smiNode)->name);
 
@@ -1033,7 +1033,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 	    "    public AgentXVarBind getScalar(AgentXOID pos,"
 	    " AgentXOID oid)\n"
 	    "    {\n"
-	    "        if ((pos == null)||(pos.compareTo(oid)!=0))\n"
+	    "        if ((pos == null) || (pos.compareTo(oid) != 0))\n"
 	    "            return new AgentXVarBind(oid,"
 	    " AgentXVarBind.NOSUCHOBJECT);\n"
 	    "        else {\n"
@@ -1060,7 +1060,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 	    "    public int setScalar(AgentXSetPhase phase,"
 	    " AgentXOID pos,\n"
 	    "                         AgentXVarBind inVb)\n    {\n"
-	    "        if ((pos == null)||(pos.compareTo(oid)!=0))\n"
+	    "        if ((pos == null) || (pos.compareTo(inVb.getOID()) != 0))\n"
 	    "            return AgentXResponsePDU.INCONSISTENT_NAME;\n"
 	    "        else {\n"
 	    );
@@ -1087,7 +1087,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     fprintf(f,
 	    "    public AgentXVarBind getNextScalar(AgentXOID pos,"
 	    " AgentXOID oid)\n    {\n"
-	    "        if ((pos == null)||(pos.compareTo(oid)<=0))\n"
+	    "        if ((pos == null) || (pos.compareTo(oid) <= 0))\n"
 	    "            return new AgentXVarBind(oid,"
 	    " AgentXVarBind.ENDOFMIBVIEW);\n"
 	    "        else {\n"
@@ -1346,7 +1346,7 @@ static void dumpScalarImpl(SmiNode *smiNode)
 			currNode->name);
 	    } else {
 		fprintf(f,
-			"            undo_%s = -1;// TODO: better check!\n",
+			"            undo_%s = -1; // TODO: better check!\n",
 			currNode->name);
 	    }
 	    fprintf(f,
