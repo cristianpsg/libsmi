@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_type.3.in,v 1.1 1999/06/01 20:47:19 strauss Exp $
+.\" $Id: smi_type.3.in,v 1.2 2000/02/11 16:42:32 strauss Exp $
 .\"
 .TH smi_type 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -13,7 +13,7 @@ smiGetNextRange,
 smiGetFirstNamedNumber,
 smiGetNextNamedNumber,
 smiGetTypeModule
-.\" ENDg OF MAN PAGE COPIES
+.\" END OF MAN PAGE COPIES
 \- SMI type
 information routines
 .SH SYNOPSIS
@@ -49,69 +49,72 @@ information routines
 .BI "SmiModule *smiGetTypeModule(SmiType *" smiTypePtr );
 .RE
 
-typedef struct SmiValue {
-
-XXX
+typedef struct SmiType {
+    SmiIdentifier       name;
+    SmiBasetype         basetype;
+    SmiDecl             decl;
+    char                *format;
+    SmiValue            value;
+    char                *units;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
+} SmiType;
 
 typedef struct SmiNamedNumber {
-typedef struct SmiRange {
+    SmiIdentifier       name;
+    SmiValue            value;
+} SmiNamedNumber;
 
-XXX
+typedef struct SmiRange {
+    SmiValue            minValue;
+    SmiValue            maxValue;
+} SmiRange;
 
 .fi
 .SH DESCRIPTION
 These functions retrieve information on a type definition (SMIng) or
 a simple ASN.1 type definition (SMIv1/v2) or a TEXTUAL-CONVENTION
-definition (SMIv2). Base types may also be retrieved, their
-\fBmodule\fP element is an empty string.
+definition (SMIv2). Base types may also be retrieved by these functions.
 .PP
 The \fBsmiGetType()\fP function retrieves a \fBstruct SmiType\fP that
-represents a type or textual convention. Either \fItype\fP must be the
-fully qualified identifier leaving \fImodule\fP NULL, or the name is
-split into the module \fImodule\fP and identifier \fItype\fP.  Elements
-not available or not present in the definition contain NULL. See \fBsmi.h\fP
-for the structure of contained elements.
+represents a type. \fIType\fP may be either a
+fully qualified descriptor or a simple type name.
+If \fIsmiModulePtr\fP is not NULL it used to limit the search to the
+given module. If the type is not found, \fBsmiGetType()\fP returns NULL.
 .PP
 The \fBsmiGetFirstType()\fP and \fBsmiGetNextType()\fP functions are
-used to iteratively retrieve \fBstruct SmiType\fPs.
-\fBsmiGetFirstType()\fP returns the first type or textual convention
-defined in module \fImodule\fP.  Subsequent calls to
-\fBsmiGetNextType()\fP release \fIsmiTypePtr\fP and
-return the type or textual convention defined after that one.  If there are no
-more type or textual convention definitions in the module NULL is returned.
+used to iteratively retrieve \fBstruct SmiType\fPs. \fBsmiGetFirstType()\fP
+returns the first one defined in the module
+specified by \fIsmiModulePtr\fP. Subsequent calls to
+\fBsmiGetNextType()\fP return the following ones.  If there are no
+more type definitions in the module NULL is returned.
+.PP
+The \fBsmiGetParentType()\fP function retrieves a \fBstruct SmiType\fP
+of the type from which the type specified by \fIsmiTypePtr\fP is
+derived. If there is no parent type (i.e. the type specified
+by \fIsmiTypePtr\fP is a base type), \fBsmiGetParentType()\fP returns NULL.
 .PP
 Similarly, the \fBsmiGetFirstRange()\fP and \fBsmiGetNextRange()\fP
 functions are used to iteratively retrieve \fBstruct SmiRange\fPs
-that represent the size ranges of an octet string type or the value
-ranges of a numeric type specified by \fImodule\fP and \fItype\fP.
+that represent range restrictions of the type specified by \fIsmiTypePtr\fP,
+either size ranges of an octet string type or value
+ranges in case of a numeric type.
 .PP
 Similarly, the \fBsmiGetFirstNamedNumber()\fP and \fBsmiGetNextNamedNumber()\fP
 functions are used to iteratively retrieve \fBstruct SmiNamedNumber\fPs
-that represent the named numbers of a bit set or enumeration type
-specified by \fImodule\fP and \fItype\fP.
+that represent named numbers of the type specified by \fIsmiTypePtr\fP, which
+has to be either a bit set or an enumeration type.
 .PP
-The \fBsmiFreeType()\fP function should be called when a retrieved
-\fBstruct SmiType\fP is no longer needed to release its memory.
-.PP
-Similarly, the \fBsmiFreeRange()\fP function should be called when a retrieved
-\fBstruct SmiRange\fP is no longer needed to release its memory.
-.PP
-Similarly, the \fBsmiFreeNamedNumber()\fP function should be called when a
-retrieved \fBstruct SmiNamedNumber\fP is no longer needed to release
-its memory.
-.SH "RETURN VALUES"
-The retrieval functions return the
-requested \fBstruct smiType\fP, \fBstruct smiRange\fP, 
-or \fBstruct smiNamedNumber\fP, respectively,
-on success, or NULL on error. Structures should be released after use
-by calling \fBsmiFreeType()\fP, \fBsmiFreeRange()\fP,
-or \fBsmiFreeNamedNumber()\fP, respectively, which are a void functions.
+The \fBsmiGetTypeModule()\fP function returns the module that defines
+the type given by \fIstruct SmiTypePtr\fP.
 .SH "FILES"
 .nf
 @prefix@/include/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "
+.BR smi_module "(3), "
 .BR smi.h
 .SH "AUTHOR"
 (C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>

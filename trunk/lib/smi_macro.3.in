@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_macro.3.in,v 1.1 1999/06/01 20:47:17 strauss Exp $
+.\" $Id: smi_macro.3.in,v 1.2 2000/02/11 16:42:32 strauss Exp $
 .\"
 .TH smi_macro 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -51,9 +51,9 @@ The \fBsmiGetFirstMacro()\fP and \fBsmiGetNextMacro()\fP functions are
 used to iteratively retrieve \fBstruct SmiMacro\fPs.
 \fBsmiGetFirstMacro()\fP returns the first one defined in the module
 specified by \fIsmiModulePtr\fP.
-Subsequent calls to \fBsmiGetNextMacro()\fP return the following ones. If
-there are no
-more extension or macro definitions in the module NULL is returned.
+Subsequent calls to \fBsmiGetNextMacro()\fP return the following ones.
+If there are no
+more extension or macro definitions in the module, NULL is returned.
 .PP
 The \fBsmiGetMacroModule()\fP function returns the module that defines
 the macro or extension given by \fIstruct SmiMacroPtr\fP.

@@ -85,3 +85,10 @@ o think about smiModule(), smiDescriptor(), smiOidString(smiNode), ...
 o MessageSize                [0.."ÿÿÿ"]
   in smidump -f types -u /usr/local/share/mibs/ietf/* output
 
+
+
+extern char *smiModule(char *fullname);
+extern char *smiDescriptor(char *fullname);
+views
+vage get calls should retrieve the most recent definition?!
+man pages: smi_node und tools

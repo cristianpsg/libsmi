@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_module.3.in,v 1.1 1999/06/01 20:47:18 strauss Exp $
+.\" $Id: smi_module.3.in,v 1.2 2000/02/11 16:42:32 strauss Exp $
 .\"
 .TH smi_module 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -7,14 +7,12 @@
 smiGetModule,
 smiGetFirstModule,
 smiGetNextModule,
-smiFreeModule,
+smiGetModuleIdentityNode,
 smiGetFirstImport,
 smiGetNextImport,
-smiFreeImport,
 smiIsImported,
 smiGetFirstRevision,
-smiGetNextRevision,
-smiFreeRevision 
+smiGetNextRevision
 .\" END OF MAN PAGE COPIES
 \- SMI module information routines
 .SH SYNOPSIS
@@ -33,10 +31,13 @@ smiFreeRevision
 .BI "SmiModule *smiGetNextModule(SmiModule *" smiModulePtr );
 .RE
 .sp
+.BI "SmiNode *smiGetModuleIdentityNode(SmiModule *" smiModulePtr );
+.RE
+.sp
 .BI "SmiImport *smiGetFirstImport(SmiModule *" smiModulePtr );
 .RE
 .sp
-.BI "SmiImport *smiGetNextImport(SmiImport *" smiInportPtr );
+.BI "SmiImport *smiGetNextImport(SmiImport *" smiImportPtr );
 .RE
 .sp
 .BI "int smiIsImported(SmiModule *" smiModulePtr ", SmiModule *" importedModulePtr ", char *" importedName );
@@ -85,6 +86,13 @@ used to iteratively retrieve \fBstruct SmiModule\fPs of all known modules.
 Subsequent calls to \fBsmiGetNextModule()\fP return the following ones. 
 If there are no more modules NULL is returned.
 .PP
+The \fBsmiGetModuleIdentityNode()\fP function retrieves
+a \fBstruct SmiNode\fP that represents the node that is used to
+identify the containing MIB module specified by \fIsmiModulePtr\fP.
+If there is no such identity node, i.e. if this is not an SMIv2 or
+SMIng module converted from SMIv2, \fBsmiGetModuleIdentityNode()\fP
+returns NULL.
+.PP
 The \fBsmiGetFirstImport()\fP and \fBsmiGetNextImport()\fP functions are
 used to iteratively retrieve \fBstruct SmiImport\fPs of a given module.
 \fBsmiGetFirstImport()\fP returns the first identifier imported by
@@ -111,6 +119,7 @@ more revisions NULL is returned.
 .SH "SEE ALSO"
 .BR libsmi "(3), "
 .BR smi_config "(3), "
+.BR smi_node "(3), "
 .BR smi.h
 .SH "AUTHOR"
 (C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>

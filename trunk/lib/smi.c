@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.76 2000/02/11 09:50:58 strauss Exp $
+ * @(#) $Id: smi.c,v 1.77 2000/02/11 16:42:32 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1410,13 +1410,6 @@ SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr)
     }
     
     return NULL;
-}
-
-
-
-SmiModule *smiGetRefinementModule(SmiRefinement *smiRefinementPtr)
-{
-    return &((Refinement *)smiRefinementPtr)->objectPtr->modulePtr->export;
 }
 
 

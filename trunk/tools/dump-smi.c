@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.36 2000/02/10 17:59:44 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.37 2000/02/11 09:50:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1448,12 +1448,12 @@ static void printModuleCompliances(SmiModule *smiModule)
 		for(smiRefinement = smiGetFirstRefinement(smiNode);
 		    smiRefinement;
 		    smiRefinement = smiGetNextRefinement(smiRefinement)) {
-		    if (!strcmp(smiGetRefinementModule(smiRefinement)->name,
-				module)) {
+		    smiNode2 = smiGetRefinementNode(smiRefinement);
+		    smiModule2 = smiGetNodeModule(smiNode2);
+		    if (!strcmp(smiModule2->name, module)) {
 			print("\n");
 			printSegment(2 * INDENT, "OBJECT", INDENTVALUE, smiv1);
-			print("%s\n",
-			      smiGetRefinementNode(smiRefinement)->name);
+			print("%s\n", smiNode2->name);
 
 			smiType = smiGetRefinementType(smiRefinement);
 			if (smiType) {

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.7 2000/02/10 16:25:18 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.8 2000/02/11 16:42:32 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -296,7 +296,7 @@ extern int smiReadConfig(const char *filename, const char *tag);
 
 extern char *smiLoadModule(char *module);
 
-extern int smiModuleLoaded(char *module);
+extern int smiIsLoaded(char *module);
 
 
 
@@ -306,6 +306,8 @@ extern SmiModule *smiGetFirstModule();
 
 extern SmiModule *smiGetNextModule(SmiModule *smiModulePtr);
       
+extern SmiNode *smiGetModuleIdentityNode(SmiModule *smiModulePtr);
+
 extern SmiImport *smiGetFirstImport(SmiModule *smiModulePtr);
 
 extern SmiImport *smiGetNextImport(SmiImport *smiImportPtr);
@@ -364,8 +366,6 @@ extern SmiNode *smiGetRelatedNode(SmiNode *smiNodePtr);
 extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
-
-extern SmiNode *smiGetModuleIdentityNode(SmiModule *smiModulePtr);
 
 extern SmiModule *smiGetNodeModule(SmiNode *smiNodePtr);
 
