@@ -254,6 +254,7 @@ typedef struct Parser {
     int            firstStatementLine;
     int            firstNestedStatementLine;
     int	           firstRevisionLine;
+    Node     	    *pendingNodePtr;
 } Parser;
 
 
@@ -267,7 +268,6 @@ typedef struct Handle {
     Module   	    *firstModulePtr;
     Module   	    *lastModulePtr;
     Node     	    *rootNodePtr;
-    Node     	    *pendingNodePtr;
     Type     	    *typeOctetStringPtr;
     Type     	    *typeObjectIdentifierPtr;
     Type     	    *typeInteger32Ptr;
@@ -285,6 +285,7 @@ typedef struct Handle {
     char     	    *cacheProg;
     int      	    errorLevel;
     SmiErrorHandler *errorHandler;
+    Parser          *parserPtr;
 } Handle;
 
 
@@ -393,7 +394,7 @@ extern Node *getParentNode(Node *nodePtr);
  *   objectPtr = setObjectName(objectPtr, name);
  */
 extern Object *setObjectName(Object *objectPtr,
-			     char *name);
+			     char *name, Parser *parserPtr);
 
 extern void setObjectType(Object *objectPtr,
 			  Type *typePtr);
