@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.56 2000/02/28 16:36:10 strauss Exp $
+ * @(#) $Id: data.h,v 1.57 2000/03/02 09:22:29 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -151,10 +151,10 @@ typedef struct Option {
 
 typedef struct Refinement {
     SmiRefinement  export;
-    struct Object  *compliancePtr; // the compliance Object this Ref belongs to
-    struct Object  *objectPtr;     // the Object refined by this Refinement
-    Type	   *typePtr;       // the refined Type (or NULL)
-    Type	   *writetypePtr;  // the refined WriteType (or NULL)
+    struct Object  *compliancePtr; /* the compl. Object this Ref belongs to  */
+    struct Object  *objectPtr;     /* the Object refined by this Refinement  */
+    Type	   *typePtr;       /* the refined Type (or NULL)             */
+    Type	   *writetypePtr;  /* the refined WriteType (or NULL)        */
 } Refinement;
 
 
