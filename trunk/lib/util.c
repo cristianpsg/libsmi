@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.9 1999/05/31 11:58:38 strauss Exp $
+ * @(#) $Id: util.c,v 1.10 1999/06/03 20:37:27 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -66,6 +66,28 @@ int util_strcmp(const char *s1, const char *s2)
 	return -1;
     
     return strcmp(s1, s2);
+}
+
+
+
+char *util_strcat(char **s1, char *s2)
+{
+    char *s;
+    
+    if (!s2)
+	return *s1;
+
+    if ((!s1) || (!*s1))
+	return s2;
+
+    s = util_malloc(strlen(*s1) + strlen(s2) + sizeof(char));
+    sprintf(s, "%s%s", *s1, s2);
+
+    free(*s1);
+
+    *s1 = s;
+    
+    return s;
 }
 
 

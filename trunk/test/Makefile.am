@@ -8,14 +8,17 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.4 1999/06/08 20:16:14 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.5 1999/06/08 20:24:23 strauss Exp $
 #
 
 TESTMIBS =	SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
-TESTS			= smilint.test smidump-1.test smidump-2.test
+TESTS			= smilint.test smidump-1.test smidump-2.test \
+			  smidump-3.test
+
 TESTS_ENVIRONMENT	= SMIPATH=@smipath@ TESTMIBS="$(TESTMIBS)"
 
-EXTRA_DIST		= smilint.test smidump-1.test smidump-2.test
+EXTRA_DIST		= smilint.test smidump-1.test smidump-2.test \
+			  smidump-3.test \
+			  filter
 
-#CLEANFILES		= smilint.out smidump-1.out smidump-2.out
