@@ -1,3 +1,11 @@
+2000-10-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/IPMROUTE-STD-MIB: added (RFC 2932).
+
+	* mibs/ietf/IGMP-STD-MIB: added (RFC 2933).
+
+	* mibs/ietf/PIM-MIB: added (RFC 2934).
+
 2000-10-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DISMAN-NSLOOKUP-MIB,DISMAN-PING-MIB,DISMAN-TRACEROUTE-MIB:
