@@ -46,7 +46,7 @@ typedef enum GraphCardinality {
 
 typedef enum GraphConnection {
     GRAPH_CON_UNKNOWN       = 0,
-    GRAPH_CON_AGGREGATION   = 1,
+    GRAPH_CON_AGGREGATION   = 1,	/* never used??? */
     GRAPH_CON_DEPENDENCY    = 2,
     GRAPH_CON_ASSOCIATION   = 3
 } GraphConnection;
@@ -626,7 +626,7 @@ static void graphShowEdges(Graph *graph)
 	}
 	
 	switch (tEdge->connection) {
-	case GRAPH_CON_AGGREGATION:
+	case GRAPH_CON_AGGREGATION:	/* never used??? */
 	    printf("AG.");
 	    break;
 	case GRAPH_CON_DEPENDENCY:
@@ -2413,6 +2413,15 @@ static void printSVGDependency(GraphEdge *tEdge)
     if (tEdge->dia.flags & DIA_PRINT_FLAG) return;
     tEdge->dia.flags |= DIA_PRINT_FLAG;
 
+    //FIXME Arrow should point to the border of the node, not the center
+    printf(" <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\"\n",
+	tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
+	tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
+	tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
+	tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
+    printf("       stroke-dasharray=\"10, 10\" stroke=\"black\"");
+    printf(" marker-end=\"url(#arrowhead)\"/>\n");
+
 //TODO
 #if 0
     printf("    <object type=\"UML - Dependency\" "
@@ -2453,6 +2462,25 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     tEdge->dia.flags |= DIA_PRINT_FLAG;
     if (aggregate > 1) aggregate = 1;
     if (aggregate < 0) aggregate = 0;
+
+    //FIXME text is upside down, if angle ist between 180° and 360°
+    printf(" <path id=\"%s%s\"\n",
+	tEdge->startNode->smiNode->name,
+	tEdge->endNode->smiNode->name);
+    printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
+	tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
+	tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
+	tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
+	tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
+    printf("       stroke=\"black\"/>\n");
+    printf(" <text text-anchor=\"middle\">\n");
+    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%\">\n",
+	tEdge->startNode->smiNode->name,
+	tEdge->endNode->smiNode->name);
+    // next TODO
+    printf("       test\n");
+    printf("    </textPath>\n");
+    printf(" </text>\n");
 
 //TODO das muss noch gemacht werden!
 #if 0
@@ -2602,7 +2630,7 @@ static void printSVGConnection(GraphEdge *tEdge)
     switch (tEdge->connection) {
     case GRAPH_CON_UNKNOWN:
 	break;
-    case GRAPH_CON_AGGREGATION :
+    case GRAPH_CON_AGGREGATION :	/* never used??? */
 	printSVGAssociation(tEdge,1);
 	break;
     case GRAPH_CON_DEPENDENCY :
@@ -2683,6 +2711,14 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
     printf("// ]]>\n</script>\n\n");
 
     printf(" <title>%s</title>\n", note1);
+
+    //definition for the arrowheads
+    printf(" <defs>\n");
+    printf("     <marker id=\"arrowhead\" markerWidth=\"12\"");
+    printf(" markerHeight=\"8\" refX=\"12\" refY=\"4\" orient=\"auto\">\n");
+    printf("     <path d=\"M 0 0 12 4 0 8\" fill=\"none\" stroke=\"black\"/>");
+    printf("     </marker>");
+    printf(" </defs>\n");
 
     xfree(note1);
 }
@@ -3107,19 +3143,13 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	    if (!tEdge->use || tEdge->startNode->cluster != tCluster)
 		continue;
-	    //TODO * label edges!
-	    //     * move into own function
-	    printf(" <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
-		tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
-		tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
-		tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
-		tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
-	    printf("       fill=\"none\" stroke=\"black\"/>\n");
+	    printSVGConnection(tEdge);
 	}
 	for (tNode = tCluster->firstClusterNode; tNode;
 					tNode = tNode->nextClusterNode) {
 	    printSVGObject(tNode, &classNr);
 	}
+	//enclose cluster in its bounding box
 	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
 		tCluster->xMin + tCluster->xOffset,
 		tCluster->yMin + tCluster->yOffset,
