@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.45 2002/11/20 13:58:23 schoenw Exp $
+ * @(#) $Id: check.c,v 1.46 2003/02/27 12:10:15 schoenw Exp $
  */
 
 #include <config.h>
@@ -528,7 +528,7 @@ smiCheckNamedNumberSubtyping(Parser *parser, Type *type)
 	    && type->export.basetype != SMI_BASETYPE_BITS)) {
 	return;
     }
-    
+
     for (list1Ptr = type->listPtr;
 	 list1Ptr; list1Ptr = list1Ptr->nextPtr) {
 	
@@ -558,17 +558,30 @@ smiCheckNamedNumberSubtyping(Parser *parser, Type *type)
 	    
 	if (! list2Ptr) {
 	    if (type->export.basetype == SMI_BASETYPE_ENUM) {
-		smiPrintErrorAtLine(parser, ERR_ENUM_SUBTYPE,
-				    type->line,
-				    nn1Ptr->export.name,
-				    nn1Ptr->export.value.value.integer32,
-				    type->parentPtr->export.name);
+		if (type->parentPtr->export.name) {
+		    smiPrintErrorAtLine(parser, ERR_ENUM_SUBTYPE_OF,
+					type->line,
+					nn1Ptr->export.name,
+					nn1Ptr->export.value.value.integer32,
+					type->parentPtr->export.name);
+		} else {
+		    smiPrintErrorAtLine(parser, ERR_ENUM_SUBTYPE,
+					type->line,
+					nn1Ptr->export.name,
+					nn1Ptr->export.value.value.integer32);
+		}
 	    }
 	    if (type->export.basetype == SMI_BASETYPE_BITS) {
-		smiPrintErrorAtLine(parser, ERR_BITS_SUBTYPE,
-				    type->line,
-				    nn1Ptr->export.name,
-				    type->parentPtr->export.name);
+		if (type->parentPtr->export.name) {
+		    smiPrintErrorAtLine(parser, ERR_BITS_SUBTYPE_OF,
+					type->line,
+					nn1Ptr->export.name,
+					type->parentPtr->export.name);
+		} else {
+		    smiPrintErrorAtLine(parser, ERR_BITS_SUBTYPE,
+					type->line,
+					nn1Ptr->export.name);
+		}
 	    }
 	}
     }
