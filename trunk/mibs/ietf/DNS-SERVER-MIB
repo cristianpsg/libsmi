@@ -102,7 +102,7 @@ DnsNameAsIndex ::= TEXTUAL-CONVENTION
     SYNTAX  DnsName
 
 DnsClass ::= TEXTUAL-CONVENTION
-    DISPLAY-HINT "2d"
+    DISPLAY-HINT "d"
     STATUS  current
     DESCRIPTION
             "This data type is used to represent the class values
@@ -115,7 +115,7 @@ DnsClass ::= TEXTUAL-CONVENTION
     SYNTAX  INTEGER (0..65535)
 
 DnsType ::= TEXTUAL-CONVENTION
-    DISPLAY-HINT "2d"
+    DISPLAY-HINT "d"
     STATUS  current
     DESCRIPTION
             "This data type is used to represent the type values
@@ -128,7 +128,7 @@ DnsType ::= TEXTUAL-CONVENTION
     SYNTAX  INTEGER (0..65535)
 
 DnsQClass ::= TEXTUAL-CONVENTION
-    DISPLAY-HINT "2d"
+    DISPLAY-HINT "d"
     STATUS  current
     DESCRIPTION
             "This data type is used to represent the QClass values
@@ -141,7 +141,7 @@ DnsQClass ::= TEXTUAL-CONVENTION
     SYNTAX  INTEGER (0..65535)
 
 DnsQType ::= TEXTUAL-CONVENTION
-    DISPLAY-HINT "2d"
+    DISPLAY-HINT "d"
     STATUS  current
     DESCRIPTION
             "This data type is used to represent the QType values
@@ -154,7 +154,7 @@ DnsQType ::= TEXTUAL-CONVENTION
     SYNTAX  INTEGER (0..65535)
 
 DnsTime ::= TEXTUAL-CONVENTION
-    DISPLAY-HINT "4d"
+    DISPLAY-HINT "d"
     STATUS  current
     DESCRIPTION
             "DnsTime values are 32-bit unsigned integers which

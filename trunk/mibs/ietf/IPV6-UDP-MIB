@@ -61,7 +61,7 @@ ipv6UdpEntry OBJECT-TYPE
 
 Ipv6UdpEntry ::= SEQUENCE {
    ipv6UdpLocalAddress    Ipv6Address,
-   ipv6UdpLocalPort       INTEGER (0..65535),
+   ipv6UdpLocalPort       INTEGER,
    ipv6UdpIfIndex         Ipv6IfIndexOrZero }
 
 ipv6UdpLocalAddress OBJECT-TYPE
