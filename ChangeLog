@@ -1,6 +1,14 @@
+1999-06-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/*.3.in, tools/*.1.in: updated manual pages.
+
+	* README: updated installation information and added a hint
+	on online information.
+
 1999-05-31  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
-	* COPYING: applied the license that scotty uses to all files.
+	* COPYING et al: applied the license that scotty uses to
+	all files.
 
 1999-05-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
@@ -29,4 +37,3 @@
 	* configure.in: started GNU configure support.
 
 	* ChangeLog: started ChangeLog.
-

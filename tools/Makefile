@@ -109,7 +109,7 @@ smilint_LDADD = ../lib/libsmi.la
 smidump_SOURCES = smidump.c dump-sming.c dump-smi.c dump-data.c
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES = 
+CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
@@ -134,7 +134,8 @@ man1dir = $(mandir)/man1
 MANS = $(man_MANS)
 
 NROFF = nroff
-DIST_COMMON =  Makefile.am Makefile.in
+DIST_COMMON =  Makefile.am Makefile.in smidump.1.in smilint.1.in \
+smiquery.1.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -154,6 +155,12 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+smiquery.1: $(top_builddir)/config.status smiquery.1.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smilint.1: $(top_builddir)/config.status smilint.1.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump.1: $(top_builddir)/config.status smidump.1.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 mostlyclean-binPROGRAMS:
 
