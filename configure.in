@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.34 1999/10/01 12:46:54 strauss Exp $
+# @(#) $Id: configure.in,v 1.35 1999/10/05 06:30:55 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -39,8 +39,8 @@ AC_ARG_WITH(mibdir,
 mibdir="$withval", mibdir="/usr/local/share/mibs")
 
 AC_ARG_WITH(smipath,
-[  --with-smipath=DIR:DIR  default DIRs to search for MIB modules [MIBDIR]],
-smipath="$withval", smipath="$mibdir")
+[  --with-smipath=DIR:DIR  default DIRs to search for MIB modules [MIBDIR...]],
+smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site")
 AC_DEFINE_UNQUOTED(DEFAULT_SMIPATH, "$smipath")
 
 
@@ -84,4 +84,4 @@ AC_SUBST(CFLAGS)
 AC_SUBST(mibdir)
 AC_SUBST(smipath)
 
-AC_OUTPUT(Makefile lib/Makefile tools/Makefile mibs/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test, chmod a+x test/parser.test)
+AC_OUTPUT(Makefile lib/Makefile tools/Makefile mibs/Makefile mibs/ietf/Makefile mibs/iana/Makefile mibs/irtf/Makefile mibs/site/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test, chmod a+x test/parser.test)

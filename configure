@@ -18,7 +18,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-mibdir=DIR       use DIR to install libsmi MIB modules [DATADIR/mibs]"
 ac_help="$ac_help
-  --with-smipath=DIR:DIR  default DIRs to search for MIB modules [MIBDIR]"
+  --with-smipath=DIR:DIR  default DIRs to search for MIB modules [MIBDIR...]"
 ac_help="$ac_help
   --enable-smi            enable SMIv1/v2 parser support"
 ac_help="$ac_help
@@ -1378,7 +1378,7 @@ if test "${with_smipath+set}" = set; then
   withval="$with_smipath"
   smipath="$withval"
 else
-  smipath="$mibdir"
+  smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site"
 fi
 
 cat >> confdefs.h <<EOF
@@ -2287,7 +2287,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile lib/Makefile tools/Makefile mibs/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile lib/Makefile tools/Makefile mibs/Makefile mibs/ietf/Makefile mibs/iana/Makefile mibs/irtf/Makefile mibs/site/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -2396,7 +2396,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"Makefile lib/Makefile tools/Makefile mibs/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile lib/Makefile tools/Makefile mibs/Makefile mibs/ietf/Makefile mibs/iana/Makefile mibs/irtf/Makefile mibs/site/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
