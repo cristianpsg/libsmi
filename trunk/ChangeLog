@@ -1,3 +1,11 @@
+2000-12-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Fixed `GAUGE32 integerSubType' rule.
+
+	* lib/parser-smi.y: Fixed flawed data structures in case of
+	illegal range sub-typing of enum types and enum sub-typing of
+	range restricted integer types. Thanks to Bill for the hints.
+
 2000-11-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidump.c: Juergen fixed some bugs and added some
