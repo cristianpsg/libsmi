@@ -2818,6 +2818,10 @@ static void calcGroupSize(int group)
     calcNode->dia.y = (float) rand();
     calcNode->dia.x /= (float) RAND_MAX;
     calcNode->dia.y /= (float) RAND_MAX;
+
+    calcNode->dia.x = 0;
+    calcNode->dia.y = 0;
+
     //calcNode->dia.x *= (float) CANVASWIDTH;
     //calcNode->dia.y *= (float) CANVASHEIGHT;
     //fprintf(stderr, "(%.2f,%.2f)\n", calcNode->dia.x, calcNode->dia.y);
@@ -2983,6 +2987,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    nodecount++;
 	    if (tNode->degree == 0) {
 		tNode->cluster = -1;
+		tNode->dia.x = 0;
+		tNode->dia.y = 0;
 	    }
 	}
     }
@@ -3007,6 +3013,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	//layoutCluster(nodecount, i, 1, 1);
     }
 
+    //calculate bounding box and write some debug-information to stderr
     //FIXME move this into a function?
     fprintf(stderr, "group\tdegree\tcluster\tposition\n");
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
