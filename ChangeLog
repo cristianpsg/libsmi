@@ -1,3 +1,8 @@
+Mon Jun 21 17:43:27 1999  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.c: fixed a bug with merging two subtrees of nodes
+	defined in two separate MIB files (reported by Jochen Friedrich).
+
 1999-06-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: fixed incorrect base types of SNMPv2-SMI

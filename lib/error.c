@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.13 1999/06/17 16:56:55 strauss Exp $
+ * @(#) $Id: error.c,v 1.14 1999/06/18 15:04:34 strauss Exp $
  */
 
 #include <string.h>
@@ -41,6 +41,7 @@ typedef struct Error {
 				/* 4: change is recommended if possible      */
 				/* 5: warning, but might totally correct     */
 				/*    under some circumstances               */
+				/* 6: just a notice                          */
     int id;			/* error id, used in error() invocation	     */
     char *fmt;			/* a format string			     */
 } Error;
@@ -71,23 +72,23 @@ Error errors[] = {
     { 2, ERR_MODULENAME_64,
       "Module name `%s' must not be longer that 64 characters" },
     { 4, ERR_MODULENAME_32,
-      "Module name `%s' longer than 32 characters, which is not recommended" },
+      "Module name `%s' longer than 32 characters" },
     { 2, ERR_TYPENAME_64,
       "Type name `%s' must not be longer that 64 characters" },
     { 4, ERR_TYPENAME_32,
-      "Type name `%s' longer than 32 characters, which is not recommended" },
+      "Type name `%s' longer than 32 characters" },
     { 2, ERR_OIDNAME_64,
       "Object Identifier name `%s' must not be longer that 64 characters" },
     { 4, ERR_OIDNAME_32,
-      "Object Identifier name `%s' longer than 32 characters, which is not recommended" },
+      "Object Identifier name `%s' longer than 32 characters" },
     { 2, ERR_ENUMNAME_64,
       "Enumeration item name `%s' must not be longer that 64 characters" },
     { 4, ERR_ENUMNAME_32,
-      "Enumeration item name `%s' longer than 32 characters, which is not recommended" },
+      "Enumeration item name `%s' longer than 32 characters" },
     { 2, ERR_BITNAME_64,
       "Bit name `%s' must not be longer than 64 characters" },
     { 4, ERR_BITNAME_32,
-      "Bit name `%s' longer than 32 characters, which is not recommended" },
+      "Bit name `%s' longer than 32 characters" },
     { 2, ERR_TRAP_TYPE,
       "The TRAP-TYPE macro is not allowed in SMIv2 style MIB" },
     { 2, ERR_TOO_MANY_MODULE_IDENTITIES,
@@ -204,10 +205,12 @@ Error errors[] = {
       "File `%s' seems to be SMIv1/v2 which is not supported" },
     { 1, ERR_SMING_NOT_SUPPORTED,
       "File `%s' seems to be SMIng which is not supported" },
-    { 4, ERR_UNUSED_IMPORT,
-      "Identifier `%s' imported from module `%s' is never used in the local module" },
+    { 6, ERR_UNUSED_IMPORT,
+      "Identifier `%s' imported from module `%s' is never used" },
     { 2, ERR_MACRO_NOT_IMPORTED,
       "Macro `%s' has not been imported from module `%s'" },
+    { 6, ERR_IMPLICIT_NODE,
+      "Implicit node definition" },
  
     { 0, 0, NULL }
 };

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.35 1999/06/17 16:56:57 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.37 1999/06/18 21:08:53 strauss Exp $
  */
 
 %{
@@ -333,11 +333,16 @@ static Module      *complianceModulePtr = NULL;
  * One mibFile may contain multiple MIB modules.
  * It's also possible that there's no module in a file.
  */
-mibFile:		modules
-    			{ $$ = 0; }
-	|		/* empty */
-    			{ $$ = 0; }
-	;
+mibFile:
+    modules
+    {
+        $$ = 0;
+    }
+| /* empty */
+    {
+	$$ = 0;
+    }
+;
 
 modules:		module
 			{ $$ = 0; }
@@ -400,15 +405,6 @@ module:			moduleName
 					   ERR_NO_MODULE_IDENTITY);
 			    }
 			    
-			    /* TODO: detect node that could not be linked
-			     * into the main tree
-			     */ /*
-			    for (p = firstPendingNode; p; p = p->next) {
-				printError(parser, ERR_UNKNOWN_OIDLABEL,
-					   p->descriptor->name);
-			    }
-			    */
-
 			    /*
 			     * Set nodekinds of all newly defined objects.
 			     */
@@ -489,7 +485,19 @@ module:			moduleName
 				    }
 				}
 			    }
-			    
+
+#if 0
+			    /* TODO: detect node that could not be linked
+			     * into the main tree
+			     */
+			    for (nodePtr = pendingNodePtr->firstChildPtr;
+				 nodePtr; nodePtr = nodePtr->nextPtr) {
+				printErrorAtLine(parserPtr,
+						 ERR_UNKNOWN_OIDLABEL,
+						 nodePtr->firstObjectPtr->line,
+					       nodePtr->firstObjectPtr->name);
+			    }
+#else			    
 			    /*
 			     * Check references to unknown identifiers.
 			     */
@@ -497,12 +505,19 @@ module:			moduleName
 				objectPtr;
 				objectPtr = objectPtr->nextPtr) {
 				if (objectPtr->flags & FLAG_INCOMPLETE) {
-				    printErrorAtLine(thisParserPtr,
-						     ERR_UNKNOWN_OIDLABEL,
-						     objectPtr->line,
-						     objectPtr->name);
+				    if (strlen(objectPtr->name)) {
+					printErrorAtLine(thisParserPtr,
+							 ERR_UNKNOWN_OIDLABEL,
+							 objectPtr->line,
+							 objectPtr->name);
+				    } else {
+					printErrorAtLine(thisParserPtr,
+							 ERR_IMPLICIT_NODE,
+							 objectPtr->line);
+				    }
 				}
 			    }
+#endif
 			    
 			    $$ = 0;
 			}
@@ -3886,4 +3901,4 @@ number:			NUMBER
 
 %%
 
-#endif /*  */
+#endif

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.41 1999/06/17 16:57:00 strauss Exp $
+ * @(#) $Id: smi.h,v 1.43 1999/06/18 21:08:55 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -157,9 +157,7 @@ typedef enum SmiValueformat {
 typedef struct SmiValue {
     SmiBasetype             basetype;
     SmiValueformat	    valueformat;
-#if 0
     unsigned int	    len;         /* only for OIDs and OctetStrings   */
-#endif
     union {
         SmiUnsigned64       unsigned64;
         SmiInteger64        integer64;
