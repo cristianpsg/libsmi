@@ -1,0 +1,22 @@
+#!/bin/sh
+# the next line restarts using tclsh -*- tcl -*- \
+#exec ./scotty "$0" "$@"
+
+unset tnm(mibs)
+
+proc walk {n} {
+    puts [format "%s:" $n ]
+    puts [format "          OID: %s" [Tnm::mib oid $n] ]
+    puts [format "       Syntax: %s" [Tnm::mib syntax $n] ]
+    puts [format "         Type: %s" [Tnm::mib type $n] ]
+    puts [format "  Declaration: %s" [Tnm::mib macro $n] ]
+    puts [format "       Access: %s" [Tnm::mib access $n] ]
+    puts [format "       Status: %s" [Tnm::mib status $n] ]
+    puts [format "  Description: %s" [Tnm::mib description $n] ]
+    foreach c [Tnm::mib children $n] {
+        walk $c
+    }
+}
+
+walk [Tnm::mib name SNMPv2-MIB.system]
+

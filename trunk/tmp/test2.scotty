@@ -1,0 +1,15 @@
+#!/bin/sh
+# the next line restarts using tclsh -*- tcl -*- \
+#exec ./scotty "$0" "$@"
+
+#unset tnm(mibs)
+
+proc walk {n} {
+    puts [format "%s: %s" $n [Tnm::mib oid $n] ]
+    foreach c [Tnm::mib children $n] {
+        walk $c
+    }
+}
+
+walk [Tnm::mib name 1.3]
+

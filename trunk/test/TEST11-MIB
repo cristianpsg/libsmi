@@ -1,0 +1,33 @@
+A DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY,
+	experimental 					FROM SNMPv2-SMI;
+
+m MODULE-IDENTITY
+        LAST-UPDATED "9403240002Z"
+        ORGANIZATION "MIBs R Us"
+        CONTACT-INFO "Fred Flintstone"
+        DESCRIPTION  "An Example Module Identity"
+        ::= { experimental 11999 0 }
+
+a1 OBJECT IDENTIFIER ::= { a 1 }
+a2 OBJECT IDENTIFIER ::= { b 2 }
+
+a OBJECT-TYPE
+       SYNTAX      INTEGER
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION "xx"
+       ::= { iso 1 }
+
+b1 OBJECT IDENTIFIER ::= { b 1 }
+
+b OBJECT-TYPE
+       SYNTAX      INTEGER
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION "xx"
+       ::= { iso 2 }
+
+END
