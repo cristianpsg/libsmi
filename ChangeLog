@@ -1,4 +1,12 @@
-2001-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2001-03-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/check.c: Bill contributed more checks on group/compliance
+	statements.
+
+	* lib/check.c: Fixed core dump with recent type checks. Thanks
+	to Bill.
+
+2001-03-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.2.14.tar.gz: released version 0.2.14.
 

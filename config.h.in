@@ -58,9 +58,6 @@
 /* Define if you have the vsnprintf function.  */
 #undef HAVE_VSNPRINTF
 
-/* Define if you have the <getopt.h> header file.  */
-#undef HAVE_GETOPT_H
-
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
 
