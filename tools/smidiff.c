@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.25 2001/11/09 17:48:22 tklie Exp $ 
+ * @(#) $Id: smidiff.c,v 1.26 2001/11/12 15:29:03 schoenw Exp $ 
  */
 
 #include <config.h>
@@ -926,9 +926,18 @@ getStringRange( SmiType *smiType )
 	}
 	minStr = strdup( getValueString(&range->minValue, smiType) );
 	maxStr = strdup( getValueString(&range->maxValue, smiType) );
-	str = realloc(str, strlen(str) + strlen(minStr) + strlen(maxStr) + 3);
-	if( str ) {
-	    sprintf(str, "%s%s..%s", str, minStr, maxStr);
+	if( strcmp( minStr, maxStr ) ) {
+	    str = realloc(str,
+			  strlen(str) + strlen(minStr) + strlen(maxStr) + 3);
+	    if( str ) {
+		sprintf(str, "%s%s..%s", str, minStr, maxStr);
+	    }
+	}
+	else {
+	    str = realloc( str, strlen( str ) + strlen( minStr ) + 1 );
+	    if( str ) {
+		sprintf( str, "%s%s", str, minStr );
+	    }
 	}
     }
     str = realloc( str, strlen( str ) + 2 );
@@ -1669,8 +1678,8 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    checkTypeCompatibility(oldModule, oldNode, oldType,
 				   newModule, newNode, newType);
 	} else {
-	    checkTypes(oldModule, oldNode, oldType,
-		       newModule, newNode, newType);
+	    checkTypeCompatibility(oldModule, oldNode, oldType,
+				   newModule, newNode, newType);
 	}
     }
 
