@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.92 2001/01/24 11:08:02 strauss Exp $
+# @(#) $Id: configure.in,v 1.93 2001/03/06 11:41:58 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -60,7 +60,7 @@ AC_CHECK_FUNCS(timegm)
 
 AC_CHECK_FUNCS(vsnprintf snprintf)
 
-AC_CHECK_HEADERS(getopt.h pwd.h unistd.h)
+AC_CHECK_HEADERS(pwd.h unistd.h)
 
 if test "x$prefix" = "xNONE" ; then
   prefix=/usr/local
