@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.h,v 1.3 1999/05/31 11:58:33 strauss Exp $
+ * @(#) $Id: parser-sming.h,v 1.4 1999/06/03 20:37:15 strauss Exp $
  */
 
 #ifndef _PARSER_SMING_H
@@ -17,6 +17,10 @@
 #include <stdio.h>
 
 #include "data.h"
+
+
+
+#define YYERROR_VERBOSE
 
 
 
