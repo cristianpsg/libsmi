@@ -1,3 +1,15 @@
+2002-05-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Added check for counter access.
+
+	* lib/check.c: Fixed check for not-accessible auxiliary objects.
+
+	* parser-smi.y,mibs/tubs/*: Moritz Bunkus added a bunch of
+	patches so that we can now parser SPPI PIBs. There are also
+	a number of PIBs (temporarily in mibs/tubs/, as long as they
+	are not published). Thanks to Moritz for this good piece
+	of work.
+
 2002-04-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.c,...: Added a `parser' argument to the loadModule()
