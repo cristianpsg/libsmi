@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.120 2003/11/18 12:56:04 schoenw Exp $
+ * @(#) $Id: error.c,v 1.121 2004/02/18 16:49:41 schoenw Exp $
  */
 
 #include <config.h>
@@ -646,8 +646,10 @@ static Error errors[] = {
       "NOTIFICATION-GROUP clause must be defined in the same module\n"
       "where this OBJECT-GROUP or NOTIFICATION-GROUP appears (RFC 2580,\n"
       "Sections 3.1 and 4.1)."},
-    { 5, ERR_MODULENAME_SUFFIX, "module-name-suffix", 
+    { 5, ERR_MIB_MODULENAME_SUFFIX, "module-name-suffix", 
       "module name `%s' should match `*-MIB'", NULL},
+    { 5, ERR_PIB_MODULENAME_SUFFIX, "module-name-suffix", 
+      "module name `%s' should match `*-PIB'", NULL},
     { 5, ERR_TYPE_WITHOUT_FORMAT, "type-without-format", 
       "type `%s' has no format specification", NULL},
     { 0, 0, NULL, NULL, NULL }

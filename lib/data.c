@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.119 2003/04/30 14:29:31 strauss Exp $
+ * @(#) $Id: data.c,v 1.120 2003/10/02 11:57:41 strauss Exp $
  */
 
 #include <config.h>
@@ -369,6 +369,9 @@ void setModuleLastUpdated(Module *modulePtr, time_t lastUpdated)
 void setModuleOrganization(Module *modulePtr, char *organization)
 {
     modulePtr->export.organization = organization;
+    while (strlen(organization) && organization[strlen(organization)-1] == '\n') {
+	    organization[strlen(organization) - 1] = 0;
+    }
 }
 
 
