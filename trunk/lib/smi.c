@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.32 1999/06/01 15:31:24 strauss Exp $
+ * @(#) $Id: smi.c,v 1.33 1999/06/02 16:52:34 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "defs.h"
 #include "smi.h"
 #include "error.h"
 #include "data.h"
@@ -605,7 +604,7 @@ void smiInit()
     if (p) {
 	smiPath = util_strdup(p);
     } else {
-	smiPath = DEFAULT_SMIPATH;
+	smiPath = util_strdup(DEFAULT_SMIPATH);
     }
     
     initialized   = 1;
@@ -613,24 +612,75 @@ void smiInit()
 
 
 
-int smiLoadModule(char *module)
+char *smiGetPath()
 {
-
-    if (!initialized) smiInit();
-
-    if (!isInView(module)) {
-	addView(module);
+    if (smiPath) {
+	return util_strdup(smiPath);
+    } else {
+	return NULL;
     }
+}
 
-    if (findModuleByName(module)) {
-	/* already loaded. */
+
+
+int smiSetPath(const char *s)
+{
+    char *s2;
+
+    if (!s) {
+	util_free(smiPath);
+	smiPath = NULL;
 	return 0;
     }
-
-    if (loadModule(module)) {
+    
+    s2 = util_strdup(s);
+    if (s2) {
+	util_free(smiPath);
+	smiPath = s2;
 	return 0;
     } else {
 	return -1;
+    }
+    
+}
+
+
+
+int smiLoadModule(char *module)
+{
+    Module *modulePtr;
+    
+    if (!initialized) smiInit();
+
+    if (util_ispath(module)) {
+
+	modulePtr = loadModule(module);
+
+	if (modulePtr) {
+	    if (!isInView(modulePtr->name)) {
+		addView(modulePtr->name);
+	    }
+	    return 0;
+	} else {
+	    return -1;
+	}
+
+    } else {
+	
+	if (!isInView(module)) {
+	    addView(module);
+	}
+	
+	if (findModuleByName(module)) {
+	    /* already loaded. */
+	    return 0;
+	} else {
+	    if (loadModule(module)) {
+		return 0;
+	    } else {
+		return -1;
+	    }
+	}
     }
 }
  

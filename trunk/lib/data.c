@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.24 1999/05/31 11:58:30 strauss Exp $
+ * @(#) $Id: data.c,v 1.25 1999/06/02 16:52:32 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2685,10 +2685,14 @@ loadModule(modulename)
 	return NULL;
     }
 
-    if (!strchr(modulename, '.') && !strchr(modulename, '/')) {
+    if (!util_ispath(modulename)) {
 	/*
 	 * A plain modulename. Lookup the path along SMIPATH...
 	 */
+	if (!smiPath) {
+	    return NULL;
+	}
+	
 	smipath = util_strdup(smiPath);
 	for (dir = strtok(smipath, ":"); dir; dir = strtok(NULL, ":")) {
 	    path = malloc(strlen(dir)+strlen(modulename)+8);
@@ -2742,6 +2746,8 @@ loadModule(modulename)
 	    parser.line			= 1;
 	    parser.column		= 1;
 	    parser.character		= 1;
+	    parser.linebufsize		= 200;
+	    parser.linebuf		= util_malloc(200);
 	    parser.linebuf[0]		= 0;
 	    smiparse((void *)&parser);
 	    smiLeaveLexRecursion();
@@ -2776,6 +2782,8 @@ loadModule(modulename)
 	    parser.line			= 1;
 	    parser.column		= 1;
 	    parser.character		= 1;
+	    parser.linebufsize		= 200;
+	    parser.linebuf		= util_malloc(200);
 	    parser.linebuf[0]		= 0;
 	    smingparse((void *)&parser);
 	    smingLeaveLexRecursion();

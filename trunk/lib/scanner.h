@@ -8,10 +8,9 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner.h,v 1.2 1999/05/25 17:00:33 strauss Exp $
+ * @(#) $Id: scanner.h,v 1.3 1999/05/31 11:58:37 strauss Exp $
  */
 
-#include "defs.h"    
 #include "error.h"
 
 

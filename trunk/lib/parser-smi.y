@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.25 1999/05/31 11:58:33 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.26 1999/06/02 16:52:33 strauss Exp $
  */
 
 %{
@@ -22,7 +22,6 @@
 #include <ctype.h>
 #include <limits.h>
     
-#include "defs.h"
 #include "smi.h"
 #include "error.h"
 #include "parser-smi.h"
@@ -2761,11 +2760,8 @@ subidentifier:
 			{
 			    Object *objectPtr;
 			    SmiNode *snodePtr;
-			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    Import *importPtr;
 			    
-			    sprintf(s, "%s::%s", $1, $3);
-
 			    if (parentNodePtr != rootNodePtr) {
 				printError(thisParserPtr,
 					   ERR_OIDLABEL_NOT_FIRST, $1);
@@ -2880,9 +2876,11 @@ subidentifier:
 	|		moduleName '.' LOWERCASE_IDENTIFIER '(' number ')'
 			{
 			    Object *objectPtr;
-			    char md[2*MAX_IDENTIFIER_LENGTH+2];
-			    
-			    sprintf(md, "%s::%s", $1, $3);
+			    char *md;
+
+			    md = util_malloc(sizeof(char) *
+					     (strlen($1) + strlen($3) + 2));
+			    sprintf(md, "%s.%s", $1, $3);
 			    objectPtr = findObjectByModulenameAndName($1, $3);
 			    if (objectPtr) {
 				printError(thisParserPtr, ERR_EXISTENT_OBJECT,
@@ -2903,7 +2901,7 @@ subidentifier:
 						    thisParserPtr->character);
 				$$ = objectPtr;
 			    }
-
+			    util_free(md);
 			    parentNodePtr = $$->nodePtr;
 			}
 	;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.14 1999/05/28 14:10:32 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.15 1999/05/31 11:58:43 strauss Exp $
  */
 
 #include <stdio.h>
@@ -17,7 +17,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "defs.h"
 #include "smi.h"
 
 

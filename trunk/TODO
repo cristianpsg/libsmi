@@ -32,8 +32,6 @@ o smi_errno ?!
 
 o grouping of error and warning messages
 
-o smiAddPath()
-
 o *.[13].in: construct correct autoconf @mibdir@ contents
 
 o add much more checks to the smiv1/v2 and sming parsers
@@ -42,3 +40,8 @@ o set up a catalogue of errors detected by the smiv1/v2 parser?
 
 o smiv1 allows `deprecated'!
 
+o eliminate length restrictions (grep MAX_ *.[chly])
+
+o smiXXXPath() !!!
+
+o problem mentioned by Jochen on the mailing list.

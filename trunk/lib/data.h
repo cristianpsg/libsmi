@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.26 1999/05/28 14:11:19 strauss Exp $
+ * @(#) $Id: data.h,v 1.27 1999/05/31 11:58:30 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -20,7 +20,6 @@
 #include <stdio.h>
 
 #include "smi.h"
-#include "defs.h"
 
 
 
@@ -258,7 +257,8 @@ typedef struct Parser {
     int		   line;
     int		   column;
     int		   character;
-    char	   linebuf[MAX_LINEBUF_LENGTH+1];
+    size_t	   linebufsize;
+    char	   *linebuf;
     Module	   *modulePtr;
     ParserFlags	   flags;
 } Parser;

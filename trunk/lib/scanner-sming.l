@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.7 1999/05/25 17:00:32 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.8 1999/05/31 11:58:36 strauss Exp $
  */
 
 %option noyywrap
@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "defs.h"    
 #include "error.h"
 #include "util.h"
 #include "parser-sming.h"
@@ -84,14 +83,20 @@ smingTrackInput(nl, parser)
     } else {
 	if ((yytext[0] != '\t') || (yyleng != 1)) {
 	    thisParser.column += yyleng;
-	    if (thisParser.column+1 < sizeof(thisParser.linebuf)) {
-		strcat(thisParser.linebuf, yytext);
+	    if (thisParser.column+1 >= thisParser.linebufsize) {
+		thisParser.linebufsize = thisParser.column+2;
+		thisParser.linebuf = util_realloc(thisParser.linebuf,
+						  thisParser.linebufsize);
 	    }
+	    strcat(thisParser.linebuf, yytext);
 	} else {
 	    thisParser.column += (8 - ((thisParser.column-1) % 8));
-	    if (thisParser.column+1 < sizeof(thisParser.linebuf)) {
-		strcat(thisParser.linebuf, yytext);
+	    if (thisParser.column+1 >= thisParser.linebufsize) {
+		thisParser.linebufsize = thisParser.column+2;
+		thisParser.linebuf = util_realloc(thisParser.linebuf,
+						  thisParser.linebufsize);
 	    }
+	    strcat(thisParser.linebuf, yytext);
 	}
 	thisParser.character += yyleng;
     }
