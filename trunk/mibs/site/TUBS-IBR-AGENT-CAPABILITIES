@@ -1,6 +1,6 @@
 TUBS-IBR-AGENT-CAPABILITIES DEFINITIONS ::= BEGIN
 
--- @(#) $Id: TUBS-IBR-AGENT-CAPABILITIES,v 1.1 2000/02/09 14:53:47 schoenw Exp $
+-- @(#) $Id: TUBS-IBR-AGENT-CAPABILITIES,v 1.1 2000/02/10 16:25:19 strauss Exp $
 
 IMPORTS
     MODULE-IDENTITY
@@ -123,41 +123,41 @@ linuxAgent3dot3 AGENT-CAPABILITIES
 	    ACCESS	not-implemented
 	    DESCRIPTION	""
 
---    SUPPORTS		HOST-RESOURCES-MIB
---	INCLUDES	{ hrSystemGroup,
---			  hrStorageGroup,
---			  hrDeviceGroup,
---			  hrSWRunGroup,
---			  hrSWRunPerfGroup,
---			  hrSWInstalledGroup }
---
---	VARIATION	hrSWOSIndex
---	    ACCESS	not-implemented
---	    DESCRIPTION	""
---
---	VARIATION	hrStorageAllocationFailures
---	    ACCESS	not-implemented
---	    DESCRIPTION	""
---
---	VARIATION	hrDeviceErrors
---	    ACCESS	not-implemented
---	    DESCRIPTION	""
---
---	VARIATION	hrProcessorFrwID
---	    ACCESS	not-implemented
---	    DESCRIPTION	""
---
---	VARIATION	hrFSAccess
---	    ACCESS	not-implemented
---	    DESCRIPTION	""
---
---	VARIATION	hrSWRunName
---	    ACCESS	not-implemented
---	    DESCRIPTION	""
---
---	VARIATION	hrSWRunID
---	    ACCESS	not-implemented
---	    DESCRIPTION	""
+    SUPPORTS		HOST-RESOURCES-MIB
+	INCLUDES	{ hrSystemGroup,
+			  hrStorageGroup,
+			  hrDeviceGroup,
+			  hrSWRunGroup,
+			  hrSWRunPerfGroup,
+			  hrSWInstalledGroup }
+
+	VARIATION	hrSWOSIndex
+	    ACCESS	not-implemented
+	    DESCRIPTION	""
+
+	VARIATION	hrStorageAllocationFailures
+	    ACCESS	not-implemented
+	    DESCRIPTION	""
+
+	VARIATION	hrDeviceErrors
+	    ACCESS	not-implemented
+	    DESCRIPTION	""
+
+	VARIATION	hrProcessorFrwID
+	    ACCESS	not-implemented
+	    DESCRIPTION	""
+
+	VARIATION	hrFSAccess
+	    ACCESS	not-implemented
+	    DESCRIPTION	""
+
+	VARIATION	hrSWRunName
+	    ACCESS	not-implemented
+	    DESCRIPTION	""
+
+	VARIATION	hrSWRunID
+	    ACCESS	not-implemented
+	    DESCRIPTION	""
 
     ::= { ibrAgentCapabilities 2 }
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.77 2000/02/10 14:29:27 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.78 2000/02/10 16:25:18 strauss Exp $
  */
 
 %{
@@ -398,7 +398,8 @@ checkDate(Parser *parserPtr, char *date)
 	}
 	if (len == 11) {
 	    tm.tm_year += 1900;
-	    printError(parserPtr, ERR_DATE_YEAR_2DIGITS, date, tm.tm_year);
+	    if (tm.tm_year < 1990)
+		printError(parserPtr, ERR_DATE_YEAR_2DIGITS, date, tm.tm_year);
 	}
 	tm.tm_mon  = (p[0]-'0') * 10 + (p[1]-'0');
 	p += 2;
@@ -3582,6 +3583,16 @@ subidentifier:
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
 						importPtr->use++;
+					    } else {
+						objectPtr = addObject($1,
+						    pendingNodePtr, 0,
+						    FLAG_INCOMPLETE,
+						    thisParserPtr);
+						setObjectFileOffset(objectPtr,
+						     thisParserPtr->character);
+						printError(thisParserPtr,
+					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+					     complianceModulePtr->export.name);
 					    }
 					} else if (capabilitiesModulePtr) {
 					    objectPtr =
@@ -3594,6 +3605,16 @@ subidentifier:
 					                capabilitiesModulePtr->
 								  export.name);
 						importPtr->use++;
+					    } else {
+						objectPtr = addObject($1,
+						    pendingNodePtr, 0,
+						    FLAG_INCOMPLETE,
+						    thisParserPtr);
+						setObjectFileOffset(objectPtr,
+						     thisParserPtr->character);
+						printError(thisParserPtr,
+					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+					   capabilitiesModulePtr->export.name);
 					    }
 					} else {
 					    /* 
@@ -3661,6 +3682,16 @@ subidentifier:
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
 						importPtr->use++;
+					    } else {
+						objectPtr = addObject($1,
+						    pendingNodePtr, 0,
+						    FLAG_INCOMPLETE,
+						    thisParserPtr);
+						setObjectFileOffset(objectPtr,
+						     thisParserPtr->character);
+						printError(thisParserPtr,
+					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+					     complianceModulePtr->export.name);
 					    }
 					} else if (capabilitiesModulePtr) {
 					    objectPtr =
@@ -3673,6 +3704,16 @@ subidentifier:
 						        capabilitiesModulePtr->
 								  export.name);
 						importPtr->use++;
+					    } else {
+						objectPtr = addObject($1,
+						    pendingNodePtr, 0,
+						    FLAG_INCOMPLETE,
+						    thisParserPtr);
+						setObjectFileOffset(objectPtr,
+						     thisParserPtr->character);
+						printError(thisParserPtr,
+					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+					   capabilitiesModulePtr->export.name);
 					    }
 					} else {
 					    /* 

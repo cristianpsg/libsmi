@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.12 2000/02/09 18:26:09 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.13 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -342,6 +342,31 @@ static char *getBaseTypeString(SmiBasetype basetype)
     }
 
     return NULL;
+}
+
+
+static char *getIdlAnyTypeName(SmiNode *smiNode, SmiType *smiType)
+{
+    SmiModule *smiModule;
+    char *typeName;
+    
+    if (! smiType->name) {
+	smiModule = smiGetNodeModule(smiNode);
+	if (smiModule && strlen(smiModule->name)) {
+	    typeName = getIdlTypeName(smiModule->name, smiNode->name);
+	} else {
+	    typeName = getBaseTypeString(smiType->basetype);
+	}
+    } else {
+	smiModule = smiGetTypeModule(smiType);
+	if (smiModule && strlen(smiModule->name)) {
+	    typeName = getIdlTypeName(smiModule->name, smiType->name);
+	} else {
+	    typeName = getBaseTypeString(smiType->basetype);
+	}
+    }
+
+    return typeName;
 }
 
 
@@ -756,7 +781,7 @@ static void printModule(SmiModule *smiModule)
 
 
 
-static void printType(SmiType *smiType)
+static void printType(SmiNode *smiNode, SmiType *smiType)
 {
     SmiNamedNumber *nn;
     char           *idlTypeName;
@@ -781,8 +806,13 @@ static void printType(SmiType *smiType)
 	    printSegment(INDENT, "*/\n", 0);
 	}
     }
-    idlTypeName = getIdlTypeName(smiGetTypeModule(smiType)->name,
-				 smiType->name);
+    if (! smiType->name) {
+	idlTypeName = getIdlTypeName(smiGetNodeModule(smiNode)->name,
+				     smiNode->name);
+    } else {
+	idlTypeName = getIdlTypeName(smiGetTypeModule(smiType)->name,
+				     smiType->name);
+    }
     printSegment(INDENT, "typedef ", 0);
     printf("%s %s; \n",
 	   getBaseTypeString(smiType->basetype), idlTypeName);
@@ -826,7 +856,7 @@ static void printTypedefs(SmiModule *smiModule)
 	 smiType;
 	 smiType = smiGetNextType(smiType)) {
 	if (current(smiType->status)) {
-	    printType(smiType);
+	    printType(NULL, smiType);
 	}
     }
 
@@ -835,10 +865,8 @@ static void printTypedefs(SmiModule *smiModule)
 	 smiNode = smiGetNextNode(smiNode, kind)) {
 	if (current(smiNode->status)) {
 	    smiType = smiGetNodeType(smiNode);
-	    if (smiType) {
-		if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-		    printType(smiType);
-		}
+	    if (smiType && ! smiType->name) {
+		printType(smiNode, smiType);
 	    }
 	}
     }
@@ -866,12 +894,7 @@ static void printAttribute(SmiNode *smiNode)
 		 ? "readonly attribute" : "attribute", 0);
 
     smiType = smiGetNodeType(smiNode);
-    smiModule = smiGetTypeModule(smiType);
-    if (smiModule && strlen(smiModule->name)) {
-	idlTypeName = getIdlTypeName(smiModule->name, smiType->name);
-    } else {
-	idlTypeName = getBaseTypeString(smiType->basetype);
-    }
+    idlTypeName = getIdlAnyTypeName(smiNode, smiType);
     print(" %s %s;\n", idlTypeName, idlNodeName);
 }
 
@@ -1006,13 +1029,7 @@ static void printConstructor(SmiNode *smiNode)
 		getIdlNodeName(smiGetNodeModule(childNode)->name,
 			       childNode->name);
 	    smiType = smiGetNodeType(childNode);
-	    smiModule = smiGetTypeModule(smiType);
-	    if (smiModule && strlen(smiModule->name)) {
-		idlChildTypeName = getIdlTypeName(smiModule->name,
-						  smiType->name);
-	    } else {
-		idlChildTypeName = getBaseTypeString(smiType->basetype);
-	    }
+	    idlChildTypeName = getIdlAnyTypeName(childNode, smiType);
 	    if (cnt > 1) {
 		print(",\n");
 	    }
@@ -1084,13 +1101,7 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 		printSegment(2*INDENT, "string var_index;\n", 0);
 		printSegment(2*INDENT, "", 0);
 		smiType = smiGetNodeType(listSmiNode);
-		smiModule2 = smiGetTypeModule(smiType);
-		if (smiModule2 && strlen(smiModule2->name)) {
-		    idlTypeName = getIdlTypeName(smiModule2->name,
-						 smiType->name);
-		} else {
-		    idlTypeName = getBaseTypeString(smiType->basetype);
-		}
+		idlTypeName = getIdlAnyTypeName(listSmiNode, smiType);
 		print("%s %s;\n", idlTypeName,
 		                  smiGetElementNode(smiElement)->name);
 		printSegment(INDENT, "};\n\n", 0);
@@ -1267,12 +1278,7 @@ static void printDefVals(SmiModule *smiModule)
 	    }
 	    printSegment(2*INDENT, "", 0);
 	    smiType = smiGetNodeType(smiNode);
-	    smiModule2 = smiGetTypeModule(smiType);
-	    if (smiModule2 && strlen(smiModule2->name)) {
-		idlTypeName = getIdlTypeName(smiModule2->name, smiType->name);
-	    } else {
-		idlTypeName = getBaseTypeString(smiType->basetype);
-	    }
+	    idlTypeName = getIdlAnyTypeName(smiNode, smiType);
 	    print("%s %s();\n\n", idlTypeName, smiNode->name);
 	}
     }
