@@ -91,3 +91,5 @@ o util:timegm: use POSIX putenv instead of BSD setenv/unsetenv
 
 o smiquery: if values are not present, don't print anything instead of `-'.
 
+o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
+  but these index objects might not be imported.

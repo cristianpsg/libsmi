@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.66 2000/02/08 14:46:03 strauss Exp $
+ * @(#) $Id: smi.c,v 1.67 2000/02/08 21:39:22 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -757,25 +757,31 @@ void smiFreeImport(SmiImport *smiImportPtr)
 
 
 
-int smiIsImported(SmiModule *smiModulePtr, SmiNode *smiNodePtr)
+int smiIsImported(SmiModule *smiModulePtr,
+		  SmiModule *importedModulePtr,
+		  char *importedName)
 {
     Import	   *importPtr;
     Module	   *modulePtr;
-    char	   *module, *name;
+    char	   *importedModule;
     
-    if ((!smiModulePtr) || (!smiNodePtr)) {
+    if ((!smiModulePtr) || (!importedName)) {
 	return 0;
     }
 
     modulePtr = (Module *)smiModulePtr;
     
-    name = smiNodePtr->name;
-    module = smiGetNodeModule(smiNodePtr)->name;
+    if (importedModulePtr) {
+	importedModule = importedModulePtr->name;
+    } else {
+	importedModule = NULL;
+    }
 	
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
-	if ((!strcmp(module, importPtr->export.module)) &&
-	    (!strcmp(name, importPtr->export.name))) {
+	if ((!strcmp(importedName, importPtr->export.name)) &&
+	    ((!importedModule) ||
+	     (!strcmp(importedModule, importPtr->export.module)))) {
 	    return 1;
 	}
     }

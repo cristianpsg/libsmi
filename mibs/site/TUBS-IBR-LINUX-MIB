@@ -1,17 +1,19 @@
 TUBS-IBR-LINUX-MIB DEFINITIONS ::= BEGIN
 
+-- @(#) $Id: TUBS-IBR-LINUX-MIB,v 1.1 2000/02/09 14:53:47 schoenw Exp $
+
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Unsigned32
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, Unsigned32
     	FROM SNMPv2-SMI
     TEXTUAL-CONVENTION, DisplayString
         FROM SNMPv2-TC
     MODULE-COMPLIANCE, OBJECT-GROUP
 	FROM SNMPv2-CONF
     ibr
-	FROM TUBS-REGISTRATION;
+	FROM TUBS-SMI;
 
 linuxMIB MODULE-IDENTITY
-    LAST-UPDATED "9801070622Z"
+    LAST-UPDATED "200002090000Z"
     ORGANIZATION "TU Braunschweig"
     CONTACT-INFO
 	"Juergen Schoenwaelder
@@ -24,7 +26,10 @@ linuxMIB MODULE-IDENTITY
 	 Fax: +49 531 391 5936
 	 E-mail: schoenw@ibr.cs.tu-bs.de"
     DESCRIPTION
-	"Experimental MIB modules for the linux operating system."
+	"Experimental MIB module for the linux operating system."
+    REVISION	"200002090000Z"
+    DESCRIPTION
+	"Updated IMPORTS and minor stylistic fixes."
     REVISION	"9801070622Z"
     DESCRIPTION
 	"Load average object-types added, clarification of linuxCPU."
@@ -52,7 +57,7 @@ LoadValue ::= TEXTUAL-CONVENTION
 	 given time interval. Every usage of this textual convention
 	 is required to specify the time interval. A value represents
 	 the average number of processes ready to run times 100."
-    SYNTAX INTEGER (0..2147483647)
+    SYNTAX Integer32 (0..2147483647)
 
 -- Object definitions:
 

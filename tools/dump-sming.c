@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.54 2000/02/08 14:46:03 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.55 2000/02/08 21:39:23 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -260,10 +260,10 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	    sprintf(s, "%s", append);
 	    return s;
 	}
-	
+
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiModule, parentNode) ||
+	    (smiIsImported(smiModule, NULL, parentNode->name) ||
 	     (!importedParent &&
 	      (smiGetNodeModule(parentNode) == smiModule)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);

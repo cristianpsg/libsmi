@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.59 2000/02/08 14:46:01 strauss Exp $
+ * @(#) $Id: data.c,v 1.60 2000/02/08 21:39:21 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -550,24 +550,34 @@ checkImports(modulePtr, parserPtr)
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (importPtr->kind == KIND_UNKNOWN) {
-	    if ((smiNode = smiGetNode(&modulePtr->export,
-				      importPtr->export.name))) {
-		importPtr->export.module = util_strdup(modulePtr->export.name);
-		importPtr->kind	= KIND_OBJECT;
-	    } else if ((smiType = smiGetType(&modulePtr->export,
-					     importPtr->export.name))) {
-		importPtr->export.module = util_strdup(modulePtr->export.name);
-		importPtr->kind	= KIND_TYPE;
-	    } else if ((smiMacro = smiGetMacro(&modulePtr->export,
-					      importPtr->export.name))) {
-		importPtr->export.module = util_strdup(modulePtr->export.name);
-		importPtr->kind = KIND_MACRO;
+	    if (modulePtr) {
+		if ((smiNode = smiGetNode(&modulePtr->export,
+					  importPtr->export.name))) {
+		    importPtr->export.module =
+			util_strdup(modulePtr->export.name);
+		    importPtr->kind	= KIND_OBJECT;
+		} else if ((smiType = smiGetType(&modulePtr->export,
+						 importPtr->export.name))) {
+		    importPtr->export.module =
+			util_strdup(modulePtr->export.name);
+		    importPtr->kind	= KIND_TYPE;
+		} else if ((smiMacro = smiGetMacro(&modulePtr->export,
+						   importPtr->export.name))) {
+		    importPtr->export.module =
+			util_strdup(modulePtr->export.name);
+		    importPtr->kind = KIND_MACRO;
+		} else {
+		    n++;
+		    importPtr->export.module =
+			util_strdup(modulePtr->export.name);
+		    printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
+			       importPtr->export.name, modulePtr->export.name);
+		    importPtr->kind   = KIND_NOTFOUND;
+		}
 	    } else {
-		n++;
-		importPtr->export.module = util_strdup(modulePtr->export.name);
-		printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
-			   importPtr->export.name, modulePtr->export.name);
-		importPtr->kind   = KIND_NOTFOUND;
+		    n++;
+		    importPtr->export.module = util_strdup("");
+		    importPtr->kind   = KIND_NOTFOUND;
 	    }
 	}
     }
@@ -688,33 +698,34 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
 
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
-    objectPtr->export.name			= util_strdup(objectname);
-    objectPtr->export.decl			= SMI_DECL_UNKNOWN;
-    objectPtr->export.basetype			= SMI_BASETYPE_UNKNOWN;
-    objectPtr->export.access			= SMI_ACCESS_UNKNOWN;
-    objectPtr->export.status			= SMI_STATUS_UNKNOWN;
-    objectPtr->export.format			= NULL;
-    objectPtr->export.value.basetype		= SMI_BASETYPE_UNKNOWN;
-    objectPtr->export.units			= NULL;
-    objectPtr->export.description		= NULL;
-    objectPtr->export.reference			= NULL;
-    objectPtr->export.indexkind			= SMI_INDEX_UNKNOWN;
-    objectPtr->export.implied			= 0;
-    objectPtr->export.create			= 0;
-    objectPtr->export.nodekind			= SMI_NODEKIND_UNKNOWN;
-
-    objectPtr->modulePtr		        = modulePtr;
-    objectPtr->fileoffset			= -1;
-    objectPtr->nodePtr				= NULL;
-    objectPtr->prevSameNodePtr			= NULL;
-    objectPtr->nextSameNodePtr			= NULL;
-    objectPtr->typePtr				= NULL;
-    objectPtr->listPtr				= NULL;
-    objectPtr->flags				= flags;
-    objectPtr->line				= parserPtr ? parserPtr->line : -1;
-    
-    objectPtr->export.oidlen                    = 0;     /* filled in by  */
-    objectPtr->export.oid                       = NULL;  /* second pass.  */
+    objectPtr->export.name		= util_strdup(objectname);
+    objectPtr->export.module       = modulePtr ? modulePtr->export.name : NULL;
+    objectPtr->export.decl		= SMI_DECL_UNKNOWN;
+    objectPtr->export.basetype		= SMI_BASETYPE_UNKNOWN;
+    objectPtr->export.access		= SMI_ACCESS_UNKNOWN;
+    objectPtr->export.status		= SMI_STATUS_UNKNOWN;
+    objectPtr->export.format		= NULL;
+    objectPtr->export.value.basetype	= SMI_BASETYPE_UNKNOWN;
+    objectPtr->export.units		= NULL;
+    objectPtr->export.description	= NULL;
+    objectPtr->export.reference		= NULL;
+    objectPtr->export.indexkind		= SMI_INDEX_UNKNOWN;
+    objectPtr->export.implied		= 0;
+    objectPtr->export.create		= 0;
+    objectPtr->export.nodekind		= SMI_NODEKIND_UNKNOWN;
+					
+    objectPtr->modulePtr		= modulePtr;
+    objectPtr->fileoffset		= -1;
+    objectPtr->nodePtr			= NULL;
+    objectPtr->prevSameNodePtr		= NULL;
+    objectPtr->nextSameNodePtr		= NULL;
+    objectPtr->typePtr			= NULL;
+    objectPtr->listPtr			= NULL;
+    objectPtr->flags			= flags;
+    objectPtr->line			= parserPtr ? parserPtr->line : -1;
+    					
+    objectPtr->export.oidlen            = 0;     /* filled in by  */
+    objectPtr->export.oid               = NULL;  /* second pass.  */
     
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -2161,6 +2172,7 @@ addType(typename, basetype, flags, parserPtr)
     } else {
 	typePtr->export.name		= NULL;
     }
+    typePtr->export.module         = modulePtr ? modulePtr->export.name : NULL;
     typePtr->export.basetype		= basetype;
     typePtr->export.decl		= SMI_DECL_UNKNOWN;
     typePtr->export.format		= NULL;
@@ -2875,6 +2887,7 @@ addMacro(macroname, fileoffset, flags, parserPtr)
     macroPtr = (Macro *)util_malloc(sizeof(Macro));
 	    
     macroPtr->export.name 	 = util_strdup(macroname);
+    macroPtr->export.module      = modulePtr ? modulePtr->export.name : NULL;
     macroPtr->export.status      = SMI_STATUS_UNKNOWN;
     macroPtr->export.description = NULL;
     macroPtr->export.reference   = NULL;
@@ -3161,9 +3174,22 @@ initData()
     addView("");
 
     objectPtr = addObject("ccitt", rootNodePtr, 0, 0, &parser);
+    objectPtr->export.oid = objectPtr->nodePtr->oid =
+	util_calloc(1, sizeof(int));
+    objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
+    objectPtr->nodePtr->oid[0] = 0;
     objectPtr = addObject("iso", rootNodePtr, 1, 0, &parser);
+    objectPtr->export.oid = objectPtr->nodePtr->oid =
+	util_calloc(1, sizeof(int));
+    objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
+    objectPtr->nodePtr->oid[0] = 1;
     objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, &parser);
-
+    objectPtr->export.oid = objectPtr->nodePtr->oid =
+	util_calloc(1, sizeof(int));
+    objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
+    objectPtr->nodePtr->oid[0] = 2;
+    
+    
     typeOctetStringPtr =
 	addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, &parser);
     typeObjectIdentifierPtr =

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.14 2000/02/07 16:10:41 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.15 2000/02/08 21:39:22 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -115,7 +115,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiModule, parentNode) ||
+	    (smiIsImported(smiModule, NULL, parentNode->name) ||
 	     (!importedParent &&
 	      (smiGetNodeModule(parentNode) == smiModule)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
@@ -317,6 +317,9 @@ static void printObjects(SmiModule *smiModule)
 	typename = getBasetypeString(smiNode->basetype);
 	if (smiType && (smiType->decl != SMI_DECL_IMPLICIT_TYPE)) {
 	    typename = smiType->name;
+	    if (!strcmp(typename, "ObjectIdentifier")) {
+		typename = "ObjectID";
+	    }
 	}
 	
 	if (smiType && smiType->name

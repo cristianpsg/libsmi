@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.14 1999/12/21 12:32:09 strauss Exp $
+ * @(#) $Id: util.c,v 1.15 2000/02/07 23:23:29 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -21,9 +21,18 @@
 #include "util.h"
 
 
+void *util_calloc(size_t n, size_t size)
+{
+    char *m = calloc(n, size);
+    if (! m) {
+	printError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    return m;
+}
+
 void *util_malloc(size_t size)
 {
-    char *m = calloc(size, 1);
+    char *m = calloc(1, size);
     if (! m) {
 	printError(NULL, ERR_OUT_OF_MEMORY);
     }

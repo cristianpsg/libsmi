@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.71 2000/02/07 23:23:29 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.73 2000/02/08 21:39:22 strauss Exp $
  */
 
 %{
@@ -3638,7 +3638,8 @@ subidentifier:
 #endif
 				    }
 				}
-				parentNodePtr = $$->nodePtr;
+				if ($$)
+				    parentNodePtr = $$->nodePtr;
 			    }
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER
@@ -3715,7 +3716,8 @@ subidentifier:
 #endif
 				    }
 				}
-				parentNodePtr = $$->nodePtr;
+				if ($$)
+				    parentNodePtr = $$->nodePtr;
 			    }
 			}
 	|		NUMBER
@@ -3772,8 +3774,8 @@ subidentifier:
 						    thisParserPtr->character);
 				$$ = objectPtr;
 			    }
-			    
-			    parentNodePtr = $$->nodePtr;
+			    if ($$) 
+				parentNodePtr = $$->nodePtr;
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER '(' NUMBER ')'
 			{
@@ -3804,7 +3806,8 @@ subidentifier:
 				$$ = objectPtr;
 			    }
 			    util_free(md);
-			    parentNodePtr = $$->nodePtr;
+			    if ($$)
+				parentNodePtr = $$->nodePtr;
 			}
 	;
 
