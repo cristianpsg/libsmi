@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.28 2000/12/11 08:41:22 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.29 2001/11/08 07:37:31 schoenw Exp $
  */
 
 /*
@@ -24,6 +24,9 @@
 
 #include "smi.h"
 #include "smidump.h"
+
+
+static int noimplicit = 0;
 
 
 typedef struct BaseTypeCount {
@@ -369,7 +372,16 @@ static char* getTypeName(TypeNode *typeNode)
     char *name = "?";
 
     if (typeNode->smiType->name) {
+#if 1
 	return xstrdup(typeNode->smiType->name);
+#else
+	char *s;
+	s = xmalloc(strlen(typeNode->smiType->name)+
+		    strlen(typeNode->smiModule ? typeNode->smiModule->name : "") +3);
+	sprintf(s, "%s::%s", typeNode->smiModule ? typeNode->smiModule->name : "",
+		typeNode->smiType->name);
+	return s;
+#endif
 	
     } else if (typeNode->smiModule) {
 	SmiNode *smiNode;
@@ -590,7 +602,7 @@ static void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
 	     smiNode = smiGetNextNode(smiNode, nodekind)) {
 	    smiType = smiGetNodeType(smiNode);
 	    if (smiType) {
-		if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+		if (!noimplicit && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 		    addType(smiType);
 		}
 		incrBaseTypeCount(smiType->basetype);
@@ -605,14 +617,16 @@ static void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
 		 smiRefinement = smiGetNextRefinement(smiRefinement)) {
 		smiType = smiGetRefinementType(smiRefinement);
 		if (smiType) {
-		    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+		    if (!noimplicit
+			&& smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 			addType(smiType);
 		    }
 		    incrBaseTypeCount(smiType->basetype);
 		}
 		smiType = smiGetRefinementWriteType(smiRefinement);
 		if (smiType) {
-		    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+		    if (!noimplicit
+			&& smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 			addType(smiType);
 		    }
 		    incrBaseTypeCount(smiType->basetype);
@@ -648,6 +662,11 @@ static void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
 
 void initTypes()
 {
+    static SmidumpDriverOption opt[] = {
+	{ "no-implicit", OPT_FLAG, &noimplicit, 0,
+	  "ignore implicit type definitions"},
+        { 0, OPT_END, 0, 0 }
+    };
     
     static SmidumpDriver driver = {
 	"types",
@@ -655,7 +674,7 @@ void initTypes()
 	SMI_FLAG_NODESCR,
 	0,
 	"recursive list of all derived types",
-	NULL,
+	opt,
 	NULL
     };
     
