@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.27 1999/06/03 20:37:13 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.28 1999/06/04 20:39:05 strauss Exp $
  */
 
 %{
@@ -861,6 +861,7 @@ typeDeclarationRHS:	Syntax
 				 * new Type struct, inherited from $9.
 				 */
 				$$ = duplicateType($9, 0, thisParserPtr);
+				deleteTypeFlags($$, FLAG_IMPORTED);
 			    }
 			    setTypeDescription($$, $6);
 			    if ($7) {
@@ -1209,32 +1210,36 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    setObjectAccess(objectPtr, $7);
 			    if ($7 == SMI_ACCESS_READ_CREATE) {
-				/*
-				 * add objectPtr to the parent object's
-				 * listPtr, which is the list of columns
-				 * needed for row creation.
-				 *
-				 * Note, that this would clash, if the
-				 * parent row object-type is not yet
-				 * defined.
-				 */
-				newlistPtr = util_malloc(sizeof(List));
-				newlistPtr->nextPtr = NULL;
-				newlistPtr->ptr = objectPtr;
-				/*
-				 * Look up the parent object-type.
-				 */
 				parentPtr =
-			          objectPtr->nodePtr->parentPtr->lastObjectPtr;
-				if (parentPtr->listPtr) {
-				    for(listPtr = parentPtr->listPtr;
-					listPtr->nextPtr;
-					listPtr = listPtr->nextPtr);
-				    listPtr->nextPtr = newlistPtr;
-				} else {
-				    parentPtr->listPtr = newlistPtr;
+				  objectPtr->nodePtr->parentPtr->lastObjectPtr;
+				if (parentPtr && parentPtr->typePtr &&
+				    (parentPtr->typePtr->basetype ==
+				       SMI_BASETYPE_SEQUENCEOF)) {
+				    /*
+				     * add objectPtr to the parent object's
+				     * listPtr, which is the list of columns
+				     * needed for row creation.
+				     *
+				     * Note, that this would clash, if the
+				     * parent row object-type is not yet
+				     * defined.
+				     */
+				    newlistPtr = util_malloc(sizeof(List));
+				    newlistPtr->nextPtr = NULL;
+				    newlistPtr->ptr = objectPtr;
+				    /*
+				     * Look up the parent object-type.
+				     */
+				    if (parentPtr->listPtr) {
+					for(listPtr = parentPtr->listPtr;
+					    listPtr->nextPtr;
+					    listPtr = listPtr->nextPtr);
+					listPtr->nextPtr = newlistPtr;
+				    } else {
+					parentPtr->listPtr = newlistPtr;
+				    }
+				    addObjectFlags(parentPtr, FLAG_CREATABLE);
 				}
-				addObjectFlags(parentPtr, FLAG_CREATABLE);
 			    }
 			    setObjectStatus(objectPtr, $9);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
@@ -2393,9 +2398,9 @@ IndexPart:		INDEX
 			    p = util_malloc(sizeof(Index));
 			    /* TODO: success? */
 			    p->indexkind = SMI_INDEX_INDEX;
-			    p->implied = impliedFlag;
-			    p->listPtr = $4;
-			    p->rowPtr  = NULL;
+			    p->implied   = impliedFlag;
+			    p->listPtr   = $4;
+			    p->rowPtr    = NULL;
 			    $$ = p;
 			}
         |		AUGMENTS '{' Entry '}'
@@ -2408,7 +2413,7 @@ IndexPart:		INDEX
 			    /* TODO: success? */
 			    p->indexkind    = SMI_INDEX_AUGMENT;
 			    p->implied      = 0;
-			    p->listPtr = NULL;
+			    p->listPtr      = NULL;
 			    p->rowPtr       = $3;
 			    $$ = p;
 			}

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.18 1999/06/04 20:39:07 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.19 1999/06/07 15:44:04 strauss Exp $
  */
 
 %{
@@ -243,6 +243,7 @@ findObject(spec, parserPtr)
 %token <rc>notifyonlyKeyword
 %token <rc>readonlyKeyword
 %token <rc>readwriteKeyword
+%token <rc>readcreateKeyword
 
 
 /*
@@ -493,18 +494,11 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    thisParserPtr->modulePtr->numModuleIdentities = 0;
 			    free($3);
 			    thisParserPtr->firstIndexlabelPtr = NULL;
+			    thisParserPtr->identityObjectName = NULL;
 			}
 			sep lcIdentifier
 			{
-			    moduleObjectPtr = addObject($6,
-							pendingNodePtr, 0,
-							FLAG_INCOMPLETE,
-							thisParserPtr);
-			    setObjectDecl(moduleObjectPtr,
-					  SMI_DECL_MODULE);
-			    setModuleIdentityObject(
-				thisParserPtr->modulePtr, moduleObjectPtr);
-			    free($6);
+			    thisParserPtr->identityObjectName = $6;
 			}
 			optsep '{' stmtsep
 			importStatement_stmtsep_0n
@@ -520,17 +514,13 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			     */
 
 			    if ($12) {
-				moduleObjectPtr = addObject("",
+				moduleObjectPtr = addObject(
+				             thisParserPtr->identityObjectName,
 							    $12->parentPtr,
 							    $12->subid,
 							    0, thisParserPtr);
-				moduleObjectPtr =
-				    setObjectName(moduleObjectPtr,
-					       thisModulePtr->objectPtr->name);
 				setObjectDecl(moduleObjectPtr,
 					      SMI_DECL_MODULE);
-				deleteObjectFlags(moduleObjectPtr,
-					       FLAG_INCOMPLETE);
 				addObjectFlags(moduleObjectPtr,
 					       FLAG_REGISTERED);
 				setModuleIdentityObject(
@@ -3000,6 +2990,10 @@ access:			noaccessKeyword
 	|		readwriteKeyword
 			{
 			    $$ = SMI_ACCESS_READ_WRITE;
+			}
+	|		readcreateKeyword
+			{
+			    $$ = SMI_ACCESS_READ_CREATE;
 			}
 	;
 

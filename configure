@@ -711,7 +711,7 @@ fi
 
 PACKAGE=libsmi
 
-VERSION=0.1.3-pre4
+VERSION=0.1.3
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { echo "configure: error: source directory already configured; run "make distclean" there first" 1>&2; exit 1; }
@@ -816,7 +816,7 @@ if test "${with_mibdir+set}" = set; then
   withval="$with_mibdir"
   mibdir="$withval"
 else
-  mibdir="${datadir}/mibs"
+  mibdir="/usr/local/share/mibs"
 fi
 
 
@@ -1707,7 +1707,6 @@ fi
 
 
 
-eval mibdir="${mibdir}"
 
 
 
