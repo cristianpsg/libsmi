@@ -1,3 +1,16 @@
+1999-06-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-sming.c: fixed bug when printing OIDs with more
+	than one trailing sub-identifiers that cannot be resolved to
+	identifers.
+	
+	* tools/dump-sming.c (printGroups): no longer sorting group
+	statements separately based on underlying OG/NG types, but
+	continuously based on OID.
+
+	* lib/smi.c (smiGetNode): fixed bug, when retrieving node by
+	OID.
+
 1999-06-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.c: added path expansion semantics if SMIPATH
@@ -5,7 +18,7 @@
 	
 	* test/Makefile.am: started some test routines.
 
-	* lib/parser-sming.y: `create' statement bugfix.
+	* lib/parser-sming.y: SMIng `create' statement bugfix.
 
 	* configure.in: added checks for flex and bison.
 	

@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_node.3,v 1.1 1999/05/28 14:52:08 strauss Exp $
+.\" $Id: smi_node.3.in,v 1.1 1999/06/01 20:47:18 strauss Exp $
 .\"
-.TH smi_node 3  "June 1, 1999" "IBR" "SMI Management Information Library"
+.TH smi_node 3  "June 8, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiGetNode, smiGetFirstNode, smiGetNextNode, smiFreeNode \- SMI type
 information routines
@@ -130,7 +130,8 @@ row, column, notification, group, and compliance statements in SMIng.
 The \fBsmiGetNode()\fP function retrieves a \fBstruct SmiNode\fP that
 represents a node of any kind. Either \fIname\fP must be the fully
 qualified identifier leaving \fImodule\fP NULL, or the name is split into
-the module \fImodule\fP and identifier \fIname\fP.  Elements not
+the module \fImodule\fP and identifier \fIname\fP. The identifier part
+may also be given as a numerical OID value. Elements not
 available or not present in the definition contain NULL. See
 \fBsmi.h\fP for the structure of contained elements.
 .PP

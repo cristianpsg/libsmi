@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.37 1999/06/06 07:40:41 strauss Exp $
+ * @(#) $Id: smi.c,v 1.38 1999/06/07 15:44:06 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -175,27 +175,38 @@ void getModulenameAndName(char *arg1, char *arg2,
 
 
 
+Node *getNode(char *oid)
+{
+    char	    *elements, *element;
+    SmiSubid	    subid;
+    Node            *nodePtr;
+    
+    elements = util_strdup(oid);
+    element = strtok(elements, ".");
+    nodePtr = rootNodePtr;
+    while (element) {
+	subid = (unsigned int)strtoul(element, NULL, 0);
+	nodePtr = findNodeByParentAndSubid(nodePtr, subid);
+	if (!nodePtr) break;
+	element = strtok(NULL, ".");
+    }
+    free(elements);
+    
+    return nodePtr;
+}
+
+
+
 Object *getObject(char *module, char *name)
 {
     Object	    *objectPtr = NULL;
     Node	    *nodePtr;
-    char	    *elements, *element;
-    SmiSubid	    subid;
     
     if (isdigit((int)name[0])) {
 	/*
 	 * name in `1.3.0x6.1...' form.
 	 */
-	elements = util_strdup(name);
-	element = strtok(elements, ".");
-	nodePtr = rootNodePtr;
-	while (element) {
-	    subid = (unsigned int)strtoul(element, NULL, 0);
-	    nodePtr = findNodeByParentAndSubid(nodePtr, subid);
-	    if (!nodePtr) break;
-	    element = strtok(NULL, ".");
-	}
-	free(elements);
+	nodePtr = getNode(name);
 	if (nodePtr) {
 	    if (module) {
 		objectPtr = findObjectByModulenameAndNode(module, nodePtr);
@@ -1399,18 +1410,19 @@ SmiNode *smiGetNode(char *module, char *node)
 	if (!(modulePtr = findModuleByName(module2))) {
 	    modulePtr = loadModule(module2);
 	}
+
+	if (!modulePtr) {
+	    util_free(module2);
+	    util_free(node2);
+	    return NULL;
+	}
     }
 
-    if (!modulePtr) {
-	util_free(module2);
-	util_free(node2);
-	return NULL;
-    }
-    
     objectPtr = getObject(module2, node2);
     
     util_free(module2);
     util_free(node2);
+    
     return createSmiNode(objectPtr);
 }
 
@@ -1818,6 +1830,7 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
     Object	      *objectPtr;
     Import	      *importPtr;
     Node	      *nodePtr;
+    Object	      o;
     
     if (!smiNodePtr) {
 	return NULL;
@@ -1833,14 +1846,22 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 	return NULL;
     }
 
-    objectPtr = findObjectByModuleAndName(modulePtr, smiNodePtr->name);
+    if (smiNodePtr->name) {
 
-    if (!objectPtr) {
-	return NULL;
+	objectPtr = findObjectByModuleAndName(modulePtr, smiNodePtr->name);
+
+	if (!objectPtr) {
+	    return NULL;
+	}
+
+	nodePtr = objectPtr->nodePtr;
+	
+    } else {
+	
+	nodePtr = getNode(smiNodePtr->oid);
+	    
     }
 
-    nodePtr = objectPtr->nodePtr;
-    
     if ((!nodePtr) || (nodePtr == rootNodePtr)) {
 	return NULL;
     }
@@ -1873,6 +1894,31 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
      */
     if (!objectPtr) {
 	objectPtr = findObjectByNode(nodePtr);
+
+	if (!objectPtr) {
+	    /* in implicitly created node, e.g. gaga.0 in an object
+	     * definition with oid == gaga.0.1.
+	     */
+	    o.modulePtr = modulePtr;
+	    o.name = NULL;
+	    o.fileoffset = -1;
+	    o.decl = SMI_DECL_UNKNOWN;
+	    o.flags = 0;
+	    o.typePtr = NULL;
+	    o.access = SMI_ACCESS_UNKNOWN;
+	    o.status = SMI_STATUS_UNKNOWN;
+	    o.indexPtr = NULL;
+	    o.listPtr = NULL;
+	    o.optionlistPtr = NULL;
+	    o.refinementlistPtr = NULL;
+	    o.description = NULL;
+	    o.reference = NULL;
+	    o.format = NULL;
+	    o.units = NULL;
+	    o.valuePtr = NULL;
+	    o.nodePtr = nodePtr;
+	    objectPtr = &o;
+	}
     }
 
     return createSmiNode(objectPtr);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.33 1999/06/04 20:39:13 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.34 1999/06/07 15:44:17 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -229,11 +229,11 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     static char	 s[SMI_MAX_OID+1];
     char	 append[SMI_MAX_OID+1];
     char	 *p;
-    
+
     append[0] = 0;
 
     parentNode = smiNode;
-    
+
     do {
 	
 	/* prepend the cut-off subidentifier to `append'. */
@@ -259,10 +259,11 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	}
 	
 	/* found an imported or a local parent node? */
-	if (smiIsImported(smiNode->module,
-			  parentNode->module, parentNode->name) ||
-	    (!importedParent &&
-	     !strcmp(parentNode->module, smiNode->module))) {
+	if ((parentNode->name && strlen(parentNode->name)) &&
+	    (smiIsImported(smiNode->module,
+			   parentNode->module, parentNode->name) ||
+	     (!importedParent &&
+	      !strcmp(parentNode->module, smiNode->module)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    smiFreeNode(parentNode);
 	    return s;
@@ -404,7 +405,9 @@ static void printSubtype(SmiType *smiType)
 	    sprintf(s, "%s(%s)", nn->name, getValueString(nn->valuePtr));
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
-	print(")");
+	if (i) {
+	    print(")");
+	}
     } else {
 	for(i = 0, range = smiGetFirstRange(smiType->module, smiType->name);
 	    range ; i++, range = smiGetNextRange(range)) {
@@ -423,7 +426,9 @@ static void printSubtype(SmiType *smiType)
 	    }
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
-	print(")");
+	if (i) {
+	    print(")");
+	}
     }
 }
 
@@ -966,11 +971,19 @@ static void printGroups(char *modulename)
 	for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
 	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
 
+#if 0
 	    if (((d == 0) && (smiNode->decl != SMI_DECL_OBJECTGROUP)) ||
 		((d == 1) && (smiNode->decl != SMI_DECL_NOTIFICATIONGROUP)) ||
 		((d == 2) && (smiNode->decl != SMI_DECL_GROUP))) {
 		continue;
 	    }
+#else
+	    if ((smiNode->decl != SMI_DECL_OBJECTGROUP) &&
+		(smiNode->decl != SMI_DECL_NOTIFICATIONGROUP) &&
+		(smiNode->decl != SMI_DECL_GROUP)) {
+		continue;
+	    }
+#endif
 	    
 	    if (!i) {
 		print("//\n// GROUP DEFINITIONS\n//\n\n");
