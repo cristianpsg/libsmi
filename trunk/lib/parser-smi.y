@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.75 2000/02/09 18:25:56 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.76 2000/02/09 19:56:49 strauss Exp $
  */
 
 %{
@@ -1727,7 +1727,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				/*
 				 * An inlined type.
 				 */
+#if 0 /* export implicitly defined types by the node's lowercase name */
 				setTypeName($6, $1);
+#endif
 			    }
 			    setObjectAccess(objectPtr, $8);
 			    if (thisParserPtr->flags & FLAG_CREATABLE) {
@@ -4011,20 +4013,22 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 					((Refinement *)(listPtr->ptr));
 				    
 				    refinementPtr->compliancePtr = objectPtr;
-				    
-		    s = util_malloc(strlen(refinementPtr->objectPtr->export.name) +
-				    strlen($1) + 13);
+#if 0 /* export implicitly defined types by the node's lowercase name */
+				    s = util_malloc(strlen(refinementPtr->
+						      objectPtr->export.name) +
+   				                              strlen($1) + 13);
 				    if (refinementPtr->typePtr) {
 					sprintf(s, "%s+%s+type", $1,
-					       refinementPtr->objectPtr->export.name);
+					refinementPtr->objectPtr->export.name);
 					setTypeName(refinementPtr->typePtr, s);
 				    }
 				    if (refinementPtr->writetypePtr) {
 					sprintf(s, "%s+%s+writetype", $1,
-					       refinementPtr->objectPtr->export.name);
+					refinementPtr->objectPtr->export.name);
 				   setTypeName(refinementPtr->writetypePtr, s);
 				    }
 				    util_free(s);
+#endif
 				}
 			    }
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.62 2000/02/09 18:25:56 strauss Exp $
+ * @(#) $Id: data.c,v 1.63 2000/02/10 11:35:37 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2262,6 +2262,12 @@ setTypeName(typePtr, name)
     if (typePtr->export.name) {
 	util_free(typePtr->export.name);
     }
+    
+    if (!name) {
+	typePtr->export.name = NULL;
+	return typePtr;
+    }
+	
     typePtr->export.name = util_strdup(name);
 
     /*

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.43 2000/02/08 21:39:22 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.44 2000/02/09 18:25:57 strauss Exp $
  */
 
 %{
@@ -1048,7 +1048,9 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 				    /*
 				     * An inlined type.
 				     */
+#if 0 /* export implicitly defined types by the node's lowercase name */
 				    setTypeName($11, scalarIdentifier);
+#endif
 				}
 			    }
 			}
@@ -1300,7 +1302,9 @@ columnStatement:	columnKeyword sep lcIdentifier
 				    /*
 				     * An inlined type.
 				     */
+#if 0 /* export implicitly defined types by the node's lowercase name */
 				    setTypeName($11, columnIdentifier);
+#endif
 				}
 			    }
 			}
@@ -1707,22 +1711,28 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 					((Refinement *)(listPtr->ptr));
 				    refinementPtr->compliancePtr =
 					complianceObjectPtr;
-		    s = util_malloc(strlen(refinementPtr->objectPtr->export.name) +
-				    strlen(complianceIdentifier) + 13);
+#if 0 /* export implicitly defined types by the node's lowercase name */
+				    s = util_malloc(strlen(refinementPtr->
+					    objectPtr->export.name) +
+					    strlen(complianceIdentifier) + 13);
 				    if (refinementPtr->typePtr) {
 					sprintf(s, "%s+%s+type",
 						complianceIdentifier,
-					       refinementPtr->objectPtr->export.name);
+						refinementPtr->objectPtr->
+						                  export.name);
 					setTypeName(refinementPtr->typePtr, s);
 					
 				    }
 				    if (refinementPtr->writetypePtr) {
 					sprintf(s, "%s+%s+writetype",
 						complianceIdentifier,
-					       refinementPtr->objectPtr->export.name);
-				   setTypeName(refinementPtr->writetypePtr, s);
+						refinementPtr->objectPtr->
+						                  export.name);
+					setTypeName(refinementPtr->
+						              writetypePtr, s);
 				    }
 				    util_free(s);
+#endif
 				}
 			    }
 			}
