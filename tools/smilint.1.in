@@ -1,9 +1,9 @@
 .\"
-.\" $Id: smilint.1.in,v 1.12 2000/12/11 08:41:22 strauss Exp $
+.\" $Id: smilint.1.in,v 1.13 2002/06/21 14:31:26 strauss Exp $
 .\"
 .TH smilint 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
-smilint \- syntax and semantic checks of SMIv1/v2/ng modules
+smilint \- syntax and semantic checks of SMIv1/v2, SPPI, and SMIng modules
 .SH SYNOPSIS
 .B smilint
 [
