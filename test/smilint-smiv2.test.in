@@ -12,8 +12,8 @@ for mib in ${TESTMIBS} ; do
     ../tools/smilint -c /dev/null -l 9 dumps/$mib.${FORMAT} > smilint-${FORMAT}.out/$mib.${FORMAT}.lint 2>&1
     WC=`@DIFF@ smilint-${FORMAT}.out/$mib.${FORMAT}.lint dumps/$mib.${FORMAT}.lint | wc -l`
     if [ $WC -ne 0 ] ; then
-	echo "*** smidump -f ${FORMAT} output differs, for details take a look at"
-	echo "*** diff dumps/$mib.${FORMAT}.lint smidump-${FORMAT}.out/$mib.${FORMAT}.lint"
+	echo "*** smilint -l 9 output differs, for details take a look at"
+	echo "*** diff dumps/$mib.${FORMAT}.lint smilint-${FORMAT}.out/$mib.${FORMAT}.lint"
 	RC=1
     fi
 done
