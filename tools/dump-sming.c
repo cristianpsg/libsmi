@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.19 1999/04/08 15:25:06 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.21 1999/04/09 20:28:38 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -46,6 +46,11 @@ static char *convertType[] = {
     "INTEGER",		   "Integer32",
     "OCTET STRING",	   "OctetString",
     "OBJECT IDENTIFIER",   "ObjectIdentifier",
+    
+    "Gauge",		   "Gauge32",
+    "Counter",		   "Counter32",
+    "NetworkAddress",	   "IpAddress", /* ??? */
+    
     NULL, NULL };
 
 static char *convertImport[] = {
@@ -71,7 +76,27 @@ static char *convertImport[] = {
     "SNMPv2-CONF", "NOTIFICATION-GROUP", NULL, NULL,
     "SNMPv2-CONF", "MODULE-COMPLIANCE",	 NULL, NULL,
     "SNMPv2-CONF", "AGENT-CAPABILITIES", NULL, NULL,
-    /* TODO: how to convert SMIv1 information? */
+
+    "RFC1155-SMI", "OBJECT-TYPE",        NULL, NULL,
+    "RFC1155-SMI", "ObjectName",         NULL, NULL,
+    "RFC1155-SMI", "ObjectSyntax",       NULL, NULL,
+    "RFC1155-SMI", "SimpleSyntax",       NULL, NULL,
+    "RFC1155-SMI", "ApplicationSyntax",  NULL, NULL,
+    "RFC1155-SMI", "Gauge",		 "IRTF-NMRG-SMING-TYPES", "Gauge32",
+    "RFC1155-SMI", "Counter",		 "IRTF-NMRG-SMING-TYPES", "Counter32",
+    "RFC1155-SMI", "TimeTicks",		 "IRTF-NMRG-SMING-TYPES", "TimeTicks",
+    "RFC1155-SMI", "IpAddress",		 "IRTF-NMRG-SMING-TYPES", "IpAddress",
+    "RFC1155-SMI", "NetworkAddress",	 NULL, NULL, /* ??? */
+    "RFC1155-SMI", "Opaque",		 "IRTF-NMRG-SMING-TYPES", "Opaque",
+    "RFC1155-SMI", NULL,		 "IRTF-NMRG-SMING", NULL,
+    "RFC-1212",	   "OBJECT-TYPE",	 NULL, NULL,
+    "RFC-1215",	   "TRAP-TYPE",		 NULL, NULL,
+
+
+
+    
+    /* TODO: how to convert more SMIv1 information? */
+
     NULL, NULL, NULL, NULL };
 
 static int current_column = 0;
@@ -349,6 +374,14 @@ printImports(modulename)
     
     if (!list)
 	return;
+
+    /*
+     * TODO:
+     * - add imports for
+     *   - external manadatory groups read from a SMIv2 module
+     *   - external optional groups ...
+     *   - external refined objects ...
+     */
     
     for(p = list; *p; p++) {
 	importedModulename = *p;
@@ -369,10 +402,12 @@ printImports(modulename)
 		(!util_strcmp(importedDescriptor, convertImport[i+1]))) {
 		importedModulename = convertImport[i+2];
 		importedDescriptor = convertImport[i+3];
+		/* TODO: hide duplicates */
 		break;
 	    } else if ((!util_strcmp(importedModulename, convertImport[i])) &&
 		       (!convertImport[i+1])) {
 		importedModulename = convertImport[i+2];
+		/* TODO: hide duplicates */
 		break;
 	    }
 	}

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.8 1999/04/08 15:25:04 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.10 1999/04/09 20:28:37 strauss Exp $
  */
 
 %{
@@ -1446,7 +1446,6 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 			    if (complianceObjectPtr && $18) {
 				for (listPtr = $18; listPtr;
 				     listPtr = listPtr->nextPtr) {
-				    printf("XXX %s\n", listPtr->ptr);
 				    objectPtr = findObject(listPtr->ptr,
 							   thisParserPtr);
 				    listPtr->ptr = objectPtr;
@@ -1476,6 +1475,7 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 						complianceIdentifier,
 					       refinementPtr->objectPtr->name);
 					setTypeName(refinementPtr->typePtr, s);
+					
 				    }
 				    if (refinementPtr->writetypePtr) {
 					sprintf(s, "%s+%s+writetype",
@@ -2073,8 +2073,20 @@ refineStatement:	refineKeyword sep qlcIdentifier
 			{
 			    $$ = util_malloc(sizeof(Refinement));
 			    $$->objectPtr = findObject($3, thisParserPtr);
-			    $$->typePtr = $6;
-			    $$->writetypePtr = $7;
+			    if ($6) {
+				$$->typePtr = duplicateType($6, 0,
+							    thisParserPtr);
+				$$->typePtr->listPtr = $6->listPtr;
+			    } else {
+				$$->typePtr = NULL;
+			    }
+			    if ($7) {
+				$$->writetypePtr =
+				    duplicateType($7, 0, thisParserPtr);
+				$$->writetypePtr->listPtr = $7->listPtr;
+			    } else {
+				$$->writetypePtr = NULL;
+			    }
 			    $$->access = $8;
 			    $$->description = util_strdup($9);
 			}
@@ -2310,7 +2322,7 @@ furtherNumberElement:	optsep '|' optsep numberElement
 			}
 	;
 
-numberElement:		number numberUpperLimit_01
+numberElement:		signedNumber numberUpperLimit_01
 			{
 			    $$ = util_malloc(sizeof(SmiRange));
 			    $$->minValuePtr = $1;
@@ -2332,7 +2344,7 @@ numberUpperLimit_01:	/* empty */
 			}
 	;
 
-numberUpperLimit:	optsep DOT_DOT optsep number
+numberUpperLimit:	optsep DOT_DOT optsep signedNumber
 			{
 			    $$ = $4;
 			}
@@ -3095,11 +3107,9 @@ negativeNumber:		'-' decimalNumber
 			}
         ;
 
-signedNumber:		decimalNumber
+signedNumber:		number
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
-			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
-			    $$->value.unsigned64 = strtoull($1, NULL, 10);
+			    $$ = $1;
 			}
         |		negativeNumber
 			{

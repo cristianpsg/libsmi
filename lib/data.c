@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.17 1999/04/08 11:52:52 strauss Exp $
+ * @(#) $Id: data.c,v 1.18 1999/04/10 10:46:16 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -839,7 +839,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
 	       parentNodePtr == pendingNodePtr ? "(pending)" : "",
 	       subid, flags, parserPtr);
 #endif
-    
+
     objectPtr = (Object *)util_malloc(sizeof(Object));
     if (!objectPtr) {
 	printError(parserPtr, ERR_ALLOCATING_OBJECT, strerror(errno));
@@ -2466,7 +2466,11 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->status			= templatePtr->status;
     typePtr->listPtr			= NULL;
     typePtr->flags			= templatePtr->flags;
-    typePtr->parentType			= util_strdup(templatePtr->name);
+    if (templatePtr->name) {
+	typePtr->parentType		= util_strdup(templatePtr->name);
+    } else {
+	typePtr->parentType		= NULL;
+    }
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
     typePtr->format			= NULL;

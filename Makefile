@@ -1,12 +1,12 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.21 1999/04/05 15:47:33 strauss Exp $
+# @(#) $Id: Makefile,v 1.23 1999/04/09 20:28:34 strauss Exp $
 #
 
 #MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
 #TESTMIBS	= `cd $(MIBDIR) ; ls -1 IAN* IF-MIB ATM-* SNMPv2-MIB SNMPv2-TC`
-MIBDIR		= mibs/test
+MIBDIR		= mibs/smiv2
 TESTMIBS	= `cd $(MIBDIR) ; ls -1 *`
 PREFIX		= /usr/local
 
@@ -139,7 +139,7 @@ test-smilint: tools/smilint
 	for mib in $(TESTMIBS) ; do \
 	    echo "### Testing: smilint $$mib" ; \
 	    echo "### Testing: smilint $$mib" >> test/smilint.log ; \
-	    tools/smilint -l9 -v -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:$(MIBDIR) $$mib \
+	    tools/smilint -l9 -v -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:mibs/smiv2 -Lsmi:mibs/smiv1 $$mib \
 						   >> test/smilint.log 2>&1 ; \
 	done | egrep -v '(^$$|^/)'
 	@echo ""
@@ -151,7 +151,7 @@ test-smidump-smi-sming: tools/smidump
 	mkdir test/smidump-smi-sming
 	for mib in $(TESTMIBS) ; do \
 	    echo "### Testing: smidump -Dsming $$mib" ; \
-	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:$(MIBDIR) -Dsming $$mib \
+	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:mibs/smiv2 -Lsmi:mibs/smiv1 -Dsming $$mib \
 					    >> test/smidump-smi-sming/$$mib ; \
 	done
 	@echo ""
@@ -163,7 +163,7 @@ test-smidump-sming-sming: tools/smidump
 	mkdir test/smidump-sming-sming
 	for mib in $(TESTMIBS) ; do \
 	    echo "### Testing: smidump -Dsming $$mib" ; \
-	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsming:test/smidump-smi-sming -Dsming $$mib \
+	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsming:test/smidump-smi-sming -Lsmi:mibs/smiv1 -Dsming $$mib \
 					  >> test/smidump-sming-sming/$$mib ; \
 	done
 	@echo ""
@@ -171,10 +171,12 @@ test-smidump-sming-sming: tools/smidump
 	@echo ""
 
 test-diffs: test-smidump-smi-sming test-smidump-sming-sming
+	rm -rf test/smidump-diffs
+	mkdir test/smidump-diffs
 	for mib in $(TESTMIBS) ; do \
 	    echo "### Testing: smi-sming/sming-sming diffs of $$mib" ; \
 	    diff test/smidump-smi-sming/$$mib \
-		 test/smidump-sming-sming/$$mib ; \
+		 test/smidump-sming-sming/$$mib > test/smidump-diffs/$$mib ; \
 	done
 
 
