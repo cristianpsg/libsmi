@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.27 1999/12/12 12:51:08 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.28 1999/12/17 10:44:24 strauss Exp $
  */
 
 #include <stdio.h>
@@ -168,7 +168,7 @@ char *formattype(const char *module, const char *name)
     } else if (!module) {
 	strcpy(ss, name);
     } else {
-	sprintf(ss, "%s.%s", module, name);
+	sprintf(ss, "%s::%s", module, name);
     }
     return ss;
 }
@@ -338,15 +338,15 @@ int main(int argc, char *argv[])
 	    printf("   Reference: %s\n", format(module->reference));
 	    printf("    Language: %s\n", smiStringLanguage(module->language));
 	    printf("      Loaded: %s\n", smiModuleLoaded(name) ? "yes" : "no");
+	    smiFreeModule(module);
 	}
-	smiFreeModule(module);
     }
 
     if (!strcmp(command, "imports")) {
 	printf("     Imports:");
 	for(import = smiGetFirstImport(name);
 	    import ; import = smiGetNextImport(import)) {
-	    printf(" %s.%s", import->importmodule, import->importname);
+	    printf(" %s::%s", import->importmodule, import->importname);
 	}
 	printf("\n");
     }
@@ -378,89 +378,99 @@ int main(int argc, char *argv[])
 	    printf("      Status: %s\n", smiStringStatus(node->status));
 	    printf(" Description: %s\n", format(node->description));
 	    printf("   Reference: %s\n", format(node->reference));
+	    smiFreeNode(node);
 	}
-	smiFreeNode(node);
     }
 
     if (!strcmp(command, "parent")) {
 	child = smiGetNode(name, NULL);
-	if (child) node = smiGetParentNode(child);
-	if (child && node) {
-	    printf("     MibNode: %s\n", format(node->name));
-	    printf("      Module: %s\n", format(node->module));
-	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
+	if (child) {
+	    node = smiGetParentNode(child);
+	    if (node) {
+		printf("     MibNode: %s\n", format(node->name));
+		printf("      Module: %s\n", format(node->module));
+		printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
+		smiFreeNode(node);
+	    }
+	    smiFreeNode(child);
 	}
-	smiFreeNode(child);
-	smiFreeNode(node);
     }
 
     if (!strcmp(command, "compliance")) {
 	node = smiGetNode(name, NULL);
-	printf("   Mandatory:");
-	for(listitem = smiGetFirstListItem(node);
-	    listitem ; listitem = smiGetNextListItem(listitem)) {
-	    printf(" %s.%s", listitem->module, listitem->name);
-	}
-	printf("\n\n");
-	for(option = smiGetFirstOption(node);
-	    option ; option = smiGetNextOption(option)) {
-	    printf("      Option: %s.%s\n", option->module, option->name);
-	    printf(" Description: %s\n\n", format(option->description));
-	}
-	printf("\n");
-	for(refinement = smiGetFirstRefinement(node);
-	    refinement ; refinement = smiGetNextRefinement(refinement)) {
-	    printf("  Refinement: %s.%s\n",
-		   refinement->module, refinement->name);
-	    if (refinement->typename) {
-		printf("        Type: %s.%s\n",
-		       refinement->typemodule, refinement->typename);
+	if (node) {
+	    printf("   Mandatory:");
+	    for(listitem = smiGetFirstListItem(node);
+		listitem ; listitem = smiGetNextListItem(listitem)) {
+		printf(" %s::%s", listitem->module, listitem->name);
 	    }
-	    if (refinement->writetypename) {
-		printf("  Write-Type: %s.%s\n",
-		       refinement->writetypemodule, refinement->writetypename);
+	    printf("\n\n");
+	    for(option = smiGetFirstOption(node);
+		option ; option = smiGetNextOption(option)) {
+		printf("      Option: %s::%s\n", option->module, option->name);
+		printf(" Description: %s\n\n", format(option->description));
 	    }
-	    if (refinement->access != SMI_ACCESS_UNKNOWN) {
-		printf("      Access: %s\n",
-		       smiStringAccess(refinement->access));
+	    printf("\n");
+	    for(refinement = smiGetFirstRefinement(node);
+		refinement ; refinement = smiGetNextRefinement(refinement)) {
+		printf("  Refinement: %s::%s\n",
+		       refinement->module, refinement->name);
+		if (refinement->typename) {
+		    printf("        Type: %s::%s\n",
+			   refinement->typemodule, refinement->typename);
+		}
+		if (refinement->writetypename) {
+		    printf("  Write-Type: %s::%s\n",
+			   refinement->writetypemodule, refinement->writetypename);
+		}
+		if (refinement->access != SMI_ACCESS_UNKNOWN) {
+		    printf("      Access: %s\n",
+			   smiStringAccess(refinement->access));
+		}
+		printf(" Description: %s\n\n", format(refinement->description));
 	    }
-	    printf(" Description: %s\n\n", format(refinement->description));
+	    printf("\n");
+	    smiFreeNode(node);
 	}
-	printf("\n");
-	smiFreeNode(node);
     }
 
     if (!strcmp(command, "index")) {
 	node = smiGetNode(name, NULL);
-	printf("       Index:");
-	for(listitem = smiGetFirstListItem(node);
-	    listitem ; listitem = smiGetNextListItem(listitem)) {
-	    printf(" %s.%s", listitem->module, listitem->name);
+	if (node) {
+	    printf("       Index:");
+	    for(listitem = smiGetFirstListItem(node);
+		listitem ; listitem = smiGetNextListItem(listitem)) {
+		printf(" %s::%s", listitem->module, listitem->name);
+	    }
+	    printf("\n");
+	    smiFreeNode(node);
 	}
-	printf("\n");
-	smiFreeNode(node);
     }
 
     if (!strcmp(command, "members")) {
 	node = smiGetNode(name, NULL);
-	printf("     Members:");
-	for(listitem = smiGetFirstListItem(node);
-	    listitem ; listitem = smiGetNextListItem(listitem)) {
-	    printf(" %s.%s", listitem->module, listitem->name);
+	if (node) {
+	    printf("     Members:");
+	    for(listitem = smiGetFirstListItem(node);
+		listitem ; listitem = smiGetNextListItem(listitem)) {
+		printf(" %s::%s", listitem->module, listitem->name);
+	    }
+	    printf("\n");
+	    smiFreeNode(node);
 	}
-	printf("\n");
-	smiFreeNode(node);
     }
 
     if (!strcmp(command, "children")) {
 	node = smiGetNode(name, NULL);
-	printf("    Children:");
-	for(child = smiGetFirstChildNode(node);
-	    child ; child = smiGetNextChildNode(child)) {
-	    printf(" %s.%s", child->module, child->name);
+	if (node) {
+	    printf("    Children:");
+	    for(child = smiGetFirstChildNode(node);
+		child ; child = smiGetNextChildNode(child)) {
+		printf(" %s::%s", child->module, child->name);
+	    }
+	    printf("\n");
+	    smiFreeNode(node);
 	}
-	printf("\n");
-	smiFreeNode(node);
     }
 
     if (!strcmp(command, "type")) {
@@ -495,8 +505,8 @@ int main(int argc, char *argv[])
 	    printf("      Status: %s\n", smiStringStatus(type->status));
 	    printf(" Description: %s\n", format(type->description));
 	    printf("   Reference: %s\n", format(type->reference));
+	    smiFreeType(type);
 	}
-	smiFreeType(type);
     }
 
     if (!strcmp(command, "macro")) {
@@ -504,8 +514,8 @@ int main(int argc, char *argv[])
 	if (macro) {
 	    printf("       Macro: %s\n", format(macro->name));
 	    printf("      Module: %s\n", format(macro->module));
+	    smiFreeMacro(macro);
 	}
-	smiFreeMacro(macro);
     }
 
     smiExit();
