@@ -1,14 +1,14 @@
 /*
  * dump-jax.c --
  *
- *      Operations to generate UCD SNMP mib module implementation code.
+ *      Operations to generate JAX AgentX class files.
  *
  * Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.13 2000/05/15 14:23:55 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.14 2000/05/16 07:03:30 strauss Exp $
  */
 
 #include <config.h>
@@ -36,9 +36,9 @@ static struct {
     char        *agentxtype;
 } convertType[] = {
     { SMI_BASETYPE_OCTETSTRING,      "Opaque",    "byte[]",    "OPAQUE" },
-    { SMI_BASETYPE_OCTETSTRING,      "TimeTicks", "long",      "TIMETICKS" },
-    { SMI_BASETYPE_OCTETSTRING,      "Counter",   "long",      "COUNTER32" },
-    { SMI_BASETYPE_OCTETSTRING,      "Counter32", "long",      "COUNTER32" },
+    { SMI_BASETYPE_UNSIGNED32,       "TimeTicks", "long",      "TIMETICKS" },
+    { SMI_BASETYPE_UNSIGNED32,       "Counter",   "long",      "COUNTER32" },
+    { SMI_BASETYPE_UNSIGNED32,       "Counter32", "long",      "COUNTER32" },
     { SMI_BASETYPE_OCTETSTRING,      "IpAddress", "byte[]",    "IPADDRESS" },
     { SMI_BASETYPE_INTEGER32,        NULL,	  "int",       "INTEGER" },
     { SMI_BASETYPE_OCTETSTRING,      NULL,	  "byte[]",    "OCTETSTRING" },
@@ -173,6 +173,7 @@ static char *getAgentXType(SmiType *smiType)
     SmiType *parentType;
     SmiModule *smiModule;
     
+printf("XXX 1 checking %s\n", smiType->name);
     parentType = smiGetParentType(smiType);
     if (parentType) {
 	smiModule = smiGetTypeModule(parentType);
@@ -183,11 +184,16 @@ static char *getAgentXType(SmiType *smiType)
     
     for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
 	if (smiType->basetype == convertType[i].basetype) {
-	    if (!convertType[i].smitype)
+printf("XXX checking %s\n", smiType->name);
+	    if (!convertType[i].smitype) {
+printf("XXX a %s %s\n", smiType->name, convertType[i].agentxtype);
 		return convertType[i].agentxtype;
+	    }
 	    if ((smiType->name) &&
-		(!strcmp(convertType[i].smitype, smiType->name)))
+		(!strcmp(convertType[i].smitype, smiType->name))) {
+printf("XXX b %s %s\n", smiType->name, convertType[i].agentxtype);
 		return convertType[i].agentxtype;
+	    }
 	}
 	
     }
