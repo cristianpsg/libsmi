@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.7 2002/01/04 15:10:56 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.8 2002/01/25 09:15:30 schoenw Exp $
  */
 
 /*
@@ -214,7 +214,7 @@ createFile(char *name, char *suffix)
 
 
 static int
-isGroup(SmiNode *smiNode)
+isGroup(SmiNode *smiNode, SmiNodekind memberkind)
 {
     SmiNode *childNode;
 
@@ -226,14 +226,10 @@ isGroup(SmiNode *smiNode)
 	}
     }
 
-    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-	return 1;
-    }
-    
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
-	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
+	if (childNode->nodekind & memberkind) {
 	    return 1;
 	}
     }
@@ -523,17 +519,16 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
     int      cnt = 0;
     char     *cName, *cModuleName;
     char     *dName, *dModuleName;
+    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
 
     cModuleName = translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
 
-    for (smiNode = smiGetFirstNode(smiModule,
-				   SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN);
+    for (smiNode = smiGetFirstNode(smiModule, groupkind);
 	 smiNode;
-	 smiNode = smiGetNextNode(smiNode,
-				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
+	 smiNode = smiGetNextNode(smiNode, groupkind)) {
 	parentNode = smiGetParentNode(smiNode);
-	if (! parentNode || ! isGroup(parentNode)) {
+	if (! parentNode || ! isGroup(parentNode, groupkind)) {
 	    continue;
 	}
 	smiType = smiGetNodeType(smiNode);
@@ -590,7 +585,7 @@ printHeaderIdentities(FILE *f, SmiModule *smiModule)
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 	parentNode = smiGetParentNode(smiNode);
-	if (! parentNode || ! isGroup(parentNode)) {
+	if (! parentNode || ! isGroup(parentNode, SMI_NODEKIND_NODE)) {
 	    continue;
 	}
 	if (smiNode->status == SMI_STATUS_UNKNOWN) {
@@ -898,11 +893,12 @@ printHeaderTypedefs(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
+    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (isGroup(smiNode) && isAccessible(smiNode)) {
+	if (isGroup(smiNode, groupkind) && isAccessible(smiNode)) {
 	    cnt++;
 	    printHeaderTypedef(f, smiModule, smiNode);
 	}
@@ -961,17 +957,16 @@ printStubEnumerations(FILE *f, SmiModule *smiModule)
     char      *cName, *cModuleName;
     char      *dName, *dModuleName;
     int       cnt = 0;
+    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     cModuleName = translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
     
-    for (smiNode = smiGetFirstNode(smiModule,
-				   SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN);
+    for (smiNode = smiGetFirstNode(smiModule, groupkind);
 	 smiNode;
-	 smiNode = smiGetNextNode(smiNode,
-				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
+	 smiNode = smiGetNextNode(smiNode, groupkind)) {
 	parentNode = smiGetParentNode(smiNode);
-	if (! parentNode || ! isGroup(parentNode)) {
+	if (! parentNode || ! isGroup(parentNode, groupkind)) {
 	    continue;
 	}
 	smiType = smiGetNodeType(smiNode);
@@ -1024,7 +1019,7 @@ printStubIdentities(FILE *f, SmiModule *smiModule)
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 	parentNode = smiGetParentNode(smiNode);
-	if (! parentNode || ! isGroup(parentNode)) {
+	if (! parentNode || ! isGroup(parentNode, SMI_NODEKIND_NODE)) {
 	    continue;
 	}
 	if (smiNode->status == SMI_STATUS_UNKNOWN) {
@@ -1236,11 +1231,12 @@ printStubAttributes(FILE *f, SmiModule *smiModule)
     SmiNode *smiNode;
     char    *cName;
     int     i, cnt = 0;
-    
+    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+        
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (isGroup(smiNode) && isAccessible(smiNode)) {
+	if (isGroup(smiNode, groupkind) && isAccessible(smiNode)) {
 	    cnt++;
 	    cName = translate(smiNode->name);
 
@@ -2463,11 +2459,12 @@ printStubMethods(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
+    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (isGroup(smiNode) && isAccessible(smiNode)) {
+	if (isGroup(smiNode, groupkind) && isAccessible(smiNode)) {
 	    cnt++;
 	    printNewMethod(f, smiModule, smiNode);
 	    printAssignMethod(f, smiModule, smiNode);
