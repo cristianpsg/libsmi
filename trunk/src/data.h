@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.4 1998/10/14 16:07:30 strauss Exp $
+ * @(#) $Id: data.h,v 1.5 1998/10/22 12:59:55 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -426,6 +426,9 @@ extern void setTypeDisplayHint(Type *type,
 
 extern Type *findTypeByModuleAndName(Module *module,
 				     const char *name);
+
+extern Type *findTypeByModulenameAndName(const char *modulename,
+					 const char *name);
 
 
 

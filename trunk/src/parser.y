@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.5 1998/10/13 17:11:43 strauss Exp $
+ * @(#) $Id: parser.y,v 1.6 1998/10/22 12:59:56 strauss Exp $
  */
 
 %{
@@ -861,7 +861,16 @@ typeSMI:		INTEGER32
 
 typeDeclarationRHS:	Syntax
 			{
-			    $$ = $1;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType($1, SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		TEXTUAL_CONVENTION
 			DisplayPart
@@ -1270,7 +1279,7 @@ ObjectSyntax:		SimpleSyntax
 				       "RFC1155-SMI")) {
 			        printError(parser, ERR_TYPE_TAG, $1);
 			    }
-			    $$ = NULL;
+			    $$ = $2;
 			}
 	|		conceptualTable	     /* TODO: possible? row? entry? */
 			{
@@ -1329,12 +1338,12 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		INTEGER integerSubType
 			{
-			    /* TODO */
+			    /* TODO: subtype */
 			    $$ = typeInteger;
 			}
 	|		INTEGER enumSpec
 			{
-			    /* TODO */
+			    /* TODO: subtype */
 			    $$ = typeInteger;
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
@@ -1344,30 +1353,30 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
         |		INTEGER32 integerSubType
 			{
-			    /* TODO */
+			    /* TODO: subtype */
 			    $$ = typeInteger;
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    /* TODO: scope, subtype */
+			    $$ = findTypeByModuleAndName(thisModule, $1);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    /* TODO: subtype */
+			    $$ = findTypeByModulenameAndName($1, $3);
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    /* TODO: scope, subtype */
+			    $$ = findTypeByModuleAndName(thisModule, $1);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    /* TODO: subtype */
+			    $$ = findTypeByModulenameAndName($1, $3);
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -1375,19 +1384,19 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		OCTET STRING octetStringSubType
 			{
-			    /* TODO */
+			    /* TODO: subtype */
 			    $$ = typeOctetString;
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    /* TODO: scope, subtype */
+			    $$ = findTypeByModuleAndName(thisModule, $1);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    /* TODO: subtype */
+			    $$ = findTypeByModulenameAndName($1, $3);
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -1465,7 +1474,7 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		GAUGE32 integerSubType
 			{
-			    /* TODO */
+			    /* TODO: substype */
 			    $$ = typeGauge32;
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
@@ -1474,7 +1483,7 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		UNSIGNED32 integerSubType
 			{
-			    /* TODO */
+			    /* TODO: substype */
 			    $$ = typeUnsigned32;
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
