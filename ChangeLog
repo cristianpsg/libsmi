@@ -1,5 +1,9 @@
 2000-02-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/smi.c: Remember the longest common OID prefix of all nodes
+	defined in a module. This is used by smiGetFirstNode() and
+	smiGetNextNode() to limit the searched subtree.
+
 	* lib/smi.h.in: Dropped SmiValueformat. The way a value is
 	specified in a module file is no longer visible at the API.
 

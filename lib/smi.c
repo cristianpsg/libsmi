@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.81 2000/02/12 16:23:11 strauss Exp $
+ * @(#) $Id: smi.c,v 1.82 2000/02/22 17:11:12 strauss Exp $
  */
 
 #include <config.h>
@@ -995,28 +995,33 @@ SmiNode *smiGetFirstNode(SmiModule *smiModulePtr, SmiNodekind nodekind)
     }
     
     modulePtr = (Module *)smiModulePtr;
-    
-    nodePtr = rootNodePtr;
 
- again:
-    if (nodePtr->firstChildPtr) {
-	nodePtr = nodePtr->firstChildPtr;
-    } else if (nodePtr->nextPtr) {
-	nodePtr = nodePtr->nextPtr;
+    if (modulePtr && modulePtr->prefixNodePtr) {
+	/* start at the common oid prefix of this module */
+	nodePtr = modulePtr->prefixNodePtr;
     } else {
-	for (nodePtr = nodePtr->parentPtr;
-	     (nodePtr->parentPtr) && (!nodePtr->nextPtr);
-	     nodePtr = nodePtr->parentPtr);
-	nodePtr = nodePtr->nextPtr;
+	nodePtr = rootNodePtr->firstChildPtr;
     }
-    
-    objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
 
-    if ((!objectPtr) && nodePtr) {
-	goto again;
-    }
-    
-    return objectPtr ? &objectPtr->export : NULL;
+    do {
+	objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
+	
+	if (objectPtr)
+	    return &objectPtr->export;
+	
+	if (nodePtr->firstChildPtr) {
+	    nodePtr = nodePtr->firstChildPtr;
+	} else if (nodePtr->nextPtr) {
+	    nodePtr = nodePtr->nextPtr;
+	} else {
+	    for (nodePtr = nodePtr->parentPtr;
+		 (nodePtr->parentPtr) && (!nodePtr->nextPtr);
+		 nodePtr = nodePtr->parentPtr);
+	    nodePtr = nodePtr->nextPtr;
+	}
+    } while (nodePtr);
+
+    return NULL;
 }
 
 
@@ -1026,6 +1031,7 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
     Module	      *modulePtr;
     Object	      *objectPtr;
     Node	      *nodePtr;
+    int               i;
     
     if (!smiNodePtr) {
 	return NULL;
@@ -1043,25 +1049,30 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
 	return NULL;
     }
 
- again:
-    if (nodePtr->firstChildPtr) {
-	nodePtr = nodePtr->firstChildPtr;
-    } else if (nodePtr->nextPtr) {
-	nodePtr = nodePtr->nextPtr;
-    } else {
-	for (nodePtr = nodePtr->parentPtr;
-	     (nodePtr->parentPtr) && (!nodePtr->nextPtr);
-	     nodePtr = nodePtr->parentPtr);
-	nodePtr = nodePtr->nextPtr;
-    }
-    
-    objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
+    do {
+	if (nodePtr->firstChildPtr) {
+	    nodePtr = nodePtr->firstChildPtr;
+	} else if (nodePtr->nextPtr) {
+	    nodePtr = nodePtr->nextPtr;
+	} else {
+	    for (nodePtr = nodePtr->parentPtr;
+		 (nodePtr->parentPtr) && (!nodePtr->nextPtr);
+		 nodePtr = nodePtr->parentPtr);
+	    nodePtr = nodePtr->nextPtr;
+	    /* did we move outside the common oid prefix of this module? */
+	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++)
+		if (nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]) 
+		    return NULL;
+	}
 
-    if ((!objectPtr) && nodePtr) {
-	goto again;
-    }
+	objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
 
-    return objectPtr ? &objectPtr->export : NULL;
+	if (objectPtr)
+	    return &objectPtr->export;
+	
+    } while (nodePtr);
+
+    return NULL;
 }
 
 
