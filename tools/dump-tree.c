@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.19 2000/08/24 12:09:18 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.20 2000/11/08 23:12:05 strauss Exp $
  */
 
 #include <config.h>
@@ -174,7 +174,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
     SmiNode     *childNode, *indexNode;
     SmiNodekind lastNodeKind = SMI_NODEKIND_UNKNOWN;
     SmiType     *type;
-    int         i = 0, cnt, prefixlen, newtypefieldlen = 8;
+    int         i = 0, cnt, prefixlen, newtypefieldlen = 9;
     char        c = 0;
     char	*type_name;
 
