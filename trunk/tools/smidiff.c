@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.32 2001/11/15 10:22:02 tklie Exp $ 
+ * @(#) $Id: smidiff.c,v 1.33 2001/11/23 15:45:43 strauss Exp $ 
  */
 
 #include <config.h>
@@ -33,8 +33,12 @@ static int mFlag = 0;		/* show the name for error messages */
 static int sFlag = 0;		/* show the severity for error messages */
 
 /* the `:' separates the view identifier */
-const char *oldTag = "smidiff:old";
-const char *newTag = "smidiff:new";
+static const char *oldTag = "smidiff:old";
+static const char *newTag = "smidiff:new";
+
+
+#define CODE_SHOW_PREVIOUS		0x01
+#define CODE_SHOW_PREVIOUS_IMPLICIT	0x02
 
 
 typedef struct Error {
@@ -52,9 +56,9 @@ typedef struct Error {
 #define ERR_NODE_ADDED			4
 #define ERR_BASETYPE_CHANGED		5
 #define ERR_DECL_CHANGED		6
-#define ERR_STATUS_CHANGED		8
+#define ERR_LEGAL_STATUS_CHANGED	8
 #define ERR_PREVIOUS_DEFINITION		9
-#define ERR_ILLEGAL_STATUS_CHANGE	10
+#define ERR_STATUS_CHANGED		10
 #define ERR_DESCR_ADDED			11
 #define ERR_DESCR_REMOVED		12
 #define ERR_DESCR_CHANGED		13
@@ -113,16 +117,18 @@ typedef struct Error {
 #define ERR_RANGE_OF_TYPE_REMOVED       66
 #define ERR_TYPE_BASED_ON               67
 #define ERR_INDEX_AUGMENT_CHANGED       68
-#define ERR_NAMED_NUMBER_OF_TYPE_REMOVED 69
-#define ERR_NAMED_NUMBER_TO_TYPE_ADDED  70
-#define ERR_NAMED_NUMBER_OF_TYPE_CHANGED 71
-#define ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE 72
-#define ERR_LENGTH_REMOVED              73
-#define ERR_PREVIOUS_IMPLICIT_DEFINITION 74
-#define ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT 75
-#define ERR_STATUS_CHANGED_IMPLICIT     76
-#define ERR_LENGTH_OF_TYPE_ADDED        77
-#define ERR_LENGTH_OF_TYPE_REMOVED      78
+#define ERR_NAMED_NUMBER_OF_TYPE_REMOVED	69
+#define ERR_NAMED_NUMBER_TO_TYPE_ADDED		70
+#define ERR_NAMED_NUMBER_OF_TYPE_CHANGED	71
+#define ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE	72
+#define ERR_LENGTH_REMOVED			73
+#define ERR_PREVIOUS_IMPLICIT_DEFINITION	74
+#define ERR_STATUS_CHANGED_IMPLICIT		75
+#define ERR_LEGAL_STATUS_CHANGED_IMPLICIT	76
+#define ERR_LENGTH_OF_TYPE_ADDED		77
+#define ERR_LENGTH_OF_TYPE_REMOVED		78
+#define ERR_STATUS_ADDED			79
+#define ERR_STATUS_REMOVED			80
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -139,12 +145,12 @@ static Error errors[] = {
       "base type of `%s' changed" },
     { 5, ERR_DECL_CHANGED, "decl-changed",
       "declaration changed for `%s'" },
-    { 5, ERR_STATUS_CHANGED, "status-changed",
+    { 5, ERR_LEGAL_STATUS_CHANGED, "status-change",
       "legal status change from `%s' to `%s' for `%s'" },
     { 6, ERR_PREVIOUS_DEFINITION, "previous-definition",
       "previous definition of `%s'" },
-    { 2, ERR_ILLEGAL_STATUS_CHANGE, "status-change-error",
-      "illegal status change from `%s' to `%s' for `%s'" },
+    { 2, ERR_STATUS_CHANGED, "status-change",
+      "status change from `%s' to `%s' for `%s'" },
     { 5, ERR_DESCR_ADDED, "description-added",
       "description added to `%s'" },
     { 2, ERR_DESCR_REMOVED, "description-removed",
@@ -273,14 +279,18 @@ static Error errors[] = {
       "named bit `%s' added without starting in a new byte in type `%s'" },
     { 6, ERR_PREVIOUS_IMPLICIT_DEFINITION, "previous-definition",
       "previous implicit definition" },
-    { 2, ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT, "status-change-error",
-      "illegal status change from `%s' to `%s' for implicit type" },
-    { 5, ERR_STATUS_CHANGED_IMPLICIT, "status-changed",
+    { 2, ERR_STATUS_CHANGED_IMPLICIT, "status-change",
+      "status change from `%s' to `%s' for implicit type" },
+    { 5, ERR_LEGAL_STATUS_CHANGED_IMPLICIT, "status-change",
       "legal status change from `%s' to `%s' for implicit type" },
     { 3, ERR_LENGTH_OF_TYPE_ADDED, "range-added",
       "size `%s' added to type `%s'" },
     { 3, ERR_LENGTH_OF_TYPE_REMOVED, "range-removed",
       "size `%s' removed from type `%s'" },
+    { 5, ERR_STATUS_ADDED, "status-added",
+      "status added to `%s'" },
+    { 3, ERR_STATUS_REMOVED, "status-removed",
+      "status removed from `%s'" },
     { 0, 0, NULL, NULL }
 };
 
@@ -404,11 +414,15 @@ diffStrings(const char *s1, const char *s2)
     return (s1[i] != s2[j]);
 }
 
-static void
+
+
+static int
 checkName(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
 	    char *oldName, char *newName)
 {
+    int code = 0;
+    
     if (!oldName && newName) {
 	printErrorAtLine(newModule, ERR_NAME_ADDED,
 			 newLine, newName);
@@ -422,27 +436,29 @@ checkName(SmiModule *oldModule, int oldLine,
     if (oldName && newName && strcmp(oldName, newName) != 0) {
 	printErrorAtLine(newModule, ERR_NAME_CHANGED,
 			 newLine, oldName, newName);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, oldName);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
 
-static void
+static int
 checkDecl(SmiModule *oldModule, int oldLine,
 	  SmiModule *newModule, int newLine,
 	  char *name, SmiDecl oldDecl, SmiDecl newDecl)
 {
-    if (oldDecl == newDecl) {
-	return;
+    int code = 0;
+
+    if (oldDecl != newDecl) {
+	printErrorAtLine(newModule, ERR_DECL_CHANGED,
+			 newLine, name);
+        code |= CODE_SHOW_PREVIOUS;
     }
-    
-    printErrorAtLine(newModule, ERR_DECL_CHANGED,
-		     newLine, name);
-    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-		     oldLine, name);
+    return code;
 }
+
 
 
 static char*
@@ -461,7 +477,7 @@ getStringStatus(SmiStatus status)
 	statStr = "obsolete";
 	break;
     case SMI_STATUS_MANDATORY:
-	statStr = "mandatoy";
+	statStr = "mandatory";
 	break;
     case SMI_STATUS_OPTIONAL:
 	statStr = "optional";
@@ -475,78 +491,88 @@ getStringStatus(SmiStatus status)
 }
 
 
-static void
+
+static int
 checkStatus(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
 	    char *name, SmiStatus oldStatus, SmiStatus newStatus)
 {
+    int code = 0;
+
     if (oldStatus == newStatus) {
-	return;
+	return code;
     }
     
-    if (! (((oldStatus == SMI_STATUS_CURRENT
-	     && (newStatus == SMI_STATUS_DEPRECATED
-		 || newStatus == SMI_STATUS_OBSOLETE)))
-	   || ((oldStatus == SMI_STATUS_DEPRECATED
-		&& newStatus == SMI_STATUS_OBSOLETE)))) {
-	if( name ) {
-	    printErrorAtLine(newModule, ERR_ILLEGAL_STATUS_CHANGE, newLine,
+    if (oldStatus == SMI_STATUS_UNKNOWN) {
+	printErrorAtLine(newModule, ERR_STATUS_ADDED,
+			 newLine, name);
+    } else if (newStatus == SMI_STATUS_UNKNOWN) {
+	printErrorAtLine(newModule, ERR_STATUS_REMOVED,
+			 newLine, name);
+
+    } else if (((oldStatus == SMI_STATUS_CURRENT
+	  && (newStatus == SMI_STATUS_DEPRECATED
+	      || newStatus == SMI_STATUS_OBSOLETE)))
+	|| ((oldStatus == SMI_STATUS_DEPRECATED
+	     && newStatus == SMI_STATUS_OBSOLETE))) {
+	if (name) {
+	    printErrorAtLine(newModule, ERR_LEGAL_STATUS_CHANGED, newLine,
+			     getStringStatus(oldStatus),
+			     getStringStatus(newStatus),
+			     name);
+	    code |= CODE_SHOW_PREVIOUS;
+	} else {
+	    printErrorAtLine(newModule, ERR_LEGAL_STATUS_CHANGED_IMPLICIT, newLine,
+			     getStringStatus(oldStatus),
+			     getStringStatus(newStatus));
+	    code |= CODE_SHOW_PREVIOUS_IMPLICIT;
+	}
+    } else {
+	if (name) {
+	    printErrorAtLine(newModule, ERR_STATUS_CHANGED, newLine,
 			     getStringStatus( oldStatus ),
 			     getStringStatus( newStatus ),
 			     name);
-	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			     oldLine, name);
-	}
-	else {
-	    printErrorAtLine(newModule, ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT,
+	    code |= CODE_SHOW_PREVIOUS;
+	} else {
+	    printErrorAtLine(newModule, ERR_STATUS_CHANGED_IMPLICIT,
 			     newLine,
 			     getStringStatus( oldStatus ),
 			     getStringStatus( newStatus ));
-	    printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
-			     oldLine);
+	    code |= CODE_SHOW_PREVIOUS_IMPLICIT;
 	}
-	return;
     }
 
-    if( name ) {
-	printErrorAtLine(newModule, ERR_STATUS_CHANGED, newLine,
-			 getStringStatus(oldStatus),
-			 getStringStatus(newStatus),
-			 name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
-    }
-    else {
-	printErrorAtLine(newModule, ERR_STATUS_CHANGED_IMPLICIT, newLine,
-			 getStringStatus(oldStatus),
-			 getStringStatus(newStatus));
-	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
-			 oldLine);
-    }
+    return code;
 }
+
+
 
 static char*
 getStringAccess( SmiAccess smiAccess )
 {
     switch( smiAccess ) {
-    case SMI_ACCESS_NOT_IMPLEMENTED: return "not implemented";
-    case SMI_ACCESS_NOT_ACCESSIBLE : return "not accessible";
+    case SMI_ACCESS_NOT_IMPLEMENTED: return "not-implemented";
+    case SMI_ACCESS_NOT_ACCESSIBLE : return "not-accessible";
     case SMI_ACCESS_NOTIFY         : return "notify";
-    case SMI_ACCESS_READ_ONLY      : return "read only";
-    case SMI_ACCESS_READ_WRITE     : return "read write";
+    case SMI_ACCESS_READ_ONLY      : return "read-only";
+    case SMI_ACCESS_READ_WRITE     : return "read-write";
     case SMI_ACCESS_UNKNOWN:
     default: return "unknown";
     }
 }
 
 
-static void
+
+static int
 checkAccess(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
 	    char *name, SmiAccess oldAccess, SmiAccess newAccess)
 {
+    int code = 0;
+    
     if (oldAccess == newAccess) {
-	return;
+	return code;
     }
 
     if (oldAccess == SMI_ACCESS_UNKNOWN) {
@@ -560,18 +586,21 @@ checkAccess(SmiModule *oldModule, int oldLine,
 			 newLine, name,
 			 getStringAccess( oldAccess ),
 			 getStringAccess( newAccess ));
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
 
-static void
+static int
 checkDescription(SmiModule *oldModule, int oldLine,
 		 SmiModule *newModule, int newLine,
 		 char *name, char *oldDescr, char *newDescr)
 {
+    int code = 0;
+    
     if (!oldDescr && newDescr) {
 	printErrorAtLine(newModule, ERR_DESCR_ADDED,
 			 newLine, name);
@@ -580,25 +609,27 @@ checkDescription(SmiModule *oldModule, int oldLine,
     if (oldDescr && !newDescr) {
 	printErrorAtLine(newModule, ERR_DESCR_REMOVED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
 
     if (oldDescr && newDescr && diffStrings(oldDescr, newDescr)) {
 	printErrorAtLine(newModule, ERR_DESCR_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
 
-static void
+static int
 checkReference(SmiModule *oldModule, int oldLine,
 	       SmiModule *newModule, int newLine,
 	       char *name, char *oldRef, char *newRef)
 {
+    int code = 0;
+    
     if (!oldRef && newRef) {
 	printErrorAtLine(newModule, ERR_REF_ADDED,
 			 newLine, name);
@@ -612,18 +643,21 @@ checkReference(SmiModule *oldModule, int oldLine,
     if (oldRef && newRef && diffStrings(oldRef, newRef) != 0) {
 	printErrorAtLine(newModule, ERR_REF_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
 
-static void
+static int
 checkFormat(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
 	    char *name, char *oldFormat, char *newFormat)
 {
+    int code = 0;
+
     if (!oldFormat && newFormat) {
 	printErrorAtLine(newModule, ERR_FORMAT_ADDED,
 			 newLine, name);
@@ -637,18 +671,21 @@ checkFormat(SmiModule *oldModule, int oldLine,
     if (oldFormat && newFormat && strcmp(oldFormat, newFormat) != 0) {
 	printErrorAtLine(newModule, ERR_FORMAT_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
 
-static void
+static int
 checkUnits(SmiModule *oldModule, int oldLine,
 	   SmiModule *newModule, int newLine,
 	   char *name, char *oldUnits, char *newUnits)
 {
+    int code = 0;
+    
     if (!oldUnits && newUnits) {
 	printErrorAtLine(newModule, ERR_UNITS_ADDED,
 			 newLine, name);
@@ -662,9 +699,10 @@ checkUnits(SmiModule *oldModule, int oldLine,
     if (oldUnits && newUnits && strcmp(oldUnits, newUnits) != 0) {
 	printErrorAtLine(newModule, ERR_UNITS_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
@@ -734,7 +772,7 @@ cmpSmiValues( SmiValue a, SmiValue b )
     return changed;
 }
 
-
+#if 0
 static char*
 getTypeName(SmiType *smiType, SmiModule *smiModule)
 {
@@ -794,6 +832,7 @@ iterateTypeImports(char *typeName,
 	oldIterType = iterType;
     }
 }
+#endif
 
 static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
@@ -1379,9 +1418,11 @@ static void
 checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
 	   SmiModule *newModule, SmiNode *newNode, SmiType *newType)
 {
-    checkName(oldModule, smiGetTypeLine(oldType),
-	      newModule, smiGetTypeLine(newType),
-	      oldType->name, newType->name);
+    int code = 0;
+    
+    code |= checkName(oldModule, smiGetTypeLine(oldType),
+		      newModule, smiGetTypeLine(newType),
+		      oldType->name, newType->name);
 
     checkTypeCompatibility(oldModule, oldNode, oldType,
 			   newModule, newNode, newType);
@@ -1391,36 +1432,45 @@ checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
 		oldType->name, 
 		oldType->value, newType->value);
 
-    checkDecl(oldModule, smiGetTypeLine(oldType),
-	      newModule, smiGetTypeLine(newType),
-	      newType->name,
-	      oldType->decl, newType->decl);
+    code |= checkDecl(oldModule, smiGetTypeLine(oldType),
+		      newModule, smiGetTypeLine(newType),
+		      newType->name,
+		      oldType->decl, newType->decl);
 
     if (newType->name) {
-	checkStatus(oldModule, smiGetTypeLine(oldType),
-		    newModule, smiGetTypeLine(newType),
-		    newType->name, oldType->status, newType->status);
+	code |= checkStatus(oldModule, smiGetTypeLine(oldType),
+			    newModule, smiGetTypeLine(newType),
+			    newType->name, oldType->status, newType->status);
     }
 
-    checkFormat(oldModule, smiGetTypeLine(oldType),
-		newModule, smiGetTypeLine(newType),
-		newType->name,
-		oldType->format, newType->format);
+    code |= checkFormat(oldModule, smiGetTypeLine(oldType),
+			newModule, smiGetTypeLine(newType),
+			newType->name,
+			oldType->format, newType->format);
 
-    checkUnits(oldModule, smiGetTypeLine(oldType),
-	       newModule, smiGetTypeLine(newType),
-	       newType->name,
-	       oldType->units, newType->units);
+    code |= checkUnits(oldModule, smiGetTypeLine(oldType),
+		       newModule, smiGetTypeLine(newType),
+		       newType->name,
+		       oldType->units, newType->units);
 
-    checkDescription(oldModule, smiGetTypeLine(oldType),
-		     newModule, smiGetTypeLine(newType),
-		     newType->name,
-		     oldType->description, newType->description);
+    code |= checkDescription(oldModule, smiGetTypeLine(oldType),
+			     newModule, smiGetTypeLine(newType),
+			     newType->name,
+			     oldType->description, newType->description);
 
-    checkReference(oldModule, smiGetTypeLine(oldType),
-		   newModule, smiGetTypeLine(newType),
-		   newType->name,
-		   oldType->reference, newType->reference);
+    code |= checkReference(oldModule, smiGetTypeLine(oldType),
+			   newModule, smiGetTypeLine(newType),
+			   newType->name,
+			   oldType->reference, newType->reference);
+
+    if (code & CODE_SHOW_PREVIOUS) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 smiGetTypeLine(oldType), oldType->name);
+    }
+    if (code & CODE_SHOW_PREVIOUS_IMPLICIT) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			 smiGetTypeLine(oldType));
+    }
 }
 
 
@@ -1472,17 +1522,24 @@ diffTypes(SmiModule *oldModule, const char *oldTag,
     }
 }
 
-static void
+
+
+static int
 checkNodekind(SmiModule *oldModule, SmiNode *oldNode,
 	      SmiModule *newModule, SmiNode *newNode)
 {
-    if( oldNode->nodekind != newNode->nodekind ) {
-	printErrorAtLine( newModule, ERR_NODEKIND_CHANGED,
-			  smiGetNodeLine( newNode ), newNode->name );
-	printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
-			  smiGetNodeLine( oldNode ), oldNode->name );
+    int code = 0;
+    
+    if (oldNode->nodekind != newNode->nodekind) {
+	printErrorAtLine(newModule, ERR_NODEKIND_CHANGED,
+			 smiGetNodeLine(newNode), newNode->name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
+
+
 
 static char*
 getStringIndexkind( SmiIndexkind indexkind )
@@ -1640,6 +1697,7 @@ static void
 checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    SmiModule *newModule, SmiNode *newNode)
 {
+    int code = 0;
     SmiType *oldType, *newType;
 
     const int oldLine = smiGetNodeLine(oldNode);
@@ -1648,8 +1706,8 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
     oldType = smiGetNodeType(oldNode);
     newType = smiGetNodeType(newNode);
     
-    checkName(oldModule, oldLine, newModule, newLine,
-	      oldNode->name, newNode->name);
+    code |= checkName(oldModule, oldLine, newModule, newLine,
+		      oldNode->name, newNode->name);
     
     if (oldType && newType) {
 	if (oldType->name && !newType->name) {
@@ -1675,16 +1733,16 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	}
     }
 
-    checkDecl(oldModule, oldLine, newModule, newLine,
-	      newNode->name, oldNode->decl, newNode->decl);
+    code |= checkDecl(oldModule, oldLine, newModule, newLine,
+		      newNode->name, oldNode->decl, newNode->decl);
 
-    checkStatus(oldModule, oldLine, newModule, newLine,
-		newNode->name, oldNode->status, newNode->status);
+    code |= checkStatus(oldModule, oldLine, newModule, newLine,
+			newNode->name, oldNode->status, newNode->status);
 
-    checkAccess(oldModule, oldLine, newModule, newLine,
-		newNode->name, oldNode->access, newNode->access);
+    code |= checkAccess(oldModule, oldLine, newModule, newLine,
+			newNode->name, oldNode->access, newNode->access);
 
-    checkNodekind(oldModule, oldNode, newModule, newNode);
+    code |= checkNodekind(oldModule, oldNode, newModule, newNode);
 
     checkIndex(oldModule, oldNode, newModule, newNode);
 
@@ -1692,17 +1750,28 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
     checkDefVal(oldModule, oldLine, newModule, newLine,
 		newNode->name, oldNode->value, newNode->value);
 
-    checkFormat(oldModule, oldLine, newModule, newLine,
-		newNode->name, oldNode->format, newNode->format);
+    code |= checkFormat(oldModule, oldLine, newModule, newLine,
+			newNode->name, oldNode->format, newNode->format);
+    
+    code |= checkUnits(oldModule, oldLine, newModule, newLine,
+		       newNode->name, oldNode->units, newNode->units);
 
-    checkUnits(oldModule, oldLine, newModule, newLine,
-	       newNode->name, oldNode->units, newNode->units);
+    code |= checkDescription(oldModule, oldLine, newModule, newLine,
+			     newNode->name,
+			     oldNode->description, newNode->description);
 
-    checkDescription(oldModule, oldLine, newModule, newLine, newNode->name,
-		     oldNode->description, newNode->description);
+    code |= checkReference(oldModule, oldLine, newModule, newLine,
+			   newNode->name,
+			   oldNode->reference, newNode->reference);
 
-    checkReference(oldModule, oldLine, newModule, newLine,
-		   newNode->name, oldNode->reference, newNode->reference);
+    if (code & CODE_SHOW_PREVIOUS) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 smiGetNodeLine(oldNode), oldNode->name);
+    }
+    if (code & CODE_SHOW_PREVIOUS_IMPLICIT) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			 smiGetNodeLine(oldNode));
+    }
 }
 
 
@@ -1774,13 +1843,14 @@ diffObjects(SmiModule *oldModule, const char *oldTag,
 
 
 
-static void
+static int
 checkObjects(SmiModule *oldModule, const char *oldTag,
 	     SmiModule *newModule, const char *newTag,
 	     SmiNode *oldNode, SmiNode *newNode)
 {
     SmiElement *oldElem, *newElem;
     SmiNode *oldElemNode, *newElemNode;
+    int code = 0;
 
     smiInit(oldTag);
     for (oldElem = smiGetFirstElement(oldNode);
@@ -1797,6 +1867,7 @@ checkObjects(SmiModule *oldModule, const char *oldTag,
 	if (! newElem) {
 	    printErrorAtLine(oldModule, ERR_OBJECT_REMOVED,
 			     smiGetNodeLine(oldNode), oldNode->name);
+	    code |= CODE_SHOW_PREVIOUS;
 	}
 	smiInit(oldTag);
     }
@@ -1819,6 +1890,8 @@ checkObjects(SmiModule *oldModule, const char *oldTag,
 	}
 	smiInit(newTag);
     }
+
+    return code;
 }
 
 
@@ -1828,26 +1901,37 @@ checkNotification(SmiModule *oldModule, const char *oldTag,
 		  SmiModule *newModule, const char *newTag,
 		  SmiNode *oldNode, SmiNode *newNode)
 {
-    checkDecl(oldModule, smiGetNodeLine(oldNode),
-	      newModule, smiGetNodeLine(newNode),
-	      newNode->name, oldNode->decl, newNode->decl);
+    int code = 0;
+    
+    code |= checkDecl(oldModule, smiGetNodeLine(oldNode),
+		      newModule, smiGetNodeLine(newNode),
+		      newNode->name, oldNode->decl, newNode->decl);
 
-    checkStatus(oldModule, smiGetNodeLine(oldNode),
-		newModule, smiGetNodeLine(newNode),
-		newNode->name, oldNode->status, newNode->status);
+    code |= checkStatus(oldModule, smiGetNodeLine(oldNode),
+			newModule, smiGetNodeLine(newNode),
+			newNode->name, oldNode->status, newNode->status);
 
-    checkObjects(oldModule, oldTag, newModule, newTag,
-		 oldNode, newNode);
+    code |= checkObjects(oldModule, oldTag, newModule, newTag,
+			 oldNode, newNode);
 
-    checkDescription(oldModule, smiGetNodeLine(oldNode),
-		     newModule, smiGetNodeLine(newNode),
-		     newNode->name,
-		     oldNode->description, newNode->description);
+    code |= checkDescription(oldModule, smiGetNodeLine(oldNode),
+			     newModule, smiGetNodeLine(newNode),
+			     newNode->name,
+			     oldNode->description, newNode->description);
 
-    checkReference(oldModule, smiGetNodeLine(oldNode),
-		   newModule, smiGetNodeLine(newNode),
-		   newNode->name,
-		   oldNode->reference, newNode->reference);
+    code |= checkReference(oldModule, smiGetNodeLine(oldNode),
+			   newModule, smiGetNodeLine(newNode),
+			   newNode->name,
+			   oldNode->reference, newNode->reference);
+
+    if (code & CODE_SHOW_PREVIOUS) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 smiGetNodeLine(oldNode), oldNode->name);
+    }
+    if (code & CODE_SHOW_PREVIOUS_IMPLICIT) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			 smiGetNodeLine(oldNode));
+    }
 }
 
 
@@ -1909,11 +1993,13 @@ diffNotifications(SmiModule *oldModule, const char *oldTag,
 
 
 
-static void
+static int
 checkOrganization(SmiModule *oldModule, int oldLine,
 		  SmiModule *newModule, int newLine,
 		  char *name, char *oldOrga, char *newOrga)
 {
+    int code = 0;
+    
     if (! oldOrga && newOrga) {
 	printErrorAtLine(newModule, ERR_ORGA_ADDED,
 			 newLine, name);
@@ -1922,23 +2008,27 @@ checkOrganization(SmiModule *oldModule, int oldLine,
     if (oldOrga && !newOrga) {
 	printErrorAtLine(oldModule, ERR_ORGA_REMOVED,
 			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
 
     if (oldOrga && newOrga && diffStrings(oldOrga, newOrga)) {
 	printErrorAtLine(newModule, ERR_ORGA_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
 
-static void
+static int
 checkContact(SmiModule *oldModule, int oldLine,
 	     SmiModule *newModule, int newLine,
 	     char *name, char *oldContact, char *newContact)
 {
+    int code = 0;
+    
     if (! oldContact && newContact) {
 	printErrorAtLine(newModule, ERR_CONTACT_ADDED,
 			 newLine, name);
@@ -1947,14 +2037,16 @@ checkContact(SmiModule *oldModule, int oldLine,
     if (oldContact && !newContact) {
 	printErrorAtLine(oldModule, ERR_CONTACT_REMOVED,
 			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
 
     if (oldContact && newContact && diffStrings(oldContact, newContact)) {
 	printErrorAtLine(newModule, ERR_CONTACT_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	code |= CODE_SHOW_PREVIOUS;
     }
+
+    return code;
 }
 
 
@@ -1966,6 +2058,7 @@ diffModules(SmiModule *oldModule, const char *oldTag,
     SmiNode *oldIdentityNode, *newIdentityNode;
     SmiRevision *oldRev, *newRev;
     int oldLine = -1, newLine = -1;
+    int code = 0;
     
     if (oldModule->language != newModule->language) {
 	printErrorAtLine(newModule, ERR_SMIVERSION_CHANGED, -1);
@@ -1980,20 +2073,22 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 	newLine = smiGetNodeLine(newIdentityNode);
     }
 
-    checkOrganization(oldModule, oldLine,
-		      newModule, newLine,
-		      newModule->name,
-		      oldModule->organization, newModule->organization);
+    code |= checkOrganization(oldModule, oldLine,
+			      newModule, newLine,
+			      newModule->name,
+			      oldModule->organization, newModule->organization);
 
-    checkContact(oldModule, oldLine, newModule, newLine,
-		 newModule->name,
-		 oldModule->contactinfo, newModule->contactinfo);
+    code |= checkContact(oldModule, oldLine, newModule, newLine,
+			 newModule->name,
+			 oldModule->contactinfo, newModule->contactinfo);
 
-    checkDescription(oldModule, oldLine, newModule, newLine, newModule->name,
-		     oldModule->description, newModule->description);
+    code |= checkDescription(oldModule, oldLine,
+			     newModule, newLine,
+			     newModule->name,
+			     oldModule->description, newModule->description);
 
-    checkReference(oldModule, oldLine, newModule, newLine, newModule->name,
-		   oldModule->reference, newModule->reference);
+    code |= checkReference(oldModule, oldLine, newModule, newLine, newModule->name,
+			   oldModule->reference, newModule->reference);
 
     /*
      * First check whether the old revisions still exist and
@@ -2050,6 +2145,15 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 			     getStringTime(newRev->date));
 	}
 	smiInit(newTag);
+    }
+
+    if (code & CODE_SHOW_PREVIOUS && oldLine >= 0) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 oldLine, oldModule->name);
+    }
+    if (code & CODE_SHOW_PREVIOUS_IMPLICIT) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			 oldLine);
     }
 }
 
@@ -2109,29 +2213,40 @@ checkGroup(SmiModule *oldModule, const char *oldTag,
 	   SmiModule *newModule, const char *newTag,
 	   SmiNode *oldNode, SmiNode *newNode)
 {
-    checkName(oldModule, smiGetNodeLine(oldNode),
-	      newModule, smiGetNodeLine(newNode),
-	      oldNode->name, newNode->name);
+    int code = 0;
     
-    checkDecl(oldModule, smiGetNodeLine(oldNode),
-	      newModule, smiGetNodeLine(newNode),
-	      newNode->name, oldNode->decl, newNode->decl);
-
-    checkStatus(oldModule, smiGetNodeLine(oldNode),
-		newModule, smiGetNodeLine(newNode),
-		newNode->name, oldNode->status, newNode->status);
-
-    checkDescription(oldModule, smiGetNodeLine(oldNode),
+    code = checkName(oldModule, smiGetNodeLine(oldNode),
 		     newModule, smiGetNodeLine(newNode),
-		     newNode->name,
-		     oldNode->description, newNode->description);
+		     oldNode->name, newNode->name);
+    
+    code |= checkDecl(oldModule, smiGetNodeLine(oldNode),
+		      newModule, smiGetNodeLine(newNode),
+		      newNode->name, oldNode->decl, newNode->decl);
+    
+    code |= checkStatus(oldModule, smiGetNodeLine(oldNode),
+			newModule, smiGetNodeLine(newNode),
+			newNode->name, oldNode->status, newNode->status);
 
-    checkReference(oldModule, smiGetNodeLine(oldNode),
-		   newModule, smiGetNodeLine(newNode),
-		   newNode->name,
-		   oldNode->reference, newNode->reference);
+    code |= checkDescription(oldModule, smiGetNodeLine(oldNode),
+			     newModule, smiGetNodeLine(newNode),
+			     newNode->name,
+			     oldNode->description, newNode->description);
+
+    code |= checkReference(oldModule, smiGetNodeLine(oldNode),
+			   newModule, smiGetNodeLine(newNode),
+			   newNode->name,
+			   oldNode->reference, newNode->reference);
 
     checkMember(oldModule, oldTag, newModule, newTag, oldNode, newNode);
+
+    if (code & CODE_SHOW_PREVIOUS) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 smiGetNodeLine(oldNode), oldNode->name);
+    }
+    if (code & CODE_SHOW_PREVIOUS_IMPLICIT) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			 smiGetNodeLine(oldNode));
+    }
 }
 
 
