@@ -4,6 +4,8 @@
 	resolved) definitions of identifiers that appear again in a
 	subsequently loaded module. Thanks to Fredrick.
 	
+	* mibs/ietf/ETHER-WIS: added (RFC 3637).
+
 2003-10-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/EtherLike-MIB: updated (RFC 3635).
