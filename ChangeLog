@@ -1,3 +1,12 @@
+2001-08-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* doc/draft-irtf-nmrg-smi-xml-00.txt,smi.dtd: Added these
+	files to document the xml output driver. Note that this
+	Internet Draft has expired.
+	
+	* lib/parser-smi.y,data.c: Added Bill's dmalloc patch and
+	trimmed down the number of non-freed chunks significantly.
+
 2001-06-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Added some checks for zero-length

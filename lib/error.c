@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.71 2001/06/06 07:36:37 strauss Exp $
+ * @(#) $Id: error.c,v 1.72 2001/06/25 13:26:58 strauss Exp $
  */
 
 #include <config.h>
@@ -24,12 +24,13 @@
 #include "win.h"
 #endif
 
+#include "smi.h"
+#include "error.h"
+
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
 
-#include "smi.h"
-#include "error.h"
 
 
 int smiErrorLevel;		/* Higher levels produce more warnings */

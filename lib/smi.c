@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.100 2001/06/11 09:59:19 strauss Exp $
+ * @(#) $Id: smi.c,v 1.101 2001/06/11 13:34:33 strauss Exp $
  */
 
 #include <config.h>
@@ -25,10 +25,6 @@
 #include <pwd.h>
 #endif
 
-#ifdef HAVE_DMALLOC_H
-#include <dmalloc.h>
-#endif
-
 #include "smi.h"
 #include "data.h"
 #include "error.h"
@@ -43,6 +39,12 @@
 #include "scanner-sming.h"
 #include "parser-sming.h"
 #endif
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
+
+
 
 #ifndef MIN
 #define MIN(a, b)       ((a) < (b) ? (a) : (b))

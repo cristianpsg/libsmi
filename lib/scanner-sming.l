@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.31 2000/11/16 14:58:10 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.32 2001/02/15 17:48:05 strauss Exp $
  */
 
 %option noyywrap
@@ -26,15 +26,16 @@
 #include "win.h"
 #endif
 
-#ifdef HAVE_DMALLOC_H
-#include <dmalloc.h>
-#endif
-
 #include "error.h"
 #include "util.h"
 #include "parser-sming.h"
 #include "parser-sming.tab.h"
 #include "scanner-sming.h"
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
+
 
 
 /* we need a reentrant parser, so yylex gets arguments */

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.70 2001/03/12 11:23:26 strauss Exp $
+ * @(#) $Id: data.h,v 1.71 2001/06/11 09:59:18 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -501,7 +501,7 @@ extern Type *findTypeByModulenameAndName(const char *modulename,
 extern NamedNumber *findTypeNamedNumber(Type *typePtr,
 					SmiInteger32 number);
 
-extern Macro *addMacro(const char *macroname,
+extern Macro *addMacro(char *macroname,
 		       MacroFlags flags,
 		       Parser *parserPtr);
 

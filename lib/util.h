@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.20 2000/06/21 10:33:37 strauss Exp $
+ * @(#) $Id: util.h,v 1.21 2000/06/29 11:35:19 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -20,6 +20,8 @@
 #include "smi.h"
 #include "error.h"
 #include "parser-smi.h"
+
+
 
 #ifdef __CHECKER__
 #undef HAVE_TIMEGM
@@ -49,6 +51,22 @@
 #endif
 #endif
 
+#ifdef HAVE_DMALLOC_H
+
+extern void *_smiMalloc(char *, int, size_t);
+extern void *_smiRealloc(char *, int, void *ptr, size_t size);
+extern char *_smiStrdup(char *, int, const char *s1);
+extern char *_smiStrndup(char *, int, const char *s1, size_t n);
+extern void _smiFree(char *, int, void *ptr);
+
+#define	smiMalloc(s)	_smiMalloc(__FILE__, __LINE__, s)
+#define	smiRealloc(p,s)	_smiRealloc(__FILE__, __LINE__, p, s)
+#define	smiStrdup(s)	_smiStrdup(__FILE__, __LINE__, s)
+#define	smiStrndup(s,n)	_smiStrndup(__FILE__, __LINE__, s, n)
+#define	smiFree(p)	_smiFree(__FILE__, __LINE__, p)
+
+#else
+
 extern void *smiMalloc(size_t size);
 
 extern void *smiRealloc(void *ptr, size_t size);
@@ -58,6 +76,8 @@ extern char *smiStrdup(const char *s1);
 extern char *smiStrndup(const char *s1, size_t n);
 
 extern void smiFree(void *ptr);
+
+#endif
 
 extern int smiIsPath(const char *s);
 

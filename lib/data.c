@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.97 2001/06/11 09:59:18 strauss Exp $
+ * @(#) $Id: data.c,v 1.98 2001/06/25 13:26:58 strauss Exp $
  */
 
 #include <config.h>
@@ -25,14 +25,16 @@
 #include "win.h"
 #endif
 
-#ifdef HAVE_DMALLOC_H
-#include <dmalloc.h>
-#endif
-
 #include "error.h"
 #include "util.h"
 #include "data.h"
 #include "smi.h"
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
+
+
 
 #ifdef BACKEND_SMI
 #include "scanner-smi.h"
@@ -982,7 +984,7 @@ Node *createNodesByOidString(const char *oid)
 	parentNodePtr = nodePtr;
     } while ((p = strtok(NULL, ".")));
 
-    free(elements);
+    smiFree(elements);
 
     return parentNodePtr;
 }
@@ -1199,6 +1201,8 @@ Object *setObjectName(Object *objectPtr, char *name)
 		}
 
 		mergeNodeTrees(objectPtr->nodePtr, nodePtr);
+		smiFree(objectPtr->export.name);
+		smiFree(objectPtr);
 		return newObjectPtr;
 	    } else {
 		return objectPtr;
@@ -1668,6 +1672,7 @@ void setObjectIndexkind(Object *objectPtr, SmiIndexkind indexkind)
 void setObjectValue(Object *objectPtr, SmiValue *valuePtr)
 {
     objectPtr->export.value = *valuePtr;
+    smiFree(valuePtr);
 }
 
 
@@ -1768,7 +1773,7 @@ Node *findNodeByOidString(char *oid)
 	nodePtr = findNodeByParentAndSubid(nodePtr, atoi(p));
     }
     
-    free(s);
+    smiFree(s);
     return (nodePtr);
 }
 
@@ -2746,16 +2751,13 @@ Type *findTypeByModuleAndName(Module *modulePtr, const char *type_name)
 /*
  *----------------------------------------------------------------------
  *
- * addMacro --
+ * findTypeNamedNumber --
  *
- *      Create a new Macro structure.
+ *      
  *
  * Results:
- *      A pointer to the new Macro structure or
- *	NULL if terminated due to an error.
  *
  * Side effects:
- *      None.
  *
  *---------------------------------------------------------------------- */
 
@@ -2792,7 +2794,7 @@ NamedNumber *findTypeNamedNumber(Type *typePtr,
  *
  *---------------------------------------------------------------------- */
 
-Macro *addMacro(const char *macroname, MacroFlags flags, Parser *parserPtr)
+Macro *addMacro(char *macroname, MacroFlags flags, Parser *parserPtr)
 {
     Macro	  *macroPtr;
     Module	  *modulePtr;
@@ -2803,7 +2805,7 @@ Macro *addMacro(const char *macroname, MacroFlags flags, Parser *parserPtr)
 
     macroPtr = (Macro *) smiMalloc(sizeof(Macro));
 	    
-    macroPtr->export.name 	 = smiStrdup(macroname);
+    macroPtr->export.name 	 = macroname;
     macroPtr->export.status      = SMI_STATUS_UNKNOWN;
     macroPtr->export.description = NULL;
     macroPtr->export.reference   = NULL;
@@ -3194,7 +3196,9 @@ int smiInitData()
 
 void freeNodeTree(Node *rootPtr)
 {
-    Node *nodePtr, *nextPtr;
+    Node       *nodePtr, *nextPtr;
+    List       *listPtr, *nextListPtr;
+    Object     *objectPtr, *nextObjectPtr;
     
     for (nodePtr = rootPtr->firstChildPtr; nodePtr; nodePtr = nextPtr) {
 	nextPtr = nodePtr->nextPtr;
@@ -3290,7 +3294,7 @@ void smiFreeData()
 	    smiFree(typePtr->export.reference);
 	    smiFree(typePtr);
 	}
-	
+
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = nextObjectPtr) {
 	    nextObjectPtr = objectPtr->nextPtr;
@@ -3314,12 +3318,13 @@ void smiFreeData()
 	    for (listPtr = objectPtr->refinementlistPtr; listPtr;
 		 listPtr = nextListPtr) {
 		nextListPtr = listPtr->nextPtr;
+		smiFree(((Refinement *)(listPtr->ptr))->export.description);
 		smiFree((Refinement *)(listPtr->ptr));
 		smiFree(listPtr);
 	    }
 	    smiFree(objectPtr);
 	}
-
+	
 	smiFree(modulePtr->export.name);
 	smiFree(modulePtr->export.path);
 	smiFree(modulePtr->export.organization);
