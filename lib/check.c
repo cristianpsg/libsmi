@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.35 2002/01/31 18:19:45 schoenw Exp $
+ * @(#) $Id: check.c,v 1.36 2002/03/05 14:27:07 strauss Exp $
  */
 
 #include <config.h>
@@ -1449,7 +1449,7 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 	     groupListPtr; groupListPtr = groupListPtr->nextPtr) {
 
 	    group = (Object *) groupListPtr->ptr;
-	    if (memberOfGroup(memberPtr, group)) {
+	    if (group && memberOfGroup(memberPtr, group)) {
 		break;
 	    }
 	}
@@ -1459,7 +1459,7 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 		 groupListPtr; groupListPtr = groupListPtr->nextPtr) {
 
 		group = ((Option *) groupListPtr->ptr)->objectPtr;
-		if (memberOfGroup(memberPtr, group)) {
+		if (group && memberOfGroup(memberPtr, group)) {
 		    break;
 		}
 	    }
