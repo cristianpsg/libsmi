@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.83 2000/06/14 08:49:38 strauss Exp $
+ * @(#) $Id: data.c,v 1.84 2000/06/14 13:15:16 strauss Exp $
  */
 
 #include <config.h>
@@ -3729,8 +3729,16 @@ checkObjectName(modulePtr, name, parserPtr)
     Type        *typePtr;
     Module	*modPtr;
 
+    int errRedef = smiGetErrorSeverity(ERR_REDEFINITION);
+    int errExtRedef = smiGetErrorSeverity(ERR_EXT_REDEFINITION);
+    int errCaseRedef = smiGetErrorSeverity(ERR_CASE_REDEFINITION);
+    int errExtCaseRedef = smiGetErrorSeverity(ERR_EXT_CASE_REDEFINITION);
+
     if (! (parserPtr->flags & SMI_FLAG_ERRORS)
-	|| (smiGetErrorSeverity(ERR_REDEFINITION) > smiErrorLevel)) {
+	|| (errRedef > smiErrorLevel
+	    && errExtRedef > smiErrorLevel
+	    && errCaseRedef > smiErrorLevel
+	    && errExtCaseRedef > smiErrorLevel)) {
 	return;
     }
 
@@ -3740,6 +3748,17 @@ checkObjectName(modulePtr, name, parserPtr)
 
     for (modPtr = firstModulePtr;
 	 modPtr; modPtr = modPtr->nextPtr) {
+
+	/*
+	 * Skip all external modules if we are not interested in
+	 * generating warning on extern redefinitions.
+	 */
+
+	if (errExtRedef > smiErrorLevel
+	    && errExtCaseRedef > smiErrorLevel
+	    && modPtr != modulePtr) {
+	    continue;
+	}
 
         for (objectPtr = modPtr->firstObjectPtr;
 	     objectPtr; objectPtr = objectPtr->nextPtr) {
@@ -3793,8 +3812,16 @@ checkTypeName(modulePtr, name, parserPtr)
     Type        *typePtr;
     Module	*modPtr;
 
+    int errRedef = smiGetErrorSeverity(ERR_REDEFINITION);
+    int errExtRedef = smiGetErrorSeverity(ERR_EXT_REDEFINITION);
+    int errCaseRedef = smiGetErrorSeverity(ERR_CASE_REDEFINITION);
+    int errExtCaseRedef = smiGetErrorSeverity(ERR_EXT_CASE_REDEFINITION);
+
     if (! (parserPtr->flags & SMI_FLAG_ERRORS)
-	|| (smiGetErrorSeverity(ERR_REDEFINITION) > smiErrorLevel)) {
+	|| (errRedef > smiErrorLevel
+	    && errExtRedef > smiErrorLevel
+	    && errCaseRedef > smiErrorLevel
+	    && errExtCaseRedef > smiErrorLevel)) {
 	return;
     }
 
@@ -3804,6 +3831,17 @@ checkTypeName(modulePtr, name, parserPtr)
 
     for (modPtr = firstModulePtr;
 	 modPtr; modPtr = modPtr->nextPtr) {
+
+	/*
+	 * Skip all external modules if we are not interested in
+	 * generating warning on extern redefinitions.
+	 */
+
+	if (errExtRedef > smiErrorLevel
+	    && errExtCaseRedef > smiErrorLevel
+	    && modPtr != modulePtr) {
+	    continue;
+	}
 
 	for (typePtr = modPtr->firstTypePtr;
 	     typePtr; typePtr = typePtr->nextPtr) {
