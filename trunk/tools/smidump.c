@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.20 1999/11/24 19:02:41 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.21 1999/12/12 12:51:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -122,7 +122,7 @@ static void usage()
 	    "-s                    do not generate any comments\n"
 	    "-f <format>           use <format> when dumping (default %s)\n"
 	    "-p <module>           preload <module>\n"
-	    "<module_or_path>      plain name of MIB module or file path\n\n",
+	    "<module_or_path>      name of a MIB module or file path\n\n",
 	    driverTable->name);
     fprintf(stderr, "Supported formats are:\n");
     formats();

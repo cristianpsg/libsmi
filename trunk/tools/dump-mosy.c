@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.9 1999/11/24 19:02:39 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.10 2000/01/14 09:11:34 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -166,7 +166,7 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
 	if (valuePtr->value.bits) {
-	    for(p = valuePtr->value.bits; *p; p++) {
+	    for (p = valuePtr->value.bits; *p; p++) {
 		if (p != valuePtr->value.bits)
 		    sprintf(&s[strlen(s)], ", ");
 		sprintf(&s[strlen(s)], "%s", *p);
@@ -218,8 +218,8 @@ static void printAssignements(char *modulename)
     int		 cnt = 0;
     SmiNode	 *smiNode;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NODE);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NODE);
+	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 
 	cnt++;
 	
@@ -242,15 +242,15 @@ static void printTypedefs(char *modulename)
     SmiType	   *smiType;
     SmiNamedNumber *nn;
     
-    for(i = 0, smiType = smiGetFirstType(modulename);
-	smiType; smiType = smiGetNextType(smiType)) {
+    for (i = 0, smiType = smiGetFirstType(modulename);
+	 smiType; smiType = smiGetNextType(smiType)) {
 
 	printf("%%%-19s %-16s %-15s \"%s\"\n", "tc", smiType->name,
 	       getBasetypeString(smiType->basetype),
 	       smiType->format ? smiType->format : "");
 	
-	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
-	    nn ; i++, nn = smiGetNextNamedNumber(nn)) {
+	for (i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	     nn ; i++, nn = smiGetNextNamedNumber(nn)) {
 	    printf("%%%-19s %-16s %-15s %s\n", "es",
 		   smiType->name, nn->name,
 		   getValueString(&nn->value));
@@ -269,8 +269,8 @@ static void printObjects(char *modulename)
     SmiNamedNumber *smiNamedNumber;
     SmiRange       *smiRange;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
 	if (smiNode->nodekind != SMI_NODEKIND_NODE
 	    && smiNode->nodekind != SMI_NODEKIND_SCALAR
@@ -353,8 +353,8 @@ static void printObjects(char *modulename)
 	}
 
 	if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-	    for(i = 0, smiNamedNumber = smiGetFirstNamedNumber(smiType->module,
-							       smiType->name);
+	    for (i = 0, smiNamedNumber = smiGetFirstNamedNumber(smiType->module,
+								smiType->name);
 		smiNamedNumber;
 		i++, smiNamedNumber = smiGetNextNamedNumber(smiNamedNumber)) {
 		printf("%%%-19s %-16s %-15s %s\n", "ev",
@@ -401,9 +401,9 @@ static void printNotifications(char *modulename)
     int		 cnt = 0;
     SmiNode	 *smiNode;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
-	smiNode; 
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+	 smiNode; 
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
 	cnt++;
 	
@@ -424,8 +424,8 @@ static void printGroups(char *modulename)
     SmiListItem *smiListItem;
     int		cnt = 0, objects, notifications;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
+	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 
 	cnt ++;
 
@@ -462,8 +462,8 @@ static void printCompliances(char *modulename)
     int		  cnt = 0;
     SmiNode	  *smiNode;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
 	
 	cnt++;
 
