@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.39 2000/02/22 17:11:11 strauss Exp $
+ * @(#) $Id: error.c,v 1.40 2000/04/11 09:00:24 strauss Exp $
  */
 
 #include <config.h>
@@ -283,6 +283,10 @@ Error errors[] = {
       "Identifier `%s' may not be imported from module `%s'" },
     { 4, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION, "textual-convention-nested", 
       "Textual convention `%s' can not be derived from the textual convention `%s'" },
+    { 3, ERR_TABLE_ACCESS, "access-table-illegal", 
+      "Table node `%s' must by `not-accessible'" },
+    { 3, ERR_ROW_ACCESS, "access-row-illegal", 
+      "Row node `%s' must by `not-accessible'" },
  
     { 0, 0, NULL, NULL }
 };
