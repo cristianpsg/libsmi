@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.40 2002/05/17 11:34:29 strauss Exp $
+ * @(#) $Id: check.c,v 1.41 2002/05/31 17:22:13 bunkus Exp $
  */
 
 #include <config.h>
@@ -980,11 +980,6 @@ smiCheckAugment(Parser *parser, Object *object)
      * TODO: Check the size of the instance identifier and the OID
      * for this entry node.
      */
-
-#if 0
-    fprintf(stderr, "** %s augments -> %s\n", object->export.name,
-	    object->relatedPtr->export.name);
-#endif
 }
 
 
