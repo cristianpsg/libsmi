@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.39 2000/12/09 16:34:05 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.40 2001/06/15 07:12:20 strauss Exp $
  */
 
 #include <config.h>
@@ -458,7 +458,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     case SMI_BASETYPE_BITS:
 	sprintf(s, "{");
 	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
-	    if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
+	    if (valuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
 		for (nn = smiGetFirstNamedNumber(typePtr); nn;
 		     nn = smiGetNextNamedNumber(nn)) {
 		    if (nn->value.value.unsigned32 == i)

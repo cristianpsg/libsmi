@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.65 2001/09/05 11:01:11 schoenw Exp $
+ * @(#) $Id: smiquery.c,v 1.66 2001/09/25 07:21:34 schoenw Exp $
  */
 
 #include <config.h>
@@ -258,7 +258,7 @@ static char *formatvalue(const SmiValue *value, SmiType *type)
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
 	for (i = 0, n = 0; i < value->len * 8; i++) {
-	    if (value->value.ptr[i/8] & (1 << i%8)) {
+	    if (value->value.ptr[i/8] & (1 << (7-(i%8)))) {
 		if (n)
 		    sprintf(&s[strlen(s)], ", ");
 		n++;
