@@ -147,6 +147,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 <INITIAL>MACRO {
     trackInput(0, parser);
     BEGIN(Macro);
+    yylval.id = yytext;
     return MACRO;
 }
 
@@ -161,12 +162,14 @@ eol             ("\n"|"\n\015"|"\015\n")
 <Macro>END {
     trackInput(0, parser);
     BEGIN(INITIAL);
+    yylval.id = yytext;
     return END;
 }
 
 <INITIAL>EXPORTS {
     trackInput(0, parser);
     BEGIN(Exports);
+    yylval.id = yytext;
     return EXPORTS;
 }
 
@@ -187,6 +190,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 <INITIAL>CHOICE {
     trackInput(0, parser);
     BEGIN(Choice);
+    yylval.id = yytext;
     return CHOICE;
 }
 
@@ -260,326 +264,391 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <INITIAL>ACCESS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return ACCESS;
 }
 
 <INITIAL>AGENT-CAPABILITIES/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return AGENT_CAPABILITIES;
 }
 
 <INITIAL>APPLICATION/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return APPLICATION;
 }
 
 <INITIAL>AUGMENTS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return AUGMENTS;
 }
 
 <INITIAL>BEGIN/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return BEGIN_;
 }
 
 <INITIAL>BITS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return BITS;
 }
 
 <INITIAL>CONTACT-INFO/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return CONTACT_INFO;
 }
 
 <INITIAL>CREATION-REQUIRES/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return CREATION_REQUIRES;
 }
 
 <INITIAL>Counter32/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return COUNTER32;
 }
 
 <INITIAL>Counter64/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return COUNTER64;
 }
 
 <INITIAL>DEFINITIONS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return DEFINITIONS;
 }
 
 <INITIAL>DEFVAL/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return DEFVAL;
 }
 
 <INITIAL>DESCRIPTION/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return DESCRIPTION;
 }
 
 <INITIAL>DISPLAY-HINT/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return DISPLAY_HINT;
 }
 
 <INITIAL>END/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return END;
 }
 
 <INITIAL>ENTERPRISE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return ENTERPRISE;
 }
 
 <INITIAL>FROM/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return FROM;
 }
 
 <INITIAL>GROUP/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return GROUP;
 }
 
 <INITIAL>Gauge32/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return GAUGE32;
 }
 
 <INITIAL>IDENTIFIER/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return IDENTIFIER;
 }
 
 <INITIAL>IMPLICIT/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return IMPLICIT;
 }
 
 <INITIAL>IMPLIED/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return IMPLIED;
 }
 
 <INITIAL>IMPORTS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return IMPORTS;
 }
 
 <INITIAL>INCLUDES/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return INCLUDES;
 }
 
 <INITIAL>INDEX/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return INDEX;
 }
 
 <INITIAL>INTEGER/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return INTEGER;
 }
 
 <INITIAL>Integer32/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return INTEGER32;
 }
 
 <INITIAL>IpAddress/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return IPADDRESS;
 }
 
 <INITIAL>LAST-UPDATED/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return LAST_UPDATED;
 }
 
 <INITIAL>MANDATORY-GROUPS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return MANDATORY_GROUPS;
 }
 
 <INITIAL>MAX-ACCESS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return MAX_ACCESS;
 }
 
 <INITIAL>MIN-ACCESS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return MIN_ACCESS;
 }
 
 <INITIAL>MODULE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return MODULE;
 }
 
 <INITIAL>MODULE-COMPLIANCE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return MODULE_COMPLIANCE;
 }
 
 <INITIAL>MODULE-IDENTITY/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return MODULE_IDENTITY;
 }
 
 <INITIAL>NOTIFICATION-GROUP/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return NOTIFICATION_GROUP;
 }
 
 <INITIAL>NOTIFICATION-TYPE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return NOTIFICATION_TYPE;
 }
 
 <INITIAL>NOTIFICATIONS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return NOTIFICATIONS;
 }
 
 <INITIAL>OBJECT/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OBJECT;
 }
 
 <INITIAL>OBJECT-GROUP/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OBJECT_GROUP;
 }
 
 <INITIAL>OBJECT-IDENTITY/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OBJECT_IDENTITY;
 }
 
 <INITIAL>OBJECT-TYPE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OBJECT_TYPE;
 }
 
 <INITIAL>OBJECTS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OBJECTS;
 }
 
 <INITIAL>OCTET/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OCTET;
 }
 
 <INITIAL>OF/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OF;
 }
 
 <INITIAL>ORGANIZATION/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return ORGANIZATION;
 }
 
 <INITIAL>Opaque/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return OPAQUE;
 }
 
 <INITIAL>PRODUCT-RELEASE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return PRODUCT_RELEASE;
 }
 
 <INITIAL>REFERENCE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return REFERENCE;
 }
 
 <INITIAL>REVISION/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return REVISION;
 }
 
 <INITIAL>SEQUENCE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return SEQUENCE;
 }
 
 <INITIAL>SIZE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return SIZE;
 }
 
 <INITIAL>STATUS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return STATUS;
 }
 
 <INITIAL>STRING/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return STRING;
 }
 
 <INITIAL>SUPPORTS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return SUPPORTS;
 }
 
 <INITIAL>SYNTAX/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return SYNTAX;
 }
 
 <INITIAL>TEXTUAL-CONVENTION/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return TEXTUAL_CONVENTION;
 }
 
 <INITIAL>TimeTicks/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return TIMETICKS;
 }
 
 <INITIAL>TRAP-TYPE/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return TRAP_TYPE;
 }
 
 <INITIAL>UNITS/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return UNITS;
 }
 
 <INITIAL>UNIVERSAL/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return UNIVERSAL;
 }
 
 <INITIAL>Unsigned32/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return UNSIGNED32;
 }
 
 <INITIAL>VARIABLES/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return VARIABLES;
 }
 
 <INITIAL>VARIATION/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return VARIATION;
 }
 
 <INITIAL>WRITE-SYNTAX/{delim} {
     trackInput(0, parser);
+    yylval.id = yytext;
     return WRITE_SYNTAX;
 }
 

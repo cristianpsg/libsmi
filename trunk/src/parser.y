@@ -715,15 +715,15 @@ macroClause:		macroName
                         }
 	;
 
-macroName:		MODULE_IDENTITY
-	|		OBJECT_TYPE
-	|		NOTIFICATION_TYPE
-	|		OBJECT_IDENTITY
-	|		TEXTUAL_CONVENTION
-	|		OBJECT_GROUP
-	|		NOTIFICATION_GROUP
-	|		MODULE_COMPLIANCE
-	|		AGENT_CAPABILITIES
+macroName:		MODULE_IDENTITY     { $$ = strdup($1); } 
+	|		OBJECT_TYPE	    { $$ = strdup($1); }
+	|		NOTIFICATION_TYPE   { $$ = strdup($1); }
+	|		OBJECT_IDENTITY	    { $$ = strdup($1); }
+	|		TEXTUAL_CONVENTION  { $$ = strdup($1); }
+	|		OBJECT_GROUP	    { $$ = strdup($1); }
+	|		NOTIFICATION_GROUP  { $$ = strdup($1); }
+	|		MODULE_COMPLIANCE   { $$ = strdup($1); }
+	|		AGENT_CAPABILITIES  { $$ = strdup($1); }
 	;
 
 choiceClause:		CHOICE
@@ -778,6 +778,10 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
+				if (thisParser->flags &
+				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				    setMibNodeFlags($7, FLAG_MODULE);
+				}
 				$$ = 0;
 			    } else {
 				$$ = 0;
