@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.17 2001/03/06 11:42:09 strauss Exp $
+ * @(#) $Id: check.c,v 1.18 2001/03/12 11:23:26 strauss Exp $
  */
 
 #include <config.h>
@@ -1392,6 +1392,74 @@ smiCheckObjectReuse(Parser *parser, char *name, Object **objectPtr)
     
     if ((*objectPtr)->modulePtr != parser->modulePtr) {
 	*objectPtr = duplicateObject(*objectPtr, 0, parser);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckNotificationMembers --
+ *
+ *      Check whether a newly defined notification contains only members
+ *	of a single logical object.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckNotificationMembers(Parser *parser, Object *object)
+{
+    List *listPtr;
+    Object *memberPtr;
+    Node *parent = NULL;
+    Node *node = NULL;
+
+    for (listPtr = object->listPtr;
+	 listPtr; listPtr = listPtr->nextPtr) {
+	
+	memberPtr = (Object *) listPtr->ptr;
+
+	if (memberPtr->export.nodekind == SMI_NODEKIND_SCALAR) {
+	    if (memberPtr->nodePtr && memberPtr->nodePtr->parentPtr) {
+		node = memberPtr->nodePtr->parentPtr;
+	    }
+	} else if (memberPtr->export.nodekind == SMI_NODEKIND_COLUMN) {
+	    if (memberPtr->nodePtr && memberPtr->nodePtr->parentPtr
+		&& memberPtr->nodePtr->parentPtr->parentPtr) {
+		node = memberPtr->nodePtr->parentPtr->parentPtr;
+	    }
+	} else {
+	    smiPrintErrorAtLine(parser, ERR_NOTIFICATION_OBJECT_TYPE,
+				object->line, memberPtr->export.name,
+				object->export.name);
+	}
+
+	if (memberPtr->export.access == SMI_ACCESS_NOT_ACCESSIBLE) {
+	    smiPrintErrorAtLine(parser, ERR_NOTIFICATION_OBJECT_ACCESS,
+				object->line, memberPtr->export.name,
+				object->export.name);
+	}
+
+	/* xxx check for duplicates */
+#if 0
+	if (node) {
+	    if (! parent) {
+		parent = node;
+	    } else {
+		if (parent != node) {
+		    /* xxx do not report multiple times xxx */
+		    smiPrintErrorAtLine(parser, ERR_NOTIFICATION_OBJECT_MIX,
+					object->line, object->export.name);
+		}
+	    }
+	}
+#endif
     }
 }
 
