@@ -3047,7 +3047,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 		    printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
 		}
-		if (smiElement || smiNode->description) {
+		if (j || smiNode->description) {
 		    printf("\"");
 		}
 
@@ -3069,7 +3069,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 		    printf("colorText('%s','black')",
 					smiGetElementNode(smiElement)->name);
 		}
-		if (smiElement || smiNode->description) {
+		if (j || smiNode->description) {
 		    printf("\"");
 		}
 
@@ -3136,7 +3136,7 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 		    printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
 		}
-		if (smiElement || smiNode->description) {
+		if (j || smiNode->description) {
 		    printf("\"");
 		}
 
@@ -3158,7 +3158,7 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 		    printf("colorText('%s','black')",
 					smiGetElementNode(smiElement)->name);
 		}
-		if (smiElement || smiNode->description) {
+		if (j || smiNode->description) {
 		    printf("\"");
 		}
 
@@ -3226,7 +3226,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		    printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
 		}
-		if (smiElement || smiNode->description) {
+		if (j || smiNode->description) {
 		    printf("\"");
 		}
 
@@ -3248,7 +3248,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		    printf("colorText('%s','black')",
 					smiGetElementNode(smiElement)->name);
 		}
-		if (smiElement || smiNode->description) {
+		if (j || smiNode->description) {
 		    printf("\"");
 		}
 
@@ -3265,11 +3265,17 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 static void printModuleCompliance(int modc, SmiModule **modv,
 				  float *x, float *y)
 {
-    int         i, j;
-    char        *tooltip;
-    SmiNode     *smiNode;
-    SmiElement  *smiElement;
-    SmiRevision *smiRevision;
+    int           i, j;
+    char          *tooltip;
+    char          *done = NULL;
+    char          s[100];
+    char          *module;
+    SmiNode       *smiNode, *smiNode2;
+    SmiModule     *smiModule2;
+    SmiElement    *smiElement;
+    SmiRevision   *smiRevision;
+    SmiOption     *smiOption;
+    SmiRefinement *smiRefinement;
 
     printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-COMPLIANCE</text>\n", *x, *y);
     *y += TABLEELEMHEIGHT;
@@ -3303,7 +3309,139 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		printf(" (%s)</text>\n", getStatusString(smiNode->status));
 		*y += TABLEELEMHEIGHT;
 
-		//next TODO!
+		//modules for the compliance
+		*x += TABLEELEMHEIGHT;
+		done = xstrdup("+");
+		for (module = modv[i]->name; module; ) {
+		    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
+		    if (strlen(module) && strcmp(modv[i]->name, module)) {
+			printf("%s", module);
+		    } else {
+			printf("this module");
+		    }
+		    printf("</text>\n");
+		    *y += TABLEELEMHEIGHT;
+
+		    //mandatory groups
+		    *x += TABLEELEMHEIGHT;
+		    printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement) {
+			printf(" onmousemove=\"");
+		    }
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (!strcmp(smiGetNodeModule(smiGetElementNode(
+						smiElement))->name, module)) {
+			    if (j) {
+				printf(";");
+			    }
+			    printf("colorText('%s','red')",
+					smiGetElementNode(smiElement)->name);
+			}
+		    }
+		    if (j) {
+			printf("\"");
+		    }
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement) {
+			printf(" onmouseout=\"");
+		    }
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (!strcmp(smiGetNodeModule(smiGetElementNode(
+						smiElement))->name, module)) {
+			    if (j) {
+				printf(";");
+			    }
+			    printf("colorText('%s','black')",
+					smiGetElementNode(smiElement)->name);
+			}
+		    }
+		    if (j) {
+			printf("\"");
+		    }
+		    printf(">MANDATORY-GROUPS</text>");
+		    *y += TABLEELEMHEIGHT;
+		    *x -= TABLEELEMHEIGHT;
+
+		    //groups
+		    *x += TABLEELEMHEIGHT;
+		    for (smiOption = smiGetFirstOption(smiNode); smiOption;
+				    smiOption = smiGetNextOption(smiOption)) {
+			smiNode2 = smiGetOptionNode(smiOption);
+			smiModule2 = smiGetNodeModule(smiNode2);
+			if (!strcmp(smiModule2->name, module)) {
+			    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
+			    printf("GROUP <tspan onmousemove=\"");
+			    if (smiOption->description) {
+				tooltip = (char *)xmalloc(2*strlen(
+						smiOption->description));
+				parseTooltip(smiOption->description, tooltip);
+				printf("ShowTooltipMZ(evt,'%s');", tooltip);
+				xfree(tooltip);
+			    }
+			    printf("colorText('%s','red')", smiNode2->name);
+			    printf("\" onmouseout=\"");
+			    if (smiOption->description) {
+				printf("HideTooltip(evt);");
+			    }
+			    printf("colorText('%s','black')", smiNode2->name);
+			    printf("\">%s</tspan></text>\n", smiNode2->name);
+			    *y += TABLEELEMHEIGHT;
+			}
+		    }
+		    *x -= TABLEELEMHEIGHT;
+
+		    //objects
+		    *x += TABLEELEMHEIGHT;
+		    for (smiRefinement = smiGetFirstRefinement(smiNode);
+			smiRefinement;
+			smiRefinement = smiGetNextRefinement(smiRefinement)) {
+			smiNode2 = smiGetRefinementNode(smiRefinement);
+			smiModule2 = smiGetNodeModule(smiNode2);
+			if (!strcmp(smiModule2->name, module)) {
+			    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
+			    printf("OBJECT <tspan onmousemove=\"");
+			    if (smiRefinement->description) {
+				tooltip = (char *)xmalloc(2*strlen(
+						smiRefinement->description));
+				parseTooltip(smiRefinement->description,
+								tooltip);
+				printf("ShowTooltipMZ(evt,'%s');", tooltip);
+				xfree(tooltip);
+			    }
+			    printf("colorText('%s','red')", smiNode2->name);
+			    printf("\" onmouseout=\"");
+			    if (smiRefinement->description) {
+				printf("HideTooltip(evt);");
+			    }
+			    printf("colorText('%s','black')", smiNode2->name);
+			    printf("\">%s</tspan></text>\n", smiNode2->name);
+			    *y += TABLEELEMHEIGHT;
+			}
+		    }
+		    *x -= TABLEELEMHEIGHT;
+
+		    //find next module
+		    done = xrealloc(done,
+				strlen(done)+strlen(module)+2*sizeof(char));
+		    strcat(done, module);
+		    strcat(done, "+");
+		    module = NULL;
+		    for (smiElement = smiGetFirstElement(smiNode);
+			 smiElement;
+			 smiElement = smiGetNextElement(smiElement)) {
+			sprintf(s, "+%s+", smiGetNodeModule(smiGetElementNode(
+							smiElement))->name);
+			if ((!strstr(done, s))) {
+			    module = smiGetNodeModule(smiGetElementNode(
+							smiElement))->name;
+			    break;
+			}
+		    }
+		}
+		*x -= TABLEELEMHEIGHT;
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	}
