@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.29 2002/03/11 08:52:44 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.30 2002/05/17 13:44:17 schoenw Exp $
  */
 
 #include <config.h>
@@ -25,7 +25,7 @@ static int pmodc = 0;
 static SmiModule **pmodv = NULL;
 
 static int ignoreconformance = 0;
-static int compact = 0;
+static int full = 0;
 
 
 static char *getFlags(SmiNode *smiNode)
@@ -339,7 +339,7 @@ static void fprintTree(FILE *f)
     
     smiNode = smiGetNode(NULL, "iso");
 
-    if (compact) {
+    if (! full) {
 	do {
 	    for (childNode = smiGetFirstChildNode(smiNode), cnt = 0, nextNode = NULL;
 		 childNode;
@@ -416,8 +416,8 @@ void initTree()
     static SmidumpDriverOption opt[] = {
 	{ "no-conformance", OPT_FLAG, &ignoreconformance, 0,
 	  "do not show conformance definitions"},
-	{ "no-full-root", OPT_FLAG, &compact, 0,
-	  "do not show the full path to the root"},
+	{ "full-root", OPT_FLAG, &full, 0,
+	  "show the full path to the root"},
         { 0, OPT_END, 0, 0 }
     };
     
