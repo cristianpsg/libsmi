@@ -114,13 +114,15 @@ static int isSmiOnlyType(char *type)
 
 static char *getTimeString(time_t t)
 {
-    static char   s[27];
+    static char   *s = NULL;
     struct tm	  *tm;
 
+    if (s) xfree(s);
+
     tm = gmtime(&t);
-    sprintf(s, "%04d%02d%02d%02d%02dZ",
-	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	    tm->tm_hour, tm->tm_min);
+    smiAsprintf(&s, "%04d%02d%02d%02d%02dZ",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+		tm->tm_hour, tm->tm_min);
     return s;
 }
 
