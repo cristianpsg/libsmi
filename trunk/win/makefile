@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.15 2002/11/13 12:35:23 schoenw Exp $
+# @(#) $Id: makefile,v 1.16 2002/12/27 21:05:14 schoenw Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -134,13 +134,14 @@ all:	libs tools
 libs:	$(SMILIB)
 
 # special compilation rules
+# (flex-src avoids missing unistd.h if _Win32 defined)
 #
 $(TMPDIR)\scanner-smi.obj : $(ROOT)\lib\scanner-smi.c
-	$(cc32) $(cdebug) $(cflags) -D__STDC__ $(INCLUDES) \
+	$(cc32) $(cdebug) $(cflags) -D_Win32 -D__STDC__ $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $?
 
 $(TMPDIR)\scanner-sming.obj : $(ROOT)\lib\scanner-sming.c
-	$(cc32) $(cdebug) $(cflags) -D__STDC__ $(INCLUDES) \
+	$(cc32) $(cdebug) $(cflags) -D_Win32 -D__STDC__ $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $?
 
 
