@@ -151,8 +151,6 @@ static const float HEADFONTSIZETABLE   = (float)7;
 static const float HEADSPACESIZETABLE  = (float)4;
 static const float ATTRFONTSIZE        = (float)6;
 static const float ATTRSPACESIZE       = (float)2;
-static const float RECTCORRECTION      = (float)0.85;
-static const float EDGEYSPACING        = (float)2.0;
 static const float TABLEHEIGHT         = (float)35; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
@@ -167,16 +165,6 @@ static const float STARTSCALE          =(float)0.5;
 
 //used by the springembedder
 static const int ITERATIONS            =100;
-
-/*
- * global svg graph layout
- * FIXME these constants seem to be obsolete...
- */
-static const float YSPACING            = (float)30; /* y space between nodes */
-static const float XSPACING            = (float)40; /* x space between nodes */
-static const float NEWLINEDISTANCE     = (float)90; /* length of one line */
-static const float XOFFSET             = (float)10; /* left start of graph */
-static const float YOFFSET             = (float)10; /* upper start of graph */
 
 /*
  * Stereotype Name
@@ -1985,6 +1973,7 @@ static void parseTooltip(char *input, char *output)
 	    output[j++] = '\\';
 	    output[j++] = '\\';
 	    break;
+	//FIXME &quot;
 	case '\"':
 	    output[j++] = '\\';
 	    output[j++] = '\'';
@@ -2008,7 +1997,9 @@ static void parseTooltip(char *input, char *output)
 	    output[j++] = input[i];
 	}
     }
-    output[j++] = '\0';
+    output[j] = '\0';
+    if (output[--j] == ' ')
+	output[j] = '\0';
 }
 
 static int isObjectGroup(SmiNode *groupNode)
