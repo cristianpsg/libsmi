@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.99 2000/12/18 15:19:24 strauss Exp $
+ * @(#) $Id: smi.c,v 1.100 2001/06/11 09:59:19 strauss Exp $
  */
 
 #include <config.h>
@@ -384,11 +384,11 @@ int smiReadConfig(const char *filename, const char *tag)
 		    }
 		}
 	    } else if (!strcmp(cmd, "cache")) {
-		if (arg) {
-		    smiFree(smiCache);
+		smiFree(smiCache);
+		smiFree(smiCacheProg);
+		if (arg && strcmp(arg, "off")) {
 		    smiCache = smiStrdup(arg);
 		    arg = strtok(NULL, "\n\r");
-		    smiFree(smiCacheProg);
 		    smiCacheProg = smiStrdup(arg);
 		}
 	    } else if (!strcmp(cmd, "level")) {

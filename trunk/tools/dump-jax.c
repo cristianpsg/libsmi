@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.35 2001/02/15 17:08:16 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.36 2001/03/15 17:38:38 strauss Exp $
  */
 
 #include <config.h>
@@ -1244,9 +1244,9 @@ static void dumpNotifications(SmiNode *smiNode)
         if (smiGetNodeModule(elementNode) == smiGetNodeModule(smiNode)) {
             if (cnt) fprintf(f,", ");
             cnt++;
-            fprintf(f, "%s %s",
+            fprintf(f, "%s %s_%d",
                     translate1Upper(smiGetParentNode(elementNode)->name),
-                    smiGetParentNode(elementNode)->name);
+                    smiGetParentNode(elementNode)->name, cnt);
         }
     }
     fprintf(f, ") {\n"
@@ -1263,23 +1263,24 @@ static void dumpNotifications(SmiNode *smiNode)
 	if (smiGetNodeModule(elementNode) == smiGetNodeModule(smiNode)) {
 
 	    fprintf(f,
-		    "\n        // add the %s %s object\n",
+		    "\n        // add the %s %s object of %s_%d\n",
 		    elementNode->name,
 		    elementNode->nodekind == SMI_NODEKIND_COLUMN ?
-		    "columnar" : "scalar");
+		    "columnar" : "scalar",
+		    smiGetParentNode(elementNode)->name, cnt);
 
 	    if (elementNode->nodekind == SMI_NODEKIND_COLUMN) {
 		fprintf(f,
 			"        oid = %s_OID;\n"
-			"        oid.appendImplied(%s.getInstance());\n",
+			"        oid.appendImplied(%s_%d.getInstance());\n",
 			elementNode->name,
-			smiGetParentNode(elementNode)->name);
+			smiGetParentNode(elementNode)->name, cnt);
 		fprintf(f,
 			"        varBind = new AgentXVarBind(oid,\n"
 			"                                    AgentXVarBind.%s,\n"
-			"                                    %s.get_%s());\n",
+			"                                    %s_%d.get_%s());\n",
 			getAgentXType(smiGetNodeType(elementNode)),
-			smiGetParentNode(elementNode)->name,
+			smiGetParentNode(elementNode)->name, cnt,
 			elementNode->name);
 		fprintf(f,
 			"        varBindList.addElement(varBind);\n");
@@ -1292,9 +1293,9 @@ static void dumpNotifications(SmiNode *smiNode)
 		fprintf(f,
 			"        varBind = new AgentXVarBind(oid,\n"
 			"                                    AgentXVarBind.%s,\n"
-			"                                    %s.get_%s());\n",
+			"                                    %s_%d.get_%s());\n",
 			getAgentXType(smiGetNodeType(elementNode)),
-			smiGetParentNode(elementNode)->name,
+			smiGetParentNode(elementNode)->name, cnt,
 			elementNode->name);
 		fprintf(f,
 			"        varBindList.addElement(varBind);\n");
