@@ -29,7 +29,7 @@
 #include "smi.h"
 #include "smidump.h"
 
-#define DOT
+//#define DOT
 
 
 #define ABS(a) ((float)((a > 0.0) ? (a) : (-(a))))
@@ -1870,8 +1870,8 @@ static void algCreateNodes(SmiModule *module)
  */
 static void printSVGClose()
 {
-    printf("  <rect x=\"0\" y=\"0\" width=\"1100\" height=\"600\"\n");
-    printf("        fill=\"none\" stroke=\"blue\" stroke-width=\"1\"/>\n");
+    printf(" <rect x=\"0\" y=\"0\" width=\"1100\" height=\"700\"\n");
+    printf("       fill=\"none\" stroke=\"blue\" stroke-width=\"1\"/>\n");
     printf("</svg>\n");
 
 #ifdef DOT
@@ -1997,7 +1997,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
     node->dia.y = y;
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
     
-    printf(" <g transform=\"translate(%.2f,%.2f), scale(1)\">\n", x, y);
+    printf(" <g transform=\"translate(%.2f,%.2f)\">\n", x, y);
     printf("  <g id=\"%i\">\n", classNr);
     printf("    <rect x=\"0\" y=\"0\" width=\"%.2f\" height=\"%.2f\"\n",
            node->dia.w,node->dia.h);
@@ -2612,12 +2612,12 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
     printf("<?xml version=\"1.0\"?>\n");
     printf("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n");
     printf("  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
-    printf("<svg width=\"1100\" height=\"600\" version=\"1.1\"\n");
+    printf("<svg width=\"1100\" height=\"700\" version=\"1.1\"\n");
     printf("     xmlns=\"http://www.w3.org/2000/svg\"\n");
     printf("     onload=\"init(evt)\">\n");
 
     //the ecma-script for handling the "+"- and "-"-buttons
-    printf("\n<script type=\"text/ecmascript\">\n<![CDATA[\n\n");
+    printf("\n<script type=\"text/ecmascript\">\n<![CDATA[\n");
     printf("var scalFac = new Array(%i);\n\n",nodecount);
     printf("function init(evt) {\n");
     printf("    for (i=0; i<%i; i++) {\n",nodecount);
@@ -2635,10 +2635,10 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
     printf("    scalFac[classNr] = scalFac[classNr] / 1.1;\n");
     printf("    obj.setAttribute(\"transform\",");
     printf("\"scale(\"+scalFac[classNr]+\")\");\n");
-    printf("}\n\n");
+    printf("}\n");
     printf("// ]]>\n</script>\n\n");
 
-    printf("  <title>%s</title>\n", note1);
+    printf(" <title>%s</title>\n", note1);
 
 #ifdef DOT
     strcat(note2, s22);
