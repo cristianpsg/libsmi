@@ -1,5 +1,18 @@
 2000-06-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/parser-smi.y: added checks for range restrictions applied
+	to enumeration types.
+
+	* test/: adjusted LIBSMI-TEST-* mibs and dumps/ files to
+	satisfy the test suite.
+	
+	* lib/parser-smi.y: fixed crashes in case of lowercase identifier
+	DEFVALs for objects that are neither enums nor oids. Thanks to
+	Bill Fenner.
+
+	* lib/parser-smi.y (checkObjects): fixed crashes in case of
+	unknown oids.
+
 	* lib/smi.c (smiGetNextNode): fixed segfault caused by missing
 	modules.
 
