@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.20 1998/11/27 15:32:09 strauss Exp $
+ * @(#) $Id: smi.c,v 1.21 1998/11/29 11:47:06 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -20,6 +20,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <strings.h>
 
 #include "defs.h"
 #include "smi.h"
@@ -51,6 +52,12 @@ typedef struct Location {
     struct Location *prev;
 } Location;
 
+typedef struct View {
+    char	    *name;
+    struct View	    *next;
+    struct View	    *prev;
+} View;
+
 
 
 static int		flags = 0;
@@ -58,6 +65,9 @@ static int		initialized = 0;
 
 static Location		*firstLocation = NULL;
 static Location		*lastLocation = NULL;
+
+static View		*firstView = NULL;
+static View		*lastView = NULL;
 
 
 
@@ -129,21 +139,23 @@ void
 createFullname(spec, mod, fullname)
     char *spec;
     char *mod;
-    char **fullname;
+    char *fullname;
 {
     printDebug(5, "createFullname(\"%s\", \"%s\", ...",
 	       spec, mod ? mod : "NULL");
 
     if ((strchr(spec, '!') || strchr(spec, '.')) &&
 	(isupper(spec[0]))) {
-	strncpy(*fullname, spec, SMI_MAX_DESCRIPTOR + 1 + SMI_MAX_OID);
+	strncpy(fullname, spec, SMI_MAX_DESCRIPTOR + 1 + SMI_MAX_OID);
     } else if (mod && strlen(mod)) {
-	strncpy(*fullname, mod, SMI_MAX_DESCRIPTOR);
-	strncat(*fullname, ".", SMI_MAX_DESCRIPTOR + 1);
-	strncat(*fullname, spec, SMI_MAX_DESCRIPTOR + 1 + SMI_MAX_OID);
+	strncpy(fullname, mod, SMI_MAX_DESCRIPTOR);
+	strncat(fullname, ".", SMI_MAX_DESCRIPTOR + 1);
+	strncat(fullname, spec, SMI_MAX_DESCRIPTOR + 1 + SMI_MAX_OID);
     } else {
-	strncpy(*fullname, spec, SMI_MAX_OID);
+	strncpy(fullname, spec, SMI_MAX_OID);
     }
+
+    printDebug(5, " fullname=\"%s\")\n", fullname);
 }
 
 
@@ -151,8 +163,8 @@ createFullname(spec, mod, fullname)
 void
 createModuleAndName(fullname, module, name)
     char *fullname;
-    char **module;
-    char **name;
+    char *module;
+    char *name;
 {
     int l;
     
@@ -160,15 +172,57 @@ createModuleAndName(fullname, module, name)
 
     if ((l = strcspn(fullname, ".")) &&
 	(isupper(fullname[0]) || (fullname[0] == '.'))) {
-	strncpy(*module, fullname, MIN(SMI_MAX_DESCRIPTOR, l));
-	*module[l] = 0;
-	strncpy(*name, &fullname[l+1], SMI_MAX_OID);
+	strcpy(module, fullname);
+	module[l] = 0;
+	strcpy(name, &fullname[l+1]);
     } else {
-	strncpy(*name, fullname, SMI_MAX_DESCRIPTOR + 1 + SMI_MAX_OID);
+	strcpy(name, fullname);
 	module[0] = 0;
     }
 
-    printDebug(5, " ... module=\"%s\", name=\"%s\")\n", *module, *name);
+    printDebug(5, " module=\"%s\", name=\"%s\")\n", module, name);
+}
+
+
+
+void
+filterNamelist(list)
+    char *list;
+{
+    char *a[100];
+    int num, i, j, l;
+    char *p;
+    char m[SMI_MAX_DESCRIPTOR+1];
+    View *view;
+    
+    /* loop over every element */
+    for (i = 0, num = 0, p = strtok(list, " ");
+	 p; p = strtok(NULL, " ")) {
+	/* filter modules not in our view */
+	strncpy(m, p, (l = strcspn(p, ".")));
+	m[l] = 0;
+	for (view = firstView; view; view = view->next) 
+	    if (!strcmp(m, view->name)) break;
+	if ((!view) && (firstView)) break;
+	/* filter duplicates */
+	for (j = 0; j < num; j++) if (!strcmp(p, a[j])) break;
+	if (j == num) {
+	    a[num] = p;
+	    num++;
+	}
+    }
+    /* rebuild result list */
+    for (i = 0, p = list; i < num; i++) {
+	l = strlen(a[i]);
+	bcopy(a[i], p, l);
+	p += l;
+	p[0] = ' ';
+	p += 1;
+    }
+    if (p != list) {
+	p--;
+	p[0] = 0;
+    }
 }
 
 
@@ -272,6 +326,9 @@ smiInit()
     
     firstLocation = NULL;
     lastLocation  = NULL;
+
+    firstView     = NULL;
+    lastView      = NULL;
 }
 
 
@@ -348,6 +405,7 @@ smiLoadMibModule(modulename)
     smi_descriptor modulename;
 {
     Location *location;
+    View *view;
     smi_getspec getspec;
     smi_module *smimodule;
 #ifdef PARSER
@@ -361,6 +419,21 @@ smiLoadMibModule(modulename)
 
     if (!initialized) smiInit();
 
+    view = (View *)malloc(sizeof(View));
+    if (!view) {
+	printError(NULL, ERR_ALLOCATING_VIEW, strerror(errno));
+	return -1;
+    }
+    view->name = strdup(modulename);
+    view->prev = lastView;
+    view->next = NULL;
+    if (lastView) {
+	lastView->next = view;
+    } else {
+	firstView = view;
+    }
+    lastView = view;    
+    
     for (location = firstLocation; location; location = location->next) {
 
 	if (location->type == LOCATION_RPC) {
@@ -566,7 +639,7 @@ smiGetNode(spec, mod, wantdescr)
     Location	    *l = NULL;
     smi_getspec	    getspec;
     smi_node	    *sminode;
-    char	    s[SMI_MAX_FULLNAME+1];
+    smi_fullname    sminame;
     char	    name[SMI_MAX_OID+1];
     char	    module[SMI_MAX_DESCRIPTOR+1];
     static char	    type[SMI_MAX_FULLNAME+1];
@@ -577,17 +650,17 @@ smiGetNode(spec, mod, wantdescr)
 #endif
     
     printDebug(4, "smiGetNode(\"%s\", \"%s\", %d)\n",
-	       name, module ? module : "NULL", wantdescr);
+	       spec, mod ? mod : "NULL", wantdescr);
 
-    createFullname(spec, mod, &fullname);
-    createModuleAndName(fullname, &name, &module);
+    createFullname(spec, mod, fullname);
+    createModuleAndName(fullname, module, name);
 
     for (l = firstLocation; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
-	    sprintf(s, "%s.%s", module, name);
-	    getspec.name = s;
+	    sminame = fullname;
+	    getspec.name = sminame;
 	    getspec.wantdescr = wantdescr;
 	    sminode = smiproc_node_1(&getspec, l->cl);
 	    if (sminode && strlen(sminode->name)) {
@@ -695,7 +768,7 @@ smiGetType(spec, mod, wantdescr)
     Location	    *l = NULL;
     smi_getspec	    getspec;
     smi_type	    *smitype;
-    char	    s[SMI_MAX_FULLNAME+1];
+    smi_fullname    sminame;
     char	    name[SMI_MAX_OID+1];
     char	    module[SMI_MAX_DESCRIPTOR+1];
     char	    fullname[SMI_MAX_FULLNAME+1];
@@ -705,17 +778,17 @@ smiGetType(spec, mod, wantdescr)
 #endif
     
     printDebug(4, "smiGetType(\"%s\", \"%s\", %d)\n",
-	       name, module ? module : "NULL", wantdescr);
+	       spec, mod ? mod : "NULL", wantdescr);
 
-    createFullname(spec, mod, &fullname);
-    createModuleAndName(fullname, &name, &module);
+    createFullname(spec, mod, fullname);
+    createModuleAndName(fullname, module, name);
 
     for (l = firstLocation; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
-	    sprintf(s, "%s.%s", module, name);
-	    getspec.name = s;
+	    sminame = fullname;
+	    getspec.name = sminame;
 	    getspec.wantdescr = wantdescr;
 	    smitype = smiproc_type_1(&getspec, l->cl);
 	    if (smitype && strlen(smitype->name)) {
@@ -798,7 +871,7 @@ smiGetMacro(spec, mod)
     Module	    *m = NULL;
     Location	    *l = NULL;
     smi_macro	    *smimacro;
-    char	    s[SMI_MAX_FULLNAME+1];
+    smi_fullname    sminame;
     char	    name[SMI_MAX_OID+1];
     char	    module[SMI_MAX_DESCRIPTOR+1];
     char	    fullname[SMI_MAX_FULLNAME+1];
@@ -810,15 +883,15 @@ smiGetMacro(spec, mod)
     printDebug(4, "smiGetMacro(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, &fullname);
-    createModuleAndName(fullname, &name, &module);
+    createFullname(spec, mod, fullname);
+    createModuleAndName(fullname, module, name);
 
     for (l = firstLocation; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
-	    sprintf(s, "%s.%s", module, name);
-	    smimacro = smiproc_macro_1(&s, l->cl);
+	    sminame = fullname;
+	    smimacro = smiproc_macro_1(&sminame, l->cl);
 	    if (smimacro && strlen(smimacro->name)) {
 		return smimacro;
 	    }
@@ -886,7 +959,7 @@ smiGetNames(spec, mod)
 {
     static smi_namelist res;
     Location		*l;
-    Module		*m;
+    Module		*m = NULL;
     Object		*o;
     Descriptor		*d;
     Node		*n, *n2, *nn = NULL;
@@ -895,7 +968,7 @@ smiGetNames(spec, mod)
     char		name[SMI_MAX_OID+1];
     char		module[SMI_MAX_DESCRIPTOR+1];
     char		fullname[SMI_MAX_FULLNAME+1];
-    char		*s;
+    smi_fullname	sminame;
     char		ss[SMI_MAX_FULLNAME+1];
     smi_subid		subid;
     static char		*p = NULL;
@@ -908,14 +981,16 @@ smiGetNames(spec, mod)
     printDebug(4, "smiGetNames(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, &fullname);
-    createModuleAndName(fullname, &name, &module);
+    createFullname(spec, mod, fullname);
+    createModuleAndName(fullname, module, name);
 
+#if 0
     if (strlen(module)) {
 	m = findModuleByName(module);
     } else {
 	m = NULL;
     }
+#endif
     
     d = NULL;
     if (!p) {
@@ -923,56 +998,13 @@ smiGetNames(spec, mod)
     }
     strcpy(p, "");
 
-    if (isdigit(name[0])) {
-	elements = strdup(name);
-	/* TODO: success? */
-	element = strtok(elements, ".");
-	n = rootNode;
-	nn = NULL;
-	while (element) {
-	    subid = (unsigned int)strtoul(element, NULL, 0);
-	    n = findNodeByParentAndSubid(n, subid);
-	    if (!n) break;
-	    nn = n;
-	    element = strtok(NULL, ".");
-	}
-	free(elements);
-    } else if (strchr(name, '.')) {
-	elements = strdup(name);
-	element = strtok(elements, ".");
-	o = findObjectByName(element);
-	if (o) {
-	    n = o->node;
-	    nn = n;
-	    element = strtok(NULL, ".");
-	    while (element) {
-		if (isdigit(element[0])) {
-		    subid = (unsigned int)strtoul(element, NULL, 0);
-		    n = findNodeByParentAndSubid(n, subid);
-		    if (!n) break;
-		    nn = n;
-		} else {
-		    for (n2 = n->firstChild; n2; n2 = n2->next) {
-			for (o = n2->firstObject; o; o = o->next) {
-			    if (!strcmp(o->descriptor->name, element)) {
-				nn = n2;
-				break;
-			    }
-			}
-		    }
-		}
-		element = strtok(NULL, ".");
-	    }
-	}
-    }
-
     for (l = firstLocation; l; l = l->next) {
 
-	if (l->type == LOCATION_RPC) {
+	if ((l->type == LOCATION_RPC) && (l->cl)) {
 
-	    sprintf(ss, "%s.%s", module, name);
-	    smilist = smiproc_names_1(&ss, l->cl);
-	    if (smilist && strlen(smilist->namelist)) {
+	    sminame = fullname;
+	    smilist = smiproc_names_1(&sminame, l->cl);
+	    if (smilist && (smilist->namelist)) {
 		if (strlen(p)+strlen(smilist->namelist)+2 > plen) {
 		    p = realloc(p, strlen(p)+strlen(smilist->namelist)+2);
 		}
@@ -986,7 +1018,7 @@ smiGetNames(spec, mod)
 	    
 	    if (l->type == LOCATION_DIR) {
 		
-		if (strlen(module)) {
+		if ((!m) && (strlen(module))) {
 		    if (!(m = findModuleByName(module))) {
 
 			path = malloc(strlen(l->name)+strlen(module)+6);
@@ -1011,6 +1043,55 @@ smiGetNames(spec, mod)
 	    }
 
 	    if (m || !strlen(module)) {
+
+		if (!nn) {
+		    if (isdigit(name[0])) {
+			elements = strdup(name);
+			/* TODO: success? */
+			element = strtok(elements, ".");
+			n = rootNode;
+			nn = NULL;
+			while (element) {
+			    subid = (unsigned int)strtoul(element, NULL, 0);
+			    n = findNodeByParentAndSubid(n, subid);
+			    if (!n) break;
+			    nn = n;
+			    element = strtok(NULL, ".");
+			}
+			free(elements);
+		    } else if (strchr(name, '.')) {
+			elements = strdup(name);
+			element = strtok(elements, ".");
+			o = findObjectByName(element);
+			if (o) {
+			    n = o->node;
+			    nn = n;
+			    element = strtok(NULL, ".");
+			    while (element) {
+				if (isdigit(element[0])) {
+				    subid = (unsigned int)strtoul(element,
+								  NULL, 0);
+				    n = findNodeByParentAndSubid(n, subid);
+				    /* if (!n) break; */
+				    nn = n;
+				} else {
+				    for (n2 = n->firstChild; n2;
+					 n2 = n2->next) {
+					for (o = n2->firstObject; o;
+					     o = o->next) {
+					    if (!strcmp(o->descriptor->name,
+							element)) {
+						nn = n2;
+						break;
+					    }
+					}
+				    }
+				}
+				element = strtok(NULL, ".");
+			    }
+			}
+		    }
+		}
 		
 		if (nn) {
 
@@ -1035,6 +1116,7 @@ smiGetNames(spec, mod)
 		    
 		} else {
 
+		    d = NULL;
 		    do {
 			d = findNextDescriptor(name, m, KIND_ANY, d);
 			if (d &&
@@ -1068,6 +1150,8 @@ smiGetNames(spec, mod)
 	}
     }
 
+    filterNamelist(p);
+    
     res.namelist = p;
     return &res;
 }
@@ -1086,6 +1170,7 @@ smiGetChildren(spec, mod)
     Descriptor		*d;
     Node		*n = NULL;
     smi_namelist	*smilist;
+    smi_fullname	sminame;
     char		name[SMI_MAX_OID+1];
     char		module[SMI_MAX_DESCRIPTOR+1];
     char		fullname[SMI_MAX_FULLNAME+1];
@@ -1101,8 +1186,8 @@ smiGetChildren(spec, mod)
     printDebug(4, "smiGetChildren(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, &fullname);
-    createModuleAndName(fullname, &name, &module);
+    createFullname(spec, mod, fullname);
+    createModuleAndName(fullname, module, name);
 
     d = NULL;
     if (!p) {
@@ -1116,8 +1201,8 @@ smiGetChildren(spec, mod)
 	
 	if (l->type == LOCATION_RPC) {
 
-	    sprintf(ss, "%s.%s", module, name);
-	    smilist = smiproc_children_1(&ss, l->cl);
+	    sminame = fullname;
+	    smilist = smiproc_children_1(&sminame, l->cl);
 	    if (smilist && strlen(smilist->namelist)) {
 
 		for(s = strtok(smilist->namelist, " ");
@@ -1209,6 +1294,8 @@ smiGetChildren(spec, mod)
 
     }
 
+    filterNamelist(p);
+    
     res.namelist = p;
     return &res;
 }
@@ -1226,6 +1313,7 @@ smiGetMembers(spec, mod)
     Object		*o = NULL;
     Descriptor		*d;
     Type		*t;
+    smi_fullname	sminame;
     char		name[SMI_MAX_OID+1];
     char		module[SMI_MAX_DESCRIPTOR+1];
     char		fullname[SMI_MAX_FULLNAME+1];
@@ -1242,8 +1330,8 @@ smiGetMembers(spec, mod)
     printDebug(4, "smiGetMembers(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, &fullname);
-    createModuleAndName(fullname, &name, &module);
+    createFullname(spec, mod, fullname);
+    createModuleAndName(fullname, module, name);
 
     d = NULL;
     if (!p) {
@@ -1345,6 +1433,8 @@ smiGetMembers(spec, mod)
 	}
     }
 
+    filterNamelist(p);
+    
     res.namelist = p;
     return &res;
 }
@@ -1361,7 +1451,8 @@ smiGetParent(spec, mod)
     Node		*n;
     Module		*m;
     Location		*l;
-    smi_fullname	*sminame;
+    smi_fullname	sminame;
+    smi_fullname	*sminame2;
     char		name[SMI_MAX_OID+1];
     char		module[SMI_MAX_DESCRIPTOR+1];
     char		fullname[SMI_MAX_FULLNAME+1];
@@ -1374,16 +1465,17 @@ smiGetParent(spec, mod)
     printDebug(4, "smiGetParent(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, &fullname);
-    createModuleAndName(fullname, &name, &module);
+    createFullname(spec, mod, fullname);
+    createModuleAndName(fullname, module, name);
     
     for (l = firstLocation; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
-	    sminame = smiproc_parent_1(&fullname, l->cl);
-	    if (sminame && strlen(*sminame)) {
-		return sminame;
+	    sminame = fullname;
+	    sminame2 = smiproc_parent_1(&sminame, l->cl);
+	    if (sminame2 && strlen(*sminame2)) {
+		return sminame2;
 	    }
 
 #ifdef PARSER
