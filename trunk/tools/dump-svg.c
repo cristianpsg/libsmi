@@ -2839,10 +2839,12 @@ static GraphNode *calcGroupSize(int group)
     calcNode->dia.x = (float) (rand()/RAND_MAX*CANVASWIDTH);
     calcNode->dia.y = (float) (rand()/RAND_MAX*CANVASHEIGHT);
     */
+    /*
     calcNode->dia.x = (float) rand();
     calcNode->dia.y = (float) rand();
     calcNode->dia.x /= (float) RAND_MAX;
     calcNode->dia.y /= (float) RAND_MAX;
+    */
     //calcNode->dia.x *= (float) CANVASWIDTH;
     //calcNode->dia.y *= (float) CANVASHEIGHT;
     //fprintf(stderr, "(%.2f,%.2f)\n", calcNode->dia.x, calcNode->dia.y);
@@ -2865,42 +2867,66 @@ static GraphNode *calcGroupSize(int group)
 }
 
 
-static void printModuleIdentity(int modc, SmiModule **modv)
+static void printModuleIdentity(int modc, SmiModule **modv, float x, float y)
 {
     int         i, j;
-    float       y = 100;
     char        *tooltip;
     SmiNode     *smiNode;
     SmiRevision *smiRevision;
 
+    y += TABLEELEMHEIGHT;
+    printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-IDENTITY</text>\n", x, y);
+    y += TABLEELEMHEIGHT;
+
     for (i = 0; i < modc; i++) {
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
+
+	    //name and description of the node.
+	    x += TABLEELEMHEIGHT;
 	    if (modv[i]->description) {
 		tooltip = (char *)xmalloc(2*strlen(modv[i]->description));
 		parseTooltip(modv[i]->description, tooltip);
-		printf(" <text x=\"100\" y=\"%.2f\" onmousemove=\"ShowTooltipMZ(evt,'%s')\" onmouseout=\"HideTooltip(evt)\">%s MODULE-IDENTITY</text>\n", y, tooltip, smiNode->name);
+		printf(" <text x=\"%.2f\" y=\"%.2f\"", x, y);
+		printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+		printf(" onmouseout=\"HideTooltip(evt)\">%s</text>\n",
+								smiNode->name);
 		xfree(tooltip);
 	    } else {
-		printf(" <text x=\"100\" y=\"%.2f\" onmousemove=\"ShowTooltipMZ(evt,'...')\" onmouseout=\"HideTooltip(evt)\">%s MODULE-IDENTITY</text>\n", y, smiNode->name);
+		printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
+							x, y, smiNode->name);
 	    }
 	    y += TABLEELEMHEIGHT;
-	    printf(" <text x=\"100\" y=\"%.2f\">LAST-UPDATED ", y);
-	    if (smiRevision = smiGetFirstRevision(modv[i])) {
-		printf("%s</text>\n", getTimeString(smiRevision->date));
+	    x -= TABLEELEMHEIGHT;
+
+	    //revision history of the node.
+	    x += 2*TABLEELEMHEIGHT;
+	    smiRevision = smiGetFirstRevision(modv[i]);
+	    if (!smiRevision) {
+		printf(" <text x=\"%.2f\" y=\"%.2f\">197001010000Z</text>\n",
+									x, y);
+		y += TABLEELEMHEIGHT;
 	    } else {
-		printf("197001010000Z</text>\n");
+		for(; smiRevision;
+				smiRevision = smiGetNextRevision(smiRevision)) {
+		    printf(" <text x=\"%.2f\" y=\"%.2f\"", x, y);
+		    if (smiRevision->description && strcmp(
+		smiRevision->description,
+		"[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
+			tooltip = (char *)xmalloc(2*
+					strlen(smiRevision->description));
+			parseTooltip(smiRevision->description, tooltip);
+			printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"",
+								tooltip);
+			printf(" onmouseout=\"HideTooltip(evt)\"");
+			xfree(tooltip);
+		    }
+		    printf(">%s</text>\n", getTimeString(smiRevision->date));
+		    y += TABLEELEMHEIGHT;
+		}
 	    }
-	    y += TABLEELEMHEIGHT;
-	    printf(" <text x=\"100\" y=\"%.2f\">DESCRIPTION ", y);
-	    if (modv[i]->description) {
-		//FIXME TODO
-		printf("%s</text>\n", modv[i]->description);
-	    } else {
-		printf("...</text>\n");
-	    }
+	    x -= 2*TABLEELEMHEIGHT;
 	}
-	y += 2*TABLEELEMHEIGHT;
     }
 }
 
@@ -3307,7 +3333,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     //print MODULE-IDENTITY
-    printModuleIdentity(modc, modv);
+    printModuleIdentity(modc, modv, 100, 0);
 
     //output of svg to stdout ends here
     printSVGClose(xMin, yMin, xMax, yMax);
