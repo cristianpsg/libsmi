@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.42 2000/05/30 11:09:58 strauss Exp $
+ * @(#) $Id: error.c,v 1.43 2000/06/07 10:19:49 strauss Exp $
  */
 
 #include <config.h>
@@ -18,6 +18,10 @@
 #include <stdarg.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
 #endif
 
 #include "error.h"

@@ -21,6 +21,9 @@
 /* The default search path to lookup SMI module files. */
 #define DEFAULT_SMIPATH "/usr/local/share/mibs/ietf"
 
+/* Define if dmalloc.h is present and shall be used. */
+#undef HAVE_DMALLOC_H
+
 /* Define if the string-to-long-long function is present in libc. */
 #undef HAVE_STRTOLL
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.21 2000/04/10 15:55:18 strauss Exp $
+ * @(#) $Id: util.c,v 1.22 2000/06/08 08:17:14 strauss Exp $
  */
 
 #include <config.h>
@@ -17,6 +17,9 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
 
 #include "util.h"
 

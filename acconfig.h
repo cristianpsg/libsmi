@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: acconfig.h,v 1.1 2000/02/12 10:56:19 strauss Exp $
+ * @(#) $Id: acconfig.h,v 1.2 2000/02/16 21:14:49 strauss Exp $
  */
 
 /* Define if the SMIv1/v2 parser shall be active. */
@@ -31,6 +31,9 @@
 
 /* The default search path to lookup SMI module files. */
 #define DEFAULT_SMIPATH "/usr/local/share/mibs/ietf"
+
+/* Define if dmalloc.h is present and shall be used. */
+#undef HAVE_DMALLOC_H
 
 /* Define if getopt.h (argv[] option parser) is present. */
 #undef HAVE_GETOPT_H

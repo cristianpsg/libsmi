@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.21 2000/04/11 09:00:25 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.22 2000/05/17 10:16:45 strauss Exp $
  */
 
 %option noyywrap
@@ -21,6 +21,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
 
 #include "error.h"
 #include "util.h"

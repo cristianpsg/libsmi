@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.79 2000/05/16 15:09:31 strauss Exp $
+ * @(#) $Id: data.c,v 1.80 2000/05/17 09:48:53 strauss Exp $
  */
 
 #include <config.h>
@@ -22,6 +22,10 @@
 #endif
 #ifdef HAVE_WIN_H
 #include "win.h"
+#endif
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
 #endif
 
 #include "error.h"
