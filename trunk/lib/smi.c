@@ -8,25 +8,17 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.84 2000/03/02 09:22:29 strauss Exp $
+ * @(#) $Id: smi.c,v 1.85 2000/04/10 14:20:14 strauss Exp $
  */
 
 #include <config.h>
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/uio.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string.h>
-#include <strings.h>
-#include <errno.h>
-#include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/types.h>
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>

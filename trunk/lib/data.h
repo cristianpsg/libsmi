@@ -8,15 +8,13 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.58 2000/03/21 08:37:31 strauss Exp $
+ * @(#) $Id: data.h,v 1.59 2000/04/10 14:20:14 strauss Exp $
  */
 
 #ifndef _DATA_H
 #define _DATA_H
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdlib.h>
+
 #include <stdio.h>
 
 #include "smi.h"

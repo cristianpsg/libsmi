@@ -8,16 +8,13 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.16 2000/02/22 17:11:12 strauss Exp $
+ * @(#) $Id: util.h,v 1.17 2000/03/02 09:22:29 strauss Exp $
  */
 
 #ifndef _UTIL_H
 #define _UTIL_H
 
-#include <sys/types.h>
-#include <unistd.h>
 #include <stdlib.h>
-#include <time.h>
 
 #include "smi.h"
 #include "error.h"
