@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.10 2000/04/11 16:02:14 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.11 2000/05/02 12:57:17 strauss Exp $
  */
 
 #include <config.h>
@@ -530,9 +530,6 @@ static void dumpEntry(SmiNode *smiNode)
     fprintf(f, "\n");
     
     fprintf(f,
-	    "    // constructors\n"
-	    "    public %s() {}// needed for class extension\n\n", translate1Upper(smiNode->name));
-    fprintf(f,
 	    "    public %s(", translate1Upper(smiNode->name));
     for (element = smiGetFirstElement(smiNode), cnt = 0;
 	 element;
@@ -731,53 +728,19 @@ static void dumpEntryImpl(SmiNode *smiNode)
 		indexNode->name);
     }
     fprintf(f, ")\n"
-	    "    {\n");
-    for (element = smiGetFirstElement(smiNode);
+	    "    {\n"
+	    "        super(");
+    for (element = smiGetFirstElement(smiNode), cnt = 0;
 	 element;
 	 element = smiGetNextElement(element)) {
-	indexNode = smiGetElementNode(element);
-	fprintf(f, "        this.%s = %s;\n",
-		indexNode->name, indexNode->name);
-    }
-    fprintf(f, "\n");
-    for (element = smiGetFirstElement(smiNode);
-	 element;
-	 element = smiGetNextElement(element)) {
-	indexNode = smiGetElementNode(element);
-
-	p = getJavaType(smiGetNodeType(indexNode));
-	if (!strcmp(p, "long")) {
-	    fprintf(f, "        instance.append(%s);\n",
-		    indexNode->name);
-	} else if (!strcmp(p, "int")) {
-	    fprintf(f, "        instance.append(%s);\n",
-		    indexNode->name);
-	} else if (!strcmp(p, "byte[]")) {
-	    smiType = smiGetNodeType(indexNode);
-	    smiRange = smiGetFirstRange(smiType);
-	    if ((smiRange && (!smiGetNextRange(smiRange)) &&
-		 (!memcmp(&smiRange->minValue, &smiRange->maxValue,
-			  sizeof(SmiValue)))) ||
-		(smiNode->implied && (!smiGetNextElement(element)))) {
-		fprintf(f, "        instance.appendImplied(%s);\n",
-			indexNode->name);
-	    } else {
-		fprintf(f, "        instance.append(%s);\n",
-			indexNode->name);
-	    }
-	} else if (!strcmp(p, "AgentXOID")) {
-	    if (smiNode->implied && (!smiGetNextElement(element))) {
-		fprintf(f, "        instance.appendImplied(%s);\n",
-			indexNode->name);
-	    } else {
-		fprintf(f, "        instance.append(%s);\n",
-			indexNode->name);
-	    }
-	} else {
-	    fprintf(f, "        XXX // [smidump: type of %s not supported]\n",
-		    indexNode->name);
+	if (cnt) {
+	    fprintf(f, ",\n%*s", 2 + strlen(smiNode->name), " ");
 	}
+	cnt++;
+	indexNode = smiGetElementNode(element);
+	fprintf(f, "%s", indexNode->name);
     }
+    fprintf(f,");\n");
     
     fprintf(f,
 	    "    }\n"
