@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.41 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.42 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -55,6 +55,8 @@ static Driver driverTable[] = {
       "recursive list of all derived types" },
     { "tree",	   dumpTree,	SMI_FLAG_NODESCR,	0,
       "structure of the OID tree" },
+    { "identifiers",dumpIdentifiers,SMI_FLAG_NODESCR,	0,
+      "list of all identifiers" },
     { "metrics",   dumpMetrics,	0,			0,
       "metrics characterizing MIB modules" },
     { "mosy",	   dumpMosy,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
