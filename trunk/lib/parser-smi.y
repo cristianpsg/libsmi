@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.196 2003/10/05 13:04:39 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.197 2003/10/06 10:48:45 strauss Exp $
  */
 
 %{
@@ -971,6 +971,7 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 	    }
 	}
 
+	smiCheckTypeFormat(parserPtr, typePtr);
 	smiCheckNamedNumberRedefinition(parserPtr, typePtr);
 	smiCheckNamedNumberSubtyping(parserPtr, typePtr);
     }
