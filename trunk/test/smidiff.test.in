@@ -8,7 +8,7 @@
 #	smidiff/ subdirectory it is looked up in the ../mibs/ repository.
 #
 
-export SMIPATH=../../mibs/ietf:../../mibs/iana:../../mibs/irtf
+export SMIPATH=.:../../mibs/ietf:../../mibs/iana:../../mibs/irtf:../../mibs/tubs
 
 RC=0
 FAILED=""

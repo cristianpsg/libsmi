@@ -1,10 +1,8 @@
-./Printer-MIB.new organization of `Printer-MIB' changed
-../../mibs/ietf/Printer-MIB previous definition of `Printer-MIB'
-./Printer-MIB.new contact of `Printer-MIB' changed
-../../mibs/ietf/Printer-MIB previous definition of `Printer-MIB'
-./Printer-MIB.new description of `Printer-MIB' changed
-../../mibs/ietf/Printer-MIB previous definition of `Printer-MIB'
-./Printer-MIB.new revision `2001-08-30 00:00' added
+./Printer-MIB.new:xx: contact of `Printer-MIB' changed
+../../mibs/ietf/Printer-MIB:xx: previous definition of `Printer-MIB'
+./Printer-MIB.new:xx: description of `Printer-MIB' changed
+../../mibs/ietf/Printer-MIB:xx: previous definition of `Printer-MIB'
+./Printer-MIB.new:xx: revision `2001-08-30 00:00' added
 ../../mibs/ietf/Printer-MIB:28 type `MediaUnit' has been deleted
 ../../mibs/ietf/Printer-MIB:38 type `CapacityUnit' has been deleted
 ../../mibs/ietf/Printer-MIB:51 type `SubUnitStatus' has been deleted
