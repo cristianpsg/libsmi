@@ -1,3 +1,8 @@
+2000-12-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-identifers.c: Juergen made dump-lines.c obsolete
+	by adding two options to the `identifiers' format.
+
 2000-12-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidump.c: Bill contributed a `lines' dump format to
