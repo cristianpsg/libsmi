@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.21 1999/04/09 20:28:38 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.22 1999/04/10 19:37:26 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1156,9 +1156,9 @@ dumpSming(modulename)
 	
 	printNotifications(modulename);
 	
-	printGroups();
+	printGroups(modulename);
 	
-	printCompliances();
+	printCompliances(modulename);
 	
 	print("}; // end of module %s.\n", modulename);
 
