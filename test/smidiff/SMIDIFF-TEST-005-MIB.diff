@@ -1,2 +1,6 @@
 ./SMIDIFF-TEST-005-MIB.new:90 changed kind of index in node `table2Entry'
 ./SMIDIFF-TEST-005-MIB.old:90 previous definition of `table2Entry'
+./SMIDIFF-TEST-005-MIB.new:185 index of node `table4Entry' changed
+./SMIDIFF-TEST-005-MIB.old:184 previous definition of `table4Entry'
+./SMIDIFF-TEST-005-MIB.new:232 index of node `table5Entry' changed
+./SMIDIFF-TEST-005-MIB.old:231 previous definition of `table5Entry'
