@@ -2,6 +2,9 @@
 
 	* mibs/ietf/ENTITY-SENSOR-MIB: added (RFC 3433).
 
+	* pibs/*: Moved PIBs from mibs/tubs/* to pibs/* and adapted
+	Makefiles and configure script accordingly.
+
 2002-12-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/{SNMP-FRAMEWORK-MIB,SNMP-MPD-MIB,SNMP-NOTIFICATION-MIB,

@@ -7,7 +7,7 @@ Copyright (c) 1999-2002 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.27 2002/01/16 14:45:10 strauss Exp $
+@(#) $Id: README,v 1.28 2002/06/21 14:30:59 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -33,8 +33,9 @@ TODO					incomplete list of things to be done
 configure				configure script
 lib/					library source code
 tools/					tools source code
-doc/draft-irtf-nmrg-sming-02.txt	old SMIng specification
-mibs/					MIB and PIB modules to be installed
+doc/					some related documents
+mibs/					MIB modules to be installed
+pibs/					PIB modules to be installed
 test/					some test patterns
 win/					Win32 port source code
 
@@ -53,9 +54,9 @@ output to see, what options are available. Then run
 
 	./configure [options]
 
-with the options of your choice. Choose mibdir and smipath values
-appripriate for your environment so that users can live without an
-SMIPATH environment variable and without configuration files.
+with the options of your choice. Choose mibdir, pibdir and smipath
+values appripriate for your environment so that users can live without
+an SMIPATH environment variable and without configuration files.
 
 On HP-UX platforms the build process is reported to require gcc
 and the --disable-shared configure option.
@@ -71,8 +72,8 @@ To build libsmi and the tools, run
 	make
 
 This should build the library libsmi in lib/ and the tools, namely
-tools/smilint, tools/smidump, tools/smiquery, and the shell script
-tools/smistrip.
+tools/smilint, tools/smidump, tools/smiquery, tools/smidiff, and the
+shell script tools/smistrip.
 
 Now, you may run some checks by
 
