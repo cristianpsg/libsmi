@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.3 2001/02/05 11:48:49 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.4 2001/02/07 13:20:21 schoenw Exp $
  */
 
 /*
@@ -667,12 +667,22 @@ static void printGetScalarAssignement(FILE *f, SmiNode *groupNode)
 	    case SMI_BASETYPE_INTEGER32:
 	    case SMI_BASETYPE_ENUM:
 		fprintf(f,
-			"            %s->%s = (gint32 *) &(vb->syntax.l);\n",
+			"            %s->%s = &(vb->syntax.i32[0]);\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
-			"            %s->%s = (guint32 *) &(vb->syntax.ul);\n",
+			"            %s->%s = &(vb->syntax.ui32[0]);\n",
+			cGroupName, cName);
+		break;
+	    case SMI_BASETYPE_INTEGER64:
+		fprintf(f,
+			"            %s->%s = &(vb->syntax.i64[0]);\n",
+			cGroupName, cName);
+		break;
+	    case SMI_BASETYPE_UNSIGNED64:
+		fprintf(f,
+			"            %s->%s = &(vb->syntax.ui64[0]);\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
@@ -693,7 +703,7 @@ static void printGetScalarAssignement(FILE *f, SmiNode *groupNode)
 			"            %s->_%sLength = vb->syntax_len / sizeof(guint32);\n",
 			cGroupName, cName);
 		fprintf(f,
-			"            %s->%s = (guint32 *) vb->syntax.ul;\n",
+			"            %s->%s = vb->syntax.ui32;\n",
 			cGroupName, cName);
 		break;
 	    default:
@@ -743,9 +753,9 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
     fprintf(f,
 	    "    for (elem = vbl; elem; elem = g_slist_next(elem)) {\n"
 	    "        SNMP_OBJECT *vb = (SNMP_OBJECT *) elem->data;\n"
-	    "        if (vb->type == SNMP_ENDOFMIBVIEW\n"
-            "            || (vb->type == SNMP_NOSUCHOBJECT)\n"
-            "            || (vb->type == SNMP_NOSUCHINSTANCE)) {\n"
+	    "        if (vb->type == G_SNMP_ENDOFMIBVIEW\n"
+            "            || (vb->type == G_SNMP_NOSUCHOBJECT)\n"
+            "            || (vb->type == G_SNMP_NOSUCHINSTANCE)) {\n"
             "            continue;\n"
 	    "        }\n"
 	);
@@ -766,6 +776,7 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
 {
     SmiElement *smiElement;
+    SmiType *smiType;
     char *cName;
 
     if (! (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR))
@@ -788,9 +799,18 @@ static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
     }
 
     cName = translate(smiNode->name);
-    fprintf(f,
-	    "    stls_vbl_add_null(&in, %s, _%sLength);\n",
-	    cName, cName);
+    smiType = smiGetNodeType(smiNode);
+    if (smiType && smiType->basetype == SMI_BASETYPE_UNSIGNED64) {
+	fprintf(f, "    if (s->version > SNMP_V1) {\n");
+	fprintf(f,
+		"        stls_vbl_add_null(&in, %s, _%sLength);\n",
+		cName, cName);
+	fprintf(f, "}\n");
+    } else {
+	fprintf(f,
+		"    stls_vbl_add_null(&in, %s, _%sLength);\n",
+		cName, cName);
+    }
     xfree(cName);
 }
 
