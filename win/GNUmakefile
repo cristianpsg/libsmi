@@ -10,7 +10,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id$
+# @(#) $Id: GNUmakefile,v 1.1 2000/11/27 15:07:05 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -68,7 +68,8 @@ DEFINES = $(DEBUG)
 ##
 ## Library objects
 ##
-LIBSMIOBJS = $(patsubst %.c, %.obj, $(notdir $(wildcard ../lib/*.c))) win.obj
+LIBSMIOBJS = $(patsubst %.c, %.obj, $(notdir $(wildcard ../lib/*.c))) win.obj \
+	     shhopt.obj
 
 ##
 ## Tool objects
