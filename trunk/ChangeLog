@@ -1,3 +1,14 @@
+2000-12-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidump.c: Bill contributed a `lines' dump format to
+	print line numbers of definitions. He contributed also a patch
+	that allows the `identifiers' format to report identifiers with
+	OID definitions that could not be resolved (as in {mib-2 xxx}).
+
+	* lib/parser-smi.h: Bill added special handling for unintentionally
+	terminated comments and hints on definitions that could be imported
+	from more recent modules.
+
 2000-12-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/dump-*.c: More patches from Juergen. Most drivers are

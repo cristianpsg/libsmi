@@ -107,7 +107,7 @@ smipath = @smipath@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
-EXTRA_DIST = ANNOUNCE 			  win/Makefile.mingw win/README.mingw win/README.win 			  win/config.h win/config.h.in 			  win/makefile win/win.c win/win.h 			  smi.conf-example
+EXTRA_DIST = ANNOUNCE 			  win/Makefile.mingw win/README.mingw win/README.win 			  win/config.h win/config.h.in 			  win/makefile win/GNUmakefile win/win.c win/win.h 			  smi.conf-example
 
 
 SUBDIRS = lib tools mibs test doc

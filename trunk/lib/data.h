@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.66 2000/10/19 16:14:40 strauss Exp $
+ * @(#) $Id: data.h,v 1.67 2000/11/06 14:27:56 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -224,6 +224,7 @@ typedef struct Parser {
     char	   *path;
     FILE	   *file;
     int		   line;
+    int		   lcline;		/* for SMI comment warning */
     Module	   *modulePtr;
     ParserFlags	   flags;
     List	   *firstIndexlabelPtr; /* only for the SMIng parser */

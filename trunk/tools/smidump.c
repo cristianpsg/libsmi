@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.51 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.52 2000/12/11 08:41:22 strauss Exp $
  */
 
 #include <config.h>
@@ -236,6 +236,7 @@ int main(int argc, char *argv[])
     initIdentifiers();
     initImports();
     initJax();
+    initLines();
     initMetrics();
     initMosy();
     initNetsnmp();

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.96 2000/11/12 17:46:42 strauss Exp $
+ * @(#) $Id: smi.c,v 1.97 2000/11/16 14:58:10 strauss Exp $
  */
 
 #include <config.h>
@@ -769,6 +769,11 @@ SmiModule *smiGetTypeModule(SmiType *smiTypePtr)
     return &((Type *)smiTypePtr)->modulePtr->export;
 }
 
+int smiGetTypeLine(SmiType *smiTypePtr)
+{
+    return ((Type *)smiTypePtr)->line;
+}
+
 
 
 SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr)
@@ -933,6 +938,10 @@ SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr)
 }
 
 
+char *smiGetModulePath(SmiModule *smiModulePtr)
+{
+    return ((Module *)smiModulePtr)->export.path;
+}
 
 SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *node)
 {
@@ -1278,6 +1287,11 @@ SmiType *smiGetNodeType(SmiNode *smiNodePtr)
     }
     
     return &typePtr->export;
+}
+
+int smiGetNodeLine(SmiNode *smiNodePtr)
+{
+    return ((Object *)smiNodePtr)->line;
 }
 
 

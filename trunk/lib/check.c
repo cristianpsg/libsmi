@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.10 2000/11/08 23:12:02 strauss Exp $
+ * @(#) $Id: check.c,v 1.11 2000/11/27 12:06:40 strauss Exp $
  */
 
 #include <config.h>
@@ -1039,4 +1039,26 @@ smiCheckObjectReuse(Parser *parser, char *name, Object **objectPtr)
     if ((*objectPtr)->modulePtr != parser->modulePtr) {
 	*objectPtr = duplicateObject(*objectPtr, 0, parser);
     }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiyyerror --
+ *
+ *      Prints an error message from the parser.  In SMIv1 and v2,
+ *      a common error is to terminate a comment early, so if the
+ *	current line contains a comment (parserPtr->lcline) print
+ *	the ERR_COMMENT_TERMINATES.
+ *
+ *----------------------------------------------------------------------
+ */
+void smiyyerror(char *msg, Parser *parserPtr)
+{
+	if (parserPtr->line == parserPtr->lcline &&
+	    parserPtr->modulePtr &&
+	    (parserPtr->modulePtr->export.language == SMI_LANGUAGE_SMIV1 ||
+	     parserPtr->modulePtr->export.language == SMI_LANGUAGE_SMIV2))
+		smiPrintError(parserPtr, ERR_COMMENT_TERMINATES);
+	smiPrintError(parserPtr, ERR_OTHER_ERROR, msg);
 }

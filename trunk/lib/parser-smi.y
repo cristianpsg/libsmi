@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.135 2000/12/05 08:23:31 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.136 2000/12/05 10:04:26 strauss Exp $
  */
 
 %{
@@ -594,6 +594,29 @@ checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 				    importPtr->line,
 				    importPtr->export.name,
 				    importPtr->export.module);
+	    }
+	    /* list of SMIv1 MIBs?  Just use ^RFC*? */
+	    if (! strncmp(importPtr->export.module, "RFC", 3)) {
+		Module *modPtr;
+		for (modPtr = firstModulePtr;
+		     modPtr; modPtr = modPtr->nextPtr) {
+		    Object *objectPtr;
+		    if (modPtr == modulePtr)
+			continue;
+		    if (! strncmp(modPtr->export.name, "RFC", 3)) /*XXX*/
+			continue;
+		    for (objectPtr = modPtr->firstObjectPtr;
+			 objectPtr; objectPtr = objectPtr->nextPtr) {
+			if (objectPtr->export.name &&
+			    ! strcmp(importPtr->export.name,
+			    	     objectPtr->export.name))
+			    smiPrintErrorAtLine(parserPtr,
+						ERR_OBSOLETE_IMPORT,
+						importPtr->line,
+						importPtr->export.name,
+						modPtr->export.name);
+		    }
+		}
 	    }
 	}
     }

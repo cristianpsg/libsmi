@@ -152,3 +152,5 @@
 #define ERR_OID_REUSE                            151
 #define ERR_OID_REGISTERED                       152
 #define ERR_OID_RECURSIVE                        153
+#define ERR_COMMENT_TERMINATES                   154
+#define ERR_OBSOLETE_IMPORT                      155
