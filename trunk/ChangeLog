@@ -1,3 +1,7 @@
+2003-01-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/ADSL-LINE-EXT-MIB: added (RFC 3440).
+
 2002-12-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/HC-ALARM-MIB: added (RFC 3434).
