@@ -1,3 +1,7 @@
+2000-03-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/: added SLAPM-MIB and SNMP-USM-DH-OBJECTS-MIB.
+
 2000-03-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-jax.c: A new dump format (it writes separate files
