@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.25 2002/05/28 16:25:24 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.26 2002/05/29 12:50:38 tklie Exp $
  */
 
 #include <config.h>
@@ -444,7 +444,7 @@ static void fprintBitList( FILE *f, int indent, SmiType *smiType,
     fprintSegment( f, indent + 2 * INDENT, "<xsd:maxlength", 0 );
     fprint( f, " value=\"%d\"/>\n", smiType->value.len );
     fprintSegment( f, indent + INDENT, "</xsd:restriction>\n", 0 );
-    fprintSegment( f, indent, "</xsd:simpleType>\n", 0 );
+    fprintSegment( f, indent, "</xsd:simpleType>\n\n", 0 );
 }
 
 static int getNumSubRanges( SmiType *smiType )
@@ -634,7 +634,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     }
    
     fprintSegment(f, indent, "<xsd:simpleType", 0);
-    if (smiType->name) {
+    if ( name ) {
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
 	    fprint(f, " name=\"%sBit\"", name);
 	}
@@ -954,6 +954,27 @@ static void fprintElement( FILE *f, int indent,
 	    fprint( f, " minOccurs=\"0\">\n" );
 	    fprintAnnotationElem( f, indent + INDENT, smiNode );
 	    fprintTypedef( f, indent + INDENT, smiType, NULL );
+	}
+
+	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
+	    fprint( f, " minOccurs=\"0\">\n" );
+	    fprintAnnotationElem( f, indent + INDENT, smiNode );
+	    fprintSegment( f, indent + INDENT, "<xsd:complexType>\n", 0 );
+	    fprintSegment( f, indent + 2 * INDENT,
+			   "<xsd:simpleContent>\n", 0 );
+	    fprintSegment( f, indent + 3 * INDENT, "<xsd:extension ", 0 );
+	    if( prefix ) {
+		fprint( f, "base=\"%s:%s\">\n", prefix, typeName );
+	    }
+	    else {
+		fprint( f, "base=\"%s\">\n", typeName );
+	    }
+	    fprintSegment( f, indent + 4 * INDENT,
+			   "<xsd:attribute name=\"enc\" " , 0 );
+	    fprint( f, "type=\"smi:EncAttrType\"/>\n" );
+	    fprintSegment( f, indent + 3 * INDENT, "</xsd:extension>\n", 0 );
+	    fprintSegment(f, indent + 2 * INDENT, "</xsd:simpleContent>\n", 0);
+	    fprintSegment( f, indent + INDENT, "</xsd:complexType>\n", 0 );
 	}
 	
 	else {
