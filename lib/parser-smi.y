@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.174 2002/05/31 17:22:13 bunkus Exp $
+ * @(#) $Id: parser-smi.y,v 1.175 2002/06/07 17:51:59 schoenw Exp $
  */
 
 %{
@@ -1604,8 +1604,6 @@ import:			importIdentifiers FROM moduleName
 			    Import      *importPtr;
 			    Module      *modulePtr;
                             
-                            char *dummy = $3;
-			    
 			    /*
 			     * Recursively call the parser to suffer
 			     * the IMPORTS, if the module is not yet
