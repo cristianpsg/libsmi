@@ -1,11 +1,11 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.6 1998/11/18 17:31:37 strauss Exp $
+# @(#) $Id: Makefile,v 1.7 1998/11/19 19:43:54 strauss Exp $
 #
 
 CC	= gcc
-CFLAGS	= -Wall -g -DTEXTS_IN_MEMORY=200 -DPARSER
+CFLAGS	= -Wall -g -DTEXTS_IN_MEMORY=200 -DPARSER -DRPC_SVC_FG
 
 # We need flex and bison. Lex and yacc do not work.
 LEX	= flex
@@ -15,11 +15,12 @@ RPCGEN	= rpcgen
 
 LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o smi.o
 
-default: libsmi.a miblint
+default: libsmi.a miblint smid smiclient
 
-smi_xdr.c smi_svc.c smi_clnt.c smi.h: smi.x smi.h-add
+smi_xdr.c smid.c smi_clnt.c smi.h: smi.x smi.h-add
 	$(RPCGEN) smi.x
 	cat smi.h-add >> smi.h
+	#cat smi_svc.c | cat > smid.c
 
 smi.o: smi.c smi.h
 
@@ -27,10 +28,19 @@ smi_xdr.o: smi_xdr.c smi.h
 
 smi_svc_proc.o: smi_svc_proc.c smi.h
 
-smi_svc.o: smi_svc.c
+smid.o: smid.c
 
-smid: smi_svc_proc.o smi_svc.o smi_xdr.o libsmi.a
-	$(CC) -o smid smi_svc_proc.o smi_svc.o smi_xdr.o libsmi.a -lrpcsvc -lnsl
+smi_svc_init.o: smi_svc_init.c 
+
+smid: smi_svc_proc.o smi_svc_init.o smid.o smi_xdr.o libsmi.a
+	$(CC) -o smid smi_svc_proc.o smi_svc_init.o smid.o smi_xdr.o libsmi.a -lrpcsvc -lnsl -ll
+
+smi_clnt.o: smi_clnt.c
+
+smiclient.o: smiclient.c
+
+smiclient: smiclient.o smi_clnt.o smi_xdr.o 
+	$(CC) -o smiclient smiclient.o smi_clnt.o smi_xdr.o -lnsl
 
 scanner-flex.c: scanner.l scanner.h parser-bison.h
 	$(LEX) -t scanner.l > scanner-flex.c
@@ -87,8 +97,9 @@ parser.y.html: parser.y yacc2html
 clean:
 	rm -f scanner-flex.c scanner-flex.o
 	rm -f parser-bison.c parser-bison-buggy.c parser-bison.h parser-bison.o
-	rm -f error.o lint.o data.o interface.o config.o
-	rm -f core
-	rm -f miblint smi.h libsmi.a smi_xdr.c smi_svc.c smi_clnt.c smi.o
+	rm -f error.o lint.o data.o interface.o config.o smiclient.o
+	rm -f smi_clnt.o smiclient smi_svc_init.o
+	rm -f core miblint libsmi.a smid.o smid smi_svc.o smid.o smi_xdr.o
+	rm -f smi.h smi_svc_proc.o smi_xdr.c smi_svc.c smi_clnt.c smi.o
 	rm -f y.tab.c y.tab.h y.output yacc.debug yacc.acts yacc.tmp
 	rm -f yacc2html.c yacc2html.o yacc2html parser.y.html

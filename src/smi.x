@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.6 1998/11/17 16:09:21 strauss Exp $
+% * @(#) $Id: smi.x,v 1.7 1998/11/19 19:44:03 strauss Exp $
 % */
 %
 
@@ -82,12 +82,10 @@ struct smi_getspec {
 struct smi_module {
     smi_descriptor	name;
     smi_oid		oid;
-    smi_string		description;
-#if 0
     smi_string		lastupdated;
     smi_string		organization;
-    smi_string		contact;
-#endif;
+    smi_string		contactinfo;
+    smi_string		description;
     /* TODO: revisions */
 };
 

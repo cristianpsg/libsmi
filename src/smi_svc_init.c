@@ -1,14 +1,14 @@
 /*
- * lint.c --
+ * smi_svc_init.c --
  *
- *      MIB module checker main program.
+ *      Initialization routine for the SMI RPC server.
  *
  * Copyright (c) 1998 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.8 1998/11/19 19:43:58 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <stdio.h>
@@ -23,47 +23,18 @@
 #include "defs.h"
 #include "config.h"
 #include "error.h"
-#include "scanner.h"
-#include "parser-bison.h"
-#include "data.h"
 
 extern int yydebug;
 
-char module[MAX_IDENTIFIER_LENGTH+1];
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * main --
- *
- *      The main function.
- *
- * Results:
- *      TODO.
- *
- * Side effects:
- *      TODO.
- *
- *----------------------------------------------------------------------
- */
 
 int
-main(argc, argv)
+smi_svc_init(argc, argv)
     int argc;
     char *argv[];
 {
     char c;
-    int dumpMibFlag, dumpTypesFlag, dumpMosyFlag;
     int flags;
     
-    dumpMibFlag = 0;
-    dumpTypesFlag = 0;
-    dumpMosyFlag = 0;
-
-    strcpy(module, "");
-
     smiInit();
     
     smiSetDebugLevel(9);
@@ -75,14 +46,10 @@ main(argc, argv)
     smiReadConfig(CONFIG_FILE);
 #endif
     
-    while ((c = getopt(argc, argv, "MDrRsSvVyYd:l:c:m:")) != -1) {
+    while ((c = getopt(argc, argv, "rRsSvVyYd:l:c:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg);
-	    break;
-	case 'm':
-	    strncpy(module, optarg,
-		    sizeof(module)-1);
 	    break;
 	case 'y':
 	    yydebug = 1;
@@ -116,16 +83,8 @@ main(argc, argv)
 	case 'S':
 	    flags &= ~SMI_STATS;
 	    break;
-	case 'D':
-	    dumpMibFlag = 1;
-	    dumpTypesFlag = 1;
-	    break;
-	case 'M':
-	    dumpMosyFlag = 1;
-	    break;
 	default:
-	    fprintf(stderr, "Usage: %s [-yYvVrRsS] [-d level] [-l level] [-c configfile]"
-		    " [-m module] \n", argv[0]);
+	    fprintf(stderr, "Usage: %s [-yYvVrRsS] [-d level] [-l level] [-c configfile] file\n", argv[0]);
 	    exit(1);
 	}
     }
@@ -133,23 +92,9 @@ main(argc, argv)
     smiSetFlags(flags);
     
     while (optind < argc) {
-	if (strlen(module)) {
-	    smiAddLocation(argv[optind]);
-	    smiLoadMibModule(module);
-	} else {
-	    smiAddLocation(argv[optind]);
-	}
-	if (dumpMibFlag) {
-	    dumpMibTree(rootNode, "");
-	}
-	if (dumpTypesFlag) {
-	    dumpTypes();
-	}
-	if (dumpMosyFlag) {
-	    dumpMosy(rootNode);
-	}
+	smiAddLocation(argv[optind]);
 	optind++;
     }
-    
-    exit(0);
+
+    return 0;
 }

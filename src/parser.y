@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.15 1998/11/18 17:31:41 strauss Exp $
+ * @(#) $Id: parser.y,v 1.16 1998/11/19 19:44:00 strauss Exp $
  */
 
 %{
@@ -55,7 +55,7 @@ extern int yylex(void *lvalp, Parser *parser);
 
 
 Module dummyModule;
-MibNode *parent;
+Node *parent;
 
  
  
@@ -84,7 +84,7 @@ MibNode *parent;
     String *textp;				/* scanned quoted text       */
     char *id;					/* identifier name           */
     int err;					/* actually just a dummy     */
-    MibNode *mibnode;				/* object identifier         */
+    Object *object;				/* object identifier         */
     smi_status status;				/* a STATUS value            */
     smi_access access;				/* an ACCESS value           */
     Type *type;
@@ -256,8 +256,8 @@ MibNode *parent;
 %type  <err>BitsValue
 %type  <err>BitNames
 %type  <err>BitName
-%type  <mibnode>ObjectName
-%type  <mibnode>NotificationName
+%type  <object>ObjectName
+%type  <object>NotificationName
 %type  <err>ReferPart
 %type  <err>RevisionPart
 %type  <err>Revisions
@@ -269,10 +269,10 @@ MibNode *parent;
 %type  <err>Notifications
 %type  <err>Notification
 %type  <textp>Text
-%type  <err>ExtUTCTime
-%type  <mibnode>objectIdentifier
-%type  <mibnode>subidentifiers
-%type  <mibnode>subidentifier
+%type  <textp>ExtUTCTime
+%type  <object>objectIdentifier
+%type  <object>subidentifiers
+%type  <object>subidentifier
 %type  <err>objectIdentifier_defval
 %type  <err>subidentifiers_defval
 %type  <err>subidentifier_defval
@@ -394,13 +394,13 @@ module:			moduleName
 			END
 			{
 			    /* TODO
-			    PendingMibNode *p;
+			    PendingNode *p;
 			    
 			    if ((thisModule->flags & FLAG_SMIV2) &&
 				(thisModule->numModuleIdentities < 1)) {
 			        printError(parser, ERR_NO_MODULE_IDENTITY);
 			    }
-			    for (p = firstPendingMibNode; p; p = p->next) {
+			    for (p = firstPendingNode; p; p = p->next) {
 				printError(parser, ERR_UNKNOWN_OIDLABEL,
 					   p->descriptor->name);
 			    }
@@ -773,7 +773,7 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $7,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
@@ -782,7 +782,7 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 					      thisParser);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setMibNodeFlags($7, FLAG_MODULE);
+				    setObjectFlags($7, FLAG_MODULE);
 				}
 				$$ = 0;
 			    } else {
@@ -917,7 +917,7 @@ typeDeclarationRHS:	Syntax
 				if ($2) {
 				    setTypeDisplayHint($$, $2);
 				}
-				setTypeMacro($$, SMI_DECL_TEXTUALCONVENTION);
+				setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
 			    } else {
 				$$ = NULL;
 			    }
@@ -1108,24 +1108,24 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $11,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($11, SMI_DECL_OBJECTIDENTITY);
-				setMibNodeFlags($11,
+				setObjectDecl($11, SMI_DECL_OBJECTIDENTITY);
+				setObjectFlags($11,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
 						  FLAG_WHOLEFILE))
 						? (FLAG_MODULE|FLAG_REGISTERED)
 						: 0);
-				setMibNodeStatus($11, $5);
-				setMibNodeDescription($11, $7);
+				setObjectStatus($11, $5);
+				setObjectDescription($11, $7);
 #if 0
-				setMibNodeReferences($11, $8);
+				setObjectReferences($11, $8);
 #endif
 				$$ = 0;
 			    } else {
@@ -1157,25 +1157,25 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $16,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($16, SMI_DECL_OBJECTTYPE);
-				setMibNodeFlags($16,
+				setObjectDecl($16, SMI_DECL_OBJECTTYPE);
+				setObjectFlags($16,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
 						  FLAG_WHOLEFILE))
 						? (FLAG_MODULE|FLAG_REGISTERED)
 						: 0);
-				setMibNodeSyntax($16, $5);
-				setMibNodeAccess($16, $7);
-				setMibNodeStatus($16, $9);
+				setObjectSyntax($16, $5);
+				setObjectAccess($16, $7);
+				setObjectStatus($16, $9);
 				if ($10) {
-				    setMibNodeDescription($16, $10);
+				    setObjectDescription($16, $10);
 				}
 				/*
 				 * TODO: ReferPart ($11)
@@ -1287,23 +1287,23 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $12,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12,
+				setObjectDecl($12,
 						SMI_DECL_NOTIFICATIONTYPE);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setMibNodeFlags($12,
+				    setObjectFlags($12,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setMibNodeStatus($12, $6);
-				setMibNodeDescription($12, $8);
+				setObjectStatus($12, $6);
+				setObjectDescription($12, $8);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1343,21 +1343,25 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    thisModule->numModuleIdentities++;
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $16,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($16, SMI_DECL_MODULEIDENTITY);
+				setObjectDecl($16, SMI_DECL_MODULEIDENTITY);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setMibNodeFlags($16,
+				    setObjectFlags($16,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setMibNodeDescription($16, $12);
+				setObjectDescription($16, $12);
+				setModuleLastUpdated(thisModule, $6);
+				setModuleOrganization(thisModule, $8);
+				setModuleContactInfo(thisModule, $10);
+				setModuleDescription(thisModule, $12);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -2446,17 +2450,38 @@ Text:			QUOTED_STRING
  * TODO: REF: 
  */
 ExtUTCTime:		QUOTED_STRING
-			/* TODO: check length and format */
-			{ $$ = 0; }
+			{
+			    /* TODO: check length and format */
+			    $$ = malloc(sizeof(struct String));
+			    if ($$) {
+#ifdef TEXTS_IN_MEMORY
+				if ($1.length <= TEXTS_IN_MEMORY) { 
+				    $$->ptr = malloc($1.length+1);
+				    if ($$->ptr) {
+					memcpy($$->ptr, $1.ptr, $1.length+1);
+				    } else {
+					/* TODO */
+				    }
+				} else {
+				    $$->ptr = NULL;
+				}
+#endif
+				$$->fileoffset = $1.fileoffset;
+				$$->length = $1.length;
+			    } else {
+				/* TODO */
+				$$ = NULL;
+			    }
+			}
 	;
 
 objectIdentifier:	{
-			    parent = rootMibNode;
+			    parent = rootNode;
 			}
 			subidentifiers
 			{
 			    $$ = $2;
-			    parent = $2;
+			    parent = $2->node;
 			}
 	;
 
@@ -2475,9 +2500,9 @@ subidentifiers:
 subidentifier:
 			LOWERCASE_IDENTIFIER
 			{
-			    MibNode *node;
-
-			    if (parent != rootMibNode) {
+			    Object *object;
+			    
+			    if (parent != rootNode) {
 				printError(parser, ERR_OIDLABEL_NOT_FIRST, $1);
 			    } else {
 
@@ -2485,37 +2510,38 @@ subidentifier:
 				/* TODO: search in local module and
 				 *       in imported modules
 				 */
-				node = findMibNodeByName($1);
-				if (node) {
-				    $$ = node;
+				object = findObjectByName($1);
+				if (object) {
+				    $$ = object;
 				} else {
-				    $$ = addMibNode(pendingRootMibNode,
+				    object = addObject(pendingRootNode,
 						    0 /*subid not yet known*/,
 						    thisModule,
 						    FLAG_NOSUBID,
 						    parser);
-				    setMibNodeFileOffset($$,
+				    $$ = object;
+				    setObjectFileOffset(object,
 						        thisParser->character);
-				    addDescriptor($1, thisModule, KIND_MIBNODE,
-						  $$, 0, parser);
+				    addDescriptor($1, thisModule, KIND_OBJECT,
+						  object, 0, parser);
 				}
-				parent = $$;
+				parent = $$->node;
 			    }
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER
 			{
-			    MibNode *node;
+			    Object *object;
 			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    
 			    sprintf(s, "%s.%s", $1, $3);
 
-			    if (parent != rootMibNode) {
+			    if (parent != rootNode) {
 				printError(parser, ERR_OIDLABEL_NOT_FIRST, s);
 			    } else {
 				/* TODO SMIPROC_NODE() */
-				node = findMibNodeByModulenameAndName($1, $3);
-				if (node) {
-				    $$ = node;
+				object = findObjectByModulenameAndName($1, $3);
+				if (object) {
+				    $$ = object;
 				} else {
 				    /*
 				     * oid label is qualified by module name
@@ -2525,29 +2551,34 @@ subidentifier:
 				     */
 				    printError(parser,
 					       ERR_UNKNOWN_OIDLABEL, s);
-				    $$ = addMibNode(pendingRootMibNode,
+				    object = addObject(pendingRootNode,
 						    0 /*subid not yet known*/,
 						    thisModule,
 						    FLAG_NOSUBID,
 						    parser);
-				    setMibNodeFileOffset($$,
+				    $$ = object;
+				    setObjectFileOffset(object,
 						        thisParser->character);
-				    addDescriptor($1, thisModule, KIND_MIBNODE,
-						  $$, 0, parser);
+				    addDescriptor($1, thisModule, KIND_OBJECT,
+						  object, 0, parser);
 				}
-				parent = $$;
+				parent = $$->node;
 			    }
 			}
 	|		number
 			{
-			    MibNode *node;
+			    Node *node;
+			    Object *object;
 
-			    node = findMibNodeByParentAndSubid(parent,
-				       atoi($1));
+			    node = findNodeByParentAndSubid(parent, atoi($1));
 			    if (node) {
-				$$ = node;
+				/*
+				 * hopefully, the last defined Object for
+				 * this Node is the one we expect.
+				 */
+				$$ = node->lastObject;
 			    } else {
-				$$ = addMibNode(parent,
+				object = addObject(parent,
 						atoi($1),
 						thisModule,
 						(thisParser->flags &
@@ -2555,30 +2586,31 @@ subidentifier:
 						  FLAG_WHOLEFILE))
 						? FLAG_MODULE : 0,
 						parser);
-				setMibNodeFileOffset($$,
-						     thisParser->character);
+				$$ = object;
+				setObjectFileOffset(object,
+						    thisParser->character);
 			    }
-			    parent = $$;
+			    parent = $$->node;
 			}
 	|		LOWERCASE_IDENTIFIER '(' number ')'
 			{
-			    MibNode *node;
+			    Object *object;
 			    
 			    /* TODO: search in local module and
 			     *       in imported modules
 			     */
-			    node = findMibNodeByName($1); /* TODO AndModule */
-			    if (node) {
+			    object = findObjectByName($1); /* TODO AndModule */
+			    if (object) {
 				printError(parser, ERR_EXISTENT_DESCRIPTOR,
 					   $1);
-				$$ = node;
-				if (node->subid != atoi($3)) {
+				$$ = object;
+				if ($$->node->subid != atoi($3)) {
 				    printError(parser,
 					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
 					       $3, $1);
 				}
 			    } else {
-				$$ = addMibNode(parent,
+				object = addObject(parent,
 						atoi($3),
 						thisModule,
 						(thisParser->flags &
@@ -2586,10 +2618,11 @@ subidentifier:
 						  FLAG_WHOLEFILE))
 						? FLAG_MODULE : 0,
 						parser);
-				setMibNodeFileOffset($$,
+				$$ = object;
+				setObjectFileOffset(object,
 						     thisParser->character);
-				addDescriptor($1, thisModule, KIND_MIBNODE,
-					      $$,
+				addDescriptor($1, thisModule, KIND_OBJECT,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -2597,20 +2630,20 @@ subidentifier:
 					      parser);
 			    }
 			    
-			    parent = $$;
+			    parent = $$->node;
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER '(' number ')'
 			{
-			    MibNode *node;
+			    Object *object;
 			    char md[2*MAX_IDENTIFIER_LENGTH+2];
 			    
 			    sprintf(md, "%s.%s", $1, $3);
-			    node = findMibNodeByModulenameAndName($1, $3);
-			    if (node) {
+			    object = findObjectByModulenameAndName($1, $3);
+			    if (object) {
 				printError(parser, ERR_EXISTENT_DESCRIPTOR,
 					   $1);
-				$$ = node;
-				if (node->subid != atoi($5)) {
+				$$ = object;
+				if ($$->node->subid != atoi($5)) {
 				    printError(parser,
 					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
 					       $5, md);
@@ -2618,7 +2651,7 @@ subidentifier:
 			    } else {
 				printError(parser, ERR_ILLEGALLY_QUALIFIED,
 					   md);
-				$$ = addMibNode(parent,
+				object = addObject(parent,
 						atoi($5),
 						thisModule,
 						(thisParser->flags &
@@ -2626,10 +2659,11 @@ subidentifier:
 						  FLAG_WHOLEFILE))
 						? FLAG_MODULE : 0,
 						parser);
-				setMibNodeFileOffset($$,
+				$$ = object;
+				setObjectFileOffset(object,
 						     thisParser->character);
-				addDescriptor($3, thisModule, KIND_MIBNODE,
-					      $$,
+				addDescriptor($3, thisModule, KIND_OBJECT,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -2637,7 +2671,7 @@ subidentifier:
 					      parser);
 			    }
 
-			    parent = $$;
+			    parent = $$->node;
 			}
 	;
 
@@ -2676,22 +2710,22 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $12,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12, SMI_DECL_OBJECTGROUP);
+				setObjectDecl($12, SMI_DECL_OBJECTGROUP);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setMibNodeFlags($12,
+				    setObjectFlags($12,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setMibNodeStatus($12, $6);
-				setMibNodeDescription($12, $8);
+				setObjectStatus($12, $6);
+				setObjectDescription($12, $8);
 #if 0
 				/*
 				 * TODO: ObjectsPart ($4)
@@ -2725,23 +2759,23 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $12,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12,
+				setObjectDecl($12,
 						SMI_DECL_NOTIFICATIONGROUP);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setMibNodeFlags($12,
+				    setObjectFlags($12,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setMibNodeStatus($12, $6);
-				setMibNodeDescription($12, $8);
+				setObjectStatus($12, $6);
+				setObjectDescription($12, $8);
 #if 0
 				/*
 				 * TODO: NotificationsPart ($4)
@@ -2774,23 +2808,23 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $12,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12,
+				setObjectDecl($12,
 						SMI_DECL_MODULECOMPLIANCE);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setMibNodeFlags($12,
+				    setObjectFlags($12,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setMibNodeStatus($12, $5);
-				setMibNodeDescription($12, $7);
+				setObjectStatus($12, $5);
+				setObjectDescription($12, $7);
 #if 0
 				/*
 				 * TODO: ReferPart ($8)
@@ -2921,23 +2955,23 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				descriptor = addDescriptor($1, thisModule,
-					      KIND_MIBNODE,
+					      KIND_OBJECT,
 					      $14,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($14,
+				setObjectDecl($14,
 						SMI_DECL_AGENTCAPABILITIES);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setMibNodeFlags($14,
+				    setObjectFlags($14,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setMibNodeStatus($14, $7);
-				setMibNodeDescription($14, $9);
+				setObjectStatus($14, $7);
+				setObjectDescription($14, $9);
 #if 0
 				/*
 				 * TODO: PRODUCT_RELEASE Text ($5)

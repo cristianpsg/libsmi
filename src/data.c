@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.16 1998/11/18 17:31:38 strauss Exp $
+ * @(#) $Id: data.c,v 1.17 1998/11/19 19:43:55 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -24,63 +24,14 @@
 
 
 
-#define stringAccess(access) ( \
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" : \
-	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" : \
-	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" : \
-	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" : \
-	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" : \
-	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" : \
-						"unknown" )
-
-#define stringStatus(status) ( \
-	(status == SMI_STATUS_CURRENT)     ? "current" : \
-	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" : \
-	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" : \
-	(status == SMI_STATUS_MANDATORY)   ? "mandatory" : \
-	(status == SMI_STATUS_OPTIONAL)    ? "optional" : \
-					     "unknown" )
-
-#define stringMacro(macro) ( \
-	(macro == SMI_DECL_UNKNOWN)           ? "UNKNOWN" : \
-	(macro == SMI_DECL_SIMPLEASSIGNMENT)  ? "SIMPLEASSIGNMENT" : \
-	(macro == SMI_DECL_OBJECTTYPE)        ? "OBJECTTYPE" : \
-	(macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECTIDENTITY" : \
-	(macro == SMI_DECL_MODULEIDENTITY)    ? "MODULEIDENTITY" : \
-	(macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" : \
-	(macro == SMI_DECL_TRAPTYPE)          ? "TRAPTYPE" : \
-	(macro == SMI_DECL_OBJECTGROUP)       ? "OBJECTGROUP" : \
-	(macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATIONGROUP" : \
-	(macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULECOMPLIANCE" : \
-	(macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENTCAPABILITIES" : \
-	(macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUALCONVENTION" : \
-					        "unknown" )
-
 #define stringKind(kind) ( \
 	(kind == KIND_ANY)                 ? "ANY" : \
 	(kind == KIND_MODULE)              ? "MODULE" : \
 	(kind == KIND_MACRO)               ? "MACRO" : \
 	(kind == KIND_TYPE)                ? "TYPE" : \
-	(kind == KIND_MIBNODE)             ? "MIBNODE" : \
+	(kind == KIND_OBJECT)              ? "OBJECT" : \
 	(kind == KIND_IMPORT)              ? "IMPORT" : \
 					     "unknown" )
-
-#define stringSyntax(syntax) ( \
-	(syntax == SMI_SYNTAX_UNKNOWN)           ? "UNKNOWN" : \
-	(syntax == SMI_SYNTAX_INTEGER)           ? "INTEGER" : \
-	(syntax == SMI_SYNTAX_OCTET_STRING)      ? "OCTET_STRING" : \
-	(syntax == SMI_SYNTAX_OBJECT_IDENTIFIER) ? "OBJECT_IDENTIFIER" : \
-	(syntax == SMI_SYNTAX_SEQUENCE)          ? "SEQUENCE" : \
-	(syntax == SMI_SYNTAX_SEQUENCE_OF)       ? "SEQUENCE_OF" : \
-	(syntax == SMI_SYNTAX_IPADDRESS)         ? "IPADDRESS" : \
-	(syntax == SMI_SYNTAX_COUNTER32)         ? "COUNTER32" : \
-	(syntax == SMI_SYNTAX_GAUGE32)           ? "GAUGE32" : \
-	(syntax == SMI_SYNTAX_UNSIGNED32)        ? "UNSIGNED32" : \
-	(syntax == SMI_SYNTAX_TIMETICKS)         ? "TIMETICKS" : \
-	(syntax == SMI_SYNTAX_OPAQUE)            ? "OPAQUE" : \
-	(syntax == SMI_SYNTAX_COUNTER64)         ? "COUNTER64" : \
-	(syntax == SMI_SYNTAX_CHOICE)            ? "CHOICE" : \
-					           "unknown" )
 
 
 
@@ -89,9 +40,9 @@ Descriptor	*lastDescriptor[NUM_KINDS];
 					/* List of known Descriptors (OID    */
 					/* labels, TCs Types, Modules).      */
 
-MibNode		*rootMibNode;
+Node		*rootNode;
 
-MibNode		*pendingRootMibNode;
+Node		*pendingRootNode;
 
 Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
 
@@ -152,6 +103,20 @@ addModule(name, path, fileoffset, flags, parser)
     module->path = strdup(path);
     module->fileoffset = fileoffset;
     module->flags = flags;
+    module->lastUpdated.fileoffset = -1;
+    module->lastUpdated.length = 0;
+    module->organization.fileoffset = -1;
+    module->organization.length = 0;
+    module->contactInfo.fileoffset = -1;
+    module->contactInfo.length = 0;
+    module->description.fileoffset = -1;
+    module->description.length = 0;
+#ifdef TEXTS_IN_MEMORY
+    module->lastUpdated.ptr = NULL;
+    module->organization.ptr = NULL;
+    module->contactInfo.ptr = NULL;
+    module->description.ptr = NULL;
+#endif
     for (i = 0; i < NUM_KINDS; i++) {
 	module->firstDescriptor[i] = NULL;
 	module->lastDescriptor[i] = NULL;
@@ -166,6 +131,150 @@ addModule(name, path, fileoffset, flags, parser)
     module->descriptor = descriptor;
     
     return (module);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleLastUpdated --
+ *
+ *      Set the lastUpdated string of a given Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setModuleLastUpdated(module, lastUpdated)
+    Module *module;
+    String *lastUpdated;
+{
+    printDebug(5, "setModuleLastUpdated(%s, \"%s\")\n",
+	       module->descriptor ? module->descriptor->name : "?",
+	       lastUpdated->ptr ? lastUpdated->ptr : "...");
+
+    if (module->lastUpdated.fileoffset < 0) {
+	module->lastUpdated.fileoffset = lastUpdated->fileoffset;
+	module->lastUpdated.length = lastUpdated->length;
+#ifdef TEXTS_IN_MEMORY
+	module->lastUpdated.ptr = lastUpdated->ptr;
+#endif
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleOrganization --
+ *
+ *      Set the organization string of a given Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setModuleOrganization(module, organization)
+    Module *module;
+    String *organization;
+{
+    printDebug(5, "setModuleOrganization(%s, \"%s\")\n",
+	       module->descriptor ? module->descriptor->name : "?",
+	       organization->ptr ? organization->ptr : "...");
+
+    if (module->organization.fileoffset < 0) {
+	module->organization.fileoffset = organization->fileoffset;
+	module->organization.length = organization->length;
+#ifdef TEXTS_IN_MEMORY
+	module->organization.ptr = organization->ptr;
+#endif
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleContactInfo --
+ *
+ *      Set the contactInfo string of a given Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setModuleContactInfo(module, contactInfo)
+    Module *module;
+    String *contactInfo;
+{
+    printDebug(5, "setModuleContactInfo(%s, \"%s\")\n",
+	       module->descriptor ? module->descriptor->name : "?",
+	       contactInfo->ptr ? contactInfo->ptr : "...");
+
+    if (module->contactInfo.fileoffset < 0) {
+	module->contactInfo.fileoffset = contactInfo->fileoffset;
+	module->contactInfo.length = contactInfo->length;
+#ifdef TEXTS_IN_MEMORY
+	module->contactInfo.ptr = contactInfo->ptr;
+#endif
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleDescription --
+ *
+ *      Set the description of a given Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setModuleDescription(module, description)
+    Module *module;
+    String *description;
+{
+    printDebug(5, "setModuleDescription(%s, \"%s\")\n",
+	       module->descriptor ? module->descriptor->name : "?",
+	       description->ptr ? description->ptr : "...");
+
+    if (module->description.fileoffset < 0) {
+	module->description.fileoffset = description->fileoffset;
+	module->description.length = description->length;
+#ifdef TEXTS_IN_MEMORY
+	module->description.ptr = description->ptr;
+#endif
+    }
 }
 
 
@@ -308,7 +417,7 @@ checkImportDescriptors(modulename, parser)
 	 */
 	if (smiGetNode(descriptor->name, modulename, 0)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
-			  KIND_MIBNODE, mod, FLAG_IMPORTED, parser);
+			  KIND_OBJECT, mod, FLAG_IMPORTED, parser);
 	} else if (smiGetType(descriptor->name, modulename, 0)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
 			  KIND_TYPE, mod, FLAG_IMPORTED, parser);
@@ -372,7 +481,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
     Parser *parser;
 {
     Descriptor *descriptor, *olddescriptor;
-    MibNode *pending, *next;
+    Node *pending, *next;
     Type *t;
     
     printDebug(5, "addDescriptor(\"%s\", %s, %s, 0x%p, %d, parser)\n",
@@ -382,7 +491,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 
     /*
      * If this new descriptor is found as pending type,
-     * we have to complete that Type and Descriptor structs instead of
+     * we have to complete those Type and Descriptor structs instead of
      * creating a new descriptor.
      */
     if ((module) && (kind == KIND_TYPE)) {
@@ -390,7 +499,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	if (t && (t->flags & FLAG_INCOMPLETE) && !(flags & FLAG_INCOMPLETE)) {
 	    t->parent = ((Type *)ptr)->parent;
 	    t->syntax = ((Type *)ptr)->syntax;
-	    t->macro = ((Type *)ptr)->macro;
+	    t->decl = ((Type *)ptr)->decl;
 	    t->status = ((Type *)ptr)->status;
 	    t->fileoffset = ((Type *)ptr)->fileoffset;
 	    t->flags = ((Type *)ptr)->flags;
@@ -403,6 +512,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	    return t->descriptor;
 	}
     }
+
     descriptor = (Descriptor *)malloc(sizeof(Descriptor));
     if (!descriptor) {
 	printError(parser, ERR_ALLOCATING_DESCRIPTOR, strerror(errno));
@@ -430,8 +540,8 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	case KIND_TYPE:
 	    ((Type *)(descriptor->ptr))->descriptor = descriptor;
 	    break;
-	case KIND_MIBNODE:
-	    ((MibNode *)(descriptor->ptr))->descriptor = descriptor;
+	case KIND_OBJECT:
+	    ((Object *)(descriptor->ptr))->descriptor = descriptor;
 	    break;
 	case KIND_IMPORTED:
 	    break;
@@ -486,17 +596,17 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 
     /*
      * If this new descriptor is found on the pending descriptor
-     * list (at depth==1 in pendingRootMibNode), we have to move the
+     * list (at depth==1 in pendingRootNode), we have to move the
      * corresponding subtree to the main tree.
      */
-    if ((module) && (kind == KIND_MIBNODE) &&
-	(((MibNode *)ptr)->parent != pendingRootMibNode)) {
+    if ((module) && (kind == KIND_OBJECT) &&
+	(((Object *)ptr)->node->parent != pendingRootNode)) {
 	
 	/*
-	 * check each root of pending subtrees. if its the just defined
+	 * check each root of pending subtrees. if it is the just defined
 	 * oid, then move it to the main tree.
 	 */
-	for (pending = pendingRootMibNode->firstChild; pending;
+	for (pending = pendingRootNode->firstChild; pending;
 	     pending = next) {
 
 	    /*
@@ -504,48 +614,51 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	     * the next pointer.
 	     */
 	    next = pending->next;
-	    
-	    if (!strcmp(pending->descriptor->name, name)) {
+
+	    if (!strcmp(pending->firstObject->descriptor->name, name)) {
 
 		/*
-		 * remove `pending' from the pendingRootMibNode tree.
+		 * remove `pending' from the pendingRootNode tree.
 		 */
 		if (pending->prev) {
 		    pending->prev->next = pending->next;
 		} else {
-		    pendingRootMibNode->firstChild = pending->next;
+		    pendingRootNode->firstChild = pending->next;
 		}
 		if (pending->next) {
 		    pending->next->prev = pending->prev;
 		} else {
-		    pendingRootMibNode->lastChild = pending->prev;
+		    pendingRootNode->lastChild = pending->prev;
 		}
 
 		/*
 		 * copy contents of the new node to pending.
 		 */
-		olddescriptor = pending->descriptor;
-		pending->flags = ((MibNode *)ptr)->flags;
-		pending->macro = ((MibNode *)ptr)->macro;
-		pending->fileoffset = ((MibNode *)ptr)->fileoffset;
-		pending->subid = ((MibNode *)ptr)->subid;
-		pending->descriptor = ((MibNode *)ptr)->descriptor;
+		olddescriptor = pending->firstObject->descriptor;
+		pending->subid = ((Object *)ptr)->node->subid;
+		
+		pending->firstObject->flags = ((Object *)ptr)->flags;
+		pending->firstObject->decl = ((Object *)ptr)->decl;
+		pending->firstObject->fileoffset = ((Object *)ptr)->fileoffset;
+		pending->firstObject->descriptor = ((Object *)ptr)->descriptor;
 
 		/*
 		 * now link pending into ptr's place.
 		 */
-		pending->parent = ((MibNode *)ptr)->parent;
-		pending->next = ((MibNode *)ptr)->next;
-		pending->prev = ((MibNode *)ptr)->prev;
-		if (((MibNode *)ptr)->parent->firstChild == ptr) {
-		    ((MibNode *)ptr)->parent->firstChild = pending;
+		pending->parent = ((Object *)ptr)->node->parent;
+		pending->next = ((Object *)ptr)->node->next;
+		pending->prev = ((Object *)ptr)->node->prev;
+		if (((Object *)ptr)->node->parent->firstChild ==
+		    ((Object *)ptr)->node) {
+		    ((Object *)ptr)->node->parent->firstChild = pending;
 		} else {
-		    ((MibNode *)ptr)->prev->next = pending;
+		    ((Object *)ptr)->node->prev->next = pending;
 		}
-		if (((MibNode *)ptr)->parent->lastChild == ptr) {
-		    ((MibNode *)ptr)->parent->lastChild = pending;
+		if (((Object *)ptr)->node->parent->lastChild ==
+		    ((Object *)ptr)->node) {
+		    ((Object *)ptr)->node->parent->lastChild = pending;
 		} else {
-		    ((MibNode *)ptr)->next->prev = pending;
+		    ((Object *)ptr)->node->next->prev = pending;
 		}
 
 		/*
@@ -553,8 +666,9 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 		 */
 		deleteDescriptor(olddescriptor);
 #ifdef TEXTS_IN_MEMORY
-		free(((MibNode *)ptr)->description.ptr);
+		free(((Object *)ptr)->description.ptr);
 #endif
+		free(((Object *)ptr)->node);
 		free(ptr);
 		break;
 	    }
@@ -704,7 +818,7 @@ findDescriptor(name, module, kind)
  *----------------------------------------------------------------------
  *----------------------------------------------------------------------
  *
- * Mib node functions.
+ * Object functions.
  *
  *----------------------------------------------------------------------
  *----------------------------------------------------------------------
@@ -716,14 +830,14 @@ findDescriptor(name, module, kind)
 /*
  *----------------------------------------------------------------------
  *
- * addMibNode --
+ * addObject --
  *
- *      Create a new MibNode or update an existing one. Also creates
- *	a Descriptor if needed and updates other MibNodes according
- *	the PendingMibNode information.
+ *      Create a new Object and Node or update an existing one. Also creates
+ *	a Descriptor if needed and updates other Objects and Nodes according
+ *	to the PendingNode information.
  *
  * Results:
- *      A pointer to the new MibNode structure or
+ *      A pointer to the new Object structure or
  *	NULL if terminated due to an error.
  *
  * Side effects:
@@ -732,51 +846,73 @@ findDescriptor(name, module, kind)
  *----------------------------------------------------------------------
  */
 
-MibNode *
-addMibNode(parent, subid, module, flags, parser)
-    MibNode *parent;
+Object *
+addObject(parent, subid, module, flags, parser)
+    Node *parent;
     unsigned int subid;
     Module *module;
     Flags flags;
     Parser *parser;
 {
-    MibNode *node;
-    MibNode *c;
+    Object *object;
+    Node *node;
+    Node *c;
     
-    printDebug(5, "addMibNode(%s, %d, %s, %d, parser)\n",
-	       parent &&
-	         parent->descriptor ? parent->descriptor->name : "NULL",
+    printDebug(5, "addObject(%p%s, %d, %s, %d, parser)\n",
+	       parent, parent == pendingRootNode ? "(==pending)" : "",
 	       subid,
 	       module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
 	       flags);
 
-    node = (MibNode *)malloc(sizeof(MibNode));
-    if (!node) {
-	printError(parser, ERR_ALLOCATING_MIBNODE, strerror(errno));
+    object = (Object *)malloc(sizeof(Object));
+    if (!object) {
+	printError(parser, ERR_ALLOCATING_OBJECT, strerror(errno));
 	return (NULL);
     }
 
-    node->module = module;
-    node->type = NULL;
-    node->subid = subid;
-    node->fileoffset = 0;
-    node->macro = SMI_DECL_UNKNOWN;
-    node->flags = flags;
-    node->descriptor = NULL;
-    node->description.fileoffset = 0;
-    node->description.length = 0;
+    object->node = NULL;
+    object->prev = NULL;
+    object->next = NULL;
+    object->module = module;
+    object->type = NULL;
+    object->fileoffset = -1;
+    object->decl = SMI_DECL_UNKNOWN;
+    object->access = SMI_ACCESS_UNKNOWN;
+    object->status = SMI_STATUS_UNKNOWN;
+    object->flags = flags;
+    object->descriptor = NULL;
+    object->description.fileoffset = -1;
+    object->description.length = 0;
 #ifdef TEXTS_IN_MEMORY
-    node->description.ptr = NULL;
+    object->description.ptr = NULL;
 #endif
     
     /*
      * Link it into the tree.
      */
-    node->parent = parent;
-    node->firstChild = NULL;
-    node->lastChild = NULL;
-
+    if ((parent == pendingRootNode) ||
+	(!(node = findNodeByParentAndSubid(parent, subid)))) {
+	node = (Node *)malloc(sizeof(Node));
+	if (!node) {
+	    printError(parser, ERR_ALLOCATING_OBJECT, strerror(errno));
+	    free(object);
+	    return (NULL);
+	}
+	node->flags = flags;
+	node->subid = subid;
+	node->parent = parent;
+	node->firstChild = NULL;
+	node->lastChild = NULL;
+	node->firstObject = object;
+	node->lastObject = object;
+    } else {
+	object->prev = node->lastObject;
+	node->lastObject->next = object;
+	node->lastObject = object;
+    }
+    object->node = node;
+    
     if (parent) {
 	if (parent->firstChild) {
 	    for (c = parent->firstChild; c && (c->subid < subid); c = c->next);
@@ -806,7 +942,7 @@ addMibNode(parent, subid, module, flags, parser)
 	}
     }
 
-    return (node);
+    return (object);
 }
 
 
@@ -814,9 +950,9 @@ addMibNode(parent, subid, module, flags, parser)
 /*
  *----------------------------------------------------------------------
  *
- * setMibNodeSyntax --
+ * setObjectSyntax --
  *
- *      Set the syntax (pointer to a Type struct) of a given MibNode.
+ *      Set the syntax (pointer to a Type struct) of a given Object.
  *
  * Results:
  *	None.
@@ -828,15 +964,17 @@ addMibNode(parent, subid, module, flags, parser)
  */
 
 void
-setMibNodeSyntax(node, type)
-    MibNode *node;
+setObjectSyntax(object, type)
+    Object *object;
     Type *type;
 {
-    printDebug(5, "setMibNodeSyntax(%s, %s)\n",
-	       node->descriptor ? node->descriptor->name : "?",
+    printDebug(5, "setObjectSyntax(%s, %s)\n",
+	       object->descriptor ? object->descriptor->name : "?",
 	       type && type->descriptor ? type->descriptor->name : "NULL");
 
-    node->type = type;
+    if (object->type == NULL) {
+	object->type = type;
+    }
 }
 
 
@@ -844,9 +982,9 @@ setMibNodeSyntax(node, type)
 /*
  *----------------------------------------------------------------------
  *
- * setMibNodeAccess --
+ * setObjectAccess --
  *
- *      Set the access of a given MibNode.
+ *      Set the access of a given Object.
  *
  * Results:
  *	None.
@@ -858,15 +996,17 @@ setMibNodeSyntax(node, type)
  */
 
 void
-setMibNodeAccess(node, access)
-    MibNode *node;
+setObjectAccess(object, access)
+    Object *object;
     smi_access access;
 {
-    printDebug(5, "setMibNodeAccess(%s, %s)\n",
-	       node->descriptor ? node->descriptor->name : "?",
-	       stringAccess(access));
+    printDebug(5, "setObjectAccess(%s, %s)\n",
+	       object->descriptor ? object->descriptor->name : "?",
+	       smiStringAccess(access));
 
-    node->access = access;
+    if (object->access == SMI_ACCESS_UNKNOWN) {
+	object->access = access;
+    }
 }
 
 
@@ -874,9 +1014,9 @@ setMibNodeAccess(node, access)
 /*
  *----------------------------------------------------------------------
  *
- * setMibNodeStatus --
+ * setObjectStatus --
  *
- *      Set the status of a given MibNode.
+ *      Set the status of a given Object.
  *
  * Results:
  *	None.
@@ -888,15 +1028,17 @@ setMibNodeAccess(node, access)
  */
 
 void
-setMibNodeStatus(node, status)
-    MibNode *node;
+setObjectStatus(object, status)
+    Object *object;
     smi_status status;
 {
-    printDebug(5, "setMibNodeStatus(%s, %s)\n",
-	       node->descriptor ? node->descriptor->name : "?",
-	       stringStatus(status));
+    printDebug(5, "setObjectStatus(%s, %s)\n",
+	       object->descriptor ? object->descriptor->name : "?",
+	       smiStringStatus(status));
 
-    node->status = status;
+    if (object->status == SMI_STATUS_UNKNOWN) {
+	object->status = status;
+    }
 }
 
 
@@ -904,9 +1046,9 @@ setMibNodeStatus(node, status)
 /*
  *----------------------------------------------------------------------
  *
- * setMibNodeDescription --
+ * setObjectDescription --
  *
- *      Set the description of a given MibNode.
+ *      Set the description of a given Object.
  *
  * Results:
  *	None.
@@ -918,19 +1060,22 @@ setMibNodeStatus(node, status)
  */
 
 void
-setMibNodeDescription(node, description)
-    MibNode *node;
+setObjectDescription(object, description)
+    Object *object;
     String *description;
 {
-    printDebug(5, "setMibNodeDescription(%s, \"%s\")\n",
-	       node->descriptor ? node->descriptor->name : "?",
-	       description->ptr ? description->ptr : "...");
+    printDebug(5, "setObjectDescription(%s, \"%s\" (%d,%d))\n",
+	       object->descriptor ? object->descriptor->name : "?",
+	       description->ptr ? description->ptr : "...",
+	       description->fileoffset, description->length);
 
-    node->description.fileoffset = description->fileoffset;
-    node->description.length = description->length;
+    if (object->description.fileoffset < 0) {
+	object->description.fileoffset = description->fileoffset;
+	object->description.length = description->length;
 #ifdef TEXTS_IN_MEMORY
-    node->description.ptr = description->ptr;
+	object->description.ptr = description->ptr;
 #endif
+    }
 }
 
 
@@ -938,9 +1083,9 @@ setMibNodeDescription(node, description)
 /*
  *----------------------------------------------------------------------
  *
- * setMibNodeFileOffset --
+ * setObjectFileOffset --
  *
- *      Set the fileoffset of a given MibNode.
+ *      Set the fileoffset of a given Object.
  *
  * Results:
  *	None.
@@ -952,15 +1097,17 @@ setMibNodeDescription(node, description)
  */
 
 void
-setMibNodeFileOffset(node, fileoffset)
-    MibNode *node;
+setObjectFileOffset(object, fileoffset)
+    Object *object;
     off_t fileoffset;
 {
-    printDebug(5, "setMibNodeFileOffset(%s, %d)\n",
-	       node->descriptor ? node->descriptor->name : "?",
+    printDebug(5, "setObjectFileOffset(%s, %d)\n",
+	       object->descriptor ? object->descriptor->name : "?",
 	       fileoffset);
 
-    node->fileoffset = fileoffset;
+    if (object->fileoffset < 0) {
+	object->fileoffset = fileoffset;
+    }
 }
 
 
@@ -968,9 +1115,9 @@ setMibNodeFileOffset(node, fileoffset)
 /*
  *----------------------------------------------------------------------
  *
- * setMibNodeMacro --
+ * setObjectDecl --
  *
- *      Set the macro of a given MibNode.
+ *      Set the declaring macro of a given Object.
  *
  * Results:
  *	None.
@@ -982,15 +1129,17 @@ setMibNodeFileOffset(node, fileoffset)
  */
 
 void
-setMibNodeMacro(node, macro)
-    MibNode *node;
-    smi_decl macro;
+setObjectDecl(object, decl)
+    Object *object;
+    smi_decl decl;
 {
-    printDebug(5, "setMibNodeMacro(%s, %s)\n",
-	       node->descriptor ? node->descriptor->name : "?",
-	       stringMacro(macro));
+    printDebug(5, "setObjectDecl(%s, %s)\n",
+	       object->descriptor ? object->descriptor->name : "?",
+	       smiStringDecl(decl));
 
-    node->macro = macro;
+    if (object->decl == SMI_DECL_UNKNOWN) {
+	object->decl = decl;
+    }
 }
 
 
@@ -998,9 +1147,9 @@ setMibNodeMacro(node, macro)
 /*
  *----------------------------------------------------------------------
  *
- * setMibNodeFlags --
+ * setObjectFlags --
  *
- *      Add(!) flags to the flags of a given MibNode.
+ *      Add(!) flags to the flags of a given Object.
  *
  * Results:
  *	None.
@@ -1012,15 +1161,15 @@ setMibNodeMacro(node, macro)
  */
 
 void
-setMibNodeFlags(node, flags)
-    MibNode *node;
+setObjectFlags(object, flags)
+    Object *object;
     Flags flags;
 {
-    printDebug(5, "setMibNodeFlags(%s, %d)\n",
-	       node->descriptor ? node->descriptor->name : "?",
+    printDebug(5, "setObjectFlags(%s, %d)\n",
+	       object->descriptor ? object->descriptor->name : "?",
 	       flags);
 
-    node->flags |= flags;
+    object->flags |= flags;
 }
 
 
@@ -1028,12 +1177,12 @@ setMibNodeFlags(node, flags)
 /*
  *----------------------------------------------------------------------
  *
- * findMibNodeByParentAndSubid --
+ * findNodeByParentAndSubid --
  *
- *      Lookup a MibNode by a given parent and subid value.
+ *      Lookup a Node by a given parent and subid value.
  *
  * Results:
- *      A pointer to the MibNode structure or
+ *      A pointer to the Node structure or
  *	NULL if it is not found.
  *
  * Side effects:
@@ -1042,20 +1191,20 @@ setMibNodeFlags(node, flags)
  *----------------------------------------------------------------------
  */
 
-MibNode *
-findMibNodeByParentAndSubid(parent, subid)
-    MibNode *parent;
+Node *
+findNodeByParentAndSubid(parent, subid)
+    Node *parent;
     unsigned int subid;
 {
-    MibNode *node;
+    Node *node;
     
-    printDebug(4, "findMibNodeByParentAndSubid(...%d, %d)",
+    printDebug(4, "findNodeByParentAndSubid(...%d, %d)",
 	       parent ? parent->subid : 0, subid);
 
     if (parent) {
 	for (node = parent->firstChild; node; node = node->next) {
 	    if (node->subid == subid) {
-		printDebug(4, " = \"%s\"\n", node->descriptor->name);
+		printDebug(4, " = %p\n", node);
 		return (node);
 	    }
 	}
@@ -1071,14 +1220,14 @@ findMibNodeByParentAndSubid(parent, subid)
 /*
  *----------------------------------------------------------------------
  *
- * findMibNodeByName --
+ * findObjectByName --
  *
- *      Lookup a MibNode by a given Descriptor name. Note, that
- *	there might be more than on MibNodes with the same name.
- *	In this case, it is undefined which MibNode is returned.
+ *      Lookup a Object by a given Descriptor name. Note, that
+ *	there might be more than one Object with the same name.
+ *	In this case, it is undefined which Object is returned.
  *
  * Results:
- *      A pointer to the MibNode structure or
+ *      A pointer to the Object structure or
  *	NULL if it is not found.
  *
  * Side effects:
@@ -1087,22 +1236,22 @@ findMibNodeByParentAndSubid(parent, subid)
  *----------------------------------------------------------------------
  */
 
-MibNode *
-findMibNodeByName(name)
+Object *
+findObjectByName(name)
     const char *name;
 {
     Descriptor *descriptor;
 
-    printDebug(4, "findMibNodeByName(\"%s\")", name);
+    printDebug(4, "findObjectByName(\"%s\")", name);
 
-    for (descriptor = firstDescriptor[KIND_MIBNODE];
+    for (descriptor = firstDescriptor[KIND_OBJECT];
 	 descriptor; descriptor = descriptor->nextSameKind) {
 	if ((!strcmp(descriptor->name, name)) &&
 	    (!(descriptor->flags & FLAG_IMPORTED))) {
 	    /*
-	     * We return the first matching node.
+	     * We return the first matching object.
 	     * TODO: probably we should check if there are more matching
-	     *       nodes, and give a warning if there's another one.
+	     *       objects, and give a warning if there's another one.
 	     */
 	    printDebug(4, " = %s\n", descriptor->name);
 	    return (descriptor->ptr);
@@ -1119,12 +1268,12 @@ findMibNodeByName(name)
 /*
  *----------------------------------------------------------------------
  *
- * findMibNodeByModulenameAndName --
+ * findObjectByModulenameAndName --
  *
- *      Lookup a MibNode by a given Module and Descriptor name.
+ *      Lookup a Object by a given Module and Descriptor name.
  *
  * Results:
- *      A pointer to the MibNode structure or
+ *      A pointer to the Object structure or
  *	NULL if it is not found.
  *
  * Side effects:
@@ -1133,24 +1282,29 @@ findMibNodeByName(name)
  *----------------------------------------------------------------------
  */
 
-MibNode *
-findMibNodeByModulenameAndName(modulename, name)
+Object *
+findObjectByModulenameAndName(modulename, name)
     const char *modulename;
     const char *name;
 {
     Descriptor *descriptor;
     Module *module;
     
-    printDebug(4, "findMibNodeByModulenameAndName(\"%s\", \"%s\")",
+    printDebug(4, "findObjectByModulenameAndName(\"%s\", \"%s\")\n",
 	       modulename, name);
 
     module = findModuleByName(modulename);
     if (module) {
-	for (descriptor = module->firstDescriptor[KIND_MIBNODE];
+	for (descriptor = module->firstDescriptor[KIND_OBJECT];
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, " = %s\n", descriptor->name);
+		printDebug(4, "... = %s.%s\n",
+			   descriptor->module->descriptor->name,
+			   descriptor->name);
+		printDebug(4, "... = %s.%s\n",
+			   ((Object *)(descriptor->ptr))->module->descriptor->name,
+			   descriptor->name);
 		return (descriptor->ptr);
 	    }
 	}
@@ -1165,12 +1319,12 @@ findMibNodeByModulenameAndName(modulename, name)
 /*
  *----------------------------------------------------------------------
  *
- * findMibNodeByModuleAndName --
+ * findObjectByModuleAndName --
  *
- *      Lookup a MibNode by a given Module and Descriptor name.
+ *      Lookup a Object by a given Module and Descriptor name.
  *
  * Results:
- *      A pointer to the MibNode structure or
+ *      A pointer to the Object structure or
  *	NULL if it is not found.
  *
  * Side effects:
@@ -1179,18 +1333,18 @@ findMibNodeByModulenameAndName(modulename, name)
  *----------------------------------------------------------------------
  */
 
-MibNode *
-findMibNodeByModuleAndName(module, name)
+Object *
+findObjectByModuleAndName(module, name)
     Module *module;
     const char *name;
 {
     Descriptor *descriptor;
     
-    printDebug(4, "findMibNodeByModuleAndName(%s, \"%s\")",
+    printDebug(4, "findObjectByModuleAndName(%s, \"%s\")",
 	       module ? module->descriptor->name : "NULL" , name);
 
     if (module) {
-	for (descriptor = module->firstDescriptor[KIND_MIBNODE];
+	for (descriptor = module->firstDescriptor[KIND_OBJECT];
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
@@ -1199,85 +1353,11 @@ findMibNodeByModuleAndName(module, name)
 	    }
 	}
     } else {
-	return (findMibNodeByName(name));
+	return (findObjectByName(name));
     }
     
     printDebug(4, " = NULL\n");
     return (NULL);
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * deleteMibTree --
- *
- *      delete MIB subtree including its descriptors.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-deleteMibTree(root)
-    MibNode *root;
-{
-    MibNode *c;
-    
-    printDebug(5, "deleteMibTree(%s)\n",
-	       root && root->descriptor ? root->descriptor->name : "NULL");
-
-    if (root) {
-
-	/*
-	 * first, walk down the tree recursively.
-	 */
-	for (c = root->firstChild; c; c = c->next) {
-	    deleteMibTree(c);
-	}
-	
-	/*
-	 * delete the corresponding descriptor.
-	 */
-	if (root->descriptor) {
-	    deleteDescriptor(root->descriptor);
-	}
-	
-	/*
-	 * remove from linkage in the same depth.
-	 */
-	if (root->prev) {
-	    root->prev->next = root->next;
-	}
-	if (root->next) {
-	    root->next->prev = root->prev;
-	}
-
-	/*
-	 * no need to adapt linkage below, since all childs are also deleted.
-	 */
-
-	/*
-	 * adapt parent's linkage.
-	 */
-	if (root->parent->firstChild == root) {
-	    root->parent->firstChild = root->next;
-	}
-	if (root->parent->lastChild == root) {
-	    root->parent->lastChild = root->prev;
-	}
-
-#ifdef TEXTS_IN_MEMORY
-	free(root->description.ptr);
-#endif
-	free(root);
-    }
 }
 
 
@@ -1301,23 +1381,23 @@ deleteMibTree(root)
 
 void
 dumpMibTree(root, prefix)
-    MibNode *root;
+    Node *root;
     const char *prefix;
 {
-    MibNode *c;
+    Node *c;
     char s[200];
     
     if (root) {
-	if (root == rootMibNode) {
+	if (root == rootNode) {
 	    s[0] = 0;
 	} else {
-	    if (root->descriptor) {
+	    if (root->firstObject->descriptor) {
 		if (root->flags & FLAG_NOSUBID) {
 		    sprintf(s, "%s.%s(?)", prefix,
-			    root->descriptor->name);
+			    root->firstObject->descriptor->name);
 		} else {
 		    sprintf(s, "%s.%s(%d)", prefix,
-			    root->descriptor->name, root->subid);
+			    root->firstObject->descriptor->name, root->subid);
 		}
 	    } else {
 		if (root->flags & FLAG_NOSUBID) {
@@ -1327,18 +1407,21 @@ dumpMibTree(root, prefix)
 		}
 	    }
 	    fprintf(stderr, "%s", s);
-	    if (root->module) {
+	    if (root->firstObject->module) {
 		fprintf(stderr, " == %s!%s",
-			root->module->descriptor->name,
-			root->descriptor->name);
+			root->firstObject->module->descriptor->name,
+			root->firstObject->descriptor->name);
 	    }
-	    if (root->type && root->type->descriptor) {
-		fprintf(stderr, "  [%s]", root->type->descriptor->name);
+	    if (root->firstObject->type &&
+		root->firstObject->type->descriptor) {
+		fprintf(stderr, "  [%s]",
+			root->firstObject->type->descriptor->name);
 	    } else {
-		if (root->type && root->type->parent &&
-		    root->type->parent->descriptor) {
+		if (root->firstObject->type &&
+		    root->firstObject->type->parent &&
+		    root->firstObject->type->parent->descriptor) {
 		    fprintf(stderr, "  [[%s]]",
-			    root->type->parent->descriptor->name);
+			    root->firstObject->type->parent->descriptor->name);
 		}
 	    }
 	    fprintf(stderr, "\n");
@@ -1369,27 +1452,29 @@ dumpMibTree(root, prefix)
 
 void
 dumpMosy(root)
-    MibNode *root;
+    Node *root;
 {
-    MibNode *c;
+    Node *c;
     char s[200];
     
     if (root) {
-	if (root != rootMibNode) {
+	if (root != rootNode) {
 	    if ((root->flags & FLAG_MODULE) &&
-		(root->descriptor && root->parent->descriptor)) {
+		(root->firstObject->descriptor &&
+		 root->parent->firstObject->descriptor)) {
 		sprintf(s, "%s.%d",
-			root->parent->descriptor->name, root->subid);
-		if (root->macro == SMI_DECL_OBJECTTYPE) {
+			root->parent->firstObject->descriptor->name,
+			root->subid);
+		if (root->firstObject->decl == SMI_DECL_OBJECTTYPE) {
 		    printf("%-19s %-19s %-15s %-15s %s\n",
-			   root->descriptor->name,
+			   root->firstObject->descriptor->name,
 			   s,
 			   "<type>",
-			   stringAccess(root->access),
-			   stringStatus(root->status));
+			   smiStringAccess(root->firstObject->access),
+			   smiStringStatus(root->firstObject->status));
 		} else {
 		    printf("%-19s %s\n",
-			   root->descriptor->name,
+			   root->firstObject->descriptor->name,
 			   s);
 		}
 	    }
@@ -1445,7 +1530,7 @@ addType(parent, syntax, module, flags, parser)
     printDebug(5, "addType(%s, %s, %s, %d, parser)\n",
 	       parent &&
 	         parent->descriptor ? parent->descriptor->name : "NULL",
-	       stringSyntax(syntax),
+	       smiStringSyntax(syntax),
 	       module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
 	       flags);
@@ -1466,10 +1551,11 @@ addType(parent, syntax, module, flags, parser)
     } else {
 	type->syntax = syntax;
     }
-    type->macro = SMI_DECL_UNKNOWN;
+    type->decl = SMI_DECL_UNKNOWN;
+    type->status = SMI_STATUS_UNKNOWN;
     type->flags = flags;
     type->descriptor = NULL;
-    type->description.fileoffset = 0;
+    type->description.fileoffset = -1;
     type->description.length = 0;
 #ifdef TEXTS_IN_MEMORY
     type->description.ptr = NULL;
@@ -1503,9 +1589,11 @@ setTypeStatus(type, status)
 {
     printDebug(5, "setTypeStatus(%s, %s)\n",
 	       type->descriptor ? type->descriptor->name : "?",
-	       stringStatus(status));
+	       smiStringStatus(status));
 
-    type->status = status;
+    if (type->status == SMI_STATUS_UNKNOWN) {
+	type->status = status;
+    }
 }
 
 
@@ -1535,11 +1623,13 @@ setTypeDescription(type, description)
 	       type->descriptor ? type->descriptor->name : "?",
 	       description->ptr ? description->ptr : "...");
 
-    type->description.fileoffset = description->fileoffset;
-    type->description.length = description->length;
+    if (type->description.fileoffset < 0) {
+	type->description.fileoffset = description->fileoffset;
+	type->description.length = description->length;
 #ifdef TEXTS_IN_MEMORY
-    type->description.ptr = description->ptr;
+	type->description.ptr = description->ptr;
 #endif
+    }
 }
 
 
@@ -1569,11 +1659,13 @@ setTypeDisplayHint(type, displayHint)
 	       type->descriptor ? type->descriptor->name : "?",
 	       displayHint->ptr);
 
-    type->displayHint.fileoffset = displayHint->fileoffset;
-    type->displayHint.length = displayHint->length;
+    if (type->displayHint.fileoffset < 0) {
+	type->displayHint.fileoffset = displayHint->fileoffset;
+	type->displayHint.length = displayHint->length;
 #ifdef TEXTS_IN_MEMORY
-    type->displayHint.ptr = displayHint->ptr;
+	type->displayHint.ptr = displayHint->ptr;
 #endif
+    }
 }
 
 
@@ -1603,7 +1695,9 @@ setTypeFileOffset(type, fileoffset)
 	       type->descriptor ? type->descriptor->name : "?",
 	       fileoffset);
 
-    type->fileoffset = fileoffset;
+    if (type->fileoffset < 0) {
+	type->fileoffset = fileoffset;
+    }
 }
 
 
@@ -1611,9 +1705,9 @@ setTypeFileOffset(type, fileoffset)
 /*
  *----------------------------------------------------------------------
  *
- * setTypeMacro --
+ * setTypeDecl --
  *
- *      Set the macro of a given Type.
+ *      Set the declaring macro of a given Type.
  *
  * Results:
  *	None.
@@ -1625,15 +1719,17 @@ setTypeFileOffset(type, fileoffset)
  */
 
 void
-setTypeMacro(type, macro)
+setTypeDecl(type, decl)
     Type     *type;
-    smi_decl macro;
+    smi_decl decl;
 {
-    printDebug(5, "setTypeMacro(%s, %s)\n",
+    printDebug(5, "setTypeDecl(%s, %s)\n",
 	       type->descriptor ? type->descriptor->name : "?",
-	       stringMacro(macro));
+	       smiStringDecl(decl));
 
-    type->macro = macro;
+    if (type->decl == SMI_DECL_UNKNOWN) {
+	type->decl = decl;
+    }
 }
 
 
@@ -1733,7 +1829,7 @@ findTypeByModulenameAndName(modulename, name)
     Descriptor *descriptor;
     Module *module;
     
-    printDebug(4, "findTypeByModulenameAndName(\"%s\", \"%s\")",
+    printDebug(4, "findTypeByModulenameAndName(\"%s\", \"%s\")\n",
 	       modulename, name);
 
     module = findModuleByName(modulename);
@@ -1742,13 +1838,13 @@ findTypeByModulenameAndName(modulename, name)
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, " = %s\n", descriptor->name);
+		printDebug(4, "... = %s\n", descriptor->name);
 		return (descriptor->ptr);
 	    }
 	}
     }
 	
-    printDebug(4, " = NULL\n");
+    printDebug(4, "... = NULL\n");
     return (NULL);
 }
 
@@ -1826,7 +1922,7 @@ dumpTypes()
 	for (t = d->ptr; t; t = t->parent) {
 	    fprintf(stderr, "%s", t->descriptor && t->descriptor->name ? t->descriptor->name : "?");
 	    if (t->syntax) {
-		fprintf(stderr, "(%s)", stringSyntax(t->syntax));
+		fprintf(stderr, "(%s)", smiStringSyntax(t->syntax));
 	    }
 	    fprintf(stderr, " <- ");
 	}
@@ -2045,7 +2141,7 @@ int
 initData()
 {
     int i;
-    MibNode *node;
+    Object *object;
     
     for (i = 0; i < NUM_KINDS; i++) {
 	firstDescriptor[i] = NULL;
@@ -2055,22 +2151,24 @@ initData()
     /*
      * Initialize a root MibNode for the main MIB tree.
      */
-    rootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
+    object = addObject(NULL, 0, NULL, FLAG_ROOT, NULL);
+    rootNode = object->node;
     
     /*
      * Initialize a root MibNode for pending (forward referenced) nodes.
      */
-    pendingRootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
-
+    object = addObject(NULL, 0, NULL, FLAG_ROOT, NULL);
+    pendingRootNode = object->node;
+    
     /*
      * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt.
      */
-    node = addMibNode(rootMibNode, 0, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("ccitt", NULL, KIND_MIBNODE, node, FLAG_PERMANENT, NULL);
-    node = addMibNode(rootMibNode, 1, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("iso", NULL, KIND_MIBNODE, node, FLAG_PERMANENT, NULL);
-    node = addMibNode(rootMibNode, 2, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("joint-iso-ccitt", NULL, KIND_MIBNODE, node,
+    object = addObject(rootNode, 0, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("ccitt", NULL, KIND_OBJECT, object, FLAG_PERMANENT, NULL);
+    object = addObject(rootNode, 1, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("iso", NULL, KIND_OBJECT, object, FLAG_PERMANENT, NULL);
+    object = addObject(rootNode, 2, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("joint-iso-ccitt", NULL, KIND_OBJECT, object,
 		  FLAG_PERMANENT, NULL);
 
     /*
