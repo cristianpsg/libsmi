@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.80 2002/05/31 17:22:13 bunkus Exp $
+ * @(#) $Id: data.h,v 1.81 2002/09/13 17:49:27 schoenw Exp $
  */
 
 #ifndef _DATA_H
@@ -148,6 +148,7 @@ typedef struct Option {
     SmiOption      export;
     struct Object  *compliancePtr;
     struct Object  *objectPtr;
+    int		   line;
 } Option;
 
 
@@ -158,6 +159,7 @@ typedef struct Refinement {
     struct Object  *objectPtr;     /* the Object refined by this Refinement  */
     Type	   *typePtr;       /* the refined Type (or NULL)             */
     Type	   *writetypePtr;  /* the refined WriteType (or NULL)        */
+    int		   line;
 } Refinement;
 
 

@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.37 2002/10/30 09:17:38 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.38 2003/02/26 15:31:57 schoenw Exp $ 
  */
 
 #include <config.h>
@@ -130,6 +130,18 @@ typedef struct Error {
 #define ERR_LENGTH_OF_TYPE_REMOVED		78
 #define ERR_STATUS_ADDED			79
 #define ERR_STATUS_REMOVED			80
+#define ERR_MANDATORY_GROUP_ADDED		81
+#define ERR_MANDATORY_GROUP_REMOVED		82
+#define ERR_MANDATORY_EXT_GROUP_ADDED		83
+#define ERR_MANDATORY_EXT_GROUP_REMOVED		84
+#define ERR_OPTION_ADDED			85
+#define ERR_OPTION_REMOVED			86
+#define ERR_EXT_OPTION_ADDED			87
+#define ERR_EXT_OPTION_REMOVED			88
+#define ERR_REFINEMENT_ADDED			85
+#define ERR_REFINEMENT_REMOVED			86
+#define ERR_EXT_REFINEMENT_ADDED		87
+#define ERR_EXT_REFINEMENT_REMOVED		88
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -292,6 +304,30 @@ static Error errors[] = {
       "status added to `%s'", NULL },
     { 3, ERR_STATUS_REMOVED, "status-removed",
       "status removed from `%s'", NULL },
+    { 2, ERR_MANDATORY_GROUP_ADDED, "mandatory-added",
+      "mandatory group `%s' added to `%s'", NULL },
+    { 2, ERR_MANDATORY_GROUP_REMOVED, "mandatory-removed",
+      "mandatory group `%s' removed from `%s'", NULL },
+    { 2, ERR_MANDATORY_EXT_GROUP_ADDED, "mandatory-added",
+      "mandatory group `%s::%s' added to `%s'", NULL },
+    { 2, ERR_MANDATORY_EXT_GROUP_REMOVED, "mandatory-removed",
+      "mandatory group `%s::%s' removed from `%s'", NULL },
+    { 2, ERR_OPTION_ADDED, "option-added",
+      "optional group `%s' added to `%s'", NULL },
+    { 2, ERR_OPTION_REMOVED, "option-removed",
+      "optional group `%s' removed from `%s'", NULL },
+    { 2, ERR_EXT_OPTION_ADDED, "option-added",
+      "optional group `%s::%s' added to `%s'", NULL },
+    { 2, ERR_EXT_OPTION_REMOVED, "option-removed",
+      "optional group `%s::%s' removed from `%s'", NULL },
+    { 2, ERR_REFINEMENT_ADDED, "refinement-added",
+      "refined object `%s' added to `%s'", NULL },
+    { 2, ERR_REFINEMENT_REMOVED, "refinement-removed",
+      "refined object `%s' removed from `%s'", NULL },
+    { 2, ERR_EXT_REFINEMENT_ADDED, "refinement-added",
+      "refined object `%s::%s' added to `%s'", NULL },
+    { 2, ERR_EXT_REFINEMENT_REMOVED, "refinement-removed",
+      "refined object `%s::%s' removed from `%s'", NULL },
     { 0, 0, NULL, NULL }
 };
 
@@ -1376,11 +1412,23 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 static void
 checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
 		       SmiType *oldType,
-		       SmiModule *newModule, SmiNode *newNode,
+		       SmiModule *newModule, int newLine,
 		       SmiType *newType)
 {
-    int oldLine, newLine;
+    int oldLine;
     char *oldName;
+
+    if ((!oldType) && (!newType)) return;
+
+    if (!oldType) {
+	printErrorAtLine(newModule, ERR_TYPE_ADDED,
+			 smiGetTypeLine(newType));
+    }
+    
+    if (!newType) {
+	printErrorAtLine(oldModule, ERR_TYPE_REMOVED,
+			 smiGetTypeLine(oldType));
+    }
     
     if (oldType->basetype != newType->basetype) {
 	if( newType->name ) {
@@ -1402,17 +1450,20 @@ checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
     }
 
     oldLine = oldNode ? smiGetNodeLine( oldNode ) : smiGetTypeLine( oldType );
-    newLine = newNode ? smiGetNodeLine( newNode ) : smiGetTypeLine( newType );
-    checkNamedNumbers(oldModule, oldLine,
-		      newModule, newLine,
+    checkNamedNumbers(oldModule,
+		      oldLine,
+		      newModule,
+		      newLine > 0 ? newLine : smiGetTypeLine( newType ),
 		      oldType->name,
 		      oldNode,
 		      oldType,
 		      newType);
 
     oldName = oldNode ? oldNode->name : NULL;
-    checkRanges(oldModule, oldLine,
-		newModule, newLine,
+    checkRanges(oldModule,
+		oldLine,
+		newModule,
+		newLine > 0 ? newLine : smiGetTypeLine( newType ),
 		oldName,
 		oldType,
 		newType);
@@ -1430,7 +1481,9 @@ checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
 		      oldType->name, newType->name);
 
     checkTypeCompatibility(oldModule, oldNode, oldType,
-			   newModule, newNode, newType);
+			   newModule,
+			   newNode ? smiGetNodeLine(newNode) : smiGetTypeLine(newType),
+			   newType);
     
     checkDefVal(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
@@ -1723,7 +1776,9 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 			     smiGetNodeLine(oldNode), oldNode->name);
 	    
 	    checkTypeCompatibility(oldModule, oldNode, oldType,
-				   newModule, newNode, newType);
+				   newModule,
+				   newNode ? smiGetNodeLine(newNode) : smiGetTypeLine(newType),
+				   newType);
 	} else if (!oldType->name && newType->name) {
 	    printErrorAtLine(newModule, ERR_FROM_IMPLICIT,
 			     smiGetNodeLine(newNode),
@@ -1731,10 +1786,14 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
 	    checkTypeCompatibility(oldModule, oldNode, oldType,
-				   newModule, newNode, newType);
+				   newModule,
+				   newNode ? smiGetNodeLine(newNode) : smiGetTypeLine(newType),
+				   newType);
 	} else {
 	    checkTypeCompatibility(oldModule, oldNode, oldType,
-				   newModule, newNode, newType);
+				   newModule,
+				   newNode ? smiGetNodeLine(newNode) : smiGetTypeLine(newType),
+				   newType);
 	}
     }
 
@@ -2273,7 +2332,6 @@ diffGroups(SmiModule *oldModule, const char *oldTag,
     for(oldNode = smiGetFirstNode(oldModule, SMI_NODEKIND_GROUP);
 	oldNode;
         oldNode = smiGetNextNode(oldNode, SMI_NODEKIND_GROUP)) {
-	
 	smiInit(newTag);
 	newNode = smiGetNodeByOID(oldNode->oidlen, oldNode->oid);
 	if (newNode
@@ -2297,6 +2355,358 @@ diffGroups(SmiModule *oldModule, const char *oldTag,
     for (newNode = smiGetFirstNode(newModule, SMI_NODEKIND_GROUP);
 	 newNode;
 	 newNode = smiGetNextNode(newNode, SMI_NODEKIND_GROUP)) {
+	
+	smiInit(oldTag);
+	oldNode = smiGetNodeByOID(newNode->oidlen, newNode->oid);
+	if (! oldNode
+	    || newNode->oidlen != oldNode->oidlen
+	    || smiGetNodeModule(oldNode) != oldModule) {
+	    printErrorAtLine(newModule, ERR_NODE_ADDED,
+			     smiGetNodeLine(newNode),
+			     getStringNodekind(newNode->nodekind),
+			     newNode->name);
+	}
+	smiInit(newTag);
+    }
+}
+
+
+
+static void
+checkComplMandatory(SmiModule *oldModule, const char *oldTag,
+		    SmiModule *newModule, const char *newTag,
+		    SmiNode *oldNode, SmiNode *newNode)
+{
+    SmiElement *oldElem, *newElem;
+    SmiNode *oldElemNode, *newElemNode;
+
+    smiInit(oldTag);
+    for (oldElem = smiGetFirstElement(oldNode);
+	 oldElem; oldElem = smiGetNextElement(oldElem)) {
+	oldElemNode = smiGetElementNode(oldElem);
+	smiInit(newTag);
+	for (newElem = smiGetFirstElement(newNode);
+	     newElem; newElem = smiGetNextElement(newElem)) {
+	    newElemNode = smiGetElementNode(newElem);
+	    if (strcmp(oldElemNode->name, newElemNode->name) == 0) {
+		break;
+	    }
+	}
+	if (! newElem) {
+	    if (strcmp(smiGetNodeModule(oldElemNode)->name, oldModule->name)) {
+		printErrorAtLine(oldModule, ERR_MANDATORY_EXT_GROUP_REMOVED,
+				 smiGetNodeLine(oldNode),
+				 oldModule->name, oldElemNode->name,
+				 oldNode->name);
+	    } else {
+		printErrorAtLine(oldModule, ERR_MANDATORY_GROUP_REMOVED,
+				 smiGetNodeLine(oldNode),
+				 oldElemNode->name,
+				 oldNode->name);
+	    }
+	}
+	smiInit(oldTag);
+    }
+
+    smiInit(newTag);
+    for (newElem = smiGetFirstElement(newNode);
+	 newElem; newElem = smiGetNextElement(newElem)) {
+	newElemNode = smiGetElementNode(newElem);
+	smiInit(oldTag);
+	for (oldElem = smiGetFirstElement(oldNode);
+	     oldElem; oldElem = smiGetNextElement(oldElem)) {
+	    oldElemNode = smiGetElementNode(oldElem);
+	    if (strcmp(oldElemNode->name, newElemNode->name) == 0) {
+		break;
+	    }
+	}
+	if (! oldElem) {
+	    if (strcmp(smiGetNodeModule(newElemNode)->name, newModule->name)) {
+		printErrorAtLine(newModule, ERR_MANDATORY_EXT_GROUP_ADDED,
+				 smiGetNodeLine(newNode),
+				 newModule->name, newElemNode->name,
+				 newNode->name);
+	    } else {
+		printErrorAtLine(newModule, ERR_MANDATORY_GROUP_ADDED,
+				 smiGetNodeLine(newNode),
+				 newElemNode->name, newNode->name);
+	    }
+	}
+	smiInit(newTag);
+    }
+}
+
+
+
+static void
+checkComplOptions(SmiModule *oldModule, const char *oldTag,
+		  SmiModule *newModule, const char *newTag,
+		  SmiNode *oldNode, SmiNode *newNode)
+{
+    int code;
+    SmiOption *oldOption, *newOption;
+    SmiNode *oldOptionNode, *newOptionNode;
+
+    smiInit(oldTag);
+    for (oldOption = smiGetFirstOption(oldNode);
+	 oldOption; oldOption = smiGetNextOption(oldOption)) {
+	oldOptionNode = smiGetOptionNode(oldOption);
+	smiInit(newTag);
+	for (newOption = smiGetFirstOption(newNode);
+	     newOption; newOption = smiGetNextOption(newOption)) {
+	    newOptionNode = smiGetOptionNode(newOption);
+	    if (strcmp(oldOptionNode->name, newOptionNode->name) == 0) {
+		break;
+	    }
+	}
+	if (! newOption) {
+	    if (strcmp(smiGetNodeModule(oldOptionNode)->name,
+		       oldModule->name)) {
+		printErrorAtLine(oldModule, ERR_EXT_OPTION_REMOVED,
+				 smiGetOptionLine(oldOption),
+				 oldModule->name, oldOptionNode->name,
+				 oldNode->name);
+	    } else {
+		printErrorAtLine(oldModule, ERR_OPTION_REMOVED,
+				 smiGetOptionLine(oldOption),
+				 oldOptionNode->name,
+				 oldNode->name);
+	    }
+	} else {
+	    code = 0;
+	    code |= checkDescription(oldModule, smiGetOptionLine(oldOption),
+				     newModule, smiGetOptionLine(newOption),
+				     newOptionNode->name,
+				     oldOption->description,
+				     newOption->description);
+	    if (code & CODE_SHOW_PREVIOUS) {
+		printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+				 smiGetOptionLine(oldOption),
+				 oldOptionNode->name);
+	    }
+	}
+	smiInit(oldTag);
+    }
+
+    smiInit(newTag);
+    for (newOption = smiGetFirstOption(newNode);
+	 newOption; newOption = smiGetNextOption(newOption)) {
+	newOptionNode = smiGetOptionNode(newOption);
+	smiInit(oldTag);
+	for (oldOption = smiGetFirstOption(oldNode);
+	     oldOption; oldOption = smiGetNextOption(oldOption)) {
+	    oldOptionNode = smiGetOptionNode(oldOption);
+	    if (strcmp(oldOptionNode->name, newOptionNode->name) == 0) {
+		break;
+	    }
+	}
+	if (! oldOption) {
+	    if (strcmp(smiGetNodeModule(newOptionNode)->name,
+		       newModule->name)) {
+		printErrorAtLine(newModule, ERR_EXT_OPTION_ADDED,
+				 smiGetOptionLine(newOption),
+				 newModule->name, newOptionNode->name,
+				 newNode->name);
+	    } else {
+		printErrorAtLine(newModule, ERR_OPTION_ADDED,
+				 smiGetOptionLine(newOption),
+				 newOptionNode->name,
+				 newNode->name);
+	    }
+	}
+	smiInit(newTag);
+    }
+}
+
+
+
+static void
+checkComplRefinements(SmiModule *oldModule, const char *oldTag,
+		  SmiModule *newModule, const char *newTag,
+		  SmiNode *oldNode, SmiNode *newNode)
+{
+    int code;
+    SmiRefinement *oldRefinement, *newRefinement;
+    SmiNode *oldRefinementNode, *newRefinementNode;
+
+    smiInit(oldTag);
+    for (oldRefinement = smiGetFirstRefinement(oldNode);
+	 oldRefinement; oldRefinement = smiGetNextRefinement(oldRefinement)) {
+	oldRefinementNode = smiGetRefinementNode(oldRefinement);
+	smiInit(newTag);
+	for (newRefinement = smiGetFirstRefinement(newNode);
+	     newRefinement; newRefinement = smiGetNextRefinement(newRefinement)) {
+	    newRefinementNode = smiGetRefinementNode(newRefinement);
+	    if (strcmp(oldRefinementNode->name, newRefinementNode->name) == 0) {
+		break;
+	    }
+	}
+	if (! newRefinement) {
+	    if (strcmp(smiGetNodeModule(oldRefinementNode)->name,
+		       oldModule->name)) {
+		printErrorAtLine(oldModule, ERR_EXT_REFINEMENT_REMOVED,
+				 smiGetRefinementLine(oldRefinement),
+				 oldModule->name, oldRefinementNode->name,
+				 oldNode->name);
+	    } else {
+		printErrorAtLine(oldModule, ERR_REFINEMENT_REMOVED,
+				 smiGetRefinementLine(oldRefinement),
+				 oldRefinementNode->name,
+				 oldNode->name);
+	    }
+	} else {
+	    code = 0;
+	    code |= checkDescription(oldModule, smiGetRefinementLine(oldRefinement),
+				     newModule, smiGetRefinementLine(newRefinement),
+				     newRefinementNode->name,
+				     oldRefinement->description,
+				     newRefinement->description);
+
+	    code |= checkAccess(oldModule,
+				smiGetRefinementLine(oldRefinement),
+				newModule,
+				smiGetRefinementLine(newRefinement),
+				newRefinementNode->name,
+				oldRefinement->access, newRefinement->access);
+
+	    checkTypeCompatibility(oldModule, oldRefinementNode,
+				   smiGetRefinementType(oldRefinement),
+				   newModule, smiGetRefinementLine(newRefinement),
+				   smiGetRefinementType(newRefinement));
+	    
+	    checkTypeCompatibility(oldModule, oldRefinementNode,
+				   smiGetRefinementWriteType(oldRefinement),
+				   newModule, smiGetRefinementLine(newRefinement),
+				   smiGetRefinementWriteType(newRefinement));
+	    
+	    if (code & CODE_SHOW_PREVIOUS) {
+		printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+				 smiGetRefinementLine(oldRefinement),
+				 oldRefinementNode->name);
+	    }
+	}
+	smiInit(oldTag);
+    }
+
+    smiInit(newTag);
+    for (newRefinement = smiGetFirstRefinement(newNode);
+	 newRefinement; newRefinement = smiGetNextRefinement(newRefinement)) {
+	newRefinementNode = smiGetRefinementNode(newRefinement);
+	smiInit(oldTag);
+	for (oldRefinement = smiGetFirstRefinement(oldNode);
+	     oldRefinement; oldRefinement = smiGetNextRefinement(oldRefinement)) {
+	    oldRefinementNode = smiGetRefinementNode(oldRefinement);
+	    if (strcmp(oldRefinementNode->name, newRefinementNode->name) == 0) {
+		break;
+	    }
+	}
+	if (! oldRefinement) {
+	    if (strcmp(smiGetNodeModule(newRefinementNode)->name,
+		       newModule->name)) {
+		printErrorAtLine(newModule, ERR_EXT_REFINEMENT_ADDED,
+				 smiGetRefinementLine(newRefinement),
+				 newModule->name, newRefinementNode->name,
+				 newNode->name);
+	    } else {
+		printErrorAtLine(newModule, ERR_REFINEMENT_ADDED,
+				 smiGetRefinementLine(newRefinement),
+				 newRefinementNode->name,
+				 newNode->name);
+	    }
+	}
+	smiInit(newTag);
+    }
+}
+
+
+
+static void
+checkCompliance(SmiModule *oldModule, const char *oldTag,
+		SmiModule *newModule, const char *newTag,
+		SmiNode *oldNode, SmiNode *newNode)
+{
+    int code = 0;
+    
+    code = checkName(oldModule, smiGetNodeLine(oldNode),
+		     newModule, smiGetNodeLine(newNode),
+		     oldNode->name, newNode->name);
+    
+    code |= checkDecl(oldModule, smiGetNodeLine(oldNode),
+		      newModule, smiGetNodeLine(newNode),
+		      newNode->name, oldNode->decl, newNode->decl);
+    
+    code |= checkStatus(oldModule, smiGetNodeLine(oldNode),
+			newModule, smiGetNodeLine(newNode),
+			newNode->name, oldNode->status, newNode->status);
+
+    code |= checkDescription(oldModule, smiGetNodeLine(oldNode),
+			     newModule, smiGetNodeLine(newNode),
+			     newNode->name,
+			     oldNode->description, newNode->description);
+
+    code |= checkReference(oldModule, smiGetNodeLine(oldNode),
+			   newModule, smiGetNodeLine(newNode),
+			   newNode->name,
+			   oldNode->reference, newNode->reference);
+
+    if (code & CODE_SHOW_PREVIOUS) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 smiGetNodeLine(oldNode), oldNode->name);
+    }
+    if (code & CODE_SHOW_PREVIOUS_IMPLICIT) {
+	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			 smiGetNodeLine(oldNode));
+    }
+
+    checkComplMandatory(oldModule, oldTag, newModule, newTag,
+			oldNode, newNode);
+
+    checkComplOptions(oldModule, oldTag, newModule, newTag, oldNode, newNode);
+
+    checkComplRefinements(oldModule, oldTag, newModule, newTag, oldNode, newNode);
+}
+
+
+
+static void
+diffCompliances(SmiModule *oldModule, const char *oldTag,
+		SmiModule *newModule, const char *newTag)
+{
+    SmiNode *oldNode, *newNode;
+    
+    /*
+     * First check whether the old node definitions still exist and
+     * whether the updates (if any) are consistent with the SMI rules.
+     */
+    
+    smiInit(oldTag);
+    for(oldNode = smiGetFirstNode(oldModule, SMI_NODEKIND_COMPLIANCE);
+	oldNode;
+        oldNode = smiGetNextNode(oldNode, SMI_NODEKIND_COMPLIANCE)) {
+	smiInit(newTag);
+	newNode = smiGetNodeByOID(oldNode->oidlen, oldNode->oid);
+	if (newNode
+	    && newNode->oidlen == oldNode->oidlen
+	    && smiGetNodeModule(newNode) == newModule) {
+	    checkCompliance(oldModule, oldTag, newModule, newTag,
+			    oldNode, newNode);
+	} else {
+	    printErrorAtLine(oldModule, ERR_NODE_REMOVED,
+			     smiGetNodeLine(oldNode),
+			     getStringNodekind(oldNode->nodekind),
+			     oldNode->name);
+	}
+	smiInit(oldTag);
+    }
+
+    /*
+     * Let's see if there are any new definitions.
+     */
+
+    smiInit(newTag);
+    for (newNode = smiGetFirstNode(newModule, SMI_NODEKIND_COMPLIANCE);
+	 newNode;
+	 newNode = smiGetNextNode(newNode, SMI_NODEKIND_COMPLIANCE)) {
 	
 	smiInit(oldTag);
 	oldNode = smiGetNodeByOID(newNode->oidlen, newNode->oid);
@@ -2408,7 +2818,7 @@ main(int argc, char *argv[])
     diffObjects(oldModule, oldTag, newModule, newTag);
     diffNotifications(oldModule, oldTag, newModule, newTag);
     diffGroups(oldModule, oldTag, newModule, newTag);
-    /* diffCompliances(oldModule, oldTag, newModule, newTag) */
+    diffCompliances(oldModule, oldTag, newModule, newTag);
 
     smiInit(oldTag);
     smiExit();
