@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smiclient.c,v 1.1 1998/11/20 17:10:19 strauss Exp $
  */
 
 #include <stdio.h>
@@ -29,6 +29,7 @@ main(argc, argv)
     char *argv[];
 {
     smi_getspec getspec;
+    smi_fullname fullname;
     smi_module *module;
     smi_node *node;
     smi_type *type;
@@ -88,9 +89,8 @@ main(argc, argv)
     }
 
     if (!strcmp(argv[2], "macro")) {
-	getspec.name = argv[3];
-	getspec.wantdescr = 1;
-	macro = smiproc_macro_1(&getspec, cl);
+	fullname = argv[3];
+	macro = smiproc_macro_1(&fullname, cl);
 	printf("       Macro: %s\n", macro->name);
 	printf("      Module: %s\n", macro->module);
     }

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_proc.c,v 1.1 1998/11/19 19:44:04 strauss Exp $
+ * @(#) $Id: smi_svc_proc.c,v 1.2 1998/11/20 17:10:18 strauss Exp $
  */
 
 #include <stdio.h>
@@ -34,7 +34,8 @@ smi_module *smiproc_module_1(getspec)
     static smi_module dummy = { NULL, NULL, NULL, NULL, NULL, NULL };
     smi_module *m;
 
-    printDebug(4, "smiproc_module_1(...)\n");
+    printDebug(4, "smiproc_module_1(<%s,%d>)\n",
+	       getspec->name, getspec->wantdescr);
 
     m = smiGetModule(getspec->name, getspec->wantdescr);
 
@@ -55,7 +56,8 @@ smi_node *smiproc_node_1(getspec)
 			      SMI_STATUS_UNKNOWN, NULL };
     smi_node *n;
     
-    printDebug(4, "smiproc_node_1(...)\n");
+    printDebug(4, "smiproc_node_1(<%s,%d>)",
+	       getspec->name, getspec->wantdescr);
 
     n = smiGetNode(getspec->name, NULL, getspec->wantdescr);
 
@@ -76,7 +78,8 @@ smi_type *smiproc_type_1(getspec)
 			      NULL };
     smi_type *t;
     
-    printDebug(4, "smiproc_type_1(...)\n");
+    printDebug(4, "smiproc_type_1(<%s,%d>)",
+	       getspec->name, getspec->wantdescr);
 
     t = smiGetType(getspec->name, NULL, getspec->wantdescr);
 
@@ -95,7 +98,7 @@ smi_macro *smiproc_macro_1(fullname)
     static smi_macro dummy = { NULL, NULL };
     smi_macro *m;
     
-    printDebug(4, "smiproc_macro_1(...)\n");
+    printDebug(4, "smiproc_macro_1(%s)\n", fullname);
 
     m = smiGetMacro(fullname, NULL);
 

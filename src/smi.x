@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.8 1998/11/20 17:10:16 strauss Exp $
+% * @(#) $Id: smi.x,v 1.9 1998/11/20 19:33:25 strauss Exp $
 % */
 %
 
@@ -173,11 +173,18 @@ program SMIPROG {
 	smi_namelist	SMIPROC_CHILDREN(smi_fullname) 	= 6;
 	/*
 	 * SMIPROC_MEMBERS returns a blank-separated list of fully
-	 * qualified smi_fullnames representing all members of the
-	 * given input node if it represents an object group or
-	 * a notification group or all variables that must be present
-	 * in a notification if the input represents a notification
-	 * node.
+	 * qualified smi_fullnames representing
+	 * - all members of the given input node if it represents an
+	 *   object group, or
+	 * - all members of the given input node if it represents a
+	 *   notification group, or
+	 * - all variables that must be present in a notification
+	 *   if it represents a notification node, or
+	 * - all columns if it represents a row type (SEQUENCE), or
+	 * - all index elements of a table if it represents a table
+	 *   object type (SEQUENCE OF ...).
+	 * - [??? all augmentation elements if it represents a table
+	 *   augmentation object type. ???]
 	 * TODO: Probably this list can get quite large.
 	 */
 	smi_namelist	SMIPROC_MEMBERS(smi_fullname) 	= 7;
