@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.97 2002/07/22 16:49:54 schoenw Exp $
+ * @(#) $Id: error.c,v 1.98 2002/07/23 11:48:14 strauss Exp $
  */
 
 #include <config.h>
@@ -26,6 +26,7 @@
 
 #include "smi.h"
 #include "error.h"
+#include "util.h"
 
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>

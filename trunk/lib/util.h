@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.23 2001/11/26 16:45:41 strauss Exp $
+ * @(#) $Id: util.h,v 1.24 2002/07/23 11:48:14 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -76,13 +76,13 @@ extern char *smiStrdup(const char *s1);
 
 extern char *smiStrndup(const char *s1, size_t n);
 
-extern int smiAsprintf(char **strp, const char *format, ...);
-
-extern int smiVasprintf(char **strp, const char *format, va_list ap);
-
 extern void smiFree(void *ptr);
 
 #endif
+
+extern int smiAsprintf(char **strp, const char *format, ...);
+
+extern int smiVasprintf(char **strp, const char *format, va_list ap);
 
 extern int smiIsPath(const char *s);
 

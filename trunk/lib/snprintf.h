@@ -31,7 +31,10 @@
  * SUCH DAMAGE.
  */
 
+#include <config.h>
+
 #include <sys/types.h>
+#include <stdio.h>
 #include <stdarg.h>
 
 #ifndef HAVE_SNPRINTF

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.36 2002/07/02 12:00:43 bunkus Exp $
+ * @(#) $Id: smi.h.in,v 1.37 2002/07/17 10:32:15 bunkus Exp $
  */
 
 #ifndef _SMI_H
@@ -418,6 +418,17 @@ extern SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr);
 extern SmiElement *smiGetFirstUniquenessElement(SmiNode *smiNodePtr);
 
 #define smiGetNextUniquenessElement(p) smiGetNextElement(p)
+
+extern char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags);
+
+extern char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr,
+			    int flags);
+
+#define SMI_RENDER_NUMERIC   0x01 /* render as a numeric value (default) */
+#define SMI_RENDER_NAME      0x02 /* render as plain name(s) */
+#define SMI_RENDER_QUALIFIED 0x04 /* render as qualified name(s) */
+#define SMI_RENDER_FORMAT    0x08 /* render by type's format if present */
+#define SMI_RENDER_ALL       0x0f
 
 #ifdef __cplusplus
 }
