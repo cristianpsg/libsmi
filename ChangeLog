@@ -3,7 +3,8 @@
 	* lib/scanner-smi.l: Bert Helthuis pointed out an incorrect warning
 	when SNMPv2-SMI is parsed. Fixed.
 
-	* Juergen Schoenwaelder applied a lot of memory leak fixes.
+	* Juergen Schoenwaelder applied a lot of memory leak fixes, error
+	detections and cleanups.
 	
 2000-01-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
