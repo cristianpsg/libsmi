@@ -37,18 +37,20 @@ libsmiTest008Mib MODULE-IDENTITY
 	     that are not specified in the SMIv2.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-008-MIB:77: warning: named numbers not in ascending order
-LIBSMI-TEST-008-MIB:85: warning: named numbers not in ascending order
-LIBSMI-TEST-008-MIB:135: warning: named numbers not in ascending order
-LIBSMI-TEST-008-MIB:143: warning: named numbers not in ascending order
-LIBSMI-TEST-008-MIB:68: warning: textual convention `Red' can not be derived from the textual convention `Color'
-LIBSMI-TEST-008-MIB:93: named number `yellow(4)' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:101: named number `red(2)' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:109: named number `rot(1)' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:126: warning: textual convention `FileAccess' can not be derived from the textual convention `Access'
-LIBSMI-TEST-008-MIB:151: named number `create' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:159: named number `read' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:167: named number `lesen' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:79: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:87: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:137: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:145: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:70: warning: current type `Red' is not referenced in this module
+LIBSMI-TEST-008-MIB:70: warning: textual convention `Red' can not be derived from the textual convention `Color'
+LIBSMI-TEST-008-MIB:95: named number `yellow(4)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:103: named number `red(2)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:111: named number `rot(1)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:128: warning: current type `FileAccess' is not referenced in this module
+LIBSMI-TEST-008-MIB:128: warning: textual convention `FileAccess' can not be derived from the textual convention `Access'
+LIBSMI-TEST-008-MIB:153: named number `create' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:161: named number `read' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:169: named number `lesen' illegal in sub-type of `Access'
             "
     REVISION        "200005291500Z"
     DESCRIPTION     

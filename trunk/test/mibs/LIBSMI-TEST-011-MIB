@@ -37,8 +37,8 @@ libsmiTest011Mib MODULE-IDENTITY
 
 	     The libsmi parser is expected to report:
 LIBSMI-TEST-011-MIB:91: warning: exactly one index element of row `testEntry' must be accessible in SMIv2 MIB
-LIBSMI-TEST-011-MIB:54: warning: current group `group1' is unconditionally optional
-LIBSMI-TEST-011-MIB:61: warning: current group `group2' is unconditionally optional
+LIBSMI-TEST-011-MIB:54: warning: current group `group1' is not referenced in this module
+LIBSMI-TEST-011-MIB:61: warning: current group `group2' is not referenced in this module
 	    "
     REVISION        "200007051000Z"
     DESCRIPTION     

@@ -35,11 +35,14 @@ libsmiTest010Mib MODULE-IDENTITY
              The MIB parser should complain about improper subtyping.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-010-MIB:76: illegal size restriction for non-octet-string parent type `EnumTcTest1'
-LIBSMI-TEST-010-MIB:84: illegal range restriction for non-numerical parent type `EnumTcTest1'
-LIBSMI-TEST-010-MIB:92: illegal size restriction for non-octet-string parent type `BitsTcTest1'
-LIBSMI-TEST-010-MIB:100: illegal range restriction for non-numerical parent type `BitsTcTest1'
-LIBSMI-TEST-010-MIB:108: illegal enumeration or bits restriction for non-enumeration-or-bits parent type `OctetsStringTcTest1'
+LIBSMI-TEST-010-MIB:79: illegal size restriction for non-octet-string parent type `EnumTcTest1'
+LIBSMI-TEST-010-MIB:87: illegal range restriction for non-numerical parent type `EnumTcTest1'
+LIBSMI-TEST-010-MIB:95: illegal size restriction for non-octet-string parent type `BitsTcTest1'
+LIBSMI-TEST-010-MIB:103: illegal range restriction for non-numerical parent type `BitsTcTest1'
+LIBSMI-TEST-010-MIB:111: illegal enumeration or bits restriction for non-enumeration-or-bits parent type `OctetsStringTcTest1'
+LIBSMI-TEST-010-MIB:56: warning: current type `EnumTcTest1' is not referenced in this module
+LIBSMI-TEST-010-MIB:62: warning: current type `BitsTcTest1' is not referenced in this module
+LIBSMI-TEST-010-MIB:68: warning: current type `OctetsStringTcTest1' is not referenced in this module
 	    "
     REVISION        "200011081000Z"
     DESCRIPTION     

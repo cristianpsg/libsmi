@@ -35,10 +35,15 @@ libsmiTest013Mib MODULE-IDENTITY
 	     complain about ranges not being in ascending order.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-013-MIB:60: warning: ranges not in ascending order
-LIBSMI-TEST-013-MIB:60: warning: ranges not in ascending order
-LIBSMI-TEST-013-MIB:74: warning: ranges not in ascending order
-LIBSMI-TEST-013-MIB:81: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:65: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:65: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:79: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:86: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:53: warning: current type `RangeType1' is not referenced in this module
+LIBSMI-TEST-013-MIB:60: warning: current type `RangeType2' is not referenced in this module
+LIBSMI-TEST-013-MIB:67: warning: current type `RangeType3' is not referenced in this module
+LIBSMI-TEST-013-MIB:74: warning: current type `RangeType4' is not referenced in this module
+LIBSMI-TEST-013-MIB:81: warning: current type `RangeType5' is not referenced in this module
 	    "
     REVISION        "200109270000Z"
     DESCRIPTION     
