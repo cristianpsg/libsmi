@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+ * @(#) $Id: error.c,v 1.2 1998/10/27 13:32:43 strauss Exp $
  */
 
 #include <string.h>
@@ -25,7 +25,6 @@
 
 
 
-int printErrorLines;			 /* Verbose error lines		     */
 int errorLevel;                          /* Higher level for more warnings   */
 int debugLevel;                          /* Higher level for more messages   */
 
@@ -188,6 +187,8 @@ Error errors[] = {
       "Object identifier element `%s' name only allowed as first element" },
     { 2, ERR_UNKNOWN_TYPE,
       "Unknown type `%s'" },
+    { 1, ERR_LOCATION,
+      "Opening MIB directory or file `%s': %s" },
  
     { 0, 0, NULL }
 };
@@ -234,7 +235,7 @@ printError(Parser *parser, int id, ...)
 	    fprintf(stderr, "\n");
 	    va_end(ap);
 	    
-	    if (printErrorLines) {
+	    if (thisParser->flags & FLAG_ERRORLINES) {
 		fprintf(stderr, "%s...\n", thisParser->linebuf);
 		fprintf(stderr, "%*s\n", thisParser->column, "^");
 	    }

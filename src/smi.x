@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.1 1998/11/04 23:44:50 strauss Exp $
+% * @(#) $Id: smi.x,v 1.2 1998/11/10 14:41:43 strauss Exp $
 % */
 %
 
@@ -75,7 +75,7 @@ enum smi_decl {
 };
 
 struct smi_getspec {
-    smi_namespec	name;
+    smi_descriptor	name;
     int			wantdescr;
 };
 
@@ -103,7 +103,7 @@ struct smi_node {
     smi_decl		decl;
     smi_access		access;
     smi_status		status;
-    smi_description	description;
+    smi_string		description;
 };
 
 struct smi_type {

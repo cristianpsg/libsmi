@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.10 1998/11/02 08:11:05 strauss Exp $
+ * @(#) $Id: data.h,v 1.11 1998/11/02 19:29:03 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "smi.h"
 #include "defs.h"
 #include "error.h"
 #include "parser.h"
@@ -178,13 +179,16 @@ typedef unsigned short Flags;
 				       /* module.		    */
 #define FLAG_ACTIVE		0x0200 /* We want to read something */
 				       /* from the current module.  */
-#define	FLAG_ERRORS		0x0400 /* Otherwise be quiet,       */
-				       /* useful when IMPORTing.    */
-#define FLAG_WHOLEMOD		0x0800 /* Fetch all items instead   */
+#define FLAG_WHOLEMOD		0x0400 /* Fetch all items instead   */
 				       /* of just idlist (IMPORTS). */
-#define FLAG_STATS		0x1000 /* Print module statistics.  */
-#define FLAG_RECURSIVE		0x2000 /* Errors and stats also for */
+#define	FLAG_ERRORS	SMI_ERRORS     /* Otherwise be quiet,       */
+				       /* useful when IMPORTing.    */
+#define FLAG_STATS	SMI_STATS      /* Print module statistics.  */
+#define FLAG_RECURSIVE	SMI_RECURSIVE  /* Errors and stats also for */
 				       /* imported modules.         */
+				       /* useful when IMPORTing.    */
+#define	FLAG_ERRORLINES	SMI_ERRORLINES /* When printing errors:     */
+				       /* print also the wrong line */
 
 #define FLAGS_GENERAL		0x00ff
 #define FLAGS_SPECIFIC		0xff00

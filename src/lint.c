@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.3 1998/10/29 13:59:24 strauss Exp $
+ * @(#) $Id: lint.c,v 1.4 1998/11/04 02:14:57 strauss Exp $
  */
 
 #include <stdio.h>
@@ -19,6 +19,7 @@
 #include <getopt.h>
 #endif
 
+#include "smi.h"
 #include "defs.h"
 #include "config.h"
 #include "error.h"
@@ -26,14 +27,12 @@
 #include "parser-bison.h"
 #include "data.h"
 
+/* flex/bison */
 extern int yydebug;
 extern int yyparse(void *);
 extern FILE *yyin;
 
-
-
 Parser toplevelParser;
-int flags;
 char module[MAX_IDENTIFIER_LENGTH+1];
 
 
@@ -61,33 +60,31 @@ main(argc, argv)
 {
     char c;
     int dumpMibFlag, dumpTypesFlag, dumpMosyFlag;
+    int flags;
     
-    yydebug = 0;
-    printErrorLines = 0;
-    errorLevel = 3;
-    debugLevel = 0;
     dumpMibFlag = 0;
     dumpTypesFlag = 0;
     dumpMosyFlag = 0;
 
-    flags = FLAG_WHOLEFILE | FLAG_ERRORS | FLAG_WHOLEMOD;
     strcpy(module, "");
 
     initData();
-    
+
+    smiSetDebugLevel(0);
+    smiSetErrorLevel(3);
+    flags = SMI_ERRORS | SMI_ERRORLINES;
 #ifdef CONFIG_FILE
-    readConfig(CONFIG_FILE, &flags);
+    smiReadConfig(CONFIG_FILE);
 #endif
     
     while ((c = getopt(argc, argv, "MDrRsSvVyYd:l:c:m:")) != -1) {
 	switch (c) {
 	case 'c':
-	    readConfig(optarg, &flags);
+	    smiReadConfig(optarg);
 	    break;
 	case 'm':
 	    strncpy(module, optarg,
 		    sizeof(module)-1);
-	    flags &= ~FLAG_WHOLEFILE;
 	    break;
 	case 'y':
 	    yydebug = 1;
@@ -96,30 +93,30 @@ main(argc, argv)
 	    yydebug = 0;
 	    break;
 	case 'l':
-	    errorLevel = atoi(optarg);
+	    smiSetErrorLevel(atoi(optarg));
 	    break;
 	case 'd':
-	    debugLevel = atoi(optarg);
+	    smiSetDebugLevel(atoi(optarg));
 	    break;
 	case 'v':
-	    printErrorLines = 1;
+	    flags |= SMI_ERRORLINES;
 	    break;
 	case 'V':
-	    printErrorLines = 0;
+	    flags &= ~SMI_ERRORLINES;
 	    break;
 	case 'r':
 	    /* errors and statistics (if -s present) for imported modules */
-	    flags |= FLAG_RECURSIVE;
+	    flags |= SMI_RECURSIVE;
 	    break;
 	case 'R':
-	    flags &= ~FLAG_RECURSIVE;
+	    flags &= ~SMI_RECURSIVE;
 	    break;
 	case 's':
 	    /* print some module statistics */
-	    flags |= FLAG_STATS;
+	    flags |= SMI_STATS;
 	    break;
 	case 'S':
-	    flags &= ~FLAG_STATS;
+	    flags &= ~SMI_STATS;
 	    break;
 	case 'D':
 	    dumpMibFlag = 1;
@@ -135,8 +132,15 @@ main(argc, argv)
 	}
     }
 
+    smiSetFlags(flags);
+    
     while (optind < argc) {
-	readMibFile(argv[optind], module, flags);
+	if (strlen(module)) {
+	    smiAddLocation(argv[optind]);
+	    smiLoadMibModule(module);
+	} else {
+	    smiAddLocation(argv[optind]);
+	}
 	if (dumpMibFlag) {
 	    dumpMibTree(rootMibNode, "");
 	}

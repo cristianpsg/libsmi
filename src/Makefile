@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.3 1998/11/04 02:14:50 strauss Exp $
+# @(#) $Id: Makefile,v 1.4 1998/11/10 14:41:43 strauss Exp $
 #
 
 CC	= gcc
@@ -13,16 +13,19 @@ YACC	= bison -y -v -t
 
 RPCGEN	= rpcgen
 
-LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o interface.o
+LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o smi.o
 
-default: libsmi.a libsmi.h miblint
+default: libsmi.a miblint
 
-smi_xdr.c smi_svc.c smi_clnt.c smi.h: smi.x
+smi_xdr.c smi_svc.c smi_clnt.c smi.h: smi.x smi.h-add
 	$(RPCGEN) smi.x
+	cat smi.h-add >> smi.h
+
+smi.o: smi.c smi.h
 
 smid: smid.o smi_svc.o libsmi.a
 
-smid.o: smid.c smi.h smi_
+smid.o: smid.c smi.h
 
 scanner-flex.c: scanner.l scanner.h parser-bison.h
 	$(LEX) -t scanner.l > scanner-flex.c
@@ -39,24 +42,20 @@ scanner-flex.o: scanner-flex.c scanner.h error.h defs.h
 
 parser-bison.o: parser-bison.c parser-bison.h parser.h error.h defs.h config.h
 
-config.o: parser-bison.c config.c config.h defs.h
+config.o: parser-bison.c config.c config.h defs.h smi.h
 
-error.o: error.c error.h defs.h
+error.o: error.c error.h defs.h smi.h
 
-data.o: data.c data.h defs.h
+data.o: data.c data.h defs.h smi.h
 
-interface.o: parser-bison.c interface.c interface.h defs.h
+lint.o: lint.c error.h defs.h smi.h
 
-lint.o: lint.c error.h defs.h
-
-libsmi.h: interface.h
-	ln -f interface.h libsmi.h
-	ln -f interface.h ../libsmi.h
 
 libsmi.a: $(LOBJS)
-	  ar ruv libsmi.a $(LOBJS)
-	  ranlib libsmi.a
-	  ln -f libsmi.a ../libsmi.a
+	ar ruv libsmi.a $(LOBJS)
+	ranlib libsmi.a
+	ln -f smi.h ../smi.h
+	ln -f libsmi.a ../libsmi.a
 
 miblint: libsmi.a lint.o
 	$(CC) -o miblint lint.o libsmi.a -ll
@@ -85,6 +84,6 @@ clean:
 	rm -f parser-bison.c parser-bison-buggy.c parser-bison.h parser-bison.o
 	rm -f error.o lint.o data.o interface.o config.o
 	rm -f core
-	rm -f miblint libsmi.h libsmi.a
+	rm -f miblint smi.h libsmi.a smi_xdr.c smi_svc.c smi_clnt.c smi.o
 	rm -f y.tab.c y.tab.h y.output yacc.debug yacc.acts yacc.tmp
 	rm -f yacc2html.c yacc2html.o yacc2html parser.y.html
