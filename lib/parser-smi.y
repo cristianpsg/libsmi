@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.175 2002/06/07 17:51:59 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.176 2002/06/08 20:08:09 strauss Exp $
  */
 
 %{
@@ -833,7 +833,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
                 }
                 if (!found)
                     smiPrintErrorAtLine(parserPtr, ERR_ATTRIBUTE_NOT_IN_GROUP,
-                                        objectPtr->line);
+                                        objectPtr->line, objectPtr->export.name);
             }
         }
     }
