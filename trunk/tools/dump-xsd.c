@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.73 2003/04/01 15:29:43 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.74 2003/05/12 12:56:14 tklie Exp $
  */
 
 #include <config.h>
@@ -1409,7 +1409,7 @@ static void fprintAnnotationElem( FILE *f, SmiNode *smiNode ) {
 	char *defval = smiRenderValue( &smiNode->value,
 				       smiGetNodeType( smiNode ),
 				       SMI_RENDER_FORMAT );
-	fprintSegment( f, 0, "<defval>%s</defval>\n", defval );
+	fprintSegment( f, 0, "<default>%s</default>\n", defval );
 
     }
 
