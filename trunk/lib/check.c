@@ -1319,8 +1319,7 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 	    if (inetModulePtr) {
 
 		/* check InetAddressType/InetAddress pair */
-		if ((objectPtr->typePtr == inetAddressPtr) ||
-		    (objectPtr->typePtr->parentPtr == inetAddressPtr)) {
+		if (smiTypeDerivedFrom(objectPtr->typePtr, inetAddressPtr)) {
 #if 1
 		    for (nodePtr =
 			     objectPtr->nodePtr->parentPtr->firstChildPtr;
