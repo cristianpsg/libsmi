@@ -1,5 +1,7 @@
 2000-11-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.2.8.tar.gz: released version 0.2.8.
+
 	* test/Makefile.am: Added tests for formats: identifiers,
 	metrics, xml, cm, python.
 	
