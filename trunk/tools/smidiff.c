@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.15 2001/10/08 17:42:30 tklie Exp $	 
+ * @(#) $Id: smidiff.c,v 1.16 2001/10/11 08:58:57 schoenw Exp $	 
  */
 
 #include <stdlib.h>
@@ -100,6 +100,7 @@ typedef struct Error {
 #define ERR_NAMED_NUMBER_CHANGED        58
 #define ERR_NAMED_BIT_ADDED_OLD_BYTE    59
 #define ERR_NODEKIND_CHANGED		60
+#define ERR_INDEXKIND_CHANGED           61
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -167,7 +168,7 @@ static Error errors[] = {
     { 3, ERR_RANGE_REMOVED, "range-removed",
       "range removed from `%s'" },
     { 3, ERR_RANGE_CHANGED, "range-changed",
-      "range of `%s' changed" },
+      "range of `%s' changed from `%d..%d' to `%d..%d'" },
     { 3, ERR_DEFVAL_ADDED, "defval-added",
       "default value added to `%s'" },
     { 3, ERR_DEFVAL_REMOVED, "defval-removed",
@@ -209,13 +210,15 @@ static Error errors[] = {
     { 5, ERR_NAMED_NUMBER_ADDED, "named-number-added",
       "named number `%s' added" },
     { 2, ERR_NAMED_NUMBER_REMOVED, "named-number-removed",
-      "named number `%s' removed" },
+      "named number `%s' removed from `%s'" },
     { 5, ERR_NAMED_NUMBER_CHANGED, "named-number-changed",
       "named number `%s' changed to `%s'" },
     { 3, ERR_NAMED_BIT_ADDED_OLD_BYTE, "named-bit-added-old-byte",
       "named bit `%s' added without starting in a new byte" },
     { 2, ERR_NODEKIND_CHANGED, "nodekind-changed",
       "node kind of `%s' changed" },
+    { 2, ERR_INDEXKIND_CHANGED, "indexkind-changed",
+      "changed kind of index in node `%s'" },
     { 0, 0, NULL, NULL }
 };
 
@@ -254,7 +257,8 @@ printError(SmiModule *smiModule, int id, int line, va_list ap)
     
     if (errors[i].level <= errorLevel) {
 	fprintf(stderr, "%s", smiModule->path);
-	if (line >= 0) {
+
+    	if (line >= 0) {
 	    fprintf(stderr, ":%d", line);
 	}
 	fprintf(stderr, " ");
@@ -614,6 +618,8 @@ checkRanges(SmiModule *oldModule, int oldLine,
     if( ! name ) {
 	name = "implicit type";
     }
+
+
     
     oldTwR = findTypeWithRange(oldType);
     newTwR = findTypeWithRange(newType);
@@ -627,7 +633,25 @@ checkRanges(SmiModule *oldModule, int oldLine,
     }
   
     if (oldTwR && !newTwR) {
-	printErrorAtLine(oldModule, ERR_RANGE_REMOVED, oldLine, name);
+	printErrorAtLine(newModule, ERR_RANGE_REMOVED, newLine, name);
+
+	
+	if( oldTwR == oldType ) {
+	   
+	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			     oldLine, name);
+	}
+	else {
+	    SmiModule *modTwR;
+	    int line;
+
+	    modTwR = smiGetTypeModule( oldTwR );
+	    line = smiGetTypeLine( oldTwR );
+	    
+	    printErrorAtLine( modTwR, ERR_PREVIOUS_DEFINITION,
+			      line, name );
+
+	}
     }
 
     if (oldTwR && newTwR) {
@@ -640,19 +664,33 @@ checkRanges(SmiModule *oldModule, int oldLine,
 
 	    if( oldRange && newRange ) {
 		
-		if( cmpSmiValues(oldRange->minValue, newRange->minValue) ||
-		    cmpSmiValues(oldRange->maxValue, newRange->maxValue)) {
+		/* we assume that range->mxxValue is always Integer32 */
+		if((oldRange->minValue.value.integer32 !=
+		    newRange->minValue.value.integer32 ) ||
+		   (oldRange->maxValue.value.integer32 !=
+		    newRange->maxValue.value.integer32)) {
 		    
 		    printErrorAtLine(newModule,
 				     ERR_RANGE_CHANGED,
 				     newLine,
-				     name);
+				     name,
+				     oldRange->minValue.value.integer32,
+				     oldRange->maxValue.value.integer32,
+				     newRange->minValue.value.integer32,
+				     newRange->maxValue.value.integer32);
 		}
 	    }
 	    
-	    else {
+	    else if (oldRange){
 		printErrorAtLine(newModule,
-				 ERR_RANGE_CHANGED,
+				 ERR_RANGE_REMOVED,
+				 newLine,
+				 name);
+	    }
+
+	    else if( newRange ) {
+		printErrorAtLine(newModule,
+				 ERR_RANGE_ADDED,
 				 newLine,
 				 name);
 	    }
@@ -704,7 +742,11 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		  SmiType *oldType, SmiType *newType)
 {
     SmiNamedNumber *oldNN, *newNN;
-    
+
+    if( ! name ) {
+	name = "implicit type";
+    }
+
     /* xxx Do we have to find named numbers of parent types
        (see checkRanges) ? */
     oldNN = smiGetFirstNamedNumber( oldType );
@@ -713,7 +755,7 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
     while( oldNN || newNN ) {
 	if( oldNN && !newNN ) {
 	    printErrorAtLine(newModule, ERR_NAMED_NUMBER_REMOVED, newLine,
-			     oldNN->name);
+			     oldNN->name, name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine,
 			     oldNN->name);
 	    oldNN = smiGetNextNamedNumber( oldNN );
@@ -724,7 +766,6 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		SmiNamedNumber *veryOldNN = NULL, *iterNN;
 
 		/* find largest old named number */
-		/* xxx does libsmi ensure they are in ascending order? */
 		for( iterNN = smiGetFirstNamedNumber( oldType );
 		     iterNN; iterNN = smiGetNextNamedNumber( iterNN ) ) {
 		    veryOldNN = iterNN;
@@ -763,7 +804,8 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		if( oldNN->value.value.unsigned32 <
 		    newNN->value.value.unsigned32 ) {
 		    printErrorAtLine( oldModule, ERR_NAMED_NUMBER_REMOVED,
-				      smiGetTypeLine( oldType ),oldNN->name );
+				      smiGetTypeLine( oldType ),oldNN->name,
+				      name);
 		    oldNN = smiGetNextNamedNumber( oldNN );
 		}
 		else if( oldNN->value.value.unsigned32 >
@@ -791,7 +833,8 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		if( oldNN->value.value.integer32 <
 		    newNN->value.value.integer32 ) {
 		    printErrorAtLine( oldModule, ERR_NAMED_NUMBER_REMOVED,
-				      smiGetTypeLine( oldType ),oldNN->name );
+				      smiGetTypeLine( oldType ),oldNN->name,
+				      name);
 		    oldNN = smiGetNextNamedNumber( oldNN );
 		}
 		else if( oldNN->value.value.integer32 >
@@ -821,8 +864,6 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 }
 
 
-
-
 static void
 checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
 		       SmiModule *newModule, SmiType *newType)
@@ -845,20 +886,19 @@ checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
 			     smiGetTypeLine(oldType), "implicit type" );
 	}
     }
-    
+
     checkNamedNumbers(oldModule, smiGetTypeLine(oldType),
 		      newModule, smiGetTypeLine(newType),
 		      oldType->name,
 		      oldType,
 		      newType);
 
-    checkRanges(oldModule, smiGetTypeLine(oldType),
+      checkRanges(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
-		oldType->name,
-		oldType,
-		newType);
+		  oldType->name,
+		  oldType,
+		  newType);
 }
-
 
 
 static void
@@ -872,7 +912,7 @@ checkTypes(SmiModule *oldModule, SmiType *oldType,
 
     checkTypeCompatibility(oldModule, oldType,
 			   newModule, newType);
-	
+    
     checkDefVal(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
 		oldType->name, 
@@ -976,6 +1016,14 @@ checkIndex(SmiModule *oldModule, SmiNode *oldNode,
 	&& oldNode->indexkind == SMI_INDEX_UNKNOWN) {
 	return;
     }
+
+    if( newNode->indexkind != oldNode->indexkind) {
+	printErrorAtLine( newModule, ERR_INDEXKIND_CHANGED, 
+			  smiGetNodeLine( oldNode ), newNode->name );
+	printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
+			  smiGetNodeLine( newNode ), oldNode->name );
+	
+    }
 #if 0
     fprintf(stderr, "xxx checking index (%s, %s)...\n", oldNode->name, newNode->name);
     /* switch (newNode->indexkind) { */
@@ -1006,6 +1054,7 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 			     newNode->name, oldType->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
+	    
 	    checkTypeCompatibility(oldModule, oldType, newModule, newType);
 	} else if (!oldType->name && newType->name) {
 	    printErrorAtLine(newModule, ERR_FROM_IMPLICIT,
@@ -1013,6 +1062,8 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 			     newType->name, oldNode->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
+	    /* xxx the next command may lead to strange output
+	       in the printError() function.*/
 	    checkTypeCompatibility(smiGetTypeModule(oldType), oldType,
 				   smiGetTypeModule(newType), newType);
 	} else {
