@@ -1,3 +1,8 @@
+2002-05-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.c: Fixed lost named numbers in case of forward
+	referenced TCs and type assignments.
+
 2002-05-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/HDSL2-SHDSL-LINE-MIB: added (RFC 3276).
