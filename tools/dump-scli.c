@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2001 J. Schoenwaelder, Technical University of Braunschweig.
  * Copyright (c) 2002 J. Schoenwaelder, University of Osnabrueck.
+ * Copyright (c) 2004 J. Schoenwaelder, International University Bremen.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1165,6 +1166,11 @@ printHeaderTypedefMemberComment(FILE *f, SmiNode *smiNode, SmiType *smiType)
     if (s) {
 	fprintf(f, " %s", s);
 	free(s);
+    }
+    if (smiNode->units) {
+	fprintf(f, " [%s]", smiNode->units);
+    } else if (smiType->units) {
+	fprintf(f, " [%s]", smiNode->units);
     }
 }
 
