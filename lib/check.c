@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.6 2000/10/20 09:23:58 strauss Exp $
+ * @(#) $Id: check.c,v 1.7 2000/10/21 09:35:01 strauss Exp $
  */
 
 #include <config.h>
@@ -528,7 +528,8 @@ smiCheckIndex(Parser *parser, Object *object)
     Object *indexPtr;
     Type *typePtr, *rTypePtr;
     Range *rangePtr;
-    int maxSize, len = 0;
+    NamedNumber *nnPtr;
+    int minSize, maxSize, len = 0;
 
     for (listPtr = object->listPtr; listPtr; listPtr = listPtr->nextPtr) {
 	
@@ -569,7 +570,7 @@ smiCheckIndex(Parser *parser, Object *object)
 		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
 		    rangePtr = (Range *) list2Ptr->ptr;
 		    if (rangePtr->export.maxValue.value.integer32 < 0) {
-			smiPrintErrorAtLine(parser, ERR_INDEX_NEGATIVE,
+			smiPrintErrorAtLine(parser, ERR_INDEX_RANGE_NEGATIVE,
 					    indexPtr->line,
 					    indexPtr->export.name,
 					    object->export.name);
@@ -580,9 +581,12 @@ smiCheckIndex(Parser *parser, Object *object)
 	    len++;
 	    break;
 	case SMI_BASETYPE_OCTETSTRING:
+	    /* TODO: We need to check ranges of parent types as well
+	       if this type does not have a range restriction. */
 	    for (rTypePtr = typePtr; rTypePtr && ! rTypePtr->listPtr;
 		 rTypePtr = rTypePtr->parentPtr) {
 	    }
+	    minSize = 65535;
 	    maxSize = -1;
 	    if (! rTypePtr) {
 		if (object->modulePtr != indexPtr->modulePtr) {
@@ -601,19 +605,22 @@ smiCheckIndex(Parser *parser, Object *object)
 	        for (list2Ptr = rTypePtr->listPtr;
 		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
 		    rangePtr = (Range *) list2Ptr->ptr;
+		    if (rangePtr->export.minValue.value.integer32 < minSize) {
+			minSize = rangePtr->export.minValue.value.integer32;
+		    }
 		    if (rangePtr->export.maxValue.value.integer32 > maxSize) {
 			maxSize = rangePtr->export.maxValue.value.integer32;
 		    }
+		}
+		if (minSize == 65535) {
+		    minSize = 0;
 		}
 		if (maxSize < 0) {
 		    maxSize = 65535;
 		}
 	    }
 	    len += maxSize;
-	    /* IpAddress is special; it never requires a length */
-	    if (!indexPtr->export.implied &&
-		!(rTypePtr && rTypePtr->export.name &&
-		  !strcmp(rTypePtr->export.name, "IpAddress"))) {
+	    if (!indexPtr->export.implied && minSize != maxSize) {
 		len++;
 	    }
 	    break;
@@ -638,11 +645,23 @@ smiCheckIndex(Parser *parser, Object *object)
 				indexPtr->export.name, object->export.name);
 	    break;
 	case SMI_BASETYPE_BITS:
-	    /* TODO: BITS are somehow treates as octet strings - but
+	    /* TODO: BITS are somehow treated as octet strings - but
 	       what is the max len? */
 	    break;
 	case SMI_BASETYPE_ENUM:
-	    /* TODO: need to check for negative enums here */
+	    for (listPtr = typePtr->listPtr;
+		 listPtr; listPtr = listPtr->nextPtr) {
+		
+		nnPtr = (NamedNumber *)(listPtr->ptr);
+
+		if (nnPtr->export.value.value.integer32 < 0) {
+			smiPrintErrorAtLine(parser, ERR_INDEX_ENUM_NEGATIVE,
+					    indexPtr->line,
+					    indexPtr->export.name,
+					    object->export.name);
+			break;
+		}
+	    }
 	    len++;
 	    break;
 	}
@@ -658,7 +677,7 @@ smiCheckIndex(Parser *parser, Object *object)
 	}
 #endif
     }
-	
+
     if (object->export.oidlen + 1 + len > 128) {
 	smiPrintErrorAtLine(parser, ERR_INDEX_TOO_LARGE, object->line,
 			    object->export.name);

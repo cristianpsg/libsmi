@@ -1,3 +1,8 @@
+2000-27-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/check.c: Juergen fixed index checks for Bits/fixed-length
+	octet strings.
+
 2000-25-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidump.c: Removed again `-X' option to eliminate parser
