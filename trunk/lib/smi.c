@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.104 2001/08/24 10:10:55 strauss Exp $
+ * @(#) $Id: smi.c,v 1.105 2001/08/27 11:51:42 strauss Exp $
  */
 
 #include <config.h>
@@ -658,6 +658,13 @@ SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr)
     }
 
     return &((Revision *)smiRevisionPtr)->nextPtr->export;
+}
+
+
+
+int smiGetRevisionLine(SmiRevision *smiRevisionPtr)
+{
+    return ((Revision *)smiRevisionPtr)->line;
 }
 
 

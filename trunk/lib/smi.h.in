@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.31 2001/04/24 08:42:31 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.32 2001/09/18 11:04:40 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -319,6 +319,7 @@ extern SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr);
 
 extern SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr);
 
+extern int smiGetRevisionLine(SmiRevision *smiRevisionPtr);
 
 
 extern SmiType *smiGetType(SmiModule *smiModulePtr, char *type);
