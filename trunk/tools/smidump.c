@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.37 2000/04/12 11:32:41 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.38 2000/05/02 12:57:17 strauss Exp $
  */
 
 #include <config.h>
@@ -77,6 +77,8 @@ static Driver driverTable[] = {
       "Java AgentX sub-agent classes in separate files" },
     { "xml",       dumpXml,	0,			SMIDUMP_FLAG_UNITE,
       "SMIng in XML format" },
+    { "metrics",   dumpMetrics,	0,			0,
+      "metrics derived from a MIB module" },
 #if 0
     { "fig-tree",  dumpFigTree,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
       "tree graphics in xfig fig format" },
