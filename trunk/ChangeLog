@@ -1,3 +1,8 @@
+2000-03-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-jax.c: A new dump format (it writes separate files
+	instead to stdout) has been started for Java AgentX sub-agent code.
+
 2000-02-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.c: Remember the longest common OID prefix of all nodes
