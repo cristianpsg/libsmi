@@ -11,7 +11,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.13 2003/12/10 12:17:40 schoenw Exp $
+ * @(#) $Id: dump-metrics.c,v 1.14 2004/07/29 09:31:45 schoenw Exp $
  */
 
 /*
@@ -944,7 +944,7 @@ incrLengthCounter(LengthCounter *cnt, char *description, char *reference,
 
 
 static void
-incrRowStatusCounter(SmiModule *smiModule, SmiNode *rowNode)
+incrRowStatusCounter(SmiNode *rowNode)
 {
     SmiNode *smiNode;
     SmiType *smiType;
@@ -1066,7 +1066,7 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 	    incrLengthCounter(&metrics->lengthAll,
 			      smiNode->description, smiNode->reference,
 			      smiNode->units, smiNode->format);
-	    incrRowStatusCounter(smiModule, smiNode);
+	    incrRowStatusCounter(smiNode);
 	    {
 		int cnt = 0;
 		foreachIndexDo(NULL, smiNode, count, &cnt);
