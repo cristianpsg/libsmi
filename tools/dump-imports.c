@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.20 2002/01/09 12:02:03 schoenw Exp $
+ * @(#) $Id: dump-imports.c,v 1.21 2002/10/30 09:17:37 schoenw Exp $
  */
 
 #include <config.h>
@@ -23,7 +23,6 @@
 
 typedef struct Imports {
     char *module;
-    char *name;
     int  count;
     struct Imports *nextPtr;
 } Imports;
@@ -37,8 +36,8 @@ static Imports *getImports(SmiModule *smiModule, int *n)
     int       i;
     size_t    size;
     
-    for(smiImport = smiGetFirstImport(smiModule), *n = 0;
-	smiImport; smiImport = smiGetNextImport(smiImport)) {
+    for (smiImport = smiGetFirstImport(smiModule), *n = 0;
+	 smiImport; smiImport = smiGetNextImport(smiImport)) {
 	(*n)++;
     }
 
@@ -46,9 +45,9 @@ static Imports *getImports(SmiModule *smiModule, int *n)
     imports = xmalloc(size);
     memset(imports, 0, size);
 
-    for(smiImport = smiGetFirstImport(smiModule), *n = 0;
-	smiImport; smiImport = smiGetNextImport(smiImport)) {
-
+    for (smiImport = smiGetFirstImport(smiModule), *n = 0;
+	 smiImport; smiImport = smiGetNextImport(smiImport)) {
+	
 	if (!smiImport->module) continue;
 	
 	for (i = 0; i < *n; i++) {
