@@ -65,19 +65,11 @@ typedef enum GraphEnhIndex {
  * Definition used by the dia output driver.
  */
 
-//FIXME Do we need this any more?
-#define DIA_PRINT_FLAG	0x01
-
 typedef struct DiaNode {
-    int   flags;		/* flags for the dia xml output driver */
     float x,y;			/* coordinates (left upper corner) */
     float xDisp,yDisp;		/* displacement vector for springembedder */
     float w,h;			/* width and height of the dia node */
 } DiaNode;
-
-typedef struct DiaEdge {
-    int   flags;		/* flags for the dia xml output driver */
-} DiaEdge;
 
 /*
  * Generic structures for the internal graph representation.
@@ -114,7 +106,6 @@ typedef struct GraphEdge {
     GraphCardinality cardinality;
     GraphEnhIndex    enhancedindex;
     int              use;		/* use edge in the layout-algorithm */
-    DiaEdge	     dia;
 } GraphEdge;
 
 typedef struct Graph {
@@ -1991,8 +1982,6 @@ static void printSVGRelatedScalars(GraphNode *node,
 	 tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
 	if (tEdge->startNode == node  &&
 	    tEdge->endNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
-	    tEdge->dia.flags |= DIA_PRINT_FLAG;
-	    tEdge->endNode->dia.flags |= DIA_PRINT_FLAG;
 
 	    printSVGAttribute(tEdge->endNode->smiNode,
 			      0, textYOffset, textXOffset);
@@ -2059,11 +2048,6 @@ static void printSVGObject(GraphNode *node, int *classNr)
     float textXOffset, textYOffset, xOrigin, yOrigin;
     
     if (!node) return;
-    if (node->dia.flags & DIA_PRINT_FLAG) {
-	fprintf(stderr, "MÖÖP\n");
-	return;
-    }
-    node->dia.flags |= DIA_PRINT_FLAG;
 
     xOrigin = node->dia.w/-2;
     yOrigin = node->dia.h/-2;
@@ -2207,11 +2191,6 @@ static void printSVGDependency(GraphEdge *tEdge)
 {
     float alpha, beta, endPointX, endPointY;
     const float PI = acos(-1);
-    if (tEdge->dia.flags & DIA_PRINT_FLAG) {
-	fprintf(stderr, "MÖÖP\n");
-	return;
-    }
-    tEdge->dia.flags |= DIA_PRINT_FLAG;
 
     //calculate intersection of edge and endNode for end-point of arrow
     alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
@@ -2274,11 +2253,6 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     float alpha, beta, offset;
     const float PI = acos(-1);
 
-    if (tEdge->dia.flags & DIA_PRINT_FLAG) {
-	fprintf(stderr, "MÖÖP\n");
-	return;
-    }
-    tEdge->dia.flags |= DIA_PRINT_FLAG;
     if (aggregate > 1) aggregate = 1;
     if (aggregate < 0) aggregate = 0;
 
