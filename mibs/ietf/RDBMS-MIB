@@ -1275,7 +1275,7 @@ rdbmsCompliance     MODULE-COMPLIANCE
          implement the RDBMS MIB"
     MODULE HOST-RESOURCES-MIB
         MANDATORY-GROUPS    { hrSystem }
-    MODULE APPLICATION-MIB
+    MODULE NETWORK-SERVICES-MIB
         MANDATORY-GROUPS { applGroup }
     MODULE RDBMS-MIB
         MANDATORY-GROUPS { rdbmsGroup }
