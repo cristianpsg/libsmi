@@ -169,7 +169,8 @@ static void display_used(Error *errors)
 	return;
     }
 
-    fprintf(stderr, "\nAdditional descriptions of error/warning messages:\n"); 
+    fprintf(stderr,
+	    "\nAdditional descriptions of some error/warning messages:\n"); 
 
     for (i = 0; errors[i].msg; i++) {
 	if (! errors[i].used || !errors[i].description) continue;
