@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.117 2002/11/13 12:28:04 schoenw Exp $
+ * @(#) $Id: smi.c,v 1.118 2002/11/13 13:15:03 strauss Exp $
  */
 
 #include <config.h>
@@ -1339,6 +1339,13 @@ SmiNode *smiGetOptionNode(SmiOption *smiOptionPtr)
 
 
 
+int smiGetOptionLine(SmiOption *smiOptionPtr)
+{
+    return ((Option *)smiOptionPtr)->line;
+}
+
+
+
 SmiRefinement *smiGetFirstRefinement(SmiNode *smiComplianceNodePtr)
 {
     Object	      *objectPtr;
@@ -1423,6 +1430,13 @@ SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr)
     }
     
     return &typePtr->export;
+}
+
+
+
+int smiGetRefinementLine(SmiRefinement *smiRefinementPtr)
+{
+    return ((Refinement *)smiRefinementPtr)->line;
 }
 
 

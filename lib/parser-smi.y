@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.184 2002/10/24 10:40:10 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.185 2003/04/03 15:31:45 strauss Exp $
  */
 
 %{
@@ -6680,21 +6680,25 @@ Compliance:		ComplianceGroup
 			}
 	;
 
-ComplianceGroup:	GROUP objectIdentifier
+ComplianceGroup:	GROUP
+			{
+			    firstStatementLine = thisParserPtr->line;
+			}
+			objectIdentifier
 			DESCRIPTION Text
 			{
 			    Import *importPtr;
 			    
-			    if (complianceModulePtr && $2->export.name) {
+			    if (complianceModulePtr && $3->export.name) {
 				importPtr = findImportByModulenameAndName(
 						    complianceModulePtr->export.name,
-						    $2->export.name,
+						    $3->export.name,
 						    thisModulePtr);
 				if (importPtr)
 				    importPtr->use++;
 			    }
 			    
-			    if ($4 && !strlen($4)) {
+			    if ($5 && !strlen($5)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_DESCRIPTION);
 			    }
@@ -6702,16 +6706,21 @@ ComplianceGroup:	GROUP objectIdentifier
 			    $$ = smiMalloc(sizeof(List));
 			    $$->nextPtr = NULL;
 			    $$->ptr = smiMalloc(sizeof(Option));
-			    ((Option *)($$->ptr))->objectPtr = $2;
+			    ((Option *)($$->ptr))->line = firstStatementLine;
+			    ((Option *)($$->ptr))->objectPtr = $3;
 			    if (! (thisModulePtr->flags & SMI_FLAG_NODESCR)) {
-				((Option *)($$->ptr))->export.description = $4;
+				((Option *)($$->ptr))->export.description = $5;
 			    } else {
-				smiFree($4);
+				smiFree($5);
 			    }
 			}
 	;
 
-ComplianceObject:	OBJECT ObjectName
+ComplianceObject:	OBJECT
+			{
+			    firstStatementLine = thisParserPtr->line;
+			}
+			ObjectName
 			SyntaxPart
 			WriteSyntaxPart                 /* modified for SPPI */
 			AccessPart                      /* modified for SPPI */
@@ -6719,16 +6728,16 @@ ComplianceObject:	OBJECT ObjectName
 			{
 			    Import *importPtr;
 
-			    if (complianceModulePtr && $2->export.name) {
+			    if (complianceModulePtr && $3->export.name) {
 				importPtr = findImportByModulenameAndName(
 						    complianceModulePtr->export.name,
-						    $2->export.name,
+						    $3->export.name,
 						    thisModulePtr);
 				if (importPtr) 
 				    importPtr->use++;
 			    }
 			    
-			    if ($7 && !strlen($7)) {
+			    if ($8 && !strlen($8)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_DESCRIPTION);
 			    }
@@ -6737,14 +6746,16 @@ ComplianceObject:	OBJECT ObjectName
 			    $$ = smiMalloc(sizeof(List));
 			    $$->nextPtr = NULL;
 			    $$->ptr = smiMalloc(sizeof(Refinement));
-			    ((Refinement *)($$->ptr))->objectPtr = $2;
-			    ((Refinement *)($$->ptr))->typePtr = $3;
-			    ((Refinement *)($$->ptr))->writetypePtr = $4;
-			    ((Refinement *)($$->ptr))->export.access = $5;
+			    ((Refinement *)($$->ptr))->line =
+				firstStatementLine;
+			    ((Refinement *)($$->ptr))->objectPtr = $3;
+			    ((Refinement *)($$->ptr))->typePtr = $4;
+			    ((Refinement *)($$->ptr))->writetypePtr = $5;
+			    ((Refinement *)($$->ptr))->export.access = $6;
 			    if (! (thisParserPtr->flags & SMI_FLAG_NODESCR)) {
-				((Refinement *)($$->ptr))->export.description = $7;
+				((Refinement *)($$->ptr))->export.description = $8;
 			    } else {
-				smiFree($7);
+				smiFree($8);
 			    }
 			}
 	;
