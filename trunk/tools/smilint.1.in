@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.4 1999/12/14 12:00:21 strauss Exp $
+.\" $Id: smilint.1.in,v 1.5 2000/02/12 10:56:21 strauss Exp $
 .\"
 .TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -17,7 +17,7 @@ smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 ] [
 .BI "-i " error-pattern
 ]
-.I "module"
+.I "module(s)"
 .SH DESCRIPTION
 The \fBsmilint\fP program is used to check MIB modules for syntax
 errors and semantics at some degree.  Both, SMIv1/v2 and SMIng style
@@ -72,31 +72,41 @@ level 5 does. Note that errors up to level 3 are errors violating the
 specifications and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP
-.BI "-p " module
-Preload the module \fImodule\fP before reading the main module. This may
-be helpful if an incomplete main module misses to import some definitions.
+.BI "-i " error-pattern
+ignore all errors that have a prefix that matches \fIerror-pattern\fP.
+[Currently, there is no way to list the error names. RTFS: error.c.]
 .TP
-.B "-r"
-Report errors and warnings also for imported modules.
-.TP
-.I module
-This is the module to be checked. If it represents a path name
-(identified by containing at least one dot or slash character), this
-is assumed to be the exact file to read. Otherwise, if a module is
-identified by its plain module name, the correspondant file (either
-SMIv1/2 or SMIng) is searched along a path, which is initialized by
-the \fBSMIPATH\fP environment variable or by @mibdir@ if
-\fBSMIPATH\fP is not set. Files with a \fB.sming\fP extension are
-expected to be SMIng module files. Files with a \fB.my\fP or without
-any extension are expected to be SMIv1/v2 module files.
+.I module(s)
+These are the modules to be checked. If a module argument represents a
+path name (identified by containing at least one dot or slash character),
+this is assumed to be the exact file to read. Otherwise, if a module is
+identified by its plain module name, it is searched according to libsmi
+internal rules. See \fBsmi_config(3)\fP for more details.
+.SH "EXAMPLE"
+This example checks the file RMON2-MIB in the current directory (note
+that the `./' prefix ensures this). The error level is raised to 6
+and warnings that claim about identifier names that exceed a length
+of 32 characters are suppressed.
+.nf
+
+  $ smilint -l 6 -i namelength-32 ./RMON2-MIB
+  ./RMON2-MIB:3935: Unexpected type restriction
+  ./RMON2-MIB:3936: Unexpected type restriction
+  ./RMON2-MIB:3937: Unexpected type restriction
+  ./RMON2-MIB:3938: Unexpected type restriction
+  ./RMON2-MIB:3939: Unexpected type restriction
+  ./RMON2-MIB:3940: Unexpected type restriction
+  ./RMON2-MIB:4164: Scalar object must not have a `read-create' access value
+
+.fi
 .SH "SEE ALSO"
-The SMIng and
+The 
 .BR libsmi (3)
 project is documented at
-.BR "http://www.ibr.cs.tu-bs.de/projects/sming/" "."
+.BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
 Other commonly used MIB checkers are
 .BR mosy "(1) and "
 .BR smicng "(1)."
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.38 2000/02/11 23:19:10 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.39 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -994,7 +994,8 @@ static void printObjects(SmiModule *smiModule)
     int		 i, invalid, create, assignement;
     
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
-	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
+	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR |
+	SMI_NODEKIND_CAPABILITIES;
     
     for(smiNode = smiGetFirstNode(smiModule, nodekinds);
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
@@ -1018,6 +1019,15 @@ static void printObjects(SmiModule *smiModule)
 	    assignement = 1;
 	    print("%s OBJECT IDENTIFIER\n", smiNode->name);
 	} else if (smiNode->nodekind == SMI_NODEKIND_NODE) {
+	    if (smiv1) {
+		assignement = 1;
+		print("%s OBJECT IDENTIFIER\n", smiNode->name);
+	    } else {
+		print("%s OBJECT-IDENTITY\n", smiNode->name);
+	    }
+	} else if (smiNode->nodekind == SMI_NODEKIND_CAPABILITIES) {
+	    /* TODO: real agent capabilities */
+	    print("-- This has been an SMIv2 AGENT-CAPABILITIES node:\n");
 	    if (smiv1) {
 		assignement = 1;
 		print("%s OBJECT IDENTIFIER\n", smiNode->name);
@@ -1082,14 +1092,14 @@ static void printObjects(SmiModule *smiModule)
 	    print("\"%s\"\n", smiNode->units);
 	}
 	
-	if (! assignement && smiNode->access != SMI_ACCESS_UNKNOWN) {
+	if (! assignement && smiNode->access != SMI_ACCESS_UNKNOWN &&
+	    smiNode->nodekind != SMI_NODEKIND_CAPABILITIES) {
 	    if (smiv1) {
 		printSegment(INDENT, "ACCESS", INDENTVALUE, invalid);
 	    } else {
 		printSegment(INDENT, "MAX-ACCESS", INDENTVALUE, 0);
 	    }
 	    print("%s\n", getAccessString(smiNode->access, create));
-	    /* TODO: read-create */
 	}
 
 	if (! assignement && smiNode->status != SMI_STATUS_UNKNOWN) {

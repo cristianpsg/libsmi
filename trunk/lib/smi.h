@@ -103,6 +103,7 @@ typedef unsigned int SmiNodekind;
 #define SMI_NODEKIND_NOTIFICATION 0x0040
 #define SMI_NODEKIND_GROUP        0x0080
 #define SMI_NODEKIND_COMPLIANCE   0x0100
+#define SMI_NODEKIND_CAPABILITIES 0x0200
 #define SMI_NODEKIND_ANY          0xffff
 
 /* SmiDecl -- type or statement that leads to a definition                   */
