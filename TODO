@@ -93,3 +93,12 @@ o smiquery: if values are not present, don't print anything instead of `-'.
 
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
+
+o add -c cfg options to all tools (reading ONLY cfg)
+
+o think about `SmiListItem's
+
+o remove `module's from API structs and `basetype' from SmiNode.
+
+o support parsing (but ignoring) SMIv2 AGENT-CAPABILITIES.
+

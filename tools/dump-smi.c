@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.32 2000/02/08 21:39:22 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.33 2000/02/09 15:33:23 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -453,7 +453,8 @@ static void createImportList(SmiModule *smiModule)
 	    }
 	}
 
-	if (! smiv1 && smiNode->basetype == SMI_BASETYPE_INTEGER32) {
+	if (! smiv1 &&
+	    smiType && smiType->basetype == SMI_BASETYPE_INTEGER32) {
 	    addImport("SNMPv2-SMI", "Integer32");
 	}
 
@@ -1012,13 +1013,15 @@ static void printObjects(SmiModule *smiModule)
     for(smiNode = smiGetFirstNode(smiModule, nodekinds);
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
 
+	smiType = smiGetNodeType(smiNode);
 	smiParentNode = smiGetParentNode(smiNode);
+	
 	create = smiParentNode ? smiParentNode->create : 0;
 	if (smiParentNode) {
 	    smiFreeNode(smiParentNode);
 	}
 	
-	invalid = invalidType(smiNode->basetype);
+	invalid = !smiType ? 0 : invalidType(smiType->basetype);
 	assignement = 0;
 
 	if (invalid && silent
@@ -1046,7 +1049,6 @@ static void printObjects(SmiModule *smiModule)
 	    }
 	}
 
-	smiType = smiGetNodeType(smiNode);
 	if ((smiNode->nodekind == SMI_NODEKIND_TABLE) ||
 	    (smiNode->nodekind == SMI_NODEKIND_ROW) ||
 	    (smiType)) {
@@ -1088,7 +1090,7 @@ static void printObjects(SmiModule *smiModule)
 		} else {
 		    print("%s\n",
 			  getTypeString(smiModule->name,
-					smiNode->basetype, smiType));
+					smiType->basetype, smiType));
 		}
 	    }
 	}
@@ -1192,7 +1194,7 @@ static void printObjects(SmiModule *smiModule)
 		}
 		
 		smiType = smiGetNodeType(colNode);
-		invalid = invalidType(colNode->basetype);
+		invalid = invalidType(smiType->basetype);
 
 		if (! invalid || ! silent) {
 		    printSegment(2 * INDENT, colNode->name, INDENTSEQUENCE,
@@ -1204,7 +1206,7 @@ static void printObjects(SmiModule *smiModule)
 		    } else {
 			print("%s",
 			      getTypeString(smiModule->name,
-					    colNode->basetype,
+					    smiType->basetype,
 				 smiGetNodeType(colNode)));
 		    }
 		}

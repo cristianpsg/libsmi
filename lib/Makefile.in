@@ -72,12 +72,14 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 AWK = @AWK@
 BASH = @BASH@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
 DIFF = @DIFF@
+DLLTOOL = @DLLTOOL@
 EXEEXT = @EXEEXT@
 FLEX = @FLEX@
 LD = @LD@
@@ -87,6 +89,7 @@ LIBTOOL_VERSIONING = @LIBTOOL_VERSIONING@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
+OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SH = @SH@
@@ -106,7 +109,7 @@ libsmi_la_SOURCES = data.c error.c util.c smi.c 		  	  parser-smi.tab.c scanner-
 
 libsmi_la_LDFLAGS = -version-info @LIBTOOL_VERSIONING@
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  libsmi.3 smi_macro.3 smi_module.3 smi_node.3 \
+CONFIG_CLEAN_FILES =  smi.h libsmi.3 smi_macro.3 smi_module.3 smi_node.3 \
 smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
@@ -128,8 +131,9 @@ MANS = $(man_MANS)
 NROFF = nroff
 HEADERS =  $(include_HEADERS)
 
-DIST_COMMON =  Makefile.am Makefile.in libsmi.3.in smi_config.3.in \
-smi_macro.3.in smi_module.3.in smi_node.3.in smi_type.3.in
+DIST_COMMON =  Makefile.am Makefile.in libsmi.3.in smi.h.in \
+smi_config.3.in smi_macro.3.in smi_module.3.in smi_node.3.in \
+smi_type.3.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -152,6 +156,8 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+smi.h: $(top_builddir)/config.status smi.h.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 libsmi.3: $(top_builddir)/config.status libsmi.3.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smi_macro.3: $(top_builddir)/config.status smi_macro.3.in

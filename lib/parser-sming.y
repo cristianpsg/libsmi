@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.42 2000/02/08 14:46:03 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.43 2000/02/08 21:39:22 strauss Exp $
  */
 
 %{
@@ -1043,8 +1043,6 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			{
 			    if (scalarObjectPtr && $11) {
 				setObjectType(scalarObjectPtr, $11);
-				setObjectBasetype(scalarObjectPtr,
-						  $11->export.basetype);
 				defaultBasetype = $11->export.basetype;
 				if (!($11->export.name)) {
 				    /*
@@ -1297,8 +1295,6 @@ columnStatement:	columnKeyword sep lcIdentifier
 			{
 			    if (columnObjectPtr && $11) {
 				setObjectType(columnObjectPtr, $11);
-				setObjectBasetype(columnObjectPtr,
-						  $11->export.basetype);
 				defaultBasetype = $11->export.basetype;
 				if (!($11->export.name)) {
 				    /*

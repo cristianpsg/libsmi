@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.59 2000/02/08 21:39:22 strauss Exp $
+ * @(#) $Id: smi.h,v 1.60 2000/02/09 15:33:16 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -17,6 +17,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+
+
+#define SMI_LIBRARY_VERSION "2:1:0"
+extern const char *smi_library_version;
 
 
 
@@ -207,7 +212,6 @@ typedef struct SmiImport {
 /* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
 typedef struct SmiMacro {
     SmiIdentifier       name;
-    SmiIdentifier       module;
     SmiDecl             decl;
     SmiStatus           status;
     char                *description;
@@ -217,7 +221,6 @@ typedef struct SmiMacro {
 /* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
     SmiIdentifier       name;
-    SmiIdentifier       module;
     SmiBasetype         basetype;
     SmiDecl             decl;
     char                *format;
@@ -231,11 +234,9 @@ typedef struct SmiType {
 /* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
     SmiIdentifier       name;
-    SmiIdentifier       module;
     int			oidlen;
     SmiSubid		*oid;         /* array of length oidlen */
     SmiDecl             decl;
-    SmiBasetype         basetype;
     SmiAccess           access;
     SmiStatus           status;
     char                *format;
