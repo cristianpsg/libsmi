@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.56 1999/12/22 16:03:34 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.57 2000/01/03 17:07:40 strauss Exp $
  */
 
 %{
@@ -243,10 +243,10 @@ checkNameLen(Parser *parser, char *name, int error_32, int error_64)
 %type  <err>objectTypeClause
 %type  <err>trapTypeClause
 %type  <text>descriptionClause
-%type  <err>VarPart
-%type  <err>VarTypes
-%type  <err>VarType
-%type  <err>DescrPart
+%type  <listPtr>VarPart
+%type  <listPtr>VarTypes
+%type  <objectPtr>VarType
+%type  <text>DescrPart
 %type  <access>MaxAccessPart
 %type  <err>notificationTypeClause
 %type  <err>moduleIdentityClause
@@ -463,13 +463,14 @@ module:			moduleName
 					   (objectPtr->typePtr->decl ==
 					    SMI_DECL_IMPL_SEQUENCEOF)) {
 				    objectPtr->nodekind = SMI_NODEKIND_TABLE;
-				    /* XXX */
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
 					   (objectPtr->indexPtr)) {
 				    objectPtr->nodekind = SMI_NODEKIND_ROW;
-				} else if (objectPtr->decl ==
-					   SMI_DECL_NOTIFICATIONTYPE) {
+				} else if ((objectPtr->decl ==
+					    SMI_DECL_NOTIFICATIONTYPE) ||
+					   (objectPtr->decl ==
+					    SMI_DECL_TRAPTYPE)) {
 				    objectPtr->nodekind =
 					SMI_NODEKIND_NOTIFICATION;
 				} else if ((objectPtr->decl ==
@@ -1646,29 +1647,97 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			ReferPart
 			COLON_COLON_EQUAL NUMBER
 			/* TODO: range of number? */
-			{ $$ = 0; }
+			{
+			    Object *objectPtr;
+			    Node *nodePtr;
+			    
+			    objectPtr = $6;
+			    nodePtr = findNodeByParentAndSubid(
+				objectPtr->nodePtr, 0);
+			    if (nodePtr && nodePtr->lastObjectPtr &&
+	       		(nodePtr->lastObjectPtr->modulePtr == thisModulePtr)) {
+				/*
+				 * hopefully, the last defined Object for
+				 * this Node is the one we expect.
+				 */
+				objectPtr = nodePtr->lastObjectPtr;
+			    } else {
+				objectPtr = addObject("",
+						      objectPtr->nodePtr,
+						      0,
+						      FLAG_INCOMPLETE,
+						      thisParserPtr);
+				setObjectFileOffset(objectPtr,
+						    thisParserPtr->character);
+			    }
+			    objectPtr = addObject("",
+						  objectPtr->nodePtr,
+						  $11,
+						  FLAG_INCOMPLETE,
+						  thisParserPtr);
+			    setObjectFileOffset(objectPtr,
+						thisParserPtr->character);
+			    
+			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
+				objectPtr = duplicateObject(objectPtr, 0,
+							    thisParserPtr);
+			    }
+			    objectPtr = setObjectName(objectPtr, $1);
+			    setObjectDecl(objectPtr,
+					  SMI_DECL_TRAPTYPE);
+			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
+			    setObjectList(objectPtr, $7);
+			    setObjectStatus(objectPtr, SMI_STATUS_CURRENT); 
+			    setObjectDescription(objectPtr, $8);
+			    if ($9) {
+				setObjectReference(objectPtr, $9);
+			    }
+			    $$ = 0;
+			}
 	;
 
 VarPart:		VARIABLES '{' VarTypes '}'
-			{ $$ = 0; }
+			{
+			    $$ = $3;
+			}
 	|		/* empty */
-			{ $$ = 0; }
+			{
+			    $$ = NULL;
+			}
 	;
 
 VarTypes:		VarType
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
 	|		VarTypes ',' VarType
-			{ $$ = 0; }
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
 	;
 
 VarType:		ObjectName
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	;
 
 DescrPart:		DESCRIPTION Text
-			{ $$ = 0; }
+			{ $$ = $2; }
 	|		/* empty */
-			{ $$ = 0; }
+			{ $$ = NULL; }
 	;
 
 MaxAccessPart:		MAX_ACCESS
@@ -3280,8 +3349,12 @@ ExtUTCTime:		QUOTED_STRING
 				    tm.tm_year = tm.tm_year * 10 + (*p - '0');
 				}
 				if (len == 11) {
-				    tm.tm_year += (tm.tm_year < 90)
-					? 2000 : 1900;
+				    if (tm.tm_year < 90) {
+					printError(thisParserPtr,
+						   ERR_DATE_YEAR_2DIGITS,
+						   $1, tm.tm_year + 1900);
+				    }
+				    tm.tm_year += 1900;
 				}
 				tm.tm_mon  = (p[0]-'0') * 10 + (p[1]-'0');
 				p += 2;
@@ -3291,7 +3364,7 @@ ExtUTCTime:		QUOTED_STRING
 				p += 2;
 				tm.tm_min  = (p[0]-'0') * 10 + (p[1]-'0');
 
-				if (tm.tm_year < 1990) {
+				if (tm.tm_year < 1900) {
 				    printError(thisParserPtr,
 					       ERR_DATE_YEAR, $1);
 				}
