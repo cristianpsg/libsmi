@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.33 1999/12/22 15:36:22 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.34 2000/01/03 17:07:40 strauss Exp $
  */
 
 %{
@@ -69,7 +69,9 @@ static Object *groupObjectPtr = NULL;
 static Object *complianceObjectPtr = NULL;
 static Type *typePtr = NULL;
 static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
- 
+
+
+#define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
  
 
 Type *
@@ -2874,10 +2876,6 @@ date:			textSegment
 				    tm.tm_min = (p[0]-'0') * 10 + (p[1]-'0');
 				}
 				
-				if (tm.tm_year < 1990) {
-				    printError(thisParserPtr,
-					       ERR_DATE_YEAR, $1);
-				}
 				if (tm.tm_mon < 1 || tm.tm_mon > 12) {
 				    printError(thisParserPtr,
 					       ERR_DATE_MONTH, $1);
@@ -2904,6 +2902,14 @@ date:			textSegment
 				    printError(thisParserPtr,
 					       ERR_DATE_VALUE, $1);
 				} else {
+				    if ($$ < SMI_EPOCH) {
+					printError(thisParserPtr,
+						   ERR_DATE_IN_PAST, $1);
+				    }
+				    if ($$ > time(NULL)) {
+					printError(thisParserPtr,
+						   ERR_DATE_IN_FUTURE, $1);
+				    }
 				    $$ -= timezone;
 				}
 			    }

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.30 2000/01/03 17:07:40 strauss Exp $
+ * @(#) $Id: error.c,v 1.31 2000/01/04 12:43:39 strauss Exp $
  */
 
 #include <string.h>
@@ -227,7 +227,7 @@ Error errors[] = {
       "Date specification `%s' has an illegal length" },
     { 2, ERR_DATE_VALUE, "date-value", 
       "Date specification `%s' contains an illegal value" },
-    { 5, ERR_DATE_YEAR_2DIGITS, "date-year-2digits", 
+    { 6, ERR_DATE_YEAR_2DIGITS, "date-year-2digits", 
       "Date specification `%s' contains a two-digit year representing `%d'" },
     { 2, ERR_DATE_YEAR, "date-year", 
       "Date specification `%s' contains an illegal year" },
@@ -239,6 +239,10 @@ Error errors[] = {
       "Date specification `%s' contains an illegal hour" },
     { 2, ERR_DATE_MINUTES, "date-minutes", 
       "Date specification `%s' contains illegal minutes" },
+    { 4, ERR_DATE_IN_FUTURE, "date-in-future", 
+      "Date specification `%s' is in the future" },
+    { 4, ERR_DATE_IN_PAST, "date-in-past", 
+      "Date specification `%s' predates the SMI standard" },
     { 6, ERR_INTEGER_IN_SMIV2, "integer-misuse", 
       "Use Integer32 instead of INTEGER in SMIv2" },
     { 5, ERR_MODULE_ALREADY_LOADED, "", 

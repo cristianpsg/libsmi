@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.57 2000/01/03 17:07:40 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.58 2000/01/04 12:43:41 strauss Exp $
  */
 
 %{
@@ -63,6 +63,8 @@ static Module      *complianceModulePtr = NULL;
 #define MIN_UNSIGNED32		0
 #define MAX_INTEGER32		2147483647
 #define MIN_INTEGER32		-2147483648
+
+#define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
 
 
 static void
@@ -3349,12 +3351,10 @@ ExtUTCTime:		QUOTED_STRING
 				    tm.tm_year = tm.tm_year * 10 + (*p - '0');
 				}
 				if (len == 11) {
-				    if (tm.tm_year < 90) {
-					printError(thisParserPtr,
-						   ERR_DATE_YEAR_2DIGITS,
-						   $1, tm.tm_year + 1900);
-				    }
 				    tm.tm_year += 1900;
+				    printError(thisParserPtr,
+					       ERR_DATE_YEAR_2DIGITS,
+					       $1, tm.tm_year);
 				}
 				tm.tm_mon  = (p[0]-'0') * 10 + (p[1]-'0');
 				p += 2;
@@ -3364,10 +3364,6 @@ ExtUTCTime:		QUOTED_STRING
 				p += 2;
 				tm.tm_min  = (p[0]-'0') * 10 + (p[1]-'0');
 
-				if (tm.tm_year < 1900) {
-				    printError(thisParserPtr,
-					       ERR_DATE_YEAR, $1);
-				}
 				if (tm.tm_mon < 1 || tm.tm_mon > 12) {
 				    printError(thisParserPtr,
 					       ERR_DATE_MONTH, $1);
@@ -3394,6 +3390,14 @@ ExtUTCTime:		QUOTED_STRING
 				    printError(thisParserPtr,
 					       ERR_DATE_VALUE, $1);
 				} else {
+				    if ($$ < SMI_EPOCH) {
+					printError(thisParserPtr,
+						   ERR_DATE_IN_PAST, $1);
+				    }
+				    if ($$ > time(NULL)) {
+					printError(thisParserPtr,
+						   ERR_DATE_IN_FUTURE, $1);
+				    }
 				    $$ -= timezone;
 				}
 			    }
