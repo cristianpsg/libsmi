@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.63 2000/06/16 13:53:57 strauss Exp $
+ * @(#) $Id: data.h,v 1.64 2000/07/04 13:01:24 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -54,7 +54,7 @@ typedef unsigned short MacroFlags;
 #define FLAG_INCOMPLETE		0x0008 /* Just defined by a forward          */
 				       /* referenced type or object.         */
 #define	FLAG_CREATABLE	        0x0040 /* On a Row: New rows can be created. */
-
+#define FLAG_INGROUP		0x0080 /* Node is contained in a group.      */
 
 
 typedef struct View {

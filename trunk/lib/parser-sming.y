@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.60 2000/06/16 13:53:57 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.61 2000/06/20 15:17:07 strauss Exp $
  */
 
 %{
@@ -146,17 +146,20 @@ findObject(spec, parserPtr, modulePtr)
 static void
 checkObjects(Parser *parserPtr, Module *modulePtr)
 {
-    Object *objectPtr, *parentPtr;
+    Object *objectPtr;
     Node *nodePtr;
     int i;
 
     for (objectPtr = modulePtr->firstObjectPtr;
 	 objectPtr; objectPtr = objectPtr->nextPtr) {
-	if (objectPtr->nodePtr->parentPtr &&
-	    objectPtr->nodePtr->parentPtr->lastObjectPtr) {
-	    parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
-	} else {
-	    parentPtr = NULL;
+
+	/*
+	 * Check whether groups only contain scalars, columns and
+	 * notifications.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_GROUP) {
+	    smiCheckGroupMembers(parserPtr, objectPtr);
 	}
 
 	/*
@@ -231,7 +234,17 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		}
 	    }
 	}
-	
+    }
+
+    for (objectPtr = modulePtr->firstObjectPtr;
+	 objectPtr; objectPtr = objectPtr->nextPtr) {
+
+    	/*
+	 * Check whether all objects and notifications arecontained in at
+	 * least one conformance group (RFC 2580 3.3 and 4.1).
+	 */
+
+	smiCheckGroupMembership(parserPtr, objectPtr);
     }
 }
 

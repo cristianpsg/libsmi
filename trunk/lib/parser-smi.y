@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.118 2000/07/04 15:31:30 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.119 2000/07/05 11:58:40 strauss Exp $
  */
 
 %{
@@ -109,12 +109,15 @@ checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
 static void
 checkObjects(Parser *parserPtr, Module *modulePtr)
 {
-    Object *objectPtr, *parentPtr;
+    Object *objectPtr;
     Node *nodePtr;
     int i;
     
     for (objectPtr = modulePtr->firstObjectPtr;
 	 objectPtr; objectPtr = objectPtr->nextPtr) {
+
+	Object *parentPtr;
+	
 	if (objectPtr->nodePtr->parentPtr &&
 	    objectPtr->nodePtr->parentPtr->lastObjectPtr) {
 	    parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
@@ -157,6 +160,10 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		   (parentPtr->export.indexkind == SMI_INDEX_UNKNOWN)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_SCALAR;
 	}
+    }
+
+    for (objectPtr = modulePtr->firstObjectPtr;
+	 objectPtr; objectPtr = objectPtr->nextPtr) {
 
 	/*
 	 * Check whether the associated type resolves to a known base type.
@@ -178,6 +185,15 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		 */
 		objectPtr->export.nodekind = SMI_NODEKIND_ROW;
 	    }
+	}
+
+	/*
+	 * Check whether groups only contain scalars, columns and
+	 * notifications.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_GROUP) {
+	    smiCheckGroupMembers(parserPtr, objectPtr);
 	}
 
 	/*
@@ -360,6 +376,17 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		}
 	    }
 	}
+    }
+
+    for (objectPtr = modulePtr->firstObjectPtr;
+	 objectPtr; objectPtr = objectPtr->nextPtr) {
+
+	/*
+	 * Check whether all objects and notifications arecontained in at
+	 * least one conformance group (RFC 2580 3.3 and 4.1).
+	 */
+
+	smiCheckGroupMembership(parserPtr, objectPtr);
     }
 }
 
