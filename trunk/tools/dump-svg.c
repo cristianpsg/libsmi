@@ -312,6 +312,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    parseTooltip(typeDescription, tooltip);
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
+	    xfree(tooltip);
 	}
     }
     if (index) {
