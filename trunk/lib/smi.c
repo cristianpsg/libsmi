@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.20 1999/04/09 18:47:00 strauss Exp $
+ * @(#) $Id: smi.c,v 1.21 1999/05/04 09:00:51 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1861,3 +1861,113 @@ smiIsImported(modulename, fullname)
 
     return 0;
 }
+
+
+
+char *
+smingStringStatus(status)
+    SmiStatus status;
+{
+    return
+	(status == SMI_STATUS_CURRENT)     ? "current" :
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
+	(status == SMI_STATUS_MANDATORY)   ? "current" :
+	(status == SMI_STATUS_OPTIONAL)    ? "current" :
+					     "<unknown>";
+}
+
+
+
+char * 
+smiStringStatus(status)
+    SmiStatus status;
+{
+    return
+	(status == SMI_STATUS_CURRENT)     ? "current" :
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
+	(status == SMI_STATUS_MANDATORY)   ? "mandatory" :
+	(status == SMI_STATUS_OPTIONAL)    ? "optional" :
+					     "<unknown>";
+}
+
+
+
+char *
+smingStringAccess(access)
+    SmiAccess access;
+{
+    return
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
+	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
+	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
+	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
+	(access == SMI_ACCESS_READ_CREATE)    ? "readwrite" :
+						"<unknown>";
+}
+
+
+
+char *
+smiStringAccess(access)
+    SmiAccess access;
+{
+    return
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
+	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
+	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
+	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
+	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" :
+	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" :
+						"<unknown>";
+}
+
+
+
+char *
+smiStringDecl(macro)
+    SmiDecl macro;
+{
+    return
+	(macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" :
+	(macro == SMI_DECL_TYPEASSIGNMENT)    ? "<TYPE-ASSIGNMENT>" :
+	(macro == SMI_DECL_VALUEASSIGNMENT)   ? "<VALUE-ASSIGNMENT>" :
+	(macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" :
+	(macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" :
+	(macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" :
+	(macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" :
+	(macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE" :
+	(macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP" :
+	(macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP" :
+	(macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE" :
+	(macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES" :
+	(macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" :
+					        "<unknown>";
+}
+
+
+
+char *
+smiStringBasetype(basetype)
+    SmiBasetype basetype;
+{
+    return
+	(basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
+	(basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
+	(basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
+	(basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :
+	(basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" :
+	(basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" :
+	(basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" :
+	(basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" :
+	(basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" :
+	(basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
+	(basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
+	(basetype == SMI_BASETYPE_BITS)              ? "Bits" :
+	(basetype == SMI_BASETYPE_SEQUENCE)          ? "SEQUENCE" :
+	(basetype == SMI_BASETYPE_SEQUENCEOF)        ? "SEQUENCE OF" :
+	(basetype == SMI_BASETYPE_CHOICE)            ? "CHOICE" :
+					           "<unknown>";
+}
+

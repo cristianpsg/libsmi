@@ -1,8 +1,3 @@
-
-
-/* XXXXXXXXXXXX update zu hause einchecken !!!! XXXXXXXXXXXXXX */
-
-
 /*
  * smi.h --
  *
@@ -29,67 +24,72 @@
 
 #define SMI_NAMESPACE_OPERATOR	"::"
 
-#define SMI_VIEWALL     0x0800  /* all modules are `known', need no views. */
-#define SMI_ERRORS      0x1000  /* print parser errors. */
-#define SMI_ERRORLINES  0x2000  /* print error line contents of modules. */
-#define SMI_STATS       0x4000  /* print statistics after parsing a module. */
-#define SMI_RECURSIVE   0x8000  /* recursively parse imported modules. */
+#define SMI_VIEWALL     0x0800  /* all modules are `known', need no views.   */
+#define SMI_ERRORS      0x1000  /* print parser errors.                      */
+#define SMI_ERRORLINES  0x2000  /* print error line contents of modules.     */
+#define SMI_STATS       0x4000  /* print statistics after parsing a module.  */
+#define SMI_RECURSIVE   0x8000  /* recursively parse imported modules.       */
 #define SMI_FLAGMASK \
                 (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
 
-#define SMI_MAX_DESCRIPTOR	64
-#define SMI_MAX_OID		1407		/* 128 * 10 + 127 */
-#define SMI_MAX_STRING		65535
-#define SMI_MAX_FULLNAME	130		/* 64 + 2 + 64 */
+/* limits of string lengths                                                  */
+#define SMI_MAX_DESCRIPTOR	64             /*                            */
+#define SMI_MAX_OID		1407	       /* 128 * 10 digits + 127 dots */
+#define SMI_MAX_STRING		65535          /* limit only valid in v1/v2  */
+#define SMI_MAX_FULLNAME	130	       /* 64 + 2 separator + 64      */
 
 
 
-typedef unsigned long long	SmiUnsigned64;
-
-typedef long long		SmiInteger64;
-
+/* misc mappings of SMI types to C types                                     */
+typedef char                    *SmiQIdentifier;
+typedef char                    *SmiIdentifier;
 typedef unsigned long		SmiUnsigned32;
-
 typedef long			SmiInteger32;
-
+typedef unsigned long long	SmiUnsigned64;
+typedef long long		SmiInteger64;
+typedef char                    *SmiObjectIdentifier;
 typedef unsigned int		SmiSubid;
+typedef float			SmiFloat32;
+typedef double			SmiFloat64;
+typedef double			SmiFloat128;   /* currently, no 64/128 diffs */
 
-typedef double			SmiFloat64; /* currently, no 32/64/128 diffs */
 
 
-
+/* SmiBasetype -- base types of all languages                                */
 typedef enum SmiBasetype {
-    SMI_BASETYPE_UNKNOWN		= 0,
-    SMI_BASETYPE_INTEGER32		= 1,
+    SMI_BASETYPE_UNKNOWN		= 0,  /* should not occur            */
+    SMI_BASETYPE_INTEGER32		= 1,  /* also SMIv1/v2 INTEGER       */
     SMI_BASETYPE_OCTETSTRING		= 2,
     SMI_BASETYPE_OBJECTIDENTIFIER	= 3,
     SMI_BASETYPE_UNSIGNED32		= 4,
-    SMI_BASETYPE_INTEGER64		= 5,
-    SMI_BASETYPE_UNSIGNED64		= 6,
-    SMI_BASETYPE_FLOAT32		= 7,
-    SMI_BASETYPE_FLOAT64		= 8,
-    SMI_BASETYPE_FLOAT128		= 9,
+    SMI_BASETYPE_INTEGER64		= 5,  /* only SMIng                  */
+    SMI_BASETYPE_UNSIGNED64		= 6,  /* SMIv2 and SMIng             */
+    SMI_BASETYPE_FLOAT32		= 7,  /* only SMIng                  */
+    SMI_BASETYPE_FLOAT64		= 8,  /* only SMIng                  */
+    SMI_BASETYPE_FLOAT128		= 9,  /* only SMIng                  */
     SMI_BASETYPE_ENUM			= 10,
-    SMI_BASETYPE_BITS			= 11,
-    SMI_BASETYPE_HEXSTRING		= 12,
-    SMI_BASETYPE_BINSTRING		= 13,
-    SMI_BASETYPE_LABEL			= 14,
-    SMI_BASETYPE_CHOICE			= 15,
-    SMI_BASETYPE_SEQUENCE	     	= 16,
-    SMI_BASETYPE_SEQUENCEOF		= 17
+    SMI_BASETYPE_BITS			= 11, /* only SMIv2 and SMIng        */
+    SMI_BASETYPE_HEXSTRING		= 12, /* only for values             */
+    SMI_BASETYPE_BINSTRING		= 13, /* only for values, SMIv1/v2   */
+    SMI_BASETYPE_LABEL			= 14, /* labels as values            */
+    SMI_BASETYPE_CHOICE			= 15, /* only for parsing SMI specs  */
+    SMI_BASETYPE_SEQUENCE	     	= 16, /* only for parsing SMI specs  */
+    SMI_BASETYPE_SEQUENCEOF		= 17  /* only for parsing SMI specs  */
 } SmiBasetype;
 
+/* SmiStatus -- values of status levels                                      */
 typedef enum SmiStatus {
-    SMI_STATUS_UNKNOWN	 	= 0,
-    SMI_STATUS_CURRENT	 	= 1,
-    SMI_STATUS_DEPRECATED	= 2,
-    SMI_STATUS_MANDATORY	= 3,
-    SMI_STATUS_OPTIONAL	 	= 4,    
-    SMI_STATUS_OBSOLETE	 	= 5
+    SMI_STATUS_UNKNOWN	 	= 0, /* should not occur                     */
+    SMI_STATUS_CURRENT	 	= 1, /* only SMIv2 and SMIng                 */
+    SMI_STATUS_DEPRECATED	= 2, /* SMIv1, SMIv2 and SMIng               */
+    SMI_STATUS_MANDATORY	= 3, /* only SMIv1                           */
+    SMI_STATUS_OPTIONAL	 	= 4, /* only SMIv1                           */
+    SMI_STATUS_OBSOLETE	 	= 5  /* only SMIv2 and SMIng                 */
 } SmiStatus;
 
+/* SmiAccess -- values of access levels                                      */
 typedef enum SmiAccess {
-    SMI_ACCESS_UNKNOWN	 	= 0,
+    SMI_ACCESS_UNKNOWN	 	= 0, /* should not occur                     */
     SMI_ACCESS_NOT_ACCESSIBLE	= 1,
     SMI_ACCESS_NOTIFY	 	= 2,
     SMI_ACCESS_READ_ONLY	= 3,
@@ -98,8 +98,10 @@ typedef enum SmiAccess {
     SMI_ACCESS_WRITE_ONLY	= 6
 } SmiAccess;
 
+/* SmiDecl -- type or statement that leads to a definition                   */
 typedef enum SmiDecl {
-    SMI_DECL_UNKNOWN		= 0,
+    SMI_DECL_UNKNOWN		= 0,  /* shout not occur                     */
+    /* SMIv1/V2 ASN.1 statements and macros */
     SMI_DECL_TYPEASSIGNMENT  	= 1,
     SMI_DECL_VALUEASSIGNMENT  	= 2,
     SMI_DECL_OBJECTTYPE	     	= 3,
@@ -112,7 +114,7 @@ typedef enum SmiDecl {
     SMI_DECL_MODULECOMPLIANCE   = 10,
     SMI_DECL_AGENTCAPABILITIES  = 11,
     SMI_DECL_TEXTUALCONVENTION	= 12,
-
+    /* SMIng statements */
     SMI_DECL_MODULE		= 33,
     SMI_DECL_TYPEDEF		= 34,
     SMI_DECL_NODE		= 35,
@@ -125,8 +127,9 @@ typedef enum SmiDecl {
     SMI_DECL_COMPLIANCE		= 42
 } SmiDecl;
 
+/* SmiIndexkind -- actual kind of a table row's index method                 */
 typedef enum SmiIndexkind {
-    SMI_INDEX_UNKNOWN		= 0,
+    SMI_INDEX_UNKNOWN		= 0, 
     SMI_INDEX_INDEX		= 1,
     SMI_INDEX_AUGMENT		= 2,
     SMI_INDEX_REORDER		= 3,
@@ -134,11 +137,13 @@ typedef enum SmiIndexkind {
     SMI_INDEX_EXPAND		= 5
 } SmiIndexkind;
 
+/* SmiRevision -- content of a single module's revision clause               */
 typedef struct SmiRevision {
-    long	        date;
+    time_t	        date;
     char		*description;
 } SmiRevision;
 
+/* SmiValue -- any single value; for use in default values and subtyping     */
 typedef struct SmiValue {
     SmiBasetype	        basetype;
     union {
@@ -146,53 +151,60 @@ typedef struct SmiValue {
 	SmiInteger64        integer64;
 	SmiUnsigned32       unsigned32;
 	SmiInteger32        integer32;
+	SmiFloat32	    float32;
 	SmiFloat64	    float64;
-	char		    *oid;
+	SmiFloat128	    float128;
+	SmiObjectIdentifier oid;
 	char		    *ptr;
-	char		    **bits;
-	/* TODO ... */
+	char		    **bits;      /* array of SmiNamedNumber pointers */
     } value;
 } SmiValue;
-   
+
+/* SmiNamedNumber -- a named number; for enumeration and bitset types        */
 typedef struct SmiNamedNumber {
-    char	        *name;
+    SmiIdentifier	name;
     SmiValue	        *valuePtr;
 } SmiNamedNumber;
 
+/* SmiRange -- a min-max value range; for subtyping of sizes or numbers      */
 typedef struct SmiRange {
     SmiValue	        *minValuePtr;
     SmiValue	        *maxValuePtr;
 } SmiRange;
 
+/* SmiOption -- an optional group in a compliance statement                  */
 typedef struct SmiOption {
-    char		*name;
-    char		*module;
+    SmiIdentifier	name;
+    SmiIdentifier	module;
     char		*description;
 } SmiOption;
-    
+
+/* SmiRefinement -- a refined object in a compliance statement               */
 typedef struct SmiRefinement {
-    char		*name;
-    char		*module;
+    SmiIdentifier	name;
+    SmiIdentifier	module;
     char		*description;
-    char		*type;
-    char		*writetype;
+    SmiQIdentifier	type;
+    SmiQIdentifier	writetype;
     SmiAccess		access;
 } SmiRefinement;
-    
+
+/* SmiModule -- the main structure of a module                               */
 typedef struct SmiModule {
-    char		*name;
-    char		*object;
-    long		lastupdated;
+    SmiIdentifier	name;
+    SmiQIdentifier	object;
+    time_t		lastupdated;   /* for apps with SMIv2 semantics */
     char		*organization;
     char 		*contactinfo;
     char		*description;
     char		*reference;
 } SmiModule;
 
+/* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
     char		*name;
     char		*module;
-    char		*oid;
+    SmiObjectIdentifier oid;
     char		*type;
     char		**list;
     SmiIndexkind	indexkind;
@@ -212,6 +224,7 @@ typedef struct SmiNode {
     char		*reference;
 } SmiNode;
 
+/* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
     char		*name;
     char		*module;
@@ -227,6 +240,7 @@ typedef struct SmiType {
     char		*reference;
 } SmiType;
 
+/* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
 typedef struct SmiMacro {
     char		*name;
     char		*module;
@@ -234,82 +248,17 @@ typedef struct SmiMacro {
 
 
 
-/*
- * Functions (macros) to get strings namings libsmi types.
- */
+extern char *smingStringStatus(SmiStatus status);
 
-#define smingStringStatus(status) ( \
-	(status == SMI_STATUS_CURRENT)     ? "current" : \
-	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" : \
-	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" : \
-	(status == SMI_STATUS_MANDATORY)   ? "current" : \
-	(status == SMI_STATUS_OPTIONAL)    ? "current" : \
-					     "<unknown>" )
+extern char *smiStringStatus(SmiStatus status);
 
-#define smiStringStatus(status) ( \
-	(status == SMI_STATUS_CURRENT)     ? "current" : \
-	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" : \
-	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" : \
-	(status == SMI_STATUS_MANDATORY)   ? "mandatory" : \
-	(status == SMI_STATUS_OPTIONAL)    ? "optional" : \
-					     "<unknown>" )
+extern char *smingStringAccess(SmiAccess access);
 
-#define smingStringAccess(access) ( \
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" : \
-	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" : \
-	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" : \
-	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" : \
-	(access == SMI_ACCESS_READ_CREATE)    ? "readwrite" : \
-						"<unknown>" )
+extern char *smiStringAccess(SmiAccess access);
 
-#define smiStringAccess(access) ( \
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" : \
-	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" : \
-	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" : \
-	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" : \
-	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" : \
-	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" : \
-						"<unknown>" )
+extern char *smiStringDecl(SmiDecl macro);
 
-#define smiStringDecl(macro) ( \
-	(macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" : \
-	(macro == SMI_DECL_TYPEASSIGNMENT)    ? "<TYPE-ASSIGNMENT>" : \
-	(macro == SMI_DECL_VALUEASSIGNMENT)   ? "<VALUE-ASSIGNMENT>" : \
-	(macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" : \
-	(macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" : \
-	(macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" : \
-	(macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" : \
-	(macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE" : \
-	(macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP" : \
-	(macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP" : \
-	(macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE" : \
-	(macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES" : \
-	(macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" : \
-					        "<unknown>" )
-
-#define smiStringBasetype(basetype) ( \
-	(basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" : \
-	(basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" : \
-	(basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" : \
-	(basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" : \
-	(basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" : \
-	(basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" : \
-	(basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" : \
-	(basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" : \
-	(basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" : \
-	(basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" : \
-	(basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" : \
-	(basetype == SMI_BASETYPE_BITS)              ? "Bits" : \
-	(basetype == SMI_BASETYPE_SEQUENCE)          ? "SEQUENCE" : \
-	(basetype == SMI_BASETYPE_SEQUENCEOF)        ? "SEQUENCE OF" : \
-	(basetype == SMI_BASETYPE_CHOICE)            ? "CHOICE" : \
-					           "<unknown>" )
-
-
-
-/*
- * libsmi Function Definitions.
- */
+extern char *smiStringBasetype(SmiBasetype basetype);
 
 extern time_t smiMkTime(const char *s);
 
