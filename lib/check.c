@@ -2105,6 +2105,58 @@ void smiCheckUniqueness(Parser *parser, Object *object)
 /*
  *----------------------------------------------------------------------
  *
+ * smiCheckModuleIdentityRegistration --
+ *
+ *      Check whether the module identity is registered in a well
+ *	known (IANA) controlled location. In particular, warn if
+ *	the OID is below iso(1).org(3).dod(6).mgmt(1) and not
+ *	below well known registration locations such as mib-2,
+ *	transmission, or snmpModules.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckModuleIdentityRegistration(Parser *parser, Object *object)
+{
+    static const SmiSubid mgmt[] = { 1, 3, 6, 1, 2 };
+    static const SmiSubid mib2[] = { 1, 3, 6, 1, 2, 1 };
+    static const SmiSubid transmission[] = { 1, 3, 6, 1, 2, 1, 10 };
+    static const SmiSubid snmpModules[] = { 1, 3, 6, 1, 6, 3 };
+
+    if (object->export.oidlen < sizeof(mgmt)/sizeof(SmiSubid)
+	|| memcmp(object->export.oid, mgmt, sizeof(mgmt)) != 0) {
+	return;
+    }
+
+    if (object->export.oidlen == sizeof(mib2)/sizeof(SmiSubid) + 1
+	&& memcmp(object->export.oid, mib2, sizeof(mib2)) == 0) {
+	return;
+    }
+
+    if (object->export.oidlen == sizeof(transmission)/sizeof(SmiSubid) + 1
+	&& memcmp(object->export.oid, transmission, sizeof(transmission)) == 0) {
+	return;
+    }
+
+    if (object->export.oidlen == sizeof(snmpModules)/sizeof(SmiSubid) + 1
+	&& memcmp(object->export.oid, snmpModules, sizeof(snmpModules)) == 0) {
+	return;
+    }
+
+    smiPrintErrorAtLine(parser, ERR_MODULE_IDENTITY_REGISTRATION,
+			object->line);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * smiyyerror --
  *
  *      Prints an error message from the parser.  In SMIv1 and v2,

@@ -643,6 +643,11 @@ static Error errors[] = {
       "notification group `%s' includes object `%s'", NULL},
     { 2, ERR_NOTIFICATION_IN_OBJECT_GROUP, "group-objects-notification",
       "object group `%s' includes notification `%s'", NULL},
+    { 4, ERR_MODULE_IDENTITY_REGISTRATION, "module-identity-registration",
+      "uncontrolled MODULE-IDENTITY registration",
+      "The identities of IETF MIB modules should be registered below\n"
+      "mib-2, transmission, or snmpModules so that the registration\n"
+      "space can be controlled by IANA."},
     { 0, 0, NULL, NULL, NULL }
 };
 

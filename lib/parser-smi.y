@@ -714,6 +714,15 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	}
 
 	/*
+	 * Check whether the module identity is registered in a well
+	 * known controlled location. 
+	 */
+
+	if (objectPtr->export.decl == SMI_DECL_MODULEIDENTITY) {
+	    smiCheckModuleIdentityRegistration(parserPtr, objectPtr);
+	}
+
+	/*
 	 * Check table linkage constraints for row objects.
 	 */
 
