@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.34 2000/12/13 20:44:05 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.35 2002/06/21 14:31:25 strauss Exp $
  */
 
 
@@ -2056,19 +2056,19 @@ static void diaPrintXMLObject(GraphNode *node, float x, float y)
     printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
 	   node->smiNode->name);
     printf("      <attribute name=\"obj_pos\">\n");
-    printf("       <point val=\"%.4f,%.4f\"/>\n",x,y);
+    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
     printf("      </attribute>\n");
     printf("     <attribute name=\"obj_bb\">\n");
     printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_corner\">\n");
-    printf("       <point val=\"%.4f,%.4f\"/>\n",x,y);
+    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_width\">\n");
-    printf("       <real val=\"%.4f\"/>\n",node->dia.w);
+    printf("       <real val=\"%.2f\"/>\n",node->dia.w);
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_height\">\n");
-    printf("       <real val=\"%.4f\"/>\n",node->dia.h);
+    printf("       <real val=\"%.2f\"/>\n",node->dia.h);
     printf("     </attribute>\n");
     printf("     <attribute name=\"name\">\n");
     printf("       <string>#%s#</string>\n",
@@ -2139,19 +2139,19 @@ static void diaPrintXMLGroup(int group, float x, float y)
     printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
 	   smiGetParentNode(tNode->smiNode)->name);
     printf("      <attribute name=\"obj_pos\">\n");
-    printf("       <point val=\"%.4f,%.4f\"/>\n",x,y);
+    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
     printf("      </attribute>\n");
     printf("     <attribute name=\"obj_bb\">\n");
     printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_corner\">\n");
-    printf("       <point val=\"%.4f,%.4f\"/>\n",x,y);
+    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_width\">\n");
-    printf("       <real val=\"%.4f\"/>\n",0.0);
+    printf("       <real val=\"%.2f\"/>\n",0.0);
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_height\">\n");
-    printf("       <real val=\"%.4f\"/>\n",0.0);
+    printf("       <real val=\"%.2f\"/>\n",0.0);
     printf("     </attribute>\n");
     printf("     <attribute name=\"name\">\n");
     printf("       <string>#%s#</string>\n",
@@ -2354,28 +2354,28 @@ static void diaPrintXMLCoordinates(GraphEdge *tEdge)
     econ = getConPoint(tEdge->endNode, tEdge->startNode);
     
     printf("      <attribute name=\"obj_pos\">\n");
-    printf("        <point val=\"%.4f,%.4f\"/>\n"
+    printf("        <point val=\"%.2f,%.2f\"/>\n"
 	   ,getObjX(tEdge->startNode,scon)
 	   ,getObjY(tEdge->startNode,scon));	   
     printf("     </attribute>\n");
     printf("      <attribute name=\"obj_bb\">\n");
-    printf("       <rectangle val=\"%.4f,%.4f;%.4f,%.4f\"/>\n"
+    printf("       <rectangle val=\"%.2f,%.2f;%.2f,%.2f\"/>\n"
 	   ,getRectSX(tEdge->startNode)
 	   ,getRectSY(tEdge->startNode)
 	   ,getRectEX(tEdge->startNode)
 	   ,getRectEY(tEdge->startNode));
     printf("     </attribute>\n");
     printf("     <attribute name=\"orth_points\">\n");
-    printf("       <point val=\"%.4f,%.4f\"/>\n"
+    printf("       <point val=\"%.2f,%.2f\"/>\n"
 	   ,getObjX(tEdge->startNode,scon)
 	   ,getObjY(tEdge->startNode,scon));	
-    printf("       <point val=\"%.4f,%.4f\"/>\n"
+    printf("       <point val=\"%.2f,%.2f\"/>\n"
 	   ,getObjX(tEdge->startNode,scon)
 	   ,getObjYRel(tEdge,scon));
-    printf("       <point val=\"%.4f,%.4f\"/>\n"
+    printf("       <point val=\"%.2f,%.2f\"/>\n"
 	   ,getObjX(tEdge->endNode,econ)
 	   ,getObjYRel(tEdge,scon));
-    printf("       <point val=\"%.4f,%.4f\"/>\n"
+    printf("       <point val=\"%.2f,%.2f\"/>\n"
 	   ,getObjX(tEdge->endNode,econ)
 	   ,getObjY(tEdge->endNode,econ));	
     printf("     </attribute>\n");
@@ -2643,17 +2643,17 @@ static void diaPrintXMLInfoNote(int modc, SmiModule **modv)
 
     printf("<object type=\"UML - Note\" version=\"0\" id=\"O0\">\n");
     printf("  <attribute name=\"obj_pos\">\n");
-    printf("    <point val=\"%.4f,%.4f\"/>\n",XNOTE, YNOTE);
+    printf("    <point val=\"%.2f,%.2f\"/>\n",XNOTE, YNOTE);
     printf("  </attribute>\n");
     printf("  <attribute name=\"obj_bb\">\n");
-    printf("    <rectangle val=\"%.4f,%.4f;%.4f,%.4f\"/>\n",
+    printf("    <rectangle val=\"%.2f,%.2f;%.2f,%.2f\"/>\n",
 	   XNOTE-0.5, YNOTE-0.5, XNOTE-0.5 + width, YNOTE - 0.5 + 1.7);
     printf("  </attribute>\n");
     printf("  <attribute name=\"elem_corner\">\n");
-    printf("    <point val=\"%.4f,%.4f\"/>\n",XNOTE, YNOTE);
+    printf("    <point val=\"%.2f,%.2f\"/>\n",XNOTE, YNOTE);
     printf("  </attribute>\n");
     printf("  <attribute name=\"elem_width\">\n");
-    printf("    <real val=\"%.4f\"/>\n", width);
+    printf("    <real val=\"%.2f\"/>\n", width);
     printf("  </attribute>\n");
     printf("  <attribute name=\"elem_height\">\n");
     printf("    <real val=\"1.7\"/>\n");
@@ -2670,7 +2670,7 @@ static void diaPrintXMLInfoNote(int modc, SmiModule **modv)
     printf("        <real val=\"0.8\"/>\n");
     printf("      </attribute>\n");
     printf("      <attribute name=\"pos\">\n");
-    printf("        <point val=\"%.4f,%.4f\"/>\n", XNOTE + 0.35, YNOTE + 1.28);
+    printf("        <point val=\"%.2f,%.2f\"/>\n", XNOTE + 0.35, YNOTE + 1.28);
     printf("      </attribute>\n");
     printf("      <attribute name=\"color\">\n");
     printf("        <color val=\"#000000\"/>\n");
