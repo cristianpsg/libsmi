@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.26 2003/03/20 21:23:40 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.27 2003/04/03 15:31:41 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -29,7 +29,7 @@ pkgconfig_DATA		= libsmi.pc
 $(pkgconfig_DATA):	config.status
 
 anoncvs:
-	rsync -rlt --delete $(HOME)/.cvs-repository/libsmi agitator:/var/lib/cvs
+	RSYNC_RSH=ssh rsync -rlt --delete $(HOME)/.cvs-repository/libsmi agitator:/var/lib/cvs
 	ssh agitator chgrp -R anoncvs /var/lib/cvs/libsmi
 	ssh agitator chmod -R ug+rw /var/lib/cvs/libsmi
 #
