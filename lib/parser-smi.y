@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.51 1999/12/16 18:10:38 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.52 1999/12/17 10:44:20 strauss Exp $
  */
 
 %{
@@ -714,13 +714,13 @@ importIdentifier:	LOWERCASE_IDENTIFIER
 			{
 			    addImport($1, thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
-			    $$ = util_strdup($1);
+			    $$ = $1;
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
 			    addImport($1, thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
-			    $$ = util_strdup($1);
+			    $$ = $1;
 			}
 	|		importedKeyword
 			/* TODO: what exactly is allowed here?
@@ -728,7 +728,7 @@ importIdentifier:	LOWERCASE_IDENTIFIER
 			{
 			    addImport($1, thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
-			    $$ = util_strdup($1);
+			    $$ = $1;
 			}
 	;
 
@@ -798,7 +798,7 @@ moduleName:		UPPERCASE_IDENTIFIER
 			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_MODULENAME_32, $1);
 			    }
-			    $$ = util_strdup($1);
+			    $$ = $1;
 			}
 	;
 
@@ -913,10 +913,6 @@ macroClause:		macroName
 			/* the scanner skips until... */
 			END
 			{
-			    /*
-			     * Some bison magics make the objectIdentifier
-			     * to be $7 instead of $6.
-			     */
 			    addMacro($1, thisParserPtr->character, 0,
 				     thisParserPtr);
 			    $$ = 0;
@@ -1069,7 +1065,7 @@ typeDeclaration:	typeName
 
 typeName:		UPPERCASE_IDENTIFIER
 			{
-			    $$ = util_strdup($1);
+			    $$ = $1;
 			}
 	|		typeSMI
 			{
@@ -1089,11 +1085,6 @@ typeName:		UPPERCASE_IDENTIFIER
 				       "RFC1155-SMI")) {
 			        printError(thisParserPtr, ERR_TYPE_SMI, $1);
 			    }
-			    /*
-			     * clear $$, so that the `typeDeclarationRHS'
-			     * rule will not add a new Descriptor for this
-			     * already known type.
-			     */
 			}
 	;
 
@@ -1441,7 +1432,7 @@ NamedBit:		identifier
 			    $$ = util_malloc(sizeof(NamedNumber));
 			    $$->valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->name = util_strdup($1);
+			    $$->name = $1;
 			    $$->valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->valuePtr->value.unsigned32 = $4;
 			    $$->valuePtr->format = SMI_VALUEFORMAT_NATIVE;
@@ -1449,9 +1440,8 @@ NamedBit:		identifier
 	;
 
 identifier:		LOWERCASE_IDENTIFIER
-			/* TODO */
 			{
-			    $$ = util_strdup($1);
+			    $$ = $1;
 			}
 	;
 
@@ -2358,7 +2348,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = defaultBasetype;
-			    $$->value.ptr = util_strdup($1);
+			    $$->value.ptr = $1;
 			    $$->format = SMI_VALUEFORMAT_NAME;
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
@@ -2822,7 +2812,7 @@ enumItem:		LOWERCASE_IDENTIFIER
 			{
 			    $$ = util_malloc(sizeof(NamedNumber));
 			    /* TODO: success? */
-			    $$->name = util_strdup($1);
+			    $$->name = $1;
 			    $$->valuePtr = $4;
 			}
 	;
@@ -3148,7 +3138,8 @@ Revision:		REVISION ExtUTCTime
 			    if ((!thisModulePtr->firstRevisionPtr) &&
 				($2 != thisModulePtr->lastUpdated)) {
 				addRevision(thisModulePtr->lastUpdated,
-	            "[Revision added by libsmi due to a LAST-UPDATED clause.]",
+					    strdup(
+	           "[Revision added by libsmi due to a LAST-UPDATED clause.]"),
 					    thisParserPtr);
 			    }
 			    
@@ -4065,8 +4056,7 @@ ComplianceGroup:	GROUP objectIdentifier
 			    $$->nextPtr = NULL;
 			    $$->ptr = util_malloc(sizeof(Option));
 			    ((Option *)($$->ptr))->objectPtr = $2;
-			    ((Option *)($$->ptr))->description =
-				                               util_strdup($4);
+			    ((Option *)($$->ptr))->description = $4;
 			}
 	;
 
@@ -4095,8 +4085,7 @@ ComplianceObject:	OBJECT ObjectName
 			    ((Refinement *)($$->ptr))->typePtr = $3;
 			    ((Refinement *)($$->ptr))->writetypePtr = $4;
 			    ((Refinement *)($$->ptr))->access = $5;
-			    ((Refinement *)($$->ptr))->description =
-				                               util_strdup($7);
+			    ((Refinement *)($$->ptr))->description = $7;
 			}
 	;
 
