@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.28 2000/04/10 14:20:27 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.29 2000/05/02 12:57:17 strauss Exp $
  */
 
 #include <config.h>
@@ -108,7 +108,8 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	if ((parentNode->name && strlen(parentNode->name)) &&
 	    (smiIsImported(smiModule, NULL, parentNode->name) ||
 	     (!importedParent &&
-	      (smiGetNodeModule(parentNode) == smiModule)))) {
+	      (smiGetNodeModule(parentNode) == smiModule)) ||
+	     (parentNode->oidlen == 1))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    return s;
 	}

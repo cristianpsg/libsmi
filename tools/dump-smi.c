@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.56 2000/04/11 08:21:22 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.57 2000/05/02 12:57:17 strauss Exp $
  */
 
 #include <config.h>
@@ -297,7 +297,8 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	if ((parentNode->name && strlen(parentNode->name)) &&
 	    (smiIsImported(smiModule, NULL, parentNode->name) ||
 	     (!importedParent &&
-	      (smiGetNodeModule(parentNode) == smiModule)))) {
+	      (smiGetNodeModule(parentNode) == smiModule)) ||
+	     (parentNode->oidlen == 1))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    return s;
 	}
@@ -1283,7 +1284,8 @@ static void printNotifications(SmiModule *smiModule)
 	if (smiv1) {
 	    print("%s TRAP-TYPE\n", smiNode->name);
 	    parentNode = smiGetParentNode(smiNode);
-	    while (!parentNode->name) {
+	    while ((!parentNode->name) ||
+		   (!parentNode->oid[parentNode->oidlen-1])) {
 		parentNode = smiGetParentNode(parentNode);
 	    }
 	    printSegment(INDENT, "ENTERPRISE", INDENTVALUE, 0);
