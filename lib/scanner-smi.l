@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.1 1999/03/11 17:33:02 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.2 1999/03/12 18:43:44 strauss Exp $
  */
 
 %{
@@ -40,7 +40,6 @@ int currentStringLength = 0;
 int currentStringMaxLength = 0;
 int currentStringColumn = 0;
 int currentStringFetchLine = 0; 
-off_t currentStringFileoffset = 0;
 int lexDepth = 0;
 YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
  
@@ -71,7 +70,7 @@ leaveLexRecursion()
  * trackInput --
  *
  *      track the input character stream to keep line number,
- *      coulmn, absolute offset and line buffer up to date.
+ *      coulmn, and line buffer up to date.
  *
  * Results:
  *      TODO.
@@ -728,12 +727,8 @@ eol             ("\n"|"\n\015"|"\015\n")
 <BinOrHex>\'[bB] {
     trackInput(0, parser);
     BEGIN(INITIAL);
-#ifdef TEXTS_IN_MEMORY
-    yylval.text.ptr = currentString;
-#endif
-    yylval.text.fileoffset = thisParser.character - currentStringLength - 3;
-    yylval.text.length = currentStringLength;
-    if (yylval.text.length % 8) {
+    yylval.text = currentString;
+    if (strlen(yylval.text) % 8) {
 	printError(parser, ERR_BIN_STRING_MUL8, currentString);
     }
     return BIN_STRING;
@@ -742,12 +737,8 @@ eol             ("\n"|"\n\015"|"\015\n")
 <Hex>\'[bB] {
     trackInput(0, parser);
     printError(parser, ERR_HEX_ENDS_IN_B);
-#ifdef TEXTS_IN_MEMORY
-    yylval.text.ptr = currentString;
-#endif
-    yylval.text.fileoffset = thisParser.character - currentStringLength - 3;
-    yylval.text.length = currentStringLength;
-    if (yylval.text.length % 2) {
+    yylval.text = currentString;
+    if (strlen(yylval.text) % 2) {
 	printError(parser, ERR_HEX_STRING_MUL8, currentString);
     }
     BEGIN(INITIAL);
@@ -756,12 +747,8 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <BinOrHex,Hex>\'[hH] {
     trackInput(0, parser);
-#ifdef TEXTS_IN_MEMORY
-    yylval.text.ptr = currentString;
-#endif
-    yylval.text.fileoffset = thisParser.character - currentStringLength - 3;
-    yylval.text.length = currentStringLength;
-    if (yylval.text.length % 2) {
+    yylval.text = currentString;
+    if (strlen(yylval.text) % 2) {
 	printError(parser, ERR_HEX_STRING_MUL8, currentString);
     }
     BEGIN(INITIAL);
@@ -794,7 +781,6 @@ eol             ("\n"|"\n\015"|"\015\n")
 <INITIAL>\" {
     trackInput(0, parser);
     currentStringColumn = thisParser.column+1;
-    currentStringFileoffset = thisParser.character;
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -806,11 +792,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <String>\" {
     trackInput(0, parser);
-#ifdef TEXTS_IN_MEMORY
-    yylval.text.ptr = currentString;
-#endif
-    yylval.text.fileoffset = currentStringFileoffset-1;
-    yylval.text.length = currentStringLength;
+    yylval.text = currentString;
     BEGIN(INITIAL);
 
     /* TODO: beautify the string */

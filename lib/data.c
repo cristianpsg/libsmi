@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.3 1999/03/12 16:59:32 strauss Exp $
+ * @(#) $Id: data.c,v 1.4 1999/03/15 11:07:09 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -35,11 +35,58 @@
 					     "unknown" )
 
 
+View	        *firstViewPtr, *lastViewPtr;
 Location	*firstLocationPtr, *lastLocationPtr;
 Module          *firstModulePtr, *lastModulePtr;
 Node		*rootNodePtr;
 Node		*pendingNodePtr;
 Type		*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
+int		smiFlags;
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * addView --
+ *
+ *      Add a module to the `view' (the list of modules, seen by the user).
+ *
+ * Results:
+ *      A pointer to the new View structure or
+ *	NULL if terminated due to an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+View *
+addView(modulename)
+    const char	      *modulename;
+{
+    View	      *viewPtr;
+
+#ifdef DEBUG
+    printDebug(4,
+      "addView(%s)\n", modulename);
+#endif
+    
+    viewPtr = (View *)util_malloc(sizeof(View));
+    if (!viewPtr) {
+	printError(NULL, ERR_ALLOCATING_VIEW, strerror(errno));
+	return (NULL);
+    }
+
+    viewPtr->name				= util_strdup(modulename);
+    viewPtr->nextPtr				= NULL;
+    viewPtr->prevPtr				= lastViewPtr;
+    if (!firstViewPtr) firstViewPtr		= viewPtr;
+    if (lastViewPtr) lastViewPtr->nextPtr	= viewPtr;
+    lastViewPtr	     				= viewPtr;
+    
+    return (viewPtr);
+}
 
 
 
@@ -65,8 +112,10 @@ addLocation(location, flags)
     const char	      *location;
     ModuleFlags	      flags;
 {
-    struct stat st;
+    struct stat	      st;
     Location	      *locationPtr;
+    Parser	      parser;
+    char	      s[200];
 
 #ifdef DEBUG
     printDebug(4,
@@ -110,14 +159,41 @@ addLocation(location, flags)
 	    } else {
 		locationPtr->type = LOCATION_SMIFILE;
 		/*
-		 * MIB file locationPtrs are read immediately.
+		 * MIB locations of type `file' are read immediately.
 		 */
-		readMibFile(locationPtr->name, locationPtr, "",
-			    flags | FLAG_WHOLEFILE);
+		parser.path		= util_strdup(locationPtr->name);
+		parser.locationPtr	= locationPtr;
+		parser.flags		= flags;
+		parser.modulePtr	= NULL;
+		parser.file		= fopen(parser.path, "r");
+		if (!parser.file) {
+		    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
+			       strerror(errno));
+		    free(locationPtr);
+		    return NULL;
+		} else {
+		    if (enterLexRecursion(parser.file) < 0) {
+			printError(&parser, ERR_MAX_LEX_DEPTH);
+			fclose(parser.file);
+			free(locationPtr);
+			return NULL;
+		    }
+		    parser.line		= 1;
+		    parser.column	= 1;
+		    parser.character	= 1;
+		    yyparse((void *)&parser);
+		    leaveLexRecursion();
+		    fclose(parser.file);
+		    if (parser.flags & FLAG_STATS) {
+			sprintf(s, " (%d lines)", parser.line-1);
+			printError(&parser, ERR_STATISTICS, s);
+		    }
+		}
 	    }
 	}
     }
 #endif
+
 #ifdef BACKEND_SMING
     if (strstr(location, "sming:") == location) {
 	locationPtr->name = util_strdup(&location[6]);
@@ -131,9 +207,9 @@ addLocation(location, flags)
 	    } else {
 		locationPtr->type = LOCATION_SMINGFILE;
 		/*
-		 * MIB file locationPtrs are read immediately.
+		 * MIB locations of type `file' are read immediately.
 		 */
-		fprintf(stderr, "TODO: SMIng parser.\n");
+		/* TODO */
 	    }
 	}
     }
@@ -144,10 +220,10 @@ addLocation(location, flags)
 	return NULL;
     }
     
-    locationPtr->prev = lastLocationPtr;
-    locationPtr->next = NULL;
+    locationPtr->prevPtr = lastLocationPtr;
+    locationPtr->nextPtr = NULL;
     if (lastLocationPtr) {
-	lastLocationPtr->next = locationPtr;
+	lastLocationPtr->nextPtr = locationPtr;
     } else {
 	firstLocationPtr = locationPtr;
     }
@@ -189,7 +265,8 @@ addModule(modulename, path, locationPtr, fileoffset, flags, parserPtr)
 #ifdef DEBUG
     printDebug(4,
       "addModule(%s, %s, 0x%x(%s), %d, %d, 0x%x)\n",
-	       modulename, path, locationPtr, locationPtr->name,
+	       modulename, path, locationPtr,
+	       locationPtr ? locationPtr->name : "",
 	       fileoffset, flags, parserPtr);
 #endif
     
@@ -223,17 +300,9 @@ addModule(modulename, path, locationPtr, fileoffset, flags, parserPtr)
     modulePtr->numStatements			= 0;
     modulePtr->numModuleIdentities		= 0;
     
-    modulePtr->lastUpdated.fileoffset		= -1;
-    modulePtr->lastUpdated.length		= 0;
-    modulePtr->organization.fileoffset		= -1;
-    modulePtr->organization.length		= 0;
-    modulePtr->contactInfo.fileoffset		= -1;
-    modulePtr->contactInfo.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    modulePtr->lastUpdated.ptr			= NULL;
-    modulePtr->organization.ptr			= NULL;
-    modulePtr->contactInfo.ptr			= NULL;
-#endif
+    modulePtr->lastUpdated			= 0;
+    modulePtr->organization			= NULL;
+    modulePtr->contactInfo			= NULL;
 
     modulePtr->nextPtr				= NULL;
     modulePtr->prevPtr				= lastModulePtr;
@@ -284,7 +353,7 @@ setModuleIdentityObject(modulePtr, objectPtr)
  *
  * setModuleLastUpdated --
  *
- *      Set the lastUpdated string of a given Module.
+ *      Set the lastUpdated time_t value of a given Module.
  *
  * Results:
  *	None.
@@ -296,25 +365,17 @@ setModuleIdentityObject(modulePtr, objectPtr)
  */
 
 void
-setModuleLastUpdated(modulePtr, lastUpdatedPtr)
+setModuleLastUpdated(modulePtr, lastUpdated)
     Module	*modulePtr;
-    String	*lastUpdatedPtr;
+    time_t	lastUpdated;
 {
 #ifdef DEBUG
-    printDebug(5, "setModuleLastUpdated(0x%x(%s), 0x%x(%s))\n",
+    printDebug(5, "setModuleLastUpdated(0x%x(%s), %ld)\n",
 	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
-	       lastUpdatedPtr,
-	       lastUpdatedPtr->ptr ? lastUpdatedPtr->ptr : "...");
+	       lastUpdated);
 #endif
 
-    /* TODO: why this check? */
-    if (modulePtr->lastUpdated.fileoffset < 0) {
-	modulePtr->lastUpdated.fileoffset = lastUpdatedPtr->fileoffset;
-	modulePtr->lastUpdated.length = lastUpdatedPtr->length;
-#ifdef TEXTS_IN_MEMORY
-	modulePtr->lastUpdated.ptr = lastUpdatedPtr->ptr;
-#endif
-    }
+    modulePtr->lastUpdated = lastUpdated;
 }
 
 
@@ -336,25 +397,17 @@ setModuleLastUpdated(modulePtr, lastUpdatedPtr)
  */
 
 void
-setModuleOrganization(modulePtr, organizationPtr)
+setModuleOrganization(modulePtr, organization)
     Module *modulePtr;
-    String *organizationPtr;
+    char *organization;
 {
 #ifdef DEBUG
-    printDebug(5, "setModuleOrganization(0x%x(%s), px%x(%s))\n",
+    printDebug(5, "setModuleOrganization(0x%x(%s), %s)\n",
 	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
-	       organizationPtr,
-	       organizationPtr->ptr ? organizationPtr->ptr : "[FILE]");
+	       organization);
 #endif
 
-    /* TODO: why this check */
-    if (modulePtr->organization.fileoffset < 0) {
-	modulePtr->organization.fileoffset = organizationPtr->fileoffset;
-	modulePtr->organization.length = organizationPtr->length;
-#ifdef TEXTS_IN_MEMORY
-	modulePtr->organization.ptr = organizationPtr->ptr;
-#endif
-    }
+    modulePtr->organization = util_strdup(organization);
 }
 
 
@@ -376,25 +429,17 @@ setModuleOrganization(modulePtr, organizationPtr)
  */
 
 void
-setModuleContactInfo(modulePtr, contactInfoPtr)
+setModuleContactInfo(modulePtr, contactInfo)
     Module	  *modulePtr;
-    String	  *contactInfoPtr;
+    char	  *contactInfo;
 {
 #ifdef DEBUG
-    printDebug(5, "setModuleContactInfo(0x%x(%s), 0x%x(%s))\n",
+    printDebug(5, "setModuleContactInfo(0x%x(%s), %s)\n",
 	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
-	       contactInfoPtr,
-	       contactInfoPtr->ptr ? contactInfoPtr->ptr : "[FILE]");
+	       contactInfo);
 #endif
 
-    /* TODO: why this check? */
-    if (modulePtr->contactInfo.fileoffset < 0) {
-	modulePtr->contactInfo.fileoffset = contactInfoPtr->fileoffset;
-	modulePtr->contactInfo.length     = contactInfoPtr->length;
-#ifdef TEXTS_IN_MEMORY
-	modulePtr->contactInfo.ptr        = contactInfoPtr->ptr;
-#endif
-    }
+    modulePtr->contactInfo = util_strdup(contactInfo);
 }
 
 
@@ -428,7 +473,7 @@ findModuleByName(modulename)
     
     for (modulePtr = firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
-	if (!strcmp(modulePtr->name, modulename)) {
+	if ((modulePtr->name) && !strcmp(modulePtr->name, modulename)) {
 #ifdef DEBUG
 	    printDebug(4, " = 0x%x(%s)\n", modulePtr, modulePtr->name);
 #endif
@@ -525,16 +570,16 @@ checkImports(modulename, parserPtr)
     Import      *importPtr;
     
 #ifdef DEBUG
-    printDebug(4, "checkImports(%s, 0x%x)", modulename, parserPtr);
+    printDebug(4, "checkImports(%s, 0x%x) ...\n", modulename, parserPtr);
 #endif
 
     for (importPtr = parserPtr->modulePtr->firstImportPtr;
 	 importPtr; importPtr = importPtr->nextPtr) {
 
-	if (smiGetNode(importPtr->name, modulename, 0)) {
+	if (smiGetNode(importPtr->name, modulename)) {
 	    importPtr->module = util_strdup(modulename);
 	    importPtr->kind   = KIND_OBJECT;
-	} else if (smiGetType(importPtr->name, modulename, 0)) {
+	} else if (smiGetType(importPtr->name, modulename)) {
 	    importPtr->module = util_strdup(modulename);
 	    importPtr->kind   = KIND_TYPE;
 	} else if (smiGetMacro(importPtr->name, modulename)) {
@@ -549,7 +594,7 @@ checkImports(modulename, parserPtr)
     }
 
 #ifdef DEBUG
-    printDebug(4, " = %d\n", n);
+    printDebug(4, "... = %d\n", n);
 #endif
 
     return (n);
@@ -655,438 +700,6 @@ findImportByModulenameAndName(modulename, importname, modulePtr)
 
 
 
-#if 0
-/*
- *----------------------------------------------------------------------
- *
- * addDescriptor --
- *
- *      Add a descriptor to the list of all descriptors. It gets
- *	linked into the lists of all descriptors, descriptors by
- *	module, by kind and by module and kind.
- *
- * Results:
- *      A pointer to the new Descriptor structure or
- *	NULL if terminated due to an error.
- *
- * Side effects:
- *      When the defined descriptor has been forward referenced,
- *	the &ptr parameter may be change by addDescriptor().
- *
- *----------------------------------------------------------------------
- */
-
-Descriptor *
-addDescriptor(name, module, kind, ptr, flags, parser)
-    const char *name;
-    Module *module;
-    DescriptorKind kind;
-    void *ptr;
-    Parser *parser;
-{
-    Descriptor *descriptor, *olddescriptor;
-    Node *pending, *next;
-    Type *t;
-    
-    printDebug(5, "addDescriptor(\"%s\", %s, %s, &%p, %d, parser)\n",
-	       name, module &&
-	         module->descriptor ? module->descriptor->name : "NULL",
-	       stringKind(kind), ptr ? *(void **)ptr : NULL, flags);
-
-    /*
-     * If this new descriptor is found as pending type,
-     * we have to complete those Type and Descriptor structs instead of
-     * creating a new descriptor.
-     */
-    if ((module) && (kind == KIND_TYPE) &&
-	(!(flags & FLAG_IMPORTED))) {
-	t = findTypeByModuleAndName(module, name);
-	if (t && (t->flags & FLAG_INCOMPLETE) && !(flags & FLAG_INCOMPLETE)) {
-	    t->parent      = (*(Type **)ptr)->parent;
-	    t->syntax      = (*(Type **)ptr)->syntax;
-	    t->decl        = (*(Type **)ptr)->decl;
-	    t->status      = (*(Type **)ptr)->status;
-	    t->fileoffset  = (*(Type **)ptr)->fileoffset;
-	    t->flags       = (*(Type **)ptr)->flags;
-	    t->format      = (*(Type **)ptr)->format;
-	    t->description = (*(Type **)ptr)->description;
-#ifdef TEXTS_IN_MEMORY
-	    free((*(Type **)ptr)->description.ptr);
-#endif
-	    free(*(Type **)ptr);
-
-	    printDebug(5, "... = %p\n", t->descriptor);
-	    return t->descriptor;
-	}
-    }
-
-    descriptor = (Descriptor *)malloc(sizeof(Descriptor));
-    if (!descriptor) {
-	printError(parser, ERR_ALLOCATING_DESCRIPTOR, strerror(errno));
-	return (NULL);
-    }
-
-    descriptor->name = util_strdup(name);
-    descriptor->module = module;
-    descriptor->kind = kind;
-    descriptor->flags = flags;
-    if (ptr) {
-	descriptor->ptr = *(void **)ptr;
-    }
-
-    /*
-     * TODO: during development, there might be descriptors defined
-     * with *ptr == NULL.
-     */
-    if (ptr && *(void **)ptr && (!(flags & FLAG_IMPORTED))) {
-	switch (kind) {
-	case KIND_MODULE:
-	    ((Module *)(descriptor->ptr))->descriptor = descriptor;
-	    break;
-	case KIND_MACRO:
-	    ((Macro *)(descriptor->ptr))->descriptor = descriptor;
-	    break;
-	case KIND_TYPE:
-	    ((Type *)(descriptor->ptr))->descriptor = descriptor;
-	    break;
-	case KIND_OBJECT:
-	    ((Object *)(descriptor->ptr))->descriptor = descriptor;
-	    break;
-	case KIND_IMPORTED:
-	    break;
-	case KIND_ANY:
-	case KIND_IMPORT:
-	    break;
-	    ;
-	}
-    }
-
-    /*
-     * Link the new descriptor into the different lists.
-     */
-    descriptor->prev = lastDescriptor[KIND_ANY];
-    descriptor->next = NULL;
-    if (lastDescriptor[KIND_ANY]) {
-	lastDescriptor[KIND_ANY]->next = descriptor;
-    } else {
-	firstDescriptor[KIND_ANY] = descriptor;
-    }
-    lastDescriptor[KIND_ANY] = descriptor;
-    
-    descriptor->prevSameKind = lastDescriptor[kind];
-    descriptor->nextSameKind = NULL;
-    if (lastDescriptor[kind]) {
-	lastDescriptor[kind]->nextSameKind = descriptor;
-    } else {
-	firstDescriptor[kind] = descriptor;
-    }
-    lastDescriptor[kind] = descriptor;
-
-    if (module) {
-	descriptor->prevSameModule = module->lastDescriptor[KIND_ANY];
-	descriptor->nextSameModule = NULL;
-	if (module->lastDescriptor[KIND_ANY]) {
-	    module->lastDescriptor[KIND_ANY]->nextSameModule = descriptor;
-	} else {
-	    module->firstDescriptor[KIND_ANY] = descriptor;
-	}
-	module->lastDescriptor[KIND_ANY] = descriptor;
-	    
-	descriptor->prevSameModuleAndKind = module->lastDescriptor[kind];
-	descriptor->nextSameModuleAndKind = NULL;
-	if (module->lastDescriptor[kind]) {
-	    module->lastDescriptor[kind]->nextSameModuleAndKind =
-		descriptor;
-	} else {
-	    module->firstDescriptor[kind] = descriptor;
-	}
-	module->lastDescriptor[kind] = descriptor;
-    }
-
-    /*
-     * If this new descriptor is found on the pending descriptor
-     * list (at depth==1 in pendingRootNode), we have to move the
-     * corresponding subtree to the main tree.
-     */
-    if ((module) && (kind == KIND_OBJECT) &&
-	(!(flags & FLAG_IMPORTED)) &&
-	((*(Object **)ptr)->node->parent != pendingRootNode)) {
-	
-	/*
-	 * check each root of pending subtrees. if it is the just defined
-	 * oid, then move it to the main tree.
-	 */
-	for (pending = pendingRootNode->firstChild; pending;
-	     pending = next) {
-
-	    /*
-	     * probably we change the contents of `pending', so remember
-	     * the next pointer.
-	     */
-	    next = pending->next;
-
-	    if (!strcmp(pending->firstObject->descriptor->name, name)) {
-
-		/*
-		 * remove `pending' from the pendingRootNode tree.
-		 */
-		if (pending->prev) {
-		    pending->prev->next = pending->next;
-		} else {
-		    pendingRootNode->firstChild = pending->next;
-		}
-		if (pending->next) {
-		    pending->next->prev = pending->prev;
-		} else {
-		    pendingRootNode->lastChild = pending->prev;
-		}
-
-		/*
-		 * copy contents of the new node to pending.
-		 */
-		olddescriptor = pending->firstObject->descriptor;
-		pending->subid = (*(Object **)ptr)->node->subid;
-		
-		pending->firstObject->flags = (*(Object **)ptr)->flags;
-		pending->firstObject->decl = (*(Object **)ptr)->decl;
-		pending->firstObject->fileoffset =
-		    (*(Object **)ptr)->fileoffset;
-		pending->firstObject->descriptor =
-		    (*(Object **)ptr)->descriptor;
-
-		/*
-		 * now link pending into *ptr's place.
-		 */
-		pending->parent = (*(Object **)ptr)->node->parent;
-		pending->next = (*(Object **)ptr)->node->next;
-		pending->prev = (*(Object **)ptr)->node->prev;
-		if ((*(Object **)ptr)->node->parent->firstChild ==
-		    (*(Object **)ptr)->node) {
-		    (*(Object **)ptr)->node->parent->firstChild = pending;
-		} else {
-		    (*(Object **)ptr)->node->prev->next = pending;
-		}
-		if ((*(Object **)ptr)->node->parent->lastChild ==
-		    (*(Object **)ptr)->node) {
-		    (*(Object **)ptr)->node->parent->lastChild = pending;
-		} else {
-		    (*(Object **)ptr)->node->next->prev = pending;
-		}
-
-		/*
-		 * finally, delete the unneeded node and descriptor.
-		 */
-		deleteDescriptor(olddescriptor);
-#ifdef TEXTS_IN_MEMORY
-		free((*(Object **)ptr)->description.ptr);
-#endif
-		free(*(void **)ptr);
-		*(Object **)ptr = pending->firstObject;
-		descriptor->ptr = *(Object **)ptr;
-		break;
-	    }
-	}
-	
-    }
-
-    printDebug(5, "... = %p (ptr=%p)\n", descriptor, descriptor->ptr);
-    
-    return (descriptor);
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * deleteDescriptor --
- *
- *      Delete a descriptor from the lists.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-deleteDescriptor(descriptor)
-    Descriptor *descriptor;
-{
-
-    printDebug(5, "deleteDescriptor(%s)\n", descriptor->name);
-
-    if (descriptor->prev) {
-	descriptor->prev->next = descriptor->next;
-    } else {
-	firstDescriptor[KIND_ANY] = descriptor->next;
-    }
-    if (descriptor->next) {
-	descriptor->next->prev = descriptor->prev;
-    } else {
-	lastDescriptor[KIND_ANY] = descriptor->prev;
-    }
-
-    if (descriptor->prevSameModule) {
-	descriptor->prevSameModule->nextSameModule =
-	    descriptor->nextSameModule;
-    } else {
-	descriptor->module->firstDescriptor[KIND_ANY] =
-	    descriptor->nextSameModule;
-    }
-    if (descriptor->nextSameModule) {
-	descriptor->nextSameModule->prevSameModule =
-	    descriptor->prevSameModule;
-    } else {
-	descriptor->module->lastDescriptor[KIND_ANY] =
-	    descriptor->prevSameModule;
-    }
-
-    if (descriptor->prevSameKind) {
-	descriptor->prevSameKind->nextSameKind =
-	    descriptor->nextSameKind;
-    } else {
-	firstDescriptor[descriptor->kind] =
-	    descriptor->nextSameKind;
-    }
-    if (descriptor->nextSameKind) {
-	descriptor->nextSameKind->prevSameKind =
-	    descriptor->prevSameKind;
-    } else {
-	lastDescriptor[descriptor->kind] =
-	    descriptor->prevSameKind;
-    }
-
-    if (descriptor->prevSameModuleAndKind) {
-	descriptor->prevSameModuleAndKind->nextSameModuleAndKind =
-	    descriptor->nextSameModuleAndKind;
-    } else {
-	descriptor->module->firstDescriptor[descriptor->kind] =
-	    descriptor->nextSameModuleAndKind;
-    }
-    if (descriptor->nextSameModuleAndKind) {
-	descriptor->nextSameModuleAndKind->prevSameModuleAndKind =
-	    descriptor->prevSameModuleAndKind;
-    } else {
-	descriptor->module->lastDescriptor[descriptor->kind] =
-	    descriptor->prevSameModuleAndKind;
-    }
-
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * findDescriptor --
- *
- *      Lookup a Descriptor by its name, module and kind.
- *	The module argument might be NULL to search in all modules.
- *	The kind argument might be KIND_ANY to search for any kind.
- *
- * Results:
- *      A pointer to the Descriptor structure or
- *	NULL if it is not found.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-Descriptor *
-findDescriptor(name, module, kind)
-    const char     *name;
-    Module         *module;
-    DescriptorKind kind;
-{
-    Descriptor *descriptor;
-    
-    printDebug(5, "findDescriptor(\"%s\", %s, %s)", name,
-	       module ? module->descriptor->name : "any-module",
-	       stringKind(kind));
-
-    for (descriptor = module ?
-	     module->firstDescriptor[kind] : firstDescriptor[kind];
-	 descriptor;
-	 descriptor = module ? kind != KIND_ANY ?
-	     descriptor->nextSameModuleAndKind : descriptor->nextSameModule
-	                     : kind != KIND_ANY ?
-	     descriptor->nextSameKind : descriptor->next) {
-	if (!strcmp(descriptor->name, name)) {
-	    printDebug(5, " = %s\n", descriptor->name);
-	    return (descriptor);
-	}
-    }
-    printDebug(5, " = NULL\n");
-    return (NULL);
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * findNextDescriptor --
- *
- *      Lookup a Descriptor by its name, module and kind.
- *	The module argument might be NULL to search in all modules.
- *	The kind argument might be KIND_ANY to search for any kind.
- *	If the given Descriptor is not NULL, the search starts behind
- *	this this Descriptor.
- *
- * Results:
- *      A pointer to the Descriptor structure or
- *	NULL if it is not found.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-Descriptor *
-findNextDescriptor(name, module, kind, start)
-    const char     *name;
-    Module         *module;
-    DescriptorKind kind;
-    Descriptor	   *start;
-{
-    Descriptor *descriptor;
-    
-    printDebug(5, "findNextDescriptor(\"%s\", %s, %s, %s)\n", name,
-	       module ? module->descriptor->name : "any-module",
-	       stringKind(kind), start ? start->name : "NULL");
-
-    if (start == NULL) {
-	return findDescriptor(name, module, kind);
-    }
-    
-    for (descriptor = module ? kind != KIND_ANY ?
-	     start->nextSameModuleAndKind : start->nextSameModule
-	                     : kind != KIND_ANY ?
-	     start->nextSameKind : start->next;
-	 descriptor;
-	 descriptor = module ? kind != KIND_ANY ?
-	     descriptor->nextSameModuleAndKind : descriptor->nextSameModule
-	                     : kind != KIND_ANY ?
-	     descriptor->nextSameKind : descriptor->next) {
-	if (!strcmp(descriptor->name, name)) {
-	    printDebug(5, "... = %s\n", descriptor->name);
-	    return (descriptor);
-	}
-    }
-    printDebug(5, "... = NULL\n");
-    return (NULL);
-}
-#endif
-
-
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1145,16 +758,8 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->access				= SMI_ACCESS_UNKNOWN;
     objectPtr->status				= SMI_STATUS_UNKNOWN;
     objectPtr->flags				= flags;
-    objectPtr->description.fileoffset		= -1;
-    objectPtr->description.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    objectPtr->description.ptr			= NULL;
-#endif
-    objectPtr->reference.fileoffset		= -1;
-    objectPtr->reference.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    objectPtr->reference.ptr			= NULL;
-#endif
+    objectPtr->description			= NULL;
+    objectPtr->reference			= NULL;
     
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -1256,16 +861,8 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->decl				      = SMI_DECL_UNKNOWN;
     objectPtr->access				      = SMI_ACCESS_UNKNOWN;
     objectPtr->status				      = SMI_STATUS_UNKNOWN;
-    objectPtr->description.fileoffset		      = -1;
-    objectPtr->description.length		      = 0;
-#ifdef TEXTS_IN_MEMORY
-    objectPtr->description.ptr			      = NULL;
-#endif
-    objectPtr->reference.fileoffset		      = -1;
-    objectPtr->reference.length		      = 0;
-#ifdef TEXTS_IN_MEMORY
-    objectPtr->reference.ptr			      = NULL;
-#endif
+    objectPtr->description			      = NULL;
+    objectPtr->reference			      = NULL;
 
     objectPtr->nextPtr				= NULL;
     objectPtr->prevPtr				= modulePtr->lastObjectPtr;
@@ -1635,25 +1232,16 @@ setObjectStatus(objectPtr, status)
  */
 
 void
-setObjectDescription(objectPtr, descriptionPtr)
+setObjectDescription(objectPtr, description)
     Object    *objectPtr;
-    String    *descriptionPtr;
+    char      *description;
 {
 #ifdef DEBUG
-    printDebug(5, "setObjectDescription(0x%x(%s), \"%s\"(%d,%d))\n",
-	       objectPtr, objectPtr->name,
-	       descriptionPtr->ptr ? descriptionPtr->ptr : "[FILE]",
-	       descriptionPtr->fileoffset, descriptionPtr->length);
+    printDebug(5, "setObjectDescription(0x%x(%s), %s)\n",
+	       objectPtr, objectPtr->name, description);
 #endif
 
-    /* TODO: why this check? */
-    if (objectPtr->description.fileoffset < 0) {
-	objectPtr->description.fileoffset = descriptionPtr->fileoffset;
-	objectPtr->description.length = descriptionPtr->length;
-#ifdef TEXTS_IN_MEMORY
-	objectPtr->description.ptr = descriptionPtr->ptr;
-#endif
-    }
+    objectPtr->description = util_strdup(description);
 }
 
 
@@ -1675,25 +1263,16 @@ setObjectDescription(objectPtr, descriptionPtr)
  */
 
 void
-setObjectReference(objectPtr, referencePtr)
+setObjectReference(objectPtr, reference)
     Object    *objectPtr;
-    String    *referencePtr;
+    char      *reference;
 {
 #ifdef DEBUG
-    printDebug(5, "setObjectReference(0x%x(%s), \"%s\"(%d,%d))\n",
-	       objectPtr, objectPtr->name,
-	       referencePtr->ptr ? referencePtr->ptr : "[FILE]",
-	       referencePtr->fileoffset, referencePtr->length);
+    printDebug(5, "setObjectReference(0x%x(%s), %s)\n",
+	       objectPtr, objectPtr->name, reference);
 #endif
 
-    /* TODO: why this check? */
-    if (objectPtr->reference.fileoffset < 0) {
-	objectPtr->reference.fileoffset = referencePtr->fileoffset;
-	objectPtr->reference.length = referencePtr->length;
-#ifdef TEXTS_IN_MEMORY
-	objectPtr->reference.ptr = referencePtr->ptr;
-#endif
-    }
+    objectPtr->reference = util_strdup(reference);
 }
 
 
@@ -2009,7 +1588,7 @@ findObjectByName(objectname)
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
-	    if (!strcmp(objectPtr->name, objectname)) {
+	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
 		/*
 		 * We return the first matching object.
 		 * TODO: probably we should check if there are more matching
@@ -2066,7 +1645,7 @@ findObjectByModulenameAndName(modulename, objectname)
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
-	    if (!strcmp(objectPtr->name, objectname)) {
+	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
 #ifdef DEBUG
 		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
 #endif
@@ -2124,7 +1703,7 @@ findObjectByModuleAndName(modulePtr, objectname)
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
-	    if (!strcmp(objectPtr->name, objectname)) {
+	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
 #ifdef DEBUG
 		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
 #endif
@@ -2140,7 +1719,7 @@ findObjectByModuleAndName(modulePtr, objectname)
 	(!strcmp(objectname, "ccitt")) ||
 	(!strcmp(objectname, "joint-iso-ccitt"))) {
 #ifdef DEBUG
-	printDebug(4, "...\n");
+	printDebug(4, " ...\n");
 #endif
 	return findObjectByName(objectname);
     }
@@ -2332,21 +1911,9 @@ addType(typename, syntax, flags, parserPtr)
     typePtr->flags			= flags;
     typePtr->sequencePtr		= NULL;
     typePtr->parentType			= NULL;
-    typePtr->description.fileoffset	= -1;
-    typePtr->description.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    typePtr->description.ptr		= NULL;
-#endif
-    typePtr->reference.fileoffset	= -1;
-    typePtr->reference.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    typePtr->reference.ptr		= NULL;
-#endif
-    typePtr->format.fileoffset		= -1;
-    typePtr->format.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    typePtr->format.ptr			= NULL;
-#endif
+    typePtr->description		= NULL;
+    typePtr->reference			= NULL;
+    typePtr->format			= NULL;
 
     typePtr->nextPtr			= NULL;
     if (modulePtr) {
@@ -2416,21 +1983,9 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->sequencePtr		= NULL;
     typePtr->flags			= templatePtr->flags;
     typePtr->parentType			= util_strdup(templatePtr->name);
-    typePtr->description.fileoffset	= -1;
-    typePtr->description.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    typePtr->description.ptr		= NULL;
-#endif
-    typePtr->reference.fileoffset	= -1;
-    typePtr->reference.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    typePtr->reference.ptr		= NULL;
-#endif
-    typePtr->format.fileoffset		= -1;
-    typePtr->format.length		= 0;
-#ifdef TEXTS_IN_MEMORY
-    typePtr->format.ptr			= NULL;
-#endif
+    typePtr->description		= NULL;
+    typePtr->reference			= NULL;
+    typePtr->format			= NULL;
 
     typePtr->nextPtr			= NULL;
     typePtr->prevPtr			= modulePtr->lastTypePtr;
@@ -2532,24 +2087,17 @@ setTypeStatus(typePtr, status)
  */
 
 void
-setTypeDescription(typePtr, descriptionPtr)
+setTypeDescription(typePtr, description)
     Type	   *typePtr;
-    String	   *descriptionPtr;
+    char	   *description;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeDescription(0x%x(%s), \"%s\"(%d,%d))\n",
+    printDebug(5, "setTypeDescription(0x%x(%s), %s)\n",
 	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       descriptionPtr->ptr ? descriptionPtr->ptr : "[FILE]",
-	       descriptionPtr->fileoffset, descriptionPtr->length);
+	       description);
 #endif
     
-    if (typePtr->description.fileoffset < 0) {
-	typePtr->description.fileoffset = descriptionPtr->fileoffset;
-	typePtr->description.length = descriptionPtr->length;
-#ifdef TEXTS_IN_MEMORY
-	typePtr->description.ptr = descriptionPtr->ptr;
-#endif
-    }
+    typePtr->description = util_strdup(description);
 }
 
 
@@ -2637,24 +2185,16 @@ setTypeSequencePtr(typePtr, sequencePtr)
  */
 
 void
-setTypeFormat(typePtr, formatPtr)
+setTypeFormat(typePtr, format)
     Type           *typePtr;
-    String	   *formatPtr;
+    char	   *format;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeFormat(0x%x(%s), \"%s\")\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       formatPtr->ptr ? formatPtr->ptr : "[FILE]",
-	       formatPtr->fileoffset, formatPtr->length);
+    printDebug(5, "setTypeFormat(0x%x(%s), %s)\n",
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", format);
 #endif
     
-    if (typePtr->format.fileoffset < 0) {
-	typePtr->format.fileoffset = formatPtr->fileoffset;
-	typePtr->format.length = formatPtr->length;
-#ifdef TEXTS_IN_MEMORY
-	typePtr->format.ptr = formatPtr->ptr;
-#endif
-    }
+    typePtr->format = util_strdup(format);
 }
 
 
@@ -3133,12 +2673,17 @@ int
 initData()
 {
     Object	    *objectPtr;
-
+    Parser	    parser;
+    
+    smiFlags = 0;
+    
     firstLocationPtr = NULL;
     lastLocationPtr = NULL;
     firstModulePtr = NULL;
     lastModulePtr = NULL;
-
+    firstViewPtr = NULL;
+    lastViewPtr = NULL;
+    
     /*
      * Initialize a root Node for the main MIB tree.
      */
@@ -3154,9 +2699,14 @@ initData()
      * belonging to a dummy module "". This is needed for SMIv1/v2. SMIng
      * defines it in a special SMIng module.
      */
-    objectPtr = addObject("ccitt", rootNodePtr, 0, 0, NULL);
-    objectPtr = addObject("iso", rootNodePtr, 1, 0, NULL);
-    objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, NULL);
+    parser.path			= NULL;
+    parser.locationPtr		= NULL;
+    parser.flags		= smiFlags;
+    parser.file			= NULL;
+    parser.modulePtr = addModule("", "", NULL, 0, 0, NULL);
+    objectPtr = addObject("ccitt", rootNodePtr, 0, 0, &parser);
+    objectPtr = addObject("iso", rootNodePtr, 1, 0, &parser);
+    objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, &parser);
 
     /*
      * Initialize the well-known ASN.1 Types for SMIv1/v2 and
@@ -3196,9 +2746,12 @@ initData()
 /*
  *----------------------------------------------------------------------
  *
- * readMibFile --
+ * loadModule --
  *
- *      Read a MIB File.
+ *      Load a MIB module. It is search by the location list.
+ *	If it is found in the location filesystem it is read completely.
+ *	If it is found through an RPC location, just the module structure
+ *	is read.
  *
  * Results:
  *      0 on success or -1 on an error.
@@ -3209,50 +2762,104 @@ initData()
  *----------------------------------------------------------------------
  */
 
-int
-readMibFile(path, locationPtr, modulename, flags)
-    const char      *path;
-    Location	    *locationPtr;
-    const char      *modulename;
-    ParserFlags     flags;
+Module *
+loadModule(modulename)
+    char	    *modulename;
 {
+    Location	    *locationPtr;
     Parser	    parser;
+    Module	    *modulePtr;
+    smi_getspec	    getspec;
+    smi_module	    *smimodule;
     char	    s[200];
-
+    char	    *path;
+    struct stat	    buf;
+    int		    st;
+    
 #ifdef DEBUG
-    printDebug(3, "readMibFile(%s, 0x%x(%s), %s, %d)\n", path,
-	       locationPtr, locationPtr->name, modulename, flags);
+    printDebug(3, "loadModule(%s)\n", modulename);
 #endif
+
+    if (!strlen(modulename)) {
+	return NULL;
+    }
     
-    parser.path				= util_strdup(path);
-    parser.locationPtr			= locationPtr;
-    parser.module			= util_strdup(modulename);
-    parser.flags			= flags;
-    parser.modulePtr			= NULL;
-    
-    parser.file				= fopen(parser.path, "r");
-    if (!parser.file) {
-	printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
-		   strerror(errno));
-	return (-1);
-    } else {
-	if (enterLexRecursion(parser.file) < 0) {
-	    printError(&parser, ERR_MAX_LEX_DEPTH);
-	    fclose(parser.file);
-	    return (-1);
+    for (locationPtr = firstLocationPtr; locationPtr;
+	 locationPtr = locationPtr->nextPtr) {
+
+#ifdef BACKEND_RPC
+	if (locationPtr->type == LOCATION_RPC) {
+	    
+	    getspec.name = modulename;
+	    getspec.wantdescr = 1;
+	    smimodule = smiproc_module_1(&getspec, locationPtr->cl);
+	    if (smimodule && strlen(smimodule->name)) {
+	        /* the RPC server knows this module */
+		modulePtr = addModule(modulename, "", locationPtr, 0, 0, NULL);
+		setModuleLastUpdated(modulePtr, smimodule->lastupdated);
+		setModuleOrganization(modulePtr, smimodule->organization);
+		setModuleContactInfo(modulePtr, smimodule->contactinfo);
+		/* TODO: setModuleIdentityObject */
+		/* TODO: setObjectDescription */
+		/* TODO: setObjectReference */
+		return modulePtr;
+	    }
 	}
-	parser.line			= 1;
-	parser.column			= 1;
-	parser.character		= 1;
-	yyparse((void *)&parser);
-	leaveLexRecursion();
-	fclose(parser.file);
-	if (parser.flags & PARSER_FLAG_STATS) {
-	    sprintf(s, " (%d lines)", parser.line-1);
-	    printError(&parser, ERR_STATISTICS, s);
+#endif
+
+#ifdef BACKEND_SMI
+	if (locationPtr->type == LOCATION_SMIDIR) {
+
+	    path = malloc(strlen(locationPtr->name)+strlen(modulename)+6);
+	    
+	    sprintf(path, "%s/%s", locationPtr->name, modulename);
+	    if ((st = stat(path, &buf))) {
+		sprintf(path, "%s/%s.my", locationPtr->name, modulename);
+		st = stat(path, &buf);
+	    }
+	    if (!st) {
+		parser.path			= util_strdup(path);
+		parser.locationPtr		= locationPtr;
+		parser.flags			= smiFlags;
+		parser.modulePtr		= NULL;
+		parser.file			= fopen(parser.path, "r");
+		if (!parser.file) {
+		    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
+			       strerror(errno));
+		} else {
+		    if (enterLexRecursion(parser.file) < 0) {
+			printError(&parser, ERR_MAX_LEX_DEPTH);
+			fclose(parser.file);
+		    }
+		    parser.line			= 1;
+		    parser.column		= 1;
+		    parser.character		= 1;
+		    yyparse((void *)&parser);
+		    leaveLexRecursion();
+		    fclose(parser.file);
+		    if (parser.flags & FLAG_STATS) {
+			sprintf(s, " (%d lines)", parser.line-1);
+			printError(&parser, ERR_STATISTICS, s);
+		    }
+		}
+
+		free(path);
+
+		return findModuleByName(modulename);
+		
+	    }
+	    
+	} else if (locationPtr->type == LOCATION_SMIFILE) {
+
+	    /* TODO */
+	    modulePtr = findModuleByName(modulename);
+	    if (modulePtr) {
+		return (modulePtr);
+	    }
 	}
+#endif
     }
 
-    return (0);
+    return NULL;
 }
 

@@ -9,14 +9,14 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.15 1999/02/18 17:13:02 strauss Exp $
+% * @(#) $Id: smi.x,v 1.1 1999/03/11 17:33:05 strauss Exp $
 % */
 %
 
 const SMI_MAX_DESCRIPTOR	= 64;
 const SMI_MAX_OID		= 1407;		/* 128 * 10 + 127 */
 const SMI_MAX_STRING		= 65535;
-const SMI_MAX_FULLNAME		= 129;		/* 64 + 1 + 64 */
+const SMI_MAX_FULLNAME		= 130;		/* 64 + 2 + 64 */
 
 typedef string smi_descriptor<SMI_MAX_DESCRIPTOR>;
 typedef string smi_oid<SMI_MAX_OID>;
@@ -104,8 +104,8 @@ struct smi_getspec {
 
 struct smi_module {
     smi_descriptor	name;
-    smi_oid		oid;
-    smi_string		lastupdated;
+    smi_descriptor	object;
+    long		lastupdated;
     smi_string		organization;
     smi_string		contactinfo;
     smi_string		description;

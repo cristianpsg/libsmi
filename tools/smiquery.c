@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.1 1998/11/27 10:55:29 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.1 1999/03/11 17:33:55 strauss Exp $
  */
 
 #include <stdio.h>
@@ -20,6 +20,27 @@
 #endif
 
 #include "smi.h"
+
+#define SMIQUERY_CONFIG_FILE "/usr/local/etc/smiquery.conf"
+
+
+
+char *
+format(const char *s)
+{
+    static char ss[20000];
+    int i, j;
+
+    for(i = 0, j = 0; s[i]; i++) {
+	ss[j++] = s[i];
+	if (s[i] == '\n') {
+	    sprintf(&ss[j], "              ");
+	    j += 14;
+	}
+    }
+    ss[j] = 0;
+    return ss;
+}
 
 
 
@@ -34,31 +55,83 @@ main(argc, argv)
     smi_type *type;
     smi_macro *macro;
     smi_namelist *namelist;
-    
-    if (argc != 3) {
-	fprintf(stderr, "smiquery $Revision: 1.1 $\n");
-	fprintf(stderr, "Usage: smiquery <command> <name>\n");
-	fprintf(stderr, "known commands: module, node, type, macro, names, children, members, parent\n");
-	exit(1);
-    }
-
+    char *command, *name;
+    int flags;
+    char c;
+	
     smiInit();
-    smiReadConfig("/usr/local/etc/smiquery.conf");
 
-    if (!strcmp(argv[1], "module")) {
-	module = smiGetModule(argv[2], 1);
-	if (module) {
-	    printf("      Module: %s\n", module->name);
-	    printf("         OID: %s\n", module->oid);
-	    printf(" LastUpdated: %s\n", module->lastupdated);
-	    printf("Organization: %s\n", module->organization);
-	    printf(" ContactInfo: %s\n", module->contactinfo);
-	    printf(" Description: %s\n", module->description);
+#ifdef SMIQUERY_CONFIG_FILE
+    smiReadConfig(SMIQUERY_CONFIG_FILE);
+#endif
+        
+    flags = smiGetFlags();
+    
+    while ((c = getopt(argc, argv, "rRsSvVd:l:c:L:")) != -1) {
+	switch (c) {
+	case 'c':
+	    smiReadConfig(optarg);
+	    break;
+	case 'l':
+	    smiSetErrorLevel(atoi(optarg));
+	    break;
+	case 'd':
+	    smiSetDebugLevel(atoi(optarg));
+	    break;
+	case 'v':
+	    flags |= SMI_ERRORLINES;
+	    smiSetFlags(flags);
+	    break;
+	case 'V':
+	    flags &= ~SMI_ERRORLINES;
+	    smiSetFlags(flags);
+	    break;
+	case 'r':
+	    /* errors and statistics (if -s present) for imported modules */
+	    flags |= SMI_RECURSIVE;
+	    smiSetFlags(flags);
+	    break;
+	case 'R':
+	    flags &= ~SMI_RECURSIVE;
+	    smiSetFlags(flags);
+	    break;
+	case 's':
+	    /* print some module statistics */
+	    flags |= SMI_STATS;
+	    smiSetFlags(flags);
+	    break;
+	case 'S':
+	    flags &= ~SMI_STATS;
+	    break;
+	case 'L':
+	    smiAddLocation(optarg);
+	    break;
+	default:
+	    fprintf(stderr, "Usage: smiquery [-vVrRsS] [-d level] [-l level] [-c configfile]"
+		    "       [-L location] command name\n"
+		    "known commands: module, node, type, macro, names, children, members, parent\n");
+	    exit(1);
 	}
     }
 
-    if (!strcmp(argv[1], "node")) {
-	node = smiGetNode(argv[2], "", 1);
+    command = argv[optind];
+    name = argv[optind+1];
+
+    if (!strcmp(command, "module")) {
+	module = smiGetModule(name);
+	if (module) {
+	    printf("      Module: %s\n", module->name);
+	    printf("      Object: %s\n", module->object);
+	    printf(" LastUpdated: %s", ctime(&module->lastupdated));
+	    printf("Organization: %s\n", format(module->organization));
+	    printf(" ContactInfo: %s\n", format(module->contactinfo));
+	    printf(" Description: %s\n", format(module->description));
+	    printf("   Reference: %s\n", format(module->reference));
+	}
+    }
+
+    if (!strcmp(command, "node")) {
+	node = smiGetNode(name, "");
 	if (node) {
 	    printf("     MibNode: %s\n", node->name);
 	    printf("      Module: %s\n", node->module);
@@ -68,12 +141,13 @@ main(argc, argv)
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
 	    printf("      Status: %s\n", smiStringStatus(node->status));
-	    printf(" Description: %s\n", node->description);
+	    printf(" Description: %s\n", format(node->description));
+	    printf("   Reference: %s\n", format(node->reference));
 	}
     }
 
-    if (!strcmp(argv[1], "type")) {
-	type = smiGetType(argv[2], "", 1);
+    if (!strcmp(command, "type")) {
+	type = smiGetType(name, "");
 	if (type) {
 	    printf("        Type: %s\n", type->name);
 	    printf("      Module: %s\n", type->module);
@@ -85,37 +159,37 @@ main(argc, argv)
 	}
     }
 
-    if (!strcmp(argv[1], "macro")) {
-	macro = smiGetMacro(argv[2], "");
+    if (!strcmp(command, "macro")) {
+	macro = smiGetMacro(name, "");
 	if (macro) {
 	    printf("       Macro: %s\n", macro->name);
 	    printf("      Module: %s\n", macro->module);
 	}
     }
     
-    if (!strcmp(argv[1], "names")) {
-	namelist = smiGetNames(argv[2], "");
+    if (!strcmp(command, "names")) {
+	namelist = smiGetNames(name, "");
 	if (namelist) {
 	    printf("       Names: %s\n", namelist->namelist);
 	}
     }
     
-    if (!strcmp(argv[1], "children")) {
-	namelist = smiGetChildren(argv[2], "");
+    if (!strcmp(command, "children")) {
+	namelist = smiGetChildren(name, "");
 	if (namelist) {
 	    printf("    Children: %s\n", namelist->namelist);
 	}
     }
     
-    if (!strcmp(argv[1], "members")) {
-	namelist = smiGetMembers(argv[2], "");
+    if (!strcmp(command, "members")) {
+	namelist = smiGetMembers(name, "");
 	if (namelist) {
 	    printf("     Members: %s\n", namelist->namelist);
 	}
     }
     
-    if (!strcmp(argv[1], "parent")) {
-	fullname2 = smiGetParent(argv[2], "");
+    if (!strcmp(command, "parent")) {
+	fullname2 = smiGetParent(name, "");
 	if (fullname2) {
 	    printf("      Parent: %s\n", *fullname2);
 	}

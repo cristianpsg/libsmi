@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.1 1999/03/11 17:33:04 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.2 1999/03/15 11:07:14 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -20,11 +20,13 @@
 
 #define SMI_CONFIG_FILE         "/usr/local/etc/smi.conf"
 
-#define SMI_VIEWALL     0x0800
-#define SMI_ERRORS      0x1000
-#define SMI_ERRORLINES  0x2000
-#define SMI_STATS       0x4000
-#define SMI_RECURSIVE   0x8000
+#define SMI_NAMESPACE_OPERATOR	"::"
+
+#define SMI_VIEWALL     0x0800  /* all modules are `known', need no views. */
+#define SMI_ERRORS      0x1000  /* print parser errors. */
+#define SMI_ERRORLINES  0x2000  /* print error line contents of modules. */
+#define SMI_STATS       0x4000  /* print statistics after parsing a module. */
+#define SMI_RECURSIVE   0x8000  /* recursively parse imported modules. */
 #define SMI_FLAGMASK    (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
 
 
@@ -79,6 +81,8 @@
 					           "<unknown>" )
 
 
+extern time_t smiMkTime(const char *s);
+
 extern void smiInit();
 
 extern void smiSetDebugLevel(int level);
@@ -93,7 +97,7 @@ extern int smiReadConfig(const char *file);
 
 extern int smiAddLocation(const char *location);
 
-extern int smiLoadMibModule(smi_descriptor modulename);
+extern int smiLoadModule(smi_descriptor modulename);
 
 /*
  * Functions similar to those in smi.x.
@@ -104,16 +108,13 @@ extern int smiLoadMibModule(smi_descriptor modulename);
  * form `Module.Descriptor', `module' has to be NULL.
  */
 
-extern smi_module *smiGetModule(smi_descriptor spec,
-			        int wantdescr);
+extern smi_module *smiGetModule(smi_descriptor spec);
 
 extern smi_node *smiGetNode(smi_fullname spec,
-			    smi_descriptor mod,
-			    int wantdescr);
+			    smi_descriptor mod);
 
 extern smi_type *smiGetType(smi_fullname spec,
-			    smi_descriptor mod,
-			    int wantdescr);
+			    smi_descriptor mod);
 
 extern smi_macro *smiGetMacro(smi_fullname spec,
 			      smi_descriptor mod);

@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.10 1999/03/12 18:43:43 strauss Exp $
+# @(#) $Id: Makefile,v 1.11 1999/03/15 11:07:06 strauss Exp $
 #
 
 MIBDIR		= ../scotty/tnm/mibs
@@ -18,13 +18,13 @@ RPCGEN		= rpcgen
 BISON		= bison
 FLEX		= flex
 
-LIBSMI_OBJS	= lib/config.o lib/data.o lib/error.o lib/util.o lib/smi.o \
+LIBSMI_OBJS	= lib/data.o lib/error.o lib/util.o lib/smi.o \
 		  lib/parser-smi.tab.o lib/scanner-smi.o \
 		  lib/smi_clnt.o lib/smi_xdr.o
 
 LIBSMI_STATIC	= lib/libsmi.a
 
-all: tools/smilint tools/smidump
+all: tools/smilint tools/smidump tools/smiquery
 
 
 tools/smid.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c: lib/smi.h-add lib/smi.x
@@ -48,6 +48,9 @@ lib/parser-smi.tab.c lib/parser-smi.tab.h: lib/parser-smi.y lib/scanner-smi.h li
 lib/scanner-smi.c: lib/scanner-smi.l lib/scanner-smi.h lib/parser-smi.tab.h
 	$(FLEX) -t lib/scanner-smi.l > lib/scanner-smi.c
 
+lib/smi_xdr.o: lib/smi_xdr.c
+	$(CC) $(CFLAGS) -Wno-unused -c $< -o $@
+
 $(LIBSMI_STATIC): lib/smi.h $(LIBSMI_OBJS)
 	$(AR) ruv $@ $(LIBSMI_OBJS)
 	$(RANLIB) $@
@@ -57,8 +60,11 @@ tools: tools/smilint tools/smidump tools/smiquery tools/smiclient tools/smid
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
 	$(LD) $(LD_FLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -ll -lnsl
 
-tools/smidump: $(LIBSMI_STATIC) tools/smidump.o tools/dump-sming.o
-	$(LD) $(LD_FLAGS) -o tools/smidump tools/smidump.o tools/dump-sming.o $(LIBSMI_STATIC) -ll -lnsl
+tools/smidump: tools/smidump.o tools/dump-sming.o tools/dump-data.o $(LIBSMI_STATIC)
+	$(LD) $(LD_FLAGS) -o tools/smidump $^ -ll -lnsl
+
+tools/smiquery: $(LIBSMI_STATIC) tools/smiquery.o
+	$(LD) $(LD_FLAGS) -o tools/smiquery tools/smiquery.o $(LIBSMI_STATIC) -ll -lnsl
 
 clean:
 	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c
