@@ -17,7 +17,7 @@
 ../dumps/smiv2/RMON2-MIB:820: index element `protocolDirParameters' of row `protocolDirEntry' must have a size restriction
 ../dumps/smiv2/RMON2-MIB:765: warning: index of row `protocolDirEntry' can exceed OID size limit by 130955 subidentifier(s)
 ../dumps/smiv2/RMON2-MIB:1467: index element `addressMapNetworkAddress' of row `addressMapEntry' must have a size restriction
-../dumps/smiv2/RMON2-MIB:1485: warning: index element `addressMapSource' of row `addressMapEntry' should but cannot have a size restriction
+../dumps/smiv2/RMON2-MIB:1485: info: index element `addressMapSource' of row `addressMapEntry' should but cannot have a size restriction
 ../dumps/smiv2/RMON2-MIB:1436: warning: index of row `addressMapEntry' can exceed OID size limit by 65550 subidentifier(s)
 ../dumps/smiv2/RMON2-MIB:1882: index element `nlHostAddress' of row `nlHostEntry' must have a size restriction
 ../dumps/smiv2/RMON2-MIB:1844: warning: index of row `nlHostEntry' can exceed OID size limit by 65422 subidentifier(s)
@@ -40,5 +40,8 @@
 ../dumps/smiv2/RMON2-MIB:4913: warning: current group `probeConfigurationGroup' is not referenced in this module
 ../dumps/smiv2/RMON2-MIB:4947: warning: current group `rmon1EthernetEnhancementGroup' is not referenced in this module
 ../dumps/smiv2/RMON2-MIB:4955: warning: current group `rmon1TokenRingEnhancementGroup' is not referenced in this module
+../dumps/smiv2/RMON2-MIB:49: warning: type `ZeroBasedCounter32' has no format specification
 ../dumps/smiv2/RMON2-MIB:70: textual convention `LastCreateTime' can not be derived from the textual convention `TimeStamp'
+../dumps/smiv2/RMON2-MIB:70: warning: type `LastCreateTime' has no format specification
+../dumps/smiv2/RMON2-MIB:81: warning: type `TimeFilter' has no format specification
 ../dumps/smiv2/RMON2-MIB:162: textual convention `ControlString' can not be derived from the textual convention `DisplayString'

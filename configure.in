@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.115 2002/11/29 12:07:41 strauss Exp $
+# @(#) $Id: configure.in,v 1.116 2002/12/22 16:12:23 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -242,6 +242,7 @@ AC_SUBST(WGET)
 AC_SUBST(DIFF)
 AC_SUBST(CC)
 AC_SUBST(CFLAGS)
+AC_SUBST(srcdir)
 AC_SUBST(mibdir)
 AC_SUBST(pibdir)
 AC_SUBST(smipath)
