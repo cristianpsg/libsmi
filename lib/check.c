@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.29 2001/11/25 12:47:02 strauss Exp $
+ * @(#) $Id: check.c,v 1.30 2001/11/26 12:53:43 schoenw Exp $
  */
 
 #include <config.h>
@@ -1319,7 +1319,8 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 	    if (inetModulePtr) {
 
 		/* check InetAddressType/InetAddress pair */
-		if (objectPtr->typePtr == inetAddressPtr) {
+		if ((objectPtr->typePtr == inetAddressPtr) ||
+		    (objectPtr->typePtr->parentPtr == inetAddressPtr)) {
 #if 1
 		    for (nodePtr =
 			     objectPtr->nodePtr->parentPtr->firstChildPtr;

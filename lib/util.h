@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.21 2000/06/29 11:35:19 strauss Exp $
+ * @(#) $Id: util.h,v 1.22 2001/08/15 17:07:04 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -84,6 +84,8 @@ extern int smiIsPath(const char *s);
 #ifndef HAVE_TIMEGM
 time_t timegm(struct tm *tm);
 #endif
+
+int smiTypeDerivedFrom(Type *typePtr, Type *parentTypePtr);
 
 #endif /* _UTIL_H */
 
