@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id: configure.in,v 1.4 1999/05/28 14:10:26 strauss Exp $
+# @(#) $Id: configure.in,v 1.5 1999/05/28 17:38:49 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -41,8 +41,6 @@ BISON=bison
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
-#AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 
@@ -53,24 +51,8 @@ else
 fi
 AC_SUBST(STATIC)
 
-dnl Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h unistd.h)
-
-dnl Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_TYPE_OFF_T
-AC_TYPE_SIZE_T
-AC_STRUCT_TM
-
-dnl Checks for library functions.
-AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(mktime putenv strcspn strdup strerror strstr strtod strtol strtoul)
-
 AC_SUBST(CC)
-#AC_SUBST(RANLIB)
 AC_SUBST(CFLAGS)
-#AC_SUBST(DEFS)
 AC_SUBST(BISON)
 AC_SUBST(FLEX)
 
