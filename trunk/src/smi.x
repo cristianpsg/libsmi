@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.5 1998/11/16 09:00:10 strauss Exp $
+% * @(#) $Id: smi.x,v 1.6 1998/11/17 16:09:21 strauss Exp $
 % */
 %
 
@@ -21,7 +21,7 @@ const SMI_MAX_FULLNAME		= 129;		/* 64 + 1 + 64 */
 typedef string smi_descriptor<SMI_MAX_DESCRIPTOR>;
 typedef string smi_oid<SMI_MAX_OID>;
 typedef string smi_string<SMI_MAX_STRING>;
-typedef string smi_fullname<SMI_MAX_NAMESPEC>;
+typedef string smi_fullname<SMI_MAX_FULLNAME>;
 
 enum smi_syntax {
     SMI_SYNTAX_UNKNOWN		= 0,
@@ -154,7 +154,7 @@ program SMIPROG {
 	/*
 	 * SMIPROC_MACRO
 	 */
-	smi_macro	SMIPROC_MACRO(smi_getspec)	= 4;
+	smi_macro	SMIPROC_MACRO(smi_fullname)	= 4;
 	/*
 	 * SMIPROC_NAMES returns a blank-separated list of fully
 	 * qualified smi_fullnames that match the given input,

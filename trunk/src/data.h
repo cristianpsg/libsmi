@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.13 1998/11/17 16:09:18 strauss Exp $
+ * @(#) $Id: data.h,v 1.14 1998/11/18 17:31:39 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -55,57 +55,6 @@ typedef struct Revision {
 
 
 /*
- * SYNTAX.
- */
-typedef enum Syntax {
-    SYNTAX_UNKNOWN           = 0,
-    SYNTAX_INTEGER           = 1, /* equal to INTEGER32 */
-    SYNTAX_OCTET_STRING	     = 2,
-    SYNTAX_OBJECT_IDENTIFIER = 3,
-    SYNTAX_SEQUENCE	     = 4,
-    SYNTAX_SEQUENCE_OF	     = 5,
-    SYNTAX_IPADDRESS	     = 6,
-    SYNTAX_COUNTER32	     = 7,
-    SYNTAX_GAUGE32	     = 8,
-    SYNTAX_UNSIGNED32	     = 9,
-    SYNTAX_TIMETICKS	     = 10,
-    SYNTAX_OPAQUE	     = 11,
-    SYNTAX_COUNTER64	     = 12,
-    SYNTAX_CHOICE	     = 13, /* only for internal use */
-} Syntax;
-
-
-	
-/*
- * STATUS values.
- */
-typedef enum Status {
-    STATUS_UNKNOWN	 = 0 ,
-    STATUS_CURRENT	 = 1 ,
-    STATUS_DEPRECATED	 = 2 ,
-    STATUS_MANDATORY	 = 3 ,
-    STATUS_OPTIONAL	 = 4 ,    
-    STATUS_OBSOLETE	 = 5
-} Status;
-
-
-
-/*
- * ACCESS values.
- */
-typedef enum Access {
-    ACCESS_UNKNOWN	 = 0 ,
-    ACCESS_NOT		 = 1 ,
-    ACCESS_NOTIFY	 = 2 ,
-    ACCESS_READ_ONLY	 = 3 ,
-    ACCESS_READ_WRITE	 = 4 ,
-    ACCESS_READ_CREATE	 = 5 ,
-    ACCESS_WRITE_ONLY	 = 6
-} Access;
-
-
-
-/*
  * Kinds of Descriptors.
  */
 typedef enum DescriptorKind {
@@ -119,26 +68,6 @@ typedef enum DescriptorKind {
 } DescriptorKind;
 
 #define NUM_KINDS  7
-
-
-
-/*
- * Macros that may declare MibNodes.
- */
-typedef enum DeclMacro {
-    MACRO_UNKNOWN	     = 0 ,
-    MACRO_NONE		     = 1 ,
-    MACRO_OBJECTTYPE	     = 2 ,
-    MACRO_OBJECTIDENTITY     = 3 ,
-    MACRO_MODULEIDENTITY     = 4 ,
-    MACRO_NOTIFICATIONTYPE   = 5 ,
-    MACRO_TRAPTYPE	     = 6 ,
-    MACRO_OBJECTGROUP	     = 7 ,
-    MACRO_NOTIFICATIONGROUP  = 8 ,
-    MACRO_MODULECOMPLIANCE   = 9 ,
-    MACRO_AGENTCAPABILITIES  = 10,
-    MACRO_TC		     = 11
-} DeclMacro;
 
 
 
@@ -213,7 +142,7 @@ typedef struct Module {
     Descriptor    *descriptor;
     Descriptor	  *firstDescriptor[NUM_KINDS];
     Descriptor	  *lastDescriptor[NUM_KINDS];
-    char	  path[MAX_PATH_LENGTH+1];
+    char	  *path;
     off_t	  fileoffset;
     String	  lastUpdated;
     String	  organization;
@@ -235,10 +164,10 @@ typedef struct Type {
     Module      *module;
     Descriptor  *descriptor;
     struct Type	*parent;
-    Syntax      syntax;
-    DeclMacro	macro;
+    smi_syntax  syntax;
+    smi_decl	macro;
     String      displayHint;
-    Status      status;
+    smi_status  status;
     String	description;
 #if 0
     Restriction *firstRestriction;
@@ -257,11 +186,11 @@ typedef struct MibNode {
     unsigned int   subid;
     Descriptor	   *descriptor;
     off_t	   fileoffset;
-    DeclMacro	   macro;
+    smi_decl	   macro;
     Flags	   flags;
     Type	   *type;
-    Access	   access;
-    Status	   status;
+    smi_access	   access;
+    smi_status	   status;
     String	   description;
     struct MibNode *parent;
     struct MibNode *next;
@@ -285,8 +214,8 @@ typedef struct Macro {
 
 
 typedef struct Parser {
-    char             module[MAX_IDENTIFIER_LENGTH+1];
-    char	     path[MAX_PATH_LENGTH+1];
+    char             *module;
+    char	     *path;
     FILE	     *file;
     int		     line;
     int		     column;
@@ -352,10 +281,10 @@ extern void setMibNodeSyntax(MibNode *node,
 			     Type *type);
 
 extern void setMibNodeAccess(MibNode *node,
-			     Access access);
+			     smi_access access);
 
 extern void setMibNodeStatus(MibNode *node,
-			     Status status);
+			     smi_status status);
 
 extern void setMibNodeDescription(MibNode *node,
 				  String *description);
@@ -364,7 +293,7 @@ extern void setMibNodeFileOffset(MibNode *node,
 				 off_t fileoffset);
 
 extern void setMibNodeMacro(MibNode *node,
-			    DeclMacro macro);
+			    smi_decl macro);
 
 extern void setMibNodeFlags(MibNode *node,
 			    Flags flags);
@@ -391,13 +320,13 @@ extern void dumpMosy(MibNode *root);
 
 
 extern Type *addType(Type *parent,
-		     Syntax syntax,
+		     smi_syntax syntax,
 		     Module *module,
 		     Flags flags,
 		     Parser *parser);
 
 extern void setTypeStatus(Type *type,
-			  Status status);
+			  smi_status status);
 
 extern void setTypeDescription(Type *type,
 			       String *description);
@@ -406,7 +335,7 @@ extern void setTypeFileOffset(Type *type,
 			      off_t fileoffset);
 
 extern void setTypeMacro(Type *type,
-			 DeclMacro macro);
+			 smi_decl macro);
 
 extern void setTypeFlags(Type *type,
 			 Flags flags);
@@ -436,6 +365,9 @@ extern Macro *addMacro(const char *name,
 
 extern Macro *findMacroByModuleAndName(Module *module,
 				       const char *name);
+
+extern Macro *findMacroByModulenameAndName(const char *modulename,
+					   const char *name);
 
 
 

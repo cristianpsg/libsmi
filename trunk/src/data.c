@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.15 1998/11/17 16:09:17 strauss Exp $
+ * @(#) $Id: data.c,v 1.16 1998/11/18 17:31:38 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -25,36 +25,36 @@
 
 
 #define stringAccess(access) ( \
-	(access == ACCESS_NOT)         ? "not-accessible" : \
-	(access == ACCESS_NOTIFY)      ? "accessible-for-notify" : \
-	(access == ACCESS_READ_ONLY)   ? "read-only" : \
-	(access == ACCESS_READ_WRITE)  ? "read-write" : \
-	(access == ACCESS_READ_CREATE) ? "read-create" : \
-	(access == ACCESS_WRITE_ONLY)  ? "write-only" : \
-					 "unknown" )
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" : \
+	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" : \
+	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" : \
+	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" : \
+	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" : \
+	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" : \
+						"unknown" )
 
 #define stringStatus(status) ( \
-	(status == STATUS_CURRENT)     ? "current" : \
-	(status == STATUS_DEPRECATED)  ? "deprecated" : \
-	(status == STATUS_OBSOLETE)    ? "obsolete" : \
-	(status == STATUS_MANDATORY)   ? "mandatory" : \
-	(status == STATUS_OPTIONAL)    ? "optional" : \
-					 "unknown" )
+	(status == SMI_STATUS_CURRENT)     ? "current" : \
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" : \
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" : \
+	(status == SMI_STATUS_MANDATORY)   ? "mandatory" : \
+	(status == SMI_STATUS_OPTIONAL)    ? "optional" : \
+					     "unknown" )
 
 #define stringMacro(macro) ( \
-	(macro == MACRO_UNKNOWN)           ? "UNKNOWN" : \
-	(macro == MACRO_NONE)              ? "NONE" : \
-	(macro == MACRO_OBJECTTYPE)        ? "OBJECTTYPE" : \
-	(macro == MACRO_OBJECTIDENTITY)    ? "OBJECTIDENTITY" : \
-	(macro == MACRO_MODULEIDENTITY)    ? "MODULEIDENTITY" : \
-	(macro == MACRO_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" : \
-	(macro == MACRO_TRAPTYPE)          ? "TRAPTYPE" : \
-	(macro == MACRO_OBJECTGROUP)       ? "OBJECTGROUP" : \
-	(macro == MACRO_NOTIFICATIONGROUP) ? "NOTIFICATIONGROUP" : \
-	(macro == MACRO_MODULECOMPLIANCE)  ? "MODULECOMPLIANCE" : \
-	(macro == MACRO_AGENTCAPABILITIES) ? "AGENTCAPABILITIES" : \
-	(macro == MACRO_TC)                ? "TC" : \
-					     "unknown" )
+	(macro == SMI_DECL_UNKNOWN)           ? "UNKNOWN" : \
+	(macro == SMI_DECL_SIMPLEASSIGNMENT)  ? "SIMPLEASSIGNMENT" : \
+	(macro == SMI_DECL_OBJECTTYPE)        ? "OBJECTTYPE" : \
+	(macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECTIDENTITY" : \
+	(macro == SMI_DECL_MODULEIDENTITY)    ? "MODULEIDENTITY" : \
+	(macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" : \
+	(macro == SMI_DECL_TRAPTYPE)          ? "TRAPTYPE" : \
+	(macro == SMI_DECL_OBJECTGROUP)       ? "OBJECTGROUP" : \
+	(macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATIONGROUP" : \
+	(macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULECOMPLIANCE" : \
+	(macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENTCAPABILITIES" : \
+	(macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUALCONVENTION" : \
+					        "unknown" )
 
 #define stringKind(kind) ( \
 	(kind == KIND_ANY)                 ? "ANY" : \
@@ -66,21 +66,21 @@
 					     "unknown" )
 
 #define stringSyntax(syntax) ( \
-	(syntax == SYNTAX_UNKNOWN)           ? "UNKNOWN" : \
-	(syntax == SYNTAX_INTEGER)           ? "INTEGER" : \
-	(syntax == SYNTAX_OCTET_STRING)      ? "OCTET_STRING" : \
-	(syntax == SYNTAX_OBJECT_IDENTIFIER) ? "OBJECT_IDENTIFIER" : \
-	(syntax == SYNTAX_SEQUENCE)          ? "SEQUENCE" : \
-	(syntax == SYNTAX_SEQUENCE_OF)       ? "SEQUENCE_OF" : \
-	(syntax == SYNTAX_IPADDRESS)         ? "IPADDRESS" : \
-	(syntax == SYNTAX_COUNTER32)         ? "COUNTER32" : \
-	(syntax == SYNTAX_GAUGE32)           ? "GAUGE32" : \
-	(syntax == SYNTAX_UNSIGNED32)        ? "UNSIGNED32" : \
-	(syntax == SYNTAX_TIMETICKS)         ? "TIMETICKS" : \
-	(syntax == SYNTAX_OPAQUE)            ? "OPAQUE" : \
-	(syntax == SYNTAX_COUNTER64)         ? "COUNTER64" : \
-	(syntax == SYNTAX_CHOICE)            ? "CHOICE" : \
-					       "unknown" )
+	(syntax == SMI_SYNTAX_UNKNOWN)           ? "UNKNOWN" : \
+	(syntax == SMI_SYNTAX_INTEGER)           ? "INTEGER" : \
+	(syntax == SMI_SYNTAX_OCTET_STRING)      ? "OCTET_STRING" : \
+	(syntax == SMI_SYNTAX_OBJECT_IDENTIFIER) ? "OBJECT_IDENTIFIER" : \
+	(syntax == SMI_SYNTAX_SEQUENCE)          ? "SEQUENCE" : \
+	(syntax == SMI_SYNTAX_SEQUENCE_OF)       ? "SEQUENCE_OF" : \
+	(syntax == SMI_SYNTAX_IPADDRESS)         ? "IPADDRESS" : \
+	(syntax == SMI_SYNTAX_COUNTER32)         ? "COUNTER32" : \
+	(syntax == SMI_SYNTAX_GAUGE32)           ? "GAUGE32" : \
+	(syntax == SMI_SYNTAX_UNSIGNED32)        ? "UNSIGNED32" : \
+	(syntax == SMI_SYNTAX_TIMETICKS)         ? "TIMETICKS" : \
+	(syntax == SMI_SYNTAX_OPAQUE)            ? "OPAQUE" : \
+	(syntax == SMI_SYNTAX_COUNTER64)         ? "COUNTER64" : \
+	(syntax == SMI_SYNTAX_CHOICE)            ? "CHOICE" : \
+					           "unknown" )
 
 
 
@@ -197,7 +197,8 @@ findModuleByName(name)
 
     for (descriptor = firstDescriptor[KIND_MODULE]; descriptor;
 	 descriptor = descriptor->nextSameKind) {
-	if (!strcmp(descriptor->name, name)) {
+	if ((!strcmp(descriptor->name, name)) &&
+	    (!(descriptor->flags & FLAG_IMPORTED))) {
 	    printDebug(4, " = \"%s\"\n", descriptor->name);
 	    return (descriptor->module);
 	}
@@ -287,23 +288,33 @@ checkImportDescriptors(modulename, parser)
     char *modulename;
     Parser *parser;
 {
-    Descriptor *descriptor;
-    char fullname[SMI_MAX_FULLNAME+1];
+    Descriptor *descriptor, *mod;
     
     printDebug(4, "checkImportIdentifiers(%s, parser)\n", modulename);
     
     while (parser->firstImportDescriptor) {
 	descriptor = parser->firstImportDescriptor;
-	sprintf(fullname, "%s!%s", modulename, descriptor->name);
-	if (SMIPROC_NODE(fullname)) {
+
+	/*
+	 * We add a module descriptor with FLAG_IMPORTED and
+	 * without a module struct...
+	 */
+	mod = addDescriptor(modulename, parser->thisModule, KIND_MODULE, NULL,
+			    FLAG_IMPORTED, parser);
+
+	/*
+	 * ...just to mark the imported descriptors to imported from
+	 * this module.
+	 */
+	if (smiGetNode(descriptor->name, modulename, 0)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
-			  KIND_MIBNODE, NULL, FLAG_IMPORTED, parser);
-	} else if (SMIPROC_TYPE(fullname)) {
+			  KIND_MIBNODE, mod, FLAG_IMPORTED, parser);
+	} else if (smiGetType(descriptor->name, modulename, 0)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
-			  KIND_TYPE, NULL, FLAG_IMPORTED, parser);
-	} else if (SMIPROC_MACRO(fullname)) {
+			  KIND_TYPE, mod, FLAG_IMPORTED, parser);
+	} else if (smiGetMacro(descriptor->name, modulename)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
-			  KIND_MACRO, NULL, FLAG_IMPORTED, parser);
+			  KIND_MACRO, mod, FLAG_IMPORTED, parser);
 	} else {
 	    printError(parser, ERR_IDENTIFIER_NOT_IN_MODULE,
 		       descriptor->name, modulename);
@@ -422,8 +433,11 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	case KIND_MIBNODE:
 	    ((MibNode *)(descriptor->ptr))->descriptor = descriptor;
 	    break;
+	case KIND_IMPORTED:
+	    break;
 	case KIND_ANY:
 	case KIND_IMPORT:
+	    break;
 	    ;
 	}
     }
@@ -747,7 +761,7 @@ addMibNode(parent, subid, module, flags, parser)
     node->type = NULL;
     node->subid = subid;
     node->fileoffset = 0;
-    node->macro = MACRO_UNKNOWN;
+    node->macro = SMI_DECL_UNKNOWN;
     node->flags = flags;
     node->descriptor = NULL;
     node->description.fileoffset = 0;
@@ -846,7 +860,7 @@ setMibNodeSyntax(node, type)
 void
 setMibNodeAccess(node, access)
     MibNode *node;
-    Access access;
+    smi_access access;
 {
     printDebug(5, "setMibNodeAccess(%s, %s)\n",
 	       node->descriptor ? node->descriptor->name : "?",
@@ -876,7 +890,7 @@ setMibNodeAccess(node, access)
 void
 setMibNodeStatus(node, status)
     MibNode *node;
-    Status status;
+    smi_status status;
 {
     printDebug(5, "setMibNodeStatus(%s, %s)\n",
 	       node->descriptor ? node->descriptor->name : "?",
@@ -970,7 +984,7 @@ setMibNodeFileOffset(node, fileoffset)
 void
 setMibNodeMacro(node, macro)
     MibNode *node;
-    DeclMacro macro;
+    smi_decl macro;
 {
     printDebug(5, "setMibNodeMacro(%s, %s)\n",
 	       node->descriptor ? node->descriptor->name : "?",
@@ -1009,86 +1023,6 @@ setMibNodeFlags(node, flags)
     node->flags |= flags;
 }
 
-
-
-#if 0
-/*
- *----------------------------------------------------------------------
- *
- * changeMibNode --
- *
- *	Set the Descriptor if not yet set and descriptor != NULL.
- *      Set the DeclMacro if macro != MACRO_NONE.
- *	Add Flags if flags != 0.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void changeMibNode(mibnode, descriptor, macro, flags)
-    Descriptor *descriptor;
-    MibNode *mibnode;
-    DeclMacro macro;
-    Flags flags;
-{
-    if ((descriptor) && (!mibnode->descriptor)) {
-	mibnode->descriptor = descriptor;
-    }
-    if (macro != MACRO_NONE) {
-	mibnode->macro = macro;
-    }
-    if (flags) {
-	mibnode->flags |= flags;
-    }
-}
-#endif
-
-
-
-#if 0
-/*
- *----------------------------------------------------------------------
- *
- * findMibNodeByOID --
- *
- *      Lookup a MibNode by a given OID value.
- *
- * Results:
- *      A pointer to the MibNode structure or
- *	NULL if it is not found.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-MibNode *
-findMibNodeByOID(oid)
-    const char *oid;
-{
-    Descriptor *descriptor;
-    
-    printDebug(4, "findMibNodeByOID(\"%s\")", oid);
-
-    for (descriptor = firstDescriptor[KIND_MIBNODE]; descriptor;
-	 descriptor = descriptor->nextSameKind) {
-	if (!strcmp(((MibNode *)descriptor->ptr)->oid, oid)) {
-	    printDebug(4, " = \"%s\"\n", descriptor->name);
-	    return (descriptor->ptr);
-	}
-    }
-    
-    printDebug(4, " = NULL\n");
-
-    return (NULL);
-}
-#endif
 
 
 /*
@@ -1163,7 +1097,8 @@ findMibNodeByName(name)
 
     for (descriptor = firstDescriptor[KIND_MIBNODE];
 	 descriptor; descriptor = descriptor->nextSameKind) {
-	if (!strcmp(descriptor->name, name)) {
+	if ((!strcmp(descriptor->name, name)) &&
+	    (!(descriptor->flags & FLAG_IMPORTED))) {
 	    /*
 	     * We return the first matching node.
 	     * TODO: probably we should check if there are more matching
@@ -1213,7 +1148,8 @@ findMibNodeByModulenameAndName(modulename, name)
     if (module) {
 	for (descriptor = module->firstDescriptor[KIND_MIBNODE];
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	    if (!strcmp(descriptor->name, name)) {
+	    if ((!strcmp(descriptor->name, name)) &&
+		(!(descriptor->flags & FLAG_IMPORTED))) {
 		printDebug(4, " = %s\n", descriptor->name);
 		return (descriptor->ptr);
 	    }
@@ -1256,7 +1192,8 @@ findMibNodeByModuleAndName(module, name)
     if (module) {
 	for (descriptor = module->firstDescriptor[KIND_MIBNODE];
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	    if (!strcmp(descriptor->name, name)) {
+	    if ((!strcmp(descriptor->name, name)) &&
+		(!(descriptor->flags & FLAG_IMPORTED))) {
 		printDebug(4, " = %s\n", descriptor->name);
 		return (descriptor->ptr);
 	    }
@@ -1443,7 +1380,7 @@ dumpMosy(root)
 		(root->descriptor && root->parent->descriptor)) {
 		sprintf(s, "%s.%d",
 			root->parent->descriptor->name, root->subid);
-		if (root->macro == MACRO_OBJECTTYPE) {
+		if (root->macro == SMI_DECL_OBJECTTYPE) {
 		    printf("%-19s %-19s %-15s %-15s %s\n",
 			   root->descriptor->name,
 			   s,
@@ -1498,7 +1435,7 @@ dumpMosy(root)
 Type *
 addType(parent, syntax, module, flags, parser)
     Type       *parent;
-    Syntax     syntax;
+    smi_syntax syntax;
     Module     *module;
     Flags      flags;
     Parser     *parser;
@@ -1529,7 +1466,7 @@ addType(parent, syntax, module, flags, parser)
     } else {
 	type->syntax = syntax;
     }
-    type->macro = MACRO_UNKNOWN;
+    type->macro = SMI_DECL_UNKNOWN;
     type->flags = flags;
     type->descriptor = NULL;
     type->description.fileoffset = 0;
@@ -1561,8 +1498,8 @@ addType(parent, syntax, module, flags, parser)
 
 void
 setTypeStatus(type, status)
-    Type *type;
-    Status status;
+    Type       *type;
+    smi_status status;
 {
     printDebug(5, "setTypeStatus(%s, %s)\n",
 	       type->descriptor ? type->descriptor->name : "?",
@@ -1689,8 +1626,8 @@ setTypeFileOffset(type, fileoffset)
 
 void
 setTypeMacro(type, macro)
-    Type *type;
-    DeclMacro macro;
+    Type     *type;
+    smi_decl macro;
 {
     printDebug(5, "setTypeMacro(%s, %s)\n",
 	       type->descriptor ? type->descriptor->name : "?",
@@ -1758,7 +1695,8 @@ findTypeByName(name)
 
     for (descriptor = firstDescriptor[KIND_TYPE];
 	 descriptor; descriptor = descriptor->nextSameKind) {
-	if (!strcmp(descriptor->name, name)) {
+	if ((!strcmp(descriptor->name, name)) &&
+	    (!(descriptor->flags & FLAG_IMPORTED))) {
 	    printDebug(4, " = %s\n", descriptor->name);
 	    return (descriptor->ptr);
 	}
@@ -1802,7 +1740,8 @@ findTypeByModulenameAndName(modulename, name)
     if (module) {
 	for (descriptor = module->firstDescriptor[KIND_TYPE];
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	    if (!strcmp(descriptor->name, name)) {
+	    if ((!strcmp(descriptor->name, name)) &&
+		(!(descriptor->flags & FLAG_IMPORTED))) {
 		printDebug(4, " = %s\n", descriptor->name);
 		return (descriptor->ptr);
 	    }
@@ -1844,7 +1783,8 @@ findTypeByModuleAndName(module, name)
 
     for (descriptor = module->firstDescriptor[KIND_TYPE];
 	 descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	if (!strcmp(descriptor->name, name)) {
+	if ((!strcmp(descriptor->name, name)) &&
+	    (!(descriptor->flags & FLAG_IMPORTED))) {
 	    printDebug(4, " = %s\n", descriptor->name);
 	    return (descriptor->ptr);
 	}
@@ -2012,9 +1952,56 @@ findMacroByModuleAndName(module, name)
 
     for (descriptor = module->firstDescriptor[KIND_MACRO];
 	 descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	if (!strcmp(descriptor->name, name)) {
+	if ((!strcmp(descriptor->name, name)) &&
+	    (!(descriptor->flags & FLAG_IMPORTED))) {
 	    printDebug(4, " = %s\n", descriptor->name);
 	    return (descriptor->ptr);
+	}
+    }
+	
+    printDebug(4, " = NULL\n");
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findMacroByModulenameAndName --
+ *
+ *      Lookup a Macro by a given Module and Descriptor name.
+ *
+ * Results:
+ *      A pointer to the Macro structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Macro *
+findMacroByModulenameAndName(modulename, name)
+    const char *modulename;
+    const char *name;
+{
+    Descriptor *descriptor;
+    Module *module;
+    
+    printDebug(4, "findMacroByModulenameAndName(\"%s\", \"%s\")",
+	       modulename, name);
+
+    module = findModuleByName(modulename);
+    if (module) {
+	for (descriptor = module->firstDescriptor[KIND_MACRO];
+	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
+	    if ((!strcmp(descriptor->name, name)) &&
+		(!(descriptor->flags & FLAG_IMPORTED))) {
+		printDebug(4, " = %s\n", descriptor->name);
+		return (descriptor->ptr);
+	    }
 	}
     }
 	
@@ -2091,7 +2078,7 @@ initData()
      */
     
     /* ASN.1 */
-    typeInteger = addType(NULL, SYNTAX_INTEGER,
+    typeInteger = addType(NULL, SMI_SYNTAX_INTEGER,
 			  NULL, FLAG_PERMANENT, NULL);
     addDescriptor("INTEGER", NULL, KIND_TYPE, typeInteger,
 		  FLAG_PERMANENT, NULL);
@@ -2102,48 +2089,48 @@ initData()
 #endif
 
     /* ASN.1 */
-    typeOctetString = addType(NULL, SYNTAX_OCTET_STRING,
+    typeOctetString = addType(NULL, SMI_SYNTAX_OCTET_STRING,
 			      NULL, FLAG_PERMANENT, NULL);
     addDescriptor("OCTET STRING", NULL, KIND_TYPE, typeOctetString,
 		  FLAG_PERMANENT, NULL);
     
     /* ASN.1 */
-    typeObjectIdentifier = addType(NULL, SYNTAX_OBJECT_IDENTIFIER,
+    typeObjectIdentifier = addType(NULL, SMI_SYNTAX_OBJECT_IDENTIFIER,
 				   NULL, FLAG_PERMANENT, NULL);
     addDescriptor("OBJECT IDENTIFIER", NULL, KIND_TYPE, typeObjectIdentifier,
 		  FLAG_PERMANENT, NULL);
     
 #if 0
-    type = addType(NULL, SYNTAX_SEQUENCE, NULL, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SMI_SYNTAX_SEQUENCE, NULL, FLAG_PERMANENT, NULL);
     addDescriptor("SEQUENCE", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 #endif
     
 #if 0
-    type = addType(NULL, SYNTAX_SEQUENCE_OF, NULL, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SMI_SYNTAX_SEQUENCE_OF, NULL, FLAG_PERMANENT, NULL);
     addDescriptor("SEQUENCE_OF", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 #endif
 
 #if 0
     /* SNMPv2-SMI */
-    typeIpAddress = addType(NULL, SYNTAX_IPADDRESS,
+    typeIpAddress = addType(NULL, SMI_SYNTAX_IPADDRESS,
 			    NULL, FLAG_PERMANENT, NULL);
     
-    typeCounter32 = addType(NULL, SYNTAX_COUNTER32,
+    typeCounter32 = addType(NULL, SMI_SYNTAX_COUNTER32,
 			    NULL, FLAG_PERMANENT, NULL);
     
-    typeGauge32 = addType(NULL, SYNTAX_GAUGE32,
+    typeGauge32 = addType(NULL, SMI_SYNTAX_GAUGE32,
 			  NULL, FLAG_PERMANENT, NULL);
     
-    typeUnsigned32 = addType(NULL, SYNTAX_UNSIGNED32,
+    typeUnsigned32 = addType(NULL, SMI_SYNTAX_UNSIGNED32,
 			     NULL, FLAG_PERMANENT, NULL);
 
-    typeTimeTicks = addType(NULL, SYNTAX_TIMETICKS,
+    typeTimeTicks = addType(NULL, SMI_SYNTAX_TIMETICKS,
 			    NULL, FLAG_PERMANENT, NULL);
     
-    typeOpaque = addType(NULL, SYNTAX_OPAQUE,
+    typeOpaque = addType(NULL, SMI_SYNTAX_OPAQUE,
 			 NULL, FLAG_PERMANENT, NULL);
     
-    typeCounter64 = addType(NULL, SYNTAX_COUNTER64,
+    typeCounter64 = addType(NULL, SMI_SYNTAX_COUNTER64,
 			    NULL, FLAG_PERMANENT, NULL);
 #endif
     
