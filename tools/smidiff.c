@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.41 2003/05/19 13:42:36 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.42 2003/05/19 14:33:58 strauss Exp $ 
  */
 
 #include <config.h>
@@ -2782,7 +2782,11 @@ static void help() { usage(); exit(0); }
 static void version() { printf("smidiff " SMI_VERSION_STRING "\n"); exit(0); }
 static void config(char *filename) { smiReadConfig(filename, "smidiff"); }
 static void level(int lev) { errorLevel = lev; }
-static void ignore(char *ign) { setErrorSeverity(ign, 9999); }
+static void ignore(char *ign)
+{
+    smiSetSeverity(ign, 9999);		/* libsmi  error messages */
+    setErrorSeverity(ign, 9999);	/* smidiff error messages */
+}
 
 static void preload(char *module) {
     smiInit(oldTag);
