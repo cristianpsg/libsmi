@@ -81,3 +81,10 @@ o collapsing of type forward references in smiv2 parser. e.g.
   should display the definition by a SEQUENCE statement, not `unknown'.
 
 o smilint on orig (RFC 1567) DSA-MIB crashes.
+
+o feature: passing options to dump modules to allow some format
+  dependant adjustments like
+  - removing comments
+  - imports: showing imported modules just once
+  - ...
+
