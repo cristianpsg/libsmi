@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.14 2001/03/26 13:06:17 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.15 2001/04/06 13:50:24 schoenw Exp $
  */
 
 /*
@@ -35,7 +35,8 @@
 
 
 
-static char *getStringTime(time_t t)
+static char *
+getStringTime(time_t t)
 {
     static char   s[27];
     struct tm	  *tm;
@@ -49,7 +50,8 @@ static char *getStringTime(time_t t)
 
 
 
-static void printCommentString(FILE *f, char *s)
+static void
+printCommentString(FILE *f, char *s)
 {
     int i, len;
 
@@ -68,7 +70,8 @@ static void printCommentString(FILE *f, char *s)
 
 
 
-static void printTopComment(FILE *f, SmiModule *smiModule)
+static void
+printTopComment(FILE *f, SmiModule *smiModule)
 {
     SmiRevision *smiRevision;
     char *date;
@@ -101,7 +104,8 @@ static void printTopComment(FILE *f, SmiModule *smiModule)
 
 
 
-static char* translate(char *m)
+static char*
+translate(char *m)
 {
     char *s;
     int i;
@@ -116,7 +120,8 @@ static char* translate(char *m)
 
 
 
-static char* translateUpper(char *m)
+static char*
+translateUpper(char *m)
 {
     char *s;
     int i;
@@ -134,7 +139,8 @@ static char* translateUpper(char *m)
 
 
 
-static char* translateLower(char *m)
+static char*
+translateLower(char *m)
 {
     char *s;
     int i;
@@ -152,7 +158,8 @@ static char* translateLower(char *m)
 
 
 
-static char* translateFileName(char *m)
+static char*
+translateFileName(char *m)
 {
     char *s;
     int i;
@@ -170,7 +177,8 @@ static char* translateFileName(char *m)
 
 
 
-static FILE * createFile(char *name, char *suffix)
+static FILE *
+createFile(char *name, char *suffix)
 {
     char *fullname;
     FILE *f;
@@ -198,7 +206,8 @@ static FILE * createFile(char *name, char *suffix)
 
 
 
-static int isGroup(SmiNode *smiNode)
+static int
+isGroup(SmiNode *smiNode)
 {
     SmiNode *childNode;
 
@@ -219,7 +228,8 @@ static int isGroup(SmiNode *smiNode)
 
 
 
-static int isAccessible(SmiNode *groupNode)
+static int
+isAccessible(SmiNode *groupNode)
 {
     SmiNode *smiNode;
     int num = 0;
@@ -240,7 +250,8 @@ static int isAccessible(SmiNode *groupNode)
 
 
 
-static int isIndex(SmiNode *groupNode, SmiNode *smiNode)
+static int
+isIndex(SmiNode *groupNode, SmiNode *smiNode)
 {
     SmiElement *smiElement;
     
@@ -261,7 +272,8 @@ static int isIndex(SmiNode *groupNode, SmiNode *smiNode)
 
 
 
-static unsigned int getMinSize(SmiType *smiType)
+static unsigned int
+getMinSize(SmiType *smiType)
 {
     SmiRange *smiRange;
     SmiType  *parentType;
@@ -301,7 +313,8 @@ static unsigned int getMinSize(SmiType *smiType)
 
 
 
-static unsigned int getMaxSize(SmiType *smiType)
+static unsigned int
+getMaxSize(SmiType *smiType)
 {
     SmiRange *smiRange;
     SmiType  *parentType;
@@ -355,7 +368,8 @@ static unsigned int getMaxSize(SmiType *smiType)
 
 
 
-static char* getSnmpType(SmiType *smiType)
+static char*
+getSnmpType(SmiType *smiType)
 {
     struct {
 	char *module;
@@ -413,7 +427,8 @@ static char* getSnmpType(SmiType *smiType)
 
 
 
-static void printHeaderEnumerations(FILE *f, SmiModule *smiModule)
+static void
+printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 {
     SmiNode  *smiNode;
     SmiType  *smiType;
@@ -467,11 +482,13 @@ static void printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 
 
 
-static void printHeaderIdentities(FILE *f, SmiModule *smiModule)
+static void
+printHeaderIdentities(FILE *f, SmiModule *smiModule)
 {
     SmiNode  *smiNode, *moduleIdentityNode;
     int      i, cnt = 0;
     char     *dName, *dModuleName;
+    char     *cModuleName;
 
     moduleIdentityNode = smiGetModuleIdentityNode(smiModule);
     
@@ -504,7 +521,13 @@ static void printHeaderIdentities(FILE *f, SmiModule *smiModule)
     }
     
     if (cnt) {
-	fprintf(f, "\n");
+	cModuleName = translateLower(smiModule->name);
+	fprintf(f,
+		"\n"
+		"extern stls_identity_t const %s_identities[];\n"
+		"\n",
+		cModuleName);
+	xfree(cModuleName);
     }
 
     xfree(dModuleName);
@@ -512,8 +535,9 @@ static void printHeaderIdentities(FILE *f, SmiModule *smiModule)
 
 
 
-static void printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
-				     SmiType *smiType, int isIndex)
+static void
+printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
+			 SmiType *smiType, int isIndex)
 {
     char *cName;
     unsigned minSize, maxSize;
@@ -580,7 +604,8 @@ static void printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 
 
 
-static void printHeaderTypedefIndex(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
+static void
+printHeaderTypedefIndex(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
 {
     SmiElement *smiElement;
     SmiNode *iNode;
@@ -600,8 +625,8 @@ static void printHeaderTypedefIndex(FILE *f, SmiNode *smiNode, SmiNode *groupNod
 
 
 
-static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
-			       SmiNode *groupNode)
+static void
+printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiNode *smiNode, *indexNode;
     SmiType *smiType;
@@ -617,7 +642,7 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	    " */\n\n",
 	    smiModule->name, groupNode->name);
     
-    fprintf(f, "typedef struct %s {\n", cGroupName);
+    fprintf(f, "typedef struct {\n");
 
     /*
      * print index objects that are not part of the group
@@ -661,7 +686,7 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	}	    
     }
 
-    fprintf(f, "} %s_t;\n\n", cGroupName);
+    fprintf(f, "} %s_%s_t;\n\n", cModuleName, cGroupName);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	char *cTableName;
@@ -671,28 +696,33 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	if (tableNode) {
 	    cTableName = translate(tableNode->name);
 	    fprintf(f, "extern int\n"
-		    "%s_get_%s(host_snmp *s, %s_t ***%s);\n\n",
-		    cModuleName, cTableName, cGroupName, cGroupName);
+		    "%s_get_%s(host_snmp *s, %s_%s_t ***%s);\n\n",
+		    cModuleName, cTableName,
+		    cModuleName, cGroupName, cGroupName);
 	    fprintf(f, "extern void\n"
-		    "%s_free_%s(%s_t **%s);\n\n",
-		    cModuleName, cTableName, cGroupName, cGroupName);
+		    "%s_free_%s(%s_%s_t **%s);\n\n",
+		    cModuleName, cTableName,
+		    cModuleName, cGroupName, cGroupName);
 	    xfree(cTableName);
 	}
     }
-    fprintf(f, "extern %s_t *\n"
+    fprintf(f, "extern %s_%s_t *\n"
 	    "%s_new_%s();\n\n",
-	    cGroupName, cModuleName, cGroupName);
+	    cModuleName, cGroupName, cModuleName, cGroupName);
     fprintf(f, "extern int\n"
-	    "%s_get_%s(host_snmp *s, %s_t **%s);\n\n",
-	    cModuleName, cGroupName, cGroupName, cGroupName);
+	    "%s_get_%s(host_snmp *s, %s_%s_t **%s);\n\n",
+	    cModuleName, cGroupName,
+	    cModuleName, cGroupName, cGroupName);
     if (writable) {
 	fprintf(f, "extern int\n"
-		"%s_set_%s(host_snmp *s, %s_t *%s);\n\n",
-		cModuleName, cGroupName, cGroupName, cGroupName);
+		"%s_set_%s(host_snmp *s, %s_%s_t *%s);\n\n",
+		cModuleName, cGroupName,
+		cModuleName, cGroupName, cGroupName);
     }
     fprintf(f, "extern void\n"
-	    "%s_free_%s(%s_t *%s);\n\n",
-	    cModuleName, cGroupName, cGroupName, cGroupName);
+	    "%s_free_%s(%s_%s_t *%s);\n\n",
+	    cModuleName, cGroupName,
+	    cModuleName, cGroupName, cGroupName);
 	    
     xfree(cGroupName);
     xfree(cModuleName);
@@ -700,7 +730,8 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 
 
 
-static void printHeaderTypedefs(FILE *f, SmiModule *smiModule)
+static void
+printHeaderTypedefs(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
@@ -721,7 +752,8 @@ static void printHeaderTypedefs(FILE *f, SmiModule *smiModule)
 
 
 
-static void dumpHeader(SmiModule *smiModule, char *baseName)
+static void
+dumpHeader(SmiModule *smiModule, char *baseName)
 {
     char *pModuleName;
     FILE *f;
@@ -757,7 +789,8 @@ static void dumpHeader(SmiModule *smiModule, char *baseName)
 
 
 
-static void printStubEnumerations(FILE *f, SmiModule *smiModule)
+static void
+printStubEnumerations(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     SmiType   *smiType;
@@ -807,7 +840,8 @@ static void printStubEnumerations(FILE *f, SmiModule *smiModule)
 
 
 
-static void printStubIdentities(FILE *f, SmiModule *smiModule)
+static void
+printStubIdentities(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode, *moduleIdentityNode;
     char      *cName, *cModuleName;
@@ -874,8 +908,8 @@ static void printStubIdentities(FILE *f, SmiModule *smiModule)
 
 
 
-static void printAttribute(FILE *f, SmiNode *smiNode,
-			   SmiNode *groupNode, int flags)
+static void
+printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 {
     SmiType *smiType;
     char *snmpType;
@@ -906,8 +940,8 @@ static void printAttribute(FILE *f, SmiNode *smiNode,
 
 
 
-static void printScalarsAttributes(FILE *f, SmiModule *smiModule,
-				   SmiNode *groupNode)
+static void
+printScalarsAttributes(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiNode *smiNode;
     
@@ -920,8 +954,8 @@ static void printScalarsAttributes(FILE *f, SmiModule *smiModule,
 
 
 
-static void printTableAttributes(FILE *f, SmiModule *smiModule,
-				   SmiNode *entryNode)
+static void
+printTableAttributes(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
 {
     SmiNode *smiNode;
     int     idx, cnt;
@@ -942,7 +976,8 @@ static void printTableAttributes(FILE *f, SmiModule *smiModule,
 
 
 
-static void printStubAttributes(FILE *f, SmiModule *smiModule)
+static void
+printStubAttributes(FILE *f, SmiModule *smiModule)
 {
     SmiNode *smiNode;
     char    *cName;
@@ -977,16 +1012,18 @@ static void printStubAttributes(FILE *f, SmiModule *smiModule)
 
 
 
-static void printUnpackMethod(FILE *f, SmiNode *groupNode)
+static void
+printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiElement *smiElement;
     SmiNode *indexNode = NULL;
     SmiNode *iNode;
     SmiType *iType;
-    char    *cGroupName, *cName;
+    char    *cModuleName, *cGroupName, *cName;
     unsigned maxSize, minSize;
     int last = 0;
-    
+
+    cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     switch (groupNode->indexkind) {
@@ -1019,11 +1056,11 @@ static void printUnpackMethod(FILE *f, SmiNode *groupNode)
 
     fprintf(f,
 	    "static int\n"
-	    "unpack_%s(GSnmpVarBind *vb, %s_t *%s)\n"
+	    "unpack_%s(GSnmpVarBind *vb, %s_%s_t *%s)\n"
 	    "{\n"
 	    "    int %sidx = %u;\n"
 	    "\n",
-	    cGroupName, cGroupName, cGroupName,
+	    cGroupName, cModuleName, cGroupName, cGroupName,
 	    smiElement ? "i, len, " : "", groupNode->oidlen + 1);
 
     for (smiElement = smiGetFirstElement(indexNode);
@@ -1082,6 +1119,38 @@ static void printUnpackMethod(FILE *f, SmiNode *groupNode)
 			    cGroupName, cName, cGroupName, cName);
 		}
 		break;
+	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		maxSize = getMaxSize(iType);
+		minSize = getMinSize(iType);
+		if (minSize == maxSize) {
+		    fprintf(f,
+			    "    len = %u;\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        /* %s->%s[i] = vb->id[idx++]; */\n"
+			    "    }\n",
+			    minSize, cGroupName, cName);
+		} else if (last && indexNode->implied) {
+		    fprintf(f,
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id_len - idx;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        /* %s->%s[i] = vb->id[idx++]; */\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
+			    cGroupName, cName, cGroupName, cName);
+		} else {
+		    fprintf(f,
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id[idx++];\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        /* %s->%s[i] = vb->id[idx++]; */ idx++;\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
+			    cGroupName, cName, cGroupName, cName);
+		}
+		break;
 	    default:
 		fprintf(f,
 			"    /* XXX how to unpack %s->%s ? */\n",
@@ -1098,11 +1167,13 @@ static void printUnpackMethod(FILE *f, SmiNode *groupNode)
 	    "}\n\n");
 
     xfree(cGroupName);
+    xfree(cModuleName);
 }
 
 
 
-static void printVariableAssignement(FILE *f, SmiNode *groupNode)
+static void
+printVariableAssignement(FILE *f, SmiNode *groupNode)
 {
     SmiNode *smiNode;
     SmiType *smiType;
@@ -1193,8 +1264,8 @@ static void printVariableAssignement(FILE *f, SmiNode *groupNode)
 
 
 
-static void printAssignMethod(FILE *f, SmiModule *smiModule,
-			      SmiNode *groupNode)
+static void
+printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     char *cModuleName, *cGroupName;
     int i;
@@ -1203,18 +1274,19 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
     cGroupName = translate(groupNode->name);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
-	printUnpackMethod(f, groupNode);
+	printUnpackMethod(f, smiModule, groupNode);
     }
     
     fprintf(f,
-	    "static %s_t *\n"
+	    "static %s_%s_t *\n"
 	    "assign_%s(GSList *vbl)\n"
 	    "{\n"
 	    "    GSList *elem;\n"
-	    "    %s_t *%s;\n"
+	    "    %s_%s_t *%s;\n"
 	    "    guint32 idx;\n"
 	    "    char *p;\n",
-	    cGroupName, cGroupName, cGroupName, cGroupName);
+	    cModuleName, cGroupName, cGroupName,
+	    cModuleName, cGroupName, cGroupName);
 
     fprintf(f, "    static guint32 const base[] = {");
     for (i = 0; i < groupNode->oidlen; i++) {
@@ -1231,9 +1303,9 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 	    cGroupName, cModuleName, cGroupName, cGroupName);
 
     fprintf(f,
-	    "    p = (char *) %s + sizeof(%s_t);\n"
+	    "    p = (char *) %s + sizeof(%s_%s_t);\n"
 	    "    * (GSList **) p = vbl;\n"
-	    "\n", cGroupName, cGroupName);
+	    "\n", cGroupName, cModuleName, cGroupName);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	fprintf(f,
@@ -1272,8 +1344,8 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printGetTableMethod(FILE *f, SmiModule *smiModule,
-				SmiNode *entryNode)
+static void
+printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
 {
     SmiNode *tableNode;
     char    *cModuleName, *cEntryName, *cTableName;
@@ -1290,10 +1362,10 @@ static void printGetTableMethod(FILE *f, SmiModule *smiModule,
 
     fprintf(f,
 	    "int\n"
-	    "%s_get_%s(host_snmp *s, %s_t ***%s)\n"
+	    "%s_get_%s(host_snmp *s, %s_%s_t ***%s)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
-	    cModuleName, cTableName, cEntryName, cEntryName);
+	    cModuleName, cTableName, cModuleName, cEntryName, cEntryName);
 
     fprintf(f,
 	    "    GSList *row;\n"
@@ -1324,11 +1396,13 @@ static void printGetTableMethod(FILE *f, SmiModule *smiModule,
 	    "    }\n"
 	    "\n");
     fprintf(f,
-	    "    *%s = (%s_t **) g_malloc0((g_slist_length(out) + 1) * sizeof(%s_t *));\n"
+	    "    *%s = (%s_%s_t **) g_malloc0((g_slist_length(out) + 1) * sizeof(%s_%s_t *));\n"
 	    "    if (! *%s) {\n"
 	    "        return -4;\n"
 	    "    }\n"
-	    "\n", cEntryName, cEntryName, cEntryName, cEntryName);
+	    "\n",
+	    cEntryName, cModuleName, cEntryName,
+	    cModuleName, cEntryName, cEntryName);
     
     fprintf(f,
 	    "    for (row = out, i = 0; row; row = g_slist_next(row), i++) {\n"
@@ -1349,8 +1423,8 @@ static void printGetTableMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printGetScalarsMethod(FILE *f, SmiModule *smiModule,
-				  SmiNode *groupNode)
+static void
+printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     char    *cModuleName, *cGroupName;
     int     i;
@@ -1360,10 +1434,10 @@ static void printGetScalarsMethod(FILE *f, SmiModule *smiModule,
 
     fprintf(f,
 	    "int\n"
-	    "%s_get_%s(host_snmp *s, %s_t %s%s)\n"
+	    "%s_get_%s(host_snmp *s, %s_%s_t %s%s)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
-	    cModuleName, cGroupName, cGroupName,
+	    cModuleName, cGroupName, cModuleName, cGroupName,
 	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "***" : "**",
 	    cGroupName);
 
@@ -1407,8 +1481,8 @@ static void printGetScalarsMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printNewMethod(FILE *f, SmiModule *smiModule,
-			   SmiNode *groupNode)
+static void
+printNewMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     char *cModuleName, *cGroupName;
 
@@ -1416,19 +1490,22 @@ static void printNewMethod(FILE *f, SmiModule *smiModule,
     cGroupName = translate(groupNode->name);
 
     fprintf(f,
-	    "%s_t *\n"
+	    "%s_%s_t *\n"
 	    "%s_new_%s()\n"
 	    "{\n"
-	    "    %s_t *%s;\n"
+	    "    %s_%s_t *%s;\n"
 	    "\n",
-	    cGroupName, cModuleName, cGroupName, cGroupName, cGroupName);
+	    cModuleName, cGroupName,
+	    cModuleName, cGroupName,
+	    cModuleName, cGroupName, cGroupName);
 
     fprintf(f,
-	    "    %s = (%s_t *) g_malloc0(sizeof(%s_t) + sizeof(gpointer));\n"
+	    "    %s = (%s_%s_t *) g_malloc0(sizeof(%s_%s_t) + sizeof(gpointer));\n"
 	    "    return %s;\n"
 	    "}\n"
 	    "\n",
-	    cGroupName, cGroupName, cGroupName, cGroupName);
+	    cGroupName, cModuleName, cGroupName,
+	    cModuleName, cGroupName, cGroupName);
 
     xfree(cGroupName);
     xfree(cModuleName);
@@ -1436,8 +1513,8 @@ static void printNewMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printFreeTableMethod(FILE *f, SmiModule *smiModule,
-				 SmiNode *groupNode)
+static void
+printFreeTableMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiNode *tableNode;
     char *cModuleName, *cGroupName, *cTableName;
@@ -1453,11 +1530,11 @@ static void printFreeTableMethod(FILE *f, SmiModule *smiModule,
 
     fprintf(f,
 	    "void\n"
-	    "%s_free_%s(%s_t **%s)\n"
+	    "%s_free_%s(%s_%s_t **%s)\n"
 	    "{\n"
 	    "    int i;\n"
 	    "\n",
-	    cModuleName, cTableName, cGroupName, cGroupName);
+	    cModuleName, cTableName, cModuleName, cGroupName, cGroupName);
 
     fprintf(f,	    
 	    "    if (%s) {\n"
@@ -1479,8 +1556,8 @@ static void printFreeTableMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printFreeMethod(FILE *f, SmiModule *smiModule,
-			    SmiNode *groupNode)
+static void
+printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     char *cModuleName, *cGroupName;
 
@@ -1489,24 +1566,23 @@ static void printFreeMethod(FILE *f, SmiModule *smiModule,
 
     fprintf(f,
 	    "void\n"
-	    "%s_free_%s(%s_t *%s)\n"
+	    "%s_free_%s(%s_%s_t *%s)\n"
 	    "{\n"
 	    "    GSList *vbl;\n"
 	    "    char *p;\n"
 	    "\n",
-	    cModuleName, cGroupName, cGroupName, 
-	    cGroupName);
+	    cModuleName, cGroupName, cModuleName, cGroupName, cGroupName);
 
     fprintf(f,	    
 	    "    if (%s) {\n"
-	    "        p = (char *) %s + sizeof(%s_t);\n"
+	    "        p = (char *) %s + sizeof(%s_%s_t);\n"
 	    "        vbl = * (GSList **) p;\n"
 	    "        stls_vbl_free(vbl);\n"
 	    "        g_free(%s);\n"
 	    "    }\n"
 	    "}\n"
 	    "\n",
-	    cGroupName, cGroupName, cGroupName, cGroupName);
+	    cGroupName, cGroupName, cModuleName, cGroupName, cGroupName);
 
     xfree(cGroupName);
     xfree(cModuleName);
@@ -1515,7 +1591,8 @@ static void printFreeMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printStubMethods(FILE *f, SmiModule *smiModule)
+static void
+printStubMethods(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
@@ -1546,7 +1623,8 @@ static void printStubMethods(FILE *f, SmiModule *smiModule)
 
 
 
-static void dumpStubs(SmiModule *smiModule, char *baseName)
+static void
+dumpStubs(SmiModule *smiModule, char *baseName)
 {
     FILE *f;
 
@@ -1572,7 +1650,8 @@ static void dumpStubs(SmiModule *smiModule, char *baseName)
 
 
 
-static void dumpStools(int modc, SmiModule **modv, int flags, char *output)
+static void
+dumpStools(int modc, SmiModule **modv, int flags, char *output)
 {
     char	*baseName;
     int		i;
