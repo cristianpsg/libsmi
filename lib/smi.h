@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.24 1999/05/30 21:50:46 strauss Exp $
+ * @(#) $Id: smi.h,v 1.25 1999/05/31 11:58:38 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -401,9 +401,6 @@ extern SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr);
 
 extern void smiFreeRefinement(SmiRefinement *smiRefinementPtr);
 
-
-
-/* TODO: compl-mand/option/refine row-creatable?, */
 
 
 /* extern char **smiGetNames(char *spec, char *mod); */

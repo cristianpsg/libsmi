@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.5 1999/05/25 17:00:25 strauss Exp $
+@(#) $Id: README,v 1.6 1999/05/31 11:58:28 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -17,15 +17,15 @@ MANIFEST
 ========
 
 README					this file
-Makefile				Makefile to build and install libsmi
+COPYING					the libsmi lincense terms
+ChangeLog				a rough history of changes
+TODO					a list of things to be done
+configure				configure script
 lib/					library source code
 tools/					tools source code
-etc/					libsmi and tools configuration files
 doc/draft-irtf-nmrg-sming-00.txt	SMIng specification
 doc/sming.abnf				SMIng ABNF grammar
 doc/IRTF-NMRG-SMING*			SMIng modules from SMIng specification
-doc/*.3					libsmi man pages
-doc/*.1					tools man pages
 mibs/smi/				SMIv1/v2 modules to be installed
 mibs/sming/				SMIng modules to be installed
 
@@ -44,7 +44,7 @@ To build libsmi and the tools, run
 	./configure
 	make
 
-This should build the library lib/libsmi.so and the tools, namely
+This should build the library libsmi in lib/ and the tools, namely
 tools/smilint, tools/smidump, and tools/smiquery. If you wish to
 install the library, the tools and all man pages, run
 
@@ -56,8 +56,7 @@ FURTHER READING
 
 Read the man pages for library concepts and usage and for the tools.
 Read the SMIng specification for details on SMIng. You may find further
-information online at http://www.ibr.cs.tu-bs.de/~strauss/sming/. If
-this fails, contact me, <strauss@ibr.cs.tu-bs.de>.
+information online at http://www.ibr.cs.tu-bs.de/~strauss/sming/.
 
 
 	Frank Strauss
