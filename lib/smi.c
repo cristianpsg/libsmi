@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.72 2000/02/10 12:50:39 strauss Exp $
+ * @(#) $Id: smi.c,v 1.73 2000/02/10 14:42:50 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -524,9 +524,8 @@ SmiModule *smiGetFirstModule()
     Module	      *modulePtr;
 
     for (modulePtr = firstModulePtr;
-	 modulePtr->export.name &&
-	     (strlen(modulePtr->export.name) == 0) &&
-	     modulePtr;
+	 modulePtr && modulePtr->export.name &&
+	     (strlen(modulePtr->export.name) == 0);
 	 modulePtr = modulePtr->nextPtr);
 
     return &modulePtr->export;
