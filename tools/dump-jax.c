@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.11 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.12 2000/05/15 13:57:29 strauss Exp $
  */
 
 #include <config.h>
@@ -17,6 +17,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
 
 #include "smi.h"
 #include "smidump.h"
@@ -680,6 +686,10 @@ static void dumpEntryImpl(SmiNode *smiNode)
     char init[20];
     
     sprintf(s, "%sImpl.java", translate1Upper(smiNode->name));
+    if (!access(s, R_OK)) {
+	fprintf(stderr, "smidump: %s already exists\n", s);
+	return;
+    }
     f = fopen(s, "w");
     if (!f) {
 	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
@@ -1256,6 +1266,10 @@ static void dumpScalarImpl(SmiNode *smiNode)
 
     parentNode = smiGetParentNode(smiNode);
     sprintf(s, "%sImpl.java", translate1Upper(parentNode->name));
+    if (!access(s, R_OK)) {
+	fprintf(stderr, "smidump: %s already exists\n", s);
+	return;
+    }
     f = fopen(s, "w");
     if (!f) {
 	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
