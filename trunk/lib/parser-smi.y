@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.194 2003/08/05 13:50:59 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.195 2003/10/02 11:57:41 strauss Exp $
  */
 
 %{
@@ -149,6 +149,31 @@ checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
         && strcmp(modulePtr->export.name, "COPS-PR-SPPI")) {
 	smiPrintError(parserPtr, ERR_NO_MODULE_IDENTITY);
     }
+}
+
+
+
+static void
+checkModuleName(Parser *parserPtr, const char *name)
+{
+     static char *ignore[] = {
+	  "SNMPv2-SMI", "SNMPv2-TC", "SNMPv2-CONF", NULL
+     };
+
+     int i, len;
+
+     for (i = 0; ignore[i]; i++) {
+	  if (strcmp(ignore[i], name) == 0) {
+	       return;
+	  }
+     }
+
+     len = strlen(name);
+     if (len > 3 && (strcmp(name + len - 4, "-MIB") == 0)) {
+	  return;
+     }
+     
+     smiPrintError(parserPtr, ERR_MODULENAME_SUFFIX, name);
 }
 
 
@@ -1574,6 +1599,8 @@ module:			moduleName
 				    thisModulePtr->export.language =
 					SMI_LANGUAGE_SMIV2;
 				}
+				checkModuleName(thisParserPtr,
+						thisModulePtr->export.name);
 			    } else {
 			        smiPrintError(thisParserPtr,
 					      ERR_MODULE_ALREADY_LOADED,
