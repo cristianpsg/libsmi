@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.40 2004/07/12 08:04:31 schoenw Exp $
+ * @(#) $Id$
  */
 
 /*
@@ -924,6 +924,55 @@ printHeaderIdentities(FILE *f, SmiModule *smiModule)
 
 
 static void
+printHeaderNotifications(FILE *f, SmiModule *smiModule)
+{
+    SmiNode      *smiNode;
+    int          cnt = 0;
+    unsigned int i;
+    char         *dName, *dModuleName;
+    char         *cModuleName;
+
+    dModuleName = translateUpper(smiModule->name);
+
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+	if (smiNode->status == SMI_STATUS_UNKNOWN) {
+	    continue;
+	}
+	if (! cnt) {
+	    fprintf(f,
+		    "/*\n"
+		    " * Tables to map notifications to strings and vice versa.\n"
+		    " */\n"
+		    "\n");
+	}
+	cnt++;
+	dName = translateUpper(smiNode->name);
+	fprintf(f, "#define %s_%s\t", dModuleName, dName);
+	for (i = 0; i < smiNode->oidlen; i++) {
+	    fprintf(f, "%s%u", i ? "," : "", smiNode->oid[i]);
+	}
+	fprintf(f, "\n");
+	xfree(dName);
+    }
+    
+    if (cnt) {
+	cModuleName = translateLower(smiModule->name);
+	fprintf(f,
+		"\n"
+		"extern GNetSnmpIdentity const %s_notifications[];\n"
+		"\n",
+		cModuleName);
+	xfree(cModuleName);
+    }
+
+    xfree(dModuleName);
+}
+
+
+
+static void
 printParam(FILE *f, SmiNode *smiNode)
 {
     char *cName, *dNodeName, *dModuleName;
@@ -1425,6 +1474,7 @@ dumpHeader(SmiModule *smiModule, char *baseName)
 
     printHeaderEnumerations(f, smiModule);
     printHeaderIdentities(f, smiModule);
+    printHeaderNotifications(f, smiModule);
     printHeaderTypedefs(f, smiModule);
 
     fprintf(f,
@@ -1586,6 +1636,66 @@ printStubIdentities(FILE *f, SmiModule *smiModule)
 		continue;
 	    }
 	    if (smiNode == moduleIdentityNode) {
+		continue;
+	    }
+	    cName = translate(smiNode->name);
+	    fprintf(f, "    { %s,\n"
+		    "      G_N_ELEMENTS(%s),\n"
+		    "      \"%s\" },\n",
+		    cName, cName, smiNode->name);
+	    xfree(cName);
+	}
+	
+	fprintf(f,
+		"    { 0, 0, NULL }\n"
+		"};\n"
+		"\n"
+		"\n");
+    }
+
+    xfree(dModuleName);
+    xfree(cModuleName);
+}
+
+
+
+static void
+printStubNotifications(FILE *f, SmiModule *smiModule)
+{
+    SmiNode   *smiNode;
+    char      *cName, *cModuleName;
+    char      *dName, *dModuleName;
+    int       cnt = 0;
+    
+    cModuleName = translateLower(smiModule->name);
+    dModuleName = translateUpper(smiModule->name);
+    
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+	if (smiNode->status == SMI_STATUS_UNKNOWN) {
+	    continue;
+	}
+	cnt++;
+	cName = translate(smiNode->name);
+	dName = translateUpper(smiNode->name);
+	fprintf(f,
+		"static guint32 const %s[]\n\t= { %s_%s };\n",
+		cName, dModuleName, dName);
+	xfree(dName);
+	xfree(cName);
+    }
+
+    if (cnt) {
+	fprintf(f,
+		"\n"
+		"GNetSnmpIdentity const %s_notifications[] = {\n",
+		cModuleName);
+    
+	for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
+	     smiNode;
+	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+	    if (smiNode->status == SMI_STATUS_UNKNOWN) {
 		continue;
 	    }
 	    cName = translate(smiNode->name);
@@ -3265,6 +3375,7 @@ dumpStubs(SmiModule *smiModule, char *baseName)
 
     printStubEnumerations(f, smiModule);
     printStubIdentities(f, smiModule);
+    printStubNotifications(f, smiModule);
 
     printStubContraints(f, smiModule);
     printStubAttributes(f, smiModule);
