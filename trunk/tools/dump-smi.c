@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.43 2000/02/24 10:35:43 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.44 2000/02/24 14:33:53 strauss Exp $
  */
 
 #include <config.h>
@@ -639,13 +639,13 @@ static char *getValueString(SmiValue *valuePtr)
 	if (valuePtr->format == SMI_VALUEFORMAT_TEXT) {
 	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
 	} else if (valuePtr->format == SMI_VALUEFORMAT_HEXSTRING) {
-	    sprintf(s, "'%*s'H", 2 * valuePtr->len, " ");
+	    sprintf(s, "'%*s'H", 2 * valuePtr->len, "");
 	    for (i=0; i < valuePtr->len; i++) {
 		sprintf(ss, "%02x", valuePtr->value.ptr[i]);
 		strncpy(&s[1+2*i], ss, 2);
 	    }
 	} else if (valuePtr->format == SMI_VALUEFORMAT_BINSTRING) {
-	    sprintf(s, "'%*s'B", 8 * valuePtr->len, " ");
+	    sprintf(s, "'%*s'B", 8 * valuePtr->len, "");
 	    for (i=0; i < valuePtr->len; i++) {
 		/* TODO */
 		sprintf(ss, "%02x", valuePtr->value.ptr[i]);
@@ -656,7 +656,7 @@ static char *getValueString(SmiValue *valuePtr)
 	}
 	break;
     case SMI_BASETYPE_BITS:
-	sprintf(s, "(");
+	sprintf(s, "{");
 	if (valuePtr->value.bits) {
 	    for(p = valuePtr->value.bits; *p; p++) {
 		if (p != valuePtr->value.bits)
@@ -664,7 +664,7 @@ static char *getValueString(SmiValue *valuePtr)
 		sprintf(&s[strlen(s)], "%s", *p);
 	    }
 	}
-	sprintf(&s[strlen(s)], ")");
+	sprintf(&s[strlen(s)], "}");
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	break;
