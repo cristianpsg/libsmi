@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.28 2000/11/24 12:30:29 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.29 2000/12/15 13:52:31 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -331,6 +331,8 @@ extern SmiType *smiGetParentType(SmiType *smiTypePtr);
 
 extern SmiModule *smiGetTypeModule(SmiType *smiTypePtr);
 
+extern int smiGetTypeLine(SmiType *smiTypePtr);
+
 extern SmiRange *smiGetFirstRange(SmiType *smiTypePtr);
 
 extern SmiRange *smiGetNextRange(SmiRange *smiRangePtr);
@@ -370,6 +372,8 @@ extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
 extern SmiModule *smiGetNodeModule(SmiNode *smiNodePtr);
 
 extern SmiType *smiGetNodeType(SmiNode *smiNodePtr);
+
+extern int smiGetNodeLine(SmiNode *smiNodePtr);
 
 
 

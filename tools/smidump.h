@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.19 2000/12/15 13:52:33 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.20 2000/12/21 09:29:31 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -100,6 +100,7 @@ extern void initCm();
 extern void initNetsnmp();
 extern void initJax();
 extern void initPython();
+extern void initPerl();
 
 extern void initSql();
 extern void initFig();
