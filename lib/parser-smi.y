@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.113 2000/06/14 13:15:17 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.114 2000/06/16 13:53:57 strauss Exp $
  */
 
 %{
@@ -76,8 +76,9 @@ static SmiNodekind variationkind;
 
 #define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
 
+ 
 
-static void
+static void				/*  */
 checkNameLen(Parser *parser, char *name, int error_32, int error_64)
 {
     int len = strlen(name);
@@ -90,6 +91,7 @@ checkNameLen(Parser *parser, char *name, int error_32, int error_64)
 }
 
 
+ 
 static void
 checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
 {
@@ -102,19 +104,6 @@ checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
     }
 }
 
-
-static void
-checkIndex(Parser *parserPtr, Object *objectPtr)
-{
-
-    /*
-     * TODO: check that integers are positive
-     */
-
-    /*
-     * TODO: check that index components are not-accessible
-     */
-}
 
 
 static void
@@ -237,19 +226,25 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    }
 	}
 
+        /*
+	 * Complain about empty description clauses.
+	 */
+
+	if (! parserPtr->flags & SMI_FLAG_NODESCR
+	    && objectPtr->export.nodekind != SMI_NODEKIND_UNKNOWN
+	    && objectPtr->export.nodekind != SMI_NODEKIND_NODE
+	    && (! objectPtr->export.description
+		|| ! objectPtr->export.description[0])) {
+	    fprintf(stderr, "** %p\n", objectPtr->export.description);
+	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
+				objectPtr->line, objectPtr->export.name);
+	}
+	
 	/*
 	 * TODO: check whether the row is the only node below the
          * table node
 	 */
 
-	/*
-	 * Check INDEX constraints for row objects.
-	 */
-
-	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
-	    checkIndex(parserPtr, objectPtr);
-	}
-	
 	/*
 	 * Check references to unknown identifiers.
 	 */
@@ -297,12 +292,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		    if (typePtr->export.status == SMI_STATUS_UNKNOWN) {
 			typePtr->export.status = objectPtr->export.status;
 		    }
-#if 0
-		    fprintf(stderr,
-			    "** type refinement of %s derived from %s\n",
-			    refinementPtr->objectPtr->export.name,
-			    typePtr->parentPtr->export.name);
-#endif
 		}
 
 		typePtr = refinementPtr->writetypePtr;
@@ -310,12 +299,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		    if (typePtr->export.status == SMI_STATUS_UNKNOWN) {
 			typePtr->export.status = objectPtr->export.status;
 		    }
-#if 0
-		    fprintf(stderr,
-			    "** write type refinement of %s derived from %s\n",
-			    refinementPtr->objectPtr->export.name,
-			    typePtr->parentPtr->export.name);
-#endif
 		}
 		
 	    }
@@ -346,6 +329,23 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	}
 
 	/*
+	 * Check table linkage constraints for row objects.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
+	    switch (objectPtr->export.indexkind) {
+	    case SMI_INDEX_INDEX:
+		smiCheckIndex(parserPtr, objectPtr);
+		break;
+	    case SMI_INDEX_AUGMENT:
+		smiCheckAugment(parserPtr, objectPtr);
+		break;
+	    default:
+		break;
+	    }
+	}
+	
+	/*
 	 * Determine the longest common OID prefix of all nodes.
 	 */
 
@@ -361,9 +361,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		}
 	    }
 	}
-	
     }
 }
+
 
 
 static void
@@ -411,122 +411,21 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 	}
 
 	/*
-	 * Check named numbers lists for redefinitions of names or
-	 * redefinitions of numbers.
+	 * Complain about empty description clauses.
 	 */
 
-	if (typePtr
-	    && (typePtr->export.basetype == SMI_BASETYPE_ENUM
-		|| typePtr->export.basetype == SMI_BASETYPE_BITS)) {
-	    
-	    List *list1Ptr, *list2Ptr;
-	    NamedNumber *nn1Ptr, *nn2Ptr;
-
-	    for (list1Ptr = typePtr->listPtr;
-		 list1Ptr; list1Ptr = list1Ptr->nextPtr) {
-
-		nn1Ptr = (NamedNumber *)(list1Ptr->ptr);
-
-		for (list2Ptr = list1Ptr->nextPtr;
-		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
-
-		    nn2Ptr = (NamedNumber *)(list2Ptr->ptr);
-
-		    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
-			if (!strcmp(nn1Ptr->export.name,
-				    nn2Ptr->export.name)) {
-			    smiPrintErrorAtLine(parserPtr,
-						ERR_ENUM_NAME_REDEFINITION,
-						typePtr->line,
-						nn1Ptr->export.name);
-			}
-			if (nn1Ptr->export.value.value.integer32
-			    == nn2Ptr->export.value.value.integer32) {
-			    smiPrintErrorAtLine(parserPtr,
-						ERR_ENUM_NUMBER_REDEFINITION,
-						typePtr->line,
-					nn1Ptr->export.value.value.integer32);
-			}
-		    }
-		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
-			if (!strcmp(nn1Ptr->export.name,
-				    nn2Ptr->export.name)) {
-			    smiPrintErrorAtLine(parserPtr,
-						ERR_BITS_NAME_REDEFINITION,
-						typePtr->line,
-						nn1Ptr->export.name);
-			}
-			if (nn1Ptr->export.value.value.unsigned32
-			    == nn2Ptr->export.value.value.unsigned32) {
-			    smiPrintErrorAtLine(parserPtr,
-						ERR_BITS_NUMBER_REDEFINITION,
-						typePtr->line,
-					nn1Ptr->export.value.value.unsigned32);
-			}
-		    }
-		}
-	    }   
+	if (! parserPtr->flags & SMI_FLAG_NODESCR
+	    && (! typePtr->export.description
+		|| ! typePtr->export.description[0])) {
+	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
+				typePtr->line, typePtr->export.name);
 	}
 
-	/*
-	 * Check for "compatible" named numbers in sub-typed
-	 * enumerations or named bits lists.
-	 */
-
-	if (typePtr->parentPtr
-	    && typePtr->parentPtr->parentPtr
-	    && (typePtr->export.basetype == SMI_BASETYPE_ENUM
-		|| typePtr->export.basetype == SMI_BASETYPE_BITS)) {
-
-	    List *list1Ptr, *list2Ptr;
-	    NamedNumber *nn1Ptr, *nn2Ptr;
-
-	    for (list1Ptr = typePtr->listPtr;
-		 list1Ptr; list1Ptr = list1Ptr->nextPtr) {
-
-		nn1Ptr = (NamedNumber *)(list1Ptr->ptr);
-
-		for (list2Ptr = typePtr->parentPtr->listPtr;
-		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
-
-		    nn2Ptr = (NamedNumber *)(list2Ptr->ptr);
-
-                    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
-			if (! strcmp(nn1Ptr->export.name, nn2Ptr->export.name)
-			    && nn1Ptr->export.value.value.integer32
-			    == nn2Ptr->export.value.value.integer32) {
-			    break;
-			}
-		    }
-
-		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
-			if (! strcmp(nn1Ptr->export.name, nn2Ptr->export.name)
-			    && nn1Ptr->export.value.value.unsigned32
-			    == nn2Ptr->export.value.value.unsigned32) {
-			    break;
-			}
-		    }
-		}
-
-		if (! list2Ptr) {
-		    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
-			smiPrintErrorAtLine(parserPtr, ERR_ENUM_SUBTYPE,
-					    typePtr->line,
-					    nn1Ptr->export.name,
-					    typePtr->parentPtr->export.name);
-		    }
-		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
-			smiPrintErrorAtLine(parserPtr, ERR_BITS_SUBTYPE,
-					    typePtr->line,
-					    nn1Ptr->export.name,
-					    typePtr->parentPtr->export.name);
-		    }
-		}
-	    }
-	}
-
+	smiCheckNamedNumberRedefinition(parserPtr, typePtr);
+	smiCheckNamedNumberSubtyping(parserPtr, typePtr);
     }
 }
+
 
 				
 static void
@@ -624,6 +523,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 }
 
 
+
 static void
 checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 {
@@ -658,6 +558,7 @@ checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 	}
     }
 }
+
 
 
 static time_t
@@ -1469,15 +1370,39 @@ typeDeclaration:	typeName
 				if (!strcmp($1, "Counter32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+				    }
 				} else if (!strcmp($1, "Gauge32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+				    }
 				} else if (!strcmp($1, "Unsigned32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+				    }
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+				    }
 				} else if (!strcmp($1, "Counter64")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED64;
 				    if ($4->listPtr) {
@@ -2457,8 +2382,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeList($$, $3);
-			    for (p = $3; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
 	|		INTEGER
 			{
@@ -2517,8 +2441,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeList($$, $3);
-			    for (p = $3; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
@@ -2665,8 +2588,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				(defaultBasetype == SMI_BASETYPE_UNSIGNED32) ||
 				(defaultBasetype == SMI_BASETYPE_UNSIGNED64)) {
 				setTypeList($$, $2);
-				for (p = $2; p; p = p->nextPtr)
-				    ((Range *)p->ptr)->typePtr = $$;
+				smiCheckTypeRanges(thisParserPtr, $$);
 			    } else {
 				smiPrintError(thisParserPtr,
 				      ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
@@ -2717,8 +2639,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				(defaultBasetype == SMI_BASETYPE_UNSIGNED32) ||
 				(defaultBasetype == SMI_BASETYPE_UNSIGNED64)) {
 				setTypeList($$, $4);
-				for (p = $4; p; p = p->nextPtr)
-				    ((Range *)p->ptr)->typePtr = $$;
+				smiCheckTypeRanges(thisParserPtr, $$);
 			    } else {
 				smiPrintError(thisParserPtr,
 				      ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
@@ -2743,8 +2664,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, typeOctetStringPtr);
 			    setTypeList($$, $4);
-			    for (p = $4; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
@@ -2792,8 +2712,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				setTypeParent($$, parentPtr);
 			    }
 			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
@@ -2832,8 +2751,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				setTypeParent($$, parentPtr);
 			    }
 			    setTypeList($$, $4);
-			    for (p = $4; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -3042,8 +2960,7 @@ ApplicationSyntax:	IPADDRESS
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, parentPtr);
 			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			    importPtr = findImportByName("Gauge32",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -3085,8 +3002,7 @@ ApplicationSyntax:	IPADDRESS
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, parentPtr);
 			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			    importPtr = findImportByName("Unsigned32",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -3132,8 +3048,7 @@ ApplicationSyntax:	IPADDRESS
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, parentPtr);
 			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    smiCheckTypeRanges(thisParserPtr, $$);
 			    importPtr = findImportByName("Opaque",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -3273,7 +3188,9 @@ octetStringSubType:	'(' SIZE '(' ranges ')' ')'
 			 * conflicts. instead, we differentiate the parent
 			 * rule(s) (SimpleSyntax).
 			 */
-			{ $$ = $4; }
+			{
+			    $$ = $4;
+			}
 	;
 
 ranges:			range
@@ -3291,6 +3208,7 @@ ranges:			range
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
+			    
 			    $$ = $1;
 			}
 	;
@@ -4961,4 +4879,4 @@ Cell:			ObjectName
 
 %%
 
-#endif
+#endif /*  */

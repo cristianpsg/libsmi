@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.59 2000/06/14 13:15:18 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.60 2000/06/16 13:53:57 strauss Exp $
  */
 
 %{
@@ -34,6 +34,7 @@
 #include "parser-sming.h"
 #include "scanner-sming.h"
 #include "data.h"
+#include "check.h"
 #include "util.h"
     
 
@@ -139,6 +140,127 @@ findObject(spec, parserPtr, modulePtr)
     }
     return objectPtr;
 }
+
+
+
+static void
+checkObjects(Parser *parserPtr, Module *modulePtr)
+{
+    Object *objectPtr, *parentPtr;
+    Node *nodePtr;
+    int i;
+
+    for (objectPtr = modulePtr->firstObjectPtr;
+	 objectPtr; objectPtr = objectPtr->nextPtr) {
+	if (objectPtr->nodePtr->parentPtr &&
+	    objectPtr->nodePtr->parentPtr->lastObjectPtr) {
+	    parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
+	} else {
+	    parentPtr = NULL;
+	}
+
+	/*
+	 * Complain about empty description clauses.
+	 */
+
+	if (! parserPtr->flags & SMI_FLAG_NODESCR
+	    && objectPtr->export.nodekind != SMI_NODEKIND_UNKNOWN
+	    && objectPtr->export.nodekind != SMI_NODEKIND_NODE
+	    && (! objectPtr->export.description
+		|| ! objectPtr->export.description[0])) {
+	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
+				objectPtr->line, objectPtr->export.name);
+	}
+
+	/*
+	 * Check table linkage constraints for row objects.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
+	    switch (objectPtr->export.indexkind) {
+	    case SMI_INDEX_INDEX:
+		smiCheckIndex(parserPtr, objectPtr);
+		break;
+	    case SMI_INDEX_AUGMENT:
+		smiCheckAugment(parserPtr, objectPtr);
+		break;
+	    case SMI_INDEX_REORDER:	/* TODO */
+		break;
+	    case SMI_INDEX_SPARSE:	/* TODO */
+		break;
+	    case SMI_INDEX_EXPAND:	/* TODO */
+		break;
+	    default:
+		break;
+	    }
+	}
+	
+	/*
+	 * Set the oidlen/oid values that are not yet correct.
+	 */
+				
+	if (objectPtr->export.oidlen == 0) {
+	    if (objectPtr->nodePtr->oidlen == 0) {
+		for (nodePtr = objectPtr->nodePtr, i = 1;
+		     nodePtr->parentPtr != rootNodePtr;
+		     nodePtr = nodePtr->parentPtr, i++);
+		objectPtr->nodePtr->oid = smiMalloc(i * sizeof(SmiSubid));
+		objectPtr->nodePtr->oidlen = i;
+		for (nodePtr = objectPtr->nodePtr; i > 0; i--) {
+		    objectPtr->nodePtr->oid[i-1] = nodePtr->subid;
+		    nodePtr = nodePtr->parentPtr;
+		}
+	    }
+	    objectPtr->export.oidlen = objectPtr->nodePtr->oidlen;
+	    objectPtr->export.oid = objectPtr->nodePtr->oid;
+	}
+	
+	/*
+	 * Determine the longest common OID prefix of all nodes.
+	 */
+	
+	if (!thisModulePtr->prefixNodePtr) {
+	    thisModulePtr->prefixNodePtr = objectPtr->nodePtr;
+	} else {
+	    for (i = 0; i < thisModulePtr->prefixNodePtr->oidlen; i++) {
+		if (thisModulePtr->prefixNodePtr->oid[i] !=
+		    objectPtr->nodePtr->oid[i]) {
+		    thisModulePtr->prefixNodePtr =
+			findNodeByOid(i, thisModulePtr->prefixNodePtr->oid);
+		    break;
+		}
+	    }
+	}
+	
+    }
+}
+
+
+
+static void
+checkTypes(Parser *parserPtr, Module *modulePtr)
+{
+    Type *typePtr;
+    
+    for(typePtr = modulePtr->firstTypePtr;
+	typePtr; typePtr = typePtr->nextPtr) {
+
+	/*
+	 * Complain about empty description clauses.
+	 */
+
+	if (! parserPtr->flags & SMI_FLAG_NODESCR
+	    && (! typePtr->export.description
+		|| ! typePtr->export.description[0])) {
+	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
+				typePtr->line, typePtr->export.name);
+	}
+	
+	smiCheckNamedNumberRedefinition(parserPtr, typePtr);
+	smiCheckNamedNumberSubtyping(parserPtr, typePtr);
+    }
+}
+
 
 
 static time_t
@@ -652,8 +774,6 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			{
 			    List *listPtr;
 			    Object *objectPtr;
-			    Node *nodePtr;
-			    int i;
 			    
 			    /*
 			     * Walk through the index structs of all table
@@ -700,65 +820,9 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			     * Is there a node that matches the `identity'
 			     * statement?
 			     */
-
 			    
-			    for (objectPtr = thisModulePtr->firstObjectPtr;
-				 objectPtr; objectPtr = objectPtr->nextPtr) {
-				
-				/*
-				 * Set the oidlen/oid values that are not
-				 * yet correct.
-				 */
-				
-				if (objectPtr->export.oidlen == 0) {
-				    if (objectPtr->nodePtr->oidlen == 0) {
-					for (nodePtr = objectPtr->nodePtr,
-						 i = 1;
-					     nodePtr->parentPtr != rootNodePtr;
-					     nodePtr = nodePtr->parentPtr,
-						 i++);
-					objectPtr->nodePtr->oid =
-					    calloc(i, sizeof(unsigned int));
-					objectPtr->nodePtr->oidlen = i;
-					for (nodePtr = objectPtr->nodePtr;
-					     i > 0; i--) {
-					    objectPtr->nodePtr->oid[i-1] =
-						nodePtr->subid;
-					    nodePtr = nodePtr->parentPtr;
-					}
-				    }
-				    objectPtr->export.oidlen =
-					objectPtr->nodePtr->oidlen;
-				    objectPtr->export.oid =
-					objectPtr->nodePtr->oid;
-				}
-
-				/*
-				 * Determine the longest common OID prefix
-				 * of all nodes.
-				 */
-				
-				if (!thisModulePtr->prefixNodePtr) {
-				    thisModulePtr->prefixNodePtr =
-					objectPtr->nodePtr;
-				} else {
-				    for (i = 0;
-					 i < thisModulePtr->prefixNodePtr->
-					                                oidlen;
-					 i++) {
-					if (thisModulePtr->prefixNodePtr->
-					                              oid[i] !=
-					    objectPtr->nodePtr->oid[i]) {
-					    thisModulePtr->prefixNodePtr =
-						findNodeByOid(i,
-					        thisModulePtr->prefixNodePtr->
-							                  oid);
-					    break;
-					}
-				    }
-				}
-				
-			    }
+			    checkObjects(thisParserPtr, thisModulePtr);
+			    checkTypes(thisParserPtr, thisModulePtr);
 			    
 			    $$ = thisModulePtr;
 			    moduleObjectPtr = NULL;
@@ -933,10 +997,8 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (typePtr && $13) {
-                                if (!smiCheckFormat(typePtr->export.basetype, $13)) {
-				    smiPrintError(thisParserPtr,
-						  ERR_INVALID_FORMAT, $13);
-				}
+                                smiCheckFormat(thisParserPtr,
+					       typePtr->export.basetype, $13);
 				setTypeFormat(typePtr, $13);
 			    }
 			}
@@ -1136,10 +1198,8 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (scalarObjectPtr && $19) {
-				if (!smiCheckFormat($11->export.basetype, $19)) {
-				    smiPrintError(thisParserPtr,
-						  ERR_INVALID_FORMAT, $19);
-				}
+				smiCheckFormat(thisParserPtr,
+					       $11->export.basetype, $19);
 				setObjectFormat(scalarObjectPtr, $19);
 			    }
 			}

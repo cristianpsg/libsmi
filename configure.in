@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.69 2000/06/18 11:23:28 strauss Exp $
+# @(#) $Id: configure.in,v 1.70 2000/06/18 11:45:02 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -33,12 +33,11 @@ AC_ARG_WITH(cc,
 [  --with-cc=CC            use CC as the C compiler],
 CC="$withval")
 
-AC_CHECK_FUNC(strtoll, AC_DEFINE(HAVE_STRTOLL))
-AC_CHECK_FUNC(strtoull, AC_DEFINE(HAVE_STRTOULL))
-AC_CHECK_FUNC(strtoq, AC_DEFINE(HAVE_STRTOQ))
-AC_CHECK_FUNC(strtouq, AC_DEFINE(HAVE_STRTOUQ))
+AC_CHECK_FUNCS(strtoll strtoull strtoq strtouq)
 
-AC_CHECK_FUNC(timegm, AC_DEFINE(HAVE_TIMEGM))
+AC_CHECK_FUNCS(timegm)
+
+AC_CHECK_FUNCS(vsnprintf snprintf)
 
 AC_CHECK_HEADERS(getopt.h pwd.h unistd.h)
 

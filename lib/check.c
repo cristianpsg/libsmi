@@ -4,12 +4,12 @@
  *      This module contains semantics checks that are shared between
  *	the SMI parser backends.
  *
- * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+ * Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.85 2000/06/14 13:57:33 strauss Exp $
+ * @(#) $Id: check.c,v 1.1 2000/06/18 11:23:13 strauss Exp $
  */
 
 #include <config.h>
@@ -34,6 +34,45 @@
 #include "data.h"
 #include "check.h"
 #include "smi.h"
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * compareValues --
+ *
+ *	Compare two SmiValues a and b.
+ *
+ * Results:
+ *	-1,0,1 if a is less than, equal, or greater than b.
+ *
+ * Side effects:
+ *	None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+compareValues(SmiValue *a, SmiValue *b) {
+    if (((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
+	 (b->basetype == SMI_BASETYPE_INTEGER32)) ||
+	((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
+	 (a->value.unsigned32 > b->value.unsigned32)) ||
+	((a->basetype == SMI_BASETYPE_INTEGER32) &&
+	 (a->value.integer32 > b->value.integer32))) {
+	return 1;
+    } else if ((a->basetype == b->basetype) &&
+	       ((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
+		(a->value.unsigned32 == b->value.unsigned32)) ||
+	       ((a->basetype == SMI_BASETYPE_INTEGER32) &&
+		(a->value.integer32 == b->value.integer32))) {
+	return 0;
+    } else {
+	return -1;
+    }
+}
+
 
 
 /*
@@ -252,7 +291,7 @@ smiCheckTypeName(Parser *parser, Module *module, char *name)
  *      Check whether a format specification is valid.
  *
  * Results:
- *      1 on success or 0 if the format is invalid.
+ *      None.
  *
  * Side effects:
  *      None.
@@ -319,3 +358,461 @@ smiCheckFormat(Parser *parser, SmiBasetype basetype, char *format)
 	smiPrintError(parser, ERR_INVALID_FORMAT, format);
     }
 }
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckNamedNumberRedefinition --
+ *
+ *      Check whether named numbers redefine names or numbers.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckNamedNumberRedefinition(Parser *parser, Type *type)
+{
+    List *list1Ptr, *list2Ptr;
+    NamedNumber *nn1Ptr, *nn2Ptr;
+
+    if (! type || (type->export.basetype != SMI_BASETYPE_ENUM
+		      && type->export.basetype != SMI_BASETYPE_BITS)) {
+	return;
+    }
+	    
+    for (list1Ptr = type->listPtr;
+	 list1Ptr; list1Ptr = list1Ptr->nextPtr) {
+	
+	nn1Ptr = (NamedNumber *)(list1Ptr->ptr);
+
+	for (list2Ptr = list1Ptr->nextPtr;
+	     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
+	    
+	    nn2Ptr = (NamedNumber *)(list2Ptr->ptr);
+
+	    if (type->export.basetype == SMI_BASETYPE_ENUM) {
+		if (!strcmp(nn1Ptr->export.name, nn2Ptr->export.name)) {
+		    smiPrintErrorAtLine(parser, ERR_ENUM_NAME_REDEFINITION,
+					type->line,
+					nn1Ptr->export.name);
+		}
+		if (nn1Ptr->export.value.value.integer32
+		    == nn2Ptr->export.value.value.integer32) {
+		    smiPrintErrorAtLine(parser, ERR_ENUM_NUMBER_REDEFINITION,
+					type->line,
+					nn1Ptr->export.value.value.integer32);
+		}
+	    }
+	    if (type->export.basetype == SMI_BASETYPE_BITS) {
+		if (!strcmp(nn1Ptr->export.name, nn2Ptr->export.name)) {
+		    smiPrintErrorAtLine(parser, ERR_BITS_NAME_REDEFINITION,
+					type->line,
+					nn1Ptr->export.name);
+		}
+		if (nn1Ptr->export.value.value.unsigned32
+		    == nn2Ptr->export.value.value.unsigned32) {
+		    smiPrintErrorAtLine(parser, ERR_BITS_NUMBER_REDEFINITION,
+					type->line,
+					nn1Ptr->export.value.value.unsigned32);
+		}
+	    }
+	}
+    }   
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckNamedNumberSubtyping --
+ *
+ *      Check whether named numbers in a derived type are compatible
+ *	with the named numbers in the parent type.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckNamedNumberSubtyping(Parser *parser, Type *type)
+{
+    List *list1Ptr, *list2Ptr;
+    NamedNumber *nn1Ptr, *nn2Ptr;
+	
+    if (! type || ! type->parentPtr || ! type->parentPtr->parentPtr
+	|| (type->export.basetype != SMI_BASETYPE_ENUM
+	    && type->export.basetype != SMI_BASETYPE_BITS)) {
+	return;
+    }
+    
+    for (list1Ptr = type->listPtr;
+	 list1Ptr; list1Ptr = list1Ptr->nextPtr) {
+	
+	nn1Ptr = (NamedNumber *)(list1Ptr->ptr);
+	
+	for (list2Ptr = type->parentPtr->listPtr;
+	     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
+	    
+	    nn2Ptr = (NamedNumber *)(list2Ptr->ptr);
+	    
+	    if (type->export.basetype == SMI_BASETYPE_ENUM) {
+		if (! strcmp(nn1Ptr->export.name, nn2Ptr->export.name)
+		    && nn1Ptr->export.value.value.integer32
+		    == nn2Ptr->export.value.value.integer32) {
+		    break;
+		}
+	    }
+	    
+	    if (type->export.basetype == SMI_BASETYPE_BITS) {
+		if (! strcmp(nn1Ptr->export.name, nn2Ptr->export.name)
+		    && nn1Ptr->export.value.value.unsigned32
+		    == nn2Ptr->export.value.value.unsigned32) {
+		    break;
+		}
+	    }
+	}
+	    
+	if (! list2Ptr) {
+	    if (type->export.basetype == SMI_BASETYPE_ENUM) {
+		smiPrintErrorAtLine(parser, ERR_ENUM_SUBTYPE,
+				    type->line,
+				    nn1Ptr->export.name,
+				    type->parentPtr->export.name);
+	    }
+	    if (type->export.basetype == SMI_BASETYPE_BITS) {
+		smiPrintErrorAtLine(parser, ERR_BITS_SUBTYPE,
+				    type->line,
+				    nn1Ptr->export.name,
+				    type->parentPtr->export.name);
+	    }
+	}
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckIndex --
+ *
+ *      Check whether an index conforms to the SMI restrictions.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckIndex(Parser *parser, Object *object)
+{
+    List *listPtr, *list2Ptr;
+    Object *indexPtr;
+    Type *typePtr, *rTypePtr;
+    Range *rangePtr;
+    int maxSize, len = 0;
+
+    for (listPtr = object->listPtr; listPtr; listPtr = listPtr->nextPtr) {
+	
+	indexPtr = (Object *) listPtr->ptr;
+	typePtr = indexPtr->typePtr;
+
+	if (indexPtr->export.nodekind != SMI_NODEKIND_COLUMN) {
+	    smiPrintErrorAtLine(parser, ERR_INDEX_NOT_COLUMN,
+				indexPtr->line,
+				indexPtr->export.name,
+				object->export.name);
+	}
+
+	switch (typePtr->export.basetype) {
+	case SMI_BASETYPE_INTEGER32:
+	    for (rTypePtr = typePtr; rTypePtr && ! rTypePtr->listPtr;
+ 		 rTypePtr = rTypePtr->parentPtr) {
+	    }
+	    if (! rTypePtr) {
+		smiPrintErrorAtLine(parser, ERR_INDEX_NO_RANGE,
+				    indexPtr->line,
+				    indexPtr->export.name,
+				    object->export.name);
+	    } else {
+		for (list2Ptr = rTypePtr->listPtr;
+		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
+		    rangePtr = (Range *) list2Ptr->ptr;
+		    if (rangePtr->export.maxValue.value.integer32 < 0) {
+			smiPrintErrorAtLine(parser, ERR_INDEX_NEGATIVE,
+					    indexPtr->line,
+					    indexPtr->export.name,
+					    object->export.name);
+			break;
+		    }
+		}
+	    }
+	    len++;
+	    break;
+	case SMI_BASETYPE_OCTETSTRING:
+	    for (rTypePtr = typePtr; rTypePtr && ! rTypePtr->listPtr;
+		 rTypePtr = rTypePtr->parentPtr) {
+	    }
+	    maxSize = -1;
+	    if (! rTypePtr) {
+		smiPrintErrorAtLine(parser, ERR_INDEX_NO_SIZE,
+				    indexPtr->line,
+				    indexPtr->export.name,
+				    object->export.name);
+	    } else {
+	        for (list2Ptr = typePtr->listPtr;
+		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
+		    rangePtr = (Range *) list2Ptr->ptr;
+		    if (rangePtr->export.maxValue.value.integer32 > maxSize) {
+			maxSize = rangePtr->export.maxValue.value.integer32;
+		    }
+		}
+		if (maxSize < 0) {
+		    maxSize = 65535;
+		}
+	    }
+	    len += maxSize;
+	    if (indexPtr->export.implied) {
+		len++;
+	    }
+	    break;
+	case SMI_BASETYPE_OBJECTIDENTIFIER:
+	    len += 128;
+	    if (indexPtr->export.implied) {
+		len++;
+	    }
+	    break;
+	case SMI_BASETYPE_UNSIGNED32:
+	    len++;
+	    break;
+	case SMI_BASETYPE_INTEGER64:
+	case SMI_BASETYPE_UNSIGNED64:
+	case SMI_BASETYPE_FLOAT32:
+	case SMI_BASETYPE_FLOAT64:
+	case SMI_BASETYPE_FLOAT128:
+	case SMI_BASETYPE_UNKNOWN:
+	    smiPrintErrorAtLine(parser, ERR_INDEX_BASETYPE, object->line,
+				typePtr->export.name, indexPtr->export.name,
+				object->export.name);
+	    break;
+	case SMI_BASETYPE_BITS:
+	    /* TODO: BITS are somehow treates as octet strings - but
+	       what is the max len? */
+	    break;
+	case SMI_BASETYPE_ENUM:
+	    /* TODO: need to check for negative enums here */
+	    len++;
+	    break;
+	}
+
+	/*
+	 * TODO: If SMIv2 or SMIng and if there is a non-index column,
+	 * then warn about not not-accessible index components.
+	 */
+#if 0	
+	if (indexPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+	    fprintf(stderr, "** %s should be not-accessible??\n",
+		    indexPtr->export.name);
+	}
+#endif
+    }
+	
+    if (object->export.oidlen + 1 + len > 128) {
+	smiPrintErrorAtLine(parser, ERR_INDEX_TOO_LARGE, object->line,
+			    object->export.name);
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckAugment --
+ *
+ *      Check whether a table augmentation conforms to the SMI
+ *	restrictions.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckAugment(Parser *parser, Object *object)
+{
+    /*
+     * TODO: Check that the related node is actually an entry node.
+     */
+
+    /*
+     * TODO: Check the size of the instance identifier and the OID
+     * for this entry node.
+     */
+
+    /*
+     * TODO: Check the the augmented table is not itself an augmentation.
+     */
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckTypeRanges --
+ *
+ *      Check whether all ranges of a given type are valid.
+ *
+ * Results:
+ *      1 on success or 0 if the ranges are invalid.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckTypeRanges(Parser *parser, Type *type)
+{
+    List *p, *nextPtr, *pp, *nextPP;
+    
+    for (p = type->listPtr; p; p = nextPtr) {
+
+	nextPtr = p->nextPtr;
+	
+	((Range *)p->ptr)->typePtr = type;
+
+	if (type->export.basetype == SMI_BASETYPE_INTEGER32) {
+	    if ((((Range *)p->ptr)->export.minValue.basetype ==
+		 SMI_BASETYPE_UNSIGNED32) &&
+		(((Range *)p->ptr)->export.minValue.value.unsigned32 >
+		    2147483647)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    if ((((Range *)p->ptr)->export.maxValue.basetype ==
+		 SMI_BASETYPE_UNSIGNED32) &&
+		(((Range *)p->ptr)->export.maxValue.value.unsigned32 >
+		    2147483647)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    ((Range *)p->ptr)->export.minValue.basetype =
+		SMI_BASETYPE_INTEGER32;
+	    ((Range *)p->ptr)->export.maxValue.basetype =
+		SMI_BASETYPE_INTEGER32;
+	}
+
+	if (type->export.basetype == SMI_BASETYPE_UNSIGNED32) {
+	    if ((((Range *)p->ptr)->export.minValue.basetype ==
+		 SMI_BASETYPE_INTEGER32) &&
+		(((Range *)p->ptr)->export.minValue.value.integer32 < 0)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    if ((((Range *)p->ptr)->export.maxValue.basetype ==
+		 SMI_BASETYPE_INTEGER32) &&
+		(((Range *)p->ptr)->export.maxValue.value.integer32 < 0)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    ((Range *)p->ptr)->export.minValue.basetype =
+		SMI_BASETYPE_UNSIGNED32;
+	    ((Range *)p->ptr)->export.maxValue.basetype =
+		SMI_BASETYPE_UNSIGNED32;
+	}
+
+	if (type->export.basetype == SMI_BASETYPE_OCTETSTRING) {
+	    if ((((Range *)p->ptr)->export.minValue.basetype ==
+		 SMI_BASETYPE_INTEGER32) &&
+		(((Range *)p->ptr)->export.minValue.value.integer32 < 0)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    if ((((Range *)p->ptr)->export.maxValue.basetype ==
+		 SMI_BASETYPE_INTEGER32) &&
+		(((Range *)p->ptr)->export.maxValue.value.integer32 < 0)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    if ((((Range *)p->ptr)->export.minValue.basetype ==
+		 SMI_BASETYPE_UNSIGNED32) &&
+		(((Range *)p->ptr)->export.minValue.value.unsigned32 > 65535)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    if ((((Range *)p->ptr)->export.maxValue.basetype ==
+		 SMI_BASETYPE_UNSIGNED32) &&
+		(((Range *)p->ptr)->export.maxValue.value.unsigned32 > 65535)) {
+		smiPrintError(parser, ERR_RANGE_OUT_OF_BASETYPE);
+	    }
+	    ((Range *)p->ptr)->export.minValue.basetype =
+		SMI_BASETYPE_UNSIGNED32;
+	    ((Range *)p->ptr)->export.maxValue.basetype =
+		SMI_BASETYPE_UNSIGNED32;
+	}
+
+	if (compareValues(&((Range *)p->ptr)->export.minValue,
+			  &((Range *)p->ptr)->export.maxValue) > 0) {
+	    SmiValue v;
+	    v = ((Range *)p->ptr)->export.minValue;
+	    ((Range *)p->ptr)->export.minValue = ((Range *)p->ptr)->export.maxValue;
+	    ((Range *)p->ptr)->export.maxValue = v;
+	    smiPrintError(parser, ERR_EXCHANGED_RANGE_LIMITS);
+	}
+
+	/* sort */
+	p->nextPtr = NULL;
+	if (p != type->listPtr) {
+	    if (compareValues(&((Range *)p->ptr)->export.minValue,
+	      	       &((Range *)type->listPtr->ptr)->export.minValue) <= 0) {
+		if (compareValues(&((Range *)p->ptr)->export.maxValue,
+	      	       &((Range *)type->listPtr->ptr)->export.minValue) >= 0) {
+		    smiPrintError(parser, ERR_RANGE_OVERLAP);
+		}
+		smiPrintError(parser, ERR_RANGES_NOT_ASCENDING);
+		p->nextPtr = type->listPtr;
+		type->listPtr = p;
+	    } else {
+		for (pp = type->listPtr; pp; pp = nextPP) {
+		    nextPP = pp->nextPtr;
+		    if ((!nextPP) ||
+			(compareValues(&((Range *)p->ptr)->export.minValue,
+			     &((Range *)nextPP->ptr)->export.minValue) <= 0)) {
+			if (((nextPP) &&
+			     (compareValues(&((Range *)p->ptr)->export.maxValue,
+					    &((Range *)nextPP->ptr)->export.minValue) >= 0)) ||
+			    (compareValues(&((Range *)p->ptr)->export.minValue,
+					   &((Range *)pp->ptr)->export.maxValue) <= 0)) {
+			    smiPrintError(parser, ERR_RANGE_OVERLAP);
+			}
+			p->nextPtr = pp->nextPtr;
+			pp->nextPtr = p;
+			if (p->nextPtr) {
+			    smiPrintError(parser, ERR_RANGES_NOT_ASCENDING);
+			    pp->nextPtr = NULL;
+			} 
+			break;
+		    }
+		}
+	    }
+	}
+    }
+} /*  */

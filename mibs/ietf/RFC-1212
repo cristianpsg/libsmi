@@ -2,9 +2,9 @@ RFC-1212 DEFINITIONS ::= BEGIN
 
           IMPORTS
               ObjectName
-                  FROM RFC1155-SMI
-              DisplayString
-                  FROM RFC1213-MIB; -- originally imported from RFC1158-MIB
+                  FROM RFC1155-SMI;
+--            DisplayString
+--                FROM RFC1158-MIB;
 
           OBJECT-TYPE MACRO ::=
           BEGIN

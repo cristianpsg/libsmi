@@ -1,0 +1,3 @@
+dumps/IF-MIB.smiv2:931: index element `ifStackHigherLayer' of row `ifStackEntry' must have a range restriction
+dumps/IF-MIB.smiv2:944: index element `ifStackLowerLayer' of row `ifStackEntry' must have a range restriction
+dumps/IF-MIB.smiv2:1261: index element `ifRcvAddressAddress' of row `ifRcvAddressEntry' must have a size restriction

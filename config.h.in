@@ -24,20 +24,26 @@
 /* Define if dmalloc.h is present and shall be used. */
 #undef HAVE_DMALLOC_H
 
-/* Define if the string-to-long-long function is present in libc. */
+/* Define if you have the snprintf function.  */
+#undef HAVE_SNPRINTF
+
+/* Define if you have the strtoll function.  */
 #undef HAVE_STRTOLL
 
-/* Define if the string-to-quad function (BSD) is present in libc. */
+/* Define if you have the strtoq function.  */
 #undef HAVE_STRTOQ
 
-/* Define if the string-to-unsigned-long-long function is present in libc. */
+/* Define if you have the strtoull function.  */
 #undef HAVE_STRTOULL
 
-/* Define if the string-to-unsigned-quad function (BSD) is present in libc. */
+/* Define if you have the strtouq function.  */
 #undef HAVE_STRTOUQ
 
-/* Define if the timegm() function is present in libc. */
+/* Define if you have the timegm function.  */
 #undef HAVE_TIMEGM
+
+/* Define if you have the vsnprintf function.  */
+#undef HAVE_VSNPRINTF
 
 /* Define if you have the <getopt.h> header file.  */
 #undef HAVE_GETOPT_H

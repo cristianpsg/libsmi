@@ -6,11 +6,7 @@ o error detection: detect IMPORTs of SMIv1 specific and SMIv2 specific
 o error detection: does table node have exactly one row sub node
   with oid == 1? (2578.7.10)
 
-o warning detection: empty strings in DESCRIPTION and similar clauses
-
 o warning detection: non continuous sub oids in column node list?
-
-o warning detection: integer(signed) in index
 
 o warning detection: not reversible DISPLAY-HINT definitions
 
@@ -22,15 +18,9 @@ o remove SMI_DECL_IMPL_SEQUENCEOF from smi.h: the smiv1/smiv2 parser
   contents (see previous item). these internal data structures can
   be released at the end of a MIB module.
 
-o warning detection: check, whether OIDs of indexed columns might be
-  longer than 128 subids.
-
 o warning detection: enumerations SHOULD NOT contain signedNumber's.
   SHOULD start at 1. SHOULD be numbered contiguously.
   e.g. DISMAN-SCHEDULE-MIB.SnmpPduErrorStatus
-
-o warning detection: zeroDotZero defined locally instead of
-  imported from SMI.
 
 o warning detection: max-access for a counter must be readonly
 
@@ -96,3 +86,5 @@ o Check format specifier text in SMIng spec and add a `u' format specifier
 
 o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
   smidump -f tree -u SNA-SDLC-MIB IF-MIB : e.g. ifEntry differences.
+
+o import loops cause endless `smidump -f imports' loops.

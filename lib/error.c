@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.46 2000/06/15 09:55:01 strauss Exp $
+ * @(#) $Id: error.c,v 1.47 2000/06/16 13:53:57 strauss Exp $
  */
 
 #include <config.h>
@@ -328,7 +328,29 @@ static Error errors[] = {
       "named bit `%s(%u)' exceeds maximum bit position" },
     { 4, ERR_BITS_NUMBER_LARGE, "bits-number-large", 
       "named bit `%s(%u)' may cause interoperability or implementation problems" },
- 
+    { 2, ERR_RANGE_OUT_OF_BASETYPE, "range-bounds",
+      "range limit exceeds underlying basetype" },
+    { 2, ERR_RANGE_OVERLAP, "range-overlap",
+      "overlapping range limits" },
+    { 6, ERR_RANGES_NOT_ASCENDING, "range-ascending",
+      "ranges not in ascending order" },
+    { 2, ERR_EXCHANGED_RANGE_LIMITS, "range-exchanged",
+      "range limits must be `lower-bound .. upper-bound'" },
+    { 1, ERR_INDEX_BASETYPE, "index-illegal-basetype", 
+      "illegal base type `%s' in index element `%s' of row %s" },
+    { 5, ERR_INDEX_TOO_LARGE, "index-exceeds-too-large", 
+      "index of row `%s' can exceed OID size limit" },
+    { 1, ERR_INDEX_NO_RANGE, "index-element-no-range",
+      "index element `%s' of row `%s' must have a range restriction" },
+    { 1, ERR_INDEX_NO_SIZE, "index-element-no-size",
+      "index element `%s' of row `%s' must have a size restriction" },
+    { 1, ERR_INDEX_NEGATIVE, "index-element-negative",
+      "range restriction of index element `%s' of row `%s' must be non-negative" },
+    { 6, ERR_EMPTY_DESCRIPTION, "empty-description",
+      "zero length description of `%s'" },
+    { 6, ERR_INDEX_NOT_COLUMN, "index-element-not-column",
+      "index element `%s' of row `%s' must be a column" },
+
     { 0, 0, NULL, NULL }
 };
 
@@ -521,7 +543,7 @@ smiErrorHandler(char *path, int line, int severity, char *msg)
 static void
 printError(Parser *parser, int id, int line, va_list ap)
 {
-    char buffer[1024];	/* TODO: check buffer boundaries! */
+    char buffer[1024];
     
     if (! handler) {
 	return;
@@ -531,12 +553,20 @@ printError(Parser *parser, int id, int line, va_list ap)
 	if ((errors[id].level <= smiErrorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-	    vsprintf(buffer, errors[id].fmt, ap);
+#ifdef HAVE_VSNPRINTF
+	    vsnprintf(buffer, sizeof(buffer), errors[id].fmt, ap);
+#else
+	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
+#endif
 	    (handler) (parser->path, line, errors[id].level, buffer);
 	}
     } else {
 	if (errors[id].level <= smiErrorLevel) {
-	    vsprintf(buffer, errors[id].fmt, ap);
+#ifdef HAVE_VSNPRINTF
+	    vsnprintf(buffer, sizeof(buffer), errors[id].fmt, ap);
+#else
+	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
+#endif
 	    (handler) (NULL, 0, errors[id].level, buffer);
 	}
     }
@@ -608,4 +638,4 @@ smiPrintError(Parser *parser, int id, ...)
     va_start(ap, id);
     printError(parser, id, parser ? parser->line : 0, ap);
     va_end(ap);
-}
+} /*  */
