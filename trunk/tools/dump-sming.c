@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.15 1999/03/31 17:24:31 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.16 1999/04/05 15:47:35 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -116,8 +116,10 @@ getOidString(modulename, object, importedParent)
 		    sprintf(append, "%s%s", p, s);
 		}
 	    } else {
-		strcpy(s, append);
-		sprintf(append, "%s%s", strrchr(child, '.'), s);
+		if (strrchr(child, '.')) {
+		    strcpy(s, append);
+		    sprintf(append, "%s%s", strrchr(child, '.'), s);
+		}
 	    }
 	    strcpy(child, smiDescriptor(fullname));
 	} else {
@@ -345,10 +347,6 @@ printImports(modulename)
 	if (!strcmp(importedModulename, "SNMPv2-SMI")) {
 	    convert = 1;
 	    importedModulename = "IRTF-NMRG-SMING";
-	}
-	if (!strcmp(importedModulename, "SNMPv2-TC")) {
-	    convert = 1;
-	    importedModulename = "IRTF-NMRG-SMING-CORE-TYPES";
 	}
 	if (!strcmp(importedModulename, "SNMPv2-CONF")) {
 	    convert = 1;

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.15 1999/03/31 17:24:25 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.16 1999/04/06 16:23:22 strauss Exp $
  */
 
 %{
@@ -1051,7 +1051,7 @@ sequenceSyntax:		/* ObjectSyntax */
 	|		BITS
 			{
 			    /* TODO: */
-			    $$ = typeOctetStringPtr;
+			    $$ = typeSmiOctetStringPtr;
 			}
 	|		UPPERCASE_IDENTIFIER anySubType
 			{
@@ -1505,30 +1505,30 @@ valueofObjectSyntax:	valueofSimpleSyntax
 
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
-			    $$ = typeIntegerPtr;
+			    $$ = typeSmiIntegerPtr;
 			}
 	|		INTEGER integerSubType
 			{
-			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
-			    setTypeParent($$, typeIntegerPtr->name);
+			    $$ = duplicateType(typeSmiIntegerPtr, 0, thisParserPtr);
+			    setTypeParent($$, typeSmiIntegerPtr->name);
 			    setTypeList($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
-			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
-			    setTypeParent($$, typeIntegerPtr->name);
+			    $$ = duplicateType(typeSmiIntegerPtr, 0, thisParserPtr);
+			    setTypeParent($$, typeSmiIntegerPtr->name);
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $2);
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
-			    $$ = typeIntegerPtr;
+			    $$ = typeSmiIntegerPtr;
 			}
         |		INTEGER32 integerSubType
 			{
-			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
-			    setTypeParent($$, typeIntegerPtr->name);
+			    $$ = duplicateType(typeSmiIntegerPtr, 0, thisParserPtr);
+			    setTypeParent($$, typeSmiIntegerPtr->name);
 			    setTypeList($$, $2);
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
@@ -1701,13 +1701,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
-			    $$ = typeOctetStringPtr;
+			    $$ = typeSmiOctetStringPtr;
 			}
 	|		OCTET STRING octetStringSubType
 			{
-			    $$ = duplicateType(typeOctetStringPtr, 0,
+			    $$ = duplicateType(typeSmiOctetStringPtr, 0,
 					       thisParserPtr);
-			    setTypeParent($$, typeOctetStringPtr->name);
+			    setTypeParent($$, typeSmiOctetStringPtr->name);
 			    setTypeList($$, $3);
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
@@ -1795,7 +1795,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		OBJECT IDENTIFIER
 			{
-			    $$ = typeObjectIdentifierPtr;
+			    $$ = typeSmiObjectIdentifierPtr;
 			}
         ;
 
@@ -1872,21 +1872,21 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
  */
 sequenceSimpleSyntax:	INTEGER	anySubType	/* (-2147483648..2147483647) */
 			{
-			    $$ = typeIntegerPtr;
+			    $$ = typeSmiIntegerPtr;
 			}
         |		INTEGER32 anySubType	/* (-2147483648..2147483647) */
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
-			    $$ = typeIntegerPtr;
+			    $$ = typeSmiIntegerPtr;
 			}
 	|		OCTET STRING anySubType
 			{
 			    /* TODO: warning: ignoring subtype in SEQUENCE */
-			    $$ = typeOctetStringPtr;
+			    $$ = typeSmiOctetStringPtr;
 			}
 	|		OBJECT IDENTIFIER
 			{
-			    $$ = typeObjectIdentifierPtr;
+			    $$ = typeSmiObjectIdentifierPtr;
 			}
 	;
 
@@ -2418,6 +2418,7 @@ Value:			valueofObjectSyntax
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_BITS;
+			    $$->value.bits = NULL;
 			    for (i = 0, listPtr = $2; listPtr;
 				 i++, listPtr = listPtr->nextPtr) {
 				$$->value.bits = util_realloc($$->value.bits,

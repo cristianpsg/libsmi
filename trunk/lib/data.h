@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.16 1999/03/31 17:24:23 strauss Exp $
+ * @(#) $Id: data.h,v 1.17 1999/04/06 16:23:21 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -227,6 +227,7 @@ typedef struct Object {
     struct List    *refinementlistPtr;
     char	   *description;
     char	   *reference;
+    char	   *format;
     char	   *units;
     SmiValue	   *valuePtr;
     struct Node	   *nodePtr;
@@ -282,7 +283,14 @@ extern int	smiFlags;
 extern Node	*rootNodePtr;
 extern Node	*pendingNodePtr;
 
-extern Type	*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
+extern Type	*typeSmiIntegerPtr, *typeSmiOctetStringPtr,
+		*typeSmiObjectIdentifierPtr;
+extern Type	*typeSmingOctetStringPtr, *typeSmingObjectIdentifierPtr,
+		*typeSmingInteger32Ptr, *typeSmingUnsigned32Ptr,
+		*typeSmingInteger64Ptr, *typeSmingUnsigned64Ptr,
+		*typeSmingFloat32Ptr, *typeSmingFloat64Ptr,
+		*typeSmingFloat128Ptr,
+		*typeSmingEnumPtr, *typeSmingBitsPtr;
 
 extern Location	*firstLocationPtr, *lastLocationPtr;
 
@@ -405,11 +413,19 @@ extern void setObjectList(Object *objectPtr,
 extern void setObjectIndex(Object *objectPtr,
 			   Index *indexPtr);
 
+extern void setObjectFormat(Object *objectPtr,
+			    char *format);
+
+extern void setObjectUnits(Object *objectPtr,
+			   char *units);
+
 extern void setObjectValue(Object *objectPtr,
 			   SmiValue *valuePtr);
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);
+
+extern Node *findNodeByOidString(char *oid);
 
 extern Object *findObjectByNode(Node *nodePtr);
 
@@ -473,6 +489,12 @@ extern void addTypeFlags(Type *typePtr,
 
 extern void setTypeFormat(Type *typePtr,
 			  char *format);
+
+extern void setTypeUnits(Type *typePtr,
+			 char *units);
+
+extern void setTypeValue(Type *typePtr,
+			 SmiValue *valuePtr);
 
 
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.4 1999/04/06 16:23:23 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.5 1999/04/07 10:51:01 strauss Exp $
  */
 
 %{
@@ -58,10 +58,23 @@ extern int yylex(void *lvalp, Parser *parserPtr);
 
 
 
-static char *identifier;
-static Object *objectPtr;
- 
+static char *typeIdentifier, *nodeIdentifier,
+	    *scalarIdentifier, *tableIdentifier, *rowIdentifier,
+	    *columnIdentifier;
+static char *importModulename = NULL; 
+static Object *moduleObjectPtr = NULL;
+static Object *nodeObjectPtr = NULL;
+static Object *scalarObjectPtr = NULL;
+static Object *tableObjectPtr = NULL;
+static Object *rowObjectPtr = NULL;
+static Object *columnObjectPtr = NULL;
+static Object *notificationObjectPtr = NULL;
+static Object *groupObjectPtr = NULL;
+static Object *complianceObjectPtr = NULL;
+static Type *typePtr = NULL;
+static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
 
+ 
 
 %}
 
@@ -426,23 +439,72 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			}
 			sep lcIdentifier
 			{
-			    identifier = util_strdup($6);
+			    moduleObjectPtr = addObject($6,
+							pendingNodePtr, 0,
+							FLAG_INCOMPLETE,
+							thisParserPtr);
+			    setObjectDecl(moduleObjectPtr,
+					  SMI_DECL_MODULE);
+			    setModuleIdentityObject(
+				thisParserPtr->modulePtr, moduleObjectPtr);
 			}
 			optsep '{' stmtsep
 			importStatement_stmtsep_0n
 			oidStatement stmtsep
 			{
+			    /*
+			     * Note: Due to parsing imported modules
+			     * the contents of moduleObjectPtr got
+			     * invalid. Therefore, we created the
+			     * module identity object above as
+			     * incomplete, and now we add it's
+			     * registration information.
+			     */
+
 			    if ($12) {
-				objectPtr = addObject(identifier,
-						      $12->parentPtr,
-						      $12->subid,
-						      0, thisParserPtr);
+				moduleObjectPtr = addObject("",
+							    $12->parentPtr,
+							    $12->subid,
+							    0, thisParserPtr);
+				moduleObjectPtr =
+				    setObjectName(moduleObjectPtr,
+					       thisModulePtr->objectPtr->name);
+				setObjectDecl(moduleObjectPtr,
+					      SMI_DECL_MODULE);
+				deleteObjectFlags(moduleObjectPtr,
+					       FLAG_INCOMPLETE);
+				addObjectFlags(moduleObjectPtr,
+					       FLAG_REGISTERED);
+				setModuleIdentityObject(
+				    thisParserPtr->modulePtr, moduleObjectPtr);
 			    }
 			}
 			organizationStatement stmtsep
+			{
+			    if ($15) {
+				setModuleOrganization(thisParserPtr->modulePtr,
+						      $15);
+			    }
+			}
 			contactStatement stmtsep
+			{
+			    if ($18) {
+				setModuleContactInfo(thisParserPtr->modulePtr,
+						     $18);
+			    }
+			}
 			descriptionStatement stmtsep
+			{
+			    if (moduleObjectPtr && $21) {
+				setObjectDescription(moduleObjectPtr, $21);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (moduleObjectPtr && $24) {
+				setObjectReference(moduleObjectPtr, $24);
+			    }
+			}
 			revisionStatement_stmtsep_0n
 			typedefStatement_stmtsep_0n
 			anyObjectStatement_stmtsep_0n
@@ -452,6 +514,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			'}' optsep ';'
 			{
 			    $$ = thisModulePtr;
+			    moduleObjectPtr = NULL;
 			}
 	;
 
@@ -503,17 +566,63 @@ typedefStatement_stmtsep: typedefStatement stmtsep
 			}
         ;
 
-typedefStatement:	typedefKeyword sep ucIdentifier optsep '{' stmtsep
+typedefStatement:	typedefKeyword sep ucIdentifier
+			{
+			    typeIdentifier = util_strdup($3);
+			}
+			optsep '{' stmtsep
 			typedefTypeStatement stmtsep
+			{
+			    if ($8) {
+				typePtr = addType(typeIdentifier,
+						  $8->basetype,
+						  0, thisParserPtr);
+				setTypeDecl(typePtr, SMI_DECL_TYPEDEF);
+				defaultBasetype = $8->basetype;
+			    }
+			}
 			defaultStatement_stmtsep_01
+			{
+			    if (typePtr && $11) {
+				setTypeValue(typePtr, $11);
+			    }
+			}
 			formatStatement_stmtsep_01
+			{
+			    if (typePtr && $13) {
+				setTypeFormat(typePtr, $13);
+			    }
+			}
 			unitsStatement_stmtsep_01
+			{
+			    if (typePtr && $15) {
+				setTypeUnits(typePtr, $15);
+			    }
+			}
 			statusStatement_stmtsep_01
+			{
+			    if (typePtr && $17) {
+				setTypeStatus(typePtr, $17);
+			    }
+			}
 			descriptionStatement_stmtsep_01
+			{
+			    if (typePtr && $19) {
+				setTypeDescription(typePtr, $19);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (typePtr && $21) {
+				setTypeReference(typePtr, $21);
+			    }
+			}
 			'}' optsep ';'
 			{
 			    $$ = 0;
+			    typePtr = NULL;
+			    free(typeIdentifier);
+			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			}
 
 anyObjectStatement_stmtsep_0n: /* empty */
@@ -569,55 +678,219 @@ anyObjectStatement:	nodeStatement
 	|		tableStatement
 	;
 
-nodeStatement:		nodeKeyword sep lcIdentifier optsep '{' stmtsep
+nodeStatement:		nodeKeyword sep lcIdentifier
+			{
+			    nodeIdentifier = util_strdup($3);
+			}
+			optsep '{' stmtsep
 			oidStatement stmtsep
+			{
+			    if ($8) {
+				nodeObjectPtr = addObject(nodeIdentifier,
+							  $8->parentPtr,
+							  $8->subid,
+							  0, thisParserPtr);
+				setObjectDecl(nodeObjectPtr, SMI_DECL_NODE);
+			    }
+			}
+			statusStatement_stmtsep_01
+			{
+			    if (nodeObjectPtr) {
+				setObjectStatus(nodeObjectPtr, $11);
+			    }
+			}
 			descriptionStatement_stmtsep_01
+			{
+			    if (nodeObjectPtr && $13) {
+				setObjectDescription(nodeObjectPtr, $13);
+				/*
+				 * If the node has a description, it gets
+				 * registered. This is used to distinguish
+				 * between SMIv2 OBJECT-IDENTITY macros and
+				 * non-registering ASN.1 value assignments.
+				 */
+				addObjectFlags(nodeObjectPtr, FLAG_REGISTERED);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (nodeObjectPtr && $15) {
+				setObjectReference(nodeObjectPtr, $15);
+			    }
+			}
 			'}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = nodeObjectPtr;
+			    nodeObjectPtr = NULL;
+			    free(nodeIdentifier);
 			}
         ;
 
-scalarStatement:	scalarKeyword sep lcIdentifier optsep '{' stmtsep
+scalarStatement:	scalarKeyword sep lcIdentifier
+			{
+			    scalarIdentifier = util_strdup($3);
+			}
+			optsep '{' stmtsep
 			oidStatement stmtsep
+			{
+			    if ($8) {
+				scalarObjectPtr = addObject(scalarIdentifier,
+							    $8->parentPtr,
+							    $8->subid,
+							    0, thisParserPtr);
+				setObjectDecl(scalarObjectPtr,
+					      SMI_DECL_SCALAR);
+			    }
+			}
 			typeStatement stmtsep
+			{
+			    if (scalarObjectPtr && $11) {
+				setObjectType(scalarObjectPtr, $11);
+				defaultBasetype = $11->basetype;
+			    }
+			}
 			accessStatement stmtsep
+			{
+			    if (scalarObjectPtr) {
+				setObjectAccess(scalarObjectPtr, $14);
+			    }
+			}
 			defaultStatement_stmtsep_01
+			{
+			    if (scalarObjectPtr && $17) {
+				setObjectValue(scalarObjectPtr, $17);
+			    }
+			}
 			formatStatement_stmtsep_01
+			{
+			    if (scalarObjectPtr && $19) {
+				setObjectFormat(scalarObjectPtr, $19);
+			    }
+			}
 			unitsStatement_stmtsep_01
+			{
+			    if (scalarObjectPtr && $21) {
+				setObjectUnits(scalarObjectPtr, $21);
+			    }
+			}
 			statusStatement_stmtsep_01
+			{
+			    if (scalarObjectPtr) {
+				setObjectStatus(scalarObjectPtr, $23);
+			    }
+			}
 			descriptionStatement stmtsep
+			{
+			    if (scalarObjectPtr && $25) {
+				setObjectDescription(scalarObjectPtr, $25);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (scalarObjectPtr && $28) {
+				setObjectReference(scalarObjectPtr, $28);
+			    }
+			}
 			'}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = scalarObjectPtr;
+			    scalarObjectPtr = NULL;
+			    free(scalarIdentifier);
+			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			}
         ;
 
-tableStatement:		tableKeyword sep lcIdentifier optsep '{' stmtsep
+tableStatement:		tableKeyword sep lcIdentifier
+			{
+			    tableIdentifier = util_strdup($3);
+			}
+			optsep '{' stmtsep
 			oidStatement stmtsep
+			{
+			    if ($8) {
+				tableObjectPtr = addObject(tableIdentifier,
+							   $8->parentPtr,
+							   $8->subid,
+							   0, thisParserPtr);
+				setObjectDecl(tableObjectPtr,
+					      SMI_DECL_TABLE);
+			    }
+			}
 			statusStatement_stmtsep_01
+			{
+			    if (tableObjectPtr) {
+				setObjectStatus(tableObjectPtr, $11);
+			    }
+			}
 			descriptionStatement stmtsep
+			{
+			    if (tableObjectPtr && $13) {
+				setObjectDescription(tableObjectPtr, $13);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (tableObjectPtr && $16) {
+				setObjectReference(tableObjectPtr, $16);
+			    }
+			}
 			rowStatement stmtsep
 			'}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = tableObjectPtr;
+			    tableObjectPtr = NULL;
+			    free(tableIdentifier);
 			}
         ;
 
-rowStatement:		rowKeyword sep lcIdentifier optsep '{' stmtsep
+rowStatement:		rowKeyword sep lcIdentifier
+			{
+			    rowIdentifier = util_strdup($3);
+			}
+			optsep '{' stmtsep
 			oidStatement stmtsep
+			{
+			    if ($8) {
+				rowObjectPtr = addObject(rowIdentifier,
+							 $8->parentPtr,
+							 $8->subid,
+							 0, thisParserPtr);
+				setObjectDecl(rowObjectPtr,
+					      SMI_DECL_ROW);
+			    }
+			}
 			anyIndexStatement stmtsep
+			{
+			    ;
+			}
 			createStatement_stmtsep_01
+			{
+			    ;
+			}
 			statusStatement_stmtsep_01
+			{
+			    if (rowObjectPtr) {
+				setObjectStatus(rowObjectPtr, $16);
+			    }
+			}
 			descriptionStatement stmtsep
+			{
+			    if (rowObjectPtr && $18) {
+				setObjectDescription(rowObjectPtr, $18);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (rowObjectPtr && $21) {
+				setObjectReference(rowObjectPtr, $21);
+			    }
+			}
 			columnStatement_stmtsep_1n
 			'}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = rowObjectPtr;
+			    rowObjectPtr = NULL;
+			    free(rowIdentifier);
 			}
         ;
 
@@ -658,19 +931,77 @@ columnStatement_stmtsep: columnStatement stmtsep
 			}
         ;
 
-columnStatement:	columnKeyword sep lcIdentifier optsep '{' stmtsep
+columnStatement:	columnKeyword sep lcIdentifier
+			{
+			    columnIdentifier = util_strdup($3);
+			}
+			optsep '{' stmtsep
 			oidStatement stmtsep
+			{
+			    if ($8) {
+				columnObjectPtr = addObject(columnIdentifier,
+							    $8->parentPtr,
+							    $8->subid,
+							    0, thisParserPtr);
+				setObjectDecl(columnObjectPtr,
+					      SMI_DECL_COLUMN);
+			    }
+			}
 			typeStatement stmtsep
+			{
+			    if (columnObjectPtr && $11) {
+				setObjectType(columnObjectPtr, $11);
+				defaultBasetype = $11->basetype;
+			    }
+			}
 			accessStatement stmtsep
+			{
+			    if (columnObjectPtr) {
+				setObjectAccess(columnObjectPtr, $14);
+			    }
+			}
 			defaultStatement_stmtsep_01
+			{
+			    if (columnObjectPtr && $17) {
+				setObjectValue(columnObjectPtr, $17);
+			    }
+			}
 			formatStatement_stmtsep_01
+			{
+			    if (columnObjectPtr && $19) {
+				setObjectFormat(columnObjectPtr, $19);
+			    }
+			}
 			unitsStatement_stmtsep_01
+			{
+			    if (columnObjectPtr && $21) {
+				setObjectUnits(columnObjectPtr, $21);
+			    }
+			}
 			statusStatement_stmtsep_01
+			{
+			    if (columnObjectPtr) {
+				setObjectStatus(columnObjectPtr, $23);
+			    }
+			}
 			descriptionStatement stmtsep
+			{
+			    if (columnObjectPtr && $25) {
+				setObjectDescription(columnObjectPtr, $25);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (columnObjectPtr && $28) {
+				setObjectReference(columnObjectPtr, $28);
+			    }
+			}
 			'}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = columnObjectPtr;
+			    columnObjectPtr = NULL;
+			    free(columnIdentifier);
+			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			}
         ;
 
@@ -900,9 +1231,30 @@ importStatement_stmtsep: importStatement stmtsep
 			}
         ;
 
-importStatement:	importKeyword sep ucIdentifier optsep '(' optsep
-			identifierList optsep ')' optsep ';'
+importStatement:	importKeyword sep ucIdentifier
 			{
+			    importModulename = util_strdup($3);
+			}
+			optsep '(' optsep
+			identifierList
+			{
+			    List *listPtr, *nextPtr;
+			    
+			    for (listPtr = $8; listPtr; listPtr = nextPtr) {
+				addImport(listPtr->ptr, thisParserPtr);
+				thisParserPtr->modulePtr->
+				                      numImportedIdentifiers++;
+				nextPtr = listPtr->nextPtr;
+				free(listPtr);
+			    }
+			}
+			optsep ')' optsep ';'
+			{
+			    if (!findModuleByName(importModulename)) {
+				smiLoadModule(importModulename);
+			    }
+			    checkImports(importModulename, thisParserPtr);
+			    free(importModulename);
 			    $$ = NULL;
 			}
         ;
@@ -962,7 +1314,7 @@ revisionStatement:	revisionKeyword optsep '{' stmtsep
 
 typedefTypeStatement:	typeKeyword sep refinedBaseType optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = $3;
 			}
 	;
 
@@ -972,14 +1324,14 @@ typeStatement_stmtsep_01: /* empty */
 			}
         |		typeStatement stmtsep
 			{
-			    $$ = NULL;
+			    $$ = $1;
 			}
 	;
 
 typeStatement:		typeKeyword sep refinedBaseType_refinedType
 			optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = $3;
 			}
         ;
 
@@ -989,14 +1341,14 @@ writetypeStatement_stmtsep_01: /* empty */
 			}
         |	        writetypeStatement stmtsep
 			{
-			    $$ = NULL;
+			    $$ = $1;
 			}
 	;
 
 writetypeStatement:	writetypeKeyword sep refinedBaseType_refinedType
 			optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = $3;
 			}
         ;
 
@@ -1086,9 +1438,7 @@ createColumns:		'(' optsep qlcIdentifierList optsep ')'
 
 oidStatement:		oidKeyword sep objectIdentifier optsep ';'
 			{
-			    Node *nodePtr = NULL;
-			    
-			    $$ = nodePtr;
+			    $$ = $3;
 			}
         ;
 
@@ -1144,7 +1494,7 @@ unitsStatement:		unitsKeyword sep text optsep ';'
 
 statusStatement_stmtsep_01: /* empty */
 			{
-			    $$ = SMI_STATUS_UNKNOWN;
+			    $$ = SMI_STATUS_CURRENT;
 			}
         |               statusStatement stmtsep
 			{
@@ -1373,53 +1723,155 @@ refinedBaseType_refinedType: refinedBaseType
 
 refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingOctetStringPtr;
+			    } else {
+				$$ = duplicateType(typeSmingOctetStringPtr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingOctetStringPtr->name);
+				setTypeList($$, $2);
+			    }
 			}
         |		ObjectIdentifierKeyword
 			{
-			    $$ = NULL;
+			    $$ = typeSmingObjectIdentifierPtr;
 			}
 	|		Integer32Keyword optsep_numberSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingInteger32Ptr;
+			    } else {
+				$$ = duplicateType(typeSmingInteger32Ptr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingInteger32Ptr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		Unsigned32Keyword optsep_numberSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingUnsigned32Ptr;
+			    } else {
+				$$ = duplicateType(typeSmingUnsigned32Ptr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingUnsigned32Ptr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		Integer64Keyword optsep_numberSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingInteger64Ptr;
+			    } else {
+				$$ = duplicateType(typeSmingInteger64Ptr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingInteger64Ptr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		Unsigned64Keyword optsep_numberSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingUnsigned64Ptr;
+			    } else {
+				$$ = duplicateType(typeSmingUnsigned64Ptr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingUnsigned64Ptr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		Float32Keyword optsep_floatSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingFloat32Ptr;
+			    } else {
+				$$ = duplicateType(typeSmingFloat32Ptr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingFloat32Ptr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		Float64Keyword optsep_floatSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingFloat64Ptr;
+			    } else {
+				$$ = duplicateType(typeSmingFloat64Ptr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingFloat64Ptr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		Float128Keyword optsep_floatSpec_01
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingFloat128Ptr;
+			    } else {
+				$$ = duplicateType(typeSmingFloat128Ptr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingFloat128Ptr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		EnumerationKeyword bitsOrEnumerationSpec
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingEnumPtr;
+			    } else {
+				$$ = duplicateType(typeSmingEnumPtr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingEnumPtr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	|		BitsKeyword bitsOrEnumerationSpec
 			{
-			    $$ = NULL;
+			    if (!$2) {
+				$$ = typeSmingBitsPtr;
+			    } else {
+				$$ = duplicateType(typeSmingBitsPtr, 0,
+						   thisParserPtr);
+				setTypeParent($$,
+					      typeSmingBitsPtr->name);
+				setTypeList($$, $2);
+			    }
 			}
 	;
 
 refinedType:		qucIdentifier optsep_anySpec_01
 			{
-			    $$ = NULL;
+			    char s[SMI_MAX_FULLNAME];
+			    
+			    if (!strstr($1, SMI_NAMESPACE_OPERATOR)) {
+				typePtr =
+					 findTypeByModuleAndName(thisModulePtr,
+								 $1);
+			    } else {
+				typePtr = findTypeByModulenameAndName(
+					     smiModule($1), smiDescriptor($1));
+			    }
+
+			    if (typePtr && $2) {
+				sprintf(s, "%s%s%s",
+					typePtr->modulePtr->name,
+					SMI_NAMESPACE_OPERATOR,
+					typePtr->name);
+				typePtr = duplicateType(typePtr, 0,
+							thisParserPtr);
+				setTypeParent(typePtr, s);
+				setTypeList(typePtr, $2);
+			    }
+
+			    $$ = typePtr;
 			}
 	;
 
@@ -1973,30 +2425,147 @@ units:			textSegment
 			}
         ;
 
+/*
+ * The type of `anyValue' must be determined from the context. `anyValue'
+ * appears only in default value clauses. Hence, we set a global variable
+ * XXX in the object type declaring clause to remember the expected type.
+ * Here, we use this variable to build an SmiValue with the appropriate
+ * base type.
+ */
 anyValue:		bitsValue
 			{
-			    $$ = NULL;
+			    int i;
+			    List *listPtr, *nextPtr;
+			    
+			    if (defaultBasetype == SMI_BASETYPE_BITS) {
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_BITS;
+				$$->value.bits = NULL;
+				for (i = 0, listPtr = $1; listPtr;
+				     i++, listPtr = nextPtr) {
+				    nextPtr = listPtr->nextPtr;
+				    $$->value.bits =
+					util_realloc($$->value.bits,
+						     sizeof(char *) * (i+2));
+				    $$->value.bits[i] = listPtr->ptr;
+				    $$->value.bits[i+1] = NULL;
+				    free(listPtr);
+				}
+			    } else {
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_VALUETYPE);
+				$$ = NULL;
+			    }
 			}
-	|		negativeNumber
+	|		decimalNumber
 			{
-			    $$ = NULL;
+			    /* Note: might also be an OID or signed */
+			    switch (defaultBasetype) {
+			    case SMI_BASETYPE_UNSIGNED32:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_UNSIGNED32;
+				$$->value.unsigned32 = strtoul($1, NULL, 10);
+				break;
+			    case SMI_BASETYPE_UNSIGNED64:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_UNSIGNED64;
+				$$->value.unsigned64 = strtoull($1, NULL, 10);
+				break;
+			    case SMI_BASETYPE_INTEGER32:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_INTEGER32;
+				$$->value.integer32 = strtol($1, NULL, 10);
+				break;
+			    case SMI_BASETYPE_INTEGER64:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_INTEGER64;
+				$$->value.integer64 = strtoll($1, NULL, 10);
+				break;
+			    case SMI_BASETYPE_OBJECTIDENTIFIER:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
+				$$->value.oid = util_strdup($1);
+				break;
+			    default:
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_VALUETYPE);
+				$$ = NULL;
+				break;
+			    }
+			}
+	|		'-' decimalNumber
+			{
+			    switch (defaultBasetype) {
+			    case SMI_BASETYPE_INTEGER32:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_INTEGER32;
+				$$->value.integer32 = - strtoul($2, NULL, 10);
+				break;
+			    case SMI_BASETYPE_INTEGER64:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_INTEGER64;
+				$$->value.integer64 = - strtoull($2, NULL, 10);
+				break;
+			    default:
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_VALUETYPE);
+				$$ = NULL;
+				break;
+			    }
 			}
 	|		hexadecimalNumber
 			{
+			    /* TODO */
 			    $$ = NULL;
 			}
 	|		floatValue
 			{
+			    /* TODO */
+			    /* Note: might also be an OID */
 			    $$ = NULL;
 			}
 	|		text
 			{
+			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_OCTETSTRING;
+				$$->value.ptr = $1;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_VALUETYPE);
+				$$ = NULL;
+			    }
+			}
+	|		qlcIdentifier
+			{
+			    /* Note: might be an Enumeration item or OID */
+			    /* TODO: convert if it's an oid? */
+			    switch (defaultBasetype) {
+			    case SMI_BASETYPE_ENUM:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_ENUM;
+				$$->value.ptr = $1;
+				break;
+			    case SMI_BASETYPE_OBJECTIDENTIFIER:
+				$$ = util_malloc(sizeof(SmiValue));
+				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
+				$$->value.ptr = $1;
+				break;
+			    default:
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_VALUETYPE);
+				$$ = NULL;
+				break;
+			    }
+			}
+	|		qlcIdentifier dot_subid_1n
+			{
+			    /* TODO */
 			    $$ = NULL;
 			}
-	|		objectIdentifier
-			/* also label in case of enum */
-			/* also number */
+	|		subid '.' subid dot_subid_1n
 			{
+			    /* TODO */
 			    $$ = NULL;
 			}
 	;
@@ -2035,30 +2604,64 @@ access:			noaccessKeyword
 
 objectIdentifier:	qlcIdentifier_subid dot_subid_0127
 			{
-			    $$ = (Node *)NULL;
+			    char *oid = NULL;
+			    Node *nodePtr;
+
+			    if ($1 && $2) {
+				oid = util_malloc(strlen($1) + strlen($2) + 1);
+				strcpy(oid, $1);
+				strcat(oid, $2);
+				free($1);
+				free($2);
+			    } else if ($1) {
+				oid = util_malloc(strlen($1) + 1);
+				strcpy(oid, $1);
+				free($1);
+			    }
+			    
+			    if (oid) {
+				nodePtr = findNodeByOidString(oid);
+				if (!nodePtr) {
+				    nodePtr = createNodes(oid);
+				}
+				$$ = nodePtr;
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	;
 
 qlcIdentifier_subid:	qlcIdentifier
 			{
 			    SmiNode *smiNodePtr;
+			    Import *importPtr;
 			    
 			    if (strstr($1, SMI_NAMESPACE_OPERATOR)) {
-				smiNodePtr = smiGetNode($1, NULL);
+				smiNodePtr = smiGetNode($1, "");
 			    } else {
 				smiNodePtr = smiGetNode($1,
 							thisModulePtr->name);
+				if (!smiNodePtr) {
+				    importPtr =
+					findImportByName($1, thisModulePtr);
+				    if (importPtr) {
+					smiNodePtr =
+					    smiGetNode($1, importPtr->module);
+				    }
+				}
 			    }
 			    if (smiNodePtr) {
 				$$ = util_strdup(smiNodePtr->oid);
 				smiFreeNode(smiNodePtr);
 			    } else {
+				printError(thisParserPtr,
+					   ERR_UNKNOWN_OIDLABEL, $1);
 				$$ = NULL;
 			    }
 			}
         |		subid
 			{
-			    $$ = NULL;
+			    $$ = $1;
 			}
 	;
 
