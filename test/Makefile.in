@@ -109,7 +109,7 @@ TESTMIBTOPDIR = ../../mibs
 TESTMIBDIR = $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site:$(TESTMIBTOPDIR)/tubs
 TESTMIBS = SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
-TESTS = smilint-smiv2.test 			  smidump-smiv1.test 			  smidump-smiv2.test 			  smidump-sming.test 			  smidump-mosy.test 			  smidump-tree.test 			  smidump-types.test 			  smidump-imports.test 			  smidump-corba.test 			  smidump-jax.test 			  smidump-orig-smiv2.test 			  smidump-smiv2-smiv2.test 			  parser.test
+TESTS = smilint-smiv2.test 			  smidump-smiv1.test 			  smidump-smiv2.test 			  smidump-sming.test 			  smidump-mosy.test 			  smidump-tree.test 			  smidump-types.test 			  smidump-imports.test 			  smidump-identifiers.test 			  smidump-metrics.test 			  smidump-xml.test 			  smidump-python.test 			  smidump-cm.test 			  smidump-corba.test 			  smidump-jax.test 			  smidump-netsnmp.test 			  smidump-orig-smiv2.test 			  smidump-smiv2-smiv2.test 			  parser.test
 
 
 TESTS_ENVIRONMENT = SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
@@ -120,15 +120,18 @@ SUBDIRS = mibs dumps
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES =  parser.test smidump-corba.test smidump-jax.test \
-smidump-imports.test smidump-mosy.test smidump-orig-smiv2.test \
-smidump-sming.test smidump-smiv1.test smidump-smiv2-smiv2.test \
-smidump-smiv2.test smidump-tree.test smidump-types.test \
-smilint-smiv2.test
-DIST_COMMON =  Makefile.am Makefile.in parser.test.in \
-smidump-corba.test.in smidump-imports.test.in smidump-jax.test.in \
-smidump-mosy.test.in smidump-orig-smiv2.test.in smidump-sming.test.in \
-smidump-smiv1.test.in smidump-smiv2-smiv2.test.in smidump-smiv2.test.in \
-smidump-tree.test.in smidump-types.test.in smilint-smiv2.test.in
+smidump-netsnmp.test smidump-imports.test smidump-mosy.test \
+smidump-orig-smiv2.test smidump-sming.test smidump-smiv1.test \
+smidump-smiv2-smiv2.test smidump-smiv2.test smidump-tree.test \
+smidump-types.test smidump-identifiers.test smidump-metrics.test \
+smidump-xml.test smidump-cm.test smidump-python.test smilint-smiv2.test
+DIST_COMMON =  Makefile.am Makefile.in parser.test.in smidump-cm.test.in \
+smidump-corba.test.in smidump-identifiers.test.in \
+smidump-imports.test.in smidump-jax.test.in smidump-metrics.test.in \
+smidump-mosy.test.in smidump-netsnmp.test.in smidump-orig-smiv2.test.in \
+smidump-python.test.in smidump-sming.test.in smidump-smiv1.test.in \
+smidump-smiv2-smiv2.test.in smidump-smiv2.test.in smidump-tree.test.in \
+smidump-types.test.in smidump-xml.test.in smilint-smiv2.test.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -150,6 +153,8 @@ smidump-corba.test: $(top_builddir)/config.status smidump-corba.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smidump-jax.test: $(top_builddir)/config.status smidump-jax.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-netsnmp.test: $(top_builddir)/config.status smidump-netsnmp.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smidump-imports.test: $(top_builddir)/config.status smidump-imports.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smidump-mosy.test: $(top_builddir)/config.status smidump-mosy.test.in
@@ -167,6 +172,16 @@ smidump-smiv2.test: $(top_builddir)/config.status smidump-smiv2.test.in
 smidump-tree.test: $(top_builddir)/config.status smidump-tree.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smidump-types.test: $(top_builddir)/config.status smidump-types.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-identifiers.test: $(top_builddir)/config.status smidump-identifiers.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-metrics.test: $(top_builddir)/config.status smidump-metrics.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-xml.test: $(top_builddir)/config.status smidump-xml.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-cm.test: $(top_builddir)/config.status smidump-cm.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-python.test: $(top_builddir)/config.status smidump-python.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smilint-smiv2.test: $(top_builddir)/config.status smilint-smiv2.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
@@ -389,10 +404,10 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 clean-local:
 	rm -rf *.out
 
-sync-dumps:
-	for f in *.out/*.corba-idl *.out/*.corba-oid *.out/*.imports *.out/*.mosy *.out/*.sming *.out/*.smiv1 *.out/*.smiv2 *.out/*.diff *.out/*.smiv2.lint *.out/*.tree *.out/*.types ; do \
-	    cmp -s $$f dumps/`basename $$f` || cp $$f dumps/`basename $$f` ; \
-	done
+#sync-dumps:
+#	for f in *.out/*.corba-idl *.out/*.corba-oid *.out/*.imports *.out/*.mosy *.out/*.sming *.out/*.smiv1 *.out/*.smiv2 *.out/*.diff *.out/*.smiv2.lint *.out/*.tree *.out/*.types ; do \
+#	    cmp -s $$f dumps/`basename $$f` || cp $$f dumps/`basename $$f` ; \
+#	done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

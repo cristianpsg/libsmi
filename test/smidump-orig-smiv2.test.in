@@ -63,8 +63,11 @@ for mib in ${TESTMIBS} ; do
     ../../tools/smidump -f ${OUTFORMAT} $input > $mib 2>/dev/null
     if [ ! -s $mib ] ; then
 	rm $mib
+	FILES=""
+    else
+	FILES="$mib"
     fi
-    FILES=`ls -1 | grep -v '\.diff'`
+    FILES="$FILES "`ls -1 | grep -v '\.diff' | grep '\.'`
     cd ..
     for file in $FILES ; do
 	if [ "$INFORMAT" != "orig" ] ; then
@@ -80,8 +83,9 @@ for mib in ${TESTMIBS} ; do
 	else
 	    FAILED=1
 	fi
+        echo "cp ${ACTUALDIR}/$file ${NOMINALDIR}/$file" >> sync-dumps
     done
-    rm -f ${ACTUALDIR}/*.orig ${ACTUALDIR}/*.out ${ACTUALDIR}/$mib
+    rm -f ${ACTUALDIR}/*.orig ${ACTUALDIR}/*.out
 done
 
 if [ "$FAILED" ] ; then
