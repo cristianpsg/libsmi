@@ -8,15 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.5 2000/02/16 21:14:51 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.6 2002/12/22 16:20:06 strauss Exp $
 #
 
 EXTRA_DIST		= draft-irtf-nmrg-sming-02.txt \
-			  draft-irtf-nmrg-smi-xml-00.txt \
-			  ibrpib-assignments.txt smi.dia smi.dtd
+			  draft-irtf-nmrg-smi-xml-00.txt smi.dtd \
+			  draft-irtf-nmrg-smi-xml-01.txt smi.xsd \
+			  ibrpib-assignments.txt smi.dia
 
-smi.gif: smi.eps
-	epsffit -sc 0 0 600 600 smi.eps smi.eps.tmp
-	ps2gif smi.eps.tmp smi.gif.tmp
-	giftopnm smi.gif.tmp | pnmcrop | ppmtogif > smi.gif
-	rm smi.eps.tmp smi.gif.tmp
