@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.74 2000/02/28 16:36:10 strauss Exp $
+ * @(#) $Id: data.c,v 1.75 2000/03/02 09:22:29 strauss Exp $
  */
 
 #include <config.h>
@@ -636,6 +636,9 @@ findImportByName(name, modulePtr)
 {
     Import           *importPtr;
 
+    if (!name)
+	return NULL;
+    
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
 	if (!strcmp(importPtr->export.name, name)) {
@@ -643,7 +646,7 @@ findImportByName(name, modulePtr)
 	}
     }
 
-    return (NULL);
+    return NULL;
     
 }
 
