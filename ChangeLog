@@ -1,3 +1,8 @@
+2000-01-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Added TRAP-TYPE handling. Changed
+	ExtUTCTime handling.
+
 2000-01-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: added revision by LAST-UPDATED clause for

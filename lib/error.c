@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.29 1999/12/22 16:03:33 strauss Exp $
+ * @(#) $Id: error.c,v 1.30 2000/01/03 17:07:40 strauss Exp $
  */
 
 #include <string.h>
@@ -227,6 +227,8 @@ Error errors[] = {
       "Date specification `%s' has an illegal length" },
     { 2, ERR_DATE_VALUE, "date-value", 
       "Date specification `%s' contains an illegal value" },
+    { 5, ERR_DATE_YEAR_2DIGITS, "date-year-2digits", 
+      "Date specification `%s' contains a two-digit year representing `%d'" },
     { 2, ERR_DATE_YEAR, "date-year", 
       "Date specification `%s' contains an illegal year" },
     { 2, ERR_DATE_MONTH, "date-month", 

@@ -81,3 +81,5 @@ o currently, make check passes only after make install
 o Web online conversion to SMIng?
 
 o make check: parse every mib once
+
+o handle TRAP-TYPE correctly (->NOTIFICATION-TYPE instead of ignore)
