@@ -8,13 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.30 2002/05/17 12:23:17 strauss Exp $
+ * @(#) $Id: util.c,v 1.31 2002/07/23 11:48:14 strauss Exp $
  */
 
 #include <config.h>
 
-#include <stdlib.h>
+#include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 

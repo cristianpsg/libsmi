@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.111 2002/07/17 10:32:14 bunkus Exp $
+ * @(#) $Id: smi.c,v 1.112 2002/07/23 11:48:14 strauss Exp $
  */
 
 #include <config.h>
@@ -470,64 +470,6 @@ int smiGetFlags()
     
     return smiHandle->flags & SMI_FLAG_MASK;
 }
-
-
-
-#if 0
-char *smiModule(char *fullname)
-{
-    int	 len;
-    char *module;
-
-    if (!fullname) {
-	return NULL;
-    }
-
-    if (islower((int)fullname[0])) {
-	return NULL;
-    }
-    
-    len = strcspn(fullname, "!.");
-    len = MIN(len, strcspn(fullname, "::"));
-    module = smiStrndup(fullname, len);
-
-    return module;
-}
-
-
-
-char *smiDescriptor(char *fullname)
-{
-    char *p, *name;
-
-    if (!fullname) {
-	return NULL;
-    }
-    
-    p = strstr(fullname, "::");
-    if (p) {
-	name = strdup(&p[2]);
-    } else {
-	p = strchr(fullname, '!');
-	if (p) {
-	    name = strdup(&p[1]);
-	} else {
-	    if (!isupper((int)fullname[0])) {
-		name = strdup(fullname);
-	    } else {
-		p = strchr(fullname, '.');
-		if (p) {
-		    name = strdup(&p[1]);
-		} else {
-		    name = strdup(fullname);
-		}
-	    }
-	}
-    }
-	 
-    return name;
-}
-#endif
 
 
 
@@ -1497,3 +1439,430 @@ SmiElement *smiGetFirstUniquenessElement(SmiNode *smiNodePtr)
 
 
 
+char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
+{
+    SmiNode *nodePtr;
+    SmiModule *modulePtr = NULL;
+    unsigned int i = 0;
+    char *ss, *s = NULL;
+
+    if (flags & (SMI_RENDER_NAME | SMI_RENDER_QUALIFIED)) {
+	nodePtr = smiGetNodeByOID(oidlen, oid);
+	if (nodePtr) {
+	    i = nodePtr->oidlen;
+	    if (flags & SMI_RENDER_QUALIFIED) {
+		modulePtr = smiGetNodeModule(nodePtr);
+	    }
+	    if (modulePtr) {
+		asprintf(&s, "%s::%s",
+			 modulePtr->name, nodePtr->name);
+	    } else {
+		asprintf(&s, "%s", nodePtr->name);
+	    }
+	}
+    }
+
+    for (; i < oidlen; i++) {
+	ss = s;
+	asprintf(&s, "%s%s%u", ss ? ss : "", i ? "." : "", oid[i]);
+	smiFree(ss);
+    }
+
+    return s;
+}
+
+char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
+{
+    int i, j;
+    SmiNamedNumber *nn;
+    char *s, *ss;
+    char f[8];
+    SmiUnsigned32 v32;
+    SmiUnsigned64 v64;
+    
+    switch (smiValuePtr->basetype) {
+    case SMI_BASETYPE_UNSIGNED32:
+	if (!(flags & SMI_RENDER_FORMAT) ||
+	    !smiTypePtr || !smiTypePtr->format ||
+	    !strlen(smiTypePtr->format) || smiTypePtr->format[0] == 'd') {
+	    if (smiTypePtr->format && (strlen(smiTypePtr->format) >= 3) &&
+		(smiTypePtr->format[1] == '-')) {
+		i = atoi(&smiTypePtr->format[2]);
+		if (i < 0) i = 0;
+		if (i > 20) i = 20;
+		asprintf(&s, "%0*lu.",
+			 1 + i,
+			 smiValuePtr->value.unsigned32);
+		if (s) {
+		    for (j = strlen(s) - 1; i > 0; i--, j--) {
+			s[j] = s[j-1];
+		    }
+		    s[j] = '.';
+		}
+	    } else {
+		asprintf(&s, "%lu", smiValuePtr->value.unsigned32);
+	    }
+	} else if (smiTypePtr->format[0] == 'x') {
+	    asprintf(&s, "%lx", smiValuePtr->value.unsigned32);
+	} else if (smiTypePtr->format[0] == 'o') {
+	    asprintf(&s, "%lo", smiValuePtr->value.unsigned32);
+	} else if (smiTypePtr->format[0] == 'b') {
+	    for (i = 32 - 1;
+		 i > 0 && !(smiValuePtr->value.unsigned32 & (1 << i)); i--);
+	    s = smiMalloc(i + 1 + 1);
+	    if (s) {
+		for (j = 0; i >= 0; i--, j++) {
+		    s[j] = smiValuePtr->value.unsigned32 & (1<<i) ? '1' : '0';
+		}
+		s[j] = 0;
+	    }
+	}
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	if (!(flags & SMI_RENDER_FORMAT) ||
+	    !smiTypePtr || !smiTypePtr->format ||
+	    !strlen(smiTypePtr->format) || smiTypePtr->format[0] == 'd') {
+	    if (smiTypePtr->format && (strlen(smiTypePtr->format) >= 3) &&
+		(smiTypePtr->format[1] == '-')) {
+		i = atoi(&smiTypePtr->format[2]);
+		if (i < 0) i = 0;
+		if (i > 20) i = 20;
+		sprintf(f, "%%0%s.", UINT64_FORMAT);
+		f[2] = '*';
+		asprintf(&s, f,
+			 1 + i,
+			 smiValuePtr->value.unsigned64);
+		if (s) {
+		    for (j = strlen(s) - 1; i > 0; i--, j--) {
+			s[j] = s[j-1];
+		    }
+		    s[j] = '.';
+		}
+	    } else {
+		asprintf(&s, UINT64_FORMAT, smiValuePtr->value.unsigned64);
+	    }
+	} else if (smiTypePtr->format[0] == 'x') {
+	    strcpy(f, UINT64_FORMAT);
+	    f[strlen(f)-1] = 'x';
+	    asprintf(&s, f, smiValuePtr->value.unsigned64);
+	} else if (smiTypePtr->format[0] == 'o') {
+	    strcpy(f, UINT64_FORMAT);
+	    f[strlen(f)-1] = 'o';
+	    asprintf(&s, f, smiValuePtr->value.unsigned64);
+	} else if (smiTypePtr->format[0] == 'b') {
+	    for (i = 64 - 1;
+		 i > 0 && !(smiValuePtr->value.unsigned64 & (1 << i)); i--);
+	    s = smiMalloc(i + 1 + 1);
+	    if (s) {
+		for (j = 0; i >= 0; i--, j++) {
+		    s[j] = smiValuePtr->value.unsigned64 & (1<<i) ? '1' : '0';
+		}
+		s[j] = 0;
+	    }
+	}
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	if (!(flags & SMI_RENDER_FORMAT) ||
+	    !smiTypePtr || !smiTypePtr->format ||
+	    !strlen(smiTypePtr->format) || smiTypePtr->format[0] == 'd') {
+	    if (smiTypePtr->format && (strlen(smiTypePtr->format) >= 3) &&
+		(smiTypePtr->format[1] == '-')) {
+		i = atoi(&smiTypePtr->format[2]);
+		if (i < 0) i = 0;
+		if (i > 20) i = 20;
+		asprintf(&s, "%0*ld.",
+			 1 + i + (smiValuePtr->value.integer32 < 0 ? 1 : 0),
+			 smiValuePtr->value.integer32);
+		if (s) {
+		    for (j = strlen(s) - 1; i > 0; i--, j--) {
+			s[j] = s[j-1];
+		    }
+		    s[j] = '.';
+		}
+	    } else {
+		asprintf(&s, "%ld", smiValuePtr->value.integer32);
+	    }
+	} else if (smiTypePtr->format[0] == 'x') {
+	    if (smiValuePtr->value.integer32 >= 0) {
+		asprintf(&s, "%lx", smiValuePtr->value.integer32);
+	    } else {
+		asprintf(&s, "-%lx", - smiValuePtr->value.integer32);
+	    }
+	} else if (smiTypePtr->format[0] == 'o') {
+	    if (smiValuePtr->value.integer32 >= 0) {
+		asprintf(&s, "%lo", smiValuePtr->value.integer32);
+	    } else {
+		asprintf(&s, "-%lo", - smiValuePtr->value.integer32);
+	    }
+	} else if (smiTypePtr->format[0] == 'b') {
+	    if (smiValuePtr->value.integer32 >= 0) {
+		v32 = smiValuePtr->value.integer32;
+		j = 0;
+	    } else {
+		v32 = - smiValuePtr->value.integer32;
+		j = 1;
+	    }
+	    for (i = 32 - 1;
+		 i > 0 && !(v32 & (1 << i)); i--);
+	    s = smiMalloc(i + j + 1 + 1);
+	    if (s) {
+		s[0] = '-';
+		for (; i >= 0; i--, j++) {
+		    s[j] = v32 & (1<<i) ? '1' : '0';
+		}
+		s[j] = 0;
+	    }
+	}
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	if (!(flags & SMI_RENDER_FORMAT) ||
+	    !smiTypePtr || !smiTypePtr->format ||
+	    !strlen(smiTypePtr->format) || smiTypePtr->format[0] == 'd') {
+	    if (smiTypePtr->format && (strlen(smiTypePtr->format) >= 3) &&
+		(smiTypePtr->format[1] == '-')) {
+		i = atoi(&smiTypePtr->format[2]);
+		if (i < 0) i = 0;
+		if (i > 20) i = 20;
+		sprintf(f, "%%0%s.", INT64_FORMAT);
+		f[2] = '*';
+		asprintf(&s, f,
+			 1 + i + (smiValuePtr->value.integer64 < 0 ? 1 : 0),
+			 smiValuePtr->value.integer64);
+		if (s) {
+		    for (j = strlen(s) - 1; i > 0; i--, j--) {
+			s[j] = s[j-1];
+		    }
+		    s[j] = '.';
+		}
+	    } else {
+		asprintf(&s, INT64_FORMAT, smiValuePtr->value.integer64);
+	    }
+	} else if (smiTypePtr->format[0] == 'x') {
+	    if (smiValuePtr->value.integer64 >= 0) {
+		strcpy(f, UINT64_FORMAT);
+		f[strlen(f)-1] = 'x';
+		asprintf(&s, f, smiValuePtr->value.integer64);
+	    } else {
+		sprintf(f, "-%s", UINT64_FORMAT);
+		f[strlen(f)-1] = 'x';
+		asprintf(&s, f, - smiValuePtr->value.integer64);
+	    }
+	} else if (smiTypePtr->format[0] == 'o') {
+	    if (smiValuePtr->value.integer64 >= 0) {
+		strcpy(f, UINT64_FORMAT);
+		sprintf(f, "-%s", UINT64_FORMAT);
+		f[strlen(f)-1] = 'o';
+		asprintf(&s, f, smiValuePtr->value.integer64);
+	    } else {
+		asprintf(&s, f, - smiValuePtr->value.integer64);
+	    }
+	} else if (smiTypePtr->format[0] == 'b') {
+	    if (smiValuePtr->value.integer64 >= 0) {
+		v64 = smiValuePtr->value.integer64;
+		j = 0;
+	    } else {
+		v64 = - smiValuePtr->value.integer64;
+		j = 1;
+	    }
+	    for (i = 64 - 1;
+		 i > 0 && !(v64 & (1 << i)); i--);
+	    s = smiMalloc(i + j + 1 + 1);
+	    if (s) {
+		s[0] = '-';
+		for (; i >= 0; i--, j++) {
+		    s[j] = v64 & (1<<i) ? '1' : '0';
+		}
+		s[j] = 0;
+	    }
+	}
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	s = smiRenderOID(smiValuePtr->len, smiValuePtr->value.oid, flags);
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+	asprintf(&s, "\"%s\"", smiValuePtr->value.ptr);
+	break;
+#if 0 // XXX TODO grabbed from scotty...
+{
+    int i = 0, len, pfx, have_pfx;			/* counter prefix */
+    char *last_fmt;			/* save ptr to last seen fmt */
+    char *bytes;
+    Tcl_Obj *objPtr;
+
+    /* 
+     * Perform some sanity checks and get the octets to be formatted.
+     */
+
+    bytes = TnmGetOctetStringFromObj(NULL, val, &len);
+    if (! fmt || ! bytes) {
+	return NULL;
+    }
+
+    if (strcmp(fmt, "1x:") == 0) {
+	Tcl_InvalidateStringRep(val);
+	return NULL;
+    }
+
+    objPtr = Tcl_NewStringObj(NULL, 0);
+
+    while (*fmt && i < len) {
+
+        last_fmt = fmt;		/* save for loops */
+
+	have_pfx = pfx = 0;	/* scan prefix: */
+	while (*fmt && isdigit((int) *fmt)) {
+	    pfx = pfx * 10 + *fmt - '0', have_pfx = 1, fmt++;
+	}
+	if (! have_pfx) {
+	    pfx = 1;
+	}
+
+	switch (*fmt) {
+	case 'a': {
+	    int k, n;
+	    n = (pfx < (len-i)) ? pfx : len-i;
+	    for (k = i; k < n; k++) {
+		if (! isascii((int) bytes[k])) {
+		    Tcl_DecrRefCount(objPtr);
+		    return NULL;
+		}
+	    }
+	    Tcl_AppendToObj(objPtr, bytes+i, n);
+	    i += n;
+	    break;
+	}
+	case 't': {
+	    /* XXX */
+	    Tcl_DecrRefCount(objPtr);
+	    return NULL;
+	}
+	case 'b':
+	case 'd':
+	case 'o':
+	case 'x': {
+
+	    char buf[80];
+	    long vv = 0;
+	    int xlen = pfx * 2;
+
+	    /* collect octets to format */
+	    
+	    while (pfx > 0 && i < len) {
+		vv = vv * 256 + (bytes[i] & 0xff);
+		i++;
+		pfx--;
+	    }
+	    
+	    switch (*fmt) {
+	    case 'd':
+	        sprintf(buf, "%ld", vv);
+		break;
+	    case 'o':
+		sprintf(buf, "%lo", vv);
+		break;
+	    case 'x':
+		sprintf(buf, "%.*lX", xlen, vv);
+		break;
+	    case 'b': {
+	        int i, j; 
+		for (i = (sizeof(int) * 8 - 1); i >= 0
+			 && ! (vv & (1 << i)); i--);
+		for (j = 0; i >= 0; i--, j++) {
+		    buf[j] = vv & (1 << i) ? '1' : '0';
+		}
+		buf[j] = 0;
+		break;
+	    }
+	    }
+	    Tcl_AppendToObj(objPtr, buf, (int) strlen(buf));
+	    break;
+	}
+	default:
+	    Tcl_DecrRefCount(objPtr);
+	    return NULL;
+	}
+	fmt++;
+
+	/*
+	 * Check for a separator and repeat with last format if
+	 * data is still available.
+	 */
+
+	if (*fmt && ! isdigit((int) *fmt) && *fmt != '*') {
+	    if (i < len) {
+		Tcl_AppendToObj(objPtr, fmt, 1);
+	    }
+	    fmt++;
+	}
+
+	if (! *fmt && (i < len)) {
+	    fmt = last_fmt;
+	}
+    }
+
+    return objPtr;
+}
+#endif
+    case SMI_BASETYPE_ENUM:
+	if (flags & SMI_RENDER_NAME) {
+	    for (nn = smiGetFirstNamedNumber(smiTypePtr); nn;
+		 nn = smiGetNextNamedNumber(nn)) {
+		if (nn->value.value.integer32 == smiValuePtr->value.integer32)
+		    break;
+	    }
+	    if (nn) {
+		if (flags & SMI_RENDER_NUMERIC) {
+		    asprintf(&s, "%s(%ld)",
+			     nn->name, nn->value.value.integer32);
+		} else {
+		    asprintf(&s, "%s", nn->name);
+		}
+	    } else {
+		asprintf(&s, "%ld", smiValuePtr->value.integer32);
+	    }
+	} else {
+	    asprintf(&s, "%ld", smiValuePtr->value.integer32);
+	}
+	break;
+    case SMI_BASETYPE_BITS:
+	asprintf(&s, "");
+	for (i = 0, nn = NULL; i < smiValuePtr->len * 8; i++) {
+	    if (smiValuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
+		if (flags & SMI_RENDER_NAME) {
+		    for (nn = smiGetFirstNamedNumber(smiTypePtr); nn;
+			 nn = smiGetNextNamedNumber(nn)) {
+			if (nn->value.value.unsigned32 == i)
+			    break;
+		    }
+		}
+		ss = s;
+		if ((flags & SMI_RENDER_NAME) &&
+		    (flags & SMI_RENDER_NUMERIC) && nn) {
+		    asprintf(&s, "%s%s%s(%d)",
+			     ss, strlen(ss) ? " " : "", nn->name, i);
+		} else if (nn) {
+		    asprintf(&s, "%s%s%s",
+			     ss, strlen(ss) ? " " : "", nn->name);
+		} else {
+		    asprintf(&s, "%s%s%d",
+			     ss, strlen(ss) ? " " : "", i);
+		}
+		smiFree(ss);
+	    }
+	}
+	break;
+    case SMI_BASETYPE_FLOAT32:
+    case SMI_BASETYPE_FLOAT64:
+    case SMI_BASETYPE_FLOAT128:
+	s = NULL;
+	break;
+    case SMI_BASETYPE_UNKNOWN:
+	s = NULL;
+	break;
+    default:
+	s = NULL;
+	break;
+    }
+
+    return s;
+}
