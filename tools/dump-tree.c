@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.5 2000/02/08 21:39:23 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.6 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -76,7 +76,7 @@ static char *getTypeName(SmiNode *smiNode)
 
     smiType = smiGetNodeType(smiNode);
 
-    if (!smiType)
+    if (!smiType || smiNode->nodekind == SMI_NODEKIND_TABLE)
 	return NULL;
     
     if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
@@ -254,10 +254,12 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		type = smiGetNodeType(childNode);
 		if (type) {
 		    typename = getTypeName(childNode);
-		    if (strlen(typename) > newtypefieldlen) {
-			newtypefieldlen = strlen(typename);
+		    if (typename) {
+			if (strlen(typename) > newtypefieldlen) {
+			    newtypefieldlen = strlen(typename);
+			}
+			xfree(typename);
 		    }
-		    xfree(typename);
 		}
 		cnt++;
 	    }
