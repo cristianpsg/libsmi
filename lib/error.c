@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.92 2002/05/17 13:08:35 schoenw Exp $
+ * @(#) $Id: error.c,v 1.93 2002/05/31 17:22:13 bunkus Exp $
  */
 
 #include <config.h>
@@ -113,9 +113,9 @@ static Error errors[] = {
     { 2, ERR_NO_MODULE_IDENTITY, "module-identity-missing",
       "missing MODULE-IDENTITY clause in SMIv2 MIB" },
     { 2, ERR_OID_DEFVAL_TOO_LONG_SMIV2, "default-too-long-smiv2",
-      "OBJECT IDENTIFIER default values must be expressed as a single identifier" },
+      "object identifier default values must be expressed as a single identifier" },
     { 4, ERR_OID_DEFVAL_TOO_LONG_SMIV1, "default-too-long-smiv1",
-      "OBJECT IDENTIFIER default values in form of sub-identifier sequences are not implemented" },
+      "object identifier default values in form of sub-identifier sequences are not implemented" },
     { 2, ERR_INVALID_SMIV1_ACCESS, "access-invalid-smiv1", 
       "invalid access `%s' in SMIv1 MIB" },
     { 2, ERR_INVALID_SMIV2_ACCESS, "access-invalid-smiv2",
@@ -149,7 +149,7 @@ static Error errors[] = {
     { 2, ERR_INVALID_CAPABILITIES_STATUS, "status-invalid-capabilities", 
       "invalid STATUS `%s' in AGENT-CAPABILITIES macro" },
     { 5, ERR_OIDNAME_INCLUDES_HYPHEN, "hyphen-in-object",
-      "object Identifier name `%s' should not include hyphens in SMIv2 MIB" },
+      "object identifier name `%s' should not include hyphens in SMIv2 MIB" },
     { 2, ERR_ILLEGAL_CHAR_IN_STRING, "char-illegal-string", 
       "illegal character `%c' (0x%2x) in quoted string" },
     { 2, ERR_BIN_STRING_MUL8, "", 
@@ -379,11 +379,11 @@ static Error errors[] = {
     { 2, ERR_UNDERSCORE_IN_IDENTIFIER, "underscore-in-identifier",
       "identifier `%s' must not contain an underscore" },
     { 6, ERR_OID_REUSE, "oid-reuse",
-      "identifier `%s' reuses OID assigned to identifier `%s'" },
+      "identifier `%s' reuses object identifier assigned to identifier `%s'" },
     { 1, ERR_OID_REGISTERED, "oid-registered",
-      "identifier `%s' registers OID already registered as identifier `%s'" },
+      "identifier `%s' registers object identifier already registered by `%s'" },
     { 1, ERR_OID_RECURSIVE, "oid-recursive",
-      "identifier `%s' defined recursively or OID too long" },
+      "object identifier `%s' defined recursively or too long" },
     { 6, ERR_COMMENT_TERMINATES, "comment-terminates",
       "note, -- terminates a comment" },
     { 6, ERR_OBSOLETE_IMPORT, "obsolete-import",
@@ -551,9 +551,11 @@ static Error errors[] = {
     { 2, ERR_PIB_TAG_TYPE, "pib-tag-type",
       "a PIB-TAG must point to an object with a SYNTAX of `TagId'" },
     { 3, ERR_ATTRIBUTE_NOT_IN_GROUP, "attribute-not-in-group",
-      "this attribute is not a member of an OBJECT-GROUP" },
+      "attribute `%s' must be contained in at least one conformance group" },
     { 0, ERR_OBJECTPTR_ELEMENT_IN_USE, "objectptr-element-in-use",
       "objectPtr->%s is already in use (%s)" },
+    { 1, ERR_OID_ADMIN_ZERO, "",
+      "last subidentifier assigned to `%s' may not be zero" },
     { 0, 0, NULL, NULL }
 };
 

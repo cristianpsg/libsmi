@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.173 2002/05/17 12:23:17 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.174 2002/05/31 17:22:13 bunkus Exp $
  */
 
 %{
@@ -610,6 +610,15 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    }
 	    objectPtr->export.oidlen = objectPtr->nodePtr->oidlen;
 	    objectPtr->export.oid = objectPtr->nodePtr->oid;
+	}
+
+	if (objectPtr->export.nodekind != SMI_NODEKIND_NODE
+	    && objectPtr->export.name
+	    && objectPtr->export.oid[objectPtr->export.oidlen-1] == 0
+	    && objectPtr->export.oidlen != 2 && objectPtr->export.oid[0] != 0) {
+	    smiPrintErrorAtLine(parserPtr, ERR_OID_ADMIN_ZERO,
+				objectPtr->line,
+				objectPtr->export.name);
 	}
 
 	/*
