@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.52 2003/11/18 12:56:04 schoenw Exp $
+ * @(#) $Id: check.c,v 1.53 2003/12/09 14:53:04 strauss Exp $
  */
 
 #include <config.h>
@@ -1786,8 +1786,22 @@ smiCheckGroupMembers(Parser *parser, Object *group)
 	    || memberPtr->export.nodekind == SMI_NODEKIND_NOTIFICATION) {
 	    if (memberPtr->export.nodekind == SMI_NODEKIND_NOTIFICATION) {
 		notifications++;
+		if (group->export.decl == SMI_DECL_OBJECTGROUP) {
+		    smiPrintErrorAtLine(parser,
+					ERR_NOTIFICATION_IN_OBJECT_GROUP,
+					group->line,
+					group->export.name,
+					memberPtr->export.name);
+		}
 	    } else {
 		scalarsOrColumns++;
+		if (group->export.decl == SMI_DECL_NOTIFICATIONGROUP) {
+		    smiPrintErrorAtLine(parser,
+					ERR_OBJECT_IN_NOTIFICATION_GROUP,
+					group->line,
+					group->export.name,
+					memberPtr->export.name);
+		}
 	    }
 	    addObjectFlags(memberPtr, FLAG_INGROUP);
 	} else if (!(memberPtr->flags & FLAG_INCOMPLETE)) {

@@ -1,3 +1,8 @@
+2004-07-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/check.c, lib/error.c: Added checks for object groups
+	containing notifications and vice versa. Thanks to Mike.
+
 2004-07-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y, lib/error.c, lib/data.c: Added checks for
