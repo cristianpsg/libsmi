@@ -16,7 +16,7 @@ nasty details of locating and parsing MIB or PIB modules.  Libsmi
 supports exact and iterative retrieval functions for all major SMIv1/v2
 and SPPI constructs.
 
-There are four tools on top of the library and a sh/awk-script:
+There are five tools on top of the library and a sh/awk-script:
 
   - Smiquery allows simple queries for single MIB/PIB module items.
 
