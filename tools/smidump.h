@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.11 2000/05/20 12:51:11 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.12 2000/05/26 16:17:49 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -56,6 +56,7 @@ extern void dumpSming(Module *module);
 extern void dumpImports(Module *module);
 extern void dumpTypes(Module *module);
 extern void dumpTree(Module *module);
+extern void dumpIdentifiers(Module *module);
 extern void dumpMetrics(Module *module);
 extern void dumpMosy(Module *module);
 extern void dumpXml(Module *module);
