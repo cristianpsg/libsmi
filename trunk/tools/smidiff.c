@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.5 2001/09/19 17:38:35 tklie Exp $
+ * @(#) $Id: smidiff.c,v 1.6 2001/09/20 17:23:03 tklie Exp $
  */
 
 #include <stdlib.h>
@@ -71,8 +71,9 @@ typedef struct Error {
 #define ERR_RANGE_ADDED                 31
 #define ERR_RANGE_REMOVED               32
 #define ERR_RANGE_CHANGED               33
-#define ERR_DEFVAL_REMOVED              34
-#define ERR_DEFVAL_CHANGED              35
+#define ERR_DEFVAL_ADDED		34
+#define ERR_DEFVAL_REMOVED		35
+#define ERR_DEFVAL_CHANGED		36
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -141,6 +142,8 @@ static Error errors[] = {
       "range removed from `%s'" },
     { 3, ERR_RANGE_CHANGED, "range-changed",
       "range of `%s' changed" },
+    { 3, ERR_DEFVAL_ADDED, "defval-added",
+      "default value added to `%s'" },
     { 3, ERR_DEFVAL_REMOVED, "defval-removed",
       "default value removed from `%s'" },
     { 3, ERR_DEFVAL_CHANGED, "defval-changed",
@@ -210,194 +213,6 @@ diffStrings(const char *s1, const char *s2)
     return (s1[i] != s2[j]);
 }
 
-
-#if 0
-#ifdef _DEBUG
-#define SMI_DIFF_DBG_MSG( a, b ) smiDiffDbgMsg( ( a ), ( b ) )
-#define SMI_DIFF_DBG_ENABLE_TAG( a ) smiDiffEnableTag( a )
-
-#define SMI_DIFF_MAXTAGS 10
-static char *tags[SMI_DIFF_MAXTAGS];
-static int tagsize = 0;
-
-#define SMI_DIFF_DBG_TAG_ACTIVE   1
-#define SMI_DIFF_DBG_TAG_INACTIVE 0
-
-static int active( const char *tag )
-{
-    int i;
-    for (i = 0; i < tagsize; i++) {
-	if (!strcmp( tag, tags[i])) {
-	    return SMI_DIFF_DBG_TAG_ACTIVE;
-	}
-    }
-    return SMI_DIFF_DBG_TAG_INACTIVE;
-}
-
-static void smiDiffEnableTag( const char *tag )
-{
-    if (! tag) {
-	return;
-    }
-    
-    if (tagsize < SMI_DIFF_MAXTAGS) {
-	tags[tagsize++] = strdup(tag);
-    }
-}
-
-static void smiDiffDbgMsg( const char *tag, const char *msg )
-{
-    if (active( tag ) == SMI_DIFF_DBG_TAG_ACTIVE) {
-	printf( "%s: %s\n", tag, msg );
-    }
-}
-#else if /* No debugging, please */
-#define SMI_DIFF_DBG_MSG
-#define SMI_DIFF_DBG_ENABLE_TAG
-#endif /* _DEBUG */ 
-
-
-char *oidToStr( unsigned int oidlen, SmiSubid *oid )
-{
-  int i;
-  char buf[128];
-  char *ret = (char *)malloc( oidlen * 4 );
-  
-  sprintf( buf, "%u", oid[0] ); 
-  strcat( ret, buf );
-  for( i = 1; i < oidlen; i++) {
-    sprintf( buf, ".%u",oid[i] );
-    strcat( ret, buf );
-  }
-  SMI_DIFF_DBG_MSG( "ots", ret );
-
-  return ret;
-}
-
-#ifndef MAX
-#define MAX(a, b)       ((a) < (b) ? (b) : (a))
-#endif /* ifndef MAX */
-
-#define SMI_DIFF_ERROR       -1
-#define SMI_NO_DIFF           0
-#define SMI_NAME_CHANGED      1
-#define SMI_OID_LEN_CHANGED   2
-#define SMI_OID_CHANGED       4
-#define SMI_DECL_CHANGED      8
-#define SMI_ACCESS_CHANGED   16
-#define SMI_STATUS_CHANGED   32
-#define SMI_FORMAT_CHANGED   64
-#define SMI_VALUE_CHANGED   128
-#define SMI_UNITS_CHANGED   256
-#define SMI_DESCR_CHANGED   512
-
-int nodecmp( SmiNode *oldNode, SmiNode *newNode )
-{
-  char dbgstr[100];
-
-  if( ! ( oldNode && newNode ) )
-    return SMI_DIFF_ERROR;
-
-  /* compare names */
-  if( strcmp( oldNode->name, newNode->name ) ) {
-    /* TBD: dump a message */
-    sprintf( dbgstr, "names differ: expected %s and found %s",
-	     oldNode->name, newNode->name );
-    SMI_DIFF_DBG_MSG( "cmp", dbgstr );
-    
-    /* O.K., names are different. If the oid is differnt as well,
-       probably we are in a complete different node. */
-    if( oldNode->oidlen != newNode->oidlen || 
-	memcmp( oldNode->oid, newNode->oid, MAX( oldNode->oidlen,
-						 newNode->oidlen ) ) ) 
-	return SMI_OID_CHANGED && SMI_NAME_CHANGED;
-    
-    return SMI_NAME_CHANGED;
-  }
-  
-  /* compare oids */
-  if( oldNode->oidlen != newNode->oidlen || 
-	memcmp( oldNode->oid, newNode->oid, MAX( oldNode->oidlen,
-						 newNode->oidlen ) ) ) 
-    return SMI_OID_CHANGED;
-  
-  /* compare decl */
-  if( oldNode->decl != newNode->decl )
-    return SMI_DECL_CHANGED;
-
-  /* compare access */
-  if( oldNode->access != newNode->access )
-    return SMI_ACCESS_CHANGED;
-
-  /* compare status */
-  if( oldNode->status != newNode->status ) {
-    switch( oldNode->status ) {
-    case SMI_STATUS_CURRENT :
-      if( newNode->status == SMI_STATUS_DEPRECATED ) {
-	sprintf(dbgstr,
-		"Legal Change: Staus changed from current to deprecated in %s",
-		oldNode->name);
-	SMI_DIFF_DBG_MSG( "cmp", dbgstr );
-      }
-      else if( newNode->status == SMI_STATUS_OBSOLETE ) {
-	sprintf( dbgstr,
-		 "Legal Change: Staus changed from current to obsolete in %s",
-		 oldNode->name );
-	SMI_DIFF_DBG_MSG("cmp", dbgstr );
-      }
-      break;
-    case SMI_STATUS_DEPRECATED :
-      if( newNode->status == SMI_STATUS_OBSOLETE ) {
-	sprintf(dbgstr,
-		"Legal Change: \
-Staus changed from deprecated to obsolete in %s",
-		oldNode->name);
-	SMI_DIFF_DBG_MSG("cmp", dbgstr );
-      }
-      break;
-    default : return SMI_STATUS_CHANGED;
-    }
-  }
-  
-  /* TBD: compare format */
-  
-  /* TBD: compare value */
-
-  /* compare units */
-  if( newNode->units ) {
-    if( oldNode->units ) {
-      if( strcmp( oldNode->units, newNode->units ) )
-	return SMI_UNITS_CHANGED;
-    }
-    else {
-      sprintf( dbgstr, "Legal Change: unit %s added to %s", 
-	       newNode->units, newNode->name );
-      SMI_DIFF_DBG_MSG( "cmp", dbgstr );
-    }
-  }
-  else
-    if( oldNode->units )
-      return SMI_UNITS_CHANGED;
-
-  /* compare description */
-  if( ! newNode->description ) {
-    if( oldNode->description ) 
-      return SMI_DESCR_CHANGED; 
-  }
-  else if( strcmp( oldNode->description, newNode->description ) ) {
-    SMI_DIFF_DBG_MSG( "cmp", "Legal Change: description altered");
-    SMI_DIFF_DBG_MSG( "cmp", "Old description:");
-    SMI_DIFF_DBG_MSG( "cmp", oldNode->description );
-    SMI_DIFF_DBG_MSG( "cmp", "New description:");
-    SMI_DIFF_DBG_MSG( "cmp", newNode->description );
-    SMI_DIFF_DBG_MSG( "cmp", "Change is legal if it is a clarification" );
-  }
-    
-  
-  /* no differences found */
-  return SMI_NO_DIFF;
-}
-#endif
 
 
 static void
@@ -596,19 +411,22 @@ checkUnits(SmiModule *oldModule, int oldLine,
     }
 }
 
-SmiType
-*smiFindTypeWithRange(SmiType *smiType)
+
+
+static SmiType*
+findTypeWithRange(SmiType *smiType)
 {
-  SmiType *iterType, *typeWithRange;
-  for (iterType = smiType; iterType; iterType = smiGetParentType(iterType)){
-    if (iterType) {
-      SmiRange *smiRange = smiGetFirstRange(iterType);
-      if (smiRange)
-	return iterType;
+    SmiType *iterType;
+
+    for (iterType = smiType; iterType; iterType = smiGetParentType(iterType)) {
+	if (smiGetFirstRange(iterType)) {
+	    return iterType;
+	}
     }
-  }
-  return NULL;
+    return NULL;
 }
+
+
 
 static void
 checkRanges(SmiModule *oldModule, int oldLine,
@@ -616,29 +434,29 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	    char *name, 
 	    SmiType *oldType, SmiType *newType)
 {
-  SmiType *oldTwR, *newTwR; /* types with ranges */
+    SmiType *oldTwR, *newTwR; /* parent types with ranges */
 
-  /* find (parent) type with ranges */
-  oldTwR = smiFindTypeWithRange(oldType);
-  newTwR = smiFindTypeWithRange(newType);
-  
-  /* check existance of ranges */
-  if (!oldTwR && newTwR) {
-    printErrorAtLine(newModule, ERR_RANGE_CHANGED, newLine, name);
-  }
-  
-  if (oldTwR && !newTwR) {
-    printErrorAtLine(oldModule, ERR_RANGE_CHANGED, oldLine, name);
-  }
-
-  if( oldTwR && newTwR) {
-    SmiRange *oldRange, *newRange;
-    oldRange = smiGetFirstRange(oldTwR);
-    newRange = smiGetFirstRange(newTwR);
+    oldTwR = findTypeWithRange(oldType);
+    newTwR = findTypeWithRange(newType);
     
-    /* xxx check ranges in detail */
-  }
+    if (!oldTwR && newTwR) {
+	printErrorAtLine(newModule, ERR_RANGE_ADDED, newLine, name);
+    }
+  
+    if (oldTwR && !newTwR) {
+	printErrorAtLine(oldModule, ERR_RANGE_REMOVED, oldLine, name);
+    }
+
+    if (oldTwR && newTwR) {
+	SmiRange *oldRange, *newRange;
+	oldRange = smiGetFirstRange(oldTwR);
+	newRange = smiGetFirstRange(newTwR);
+	
+	/* xxx check ranges in detail */
+    }
 }
+
+
 
 static void
 checkDefVal(SmiModule *oldModule, int oldLine,
@@ -646,86 +464,73 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 	    char *name,
 	    SmiValue oldVal, SmiValue newVal)
 {
-  if( (oldVal.basetype != SMI_BASETYPE_UNKNOWN) && 
-      (newVal.basetype == SMI_BASETYPE_UNKNOWN)) {
-    printErrorAtLine(oldModule, ERR_DEFVAL_REMOVED, oldLine, name);
-  }
-  
-  else if( oldVal.basetype != newVal.basetype ) {
-    printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-  }
-
-  else {
-    switch (oldVal.basetype) {
-    case SMI_BASETYPE_INTEGER32  :
-      if( oldVal.value.integer32 != newVal.value.integer32 ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_UNSIGNED32 :
-      if( oldVal.value.unsigned32 != newVal.value.unsigned32 ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_INTEGER64  :
-      if( oldVal.value.integer64 != newVal.value.integer64 ){
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_UNSIGNED64 :
-      if( oldVal.value.unsigned64 != newVal.value.unsigned64 ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_FLOAT32    :
-      if( oldVal.value.float32 != newVal.value.float32 ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_FLOAT64    :
-      if( oldVal.value.float64 != newVal.value.float64 ) {	
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_FLOAT128   :
-      if( oldVal.value.float128 != newVal.value.float128 ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_OCTETSTRING :
-    case SMI_BASETYPE_BITS:
-      if( oldVal.len != newVal.len ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      else if( strncmp(oldVal.value.ptr, newVal.value.ptr, oldVal.len) ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-      if( oldVal.len != newVal.len ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      else if( 0 /* TBD */ ) {
-	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
-      }
-      break;
-    case SMI_BASETYPE_ENUM :
-      /* TBD */
+    int i, changed = 0;
+    
+    if ((oldVal.basetype != SMI_BASETYPE_UNKNOWN) && 
+	(newVal.basetype == SMI_BASETYPE_UNKNOWN)) {
+	printErrorAtLine(oldModule, ERR_DEFVAL_REMOVED, oldLine, name);
+	return;
     }
-  }
+
+    if ((oldVal.basetype == SMI_BASETYPE_UNKNOWN) && 
+	(newVal.basetype != SMI_BASETYPE_UNKNOWN)) {
+	printErrorAtLine(oldModule, ERR_DEFVAL_ADDED, oldLine, name);
+	return;
+    }
+
+    if (oldVal.basetype != newVal.basetype) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+	return;
+    }
+
+    switch (oldVal.basetype) {
+    case SMI_BASETYPE_INTEGER32:
+	changed = (oldVal.value.integer32 != newVal.value.integer32);
+	break;
+    case SMI_BASETYPE_UNSIGNED32:
+	changed = (oldVal.value.unsigned32 != newVal.value.unsigned32);
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	changed = (oldVal.value.integer64 != newVal.value.integer64);
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	changed = (oldVal.value.unsigned64 != newVal.value.unsigned64);
+	break;
+    case SMI_BASETYPE_FLOAT32:
+	changed = (oldVal.value.float32 != newVal.value.float32);
+	break;
+    case SMI_BASETYPE_FLOAT64:
+	changed = (oldVal.value.float64 != newVal.value.float64);
+	break;
+    case SMI_BASETYPE_FLOAT128:
+	changed = (oldVal.value.float128 != newVal.value.float128);
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+    case SMI_BASETYPE_BITS:
+	changed = (oldVal.len != newVal.len)
+	    || memcmp(oldVal.value.ptr, newVal.value.ptr, oldVal.len != 0);
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	changed = (oldVal.len != newVal.len);
+	for (i = 0; !changed && i < oldVal.len; i++) {
+	    changed = (oldVal.value.oid[i] != newVal.value.oid[i]);
+	}
+	break;
+    case SMI_BASETYPE_ENUM :
+	/* TBD */
+	break;
+    case SMI_BASETYPE_UNKNOWN:
+	break;
+    }
+	
+    if (changed) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+    }
 }
+
+
 
 static void
 checkTypes(SmiModule *oldModule, SmiType *oldType,
@@ -885,6 +690,11 @@ checkObjects(SmiModule *oldModule, SmiNode *oldNode,
 		oldNode->value, newNode->value);
 
     /* check index */
+
+    checkDefVal(oldModule, smiGetNodeLine(oldNode),
+		newModule, smiGetNodeLine(newNode),
+		newNode->name,
+		oldNode->value, newNode->value);
 
     checkFormat(oldModule, smiGetNodeLine(oldNode),
 		newModule, smiGetNodeLine(newNode),
@@ -1071,9 +881,6 @@ int
 main(int argc, char *argv[])
 {
     SmiModule *oldModule, *newModule;
-#if 0
-    SmiNode *node;
-#endif
 
     static optStruct opt[] = {
 	/* short long              type        var/func       special       */
@@ -1093,15 +900,6 @@ main(int argc, char *argv[])
 	return 1;
     }
 
-#if 0
-    /* enable some debugging tags */
-    SMI_DIFF_DBG_ENABLE_TAG( "nodes" );
-    SMI_DIFF_DBG_ENABLE_TAG( "cmp" ); 
-    SMI_DIFF_DBG_ENABLE_TAG( "ots" );
-    SMI_DIFF_DBG_ENABLE_TAG( "fmt" );
-    SMI_DIFF_DBG_ENABLE_TAG( "val" );
-#endif
- 
     /* the `:' separates the view identifier */
     smiInit("smidiff:old");
     smiSetErrorLevel(errorLevel);
@@ -1117,73 +915,6 @@ main(int argc, char *argv[])
     diffNotifications(oldModule, "smidiff:old", newModule, "smidiff:new");
     /* diffGroups(oldModule, "smidiff:old", newModule, "smidiff:new") */
     /* diffCompliances(oldModule, "smidiff:old", newModule, "smidiff:new") */
-
-#if 0
-    /* to switch a specific view, simply call smiInit() again */
-    smiInit("smidiff:old");
-    for(node = smiGetFirstNode(oldModule, SMI_NODEKIND_ANY);
-	node;
-        node = smiGetNextNode(node, SMI_NODEKIND_ANY)) {
-
-	SmiNode *newnode;
-
-      char dbgstr[100] ;
-      
-      /* try to find node with same name in the new module */
- 
-      sprintf( dbgstr, "Searching for node number %d (%s)...", 
-	       oldCount, node->name );
-      SMI_DIFF_DBG_MSG( "nodes", dbgstr );
-      if( node->format ) {
-	sprintf( dbgstr, "node %s has format %s", node->name, node->format );
-	SMI_DIFF_DBG_MSG( "fmt", dbgstr );
-      }
-      sprintf( dbgstr, "%s has value (basetype is %d)", 
-	       node->name, node->value.basetype );
-      SMI_DIFF_DBG_MSG( "val", dbgstr );
-
-      /* switch to the new module */
-      smiInit( "smidiff:new" );
-      
-      newnode = smiGetNodeByOID( node->oidlen, node->oid );
-
-      if (! newnode) {
-	  fprintf( stderr, 
-		   "node %s not found in new module. Perhaps oid changed.\n",  
-		   node->name );
-      } else {
-	  int cmpres;
-	sprintf( dbgstr, "... found %s", newnode->name );
-	SMI_DIFF_DBG_MSG( "nodes", dbgstr );
-
-	/* compare nodes */
-	cmpres = nodecmp( node, newnode );
-	switch( cmpres ) {
-	case SMI_NO_DIFF : break;
-	case ( SMI_NAME_CHANGED && SMI_OID_CHANGED ) :
-	    /* in this case probably a node has been moved, so
-	       let us try to find a node with a same name */
-	    newnode = smiGetNode( newModule, node->name );
-	    if( ! newnode )
-		fprintf( stderr, 
-			 "ERROR: Node %s has been deleted\n", node->name );
-	    else
-	      
-	      fprintf( stderr,
-			 "ERROR: Node %s has been moved from %s to %s\n",
-		       node->name, oidToStr( node->oidlen, node->oid ), 
-		       oidToStr( newnode->oidlen, newnode->oid ) );
-	    
-	    break;
-	default: fprintf( stderr,
-			  "ERROR: Node %s changed\n", node->name );
-	}
-      }
-      
-      /* switch back to old module */
-      smiInit( "smidiff:old" );
-    };
-#endif
 
     smiInit("smidiff:old");
     smiExit();
