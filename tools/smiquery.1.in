@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smiquery.1.in,v 1.1 1999/06/01 20:47:21 strauss Exp $
+.\" $Id: smiquery.1.in,v 1.2 1999/06/07 15:44:21 strauss Exp $
 .\"
 .TH smiquery 1  "June 1, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -8,6 +8,8 @@ smiquery \- query single information from SMI MIB modules
 .B smiquery
 [
 .B "-Vh"
+] [
+.BI "-p " module
 ]
 .I command name
 .SH DESCRIPTION

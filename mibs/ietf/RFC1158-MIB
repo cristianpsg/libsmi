@@ -529,7 +529,7 @@ ipAdEntBcastAddr OBJECT-TYPE
         STATUS  mandatory
         ::= { ipAddrEntry 4 }
 
-ipAdEntReasmMaxSiz OBJECT-TYPE
+ipAdEntReasmMaxSize OBJECT-TYPE
         SYNTAX  INTEGER (0..65535)
         ACCESS  read-only
         STATUS  mandatory
@@ -701,7 +701,7 @@ IpNetToMediaEntry ::= SEQUENCE {
         OCTET STRING,
     ipNetToMediaNetAddress
         IpAddress,
-    ipNetoToMediaType
+    ipNetToMediaType
         INTEGER
 }
 

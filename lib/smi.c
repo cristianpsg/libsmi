@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.52 1999/12/12 12:51:07 strauss Exp $
+ * @(#) $Id: smi.c,v 1.53 1999/12/13 16:16:00 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -723,27 +723,24 @@ void smiSetSeverity(const char *pattern, int severity)
 int smiReadConfig(const char *filename, const char *tag)
 {
     FILE *file;
-    char buf[201], cmd[201], arg[201], section[201];
-    char *s;
-    
-    strcpy(section, "*");
-    strcpy(cmd, "");
-    strcpy(arg, "");
+    char buf[201];
+    char *cmd, *arg, *s;
     
     file = fopen(filename, "r");
     if (file) {
 	while (!feof(file)) {
-	    fgets(buf, 200, file);
-	    sscanf(buf, "%s %s", cmd, arg);
-	    if ((!strlen(cmd)) || (cmd[0] == '#')) continue;
-	    if (!cmd || !arg) continue;
-	    if (!strcmp(cmd, "section")) {
-		strcpy(section, arg);
-		continue;
+	    if (!fgets(buf, 200, file)) continue;
+	    if ((!strlen(buf)) || (buf[0] == '#')) continue;
+	    cmd = strtok(buf, " \t\n\r");
+	    if (!cmd) continue;
+	    if (cmd[0] == '#') continue;
+	    if (cmd[strlen(cmd)-1] == ':') {
+		if (!tag) continue;
+		cmd[strlen(cmd)-1] = 0;
+		if (strcmp(cmd, tag)) continue;
+		cmd = strtok(NULL, " \t\n\r");
 	    }
-	    if (((!tag) || strcmp(section, tag)) && strcmp(section, "*")) {
-		continue;
-	    }
+	    arg = strtok(NULL, " \t\n\r");
 	    if (!strcmp(cmd, "load")) {
 		smiLoadModule(arg);
 	    } else if (!strcmp(cmd, "path")) {

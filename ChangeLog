@@ -1,3 +1,18 @@
+1999-12-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/*.1.in: updated option lists in man pages.
+	
+	* lib/smi.c (smiReadConfig): changed config file syntax.
+
+	* lib/error.c: moved fatal errors to level -1 and non-error
+	output (statistics) to level 0.
+
+	* lib/data.c (loadModule): fixed lex recursion level of
+	statistics output.
+
+	* mibs/ietf/RFC1158-MIB (IpNetToMediaEntry): fixed typos in
+	original MIB.
+
 1999-12-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: fixed wrong complaints about imported but

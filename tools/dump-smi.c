@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.24 1999/10/06 07:55:24 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.25 1999/11/24 19:02:40 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -451,8 +451,8 @@ static void createImportList(char *modulename)
     }
 
     if (smiGetFirstNode(modulename,
-			SMI_NODEKIND_SCALAR || SMI_NODEKIND_COLUMN
-			|| SMI_NODEKIND_TABLE || SMI_NODEKIND_ROW)) {
+			SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN
+			| SMI_NODEKIND_TABLE | SMI_NODEKIND_ROW)) {
 	addImport(smiv1 ? "RFC-1212" : "SNMPv2-SMI", "OBJECT-TYPE");
     }
     
@@ -996,6 +996,12 @@ static void printObjects(char *modulename)
 	invalid = invalidType(smiNode->basetype);
 	assignement = 0;
 
+	if (invalid && silent
+	    && (smiNode->nodekind == SMI_NODEKIND_SCALAR
+		|| smiNode->nodekind == SMI_NODEKIND_COLUMN)) {
+	    continue;
+	}
+
 	if ((smiNode->nodekind == SMI_NODEKIND_NODE) &&
 	    (!smiNode->description)) {
 	    assignement = 1;
@@ -1151,35 +1157,30 @@ static void printObjects(char *modulename)
 	    for(i = 0, invalid = 0, colNode = smiGetFirstChildNode(smiNode);
 		colNode;
 		colNode = smiGetNextChildNode(colNode)) {
-		if (i) {
-		    print(",");
+		if (! invalid || ! silent) {
+		    if (i) {
+			print(",");
+		    }
+		    print("\n");
 		}
-		print("\n");
-
-		if (islower((int)colNode->typename[0])) {
-		    smiType = smiGetType(colNode->typemodule,
-					 colNode->typename);
-		    invalid = invalidType(smiType->basetype);
-		} else {
-		    invalid = invalidType(colNode->basetype);
-		}
-		invalid = invalidType(colNode->basetype);
 		
-		printSegment(2 * INDENT, colNode->name, INDENTSEQUENCE,
-			     invalid);
-		if (islower((int)colNode->typename[0])) {
-		    /*
-		     * an implicitly restricted type.
-		     */
-		    smiType = smiGetType(colNode->typemodule,
-					 colNode->typename);
-		    print("%s", getTypeString(modulename, smiType->basetype,
-					      smiType->parentmodule,
-					      smiType->parentname));
-		} else {
-		    print("%s", getTypeString(modulename, colNode->basetype,
-					      colNode->typemodule,
-					      colNode->typename));
+		smiType = smiGetType(colNode->typemodule, colNode->typename);
+		invalid = invalidType(colNode->basetype);
+
+		if (! invalid || ! silent) {
+		    printSegment(2 * INDENT, colNode->name, INDENTSEQUENCE,
+				 invalid);
+		    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+			print("%s", getTypeString(modulename,
+						  smiType->basetype,
+						  smiType->parentmodule,
+						  smiType->parentname));
+		    } else {
+			print("%s", getTypeString(modulename,
+						  colNode->basetype,
+						  colNode->typemodule,
+						  colNode->typename));
+		    }
 		}
 		i++;
 	    }

@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.in,v 1.49 1999/12/13 09:47:56 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.9 1999/06/08 21:09:42 strauss Exp $
 #
 
 
@@ -92,7 +92,7 @@ PACKAGE = libsmi
 RANLIB = ranlib
 SH = /bin/sh
 STATIC = -static
-VERSION = 0.1.8-pre3
+VERSION = 0.1.8-pre4
 mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site
 
@@ -112,7 +112,7 @@ smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.8-pre3\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_PWD_H=1 -DDEFAULT_GLOBALCONFIG=\"/usr/local/etc/smi.conf\" -DDEFAULT_USERCONFIG=\".smirc\" -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\"  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.8-pre4\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_PWD_H=1 -DDEFAULT_GLOBALCONFIG=\"/usr/local/etc/smi.conf\" -DDEFAULT_USERCONFIG=\".smirc\" -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\"  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
