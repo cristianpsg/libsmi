@@ -26,13 +26,23 @@
 
 /* The 64 bit integer types, their formats, and their min/max values. */
 /* Needs changes... Erik? Juergen? ;-) */
+#ifdef _MSC_VER
+#define UINT64_TYPE   unsigned __int64
+#define INT64_TYPE    __int64
+#define UINT64_FORMAT "%I64u"
+#define INT64_FORMAT  "%I64d"
+#define LIBSMI_UINT64_MAX    _UI64_MAX
+#define LIBSMI_INT64_MIN     _I64_MIN
+#define LIBSMI_INT64_MAX     _I64_MAX
+#else
 #define UINT64_TYPE   uint64_t
 #define INT64_TYPE    int64_t
 #define UINT64_FORMAT "%llu"
 #define INT64_FORMAT  "%lld"
-#define UINT64_MAX    18446744073709551615ULL
-#define INT64_MIN     -9223372036854775808LL
-#define INT64_MAX     9223372036854775807LL
+#define LIBSMI_UINT64_MAX    18446744073709551615ULL
+#define LIBSMI_INT64_MIN     -9223372036854775808LL
+#define LIBSMI_INT64_MAX     9223372036854775807LL
+#endif
 
 /* Define if dmalloc.h is present and shall be used. */
 #undef HAVE_DMALLOC_H
@@ -71,5 +81,5 @@
 #define PACKAGE "libsmi"
 
 /* Version number of package */
-#define VERSION "0.2.7"
+#define VERSION "0.2.8"
 

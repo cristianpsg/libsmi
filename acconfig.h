@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: acconfig.h,v 1.3 2000/06/08 09:36:08 strauss Exp $
+ * @(#) $Id: acconfig.h,v 1.4 2000/11/12 17:46:37 strauss Exp $
  */
 
 /* Define if the SMIv1/v2 parser shall be active. */
@@ -40,9 +40,9 @@
 #define INT64_TYPE int64_t
 #define UINT64_FORMAT "%llu"
 #define INT64_FORMAT "%lld"
-#define UINT64_MAX 18446744073709551615ULL
-#define INT64_MIN -9223372036854775808LL
-#define INT64_MAX 9223372036854775807LL
+#define LIBSMI_UINT64_MAX 18446744073709551615ULL
+#define LIBSMI_INT64_MIN -9223372036854775808LL
+#define LIBSMI_INT64_MAX 9223372036854775807LL
 
 /* Define if dmalloc.h is present and shall be used. */
 #undef HAVE_DMALLOC_H
