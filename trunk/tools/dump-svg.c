@@ -3,8 +3,8 @@
  *
  *      Operations to extract a SVG diagram from MIB modules.
  *      This driver is based on the cm-driver by A. Mueller.
- *      (At the moment it is just a copy of that driver.)
  *      This is work in progress.
+ *      Mail comments and suggestions to sperner@ibr.cs.tu-bs.de
  *
  * Copyright (c) 2004 K. Sperner, Technical University of Braunschweig.
  *
@@ -134,14 +134,16 @@ static char *baseTypes[] = {
  * Definitions used by the dia output driver (node layout).
  */
 
-static const float HEADFONTSIZETABLE   = (float)0.51;
-static const float HEADSPACESIZETABLE  = (float)0.6;
-static const float ATTRFONTSIZE        = (float)0.48;
-static const float ATTRSPACESIZE       = (float)2.4;
+//FIXME int statt float?
+static const float HEADFONTSIZETABLE   = (float)7;
+static const float HEADSPACESIZETABLE  = (float)4;
+static const float ATTRFONTSIZE        = (float)6;
+static const float ATTRSPACESIZE       = (float)2;
 static const float RECTCORRECTION      = (float)0.85;
 static const float EDGEYSPACING        = (float)2.0;
-static const float TABLEHEIGHT         = (float)2.6;   /* headline of the table */
-static const float TABLEELEMHEIGHT     = (float)0.675; /* height of one attribute */
+static const float TABLEHEIGHT         = (float)35; /*headline of the table*/
+static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
+static const float TABLEBOTTOMHEIGHT   = (float)5; /*bottom of the table*/
 
 /*
  * global dia graph layout
@@ -151,12 +153,6 @@ static const float XSPACING            = (float)4.0;  /* x space between nodes *
 static const float NEWLINEDISTANCE     = (float)40.0; /* length of one line */
 static const float XOFFSET             = (float)2.0;  /* left upper start of graph */
 static const float YOFFSET             = (float)5.0;  /* left upper start of graph */
-
-/*
- * position of the dia info note 
- */
-static const float XNOTE               = (float)1.0;  /* left upper corner of note */
-static const float YNOTE               = (float)1.0;  /* left upper corner of note */
 
 /*
  * Stereotype Name
@@ -185,6 +181,9 @@ static int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
  * global variables
  */
 static Graph     *graph  = NULL;            /* the graph */
+static float     tableOffset = 20;
+static float     textYOffset = 0;               /* vertical offset for the
+					       attributes in the classes */
 
 /*
  * help functions
@@ -1867,111 +1866,65 @@ static void algCreateNodes(SmiModule *module)
 
 
 
-static void diaPrintXMLHeader()
+/*
+ * Prints the header of the SVG output file.
+ * FIXME&TODO
+ * calculate size!
+ */
+static void printSVGHeader()
 {
     printf("<?xml version=\"1.0\"?>\n");
-    printf("<diagram xmlns:dia=\"http://www.lysator.liu.se/~alla/dia/\">\n");
-    printf("  <diagramdata>\n");
-    printf("    <attribute name=\"background\">\n");
-    printf("      <color val=\"#ffffff\"/>\n");
-    printf("    </attribute>\n");
-    printf("    <attribute name=\"paper\">\n");
-    printf("      <composite type=\"paper\">\n");
-    printf("        <attribute name=\"name\">\n");
-    printf("          <string>#A4#</string>\n");
-    printf("        </attribute>\n");
-    printf("        <attribute name=\"tmargin\">\n");
-    printf("         <real val=\"2.82\"/>\n");
-    printf("       </attribute>\n");
-    printf("       <attribute name=\"bmargin\">\n");
-    printf("         <real val=\"2.82\"/>\n");
-    printf("        </attribute>\n");
-    printf("       <attribute name=\"lmargin\">\n");
-    printf("         <real val=\"2.82\"/>\n");
-    printf("       </attribute>\n");
-    printf("       <attribute name=\"rmargin\">\n");
-    printf("         <real val=\"2.82\"/>\n");
-    printf("       </attribute>\n");
-    printf("       <attribute name=\"is_portrait\">\n");
-    printf("         <boolean val=\"true\"/>\n");
-    printf("       </attribute>\n");
-    printf("      <attribute name=\"scaling\">\n");
-    printf("         <real val=\"1\"/>\n");
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"fitto\">\n");
-    printf("        <boolean val=\"false\"/>\n");
-    printf("      </attribute>\n");
-    printf("    </composite>\n");
-    printf("   </attribute>\n");
-    printf("  </diagramdata>\n");
-    printf("  <layer name=\"Background\" visible=\"true\">\n");   
-}
-
-static void diaPrintXMLClose()
-{
-    printf("  </layer>\n");
-    printf("</diagram>\n");
+    printf("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n");
+    printf("  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
+    printf("<svg width=\"1100\" height=\"600\" version=\"1.1\"\n");
+    //printf("<svg width=\"25cm\" height=\"20cm\" version=\"1.1\"\n");
+    printf("     xmlns=\"http://www.w3.org/2000/svg\">\n");
 }
 
 /*
- * prints the type of a given node
- */  
-static void diaPrintXMLType(SmiNode *smiNode, int index)
+ * Prints the footer of the SVG output file.
+ */
+static void printSVGClose()
 {
-    printf("          <attribute name=\"type\">\n");
-    if (index) {
-	printf("            <string>#%s%s#</string>\n",
-	       algGetTypeName(smiNode), INDEXPROPERTY);
-    } else {
-	printf("            <string>#%s#</string>\n", algGetTypeName(smiNode));
-    }
-    printf("          </attribute>\n");    
+    printf("</svg>\n");
 }
 
 /*
+ * FIXME stimmt das?
  * index = 0 -> no index element
  * index = 1 -> index element -> printed with "+"
  */
-static void diaPrintXMLAttribute(SmiNode *node, int index)
+static void printSVGAttribute(SmiNode *node, int index)
 {
-    printf("        <composite type=\"umlattribute\">\n");
-    printf("          <attribute name=\"name\">\n");
-    printf("            <string>#%s#</string>\n", node->name);
-    printf("          </attribute>\n");
-    
-    diaPrintXMLType(node,index);
-    
-    printf("          <attribute name=\"value\">\n");
-    printf("            <string/>\n");
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"visibility\">\n");
+    printf("    <text x=\"%.2f\" y=\"%.2f\"", ATTRSPACESIZE, textYOffset);
+    textYOffset += TABLEELEMHEIGHT;
+
+    if (node->nodekind == SMI_NODEKIND_SCALAR) {
+	printf(" style=\"text-decoration:underline\">\n");
+    } else {
+	printf(">\n");
+    }
 
     if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
-	printf("            <enum val=\"1\"/>\n");
+	printf("         -");
     } else {
-	printf("            <enum val=\"0\"/>\n");
-    }
-    
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"abstract\">\n");
-    printf("            <boolean val=\"false\"/>\n");
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"class_scope\">\n");
-    
-    if (node->nodekind == SMI_NODEKIND_SCALAR) {
-	printf("            <boolean val=\"true\"/>\n");
-    } else {
-	printf("            <boolean val=\"false\"/>\n");	
+	printf("         +");
     }
 
-    printf("          </attribute>\n");
-    printf("        </composite>\n");	   
+    printf("%s: ",node->name);
+
+    if (index) {
+	printf("%s%s</text>\n", algGetTypeName(node), INDEXPROPERTY);
+    } else {
+	printf("%s</text>\n", algGetTypeName(node));
+    }
+
 }
 
 /*
  * prints the related scalars for a given table
  */
-static void diaPrintXMLRelatedScalars(GraphNode *node)
+static void printSVGRelatedScalars(GraphNode *node)
 {
     GraphEdge *tEdge;
     
@@ -1983,7 +1936,7 @@ static void diaPrintXMLRelatedScalars(GraphNode *node)
 	    tEdge->dia.flags |= DIA_PRINT_FLAG;
 	    tEdge->endNode->dia.flags |= DIA_PRINT_FLAG;
 
-	    diaPrintXMLAttribute(tEdge->endNode->smiNode,0);
+	    printSVGAttribute(tEdge->endNode->smiNode,0);
 	}
     }
 }
@@ -1991,7 +1944,7 @@ static void diaPrintXMLRelatedScalars(GraphNode *node)
 /*
  * prints all columns objects of the given node
  */
-static void diaPrintXMLAllColumns(GraphNode *node)
+static void printSVGAllColumns(GraphNode *node)
 {
     SmiModule *module  = NULL;
     SmiNode   *smiNode = NULL;
@@ -2007,14 +1960,14 @@ static void diaPrintXMLAllColumns(GraphNode *node)
 	
 	if (!algIsIndexElement(node->smiNode, smiNode) &&
 	    cmpSmiNodes(node->smiNode, ppNode))
-	    diaPrintXMLAttribute(smiNode, 0);
+	    printSVGAttribute(smiNode, 0);
     }
 }
 
 /*
  * adds the index to an augmenting table (row-element)
  */
-static void diaPrintAugmentIndex(GraphNode *tNode)
+static void printSVGAugmentIndex(GraphNode *tNode)
 {
     GraphEdge  *tEdge;
     SmiElement *smiElement;
@@ -2028,14 +1981,22 @@ static void diaPrintAugmentIndex(GraphNode *tNode)
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
 		if (!cmpSmiNodes(tNode->smiNode, tEdge->startNode->smiNode)) {
-		    diaPrintXMLAttribute(smiGetElementNode(smiElement),1);
+		    printSVGAttribute(smiGetElementNode(smiElement),1);
 		}
 	    }
 	}
     }
 }
 
-static void diaPrintXMLObject(GraphNode *node, float x, float y)
+/*
+ * TODO
+ * Do some pretty-printing
+ * adjust position of heading
+ * translate to right position
+ * shrink rectangles
+ * print one attribute on one line
+ */
+static void printSVGObject(GraphNode *node, float x, float y)
 {
     SmiElement *smiElement;
     
@@ -2046,74 +2007,46 @@ static void diaPrintXMLObject(GraphNode *node, float x, float y)
     node->dia.y = y;
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
     
-    printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
-	   node->smiNode->name);
-    printf("      <attribute name=\"obj_pos\">\n");
-    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
-    printf("      </attribute>\n");
-    printf("     <attribute name=\"obj_bb\">\n");
-    printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"elem_corner\">\n");
-    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"elem_width\">\n");
-    printf("       <real val=\"%.2f\"/>\n",node->dia.w);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"elem_height\">\n");
-    printf("       <real val=\"%.2f\"/>\n",node->dia.h);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"name\">\n");
-    printf("       <string>#%s#</string>\n",
-	   smiGetFirstChildNode(node->smiNode)->name);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"stereotype\">\n");
-    printf("        <string>#%s#</string>\n", STEREOTYPE);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"abstract\">\n");
-    printf("       <boolean val=\"false\"/>\n");
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"suppress_attributes\">\n");
-    printf("        <boolean val=\"false\"/>\n");    
-    printf("      </attribute>\n");   
-    printf("      <attribute name=\"suppress_operations\">\n");
-    printf("        <boolean val=\"true\"/>\n");
-    printf("      </attribute>\n");
-    printf("     <attribute name=\"visible_attributes\">\n");
-    printf("       <boolean val=\"true\"/>\n");
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"visible_operations\">\n");
-    printf("        <boolean val=\"false\"/>\n");
-    printf("      </attribute>\n");
-
-    printf("     <attribute name=\"attributes\">\n");
+    printf("  <g transform=\"translate(%.2f,20), scale(1)\">\n", tableOffset);
+    tableOffset += 250;
+    printf("    <rect x=\"0\" y=\"0\" width=\"%.2f\" height=\"%.2f\"\n",
+           node->dia.w,node->dia.h);
+    printf("          fill=\"none\" stroke=\"black\"/>\n");
+    printf("    <polygon points=\"0 %.2f %.2f, %.2f\"\n",
+           TABLEHEIGHT, node->dia.w, TABLEHEIGHT);
+    printf("          fill=\"none\" stroke=\"black\"/>\n");
+    printf("    <text x=\"%.2f\" y=\"15\" style=\"text-anchor:middle\">\n",
+           node->dia.w/2);
+    printf("         &lt;&lt;%s&gt;&gt;</text>\n", STEREOTYPE);
+    printf("    <text x=\"%.2f\" y=\"30\"\n",
+           node->dia.w/2);
+    printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
+    printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
+    textYOffset = TABLEHEIGHT + TABLEELEMHEIGHT;
 
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
-	diaPrintXMLRelatedScalars(node);
+	//A
+	printSVGRelatedScalars(node);
 
-	diaPrintAugmentIndex(node);
+	//B
+	printSVGAugmentIndex(node);
 	
+	//C
 	for (smiElement = smiGetFirstElement(
 	    smiGetFirstChildNode(node->smiNode));
 	     smiElement;
 	     smiElement = smiGetNextElement(smiElement)) {
-	    diaPrintXMLAttribute(smiGetElementNode(smiElement),1);
+	    printSVGAttribute(smiGetElementNode(smiElement),1);
 	}
 
+	//D
 	if (PRINT_DETAILED_ATTR) {
-	    diaPrintXMLAllColumns(node);
+	    printSVGAllColumns(node);
 	}
     }
-    
-    printf("      </attribute>\n");
-    
-    printf("     <attribute name=\"operations\"/>\n");
-    printf("    <attribute name=\"template\">\n");
-    printf("      <boolean val=\"false\"/>\n");
-    printf("    </attribute>\n");
-    printf("     <attribute name=\"templates\"/>\n");
-    printf("   </object>\n");
+
+    printf("  </g>\n");
 }
 
 /*
@@ -2173,7 +2106,7 @@ static void diaPrintXMLGroup(int group, float x, float y)
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) {
-	    diaPrintXMLAttribute(tNode->smiNode,0);
+	    printSVGAttribute(tNode->smiNode,0);
 	}
     }
     
@@ -2394,11 +2327,13 @@ static void diaPrintXMLConPoints(GraphEdge *tEdge)
     printf("    </connections>\n");    
 }
 
-static void diaPrintXMLDependency(GraphEdge *tEdge)
+static void printSVGDependency(GraphEdge *tEdge)
 {
     if (tEdge->dia.flags & DIA_PRINT_FLAG) return;
     tEdge->dia.flags |= DIA_PRINT_FLAG;
 
+//TODO
+#if 0
     printf("    <object type=\"UML - Dependency\" "
 	   "version=\"0\" id=\"Depend:%s:%s\">\n",
 	   tEdge->startNode->smiNode->name,
@@ -2424,19 +2359,22 @@ static void diaPrintXMLDependency(GraphEdge *tEdge)
     diaPrintXMLConPoints(tEdge);
     
     printf("    </object>\n");
+#endif
 }
 
 /*
  * Aggregation is a special case of the association.
  * If aggregate = 1 it is an aggregation if 0 it is an association.
  */
-static void diaPrintXMLAssociation(GraphEdge *tEdge, int aggregate)
+static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 {
     if (tEdge->dia.flags & DIA_PRINT_FLAG) return;
     tEdge->dia.flags |= DIA_PRINT_FLAG;
     if (aggregate > 1) aggregate = 1;
     if (aggregate < 0) aggregate = 0;
-    
+
+//TODO das muss noch gemacht werden!
+#if 0
     printf("    <object type=\"UML - Association\" "
 	   "version=\"0\" id=\"Assoc:%s:%s\">\n",
 	   tEdge->startNode->smiNode->name,
@@ -2575,32 +2513,34 @@ static void diaPrintXMLAssociation(GraphEdge *tEdge, int aggregate)
     diaPrintXMLConPoints(tEdge);
     
     printf("    </object>\n");
+#endif
 }
 
-static void diaPrintXMLConnection(GraphEdge *tEdge)
+static void printSVGConnection(GraphEdge *tEdge)
 {
     switch (tEdge->connection) {
     case GRAPH_CON_UNKNOWN:
 	break;
     case GRAPH_CON_AGGREGATION :
-	diaPrintXMLAssociation(tEdge,1);
+	printSVGAssociation(tEdge,1);
 	break;
     case GRAPH_CON_DEPENDENCY :
-	diaPrintXMLDependency(tEdge);
+	printSVGDependency(tEdge);
 	break;
     case GRAPH_CON_ASSOCIATION :
-	diaPrintXMLAssociation(tEdge,0);
+	printSVGAssociation(tEdge,0);
 	break;	    
     }
 }
 
 /*
- * diaPrintXMLInfoNote
+ * printSVGTitle
  *
- * Prints an UML note with a short information on it (Modulename and
- * smidump version).
+ * Prints the title of the SVG output file (Modulename and smidump version).
+ * FIXME&TODO
+ * Print title somewhere into the SVG.
  */
-static void diaPrintXMLInfoNote(int modc, SmiModule **modv)
+static void printSVGTitle(int modc, SmiModule **modv)
 {
     size_t  length;
     float   width;
@@ -2632,56 +2572,16 @@ static void diaPrintXMLInfoNote(int modc, SmiModule **modv)
     }
     strcat(note, s2);
 
-    width = (float)strlen(note) * (float)0.76;	/* don't ask */
-
-    printf("<object type=\"UML - Note\" version=\"0\" id=\"O0\">\n");
-    printf("  <attribute name=\"obj_pos\">\n");
-    printf("    <point val=\"%.2f,%.2f\"/>\n",XNOTE, YNOTE);
-    printf("  </attribute>\n");
-    printf("  <attribute name=\"obj_bb\">\n");
-    printf("    <rectangle val=\"%.2f,%.2f;%.2f,%.2f\"/>\n",
-	   XNOTE-0.5, YNOTE-0.5, XNOTE-0.5 + width, YNOTE - 0.5 + 1.7);
-    printf("  </attribute>\n");
-    printf("  <attribute name=\"elem_corner\">\n");
-    printf("    <point val=\"%.2f,%.2f\"/>\n",XNOTE, YNOTE);
-    printf("  </attribute>\n");
-    printf("  <attribute name=\"elem_width\">\n");
-    printf("    <real val=\"%.2f\"/>\n", width);
-    printf("  </attribute>\n");
-    printf("  <attribute name=\"elem_height\">\n");
-    printf("    <real val=\"1.7\"/>\n");
-    printf("  </attribute>\n");
-    printf("  <attribute name=\"text\">\n");
-    printf("    <composite type=\"text\">\n");
-    printf("      <attribute name=\"string\">\n");
-    printf("        <string>#%s#</string>\n", note);
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"font\">\n");
-    printf("        <font name=\"Courier\"/>\n");
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"height\">\n");
-    printf("        <real val=\"0.8\"/>\n");
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"pos\">\n");
-    printf("        <point val=\"%.2f,%.2f\"/>\n", XNOTE + 0.35, YNOTE + 1.28);
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"color\">\n");
-    printf("        <color val=\"#000000\"/>\n");
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"alignment\">\n");
-    printf("        <enum val=\"0\"/>\n");
-    printf("      </attribute>\n");
-    printf("    </composite>\n");
-    printf("  </attribute>\n");
-    printf("</object>\n");
+    printf("  <title>%s</title>\n", note);
 
     xfree(note);
 }
 
 /*
- * diaCalcSize
- *
  * Calculates the size of a given node for the UML representation.
+ *
+ * FIXME this algorithm may work good for a monospace-font. we have some
+ * problems with the proportional-font. :-(
  */
 static GraphNode *diaCalcSize(GraphNode *node)
 {
@@ -2691,11 +2591,12 @@ static GraphNode *diaCalcSize(GraphNode *node)
     SmiModule  *module;
 
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) return node;
-    
-    node->dia.w = (strlen(node->smiNode->name)+4) * HEADFONTSIZETABLE
+
+    node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
-    
-    node->dia.h = TABLEHEIGHT;
+    node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
+
+    //C
     for (smiElement = smiGetFirstElement(
 	smiGetFirstChildNode(node->smiNode));
 	 smiElement;
@@ -2705,27 +2606,54 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	
 	node->dia.w = max(node->dia.w, (strlen(tNode->name) +
 					strlen(algGetTypeName(tNode)) +
-					strlen(INDEXPROPERTY))
+					strlen(INDEXPROPERTY) + 3)
 		      * ATTRFONTSIZE
 		      + ATTRSPACESIZE);
 	node->dia.h += TABLEELEMHEIGHT;
     }
     
+    //A
     for (tEdge = graphGetFirstEdgeByNode(graph,node);
 	 tEdge;
 	 tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
 	if (tEdge->startNode == node &&
 	    tEdge->endNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
-	    node->dia.h += TABLEELEMHEIGHT;
+
 	    tNode = tEdge->endNode->smiNode;
 	    
 	    node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-				    strlen(algGetTypeName(tNode)))
+				    strlen(algGetTypeName(tNode)) + 2)
 			  * ATTRFONTSIZE
 			  + ATTRSPACESIZE);		
+	    node->dia.h += TABLEELEMHEIGHT;
 	}
     }
 
+    //B
+    for (tEdge = graphGetFirstEdgeByNode(graph,node);
+	 tEdge;
+	 tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
+	if (tEdge->indexkind == SMI_INDEX_AUGMENT) {
+	    for (smiElement = smiGetFirstElement(
+		smiGetFirstChildNode(tEdge->startNode->smiNode));
+		 smiElement;
+		 smiElement = smiGetNextElement(smiElement)) {
+		if (!cmpSmiNodes(node->smiNode, tEdge->startNode->smiNode)) {
+
+		    tNode = smiGetElementNode(smiElement);
+
+		    node->dia.w = max(node->dia.w, (strlen(tNode->name) +
+					    strlen(algGetTypeName(tNode)) +
+					    strlen(INDEXPROPERTY) + 3)
+						    * ATTRFONTSIZE
+						    + ATTRSPACESIZE);
+		    node->dia.h += TABLEELEMHEIGHT;
+		}
+	    }
+	}
+    }
+
+    //D
     if (PRINT_DETAILED_ATTR && node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 	module  = smiGetNodeModule(node->smiNode);
 
@@ -2740,15 +2668,15 @@ static GraphNode *diaCalcSize(GraphNode *node)
 		char *typeName;
 
 		typeName = algGetTypeName(tNode);
-		len = strlen(tNode->name) + (typeName ? strlen(typeName) : 0);
-		node->dia.h += TABLEELEMHEIGHT;
-		node->dia.w = max(node->dia.w, len)
+		len = strlen(tNode->name) + (typeName ? strlen(typeName)+2 : 1);
+		node->dia.w = max(node->dia.w, len
 		    * ATTRFONTSIZE
-		    + ATTRSPACESIZE;
+		    + ATTRSPACESIZE);
+		node->dia.h += TABLEELEMHEIGHT;
 	    }
 	}
     }
-    
+
     return node;
 }
 
@@ -2762,8 +2690,8 @@ static float diaPrintNode(GraphNode *node, float x, float y)
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
 	    if (node == tEdge->startNode) {
 		y += tEdge->endNode->dia.h + YSPACING;    
-		diaPrintXMLObject(tEdge->endNode, x, y);
-		diaPrintXMLConnection(tEdge);
+		printSVGObject(tEdge->endNode, x, y);
+		printSVGConnection(tEdge);
 		y = diaPrintNode(tEdge->startNode, x, y);
 			      /* (x+tEdge->startNode->dia.w+XSPACING),y); */
 		
@@ -2776,6 +2704,7 @@ static float diaPrintNode(GraphNode *node, float x, float y)
     return y;
 }
 
+//TODO calculate maximal x- and y-sizes and print them into the header
 static void diaPrintXML(int modc, SmiModule **modv)
 {
     GraphNode *tNode;
@@ -2783,13 +2712,13 @@ static void diaPrintXML(int modc, SmiModule **modv)
     float     x,y,ydiff;
     int       group;
     
-    diaPrintXMLHeader();
+    printSVGHeader();
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
 	tNode = diaCalcSize(tNode);
     }
 
-    diaPrintXMLInfoNote(modc, modv);
+    printSVGTitle(modc, modv);
     
     x = XOFFSET;
     y = YOFFSET;
@@ -2797,11 +2726,11 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
-	    diaPrintXMLObject(tEdge->startNode, x, y);
+	    printSVGObject(tEdge->startNode, x, y);
 	    x = x + tEdge->startNode->dia.w + XSPACING;
 
-	    diaPrintXMLObject(tEdge->endNode, x, y);
-	    diaPrintXMLConnection(tEdge);
+	    printSVGObject(tEdge->endNode, x, y);
+	    printSVGConnection(tEdge);
 	    
 	    ydiff = tEdge->startNode->dia.h;
 
@@ -2816,12 +2745,12 @@ static void diaPrintXML(int modc, SmiModule **modv)
     x = XOFFSET;
     y += ydiff;
     ydiff = 0;
-    
+
     /* printing singular tables */
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!graphGetFirstEdgeByNode(graph,tNode) &&
 	    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
-	    diaPrintXMLObject(tNode,x,y);
+	    printSVGObject(tNode,x,y);
 	    
 	    x += tNode->dia.w + XSPACING;
 	    ydiff = max(ydiff, tNode->dia.h);
@@ -2838,12 +2767,12 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (group = 1;
 	 group <= algGetNumberOfGroups();
 	 group++) {
-	diaPrintXMLGroup(group,x,y);
+	//diaPrintXMLGroup(group,x,y);
 	x += 2.0;
 	y += 2.0;
     }
-    
-    diaPrintXMLClose();
+
+    printSVGClose();
 }
 
 
