@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.19 2001/05/23 15:25:53 schoenw Exp $
+ * @(#) $Id: check.c,v 1.20 2001/06/06 07:36:37 strauss Exp $
  */
 
 #include <config.h>
@@ -1417,7 +1417,9 @@ smiCheckNotificationMembers(Parser *parser, Object *object)
 {
     List *listPtr;
     Object *memberPtr;
+#if 0
     Node *parent = NULL;
+#endif
     Node *node = NULL;
 
     for (listPtr = object->listPtr;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.96 2001/03/05 17:57:49 strauss Exp $
+ * @(#) $Id: data.c,v 1.97 2001/06/11 09:59:18 strauss Exp $
  */
 
 #include <config.h>
@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

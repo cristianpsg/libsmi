@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.70 2001/05/23 15:25:53 schoenw Exp $
+ * @(#) $Id: error.c,v 1.71 2001/06/06 07:36:37 strauss Exp $
  */
 
 #include <config.h>
@@ -360,8 +360,6 @@ static Error errors[] = {
       "range restriction of index element `%s' of row `%s' must be non-negative" },
     { 1, ERR_INDEX_ENUM_NEGATIVE, "index-element-enum-negative",
       "enumerations of index element `%s' of row `%s' must be non-negative" },
-    { 6, ERR_EMPTY_DESCRIPTION, "empty-description",
-      "zero length description of `%s'" },
     { 6, ERR_INDEX_NOT_COLUMN, "index-element-not-column",
       "index element `%s' of row `%s' must be a column" },
     { 2, ERR_AUGMENT_NESTED, "augment-nested",
@@ -428,6 +426,18 @@ static Error errors[] = {
       "object `%s' of notification `%s' must not be `not-accessible'" },
     { 5, ERR_NOTIFICATION_OBJECT_MIX, "notification-object-mix", 
       "notification `%s' contains objects from multiple tables/groups" },
+    { 6, ERR_EMPTY_DESCRIPTION, "empty-description",
+      "zero-length description string" },
+    { 6, ERR_EMPTY_REFERENCE, "empty-reference",
+      "zero-length reference string" },
+    { 6, ERR_EMPTY_ORGANIZATION, "empty-organization",
+      "zero-length organization string" },
+    { 6, ERR_EMPTY_CONTACT, "empty-contact",
+      "zero-length contact string" },
+    { 6, ERR_EMPTY_FORMAT, "empty-format",
+      "zero-length format string" },
+    { 6, ERR_EMPTY_UNITS, "empty-units",
+      "zero-length units string" },
     { 0, 0, NULL, NULL }
 };
 
