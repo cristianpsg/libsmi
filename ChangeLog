@@ -1,3 +1,8 @@
+2000-03-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* Keith Dart <kdart@leviathan.kdart.com> has contributed a Python
+	binding. See the mailinglist archive.
+
 2000-03-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/: removed some obsolete header files.
@@ -31,6 +36,9 @@
 
 	* tools/dump-jax.c: A new dump format (it writes separate files
 	instead to stdout) has been started for Java AgentX sub-agent code.
+
+	* David Reeder <dreeder@tislabs.com> contributed a C++ interface.
+	See the mailinglist archive.
 
 2000-02-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
