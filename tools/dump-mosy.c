@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.1 1999/06/07 15:44:16 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.2 1999/06/16 15:04:21 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -82,8 +82,8 @@ static char *stringBasetype(SmiBasetype basetype)
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
     SmiNode	 *parentNode, *node;
-    static char	 s[SMI_MAX_OID+1];
-    char	 append[SMI_MAX_OID+1];
+    static char	 s[200];
+    char	 append[200];
     unsigned int i;
     
     append[0] = 0;

@@ -1,5 +1,11 @@
 1999-06-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.1.5.tar.gz: released version 0.1.5.
+
+	* tools/dump-java.c: started a new dump format that represents
+	java classes for MIB tables. This is experimental and may be
+	removed from smidump in future revisions.
+
 	* lib/data.c: more changes to internal data structure to make
 	them language independant, especially hiding all occurances
 	of the SMIng namespace operator `::'.

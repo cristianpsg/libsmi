@@ -1,14 +1,14 @@
 /*
  * smi.h --
  *
- *      Interface Implementation of libsmi.
+ *      Interface Definition of libsmi.
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.37 1999/06/15 18:57:52 strauss Exp $
+ * @(#) $Id: smi.h,v 1.39 1999/06/16 15:04:41 strauss Exp $
  */
 
 #ifndef _SMI_H

@@ -37,8 +37,6 @@ o   warning on NotificationName/ObjectName/ExtUTCTime definitions.
 o if `parse error' occurs, the database is left in an incosistent state,
   e.g. index labels of sming modules are not adjusted.
 
-o eliminate length restrictions (grep MAX_ *.[chly])
-
 o need handle to distinguish different views.
 
 o FreeBSD/BSD/OS: quad_t

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.40 1999/06/15 14:09:47 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.41 1999/06/16 15:04:22 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -224,8 +224,8 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
     SmiNode	 *parentNode, *node;
-    static char	 s[SMI_MAX_OID+1];
-    char	 append[SMI_MAX_OID+1];
+    static char	 s[200];
+    char	 append[200];
     unsigned int i;
     
     append[0] = 0;
