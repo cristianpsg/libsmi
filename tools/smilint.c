@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.36 2000/11/29 16:35:27 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.37 2000/12/05 10:04:56 strauss Exp $
  */
 
 #include <config.h>
@@ -18,9 +18,6 @@
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
 #endif
 #ifdef HAVE_WIN_H
 #include "win.h"
@@ -135,7 +132,7 @@ static void config(char *filename) { smiReadConfig(filename, "smilint"); }
 static void preload(char *module) { smiLoadModule(module); }
 static void recursive() { flags |= SMI_FLAG_RECURSIVE; smiSetFlags(flags); }
 static void level(int lev) { smiSetErrorLevel(lev); }
-static void ignore(char *ign) { smiSetSeverity(ign, 9); }
+static void ignore(char *ign) { smiSetSeverity(ign, 9999); }
 
 
 

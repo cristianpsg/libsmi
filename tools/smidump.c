@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.55 2001/01/04 10:10:20 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.56 2001/01/30 16:33:43 schoenw Exp $
  */
 
 #include <config.h>
@@ -19,9 +19,6 @@
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
 #endif
 #ifdef HAVE_WIN_H
 #include "win.h"
