@@ -1,3 +1,9 @@
+2002-10-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.c: Fixed a bug with pending (forward, but not
+	resolved) definitions of identifiers that appear again in a
+	subsequently loaded module. Thanks to Fredrick.
+	
 2003-10-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/EtherLike-MIB: updated (RFC 3635).

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.193 2003/06/16 15:17:42 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.194 2003/08/05 13:50:59 strauss Exp $
  */
 
 %{
@@ -3521,7 +3521,6 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    
 			    objectPtr = $22;
-
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
 			    thisParserPtr->modulePtr->numModuleIdentities++;
