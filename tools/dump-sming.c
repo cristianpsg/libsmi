@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.70 2000/02/28 12:24:24 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.71 2000/03/02 09:22:34 strauss Exp $
  */
 
 #include <config.h>
@@ -32,7 +32,7 @@
 
 #define  INDENT		2    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
-#define  INDENTTEXTS	9    /* column to start multiline texts */
+#define  INDENTTEXTS	4    /* column to start multiline texts */
 #define  INDENTMAX	64   /* max column to fill, break lines otherwise */
 
 #define  STYLE_IMPORTS  2
@@ -129,7 +129,7 @@ static int current_column = 0;
 
 
 
-char *smingStringStatus(SmiStatus status)
+static char *getStringStatus(SmiStatus status)
 {
     return
 	(status == SMI_STATUS_CURRENT)     ? "current" :
@@ -142,7 +142,7 @@ char *smingStringStatus(SmiStatus status)
 
 
 
-char *smingStringAccess(SmiAccess access)
+static char *getAccessString(SmiAccess access)
 {
     return
 	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
@@ -154,7 +154,7 @@ char *smingStringAccess(SmiAccess access)
 
 
 
-char *smingStringBasetype(SmiBasetype basetype)
+static char *getStringBasetype(SmiBasetype basetype)
 {
     return
         (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
@@ -174,7 +174,7 @@ char *smingStringBasetype(SmiBasetype basetype)
 
 
 
-char *smingCTime(time_t t)
+static char *getStringTime(time_t t)
 {
     static char   s[27];
     struct tm	  *tm;
@@ -217,7 +217,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
     }
 	
     if (!type_name) {
-	return smingStringBasetype(basetype);
+	return getStringBasetype(basetype);
     }
     
     /* TODO: fully qualified if unambigous */
@@ -321,11 +321,11 @@ static void printWrapped(int column, char *string)
 
 
 
-static void printMultilineString(const char *s)
+static void printMultilineString(int column, const char *s)
 {
     int i, len;
     
-    printSegment(INDENTTEXTS - 1, "\"", 0);
+    printSegment(column - 1 + INDENTTEXTS, "\"", 0);
     if (s) {
 	len = strlen(s);
 	for (i=0; i < len; i++) {
@@ -333,7 +333,7 @@ static void printMultilineString(const char *s)
 	    current_column++;
 	    if (s[i] == '\n') {
 		current_column = 0;
-		printSegment(INDENTTEXTS, "", 0);
+		printSegment(column + INDENTTEXTS, "", 0);
 	    }
 	}
     }
@@ -623,10 +623,10 @@ static void printRevisions(SmiModule *smiModule)
 	smiRevision; smiRevision = smiGetNextRevision(smiRevision)) {
 	printSegment(INDENT, "revision {\n", 0);
 	printSegment(2 * INDENT, "date", INDENTVALUE);
-	print("\"%s\";\n", smingCTime(smiRevision->date));
+	print("\"%s\";\n", getStringTime(smiRevision->date));
 	printSegment(2 * INDENT, "description", INDENTVALUE);
 	print("\n");
-	printMultilineString(smiRevision->description);
+	printMultilineString(2 * INDENT, smiRevision->description);
 	print(";\n");
         printSegment(INDENT, "};\n", 0);
 	i++;
@@ -674,27 +674,27 @@ static void printTypedefs(SmiModule *smiModule)
 	
 	if (smiType->format) {
 	    printSegment(2 * INDENT, "format", INDENTVALUE);
-	    print ("\"%s\";\n", smiType->format);
+	    print("\"%s\";\n", smiType->format);
 	}
 	if (smiType->units) {
 	    printSegment(2 * INDENT, "units", INDENTVALUE);
-	    print ("\"%s\";\n", smiType->units);
+	    print("\"%s\";\n", smiType->units);
 	}
 	if ((smiType->status != SMI_STATUS_CURRENT) &&
 	    (smiType->status != SMI_STATUS_UNKNOWN) &&
 	    (smiType->status != SMI_STATUS_MANDATORY) &&
 	    (smiType->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment(2 * INDENT, "status", INDENTVALUE);
-	    print ("%s;\n", smingStringStatus(smiType->status));
+	    print("%s;\n", getStringStatus(smiType->status));
 	}
 	printSegment(2 * INDENT, "description", INDENTVALUE);
-	print ("\n");
-	printMultilineString(smiType->description);
+	print("\n");
+	printMultilineString(2 * INDENT, smiType->description);
 	print(";\n");
 	if (smiType->reference) {
 	    printSegment(2 * INDENT, "reference", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiType->reference);
+	    printMultilineString(2 * INDENT, smiType->reference);
 	    print(";\n");
 	}
 	printSegment(INDENT, "};\n\n", 0);
@@ -790,7 +790,7 @@ static void printObjects(SmiModule *smiModule)
 	    (smiNode->nodekind != SMI_NODEKIND_NODE)) {
 	    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
 		printSegment((2 + indent) * INDENT, "access", INDENTVALUE);
-		print("%s;\n", smingStringAccess(smiNode->access));
+		print("%s;\n", getAccessString(smiNode->access));
 	    }
 	}
 
@@ -902,18 +902,18 @@ static void printObjects(SmiModule *smiModule)
 	    (smiNode->status != SMI_STATUS_MANDATORY) &&
 	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment((2 + indent) * INDENT, "status", INDENTVALUE);
-	    print("%s;\n", smingStringStatus(smiNode->status));
+	    print("%s;\n", getStringStatus(smiNode->status));
 	}
 	if (smiNode->description) {
 	    printSegment((2 + indent) * INDENT, "description", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiNode->description);
+	    printMultilineString((2 + indent) * INDENT, smiNode->description);
 	    print(";\n");
 	}
 	if (smiNode->reference) {
 	    printSegment((2 + indent) * INDENT, "reference", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiNode->reference);
+	    printMultilineString((2 + indent) * INDENT, smiNode->reference);
 	    print(";\n");
 	}
 	i++;
@@ -970,20 +970,20 @@ static void printNotifications(SmiModule *smiModule)
 	    (smiNode->status != SMI_STATUS_MANDATORY) &&
 	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment(2 * INDENT, "status", INDENTVALUE);
-	    print("%s;\n", smingStringStatus(smiNode->status));
+	    print("%s;\n", getStringStatus(smiNode->status));
 	}
 	
 	if (smiNode->description) {
 	    printSegment(2 * INDENT, "description", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiNode->description);
+	    printMultilineString(2 * INDENT, smiNode->description);
 	    print(";\n");
 	}
 
 	if (smiNode->reference) {
 	    printSegment(2 * INDENT, "reference", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiNode->reference);
+	    printMultilineString(2 * INDENT, smiNode->reference);
 	    print(";\n");
 	}
 
@@ -1036,20 +1036,20 @@ static void printGroups(SmiModule *smiModule)
 		(smiNode->status != SMI_STATUS_MANDATORY) &&
 		(smiNode->status != SMI_STATUS_OPTIONAL)) {
 		printSegment(2 * INDENT, "status", INDENTVALUE);
-		print("%s;\n", smingStringStatus(smiNode->status));
+		print("%s;\n", getStringStatus(smiNode->status));
 	    }
 	    
 	    if (smiNode->description) {
 		printSegment(2 * INDENT, "description", INDENTVALUE);
 		print("\n");
-		printMultilineString(smiNode->description);
+		printMultilineString(2 * INDENT, smiNode->description);
 		print(";\n");
 	    }
 	    
 	    if (smiNode->reference) {
 		printSegment(2 * INDENT, "reference", INDENTVALUE);
 		print("\n");
-		printMultilineString(smiNode->reference);
+		printMultilineString(2 * INDENT, smiNode->reference);
 		print(";\n");
 	    }
 	    
@@ -1091,20 +1091,20 @@ static void printCompliances(SmiModule *smiModule)
 	    (smiNode->status != SMI_STATUS_MANDATORY) &&
 	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment(2 * INDENT, "status", INDENTVALUE);
-	    print("%s;\n", smingStringStatus(smiNode->status));
+	    print("%s;\n", getStringStatus(smiNode->status));
 	}
 	    
 	if (smiNode->description) {
 	    printSegment(2 * INDENT, "description", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiNode->description);
+	    printMultilineString(2 * INDENT, smiNode->description);
 	    print(";\n");
 	}
 	    
 	if (smiNode->reference) {
 	    printSegment(2 * INDENT, "reference", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiNode->reference);
+	    printMultilineString(2 * INDENT, smiNode->reference);
 	    print(";\n");
 	}
 
@@ -1132,7 +1132,7 @@ static void printCompliances(SmiModule *smiModule)
 		print("optional %s {\n", smiNode2->name);
 		printSegment(3 * INDENT, "description", INDENTVALUE);
 		print("\n");
-		printMultilineString(smiOption->description);
+		printMultilineString(3 * INDENT, smiOption->description);
 		print(";\n");
 		printSegment(2 * INDENT, "};\n", 0);
 	    }
@@ -1168,12 +1168,11 @@ static void printCompliances(SmiModule *smiModule)
 
 		if (smiRefinement->access != SMI_ACCESS_UNKNOWN) {
 		    printSegment(3 * INDENT, "access", INDENTVALUE);
-		    print("%s;\n",
-			  smingStringAccess(smiRefinement->access));
+		    print("%s;\n", getAccessString(smiRefinement->access));
 		}
 		printSegment(3 * INDENT, "description", INDENTVALUE);
 		print("\n");
-		printMultilineString(smiRefinement->description);
+		printMultilineString(3 * INDENT, smiRefinement->description);
 		print(";\n");
 		printSegment(2 * INDENT, "};\n", 0);
 	    }
@@ -1222,20 +1221,20 @@ int dumpSming(char *modulename, int flags)
     print("//\n// MODULE META INFORMATION\n//\n\n");
     printSegment(INDENT, "organization", INDENTVALUE);
     print("\n");
-    printMultilineString(smiModule->organization);
+    printMultilineString(INDENT, smiModule->organization);
     print(";\n\n");
     printSegment(INDENT, "contact", INDENTVALUE);
     print("\n");
-    printMultilineString(smiModule->contactinfo);
+    printMultilineString(INDENT, smiModule->contactinfo);
     print(";\n\n");
     printSegment(INDENT, "description", INDENTVALUE);
     print("\n");
-    printMultilineString(smiModule->description);
+    printMultilineString(INDENT, smiModule->description);
     print(";\n\n");
     if (smiModule->reference) {
 	printSegment(INDENT, "reference", INDENTVALUE);
 	print("\n");
-	printMultilineString(smiModule->reference);
+	printMultilineString(INDENT, smiModule->reference);
 	print(";\n\n");
     }
 	
