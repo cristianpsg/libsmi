@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.54 2000/02/25 16:48:19 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.55 2000/02/28 16:36:12 strauss Exp $
  */
 
 %{
@@ -915,7 +915,7 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 				} else {
 				    typePtr = $8;
 				}
-				setTypeName(typePtr, typeIdentifier);
+				typePtr = setTypeName(typePtr, typeIdentifier);
 				setTypeDecl(typePtr, SMI_DECL_TYPEDEF);
 			    }
 			}
