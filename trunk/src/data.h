@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.23 1998/12/14 16:35:51 strauss Exp $
+ * @(#) $Id: data.h,v 1.24 1998/12/15 16:11:15 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -27,9 +27,6 @@
 
 
 
-/*
- * Simple generic list type. For SEQUENCEs and INDEX lists.
- */
 typedef struct List {
     void	    *ptr;
     struct List	    *next;
@@ -37,9 +34,6 @@ typedef struct List {
 
 
 
-/*
- * Quoted String located in a MIB File.
- */
 typedef struct String {
 #ifdef TEXTS_IN_MEMORY
     char *ptr;	      			/*   the value			    */
@@ -51,7 +45,7 @@ typedef struct String {
 
 
 typedef enum Kind {
-    KIND_ANY		 = 0 ,  /*					     */
+    KIND_UNKNOWN	 = 0 ,  /*					     */
     KIND_MODULE		 = 1 ,  /*					     */
     KIND_MACRO		 = 2 ,  /*					     */
     KIND_TYPE		 = 3 ,  /*					     */
@@ -59,12 +53,21 @@ typedef enum Kind {
     KIND_IMPORT		 = 5 ,  /* descriptors to be imported.               */
     KIND_IMPORTED	 = 6    /* imported descriptor. syntax `mod.descr'.  */
 } Kind;
-
 #define NUM_KINDS  7
 
 
 
-typedef unsigned short Flags;
+typedef unsigned short ParserFlags;
+typedef unsigned short ModuleFlags;
+typedef unsigned short ObjectFlags;
+typedef unsigned short NodeFlags;
+typedef unsigned short TypeFlags;
+typedef unsigned short MacroFlags;
+
+#define NODE_FLAG_ROOT		0x0001
+
+#define PARSER_FLAG_STATS	SMI_STATS
+
 #define FLAG_PERMANENT		0x0001 /* e.g. Object and Descriptor `iso'.  */
 #define FLAG_IMPORTED		0x0002 /*				     */
 #define FLAG_PARENTIMPORTED	0x0004 /* On a Type: This Type's parent is   */
@@ -115,14 +118,14 @@ typedef struct Module {
     smi_descriptor name;
     char	   *path;
     off_t	   fileoffset;
-    Object	   *firstObjectPtr;
-    Object	   *lastObjectPtr;
-    Type	   *firstTypePtr;
-    Type	   *lastTypePtr;
-    Macro	   *firstMacroPtr;
-    Macro	   *lastMacroPtr;
-    Import	   *firstImportPtr;
-    Import	   *lastImportPtr;
+    struct Object  *firstObjectPtr;
+    struct Object  *lastObjectPtr;
+    struct Type	   *firstTypePtr;
+    struct Type	   *lastTypePtr;
+    struct Macro   *firstMacroPtr;
+    struct Macro   *lastMacroPtr;
+    struct Import  *firstImportPtr;
+    struct Import  *lastImportPtr;
     String	   lastUpdated;
     String	   organization;
     String	   contactInfo;
@@ -142,19 +145,19 @@ typedef struct Module {
 
 
 typedef struct Import {
-    smi_descriptor *module;
-    smi_descriptor *name;
+    smi_descriptor module;
+    smi_descriptor name;
     struct Import  *nextPtr;
     struct Import  *prevPtr;
     Kind	   kind;
-}
+} Import;
 
 
 
 typedef struct Type {
     Module         *modulePtr;
     smi_descriptor name;
-    smi_fullname   parent;
+    smi_fullname   parentType;
     smi_syntax	   syntax;
     smi_decl	   decl;
     String	   displayHint;
@@ -184,10 +187,10 @@ typedef struct Object {
     struct List	   *indexPtr;
     String	   description;
     struct Node	   *nodePtr;
-    Object	   *prevPtr;		/* chain of Objects in this Module */
-    Object	   *nextPtr;
-    Object	   *prevSameNodePtr;    /* chain of Objects for this Node  */
-    Object	   *nextSameNodePtr;
+    struct Object  *prevPtr;		/* chain of Objects in this Module */
+    struct Object  *nextPtr;
+    struct Object  *prevSameNodePtr;    /* chain of Objects for this Node  */
+    struct Object  *nextSameNodePtr;
 } Object;
 
 
@@ -231,10 +234,10 @@ typedef struct Parser {
 
 
 
-extern Node	   *rootNodePtr;
-extern Node	   *pendingNodePtr;
+extern Node	*rootNodePtr;
+extern Node	*pendingNodePtr;
 
-extern Type	   *typeInteger, *typeOctetString, *typeObjectIdentifier;
+extern Type	*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
 
 
 extern Module *addModule(const char *modulename,
@@ -259,12 +262,13 @@ extern Module *findModuleByName(const char *modulename);
 
 
 
-extern int addImport(const char *name,
-		     Parser *parserPtr);
+extern Import *addImport(const char *name,
+			 Parser *parserPtr);
 
 extern int checkImports(char *modulename,
 			Parser *parserPtr);
 
+extern Import *findImportByName(const char *importname);
 
 /*
 extern Descriptor *addDescriptor(const char *name,
@@ -294,8 +298,7 @@ extern Object *addObject(const char *objectname,
 			 ObjectFlags flags,
 			 Parser *parserPtr);
 
-extern Object *duplicateObject(const char *objectname,
-			       Object *objectPtr,
+extern Object *duplicateObject(Object *templatePtr,
 			       ObjectFlags flags,
 			       Parser *parserPtr);
 
@@ -310,8 +313,8 @@ extern Node *getParentNode(Node *nodePtr);
 
 extern smi_subid getLastSubid(const char *oid);
 
-extern void setObjectSyntax(Object *objectPtr,
-			    smi_syntax);
+extern void setObjectType(Object *objectPtr,
+			  Type *typePtr);
 
 extern void setObjectAccess(Object *objectPtr,
 			    smi_access access);
@@ -365,8 +368,18 @@ extern Type *addType(const char *typename,
 		     TypeFlags flags,
 		     Parser *parserPtr);
 
+extern Type *duplicateType(Type *templatePtr,
+			   TypeFlags flags,
+			   Parser *parserPtr);
+
 extern void setTypeStatus(Type *typePtr,
 			  smi_status status);
+
+extern void setTypeParent(Type *typePtr,
+			  const char *parent);
+
+extern void setTypePointer(Type *typePtr,
+			   void *pointer);
 
 extern void setTypeDescription(Type *typePtr,
 			       String *descriptionPtr);
@@ -378,7 +391,7 @@ extern void setTypeDecl(Type *typePtr,
 			smi_decl decl);
 
 extern void setTypeFlags(Type *typePtr,
-			 Flags flags);
+			 TypeFlags flags);
 
 extern void setTypeDisplayHint(Type *typePtr,
 			       String *displayHintPtr);
@@ -400,7 +413,6 @@ extern void dumpTypes();
 
 
 extern Macro *addMacro(const char *macroname,
-		       /* Module *modulePtr, parserPtr->modulePtr */
 		       off_t fileoffset,
 		       int flags,
 		       Parser *parserPtr);

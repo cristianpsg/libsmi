@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.19 1998/12/04 14:36:44 strauss Exp $
+# @(#) $Id: Makefile,v 1.20 1998/12/14 16:35:50 strauss Exp $
 #
 #
 # NOTE: We need flex and bison. Lex and yacc do not work.
@@ -14,7 +14,7 @@ YACC	= bison -y -v -t
 RPCGEN	= rpcgen
 
 LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o \
-	  smi.o smi_clnt.o smi_xdr.o
+	  smi.o smi_clnt.o smi_xdr.o util.o
 
 
 default: libsmi.a miblint smid smiclient smiquery

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.26 1998/11/26 11:28:31 strauss Exp $
+ * @(#) $Id: parser.y,v 1.27 1998/11/27 10:55:27 strauss Exp $
  */
 
 %{
@@ -35,13 +35,13 @@
 /*
  * These arguments are passed to yyparse() and yylex().
  */
-#define YYPARSE_PARAM parser
-#define YYLEX_PARAM   parser
+#define YYPARSE_PARAM parserPtr
+#define YYLEX_PARAM   parserPtr
 
     
     
-#define thisParser      ((Parser *)parser)
-#define thisModule     (((Parser *)parser)->thisModule)
+#define thisParserPtr      ((Parser *)parserPtr)
+#define thisModulePtr     (((Parser *)parserPtr)->modulePtr)
 
 
     
@@ -50,12 +50,11 @@
  * we don't know it better at this point. bison generated C code declares
  * YYSTYPE just a few lines below based on the `%union' declaration.
  */
-extern int yylex(void *lvalp, Parser *parser);
+extern int yylex(void *lvalp, Parser *parserPtr);
 
 
 
-Module dummyModule;
-Node *parent;
+Node   *parentNodePtr;
 
  
  
@@ -80,15 +79,15 @@ Node *parent;
  * The attributes.
  */
 %union {
-    String text;				/* scanned quoted text       */
-    String *textp;				/* scanned quoted text       */
-    char *id;					/* identifier name           */
-    int err;					/* actually just a dummy     */
-    Object *object;				/* object identifier         */
-    smi_status status;				/* a STATUS value            */
-    smi_access access;				/* an ACCESS value           */
-    Type *type;
-    List *list;					/* SEQUENCE and INDEX lists  */
+    String      text;				/* scanned quoted text       */
+    String      *textPtr;			/* scanned quoted text       */
+    char        *id;				/* identifier name           */
+    int         err;				/* actually just a dummy     */
+    Object      *objectPtr;			/* object identifier         */
+    smi_status  status;				/* a STATUS value            */
+    smi_access  access;				/* an ACCESS value           */
+    Type        *typePtr;
+    List        *listPtr;			/* SEQUENCE and INDEX lists  */
 }
 
 
@@ -197,25 +196,25 @@ Node *parent;
 %type  <err>exportsClause
 %type  <err>macroClause
 %type  <id>macroName
-%type  <type>choiceClause
+%type  <typePtr>choiceClause
 %type  <id>typeName
 %type  <id>typeSMI
 %type  <err>typeTag
 %type  <err>valueDeclaration
-%type  <type>conceptualTable
-%type  <type>row
-%type  <type>entryType
-%type  <list>sequenceItems
-%type  <object>sequenceItem
-%type  <type>Syntax
-%type  <type>sequenceSyntax
-%type  <type>NamedBits
-%type  <type>NamedBit
+%type  <typePtr>conceptualTable
+%type  <typePtr>row
+%type  <typePtr>entryType
+%type  <listPtr>sequenceItems
+%type  <objectPtr>sequenceItem
+%type  <typePtr>Syntax
+%type  <typePtr>sequenceSyntax
+%type  <typePtr>NamedBits
+%type  <typePtr>NamedBit
 %type  <id>identifier
 %type  <err>objectIdentityClause
 %type  <err>objectTypeClause
 %type  <err>trapTypeClause
-%type  <textp>descriptionClause
+%type  <textPtr>descriptionClause
 %type  <err>VarPart
 %type  <err>VarTypes
 %type  <err>VarType
@@ -224,15 +223,15 @@ Node *parent;
 %type  <err>notificationTypeClause
 %type  <err>moduleIdentityClause
 %type  <err>typeDeclaration
-%type  <type>typeDeclarationRHS
-%type  <type>ObjectSyntax
-%type  <type>sequenceObjectSyntax
+%type  <typePtr>typeDeclarationRHS
+%type  <typePtr>ObjectSyntax
+%type  <typePtr>sequenceObjectSyntax
 %type  <err>valueofObjectSyntax
-%type  <type>SimpleSyntax
+%type  <typePtr>SimpleSyntax
 %type  <err>valueofSimpleSyntax
-%type  <type>sequenceSimpleSyntax
-%type  <type>ApplicationSyntax
-%type  <type>sequenceApplicationSyntax
+%type  <typePtr>sequenceSimpleSyntax
+%type  <typePtr>ApplicationSyntax
+%type  <typePtr>sequenceApplicationSyntax
 %type  <err>anySubType
 %type  <err>integerSubType
 %type  <err>octetStringSubType
@@ -245,21 +244,21 @@ Node *parent;
 %type  <err>enumNumber
 %type  <status>Status
 %type  <status>Status_Capabilities
-%type  <textp>DisplayPart
-%type  <textp>UnitsPart
+%type  <textPtr>DisplayPart
+%type  <textPtr>UnitsPart
 %type  <access>Access
-%type  <list>IndexPart
-%type  <list>IndexTypes
-%type  <object>IndexType
-%type  <object>Index
-%type  <list>Entry
+%type  <listPtr>IndexPart
+%type  <listPtr>IndexTypes
+%type  <objectPtr>IndexType
+%type  <objectPtr>Index
+%type  <listPtr>Entry
 %type  <err>DefValPart
 %type  <err>Value
 %type  <err>BitsValue
 %type  <err>BitNames
 %type  <err>BitName
-%type  <object>ObjectName
-%type  <object>NotificationName
+%type  <objectPtr>ObjectName
+%type  <objectPtr>NotificationName
 %type  <err>ReferPart
 %type  <err>RevisionPart
 %type  <err>Revisions
@@ -270,11 +269,11 @@ Node *parent;
 %type  <err>NotificationsPart
 %type  <err>Notifications
 %type  <err>Notification
-%type  <textp>Text
-%type  <textp>ExtUTCTime
-%type  <object>objectIdentifier
-%type  <object>subidentifiers
-%type  <object>subidentifier
+%type  <textPtr>Text
+%type  <textPtr>ExtUTCTime
+%type  <objectPtr>objectIdentifier
+%type  <objectPtr>subidentifiers
+%type  <objectPtr>subidentifier
 %type  <err>objectIdentifier_defval
 %type  <err>subidentifiers_defval
 %type  <err>subidentifier_defval
@@ -367,32 +366,26 @@ module:			moduleName
 			     * In fact, we always parse it, but we just
 			     * remember its contents if needed.
 			     */
-			    if ((!(thisModule = findModuleByName($1))) &&
-				((thisParser->flags & FLAG_WHOLEFILE) ||
-				 (!strcmp(thisParser->module, $1)))) {
-				thisParser->flags |= FLAG_ACTIVE;
-				thisModule = addModule($1,
-						       thisParser->path,
-						       thisParser->character,
-						       thisParser->flags &
-						       FLAGS_GENERAL,
-						       thisParser);
-			    } else {
-				printError(parser, ERR_UNWANTED_MODULE, $1);
-				thisParser->flags &= ~FLAG_ACTIVE;
-				if (!thisModule)
-				    thisModule = &dummyModule;
+			    parserPtr->modulePtr = findModuleByName($1);
+			    if (!parserPtr->modulePtr) {
+				parserPtr->modulePtr =
+				    addModule($1,
+					      parserPtr->path,
+					      parserPtr->character,
+					      0,
+					      parserPtr);
 			    }
-			    thisModule->flags &= ~FLAG_SMIV2;
-			    thisModule->numImportedIdentifiers = 0;
-			    thisModule->numStatements = 0;
-			    thisModule->numModuleIdentities = 0;
+			    parserPtr->modulePtr->flags &= ~MODULE_FLAG_SMIV2;
+			    parserPtr->modulePtr->numImportedIdentifiers = 0;
+			    parserPtr->modulePtr->numStatements = 0;
+			    parserPtr->modulePtr->numModuleIdentities = 0;
 			    if (!strcmp($1, "SNMPv2-SMI")) {
 			        /*
 				 * SNMPv2-SMI is an SMIv2 module that cannot
 				 * be identified by importing from SNMPv2-SMI.
 				 */
-			        thisModule->flags |= FLAG_SMIV2;
+			        parserPtr->modulePtr->flags |=
+				    MODULE_FLAG_SMIV2;
 			    }
 
 			}
@@ -405,8 +398,8 @@ module:			moduleName
 			    /* TODO
 			    PendingNode *p;
 			    
-			    if ((thisModule->flags & FLAG_SMIV2) &&
-				(thisModule->numModuleIdentities < 1)) {
+			    if ((parserPtr->modulePtr->flags & FLAG_SMIV2) &&
+				(parserPtr->modulePtr->numModuleIdentities < 1)) {
 			        printError(parser, ERR_NO_MODULE_IDENTITY);
 			    }
 			    for (p = firstPendingNode; p; p = p->next) {
@@ -435,9 +428,9 @@ exportsClause:		/* empty */
 			{ $$ = 0; }
 	|		EXPORTS
 			{
-			    if (strcmp(thisModule->descriptor->name,
+			    if (strcmp(parserPtr->modulePtr->name,
 				       "RFC1155-SMI")) {
-			        printError(parser, ERR_EXPORTS);
+			        printError(parserPtr, ERR_EXPORTS);
 			    }
 			}
 			/* the scanner skips until... */
@@ -469,7 +462,7 @@ import:			importIdentifiers FROM moduleName
 				 * A module that imports from SNMPv2-SMI
 				 * seems to be SMIv2 style.
 				 */
-			        thisModule->flags |= FLAG_SMIV2;
+			        parserPtr->modulePtr->flags |= FLAG_SMIV2;
 			    }
 
 			    /*
@@ -478,14 +471,16 @@ import:			importIdentifiers FROM moduleName
 			     * loaded.
 			     */
 			    if (!findModuleByName($3)) {
-				flags = thisParser->flags;
+				/* TODO: do we need these flags?
+				flags = parserPtr->modulePtr->flags;
 				flags &= ~(FLAG_WHOLEFILE | FLAG_WHOLEMOD);
 				if (!(flags & FLAG_RECURSIVE)) {
 				    flags &= ~(FLAG_ERRORS | FLAG_STATS);
 				}
+				*/
 				smiLoadMibModule($3);
 			    }
-			    checkImportDescriptors($3, parser);
+			    checkImports($3, parserPtr);
 			}
 	;
 
@@ -501,23 +496,23 @@ importIdentifiers:	importIdentifier
  */
 importIdentifier:	LOWERCASE_IDENTIFIER
 			{
-			    addImportDescriptor($1, parser);
-			    thisModule->numImportedIdentifiers++;
-			    $$ = strdup($1);
+			    addImport($1, parserPtr);
+			    parserPtr->modulePtr->numImportedIdentifiers++;
+			    $$ = util_strdup($1);
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
-			    addImportDescriptor($1, parser);
-			    thisModule->numImportedIdentifiers++;
-			    $$ = strdup($1);
+			    addImport($1, parserPtr);
+			    parserPtr->modulePtr->numImportedIdentifiers++;
+			    $$ = util_strdup($1);
 			}
 	|		importedKeyword
 			/* TODO: what exactly is allowed here?
 			 * What should be checked? */
 			{
-			    addImportDescriptor($1, parser);
-			    thisModule->numImportedIdentifiers++;
-			    $$ = strdup($1);
+			    addImport($1, parserPtr);
+			    parserPtr->modulePtr->numImportedIdentifiers++;
+			    $$ = util_strdup($1);
 			}
 	;
 
@@ -582,11 +577,11 @@ importedKeyword:	ACCESS
 moduleName:		UPPERCASE_IDENTIFIER
 			{
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_MODULENAME_64, $1);
+			        printError(parserPtr, ERR_MODULENAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_MODULENAME_32, $1);
+			        printError(parserPtr, ERR_MODULENAME_32, $1);
 			    }
-			    $$ = strdup($1);
+			    $$ = util_strdup($1);
 			}
 	;
 
@@ -609,63 +604,63 @@ declarations:		declaration
 
 declaration:		typeDeclaration
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		valueDeclaration
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		objectIdentityClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		objectTypeClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		trapTypeClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		notificationTypeClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		moduleIdentityClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 			/* TODO: check it's first and once */
 	|		moduleComplianceClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		objectGroupClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		notificationGroupClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		macroClause
 			{ 
-			    thisModule->numStatements++;
+			    parserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
 	|		error '}'
 			{
-			    printError(parser, ERR_FLUSH_DECLARATION);
+			    printError(parserPtr, ERR_FLUSH_DECLARATION);
 			    yyerrok;
 			    $$ = 1;
 			}
@@ -683,63 +678,54 @@ macroClause:		macroName
 			     * ASN.1 macros are known to be in these
 			     * modules.
 			     */
-			    if (strcmp(thisModule->descriptor->name,
+			    if (strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-SMI") &&
-			        strcmp(thisModule->descriptor->name,
+			        strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-TC") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-CONF") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC-1212") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC1155-SMI")) {
-			        printError(parser, ERR_MACRO);
+			        printError(parserPtr, ERR_MACRO);
 			    }
 			}
 			/* the scanner skips until... */
 			END
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				/*
-				 * Some bison magics make the objectIdentifier
-				 * to be $7 instead of $6.
-				 */
-				addMacro($1, thisModule,
-					thisParser->character,
-					(thisParser->flags &
-					 (FLAG_WHOLEMOD |
-					  FLAG_WHOLEFILE))
-					? FLAG_MODULE : 0,
-					thisParser);
-				$$ = 0;
-			    } else {
-				$$ = 0;
-			    }
+			    /*
+			     * Some bison magics make the objectIdentifier
+			     * to be $7 instead of $6.
+			     */
+			    addMacro($1, thisParser->character, 0,
+				     parserPtr);
+			    $$ = 0;
                         }
 	;
 
-macroName:		MODULE_IDENTITY     { $$ = strdup($1); } 
-	|		OBJECT_TYPE	    { $$ = strdup($1); }
-	|		NOTIFICATION_TYPE   { $$ = strdup($1); }
-	|		OBJECT_IDENTITY	    { $$ = strdup($1); }
-	|		TEXTUAL_CONVENTION  { $$ = strdup($1); }
-	|		OBJECT_GROUP	    { $$ = strdup($1); }
-	|		NOTIFICATION_GROUP  { $$ = strdup($1); }
-	|		MODULE_COMPLIANCE   { $$ = strdup($1); }
-	|		AGENT_CAPABILITIES  { $$ = strdup($1); }
+macroName:		MODULE_IDENTITY     { $$ = util_strdup($1); } 
+	|		OBJECT_TYPE	    { $$ = util_strdup($1); }
+	|		NOTIFICATION_TYPE   { $$ = util_strdup($1); }
+	|		OBJECT_IDENTITY	    { $$ = util_strdup($1); }
+	|		TEXTUAL_CONVENTION  { $$ = util_strdup($1); }
+	|		OBJECT_GROUP	    { $$ = util_strdup($1); }
+	|		NOTIFICATION_GROUP  { $$ = util_strdup($1); }
+	|		MODULE_COMPLIANCE   { $$ = util_strdup($1); }
+	|		AGENT_CAPABILITIES  { $$ = util_strdup($1); }
 	;
 
 choiceClause:		CHOICE
 			{
-			    if (strcmp(thisModule->descriptor->name,
+			    if (strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-SMI") &&
-			        strcmp(thisModule->descriptor->name,
+			        strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-TC") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-CONF") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC-1212") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC1155-SMI")) {
 			        printError(parser, ERR_CHOICE);
 			    }
@@ -747,13 +733,8 @@ choiceClause:		CHOICE
 			/* the scanner skips until... */
 			'}'
 			{
-			    $$ = addType(NULL, SMI_SYNTAX_CHOICE,
-					 thisModule,
-					 (thisParser->flags &
-					  (FLAG_WHOLEMOD |
-					   FLAG_WHOLEFILE))
-					 ? FLAG_MODULE : 0,
-					 thisParser);
+			    $$ = addType(NULL, SMI_SYNTAX_CHOICE, 0,
+					 parserPtr);
 			}
 	;
 
@@ -763,13 +744,13 @@ choiceClause:		CHOICE
 valueDeclaration:	LOWERCASE_IDENTIFIER
 			{ 
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_OIDNAME_64, $1);
+			        printError(parserPtr, ERR_OIDNAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_OIDNAME_32, $1);
+			        printError(parserPtr, ERR_OIDNAME_32, $1);
 			    }
-			    if (thisModule->flags & FLAG_SMIV2) {
+			    if (parserPtr->modulePtr->flags & FLAG_SMIV2) {
 			        if (strchr($1, '-')) {
-				    printError(parser,
+				    printError(parserPtr,
 					       ERR_OIDNAME_INCLUDES_HYPHEN,
 					       $1);
 				}
@@ -778,39 +759,20 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			OBJECT IDENTIFIER
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
-			    Descriptor *descriptor;
-			    Object *object;
+			    Object *objectPtr;
 			    
-			    object = $7;
+			    objectPtr = $7;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
-							 (thisParser->flags &
-							  (FLAG_WHOLEMOD |
-							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				if (thisParser->flags &
-				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags(object, FLAG_MODULE);
-				}
-				setObjectDecl(object,
-					      SMI_DECL_VALUEASSIGNMENT);
-				$$ = 0;
-			    } else {
-				$$ = 0;
+			    if (objectPtr->modulePtr != parserPtr->modulePtr) {
+				objectPtr =
+				    duplicateObject(objectPtr,
+						    parserPtr->modulePtr,
+						    0, parserPtr);
 			    }
+			    setObjectName(objectPtr, $1);
+			    setObjectDecl(objectPtr,
+					  SMI_DECL_VALUEASSIGNMENT);
+			    $$ = 0;
 			}
 	;
 
@@ -820,25 +782,18 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 typeDeclaration:	typeName
 			{ 
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_TYPENAME_64, $1);
+			        printError(parserPtr, ERR_TYPENAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_TYPENAME_32, $1);
+			        printError(parserPtr, ERR_TYPENAME_32, $1);
 			    }
 			}
 			COLON_COLON_EQUAL typeDeclarationRHS
 			{
-			    Type *type;
+			    Type *typePtr;
 			    
-			    if ((thisParser->flags & FLAG_ACTIVE) &&
-				(strlen($1))) {
-				type = $4;
-				addDescriptor($1, thisModule, KIND_TYPE,
-					      &type,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
+			    if (strlen($1)) {
+				typePtr = $4;
+				setTypeName(typePtr, $1);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -848,7 +803,7 @@ typeDeclaration:	typeName
 
 typeName:		UPPERCASE_IDENTIFIER
 			{
-			    $$ = strdup($1);
+			    $$ = util_strdup($1);
 			}
 	|		typeSMI
 			{
@@ -856,17 +811,17 @@ typeName:		UPPERCASE_IDENTIFIER
 			     * well known types (keywords in this grammar)
 			     * are known to be defined in these modules.
 			     */
-			    if (strcmp(thisModule->descriptor->name,
+			    if (strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-SMI") &&
-			        strcmp(thisModule->descriptor->name,
+			        strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-TC") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-CONF") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC-1212") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC1155-SMI")) {
-			        printError(parser, ERR_TYPE_SMI, $1);
+			        printError(parserPtr, ERR_TYPE_SMI, $1);
 			    }
 			    /*
 			     * clear $$, so that the `typeDeclarationRHS'
@@ -876,38 +831,28 @@ typeName:		UPPERCASE_IDENTIFIER
 			}
 	;
 
-typeSMI:		INTEGER32   { $$ = strdup($1); }
-	|		IPADDRESS   { $$ = strdup($1); }
-	|		COUNTER32   { $$ = strdup($1); }
-	|		GAUGE32     { $$ = strdup($1); }
-	|		UNSIGNED32  { $$ = strdup($1); }
-	|		TIMETICKS   { $$ = strdup($1); }
-	|		OPAQUE      { $$ = strdup($1); }
-	|		COUNTER64   { $$ = strdup($1); }
+typeSMI:		INTEGER32   { $$ = util_strdup($1); }
+	|		IPADDRESS   { $$ = util_strdup($1); }
+	|		COUNTER32   { $$ = util_strdup($1); }
+	|		GAUGE32     { $$ = util_strdup($1); }
+	|		UNSIGNED32  { $$ = util_strdup($1); }
+	|		TIMETICKS   { $$ = util_strdup($1); }
+	|		OPAQUE      { $$ = util_strdup($1); }
+	|		COUNTER64   { $$ = util_strdup($1); }
 	;
 
 typeDeclarationRHS:	Syntax
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if ($1->descriptor) {
-				    /*
-				     * If we found an already defined type,
-				     * we have to inherit a new type structure.
-				     * (Otherwise the `Syntax' rule created
-				     * a new type for us.)
-				     */
-				    $$ = addType($1, SMI_SYNTAX_UNKNOWN,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				} else {
-				    $$ = $1;
-				}
+			    if ($1->name) {
+				/*
+				 * If we found an already defined type,
+				 * we have to inherit a new type structure.
+				 * (Otherwise the `Syntax' rule created
+				 * a new type for us.)
+				 */
+				$$ = duplicateType($1, 0, parserPtr);
 			    } else {
-				$$ = NULL;
+				$$ = $1;
 			    }
 			}
 	|		TEXTUAL_CONVENTION
@@ -917,36 +862,26 @@ typeDeclarationRHS:	Syntax
 			ReferPart
 			SYNTAX Syntax
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (($9) && !($9->descriptor)) {
-				    /*
-				     * If the Type we found has just been
-				     * defined, we don't have to allocate
-				     * a new one.
-				     */
-				    $$ = $9;
-				} else {
-				    /*
-				     * Otherwise, we have to allocate a
-				     * new Type struct, inherited from $9.
-				     */
-				    $$ = addType($9, SMI_SYNTAX_UNKNOWN,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				}
-				setTypeDescription($$, $6);
-				setTypeStatus($$, $4);
-				if ($2) {
-				    setTypeDisplayHint($$, $2);
-				}
-				setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
+			    if (($9) && !($9->name)) {
+				/*
+				 * If the Type we found has just been
+				 * defined, we don't have to allocate
+				 * a new one.
+				 */
+				$$ = $9;
 			    } else {
-				$$ = NULL;
+				/*
+				 * Otherwise, we have to allocate a
+				 * new Type struct, inherited from $9.
+				 */
+				$$ = duplicateType($9, 0, parserPtr);
 			    }
+			    setTypeDescription($$, $6);
+			    setTypeStatus($$, $4);
+			    if ($2) {
+				setTypeDisplayHint($$, $2);
+			    }
+			    setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
 			}
 	|		choiceClause
 			{
@@ -957,19 +892,15 @@ typeDeclarationRHS:	Syntax
 /* REF:RFC1902,7.1.12. */
 conceptualTable:	SEQUENCE OF row
 			{
+			    char s[SMI_MAX_FULLNAME];
+			    
 			    if ($3) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType($3,
-						 SMI_SYNTAX_SEQUENCE_OF,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				} else {
-				    $$ = NULL;
-				}
+				$$ = addType(NULL,
+					     SMI_SYNTAX_SEQUENCE_OF, 0,
+					     parserPtr);
+				sprintf(s, "%s!%s", $3->modulePtr->name,
+					$3->name);
+				setTypeParent($$, s);
 			    } else {
 				$$ = NULL;
 			    }
@@ -983,61 +914,34 @@ row:			UPPERCASE_IDENTIFIER
 			 * module.
 			 */
 			{
-			    Type *type;
-			    Descriptor *descriptor;
+			    Type *typePtr;
+			    Import *importPtr;
 			    smi_type *stype;
 
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = findTypeByModulenameAndName(
-				    thisModule->descriptor->name, $1);
-				if (! $$) {
-				    descriptor = findDescriptor($1,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					/* 
-					 * forward referenced type. create it,
-					 * marked with FLAG_INCOMPLETE.
-					 */
-					type = addType(NULL,
-						       SMI_SYNTAX_SEQUENCE,
-						       thisModule,
-						       ((thisParser->flags &
-							 (FLAG_WHOLEMOD |
-							  FLAG_WHOLEFILE))
-							? FLAG_MODULE : 0) |
-						       FLAG_INCOMPLETE,
-						       thisParser);
-					addDescriptor($1, thisModule,
-						      KIND_TYPE,
-						      &type,
-						      ((thisParser->flags &
-							(FLAG_WHOLEMOD |
-							 FLAG_WHOLEFILE))
-						       ? FLAG_MODULE : 0) |
-						      FLAG_INCOMPLETE,
-						      thisParser);
-					$$ = type;
-				    } else {
-					/*
-					 * imported type.
-					 */
-					stype = smiGetType($1,
-					 ((Descriptor *)descriptor->ptr)->name,
-							   0);
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_IMPORTED,
-						     thisParser);
-				    }
+			    $$ = findTypeByModulenameAndName(
+				parserPtr->modulePtr->name, $1);
+			    if (! $$) {
+				importPtr = findImportByName($1);
+				if (!importPtr) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    typePtr = addType($1, SMI_SYNTAX_SEQUENCE,
+						   TYPE_FLAG_INCOMPLETE,
+						   parserPtr);
+				    $$ = typePtr;
+				} else {
+				    /*
+				     * imported type.
+				     * TODO: is this allowed in a SEQUENCE? 
+				     */
+				    stype = smiGetType($1, importPtr->module);
+						       0);
+				    $$ = addType($1, stype->syntax,
+						 TYPE_FLAG_IMPORTED,
+						 parserPtr);
 				}
-			    } else {
-				$$ = NULL;
 			    }
 			}
 		        /* TODO: this must be an entryType */
@@ -1046,38 +950,29 @@ row:			UPPERCASE_IDENTIFIER
 /* REF:RFC1902,7.1.12. */
 entryType:		SEQUENCE '{' sequenceItems '}'
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType((void *)$3,
-					     SMI_SYNTAX_SEQUENCE,
-					     thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
-			    } else {
-				$$ = NULL;
-			    }
+			    $$ = addType(NULL, SMI_SYNTAX_SEQUENCE, 0
+					 parserPtr);
+			    setTypePointer($$, $3);
 			}
 ;
 
 sequenceItems:		sequenceItem
 			{
-			    $$ = malloc(sizeof(List));
+			    $$ = util_malloc(sizeof(List));
 			    /* TODO: success? */
 			    $$->ptr = $1;
-			    $$->next = NULL;
+			    $$->nextPtr = NULL;
 			}
 	|		sequenceItems ',' sequenceItem
 			/* TODO: might this list be emtpy? */
 			{
 			    List *p, *pp;
 			    
-			    p = malloc(sizeof(List));
+			    p = util_malloc(sizeof(List));
 			    p->ptr = (void *)$3;
-			    p->next = NULL;
-			    for (pp = $1; pp->next; pp = pp->next);
-			    pp->next = p;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
 			    $$ = $1;
 			}
 	;
@@ -1090,43 +985,34 @@ sequenceItems:		sequenceItem
  */
 sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			{
-			    Object *object;
+			    Object *objectPtr;
 			    smi_node *snode;
-			    Descriptor *descriptor;
 			    
-			    object = findObjectByModuleAndName(thisModule, $1);
-			    if (object) {
-				$$ = object;
+			    objectPtr =
+			        findObjectByModuleAndName(parserPtr->modulePtr,
+							  $1);
+
+			    if (objectPtr) {
+				$$ = objectPtr;
 			    } else {
-				descriptor = findDescriptor($1,
-							    thisModule,
-							    KIND_OBJECT);
-				if (!descriptor) {
-				    object = addObject(pendingRootNode,
-						       0,
-						       thisModule,
-						       FLAG_NOSUBID,
-						       parser);
-				    setObjectFileOffset(object,
-						        thisParser->character);
-				    addDescriptor($1, thisModule,
-						  KIND_OBJECT,
-						  &object, 0, parser);
-				    $$ = object;
+				importPtr = findImportByName($1);
+				if (!importPtr) {
+				    objectPtr = addObject($1, pendingNodePtr,
+					                  0,
+					                  OBJECT_FLAG_NOSUBID,
+						          parserPtr);
+				    setObjectFileOffset(objectPtr,
+						        parserPtr->character);
+				    $$ = objectPtr;
 				} else {
 				    /*
 				     * imported object.
 				     */
-				    snode = smiGetNode($1,
-				       ((Descriptor *)descriptor->ptr)->name,
-						       0);
-				    $$ = addObject(
-					getParent(createNodes(snode->oid)),
+				    snode = smiGetNode($1, importPtr->name, 0);
+				    $$ = addObject($1,
+					getParentNode(createNodes(snode->oid)),
 					getLastSubid(snode->oid),
-					thisModule,
-					FLAG_IMPORTED,
-					thisParser);
-				    
+					FLAG_IMPORTED,parserPtr);
 				}
 			    }
 			}
@@ -1157,52 +1043,30 @@ sequenceSyntax:		/* ObjectSyntax */
 			}
 	|		UPPERCASE_IDENTIFIER anySubType
 			{
-			    Type *type;
-			    Descriptor *descriptor;
+			    Type *typePtr;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = findTypeByModulenameAndName(
-				    thisModule->descriptor->name, $1);
-				if (! $$) {
-				    descriptor = findDescriptor($1,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					/* 
-					 * forward referenced type. create it,
-					 * marked with FLAG_INCOMPLETE.
-					 */
-					type = addType(NULL,
-						       SMI_SYNTAX_UNKNOWN,
-						       thisModule,
-						       ((thisParser->flags &
-							 (FLAG_WHOLEMOD |
-							  FLAG_WHOLEFILE))
-							? FLAG_MODULE : 0) |
-						       FLAG_INCOMPLETE,
-						       thisParser);
-					addDescriptor($1, thisModule,
-						      KIND_TYPE,
-						      &type,
-						      ((thisParser->flags &
-							(FLAG_WHOLEMOD |
-							 FLAG_WHOLEFILE))
-						       ? FLAG_MODULE : 0) |
-						      FLAG_INCOMPLETE,
-						      thisParser);
-					$$ = type;
-				    } else {
-					/*
-					 * imported type.
-					 *
-					 * We are in a SEQUENCE clause,
-					 * where we do not have to create
-					 * a new Type struct.
-					 */
-				    }
+			    $$ = findTypeByModulenameAndName(
+				parserPtr->modulePtr->name, $1);
+			    if (! $$) {
+				importPtr = findImportByName($1);
+				if (!importPtr) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    type = addType($1, SMI_SYNTAX_UNKNOWN,
+						   FLAG_INCOMPLETE,
+						   parserPtr);
+				    $$ = typePtr;
+				} else {
+				    /*
+				     * imported type.
+				     *
+				     * We are in a SEQUENCE clause,
+				     * where we do not have to create
+				     * a new Type struct.
+				     */
 				}
-			    } else {
-				$$ = NULL;
 			    }
 			}
 	;
@@ -1221,9 +1085,9 @@ NamedBits:		NamedBit
 NamedBit:		identifier
 			{ 
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_BITNAME_64, $1);
+			        printError(parserPtr, ERR_BITNAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_BITNAME_32, $1);
+			        printError(parserPtr, ERR_BITNAME_32, $1);
 			    }
 			}
 			'(' number ')'
@@ -1236,16 +1100,16 @@ NamedBit:		identifier
 identifier:		LOWERCASE_IDENTIFIER
 			/* TODO */
 			{
-			    $$ = strdup($1);
+			    $$ = util_strdup($1);
 			}
 	;
 
 objectIdentityClause:	LOWERCASE_IDENTIFIER
 			{ 
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_OIDNAME_64, $1);
+			        printError(parserPtr, ERR_OIDNAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_OIDNAME_32, $1);
+			        printError(parserPtr, ERR_OIDNAME_32, $1);
 			    }
 			}
 			OBJECT_IDENTITY
@@ -1255,54 +1119,32 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL
 			'{' objectIdentifier '}'
 			{
-			    Descriptor *descriptor;
-			    Object *object;
+			    Object *objectPtr;
 			    
-			    object = $11;
+			    objectPtr = $11;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
-							 (thisParser->flags &
-							  (FLAG_WHOLEMOD |
-							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object, SMI_DECL_OBJECTIDENTITY);
-				setObjectFlags(object,
-						(thisParser->flags &
-						 (FLAG_WHOLEMOD |
-						  FLAG_WHOLEFILE))
-						? (FLAG_MODULE|FLAG_REGISTERED)
-						: 0);
-				setObjectStatus(object, $5);
-				setObjectDescription(object, $7);
-#if 0
-				setObjectReferences(object, $8);
-#endif
-				$$ = 0;
-			    } else {
-				$$ = 0;
+			    if (objectPtr->modulePtr != parserPtr->modulePtr) {
+				objectPtr = duplicateObject(objectPtr,
+				                            0, parserPtr);
 			    }
+			    setObjectName(objectPtr, $1);
+			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
+			    setObjectStatus(objectPtr, $5);
+			    setObjectDescription(objectPtr, $7);
+			    addObjectFlags(objectPtr, OBJECT_FLAG_REGISTERED);
+#if 0
+			    setObjectReferences(objectPtr, $8);
+#endif
+			    $$ = 0;
 			}
 	;
 
 objectTypeClause:	LOWERCASE_IDENTIFIER
 			{
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_OIDNAME_64, $1);
+			        printError(parserPtr, ERR_OIDNAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_OIDNAME_32, $1);
+			        printError(parserPtr, ERR_OIDNAME_32, $1);
 			    }
 			}
 			OBJECT_TYPE
@@ -1316,58 +1158,37 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			DefValPart
 			COLON_COLON_EQUAL '{' ObjectName '}'
 			{
-			    Descriptor *descriptor;
-			    Object *object;
+			    Object *objectPtr;
 
 			    object = $16;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
-							 (thisParser->flags &
-							  (FLAG_WHOLEMOD |
-							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object, SMI_DECL_OBJECTTYPE);
-				setObjectFlags(object,
-						(thisParser->flags &
-						 (FLAG_WHOLEMOD |
-						  FLAG_WHOLEFILE))
-						? (FLAG_MODULE|FLAG_REGISTERED)
-						: 0);
-				setObjectSyntax(object, $5);
-				setObjectAccess(object, $7);
-				setObjectStatus(object, $9);
-				if ($10) {
-				    setObjectDescription(object, $10);
-				}
-				setObjectIndex(object, $12);
-				/*
-				 * TODO: ReferPart ($11)
-				 * TODO: DefValPart ($13)
-				 */
-				$$ = 0;
-			    } else {
-				$$ = 0;
+			    if (objectPtr->modulePtr != parserPtr->modulePtr) {
+				objectPtr = duplicateObject(objectPtr,
+				                            0, parserPtr);
 			    }
+			    setObjectName(objectPtr, $1);
+			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
+			    setObjectSyntax(objectPtr, $5);
+			    setObjectAccess(objectPtr, $7);
+			    setObjectStatus(objectPtr, $9);
+			    addObjectFlags(objectPtr, OBJECT_FLAG_REGISTERED);
+			    if ($10) {
+				setObjectDescription(objectPtr, $10);
+			    }
+			    setObjectIndex(objectPtr, $12);
+			    /*
+			     * TODO: ReferPart ($11)
+			     * TODO: DefValPart ($13)
+			     */
+			    $$ = 0;
 			}
 	;
 
 descriptionClause:	/* empty */
 			{
-			    if (thisModule->flags & FLAG_SMIV2) {
-				printError(parser,
+			    if (parserPtr->modulePtr->flags &
+			            MODULE_FLAG_SMIV2) {
+				printError(parserPtr,
 					   ERR_MISSING_DESCRIPTION);
 			    }
 			    $$ = NULL;
@@ -1381,15 +1202,16 @@ descriptionClause:	/* empty */
 trapTypeClause:		LOWERCASE_IDENTIFIER
 			{ 
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_OIDNAME_64, $1);
+			        printError(parserPtr, ERR_OIDNAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_OIDNAME_32, $1);
+			        printError(parserPtr, ERR_OIDNAME_32, $1);
 			    }
 			}
 			TRAP_TYPE
 			{
-			    if (thisModule->flags & FLAG_SMIV2) {
-			        printError(parser, ERR_TRAP_TYPE);
+			    if (parserPtr->modulePtr->flags &
+			            MODULE_FLAG_SMIV2) {
+			        printError(parserPtr, ERR_TRAP_TYPE);
 			    }
 			}
 			ENTERPRISE objectIdentifier
@@ -1425,16 +1247,18 @@ DescrPart:		DESCRIPTION Text
 
 MaxAccessPart:		MAX_ACCESS
 			{
-			    if (!(thisModule->flags & FLAG_SMIV2)) {
-			        printError(parser, ERR_MAX_ACCESS_IN_SMIV1);
+			    if (!(parserPtr->modulePtr->flags &
+			              MODULE_FLAG_SMIV2)) {
+			        printError(parserPtr, ERR_MAX_ACCESS_IN_SMIV1);
 			    }
 			}
 			Access
 			{ $$ = $3; }
 	|		ACCESS
 			{
-			    if (thisModule->flags & FLAG_SMIV2) {
-			        printError(parser, ERR_ACCESS_IN_SMIV2);
+			    if (parserPtr->modulePtr->flags &
+			            MODULE_FLAG_SMIV2) {
+			        printError(parserPtr, ERR_ACCESS_IN_SMIV2);
 			    }
 			}
 			Access
@@ -1445,9 +1269,9 @@ MaxAccessPart:		MAX_ACCESS
 notificationTypeClause:	LOWERCASE_IDENTIFIER
 			{ 
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_OIDNAME_64, $1);
+			        printError(parserPtr, ERR_OIDNAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_OIDNAME_32, $1);
+			        printError(parserPtr, ERR_OIDNAME_32, $1);
 			    }
 			}
 			NOTIFICATION_TYPE
@@ -1458,62 +1282,41 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL
 			'{' NotificationName '}'
 			{
-			    Descriptor *descriptor;
-			    Object *object;
+			    Object *objectPtr;
 			    
-			    object = $12;
+			    objectPtr = $12;
 				
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
-							 (thisParser->flags &
-							  (FLAG_WHOLEMOD |
-							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object,
-					      SMI_DECL_NOTIFICATIONTYPE);
-				if (thisParser->flags &
-				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags(object,
-						   FLAG_MODULE |
-						   FLAG_REGISTERED);
-				}
-				setObjectStatus(object, $6);
-				setObjectDescription(object, $8);
-				$$ = 0;
-			    } else {
-				$$ = 0;
+			    if (objectPtr->modulePtr != parserPtr->modulePtr) {
+				objectPtr = duplicateObject(objectPtr, 0,
+							    parserPtr);
 			    }
+			    setObjectName(objectPtr, $1);
+			    setObjectDecl(objectPtr,
+					  SMI_DECL_NOTIFICATIONTYPE);
+			    addObjectFlags(objectPtr, OBJECT_FLAG_REGISTERED);
+			    setObjectStatus(objectPtr, $6);
+			    setObjectDescription(objectPtr, $8);
+			    $$ = 0;
 			}
 	;
 
 moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			{ 
 			    if (strlen($1) > 64) {
-			        printError(parser, ERR_OIDNAME_64, $1);
+			        printError(parserPtr, ERR_OIDNAME_64, $1);
 			    } else if (strlen($1) > 32) {
-			        printError(parser, ERR_OIDNAME_32, $1);
+			        printError(parserPtr, ERR_OIDNAME_32, $1);
 			    }
 			}
 			MODULE_IDENTITY
 			{
-			    if (thisModule->numModuleIdentities > 0) {
-			        printError(parser,
+			    if (parserPtr->modulePtr->numModuleIdentities > 0)
+			    {
+			        printError(parserPtr,
 					   ERR_TOO_MANY_MODULE_IDENTITIES);
 			    }
-			    if (thisModule->numStatements > 0) {
-			        printError(parser,
+			    if (parserPtr->modulePtr->numStatements > 0) {
+			        printError(parserPtr,
 					   ERR_MODULE_IDENTITY_NOT_FIRST);
 			    }
 			}
@@ -1525,46 +1328,24 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL
 			'{' objectIdentifier '}'
 			{
-			    Descriptor *descriptor;
-			    Object *object;
+			    Object *objectPtr;
 			    
-			    object = $16;
+			    objectPtr = $16;
 			    
-			    thisModule->numModuleIdentities++;
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
-							 (thisParser->flags &
-							  (FLAG_WHOLEMOD |
-							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object, SMI_DECL_MODULEIDENTITY);
-				if (thisParser->flags &
-				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags(object,
-						    FLAG_MODULE |
-						    FLAG_REGISTERED);
-				}
-				setModuleLastUpdated(thisModule, $6);
-				setModuleOrganization(thisModule, $8);
-				setModuleContactInfo(thisModule, $10);
-				setModuleDescription(thisModule, $12);
-				setObjectDescription(object, $12);
-				$$ = 0;
-			    } else {
-				$$ = 0;
+			    parserPtr->modulePtr->numModuleIdentities++;
+			    if (objectPtr->modulePtr != parserPtr->modulePtr) {
+				objectPtr = duplicateObject(objectPtr, 0,
+							    parserPtr);
 			    }
+			    setObjectName(objectPtr, $1);
+			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
+			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    setModuleLastUpdated(parserPtr->modulePtr, $6);
+			    setModuleOrganization(parserPtr->modulePtr, $8);
+			    setModuleContactInfo(parserPtr->modulePtr, $10);
+			    setModuleDescription(parserPtr->modulePtr, $12);
+			    setObjectDescription(objectPtr, $12);
+			    $$ = 0;
 			}
         ;
 
@@ -1574,17 +1355,17 @@ ObjectSyntax:		SimpleSyntax
 			}
 	|		typeTag SimpleSyntax
 			{
-			    if (strcmp(thisModule->descriptor->name,
+			    if (strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-SMI") &&
-			        strcmp(thisModule->descriptor->name,
+			        strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-TC") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "SNMPv2-CONF") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC-1212") &&
-				strcmp(thisModule->descriptor->name,
+				strcmp(parserPtr->modulePtr->name,
 				       "RFC1155-SMI")) {
-			        printError(parser, ERR_TYPE_TAG, $1);
+			        printError(parserPtr, ERR_TYPE_TAG, $1);
 			    }
 			    $$ = $2;
 			}
@@ -1641,255 +1422,184 @@ valueofObjectSyntax:	valueofSimpleSyntax
 
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
-			    $$ = typeInteger;
+			    $$ = typeIntegerPtr;
 			}
 	|		INTEGER integerSubType
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(typeInteger,
-					     SMI_SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
+			    $$ = duplicateType(typeIntegerPtr, 0, parserPtr);
+			    setTypeParent($$, typeIntegerPtr->name);
 				/* TODO: add subtype restriction */
-			    } else {
-				$$ = NULL;
-			    }
 			}
 	|		INTEGER enumSpec
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(typeInteger,
-					     SMI_SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
+			    $$ = duplicateType(typeIntegerPtr, 0, parserPtr);
+			    setTypeParent($$, typeIntegerPtr->name);
 				/* TODO: add enum restriction */
-			    } else {
-				$$ = NULL;
-			    }
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
-			    $$ = typeInteger;
+			    $$ = typeIntegerPtr;
 			}
         |		INTEGER32 integerSubType
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(typeInteger,
-					     SMI_SYNTAX_UNKNOWN, thisModule,
+			    $$ = duplicateType(typeIntegerPtr, 0, parserPtr);
+			    setTypeParent($$, typeIntegerPtr->name);
+				/* TODO: add subtype restriction */
+			}
+	|		UPPERCASE_IDENTIFIER enumSpec
+			{
+			    Type *parentPtr;
+			    smi_type *stype;
+			    char s[SMI_MAX_FULLNAME];
+
+			    parentPtr = findTypeByModuleAndName(
+			        parserPtr->modulePtr, $1);
+			    if (!parentPtr) {
+			        importPtr = findImportByName($1);
+				if (!importPtr) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parentPtr = addType($1, SMI_SYNTAX_UNKNOWN,
+						        FLAG_INCOMPLETE,
+						        parserPtr);
+				    $$ = duplicateType(parentPtr, 0,
+						       parserPtr);
+				    sprintf(s, "%s.%s",
+					    parserPtr->modulePtr->name,
+					    parentPtr->name);
+				    setTypeParent($$, s);
+				} else {
+				    /*
+				     * imported type.
+				     */
+				    stype = smiGetType($1, importPtr->module,
+						       0);
+				    $$ = addType(NULL, stype->syntax, 0,
+						 parserPtr);
+				    sprintf(s, "%s.%s", importPtr->module,
+					    importPtr->name);
+				    setTypeParent($$, s);
+				}
+			    } else {
+			        $$ = duplicateType(parentPtr, 0, parserPtr);
+				sprintf(s, "%s.%s",
+				        parserPtr->modulePtr->name, $1);
+				setTypeParent($$, s);
+			    }
+				/* TODO: add enum restriction */
+			}
+	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
+			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
+			{
+			    Type *parentPtr;
+			    smi_type *stype;
+			    char s[SMI_MAX_FULLNAME];
+
+			    parentPtr = findTypeByModulenameAndName($1, $3);
+			    if (!parentPtr) {
+				importPtr = findImportByModulenameAndName($1,
+									  $3);
+				if (!importPtr) {
+				    printError(parserPtr,
+					       ERR_UNKNOWN_TYPE, $3);
+				    $$ = NULL;
+				} else {
+				    /*
+				     * imported type.
+				     */
+				    stype = smiGetType($3, $1, 0);
+				    /* TODO: success? */
+				    $$ = addType(NULL, stype->syntax, 0,
+						 parserPtr);
+				    sprintf(s, "%s.%s", importPtr->module,
+					    importPtr->name);
+				    setTypeParent($$, s);
+				}
+			    } else {
+			        $$ = duplicateType(parentPtr, 0, parserPtr);
+				sprintf(s, "%s.%s", $1, $3);
+				setTypeParent($$, s);
+			    }
+				/* TODO: add enum restriction */
+			}
+
+
+/* XXX */
+
+	|		UPPERCASE_IDENTIFIER integerSubType
+			{
+			    Type *parent;
+			    smi_type *stype;
+			    char s[SMI_MAX_FULLNAME];
+			    
+			    parent = findTypeByModuleAndName(parserPtr->modulePtr,
+							     $1);
+			    if (!parent) {
+				descriptor = findDescriptor($1,
+							    parserPtr->modulePtr,
+							    KIND_TYPE);
+				if (!descriptor) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
+						     SMI_SYNTAX_UNKNOWN,
+						     parserPtr->modulePtr,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_INCOMPLETE,
+						     thisParser);
+				    addDescriptor($1, parserPtr->modulePtr,
+						  KIND_TYPE,
+						  &parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
+				    $$ = addType(parent,
+						 SMI_SYNTAX_UNKNOWN,
+						 parserPtr->modulePtr,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				} else {
+				    /*
+				     * imported type.
+				     */
+				    stype = smiGetType($1,
+						       ((Descriptor *)descriptor->ptr)->name,
+						       0);
+				    $$ = addType((void *)descriptor,
+						 stype->syntax,
+						 parserPtr->modulePtr,
+						 ((thisParser->flags &
+						   (FLAG_WHOLEMOD |
+						    FLAG_WHOLEFILE))
+						  ? FLAG_MODULE : 0) |
+						 FLAG_PARENTIMPORTED,
+						 thisParser);
+				}
+			    } else {
+				$$ = addType(parent,
+					     SMI_SYNTAX_UNKNOWN,
+					     parserPtr->modulePtr,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
 					       FLAG_WHOLEFILE))
 					     ? FLAG_MODULE : 0,
 					     thisParser);
+			    }
 				/* TODO: add subtype restriction */
-			    } else {
-				$$ = NULL;
-			    }
-			}
-	|		UPPERCASE_IDENTIFIER enumSpec
-			{
-			    Type *parent;
-			    Descriptor *descriptor;
-			    smi_type *stype;
-			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				parent = findTypeByModuleAndName(thisModule,
-								 $1);
-				if (!parent) {
-				    descriptor = findDescriptor($1,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					/* 
-					 * forward referenced type. create it,
-					 * marked with FLAG_INCOMPLETE.
-					 */
-					parent = addType(NULL,
-							 SMI_SYNTAX_UNKNOWN,
-							 thisModule,
-							 ((thisParser->flags &
-							   (FLAG_WHOLEMOD |
-							    FLAG_WHOLEFILE))
-							  ? FLAG_MODULE : 0) |
-							 FLAG_INCOMPLETE,
-							 thisParser);
-					addDescriptor($1, thisModule,
-						      KIND_TYPE,
-						      &parent,
-						      ((thisParser->flags &
-							(FLAG_WHOLEMOD |
-							 FLAG_WHOLEFILE))
-						       ? FLAG_MODULE : 0) |
-						      FLAG_INCOMPLETE,
-						      thisParser);
-					$$ = addType(parent,
-						     SMI_SYNTAX_UNKNOWN,
-						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
-						     thisParser);
-				    } else {
-					/*
-					 * imported type.
-					 */
-					stype = smiGetType($1,
-					 ((Descriptor *)descriptor->ptr)->name,
-							   0);
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_PARENTIMPORTED,
-						     thisParser);
-				    }
-				} else {
-				    $$ = addType(parent,
-						 SMI_SYNTAX_UNKNOWN,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				}
-				/* TODO: add enum restriction */
-			    }
-			}
-	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
-			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
-			{
-			    Type *parent;
-			    Descriptor *descriptor;
-			    smi_type *stype;
-			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				parent = findTypeByModulenameAndName($1, $3);
-				if (!parent) {
-				    /* TODO: there may be more than one
-				     * descriptors with the same name
-				     * from multiple modules.
-				     */
-				    descriptor = findDescriptor($3,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					printError(parser,
-						   ERR_UNKNOWN_TYPE, $3);
-					$$ = NULL;
-				    } else {
-					/*
-					 * imported type.
-					 */
-					stype = smiGetType($3, $1, 0);
-					/* TODO: success? */
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_PARENTIMPORTED,
-						     thisParser);
-				    }
-				} else {
-				    $$ = addType(parent,
-						 SMI_SYNTAX_UNKNOWN,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				}
-				/* TODO: add enum restriction */
-			    }
-			}
-	|		UPPERCASE_IDENTIFIER integerSubType
-			{
-			    Type *parent;
-			    Descriptor *descriptor;
-			    smi_type *stype;
-			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				parent = findTypeByModuleAndName(thisModule,
-								 $1);
-				if (!parent) {
-				    descriptor = findDescriptor($1,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					/* 
-					 * forward referenced type. create it,
-					 * marked with FLAG_INCOMPLETE.
-					 */
-					parent = addType(NULL,
-							 SMI_SYNTAX_UNKNOWN,
-							 thisModule,
-							 ((thisParser->flags &
-							   (FLAG_WHOLEMOD |
-							    FLAG_WHOLEFILE))
-							  ? FLAG_MODULE : 0) |
-							 FLAG_INCOMPLETE,
-							 thisParser);
-					addDescriptor($1, thisModule,
-						      KIND_TYPE,
-						      &parent,
-						      ((thisParser->flags &
-							(FLAG_WHOLEMOD |
-							 FLAG_WHOLEFILE))
-						       ? FLAG_MODULE : 0) |
-						      FLAG_INCOMPLETE,
-						      thisParser);
-					$$ = addType(parent,
-						     SMI_SYNTAX_UNKNOWN,
-						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
-						     thisParser);
-				    } else {
-					/*
-					 * imported type.
-					 */
-					stype = smiGetType($1,
-					 ((Descriptor *)descriptor->ptr)->name,
-							   0);
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_PARENTIMPORTED,
-						     thisParser);
-				    }
-				} else {
-				    $$ = addType(parent,
-						 SMI_SYNTAX_UNKNOWN,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				}
-				/* TODO: add subtype restriction */
-			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
@@ -1898,48 +1608,46 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    Descriptor *descriptor;
 			    smi_type *stype;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				parent = findTypeByModulenameAndName($1, $3);
-				if (!parent) {
-				    /* TODO: there may be more than one
-				     * descriptors with the same name
-				     * from multiple modules.
-				     */
-				    descriptor = findDescriptor($3,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					printError(parser,
-						   ERR_UNKNOWN_TYPE, $3);
-					$$ = NULL;
-				    } else {
-					/*
-					 * imported type.
-					 */
-					stype = smiGetType($3, $1, 0);
-					/* TODO: success? */
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_PARENTIMPORTED,
-						     thisParser);
-				    }
+			    parent = findTypeByModulenameAndName($1, $3);
+			    if (!parent) {
+				/* TODO: there may be more than one
+				 * descriptors with the same name
+				 * from multiple modules.
+				 */
+				descriptor = findDescriptor($3,
+							    parserPtr->modulePtr,
+							    KIND_TYPE);
+				if (!descriptor) {
+				    printError(parser,
+					       ERR_UNKNOWN_TYPE, $3);
+				    $$ = NULL;
 				} else {
-				    $$ = addType(parent,
-						 SMI_SYNTAX_UNKNOWN,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
+				    /*
+				     * imported type.
+				     */
+				    stype = smiGetType($3, $1, 0);
+				    /* TODO: success? */
+				    $$ = addType((void *)descriptor,
+						 stype->syntax,
+						 parserPtr->modulePtr,
+						 ((thisParser->flags &
+						   (FLAG_WHOLEMOD |
+						    FLAG_WHOLEFILE))
+						  ? FLAG_MODULE : 0) |
+						 FLAG_PARENTIMPORTED,
 						 thisParser);
 				}
-				/* TODO: add subtype restriction */
+			    } else {
+				$$ = addType(parent,
+					     SMI_SYNTAX_UNKNOWN,
+					     parserPtr->modulePtr,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
 			    }
+				/* TODO: add subtype restriction */
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -1947,18 +1655,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		OCTET STRING octetStringSubType
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(typeOctetString,
-					     SMI_SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
+			    $$ = addType(typeOctetString,
+					 SMI_SYNTAX_UNKNOWN, parserPtr->modulePtr,
+					 (thisParser->flags &
+					  (FLAG_WHOLEMOD |
+					   FLAG_WHOLEFILE))
+					 ? FLAG_MODULE : 0,
+					 thisParser);
 				/* TODO: add subtype restriction */
-			    } else {
-				$$ = NULL;
-			    }
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
@@ -1966,73 +1670,71 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    Descriptor *descriptor;
 			    smi_type *stype;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				parent = findTypeByModuleAndName(thisModule,
-								 $1);
-				if (!parent) {
-				    descriptor = findDescriptor($1,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					/* 
-					 * forward referenced type. create it,
-					 * marked with FLAG_INCOMPLETE.
-					 */
-					parent = addType(NULL,
-							 SMI_SYNTAX_UNKNOWN,
-							 thisModule,
-							 ((thisParser->flags &
-							   (FLAG_WHOLEMOD |
-							    FLAG_WHOLEFILE))
-							  ? FLAG_MODULE : 0) |
-							 FLAG_INCOMPLETE,
-							 thisParser);
-					addDescriptor($1, thisModule,
-						      KIND_TYPE,
-						      &parent,
-						      ((thisParser->flags &
-							(FLAG_WHOLEMOD |
-							 FLAG_WHOLEFILE))
-						       ? FLAG_MODULE : 0) |
-						      FLAG_INCOMPLETE,
-						      thisParser);
-					$$ = addType(parent,
+			    parent = findTypeByModuleAndName(parserPtr->modulePtr,
+							     $1);
+			    if (!parent) {
+				descriptor = findDescriptor($1,
+							    parserPtr->modulePtr,
+							    KIND_TYPE);
+				if (!descriptor) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
 						     SMI_SYNTAX_UNKNOWN,
-						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
-						     thisParser);
-				    } else {
-					/*
-					 * imported type.
-					 */
-					stype = smiGetType($1,
-					 ((Descriptor *)descriptor->ptr)->name,
-							   0);
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
+						     parserPtr->modulePtr,
 						     ((thisParser->flags &
 						       (FLAG_WHOLEMOD |
 							FLAG_WHOLEFILE))
 						      ? FLAG_MODULE : 0) |
-						     FLAG_PARENTIMPORTED,
+						     FLAG_INCOMPLETE,
 						     thisParser);
-				    }
-				} else {
+				    addDescriptor($1, parserPtr->modulePtr,
+						  KIND_TYPE,
+						  &parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
 				    $$ = addType(parent,
 						 SMI_SYNTAX_UNKNOWN,
-						 thisModule,
+						 parserPtr->modulePtr,
 						 (thisParser->flags &
 						  (FLAG_WHOLEMOD |
 						   FLAG_WHOLEFILE))
 						 ? FLAG_MODULE : 0,
 						 thisParser);
+				} else {
+				    /*
+				     * imported type.
+				     */
+				    stype = smiGetType($1,
+						       ((Descriptor *)descriptor->ptr)->name,
+						       0);
+				    $$ = addType((void *)descriptor,
+						 stype->syntax,
+						 parserPtr->modulePtr,
+						 ((thisParser->flags &
+						   (FLAG_WHOLEMOD |
+						    FLAG_WHOLEFILE))
+						  ? FLAG_MODULE : 0) |
+						 FLAG_PARENTIMPORTED,
+						 thisParser);
 				}
-				/* TODO: add subtype restriction */
+			    } else {
+				$$ = addType(parent,
+					     SMI_SYNTAX_UNKNOWN,
+					     parserPtr->modulePtr,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
 			    }
+				/* TODO: add subtype restriction */
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
@@ -2041,48 +1743,46 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    Descriptor *descriptor;
 			    smi_type *stype;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				parent = findTypeByModulenameAndName($1, $3);
-				if (!parent) {
-				    /* TODO: there may be more than one
-				     * descriptors with the same name
-				     * from multiple modules.
-				     */
-				    descriptor = findDescriptor($3,
-								thisModule,
-								KIND_TYPE);
-				    if (!descriptor) {
-					printError(parser,
-						   ERR_UNKNOWN_TYPE, $3);
-					$$ = NULL;
-				    } else {
-					/*
-					 * imported type.
-					 */
-					stype = smiGetType($3, $1, 0);
-					/* TODO: success? */
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_PARENTIMPORTED,
-						     thisParser);
-				    }
+			    parent = findTypeByModulenameAndName($1, $3);
+			    if (!parent) {
+				/* TODO: there may be more than one
+				 * descriptors with the same name
+				 * from multiple modules.
+				 */
+				descriptor = findDescriptor($3,
+							    parserPtr->modulePtr,
+							    KIND_TYPE);
+				if (!descriptor) {
+				    printError(parser,
+					       ERR_UNKNOWN_TYPE, $3);
+				    $$ = NULL;
 				} else {
-				    $$ = addType(parent,
-						 SMI_SYNTAX_UNKNOWN,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
+				    /*
+				     * imported type.
+				     */
+				    stype = smiGetType($3, $1, 0);
+				    /* TODO: success? */
+				    $$ = addType((void *)descriptor,
+						 stype->syntax,
+						 parserPtr->modulePtr,
+						 ((thisParser->flags &
+						   (FLAG_WHOLEMOD |
+						    FLAG_WHOLEFILE))
+						  ? FLAG_MODULE : 0) |
+						 FLAG_PARENTIMPORTED,
 						 thisParser);
 				}
-				/* TODO: add enum restriction */
+			    } else {
+				$$ = addType(parent,
+					     SMI_SYNTAX_UNKNOWN,
+					     parserPtr->modulePtr,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
 			    }
+				/* TODO: add enum restriction */
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -2184,18 +1884,14 @@ ApplicationSyntax:	IPADDRESS
 				printError(parser, ERR_UNKNOWN_TYPE,
 					   "Gauge32");
 			    }
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(parent,
-					     SMI_SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
+			    $$ = addType(parent,
+					 SMI_SYNTAX_UNKNOWN, parserPtr->modulePtr,
+					 (thisParser->flags &
+					  (FLAG_WHOLEMOD |
+					   FLAG_WHOLEFILE))
+					 ? FLAG_MODULE : 0,
+					 thisParser);
 				/* TODO: add subtype restriction */
-			    } else {
-				$$ = NULL;
-			    }
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
@@ -2214,18 +1910,14 @@ ApplicationSyntax:	IPADDRESS
 				printError(parser, ERR_UNKNOWN_TYPE,
 					   "Unsigned32");
 			    }
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(parent,
-					     SMI_SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
+			    $$ = addType(parent,
+					 SMI_SYNTAX_UNKNOWN, parserPtr->modulePtr,
+					 (thisParser->flags &
+					  (FLAG_WHOLEMOD |
+					   FLAG_WHOLEFILE))
+					 ? FLAG_MODULE : 0,
+					 thisParser);
 				/* TODO: add subtype restriction */
-			    } else {
-				$$ = NULL;
-			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
@@ -2404,7 +2096,7 @@ enumNumber:		number
 
 Status:			LOWERCASE_IDENTIFIER
 			{
-			    if (thisModule->flags & FLAG_SMIV2) {
+			    if (parserPtr->modulePtr->flags & FLAG_SMIV2) {
 				if (!strcmp($1, "current")) {
 				    $$ = SMI_STATUS_CURRENT;
 				} else if (!strcmp($1, "deprecated")) {
@@ -2469,7 +2161,7 @@ UnitsPart:		UNITS Text
 
 Access:			LOWERCASE_IDENTIFIER
 			{
-			    if (thisModule->flags & FLAG_SMIV2) {
+			    if (parserPtr->modulePtr->flags & FLAG_SMIV2) {
 				if (!strcmp($1, "not-accessible")) {
 				    $$ = SMI_ACCESS_NOT_ACCESSIBLE;
 				} else if (!strcmp($1,
@@ -2517,7 +2209,7 @@ IndexPart:		INDEX '{' IndexTypes '}'
 
 IndexTypes:		IndexType
 			{
-			    $$ = malloc(sizeof(List));
+			    $$ = util_malloc(sizeof(List));
 			    /* TODO: success? */
 			    $$->ptr = $1;
 			    $$->next = NULL;
@@ -2527,7 +2219,7 @@ IndexTypes:		IndexType
 			{
 			    List *p, *pp;
 			    
-			    p = malloc(sizeof(List));
+			    p = util_malloc(sizeof(List));
 			    p->ptr = $3;
 			    p->next = NULL;
 			    for (pp = $1; pp->next; pp = pp->next);
@@ -2561,7 +2253,7 @@ Entry:			ObjectName
 			 *       OBJECT-TYPE invocation
 			 */
 			{
-			    $$ = malloc(sizeof(List));
+			    $$ = util_malloc(sizeof(List));
 			    /* TODO: success? */
 			    $$->ptr = $1;
 			    $$->next = NULL;
@@ -2666,11 +2358,11 @@ Notification:		NotificationName
 
 Text:			QUOTED_STRING
 			{
-			    $$ = malloc(sizeof(struct String));
+			    $$ = util_malloc(sizeof(struct String));
 			    if ($$) {
 #ifdef TEXTS_IN_MEMORY
 				if ($1.length <= TEXTS_IN_MEMORY) { 
-				    $$->ptr = malloc($1.length+1);
+				    $$->ptr = util_malloc($1.length+1);
 				    if ($$->ptr) {
 					memcpy($$->ptr, $1.ptr, $1.length+1);
 				    } else {
@@ -2695,11 +2387,11 @@ Text:			QUOTED_STRING
 ExtUTCTime:		QUOTED_STRING
 			{
 			    /* TODO: check length and format */
-			    $$ = malloc(sizeof(struct String));
+			    $$ = util_malloc(sizeof(struct String));
 			    if ($$) {
 #ifdef TEXTS_IN_MEMORY
 				if ($1.length <= TEXTS_IN_MEMORY) { 
-				    $$->ptr = malloc($1.length+1);
+				    $$->ptr = util_malloc($1.length+1);
 				    if ($$->ptr) {
 					memcpy($$->ptr, $1.ptr, $1.length+1);
 				    } else {
@@ -2750,23 +2442,23 @@ subidentifier:
 			    if (parent != rootNode) {
 				printError(parser, ERR_OIDLABEL_NOT_FIRST, $1);
 			    } else {
-				object = findObjectByModuleAndName(thisModule,
+				object = findObjectByModuleAndName(parserPtr->modulePtr,
 								   $1);
 				if (object) {
 				    $$ = object;
 				} else {
 				    descriptor = findDescriptor($1,
-								thisModule,
+								parserPtr->modulePtr,
 								KIND_OBJECT);
 				    if (!descriptor) {
 					object = addObject(pendingRootNode,
 							   0,
-							   thisModule,
+							   parserPtr->modulePtr,
 							   FLAG_NOSUBID,
 							   parser);
 					setObjectFileOffset(object,
 						        thisParser->character);
-					addDescriptor($1, thisModule,
+					addDescriptor($1, parserPtr->modulePtr,
 						      KIND_OBJECT,
 						      &object, 0, parser);
 					$$ = object;
@@ -2780,7 +2472,7 @@ subidentifier:
 					$$ = addObject(
 					  getParent(createNodes(snode->oid)),
 					  getLastSubid(snode->oid),
-					  thisModule,
+					  parserPtr->modulePtr,
 					  FLAG_IMPORTED,
 					  thisParser);
 				    }
@@ -2809,19 +2501,19 @@ subidentifier:
 				     * yet be distinguish.
 				     */
 				    descriptor = findDescriptor($3,
-								thisModule,
+								parserPtr->modulePtr,
 								KIND_OBJECT);
 				    if (!descriptor) {
 					printError(parser,
 						   ERR_UNKNOWN_OIDLABEL, s);
 					object = addObject(pendingRootNode,
 							   0,
-							   thisModule,
+							   parserPtr->modulePtr,
 							   FLAG_NOSUBID,
 							   parser);
 					setObjectFileOffset(object,
 						        thisParser->character);
-					addDescriptor($1, thisModule,
+					addDescriptor($1, parserPtr->modulePtr,
 						      KIND_OBJECT,
 						      &object, 0, parser);
 					$$ = object;
@@ -2835,7 +2527,7 @@ subidentifier:
 					$$ = addObject(
 					  getParent(createNodes(snode->oid)),
 					  getLastSubid(snode->oid),
-					  thisModule,
+					  parserPtr->modulePtr,
 					  FLAG_IMPORTED,
 					  thisParser);
 					
@@ -2859,7 +2551,7 @@ subidentifier:
 			    } else {
 				object = addObject(parent,
 						atoi($1),
-						thisModule,
+						parserPtr->modulePtr,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
 						  FLAG_WHOLEFILE))
@@ -2878,7 +2570,7 @@ subidentifier:
 			    /* TODO: search in local module and
 			     *       in imported modules
 			     */
-			    object = findObjectByModuleAndName(thisModule,
+			    object = findObjectByModuleAndName(parserPtr->modulePtr,
 							       $1);
 			    if (object) {
 				printError(parser, ERR_EXISTENT_DESCRIPTOR,
@@ -2892,7 +2584,7 @@ subidentifier:
 			    } else {
 				object = addObject(parent,
 						atoi($3),
-						thisModule,
+						parserPtr->modulePtr,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
 						  FLAG_WHOLEFILE))
@@ -2900,7 +2592,7 @@ subidentifier:
 						parser);
 				setObjectFileOffset(object,
 						     thisParser->character);
-				addDescriptor($1, thisModule, KIND_OBJECT,
+				addDescriptor($1, parserPtr->modulePtr, KIND_OBJECT,
 					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
@@ -2933,7 +2625,7 @@ subidentifier:
 					   md);
 				object = addObject(parent,
 						atoi($5),
-						thisModule,
+						parserPtr->modulePtr,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
 						  FLAG_WHOLEFILE))
@@ -2941,7 +2633,7 @@ subidentifier:
 						parser);
 				setObjectFileOffset(object,
 						     thisParser->character);
-				addDescriptor($3, thisModule, KIND_OBJECT,
+				addDescriptor($3, parserPtr->modulePtr, KIND_OBJECT,
 					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
@@ -2991,43 +2683,39 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    
 			    object = $12;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
+			    if (object->module != parserPtr->modulePtr) {
+				object = duplicateObject(object,
+							 parserPtr->modulePtr,
 							 (thisParser->flags &
 							  (FLAG_WHOLEMOD |
 							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object, SMI_DECL_OBJECTGROUP);
-				if (thisParser->flags &
-				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags(object,
-						    FLAG_MODULE |
-						    FLAG_REGISTERED);
-				}
-				setObjectStatus(object, $6);
-				setObjectDescription(object, $8);
+							 ? FLAG_MODULE : 0,
+							 thisParser);
+			    }
+			    descriptor = addDescriptor($1, parserPtr->modulePtr,
+						       KIND_OBJECT,
+						       &object,
+						       (thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0,
+						       thisParser);
+			    setObjectDecl(object, SMI_DECL_OBJECTGROUP);
+			    if (thisParser->flags &
+				(FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				setObjectFlags(object,
+					       FLAG_MODULE |
+					       FLAG_REGISTERED);
+			    }
+			    setObjectStatus(object, $6);
+			    setObjectDescription(object, $8);
 #if 0
 				/*
 				 * TODO: ObjectsPart ($4)
 				 * TODO: ReferPart ($9)
 				 */
 #endif
-				$$ = 0;
-			    } else {
-				$$ = 0;
-			    }
+			    $$ = 0;
 			}
 	;
 
@@ -3052,44 +2740,40 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    
 			    object = $12;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
+			    if (object->module != parserPtr->modulePtr) {
+				object = duplicateObject(object,
+							 parserPtr->modulePtr,
 							 (thisParser->flags &
 							  (FLAG_WHOLEMOD |
 							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object,
-						SMI_DECL_NOTIFICATIONGROUP);
-				if (thisParser->flags &
-				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags(object,
-						    FLAG_MODULE |
-						    FLAG_REGISTERED);
-				}
-				setObjectStatus(object, $6);
-				setObjectDescription(object, $8);
+							 ? FLAG_MODULE : 0,
+							 thisParser);
+			    }
+			    descriptor = addDescriptor($1, parserPtr->modulePtr,
+						       KIND_OBJECT,
+						       &object,
+						       (thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0,
+						       thisParser);
+			    setObjectDecl(object,
+					  SMI_DECL_NOTIFICATIONGROUP);
+			    if (thisParser->flags &
+				(FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				setObjectFlags(object,
+					       FLAG_MODULE |
+					       FLAG_REGISTERED);
+			    }
+			    setObjectStatus(object, $6);
+			    setObjectDescription(object, $8);
 #if 0
 				/*
 				 * TODO: NotificationsPart ($4)
 				 * TODO: ReferPart ($9)
 				 */
 #endif
-				$$ = 0;
-			    } else {
-				$$ = 0;
-			    }
+			    $$ = 0;
 			}
 	;
 
@@ -3113,44 +2797,40 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    
 			    object = $12;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
+			    if (object->module != parserPtr->modulePtr) {
+				object = duplicateObject(object,
+							 parserPtr->modulePtr,
 							 (thisParser->flags &
 							  (FLAG_WHOLEMOD |
 							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object,
-						SMI_DECL_MODULECOMPLIANCE);
-				if (thisParser->flags &
-				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags(object,
-						    FLAG_MODULE |
-						    FLAG_REGISTERED);
-				}
-				setObjectStatus(object, $5);
-				setObjectDescription(object, $7);
+							 ? FLAG_MODULE : 0,
+							 thisParser);
+			    }
+			    descriptor = addDescriptor($1, parserPtr->modulePtr,
+						       KIND_OBJECT,
+						       &object,
+						       (thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0,
+						       thisParser);
+			    setObjectDecl(object,
+					  SMI_DECL_MODULECOMPLIANCE);
+			    if (thisParser->flags &
+				(FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				setObjectFlags(object,
+					       FLAG_MODULE |
+					       FLAG_REGISTERED);
+			    }
+			    setObjectStatus(object, $5);
+			    setObjectDescription(object, $7);
 #if 0
 				/*
 				 * TODO: ReferPart ($8)
 				 * TODO: ModulePart_Compliance ($9)
 				 */
 #endif
-				$$ = 0;
-			    } else {
-				$$ = 0;
-			    }
+			    $$ = 0;
 			}
 	;
 
@@ -3272,34 +2952,33 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    
 			    object = $14;
 			    
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (object->module != thisModule) {
-				    object = duplicateObject(object,
-							     thisModule,
+			    if (object->module != parserPtr->modulePtr) {
+				object = duplicateObject(object,
+							 parserPtr->modulePtr,
 							 (thisParser->flags &
 							  (FLAG_WHOLEMOD |
 							   FLAG_WHOLEFILE))
-							     ? FLAG_MODULE : 0,
-							     thisParser);
-				}
-				descriptor = addDescriptor($1, thisModule,
-					      KIND_OBJECT,
-					      &object,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? FLAG_MODULE : 0,
-					      thisParser);
-				setObjectDecl(object,
-						SMI_DECL_AGENTCAPABILITIES);
-				if (thisParser->flags &
-				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags(object,
-						    FLAG_MODULE |
-						    FLAG_REGISTERED);
-				}
-				setObjectStatus(object, $7);
-				setObjectDescription(object, $9);
+							 ? FLAG_MODULE : 0,
+							 thisParser);
+			    }
+			    descriptor = addDescriptor($1, parserPtr->modulePtr,
+						       KIND_OBJECT,
+						       &object,
+						       (thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0,
+						       thisParser);
+			    setObjectDecl(object,
+					  SMI_DECL_AGENTCAPABILITIES);
+			    if (thisParser->flags &
+				(FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				setObjectFlags(object,
+					       FLAG_MODULE |
+					       FLAG_REGISTERED);
+			    }
+			    setObjectStatus(object, $7);
+			    setObjectDescription(object, $9);
 #if 0
 				/*
 				 * TODO: PRODUCT_RELEASE Text ($5)
@@ -3307,10 +2986,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 				 * TODO: ModulePart_Capabilities ($11)
 				 */
 #endif
-				$$ = 0;
-			    } else {
-				$$ = 0;
-			    }
+			    $$ = 0;
 			}
 	;
 
@@ -3396,7 +3072,7 @@ Cell:			ObjectName
 
 number:			NUMBER
 			{
-			    $$ = strdup($1);
+			    $$ = util_strdup($1);
 			    /* TODO */
 			}
 	;
