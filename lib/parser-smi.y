@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.106 2000/05/30 11:09:58 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.107 2000/06/06 08:00:52 strauss Exp $
  */
 
 %{
@@ -268,10 +268,10 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 
 	/*
 	 * Link implicit type definition from refinements into
-	 * the type derivation tree.
+	 * the type derivation tree. Adjust the status of implicit
+	 * type definitions in refinements. 
 	 */
 
-#if 0
 	if (objectPtr->export.nodekind == SMI_NODEKIND_COMPLIANCE) {
 
 	    List *listPtr;
@@ -286,25 +286,34 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		refinementPtr = ((Refinement *)(listPtr->ptr));
 		typePtr = refinementPtr->typePtr;
 		if (typePtr) {
+		    if (typePtr->export.status == SMI_STATUS_UNKNOWN) {
+			typePtr->export.status = objectPtr->export.status;
+		    }
+#if 0
 		    fprintf(stderr,
 			    "** type refinement of %s derived from %s\n",
 			    refinementPtr->objectPtr->export.name,
 			    typePtr->parentPtr->export.name);
+#endif
 		}
 
 		typePtr = refinementPtr->writetypePtr;
 		if (typePtr) {
+		    if (typePtr->export.status == SMI_STATUS_UNKNOWN) {
+			typePtr->export.status = objectPtr->export.status;
+		    }
+#if 0
 		    fprintf(stderr,
 			    "** write type refinement of %s derived from %s\n",
 			    refinementPtr->objectPtr->export.name,
 			    typePtr->parentPtr->export.name);
+#endif
 		}
 		
 	    }
 	    /* relocate the refinement type into the type tree */
 	    /* relocate the write refinement type into the type tree */
 	}
-#endif
 
 	/*
 	 * Set the oidlen/oid values that are not yet correct.
