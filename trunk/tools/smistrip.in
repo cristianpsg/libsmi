@@ -9,7 +9,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# $Id: smistrip.in,v 1.3 2000/06/07 12:44:35 strauss Exp $
+# $Id: smistrip.in,v 1.4 2000/10/18 07:47:32 strauss Exp $
 #
 # NOTE, that this script relies on awk (tested with GNU awk) and getopts
 # (shell builtin like in bash or standalone).
@@ -39,7 +39,7 @@ do_usage () {
 
 
 do_strip () {
-    cat $1 | \
+    cat "$1" | \
     grep -i -v '^[ ]*Internet Draft' | \
     $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
@@ -155,8 +155,8 @@ shift `expr $OPTIND - 1`
 if [ $# -eq 0 ] ; then
     do_strip -
 else 
-    for f in $@ ; do
-	do_strip $f
+    for f in "$@" ; do
+	do_strip "$f"
     done
 fi
 
