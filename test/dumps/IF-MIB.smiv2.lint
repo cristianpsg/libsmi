@@ -1,1 +1,1 @@
-dumps/IF-MIB.smiv2:1244: index element `ifRcvAddressAddress' of row `ifRcvAddressEntry' must have a size restriction
+dumps/IF-MIB.smiv2:1237: index element `ifRcvAddressAddress' of row `ifRcvAddressEntry' must have a size restriction
