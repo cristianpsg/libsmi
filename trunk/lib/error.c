@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.114 2003/05/14 10:55:33 strauss Exp $
+ * @(#) $Id: error.c,v 1.115 2003/06/16 15:17:42 schoenw Exp $
  */
 
 #include <config.h>
@@ -67,10 +67,10 @@ static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
       "internal error!",
       "An internal error occured in the libsmi core, which is not further\n"
-      "specified. This is most likely not related to a bug in a MIB module\n"
-      "or any unexpected circumstances of your system environment. Please\n"
-      "submit a detailed bug report to the libsmi maintainer and the libsmi\n"
-      "mailing list at <libsmi@ibr.cs.tu-bs.de>."},
+      "specified. This is most likely not related to a bug in a MIB/PIB\n"
+      "module or any unexpected circumstances of your system environment.\n"
+      "Please submit a detailed bug report to the libsmi maintainer or the\n"
+      "libsmi mailing list at <libsmi@ibr.cs.tu-bs.de>."},
     { 0, ERR_MAX_LEX_DEPTH, "", 
       "maximum IMPORTS nesting, probably a loop?",
       "A new parser instance is created whenever a module imports from\n"
@@ -84,11 +84,20 @@ static Error errors[] = {
       "Libsmi needs to allocate memory dynamically during runtime, but\n"
       "the system did run out of memory."},
     { 1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
-      "lexically unexpected character, skipping to end of line", NULL},
+      "lexically unexpected character, skipping to end of line", 
+      "While parsing a MIB/PIB file a lexically unexpected character has\n"
+      "been read, so that subsequent input is dropped up to the end of\n"
+      "line."},
     { 1, ERR_OTHER_ERROR, "other", 
-      "%s", NULL},
+      "%s", 
+      "An unspecified error occured. Please submit a detailed bug report\n"
+      "to the libsmi maintainer or the libsmi mailing list at\n"
+      "<libsmi@ibr.cs.tu-bs.de>."},
     { 1, ERR_ILLEGAL_KEYWORD, "keyword-illegal", 
-      "illegal keyword `%s'", NULL},
+      "illegal keyword `%s'", 
+      "ASN.1 has some language keywords that are explicitly forbidden in\n"
+      "MIB and PIB files. Such a keyword has been read from the current\n"
+      "file."},
     { 2, ERR_ID_ENDS_IN_HYPHEN, "hyphen-end",
       "identifier `%s' illegally ends in a hyphen", NULL},
     { 3, ERR_LEADING_ZEROS, "number-leading-zero",
