@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.20 2000/02/22 17:11:12 strauss Exp $
+ * @(#) $Id: util.c,v 1.21 2000/04/10 15:55:18 strauss Exp $
  */
 
 #include <config.h>
@@ -82,12 +82,13 @@ time_t timegm(struct tm *tm)
 {
     char *tz;
     static char *s = NULL;
+    char *tofree = NULL;
     time_t t;
     
     /* ensure to call mktime() for UTC */
     tz = getenv("TZ");
     if (tz) {
-	if (s) util_free(s);
+	tofree = s;
 	s = util_malloc(strlen(tz)+4);
 	sprintf(s, "TZ=%s", tz);
     }
@@ -98,6 +99,7 @@ time_t timegm(struct tm *tm)
     } else {
 	putenv("TZ");
     }
+    if (tofree) util_free(tofree);
 
     return t;
 }

@@ -1,3 +1,8 @@
+2000-06-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/util.c (timegm): fixed access to freed memory. Thanks
+	to Bill Fenner.
+
 2000-06-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smistrip.in: patch to strip modules from I-Ds.
