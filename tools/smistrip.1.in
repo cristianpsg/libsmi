@@ -1,9 +1,9 @@
 .\"
-.\" $Id: smistrip.1.in,v 1.3 2000/08/24 12:09:18 strauss Exp $
+.\" $Id: smistrip.1.in,v 1.4 2002/05/16 23:21:55 bunkus Exp $
 .\"
-.TH smistrip 1  "October 25, 1999" "IBR" "SMI Tools"
+.TH smistrip 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
-smistrip \- extract MIB modules from text files, like RFCs or I-Ds
+smistrip \- extract MIB or PIB modules from text files, like RFCs or I-Ds
 .SH SYNOPSIS
 .B smistrip
 [
@@ -65,5 +65,9 @@ project is documented at
 .PP
 .BR smilint "(1)"
 .SH "AUTHOR"
-(C) 1999, 2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2002 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+.br
+(C) 2002 M. Bunkus, TU Braunschweig, Germany <bunkus@ibr.cs.tu-bs.de>
+.br
+and contributions by many other people.
 .br
