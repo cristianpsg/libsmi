@@ -160,3 +160,9 @@
 #define ERR_SEQUENCE_ORDER                       159
 #define ERR_SEQUENCE_NO_COLUMN                   160
 #define ERR_SEQUENCE_MISSING_COLUMN              161
+#define ERR_ILLEGAL_ROWSTATUS_DEFAULT            162
+#define ERR_ILLEGAL_STORAGETYPE_DEFAULT          163
+#define ERR_DEFVAL_OUT_OF_BASETYPE               164
+#define ERR_DEFVAL_OUT_OF_RANGE                  165
+#define ERR_DEFVAL_OUT_OF_ENUM                   166
+#define ERR_TADDRESS_WITHOUT_TDOMAIN             167

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.94 2000/11/15 10:50:24 strauss Exp $
+ * @(#) $Id: data.c,v 1.95 2000/11/16 14:58:06 strauss Exp $
  */
 
 #include <config.h>
@@ -2736,6 +2736,39 @@ Type *findTypeByModuleAndName(Module *modulePtr, const char *type_name)
     }
 
     return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * addMacro --
+ *
+ *      Create a new Macro structure.
+ *
+ * Results:
+ *      A pointer to the new Macro structure or
+ *	NULL if terminated due to an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *---------------------------------------------------------------------- */
+
+NamedNumber *findTypeNamedNumber(Type *typePtr,
+				 SmiInteger32 number)
+{
+    List *listPtr;
+    
+    for (listPtr = typePtr->listPtr;
+	 listPtr; listPtr = listPtr->nextPtr) {
+	if (((NamedNumber *)(listPtr->ptr))->export.value.value.integer32 ==
+	    number)
+	    break;
+    }
+
+    return (NamedNumber *)(listPtr->ptr);
 }
 
 

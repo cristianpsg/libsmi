@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.12 2000/12/15 13:52:29 strauss Exp $
+ * @(#) $Id: check.c,v 1.13 2001/02/26 16:25:13 strauss Exp $
  */
 
 #include <config.h>
@@ -899,6 +899,216 @@ smiCheckTypeRanges(Parser *parser, Type *type)
 	}
     }
 }
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckDefault --
+ *
+ *      Check whether the default value (if present) matches the
+ *	underlying type and restrictions.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckDefault(Parser *parser, Object *object)
+{
+    List *p, *nextPtr;
+    
+    if (object->export.value.basetype != SMI_BASETYPE_UNKNOWN) {
+
+	/*
+	 * If defval type and object type don't match, check whether
+	 * the defval value is in the allowed range of the object's basetype.
+	 */
+	if ((object->typePtr->export.basetype == SMI_BASETYPE_INTEGER32) ||
+	    (object->typePtr->export.basetype == SMI_BASETYPE_ENUM)) {
+	    if (((object->export.value.basetype ==
+		  SMI_BASETYPE_INTEGER64) &&
+		 ((object->export.value.value.integer64 < (SmiInteger64)-2147483648LL) ||
+		  (object->export.value.value.integer64 > (SmiInteger64)2147483647))) ||
+		((object->export.value.basetype ==
+		  SMI_BASETYPE_UNSIGNED32) &&
+		 ((object->export.value.value.unsigned32 > 2147483647))) ||
+		((object->export.value.basetype ==
+		  SMI_BASETYPE_UNSIGNED64) &&
+		 ((object->export.value.value.unsigned32 > 2147483647)))) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_BASETYPE,
+				    object->line);
+	    }
+	}
+	if (object->typePtr->export.basetype == SMI_BASETYPE_UNSIGNED32) {
+	    if (((object->export.value.basetype ==
+		  SMI_BASETYPE_INTEGER64) &&
+		 ((object->export.value.value.integer64 < 0) ||
+		  (object->export.value.value.integer64 > (SmiInteger64)4294967295LL))) ||
+		((object->export.value.basetype ==
+		  SMI_BASETYPE_INTEGER32) &&
+		 ((object->export.value.value.integer32 < 0))) ||
+		((object->export.value.basetype ==
+		  SMI_BASETYPE_UNSIGNED64) &&
+		 ((object->export.value.value.unsigned32 > 4294967295UL)))) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_BASETYPE,
+				    object->line);
+	    }
+	}
+
+	/*
+	 * "cast" the defval to the object's basetype.
+	 */
+	object->export.value.basetype = object->typePtr->export.basetype;
+
+	/*
+	 * check whether the defval matches the object's range restriction.
+	 */
+	if ((object->export.value.basetype == SMI_BASETYPE_UNSIGNED32) ||
+	    (object->export.value.basetype == SMI_BASETYPE_UNSIGNED64) ||
+	    (object->export.value.basetype == SMI_BASETYPE_INTEGER32) ||
+	    (object->export.value.basetype == SMI_BASETYPE_INTEGER64)) {
+	    for (p = object->typePtr->listPtr; p; p = nextPtr) {
+		nextPtr = p->nextPtr;
+		if ((compareValues(&((Range *)p->ptr)->export.minValue,
+				   &object->export.value) <= 0) &&
+		    (compareValues(&((Range *)p->ptr)->export.maxValue,
+				   &object->export.value) >= 0)) {
+		    break;
+		}
+	    }
+	    if ((p == NULL) && object->typePtr->listPtr) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_RANGE,
+				    object->line);
+	    }
+	}
+
+	/*
+	 * check whether the defval matches the object's enumeration.
+	 */
+	if (object->export.value.basetype == SMI_BASETYPE_ENUM) {
+	    for (p = object->typePtr->listPtr; p; p = nextPtr) {
+		nextPtr = p->nextPtr;
+
+		if (((NamedNumber *)(p->ptr))->export.value.value.integer32 ==
+		    object->export.value.value.integer32) {
+			break;
+		}
+	    }
+	    if (p == NULL) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_ENUM,
+				    object->line);
+	    }
+	    
+	}
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckTypeUsage --
+ *
+ *      Check whether the types of all objects are used appropriately.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
+{
+    Object *objectPtr;
+    Module *tcModulePtr = NULL;
+    Module *inetModulePtr = NULL;
+    Type *rowStatusPtr = NULL;
+    Type *storageTypePtr = NULL;
+    Type *taddressPtr = NULL;
+    Type *tdomainPtr = NULL;
+    NamedNumber *nnPtr;
+    Node *nodePtr;
+    
+    tcModulePtr = findModuleByName("SNMPv2-TC");
+    if (tcModulePtr) {
+	rowStatusPtr = findTypeByModuleAndName(tcModulePtr, "RowStatus");
+	storageTypePtr = findTypeByModuleAndName(tcModulePtr, "StorageType");
+	taddressPtr = findTypeByModuleAndName(tcModulePtr, "TAddress");
+	tdomainPtr = findTypeByModuleAndName(tcModulePtr, "TDomain");
+    }
+    inetModulePtr = findModuleByName("INET-ADDRESS-MIB");
+
+    if (!tcModulePtr && !inetModulePtr) return;
+    
+    for (objectPtr = modulePtr->firstObjectPtr;
+	 objectPtr; objectPtr = objectPtr->nextPtr) {
+
+	if (objectPtr->typePtr && objectPtr->typePtr) {
+
+	    if (tcModulePtr) {
+
+		if (objectPtr->typePtr == rowStatusPtr) {
+		    if ((objectPtr->export.value.value.integer32 >= 4) &&
+			(objectPtr->export.value.value.integer32 <= 6)) {
+			nnPtr = findTypeNamedNumber(rowStatusPtr,
+				     objectPtr->export.value.value.integer32);
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_ILLEGAL_ROWSTATUS_DEFAULT,
+					    objectPtr->line,
+					    nnPtr->export.name);
+		    }
+		}
+		
+		if (objectPtr->typePtr == storageTypePtr) {
+		    if ((objectPtr->export.value.value.integer32 >= 4) &&
+			(objectPtr->export.value.value.integer32 <= 5)) {
+			nnPtr = findTypeNamedNumber(storageTypePtr,
+				     objectPtr->export.value.value.integer32);
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_ILLEGAL_STORAGETYPE_DEFAULT,
+					    objectPtr->line,
+					    nnPtr->export.name);
+		    }
+		}
+		
+		if (objectPtr->typePtr == taddressPtr) {
+		    nodePtr =
+			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
+						 objectPtr->nodePtr->subid-1);
+		    if (nodePtr->lastObjectPtr->typePtr != tdomainPtr) {
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_TADDRESS_WITHOUT_TDOMAIN,
+					    objectPtr->line);
+		    }
+		}
+		
+	    }
+#if 0
+	    if (inetModulePtr) {
+		
+		if (objectPtr->typePtr == inetXXX) {
+		    XXX
+		}
+
+	    }
+#endif
+	}
+    }
+}
+
+
 
 static char *status[] = { "Unknown", "current", "deprecated",
 			  "mandatory", "optional", "obsolete" };

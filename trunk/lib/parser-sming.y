@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.65 2000/11/16 14:58:10 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.66 2000/11/27 12:06:43 strauss Exp $
  */
 
 %{
@@ -243,6 +243,8 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
     for (objectPtr = modulePtr->firstObjectPtr;
 	 objectPtr; objectPtr = objectPtr->nextPtr) {
 
+	smiCheckDefault(parserPtr, objectPtr);
+	
     	/*
 	 * Check whether all objects and notifications arecontained in at
 	 * least one conformance group (RFC 2580 3.3 and 4.1).

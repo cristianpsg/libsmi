@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.65 2001/02/27 08:30:23 strauss Exp $
+ * @(#) $Id: error.c,v 1.66 2001/03/01 14:36:36 strauss Exp $
  */
 
 #include <config.h>
@@ -400,6 +400,18 @@ static Error errors[] = {
       "SEQUENCE element #%d `%s' is not a child node under `%s'" },
     { 3, ERR_SEQUENCE_MISSING_COLUMN, "sequence-missing-column", 
       "SEQUENCE of `%s' is missing columnar object `%s'" },
+    { 4, ERR_ILLEGAL_ROWSTATUS_DEFAULT, "rowstatus-default", 
+      "illegal RowStatus default value `%s'" },
+    { 4, ERR_ILLEGAL_STORAGETYPE_DEFAULT, "storagetype-default", 
+      "illegal StorageType default value `%s'" },
+    { 2, ERR_DEFVAL_OUT_OF_BASETYPE, "defval-basetype", 
+      "DEFVAL exceeds range of underlying basetype" },
+    { 2, ERR_DEFVAL_OUT_OF_RANGE, "defval-range", 
+      "DEFVAL does not match range restriction of underlying type" },
+    { 2, ERR_DEFVAL_OUT_OF_ENUM, "defval-enum", 
+      "DEFVAL does not match underlying enumeration type" },
+    { 5, ERR_TADDRESS_WITHOUT_TDOMAIN, "taddress-tdomain", 
+      "TAddress object should have an accompanied preceding TDomain object" },
     { 0, 0, NULL, NULL }
 };
 
