@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.18 2001/03/12 11:23:26 strauss Exp $
+ * @(#) $Id: check.c,v 1.19 2001/05/23 15:25:53 schoenw Exp $
  */
 
 #include <config.h>
@@ -1347,7 +1347,7 @@ smiCheckGroupMembership(Parser *parser, Object *objectPtr)
 
 	found = (objectPtr->flags & FLAG_INCOMPLIANCE);
 
-	if (!found) {
+	if (!found && objectPtr->export.status != SMI_STATUS_OBSOLETE) {
 	    smiPrintErrorAtLine(parser, ERR_GROUP_OPTIONAL,
 				objectPtr->line,
 				objectPtr->export.name);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.69 2001/03/12 11:23:26 strauss Exp $
+ * @(#) $Id: error.c,v 1.70 2001/05/23 15:25:53 schoenw Exp $
  */
 
 #include <config.h>
@@ -308,6 +308,8 @@ static Error errors[] = {
       "row identifier `%s' should match `*Entry'" },
     { 6, ERR_TABLENAME_TABLE, "table-name-table", 
       "table identifier `%s' should match `*Table'" },
+    { 6, ERR_ROWNAME_TABLENAME, "row-name-table-name",
+      "row identifier `%s' should have the same prefix as table identifier `%s'" },
     { 6, ERR_SMIV2_TYPE_ASSIGNEMENT, "type-assignement-smiv2", 
       "type assignement `%s' should be a textual convention in SMIv2" },
     { 6, ERR_ILLEGAL_IMPORT, "import-illegal", 
