@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.5 2001/09/30 20:07:29 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.6 2001/10/02 13:26:39 schoenw Exp $
  */
 
 /*
@@ -1309,7 +1309,9 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	iNode = smiGetElementNode(smiElement);
 	if (iNode) {
 	    iType = smiGetNodeType(iNode);
-	    if (iType && iType->basetype == SMI_BASETYPE_OCTETSTRING) {
+	    if (iType
+		&& (iType->basetype == SMI_BASETYPE_OCTETSTRING
+		    || iType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER)) {
 		break;
 	    }
 	}
@@ -1499,7 +1501,9 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	iNode = smiGetElementNode(smiElement);
 	if (iNode) {
 	    iType = smiGetNodeType(iNode);
-	    if (iType && iType->basetype == SMI_BASETYPE_OCTETSTRING) {
+	    if (iType
+		&& (iType->basetype == SMI_BASETYPE_OCTETSTRING
+		    || iType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER)) {
 		break;
 	    }
 	}
