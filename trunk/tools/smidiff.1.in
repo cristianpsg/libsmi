@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidiff.1.in,v 1.4 2001/11/09 15:30:00 schoenw Exp $
+.\" $Id: smidiff.1.in,v 1.5 2002/06/21 14:31:26 strauss Exp $
 .\"
 .TH smidiff 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
@@ -16,7 +16,7 @@ smidiff \- check differences between a pair of SMI or SPPI modules
 .BI "-i " error-pattern
 ] [
 .BI "-p " module
-] [
+]
 .I "oldmodule newmodule"
 .SH DESCRIPTION
 The \fBsmidiff\fP program is used to check differences between a pair
