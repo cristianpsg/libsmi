@@ -1,5 +1,9 @@
 2001-06-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-jax.c: Fixed a bug in the generated code for
+	notifications that have multiple OBJECTS; reported by
+	Teemu Koponen.
+	
 	* tools/smicache.in,lib/smi.c: Added a MIB caching scheme: 
 	The configuration file may contain the new `cache' statement
 	which, in combination with an external caching program like
