@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.80 2000/05/17 09:48:53 strauss Exp $
+ * @(#) $Id: data.c,v 1.81 2000/06/08 09:36:12 strauss Exp $
  */
 
 #include <config.h>
@@ -3322,6 +3322,7 @@ freeNodeTree(Node *rootPtr)
 	util_free(nodePtr->oid);
 	util_free(nodePtr);
     }
+    util_free(rootPtr);
 }
 
 
@@ -3563,7 +3564,7 @@ loadModule(modulename)
 
     if (sming == 0) {
 #ifdef BACKEND_SMI
-	parser.path			= util_strdup(path);
+	parser.path			= path;
 	parser.flags			= smiFlags;
 	parser.modulePtr		= NULL;
 	parser.file			= file;
@@ -3581,7 +3582,7 @@ loadModule(modulename)
 	smiLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
-	util_free(parser.path);
+	util_free(path);
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMI_NOT_SUPPORTED, path);
@@ -3589,10 +3590,10 @@ loadModule(modulename)
 	return NULL;
 #endif
     }
-
+    
     if (sming == 1) {
 #ifdef BACKEND_SMING
-	parser.path			= util_strdup(path);
+	parser.path			= path;
 	parser.flags			= smiFlags;
 	parser.modulePtr		= NULL;
 	parser.file			= file;
@@ -3610,7 +3611,7 @@ loadModule(modulename)
 	smingLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
-	util_free(parser.path);
+	util_free(path);
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMING_NOT_SUPPORTED, path);

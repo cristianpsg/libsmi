@@ -8,14 +8,12 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.17 2000/06/01 15:32:52 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.18 2000/06/06 12:59:07 strauss Exp $
  */
 
 
 /* 
  * -- TO DO --
- *
- * im unified : smallest common prefix angleichen
  *
  * Berechnungen der UML Diagramme debuggen
  *
@@ -140,15 +138,12 @@ static char *baseTypes[] = {
 
 static const float HEADFONTSIZETABLE   = 0.51;
 static const float HEADSPACESIZETABLE  = 0.6;
-static const float HEADFONTSIZESCALAR  = 0.545;
-static const float HEADSPACESIZESCALAR = 0.6;
 static const float ATTRFONTSIZE        = 0.48;
 static const float ATTRSPACESIZE       = 2.4;
 static const float RECTCORRECTION      = 0.85;
 static const float EDGEYSPACING        = 2.0;
-static const float SCALARHEIGHT        = 1.4;
-static const float TABLEHEIGHT         = 2.8; /*1.8*/
-static const float TABLEELEMHEIGHT     = 0.6;
+static const float TABLEHEIGHT         = 2.6;   /* headline of the table */
+static const float TABLEELEMHEIGHT     = 0.675; /* height of one attribute */
 
 /*
  * global dia graph layout
@@ -170,15 +165,23 @@ static const float YNOTE               = 1.0;  /* left upper corner of note */
  */
 static const char* STEREOTYPE          = "smi mib class";
 
+/*
+ * Property String for index objects
+ */
 static const char* INDEXPROPERTY       = " {index}";
 
 /*
  * driver output control
  */
 static int       XPLAIN                = 0; /* false, generates ASCII output */
-static int       SUPPRESSDEPRECATED    = 1; /* true */
-static int       PRINTDETAILEDATTR     = 1; /* true */
-static int       IGNOREIMPORTEDNODES   = 1; /* true */
+static int       DEBUG                 = 0; /* false, generates additional
+					       output in xlpain-mode */
+static int       SUPPRESS_DEPRECATED   = 1; /* true, suppresses deprecated
+					       objects */
+static int       PRINT_DETAILED_ATTR   = 1; /* true, prints all column
+					       objects */
+static int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
+					       imported from other MIBs*/
 
 /*
  * global variables
@@ -521,8 +524,6 @@ static void graphShowNodes(Graph *graph)
  *    - cardinality
  *    - index relationship derived from the row-objects of the tables
  *
- * AGGR.   = aggregation
- * DEPEND. = dependency
  */
 static void graphShowEdges(Graph *graph) 
 {
@@ -535,28 +536,30 @@ static void graphShowEdges(Graph *graph)
   
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 
-	/*switch (tEdge->enhancedindex) {
-	case GRAPH_ENHINDEX_UNKNOWN :
-	    printf("[UNKNOWN] ");
-	    break;
-	case GRAPH_ENHINDEX_NOTIFICATION :
-	    break;
-	case GRAPH_ENHINDEX_NAMES :
-	    printf(" [NAMES]  ");
-	    break;
-	case GRAPH_ENHINDEX_TYPES :
-	    printf(" [TYPES]  ");
-	    break;
-	case GRAPH_ENHINDEX_INDEX :
-	    printf(" [INDEX]  ");
-	    break;
-	case GRAPH_ENHINDEX_REROUTE :
-	    printf(" [REROUTE]");
-	    break;
-	case GRAPH_ENHINDEX_POINTER :
-	    printf(" [POINTER]");
-	    break;	    
-	    }*/
+	if (DEBUG) {
+	    switch (tEdge->enhancedindex) {
+	    case GRAPH_ENHINDEX_UNKNOWN :
+		printf("[UNKNOWN] ");
+		break;
+	    case GRAPH_ENHINDEX_NOTIFICATION :
+		break;
+	    case GRAPH_ENHINDEX_NAMES :
+		printf("  [NAMES] ");
+		break;
+	    case GRAPH_ENHINDEX_TYPES :
+		printf("  [TYPES] ");
+		break;
+	    case GRAPH_ENHINDEX_INDEX :
+		printf("  [INDEX] ");
+		break;
+	    case GRAPH_ENHINDEX_REROUTE :
+		printf("[REROUTE] ");
+		break;
+	    case GRAPH_ENHINDEX_POINTER :
+		printf("[POINTER] ");
+		break;	    
+	    }
+	}
 	
 	switch (tEdge->connection) {
 	case GRAPH_CON_AGGREGATION:
@@ -675,12 +678,12 @@ static void algInsertEdge(SmiNode *snode, SmiNode *enode,
 
     /* insert imported nodes into graph if needed */
     if (startNode == NULL) {
-	if (IGNOREIMPORTEDNODES) return;
+	if (IGNORE_IMPORTED_NODES) return;
 	
 	startNode = graphInsertNode(graph, snode);
     }
     if (endNode == NULL) {
-	if (IGNOREIMPORTEDNODES) return;
+	if (IGNORE_IMPORTED_NODES) return;
 	
 	endNode = graphInsertNode(graph, enode);
     }  
@@ -1385,6 +1388,11 @@ static void algLinkObjectsByNames()
 	minoverlap = min(minoverlap, strpfxlen(tNode->smiNode->name,
 					       tNode2->smiNode->name));
     }
+
+    /*
+     * prefix overlap of one is too short to create any usefull edges
+     */
+    if (minoverlap == 1) return;
     
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {    
 	if (!graphGetFirstEdgeByNode(graph, tNode)) {
@@ -1738,17 +1746,13 @@ static SmiNode *algFindTable(SmiNode *node)
     
     if (!node) return NULL;
 
-    /*
-     * The code below is broken since it does not generate \0
-     * terminated strings.
-     */
-
     i = strlen(smiGetParentNode(node)->name) - strlen("Entry");
     toFind = xmalloc(strlen(node->name)  - i);
     for (j = i; node->name[j]; j++) {
 	toFind[j-i] = node->name[j];
     }
-
+    toFind[strlen(node->name)  - i] = NULL;
+    
 #if 0
     printf("%s %s %s\n", node->name, smiGetParentNode(node)->name, toFind);
 #endif
@@ -1778,7 +1782,8 @@ static SmiNode *algFindTable(SmiNode *node)
 }
 
 /*
- *
+ * Creates edges based on column-objects pointing to other tables.
+ * Column-objects with a substring "Index" are examined.
  */
 static void algCheckForPointerRels()
 {
@@ -1836,7 +1841,7 @@ static void algCreateNodes(SmiModule *module)
 	 node;
 	 node = smiGetNextNode(node, SMI_NODEKIND_TABLE)) {
 	if (node->status != SMI_STATUS_OBSOLETE) {
-	    if (SUPPRESSDEPRECATED && node->status != SMI_STATUS_DEPRECATED)
+	    if (SUPPRESS_DEPRECATED && node->status != SMI_STATUS_DEPRECATED)
 		graphInsertNode(graph, node);
 	}
     }
@@ -1844,7 +1849,7 @@ static void algCreateNodes(SmiModule *module)
 	 node;
 	 node = smiGetNextNode(node, SMI_NODEKIND_SCALAR)) {
 	if (node->status != SMI_STATUS_OBSOLETE) {
-	    if (SUPPRESSDEPRECATED && node->status != SMI_STATUS_DEPRECATED)
+	    if (SUPPRESS_DEPRECATED && node->status != SMI_STATUS_DEPRECATED)
 		graphInsertNode(graph, node);
 	}
     }
@@ -2002,12 +2007,17 @@ static void diaPrintXMLAllColumns(GraphNode *node)
     }
 }
 
+/*
+ * adds the index to an augmenting table (row-element)
+ */
 static void diaPrintAugmentIndex(GraphNode *tNode)
 {
     GraphEdge  *tEdge;
     SmiElement *smiElement;
 
-    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+    for (tEdge = graphGetFirstEdgeByNode(graph, tNode);
+	 tEdge;
+	 tEdge = graphGetNextEdgeByNode(graph, tEdge, tNode)) {
 	if (tEdge->indexkind == SMI_INDEX_AUGMENT) {
 	    for (smiElement = smiGetFirstElement(
 		smiGetFirstChildNode(tEdge->startNode->smiNode));
@@ -2087,7 +2097,7 @@ static void diaPrintXMLObject(GraphNode *node, float x, float y)
 	    diaPrintXMLAttribute(smiGetElementNode(smiElement),1);
 	}
 
-	if (PRINTDETAILEDATTR) {
+	if (PRINT_DETAILED_ATTR) {
 	    diaPrintXMLAllColumns(node);
 	}
     }
@@ -2285,8 +2295,12 @@ static float getObjYRel(GraphEdge *edge, int con)
     
     node = edge->startNode;
     node2 = edge->endNode;
-    dist = abs((node->dia.y - node2->dia.y) / 2);
-
+    if (node->dia.y < node2->dia.y) {
+	dist = abs(((node->dia.y + node->dia.h) - node2->dia.y ) / 2);
+    } else {
+	dist = abs((node->dia.y - (node2->dia.y + node2->dia.h)) / 2);
+    }
+    
     switch (con) {
     case 0 :
 	return node->dia.y - dist;
@@ -2721,7 +2735,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	}
     }
 
-    if (PRINTDETAILEDATTR && node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
+    if (PRINT_DETAILED_ATTR && node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 	module  = smiGetNodeModule(node->smiNode);
 
 	for (tNode = smiGetFirstNode(module, SMI_NODEKIND_COLUMN);
@@ -2785,7 +2799,7 @@ static void diaPrintXML(Module *module)
     x = XOFFSET;
     y = YOFFSET;
     ydiff = 0;
-    
+
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
 	    diaPrintXMLObject(tEdge->startNode, x, y);
@@ -2803,7 +2817,7 @@ static void diaPrintXML(Module *module)
 	    x = XOFFSET;
 	}
     }
-
+    
     x = XOFFSET;
     y += ydiff;
     ydiff = 0;
