@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.10 1999/03/26 17:01:58 strauss Exp $
+ * @(#) $Id: smi.c,v 1.11 1999/03/29 14:02:27 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -94,7 +94,7 @@ allowsRanges(basetype)
 /*
  * add an entry to a malloc'ed array of char pointers. the new entry `name'
  * gets strdup'ed. the list keeps NULL terminated. the list pointer
- * (like argv) must be passed by reference,  cos it must be realloc'ed.
+ * (like argv) must be passed by reference, cos it must be realloc'ed.
  * e.g. addName(&argv, "gaga");
  */
 void
@@ -407,6 +407,7 @@ createSmiNode(objectPtr)
 {
     SmiNode *smiNodePtr;
     char    typename[SMI_MAX_FULLNAME+1];
+    List    *listPtr;
     
     if (objectPtr) {
 	smiNodePtr     = util_malloc(sizeof(SmiNode));
@@ -455,6 +456,14 @@ createSmiNode(objectPtr)
 	    smiNodePtr->reference = objectPtr->reference;
 	} else {
 	    smiNodePtr->reference = NULL;
+	}
+	smiNodePtr->list	= NULL;
+	if (smiNodePtr->decl != SMI_DECL_MODULECOMPLIANCE) {
+	    /* MCs use this list for struct Compliance pointers */
+	    for (listPtr = objectPtr->listPtr; listPtr;
+		 listPtr = listPtr->nextPtr) {
+		addPtr(&smiNodePtr->list, ((Object *)listPtr->ptr)->name);
+	    }
 	}
 	return smiNodePtr;
     } else {
@@ -861,6 +870,79 @@ smiGetNextNode(modulename, name)
     }
     
     return createSmiNode(objectPtr);
+}
+
+
+
+XXX SmiCompliance *
+smiGetFirstCompliance(modulename, name)
+    char		*modulename;
+{
+    SmiRevision		*smiRevisionPtr;
+    Module	        *modulePtr;
+    
+    printDebug(4, "smiGetFirstCompliance(\"%s\")\n", modulename);
+
+    modulePtr = findModuleByName(modulename);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(modulename);
+    }
+    
+    if (modulePtr && (modulePtr->firstRevisionPtr)) {
+	smiRevisionPtr = util_malloc(sizeof(SmiRevision));
+	
+	smiRevisionPtr->date = modulePtr->firstRevisionPtr->date;
+	if (modulePtr->firstRevisionPtr->description) {
+	    smiRevisionPtr->description =
+		modulePtr->firstRevisionPtr->description;
+	} else {
+	    smiRevisionPtr->description = NULL;
+	}
+	return smiRevisionPtr;
+    }
+
+    return NULL;
+}
+
+
+
+XXX SmiCompliance *
+smiGetNextCompliance(modulename, date)
+    char	      *modulename;
+    time_t	      date;
+{
+    SmiRevision		*smiRevisionPtr;
+    Module	        *modulePtr;
+    Revision	        *revisionPtr;
+    
+    printDebug(4, "smiGetNextCompliance(\"%s\", %ld)\n", modulename, date);
+
+    modulePtr = findModuleByName(modulename);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(modulename);
+    }
+    
+    if (modulePtr && (modulePtr->firstRevisionPtr)) {
+	for (revisionPtr = modulePtr->firstRevisionPtr;
+	     revisionPtr && (revisionPtr->date != date);
+	     revisionPtr = revisionPtr->nextPtr);
+	revisionPtr = revisionPtr->nextPtr;
+	if (revisionPtr) {
+	    smiRevisionPtr = util_malloc(sizeof(SmiRevision));
+
+	    smiRevisionPtr->date = revisionPtr->date;
+	    if (revisionPtr->description) {
+	    smiRevisionPtr->description = revisionPtr->description;
+	    } else {
+		smiRevisionPtr->description = NULL;
+	    }
+	    return smiRevisionPtr;
+	}
+    }
+
+    return NULL;
 }
 
 
@@ -1634,6 +1716,8 @@ smiModule(fullname)
     static char	    modulename[SMI_MAX_DESCRIPTOR+1];
     int		    len;
 
+    if (!fullname) return NULL;
+    
     len = strcspn(fullname, "!.");
     len = MIN(len, strcspn(fullname, SMI_NAMESPACE_OPERATOR));
     len = MIN(len, SMI_MAX_DESCRIPTOR);
@@ -1653,6 +1737,8 @@ smiDescriptor(fullname)
     static char	    name[SMI_MAX_DESCRIPTOR+1];
     char	    *p;
 
+    if (!fullname) return NULL;
+    
     p = strstr(fullname, SMI_NAMESPACE_OPERATOR);
     if (p) {
 	strcpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)]);

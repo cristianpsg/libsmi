@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smidump.c,v 1.1 1999/03/26 17:03:09 strauss Exp $
  */
 
 #include <stdio.h>
@@ -32,22 +32,6 @@
 #define SMIDUMP_CONFIG_FILE "/usr/local/etc/smidump.conf"
 
 
-
-/*
- *----------------------------------------------------------------------
- *
- * main --
- *
- *      The main function.
- *
- * Results:
- *      TODO.
- *
- * Side effects:
- *      TODO.
- *
- *----------------------------------------------------------------------
- */
 
 int
 main(argc, argv)
@@ -85,15 +69,6 @@ main(argc, argv)
 	    break;
 	case 'V':
 	    flags &= ~SMI_ERRORLINES;
-	    smiSetFlags(flags);
-	    break;
-	case 'r':
-	    /* errors and statistics (if -s present) for imported modules */
-	    flags |= SMI_RECURSIVE;
-	    smiSetFlags(flags);
-	    break;
-	case 'R':
-	    flags &= ~SMI_RECURSIVE;
 	    smiSetFlags(flags);
 	    break;
 	case 's':

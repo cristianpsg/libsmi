@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.10 1999/03/28 19:26:27 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.11 1999/03/29 14:02:26 strauss Exp $
  */
 
 %{
@@ -58,6 +58,10 @@ extern int yylex(void *lvalp, Parser *parserPtr);
 
 Node   *parentNodePtr;
 
+
+
+static Module *complianceModulePtr;
+ 
  
  
 %}
@@ -81,20 +85,22 @@ Node   *parentNodePtr;
  * The attributes.
  */
 %union {
-    char        *text;	       			/* scanned quoted text       */
-    char        *id;				/* identifier name           */
-    int         err;				/* actually just a dummy     */
-    Object      *objectPtr;			/* object identifier         */
-    SmiStatus   status;				/* a STATUS value            */
-    SmiAccess   access;				/* an ACCESS value           */
-    Type        *typePtr;
-    Index       *indexPtr;
-    List        *listPtr;			/* SEQUENCE and INDEX lists  */
+    char           *text;	  		/* scanned quoted text       */
+    char           *id;				/* identifier name           */
+    int            err;				/* actually just a dummy     */
+    Object         *objectPtr;			/* object identifier         */
+    SmiStatus      status;			/* a STATUS value            */
+    SmiAccess      access;			/* an ACCESS value           */
+    Type           *typePtr;
+    Index          *indexPtr;
+    List           *listPtr;			/* SEQUENCE and INDEX lists  */
     SmiNamedNumber *namedNumberPtr;		/* BITS or enum item         */
     SmiRange       *rangePtr;			/* type restricting range    */
     SmiValue	   *valuePtr;
-    SmiUnsigned32 unsigned32;			/*                           */
-    SmiInteger32  integer32;			/*                           */
+    SmiUnsigned32  unsigned32;			/*                           */
+    SmiInteger32   integer32;			/*                           */
+    Compliance     *compliancePtr;
+    Module	   *modulePtr;
 }
 
 
@@ -270,31 +276,31 @@ Node   *parentNodePtr;
 %type  <err>RevisionPart
 %type  <err>Revisions
 %type  <err>Revision
-%type  <err>ObjectsPart
-%type  <err>Objects
-%type  <err>Object
-%type  <err>NotificationsPart
-%type  <err>Notifications
-%type  <err>Notification
+%type  <listPtr>ObjectsPart
+%type  <listPtr>Objects
+%type  <objectPtr>Object
+%type  <listPtr>NotificationsPart
+%type  <listPtr>Notifications
+%type  <objectPtr>Notification
 %type  <text>Text
 %type  <text>ExtUTCTime
 %type  <objectPtr>objectIdentifier
 %type  <objectPtr>subidentifiers
 %type  <objectPtr>subidentifier
-%type  <err>objectIdentifier_defval
+%type  <text>objectIdentifier_defval
 %type  <err>subidentifiers_defval
 %type  <err>subidentifier_defval
 %type  <err>objectGroupClause
 %type  <err>notificationGroupClause
 %type  <err>moduleComplianceClause
-%type  <err>ModulePart_Compliance
-%type  <err>Modules_Compliance
-%type  <err>Module_Compliance
-%type  <err>ModuleName_Compliance
-%type  <err>MandatoryPart
-%type  <err>Groups
-%type  <err>Group
-%type  <err>CompliancePart
+%type  <listPtr>ModulePart_Compliance
+%type  <listPtr>Modules_Compliance
+%type  <listPtr>Module_Compliance
+%type  <modulePtr>ModuleName_Compliance
+%type  <listPtr>MandatoryPart
+%type  <listPtr>MandatoryGroups
+%type  <compliancePtr>MandatoryGroup
+%type  <listPtr>CompliancePart
 %type  <err>Compliances
 %type  <err>Compliance
 %type  <err>ComplianceGroup
@@ -308,6 +314,8 @@ Node   *parentNodePtr;
 %type  <err>Modules_Capabilities
 %type  <err>Module_Capabilities
 %type  <err>ModuleName_Capabilities
+%type  <listPtr>CapabilitiesGroups
+%type  <listPtr>CapabilitiesGroup
 %type  <err>VariationPart
 %type  <err>Variations
 %type  <err>Variation
@@ -643,7 +651,7 @@ declaration:		typeDeclaration
 			    $$ = 0;
 			}
 	|		notificationGroupClause
-			{ 
+			{
 			    thisParserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
@@ -956,7 +964,7 @@ entryType:		SEQUENCE '{' sequenceItems '}'
 			{
 			    $$ = addType(NULL, SMI_BASETYPE_SEQUENCE, 0,
 					 thisParserPtr);
-			    setTypeListPtr($$, $3);
+			    setTypeList($$, $3);
 			}
 ;
 
@@ -1039,7 +1047,7 @@ Syntax:			ObjectSyntax
 			    typePtr = addType(NULL, SMI_BASETYPE_BITS,
 					      FLAG_INCOMPLETE,
 					      thisParserPtr);
-			    setTypeListPtr(typePtr, $3);
+			    setTypeList(typePtr, $3);
 			    $$ = typePtr;
 			}
 	;
@@ -1118,6 +1126,7 @@ NamedBit:		identifier
 			'(' number ')'
 			{
 			    $$ = util_malloc(sizeof(SmiNamedNumber));
+			    $$->valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->name = util_strdup($1);
 			    $$->valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
@@ -1215,8 +1224,12 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    if ($11) {
 				setObjectReference(objectPtr, $11);
 			    }
-			    setObjectIndex(objectPtr, $12);
-			    setObjectValue(objectPtr, $13);
+			    if ($12) {
+				setObjectIndex(objectPtr, $12);
+			    }
+			    if ($13) {
+				setObjectValue(objectPtr, $13);
+			    }
 			    $$ = 0;
 			}
 	;
@@ -1477,14 +1490,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
@@ -1495,7 +1508,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
@@ -1543,7 +1556,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				setTypeParent($$, s);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
@@ -1579,7 +1592,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				setTypeParent($$, s);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
-			    setTypeListPtr($$, $4);
+			    setTypeList($$, $4);
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
@@ -1627,7 +1640,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
@@ -1663,7 +1676,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-			    setTypeListPtr($$, $4);
+			    setTypeList($$, $4);
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -1674,7 +1687,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeParent($$, typeOctetStringPtr->name);
-			    setTypeListPtr($$, $3);
+			    setTypeList($$, $3);
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
@@ -1722,7 +1735,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
@@ -1757,7 +1770,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-			    setTypeListPtr($$, $4);
+			    setTypeList($$, $4);
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -1785,28 +1798,28 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_BINSTRING;
-			    $$->value.ptr = $1;
+			    $$->value.ptr = util_strdup($1);
 			}
 	|		HEX_STRING		/* number or OCTET STRING */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_HEXSTRING;
-			    $$->value.ptr = $1;
+			    $$->value.ptr = util_strdup($1);
 			}
 	|		LOWERCASE_IDENTIFIER	/* enumeration label */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_LABEL;
-			    $$->value.ptr = $1;
+			    $$->value.ptr = util_strdup($1);
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_OCTETSTRING;
-			    $$->value.ptr = $1;
+			    $$->value.ptr = util_strdup($1);
 			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
 			 *       it must be expressed as a single ASN.1
@@ -1819,17 +1832,16 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			 *	 { gaga } indistiguishable from a BitsValue.
 			 */
 	|		'{' objectIdentifier_defval '}'
-			{
-			    printError(thisParserPtr, ERR_OID_DEFVAL_TOO_LONG);
-			}
-			/* TODO: need context knowledge about SYNTAX
-			 *       to decide what is allowed
+			/*
+			 * This is only for some MIBs with invalid numerical
+			 * OID notation for DEFVALs
 			 */
 			{
+			    printError(thisParserPtr, ERR_OID_DEFVAL_TOO_LONG);
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-			    /* TODO: set $$->value.? ... */
+			    $$->value.oid = $2;
 			}
 	;
 
@@ -1892,7 +1904,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeParent($$, parentPtr->name);
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
@@ -1913,7 +1925,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeParent($$, parentPtr->name);
-			    setTypeListPtr($$, $2);
+			    setTypeList($$, $2);
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
@@ -2367,11 +2379,19 @@ Value:			valueofObjectSyntax
 			{ $$ = $1; }
 	|		'{' BitsValue '}'
 			{
+			    int i = 0;
+			    List *listPtr;
+			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_BITS;
-			    $$->value.bits = NULL;
-			    /* TODO: setup *list[] */
+			    for (i = 0, listPtr = $2; listPtr;
+				 i++, listPtr = listPtr->nextPtr) {
+				$$->value.bits = util_realloc($$->value.bits,
+						       sizeof(char *) * (i+2));
+				$$->value.bits[i] = listPtr->ptr;
+				$$->value.bits[i+1] = NULL;
+			    }
 			}
 	;
 
@@ -2463,35 +2483,73 @@ Revision:		REVISION ExtUTCTime
 	;
 
 ObjectsPart:		OBJECTS '{' Objects '}'
-			{ $$ = 0; }
+			{
+			    $$ = $3;
+			}
 	|		/* empty */
-			{ $$ = 0; }
+			{
+			    $$ = NULL;
+			}
 	;
 
 Objects:		Object
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
 	|		Objects ',' Object
-			{ $$ = 0; }
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
 	;
 
 Object:			ObjectName
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	;
 
 NotificationsPart:	NOTIFICATIONS '{' Notifications '}'
 			{
-			    $$ = 0;
+			    $$ = $3;
 			}
 	;
 
 Notifications:		Notification
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
 	|		Notifications ',' Notification
-			{ $$ = 0; }
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
 	;
 
 Notification:		NotificationName
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	;
 
 Text:			QUOTED_STRING
@@ -2723,7 +2781,7 @@ subidentifier:
 	;
 
 objectIdentifier_defval: subidentifiers_defval
-			{ $$ = 0; }
+			{ $$ = NULL; }
         ;		/* TODO: right? */
 
 subidentifiers_defval:	subidentifier_defval
@@ -2756,7 +2814,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    
 			    objectPtr = $12;
-			    
+
 			    if (objectPtr->modulePtr !=
 				thisParserPtr->modulePtr) {
 				objectPtr = duplicateObject(objectPtr, 0,
@@ -2773,9 +2831,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-				/*
-				 * TODO: ObjectsPart ($4)
-				 */
+			    setObjectList(objectPtr, $4);
 			    $$ = 0;
 			}
 	;
@@ -2793,8 +2849,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			STATUS Status
 			DESCRIPTION Text
 			ReferPart
-			COLON_COLON_EQUAL
-			'{' objectIdentifier '}'
+			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
 			    
@@ -2817,9 +2872,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-				/*
-				 * TODO: NotificationsPart ($4)
-				 */
+			    setObjectList(objectPtr, $4);
 			    $$ = 0;
 			}
 	;
@@ -2848,6 +2901,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr, 0,
 							    thisParserPtr);
 			    }
+			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
@@ -2857,58 +2911,121 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    if ($8) {
 				setObjectReference(objectPtr, $8);
 			    }
-				/*
-				 * TODO: ModulePart_Compliance ($9)
-				 */
+			    setObjectAccess(objectPtr,
+					    SMI_ACCESS_NOT_ACCESSIBLE);
+			    setObjectList(objectPtr, $9);
 			    $$ = 0;
 			}
 	;
 
 ModulePart_Compliance:	Modules_Compliance
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	;
 
 Modules_Compliance:	Module_Compliance
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	|		Modules_Compliance Module_Compliance
-			{ $$ = 0; }
+			{
+			    List *listPtr;
+			    
+			    /* concatenate lists $1 and $2 */
+			    if ($1) {
+				for (listPtr = $1; listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr);
+				listPtr->nextPtr = $2;
+				$$ = $1;
+			    } else {
+				$$ = $2;
+			    }
+			}
 	;
 
 Module_Compliance:	MODULE ModuleName_Compliance
 			MandatoryPart
 			CompliancePart
-			{ $$ = 0; }
+			{
+			    List *listPtr;
+			    
+			    /* concatenate lists $3 and $4 */
+			    if ($1) {
+				for (listPtr = $3; listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr);
+				listPtr->nextPtr = $4;
+				$$ = $3;
+			    } else {
+				$$ = $4;
+			    }
+			}
 	;
 
 ModuleName_Compliance:	UPPERCASE_IDENTIFIER objectIdentifier
-			{ $$ = 0; }
+			{
+			    $$ = complianceModulePtr = findModuleByName($1);
+			    /* TODO: handle objectIdentifier */
+			}
 	|		UPPERCASE_IDENTIFIER
-			{ $$ = 0; }
+			{
+			    $$ = complianceModulePtr = findModuleByName($1);
+			}
 	|		/* empty, only if contained in MIB module */
 			/* TODO: RFC 1904 looks a bit different, is this ok? */
-			{ $$ = 0; }
+			{
+			    $$ = complianceModulePtr = thisModulePtr;
+			}
 	;
 
-MandatoryPart:		MANDATORY_GROUPS '{' Groups '}'
-			{ $$ = 0; }
+MandatoryPart:		MANDATORY_GROUPS '{' MandatoryGroups '}'
+			{
+			    $$ = $3;
+			}
 	|		/* empty */
-			{ $$ = 0; }
+			{
+			    $$ = NULL;
+			}
 	;
 
-Groups:			Group
-			{ $$ = 0; }
-	|		Groups ',' Group
-			{ $$ = 0; }
+MandatoryGroups:	MandatoryGroup
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
+	|		MandatoryGroups ',' MandatoryGroup
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
 	;
 
-Group:			objectIdentifier
-			{ $$ = 0; }
+MandatoryGroup:		objectIdentifier
+			{
+			    $$ = util_malloc(sizeof(Compliance));
+			    $$->compl = SMI_COMPL_MANDATORY;
+			    $$->modulePtr = complianceModulePtr;
+			    $$->objectPtr = $1;
+			    $$->typePtr = NULL;
+			    $$->writetypePtr = NULL;
+			    $$->access = SMI_ACCESS_UNKNOWN;
+			    $$->description = NULL;
+			}
 	;
 
 CompliancePart:		Compliances
-			{ $$ = 0; }
+			{ $$ = NULL; }
 	|		/* empty */
-			{ $$ = 0; }
+			{ $$ = NULL; }
 	;
 
 Compliances:		Compliance
@@ -3016,9 +3133,36 @@ Modules_Capabilities:	Module_Capabilities
 Module_Capabilities:	SUPPORTS ModuleName_Capabilities
 			/* TODO: example in the SimpleBook names the module
 			 * while the given syntax provides oids ?! */
-			INCLUDES '{' Groups '}'
+			INCLUDES '{' CapabilitiesGroups '}'
 			VariationPart
 			{ $$ = 0; }
+	;
+
+CapabilitiesGroups:	CapabilitiesGroup
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
+	|		CapabilitiesGroups ',' CapabilitiesGroup
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
+	;
+
+CapabilitiesGroup:	objectIdentifier
+			{
+			    $$ = NULL;
+			}
 	;
 
 ModuleName_Capabilities: objectIdentifier
