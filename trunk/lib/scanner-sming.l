@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.33 2001/08/15 17:07:04 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.34 2003/05/16 11:22:50 strauss Exp $
  */
 
 %option noyywrap
@@ -17,6 +17,8 @@
 
 #include <config.h>
     
+#ifdef BACKEND_SMING
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -599,3 +601,5 @@ SP		" "
 }
 
 %%
+
+#endif
