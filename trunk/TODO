@@ -134,3 +134,11 @@ o Check, whether all necessary occurences of &amp;, &lt;, &gt;, &apos;, and
 
 o smidiff does not yet support the -i option, like smilint does.
 
+o error detection: different types in SEQUENCE and OBJECT-TYPE macros
+  (recognized for a MIB where the SEQUENCE contains "INTEGER" for a column
+  for which the OBJECT-TYPE's type is SNMPv2-TC::TruthValue. Notify Bert
+  when fixed.
+
+o error detection: integer DEFVAL for an enumeration typed OBJECT-TYPE.
+  Notify Bert when fixed.
+
