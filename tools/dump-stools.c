@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.2 2001/02/01 10:10:12 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.3 2001/02/05 11:48:49 schoenw Exp $
  */
 
 /*
@@ -306,6 +306,46 @@ static unsigned int getMaxSize(SmiType *smiType)
 }
 
 
+static void printHeaderEnums(FILE *f, SmiModule *smiModule)
+{
+    SmiNode  *smiNode;
+    SmiType  *smiType;
+    char     *cName, *cModuleName;
+    int      cnt = 0;
+
+    cModuleName = translateLower(smiModule->name);
+
+    for (smiNode = smiGetFirstNode(smiModule,
+				   SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode,
+				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
+	smiType = smiGetNodeType(smiNode);
+	if (smiType && smiType->basetype == SMI_BASETYPE_ENUM) {
+	    if (cnt == 0) {
+		fprintf(f,
+			"/*\n"
+			" * Tables to map enumerations to strings and vice versa.\n"
+			" */\n"
+			"\n");
+	    }
+	    cnt++;
+	    cName = translate(smiNode->name);
+	    fprintf(f, "extern stls_table_t %s_enums_%s[];\n",
+		    cModuleName, cName);
+	    xfree(cName);
+	}
+    }
+    
+    if (cnt) {
+	fprintf(f, "\n");
+    }
+
+    xfree(cModuleName);
+}
+
+
+
 static void printHeaderTypedefMember(FILE *f,
 				     SmiNode *smiNode, SmiType *smiType)
 {
@@ -445,10 +485,16 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
     fprintf(f, "} %s_t;\n\n", cGroupName);
 
     fprintf(f, "extern int\n"
-	    "%s_get_%s(host_snmp *s, %s_t **%s);\n",
-	    cModuleName, cGroupName, cGroupName, cGroupName);
-    fprintf(f, "\n");
-
+	    "%s_get_%s(host_snmp *s, %s_t %s%s);\n\n",
+	    cModuleName, cGroupName, cGroupName,
+	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "***" : "**",
+	    cGroupName);
+    fprintf(f, "extern void\n"
+	    "%s_free_%s(%s_t %s%s);\n\n",
+	    cModuleName, cGroupName, cGroupName,
+	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "**" : "*",
+	    cGroupName);
+	    
     xfree(cGroupName);
     xfree(cModuleName);
 }
@@ -498,6 +544,7 @@ static void dumpHeader(SmiModule *smiModule, char *baseName)
 	    "\n",
 	    pModuleName, pModuleName);
 
+    printHeaderEnums(f, smiModule);
     printHeaderTypedefs(f, smiModule);
 
     fprintf(f,
@@ -515,14 +562,14 @@ static void printOidDefinitions(FILE *f, SmiModule *smiModule)
     SmiNode *smiNode;
     char    *cName;
     int     i;
+    SmiNodekind kind = (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR);
     
-    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+    for (smiNode = smiGetFirstNode(smiModule, kind);
 	 smiNode;
-	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
-	    && smiNode->access != SMI_ACCESS_NOTIFY) {
+	 smiNode = smiGetNextNode(smiNode, kind)) {
+	if (smiNode->access != SMI_ACCESS_NOTIFY) {
 	    cName = translate(smiNode->name);
-  	    fprintf(f, "static guint32 %s[] = {", cName);
+  	    fprintf(f, "static guint32 const %s[] = {", cName);
 	    for (i = 0; i < smiNode->oidlen; i++) {
 		fprintf(f, "%s%u", i ? ", " : "", smiNode->oid[i]);
 	    }
@@ -531,6 +578,61 @@ static void printOidDefinitions(FILE *f, SmiModule *smiModule)
 	}
     }
     fprintf(f, "\n");
+    for (smiNode = smiGetFirstNode(smiModule, kind);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, kind)) {
+	if (smiNode->access != SMI_ACCESS_NOTIFY) {
+	    cName = translate(smiNode->name);
+	    fprintf(f, "static gsize const _%sLength = sizeof(%s)/sizeof(guint32);\n",
+		    cName, cName);
+	    xfree(cName);
+	}
+    }
+    fprintf(f, "\n");
+}
+
+
+
+static void printEnumTables(FILE *f, SmiModule *smiModule)
+{
+    SmiNode  *smiNode;
+    SmiType  *smiType;
+    SmiNamedNumber *nn;
+    char     *cName, *cModuleName;
+    int      cnt = 0;
+    
+    cModuleName = translateLower(smiModule->name);
+    
+    for (smiNode = smiGetFirstNode(smiModule,
+				   SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode,
+				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
+	smiType = smiGetNodeType(smiNode);
+	if (smiType && smiType->basetype == SMI_BASETYPE_ENUM) {
+	    cnt++;
+	    cName = translate(smiNode->name);
+	    fprintf(f, "stls_table_t %s_enums_%s[] = {\n", cModuleName, cName);
+	    for (nn = smiGetFirstNamedNumber(smiType); nn;
+		 nn = smiGetNextNamedNumber(nn)) {
+		fprintf(f, "    { %d, \"%s\" },\n",
+			(int) nn->value.value.integer32, nn->name);
+	    }
+	    
+	    fprintf(f,
+		    "    { 0, NULL }\n"
+		    "};\n"
+		    "\n");
+	    xfree(cName);
+	}
+    }
+    
+    if (cnt) {
+	fprintf(f, "\n");
+    }
+
+    xfree(cModuleName);
+    
 }
 
 
@@ -558,19 +660,19 @@ static void printGetScalarAssignement(FILE *f, SmiNode *groupNode)
 	    
 	    cName = translate(smiNode->name);
 	    fprintf(f,
-		    "        if (vb->id_len > sizeof(%s)/sizeof(guint32)\n"
+		    "        if (vb->id_len > _%sLength\n"
 		    "            && memcmp(vb->id, %s, sizeof(%s)) == 0) {\n",
 		    cName, cName, cName);
 	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_INTEGER32:
 	    case SMI_BASETYPE_ENUM:
 		fprintf(f,
-			"            (*%s)->%s = (gint32 *) &(vb->syntax.l);\n",
+			"            %s->%s = (gint32 *) &(vb->syntax.l);\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
-			"            (*%s)->%s = (guint32 *) &(vb->syntax.ul);\n",
+			"            %s->%s = (guint32 *) &(vb->syntax.ul);\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
@@ -579,19 +681,19 @@ static void printGetScalarAssignement(FILE *f, SmiNode *groupNode)
 		minSize = getMinSize(smiType);
 		if (minSize != maxSize) {
 		    fprintf(f,
-			    "            (*%s)->_%sLength = vb->syntax_len;\n",
+			    "            %s->_%sLength = vb->syntax_len;\n",
 			    cGroupName, cName);
 		}
 		fprintf(f,
-			"            (*%s)->%s = vb->syntax.uc;\n",
+			"            %s->%s = vb->syntax.uc;\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
 		fprintf(f,
-			"            (*%s)->_%sLength = vb->syntax_len / sizeof(guint32);\n",
+			"            %s->_%sLength = vb->syntax_len / sizeof(guint32);\n",
 			cGroupName, cName);
 		fprintf(f,
-			"            (*%s)->%s = (guint32 *) vb->syntax.ul;\n",
+			"            %s->%s = (guint32 *) vb->syntax.ul;\n",
 			cGroupName, cName);
 		break;
 	    default:
@@ -605,6 +707,59 @@ static void printGetScalarAssignement(FILE *f, SmiNode *groupNode)
 
     xfree(cGroupName);
 }
+
+
+
+static void printAssignMethod(FILE *f, SmiModule *smiModule,
+			      SmiNode *groupNode)
+{
+    char *cGroupName;
+
+    cGroupName = translate(groupNode->name);
+
+    fprintf(f,
+	    "static %s_t *\n"
+	    "assign_%s(GSList *vbl)\n"
+	    "{\n"
+	    "    GSList *elem;\n"
+	    "    %s_t *%s;\n"
+	    "    char *p;\n"
+	    "\n",
+	    cGroupName, cGroupName, cGroupName, cGroupName);
+
+    fprintf(f,
+	    "    %s = (%s_t *) g_malloc0(sizeof(%s_t) + sizeof(GSList *));\n"
+	    "    if (! %s) {\n"
+	    "        return NULL;\n"
+	    "    }\n"
+	    "\n",
+	    cGroupName, cGroupName, cGroupName, cGroupName);
+
+    fprintf(f,
+	    "    p = (char *) %s + sizeof(%s_t);\n"
+	    "    * (GSList **) p = vbl;\n"
+	    "\n", cGroupName, cGroupName);
+
+    fprintf(f,
+	    "    for (elem = vbl; elem; elem = g_slist_next(elem)) {\n"
+	    "        SNMP_OBJECT *vb = (SNMP_OBJECT *) elem->data;\n"
+	    "        if (vb->type == SNMP_ENDOFMIBVIEW\n"
+            "            || (vb->type == SNMP_NOSUCHOBJECT)\n"
+            "            || (vb->type == SNMP_NOSUCHINSTANCE)) {\n"
+            "            continue;\n"
+	    "        }\n"
+	);
+    printGetScalarAssignement(f, groupNode);
+    fprintf(f,
+	    "    }\n"
+	    "\n"
+	    "    return %s;\n"
+	    "}\n"
+	    "\n", cGroupName);
+
+    xfree(cGroupName);
+}
+ 
 
 
 
@@ -634,8 +789,7 @@ static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
 
     cName = translate(smiNode->name);
     fprintf(f,
-	    "    g_pdu_add_oid(&in, (gulong *) %s,\n"
-	    "                  sizeof(%s)/sizeof(guint32), SNMP_NULL, NULL);\n",
+	    "    stls_vbl_add_null(&in, %s, _%sLength);\n",
 	    cName, cName);
     xfree(cName);
 }
@@ -643,7 +797,7 @@ static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
 
 
 static void printGetMethod(FILE *f, SmiModule *smiModule,
-			      SmiNode *groupNode)
+			   SmiNode *groupNode)
 {
     SmiNode *smiNode;
     char    *cModuleName, *cGroupName;
@@ -652,12 +806,25 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
     cGroupName = translate(groupNode->name);
 
     fprintf(f,
-	    "int %s_get_%s(host_snmp *s, %s_t **%s)\n"
+	    "int\n"
+	    "%s_get_%s(host_snmp *s, %s_t %s%s)\n"
 	    "{\n"
-	    "    GSList *in = NULL, *out = NULL, *elem;\n"
+	    "    GSList *in = NULL, *out = NULL;\n",
+	    cModuleName, cGroupName, cGroupName,
+	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "***" : "**",
+	    cGroupName);
 
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	fprintf(f,
+		"    GSList *row;\n"
+		"    int i;\n");
+    }
+
+    fprintf(f,
+	    "\n"
+	    "    *%s = NULL;\n"
 	    "\n",
-	    cModuleName, cGroupName, cGroupName, cGroupName);
+	    cGroupName);
 
     for (smiNode = smiGetFirstChildNode(groupNode);
 	 smiNode;
@@ -665,62 +832,47 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 	printAddVarBind(f, smiNode, groupNode);
     }
 
-    fprintf(f,
-	    "\n"
-	    "    out = g_sync_getnext(s, in);\n"
-	    "    if (! out) {\n"
-	    "        return -2;\n"
-	    "    }\n"
-	    "\n");
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	fprintf(f,
+		"\n"
+		"    out = stls_snmp_gettable(s, in);\n"
+		"    /* stls_vbl_free(in); */\n"
+		"    if (! out) {\n"
+		"        return -2;\n"
+		"    }\n"
+		"\n");
+	fprintf(f,
+		"    *%s = (%s_t **) g_malloc0((g_slist_length(out) + 1) * sizeof(%s_t *));\n"
+		"    if (! *%s) {\n"
+		"        return -4;\n"
+		"    }\n"
+		"\n", cGroupName, cGroupName, cGroupName, cGroupName);
 
-    fprintf(f,
-	    "    g_slist_free(in);\n"
-	    "    in = NULL;\n"
-	    "\n");
-
-    /* generate code for error checking and handling */
-
-    fprintf(f,
-	    "    *%s = (%s_t *) calloc(1, sizeof(%s_t));\n"
-	    "    if (! *%s) {\n"
-	    "        return -4;\n"
-	    "    }\n"
-	    "\n",
-	    cGroupName, cGroupName, cGroupName, cGroupName);
-
-    fprintf(f,
-	    "    for (elem = out; elem; elem = g_slist_next(elem)) {\n"
-	    "        SNMP_OBJECT *vb = (SNMP_OBJECT *) elem->data;\n"
-	    "        if (vb->type == SNMP_ENDOFMIBVIEW\n"
-            "            || (vb->type == SNMP_NOSUCHOBJECT)\n"
-            "            || (vb->type == SNMP_NOSUCHINSTANCE)) {\n"
-            "            continue;\n"
-	    "        }\n"
-	);
-    printGetScalarAssignement(f, groupNode);
-    fprintf(f,
-	    "    }\n"
-	    "\n");
-
-
-#if 0
-    if (response->errstat != SNMP_ERR_NOERROR) {
-	return -3;
+	fprintf(f,
+		"    for (row = out, i = 0; row; row = g_slist_next(row), i++) {\n"
+		"        (*%s)[i] = assign_%s(row->data);\n"
+		"    }\n"
+		"\n", cGroupName, cGroupName);
+	
+    } else {
+	fprintf(f,
+		"\n"
+		"    out = stls_snmp_getnext(s, in);\n"
+		"    stls_vbl_free(in);\n"
+		"    if (! out) {\n"
+		"        return -2;\n"
+		"    }\n"
+		"\n");
+	
+	fprintf(f,
+		"    *%s = assign_%s(out);\n"
+		"\n", cGroupName, cGroupName);
     }
 
-    /* copy to data structures */
-
-    /* cleanup */
-
-#endif
-
     fprintf(f,
-#if 0
-	    "    if (response) snmp_free_pdu(response);\n"
-#endif
-	    "\n"
 	    "    return 0;\n"
-	    "}\n\n");
+	    "}\n"
+	    "\n");
 
     xfree(cGroupName);
     xfree(cModuleName);
@@ -729,7 +881,65 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printGetMethods(FILE *f, SmiModule *smiModule)
+static void printFreeMethod(FILE *f, SmiModule *smiModule,
+			    SmiNode *groupNode)
+{
+    char *cModuleName, *cGroupName;
+
+    cModuleName = translateLower(smiModule->name);
+    cGroupName = translate(groupNode->name);
+
+    fprintf(f,
+	    "void\n"
+	    "%s_free_%s(%s_t %s%s)\n"
+	    "{\n"
+	    "    GSList *vbl;\n"
+	    "    char *p;\n",
+	    cModuleName, cGroupName, cGroupName, 
+	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "**" : "*",
+	    cGroupName);
+
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	fprintf(f,
+		"    int i;\n");
+    }
+
+    fprintf(f,	    
+	    "\n"
+	    "    if (%s) {\n", cGroupName);
+
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	fprintf(f,
+		"        for (i = 0; %s[i]; i++) {\n"
+		"            p = (char *) %s[i] + sizeof(%s_t);\n"
+		"            vbl = * (GSList **) p;\n"
+		"            stls_vbl_free(vbl);\n"
+		"            g_free(%s[i]);\n"
+		"        }\n"
+		"        g_free(%s);\n",
+		cGroupName, cGroupName, cGroupName, cGroupName, cGroupName);
+    } else {
+	fprintf(f,
+		"        p = (char *) %s + sizeof(%s_t);\n"
+		"        vbl = * (GSList **) p;\n"
+		"        stls_vbl_free(vbl);\n"
+		"        g_free(%s);\n",
+		cGroupName, cGroupName, cGroupName);
+    }
+
+    fprintf(f,
+	    "    }\n"
+	    "}\n"
+	    "\n");
+
+    xfree(cGroupName);
+    xfree(cModuleName);
+}
+ 
+
+
+
+static void printMethods(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
@@ -739,7 +949,9 @@ static void printGetMethods(FILE *f, SmiModule *smiModule)
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
 	    cnt++;
+	    printAssignMethod(f, smiModule, smiNode);
 	    printGetMethod(f, smiModule, smiNode);
+	    printFreeMethod(f, smiModule, smiNode);
 	}
     }
     
@@ -767,8 +979,8 @@ static void dumpStubs(SmiModule *smiModule, char *baseName)
 	    baseName);
 	
     printOidDefinitions(f, smiModule);
-    
-    printGetMethods(f, smiModule);
+    printEnumTables(f, smiModule);
+    printMethods(f, smiModule);
     
     fclose(f);
 }
