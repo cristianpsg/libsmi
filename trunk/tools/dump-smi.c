@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.3 1999/05/04 09:00:53 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.4 1999/05/04 23:27:03 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -867,9 +867,6 @@ printModuleCompliances(modulename)
     char	  *modulename;
 {
     SmiNode	  *smiNode;
-    SmiType	  *smiType;
-    SmiOption	  **smiOption;
-    SmiRefinement **smiRefinement;
     char	  **p;
     char	  lastModule[100];
     

@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.27 1999/05/06 11:53:36 strauss Exp $
+# @(#) $Id: Makefile,v 1.28 1999/05/06 14:10:25 strauss Exp $
 #
 
 #MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
@@ -90,7 +90,7 @@ clean:
 sync:
 	cp ../thesis/sming.abnf ../thesis/draft-irtf-nmrg-sming-00.txt ../thesis/IRTF-NMRG-SMING ../thesis/IRTF-NMRG-SMING-TYPES ../thesis/IRTF-NMRG-SMING-EXTENSIONS doc
 
-install: install-prg install-conf install-dev install-lib install-html
+install: install-prg install-conf install-dev install-lib
 
 install-prg: tools/smilint tools/smidump tools/smiquery doc/smilint.1 doc/smidump.1
 	cp tools/smilint tools/smidump tools/smiquery ${PREFIX}/bin
@@ -111,14 +111,6 @@ install-lib:
 	if [ ! -d ${PREFIX}/lib/smi/mibs-sming ] ; then mkdir ${PREFIX}/lib/smi/mibs-sming ; fi
 	-cp mibs/smi/* ${PREFIX}/lib/smi/mibs-smi
 	-cp mibs/sming/* ${PREFIX}/lib/smi/mibs-sming
-
-install-html: doc/parser-smi.y.html doc/parser-sming.y.html doc/scanner-sming.l.html
-	cp doc/parser-smi.y.html ../www
-	cp doc/parser-sming.y.html ../www
-	cp doc/scanner-sming.l.html ../www
-#	if [ -d /usr/home/strauss/WWW/sming ] ; then \
-#		cp doc/parser-smi.y.html /usr/home/strauss/WWW/sming ; \
-#	fi
 
 doc/parser-smi.y.html: lib/parser-smi.y doc/yacc2html
 	echo "<HTML><HEAD><TITLE>parser-smi.y</TITLE></HEAD><BODY><PRE>" > doc/parser-smi.y.html
