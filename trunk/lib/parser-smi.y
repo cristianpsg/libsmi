@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.2 1999/03/12 16:59:33 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.3 1999/03/15 11:07:11 strauss Exp $
  */
 
 %{
@@ -80,8 +80,7 @@ Node   *parentNodePtr;
  * The attributes.
  */
 %union {
-    String      text;				/* scanned quoted text       */
-    String      *textPtr;			/* scanned quoted text       */
+    char        *text;	       			/* scanned quoted text       */
     char        *id;				/* identifier name           */
     int         err;				/* actually just a dummy     */
     Object      *objectPtr;			/* object identifier         */
@@ -215,7 +214,7 @@ Node   *parentNodePtr;
 %type  <err>objectIdentityClause
 %type  <err>objectTypeClause
 %type  <err>trapTypeClause
-%type  <textPtr>descriptionClause
+%type  <text>descriptionClause
 %type  <err>VarPart
 %type  <err>VarTypes
 %type  <err>VarType
@@ -245,8 +244,8 @@ Node   *parentNodePtr;
 %type  <err>enumNumber
 %type  <status>Status
 %type  <status>Status_Capabilities
-%type  <textPtr>DisplayPart
-%type  <textPtr>UnitsPart
+%type  <text>DisplayPart
+%type  <text>UnitsPart
 %type  <access>Access
 %type  <listPtr>IndexPart
 %type  <listPtr>IndexTypes
@@ -270,8 +269,8 @@ Node   *parentNodePtr;
 %type  <err>NotificationsPart
 %type  <err>Notifications
 %type  <err>Notification
-%type  <textPtr>Text
-%type  <textPtr>ExtUTCTime
+%type  <text>Text
+%type  <text>ExtUTCTime
 %type  <objectPtr>objectIdentifier
 %type  <objectPtr>subidentifiers
 %type  <objectPtr>subidentifier
@@ -367,7 +366,7 @@ module:			moduleName
 				thisParserPtr->modulePtr =
 				    addModule($1,
 					      thisParserPtr->path,
-					      thisParserPtr->location,
+					      thisParserPtr->locationPtr,
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
@@ -466,14 +465,7 @@ import:			importIdentifiers FROM moduleName
 			     * loaded.
 			     */
 			    if (!findModuleByName($3)) {
-				/* TODO: do we need these flags?
-				flags = thisParserPtr->modulePtr->flags;
-				flags &= ~(FLAG_WHOLEFILE | FLAG_WHOLEMOD);
-				if (!(flags & FLAG_RECURSIVE)) {
-				    flags &= ~(FLAG_ERRORS | FLAG_STATS);
-				}
-				*/
-				smiLoadMibModule($3);
+				smiLoadModule($3);
 			    }
 			    checkImports($3, thisParserPtr);
 			}
@@ -932,8 +924,7 @@ row:			UPPERCASE_IDENTIFIER
 				     * TODO: is this allowed in a SEQUENCE? 
 				     */
 				    stypePtr = smiGetType($1,
-							  importPtr->module,
-							  0);
+							  importPtr->module);
 				    $$ = addType($1, stypePtr->syntax,
 						 FLAG_IMPORTED,
 						 thisParserPtr);
@@ -1007,7 +998,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				     * imported object.
 				     */
 				    snodePtr = smiGetNode($1,
-							  importPtr->name, 0);
+							  importPtr->name);
 				    $$ = addObject($1,
 					getParentNode(
 					    createNodes(snodePtr->oid)),
@@ -1345,7 +1336,8 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    setModuleIdentityObject(thisParserPtr->modulePtr,
 						    objectPtr);
-			    setModuleLastUpdated(thisParserPtr->modulePtr, $6);
+			    setModuleLastUpdated(thisParserPtr->modulePtr,
+						 smiMkTime($6));
 			    setModuleOrganization(thisParserPtr->modulePtr,
 						  $8);
 			    setModuleContactInfo(thisParserPtr->modulePtr,
@@ -1484,8 +1476,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * imported type.
 				     */
 				    stypePtr = smiGetType($1,
-							  importPtr->module,
-							  0);
+							  importPtr->module);
 				    $$ = addType(NULL, stypePtr->syntax, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
@@ -1520,7 +1511,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($3, $1, 0);
+				    stypePtr = smiGetType($3, $1);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->syntax, 0,
 						 thisParserPtr);
@@ -1567,8 +1558,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * imported type.
 				     */
 				    stypePtr = smiGetType($1,
-							  importPtr->module,
-							  0);
+							  importPtr->module);
 				    $$ = addType(NULL, stypePtr->syntax, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
@@ -1604,7 +1594,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($3, $1, 0);
+				    stypePtr = smiGetType($3, $1);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->syntax, 0,
 						 thisParserPtr);
@@ -1663,8 +1653,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * imported type.
 				     */
 				    stypePtr = smiGetType($1,
-							  importPtr->module,
-							  0);
+							  importPtr->module);
 				    $$ = addType(NULL, stypePtr->syntax, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
@@ -1700,7 +1689,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($3, $1, 0);
+				    stypePtr = smiGetType($3, $1);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->syntax, 0,
 						 thisParserPtr);
@@ -2275,26 +2264,7 @@ Notification:		NotificationName
 
 Text:			QUOTED_STRING
 			{
-			    $$ = util_malloc(sizeof(struct String));
-			    if ($$) {
-#ifdef TEXTS_IN_MEMORY
-				if ($1.length <= TEXTS_IN_MEMORY) { 
-				    $$->ptr = util_malloc($1.length+1);
-				    if ($$->ptr) {
-					memcpy($$->ptr, $1.ptr, $1.length+1);
-				    } else {
-					/* TODO */
-				    }
-				} else {
-				    $$->ptr = NULL;
-				}
-#endif
-				$$->fileoffset = $1.fileoffset;
-				$$->length = $1.length;
-			    } else {
-				/* TODO */
-				$$ = NULL;
-			    }
+			    $$ = util_strdup($1);
 			}
 	;
 
@@ -2304,26 +2274,7 @@ Text:			QUOTED_STRING
 ExtUTCTime:		QUOTED_STRING
 			{
 			    /* TODO: check length and format */
-			    $$ = util_malloc(sizeof(struct String));
-			    if ($$) {
-#ifdef TEXTS_IN_MEMORY
-				if ($1.length <= TEXTS_IN_MEMORY) { 
-				    $$->ptr = util_malloc($1.length+1);
-				    if ($$->ptr) {
-					memcpy($$->ptr, $1.ptr, $1.length+1);
-				    } else {
-					/* TODO */
-				    }
-				} else {
-				    $$->ptr = NULL;
-				}
-#endif
-				$$->fileoffset = $1.fileoffset;
-				$$->length = $1.length;
-			    } else {
-				/* TODO */
-				$$ = NULL;
-			    }
+			    $$ = util_strdup($1);
 			}
 	;
 
@@ -2385,8 +2336,7 @@ subidentifier:
 					 * imported object.
 					 */
 					snodePtr = smiGetNode($1,
-							    importPtr->module,
-							      0);
+							    importPtr->module);
 					$$ = addObject($1, 
 					  getParentNode(
 					      createNodes(snodePtr->oid)),
@@ -2436,7 +2386,7 @@ subidentifier:
 					/*
 					 * imported object.
 					 */
-					snodePtr = smiGetNode($3, $1, 0);
+					snodePtr = smiGetNode($3, $1);
 					$$ = addObject($3, 
 					  getParentNode(
 					      createNodes(snodePtr->oid)),

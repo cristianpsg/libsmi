@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.3 1999/03/12 16:59:32 strauss Exp $
+ * @(#) $Id: data.h,v 1.4 1999/03/15 11:07:09 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -20,7 +20,6 @@
 
 #include "smi.h"
 #include "defs.h"
-#include "error.h"
 #include "parser-smi.h"
 
 
@@ -31,16 +30,6 @@ typedef struct List {
     void	    *ptr;
     struct List	    *nextPtr;
 } List;
-
-
-
-typedef struct String {
-#ifdef TEXTS_IN_MEMORY
-    char *ptr;	      			/*   the value			    */
-#endif
-    int fileoffset;			/*   offset in this file	    */
-    int length;				/*   full length		    */
-} String;
 
 
 
@@ -64,36 +53,15 @@ typedef unsigned short NodeFlags;
 typedef unsigned short TypeFlags;
 typedef unsigned short MacroFlags;
 
-#define NODE_FLAG_ROOT		0x0001
+#define NODE_FLAG_ROOT		0x0001 /* mark node tree's root */
 
-#define PARSER_FLAG_STATS	SMI_STATS
-
-#define FLAG_PERMANENT		0x0001 /* e.g. Object and Descriptor `iso'.  */
 #define FLAG_IMPORTED		0x0002 /*				     */
-#define FLAG_PARENTIMPORTED	0x0004 /* On a Type: This Type's parent is   */
-				       /* imported instead of local, hence   */
-				       /* its parent is a pointer to a       */
-				       /* descriptor instead of a type.      */
-#define FLAG_MODULE		0x0008 /* Declared in the current module.    */
-#define FLAG_REGISTERED		0x0010 /* On an Object: this is registered.  */
-#define FLAG_INCOMPLETE		0x0020 /* Just defined by a forward          */
+#define FLAG_REGISTERED		0x0004 /* On an Object: this is registered.  */
+#define FLAG_INCOMPLETE		0x0008 /* Just defined by a forward          */
 				       /* referenced type or object.         */
+#define	FLAG_SMIV2	        0x0010 /* On a Module: This is an SMIv2 MIB. */
+#define	FLAG_SMING	        0x0020 /* On a Module: This is an SMIng MIB. */
 
-#define	FLAG_TC                 0x0100 /* On a Type: This type is declared   */
-				       /* by a TC instead of a simple ASN.1  */
-				       /* type declaration.                  */
-
-#define	FLAG_SMIV2	        0x0100 /* On a Module: This is an SMIv2 MIB. */
-
-#define FLAG_ROOT	        0x0200 /* Marks the single root Node.        */
-
-#define	FLAG_WHOLEFILE		0x0100 /* We want to read the whole */
-				       /* file, not just a single   */
-				       /* module.		    */
-#define FLAG_ACTIVE		0x0200 /* We want to read something */
-				       /* from the current module.  */
-#define FLAG_WHOLEMOD		0x0400 /* Fetch all items instead   */
-				       /* of just idlist (IMPORTS). */
 #define	FLAG_ERRORS	SMI_ERRORS     /* Otherwise be quiet,       */
 				       /* useful when IMPORTing.    */
 #define FLAG_STATS	SMI_STATS      /* Print module statistics.  */
@@ -106,9 +74,6 @@ typedef unsigned short MacroFlags;
 				       /* labels they know, not     */
 				       /* only the ones in the      */
 				       /* current view.             */
-
-#define FLAGS_GENERAL		0x00ff
-#define FLAGS_SPECIFIC		0xff00
 
 
 typedef enum LocationType {
@@ -135,9 +100,18 @@ typedef struct Location {
 #ifdef BACKEND_RPC
     CLIENT	    *cl;
 #endif
-    struct Location *next;
-    struct Location *prev;
+    struct Location *nextPtr;
+    struct Location *prevPtr;
 } Location;
+
+
+typedef struct View {
+    char	    *name;
+    struct View	    *nextPtr;
+    struct View	    *prevPtr;
+} View;
+
+
 
 typedef struct Module {
     smi_descriptor name;
@@ -152,9 +126,9 @@ typedef struct Module {
     struct Macro   *lastMacroPtr;
     struct Import  *firstImportPtr;
     struct Import  *lastImportPtr;
-    String	   lastUpdated;
-    String	   organization;
-    String	   contactInfo;
+    time_t	   lastUpdated;
+    char	   *organization;
+    char	   *contactInfo;
     struct Object  *objectPtr;
 #if 0
     Revision       *firstRevisionPtr;
@@ -186,11 +160,11 @@ typedef struct Type {
     smi_fullname   parentType;
     smi_syntax	   syntax;
     smi_decl	   decl;
-    String	   format;
+    char	   *format;
     smi_status	   status;
     struct List	   *sequencePtr;
-    String	   description;
-    String	   reference;
+    char	   *description;
+    char	   *reference;
 #if 0
     Restriction	   *firstRestriction;
     Restriction	   *lastRestriction;
@@ -213,8 +187,8 @@ typedef struct Object {
     smi_access	   access;
     smi_status	   status;
     struct List	   *indexPtr;
-    String	   description;
-    String	   reference;
+    char	   *description;
+    char	   *reference;
     struct Node	   *nodePtr;
     struct Object  *prevPtr;		/* chain of Objects in this Module */
     struct Object  *nextPtr;
@@ -250,7 +224,6 @@ typedef struct Macro {
 
 
 typedef struct Parser {
-    char           *module;
     char	   *path;
     Location	   *locationPtr;
     FILE	   *file;
@@ -264,6 +237,8 @@ typedef struct Parser {
 
 
 
+extern int	smiFlags;
+
 extern Node	*rootNodePtr;
 extern Node	*pendingNodePtr;
 
@@ -271,8 +246,18 @@ extern Type	*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
 
 extern Location	*firstLocationPtr, *lastLocationPtr;
 
+extern View	*firstViewPtr, *lastViewPtr;
+
+
+
+extern View *addView(const char *modulename);
+
+
+
 extern Location *addLocation(const char *location,
 			     ModuleFlags flags);
+
+
 
 extern Module *addModule(const char *modulename,
 			 const char *path,
@@ -285,13 +270,13 @@ extern void setModuleIdentityObject(Module *modulePtr,
 				    Object *objectPtr);
 
 extern void setModuleLastUpdated(Module *modulePtr,
-				 String *lastUpdatedPtr);
+				 time_t lastUpdated);
 
 extern void setModuleOrganization(Module *modulePtr,
-				  String *organizationPtr);
+				  char *organization);
 
 extern void setModuleContactInfo(Module *modulePtr,
-				 String *contactInfoPtr);
+				 char *contactInfo);
 
 extern Module *findModuleByName(const char *modulename);
 
@@ -344,10 +329,10 @@ extern void setObjectStatus(Object *objectPtr,
 			    smi_status status);
 
 extern void setObjectDescription(Object *objectPtr,
-				 String *descriptionPtr);
+				 char *description);
 
 extern void setObjectReference(Object *objectPtr,
-				 String *referencePtr);
+				 char *reference);
 
 extern void setObjectFileOffset(Object *objectPtr,
 				off_t fileoffset);
@@ -399,10 +384,10 @@ extern void setTypeParent(Type *typePtr,
 			  const char *parent);
 
 extern void setTypeSequencePtr(Type *typePtr,
-			       struct List *sequencePtr);
+			       struct List *sequence);
 
 extern void setTypeDescription(Type *typePtr,
-			       String *descriptionPtr);
+			       char *description);
 
 extern void setTypeFileOffset(Type *typePtr,
 			      off_t fileoffset);
@@ -414,7 +399,7 @@ extern void setTypeFlags(Type *typePtr,
 			 TypeFlags flags);
 
 extern void setTypeFormat(Type *typePtr,
-			  String *formatPtr);
+			  char *format);
 
 
 
@@ -443,10 +428,7 @@ extern Macro *findMacroByModulenameAndName(const char *modulename,
 
 extern int initData();
 
-extern int readMibFile(const char *path,
-		       Location *locationPtr,
-		       const char *modulename,
-		       ParserFlags flags);
+extern Module *loadModule(char *modulename);
 
 
 
