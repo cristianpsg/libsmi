@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.11 2000/12/11 08:41:22 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.12 2000/12/15 13:52:33 strauss Exp $
  */
 
 #include <config.h>
@@ -30,7 +30,8 @@ static int identifierLen = 0;
 
 static int ignoretypes = 0;
 static int ignorenodes = 0;
-
+static int showlines = 0;
+static int showpath = 0;
 
 
 
@@ -44,9 +45,12 @@ static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 	     smiNode;
 	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	    if (smiNode->name) {
-		fprintf(f, "%*s %*s ",
-			-moduleLen, modv[i]->name,
-			-identifierLen, smiNode->name);
+		fprintf(f, "%*s",
+			-moduleLen, showpath ? modv[i]->path : modv[i]->name);
+		if (showlines) {
+		    fprintf(f, ":%d:", smiGetNodeLine(smiNode));
+		}
+		fprintf(f, " %*s ", -identifierLen, smiNode->name);
 		for (j = 0; j < smiNode->oidlen; j++) {
 		    fprintf(f, j ? ".%u" : "%u", smiNode->oid[j]);
 		}
@@ -68,9 +72,12 @@ static void fprintTypeIdentifiers(FILE *f, int modc, SmiModule **modv)
 	     smiType;
 	     smiType = smiGetNextType(smiType)) {
 	    if (smiType->name) {
-		fprintf(f, "%*s %*s\n",
-			-moduleLen, modv[i]->name,
-			-identifierLen, smiType->name);
+		fprintf(f, "%*s",
+			-moduleLen, showpath ? modv[i]->path : modv[i]->name);
+		if (showlines) {
+		    fprintf(f, ":%d:", smiGetTypeLine(smiType));
+		}
+		fprintf(f, " %*s\n", -identifierLen, smiType->name);
 	    }
 	}
     }
@@ -95,7 +102,11 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
     }
 
     for (moduleLen = 0, identifierLen = 0, i = 0; i < modc; i++) {
-	len = strlen(modv[i]->name);
+	if (showpath) {
+	    len = strlen(modv[i]->path);
+	} else {
+	    len = strlen(modv[i]->name);
+	}
 	if (len > moduleLen) moduleLen = len;
 	for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_ANY);
 	     smiNode;
@@ -157,6 +168,10 @@ void initIdentifiers()
 	  "do not dump types"},
 	{ "ignore-nodes", OPT_FLAG, &ignorenodes, 0,
 	  "do not dump nodes"},
+	{ "show-lines", OPT_FLAG, &showlines, 0,
+	  "show line numbers"},
+	{ "show-path", OPT_FLAG, &showpath, 0,
+	  "show file path instead of module name"},
         { 0, OPT_END, 0, 0 }
     };
 
