@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.53 2003/12/09 14:53:04 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -1363,7 +1363,7 @@ checkInetAddressType(Parser *parserPtr, Module *modulePtr, Object *objectPtr)
     Type *inetAddressTypePtr = NULL;		/* RFC 3291 */
     Type *inetAddressPtr = NULL;		/* RFC 3291 */
     Node *nodePtr;
-    List *listPtr;
+    List *listPtr = NULL;
     int i;
 
     const char *protected[] = {
@@ -1461,7 +1461,7 @@ checkTransportAddressType(Parser *parserPtr, Module *modulePtr, Object *objectPt
     Type *transportAddressPtr = NULL;		/* RFC 3419 */
     Type *transportDomainPtr = NULL;		/* RFC 3419 */
     Node *nodePtr;
-    List *listPtr;
+    List *listPtr = NULL;
     int i;
 
     const char *protected[] = {
