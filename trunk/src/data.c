@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.29 1998/11/25 14:36:33 strauss Exp $
+ * @(#) $Id: data.c,v 1.30 1998/11/26 00:50:05 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -674,7 +674,6 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 #ifdef TEXTS_IN_MEMORY
 		free((*(Object **)ptr)->description.ptr);
 #endif
-		free((*(Object **)ptr)->node);
 		free(*(void **)ptr);
 		*(Object **)ptr = pending->firstObject;
 		descriptor->ptr = *(Object **)ptr;
@@ -1892,8 +1891,7 @@ addType(parent, syntax, module, flags, parser)
     type->module = module;
     type->parent = parent;
     if (parent &&
-	(syntax != SMI_SYNTAX_SEQUENCE) &&
-	(syntax != SMI_SYNTAX_SEQUENCE_OF)) {
+	(syntax == SMI_SYNTAX_UNKNOWN)) {
 	type->syntax = parent->syntax;
     } else {
 	type->syntax = syntax;

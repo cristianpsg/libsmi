@@ -1,11 +1,11 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.17 1998/11/30 16:42:34 strauss Exp $
+# @(#) $Id: Makefile,v 1.18 1998/12/01 16:59:34 strauss Exp $
 #
 
 CC	= gcc
-CFLAGS	= -Wall -g -DTEXTS_IN_MEMORY=200 -DPARSER -DRPC_SVC_FG
+CFLAGS	= -fPIC -Wall -g -DTEXTS_IN_MEMORY=200 -DPARSER -DRPC_SVC_FG
 
 # We need flex and bison. Lex and yacc do not work.
 LEX	= flex
@@ -80,6 +80,10 @@ libsmi.a: $(LOBJS)
 	ranlib libsmi.a
 	ln -f smi.h ../smi.h
 	ln -f libsmi.a ../libsmi.a
+
+libsmi.so: $(LOBJS)
+	$(LD) -G -z text $(LOBJS) -o libsmi.so -ll -lnsl
+	ln -f libsmi.so ..
 
 miblint: libsmi.a lint.o
 	$(CC) -o miblint lint.o libsmi.a -ll -lnsl
