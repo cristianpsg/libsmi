@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.15 2000/06/16 13:53:57 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.16 2000/06/21 12:40:58 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -25,7 +25,7 @@ lib_LTLIBRARIES		= libsmi.la
 libsmi_la_SOURCES	= data.c check.c error.c util.c smi.c \
 		  	  parser-smi.tab.c scanner-smi.c \
 		  	  parser-sming.tab.c scanner-sming.c
-libsmi_la_LDFLAGS	= -version-info @LIBTOOL_VERSIONING@
+libsmi_la_LDFLAGS	= -version-info @VERSION_LIBTOOL@
 
 parser-smi.tab.c: parser-smi.y scanner-smi.h parser-smi.h
 	@if [ "$(BISON)" ] ; then \
