@@ -1,5 +1,9 @@
 2000-07-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/parser-smi.y: fixed line numbers of object, type, and
+	macro definitions to be the first line of the defining SMI
+	statement.
+
 	* lib/check.c: Bill Fenner contributed a patch that fixes
 	the location of complained identifiers if they are imported.
 

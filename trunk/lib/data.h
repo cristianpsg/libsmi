@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.62 2000/06/14 13:15:16 strauss Exp $
+ * @(#) $Id: data.h,v 1.63 2000/06/16 13:53:57 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -461,6 +461,10 @@ extern void setTypeReference(Type *typePtr,
 extern void setTypeDecl(Type *typePtr,
 			SmiDecl decl);
 
+extern void setTypeLine(Type *typePtr,
+			int line,
+			Parser *parserPtr);
+
 extern void addTypeFlags(Type *typePtr,
 			 TypeFlags flags);
 
@@ -508,6 +512,10 @@ extern void setMacroReference(Macro *macroPtr,
 
 extern void setMacroDecl(Macro *macroPtr,
 			 SmiDecl decl);
+
+extern void setMacroLine(Macro *macroPtr,
+			 int line,
+			 Parser *parserPtr);
 
 extern Macro *findMacroByName(const char *macroname);
 
