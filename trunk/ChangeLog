@@ -1,5 +1,11 @@
 2000-05-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-smi.c (printNotifications): fixed determination of
+	the ENTERPRISE object. Thanks to Ira Wolf.
+
+	* tools/dump-smi.c (getOidString): fixed printing of OIDs with
+	a length of 2. Thanks to Ira Wolf.
+
 	* test/Makefile.am: removed GNU specific diff options
 	from check scripts.
 
