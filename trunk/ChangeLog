@@ -1,8 +1,22 @@
+2003-12-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.4.2.tar.gz: released version 0.4.2. Time for a new
+	release upon several requests during recent days and months. :-)
+	The are numerous bug fixes, MIB updates, added MIBs, and new
+	smilint and smidiff checks.
+
+	* test/dumps/*: Checked and ppdated all test cases so
+	that the whole suite should complete without failures
+	again.
+
 2003-12-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidiff.c: Fixed error messages on changed base
 	types for node comparisons: now the node names are reported
 	and not the underlying type names. Thanks to Mike.
+
+	* mibs/*: More robust Makefiles, initially to support the
+	cygwin build and installation process. Thanks to Harold.
 
 2003-11-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
