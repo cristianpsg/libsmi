@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.7 1998/10/27 13:32:42 strauss Exp $
+ * @(#) $Id: data.c,v 1.8 1998/10/28 15:18:55 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -464,12 +464,36 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 {
     Descriptor *descriptor, *olddescriptor;
     MibNode *pending, *next;
+    Type *t;
     
     printDebug(5, "addDescriptor(\"%s\", %s, %s, ptr, %d, parser)\n",
 	       name, module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
 	       stringKind(kind), flags);
 
+    /*
+     * If this new descriptor is found as pending type,
+     * we have to complete that Type and Descriptor structs instead of
+     * creating a new descriptor.
+     */
+    if ((module) && (kind == KIND_TYPE)) {
+	t = findTypeByModuleAndName(module, name);
+	if (t && (t->flags & FLAG_INCOMPLETE) && !(flags & FLAG_INCOMPLETE)) {
+	    printf("XXX %s\n", name);
+	    /* t->flags &= ~FLAG_INCOMPLETE; */
+	    t->parent = ((Type *)ptr)->parent;
+	    t->syntax = ((Type *)ptr)->syntax;
+	    t->macro = ((Type *)ptr)->macro;
+	    t->status = ((Type *)ptr)->status;
+	    t->fileoffset = ((Type *)ptr)->fileoffset;
+	    t->flags = ((Type *)ptr)->flags;
+	    t->displayHint = ((Type *)ptr)->displayHint;
+	    t->description = ((Type *)ptr)->description;
+	    free(ptr);
+	    return t->descriptor;
+	}
+    }
+	
     descriptor = (Descriptor *)malloc(sizeof(Descriptor));
     if (!descriptor) {
 	printError(parser, ERR_ALLOCATING_DESCRIPTOR, strerror(errno));
@@ -1878,6 +1902,40 @@ findTypeByModuleAndName(module, name)
 	
     printDebug(4, " = NULL\n");
     return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * dumpTypes --
+ *
+ *      Dump Type hirarchie.
+ *	For debugging purpose.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+dumpTypes()
+{
+    Type *t;
+    Descriptor *d;
+
+    for (d = firstDescriptor[KIND_TYPE]; d; d = d->nextSameKind) {
+	for (t = d->ptr; t; t = t->parent) {
+	    fprintf(stderr, "%s ", t->descriptor && t->descriptor->name ? t->descriptor->name : "-");
+	}
+	fprintf(stderr, "\n");
+    }
+    
 }
 
 

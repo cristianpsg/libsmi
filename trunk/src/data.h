@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.7 1998/10/27 13:32:42 strauss Exp $
+ * @(#) $Id: data.h,v 1.8 1998/10/28 15:18:56 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -157,6 +157,8 @@ typedef unsigned short Flags;
 #define FLAG_REPOSITORY		0x0004 /*				     */
 #define FLAG_MODULE		0x0008 /* Declared in the current module.    */
 #define FLAG_REGISTERED		0x0010 /* On a MibNode: this is registered.  */
+#define FLAG_INCOMPLETE		0x0020 /* Just defined by a forward          */
+				       /* referenced type.		     */
 
 #define	FLAG_TC                 0x0100 /* On a Type: This type is declared   */
 				       /* by a TC instead of a simple ASN.1  */
@@ -432,6 +434,8 @@ extern Type *findTypeByModuleAndName(Module *module,
 
 extern Type *findTypeByModulenameAndName(const char *modulename,
 					 const char *name);
+
+extern void dumpTypes();
 
 
 

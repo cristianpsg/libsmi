@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.7 1998/10/22 15:18:03 strauss Exp $
+ * @(#) $Id: parser.y,v 1.9 1998/10/28 15:18:56 strauss Exp $
  */
 
 %{
@@ -862,7 +862,21 @@ typeSMI:		INTEGER32   { $$ = strdup($1); }
 
 typeDeclarationRHS:	Syntax
 			{
-			    $$ = $1;
+			    if ($1->flags & FLAG_PERMANENT) {
+				/*
+				 * If we found a base type, we have
+				 * to inherit a new type structure.
+				 */
+				$$ = addType($1, SYNTAX_UNKNOWN,
+					     thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+			    } else {
+				$$ = $1;
+			    }
 			}
 	|		TEXTUAL_CONVENTION
 			DisplayPart
@@ -935,7 +949,27 @@ row:			UPPERCASE_IDENTIFIER
 			{
 			    $$ = findTypeByName($1);
 			    if (! $$) {
-				printError(parser, ERR_UNKNOWN_TYPE, $1);
+				/* 
+				 * forward referenced type. create it,
+				 * marked with FLAG_INCOMPLETE.
+				 */
+				$$ = addType(NULL,
+					     SYNTAX_SEQUENCE,
+					     thisModule,
+					     ((thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0) |
+					     FLAG_INCOMPLETE,
+					     thisParser);
+				addDescriptor($1, thisModule, KIND_TYPE,
+					      $$,
+					      ((thisParser->flags &
+						(FLAG_WHOLEMOD |
+						 FLAG_WHOLEFILE))
+					       ? FLAG_MODULE : 0) |
+					      FLAG_INCOMPLETE,
+					      thisParser);
 			    }
                         }
                         /* TODO: this must be an entryType */
@@ -944,9 +978,7 @@ row:			UPPERCASE_IDENTIFIER
 /* REF:RFC1902,7.1.12. */
 entryType:		SEQUENCE '{' sequenceItems '}'
 			{
-			    $$ = 0;
-			    
-			    if ($3) {
+			    if ($3 || 1 /* TODO */ ) {
 				if (thisParser->flags & FLAG_ACTIVE) {
 				    $$ = addType($3,
 						 SYNTAX_SEQUENCE,
@@ -1441,100 +1473,160 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parent;
 			    
-			    /* TODO: scope, subtype */
-			    parent = findTypeByName($1);
-			    if (parent) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType(parent,
-						 SYNTAX_UNKNOWN, thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				    /* TODO: add enum restriction */
-				} else {
-				    $$ = NULL;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+			        /* TODO: scope, subtype */
+				parent = findTypeByName($1);
+				if (!parent) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
+						     SYNTAX_UNKNOWN,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_INCOMPLETE,
+						     thisParser);
+				    addDescriptor($1, thisModule, KIND_TYPE,
+						  parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
 				}
-			    } else {
-				printError(parser, ERR_UNKNOWN_TYPE, $1);
-				$$ = NULL;
+				$$ = addType(parent,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add enum restriction */
 			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
 			{
 			    Type *parent;
-			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    
-			    parent = findTypeByModulenameAndName($1, $3);
-			    if (parent) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType(parent,
-						 SYNTAX_UNKNOWN, thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				    /* TODO: add enum restriction */
-				} else {
-				    $$ = NULL;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				parent = findTypeByModulenameAndName($1, $3);
+				if (!parent) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
+						     SYNTAX_UNKNOWN,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_INCOMPLETE,
+						     thisParser);
+				    addDescriptor($1, thisModule, KIND_TYPE,
+						  parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
 				}
-			    } else {
-				sprintf(s, "%s.%s", $1, $3);
-				printError(parser, ERR_UNKNOWN_TYPE, s);
-				$$ = NULL;
+				$$ = addType(parent,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add enum restriction */
 			    }
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
 			    Type *parent;
 			    
-			    /* TODO: scope */
-			    parent = findTypeByName($1);
-			    if (parent) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType(parent,
-						 SYNTAX_UNKNOWN, thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				    /* TODO: add subtype restriction */
-				} else {
-				    $$ = NULL;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+			        /* TODO: scope */
+				parent = findTypeByName($1);
+				if (!parent) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
+						     SYNTAX_UNKNOWN,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_INCOMPLETE,
+						     thisParser);
+				    addDescriptor($1, thisModule, KIND_TYPE,
+						  parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
 				}
-			    } else {
-				printError(parser, ERR_UNKNOWN_TYPE, $1);
-				$$ = NULL;
+				$$ = addType(parent,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
 			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
 			{
 			    Type *parent;
-			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    
-			    parent = findTypeByModulenameAndName($1, $3);
-			    if (parent) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType(parent,
-						 SYNTAX_UNKNOWN, thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				    /* TODO: add subtype restriction */
-				} else {
-				    $$ = NULL;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				parent = findTypeByModulenameAndName($1, $3);
+				if (!parent) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
+						     SYNTAX_UNKNOWN,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_INCOMPLETE,
+						     thisParser);
+				    addDescriptor($1, thisModule, KIND_TYPE,
+						  parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
 				}
-			    } else {
-				sprintf(s, "%s.%s", $1, $3);
-				printError(parser, ERR_UNKNOWN_TYPE, s);
-				$$ = NULL;
+				$$ = addType(parent,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
 			    }
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
@@ -1560,57 +1652,87 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parent;
 			    
-			    /* TODO: scope */
-			    parent = findTypeByName($1);
-			    if (parent) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType(parent,
-						 SYNTAX_UNKNOWN, thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				    /* TODO: add subtype restriction */
-				} else {
-				    $$ = NULL;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+			        /* TODO: scope */
+				parent = findTypeByName($1);
+				if (!parent) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
+						     SYNTAX_UNKNOWN,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_INCOMPLETE,
+						     thisParser);
+				    addDescriptor($1, thisModule, KIND_TYPE,
+						  parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
 				}
-			    } else {
-				printError(parser, ERR_UNKNOWN_TYPE, $1);
-				$$ = NULL;
+				$$ = addType(parent,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
 			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
 			{
 			    Type *parent;
-			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    
-			    parent = findTypeByModulenameAndName($1, $3);
-			    if (parent) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType(parent,
-						 SYNTAX_UNKNOWN, thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				    /* TODO: add subtype restriction */
-				} else {
-				    $$ = NULL;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				parent = findTypeByModulenameAndName($1, $3);
+				if (!parent) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    parent = addType(NULL,
+						     SYNTAX_UNKNOWN,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_INCOMPLETE,
+						     thisParser);
+				    addDescriptor($1, thisModule, KIND_TYPE,
+						  parent,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
 				}
-			    } else {
-				sprintf(s, "%s.%s", $1, $3);
-				printError(parser, ERR_UNKNOWN_TYPE, s);
-				$$ = NULL;
+				$$ = addType(parent,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
 			    }
 			}
 	|		OBJECT IDENTIFIER
 			{
 			    $$ = typeObjectIdentifier;
 			}
-	;
+        ;
 
 valueofSimpleSyntax:	number			/* 0..2147483647 */
 			/* NOTE: Counter64 must not have a DEFVAL */
@@ -2657,4 +2779,4 @@ number:			NUMBER
 			}
 	;
 
-%%
+%%			    /*  */
