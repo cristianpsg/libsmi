@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.144 2001/06/06 07:36:37 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.145 2001/06/06 12:08:38 strauss Exp $
  */
 
 %{
@@ -1176,6 +1176,8 @@ module:			moduleName
 			declarationPart
 			END
 			{
+			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
+				thisModulePtr->export.language = SMI_LANGUAGE_SMIV1;
 			    checkModuleIdentity(thisParserPtr, thisModulePtr);
 			    checkObjects(thisParserPtr, thisModulePtr);
 			    checkTypes(thisParserPtr, thisModulePtr);
@@ -1604,7 +1606,7 @@ typeDeclaration:	typeName
 			     * must be modified to libsmi basetypes.
 			     */
 			    if (thisModulePtr &&
-				!strcmp(thisModulePtr->export.name, "SNMPv2-SMI")) {
+				(!strcmp(thisModulePtr->export.name, "SNMPv2-SMI"))) {
 				if (!strcmp($1, "Counter32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
@@ -1723,13 +1725,13 @@ typeName:		UPPERCASE_IDENTIFIER
 			}
 	;
 
-typeSMI:		INTEGER32
-	|		IPADDRESS
+typeSMI:		IPADDRESS
+	|		TIMETICKS
+	|		OPAQUE
+	|		INTEGER32
 	|		COUNTER32
 	|		GAUGE32
 	|		UNSIGNED32
-	|		TIMETICKS
-	|		OPAQUE
 	|		COUNTER64
 	;
 
@@ -1752,6 +1754,9 @@ typeDeclarationRHS:	Syntax
 	|		TEXTUAL_CONVENTION
 			{
 			    Import *importPtr;
+
+			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
+				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;
 
 			    if (strcmp(thisModulePtr->export.name, "SNMPv2-TC")) {
 				importPtr =
@@ -4308,6 +4313,9 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			{
 			    Import *importPtr;
 			    
+			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
+				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;
+
 			    importPtr = findImportByName("OBJECT-GROUP",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -4361,6 +4369,9 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			{
 			    Import *importPtr;
 			    
+			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
+				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;
+
 			    importPtr = findImportByName("NOTIFICATION-GROUP",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -4416,6 +4427,8 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			{
 			    Import *importPtr;
 			    
+			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
+				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;
 			    importPtr = findImportByName("MODULE-COMPLIANCE",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -4849,6 +4862,9 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			{
 			    Import *importPtr;
 			    
+			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
+				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;
+
 			    importPtr = findImportByName("AGENT-CAPABILITIES",
 							 thisModulePtr);
 			    if (importPtr) {

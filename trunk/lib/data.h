@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.69 2001/03/05 17:57:49 strauss Exp $
+ * @(#) $Id: data.h,v 1.70 2001/03/12 11:23:26 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -238,6 +238,8 @@ typedef struct Parser {
 extern int	smiFlags;
 extern char     *smiPath;
 extern int	smiDepth;	/* SMI parser recursion depth */
+extern char     *smiCache;
+extern char     *smiCacheProg;
 
 extern Node	*rootNodePtr;
 extern Node	*pendingNodePtr;

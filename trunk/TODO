@@ -106,3 +106,8 @@ o sming: in rule `refinedBaseType -> BitsKeyword optsep namedNumberSpec'
 
 o sming: ensure enum namedNumbers can be signed and bits namedNumbers cannot.
 
+o split the library into wo layers: (a) a lower layer that is very
+  restrictive on allowed input, does not care about memory management, etc.
+  and (b) a higher layer of utility functions, like display-hint based value
+  formatting, oid-to-instance-element parsing, constant-to-string mappings,
+  etc.
