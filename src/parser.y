@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.14 1998/11/17 16:09:20 strauss Exp $
+ * @(#) $Id: parser.y,v 1.15 1998/11/18 17:31:41 strauss Exp $
  */
 
 %{
@@ -24,6 +24,7 @@
 #endif
 
 #include "defs.h"
+#include "smi.h"
 #include "error.h"
 #include "parser.h"
 #include "scanner.h"
@@ -84,8 +85,8 @@ MibNode *parent;
     char *id;					/* identifier name           */
     int err;					/* actually just a dummy     */
     MibNode *mibnode;				/* object identifier         */
-    Status status;				/* a STATUS value            */
-    Access access;				/* an ACCESS value           */
+    smi_status status;				/* a STATUS value            */
+    smi_access access;				/* an ACCESS value           */
     Type *type;
 }
 
@@ -452,9 +453,7 @@ import:			importIdentifiers FROM moduleName
 			/* TODO: multiple clauses with same moduleName
 			 * allowed? I guess so. refer ASN.1! */
 			{
-			    Location *loc;
 			    int flags;
-			    char path[MAX_PATH_LENGTH*2+2];
 				
 			    if (!strcmp($3, "SNMPv2-SMI")) {
 			        /*
@@ -475,15 +474,7 @@ import:			importIdentifiers FROM moduleName
 				if (!(flags & FLAG_RECURSIVE)) {
 				    flags &= ~(FLAG_ERRORS | FLAG_STATS);
 				}
-				loc = findLocationByModule($3);
-				if (!loc) {
-				    printError(parser, ERR_MODULE_NOT_FOUND,
-					       $3);
-				} else {
-				    printError(parser, ERR_INCLUDE, $3,
-					       loc->name);
-				    smiLoadMibModule($3);
-				}
+				smiLoadMibModule($3);
 			    }
 			    checkImportDescriptors($3, parser);
 			}
@@ -747,7 +738,7 @@ choiceClause:		CHOICE
 			/* the scanner skips until... */
 			'}'
 			{
-			    $$ = addType(NULL, SYNTAX_CHOICE,
+			    $$ = addType(NULL, SMI_SYNTAX_CHOICE,
 					 thisModule,
 					 (thisParser->flags &
 					  (FLAG_WHOLEMOD |
@@ -879,7 +870,7 @@ typeDeclarationRHS:	Syntax
 				     * (Otherwise the `Syntax' rule created
 				     * a new type for us.)
 				     */
-				    $$ = addType($1, SYNTAX_UNKNOWN,
+				    $$ = addType($1, SMI_SYNTAX_UNKNOWN,
 						 thisModule,
 						 (thisParser->flags &
 						  (FLAG_WHOLEMOD |
@@ -913,7 +904,7 @@ typeDeclarationRHS:	Syntax
 				     * Otherwise, we have to allocate a
 				     * new Type struct, inherited from $9.
 				     */
-				    $$ = addType($9, SYNTAX_UNKNOWN,
+				    $$ = addType($9, SMI_SYNTAX_UNKNOWN,
 						 thisModule,
 						 (thisParser->flags &
 						  (FLAG_WHOLEMOD |
@@ -926,7 +917,7 @@ typeDeclarationRHS:	Syntax
 				if ($2) {
 				    setTypeDisplayHint($$, $2);
 				}
-				setTypeMacro($$, MACRO_TC);
+				setTypeMacro($$, SMI_DECL_TEXTUALCONVENTION);
 			    } else {
 				$$ = NULL;
 			    }
@@ -943,7 +934,7 @@ conceptualTable:	SEQUENCE OF row
 			    if ($3) {
 				if (thisParser->flags & FLAG_ACTIVE) {
 				    $$ = addType($3,
-						 SYNTAX_SEQUENCE_OF,
+						 SMI_SYNTAX_SEQUENCE_OF,
 						 thisModule,
 						 (thisParser->flags &
 						  (FLAG_WHOLEMOD |
@@ -960,26 +951,22 @@ conceptualTable:	SEQUENCE OF row
 	;
 
 row:			UPPERCASE_IDENTIFIER
-			/* in this case, we do NOT allow `Module.Type' */
+			/*
+			 * In this case, we do NOT allow `Module.Type'.
+			 * The identifier must be defined in the local
+			 * module.
+			 */
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
-				/* TODO: smiType() ? */
-				/* TODO: search in local module and
-				 *       in imported modules
-				 */
 				$$ = findTypeByModulenameAndName(
 				    thisModule->descriptor->name, $1);
-				if (! $$) {
-				    
-				
-				$$ = findTypeByName($1);
 				if (! $$) {
 				    /* 
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
 				     */
 				    $$ = addType(NULL,
-						 SYNTAX_SEQUENCE,
+						 SMI_SYNTAX_SEQUENCE,
 						 thisModule,
 						 ((thisParser->flags &
 						   (FLAG_WHOLEMOD |
@@ -1009,7 +996,7 @@ entryType:		SEQUENCE '{' sequenceItems '}'
 			    if ($3 || 1 /* TODO $$ must be != NULL */ ) {
 				if (thisParser->flags & FLAG_ACTIVE) {
 				    $$ = addType($3,
-						 SYNTAX_SEQUENCE,
+						 SMI_SYNTAX_SEQUENCE,
 						 thisModule,
 						 (thisParser->flags &
 						  (FLAG_WHOLEMOD |
@@ -1128,7 +1115,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($11, MACRO_OBJECTIDENTITY);
+				setMibNodeMacro($11, SMI_DECL_OBJECTIDENTITY);
 				setMibNodeFlags($11,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
@@ -1177,7 +1164,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($16, MACRO_OBJECTTYPE);
+				setMibNodeMacro($16, SMI_DECL_OBJECTTYPE);
 				setMibNodeFlags($16,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
@@ -1307,7 +1294,8 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12, MACRO_NOTIFICATIONTYPE);
+				setMibNodeMacro($12,
+						SMI_DECL_NOTIFICATIONTYPE);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
 				    setMibNodeFlags($12,
@@ -1362,7 +1350,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($16, MACRO_MODULEIDENTITY);
+				setMibNodeMacro($16, SMI_DECL_MODULEIDENTITY);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
 				    setMibNodeFlags($16,
@@ -1456,7 +1444,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = addType(typeInteger,
-					     SYNTAX_UNKNOWN, thisModule,
+					     SMI_SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
 					       FLAG_WHOLEFILE))
@@ -1471,7 +1459,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = addType(typeInteger,
-					     SYNTAX_UNKNOWN, thisModule,
+					     SMI_SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
 					       FLAG_WHOLEFILE))
@@ -1491,7 +1479,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = addType(typeInteger,
-					     SYNTAX_UNKNOWN, thisModule,
+					     SMI_SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
 					       FLAG_WHOLEFILE))
@@ -1505,41 +1493,74 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
 			    Type *parent;
+			    Descriptor *descriptor;
+			    smi_type *stype;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
-			        /* TODO: scope, subtype */
-				/* TODO: smiFindType() ?? */
-				parent = findTypeByName($1);
+				parent = findTypeByModuleAndName(thisModule,
+								 $1);
 				if (!parent) {
-				    /* 
-				     * forward referenced type. create it,
-				     * marked with FLAG_INCOMPLETE.
-				     */
-				    parent = addType(NULL,
-						     SYNTAX_UNKNOWN,
+				    descriptor = findDescriptor($1,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					/* 
+					 * forward referenced type. create it,
+					 * marked with FLAG_INCOMPLETE.
+					 */
+					parent = addType(NULL,
+							 SMI_SYNTAX_UNKNOWN,
+							 thisModule,
+							 ((thisParser->flags &
+							   (FLAG_WHOLEMOD |
+							    FLAG_WHOLEFILE))
+							  ? FLAG_MODULE : 0) |
+							 FLAG_INCOMPLETE,
+							 thisParser);
+					addDescriptor($1, thisModule,
+						      KIND_TYPE,
+						      parent,
+						      ((thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0) |
+						      FLAG_INCOMPLETE,
+						      thisParser);
+					$$ = addType(parent,
+						     SMI_SYNTAX_UNKNOWN,
 						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_INCOMPLETE,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
 						     thisParser);
-				    addDescriptor($1, thisModule, KIND_TYPE,
-						  parent,
-						  ((thisParser->flags &
-						    (FLAG_WHOLEMOD |
-						     FLAG_WHOLEFILE))
-						   ? FLAG_MODULE : 0) |
-						  FLAG_INCOMPLETE,
-						  thisParser);
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($1,
+					 ((Descriptor *)descriptor->ptr)->name,
+							   0);
+					$$ = addType(NULL,
+						     stype->syntax,
+						     thisModule,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
+						     thisParser);
+					free(stype); /* TODO: ??? */
+				    }
+				} else {
+				    $$ = addType(parent,
+						 SMI_SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
 				}
-				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
 				/* TODO: add enum restriction */
 			    }
 			}
@@ -1547,85 +1568,123 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
 			{
 			    Type *parent;
+			    Descriptor *descriptor;
+			    smi_type *stype;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				parent = findTypeByModulenameAndName($1, $3);
 				if (!parent) {
-				    /* 
-				     * forward referenced type. create it,
-				     * marked with FLAG_INCOMPLETE.
+				    /* TODO: there may be more than one
+				     * descriptors with the same name
+				     * from multiple modules.
 				     */
-				    /* TODO: addModule() if not present and
-				     *       addDescriptor()
-				     */
-				    parent = addType(NULL,
-						     SYNTAX_UNKNOWN,
+				    descriptor = findDescriptor($3,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					printError(parser,
+						   ERR_UNKNOWN_TYPE, $3);
+					$$ = NULL;
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($3, $1, 0);
+					/* TODO: success? */
+					$$ = addType(NULL,
+						     stype->syntax,
 						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_INCOMPLETE,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
 						     thisParser);
-				    addDescriptor($1, thisModule, KIND_TYPE,
-						  parent,
-						  ((thisParser->flags &
-						    (FLAG_WHOLEMOD |
-						     FLAG_WHOLEFILE))
-						   ? FLAG_MODULE : 0) |
-						  FLAG_INCOMPLETE,
-						  thisParser);
+					free(stype); /* TODO: ??? */
+				    }
+				} else {
+				    $$ = addType(parent,
+						 SMI_SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
 				}
-				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
 				/* TODO: add enum restriction */
 			    }
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
 			    Type *parent;
+			    Descriptor *descriptor;
+			    smi_type *stype;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
-			        /* TODO: scope */
-				/* TODO: search in local module and
-				 *       in imported modules
-				 */
-				parent = findTypeByName($1);
+				parent = findTypeByModuleAndName(thisModule,
+								 $1);
 				if (!parent) {
-				    /* 
-				     * forward referenced type. create it,
-				     * marked with FLAG_INCOMPLETE.
-				     */
-				    parent = addType(NULL,
-						     SYNTAX_UNKNOWN,
+				    descriptor = findDescriptor($1,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					/* 
+					 * forward referenced type. create it,
+					 * marked with FLAG_INCOMPLETE.
+					 */
+					parent = addType(NULL,
+							 SMI_SYNTAX_UNKNOWN,
+							 thisModule,
+							 ((thisParser->flags &
+							   (FLAG_WHOLEMOD |
+							    FLAG_WHOLEFILE))
+							  ? FLAG_MODULE : 0) |
+							 FLAG_INCOMPLETE,
+							 thisParser);
+					addDescriptor($1, thisModule,
+						      KIND_TYPE,
+						      parent,
+						      ((thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0) |
+						      FLAG_INCOMPLETE,
+						      thisParser);
+					$$ = addType(parent,
+						     SMI_SYNTAX_UNKNOWN,
 						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_INCOMPLETE,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
 						     thisParser);
-				    addDescriptor($1, thisModule, KIND_TYPE,
-						  parent,
-						  ((thisParser->flags &
-						    (FLAG_WHOLEMOD |
-						     FLAG_WHOLEFILE))
-						   ? FLAG_MODULE : 0) |
-						  FLAG_INCOMPLETE,
-						  thisParser);
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($1,
+					 ((Descriptor *)descriptor->ptr)->name,
+							   0);
+					$$ = addType(NULL,
+						     stype->syntax,
+						     thisModule,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
+						     thisParser);
+					free(stype); /* TODO: ??? */
+				    }
+				} else {
+				    $$ = addType(parent,
+						 SMI_SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
 				}
-				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
 				/* TODO: add subtype restriction */
 			    }
 			}
@@ -1633,39 +1692,49 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
 			{
 			    Type *parent;
+			    Descriptor *descriptor;
+			    smi_type *stype;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				parent = findTypeByModulenameAndName($1, $3);
 				if (!parent) {
-				    /* 
-				     * forward referenced type. create it,
-				     * marked with FLAG_INCOMPLETE.
+				    /* TODO: there may be more than one
+				     * descriptors with the same name
+				     * from multiple modules.
 				     */
-				    parent = addType(NULL,
-						     SYNTAX_UNKNOWN,
+				    descriptor = findDescriptor($3,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					printError(parser,
+						   ERR_UNKNOWN_TYPE, $3);
+					$$ = NULL;
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($3, $1, 0);
+					/* TODO: success? */
+					$$ = addType(NULL,
+						     stype->syntax,
 						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_INCOMPLETE,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
 						     thisParser);
-				    addDescriptor($1, thisModule, KIND_TYPE,
-						  parent,
-						  ((thisParser->flags &
-						    (FLAG_WHOLEMOD |
-						     FLAG_WHOLEFILE))
-						   ? FLAG_MODULE : 0) |
-						  FLAG_INCOMPLETE,
-						  thisParser);
+					free(stype); /* TODO: ??? */
+				    }
+				} else {
+				    $$ = addType(parent,
+						 SMI_SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
 				}
-				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
 				/* TODO: add subtype restriction */
 			    }
 			}
@@ -1677,7 +1746,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = addType(typeOctetString,
-					     SYNTAX_UNKNOWN, thisModule,
+					     SMI_SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
 					       FLAG_WHOLEFILE))
@@ -1691,43 +1760,74 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
 			    Type *parent;
+			    Descriptor *descriptor;
+			    smi_type *stype;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
-			        /* TODO: scope */
-				/* TODO: search in local module and
-				 *       in imported modules
-				 */
-				parent = findTypeByName($1);
+				parent = findTypeByModuleAndName(thisModule,
+								 $1);
 				if (!parent) {
-				    /* 
-				     * forward referenced type. create it,
-				     * marked with FLAG_INCOMPLETE.
-				     */
-				    parent = addType(NULL,
-						     SYNTAX_UNKNOWN,
+				    descriptor = findDescriptor($1,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					/* 
+					 * forward referenced type. create it,
+					 * marked with FLAG_INCOMPLETE.
+					 */
+					parent = addType(NULL,
+							 SMI_SYNTAX_UNKNOWN,
+							 thisModule,
+							 ((thisParser->flags &
+							   (FLAG_WHOLEMOD |
+							    FLAG_WHOLEFILE))
+							  ? FLAG_MODULE : 0) |
+							 FLAG_INCOMPLETE,
+							 thisParser);
+					addDescriptor($1, thisModule,
+						      KIND_TYPE,
+						      parent,
+						      ((thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0) |
+						      FLAG_INCOMPLETE,
+						      thisParser);
+					$$ = addType(parent,
+						     SMI_SYNTAX_UNKNOWN,
 						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_INCOMPLETE,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
 						     thisParser);
-				    addDescriptor($1, thisModule, KIND_TYPE,
-						  parent,
-						  ((thisParser->flags &
-						    (FLAG_WHOLEMOD |
-						     FLAG_WHOLEFILE))
-						   ? FLAG_MODULE : 0) |
-						  FLAG_INCOMPLETE,
-						  thisParser);
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($1,
+					 ((Descriptor *)descriptor->ptr)->name,
+							   0);
+					$$ = addType(NULL,
+						     stype->syntax,
+						     thisModule,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
+						     thisParser);
+					free(stype); /* TODO: ??? */
+				    }
+				} else {
+				    $$ = addType(parent,
+						 SMI_SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
 				}
-				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
 				/* TODO: add subtype restriction */
 			    }
 			}
@@ -1735,40 +1835,50 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
 			{
 			    Type *parent;
+			    Descriptor *descriptor;
+			    smi_type *stype;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				parent = findTypeByModulenameAndName($1, $3);
 				if (!parent) {
-				    /* 
-				     * forward referenced type. create it,
-				     * marked with FLAG_INCOMPLETE.
+				    /* TODO: there may be more than one
+				     * descriptors with the same name
+				     * from multiple modules.
 				     */
-				    parent = addType(NULL,
-						     SYNTAX_UNKNOWN,
+				    descriptor = findDescriptor($3,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					printError(parser,
+						   ERR_UNKNOWN_TYPE, $3);
+					$$ = NULL;
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($3, $1, 0);
+					/* TODO: success? */
+					$$ = addType(NULL,
+						     stype->syntax,
 						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_INCOMPLETE,
+						     (thisParser->flags &
+						      (FLAG_WHOLEMOD |
+						       FLAG_WHOLEFILE))
+						     ? FLAG_MODULE : 0,
 						     thisParser);
-				    addDescriptor($1, thisModule, KIND_TYPE,
-						  parent,
-						  ((thisParser->flags &
-						    (FLAG_WHOLEMOD |
-						     FLAG_WHOLEFILE))
-						   ? FLAG_MODULE : 0) |
-						  FLAG_INCOMPLETE,
-						  thisParser);
+					free(stype); /* TODO: ??? */
+				    }
+				} else {
+				    $$ = addType(parent,
+						 SMI_SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
 				}
-				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
-				/* TODO: add subtype restriction */
+				/* TODO: add enum restriction */
 			    }
 			}
 	|		OBJECT IDENTIFIER
@@ -1868,7 +1978,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
+					     SMI_SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
 					       FLAG_WHOLEFILE))
@@ -1898,7 +2008,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = addType(parent,
-					     SYNTAX_UNKNOWN, thisModule,
+					     SMI_SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
 					       FLAG_WHOLEFILE))
@@ -2077,27 +2187,27 @@ Status:			LOWERCASE_IDENTIFIER
 			{
 			    if (thisModule->flags & FLAG_SMIV2) {
 				if (!strcmp($1, "current")) {
-				    $$ = STATUS_CURRENT;
+				    $$ = SMI_STATUS_CURRENT;
 				} else if (!strcmp($1, "deprecated")) {
-				    $$ = STATUS_DEPRECATED;
+				    $$ = SMI_STATUS_DEPRECATED;
 				} else if (!strcmp($1, "obsolete")) {
-				    $$ = STATUS_OBSOLETE;
+				    $$ = SMI_STATUS_OBSOLETE;
 				} else {
 				    printError(parser,
 					       ERR_INVALID_SMIV2_STATUS, $1);
-				    $$ = STATUS_UNKNOWN;
+				    $$ = SMI_STATUS_UNKNOWN;
 				}
 			    } else {
 				if (!strcmp($1, "mandatory")) {
-				    $$ = STATUS_MANDATORY;
+				    $$ = SMI_STATUS_MANDATORY;
 				} else if (!strcmp($1, "optional")) {
-				    $$ = STATUS_OPTIONAL;
+				    $$ = SMI_STATUS_OPTIONAL;
 				} else if (!strcmp($1, "obsolete")) {
-				    $$ = STATUS_OBSOLETE;
+				    $$ = SMI_STATUS_OBSOLETE;
 				} else {
 				    printError(parser,
 					       ERR_INVALID_SMIV1_STATUS, $1);
-				    $$ = STATUS_UNKNOWN;
+				    $$ = SMI_STATUS_UNKNOWN;
 				}
 			    }
 			}
@@ -2106,14 +2216,14 @@ Status:			LOWERCASE_IDENTIFIER
 Status_Capabilities:	LOWERCASE_IDENTIFIER
 			{
 			    if (!strcmp($1, "current")) {
-				$$ = STATUS_CURRENT;
+				$$ = SMI_STATUS_CURRENT;
 			    } else if (!strcmp($1, "obsolete")) {
-				$$ = STATUS_OBSOLETE;
+				$$ = SMI_STATUS_OBSOLETE;
 			    } else {
 				printError(parser,
 					   ERR_INVALID_CAPABILITIES_STATUS,
 					   $1);
-				$$ = STATUS_UNKNOWN;
+				$$ = SMI_STATUS_UNKNOWN;
 			    }
 			}
         ;
@@ -2142,35 +2252,35 @@ Access:			LOWERCASE_IDENTIFIER
 			{
 			    if (thisModule->flags & FLAG_SMIV2) {
 				if (!strcmp($1, "not-accessible")) {
-				    $$ = ACCESS_NOT;
+				    $$ = SMI_ACCESS_NOT_ACCESSIBLE;
 				} else if (!strcmp($1,
 						   "accessible-for-notify")) {
-				    $$ = ACCESS_NOTIFY;
+				    $$ = SMI_ACCESS_NOTIFY;
 				} else if (!strcmp($1, "read-only")) {
-				    $$ = ACCESS_READ_ONLY;
+				    $$ = SMI_ACCESS_READ_ONLY;
 				} else if (!strcmp($1, "read-write")) {
-				    $$ = ACCESS_READ_WRITE;
+				    $$ = SMI_ACCESS_READ_WRITE;
 				} else if (!strcmp($1, "read-create")) {
-				    $$ = ACCESS_READ_CREATE;
+				    $$ = SMI_ACCESS_READ_CREATE;
 				} else {
 				    printError(parser,
 					       ERR_INVALID_SMIV2_ACCESS,
 					       $1);
-				    $$ = ACCESS_UNKNOWN;
+				    $$ = SMI_ACCESS_UNKNOWN;
 				}
 			    } else {
 				if (!strcmp($1, "not-accessible")) {
-				    $$ = ACCESS_NOT;
+				    $$ = SMI_ACCESS_NOT_ACCESSIBLE;
 				} else if (!strcmp($1, "read-only")) {
-				    $$ = ACCESS_READ_ONLY;
+				    $$ = SMI_ACCESS_READ_ONLY;
 				} else if (!strcmp($1, "read-write")) {
-				    $$ = ACCESS_READ_WRITE;
+				    $$ = SMI_ACCESS_READ_WRITE;
 				} else if (!strcmp($1, "write-only")) {
-				    $$ = ACCESS_WRITE_ONLY;
+				    $$ = SMI_ACCESS_WRITE_ONLY;
 				} else {
 				    printError(parser,
 					       ERR_INVALID_SMIV1_ACCESS, $1);
-				    $$ = ACCESS_UNKNOWN;
+				    $$ = SMI_ACCESS_UNKNOWN;
 				}
 			    }
 			}
@@ -2573,7 +2683,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12, MACRO_OBJECTGROUP);
+				setMibNodeMacro($12, SMI_DECL_OBJECTGROUP);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
 				    setMibNodeFlags($12,
@@ -2622,7 +2732,8 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12, MACRO_NOTIFICATIONGROUP);
+				setMibNodeMacro($12,
+						SMI_DECL_NOTIFICATIONGROUP);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
 				    setMibNodeFlags($12,
@@ -2670,7 +2781,8 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($12, MACRO_MODULECOMPLIANCE);
+				setMibNodeMacro($12,
+						SMI_DECL_MODULECOMPLIANCE);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
 				    setMibNodeFlags($12,
@@ -2786,7 +2898,7 @@ WriteSyntax:		Syntax
 AccessPart:		MIN_ACCESS Access
 			{ $$ = $2; }
 	|		/* empty */
-			{ $$ = ACCESS_UNKNOWN; }
+			{ $$ = SMI_ACCESS_UNKNOWN; }
 	;
 
 agentCapabilitiesClause: LOWERCASE_IDENTIFIER
@@ -2816,7 +2928,8 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setMibNodeMacro($14, MACRO_AGENTCAPABILITIES);
+				setMibNodeMacro($14,
+						SMI_DECL_AGENTCAPABILITIES);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
 				    setMibNodeFlags($14,
@@ -2927,4 +3040,4 @@ number:			NUMBER
 	;
 
 %%
-
+			    /*  */

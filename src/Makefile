@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.5 1998/11/10 20:25:43 strauss Exp $
+# @(#) $Id: Makefile,v 1.6 1998/11/18 17:31:37 strauss Exp $
 #
 
 CC	= gcc
@@ -23,9 +23,14 @@ smi_xdr.c smi_svc.c smi_clnt.c smi.h: smi.x smi.h-add
 
 smi.o: smi.c smi.h
 
-smid: smid.o smi_svc.o libsmi.a
+smi_xdr.o: smi_xdr.c smi.h
 
-smid.o: smid.c smi.h
+smi_svc_proc.o: smi_svc_proc.c smi.h
+
+smi_svc.o: smi_svc.c
+
+smid: smi_svc_proc.o smi_svc.o smi_xdr.o libsmi.a
+	$(CC) -o smid smi_svc_proc.o smi_svc.o smi_xdr.o libsmi.a -lrpcsvc -lnsl
 
 scanner-flex.c: scanner.l scanner.h parser-bison.h
 	$(LEX) -t scanner.l > scanner-flex.c

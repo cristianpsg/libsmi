@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.6 1998/11/10 21:42:11 strauss Exp $
+ * @(#) $Id: lint.c,v 1.7 1998/11/16 09:00:09 strauss Exp $
  */
 
 #include <stdio.h>
@@ -66,8 +66,8 @@ main(argc, argv)
 
     smiInit();
     
-    smiSetDebugLevel(0);
-    smiSetErrorLevel(3);
+    smiSetDebugLevel(9);
+    smiSetErrorLevel(9);
     flags = SMI_ERRORS | SMI_ERRORLINES;
     smiSetFlags(flags);
     
