@@ -9,17 +9,16 @@ export SMIPATH
 
 for n in 001 002 003 004 ; do
     mib=LIBSMI-TEST-$n-MIB
-    echo -n "Checking $mib."
+    echo -n "Checking $mib. "
     ../tools/smilint -l9 $mib 2>&1 | sed -e 's/mibs\///' > parser.out/$mib.err
     cat mibs/$mib | grep "^$mib:[0-9]*: " > parser.out/$mib.expect
-    WC=`cat parser.out/$mib.err | wc -l`
-    echo -n "$WC errors. "
     cmp -s parser.out/$mib.err parser.out/$mib.expect
     if [ $? -ne 0 ] ; then
         RC=1
-        echo "unexpected error output."
+        echo "unexpected output. see parser.out directory."
     else
-	echo "ok."
+        WC=`cat parser.out/$mib.err | wc -l`
+	echo $WC " errors/warnings, ok."
     fi
 done
 
