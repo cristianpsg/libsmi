@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-fig.c,v 1.2 1999/11/24 19:02:39 strauss Exp $
+ * @(#) $Id: dump-fig.c,v 1.3 2000/01/27 10:46:18 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -70,7 +70,6 @@ static int isGroup(SmiNode *smiNode)
 	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
 	     || childNode->nodekind == SMI_NODEKIND_TABLE)
 	    && childNode->status == SMI_STATUS_CURRENT) {
-	    smiFreeNode(childNode);
 	    return 1;
 	}
     }
@@ -106,11 +105,11 @@ static void printGroup(int *x, int *y, SmiNode *smiNode)
 
 
 
-static void printGroups(int *x, int *y, char *modulename)
+static void printGroups(int *x, int *y, SmiModule *smiModule)
 {
     SmiNode *smiNode;
 
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
@@ -138,7 +137,7 @@ int dumpFigTree(char *modulename, int flags)
     setupPage();
 
     x = X_OFFSET, y = Y_OFFSET;
-    printGroups(&x, &y, modulename);
+    printGroups(&x, &y, smiModule);
 
     return 0;
 }
@@ -148,6 +147,7 @@ int dumpFigTree(char *modulename, int flags)
 static void printClass(int *x, int *y, SmiNode *smiNode)
 {
     SmiNode *childNode;
+    SmiType *smiType;
     char string[4096];
 
     *y += Y_OFFSET;
@@ -159,9 +159,9 @@ static void printClass(int *x, int *y, SmiNode *smiNode)
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR
 	    || childNode->nodekind == SMI_NODEKIND_COLUMN) {
 	    if (childNode->status != SMI_STATUS_OBSOLETE) {
+		smiType = smiGetNodeType(childNode);
 		*y += Y_OFFSET;
-		sprintf(string, "%s : %s", childNode->name,
-			childNode->typename);
+		sprintf(string, "%s : %s", childNode->name, smiType->name);
 		printString(*x + X_INDENT, *y, 0, string);
 	    }
 	}
@@ -171,11 +171,11 @@ static void printClass(int *x, int *y, SmiNode *smiNode)
 
 
 
-static void printClasses(int *x, int *y, char *modulename)
+static void printClasses(int *x, int *y, SmiModule *smiModule)
 {
     SmiNode *smiNode;
 
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
@@ -203,7 +203,7 @@ int dumpFigUml(char *modulename, int flags)
     setupPage();
 
     x = X_OFFSET, y = Y_OFFSET;
-    printClasses(&x, &y, modulename);
+    printClasses(&x, &y, smiModule);
 
     return 0;
 }
