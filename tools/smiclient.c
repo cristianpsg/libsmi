@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiclient.c,v 1.1 1999/03/11 17:33:54 strauss Exp $
+ * @(#) $Id: smiclient.c,v 1.2 1999/03/23 22:55:43 strauss Exp $
  */
 
 #include <stdio.h>
@@ -36,9 +36,10 @@ main(argc, argv)
     smi_macro *macro;
     smi_namelist *namelist;
     CLIENT *cl;
-    
+
+#if 0
     if (argc != 4) {
-	fprintf(stderr, "smiclient $Revision: 1.1 $\n");
+	fprintf(stderr, "smiclient $Revision: 1.2 $\n");
 	fprintf(stderr, "Usage: smiclient <server> <command> <name>\n");
 	fprintf(stderr, "known commands: module, node, type, macro, names, children, members, parent\n");
 	exit(1);
@@ -152,6 +153,7 @@ main(argc, argv)
 	    clnt_perror(cl, "smiproc_parent_1");
 	}
     }
+#endif
     
     exit(0);
 }

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.7 1999/03/17 19:09:07 strauss Exp $
+ * @(#) $Id: data.h,v 1.8 1999/03/23 22:55:39 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -30,6 +30,20 @@ typedef struct List {
     void	    *ptr;
     struct List	    *nextPtr;
 } List;
+
+
+
+typedef struct NamedNumber {
+    char	    *name;
+    smi_number	    number;
+} NamedNumber;
+
+
+
+typedef struct Range {
+    smi_number	    min;
+    smi_number	    max;
+} Range;
 
 
 
@@ -170,13 +184,9 @@ typedef struct Type {
     char	   *format;
     char	   *units;
     smi_status	   status;
-    struct List	   *sequencePtr;
+    struct List	   *itemlistPtr;
     char	   *description;
     char	   *reference;
-#if 0
-    Restriction	   *firstRestriction;
-    Restriction	   *lastRestriction;
-#endif
     off_t          fileoffset;
     TypeFlags	   flags;
     struct Type    *nextPtr;
@@ -405,8 +415,8 @@ extern void setTypeStatus(Type *typePtr,
 extern void setTypeParent(Type *typePtr,
 			  const char *parent);
 
-extern void setTypeSequencePtr(Type *typePtr,
-			       struct List *sequence);
+extern void setTypeItemlistPtr(Type *typePtr,
+			       struct List *itemlistPtr);
 
 extern void setTypeDescription(Type *typePtr,
 			       char *description);

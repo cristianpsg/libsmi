@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.5 1999/03/17 19:09:11 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.6 1999/03/23 22:55:43 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -220,9 +220,9 @@ printTypedefs(modulename)
 	}
 	printf("    typedef %s {\n", smiType->name);
 	/* TODO: */
-	printf("     // type            ...;\n");
-	printf("     // syntax          %s;\n",
-	       smiStringSyntax(smiType->syntax));
+	printf("        type            %s;\n",
+	       smiType->parent ? smiType->parent
+	                       : smiStringSyntax(smiType->syntax));
 	/* TODO: */
 	printf("     // default         ...;\n");
 	if (smiType->format) {

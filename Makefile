@@ -1,13 +1,13 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.13 1999/03/16 20:47:29 strauss Exp $
+# @(#) $Id: Makefile,v 1.14 1999/03/23 22:55:36 strauss Exp $
 #
 
 MIBDIR		= ../scotty/tnm/mibs
 PREFIX		= /usr/local
 
-DEFINES		= -DTEXTS_IN_MEMORY=20000 -DRPC_SVC_FG -DDEBUG -DBACKEND_RPC -DBACKEND_SMI -DBACKEND_SMING
+DEFINES		= -DRPC_SVC_FG -DDEBUG -DBACKEND_RPC -DBACKEND_SMI -DBACKEND_SMING
 CC		= gcc
 CFLAGS		= -I. -Ilib -Wall -g $(DEFINES)
 LD		= gcc
@@ -73,7 +73,8 @@ clean:
 
 install: install-prg install-conf install-dev install-lib install-html
 
-install-prg: tools/smilint tools/smidump tools/smiclient tools/smiquery tools/smid doc/smilint.1
+#install-prg: tools/smilint tools/smidump tools/smiclient tools/smiquery tools/smid doc/smilint.1
+install-prg: tools/smilint tools/smidump tools/smiquery doc/smilint.1
 	cp tools/smilint tools/smidump tools/smiclient tools/smiquery tools/smid ${PREFIX}/bin
 	cp doc/smilint.1 ${PREFIX}/man/man1
 

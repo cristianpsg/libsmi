@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.3 1999/03/16 20:47:33 strauss Exp $
+% * @(#) $Id: smi.x,v 1.4 1999/03/23 22:55:41 strauss Exp $
 % */
 %
 
@@ -23,7 +23,9 @@ typedef string smi_oid<SMI_MAX_OID>;
 typedef string smi_string<SMI_MAX_STRING>;
 typedef string smi_fullname<SMI_MAX_FULLNAME>;
 
-typedef unsigned int smi_subid;
+typedef unsigned int		smi_subid;
+
+typedef long			smi_number;
 
 enum smi_syntax {
     SMI_SYNTAX_UNKNOWN		= 0,
@@ -97,6 +99,8 @@ enum smi_decl {
     SMI_DECL_COMPLIANCE		= 42
 };
 
+
+
 struct smi_module {
     smi_descriptor	name;
     smi_descriptor	object;
@@ -132,18 +136,29 @@ struct smi_node {
     smi_string		reference;
 };
 
+struct smi_namednumber {
+    smi_descriptor     name;
+    smi_number	       number;
+};
+
+struct smi_range {
+    smi_number	       min;
+    smi_number	       max;
+};
+
 struct smi_type {
     smi_descriptor	name;
     smi_descriptor	module;
     smi_syntax		syntax;
+    smi_string		parent;
+    smi_namednumber	namednumber[];
+    smi_range           range[];
     smi_decl		decl;
     smi_string		format;
     smi_string		units;
     smi_status		status;
     smi_string		description;
     smi_string		reference;
-    /* TODO: parent ? */
-    /* TODO: restrictions */
 };
 
 struct smi_macro {
