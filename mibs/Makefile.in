@@ -98,7 +98,7 @@ VERSION = @VERSION@
 mibdir = @mibdir@
 smipath = @smipath@
 
-MIBDIRS = iana ietf irtf site
+MIBDIRS = iana ietf irtf tubs site
 
 MIBS = $(shell ls -1d [a-z]*/* | egrep -v 'CVS|Makefile')
 mib_DATA = $(MIBS)

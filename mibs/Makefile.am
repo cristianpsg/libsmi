@@ -8,10 +8,10 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.2 1999/10/06 17:37:18 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.3 1999/10/07 13:33:54 strauss Exp $
 #
 
-MIBDIRS			= iana ietf irtf site
+MIBDIRS			= iana ietf irtf tubs site
 
 MIBS			= $(shell ls -1d [a-z]*/* | egrep -v 'CVS|Makefile')
 mib_DATA		= $(MIBS)
