@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.166 2002/03/08 08:23:48 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.167 2002/03/11 08:52:42 strauss Exp $
  */
 
 %{
@@ -2313,7 +2313,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' ObjectName '}'
 			{
 			    Object *objectPtr, *parentPtr;
-			    Type *typePtr;
+			    Type *typePtr = NULL;
 			    
 			    objectPtr = $17;
 
@@ -2325,23 +2325,25 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 					  thisParserPtr);
 			    if (checkObjectFlags(objectPtr, FLAG_SEQTYPE)) {
 				deleteObjectFlags(objectPtr, FLAG_SEQTYPE);
-				if ($6->export.name) {
-				    typePtr = $6;
-				} else {
-				    typePtr = $6->parentPtr;
-				}
-				if ((objectPtr->typePtr != typePtr) &&
-				    ((objectPtr->typePtr->export.basetype !=
-				      SMI_BASETYPE_INTEGER32) ||
-					(typePtr->export.basetype !=
-					 SMI_BASETYPE_ENUM)) &&
-				    ((objectPtr->typePtr->export.basetype !=
-				      SMI_BASETYPE_OCTETSTRING) ||
-					(typePtr->export.basetype !=
-					 SMI_BASETYPE_BITS))) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SEQUENCE_TYPE_MISMATCH,
-						  objectPtr->export.name);
+				if ($6) {
+				    if ($6->export.name) {
+					typePtr = $6;
+				    } else {
+					typePtr = $6->parentPtr;
+				    }
+				    if ((objectPtr->typePtr != typePtr) &&
+					((objectPtr->typePtr->export.basetype !=
+					  SMI_BASETYPE_INTEGER32) ||
+					 (typePtr->export.basetype !=
+					  SMI_BASETYPE_ENUM)) &&
+					((objectPtr->typePtr->export.basetype !=
+					  SMI_BASETYPE_OCTETSTRING) ||
+					 (typePtr->export.basetype !=
+					  SMI_BASETYPE_BITS))) {
+					smiPrintError(thisParserPtr,
+						      ERR_SEQUENCE_TYPE_MISMATCH,
+						      objectPtr->export.name);
+				    }
 				}
 			    }
 			    setObjectType(objectPtr, $6);
@@ -2412,10 +2414,11 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				setObjectRelated(objectPtr, $13.rowPtr);
 			    }
 			    if ($14) {
-				if (((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING) &&
-				     ($14->basetype != SMI_BASETYPE_OCTETSTRING)) ||
-				    ((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OBJECTIDENTIFIER) &&
-				     ($14->basetype != SMI_BASETYPE_OBJECTIDENTIFIER))) {
+				if (objectPtr->typePtr
+				    && (((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING) &&
+					 ($14->basetype != SMI_BASETYPE_OCTETSTRING))
+					|| ((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OBJECTIDENTIFIER) &&
+					    ($14->basetype != SMI_BASETYPE_OBJECTIDENTIFIER)))) {
 				    smiPrintError(thisParserPtr,
 						  ERR_DEFVAL_SYNTAX);
 				    if ($14->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
