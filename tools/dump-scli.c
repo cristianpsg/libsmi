@@ -8,12 +8,13 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.12 2002/03/05 12:01:40 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.13 2002/03/11 08:52:44 strauss Exp $
  */
 
 /*
  * TODO:
- *	  - generate range checking code for 64 bit numbers
+ *	  - range checks for 64 bit numbers
+ *	  - range checks for index values
  */
 
 #include <config.h>
@@ -516,7 +517,7 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
     SmiNode  *smiNode, *parentNode;
     SmiType  *smiType;
     SmiNamedNumber *nn;
-    int      cnt = 0;
+    int      cnt = 0, len;
     char     *cName, *cModuleName;
     char     *dName, *dModuleName;
     const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
@@ -543,11 +544,17 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 	    cnt++;
 	    cName = translate(smiNode->name);
 	    dName = translateUpper(smiNode->name);
+	    for (len = 0, nn = smiGetFirstNamedNumber(smiType); nn;
+		 nn = smiGetNextNamedNumber(nn)) {
+		if (len < strlen(nn->name)) {
+		    len = strlen(nn->name);
+		}
+	    }
 	    for (nn = smiGetFirstNamedNumber(smiType); nn;
 		 nn = smiGetNextNamedNumber(nn)) {
 		char *dEnum = translateUpper(nn->name);
-		fprintf(f, "#define %s_%s_%s\t%d\n",
-			dModuleName, dName, dEnum,
+		fprintf(f, "#define %s_%s_%-*s %d\n",
+			dModuleName, dName, len, dEnum,
 			(int) nn->value.value.integer32);
 		xfree(dEnum);
 	    }
@@ -646,11 +653,6 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	if (isIndex && maxSize > 128 - smiNode->oidlen) {
 	    maxSize = 128 - smiNode->oidlen;
 	}
-	if (maxSize == minSize) {
-	    fprintf(f,
-		    "#define %s_%sLENGTH %u\n",
-		    dModuleName, dNodeName, maxSize);
-	}
 	if (isIndex) {
 	    fprintf(f,
 		    "    guint32  %s[%u];\n", cName, maxSize);
@@ -658,10 +660,19 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	    fprintf(f,
 		    "    guint32  *%s;\n", cName);
 	}
-	if (maxSize != minSize) {
+	if (maxSize == minSize) {
 	    fprintf(f,
-		    "    guint16  _%sLength;\t/* (%u..%u) */\n",
-		    cName, minSize, maxSize);
+		    "#define %s_%sLENGTH %u\n",
+		    dModuleName, dNodeName, maxSize);
+	} else {
+	    fprintf(f,
+		    "#define %s_%sMINLENGTH %u\n",
+		    dModuleName, dNodeName, minSize);
+	    fprintf(f,
+		    "#define %s_%sMAXLENGTH %u\n",
+		    dModuleName, dNodeName, maxSize);
+	    fprintf(f,
+		    "    guint16  _%sLength;\n", cName);
 	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
@@ -671,11 +682,6 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	if (isIndex && maxSize > 128 - smiNode->oidlen) {
 	    maxSize = 128 - smiNode->oidlen;
 	}
-	if (maxSize == minSize) {
-	    fprintf(f,
-		    "#define %s_%sLENGTH %u\n",
-		    dModuleName, dNodeName, maxSize);
-	}
 	if (isIndex) {
 	    fprintf(f,
 		    "    guchar   %s[%u];\n", cName, maxSize);
@@ -683,10 +689,19 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	    fprintf(f,
 		    "    guchar   *%s;\n", cName);
 	}
-	if (maxSize != minSize) {
+	if (maxSize == minSize) {
 	    fprintf(f,
-		    "    guint16  _%sLength;\t/* (%u..%u) */\n",
-		    cName, minSize, maxSize);
+		    "#define %s_%sLENGTH %u\n",
+		    dModuleName, dNodeName, maxSize);
+	} else {
+	    fprintf(f,
+		    "#define %s_%sMINLENGTH %u\n",
+		    dModuleName, dNodeName, minSize);
+	    fprintf(f,
+		    "#define %s_%sMAXLENGTH %u\n",
+		    dModuleName, dNodeName, maxSize);
+	    fprintf(f,
+		    "    guint16  _%sLength;\n", cName);
 	}
 	break;
     case SMI_BASETYPE_ENUM:
@@ -743,7 +758,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     SmiNode *smiNode, *indexNode;
     SmiType *smiType;
     char    *cModuleName, *dModuleName, *cGroupName, *dGroupName, *dNodeName;
-    int     writable = 0, count = 1;
+    int     writable = 0, count = 0, len = 0;
 
     cModuleName = translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
@@ -761,15 +776,21 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	 smiNode = smiGetNextChildNode(smiNode)) {
 	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
 	    && (smiNode->access >= SMI_ACCESS_READ_ONLY)) {
-#if 0
-	    if (isIndex(groupNode, smiNode)) {
-		continue;
+	    if (len < strlen(smiNode->name)) {
+		len = strlen(smiNode->name);
 	    }
-#endif
+	}
+    }
+    
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
+	    && (smiNode->access >= SMI_ACCESS_READ_ONLY)) {
 	    dNodeName = translateUpper(smiNode->name);
-	    fprintf(f, "#define %s_%s\t0x%x \n", dModuleName, dNodeName, count);
+	    fprintf(f, "#define %s_%-*s (1 << %d) \n", dModuleName, len, dNodeName, count);
 	    xfree(dNodeName);
-	    count *= 2;
+	    count++;
 	}	    
     }
 
@@ -956,7 +977,7 @@ printStubEnumerations(FILE *f, SmiModule *smiModule)
     SmiNamedNumber *nn;
     char      *cName, *cModuleName;
     char      *dName, *dModuleName;
-    int       cnt = 0;
+    int       cnt = 0, len;
     const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     cModuleName = translateLower(smiModule->name);
@@ -976,11 +997,18 @@ printStubEnumerations(FILE *f, SmiModule *smiModule)
 	    dName = translateUpper(smiNode->name);
 	    fprintf(f, "GSnmpEnum const %s_enums_%s[] = {\n",
 		    cModuleName, cName);
+	    for (len = 0, nn = smiGetFirstNamedNumber(smiType); nn;
+		 nn = smiGetNextNamedNumber(nn)) {
+		if (len < strlen(nn->name)) {
+		    len = strlen(nn->name);
+		}
+	    }
 	    for (nn = smiGetFirstNamedNumber(smiType); nn;
 		 nn = smiGetNextNamedNumber(nn)) {
 		char *dEnum = translateUpper(nn->name);
-		fprintf(f, "    { %s_%s_%s,\t\"%s\" },\n",
-			dModuleName, dName, dEnum, nn->name);
+		fprintf(f, "    { %s_%s_%s,%*s \"%s\" },\n",
+			dModuleName, dName, dEnum,
+			len - strlen(dEnum), "", nn->name);
 		xfree(dEnum);
 	    }
 	    fprintf(f,
@@ -1074,12 +1102,237 @@ printStubIdentities(FILE *f, SmiModule *smiModule)
 
 
 
+static int
+printSizeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
+{
+    SmiRange *smiRange, *lastRange = NULL;
+    unsigned int minSize, maxSize;
+    int cnt;
+    char *cName;
+
+    cName = translate(smiNode->name);
+
+    for (cnt = 0, smiType; smiType; smiType = smiGetParentType(smiType)) {
+	for (smiRange = smiGetFirstRange(smiType);
+	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	    minSize = smiRange->minValue.value.unsigned32;
+	    maxSize = smiRange->maxValue.value.unsigned32;
+	    if (minSize == 0 && maxSize >= 65535) continue;
+	    /* People frequently use redundant size constraints when
+	     * dealing with strings. We try to catch at least some of
+	     * them. Ideally, libsmi should warn about this. */
+	    if (lastRange
+		&& lastRange->minValue.value.unsigned32 == minSize
+		&& lastRange->maxValue.value.unsigned32 == maxSize) {
+		continue;
+	    }
+	    if (f) {
+		if (cnt) {
+		    fprintf(f, ", %u, %u", minSize, maxSize);
+		} else {
+		    fprintf(f, "static guint16 %s_constraints[] = {%u, %u",
+			    cName, minSize, maxSize);
+		}
+	    }
+	    cnt++;
+	    lastRange = smiRange;
+	}
+    }
+
+    xfree(cName);
+    if (f && cnt) fprintf(f, ", 0, 0};\n");
+    return (cnt > 0);
+}
+
+
+
+static int
+printInteger32RangeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
+{
+    SmiRange *smiRange;
+    long minSize, maxSize;
+    int cnt;
+    char *cName;
+
+    cName = translate(smiNode->name);
+
+    for (cnt = 0, smiType; smiType; smiType = smiGetParentType(smiType)) {
+	for (smiRange = smiGetFirstRange(smiType);
+	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	    minSize = smiRange->minValue.value.integer32;
+	    maxSize = smiRange->maxValue.value.integer32;
+	    if (minSize < -2147483647 && maxSize > 2147483646) continue;
+	    if (f) {
+		if (cnt) {
+		    fprintf(f, ", %ldL, %ldL", minSize, maxSize);
+		} else {
+		    fprintf(f, "static guint32 %s_constraints[] = {%ldL, %ldL",
+			    cName, minSize, maxSize);
+		}
+	    }
+	    cnt++;
+	}
+    }
+
+    xfree(cName);
+    if (f && cnt) fprintf(f, ", 0, 0};\n");
+    return (cnt > 0);
+}
+
+
+
+static int
+printUnsigned32RangeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
+{
+    SmiRange *smiRange;
+    unsigned long minSize, maxSize;
+    int cnt;
+    char *cName;
+
+    cName = translate(smiNode->name);
+
+    for (cnt = 0, smiType; smiType; smiType = smiGetParentType(smiType)) {
+	for (smiRange = smiGetFirstRange(smiType);
+	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	    minSize = smiRange->minValue.value.unsigned32;
+	    maxSize = smiRange->maxValue.value.unsigned32;
+	    if (minSize == 0 && maxSize >= 4294967295UL) continue;
+	    if (f) {
+		if (cnt) {
+		    fprintf(f, ", %luUL, %luUL", minSize, maxSize);
+		} else {
+		    fprintf(f, "static guint32 %s_constraints[] = {%luUL, %luUL",
+			cName, minSize, maxSize);
+		}
+	    }
+	    cnt++;
+	}
+    }
+
+    xfree(cName);
+    if (f && cnt) fprintf(f, ", 0, 0};\n");
+    return (cnt > 0);
+}
+
+
+
+static int
+printConstraints(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
+{
+    SmiType *smiType;
+    int cnt;
+
+    smiType = smiGetNodeType(smiNode);
+    if (! smiType) {
+	return 0;
+    }
+
+    /*
+     * Generally suppress all INDEX objects (treat them as if they
+     * were not-accessible). This is a cheap optimization for SMIv1
+     * MIBs where these objects were generally read-only.
+     */
+
+    if (flags) {
+	if (isIndex(groupNode, smiNode)) {
+	    return 0;
+	}
+    }
+
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_OCTETSTRING:
+	cnt = printSizeConstraints(f, smiNode, smiType);
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	cnt = printInteger32RangeConstraints(f, smiNode, smiType);
+	break;
+    case SMI_BASETYPE_UNSIGNED32:
+	cnt = printUnsigned32RangeConstraints(f, smiNode, smiType);
+	break;
+    default:
+	cnt = 0;
+	break;
+    }
+
+    return cnt;
+}
+
+
+
+static int
+printScalarsAttributesContraints(FILE *f, SmiNode *groupNode)
+{
+    SmiNode *smiNode;
+    int      n = 0;
+    
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	n += printConstraints(f, smiNode, groupNode, 0);
+    }
+    return n;
+}
+
+
+
+static int
+printTableAttributesConstraints(FILE *f, SmiNode *rowNode)
+{
+    SmiNode *smiNode;
+    int     idx, cnt, n = 0;
+    
+    for (smiNode = smiGetFirstChildNode(rowNode), idx = 0, cnt = 0;
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (isIndex(rowNode, smiNode)) idx++;
+	cnt++;
+    }
+
+    for (smiNode = smiGetFirstChildNode(rowNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	n += printConstraints(f, smiNode, rowNode, cnt > idx);
+    }
+    return n;
+}
+
+
+
+static void
+printStubContraints(FILE *f, SmiModule *smiModule)
+{
+    SmiNode *smiNode;
+    int cnt = 0;
+    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	if (isGroup(smiNode, groupkind) && isAccessible(smiNode)) {
+	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+		cnt += printTableAttributesConstraints(f, smiNode);
+	    } else {
+		cnt += printScalarsAttributesContraints(f, smiNode);
+	    }
+	}
+    }
+    
+    if (cnt) {
+	fprintf(f, "\n\n");
+    }
+}
+
+
+
 static void
 printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 {
     SmiType *smiType;
     char *snmpType;
     char *dModuleName, *dNodeName;
+    char *cModuleName, *cGroupName, *cNodeName;
+    unsigned maxSize = 0, minSize = 0;
+    int cnt;
 
     smiType = smiGetNodeType(smiNode);
     if (!smiType) {
@@ -1092,7 +1345,9 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
     }
 
     /*
-     * Suppress all INDEX objects as if they were not-accessible.
+     * Generally suppress all INDEX objects (treat them as if they
+     * were not-accessible). This is a cheap optimization for SMIv1
+     * MIBs where these objects were generally read-only.
      */
 
     if (flags) {
@@ -1103,11 +1358,67 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 
     dModuleName = translateUpper(smiGetNodeModule(smiNode)->name);
     dNodeName = translateUpper(smiNode->name);
+    cNodeName = translate(smiNode->name);
+    cGroupName = translate(groupNode->name);
+    cModuleName = translateLower(smiGetNodeModule(smiNode)->name);
 
-    fprintf(f, "    { %u, %s, %s_%s, \"%s\" },\n",
+    fprintf(f,
+	    "    { %u, %s,\n"
+	    "      %s_%s, \"%s\",\n",
 	    smiNode->oid[smiNode->oidlen-1], snmpType,
 	    dModuleName, dNodeName, smiNode->name);
 
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_OCTETSTRING:
+	cnt = printSizeConstraints(NULL, smiNode, smiType);
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	cnt = printInteger32RangeConstraints(NULL, smiNode, smiType);
+	break;
+    case SMI_BASETYPE_UNSIGNED32:
+	cnt = printUnsigned32RangeConstraints(NULL, smiNode, smiType);
+	break;
+    default:
+	cnt = 0;
+	break;
+    }
+    if (cnt) {
+	fprintf(f, "       %s_constraints,\n", cNodeName);
+    } else {
+	fprintf(f, "       NULL,\n");
+    }
+
+    fprintf(f,
+	    "      G_STRUCT_OFFSET(%s_%s_t, %s),\n",
+	    cModuleName, cGroupName, cNodeName);
+
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_OCTETSTRING:
+    case SMI_BASETYPE_BITS:
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	maxSize = getMaxSize(smiType);
+	minSize = getMinSize(smiType);
+	break;
+    default:
+	break;
+    }
+    if (minSize != maxSize) {
+	fprintf(f,
+		"      G_STRUCT_OFFSET(%s_%s_t, _%sLength)",
+		cModuleName, cGroupName, cNodeName);
+    } else {
+	fprintf(f,
+		"      0");
+    }
+
+    fprintf(f,
+	    ",\n"
+	    "      %s },\n",
+	    (smiNode->access > SMI_ACCESS_READ_ONLY) ? "GSNMP_ATTR_FLAG_WRITABLE" : "0");
+
+    xfree(cModuleName);
+    xfree(cGroupName);
+    xfree(cNodeName);
     xfree(dNodeName);
     xfree(dModuleName);
 }
@@ -1151,83 +1462,6 @@ printTableAttributes(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
 
 static void
-printStubUtilities(FILE *f, SmiModule *smiModule)
-{
-    SmiNode *smiNode;
-
-    smiNode = smiGetFirstNode(smiModule,
-			      SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN);
-    if (! smiNode) {
-	return;
-    }
-
-    fprintf(f,
-	    "typedef struct {\n"
-	    "    guint32 const     subid;\n"
-	    "    GSnmpVarBindType  type;\n"
-	    "    gint              tag;\n"
-	    "    gchar            *label;\n"
-	    "} attribute_t;\n"
-	    "\n");
-
-    fprintf(f,
-	    "static void\n"
-	    "add_attributes(GSnmpSession *s, GSList **vbl, guint32 *base, guint8 len,\n"
-	    "                guint idx, attribute_t *attributes, gint mask)\n"
-	    "{\n"
-	    "    int i;\n"
-	    "\n"
-	    "    for (i = 0; attributes[i].label; i++) {\n"
-	    "        if (! mask || (mask & attributes[i].tag)) {\n"
-	    "            if (attributes[i].type != G_SNMP_COUNTER64\n"
-	    "                || s->version > G_SNMP_V1) {\n"
-	    "                base[idx] = attributes[i].subid;\n"
-	    "                g_snmp_vbl_add_null(vbl, base, len);\n"
-	    "            }\n"
-	    "        }\n"
-	    "    }\n"
-	    "}\n"
-	    "\n");
-
-    fprintf(f,
-	    "static int\n"
-	    "lookup(GSnmpVarBind *vb, guint32 const *base, guint16 const base_len,\n"
-	    "	    attribute_t *attributes, guint32 *idx)\n"
-	    "{\n"
-	    "    int i;\n"
-	    "\n"
-	    "    if (vb->type == G_SNMP_ENDOFMIBVIEW\n"
-	    "        || (vb->type == G_SNMP_NOSUCHOBJECT)\n"
-	    "        || (vb->type == G_SNMP_NOSUCHINSTANCE)) {\n"
-	    "        return -1;\n"
-	    "    }\n"
-	    "    \n"
-	    "    if (memcmp(vb->id, base, base_len * sizeof(guint32)) != 0) {\n"
-	    "	return -2;\n"
-	    "    }\n"
-	    "\n"
-	    "    for (i = 0; attributes[i].label; i++) {\n"
-	    "	if (vb->id_len > base_len && vb->id[base_len] == attributes[i].subid) {\n"
-	    "	    if (vb->type != attributes[i].type) {\n"
-	    "		const char *a = gsnmp_enum_get_label(gsnmp_enum_type_table, vb->type);\n"
-	    "		const char *b = gsnmp_enum_get_label(gsnmp_enum_type_table, attributes[i].type);\n"
-	    "		g_warning(\"%%s: type mismatch: %%s%%s%%s\", attributes[i].label,\n"
-	    "		          (a) ? a : \"\", (a || b) ? \" != \" : \"\", (b) ? b : \"\");\n"
-	    "		return -3;\n"
-	    "	    }\n"
-	    "	    *idx = attributes[i].subid;\n"
-	    "	    return 0;\n"
-	    "	}\n"
-	    "    }\n"
-	    "    \n"
-	    "    return -4;\n"
-	    "}\n"
-	    "\n");
-}
-
-
-
-static void
 printStubAttributes(FILE *f, SmiModule *smiModule)
 {
     SmiNode      *smiNode;
@@ -1243,14 +1477,14 @@ printStubAttributes(FILE *f, SmiModule *smiModule)
 	    cnt++;
 	    cName = translate(smiNode->name);
 
-	    fprintf(f, "static guint32 const oid_%s[] = {", cName);
+	    fprintf(f, "static guint32 const %s_oid[] = {", cName);
 	    for (i = 0; i < smiNode->oidlen; i++) {
 		fprintf(f, "%s%u", i ? ", " : "", smiNode->oid[i]);
 	    }
 	    fprintf(f, "};\n\n");
 	    
 	    fprintf(f,
-		    "static attribute_t attr_%s[] = {\n",
+		    "static GSnmpAttribute %s_attr[] = {\n",
 		    cName);
 	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		printTableAttributes(f, smiModule, smiNode);
@@ -1320,7 +1554,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "static int\n"
 	    "unpack_%s(GSnmpVarBind *vb, %s_%s_t *%s)\n"
 	    "{\n"
-	    "    int idx = %u;\n"
+	    "    guint8 idx = %u;\n"
 	    "%s"
 	    "\n",
 	    cGroupName, cModuleName, cGroupName, cGroupName,
@@ -1516,7 +1750,7 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,
 	    ")\n"
 	    "{\n"
-	    "    int idx = %u;\n"
+	    "    guint8 idx = %u;\n"
 	    "%s"
 	    "\n",
 	    groupNode->oidlen + 1,
@@ -1685,10 +1919,10 @@ printInteger32RangeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
     }
     if (c) {
 	fprintf(f, ") {\n"
-		"                g_warning(\"%s: value not within %s%srange constraints\");\n"
+		"                g_warning(\"%%s: value not within range contraints\", \"%s\");\n"
 		"                break;\n"
 		"            }\n",
-		smiNode->name, smiType->name ? smiType->name : "", smiType->name ? " " : "");
+		smiNode->name);
     }
 
     printInteger32RangeChecks(f, smiNode, smiGetParentType(smiType));
@@ -1733,199 +1967,13 @@ printUnsigned32RangeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
     }
     if (c) {
 	fprintf(f, ") {\n"
-		"                g_warning(\"%s: value not within %s%srange constraints\");\n"
+		"                g_warning(\"%%s: value not within range contraints\", \"%s\");\n"
 		"                break;\n"
 		"            }\n",
-		smiNode->name, smiType->name ? smiType->name : "", smiType->name ? " " : "");
+		smiNode->name);
     }
 
     printUnsigned32RangeChecks(f, smiNode, smiGetParentType(smiType));
-}
-
-
-
-static void
-printSizeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
-{
-    SmiRange *smiRange;
-    unsigned int minSize, maxSize;
-    int c;
-
-    if (! smiType) {
-	return;
-    }
-    
-    for (smiRange = smiGetFirstRange(smiType), c = 0;
-	 smiRange ; smiRange = smiGetNextRange(smiRange), c++) {
-	minSize = smiRange->minValue.value.unsigned32;
-	maxSize = smiRange->maxValue.value.unsigned32;
-	if (! c) {
-	    fprintf(f, "            if (");
-	} else {
-	    fprintf(f, "\n                && ");
-	}
-	if (! minSize) {
-	    fprintf(f, "(vb->syntax_len > %u)", maxSize);
-	} else if (minSize == maxSize) {
-	    fprintf(f, "(vb->syntax_len != %u)", maxSize);
-	} else {
-	    fprintf(f, "(vb->syntax_len < %u || vb->syntax_len > %u)",
-		    minSize, maxSize);
-	}
-    }
-    if (c) {
-	fprintf(f, ") {\n"
-		"                g_warning(\"%s: value not within %s%ssize constraints\");\n"
-		"                break;\n"
-		"            }\n",
-		smiNode->name, smiType->name ? smiType->name : "", smiType->name ? " " : "");
-    }
-
-    printSizeChecks(f, smiNode, smiGetParentType(smiType));
-}
-
-
-
-static void
-printVariableAssignement(FILE *f, SmiNode *groupNode)
-{
-    SmiNode *smiNode;
-    SmiType *smiType;
-    char    *cGroupName, *cName, *snmpType;
-    unsigned maxSize, minSize;
-
-    cGroupName = translate(groupNode->name);
-
-    for (smiNode = smiGetFirstChildNode(groupNode);
-	 smiNode;
-	 smiNode = smiGetNextChildNode(smiNode)) {
-	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
-	    && (smiNode->access == SMI_ACCESS_READ_ONLY
-		|| smiNode->access == SMI_ACCESS_READ_WRITE)) {
-
-	    smiType = smiGetNodeType(smiNode);
-	    if (!smiType) {
-		continue;
-	    }
-
-	    if (isIndex(groupNode, smiNode)) {
-		continue;
-	    }
-	    
-	    snmpType = getSnmpType(smiType);
-	    if (!snmpType) {
-		continue;
-	    }
-
-	    cName = translate(smiNode->name);
-
-	    fprintf(f,
-		    "        case %d:\n", smiNode->oid[smiNode->oidlen-1]);
-	    
-	    switch (smiType->basetype) {
-	    case SMI_BASETYPE_INTEGER32:
-		printInteger32RangeChecks(f, smiNode, smiType);
-	    case SMI_BASETYPE_ENUM:
-		fprintf(f,
-			"            %s->%s = &(vb->syntax.i32[0]);\n",
-			cGroupName, cName);
-		break;
-	    case SMI_BASETYPE_UNSIGNED32:
-		printUnsigned32RangeChecks(f, smiNode, smiType);
-		fprintf(f,
-			"            %s->%s = &(vb->syntax.ui32[0]);\n",
-			cGroupName, cName);
-		break;
-	    case SMI_BASETYPE_INTEGER64:
-		fprintf(f,
-			"            %s->%s = &(vb->syntax.i64[0]);\n",
-			cGroupName, cName);
-		break;
-	    case SMI_BASETYPE_UNSIGNED64:
-		fprintf(f,
-			"            %s->%s = &(vb->syntax.ui64[0]);\n",
-			cGroupName, cName);
-		break;
-	    case SMI_BASETYPE_OCTETSTRING:
-		printSizeChecks(f, smiNode, smiType);
-		maxSize = getMaxSize(smiType);
-		minSize = getMinSize(smiType);
-		if (minSize != maxSize) {
-		    fprintf(f,
-			    "            %s->_%sLength = vb->syntax_len;\n",
-			    cGroupName, cName);
-		}
-		fprintf(f,
-			"            %s->%s = vb->syntax.uc;\n",
-			cGroupName, cName);
-		break;
-	    case SMI_BASETYPE_BITS:
-		maxSize = getMaxSize(smiType);
-		minSize = getMinSize(smiType);
-		if (minSize == maxSize) {
-		    fprintf(f,
-			    "            if (vb->syntax_len != %u) break;\n", minSize);
-		} else {
-		    if (minSize > 0 && maxSize < 65535) {
-			fprintf(f,
-				"            if (vb->syntax_len < %u || vb->syntax_len > %u) break;\n",
-				minSize, maxSize);
-		    } else if (minSize > 0 && maxSize == 65535) {
-			fprintf(f,
-				"            if (vb->syntax_len < %u) break;\n", minSize);
-		    } else if (minSize == 0 && maxSize < 65535) {
-			fprintf(f,
-				"            if (vb->syntax_len > %u) break;\n", maxSize);
-		    }
-		}
-		if (minSize != maxSize) {
-		    fprintf(f,
-			    "            %s->_%sLength = vb->syntax_len;\n",
-			    cGroupName, cName);
-		}
-		fprintf(f,
-			"            %s->%s = vb->syntax.uc;\n",
-			cGroupName, cName);
-		break;
-	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		maxSize = getMaxSize(smiType);
-		minSize = getMinSize(smiType);
-		if (minSize == maxSize) {
-		    fprintf(f,
-			    "            if (vb->syntax_len != %u) break;\n", minSize);
-		} else {
-		    if (minSize > 0 && maxSize < 65535) {
-			fprintf(f,
-				"            if (vb->syntax_len < %u || vb->syntax_len > %u) break;\n",
-				minSize, maxSize);
-		    } else if (minSize > 0 && maxSize == 65535) {
-			fprintf(f,
-				"            if (vb->syntax_len < %u) break;\n", minSize);
-		    } else if (minSize == 0 && maxSize < 65535) {
-			fprintf(f,
-				"            if (vb->syntax_len > %u) break;\n", maxSize);
-		    }
-		}
-		if (minSize != maxSize) {
-		    fprintf(f,
-			    "            %s->_%sLength = vb->syntax_len / sizeof(guint32);\n",
-			    cGroupName, cName);
-		}
-		fprintf(f,
-			"            %s->%s = vb->syntax.ui32;\n",
-			cGroupName, cName);
-		break;
-	    default:
-		break;
-	    }
-	    fprintf(f,
-		    "            break;\n");
-	    
-	    xfree(cName);
-	}
-    }
-
-    xfree(cGroupName);
 }
 
 
@@ -1947,9 +1995,7 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "static %s_%s_t *\n"
 	    "assign_%s(GSList *vbl)\n"
 	    "{\n"
-	    "    GSList *elem;\n"
 	    "    %s_%s_t *%s;\n"
-	    "    guint32 idx;\n"
 	    "    char *p;\n"
 	    "\n",
 	    cModuleName, cGroupName, cGroupName,
@@ -1971,33 +2017,21 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	fprintf(f,
 		"    if (unpack_%s((GSnmpVarBind *) vbl->data, %s) < 0) {\n"
-		"        g_warning(\"%s: invalid instance identifier\");\n"
+		"        g_warning(\"%%s: invalid instance identifier\", \"%s\");\n"
 		"        g_free(%s);\n"
 		"        return NULL;\n"
 		"    }\n\n",
 		cGroupName, cGroupName, cGroupName, cGroupName);
     }
-    
-    fprintf(f,
-	    "    for (elem = vbl; elem; elem = g_slist_next(elem)) {\n"
-	    "        GSnmpVarBind *vb = (GSnmpVarBind *) elem->data;\n"
-	    "\n"
-	    "        if (lookup(vb, oid_%s, sizeof(oid_%s)/sizeof(guint32),\n"
-	    "                   attr_%s, &idx) < 0) continue;\n"
-	    "\n"
-	    "        switch (idx) {\n",
-	    cGroupName, cGroupName, cGroupName);
-    
-    printVariableAssignement(f, groupNode);
 
     fprintf(f,
-	    "        };\n"
-	    "    }\n"
+	    "    gsnmp_attr_assign(vbl, %s_oid, sizeof(%s_oid)/sizeof(guint32),\n"
+	    "                      %s_attr, %s);\n"
 	    "\n"
 	    "    return %s;\n"
 	    "}\n"
-	    "\n", cGroupName);
-
+	    "\n", cGroupName, cGroupName, cGroupName, cGroupName, cGroupName);
+	    
     xfree(cGroupName);
     xfree(cModuleName);
 }
@@ -2045,7 +2079,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    cRowName);
 
     fprintf(f,
-	    "    add_attributes(s, &in, base, %u, %u, attr_%s, mask);\n",
+	    "    gsnmp_attr_get(s, &in, base, %u, %u, %s_attr, mask);\n",
 	    rowNode->oidlen+1, rowNode->oidlen, cRowName);
 
     fprintf(f,
@@ -2124,7 +2158,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    gint8 len;\n"
 	    "\n"
 	    "    memset(base, 0, sizeof(base));\n"
-	    "    memcpy(base, oid_%s, sizeof(oid_%s));\n",
+	    "    memcpy(base, %s_oid, sizeof(%s_oid));\n",
 	    cRowName, cRowName);
 
     fprintf(f,
@@ -2161,7 +2195,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    ");\n"
 	    "    if (len < 0) {\n"
-	    "        g_warning(\"%s: invalid index values\");\n"
+	    "        g_warning(\"%%s: invalid index values\", \"%s\");\n"
 	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n",
@@ -2174,7 +2208,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    cRowName);
 
     fprintf(f,
-	    "    add_attributes(s, &in, base, len, %u, attr_%s, mask);\n",
+	    "    gsnmp_attr_get(s, &in, base, len, %u, %s_attr, mask);\n",
 	    rowNode->oidlen, cRowName);
 
     fprintf(f,
@@ -2203,10 +2237,8 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     SmiNode      *indexNode = NULL, *iNode;
     SmiType      *iType;
     SmiElement   *smiElement;
-    char         *cModuleName, *cRowName, *cTableName, *cSmiNodeName, *cName;
+    char         *cModuleName, *cRowName, *cTableName, *cName;
     SmiNode      *tableNode;
-    SmiNode	 *smiNode;
-    SmiType	 *smiType;
     unsigned int minSize, maxSize;
 
     tableNode = smiGetParentNode(rowNode);
@@ -2247,7 +2279,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    gint8 len;\n"
 	    "\n"
 	    "    memset(base, 0, sizeof(base));\n"
-	    "    memcpy(base, oid_%s, sizeof(oid_%s));\n",
+	    "    memcpy(base, %s_oid, sizeof(%s_oid));\n",
 	    cRowName, cRowName);
 
     fprintf(f,
@@ -2283,64 +2315,16 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    ");\n"
 	    "    if (len < 0) {\n"
-	    "        g_warning(\"%s: invalid index values\");\n"
+	    "        g_warning(\"%%s: invalid index values\", \"%s\");\n"
 	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n"
 	    "\n",
 	    cRowName);
 
-    for (smiNode = smiGetFirstChildNode(rowNode);
-	 smiNode;
-	 smiNode = smiGetNextChildNode(smiNode)) {
-	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN)
-	    && (smiNode->access >= SMI_ACCESS_READ_WRITE)) {
-
-	    smiType = smiGetNodeType(smiNode);
-	    if (!smiType) {
-		continue;
-	    }
-	    
-	    if (isIndex(rowNode, smiNode)) {
-		continue;
-	    }
-	    
-	    cSmiNodeName = translate(smiNode->name);
-	    fprintf(f,
-		    "    if (%s->%s) {\n"
-		    "        base[%u] = %u;\n"
-		    "        g_snmp_vbl_add(&in, base, len, %s,\n"
-		    "                       %s->%s,\n",
-		    cRowName, cSmiNodeName,
-		    smiNode->oidlen-1, smiNode->oid[smiNode->oidlen-1],
-		    getSnmpType(smiType),
-		    cRowName, cSmiNodeName);
-	    switch (smiType->basetype) {
-	    case SMI_BASETYPE_OCTETSTRING:
-	    case SMI_BASETYPE_BITS:
-	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		maxSize = getMaxSize(smiType);
-		minSize = getMinSize(smiType);
-		if (maxSize == minSize) {
-		    fprintf(f,
-			    "                       %d);\n",
-			    maxSize);
-		} else {
-		    fprintf(f,
-			    "                       %s->_%sLength);\n",
-			    cRowName, cSmiNodeName);
-		}
-		break;
-	    default:
-		fprintf(f,
-			"                       0);\n");
-		break;
-	    }
-	    fprintf(f, "    }\n");
-		
-	    xfree(cSmiNodeName);
-	}	    
-    }
+    fprintf(f,
+	    "    gsnmp_attr_set(s, &in, base, len, %u, %s_attr, mask, %s);\n",
+	    rowNode->oidlen, cRowName, cRowName);
 
     fprintf(f,
 	    "\n"
@@ -2388,7 +2372,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    cGroupName);
 
     fprintf(f,
-	    "    add_attributes(s, &in, base, %u, %u, attr_%s, mask);\n",
+	    "    gsnmp_attr_get(s, &in, base, %u, %u, %s_attr, mask);\n",
 	    groupNode->oidlen + 1, groupNode->oidlen, cGroupName);
 
     fprintf(f,
@@ -2414,10 +2398,8 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 static void
 printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char         *cModuleName, *cGroupName, *cSmiNodeName;
-    SmiNode	 *smiNode;
-    SmiType	 *smiType;
-    unsigned int i, minSize, maxSize;
+    char         *cModuleName, *cGroupName;
+    unsigned int i;
 
     cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
@@ -2435,58 +2417,9 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     }
     fprintf(f, "0, 0};\n\n");
 
-    for (smiNode = smiGetFirstChildNode(groupNode);
-	 smiNode;
-	 smiNode = smiGetNextChildNode(smiNode)) {
-	if (smiNode->nodekind & (SMI_NODEKIND_SCALAR)
-	    && (smiNode->access >= SMI_ACCESS_READ_WRITE)) {
-
-	    smiType = smiGetNodeType(smiNode);
-	    if (!smiType) {
-		continue;
-	    }
-	    
-	    if (isIndex(groupNode, smiNode)) {
-		continue;
-	    }
-	    
-	    cSmiNodeName = translate(smiNode->name);
-	    fprintf(f,
-		    "    if (%s->%s) {\n"
-		    "        base[%u] = %u;\n"
-		    "        g_snmp_vbl_add(&in, base, sizeof(base)/sizeof(guint32),\n"
-		    "                       %s,\n"
-		    "                       %s->%s,\n",
-		    cGroupName, cSmiNodeName,
-		    smiNode->oidlen-1, smiNode->oid[smiNode->oidlen-1],
-		    getSnmpType(smiType),
-		    cGroupName, cSmiNodeName);
-	    switch (smiType->basetype) {
-	    case SMI_BASETYPE_OCTETSTRING:
-	    case SMI_BASETYPE_BITS:
-	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		maxSize = getMaxSize(smiType);
-		minSize = getMinSize(smiType);
-		if (maxSize == minSize) {
-		    fprintf(f,
-			    "                       %d);\n",
-			    maxSize);
-		} else {
-		    fprintf(f,
-			    "                       %s->_%sLength);\n",
-			    cGroupName, cSmiNodeName);
-		}
-		break;
-	    default:
-		fprintf(f,
-			"                       0);\n");
-		break;
-	    }
-	    fprintf(f, "    }\n");
-		
-	    xfree(cSmiNodeName);
-	}	    
-    }
+    fprintf(f,
+	    "    gsnmp_attr_set(s, &in, base, %u, %u, %s_attr, mask, %s);\n",
+	    groupNode->oidlen + 2, groupNode->oidlen, cGroupName, cGroupName);
 
     fprintf(f,
 	    "\n"
@@ -2674,7 +2607,7 @@ dumpStubs(SmiModule *smiModule, char *baseName)
     printStubEnumerations(f, smiModule);
     printStubIdentities(f, smiModule);
 
-    printStubUtilities(f, smiModule);
+    printStubContraints(f, smiModule);
     printStubAttributes(f, smiModule);
     printStubMethods(f, smiModule);
     
