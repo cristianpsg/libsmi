@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smidump.c,v 1.18 1999/10/01 12:46:59 strauss Exp $
  */
 
 #include <stdio.h>
@@ -53,6 +53,37 @@ static Driver driverTable[] = {
 #endif
     { NULL, NULL }
 };
+
+
+
+void *xmalloc(size_t size)
+{
+    char *m = malloc(size);
+    if (! m) {
+	fprintf(stderr, "smidump: malloc failed - running out of memory\n");
+	exit(1);
+    }
+    return m;
+}
+
+
+
+char *xstrdup(const char *s)
+{
+    char *m = strdup(s);
+    if (! m) {
+	fprintf(stderr, "smidump: strdup failed - running out of memory\n");
+	exit(1);
+    }
+    return m;
+}
+
+
+
+void xfree(void *ptr)
+{
+    free(ptr);
+}
 
 
 

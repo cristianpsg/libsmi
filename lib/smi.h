@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.46 1999/07/02 14:03:57 strauss Exp $
+ * @(#) $Id: smi.h,v 1.47 1999/09/30 08:16:45 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -396,23 +396,6 @@ extern SmiNode *smiGetParentNode(SmiNode *smiNodePtr);
 extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
-
-#if 0 /* XXX */
-extern SmiNode *smiGetFirstMemberNode(SmiNode *smiNodePtr);
-
-extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
-				     SmiNode *smiMemberNodePtr);
-
-extern SmiNode *smiGetFirstObjectNode(SmiNode *smiNotificationNodePtr);
-
-extern SmiNode *smiGetNextObjectNode(SmiNode *smiNotificationNodePtr,
-				     SmiNode *smiObjectNodePtr);
-
-extern SmiNode *smiGetFirstMandatoryNode(SmiNode *smiNodePtr);
-
-extern SmiNode *smiGetNextMandatoryNode(SmiNode *smiComplianceNodePtr,
-					SmiNode *smiMandatoryNodePtr);
-#endif
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.37 1999/06/22 10:16:48 strauss Exp $
+ * @(#) $Id: data.c,v 1.38 1999/09/30 08:16:43 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2776,27 +2776,27 @@ initData()
     objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, &parser);
 
     typeOctetStringPtr =
-	addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, NULL);
+	addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, &parser);
     typeObjectIdentifierPtr =
-	addType("ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, 0, NULL);
+	addType("ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
     typeInteger32Ptr =
-	addType("Integer32", SMI_BASETYPE_INTEGER32, 0, NULL);
+	addType("Integer32", SMI_BASETYPE_INTEGER32, 0, &parser);
     typeUnsigned32Ptr =
-	addType("Unsigned32", SMI_BASETYPE_UNSIGNED32, 0, NULL);
+	addType("Unsigned32", SMI_BASETYPE_UNSIGNED32, 0, &parser);
     typeInteger64Ptr =
-	addType("Integer64", SMI_BASETYPE_INTEGER64, 0, NULL);
+	addType("Integer64", SMI_BASETYPE_INTEGER64, 0, &parser);
     typeUnsigned64Ptr =
-	addType("Unsigned64", SMI_BASETYPE_UNSIGNED64, 0, NULL);
+	addType("Unsigned64", SMI_BASETYPE_UNSIGNED64, 0, &parser);
     typeFloat32Ptr =
-	addType("Float32", SMI_BASETYPE_FLOAT32, 0, NULL);
+	addType("Float32", SMI_BASETYPE_FLOAT32, 0, &parser);
     typeFloat64Ptr =
-	addType("Float64", SMI_BASETYPE_FLOAT64, 0, NULL);
+	addType("Float64", SMI_BASETYPE_FLOAT64, 0, &parser);
     typeFloat128Ptr =
-	addType("Float128", SMI_BASETYPE_FLOAT128, 0, NULL);
+	addType("Float128", SMI_BASETYPE_FLOAT128, 0, &parser);
     typeEnumPtr =
-	addType("Enumeration", SMI_BASETYPE_ENUM, 0, NULL);
+	addType("Enumeration", SMI_BASETYPE_ENUM, 0, &parser);
     typeBitsPtr =
-	addType("Bits", SMI_BASETYPE_BITS, 0, NULL);
+	addType("Bits", SMI_BASETYPE_BITS, 0, &parser);
 
     return (0);
 }
@@ -3152,7 +3152,8 @@ checkObjectName(modulePtr, name, parserPtr)
 	     typePtr; typePtr = typePtr->nextPtr) {
 	    /* TODO: must ignore SEQUENCE types here ... */
 	    if (! (typePtr->flags & FLAG_INCOMPLETE)
-		&& ! strcasecmp(name, typePtr->name)) {
+		&& typePtr->name
+		&& !strcasecmp(name, typePtr->name)) {
 		printError(parserPtr, ERR_CASE_REDEFINITION,
 			   name, typePtr->name);
 	    }

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.45 1999/09/30 08:16:49 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.46 1999/10/01 12:46:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -481,6 +481,9 @@ static void printImports(char *modulename)
 	importedModulename = smiImport->importmodule;
 	importedDescriptor = smiImport->importname;
 
+	if (!strlen(importedModulename))
+	    continue;
+	
 	/*
 	 * imported SMI modules have to be handled more carefully:
 	 * The module name is mapped to an SMIng module and some definitions

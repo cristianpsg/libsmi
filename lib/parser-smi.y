@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.41 1999/09/30 08:16:44 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.42 1999/10/01 12:46:55 strauss Exp $
  */
 
 %{
@@ -392,6 +392,7 @@ module:			moduleName
 			END
 			{
 			    Object *objectPtr, *object2Ptr, *parentPtr;
+			    Type *typePtr;
 			    Import *importPtr;
 
 			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
@@ -482,10 +483,12 @@ module:			moduleName
 
 			    /*
 			     * Check references to unknown identifiers.
+			     * Adjust status of implicit type definitions.
 			     */
 			    for(objectPtr = thisModulePtr->firstObjectPtr;
 				objectPtr;
 				objectPtr = objectPtr->nextPtr) {
+
 				if (objectPtr->flags & FLAG_INCOMPLETE) {
 				    if (strlen(objectPtr->name)) {
 					printErrorAtLine(thisParserPtr,
@@ -498,8 +501,35 @@ module:			moduleName
 							 objectPtr->line);
 				    }
 				}
-			    }
 
+				if (objectPtr->typePtr &&
+				    (objectPtr->typePtr->decl ==
+				     SMI_DECL_IMPLICIT_TYPE) &&
+				    (objectPtr->typePtr->status ==
+				     SMI_STATUS_UNKNOWN)) {
+				    objectPtr->typePtr->status =
+					objectPtr->status;
+				}
+			    }
+			    
+			    /*
+			     * Check references to unknown types.
+			     */
+			    for(typePtr = thisModulePtr->firstTypePtr;
+				typePtr;
+				typePtr = typePtr->nextPtr) {
+				
+				if ((typePtr->flags & FLAG_INCOMPLETE) &&
+				    typePtr->name &&
+				    (typePtr->decl == SMI_DECL_UNKNOWN)) {
+				    printErrorAtLine(thisParserPtr,
+						     ERR_UNKNOWN_TYPE,
+						     typePtr->line,
+						     typePtr->name);
+				}
+
+			    }
+				
 			    /*
 			     * Check unknown identifiers in OID DEFVALs.
 			     */
@@ -507,8 +537,10 @@ module:			moduleName
 				objectPtr;
 				objectPtr = objectPtr->nextPtr) {
 				if (objectPtr->valuePtr) {
-				    if (objectPtr->valuePtr->basetype ==
-					SMI_BASETYPE_OBJECTIDENTIFIER) {
+				    if ((objectPtr->valuePtr->basetype ==
+					 SMI_BASETYPE_OBJECTIDENTIFIER) &&
+					(objectPtr->valuePtr->format ==
+					 SMI_VALUEFORMAT_NAME)) {
 					object2Ptr =
 					    findObjectByModuleAndName(
 						thisParserPtr->modulePtr,
@@ -540,6 +572,28 @@ module:			moduleName
 					}
 					objectPtr->valuePtr->format =
 					    SMI_VALUEFORMAT_OID;
+				    } else if ((objectPtr->valuePtr->basetype ==
+						SMI_BASETYPE_OBJECTIDENTIFIER) &&
+					       (objectPtr->valuePtr->format ==
+						SMI_VALUEFORMAT_OID)) {
+					if ((objectPtr->valuePtr->len != 2) ||
+				    (objectPtr->valuePtr->value.oid[0] != 0) ||
+				    (objectPtr->valuePtr->value.oid[1] != 0)) {
+					    printErrorAtLine(thisParserPtr,
+							     ERR_ILLEGAL_OID_DEFVAL,
+							     objectPtr->line,
+							     objectPtr->name);
+					}
+					if (!findModuleByName("SNMPv2-SMI")) {
+					    loadModule("SNMPv2-SMI");
+					}
+					object2Ptr =
+					    findObjectByModulenameAndName(
+						"SNMPv2-SMI", "zeroDotZero");
+					objectPtr->valuePtr->format =
+					    SMI_VALUEFORMAT_OID;
+					objectPtr->valuePtr->value.ptr =
+					    (void *)object2Ptr;
 				    }
 				}
 			    }
@@ -975,6 +1029,12 @@ typeDeclaration:	typeName
 				    setTypeParent($4, NULL, "Unsigned32");
 				} else if (!strcmp($1, "Counter64")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED64;
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->minValuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
+					((Range *)$4->listPtr->ptr)->minValuePtr->value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->maxValuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
+					((Range *)$4->listPtr->ptr)->maxValuePtr->value.unsigned64 = 18446744073709551615;
+				    }
 				    setTypeParent($4, NULL, "Unsigned64");
 				}
 			    }
@@ -1262,13 +1322,6 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 Syntax:			ObjectSyntax
 			{
 			    $$ = $1;
-			    /*
-			     * Remember the basetype. This could be
-			     * needed if a following DEFVAL clause has
-			     * to decide whether a HEX or BIN string
-			     * is a number or an octet string.
-			     */
-			    defaultBasetype = $$->basetype;
 			}
 	|		BITS '{' NamedBits '}'
 			/* TODO: standalone `BITS' ok? seen in RMON2-MIB */
@@ -1276,6 +1329,7 @@ Syntax:			ObjectSyntax
 			{
 			    Type *typePtr;
 			    
+			    defaultBasetype = SMI_BASETYPE_BITS;
 			    typePtr = addType(NULL, SMI_BASETYPE_BITS,
 					      FLAG_INCOMPLETE,
 					      thisParserPtr);
@@ -1797,16 +1851,19 @@ ObjectSyntax:		SimpleSyntax
 			}
 	|		conceptualTable	     /* TODO: possible? row? entry? */
 			{
+			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			    /* TODO */
 			    $$ = $1;
 			}
 	|		row		     /* the uppercase name of a row  */
 			{
+			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			    /* TODO */
 			    $$ = $1;
 			}
 	|		entryType	     /* SEQUENCE { ... } phrase */
 			{
+			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			    /* TODO */
 			    $$ = $1;
 			}
@@ -1870,16 +1927,19 @@ valueofObjectSyntax:	valueofSimpleSyntax
 
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
+			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = typeInteger32Ptr;
 			}
 	|		INTEGER integerSubType
 			{
+			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeList($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
+			    defaultBasetype = SMI_BASETYPE_ENUM;
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, NULL, "Enumeration");
@@ -1890,6 +1950,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Import *importPtr;
 
+			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    importPtr = findImportByName("Integer32",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -1903,6 +1964,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Import *importPtr;
 
+			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    importPtr = findImportByName("Integer32",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -1919,6 +1981,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
+			    defaultBasetype = SMI_BASETYPE_ENUM;
 			    parentPtr = findTypeByModuleAndName(
 			        thisParserPtr->modulePtr, $1);
 			    if (!parentPtr) {
@@ -1969,6 +2032,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
+			    defaultBasetype = SMI_BASETYPE_ENUM;
 			    parentPtr = findTypeByModulenameAndName($1, $3);
 			    if (!parentPtr) {
 				importPtr = findImportByModulenameAndName($1,
@@ -2024,6 +2088,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeParent($$,
 					        thisParserPtr->modulePtr->name,
 						  parentPtr->name);
+				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				} else {
 				    /*
 				     * imported type.
@@ -2036,8 +2101,10 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
+				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				}
 			    } else {
+				defaultBasetype = parentPtr->basetype;
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
@@ -2059,6 +2126,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				importPtr = findImportByModulenameAndName($1,
 							  $3, thisModulePtr);
 				if (!importPtr) {
+				    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 				    printError(thisParserPtr,
 					       ERR_UNKNOWN_TYPE, $3);
 				    $$ = NULL;
@@ -2074,8 +2142,10 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
+				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				}
 			    } else {
+				defaultBasetype = parentPtr->basetype;
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
@@ -2085,10 +2155,12 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
+			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    $$ = typeOctetStringPtr;
 			}
 	|		OCTET STRING octetStringSubType
 			{
+			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
@@ -2101,6 +2173,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
+			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    parentPtr = findTypeByModuleAndName(
 				thisParserPtr->modulePtr, $1);
 			    if (!parentPtr) {
@@ -2151,6 +2224,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
+			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    parentPtr = findTypeByModulenameAndName($1, $3);
 			    if (!parentPtr) {
 				importPtr = findImportByModulenameAndName($1,
@@ -2181,6 +2255,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		OBJECT IDENTIFIER
 			{
+			    defaultBasetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 			    $$ = typeObjectIdentifierPtr;
 			}
         ;
@@ -2565,7 +2640,6 @@ value:			'-' number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    printf("[[XXX %d %s]]", defaultBasetype, $2); /* XXXXX */
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
@@ -2575,7 +2649,6 @@ value:			'-' number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    printf("[[XXX %d ]]", defaultBasetype); /* XXXXX */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
 			    $$->format = SMI_VALUEFORMAT_NATIVE;
@@ -3741,24 +3814,63 @@ Compliances:		Compliance
 	|		Compliances Compliance
 			{
 			    List *listPtr;
+			    int stop;
 			    
-			    $1.mandatorylistPtr = NULL;
+			    $$.mandatorylistPtr = NULL;
 
-			    /* concatenate lists in $1 and $2 */
+			    /* check for duplicated in optionlist */
+			    stop = 0;
+			    if ($2.optionlistPtr) {
+				for (listPtr = $1.optionlistPtr; listPtr;
+				     listPtr = listPtr->nextPtr) {
+				    if (((Refinement *)listPtr->ptr)->objectPtr ==
+					((Refinement *)$2.optionlistPtr->ptr)->objectPtr) {
+					printError(thisParserPtr,
+						   ERR_OPTIONALGROUP_ALREADY_EXISTS,
+						   ((Refinement *)$2.optionlistPtr->ptr)->objectPtr->name);
+					stop = 1;
+					$$.optionlistPtr = $1.optionlistPtr;
+				    }
+				}
+			    }
+	
+                            /* concatenate optionlists */
 			    if ($1.optionlistPtr) {
 				for (listPtr = $1.optionlistPtr;
 				     listPtr->nextPtr;
 				     listPtr = listPtr->nextPtr);
-				listPtr->nextPtr = $2.optionlistPtr;
+				if (!stop) {
+				    listPtr->nextPtr = $2.optionlistPtr;
+				}
 				$$.optionlistPtr = $1.optionlistPtr;
 			    } else {
 				$$.optionlistPtr = $2.optionlistPtr;
 			    }
+
+			    /* check for duplicated in refinementlist */
+			    stop = 0;
+			    if ($2.refinementlistPtr) {
+				for (listPtr = $1.refinementlistPtr; listPtr;
+				     listPtr = listPtr->nextPtr) {
+				    if (((Refinement *)listPtr->ptr)->objectPtr ==
+					((Refinement *)$2.refinementlistPtr->ptr)->objectPtr) {
+					printError(thisParserPtr,
+						   ERR_REFINEMENT_ALREADY_EXISTS,
+						   ((Refinement *)$2.refinementlistPtr->ptr)->objectPtr->name);
+					stop = 1;
+					$$.refinementlistPtr = $1.refinementlistPtr;
+				    }
+				}
+			    }
+			    
+                            /* concatenate refinementlists */
 			    if ($1.refinementlistPtr) {
 				for (listPtr = $1.refinementlistPtr;
 				     listPtr->nextPtr;
 				     listPtr = listPtr->nextPtr);
-				listPtr->nextPtr = $2.refinementlistPtr;
+				if (!stop) {
+				    listPtr->nextPtr = $2.refinementlistPtr;
+				}
 				$$.refinementlistPtr = $1.refinementlistPtr;
 			    } else {
 				$$.refinementlistPtr = $2.refinementlistPtr;

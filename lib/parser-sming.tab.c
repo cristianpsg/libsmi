@@ -1913,7 +1913,7 @@ case 23:
 #line 691 "parser-sming.y"
 {
 			    if (typePtr && yyvsp[0].text) {
-                                if (!checkFormat(defaultBasetype, yyvsp[0].text)) {
+                                if (!checkFormat(typePtr->basetype, yyvsp[0].text)) {
 				    printError(thisParserPtr,
 					       ERR_INVALID_FORMAT, yyvsp[0].text);
 				}
