@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.120 2003/10/02 11:57:41 strauss Exp $
+ * @(#) $Id: data.c,v 1.121 2004/03/13 22:21:32 schoenw Exp $
  */
 
 #include <config.h>
@@ -3640,9 +3640,13 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
     Parser	    parser;
     char	    *path = NULL, *dir, *smipath;
     int		    sming = 0;
-    int             c;
+    int             c, i;
     FILE	    *file;
     char	    sep[2];
+
+    static const char *ext[] = {
+	"", ".my", ".smiv1", ".smiv2", ".sming", ".mib", ".txt", NULL
+    };
     
     if ((!modulename) || !strlen(modulename)) {
 	return NULL;
@@ -3660,36 +3664,34 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	sep[0] = PATH_SEPARATOR; sep[1] = 0;
 	for (dir = strtok(smipath, sep);
 	     dir; dir = strtok(NULL, sep)) {
-	    smiAsprintf(&path, "%s%c%s", dir, DIR_SEPARATOR, modulename);
-	    if (! access(path, R_OK)) {
-		break;
+	    for (i = 0; ext[i]; i++) {
+		smiAsprintf(&path, "%s%c%s%s", dir, DIR_SEPARATOR,
+			    modulename, ext[i]);
+		fprintf(stderr, "** trying <%s>\n", path);
+		if (! access(path, R_OK)) {
+		    break;
+		}
+		smiFree(path);
 	    }
-	    smiFree(path);
-	    smiAsprintf(&path, "%s%c%s.my", dir, DIR_SEPARATOR, modulename);
-	    if (! access(path, R_OK)) {
-		break;
+	    if (ext[i]) break;
+	    {
+		char *newmodulename = smiStrdup(modulename);
+		for (i = 0; newmodulename[i]; i++) {
+		    newmodulename[i] = tolower(newmodulename[i]);
+		}
+		for (i = 0; ext[i]; i++) {
+		    smiAsprintf(&path, "%s%c%s%s", dir, DIR_SEPARATOR,
+				newmodulename, ext[i]);
+		    fprintf(stderr, "** trying <%s>\n", path);
+		    if (! access(path, R_OK)) {
+			break;
+		    }
+		    smiFree(path);
+		}
+		smiFree(newmodulename);
+		if (ext[i]) break;
 	    }
-	    smiFree(path);
-	    smiAsprintf(&path, "%s%c%s.smiv2", dir, DIR_SEPARATOR, modulename);
-	    if (! access(path, R_OK)) {
-		break;
-	    }
-	    smiFree(path);
-	    smiAsprintf(&path, "%s%c%s.sming", dir, DIR_SEPARATOR, modulename);
-	    if (! access(path, R_OK)) {
-		break;
-	    }
-	    smiFree(path);
-	    smiAsprintf(&path, "%s%c%s.mib", dir, DIR_SEPARATOR, modulename);
-	    if (! access(path, R_OK)) {
-		break;
-	    }
-	    smiFree(path);
-	    smiAsprintf(&path, "%s%c%s.txt", dir, DIR_SEPARATOR, modulename);
-	    if (! access(path, R_OK)) {
-		break;
-	    }
-	    smiFree(path);
+	    
 	    path = NULL;
 	}
 	smiFree(smipath);
