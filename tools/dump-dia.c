@@ -8,20 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-dia.c,v 1.3 2000/02/17 09:00:54 strauss Exp $
+ * @(#) $Id: dump-dia.c,v 1.4 2000/02/22 17:11:14 strauss Exp $
  */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <string.h>
-#include <strings.h>
-#include <errno.h>
-#include <stdarg.h>
 
 #include "smi.h"
 #include "smidump.h"

@@ -8,22 +8,15 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.7 2000/03/31 07:58:18 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.8 2000/04/06 13:39:28 strauss Exp $
  */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <string.h>
-#include <strings.h>
-#include <errno.h>
 #include <ctype.h>
-#include <stdarg.h>
-#include <time.h>
 
 #include "smi.h"
 #include "smidump.h"

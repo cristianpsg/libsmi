@@ -9,13 +9,12 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.33 2000/03/21 11:26:36 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.34 2000/04/06 13:37:27 strauss Exp $
  */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

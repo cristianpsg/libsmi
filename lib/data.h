@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.57 2000/03/02 09:22:29 strauss Exp $
+ * @(#) $Id: data.h,v 1.58 2000/03/21 08:37:31 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -488,7 +488,7 @@ extern Type *findTypeByModulenameAndName(const char *modulename,
 
 
 extern Macro *addMacro(const char *macroname,
-		       int flags,
+		       MacroFlags flags,
 		       Parser *parserPtr);
 
 extern void setMacroStatus(Macro *macroPtr,
