@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.110 2000/06/08 09:36:14 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.111 2000/06/08 14:47:13 strauss Exp $
  */
 
 %{
@@ -1423,6 +1423,7 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    $$ = 0;
 			}
 	;
@@ -1908,6 +1909,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8, thisParserPtr);
 			    if ($9) {
@@ -1967,6 +1969,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    setObjectType(objectPtr, $6);
 			    if (!($6->export.name)) {
 				/*
@@ -2120,6 +2123,7 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_TRAPTYPE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, $7);
@@ -2235,6 +2239,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, $5);
@@ -2300,6 +2305,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    setObjectStatus(objectPtr, SMI_STATUS_CURRENT);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -4174,6 +4180,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
@@ -4227,6 +4234,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
@@ -4284,6 +4292,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
@@ -4734,6 +4743,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $8);
