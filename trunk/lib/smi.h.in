@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.20 2000/07/17 09:34:48 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.21 2000/10/19 16:14:44 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -295,7 +295,7 @@ extern char *smiLoadModule(const char *module);
 extern int smiIsLoaded(const char *module);
 
 
-typedef void (SmiErrorHandler) (char *path, int line, int severity, char *msg);
+typedef void (SmiErrorHandler) (char *path, int line, int severity, char *msg, char *tag);
 
 extern void smiSetErrorHandler(SmiErrorHandler smiErrorHandler);
 

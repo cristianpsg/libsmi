@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.51 2000/10/19 16:14:40 strauss Exp $
+ * @(#) $Id: error.c,v 1.52 2000/10/20 09:23:58 strauss Exp $
  */
 
 #include <config.h>
@@ -38,7 +38,7 @@ int smiErrorLevel;		/* Higher levels produce more warnings */
  * in case the library is embedded into other programs.
  */
 
-static void smiErrorHandler(char *path, int line, int severity, char *msg);
+static void smiErrorHandler(char *path, int line, int severity, char *msg, char *tag);
 static SmiErrorHandler *handler = smiErrorHandler;
 
 
@@ -528,7 +528,7 @@ smiGetErrorMsg(int id)
  */
 
 static void
-smiErrorHandler(char *path, int line, int severity, char *msg)
+smiErrorHandler(char *path, int line, int severity, char *msg, char *tag)
 {
     if (path) {
 	fprintf(stderr, "%s:%d: ", path, line);
@@ -576,7 +576,7 @@ printError(Parser *parser, int id, int line, va_list ap)
 #else
 	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
 #endif
-	    (handler) (parser->path, line, errors[id].level, buffer);
+	    (handler) (parser->path, line, errors[id].level, buffer, errors[id].tag);
 	}
     } else {
 	if (errors[id].level <= smiErrorLevel) {
@@ -585,7 +585,7 @@ printError(Parser *parser, int id, int line, va_list ap)
 #else
 	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
 #endif
-	    (handler) (NULL, 0, errors[id].level, buffer);
+	    (handler) (NULL, 0, errors[id].level, buffer, errors[id].tag);
 	}
     }
 

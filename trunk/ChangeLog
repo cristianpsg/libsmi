@@ -1,3 +1,9 @@
+2000-21-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/error.c: Added a fourth arg to the error handler representing
+	the error name. This has been wished and contributed by Bill Fenner.
+	Note that this changed the API slightly.
+
 2000-20-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/check.c: Fixed index length checks for OCTET STRINGs,
