@@ -1,0 +1,54 @@
+
+LIBSMI -- A LIBRARY FOR SMI MANAGEMENT INFORMATION
+==================================================
+
+Part of Frank Strauss' master's thesis at the
+Technical University, Braunschweig, Germany.
+
+(C) 1999 Frank Strauss, TU Braunschweig, Germany.
+
+
+MANIFEST
+========
+
+README					this File
+Makefile				Makefile to build and install libsmi
+lib/					library source code
+tools/					tools' source code
+etc/					libsmi and tools' configuration files
+doc/draft-irtf-nmrg-sming-00.txt	SMIng specification
+doc/sming.abnf				SMIng ABNF grammar
+doc/IRTF-NMRG-SMING*			SMIng modules from SMIng specification
+doc/*.3					libsmi man pages
+doc/*.1					tools' man pages
+mibs/smi/				SMIv1/v2 modules to be installed
+mibs/sming/				SMIng modules to be installed
+
+
+INSTALLATION
+============
+
+Requirements: gcc, flex, bison, and other things most UNIX systems
+have on board. The compiler has to support `long long' types. Bison
+1.27 is ok. Older versions have a problem with reentrant parsers,
+which is used by libsmi. Anyhow, a slight hack in the Makefile should
+make at least bison 1.25 work for libsmi.
+
+Sorry, libsmi does not yet have autoconf support.
+
+After checking the Makefile for local requirements, type `make'. This
+should build the static library lib/libsmi.a and the tools, namely
+tools/smilint, tools/smidump, and tools/smiquery. If you wish to
+install it, type `make install'.
+
+
+FURTHER READING
+===============
+
+Read the man pages for library concepts and usage and for the tools.
+Read the SMIng specification for details on SMIng. You may find further
+information online at http://www.ibr.cs.tu-bs.de/~strauss/sming/. If
+this fails, contact me, <strauss@ibr.cs.tu-bs.de>.
+
+
+	Frank Strauss, 06-05-1999
