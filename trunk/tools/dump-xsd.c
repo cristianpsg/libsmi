@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.40 2002/07/24 17:45:13 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.41 2002/07/25 18:17:38 tklie Exp $
  */
 
 #include <config.h>
@@ -320,6 +320,10 @@ static char* getStrDHType( char *hint,
     unsigned int i = 0;
     char *ret = NULL;
 
+    if( ! hint ) {
+	return NULL;
+    }
+
     do {
 	unsigned int pos = 0, intNum = 0;
 	int repeat = 0; /* xxx not yet implemented */
@@ -531,6 +535,17 @@ static char* getStrDHType( char *hint,
     return ret;
 }
 
+static int
+dhInParent( SmiType *smiType ) {
+    SmiType *parent = smiGetParentType( smiType );
+
+    if( smiType->format && parent->format ) {
+	return ! strcmp( smiType->format, parent->format );
+    }
+    return 0;
+   
+}
+
 
 
 static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
@@ -591,7 +606,12 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    numSubRanges++;
 	}
 
-	if( smiType->format && smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	
+
+	if( smiType->format &&
+	    ( smiType->decl == SMI_DECL_IMPLICIT_TYPE ||
+	      smiType->decl == SMI_DECL_TEXTUALCONVENTION ) &&
+	    ! dhInParent( smiType ) ) {
 	    /*
 	    fprintStringUnion( f, indent, smiType,
 			       minLength, maxLength, 0, NULL );
@@ -1020,13 +1040,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	}
 	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
-	    if( smiType->name ) {
-		    fprintf( f, " name=\"%s\"", smiType->name );
-	    }
-	    else {
-		fprintf( f, " name=\"%sType\"", name );
-	    }
-	    fprintf( f, ">\n" );
+	    fprintf( f, " name=\"%sType\">\n", name );
 	}
 	else {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
@@ -1298,6 +1312,22 @@ static int getIntDHType( char *hint, int *offset )
     }
 }
 
+static char
+*getParentDisplayHint( SmiType *smiType )
+{
+    SmiType *iterType;
+
+    for( iterType = smiGetParentType( smiType );
+	 iterType;
+	 iterType = smiGetParentType( iterType ) ) {
+	if( iterType->format ) {
+	    return iterType->format;
+	}	
+    }
+    return NULL;
+}
+    
+
 
 
 static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
@@ -1401,26 +1431,40 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	    
 	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+
+		char *hint = getParentDisplayHint( smiType );
+
 		fprintf( f, " minOccurs=\"0\">\n" );
-		fprintTypedef( f, indent + INDENT, smiType, NULL );
-#if 0		
-		unsigned int numSubRanges = getNumSubRanges( smiType ), lp = 0;
-		SmiRange *smiRange;
-		SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
-		
-		/* write subtype lengths to the array */
-		for( smiRange = smiGetFirstRange( smiType );
-		     smiRange;
-		     smiRange = smiGetNextRange( smiRange ) ) {
-		    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
-		    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+		if( ! hint ) {
+		    fprintTypedef( f, indent + INDENT, smiType, NULL );
 		}
-		fprintf( f, "<!-- DH regexp: %s -->\n",
-			 getStrDHType( smiType->format,
-				       lengths,
-				       numSubRanges ) );
-		xfree( lengths );
-#endif /* 0 */
+		else {
+		    unsigned int numSubRanges = getNumSubRanges( smiType ),
+			lp = 0;
+		    SmiRange *smiRange;
+		    SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
+		    
+		    /* write subtype lengths to the array */
+		    for( smiRange = smiGetFirstRange( smiType );
+			 smiRange;
+			 smiRange = smiGetNextRange( smiRange ) ) {
+			lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+			lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+		    }
+		    fprintSegment( f, indent + INDENT,
+				   "<xsd:simpleType>\n", 0 );
+		    fprintSegment( f, indent + 2 * INDENT,
+				   "<xsd:restriction base=\"xsd:string\">\n",
+				   0 );
+		    fprintSegment( f, indent + 3* INDENT, "<xsd:pattern " , 0);
+		    fprintf( f, "value=\"%s\"/>\n",
+			     getStrDHType( hint, lengths, numSubRanges ) );
+		    fprintSegment( f, indent + 2 * INDENT,
+				   "</xsd:restriction>\n", 0 );
+		    fprintSegment( f, indent + INDENT,
+				   "</xsd:simpleType>\n", 0 );
+		    xfree( lengths );
+		}
 	    }
 
 	    else {
@@ -1432,12 +1476,7 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 		    fprintf( f, " type=\"%s\" minOccurs=\"0\">\n",
 			     typeName );
 		}
-	    }
-	    
-	    if( smiNode->format ) {
-		fprintf( f, "<!-- DH (node): %s -->\n", smiNode->format );
-	    }
-	    
+	    }	   	   
 
 	    fprintAnnotationElem( f, indent + INDENT, smiNode );
 #if 0
