@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.11 1999/05/04 09:28:03 strauss Exp $
+ * @(#) $Id: smi.h,v 1.12 1999/05/04 13:33:16 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -260,18 +260,17 @@ extern char *smiStringDecl(SmiDecl macro);
 
 extern char *smiStringBasetype(SmiBasetype basetype);
 
+extern char *smiModule(char *fullname);
+
+extern char *smiDescriptor(char *fullname);
+
 extern time_t smiMkTime(const char *s);
 
 extern char *smiCTime(time_t t);
 
 extern char *smingCTime(time_t t);
 
-extern char *smiModule(char *fullname);
 
-extern char *smiDescriptor(char *fullname);
-
-extern int smiIsImported(char *modulename,
-                         char *fullname);
 
 extern void smiInit();
 
@@ -295,12 +294,11 @@ extern SmiModule *smiGetModule(char *spec);
 
 extern void smiFreeModule(SmiModule *smiModulePtr);
 
-
-
 extern char **smiGetImports(char *spec,
                             char *mod);
 
-
+extern int smiIsImported(char *modulename,
+                         char *fullname);
 
 extern SmiRevision *smiGetFirstRevision(char *modulename);
 
@@ -341,9 +339,6 @@ extern SmiNode *smiGetNextNode(char *modulename,
 extern void smiFreeNode(SmiNode *smiNodePtr);
 
 
-
-extern char **smiGetMandatoryGroups(char *spec,
-                                    char *mod);
 
 extern char **smiGetNames(char *spec,
                           char *mod);
