@@ -1879,10 +1879,10 @@ static void algCreateNodes(SmiModule *module)
 /*
  * Prints the footer of the SVG output file.
  */
-static void printSVGClose()
+static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 {
-    printf(" <rect x=\"0\" y=\"0\" width=\"%i\" height=\"%i\"\n",
-           CANVASWIDTH, CANVASHEIGHT);
+    printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
+           xMin, yMin, xMax-xMin-1, yMax-yMin-1);
     printf("       fill=\"none\" stroke=\"blue\" stroke-width=\"1\"/>\n");
     printf("</svg>\n");
 
@@ -2585,7 +2585,9 @@ static void printSVGConnection(GraphEdge *tEdge)
  * Print title somewhere into the SVG.
  * Make size of SVG configurable.
  */
-static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
+static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
+				   float xMin, float yMin,
+				   float xMax, float yMax)
 {
     size_t  length1;
     char   *note1;
@@ -2636,8 +2638,9 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
     printf("<?xml version=\"1.0\"?>\n");
     printf("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n");
     printf("  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
-    printf("<svg width=\"%i\" height=\"%i\" version=\"1.1\"\n",
-           CANVASWIDTH, CANVASHEIGHT);
+    printf("<svg width=\"%i\" height=\"%i\" viewBox=\"%.2f %.2f %.2f %.2f\"\n",
+           CANVASWIDTH, CANVASHEIGHT, xMin, yMin, xMax-xMin, yMax-yMin);
+    printf("     version=\"1.1\"\n");
     printf("     xmlns=\"http://www.w3.org/2000/svg\"\n");
     printf("     onload=\"init(evt)\">\n");
 
@@ -2651,7 +2654,6 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
     printf("}\n\n");
     printf("function enlarge(classNr) {\n");
     printf("    var obj = svgDocument.getElementById(classNr);\n");
-    //FIXME +0.1 or *1.1 ??? *1.1 seems to work better.
     printf("    scalFac[classNr] = scalFac[classNr] * 1.1;\n");
     printf("    obj.setAttribute(\"transform\",");
     printf("\"scale(\"+scalFac[classNr]+\")\");\n");
@@ -2699,8 +2701,8 @@ static GraphNode *diaCalcSize(GraphNode *node)
     node->dia.y = (float) rand();
     node->dia.x /= (float) RAND_MAX;
     node->dia.y /= (float) RAND_MAX;
-    node->dia.x *= (float) CANVASWIDTH;
-    node->dia.y *= (float) CANVASHEIGHT;
+    //node->dia.x *= (float) CANVASWIDTH;
+    //node->dia.y *= (float) CANVASHEIGHT;
     //fprintf(stderr, "(%.2f,%.2f)\n", node->dia.x, node->dia.y);
     node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
@@ -2813,8 +2815,8 @@ static void calcGroupSize(int group)
     calcNode->dia.y = (float) rand();
     calcNode->dia.x /= (float) RAND_MAX;
     calcNode->dia.y /= (float) RAND_MAX;
-    calcNode->dia.x *= (float) CANVASWIDTH;
-    calcNode->dia.y *= (float) CANVASHEIGHT;
+    //calcNode->dia.x *= (float) CANVASWIDTH;
+    //calcNode->dia.y *= (float) CANVASHEIGHT;
     //fprintf(stderr, "(%.2f,%.2f)\n", calcNode->dia.x, calcNode->dia.y);
     calcNode->dia.w = strlen(calcNode->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
@@ -2852,6 +2854,10 @@ static float fa(float d, float k)
  * Input: Graph with known width and height of nodes.
  * Output: Coordinates (x,y) for the nodes.
  * Only the nodes and edges with use==1 are considered.
+ *
+ * TODO erst Springembedder, dann Flaeche rausfinden
+ * Kraefte in x- bzw. y-Richtung verschieden gewichten: aspect-ratio?
+ * Zusammenhangskomponenten einzeln betrachten
  */
 static void layoutGraph(int nodecount, int overlap, int limit_frame)
 {
@@ -2860,9 +2866,11 @@ static void layoutGraph(int nodecount, int overlap, int limit_frame)
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
-    area = CANVASHEIGHT * CANVASWIDTH;
-    k = (float) (c*sqrt(area/nodecount));
-    t = CANVASWIDTH/10;
+    //area = CANVASHEIGHT * CANVASWIDTH;
+    //k = (float) (c*sqrt(area/nodecount));
+    //t = CANVASWIDTH/10;
+    k = 200;
+    t = 100;
 
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
@@ -2911,12 +2919,14 @@ static void layoutGraph(int nodecount, int overlap, int limit_frame)
 				    + vNode->dia.yDisp*vNode->dia.yDisp));
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
 	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
+	    /*
 	    if (limit_frame) {
 		vNode->dia.x = min(CANVASWIDTH - STARTSCALE*vNode->dia.w/2,
 				  max(STARTSCALE*vNode->dia.w/2, vNode->dia.x));
 		vNode->dia.y = min(CANVASHEIGHT - STARTSCALE*vNode->dia.h/2,
 				  max(STARTSCALE*vNode->dia.h/2, vNode->dia.y));
 	    }
+	    */
 	}
 	//reduce the temperature as the layout approaches a better configuration
 	t *= 0.9;
@@ -2934,6 +2944,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphNode *tNode;
     GraphEdge *tEdge;
     int       group, nodecount = 0, classNr = 0;
+    float     xMin = 0, yMin = 0, xMax = 0, yMax = 0;
 
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (tEdge->connection != GRAPH_CON_UNKNOWN
@@ -2957,16 +2968,26 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     layoutGraph(nodecount, 0, 0);
-    layoutGraph(nodecount, 1, 1);
+    layoutGraph(nodecount, 1, 0);
+    //layoutGraph(nodecount, 1, 1);
 
-    //FIXME remove this
+    //FIXME move this into a function?
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
 	fprintf(stderr, "(%.2f,%.2f)\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group);
+	if (tNode->dia.x - STARTSCALE*tNode->dia.w/2 < xMin)
+	    xMin = tNode->dia.x - STARTSCALE*tNode->dia.w/2;
+	if (tNode->dia.x + STARTSCALE*tNode->dia.w/2 > xMax)
+	    xMax = tNode->dia.x + STARTSCALE*tNode->dia.w/2;
+	if (tNode->dia.y - STARTSCALE*tNode->dia.h/2 < yMin)
+	    yMin = tNode->dia.y - STARTSCALE*tNode->dia.h/2;
+	if (tNode->dia.y + STARTSCALE*tNode->dia.h/2 > yMax)
+	    yMax = tNode->dia.y + STARTSCALE*tNode->dia.h/2;
     }
+    fprintf(stderr, "%.2f %.2f %.2f %.2f\n", xMin, yMin, xMax, yMax);
 
-    printSVGHeaderAndTitle(modc, modv, nodecount);
+    printSVGHeaderAndTitle(modc, modv, nodecount, xMin, yMin, xMax, yMax);
     
     //print the nodes
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
@@ -2992,7 +3013,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	printf("       fill=\"none\" stroke=\"black\"/>\n");
     }
 
-    printSVGClose();
+    printSVGClose(xMin, yMin, xMax, yMax);
 }
 
 
