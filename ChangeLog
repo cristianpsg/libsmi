@@ -7,6 +7,9 @@
 	* smi/util.c: Fixed type derivation checks used for TDomain/TAddress
 	and InetAddressType/InetAddress checks.
 
+	* tools/dump-xml.c: Added switches to turn DOCTYPE and XML Schema
+	specs off.
+
 2002-01-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/CIRCUIT-IF-MIB: added (RFC 3201).
