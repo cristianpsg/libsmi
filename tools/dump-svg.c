@@ -2970,8 +2970,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    && tEdge->endNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
 	    && tEdge->startNode != tEdge->endNode) {
 	    tEdge->use = 1;
-	    (tEdge->startNode->degree)++;
-	    (tEdge->endNode->degree)++;
+	    tEdge->startNode->degree++;
+	    tEdge->endNode->degree++;
 	}
     }
 
@@ -3005,6 +3005,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     //layoutGraph(nodecount, 1, 1);
 
     //FIXME move this into a function?
+    fprintf(stderr, "group\tdegree\tcluster\tposition\n");
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
