@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.18 1999/03/30 22:27:28 strauss Exp $
+# @(#) $Id: Makefile,v 1.19 1999/03/31 17:24:21 strauss Exp $
 #
 
 MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
@@ -79,7 +79,7 @@ tools/smiquery: $(LIBSMI_STATIC) tools/smiquery.o
 	$(LD) $(LDFLAGS) -o tools/smiquery tools/smiquery.o $(LIBSMI_STATIC) -lnsl
 
 clean:
-	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/scanner-sming.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c lib/smi-rpc_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser-smi.y.html test/*.log
+	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/scanner-sming.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c lib/smi-rpc_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser-smi.y.html test/*.log doc/yacc2html.o doc/yacc2html.c doc/scanner-sming.l.html
 
 install: install-prg install-conf install-dev install-lib install-html
 
@@ -100,14 +100,33 @@ install-lib:
 	if [ ! -d ${PREFIX}/lib/smi/mibs ] ; then mkdir ${PREFIX}/lib/smi/mibs ; fi
 	cp mibs/SNMP* mibs/RFC* ${PREFIX}/lib/smi/mibs
 
-install-html: doc/parser-smi.y.html
+install-html: doc/parser-smi.y.html doc/parser-sming.y.html doc/scanner-sming.l.html
+	cp doc/parser-smi.y.html ../www
+	cp doc/parser-sming.y.html ../www
+	cp doc/scanner-sming.l.html ../www
 #	if [ -d /usr/home/strauss/WWW/sming ] ; then \
 #		cp doc/parser-smi.y.html /usr/home/strauss/WWW/sming ; \
 #	fi
 
-doc/parser-smi.y.html: lib/parser-smi.y
-#	make -C src parser-smi.y.html
+doc/parser-smi.y.html: lib/parser-smi.y doc/yacc2html
+	echo "<HTML><HEAD><TITLE>parser-smi.y</TITLE></HEAD><BODY><PRE>" > doc/parser-smi.y.html
+	cat lib/parser-smi.y | sed -n -e '/%%/,/%%/p' | doc/yacc2html >> doc/parser-smi.y.html
+	echo "</PRE></BODY></HTML>" >> doc/parser-smi.y.html
 
+doc/parser-sming.y.html: lib/parser-sming.y doc/yacc2html
+	echo "<HTML><HEAD><TITLE>parser-sming.y</TITLE></HEAD><BODY><PRE>" > doc/parser-sming.y.html
+	cat lib/parser-sming.y | sed -n -e '/%%/,/%%/p' | doc/yacc2html >> doc/parser-sming.y.html
+	echo "</PRE></BODY></HTML>" >> doc/parser-sming.y.html
+
+doc/scanner-sming.l.html: lib/scanner-sming.l
+	echo "<HTML><HEAD><TITLE>scanner-sming.l</TITLE></HEAD><BODY><PRE>" > doc/scanner-sming.l.html
+	cat lib/scanner-sming.l | sed -n -e '/%\}/,$$ p' >> doc/scanner-sming.l.html
+	echo "</PRE></BODY></HTML>" >> doc/scanner-sming.l.html
+
+doc/yacc2html.c: doc/yacc2html.l
+	$(FLEX) -t doc/yacc2html.l > doc/yacc2html.c
+
+doc/yacc2html: doc/yacc2html.o
 
 test: test-smilint test-smidump-sming
 

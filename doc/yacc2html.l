@@ -8,8 +8,11 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: yacc2html.l,v 1.1 1999/03/11 17:33:56 strauss Exp $
+ * @(#) $Id: yacc2html.l,v 1.1 1999/03/26 17:06:40 strauss Exp $
  */
+
+%option main
+%option noyywrap
 
 %{
     
