@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.20 1999/06/08 20:16:09 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.21 1999/06/10 11:17:00 strauss Exp $
  */
 
 %{
@@ -2874,7 +2874,10 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-				$$->value.oid = util_strdup($1);
+				/* TODO */
+				$$->value.oidlen = 2;
+				$$->value.oid[0] = 0;
+				$$->value.oid[1] = 0;
 				break;
 			    default:
 				printError(thisParserPtr,
@@ -3017,7 +3020,7 @@ objectIdentifier:	qlcIdentifier_subid dot_subid_0127
 			    if (oid) {
 				nodePtr = findNodeByOidString(oid);
 				if (!nodePtr) {
-				    nodePtr = createNodes(oid);
+				    nodePtr = createNodesByOidString(oid);
 				}
 				$$ = nodePtr;
 			    } else {

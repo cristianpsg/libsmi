@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.40 1999/06/08 20:39:28 strauss Exp $
+ * @(#) $Id: smi.c,v 1.41 1999/06/09 19:43:31 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -85,29 +85,6 @@ int allowsRanges(SmiBasetype basetype)
 
 
 
-char *getOid(Node *n)
-{
-    char o[SMI_MAX_OID+1+1];
-    SmiSubid a[128];
-    int i, l;
-
-    for (i = 0; n && (n != rootNodePtr); n = n->parentPtr) {
-	a[i++] = n->subid;
-    }
-    if (!n) {
-	/* strip off heading `0.0' if in pending tree */
-	i -= 1;
-	strcpy(o, "<unknown>.");
-    } else {
-	strcpy(o, "");
-    }
-    for (l = strlen(o); i > 0; l += sprintf(&o[l], "%d.", a[--i]));
-    o[l-1] = 0;
-    return util_strdup(o);
-}
-
-
-
 void getModulenameAndName(char *arg1, char *arg2,
 			  char **module, char **name)
 {
@@ -175,22 +152,15 @@ void getModulenameAndName(char *arg1, char *arg2,
 
 
 
-Node *getNode(char *oid)
+Node *getNode(unsigned int oidlen, SmiSubid oid[])
 {
-    char	    *elements, *element;
-    SmiSubid	    subid;
-    Node            *nodePtr;
-    
-    elements = util_strdup(oid);
-    element = strtok(elements, ".");
-    nodePtr = rootNodePtr;
-    while (element) {
-	subid = (unsigned int)strtoul(element, NULL, 0);
-	nodePtr = findNodeByParentAndSubid(nodePtr, subid);
+    Node *nodePtr;
+    unsigned int i;
+
+    for(nodePtr = rootNodePtr, i=0; i < oidlen; i++) {
+	nodePtr = findNodeByParentAndSubid(nodePtr, oid[i]);
 	if (!nodePtr) break;
-	element = strtok(NULL, ".");
     }
-    free(elements);
     
     return nodePtr;
 }
@@ -201,12 +171,19 @@ Object *getObject(char *module, char *name)
 {
     Object	    *objectPtr = NULL;
     Node	    *nodePtr;
+    SmiSubid	    oid[128];
+    unsigned int    oidlen;
+    char	    *p;
     
     if (isdigit((int)name[0])) {
 	/*
 	 * name in `1.3.0x6.1...' form.
 	 */
-	nodePtr = getNode(name);
+	for (oidlen = 0, p = strtok(name, ". "); p && (oidlen < 128);
+	     oidlen++, p = strtok(NULL, ". ")) {
+	    oid[oidlen] = strtoul(p, NULL, 0);
+	}
+	nodePtr = getNode(oidlen, oid);
 	if (nodePtr) {
 	    if (module) {
 		objectPtr = findObjectByModulenameAndNode(module, nodePtr);
@@ -226,7 +203,8 @@ Object *getObject(char *module, char *name)
 
 
 
-Object *getNextChildObject(Node *startNodePtr, Module *modulePtr, SmiDecl decl)
+Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
+			   SmiNodekind nodekind)
 {
     Node   *nodePtr;
     Object *objectPtr = NULL;
@@ -239,13 +217,14 @@ Object *getNextChildObject(Node *startNodePtr, Module *modulePtr, SmiDecl decl)
 	     objectPtr = objectPtr->nextSameNodePtr) {
 	    if (((!modulePtr) || (objectPtr->modulePtr == modulePtr)) &&
 		(!(objectPtr->flags & FLAG_IMPORTED)) &&
-		((decl == SMI_DECL_UNKNOWN) || (decl == objectPtr->decl))) {
+		((nodekind == SMI_NODEKIND_UNKNOWN) ||
+		 (nodekind == objectPtr->nodekind))) {
 		break;
 	    }
 	}
 	if (objectPtr) break;
 	objectPtr = getNextChildObject(nodePtr->firstChildPtr,
-				       modulePtr, decl);
+				       modulePtr, nodekind);
 	if (objectPtr) break;
     }
 
@@ -342,6 +321,9 @@ SmiRevision *createSmiRevision(Revision *revisionPtr)
 SmiNode *createSmiNode(Object *objectPtr)
 {
     SmiNode       *smiNodePtr;
+    unsigned int  oidlen, i;
+    SmiSubid	  oid[128];
+    Node	  *nodePtr;
     
     if (objectPtr) {
 	smiNodePtr     = util_malloc(sizeof(SmiNode));
@@ -352,7 +334,19 @@ SmiNode *createSmiNode(Object *objectPtr)
 	} else {
 	    smiNodePtr->module = NULL;
 	}
-	smiNodePtr->oid    = getOid(objectPtr->nodePtr);
+
+	for (oidlen = 0, nodePtr = objectPtr->nodePtr;
+	     (oidlen < 128) && nodePtr && (nodePtr != rootNodePtr);
+	     nodePtr = nodePtr->parentPtr) {
+	    oid[oidlen] = nodePtr->subid;
+	    oidlen++;
+	}
+	smiNodePtr->oidlen = oidlen;
+	smiNodePtr->oid    = util_malloc(oidlen * sizeof(SmiSubid));
+	for (i=0; i < oidlen; i++) {
+	    smiNodePtr->oid[i] = oid[oidlen-1-i];
+	}
+	
 	if (objectPtr->typePtr) {
 	    if (objectPtr->typePtr->name) {
 		if (objectPtr->typePtr->modulePtr &&
@@ -377,6 +371,7 @@ SmiNode *createSmiNode(Object *objectPtr)
 	}
 	smiNodePtr->valuePtr    = objectPtr->valuePtr;
 	smiNodePtr->decl        = objectPtr->decl;
+	smiNodePtr->nodekind    = objectPtr->nodekind;
 	smiNodePtr->access      = objectPtr->access;
 	smiNodePtr->status      = objectPtr->status;
 	smiNodePtr->basetype    = objectPtr->typePtr ?
@@ -1428,7 +1423,7 @@ SmiNode *smiGetNode(char *module, char *node)
 
 
 
-SmiNode *smiGetFirstNode(char *module, SmiDecl decl)
+SmiNode *smiGetFirstNode(char *module, SmiNodekind nodekind)
 {
     Module *modulePtr;
     Node   *nodePtr = NULL;
@@ -1462,7 +1457,7 @@ SmiNode *smiGetFirstNode(char *module, SmiDecl decl)
 	nodePtr = nodePtr->nextPtr;
     }
     
-    objectPtr = getNextChildObject(nodePtr, modulePtr, decl);
+    objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
 
     if ((!objectPtr) && nodePtr) {
 	goto again;
@@ -1473,7 +1468,7 @@ SmiNode *smiGetFirstNode(char *module, SmiDecl decl)
 
 
 
-SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiDecl decl)
+SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
 {
     Module	      *modulePtr;
     Object	      *objectPtr;
@@ -1522,7 +1517,7 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiDecl decl)
 	nodePtr = nodePtr->nextPtr;
     }
     
-    objectPtr = getNextChildObject(nodePtr, modulePtr, decl);
+    objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
 
     if ((!objectPtr) && nodePtr) {
 	goto again;
@@ -1558,9 +1553,7 @@ SmiNode *smiGetFirstMemberNode(SmiNode *smiGroupNodePtr)
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_OBJECTGROUP) &&
-	(objectPtr->decl != SMI_DECL_NOTIFICATIONGROUP) &&
-	(objectPtr->decl != SMI_DECL_GROUP)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_GROUP) {
 	return NULL;
     }
 						     
@@ -1606,9 +1599,7 @@ SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_OBJECTGROUP) &&
-	(objectPtr->decl != SMI_DECL_NOTIFICATIONGROUP) &&
-	(objectPtr->decl != SMI_DECL_GROUP)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_GROUP) {
 	return NULL;
     }
 
@@ -1656,8 +1647,7 @@ SmiNode *smiGetFirstObjectNode(SmiNode *smiNotificationNodePtr)
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_NOTIFICATION) &&
-	(objectPtr->decl != SMI_DECL_NOTIFICATIONTYPE)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_NOTIFICATION) {
 	return NULL;
     }
 						     
@@ -1704,8 +1694,7 @@ SmiNode *smiGetNextObjectNode(SmiNode *smiNotificationNodePtr,
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_NOTIFICATION) &&
-	(objectPtr->decl != SMI_DECL_NOTIFICATIONTYPE)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_NOTIFICATION) {
 	return NULL;
     }
 
@@ -1753,8 +1742,7 @@ SmiNode *smiGetFirstMandatoryNode(SmiNode *smiComplianceNodePtr)
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
-	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+    if (objectPtr->NODEKIND != SMI_NODEKIND_COMPLIANCE) {
 	return NULL;
     }
 						     
@@ -1801,8 +1789,7 @@ SmiNode *smiGetNextMandatoryNode(SmiNode *smiComplianceNodePtr,
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
-	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_COMPLIANCE) {
 	return NULL;
     }
 						     
@@ -1858,7 +1845,7 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 	
     } else {
 	
-	nodePtr = getNode(smiNodePtr->oid);
+	nodePtr = getNode(smiNodePtr->oidlen, smiNodePtr->oid);
 	    
     }
 
@@ -1903,6 +1890,7 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 	    o.name = NULL;
 	    o.fileoffset = -1;
 	    o.decl = SMI_DECL_UNKNOWN;
+	    o.nodekind = SMI_NODEKIND_UNKNOWN;
 	    o.flags = 0;
 	    o.typePtr = NULL;
 	    o.access = SMI_ACCESS_UNKNOWN;
@@ -2149,8 +2137,7 @@ SmiOption *smiGetFirstOption(SmiNode *smiComplianceNodePtr)
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
-	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_COMPLIANCE) {
 	return NULL;
     }
 						     
@@ -2196,8 +2183,7 @@ SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
-	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_COMPLIANCE) {
 	return NULL;
     }
 						     
@@ -2253,8 +2239,7 @@ SmiRefinement *smiGetFirstRefinement(SmiNode *smiComplianceNodePtr)
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
-	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_COMPLIANCE) {
 	return NULL;
     }
 						     
@@ -2300,8 +2285,7 @@ SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr)
 	return NULL;
     }
 
-    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
-	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+    if (objectPtr->nodekind != SMI_NODEKIND_COMPLIANCE) {
 	return NULL;
     }
 						     

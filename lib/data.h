@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.32 1999/06/08 16:08:07 strauss Exp $
+ * @(#) $Id: data.h,v 1.33 1999/06/08 20:15:56 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -346,11 +346,11 @@ extern Node *addNode(Node *parentNodePtr,
 		     NodeFlags flags,
 		     Parser *parserPtr);
 
-extern Node *createNodes(const char *oid);
+extern Node *createNodes(unsigned int oidlen, SmiSubid *oid);
+
+extern Node *createNodesByOidString(const char *oid);
 
 extern Node *getParentNode(Node *nodePtr);
-
-extern SmiSubid getLastSubid(const char *oid);
 
 /*
  * setObjectName() might relink MIB tree object structures. If the
@@ -380,6 +380,9 @@ extern void setObjectFileOffset(Object *objectPtr,
 
 extern void setObjectDecl(Object *objectPtr,
 			   SmiDecl decl);
+
+extern void setObjectNodekind(Object *objectPtr,
+			      SmiNodekind nodekind);
 
 extern void addObjectFlags(Object *objectPtr,
 			   ObjectFlags flags);

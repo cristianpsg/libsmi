@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.16 1999/06/03 20:37:36 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.17 1999/06/04 20:39:14 strauss Exp $
  */
 
 #include <stdio.h>
@@ -111,6 +111,21 @@ format(const char *s)
 	    }
 	}
 	ss[j] = 0;
+    }
+    return ss;
+}
+
+
+char *
+formatoid(unsigned int oidlen, SmiSubid *oid)
+{
+    static char ss[20000];
+    int         i;
+    
+    ss[0] = 0;
+    for (i=0; i < oidlen; i++) {
+	if (i) strcat(ss, ".");
+	sprintf(&ss[strlen(ss)], "%u", oid[i]);
     }
     return ss;
 }
@@ -248,7 +263,7 @@ main(argc, argv)
 	if (node) {
 	    printf("     MibNode: %s\n", format(node->name));
 	    printf("      Module: %s\n", format(node->module));
-	    printf("         OID: %s\n", format(node->oid));
+	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
 	    printf("        Type: %s\n",
 		   formattype(node->typemodule, node->typename));
 	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
@@ -267,7 +282,7 @@ main(argc, argv)
 	if (child && node) {
 	    printf("     MibNode: %s\n", format(node->name));
 	    printf("      Module: %s\n", format(node->module));
-	    printf("         OID: %s\n", format(node->oid));
+	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
 	    printf("        Type: %s\n",
 		   formattype(node->typemodule, node->typename));
 	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
