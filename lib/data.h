@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.33 1999/06/08 20:15:56 strauss Exp $
+ * @(#) $Id: data.h,v 1.34 1999/06/12 13:40:03 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -55,8 +55,6 @@ typedef unsigned short MacroFlags;
 #define FLAG_REGISTERED		0x0004 /* On an Object: this is registered.  */
 #define FLAG_INCOMPLETE		0x0008 /* Just defined by a forward          */
 				       /* referenced type or object.         */
-#define	FLAG_SMIV2	        0x0010 /* On a Module: This is an SMIv2 MIB. */
-#define	FLAG_SMING	        0x0020 /* On a Module: This is an SMIng MIB. */
 #define	FLAG_CREATABLE	        0x0040 /* On a Row: New rows can be created. */
 
 #define	FLAG_ERRORS	SMI_ERRORS     /* Otherwise be quiet,       */
@@ -98,6 +96,7 @@ typedef struct Module {
     struct Revision *firstRevisionPtr;
     struct Revision *lastRevisionPtr;
     ModuleFlags	    flags;
+    SmiLanguage	    language;
     int		    numImportedIdentifiers;
     int		    numStatements;
     int		    numModuleIdentities;
@@ -200,6 +199,7 @@ typedef struct Object {
     char	   *name;
     off_t	   fileoffset;
     SmiDecl	   decl;
+    SmiNodekind	   nodekind;
     ObjectFlags	   flags;
     Type	   *typePtr;
     SmiAccess	   access;

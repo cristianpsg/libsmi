@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.41 1999/06/09 19:43:31 strauss Exp $
+ * @(#) $Id: smi.c,v 1.42 1999/06/12 13:40:07 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -239,7 +239,8 @@ SmiModule *createSmiModule(Module *modulePtr)
     
     if (modulePtr) {
 	smiModulePtr = util_malloc(sizeof(SmiModule));
-	
+
+	smiModulePtr->language = modulePtr->language;
 	smiModulePtr->name = modulePtr->name;
 	if (modulePtr->objectPtr) {
 	    smiModulePtr->object = modulePtr->objectPtr->name;
@@ -1742,7 +1743,7 @@ SmiNode *smiGetFirstMandatoryNode(SmiNode *smiComplianceNodePtr)
 	return NULL;
     }
 
-    if (objectPtr->NODEKIND != SMI_NODEKIND_COMPLIANCE) {
+    if (objectPtr->nodekind != SMI_NODEKIND_COMPLIANCE) {
 	return NULL;
     }
 						     

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.17 1999/06/04 20:39:14 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.18 1999/06/12 13:40:14 strauss Exp $
  */
 
 #include <stdio.h>
@@ -21,9 +21,7 @@
 
 
 
-char * 
-smiStringStatus(status)
-    SmiStatus status;
+char *smiStringStatus(SmiStatus status)
 {
     return
 	(status == SMI_STATUS_CURRENT)     ? "current" :
@@ -34,9 +32,7 @@ smiStringStatus(status)
 					     "<unknown>";
 }
 
-char *
-smiStringAccess(access)
-    SmiAccess access;
+char *smiStringAccess(SmiAccess access)
 {
     return
 	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
@@ -48,9 +44,17 @@ smiStringAccess(access)
 						"<unknown>";
 }
 
-char *
-smiStringDecl(macro)
-    SmiDecl macro;
+char *smiStringLanguage(SmiLanguage language)
+{
+    return
+	(language == SMI_LANGUAGE_UNKNOWN)    ? "<UNKNOWN>" :
+	(language == SMI_LANGUAGE_SMIV1)      ? "SMIv1" :
+	(language == SMI_LANGUAGE_SMIV2)      ? "SMIv2" :
+	(language == SMI_LANGUAGE_SMING)      ? "SMIng" :
+						"<unknown>";
+}
+
+char *smiStringDecl(SmiDecl macro)
 {
     return
         (macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" :
@@ -66,12 +70,36 @@ smiStringDecl(macro)
         (macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE" :
         (macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES" :
         (macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" :
+        (macro == SMI_DECL_MODULE)	      ? "module" :
+        (macro == SMI_DECL_TYPEDEF)	      ? "typedef" :
+        (macro == SMI_DECL_NODE)	      ? "node" :
+        (macro == SMI_DECL_SCALAR)	      ? "scalar" :
+        (macro == SMI_DECL_TABLE)	      ? "table" :
+        (macro == SMI_DECL_ROW)		      ? "row" :
+        (macro == SMI_DECL_COLUMN)	      ? "column" :
+        (macro == SMI_DECL_NOTIFICATION)      ? "notification" :
+        (macro == SMI_DECL_GROUP)	      ? "group" :
+        (macro == SMI_DECL_COMPLIANCE)	      ? "compliance" :
                                                 "<unknown>";
 }
 
-char *
-smiStringBasetype(basetype)
-    SmiBasetype basetype;
+char *smiStringNodekind(SmiNodekind nodekind)
+{
+    return
+        (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<UNKNOWN>" :
+        (nodekind == SMI_NODEKIND_MODULE)       ? "module" :
+        (nodekind == SMI_NODEKIND_NODE)         ? "node" :
+        (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
+        (nodekind == SMI_NODEKIND_TABLE)        ? "table" :
+        (nodekind == SMI_NODEKIND_ROW)          ? "row" :
+        (nodekind == SMI_NODEKIND_COLUMN)       ? "column" :
+        (nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
+        (nodekind == SMI_NODEKIND_GROUP)        ? "group" :
+        (nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
+                                                  "<unknown>";
+}
+
+char *smiStringBasetype(SmiBasetype basetype)
 {
     return
         (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
@@ -94,8 +122,7 @@ smiStringBasetype(basetype)
 
 
 
-char *
-format(const char *s)
+char *format(const char *s)
 {
     static char ss[20000];
     int i, j;
@@ -116,8 +143,7 @@ format(const char *s)
 }
 
 
-char *
-formatoid(unsigned int oidlen, SmiSubid *oid)
+char *formatoid(unsigned int oidlen, SmiSubid *oid)
 {
     static char ss[20000];
     int         i;
@@ -131,8 +157,7 @@ formatoid(unsigned int oidlen, SmiSubid *oid)
 }
 
 
-char *
-formattype(const char *module, const char *name)
+char *formattype(const char *module, const char *name)
 {
     static char ss[200];
 
@@ -147,8 +172,7 @@ formattype(const char *module, const char *name)
 }
 
 
-void
-usage()
+void usage()
 {
     fprintf(stderr,
 	    "Usage: smiquery [-Vh] [-p <module>] <command> <name>\n"
@@ -170,18 +194,14 @@ usage()
 
 
 
-void
-version()
+void version()
 {
     printf("smiquery " VERSION "\n");
 }
 
 
 
-int
-main(argc, argv)
-    int argc;
-    char *argv[];
+int main(int argc, char *argv[])
 {
     SmiModule *module;
     SmiNode *node, *child;
@@ -237,6 +257,7 @@ main(argc, argv)
 	    printf(" ContactInfo: %s\n", format(module->contactinfo));
 	    printf(" Description: %s\n", format(module->description));
 	    printf("   Reference: %s\n", format(module->reference));
+	    printf("    Language: %s\n", smiStringLanguage(module->language));
 	}
 	smiFreeModule(module);
     }
@@ -268,6 +289,7 @@ main(argc, argv)
 		   formattype(node->typemodule, node->typename));
 	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
+	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
 	    printf("      Status: %s\n", smiStringStatus(node->status));
 	    printf(" Description: %s\n", format(node->description));
@@ -287,6 +309,7 @@ main(argc, argv)
 		   formattype(node->typemodule, node->typename));
 	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
+	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
 	    printf("      Status: %s\n", smiStringStatus(node->status));
 	    printf(" Description: %s\n", format(node->description));

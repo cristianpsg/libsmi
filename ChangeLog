@@ -1,3 +1,17 @@
+1999-06-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/smi.h: added SmiLanguage and an appropriate element to the
+	SmiModule struct to represent the language that has been used to
+	read a MIB module.
+
+1999-06-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/smi.h: Hiding knowledge on the underlying language from
+	the API: SmiNode contains a new element `nodekind' that represents
+	the kind of any node in the tree independant from the actual
+	language statement. Hence, most application no longer need to
+	use SmiDecl. smiquery and smidump are adapted accordingly.
+
 1999-06-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.c: implemented smiGetFirstChild() and smiGetNextChild().

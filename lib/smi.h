@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.34 1999/06/06 07:40:41 strauss Exp $
+ * @(#) $Id: smi.h,v 1.35 1999/06/12 13:40:08 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -46,6 +46,14 @@ typedef double                  SmiFloat64;
 typedef long double             SmiFloat128;
 
 
+
+/* SmiLanguage -- language of an actual MIB module                           */
+typedef enum SmiLanguage {
+    SMI_LANGUAGE_UNKNOWN                = 0,  /* should not occur            */
+    SMI_LANGUAGE_SMIV1                  = 1,
+    SMI_LANGUAGE_SMIV2                  = 2,
+    SMI_LANGUAGE_SMING                  = 3
+} SmiLanguage;
 
 /* SmiBasetype -- base types of all languages                                */
 typedef enum SmiBasetype {
@@ -93,6 +101,7 @@ typedef enum SmiAccess {
 /* SmiNodekind -- type or statement that leads to a definition               */
 typedef enum SmiNodekind {
     SMI_NODEKIND_UNKNOWN        = 0,  /* should not occur                    */
+#define SMI_NODEKIND_ANY SMI_NODEKIND_UNKNOWN
     SMI_NODEKIND_MODULE         = 1,
     SMI_NODEKIND_NODE           = 2,
     SMI_NODEKIND_SCALAR         = 3,
@@ -186,6 +195,7 @@ typedef struct SmiModule {
     char                *contactinfo;
     char                *description;
     char                *reference;
+    SmiLanguage		language;
 } SmiModule;
 
 /* SmiRevision -- content of a single module's revision clause               */

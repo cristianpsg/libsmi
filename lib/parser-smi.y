@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.31 1999/06/10 15:28:22 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.32 1999/06/12 13:40:05 strauss Exp $
  */
 
 %{
@@ -367,7 +367,6 @@ module:			moduleName
 					      0,
 					      thisParserPtr);
 			    }
-			    thisParserPtr->modulePtr->flags &= ~FLAG_SMIV2;
 			    thisParserPtr->modulePtr->numImportedIdentifiers
 				                                           = 0;
 			    thisParserPtr->modulePtr->numStatements = 0;
@@ -377,7 +376,7 @@ module:			moduleName
 				 * SNMPv2-SMI is an SMIv2 module that cannot
 				 * be identified by importing from SNMPv2-SMI.
 				 */
-			        thisParserPtr->modulePtr->flags |= FLAG_SMIV2;
+			        thisModulePtr->language = SMI_LANGUAGE_SMIV2;
 			    }
 
 			}
@@ -387,7 +386,11 @@ module:			moduleName
 			declarationPart
 			END
 			{
-			    if ((thisModulePtr->flags & FLAG_SMIV2) &&
+			    Object *objectPtr;
+			    SmiBasetype parentBasetype;
+
+			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				&&
 				(thisModulePtr->numModuleIdentities < 1) &&
 				strcmp(thisModulePtr->name, "SNMPv2-SMI") &&
 				strcmp(thisModulePtr->name, "SNMPv2-CONF") &&
@@ -395,12 +398,75 @@ module:			moduleName
 			        printError(thisParserPtr,
 					   ERR_NO_MODULE_IDENTITY);
 			    }
-			    /* TODO
+			    
+			    /* TODO: detect node that could not be linked
+			     * into the main tree
+			     */ /*
 			    for (p = firstPendingNode; p; p = p->next) {
 				printError(parser, ERR_UNKNOWN_OIDLABEL,
 					   p->descriptor->name);
 			    }
 			    */
+
+			    /*
+			     * Set nodekinds of all newly defined objects.
+			     */
+			    for (objectPtr = thisModulePtr->firstObjectPtr;
+				 objectPtr; objectPtr = objectPtr->nextPtr) {
+				if (objectPtr->nodePtr->parentPtr &&
+				    objectPtr->nodePtr->parentPtr->
+				    lastObjectPtr &&
+				    objectPtr->nodePtr->parentPtr->
+				    lastObjectPtr->typePtr) {
+				    parentBasetype =
+					objectPtr->nodePtr->parentPtr->
+					lastObjectPtr->typePtr->basetype;
+				} else {
+				    parentBasetype = SMI_BASETYPE_UNKNOWN;
+				}
+				if (objectPtr->decl ==
+				    SMI_DECL_MODULEIDENTITY) {
+				    objectPtr->nodekind = SMI_NODEKIND_MODULE;
+				} else if ((objectPtr->decl ==
+					    SMI_DECL_VALUEASSIGNMENT) ||
+					   (objectPtr->decl ==
+					    SMI_DECL_OBJECTIDENTITY)) {
+				    objectPtr->nodekind = SMI_NODEKIND_NODE;
+				} else if ((objectPtr->decl ==
+					    SMI_DECL_OBJECTTYPE) &&
+					   (objectPtr->typePtr->basetype ==
+					    SMI_BASETYPE_SEQUENCEOF)) {
+				    objectPtr->nodekind = SMI_NODEKIND_TABLE;
+				} else if ((objectPtr->decl ==
+					    SMI_DECL_OBJECTTYPE) &&
+					   (objectPtr->typePtr->basetype ==
+					    SMI_BASETYPE_SEQUENCE)) {
+				    objectPtr->nodekind = SMI_NODEKIND_ROW;
+				} else if (objectPtr->decl ==
+					   SMI_DECL_NOTIFICATIONTYPE) {
+				    objectPtr->nodekind =
+					SMI_NODEKIND_NOTIFICATION;
+				} else if ((objectPtr->decl ==
+					    SMI_DECL_OBJECTGROUP) ||
+					   (objectPtr->decl ==
+					    SMI_DECL_NOTIFICATIONGROUP)) {
+				    objectPtr->nodekind = SMI_NODEKIND_GROUP;
+				} else if (objectPtr->decl ==
+					   SMI_DECL_MODULECOMPLIANCE) {
+				    objectPtr->nodekind =
+					SMI_NODEKIND_COMPLIANCE;
+				} else if ((objectPtr->decl ==
+					    SMI_DECL_OBJECTTYPE) &&
+					   (parentBasetype ==
+					    SMI_BASETYPE_SEQUENCE)) {
+				    objectPtr->nodekind = SMI_NODEKIND_COLUMN;
+				} else if ((objectPtr->decl ==
+					    SMI_DECL_OBJECTTYPE) &&
+					   (parentBasetype !=
+					    SMI_BASETYPE_SEQUENCE)) {
+				    objectPtr->nodekind = SMI_NODEKIND_SCALAR;
+				}
+			    }
 			    $$ = 0;
 			}
 	;
@@ -415,7 +481,13 @@ linkagePart:		linkageClause
 	;
 
 linkageClause:		IMPORTS importPart ';'
-			{ $$ = 0; }
+			{
+			    if (thisModulePtr->language != SMI_LANGUAGE_SMIV2)
+				thisModulePtr->language = SMI_LANGUAGE_SMIV1;
+			    
+			    $$ = 0;
+			}
+			    
         ;
 
 exportsClause:		/* empty */
@@ -454,7 +526,7 @@ import:			importIdentifiers FROM moduleName
 				 * A module that imports from SNMPv2-SMI
 				 * seems to be SMIv2 style.
 				 */
-			        thisParserPtr->modulePtr->flags |= FLAG_SMIV2;
+			        thisModulePtr->language = SMI_LANGUAGE_SMIV2;
 			    }
 
 			    /*
@@ -736,7 +808,8 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			    } else if (strlen($1) > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
-			    if (thisParserPtr->modulePtr->flags & FLAG_SMIV2) {
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
 			        if (strchr($1, '-') &&
 				    (strcmp($1, "mib-2") ||
 				  strcmp(thisModulePtr->name, "SNMPv2-SMI"))) {
@@ -761,8 +834,6 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
-			    setObjectNodekind(objectPtr,
-					      SMI_NODEKIND_NODE);
 			    $$ = 0;
 			}
 	;
@@ -1167,8 +1238,6 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
-			    setObjectNodekind(objectPtr,
-					      SMI_NODEKIND_NODE);
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
 			    if ($8) {
@@ -1210,9 +1279,6 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
-			    setObjectNodekind(objectPtr, SMI_NODEKIND_XXX);
-			    /* TODO XXX... detect from basetype, then
-			                   set nodekind */
 			    setObjectType(objectPtr, $5);
 			    if (!($5->name)) {
 				/*
@@ -1274,8 +1340,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 
 descriptionClause:	/* empty */
 			{
-			    if (thisParserPtr->modulePtr->flags &
-			            FLAG_SMIV2) {
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
 				printError(thisParserPtr,
 					   ERR_MISSING_DESCRIPTION);
 			    }
@@ -1297,8 +1363,8 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			}
 			TRAP_TYPE
 			{
-			    if (thisParserPtr->modulePtr->flags &
-			            FLAG_SMIV2) {
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
 			        printError(thisParserPtr, ERR_TRAP_TYPE);
 			    }
 			}
@@ -1335,17 +1401,18 @@ DescrPart:		DESCRIPTION Text
 
 MaxAccessPart:		MAX_ACCESS
 			{
-			    if (!(thisParserPtr->modulePtr->flags &
-			              FLAG_SMIV2)) {
-			        printError(thisParserPtr, ERR_MAX_ACCESS_IN_SMIV1);
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV1)
+			    {
+			        printError(thisParserPtr,
+					   ERR_MAX_ACCESS_IN_SMIV1);
 			    }
 			}
 			Access
 			{ $$ = $3; }
 	|		ACCESS
 			{
-			    if (thisParserPtr->modulePtr->flags &
-			            FLAG_SMIV2) {
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
 			        printError(thisParserPtr, ERR_ACCESS_IN_SMIV2);
 			    }
 			}
@@ -1910,7 +1977,8 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    printError(thisParserPtr, ERR_OID_DEFVAL_TOO_LONG);
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_LABEL;
-			    if (thisModulePtr->flags & FLAG_SMIV2) {
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
 				$$->value.oidlen = 2;
 				$$->value.oid[0] = 0;
 				$$->value.oid[1] = 0;
@@ -2294,7 +2362,8 @@ enumNumber:		number
 
 Status:			LOWERCASE_IDENTIFIER
 			{
-			    if (thisParserPtr->modulePtr->flags & FLAG_SMIV2) {
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
 				if (!strcmp($1, "current")) {
 				    $$ = SMI_STATUS_CURRENT;
 				} else if (!strcmp($1, "deprecated")) {
@@ -2361,7 +2430,8 @@ UnitsPart:		UNITS Text
 
 Access:			LOWERCASE_IDENTIFIER
 			{
-			    if (thisParserPtr->modulePtr->flags & FLAG_SMIV2) {
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
 				if (!strcmp($1, "not-accessible")) {
 				    $$ = SMI_ACCESS_NOT_ACCESSIBLE;
 				} else if (!strcmp($1,

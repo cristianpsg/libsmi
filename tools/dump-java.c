@@ -1,14 +1,14 @@
 /*
- * dump-sming.c --
+ * dump-java.c --
  *
- *      Operations to dump SMIng module information.
+ *      Operations to dump Java class templates from MIB module information.
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.39 1999/06/12 13:40:13 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <stdlib.h>
@@ -33,193 +33,9 @@
 #define  INDENTTEXTS	9   /* column to start multiline texts */
 #define  INDENTMAX	64   /* max column to fill, break lines otherwise */
 
-#define  STYLE_IMPORTS  2
-
 
 
 static int errors;
-
-static char *excludeType[] = {
-    "ObjectSyntax",
-    "SimpleSyntax",
-    "ApplicationSyntax",
-    NULL };
-    
-static char *convertType[] = {
-    "INTEGER",             "Integer32",
-    "OCTET STRING",        "OctetString",
-    "OBJECT IDENTIFIER",   "ObjectIdentifier",
-    
-    "Gauge",               "Gauge32",
-    "Counter",             "Counter32",
-    "NetworkAddress",      "IpAddress", /* ??? */
-    
-    NULL, NULL };
-
-static char *convertImport[] = {
-    "SNMPv2-SMI",   "MODULE-IDENTITY",    NULL, NULL,
-    "SNMPv2-SMI",   "OBJECT-IDENTITY",    NULL, NULL,
-    "SNMPv2-SMI",   "OBJECT-TYPE",        NULL, NULL,
-    "SNMPv2-SMI",   "NOTIFICATION-TYPE",  NULL, NULL,
-    "SNMPv2-SMI",   "ObjectName",         NULL, NULL,
-    "SNMPv2-SMI",   "NotificationName",   NULL, NULL,
-    "SNMPv2-SMI",   "ObjectSyntax",       NULL, NULL,
-    "SNMPv2-SMI",   "SimpleSyntax",       NULL, NULL,
-    "SNMPv2-SMI",   "Integer32",          NULL, NULL,
-    "SNMPv2-SMI",   "ApplicationSyntax",  NULL, NULL,
-    "SNMPv2-SMI",   "IpAddress",          "IRTF-NMRG-SMING-TYPES", "IpAddress",
-    "SNMPv2-SMI",   "Counter32",          "IRTF-NMRG-SMING-TYPES", "Counter32",
-    "SNMPv2-SMI",   "Gauge32",            "IRTF-NMRG-SMING-TYPES", "Gauge32",
-    "SNMPv2-SMI",   "TimeTicks",          "IRTF-NMRG-SMING-TYPES", "TimeTicks",
-    "SNMPv2-SMI",   "Opaque",             "IRTF-NMRG-SMING-TYPES", "Opaque",
-    "SNMPv2-SMI",   "Counter64",          "IRTF-NMRG-SMING-TYPES", "Counter64",
-    "SNMPv2-SMI",   NULL,                 "IRTF-NMRG-SMING", NULL,
-    "SNMPv2-TC",    "TEXTUAL-CONVENTION", NULL, NULL,
-    "SNMPv2-TC",    NULL,                 "IRTF-NMRG-SMING-TYPES", NULL,
-    "SNMPv2-CONF",  "OBJECT-GROUP",       NULL, NULL,
-    "SNMPv2-CONF",  "NOTIFICATION-GROUP", NULL, NULL,
-    "SNMPv2-CONF",  "MODULE-COMPLIANCE",  NULL, NULL,
-    "SNMPv2-CONF",  "AGENT-CAPABILITIES", NULL, NULL,
- 
-    "RFC1155-SMI",  "OBJECT-TYPE",        NULL, NULL,
-    "RFC1155-SMI",  "ObjectName",         NULL, NULL,
-    "RFC1155-SMI",  "ObjectSyntax",       NULL, NULL,
-    "RFC1155-SMI",  "SimpleSyntax",       NULL, NULL,
-    "RFC1155-SMI",  "ApplicationSyntax",  NULL, NULL,
-    "RFC1155-SMI",  "Gauge",              "IRTF-NMRG-SMING-TYPES", "Gauge32",
-    "RFC1155-SMI",  "Counter",            "IRTF-NMRG-SMING-TYPES", "Counter32",
-    "RFC1155-SMI",  "TimeTicks",          "IRTF-NMRG-SMING-TYPES", "TimeTicks",
-    "RFC1155-SMI",  "IpAddress",          "IRTF-NMRG-SMING-TYPES", "IpAddress",
-    "RFC1155-SMI",  "NetworkAddress",     NULL, NULL, /* ??? */
-    "RFC1155-SMI",  "Opaque",             "IRTF-NMRG-SMING-TYPES", "Opaque",
-    "RFC1155-SMI",  NULL,                 "IRTF-NMRG-SMING", NULL,
-    "RFC1158-MIB",  "DisplayString",  "IRTF-NMRG-SMING-TYPES", "DisplayString",
-    "RFC-1212",     "OBJECT-TYPE",        NULL, NULL,
-    "RFC1213-MIB",  "mib-2",              "IRTF-NMRG-SMING", "mib-2",
-    "RFC1213-MIB",  "system",             "SNMPv2-MIB", "system",
-    "RFC1213-MIB",  "interfaces",         "IF-MIB", "interfaces",
-/*  "RFC1213-MIB",  "at",                 "RFC1213-MIB", "at", */
-    "RFC1213-MIB",  "ip",                 "IP-MIB", "",
-    "RFC1213-MIB",  "icmp",               "IP-MIB", "icmp",
-    "RFC1213-MIB",  "tcp",                "TCP-MIB", "tcp",
-    "RFC1213-MIB",  "udp",                "UDP-MIB", "udp",
-/*  "RFC1213-MIB",  "egp",                "RFC1213-MIB", "egp", */
-    "RFC1213-MIB",  "transmission",       "SNMPv2-SMI", "transmission",
-    "RFC1213-MIB",  "snmp",               "SNMPv2-MIB", "snmp",
-    "RFC1213-MIB",  "sysDescr",           "SNMPv2-MIB", "sysDescr",
-    "RFC1213-MIB",  "sysObjectID",        "SNMPv2-MIB", "sysObjectID",
-    "RFC1213-MIB",  "sysUpTime",          "SNMPv2-MIB", "sysUpTime",
-    "RFC1213-MIB",  "ifIndex",            "IF-MIB", "ifIndex",
-/* TODO ...many more objects from RFC1213-MIB.. */    
-    "RFC1213-MIB",  "DisplayString",  "IRTF-NMRG-SMING-TYPES", "DisplayString",
-    "RFC1213-MIB",  "PhysAddress",    "IRTF-NMRG-SMING-TYPES", "PhysAddress",
-    "RFC-1215",     "TRAP-TYPE",          NULL, NULL,                          
-
-
-
-    
-    /* TODO: how to convert more SMIv1 information? */
-
-    NULL, NULL, NULL, NULL };
-
-static int current_column = 0;
-
-
-
-char *smingStringStatus(SmiStatus status)
-{
-    return
-	(status == SMI_STATUS_CURRENT)     ? "current" :
-	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
-	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
-	(status == SMI_STATUS_MANDATORY)   ? "current" :
-	(status == SMI_STATUS_OPTIONAL)    ? "current" :
-					     "<unknown>";
-}
-
-
-
-char *smingStringAccess(SmiAccess access)
-{
-    return
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
-	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
-	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
-	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
-	(access == SMI_ACCESS_READ_CREATE)    ? "readcreate" :
-						"<unknown>";
-}
-
-
-
-char *smingStringBasetype(SmiBasetype basetype)
-{
-    return
-        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
-        (basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
-        (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
-        (basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :
-        (basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" :
-        (basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" :
-        (basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" :
-        (basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" :
-        (basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" :
-        (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
-        (basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
-        (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
-                                                   "<unknown>";
-}
-
-
-
-char *smingCTime(time_t t)
-{
-    static char   s[27];
-    struct tm	  *tm;
-
-    tm = gmtime(&t);
-    sprintf(s, "%04d-%02d-%02d %02d:%02d",
-	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	    tm->tm_hour, tm->tm_min);
-    return s;
-}
-
-
-
-static char *getTypeString(char *module, SmiBasetype basetype,
-			   char *typemodule, char *typename)
-{
-    int         i;
-    static char s[SMI_MAX_FULLNAME];
-
-    if ((!typemodule) && (typename) &&
-	(basetype != SMI_BASETYPE_ENUM) &&
-	(basetype != SMI_BASETYPE_BITS)) {
-	for(i=0; convertType[i]; i += 2) {
-	    if (!strcmp(typename, convertType[i])) {
-		return convertType[i+1];
-	    }
-	}
-    }
-
-    if ((!typemodule) || islower((int)typename[0])) {
-	if (basetype == SMI_BASETYPE_ENUM) {
-	    return "Enumeration";
-	}
-	if (basetype == SMI_BASETYPE_BITS) {
-	    return "Bits";
-	}
-    }
-	
-    if (!typename) {
-	return smingStringBasetype(basetype);
-    }
-    
-    sprintf(s, "%s", typename);
-    /* TODO: fully qualified if unambigous */
-
-    return s;
-}
 
 
 
@@ -1151,7 +967,7 @@ static void printCompliances(char *modulename)
 
 
 
-int dumpSming(char *modulename)
+int dumpJava(char *modulename)
 {
     SmiModule	 *smiModule;
     SmiNode	 *smiNode;
