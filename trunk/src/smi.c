@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.7 1998/11/20 17:10:14 strauss Exp $
+ * @(#) $Id: smi.c,v 1.8 1998/11/20 19:33:24 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -65,24 +65,32 @@ getString(s, m)
     String *s;
     Module *m;
 {
-    static char *p = NULL;
+    static char *p[5] = { NULL, NULL, NULL, NULL, NULL };
+    static int i = 0;
     int fd;
     
+    printDebug(5, "getString(%s %d/%d %s)\n", m->path,
+	       s->fileoffset, s->length, s->ptr ? "mem" : "file");
+
     if (s->ptr) {
         return s->ptr;
     } else {
-        p = realloc(p, s->length+1);
+	if (s->fileoffset < 0) {
+	    return NULL;
+	}
+	i = (i+1) % 5;
+        p[i] = realloc(p[i], s->length+1);
         /* TODO: success? */
         fd = open(m->path, O_RDONLY);
         if (fd > 0) {
             lseek(fd, s->fileoffset, SEEK_SET);
-            read(fd, p, s->length);
+            read(fd, p[i], s->length);
             /* TODO: loop if read() < length. */
             close(fd);
-            p[s->length] = 0;
-            return p;
+            p[i][s->length] = 0;
+            return p[i];
         } else {
-            return "";
+            return "<smi.c: getString(): could not read string from file>";
             /* TODO: error handling? */
         }
     }
@@ -192,6 +200,8 @@ smiLoadMibModule(modulename)
     Module *module;
 #endif
 	
+    printDebug(4, "smiLoadMibModule(\"%s\")\n", modulename);
+
     if (!initialized) smiInit();
     
     for (location = firstLocation; location; location = location->next) {
@@ -308,7 +318,7 @@ smiGetModule(name, wantdescr)
 	    res.contactinfo = getString(&module->contactInfo, module);
 	    res.description = getString(&module->description, module);
 	} else {
-	    res.description = NULL;
+	    res.description = "";
 	}
 	return &res;
     } else {
@@ -330,6 +340,9 @@ smiGetNode(name, module, wantdescr)
     char *elements, *element, *element1;
     unsigned int subid;
     
+    printDebug(4, "smiGetNode(\"%s\", \"%s\", %d)\n",
+	       name, module ? module : "NULL", wantdescr);
+
     /* TODO: other than local resources */
     
     /* "1.3.6...", "system", "Module.system", "Module!system" */
@@ -349,10 +362,15 @@ smiGetNode(name, module, wantdescr)
             element = strtok(NULL, ".");
         }
 	free(elements);
-	/*
-	 * Note: It is undefined which Object we get.
-	 */
-	object = node->firstObject;
+	if ((!module) || (!strlen(module))) {
+	    /*
+	     * Note: If no module is given,
+	     * it is undefined which Object we get.
+	     */
+	    object = node->firstObject;
+	} else {
+	    object = findObjectByNodeAndModulename(node, module);
+	}
     } else if (strchr(name, '!') || strchr(name, '.')) {
         /*
          * name in `Module!name' or `Module.name' form.
@@ -384,7 +402,7 @@ smiGetNode(name, module, wantdescr)
 	if (wantdescr) {
 	    res.description = getString(&object->description, object->module);
 	} else {
-	    res.description = NULL;
+	    res.description = "";
 	}
 	return &res;
     } else {
@@ -404,6 +422,9 @@ smiGetType(name, module, wantdescr)
     Type *type;
     char *elements, *element, *element1;
     
+    printDebug(4, "smiGetType(\"%s\", \"%s\", %d)\n",
+	       name, module ? module : "NULL", wantdescr);
+
     /* TODO: other than local resources */
     
     /* "Type", "Module.Type", "Module!Type" */
@@ -438,7 +459,7 @@ smiGetType(name, module, wantdescr)
 	if (wantdescr) {
 	    res.description = getString(&type->description, type->module);
 	} else {
-	    res.description = NULL;
+	    res.description = "";
 	}
 	return &res;
     } else {
@@ -457,6 +478,9 @@ smiGetMacro(name, module)
     Macro *macro;
     char *elements, *element, *element1;
     
+    printDebug(4, "smiGetMacro(\"%s\", \"%s\")\n",
+	       name, module ? module : "NULL");
+
     /* TODO: other than local resources */
     
     /* "MACRO", "Module.MACRO", "Module!MACRO" */

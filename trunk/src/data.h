@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.17 1998/11/20 19:33:21 strauss Exp $
+ * @(#) $Id: data.h,v 1.18 1998/11/21 18:16:13 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -289,6 +289,11 @@ extern Object *addObject(Node *parent,
 			 Flags flags,
 			 Parser *parser);
 
+extern Object *duplicateObject(Object *object,
+			       Module *module,
+			       Flags flags,
+			       Parser *parser);
+
 extern Node *addNode(Node *parent,
 		     smi_subid subid,
 		     Flags flags,
@@ -323,6 +328,12 @@ extern void setObjectFlags(Object *object,
 
 extern Node *findNodeByParentAndSubid(Node *parent,
 				      smi_subid subid);
+
+extern Object *findObjectByNodeAndModule(Node *node,
+					 Module *module);
+
+extern Object *findObjectByNodeAndModulename(Node *node,
+					     const char *modulename);
 
 extern Object *findObjectByName(const char *name);
 
