@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.179 2002/07/09 14:48:52 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.180 2002/07/17 10:32:14 bunkus Exp $
  */
 
 %{
@@ -243,6 +243,29 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		 *  a row node. this adjusts missing INDEXs in RFC 1158.
 		 */
 		objectPtr->export.nodekind = SMI_NODEKIND_ROW;
+	    }
+	}
+
+	/*
+	 * Check whether the status of the associated type matches the
+	 * status of the object.
+	 */
+
+	if (objectPtr->typePtr
+	    && (objectPtr->export.nodekind == SMI_NODEKIND_COLUMN
+		|| objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)
+	    && (objectPtr->export.status < objectPtr->typePtr->export.status)) {
+	    if (objectPtr->typePtr->export.status == SMI_STATUS_DEPRECATED) {
+		smiPrintErrorAtLine(parserPtr, ERR_TYPE_STATUS_DEPRECATED,
+				    objectPtr->line,
+				    objectPtr->typePtr->export.name,
+				    objectPtr->export.name);
+	    }
+	    if (objectPtr->typePtr->export.status == SMI_STATUS_OBSOLETE) {
+		smiPrintErrorAtLine(parserPtr, ERR_TYPE_STATUS_OBSOLETE,
+				    objectPtr->line,
+				    objectPtr->typePtr->export.name,
+				    objectPtr->export.name);
 	    }
 	}
 
@@ -835,7 +858,7 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 {
     Type *typePtr;
     
-    for(typePtr = modulePtr->firstTypePtr;
+    for (typePtr = modulePtr->firstTypePtr;
 	typePtr; typePtr = typePtr->nextPtr) {
 
 	/*
@@ -872,6 +895,21 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 				typePtr->line,
 				typePtr->export.name,
 				typePtr->parentPtr->export.name);
+
+	    if (typePtr->export.status < typePtr->parentPtr->export.status) {
+		if (typePtr->parentPtr->export.status == SMI_STATUS_DEPRECATED) {
+		    smiPrintErrorAtLine(parserPtr, ERR_TYPE_STATUS_DEPRECATED,
+					typePtr->line,
+					typePtr->parentPtr->export.name,
+					typePtr->export.name);
+		}
+		if (typePtr->parentPtr->export.status == SMI_STATUS_OBSOLETE) {
+		    smiPrintErrorAtLine(parserPtr, ERR_TYPE_STATUS_OBSOLETE,
+					typePtr->line,
+					typePtr->parentPtr->export.name,
+					typePtr->export.name);
+		}
+	    }
 	}
 
 	smiCheckNamedNumberRedefinition(parserPtr, typePtr);
