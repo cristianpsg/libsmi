@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.10 1998/10/29 13:59:24 strauss Exp $
+ * @(#) $Id: parser.y,v 1.11 1998/11/02 08:11:05 strauss Exp $
  */
 
 %{
@@ -195,7 +195,7 @@ MibNode *parent;
 %type  <err>exportsClause
 %type  <err>macroClause
 %type  <id>macroName
-%type  <err>choiceClause
+%type  <type>choiceClause
 %type  <id>typeName
 %type  <id>typeSMI
 %type  <err>typeTag
@@ -744,7 +744,15 @@ choiceClause:		CHOICE
 			}
 			/* the scanner skips until... */
 			'}'
-			{ $$ = 0; }
+			{
+			    $$ = addType(NULL, SYNTAX_CHOICE,
+					 thisModule,
+					 (thisParser->flags &
+					  (FLAG_WHOLEMOD |
+					   FLAG_WHOLEFILE))
+					 ? FLAG_MODULE : 0,
+					 thisParser);
+			}
 	;
 
 /*
@@ -924,7 +932,7 @@ typeDeclarationRHS:	Syntax
 			}
 	|		choiceClause
 			{
-			    $$ = NULL;
+			    $$ = $1;
 			}
 	;
 
@@ -1166,12 +1174,17 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 						  FLAG_WHOLEFILE))
 						? (FLAG_MODULE|FLAG_REGISTERED)
 						: 0);
-				/* TODO setMibNodeSyntax($16, $5); */
+				setMibNodeSyntax($16, $5);
 				setMibNodeAccess($16, $7);
 				setMibNodeStatus($16, $9);
 				if ($10) {
 				    setMibNodeDescription($16, $10);
 				}
+				/*
+				 * TODO: ReferPart ($11)
+				 * TODO: IndexPart ($12)
+				 * TODO: DefValPart ($13)
+				 */
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -2249,7 +2262,9 @@ Object:			ObjectName
 	;
 
 NotificationsPart:	NOTIFICATIONS '{' Notifications '}'
-			{ $$ = 0; }
+			{
+			    $$ = 0;
+			}
 	;
 
 Notifications:		Notification
@@ -2532,7 +2547,10 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 				setMibNodeStatus($12, $6);
 				setMibNodeDescription($12, $8);
 #if 0
-				setMibNodeReferences($12, $9);
+				/*
+				 * TODO: ObjectsPart ($4)
+				 * TODO: ReferPart ($9)
+				 */
 #endif
 				$$ = 0;
 			    } else {
@@ -2578,7 +2596,10 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 				setMibNodeStatus($12, $6);
 				setMibNodeDescription($12, $8);
 #if 0
-				setMibNodeReferences($12, $9);
+				/*
+				 * TODO: NotificationsPart ($4)
+				 * TODO: ReferPart ($9)
+				 */
 #endif
 				$$ = 0;
 			    } else {
@@ -2623,7 +2644,10 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 				setMibNodeStatus($12, $5);
 				setMibNodeDescription($12, $7);
 #if 0
-				setMibNodeReferences($12, $8);
+				/*
+				 * TODO: ReferPart ($8)
+				 * TODO: ModulePart_Compliance ($9)
+				 */
 #endif
 				$$ = 0;
 			    } else {
@@ -2766,7 +2790,11 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 				setMibNodeStatus($14, $7);
 				setMibNodeDescription($14, $9);
 #if 0
-				setMibNodeReferences($14, $10);
+				/*
+				 * TODO: PRODUCT_RELEASE Text ($5)
+				 * TODO: ReferPart ($10)
+				 * TODO: ModulePart_Capabilities ($11)
+				 */
 #endif
 				$$ = 0;
 			    } else {
@@ -2862,4 +2890,5 @@ number:			NUMBER
 			}
 	;
 
-%%			    /*  */
+%%
+

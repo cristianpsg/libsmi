@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.9 1998/10/29 13:59:23 strauss Exp $
+ * @(#) $Id: data.c,v 1.10 1998/11/02 08:11:04 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -78,6 +78,7 @@
 	(syntax == SYNTAX_TIMETICKS)         ? "TIMETICKS" : \
 	(syntax == SYNTAX_OPAQUE)            ? "OPAQUE" : \
 	(syntax == SYNTAX_COUNTER64)         ? "COUNTER64" : \
+	(syntax == SYNTAX_CHOICE)            ? "CHOICE" : \
 					       "unknown" )
 
 
@@ -465,10 +466,10 @@ addDescriptor(name, module, kind, ptr, flags, parser)
     MibNode *pending, *next;
     Type *t;
     
-    printDebug(5, "addDescriptor(\"%s\", %s, %s, ptr, %d, parser)\n",
+    printDebug(5, "addDescriptor(\"%s\", %s, %s, 0x%p, %d, parser)\n",
 	       name, module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
-	       stringKind(kind), flags);
+	       stringKind(kind), ptr, flags);
 
     /*
      * If this new descriptor is found as pending type,
@@ -490,7 +491,6 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	    return t->descriptor;
 	}
     }
-	
     descriptor = (Descriptor *)malloc(sizeof(Descriptor));
     if (!descriptor) {
 	printError(parser, ERR_ALLOCATING_DESCRIPTOR, strerror(errno));
@@ -895,6 +895,36 @@ addMibNode(parent, subid, module, flags, parser)
 /*
  *----------------------------------------------------------------------
  *
+ * setMibNodeSyntax --
+ *
+ *      Set the syntax (pointer to a Type struct) of a given MibNode.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMibNodeSyntax(node, type)
+    MibNode *node;
+    Type *type;
+{
+    printDebug(5, "setMibNodeSyntax(%s, %s)\n",
+	       node->descriptor ? node->descriptor->name : "?",
+	       type->descriptor->name);
+
+    node->type = type;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * setMibNodeAccess --
  *
  *      Set the access of a given MibNode.
@@ -975,7 +1005,7 @@ setMibNodeDescription(node, description)
 {
     printDebug(5, "setMibNodeDescription(%s, \"%s\")\n",
 	       node->descriptor ? node->descriptor->name : "?",
-	       description->ptr);
+	       description->ptr ? description->ptr : "...");
 
     node->description.fileoffset = description->fileoffset;
     node->description.length = description->length;
@@ -1434,7 +1464,7 @@ dumpMibTree(root, prefix)
     
     if (root) {
 	if (root == rootMibNode) {
-	    sprintf(s, " ");
+	    s[0] = 0;
 	} else {
 	    if (root->descriptor) {
 		if (root->flags & FLAG_NOSUBID) {
@@ -1451,7 +1481,22 @@ dumpMibTree(root, prefix)
 		    sprintf(s, "%s.%d", prefix, root->subid);
 		}
 	    }
-	    fprintf(stderr, "%s\n", s);
+	    fprintf(stderr, "%s", s);
+	    if (root->module) {
+		fprintf(stderr, " == %s!%s",
+			root->module->descriptor->name,
+			root->descriptor->name);
+	    }
+	    if (root->type && root->type->descriptor) {
+		fprintf(stderr, "  [%s]", root->type->descriptor->name);
+	    } else {
+		if (root->type && root->type->parent &&
+		    root->type->parent->descriptor) {
+		    fprintf(stderr, "  [[%s]]",
+			    root->type->parent->descriptor->name);
+		}
+	    }
+	    fprintf(stderr, "\n");
 	}
 	for (c = root->firstChild; c; c = c->next) {
 	    dumpMibTree(c, s);
@@ -1643,7 +1688,7 @@ setTypeDescription(type, description)
 {
     printDebug(5, "setTypeDescription(%s, \"%s\")\n",
 	       type->descriptor ? type->descriptor->name : "?",
-	       description->ptr);
+	       description->ptr ? description->ptr : "...");
 
     type->description.fileoffset = description->fileoffset;
     type->description.length = description->length;
@@ -1927,8 +1972,15 @@ dumpTypes()
     Descriptor *d;
 
     for (d = firstDescriptor[KIND_TYPE]; d; d = d->nextSameKind) {
+	if (d->module) {
+	    fprintf(stderr, "%s!", d->module->descriptor->name);
+	}
 	for (t = d->ptr; t; t = t->parent) {
-	    fprintf(stderr, "%s ", t->descriptor && t->descriptor->name ? t->descriptor->name : "-");
+	    fprintf(stderr, "%s", t->descriptor && t->descriptor->name ? t->descriptor->name : "?");
+	    if (t->syntax) {
+		fprintf(stderr, "(%s)", stringSyntax(t->syntax));
+	    }
+	    fprintf(stderr, " <- ");
 	}
 	fprintf(stderr, "\n");
     }

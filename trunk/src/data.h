@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.9 1998/10/29 13:59:23 strauss Exp $
+ * @(#) $Id: data.h,v 1.10 1998/11/02 08:11:05 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -80,7 +80,8 @@ typedef enum Syntax {
     SYNTAX_UNSIGNED32	     = 9,
     SYNTAX_TIMETICKS	     = 10,
     SYNTAX_OPAQUE	     = 11,
-    SYNTAX_COUNTER64	     = 12
+    SYNTAX_COUNTER64	     = 12,
+    SYNTAX_CHOICE	     = 13, /* only for internal use */
 } Syntax;
 
 
@@ -360,6 +361,9 @@ extern MibNode *addMibNode(MibNode *parent,
 			   Module *module,
 			   Flags flags,
 			   Parser *parser);
+
+extern void setMibNodeSyntax(MibNode *node,
+			     Type *type);
 
 extern void setMibNodeAccess(MibNode *node,
 			     Access access);
