@@ -1,48 +1,57 @@
 From: Frank Strauss <strauss@ibr.cs.tu-bs.de>
 Newsgroups: comp.protocols.snmp,comp.dcom.net-management
 To: mibs@ops.ietf.org, snmpv3@lists.tislabs.com
-Subject: libsmi-0.1 announcement
-Message-ID: <libsmi-0.1-ANNOUNCE@ibr.cs.tu-bs.de>
+To: "freebsd", "debian", "redhat"
+Subject: libsmi-0.2 announcement
+Message-ID: <libsmi-0.2-ANNOUNCE@ibr.cs.tu-bs.de>
 
-Libsmi 0.1 is available for download.
+Libsmi 0.2 is available for download.
 
-Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
 
 Libsmi is a C library that allows network management applications to
-access MIB module information through a well defined API that hides
-the nasty details of locating and parsing SMIv1/v2 MIB modules.
-
+access SMI MIB module information through a well defined API that
+hides the nasty details of locating and parsing SMIv1/v2 MIB modules.
 Libsmi supports exact and iterative retrieval functions for all major
-SMIv1 and SMIv2 constructs (except the AGENT-CAPABILITIES statement).
+SMIv1 and SMIv2 constructs.
 
 The layered concept of libsmi allows to add further methods to
 retrieve MIB information from persistent repositories. In fact,
-besides the SMIv1/v2 MIB file parser an additional parser for `SMIng'
-is included. Both parsers are built on flex/bison grammar specifications.
+besides the SMIv1/v2 MIB file parser an additional parser for `SMIng',
+a new structure of management information elaborated by the Network
+Management Research Group of the IRTF, is included. Both parsers are
+built on flex/bison grammar specifications.
 
-SMIng is a research project concerned with the definition of a MIB
-module language that is semantically fully compatible with SMIv2 but
-avoids many problems of the ASN.1 based SMI versions.
-
-Included with the library, there are three tools that make use of libsmi:
+On top of the library, there are three tools and a sh/awk-script:
 Smiquery allows simple queries of single MIB module items.  Smilint
-allows to increase the verbosity of the parser(s), so that MIB modules
-can be checked for syntax and semantic errors. Finally, smidump can be
-used to dump MIB modules. Currently, SMIng and SMIv2 are supported as
-output formats, so that SMIv2 <-> SMIng conversions are possible.
+allows to increase the verbosity of the parser(s), so that MIB module
+files can be checked for syntax and semantic errors. Smidump can be
+used to dump MIB modules in various formats. The current output
+backends allow to dump trees of OIDs, type definitions and recursive
+imports, to convert modules between SMIv1, SMIv2 and SMIng, to produce
+JIDM compliant CORBA-IDL files, UCD-SNMP code stubs and MOSY style
+output. Finally, smistrip allows to strip SMIv1/v2 modules from
+documents like RFCs and Internet-Drafts.
 
-The software comes with autoconf and libtool support. Hence it should
-compile and build with shared libraries on most UNIX style platforms,
-though it's just tested successfully on Sun Solaris 2.5.x and Linux.
+Enclosed with the libsmi package, there are all (bug fixed) current
+IETF standard MIB modules, as well as some other modules, man pages
+for all library functions and tools, the current SMIng specification
+and a libsmi test suite.
 
-Online information on libsmi together with download information, the
-(free) license terms, manual pages, and a mailing list is available at:
+The software comes with automake/autoconf and libtool support. Hence
+it should compile and build with or without shared libraries on most
+UNIX style platforms, though it's just developed on Sun Solaris 2.5.x
+and Linux.
+
+Online information on libsmi together with download and CVS access
+information, the (free) license terms, manual pages, and a mailing
+list is available at:
 
 	http://www.ibr.cs.tu-bs.de/projects/libsmi/
 
 Information on the SMIng project is available at:
 
-	http://www.ibr.cs.tu-bs.de/~strauss/sming/
+	http://www.ibr.cs.tu-bs.de/projects/sming/
 
 
 Enjoy!

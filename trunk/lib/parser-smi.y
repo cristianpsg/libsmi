@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.85 2000/02/13 13:20:52 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.86 2000/02/14 17:18:27 strauss Exp $
  */
 
 %{
@@ -4186,6 +4186,9 @@ MandatoryGroups:	MandatoryGroup
 
 MandatoryGroup:		objectIdentifier
 			{
+			    /* TODO: check that objectIdentifier is
+			       found, is defined in complianceModulePtr,
+			       and is a group node. */
 			    Import *importPtr;
 
 			    $$ = $1;
@@ -4196,9 +4199,8 @@ MandatoryGroup:		objectIdentifier
 			    }
 			    if (complianceModulePtr && $1->export.name) {
 				importPtr = findImportByModulenameAndName(
-						    complianceModulePtr->export.name,
-						    $1->export.name,
-						    thisModulePtr);
+				    complianceModulePtr->export.name,
+				    $1->export.name, thisModulePtr);
 				if (importPtr)
 				    importPtr->use++;
 			    }
