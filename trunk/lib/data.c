@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.123 2004/07/21 10:58:20 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -3782,6 +3782,12 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	parser.path			= path;
 	parser.flags			= smiHandle->flags;
 	parser.modulePtr		= NULL;
+	parser.complianceModulePtr	= NULL;
+	parser.capabilitiesModulePtr	= NULL;
+	parser.currentDecl              = SMI_DECL_UNKNOWN;
+	parser.firstStatementLine       = 0;
+	parser.firstNestedStatementLine = 0;
+	parser.firstRevisionLine        = 0;
 	parser.file			= file;
 	if (smiEnterLexRecursion(parser.file) < 0) {
 	    smiPrintError(&parser, ERR_MAX_LEX_DEPTH);
@@ -3809,6 +3815,12 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	parser.path			= path;
 	parser.flags			= smiHandle->flags;
 	parser.modulePtr		= NULL;
+	parser.complianceModulePtr	= NULL;
+	parser.capabilitiesModulePtr	= NULL;
+	parser.currentDecl              = SMI_DECL_UNKNOWN;
+	parser.firstStatementLine       = 0;
+	parser.firstNestedStatementLine = 0;
+	parser.firstRevisionLine        = 0;
 	parser.file			= file;
 	if (smingEnterLexRecursion(parser.file) < 0) {
 	    smiPrintError(&parser, ERR_MAX_LEX_DEPTH);
