@@ -102,3 +102,6 @@ o Bert Helthuis: add error level to error messages.
 o Bert Helthuis: Don't send errors to stderr, instead support something like
   smi_errno and smi_errorstring. But: How to handle multiple errors?
   
+
+o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
+  smidump -f tree -u SNA-SDLC-MIB IF-MIB
