@@ -1,3 +1,12 @@
+2000-06-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/smi.c (smiReadConfig): Fixed path separator when path
+	values from the configuration file get concatenated.
+
+	* mibs/ietf/: Fixed some imports.
+
+	* win/makefile.vc: Minor fixes. Thanks to Yigal Hochberg.
+
 2000-06-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.2.3.tar.gz: released version 0.2.3.

@@ -10,7 +10,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.1 2000/04/11 09:00:46 strauss Exp $
+# @(#) $Id: makefile.vc,v 1.1 2000/05/17 10:17:11 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -41,10 +41,11 @@ BINDIR = $(INSTROOT)\bin
 ##
 PATH=$(TOOLS32)\bin;$(PATH)
 
-cc32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
+CC32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
 CP      = copy
 RM      = del
 MKDIR	= md
+IMPLIB  = lib
 
 ##
 ## Definitions:
@@ -63,6 +64,7 @@ LIBSMIOBJS = \
 	$(TMPDIR)\data.obj \
 	$(TMPDIR)\error.obj \
 	$(TMPDIR)\util.obj \
+	$(TMPDIR)\check.obj \
 	$(TMPDIR)\smi.obj \
 	$(TMPDIR)\parser-smi.tab.obj \
 	$(TMPDIR)\scanner-smi.obj \
@@ -83,7 +85,8 @@ TOOLSOBJS = \
 	$(TMPDIR)\dump-ucdsnmp.obj \
 	$(TMPDIR)\dump-cm.obj \
 	$(TMPDIR)\dump-jax.obj \
-	$(TMPDIR)\dump-xml.obj
+	$(TMPDIR)\dump-xml.obj \
+	$(TMPDIR)\dump-metrics.obj
 
 SMILIB = smi.lib
 
@@ -91,13 +94,13 @@ SMILIB = smi.lib
 ## Implicit Targets
 ##
 .c.obj:
-	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+	$(CC32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
 {$(ROOT)\lib}.c{$(TMPDIR)}.obj:
-	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+	$(CC32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
 {$(ROOT)\tools}.c{$(TMPDIR)}.obj:
-	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+	$(CC32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
 
 ##
@@ -108,22 +111,22 @@ all:	libs tools
 libs:	$(SMILIB)
 
 $(SMILIB):	$(LIBSMIOBJS)
-	$(implib) /out:smi.lib $(LIBSMIOBJS)
+	$(IMPLIB) /out:smi.lib $(LIBSMIOBJS)
 
 tools:	smiquery.exe smilint.exe smidump.exe
 
 smiquery.exe:	$(TOOLSOBJS) $(SMILIB)
-	$(cc32) $(DEFINES) /osmiquery.exe smiquery.obj $(SMILIB)
+	$(CC32) $(DEFINES) /osmiquery.exe smiquery.obj $(SMILIB)
 
 smilint.exe:	$(TOOLSOBJS) $(SMILIB)
-	$(cc32) $(DEFINES) /osmilint.exe smilint.obj $(SMILIB)
+	$(CC32) $(DEFINES) /osmilint.exe smilint.obj $(SMILIB)
 
 smidump.exe:	$(TOOLSOBJS) $(SMILIB)
-	$(cc32) $(DEFINES) \
+	$(CC32) $(DEFINES) \
 		/osmidump.exe smidump.obj dump-sming.obj dump-smi.obj \
 		dump-imports.obj dump-types.obj dump-tree.obj dump-mosy.obj \
 		dump-corba.obj dump-ucdsnmp.obj dump-jax.obj dump-cm.obj \
-		dump-xml.obj $(SMILIB)
+		dump-xml.obj dump-metrics.obj $(SMILIB)
 
 clean:
 	del *.lib

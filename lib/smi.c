@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.91 2000/06/14 13:15:18 strauss Exp $
+ * @(#) $Id: smi.c,v 1.92 2000/06/16 13:53:57 strauss Exp $
  */
 
 #include <config.h>
@@ -355,7 +355,7 @@ int smiReadConfig(const char *filename, const char *tag)
 		smiLoadModule(arg);
 	    } else if (!strcmp(cmd, "path")) {
 		s = smiMalloc(strlen(smiPath) + strlen(arg) + 2);
-		sprintf(s, "%s:%s", smiPath, arg);
+		sprintf(s, "%s%c%s", smiPath, PATH_SEPARATOR, arg);
 		smiFree(smiPath);
 		smiPath = s;
 	    } else if (!strcmp(cmd, "level")) {

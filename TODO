@@ -94,10 +94,5 @@ o Suppress the following types: SNMPv2-SMI::ExtUTCTime,
 o Check format specifier text in SMIng spec and add a `u' format specifier
   for unsigned numbers.
 
-o RFC 1158 is not even SMIv1. It contains tables without INDEX constructs
-  and other definitions without DESCRIPTIONs. What shall we do? Fix this
-  module or fix other modules' imports? (Frank prefers the first, Juergen
-  the latter?)
-
 o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
   smidump -f tree -u SNA-SDLC-MIB IF-MIB : e.g. ifEntry differences.
