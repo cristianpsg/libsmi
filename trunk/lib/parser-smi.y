@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.187 2003/04/28 12:04:40 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.188 2003/04/30 08:41:36 strauss Exp $
  */
 
 %{
@@ -5789,6 +5789,11 @@ Objects:		Object
 Object:			ObjectName
 			{
 			    $$ = $1;
+			    if ($$->modulePtr != thisParserPtr->modulePtr) {
+                                smiPrintError(thisParserPtr,
+					      ERR_COMPLIANCE_MEMBER_NOT_LOCAL,
+					      $$->export.name);
+			    }
 			}
 	;
 
@@ -5820,6 +5825,11 @@ Notifications:		Notification
 Notification:		NotificationName
 			{
 			    $$ = $1;
+			    if ($$->modulePtr != thisParserPtr->modulePtr) {
+                                smiPrintError(thisParserPtr,
+					      ERR_COMPLIANCE_MEMBER_NOT_LOCAL,
+					      $$->export.name);
+			    }
 			}
 	;
 
