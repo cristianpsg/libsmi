@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.116 2000/06/21 10:33:37 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.117 2000/07/04 13:01:24 strauss Exp $
  */
 
 %{
@@ -1263,8 +1263,10 @@ macroClause:		macroName
 			/* the scanner skips until... */
 			END
 			{
-			    addMacro($1, 0, thisParserPtr);
-			    setMacroLine($1, firstStatementLine,
+			    Macro *macroPtr;
+
+			    macroPtr = addMacro($1, 0, thisParserPtr);
+			    setMacroLine(macroPtr, firstStatementLine,
 					 thisParserPtr);
 			    smiFree($1);
 			    $$ = 0;
