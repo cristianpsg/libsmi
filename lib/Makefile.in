@@ -146,7 +146,7 @@ smi_type.3.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/check.P .deps/data.P .deps/error.P \
 .deps/parser-smi.tab.P .deps/parser-sming.tab.P .deps/scanner-smi.P \
