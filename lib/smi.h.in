@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.32 2001/09/18 11:04:40 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.33 2001/10/08 14:16:57 schoenw Exp $
  */
 
 #ifndef _SMI_H
@@ -16,6 +16,11 @@
 
 #include <stdlib.h>
 #include <time.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define SMI_LIBRARY_VERSION "@VERSION_LIBTOOL@"
@@ -405,6 +410,10 @@ extern SmiType *smiGetRefinementType(SmiRefinement *smiRefinementPtr);
 
 extern SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _SMI_H */
