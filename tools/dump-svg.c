@@ -158,9 +158,6 @@ static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 static const int MODULE_INFO_WIDTH     =150;
 //The description of RowStatus is quite long... :-/
 static const int DYN_TEXT              =550;
-//TODO make these values configurable by options passed to the driver
-static const int CANVASHEIGHT          =700;
-static const int CANVASWIDTH           =1100;
 static const float STARTSCALE          =(float)0.5;
 
 //used by the springembedder
@@ -174,15 +171,20 @@ static const char* INDEXPROPERTY       = " {index}";
 /*
  * driver output control
  */
+//variables which are configurable by the user
+static int       CANVASHEIGHT          = 700; /* height of the svg */
+static int       CANVASWIDTH           = 1100; /* width of the svg */
+static int       SHOW_DEPRECATED       = 0; /* false, show deprecated objects */
+static int       SHOW_DEPR_OBSOLETE    = 0; /* false, show deprecated and
+					       obsolete objects */
+//variables which are NOT configurable by the user
 static int       XPLAIN                = 0; /* false, generates ASCII output */
 static int       DEBUG_XPLAIN          = 0; /* false, generates additional
 					       output in xplain-mode */
-static int       SUPPRESS_DEPRECATED   = 1; /* true, suppresses deprecated
-					       objects */
 static int       PRINT_DETAILED_ATTR   = 1; /* true, prints all column
 					       objects */
 static int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
-					       imported from other MIBs*/
+					       imported from other MIBs */
 
 /*
  * global variables
@@ -1920,18 +1922,22 @@ static void algCreateNodes(SmiModule *module)
     for (node = smiGetFirstNode(module, SMI_NODEKIND_TABLE);
 	 node;
 	 node = smiGetNextNode(node, SMI_NODEKIND_TABLE)) {
-	if (node->status != SMI_STATUS_OBSOLETE) {
-	    if (!SUPPRESS_DEPRECATED || node->status != SMI_STATUS_DEPRECATED)
-		graphInsertNode(graph, node);
-	}
+	if ((node->status == SMI_STATUS_DEPRECATED
+	    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+	    || (node->status == SMI_STATUS_OBSOLETE
+	    && !SHOW_DEPR_OBSOLETE))
+	    continue;
+	graphInsertNode(graph, node);
     }
     for (node = smiGetFirstNode(module, SMI_NODEKIND_SCALAR);
 	 node;
 	 node = smiGetNextNode(node, SMI_NODEKIND_SCALAR)) {
-	if (node->status != SMI_STATUS_OBSOLETE) {
-	    if (!SUPPRESS_DEPRECATED || node->status != SMI_STATUS_DEPRECATED)
-		graphInsertNode(graph, node);
-	}
+	if ((node->status == SMI_STATUS_DEPRECATED
+	    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+	    || (node->status == SMI_STATUS_OBSOLETE
+	    && !SHOW_DEPR_OBSOLETE))
+	    continue;
+	graphInsertNode(graph, node);
     }
 }
 
@@ -3009,8 +3015,10 @@ static void printNotificationType(int modc, SmiModule **modv,
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
-		if (SUPPRESS_DEPRECATED
-				&& smiNode->status == SMI_STATUS_DEPRECATED)
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
@@ -3101,8 +3109,10 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 		if (!isObjectGroup(smiNode))
 		    continue;
-		if (SUPPRESS_DEPRECATED
-				&& smiNode->status == SMI_STATUS_DEPRECATED)
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
@@ -3194,8 +3204,10 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 		if (!isNotificationGroup(smiNode))
 		    continue;
-		if (SUPPRESS_DEPRECATED
-				&& smiNode->status == SMI_STATUS_DEPRECATED)
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
@@ -3291,8 +3303,10 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_COMPLIANCE);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
-		if (SUPPRESS_DEPRECATED
-				&& smiNode->status == SMI_STATUS_DEPRECATED)
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		printf(" <text x=\"%.2f\" y=\"%.2f\"><tspan", *x, *y);
 
@@ -3968,8 +3982,18 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 void initSvg()
 {
     static SmidumpDriverOption opt[] = {
+	/* This option is also provided by the cm-driver, so we omit it here.
 	{ "explain", OPT_FLAG, &XPLAIN, 0,
 	  "explain what the algorithm does"},
+	*/
+	{ "width", OPT_INT, &CANVASWIDTH, 0,
+	  "width of the svg output"},
+	{ "height", OPT_INT, &CANVASHEIGHT, 0,
+	  "height of the svg output"},
+	{ "show-deprecated", OPT_FLAG, &SHOW_DEPRECATED, 0,
+	  "show deprecated objects"},
+	{ "show-depr-obsolete", OPT_FLAG, &SHOW_DEPR_OBSOLETE, 0,
+	  "show deprecated and obsolete objects"},
         { 0, OPT_END, 0, 0 }
     };
 
