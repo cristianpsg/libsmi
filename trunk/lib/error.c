@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.75 2001/08/27 11:51:42 strauss Exp $
+ * @(#) $Id: error.c,v 1.76 2001/09/21 11:16:06 strauss Exp $
  */
 
 #include <config.h>
@@ -590,6 +590,9 @@ smiErrorHandler(char *path, int line, int severity, char *msg, char *tag)
     if (path) {
 	fprintf(stderr, "%s:%d: ", path, line);
     }
+    if (severity > 2) {
+	fprintf(stderr, "warning: ");
+    }
     fprintf(stderr, "%s\n", msg);
 }
 
@@ -619,38 +622,51 @@ static void
 printError(Parser *parser, int id, int line, va_list ap)
 {
     char buffer[1024];
+    int i;
     
     if (! smiHandle->errorHandler) {
 	return;
     }
 
+    /*
+     * Search for the tag instead of just using the id as an index so
+     * that we do not run into trouble if the id is bogus.
+     */
+
+    for (i = 0; errors[i].fmt; i++) {
+	if (errors[i].id == id) break;
+    }
+    if (! errors[i].fmt) {
+	i = 0;		/* assumes that 0 is the internal error */
+    }
+
     if (parser) {
 
 	if (parser->modulePtr) {
-	    if ((parser->modulePtr->export.conformance > errors[id].level) ||
+	    if ((parser->modulePtr->export.conformance > errors[i].level) ||
 		(parser->modulePtr->export.conformance == 0)) {
-		parser->modulePtr->export.conformance = errors[id].level;
+		parser->modulePtr->export.conformance = errors[i].level;
 	    }
 	}
 	
-	if ((errors[id].level <= smiHandle->errorLevel) &&
+	if ((errors[i].level <= smiHandle->errorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 #ifdef HAVE_VSNPRINTF
-	    vsnprintf(buffer, sizeof(buffer), errors[id].fmt, ap);
+	    vsnprintf(buffer, sizeof(buffer), errors[i].fmt, ap);
 #else
-	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
+	    vsprintf(buffer, errors[i].fmt, ap);	/* buffer overwrite */
 #endif
-	    (smiHandle->errorHandler) (parser->path, line, errors[id].level, buffer, errors[id].tag);
+	    (smiHandle->errorHandler) (parser->path, line, errors[i].level, buffer, errors[i].tag);
 	}
     } else {
-	if (errors[id].level <= smiHandle->errorLevel) {
+	if (errors[i].level <= smiHandle->errorLevel) {
 #ifdef HAVE_VSNPRINTF
-	    vsnprintf(buffer, sizeof(buffer), errors[id].fmt, ap);
+	    vsnprintf(buffer, sizeof(buffer), errors[i].fmt, ap);
 #else
-	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
+	    vsprintf(buffer, errors[i].fmt, ap);	/* buffer overwrite */
 #endif
-	    (smiHandle->errorHandler) (NULL, 0, errors[id].level, buffer, errors[id].tag);
+	    (smiHandle->errorHandler) (NULL, 0, errors[i].level, buffer, errors[i].tag);
 	}
     }
 
@@ -661,7 +677,7 @@ printError(Parser *parser, int id, int line, va_list ap)
      * call so that it can at least do some cleanup.
      */
 
-    if (errors[id].level <= 0) {
+    if (errors[i].level <= 0) {
 	exit(-1);
     }
 }
