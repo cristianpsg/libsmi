@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.45 2000/10/19 16:15:26 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.46 2000/10/25 08:56:52 strauss Exp $
  */
 
 #include <config.h>
@@ -150,11 +150,15 @@ static Module* addModule(SmiModule *smiModule, int flags)
     newModule->flags = flags;
     newModule->nextPtr = NULL;
 
-    for (mPtrPtr = &moduleList; *mPtrPtr; mPtrPtr = &((*mPtrPtr)->nextPtr)) {
-	/* skip elements */
+    if (smiModule) {
+	for (mPtrPtr = &moduleList; *mPtrPtr;
+	     mPtrPtr = &((*mPtrPtr)->nextPtr)) {
+	    /* skip elements */
+	}
+	*mPtrPtr = newModule;
+    } else {
+	newModule->nextPtr = moduleList;
     }
-    *mPtrPtr = newModule;
-
     return newModule;
 }
 
@@ -290,6 +294,12 @@ main(argc, argv)
 	modulename = smiLoadModule(argv[optind]);
 	smiModule = modulename ? smiGetModule(modulename) : NULL;
 	if (smiModule) {
+	    if ((smiModule->conformance) && (smiModule->conformance < 3)) {
+		fprintf(stderr,
+			"smidump: module `%s' contains errors, "
+			"expect flawed output\n",
+			argv[optind]);
+	    }
 	    (driver->func)(addModule(smiModule, flags));
 	} else {
 	    fprintf(stderr, "smidump: cannot locate module `%s'\n",

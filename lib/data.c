@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.90 2000/10/19 16:14:40 strauss Exp $
+ * @(#) $Id: data.c,v 1.91 2000/10/25 08:56:39 strauss Exp $
  */
 
 #include <config.h>
@@ -176,7 +176,8 @@ Module *addModule(char *modulename, char *path, ModuleFlags flags,
     modulePtr->export.contactinfo		= NULL;
     modulePtr->export.description		= NULL;
     modulePtr->export.reference			= NULL;
-
+    modulePtr->export.conformance               = 0;
+    
     modulePtr->lastUpdated			= 0;
     modulePtr->flags				= flags;
     modulePtr->objectPtr			= NULL;
@@ -3470,4 +3471,4 @@ Module *loadModule(const char *modulename)
 
     smiFree(path);
     return NULL;
-} /*  */
+}

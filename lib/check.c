@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.7 2000/10/21 09:35:01 strauss Exp $
+ * @(#) $Id: check.c,v 1.8 2000/10/27 14:03:13 strauss Exp $
  */
 
 #include <config.h>
@@ -649,10 +649,10 @@ smiCheckIndex(Parser *parser, Object *object)
 	       what is the max len? */
 	    break;
 	case SMI_BASETYPE_ENUM:
-	    for (listPtr = typePtr->listPtr;
-		 listPtr; listPtr = listPtr->nextPtr) {
+	    for (list2Ptr = typePtr->listPtr;
+		 list2Ptr; list2Ptr = list2Ptr->nextPtr) {
 		
-		nnPtr = (NamedNumber *)(listPtr->ptr);
+		nnPtr = (NamedNumber *)(list2Ptr->ptr);
 
 		if (nnPtr->export.value.value.integer32 < 0) {
 			smiPrintErrorAtLine(parser, ERR_INDEX_ENUM_NEGATIVE,
@@ -973,5 +973,44 @@ smiCheckGroupMembership(Parser *parser, Object *objectPtr)
 				    objectPtr->export.name);
 	    }
 	}
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckObjectReuse --
+ *
+ *      Check whether a newly defined Object represents a duplicate
+ *      or a reused OID.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Allocates a new Object and adjusts the objectPtr parameter.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckObjectReuse(Parser *parser, char *name, Object **objectPtr)
+{
+    if ((((*objectPtr)->flags & FLAG_INCOMPLETE) == 0) &&
+	strcmp(name, (*objectPtr)->export.name)) {
+	if ((*objectPtr)->export.decl >= SMI_DECL_OBJECTTYPE) {
+	    smiPrintError(parser, ERR_OID_REGISTERED, name,
+			  (*objectPtr)->export.name);
+	} else {
+	    smiPrintError(parser, ERR_OID_REUSE, name,
+			  (*objectPtr)->export.name);
+	}
+	smiPrintErrorAtLine(parser, ERR_PREVIOUS_DEFINITION,
+			    (*objectPtr)->line, (*objectPtr)->export.name);
+	*objectPtr = duplicateObject(*objectPtr, 0, parser);
+    }
+    
+    if ((*objectPtr)->modulePtr != parser->modulePtr) {
+	*objectPtr = duplicateObject(*objectPtr, 0, parser);
     }
 }

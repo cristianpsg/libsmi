@@ -1,3 +1,15 @@
+2000-11-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidump.c: addModule() now inserts NULL module at the
+	head of the list as expected by the dump drivers.
+
+	* lib/check.c: Added checks for OID redifinitions and recursive
+	definitions, based on a contribution from Bill Fenner.
+
+	* lib/smi.h.in: Added a SmiModule.conformance attribute that
+	allows applications to determine, `how syntactically correct'
+	a module is.
+
 2000-11-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DISMAN-EVENT-MIB: added (RFC 2981).

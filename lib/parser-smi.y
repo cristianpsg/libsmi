@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.121 2000/10/19 16:14:42 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.122 2000/10/25 08:56:40 strauss Exp $
  */
 
 %{
@@ -330,8 +330,15 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		for (nodePtr = objectPtr->nodePtr, i = 1;
 		     nodePtr->parentPtr != pendingNodePtr &&
 			 nodePtr->parentPtr != rootNodePtr &&
-			 nodePtr != nodePtr->parentPtr;
+			 nodePtr != nodePtr->parentPtr &&
+			 i <= 128;
 		     nodePtr = nodePtr->parentPtr, i++);
+		if ((objectPtr->export.name) &&
+		    ((i > 128) || (nodePtr == nodePtr->parentPtr))) {
+		    smiPrintErrorAtLine(parserPtr, ERR_OID_RECURSIVE,
+					objectPtr->line,
+					objectPtr->export.name);
+		}
 		objectPtr->nodePtr->oid = smiMalloc(i * sizeof(SmiSubid));
 		objectPtr->nodePtr->oidlen = i;
 		for (nodePtr = objectPtr->nodePtr; i > 0; i--) {
@@ -1384,11 +1391,7 @@ valueDeclaration:	fuzzy_lowercase_identifier
 			    Object *objectPtr;
 			    
 			    objectPtr = $7;
-			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
-				objectPtr =
-				    duplicateObject(objectPtr,
-						    0, thisParserPtr);
-			    }
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 			    objectPtr = setObjectName(objectPtr, $1);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectLine(objectPtr, firstStatementLine,
@@ -1902,12 +1905,8 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    
 			    objectPtr = $12;
-			    
-			    if (objectPtr->modulePtr !=
-				thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr,
-				                            0, thisParserPtr);
-			    }
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
 			    setObjectLine(objectPtr, firstStatementLine,
@@ -1966,11 +1965,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr, *parentPtr;
 
 			    objectPtr = $17;
-			    
-			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr,
-				                            0, thisParserPtr);
-			    }
+
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectLine(objectPtr, firstStatementLine,
@@ -2124,10 +2121,8 @@ trapTypeClause:		fuzzy_lowercase_identifier
 						  FLAG_INCOMPLETE,
 						  thisParserPtr);
 			    
-			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr, 0,
-							    thisParserPtr);
-			    }
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_TRAPTYPE);
@@ -2242,11 +2237,9 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    
 			    objectPtr = $13;
-				
-			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr, 0,
-							    thisParserPtr);
-			    }
+
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
@@ -2312,13 +2305,11 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    
 			    objectPtr = $17;
-			    
+
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    thisParserPtr->modulePtr->numModuleIdentities++;
-			    if (objectPtr->modulePtr !=
-				thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr, 0,
-							    thisParserPtr);
-			    }
+
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
 			    setObjectLine(objectPtr, firstStatementLine,
@@ -4146,11 +4137,8 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    
 			    objectPtr = $13;
 
-			    if (objectPtr->modulePtr !=
-				thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr, 0,
-							    thisParserPtr);
-			    }
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
 			    setObjectLine(objectPtr, firstStatementLine,
@@ -4202,12 +4190,9 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    
 			    objectPtr = $13;
-			    
-			    if (objectPtr->modulePtr !=
-				thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr, 0,
-							    thisParserPtr);
-			    }
+
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
@@ -4263,12 +4248,9 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    List *listPtr;
 			    
 			    objectPtr = $13;
-			    
-			    if (objectPtr->modulePtr !=
-				thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr, 0,
-							    thisParserPtr);
-			    }
+
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
@@ -4700,11 +4682,8 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    
 			    objectPtr = $15;
 			    
-			    if (objectPtr->modulePtr !=
-				thisParserPtr->modulePtr) {
-				objectPtr = duplicateObject(objectPtr, 0,
-							    thisParserPtr);
-			    }
+			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
+
 			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
