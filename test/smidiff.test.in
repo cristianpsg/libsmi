@@ -27,7 +27,7 @@ for diff in *.diff ; do
 	newmib=$basename
     fi
     echo "checking smidiff results for $basename."
-    ../../tools/smidiff $oldmib $newmib > $basename.result
+    ../../tools/smidiff $oldmib $newmib > $basename.result 2>/dev/null
     @DIFF@ $diff $basename.result > $basename.diffdiff
     if [ ! -s $basename.diffdiff ] ; then
 	rm $basename.diffdiff $basename.result
