@@ -2,18 +2,22 @@
 LIBSMI NOTES FOR NATIVE WIN32 SUPPORT
 =====================================
 
-@(#) $Id: README.win,v 1.6 2001/08/28 09:20:35 strauss Exp $
+@(#) $Id: README.win,v 1.7 2002/05/25 12:19:22 strauss Exp $
 
 This directory contains some help to compile the libsmi and associated
 tools on a Win32 platform (Windows 95, 98, 2000, NT) with the native
 Microsoft Visual C++ compiler. The makefile has been tested with VC++
 6.0, but later versions should work very well too.
 
-An alternative GNUmakefile can be used with GNU make program.  You will need
-the GNU make "gmake.exe" for w32 platform.
+An alternative GNUmakefile can be used with GNU make program.  You
+will need the GNU make "gmake.exe" for Win32 platform.
+
+There is a separate file README.mingw which explains how the libsmi
+package can be compiled on Win32 platforms using the mingw version
+of gcc.
 
 
-INSTALLATION
+Installation
 ============
 
 (1) Change the compiler path macro TOOLS32 in ./makefile for the
