@@ -1,5 +1,5 @@
 /*
- * smi.h -- Generated automatically from smi.h.in by configure.
+ * smi.h --
  *
  *      Interface Implementation of libsmi.
  *
@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.2 1999/06/01 19:43:48 strauss Exp $
+ * @(#) $Id: smi.h,v 1.29 1999/06/02 16:52:35 strauss Exp $
  */
 
 #ifndef _SMI_H
