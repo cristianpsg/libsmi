@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.68 2003/01/28 16:42:09 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.69 2003/01/29 16:42:52 tklie Exp $
  */
 
 #include <config.h>
@@ -436,19 +436,61 @@ static char* getStrDHType( char *hint,
 		/* there are more octets to come */
 		if( iterDH->type == 'd' ) {
 		    /* decimal number needs to be treated differently */
-		    smiAsprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
-				 ret,
-				 numDigits( pow( 255, iterDH->number ) ) - 1);
-
-		    octetsUsed += iterDH->number;		    
-		    if( octetsUsed >= lengths[ i + 1 ] ) {
+		   if( iterDH->next ){
+		
+		       smiAsprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
+				    ret,
+				    numDigits( pow( 255,
+						    iterDH->number ) ) - 1 );
+			octetsUsed += iterDH->number;
+			if( octetsUsed >= lengths[ i + 1 ] ) {
 			/* maximum number of octets used,
-			   we must exit the loop */
-			break;
+			   we must exit the loop */			    
+			    break;
+			}
+
+			if( iterDH->separator ) {
+			    smiAsprintf( &ret, "%s%c",
+					 ret, iterDH->separator );
+			}
 		    }
-		    
-		    else if( iterDH->separator ) {
-			smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
+		    else {		
+			smiAsprintf( &ret, "%s((0|[1-9](([0-9]){0,%d})",
+				     ret,
+				     numDigits( pow( 255,
+						     iterDH->number ) ) - 1 );
+			
+			if( iterDH->separator ) {
+			    switch( iterDH->separator ) {
+
+			    case '.': 
+				smiAsprintf( &ret, "%s\\.", ret );
+				break;
+			    default:
+				smiAsprintf( &ret, "%s%c",
+					 ret, iterDH->separator );
+				break;
+			    }
+			}
+
+			if( lengths[ i+1 ] - 1 - octetsUsed ) {
+			    smiAsprintf( &ret,
+					 "%s){%u,%u})(0|[1-9](([0-9]){0,%d}))",
+					 ret, lengths[ i ] - 1 - octetsUsed,
+					 lengths[ i+1 ] - 1 - octetsUsed,
+					 numDigits(
+					     pow( 255, iterDH->number )
+					     ) - 1 );
+			}
+			else {
+			    smiAsprintf( &ret, "%s)", ret );
+			}
+			octetsUsed += iterDH->number;
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* maximum number of octets used,
+			       we must exit the loop */			    
+			    break;
+			}
 		    }
 		}
 		else {
@@ -779,26 +821,8 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 			       smiType->name );
 	    */
 	    if( parent ) {
-		if( ! parent->format ) {
-		    char *prefix = getTypePrefix( parent->name );
+		if(  parent->format ) {
 
-		    if( prefix ) {
-			fprintSegment( f, 1, "<xsd:restriction base=\"%s:%s\">\n",
-				       prefix, parent->name );
-		    } else {
-			fprintSegment( f, 1, "<xsd:restriction base=\"%s\">\n",
-				       parent->name );
-		    }
-
-		    /* print length restriction */
-		    if( minLength > 0 )
-			fprintSegment( f, 0, "<xsd:minLength value=\"%d\"/>\n",
-				       (int)minLength );
-		    if( maxLength > -1 )
-			fprintSegment( f, 0, "<xsd:maxLength value=\"%d\"/>\n",
-				       (int)maxLength );		    
-		    fprintSegment( f, -1, "</xsd:restriction>\n");
-		} else {
 		    SmiUnsigned32 *lengths =
 			xmalloc( 2 * sizeof( SmiUnsigned32 ) * numSubRanges );
 		    unsigned int lp = 0;
@@ -820,6 +844,44 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 		    xfree( lengths );
 		}
 		
+		
+		else if( smiType->name &&
+			 ! strcmp( smiType->name, "IpAddress" ) ) {
+		    SmiUnsigned32 lengths[] = {4, 4};
+		    lengths[0] = 4; lengths[1] = 4;
+		    fprintSegment( f, 1, "<xsd:restriction base=\"xsd:string\">\n" );
+		    fprintSegment( f, 0, "<xsd:pattern "
+				   "value=\"(0|[1-9](([0-9]){0,2}))."
+				   "(0|[1-9](([0-9]){0,2}))."
+				   "(0|[1-9](([0-9]){0,2}))."
+				   "(0|[1-9](([0-9]){0,2}))\"/>\n" );
+		    fprintSegment( f, -1, "</xsd:restriction>\n");
+		}
+		
+		else {
+		    
+		    
+		    char *prefix = getTypePrefix( parent->name );
+
+		    if( prefix ) {
+			fprintSegment( f, 1, "<xsd:restriction base=\"%s:%s\">\n",
+				       prefix, parent->name );
+		    } else {
+			fprintSegment( f, 1, "<xsd:restriction base=\"%s\">\n",
+				       parent->name );
+		    }
+
+		    /* print length restriction */
+		    if( minLength > 0 )
+			fprintSegment( f, 0, "<xsd:minLength value=\"%d\"/>\n",
+				       (int)minLength );
+		    if( maxLength > -1 )
+			fprintSegment( f, 0, "<xsd:maxLength value=\"%d\"/>\n",
+				       (int)maxLength );		    
+		    fprintSegment( f, -1, "</xsd:restriction>\n");
+		}
+		    
+
 	    }
 	}
 	break;
@@ -1224,18 +1286,19 @@ static void fprintAnnotationElem( FILE *f, SmiNode *smiNode ) {
     
     fprintSegment( f, 1, "<xsd:annotation>\n");
     fprintSegment( f, 1, "<xsd:appinfo>\n");
-
+    fprintSegment( f, 0, "<implied>%s</implied>\n",
+		   smiNode->implied ? "true" : "false" );
     fprintSegment( f, 0, "<maxAccess>%s</maxAccess>\n",
 		   getStringAccess( smiNode->access ) );
-
-    fprintSegment( f, 0, "<status>%s</status>\n",
-		   getStringStatus( smiNode->status ) );
-
     fprintSegment( f, 0, "<oid>");
     for (i = 0; i < smiNode->oidlen; i++) {
 	fprintf(f, i ? ".%u" : "%u", smiNode->oid[i]);
     }
     fprintf( f, "</oid>\n" );
+
+    fprintSegment( f, 0, "<status>%s</status>\n",
+		   getStringStatus( smiNode->status ) );
+
 
     if( smiNode->format ) {
 	fprintDisplayHint( f, smiNode->format );
