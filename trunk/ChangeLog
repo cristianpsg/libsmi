@@ -1,3 +1,7 @@
+2003-08-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* pibs/ietf/FRAMEWORK-FEEDBACK-PIB: added (RFC 3571).
+
 2003-06-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/BLDG-HVAC-MIB: added (RFC 3512) (it's just an
