@@ -1,3 +1,7 @@
+2000-01-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/AGENTX-MIB: MIB module added.
+
 2000-01-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/scanner-smi.l: Bert Helthuis pointed out an incorrect warning
