@@ -616,7 +616,8 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	 * Check references to unknown identifiers.
 	 */
 
-	if (objectPtr->flags & FLAG_INCOMPLETE) {
+	if ((objectPtr->flags & FLAG_INCOMPLETE) &&
+	    (objectPtr->export.decl != SMI_DECL_IMPL_OBJECT)) {
 	    if (objectPtr->export.name) {
 		smiPrintErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
 				    objectPtr->line, objectPtr->export.name);
@@ -6174,8 +6175,10 @@ subidentifier:
 			    objectPtr = findObjectByModuleAndName(
 				thisParserPtr->modulePtr, $1);
 			    if (objectPtr) {
+#if 0 /* this is not an error */
 				smiPrintError(thisParserPtr,
 					      ERR_EXISTENT_OBJECT, $1);
+#endif
 				$$ = objectPtr;
 				if ($$->nodePtr->subid != $3) {
 				    smiPrintError(thisParserPtr,
@@ -6187,8 +6190,13 @@ subidentifier:
 				objectPtr = addObject($1, thisParserPtr->parentNodePtr,
 						      $3, 0,
 						      thisParserPtr);
+#if 0 /* this construct is NOT defining a new object */
 				setObjectDecl(objectPtr,
 					      SMI_DECL_VALUEASSIGNMENT);
+#else
+				setObjectDecl(objectPtr,
+					      SMI_DECL_IMPL_OBJECT);
+#endif
 				$$ = objectPtr;
 			    }
 			    if ($$) 
