@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.116 2003/07/17 08:26:42 strauss Exp $
+ * @(#) $Id: error.c,v 1.117 2003/08/14 11:27:41 schoenw Exp $
  */
 
 #include <config.h>
@@ -396,8 +396,14 @@ static Error errors[] = {
       "possible combination of the index elements' values (RFC 2578,\n"
       "Section 3.5)."},
     { 1, ERR_INDEX_STRING_NO_SIZE_MOD, "index-element-no-size",
-      "index element `%s::%s' of row `%s' must have a size restriction", NULL},
-    { 5, ERR_INDEX_OID_NO_SIZE, "index-element-no-size",
+      "index element `%s::%s' of row `%s' must have a size restriction",
+      "Object identifiers are restricted in size to have at most 128\n"
+      "sub-identifiers. This implies that index elements used to form\n"
+      "instance identifiers must have a size contraint which ensures\n"
+      "that the 128 sub-identifier constraint is kept intact for any\n"
+      "possible combination of the index elements' values (RFC 2578,\n"
+      "Section 3.5)."},
+    { 6, ERR_INDEX_OID_NO_SIZE, "index-element-no-size",
       "index element `%s' of row `%s' should but cannot have a size restriction",
       "Object identifiers are restricted in size to have at most 128\n"
       "sub-identifiers. This implies that all index elements used to form\n"
@@ -406,9 +412,17 @@ static Error errors[] = {
       "possible combination of the index elements' values (RFC 2578,\n"
       "Section 3.5). However the type OBJECT IDENTIFIER cannot formally\n"
       "be restricted in size (Section 9) although it is legal to use\n"
-      "objects type OBJECT IDENTIFIER as index elements."},
-    { 5, ERR_INDEX_OID_NO_SIZE_MOD, "index-element-no-size",
-      "index element `%s::%s' of row `%s' should but cannot have a size restriction", NULL},
+      "objects of type OBJECT IDENTIFIER as index elements."},
+    { 6, ERR_INDEX_OID_NO_SIZE_MOD, "index-element-no-size",
+      "index element `%s::%s' of row `%s' should but cannot have a size restriction",
+      "Object identifiers are restricted in size to have at most 128\n"
+      "sub-identifiers. This implies that all index elements used to form\n"
+      "instance identifiers should have a size contraint which ensures\n"
+      "that the 128 sub-identifier constraint is kept intact for any\n"
+      "possible combination of the index elements' values (RFC 2578,\n"
+      "Section 3.5). However the type OBJECT IDENTIFIER cannot formally\n"
+      "be restricted in size (Section 9) although it is legal to use\n"
+      "objects of type OBJECT IDENTIFIER as index elements."},
     { 1, ERR_INDEX_RANGE_NEGATIVE, "index-element-range-negative",
       "range restriction of index element `%s' of row `%s' must be non-negative", NULL},
     { 1, ERR_INDEX_ENUM_NEGATIVE, "index-element-enum-negative",
