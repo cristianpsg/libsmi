@@ -7,7 +7,7 @@ Copyright (c) 1999-2001 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.23 2000/11/14 13:27:54 strauss Exp $
+@(#) $Id: README,v 1.24 2001/03/06 11:41:58 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -49,6 +49,12 @@ SMIPATH environment variable and without configuration files.
 
 On HP-UX platforms the build process is reported to require gcc
 and the --disable-shared configure option.
+
+On MacOS X (darwin-power-pc) platforms the standard build process 
+gives the following warning "smi.h:56: warning: use of `long double'
+type; its size may change in a future release". Users can disable
+this warning with the --with-cflags="-Wno-long-double" configure
+option.
 
 To build libsmi and the tools, run
 
