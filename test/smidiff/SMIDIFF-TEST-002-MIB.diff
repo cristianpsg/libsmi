@@ -8,6 +8,6 @@
 ./SMIDIFF-TEST-002-MIB.new:52 range `(0..9)' removed from type used in `scalar3'
 ./SMIDIFF-TEST-002-MIB.old:52 previous definition of `scalar3'
 ./SMIDIFF-TEST-002-MIB.new:79 range of type used in `scalar6' changed from `(0..9|12..15)' to `(0..9|13..15)'
-./SMIDIFF-TEST-002-MIB.new:88 range `(0..9|12..15)' removed from type used in `scalar7'
-./SMIDIFF-TEST-002-MIB.new:96 range `(0..9|12..15)' added to type used in `scalar8'
+./SMIDIFF-TEST-002-MIB.new:88 subrange `(12..15)' removed from type used in `scalar7'
+./SMIDIFF-TEST-002-MIB.new:96 subrange `(12..15)' added to type used in `scalar8'
 ./SMIDIFF-TEST-002-MIB.new:104 range of type used in `scalar9' changed from `(0..9|20..29)' to `(0..29)'
