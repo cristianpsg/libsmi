@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.11 2002/02/25 15:42:27 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.12 2002/02/26 14:34:08 tklie Exp $
  */
 
 #include <config.h>
@@ -456,9 +456,11 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     }
     fprint(f, ">\n");
 
-    fprintSegment( f, indent + INDENT, "<xsd:annotation>\n", 0 );
-    fprintDocumentation(f, indent + 2 * INDENT, smiType->description);
-    fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
+    if( smiType->description ) {
+	fprintSegment( f, indent + INDENT, "<xsd:annotation>\n", 0 );
+	fprintDocumentation(f, indent + 2 * INDENT, smiType->description);
+	fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
+    }
 
     fprintRestriction(f, indent + INDENT, smiType);
   
@@ -583,6 +585,7 @@ static void fprintElement( FILE *f, int indent,
     {
 	SmiElement *iterElem;
 	char *prefix;
+	char *typeName;
 	
 	/* check if we are index column */
 	for( iterElem = smiGetFirstElement( smiGetParentNode( smiNode ) ) ;
@@ -598,25 +601,38 @@ static void fprintElement( FILE *f, int indent,
 	
 	fprintSegment( f, indent, "<xsd:element", 0 );
 	fprint( f, " name=\"%s\"", smiNode->name );
-       
+
+	if( smiType->name ) {
+	    typeName = smiType->name;
+	}
+	else {
+	    typeName = getStringBasetype( smiType->basetype );
+	}
+
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
 	    fprint( f, " type=\"%%s%s\"",
 		    smiNode->name,
 		    getStringBasetype( smiType->basetype ) );
+	    fprint( f, " minOccurs=\"0\">\n" );
 	}
+	
+	else if( smiType->basetype == SMI_BASETYPE_ENUM &&
+	    ! smiType->name ) {
+	    fprint( f, "minOccurs=\"0>\n" );
+	    fprintTypedef( f, indent + INDENT, smiType, NULL );
+	}
+	
 	else {
 	    SmiModule *typeModule = smiGetTypeModule( smiType );
 	    if( prefix ) {
-		fprint( f, " type=\"%s:%s\"",
-			prefix,
-			getStringBasetype( smiType->basetype ) );
+		fprint( f, " type=\"%s:%s\"", prefix, typeName );
 	    }
 	    else {
-		fprint( f, " type=\"%s\"",
-			getStringBasetype( smiType->basetype ) );
+		fprint( f, " type=\"%s\"", typeName );
 	    }
+	    fprint( f, " minOccurs=\"0\">\n" );
 	}
-	fprint( f, " minOccurs=\"0\">\n" );
+	
 	
 	fprintAnnotationElem( f, indent + INDENT, smiNode );
 	fprintSegment( f, indent, "</xsd:element>\n", 0 ); 
@@ -772,7 +788,8 @@ static void fprintBits( FILE *f, SmiModule *smiModule )
 				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
 	smiType = smiGetNodeType( iterNode );
 	if( smiType ) {
-	    if( smiType->basetype == SMI_BASETYPE_BITS ) {
+	    if( ( smiType->basetype == SMI_BASETYPE_BITS ) &&
+		( ! getTypePrefix( smiType ) ) ) {
 		fprintTypedef( f, INDENT, smiType, iterNode->name );
 	    }
 	}
