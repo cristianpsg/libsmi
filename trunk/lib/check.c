@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.22 2001/08/15 17:07:03 strauss Exp $
+ * @(#) $Id: check.c,v 1.23 2001/08/22 15:40:09 strauss Exp $
  */
 
 #include <config.h>
@@ -171,10 +171,10 @@ smiCheckObjectName(Parser *parser, Module *module, char *name)
     int errExtCaseRedef = smiGetErrorSeverity(ERR_EXT_CASE_REDEFINITION);
 
     if (! (parser->flags & SMI_FLAG_ERRORS)
-	|| (errRedef > smiErrorLevel
-	    && errExtRedef > smiErrorLevel
-	    && errCaseRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel)) {
+	|| (errRedef > smiHandle->errorLevel
+	    && errExtRedef > smiHandle->errorLevel
+	    && errCaseRedef > smiHandle->errorLevel
+	    && errExtCaseRedef > smiHandle->errorLevel)) {
 	return;
     }
 
@@ -182,7 +182,7 @@ smiCheckObjectName(Parser *parser, Module *module, char *name)
      * This would really benefit from having a hash table...
      */
 
-    for (modPtr = firstModulePtr;
+    for (modPtr = smiHandle->firstModulePtr;
 	 modPtr; modPtr = modPtr->nextPtr) {
 
 	/*
@@ -190,8 +190,8 @@ smiCheckObjectName(Parser *parser, Module *module, char *name)
 	 * generating warning on extern redefinitions.
 	 */
 
-	if (errExtRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel
+	if (errExtRedef > smiHandle->errorLevel
+	    && errExtCaseRedef > smiHandle->errorLevel
 	    && modPtr != module) {
 	    continue;
 	}
@@ -251,10 +251,10 @@ smiCheckTypeName(Parser *parser, Module *module, char *name, int line)
     int errExtCaseRedef = smiGetErrorSeverity(ERR_EXT_CASE_REDEFINITION);
 
     if (! (parser->flags & SMI_FLAG_ERRORS)
-	|| (errRedef > smiErrorLevel
-	    && errExtRedef > smiErrorLevel
-	    && errCaseRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel)) {
+	|| (errRedef > smiHandle->errorLevel
+	    && errExtRedef > smiHandle->errorLevel
+	    && errCaseRedef > smiHandle->errorLevel
+	    && errExtCaseRedef > smiHandle->errorLevel)) {
 	return;
     }
 
@@ -262,7 +262,7 @@ smiCheckTypeName(Parser *parser, Module *module, char *name, int line)
      * This would really benefit from having a hash table...
      */
 
-    for (modPtr = firstModulePtr;
+    for (modPtr = smiHandle->firstModulePtr;
 	 modPtr; modPtr = modPtr->nextPtr) {
 
 	/*
@@ -270,8 +270,8 @@ smiCheckTypeName(Parser *parser, Module *module, char *name, int line)
 	 * generating warning on extern redefinitions.
 	 */
 
-	if (errExtRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel
+	if (errExtRedef > smiHandle->errorLevel
+	    && errExtCaseRedef > smiHandle->errorLevel
 	    && modPtr != module) {
 	    continue;
 	}

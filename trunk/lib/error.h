@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.18 2000/06/16 13:53:57 strauss Exp $
+ * @(#) $Id: error.h,v 1.19 2000/12/15 13:52:29 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -26,6 +26,9 @@
 
 
 extern int smiErrorLevel;	/* Higher levels produce more warnings */
+
+extern void smiErrorHandler(char *path, int line, int severity,
+			    char *msg, char *tag);
 
 extern void smiSetErrorSeverity(char *pattern, int severity);
 

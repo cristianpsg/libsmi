@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.99 2001/08/15 17:07:03 strauss Exp $
+ * @(#) $Id: data.c,v 1.100 2001/08/16 10:53:32 strauss Exp $
  */
 
 #include <config.h>
@@ -56,22 +56,116 @@ extern int smingparse();
 					     "unknown" )
 
 
-
-View	        *firstViewPtr, *lastViewPtr;
-Module          *firstModulePtr, *lastModulePtr;
-Node		*rootNodePtr;
-Node		*pendingNodePtr;
-Type		*typeOctetStringPtr, *typeObjectIdentifierPtr,
-		*typeInteger32Ptr, *typeUnsigned32Ptr,
-		*typeInteger64Ptr, *typeUnsigned64Ptr,
-		*typeFloat32Ptr, *typeFloat64Ptr,
-		*typeFloat128Ptr,
-		*typeEnumPtr, *typeBitsPtr;
-int		smiFlags;
-char		*smiPath;
-char		*smiCache;
-char		*smiCacheProg;
 int		smiDepth = 0;
+static Handle   *firstHandlePtr = NULL;
+static Handle   *lastHandlePtr  = NULL;
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * addHandle --
+ *
+ *      Adds a libsmi handle with a given name.
+ *
+ * Results:
+ *      0 on success or -1 on an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Handle *addHandle(const char *name)
+{
+    Handle *handlePtr;
+
+    handlePtr = (Handle *) smiMalloc(sizeof(Handle));
+
+    handlePtr->name    = smiStrdup(name);
+
+    handlePtr->nextPtr = NULL;
+    handlePtr->prevPtr = lastHandlePtr;
+    if (!firstHandlePtr) firstHandlePtr = handlePtr;
+    if (lastHandlePtr) lastHandlePtr->nextPtr = handlePtr;
+    lastHandlePtr = handlePtr;
+
+    return (handlePtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * removeHandle --
+ *
+ *      Removes a given libsmi handle.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void removeHandle(Handle *handlePtr)
+{
+    if (handlePtr->prevPtr) {
+	handlePtr->prevPtr->nextPtr = handlePtr->nextPtr;
+    } else {
+	firstHandlePtr = handlePtr->nextPtr;
+    }
+    if (handlePtr->nextPtr) {
+	handlePtr->nextPtr->prevPtr = handlePtr->prevPtr;
+    } else {
+	lastHandlePtr = handlePtr->prevPtr;
+    }
+
+    smiFree(handlePtr->name);
+    smiFree(handlePtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findHandleByName --
+ *
+ *      Lookup an libsmi handle by its name.
+ *
+ * Results:
+ *      A pointer to the Handle structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Handle *findHandleByName(const char *name)
+{
+    Handle *handlePtr;
+
+    if (!name)
+	return NULL;
+    
+    for (handlePtr = firstHandlePtr; handlePtr;
+	 handlePtr = handlePtr->nextPtr) {
+	if (!strcmp(handlePtr->name, name)) {
+		return (handlePtr);
+	}
+    }
+
+    return NULL;
+    
+}
+
 
 
 /*
@@ -99,10 +193,10 @@ View *addView(const char *modulename)
 
     viewPtr->name				= smiStrdup(modulename);
     viewPtr->nextPtr				= NULL;
-    viewPtr->prevPtr				= lastViewPtr;
-    if (!firstViewPtr) firstViewPtr		= viewPtr;
-    if (lastViewPtr) lastViewPtr->nextPtr	= viewPtr;
-    lastViewPtr	     				= viewPtr;
+    viewPtr->prevPtr				= smiHandle->lastViewPtr;
+    if (!smiHandle->firstViewPtr) smiHandle->firstViewPtr		= viewPtr;
+    if (smiHandle->lastViewPtr) smiHandle->lastViewPtr->nextPtr	= viewPtr;
+    smiHandle->lastViewPtr	     				= viewPtr;
     
     return (viewPtr);
 }
@@ -129,11 +223,11 @@ int isInView(const char *modulename)
 {
     View	      *viewPtr;
 
-    if (smiFlags & SMI_FLAG_VIEWALL) {
+    if (smiHandle->flags & SMI_FLAG_VIEWALL) {
 	return 1;
     }
     
-    for (viewPtr = firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
+    for (viewPtr = smiHandle->firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
 	if (!strcmp(modulename, viewPtr->name)) {
 	    return 1;
 	}
@@ -196,10 +290,10 @@ Module *addModule(char *modulename, char *path, ModuleFlags flags,
     modulePtr->numModuleIdentities		= 0;
 
     modulePtr->nextPtr				= NULL;
-    modulePtr->prevPtr				= lastModulePtr;
-    if (!firstModulePtr) firstModulePtr		= modulePtr;
-    if (lastModulePtr) lastModulePtr->nextPtr	= modulePtr;
-    lastModulePtr				= modulePtr;
+    modulePtr->prevPtr				= smiHandle->lastModulePtr;
+    if (!smiHandle->firstModulePtr) smiHandle->firstModulePtr		= modulePtr;
+    if (smiHandle->lastModulePtr) smiHandle->lastModulePtr->nextPtr	= modulePtr;
+    smiHandle->lastModulePtr				= modulePtr;
     
     return (modulePtr);
 }
@@ -380,7 +474,7 @@ Module *findModuleByName(const char *modulename)
 {
     Module	*modulePtr;
 
-    for (modulePtr = firstModulePtr; modulePtr;
+    for (modulePtr = smiHandle->firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	if ((modulePtr->export.name) &&
 	    !strcmp(modulePtr->export.name, modulename)) {
@@ -730,7 +824,7 @@ Object *addObject(char *objectname, Node *parentNodePtr, SmiSubid subid,
      * Link it into the tree.
      */
     nodePtr = findNodeByParentAndSubid(parentNodePtr, subid);
-    if ((parentNodePtr == pendingNodePtr) || (!nodePtr)) {
+    if ((parentNodePtr == smiHandle->pendingNodePtr) || (!nodePtr)) {
 
 	/* a new Node has to be created for this Object */
 	nodePtr = addNode(parentNodePtr, subid, flags, parserPtr);
@@ -933,7 +1027,7 @@ Node *createNodes(unsigned int oidlen, SmiSubid *oid)
     Node	 *parentNodePtr, *nodePtr;
     unsigned int i;
 
-    parentNodePtr = rootNodePtr;
+    parentNodePtr = smiHandle->rootNodePtr;
 
     for(i = 0; i < oidlen; i++) {
 	if (!(nodePtr = findNodeByParentAndSubid(parentNodePtr, oid[i]))) {
@@ -971,7 +1065,7 @@ Node *createNodesByOidString(const char *oid)
     Node		*parentNodePtr, *nodePtr;
     SmiSubid		subid;
 
-    parentNodePtr = rootNodePtr;
+    parentNodePtr = smiHandle->rootNodePtr;
     elements = smiStrdup(oid);
 
     p = strtok(elements, ".");
@@ -1145,7 +1239,7 @@ Object *setObjectName(Object *objectPtr, char *name)
      * pendingRootNode), we have to move the corresponding subtree to
      * the main tree.
      */
-    for (nodePtr = pendingNodePtr->firstChildPtr; nodePtr;
+    for (nodePtr = smiHandle->pendingNodePtr->firstChildPtr; nodePtr;
 	 nodePtr = nextPtr) {
 
 	/*
@@ -1162,12 +1256,12 @@ Object *setObjectName(Object *objectPtr, char *name)
 	    if (nodePtr->prevPtr) {
 		nodePtr->prevPtr->nextPtr = nodePtr->nextPtr;
 	    } else {
-		pendingNodePtr->firstChildPtr = nodePtr->nextPtr;
+		smiHandle->pendingNodePtr->firstChildPtr = nodePtr->nextPtr;
 	    }
 	    if (nodePtr->nextPtr) {
 		nodePtr->nextPtr->prevPtr = nodePtr->prevPtr;
 	    } else {
-		pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
+		smiHandle->pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
 	    }
 
 #if 0
@@ -1698,7 +1792,7 @@ Node *findNodeByParentAndSubid(Node *parentNodePtr, SmiSubid subid)
 {
     Node *nodePtr;
     
-    if (parentNodePtr && (parentNodePtr != pendingNodePtr)) {
+    if (parentNodePtr && (parentNodePtr != smiHandle->pendingNodePtr)) {
 	for (nodePtr = parentNodePtr->firstChildPtr; nodePtr;
 	     nodePtr = nodePtr->nextPtr) {
 	    if (nodePtr->subid == subid) {
@@ -1734,7 +1828,7 @@ Node *findNodeByOid(unsigned int oidlen, SmiSubid *oid)
     Node          *nodePtr;
     unsigned int  i;
     
-    nodePtr = rootNodePtr;
+    nodePtr = smiHandle->rootNodePtr;
     for(i = 0; i < oidlen && nodePtr; i++) {
 	nodePtr = findNodeByParentAndSubid(nodePtr, oid[i]);
     }
@@ -1768,7 +1862,7 @@ Node *findNodeByOidString(char *oid)
     char *p;
     
     s = smiStrdup(oid);
-    nodePtr = rootNodePtr;
+    nodePtr = smiHandle->rootNodePtr;
     for(p = strtok(s, ". "); p && nodePtr; p = strtok(NULL, ". ")) {
 	nodePtr = findNodeByParentAndSubid(nodePtr, atoi(p));
     }
@@ -1915,7 +2009,7 @@ Object *findObjectByName(const char *objectname)
     Module	     *modulePtr;
     Object           *objectPtr;
 
-    for (modulePtr = firstModulePtr; modulePtr;
+    for (modulePtr = smiHandle->firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
@@ -2619,7 +2713,7 @@ Type * findTypeByName(const char *type_name)
     Module *modulePtr;
     Type   *typePtr;
     
-    for (modulePtr = firstModulePtr; modulePtr;
+    for (modulePtr = smiHandle->firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
@@ -2981,7 +3075,7 @@ Macro *findMacroByName(const char *macroname)
     Module *modulePtr;
     Macro   *macroPtr;
     
-    for (modulePtr = firstModulePtr; modulePtr;
+    for (modulePtr = smiHandle->firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
 	     macroPtr = macroPtr->nextPtr) {
@@ -3092,22 +3186,22 @@ int smiInitData()
     Object	    *objectPtr;
     Parser	    parser;
     
-    smiFlags = 0;
+    smiHandle->flags = 0;
     
-    firstModulePtr = NULL;
-    lastModulePtr = NULL;
-    firstViewPtr = NULL;
-    lastViewPtr = NULL;
+    smiHandle->firstModulePtr = NULL;
+    smiHandle->lastModulePtr = NULL;
+    smiHandle->firstViewPtr = NULL;
+    smiHandle->lastViewPtr = NULL;
     
     /*
      * Initialize a root Node for the main MIB tree.
      */
-    rootNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
+    smiHandle->rootNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
     
     /*
      * Initialize a root Node for pending (forward referenced) nodes.
      */
-    pendingNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
+    smiHandle->pendingNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
     
     /*
      * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt
@@ -3115,61 +3209,61 @@ int smiInitData()
      * defines it in a special SMIng module.
      */
     parser.path			= NULL;
-    parser.flags		= smiFlags;
+    parser.flags		= smiHandle->flags;
     parser.file			= NULL;
     parser.line			= -1;
     parser.modulePtr = addModule(smiStrdup(""), smiStrdup(""), 0, NULL);
 
     addView("");
 
-    objectPtr = addObject(smiStrdup("ccitt"), rootNodePtr, 0, 0, &parser);
+    objectPtr = addObject(smiStrdup("ccitt"), smiHandle->rootNodePtr, 0, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 0;
-    objectPtr = addObject(smiStrdup("iso"), rootNodePtr, 1, 0, &parser);
+    objectPtr = addObject(smiStrdup("iso"), smiHandle->rootNodePtr, 1, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 1;
-    objectPtr = addObject(smiStrdup("joint-iso-ccitt"), rootNodePtr, 2, 0, &parser);
+    objectPtr = addObject(smiStrdup("joint-iso-ccitt"), smiHandle->rootNodePtr, 2, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 2;
     
     
-    typeOctetStringPtr =
+    smiHandle->typeOctetStringPtr =
 	addType(smiStrdup("OctetString"),
 		SMI_BASETYPE_OCTETSTRING, 0, &parser);
-    typeObjectIdentifierPtr =
+    smiHandle->typeObjectIdentifierPtr =
 	addType(smiStrdup("ObjectIdentifier"),
 		SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
-    typeInteger32Ptr =
+    smiHandle->typeInteger32Ptr =
 	addType(smiStrdup("Integer32"),
 		SMI_BASETYPE_INTEGER32, 0, &parser);
-    typeUnsigned32Ptr =
+    smiHandle->typeUnsigned32Ptr =
 	addType(smiStrdup("Unsigned32"),
 		SMI_BASETYPE_UNSIGNED32, 0, &parser);
-    typeInteger64Ptr =
+    smiHandle->typeInteger64Ptr =
 	addType(smiStrdup("Integer64"),
 		SMI_BASETYPE_INTEGER64, 0, &parser);
-    typeUnsigned64Ptr =
+    smiHandle->typeUnsigned64Ptr =
 	addType(smiStrdup("Unsigned64"),
 		SMI_BASETYPE_UNSIGNED64, 0, &parser);
-    typeFloat32Ptr =
+    smiHandle->typeFloat32Ptr =
 	addType(smiStrdup("Float32"),
 		SMI_BASETYPE_FLOAT32, 0, &parser);
-    typeFloat64Ptr =
+    smiHandle->typeFloat64Ptr =
 	addType(smiStrdup("Float64"),
 		SMI_BASETYPE_FLOAT64, 0, &parser);
-    typeFloat128Ptr =
+    smiHandle->typeFloat128Ptr =
 	addType(smiStrdup("Float128"),
 		SMI_BASETYPE_FLOAT128, 0, &parser);
-    typeEnumPtr =
+    smiHandle->typeEnumPtr =
 	addType(smiStrdup("Enumeration"),
 		SMI_BASETYPE_ENUM, 0, &parser);
-    typeBitsPtr =
+    smiHandle->typeBitsPtr =
 	addType(smiStrdup("Bits"),
 		SMI_BASETYPE_BITS, 0, &parser);
 
@@ -3237,13 +3331,13 @@ void smiFreeData()
     Type       *typePtr, *nextTypePtr;
     Object     *objectPtr, *nextObjectPtr;
 
-    for (viewPtr = firstViewPtr; viewPtr; viewPtr = nextViewPtr) {
+    for (viewPtr = smiHandle->firstViewPtr; viewPtr; viewPtr = nextViewPtr) {
 	nextViewPtr = viewPtr->nextPtr;
 	smiFree(viewPtr->name);
 	smiFree(viewPtr);
     }
 
-    for (modulePtr = firstModulePtr; modulePtr; modulePtr = nextModulePtr) {
+    for (modulePtr = smiHandle->firstModulePtr; modulePtr; modulePtr = nextModulePtr) {
 	nextModulePtr = modulePtr->nextPtr;
 
 	for (importPtr = modulePtr->firstImportPtr; importPtr;
@@ -3348,10 +3442,10 @@ void smiFreeData()
 	smiFree(modulePtr);
     }
 
-    freeNodeTree(rootNodePtr);
-    freeNodeTree(pendingNodePtr);
-    smiFree(rootNodePtr);
-    smiFree(pendingNodePtr);
+    freeNodeTree(smiHandle->rootNodePtr);
+    freeNodeTree(smiHandle->pendingNodePtr);
+    smiFree(smiHandle->rootNodePtr);
+    smiFree(smiHandle->pendingNodePtr);
     
     return;
 }
@@ -3397,11 +3491,11 @@ Module *loadModule(const char *modulename)
 	/*
 	 * A plain modulename. Lookup the path along SMIPATH...
 	 */
-	if (!smiPath) {
+	if (!smiHandle->path) {
 	    return NULL;
 	}
 	
-	smipath = smiStrdup(smiPath);
+	smipath = smiStrdup(smiHandle->path);
 	sep[0] = PATH_SEPARATOR; sep[1] = 0;
 	for (dir = strtok(smipath, sep);
 	     dir; dir = strtok(NULL, sep)) {
@@ -3441,13 +3535,13 @@ Module *loadModule(const char *modulename)
 	path = smiStrdup(modulename);
     }
 
-    if (!path && smiCache && smiCacheProg) {
+    if (!path && smiHandle->cache && smiHandle->cacheProg) {
 	/* Not found in the path; now try to fetch & cache the module. */
-	path = smiMalloc(strlen(smiCache) + strlen(modulename) + 2);
-	sprintf(path, "%s%c%s", smiCache, DIR_SEPARATOR, modulename);
+	path = smiMalloc(strlen(smiHandle->cache) + strlen(modulename) + 2);
+	sprintf(path, "%s%c%s", smiHandle->cache, DIR_SEPARATOR, modulename);
 	if (access(path, R_OK)) {
-	    cmd = smiMalloc(strlen(smiCacheProg) + strlen(modulename) + 2);
-	    sprintf(cmd, "%s %s", smiCacheProg, modulename);
+	    cmd = smiMalloc(strlen(smiHandle->cacheProg) + strlen(modulename) + 2);
+	    sprintf(cmd, "%s %s", smiHandle->cacheProg, modulename);
 	    pid = fork();
 	    if (pid != -1) {
 		if (!pid) {
@@ -3499,7 +3593,7 @@ Module *loadModule(const char *modulename)
     if (sming == 0) {
 #ifdef BACKEND_SMI
 	parser.path			= path;
-	parser.flags			= smiFlags;
+	parser.flags			= smiHandle->flags;
 	parser.modulePtr		= NULL;
 	parser.file			= file;
 	if (smiEnterLexRecursion(parser.file) < 0) {
@@ -3524,7 +3618,7 @@ Module *loadModule(const char *modulename)
     if (sming == 1) {
 #ifdef BACKEND_SMING
 	parser.path			= path;
-	parser.flags			= smiFlags;
+	parser.flags			= smiHandle->flags;
 	parser.modulePtr		= NULL;
 	parser.file			= file;
 	if (smingEnterLexRecursion(parser.file) < 0) {

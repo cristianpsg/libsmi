@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.27 2001/06/11 09:59:49 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.28 2001/08/22 14:47:42 schoenw Exp $
 #
 
 INCLUDES		= -I../lib
@@ -17,7 +17,7 @@ EXTRA_DIST		= smidump.h shhopt.h \
 			  $(man_MANS) \
 			  dump-fig.c
 
-bin_PROGRAMS		= smiquery smilint smidump
+bin_PROGRAMS		= smiquery smilint smidump smidiff
 
 bin_SCRIPTS		= smistrip smicache
 
@@ -38,4 +38,7 @@ smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  dump-perl.c dump-scli.c
 #			  dump-fig.c
 smidump_LDADD		= ../lib/libsmi.la
+
+smidiff_SOURCES		= smidiff.c shhopt.c
+smidiff_LDADD		= ../lib/libsmi.la
 

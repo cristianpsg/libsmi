@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.101 2001/06/11 13:34:33 strauss Exp $
+ * @(#) $Id: smi.c,v 1.102 2001/08/15 17:07:04 strauss Exp $
  */
 
 #include <config.h>
@@ -55,43 +55,14 @@
 
 const char *smi_library_version = SMI_LIBRARY_VERSION;
 const char *smi_version_string = SMI_VERSION_STRING;
-static int initialized = 0;
+
+Handle *smiHandle = NULL;
 
 
 
 /*
  * Internal functions.
  */
-
-
-#if 0
-static int allowsNamedNumbers(SmiBasetype basetype)
-{
-    if ((basetype == SMI_BASETYPE_INTEGER32) ||
-	(basetype == SMI_BASETYPE_BITS)) {
-	return 1;
-    } else {
-	return 0;
-    }
-}
-
-
-
-static int allowsRanges(SmiBasetype basetype)
-{
-    if ((basetype == SMI_BASETYPE_INTEGER32) ||
-	(basetype == SMI_BASETYPE_INTEGER64) ||
-	(basetype == SMI_BASETYPE_UNSIGNED32) ||
-	(basetype == SMI_BASETYPE_UNSIGNED64) ||
-	(basetype == SMI_BASETYPE_OCTETSTRING) ||
-	(basetype == SMI_BASETYPE_BITS)) {
-	return 1;
-    } else {
-	return 0;
-    }
-}
-#endif
-
 
 static void getModulenameAndName(const char *arg1, const char *arg2,
 				 char **module, char **name)
@@ -165,7 +136,7 @@ static Node *getNode(unsigned int oidlen, SmiSubid oid[])
     Node *nodePtr, *parentPtr;
     unsigned int i;
 
-    for(nodePtr = rootNodePtr, i=0; i < oidlen; i++) {
+    for(nodePtr = smiHandle->rootNodePtr, i=0; i < oidlen; i++) {
 	parentPtr = nodePtr;
 	nodePtr = findNodeByParentAndSubid(parentPtr, oid[i]);
 	if (!nodePtr) {
@@ -213,26 +184,27 @@ static Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
 
 int smiInit(const char *tag)
 {
-    char *p, *pp;
+    char *p, *pp, *tag2;
 #ifdef HAVE_PWD_H
     struct passwd *pw;
 #endif
-    
-    if (initialized) {
+
+    smiHandle = findHandleByName(tag);
+    if (smiHandle) {
 	return 0;
     }
-
-    smiErrorLevel = DEFAULT_ERRORLEVEL;
+    smiHandle = addHandle(tag);
+    
     smiDepth = 0;
-    smiCache = NULL;
-    smiCacheProg = NULL;
+
+    smiHandle->errorLevel = DEFAULT_ERRORLEVEL;
+    smiHandle->errorHandler = smiErrorHandler;
+    smiHandle->cache = NULL;
+    smiHandle->cacheProg = NULL;
     
     if (smiInitData()) {
 	return -1;
     }
-
-    /* need this here, otherwise smiReadConfig would call smiInit in loop */
-    initialized = 1;
 
     /*
      * Setup the SMI MIB module search path:
@@ -243,11 +215,13 @@ int smiInit(const char *tag)
      */
 
     /* 1. set to builtin DEFAULT_SMIPATH */
-    smiPath = smiStrdup(DEFAULT_SMIPATH);
+    smiHandle->path = smiStrdup(DEFAULT_SMIPATH);
 
-    if (tag) {
+    tag2 = smiStrdup(tag);
+    tag2 = strtok(tag2, ":");
+    if (tag2) {
 	/* 2. read global config file if present (append/prepend/replace) */
-	smiReadConfig(DEFAULT_GLOBALCONFIG, tag);
+	smiReadConfig(DEFAULT_GLOBALCONFIG, tag2);
 #ifdef HAVE_PWD_H
 	pw = getpwuid(getuid());
 	if (pw && pw->pw_dir) {
@@ -255,31 +229,32 @@ int smiInit(const char *tag)
 	    p = smiMalloc(strlen(DEFAULT_USERCONFIG) +
 			    strlen(pw->pw_dir) + 2);
 	    sprintf(p, "%s%c%s", pw->pw_dir, DIR_SEPARATOR, DEFAULT_USERCONFIG);
-	    smiReadConfig(p, tag);
+	    smiReadConfig(p, tag2);
 	    smiFree(p);
 	}
 #endif
     }
+    smiFree(tag2);
 
     /* 4. evaluate SMIPATH env-var if set (append/prepend/replace) */
     p = getenv("SMIPATH");
     if (p) {
 	if (p[0] == PATH_SEPARATOR) {
-	    pp = smiMalloc(strlen(p) + strlen(smiPath) + 1);
-	    sprintf(pp, "%s%s", smiPath, p);
-	    smiFree(smiPath);
-	    smiPath = pp;
+	    pp = smiMalloc(strlen(p) + strlen(smiHandle->path) + 1);
+	    sprintf(pp, "%s%s", smiHandle->path, p);
+	    smiFree(smiHandle->path);
+	    smiHandle->path = pp;
 	} else if (p[strlen(p)-1] == PATH_SEPARATOR) {
-	    pp = smiMalloc(strlen(p) + strlen(smiPath) + 1);
-	    sprintf(pp, "%s%s", p, smiPath);
-	    smiFree(smiPath);
-	    smiPath = pp;
+	    pp = smiMalloc(strlen(p) + strlen(smiHandle->path) + 1);
+	    sprintf(pp, "%s%s", p, smiHandle->path);
+	    smiFree(smiHandle->path);
+	    smiHandle->path = pp;
 	} else {
-	    smiPath = smiStrdup(p);
+	    smiHandle->path = smiStrdup(p);
 	}
     }
-
-    if (!smiPath) {
+    
+    if (!smiHandle->path) {
 	return -1;
     }
 
@@ -290,16 +265,18 @@ int smiInit(const char *tag)
 
 void smiExit()
 {
-    if (!initialized)
+    if (!smiHandle)
 	return;
 
     smiFreeData();
 
-    smiFree(smiPath);
-    smiFree(smiCache);
-    smiFree(smiCacheProg);
+    smiFree(smiHandle->path);
+    smiFree(smiHandle->cache);
+    smiFree(smiHandle->cacheProg);
+
+    removeHandle(smiHandle);
     
-    initialized = 0;
+    smiHandle = NULL;
     return;
 }
 
@@ -307,8 +284,8 @@ void smiExit()
 
 char *smiGetPath()
 {
-    if (smiPath) {
-	return smiStrdup(smiPath);
+    if (smiHandle->path) {
+	return smiStrdup(smiHandle->path);
     } else {
 	return NULL;
     }
@@ -321,15 +298,15 @@ int smiSetPath(const char *s)
     char *s2;
 
     if (!s) {
-	smiFree(smiPath);
-	smiPath = NULL;
+	smiFree(smiHandle->path);
+	smiHandle->path = NULL;
 	return 0;
     }
     
     s2 = smiStrdup(s);
     if (s2) {
-	smiFree(smiPath);
-	smiPath = s2;
+	smiFree(smiHandle->path);
+	smiHandle->path = s2;
 	return 0;
     } else {
 	return -1;
@@ -372,26 +349,26 @@ int smiReadConfig(const char *filename, const char *tag)
 	    } else if (!strcmp(cmd, "path")) {
 		if (arg) {
 		    if (arg[0] == PATH_SEPARATOR) {
-			s = smiMalloc(strlen(arg) + strlen(smiPath) + 1);
-			sprintf(s, "%s%s", smiPath, arg);
-			smiFree(smiPath);
-			smiPath = s;
+			s = smiMalloc(strlen(arg) + strlen(smiHandle->path) + 1);
+			sprintf(s, "%s%s", smiHandle->path, arg);
+			smiFree(smiHandle->path);
+			smiHandle->path = s;
 		    } else if (arg[strlen(arg)-1] == PATH_SEPARATOR) {
-			s = smiMalloc(strlen(arg) + strlen(smiPath) + 1);
-			sprintf(s, "%s%s", arg, smiPath);
-			smiFree(smiPath);
-			smiPath = s;
+			s = smiMalloc(strlen(arg) + strlen(smiHandle->path) + 1);
+			sprintf(s, "%s%s", arg, smiHandle->path);
+			smiFree(smiHandle->path);
+			smiHandle->path = s;
 		    } else {
-			smiPath = smiStrdup(arg);
+			smiHandle->path = smiStrdup(arg);
 		    }
 		}
 	    } else if (!strcmp(cmd, "cache")) {
-		smiFree(smiCache);
-		smiFree(smiCacheProg);
+		smiFree(smiHandle->cache);
+		smiFree(smiHandle->cacheProg);
 		if (arg && strcmp(arg, "off")) {
-		    smiCache = smiStrdup(arg);
+		    smiHandle->cache = smiStrdup(arg);
 		    arg = strtok(NULL, "\n\r");
-		    smiCacheProg = smiStrdup(arg);
+		    smiHandle->cacheProg = smiStrdup(arg);
 		}
 	    } else if (!strcmp(cmd, "level")) {
 		smiSetErrorLevel(atoi(arg));
@@ -423,7 +400,7 @@ char *smiLoadModule(const char *module)
 {
     Module *modulePtr;
     
-    if (!initialized) smiInit(NULL);
+    if (!smiHandle) smiInit(NULL);
 
     if (smiIsPath(module)) {
 
@@ -461,27 +438,27 @@ char *smiLoadModule(const char *module)
 
 void smiSetErrorLevel(int level)
 {
-    if (!initialized) smiInit(NULL);
+    if (!smiHandle) smiInit(NULL);
     
-    smiErrorLevel = level;
+    smiHandle->errorLevel = level;
 }
 
 
 
 void smiSetFlags(int userflags)
 {
-    if (!initialized) smiInit(NULL);
+    if (!smiHandle) smiInit(NULL);
     
-    smiFlags = (smiFlags & ~SMI_FLAG_MASK) | userflags;
+    smiHandle->flags = (smiHandle->flags & ~SMI_FLAG_MASK) | userflags;
 }
 
 
 
 int smiGetFlags()
 {
-    if (!initialized) smiInit(NULL);
+    if (!smiHandle) smiInit(NULL);
     
-    return smiFlags & SMI_FLAG_MASK;
+    return smiHandle->flags & SMI_FLAG_MASK;
 }
 
 
@@ -567,7 +544,7 @@ SmiModule *smiGetFirstModule()
 {
     Module	      *modulePtr;
 
-    for (modulePtr = firstModulePtr;
+    for (modulePtr = smiHandle->firstModulePtr;
 	 modulePtr && modulePtr->export.name &&
 	     (strlen(modulePtr->export.name) == 0);
 	 modulePtr = modulePtr->nextPtr);
@@ -1042,7 +1019,7 @@ SmiNode *smiGetFirstNode(SmiModule *smiModulePtr, SmiNodekind nodekind)
 	/* start at the common oid prefix of this module */
 	nodePtr = modulePtr->prefixNodePtr;
     } else {
-	nodePtr = rootNodePtr->firstChildPtr;
+	nodePtr = smiHandle->rootNodePtr->firstChildPtr;
     }
 
     do {
@@ -1139,7 +1116,7 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 	return NULL;
     }
 
-    if (nodePtr == rootNodePtr) {
+    if (nodePtr == smiHandle->rootNodePtr) {
 	return NULL;
     }
 
