@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.68 2000/02/06 13:57:07 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.69 2000/02/06 23:30:58 strauss Exp $
  */
 
 %{
@@ -2159,7 +2159,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		INTEGER enumSpec
 			{
 			    defaultBasetype = SMI_BASETYPE_ENUM;
-			    $$ = duplicateType(typeInteger32Ptr, 0,
+			    $$ = duplicateType(typeEnumPtr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, typeEnumPtr);
@@ -4110,16 +4110,16 @@ Compliances:		Compliance
 			    
 			    $$.mandatorylistPtr = NULL;
 
-			    /* check for duplicated in optionlist */
+			    /* check for duplicates in optionlist */
 			    stop = 0;
 			    if ($2.optionlistPtr) {
 				for (listPtr = $1.optionlistPtr; listPtr;
 				     listPtr = listPtr->nextPtr) {
-				    if (((Refinement *)listPtr->ptr)->objectPtr ==
-					((Refinement *)$2.optionlistPtr->ptr)->objectPtr) {
+				    if (((Option *)listPtr->ptr)->objectPtr ==
+					((Option *)$2.optionlistPtr->ptr)->objectPtr) {
 					printError(thisParserPtr,
 						   ERR_OPTIONALGROUP_ALREADY_EXISTS,
-						   ((Refinement *)$2.optionlistPtr->ptr)->objectPtr->name);
+						   ((Option *)$2.optionlistPtr->ptr)->objectPtr->name);
 					stop = 1;
 					$$.optionlistPtr = $1.optionlistPtr;
 				    }
@@ -4139,7 +4139,7 @@ Compliances:		Compliance
 				$$.optionlistPtr = $2.optionlistPtr;
 			    }
 
-			    /* check for duplicated in refinementlist */
+			    /* check for duplicates in refinementlist */
 			    stop = 0;
 			    if ($2.refinementlistPtr) {
 				for (listPtr = $1.refinementlistPtr; listPtr;

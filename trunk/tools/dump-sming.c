@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.51 2000/02/05 18:05:59 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.52 2000/02/06 23:30:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -205,7 +205,8 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 
-    if ((!typemodule) || (!typename) || islower((int)typename[0])) {
+    if ((!typemodule) || (!strlen(typemodule)) ||
+	(!typename) || islower((int)typename[0])) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "Enumeration";
 	}

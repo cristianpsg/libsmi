@@ -1,6 +1,6 @@
 
 /*  A Bison parser, made from parser-sming.y
- by  GNU Bison version 1.25
+ by  GNU Bison version 1.27
   */
 
 #define YYBISON 1  /* Identify Bison output.  */
@@ -12,71 +12,71 @@
 #define yychar smingchar
 #define yydebug smingdebug
 #define yynerrs smingnerrs
-#define	DOT_DOT	258
-#define	COLON_COLON	259
-#define	ucIdentifier	260
-#define	lcIdentifier	261
-#define	floatValue	262
-#define	textSegment	263
-#define	decimalNumber	264
-#define	hexadecimalNumber	265
-#define	moduleKeyword	266
-#define	importKeyword	267
-#define	revisionKeyword	268
-#define	oidKeyword	269
-#define	dateKeyword	270
-#define	organizationKeyword	271
-#define	contactKeyword	272
-#define	descriptionKeyword	273
-#define	referenceKeyword	274
-#define	extensionKeyword	275
-#define	typedefKeyword	276
-#define	typeKeyword	277
-#define	writetypeKeyword	278
-#define	nodeKeyword	279
-#define	scalarKeyword	280
-#define	tableKeyword	281
-#define	columnKeyword	282
-#define	rowKeyword	283
-#define	notificationKeyword	284
-#define	groupKeyword	285
-#define	complianceKeyword	286
-#define	formatKeyword	287
-#define	unitsKeyword	288
-#define	statusKeyword	289
-#define	accessKeyword	290
-#define	defaultKeyword	291
-#define	impliedKeyword	292
-#define	indexKeyword	293
-#define	augmentsKeyword	294
-#define	reordersKeyword	295
-#define	sparseKeyword	296
-#define	expandsKeyword	297
-#define	createKeyword	298
-#define	membersKeyword	299
-#define	objectsKeyword	300
-#define	mandatoryKeyword	301
-#define	optionalKeyword	302
-#define	refineKeyword	303
-#define	OctetStringKeyword	304
-#define	ObjectIdentifierKeyword	305
-#define	Integer32Keyword	306
-#define	Unsigned32Keyword	307
-#define	Integer64Keyword	308
-#define	Unsigned64Keyword	309
-#define	Float32Keyword	310
-#define	Float64Keyword	311
-#define	Float128Keyword	312
-#define	BitsKeyword	313
-#define	EnumerationKeyword	314
-#define	currentKeyword	315
-#define	deprecatedKeyword	316
-#define	obsoleteKeyword	317
-#define	noaccessKeyword	318
-#define	notifyonlyKeyword	319
-#define	readonlyKeyword	320
-#define	readwriteKeyword	321
-#define	readcreateKeyword	322
+#define	DOT_DOT	257
+#define	COLON_COLON	258
+#define	ucIdentifier	259
+#define	lcIdentifier	260
+#define	floatValue	261
+#define	textSegment	262
+#define	decimalNumber	263
+#define	hexadecimalNumber	264
+#define	moduleKeyword	265
+#define	importKeyword	266
+#define	revisionKeyword	267
+#define	oidKeyword	268
+#define	dateKeyword	269
+#define	organizationKeyword	270
+#define	contactKeyword	271
+#define	descriptionKeyword	272
+#define	referenceKeyword	273
+#define	extensionKeyword	274
+#define	typedefKeyword	275
+#define	typeKeyword	276
+#define	writetypeKeyword	277
+#define	nodeKeyword	278
+#define	scalarKeyword	279
+#define	tableKeyword	280
+#define	columnKeyword	281
+#define	rowKeyword	282
+#define	notificationKeyword	283
+#define	groupKeyword	284
+#define	complianceKeyword	285
+#define	formatKeyword	286
+#define	unitsKeyword	287
+#define	statusKeyword	288
+#define	accessKeyword	289
+#define	defaultKeyword	290
+#define	impliedKeyword	291
+#define	indexKeyword	292
+#define	augmentsKeyword	293
+#define	reordersKeyword	294
+#define	sparseKeyword	295
+#define	expandsKeyword	296
+#define	createKeyword	297
+#define	membersKeyword	298
+#define	objectsKeyword	299
+#define	mandatoryKeyword	300
+#define	optionalKeyword	301
+#define	refineKeyword	302
+#define	OctetStringKeyword	303
+#define	ObjectIdentifierKeyword	304
+#define	Integer32Keyword	305
+#define	Unsigned32Keyword	306
+#define	Integer64Keyword	307
+#define	Unsigned64Keyword	308
+#define	Float32Keyword	309
+#define	Float64Keyword	310
+#define	Float128Keyword	311
+#define	BitsKeyword	312
+#define	EnumerationKeyword	313
+#define	currentKeyword	314
+#define	deprecatedKeyword	315
+#define	obsoleteKeyword	316
+#define	noaccessKeyword	317
+#define	notifyonlyKeyword	318
+#define	readonlyKeyword	319
+#define	readwriteKeyword	320
+#define	readcreateKeyword	321
 
 #line 14 "parser-sming.y"
 
@@ -335,7 +335,7 @@ typedef union {
 #define	YYFLAG		-32768
 #define	YYNTBASE	77
 
-#define YYTRANSLATE(x) ((unsigned)(x) <= 322 ? yytranslate[x] : 310)
+#define YYTRANSLATE(x) ((unsigned)(x) <= 321 ? yytranslate[x] : 310)
 
 static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -363,14 +363,14 @@ static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-     2,     2,     2,     2,     2,     1,     2,     3,     4,     5,
-     6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-    16,    17,    18,    19,    20,    21,    22,    23,    24,    25,
-    26,    27,    28,    29,    30,    31,    32,    33,    34,    35,
-    36,    37,    38,    39,    40,    41,    42,    43,    44,    45,
-    46,    47,    48,    49,    50,    51,    52,    53,    54,    55,
-    56,    57,    58,    59,    60,    61,    62,    63,    64,    65,
-    66,    67
+     2,     2,     2,     2,     2,     1,     3,     4,     5,     6,
+     7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
+    17,    18,    19,    20,    21,    22,    23,    24,    25,    26,
+    27,    28,    29,    30,    31,    32,    33,    34,    35,    36,
+    37,    38,    39,    40,    41,    42,    43,    44,    45,    46,
+    47,    48,    49,    50,    51,    52,    53,    54,    55,    56,
+    57,    58,    59,    60,    61,    62,    63,    64,    65,    66,
+    67
 };
 
 #if YYDEBUG != 0
@@ -1229,7 +1229,8 @@ static const short yycheck[] = {     0,
 #define YYPURE 1
 
 /* -*-C-*-  Note some compilers choke on comments on `#line' lines.  */
-#line 3 "/usr/share/misc/bison.simple"
+#line 3 "/usr/local/share/bison.simple"
+/* This file comes from bison-1.27.  */
 
 /* Skeleton output parser for bison,
    Copyright (C) 1984, 1989, 1990 Free Software Foundation, Inc.
@@ -1246,46 +1247,66 @@ static const short yycheck[] = {     0,
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+   Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.  */
 
 /* As a special exception, when this file is copied by Bison into a
    Bison output file, you may use that output file without restriction.
    This special exception was added by the Free Software Foundation
    in version 1.24 of Bison.  */
 
-#ifndef alloca
-#ifdef __GNUC__
-#define alloca __builtin_alloca
-#else /* not GNU C.  */
-#if (!defined (__STDC__) && defined (sparc)) || defined (__sparc__) || defined (__sparc) || defined (__sgi)
-#include <alloca.h>
-#else /* not sparc */
-#if defined (MSDOS) && !defined (__TURBOC__)
-#include <malloc.h>
-#else /* not MSDOS, or __TURBOC__ */
-#if defined(_AIX)
-#include <malloc.h>
- #pragma alloca
-#else /* not MSDOS, __TURBOC__, or _AIX */
-#ifdef __hpux
-#ifdef __cplusplus
-extern "C" {
-void *alloca (unsigned int);
-};
-#else /* not __cplusplus */
-void *alloca ();
-#endif /* not __cplusplus */
-#endif /* __hpux */
-#endif /* not _AIX */
-#endif /* not MSDOS, or __TURBOC__ */
-#endif /* not sparc.  */
-#endif /* not GNU C.  */
-#endif /* alloca not defined.  */
-
 /* This is the parser code that is written into each bison parser
   when the %semantic_parser declaration is not specified in the grammar.
   It was written by Richard Stallman by simplifying the hairy parser
   used when %semantic_parser is specified.  */
+
+#ifndef YYSTACK_USE_ALLOCA
+#ifdef alloca
+#define YYSTACK_USE_ALLOCA
+#else /* alloca not defined */
+#ifdef __GNUC__
+#define YYSTACK_USE_ALLOCA
+#define alloca __builtin_alloca
+#else /* not GNU C.  */
+#if (!defined (__STDC__) && defined (sparc)) || defined (__sparc__) || defined (__sparc) || defined (__sgi) || (defined (__sun) && defined (__i386))
+#define YYSTACK_USE_ALLOCA
+#include <alloca.h>
+#else /* not sparc */
+/* We think this test detects Watcom and Microsoft C.  */
+/* This used to test MSDOS, but that is a bad idea
+   since that symbol is in the user namespace.  */
+#if (defined (_MSDOS) || defined (_MSDOS_)) && !defined (__TURBOC__)
+#if 0 /* No need for malloc.h, which pollutes the namespace;
+	 instead, just don't use alloca.  */
+#include <malloc.h>
+#endif
+#else /* not MSDOS, or __TURBOC__ */
+#if defined(_AIX)
+/* I don't know what this was needed for, but it pollutes the namespace.
+   So I turned it off.   rms, 2 May 1997.  */
+/* #include <malloc.h>  */
+ #pragma alloca
+#define YYSTACK_USE_ALLOCA
+#else /* not MSDOS, or __TURBOC__, or _AIX */
+#if 0
+#ifdef __hpux /* haible@ilog.fr says this works for HPUX 9.05 and up,
+		 and on HPUX 10.  Eventually we can turn this on.  */
+#define YYSTACK_USE_ALLOCA
+#define alloca __builtin_alloca
+#endif /* __hpux */
+#endif
+#endif /* not _AIX */
+#endif /* not MSDOS, or __TURBOC__ */
+#endif /* not sparc */
+#endif /* not GNU C */
+#endif /* alloca not defined */
+#endif /* YYSTACK_USE_ALLOCA not defined */
+
+#ifdef YYSTACK_USE_ALLOCA
+#define YYSTACK_ALLOC alloca
+#else
+#define YYSTACK_ALLOC malloc
+#endif
 
 /* Note: there must be only one dollar sign in this file.
    It is replaced by the list of actions, each action
@@ -1295,8 +1316,8 @@ void *alloca ();
 #define yyclearin	(yychar = YYEMPTY)
 #define YYEMPTY		-2
 #define YYEOF		0
-#define YYACCEPT	return(0)
-#define YYABORT 	return(1)
+#define YYACCEPT	goto yyacceptlab
+#define YYABORT 	goto yyabortlab
 #define YYERROR		goto yyerrlab1
 /* Like YYERROR except do call yyerror.
    This remains here temporarily to ease the
@@ -1377,14 +1398,12 @@ int yydebug;			/*  nonzero means print parse trace	*/
 #ifndef YYMAXDEPTH
 #define YYMAXDEPTH 10000
 #endif
-
-/* Prevent warning if -Wstrict-prototypes.  */
-#ifdef __GNUC__
-#ifndef YYPARSE_PARAM
-int yyparse ();
-#endif
-#endif
 
+/* Define __yy_memcpy.  Note that the size argument
+   should be passed with type unsigned int, because that is what the non-GCC
+   definitions require.  With GCC, __builtin_memcpy takes an arg
+   of type size_t, but it can handle unsigned int.  */
+
 #if __GNUC__ > 1		/* GNU C and GNU C++ define this.  */
 #define __yy_memcpy(TO,FROM,COUNT)	__builtin_memcpy(TO,FROM,COUNT)
 #else				/* not GNU C or C++ */
@@ -1396,7 +1415,7 @@ static void
 __yy_memcpy (to, from, count)
      char *to;
      char *from;
-     int count;
+     unsigned int count;
 {
   register char *f = from;
   register char *t = to;
@@ -1411,10 +1430,10 @@ __yy_memcpy (to, from, count)
 /* This is the most reliable way to avoid incompatibilities
    in available built-in functions on various systems.  */
 static void
-__yy_memcpy (char *to, char *from, int count)
+__yy_memcpy (char *to, char *from, unsigned int count)
 {
-  register char *f = from;
   register char *t = to;
+  register char *f = from;
   register int i = count;
 
   while (i-- > 0)
@@ -1424,7 +1443,7 @@ __yy_memcpy (char *to, char *from, int count)
 #endif
 #endif
 
-#line 196 "/usr/share/misc/bison.simple"
+#line 216 "/usr/local/share/bison.simple"
 
 /* The user can define YYPARSE_PARAM as the name of an argument to be passed
    into yyparse.  The argument should have type void *.
@@ -1444,6 +1463,15 @@ __yy_memcpy (char *to, char *from, int count)
 #define YYPARSE_PARAM_ARG
 #define YYPARSE_PARAM_DECL
 #endif /* not YYPARSE_PARAM */
+
+/* Prevent warning if -Wstrict-prototypes.  */
+#ifdef __GNUC__
+#ifdef YYPARSE_PARAM
+int yyparse (void *);
+#else
+int yyparse ();
+#endif
+#endif
 
 int
 yyparse(YYPARSE_PARAM_ARG)
@@ -1473,6 +1501,7 @@ yyparse(YYPARSE_PARAM_ARG)
 #endif
 
   int yystacksize = YYINITDEPTH;
+  int yyfree_stacks = 0;
 
 #ifdef YYPURE
   int yychar;
@@ -1557,18 +1586,32 @@ yynewstate:
       if (yystacksize >= YYMAXDEPTH)
 	{
 	  yyerror("parser stack overflow");
+	  if (yyfree_stacks)
+	    {
+	      free (yyss);
+	      free (yyvs);
+#ifdef YYLSP_NEEDED
+	      free (yyls);
+#endif
+	    }
 	  return 2;
 	}
       yystacksize *= 2;
       if (yystacksize > YYMAXDEPTH)
 	yystacksize = YYMAXDEPTH;
-      yyss = (short *) alloca (yystacksize * sizeof (*yyssp));
-      __yy_memcpy ((char *)yyss, (char *)yyss1, size * sizeof (*yyssp));
-      yyvs = (YYSTYPE *) alloca (yystacksize * sizeof (*yyvsp));
-      __yy_memcpy ((char *)yyvs, (char *)yyvs1, size * sizeof (*yyvsp));
+#ifndef YYSTACK_USE_ALLOCA
+      yyfree_stacks = 1;
+#endif
+      yyss = (short *) YYSTACK_ALLOC (yystacksize * sizeof (*yyssp));
+      __yy_memcpy ((char *)yyss, (char *)yyss1,
+		   size * (unsigned int) sizeof (*yyssp));
+      yyvs = (YYSTYPE *) YYSTACK_ALLOC (yystacksize * sizeof (*yyvsp));
+      __yy_memcpy ((char *)yyvs, (char *)yyvs1,
+		   size * (unsigned int) sizeof (*yyvsp));
 #ifdef YYLSP_NEEDED
-      yyls = (YYLTYPE *) alloca (yystacksize * sizeof (*yylsp));
-      __yy_memcpy ((char *)yyls, (char *)yyls1, size * sizeof (*yylsp));
+      yyls = (YYLTYPE *) YYSTACK_ALLOC (yystacksize * sizeof (*yylsp));
+      __yy_memcpy ((char *)yyls, (char *)yyls1,
+		   size * (unsigned int) sizeof (*yylsp));
 #endif
 #endif /* no yyoverflow */
 
@@ -4889,7 +4932,7 @@ case 341:
     break;}
 }
    /* the action file gets copied in in place of this dollarsign */
-#line 498 "/usr/share/misc/bison.simple"
+#line 542 "/usr/local/share/bison.simple"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -5084,6 +5127,30 @@ yyerrhandle:
 
   yystate = yyn;
   goto yynewstate;
+
+ yyacceptlab:
+  /* YYACCEPT comes here.  */
+  if (yyfree_stacks)
+    {
+      free (yyss);
+      free (yyvs);
+#ifdef YYLSP_NEEDED
+      free (yyls);
+#endif
+    }
+  return 0;
+
+ yyabortlab:
+  /* YYABORT comes here.  */
+  if (yyfree_stacks)
+    {
+      free (yyss);
+      free (yyvs);
+#ifdef YYLSP_NEEDED
+      free (yyls);
+#endif
+    }
+  return 1;
 }
 #line 3419 "parser-sming.y"
 

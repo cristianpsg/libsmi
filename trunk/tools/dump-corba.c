@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.7 2000/02/05 18:05:58 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.8 2000/02/06 23:30:58 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -457,7 +457,8 @@ static void createImportList(char *modulename)
 
 	smiTypeModule = smiGetModule(smiNode->typemodule);
 	smiType = smiGetType(smiTypeModule, smiNode->typename);
-	if (smiType && strcmp(smiTypeModule->name, modulename)) {
+	if (smiType && smiTypeModule &&
+	    strcmp(smiTypeModule->name, modulename)) {
 	    if (strlen(smiTypeModule->name)) {
 		addImport(smiTypeModule->name, smiType->name);
 	    }
