@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_node.3.in,v 1.3 1999/06/16 15:04:16 strauss Exp $
+.\" $Id: smi_node.3.in,v 1.4 2000/02/11 23:19:09 strauss Exp $
 .\"
-.TH smi_node 3  "February 11, 2000" "IBR" "SMI Management Information Library"
+.TH smi_node 3  "November 6, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
 .\" START OF MAN PAGE COPIES
 smiGetNode,
@@ -99,44 +99,32 @@ information routines
 .RE
 
 typedef struct SmiNode {
-    SmiIdentifier       module;
     SmiIdentifier       name;
-    SmiObjectIdentifier oid;        /* dotted string */
-    SmiIdentifier       typename;
-    SmiIdentifier       typemodule;
-    SmiIndexkind        indexkind;    
-    int                 implied;    /* implied index length? */
-    int                 create;     /* creatable table rows? */
-    SmiIdentifier       relatedmodule;
-    SmiIdentifier       relatedname;
+    int                 oidlen;
+    SmiSubid            *oid;         /* array of length oidlen */
     SmiDecl             decl;
-    SmiBasetype         basetype;
     SmiAccess           access;
     SmiStatus           status;
     char                *format;
-    SmiValue            *valuePtr;
+    SmiValue            value;
     char                *units;
     char                *description;
     char                *reference;
+    SmiIndexkind        indexkind;
+    int                 implied;
+    int                 create;
+    SmiNodekind         nodekind;
 } SmiNode;
 
+typedef struct SmiElement {
+    /* no visible attributes */
+} SmiElement;
+
 typedef struct SmiOption {
-    SmiIdentifier       module;
-    SmiIdentifier       name;
-    SmiIdentifier       compliancemodule;
-    SmiIdentifier       compliancename;
     char                *description;
 } SmiOption;
- 
+
 typedef struct SmiRefinement {
-    SmiIdentifier       module;
-    SmiIdentifier       name;
-    SmiIdentifier       compliancemodule;
-    SmiIdentifier       compliancename;
-    SmiIdentifier       typemodule;
-    SmiIdentifier       typename;
-    SmiIdentifier       writetypemodule;
-    SmiIdentifier       writetypename;
     SmiAccess           access;
     char                *description;
 } SmiRefinement;
@@ -193,6 +181,15 @@ The \fBsmiGetNodeType()\fP function returns the type of
 the (scalar or columnar) node given by \fIstruct SmiNodePtr\fP.
 If \fIstruct SmiNodePtr\fP does not specify a scalar or columnar
 node, NULL is returned.
+.PP
+The \fBsmiGetFirstElement()\fP and \fBsmiGetNextElement()\fP functions are
+used to iteratively retrieve \fBstruct SmiElement\fPs that represent
+elements of index clauses or notification object lists, groups of object
+types or notification types, and mandatory groups of module compliance
+statements. The node to which the list belongs has to be specified
+by \fIsmiNodePtr\fP. To retrieve the node that is represented by
+a \fBstruct SmiElement\fP, the \fBsmiGetOptionNode()\fP function has
+to be called.
 .PP
 The \fBsmiGetFirstOption()\fP and \fBsmiGetNextOption()\fP functions are
 used to iteratively retrieve \fBstruct SmiOption\fPs that represent

@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.13 2000/10/19 09:18:37 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.14 2000/11/01 09:30:04 strauss Exp $
 .\"
-.TH smi_config 3  "November 1, 2000" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "November 6, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
 .\" START OF MAN PAGE COPIES
 smiInit,
@@ -22,6 +22,9 @@ configuration routines
 .RS
 .RE
 .sp
+.BI 
+.RE
+.sp
 .BI "int smiInit(const char *" tag );
 .RE
 .sp
@@ -40,6 +43,9 @@ configuration routines
 .BI "char *smiLoadModule(char *" module );
 .RE
 .sp
+.BI "int smiIsLoaded(char *" module );
+.RE
+.sp
 .BI "char *smiGetPath();"
 .RE
 .sp
@@ -51,6 +57,13 @@ configuration routines
 .sp
 .BI "int smiReadConfig(char *" filename ", const char *" tag );
 .RE
+.sp
+.BI "void smiSetErrorHandler(SmiErrorHandler *" smiErrorHandler );
+.RE
+
+typedef void (SmiErrorHandler) (char *path, int line,
+				int severity, char *msg, char *tag);
+
 .fi
 .SH DESCRIPTION
 These functions provide some initialization and adjustment operations
@@ -99,7 +112,7 @@ functions and retrieval functions without fully qualified identifiers
 will return results from this module. \fBsmiLoadModule()\fP returns the
 name of the loaded module, of NULL if it could not be loaded.
 .PP
-The \fBsmiLoadModule()\fP function returns a positive value if the
+The \fBsmiIsLoaded()\fP function returns a positive value if the
 module named \fImodule\fP is already loaded, or zero otherwise.
 .PP
 The \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions allow to
@@ -114,6 +127,15 @@ The \fBsmiReadConfig()\fP function reads the configuration file \fIfilename\fP.
 All global statements in the configuration file and those statements with
 a tag (a ``tag: '' prefix) that matches the \fBtag\fP argument, if present,
 are executed.
+.PP
+The \fBsmiSetErrorHandler()\fP function allows to set a callback function
+that is called by the MIB parsers deviating from the builtin default
+error handler, that prints error messages to stderr. The error handler
+has to comply with the \fBSmiErrorHandler\fP function type. The \fBpath\fP,
+\fBline\fP, \fBseverity\fP, \fBmsg\fP, and \fPtag\fP arguements carry the
+module's pathname, the line number within the module, the error severity
+level, a textual error message, and a short error name of the error being
+reported.
 .SH "MODULE LOCATIONS"
 The SMI library may retrieve MIB modules from different kinds of
 resources. Currently, SMIv1/v2 and SMIng module files are supported.

@@ -1,5 +1,7 @@
 2000-11-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/smi_config.3.in: Updated the library man pages.
+
 	* tools/smidump.c: addModule() now inserts NULL module at the
 	head of the list as expected by the dump drivers.
 
