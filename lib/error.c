@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.41 2000/04/12 17:02:48 strauss Exp $
+ * @(#) $Id: error.c,v 1.42 2000/05/30 11:09:58 strauss Exp $
  */
 
 #include <config.h>
@@ -123,6 +123,8 @@ Error errors[] = {
       "SYNTAX is not allowed in a notification variation" },
     { 2, ERR_NOTIFICATION_VARIATION_WRITESYNTAX, "variation-writesyntax", 
       "WRITE-SYNTAX is not allowed in a notification variation" },
+    { 2, ERR_DEFVAL_SYNTAX, "defval-syntax", 
+      "DEFVAL syntax does not match object syntax" },
     { 2, ERR_NOTIFICATION_VARIATION_DEFVAL, "variation-defval", 
       "DEFVAL is not allowed in a notification variation" },
     { 2, ERR_NOTIFICATION_VARIATION_CREATION, "variation-creation", 
@@ -199,6 +201,8 @@ Error errors[] = {
       "Opening MIB directory or file `%s': %s" },
     { 1, ERR_UNKNOWN_LOCATION_TYPE, "", 
       "Unknown MIB location type `%s'" },
+    { 2, ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE, "", 
+      "Illegal range restriction for non-numerical parent type `%s'" },
     { 1, ERR_SMIV2_SIGNED_NUMBER_RANGE, "", 
       "Number `%s' is out of SMIv1/SMIv2 signed number range" },
     { 1, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, "", 
