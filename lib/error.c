@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.63 2001/02/26 16:25:13 strauss Exp $
+ * @(#) $Id: error.c,v 1.64 2001/02/26 16:37:34 strauss Exp $
  */
 
 #include <config.h>
@@ -312,7 +312,7 @@ static Error errors[] = {
       "type assignement `%s' should be a textual convention in SMIv2" },
     { 6, ERR_ILLEGAL_IMPORT, "import-illegal", 
       "identifier `%s' may not be imported from module `%s'" },
-    { 4, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION, "textual-convention-nested", 
+    { 3, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION, "textual-convention-nested", 
       "textual convention `%s' can not be derived from the textual convention `%s'" },
     { 3, ERR_TABLE_ACCESS, "access-table-illegal", 
       "table node `%s' must be `not-accessible'" },
