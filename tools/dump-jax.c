@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.9 2000/04/10 14:20:27 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.10 2000/04/11 16:02:14 strauss Exp $
  */
 
 #include <config.h>
@@ -1402,12 +1402,6 @@ int dumpJax(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     SmiNode      *smiNode;
-    
-    if (!modulename) {
-	fprintf(stderr,
-		"smidump: united output not supported for Jax format\n");
-	exit(1);
-    }
     
     smiModule = smiGetModule(modulename);
     if (!smiModule) {

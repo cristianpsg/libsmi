@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.25 2000/03/22 09:46:13 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.26 2000/04/10 14:20:27 strauss Exp $
  */
 
 #include <config.h>
@@ -1374,12 +1374,6 @@ int dumpCorbaIdl(char *modulename, int flags)
     SmiModule    *smiModule;
     char	 *idlModuleName;
 
-    if (!modulename) {
-	fprintf(stderr,
-		"smidump: united output not supported for CORBA-IDL format\n");
-	exit(1);
-    }
-    
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
 	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
@@ -1454,12 +1448,6 @@ int dumpCorbaOid(char *modulename, int flags)
     SmiNode   *smiNode;
     SmiType   *smiType;
 
-    if (!modulename) {
-	fprintf(stderr,
-		"smidump: united output not supported for CORBA-OID format\n");
-	exit(1);
-    }
-    
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
 	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
