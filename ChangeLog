@@ -1,3 +1,7 @@
+2002-01-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/DISMAN-SCHEDULE-MIB: updated (RFC 3231).
+
 2002-01-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Fixed segfault on illegal VARIABLES in
