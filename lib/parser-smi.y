@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.93 2000/02/24 15:30:00 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.94 2000/02/24 16:56:26 strauss Exp $
  */
 
 %{
@@ -295,8 +295,10 @@ static void
 checkDefvals(Parser *parserPtr, Module *modulePtr)
 {
     Object *objectPtr, *object2Ptr;
+    List *bitsListPtr, *valueListPtr, *p, *pp, *nextPtr, *listPtr;
     Import *importPtr;
     char *s;
+    int i, nBits, bit;
     
     /*
      * Check unknown identifiers in OID DEFVALs.
@@ -305,21 +307,13 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
     for(objectPtr = modulePtr->firstObjectPtr;
 	objectPtr; objectPtr = objectPtr->nextPtr) {
 
-#if 0 /* TODO remove me */
-	/*
-	 * Set the basetype to the type's basetype if not done yet.
-	 */
-	    
-	if (valuePtr->basetype == SMI_BASETYPE_UNKNOWN) {
-	    valuePtr->basetype = objectPtr->typePtr->export.basetype;
-	}
-#endif
 	if (objectPtr->export.value.basetype == SMI_BASETYPE_UNKNOWN)
 	    continue;
 	
 	if (objectPtr->export.value.basetype ==
 	    SMI_BASETYPE_OBJECTIDENTIFIER) {
-	    if (objectPtr->export.value.format == SMI_VALUEFORMAT_NAME) {
+	    /* a len of -1 indicates an unresolved label in ptr */
+	    if (objectPtr->export.value.len == -1) {
 		object2Ptr = findObjectByModuleAndName(
 		    parserPtr->modulePtr,
 		    (char *)objectPtr->export.value.value.ptr);
@@ -337,30 +331,56 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		    printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
 				     objectPtr->line,
 				    (char *)objectPtr->export.value.value.ptr);
+		    util_free(objectPtr->export.value.value.ptr);
 		    objectPtr->export.value.value.ptr = NULL;
 		    objectPtr->export.value.basetype = SMI_BASETYPE_UNKNOWN;
 		} else {
-		    s = util_malloc(strlen(object2Ptr->modulePtr->export.name)
-				    + strlen(object2Ptr->export.name) + 3);
-		    sprintf(s, "%s::%s", object2Ptr->modulePtr->export.name,
-			    object2Ptr->export.name);
-		    util_free(objectPtr->export.value.value.ptr);
-		    objectPtr->export.value.value.ptr = (void *)s;
+		    objectPtr->export.value.len = object2Ptr->export.oidlen;
+		    objectPtr->export.value.value.ptr =
+			util_malloc(object2Ptr->export.oidlen *
+				    sizeof(SmiSubid));
+		    memcpy(objectPtr->export.value.value.ptr,
+			   object2Ptr->export.oid,
+			   object2Ptr->export.oidlen * sizeof(SmiSubid));
 		}
-		objectPtr->export.value.format = SMI_VALUEFORMAT_OID;
-	    } else if (objectPtr->export.value.format == SMI_VALUEFORMAT_OID) {
-		if ((objectPtr->export.value.len != 2) ||
-		    (objectPtr->export.value.value.oid[0] != 0) ||
-		    (objectPtr->export.value.value.oid[1] != 0)) {
-		    printErrorAtLine(parserPtr, ERR_ILLEGAL_OID_DEFVAL,
-				     objectPtr->line, objectPtr->export.name);
+	    }
+	} else if (objectPtr->export.value.basetype == SMI_BASETYPE_BITS) {
+	    bitsListPtr = objectPtr->typePtr->listPtr;
+	    valueListPtr = (void *)objectPtr->export.value.value.ptr;
+	    for (nBits = 0, p = bitsListPtr; p; nBits++, p = p->nextPtr);
+	    objectPtr->export.value.value.ptr = util_malloc((nBits+7)/8);
+	    memset(objectPtr->export.value.value.ptr, 0, (nBits+7)/8);
+	    objectPtr->export.value.len = (nBits+7)/8;
+	    for (i = 0, p = valueListPtr; p; i++) {
+		for (bit = 0, pp = bitsListPtr; bit < nBits;
+		     bit++, pp = pp->nextPtr) {
+		    if (!strcmp(p->ptr,
+				((NamedNumber *)(pp->ptr))->export.name))
+			break;
 		}
-		if (!findModuleByName("SNMPv2-SMI")) {
-		    loadModule("SNMPv2-SMI");
+		if (bit < nBits) {
+		    objectPtr->export.value.value.ptr[bit/8] |= 1 << bit%8;
 		}
-		s = util_strdup("SNMPv2-SMI::zeroDotZero");
-		objectPtr->export.value.format = SMI_VALUEFORMAT_NAME;
-		objectPtr->export.value.value.ptr = (void *)s;
+		util_free(p->ptr);
+		nextPtr = p->nextPtr;
+		util_free(p);
+		p = nextPtr;
+	    }
+	} else if (objectPtr->export.value.basetype == SMI_BASETYPE_ENUM) {
+	    /* a len of -1 indicates an unresolved enum label in ptr */
+	    if (objectPtr->export.value.len == -1) {
+		for (listPtr = objectPtr->typePtr->listPtr; listPtr;
+		     listPtr = listPtr->nextPtr) {
+		    if (!strcmp(((NamedNumber *)(listPtr->ptr))->export.name,
+				objectPtr->export.value.value.ptr)) {
+			util_free(objectPtr->export.value.value.ptr);
+			objectPtr->export.value.value.unsigned32 =
+			    ((NamedNumber *)(listPtr->ptr))->
+			    export.value.value.unsigned32;
+			objectPtr->export.value.len = 1;
+			break;
+		    }
+		}
 	    }
 	}
     }
@@ -1620,7 +1640,6 @@ NamedBit:		LOWERCASE_IDENTIFIER
 			    $$->export.value.basetype =
 				                       SMI_BASETYPE_UNSIGNED32;
 			    $$->export.value.value.unsigned32 = $4;
-			    $$->export.value.format = SMI_VALUEFORMAT_NATIVE;
 			}
 	;
 
@@ -2562,14 +2581,12 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		NEGATIVENUMBER		/* -2147483648..0 */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		BIN_STRING		/* number or OCTET STRING */
 			{
@@ -2578,7 +2595,6 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->format = SMI_VALUEFORMAT_BINSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
@@ -2605,7 +2621,6 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->format = SMI_VALUEFORMAT_HEXSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
@@ -2627,8 +2642,8 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = defaultBasetype;
+			    $$->len = -1; /* indicates unresolved ptr */
 			    $$->value.ptr = $1;	/* JS: needs strdup? */
-			    $$->format = SMI_VALUEFORMAT_NAME;
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
@@ -2636,7 +2651,6 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_OCTETSTRING;
 			    $$->value.ptr = util_strdup($1);
-			    $$->format = SMI_VALUEFORMAT_TEXT;
 			    $$->len = strlen($1);
 			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
@@ -2662,14 +2676,14 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			     * SMIv2 does not!
 			     */
 			    /* TODO: make it work correctly for SMIv1 */
-			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
+			    if (thisModulePtr->export.language ==
+				SMI_LANGUAGE_SMIV2)
 			    {
 				printError(thisParserPtr,
 					   ERR_OID_DEFVAL_TOO_LONG);
 			    }
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-			    $$->format = SMI_VALUEFORMAT_OID;
 			    $$->len = 2;
 			    $$->value.oid = util_malloc(2 * sizeof(SmiSubid));
 			    $$->value.oid[0] = 0;
@@ -3029,14 +3043,12 @@ value:			NEGATIVENUMBER
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		NUMBER
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		HEX_STRING
 			{
@@ -3045,7 +3057,6 @@ value:			NEGATIVENUMBER
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->format = SMI_VALUEFORMAT_HEXSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
@@ -3069,7 +3080,6 @@ value:			NEGATIVENUMBER
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->format = SMI_VALUEFORMAT_BINSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
@@ -3149,7 +3159,6 @@ enumNumber:		NUMBER
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		NEGATIVENUMBER
 			{
@@ -3157,7 +3166,6 @@ enumNumber:		NUMBER
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
 			    /* TODO: non-negative is suggested */
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	;
 
@@ -3374,8 +3382,8 @@ Value:			valueofObjectSyntax
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_BITS;
+#if 0 /* XXX */
 			    $$->value.bits = NULL;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			    for (i = 0, listPtr = $2; listPtr;
 				 i++, listPtr = listPtr->nextPtr) {
 				$$->value.bits = util_realloc($$->value.bits,
@@ -3384,6 +3392,9 @@ Value:			valueofObjectSyntax
 				$$->value.bits[i+1] = NULL;
 				/* XXX util_free(listPtr); */
 			    }
+#else
+			    $$->value.ptr = (void *)$2;
+#endif
 			}
 	;
 

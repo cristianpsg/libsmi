@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.70 2000/02/24 10:35:38 strauss Exp $
+ * @(#) $Id: data.c,v 1.71 2000/02/25 10:25:30 strauss Exp $
  */
 
 #include <config.h>
@@ -3306,7 +3306,6 @@ freeData()
 	    util_free(macroPtr);
 	}
 
-#if 1
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = nextTypePtr) {
 	    nextTypePtr = typePtr->nextPtr;
@@ -3333,7 +3332,6 @@ freeData()
 	    util_free(typePtr->export.reference);
 	    util_free(typePtr);
 	}
-#endif
 	
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = nextObjectPtr) {

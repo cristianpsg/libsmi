@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.12 2000/02/13 13:20:53 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.13 2000/02/22 18:27:01 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -148,21 +148,10 @@ typedef enum SmiIndexkind {
     SMI_INDEX_EXPAND            = 5
 } SmiIndexkind;
 
-/* SmiValueformat -- how a value is formatted in the module                  */
-typedef enum SmiValueformat {
-    SMI_VALUEFORMAT_NATIVE      = 0, 
-    SMI_VALUEFORMAT_BINSTRING   = 1, /* OctetString or ObjectIdentifier      */
-    SMI_VALUEFORMAT_HEXSTRING   = 2, /* OctetString or ObjectIdentifier      */
-    SMI_VALUEFORMAT_TEXT        = 3, /* OctetString                          */
-    SMI_VALUEFORMAT_NAME        = 4, /* Enum or named ObjectIdentifier       */
-    SMI_VALUEFORMAT_OID         = 5  /* ObjectIdentifier (illegal in SMIv2)  */
-} SmiValueformat;
-
 /* SmiValue -- any single value; for use in default values and subtyping     */
 typedef struct SmiValue {
     SmiBasetype             basetype;
-    SmiValueformat	    format;
-    unsigned int	    len;         /* only for OIDs and OctetStrings   */
+    int			    len;         /* OID, OctetString, Bits           */
     union {
         SmiUnsigned64       unsigned64;
         SmiInteger64        integer64;
@@ -172,8 +161,7 @@ typedef struct SmiValue {
         SmiFloat64          float64;
         SmiFloat128         float128;
         SmiSubid	    *oid;
-        char                *ptr;	 /* OctetString, Enum, or named OID  */
-        char                **bits;      /* array of BitNames                */
+        char                *ptr;	 /* OctetString, Bits                */
     } value;
 } SmiValue;
 
