@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.42 2002/07/23 09:33:00 strauss Exp $
+ * @(#) $Id: check.c,v 1.43 2002/09/13 17:49:27 schoenw Exp $
  */
 
 #include <config.h>
@@ -1272,21 +1272,215 @@ smiCheckDefault(Parser *parser, Object *object)
  *----------------------------------------------------------------------
  */
 
+static void
+checkInetAddressType(Parser *parserPtr, Module *modulePtr, Object *objectPtr)
+{
+    Module *inetModulePtr = NULL;		/* RFC 3291 */
+    Type *inetAddressTypePtr = NULL;		/* RFC 3291 */
+    Type *inetAddressPtr = NULL;		/* RFC 3291 */
+    Node *nodePtr;
+    List *listPtr;
+    int i;
+
+    const char *protected[] = {
+	"InetAddressIPv4", "InetAddressIPv6",
+	"InetAddressIPv4z", "InetAddressIPv6z",
+	"InetAddressDNS", NULL
+    };
+
+    inetModulePtr = findModuleByName("INET-ADDRESS-MIB");
+    if (! inetModulePtr) {
+	return;
+    }
+
+    inetAddressTypePtr = findTypeByModuleAndName(inetModulePtr,
+						 "InetAddressType");
+    inetAddressPtr = findTypeByModuleAndName(inetModulePtr,
+					     "InetAddress");
+    
+    if (!inetAddressTypePtr || !inetAddressPtr) {
+	return;
+    }
+    
+    /* check InetAddressType/InetAddress pair */
+    if (smiTypeDerivedFrom(objectPtr->typePtr, inetAddressPtr)) {
+	Object *indexObject = NULL;
+	Object *entryObject = objectPtr->nodePtr->parentPtr->firstObjectPtr;
+	if (entryObject) {
+	    switch (entryObject->export.indexkind) {
+	    case SMI_INDEX_INDEX:
+		indexObject = entryObject;
+		break;
+	    case SMI_INDEX_AUGMENT:
+		indexObject = entryObject->relatedPtr;
+		break;
+	    default:
+		/* xxx need to handle other index constructions */
+		indexObject = NULL;
+		break;
+	    }
+	}
+	if (indexObject) {
+	    for (listPtr = indexObject->listPtr; listPtr;
+		 listPtr = listPtr->nextPtr) {
+		Object *iObject = (Object *) listPtr->ptr;
+		if (iObject
+		    && iObject->typePtr == inetAddressTypePtr) {
+		    break;
+		}
+	    }
+	    
+	}
+	if (! indexObject || ! listPtr) {
+	    for (nodePtr =
+		     objectPtr->nodePtr->parentPtr->firstChildPtr;
+		 nodePtr &&
+		     nodePtr->subid < objectPtr->nodePtr->subid &&
+		     nodePtr->lastObjectPtr->typePtr !=
+		     inetAddressTypePtr;
+		 nodePtr = nodePtr->nextPtr);
+	    if (!nodePtr ||
+		nodePtr->subid >= objectPtr->nodePtr->subid) {
+		smiPrintErrorAtLine(parserPtr,
+				    ERR_INETADDRESS_WITHOUT_TYPE,
+				    objectPtr->line);
+	    }
+	}
+    }
+    
+    /* check InetAddressType subtyping */
+    if (objectPtr->typePtr->parentPtr == inetAddressTypePtr) {
+	smiPrintErrorAtLine(parserPtr,
+			    ERR_INETADDRESSTYPE_SUBTYPED,
+			    objectPtr->line);
+    }
+
+    /* check for TCs that should not be used directly */
+    for (i = 0; protected[i]; i++) {
+	if (objectPtr->typePtr == findTypeByModuleAndName(inetModulePtr,
+							  protected[i])) {
+	    smiPrintErrorAtLine(parserPtr,
+				ERR_INETADDRESS_SPECIFIC,
+				objectPtr->line,
+				objectPtr->typePtr->export.name);
+	    break;
+	}
+    }
+}
+
+
+static void
+checkTransportAddressType(Parser *parserPtr, Module *modulePtr, Object *objectPtr)
+{
+    Module *transportModulePtr = NULL;		/* RFC 3419 */
+    Type *transportAddressTypePtr = NULL;	/* RFC 3419 */
+    Type *transportAddressPtr = NULL;		/* RFC 3419 */
+    Type *transportDomainPtr = NULL;		/* RFC 3419 */
+    Node *nodePtr;
+    List *listPtr;
+    int i;
+
+    const char *protected[] = {
+	"TransportAddressIPv4", "TransportAddressIPv6",
+	"TransportAddressIPv4z", "TransportAddressIPv6z",
+	"TransportAddressDNS", "TransportAddressLocal",
+	NULL
+    };
+
+    transportModulePtr = findModuleByName("TRANSPORT-ADDRESS-MIB");
+    if (! transportModulePtr) {
+	return;
+    }
+
+    transportAddressTypePtr = findTypeByModuleAndName(transportModulePtr,
+						 "TransportAddressType");
+    transportAddressPtr = findTypeByModuleAndName(transportModulePtr,
+					     "TransportAddress");
+    transportDomainPtr = findTypeByModuleAndName(transportModulePtr,
+						 "TransportDomain");
+
+    if (!transportAddressTypePtr || !transportAddressPtr || !transportDomainPtr) {
+	return;
+    }
+    
+    /* check TransportAddressType/TransportAddress pair */
+    if (smiTypeDerivedFrom(objectPtr->typePtr, transportAddressPtr)) {
+	Object *indexObject = NULL;
+	Object *entryObject = objectPtr->nodePtr->parentPtr->firstObjectPtr;
+	if (entryObject) {
+	    switch (entryObject->export.indexkind) {
+	    case SMI_INDEX_INDEX:
+		indexObject = entryObject;
+		break;
+	    case SMI_INDEX_AUGMENT:
+		indexObject = entryObject->relatedPtr;
+		break;
+	    default:
+		/* xxx need to handle other index constructions */
+		indexObject = NULL;
+		break;
+	    }
+	}
+	if (indexObject) {
+	    for (listPtr = indexObject->listPtr; listPtr;
+		 listPtr = listPtr->nextPtr) {
+		Object *iObject = (Object *) listPtr->ptr;
+		if (iObject
+		    && (iObject->typePtr == transportAddressTypePtr
+			|| iObject->typePtr == transportDomainPtr)) {
+		    break;
+		}
+	    }
+	}
+	if (! indexObject || ! listPtr) {
+	    for (nodePtr =
+		     objectPtr->nodePtr->parentPtr->firstChildPtr;
+		 nodePtr &&
+		     nodePtr->subid < objectPtr->nodePtr->subid &&
+		     nodePtr->lastObjectPtr->typePtr !=
+		     transportAddressTypePtr &&
+		     nodePtr->lastObjectPtr->typePtr !=
+		     transportDomainPtr;
+		 nodePtr = nodePtr->nextPtr);
+	    if (!nodePtr ||
+		nodePtr->subid >= objectPtr->nodePtr->subid) {
+		smiPrintErrorAtLine(parserPtr,
+				    ERR_TRANSPORTADDRESS_WITHOUT_TYPE,
+				    objectPtr->line);
+	    }
+	}
+    }
+    
+    /* check TransportAddressType subtyping */
+    if (objectPtr->typePtr->parentPtr == transportAddressTypePtr) {
+	smiPrintErrorAtLine(parserPtr,
+			    ERR_TRANSPORTADDRESSTYPE_SUBTYPED,
+			    objectPtr->line);
+    }
+
+    /* check for TCs that should not be used directly */
+    for (i = 0; protected[i]; i++) {
+	if (objectPtr->typePtr == findTypeByModuleAndName(transportModulePtr,
+							  protected[i])) {
+	    smiPrintErrorAtLine(parserPtr,
+				ERR_TRANSPORTADDRESS_SPECIFIC,
+				objectPtr->line,
+				objectPtr->typePtr->export.name);
+	    break;
+	}
+    }
+}
+
+
 void
 smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 {
     Object *objectPtr;
     Module *tcModulePtr = NULL;
-    Module *inetModulePtr = NULL;
     Type *rowStatusPtr = NULL;
     Type *storageTypePtr = NULL;
     Type *taddressPtr = NULL;
     Type *tdomainPtr = NULL;
-    Type *inetAddressTypePtr = NULL;
-    Type *inetAddressPtr = NULL;
-    Type *inetAddressIPv4Ptr = NULL;
-    Type *inetAddressIPv6Ptr = NULL;
-    Type *inetAddressDNSPtr = NULL;
     NamedNumber *nnPtr;
     Node *nodePtr;
     
@@ -1297,26 +1491,11 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 	taddressPtr = findTypeByModuleAndName(tcModulePtr, "TAddress");
 	tdomainPtr = findTypeByModuleAndName(tcModulePtr, "TDomain");
     }
-    inetModulePtr = findModuleByName("INET-ADDRESS-MIB");
-    if (inetModulePtr) {
-	inetAddressTypePtr = findTypeByModuleAndName(inetModulePtr,
-						     "InetAddressType");
-	inetAddressPtr = findTypeByModuleAndName(inetModulePtr,
-						 "InetAddress");
-	inetAddressIPv4Ptr = findTypeByModuleAndName(inetModulePtr,
-						     "InetAddressIPv4");
-	inetAddressIPv6Ptr = findTypeByModuleAndName(inetModulePtr,
-						     "InetAddressIPv6");
-	inetAddressDNSPtr = findTypeByModuleAndName(inetModulePtr,
-						    "InetAddressDNS");
-    }
-    
-    if (!tcModulePtr && !inetModulePtr) return;
     
     for (objectPtr = modulePtr->firstObjectPtr;
 	 objectPtr; objectPtr = objectPtr->nextPtr) {
 
-	if (objectPtr->typePtr && objectPtr->typePtr) {
+	if (objectPtr->typePtr) {
 
 	    if (tcModulePtr) {
 
@@ -1362,44 +1541,8 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 		}
 		
 	    }
-	    if (inetModulePtr) {
-
-		/* check InetAddressType/InetAddress pair */
-		if (smiTypeDerivedFrom(objectPtr->typePtr, inetAddressPtr)) {
-		    for (nodePtr =
-			     objectPtr->nodePtr->parentPtr->firstChildPtr;
-			 nodePtr &&
-			     nodePtr->subid < objectPtr->nodePtr->subid &&
-			     nodePtr->lastObjectPtr->typePtr !=
-			         inetAddressTypePtr;
-			 nodePtr = nodePtr->nextPtr);
-		    if (!nodePtr ||
-			nodePtr->subid >= objectPtr->nodePtr->subid) {
-			smiPrintErrorAtLine(parserPtr,
-					    ERR_INETADDRESS_WITHOUT_TYPE,
-					    objectPtr->line);
-		    }
-		}
-
-		/* check InetAddressType subtyping */
-		if (objectPtr->typePtr->parentPtr == inetAddressTypePtr) {
-		    smiPrintErrorAtLine(parserPtr,
-					ERR_INETADDRESSTYPE_SUBTYPED,
-					objectPtr->line);
-		}
-
-		/* check InetAddressXXX usage  */
-		if (objectPtr->typePtr == inetAddressIPv4Ptr ||
-		    objectPtr->typePtr == inetAddressIPv6Ptr ||
-		    objectPtr->typePtr == inetAddressDNSPtr) {
-		    smiPrintErrorAtLine(parserPtr,
-					ERR_INETADDRESS_SPECIFIC,
-					objectPtr->line,
-					objectPtr->typePtr->export.name);
-		}
-
-	    }
-	    
+	    checkInetAddressType(parserPtr, modulePtr, objectPtr);
+	    checkTransportAddressType(parserPtr, modulePtr, objectPtr);
 	}
     }
 }
