@@ -8,16 +8,21 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.76 2000/03/22 09:45:43 strauss Exp $
+ * @(#) $Id: data.c,v 1.77 2000/04/10 14:20:14 strauss Exp $
  */
 
 #include <config.h>
 
-#include <sys/types.h>
-#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <sys/types.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
 
 #include "error.h"
 #include "util.h"

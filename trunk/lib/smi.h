@@ -14,8 +14,10 @@
 #ifndef _SMI_H
 #define _SMI_H
 
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
 
-#include <time.h>
 
 
 #define SMI_LIBRARY_VERSION "2:1:0"

@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.62 2000/02/16 21:14:49 strauss Exp $
+# @(#) $Id: configure.in,v 1.63 2000/02/22 17:11:11 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -40,8 +40,7 @@ AC_CHECK_FUNC(strtouq, AC_DEFINE(HAVE_STRTOUQ))
 
 AC_CHECK_FUNC(timegm, AC_DEFINE(HAVE_TIMEGM))
 
-AC_CHECK_HEADER(getopt.h, AC_DEFINE(HAVE_GETOPT_H))
-AC_CHECK_HEADER(pwd.h, AC_DEFINE(HAVE_PWD_H))
+AC_CHECK_HEADERS(getopt.h pwd.h unistd.h)
 
 AC_ARG_WITH(mibdir,
 [  --with-mibdir=DIR       use DIR to install libsmi MIB modules [DATADIR/mibs]],

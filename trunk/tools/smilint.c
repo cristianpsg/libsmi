@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.25 2000/02/22 18:27:02 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.26 2000/04/10 14:20:27 strauss Exp $
  */
 
 #include <config.h>
@@ -16,9 +16,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#endif
+#ifdef HAVE_WIN_H
+#include "win.h"
 #endif
 
 #include "smi.h"
@@ -62,7 +67,6 @@ int main(int argc, char *argv[])
 	smiInit(NULL);
 
     flags = smiGetFlags();
-    
     flags |= SMI_FLAG_ERRORS;
     flags |= SMI_FLAG_NODESCR;
     smiSetFlags(flags);
@@ -74,10 +78,13 @@ int main(int argc, char *argv[])
 	    break;
 	case 'V':
 	    version();
-	    exit(0);
+	    return 0;
+	case 'e':
+	    /* smiPrintErrors(); */
+	    return 0;
 	case 'h':
 	    usage();
-	    exit(0);
+	    return 0;
 	case 'p':
 	    smiLoadModule(optarg);
 	    break;
@@ -111,6 +118,6 @@ int main(int argc, char *argv[])
     }
 
     smiExit();
-    
-    exit(0);
+
+    return 0;
 }

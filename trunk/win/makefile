@@ -1,0 +1,156 @@
+#
+# makefile --
+#
+#       Makefile for VC++ (tested with version 4.2) for compiling
+#	libsmi and associated tools natively under Win32.
+#
+# Copyright (c) 2000 E. Schoenfelder, Gaertner Datensysteme Braunschweig.
+# Copyright (c) 2000 J. Schoenwaelder, Technical University of Braunschweig.
+#
+# See the file "COPYING" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# @(#) $Id$
+
+##
+## Project directories -- these may need to be customized for your site
+##
+## ROOT --	top of the source tree.
+## TMPDIR --	location for .obj files.
+## TOOLS32 --	location of VC++ compiler installation.
+##
+ROOT	= .\..
+TMPDIR	= .
+TOOLS32	= c:\msdev
+
+##
+## Installation paths: 
+##
+## MIBROOT  -- definition for default search path (unix-style)
+## MIBDIR   -- same in windows style
+## BINDIR   -- destination for the binaries (smidump.exe, ...)
+##
+MIBROOT = /smi/mibs
+INSTROOT = \smi
+MIBDIR = $(INSTROOT)\mibs
+BINDIR = $(INSTROOT)\bin
+
+##
+## Visual C++ tools
+##
+PATH=$(TOOLS32)\bin;$(PATH)
+
+cc32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
+CP      = copy
+RM      = del
+MKDIR	= md
+
+##
+## Definitions:
+##
+# DEBUG = -W3 -Zi -Od /Yd
+INCLUDES = -I$(ROOT)\lib -I$(ROOT)/win -I$(TOOLS32)\include
+DEFINES = $(DEBUG) \
+	/DDEFAULT_SMIPATH=\"$(MIBROOT)/ietf:$(MIBROOT)/iana:$(MIBROOT)/irtf:$(MIBROOT)/site\"
+
+!include <ntwin32.mak>
+
+## 
+## Global makefile settings
+##
+LIBSMIOBJS = \
+	$(TMPDIR)\win.obj \
+	$(TMPDIR)\data.obj \
+	$(TMPDIR)\error.obj \
+	$(TMPDIR)\util.obj \
+	$(TMPDIR)\smi.obj \
+	$(TMPDIR)\parser-smi.tab.obj \
+	$(TMPDIR)\scanner-smi.obj \
+	$(TMPDIR)\parser-sming.tab.obj \
+	$(TMPDIR)\scanner-sming.obj
+
+TOOLSOBJS = \
+	$(TMPDIR)\smiquery.obj \
+	$(TMPDIR)\smilint.obj \
+	$(TMPDIR)\smidump.obj \
+	$(TMPDIR)\dump-sming.obj \
+	$(TMPDIR)\dump-smi.obj \
+	$(TMPDIR)\dump-imports.obj \
+	$(TMPDIR)\dump-types.obj \
+	$(TMPDIR)\dump-tree.obj \
+	$(TMPDIR)\dump-mosy.obj \
+	$(TMPDIR)\dump-corba.obj \
+	$(TMPDIR)\dump-ucdsnmp.obj
+
+SMILIB = smi.lib
+
+##
+## Implicit Targets
+##
+.c.obj:
+	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+		$(DEFINES) -Fo$(TMPDIR)\ $<
+{$(ROOT)\lib}.c{$(TMPDIR)}.obj:
+	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+		$(DEFINES) -Fo$(TMPDIR)\ $<
+{$(ROOT)\tools}.c{$(TMPDIR)}.obj:
+	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+		$(DEFINES) -Fo$(TMPDIR)\ $<
+
+##
+## Targets
+##
+all:	libs tools
+
+libs:	$(SMILIB)
+
+$(SMILIB):	$(LIBSMIOBJS)
+	$(implib) /out:smi.lib $(LIBSMIOBJS)
+
+tools:	smiquery.exe smilint.exe smidump.exe
+
+smiquery.exe:	$(TOOLSOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) /osmiquery.exe smiquery.obj $(SMILIB)
+
+smilint.exe:	$(TOOLSOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) /osmilint.exe smilint.obj $(SMILIB)
+
+smidump.exe:	$(TOOLSOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) \
+		/osmidump.exe smidump.obj dump-sming.obj dump-smi.obj \
+		dump-imports.obj dump-types.obj dump-tree.obj dump-mosy.obj \
+		dump-corba.obj dump-ucdsnmp.obj $(SMILIB)
+clean:
+	del *.lib
+	del *.obj
+	del *.exe
+	del *.ilk
+	del *.pdb
+	del *.mdp
+
+install:	all install-doc install-bin install-mibs
+
+install-doc:
+	$(MKDIR) $(INSTROOT)
+	$(CP) ..\README $(INSTROOT)
+	$(CP) ..\COPYING $(INSTROOT)
+	$(CP) README.win $(INSTROOT)
+	$(MKDIR) $(INSTROOT)\doc
+	$(CP) ..\doc\*.txt $(INSTROOT)\doc
+	$(CP) ..\doc\*.ps $(INSTROOT)\doc
+
+install-bin:
+	$(MKDIR) $(BINDIR)
+	$(CP) *.exe $(BINDIR) /y
+
+install-mibs:
+	$(MKDIR) $(MIBDIR)
+	$(MKDIR) $(MIBDIR)\iana
+	$(CP) ..\mibs\iana\*.* $(MIBDIR)\iana
+	$(MKDIR) $(MIBDIR)\ietf
+	$(CP) ..\mibs\ietf\*.* $(MIBDIR)\ietf
+	$(MKDIR) $(MIBDIR)\irtf
+	$(CP) ..\mibs\irtf\*.* $(MIBDIR)\irtf
+	$(MKDIR) $(MIBDIR)\site
+
+##

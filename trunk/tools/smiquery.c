@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.53 2000/03/22 09:46:14 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.54 2000/04/10 14:20:27 strauss Exp $
  */
 
 #include <config.h>
@@ -18,9 +18,14 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#endif
+#ifdef HAVE_WIN_H
+#include "win.h"
 #endif
 
 #include "smi.h"
@@ -356,10 +361,10 @@ int main(int argc, char *argv[])
 	    break;
 	case 'V':
 	    version();
-	    exit(0);
+	    return 0;
 	case 'h':
 	    usage();
-	    exit(0);
+	    return 0;
 	default:
 	    usage();
 	    exit(1);
@@ -368,7 +373,7 @@ int main(int argc, char *argv[])
 
     if (optind+2 != argc) {
 	usage();
-	exit(0);
+	return 0;
     }
 	
     command = argv[optind];
@@ -622,5 +627,5 @@ int main(int argc, char *argv[])
 
     smiExit();
     
-    exit(0);
+    return 0;
 }

@@ -6,6 +6,10 @@
 	* tools/smistrip.in: fixed bug reported by Ira Wolf: now we do not
 	terminate a module when we've read the `END' of a macro definition.
 
+	* win/: added VC++ build directory; Erik and Juergen.
+
+	* tools/dump-{java,jdmk,dia}: removed obsolete experimental formats.
+
 2000-04-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-smi.c: fixed 'xxxx'H DEFVALs as suggested by Ira Wolf.
