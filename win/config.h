@@ -1,10 +1,10 @@
 /* config.h.  Generated manually for windows / vc++ 6.0 */
 
 /* Define if the SMIv1/v2 parser shall be active. */
-#define BACKEND_SMI
+#define BACKEND_SMI 1
 
 /* Define if the SMIng parser shall be active. */
-#define BACKEND_SMING
+#undef BACKEND_SMING 
 
 /* The default error level at libsmi initialization. */
 #define DEFAULT_ERRORLEVEL 3
