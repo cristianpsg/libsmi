@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.18 2002/07/02 10:19:09 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.19 2002/07/03 06:25:23 schoenw Exp $
  */
 
 /*
@@ -1619,8 +1619,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 		}
 		if (minSize == maxSize) {
 		    fprintf(f,
-			    "    len = %u;\n"
-			    "    if (vb->id_len < idx + len) return -1;\n",
+			    "    len = %u;\n",
 			    minSize);
 		} else if (last && indexNode->implied) {
 		    fprintf(f,
@@ -1631,9 +1630,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    "    if (vb->id_len < idx) return -1;\n"
 			    "    len = vb->id[idx++];\n");
 		}
-		if (minSize == maxSize) {
-		    fprintf(f, "    if (len != %u) return -1;\n", minSize);
-		} else {
+		if (minSize != maxSize) {
 		    if (minSize > 0 && maxSize < 65535) {
 			fprintf(f,
 				"    if (len < %u || len > %u) return -1;\n",
@@ -1678,9 +1675,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    "    len = vb->id[idx++];\n"
 			    "    if (vb->id_len < idx + len) return -1;\n");
 		}
-		if (minSize == maxSize) {
-		    fprintf(f, "    if (len != %u) return -1;\n", minSize);
-		} else {
+		if (minSize != maxSize) {
 		    if (minSize > 0 && maxSize < 65535) {
 			fprintf(f,
 				"    if (len < %u || len > %u) return -1;\n",
