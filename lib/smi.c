@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.58 1999/12/22 14:44:04 strauss Exp $
+ * @(#) $Id: smi.c,v 1.59 2000/01/13 09:30:17 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1860,11 +1860,14 @@ SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
     }
 
     if (!modulePtr) {
+	smiFreeNode(smiNodePtr);
 	return NULL;
     }
 
     objectPtr = findObjectByModuleAndName(modulePtr, smiNodePtr->name);
 
+    smiFreeNode(smiNodePtr);
+    
     if (!objectPtr) {
 	return NULL;
     }

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.3 1999/11/24 19:02:38 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.4 1999/12/20 09:36:42 strauss Exp $
  */
 
 /*
@@ -435,6 +435,9 @@ static void createImportList(char *modulename)
 		addImport(smiType->module, smiType->name);
 	    }
 	}
+	if (smiType) {
+	    smiFreeType(smiType);
+	}
 
 	if (smiNode->basetype == SMI_BASETYPE_INTEGER32) {
 	    addImport("SNMPv2-SMI", "Integer32");
@@ -704,6 +707,8 @@ static void printModule(char *modulename)
 	    smiFreeNode(smiNode);
 	}
     }
+
+    smiFreeModule(smiModule);
 }
 
 
@@ -1107,10 +1112,12 @@ int dumpCorbaOid(char *modulename, int flags)
 	    break;
 	case SMI_NODEKIND_SCALAR:
 	    if (current(smiNode->status)) {
-		printNameAndOid(smiNode, smiGetParentNode(smiNode));
+		SmiNode *smiParentNode = smiGetParentNode(smiNode);
+		printNameAndOid(smiNode, smiParentNode);
 		printf("%s %s\n",
 		       getBaseTypeString(smiNode->basetype),
 		       getAccessString(smiNode->access, 0));
+		smiFreeNode(smiParentNode);
 	    }
 	    break;
 	case SMI_NODEKIND_TABLE:
@@ -1129,16 +1136,21 @@ int dumpCorbaOid(char *modulename, int flags)
 	    if (current(smiNode->status)) {
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
 		int create = smiParentNode ? smiParentNode->create : 0;
-		printNameAndOid(smiNode, smiGetParentNode(smiNode));
+		printNameAndOid(smiNode, smiParentNode);
 		printf("%s %s\n",
 		       getBaseTypeString(smiNode->basetype),
 		       getAccessString(smiNode->access, create));
+		if (smiParentNode) {
+		    smiFreeNode(smiParentNode);
+		}
 	    }
 	    break;
 	case SMI_NODEKIND_NOTIFICATION:
 	    if (current(smiNode->status)) {
-		printNameAndOid(smiNode, smiGetParentNode(smiNode));
+		SmiNode *smiParentNode = smiGetParentNode(smiNode);
+		printNameAndOid(smiNode, smiParentNode);
 		printf("Notification not-accessible\n");
+		smiFreeNode(smiParentNode);
 	    }
 	    break;
 	case SMI_NODEKIND_GROUP:
