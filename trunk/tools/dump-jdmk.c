@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-jdmk.c,v 1.1 1999/10/05 15:52:21 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -325,7 +325,7 @@ static void printObjects(char *modulename)
 
 
 
-int dumpJdmk(char *modulename)
+int dumpJdmk(char *modulename, int flags)
 {
     SmiModule	 *smiModule;
     

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-java.c,v 1.7 1999/09/30 08:16:48 strauss Exp $
+ * @(#) $Id: dump-java.c,v 1.8 1999/10/01 12:46:58 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -300,7 +300,7 @@ static void printObjects(char *modulename)
 
 
 
-int dumpJava(char *modulename)
+int dumpJava(char *modulename, int flags)
 {
     SmiModule	 *smiModule;
     
