@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.11 2001/03/05 14:27:42 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.12 2001/03/19 20:39:23 schoenw Exp $
  */
 
 /*
@@ -358,33 +358,45 @@ static unsigned int getMaxSize(SmiType *smiType)
 
 static char* getSnmpType(SmiType *smiType)
 {
-    switch (smiType->basetype) {
+    struct {
+	char *module;
+	char *name;
+	char *tag;
+    } typemap[] = {
+	{ "RFC1155-SMI",	"Counter",	"G_SNMP_COUNTER32" },
+	{ "SNMPv2-SMI",		"Counter32",	"G_SNMP_COUNTER32" },
+	{ "RFC1155-SMI",	"TimeTicks",	"G_SNMP_TIMETICKS" },
+	{ "SNMPv2-SMI",		"TimeTicks",	"G_SNMP_TIMETICKS" },
+	{ "RFC1155-SMI",	"Opaque",	"G_SNMP_OPAQUE" },
+	{ "SNMPv2-SMI",		"Opaque",	"G_SNMP_OPAQUE" },
+	{ "RFC1155-SMI",	"IpAddress",	"G_SNMP_IPADDRESS" },
+	{ "SNMPv2-SMI",		"IpAddress",	"G_SNMP_IPADDRESS" },
+	{ NULL, NULL, NULL }
+    };
+
+    SmiBasetype basetype = smiType->basetype;
+    
+    do {
+	int i;
+	for (i = 0; typemap[i].name; i++) {
+	    if (smiType->name
+		&& (strcmp(smiType->name, typemap[i].name) == 0)) {
+		return typemap[i].tag;
+	    }
+	}
+    } while ((smiType = smiGetParentType(smiType)));
+
+    switch (basetype) {
     case SMI_BASETYPE_INTEGER32:
     case SMI_BASETYPE_ENUM:
 	return "G_SNMP_INTEGER32";
     case SMI_BASETYPE_UNSIGNED32:
-	do {
-	    if (smiType->name && (strcmp(smiType->name, "Counter32") == 0)) {
-		return "G_SNMP_COUNTER32";
-	    }
-	    if (smiType->name && (strcmp(smiType->name, "TimeTicks") == 0)) {
-		return "G_SNMP_TIMETICKS";
-	    }
-	} while ((smiType = smiGetParentType(smiType)));
 	return "G_SNMP_UNSIGNED32";
     case SMI_BASETYPE_INTEGER64:
 	return NULL;
     case SMI_BASETYPE_UNSIGNED64:
 	return "G_SNMP_COUNTER64";
     case SMI_BASETYPE_OCTETSTRING:
-	do {
-	    if (smiType->name && (strcmp(smiType->name, "IpAddress") == 0)) {
-		return "G_SNMP_IPADDRESS";
-	    }
-	    if (smiType->name && (strcmp(smiType->name, "Opaque") == 0)) {
-		return "G_SNMP_OPAQUE";
-	    }
-	} while ((smiType = smiGetParentType(smiType)));
 	return "G_SNMP_OCTET_STRING";
     case SMI_BASETYPE_BITS:
 	return "G_SNMP_OCTET_STRING";
