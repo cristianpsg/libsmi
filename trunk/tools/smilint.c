@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.45 2003/02/26 15:31:34 schoenw Exp $
+ * @(#) $Id: smilint.c,v 1.46 2004/08/10 10:58:12 strauss Exp $
  */
 
 #include <config.h>
@@ -169,7 +169,7 @@ static void display_used(Error *errors)
 	return;
     }
 
-    fprintf(stderr, "\nDescription of (selected) error/warning messages:\n"); 
+    fprintf(stderr, "\nAdditional descriptions of error/warning messages:\n"); 
 
     for (i = 0; errors[i].msg; i++) {
 	if (! errors[i].used || !errors[i].description) continue;
