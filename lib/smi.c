@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.114 2002/07/23 23:12:20 strauss Exp $
+ * @(#) $Id: smi.c,v 1.115 2002/07/24 11:54:18 strauss Exp $
  */
 
 #include <config.h>
@@ -1110,11 +1110,11 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
     if (!objectPtr) {
 	objectPtr = findObjectByNode(nodePtr);
 
-	if (!objectPtr) {
-	    /* in implicitly created node, e.g. gaga.0 in an object
+	if ((!objectPtr) && (nodePtr->parentPtr)) {
+	    /* an implicitly created node, e.g. gaga.0 in an object
 	     * definition with oid == gaga.0.1.
 	     */
-	    objectPtr = addObject("<implicit>",
+	    objectPtr = addObject(SMI_UNKNOWN_LABEL,
 				  nodePtr->parentPtr, nodePtr->subid,
 				  0, NULL);
 	    objectPtr->nodePtr = nodePtr;

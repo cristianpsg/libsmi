@@ -126,3 +126,8 @@ o X.208, section 28 allows different forms of OID values. Some of them are
   in a plain identifier name form, which is not matched by the ASN.1 OID
   syntax.
 
+o Check the code for OID allocations of a constant length (128). Avoid
+  wasting memory. Avoid problems with OIDs that are (illegally) too long.
+
+o Check, whether all necessary occurences of &amp;, &lt;, &gt;, &apos;, and
+  &qout; are handled correctly in dump-xml and dump-xsd.
