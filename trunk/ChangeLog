@@ -1,5 +1,7 @@
 2000-07-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.2.5.tar.gz: released version 0.2.5.
+
 	* configure.in (LIBTOOL_VERSION): added checks for additional
 	Sun compiler flag (others may follow) to make the flex generated
 	scanner happy about prototypes.
