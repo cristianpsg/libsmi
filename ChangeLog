@@ -1,5 +1,8 @@
 2000-04-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-smi.c: fixed trailing comma in SMIv1 SEQUENCEs.
+	Reported by Ira Wolf.
+
 	* tools/smistrip.in: fixed bug reported by Ira Wolf: now we do not
 	terminate a module when we've read the `END' of a macro definition.
 
