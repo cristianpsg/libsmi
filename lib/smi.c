@@ -8,8 +8,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.77 2000/02/11 16:42:32 strauss Exp $
+ * @(#) $Id: smi.c,v 1.78 2000/02/11 23:19:09 strauss Exp $
  */
+
+#include <config.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -220,7 +222,7 @@ int smiInit(const char *tag)
 	return 0;
     }
 
-    errorLevel = 3;
+    errorLevel = DEFAULT_ERRORLEVEL;
     smiDepth = 0;
     
     if (initData()) {

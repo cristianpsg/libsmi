@@ -108,6 +108,7 @@ EXTRA_DIST = $(TESTS) filter
 
 SUBDIRS = mibs dumps
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES =  parser.test smidump-corba-idl.test \
 smidump-corba-oid.test smidump-imports.test smidump-mosy.test \
 smidump-orig-smiv2.test smidump-sming.test smidump-smiv1.test \

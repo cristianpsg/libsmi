@@ -8,8 +8,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.44 2000/02/10 14:42:50 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.45 2000/02/11 16:42:32 strauss Exp $
  */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <errno.h>

@@ -8,13 +8,15 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.44 2000/02/09 18:25:57 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.45 2000/02/10 14:29:27 strauss Exp $
  */
 
 %{
 
-#ifdef BACKEND_SMING
+#include <config.h>
     
+#ifdef BACKEND_SMING
+
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>

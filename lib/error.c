@@ -8,8 +8,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.35 2000/02/10 16:25:18 strauss Exp $
+ * @(#) $Id: error.c,v 1.36 2000/02/10 20:36:42 strauss Exp $
  */
+
+#include <config.h>
 
 #include <string.h>
 #include <stdio.h>

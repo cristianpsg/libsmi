@@ -117,12 +117,13 @@ smidump_SOURCES = smidump.c smidump.h dump-sming.c dump-smi.c 			  dump-imports.
 #			  dump-java.c dump-jdmk.c dump-fig.c
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES =  smistrip smiquery.1 smilint.1 smidump.1 smistrip.1
 bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) 
+DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

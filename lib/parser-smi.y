@@ -8,13 +8,15 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.80 2000/02/10 21:26:41 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.81 2000/02/11 09:50:58 strauss Exp $
  */
 
 %{
 
-#ifdef BACKEND_SMI
+#include <config.h>
     
+#ifdef BACKEND_SMI
+
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>

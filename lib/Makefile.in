@@ -106,12 +106,13 @@ libsmi_la_SOURCES = data.c error.c util.c smi.c 		  	  parser-smi.tab.c scanner-
 
 libsmi_la_LDFLAGS = -version-info @LIBTOOL_VERSIONING@
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES =  smi.h libsmi.3 smi_macro.3 smi_module.3 smi_node.3 \
 smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) 
+DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

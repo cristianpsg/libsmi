@@ -8,8 +8,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.22 1999/12/17 10:44:24 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.23 2000/02/09 19:56:52 strauss Exp $
  */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -27,7 +29,8 @@
 void usage()
 {
     fprintf(stderr,
-	    "Usage: smilint [-Vhvs] [-c <configfile>] [-l <level>] <module_or_path>\n"
+	    "Usage: smilint [-Vhsr] [-c <configfile>] [-p <module>] [-l <level>]\n"
+	    "               [-i <error-pattern>] <module_or_path>\n"
 	    "-V                    show version and license information\n"
 	    "-h                    show usage information\n"
 	    "-s                    print statistics on parsed MIB modules\n"

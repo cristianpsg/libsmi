@@ -8,8 +8,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.59 2000/02/10 17:59:44 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.60 2000/02/11 09:50:59 strauss Exp $
  */
+
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>

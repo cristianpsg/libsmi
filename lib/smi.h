@@ -3,12 +3,12 @@
  *
  *      Interface Definition of libsmi (version 2:1:0).
  *
- * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+ * Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.8 2000/02/11 16:42:32 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.9 2000/02/11 23:19:09 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -393,8 +393,6 @@ extern SmiNode *smiGetOptionNode(SmiOption *smiOptionPtr);
 extern SmiRefinement *smiGetFirstRefinement(SmiNode *smiComplianceNodePtr);
 
 extern SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr);
-
-extern SmiModule *smiGetRefinementModule(SmiRefinement *smiRefinementPtr);
 
 extern SmiNode *smiGetRefinementNode(SmiRefinement *smiRefinementPtr);
 

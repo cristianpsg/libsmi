@@ -9,8 +9,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.8 2000/02/10 10:09:45 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.9 2000/02/11 09:50:58 strauss Exp $
  */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <string.h>
