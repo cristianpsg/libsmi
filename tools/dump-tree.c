@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.3 2000/02/06 23:30:59 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.4 2000/02/07 23:23:30 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -71,26 +71,23 @@ static char getStatusChar(SmiStatus status)
 
 static char *getTypeName(SmiNode *smiNode)
 {
+    char *type;
     SmiType *smiType, *parentType;
 
-    smiType = smiGetType(smiGetModule(smiNode->typemodule), smiNode->typename);
-    if (! smiType) {
-	return xstrdup(smiNode->typename);
-    }
+    smiType = smiGetNodeType(smiNode);
 
+    if (!smiType)
+	return NULL;
+    
     if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 	parentType = smiGetParentType(smiType);
 	smiFreeType(smiType);
 	smiType = parentType;
     }
 
-    if (smiType) {
-	char *type = xstrdup(smiType->name);
-	smiFreeType(smiType);
-	return type;
-    }
-
-    return xstrdup(smiNode->typename);
+    type = xstrdup(smiType->name);
+    smiFreeType(smiType);
+    return type;
 }
 
 
@@ -151,7 +148,7 @@ static int pruneSubTree(SmiNode *smiNode)
 	return 1;
     }
 
-    if (strcmp(currentModule, smiNode->module) == 0) {
+    if (strcmp(currentModule, smiGetNodeModule(smiNode)->name) == 0) {
 	return 0;
     }
 
@@ -172,6 +169,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 {
     SmiNode     *childNode, *indexNode;
     SmiNodekind lastNodeKind = SMI_NODEKIND_UNKNOWN;
+    SmiType     *type;
     int         i = 0, cnt, prefixlen, newtypefieldlen = 8;
     char        c = 0;
     char	*typename;
@@ -213,8 +211,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		break;
 	    case SMI_INDEX_AUGMENT:
 	    case SMI_INDEX_SPARSE:
-		indexNode = smiGetNode(smiNode->relatedmodule,
-				       smiNode->relatedname);
+		indexNode = smiGetRelatedNode(smiNode);
 		if (indexNode) {
 		    printIndex(indexNode);
 		    smiFreeNode(indexNode);
@@ -258,7 +255,8 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	     childNode;
 	     childNode = smiGetNextChildNode(childNode)) {
 	    if (! pruneSubTree(childNode)) {
-		if (childNode->typename) {
+		type = smiGetNodeType(childNode);
+		if (type) {
 		    typename = getTypeName(childNode);
 		    if (strlen(typename) > newtypefieldlen) {
 			newtypefieldlen = strlen(typename);

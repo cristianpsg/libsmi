@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.58 2000/02/07 16:10:29 strauss Exp $
+ * @(#) $Id: data.c,v 1.59 2000/02/08 14:46:01 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -550,16 +550,14 @@ checkImports(modulePtr, parserPtr)
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (importPtr->kind == KIND_UNKNOWN) {
-	    if ((smiNode = smiGetNode(modulePtr->export.name,
+	    if ((smiNode = smiGetNode(&modulePtr->export,
 				      importPtr->export.name))) {
 		importPtr->export.module = util_strdup(modulePtr->export.name);
 		importPtr->kind	= KIND_OBJECT;
-		smiFreeNode(smiNode);
 	    } else if ((smiType = smiGetType(&modulePtr->export,
 					     importPtr->export.name))) {
 		importPtr->export.module = util_strdup(modulePtr->export.name);
 		importPtr->kind	= KIND_TYPE;
-		smiFreeType(smiType);
 	    } else if ((smiMacro = smiGetMacro(&modulePtr->export,
 					      importPtr->export.name))) {
 		importPtr->export.module = util_strdup(modulePtr->export.name);
@@ -690,26 +688,33 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
 
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
+    objectPtr->export.name			= util_strdup(objectname);
+    objectPtr->export.decl			= SMI_DECL_UNKNOWN;
+    objectPtr->export.basetype			= SMI_BASETYPE_UNKNOWN;
+    objectPtr->export.access			= SMI_ACCESS_UNKNOWN;
+    objectPtr->export.status			= SMI_STATUS_UNKNOWN;
+    objectPtr->export.format			= NULL;
+    objectPtr->export.value.basetype		= SMI_BASETYPE_UNKNOWN;
+    objectPtr->export.units			= NULL;
+    objectPtr->export.description		= NULL;
+    objectPtr->export.reference			= NULL;
+    objectPtr->export.indexkind			= SMI_INDEX_UNKNOWN;
+    objectPtr->export.implied			= 0;
+    objectPtr->export.create			= 0;
+    objectPtr->export.nodekind			= SMI_NODEKIND_UNKNOWN;
+
     objectPtr->modulePtr		        = modulePtr;
-    objectPtr->name				= util_strdup(objectname);
     objectPtr->fileoffset			= -1;
     objectPtr->nodePtr				= NULL;
     objectPtr->prevSameNodePtr			= NULL;
     objectPtr->nextSameNodePtr			= NULL;
     objectPtr->typePtr				= NULL;
-    objectPtr->indexPtr				= NULL;
     objectPtr->listPtr				= NULL;
-    objectPtr->decl				= SMI_DECL_UNKNOWN;
-    objectPtr->nodekind				= SMI_NODEKIND_UNKNOWN;
-    objectPtr->access				= SMI_ACCESS_UNKNOWN;
-    objectPtr->status				= SMI_STATUS_UNKNOWN;
     objectPtr->flags				= flags;
-    objectPtr->description			= NULL;
-    objectPtr->reference			= NULL;
-    objectPtr->units				= NULL;
-    objectPtr->format				= NULL;
-    objectPtr->valuePtr				= NULL;
     objectPtr->line				= parserPtr ? parserPtr->line : -1;
+    
+    objectPtr->export.oidlen                    = 0;     /* filled in by  */
+    objectPtr->export.oid                       = NULL;  /* second pass.  */
     
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -784,27 +789,34 @@ duplicateObject(templatePtr, flags, parserPtr)
     modulePtr = parserPtr->modulePtr;
     nodePtr   = templatePtr->nodePtr;
     
-    objectPtr->modulePtr		              = modulePtr;
-    objectPtr->name				      = NULL;
-    objectPtr->fileoffset			      = -1;
-    objectPtr->nodePtr				      = nodePtr;
-    objectPtr->prevSameNodePtr			      = NULL;
-    objectPtr->nextSameNodePtr			      = NULL;
-    objectPtr->typePtr				      = NULL;
-    objectPtr->indexPtr				      = NULL;
-    objectPtr->listPtr				      = NULL;
-    objectPtr->decl				      = SMI_DECL_UNKNOWN;
-    objectPtr->nodekind				      = SMI_NODEKIND_UNKNOWN;
-    objectPtr->access				      = SMI_ACCESS_UNKNOWN;
-    objectPtr->status				      = SMI_STATUS_UNKNOWN;
-    objectPtr->flags				      = flags;
-    objectPtr->description			      = NULL;
-    objectPtr->reference			      = NULL;
-    objectPtr->units				      = NULL;
-    objectPtr->format				      = NULL;
-    objectPtr->valuePtr				      = NULL;
-    objectPtr->line				      = parserPtr ? parserPtr->line : -1;
+    objectPtr->export.name			= NULL;
+    objectPtr->export.decl			= SMI_DECL_UNKNOWN;
+    objectPtr->export.basetype			= SMI_BASETYPE_UNKNOWN;
+    objectPtr->export.access			= SMI_ACCESS_UNKNOWN;
+    objectPtr->export.status			= SMI_STATUS_UNKNOWN;
+    objectPtr->export.format			= NULL;
+    objectPtr->export.value.basetype		= SMI_BASETYPE_UNKNOWN;
+    objectPtr->export.units			= NULL;
+    objectPtr->export.description		= NULL;
+    objectPtr->export.reference			= NULL;
+    objectPtr->export.indexkind			= SMI_INDEX_UNKNOWN;
+    objectPtr->export.implied			= 0;
+    objectPtr->export.create			= 0;
+    objectPtr->export.nodekind			= SMI_NODEKIND_UNKNOWN;
+						
+    objectPtr->modulePtr		        = modulePtr;
+    objectPtr->fileoffset			= -1;
+    objectPtr->nodePtr				= nodePtr;
+    objectPtr->prevSameNodePtr			= NULL;
+    objectPtr->nextSameNodePtr			= NULL;
+    objectPtr->typePtr				= NULL;
+    objectPtr->listPtr				= NULL;
+    objectPtr->flags				= flags;
+    objectPtr->line				= parserPtr ? parserPtr->line : -1;
 
+    objectPtr->export.oidlen                    = 0;     /* filled in by  */
+    objectPtr->export.oid                       = NULL;  /* second pass.  */
+    
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
         objectPtr->prevPtr			= modulePtr->lastObjectPtr;
@@ -866,6 +878,13 @@ addNode (parentNodePtr, subid, flags, parserPtr)
     nodePtr->lastChildPtr			= NULL;
     nodePtr->firstObjectPtr			= NULL;
     nodePtr->lastObjectPtr			= NULL;
+
+    /*
+     * this cannot be set in all situations (pending sub trees).
+     * we delay it to the second pass.
+     */
+    nodePtr->oidlen                             = 0;
+    nodePtr->oid				= NULL;
 
     if (parentNodePtr) {
 	if (parentNodePtr->firstChildPtr) {
@@ -1136,10 +1155,10 @@ setObjectName(objectPtr, name)
     Module	      *modulePtr;
     Object	      *newObjectPtr;
 
-    if (objectPtr->name) {
-	util_free(objectPtr->name);
+    if (objectPtr->export.name) {
+	util_free(objectPtr->export.name);
     }
-    objectPtr->name = name;
+    objectPtr->export.name = name;
 
     /*
      * If this name is found on the pending list (at depth==1 in
@@ -1155,7 +1174,7 @@ setObjectName(objectPtr, name)
 	 */
 	nextPtr = nodePtr->nextPtr;
 
-	if (!strcmp(nodePtr->firstObjectPtr->name, name)) {
+	if (!strcmp(nodePtr->firstObjectPtr->export.name, name)) {
 
 	    /*
 	     * remove nodePtr from the pendingRootNode tree.
@@ -1226,6 +1245,32 @@ setObjectType(objectPtr, typePtr)
 /*
  *----------------------------------------------------------------------
  *
+ * setObjectBasetype --
+ *
+ *      Set the basetype of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectBasetype(objectPtr, basetype)
+    Object       *objectPtr;
+    SmiBasetype  basetype;
+{
+    objectPtr->export.basetype = basetype;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * setObjectAccess --
  *
  *      Set the access of a given Object.
@@ -1244,7 +1289,7 @@ setObjectAccess(objectPtr, access)
     Object		   *objectPtr;
     SmiAccess		   access;
 {
-    objectPtr->access = access;
+    objectPtr->export.access = access;
 }
 
 
@@ -1270,7 +1315,7 @@ setObjectStatus(objectPtr, status)
     Object		   *objectPtr;
     SmiStatus		   status;
 {
-    objectPtr->status = status;
+    objectPtr->export.status = status;
 }
 
 
@@ -1296,8 +1341,9 @@ setObjectDescription(objectPtr, description)
     Object    *objectPtr;
     char      *description;
 {
-    if (objectPtr->description) util_free(objectPtr->description);
-    objectPtr->description = description;
+    if (objectPtr->export.description)
+	util_free(objectPtr->export.description);
+    objectPtr->export.description = description;
 }
 
 
@@ -1323,8 +1369,8 @@ setObjectReference(objectPtr, reference)
     Object    *objectPtr;
     char      *reference;
 {
-    if (objectPtr->reference) util_free(objectPtr->reference);
-    objectPtr->reference = reference;
+    if (objectPtr->export.reference) util_free(objectPtr->export.reference);
+    objectPtr->export.reference = reference;
 }
 
 
@@ -1350,8 +1396,8 @@ setObjectFormat(objectPtr, format)
     Object    *objectPtr;
     char      *format;
 {
-    if (objectPtr->format) util_free(objectPtr->format);
-    objectPtr->format = format;
+    if (objectPtr->export.format) util_free(objectPtr->export.format);
+    objectPtr->export.format = format;
 }
 
 
@@ -1377,8 +1423,8 @@ setObjectUnits(objectPtr, units)
     Object    *objectPtr;
     char      *units;
 {
-    if (objectPtr->units) util_free(objectPtr->units);
-    objectPtr->units = units;
+    if (objectPtr->export.units) util_free(objectPtr->export.units);
+    objectPtr->export.units = units;
 }
 
 
@@ -1430,7 +1476,7 @@ setObjectDecl(objectPtr, decl)
     Object	*objectPtr;
     SmiDecl     decl;
 {
-    objectPtr->decl = decl;
+    objectPtr->export.decl = decl;
 }
 
 
@@ -1456,7 +1502,7 @@ setObjectNodekind(objectPtr, nodekind)
     Object	*objectPtr;
     SmiNodekind nodekind;
 {
-    objectPtr->nodekind = nodekind;
+    objectPtr->export.nodekind = nodekind;
 }
 
 
@@ -1529,6 +1575,7 @@ deleteObjectFlags(objectPtr, flags)
  *----------------------------------------------------------------------
  */
 
+/* TODO remove me
 void
 setObjectIndex(objectPtr, indexPtr)
     Object	 *objectPtr;
@@ -1536,7 +1583,7 @@ setObjectIndex(objectPtr, indexPtr)
 {
     objectPtr->indexPtr = indexPtr;
 }
-
+*/
 
 
 /*
@@ -1569,6 +1616,110 @@ setObjectList(objectPtr, listPtr)
 /*
  *----------------------------------------------------------------------
  *
+ * setObjectRelated --
+ *
+ *      Set the related object of a given object (e.g. SMIv2 AUGMENTS)
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectRelated(objectPtr, relatedPtr)
+    Object	 *objectPtr;
+    Object	 *relatedPtr;
+{
+    objectPtr->relatedPtr = relatedPtr;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectImplied --
+ *
+ *      Set the implied flag of a given object
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectImplied(objectPtr, implied)
+    Object	 *objectPtr;
+    int		 implied;
+{
+    objectPtr->export.implied = implied;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectCreate --
+ *
+ *      Set the create flag of a given (table entry) object
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectCreate(objectPtr, create)
+    Object	 *objectPtr;
+    int		 create;
+{
+    objectPtr->export.create = create;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectIndexkind --
+ *
+ *      Set the indexkind of a given (table entry) object
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectIndexkind(objectPtr, indexkind)
+    Object	 *objectPtr;
+    SmiIndexkind indexkind;
+{
+    objectPtr->export.indexkind = indexkind;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * setObjectValue --
  *
  *      Set the default value pointer of a given Object.
@@ -1587,7 +1738,7 @@ setObjectValue(objectPtr, valuePtr)
     Object	 *objectPtr;
     SmiValue	 *valuePtr;
 {
-    objectPtr->valuePtr = valuePtr;
+    objectPtr->export.value = *valuePtr;
 }
 
 
@@ -1811,7 +1962,8 @@ findObjectByName(objectname)
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
-	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
+	    if ((objectPtr->export.name) &&
+		!strcmp(objectPtr->export.name, objectname)) {
 		/*
 		 * We return the first matching object.
 		 * TODO: probably we should check if there are more matching
@@ -1857,7 +2009,8 @@ findNextObjectByName(objectname, prevObjectPtr)
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
-	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
+	    if ((objectPtr->export.name)
+		&& !strcmp(objectPtr->export.name, objectname)) {
 		/*
 		 * We return the first matching object.
 		 * TODO: probably we should check if there are more matching
@@ -1903,7 +2056,8 @@ findObjectByModulenameAndName(modulename, objectname)
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
-	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
+	    if ((objectPtr->export.name) &&
+		!strcmp(objectPtr->export.name, objectname)) {
 		return (objectPtr);
 	    }
 	}
@@ -1950,7 +2104,8 @@ findObjectByModuleAndName(modulePtr, objectname)
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
-	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
+	    if ((objectPtr->export.name) &&
+		!strcmp(objectPtr->export.name, objectname)) {
 		return (objectPtr);
 	    }
 	}
@@ -3156,19 +3311,11 @@ freeData()
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = nextObjectPtr) {
 	    nextObjectPtr = objectPtr->nextPtr;
-	    util_free(objectPtr->name);
-	    util_free(objectPtr->description);
-	    util_free(objectPtr->reference);
-	    util_free(objectPtr->format);
-	    util_free(objectPtr->units);
-	    if (objectPtr->indexPtr) {
-		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
-		     listPtr = nextListPtr) {
-		    nextListPtr = listPtr->nextPtr;
-		    util_free(listPtr);
-		}
-		util_free(objectPtr->indexPtr);
-	    }
+	    util_free(objectPtr->export.name);
+	    util_free(objectPtr->export.description);
+	    util_free(objectPtr->export.reference);
+	    util_free(objectPtr->export.format);
+	    util_free(objectPtr->export.units);
 	    for (listPtr = objectPtr->listPtr; listPtr;
 		 listPtr = nextListPtr) {
 		nextListPtr = listPtr->nextPtr;
@@ -3186,10 +3333,6 @@ freeData()
 		nextListPtr = listPtr->nextPtr;
 		util_free((Refinement *)(listPtr->ptr));
 		util_free(listPtr);
-	    }
-	    if (objectPtr->valuePtr) {
-		/* TODO: conditional ptrs in *valuePtr */
-		util_free(objectPtr->valuePtr);
 	    }
 	    util_free(objectPtr);
 	}
@@ -3409,13 +3552,13 @@ checkObjectName(modulePtr, name, parserPtr)
         for (objectPtr = modulePtr->firstObjectPtr;
 	     objectPtr; objectPtr = objectPtr->nextPtr) {
 	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
-		&& ! strcasecmp(name, objectPtr->name)) {
-		if (! strcmp(name, objectPtr->name)) {
+		&& ! strcasecmp(name, objectPtr->export.name)) {
+		if (! strcmp(name, objectPtr->export.name)) {
 		    printError(parserPtr, ERR_REDEFINITION, name);
 		    return 0;
 		} else {
 		    printError(parserPtr, ERR_CASE_REDEFINITION,
-			       name, objectPtr->name);
+			       name, objectPtr->export.name);
 		}
 	    }
 	}

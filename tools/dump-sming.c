@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.53 2000/02/07 16:10:41 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.54 2000/02/08 14:46:03 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -237,7 +237,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     append[0] = 0;
 
     parentNode = smiNode;
-    smiModule = smiGetModule(smiNode->module);
+    smiModule = smiGetNodeModule(smiNode);
     
     do {
 
@@ -263,9 +263,9 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiModule, parentNode->module, parentNode->name) ||
+	    (smiIsImported(smiModule, parentNode) ||
 	     (!importedParent &&
-	      !strcmp(parentNode->module, smiNode->module)))) {
+	      (smiGetNodeModule(parentNode) == smiModule)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    smiFreeNode(parentNode);
 	    return s;
@@ -679,10 +679,10 @@ static void printTypedefs(SmiModule *smiModule)
 
 
 
-static void printObjects(char *modulename)
+static void printObjects(SmiModule *smiModule)
 {
     int		 i, j;
-    SmiNode	 *smiNode;
+    SmiNode	 *smiNode, *relatedNode;
     SmiListItem  *smiListItem;
     SmiType	 *smiType;
     int		 indent = 0;
@@ -693,7 +693,7 @@ static void printObjects(char *modulename)
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
 	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
     
-    for(i = 0, smiNode = smiGetFirstNode(modulename, nodekinds);
+    for(i = 0, smiNode = smiGetFirstNode(smiModule, nodekinds);
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
 
 	if (smiNode->nodekind == SMI_NODEKIND_NODE) {
@@ -732,22 +732,21 @@ static void printObjects(char *modulename)
 	    print("%s;\n", getOidString(smiNode, 0));
 	}
 
-	if (smiNode->typename && (smiNode->basetype != SMI_BASETYPE_UNKNOWN)) {
+	smiType = smiGetNodeType(smiNode);
+	if (smiType && (smiNode->basetype != SMI_BASETYPE_UNKNOWN)) {
 	    printSegment((2 + indent) * INDENT, "type", INDENTVALUE);
-	    if (islower((int)smiNode->typename[0])) {
+	    if (islower((int)smiType->name[0])) {
 		/*
 		 * an implicitly restricted type.
 		 */
-		smiType = smiGetNodeType(smiNode);
-		print("%s", getTypeString(modulename, smiType->basetype,
+		print("%s", getTypeString(smiModule->name, smiType->basetype,
 					  smiGetParentType(smiType)));
 		printSubtype(smiType);
 		print(";\n");
 	    } else {
 		print("%s;\n",
-		      getTypeString(modulename, smiNode->basetype,
-				  smiGetType(smiGetModule(smiNode->typemodule),
-					     smiNode->typename)));
+		      getTypeString(smiModule->name, smiNode->basetype,
+				    smiType));
 	    }
 	}
 
@@ -760,6 +759,7 @@ static void printObjects(char *modulename)
 	    }
 	}
 
+	relatedNode = smiGetRelatedNode(smiNode);
 	switch (smiNode->indexkind) {
 	case SMI_INDEX_INDEX:
 	    if (smiNode->implied) {
@@ -780,16 +780,16 @@ static void printObjects(char *modulename)
 	    print(");\n");
 	    break;
 	case SMI_INDEX_AUGMENT:
-	    if (smiNode->relatedname) {
+	    if (relatedNode) {
 		printSegment((2 + indent) * INDENT, "augments", INDENTVALUE);
-		print("%s;\n", smiNode->relatedname);
+		print("%s;\n", relatedNode->name);
 		/* TODO: non-local name if non-local */
 	    } /* TODO: else print error */
 	    break;
 	case SMI_INDEX_REORDER:
-	    if (smiNode->relatedname) {
+	    if (relatedNode) {
 		printSegment((2 + indent) * INDENT, "", 0);
-		print("reorders %s", smiNode->relatedname);
+		print("reorders %s", relatedNode->name);
 		/* TODO: non-local name if non-local */
 		if (smiNode->implied) {
 		    print(" implied");
@@ -807,16 +807,16 @@ static void printObjects(char *modulename)
 	    } /* TODO: else print error */
 	    break;
 	case SMI_INDEX_SPARSE:
-	    if (smiNode->relatedname) {
+	    if (relatedNode) {
 		printSegment((2 + indent) * INDENT, "sparse", INDENTVALUE);
-		print("%s;\n", smiNode->relatedname);
+		print("%s;\n", relatedNode->name);
 		/* TODO: non-local name if non-local */
 	    } /* TODO: else print error */
 	    break;
 	case SMI_INDEX_EXPAND:
-	    if (smiNode->relatedname) {
+	    if (relatedNode) {
 		printSegment((2 + indent) * INDENT, "", 0);
-		print("expands %s", smiNode->relatedname);
+		print("expands %s", relatedNode->name);
 		/* TODO: non-local name if non-local */
 		if (smiNode->implied) {
 		    print(" implied");
@@ -887,13 +887,13 @@ static void printObjects(char *modulename)
 
 
 
-static void printNotifications(char *modulename)
+static void printNotifications(SmiModule *smiModule)
 {
     int		 i, j;
     SmiNode	 *smiNode;
     SmiListItem  *listitem;
     
-    for(i = 0, smiNode = smiGetFirstNode(modulename,
+    for(i = 0, smiNode = smiGetFirstNode(smiModule,
 					 SMI_NODEKIND_NOTIFICATION);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
@@ -954,7 +954,7 @@ static void printNotifications(char *modulename)
 
 
 
-static void printGroups(char *modulename)
+static void printGroups(SmiModule *smiModule)
 {
     int		 i, d, j;
     SmiNode	 *smiNode;
@@ -962,7 +962,7 @@ static void printGroups(char *modulename)
     
     for (i = 0, d = 0; d < 3; d++) {
 	
-	for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
+	for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_GROUP);
 	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 
 	    if (!i) {
@@ -1020,7 +1020,7 @@ static void printGroups(char *modulename)
 
 
 
-static void printCompliances(char *modulename)
+static void printCompliances(SmiModule *smiModule)
 {
     int		  i, j;
     SmiNode	  *smiNode, *smiNode2;
@@ -1029,7 +1029,7 @@ static void printCompliances(char *modulename)
     SmiRefinement *smiRefinement;
     SmiListItem   *listitem;
     
-    for(i = 0, smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+    for(i = 0, smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_COMPLIANCE);
 	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
 	
 	if (!i) {
@@ -1107,7 +1107,7 @@ static void printCompliances(char *modulename)
 		if (smiType) {
 		    printSegment(3 * INDENT, "type", INDENTVALUE);
 		    print("%s",
-			  getTypeString(modulename, smiType->basetype,
+			  getTypeString(smiModule->name, smiType->basetype,
 					smiGetParentType(smiType)));
 		    printSubtype(smiType);
 		    print(";\n");
@@ -1117,7 +1117,7 @@ static void printCompliances(char *modulename)
 		if (smiType) {
 		    printSegment(3 * INDENT, "writetype", INDENTVALUE);
 		    print("%s",
-			  getTypeString(modulename, smiType->basetype,
+			  getTypeString(smiModule->name, smiType->basetype,
 					smiGetParentType(smiType)));
 		    printSubtype(smiType);
 		    print(";\n");
@@ -1203,13 +1203,13 @@ int dumpSming(char *modulename, int flags)
     
     printTypedefs(smiModule);
     
-    printObjects(modulename);
+    printObjects(smiModule);
     
-    printNotifications(modulename);
+    printNotifications(smiModule);
     
-    printGroups(modulename);
+    printGroups(smiModule);
     
-    printCompliances(modulename);
+    printCompliances(smiModule);
     
     print("}; // end of module %s.\n", modulename);
     

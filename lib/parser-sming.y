@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.41 2000/02/07 23:23:29 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.42 2000/02/08 14:46:03 strauss Exp $
  */
 
 %{
@@ -246,7 +246,7 @@ checkDate(Parser *parserPtr, char *date)
     Object	   *objectPtr;
     Macro	   *macroPtr;
     Type	   *typePtr;
-    Index	   *indexPtr;
+    Index	   index;
     Option	   *optionPtr;
     Refinement	   *refinementPtr;
     SmiStatus	   status;
@@ -386,12 +386,12 @@ checkDate(Parser *parserPtr, char *date)
 %type <typePtr>typeStatement
 %type <typePtr>writetypeStatement_stmtsep_01
 %type <typePtr>writetypeStatement
-%type <indexPtr>anyIndexStatement
-%type <indexPtr>indexStatement
-%type <indexPtr>augmentsStatement
-%type <indexPtr>reordersStatement
-%type <indexPtr>sparseStatement
-%type <indexPtr>expandsStatement
+%type <index>anyIndexStatement
+%type <index>indexStatement
+%type <index>augmentsStatement
+%type <index>reordersStatement
+%type <index>sparseStatement
+%type <index>expandsStatement
 %type <rc>sep_impliedKeyword_01
 %type <listPtr>createStatement_stmtsep_01
 %type <listPtr>createStatement
@@ -677,23 +677,23 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    while (thisParserPtr->firstIndexlabelPtr) {
 				/* adjust indexPtr->listPtr elements */
 				for (listPtr =
-       ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->indexPtr->listPtr;
+       ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->listPtr;
 				     listPtr; listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
 							   thisParserPtr,
 							   thisModulePtr);
 				    listPtr->ptr = objectPtr;
 				}
-				/* adjust indexPtr->rowPtr */
+				/* adjust relatedPtr */
 		     if (((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
-				    indexPtr->rowPtr) {
+				    relatedPtr) {
 				    objectPtr = findObject(
   		        ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
-					indexPtr->rowPtr,
+					relatedPtr,
 					thisParserPtr,
 			                thisModulePtr);
 			 ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
-				    indexPtr->rowPtr = objectPtr;
+				    relatedPtr = objectPtr;
 				}
 				/* adjust create list */
 				for (listPtr =
@@ -1043,6 +1043,8 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			{
 			    if (scalarObjectPtr && $11) {
 				setObjectType(scalarObjectPtr, $11);
+				setObjectBasetype(scalarObjectPtr,
+						  $11->export.basetype);
 				defaultBasetype = $11->export.basetype;
 				if (!($11->export.name)) {
 				    /*
@@ -1178,8 +1180,13 @@ rowStatement:		rowKeyword sep lcIdentifier
 			{
 			    List *listPtr;
 			    
-			    if (rowObjectPtr && $11) {
-				setObjectIndex(rowObjectPtr, $11);
+			    if (rowObjectPtr &&
+				($11.indexkind != SMI_INDEX_UNKNOWN)) {
+				setObjectIndexkind(rowObjectPtr,
+						   $11.indexkind);
+				setObjectImplied(rowObjectPtr, $11.implied);
+				setObjectRelated(rowObjectPtr, $11.rowPtr);
+				setObjectList(rowObjectPtr, $11.listPtr);
 
 				/*
 				 * Add this row object to the list of rows
@@ -1200,6 +1207,7 @@ rowStatement:		rowKeyword sep lcIdentifier
 				if ($14) {
 				    addObjectFlags(rowObjectPtr,
 						   FLAG_CREATABLE);
+				    setObjectCreate(rowObjectPtr, 1);
 				}
 			    }
 			}
@@ -1289,6 +1297,8 @@ columnStatement:	columnKeyword sep lcIdentifier
 			{
 			    if (columnObjectPtr && $11) {
 				setObjectType(columnObjectPtr, $11);
+				setObjectBasetype(columnObjectPtr,
+						  $11->export.basetype);
 				defaultBasetype = $11->export.basetype;
 				if (!($11->export.name)) {
 				    /*
@@ -1701,19 +1711,19 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 					((Refinement *)(listPtr->ptr));
 				    refinementPtr->compliancePtr =
 					complianceObjectPtr;
-		    s = util_malloc(strlen(refinementPtr->objectPtr->name) +
+		    s = util_malloc(strlen(refinementPtr->objectPtr->export.name) +
 				    strlen(complianceIdentifier) + 13);
 				    if (refinementPtr->typePtr) {
 					sprintf(s, "%s+%s+type",
 						complianceIdentifier,
-					       refinementPtr->objectPtr->name);
+					       refinementPtr->objectPtr->export.name);
 					setTypeName(refinementPtr->typePtr, s);
 					
 				    }
 				    if (refinementPtr->writetypePtr) {
 					sprintf(s, "%s+%s+writetype",
 						complianceIdentifier,
-					       refinementPtr->objectPtr->name);
+					       refinementPtr->objectPtr->export.name);
 				   setTypeName(refinementPtr->writetypePtr, s);
 				    }
 				    util_free(s);
@@ -1907,15 +1917,14 @@ anyIndexStatement:	indexStatement
 indexStatement:		indexKeyword sep_impliedKeyword_01 optsep
 			'(' optsep qlcIdentifierList optsep ')' optsep ';'
 			{
-			    $$ = util_malloc(sizeof(Index));
 			    if ($2) {
-				$$->implied = 1;
+				$$.implied = 1;
 			    } else {
-				$$->implied = 0;
+				$$.implied = 0;
 			    }
-			    $$->indexkind = SMI_INDEX_INDEX;
-			    $$->listPtr = $6;
-			    $$->rowPtr = NULL;
+			    $$.indexkind = SMI_INDEX_INDEX;
+			    $$.listPtr = $6;
+			    $$.rowPtr = NULL;
 			    /*
 			     * NOTE: at this point $$->listPtr and $$-rowPtr
 			     * contain identifier strings. Converstion to
@@ -1928,11 +1937,10 @@ indexStatement:		indexKeyword sep_impliedKeyword_01 optsep
 
 augmentsStatement:	augmentsKeyword sep qlcIdentifier optsep ';'
 			{
-			    $$ = util_malloc(sizeof(Index));
-			    $$->implied = 0;
-			    $$->indexkind = SMI_INDEX_AUGMENT;
-			    $$->listPtr = NULL;
-			    $$->rowPtr = (void *)$3;
+			    $$.implied = 0;
+			    $$.indexkind = SMI_INDEX_AUGMENT;
+			    $$.listPtr = NULL;
+			    $$.rowPtr = (void *)$3;
 			    /*
 			     * NOTE: at this point $$->listPtr and $$-rowPtr
 			     * contain identifier strings. Converstion to
@@ -1947,14 +1955,13 @@ reordersStatement:	reordersKeyword sep qlcIdentifier
 			sep_impliedKeyword_01 optsep '(' optsep
 			qlcIdentifierList optsep ')' optsep ';'
 			{
-			    $$ = util_malloc(sizeof(Index));
 			    if ($4) {
-				$$->implied = 1;
+				$$.implied = 1;
 			    } else {
-				$$->implied = 0;
+				$$.implied = 0;
 			    }
-			    $$->indexkind = SMI_INDEX_REORDER;
-			    $$->listPtr = $8;
+			    $$.indexkind = SMI_INDEX_REORDER;
+			    $$.listPtr = $8;
 			    /*
 			     * NOTE: at this point $$->listPtr and $$-rowPtr
 			     * contain identifier strings. Converstion to
@@ -1962,17 +1969,16 @@ reordersStatement:	reordersKeyword sep qlcIdentifier
 			     * module is parsed, since even in SMIng index
 			     * clauses can contain forward references.
 			     */
-			    $$->rowPtr = (void *)$3;
+			    $$.rowPtr = (void *)$3;
 			}
         ;
 
 sparseStatement:	sparseKeyword sep qlcIdentifier optsep ';'
 			{
-			    $$ = util_malloc(sizeof(Index));
-			    $$->implied = 0;
-			    $$->indexkind = SMI_INDEX_SPARSE;
-			    $$->listPtr = NULL;
-			    $$->rowPtr = (void *)$3;
+			    $$.implied = 0;
+			    $$.indexkind = SMI_INDEX_SPARSE;
+			    $$.listPtr = NULL;
+			    $$.rowPtr = (void *)$3;
 			    /*
 			     * NOTE: at this point $$->listPtr and $$-rowPtr
 			     * contain identifier strings. Converstion to
@@ -1987,14 +1993,13 @@ expandsStatement:	expandsKeyword sep qlcIdentifier
 			sep_impliedKeyword_01 optsep '(' optsep
 			qlcIdentifierList optsep ')' optsep ';'
 			{
-			    $$ = util_malloc(sizeof(Index));
 			    if ($4) {
-				$$->implied = 1;
+				$$.implied = 1;
 			    } else {
-				$$->implied = 0;
+				$$.implied = 0;
 			    }
-			    $$->indexkind = SMI_INDEX_EXPAND;
-			    $$->listPtr = $8;
+			    $$.indexkind = SMI_INDEX_EXPAND;
+			    $$.listPtr = $8;
 			    /*
 			     * NOTE: at this point $$->listPtr and $$-rowPtr
 			     * contain identifier strings. Converstion to
@@ -2002,7 +2007,7 @@ expandsStatement:	expandsKeyword sep qlcIdentifier
 			     * module is parsed, since even in SMIng index
 			     * clauses can contain forward references.
 			     */
-			    $$->rowPtr = (void *)$3;
+			    $$.rowPtr = (void *)$3;
 			}
         ;
 
@@ -2030,6 +2035,7 @@ createStatement:	createKeyword optsep_createColumns_01 optsep ';'
 			{
 			    if (rowObjectPtr) {
 				addObjectFlags(rowObjectPtr, FLAG_CREATABLE);
+				setObjectCreate(rowObjectPtr, 1);
 			    }
 			    $$ = $2;
 			}

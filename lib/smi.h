@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.57 2000/02/06 23:30:58 strauss Exp $
+ * @(#) $Id: smi.h,v 1.58 2000/02/08 14:46:03 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -229,11 +229,8 @@ typedef struct SmiType {
 /* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
     SmiIdentifier       name;
-    SmiIdentifier       module;
-    unsigned int	oidlen;
-    SmiSubid		*oid;
-    SmiIdentifier       typename;
-    SmiIdentifier       typemodule;
+    int			oidlen;
+    SmiSubid		*oid;         /* array of length oidlen */
     SmiDecl             decl;
     SmiBasetype         basetype;
     SmiAccess           access;
@@ -246,8 +243,6 @@ typedef struct SmiNode {
     SmiIndexkind        indexkind;
     int                 implied;
     int                 create;
-    SmiIdentifier       relatedname;    
-    SmiIdentifier       relatedmodule;    
     SmiNodekind         nodekind;
 } SmiNode;
 
@@ -317,9 +312,7 @@ extern SmiImport *smiGetNextImport(SmiImport *smiImportPtr);
 
 extern void smiFreeImport(SmiImport *smiImportPtr);
 
-/* TODO: replace module/name by smiNode */
-extern int smiIsImported(SmiModule *smiModulePtr,
-			 char *module, char *name);
+extern int smiIsImported(SmiModule *smiModulePtr, SmiNode *smiNodePtr);
 
 extern SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr);
 
@@ -367,15 +360,17 @@ extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
 
 
-extern SmiNode *smiGetNode(char *module, char *name);
+extern SmiNode *smiGetNode(SmiModule *smiModulePtr, char *name);
 
 extern SmiNode *smiGetNodeByOID(unsigned int oidlen, SmiSubid oid[]);
 
-extern SmiNode *smiGetFirstNode(char *module, SmiNodekind nodekind);
+extern SmiNode *smiGetFirstNode(SmiModule *smiModulePtr, SmiNodekind nodekind);
 
 extern SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind);
 
 extern SmiNode *smiGetParentNode(SmiNode *smiNodePtr);
+
+extern SmiNode *smiGetRelatedNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 

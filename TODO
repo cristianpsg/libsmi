@@ -88,3 +88,6 @@ o smidump -f tree RMON2-MIB:
 o smidump -f tree ATM-ACCOUNTING-INFORMATION-MIB: endless loop
 
 o util:timegm: use POSIX putenv instead of BSD setenv/unsetenv
+
+o smiquery: if values are not present, don't print anything instead of `-'.
+

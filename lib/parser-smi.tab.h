@@ -7,7 +7,6 @@ typedef union {
     SmiStatus      status;			/* a STATUS value            */
     SmiAccess      access;			/* an ACCESS value           */
     Type           *typePtr;
-    Index          *indexPtr;
     List           *listPtr;			/* SEQUENCE and INDEX lists  */
     NamedNumber    *namedNumberPtr;		/* BITS or enum item         */
     Range          *rangePtr;			/* type restricting range    */
@@ -15,6 +14,7 @@ typedef union {
     SmiUnsigned32  unsigned32;			/*                           */
     SmiInteger32   integer32;			/*                           */
     struct Compl   compl;
+    struct Index   index;
     Module	   *modulePtr;
 } YYSTYPE;
 #define	DOT_DOT	257

@@ -97,6 +97,8 @@ static void
 checkObjects(Parser *parserPtr, Module *modulePtr)
 {
     Object *objectPtr, *parentPtr;
+    Node *nodePtr;
+    int i;
     
     /*
      * Set nodekinds of all newly defined objects.
@@ -110,31 +112,31 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	} else {
 	    parentPtr = NULL;
 	}
-	if (objectPtr->decl == SMI_DECL_MODULEIDENTITY) {
-	    objectPtr->nodekind = SMI_NODEKIND_MODULE;
-	} else if ((objectPtr->decl == SMI_DECL_VALUEASSIGNMENT) ||
-		   (objectPtr->decl == SMI_DECL_OBJECTIDENTITY)) {
-	    objectPtr->nodekind = SMI_NODEKIND_NODE;
-	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
+	if (objectPtr->export.decl == SMI_DECL_MODULEIDENTITY) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_MODULE;
+	} else if ((objectPtr->export.decl == SMI_DECL_VALUEASSIGNMENT) ||
+		   (objectPtr->export.decl == SMI_DECL_OBJECTIDENTITY)) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
+	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
 		   (objectPtr->typePtr->export.decl == SMI_DECL_IMPL_SEQUENCEOF)) {
-	    objectPtr->nodekind = SMI_NODEKIND_TABLE;
-	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
-		   (objectPtr->indexPtr)) {
-	    objectPtr->nodekind = SMI_NODEKIND_ROW;
-	} else if ((objectPtr->decl == SMI_DECL_NOTIFICATIONTYPE) ||
-		   (objectPtr->decl == SMI_DECL_TRAPTYPE)) {
-	    objectPtr->nodekind = SMI_NODEKIND_NOTIFICATION;
-	} else if ((objectPtr->decl == SMI_DECL_OBJECTGROUP) ||
-		   (objectPtr->decl == SMI_DECL_NOTIFICATIONGROUP)) {
-	    objectPtr->nodekind = SMI_NODEKIND_GROUP;
-	} else if (objectPtr->decl == SMI_DECL_MODULECOMPLIANCE) {
-	    objectPtr->nodekind = SMI_NODEKIND_COMPLIANCE;
-	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
-		   (parentPtr->indexPtr)) {
-	    objectPtr->nodekind = SMI_NODEKIND_COLUMN;
-	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
-		   (!parentPtr->indexPtr)) {
-	    objectPtr->nodekind = SMI_NODEKIND_SCALAR;
+	    objectPtr->export.nodekind = SMI_NODEKIND_TABLE;
+	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
+		   (objectPtr->export.indexkind != SMI_INDEX_UNKNOWN)) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_ROW;
+	} else if ((objectPtr->export.decl == SMI_DECL_NOTIFICATIONTYPE) ||
+		   (objectPtr->export.decl == SMI_DECL_TRAPTYPE)) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_NOTIFICATION;
+	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTGROUP) ||
+		   (objectPtr->export.decl == SMI_DECL_NOTIFICATIONGROUP)) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_GROUP;
+	} else if (objectPtr->export.decl == SMI_DECL_MODULECOMPLIANCE) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_COMPLIANCE;
+	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
+		   (parentPtr->export.indexkind != SMI_INDEX_UNKNOWN)) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_COLUMN;
+	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
+		   (parentPtr->export.indexkind == SMI_INDEX_UNKNOWN)) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_SCALAR;
 	}
 
 	/*
@@ -142,39 +144,39 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	 */
 	
 	if (objectPtr->typePtr
-	    && (objectPtr->nodekind == SMI_NODEKIND_COLUMN
-		|| objectPtr->nodekind == SMI_NODEKIND_SCALAR)
+	    && (objectPtr->export.nodekind == SMI_NODEKIND_COLUMN
+		|| objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)
 	    && objectPtr->typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
 	    printErrorAtLine(parserPtr, ERR_BASETYPE_UNKNOWN, objectPtr->line,
-			     objectPtr->typePtr->export.name, objectPtr->name);
+			     objectPtr->typePtr->export.name, objectPtr->export.name);
 	}
 
 	/*
 	 * Check whether a row's subid is 1, see RFC 2578 7.10 (1).
 	 */
 	
-	if (objectPtr->nodekind == SMI_NODEKIND_ROW) {
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
 	    int len;
 	    
 	    if (objectPtr->nodePtr->subid != 1) {
 		printErrorAtLine(parserPtr, ERR_ROW_SUBID_ONE,
-				 objectPtr->line, objectPtr->name);
+				 objectPtr->line, objectPtr->export.name);
 	    }
 
-	    len = strlen(objectPtr->name);
-	    if (len < 6 || strcmp(objectPtr->name+len-5,"Entry")) {
+	    len = strlen(objectPtr->export.name);
+	    if (len < 6 || strcmp(objectPtr->export.name+len-5,"Entry")) {
 		printErrorAtLine(parserPtr, ERR_ROWNAME_ENTRY,
-				 objectPtr->line, objectPtr->name);
+				 objectPtr->line, objectPtr->export.name);
 	    }
 	}
 
-	if (objectPtr->nodekind == SMI_NODEKIND_TABLE) {
+	if (objectPtr->export.nodekind == SMI_NODEKIND_TABLE) {
 	    int len;
 
-	    len = strlen(objectPtr->name);
-	    if (len < 6 || strcmp(objectPtr->name+len-5,"Table")) {
+	    len = strlen(objectPtr->export.name);
+	    if (len < 6 || strcmp(objectPtr->export.name+len-5,"Table")) {
 		printErrorAtLine(parserPtr, ERR_TABLENAME_TABLE,
-				 objectPtr->line, objectPtr->name);
+				 objectPtr->line, objectPtr->export.name);
 	    }
 	}
 
@@ -188,9 +190,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	 */
 
 	if (objectPtr->flags & FLAG_INCOMPLETE) {
-	    if (strlen(objectPtr->name)) {
+	    if (strlen(objectPtr->export.name)) {
 		printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
-				 objectPtr->line, objectPtr->name);
+				 objectPtr->line, objectPtr->export.name);
 	    } else {
 		printErrorAtLine(parserPtr, ERR_IMPLICIT_NODE,
 				 objectPtr->line);
@@ -204,7 +206,27 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->typePtr
 	    && (objectPtr->typePtr->export.decl == SMI_DECL_IMPLICIT_TYPE)
 	    && (objectPtr->typePtr->export.status == SMI_STATUS_UNKNOWN)) {
-	    objectPtr->typePtr->export.status = objectPtr->status;
+	    objectPtr->typePtr->export.status = objectPtr->export.status;
+	}
+
+	/*
+	 * Set the oidlen/oid values that are not yet correct.
+	 */
+
+	if (objectPtr->export.oidlen == 0) {
+	    if (objectPtr->nodePtr->oidlen == 0) {
+		for (nodePtr = objectPtr->nodePtr, i = 1;
+		     nodePtr->parentPtr != rootNodePtr;
+		     nodePtr = nodePtr->parentPtr, i++);
+		objectPtr->nodePtr->oid = calloc(i, sizeof(unsigned int));
+		objectPtr->nodePtr->oidlen = i;
+		for (nodePtr = objectPtr->nodePtr; i > 0; i--) {
+		    objectPtr->nodePtr->oid[i-1] = nodePtr->subid;
+		    nodePtr = nodePtr->parentPtr;
+		}
+	    }
+	    objectPtr->export.oidlen = objectPtr->nodePtr->oidlen;
+	    objectPtr->export.oid = objectPtr->nodePtr->oid;
 	}
     }
 }
@@ -252,10 +274,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
     for(objectPtr = modulePtr->firstObjectPtr;
 	objectPtr; objectPtr = objectPtr->nextPtr) {
 
-	SmiValue *valuePtr = objectPtr->valuePtr;
-	
-	if (! valuePtr) continue;
-
+#if 0 /* TODO remove me */
 	/*
 	 * Set the basetype to the type's basetype if not done yet.
 	 */
@@ -263,14 +282,16 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 	if (valuePtr->basetype == SMI_BASETYPE_UNKNOWN) {
 	    valuePtr->basetype = objectPtr->typePtr->export.basetype;
 	}
+#endif
+	if (objectPtr->export.value.basetype == SMI_BASETYPE_UNKNOWN) continue;
 	
-	if ((valuePtr->basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
-	    && (valuePtr->format == SMI_VALUEFORMAT_NAME)) {
+	if ((objectPtr->export.value.basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
+	    && (objectPtr->export.value.format == SMI_VALUEFORMAT_NAME)) {
 	    object2Ptr = findObjectByModuleAndName(parserPtr->modulePtr,
-					   (char *) valuePtr->value.ptr);
+					   (char *)objectPtr->export.value.value.ptr);
 	    if (!object2Ptr) {
-		importPtr = findImportByName((char *) valuePtr->value.ptr,
-					     modulePtr);
+		importPtr = findImportByName(
+		                (char *)objectPtr->export.value.value.ptr, modulePtr);
 		if (importPtr) {		/* imported object */
 		    importPtr->use++;
 		    object2Ptr = findObjectByModulenameAndName(
@@ -281,27 +302,28 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 	    if (!object2Ptr) {
 		printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
 				 objectPtr->line,
-				 (char *) valuePtr->value.ptr);
-		valuePtr->value.ptr = NULL;
+				 (char *)objectPtr->export.value.value.ptr);
+		objectPtr->export.value.value.ptr = NULL;
+		objectPtr->export.value.basetype == SMI_BASETYPE_UNKNOWN;
 	    } else {
-		valuePtr->value.ptr = (void *) object2Ptr;
+		objectPtr->export.value.value.ptr = (void *)object2Ptr;
 	    }
-	    valuePtr->format = SMI_VALUEFORMAT_OID;
-	} else if ((valuePtr->basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
-		   && (valuePtr->format == SMI_VALUEFORMAT_OID)) {
-	    if ((valuePtr->len != 2) ||
-		(valuePtr->value.oid[0] != 0) ||
-		(valuePtr->value.oid[1] != 0)) {
+	    objectPtr->export.value.format = SMI_VALUEFORMAT_OID;
+	} else if ((objectPtr->export.value.basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
+		   && (objectPtr->export.value.format == SMI_VALUEFORMAT_OID)) {
+	    if ((objectPtr->export.value.len != 2) ||
+		(objectPtr->export.value.value.oid[0] != 0) ||
+		(objectPtr->export.value.value.oid[1] != 0)) {
 		printErrorAtLine(parserPtr, ERR_ILLEGAL_OID_DEFVAL,
-				 objectPtr->line, objectPtr->name);
+				 objectPtr->line, objectPtr->export.name);
 	    }
 	    if (!findModuleByName("SNMPv2-SMI")) {
 		loadModule("SNMPv2-SMI");
 	    }
 	    object2Ptr = findObjectByModulenameAndName("SNMPv2-SMI",
 						       "zeroDotZero");
-	    valuePtr->format = SMI_VALUEFORMAT_OID;
-	    valuePtr->value.ptr = (void *) object2Ptr;
+	    objectPtr->export.value.format = SMI_VALUEFORMAT_OID;
+	    objectPtr->export.value.value.ptr = (void *)object2Ptr;
 	}
     }
 }
@@ -447,7 +469,6 @@ checkDate(Parser *parserPtr, char *date)
     SmiStatus      status;			/* a STATUS value            */
     SmiAccess      access;			/* an ACCESS value           */
     Type           *typePtr;
-    Index          *indexPtr;
     List           *listPtr;			/* SEQUENCE and INDEX lists  */
     NamedNumber    *namedNumberPtr;		/* BITS or enum item         */
     Range          *rangePtr;			/* type restricting range    */
@@ -455,6 +476,7 @@ checkDate(Parser *parserPtr, char *date)
     SmiUnsigned32  unsigned32;			/*                           */
     SmiInteger32   integer32;			/*                           */
     struct Compl   compl;
+    struct Index   index;
     Module	   *modulePtr;
 }
 
@@ -615,7 +637,7 @@ checkDate(Parser *parserPtr, char *date)
 %type  <text>DisplayPart
 %type  <text>UnitsPart
 %type  <access>Access
-%type  <indexPtr>IndexPart
+%type  <index>IndexPart
 %type  <listPtr>IndexTypes
 %type  <objectPtr>IndexType
 %type  <objectPtr>Index
@@ -1467,6 +1489,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				     * imported object.
 				     */
 				    importPtr->use++;
+#if 0
 				    snodePtr = smiGetNode(
 						  importPtr->export.module, $1);
 				    objectPtr = addObject($1,
@@ -1476,6 +1499,10 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 					snodePtr->oid[snodePtr->oidlen-1],
 					FLAG_IMPORTED, thisParserPtr);
 				    smiFreeNode(snodePtr);
+#else
+				    objectPtr = findObjectByModulenameAndName(
+					importPtr->export.module, $1);
+#endif
 				}
 			    }
 
@@ -1695,6 +1722,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectType(objectPtr, $6);
+			    setObjectBasetype(objectPtr, $6->export.basetype);
 			    if (!($6->export.name)) {
 				/*
 				 * An inlined type.
@@ -1706,7 +1734,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				thisParserPtr->flags &= ~FLAG_CREATABLE;
 				parentPtr =
 				  objectPtr->nodePtr->parentPtr->lastObjectPtr;
-				if (parentPtr && parentPtr->indexPtr) {
+				if (parentPtr &&
+				    parentPtr->export.indexkind !=
+				       SMI_INDEX_UNKNOWN) {
 				    /*
 				     * add objectPtr to the parent object's
 				     * listPtr, which is the list of columns
@@ -1716,12 +1746,15 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				     * parent row object-type is not yet
 				     * defined.
 				     */
+				    /*
 				    newlistPtr = util_malloc(sizeof(List));
 				    newlistPtr->nextPtr = NULL;
 				    newlistPtr->ptr = objectPtr;
+				    */
 				    /*
 				     * Look up the parent object-type.
 				     */
+				    /*
 				    if (parentPtr->listPtr) {
 					for(listPtr = parentPtr->listPtr;
 					    listPtr->nextPtr;
@@ -1730,7 +1763,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				    } else {
 					parentPtr->listPtr = newlistPtr;
 				    }
+				    */
 				    addObjectFlags(parentPtr, FLAG_CREATABLE);
+				    setObjectCreate(parentPtr, 1);
 				} else {
 				    printError(thisParserPtr,
 					       ERR_SCALAR_READCREATE);
@@ -1745,8 +1780,11 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    if ($12) {
 				setObjectReference(objectPtr, $12);
 			    }
-			    if ($13) {
-				setObjectIndex(objectPtr, $13);
+			    if ($13.indexkind != SMI_INDEX_UNKNOWN) {
+				setObjectList(objectPtr, $13.listPtr);
+				setObjectImplied(objectPtr, $13.implied);
+				setObjectIndexkind(objectPtr, $13.indexkind);
+				setObjectRelated(objectPtr, $13.rowPtr);
 			    }
 			    if ($14) {
 				setObjectValue(objectPtr, $14);
@@ -3233,33 +3271,23 @@ IndexPart:		INDEX
 			}
 			'{' IndexTypes '}'
 			{
-			    Index *p;
-			    
-			    p = util_malloc(sizeof(Index));
-			    /* TODO: success? */
-			    p->indexkind = SMI_INDEX_INDEX;
-			    p->implied   = impliedFlag;
-			    p->listPtr   = $4;
-			    p->rowPtr    = NULL;
-			    $$ = p;
+			    $$.indexkind = SMI_INDEX_INDEX;
+			    $$.implied   = impliedFlag;
+			    $$.listPtr   = $4;
+			    $$.rowPtr    = NULL;
 			}
         |		AUGMENTS '{' Entry '}'
 			/* TODO: no AUGMENTS clause in v1 */
 			/* TODO: how to differ INDEX and AUGMENTS ? */
 			{
-			    Index *p;
-			    
-			    p = util_malloc(sizeof(Index));
-			    /* TODO: success? */
-			    p->indexkind    = SMI_INDEX_AUGMENT;
-			    p->implied      = 0;
-			    p->listPtr      = NULL;
-			    p->rowPtr       = $3;
-			    $$ = p;
+			    $$.indexkind    = SMI_INDEX_AUGMENT;
+			    $$.implied      = 0;
+			    $$.listPtr      = NULL;
+			    $$.rowPtr       = $3;
 			}
         |		/* empty */
 			{
-			    $$ = NULL;
+			    $$.indexkind = SMI_INDEX_UNKNOWN;
 			}
 	;
 
@@ -3586,6 +3614,7 @@ subidentifier:
 					 * imported object.
 					 */
 					importPtr->use++;
+#if 0
 					snodePtr = smiGetNode(
 						  importPtr->export.module, $1);
 					if (snodePtr) {
@@ -3603,6 +3632,10 @@ subidentifier:
 					       FLAG_IMPORTED | FLAG_INCOMPLETE,
 							   thisParserPtr);
 					}
+#else
+					$$ = findObjectByModulenameAndName(
+					    importPtr->export.module, $1);
+#endif
 				    }
 				}
 				parentNodePtr = $$->nodePtr;
@@ -3666,6 +3699,7 @@ subidentifier:
 					 * imported object.
 					 */
 					importPtr->use++;
+#if 0
 					snodePtr = smiGetNode($1, $3);
 					$$ = addObject($3, 
 					  getParentNode(
@@ -3675,6 +3709,10 @@ subidentifier:
 					  FLAG_IMPORTED,
 					  thisParserPtr);
 					smiFreeNode(snodePtr);
+#else
+					$$ = findObjectByModulenameAndName(
+					    importPtr->export.module, $1);
+#endif
 				    }
 				}
 				parentNodePtr = $$->nodePtr;
@@ -3971,16 +4009,16 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 				    
 				    refinementPtr->compliancePtr = objectPtr;
 				    
-		    s = util_malloc(strlen(refinementPtr->objectPtr->name) +
+		    s = util_malloc(strlen(refinementPtr->objectPtr->export.name) +
 				    strlen($1) + 13);
 				    if (refinementPtr->typePtr) {
 					sprintf(s, "%s+%s+type", $1,
-					       refinementPtr->objectPtr->name);
+					       refinementPtr->objectPtr->export.name);
 					setTypeName(refinementPtr->typePtr, s);
 				    }
 				    if (refinementPtr->writetypePtr) {
 					sprintf(s, "%s+%s+writetype", $1,
-					       refinementPtr->objectPtr->name);
+					       refinementPtr->objectPtr->export.name);
 				   setTypeName(refinementPtr->writetypePtr, s);
 				    }
 				    util_free(s);
@@ -4131,12 +4169,12 @@ MandatoryGroup:		objectIdentifier
 			    if (complianceModulePtr) {
 				$$ = findObjectByModuleAndName(
 				                           complianceModulePtr,
-							   $1->name);
+							   $1->export.name);
 			    }
-			    if (complianceModulePtr && $1->name) {
+			    if (complianceModulePtr && $1->export.name) {
 				importPtr = findImportByModulenameAndName(
 						    complianceModulePtr->export.name,
-						    $1->name,
+						    $1->export.name,
 						    thisModulePtr);
 				if (importPtr)
 				    importPtr->use++;
@@ -4178,7 +4216,7 @@ Compliances:		Compliance
 					((Option *)$2.optionlistPtr->ptr)->objectPtr) {
 					printError(thisParserPtr,
 						   ERR_OPTIONALGROUP_ALREADY_EXISTS,
-						   ((Option *)$2.optionlistPtr->ptr)->objectPtr->name);
+						   ((Option *)$2.optionlistPtr->ptr)->objectPtr->export.name);
 					stop = 1;
 					$$.optionlistPtr = $1.optionlistPtr;
 				    }
@@ -4207,7 +4245,7 @@ Compliances:		Compliance
 					((Refinement *)$2.refinementlistPtr->ptr)->objectPtr) {
 					printError(thisParserPtr,
 						   ERR_REFINEMENT_ALREADY_EXISTS,
-						   ((Refinement *)$2.refinementlistPtr->ptr)->objectPtr->name);
+						   ((Refinement *)$2.refinementlistPtr->ptr)->objectPtr->export.name);
 					stop = 1;
 					$$.refinementlistPtr = $1.refinementlistPtr;
 				    }
@@ -4248,10 +4286,10 @@ ComplianceGroup:	GROUP objectIdentifier
 			{
 			    Import *importPtr;
 			    
-			    if (complianceModulePtr && $2->name) {
+			    if (complianceModulePtr && $2->export.name) {
 				importPtr = findImportByModulenameAndName(
 						    complianceModulePtr->export.name,
-						    $2->name,
+						    $2->export.name,
 						    thisModulePtr);
 				if (importPtr)
 				    importPtr->use++;
@@ -4273,10 +4311,10 @@ ComplianceObject:	OBJECT ObjectName
 			{
 			    Import *importPtr;
 
-			    if (complianceModulePtr && $2->name) {
+			    if (complianceModulePtr && $2->export.name) {
 				importPtr = findImportByModulenameAndName(
 						    complianceModulePtr->export.name,
-						    $2->name,
+						    $2->export.name,
 						    thisModulePtr);
 				if (importPtr) 
 				    importPtr->use++;
