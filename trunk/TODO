@@ -70,3 +70,4 @@ o special handling for well-known traps (reversibility?)
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
 
+o line breaks in long bits defaults values (dump-*.c)
