@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.81 2000/02/11 09:50:58 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.82 2000/02/12 10:56:20 strauss Exp $
  */
 
 %{
@@ -134,6 +134,8 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    objectPtr->export.nodekind = SMI_NODEKIND_GROUP;
 	} else if (objectPtr->export.decl == SMI_DECL_MODULECOMPLIANCE) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_COMPLIANCE;
+	} else if (objectPtr->export.decl == SMI_DECL_AGENTCAPABILITIES) {
+	    objectPtr->export.nodekind = SMI_NODEKIND_CAPABILITIES;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
 		   (parentPtr->export.indexkind != SMI_INDEX_UNKNOWN)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_COLUMN;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.45 2000/02/11 16:42:32 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.46 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -35,7 +35,7 @@ char *smiStringStatus(SmiStatus status)
 	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
 	(status == SMI_STATUS_MANDATORY)   ? "mandatory" :
 	(status == SMI_STATUS_OPTIONAL)    ? "optional" :
-					     "<unknown>";
+					     "<UNDEFINED>";
 }
 
 char *smiStringAccess(SmiAccess access)
@@ -45,27 +45,27 @@ char *smiStringAccess(SmiAccess access)
 	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
 	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
 	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-						"<unknown>";
+						"<UNDEFINED>";
 }
 
 char *smiStringLanguage(SmiLanguage language)
 {
     return
-	(language == SMI_LANGUAGE_UNKNOWN)    ? "<UNKNOWN>" :
+	(language == SMI_LANGUAGE_UNKNOWN)    ? "<unknown>" :
 	(language == SMI_LANGUAGE_SMIV1)      ? "SMIv1" :
 	(language == SMI_LANGUAGE_SMIV2)      ? "SMIv2" :
 	(language == SMI_LANGUAGE_SMING)      ? "SMIng" :
-						"<unknown>";
+						"<UNDEFINED>";
 }
 
 char *smiStringDecl(SmiDecl macro)
 {
     return
-        (macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" :
-        (macro == SMI_DECL_IMPLICIT_TYPE)     ? "<IMPLICIT-TYPE-DEFINITION>" :
-        (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<TYPE-ASSIGNMENT>" :
-        (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<IMPLICIT_SEQUENCE_OF>" :
-        (macro == SMI_DECL_VALUEASSIGNMENT)   ? "<VALUE-ASSIGNMENT>" :
+        (macro == SMI_DECL_UNKNOWN)           ? "<unknown>" :
+        (macro == SMI_DECL_IMPLICIT_TYPE)     ? "<implicit>" :
+        (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<type-assignment>" :
+        (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<implicit-sequence-of>" :
+        (macro == SMI_DECL_VALUEASSIGNMENT)   ? "<value-assignment>" :
         (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" :
         (macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" :
         (macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" :
@@ -86,13 +86,13 @@ char *smiStringDecl(SmiDecl macro)
         (macro == SMI_DECL_NOTIFICATION)      ? "notification" :
         (macro == SMI_DECL_GROUP)	      ? "group" :
         (macro == SMI_DECL_COMPLIANCE)	      ? "compliance" :
-                                                "<unknown>";
+                                                "<UNDEFINED>";
 }
 
 char *smiStringNodekind(SmiNodekind nodekind)
 {
     return
-        (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<UNKNOWN>" :
+        (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<unknown>" :
         (nodekind == SMI_NODEKIND_MODULE)       ? "module" :
         (nodekind == SMI_NODEKIND_NODE)         ? "node" :
         (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
@@ -102,13 +102,14 @@ char *smiStringNodekind(SmiNodekind nodekind)
         (nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
         (nodekind == SMI_NODEKIND_GROUP)        ? "group" :
         (nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
-                                                  "<unknown>";
+        (nodekind == SMI_NODEKIND_CAPABILITIES) ? "capabilities" :
+                                                  "<UNDEFINED>";
 }
 
 char *smiStringBasetype(SmiBasetype basetype)
 {
     return
-        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
+        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<unknown>" :
         (basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
         (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
         (basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :
@@ -120,7 +121,7 @@ char *smiStringBasetype(SmiBasetype basetype)
         (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
         (basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
         (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
-                                                   "<unknown>";
+                                                   "<UNDEFINED>";
 }
 
 
@@ -280,12 +281,8 @@ void usage()
 	    "-p <module>               preload <module>\n"
 	    "module <module>           show information on module <module>\n"
 	    "imports <module>          show import list of module <module>\n"
-	    "revisions <module>        show revision list of module <module>\n"
 	    "node <module::name>       show information on node <module::name>\n"
-	    "parent <module::name>     show parent of node <module::name>\n"
 	    "compliance <module::name> show information on compliance node <module::name>\n"
-	    "index <module::name>      show index information on table row <module::name>\n"
-	    "members <module::name>    show member list of group node <module::name>\n"
 	    "children <module::name>   show children list of node <module::name>\n"
 	    "type <module::name>       show information on type <module::name>\n"
 	    "macro <module::name>      show information on macro <module::name>\n");
@@ -303,7 +300,7 @@ void version()
 int main(int argc, char *argv[])
 {
     SmiModule *module;
-    SmiNode *node, *node2, *child;
+    SmiNode *node, *node2, *child, *parent;
     SmiType *type, *parenttype;
     SmiMacro *macro;
     SmiNamedNumber *nn;
@@ -377,6 +374,13 @@ int main(int argc, char *argv[])
 		printf("   Reference: %s\n", format(module->reference));
 	    printf("    Language: %s\n", smiStringLanguage(module->language));
 	    printf("      Loaded: %s\n", smiIsLoaded(name) ? "yes" : "no");
+
+	    for(revision = smiGetFirstRevision(module);
+		revision ; revision = smiGetNextRevision(revision)) {
+		printf("    Revision: %s", ctime(&revision->date));
+		if (revision->description)
+		    printf(" Description: %s\n", format(revision->description));
+	    }
 	}
     }
 
@@ -395,24 +399,17 @@ int main(int argc, char *argv[])
 	}
     }
 
-    if (!strcmp(command, "revisions")) {
-	module = smiGetModule(name);
-	if (module && smiGetFirstRevision(module)) {
-	    for(revision = smiGetFirstRevision(module);
-		revision ; revision = smiGetNextRevision(revision)) {
-		printf("    Revision: %s", ctime(&revision->date));
-		if (revision->description)
-		   printf(" Description: %s\n", format(revision->description));
-	    }
-	}
-    }
-
     if (!strcmp(command, "node")) {
 	node = smiGetNode(NULL, name);
+	if (node) {
+	    parent = smiGetParentNode(node);
+	}
 	if (node) {
 	    type = smiGetNodeType(node);
 	    printf("     MibNode: %s\n", formatnode(node));
 	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
+	    if (parent)
+		printf("  ParentNode: %s\n", formatnode(parent));
 	    if (type)
 		printf("        Type: %s\n", formattype(type));
 	    if (node->value.basetype != SMI_BASETYPE_UNKNOWN)
@@ -422,27 +419,41 @@ int main(int argc, char *argv[])
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
 	    if (node->nodekind == SMI_NODEKIND_ROW) {
 		printf ("   Creatable: %s\n", node->create ? "yes" : "no");
+		printf ("     Implied: %s\n", node->implied ? "yes" : "no");
+	    }
+	    switch (node->nodekind) {
+	    case SMI_NODEKIND_ROW: p = "Index"; break;
+	    case SMI_NODEKIND_COMPLIANCE: p = "Mandatory"; break;
+	    case SMI_NODEKIND_CAPABILITIES: p = "Includes"; break;
+	    case SMI_NODEKIND_GROUP: p = "Members"; break;
+	    case SMI_NODEKIND_NOTIFICATION: p = "Objects"; break;
+	    default: p = "Elements";
+	    }
+	    if (smiGetFirstElement(node)) {
+		printf("%12s:", p);
+		for(element = smiGetFirstElement(node);
+		    element ; ) {
+		    node2 = smiGetElementNode(element);
+		    printf(" %s", formatnode(node2));
+		    element = smiGetNextElement(element);
+		    if (element) {
+			printf("\n             ");
+		    }
+		}
+		printf("\n");
 	    }
 	    if (node->access != SMI_ACCESS_UNKNOWN)
 		printf("      Access: %s\n", smiStringAccess(node->access));
 	    if (node->status != SMI_STATUS_UNKNOWN)
 		printf("      Status: %s\n", smiStringStatus(node->status));
+	    if (node->format)
+		printf("      Format: %s\n", format(node->format));
+	    if (node->units)
+		printf("       Units: %s\n", format(node->units));
 	    if (node->description)
 		printf(" Description: %s\n", format(node->description));
 	    if (node->reference)
 		printf("   Reference: %s\n", format(node->reference));
-	}
-    }
-
-    if (!strcmp(command, "parent")) {
-	child = smiGetNode(NULL, name);
-	if (child) {
-	    node = smiGetParentNode(child);
-	    if (node) {
-		printf("     MibNode: %s\n", formatnode(node));
-		printf("         OID: %s\n", formatoid(node->oidlen,
-						       node->oid));
-	    }
 	}
     }
 
@@ -499,40 +510,6 @@ int main(int argc, char *argv[])
 	}
     }
 
-    if (!strcmp(command, "index")) {
-	node = smiGetNode(NULL, name);
-	if (node && smiGetFirstElement(node)) {
-	    printf("       Index:");
-	    for(element = smiGetFirstElement(node);
-		element ; ) {
-		node2 = smiGetElementNode(element);
-		printf(" %s", formatnode(node2));
-		element = smiGetNextElement(element);
-		if (element) {
-		    printf("\n             ");
-		}
-	    }
-	    printf("\n");
-	}
-    }
-
-    if (!strcmp(command, "members")) {
-	node = smiGetNode(NULL, name);
-	if (node && smiGetFirstElement(node)) {
-	    printf("     Members:");
-	    for(element = smiGetFirstElement(node);
-		element ;) {
-		node2 = smiGetElementNode(element);
-		printf(" %s::%s", formatnode(node2));
-		element = smiGetNextElement(element);
-		if (element) {
-		    printf("\n             ");
-		}
-	    }
-	    printf("\n");
-	}
-    }
-
     if (!strcmp(command, "children")) {
 	node = smiGetNode(NULL, name);
 	if (node && smiGetFirstChildNode(node)) {
@@ -576,7 +553,7 @@ int main(int argc, char *argv[])
 	    if ((type->basetype == SMI_BASETYPE_ENUM) ||
 		(type->basetype == SMI_BASETYPE_BITS)) {
 		if (smiGetFirstNamedNumber(type)) {
-		    printf("Restrictions:");
+		    printf("     Numbers:");
 		    for(nn = smiGetFirstNamedNumber(type);
 			nn ; nn = smiGetNextNamedNumber(nn)) {
 			printf(" %s(%ld)",
@@ -586,7 +563,7 @@ int main(int argc, char *argv[])
 		}
 	    } else {
 		if (smiGetFirstRange(type)) {
-		    printf("Restrictions:");
+		    printf("      Ranges:");
 		    for(range = smiGetFirstRange(type);
 			range ; range = smiGetNextRange(range)) {
 			strcpy(s1, formatvalue(&range->minValue));
@@ -598,10 +575,12 @@ int main(int argc, char *argv[])
 		}
 	    }
 	    printf(" Declaration: %s\n", smiStringDecl(type->decl));
-	    if (type->format)
-		printf(" DisplayHint: %s\n", format(type->format));
 	    if (type->status != SMI_STATUS_UNKNOWN)
 		printf("      Status: %s\n", smiStringStatus(type->status));
+	    if (type->format)
+		printf("      Format: %s\n", format(type->format));
+	    if (type->units)
+		printf("       Units: %s\n", format(type->units));
 	    if (type->description)
 		printf(" Description: %s\n", format(type->description));
 	    if (type->reference)
@@ -622,22 +601,6 @@ int main(int argc, char *argv[])
 	}
     }
 
-    if (!strcmp(command, "x")) {
-	SmiModule *smiModule;
-	SmiType *smiType;
-	for (smiModule = smiGetFirstModule();
-	     smiModule;
-	     smiModule = smiGetNextModule(smiModule)) {
-	    printf("module %s\n", smiModule->name);
-	    for (smiType = smiGetFirstType(smiModule);
-		 smiType;
-		 smiType = smiGetNextType(smiType)) {
-		printf("  type %s::%s\n", smiModule->name, smiType->name);
-	    }
-	}
-    }
-
-    
     smiExit();
     
     exit(0);

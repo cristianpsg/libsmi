@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smiquery.1.in,v 1.2 1999/06/07 15:44:21 strauss Exp $
+.\" $Id: smiquery.1.in,v 1.3 1999/12/14 12:00:21 strauss Exp $
 .\"
-.TH smiquery 1  "June 1, 1999" "IBR" "SMI Tools"
+.TH smiquery 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
 smiquery \- query single information from SMI MIB modules
 .SH SYNOPSIS
@@ -22,7 +22,7 @@ definition.
 Show the smiquery version and exit.
 .TP
 .B "-h"
-Show a help text and exit.
+Show a help text and exit. The help text lists all available \fBcommand\fPs.
 .TP
 .BI "-p " module
 Preload the module \fImodule\fP before reading the main module. This may
@@ -39,17 +39,27 @@ the \fBSMIPATH\fP environment variable or by @mibdir@ if
 expected to be SMIng module files. Files with a \fB.my\fP or without
 any extension are expected to be SMIv1/v2 module files.
 .SH "EXAMPLE"
-This example queries the members of the group ifTestGroup from the
-IF-MIB module.
+This example queries for information on the node ifNumber defined
+in the module IF-MIB.
 .nf
 
-  $ smiquery members IF-MIB.ifTestGroup
+  $ smiquery node IF-MIB::ifNumber
+       MibNode: IF-MIB::ifNumber
+	   OID: 1.3.6.1.2.1.2.1
+	  Type: Integer32
+   Declaration: OBJECT-TYPE
+      NodeKind: scalar
+	Access: read-only
+	Status: current
+   Description: The number of network interfaces (regardless of their
+		current state) present on this system.
+
 .fi
 .SH "SEE ALSO"
-The SMIng and
+The
 .BR libsmi (3)
 project is documented at
-.BR "http://www.ibr.cs.tu-bs.de/projects/sming/" "."
+.BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

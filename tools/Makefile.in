@@ -156,7 +156,7 @@ smiquery.1.in smistrip.1.in smistrip.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-corba.P .deps/dump-imports.P .deps/dump-mosy.P \
 .deps/dump-smi.P .deps/dump-sming.P .deps/dump-tree.P \

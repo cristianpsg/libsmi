@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.25 2000/02/11 16:42:32 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.26 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -117,7 +117,7 @@ static void formats()
 static void usage()
 {
     fprintf(stderr,
-	    "Usage: smidump [-Vhlsu] [-c <configfile>] [-f <format>]\n"
+	    "Usage: smidump [-Vhsu] [-l <level>] [-c <configfile>] [-f <format>]\n"
 	    "               [-p <module>] <module_or_path>\n"
 	    "-V                  show version and license information\n"
 	    "-h                  show usage information\n"
@@ -165,7 +165,7 @@ main(argc, argv)
     smiSetFlags(flags);
 
     flags = 0;
-    while ((c = getopt(argc, argv, "Vhl:sf:p:c:u")) != -1) {
+    while ((c = getopt(argc, argv, "Vhsul:f:p:c:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg, "smiquery");

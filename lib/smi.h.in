@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.8 2000/02/11 16:42:32 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.9 2000/02/11 23:19:09 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -103,6 +103,7 @@ typedef unsigned int SmiNodekind;
 #define SMI_NODEKIND_NOTIFICATION 0x0040
 #define SMI_NODEKIND_GROUP        0x0080
 #define SMI_NODEKIND_COMPLIANCE   0x0100
+#define SMI_NODEKIND_CAPABILITIES 0x0200
 #define SMI_NODEKIND_ANY          0xffff
 
 /* SmiDecl -- type or statement that leads to a definition                   */

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.60 2000/02/11 09:50:59 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.61 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -687,12 +687,16 @@ static void printObjects(SmiModule *smiModule)
     SmiNodekind  nodekinds;
 
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
-	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
+	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR |
+	SMI_NODEKIND_CAPABILITIES;
     
     for(i = 0, smiNode = smiGetFirstNode(smiModule, nodekinds);
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
 
 	if (smiNode->nodekind == SMI_NODEKIND_NODE) {
+	    indent = 0;
+	    s = "node";
+	} else if (smiNode->nodekind == SMI_NODEKIND_CAPABILITIES) {
 	    indent = 0;
 	    s = "node";
 	} else if (smiNode->nodekind == SMI_NODEKIND_TABLE) {
@@ -719,6 +723,11 @@ static void printObjects(SmiModule *smiModule)
 	}
 	print("\n");
 	lastindent = indent;
+	
+	if (smiNode->nodekind == SMI_NODEKIND_CAPABILITIES) {
+	    printSegment((1 + indent) * INDENT, "", 0);
+	    print("-- This has been an SMIv2 AGENT-CAPABILITIES node:\n");
+	}
 	
 	printSegment((1 + indent) * INDENT, "", 0);
 	print("%s %s {\n", s, smiNode->name);
@@ -748,6 +757,7 @@ static void printObjects(SmiModule *smiModule)
 
 	if ((smiNode->nodekind != SMI_NODEKIND_TABLE) &&
 	    (smiNode->nodekind != SMI_NODEKIND_ROW) &&
+	    (smiNode->nodekind != SMI_NODEKIND_CAPABILITIES) &&
 	    (smiNode->nodekind != SMI_NODEKIND_NODE)) {
 	    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
 		printSegment((2 + indent) * INDENT, "access", INDENTVALUE);
