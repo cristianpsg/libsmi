@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.1 1999/10/05 15:52:21 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.2 1999/11/24 19:02:40 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -73,16 +73,13 @@ static char *getTypeName(SmiNode *smiNode)
 {
     SmiType *smiType, *parentType;
 
-    smiType = smiGetType(smiNode->typemodule, smiNode->typename);
+    smiType = smiGetType(smiGetModule(smiNode->typemodule), smiNode->typename);
     if (! smiType) {
 	return xstrdup(smiNode->typename);
     }
 
     if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-	parentType = smiGetType(smiType->parentmodule, smiType->parentname);
-	if (! parentType) {
-	    return xstrdup(smiType->parentname);
-	}
+	parentType = smiGetParentType(smiType);
 	smiFreeType(smiType);
 	smiType = parentType;
     }

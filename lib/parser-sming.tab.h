@@ -15,7 +15,7 @@ typedef union {
     SmiAccess	   access;
     NamedNumber    *namedNumberPtr;
     Range	   *rangePtr;
-    Value	   *valuePtr;
+    SmiValue	   *valuePtr;
     List	   *listPtr;
     Revision	   *revisionPtr;
 } YYSTYPE;

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.3 2000/01/13 12:24:38 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.4 2000/01/28 14:16:23 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -121,7 +121,8 @@ static char getStatusChar(SmiStatus status)
 static char *getFlags(SmiType *smiType)
 {
     static char flags[4];
-
+    SmiModule *smiModule;
+    
     memset(flags, 0, sizeof(flags));
     strcpy(flags, "---");
 
@@ -140,9 +141,10 @@ static char *getFlags(SmiType *smiType)
 	break;
     }
 
-    if (! smiType->module || strlen(smiType->module) == 0) {
+    smiModule = smiGetTypeModule(smiType);
+    if (! smiModule || strlen(smiModule->name) == 0) {
 	flags[2] = 'b';
-    } else if (strcmp(smiType->module, currentModule) == 0) {
+    } else if (strcmp(smiModule->name, currentModule) == 0) {
 	flags[2] = 'l';
     } else {
 	flags[2] = 'i';
@@ -250,7 +252,7 @@ static TypeNode *createTypeNode(SmiType *smiType)
     TypeNode *newType;
     
     newType = xmalloc(sizeof(TypeNode));
-    newType->typemodule = smiType->module;
+    newType->typemodule = smiGetTypeModule(smiType)->name;
     newType->typename = smiType->name;
     newType->basetype = smiType->basetype;
     newType->childNodePtr = NULL;
@@ -264,17 +266,21 @@ static TypeNode *createTypeNode(SmiType *smiType)
 static void addToTypeTree(TypeNode *root, SmiType *smiType)
 {
     TypeNode *newType, **typePtrPtr;
-
+    SmiType *smiParentType;
+    
     if (! root) {
 	return;
     }
 
+    smiParentType = smiGetParentType(smiType);
+    
     if ((!root->typemodule
-	 || !smiType->parentmodule
-	 || strcmp(smiType->parentmodule, root->typemodule) == 0)
-	&& strcmp(smiType->parentname, root->typename) == 0) {
+	 || !smiParentType
+	 || strcmp(smiGetTypeModule(smiParentType)->name,
+		                                        root->typemodule) == 0)
+	&& strcmp(smiParentType->name, root->typename) == 0) {
 	newType = createTypeNode(smiType);
-	newType->typemodule = smiType->module;
+	newType->typemodule = smiGetTypeModule(smiType)->name;
 
 	for (typePtrPtr = &(root->childNodePtr);
 	     *typePtrPtr; typePtrPtr = &((*typePtrPtr)->nextNodePtr)) ;
@@ -324,7 +330,7 @@ static TypeNode *findInTypeTree(TypeNode *root, SmiType *smiType)
     TypeNode *result = NULL;
     
     if (root->typemodule
- 	&& strcmp(root->typemodule, smiType->module) == 0
+ 	&& strcmp(root->typemodule, smiGetTypeModule(smiType)->name) == 0
  	&& strcmp(root->typename, smiType->name) == 0) {
 	result = root;
     }
@@ -351,14 +357,14 @@ static void printRestrictions(SmiType *smiType)
     
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
 	(smiType->basetype == SMI_BASETYPE_BITS)) {
-	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	for(i = 0, nn = smiGetFirstNamedNumber(smiType);
 	    nn ; nn = smiGetNextNamedNumber(nn), i++) {
 	    printf("%s%s(%ld)", (i == 0) ? " {" : ", ",
 		   nn->name, nn->value.value.integer32);
 	}
 	if (i) printf("}");
     } else {
-	for(i = 0, range = smiGetFirstRange(smiType->module, smiType->name);
+	for(i = 0, range = smiGetFirstRange(smiType);
 	    range ; range = smiGetNextRange(range), i++) {
 	    strcpy(s1, getValueString(&range->minValue));
 	    strcpy(s2, getValueString(&range->maxValue));
@@ -375,6 +381,7 @@ static void printTypeTree(TypeNode *root, char *prefix)
 {
     TypeNode *typeNode, *nextNode;
     int namelen = -1;
+    SmiModule *smiModule;
     
     if (root->typemodule) {
 	printf("%s  |\n", prefix);
@@ -389,7 +396,8 @@ static void printTypeTree(TypeNode *root, char *prefix)
  	if (typeNode != &typeRoot) {
 	    SmiType *smiType;
 	    char c = '+', *flags;
-	    smiType = smiGetType(typeNode->typemodule, typeNode->typename);
+	    smiModule = smiGetModule(typeNode->typemodule);
+	    smiType = smiGetType(smiModule, typeNode->typename);
 	    if (smiType) {
 		c = getStatusChar(smiType->status);
 		if (getBaseTypeCount(typeNode->basetype)) {
@@ -446,7 +454,9 @@ static void printTypeTree(TypeNode *root, char *prefix)
 
 static void addType(SmiType *smiType)
 {
-    if (strlen(smiType->module) == 0) {
+    SmiType *smiParentType;
+    
+    if (strlen(smiGetTypeModule(smiType)->name) == 0) {
 	return;
     }
     
@@ -454,12 +464,11 @@ static void addType(SmiType *smiType)
 	return;
     }
 
-    if (smiType->parentmodule && smiType->parentname) {
- 	SmiType *parentType;
- 	parentType = smiGetType(smiType->parentmodule, smiType->parentname);
- 	if (parentType) {
- 	    addType(parentType);
-	    smiFreeType(parentType);
+    smiParentType = smiGetParentType(smiType);
+    if (smiParentType && smiParentType->name) {
+ 	if (smiParentType) {
+ 	    addType(smiParentType);
+	    smiFreeType(smiParentType);
  	}
     }
 
@@ -470,12 +479,14 @@ static void addType(SmiType *smiType)
 
 int dumpTypes(char *modulename, int flags)
 {
+    SmiModule   *smiModule;
     SmiType     *smiType;
     SmiNode     *smiNode;
     SmiNodekind nodekind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     currentModule = modulename;
-
+    smiModule = smiGetModule(modulename);
+    
     initBaseTypeCount();
 
     if (! (flags & SMIDUMP_FLAG_SILENT)) {
@@ -483,7 +494,7 @@ int dumpTypes(char *modulename, int flags)
 	       VERSION ")\n\n", modulename);
     }
 
-    for (smiType = smiGetFirstType(modulename);
+    for (smiType = smiGetFirstType(smiModule);
  	 smiType;
  	 smiType = smiGetNextType(smiType)) {
  	addType(smiType);
@@ -493,7 +504,8 @@ int dumpTypes(char *modulename, int flags)
     for (smiNode = smiGetFirstNode(modulename, nodekind);
  	 smiNode;
  	 smiNode = smiGetNextNode(smiNode, nodekind)) {
- 	smiType = smiGetType(smiNode->typemodule, smiNode->typename);
+ 	smiType = smiGetType(smiGetModule(smiNode->typemodule),
+			     smiNode->typename);
  	if (smiType) {
  	    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
  		addType(smiType);

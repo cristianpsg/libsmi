@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.11 2000/01/18 11:16:49 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.12 2000/02/05 18:05:58 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -237,20 +237,20 @@ static void printAssignements(char *modulename)
 
 
 
-static void printTypedefs(char *modulename)
+static void printTypedefs(SmiModule *smiModule)
 {
     int		   i;
     SmiType	   *smiType;
     SmiNamedNumber *nn;
     
-    for (i = 0, smiType = smiGetFirstType(modulename);
+    for (i = 0, smiType = smiGetFirstType(smiModule);
 	 smiType; smiType = smiGetNextType(smiType)) {
 
 	printf("%%%-19s %-16s %-15s \"%s\"\n", "tc", smiType->name,
 	       getBasetypeString(smiType->basetype),
 	       smiType->format ? smiType->format : "");
 	
-	for (i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	for (i = 0, nn = smiGetFirstNamedNumber(smiType);
 	     nn ; i++, nn = smiGetNextNamedNumber(nn)) {
 	    printf("%%%-19s %-16s %-15s %s\n", "es",
 		   smiType->name, nn->name,
@@ -266,7 +266,7 @@ static void printObjects(char *modulename)
     int		   i, j, ignore, cnt = 0, aggregate;
     char	   *typename;
     SmiNode	   *smiNode, *indexNode;
-    SmiType	   *smiType;
+    SmiType	   *smiType, *smiParentType;
     SmiNamedNumber *smiNamedNumber;
     SmiRange       *smiRange;
     
@@ -296,22 +296,24 @@ static void printObjects(char *modulename)
 
 	smiType = NULL;
 	if (!aggregate && smiNode->typemodule && smiNode->typename) {
-	    smiType = smiGetType(smiNode->typemodule, smiNode->typename);
+	    smiType = smiGetType(smiGetModule(smiNode->typemodule),
+				 smiNode->typename);
 	}
 
 	typename = getBasetypeString(smiNode->basetype);
+	smiParentType = smiGetParentType(smiType);
 	if (smiType && smiType->name
 	    && smiType->decl != SMI_DECL_IMPLICIT_TYPE) {
 	    typename = smiType->name;
-	    if (smiType->parentmodule && smiType->parentname) {
-		typename = smiType->parentname;
+	    if (smiParentType) {
+		typename = smiParentType->name;
 	    }
 	}
 
 	if (smiType && smiType->name
 	    && smiType->decl == SMI_DECL_IMPLICIT_TYPE
-	    && smiType->parentname) {
-	    typename = smiType->parentname;
+	    && smiParentType) {
+	    typename = smiParentType->name;
 	    if (strcmp(typename, "OCTET STRING") == 0) {
 		typename = "OctetString";
 	    }
@@ -354,8 +356,7 @@ static void printObjects(char *modulename)
 	}
 
 	if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-	    for (i = 0, smiNamedNumber = smiGetFirstNamedNumber(smiType->module,
-								smiType->name);
+	    for (i = 0, smiNamedNumber = smiGetFirstNamedNumber(smiType);
 		smiNamedNumber;
 		i++, smiNamedNumber = smiGetNextNamedNumber(smiNamedNumber)) {
 		printf("%%%-19s %-16s %-15s %s\n", "ev",
@@ -374,8 +375,7 @@ static void printObjects(char *modulename)
 	    }
 
 	    if (! ignore) {
-		for (smiRange = smiGetFirstRange(smiType->module,
-						 smiType->name);
+		for (smiRange = smiGetFirstRange(smiType);
 		     smiRange;
 		     smiRange = smiGetNextRange(smiRange)) {
 		    printf("%%%-19s %-16s %-15s ", "er",

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.55 2000/02/05 18:05:58 strauss Exp $
+ * @(#) $Id: smi.h,v 1.56 2000/02/06 13:57:08 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -204,8 +204,8 @@ typedef struct SmiRevision {
 
 /* SmiImport -- an imported descriptor                                       */
 typedef struct SmiImport {
-    SmiIdentifier       importmodule;
-    SmiIdentifier       importname;
+    SmiIdentifier       module;
+    SmiIdentifier       name;
 } SmiImport;
 
 /* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
@@ -220,10 +220,7 @@ typedef struct SmiMacro {
 /* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
     SmiIdentifier       name;
-    SmiIdentifier       module;
     SmiBasetype         basetype;
-    SmiIdentifier	parentname;
-    SmiIdentifier	parentmodule;
     SmiDecl             decl;
     char                *format;
     SmiValue            value;
@@ -278,14 +275,6 @@ typedef struct SmiOption {
 
 /* SmiRefinement -- a refined object in a compliance statement               */
 typedef struct SmiRefinement {
-    SmiIdentifier       name;
-    SmiIdentifier       module;
-    SmiIdentifier       compliancename;
-    SmiIdentifier       compliancemodule;
-    SmiIdentifier       typename;
-    SmiIdentifier       typemodule;
-    SmiIdentifier       writetypename;
-    SmiIdentifier       writetypemodule;
     SmiAccess           access;
     char                *description;
 } SmiRefinement;
@@ -336,9 +325,9 @@ extern SmiImport *smiGetNextImport(SmiImport *smiImportPtr);
 
 extern void smiFreeImport(SmiImport *smiImportPtr);
 
-/* TODO: replace importmodule/importname by smiNode */
+/* TODO: replace module/name by smiNode */
 extern int smiIsImported(SmiModule *smiModulePtr,
-			 char *importmodule, char *importname);
+			 char *module, char *name);
 
 extern SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr);
 
@@ -348,21 +337,25 @@ extern void smiFreeRevision(SmiRevision *smiRevisionPtr);
 
 
 
-extern SmiType *smiGetType(char *module, char *type);
+extern SmiType *smiGetType(SmiModule *smiModulePtr, char *type);
 
-extern SmiType *smiGetFirstType(char *module);
+extern SmiType *smiGetFirstType(SmiModule *smiModulePtr);
 
 extern SmiType *smiGetNextType(SmiType *smiTypePtr);
 
+extern SmiType *smiGetParentType(SmiType *smiTypePtr);
+
+extern SmiModule *smiGetTypeModule(SmiType *smiTypePtr);
+
 extern void smiFreeType(SmiType *smiTypePtr);
 
-extern SmiRange *smiGetFirstRange(char *module, char *type);
+extern SmiRange *smiGetFirstRange(SmiType *smiTypePtr);
 
 extern SmiRange *smiGetNextRange(SmiRange *smiRangePtr);
 
 extern void smiFreeRange(SmiRange *smiRangePtr);
 
-extern SmiNamedNumber *smiGetFirstNamedNumber(char *module, char *type);
+extern SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr);
 
 extern SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr);
 
@@ -375,6 +368,8 @@ extern SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro);
 extern SmiMacro *smiGetFirstMacro(SmiModule *smiModulePtr);
 
 extern SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr);
+
+extern SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr);
 
 extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
@@ -395,6 +390,10 @@ extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetModuleIdentityNode(SmiModule *smiModulePtr);
+
+extern SmiModule *smiGetNodeModule(SmiNode *smiNodePtr);
+
+extern SmiType *smiGetNodeType(SmiNode *smiNodePtr);
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 
@@ -421,6 +420,14 @@ extern void smiFreeOption(SmiOption *smiOptionPtr);
 extern SmiRefinement *smiGetFirstRefinement(SmiNode *smiComplianceNodePtr);
 
 extern SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr);
+
+extern SmiModule *smiGetRefinementModule(SmiRefinement *smiRefinementPtr);
+
+extern SmiNode *smiGetRefinementNode(SmiRefinement *smiRefinementPtr);
+
+extern SmiType *smiGetRefinementType(SmiRefinement *smiRefinementPtr);
+
+extern SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr);
 
 extern void smiFreeRefinement(SmiRefinement *smiRefinementPtr);
 

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.5 1999/11/24 19:02:39 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.6 2000/02/05 18:05:58 strauss Exp $
  */
 
 #include <stdio.h>
@@ -45,13 +45,13 @@ static Imports *getImports(SmiModule *smiModule, int *n)
 	smiImport; smiImport = smiGetNextImport(smiImport)) {
 	
 	for (i = 0; i < *n; i++) {
-	    if (strcmp(smiImport->importmodule, imports[i].module) == 0) {
+	    if (strcmp(smiImport->module, imports[i].module) == 0) {
 		break;
 	    }
 	}
 	
 	if (i == *n) {
-	    imports[i].module = xstrdup(smiImport->importmodule);
+	    imports[i].module = xstrdup(smiImport->module);
 	    if (imports[i].module) {
 		imports[i].count = 0;
 		(*n)++;

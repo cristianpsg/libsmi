@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.67 2000/02/05 18:05:57 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.68 2000/02/06 13:57:07 strauss Exp $
  */
 
 %{
@@ -116,7 +116,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		   (objectPtr->decl == SMI_DECL_OBJECTIDENTITY)) {
 	    objectPtr->nodekind = SMI_NODEKIND_NODE;
 	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
-		   (objectPtr->typePtr->decl == SMI_DECL_IMPL_SEQUENCEOF)) {
+		   (objectPtr->typePtr->export.decl == SMI_DECL_IMPL_SEQUENCEOF)) {
 	    objectPtr->nodekind = SMI_NODEKIND_TABLE;
 	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
 		   (objectPtr->indexPtr)) {
@@ -144,9 +144,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->typePtr
 	    && (objectPtr->nodekind == SMI_NODEKIND_COLUMN
 		|| objectPtr->nodekind == SMI_NODEKIND_SCALAR)
-	    && objectPtr->typePtr->basetype == SMI_BASETYPE_UNKNOWN) {
+	    && objectPtr->typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
 	    printErrorAtLine(parserPtr, ERR_BASETYPE_UNKNOWN, objectPtr->line,
-			     objectPtr->typePtr->name, objectPtr->name);
+			     objectPtr->typePtr->export.name, objectPtr->name);
 	}
 
 	/*
@@ -202,9 +202,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	 */
 	
 	if (objectPtr->typePtr
-	    && (objectPtr->typePtr->decl == SMI_DECL_IMPLICIT_TYPE)
-	    && (objectPtr->typePtr->status == SMI_STATUS_UNKNOWN)) {
-	    objectPtr->typePtr->status = objectPtr->status;
+	    && (objectPtr->typePtr->export.decl == SMI_DECL_IMPLICIT_TYPE)
+	    && (objectPtr->typePtr->export.status == SMI_STATUS_UNKNOWN)) {
+	    objectPtr->typePtr->export.status = objectPtr->status;
 	}
     }
 }
@@ -222,17 +222,17 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
     for(typePtr = modulePtr->firstTypePtr;
 	typePtr; typePtr = typePtr->nextPtr) {
 	if ((typePtr->flags & FLAG_INCOMPLETE)
-	    && typePtr->name
-	    && (typePtr->decl == SMI_DECL_UNKNOWN)) {
+	    && typePtr->export.name
+	    && (typePtr->export.decl == SMI_DECL_UNKNOWN)) {
 	    printErrorAtLine(parserPtr, ERR_UNKNOWN_TYPE,
-			     typePtr->line, typePtr->name);
+			     typePtr->line, typePtr->export.name);
 	}
 
 	if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2
-	    && typePtr->decl == SMI_DECL_TYPEASSIGNMENT
-	    && typePtr->basetype != SMI_BASETYPE_UNKNOWN) {
+	    && typePtr->export.decl == SMI_DECL_TYPEASSIGNMENT
+	    && typePtr->export.basetype != SMI_BASETYPE_UNKNOWN) {
 	    printErrorAtLine(parserPtr, ERR_SMIV2_TYPE_ASSIGNEMENT,
-			     typePtr->line, typePtr->name);
+			     typePtr->line, typePtr->export.name);
 	}
 			    
 }
@@ -252,7 +252,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
     for(objectPtr = modulePtr->firstObjectPtr;
 	objectPtr; objectPtr = objectPtr->nextPtr) {
 
-	Value *valuePtr = objectPtr->valuePtr;
+	SmiValue *valuePtr = objectPtr->valuePtr;
 	
 	if (! valuePtr) continue;
 
@@ -261,7 +261,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 	 */
 	    
 	if (valuePtr->basetype == SMI_BASETYPE_UNKNOWN) {
-	    valuePtr->basetype = objectPtr->typePtr->basetype;
+	    valuePtr->basetype = objectPtr->typePtr->export.basetype;
 	}
 	
 	if ((valuePtr->basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
@@ -274,8 +274,8 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		if (importPtr) {		/* imported object */
 		    importPtr->use++;
 		    object2Ptr = findObjectByModulenameAndName(
-			importPtr->export.importmodule,
-			importPtr->export.importname);
+			importPtr->export.module,
+			importPtr->export.name);
 		}
 	    }
 	    if (!object2Ptr) {
@@ -322,19 +322,19 @@ checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 	strcmp(modulePtr->export.name, "RFC-1215")) {
 	for(importPtr = modulePtr->firstImportPtr;
 	    importPtr; importPtr = importPtr->nextPtr) {
-	    if (! strcmp(importPtr->export.importmodule, "SNMPv2-SMI")) {
-		if (! strcmp(importPtr->export.importname, "ExtUTCTime")
-		    || !strcmp(importPtr->export.importname, "ObjectName")
-		    || !strcmp(importPtr->export.importname, "NotificationName")) {
+	    if (! strcmp(importPtr->export.module, "SNMPv2-SMI")) {
+		if (! strcmp(importPtr->export.name, "ExtUTCTime")
+		    || !strcmp(importPtr->export.name, "ObjectName")
+		    || !strcmp(importPtr->export.name, "NotificationName")) {
 		    printErrorAtLine(parserPtr, ERR_ILLEGAL_IMPORT,
-				     importPtr->line, importPtr->export.importname,
-				     importPtr->export.importmodule);
+				     importPtr->line, importPtr->export.name,
+				     importPtr->export.module);
 		}
 	    }
 	    if (importPtr->use == 0) {
 		printErrorAtLine(parserPtr, ERR_UNUSED_IMPORT,
-				 importPtr->line, importPtr->export.importname,
-				 importPtr->export.importmodule);
+				 importPtr->line, importPtr->export.name,
+				 importPtr->export.module);
 	    }
 	}
     }
@@ -461,7 +461,7 @@ checkDate(Parser *parserPtr, char *date)
     List           *listPtr;			/* SEQUENCE and INDEX lists  */
     NamedNumber    *namedNumberPtr;		/* BITS or enum item         */
     Range          *rangePtr;			/* type restricting range    */
-    Value	   *valuePtr;
+    SmiValue	   *valuePtr;
     SmiUnsigned32  unsigned32;			/*                           */
     SmiInteger32   integer32;			/*                           */
     struct Compl   compl;
@@ -856,7 +856,7 @@ import:			importIdentifiers FROM moduleName
 					 thisModulePtr->firstImportPtr;
 				     importPtr;
 				     importPtr = importPtr->nextPtr) {
-				    if ((!strcmp(importPtr->export.importmodule,
+				    if ((!strcmp(importPtr->export.module,
 						 $3)) &&
 					((importPtr->kind == KIND_MACRO) ||
 					 (importPtr->kind == KIND_TYPE))) {
@@ -1183,44 +1183,45 @@ typeDeclaration:	typeName
 			    if (thisModulePtr &&
 				!strcmp(thisModulePtr->export.name, "SNMPv2-SMI")) {
 				if (!strcmp($1, "Counter32")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, NULL, "Unsigned32");
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "Gauge32")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, NULL, "Unsigned32");
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "Unsigned32")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, NULL, "Unsigned32");
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "TimeTicks")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, NULL, "Unsigned32");
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "Counter64")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED64;
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED64;
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->minValuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
 					((Range *)$4->listPtr->ptr)->minValuePtr->value.unsigned64 = 0ULL;
 					((Range *)$4->listPtr->ptr)->maxValuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
 					((Range *)$4->listPtr->ptr)->maxValuePtr->value.unsigned64 = 18446744073709551615ULL;
 				    }
-				    setTypeParent($4, NULL, "Unsigned64");
+				    setTypeParent($4, typeUnsigned64Ptr);
 				}
 			    }
 			    if (thisModulePtr &&
 				!strcmp(thisModulePtr->export.name, "RFC1155-SMI")) {
 				if (!strcmp($1, "Counter")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, NULL, "Unsigned32");
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "Gauge")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, NULL, "Unsigned32");
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "TimeTicks")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, NULL, "Unsigned32");
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "NetworkAddress")) {
 				    setTypeName($4, "NetworkAddress");
-				    $4->basetype = SMI_BASETYPE_OCTETSTRING;
-				    setTypeParent($4, thisModulePtr->export.name,
-						  "IpAddress");
+				    $4->export.basetype = SMI_BASETYPE_OCTETSTRING;
+				    setTypeParent($4, findTypeByModuleAndName(
+					                   thisModulePtr,
+						           "IpAddress"));
 				}
 			    }
 			}
@@ -1263,7 +1264,7 @@ typeSMI:		INTEGER32   { $$ = util_strdup($1); }
 
 typeDeclarationRHS:	Syntax
 			{
-			    if ($1->name) {
+			    if ($1->export.name) {
 				/*
 				 * If we found an already defined type,
 				 * we have to inherit a new type structure.
@@ -1301,7 +1302,7 @@ typeDeclarationRHS:	Syntax
 			ReferPart
 			SYNTAX Syntax
 			{
-			    if (($10) && !($10->name)) {
+			    if (($10) && !($10->export.name)) {
 				/*
 				 * If the Type we found has just been
 				 * defined, we don't have to allocate
@@ -1322,7 +1323,7 @@ typeDeclarationRHS:	Syntax
 			    }
 			    setTypeStatus($$, $5);
 			    if ($3) {
-				if (!checkFormat($$->basetype, $3)) {
+				if (!checkFormat($$->export.basetype, $3)) {
 				    printError(thisParserPtr,
 					       ERR_INVALID_FORMAT, $3);
 				}
@@ -1345,9 +1346,7 @@ conceptualTable:	SEQUENCE OF row
 					     SMI_BASETYPE_UNKNOWN, 0,
 					     thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPL_SEQUENCEOF);
-				setTypeParent($$,
-					      $3->modulePtr->export.name,
-					      $3->name);
+				setTypeParent($$, $3);
 			    } else {
 				$$ = NULL;
 			    }
@@ -1388,7 +1387,7 @@ row:			UPPERCASE_IDENTIFIER
 #if 0
 				    XXX
 				    stypePtr = smiGetType(
-						  importPtr->export.importmodule, $1);
+						  importPtr->export.module, $1);
 				    if (stypePtr) {
 					$$ = addType($1, stypePtr->basetype,
 						     FLAG_IMPORTED,
@@ -1401,8 +1400,8 @@ row:			UPPERCASE_IDENTIFIER
 				    smiFreeType(stypePtr);
 #else
 				    $$ = findTypeByModulenameAndName(
-					importPtr->export.importmodule,
-					importPtr->export.importname);
+					importPtr->export.module,
+					importPtr->export.name);
 #endif
 				}
 			    }
@@ -1472,7 +1471,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				     */
 				    importPtr->use++;
 				    snodePtr = smiGetNode(
-						  importPtr->export.importmodule, $1);
+						  importPtr->export.module, $1);
 				    objectPtr = addObject($1,
 					getParentNode(
 				             createNodes(snodePtr->oidlen,
@@ -1502,7 +1501,7 @@ Syntax:			ObjectSyntax
 					      FLAG_INCOMPLETE,
 					      thisParserPtr);
 			    setTypeDecl(typePtr, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent(typePtr, NULL, "Bits");
+			    setTypeParent(typePtr, typeBitsPtr);
 			    setTypeList(typePtr, $3);
 			    $$ = typePtr;
 			}
@@ -1696,7 +1695,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectType(objectPtr, $6);
-			    if (!($6->name)) {
+			    if (!($6->export.name)) {
 				/*
 				 * An inlined type.
 				 */
@@ -2077,8 +2076,8 @@ ObjectSyntax:		SimpleSyntax
 			{
 			    Import *importPtr;
 
-			    if ($1 && $1->name) {
-				importPtr = findImportByName($1->name,
+			    if ($1 && $1->export.name) {
+				importPtr = findImportByName($1->export.name,
 							     thisModulePtr);
 				if (importPtr) {
 				    importPtr->use++;
@@ -2109,8 +2108,8 @@ sequenceObjectSyntax:	sequenceSimpleSyntax
 			{
 			    Import *importPtr;
 
-			    if ($1 && $1->name) {
-				importPtr = findImportByName($1->name,
+			    if ($1 && $1->export.name) {
+				importPtr = findImportByName($1->export.name,
 							     thisModulePtr);
 				if (importPtr) {
 				    importPtr->use++;
@@ -2163,7 +2162,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    $$ = duplicateType(typeInteger32Ptr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, NULL, "Enumeration");
+			    setTypeParent($$, typeEnumPtr);
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $2);
 			}
@@ -2207,7 +2206,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
 			    Type *parentPtr;
-			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
 			    defaultBasetype = SMI_BASETYPE_ENUM;
@@ -2228,29 +2226,24 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$,
-						thisParserPtr->modulePtr->export.name,
-						  parentPtr->name);
+				    setTypeParent($$, parentPtr);
 				} else {
 				    /*
 				     * imported type.
 				     */
 				    importPtr->use++;
-				    stypePtr = smiGetType(
-						  importPtr->export.importmodule, $1);
-				    $$ = addType(NULL, stypePtr->basetype, 0,
+				    parentPtr = findTypeByModulenameAndName(
+					  importPtr->export.module, $1);
+				    $$ = addType(NULL,
+						 parentPtr->export.basetype, 0,
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, importPtr->export.importmodule,
-						  importPtr->export.importname);
-				    smiFreeType(stypePtr);
+				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$,
-					      thisParserPtr->modulePtr->export.name,
-					      $1);
+				setTypeParent($$, parentPtr);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $2);
@@ -2259,7 +2252,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
 			{
 			    Type *parentPtr;
-			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
 			    defaultBasetype = SMI_BASETYPE_ENUM;
@@ -2276,19 +2268,19 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * imported type.
 				     */
 				    importPtr->use++;
-				    stypePtr = smiGetType($1, $3);
+				    parentPtr = findTypeByModulenameAndName(
+					                               $1, $3);
 				    /* TODO: success? */
-				    $$ = addType(NULL, stypePtr->basetype, 0,
+				    $$ = addType(NULL,
+						 parentPtr->export.basetype, 0,
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, importPtr->export.importmodule,
-						  importPtr->export.importname);
-				    smiFreeType(stypePtr);
+				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, $1, $3);
+				setTypeParent($$, parentPtr);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $4);
@@ -2296,7 +2288,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
 			    Type *parentPtr;
-			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModuleAndName(
@@ -2316,33 +2307,28 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$,
-					        thisParserPtr->modulePtr->export.name,
-						  parentPtr->name);
+				    setTypeParent($$, parentPtr);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				} else {
 				    /*
 				     * imported type.
 				     */
 				    importPtr->use++;
-				    stypePtr = smiGetType(
-						  importPtr->export.importmodule, $1);
-				    $$ = addType(NULL, stypePtr->basetype, 0,
+				    parentPtr = findTypeByModulenameAndName(
+						 importPtr->export.module, $1);
+				    $$ = addType(NULL,
+						 parentPtr->export.basetype, 0,
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, importPtr->export.importmodule,
-						  importPtr->export.importname);
+				    setTypeParent($$, parentPtr);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
-				    smiFreeType(stypePtr);
 				}
 			    } else {
-				defaultBasetype = parentPtr->basetype;
+				defaultBasetype = parentPtr->export.basetype;
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$,
-					      thisParserPtr->modulePtr->export.name,
-					      $1);
+				setTypeParent($$, parentPtr);
 			    }
 			    setTypeList($$, $2);
 			}
@@ -2350,7 +2336,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
 			{
 			    Type *parentPtr;
-			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModulenameAndName($1, $3);
@@ -2367,22 +2352,22 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * imported type.
 				     */
 				    importPtr->use++;
-				    stypePtr = smiGetType($1, $3);
+				    parentPtr = findTypeByModulenameAndName(
+					                               $1, $3);
 				    /* TODO: success? */
-				    $$ = addType(NULL, stypePtr->basetype, 0,
+				    $$ = addType(NULL,
+						 parentPtr->export.basetype, 0,
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, importPtr->export.importmodule,
-						  importPtr->export.importname);
+				    setTypeParent($$, parentPtr);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
-				    smiFreeType(stypePtr);
 				}
 			    } else {
-				defaultBasetype = parentPtr->basetype;
+				defaultBasetype = parentPtr->export.basetype;
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, $1, $3);
+				setTypeParent($$, parentPtr);
 			    }
 			    setTypeList($$, $4);
 			}
@@ -2397,13 +2382,12 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, NULL, typeOctetStringPtr->name);
+			    setTypeParent($$, typeOctetStringPtr);
 			    setTypeList($$, $3);
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
 			    Type *parentPtr;
-			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
@@ -2424,30 +2408,25 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$,
-						thisParserPtr->modulePtr->export.name,
-						  parentPtr->name);
+				    setTypeParent($$, parentPtr);
 				} else {
 				    /*
 				     * imported type.
 				     */
 				    importPtr->use++;
-				    stypePtr = smiGetType(
-						  importPtr->export.importmodule, $1);
-				    $$ = addType(NULL, stypePtr->basetype, 0,
+				    parentPtr = findTypeByModulenameAndName(
+						 importPtr->export.module, $1);
+				    $$ = addType(NULL,
+						 parentPtr->export.basetype, 0,
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, importPtr->export.importmodule,
-						  importPtr->export.importname);
-				    smiFreeType(stypePtr);
+				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$,
-					      thisParserPtr->modulePtr->export.name,
-					      $1);
+				setTypeParent($$, parentPtr);
 			    }
 			    setTypeList($$, $2);
 			}
@@ -2455,7 +2434,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
 			{
 			    Type *parentPtr;
-			    SmiType *stypePtr;
 			    Import *importPtr;
 			    
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
@@ -2472,19 +2450,19 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * imported type.
 				     */
 				    importPtr->use++;
-				    stypePtr = smiGetType($1, $3);
+				    parentPtr =
+					findTypeByModulenameAndName($1, $3);
 				    /* TODO: success? */
-				    $$ = addType(NULL, stypePtr->basetype, 0,
+				    $$ = addType(NULL,
+						 parentPtr->export.basetype, 0,
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, importPtr->export.importmodule,
-						  importPtr->export.importname);
-				    smiFreeType(stypePtr);
+				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, $1, $3);
+				setTypeParent($$, parentPtr);
 			    }
 			    setTypeList($$, $4);
 			}
@@ -2687,8 +2665,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, parentPtr->modulePtr->export.name,
-					  parentPtr->name);
+			    setTypeParent($$, parentPtr);
 			    setTypeList($$, $2);
 			    importPtr = findImportByName("Gauge32",
 							 thisModulePtr);
@@ -2728,8 +2705,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, parentPtr->modulePtr->export.name,
-					  parentPtr->name);
+			    setTypeParent($$, parentPtr);
 			    setTypeList($$, $2);
 			    importPtr = findImportByName("Unsigned32",
 							 thisModulePtr);
@@ -2772,8 +2748,7 @@ ApplicationSyntax:	IPADDRESS
 			    printError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, parentPtr->modulePtr->export.name,
-					  parentPtr->name);
+			    setTypeParent($$, parentPtr);
 			    setTypeList($$, $2);
 			    importPtr = findImportByName("Opaque",
 							 thisModulePtr);
@@ -3566,7 +3541,7 @@ subidentifier:
 					 */
 					importPtr->use++;
 					snodePtr = smiGetNode(
-						  importPtr->export.importmodule, $1);
+						  importPtr->export.module, $1);
 					if (snodePtr) {
 					    $$ = addObject($1, 
 							   getParentNode(
@@ -3937,6 +3912,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
 					((Refinement *)(listPtr->ptr));
+				    refinementPtr->compliancePtr = objectPtr;
 		    s = util_malloc(strlen(refinementPtr->objectPtr->name) +
 				    strlen($1) + 13);
 				    if (refinementPtr->typePtr) {
@@ -4254,14 +4230,14 @@ ComplianceObject:	OBJECT ObjectName
 			    ((Refinement *)($$->ptr))->objectPtr = $2;
 			    ((Refinement *)($$->ptr))->typePtr = $3;
 			    ((Refinement *)($$->ptr))->writetypePtr = $4;
-			    ((Refinement *)($$->ptr))->access = $5;
-			    ((Refinement *)($$->ptr))->description = $7;
+			    ((Refinement *)($$->ptr))->export.access = $5;
+			    ((Refinement *)($$->ptr))->export.description = $7;
 			}
 	;
 
 SyntaxPart:		SYNTAX Syntax
 			{
-			    if ($2->name) {
+			    if ($2->export.name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    } else {
@@ -4276,7 +4252,7 @@ SyntaxPart:		SYNTAX Syntax
 
 WriteSyntaxPart:	WRITE_SYNTAX WriteSyntax
 			{
-			    if ($2->name) {
+			    if ($2->export.name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    } else {

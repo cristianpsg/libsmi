@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.6 2000/01/18 11:16:49 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.7 2000/02/05 18:05:58 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -448,16 +448,18 @@ static void createImportList(char *modulename)
 {
     SmiNode     *smiNode;
     SmiType     *smiType;
+    SmiModule   *smiTypeModule;
     SmiNodekind kind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     for (smiNode = smiGetFirstNode(modulename, kind);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, kind)) {
-	
-	smiType = smiGetType(smiNode->typemodule, smiNode->typename);
-	if (smiType && strcmp(smiType->module, modulename)) {
-	    if (strlen(smiType->module)) {
-		addImport(smiType->module, smiType->name);
+
+	smiTypeModule = smiGetModule(smiNode->typemodule);
+	smiType = smiGetType(smiTypeModule, smiNode->typename);
+	if (smiType && strcmp(smiTypeModule->name, modulename)) {
+	    if (strlen(smiTypeModule->name)) {
+		addImport(smiTypeModule->name, smiType->name);
 	    }
 	}
 	if (smiType) {
@@ -784,13 +786,14 @@ static void printType(SmiType *smiType)
 	    printSegment(INDENT, "*/\n", 0);
 	}
     }
-    idlTypeName = getIdlTypeName(smiType->module, smiType->name);
+    idlTypeName = getIdlTypeName(smiGetTypeModule(smiType)->name,
+				 smiType->name);
     printSegment(INDENT, "typedef ", 0);
     printf("%s %s; \n",
 	   getBaseTypeString(smiType->basetype), idlTypeName);
     
     if (smiType->basetype == SMI_BASETYPE_ENUM) {
-	for (nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	for (nn = smiGetFirstNamedNumber(smiType);
 	     nn;
 	     nn = smiGetNextNamedNumber(nn)) {
 	    printSegment(INDENT, "const ", 0);
@@ -801,7 +804,7 @@ static void printType(SmiType *smiType)
 	}
 	printSegment(INDENT, "const string ", 0);
 	print("%s_NameNumberList = \"", idlTypeName);
-	for (i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	for (i = 0, nn = smiGetFirstNamedNumber(smiType);
 	     nn;
 	     i++, nn = smiGetNextNamedNumber(nn)) {
 	    nnName = translate(nn->name);
@@ -818,13 +821,13 @@ static void printType(SmiType *smiType)
 
 
 
-static void printTypedefs(char *modulename)
+static void printTypedefs(SmiModule *smiModule)
 {
     SmiNode        *smiNode;
     SmiType        *smiType;
     SmiNodekind    kind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
-    for (smiType = smiGetFirstType(modulename);
+    for (smiType = smiGetFirstType(smiModule);
 	 smiType;
 	 smiType = smiGetNextType(smiType)) {
 	if (current(smiType->status)) {
@@ -832,11 +835,12 @@ static void printTypedefs(char *modulename)
 	}
     }
 
-    for (smiNode = smiGetFirstNode(modulename, kind);
+    for (smiNode = smiGetFirstNode(smiModule->name, kind);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, kind)) {
 	if (current(smiNode->status)) {
-	    smiType = smiGetType(smiNode->typemodule, smiNode->typename);
+	    smiType = smiGetType(smiGetModule(smiNode->typemodule),
+				 smiNode->typename);
 	    if (smiType) {
 		if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 		    printType(smiType);
@@ -866,7 +870,8 @@ static void printAttribute(SmiNode *smiNode)
 		 ? "readonly attribute" : "attribute", 0);
 
     if (smiNode->typemodule) {
-	idlTypeName = getIdlTypeName(smiNode->typemodule, smiNode->typename);
+	idlTypeName = getIdlTypeName(smiNode->typemodule,
+				     smiNode->typename);
     } else {
 	idlTypeName = getBaseTypeString(smiNode->basetype);
     }
@@ -1266,12 +1271,12 @@ static void printDefVals(char *modulename)
 
 
 
-static void printDisplayHints(char *modulename)
+static void printDisplayHints(SmiModule *smiModule)
 {
     SmiType *smiType;
     int     cnt = 0;
 
-    for (smiType = smiGetFirstType(modulename);
+    for (smiType = smiGetFirstType(smiModule);
 	 smiType;
 	 smiType = smiGetNextType(smiType)) {
 	if (current(smiType->status) && smiType->format) {
@@ -1297,10 +1302,12 @@ static void printDisplayHints(char *modulename)
 	    }
 	    printSegment(2*INDENT, "", 0);
 	    print("string %sToString (in %s Value);\n", smiType->name,
-		  getIdlTypeName(smiType->module, smiType->name));
+		  getIdlTypeName(smiGetTypeModule(smiType)->name,
+				 smiType->name));
 	    printSegment(2*INDENT, "", 0);
 	    print("%s %sFromString (in string str);\n",
-		  getIdlTypeName(smiType->module, smiType->name),
+		  getIdlTypeName(smiGetTypeModule(smiType)->name,
+				 smiType->name),
 		  smiType->name);
 	}
     }
@@ -1340,7 +1347,7 @@ int dumpCorbaIdl(char *modulename, int flags)
 
     printImportedTypedefs(modulename);
     printModule(smiModule);
-    printTypedefs(modulename);
+    printTypedefs(smiModule);
     printInterfaces(modulename);
     printNotificationVBTypes(modulename);
     printNotificationTypes(modulename);
@@ -1348,7 +1355,7 @@ int dumpCorbaIdl(char *modulename, int flags)
     printPullNotifications(modulename);
     printFactory(modulename);
     printDefVals(modulename);
-    printDisplayHints(modulename);
+    printDisplayHints(smiModule);
     
     printf("};\n\n");
     printf("#endif /* !_%s_IDL_ */\n", idlModuleName);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.32 2000/02/05 18:05:59 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.33 2000/02/06 13:57:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -277,8 +277,8 @@ void version()
 int main(int argc, char *argv[])
 {
     SmiModule *module;
-    SmiNode *node, *child;
-    SmiType *type;
+    SmiNode *node, *node2, *child;
+    SmiType *type, *parenttype;
     SmiMacro *macro;
     SmiNamedNumber *nn;
     SmiRange *range;
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
 	if (module) {
 	    printf("     Imports:");
 	    for(import = smiGetFirstImport(module); import ; ) {
-		printf(" %s::%s", import->importmodule, import->importname);
+		printf(" %s::%s", import->module, import->name);
 		import = smiGetNextImport(import);
 		if (import) {
 		    printf("\n             ");
@@ -421,15 +421,19 @@ int main(int argc, char *argv[])
 	    printf("\n");
 	    for(refinement = smiGetFirstRefinement(node);
 		refinement ; refinement = smiGetNextRefinement(refinement)) {
+		node2 = smiGetRefinementNode(refinement);
+		module = smiGetNodeModule(node2);
 		printf("  Refinement: %s::%s\n",
-		       refinement->module, refinement->name);
-		if (refinement->typename) {
-		    printf("        Type: %s::%s\n",
-			   refinement->typemodule, refinement->typename);
+		       module->name, node2->name);
+		type = smiGetRefinementType(refinement);
+		if (type) {
+		    module = smiGetTypeModule(type);
+		    printf("        Type: %s::%s\n", module->name, type->name);
 		}
-		if (refinement->writetypename) {
-		    printf("  Write-Type: %s::%s\n",
-			   refinement->writetypemodule, refinement->writetypename);
+		type = smiGetRefinementWriteType(refinement);
+		if (type) {
+		    module = smiGetTypeModule(type);
+		    printf("  Write-Type: %s::%s\n", module->name, type->name);
 		}
 		if (refinement->access != SMI_ACCESS_UNKNOWN) {
 		    printf("      Access: %s\n",
@@ -482,24 +486,24 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "type")) {
-	type = smiGetType(name, NULL);
+	type = smiGetType(NULL, name);
 	if (type) {
+	    parenttype = smiGetParentType(type);
 	    printf("        Type: %s\n", format(type->name));
-	    printf("      Module: %s\n", format(type->module));
 	    printf("    Basetype: %s\n", smiStringBasetype(type->basetype));
-	    printf(" Parent Type: %s\n",
-		   formattype(type->parentmodule, type->parentname));
+	    printf(" Parent Type: %s\n", parenttype ?
+                         		   format(parenttype->name) : "-");
 	    printf("     Default: %s\n", formatvalue(&type->value));
 	    printf("Restrictions:");
 	    if ((type->basetype == SMI_BASETYPE_ENUM) ||
 		(type->basetype == SMI_BASETYPE_BITS)) {
-		for(nn = smiGetFirstNamedNumber(type->module, type->name);
+		for(nn = smiGetFirstNamedNumber(type);
 		    nn ; nn = smiGetNextNamedNumber(nn)) {
 		    printf(" %s(%ld)",
 			   nn->name, nn->value.value.integer32);
 		}
 	    } else {
-		for(range = smiGetFirstRange(type->module, type->name);
+		for(range = smiGetFirstRange(type);
 		    range ; range = smiGetNextRange(range)) {
 		    strcpy(s1, formatvalue(&range->minValue));
 		    strcpy(s2, formatvalue(&range->maxValue));
