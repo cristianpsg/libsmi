@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.86 2002/02/28 09:18:42 strauss Exp $
+ * @(#) $Id: error.c,v 1.87 2002/03/05 16:19:51 strauss Exp $
  */
 
 #include <config.h>
@@ -112,8 +112,10 @@ static Error errors[] = {
       "more than one MODULE-IDENTITY clause in SMIv2 MIB" },
     { 2, ERR_NO_MODULE_IDENTITY, "module-identity-missing",
       "missing MODULE-IDENTITY clause in SMIv2 MIB" },
-    { 4, ERR_OID_DEFVAL_TOO_LONG, "default-too-long",
+    { 2, ERR_OID_DEFVAL_TOO_LONG_SMIV2, "default-too-long-smiv2",
       "OBJECT IDENTIFIER default values must be expressed as a single identifier" },
+    { 4, ERR_OID_DEFVAL_TOO_LONG_SMIV1, "default-too-long-smiv1",
+      "OBJECT IDENTIFIER default values in form of sub-identifier sequences are not implemented" },
     { 2, ERR_INVALID_SMIV1_ACCESS, "access-invalid-smiv1", 
       "invalid access `%s' in SMIv1 MIB" },
     { 2, ERR_INVALID_SMIV2_ACCESS, "access-invalid-smiv2",

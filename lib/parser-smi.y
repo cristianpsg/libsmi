@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.167 2002/03/11 08:52:42 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.168 2002/03/19 10:56:13 schoenw Exp $
  */
 
 %{
@@ -3379,8 +3379,13 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			     * SMIv2 does not!
 			     */
 			    /* TODO: make it work correctly for SMIv1 */
-			    smiPrintError(thisParserPtr,
-					  ERR_OID_DEFVAL_TOO_LONG);
+			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2) {
+				smiPrintError(thisParserPtr,
+					      ERR_OID_DEFVAL_TOO_LONG_SMIV2);
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_OID_DEFVAL_TOO_LONG_SMIV1);
+			    }
 			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 			    $$->len = 2;
