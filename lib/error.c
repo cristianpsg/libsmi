@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.57 2000/11/08 10:10:32 strauss Exp $
+ * @(#) $Id: error.c,v 1.58 2000/11/08 14:18:49 strauss Exp $
  */
 
 #include <config.h>
@@ -240,9 +240,9 @@ static Error errors[] = {
       "implicit node definition" },
     { 3, ERR_SCALAR_READCREATE, "", 
       "scalar object must not have a `read-create' access value" },
-    { 4, ERR_NAMEDNUMBER_INCLUDES_HYPHEN, "", 
+    { 4, ERR_NAMEDNUMBER_INCLUDES_HYPHEN, "hyphen-in-label", 
       "named number `%s' must not include a hyphen in SMIv2" },
-    { 4, ERR_NAMEDBIT_INCLUDES_HYPHEN, "", 
+    { 4, ERR_NAMEDBIT_INCLUDES_HYPHEN, "hyphen-in-label", 
       "named bit `%s' must not include a hyphen in SMIv2" },
     { 2, ERR_REDEFINITION, "", 
       "redefinition of identifier `%s'" },

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.124 2000/11/06 17:41:19 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.125 2000/11/08 14:18:49 strauss Exp $
  */
 
 %{
@@ -582,7 +582,8 @@ checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 					importPtr->export.module);
 		}
 	    }
-	    if (importPtr->use == 0) {
+	    /* checkImports() handles KIND_NOTFOUND */
+	    if (importPtr->use == 0 && importPtr->kind != KIND_NOTFOUND) {
 		smiPrintErrorAtLine(parserPtr, ERR_UNUSED_IMPORT,
 				    importPtr->line,
 				    importPtr->export.name,
@@ -1598,6 +1599,8 @@ typeDeclarationRHS:	Syntax
 				 */
 				$$ = $10;
 			    } else {
+				if (!($10))
+				    smiPrintError(thisParserPtr, ERR_INTERNAL);
 				/*
 				 * Otherwise, we have to allocate a
 				 * new Type struct, inherited from $10.

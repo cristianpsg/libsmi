@@ -1,5 +1,11 @@
 2000-11-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/check.c,parser-smi.y: Bill Fenner fixed some duplicated
+	error messages.
+
+	* tools/dump-smi.c,dump-tree.c: Bill Fenner fixed some core
+	dumps on erroneous MIB modules.
+
 	* tools/dump-ucdsnmp.c: Juergen changed the UCD-SNMP driver
 	so that it now creates three file (header, stubs & implementation)
 	with a single smidump format option (netsnmp).

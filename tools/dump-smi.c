@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.61 2000/06/21 10:33:41 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.62 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -1017,7 +1017,7 @@ static void printTextualConventions(SmiModule *smiModule)
 		    printSegment(INDENT, "REFERENCE", INDENTVALUE,
 				 smiv1 || invalid);
 		    print("\n");
-		    printMultilineString(smiType->description, smiv1 || invalid);
+		    printMultilineString(smiType->reference, smiv1 || invalid);
 		    print("\n");
 		}
 		printSegment(INDENT, "SYNTAX", INDENTVALUE, smiv1 || invalid);
@@ -1100,16 +1100,20 @@ static void printObjects(SmiModule *smiModule)
 	    if (smiNode->nodekind == SMI_NODEKIND_TABLE) {
 		print("SEQUENCE OF ");
 		rowNode = smiGetFirstChildNode(smiNode);
-		smiType = smiGetNodeType(rowNode);
-		if (smiType) {
-		    print("%s\n", smiType->name);
+		if (rowNode) {
+		    smiType = smiGetNodeType(rowNode);
+		    if (smiType) {
+			print("%s\n", smiType->name);
+		    } else {
+			/* guess type name is uppercase row name */
+			char *s = getUppercaseString(rowNode->name);
+			print("%s\n", s);
+			xfree(s);
+		    }
+		    /* TODO: print non-local name qualified */
 		} else {
-		    /* guess type name is uppercase row name */
-		    char *s = getUppercaseString(rowNode->name);
-		    print("%s\n", s);
-		    xfree(s);
+		    print("[unknown]\n");
 		}
-		/* TODO: print non-local name qualified */
 	    } else if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		if (smiType) {
 		    print("%s\n", smiType->name);
@@ -1235,7 +1239,7 @@ static void printObjects(SmiModule *smiModule)
 		int len = strlen(colNode->name);
 		if (len > indentsequence) indentsequence = len;
 		smiType = smiGetNodeType(colNode);
-		if (!invalidType(smiType->basetype)) {
+		if (smiType && !invalidType(smiType->basetype)) {
 		    relatedNode = colNode;
 		}
 	    }
@@ -1253,7 +1257,7 @@ static void printObjects(SmiModule *smiModule)
 		}
 		
 		smiType = smiGetNodeType(colNode);
-		invalid = invalidType(smiType->basetype);
+		invalid = (smiType == NULL) || invalidType(smiType->basetype);
 
 		if (! invalid || ! silent) {
 		    printSegment(INDENT, colNode->name, indentsequence,
@@ -1261,10 +1265,12 @@ static void printObjects(SmiModule *smiModule)
 		    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 			print("%s", getTypeString(smiType->basetype,
 						  smiGetParentType(smiType)));
-		    } else {
+		    } else if (smiType) {
 			print("%s",
 			      getTypeString(smiType->basetype,
 					    smiGetNodeType(colNode)));
+		    } else {
+			print("[unknown]");
 		    }
 		}
 		i++;

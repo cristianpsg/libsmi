@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.18 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.19 2000/08/24 12:09:18 strauss Exp $
  */
 
 #include <config.h>
@@ -81,6 +81,8 @@ static char *getTypeName(SmiNode *smiNode)
     
     if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 	parentType = smiGetParentType(smiType);
+	if (!parentType)
+	    return NULL;
 	smiType = parentType;
     }
 
@@ -188,7 +190,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		   prefix,
 		   getFlags(smiNode),
 		   typefieldlen,
-		   type_name,
+		   type_name ? type_name : "[unknown]",
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    xfree(type_name);
@@ -245,9 +247,13 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
-	    printf("%s--%s(%u)\n", prefix,
-		   smiNode->name ? smiNode->name : " ",
-		   smiNode->oid[smiNode->oidlen-1]);
+	    if (smiNode->oid)
+		printf("%s--%s(%u)\n", prefix,
+		       smiNode->name ? smiNode->name : " ",
+		       smiNode->oid[smiNode->oidlen-1]);
+	    else
+		printf("%s--%s(??)\n", prefix,
+		       smiNode->name ? smiNode->name : " ");
 	    if (c) {
 		prefix[prefixlen-1] = c;
 	    }
