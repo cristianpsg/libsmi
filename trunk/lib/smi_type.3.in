@@ -1,9 +1,20 @@
 .\"
-.\" $Id: smi_type.3,v 1.1 1999/05/28 14:52:09 strauss Exp $
+.\" $Id: smi_type.3.in,v 1.1 1999/06/01 20:47:19 strauss Exp $
 .\"
-.TH smi_type 3  "June 1, 1999" "IBR" "SMI Management Information Library"
+.TH smi_type 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
-smiGetType, smiGetFirstType, smiGetNextType, smiFreeType \- SMI type
+.\" START OF MAN PAGE COPIES
+smiGetType,
+smiGetFirstType,
+smiGetNextType,
+smiGetParentType,
+smiGetFirstRange,
+smiGetNextRange,
+smiGetFirstNamedNumber,
+smiGetNextNamedNumber,
+smiGetTypeModule
+.\" ENDg OF MAN PAGE COPIES
+\- SMI type
 information routines
 .SH SYNOPSIS
 .nf
@@ -11,64 +22,41 @@ information routines
 .RS
 .RE
 .sp
-.BI "SmiType *smiGetType(char *" module ", char *" type );
+.BI "SmiType *smiGetType(SmiModule *" smiModulePtr ", char *" type );
 .RE
 .sp
-.BI "SmiType *smiGetFirstType(char *" module );
+.BI "SmiType *smiGetFirstType(SmiModule *" smiModulePtr );
 .RE
 .sp
 .BI "SmiType *smiGetNextType(SmiType *" smiTypePtr );
 .RE
 .sp
-.BI "void smiFreeType(SmiType *" smiTypePtr );
+.BI "SmiType *smiGetParentType(SmiType *" smiTypePtr );
 .RE
 .sp
-.BI "SmiRange *smiGetFirstRange(char *" module ", char *" type );
+.BI "SmiRange *smiGetFirstRange(SmiType *" smiTypePtr );
 .RE
 .sp
 .BI "SmiRange *smiGetNextRange(SmiRange *" smiRangePtr );
 .RE
 .sp
-.BI "void smiFreeRange(SmiRange *" smiRangePtr );
-.RE
-.sp
-.BI "SmiNamedNumber *smiGetFirstNamedNumber(char *" module ", char *" type );
+.BI "SmiNamedNumber *smiGetFirstNamedNumber(SmiType *" smiTypePtr );
 .RE
 .sp
 .BI "SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *" smiNamedNumberPtr );
 .RE
 .sp
-.BI "void smiFreeNamedNumber(SmiNamedNumber *" smiNamedNumberPtr );
+.BI "SmiModule *smiGetTypeModule(SmiType *" smiTypePtr );
 .RE
 
-typedef struct SmiType {
-    SmiIdentifier module;
-    SmiIdentifier name;
-    SmiBasetype   basetype;
-    SmiIdentifier parentmodule;
-    SmiIdentifier parentname;
-    SmiDecl       decl;
-    char          *format;
-    SmiValue      *valuePtr; /* default value */
-    char          *units;
-    SmiStatus     status;
-    char          *description;
-    char          *reference;
-} SmiType;
+typedef struct SmiValue {
 
-typedef struct SmiRange {
-    SmiIdentifier       module;
-    SmiIdentifier       type;
-    SmiValue            *minValuePtr;
-    SmiValue            *maxValuePtr;
-} SmiRange;
+XXX
 
 typedef struct SmiNamedNumber {
-    SmiIdentifier       module;
-    SmiIdentifier       type;
-    SmiIdentifier       name;
-    SmiValue            *valuePtr;
-} SmiNamedNumber;
+typedef struct SmiRange {
+
+XXX
 
 .fi
 .SH DESCRIPTION
@@ -126,5 +114,5 @@ or \fBsmiFreeNamedNumber()\fP, respectively, which are a void functions.
 .BR libsmi "(3), "
 .BR smi.h
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

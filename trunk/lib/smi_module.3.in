@@ -1,9 +1,22 @@
 .\"
-.\" $Id: smi_module.3,v 1.1 1999/05/28 14:52:08 strauss Exp $
+.\" $Id: smi_module.3.in,v 1.1 1999/06/01 20:47:18 strauss Exp $
 .\"
-.TH smi_module 3  "June 1, 1999" "IBR" "SMI Management Information Library"
+.TH smi_module 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
-smiGetModule, smiGetFirstModule, smiGetNextModule, smiFreeModule, smiGetFirstImport, smiGetNextImport, smiFreeImport, smiIsImported, smiGetFirstRevision, smiGetNextRevision, smiFreeRevision \- SMI module information routines
+.\" START OF MAN PAGE COPIES
+smiGetModule,
+smiGetFirstModule,
+smiGetNextModule,
+smiFreeModule,
+smiGetFirstImport,
+smiGetNextImport,
+smiFreeImport,
+smiIsImported,
+smiGetFirstRevision,
+smiGetNextRevision,
+smiFreeRevision 
+.\" END OF MAN PAGE COPIES
+\- SMI module information routines
 .SH SYNOPSIS
 .nf
 .B #include <time.h>
@@ -20,112 +33,85 @@ smiGetModule, smiGetFirstModule, smiGetNextModule, smiFreeModule, smiGetFirstImp
 .BI "SmiModule *smiGetNextModule(SmiModule *" smiModulePtr );
 .RE
 .sp
-.BI "void smiFreeModule(SmiModule *" smiModulePtr );
-.RE
-.sp
-.BI "SmiImport *smiGetFirstImport(char *" module );
+.BI "SmiImport *smiGetFirstImport(SmiModule *" smiModulePtr );
 .RE
 .sp
 .BI "SmiImport *smiGetNextImport(SmiImport *" smiInportPtr );
 .RE
 .sp
-.BI "void smiFreeImport(SmiImport *" smiInportPtr );
+.BI "int smiIsImported(SmiModule *" smiModulePtr ", SmiModule *" importedModulePtr ", char *" importedName );
 .RE
 .sp
-.BI "int smiIsImported(char *" module ", char *" importmodule ", char *" importname );
-.RE
-.sp
-.BI "SmiRevision *smiGetFirstRevision(char *" module );
+.BI "SmiRevision *smiGetFirstRevision(SmiModule *" smiModulePtr );
 .RE
 .sp
 .BI "SmiRevision *smiGetNextRevision(SmiRevision *" smiRevisionPtr );
 .RE
-.sp
-.BI "void smiFreeRevision(SmiRevision *" smiRevisionPtr );
-.RE
 
 typedef struct SmiModule {
-    SmiIdentifier     name;
-    SmiIdentifier     object; /* module identity object */
-    time_t            lastupdated;
-    char              *organization;
-    char              *contactinfo;
-    char              *description;
-    char              *reference;
+    SmiIdentifier       name;
+    char                *path;
+    char                *organization;
+    char                *contactinfo;
+    char                *description;
+    char                *reference;
+    SmiLanguage         language;
 } SmiModule;
 
-typedef struct SmiImport {
-    SmiIdentifier     module;
-    SmiIdentifier     importmodule;
-    SmiIdentifier     importname;
-} SmiImport;
-
 typedef struct SmiRevision {
-    SmiIdentifier     module;
-    time_t            date;
-    char              *description;
+    time_t              date;
+    char                *description;
 } SmiRevision;
+
+typedef struct SmiImport {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+} SmiImport;
 
 .fi
 .SH DESCRIPTION
-These functions retrieve different meta information on MIB
+These functions retrieve various meta information on MIB
 modules. Other functions to retrieve the definitions within a module are
-documented in smi_type(3), smi_node(3), and smi_macro(3).
+documented in \fBsmi_type\fP(3), \fBsmi_node\fP(3), and \fBsmi_macro\fP(3).
 .PP
 The \fBsmiGetModule()\fP function retrieves a \fBstruct SmiModule\fP
-that represents the module named \fBspec\fP. Elements not available
-or not present in the module contain NULL.
+that represents the SMI module named \fBmodule\fP. Elements not available
+or not present for this module contain NULL. If the module is not found,
+\fBsmiGetModule()\fP returns NULL.
 .PP
 The \fBsmiGetFirstModule()\fP and \fBsmiGetNextModule()\fP functions are
-used to iteratively retrieve \fBstruct SmiModule\fPs.
+used to iteratively retrieve \fBstruct SmiModule\fPs of all known modules.
 \fBsmiGetFirstModule()\fP returns the first known module.
-Subsequent calls to \fBsmiGetNextModule()\fP release \fIsmiModulePtr\fP
-and return the following ones. If there are no
-more modules NULL is returned.
-.PP
-The \fBsmiFreeModule()\fP function should be called when a retrieved
-\fBstruct SmiModule\fP is no longer needed to release its memory.
+Subsequent calls to \fBsmiGetNextModule()\fP return the following ones. 
+If there are no more modules NULL is returned.
 .PP
 The \fBsmiGetFirstImport()\fP and \fBsmiGetNextImport()\fP functions are
-used to iteratively retrieve \fBstruct SmiImport\fPs.
+used to iteratively retrieve \fBstruct SmiImport\fPs of a given module.
 \fBsmiGetFirstImport()\fP returns the first identifier imported by
-module \fImodule\fP.
-Subsequent calls to \fBsmiGetNextImport()\fP release \fIsmiImportPtr\fP
-and return the following ones. If there are no
-more imported identifiers NULL is returned.
+the module specified by \fIsmiModulePtr\fP.
+Subsequent calls to \fBsmiGetNextImport()\fP return the following ones.
+If there are no more imported identifiers NULL is returned.
 .PP
 The \fBsmiIsImported()\fP function returns a positive value if the
-identifier \fIimportname\fP from module \fIimportmodule\fP is imported
-in module \fImodule\fP, or zero otherwise.
+identifier \fIimportedName\fP defined in the module specified by
+\fIimportedModulePtr\fP is imported in the module specified by
+\fIsmiModulePtr\fP, or zero otherwise.
 .PP
 The \fBsmiGetFirstRevision()\fP and \fBsmiGetNextRevision()\fP
-functions are used to iteratively retrieve \fBstruct SmiModule\fPs.
-\fBsmiGetFirstRevision()\fP returns the first (that is
-most recent) revision information on module
-\fImodule\fP. Subsequent calls to \fBsmiGetNextRevision()\fP
-release \fIsmiRevisionPtr\fP and return the revision after
-(timely before) that one.  If there are no more revisions NULL is returned.
-.PP
-The \fBsmiFreeRevision()\fP function should be called for each retrieved
-\fBstruct SmiRevision\fP that is no longer needed to release its memory.
-.SH "RETURN VALUES"
-The retrieval functions \fBsmiGetModule()\fP,
-\fBsmiGetFirstModule()\fP, \fBsmiGetNextModule()\fP,
-\fBsmiGetFirstImport()\fP, \fBsmiGetNextImport()\fP,
-\fBsmiGetFirstRevision()\fP, and \fBsmiGetNextRevision()\fP return
-the requested structure on success, or NULL on error. Structures
-should be released after use by calling \fBsmiFreeModule()\fP,
-\fBsmiFreeImport()\fP, or \fBsmiFreeRevision()\fP, respectively.
-.PP
-\fBsmiIsImported()\fP returns an appropriate integer truth
-value. Other functions are void.
+functions are used to iteratively retrieve \fBstruct SmiRevision\fPs of
+a given module. \fBsmiGetFirstRevision()\fP returns the first (that is
+most recent) revision information of the module specified by
+\fIsmiModulePtr\fP. Subsequent calls to \fBsmiGetNextRevision()\fP
+return the revision after (timely before) that one. If there are no
+more revisions NULL is returned.
 .SH "FILES"
 .nf
 @prefix@/include/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "
+.BR smi_config "(3), "
 .BR smi.h
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

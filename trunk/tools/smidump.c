@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.23 2000/02/09 19:56:52 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.24 2000/02/11 09:50:59 strauss Exp $
  */
 
 #include <stdio.h>
@@ -115,7 +115,7 @@ static void formats()
 static void usage()
 {
     fprintf(stderr,
-	    "Usage: smidump [-Vhls] [-c <configfile>] [-f <format>]\n"
+	    "Usage: smidump [-Vhlsu] [-c <configfile>] [-f <format>]\n"
 	    "               [-p <module>] <module_or_path>\n"
 	    "-V                  show version and license information\n"
 	    "-h                  show usage information\n"

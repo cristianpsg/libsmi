@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.75 2000/02/10 21:26:41 strauss Exp $
+ * @(#) $Id: smi.c,v 1.76 2000/02/11 09:50:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -369,7 +369,7 @@ int smiReadConfig(const char *filename, const char *tag)
 
 
 
-int smiModuleLoaded(char *module)
+int smiIsLoaded(char *module)
 {
     if (!module)
 	return 0;

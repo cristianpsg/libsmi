@@ -1,30 +1,39 @@
 .\"
-.\" $Id: smi_macro.3,v 1.1 1999/05/28 14:52:07 strauss Exp $
+.\" $Id: smi_macro.3.in,v 1.1 1999/06/01 20:47:17 strauss Exp $
 .\"
-.TH smi_macro 3  "June 1, 1999" "IBR" "SMI Management Information Library"
+.TH smi_macro 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
-smiGetMacro, smiFreeMacro \- SMI statement information routines
+.\" START OF MAN PAGE COPIES
+smiGetMacro,
+smiGetFirstMacro,
+smiGetNextMacro,
+smiGetMacroModule
+\- SMI macro and extension information routines
+.\" END OF MAN PAGE COPIES
 .SH SYNOPSIS
 .nf
 .B #include <smi.h>
 .RS
 .RE
 .sp
-.BI "SmiMacro *smiGetMacro(char *" module ", char *" macro );
+.BI "SmiMacro *smiGetMacro(SmiModule *" smiModulePtr ", char *" macro );
 .RE
 .sp
-.BI "SmiMacro *smiGetFirstMacro(char *" module );
+.BI "SmiMacro *smiGetFirstMacro(SmiModule *" smiModulePtr );
 .RE
 .sp
 .BI "SmiMacro *smiGetNextMacro(SmiMacro *" smiMacroPtr );
 .RE
 .sp
-.BI "void smiFreeMacro(SmiMacro *" smiMacroPtr );
+.BI "SmiModule *smiGetMacroModule(SmiMacro *" smiMacroPtr );
 .RE
 
 typedef struct SmiMacro {
-    SmiIdentifier       module;
     SmiIdentifier       name;
+    SmiDecl             decl;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
 } SmiMacro;
 
 .fi
@@ -33,33 +42,29 @@ These functions retrieve information on an extension statement
 definition (SMIng) or a macro (SMIv1/v2).
 .PP
 The \fBsmiGetMacro()\fP function retrieves a \fBstruct SmiMacro\fP that
-represents an extension or macro definition. Either \fImacro\fP must be the
-fully qualified descriptor leaving \fImodule\fP NULL, or the name is
-split into the module \fImodule\fP and descriptor \fImacro\fP.
+represents an extension or macro definition. \fIMacro\fP may be either a
+fully qualified descriptor or a simple macro or extension name.
+If \fIsmiModulePtr\fP is not NULL it used to limit the search to the
+given module. If the macro is not found, \fBsmiGetMacro()\fP returns NULL.
 .PP
 The \fBsmiGetFirstMacro()\fP and \fBsmiGetNextMacro()\fP functions are
 used to iteratively retrieve \fBstruct SmiMacro\fPs.
-\fBsmiGetFirstMacro()\fP returns the first one defined in module
-\fImodule\fP.
-Subsequent calls to \fBsmiGetNextMacro()\fP release \fIsmiMacroPtr\fP
-and return the following ones. If there are no
+\fBsmiGetFirstMacro()\fP returns the first one defined in the module
+specified by \fIsmiModulePtr\fP.
+Subsequent calls to \fBsmiGetNextMacro()\fP return the following ones. If
+there are no
 more extension or macro definitions in the module NULL is returned.
 .PP
-The \fBsmiFreeMacro()\fP function should be called when a retrieved
-\fBstruct SmiMacro\fP is no longer needed to release its memory.
-.SH "RETURN VALUES"
-The retrieval functions \fBsmiGetMacro()\fP, \fBsmiGetFirstMacro()\fP,
-and \fBsmiGetNextMacro()\fP return the requested
-\fBstruct smiMacro\fP on success, or NULL on error. Structures should
-be released after use by calling \fBsmiFreeMacro()\fP which is a void
-function.
+The \fBsmiGetMacroModule()\fP function returns the module that defines
+the macro or extension given by \fIstruct SmiMacroPtr\fP.
 .SH "FILES"
 .nf
 @prefix@/include/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "
+.BR smi_module "(3), "
 .BR smi.h
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br
