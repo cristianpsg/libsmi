@@ -1,3 +1,9 @@
+2001-05-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-python.c: Keith submitted a patch that turns
+	(unordered) index element sets into (ordered) lists. However,
+	it might cause other problems.
+	
 2001-05-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/Makefile.am: renamed parser-*.tab.c to parser-*.c. Harrie
