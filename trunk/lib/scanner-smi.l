@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner.l,v 1.3 1998/10/13 15:37:20 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.1 1999/03/11 17:33:02 strauss Exp $
  */
 
 %{
@@ -38,6 +38,9 @@
 char *currentString = NULL;
 int currentStringLength = 0;
 int currentStringMaxLength = 0;
+int currentStringColumn = 0;
+int currentStringFetchLine = 0; 
+off_t currentStringFileoffset = 0;
 int lexDepth = 0;
 YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
  
@@ -790,6 +793,8 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <INITIAL>\" {
     trackInput(0, parser);
+    currentStringColumn = thisParser.column+1;
+    currentStringFileoffset = thisParser.character;
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -804,9 +809,12 @@ eol             ("\n"|"\n\015"|"\015\n")
 #ifdef TEXTS_IN_MEMORY
     yylval.text.ptr = currentString;
 #endif
-    yylval.text.fileoffset = thisParser.character - currentStringLength - 2;
+    yylval.text.fileoffset = currentStringFileoffset-1;
     yylval.text.length = currentStringLength;
     BEGIN(INITIAL);
+
+    /* TODO: beautify the string */
+    
     return QUOTED_STRING;
 }
 
@@ -816,7 +824,7 @@ eol             ("\n"|"\n\015"|"\015\n")
   * spaces, and
   * line terminator characters (\n or \r\n)
   */
-<String>[ !#-\176\t] {
+<String>[!#-\176] {
     trackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
@@ -825,6 +833,21 @@ eol             ("\n"|"\n\015"|"\015\n")
     currentString[currentStringLength] = yytext[0];
     currentString[currentStringLength+1] = '\0';
     currentStringLength++;
+    currentStringFetchLine = 1;
+}
+
+<String>[ \t] {
+    trackInput(0, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
+    if (currentStringFetchLine || (thisParser.column >= currentStringColumn)) {
+	currentString[currentStringLength] = yytext[0];
+	currentString[currentStringLength+1] = '\0';
+	currentStringLength++;
+	currentStringFetchLine = 1;
+    }
 }
 
 <String>{eol} {
@@ -833,9 +856,10 @@ eol             ("\n"|"\n\015"|"\015\n")
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
     }
-    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength] = '\n';
     currentString[currentStringLength+1] = '\0';
     currentStringLength++;
+    currentStringFetchLine = 0;
 }
 
 <String>. {
