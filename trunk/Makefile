@@ -1,0 +1,52 @@
+#
+# This is the libsmi Makefile.
+#
+# @(#) $Id: Makefile,v 1.23 1998/10/08 18:18:25 strauss Exp $
+#
+
+MIBDIR	= ../scotty/tnm/mibs
+PREFIX	= /usr/local
+
+all: subdirs
+
+subdirs:
+	make -C src
+
+test: test-miblint
+
+install: install-prg install-html
+
+test-miblint: miblint
+	for f in ${MIBDIR}/* ; do \
+	    if [ -f $$f ] ; then ./miblint -l9 $$f ; fi ; \
+	done
+
+miblint:
+	make -C src miblint
+
+parser.y.html: src/parser.y
+	make -C src parser.y.html
+
+install-prg: miblint mibs.conf
+	cp mibs.conf ${PREFIX}/etc/mibs.conf
+	cp miblint ${PREFIX}/bin
+	cp miblint.1 ${PREFIX}/man/man1/miblint.1
+	if [ ! -d ${PREFIX}/lib/mibs ] ; then mkdir ${PREFIX}/lib/mibs ; fi
+	cp mibs/SNMP* mibs/RFC* ${PREFIX}/lib/mibs
+
+install-html: parser.y.html
+	if [ -d /usr/home/strauss/WWW/sming ] ; then \
+		cp parser.y.html /usr/home/strauss/WWW/sming ; \
+	fi
+
+clean:
+	make -C src clean
+
+clobber: clean
+	rm -f miblint parser.y.html
+
+dist:
+	rm -f mibs.tar.gz
+	cd .. ; tar cvf mibs/mibs.tar libsmi
+	gzip mibs.tar
+

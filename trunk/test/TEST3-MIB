@@ -1,0 +1,53 @@
+A DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY,
+	NOTIFICATION-TYPE, experimental,
+        Integer32, IpAddress, Counter32, Gauge32,
+        TimeTicks, Opaque, NsapAddress, Counter64,
+        UInteger32
+                FROM SNMPv2-SMI
+	TEXTUAL-CONVENTION, DisplayString
+		FROM SNMPv2-TC;
+
+
+a MODULE-IDENTITY
+        LAST-UPDATED "9403240002Z"
+        ORGANIZATION "MIBs R Us"
+        CONTACT-INFO
+            "Fred Flintstone"
+        DESCRIPTION
+            "An Example Module Identity"
+        ::= { experimental 11999 0 }
+
+
+
+a1 OBJECT IDENTIFIER ::= { experimental 11999 }
+a2 OBJECT IDENTIFIER ::= { experimental 11999 }
+a3 OBJECT IDENTIFIER ::= { iso org dod 1 1 }
+a4 OBJECT IDENTIFIER ::= { iso(1) org dod(6) 1 1 }
+a4 OBJECT IDENTIFIER ::= { org dod 1 1 }
+a4 OBJECT IDENTIFIER ::= { dod(6) 1 1 } -- dod(6) != 1 3 6 !!
+
+a4 OBJECT IDENTIFIER ::= { iso dod 1 1 }
+a4 OBJECT IDENTIFIER ::= { dod dod 1 1 }
+a4 OBJECT IDENTIFIER ::= { dod iso 1 1 }
+a4 OBJECT IDENTIFIER ::= { dod SNMPv2-SMI.dod 1 1 }
+a4 OBJECT IDENTIFIER ::= { org SNMPv2-SMI.dod 1 1 }
+a4 OBJECT IDENTIFIER ::= { iso(1) gaga 1 1 }
+
+   x1 OBJECT-TYPE
+       SYNTAX      Counter32
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION "xx"
+       ::= { dod 11 }
+
+   x2 OBJECT-TYPE
+       SYNTAX      Counter32
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION "xx"
+       ::= { dod 11 }
+
+END

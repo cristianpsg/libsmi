@@ -1,0 +1,155 @@
+
+x shift/reduce conflict at
+
+  Module  ->  ModuleName TOK_DEFINITIONS TOK_COLON_COLON_EQUAL TOK_BEGIN
+              LinkagePart . ModuleIdentityPart DeclarationPart TOK_END
+
+  TOK_LOWER_NAME	shift, and go to state 63 /* ... ValueDeclaration */
+  TOK_LOWER_NAME	[reduce using rule 114 (ModuleIdentityPart)]
+
+  -> not LR(1)
+
+  ideas:	. use parser option to specify SMIv1/SMIv2
+		. hack a lookahead length of 2 at this point. possible? how?
+
+  solution:	flattened grammer having two Module rules.
+
+
+. check all `TODO' marks in parser.y for open questions.
+
+
+. add syntax error output (yyerror()) to parser.y.
+
+
+. may we assume that keywords in v1 don't appear in v2 MIBs and vice versa?
+  (e.g. ACCESS vs. MAX-ACCESS, ENTERPRISE, ...)
+
+  solution: reserved keyword list (smi draft, section 3.7.)
+
+
+. if we want to tolerate MIBs with MODULE-IDENTITY not the first clause
+  after the linkage part, we would need a lookahead > 1.
+
+  for now, we get a parse error on such MIBs.
+
+  flattening the grammer would get very dirty rules.
+
+  idea: check using state information in global variable
+
+
+. shall we identify v1 MIBs and then don't accept v2 style use of macros...?
+
+  
+. the term `number' is used in different contexts:
+
+  NamedBit:		identifier '(' number ')'
+
+  valueofSimpleSyntax:	number			/* 0..2147483647 */
+	|		'-' number		/* -2147483648..0 */
+
+  value:		'-' number	/* in range specs */
+	|		number
+	|		HEX_STRING
+	|		BIN_STRING
+
+  integer:		number		/* for defvals */
+	|		'-' number
+
+  ...and others.  in which cases are HEX_STRINGs and BIN_STRINGs allowed
+  as numbers?
+
+
+. yyerror(*char) -> error(int)
+  array von fehlermeldungen mit severity, um debuglevels zu ermoeglichen
+
+
+. Forbid WS at some places ( - number, Module . label, ...)
+
+
+. stderr output only at printError
+
+
+. tree structure of MibNodes
+
+
+. Which items may be forward referenced?
+
+  - oid labels		in new assignments or registrations.
+  - bit names		in defval's ??
+  - enumeration items	in defval's ??
+  - Types		in OBJECT-TYPE, TEXTUAL-CONVENTION macros
+			in MODULE-COMPLIANCE, AGENT-CAPABILITIES macros
+  - TCs
+
+  Idea to resolve ANY forward referenced items:
+
+    do everything by string substitutions?! e.g.
+
+    a1 ::= { b 1 2 }                	creates MibNode with oid = "b 1 2"
+					and puts "b" in pending list
+					with required type and reference to 
+					this MibNode.
+					already links descriptor "a1"
+					to this MibNode as usual.
+
+    a2 ::= { c 3 }			creates MibNode with oid = "c 3"
+					and puts "c" in pending list
+					with required type and reference to 
+					this MibNode.
+					already links descriptor "a2"
+					to this MibNode as usual.
+
+    c OBJECT-TYPE ... ::= { b 2 }	creates MibNode with oid = "b 2".
+					finds "b" in pending list and
+					compares the requiered type of "b".
+					error if conflict. otherwise adds
+					reference to this MibNode.
+					already links descriptor "c"
+					to this MibNode as usual.
+					finds "c" in pending list and
+					compares the requiered type of "c".
+					error if conflict. otherwise
+					replaces occurence of "c" in all
+					referenced items by "b 1".
+					removes "c" from pending list.
+ 
+    b OBJECT-IDENTITY ... ::= { 1 }	creates MibNode with oid = "1".
+					and links descriptor "b"
+					to this MibNode as usual.
+					finds "b" in pending list and
+					compares the requiered type of "b".
+					error if conflict. otherwise
+					replaces occurence of "b" in all
+					referenced items by "1".
+					removes "b" from pending list.
+
+  attention: have to detect loops!!
+
+
+. Detect IMPORTs of SMIv1 specific and SMIv2 specific items in the
+  same module, e.g. old OBJECT-TYPE macro and (new) NOTIFICATION-TYPE macro.
+
+
+. adjust `flags' parameters on all add... calls!!
+
+
+
+
+
+. forward references...
+
+  in welchen formen koennen vorwaerts referenzen auftreten?
+
+  1) xx OBJECT-TYPE ... INDEX { forward } ... ::= { ... }
+     forward OBJECT-TYPE ...
+
+  2) ... ::= { forward ... }
+     forward OBJECT-TYPE ...
+
+  ideen?
+
+  1) beim ersten auftreten mibnode anlegen. beim einklinken in den
+     richtigen baum NICHT loeschen und neu anlegen sondern mibnode
+     verschieben!
+
+  2) ...
