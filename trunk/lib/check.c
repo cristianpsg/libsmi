@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.39 2002/05/16 23:21:54 bunkus Exp $
+ * @(#) $Id: check.c,v 1.40 2002/05/17 11:34:29 strauss Exp $
  */
 
 #include <config.h>
@@ -969,7 +969,7 @@ smiCheckAugment(Parser *parser, Object *object)
 	return;
     }
     
-    if (object->relatedPtr->export.indexkind != SMI_INDEX_EXTEND) {
+    if (object->relatedPtr->export.indexkind != SMI_INDEX_SPARSE) {
 	smiPrintErrorAtLine(parser, ERR_EXTENDS_WRONG_ROW_TYPE, object->line,
 			    object->export.name,
 			    object->relatedPtr->export.name);
@@ -1849,7 +1849,7 @@ void smiCheckUniqueness(Parser *parser, Object *object)
                 }
             if (!found) {
                 if (((object->export.indexkind == SMI_INDEX_AUGMENT) ||
-                    (object->export.indexkind == SMI_INDEX_EXTEND)) &&
+                    (object->export.indexkind == SMI_INDEX_SPARSE)) &&
                     (object->relatedPtr && object->relatedPtr->typePtr)) {
                     for (pp = object->relatedPtr->typePtr->listPtr; pp;
                          pp = pp->nextPtr)

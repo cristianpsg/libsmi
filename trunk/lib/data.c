@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.114 2002/05/17 14:19:58 strauss Exp $
+ * @(#) $Id: data.c,v 1.115 2002/05/29 16:20:56 strauss Exp $
  */
 
 #include <config.h>
@@ -430,27 +430,6 @@ void setModuleDescription(Module *modulePtr, char *description,
 /*
  *----------------------------------------------------------------------
  *
- * setObjectSubjectCategories --
- *
- *      Set the subject categories for a given SPPI Object.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
- 
-void setObjectSubjectCategories(Object *objectPtr, int allCategories)
-{
-    objectPtr->allSubjectCategories = allCategories;
-}
-
-/*
- *----------------------------------------------------------------------
- *
  * setModuleReference --
  *
  *      Set the reference string of a given Module.
@@ -857,11 +836,7 @@ Object *addObject(char *objectname, Node *parentNodePtr, SmiSubid subid,
     objectPtr->flags			= flags;
     objectPtr->line			= parserPtr ? parserPtr->line : -1;
     
-    objectPtr->pibReferencesPtr         = NULL;
-    objectPtr->pibTagPtr                = NULL;
-    objectPtr->allSubjectCategories     = 0;
     objectPtr->uniquenessPtr            = NULL;
-    objectPtr->installErrorsPtr         = NULL;
     					
     objectPtr->export.oidlen            = 0;     /* filled in by  */
     objectPtr->export.oid               = NULL;  /* second pass.  */
@@ -899,8 +874,6 @@ Object *addObject(char *objectname, Node *parentNodePtr, SmiSubid subid,
     }
     objectPtr->nodePtr				      = nodePtr;
     
-    objectPtr->pibReferencesPtr = NULL;
-
     return (objectPtr);
 }
 
@@ -983,8 +956,6 @@ Object *duplicateObject(Object *templatePtr, ObjectFlags flags,
     nodePtr->lastObjectPtr			      = objectPtr;
     objectPtr->nodePtr				      = nodePtr;
     
-    objectPtr->pibReferencesPtr = NULL;
-
     return (objectPtr);
 }
 
@@ -1502,56 +1473,6 @@ void setObjectReference(Object *objectPtr, char *reference, Parser *parserPtr)
 /*
  *----------------------------------------------------------------------
  *
- * setObjectPibReferences --
- *
- *      Set the PIB references of a given Object.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void setObjectPibReferences(Object *objectPtr, Object *pibReferencesPtr)
-{
-    if (objectPtr->pibReferencesPtr)
-	smiFree(objectPtr->pibReferencesPtr);
-    objectPtr->pibReferencesPtr = pibReferencesPtr;
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * setObjectPibTag --
- *
- *      Set the PIB tag of a given Object.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void setObjectPibTag(Object *objectPtr, Object *pibTagPtr)
-{
-    if (objectPtr->pibTagPtr)
-	smiFree(objectPtr->pibTagPtr);
-    objectPtr->pibTagPtr = pibTagPtr;
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
  * setObjectFormat --
  *
  *      Set the format of a given Object.
@@ -1944,10 +1865,10 @@ void setObjectUniqueness(Object *objectPtr, List *listPtr)
  *----------------------------------------------------------------------
  */
 
-void setObjectInstallErrors(Object *objectPtr, List *listPtr)
+/*void setObjectInstallErrors(Object *objectPtr, List *listPtr)
 {
     objectPtr->installErrorsPtr = listPtr;
-}
+}*/
 
 
 

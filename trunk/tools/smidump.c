@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.63 2001/09/27 07:51:17 schoenw Exp $
+ * @(#) $Id: smidump.c,v 1.64 2001/11/09 15:29:23 schoenw Exp $
  */
 
 #include <config.h>
@@ -263,6 +263,7 @@ int main(int argc, char *argv[])
     initPython();
     initSming();                defaultDriver = lastDriver;
     initSmi();
+    initSppi();
 #if 0
     initSql();
 #endif
