@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.118 2002/07/23 11:48:14 strauss Exp $
+ * @(#) $Id: data.c,v 1.119 2003/04/30 14:29:31 strauss Exp $
  */
 
 #include <config.h>
@@ -3440,6 +3440,13 @@ static void freeNodeTree(Node *rootPtr)
 	smiFree(nodePtr->oid);
 	smiFree(nodePtr);
     }
+    rootPtr->firstChildPtr = NULL;
+    rootPtr->lastChildPtr = NULL;
+    rootPtr->firstObjectPtr = NULL;
+    rootPtr->lastObjectPtr = NULL;
+    rootPtr->nextPtr = NULL;
+    rootPtr->prevPtr = NULL;
+    rootPtr->parentPtr = NULL;
 }
 
 
@@ -3766,6 +3773,7 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	smiDepth++;
 	parser.line			= 1;
 	smiparse((void *)&parser);
+	freeNodeTree(smiHandle->pendingNodePtr);
 	smiLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
@@ -3792,6 +3800,7 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	smiDepth++;
 	parser.line			= 1;
 	smingparse((void *)&parser);
+	freeNodeTree(smiHandle->pendingNodePtr);
 	smingLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
