@@ -1,3 +1,8 @@
+2000-25-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidump.c: Removed again `-X' option to eliminate parser
+	options that might lead to different results.
+
 2000-21-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/error.c: Added a fourth arg to the error handler representing

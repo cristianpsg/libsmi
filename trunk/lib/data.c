@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.89 2000/10/18 07:47:26 strauss Exp $
+ * @(#) $Id: data.c,v 1.90 2000/10/19 16:14:40 strauss Exp $
  */
 
 #include <config.h>
@@ -3422,7 +3422,6 @@ Module *loadModule(const char *modulename)
 #ifdef BACKEND_SMI
 	parser.path			= path;
 	parser.flags			= smiFlags;
-	if (smiGetFlags() & SMI_FLAG_BE_LAX) parser.flags |= SMI_FLAG_BE_LAX;
 	parser.modulePtr		= NULL;
 	parser.file			= file;
 	if (smiEnterLexRecursion(parser.file) < 0) {

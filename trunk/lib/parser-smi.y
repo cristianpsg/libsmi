@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.120 2000/07/06 14:40:42 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.121 2000/10/19 16:14:42 strauss Exp $
  */
 
 %{
@@ -1349,9 +1349,11 @@ fuzzy_lowercase_identifier:	LOWERCASE_IDENTIFIER
 			    smiPrintError (thisParserPtr,
 					   ERR_BAD_LOWER_IDENTIFIER_CASE,
 					   $1);
+			    /* xxx
 			    if ((thisParserPtr->flags & SMI_FLAG_BE_LAX) == 0) {
 			        YYERROR;
 			    }
+			    */
 			  $$ = $1;
 			}
 	;

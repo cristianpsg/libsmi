@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.19 2000/08/18 10:35:10 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.20 2000/10/19 16:15:26 strauss Exp $
 #
 
 
@@ -165,7 +165,7 @@ smiquery.1.in smistrip.1.in smistrip.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-cm.P .deps/dump-corba.P .deps/dump-identifiers.P \
 .deps/dump-imports.P .deps/dump-jax.P .deps/dump-metrics.P \
