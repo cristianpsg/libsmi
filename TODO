@@ -86,3 +86,14 @@ o The SMIv1/SMIv2/SMIng dump modules should build proper IMPORTS for
 o The default value conversion functions (e.g. getValueString()) should
   return malloced memory to avoid potential memory overwrite problems.
 
+o Suppress the following types: SNMPv2-SMI::ExtUTCTime,
+  SNMPv2-SMI::ObjectName, SNMPv2-SMI::NotificationName.
+
+o Check format specifier text in SMIng spec and add a `u' format specifier
+  for unsigned numbers.
+
+o RFC 1158 is not even SMIv1. It contains tables without INDEX constructs
+  and other definitions without DESCRIPTIONs. What shall we do? Fix this
+  module or fix other modules' imports? (Frank prefers the first, Juergen
+  the latter?)
+
