@@ -1,3 +1,16 @@
+1999-11-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidump.c: Again, Juergen Schoenwaelder contributed
+	a huge chunk of patches that improve dump formats. The CORBA
+	IDL output is updated and an smidump option to suppress comments
+	(-s) has been added.
+
+1999-10-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smistrip.in (VERSION): smistrip (plus man page) has
+	been added to the libsmi distribution. It allows to extract
+	modules from text documents like RFCs and I-Ds.
+
 1999-10-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/error.c: added check for illegal type restrictions

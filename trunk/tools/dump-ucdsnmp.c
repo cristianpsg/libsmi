@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-ucdsnmp.c,v 1.1 1999/10/05 15:52:21 strauss Exp $
  */
 
 /*
@@ -142,6 +142,7 @@ static int isGroup(SmiNode *smiNode)
 	childNode;
 	childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
+	    smiFreeNode(childNode);
 	    return 1;
 	}
     }
@@ -187,7 +188,7 @@ static void printReadMethodDecls(SmiModule *smiModule)
 		       " * Forward declaration of read methods for groups of scalars and tables:\n"
 		       " */\n\n");
 	    }
-	    printf("static unsigned char *\nread_%s(struct variable *,"
+	    printf("static unsigned char *\nread_%s_stub(struct variable *,"
 		   " oid *, int *, int, int *, WriteMethod **);\n",
 		   smiNode->name);
 	}
@@ -215,7 +216,7 @@ static void printWriteMethodDecls(SmiModule *smiModule)
 		       " * Forward declaration of write methods for writable objects:\n"
 		       " */\n\n");
 	    }
-	    printf("static int\nwrite_%s(int,"
+	    printf("static int\nwrite_%s_stub(int,"
 		   " u_char *, u_char, int, u_char *, oid *, int);\n",
 		   smiNode->name);
 	}
@@ -272,7 +273,7 @@ static void printDefinesGroup(SmiNode *groupNode, int cnt)
 		&& (smiNode->access == SMI_ACCESS_READ_ONLY
 		    || smiNode->access == SMI_ACCESS_READ_WRITE)) {
 		cName = translateUpper(smiNode->name);
-		printf("    { %s, %s, %s, read_%s, %d, {%d} }\n",
+		printf("    { %s, %s, %s, read_%s_stub, %d, {%d} }\n",
 		       cName, getBaseTypeString(smiNode->basetype),
 		       getAccessString(smiNode->access),
 		       cGroupName, 1, smiNode->oid[smiNode->oidlen-1]);
@@ -387,21 +388,19 @@ static void printInit(SmiModule *smiModule)
 static void printReadMethod(SmiNode *groupNode)
 {
     SmiNode   *smiNode;
-    char      *cName;
+    char      *cName, *sName, *lName;
 
-    printf("static unsigned char *\nread_%s(struct variable *vp,\n"
+    sName = translate(groupNode->name);
+
+    printf("static unsigned char *\nread_%s_stub(struct variable *vp,\n"
 	   "         oid     *name,\n"
 	   "         int     *length,\n"
 	   "         int     exact,\n"
 	   "         int     *var_len,\n"
 	   "         WriteMethod **write_method)\n"
-	   "{\n", groupNode->name);
+	   "{\n", sName);
 
-    printf("    /* variables we may use later */\n\n"
-	   "    static long long_ret;\n"
-	   "    static unsigned char string[SPRINT_MAX_LEN];\n"
-	   "    static oid objid[MAX_OID_LEN];\n"
-	   "    static struct counter64 c64;\n\n");
+    printf("    static %s_t %s;\n\n", sName, sName);
 
     smiNode = smiGetFirstChildNode(groupNode);
     if (smiNode && smiNode->nodekind == SMI_NODEKIND_SCALAR) {
@@ -411,6 +410,9 @@ static void printReadMethod(SmiNode *groupNode)
 	       "        return NULL;\n"
 	       "    }\n\n");
     }
+
+    printf("    /* call the user supplied function to retrieve values */\n\n");
+    printf("    read_%s(&%s);\n\n", sName, sName);
 
     printf("    /* return the current value of the variable */\n\n");
     printf("    switch (vp->magic) {\n\n");
@@ -422,6 +424,7 @@ static void printReadMethod(SmiNode *groupNode)
 	    && (smiNode->access == SMI_ACCESS_READ_ONLY
 		|| smiNode->access == SMI_ACCESS_READ_WRITE)) {
 	    cName = translateUpper(smiNode->name);
+	    lName = translate(smiNode->name);
 	    printf("    case %s:\n", cName);
 	    switch (smiNode->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
@@ -439,14 +442,15 @@ static void printReadMethod(SmiNode *groupNode)
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
 	    case SMI_BASETYPE_UNSIGNED32:
-		printf("        long_ret = 0;\n"
-		       "        return (unsigned char *) &long_ret;\n");
+		printf("        return (unsigned char *) &%s.%s;\n",
+		       sName, lName);
 		break;
 	    default:
 		printf("        /* add code to return the value here */\n");
 	    }
 	    printf("\n");
 	    free(cName);
+	    free(lName);
 	}
     }
 
@@ -456,6 +460,8 @@ static void printReadMethod(SmiNode *groupNode)
     
     printf("    return NULL;\n"
 	   "}\n\n");
+
+    free(sName);
 }
 
 
@@ -501,7 +507,7 @@ static void printWriteMethods(SmiModule *smiModule)
 		       " * Forward declaration of write methods for writable objects:\n"
 		       " */\n\n");
 	    }
-	    printf("static int\nwrite_%s(int action,\n"
+	    printf("static int\nwrite_%s_stub(int action,\n"
 		   "        u_char   *var_val,\n"
 		   "        u_char   var_val_type,\n"
 		   "        int      var_val_len,\n"
@@ -561,8 +567,9 @@ static void printTypedef(SmiNode *groupNode)
 	}
     }
     
-    printf("} %s;\n\n", cGroupName);
-    printf("extern int read_%s(%s *return);\n\n", cGroupName, cGroupName);
+    printf("} %s_t;\n\n", cGroupName);
+    printf("extern int read_%s(%s_t *%s);\n\n",
+	   cGroupName, cGroupName, cGroupName);
     free(cGroupName);
 }
 
@@ -605,14 +612,13 @@ int dumpUcdH(char *modulename)
 	exit(1);
     }
 
-    printf("/*\n");
-    printf(" * This C header file has been generated by smidump "
-	   VERSION ".\n");
-    printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
-    printf(" *\n");
-    printf(" * This header is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id$\n");
-    printf(" */\n\n");
+    printf("/*\n"
+	   " * This C header file has been generated by smidump " VERSION ".\n"
+	   " * It is intended to be used with the UCD/CMU SNMP agent.\n"
+	   " *\n"
+	   " * This header is derived from the %s module.\n"
+	   " *\n * $I" "d$\n"
+	   " */\n\n", smiModule->name);
 
     cModuleName = translate(smiModule->name);
 
@@ -651,7 +657,7 @@ int dumpUcdC(char *modulename)
     printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
     printf(" *\n");
     printf(" * This C file is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id$\n");
+    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.1 1999/10/05 15:52:21 strauss Exp $\n");
     printf(" */\n\n");
 
     printf("#ifdef REGISTER_MIB\n");

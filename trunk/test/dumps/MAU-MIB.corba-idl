@@ -39,7 +39,9 @@ module MAU_MIB {
              Of particular interest is Clause 30, '10Mb/s,
              100Mb/s and 1000Mb/s Management'.
 
-    LAST-UPDATED:   199908240400Z    ORGANIZATION:
+    LAST-UPDATED:   199908240400Z
+
+    ORGANIZATION:
             "IETF Ethernet Interfaces and Hub MIB
              Working Group"
 
@@ -117,15 +119,11 @@ module MAU_MIB {
     const JackTypeType JackTypeType_hssdc = 13;
     const string JackTypeType_NameNumberList = "other (1) , rj45 (2) , rj45S (3) , db9 (4) , bnc (5) , fAUI (6) , mAUI (7) , fiberSC (8) , fiberMIC (9) , fiberST (10) , telco (11) , mtrj (12) , hssdc (13)";
 
-
     typedef ASN1_Integer RpMauGroupIndexType; 
-
 
     typedef ASN1_Integer RpMauPortIndexType; 
 
-
     typedef ASN1_Integer RpMauIndexType; 
-
 
     typedef ASN1_Integer RpMauStatusType; 
     const RpMauStatusType RpMauStatusType_other = 1;
@@ -135,7 +133,6 @@ module MAU_MIB {
     const RpMauStatusType RpMauStatusType_shutdown = 5;
     const RpMauStatusType RpMauStatusType_reset = 6;
     const string RpMauStatusType_NameNumberList = "other (1) , unknown (2) , operational (3) , standby (4) , shutdown (5) , reset (6)";
-
 
     typedef ASN1_Integer RpMauMediaAvailableType; 
     const RpMauMediaAvailableType RpMauMediaAvailableType_other = 1;
@@ -151,7 +148,6 @@ module MAU_MIB {
     const RpMauMediaAvailableType RpMauMediaAvailableType_autoNegError = 11;
     const string RpMauMediaAvailableType_NameNumberList = "other (1) , unknown (2) , available (3) , notAvailable (4) , remoteFault (5) , invalidSignal (6) , remoteJabber (7) , remoteLinkLoss (8) , remoteTest (9) , offline (10) , autoNegError (11)";
 
-
     typedef ASN1_Integer RpMauJabberStateType; 
     const RpMauJabberStateType RpMauJabberStateType_other = 1;
     const RpMauJabberStateType RpMauJabberStateType_unknown = 2;
@@ -159,15 +155,11 @@ module MAU_MIB {
     const RpMauJabberStateType RpMauJabberStateType_jabbering = 4;
     const string RpMauJabberStateType_NameNumberList = "other (1) , unknown (2) , noJabber (3) , jabbering (4)";
 
-
     typedef ASN1_Integer RpJackIndexType; 
-
 
     typedef ASN1_Integer IfMauIfIndexType; 
 
-
     typedef ASN1_Integer IfMauIndexType; 
-
 
     typedef ASN1_Integer IfMauStatusType; 
     const IfMauStatusType IfMauStatusType_other = 1;
@@ -177,7 +169,6 @@ module MAU_MIB {
     const IfMauStatusType IfMauStatusType_shutdown = 5;
     const IfMauStatusType IfMauStatusType_reset = 6;
     const string IfMauStatusType_NameNumberList = "other (1) , unknown (2) , operational (3) , standby (4) , shutdown (5) , reset (6)";
-
 
     typedef ASN1_Integer IfMauMediaAvailableType; 
     const IfMauMediaAvailableType IfMauMediaAvailableType_other = 1;
@@ -193,7 +184,6 @@ module MAU_MIB {
     const IfMauMediaAvailableType IfMauMediaAvailableType_autoNegError = 11;
     const string IfMauMediaAvailableType_NameNumberList = "other (1) , unknown (2) , available (3) , notAvailable (4) , remoteFault (5) , invalidSignal (6) , remoteJabber (7) , remoteLinkLoss (8) , remoteTest (9) , offline (10) , autoNegError (11)";
 
-
     typedef ASN1_Integer IfMauJabberStateType; 
     const IfMauJabberStateType IfMauJabberStateType_other = 1;
     const IfMauJabberStateType IfMauJabberStateType_unknown = 2;
@@ -201,24 +191,19 @@ module MAU_MIB {
     const IfMauJabberStateType IfMauJabberStateType_jabbering = 4;
     const string IfMauJabberStateType_NameNumberList = "other (1) , unknown (2) , noJabber (3) , jabbering (4)";
 
-
     typedef ASN1_OctetString IfMauTypeListBitsType; 
 
-
     typedef ASN1_Integer IfJackIndexType; 
-
 
     typedef ASN1_Integer IfMauAutoNegAdminStatusType; 
     const IfMauAutoNegAdminStatusType IfMauAutoNegAdminStatusType_enabled = 1;
     const IfMauAutoNegAdminStatusType IfMauAutoNegAdminStatusType_disabled = 2;
     const string IfMauAutoNegAdminStatusType_NameNumberList = "enabled (1) , disabled (2)";
 
-
     typedef ASN1_Integer IfMauAutoNegRemoteSignalingType; 
     const IfMauAutoNegRemoteSignalingType IfMauAutoNegRemoteSignalingType_detected = 1;
     const IfMauAutoNegRemoteSignalingType IfMauAutoNegRemoteSignalingType_notdetected = 2;
     const string IfMauAutoNegRemoteSignalingType_NameNumberList = "detected (1) , notdetected (2)";
-
 
     typedef ASN1_Integer IfMauAutoNegConfigType; 
     const IfMauAutoNegConfigType IfMauAutoNegConfigType_other = 1;
@@ -228,21 +213,16 @@ module MAU_MIB {
     const IfMauAutoNegConfigType IfMauAutoNegConfigType_parallelDetectFail = 5;
     const string IfMauAutoNegConfigType_NameNumberList = "other (1) , configuring (2) , complete (3) , disabled (4) , parallelDetectFail (5)";
 
-
     typedef ASN1_Integer IfMauAutoNegRestartType; 
     const IfMauAutoNegRestartType IfMauAutoNegRestartType_restart = 1;
     const IfMauAutoNegRestartType IfMauAutoNegRestartType_norestart = 2;
     const string IfMauAutoNegRestartType_NameNumberList = "restart (1) , norestart (2)";
 
-
     typedef ASN1_OctetString IfMauAutoNegCapabilityBitsType; 
-
 
     typedef ASN1_OctetString IfMauAutoNegCapAdvertisedBitsType; 
 
-
     typedef ASN1_OctetString IfMauAutoNegCapReceivedBitsType; 
-
 
     typedef ASN1_Integer IfMauAutoNegRemoteFaultAdvertisedType; 
     const IfMauAutoNegRemoteFaultAdvertisedType IfMauAutoNegRemoteFaultAdvertisedType_noError = 1;
@@ -250,7 +230,6 @@ module MAU_MIB {
     const IfMauAutoNegRemoteFaultAdvertisedType IfMauAutoNegRemoteFaultAdvertisedType_linkFailure = 3;
     const IfMauAutoNegRemoteFaultAdvertisedType IfMauAutoNegRemoteFaultAdvertisedType_autoNegError = 4;
     const string IfMauAutoNegRemoteFaultAdvertisedType_NameNumberList = "noError (1) , offline (2) , linkFailure (3) , autoNegError (4)";
-
 
     typedef ASN1_Integer IfMauAutoNegRemoteFaultReceivedType; 
     const IfMauAutoNegRemoteFaultReceivedType IfMauAutoNegRemoteFaultReceivedType_noError = 1;
@@ -489,7 +468,7 @@ module MAU_MIB {
              RFC 2108, rptrMonitorPortLastChange"
 
         */
-        readonly attribute Counter32 rpMauMediaAvailableStateExits;
+        readonly attribute Counter32Type rpMauMediaAvailableStateExits;
 
         /*
              The value other(1) is returned if the jabber
@@ -532,7 +511,7 @@ module MAU_MIB {
              RFC 2108, rptrMonitorPortLastChange"
 
         */
-        readonly attribute Counter32 rpMauJabberingStateEnters;
+        readonly attribute Counter32Type rpMauJabberingStateEnters;
 
         /*
              A count of the number of false carrier events
@@ -560,7 +539,7 @@ module MAU_MIB {
              RFC 2108, rptrMonitorPortLastChange"
 
         */
-        readonly attribute Counter32 rpMauFalseCarriers;
+        readonly attribute Counter32Type rpMauFalseCarriers;
     };
 
 
@@ -576,7 +555,7 @@ module MAU_MIB {
              The jack connector type, as it appears on the
              outside of the system.
         */
-        readonly attribute JackType rpJackType;
+        readonly attribute JackTypeType rpJackType;
     };
 
     interface dot3IfMauBasicGroup : SNMPMgmt::SmiEntry {
@@ -796,7 +775,7 @@ module MAU_MIB {
              RFC 2233, ifCounterDiscontinuityTime."
 
         */
-        readonly attribute Counter32 ifMauMediaAvailableStateExits;
+        readonly attribute Counter32Type ifMauMediaAvailableStateExits;
 
         /*
              The value other(1) is returned if the jabber
@@ -836,7 +815,7 @@ module MAU_MIB {
              RFC 2233, ifCounterDiscontinuityTime."
 
         */
-        readonly attribute Counter32 ifMauJabberingStateEnters;
+        readonly attribute Counter32Type ifMauJabberingStateEnters;
 
         /*
              A count of the number of false carrier events
@@ -860,7 +839,7 @@ module MAU_MIB {
              RFC 2233, ifCounterDiscontinuityTime."
 
         */
-        readonly attribute Counter32 ifMauFalseCarriers;
+        readonly attribute Counter32Type ifMauFalseCarriers;
 
         /*
              This object identifies the default
@@ -909,7 +888,7 @@ module MAU_MIB {
              This object indicates whether or not
              auto-negotiation is supported on this MAU.
         */
-        readonly attribute TruthValue ifMauAutoNegSupported;
+        readonly attribute TruthValueType ifMauAutoNegSupported;
 
         /*
              A value that uniquely identifies the set of
@@ -939,7 +918,7 @@ module MAU_MIB {
              The jack connector type, as it appears on the
              outside of the system.
         */
-        readonly attribute JackType ifJackType;
+        readonly attribute JackTypeType ifJackType;
     };
 
     interface dot3IfMauAutoNegGroup : SNMPMgmt::SmiEntry {
@@ -1113,17 +1092,6 @@ module MAU_MIB {
 
         */
         readonly attribute IfMauAutoNegRemoteFaultReceivedType ifMauAutoNegRemoteFaultReceived;
-    };
-
-    /* pseudo */
-    interface TextualConventions {
-
-        /*
-             Common enumeration values for repeater
-             and interface MAU jack types.
-        */
-        string JackTypeToString (in JackTypeType Value);
-        JackTypeType JackTypeFromString (in string str);
     };
 
 };

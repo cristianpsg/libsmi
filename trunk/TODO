@@ -66,8 +66,6 @@ o warning detection: enumerations SHOULD NOT contain signedNumber's.
   SHOULD start at 1. SHOULD be numbered contiguously.
   e.g. DISMAN-SCHEDULE-MIB.SnmpPduErrorStatus
 
-o Juergen's testsuite -> make check
-
 o various dump modules don't print identifiers fully qualified where
   appropriate
 
@@ -87,4 +85,13 @@ o feature: passing options to dump modules to allow some format
   - removing comments
   - imports: showing imported modules just once
   - ...
+
+o make check passes only after make install
+
+o warning, if zeroDotZero is defined locally instead of imported from SMI.
+
+o configuration of preloaded modules per application/tag
+  - config files / env variables ?
+  - extensible configuration ?!
+  - separate api function or implied by smiInit() ?
 

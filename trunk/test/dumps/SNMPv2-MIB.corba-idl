@@ -25,7 +25,9 @@ module SNMPv2_MIB {
     /*
              The MIB module for SNMPv2 entities.
 
-    LAST-UPDATED:   199511090000Z    ORGANIZATION:
+    LAST-UPDATED:   199511090000Z
+
+    ORGANIZATION:
             "IETF SNMPv2 Working Group"
 
     CONTACT-INFO:
@@ -47,24 +49,17 @@ module SNMPv2_MIB {
 
     */
 
-
     typedef ASN1_OctetString SysDescrType; 
-
 
     typedef ASN1_OctetString SysContactType; 
 
-
     typedef ASN1_OctetString SysNameType; 
-
 
     typedef ASN1_OctetString SysLocationType; 
 
-
     typedef ASN1_Integer SysServicesType; 
 
-
     typedef ASN1_Integer SysORIndexType; 
-
 
     typedef ASN1_Integer SnmpEnableAuthenTrapsType; 
     const SnmpEnableAuthenTrapsType SnmpEnableAuthenTrapsType_enabled = 1;
@@ -97,7 +92,7 @@ module SNMPv2_MIB {
              The time (in hundredths of a second) since the network
              management portion of the system was last re-initialized.
         */
-        readonly attribute TimeTicks sysUpTime;
+        readonly attribute TimeTicksType sysUpTime;
 
         /*
              The textual identification of the contact person for this
@@ -151,7 +146,7 @@ module SNMPv2_MIB {
              The value of sysUpTime at the time of the most recent
              change in state or value of any instance of sysORID.
         */
-        readonly attribute TimeStamp sysORLastChange;
+        readonly attribute TimeStampType sysORLastChange;
 
         /*
              The (conceptual) table listing the capabilities of the
@@ -182,13 +177,13 @@ module SNMPv2_MIB {
              A textual description of the capabilities identified by the
              corresponding instance of sysORID.
         */
-        readonly attribute DisplayString sysORDescr;
+        readonly attribute DisplayStringType sysORDescr;
 
         /*
              The value of sysUpTime at the time this conceptual row was
              last instanciated.
         */
-        readonly attribute TimeStamp sysORUpTime;
+        readonly attribute TimeStampType sysORUpTime;
     };
 
     interface snmp : SNMPMgmt::SmiEntry {
@@ -197,33 +192,33 @@ module SNMPv2_MIB {
              The total number of messages delivered to the SNMP entity
              from the transport service.
         */
-        readonly attribute Counter32 snmpInPkts;
+        readonly attribute Counter32Type snmpInPkts;
 
         /*
              The total number of SNMP messages which were delivered to
              the SNMP entity and were for an unsupported SNMP version.
         */
-        readonly attribute Counter32 snmpInBadVersions;
+        readonly attribute Counter32Type snmpInBadVersions;
 
         /*
              The total number of SNMP messages delivered to the SNMP
              entity which used a SNMP community name not known to said
              entity.
         */
-        readonly attribute Counter32 snmpInBadCommunityNames;
+        readonly attribute Counter32Type snmpInBadCommunityNames;
 
         /*
              The total number of SNMP messages delivered to the SNMP
              entity which represented an SNMP operation which was not
              allowed by the SNMP community named in the message.
         */
-        readonly attribute Counter32 snmpInBadCommunityUses;
+        readonly attribute Counter32Type snmpInBadCommunityUses;
 
         /*
              The total number of ASN.1 or BER errors encountered by the
              SNMP entity when decoding received SNMP messages.
         */
-        readonly attribute Counter32 snmpInASNParseErrs;
+        readonly attribute Counter32Type snmpInASNParseErrs;
 
         /*
              Indicates whether the SNMP entity is permitted to generate
@@ -247,7 +242,7 @@ module SNMPv2_MIB {
              greater than either a local constraint or the maximum
              message size associated with the originator of the request.
         */
-        readonly attribute Counter32 snmpSilentDrops;
+        readonly attribute Counter32Type snmpSilentDrops;
 
         /*
              The total number of GetRequest-PDUs, GetNextRequest-PDUs,
@@ -257,7 +252,7 @@ module SNMPv2_MIB {
              message to a proxy target failed in a manner (other than a
              time-out) such that no Response-PDU could be returned.
         */
-        readonly attribute Counter32 snmpProxyDrops;
+        readonly attribute Counter32Type snmpProxyDrops;
     };
 
     interface snmpTrap : SNMPMgmt::SmiEntry {
@@ -274,7 +269,7 @@ module SNMPv2_MIB {
              achieve fine-grain coordination, one or more similar objects
              might be defined within each MIB group, as appropriate.
         */
-        attribute TestAndIncr snmpSetSerialNo;
+        attribute TestAndIncrType snmpSetSerialNo;
     };
 
 };

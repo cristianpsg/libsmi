@@ -10,38 +10,55 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smidump.h,v 1.1 1999/10/05 15:52:21 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
 #define _SMIDUMP_H
 
 
+/*
+ * The flags that can be passed to output drivers.
+ */
+
+#define SMIDUMP_FLAG_SILENT	0x01
+
+
+/*
+ * The output drivers that currently exist for smidump.
+ */
+
+extern int dumpSmiV1(char *modulename, int flags);
+extern int dumpSmiV2(char *modulename, int flags);
+extern int dumpSming(char *modulename, int flags);
+
+extern int dumpImports(char *modulename, int flags);
+extern int dumpTypes(char *modulename, int flags);
+extern int dumpTree(char *modulename, int flags);
+
+extern int dumpMosy(char *modulename, int flags);
+
+extern int dumpCorbaIdl(char *modulename, int flags);
+extern int dumpCorbaOid(char *modulename, int flags);
+
+extern int dumpUcdH(char *modulename, int flags);
+extern int dumpUcdC(char *modulename, int flags);
+
+extern int dumpJava(char *modulename, int flags);
+extern int dumpJdmk(char *modulename, int flags);
+
+extern int dumpFigTree(char *modulename, int flags);
+extern int dumpFigUml(char *modulename, int flags);
+
+/*
+ * The functions are wrappers around the malloc functions
+ * that handle any memory allocation errors.
+ */
+
 extern void *xmalloc(size_t size);
+extern void *xrealloc(void *ptr, size_t size);
 extern char *xstrdup(const char *s);
 extern void xfree(void *ptr);
-
-extern int dumpSmiV1(char *modulename);
-extern int dumpSmiV2(char *modulename);
-extern int dumpSming(char *modulename);
-
-extern int dumpImports(char *modulename);
-extern int dumpTypes(char *modulename);
-extern int dumpTree(char *modulename);
-
-extern int dumpMosy(char *modulename);
-
-extern int dumpCorbaIdl(char *modulename);
-extern int dumpCorbaOid(char *modulename);
-
-extern int dumpUcdH(char *modulename);
-extern int dumpUcdC(char *modulename);
-
-extern int dumpJava(char *modulename);
-extern int dumpJdmk(char *modulename);
-
-extern int dumpFig(char *modulename);
-
 
 
 #endif /* _SMIDUMP_H */

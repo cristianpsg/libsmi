@@ -1,27 +1,70 @@
 FLOW-METER-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Counter32, Integer32, TimeTicks
+    MODULE-IDENTITY, OBJECT-TYPE,
+    Counter32, Counter64, Integer32, mib-2
         FROM SNMPv2-SMI
-    TEXTUAL-CONVENTION, RowStatus, TimeStamp
+    TEXTUAL-CONVENTION, RowStatus, TimeStamp, TruthValue
         FROM SNMPv2-TC
     OBJECT-GROUP, MODULE-COMPLIANCE
         FROM SNMPv2-CONF
-    mib-2, ifIndex
-        FROM RFC1213-MIB
-    OwnerString
-        FROM RMON-MIB;
+    ifIndex
+        FROM IF-MIB
+    TimeFilter
+        FROM RMON2-MIB;
 
 flowMIB MODULE-IDENTITY
-    LAST-UPDATED "9603080208Z"
+    LAST-UPDATED "9910250000Z" -- October 25, 1999
     ORGANIZATION "IETF Realtime Traffic Flow Measurement Working Group"
     CONTACT-INFO
         "Nevil Brownlee, The University of Auckland
-        Email: n.brownlee@auckland.ac.nz"
-    DESCRIPTION
-                "MIB for the RTFM Traffic Flow Meter."
-    ::= { mib-2 40 }
 
+        Postal: Information Technology Sytems & Services
+                The University of Auckland
+                Private Bag 92-019
+                Auckland, New Zealand
+
+        Phone:  +64 9 373 7599 x8941
+        E-mail: n.brownlee@auckland.ac.nz"
+
+
+    DESCRIPTION
+        "MIB for the RTFM Traffic Flow Meter."
+
+    REVISION "9910250000Z"
+    DESCRIPTION
+        "Initial Version, published as RFC 2720."
+
+     REVISION "9908301250Z"
+     DESCRIPTION
+         "UTF8OwnerString Textual Convention added, and used to
+         replace OwnerString.  Conceptually the same as OwnerString,
+         but facilitating internationalisation by using UTF-8
+         encoding for its characters rather than US-ASCII."
+
+    REVISION "9908191010Z"
+    DESCRIPTION
+        "Changes to SIZE specification for two variables:
+          - flowRuleInfoName SIZE specified as (0..127)
+          - flowRuleIndex SIZE increased to (1..2147483647)"
+
+    REVISION "9712230937Z"
+    DESCRIPTION
+        "Two further variables deprecated:
+          - flowRuleInfoRulesReady (use flowRuleInfoStatus intead)
+          - flowDataStatus (contains no useful information)"
+
+    REVISION "9707071715Z"
+    DESCRIPTION
+        "Significant changes since RFC 2064 include:
+          - flowDataPackageTable added
+          - flowColumnActivityTable deprecated
+          - flowManagerCounterWrap deprecated"
+
+    REVISION "9603080208Z"
+    DESCRIPTION
+        "Initial version of this MIB (RFC 2064)"
+    ::= { mib-2 40 }
 
 flowControl         OBJECT IDENTIFIER ::= { flowMIB 1 }
 
@@ -31,76 +74,60 @@ flowRules           OBJECT IDENTIFIER ::= { flowMIB 3 }
 
 flowMIBConformance  OBJECT IDENTIFIER ::= { flowMIB 4 }
 
-
 -- Textual Conventions
 
-TimeFilter ::= TEXTUAL-CONVENTION
-    STATUS  current
-    DESCRIPTION
-        "Used as an index to a table.  A TimeFilter variable allows
-        a GetNext or GetBulk request to find rows in a table for
-        which the TimeFilter index variable is greater than or equal
-        to a specified value.  For example, a meter reader could
-        find all rows in the flow table which have been active at or
-        since a specified time.
-        More details on TimeFilter variables, their implementation
-        and use can be found in the RMON2 MIB [10]."
-    SYNTAX  TimeTicks
 
-AddressType ::= TEXTUAL-CONVENTION
+
+UTF8OwnerString ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "127t"
     STATUS  current
     DESCRIPTION
-        "Indicates the type of an adjacent address or peer address.
-        The values used are from the 'Address Family Numbers' section
-        of the Assigned Numbers RFC [11]."
+        "An administratively assigned name for the owner of a
+        resource, conceptually the same as OwnerString in the RMON
+        MIB [RMON-MIB].
+
+        To facilitate internationalisation, this name information
+        is represented using the ISO/IEC IS 10646-1 character set,
+        encoded as an octet string using the UTF-8 transformation
+        format described in the UTF-8 standard [UTF-8]."
+    SYNTAX  OCTET STRING (SIZE (0..127))
+
+PeerType ::= TEXTUAL-CONVENTION
+    STATUS  current
+    DESCRIPTION
+        "Indicates the type of a PeerAddress (see below).  The values
+        used are from the 'Address Family Numbers' section of the
+        Assigned Numbers RFC [ASG-NBR].  Peer types from other address
+        families may also be used, provided only that they are
+        identified by their assigned Address Family numbers."
     SYNTAX  INTEGER {
-        ip(1),
+        ipv4(1),
+        ipv6(2),
         nsap(3),
-        ieee802(6),
         ipx(11),
         appletalk(12),
         decnet(13) }
-
-AdjacentAddress ::= TEXTUAL-CONVENTION
-    STATUS  current
-    DESCRIPTION
-        "Specifies the value of an adjacent address for various
-        media.  The values used for IEEE 802 media are from the
-        'Network Management Parameters (ifType definitions)'
-        section of the Assigned Numbers RFC [11].  Address format
-        depends on the actual media, as follows:
-
-        Ethernet:     ethernet(7)
-            6-octet 802.3 MAC address in 'canonical' order
-
-        FDDI:         fddi(15)
-            FddiMACLongAddress, i.e. a 6-octet MAC address
-            in 'canonical' order  (defined in the FDDI MIB [12])
-
-        Token Ring:   tokenring(9)
-            6-octet 802.5 MAC address in 'canonical' order
-
-        PeerAddress:  other(1)
-            If traffic is being metered inside a tunnel, its
-            adjacent addresses will be the peer addresses of hosts
-            at the ends of the tunnel
-        "
-    SYNTAX OCTET STRING (SIZE (6..20))
 
 PeerAddress ::= TEXTUAL-CONVENTION
     STATUS  current
     DESCRIPTION
         "Specifies the value of a peer address for various network
         protocols.  Address format depends on the actual protocol,
-        as follows:
+        as indicated below:
 
-        IP:          ip(1)
-            4-octet IpAddress  (defined in the SNMPv2 SMI [2])
+        IPv4:        ipv4(1)
+            4-octet IpAddress  (defined in the SNMPv2 SMI [RFC2578])
+
+        IPv6:        ipv6(2)
+            16-octet IpAddress  (defined in the
+                                    IPv6 Addressing RFC [V6-ADDR])
 
         CLNS:        nsap(3)
-            NsapAddress  (defined in the SNMPv2 SMI [2])
+            NsapAddress  (defined in the SNMPv2 SMI [RFC2578])
 
         Novell:      ipx(11)
+
+
             4-octet Network number,
             6-octet Host number (MAC address)
 
@@ -113,6 +140,61 @@ PeerAddress ::= TEXTUAL-CONVENTION
             2-octet Host number (in low-order ten bits)
         "
     SYNTAX OCTET STRING (SIZE (3..20))
+
+AdjacentType ::= TEXTUAL-CONVENTION
+    STATUS  current
+    DESCRIPTION
+        "Indicates the type of an adjacent address.  May be a medium
+        type or (if metering is taking place inside a tunnel) a
+        PeerType (see above).
+
+        The values used for IEEE 802 medium types are from the 'Network
+        Management Parameters (ifType definitions)' section of the
+        Assigned Numbers RFC [ASG-NBR].  Other medium types may also
+        be used, provided only that they are identified by their
+        assigned ifType numbers."
+    SYNTAX  INTEGER {
+        ip(1),
+        nsap(3),
+        ethernet(7),  -- ethernet-like [ENET-OBJ],
+                      --    includes ethernet-csmacd(6)
+        tokenring(9),
+        ipx(11),
+        appletalk(12),
+        decnet(13),
+        fddi(15) }
+
+AdjacentAddress ::= TEXTUAL-CONVENTION
+    STATUS  current
+    DESCRIPTION
+        "Specifies the value of an adjacent address.  May be a Medium
+        Access Control (MAC) address or (if metering is taking place
+        inside a tunnel) a PeerAddress (see above).
+
+        MAC Address format depends on the actual medium, as follows:
+
+        Ethernet:     ethernet(7)
+            6-octet 802.3 MAC address in 'canonical' order
+
+
+
+        Token Ring:   tokenring(9)
+            6-octet 802.5 MAC address in 'canonical' order
+
+        FDDI:         fddi(15)
+            FddiMACLongAddress, i.e. a 6-octet MAC address
+            in 'canonical' order  (defined in [FDDI-MIB])
+        "
+    SYNTAX OCTET STRING (SIZE (3..20))
+
+TransportType ::= TEXTUAL-CONVENTION
+    STATUS  current
+    DESCRIPTION
+        "Indicates the type of a TransportAddress (see below).  Values
+        will depend on the actual protocol; for IP they will be those
+        given in the 'Protocol Numbers' section of the  Assigned Numbers
+        RFC [ASG-NBR], including icmp(1), tcp(6) and udp(17)."
+    SYNTAX  Integer32 (1..255)
 
 TransportAddress ::= TEXTUAL-CONVENTION
     STATUS  current
@@ -132,7 +214,7 @@ RuleAddress ::= TEXTUAL-CONVENTION
     STATUS  current
     DESCRIPTION
         "Specifies the value of an address.  Is a superset of
-        AdjacentAddress, PeerAddress and TransportAddress."
+        MediumAddress, PeerAddress and TransportAddress."
     SYNTAX OCTET STRING (SIZE (2..20))
 
 FlowAttributeNumber ::= TEXTUAL-CONVENTION
@@ -143,6 +225,8 @@ FlowAttributeNumber ::= TEXTUAL-CONVENTION
         flowIndex(1),
         flowStatus(2),
         flowTimeMark(3),
+
+
 
         sourceInterface(4),
         sourceAdjacentType(5),
@@ -166,7 +250,7 @@ FlowAttributeNumber ::= TEXTUAL-CONVENTION
         destTransAddress(22),
         destTransMask(23),
 
-        pduScale(234),
+        pduScale(24),
         octetScale(25),
 
         ruleSet(26),
@@ -192,10 +276,11 @@ RuleAttributeNumber ::= TEXTUAL-CONVENTION
     STATUS  current
     DESCRIPTION
         "Uniquely identifies an attribute which may be tested in
+
+
         a rule.  These include attributes whose values come directly
-        from the flow's packets and the five 'meter' variables used to
-        hold an AttributeValue.  Attributes derived from the rules -
-        e.g. address masks - may not be tested."
+        from (or are computed from) the flow's packets, and the five
+        'meter' variables used to hold an Attribute Number."
     SYNTAX  INTEGER {
         null(0),
         sourceInterface(4),       -- Source Address
@@ -205,6 +290,7 @@ RuleAttributeNumber ::= TEXTUAL-CONVENTION
         sourcePeerAddress(9),
         sourceTransType(11),
         sourceTransAddress(12),
+
         destInterface(14),        -- Dest Address
         destAdjacentType(15),
         destAdjacentAddress(16),
@@ -212,9 +298,20 @@ RuleAttributeNumber ::= TEXTUAL-CONVENTION
         destPeerAddress(19),
         destTransType(21),
         destTransAddress(22),
+
         sourceSubscriberID(33),   -- Subscriber ID
         destSubscriberID(34),
         sessionID(35),
+
+        sourceClass(36),          -- Computed attributes
+        destClass(37),
+        flowClass(38),
+        sourceKind(39),
+        destKind(40),
+        flowKind(41),
+
+        matchingStoD(50),         -- Packet matching
+
         v1(51),                   -- Meter variables
         v2(52),
         v3(53),
@@ -227,10 +324,12 @@ ActionNumber ::= TEXTUAL-CONVENTION
         "Uniquely identifies the action of a rule, i.e. the Pattern
         Matching Engine's opcode number.  Details of the opcodes
         are given in the 'Traffic Flow Measurement: Architecture'
-        document [9]."
+        document [RTFM-ARC]."
     SYNTAX  INTEGER {
+
+
         ignore(1),
-        fail(2),
+        noMatch(2),
         count(3),
         countPkt(4),
         return(5),
@@ -243,11 +342,12 @@ ActionNumber ::= TEXTUAL-CONVENTION
         pushRuleTo(12),
         pushRuleToAct(13),
         pushPktTo(14),
-        pushPktToAct(15) }
-
+        pushPktToAct(15),
+        popTo(16),
+        popToAct(17) }
 
 --
--- Control Group:  Rule Set Info Table
+-- Control Group:  RuleSet Info Table
 --
 
 flowRuleSetInfoTable OBJECT-TYPE
@@ -255,10 +355,39 @@ flowRuleSetInfoTable OBJECT-TYPE
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
-        "An array of information about the rule sets held in the
-        meter.   Rule set 1 is the meter default, used when the meter
-        starts up.  It is built in to the meter; it may not be
-        changed."
+        "An array of information about the RuleSets held in the
+        meter.
+
+        Any manager may configure a new RuleSet for the meter by
+        creating a row in this table with status active(1), and setting
+        values for all the objects in its rules.  At this stage the new
+        RuleSet is available but not 'running', i.e. it is not being
+        used by the meter to produce entries in the flow table.
+
+        To actually 'run' a RuleSet a manager must create a row in
+        the flowManagerInfoTable, set it's flowManagerStatus to
+        active(1), and set either its CurrentRuleSet or StandbyRuleSet
+        to point to the RuleSet to be run.
+
+        Once a RuleSet is running a manager may not change any of the
+        objects within the RuleSet itself.  Any attempt to do so should
+        result in a notWritable(17) SNMP error-status for such objects.
+
+        A manager may stop a RuleSet running by removing all
+        references to it in the flowManagerInfoTable (i.e. by setting
+        CurrentRuleSet and StandbyRuleSet values to 0).  This provides
+
+
+        a way to stop RuleSets left running if a manager fails.
+        For example, when a manager is started, it could search the
+        meter's flowManager table and stop all RuleSets having a
+        specified value of flowRuleInfoOwner.
+
+        To prevent a manager from interfering with variables belonging
+        to another manager, the meter should use MIB views [RFC2575] so
+        as to limit each manager's access to the meter's variables,
+        effectively dividing the single meter into several virtual
+        meters, one for each independent manager."
     ::= { flowControl 1 }
 
 flowRuleSetInfoEntry OBJECT-TYPE
@@ -266,26 +395,29 @@ flowRuleSetInfoEntry OBJECT-TYPE
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
-        "Information about a particular rule set."
+        "Information about a particular RuleSet."
     INDEX  { flowRuleInfoIndex }
     ::= { flowRuleSetInfoTable 1 }
 
 FlowRuleSetInfoEntry ::= SEQUENCE {
     flowRuleInfoIndex         Integer32,
     flowRuleInfoSize          Integer32,
-    flowRuleInfoOwner         OwnerString,
+    flowRuleInfoOwner         UTF8OwnerString,
     flowRuleInfoTimeStamp     TimeStamp,
-    flowRuleInfoStatus        RowStatus
+    flowRuleInfoStatus        RowStatus,
+    flowRuleInfoName          OCTET STRING,
+    flowRuleInfoRulesReady    TruthValue,
+    flowRuleInfoFlowRecords   Integer32
     }
 
 flowRuleInfoIndex OBJECT-TYPE
-    SYNTAX  Integer32
+    SYNTAX  Integer32 (1..2147483647)
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
         "An index which selects an entry in the flowRuleSetInfoTable.
         Each such entry contains control information for a particular
-        rule set which the meter may run."
+        RuleSet which the meter may run."
     ::= { flowRuleSetInfoEntry 1 }
 
 flowRuleInfoSize OBJECT-TYPE
@@ -293,24 +425,27 @@ flowRuleInfoSize OBJECT-TYPE
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
-        "Number of rules in this rule set.  Setting this variable will
+        "Number of rules in this RuleSet.  Setting this variable will
+
+
         cause the meter to allocate space for these rules."
     ::= { flowRuleSetInfoEntry 2 }
 
 flowRuleInfoOwner OBJECT-TYPE
-    SYNTAX  OwnerString
+    SYNTAX  UTF8OwnerString
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
-        "Identifies the manager which configured this rule set."
+        "Identifies the manager which 'owns' this RuleSet.  A manager
+        must set this variable when creating a row in this table."
     ::= { flowRuleSetInfoEntry 3 }
 
 flowRuleInfoTimeStamp OBJECT-TYPE
     SYNTAX  TimeStamp
-    MAX-ACCESS  read-create
+    MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "Time this rule set was last changed."
+        "Time this row's associated RuleSet was last changed."
     ::= { flowRuleSetInfoEntry 4 }
 
 flowRuleInfoStatus OBJECT-TYPE
@@ -318,10 +453,71 @@ flowRuleInfoStatus OBJECT-TYPE
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
-        "The status of this rule set.  If this object's value is
-        not active(1), the meter must not attempt to use this
-        rule set."
+        "The status of this flowRuleSetInfoEntry. If this value is
+        not active(1) the meter must not attempt to use the row's
+        associated RuleSet.  Once its value has been set to active(1)
+        a manager may not change any of the other variables in the
+        row, nor the contents of the associated RuleSet.  Any attempt
+        to do so should result in a notWritable(17) SNMP error-status
+        for such variables or objects.
+
+        To download a RuleSet, a manger could:
+           - Locate an open slot in the RuleSetInfoTable.
+           - Create a RuleSetInfoEntry by setting the status for this
+               open slot to createAndWait(5).
+           - Set flowRuleInfoSize and flowRuleInfoName as required.
+           - Download the rules into the row's rule table.
+           - Set flowRuleInfoStatus to active(1).
+
+        The RuleSet would then be ready to run. The manager is not
+        allowed to change the value of flowRuleInfoStatus from
+        active(1) if the associated RuleSet is being referenced by any
+        of the entries in the flowManagerInfoTable.
+
+        Setting RuleInfoStatus to destroy(6) destroys the associated
+        RuleSet together with any flow data collected by it."
+
+
     ::= { flowRuleSetInfoEntry 5 }
+
+flowRuleInfoName OBJECT-TYPE
+    SYNTAX  OCTET STRING (SIZE (0..127))
+    MAX-ACCESS  read-create
+    STATUS  current
+    DESCRIPTION
+        "An alphanumeric identifier used by managers and readers to
+        identify a RuleSet.  For example, a manager wishing to run a
+        RuleSet named WWW-FLOWS could search the flowRuleSetInfoTable
+        to see whether the WWW-FLOWS RuleSet is already available on
+        the meter.
+
+        Note that references to RuleSets in the flowManagerInfoTable
+        use indexes for their flowRuleSetInfoTable entries.  These may
+        be different each time the RuleSet is loaded into a meter."
+    ::= { flowRuleSetInfoEntry 6 }
+
+flowRuleInfoRulesReady OBJECT-TYPE
+    SYNTAX  TruthValue
+    MAX-ACCESS  read-create
+    STATUS  deprecated
+    DESCRIPTION
+        "Indicates whether the rules for this row's associated RuleSet
+        are ready for use.  The meter will refuse to 'run' the RuleSet
+        unless this variable has been set to true(1).
+        While RulesReady is false(2), the manager may modify the
+        RuleSet, for example by downloading rules into it."
+    ::= { flowRuleSetInfoEntry 7 }
+
+flowRuleInfoFlowRecords OBJECT-TYPE
+    SYNTAX  Integer32
+    MAX-ACCESS  read-only
+    STATUS  current
+    DESCRIPTION
+        "The number of entries in the flow table for this RuleSet.
+        These may be current (waiting for collection by one or more
+        meter readers) or idle (waiting for the meter to recover
+        their memory)."
+    ::= { flowRuleSetInfoEntry 8 }
 
 --
 -- Control Group:  Interface Info Table
@@ -330,6 +526,8 @@ flowRuleInfoStatus OBJECT-TYPE
 flowInterfaceTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF FlowInterfaceEntry
     MAX-ACCESS  not-accessible
+
+
     STATUS  current
     DESCRIPTION
         "An array of information specific to each meter interface."
@@ -345,22 +543,27 @@ flowInterfaceEntry OBJECT-TYPE
     ::= { flowInterfaceTable 1 }
 
 FlowInterfaceEntry ::= SEQUENCE {
-    flowInterfaceRate         Integer32,
+    flowInterfaceSampleRate   Integer32,
     flowInterfaceLostPackets  Counter32
     }
 
-flowInterfaceRate OBJECT-TYPE
+flowInterfaceSampleRate OBJECT-TYPE
     SYNTAX  Integer32
     MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
         "The parameter N for statistical counting on this interface.
         Set to N to count 1/Nth of the packets appearing at this
-        interface.  A meter should choose its own algorithm to
-        introduce variance into the sampling so that exactly every Nth
-        packet is not counted.  A sampling rate of 1 counts all
-        packets.  A sampling rate of 0 results in the interface
-        being ignored by the meter."
+        interface.  A sampling rate of 1 counts all packets.
+        A sampling rate of 0 results in the interface being ignored
+        by the meter.
+
+        A meter should choose its own algorithm to introduce variance
+        into the sampling so that exactly every Nth packet is counted.
+        The IPPM Working Group's RFC 'Framework for IP Performance
+        Metrics' [IPPM-FRM] explains why this should be done, and sets
+        out an algorithm for doing it."
+    DEFVAL { 1 }
     ::= { flowInterfaceEntry 1 }
 
 flowInterfaceLostPackets OBJECT-TYPE
@@ -373,23 +576,22 @@ flowInterfaceLostPackets OBJECT-TYPE
         keep up with the traffic volume."
     ::= { flowInterfaceEntry 2 }
 
+
+
 --
 -- Control Group:  Meter Reader Info Table
 --
 
--- Any meter reader wishing to collect data reliably for all flows
+-- Any meter reader wishing to collect data reliably for flows
 -- should first create a row in this table.  It should write that
 -- row's flowReaderLastTime object each time it starts a collection
-
 -- pass through the flow table.
 
--- The meter will not recover a flow's memory until every meter reader
--- holding a row in this table has collected that flow's data.
-
--- If a meter reader does not create a row in this table, e.g. because
--- it failed authentication in the meter's SNMP write community,
--- collection can still proceed but the meter may not be able to
--- recover inactive flows.
+-- If a meter reader (MR) does not create a row in this table, e.g.
+-- because its MIB view [RFC2575] did not allow MR create access to
+-- flowReaderStatus, collection can still proceed but the meter will
+-- not be aware of meter reader MR.  This could lead the meter to
+-- recover flows before they have been collected by MR.
 
 flowReaderInfoTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF FlowReaderInfoEntry
@@ -412,18 +614,21 @@ flowReaderInfoEntry OBJECT-TYPE
 FlowReaderInfoEntry ::= SEQUENCE {
     flowReaderIndex            Integer32,
     flowReaderTimeout          Integer32,
-    flowReaderOwner            OwnerString,
+    flowReaderOwner            UTF8OwnerString,
     flowReaderLastTime         TimeStamp,
     flowReaderPreviousTime     TimeStamp,
-    flowReaderStatus           RowStatus
+    flowReaderStatus           RowStatus,
+    flowReaderRuleSet          Integer32
     }
 
 flowReaderIndex OBJECT-TYPE
-    SYNTAX  Integer32
+    SYNTAX  Integer32 (1..2147483647)
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
-        "Selects an entry from the array of meter reader info entries."
+
+
+        "An index which selects an entry in the flowReaderInfoTable."
     ::= { flowReaderInfoEntry 1 }
 
 flowReaderTimeout OBJECT-TYPE
@@ -435,11 +640,12 @@ flowReaderTimeout OBJECT-TYPE
         collections for this meter reader.  If this time elapses
         without a collection, the meter should assume that this meter
         reader has stopped collecting, and delete this row from the
-        table."
+        table.  A value of zero indicates that this row should not be
+        timed out."
     ::= { flowReaderInfoEntry 2 }
 
 flowReaderOwner OBJECT-TYPE
-    SYNTAX  OwnerString
+    SYNTAX  UTF8OwnerString
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
@@ -453,23 +659,25 @@ flowReaderLastTime OBJECT-TYPE
     DESCRIPTION
         "Time this meter reader began its most recent data collection.
 
-        This variable should be written by a meter reader as the first
+        This variable should be written by a meter reader as its first
         step in reading flow data.  The meter will set this LastTime
-        value to sysUptime and set its PreviousTime value (below) to
-        the old  LastTime.  This allows the meter to recover flows
-        which have been inactive since PreviousTime, for these have
-        been collected at least once.
+        value to its current Uptime, and set its PreviousTime value
+        (below) to the old  LastTime.  This allows the meter to
+        recover flows which have been inactive since PreviousTime,
+        for these have been collected at least once.
 
-        If the meter fails to write flowLastReadTime, e.g. by
-        failing authentication in the meter's SNMP write community,
-        collection may still proceed but the meter may not be able to
-        recover inactive flows."
+        If the meter reader fails to write flowLastReadTime, collection
+        may still proceed but the meter may not be able to recover
+        inactive flows until the flowReaderTimeout has been reached
+        for this entry."
     ::= { flowReaderInfoEntry 4 }
 
 flowReaderPreviousTime OBJECT-TYPE
     SYNTAX  TimeStamp
     MAX-ACCESS  read-only
     STATUS  current
+
+
     DESCRIPTION
         "Time this meter reader began the collection before last."
     ::= { flowReaderInfoEntry 5 }
@@ -479,17 +687,38 @@ flowReaderStatus OBJECT-TYPE
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
-        "The status of this meter reader."
+        "The status of this FlowReaderInfoEntry. A value of active(1)
+        implies that the associated reader should be collecting data
+        from the meter.  Once this variable has been set to active(1)
+        a manager may only change this row's flowReaderLastTime and
+        flowReaderTimeout variables."
     ::= { flowReaderInfoEntry 6 }
+
+flowReaderRuleSet OBJECT-TYPE
+    SYNTAX  Integer32 (1..2147483647)
+    MAX-ACCESS  read-create
+    STATUS  current
+    DESCRIPTION
+        "An index to the array of RuleSets.  Specifies a set of rules
+        of interest to this meter reader.  The reader will attempt to
+        collect any data generated by the meter for this RuleSet, and
+        the meter will not recover the memory of any of the RuleSet's
+        flows until this collection has taken place.  Note that a
+        reader may have entries in this table for several RuleSets."
+    ::= { flowReaderInfoEntry 7 }
 
 --
 -- Control Group:  Manager Info Table
 --
 
--- Any manager wishing to download rule sets to the meter must create
--- a row in this table.  Once it has a table row, the manager may set
--- the control variables in its row so as to cause the meter to run
--- any valid rule set held by the meter.
+-- Any manager wishing to run a RuleSet must create a row in this
+-- table.  Once it has a table row, the manager may set the control
+-- variables in its row so as to cause the meter to run any valid
+-- RuleSet held by the meter.
+
+-- A single manager may run several RuleSets; it must create a row
+-- in this table for each of them.  In short, each row of this table
+-- describes (and controls) a 'task' which the meter is executing.
 
 flowManagerInfoTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF FlowManagerInfoEntry
@@ -497,7 +726,9 @@ flowManagerInfoTable OBJECT-TYPE
     STATUS  current
     DESCRIPTION
         "An array of information about managers which have
-        registered their intent to run rule sets on this meter."
+
+
+        registered their intent to run RuleSets on this meter."
     ::= { flowControl 4 }
 
 flowManagerInfoEntry OBJECT-TYPE
@@ -505,7 +736,26 @@ flowManagerInfoEntry OBJECT-TYPE
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
-        "Information about a particular meter reader."
+        "Information about a particular meter 'task.'  By creating
+        an entry in this table and activating it, a manager requests
+        that the meter 'run' the indicated RuleSet.
+
+        The entry also specifies a HighWaterMark and a StandbyRuleSet.
+        If the meter's flow table usage exceeds this task's
+        HighWaterMark the meter will stop running the task's
+        CurrentRuleSet and switch to its StandbyRuleSet.
+
+        If the value of the task's StandbyRuleSet is 0 when its
+        HighWaterMark is exceeded, the meter simply stops running the
+        task's CurrentRuleSet.  By careful selection of HighWaterMarks
+        for the various tasks a manager can ensure that the most
+        critical RuleSets are the last to stop running as the number
+        of flows increases.
+
+        When a manager has determined that the demand for flow table
+        space has abated, it may cause the task to switch back to its
+        CurrentRuleSet by setting its flowManagerRunningStandby
+        variable to false(2)."
     INDEX  { flowManagerIndex }
     ::= { flowManagerInfoTable 1 }
 
@@ -513,19 +763,22 @@ FlowManagerInfoEntry ::= SEQUENCE {
     flowManagerIndex           Integer32,
     flowManagerCurrentRuleSet  Integer32,
     flowManagerStandbyRuleSet  Integer32,
-    flowManagerHighWaterMark   INTEGER,
+    flowManagerHighWaterMark   Integer32,
     flowManagerCounterWrap     INTEGER,
-    flowManagerOwner           OwnerString,
+    flowManagerOwner           UTF8OwnerString,
     flowManagerTimeStamp       TimeStamp,
-    flowManagerStatus          RowStatus
+    flowManagerStatus          RowStatus,
+    flowManagerRunningStandby  TruthValue
     }
 
 flowManagerIndex OBJECT-TYPE
-    SYNTAX  Integer32
+    SYNTAX  Integer32 (1..2147483647)
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
-        "Selects an entry from the array of manager info entries."
+
+
+        "An index which selects an entry in the flowManagerInfoTable."
     ::= { flowManagerInfoEntry 1 }
 
 flowManagerCurrentRuleSet OBJECT-TYPE
@@ -533,13 +786,15 @@ flowManagerCurrentRuleSet OBJECT-TYPE
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
-        "Index to the array of rule sets.  Specifies which set of
-        rules is currently being used for accounting by this manager.
-        When the manager sets this variable the meter will close its
-        current rule set and start using the new one.  Flows created
-        by the old rule set remain in memory, orphaned until their
-        data has been read.  Specifying rule set 0 (the empty set)
-        stops flow measurement by this manager."
+        "Index to the array of RuleSets.  Specifies which set of
+        rules is the 'current' one for this task.  The meter will
+        be 'running' the current RuleSet if this row's
+        flowManagerRunningStandby value is false(2).
+
+        When the manager sets this variable the meter will stop using
+        the task's old current RuleSet and start using the new one.
+        Specifying RuleSet 0 (the empty set) stops flow measurement
+        for this task."
     ::= { flowManagerInfoEntry 2 }
 
 flowManagerStandbyRuleSet OBJECT-TYPE
@@ -547,44 +802,47 @@ flowManagerStandbyRuleSet OBJECT-TYPE
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
-        "Index to the array of rule sets.  After reaching
-        HighWaterMark (see below) the manager may switch to using its
-        standby rule set.  For this to be effective the manager should
-        have downloaded a standby rule set which uses a coarser
-        reporting granularity.  The manager may also need to
-        decrease the meter reading interval so that the meter can
-        recover flows measured by its normal rule set."
+        "Index to the array of RuleSets.  After reaching HighWaterMark
+        (see below) the manager will switch to using the task's
+        StandbyRuleSet in place of its CurrentRuleSet.  For this to be
+        effective the designated StandbyRuleSet should have a coarser
+        reporting granularity then the CurrentRuleSet.  The manager may
+        also need to decrease the meter reading interval so that the
+        meter can recover flows measured by this task's CurrentRuleSet."
     DEFVAL { 0 }  -- No standby
     ::= { flowManagerInfoEntry 3 }
 
 flowManagerHighWaterMark OBJECT-TYPE
-    SYNTAX  INTEGER (0..100)
+    SYNTAX  Integer32 (0..100)
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
         "A value expressed as a percentage, interpreted by the meter
         as an indication of how full the flow table should be before
-        it should switch to the standby rule set (if one has been
-        specified) forthis manager.  Values of 0% or 100% disable
-        the checking represented by this variable."
+        it should switch to the standby RuleSet (if one has been
+        specified) for this task.  Values of 0% or 100% disable the
+        checking represented by this variable."
     ::= { flowManagerInfoEntry 4 }
 
 flowManagerCounterWrap OBJECT-TYPE
     SYNTAX  INTEGER { wrap(1), scale(2) }
+
+
     MAX-ACCESS  read-create
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "Specifies whether PDU and octet counters should wrap when
         they reach the top of their range (normal behaviour for
-        Counter32 objects), or whether their scale factors should
+        Counter64 objects), or whether their scale factors should
         be used instead.  The combination of counter and scale
-        factor allows counts to be returned as binary floating
-        point numbers, with 32-bit mantissas and 8-bit exponents."
+        factor allows counts to be returned as non-negative binary
+        floating point numbers, with 64-bit mantissas and 8-bit
+        exponents."
     DEFVAL { wrap }
     ::= { flowManagerInfoEntry 5 }
 
 flowManagerOwner OBJECT-TYPE
-    SYNTAX  OwnerString
+    SYNTAX  UTF8OwnerString
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
@@ -593,7 +851,7 @@ flowManagerOwner OBJECT-TYPE
 
 flowManagerTimeStamp OBJECT-TYPE
     SYNTAX  TimeStamp
-    MAX-ACCESS  read-create
+    MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
         "Time this row was last changed by its manager."
@@ -604,40 +862,58 @@ flowManagerStatus OBJECT-TYPE
     MAX-ACCESS  read-create
     STATUS  current
     DESCRIPTION
-        "The status of this manager."
+        "The status of this row in the flowManagerInfoTable.  A value
+        of active(1) implies that this task may be activated, by
+        setting its CurrentRuleSet and StandbyRuleSet variables.
+        Its HighWaterMark and RunningStandby variables may also be
+        changed."
     ::= { flowManagerInfoEntry 8 }
+
+flowManagerRunningStandby OBJECT-TYPE
+    SYNTAX  TruthValue
+    MAX-ACCESS  read-create
+    STATUS  current
+    DESCRIPTION
+        "Set to true(1) by the meter to indicate that it has switched
+        to runnning this task's StandbyRuleSet in place of its
+
+
+        CurrentRuleSet.  To switch back to the CurrentRuleSet, the
+        manager may simply set this variable to false(2)."
+    DEFVAL { false }
+    ::= { flowManagerInfoEntry 9 }
 
 --
 -- Control Group:  General Meter Control Variables
 --
 
--- At present the meter only runs a single rule set  - the 'current'
--- one and has a single 'standby' rule set.  In future it may be
--- developed so as to run multiple rule sets simultaneously; that would
--- require a more elaborate set of control variables to allow reliable
--- operation.
-
 flowFloodMark OBJECT-TYPE
-    SYNTAX  INTEGER (0..100)
+    SYNTAX  Integer32 (0..100)
     MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
         "A value expressed as a percentage, interpreted by the meter
         as an indication of how full the flow table should be before
         it should take some action to avoid running out of resources
-        to handle new flows.  Values of 0% or 100% disable the
-        checking represented by this variable."
+        to handle new flows, as discussed in section 4.6 (Handling
+        Increasing Traffic Levels) of the RTFM Architecture RFC
+        [RTFM-ARC].
+
+        Values of 0% or 100% disable the checking represented by
+        this variable."
+    DEFVAL { 95 } -- Enabled by default.
     ::= { flowControl 5 }
 
 flowInactivityTimeout OBJECT-TYPE
-    SYNTAX  Integer32 (1..3600)
+    SYNTAX  Integer32
     MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
-        "The time in seconds since the last packet seen, after
-        which the flow may be terminated.  Note that although a
-        flow may have been terminated, its data must be collected
-        before its memory can be recovered."
+        "The time in seconds since the last packet seen, after which
+        a flow becomes 'idle.'  Note that although a flow may be
+        idle, it will not be discarded (and its memory recovered)
+        until after its data has been collected by all the meter
+        readers registered for its RuleSet."
     DEFVAL { 600 } -- 10 minutes
     ::= { flowControl 6 }
 
@@ -646,11 +922,12 @@ flowActiveFlows OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "The numbers of flows which are currently in use, i.e. have
-        been active since the last collection."
+        "The number of flows which are currently in use."
     ::= { flowControl 7 }
 
 flowMaxFlows OBJECT-TYPE
+
+
     SYNTAX  Integer32
     MAX-ACCESS  read-only
     STATUS  current
@@ -660,6 +937,20 @@ flowMaxFlows OBJECT-TYPE
         is first started up."
     ::= { flowControl 8 }
 
+flowFloodMode OBJECT-TYPE
+    SYNTAX  TruthValue
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "Indicates that the meter has passed its FloodMark and is
+        not running in its normal mode.
+
+        When the manager notices this it should take action to remedy
+        the problem which caused the flooding.  It should then monitor
+        flowActiveFlows so as to determine when the flood has receded.
+        At that point the manager may set flowFloodMode to false(2) to
+        resume normal operation."
+    ::= { flowControl 9 }
 
 --
 -- The Flow Table
@@ -669,8 +960,7 @@ flowMaxFlows OBJECT-TYPE
 -- flow being measured.  Each flow data entry stores the attribute
 -- values for a traffic flow.  Details of flows and their attributes
 -- are given in the 'Traffic Flow Measurement: Architecture'
-
--- document [9].
+-- document [RTFM-ARC].
 
 -- From time to time a meter reader may sweep the flow table so as
 -- to read counts.  This is most effectively achieved by using the
@@ -680,6 +970,13 @@ flowMaxFlows OBJECT-TYPE
 -- This scheme allows multiple meter readers to independently use the
 -- same meter; the meter readers do not have to be synchronised and
 -- they may use different collection intervals.
+
+-- If identical sets of counts are required from a meter, a manager
+-- could achieve this using two identical copies of a RuleSet in that
+-- meter and switching back and forth between them.  This is discussed
+-- further in the RTFM Architecture document [RTFM-ARC].
+
+
 
 flowDataTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF FlowDataEntry
@@ -695,7 +992,7 @@ flowDataEntry OBJECT-TYPE
     STATUS  current
     DESCRIPTION
         "The flow data record for a particular flow."
-    INDEX { flowDataTimeMark, flowDataIndex }
+    INDEX { flowDataRuleSet, flowDataTimeMark, flowDataIndex }
     ::= { flowDataTable 1 }
 
 FlowDataEntry ::= SEQUENCE {
@@ -704,54 +1001,55 @@ FlowDataEntry ::= SEQUENCE {
     flowDataStatus                  INTEGER,
 
     flowDataSourceInterface         Integer32,
-    flowDataSourceAdjacentType      AddressType,
+    flowDataSourceAdjacentType      AdjacentType,
     flowDataSourceAdjacentAddress   AdjacentAddress,
     flowDataSourceAdjacentMask      AdjacentAddress,
-    flowDataSourcePeerType          AddressType,
+    flowDataSourcePeerType          PeerType,
     flowDataSourcePeerAddress       PeerAddress,
     flowDataSourcePeerMask          PeerAddress,
-    flowDataSourceTransType         INTEGER,
+    flowDataSourceTransType         TransportType,
     flowDataSourceTransAddress      TransportAddress,
     flowDataSourceTransMask         TransportAddress,
 
     flowDataDestInterface           Integer32,
-    flowDataDestAdjacentType        AddressType,
+    flowDataDestAdjacentType        AdjacentType,
     flowDataDestAdjacentAddress     AdjacentAddress,
     flowDataDestAdjacentMask        AdjacentAddress,
-    flowDataDestPeerType            AddressType,
+    flowDataDestPeerType            PeerType,
     flowDataDestPeerAddress         PeerAddress,
     flowDataDestPeerMask            PeerAddress,
-    flowDataDestTransType           INTEGER,
+    flowDataDestTransType           TransportType,
     flowDataDestTransAddress        TransportAddress,
     flowDataDestTransMask           TransportAddress,
 
-    flowDataPDUScale                INTEGER,
-    flowDataOctetScale              INTEGER,
+    flowDataPDUScale                Integer32,
+    flowDataOctetScale              Integer32,
 
-    flowDataRuleSet                 INTEGER,
+    flowDataRuleSet                 Integer32,
 
-    flowDataToOctets                Counter32,    -- Source->Dest
-    flowDataToPDUs                  Counter32,
-    flowDataFromOctets              Counter32,    -- Dest->Source
-    flowDataFromPDUs                Counter32,
-    flowDataFirstTime               TimeTicks,    -- Activity times
-    flowDataLastActiveTime          TimeTicks,
+
+    flowDataToOctets                Counter64,    -- Source->Dest
+    flowDataToPDUs                  Counter64,
+    flowDataFromOctets              Counter64,    -- Dest->Source
+    flowDataFromPDUs                Counter64,
+    flowDataFirstTime               TimeStamp,    -- Activity times
+    flowDataLastActiveTime          TimeStamp,
 
     flowDataSourceSubscriberID      OCTET STRING,
     flowDataDestSubscriberID        OCTET STRING,
     flowDataSessionID               OCTET STRING,
 
-    flowDataSourceClass             INTEGER,
-    flowDataDestClass               INTEGER,
-    flowDataClass                   INTEGER,
-    flowDataSourceKind              INTEGER,
-    flowDataDestKind                INTEGER,
-    flowDataKind                    INTEGER
+    flowDataSourceClass             Integer32,
+    flowDataDestClass               Integer32,
+    flowDataClass                   Integer32,
+    flowDataSourceKind              Integer32,
+    flowDataDestKind                Integer32,
+    flowDataKind                    Integer32
     }
 
 flowDataIndex OBJECT-TYPE
-    SYNTAX  Integer32
-    MAX-ACCESS  read-only
+    SYNTAX  Integer32 (1..2147483647)
+    MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
         "Value of this flow data record's index within the meter's
@@ -765,19 +1063,21 @@ flowDataTimeMark OBJECT-TYPE
     DESCRIPTION
         "A TimeFilter for this entry.  Allows GetNext and GetBulk
         to find flow table rows which have changed since a specified
-        value of sysUptime."
+        value of the meter's Uptime."
     ::= { flowDataEntry 2 }
 
 flowDataStatus OBJECT-TYPE
-    SYNTAX  INTEGER { inactive(1), current(2), idle(3) }
+    SYNTAX  INTEGER { inactive(1), current(2) }
     MAX-ACCESS  read-only
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "Status of this flow data record."
     ::= { flowDataEntry 3 }
 
 flowDataSourceInterface OBJECT-TYPE
     SYNTAX  Integer32
+
+
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -787,14 +1087,20 @@ flowDataSourceInterface OBJECT-TYPE
     ::= { flowDataEntry 4 }
 
 flowDataSourceAdjacentType OBJECT-TYPE
-    SYNTAX  AddressType
+    SYNTAX  AdjacentType
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "Adjacent address type of the source for this flow.  If
-        accounting is being performed at the network level the
-        adjacent address will probably be an 802 MAC address, and
-        the adjacent address type will indicate the medium type."
+        "Adjacent address type of the source for this flow.
+
+        If metering is being performed at the network level,
+        AdjacentType will indicate the medium for the interface on
+        which the flow was observed and AdjacentAddress will be the
+        MAC address for that interface.  This is the usual case.
+
+        If traffic is being metered inside a tunnel, AdjacentType will
+        be the peer type of the host at the end of the tunnel and
+        AdjacentAddress will be the peer address for that host."
     ::= { flowDataEntry 5 }
 
 flowDataSourceAdjacentAddress OBJECT-TYPE
@@ -816,10 +1122,12 @@ flowDataSourceAdjacentMask OBJECT-TYPE
     ::= { flowDataEntry 7 }
 
 flowDataSourcePeerType OBJECT-TYPE
-    SYNTAX  AddressType
+    SYNTAX  PeerType
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
+
+
         "Peer address type of the source for this flow."
     ::= { flowDataEntry 8 }
 
@@ -841,7 +1149,7 @@ flowDataSourcePeerMask OBJECT-TYPE
     ::= { flowDataEntry 10 }
 
 flowDataSourceTransType OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  TransportType
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -868,6 +1176,8 @@ flowDataSourceTransMask OBJECT-TYPE
 
 flowDataDestInterface OBJECT-TYPE
     SYNTAX  Integer32
+
+
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -877,7 +1187,7 @@ flowDataDestInterface OBJECT-TYPE
     ::= { flowDataEntry 14 }
 
 flowDataDestAdjacentType OBJECT-TYPE
-    SYNTAX  AddressType
+    SYNTAX  AdjacentType
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -899,11 +1209,11 @@ flowDataDestAdjacentMask OBJECT-TYPE
     STATUS  current
     DESCRIPTION
         "1-bits in this mask indicate which bits must match when
-        comparing the adjacent dest address for this flow."
+        comparing the adjacent destination address for this flow."
     ::= { flowDataEntry 17 }
 
 flowDataDestPeerType OBJECT-TYPE
-    SYNTAX  AddressType
+    SYNTAX  PeerType
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -916,6 +1226,8 @@ flowDataDestPeerAddress OBJECT-TYPE
     STATUS  current
     DESCRIPTION
         "Address of the peer device for the destination of this flow."
+
+
     ::= { flowDataEntry 19 }
 
 flowDataDestPeerMask OBJECT-TYPE
@@ -924,11 +1236,11 @@ flowDataDestPeerMask OBJECT-TYPE
     STATUS  current
     DESCRIPTION
         "1-bits in this mask indicate which bits must match when
-        comparing the dest peer type for this flow."
+        comparing the destination peer type for this flow."
     ::= { flowDataEntry 20 }
 
 flowDataDestTransType OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  TransportType
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -954,7 +1266,7 @@ flowDataDestTransMask OBJECT-TYPE
     ::= { flowDataEntry 23 }
 
 flowDataPDUScale OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  Integer32 (0..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -964,7 +1276,9 @@ flowDataPDUScale OBJECT-TYPE
     ::= { flowDataEntry 24 }
 
 flowDataOctetScale OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+
+
+    SYNTAX  Integer32 (0..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -974,57 +1288,55 @@ flowDataOctetScale OBJECT-TYPE
     ::= { flowDataEntry 25 }
 
 flowDataRuleSet OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
-    MAX-ACCESS  read-only
+    SYNTAX  Integer32 (1..255)
+    MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
-        "The RuleSet number of the rule set which created this flow."
+        "The RuleSet number of the RuleSet which created this flow.
+        Allows a manager to use GetNext or GetBulk requests to find
+        flows belonging to a particular RuleSet."
     ::= { flowDataEntry 26 }
 
 flowDataToOctets OBJECT-TYPE
-    SYNTAX  Counter32
+    SYNTAX  Counter64
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "The count of octets flowing from source to dest address and
-        being delivered to the protocol level being metered.  In the
-        case of IP this would count the number of octets delivered to
-        the IP level."
+        "The count of octets flowing from source to destination
+        for this flow."
     ::= { flowDataEntry 27 }
 
 flowDataToPDUs OBJECT-TYPE
-    SYNTAX  Counter32
+    SYNTAX  Counter64
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "The count of protocol packets flowing from source to dest
-        address and being delivered to the protocol level being
-        metered.  In the case of IP, for example, this would count the
-        IP packets delivered to the IP protocol level."
+        "The count of packets flowing from source to destination
+        for this flow."
     ::= { flowDataEntry 28 }
 
 flowDataFromOctets OBJECT-TYPE
-    SYNTAX  Counter32
+    SYNTAX  Counter64
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "The count of octets flowing from dest to source address and
-        being delivered to the protocol level being metered."
+        "The count of octets flowing from destination to source
+        for this flow."
     ::= { flowDataEntry 29 }
 
 flowDataFromPDUs OBJECT-TYPE
-    SYNTAX  Counter32
+    SYNTAX  Counter64
+
+
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "The count of protocol packets flowing from dest to source
-        address and being delivered to the protocol level being
-        metered.  In the case of IP, for example, this would count
-        the IP packets delivered to the IP protocol level."
+        "The count of packets flowing from destination to source
+        for this flow."
     ::= { flowDataEntry 30 }
 
 flowDataFirstTime OBJECT-TYPE
-    SYNTAX  TimeTicks
+    SYNTAX  TimeStamp
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -1032,7 +1344,7 @@ flowDataFirstTime OBJECT-TYPE
     ::= { flowDataEntry 31 }
 
 flowDataLastActiveTime OBJECT-TYPE
-    SYNTAX  TimeTicks
+    SYNTAX  TimeStamp
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -1046,7 +1358,10 @@ flowDataSourceSubscriberID OBJECT-TYPE
     STATUS  current
     DESCRIPTION
         "Subscriber ID associated with the source address for this
-        flow."
+        flow.  A Subscriber ID is an unspecified text string, used
+        to ascribe traffic flows to individual users.  At this time
+        the means by which a Subscriber ID may be associated with a
+        flow is unspecified."
     ::= { flowDataEntry 33 }
 
 flowDataDestSubscriberID OBJECT-TYPE
@@ -1054,9 +1369,14 @@ flowDataDestSubscriberID OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
-        "Subscriber ID associated with the dest address for this
-        flow."
+        "Subscriber ID associated with the destination address for
+        this flow.  A Subscriber ID is an unspecified text string,
+        used to ascribe traffic flows to individual users.  At this
+        time the means by which a Subscriber ID may be associated
+        with a flow is unspecified."
     ::= { flowDataEntry 34 }
+
+
 
 flowDataSessionID OBJECT-TYPE
     SYNTAX  OCTET STRING (SIZE (4..10))
@@ -1070,7 +1390,7 @@ flowDataSessionID OBJECT-TYPE
     ::= { flowDataEntry 35 }
 
 flowDataSourceClass OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  Integer32 (1..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -1079,7 +1399,7 @@ flowDataSourceClass OBJECT-TYPE
     ::= { flowDataEntry 36 }
 
 flowDataDestClass OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  Integer32 (1..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -1088,7 +1408,7 @@ flowDataDestClass OBJECT-TYPE
     ::= { flowDataEntry 37 }
 
 flowDataClass OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  Integer32 (1..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -1097,7 +1417,7 @@ flowDataClass OBJECT-TYPE
     ::= { flowDataEntry 38 }
 
 flowDataSourceKind OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  Integer32 (1..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -1106,7 +1426,9 @@ flowDataSourceKind OBJECT-TYPE
     ::= { flowDataEntry 39 }
 
 flowDataDestKind OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+
+
+    SYNTAX  Integer32 (1..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
@@ -1115,14 +1437,13 @@ flowDataDestKind OBJECT-TYPE
     ::= { flowDataEntry 40 }
 
 flowDataKind OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  Integer32 (1..255)
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
         "Class for this flow.  Determined by the rules, set by a
         PushRule action when this flow was entered in the table."
     ::= { flowDataEntry 41 }
-
 
 --
 -- The Activity Column Table
@@ -1131,10 +1452,10 @@ flowDataKind OBJECT-TYPE
 flowColumnActivityTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF FlowColumnActivityEntry
     MAX-ACCESS  not-accessible
-    STATUS   current
+    STATUS   deprecated
     DESCRIPTION
         "Index into the Flow Table.  Allows a meter reader to retrieve
-        a list containing the flow table indeces of flows which were
+        a list containing the flow table indexes of flows which were
         last active at or after a given time, together with the values
         of a specified attribute for each such flow."
     ::= { flowData 2 }
@@ -1142,7 +1463,7 @@ flowColumnActivityTable OBJECT-TYPE
 flowColumnActivityEntry OBJECT-TYPE
     SYNTAX  FlowColumnActivityEntry
     MAX-ACCESS  not-accessible
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "The Column Activity Entry for a particular attribute,
         activity time and flow."
@@ -1155,12 +1476,14 @@ FlowColumnActivityEntry ::= SEQUENCE {
     flowColumnActivityTime        TimeFilter,
     flowColumnActivityIndex       Integer32,
     flowColumnActivityData        OCTET STRING
+
+
     }
 
 flowColumnActivityAttribute OBJECT-TYPE
     SYNTAX  FlowAttributeNumber
     MAX-ACCESS  read-only
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "Specifies the attribute for which values are required from
         active flows."
@@ -1169,7 +1492,7 @@ flowColumnActivityAttribute OBJECT-TYPE
 flowColumnActivityTime OBJECT-TYPE
     SYNTAX  TimeFilter
     MAX-ACCESS  read-only
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "This variable is a copy of flowDataLastActiveTime in the
         flow data record identified by the flowColumnActivityIndex
@@ -1177,9 +1500,9 @@ flowColumnActivityTime OBJECT-TYPE
     ::= { flowColumnActivityEntry 2 }
 
 flowColumnActivityIndex OBJECT-TYPE
-    SYNTAX  Integer32
+    SYNTAX  Integer32 (1..2147483647)
     MAX-ACCESS  read-only
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "Index of a flow table entry which was active at or after
         a specified flowColumnActivityTime."
@@ -1188,7 +1511,7 @@ flowColumnActivityIndex OBJECT-TYPE
 flowColumnActivityData OBJECT-TYPE
     SYNTAX  OCTET STRING (SIZE (3..1000))
     MAX-ACCESS  read-only
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "Collection of attribute data for flows active after
         flowColumnActivityTime.  Within the OCTET STRING is a
@@ -1202,7 +1525,9 @@ flowColumnActivityData OBJECT-TYPE
         their high-order bytes leading.  Numbers are fixed size, as
         specified by their SYNTAX in the flow table (above), i.e. one
         octet for flowAddressType and small constants, and four octets
-        for Counter and Timeticks.  Strings are variable-length, with
+        for Counter and TimeStamp.  Strings are variable-length, with
+
+
         the length given in a single leading octet.
 
         The following is an attempt at an ASN.1 definition of
@@ -1210,41 +1535,149 @@ flowColumnActivityData OBJECT-TYPE
 
         flowColumnActivityData ::= SEQUENCE flowRowItemEntry
         flowRowItemEntry ::= SEQUENCE {
-           flowRowNumber    INTEGER (1..65535),
+           flowRowNumber    Integer32 (1..65535),
                                  -- 0 indicates the end of this column
            flowDataValue   flowDataType -- Choice depends on attribute
            }
         flowDataType ::= CHOICE {
-            flowByteValue   INTEGER (1..255),
-            flowShortValue  INTEGER (1..65535),
+            flowByteValue   Integer32 (1..255),
+            flowShortValue  Integer32 (1..65535),
             flowLongValue   Integer32,
             flowStringValue OCTET STRING  -- Length (n) in first byte,
                   -- n+1 bytes total length, trailing zeroes truncated
             }"
     ::= { flowColumnActivityEntry 4 }
 
+--
+-- The Data Package Table
+--
+
+flowDataPackageTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF FlowDataPackageEntry
+    MAX-ACCESS  not-accessible
+    STATUS   current
+    DESCRIPTION
+        "Index into the Flow Table.  Allows a meter reader to retrieve
+        a sequence containing the values of a specified set of
+        attributes for a flow which came from a specified RuleSet and
+        which was last active at or after a given time."
+    ::= { flowData 3 }
+
+flowDataPackageEntry OBJECT-TYPE
+    SYNTAX  FlowDataPackageEntry
+    MAX-ACCESS  not-accessible
+    STATUS  current
+    DESCRIPTION
+        "The data package containing selected variables from
+        active rows in the flow table."
+    INDEX { flowPackageSelector,
+        flowPackageRuleSet, flowPackageTime, flowPackageIndex }
+    ::= { flowDataPackageTable 1 }
+
+FlowDataPackageEntry ::= SEQUENCE {
+    flowPackageSelector    OCTET STRING,
+
+
+    flowPackageRuleSet     Integer32,
+    flowPackageTime        TimeFilter,
+    flowPackageIndex       Integer32,
+    flowPackageData        OCTET STRING
+    }
+
+flowPackageSelector OBJECT-TYPE
+    SYNTAX  OCTET STRING
+    MAX-ACCESS  not-accessible
+    STATUS  current
+    DESCRIPTION
+        "Specifies the attributes for which values are required from
+        an active flow.  These are encoded as a sequence of octets
+        each containing a FlowAttribute number, preceded by an octet
+        giving the length of the sequence (not including the length
+        octet).  For a flowPackageSelector to be valid, it must
+        contain at least one attribute."
+    ::= { flowDataPackageEntry 1 }
+
+flowPackageRuleSet OBJECT-TYPE
+    SYNTAX  Integer32 (1..255)
+    MAX-ACCESS  not-accessible
+    STATUS  current
+    DESCRIPTION
+        "Specifies the index (in the flowRuleSetInfoTable) of the rule
+        set which produced the required flow."
+    ::= { flowDataPackageEntry 2 }
+
+flowPackageTime OBJECT-TYPE
+    SYNTAX  TimeFilter
+    MAX-ACCESS  not-accessible
+    STATUS  current
+    DESCRIPTION
+        "This variable is a copy of flowDataLastActiveTime in the
+        flow data record identified by the flowPackageIndex
+        value of this flowPackageTable entry."
+    ::= { flowDataPackageEntry 3 }
+
+flowPackageIndex OBJECT-TYPE
+    SYNTAX  Integer32 (1..2147483647)
+    MAX-ACCESS  not-accessible
+    STATUS  current
+    DESCRIPTION
+        "Index of a flow table entry which was active at or after
+        a specified flowPackageTime."
+    ::= { flowDataPackageEntry 4 }
+
+flowPackageData OBJECT-TYPE
+
+
+    SYNTAX  OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS  current
+    DESCRIPTION
+        "A collection of attribute values for a single flow, as
+        specified by this row's indexes.  The attribute values are
+        contained within a BER-encoded sequence [ASN-1, ASN-BER],
+        in the order they appear in their flowPackageSelector.
+
+        For example, to retrieve a flowPackage containing values for
+        attributes 11, 18 and 29, for a flow in RuleSet 7, with flow
+        index 3447, one would GET the package whose Object Identifier
+        (OID) is
+            flowPackageData . 3.11.18.29 . 7. 0 . 3447
+
+        To get a package for the next such flow which had been
+        active since time 12345 one would GETNEXT the package whose
+        Object Identifier (OID) is
+            flowPackageData . 3.11.18.29 . 7. 12345 . 3447"
+    ::= { flowDataPackageEntry 5 }
 
 --
 -- The Rule Table
 --
 
--- This is an array of rule tables; the one in use is selected by
--- CurrentRuleSet.  To change the rule set the manager chooses a set
--- number which is not in use, downloads the new rule set there, then
--- writes the new set number into CurrentRuleSet.  Rule set 1 is the
--- default rule set, used by the meter on start-up.  Several rule sets
--- can be held in a meter so that the manager can change the rules
--- easily, for example with time of day.  Note that a manager may
--- not change the default rule set, nor the rules in its current rule
--- set!  See the 'Traffic Flow Measurement: Architecture' document [9]
--- for details of rules and how they are used.
+-- This is an array of RuleSets; the 'running' ones are indicated
+-- by the entries in the meter's flowManagerInfoTable.  Several
+-- RuleSets can be held in a meter so that the manager can change the
+-- running RuleSets easily, for example with time of day.  Note that
+-- a manager may not change the rules in any RuleSet currently
+-- referenced within the flowManagerInfoTable (either as 'current' or
+-- 'standby')!  See the 'Traffic Flow Measurement: Architecture'
+-- document [RTFM-ARC] for details of rules and how they are used.
+
+-- Space for a RuleSet is allocated by setting the value of
+-- flowRuleInfoSize in the rule table's flowRuleSetInfoTable row.
+-- Values for each row in the RuleSet (Selector, Mask, MatchedValue,
+-- Action and Parameter) can then be set by the meter.
+
+-- Although an individual rule within a RuleSet could be modified,
+-- it is much safer to simply download a complete new RuleSet.
 
 flowRuleTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF FlowRuleEntry
     MAX-ACCESS  not-accessible
     STATUS   current
     DESCRIPTION
-        "Contains all the rule sets which may be used by the meter."
+        "Contains all the RuleSets which may be used by the meter."
+
+
     ::= { flowRules 1 }
 
 flowRuleEntry OBJECT-TYPE
@@ -1257,8 +1690,8 @@ flowRuleEntry OBJECT-TYPE
     ::= { flowRuleTable 1 }
 
 FlowRuleEntry ::= SEQUENCE {
-    flowRuleSet                  INTEGER,
-    flowRuleIndex                INTEGER,
+    flowRuleSet                  Integer32,
+    flowRuleIndex                Integer32,
     flowRuleSelector             RuleAttributeNumber,
     flowRuleMask                 RuleAddress,
     flowRuleMatchedValue         RuleAddress,
@@ -1267,32 +1700,40 @@ FlowRuleEntry ::= SEQUENCE {
     }
 
 flowRuleSet OBJECT-TYPE
-    SYNTAX  INTEGER (1..255)
+    SYNTAX  Integer32 (1..2147483647)
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
-        "Selects a rule set from the array of rule sets."
+        "Selects a RuleSet from the array of RuleSets."
     ::= { flowRuleEntry 1 }
 
 flowRuleIndex OBJECT-TYPE
-    SYNTAX  INTEGER (1..65535)
+    SYNTAX  Integer32 (1..2147483647)
     MAX-ACCESS  not-accessible
     STATUS  current
     DESCRIPTION
         "The index into the Rule table.  N.B: These values will
-        often be consecutive, given the fall-through semantics of
-        processing the table."
+        normally be consecutive, given the fall-through semantics
+        of processing the table."
     ::= { flowRuleEntry 2 }
 
 flowRuleSelector OBJECT-TYPE
     SYNTAX  RuleAttributeNumber
-    MAX-ACCESS  read-create
+    MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
         "Indicates the attribute to be matched.
 
         null(0) is a special case; null rules always succeed.
 
+
+
+        matchingStoD(50) is set by the meter's Packet Matching Engine.
+        Its value is true(1) if the PME is attempting to match the
+        packet with its addresses in Source-to-Destination order (i.e.
+        as they appear in the packet), and false(2) otherwise.
+        Details of how packets are matched are given in the 'Traffic
+        Flow Measurement: Architecture' document [RTFM-ARC].
         v1(51), v2(52), v3(53), v4(54) and v5(55) select meter
         variables, each of which can hold the name (i.e. selector
         value) of an address attribute.  When one of these is used
@@ -1302,7 +1743,7 @@ flowRuleSelector OBJECT-TYPE
 
 flowRuleMask OBJECT-TYPE
     SYNTAX  RuleAddress
-    MAX-ACCESS  read-create
+    MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
         "The initial mask used to compute the desired value.  If the
@@ -1311,7 +1752,7 @@ flowRuleMask OBJECT-TYPE
 
 flowRuleMatchedValue OBJECT-TYPE
     SYNTAX  RuleAddress
-    MAX-ACCESS  read-create
+    MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
         "The resulting value to be matched for equality.
@@ -1325,22 +1766,27 @@ flowRuleMatchedValue OBJECT-TYPE
 
 flowRuleAction OBJECT-TYPE
     SYNTAX  ActionNumber
-    MAX-ACCESS  read-create
+    MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
         "The action to be taken if this rule's test succeeds, or if
         the meter's 'test' flag is off.  Actions are opcodes for the
         meter's Packet Matching Engine; details are given in the
-        'Traffic Flow Measurement: Architecture' document [9]."
+        'Traffic Flow Measurement: Architecture' document [RTFM-ARC]."
     ::= { flowRuleEntry 6 }
 
 flowRuleParameter OBJECT-TYPE
-    SYNTAX  Integer32
-    MAX-ACCESS  read-create
+
+
+    SYNTAX  Integer32 (1..65535)
+    MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
-        "A parameter value providing extra information for the
-        rule's action."
+        "A parameter value providing extra information for this rule's
+        action.  Most of the actions use the parameter value to specify
+        which rule to execute after this rule's test has failed; details
+        are given in the 'Traffic Flow Measurement: Architecture'
+        document [RTFM-ARC]."
     ::= { flowRuleEntry 7 }
 
 --
@@ -1357,28 +1803,33 @@ flowControlGroup OBJECT-GROUP
     OBJECTS  {
         flowRuleInfoSize, flowRuleInfoOwner,
             flowRuleInfoTimeStamp, flowRuleInfoStatus,
-        flowInterfaceRate,
+            flowRuleInfoName,
+            flowRuleInfoRulesReady,
+            flowRuleInfoFlowRecords,
+        flowInterfaceSampleRate,
             flowInterfaceLostPackets,
         flowReaderTimeout, flowReaderOwner,
             flowReaderLastTime, flowReaderPreviousTime,
-            flowReaderStatus,
+            flowReaderStatus, flowReaderRuleSet,
         flowManagerCurrentRuleSet, flowManagerStandbyRuleSet,
             flowManagerHighWaterMark,
+            flowManagerCounterWrap,
             flowManagerOwner, flowManagerTimeStamp,
-            flowManagerStatus,
+            flowManagerStatus, flowManagerRunningStandby,
         flowFloodMark,
-            flowInactivityTimeout,
-            flowActiveFlows,
-            flowMaxFlows }
-    STATUS  current
+            flowInactivityTimeout, flowActiveFlows,
+            flowMaxFlows, flowFloodMode }
+    STATUS  deprecated
     DESCRIPTION
         "The control group defines objects which are used to control
         an accounting meter."
     ::= {flowMIBGroups 1 }
 
 flowDataTableGroup OBJECT-GROUP
+
+
     OBJECTS  {
-        flowDataIndex,
+--      flowDataIndex,                    <- INDEX, not-accessible
         flowDataStatus,
         flowDataSourceInterface,
         flowDataSourceAdjacentType,
@@ -1394,17 +1845,17 @@ flowDataTableGroup OBJECT-GROUP
         flowDataDestPeerAddress, flowDataDestPeerMask,
         flowDataDestTransType,
         flowDataDestTransAddress, flowDataDestTransMask,
-        flowDataRuleSet,
+--      flowDataRuleSet,                  <- INDEX, not-accessible
         flowDataToOctets, flowDataToPDUs,
         flowDataFromOctets, flowDataFromPDUs,
         flowDataFirstTime, flowDataLastActiveTime,
         flowDataSourceClass, flowDataDestClass, flowDataClass,
         flowDataSourceKind, flowDataDestKind, flowDataKind
         }
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "The flow table group defines objects which provide the
-        structure for the rule table, including the creation time
+        structure for the flow table, including the creation time
         and activity time indexes into it.  In addition it defines
         objects which provide a base set of flow attributes for the
         adjacent, peer and transport layers, together with a flow's
@@ -1417,7 +1868,7 @@ flowDataScaleGroup OBJECT-GROUP
         flowManagerCounterWrap,
         flowDataPDUScale, flowDataOctetScale
         }
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "The flow scale group defines objects which specify scale
         factors for counters."
@@ -1425,6 +1876,8 @@ flowDataScaleGroup OBJECT-GROUP
 
 flowDataSubscriberGroup OBJECT-GROUP
     OBJECTS  {
+
+
         flowDataSourceSubscriberID, flowDataDestSubscriberID,
         flowDataSessionID
         }
@@ -1437,16 +1890,27 @@ flowDataSubscriberGroup OBJECT-GROUP
 flowDataColumnTableGroup OBJECT-GROUP
     OBJECTS  {
         flowColumnActivityAttribute,
-        flowColumnActivityTime,
         flowColumnActivityIndex,
+        flowColumnActivityTime,
         flowColumnActivityData
         }
-    STATUS  current
+    STATUS  deprecated
     DESCRIPTION
         "The flow column table group defines objects which can be used
         to collect part of a column of attribute values from the flow
         table."
     ::= {flowMIBGroups 5 }
+
+flowDataPackageGroup OBJECT-GROUP
+    OBJECTS  {
+        flowPackageData
+        }
+    STATUS  current
+    DESCRIPTION
+        "The data package group defines objects which can be used
+        to collect a specified set of attribute values from a row of
+        the flow table."
+    ::= {flowMIBGroups 6 }
 
 flowRuleTableGroup OBJECT-GROUP
     OBJECTS  {
@@ -1459,7 +1923,48 @@ flowRuleTableGroup OBJECT-GROUP
         "The rule table group defines objects which hold the set(s)
         of rules specifying which traffic flows are to be accounted
         for."
-    ::= {flowMIBGroups 6 }
+    ::= {flowMIBGroups 7 }
+
+flowDataScaleGroup2 OBJECT-GROUP
+
+
+    OBJECTS  {
+--      flowManagerCounterWrap,           <- Deprecated
+        flowDataPDUScale, flowDataOctetScale
+        }
+    STATUS  current
+    DESCRIPTION
+        "The flow scale group defines objects which specify scale
+        factors for counters.  This group replaces the earlier
+        version of flowDataScaleGroup above (now deprecated)."
+    ::= {flowMIBGroups 8}
+
+flowControlGroup2 OBJECT-GROUP
+    OBJECTS  {
+        flowRuleInfoSize, flowRuleInfoOwner,
+            flowRuleInfoTimeStamp, flowRuleInfoStatus,
+            flowRuleInfoName,
+--          flowRuleInfoRulesReady,       <- Deprecated
+            flowRuleInfoFlowRecords,
+        flowInterfaceSampleRate,
+            flowInterfaceLostPackets,
+        flowReaderTimeout, flowReaderOwner,
+            flowReaderLastTime, flowReaderPreviousTime,
+            flowReaderStatus, flowReaderRuleSet,
+        flowManagerCurrentRuleSet, flowManagerStandbyRuleSet,
+            flowManagerHighWaterMark,
+--          flowManagerCounterWrap,       <- Moved to DataScaleGroup
+            flowManagerOwner, flowManagerTimeStamp,
+            flowManagerStatus, flowManagerRunningStandby,
+        flowFloodMark,
+            flowInactivityTimeout, flowActiveFlows,
+            flowMaxFlows, flowFloodMode }
+    STATUS  current
+    DESCRIPTION
+        "The control group defines objects which are used to control
+        an accounting meter.  It replaces the earlier version of
+        flowControlGroup above (now deprecated)."
+    ::= {flowMIBGroups 9 }
 
 flowMIBCompliance MODULE-COMPLIANCE
     STATUS  current
@@ -1467,9 +1972,12 @@ flowMIBCompliance MODULE-COMPLIANCE
         "The compliance statement for a Traffic Flow Meter."
     MODULE
         MANDATORY-GROUPS  {
-            flowControlGroup,
+            flowControlGroup2,
             flowDataTableGroup,
+            flowDataPackageGroup,
             flowRuleTableGroup
+
+
             }
     ::= { flowMIBCompliances 1 }
 

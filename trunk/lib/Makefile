@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.in,v 1.45 1999/10/07 13:33:53 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.9 1999/06/08 21:09:42 strauss Exp $
 #
 
 
@@ -73,6 +73,7 @@ POST_UNINSTALL = :
 host_alias = sparc-sun-solaris2.5.1
 host_triplet = sparc-sun-solaris2.5.1
 AS = @AS@
+AWK = /usr/local/bin/awk
 BASH = /usr/local/bin/bash
 BISON = /usr/local/bin/bison
 CC = gcc
@@ -89,8 +90,9 @@ NM = /usr/local/bin/nm -B
 OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
+SH = /bin/sh
 STATIC = -static
-VERSION = 0.1.7-pre15
+VERSION = 0.1.8-pre2
 mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site
 
@@ -110,7 +112,7 @@ smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre15\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.8-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\"  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

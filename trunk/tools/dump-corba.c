@@ -9,12 +9,11 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.1 1999/10/05 15:52:20 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.2 1999/10/06 16:05:28 strauss Exp $
  */
 
 /*
  * TODO:
- *	  - get rid of getTypeString()?
  *	  - notifications (3.5)
  *	  - factory interfaces (3.4.7)
  */
@@ -44,6 +43,35 @@
 
 static int current_column = 0;
 
+static int silent = 0;
+
+
+/*
+ * The following list of IDL keywords is taken from the CORBA
+ * 2.3.1 IDL specification section 3.2.4 (October 1999).
+ */
+
+
+static char *idlKeywords[] = {
+    "abstract",
+    "any",		"attribute",	"boolean",	"case",
+    "char",		"const",	"context",	"custom",
+    "default",		"double",	"enum",		"exception",
+    "factory",		"FALSE",	"fixed",	"float",
+    "in",		"inout",	"interface",	"long",
+    "module",		"native",	"object",	"octet",
+    "oneway",		"out",		"private",	"public",
+    "raises",		"readonly",	"sequence",	"short",
+    "string",		"struct",	"supports",	"switch",
+    "TRUE",		"truncatable",	"typedef",	"unsigned",
+    "union",		"valuebase",	"valuetype",	"void",
+    "wchar",		"wstring",	NULL
+};
+
+
+/*
+ * Structure used to build a list of imported types.
+ */
 
 
 typedef struct Import {
@@ -55,36 +83,10 @@ typedef struct Import {
 static Import *importList = NULL;
 
 
-
-static char *convertType[] = {
-    NULL,	 "Integer",	       NULL,   "ASN1_Integer",
-    NULL,	 "Bits",	       NULL,   "ASN1_BitString",
-    NULL,	 "OctetString",	       NULL,   "ASN1_OctetString",
-    NULL,	 "ObjectIdentifier",   NULL,   "ASN1_ObjectIdentifier",
-    NULL, NULL, NULL, NULL
-};
-
-
-
 /*
- * The following  list of IDL keywords is taken from the CORBA
- * 2.2 IDL specification section 3.2.4 (February 1998).
+ * Structure used to build dictionaries that translate names
+ * into IDL names following the generic JIDM rules.
  */
-
-
-static char *idlKeywords[] = {
-    "any",		"attribute",	"boolean",	"case",
-    "char",		"const",	"context",	"default",
-    "double",		"enum",		"exception",	"FALSE",
-    "fixed",		"float",	"in",		"inout",
-    "interface",	"long",		"module",	"object",
-    "octet",		"oneway",	"out",		"raises",
-    "readonly",		"sequence",	"short",	"string",
-    "struct",		"switch",	"TRUE",		"typedef",
-    "unsigned",		"union",	"void",		"wchar",
-    "wstring",		NULL
-};
-
 
 
 typedef struct IdlEntry {
@@ -101,29 +103,6 @@ static IdlEntry *idlTypeNameList = NULL;
 static IdlEntry **idlNameLists[] = {
     &idlModuleNameList, &idlNodeNameList, &idlTypeNameList, NULL
 };
-
-
-static void *safeMalloc(size_t size)
-{
-    char *m = malloc(size);
-    if (! m) {
-	fprintf(stderr, "smidump: malloc failed - running out of memory\n");
-	exit(1);
-    }
-    return m;
-}
-
-
-
-static char *safeStrdup(const char *s)
-{
-    char *m = strdup(s);
-    if (! m) {
-	fprintf(stderr, "smidump: strdup failed - running out of memory\n");
-	exit(1);
-    }
-    return m;
-}
 
 
 
@@ -155,7 +134,7 @@ static char* dictAddName(IdlEntry **listPtr, char *module, char *name)
      */
 
     s = name ? name : module;
-    idl = safeMalloc(strlen(s) + 1);
+    idl = xmalloc(strlen(s) + 1);
     for (i = 0; s[i]; i++) {
 	idl[i] = (s[i] == '-') ? '_' : s[i];
     }
@@ -193,9 +172,9 @@ static char* dictAddName(IdlEntry **listPtr, char *module, char *name)
      * Safe the translated identifier in the dictionary.
      */
     
-    p = safeMalloc(sizeof(IdlEntry));
-    p->module = safeStrdup(module);
-    p->name = name ? safeStrdup(name) : NULL;
+    p = xmalloc(sizeof(IdlEntry));
+    p->module = xstrdup(module);
+    p->name = name ? xstrdup(name) : NULL;
     p->idlname = idl;
     p->nextPtr = *listPtr;
     *listPtr = p;
@@ -212,10 +191,10 @@ static void dictFree(IdlEntry *list)
     for (p = list; p; ) {
 	q = p;
 	p = p->nextPtr;
-	free(q->module);
-	if (q->name) free(q->name);
-	free(q->idlname);
-	free(q);
+	xfree(q->module);
+	if (q->name) xfree(q->name);
+	xfree(q->idlname);
+	xfree(q);
     }
 
     list = NULL;
@@ -252,7 +231,7 @@ static char* getIdlTypeName(char *module, char *name)
 {
     char *s, *typename;
 
-    typename = safeMalloc(strlen(name) + 10);
+    typename = xmalloc(strlen(name) + 10);
     sprintf(typename, "%sType", name);
     typename[0] = toupper((int) typename[0]);
 
@@ -261,8 +240,23 @@ static char* getIdlTypeName(char *module, char *name)
 	s = dictAddName(&idlTypeNameList, module, typename);
     }
 
-    free(typename);
+    xfree(typename);
     return s;
+}
+
+
+
+static int current(SmiStatus status)
+{
+    switch (status) {
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_UNKNOWN:
+    case SMI_STATUS_MANDATORY:
+    case SMI_STATUS_OPTIONAL:
+	return 1;
+    default:
+	return 0;
+    }
 }
 
 
@@ -324,53 +318,6 @@ static char *getBaseTypeString(SmiBasetype basetype)
 
     return NULL;
 }
-
-
-
-static char *getTypeString(char *module, SmiBasetype basetype,
-			   char *typemodule, char *typename)
-{
-    SmiType *smiType;
-    int     i;
-
-    if (typename) {
-	if (islower((int) typename[0])) {
-	    smiType = smiGetType(typemodule, typename);
-	    if (smiType) {
-		module = smiType->module;
-		basetype = smiType->basetype;
-		typemodule = smiType->parentmodule;
-		typename = smiType->parentname;
-	    }
-	}
-    }
-
-    if (typename &&
-	(basetype != SMI_BASETYPE_ENUM) &&
-	(basetype != SMI_BASETYPE_BITS)) {
-	for(i = 0; convertType[i+1]; i += 4) {
-	    if ((!strcmp(typename, convertType[i+1])) &&
-		((!typemodule) || (!convertType[i]) ||
-		 (!strcmp(typemodule, convertType[i])))) {
-		return convertType[i+3];
-	    }
-	}
-    }
-
-    if ((!typemodule) || (!typename) || islower((int)typename[0])) {
-	if (basetype == SMI_BASETYPE_ENUM) {
-	    return "ASN1_Integer";
-	}
-	if (basetype == SMI_BASETYPE_BITS) {
-	    return "ASN1_OctetString";
-	}
-    }
-	
-    /* TODO: fully qualified if unambigous */
-
-    return typename;
-}
-
 
 
 static char *getValueString(SmiValue *valuePtr)
@@ -461,7 +408,7 @@ static Import* addImport(char *module, char *name)
 	if (c > 0) break;
     }
 
-    newImport = safeMalloc(sizeof(Import));
+    newImport = xmalloc(sizeof(Import));
     newImport->module = module;
     newImport->name = name;
     newImport->nextPtr = *import;
@@ -504,7 +451,7 @@ static void freeImportList(void)
     for (import = importList; import; ) {
 	freeme = import;
 	import = import->nextPtr;
-	free(freeme);
+	xfree(freeme);
     }
     importList = NULL;
 }
@@ -589,7 +536,7 @@ static char* translate(char *s)
 {
     int i;
     
-    s = safeStrdup(s);
+    s = xstrdup(s);
     for (i = 0; s[i]; i++) {
 	if (s[i] == '-') s[i] = '_';
     }
@@ -608,7 +555,8 @@ static int isGroup(SmiNode *smiNode)
 	childNode = smiGetNextChildNode(childNode)) {
 	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
 	     || childNode->nodekind == SMI_NODEKIND_TABLE)
-	    && childNode->status == SMI_STATUS_CURRENT) {
+	    && current(childNode->status)) {
+	    smiFreeNode(childNode);
 	    return 1;
 	}
     }
@@ -721,35 +669,39 @@ static void printModule(char *modulename)
 	    print("ASN1_ObjectIdentifier %s = \"::%s::%s\";\n\n",
 		  getIdlModuleName(smiNode->name),
 		  idlModuleName, smiNode->name);
-	    printSegment(INDENT, "/*\n", 0);
-	    printMultiline(smiModule->description);
-	    print("\n");
-	    smiRevision = smiGetFirstRevision(modulename);
-	    printSegment(INDENT, "LAST-UPDATED:", INDENTVALUE);
-	    print(smiRevision
-		  ? getTimeString(smiRevision->date) : "197001010000Z");
-	    printSegment(INDENT, "ORGANIZATION:", 0);
-	    print("\n");
-	    printMultilineString(smiModule->organization);
-	    print("\n\n");
-	    printSegment(INDENT, "CONTACT-INFO:", 0);
-	    print("\n");
-	    printMultilineString(smiModule->contactinfo);
-	    print("\n\n");
-	    for(; smiRevision; smiRevision = smiGetNextRevision(smiRevision)) {
-		if (strcmp(smiRevision->description,
-			   "[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
-		    printSegment(INDENT, "REVISION:", INDENTVALUE);
-		    print("\"%s\"\n", getTimeString(smiRevision->date));
-		    printSegment(INDENT, "REVISION-DESCRIPTION:", 0);
-		    print("\n");
-		    printMultilineString(smiRevision->description);
-		    print("\n\n");
+	    if (! silent) {
+		printSegment(INDENT, "/*\n", 0);
+		printMultiline(smiModule->description);
+		print("\n");
+		smiRevision = smiGetFirstRevision(modulename);
+		printSegment(INDENT, "LAST-UPDATED:", INDENTVALUE);
+		print(smiRevision
+		      ? getTimeString(smiRevision->date) : "197001010000Z");
+		print("\n\n");
+		printSegment(INDENT, "ORGANIZATION:", 0);
+		print("\n");
+		printMultilineString(smiModule->organization);
+		print("\n\n");
+		printSegment(INDENT, "CONTACT-INFO:", 0);
+		print("\n");
+		printMultilineString(smiModule->contactinfo);
+		print("\n\n");
+		for(; smiRevision;
+		    smiRevision = smiGetNextRevision(smiRevision)) {
+		    if (strcmp(smiRevision->description,
+	       "[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
+			printSegment(INDENT, "REVISION:", INDENTVALUE);
+			print("\"%s\"\n", getTimeString(smiRevision->date));
+			printSegment(INDENT, "REVISION-DESCRIPTION:", 0);
+			print("\n");
+			printMultilineString(smiRevision->description);
+			print("\n\n");
+		    }
 		}
+		printSegment(INDENT, "*/", 0);
+		print("\n\n");
 	    }
-	    printSegment(INDENT, "*/", 0);
-	    print("\n\n");
-
+	    smiFreeNode(smiNode);
 	}
     }
 }
@@ -763,23 +715,23 @@ static void printType(SmiType *smiType)
     char           *nnName;
     int            i;
 
-    if (smiType->description) {
-	printSegment(INDENT, "/*\n", 0);
-	printMultiline(smiType->description);
-	if (smiType->reference) {
-	    printSegment(INDENT, "REFERENCE:", 0);
-	    print("\n");
-	    printMultilineString(smiType->reference);
-	    print("\n\n");
+    if (! silent) {
+	if (smiType->description) {
+	    printSegment(INDENT, "/*\n", 0);
+	    printMultiline(smiType->description);
+	    if (smiType->reference) {
+		printSegment(INDENT, "REFERENCE:", 0);
+		print("\n");
+		printMultilineString(smiType->reference);
+		print("\n\n");
+	    }
+	    if (smiType->format) {
+		printSegment(INDENT, "DISPLAY-HINT:", 0);
+		print(" %s\n", smiType->format);
+		print("\n\n");
+	    }
+	    printSegment(INDENT, "*/\n", 0);
 	}
-	if (smiType->format) {
-	    printSegment(INDENT, "DISPLAY-HINT:", 0);
-	    print(" %s\n", smiType->format);
-	    print("\n\n");
-	}
-	printSegment(INDENT, "*/\n", 0);
-    } else {
-	print("\n");
     }
     idlTypeName = getIdlTypeName(smiType->module, smiType->name);
     printSegment(INDENT, "typedef ", 0);
@@ -794,7 +746,7 @@ static void printType(SmiType *smiType)
 	    nnName = translate(nn->name);
 	    print("%s %s_%s = %s;\n", idlTypeName, idlTypeName, nnName,
 		  getValueString(&nn->value));
-	    free(nnName);
+	    xfree(nnName);
 	}
 	printSegment(INDENT, "const string ", 0);
 	print("%s_NameNumberList = \"", idlTypeName);
@@ -806,7 +758,7 @@ static void printType(SmiType *smiType)
 		print(" , ");
 	    }
 	    print("%s (%s)", nnName, getValueString(&nn->value));
-	    free(nnName);
+	    xfree(nnName);
 	}
 	print("\";\n");
     }
@@ -824,18 +776,21 @@ static void printTypedefs(char *modulename)
     for (smiType = smiGetFirstType(modulename);
 	 smiType;
 	 smiType = smiGetNextType(smiType)) {
-	if (smiType->status != SMI_STATUS_CURRENT) continue;
-	printType(smiType);
+	if (current(smiType->status)) {
+	    printType(smiType);
+	}
     }
 
     for (smiNode = smiGetFirstNode(modulename, kind);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, kind)) {
-	if (smiNode->status != SMI_STATUS_CURRENT) continue;
-	if (islower((int) smiNode->typename[0])) {
+	if (current(smiNode->status)) {
 	    smiType = smiGetType(smiNode->typemodule, smiNode->typename);
 	    if (smiType) {
-		printType(smiType);
+		if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+		    printType(smiType);
+		}
+		smiFreeType(smiType);
 	    }
 	}
     }
@@ -852,16 +807,17 @@ static void printAttribute(SmiNode *smiNode)
     }
 
     idlNodeName = getIdlNodeName(smiNode->module, smiNode->name);
-    printDescription(smiNode, 2*INDENT);
+    if (! silent) {
+	printDescription(smiNode, 2*INDENT);
+    }
     printSegment(2*INDENT,
 		 smiNode->access == SMI_ACCESS_READ_ONLY
 		 ? "readonly attribute" : "attribute", 0);
 
-    if (islower((int) smiNode->typename[0])) {
+    if (smiNode->typemodule) {
 	idlTypeName = getIdlTypeName(smiNode->typemodule, smiNode->typename);
     } else {
-	idlTypeName = getTypeString(smiNode->module, smiNode->basetype,
-				    smiNode->typemodule, smiNode->typename);
+	idlTypeName = getBaseTypeString(smiNode->basetype);
     }
     print(" %s %s;\n", idlTypeName, idlNodeName);
 }
@@ -881,14 +837,16 @@ static void printGroupInterface(SmiNode *smiNode)
 	childNode;
 	childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_TABLE
-	    && childNode->status == SMI_STATUS_CURRENT) {
-	    printDescription(childNode, 2*INDENT);
+	    && current(childNode->status)) {
+	    if (! silent) {
+		printDescription(childNode, 2*INDENT);
+	    }
 	    printSegment(2*INDENT, "SNMPMgmt::SmiTableIterator", 0);
 	    print(" get_%s();\n",
 		  getIdlNodeName(childNode->module, childNode->name));
 	}
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR
-	    && childNode->status == SMI_STATUS_CURRENT) {
+	    && current(childNode->status)) {
 	    printAttribute(childNode);
 	}
     }
@@ -904,7 +862,9 @@ static void printRowInterface(SmiNode *smiNode)
     char *idlModuleName, *idlNodeName;
 
     idlNodeName = getIdlNodeName(smiNode->module, smiNode->name);
-    printDescription(smiNode, INDENT);
+    if (! silent) {
+	printDescription(smiNode, INDENT);
+    }
     printSegment(INDENT, "interface", 0);
     if (smiNode->indexkind == SMI_INDEX_AUGMENT
 	|| smiNode->indexkind == SMI_INDEX_SPARSE) {
@@ -930,7 +890,7 @@ static void printRowInterface(SmiNode *smiNode)
 	childNode;
 	childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_COLUMN
-	    && childNode->status == SMI_STATUS_CURRENT) {
+	    && current(childNode->status)) {
 	    printAttribute(childNode);
 	}
     }
@@ -951,7 +911,7 @@ static void printInterfaces(char *modulename)
 	    printGroupInterface(smiNode);
 	}
 	if (smiNode->nodekind == SMI_NODEKIND_ROW
-	    && smiNode->status == SMI_STATUS_CURRENT) {
+	    && current(smiNode->status)) {
 	    printRowInterface(smiNode);
 	}
     }
@@ -976,11 +936,17 @@ static void printDefVals(char *modulename)
 		printSegment(INDENT, "/* pseudo */\n", 0);
 		printSegment(INDENT, "interface DefaultValues {\n", 0);
 	    }
-	    printSegment(2*INDENT, "/* DEFVAL: ", 0);
-	    print(" %s */\n", getValueString(&smiNode->value));
+	    if (! silent) {
+		printSegment(2*INDENT, "/* DEFVAL: ", 0);
+		print(" %s */\n", getValueString(&smiNode->value));
+	    }
 	    printSegment(2*INDENT, "", 0);
-	    idlTypeName = getTypeString(smiNode->module, smiNode->basetype,
-				smiNode->typemodule, smiNode->typename);
+	    if (smiNode->typemodule) {
+		idlTypeName = getIdlTypeName(smiNode->typemodule,
+					     smiNode->typename);
+	    } else {
+		idlTypeName = getBaseTypeString(smiNode->basetype);
+	    }
 	    print("%s %s();\n\n", idlTypeName, smiNode->name);
 	}
     }
@@ -1000,25 +966,27 @@ static void printDisplayHints(char *modulename)
     for (smiType = smiGetFirstType(modulename);
 	 smiType;
 	 smiType = smiGetNextType(smiType)) {
-	if (smiType->status == SMI_STATUS_CURRENT) {
+	if (current(smiType->status) && smiType->format) {
 	    cnt++;
 	    if (cnt == 1) {
 		printSegment(INDENT, "/* pseudo */\n", 0);
 		printSegment(INDENT, "interface TextualConventions {\n", 0);
 	    }
 	    print("\n");
-	    printSegment(2*INDENT, "/*\n", 0);
-	    printMultiline(smiType->description);
-	    if (smiType->reference) {
-		printSegment(2*INDENT, "REFERENCE:", 0);
-		print("\n");
-		printMultilineString(smiType->reference);
+	    if (! silent) {
+		printSegment(2*INDENT, "/*\n", 0);
+		printMultiline(smiType->description);
+		if (smiType->reference) {
+		    printSegment(2*INDENT, "REFERENCE:", 0);
+		    print("\n");
+		    printMultilineString(smiType->reference);
+		}
+		if (smiType->format) {
+		    printSegment(2*INDENT, "DISPLAY-HINT:", 0);
+		    print(" %s\n", smiType->format);
+		}
+		printSegment(2*INDENT, "*/\n", 0);
 	    }
-	    if (smiType->format) {
-		printSegment(2*INDENT, "DISPLAY-HINT:", 0);
-		print(" %s\n", smiType->format);
-	    }
-	    printSegment(2*INDENT, "*/\n", 0);
 	    printSegment(2*INDENT, "", 0);
 	    print("string %sToString (in %s Value);\n", smiType->name,
 		  getIdlTypeName(smiType->module, smiType->name));
@@ -1036,7 +1004,7 @@ static void printDisplayHints(char *modulename)
 
 
 
-int dumpCorbaIdl(char *modulename)
+int dumpCorbaIdl(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     char	 *idlModuleName;
@@ -1046,6 +1014,8 @@ int dumpCorbaIdl(char *modulename)
 	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
 	exit(1);
     }
+
+    silent = (flags & SMIDUMP_FLAG_SILENT);
 
     printf("/*\n * This CORBA IDL file has been generated by smidump "
 	   VERSION ". Do not edit.\n */\n\n");
@@ -1074,6 +1044,7 @@ int dumpCorbaIdl(char *modulename)
     dictFree(idlModuleNameList);
     dictFree(idlNodeNameList);
     dictFree(idlTypeNameList);
+    smiFreeModule(smiModule);
 
     return 0;
 }
@@ -1085,7 +1056,7 @@ static void printNameAndOid(SmiNode *smiNode, SmiNode *smiParentNode)
     int  i;
     char *idlModuleName;
 
-    idlModuleName = translate(smiNode->module);
+    idlModuleName = getIdlModuleName(smiNode->module);
 
     if (smiParentNode) {
 	printf("::%s::%s::%s ",
@@ -1097,13 +1068,11 @@ static void printNameAndOid(SmiNode *smiNode, SmiNode *smiParentNode)
 	printf("%s%u", i ? "." : "", smiNode->oid[i]);
     }
     printf(" ");
-
-    free(idlModuleName);
 }
 
 
 
-int dumpCorbaOid(char *modulename)
+int dumpCorbaOid(char *modulename, int flags)
 {
     SmiModule *smiModule;
     SmiNode   *smiNode;
@@ -1131,14 +1100,13 @@ int dumpCorbaOid(char *modulename)
 	    printf("ASN1_ObjectIdentifier not-accessible\n");
 	    break;
 	case SMI_NODEKIND_NODE:
-	    if (smiNode->status == SMI_STATUS_CURRENT
-		|| smiNode->status == SMI_STATUS_UNKNOWN) {
+	    if (current(smiNode->status)) {
 		printNameAndOid(smiNode, NULL);
 		printf("ASN1_ObjectIdentifier not-accessible\n");
 	    }
 	    break;
 	case SMI_NODEKIND_SCALAR:
-	    if (smiNode->status == SMI_STATUS_CURRENT) {
+	    if (current(smiNode->status)) {
 		printNameAndOid(smiNode, smiGetParentNode(smiNode));
 		printf("%s %s\n",
 		       getBaseTypeString(smiNode->basetype),
@@ -1146,19 +1114,19 @@ int dumpCorbaOid(char *modulename)
 	    }
 	    break;
 	case SMI_NODEKIND_TABLE:
-	    if (smiNode->status == SMI_STATUS_CURRENT) {
+	    if (current(smiNode->status)) {
 		printNameAndOid(smiNode, NULL);
 		printf("Table not-accessible\n");
 	    }
 	    break;
 	case SMI_NODEKIND_ROW:
-	    if (smiNode->status == SMI_STATUS_CURRENT) {
+	    if (current(smiNode->status)) {
 		printNameAndOid(smiNode, NULL);
 		printf("TableEntry not-accessible\n");
 	    }
 	    break;
 	case SMI_NODEKIND_COLUMN:
-	    if (smiNode->status == SMI_STATUS_CURRENT) {
+	    if (current(smiNode->status)) {
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
 		int create = smiParentNode ? smiParentNode->create : 0;
 		printNameAndOid(smiNode, smiGetParentNode(smiNode));
@@ -1168,7 +1136,7 @@ int dumpCorbaOid(char *modulename)
 	    }
 	    break;
 	case SMI_NODEKIND_NOTIFICATION:
-	    if (smiNode->status == SMI_STATUS_CURRENT) {
+	    if (current(smiNode->status)) {
 		printNameAndOid(smiNode, smiGetParentNode(smiNode));
 		printf("Notification not-accessible\n");
 	    }
@@ -1179,6 +1147,8 @@ int dumpCorbaOid(char *modulename)
 	    break;
 	}
     }
+
+    smiFreeModule(smiModule);
     
     return 0;
 }

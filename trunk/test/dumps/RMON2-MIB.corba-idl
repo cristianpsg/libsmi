@@ -30,7 +30,9 @@ module RMON2_MIB {
              augments the original RMON MIB as specified in
              RFC 1757.
 
-    LAST-UPDATED:   197001010000Z    ORGANIZATION:
+    LAST-UPDATED:   197001010000Z
+
+    ORGANIZATION:
             "IETF RMON MIB Working Group"
 
     CONTACT-INFO:
@@ -216,21 +218,15 @@ module RMON2_MIB {
     */
     typedef ASN1_OctetString ControlStringType; 
 
-
     typedef ASN1_Integer FilterProtocolDirDataLocalIndexType; 
-
 
     typedef ASN1_Integer FilterProtocolDirLocalIndexType; 
 
-
     typedef ASN1_Integer ProtocolDirLocalIndexType; 
-
 
     typedef ASN1_OctetString ProtocolDirDescrType; 
 
-
     typedef ASN1_OctetString ProtocolDirTypeType; 
-
 
     typedef ASN1_Integer ProtocolDirAddressMapConfigType; 
     const ProtocolDirAddressMapConfigType ProtocolDirAddressMapConfigType_notSupported = 1;
@@ -238,13 +234,11 @@ module RMON2_MIB {
     const ProtocolDirAddressMapConfigType ProtocolDirAddressMapConfigType_supportedOn = 3;
     const string ProtocolDirAddressMapConfigType_NameNumberList = "notSupported (1) , supportedOff (2) , supportedOn (3)";
 
-
     typedef ASN1_Integer ProtocolDirHostConfigType; 
     const ProtocolDirHostConfigType ProtocolDirHostConfigType_notSupported = 1;
     const ProtocolDirHostConfigType ProtocolDirHostConfigType_supportedOff = 2;
     const ProtocolDirHostConfigType ProtocolDirHostConfigType_supportedOn = 3;
     const string ProtocolDirHostConfigType_NameNumberList = "notSupported (1) , supportedOff (2) , supportedOn (3)";
-
 
     typedef ASN1_Integer ProtocolDirMatrixConfigType; 
     const ProtocolDirMatrixConfigType ProtocolDirMatrixConfigType_notSupported = 1;
@@ -252,66 +246,46 @@ module RMON2_MIB {
     const ProtocolDirMatrixConfigType ProtocolDirMatrixConfigType_supportedOn = 3;
     const string ProtocolDirMatrixConfigType_NameNumberList = "notSupported (1) , supportedOff (2) , supportedOn (3)";
 
-
     typedef ASN1_Integer ProtocolDistControlIndexType; 
-
 
     typedef ASN1_Integer AddressMapMaxDesiredEntriesType; 
 
-
     typedef ASN1_Integer AddressMapControlIndexType; 
-
 
     typedef ASN1_Integer HlHostControlIndexType; 
 
-
     typedef ASN1_Integer HlHostControlNlMaxDesiredEntriesType; 
-
 
     typedef ASN1_Integer HlHostControlAlMaxDesiredEntriesType; 
 
-
     typedef ASN1_Integer HlMatrixControlIndexType; 
-
 
     typedef ASN1_Integer HlMatrixControlNlMaxDesiredEntriesType; 
 
-
     typedef ASN1_Integer HlMatrixControlAlMaxDesiredEntriesType; 
-
 
     typedef ASN1_Integer NlMatrixTopNControlIndexType; 
 
-
     typedef ASN1_Integer NlMatrixTopNControlMatrixIndexType; 
-
 
     typedef ASN1_Integer NlMatrixTopNControlRateBaseType; 
     const NlMatrixTopNControlRateBaseType NlMatrixTopNControlRateBaseType_nlMatrixTopNPkts = 1;
     const NlMatrixTopNControlRateBaseType NlMatrixTopNControlRateBaseType_nlMatrixTopNOctets = 2;
     const string NlMatrixTopNControlRateBaseType_NameNumberList = "nlMatrixTopNPkts (1) , nlMatrixTopNOctets (2)";
 
-
     typedef ASN1_Integer NlMatrixTopNControlTimeRemainingType; 
-
 
     typedef ASN1_Integer NlMatrixTopNControlRequestedSizeType; 
 
-
     typedef ASN1_Integer NlMatrixTopNControlGrantedSizeType; 
-
 
     typedef ASN1_Integer NlMatrixTopNIndexType; 
 
-
     typedef ASN1_Integer NlMatrixTopNProtocolDirLocalIndexType; 
-
 
     typedef ASN1_Integer AlMatrixTopNControlIndexType; 
 
-
     typedef ASN1_Integer AlMatrixTopNControlMatrixIndexType; 
-
 
     typedef ASN1_Integer AlMatrixTopNControlRateBaseType; 
     const AlMatrixTopNControlRateBaseType AlMatrixTopNControlRateBaseType_alMatrixTopNTerminalsPkts = 1;
@@ -320,51 +294,36 @@ module RMON2_MIB {
     const AlMatrixTopNControlRateBaseType AlMatrixTopNControlRateBaseType_alMatrixTopNAllOctets = 4;
     const string AlMatrixTopNControlRateBaseType_NameNumberList = "alMatrixTopNTerminalsPkts (1) , alMatrixTopNTerminalsOctets (2) , alMatrixTopNAllPkts (3) , alMatrixTopNAllOctets (4)";
 
-
     typedef ASN1_Integer AlMatrixTopNControlTimeRemainingType; 
-
 
     typedef ASN1_Integer AlMatrixTopNControlRequestedSizeType; 
 
-
     typedef ASN1_Integer AlMatrixTopNControlGrantedSizeType; 
-
 
     typedef ASN1_Integer AlMatrixTopNIndexType; 
 
-
     typedef ASN1_Integer AlMatrixTopNProtocolDirLocalIndexType; 
-
 
     typedef ASN1_Integer AlMatrixTopNAppProtocolDirLocalIndexType; 
 
-
     typedef ASN1_Integer UsrHistoryControlIndexType; 
-
 
     typedef ASN1_Integer UsrHistoryControlObjectsType; 
 
-
     typedef ASN1_Integer UsrHistoryControlBucketsRequestedType; 
-
 
     typedef ASN1_Integer UsrHistoryControlBucketsGrantedType; 
 
-
     typedef ASN1_Integer UsrHistoryControlIntervalType; 
 
-
     typedef ASN1_Integer UsrHistoryObjectIndexType; 
-
 
     typedef ASN1_Integer UsrHistoryObjectSampleTypeType; 
     const UsrHistoryObjectSampleTypeType UsrHistoryObjectSampleTypeType_absoluteValue = 1;
     const UsrHistoryObjectSampleTypeType UsrHistoryObjectSampleTypeType_deltaValue = 2;
     const string UsrHistoryObjectSampleTypeType_NameNumberList = "absoluteValue (1) , deltaValue (2)";
 
-
     typedef ASN1_Integer UsrHistorySampleIndexType; 
-
 
     typedef ASN1_Integer UsrHistoryValStatusType; 
     const UsrHistoryValStatusType UsrHistoryValStatusType_valueNotAvailable = 1;
@@ -372,18 +331,13 @@ module RMON2_MIB {
     const UsrHistoryValStatusType UsrHistoryValStatusType_valueNegative = 3;
     const string UsrHistoryValStatusType_NameNumberList = "valueNotAvailable (1) , valuePositive (2) , valueNegative (3)";
 
-
     typedef ASN1_OctetString ProbeCapabilitiesType; 
-
 
     typedef ASN1_OctetString ProbeSoftwareRevType; 
 
-
     typedef ASN1_OctetString ProbeHardwareRevType; 
 
-
     typedef ASN1_OctetString ProbeDateTimeType; 
-
 
     typedef ASN1_Integer ProbeResetControlType; 
     const ProbeResetControlType ProbeResetControlType_running = 1;
@@ -391,16 +345,13 @@ module RMON2_MIB {
     const ProbeResetControlType ProbeResetControlType_coldBoot = 3;
     const string ProbeResetControlType_NameNumberList = "running (1) , warmBoot (2) , coldBoot (3)";
 
-
     typedef ASN1_OctetString ProbeDownloadFileType; 
-
 
     typedef ASN1_Integer ProbeDownloadActionType; 
     const ProbeDownloadActionType ProbeDownloadActionType_notDownloading = 1;
     const ProbeDownloadActionType ProbeDownloadActionType_downloadToPROM = 2;
     const ProbeDownloadActionType ProbeDownloadActionType_downloadToRAM = 3;
     const string ProbeDownloadActionType_NameNumberList = "notDownloading (1) , downloadToPROM (2) , downloadToRAM (3)";
-
 
     typedef ASN1_Integer ProbeDownloadStatusType; 
     const ProbeDownloadStatusType ProbeDownloadStatusType_downloadSuccess = 1;
@@ -413,12 +364,10 @@ module RMON2_MIB {
     const ProbeDownloadStatusType ProbeDownloadStatusType_downloadTftpAccessViolation = 8;
     const string ProbeDownloadStatusType_NameNumberList = "downloadSuccess (1) , downloadStatusUnknown (2) , downloadGeneralError (3) , downloadNoResponseFromServer (4) , downloadChecksumError (5) , downloadIncompatibleImage (6) , downloadTftpFileNotFound (7) , downloadTftpAccessViolation (8)";
 
-
     typedef ASN1_Integer SerialModeType; 
     const SerialModeType SerialModeType_direct = 1;
     const SerialModeType SerialModeType_modem = 2;
     const string SerialModeType_NameNumberList = "direct (1) , modem (2)";
-
 
     typedef ASN1_Integer SerialProtocolType; 
     const SerialProtocolType SerialProtocolType_other = 1;
@@ -426,39 +375,28 @@ module RMON2_MIB {
     const SerialProtocolType SerialProtocolType_ppp = 3;
     const string SerialProtocolType_NameNumberList = "other (1) , slip (2) , ppp (3)";
 
-
     typedef ASN1_Integer SerialTimeoutType; 
-
 
     typedef ASN1_OctetString SerialModemInitStringType; 
 
-
     typedef ASN1_OctetString SerialModemHangUpStringType; 
-
 
     typedef ASN1_OctetString SerialModemConnectRespType; 
 
-
     typedef ASN1_OctetString SerialModemNoConnectRespType; 
-
 
     typedef ASN1_Integer SerialDialoutTimeoutType; 
 
-
     typedef ASN1_Integer TrapDestIndexType; 
 
-
     typedef ASN1_OctetString TrapDestCommunityType; 
-
 
     typedef ASN1_Integer TrapDestProtocolType; 
     const TrapDestProtocolType TrapDestProtocolType_ip = 1;
     const TrapDestProtocolType TrapDestProtocolType_ipx = 2;
     const string TrapDestProtocolType_NameNumberList = "ip (1) , ipx (2)";
 
-
     typedef ASN1_Integer SerialConnectIndexType; 
-
 
     typedef ASN1_Integer SerialConnectTypeType; 
     const SerialConnectTypeType SerialConnectTypeType_direct = 1;
@@ -467,15 +405,11 @@ module RMON2_MIB {
     const SerialConnectTypeType SerialConnectTypeType_modemSwitch = 4;
     const string SerialConnectTypeType_NameNumberList = "direct (1) , modem (2) , switch (3) , modemSwitch (4)";
 
-
     typedef ASN1_OctetString SerialConnectDialStringType; 
-
 
     typedef ASN1_OctetString SerialConnectSwitchConnectSeqType; 
 
-
     typedef ASN1_OctetString SerialConnectSwitchDisconnectSeqType; 
-
 
     typedef ASN1_OctetString SerialConnectSwitchResetSeqType; 
 
@@ -499,7 +433,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 etherStatsDroppedFrames;
+        readonly attribute Counter32Type etherStatsDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last
@@ -507,7 +441,7 @@ module RMON2_MIB {
              ensure that the table has not been deleted and recreated
              between polls.
         */
-        readonly attribute LastCreateTime etherStatsCreateTime;
+        readonly attribute LastCreateTimeType etherStatsCreateTime;
     };
 
 
@@ -530,14 +464,14 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 tokenRingMLStatsDroppedFrames;
+        readonly attribute Counter32Type tokenRingMLStatsDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last activated.
              This can be used by the management station to ensure that the
              table has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime tokenRingMLStatsCreateTime;
+        readonly attribute LastCreateTimeType tokenRingMLStatsCreateTime;
     };
 
 
@@ -560,14 +494,14 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 tokenRingPStatsDroppedFrames;
+        readonly attribute Counter32Type tokenRingPStatsDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last activated.
              This can be used by the management station to ensure that the
              table has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime tokenRingPStatsCreateTime;
+        readonly attribute LastCreateTimeType tokenRingPStatsCreateTime;
     };
 
 
@@ -590,7 +524,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 historyControlDroppedFrames;
+        readonly attribute Counter32Type historyControlDroppedFrames;
     };
 
 
@@ -613,7 +547,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 hostControlDroppedFrames;
+        readonly attribute Counter32Type hostControlDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last
@@ -621,7 +555,7 @@ module RMON2_MIB {
              ensure that the table has not been deleted and recreated
              between polls.
         */
-        readonly attribute LastCreateTime hostControlCreateTime;
+        readonly attribute LastCreateTimeType hostControlCreateTime;
     };
 
 
@@ -644,7 +578,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 matrixControlDroppedFrames;
+        readonly attribute Counter32Type matrixControlDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last
@@ -652,7 +586,7 @@ module RMON2_MIB {
              ensure that the table has not been deleted and recreated
              between polls.
         */
-        readonly attribute LastCreateTime matrixControlCreateTime;
+        readonly attribute LastCreateTimeType matrixControlCreateTime;
     };
 
 
@@ -675,7 +609,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 channelDroppedFrames;
+        readonly attribute Counter32Type channelDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last
@@ -683,7 +617,7 @@ module RMON2_MIB {
              ensure that the table has not been deleted and recreated
              between polls.
         */
-        readonly attribute LastCreateTime channelCreateTime;
+        readonly attribute LastCreateTimeType channelCreateTime;
     };
 
 
@@ -741,14 +675,14 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 ringStationControlDroppedFrames;
+        readonly attribute Counter32Type ringStationControlDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last activated.
              This can be used by the management station to ensure that the
              table has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime ringStationControlCreateTime;
+        readonly attribute LastCreateTimeType ringStationControlCreateTime;
     };
 
 
@@ -771,14 +705,14 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 sourceRoutingStatsDroppedFrames;
+        readonly attribute Counter32Type sourceRoutingStatsDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last activated.
              This can be used by the management station to ensure that the
              table has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime sourceRoutingStatsCreateTime;
+        readonly attribute LastCreateTimeType sourceRoutingStatsCreateTime;
     };
 
     interface protocolDir : SNMPMgmt::SmiEntry {
@@ -790,7 +724,7 @@ module RMON2_MIB {
              protocolDirAddressMapConfig, protocolDirHostConfig, or
              protocolDirMatrixConfig.
         */
-        readonly attribute TimeStamp protocolDirLastChange;
+        readonly attribute TimeStampType protocolDirLastChange;
 
         /*
              This table lists the protocols that this agent has the
@@ -1016,7 +950,7 @@ module RMON2_MIB {
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString protocolDirOwner;
+        attribute OwnerStringType protocolDirOwner;
 
         /*
              The status of this protocol directory entry.
@@ -1029,7 +963,7 @@ module RMON2_MIB {
              alHostTable, alMatrixSDTable, and alMatrixDSTable shall be
              deleted.
         */
-        attribute RowStatus protocolDirStatus;
+        attribute RowStatusType protocolDirStatus;
     };
 
     interface protocolDist : SNMPMgmt::SmiEntry {
@@ -1089,7 +1023,7 @@ module RMON2_MIB {
              This object may not be modified if the associated
              protocolDistControlStatus object is equal to active(1).
         */
-        attribute DataSource protocolDistControlDataSource;
+        attribute DataSourceType protocolDistControlDataSource;
 
         /*
              The total number of frames which were received by the probe
@@ -1104,7 +1038,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 protocolDistControlDroppedFrames;
+        readonly attribute Counter32Type protocolDistControlDroppedFrames;
 
         /*
              The value of sysUpTime when this control entry was last
@@ -1112,13 +1046,13 @@ module RMON2_MIB {
              ensure that the table has not been deleted and recreated
              between polls.
         */
-        readonly attribute LastCreateTime protocolDistControlCreateTime;
+        readonly attribute LastCreateTimeType protocolDistControlCreateTime;
 
         /*
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString protocolDistControlOwner;
+        attribute OwnerStringType protocolDistControlOwner;
 
         /*
              The status of this row.
@@ -1129,7 +1063,7 @@ module RMON2_MIB {
              If this object is not equal to active(1), all associated
              entries in the protocolDistStatsTable shall be deleted.
         */
-        attribute RowStatus protocolDistControlStatus;
+        attribute RowStatusType protocolDistControlStatus;
     };
 
 
@@ -1157,7 +1091,7 @@ module RMON2_MIB {
              into several link-layer frames, this counter is incremented
              several times.
         */
-        readonly attribute ZeroBasedCounter32 protocolDistStatsPkts;
+        readonly attribute ZeroBasedCounter32Type protocolDistStatsPkts;
 
         /*
              The number of octets in packets received of this protocol
@@ -1169,7 +1103,7 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 protocolDistStatsOctets;
+        readonly attribute ZeroBasedCounter32Type protocolDistStatsOctets;
     };
 
     interface addressMap : SNMPMgmt::SmiEntry {
@@ -1183,7 +1117,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              addressMapDeletes from addressMapInserts.
         */
-        readonly attribute Counter32 addressMapInserts;
+        readonly attribute Counter32Type addressMapInserts;
 
         /*
              The number of times an address mapping entry has been
@@ -1194,7 +1128,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              addressMapDeletes from addressMapInserts.
         */
-        readonly attribute Counter32 addressMapDeletes;
+        readonly attribute Counter32Type addressMapDeletes;
 
         /*
              The maximum number of entries that are desired in the
@@ -1260,7 +1194,7 @@ module RMON2_MIB {
         /*
              The source of data for this addressMapControlEntry.
         */
-        attribute DataSource addressMapControlDataSource;
+        attribute DataSourceType addressMapControlDataSource;
 
         /*
              The total number of frames which were received by the probe
@@ -1276,13 +1210,13 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 addressMapControlDroppedFrames;
+        readonly attribute Counter32Type addressMapControlDroppedFrames;
 
         /*
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString addressMapControlOwner;
+        attribute OwnerStringType addressMapControlOwner;
 
         /*
              The status of this addressMap control entry.
@@ -1293,7 +1227,7 @@ module RMON2_MIB {
              If this object is not equal to active(1), all associated
              entries in the addressMapTable shall be deleted.
         */
-        attribute RowStatus addressMapControlStatus;
+        attribute RowStatusType addressMapControlStatus;
     };
 
 
@@ -1325,7 +1259,7 @@ module RMON2_MIB {
              This can be used to help detect duplicate address problems, in
              which case this object will be updated frequently.
         */
-        readonly attribute TimeStamp addressMapLastChange;
+        readonly attribute TimeStampType addressMapLastChange;
     };
 
     interface nlHost : SNMPMgmt::SmiEntry {
@@ -1393,7 +1327,7 @@ module RMON2_MIB {
              This object may not be modified if the associated
              hlHostControlStatus object is equal to active(1).
         */
-        attribute DataSource hlHostControlDataSource;
+        attribute DataSourceType hlHostControlDataSource;
 
         /*
              The total number of frames which were received by the probe
@@ -1412,7 +1346,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 hlHostControlNlDroppedFrames;
+        readonly attribute Counter32Type hlHostControlNlDroppedFrames;
 
         /*
              The number of times an nlHost entry has been
@@ -1430,7 +1364,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              hlHostControlNlDeletes from hlHostControlNlInserts.
         */
-        readonly attribute Counter32 hlHostControlNlInserts;
+        readonly attribute Counter32Type hlHostControlNlInserts;
 
         /*
              The number of times an nlHost entry has been
@@ -1448,7 +1382,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              hlHostControlNlDeletes from hlHostControlNlInserts.
         */
-        readonly attribute Counter32 hlHostControlNlDeletes;
+        readonly attribute Counter32Type hlHostControlNlDeletes;
 
         /*
              The maximum number of entries that are desired in the
@@ -1489,7 +1423,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 hlHostControlAlDroppedFrames;
+        readonly attribute Counter32Type hlHostControlAlDroppedFrames;
 
         /*
              The number of times an alHost entry has been
@@ -1507,7 +1441,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              hlHostControlAlDeletes from hlHostControlAlInserts.
         */
-        readonly attribute Counter32 hlHostControlAlInserts;
+        readonly attribute Counter32Type hlHostControlAlInserts;
 
         /*
              The number of times an alHost entry has been
@@ -1525,7 +1459,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              hlHostControlAlDeletes from hlHostControlAlInserts.
         */
-        readonly attribute Counter32 hlHostControlAlDeletes;
+        readonly attribute Counter32Type hlHostControlAlDeletes;
 
         /*
              The maximum number of entries that are desired in the alHost
@@ -1553,7 +1487,7 @@ module RMON2_MIB {
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString hlHostControlOwner;
+        attribute OwnerStringType hlHostControlOwner;
 
         /*
              The status of this hlHostControlEntry.
@@ -1564,7 +1498,7 @@ module RMON2_MIB {
              If this object is not equal to active(1), all associated
              entries in the nlHostTable and alHostTable shall be deleted.
         */
-        attribute RowStatus hlHostControlStatus;
+        attribute RowStatusType hlHostControlStatus;
     };
 
 
@@ -1590,7 +1524,7 @@ module RMON2_MIB {
              network-layer packet is fragmented into several link-layer
              frames, this counter is incremented several times.
         */
-        readonly attribute ZeroBasedCounter32 nlHostInPkts;
+        readonly attribute ZeroBasedCounter32Type nlHostInPkts;
 
         /*
              The number of packets without errors transmitted by
@@ -1599,7 +1533,7 @@ module RMON2_MIB {
              network-layer packet is fragmented into several link-layer
              frames, this counter is incremented several times.
         */
-        readonly attribute ZeroBasedCounter32 nlHostOutPkts;
+        readonly attribute ZeroBasedCounter32Type nlHostOutPkts;
 
         /*
              The number of octets transmitted to this address
@@ -1611,7 +1545,7 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 nlHostInOctets;
+        readonly attribute ZeroBasedCounter32Type nlHostInOctets;
 
         /*
              The number of octets transmitted by this address
@@ -1623,7 +1557,7 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 nlHostOutOctets;
+        readonly attribute ZeroBasedCounter32Type nlHostOutOctets;
 
         /*
              The number of packets without errors transmitted by this
@@ -1634,14 +1568,14 @@ module RMON2_MIB {
              fragmented into several link-layer frames, this counter is
              incremented several times.
         */
-        readonly attribute ZeroBasedCounter32 nlHostOutMacNonUnicastPkts;
+        readonly attribute ZeroBasedCounter32Type nlHostOutMacNonUnicastPkts;
 
         /*
              The value of sysUpTime when this entry was last activated.
              This can be used by the management station to ensure that the
              entry has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime nlHostCreateTime;
+        readonly attribute LastCreateTimeType nlHostCreateTime;
     };
 
     interface nlMatrix : SNMPMgmt::SmiEntry {
@@ -1750,7 +1684,7 @@ module RMON2_MIB {
              This object may not be modified if the associated
              hlMatrixControlStatus object is equal to active(1).
         */
-        attribute DataSource hlMatrixControlDataSource;
+        attribute DataSourceType hlMatrixControlDataSource;
 
         /*
              The total number of frames which were received by the probe
@@ -1770,7 +1704,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 hlMatrixControlNlDroppedFrames;
+        readonly attribute Counter32Type hlMatrixControlNlDroppedFrames;
 
         /*
              The number of times an nlMatrix entry has been
@@ -1791,7 +1725,7 @@ module RMON2_MIB {
              sizes can be determined by subtracting
              hlMatrixControlNlDeletes from hlMatrixControlNlInserts.
         */
-        readonly attribute Counter32 hlMatrixControlNlInserts;
+        readonly attribute Counter32Type hlMatrixControlNlInserts;
 
         /*
              The number of times an nlMatrix entry has been
@@ -1813,7 +1747,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              hlMatrixControlNlDeletes from hlMatrixControlNlInserts.
         */
-        readonly attribute Counter32 hlMatrixControlNlDeletes;
+        readonly attribute Counter32Type hlMatrixControlNlDeletes;
 
         /*
              The maximum number of entries that are desired in the
@@ -1855,7 +1789,7 @@ module RMON2_MIB {
              Note that, unlike the dropEvents counter, this number is the
              exact number of frames dropped.
         */
-        readonly attribute Counter32 hlMatrixControlAlDroppedFrames;
+        readonly attribute Counter32Type hlMatrixControlAlDroppedFrames;
 
         /*
              The number of times an alMatrix entry has been
@@ -1876,7 +1810,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              hlMatrixControlAlDeletes from hlMatrixControlAlInserts.
         */
-        readonly attribute Counter32 hlMatrixControlAlInserts;
+        readonly attribute Counter32Type hlMatrixControlAlInserts;
 
         /*
              The number of times an alMatrix entry has been
@@ -1897,7 +1831,7 @@ module RMON2_MIB {
              Note that the table size can be determined by subtracting
              hlMatrixControlAlDeletes from hlMatrixControlAlInserts.
         */
-        readonly attribute Counter32 hlMatrixControlAlDeletes;
+        readonly attribute Counter32Type hlMatrixControlAlDeletes;
 
         /*
              The maximum number of entries that are desired in the
@@ -1925,7 +1859,7 @@ module RMON2_MIB {
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString hlMatrixControlOwner;
+        attribute OwnerStringType hlMatrixControlOwner;
 
         /*
              The status of this hlMatrixControlEntry.
@@ -1938,7 +1872,7 @@ module RMON2_MIB {
              nlMatrixDSTable, alMatrixSDTable, and the alMatrixDSTable
              shall be deleted by the agent.
         */
-        attribute RowStatus hlMatrixControlStatus;
+        attribute RowStatusType hlMatrixControlStatus;
     };
 
 
@@ -1966,7 +1900,7 @@ module RMON2_MIB {
              fragmented into several link-layer frames, this counter is
              incremented several times.
         */
-        readonly attribute ZeroBasedCounter32 nlMatrixSDPkts;
+        readonly attribute ZeroBasedCounter32Type nlMatrixSDPkts;
 
         /*
              The number of octets transmitted from the source address to
@@ -1979,14 +1913,14 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 nlMatrixSDOctets;
+        readonly attribute ZeroBasedCounter32Type nlMatrixSDOctets;
 
         /*
              The value of sysUpTime when this entry was last activated.
              This can be used by the management station to ensure that the
              entry has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime nlMatrixSDCreateTime;
+        readonly attribute LastCreateTimeType nlMatrixSDCreateTime;
     };
 
 
@@ -2014,7 +1948,7 @@ module RMON2_MIB {
              fragmented into several link-layer frames, this counter is
              incremented several times.
         */
-        readonly attribute ZeroBasedCounter32 nlMatrixDSPkts;
+        readonly attribute ZeroBasedCounter32Type nlMatrixDSPkts;
 
         /*
              The number of octets transmitted from the source address
@@ -2027,14 +1961,14 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 nlMatrixDSOctets;
+        readonly attribute ZeroBasedCounter32Type nlMatrixDSOctets;
 
         /*
              The value of sysUpTime when this entry was last activated.
              This can be used by the management station to ensure that the
              entry has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime nlMatrixDSCreateTime;
+        readonly attribute LastCreateTimeType nlMatrixDSCreateTime;
     };
 
 
@@ -2101,7 +2035,7 @@ module RMON2_MIB {
         /*
              The number of reports that have been generated by this entry.
         */
-        readonly attribute Counter32 nlMatrixTopNControlGeneratedReports;
+        readonly attribute Counter32Type nlMatrixTopNControlGeneratedReports;
 
         /*
              The number of seconds that this report has collected
@@ -2114,7 +2048,7 @@ module RMON2_MIB {
              This value shall be zero if no reports have been
              requested for this nlMatrixTopNControlEntry.
         */
-        readonly attribute Integer32 nlMatrixTopNControlDuration;
+        readonly attribute ASN1_Integer nlMatrixTopNControlDuration;
 
         /*
              The maximum number of matrix entries requested for this report.
@@ -2168,13 +2102,13 @@ module RMON2_MIB {
              This object may be used by the management station to
              determine if a report was missed or not.
         */
-        readonly attribute TimeStamp nlMatrixTopNControlStartTime;
+        readonly attribute TimeStampType nlMatrixTopNControlStartTime;
 
         /*
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString nlMatrixTopNControlOwner;
+        attribute OwnerStringType nlMatrixTopNControlOwner;
 
         /*
              The status of this nlMatrixTopNControlEntry.
@@ -2185,7 +2119,7 @@ module RMON2_MIB {
              associated entries in the nlMatrixTopNTable shall be deleted
              by the agent.
         */
-        attribute RowStatus nlMatrixTopNControlStatus;
+        attribute RowStatusType nlMatrixTopNControlStatus;
     };
 
 
@@ -2247,7 +2181,7 @@ module RMON2_MIB {
              nlMatrixTopNPkts, this variable will be used to sort this
              report.
         */
-        readonly attribute Gauge32 nlMatrixTopNPktRate;
+        readonly attribute Gauge32Type nlMatrixTopNPktRate;
 
         /*
              The number of packets seen from the destination host to the
@@ -2263,7 +2197,7 @@ module RMON2_MIB {
              entirely on nlMatrixTopNPktRate, and not on the value of this
              object.
         */
-        readonly attribute Gauge32 nlMatrixTopNReversePktRate;
+        readonly attribute Gauge32Type nlMatrixTopNReversePktRate;
 
         /*
              The number of octets seen from the source host
@@ -2273,7 +2207,7 @@ module RMON2_MIB {
              nlMatrixTopNOctets, this variable will be used to sort this
              report.
         */
-        readonly attribute Gauge32 nlMatrixTopNOctetRate;
+        readonly attribute Gauge32Type nlMatrixTopNOctetRate;
 
         /*
              The number of octets seen from the destination host to the
@@ -2289,7 +2223,7 @@ module RMON2_MIB {
              entirely on nlMatrixTopNOctetRate, and not on the value of
              this object.
         */
-        readonly attribute Gauge32 nlMatrixTopNReverseOctetRate;
+        readonly attribute Gauge32Type nlMatrixTopNReverseOctetRate;
     };
 
     interface alHost : SNMPMgmt::SmiEntry {
@@ -2344,7 +2278,7 @@ module RMON2_MIB {
              into several link-layer frames, this counter is incremented
              several times.
         */
-        readonly attribute ZeroBasedCounter32 alHostInPkts;
+        readonly attribute ZeroBasedCounter32Type alHostInPkts;
 
         /*
              The number of packets of this protocol type without errors
@@ -2354,7 +2288,7 @@ module RMON2_MIB {
              into several link-layer frames, this counter is incremented
              several times.
         */
-        readonly attribute ZeroBasedCounter32 alHostOutPkts;
+        readonly attribute ZeroBasedCounter32Type alHostOutPkts;
 
         /*
              The number of octets transmitted to this address
@@ -2367,7 +2301,7 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 alHostInOctets;
+        readonly attribute ZeroBasedCounter32Type alHostInOctets;
 
         /*
              The number of octets transmitted by this address
@@ -2380,14 +2314,14 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 alHostOutOctets;
+        readonly attribute ZeroBasedCounter32Type alHostOutOctets;
 
         /*
              The value of sysUpTime when this entry was last activated.
              This can be used by the management station to ensure that the
              entry has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime alHostCreateTime;
+        readonly attribute LastCreateTimeType alHostCreateTime;
     };
 
     interface alMatrix : SNMPMgmt::SmiEntry {
@@ -2487,7 +2421,7 @@ module RMON2_MIB {
              network-layer packet is fragmented into several link-layer
              frames, this counter is incremented several times.
         */
-        readonly attribute ZeroBasedCounter32 alMatrixSDPkts;
+        readonly attribute ZeroBasedCounter32Type alMatrixSDPkts;
 
         /*
              The number of octets in packets of this protocol type
@@ -2500,14 +2434,14 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 alMatrixSDOctets;
+        readonly attribute ZeroBasedCounter32Type alMatrixSDOctets;
 
         /*
              The value of sysUpTime when this entry was last activated.
              This can be used by the management station to ensure that the
              entry has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime alMatrixSDCreateTime;
+        readonly attribute LastCreateTimeType alMatrixSDCreateTime;
     };
 
 
@@ -2542,7 +2476,7 @@ module RMON2_MIB {
              network-layer packet is fragmented into several link-layer
              frames, this counter is incremented several times.
         */
-        readonly attribute ZeroBasedCounter32 alMatrixDSPkts;
+        readonly attribute ZeroBasedCounter32Type alMatrixDSPkts;
 
         /*
              The number of octets in packets of this protocol type
@@ -2555,14 +2489,14 @@ module RMON2_MIB {
              protocol frames, but includes the entire packet that contained
              the protocol.
         */
-        readonly attribute ZeroBasedCounter32 alMatrixDSOctets;
+        readonly attribute ZeroBasedCounter32Type alMatrixDSOctets;
 
         /*
              The value of sysUpTime when this entry was last activated.
              This can be used by the management station to ensure that the
              entry has not been deleted and recreated between polls.
         */
-        readonly attribute LastCreateTime alMatrixDSCreateTime;
+        readonly attribute LastCreateTimeType alMatrixDSCreateTime;
     };
 
 
@@ -2638,7 +2572,7 @@ module RMON2_MIB {
         /*
              The number of reports that have been generated by this entry.
         */
-        readonly attribute Counter32 alMatrixTopNControlGeneratedReports;
+        readonly attribute Counter32Type alMatrixTopNControlGeneratedReports;
 
         /*
              The number of seconds that this report has collected
@@ -2652,7 +2586,7 @@ module RMON2_MIB {
              This value shall be zero if no reports have been
              requested for this alMatrixTopNControlEntry.
         */
-        readonly attribute Integer32 alMatrixTopNControlDuration;
+        readonly attribute ASN1_Integer alMatrixTopNControlDuration;
 
         /*
              The maximum number of matrix entries requested for this report.
@@ -2706,13 +2640,13 @@ module RMON2_MIB {
              This object may be used by the management station to
              determine if a report was missed or not.
         */
-        readonly attribute TimeStamp alMatrixTopNControlStartTime;
+        readonly attribute TimeStampType alMatrixTopNControlStartTime;
 
         /*
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString alMatrixTopNControlOwner;
+        attribute OwnerStringType alMatrixTopNControlOwner;
 
         /*
              The status of this alMatrixTopNControlEntry.
@@ -2724,7 +2658,7 @@ module RMON2_MIB {
              associated entries in the alMatrixTopNTable shall be
              deleted by the agent.
         */
-        attribute RowStatus alMatrixTopNControlStatus;
+        attribute RowStatusType alMatrixTopNControlStatus;
     };
 
 
@@ -2792,7 +2726,7 @@ module RMON2_MIB {
              alMatrixTopNTerminalsPkts or alMatrixTopNAllPkts, this
              variable will be used to sort this report.
         */
-        readonly attribute Gauge32 alMatrixTopNPktRate;
+        readonly attribute Gauge32Type alMatrixTopNPktRate;
 
         /*
              The number of packets seen of this protocol from the
@@ -2808,7 +2742,7 @@ module RMON2_MIB {
              of topN entries is based entirely on alMatrixTopNPktRate, and
              not on the value of this object.
         */
-        readonly attribute Gauge32 alMatrixTopNReversePktRate;
+        readonly attribute Gauge32Type alMatrixTopNReversePktRate;
 
         /*
              The number of octets seen of this protocol from the source
@@ -2820,7 +2754,7 @@ module RMON2_MIB {
              alMatrixTopNTerminalsOctets or alMatrixTopNAllOctets, this
              variable will be used to sort this report.
         */
-        readonly attribute Gauge32 alMatrixTopNOctetRate;
+        readonly attribute Gauge32Type alMatrixTopNOctetRate;
 
         /*
              The number of octets seen of this protocol from the
@@ -2836,7 +2770,7 @@ module RMON2_MIB {
              sort of topN entries is based entirely on
              alMatrixTopNOctetRate, and not on the value of this object.
         */
-        readonly attribute Gauge32 alMatrixTopNReverseOctetRate;
+        readonly attribute Gauge32Type alMatrixTopNReverseOctetRate;
     };
 
     interface usrHistory : SNMPMgmt::SmiEntry {
@@ -2957,7 +2891,7 @@ module RMON2_MIB {
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString usrHistoryControlOwner;
+        attribute OwnerStringType usrHistoryControlOwner;
 
         /*
              The status of this variable history control entry.
@@ -2968,7 +2902,7 @@ module RMON2_MIB {
              If this object is not equal to active(1), all associated
              entries in the usrHistoryTable shall be deleted.
         */
-        attribute RowStatus usrHistoryControlStatus;
+        attribute RowStatusType usrHistoryControlStatus;
     };
 
 
@@ -3072,13 +3006,13 @@ module RMON2_MIB {
              is currently being collected is not accessible in this table
              until the end of its interval.
         */
-        readonly attribute TimeStamp usrHistoryIntervalStart;
+        readonly attribute TimeStampType usrHistoryIntervalStart;
 
         /*
              The value of sysUpTime at the end of the interval over which
              this sample was measured.
         */
-        readonly attribute TimeStamp usrHistoryIntervalEnd;
+        readonly attribute TimeStampType usrHistoryIntervalEnd;
 
         /*
              The absolute value (i.e. unsigned value) of the
@@ -3095,7 +3029,7 @@ module RMON2_MIB {
              associated instance of usrHistoryValStatus will be set to
              'valueNotAvailable(1)'.
         */
-        readonly attribute Gauge32 usrHistoryAbsValue;
+        readonly attribute Gauge32Type usrHistoryAbsValue;
 
         /*
              This object indicates the validity and sign of the data in
@@ -3190,7 +3124,7 @@ module RMON2_MIB {
              This value is set to `0.0.0.0' when no IP address has been
              specified.
         */
-        attribute IpAddress probeDownloadTFTPServer;
+        attribute IpAddressType probeDownloadTFTPServer;
 
         /*
              When this object is set to downloadToRAM(2) or
@@ -3233,7 +3167,7 @@ module RMON2_MIB {
              The IP Address of the default gateway.  If this value is
              undefined or unknown, it shall have the value 0.0.0.0.
         */
-        attribute IpAddress netDefaultGateway;
+        attribute IpAddressType netDefaultGateway;
 
         /*
              A list of trap destination entries.
@@ -3359,7 +3293,7 @@ module RMON2_MIB {
              An entry may not exist in the active state unless all
              objects in the entry have an appropriate value.
         */
-        attribute RowStatus serialStatus;
+        attribute RowStatusType serialStatus;
     };
 
 
@@ -3387,7 +3321,7 @@ module RMON2_MIB {
              frequently and to eventually send very infrequently if no
              replies are received.
         */
-        attribute IpAddress netConfigIPAddress;
+        attribute IpAddressType netConfigIPAddress;
 
         /*
              The subnet mask of this Net interface.  The default value
@@ -3401,7 +3335,7 @@ module RMON2_MIB {
              frequently and to eventually send very infrequently if no
              replies are received.
         */
-        attribute IpAddress netConfigSubnetMask;
+        attribute IpAddressType netConfigSubnetMask;
 
         /*
              The status of this netConfigEntry.
@@ -3409,7 +3343,7 @@ module RMON2_MIB {
              An entry may not exist in the active state unless all
              objects in the entry have an appropriate value.
         */
-        attribute RowStatus netConfigStatus;
+        attribute RowStatusType netConfigStatus;
     };
 
 
@@ -3471,7 +3405,7 @@ module RMON2_MIB {
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString trapDestOwner;
+        attribute OwnerStringType trapDestOwner;
 
         /*
              The status of this trap destination entry.
@@ -3479,7 +3413,7 @@ module RMON2_MIB {
              An entry may not exist in the active state unless all
              objects in the entry have an appropriate value.
         */
-        attribute RowStatus trapDestStatus;
+        attribute RowStatusType trapDestStatus;
     };
 
 
@@ -3496,7 +3430,7 @@ module RMON2_MIB {
              This object may not be modified if the associated
              serialConnectStatus object is equal to active(1).
         */
-        attribute IpAddress serialConnectDestIpAddress;
+        attribute IpAddressType serialConnectDestIpAddress;
 
         /*
              The type of outgoing connection to make.  If this object
@@ -3557,7 +3491,7 @@ module RMON2_MIB {
              The entity that configured this entry and is
              therefore using the resources assigned to it.
         */
-        attribute OwnerString serialConnectOwner;
+        attribute OwnerStringType serialConnectOwner;
 
         /*
              The status of this serialConnectionEntry.
@@ -3579,227 +3513,50 @@ module RMON2_MIB {
              An entry may not exist in the active state unless all
              objects in the entry have an appropriate value.
         */
-        attribute RowStatus serialConnectStatus;
+        attribute RowStatusType serialConnectStatus;
     };
 
     /* pseudo */
     interface DefaultValues {
         /* DEFVAL:  0 */
-        Integer32 filterProtocolDirDataLocalIndex();
+        FilterProtocolDirDataLocalIndexType filterProtocolDirDataLocalIndex();
 
         /* DEFVAL:  0 */
-        Integer32 filterProtocolDirLocalIndex();
+        FilterProtocolDirLocalIndexType filterProtocolDirLocalIndex();
 
         /* DEFVAL:  1800 */
-        Integer32 nlMatrixTopNControlTimeRemaining();
+        NlMatrixTopNControlTimeRemainingType nlMatrixTopNControlTimeRemaining();
 
         /* DEFVAL:  150 */
-        Integer32 nlMatrixTopNControlRequestedSize();
+        NlMatrixTopNControlRequestedSizeType nlMatrixTopNControlRequestedSize();
 
         /* DEFVAL:  1800 */
-        Integer32 alMatrixTopNControlTimeRemaining();
+        AlMatrixTopNControlTimeRemainingType alMatrixTopNControlTimeRemaining();
 
         /* DEFVAL:  150 */
-        Integer32 alMatrixTopNControlRequestedSize();
+        AlMatrixTopNControlRequestedSizeType alMatrixTopNControlRequestedSize();
 
         /* DEFVAL:  50 */
-        Integer32 usrHistoryControlBucketsRequested();
+        UsrHistoryControlBucketsRequestedType usrHistoryControlBucketsRequested();
 
         /* DEFVAL:  1800 */
-        Integer32 usrHistoryControlInterval();
+        UsrHistoryControlIntervalType usrHistoryControlInterval();
 
         /* DEFVAL:  direct */
-        ASN1_Integer serialMode();
+        SerialModeType serialMode();
 
         /* DEFVAL:  slip */
-        ASN1_Integer serialProtocol();
+        SerialProtocolType serialProtocol();
 
         /* DEFVAL:  300 */
-        Integer32 serialTimeout();
+        SerialTimeoutType serialTimeout();
 
         /* DEFVAL:  20 */
-        Integer32 serialDialoutTimeout();
+        SerialDialoutTimeoutType serialDialoutTimeout();
 
         /* DEFVAL:  direct */
-        ASN1_Integer serialConnectType();
+        SerialConnectTypeType serialConnectType();
 
-    };
-
-    /* pseudo */
-    interface TextualConventions {
-
-        /*
-             This TC describes an object which counts events with the
-             following semantics: objects of this type will be set to
-             zero(0) on creation and will thereafter count appropriate
-             events, wrapping back to zero(0) when the value 2^32 is
-             reached.
-             
-             Provided that an application discovers the new object within
-             the minimum time to wrap it can use the initial value as a
-             delta since it last polled the table of which this object is
-             part.  It is important for a management station to be aware of
-             this minimum time and the actual time between polls, and to
-             discard data if the actual time is too long or there is no
-             defined minimum time.
-             
-             Typically this TC is used in tables where the INDEX space is
-             constantly changing and/or the TimeFilter mechanism is in use.
-        */
-        string ZeroBasedCounter32ToString (in ZeroBasedCounter32Type Value);
-        ZeroBasedCounter32Type ZeroBasedCounter32FromString (in string str);
-
-        /*
-             This TC describes an object that stores the last time its
-             entry was created.
-             
-             This can be used for polling applications to determine that an
-             entry has been deleted and re-created between polls, causing
-             an otherwise undetectable discontinuity in the data.
-        */
-        string LastCreateTimeToString (in LastCreateTimeType Value);
-        LastCreateTimeType LastCreateTimeFromString (in string str);
-
-        /*
-             To be used for the index to a table.  Allows an application
-             to download only those rows changed since a particular time.
-             A row is considered changed if the value of any object in the
-             row changes or if the row is created or deleted.
-             
-             When sysUpTime is equal to zero, this table shall be empty.
-             
-             One entry exists for each past value of sysUpTime, except that
-             the whole table is purged should sysUpTime wrap.
-             
-             As this basic row is updated new conceptual rows are created
-             (which still share the now updated object values with all
-             other instances).  The number of instances which are created
-             is determined by the value of sysUpTime at which the basic row
-             was last updated.  One instance will exist for each value of
-             sysUpTime at the last update time for the row.  A new
-             timeMark instance is created for each new sysUpTime value.
-             Each new conceptual row will be associated with the timeMark
-             instance which was created at the value of sysUpTime with
-             which the conceptual row is to be associated.
-             
-             By definition all conceptual rows were updated at or after
-             time zero and so at least one conceptual row (associated with
-             timeMark.0) must exist for each underlying (basic) row.
-             
-             See the appendix for further discussion of this variable.
-             
-             Consider the following fooTable:
-             
-             fooTable ...
-             INDEX { fooTimeMark, fooIndex }
-             
-             FooEntry {
-               fooTimeMark  TimeFilter
-               fooIndex     INTEGER,
-               fooCounts    Counter
-             }
-             
-             Should there be two basic rows in this table (fooIndex == 1,
-             fooIndex == 2) and row 1 was updated most recently at time 6,
-             while row 2 was updated most recently at time 8, and both rows
-             had been updated on several earlier occasions such that the
-             current values were 5 and 9 respectively then the following
-             fooCounts instances would exist.
-             
-             fooCounts.0.1  5
-             fooCounts.0.2  9
-             fooCounts.1.1  5
-             fooCounts.1.2  9
-             fooCounts.2.1  5
-             fooCounts.2.2  9
-             fooCounts.3.1  5
-             fooCounts.3.2  9
-             fooCounts.4.1  5
-             fooCounts.4.2  9
-             fooCounts.5.1  5
-             fooCounts.5.2  9
-             fooCounts.6.1  5
-             fooCounts.6.2  9
-             fooCounts.7.2  9    -- note that row 1 doesn't exist for
-             fooCounts.8.2  9    -- times 7 and 8
-        */
-        string TimeFilterToString (in TimeFilterType Value);
-        TimeFilterType TimeFilterFromString (in string str);
-
-        /*
-             Identifies the source of the data that the associated
-             function is configured to analyze. This source can be any
-             interface on this device.
-             
-             In order to identify a particular interface, this
-             object shall identify the instance of the ifIndex
-             object, defined in [3,5], for the desired interface.
-             
-             For example, if an entry were to receive data from
-             interface #1, this object would be set to ifIndex.1.
-        */
-        string DataSourceToString (in DataSourceType Value);
-        DataSourceType DataSourceFromString (in string str);
-
-        /*
-             This data type is used to communicate with a modem or a
-             serial data switch.  A ControlString contains embedded
-             commands to control how the device will interact with the
-             remote device through the serial interface.  Commands are
-             represented as two character sequences beginning with
-             the `^' character.
-             
-             The following commands are recognized by the device (note
-             that command characters are case sensitive):
-             
-               ^s  Send string that follows which is terminated by the
-                   next command or the end of string.
-               ^c  Delay for the number of seconds that follows.  Toss
-                   out any data received rather than storing it in a
-                   buffer for parsing.
-               ^t  Set timeout to the value represented by the decimal
-                   digits that follow.  The default timeout is 20
-                   seconds. Note that this timeout may be overridden
-                   by a smaller serialTimeout configured for the
-                   associated serial interface (see serialConfigTable).
-               ^w  Wait for the reply string that follows which is
-                   terminated by the next command or the end of string.
-                   Partial and case insensitive matching is applied, ie.
-                   if the reply string (any case combination) is found
-                   anywhere in the received string, then the a match is
-                   found.  If the current timeout elapses without a match,
-                   then the remaining control string is ignored.
-               ^!  The ^ character.
-               ^d  Delay the number of seconds specified by the decimal
-                   digits that follow.
-               ^b  Send break for the number of milliseconds specified by
-                   the decimal digits that follow.  If no digits follow,
-                   break will be enforced for 250 milliseconds by default.
-             
-             The following ASCII control characters may be inserted into
-             the `^s' send string or the `^w' reply string:
-             
-               ^@    0x00
-               ^A    0x01
-                ..
-               ^M    0x0D
-                ..
-               ^Z    0x1A
-               ^[    0x1B
-               ^    0x1C
-               ^]    0x1D
-               ^^    0x1E
-               ^_    0x1F
-             
-             Binary data may also be inserted into the data stream.  The
-             control sequence for each byte of binary data is ^0x##, where
-             ## is the hexadecimal representation of the data byte.  Two
-             ASCII characters (0-9, a-f, A-F) must follow the `^0x'
-             control prefix.  For example, `^0x0D^0x0A' is interpreted as a
-             carriage return followed by a line feed.
-        */
-        string ControlStringToString (in ControlStringType Value);
-        ControlStringType ControlStringFromString (in string str);
     };
 
 };
