@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.38 2004/06/07 21:25:22 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.39 2004/07/11 22:46:07 schoenw Exp $
  */
 
 /*
@@ -2590,7 +2590,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = gsnmp_gettable(s, in);\n"
+	    "    out = gnet_snmp_sync_table(s, in);\n"
 	    "    /* gnet_snmp_varbind_list_free(in); */\n"
 	    "\n");
     fprintf(f,
