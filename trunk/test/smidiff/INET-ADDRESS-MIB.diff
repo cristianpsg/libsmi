@@ -11,7 +11,7 @@
 ../../mibs/ietf/INET-ADDRESS-MIB:99 previous definition of `InetAddress'
 ./INET-ADDRESS-MIB.new:130 description of `InetAddressIPv4' changed
 ../../mibs/ietf/INET-ADDRESS-MIB:121 previous definition of `InetAddressIPv4'
-./INET-ADDRESS-MIB.new:142 subrange `(20)' removed from type `InetAddressIPv6'
+./INET-ADDRESS-MIB.new:142 string length(s) `20' removed from type `InetAddressIPv6'
 ./INET-ADDRESS-MIB.new:142 format of `InetAddressIPv6' changed
 ../../mibs/ietf/INET-ADDRESS-MIB:133 previous definition of `InetAddressIPv6'
 ./INET-ADDRESS-MIB.new:142 description of `InetAddressIPv6' changed
