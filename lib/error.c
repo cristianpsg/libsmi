@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.34 2000/02/02 17:30:30 strauss Exp $
+ * @(#) $Id: error.c,v 1.35 2000/02/10 16:25:18 strauss Exp $
  */
 
 #include <string.h>
@@ -55,6 +55,8 @@ Error errors[] = {
       "Lexically unexpected character (internal error!)" },
     { -1, ERR_OUT_OF_MEMORY, "memory", 
       "Out of memory (internal error!)" },
+    { 0, ERR_STATISTICS, "", 
+      "completed %s" },
     { 1, ERR_OTHER_ERROR, "other", 
       "%s" },
     { 1, ERR_ILLEGAL_KEYWORD, "keyword-illegal", 
@@ -137,8 +139,6 @@ Error errors[] = {
       "Ignoring unwanted module `%s'" },
     { 1, ERR_MODULE_NOT_FOUND, "", 
       "Don't know where to find module `%s'" },
-    { 0, ERR_STATISTICS, "", 
-      "completed %s" },
     { 2, ERR_OBJECT_IDENTIFIER_REGISTERED, "", 
       "Object identifier label `%s.%s' already registered at `%s'" },
     { 1, ERR_OPENING_INPUTFILE, "", 
