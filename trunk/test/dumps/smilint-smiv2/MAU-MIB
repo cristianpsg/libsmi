@@ -1,4 +1,3 @@
-../dumps/smiv2/MAU-MIB:1881: warning: object identifier name `ifMauAutoNegRemoteFaultAdvertised' longer than 32 characters
 ../dumps/smiv2/MAU-MIB:137: warning: index element `rpMauGroupIndex' of row `rpMauEntry' should be not-accessible in SMIv2 MIB
 ../dumps/smiv2/MAU-MIB:137: warning: index element `rpMauPortIndex' of row `rpMauEntry' should be not-accessible in SMIv2 MIB
 ../dumps/smiv2/MAU-MIB:137: warning: index element `rpMauIndex' of row `rpMauEntry' should be not-accessible in SMIv2 MIB

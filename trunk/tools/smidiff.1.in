@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smidiff.1.in,v 1.8 2002/11/12 10:03:42 schoenw Exp $
+.\" $Id: smidiff.1.in,v 1.9 2003/02/21 10:35:56 schoenw Exp $
 .\"
-.TH smidiff 1  "June 21, 2002" "IBR" "SMI Tools"
+.TH smidiff 1  "August 10, 2004" "IBR" "SMI Tools"
 .SH NAME
 smidiff \- check differences between a pair of SMI or SPPI modules
 .SH SYNOPSIS
@@ -23,7 +23,7 @@ The \fBsmidiff\fP program is used to check differences between a pair
 of SMI MIB modules or SPPI PIB modules.
 E.g., it can be used to detect changes in updated MIB
 modules that can cause interoperability problems with existing
-implementations. SMIv1/v2, SPPI and SMIng style MIB modules are
+implementations. SMIv1/v2 and SPPI style MIB/PIB modules are
 supported.
 .PP
 Note that conformance statements are currently not checked.

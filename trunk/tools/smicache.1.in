@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smicache.1.in,v 1.3 2000/08/24 12:09:18 strauss Exp $
+.\" $Id: smicache.1.in,v 1.1 2001/06/15 06:28:01 strauss Exp $
 .\"
-.TH smicache 1  "June 11, 2001" "IBR" "SMI Tools"
+.TH smicache 1  "August 10, 2004" "IBR" "SMI Tools"
 .SH NAME
 smicache \- caching method for use with libsmi
 .SH SYNOPSIS
@@ -56,9 +56,9 @@ You might want to chmod 1777 /usr/local/share/mibs/cache.
 The
 .BR libsmi (3)
 project is documented at
-.BR "http://www.ibr.cs.tu-bs.de/projects/sming/" "."
+.BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
 .PP
 .BR smilint "(1)"
 .SH "AUTHOR"
-(C) 2001 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 2001-2004 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

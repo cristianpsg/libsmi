@@ -3,17 +3,8 @@
 ../dumps/smiv2/RMON2-MIB:25: warning: redefinition of identifier `RFC1271-MIB::rmon'
 ../../mibs/ietf/RFC1271-MIB:14: info: previous definition of `rmon'
 ../dumps/smiv2/RMON2-MIB:46: revision for last update is missing
-../dumps/smiv2/RMON2-MIB:2133: warning: object identifier name `hlMatrixControlNlMaxDesiredEntries' longer than 32 characters
-../dumps/smiv2/RMON2-MIB:2229: warning: object identifier name `hlMatrixControlAlMaxDesiredEntries' longer than 32 characters
-../dumps/smiv2/RMON2-MIB:2663: warning: object identifier name `nlMatrixTopNControlGeneratedReports' longer than 32 characters
-../dumps/smiv2/RMON2-MIB:2833: warning: object identifier name `nlMatrixTopNProtocolDirLocalIndex' longer than 32 characters
-../dumps/smiv2/RMON2-MIB:3417: warning: object identifier name `alMatrixTopNControlGeneratedReports' longer than 32 characters
-../dumps/smiv2/RMON2-MIB:3591: warning: object identifier name `alMatrixTopNProtocolDirLocalIndex' longer than 32 characters
-../dumps/smiv2/RMON2-MIB:3635: warning: object identifier name `alMatrixTopNAppProtocolDirLocalIndex' longer than 32 characters
-../dumps/smiv2/RMON2-MIB:3770: warning: object identifier name `usrHistoryControlBucketsRequested' longer than 32 characters
 ../dumps/smiv2/RMON2-MIB:4754: warning: redefinition of identifier `RMON-MIB::rmonConformance'
 ../../mibs/ietf/RMON-MIB:211: info: previous definition of `rmonConformance'
-../dumps/smiv2/RMON2-MIB:4990: warning: object identifier name `rmon2MIBApplicationLayerCompliance' longer than 32 characters
 ../dumps/smiv2/RMON2-MIB:793: index element `protocolDirID' of row `protocolDirEntry' must have a size restriction
 ../dumps/smiv2/RMON2-MIB:820: index element `protocolDirParameters' of row `protocolDirEntry' must have a size restriction
 ../dumps/smiv2/RMON2-MIB:765: warning: index of row `protocolDirEntry' can exceed OID size limit by 130955 subidentifier(s)
