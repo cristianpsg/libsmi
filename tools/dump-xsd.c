@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.14 2002/02/27 16:34:35 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.15 2002/03/05 12:55:23 tklie Exp $
  */
 
 #include <config.h>
@@ -445,10 +445,187 @@ static void fprintBitList( FILE *f, int indent, SmiType *smiType,
     fprintSegment( f, indent, "</xsd:simpleType>\n", 0 );
 }
 
+static int getNumSubRanges( SmiType *smiType )
+{
+    SmiRange *smiRange;
+    int num = 0;
+
+    for( smiRange = smiGetFirstRange( smiType );
+	 smiRange;
+	 smiRange = smiGetNextRange( smiRange ) ) {
+	num++;
+    }
+    
+    return num;
+}
+
+static void fprintSubRangeType( FILE *f, int indent,
+				SmiRange *smiRange, SmiType *smiType, int num )
+{
+    fprintSegment( f, indent, "<xsd:simpleType ", 0 );
+    fprint( f, "name=\"%sRange%dType\"/>\n", smiType->name, num );
+
+    fprintSegment(f, indent + INDENT, "<xsd:restriction", 0);
+    fprint(f, " base=\"%s\">\n",
+	       getStringBasetype(smiType->basetype));
+
+    switch( smiType->basetype ) {
+
+    case SMI_BASETYPE_UNSIGNED32: {
+	SmiUnsigned32 min, max;
+
+	min = 0;
+	max = 4294967295UL;
+
+	if( smiRange->minValue.value.unsigned32 < min ) {
+	    min = smiRange->minValue.value.unsigned32;
+	}
+	if( smiRange->maxValue.value.unsigned32 > max ) {
+	    max = smiRange->maxValue.value.unsigned32;
+	}
+	
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:minInclusive", 0 );
+	fprint( f, " value=\"%u\"/>\n", min );
+	
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:maxInclusive", 0 );
+	fprint( f, " value=\"%u\"/>\n",max );
+
+	break;
+    }
+
+    case SMI_BASETYPE_INTEGER32: {
+	SmiInteger32 min, max;
+
+	min = -2147483647;
+	max = 2147483646;
+
+	if( min == -2147483647 ||
+	    smiRange->minValue.value.integer32 < min ) {
+	    min = smiRange->minValue.value.integer32;
+	}
+	if( max == 2147483646 ||
+	    smiRange->maxValue.value.integer32 > max ) {
+	    max = smiRange->maxValue.value.integer32;
+	}
+	smiRange = smiGetNextRange( smiRange );
+	
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:minInclusive", 0 );
+	fprint( f, " value=\"%d\"/>\n", min );
+
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:maxInclusive", 0 );
+	fprint( f, " value=\"%d\"/>\n",	max );
+	
+	break;
+	
+    }
+
+    case SMI_BASETYPE_OCTETSTRING: {
+	SmiInteger32  minLength, maxLength;
+	
+	minLength = 0;
+	maxLength = -1;
+	
+	if( minLength == 0 ||
+	    smiRange->minValue.value.integer32 < minLength ) {
+	    minLength = smiRange->minValue.value.integer32;	     
+	}
+	if( smiRange->maxValue.value.integer32 > maxLength ) {
+	    maxLength = smiRange->maxValue.value.integer32;
+	}
+	
+	if( minLength > 0 ) {
+	    fprintSegment( f, indent + 2 * INDENT, "<xsd:minLength", 0 );
+	    fprint( f, " value=\"%d\"/>\n", minLength );
+	}
+	if( maxLength > -1 ) {
+	    fprintSegment( f, indent + 2 * INDENT, "<xsd:maxLength", 0 );
+	    fprint( f, " value=\"%d\"/>\n", maxLength );
+	}
+	
+	break;
+    }
+
+    case SMI_BASETYPE_FLOAT128:
+    {
+/*	SmiFloat128 min, max; 
+	xxx, only SMIng */
+	break;
+    }
+
+    case SMI_BASETYPE_FLOAT64:
+    {
+/*	SmiFloat64 min,max;
+	xxx, only SMIng */
+	break;
+    }
+    
+    case SMI_BASETYPE_FLOAT32:
+    {
+/*	SmiFloat32 min,max;
+	xxx, only SMIng */
+	break;
+    }
+
+    case SMI_BASETYPE_INTEGER64:
+    {
+/*	SmiInteger64 min,max;
+	 xxx, only SMIng */
+	break;
+    }
+
+    case SMI_BASETYPE_UNSIGNED64:
+    {
+	SmiUnsigned64 min, max;
+
+	min = 0;
+	max = 18446744073709551615U;
+
+	if( smiRange->minValue.value.unsigned64 < min ) {
+	    min = smiRange->minValue.value.unsigned64;
+	}
+	if( smiRange->maxValue.value.unsigned32 > max ) {
+	    max = smiRange->maxValue.value.unsigned64;
+	}
+	
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:minInclusive", 0 );
+	fprint( f, " value=\"%lu\"/>\n", min );
+
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:maxInclusive", 0 );
+	fprint( f, " value=\"%lu\"/>\n",max );
+	
+	break;
+    }
+
+    case SMI_BASETYPE_ENUM:
+    case SMI_BASETYPE_BITS:
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+    case SMI_BASETYPE_UNKNOWN:
+	/* should not occur */
+	break;
+	
+    }
+    
+    fprintSegment(f, indent + INDENT, "</xsd:restriction>\n", 0);
+    fprintSegment(f, indent, "</xsd:simpleType>\n\n", 0 );
+}
 
 static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 			  const char *name)
 {
+    int i;
+    SmiRange *smiRange;
+    int numSubRanges = getNumSubRanges( smiType );
+
+    if( numSubRanges > 1 ) {
+	/* print out simple types for all subranges */
+	i = 0;
+	for( smiRange = smiGetFirstRange( smiType );
+	     smiRange;
+	     smiRange = smiGetNextRange( smiRange ) ) {
+	    fprintSubRangeType( f, indent, smiRange, smiType, i++ );
+	}
+    }
+   
     fprintSegment(f, indent, "<xsd:simpleType", 0);
     if (smiType->name) {
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
@@ -466,7 +643,20 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
     }
 
-    fprintRestriction(f, indent + INDENT, smiType);
+    if( numSubRanges > 1 ) {
+	fprintSegment( f, indent + INDENT, "<xsd:union membertypes=\" ", 0 );
+	i = 0;
+	for( smiRange = smiGetFirstRange( smiType );
+	     smiRange;
+	     smiRange = smiGetNextRange( smiRange ) ) {
+	    fprint( f, "%sRange%dType ", smiType->name, i++ ); 
+	}
+	fprint( f, "\"/>\n" );
+    }
+    else {
+	/* we do not have more than one subrange */
+	fprintRestriction(f, indent + INDENT, smiType);
+    }
   
     fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
 
@@ -781,9 +971,11 @@ static void fprintImports( FILE *f, int indent, SmiModule *smiModule )
     
 static void fprintModule(FILE *f, SmiModule *smiModule)
 {
-    fprintSegment(f, INDENT, "<xsd:annotation>\n", 0);
-    fprintDocumentation(f, 2 * INDENT, smiModule->description);
-    fprintSegment(f, INDENT, "</xsd:annotation>\n\n", 0);
+    if( smiModule->description ) {
+	fprintSegment(f, INDENT, "<xsd:annotation>\n", 0);
+	fprintDocumentation(f, 2 * INDENT, smiModule->description);
+	fprintSegment(f, INDENT, "</xsd:annotation>\n\n", 0);
+    }
     
     fprintImports(f, INDENT, smiModule);
     fprintNodes(f, smiModule);
