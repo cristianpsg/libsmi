@@ -6,7 +6,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.mingw,v 1.7 2003/01/18 21:23:52 strauss Exp $
+# @(#) $Id$
 #
 
 ##
@@ -26,20 +26,26 @@ LIBDIR = $(INSTROOT)/lib
 ##
 ## Commands:
 ##
-CC	= gcc
-CP	= copy
-RM      = del
-AR	= ar
-MKDIR	= -mkdir
+
+##
+## Linux cross-compile is now the way to go.
+## compilation within win-environment works, but you need to
+## change path an options settings to get installation work.
+## 
+# CC	= gcc
+# CP	= copy
+# RM      = del
+# AR	= ar
+# MKDIR	= -mkdir
 
 ##
 ## Debian Linux mingw cross-compiler version:
 ##
-# CC	= i586-mingw32msvc-gcc
-# CP	= cp
-# RM	= rm -f
-# AR	= i586-mingw32msvc-ar
-# MKDIR	= -mkdir
+CC	= i586-mingw32msvc-gcc
+CP	= cp
+RM	= rm -f
+AR	= i586-mingw32msvc-ar
+MKDIR	= -mkdir
 
 ##
 ## Definitions:
@@ -87,7 +93,8 @@ TOOLSOBJS = \
 	dump-scli.o \
 	dump-xsd.o \
 	dump-sppi.o \
-	dump-sizes.o
+	dump-sizes.o \
+	dump-svg.o
 #	dump-smiv3.o
 #	dump-fig.o
 
@@ -125,7 +132,7 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 		dump-imports.o dump-types.o dump-tree.o dump-mosy.o \
 		dump-corba.o dump-netsnmp.o dump-cm.o dump-jax.o dump-xml.o \
 		dump-identifiers.o dump-metrics.o dump-python.o dump-perl.o \
-		dump-scli.o dump-xsd.o dump-sppi.o dump-sizes.o \
+		dump-scli.o dump-xsd.o dump-sppi.o dump-sizes.o dump-svg.o \
 		shhopt.o $(SMILIB)
 
 smidiff.exe:	$(TOOLSOBJS) $(SMILIB)

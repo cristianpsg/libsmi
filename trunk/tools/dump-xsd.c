@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.82 2004/03/29 13:35:03 tklie Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -21,6 +21,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
 
 #include "smi.h"
 #include "smidump.h"
@@ -1024,7 +1027,7 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 	SmiUnsigned64 min, max;
 
 	min = 0;
-	max = 18446744073709551615ULL;
+	max = LIBSMI_UINT64_MAX;
 
 	fprintStdRestHead( f, smiType );
 	
@@ -1261,7 +1264,7 @@ static void fprintSubRangeType( FILE *f,
 	SmiUnsigned64 min, max;
 
 	min = 0;
-	max = 18446744073709551615ULL;
+	max = LIBSMI_UINT64_MAX;
 
 	if( smiRange->minValue.value.unsigned64 < min ) {
 	    min = smiRange->minValue.value.unsigned64;
