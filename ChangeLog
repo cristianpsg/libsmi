@@ -3,6 +3,14 @@
 	* lib/check.c: Fixed a bug in the range normalization code.
 	Thanks to Joey Seek <joeyseek@hotmail.com>.
 
+	* lib/error.c: When a severe error occurs (severity <= 0), it is
+	now the default error handler that terminates the process by exit().
+	This means that an application now has the chance to install its
+	own error handler and call any cleanup code even in case of severe
+	errors. [Sorry, Dave, that it took sooo long to do this change.]
+
+	* libsmi-0.3.1.tar.gz: released version 0.3.1.
+
 2002-02-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Added checks for appropriate nodekinds
