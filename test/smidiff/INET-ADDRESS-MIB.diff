@@ -1,0 +1,23 @@
+./INET-ADDRESS-MIB.new:9 contact of `INET-ADDRESS-MIB' changed
+../../mibs/ietf/INET-ADDRESS-MIB:9 previous definition of contact of module `INET-ADDRESS-MIB'
+./INET-ADDRESS-MIB.new:9 description of `INET-ADDRESS-MIB' changed
+../../mibs/ietf/INET-ADDRESS-MIB:9 previous definition of description of `INET-ADDRESS-MIB'
+./INET-ADDRESS-MIB.new:31 revision `2001-09-20 00:00' added
+./INET-ADDRESS-MIB.new:44 named number `ipv4z' added to type `InetAddressType'
+./INET-ADDRESS-MIB.new:44 named number `ipv6z' added to type `InetAddressType'
+./INET-ADDRESS-MIB.new:44 description of `InetAddressType' changed
+../../mibs/ietf/INET-ADDRESS-MIB:60 previous definition of description of `InetAddressType'
+./INET-ADDRESS-MIB.new:102 description of `InetAddress' changed
+../../mibs/ietf/INET-ADDRESS-MIB:99 previous definition of description of `InetAddress'
+./INET-ADDRESS-MIB.new:130 description of `InetAddressIPv4' changed
+../../mibs/ietf/INET-ADDRESS-MIB:121 previous definition of description of `InetAddressIPv4'
+./INET-ADDRESS-MIB.new:142 range `(16..16|20..20)' removed from type `InetAddressIPv6'
+./INET-ADDRESS-MIB.new:142 format of `InetAddressIPv6' changed
+../../mibs/ietf/INET-ADDRESS-MIB:133 previous definition of `InetAddressIPv6'
+./INET-ADDRESS-MIB.new:142 description of `InetAddressIPv6' changed
+../../mibs/ietf/INET-ADDRESS-MIB:133 previous definition of description of `InetAddressIPv6'
+./INET-ADDRESS-MIB.new:154 type `InetAddressIPv4z' has been added
+./INET-ADDRESS-MIB.new:177 type `InetAddressIPv6z' has been added
+./INET-ADDRESS-MIB.new:215 type `InetAddressPrefixLength' has been added
+./INET-ADDRESS-MIB.new:245 type `InetPortNumber' has been added
+./INET-ADDRESS-MIB.new:263 type `InetAutonomousSystemNumber' has been added
