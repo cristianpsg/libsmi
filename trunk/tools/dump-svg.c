@@ -156,7 +156,7 @@ static const int CANVASWIDTH           =1100;
 static const float STARTSCALE          =(float)1;
 
 //used by the springembedder
-static const int ITERATIONS            =100;
+static const int ITERATIONS            =50;
 
 /*
  * global svg graph layout
@@ -2856,7 +2856,7 @@ static float fa(float d, float k)
 static void layoutGraph(int nodecount)
 {
     int i;
-    float area, k, c = 1423, xDelta, yDelta, absDelta, absDisp, t;
+    float area, k, c = 13423, xDelta, yDelta, absDelta, absDisp, t;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
@@ -2874,8 +2874,8 @@ static void layoutGraph(int nodecount)
 	    for (uNode = graph->nodes; uNode; uNode = uNode->nextPtr) {
 		if (!uNode->use || vNode==uNode)
 		    continue;
-		xDelta = vNode->dia.x -uNode->dia.x;
-		yDelta = vNode->dia.y -uNode->dia.y;
+		xDelta = vNode->dia.x - uNode->dia.x;
+		yDelta = vNode->dia.y - uNode->dia.y;
 		absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
 		vNode->dia.xDisp += (xDelta/absDelta)*fr(absDelta, k);
 		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
@@ -2896,13 +2896,16 @@ static void layoutGraph(int nodecount)
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
 				    + vNode->dia.yDisp*vNode->dia.yDisp));
-	    //vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
-	    //vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
+	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
+	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
 	    vNode->dia.x = min(CANVASWIDTH, max(0, vNode->dia.x));
 	    vNode->dia.y = min(CANVASHEIGHT, max(0, vNode->dia.y));
+	    if (vNode->dia.x==(float)0 && vNode->dia.y==(float)0) {
+		fprintf(stderr, "test\n");
+	    }
 	}
 	//reduce the temperature as the layout approaches a better configuration
-	//t *= 0.7;
+	t *= 0.3;
     }
 }
 
@@ -2954,9 +2957,13 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	if (!tNode->use)
 	    continue;
 	if (tNode->group == 0) {
-	    printSVGObject(tNode, &classNr);
+	    printf(" <text x=\"%2.f\" y=\"%2.f\" style=\"text-anchor:middle\">\n", tNode->dia.x, tNode->dia.y);
+	    printf("      %s</text>\n", smiGetFirstChildNode(tNode->smiNode)->name);
+	    //printSVGObject(tNode, &classNr);
 	} else {
-	    diaPrintXMLGroup(tNode->group, &classNr);
+	    printf(" <text x=\"%2.f\" y=\"%2.f\" style=\"text-anchor:middle\">\n", tNode->dia.x, tNode->dia.y);
+	    printf("      %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
+	    //diaPrintXMLGroup(tNode->group, &classNr);
 	}
     }
 
