@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.4 2000/01/28 14:16:23 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.5 2000/02/06 23:30:59 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -277,8 +277,8 @@ static void addToTypeTree(TypeNode *root, SmiType *smiType)
     if ((!root->typemodule
 	 || !smiParentType
 	 || strcmp(smiGetTypeModule(smiParentType)->name,
-		                                        root->typemodule) == 0)
-	&& strcmp(smiParentType->name, root->typename) == 0) {
+		   root->typemodule) == 0) &&
+	(!smiParentType || strcmp(smiParentType->name, root->typename) == 0)) {
 	newType = createTypeNode(smiType);
 	newType->typemodule = smiGetTypeModule(smiType)->name;
 

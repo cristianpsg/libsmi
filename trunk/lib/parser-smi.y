@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.69 2000/02/06 23:30:58 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.70 2000/02/07 16:10:29 strauss Exp $
  */
 
 %{
@@ -347,7 +347,7 @@ checkDate(Parser *parserPtr, char *date)
     struct tm	tm;
     time_t	anytime;
     int		i, len;
-    char	*p, *tz;
+    char	*p;
     
     memset(&tm, 0, sizeof(tm));
     anytime = 0;
@@ -401,17 +401,7 @@ checkDate(Parser *parserPtr, char *date)
 	tm.tm_mon -= 1;
 	tm.tm_isdst = 0;
 
-	/* ensure to call mktime() for UTC */
-	tz = getenv("TZ");
-	if (tz) tz = strdup(tz);
-	setenv("TZ", "NULL", 1);
-	anytime = mktime(&tm);
-	if (tz) {
-	    setenv("TZ", tz, 1);
-	    free(tz);
-	} else {
-	    unsetenv("TZ");
-	}
+	anytime = timegm(&tm);
 	
 	if (anytime == (time_t) -1) {
 	    printError(parserPtr, ERR_DATE_VALUE, date);
@@ -1168,6 +1158,8 @@ typeDeclaration:	typeName
 			}
 			COLON_COLON_EQUAL typeDeclarationRHS
 			{
+			    Type *typePtr;
+			    
 			    if (strlen($1)) {
 				setTypeName($4, $1);
 				$$ = 0;
@@ -1222,6 +1214,11 @@ typeDeclaration:	typeName
 				    setTypeParent($4, findTypeByModuleAndName(
 					                   thisModulePtr,
 						           "IpAddress"));
+				} else if (!strcmp($1, "IpAddress")) {
+				    typePtr = findTypeByModuleAndName(
+					thisModulePtr, "NetworkAddress");
+				    if (typePtr) 
+					setTypeParent(typePtr, $4);
 				}
 			    }
 			}
