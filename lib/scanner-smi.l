@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.22 2000/06/08 09:36:15 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.23 2000/06/14 13:15:18 strauss Exp $
  */
 
 %option noyywrap
@@ -94,6 +94,7 @@ smiLeaveLexRecursion()
  * Lex pattern definitions.
  */
 delim		([^a-zA-Z0-9-])|--
+enddelim	([^a-zA-Z0-9-])|--|""
 eol             ("\n"|"\n\015"|"\015\n")
 
 
@@ -304,7 +305,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     return DISPLAY_HINT;
 }
 
-<INITIAL>END/{delim} {
+<INITIAL>END/{enddelim} {
     yylval.id = yytext;
     return END;
 }
