@@ -2,10 +2,26 @@
 LIBSMI -- A LIBRARY FOR SMI MANAGEMENT INFORMATION
 ==================================================
 
-Started as part of Frank Strauss' master's thesis at the
-Technical University of Braunschweig, Germany.
+Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 
-(C) 1999 Frank Strauss, TU Braunschweig, Germany.
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+@(#) $Id$
+
+This project has been started as part of Frank Strauss' master's
+thesis at the Technical University of Braunschweig, Germany.
 
 
 MANIFEST
@@ -14,13 +30,13 @@ MANIFEST
 README					this file
 Makefile				Makefile to build and install libsmi
 lib/					library source code
-tools/					tools' source code
-etc/					libsmi and tools' configuration files
+tools/					tools source code
+etc/					libsmi and tools configuration files
 doc/draft-irtf-nmrg-sming-00.txt	SMIng specification
 doc/sming.abnf				SMIng ABNF grammar
 doc/IRTF-NMRG-SMING*			SMIng modules from SMIng specification
 doc/*.3					libsmi man pages
-doc/*.1					tools' man pages
+doc/*.1					tools man pages
 mibs/smi/				SMIv1/v2 modules to be installed
 mibs/sming/				SMIng modules to be installed
 
@@ -55,5 +71,4 @@ information online at http://www.ibr.cs.tu-bs.de/~strauss/sming/. If
 this fails, contact me, <strauss@ibr.cs.tu-bs.de>.
 
 
-	Frank Strauss, 22-May-1999
-
+	Frank Strauss

@@ -1,7 +1,25 @@
 #
-# This is the libsmi Makefile.in.
+# Makefile.in --
 #
-# @(#) $Id: Makefile.in,v 1.3 1999/05/21 23:00:57 strauss Exp $
+#      Makefile template to generate the toplevel Makefile using ./configure.
+#
+# Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# @(#) $Id: Makefile.in,v 1.4 1999/05/25 11:46:01 strauss Exp $
 #
 
 LIBSMI_VERSION	= @LIBSMI_VERSION@
@@ -96,7 +114,8 @@ clean:
 install: lib/smi.h $(LIBSMI_SO)
 	$(INSTALL) lib/smi.h $(INCLUDE_INSTALL_DIR)/smi.h
 	$(INSTALL) $(LIBSMI_SO) $(LIB_INSTALL_DIR)/libsmi.so.$(LIBSMI_VERSION)
-	ln $(LIB_INSTALL_DIR)/libsmi.so.$(LIBSMI_VERSION) $(LIB_INSTALL_DIR)/libsmi.so
+	-rm -f $(LIB_INSTALL_DIR)/libsmi.so
+	ln -s libsmi.so.$(LIBSMI_VERSION) $(LIB_INSTALL_DIR)/libsmi.so
 #	$(INSTALL) tools/smilint $(BIN_INSTALL_DIR)/smilint
 #	$(INSTALL) tools/smidump $(BIN_INSTALL_DIR)/smidump
 	$(INSTALL) tools/smiquery $(BIN_INSTALL_DIR)/smiquery

@@ -3,12 +3,23 @@
  *
  *      Interface Implementation of libsmi.
  *
- * Copyright (c) 1999 Technical University of Braunschweig.
+ * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
- * See the file "license.terms" for information on usage and redistribution
- * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * @(#) $Id: smi.h,v 1.19 1999/05/21 19:55:18 strauss Exp $
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * @(#) $Id: smi.h,v 1.20 1999/05/25 11:46:01 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -175,6 +186,14 @@ typedef struct SmiNamedNumber {
     SmiValue            *valuePtr;
 } SmiNamedNumber;
 
+/* SmiMember -- a member of a group                                          */
+typedef struct SmiMember {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiIdentifier       groupmodule;
+    SmiIdentifier       groupname;
+} SmiMember;
+
 /* SmiRange -- a min-max value range; for subtyping of sizes or numbers      */
 typedef struct SmiRange {
     SmiIdentifier	module;
@@ -194,8 +213,8 @@ typedef struct SmiOption {
 
 /* SmiRefinement -- a refined object in a compliance statement               */
 typedef struct SmiRefinement {
-    SmiIdentifier       name;
     SmiIdentifier       module;
+    SmiIdentifier       name;
     SmiIdentifier       compliancemodule;
     SmiIdentifier       compliancename;
     SmiIdentifier       typemodule;
@@ -219,17 +238,18 @@ typedef struct SmiModule {
 
 /* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
-    SmiIdentifier       name;
     SmiIdentifier       module;
+    SmiIdentifier       name;
     SmiObjectIdentifier oid;
     SmiIdentifier       typename;
     SmiIdentifier       typemodule;
-#if 0
-    char                **list;
     SmiIndexkind        indexkind;
     int                 implied;
+    SmiIdentifier       relatedmodule;    
+    SmiIdentifier       relatedname;    
+#if 0
+    char                **list;
     char                **index;
-    char                *relatedrow;
 #endif
 #if 0
     SmiOption           **option;
@@ -248,8 +268,8 @@ typedef struct SmiNode {
 
 /* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
-    SmiIdentifier       name;
     SmiIdentifier       module;
+    SmiIdentifier       name;
     SmiBasetype         basetype;
     SmiIdentifier	parentmodule;
     SmiIdentifier	parentname;
@@ -264,8 +284,8 @@ typedef struct SmiType {
 
 /* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
 typedef struct SmiMacro {
-    SmiIdentifier       name;
     SmiIdentifier       module;
+    SmiIdentifier       name;
 } SmiMacro;
 
 
@@ -359,6 +379,16 @@ extern SmiNode *smiGetParentNode(SmiNode *smiNodePtr);
 extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
+
+extern SmiNode *smiGetFirstIndexNode(SmiNode *smiRowNodePtr);
+
+extern SmiNode *smiGetNextIndexNode(SmiNode *smiRowNodePtr,
+				    SmiNode *smiIndexNodePtr);
+
+extern SmiNode *smiGetFirstMemberNode(SmiNode *smiNodePtr);
+
+extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
+				     SmiNode *smiMemberNodePtr);
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 

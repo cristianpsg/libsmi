@@ -3,12 +3,23 @@
  *
  *      A simple SMI query program, using libsmi.
  *
- * Copyright (c) 1998 Technical University of Braunschweig.
+ * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
- * See the file "license.terms" for information on usage and redistribution
- * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * @(#) $Id: smiquery.c,v 1.10 1999/05/20 17:01:46 strauss Exp $
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * @(#) $Id: smiquery.c,v 1.11 1999/05/21 19:55:20 strauss Exp $
  */
 
 #include <stdio.h>
@@ -153,11 +164,13 @@ main(argc, argv)
     char *argv[];
 {
     SmiModule *module;
-    SmiNode *node;
+    SmiNode *node, *child;
     SmiType *type;
     SmiMacro *macro;
     SmiNamedNumber *nn;
     SmiRange *range;
+    SmiImport *import;
+    SmiRevision *revision;
     char *command, *name;
     int flags;
     char c;
@@ -214,6 +227,23 @@ main(argc, argv)
 	smiFreeModule(module);
     }
 
+    if (!strcmp(command, "imports")) {
+	printf("     Imports:");
+	for(import = smiGetFirstImport(name);
+	    import ; import = smiGetNextImport(import)) {
+	    printf(" %s.%s", import->importmodule, import->importname);
+	}
+	printf("\n");
+    }
+
+    if (!strcmp(command, "revisions")) {
+	for(revision = smiGetFirstRevision(name);
+	    revision ; revision = smiGetNextRevision(revision)) {
+	    printf("    Revision: %s", ctime(&revision->date));
+	    printf(" Description: %s\n", format(revision->description));
+	}
+    }
+
     if (!strcmp(command, "node")) {
 	node = smiGetNode(name, NULL);
 	if (node) {
@@ -229,6 +259,59 @@ main(argc, argv)
 	    printf(" Description: %s\n", format(node->description));
 	    printf("   Reference: %s\n", format(node->reference));
 	}
+	smiFreeNode(node);
+    }
+
+    if (!strcmp(command, "parent")) {
+	child = smiGetNode(name, NULL);
+	if (child) node = smiGetParentNode(child);
+	if (child && node) {
+	    printf("     MibNode: %s\n", format(node->name));
+	    printf("      Module: %s\n", format(node->module));
+	    printf("         OID: %s\n", format(node->oid));
+	    printf("        Type: %s\n",
+		   formattype(node->typemodule, node->typename));
+	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
+	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
+	    printf("      Access: %s\n", smiStringAccess(node->access));
+	    printf("      Status: %s\n", smiStringStatus(node->status));
+	    printf(" Description: %s\n", format(node->description));
+	    printf("   Reference: %s\n", format(node->reference));
+	}
+	smiFreeNode(child);
+	smiFreeNode(node);
+    }
+
+    if (!strcmp(command, "index")) {
+	node = smiGetNode(name, NULL);
+	printf("       Index:");
+	for(child = smiGetFirstIndexNode(node);
+	    child ; child = smiGetNextIndexNode(node, child)) {
+	    printf(" %s.%s", child->module, child->name);
+	}
+	printf("\n");
+	smiFreeNode(node);
+    }
+
+    if (!strcmp(command, "members")) {
+	node = smiGetNode(name, NULL);
+	printf("     Members:");
+	for(child = smiGetFirstMemberNode(node);
+	    child ; child = smiGetNextMemberNode(node, child)) {
+	    printf(" %s.%s", child->module, child->name);
+	}
+	printf("\n");
+	smiFreeNode(node);
+    }
+
+    if (!strcmp(command, "children")) {
+	node = smiGetNode(name, NULL);
+	printf("    Children:");
+	for(child = smiGetFirstChildNode(node);
+	    child ; child = smiGetNextChildNode(child)) {
+	    printf(" %s.%s", child->module, child->name);
+	}
+	printf("\n");
 	smiFreeNode(node);
     }
 
@@ -261,6 +344,7 @@ main(argc, argv)
 	    printf(" DisplayHint: %s\n", format(type->format));
 	    printf("      Status: %s\n", smiStringStatus(type->status));
 	    printf(" Description: %s\n", format(type->description));
+	    printf("   Reference: %s\n", format(type->reference));
 	}
 	smiFreeType(type);
     }
@@ -274,47 +358,5 @@ main(argc, argv)
 	smiFreeMacro(macro);
     }
 
-#if 0
-    if (!strcmp(command, "names")) {
-	list = smiGetNames(name, NULL);
-	if (list) {
-	    printf("       Names:");
-	    for (p = list; *p; p++) {
-		printf(" %s", *p);
-	    }
-	    printf("\n");
-	}
-    }
-    
-    if (!strcmp(command, "children")) {
-	list = smiGetChildren(name, NULL);
-	if (list) {
-	    printf("    Children:");
-	    for (p = list; *p; p++) {
-		printf(" %s", *p);
-	    }
-	    printf("\n");
-	}
-    }
-
-    if (!strcmp(command, "parent")) {
-	fullname = smiGetParent(name, NULL);
-	if (fullname) {
-	    printf("      Parent: %s\n", fullname);
-	}
-    }
-    
-    if (!strcmp(command, "imports")) {
-	list = smiGetImports(name);
-	if (list) {
-	    printf("     Imports:");
-	    for (p = list; *p; p++) {
-		printf(" %s", *p);
-	    }
-	    printf("\n");
-	}
-    }
-#endif
-    
     exit(0);
 }
