@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.5 1998/11/27 10:55:28 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.6 1998/11/29 11:47:07 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -18,11 +18,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#define SMI_VIEWALL     0x0800
 #define SMI_ERRORS      0x1000
 #define SMI_ERRORLINES  0x2000
 #define SMI_STATS       0x4000
 #define SMI_RECURSIVE   0x8000
-#define SMI_FLAGMASK    (SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
+#define SMI_FLAGMASK    (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
 
 
 #define smiStringAccess(access) ( \
@@ -83,6 +84,8 @@ extern void smiSetDebugLevel(int level);
 extern void smiSetErrorLevel(int level);
 
 extern void smiSetFlags(int userflags);
+
+extern int smiGetFlags();
 
 extern int smiReadConfig(const char *file);
 

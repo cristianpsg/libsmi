@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: config.c,v 1.5 1998/11/23 12:56:57 strauss Exp $
+ * @(#) $Id: config.c,v 1.6 1998/11/25 02:50:55 strauss Exp $
  */
 
 #include <stdio.h>
@@ -59,10 +59,14 @@ readConfig(filename, flags)
 	    if (!strcmp(cmd, "location")) {
 		smiAddLocation(arg1);
  	    } else if (!strcmp(cmd, "preload")) {
+#if 0
 #ifdef PARSER
 		readMibFile(arg1, "", *flags | FLAG_WHOLEFILE);
 #else
 		;
+#endif
+#else
+		smiLoadMibModule(arg1);
 #endif
 	    } else if (!strcmp(cmd, "loglevel")) {
 		errorLevel = atoi(arg1);
@@ -74,6 +78,11 @@ readConfig(filename, flags)
 #else
 		;
 #endif
+	    } else if (!strcmp(cmd, "viewall")) {
+		if (atoi(arg1))
+		    *flags |= FLAG_VIEWALL;
+		else
+		    *flags &= ~FLAG_VIEWALL;
 	    } else if (!strcmp(cmd, "statistics")) {
 		if (atoi(arg1))
 		    *flags |= FLAG_STATS;
