@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.34 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.35 2000/11/20 15:45:10 strauss Exp $
  */
 
 #include <config.h>
@@ -1588,4 +1588,22 @@ void dumpCorba(int modc, SmiModule **modv, int flags, char *output)
 	dumpIdl(modv[i]);
 	dumpOid(modv[i]);
     }
+}
+
+
+
+void init_corba()
+{
+    
+    static SmidumpDriver driver = {
+	"corba",
+	dumpCorba,
+	0,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	"corba IDL interface and OID definitions (JIDM)",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

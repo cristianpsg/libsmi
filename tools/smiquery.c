@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.58 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.59 2000/11/15 10:50:34 strauss Exp $
  */
 
 #include <config.h>
@@ -29,6 +29,7 @@
 #endif
 
 #include "smi.h"
+#include "shhopt.h"
 
 
 
@@ -299,26 +300,26 @@ char *formatvalue(const SmiValue *value, SmiType *type)
 void usage()
 {
     fprintf(stderr,
-    "Usage: smiquery [-Vh] [-c <configfile>] [-p <module>] <command> <name>\n"
-	    "-V                        show version and license information\n"
-	    "-h                        show usage information\n"
-	    "-c <configfile>           load a specific configuration file\n"
-	    "-p <module>               preload <module>\n"
-	    "module <module>           show information on module <module>\n"
-	    "imports <module>          show import list of module <module>\n"
-	    "node <module::name>       show information on node <module::name>\n"
-	    "compliance <module::name> show information on compliance node <module::name>\n"
-	    "children <module::name>   show children list of node <module::name>\n"
-	    "type <module::name>       show information on type <module::name>\n"
-	    "macro <module::name>      show information on macro <module::name>\n");
+	    "Usage: smiquery [options] command name\n"
+	    "  -V, --version        show version and license information\n"
+	    "  -h, --help           show usage information\n"
+	    "  -c, --config=file    load a specific configuration file\n"
+	    "  -p, --preload=module preload <module>\n"
+	    "\nSupported commands are:\n"
+	    "  module <module>           show information on module <module>\n"
+	    "  imports <module>          show import list of module <module>\n"
+	    "  node <module::name>       show information on node <module::name>\n"
+	    "  compliance <module::name> show information on compliance node <module::name>\n"
+	    "  children <module::name>   show children list of node <module::name>\n"
+	    "  type <module::name>       show information on type <module::name>\n"
+	    "  macro <module::name>      show information on macro <module::name>\n");
 }
 
 
 
-void version()
-{
-    printf("smiquery " SMI_VERSION_STRING "\n");
-}
+static void version() { printf("smiquery " SMI_VERSION_STRING "\n"); }
+static void config(char *filename) { smiReadConfig(filename, "smiquery"); }
+static void preload(char *module) { smiLoadModule(module); }
 
 
 
@@ -340,7 +341,18 @@ int main(int argc, char *argv[])
     char c;
     char s1[40], s2[40];
 
-    for (i = 1; i < argc; i++) if (strstr(argv[i], "-c") == argv[i]) break;
+    static optStruct opt[] = {
+	/* short long              type        var/func       special       */
+	{ 'h', "help",           OPT_FLAG,   usage,         OPT_CALLFUNC },
+	{ 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
+	{ 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
+	{ 'p', "preload",        OPT_STRING, preload,       OPT_CALLFUNC },
+	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
+    };
+    
+    for (i = 1; i < argc; i++)
+	if ((strstr(argv[i], "-c") == argv[i]) ||
+	    (strstr(argv[i], "--config") == argv[i])) break;
     if (i == argc) 
 	smiInit("smiquery");
     else
@@ -348,30 +360,12 @@ int main(int argc, char *argv[])
 
     flags = smiGetFlags();
 
-    while ((c = getopt(argc, argv, "Vhp:c:")) != -1) {
-	switch (c) {
-	case 'c':
-	    smiReadConfig(optarg, "smiquery");
-	    break;
-	case 'p':
-	    if (smiLoadModule(optarg) == NULL) {
-		fprintf(stderr, "smiquery: cannot locate module `%s'\n",
-			optarg);
-		exit(1);
-	    }
-	    break;
-	case 'V':
-	    version();
-	    return 0;
-	case 'h':
-	    usage();
-	    return 0;
-	default:
-	    usage();
-	    exit(1);
-	}
-    }
+    optParseOptions(&argc, argv, opt, 0);
 
+    if (optind == argc) {
+	return 0;
+    }
+    
     if (optind+2 != argc) {
 	usage();
 	return 0;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.84 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.85 2000/11/15 10:50:34 strauss Exp $
  */
 
 #include <config.h>
@@ -1258,4 +1258,21 @@ void dumpSming(int modc, SmiModule **modv, int flags, char *output)
     if (output) {
 	fclose(f);
     }
+}
+
+
+
+void init_sming()
+{
+    static SmidumpDriver driver = {
+	"sming",
+	dumpSming,
+	0,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	"SMIng",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.29 2000/11/15 10:50:33 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.30 2000/11/28 09:19:36 strauss Exp $
  */
 
 
@@ -2943,4 +2943,31 @@ void dumpCMXplain(int modc, SmiModule **modv, int flags, char *output)
     XPLAIN = 1;
     
     dumpCM(modc, modv, flags, output);
+}
+
+
+
+void init_cm()
+{
+    static SmidumpDriver driverDia = {
+	"cm-dia",
+	dumpCMDia,
+	SMI_FLAG_NODESCR,
+	0,
+	"reverse engineered conceptual model, dia format",
+	NULL,
+	NULL
+    };
+    static SmidumpDriver driverXplain = {
+	"cm-xplain",
+	dumpCMXplain,
+	SMI_FLAG_NODESCR,
+	0,
+	"reverse engineered conceptual model, ASCII format",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driverDia);
+    smidumpRegisterDriver(&driverXplain);
 }

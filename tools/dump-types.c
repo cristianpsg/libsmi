@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.24 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.25 2000/11/15 10:50:34 strauss Exp $
  */
 
 /*
@@ -628,4 +628,22 @@ void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
 	printTypeTree(&typeRoot, "");
 	freeTypeTree(&typeRoot);
     }
+}
+
+
+
+void init_types()
+{
+    
+    static SmidumpDriver driver = {
+	"types",
+	dumpTypes,
+	SMI_FLAG_NODESCR, /** output ? **/
+	0,
+	"recursive list of all derived types",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

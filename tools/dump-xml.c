@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.16 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.17 2000/11/28 09:19:36 strauss Exp $
  */
 
 /*
@@ -967,4 +967,22 @@ void dumpXml(int modc, SmiModule **modv, int flags, char *output)
 	
 	print("</smi>\n");
     }
+}
+
+
+
+void init_xml()
+{
+    
+    static SmidumpDriver driver = {
+	"xml",
+	dumpXml,
+	0,
+	SMIDUMP_DRIVER_CANT_UNITE, /** output ? **/
+	"intermediate SMI XML exchange format",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

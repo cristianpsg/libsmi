@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sql.c,v 1.4 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: dump-sql.c,v 1.5 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -157,4 +157,21 @@ void dumpSql(Module *module)
 	   " */\n\n", smiModule->name );
 	
     printCreateTables(smiModule);
+}
+
+
+
+void init_sql()
+{
+    static SmidumpDriver driver = {
+	"sql",
+	dumpSql,
+	SMI_FLAG_NODESCR,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	"SQL data model definitions",
+	NULL,
+	NULL
+    };
+
+    smidumpRegisterDriver(&driver);
 }
