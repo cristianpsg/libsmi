@@ -1,3 +1,10 @@
+2003-06-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/BLDG-HVAC-MIB: added (RFC 3512) (it's just an
+	example MIB).
+
+	* mibs/ietf/MALLOC-MIB: added (RFC 3559).
+
 2003-03-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* pibs/ietf/DIFFSERV-PIB: added (RFC 3317).
