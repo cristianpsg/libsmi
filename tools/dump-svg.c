@@ -157,6 +157,7 @@ static const float TABLEHEIGHT         = (float)35; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
+static const int MODULE_INFO_WIDTH     =150;
 //The description of RowStatus is quite long... :-/
 static const int DYN_TEXT              =550;
 //TODO make these values configurable by options passed to the driver
@@ -2899,7 +2900,12 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
     SmiElement  *smiElement;
     SmiRevision *smiRevision;
 
-    y += TABLEELEMHEIGHT;
+    printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
+							x, y, STARTSCALE);
+    //now use x and y as relative coordinates.
+    x = 0;
+    y = 10;
+
     //ModuleIdentity
     printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-IDENTITY</text>\n", x, y);
     y += TABLEELEMHEIGHT;
@@ -2953,8 +2959,8 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
 	    x -= 2*TABLEELEMHEIGHT;
 	}
     }
-
     y += TABLEELEMHEIGHT;
+
     //Notifications
     //FIXME: NOTIFICATION-TYPE or Notifications ???
     printf(" <text x=\"%.2f\" y=\"%.2f\">NOTIFICATION-TYPE</text>\n", x, y);
@@ -3032,6 +3038,7 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
 	    x -= 2*TABLEELEMHEIGHT;
 	}
     }
+    printf(" </g>\n");
 }
 
 
@@ -3402,6 +3409,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
     */
 
+    //enlarge canvas for ModuleInformation
+    xMax += MODULE_INFO_WIDTH;
     //output of svg to stdout begins here
     printSVGHeaderAndTitle(modc, modv, nodecount, xMin, yMin, xMax, yMax);
 
@@ -3437,7 +3446,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     //print MODULE-IDENTITY
-    printModuleInformation(modc, modv, 100, 0);
+    printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10);
 
     //output of svg to stdout ends here
     printSVGClose(xMin, yMin, xMax, yMax);
