@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.11 1999/03/29 14:02:26 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.12 1999/03/29 22:34:04 strauss Exp $
  */
 
 %{
@@ -58,12 +58,10 @@ extern int yylex(void *lvalp, Parser *parserPtr);
 
 Node   *parentNodePtr;
 
+int    impliedFlag;
+ 
 
 
-static Module *complianceModulePtr;
- 
- 
- 
 %}
 
 /*
@@ -99,7 +97,7 @@ static Module *complianceModulePtr;
     SmiValue	   *valuePtr;
     SmiUnsigned32  unsigned32;			/*                           */
     SmiInteger32   integer32;			/*                           */
-    Compliance     *compliancePtr;
+    struct Compl   compl;
     Module	   *modulePtr;
 }
 
@@ -293,21 +291,21 @@ static Module *complianceModulePtr;
 %type  <err>objectGroupClause
 %type  <err>notificationGroupClause
 %type  <err>moduleComplianceClause
-%type  <listPtr>ModulePart_Compliance
-%type  <listPtr>Modules_Compliance
-%type  <listPtr>Module_Compliance
-%type  <modulePtr>ModuleName_Compliance
+%type  <compl>ComplianceModulePart
+%type  <compl>ComplianceModules
+%type  <compl>ComplianceModule
+%type  <modulePtr>ComplianceModuleName
 %type  <listPtr>MandatoryPart
 %type  <listPtr>MandatoryGroups
-%type  <compliancePtr>MandatoryGroup
-%type  <listPtr>CompliancePart
-%type  <err>Compliances
-%type  <err>Compliance
-%type  <err>ComplianceGroup
-%type  <err>Object_Compliance
-%type  <err>SyntaxPart
-%type  <err>WriteSyntaxPart
-%type  <err>WriteSyntax
+%type  <objectPtr>MandatoryGroup
+%type  <compl>CompliancePart
+%type  <compl>Compliances
+%type  <compl>Compliance
+%type  <listPtr>ComplianceGroup
+%type  <listPtr>ComplianceObject
+%type  <typePtr>SyntaxPart
+%type  <typePtr>WriteSyntaxPart
+%type  <typePtr>WriteSyntax
 %type  <access>AccessPart
 %type  <err>agentCapabilitiesClause
 %type  <err>ModulePart_Capabilities
@@ -1345,6 +1343,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 					  SMI_DECL_NOTIFICATIONTYPE);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
+			    setObjectList(objectPtr, $4);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
 			    if ($9) {
@@ -2292,15 +2291,23 @@ Access:			LOWERCASE_IDENTIFIER
 			}
         ;
 
-IndexPart:		INDEX '{' IndexTypes '}'
+IndexPart:		INDEX
+			{
+			    /*
+			     * Use a global variable to fetch and remember
+			     * whether we have seen an IMPLIED keyword.
+			     */
+			    impliedFlag = 0;
+			}
+			'{' IndexTypes '}'
 			{
 			    Index *p;
 			    
 			    p = util_malloc(sizeof(Index));
 			    /* TODO: success? */
-			    p->implied = 0;
-			    /* TODO: handle IMPLIED ! */
-			    p->listPtr = $3;
+			    p->indexkind = SMI_INDEX_INDEX;
+			    p->implied = impliedFlag;
+			    p->indexlistPtr = $4;
 			    p->rowPtr  = NULL;
 			    $$ = p;
 			}
@@ -2312,13 +2319,16 @@ IndexPart:		INDEX '{' IndexTypes '}'
 			    
 			    p = util_malloc(sizeof(Index));
 			    /* TODO: success? */
-			    p->implied = 0;
-			    p->listPtr = NULL;
-			    p->rowPtr  = $3;
+			    p->indexkind    = SMI_INDEX_AUGMENT;
+			    p->implied      = 0;
+			    p->indexlistPtr = NULL;
+			    p->rowPtr       = $3;
 			    $$ = p;
 			}
         |		/* empty */
-			{ $$ = NULL; }
+			{
+			    $$ = NULL;
+			}
 	;
 
 IndexTypes:		IndexType
@@ -2344,7 +2354,7 @@ IndexTypes:		IndexType
 
 IndexType:		IMPLIED Index
 			{
-			    /* TODO: handle `IMPLIED' ?! */
+			    impliedFlag = 1;
 			    $$ = $2;
 			}
 	|		Index
@@ -2354,7 +2364,8 @@ IndexType:		IMPLIED Index
 	;
 
 Index:			ObjectName
-			/* TODO: use the SYNTAX value of the correspondent
+			/*
+			 * TODO: use the SYNTAX value of the correspondent
 			 *       OBJECT-TYPE invocation
 			 */
 			{
@@ -2889,10 +2900,13 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			STATUS Status
 			DESCRIPTION Text
 			ReferPart
-			ModulePart_Compliance
+			ComplianceModulePart
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
+			    Refinement *refinementPtr;
+			    List *listPtr;
+			    char s[SMI_MAX_DESCRIPTOR * 2 + 15];
 			    
 			    objectPtr = $12;
 			    
@@ -2913,68 +2927,111 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-			    setObjectList(objectPtr, $9);
+			    setObjectList(objectPtr, $9.mandatorylistPtr);
+			    objectPtr->optionlistPtr = $9.optionlistPtr;
+			    objectPtr->refinementlistPtr =
+				                          $9.refinementlistPtr;
+
+			    /*
+			     * Dirty: Fake the types' names in the
+			     * refinement list:
+			     * ``<compliancename>+<objecttypename>+type''
+			     * ``<compliancename>+<objecttypename>+writetype''
+			     */
+			    if ($9.refinementlistPtr) {
+				for (listPtr = $9.refinementlistPtr;
+				     listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr) {
+				    refinementPtr =
+					((Refinement *)(listPtr->ptr));
+				    if (refinementPtr->typePtr) {
+					sprintf(s, "%s+%s+type", $1,
+					       refinementPtr->objectPtr->name);
+					setTypeName(refinementPtr->typePtr, s);
+				    }
+				    if (refinementPtr->writetypePtr) {
+					sprintf(s, "%s+%s+writetype", $1,
+					       refinementPtr->objectPtr->name);
+				   setTypeName(refinementPtr->writetypePtr, s);
+				    }
+				}
+			    }
 			    $$ = 0;
 			}
 	;
 
-ModulePart_Compliance:	Modules_Compliance
+ComplianceModulePart:	ComplianceModules
 			{
 			    $$ = $1;
 			}
 	;
 
-Modules_Compliance:	Module_Compliance
+ComplianceModules:	ComplianceModule
 			{
 			    $$ = $1;
 			}
-	|		Modules_Compliance Module_Compliance
+	|		ComplianceModules ComplianceModule
 			{
 			    List *listPtr;
 			    
-			    /* concatenate lists $1 and $2 */
-			    if ($1) {
-				for (listPtr = $1; listPtr->nextPtr;
+			    /* concatenate lists in $1 and $2 */
+			    if ($1.mandatorylistPtr) {
+				for (listPtr = $1.mandatorylistPtr;
+				     listPtr->nextPtr;
 				     listPtr = listPtr->nextPtr);
-				listPtr->nextPtr = $2;
-				$$ = $1;
+				listPtr->nextPtr = $2.mandatorylistPtr;
+				$$.mandatorylistPtr = $1.mandatorylistPtr;
 			    } else {
-				$$ = $2;
+				$$.mandatorylistPtr = $2.mandatorylistPtr;
+			    }
+			    if ($1.optionlistPtr) {
+				for (listPtr = $1.optionlistPtr;
+				     listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr);
+				listPtr->nextPtr = $2.optionlistPtr;
+				$$.optionlistPtr = $1.optionlistPtr;
+			    } else {
+				$$.optionlistPtr = $2.optionlistPtr;
+			    }
+			    if ($1.refinementlistPtr) {
+				for (listPtr = $1.refinementlistPtr;
+				     listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr);
+				listPtr->nextPtr = $2.refinementlistPtr;
+				$$.refinementlistPtr = $1.refinementlistPtr;
+			    } else {
+				$$.refinementlistPtr = $2.refinementlistPtr;
 			    }
 			}
 	;
 
-Module_Compliance:	MODULE ModuleName_Compliance
+ComplianceModule:	MODULE ComplianceModuleName
+			/*
+			 * TODO: Use this Module $2 for identifier
+			 * lookups in MandatoryPart and CompliancePart
+			 */
 			MandatoryPart
 			CompliancePart
 			{
-			    List *listPtr;
-			    
-			    /* concatenate lists $3 and $4 */
-			    if ($1) {
-				for (listPtr = $3; listPtr->nextPtr;
-				     listPtr = listPtr->nextPtr);
-				listPtr->nextPtr = $4;
-				$$ = $3;
-			    } else {
-				$$ = $4;
-			    }
+			    $$.mandatorylistPtr = $3;
+			    $$.optionlistPtr = $4.optionlistPtr;
+			    $$.refinementlistPtr = $4.refinementlistPtr;
 			}
 	;
 
-ModuleName_Compliance:	UPPERCASE_IDENTIFIER objectIdentifier
+ComplianceModuleName:	UPPERCASE_IDENTIFIER objectIdentifier
 			{
-			    $$ = complianceModulePtr = findModuleByName($1);
+			    $$ = findModuleByName($1);
 			    /* TODO: handle objectIdentifier */
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
-			    $$ = complianceModulePtr = findModuleByName($1);
+			    $$ = findModuleByName($1);
 			}
 	|		/* empty, only if contained in MIB module */
 			/* TODO: RFC 1904 looks a bit different, is this ok? */
 			{
-			    $$ = complianceModulePtr = thisModulePtr;
+			    $$ = thisModulePtr;
 			}
 	;
 
@@ -3011,69 +3068,142 @@ MandatoryGroups:	MandatoryGroup
 
 MandatoryGroup:		objectIdentifier
 			{
-			    $$ = util_malloc(sizeof(Compliance));
-			    $$->compl = SMI_COMPL_MANDATORY;
-			    $$->modulePtr = complianceModulePtr;
-			    $$->objectPtr = $1;
-			    $$->typePtr = NULL;
-			    $$->writetypePtr = NULL;
-			    $$->access = SMI_ACCESS_UNKNOWN;
-			    $$->description = NULL;
+			    $$ = $1;
 			}
 	;
 
 CompliancePart:		Compliances
-			{ $$ = NULL; }
+			{
+			    $$.mandatorylistPtr = NULL;
+			    $$.optionlistPtr = $1.optionlistPtr;
+			    $$.refinementlistPtr = $1.refinementlistPtr;
+			}
 	|		/* empty */
-			{ $$ = NULL; }
+			{
+			    $$.mandatorylistPtr = NULL;
+			    $$.optionlistPtr = NULL;
+			    $$.refinementlistPtr = NULL;
+			}
 	;
 
 Compliances:		Compliance
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	|		Compliances Compliance
-			{ $$ = 0; }
+			{
+			    List *listPtr;
+			    
+			    $1.mandatorylistPtr = NULL;
+
+			    /* concatenate lists in $1 and $2 */
+			    if ($1.optionlistPtr) {
+				for (listPtr = $1.optionlistPtr;
+				     listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr);
+				listPtr->nextPtr = $2.optionlistPtr;
+				$$.optionlistPtr = $1.optionlistPtr;
+			    } else {
+				$$.optionlistPtr = $2.optionlistPtr;
+			    }
+			    if ($1.refinementlistPtr) {
+				for (listPtr = $1.refinementlistPtr;
+				     listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr);
+				listPtr->nextPtr = $2.refinementlistPtr;
+				$$.refinementlistPtr = $1.refinementlistPtr;
+			    } else {
+				$$.refinementlistPtr = $2.refinementlistPtr;
+			    }
+			}
 	;
 
 Compliance:		ComplianceGroup
-			{ $$ = 0; }
-	|		Object_Compliance
-			{ $$ = 0; }
+			{
+			    $$.mandatorylistPtr = NULL;
+			    $$.optionlistPtr = $1;
+			    $$.refinementlistPtr = NULL;
+			}
+	|		ComplianceObject
+			{
+			    $$.mandatorylistPtr = NULL;
+			    $$.optionlistPtr = NULL;
+			    $$.refinementlistPtr = $1;
+			}
 	;
 
 ComplianceGroup:	GROUP objectIdentifier
 			DESCRIPTION Text
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    $$->nextPtr = NULL;
+			    $$->ptr = util_malloc(sizeof(Option));
+			    ((Option *)($$->ptr))->objectPtr = $2;
+			    ((Option *)($$->ptr))->description =
+				                               util_strdup($4);
+			}
 	;
 
-Object_Compliance:	OBJECT ObjectName
+ComplianceObject:	OBJECT ObjectName
 			SyntaxPart
 			WriteSyntaxPart
 			AccessPart
 			DESCRIPTION Text
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    $$->nextPtr = NULL;
+			    $$->ptr = util_malloc(sizeof(Refinement));
+			    ((Refinement *)($$->ptr))->objectPtr = $2;
+			    ((Refinement *)($$->ptr))->typePtr = $3;
+			    ((Refinement *)($$->ptr))->writetypePtr = $4;
+			    ((Refinement *)($$->ptr))->access = $5;
+			    ((Refinement *)($$->ptr))->description =
+				                               util_strdup($7);
+			}
 	;
 
 SyntaxPart:		SYNTAX Syntax
-			{ $$ = 0; }
+			{
+			    if ($2->name) {
+				$$ = duplicateType($2, 0, thisParserPtr);
+			    } else {
+				$$ = $2;
+			    }
+			}
 	|		/* empty */
-			{ $$ = 0; }
+			{
+			    $$ = NULL;
+			}
 	;
 
 WriteSyntaxPart:	WRITE_SYNTAX WriteSyntax
-			{ $$ = 0; }
+			{
+			    if ($2->name) {
+				$$ = duplicateType($2, 0, thisParserPtr);
+			    } else {
+				$$ = $2;
+			    }
+			}
 	|		/* empty */
-			{ $$ = 0; }
+			{
+			    $$ = NULL;
+			}
 	;
 
 WriteSyntax:		Syntax
-			/* TODO: right? */
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	;
 
 AccessPart:		MIN_ACCESS Access
-			{ $$ = $2; }
+			{
+			    $$ = $2;
+			}
 	|		/* empty */
-			{ $$ = SMI_ACCESS_UNKNOWN; }
+			{
+			    $$ = SMI_ACCESS_UNKNOWN;
+			}
 	;
 
 agentCapabilitiesClause: LOWERCASE_IDENTIFIER

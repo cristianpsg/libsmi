@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.12 1999/03/29 14:02:25 strauss Exp $
+ * @(#) $Id: data.h,v 1.13 1999/03/29 22:34:03 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -180,25 +180,37 @@ typedef struct Type {
 
 
 
-typedef struct Index {
-    int	           implied;
-    struct List    *listPtr;
-    struct Object  *rowPtr;
-} Index;
+typedef struct Option {
+    struct Object  *objectPtr;
+    char	   *description;
+} Option;
 
 
 
-typedef struct Compliance {
-    SmiCompl       compl;
-    Module	   *modulePtr;
+typedef struct Refinement {
     struct Object  *objectPtr;
     Type	   *typePtr;
     Type	   *writetypePtr;
     SmiAccess	   access;
     char	   *description;
-} Compliance;
+} Refinement;
 
 
+
+typedef struct Compl {
+    List  *mandatorylistPtr;
+    List  *optionlistPtr;
+    List  *refinementlistPtr;
+} Comp;
+
+ 
+
+typedef struct Index {
+    int	           implied;
+    SmiIndexkind   indexkind;
+    struct List    *listPtr; /* list of index columns (Object *) */
+    struct Object  *rowPtr;  /* a referenced row (e.g. SMIv2 AUGMENTS) */
+} Index;
 
 typedef struct Object {
     Module         *modulePtr;
@@ -211,6 +223,8 @@ typedef struct Object {
     SmiStatus	   status;
     struct Index   *indexPtr;
     struct List    *listPtr;	        /* OG, NT, NG, MC */
+    struct List    *optionlistPtr;
+    struct List    *refinementlistPtr;
     char	   *description;
     char	   *reference;
     char	   *units;
