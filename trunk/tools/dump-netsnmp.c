@@ -1,7 +1,7 @@
 /*
  * dump-netsnmp.c --
  *
- *      Operations to generate NET SNMP mib module implementation code.
+ *      Operations to generate NET-SNMP mib module implementation code.
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 1999 J. Schoenwaelder, Technical University of Braunschweig.
@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.5 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.6 2000/12/09 16:34:05 strauss Exp $
  */
 
 /*
@@ -36,6 +36,10 @@
 
 #include "smi.h"
 #include "smidump.h"
+
+
+static int noMgrStubs = 0;
+static int noAgtStubs = 0;
 
 
 static char *getAccessString(SmiAccess access)
@@ -185,9 +189,9 @@ static int isGroup(SmiNode *smiNode)
 	return 1;
     }
     
-    for(childNode = smiGetFirstChildNode(smiNode);
-	childNode;
-	childNode = smiGetNextChildNode(childNode)) {
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
 	    return 1;
 	}
@@ -215,6 +219,46 @@ static int isAccessible(SmiNode *groupNode)
     }
 
     return num;
+}
+
+
+
+static unsigned int getMinSize(SmiType *smiType)
+{
+    SmiRange *smiRange;
+    SmiType  *parentType;
+    unsigned int min = 65535, size;
+    
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_BITS:
+	return 0;
+    case SMI_BASETYPE_OCTETSTRING:
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	size = 0;
+	break;
+    default:
+	return -1;
+    }
+
+    for (smiRange = smiGetFirstRange(smiType);
+	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	if (smiRange->minValue.value.unsigned32 < min) {
+	    min = smiRange->minValue.value.unsigned32;
+	}
+    }
+    if (min < 65535 && min > size) {
+	size = min;
+    }
+
+    parentType = smiGetParentType(smiType);
+    if (parentType) {
+	unsigned int psize = getMinSize(parentType);
+	if (psize > size) {
+	    size = psize;
+	}
+    }
+
+    return size;
 }
 
 
@@ -250,8 +294,8 @@ static unsigned int getMaxSize(SmiType *smiType)
 	return size;
     }
 
-    for(smiRange = smiGetFirstRange(smiType);
-	smiRange ; smiRange = smiGetNextRange(smiRange)) {
+    for (smiRange = smiGetFirstRange(smiType);
+	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
 	if (smiRange->maxValue.value.unsigned32 > max) {
 	    max = smiRange->maxValue.value.unsigned32;
 	}
@@ -273,14 +317,287 @@ static unsigned int getMaxSize(SmiType *smiType)
 
 
 
-static void printReadMethodDecls(FILE *f, SmiModule *smiModule)
+static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
+			       SmiNode *groupNode)
+{
+    SmiNode *smiNode;
+    SmiType *smiType;
+    char    *cModuleName, *cGroupName, *cName;
+    unsigned minSize, maxSize;
+
+    cModuleName = translateLower(smiModule->name);
+    cGroupName = translate(groupNode->name);
+
+    fprintf(f,
+	    "/*\n"
+	    " * C type definitions for %s::%s.\n"
+	    " */\n\n",
+	    smiModule->name, groupNode->name);
+    
+    fprintf(f, "typedef struct %s {\n", cGroupName);
+	    
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
+#if 0
+	    && (smiNode->access == SMI_ACCESS_READ_ONLY
+		|| smiNode->access == SMI_ACCESS_READ_WRITE)
+#endif
+	    ) {
+	    smiType = smiGetNodeType(smiNode);
+	    if (!smiType) {
+		continue;
+	    }
+	    
+	    cName = translate(smiNode->name);
+	    switch (smiType->basetype) {
+	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		maxSize = getMaxSize(smiType);
+		minSize = getMinSize(smiType);
+		fprintf(f,
+			"    uint32_t  *%s;\n", cName);
+		if (maxSize != minSize) {
+		    fprintf(f,
+			    "    size_t    _%sLength;\n", cName);
+		}
+		break;
+	    case SMI_BASETYPE_OCTETSTRING:
+	    case SMI_BASETYPE_BITS:
+		maxSize = getMaxSize(smiType);
+		minSize = getMinSize(smiType);
+		fprintf(f,
+			"    u_char    *%s;\n", cName);
+		if (maxSize != minSize) {
+		    fprintf(f,
+			    "    size_t    _%sLength;\n", cName);
+		}
+		break;
+	    case SMI_BASETYPE_ENUM:
+	    case SMI_BASETYPE_INTEGER32:
+		fprintf(f,
+			"    int32_t   *%s;\n", cName);
+		break;
+	    case SMI_BASETYPE_UNSIGNED32:
+		fprintf(f,
+			"    uint32_t  *%s;\n", cName);
+		break;
+	    case SMI_BASETYPE_INTEGER64:
+		fprintf(f,
+			"    int64_t   *%s; \n", cName);
+		break;
+	    case SMI_BASETYPE_UNSIGNED64:
+		fprintf(f,
+			"    uint64_t  *%s; \n", cName);
+		break;
+	    default:
+		fprintf(f,
+			"    /* ?? */  __%s; \n", cName);
+		break;
+	    }
+	    xfree(cName);
+	}
+    }
+    
+    fprintf(f,
+	    "    void      *_clientData;\t\t"
+	    "/* pointer to client data structure */\n");
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	fprintf(f, "    struct %s *_nextPtr;\t"
+		"/* pointer to next table entry */\n", cGroupName);
+    }
+    fprintf(f,
+	    "\n    /* private space to hold actual values */\n\n");
+
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
+#if 0
+	    && (smiNode->access == SMI_ACCESS_READ_ONLY
+		|| smiNode->access == SMI_ACCESS_READ_WRITE)
+#endif
+	    ) {
+	    smiType = smiGetNodeType(smiNode);
+	    if (!smiType) {
+		continue;
+	    }
+	    
+	    cName = translate(smiNode->name);
+	    switch (smiType->basetype) {
+	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		maxSize = getMaxSize(smiType);
+		fprintf(f,
+			"    uint32_t  __%s[%u];\n", cName, maxSize);
+		break;
+	    case SMI_BASETYPE_OCTETSTRING:
+	    case SMI_BASETYPE_BITS:
+		maxSize = getMaxSize(smiType);
+		fprintf(f,
+			"    u_char    __%s[%u];\n", cName, maxSize);
+		break;
+	    case SMI_BASETYPE_ENUM:
+	    case SMI_BASETYPE_INTEGER32:
+		fprintf(f,
+			"    int32_t   __%s;\n", cName);
+		break;
+	    case SMI_BASETYPE_UNSIGNED32:
+		fprintf(f,
+			"    uint32_t  __%s;\n", cName);
+		break;
+	    case SMI_BASETYPE_INTEGER64:
+		fprintf(f,
+			"    int64_t   __%s; \n", cName);
+		break;
+	    case SMI_BASETYPE_UNSIGNED64:
+		fprintf(f,
+			"    uint64_t  __%s; \n", cName);
+		break;
+	    default:
+		fprintf(f,
+			"    /* ?? */  __%s; \n", cName);
+		break;
+	    }
+	    xfree(cName);
+	}
+    }
+
+    fprintf(f, "} %s_t;\n\n", cGroupName);
+
+    fprintf(f,
+	    "/*\n"
+	    " * C manager interface stubs for %s::%s.\n"
+	    " */\n\n",
+	    smiModule->name, groupNode->name);
+	    
+    fprintf(f, "extern int\n"
+	    "%s_mgr_get_%s(struct snmp_session *s, %s_t **%s);\n",
+	    cModuleName, cGroupName, cGroupName, cGroupName);
+    fprintf(f, "\n");
+
+    fprintf(f,
+	    "/*\n"
+	    " * C agent interface stubs for %s::%s.\n"
+	    " */\n\n",
+	    smiModule->name, groupNode->name);
+    
+    fprintf(f, "extern int\n"
+	    "%s_agt_read_%s(%s_t *%s);\n",
+	    cModuleName, cGroupName, cGroupName, cGroupName);
+    fprintf(f, "extern int\n"
+	    "%s_agt_register_%s();\n\n",
+	    cModuleName, cGroupName);
+    xfree(cGroupName);
+    xfree(cModuleName);
+}
+
+
+
+static void printHeaderTypedefs(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
+    char      *cModuleName;
+    char      *cSmiNodeName;
     
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	if (isGroup(smiNode) && isAccessible(smiNode)) {
+	    cnt++;
+	    printHeaderTypedef(f, smiModule, smiNode);
+	}
+    }
+    
+    if (cnt) {
+	fprintf(f, "\n");
+    }
+
+    if (cnt) {
+	/*
+	 * Should this go into the agent implementation module?
+	 */
+	cModuleName = translateLower(smiModule->name);
+	fprintf(f, "typedef struct %s {\n", cModuleName);
+	for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	     smiNode;
+	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	    if (isGroup(smiNode) && isAccessible(smiNode)) {
+		cSmiNodeName = translate(smiNode->name);
+		if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+		    fprintf(f, "    %s_t\t*%s;\n", cSmiNodeName, cSmiNodeName);
+		} else {
+		    fprintf(f, "    %s_t\t%s;\n", cSmiNodeName, cSmiNodeName);
+		}
+		xfree(cSmiNodeName);
+	    }
+	}
+	fprintf(f, "} %s_t;\n\n", cModuleName);
+	xfree(cModuleName);
+    }
+}
+
+
+
+static void dumpHeader(SmiModule *smiModule, char *baseName)
+{
+    char	*pModuleName;
+    char	*cModuleName;
+    FILE	*f;
+
+    pModuleName = translateUpper(smiModule->name);
+
+    f = createFile(baseName, ".h");
+    if (! f) {
+	return;
+    }
+    
+    fprintf(f,
+	    "/*\n"
+	    " * This C header file has been generated by smidump "
+	    SMI_VERSION_STRING ".\n"
+	    " * It is intended to be used with the NET-SNMP package.\n"
+	    " *\n"
+	    " * This header is derived from the %s module.\n"
+	    " *\n * $I" "d$\n"
+	    " */\n\n", smiModule->name);
+
+    fprintf(f, "#ifndef _%s_H_\n", pModuleName);
+    fprintf(f, "#define _%s_H_\n\n", pModuleName);
+
+    fprintf(f, "#include <stdlib.h>\n\n");
+
+    fprintf(f,
+	    "#ifdef HAVE_STDINT_H\n"
+	    "#include <stdint.h>\n"
+	    "#endif\n\n");
+
+    printHeaderTypedefs(f, smiModule);
+
+    fprintf(f,
+	    "/*\n"
+	    " * Initialization function:\n"
+	    " */\n\n");
+    cModuleName = translateLower(smiModule->name);
+    fprintf(f, "void %s_agt_init(void);\n\n", cModuleName);
+    xfree(cModuleName);
+
+    fprintf(f, "#endif /* _%s_H_ */\n", pModuleName);
+
+    fclose(f);
+    xfree(pModuleName);
+}
+
+
+
+static void printAgtReadMethodDecls(FILE *f, SmiModule *smiModule)
+{
+    SmiNode   *smiNode;
+    int       cnt = 0;
+
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
 	    cnt++;
 	    if (cnt == 1) {
@@ -303,14 +620,14 @@ static void printReadMethodDecls(FILE *f, SmiModule *smiModule)
 
 
 
-static void printWriteMethodDecls(FILE *f, SmiModule *smiModule)
+static void printAgtWriteMethodDecls(FILE *f, SmiModule *smiModule)
 {
     SmiNode     *smiNode;
     int         cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (smiNode->access == SMI_ACCESS_READ_WRITE) {
 	    cnt++;
 	    if (cnt == 1) {
@@ -333,7 +650,7 @@ static void printWriteMethodDecls(FILE *f, SmiModule *smiModule)
 
 
 
-static void printDefinesGroup(FILE *f, SmiNode *groupNode, int cnt)
+static void printAgtDefinesGroup(FILE *f, SmiNode *groupNode, int cnt)
 {
     char         *cName, *cGroupName;
     SmiNode   	 *smiNode;
@@ -399,16 +716,16 @@ static void printDefinesGroup(FILE *f, SmiNode *groupNode, int cnt)
 
 
 
-static void printDefines(FILE *f, SmiModule *smiModule)
+static void printAgtDefines(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
-	    printDefinesGroup(f, smiNode, ++cnt);
+	    printAgtDefinesGroup(f, smiNode, ++cnt);
 	}
     }
     
@@ -419,7 +736,7 @@ static void printDefines(FILE *f, SmiModule *smiModule)
 
 
 
-static void printRegister(FILE *f, SmiNode *groupNode, int cnt)
+static void printAgtRegister(FILE *f, SmiNode *groupNode, int cnt)
 {
     SmiNode *smiNode;
     char    *cGroupName;
@@ -461,16 +778,16 @@ static void printRegister(FILE *f, SmiNode *groupNode, int cnt)
 
 
 
-static void printInit(FILE *f, SmiModule *smiModule)
+static void printAgtInit(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
 
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
-	    printRegister(f, smiNode, ++cnt);
+	    printAgtRegister(f, smiNode, ++cnt);
 	}
     }
 
@@ -481,7 +798,7 @@ static void printInit(FILE *f, SmiModule *smiModule)
 
 
 
-static void printReadMethod(FILE *f, SmiNode *groupNode)
+static void printAgtReadMethod(FILE *f, SmiNode *groupNode)
 {
     SmiNode   *smiNode;
     SmiType   *smiType;
@@ -582,14 +899,14 @@ static void printReadMethod(FILE *f, SmiNode *groupNode)
 
 
 
-static void printReadMethods(FILE *f, SmiModule *smiModule)
+static void printAgtReadMethods(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
 	    cnt++;
 	    if (cnt == 1) {
@@ -598,7 +915,7 @@ static void printReadMethods(FILE *f, SmiModule *smiModule)
 			" * Read methods for groups of scalars and tables:\n"
 			" */\n\n");
 	    }
-	    printReadMethod(f, smiNode);
+	    printAgtReadMethod(f, smiNode);
 	}
     }
     
@@ -609,14 +926,14 @@ static void printReadMethods(FILE *f, SmiModule *smiModule)
 
 
 
-static void printWriteMethods(FILE *f, SmiModule *smiModule)
+static void printAgtWriteMethods(FILE *f, SmiModule *smiModule)
 {
     SmiNode     *smiNode;
     int         cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (smiNode->access == SMI_ACCESS_READ_WRITE) {
 	    cnt++;
 	    if (cnt == 1) {
@@ -647,185 +964,14 @@ static void printWriteMethods(FILE *f, SmiModule *smiModule)
 
 
 
-static void printTypedef(FILE *f, SmiNode *groupNode)
-{
-    SmiNode *smiNode;
-    SmiType *smiType;
-    char    *cGroupName, *cName;
-    
-    cGroupName = translate(groupNode->name);
-    fprintf(f, "typedef struct %s {\n", cGroupName);
-
-    for (smiNode = smiGetFirstChildNode(groupNode);
-	 smiNode;
-	 smiNode = smiGetNextChildNode(smiNode)) {
-	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
-#if 0
-	    && (smiNode->access == SMI_ACCESS_READ_ONLY
-		|| smiNode->access == SMI_ACCESS_READ_WRITE)
-#endif
-	    ) {
-	    smiType = smiGetNodeType(smiNode);
-	    if (!smiType) {
-		continue;
-	    }
-	    cName = translate(smiNode->name);
-	    switch (smiType->basetype) {
-	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		fprintf(f,
-			"    uint32_t  %s[%u];\n", cName, getMaxSize(smiType));
-		fprintf(f,
-			"    size_t    _%sLength;\n", cName);
-		break;
-	    case SMI_BASETYPE_OCTETSTRING:
-	    case SMI_BASETYPE_BITS:
-		fprintf(f,
-			"    u_char    %s[%u];\n", cName, getMaxSize(smiType));
-		fprintf(f,
-			"    size_t    _%sLength;\n", cName);
-		break;
-	    case SMI_BASETYPE_ENUM:
-	    case SMI_BASETYPE_INTEGER32:
-		fprintf(f,
-			"    int32_t   %s;\n", cName);
-		break;
-	    case SMI_BASETYPE_UNSIGNED32:
-		fprintf(f,
-			"    uint32_t  %s;\n", cName);
-		break;
-	    default:
-		fprintf(f,
-			"    /* add code to return the value here */\n");
-	    }
-	    xfree(cName);
-	}
-    }
-
-    fprintf(f, "    void      *_clientData;\t\t/* pointer to client data structure */\n");
-    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
-	fprintf(f, "    struct %s *_nextPtr;\t/* pointer to next table entry */\n", cGroupName);
-    }
-    
-    fprintf(f, "} %s_t;\n\n", cGroupName);
-    fprintf(f, "extern int\n"
-	    "read_%s(%s_t *%s);\n\n",
-	    cGroupName, cGroupName, cGroupName);
-    fprintf(f, "extern int\n"
-	    "register_%s();\n\n",
-	    cGroupName);
-    xfree(cGroupName);
-}
-
-
-
-static void printTypedefs(FILE *f, SmiModule *smiModule)
-{
-    SmiNode   *smiNode;
-    int       cnt = 0;
-    char      *cModuleName;
-    char      *cSmiNodeName;
-    
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (isGroup(smiNode) && isAccessible(smiNode)) {
-	    cnt++;
-	    if (cnt == 1) {
-		fprintf(f,
-			"/*\n"
-			" * Structures for groups of scalars and table entries:\n"
-			" */\n\n");
-	    }
-	    printTypedef(f, smiNode);
-	}
-    }
-    
-    if (cnt) {
-	fprintf(f, "\n");
-    }
-
-    if (cnt) {
-	cModuleName = translateLower(smiModule->name);
-	fprintf(f, "typedef struct %s {\n", cModuleName);
-	for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	    smiNode;
-	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	    if (isGroup(smiNode) && isAccessible(smiNode)) {
-		cSmiNodeName = translate(smiNode->name);
-		if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-		    fprintf(f, "    %s_t\t*%s;\n", cSmiNodeName, cSmiNodeName);
-		} else {
-		    fprintf(f, "    %s_t\t%s;\n", cSmiNodeName, cSmiNodeName);
-		}
-		xfree(cSmiNodeName);
-	    }
-	}
-	fprintf(f, "} %s_t;\n\n", cModuleName);
-	xfree(cModuleName);
-    }
-}
-
-
-
-static void dumpHeader(SmiModule *smiModule, char *baseName)
-{
-    char	*pModuleName;
-    char	*cInitName;
-    FILE	*f;
-
-    pModuleName = translateUpper(smiModule->name);
-
-    f = createFile(baseName, ".h");
-    if (! f) {
-	return;
-    }
-    
-    fprintf(f,
-	    "/*\n"
-	    " * This C header file has been generated by smidump "
-	    SMI_VERSION_STRING ".\n"
-	    " * It is intended to be used with the NET SNMP agent.\n"
-	    " *\n"
-	    " * This header is derived from the %s module.\n"
-	    " *\n * $I" "d$\n"
-	    " */\n\n", smiModule->name);
-
-    fprintf(f, "#ifndef _%s_H_\n", pModuleName);
-    fprintf(f, "#define _%s_H_\n\n", pModuleName);
-
-    fprintf(f, "#include <stdlib.h>\n\n");
-
-    fprintf(f,
-	    "#ifdef HAVE_STDINT_H\n"
-	    "#include <stdint.h>\n"
-	    "#endif\n\n");
-
-    fprintf(f,
-	    "/*\n"
-	    " * Initialization function:\n"
-	    " */\n\n");
-    cInitName = translateLower(smiModule->name);
-    fprintf(f, "void init_%s(void);\n\n", cInitName);
-    xfree(cInitName);
-
-    printTypedefs(f, smiModule);
-
-    fprintf(f, "#endif /* _%s_H_ */\n", pModuleName);
-
-    fclose(f);
-    xfree(pModuleName);
-}
-
-
-
-static void dumpStub(SmiModule *smiModule, char *baseName)
+static void dumpAgtStub(SmiModule *smiModule, char *baseName)
 {
     char	*stubModuleName;
     FILE	*f;
 
     stubModuleName = xmalloc(strlen(baseName) + 10);
     strcpy(stubModuleName, baseName);
-    strcat(stubModuleName, "-stub");
+    strcat(stubModuleName, "-agt-stub");
     
     f = createFile(stubModuleName, ".c");
     if (! f) {
@@ -837,7 +983,7 @@ static void dumpStub(SmiModule *smiModule, char *baseName)
 	    "/*\n"
 	    " * This C file has been generated by smidump "
 	    SMI_VERSION_STRING ".\n"
-	    " * It is intended to be used with the NET SNMP agent.\n"
+	    " * It is intended to be used with the NET-SNMP agent library.\n"
 	    " *\n"
 	    " * This C file is derived from the %s module.\n"
 	    " *\n * $I" "d$\n"
@@ -850,21 +996,21 @@ static void dumpStub(SmiModule *smiModule, char *baseName)
 	    "\n"
 	    "#include \"%s.h\"\n"
 	    "\n"
-	    "#include <asn1.h>\n"
-	    "#include <snmp.h>\n"
-	    "#include <snmp_api.h>\n"
-	    "#include <snmp_impl.h>\n"
-	    "#include <snmp_vars.h>\n"
+	    "#include <ucd-snmp/asn1.h>\n"
+	    "#include <ucd-snmp/snmp.h>\n"
+	    "#include <ucd-snmp/snmp_api.h>\n"
+	    "#include <ucd-snmp/snmp_impl.h>\n"
+	    "#include <ucd-snmp/snmp_vars.h>\n"
 	    "\n",
 	    baseName);
 
-    printReadMethodDecls(f, smiModule);
-    printWriteMethodDecls(f, smiModule);
-    printDefines(f, smiModule);
-    printInit(f, smiModule);
+    printAgtReadMethodDecls(f, smiModule);
+    printAgtWriteMethodDecls(f, smiModule);
+    printAgtDefines(f, smiModule);
+    printAgtInit(f, smiModule);
 
-    printReadMethods(f, smiModule);
-    printWriteMethods(f, smiModule);
+    printAgtReadMethods(f, smiModule);
+    printAgtWriteMethods(f, smiModule);
 
     fclose(f);
     xfree(stubModuleName);
@@ -872,13 +1018,273 @@ static void dumpStub(SmiModule *smiModule, char *baseName)
 
 
 
-static void dumpImplementation(SmiModule *smiModule, char *baseName)
+static void printMgrOidDefinitions(FILE *f, SmiModule *smiModule)
 {
-    FILE	*f;
-    char	*cModuleName;
+    SmiNode *smiNode;
+    char    *cName;
+    int     i;
+    
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
+	    && smiNode->access != SMI_ACCESS_NOTIFY) {
+	    cName = translate(smiNode->name);
+  	    fprintf(f, "static oid %s[] = {", cName);
+	    for (i = 0; i < smiNode->oidlen; i++) {
+		fprintf(f, "%s%u", i ? ", " : "", smiNode->oid[i]);
+	    }
+	    fprintf(f, "};\n");
+	    cfree(cName);
+	}
+    }
+    fprintf(f, "\n");
+}
 
-    f = createFile(baseName, ".c");
+
+
+static void printMgrGetScalarAssignement(FILE *f, SmiNode *groupNode)
+{
+    SmiNode *smiNode;
+    SmiType *smiType;
+    char    *cGroupName, *cName;
+    unsigned maxSize, minSize;
+
+    cGroupName = translate(groupNode->name);
+
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
+	    && (smiNode->access == SMI_ACCESS_READ_ONLY
+		|| smiNode->access == SMI_ACCESS_READ_WRITE)) {
+
+	    smiType = smiGetNodeType(smiNode);
+	    if (!smiType) {
+		continue;
+	    }
+	    
+	    cName = translate(smiNode->name);
+	    fprintf(f,
+		    "        if (vars->name_length > sizeof(%s)/sizeof(oid)\n"
+		    "            && memcmp(vars->name, %s, sizeof(%s)) == 0) {\n",
+		    cName, cName, cName);
+	    switch (smiType->basetype) {
+	    case SMI_BASETYPE_INTEGER32:
+	    case SMI_BASETYPE_UNSIGNED32:
+	    case SMI_BASETYPE_ENUM:
+		fprintf(f,
+			"            (*%s)->__%s = *vars->val.integer;\n"
+			"            (*%s)->%s = &((*%s)->__%s);\n",
+			cGroupName, cName,
+			cGroupName, cName, cGroupName, cName);
+		break;
+	    case SMI_BASETYPE_OCTETSTRING:
+	    case SMI_BASETYPE_BITS:
+		maxSize = getMaxSize(smiType);
+		minSize = getMinSize(smiType);
+		fprintf(f,
+			"            memcpy((*%s)->__%s, vars->val.string, vars->val_len);\n",
+			cGroupName, cName);
+		if (minSize != maxSize) {
+		    fprintf(f,
+			    "            (*%s)->_%sLength = vars->val_len;\n",
+			    cGroupName, cName);
+		}
+		fprintf(f,
+			"            (*%s)->%s = (*%s)->__%s;\n",
+			cGroupName, cName, cGroupName, cName);
+		break;
+	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		break;
+	    default:
+		break;
+	    }
+	    fprintf(f,
+		    "        }\n");
+	    xfree(cName);
+	}
+    }
+
+    xfree(cGroupName);
+}
+
+
+
+static void printMgrGetMethod(FILE *f, SmiModule *smiModule,
+			      SmiNode *groupNode)
+{
+    SmiNode *smiNode;
+    char    *cModuleName, *cGroupName;
+
+    cModuleName = translateLower(smiModule->name);
+    cGroupName = translate(groupNode->name);
+
+    fprintf(f,
+	    "int %s_mgr_get_%s(struct snmp_session *s, %s_t **%s)\n"
+	    "{\n"
+	    "    struct snmp_session *peer;\n"
+	    "    struct snmp_pdu *request, *response;\n"
+	    "    struct variable_list *vars;\n"
+	    "    int status;\n"
+	    "\n",
+	    cModuleName, cGroupName, cGroupName, cGroupName);
+
+    fprintf(f,
+	    "    request = snmp_pdu_create(SNMP_MSG_GETNEXT);\n");
+	    
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
+	    && (smiNode->access == SMI_ACCESS_READ_ONLY
+		|| smiNode->access == SMI_ACCESS_READ_WRITE)) {
+	    fprintf(f,
+	    "    snmp_add_null_var(request, %s, sizeof(%s)/sizeof(oid));\n",
+		    smiNode->name, smiNode->name);
+	}
+    }
+
+    fprintf(f,
+	    "\n"
+	    "    peer = snmp_open(s);\n"
+	    "    if (!peer) {\n"
+	    "        return -1;\n"
+	    "    }\n"
+	    "\n"
+	    "    status = snmp_synch_response(peer, request, &response);\n"
+	    "    if (status != STAT_SUCCESS) {\n"
+	    "        return -2;\n"
+	    "    }\n"
+	    "\n");
+
+    /* generate code for error checking and handling */
+
+    fprintf(f,
+	    "    *%s = (%s_t *) malloc(sizeof(%s_t));\n"
+	    "    if (! *%s) {\n"
+	    "        return -4;\n"
+	    "    }\n"
+	    "\n",
+	    cGroupName, cGroupName, cGroupName, cGroupName);
+
+    fprintf(f,
+	    "    for (vars = response->variables; vars; vars = vars->next_variable) {\n");
+    printMgrGetScalarAssignement(f, groupNode);
+    fprintf(f,
+	    "    }\n"
+	    "\n");
+
+
+#if 0
+    if (response->errstat != SNMP_ERR_NOERROR) {
+	return -3;
+    }
+
+    /* copy to data structures */
+
+    /* cleanup */
+
+#endif
+
+    fprintf(f,
+	    "    if (response) snmp_free_pdu(response);\n"
+	    "\n"
+	    "    if (snmp_close(peer) == 0) {\n"
+	    "        return -5;\n"
+	    "    }\n"
+	    "\n"
+	    "    return 0;\n"
+	    "}\n\n");
+
+    xfree(cGroupName);
+    xfree(cModuleName);
+}
+ 
+
+
+
+static void printMgrGetMethods(FILE *f, SmiModule *smiModule)
+{
+    SmiNode   *smiNode;
+    int       cnt = 0;
+    
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	if (isGroup(smiNode) && isAccessible(smiNode)) {
+	    cnt++;
+	    printMgrGetMethod(f, smiModule, smiNode);
+	}
+    }
+    
+    if (cnt) {
+	fprintf(f, "\n");
+    }
+}
+
+
+
+static void dumpMgrStub(SmiModule *smiModule, char *baseName)
+{
+    char	*stubModuleName;
+    FILE	*f;
+
+    stubModuleName = xmalloc(strlen(baseName) + 10);
+    strcpy(stubModuleName, baseName);
+    strcat(stubModuleName, "-mgr-stub");
+    
+    f = createFile(stubModuleName, ".c");
     if (! f) {
+	xfree(stubModuleName);
+        return;
+    }
+
+    fprintf(f,
+	    "/*\n"
+	    " * This C file has been generated by smidump "
+	    SMI_VERSION_STRING ".\n"
+	    " * It is intended to be used with the NET-SNMP library.\n"
+	    " *\n"
+	    " * This C file is derived from the %s module.\n"
+	    " *\n * $I" "d$\n"
+	    " */\n\n", smiModule->name );
+	
+    fprintf(f,
+	    "#include <stdlib.h>\n"
+	    "\n"
+	    "#include <ucd-snmp/asn1.h>\n"
+	    "#include <ucd-snmp/snmp.h>\n"
+	    "#include <ucd-snmp/snmp_api.h>\n"
+	    "#include <ucd-snmp/snmp_client.h>\n"
+	    "\n"
+	    "#include \"%s.h\"\n"
+	    "\n",
+	    baseName);
+
+    printMgrOidDefinitions(f, smiModule);
+    
+    printMgrGetMethods(f, smiModule);
+    
+    fclose(f);
+    xfree(stubModuleName);
+}
+
+
+
+static void dumpAgtImpl(SmiModule *smiModule, char *baseName)
+{
+    char	*stubModuleName, *cModuleName;
+    FILE	*f;
+
+    stubModuleName = xmalloc(strlen(baseName) + 10);
+    strcpy(stubModuleName, baseName);
+    strcat(stubModuleName, "-agt");
+    
+
+    f = createFile(stubModuleName, ".c");
+    if (! f) {
+	xfree(stubModuleName);
         return;
     }
 
@@ -888,7 +1294,7 @@ static void dumpImplementation(SmiModule *smiModule, char *baseName)
 	    "/*\n"
 	    " * This C file has been generated by smidump "
 	    SMI_VERSION_STRING ".\n"
-	    " * It is intended to be used with the NET SNMP agent.\n"
+	    " * It is intended to be used with the NET-SNMP agent library.\n"
 	    " *\n"
 	    " * This C file is derived from the %s module.\n"
 	    " *\n * $I" "d$\n"
@@ -901,11 +1307,11 @@ static void dumpImplementation(SmiModule *smiModule, char *baseName)
 	    "\n"
 	    "#include \"%s.h\"\n"
 	    "\n"
-	    "#include <asn1.h>\n"
-	    "#include <snmp.h>\n"
-	    "#include <snmp_api.h>\n"
-	    "#include <snmp_impl.h>\n"
-	    "#include <snmp_vars.h>\n"
+	    "#include <ucd-snmp/asn1.h>\n"
+	    "#include <ucd-snmp/snmp.h>\n"
+	    "#include <ucd-snmp/snmp_api.h>\n"
+	    "#include <ucd-snmp/snmp_impl.h>\n"
+	    "#include <ucd-snmp/snmp_vars.h>\n"
 	    "\n",
 	    baseName);
 
@@ -959,6 +1365,7 @@ static void dumpImplementation(SmiModule *smiModule, char *baseName)
     xfree(cModuleName);
 
     fclose(f);
+    xfree(stubModuleName);
 }
 
 
@@ -974,8 +1381,13 @@ static void dumpNetSnmp(int modc, SmiModule **modv, int flags, char *output)
 	for (i = 0; i < modc; i++) {
 	    baseName = output ? output : translateFileName(modv[i]->name);
 	    dumpHeader(modv[i], baseName);
-	    dumpStub(modv[i], baseName);
-	    dumpImplementation(modv[i], baseName);
+	    if (! noAgtStubs) {
+		dumpAgtStub(modv[i], baseName);
+		dumpAgtImpl(modv[i], baseName);
+	    }
+	    if (! noMgrStubs) {
+		dumpMgrStub(modv[i], baseName);
+	    }
 	    if (! output) xfree(baseName);
 	}
     }
@@ -986,13 +1398,21 @@ static void dumpNetSnmp(int modc, SmiModule **modv, int flags, char *output)
 
 void initNetsnmp()
 {
+    static SmidumpDriverOption opt[] = {
+	{ "no-mgr-stubs", OPT_FLAG, &noMgrStubs, 0,
+	  "do not generate manager stub code"},
+	{ "no-agt-stubs", OPT_FLAG, &noAgtStubs, 0,
+	  "do not generate agent stub code"},
+        { 0, OPT_END, 0, 0 }
+    };
+
     static SmidumpDriver driver = {
 	"netsnmp",
 	dumpNetSnmp,
 	SMI_FLAG_NODESCR,
 	SMIDUMP_DRIVER_CANT_UNITE,
-	"ANSI C code for the NET SNMP package",
-	NULL,
+	"ANSI C code for the NET-SNMP package",
+	opt,
 	NULL
     };
 
