@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.19 2001/10/18 09:15:09 tklie Exp $	 
+ * @(#) $Id: smidiff.c,v 1.20 2001/10/26 15:23:03 tklie Exp $	 
  */
 
 #include <stdlib.h>
@@ -107,6 +107,7 @@ typedef struct Error {
 #define ERR_RANGE_IS_AND_WAS            65
 #define ERR_RANGE_IS                    66
 #define ERR_RANGE_WAS                   67
+#define ERR_TYPE_BASED_ON               68
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -237,6 +238,8 @@ static Error errors[] = {
       "range `%d..%d' added" },
     { 6, ERR_RANGE_WAS, "range-was",
       "range `%d..%d' removed" },
+    { 6, ERR_TYPE_BASED_ON, "type-based-on",
+      "type %s based on %s" },
     { 0, 0, NULL, NULL }
 };
 
@@ -687,15 +690,49 @@ getTypeName(SmiType *smiType)
 }
 
 static void
+iterateTypeImports(char *typeName,
+		   SmiType *smiType, SmiType *smiTwR,
+		   int line)
+{
+    SmiType *iterType, *oldIterType;
+    char *iterTypeName, *oldIterTypeName = strdup( typeName );
+
+    iterType =  smiType;
+    while( 1 ) {
+	iterType = smiGetParentType( iterType );
+	iterTypeName = getTypeName( iterType );	
+	if( iterTypeName[1] == ':' ) {
+	    /* Basetypes do not have a path so getTypeName will return a String
+	       like "`:basetype'". The first character is a single quote,
+	       the second a colon. So let's stop if we reached a basetype.
+	       xxx find a better way to do this. */
+	    return;
+	}
+	printErrorAtLine( smiGetTypeModule( smiType ),
+			  ERR_TYPE_BASED_ON,
+			  line,
+			  oldIterTypeName,
+			  iterTypeName );
+	free( oldIterTypeName );
+	oldIterTypeName = iterTypeName;
+	oldIterType = iterType;
+    }
+}
+
+static void
 printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
 		     SmiType *newType, SmiType *newTwR)
 {
     char *oldTypeName, *newTypeName;
+    int oldLine, newLine;
 
     smiInit( oldTag );
     oldTypeName = getTypeName( oldType );
+    oldLine = smiGetTypeLine( oldType );
     smiInit( newTag );
     newTypeName = getTypeName( newType );
+    newLine = smiGetTypeLine( newType );
+    
     
     if( (oldType == oldTwR) && (newType == newTwR) &&
 	(diffStrings( oldTypeName, newTypeName )) ) {
@@ -704,7 +741,12 @@ printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
 			 oldTypeName, newTypeName);
     }
     else {
-	/* xxx: iterate type import chain */
+	if( oldTwR ) {
+	    iterateTypeImports( oldTypeName, oldType, oldTwR, oldLine );
+	}
+	if( newTwR ) {
+	    iterateTypeImports( newTypeName, newType, newTwR, newLine );
+	}
     }
     
     free( oldTypeName );
@@ -724,17 +766,21 @@ checkRanges(SmiModule *oldModule, int oldLine,
     newTwR = findTypeWithRange(newType);
     
     if (!oldTwR && newTwR) {
+	SmiRange *newRange;
 	char *typeName = getTypeName( newTwR );
+	
 	printErrorAtLine(newModule, ERR_RANGE_ADDED,
 			 newLine, name);
 	printTypeImportChain( oldType, oldTwR, newType, newTwR );
 
-/*
-	printErrorAtLine(newModule, ERR_RANGE_IS,
-			 smiGetTypeLine( newType ),
-			 newRange->minValue.value.integer32,
-			 newRange->maxValue.value.integer32);
-*/
+	for( newRange = smiGetFirstRange( newTwR );
+	     newRange;
+	     newRange = smiGetNextRange( newRange ) ) {
+	    printErrorAtLine(newModule, ERR_RANGE_IS,
+			     smiGetTypeLine( newType ),
+			     newRange->minValue.value.integer32,
+			     newRange->maxValue.value.integer32);
+	}
     }
     
     if (oldTwR && !newTwR) {
