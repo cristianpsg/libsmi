@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.7 1999/05/31 11:58:39 strauss Exp $
+ * @(#) $Id: util.h,v 1.8 1999/06/03 20:37:28 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -42,3 +42,4 @@ extern int util_ispath(const char *s);
 extern time_t smiMkTime(const char *s);
 
 #endif /* _UTIL_H */
+
