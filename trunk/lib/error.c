@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.77 2001/09/25 07:17:15 schoenw Exp $
+ * @(#) $Id: error.c,v 1.78 2001/10/09 10:58:45 strauss Exp $
  */
 
 #include <config.h>
@@ -316,6 +316,8 @@ static Error errors[] = {
       "redefinition of name `%s' in number enumeration" },
     { 2, ERR_ENUM_NUMBER_REDEFINITION, "enum-number-redefinition", 
       "redefinition of number `%d' in number enumeration" },
+    { 2, ERR_ENUM_ZERO, "enum-zero", 
+      "number enumeration contains zero value in SMIv1 MIB" },
     { 2, ERR_BITS_NAME_REDEFINITION, "bits-name-redefinition", 
       "redefinition of name `%s' in named bits list" },
     { 2, ERR_BITS_NUMBER_REDEFINITION, "bits-number-redefinition", 

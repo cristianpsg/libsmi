@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.158 2001/10/09 07:43:16 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.159 2001/10/09 10:58:45 strauss Exp $
  */
 
 %{
@@ -3736,6 +3736,11 @@ enumNumber:		NUMBER
 			    if ($1 > MAX_INTEGER32) {
 				smiPrintError(thisParserPtr,
 					      ERR_INTEGER32_TOO_LARGE, $1);
+			    }
+			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV1) &&
+				($1 == 0)) {
+				smiPrintError(thisParserPtr,
+					      ERR_ENUM_ZERO);
 			    }
 			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
