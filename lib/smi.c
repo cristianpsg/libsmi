@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.6 1999/03/23 22:55:41 strauss Exp $
+ * @(#) $Id: smi.c,v 1.7 1999/03/24 16:25:30 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -32,6 +32,7 @@
 #include "smi.h"
 #include "error.h"
 #include "data.h"
+#include "util.h"
 
 #ifdef BACKEND_SMI
 #include "scanner-smi.h"
@@ -57,22 +58,84 @@ static int		initialized = 0;
  */
 
 
-char *
-addMemberToListString(list, s)
-    char          **list;
-    char	  *s;
+
+int
+allowsNamedNumbers(syntax)
+    SmiSyntax syntax;
 {
-    static char   mem[SMI_MAX_STRING];
-
-    if (! *list) {
-	mem[0] = 0;
+    if ((syntax == SMI_SYNTAX_INTEGER32) ||
+	(syntax == SMI_SYNTAX_BITS)) {
+	return 1;
     } else {
-	strcat(mem, " ");
+	return 0;
     }
-    strcat(mem, s);
-    *list = mem;
+}
 
-    return mem;
+
+
+int
+allowsRanges(syntax)
+    SmiSyntax syntax;
+{
+    if ((syntax == SMI_SYNTAX_INTEGER32) ||
+	(syntax == SMI_SYNTAX_INTEGER64) ||
+	(syntax == SMI_SYNTAX_UNSIGNED32) ||
+	(syntax == SMI_SYNTAX_UNSIGNED64) ||
+	(syntax == SMI_SYNTAX_OCTETSTRING) ||
+	(syntax == SMI_SYNTAX_BITS)) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+
+
+/*
+ * add an entry to a malloc'ed array of char pointers. the new entry `name'
+ * gets strdup'ed. the list keeps NULL terminated. the list pointer
+ * (like argv) must be passed by reference,  cos it must be realloc'ed.
+ * e.g. addName(&argv, "gaga");
+ */
+void
+addName(list, module, name)
+    char      **list[];
+    char      *module;
+    char      *name;
+{
+  char **new;
+  int i = 0;
+
+  if (!module || !strlen(module) || !name || !strlen(name)) {
+      return;
+  }
+
+  if (*list) for(i=0; (*list)[i]; i++);
+  new = util_realloc((*list), sizeof(char *) * (i+2));
+  new[i] = util_malloc(sizeof(char) *
+		       (strlen(module) +
+			strlen(SMI_NAMESPACE_OPERATOR) +
+			strlen(name) + 1));
+  sprintf(new[i], "%s%s%s", module, SMI_NAMESPACE_OPERATOR, name);
+  new[i+1] = NULL;
+  *list = new;
+}
+
+
+
+void
+addPtr(list, ptr)
+    void      **list[];
+    void      *ptr;
+{
+  void **new;
+  int i = 0;
+
+  if (*list) for(i=0; (*list)[i]; i++);
+  new = util_realloc((*list), sizeof(void *) * (i+2));
+  new[i] = ptr;
+  new[i+1] = NULL;
+  *list = new;
 }
 
 
@@ -81,8 +144,8 @@ char *
 getOid(n)
     Node *n;
 {
-    static char o[SMI_MAX_OID+1+1];
-    smi_subid a[128];
+    char o[SMI_MAX_OID+1+1];
+    SmiSubid a[128];
     int i, l;
 
     for (i = 0; n && (n != rootNodePtr); n = n->parentPtr) {
@@ -93,15 +156,15 @@ getOid(n)
 	 l += sprintf(&o[l], "%d.", a[--i]));
     o[l-1] = 0;
 
-    return o;
+    return util_strdup(o);
 }
 
 
 
 void
 getModulenameAndName(spec, mod, modulename, name)
-    smi_fullname    spec;
-    smi_descriptor  mod;
+    char	    *spec;
+    char	    *mod;
     char	    *modulename;
     char	    *name;
 {
@@ -141,9 +204,9 @@ getModulenameAndName(spec, mod, modulename, name)
 
 void
 createFullname(spec, mod, fullname)
-    smi_fullname spec;
-    smi_descriptor mod;
-    char *fullname;
+    char	    *spec;
+    char	    *mod;
+    char	    *fullname;
 {
     printDebug(5, "createFullname(\"%s\", \"%s\", ...",
 	       spec, mod ? mod : "NULL");
@@ -170,7 +233,7 @@ createModuleAndName(fullname, module, name)
     char *module;
     char *name;
 {
-    int l;
+    int  l;
     
     printDebug(5, "createModuleAndName(\"%s\", ...", fullname);
 
@@ -239,7 +302,7 @@ getObject(name, modulename)
     Object	    *objectPtr = NULL;
     Node	    *nodePtr;
     char	    *elements, *element;
-    smi_subid	    subid;
+    SmiSubid	    subid;
     
     printDebug(5, "getObject(%s, %s)\n", name, modulename ? modulename : "");
 
@@ -277,136 +340,6 @@ getObject(name, modulename)
 
 
 
-void
-getParent(spec, mod, parent)
-    smi_fullname	spec;
-    smi_descriptor	mod;
-    smi_fullname	parent;	      
-{
-    Object		*objectPtr = NULL;
-    Node		*nodePtr;
-    Module		*modulePtr;
-    View		*viewPtr;
-    Import		*importPtr;
-    char		name[SMI_MAX_OID+1];
-    char		modulename[SMI_MAX_DESCRIPTOR+1];
-    char		s[SMI_MAX_FULLNAME+1];
-    char		*modulenamePtr;
-    char		child[SMI_MAX_FULLNAME+1];
-    char		*p;
-    
-    printDebug(5, "getParent(%s, %s, <>)\n", spec, mod);
-
-    getModulenameAndName(spec, mod, modulename, name);
-
-    if (modulename) {
-	if (!findModuleByName(modulename)) {
-	    loadModule(modulename);
-	}
-    }
-
-    /*
-     * If the parent node has a declaration in the same module as
-     * the child, we assume this is what the user wants to get.
-     * Otherwise we return the first declaration we find in our
-     * view of modules.  Last resort: the numerical OID.
-     */
-    objectPtr = getObject(name, modulename);
-    if (!objectPtr) objectPtr = getObject(name, "");
-
-    if (objectPtr && (objectPtr->nodePtr->parentPtr)) {
-	modulePtr = objectPtr->modulePtr;
-	nodePtr = objectPtr->nodePtr->parentPtr;
-
-	/*
-	 * Try to find the parent object in the same module.
-	 * This might be an imported descriptor, marked by
-	 * objectPtr->flags & FLAG_IMPORTED.
-	 */
-	for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
-	     objectPtr = objectPtr->nextSameNodePtr) {
-	    if (objectPtr->modulePtr == modulePtr) {
-		break;
-	    }
-	}
-
-	/*
-	 * If it's not found in the current module, try to find it in
-	 * any module in the current view.
-	 */
-	if (!objectPtr) {
-	    for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
-		 objectPtr = objectPtr->nextSameNodePtr) {
-		for (viewPtr = firstViewPtr; viewPtr;
-		     viewPtr = viewPtr->nextPtr) {
-		    if ((!strcmp(objectPtr->modulePtr->name, viewPtr->name)) &&
-			(!(objectPtr->flags & FLAG_IMPORTED))) {
-			break;
-		    }
-		}
-		if (viewPtr) {
-		    break;
-		}
-	    }
-	}
-	/*
-	 * Now, if we have found the parent object, create the appropriate
-	 * OID string. Otherwise, call getParent() recursively.
-	 */
-	if (objectPtr) {
-	    sprintf(s, "%s%s%s", objectPtr->modulePtr->name,
-		    SMI_NAMESPACE_OPERATOR, objectPtr->name);
-	    if (smiIsImported(modulename, s)) {
-		strcpy(parent, s);
-	    } else if (!(objectPtr->flags & FLAG_INCOMPLETE)) {
-		if (!strlen(objectPtr->modulePtr->name)) {
-		    sprintf(parent, "%s", objectPtr->name);
-		} else {
-		    if (objectPtr->flags & FLAG_IMPORTED) {
-			for(importPtr = objectPtr->modulePtr->firstImportPtr;
-			    importPtr; importPtr = importPtr->nextPtr) {
-			    if (!strcmp(importPtr->name, objectPtr->name)) {
-				break;
-			    }
-			}
-			modulenamePtr = importPtr->module;
-		    } else {
-			modulenamePtr = objectPtr->modulePtr->name;
-		    }
-		    sprintf(parent, "%s%s%s", modulenamePtr,
-			    SMI_NAMESPACE_OPERATOR, objectPtr->name);
-		}
-	    } else {
-		strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
-		getParent(child, modulename, parent);
-		sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
-	    }
-	} else {
-	    /*
-	     * call getParent() recursively to get the most verbose
-	     * name that is in the current view.
-	     */
-	    strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
-	    getParent(child, "", parent);
-	    sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
-	}
-
-    } else {
-	p = strrchr(name, '.');
-	if (p && isdigit((int)p[1])) {
-	    sprintf(s, "%s%s%s", modulename, SMI_NAMESPACE_OPERATOR,
-		    name);
-	    p = strrchr(s, '.');
-	    p[0] = 0;
-	    strncpy(parent, s, SMI_MAX_FULLNAME);
-	} else {
-	    parent[0] = 0;
-	}
-    }
-}
-
-
-
 Type *
 getType(name, module)
     char *name;
@@ -439,11 +372,12 @@ getMacro(name, module)
 
 
 
+#if 0
 char *
 dirname(path)
     char *path;
 {
-    static char *p = NULL;
+    char *p = NULL;
     char *pp;
     
     p = realloc(p, strlen(path)+1);
@@ -453,7 +387,7 @@ dirname(path)
     if (pp) *pp = 0;
     return p;
 }
-
+#endif
 
 
 /*
@@ -493,7 +427,7 @@ smiAddLocation(name)
 
 int
 smiLoadModule(modulename)
-    smi_descriptor modulename;
+    char      *modulename;
 {
 
     printDebug(4, "smiLoadModule(\"%s\")\n", modulename);
@@ -633,13 +567,12 @@ smiReadConfig(filename)
 
 
 
-smi_module *
+SmiModule *
 smiGetModule(name)
-    smi_descriptor    name;
+    char    *name;
 {
-    static smi_module smiModule;
+    SmiModule	      *smiModulePtr;
     Module	      *modulePtr;
-    Revision	      *revisionPtr;
     
     printDebug(4, "smiGetModule(\"%s\")\n", name);
 
@@ -650,43 +583,42 @@ smiGetModule(name)
     }
     
     if (modulePtr) {
-	smiModule.name = modulePtr->name;
+	smiModulePtr = util_malloc(sizeof(SmiModule));
+	
+	smiModulePtr->name = modulePtr->name;
 	if (modulePtr->objectPtr) {
-	    smiModule.object = modulePtr->objectPtr->name;
+	    smiModulePtr->object = modulePtr->objectPtr->name;
 	} else {
-	    smiModule.object = "";
+	    smiModulePtr->object = NULL;
 	}
-	smiModule.lastupdated = modulePtr->lastUpdated;
+	smiModulePtr->lastupdated = modulePtr->lastUpdated;
 	if (modulePtr->organization) {
-	    smiModule.organization = modulePtr->organization;
+	    smiModulePtr->organization = modulePtr->organization;
 	} else {
-	    smiModule.organization = "";
+	    smiModulePtr->organization = NULL;
 	}
 	if (modulePtr->contactInfo) {
-	    smiModule.contactinfo = modulePtr->contactInfo;
+	    smiModulePtr->contactinfo = modulePtr->contactInfo;
 	} else {
-	    smiModule.contactinfo = "";
+	    smiModulePtr->contactinfo = NULL;
 	}
 	if (modulePtr->objectPtr) {
 	    if (modulePtr->objectPtr->description) {
-		smiModule.description = modulePtr->objectPtr->description;
+		smiModulePtr->description = modulePtr->objectPtr->description;
 	    } else {
-		smiModule.description = "";
+		smiModulePtr->description = NULL;
 	    }
 	    if (modulePtr->objectPtr->reference) {
-		smiModule.reference = modulePtr->objectPtr->reference;
+		smiModulePtr->reference = modulePtr->objectPtr->reference;
 	    } else {
-		smiModule.reference = "";
+		smiModulePtr->reference = NULL;
 	    }
 	} else {
-	    smiModule.description = "";
-	    smiModule.reference = "";
+	    smiModulePtr->description = NULL;
+	    smiModulePtr->reference = NULL;
 	}
-	for(smiModule.revisions = 0, revisionPtr = modulePtr->firstRevisionPtr;
-	    revisionPtr; revisionPtr = revisionPtr->nextPtr) {
-	    smiModule.revisions++;
-	}
-	return &smiModule;
+	/* XXX TODO: Revisions */
+	return smiModulePtr;
     } else {
 	return NULL;
     }
@@ -694,11 +626,11 @@ smiGetModule(name)
 
 
 
-smi_revision *
+SmiRevision *
 smiGetFirstRevision(modulename)
-    smi_descriptor    modulename;
+    char		*modulename;
 {
-    static smi_revision smiRevision;
+    SmiRevision		*smiRevisionPtr;
     Module	        *modulePtr;
     
     printDebug(4, "smiGetFirstRevision(\"%s\")\n", modulename);
@@ -710,13 +642,16 @@ smiGetFirstRevision(modulename)
     }
     
     if (modulePtr && (modulePtr->firstRevisionPtr)) {
-	smiRevision.date = modulePtr->firstRevisionPtr->date;
+	smiRevisionPtr = util_malloc(sizeof(SmiRevision));
+	
+	smiRevisionPtr->date = modulePtr->firstRevisionPtr->date;
 	if (modulePtr->firstRevisionPtr->description) {
-	    smiRevision.description = modulePtr->firstRevisionPtr->description;
+	    smiRevisionPtr->description =
+		modulePtr->firstRevisionPtr->description;
 	} else {
-	    smiRevision.description = "";
+	    smiRevisionPtr->description = NULL;
 	}
-	return &smiRevision;
+	return smiRevisionPtr;
     }
 
     return NULL;
@@ -724,12 +659,12 @@ smiGetFirstRevision(modulename)
 
 
 
-smi_revision *
+SmiRevision *
 smiGetNextRevision(modulename, date)
-    smi_descriptor    modulename;
+    char	      *modulename;
     time_t	      date;
 {
-    static smi_revision smiRevision;
+    SmiRevision		*smiRevisionPtr;
     Module	        *modulePtr;
     Revision	        *revisionPtr;
     
@@ -747,13 +682,15 @@ smiGetNextRevision(modulename, date)
 	     revisionPtr = revisionPtr->nextPtr);
 	revisionPtr = revisionPtr->nextPtr;
 	if (revisionPtr) {
-	    smiRevision.date = revisionPtr->date;
+	    smiRevisionPtr = util_malloc(sizeof(SmiRevision));
+
+	    smiRevisionPtr->date = revisionPtr->date;
 	    if (revisionPtr->description) {
-	    smiRevision.description = revisionPtr->description;
+	    smiRevisionPtr->description = revisionPtr->description;
 	    } else {
-		smiRevision.description = "";
+		smiRevisionPtr->description = NULL;
 	    }
-	    return &smiRevision;
+	    return smiRevisionPtr;
 	}
     }
 
@@ -762,17 +699,17 @@ smiGetNextRevision(modulename, date)
 
 
 
-smi_node *
+SmiNode *
 smiGetNode(spec, mod)
-    smi_fullname    spec;
-    smi_descriptor  mod;
+    char	    *spec;
+    char	    *mod;
 {
-    static smi_node smiNode;
+    SmiNode	    *smiNodePtr;
     Object          *objectPtr = NULL;
     Module	    *modulePtr = NULL;
     char	    name[SMI_MAX_OID+1];
     char	    modulename[SMI_MAX_DESCRIPTOR+1];
-    static char	    typename[SMI_MAX_FULLNAME+1];
+    char	    typename[SMI_MAX_FULLNAME+1];
     
     printDebug(4, "smiGetNode(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
@@ -789,9 +726,11 @@ smiGetNode(spec, mod)
     objectPtr = getObject(name, modulename);
     
     if (objectPtr) {
-	smiNode.name   = objectPtr->name;
-	smiNode.module = objectPtr->modulePtr->name;
-	smiNode.oid    = getOid(objectPtr->nodePtr);
+	smiNodePtr     = util_malloc(sizeof(SmiNode));
+	
+	smiNodePtr->name   = objectPtr->name;
+	smiNodePtr->module = objectPtr->modulePtr->name;
+	smiNodePtr->oid    = getOid(objectPtr->nodePtr);
 	if (objectPtr->typePtr) {
 	    if (objectPtr->typePtr->modulePtr) {
 		sprintf(typename, "%s%s%s",
@@ -802,27 +741,27 @@ smiGetNode(spec, mod)
 		sprintf(typename, "%s",
 			objectPtr->typePtr->name);
 	    }
+	    smiNodePtr->type   = util_strdup(typename);
 	} else {
-	    typename[0] = 0;
+	    smiNodePtr->type   = NULL;
 	}
-	smiNode.type   = typename;
-	smiNode.decl   = objectPtr->decl;
-	smiNode.access = objectPtr->access;
-	smiNode.status = objectPtr->status;
-	smiNode.syntax = objectPtr->typePtr ?
+	smiNodePtr->decl   = objectPtr->decl;
+	smiNodePtr->access = objectPtr->access;
+	smiNodePtr->status = objectPtr->status;
+	smiNodePtr->syntax = objectPtr->typePtr ?
 	                     objectPtr->typePtr->syntax : SMI_SYNTAX_UNKNOWN;
 	if (objectPtr->description) {
-	    smiNode.description = objectPtr->description;
+	    smiNodePtr->description = objectPtr->description;
 	} else {
-	    smiNode.description = "";
+	    smiNodePtr->description = NULL;
 	}
 	if (objectPtr->reference) {
-	    smiNode.reference = objectPtr->reference;
+	    smiNodePtr->reference = objectPtr->reference;
 	} else {
-	    smiNode.reference = "";
+	    smiNodePtr->reference = NULL;
 	}
-	printDebug(5, " ... = (%p,%s)\n", objectPtr, smiNode.name);
-	return &smiNode;
+	printDebug(5, " ... = (%p,%s)\n", objectPtr, smiNodePtr->name);
+	return smiNodePtr;
     } else {
 	return NULL;
     }
@@ -830,76 +769,62 @@ smiGetNode(spec, mod)
 
 
 
-smi_type *
+SmiType *
 smiGetType(spec, mod)
-    smi_fullname    spec;
-    smi_descriptor  mod;
+    char	    *spec;
+    char	    *mod;
 {
-    static smi_type res;
-    Type	    *t = NULL;
-    Module	    *m = NULL;
-    Location	    *l = NULL;
-    smi_type	    *smitype;
-    smi_fullname    sminame;
+    SmiType	    *smiTypePtr;
+    Type	    *typePtr = NULL;
+    Module	    *modulePtr = NULL;
+    List	    *listPtr;
     char	    name[SMI_MAX_OID+1];
-    char	    module[SMI_MAX_DESCRIPTOR+1];
-    char	    fullname[SMI_MAX_FULLNAME+1];
+    char	    modulename[SMI_MAX_DESCRIPTOR+1];
     
     printDebug(4, "smiGetType(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, fullname);
-    createModuleAndName(fullname, module, name);
+    getModulenameAndName(spec, mod, modulename, name);
 
-    for (l = firstLocationPtr; l; l = l->nextPtr) {
-
-	if (l->type == LOCATION_RPC) {
-
-	    sminame = fullname;
-	    smitype = smiproc_type_1(&sminame, l->cl);
-	    if (smitype && strlen(smitype->name)) {
-		return smitype;
-	    }
-
-#ifdef BACKEND_SMI
-	} else if (l->type == LOCATION_SMIDIR) {
-
-	    if (strlen(module)) {
-		if (!(m = findModuleByName(module))) {
-
-		}
-		
-		if (m) {
-		    t = getType(name, module);
-		    if (t) break;
-		}
-	    }
-	    
-	} else if (l->type == LOCATION_SMIFILE) {
-
-	    if (strlen(module)) {
-		t = getType(name, module);
-		if (t) break;
-	    }
-#endif
-	} else {
-
-	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, l->name);
-	    
+    if (modulename) {
+	modulePtr = findModuleByName(modulename);
+	if (!modulePtr) {
+	    modulePtr = loadModule(modulename);
 	}
     }
 
-    if (t) {
-	res.name = t->name;
-	res.module = t->modulePtr->name;
-	res.syntax = t->syntax;
-	res.parent = t->parentType;
-	res.decl = t->decl;
-	res.format = t->format;
-	res.units = t->units;
-	res.status = t->status;
-	res.description = t->description;
-	return &res;
+    typePtr = getType(name, modulename);
+    
+    if (typePtr) {
+	smiTypePtr = util_malloc(sizeof(SmiType));
+
+	smiTypePtr->name        = typePtr->name;
+	smiTypePtr->module      = typePtr->modulePtr->name;
+	smiTypePtr->syntax	= typePtr->syntax;
+	smiTypePtr->parent	= typePtr->parentType;
+	smiTypePtr->namednumber = NULL;
+	if (allowsNamedNumbers(typePtr->syntax)) {
+	    for (listPtr = typePtr->listPtr; listPtr;
+		 listPtr = listPtr->nextPtr) {
+		addPtr(&smiTypePtr->namednumber,
+		       (SmiNamedNumber *)(listPtr->ptr));
+	    }
+	}
+	smiTypePtr->range       = NULL;
+	if (allowsRanges(typePtr->syntax)) {
+	    for (listPtr = typePtr->listPtr; listPtr;
+		 listPtr = listPtr->nextPtr) {
+		addPtr(&smiTypePtr->range,
+		       (SmiRange *)(listPtr->ptr));
+	    }
+	}
+	smiTypePtr->decl	= typePtr->decl;
+	smiTypePtr->format	= typePtr->format;
+	smiTypePtr->units	= typePtr->units;
+	smiTypePtr->status	= typePtr->status;
+	smiTypePtr->description = typePtr->description;
+	smiTypePtr->reference   = typePtr->reference;
+	return smiTypePtr;
     } else {
 	return NULL;
     }
@@ -908,25 +833,26 @@ smiGetType(spec, mod)
 
 
 
-smi_type *
+SmiType *
 smiGetFirstType(modulename)
-    smi_descriptor    modulename;
+    char	*modulename;
 {
     printDebug(4, "smiGetFirstType(\"%s\")\n", modulename);
-    return smiGetNextType(modulename, "");
+    return smiGetNextType(modulename, NULL);
 }
 
 
 
-smi_type *
+SmiType *
 smiGetNextType(modulename, name)
-    smi_descriptor    modulename;
-    smi_descriptor    name;
+    char	      *modulename;
+    char	      *name;
 {
-    static smi_type   smiType;
+    SmiType	      *smiTypePtr;
     Module	      *modulePtr;
     Type	      *typePtr;
     int		      hit;
+    List	      *listPtr;
     
     printDebug(4, "smiGetNextType(\"%s\", %s)\n", modulename, name);
 
@@ -943,14 +869,14 @@ smiGetNextType(modulename, name)
 	     * If the name argument is an empty string, we will
 	     * return the first type.
 	     */
-	    if (!strlen(name)) {
+	    if (!name) {
 		hit = 1;
 	    }
 	    /*
 	     * If we have found the type named name, we will return
 	     * the next one.
 	     */
-	    if (typePtr->name && !strcmp(typePtr->name, name)) {
+	    if (typePtr->name && name && !strcmp(typePtr->name, name)) {
 		hit = 1;
 		typePtr = typePtr->nextPtr;
 	    }
@@ -967,28 +893,34 @@ smiGetNextType(modulename, name)
 	}
 	     
 	if (typePtr) {
-	    smiType.name        = typePtr->name;
-	    smiType.module	= typePtr->modulePtr->name;
-	    smiType.syntax	= typePtr->syntax;
-	    smiType.parent	= typePtr->parentType;
-	    if (typePtr->itemlist) {
-		for (n=0, itemlistPtr = typePtr->itemlist; itemlistPtr;
-		     itemlistPtr = itemlistPtr->nextPtr) {
-		    n++;
+	    smiTypePtr = util_malloc(sizeof(SmiType));
+	    
+	    smiTypePtr->name        = typePtr->name;
+	    smiTypePtr->module	    = typePtr->modulePtr->name;
+	    smiTypePtr->syntax	    = typePtr->syntax;
+	    smiTypePtr->parent	    = typePtr->parentType;
+	    if (allowsNamedNumbers(typePtr->syntax)) {
+		for (listPtr = typePtr->listPtr; listPtr;
+		     listPtr = listPtr->nextPtr) {
+		    addPtr(&smiTypePtr->namednumber,
+			   (SmiNamedNumber *)(listPtr->ptr));
 		}
-		smiType.itemlist = malloc(n * sizeof(Itemlist *));
-		for (i=0; i < n; i++) {
-		    smiType.itemlist[i]
-		}
-	    } else {
-		smiType.itemlist = NULL;
 	    }
-	    smiType.decl	= typePtr->decl;
-	    smiType.format	= typePtr->format;
-	    smiType.units	= typePtr->units;
-	    smiType.status      = typePtr->status;
-	    smiType.description = typePtr->description;
-	    return &smiType;
+	    smiTypePtr->range       = NULL;
+	    if (allowsRanges(typePtr->syntax)) {
+		for (listPtr = typePtr->listPtr; listPtr;
+		     listPtr = listPtr->nextPtr) {
+		    addPtr(&smiTypePtr->range,
+			   (SmiRange *)(listPtr->ptr));
+		}
+	    }
+	    smiTypePtr->decl	    = typePtr->decl;
+	    smiTypePtr->format	    = typePtr->format;
+	    smiTypePtr->units	    = typePtr->units;
+	    smiTypePtr->status      = typePtr->status;
+	    smiTypePtr->description = typePtr->description;
+	    smiTypePtr->reference   = typePtr->reference;
+	    return smiTypePtr;
 	}
     }
 
@@ -997,68 +929,37 @@ smiGetNextType(modulename, name)
 
 
 
-smi_macro *
+SmiMacro *
 smiGetMacro(spec, mod)
-    smi_fullname    spec;
-    smi_descriptor  mod;
+    char            *spec;
+    char	    *mod;
 {
-    static smi_macro res;
-    Macro	    *ma = NULL;
-    Module	    *m = NULL;
-    Location	    *l = NULL;
-    smi_macro	    *smimacro;
-    smi_fullname    sminame;
+    SmiMacro	    *smiMacroPtr;
+    Macro	    *macroPtr = NULL;
+    Module	    *modulePtr = NULL;
     char	    name[SMI_MAX_OID+1];
-    char	    module[SMI_MAX_DESCRIPTOR+1];
-    char	    fullname[SMI_MAX_FULLNAME+1];
+    char	    modulename[SMI_MAX_DESCRIPTOR+1];
     
     printDebug(4, "smiGetMacro(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, fullname);
-    createModuleAndName(fullname, module, name);
+    getModulenameAndName(spec, mod, modulename, name);
 
-    for (l = firstLocationPtr; l; l = l->nextPtr) {
-
-	if (l->type == LOCATION_RPC) {
-
-	    sminame = fullname;
-	    smimacro = smiproc_macro_1(&sminame, l->cl);
-	    if (smimacro && strlen(smimacro->name)) {
-		return smimacro;
-	    }
-
-#ifdef BACKEND_SMI
-	} else if (l->type == LOCATION_SMIDIR) {
-
-	    if (strlen(module)) {
-		if (!(m = findModuleByName(module))) {
-		    m = loadModule(module);
-		}
-		if (m) {
-		    ma = getMacro(name, module);
-		    if (ma) break;
-		}
-	    }
-	    
-	} else if (l->type == LOCATION_SMIFILE) {
-
-	    if (strlen(module)) {
-		ma = getMacro(name, module);
-		if (ma) break;
-	    }
-#endif
-	} else {
-
-	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, l->name);
-	    
+    if (modulename) {
+	modulePtr = findModuleByName(modulename);
+	if (!modulePtr) {
+	    modulePtr = loadModule(modulename);
 	}
     }
 
-    if (ma) {
-	res.name = strdup(ma->name);
-	res.module = strdup(ma->modulePtr->name);
-	return &res;
+    macroPtr = getMacro(name, modulename);
+    
+    if (macroPtr) {
+	smiMacroPtr = util_malloc(sizeof(SmiMacro));
+
+	smiMacroPtr->name   = macroPtr->name;
+	smiMacroPtr->module = macroPtr->modulePtr->name;
+	return smiMacroPtr;
     } else {
 	return NULL;
     }
@@ -1066,193 +967,111 @@ smiGetMacro(spec, mod)
 
 
 
-smi_namelist *
+char **
 smiGetNames(spec, mod)
-    smi_fullname	spec;
-    smi_descriptor	mod;
+    char	        *spec;
+    char		*mod;
 {
-    static smi_namelist res;
-    Location		*l;
-    Module		*m = NULL;
-    Object		*o;
-    Node		*n, *n2, *nn = NULL;
-    smi_namelist	*smilist;
-    char		*elements, *element;
-    char		name[SMI_MAX_OID+1];
-    char		module[SMI_MAX_DESCRIPTOR+1];
-    char		fullname[SMI_MAX_FULLNAME+1];
-    smi_fullname	sminame;
-    char		ss[SMI_MAX_FULLNAME+1];
-    smi_subid		subid;
-    static char		*p = NULL;
-    static int		plen = 0;
-
+    Module		*modulePtr = NULL;
+    Object		*objectPtr;
+    Node		*nodePtr = NULL;
+    Type		*typePtr = NULL;
+    char	        name[SMI_MAX_OID+1];
+    char	        modulename[SMI_MAX_DESCRIPTOR+1];
+    char	        *elements, *element;
+    SmiSubid	        subid;
+    char		**list = NULL;
+    
     printDebug(4, "smiGetNames(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, fullname);
-    createModuleAndName(fullname, module, name);
+    getModulenameAndName(spec, mod, modulename, name);
 
-#if 0
-    if (strlen(module)) {
-	m = findModuleByName(module);
-    } else {
-	m = NULL;
-    }
-#endif
-    
-    if (!p) {
-	p = malloc(200);
-    }
-    strcpy(p, "");
-
-    for (l = firstLocationPtr; l; l = l->nextPtr) {
-
-	if ((l->type == LOCATION_RPC) && (l->cl)) {
-
-	    sminame = fullname;
-	    smilist = smiproc_names_1(&sminame, l->cl);
-	    if (smilist && (smilist->namelist)) {
-		if (strlen(p)+strlen(smilist->namelist)+2 > plen) {
-		    p = realloc(p, strlen(p)+strlen(smilist->namelist)+2);
-		}
-		if (strlen(p)) strcat(p, " ");
-		strcat(p, smilist->namelist);
-	    }
-
-#ifdef BACKEND_SMI
-	} else if ((l->type == LOCATION_SMIDIR) ||
-		   (l->type == LOCATION_SMIFILE)) {
-	    
-	    if (l->type == LOCATION_SMIDIR) {
-		
-		if ((!m) && (strlen(module))) {
-		    if (!(m = findModuleByName(module))) {
-			m = loadModule(module);
-		    }
-		}
-	    }
-
-	    if (m || !strlen(module)) {
-
-		if (!nn) {
-		    if (isdigit((int)name[0])) {
-			elements = strdup(name);
-			/* TODO: success? */
-			element = strtok(elements, ".");
-			n = rootNodePtr;
-			nn = NULL;
-			while (element) {
-			    subid = (unsigned int)strtoul(element, NULL, 0);
-			    n = findNodeByParentAndSubid(n, subid);
-			    if (!n) break;
-			    nn = n;
-			    element = strtok(NULL, ".");
-			}
-			free(elements);
-		    } else if (strchr(name, '.')) {
-			elements = strdup(name);
-			element = strtok(elements, ".");
-			o = findObjectByName(element);
-			if (o) {
-			    n = o->nodePtr;
-			    nn = n;
-			    element = strtok(NULL, ".");
-			    while (element) {
-				if (isdigit((int)element[0])) {
-				    subid = (unsigned int)strtoul(element,
-								  NULL, 0);
-				    n = findNodeByParentAndSubid(n, subid);
-				    /* if (!n) break; */
-				    nn = n;
-				} else {
-				    for (n2 = n->firstChildPtr; n2;
-					 n2 = n2->nextPtr) {
-					for (o = n2->firstObjectPtr; o;
-					     o = o->nextPtr) {
-					    if (!strcmp(o->name, element)) {
-						nn = n2;
-						break;
-					    }
-					}
-				    }
-				}
-				element = strtok(NULL, ".");
-			    }
-			}
-		    }
-		}
-		
-		if (nn) {
-
-		    for (o = nn->firstObjectPtr; o; o = o->nextPtr) {
-			if (((!strlen(module)) || (o->modulePtr == m))) {
-			    if (((l->type == LOCATION_SMIFILE) &&
-				 (!strcmp(l->name, o->modulePtr->path))) ||
-				((l->type == LOCATION_SMIDIR) &&
-			       (!strcmp(l->name,
-					dirname(o->modulePtr->path))))) {
-				sprintf(ss, "%s.%s",
-					o->modulePtr->name, o->name);
-				if (strlen(p)+strlen(ss)+2 > plen) {
-				    p = realloc(p, strlen(p)+strlen(ss)+2);
-				}
-				if (strlen(p)) strcat(p, " ");
-				strcat(p, ss);
-			    }
-			}
-		    }
-		    
-#if 0 /* TODO */
-		} else {
-
-		    do {
-			d = findNextDescriptor(name, m, KIND_ANY, d);
-			if (d &&
-			    (((l->type == LOCATION_SMIFILE) &&
-			      (!strcmp(l->name, d->module->path))) ||
-			     ((l->type == LOCATION_SMIDIR) &&
-			      (!strcmp(l->name, dirname(d->module->path))))) &&
-			    (d->kind == KIND_OBJECT ||
-			     d->kind == KIND_TYPE ||
-			     d->kind == KIND_MACRO) &&
-			    (!(d->flags & FLAG_IMPORTED)) &&
-			    (d->flags & FLAG_MODULE)) {
-			    sprintf(ss, "%s.%s",
-				    d->module->descriptor->name, d->name);
-			    if (strlen(p)+strlen(ss)+2 > plen) {
-				p = realloc(p, strlen(p)+strlen(ss)+2);
-			    }
-			    if (strlen(p)) strcat(p, " ");
-			    strcat(p, ss);
-			}
-
-		    } while (d);
-#endif		    
-		}
-	    }
-	    
-#endif
-	} else {
-
-	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, l->name);
-	    
+    if (modulename) {
+	modulePtr = findModuleByName(modulename);
+	if (!modulePtr) {
+	    modulePtr = loadModule(modulename);
 	}
     }
 
-    filterNamelist(p);
-    
-    res.namelist = p;
-    return &res;
+    if (isdigit((int)name[0])) {
+	/*
+	 * name in `1.3.0x6.1...' form.
+	 */
+	elements = util_strdup(name);
+	/* TODO: success? */
+	element = strtok(elements, ".");
+	nodePtr = rootNodePtr;
+	while (element) {
+	    subid = (unsigned int)strtoul(element, NULL, 0);
+	    nodePtr = findNodeByParentAndSubid(nodePtr, subid);
+	    if (!nodePtr) break;
+	    element = strtok(NULL, ".");
+	}
+	free(elements);
+	if (nodePtr) {
+	    if (strlen(modulename)) {
+		objectPtr = findObjectByModulenameAndNode(modulename, nodePtr);
+		addName(&list, objectPtr->modulePtr->name, objectPtr->name);
+	    } else {
+		for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
+		     objectPtr = objectPtr->nextPtr) {
+		    if (objectPtr->modulePtr &&
+			isInView(objectPtr->modulePtr->name)) {
+			addName(&list, objectPtr->modulePtr->name,
+				objectPtr->name);
+		    }
+		}
+	    }
+	}
+    } else {
+	if (islower((int)name[0])) {
+	    if (strlen(modulename)) {
+		objectPtr = findObjectByModulenameAndName(modulename, name);
+		if (objectPtr) {
+		    addName(&list, objectPtr->modulePtr->name,
+			    objectPtr->name);
+		}
+	    } else {
+		for (objectPtr = findObjectByName(name); objectPtr;
+		     objectPtr = findNextObjectByName(name, objectPtr)) {
+		    if (objectPtr->modulePtr &&
+			isInView(objectPtr->modulePtr->name)) {
+			addName(&list, objectPtr->modulePtr->name,
+				objectPtr->name);
+		    }
+		}
+	    }
+	} else {
+	    if (strlen(modulename)) {
+		typePtr = findTypeByModulenameAndName(modulename, name);
+		if (typePtr) {
+		    addName(&list, typePtr->modulePtr->name, typePtr->name);
+		}
+	    } else {
+		for (typePtr = findTypeByName(name); typePtr;
+		     typePtr = findNextTypeByName(name, typePtr)) {
+		    if (typePtr->modulePtr &&
+			isInView(typePtr->modulePtr->name)) {
+			addName(&list, typePtr->modulePtr->name,
+				typePtr->name);
+		    }
+		}
+	    }
+	}
+    }
+
+    return list;
 }
 
 
 
-smi_namelist *
+char **
 smiGetChildren(spec, mod)
-    smi_fullname	spec;
-    smi_descriptor	mod;
+    char	        *spec;
+    char		*mod;
 {
+#if 0
     static smi_namelist res;
     Location		*l;
     Module		*m;
@@ -1364,36 +1183,56 @@ smiGetChildren(spec, mod)
     
     res.namelist = p;
     return &res;
+#endif
+    return NULL;
 }
 
 
 
-smi_namelist *
+char **
 smiGetMembers(spec, mod)
-    smi_fullname	spec;
-    smi_descriptor	mod;
+    char	        *spec;
+    char		*mod;
 {
-    static smi_namelist res;
-    Location		*locationPtr;
-    Module		*modulePtr;
-    Object		*objectPtr = NULL;
-    Type		*typePtr;
-    char		name[SMI_MAX_OID+1];
-    char		modulename[SMI_MAX_DESCRIPTOR+1];
+    Module		*modulePtr = NULL;
+    Object		*objectPtr;
+    Import		*importPtr;
+    char	        name[SMI_MAX_OID+1];
+    char	        modulename[SMI_MAX_DESCRIPTOR+1];
+    char		**list = NULL;
+#if 0
+    Node		*nodePtr = NULL;
+    Type		*typePtr = NULL;
     char		*s;
     char		ss[SMI_MAX_FULLNAME+1];
     static char		*p = NULL;
     static int		plen = 0;
     List		*e;
-    static char		*list = NULL;
-    Import		*importPtr;
-    char		imported[SMI_MAX_FULLNAME];
+#endif
     
     printDebug(4, "smiGetMembers(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
+    /*
+     * First determine the kind of input to decide what kind of member
+     * list we are looking for. It might be
+     *
+     * - a module name, to retrieve all imported identifiers,
+     * - a row (SEQUENCE), to retrieve all of its columnar object types,
+     * - a table (SEQUENCE OF), to retrieve all of its index object types,
+     * - a notification type, to retrieve all of its variables,
+     * - an object group, to retrieve all of its objects types,
+     * - a notification group, to retrieve all of its notification types,
+     *
+     */
+
     getModulenameAndName(spec, mod, modulename, name);
 
+    if (!strlen(modulename)) {
+	strncpy(modulename, name, SMI_MAX_DESCRIPTOR);
+	name[0] = 0;
+    }
+    
     if (modulename) {
 	modulePtr = findModuleByName(modulename);
 	if (!modulePtr) {
@@ -1401,137 +1240,242 @@ smiGetMembers(spec, mod)
 	}
     }
 
-    if (isupper((int)name[0])) {
-	/* seems to be a modulename. get import list. */
-	modulePtr = findModuleByName(name);
-	if (!modulePtr) {
-	    modulePtr = loadModule(name);
-	}
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    if (!strlen(name)) {
+
+	/*
+	 * a module name, to retrieve all imported identifiers
+	 */
 	for (importPtr = modulePtr->firstImportPtr; importPtr;
 	     importPtr = importPtr->nextPtr) {
-	    sprintf(imported, "%s%s%s",
-		    importPtr->module ? importPtr->module : "-",
-		    SMI_NAMESPACE_OPERATOR,
-		    importPtr->name ? importPtr->name : "-");
-	    addMemberToListString(&list, imported);
+	    addName(&list, importPtr->module, importPtr->name);
 	}
-	/* filterNamelist(list); */
-	res.namelist = list;
-	return &res;
-    }
 
+    } else if (!isupper((int)name[0])) {
 
-	
-	
-    if (!p) {
-	p = malloc(200);
-    }
-    strcpy(p, "");
-
-    for (locationPtr = firstLocationPtr; locationPtr;
-	 locationPtr = locationPtr->nextPtr) {
-
-	if (locationPtr->type == LOCATION_RPC) {
-
-	    /* TODO */
-
-#ifdef BACKEND_SMI
-	} else if (locationPtr->type == LOCATION_SMIDIR) {
-
-	    if (strlen(modulename)) {
-		if (!(modulePtr = findModuleByName(modulename))) {
-		    modulePtr = loadModule(modulename);
-		}
-		if (modulePtr) {
-		    if (isupper((int)name[0])) {
-			typePtr = findTypeByModulenameAndName(modulename,
-							      name);
-			if (typePtr) {
-			    if (typePtr->syntax == SMI_SYNTAX_SEQUENCE) {
+	/*
+	 * a type
+	 */
+#if 0
+	typePtr = findTypeByModulenameAndName(modulename, name);
+	if (typePtr) {
+	    if (typePtr->syntax == SMI_SYNTAX_SEQUENCE) {
 				/* It is a SEQUENCE -> return all columns. */
-				for (e = (void *)typePtr->itemlistPtr; e;
-				     e = e->nextPtr) {
-				    sprintf(ss, "%s.%s",
-					 ((Object *)(e->ptr))->modulePtr->name,
-					    ((Object *)(e->ptr))->name);
-				    s = ss;
-				    if (!strstr(p, s)) {
-					if (strlen(p)+strlen(s)+2 > plen) {
-					    p = realloc(p,
-							strlen(p)+strlen(s)+2);
-					}
-					if (strlen(p)) strcat(p, " ");
-					strcat(p, s);
-				    }
-				}
-			    }
+		for (e = (void *)typePtr->itemlistPtr; e;
+		     e = e->nextPtr) {
+		    sprintf(ss, "%s.%s",
+			    ((Object *)(e->ptr))->modulePtr->name,
+			    ((Object *)(e->ptr))->name);
+		    s = ss;
+		    if (!strstr(p, s)) {
+			if (strlen(p)+strlen(s)+2 > plen) {
+			    p = realloc(p,
+					strlen(p)+strlen(s)+2);
 			}
-		    } else if (islower((int)name[0])) {
-			objectPtr = findObjectByModulenameAndName(modulename,
-								  name);
-			if (objectPtr) {
-			    if (objectPtr->indexPtr) {
-				for (e = (void *)objectPtr->indexPtr; e;
-				     e = e->nextPtr) {
-				    sprintf(ss, "%s.%s",
-					 ((Object *)(e->ptr))->modulePtr->name,
-					    ((Object *)(e->ptr))->name);
-				    s = ss;
-				    if (!strstr(p, s)) {
-					if (strlen(p)+strlen(s)+2 > plen) {
-					    p = realloc(p,
-							strlen(p)+strlen(s)+2);
-					}
-					if (strlen(p)) strcat(p, " ");
-					strcat(p, s);
-				    }
-				}
-			    }
-			}
-			if (p) break;
+			if (strlen(p)) strcat(p, " ");
+			strcat(p, s);
 		    }
 		}
 	    }
-
-	} else if (locationPtr->type == LOCATION_SMIFILE) {
-	    
-	    if (strlen(modulename)) {
-		objectPtr = findObjectByModulenameAndName(modulename, name);
-	    }
+	}
 #endif
-	} else {
-	    
-	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, locationPtr->name);
-	    
+
+    } else if (!isupper((int)name[0])) {
+
+	/*
+	 * any object type, look closer...
+	 */
+	objectPtr = findObjectByModulenameAndName(modulename, name);
+	if (objectPtr) {
+	    if (objectPtr->typePtr->syntax == SMI_SYNTAX_SEQUENCEOF) {
+		/*
+		 * a table, to retrieve all of its index object types
+		 */
+#if 0
+		if (objectPtr->indexPtr) {
+		    for (e = (void *)objectPtr->indexPtr; e;
+			 e = e->nextPtr) {
+			sprintf(ss, "%s.%s",
+				((Object *)(e->ptr))->modulePtr->name,
+				((Object *)(e->ptr))->name);
+			s = ss;
+			if (!strstr(p, s)) {
+			    if (strlen(p)+strlen(s)+2 > plen) {
+				p = realloc(p,
+					    strlen(p)+strlen(s)+2);
+			    }
+			    if (strlen(p)) strcat(p, " ");
+			    strcat(p, s);
+			}
+		    }
+		}
+#endif
+	    } else if (objectPtr->typePtr->syntax == SMI_SYNTAX_SEQUENCE) {
+		/*
+		 * a row, to retrieve all of its columnar object types
+		 */
+#if 0
+		XXX
+#endif
+	    }
+#if 0
+	    /*
+	     * a notification type, to retrieve all of its variables
+	     */
+	    /*
+	     * an object group, to retrieve all of its objects types
+	     */
+	    /*
+	     * a notification group, to retrieve all of its notification types
+	     */
+#endif
 	}
     }
 
-    filterNamelist(p);
-    
-    res.namelist = p;
-    return &res;
+    return list;
 }
 
 
 
-smi_fullname
+char *
 smiGetParent(spec, mod)
-    smi_fullname	spec;
-    smi_descriptor	mod;
+    char	        *spec;
+    char		*mod;
 {
-    static char		parent[SMI_MAX_FULLNAME+1];
+    Object		*objectPtr = NULL;
+    Node		*nodePtr;
+    Module		*modulePtr;
+    View		*viewPtr;
+    Import		*importPtr;
+    char		name[SMI_MAX_OID+1];
+    char		modulename[SMI_MAX_DESCRIPTOR+1];
+    char		s[SMI_MAX_FULLNAME+1];
+    char		*modulenamePtr;
+    char		child[SMI_MAX_FULLNAME+1];
+    char		*p;
+    char		*parent;
     
     printDebug(4, "smiGetParent(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    getParent(spec, mod, parent);
+    parent = util_malloc(sizeof(char) * (SMI_MAX_FULLNAME+1));
+	    
+    getModulenameAndName(spec, mod, modulename, name);
 
-    printDebug(5, " ... = %s\n", parent);
+    if (modulename) {
+	if (!findModuleByName(modulename)) {
+	    loadModule(modulename);
+	}
+    }
 
-    if (strlen(parent))
-	return parent;
-    else
-	return NULL;
+    /*
+     * If the parent node has a declaration in the same module as
+     * the child, we assume this is what the user wants to get.
+     * Otherwise we return the first declaration we find in our
+     * view of modules.  Last resort: the numerical OID.
+     */
+    objectPtr = getObject(name, modulename);
+    if (!objectPtr) objectPtr = getObject(name, "");
+
+    if (objectPtr && (objectPtr->nodePtr->parentPtr)) {
+	modulePtr = objectPtr->modulePtr;
+	nodePtr = objectPtr->nodePtr->parentPtr;
+
+	/*
+	 * Try to find the parent object in the same module.
+	 * This might be an imported descriptor, marked by
+	 * objectPtr->flags & FLAG_IMPORTED.
+	 */
+	for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
+	     objectPtr = objectPtr->nextSameNodePtr) {
+	    if (objectPtr->modulePtr == modulePtr) {
+		break;
+	    }
+	}
+
+	/*
+	 * If it's not found in the current module, try to find it in
+	 * any module in the current view.
+	 */
+	if (!objectPtr) {
+	    for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
+		 objectPtr = objectPtr->nextSameNodePtr) {
+		for (viewPtr = firstViewPtr; viewPtr;
+		     viewPtr = viewPtr->nextPtr) {
+		    if ((!strcmp(objectPtr->modulePtr->name, viewPtr->name)) &&
+			(!(objectPtr->flags & FLAG_IMPORTED))) {
+			break;
+		    }
+		}
+		if (viewPtr) {
+		    break;
+		}
+	    }
+	}
+	/*
+	 * Now, if we have found the parent object, create the appropriate
+	 * OID string. Otherwise, call getParent() recursively.
+	 */
+	if (objectPtr) {
+	    sprintf(s, "%s%s%s", objectPtr->modulePtr->name,
+		    SMI_NAMESPACE_OPERATOR, objectPtr->name);
+	    if (smiIsImported(modulename, s)) {
+		strcpy(parent, s);
+	    } else if (!(objectPtr->flags & FLAG_INCOMPLETE)) {
+		if (!strlen(objectPtr->modulePtr->name)) {
+		    sprintf(parent, "%s", objectPtr->name);
+		} else {
+		    if (objectPtr->flags & FLAG_IMPORTED) {
+			for(importPtr = objectPtr->modulePtr->firstImportPtr;
+			    importPtr; importPtr = importPtr->nextPtr) {
+			    if (!strcmp(importPtr->name, objectPtr->name)) {
+				break;
+			    }
+			}
+			modulenamePtr = importPtr->module;
+		    } else {
+			modulenamePtr = objectPtr->modulePtr->name;
+		    }
+		    sprintf(parent, "%s%s%s", modulenamePtr,
+			    SMI_NAMESPACE_OPERATOR, objectPtr->name);
+		}
+	    } else {
+		strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
+		p = smiGetParent(child, modulename);
+		strcpy(parent, p);
+		sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
+	    }
+	} else {
+	    /*
+	     * call getParent() recursively to get the most verbose
+	     * name that is in the current view.
+	     */
+	    strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
+	    p = smiGetParent(child, "");
+	    strcpy(parent, p);
+	    sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
+	}
+
+    } else {
+	p = strrchr(name, '.');
+	if (p && isdigit((int)p[1])) {
+	    sprintf(s, "%s%s%s", modulename, SMI_NAMESPACE_OPERATOR,
+		    name);
+	    p = strrchr(s, '.');
+	    p[0] = 0;
+	    strncpy(parent, s, SMI_MAX_FULLNAME);
+	} else {
+	    free(parent);
+	    parent = NULL;
+	}
+    }
+
+    printDebug(5, " ... = %s\n", parent ? parent : "");
+
+    return parent;
 }
 
 
@@ -1585,6 +1529,7 @@ smiMkTime(s)
 
 
 
+/* NOTE: not reentrent. returning a static pointer. */
 char *
 smiCTime(t)
     time_t t;
@@ -1601,17 +1546,18 @@ smiCTime(t)
 
 
 
+/* NOTE: not reentrent. returning a static pointer. */
 char *
-smiModule(smiFullname)
-    smi_fullname    smiFullname;
+smiModule(fullname)
+    char            *fullname;
 {
     static char	    modulename[SMI_MAX_DESCRIPTOR+1];
     int		    len;
 
-    len = strcspn(smiFullname, "!.");
-    len = MIN(len, strcspn(smiFullname, SMI_NAMESPACE_OPERATOR));
+    len = strcspn(fullname, "!.");
+    len = MIN(len, strcspn(fullname, SMI_NAMESPACE_OPERATOR));
     len = MIN(len, SMI_MAX_DESCRIPTOR);
-    strncpy(modulename, smiFullname, len);
+    strncpy(modulename, fullname, len);
     modulename[len] = 0;
 
     return modulename;
@@ -1619,29 +1565,30 @@ smiModule(smiFullname)
 
 
 
+/* NOTE: not reentrent. returning a static pointer. */
 char *
-smiDescriptor(smiFullname)
-    smi_fullname    smiFullname;
+smiDescriptor(fullname)
+    char	    *fullname;
 {
     static char	    name[SMI_MAX_DESCRIPTOR+1];
     char	    *p;
 
-    if (!isupper((int)smiFullname[0])) {
-	strcpy(name, smiFullname);
+    if (!isupper((int)fullname[0])) {
+	strcpy(name, fullname);
     } else {
-	p = strstr(smiFullname, SMI_NAMESPACE_OPERATOR);
+	p = strstr(fullname, SMI_NAMESPACE_OPERATOR);
 	if (p) {
 	    strcpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)]);
 	} else {
-	    p = strchr(smiFullname, '!');
+	    p = strchr(fullname, '!');
 	    if (p) {
 		strcpy(name, &p[1]);
 	    } else {
-		p = strchr(smiFullname, '.');
+		p = strchr(fullname, '.');
 		if (p) {
 		    strcpy(name, &p[1]);
 		} else {
-		    strcpy(name, smiFullname);
+		    strcpy(name, fullname);
 		}
 	    }
 	}
@@ -1654,13 +1601,13 @@ smiDescriptor(smiFullname)
 
 int
 smiIsImported(modulename, fullname)
-    smi_descriptor modulename;
-    smi_fullname   fullname;
+    char	   *modulename;
+    char	   *fullname;
 {
     Import	   *importPtr;
     Module	   *modulePtr;
-    smi_descriptor importedModule;
-    smi_descriptor importedDescriptor;
+    char	   *importedModule;
+    char	   *importedDescriptor;
     
     modulePtr = findModuleByName(modulename);
     
