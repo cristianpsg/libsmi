@@ -1,14 +1,14 @@
 /*
  * scanner-sming.l --
  *
- *      Lexical rules for scanning the SMIv1/v2 MIB module language.
+ *      Lexical rules for scanning the SMIng MIB module language.
  *
  * Copyright (c) 1998 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.1 1999/03/31 17:24:28 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.2 1999/04/01 13:05:43 strauss Exp $
  */
 
 %option noyywrap
