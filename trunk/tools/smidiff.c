@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.16 2001/10/11 08:58:57 schoenw Exp $	 
+ * @(#) $Id: smidiff.c,v 1.17 2001/10/12 16:20:05 tklie Exp $	 
  */
 
 #include <stdlib.h>
@@ -678,6 +678,18 @@ checkRanges(SmiModule *oldModule, int oldLine,
 				     oldRange->maxValue.value.integer32,
 				     newRange->minValue.value.integer32,
 				     newRange->maxValue.value.integer32);
+
+		    /* If the range has been enlarged,
+		       continue comparison after the enlarged range. */
+		    while( oldRange ) {
+			if( oldRange->minValue.value.integer32 <
+			    newRange->maxValue.value.integer32 ) {
+			    oldRange = smiGetNextRange( oldRange );
+			}
+			else {
+			    break;
+			}
+		    }
 		}
 	    }
 	    
@@ -865,9 +877,13 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 
 
 static void
-checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
-		       SmiModule *newModule, SmiType *newType)
+checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
+		       SmiType *oldType,
+		       SmiModule *newModule, SmiNode *newNode,
+		       SmiType *newType)
 {
+    int oldLine, newLine;
+    
     if (oldType->basetype != newType->basetype) {
 	if( newType->name ) {
 	    printErrorAtLine(newModule, ERR_BASETYPE_CHANGED,
@@ -893,25 +909,30 @@ checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
 		      oldType,
 		      newType);
 
-      checkRanges(oldModule, smiGetTypeLine(oldType),
-		newModule, smiGetTypeLine(newType),
-		  oldType->name,
-		  oldType,
-		  newType);
+    oldLine = oldNode ? smiGetNodeLine( oldNode ) : smiGetTypeLine( oldType );
+    newLine = newNode ? smiGetNodeLine( newNode ) : smiGetTypeLine( newType );
+    /* Assumption: If xxxNode is null, xxxModule is the module where
+       xxxType is defined. Otherwise it is the module where the node
+       resides. */
+    checkRanges(oldModule, oldLine,
+		newModule, newLine,
+		oldType->name,
+		oldType,
+		newType);
 }
 
 
 static void
-checkTypes(SmiModule *oldModule, SmiType *oldType,
-	   SmiModule *newModule, SmiType *newType)
+checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
+	   SmiModule *newModule, SmiNode *newNode, SmiType *newType)
 {
 
     checkName(oldModule, smiGetTypeLine(oldType),
 	      newModule, smiGetTypeLine(newType),
 	      oldType->name, newType->name);
 
-    checkTypeCompatibility(oldModule, oldType,
-			   newModule, newType);
+    checkTypeCompatibility(oldModule, oldNode, oldType,
+			   newModule, newNode, newType);
     
     checkDefVal(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
@@ -969,7 +990,8 @@ diffTypes(SmiModule *oldModule, const char *oldTag,
 	smiInit(newTag);
 	newType = smiGetType(newModule, oldType->name);
 	if (newType) {
-	    checkTypes(oldModule, oldType, newModule, newType);
+	    checkTypes(oldModule, NULL, oldType,
+		       newModule, NULL, newType);
 	} else {
 	    printErrorAtLine(oldModule, ERR_TYPE_REMOVED,
 			     smiGetTypeLine(oldType), oldType->name);
@@ -1026,7 +1048,12 @@ checkIndex(SmiModule *oldModule, SmiNode *oldNode,
     }
 #if 0
     fprintf(stderr, "xxx checking index (%s, %s)...\n", oldNode->name, newNode->name);
-    /* switch (newNode->indexkind) { */
+
+    switch (newNode->indexkind) {
+    case SMI_INDEX_INDEX:
+	
+	break;
+    }
 #endif
 }
 
@@ -1055,20 +1082,19 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
 	    
-	    checkTypeCompatibility(oldModule, oldType, newModule, newType);
+	    checkTypeCompatibility(oldModule, oldNode, oldType,
+				   newModule, newNode, newType);
 	} else if (!oldType->name && newType->name) {
 	    printErrorAtLine(newModule, ERR_FROM_IMPLICIT,
 			     smiGetNodeLine(newNode),
 			     newType->name, oldNode->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
-	    /* xxx the next command may lead to strange output
-	       in the printError() function.*/
-	    checkTypeCompatibility(smiGetTypeModule(oldType), oldType,
-				   smiGetTypeModule(newType), newType);
+	    checkTypeCompatibility(oldModule, oldNode, oldType,
+				   newModule, newNode, newType);
 	} else {
-	    checkTypes(smiGetTypeModule(oldType), oldType,
-		       smiGetTypeModule(newType), newType);
+	    checkTypes(oldModule, oldNode, oldType,
+		       newModule, newNode, newType);
 	}
     }
 
