@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.20 2001/07/11 10:51:17 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.1 2001/08/22 14:46:55 schoenw Exp $
  */
 
 /*
@@ -268,6 +268,25 @@ isIndex(SmiNode *groupNode, SmiNode *smiNode)
     }
 
     return 0;
+}
+
+
+
+static int
+isWritable(SmiNode *treeNode, SmiNodekind nodekind)
+{
+    SmiNode *smiNode;
+    
+    for (smiNode = smiGetFirstChildNode(treeNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (nodekind)
+	    && (smiNode->access >= SMI_ACCESS_READ_WRITE)) {
+	    break;
+	}
+    }
+
+    return (smiNode != NULL);
 }
 
 
@@ -1245,6 +1264,164 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
 
 static void
+printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
+{
+    SmiElement *smiElement;
+    SmiNode *indexNode = NULL;
+    SmiNode *iNode;
+    SmiType *iType;
+    char    *cModuleName, *cGroupName, *cName;
+    unsigned maxSize, minSize;
+    int last = 0;
+
+    cModuleName = translateLower(smiModule->name);
+    cGroupName = translate(groupNode->name);
+
+    switch (groupNode->indexkind) {
+    case SMI_INDEX_INDEX:
+    case SMI_INDEX_REORDER:
+	indexNode = groupNode;
+	break;
+    case SMI_INDEX_EXPAND:	/* TODO: we have to do more work here! */
+	indexNode = NULL;
+	break;
+    case SMI_INDEX_AUGMENT:
+    case SMI_INDEX_SPARSE:
+	indexNode = smiGetRelatedNode(groupNode);
+	break;
+    case SMI_INDEX_UNKNOWN:
+	indexNode = NULL;
+	break;
+    }
+
+    for (smiElement = smiGetFirstElement(indexNode);
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	iNode = smiGetElementNode(smiElement);
+	if (iNode) {
+	    iType = smiGetNodeType(iNode);
+	    if (iType && iType->basetype == SMI_BASETYPE_OCTETSTRING) {
+		break;
+	    }
+	}
+    }
+
+    fprintf(f,
+	    "static void\n"
+	    "pack_%s(guint32 *base, %s_%s_t *%s)\n"
+	    "{\n"
+	    "    int %sidx = %u;\n"
+	    "\n",
+	    cGroupName, cModuleName, cGroupName, cGroupName,
+	    smiElement ? "i, len, " : "", groupNode->oidlen + 1);
+
+    for (smiElement = smiGetFirstElement(indexNode);
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	iNode = smiGetElementNode(smiElement);
+	last = (smiGetNextElement(smiElement) == NULL);
+	if (iNode) {
+	    iType = smiGetNodeType(iNode);
+	    if (! iType) {
+		continue;
+	    }
+	    cName = translate(iNode->name);
+	    switch (iType->basetype) {
+	    case SMI_BASETYPE_ENUM:
+	    case SMI_BASETYPE_INTEGER32:
+		fprintf(f,
+			"    base[idx++] = %s->%s;\n",
+			cGroupName, cName);
+		break;
+	    case SMI_BASETYPE_UNSIGNED32:
+		fprintf(f,
+			"    base[idx++] = %s->%s;\n",
+			cGroupName, cName);
+		break;
+#if 0
+	    case SMI_BASETYPE_OCTETSTRING:
+		maxSize = getMaxSize(iType);
+		minSize = getMinSize(iType);
+		if (minSize == maxSize) {
+		    fprintf(f,
+			    "    len = %u;\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n",
+			    minSize, cGroupName, cName);
+		} else if (last && indexNode->implied) {
+		    fprintf(f,
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id_len - idx;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
+			    cGroupName, cName, cGroupName, cName);
+		} else {
+		    fprintf(f,
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id[idx++];\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
+			    cGroupName, cName, cGroupName, cName);
+		}
+		break;
+	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		maxSize = getMaxSize(iType);
+		minSize = getMinSize(iType);
+		if (minSize == maxSize) {
+		    fprintf(f,
+			    "    len = %u;\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n",
+			    minSize, cGroupName, cName);
+		} else if (last && indexNode->implied) {
+		    fprintf(f,
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id_len - idx;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
+			    cGroupName, cName, cGroupName, cName);
+		} else {
+		    fprintf(f,
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id[idx++];\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
+			    cGroupName, cName, cGroupName, cName);
+		}
+		break;
+#endif
+	    default:
+		fprintf(f,
+			"    /* XXX how to pack %s->%s ? */\n",
+			cGroupName, cName);
+		break;
+	    }
+	    xfree(cName);
+	}
+    }
+
+    fprintf(f,
+	    "}\n\n");
+
+    xfree(cGroupName);
+    xfree(cModuleName);
+}
+
+
+
+static void
 printVariableAssignement(FILE *f, SmiNode *groupNode)
 {
     SmiNode *smiNode;
@@ -1347,6 +1524,9 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	printUnpackMethod(f, smiModule, groupNode);
+	if (isWritable(groupNode, SMI_NODEKIND_COLUMN)) {
+	    printPackMethod(f, smiModule, groupNode);
+	}
     }
     
     fprintf(f,
@@ -1496,6 +1676,117 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
 
 
 static void
+printSetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
+{
+    char         *cModuleName, *cEntryName, *cTableName, *cSmiNodeName;
+    SmiNode      *tableNode;
+    SmiNode	 *smiNode;
+    SmiType	 *smiType;
+    unsigned int i, minSize, maxSize;
+
+    tableNode = smiGetParentNode(entryNode);
+    if (! tableNode) {
+	return;
+    }
+
+    cModuleName = translateLower(smiModule->name);
+    cEntryName = translate(entryNode->name);
+    cTableName = translate(tableNode->name);
+
+    fprintf(f,
+	    "int\n"
+	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s)\n"
+	    "{\n"
+	    "    GSList *in = NULL, *out = NULL;\n",
+	    cModuleName, cEntryName, cModuleName, cEntryName, cEntryName);
+
+    fprintf(f, "    static guint32 base[] = {");
+    for (i = 0; i < entryNode->oidlen; i++) {
+	fprintf(f, "%u, ", entryNode->oid[i]);
+    }
+    fprintf(f, "0, 0};\n\n");
+
+    fprintf(f,
+	    "    pack_%s(base, %s);\n"
+	    "\n",
+	    cEntryName, cEntryName);
+
+    for (smiNode = smiGetFirstChildNode(entryNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN)
+	    && (smiNode->access >= SMI_ACCESS_READ_WRITE)) {
+
+	    smiType = smiGetNodeType(smiNode);
+	    if (!smiType) {
+		continue;
+	    }
+	    
+	    if (isIndex(entryNode, smiNode)) {
+		continue;
+	    }
+	    
+	    cSmiNodeName = translate(smiNode->name);
+	    fprintf(f,
+		    "    if (%s->%s) {\n"
+		    "        base[%u] = %u;\n"
+		    "        g_snmp_vbl_add(&in, base, sizeof(base)/sizeof(guint32),\n"
+		    "                       %s,\n"
+		    "                       %s->%s,\n",
+		    cEntryName, cSmiNodeName,
+		    smiNode->oidlen-1, smiNode->oid[smiNode->oidlen-1],
+		    getSnmpType(smiType),
+		    cEntryName, cSmiNodeName);
+	    switch (smiType->basetype) {
+	    case SMI_BASETYPE_OCTETSTRING:
+	    case SMI_BASETYPE_BITS:
+	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		maxSize = getMaxSize(smiType);
+		minSize = getMinSize(smiType);
+		if (maxSize == minSize) {
+		    fprintf(f,
+			    "                       %d);\n",
+			    maxSize);
+		} else {
+		    fprintf(f,
+			    "                       %s->_%sLength);\n",
+			    cEntryName, cSmiNodeName);
+		}
+		break;
+	    default:
+		fprintf(f,
+			"                       0);\n");
+		break;
+	    }
+	    fprintf(f, "    }\n");
+		
+	    xfree(cSmiNodeName);
+	}	    
+    }
+
+    fprintf(f,
+	    "\n"
+	    "    out = g_snmp_session_sync_set(s, in);\n"
+	    "    g_snmp_vbl_free(in);\n"
+	    "    if (! out) {\n"
+	    "        return -2;\n"
+	    "    }\n"
+	    "    g_snmp_vbl_free(out);\n"
+	    "\n");
+
+    fprintf(f,
+	    "    return 0;\n"
+	    "}\n"
+	    "\n");
+
+    xfree(cTableName);
+    xfree(cEntryName);
+    xfree(cModuleName);
+}
+
+
+
+static void
 printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     char         *cModuleName, *cGroupName;
@@ -1557,27 +1848,11 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     char         *cModuleName, *cGroupName, *cSmiNodeName;
     SmiNode	 *smiNode;
     SmiType	 *smiType;
-    unsigned int i;
+    unsigned int i, minSize, maxSize;
 
     cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
-    /*
-     * First check whether we have any writable attributes.
-     */
-
-    for (smiNode = smiGetFirstChildNode(groupNode);
-	 smiNode;
-	 smiNode = smiGetNextChildNode(smiNode)) {
-	if (smiNode->nodekind & (SMI_NODEKIND_SCALAR)
-	    && (smiNode->access >= SMI_ACCESS_READ_WRITE)) {
-	    break;
-	}
-    }
-    if (! smiNode) {
-	return;
-    }
-	    
     fprintf(f,
 	    "int\n"
 	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s)\n"
@@ -1621,9 +1896,17 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		fprintf(f,
-			"                       %s->_%sLength);\n",
-			cGroupName, cSmiNodeName);
+		maxSize = getMaxSize(smiType);
+		minSize = getMinSize(smiType);
+		if (maxSize == minSize) {
+		    fprintf(f,
+			    "                       %d);\n",
+			    maxSize);
+		} else {
+		    fprintf(f,
+			    "                       %s->_%sLength);\n",
+			    cGroupName, cSmiNodeName);
+		}
 		break;
 	    default:
 		fprintf(f,
@@ -1782,9 +2065,14 @@ printStubMethods(FILE *f, SmiModule *smiModule)
 	    printAssignMethod(f, smiModule, smiNode);
 	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		printGetTableMethod(f, smiModule, smiNode);
+		if (isWritable(smiNode, SMI_NODEKIND_COLUMN)) {
+		    printSetTableMethod(f, smiModule, smiNode);
+		}
 	    } else {
 		printGetScalarsMethod(f, smiModule, smiNode);
-		printSetScalarsMethod(f, smiModule, smiNode);
+		if (isWritable(smiNode, SMI_NODEKIND_SCALAR)) {
+		    printSetScalarsMethod(f, smiModule, smiNode);
+		}
 	    }
 	    printFreeMethod(f, smiModule, smiNode);
 	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
