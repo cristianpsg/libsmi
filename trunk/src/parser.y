@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.17 1998/11/20 17:10:13 strauss Exp $
+ * @(#) $Id: parser.y,v 1.18 1998/11/20 19:33:22 strauss Exp $
  */
 
 %{
@@ -2501,6 +2501,8 @@ subidentifier:
 			LOWERCASE_IDENTIFIER
 			{
 			    Object *object;
+			    smi_node *snode;
+			    Descriptor *descriptor;
 			    
 			    if (parent != rootNode) {
 				printError(parser, ERR_OIDLABEL_NOT_FIRST, $1);
@@ -2510,16 +2512,37 @@ subidentifier:
 				if (object) {
 				    $$ = object;
 				} else {
-				    object = addObject(pendingRootNode,
-						    0 /*subid not yet known*/,
-						    thisModule,
-						    FLAG_NOSUBID,
-						    parser);
-				    $$ = object;
-				    setObjectFileOffset(object,
+				    descriptor = findDescriptor($1,
+								thisModule,
+								KIND_OBJECT);
+				    if (!descriptor) {
+					object = addObject(pendingRootNode,
+							   0,
+							   thisModule,
+							   FLAG_NOSUBID,
+							   parser);
+					$$ = object;
+					setObjectFileOffset(object,
 						        thisParser->character);
-				    addDescriptor($1, thisModule, KIND_OBJECT,
-						  object, 0, parser);
+					addDescriptor($1, thisModule,
+						      KIND_OBJECT,
+						      object, 0, parser);
+				    } else {
+					/*
+					 * imported object.
+					 */
+					snode = smiGetNode($1,
+					 ((Descriptor *)descriptor->ptr)->name,
+							   0);
+					$$ = addObject(
+					  getParent(createNodes(snode->oid)),
+					  getLastSubid(snode->oid),
+					  thisModule,
+					  FLAG_IMPORTED,
+					  thisParser);
+					
+					free(snode); /* TODO: ??? */
+				    }
 				}
 				parent = $$->node;
 			    }
@@ -2527,36 +2550,57 @@ subidentifier:
 	|		moduleName '.' LOWERCASE_IDENTIFIER
 			{
 			    Object *object;
+			    smi_node *snode;
 			    char s[2*MAX_IDENTIFIER_LENGTH+2];
+			    Descriptor *descriptor;
 			    
 			    sprintf(s, "%s.%s", $1, $3);
 
 			    if (parent != rootNode) {
 				printError(parser, ERR_OIDLABEL_NOT_FIRST, s);
 			    } else {
-				/* TODO SMIPROC_NODE() */
 				object = findObjectByModulenameAndName($1, $3);
 				if (object) {
 				    $$ = object;
 				} else {
-				    /*
-				     * oid label is qualified by module name
-				     * but not known, hence it seems to be
-				     * an error. nevertheless, we define it
-				     * like a forward referenced oid.
+				    /* TODO: multiple descriptors with same
+				     * name from different modules cannot
+				     * yet be distinguish.
 				     */
-				    printError(parser,
-					       ERR_UNKNOWN_OIDLABEL, s);
-				    object = addObject(pendingRootNode,
-						    0 /*subid not yet known*/,
-						    thisModule,
-						    FLAG_NOSUBID,
-						    parser);
-				    $$ = object;
-				    setObjectFileOffset(object,
+				    descriptor = findDescriptor($3,
+								thisModule,
+								KIND_OBJECT);
+				    if (!descriptor) {
+					printError(parser,
+						   ERR_UNKNOWN_OIDLABEL, s);
+					object = addObject(pendingRootNode,
+							   0,
+							   thisModule,
+							   FLAG_NOSUBID,
+							   parser);
+					$$ = object;
+					setObjectFileOffset(object,
 						        thisParser->character);
-				    addDescriptor($1, thisModule, KIND_OBJECT,
-						  object, 0, parser);
+					addDescriptor($1, thisModule,
+						      KIND_OBJECT,
+						      object, 0, parser);
+				    } else {
+					/*
+					 * imported object.
+					 */
+					snode = smiGetNode($3,
+					 ((Descriptor *)descriptor->ptr)->name,
+							   0);
+					$$ = addObject(
+					  getParent(createNodes(snode->oid)),
+					  getLastSubid(snode->oid),
+					  thisModule,
+					  FLAG_IMPORTED,
+					  thisParser);
+					
+					free(snode); /* TODO: ??? */
+
+				    }
 				}
 				parent = $$->node;
 			    }

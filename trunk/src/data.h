@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.16 1998/11/20 17:10:09 strauss Exp $
+ * @(#) $Id: data.h,v 1.17 1998/11/20 19:33:21 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -288,6 +288,17 @@ extern Object *addObject(Node *parent,
 			 Module *module,
 			 Flags flags,
 			 Parser *parser);
+
+extern Node *addNode(Node *parent,
+		     smi_subid subid,
+		     Flags flags,
+		     Parser *parser);
+
+extern Node *createNodes(const char *oid);
+
+extern Node *getParent(Node *node);
+
+extern smi_subid getLastSubid(const char *oid);
 
 extern void setObjectSyntax(Object *object,
 			    Type *type);

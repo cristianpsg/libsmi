@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.18 1998/11/20 17:10:08 strauss Exp $
+ * @(#) $Id: data.c,v 1.19 1998/11/20 19:33:19 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -852,14 +852,13 @@ findDescriptor(name, module, kind)
 Object *
 addObject(parent, subid, module, flags, parser)
     Node *parent;
-    unsigned int subid;
+    smi_subid subid;
     Module *module;
     Flags flags;
     Parser *parser;
 {
     Object *object;
     Node *node;
-    Node *c;
     
     printDebug(5, "addObject(%p%s, %d, %s, %d, parser)\n",
 	       parent, parent == pendingRootNode ? "(==pending)" : "",
@@ -896,50 +895,9 @@ addObject(parent, subid, module, flags, parser)
      */
     if ((parent == pendingRootNode) ||
 	(!(node = findNodeByParentAndSubid(parent, subid)))) {
- 	node = (Node *)malloc(sizeof(Node));
-	if (!node) {
-	    printError(parser, ERR_ALLOCATING_OBJECT, strerror(errno));
-	    free(object);
-	    return (NULL);
-	}
-	node->flags = flags;
-	node->subid = subid;
-	node->parent = parent;
-	node->firstChild = NULL;
-	node->lastChild = NULL;
+	node = addNode(parent, subid, flags, parser);
 	node->firstObject = object;
 	node->lastObject = object;
-
-	if (parent) {
-	    if (parent->firstChild) {
-		for (c = parent->firstChild;
-		     c && (c->subid < subid);
-		     c = c->next);
-		if (c) {
-		    if (c != parent->firstChild) {
-			c->prev->next = node;
-			node->prev = c->prev;
-			c->prev = node;
-			node->next = c;
-		    } else {
-			c->prev = node;
-			node->next = c;
-			node->prev = NULL;
-			parent->firstChild = node;
-		    }
-		} else {
-		    node->next = NULL;
-		    node->prev = parent->lastChild;
-		    parent->lastChild->next = node;
-		    parent->lastChild = node;
-		}
-	    } else {
-		parent->firstChild = node;
-		parent->lastChild = node;
-		node->next = NULL;
-		node->prev = NULL;
-	    }
-	}
 	
     } else {
 	object->prev = node->lastObject;
@@ -949,6 +907,122 @@ addObject(parent, subid, module, flags, parser)
     object->node = node;
     
     return (object);
+}
+
+
+
+Node *
+addNode (parent, subid, flags, parser)
+    Node *parent;
+    smi_subid subid;
+    Flags flags;
+    Parser *parser;
+{
+    Node *node;
+    Node *c;
+    
+    printDebug(5, "addNode(%p%s, %d, %d, parser)\n",
+	       parent, parent == pendingRootNode ? "(==pending)" : "",
+	       subid, flags);
+
+    node = (Node *)malloc(sizeof(Node));
+    if (!node) {
+	printError(parser, ERR_ALLOCATING_NODE, strerror(errno));
+	return (NULL);
+    }
+    node->flags = flags;
+    node->subid = subid;
+    node->parent = parent;
+    node->firstChild = NULL;
+    node->lastChild = NULL;
+    node->firstObject = NULL;
+    node->lastObject = NULL;
+
+    if (parent) {
+	if (parent->firstChild) {
+	    for (c = parent->firstChild;
+		 c && (c->subid < subid);
+		 c = c->next);
+	    if (c) {
+		if (c != parent->firstChild) {
+		    c->prev->next = node;
+		    node->prev = c->prev;
+		    c->prev = node;
+		    node->next = c;
+		} else {
+		    c->prev = node;
+		    node->next = c;
+		    node->prev = NULL;
+		    parent->firstChild = node;
+		}
+	    } else {
+		node->next = NULL;
+		node->prev = parent->lastChild;
+		parent->lastChild->next = node;
+		parent->lastChild = node;
+	    }
+	} else {
+	    parent->firstChild = node;
+	    parent->lastChild = node;
+	    node->next = NULL;
+	    node->prev = NULL;
+	}
+    }
+
+    return node;
+}
+
+
+
+Node *
+createNodes(oid)
+    const char *oid;
+{
+    char *p, *elements;
+    Node *parent;
+    smi_subid subid;
+    
+    printDebug(5, "createNodes(%s)\n", oid);
+
+    parent = rootNode;
+    elements = strdup(oid);
+    /* TODO: success? */
+    p = strtok(elements, ".");
+    do {
+	subid = (unsigned int)strtoul(p, NULL, 0);
+	if (!(parent = findNodeByParentAndSubid(parent, subid))) {
+	    parent = addNode(parent, subid, 0, NULL);
+	}
+    } while ((p = strtok(NULL, ".")));
+
+    free(elements);
+
+    return parent;
+}
+
+
+
+Node *
+getParent(node)
+    Node *node;
+{
+    return node->parent;
+}
+
+
+
+smi_subid
+getLastSubid(oid)
+    const char *oid;
+{
+    char *p;
+
+    p = strrchr(oid, '.');
+    if (p) {
+	return (unsigned int)strtoul(&p[1], NULL, 0);
+    } else {
+	return (unsigned int)strtoul(oid, NULL, 0);
+    }
 }
 
 
