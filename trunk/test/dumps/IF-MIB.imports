@@ -1,0 +1,39 @@
+IF-MIB
+  |
+  +--SNMPv2-SMI [9 identifiers]
+  +--SNMPv2-TC [8 identifiers]
+  |  |
+  |  +--SNMPv2-SMI [1 identifier]
+  |
+  +--SNMPv2-CONF [2 identifiers]
+  |  |
+  |  +--SNMPv2-SMI [3 identifiers]
+  |
+  +--SNMPv2-MIB [1 identifier]
+  |  |
+  |  +--SNMPv2-SMI [7 identifiers]
+  |  +--SNMPv2-TC [3 identifiers]
+  |  |  |
+  |  |  +--SNMPv2-SMI [1 identifier]
+  |  |
+  |  +--SNMPv2-CONF [3 identifiers]
+  |     |
+  |     +--SNMPv2-SMI [3 identifiers]
+  |   
+  +--IANAifType-MIB [1 identifier]
+     |
+     +--SNMPv2-SMI [1 identifier]
+     +--RFC1213-MIB [1 identifier]
+     |  |
+     |  +--RFC1155-SMI [6 identifiers]
+     |  +--RFC-1212 [1 identifier]
+     |     |
+     |     +--RFC1155-SMI [1 identifier]
+     |     +--RFC1158-MIB [1 identifier]
+     |        |
+     |        +--RFC1155-SMI [7 identifiers]
+     |      
+     +--SNMPv2-TC [1 identifier]
+        |
+        +--SNMPv2-SMI [1 identifier]
+      

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.38 1999/09/30 08:16:43 strauss Exp $
+ * @(#) $Id: data.c,v 1.39 1999/10/05 06:30:56 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2053,7 +2053,8 @@ duplicateType(templatePtr, flags, parserPtr)
  *
  * setTypeName --
  *
- *      Set the name of a given Type.
+ *      Set the name of a given Type. If it already exists, merge the
+ *	two types.
  *
  * Results:
  *	None.
@@ -2064,12 +2065,61 @@ duplicateType(templatePtr, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
+Type *
 setTypeName(typePtr, name)
     Type	      *typePtr;
     char	      *name;
 {
+    Type              *type2Ptr;
+    
     typePtr->name = util_strdup(name);
+
+    /*
+     * If a type with this name already exists, it must be a forward
+     * reference and both types have to be merged.
+     */
+    for (type2Ptr = typePtr->modulePtr->firstTypePtr; type2Ptr;
+	 type2Ptr = type2Ptr->nextPtr) {
+
+	if (type2Ptr->name &&
+	    (!strcmp(type2Ptr->name, name)) &&
+	    (type2Ptr != typePtr)) {
+
+	    /*
+	     * remove typePtr from the type list.
+	     */
+	    if (typePtr->prevPtr) {
+		typePtr->prevPtr->nextPtr = typePtr->nextPtr;
+	    } else {
+		typePtr->modulePtr->firstTypePtr = typePtr->nextPtr;
+	    }
+	    if (typePtr->nextPtr) {
+		typePtr->nextPtr->prevPtr = typePtr->prevPtr;
+	    } else {
+		typePtr->modulePtr->lastTypePtr = typePtr->prevPtr;
+	    }
+
+	    type2Ptr->parentmodule = typePtr->parentmodule;
+	    type2Ptr->parentname   = typePtr->parentname;
+	    type2Ptr->basetype     = typePtr->basetype;
+	    type2Ptr->decl         = typePtr->decl;
+	    type2Ptr->format       = typePtr->format;
+	    type2Ptr->valuePtr     = typePtr->valuePtr;
+	    type2Ptr->units        = typePtr->units;
+	    type2Ptr->status       = typePtr->status;
+	    type2Ptr->listPtr      = typePtr->listPtr;
+	    type2Ptr->description  = typePtr->description;
+	    type2Ptr->reference    = typePtr->reference;
+	    type2Ptr->fileoffset   = typePtr->fileoffset;
+	    type2Ptr->flags        = typePtr->flags;
+	    type2Ptr->line         = typePtr->line;
+
+	    util_free(typePtr);
+	    
+	    return type2Ptr;
+	}
+    }
+    return typePtr;
 }
 
 
