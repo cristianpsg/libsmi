@@ -141,7 +141,7 @@ static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
 #define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
  
 
-Type *
+static Type *
 findType(spec, parserPtr)
     char *spec;
     Parser *parserPtr; 
@@ -171,7 +171,7 @@ findType(spec, parserPtr)
  
 
 			    
-Object *
+static Object *
 findObject(spec, parserPtr)
     char *spec;
     Parser *parserPtr; 

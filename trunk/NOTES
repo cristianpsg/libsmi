@@ -1,0 +1,23 @@
+
+This file contains notes that are relevant for libsmi development
+but *not* to be included in the libsmi distribution.
+
+------------------------------------------------------------------------------
+
+Date: Mon, 10 Jan 2000 11:16:09 +0100
+Message-Id: <200001101016.LAA10393@henkell.ibr.cs.tu-bs.de>
+From: Juergen Schoenwaelder <schoenw@ibr.cs.tu-bs.de>
+To: Frank Strauss <strauss@ibr.cs.tu-bs.de>
+Subject: minor libsmi changes
+
+[...]
+  I generally think that *no* strdup() should be done in the scanner.
+  Furthermore, the functions in data.c should expect that all strings
+  are already malloced and become the property of data.c once they are
+  passed in via a function call. These two rules should be followed
+  without exception to implement a maintainable memory leak free
+  version of the library.
+[...]
+
+------------------------------------------------------------------------------
+
