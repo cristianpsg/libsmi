@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.156 2001/09/21 15:31:55 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.157 2001/09/25 07:15:57 schoenw Exp $
  */
 
 %{
@@ -72,6 +72,7 @@ static Module      *complianceModulePtr = NULL;
 static Module      *capabilitiesModulePtr = NULL;
 static SmiNodekind variationkind;
 static int         firstStatementLine = 0;
+static int	   firstRevisionLine = 0;
  
 #define MAX_UNSIGNED32		4294967295
 #define MIN_UNSIGNED32		0
@@ -4052,8 +4053,13 @@ Revisions:		Revision
 	;
 
 Revision:		REVISION ExtUTCTime
+			{
+			    firstRevisionLine = thisParserPtr->line;
+			}
 			DESCRIPTION Text
 			{
+			    Revision *revisionPtr;
+
 			    /*
 			     * If the first REVISION (which is the newest)
 			     * has another date than the LAST-UPDATED clause,
@@ -4067,15 +4073,18 @@ Revision:		REVISION ExtUTCTime
 					    thisParserPtr);
 			    }
 
-			    if ($4 && !strlen($4)) {
+			    if ($5 && !strlen($5)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_DESCRIPTION);
 			    }
-			    
-			    if (addRevision($2, $4, thisParserPtr))
-				$$ = 0;
-			    else
-				$$ = -1;
+
+			    revisionPtr = addRevision($2, $5, thisParserPtr);
+			    if (revisionPtr) {
+				setRevisionLine(revisionPtr,
+						firstRevisionLine,
+						thisParserPtr);
+			    }
+			    $$ = revisionPtr ? 0 : -1;
 			}
 	;
 
