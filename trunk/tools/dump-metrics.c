@@ -11,7 +11,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.14 2004/07/29 09:31:45 schoenw Exp $
+ * @(#) $Id$
  */
 
 /*
@@ -89,6 +89,20 @@ typedef struct IndexLenCounter {
 
 
 
+typedef struct TableLenCounter {
+    unsigned long total;
+    unsigned long length[81];
+} TableLenCounter;
+
+
+
+typedef struct ScalarLenCounter {
+    unsigned long total;
+    unsigned long length[81];
+} ScalarLenCounter;
+
+
+
 typedef struct IndexComplexityCounter {
     unsigned long total;
     unsigned long complexity[100];
@@ -136,6 +150,8 @@ typedef struct Metrics {
     IndexCounter    indexTables;
     IndexLenCounter indexLenTables;
     IndexComplexityCounter indexComplexity;
+    TableLenCounter tableLength;
+    ScalarLenCounter scalarLength;
     LengthCounter   lengthTypes;
     LengthCounter   lengthTables;
     LengthCounter   lengthRows;
@@ -155,6 +171,7 @@ typedef struct UsageCounter {
 } UsageCounter;
 
 
+static UsageCounter *typeList = NULL;
 static UsageCounter *extTypeList = NULL;
 static UsageCounter *extNodeList = NULL;
 static UsageCounter *extModuleList = NULL;
@@ -410,7 +427,8 @@ incrTypeAndNodeUsageCounter(SmiModule *smiModule, SmiNode *smiNode, int flags)
     
     /*
      * Next, check whether the type of the node is external. If yes,
-     * increment the external type counter and we are done.
+     * increment the external type counter and we are done. Do not
+     * count base types (that is types that have no parent type).
      */
 
     smiType = smiGetNodeType(smiNode);
@@ -418,7 +436,7 @@ incrTypeAndNodeUsageCounter(SmiModule *smiModule, SmiNode *smiNode, int flags)
 	return;
     }
 
-    if (smiType->name) {
+    if (smiType->name && smiGetParentType(smiType)) {
 	char *extModule = smiGetTypeModule(smiType)->name;
 	if (extModule /* && *extModule */
 	    && strcmp(extModule, smiModule->name) != 0) {
@@ -429,6 +447,18 @@ incrTypeAndNodeUsageCounter(SmiModule *smiModule, SmiNode *smiNode, int flags)
 	    }
 	}
     }
+
+    /*
+     * Finally, count the type name (whether external or not does not
+     * matter here nor does it matter whether it is a base type or
+     * not).
+     */
+
+    if (! smiType->name && smiGetParentType(smiType)) {
+	smiType = smiGetParentType(smiType);
+    }
+    typeList = incrUsageCounter(typeList, smiGetTypeModule(smiType)->name,
+				smiType->name, 1);
 }
 
 
@@ -559,7 +589,66 @@ fprintTypeUsage(FILE *f, UsageCounter *typeUsageList)
     if (! silent) {
 	fputs(
 "# The following table shows the distribution of the number of references\n"
-"# to externally defined types in the set of loaded MIB modules.\n"
+"# to defined types (including base types) in the set of loaded MIB\n"
+"# modules.\n"
+"\n", f);
+    }
+    fprintf(f, "%-*s %-*s   USAGE\n", modLen, "MODULE", nameLen, "TYPE");
+
+    for (i = 0; i < cnt; i++) {
+	fprintf(f, "%-*s %-*s ",
+		modLen, sortCnt[i]->module, nameLen, sortCnt[i]->name);
+	if (raw) {
+	    fprintf(f, "%8u\n", sortCnt[i]->count);
+	} else {
+	    fprintf(f, "%6.1f%%\n", (double) sortCnt[i]->count * 100 / total);
+	}
+    }
+
+    xfree(sortCnt);
+}
+
+
+
+static void
+fprintExtTypeUsage(FILE *f, UsageCounter *typeUsageList)
+{
+    UsageCounter *uCnt;
+    int modLen = 8, nameLen = 8;
+    unsigned total = 0;
+    int i, cnt = 0;
+    UsageCounter **sortCnt;
+
+    /* should be sorted */
+
+    for (uCnt = typeUsageList, cnt = 0; uCnt; uCnt = uCnt->nextPtr, cnt++) {
+	if (modLen < strlen(uCnt->module)) {
+	    modLen = strlen(uCnt->module);
+	}
+	if (nameLen < strlen(uCnt->name)) {
+	    nameLen = strlen(uCnt->name);
+	}
+	total += uCnt->count;
+    }
+
+    if (cnt == 0) {
+	return;
+    }
+
+    /* create an array for a quick qsort */
+
+    sortCnt = (UsageCounter **) xmalloc(cnt * sizeof(UsageCounter *));
+    memset(sortCnt, 0, cnt * sizeof(UsageCounter *));
+    for (uCnt = typeUsageList, i = 0; uCnt; uCnt = uCnt->nextPtr, i++) {
+	sortCnt[i] = uCnt;
+    }
+    qsort(sortCnt, cnt, sizeof(UsageCounter *), cmp);
+    
+    if (! silent) {
+	fputs(
+"# The following table shows the distribution of the number of references\n"
+"# to externally defined types (excluding base types) in the set of loaded\n"
+"# MIB modules.\n"
 "\n", f);
     }
     fprintf(f, "%-*s %-*s EXT-USAGE\n", modLen, "MODULE", nameLen, "TYPE");
@@ -580,7 +669,7 @@ fprintTypeUsage(FILE *f, UsageCounter *typeUsageList)
 
 
 static void
-fprintNodeUsage(FILE *f, UsageCounter *typeUsageList)
+fprintExtNodeUsage(FILE *f, UsageCounter *typeUsageList)
 {
     UsageCounter *uCnt;
     int modLen = 8, nameLen = 8;
@@ -905,6 +994,32 @@ incrIndexLenCounter(IndexLenCounter *cnt, int len)
 
 
 static void
+incrTableLenCounter(TableLenCounter *cnt, int len)
+{
+    cnt->total++;
+    if (len < sizeof(cnt->length)/sizeof(cnt->length[0])) {
+	cnt->length[len]++;
+    } else {
+	fprintf(stderr, "smidump: table len overflow: %d\n", len);
+    }
+}
+
+
+
+static void
+incrScalarLenCounter(ScalarLenCounter *cnt, int len)
+{
+    cnt->total++;
+    if (len < sizeof(cnt->length)/sizeof(cnt->length[0])) {
+	cnt->length[len]++;
+    } else {
+	fprintf(stderr, "smidump: scalar group len overflow: %d\n", len);
+    }
+}
+
+
+
+static void
 incrIndexComplexityMetric(IndexComplexityCounter *cnt, int cmplx)
 {
     cnt->total++;
@@ -1078,6 +1193,27 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 		foreachIndexDo(NULL, smiNode, complexity, &cmplx);
 		incrIndexComplexityCounter(smiModule, smiNode, cmplx);
 		incrIndexComplexityMetric(&metrics->indexComplexity, cmplx);
+	    }
+	    // count the childs ...
+	    {
+		    SmiModule *smiModule = smiGetModule("SNMPv2-TC");
+		    SmiNode *childNode;
+		    SmiType *rowStatus = smiGetType(smiModule, "RowStatus");
+		    SmiType *storageType = smiGetType(smiModule, "StorageType");
+		    // include index elements not in table
+		    int n = 0;
+		    for (childNode = smiGetFirstChildNode(smiNode);
+			 childNode;
+			 childNode = smiGetNextChildNode(childNode)) {
+			    n++;
+			    if (rowStatus == smiGetNodeType(childNode)) {
+				    fprintf(stderr, "**** GEEEEEE - ROWSTATUS\n");
+			    }
+			    if (storageType == smiGetNodeType(childNode)) {
+				    fprintf(stderr, "**** GEEEEEE - STORAGETYPE\n");
+			    }
+		    }
+		    incrTableLenCounter(&metrics->tableLength, n);
 	    }
 	    break;
 	case SMI_NODEKIND_COLUMN:
@@ -1334,6 +1470,45 @@ fprintIndexLenCounter(FILE *f, IndexLenCounter *cnt, char *s)
 
 
 static void
+fprintTableLenCounter(FILE *f, TableLenCounter *cnt, char *s)
+{
+    int i;
+    int n = sizeof(cnt->length)/sizeof(cnt->length[0]);
+    char buf[42];
+    
+    if (! s || ! cnt) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the table length distribution of\n"
+"# table definitions contained in the set of loaded MIB modules.\n"
+"\n", f);
+	}
+	fprintf(f, "%-10s %6s ", "CATEGORY", "TOTAL");
+	for (i = 1; i < n; i++) {
+	    sprintf(buf, "[%d]", i);
+	    fprintf(f, " %5s", buf);
+	}
+	fprintf(f, "\n");
+	return;
+    }
+
+    fprintf(f, "%-10s %6lu ", s, cnt->total);
+    if (raw) {
+	for (i = 1; i < n; i++) {
+	    fprintf(f, " %5lu", cnt->length[i]);
+	}
+    } else {
+	for (i = 1; i < n; i++) {
+	    fprintf(f, " %4.1f%%", (double) cnt->length[i] * 100 / cnt->total);
+	}
+    }
+    
+    fprintf(f, "\n");
+}
+
+
+
+static void
 fprintLengthCounter(FILE *f, LengthCounter *cnt, char *s)
 {
     if (! s) {
@@ -1476,6 +1651,9 @@ fprintMetrics(FILE *f, Metrics *metrics)
     fprintIndexLenCounter(f, NULL, NULL);
     fprintIndexLenCounter(f, &metrics->indexLenTables, "Tables:");
     fprintf(f, "\n");
+    fprintTableLenCounter(f, NULL, NULL);
+    fprintTableLenCounter(f, &metrics->tableLength, "Tables:");
+    fprintf(f, "\n");
     fprintLengthCounter(f, NULL, NULL);
     fprintLengthCounter(f, &metrics->lengthTypes, "Types:");
     fprintLengthCounter(f, &metrics->lengthTables, "Tables:");
@@ -1499,10 +1677,13 @@ fprintMetrics(FILE *f, Metrics *metrics)
     fprintf(f, "\n");
     fprintfComplexity(f, metrics);
     fprintf(f, "\n");
-    fprintTypeUsage(f, extTypeList);
+    fprintTypeUsage(f, typeList);
+    freeUsageCounter(typeList), typeList = NULL;
+    fprintf(f, "\n");
+    fprintExtTypeUsage(f, extTypeList);
     freeUsageCounter(extTypeList), extTypeList = NULL;
     fprintf(f, "\n");
-    fprintNodeUsage(f, extNodeList);
+    fprintExtNodeUsage(f, extNodeList);
     freeUsageCounter(extNodeList), extNodeList = NULL;
     fprintf(f, "\n");
     fprintModuleUsage(f, extModuleList);
