@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.180 2002/07/17 10:32:14 bunkus Exp $
+ * @(#) $Id: parser-smi.y,v 1.181 2002/07/22 16:49:55 schoenw Exp $
  */
 
 %{
@@ -749,7 +749,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
              */
             if ((objectPtr->export.nodekind == SMI_NODEKIND_ROW) &&
                 (objectPtr->export.indexkind == SMI_INDEX_INDEX)) {
-                List *p;
 
                 /*
                  * Only the first element (PIB-INDEX) has to be an InstanceId.
@@ -925,7 +924,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
     Object *objectPtr, *object2Ptr;
     List *bitsListPtr, *valueListPtr, *p, *pp, *nextPtr, *listPtr;
     Import *importPtr;
-    int i, nBits, bit;
+    int nBits, bit;
     
     /*
      * Check unknown identifiers in OID DEFVALs.
@@ -975,19 +974,22 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 	} else if (objectPtr->export.value.basetype == SMI_BASETYPE_BITS) {
 	    bitsListPtr = objectPtr->typePtr->listPtr;
 	    valueListPtr = (void *)objectPtr->export.value.value.ptr;
-	    for (nBits = 0, p = bitsListPtr; p; nBits++, p = p->nextPtr);
+	    for (nBits = 0, p = bitsListPtr; p; p = p->nextPtr) {
+		if (nBits < 1+((NamedNumber *)(p->ptr))->export.value.value.integer32) {
+		    nBits = 1+((NamedNumber *)(p->ptr))->export.value.value.integer32;
+		}
+	    }
 	    objectPtr->export.value.value.ptr = smiMalloc((nBits+7)/8);
 	    memset(objectPtr->export.value.value.ptr, 0, (nBits+7)/8);
 	    objectPtr->export.value.len = (nBits+7)/8;
-	    for (i = 0, p = valueListPtr; p; i++) {
-		for (bit = 0, pp = bitsListPtr; bit < nBits;
-		     bit++, pp = pp->nextPtr) {
+	    for (p = valueListPtr; p;) {
+		for (pp = bitsListPtr; pp; pp = pp->nextPtr) {
 		    if (!strcmp(p->ptr,
-				((NamedNumber *)(pp->ptr))->export.name))
-			break;
-		}
-		if (bit < nBits) {
-		    objectPtr->export.value.value.ptr[bit/8] |= 1 << (7-(bit%8));
+				((NamedNumber *)(pp->ptr))->export.name)) {
+			bit = ((NamedNumber *)(pp->ptr))->export.value.value.integer32;
+			objectPtr->export.value.value.ptr[bit/8] |=
+			    1 << (7-(bit%8));
+		    }
 		}
 		smiFree(p->ptr);
 		nextPtr = p->nextPtr;
