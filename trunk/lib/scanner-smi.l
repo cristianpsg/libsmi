@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.26 2000/10/02 12:51:12 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.27 2000/10/04 08:07:29 strauss Exp $
  */
 
 %option noyywrap
@@ -579,18 +579,30 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
  /* e.g. module names: REF: draft,p.12-13 */
-<INITIAL>[A-Z](-?[a-zA-Z0-9]+)*-? {
+<INITIAL>[A-Z](-?[a-zA-Z0-9_]+)*-? {
     if (yytext[yyleng-1] == '-') {
 	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
+    }
+    if (strchr(yytext, '_')) {
+        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER);
+	if ((thisParser.flags & SMI_FLAG_BE_LAX) == 0) {
+	    smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
+	}
     }
     yylval.id = smiStrdup(yytext);
     return UPPERCASE_IDENTIFIER;
 }
 
  /* same for lowercase names */
-<INITIAL>[a-z](-?[a-zA-Z0-9]+)*-? {
+<INITIAL>[a-z](-?[a-zA-Z0-9_]+)*-? {
     if (yytext[yyleng-1] == '-') {
 	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
+    }
+    if (strchr(yytext, '_')) {
+        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER);
+	if ((thisParser.flags & SMI_FLAG_BE_LAX) == 0) {
+	    smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
+	}
     }
     yylval.id = smiStrdup(yytext);
     return LOWERCASE_IDENTIFIER;

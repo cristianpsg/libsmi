@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.49 2000/07/04 12:16:33 strauss Exp $
+ * @(#) $Id: error.c,v 1.50 2000/07/06 14:40:42 strauss Exp $
  */
 
 #include <config.h>
@@ -364,6 +364,10 @@ static Error errors[] = {
       "node `%s' is an invalid member of group `%s'" },
     { 3, ERR_MIXED_GROUP_MEMBERS, "group-member-mixed",
       "group `%s' contains scalars/columns and notifications" },
+    { 2, ERR_BAD_LOWER_IDENTIFIER_CASE, "bad-identifier-case",
+      "`%s' should start with a lower case letter" },
+    { 2, ERR_UNDERSCORE_IN_IDENTIFIER, "underscore-in-identifier",
+      "identifiers should not contain underscores" },
 
     { 0, 0, NULL, NULL }
 };
