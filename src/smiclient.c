@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiclient.c,v 1.1 1998/11/20 17:10:19 strauss Exp $
+ * @(#) $Id: smiclient.c,v 1.2 1998/11/21 22:00:00 strauss Exp $
  */
 
 #include <stdio.h>
@@ -34,6 +34,7 @@ main(argc, argv)
     smi_node *node;
     smi_type *type;
     smi_macro *macro;
+    smi_namelist *namelist;
     CLIENT *cl;
     
     if (argc != 4) {
@@ -41,6 +42,7 @@ main(argc, argv)
 	fprintf(stderr, "                          node <name>\n");
 	fprintf(stderr, "                          type <name>\n");
 	fprintf(stderr, "                          macro <name>\n");
+	fprintf(stderr, "                          names <name>\n");
 	exit(1);
     }
 
@@ -93,6 +95,12 @@ main(argc, argv)
 	macro = smiproc_macro_1(&fullname, cl);
 	printf("       Macro: %s\n", macro->name);
 	printf("      Module: %s\n", macro->module);
+    }
+    
+    if (!strcmp(argv[2], "names")) {
+	fullname = argv[3];
+	namelist = smiproc_names_1(&fullname, cl);
+	printf("       Names: %s\n", namelist->namelist);
     }
     
     exit(0);

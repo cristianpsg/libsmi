@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.21 1998/11/21 21:25:17 strauss Exp $
+ * @(#) $Id: data.c,v 1.22 1998/11/22 22:58:22 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -806,6 +806,64 @@ findDescriptor(name, module, kind)
 
     for (descriptor = module ?
 	     module->firstDescriptor[kind] : firstDescriptor[kind];
+	 descriptor;
+	 descriptor = module ? kind != KIND_ANY ?
+	     descriptor->nextSameModuleAndKind : descriptor->nextSameModule
+	                     : kind != KIND_ANY ?
+	     descriptor->nextSameKind : descriptor->next) {
+	if (!strcmp(descriptor->name, name)) {
+	    printDebug(5, " = %s\n", descriptor->name);
+	    return (descriptor);
+	}
+    }
+    printDebug(5, " = NULL\n");
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findNextDescriptor --
+ *
+ *      Lookup a Descriptor by its name, module and kind.
+ *	The module argument might be NULL to search in all modules.
+ *	The kind argument might be KIND_ANY to search for any kind.
+ *	If the given Descriptor is not NULL, the search starts behind
+ *	this this Descriptor.
+ *
+ * Results:
+ *      A pointer to the Descriptor structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Descriptor *
+findNextDescriptor(name, module, kind, start)
+    const char     *name;
+    Module         *module;
+    DescriptorKind kind;
+    Descriptor	   *start;
+{
+    Descriptor *descriptor;
+    
+    printDebug(5, "findNextDescriptor(\"%s\", %s, %s, %s)", name,
+	       module ? module->descriptor->name : "any-module",
+	       stringKind(kind), start ? start->name : "NULL");
+
+    if (start == NULL) {
+	return findDescriptor(name, module, kind);
+    }
+    
+    for (descriptor = module ? kind != KIND_ANY ?
+	     start->nextSameModuleAndKind : start->nextSameModule
+	                     : kind != KIND_ANY ?
+	     start->nextSameKind : start->next;
 	 descriptor;
 	 descriptor = module ? kind != KIND_ANY ?
 	     descriptor->nextSameModuleAndKind : descriptor->nextSameModule

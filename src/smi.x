@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.10 1998/11/21 21:59:59 strauss Exp $
+% * @(#) $Id: smi.x,v 1.11 1998/11/22 22:58:23 strauss Exp $
 % */
 %
 
@@ -159,7 +159,8 @@ program SMIPROG {
 	/*
 	 * SMIPROC_NAMES returns a blank-separated list of fully
 	 * qualified smi_fullnames that match the given input,
-	 * which might be not unique.
+	 * which might be a non-unique descriptor or an OID that
+	 * is defined in multiple modules.
 	 */
 	smi_namelist	SMIPROC_NAMES(smi_fullname) 	= 5;
 	/*

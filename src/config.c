@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: config.c,v 1.3 1998/11/17 16:09:16 strauss Exp $
+ * @(#) $Id: config.c,v 1.4 1998/11/18 17:31:38 strauss Exp $
  */
 
 #include <stdio.h>
@@ -56,7 +56,7 @@ readConfig(filename, flags)
 	    if (feof(file)) break;
 	    sscanf(line, "%s %s %s", cmd, arg1, arg2);
 	    if (cmd[0] == '#') continue;
-	    if (!strcmp(cmd, "directory")) {
+	    if (!strcmp(cmd, "location")) {
 		smiAddLocation(arg1);
 	    } else if (!strcmp(cmd, "loglevel")) {
 		errorLevel = atoi(arg1);
