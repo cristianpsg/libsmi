@@ -1852,7 +1852,7 @@ static void algCreateNodes(SmiModule *module)
 	 node;
 	 node = smiGetNextNode(node, SMI_NODEKIND_TABLE)) {
 	if (node->status != SMI_STATUS_OBSOLETE) {
-	    if (SUPPRESS_DEPRECATED && node->status != SMI_STATUS_DEPRECATED)
+	    if (!SUPPRESS_DEPRECATED || node->status != SMI_STATUS_DEPRECATED)
 		graphInsertNode(graph, node);
 	}
     }
@@ -1860,7 +1860,7 @@ static void algCreateNodes(SmiModule *module)
 	 node;
 	 node = smiGetNextNode(node, SMI_NODEKIND_SCALAR)) {
 	if (node->status != SMI_STATUS_OBSOLETE) {
-	    if (SUPPRESS_DEPRECATED && node->status != SMI_STATUS_DEPRECATED)
+	    if (!SUPPRESS_DEPRECATED || node->status != SMI_STATUS_DEPRECATED)
 		graphInsertNode(graph, node);
 	}
     }
