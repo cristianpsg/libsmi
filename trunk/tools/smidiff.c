@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.11 2001/09/27 16:14:51 strauss Exp $
+ * @(#) $Id: smidiff.c,v 1.12 2001/09/28 10:29:52 schoenw Exp $
  */
 
 #include <stdlib.h>
@@ -98,6 +98,10 @@ typedef struct Error {
 #define ERR_OBJECT_ADDED		53
 #define ERR_OBJECT_REMOVED		54
 #define ERR_OBJECT_CHANGED		55
+#define ERR_NAMED_NUMBER_ADDED          56
+#define ERR_NAMED_NUMBER_REMOVED        57
+#define ERR_NAMED_NUMBER_CHANED         58
+#define ERR_NAMED_BIT_ADDED_OLD_BYTE    59
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -210,6 +214,14 @@ static Error errors[] = {
       "object `%s' removed" },
     { 3, ERR_OBJECT_CHANGED, "object-changed",
       "object `%s' changed" },
+    { 5, ERR_NAMED_NUMBER_ADDED, "named-number-added",
+      "named number `%s' added" },
+    { 2, ERR_NAMED_NUMBER_REMOVED, "named-number-removed",
+      "named number `%s' removed" },
+    { 5, ERR_NAMED_NUMBER_CHANED, "named-number-changed",
+      "named number `%s' changed to `%s'" },
+    { 3, ERR_NAMED_BIT_ADDED_OLD_BYTE, "named-bit-added-old-byte",
+      "named bit `%s' added without starting in a new byte" },
     { 0, 0, NULL, NULL }
 };
 
@@ -280,7 +292,18 @@ printErrorAtLine(SmiModule *smiModule, int id, int line, ...)
     va_end(ap);
 }
 
-
+static char*
+makeValidString( char *str,  const char *alt )
+{
+    if( str ) {
+	return str;
+    }
+    else {
+	char *ret = (char*)malloc( sizeof( alt ) );
+	strcpy( ret, alt );
+	return ret;
+    }
+}
 
 static char*
 getStringTime(time_t t)
@@ -531,16 +554,16 @@ cmpSmiValues( SmiValue a, SmiValue b )
     switch (a.basetype) {
     case SMI_BASETYPE_INTEGER32:
     case SMI_BASETYPE_ENUM :
-	changed = (a.value.integer32 != b.value.integer32);
+	changed = (a.value.integer32 - b.value.integer32);
 	break;
     case SMI_BASETYPE_UNSIGNED32:
-	changed = (a.value.unsigned32 != b.value.unsigned32);
+	changed = (a.value.unsigned32 - b.value.unsigned32);
 	break;
     case SMI_BASETYPE_INTEGER64:
-	changed = (a.value.integer64 != b.value.integer64);
+	changed = (a.value.integer64 - b.value.integer64);
 	break;
     case SMI_BASETYPE_UNSIGNED64:
-	changed = (a.value.unsigned64 != b.value.unsigned64);
+	changed = (a.value.unsigned64 - b.value.unsigned64);
 	break;
     case SMI_BASETYPE_FLOAT32:
 	changed = (a.value.float32 != b.value.float32);
@@ -553,13 +576,13 @@ cmpSmiValues( SmiValue a, SmiValue b )
 	break;
     case SMI_BASETYPE_OCTETSTRING:
     case SMI_BASETYPE_BITS:
-	changed = (a.len != b.len)
+	changed = (a.len - b.len)
 	    || memcmp(a.value.ptr, b.value.ptr, a.len != 0);
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-	changed = (a.len != b.len);
+	changed = (a.len - b.len);
 	for (i = 0; !changed && i < a.len; i++) {
-	    changed = (a.value.oid[i] != b.value.oid[i]);
+	    changed = (a.value.oid[i] - b.value.oid[i]);
 	}
 	break;
     case SMI_BASETYPE_UNKNOWN:
@@ -575,6 +598,8 @@ cmpSmiValues( SmiValue a, SmiValue b )
   return changed;
 }
 
+  
+
 static void
 checkRanges(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
@@ -583,6 +608,10 @@ checkRanges(SmiModule *oldModule, int oldLine,
 {
     SmiType *oldTwR, *newTwR; /* parent types with ranges */
 
+    if( ! name ) {
+	name = makeValidString( name, "implicit type" );
+    }
+    
     oldTwR = findTypeWithRange(oldType);
     newTwR = findTypeWithRange(newType);
     
@@ -604,7 +633,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 
 	    if( oldRange && newRange ) {
 		
-		if( cmpSmiValues(oldRange->minValue, newRange->minValue) &&
+		if( cmpSmiValues(oldRange->minValue, newRange->minValue) ||
 		    cmpSmiValues(oldRange->maxValue, newRange->maxValue)) {
 		    
 		    printErrorAtLine(newModule,
@@ -668,19 +697,118 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 }
 
 
+static void
+checkNamedNumbers(SmiModule *oldModule, int oldLine,
+		  SmiModule *newModule, int newLine,
+		  char *name, 
+		  SmiType *oldType, SmiType *newType)
+{
+    SmiNamedNumber *oldNN, *newNN;
+    
+    /* xxx Do we have to find named numbers of parent types
+       (see checkRanges) ? */
+    oldNN = smiGetFirstNamedNumber( oldType );
+    newNN = smiGetFirstNamedNumber( newType );
+
+    while( oldNN || newNN ) {
+	if( oldNN && !newNN ) {
+	    printErrorAtLine(newModule, ERR_NAMED_NUMBER_REMOVED, newLine,
+			     oldNN->name);
+	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine,
+			     oldNN->name);
+	    oldNN = smiGetNextNamedNumber( oldNN );
+	}
+	else if( !oldNN && newNN ) {
+	    /* check if new byte has been started (bits only) */
+	    if( newType->basetype == SMI_BASETYPE_BITS ) {
+		SmiNamedNumber *veryOldNN, *iterNN;
+
+		/* find largest old named number */
+		for( iterNN = smiGetFirstNamedNumber( oldType );
+		     iterNN; iterNN = smiGetNextNamedNumber( iterNN ) ) {
+		    veryOldNN = iterNN;
+		}
+		
+		if( veryOldNN ) {
+		    /* we assume that we have bits, and the named numbers
+		       of bits are stored in NN->value.value.unsigned32 */
+		    if( newNN->value.value.unsigned32 / 8 <=
+			veryOldNN->value.value.unsigned32 / 8 ) {
+			printErrorAtLine( newModule,
+					  ERR_NAMED_BIT_ADDED_OLD_BYTE,
+					  newLine, newNN->name );
+		    }
+		    else {
+			printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
+					 newLine, newNN->name);
+		    }
+		}
+		else {
+		    printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
+				     newLine, newNN->name);
+		}
+	    }
+	    else {
+		printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
+				 newLine, newNN->name);
+	    }
+	    newNN = smiGetNextNamedNumber( newNN );
+	}
+	else if( oldNN && newNN ) {
+	    if( cmpSmiValues( oldNN->value, newNN->value ) < 0 ) {
+		printErrorAtLine( oldModule, ERR_NAMED_NUMBER_REMOVED,
+				  smiGetTypeLine( oldType ),oldNN->name );
+		oldNN = smiGetNextNamedNumber( oldNN );
+	    }
+	    else if( cmpSmiValues( oldNN->value, newNN->value ) > 0 ) {
+		printErrorAtLine( newModule, ERR_NAMED_NUMBER_ADDED,
+				  smiGetTypeLine( newType ),newNN->name );
+		newNN = smiGetNextNamedNumber( newNN );
+	    }
+	    else {
+		if( strcmp( oldNN->name, newNN->name ) ) {
+		    printErrorAtLine( newModule, ERR_NAMED_NUMBER_CHANED,
+				      smiGetTypeLine( newType ),
+				      oldNN->name, newNN->name );
+		    printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
+				      smiGetTypeLine( oldType ),
+				      oldNN->name );
+		}
+		oldNN = smiGetNextNamedNumber( oldNN );
+		newNN = smiGetNextNamedNumber( newNN );
+	    }
+	}
+    }
+}
 
 static void
 checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
 		       SmiModule *newModule, SmiType *newType)
 {
     if (oldType->basetype != newType->basetype) {
-	printErrorAtLine(newModule, ERR_BASETYPE_CHANGED,
-			 smiGetTypeLine(newType), newType->name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 smiGetTypeLine(oldType), oldType->name);
+	if( newType->name ) {
+	    printErrorAtLine(newModule, ERR_BASETYPE_CHANGED,
+			     smiGetTypeLine(newType), newType->name);
+	}
+	else {
+	    printErrorAtLine(newModule, ERR_BASETYPE_CHANGED,
+			     smiGetTypeLine(newType), "implicit type");
+	}
+	if( oldType->name ) {
+	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			     smiGetTypeLine(oldType), oldType->name);
+	}
+	else {
+	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			     smiGetTypeLine(oldType) );
+	}
     }
-
-    /* xxx check named numbers (enums & bits) */
+    
+    checkNamedNumbers(oldModule, smiGetTypeLine(oldType),
+		      newModule, smiGetTypeLine(newType),
+		      oldType->name,
+		      oldType,
+		      newType);
 
     checkRanges(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
@@ -694,6 +822,7 @@ static void
 checkTypes(SmiModule *oldModule, SmiType *oldType,
 	   SmiModule *newModule, SmiType *newType)
 {
+
     checkName(oldModule, smiGetTypeLine(oldType),
 	      newModule, smiGetTypeLine(newType),
 	      oldType->name, newType->name);
@@ -791,10 +920,9 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    SmiModule *newModule, SmiNode *newNode)
 {
     SmiType *oldType, *newType;
-
     oldType = smiGetNodeType(oldNode);
     newType = smiGetNodeType(newNode);
-
+    
     checkName(oldModule, smiGetNodeLine(oldNode),
 	      newModule, smiGetNodeLine(newNode),
 	      oldNode->name, newNode->name);
