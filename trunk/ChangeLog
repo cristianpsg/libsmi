@@ -2,6 +2,8 @@
 
 	* mibs/ietf/CIRCUIT-IF-MIB: added (RFC 3201).
 
+	* mibs/ietf/FRSLD-MIB: added (RFC 3202).
+
 2001-12-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-perl.c: Martin Schulz submitted a patch to fix
