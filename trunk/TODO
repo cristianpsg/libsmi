@@ -19,8 +19,6 @@ o warning detection: non continuous sub oids in column node list?
 
 o warning detection: not reversible DISPLAY-HINT definitions
 
-o error detection: parser-smi.y: remember SEQUENCE contents and check them
-
 o remove SMI_DECL_IMPL_SEQUENCEOF from smi.h: the smiv1/smiv2 parser 
   should keep internal data structures for sequence types so that it 
   can set the correct nodekinds and that it can check the SEQUENCE 
