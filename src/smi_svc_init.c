@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_init.c,v 1.2 1998/11/24 20:13:36 strauss Exp $
+ * @(#) $Id: smi_svc_init.c,v 1.3 1998/11/25 14:36:34 strauss Exp $
  */
 
 #include <stdio.h>
@@ -33,14 +33,12 @@ smi_svc_init(argc, argv)
     char *argv[];
 {
     char c;
-    int flags;
     
     smiInit();
     
     smiSetDebugLevel(0);
     smiSetErrorLevel(3);
-    flags = SMI_ERRORS | SMI_ERRORLINES;
-    smiSetFlags(flags);
+    smiSetFlags(SMI_ERRORS | SMI_ERRORLINES);
     
 #ifdef SMID_CONFIG_FILE
     smiReadConfig(SMID_CONFIG_FILE);
@@ -64,24 +62,24 @@ smi_svc_init(argc, argv)
 	    smiSetDebugLevel(atoi(optarg));
 	    break;
 	case 'v':
-	    flags |= SMI_ERRORLINES;
+	    smiSetFlags(smiGetFlags() | SMI_ERRORLINES);
 	    break;
 	case 'V':
-	    flags &= ~SMI_ERRORLINES;
+	    smiSetFlags(smiGetFlags() & ~SMI_ERRORLINES);
 	    break;
 	case 'r':
 	    /* errors and statistics (if -s present) for imported modules */
-	    flags |= SMI_RECURSIVE;
+	    smiSetFlags(smiGetFlags() | SMI_RECURSIVE);
 	    break;
 	case 'R':
-	    flags &= ~SMI_RECURSIVE;
+	    smiSetFlags(smiGetFlags() & ~SMI_RECURSIVE);
 	    break;
 	case 's':
 	    /* print some module statistics */
-	    flags |= SMI_STATS;
+	    smiSetFlags(smiGetFlags() | SMI_STATS);
 	    break;
 	case 'S':
-	    flags &= ~SMI_STATS;
+	    smiSetFlags(smiGetFlags() & ~SMI_STATS);
 	    break;
 	default:
 	    fprintf(stderr, "Usage: %s [-yYvVrRsS] [-d level] [-l level] [-c configfile] file\n", argv[0]);
@@ -89,8 +87,6 @@ smi_svc_init(argc, argv)
 	}
     }
 
-    smiSetFlags(flags);
-    
     while (optind < argc) {
 	smiAddLocation(argv[optind]);
 	optind++;

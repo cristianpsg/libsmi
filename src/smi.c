@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.21 1998/11/29 11:47:06 strauss Exp $
+ * @(#) $Id: smi.c,v 1.22 1998/11/30 16:42:36 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -194,7 +194,7 @@ filterNamelist(list)
     char *p;
     char m[SMI_MAX_DESCRIPTOR+1];
     View *view;
-    
+
     /* loop over every element */
     for (i = 0, num = 0, p = strtok(list, " ");
 	 p; p = strtok(NULL, " ")) {
@@ -203,7 +203,7 @@ filterNamelist(list)
 	m[l] = 0;
 	for (view = firstView; view; view = view->next) 
 	    if (!strcmp(m, view->name)) break;
-	if ((!view) && (firstView)) break;
+	if ((!view) && (!(flags & SMI_VIEWALL))) break;
 	/* filter duplicates */
 	for (j = 0; j < num; j++) if (!strcmp(p, a[j])) break;
 	if (j == num) {
@@ -478,7 +478,7 @@ smiLoadMibModule(modulename)
 	    /* TODO: compare filenames more intelligent */
 	    if (module && (!strcmp(module->path, location->name))) {
 		return 0; /* already loaded. */
-	    }
+	    } 
 #endif
 	} else {
 
@@ -496,6 +496,8 @@ void
 smiSetDebugLevel(level)
     int level;
 {
+    printDebug(4, "smiSetDebugLevel(%d)\n", level);
+
     debugLevel = level;
 
     if (!initialized) smiInit();
@@ -507,6 +509,8 @@ void
 smiSetErrorLevel(level)
     int level;
 {
+    printDebug(4, "smiSetErrorLevel(%d)\n", level);
+
     if (!initialized) smiInit();
     
     errorLevel = level;
@@ -518,9 +522,23 @@ void
 smiSetFlags(userflags)
     int userflags;
 {
+    printDebug(4, "smiSetFlags(%x)\n", userflags);
+
     if (!initialized) smiInit();
     
     flags = (flags & ~SMI_FLAGMASK) | userflags;
+}
+
+
+
+int
+smiGetFlags()
+{
+    printDebug(4, "smiGetFlags()\n");
+
+    if (!initialized) smiInit();
+    
+    return flags & SMI_FLAGMASK;
 }
 
 
@@ -717,12 +735,16 @@ smiGetNode(spec, mod, wantdescr)
 	res.module = strdup(o->module->descriptor->name);
 	res.oid = getOid(o->node);
 	if (o->type) {
+	    fprintf(stderr, "XXX %s %x\n", res.name, o->type->flags);
 	    if (o->type->flags & FLAG_PARENTIMPORTED) {
-		sprintf(type, "%s.%s",
+		sprintf(type, "%s.%s <restriction>",
 		   ((Descriptor *)(o->type->parent))->module->descriptor->name,
 			((Descriptor *)(o->type->parent))->name);
 	    } else if (o->type->flags & FLAG_IMPORTED) {
 		sprintf(type, "gaga");
+		sprintf(type, "%s.%s",
+		   ((Descriptor *)(o->type->parent))->module->descriptor->name,
+			((Descriptor *)(o->type->parent))->name);
 	    } else {
 		if (o->type->module && o->type->descriptor) {
 		    sprintf(type, "%s.%s", o->type->module->descriptor->name,
@@ -1451,6 +1473,7 @@ smiGetParent(spec, mod)
     Node		*n;
     Module		*m;
     Location		*l;
+    View		*view;
     smi_fullname	sminame;
     smi_fullname	*sminame2;
     char		name[SMI_MAX_OID+1];
@@ -1529,7 +1552,8 @@ smiGetParent(spec, mod)
 	 * If the parent node has a declaration in
 	 * the same module as the child, we assume
 	 * this is what the user wants to get.
-	 * Otherwise we return the first declaration we know.
+	 * Otherwise we return the first declaration we find in our
+	 * view of modules.
 	 * Last resort: the numerical OID.
 	 */
 	for (o = n->firstObject; o; o = o->next) {
@@ -1538,7 +1562,15 @@ smiGetParent(spec, mod)
 	    }
 	}
 	if (!o) {
-	    o = n->firstObject;
+	    for (o = n->firstObject; o; o = o->next) {
+		for (view = firstView; view; view = view->next) 
+		    if (!strcmp(o->module->descriptor->name, view->name))
+			break;
+		if (view && (!(o->flags & FLAG_IMPORTED))) {
+		    break;
+		}
+	    }
+	    if (!o) o = n->firstObject;
 	}
 	if (o && (o->descriptor)) {
 	    sprintf(s, "%s.%s",

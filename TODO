@@ -236,4 +236,10 @@ x shift/reduce conflict at
 
 . weiter mit: tnmMibTcl.c: WalkTree und cmdWalk
 
+  ok.
 
+. weitere Tcl Commands.
+
+. Caching.
+
+. Types.

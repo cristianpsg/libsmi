@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.20 1998/11/23 12:56:58 strauss Exp $
+ * @(#) $Id: data.h,v 1.21 1998/11/25 02:50:56 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -107,6 +107,10 @@ typedef unsigned short Flags;
 				       /* useful when IMPORTing.    */
 #define	FLAG_ERRORLINES	SMI_ERRORLINES /* When printing errors:     */
 				       /* print also the wrong line */
+#define	FLAG_VIEWALL	SMI_VIEWALL    /* smiFunctions return all   */
+				       /* labels they know, not     */
+				       /* only the ones in the      */
+				       /* current view.             */
 
 #define FLAGS_GENERAL		0x00ff
 #define FLAGS_SPECIFIC		0xff00
