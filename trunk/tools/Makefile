@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.9 1999/07/02 14:04:03 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.10 1999/09/30 08:16:48 strauss Exp $
 #
 
 
@@ -89,7 +89,7 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.7-pre9
+VERSION = 0.1.7-pre10
 mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
@@ -117,7 +117,7 @@ CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre9\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre10\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
