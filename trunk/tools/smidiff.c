@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.8 2001/09/25 07:35:25 schoenw Exp $
+ * @(#) $Id: smidiff.c,v 1.9 2001/09/27 11:32:36 schoenw Exp $
  */
 
 #include <stdlib.h>
@@ -519,7 +519,57 @@ findTypeWithRange(SmiType *smiType)
     return NULL;
 }
 
+static int 
+cmpSmiValues( SmiValue a, SmiValue b )
+{
+    int i, changed = 0;
+    
+    switch (a.basetype) {
+    case SMI_BASETYPE_INTEGER32:
+    case SMI_BASETYPE_ENUM :
+	changed = (a.value.integer32 != b.value.integer32);
+	break;
+    case SMI_BASETYPE_UNSIGNED32:
+	changed = (a.value.unsigned32 != b.value.unsigned32);
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	changed = (a.value.integer64 != b.value.integer64);
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	changed = (a.value.unsigned64 != b.value.unsigned64);
+	break;
+    case SMI_BASETYPE_FLOAT32:
+	changed = (a.value.float32 != b.value.float32);
+	break;
+    case SMI_BASETYPE_FLOAT64:
+	changed = (a.value.float64 != b.value.float64);
+	break;
+    case SMI_BASETYPE_FLOAT128:
+	changed = (a.value.float128 != b.value.float128);
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+    case SMI_BASETYPE_BITS:
+	changed = (a.len != b.len)
+	    || memcmp(a.value.ptr, b.value.ptr, a.len != 0);
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	changed = (a.len != b.len);
+	for (i = 0; !changed && i < a.len; i++) {
+	    changed = (a.value.oid[i] != b.value.oid[i]);
+	}
+	break;
+    case SMI_BASETYPE_UNKNOWN:
+	/* this should not occur */
+	
+	/*
+	 * xxx: what do we do, if it does occur ?
+	 * return 0, 1 or print error message ?
+	 */
+	break;
+    }
 
+  return changed;
+}
 
 static void
 checkRanges(SmiModule *oldModule, int oldLine,
@@ -541,11 +591,43 @@ checkRanges(SmiModule *oldModule, int oldLine,
     }
 
     if (oldTwR && newTwR) {
+	
 	SmiRange *oldRange, *newRange;
 	oldRange = smiGetFirstRange(oldTwR);
 	newRange = smiGetFirstRange(newTwR);
-	
-	/* xxx check ranges in detail */
+
+	while( oldRange || newRange ) {
+
+	    if( oldRange && newRange ) {
+		
+		if( cmpSmiValues(oldRange->minValue, newRange->minValue) &&
+		    cmpSmiValues(oldRange->maxValue, newRange->maxValue)) {
+		    
+		    printErrorAtLine(newModule,
+				     ERR_RANGE_CHANGED,
+				     newLine,
+				     name);
+		    printErrorAtLine(oldModule,
+				     ERR_PREVIOUS_DEFINITION,
+				     oldLine,
+				     name);
+		}
+	    }
+
+	    else {
+		printErrorAtLine(newModule,
+				 ERR_RANGE_CHANGED,
+				 newLine,
+				 name);
+		printErrorAtLine(oldModule,
+				 ERR_PREVIOUS_DEFINITION,
+				 oldLine,
+				 name);
+	    }
+	    
+	    oldRange = smiGetNextRange( oldRange );
+	    newRange = smiGetNextRange( newRange );
+	}
     }
 }
 
@@ -557,8 +639,6 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 	    char *name,
 	    SmiValue oldVal, SmiValue newVal)
 {
-    int i, changed = 0;
-
     if ((oldVal.basetype != SMI_BASETYPE_UNKNOWN) && 
 	(newVal.basetype == SMI_BASETYPE_UNKNOWN)) {
 	printErrorAtLine(oldModule, ERR_DEFVAL_REMOVED, oldLine, name);
@@ -576,48 +656,8 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
 	return;
     }
-
-    switch (oldVal.basetype) {
-    case SMI_BASETYPE_INTEGER32:
-	changed = (oldVal.value.integer32 != newVal.value.integer32);
-	break;
-    case SMI_BASETYPE_UNSIGNED32:
-	changed = (oldVal.value.unsigned32 != newVal.value.unsigned32);
-	break;
-    case SMI_BASETYPE_INTEGER64:
-	changed = (oldVal.value.integer64 != newVal.value.integer64);
-	break;
-    case SMI_BASETYPE_UNSIGNED64:
-	changed = (oldVal.value.unsigned64 != newVal.value.unsigned64);
-	break;
-    case SMI_BASETYPE_FLOAT32:
-	changed = (oldVal.value.float32 != newVal.value.float32);
-	break;
-    case SMI_BASETYPE_FLOAT64:
-	changed = (oldVal.value.float64 != newVal.value.float64);
-	break;
-    case SMI_BASETYPE_FLOAT128:
-	changed = (oldVal.value.float128 != newVal.value.float128);
-	break;
-    case SMI_BASETYPE_OCTETSTRING:
-    case SMI_BASETYPE_BITS:
-	changed = (oldVal.len != newVal.len)
-	    || memcmp(oldVal.value.ptr, newVal.value.ptr, oldVal.len != 0);
-	break;
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	changed = (oldVal.len != newVal.len);
-	for (i = 0; !changed && i < oldVal.len; i++) {
-	    changed = (oldVal.value.oid[i] != newVal.value.oid[i]);
-	}
-	break;
-    case SMI_BASETYPE_ENUM :
-	/* TBD */
-	break;
-    case SMI_BASETYPE_UNKNOWN:
-	break;
-    }
 	
-    if (changed) {
+    if (cmpSmiValues(oldVal, newVal)) {
 	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
     }
@@ -639,6 +679,8 @@ checkTypes(SmiModule *oldModule, SmiType *oldType,
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			 smiGetTypeLine(oldType), oldType->name);
     }
+
+    /* xxx check named numbers (enums & bits) */
 
     checkRanges(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
