@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.54 2000/02/22 18:27:00 strauss Exp $
+ * @(#) $Id: data.h,v 1.55 2000/02/24 10:35:38 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -87,6 +87,7 @@ typedef struct Module {
     int		    numModuleIdentities;
     struct Module   *nextPtr;
     struct Module   *prevPtr;
+    struct Node     *prefixNodePtr;
 } Module;
 
 
@@ -395,6 +396,8 @@ extern void setObjectValue(Object *objectPtr,
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);
+
+extern Node *findNodeByOid(unsigned int oidlen, SmiSubid *oid);
 
 extern Node *findNodeByOidString(char *oid);
 

@@ -104,10 +104,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
     Node *nodePtr;
     int i;
     
-    /*
-     * Set nodekinds of all newly defined objects.
-     */
-    
     for (objectPtr = modulePtr->firstObjectPtr;
 	 objectPtr; objectPtr = objectPtr->nextPtr) {
 	if (objectPtr->nodePtr->parentPtr &&
@@ -116,6 +112,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	} else {
 	    parentPtr = NULL;
 	}
+
+	/*
+	 * Set nodekinds of all newly defined objects.
+	 */
+	
 	if (objectPtr->export.decl == SMI_DECL_MODULEIDENTITY) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
 	} else if ((objectPtr->export.decl == SMI_DECL_VALUEASSIGNMENT) ||
@@ -242,6 +243,24 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    objectPtr->export.oidlen = objectPtr->nodePtr->oidlen;
 	    objectPtr->export.oid = objectPtr->nodePtr->oid;
 	}
+
+	/*
+	 * Determine the longest common OID prefix of all nodes.
+	 */
+
+	if (!modulePtr->prefixNodePtr) {
+	    modulePtr->prefixNodePtr = objectPtr->nodePtr;
+	} else {
+	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++) {
+		if (modulePtr->prefixNodePtr->oid[i] !=
+		    objectPtr->nodePtr->oid[i]) {
+		    modulePtr->prefixNodePtr =
+			findNodeByOid(i, modulePtr->prefixNodePtr->oid);
+		    break;
+		}
+	    }
+	}
+	
     }
 }
 

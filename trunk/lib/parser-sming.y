@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.53 2000/02/22 18:27:01 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.54 2000/02/25 16:48:19 strauss Exp $
  */
 
 %{
@@ -697,12 +697,14 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			     */
 
 			    
-			    /*
-			     * Set the oidlen/oid values that are not
-			     * yet correct.
-			     */
 			    for (objectPtr = thisModulePtr->firstObjectPtr;
 				 objectPtr; objectPtr = objectPtr->nextPtr) {
+				
+				/*
+				 * Set the oidlen/oid values that are not
+				 * yet correct.
+				 */
+				
 				if (objectPtr->export.oidlen == 0) {
 				    if (objectPtr->nodePtr->oidlen == 0) {
 					for (nodePtr = objectPtr->nodePtr,
@@ -725,6 +727,32 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 				    objectPtr->export.oid =
 					objectPtr->nodePtr->oid;
 				}
+
+				/*
+				 * Determine the longest common OID prefix
+				 * of all nodes.
+				 */
+				
+				if (!thisModulePtr->prefixNodePtr) {
+				    thisModulePtr->prefixNodePtr =
+					objectPtr->nodePtr;
+				} else {
+				    for (i = 0;
+					 i < thisModulePtr->prefixNodePtr->
+					                                oidlen;
+					 i++) {
+					if (thisModulePtr->prefixNodePtr->
+					                              oid[i] !=
+					    objectPtr->nodePtr->oid[i]) {
+					    thisModulePtr->prefixNodePtr =
+						findNodeByOid(i,
+					        thisModulePtr->prefixNodePtr->
+							                  oid);
+					    break;
+					}
+				    }
+				}
+				
 			    }
 			    
 			    $$ = thisModulePtr;

@@ -174,6 +174,7 @@ addModule(modulename, path, flags, parserPtr)
     modulePtr->flags				= flags;
     modulePtr->objectPtr			= NULL;
     
+    modulePtr->prefixNodePtr                    = NULL;
     modulePtr->firstObjectPtr			= NULL;
     modulePtr->lastObjectPtr			= NULL;
     modulePtr->firstTypePtr			= NULL;
@@ -188,7 +189,7 @@ addModule(modulename, path, flags, parserPtr)
     modulePtr->numImportedIdentifiers		= 0;
     modulePtr->numStatements			= 0;
     modulePtr->numModuleIdentities		= 0;
-    
+
     modulePtr->nextPtr				= NULL;
     modulePtr->prevPtr				= lastModulePtr;
     if (!firstModulePtr) firstModulePtr		= modulePtr;
@@ -1765,6 +1766,41 @@ findNodeByParentAndSubid(parentNodePtr, subid)
     }
     
     return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findNodeByOid --
+ *
+ *      Lookup a Node by a given array of numerical subids.
+ *
+ * Results:
+ *      A pointer to the Node structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Node *
+findNodeByOid(oidlen, oid)
+    unsigned int    oidlen;
+    SmiSubid        *oid;
+{
+    Node *nodePtr;
+    int  i;
+    
+    nodePtr = rootNodePtr;
+    for(i = 0; i < oidlen && nodePtr; i++) {
+	nodePtr = findNodeByParentAndSubid(nodePtr, oid[i]);
+    }
+    
+    return (nodePtr);
 }
 
 
