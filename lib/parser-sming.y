@@ -1446,6 +1446,7 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 			    if (complianceObjectPtr && $18) {
 				for (listPtr = $18; listPtr;
 				     listPtr = listPtr->nextPtr) {
+				    printf("XXX %s\n", listPtr->ptr);
 				    objectPtr = findObject(listPtr->ptr,
 							   thisParserPtr);
 				    listPtr->ptr = objectPtr;

@@ -4,8 +4,10 @@
 # @(#) $Id: Makefile,v 1.21 1999/04/05 15:47:33 strauss Exp $
 #
 
-MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
-TESTMIBS	= `cd $(MIBDIR) ; ls -1 ATM*`
+#MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
+#TESTMIBS	= `cd $(MIBDIR) ; ls -1 IAN* IF-MIB ATM-* SNMPv2-MIB SNMPv2-TC`
+MIBDIR		= mibs/test
+TESTMIBS	= `cd $(MIBDIR) ; ls -1 *`
 PREFIX		= /usr/local
 
 DEFINES_RPC	= -DRPC_SVC_FG -DBACKEND_RPC
@@ -97,8 +99,10 @@ install-dev: lib/smi.h lib/libsmi.a
 
 install-lib:
 	if [ ! -d ${PREFIX}/lib/smi ] ; then mkdir ${PREFIX}/lib/smi ; fi
-	if [ ! -d ${PREFIX}/lib/smi/mibs ] ; then mkdir ${PREFIX}/lib/smi/mibs ; fi
-	cp mibs/SNMP* mibs/RFC* ${PREFIX}/lib/smi/mibs
+	if [ ! -d ${PREFIX}/lib/smi/mibs-smi ] ; then mkdir ${PREFIX}/lib/smi/mibs-smi ; fi
+	if [ ! -d ${PREFIX}/lib/smi/mibs-sming ] ; then mkdir ${PREFIX}/lib/smi/mibs-sming ; fi
+	-cp mibs/smi/* ${PREFIX}/lib/smi/mibs-smi
+	-cp mibs/sming/* ${PREFIX}/lib/smi/mibs-sming
 
 install-html: doc/parser-smi.y.html doc/parser-sming.y.html doc/scanner-sming.l.html
 	cp doc/parser-smi.y.html ../www
