@@ -343,7 +343,7 @@ bgpPathAttrNextHop OBJECT-TYPE
      ::= { bgpPathAttrEntry 5 }
 
 bgpPathAttrInterASMetric OBJECT-TYPE
-     SYNTAX IpAddress
+     SYNTAX INTEGER
      ACCESS read-only
      STATUS mandatory
      DESCRIPTION
