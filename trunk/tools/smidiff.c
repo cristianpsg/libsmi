@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.20 2001/10/26 15:23:03 tklie Exp $	 
+ * @(#) $Id: smidiff.c,v 1.21 2001/10/29 18:34:37 tklie Exp $	 
  */
 
 #include <stdlib.h>
@@ -124,7 +124,7 @@ static Error errors[] = {
       "base type of `%s' changed" },
     { 5, ERR_DECL_CHANGED, "decl-changed",
       "declaration changed for `%s'" },
-    { 5, ERR_STATUS_CHANGED, "status-changed",
+    { 6, ERR_STATUS_CHANGED, "status-changed",
       "legal status change from `%s' to `%s' for `%s'" },
     { 6, ERR_PREVIOUS_DEFINITION, "previous-definition",
       "previous definition of `%s'" },
@@ -224,10 +224,10 @@ static Error errors[] = {
       "named bit `%s' added without starting in a new byte" },
     { 2, ERR_NODEKIND_CHANGED, "nodekind-changed",
       "node kind of `%s' changed" },
-    { 2, ERR_INDEXKIND_CHANGED, "indexkind-changed",
-      "changed kind of index in node `%s'" },
+    { 2, ERR_INDEXKIND_CHANGED, "index-kind-changed",
+      "index kind of `%s' changed" },
     { 2, ERR_INDEX_CHANGED, "index-changed",
-      "index of node `%s' changed" },
+      "index of `%s' changed" },
     { 6, ERR_PREVIOUS_DEFINITION_TEXT, "previous-defininition",
       "previous definition of %s `%s'" },
     { 6, ERR_TYPE_IS_AND_WAS, "type-is-and-was",
@@ -277,25 +277,25 @@ printError(SmiModule *smiModule, int id, int line, va_list ap)
     }
     
     if (errors[i].level <= errorLevel) {
-	fprintf(stderr, "%s", smiModule->path);
+	fprintf(stdout, "%s", smiModule->path);
 
     	if (line >= 0) {
-	    fprintf(stderr, ":%d", line);
+	    fprintf(stdout, ":%d", line);
 	}
-	fprintf(stderr, " ");
+	fprintf(stdout, " ");
 #if 0
 	if (errors[i].level > 3) {
-	    fprintf(stderr, "warning: ");
+	    fprintf(stdout, "warning: ");
 	}
 #endif
 	if (sFlag) {
-	    fprintf(stderr, "[%d] ", errors[i].level);
+	    fprintf(stdout, "[%d] ", errors[i].level);
 	}
 	if (mFlag) {
-	    fprintf(stderr, "{%s} ", errors[i].tag);
+	    fprintf(stdout, "{%s} ", errors[i].tag);
 	}
-	vfprintf(stderr, errors[i].fmt, ap);
-	fprintf(stderr, "\n");
+	vfprintf(stdout, errors[i].fmt, ap);
+	fprintf(stdout, "\n");
     }
 }
 
@@ -662,30 +662,24 @@ getTypeName(SmiType *smiType)
 {
     char* name;
     
-    if( smiType->name ) {
-	if( name ) {
-	    SmiModule *smiModule = smiGetTypeModule( smiType );
-	    if( smiModule ) {
-		if( smiModule->path ) {
-		    name = (char *)malloc( strlen( smiType->name ) +
-					   strlen( smiModule->path ) + 4 );
-		    sprintf( name, "`%s:%s'",
-			     smiModule->path, smiType->name );
-		}
-		else {
-		    name = (char *)malloc( strlen( smiType->name ) + 3 );
-		    sprintf( name, "`%s'", smiType->name );
-		}
-	    }
-	    else {
-		name = (char *)malloc( strlen( smiType->name ) + 3 );
-		sprintf( name, "`%s'", smiType->name );
+    if (smiType->name) {
+	SmiModule *smiModule = smiGetTypeModule( smiType );
+	if (smiModule && smiModule->path) {
+	    name = (char *) malloc(strlen(smiType->name) +
+				   strlen(smiModule->path) + 4);
+	    if (name) {
+		sprintf(name, "`%s:%s'", smiModule->path, smiType->name);
+		return name;
 	    }
 	}
+	name = (char *) malloc(strlen(smiType->name) + 3);
+	if (name) {
+	    sprintf(name, "`%s'", smiType->name);
+	    return name;
+	}
     }
-    else {
-	name = strdup( "implicit" );
-    }
+
+    name = strdup("implicit");
     return name;
 }
 
@@ -726,12 +720,12 @@ printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
     char *oldTypeName, *newTypeName;
     int oldLine, newLine;
 
-    smiInit( oldTag );
-    oldTypeName = getTypeName( oldType );
-    oldLine = smiGetTypeLine( oldType );
-    smiInit( newTag );
-    newTypeName = getTypeName( newType );
-    newLine = smiGetTypeLine( newType );
+    smiInit(oldTag);
+    oldTypeName = getTypeName(oldType);
+    oldLine = smiGetTypeLine(oldType);
+    smiInit(newTag);
+    newTypeName = getTypeName(newType);
+    newLine = smiGetTypeLine(newType);
     
     
     if( (oldType == oldTwR) && (newType == newTwR) &&
@@ -739,8 +733,7 @@ printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
 	printErrorAtLine(smiGetTypeModule( newType ), ERR_TYPE_IS_AND_WAS,
 			 smiGetTypeLine( newType ),
 			 oldTypeName, newTypeName);
-    }
-    else {
+    } else {
 	if( oldTwR ) {
 	    iterateTypeImports( oldTypeName, oldType, oldTwR, oldLine );
 	}
@@ -749,8 +742,8 @@ printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
 	}
     }
     
-    free( oldTypeName );
-    free( newTypeName );
+    free(oldTypeName);
+    free(newTypeName);
 }
 
 
@@ -767,7 +760,6 @@ checkRanges(SmiModule *oldModule, int oldLine,
     
     if (!oldTwR && newTwR) {
 	SmiRange *newRange;
-	char *typeName = getTypeName( newTwR );
 	
 	printErrorAtLine(newModule, ERR_RANGE_ADDED,
 			 newLine, name);
@@ -1116,9 +1108,11 @@ checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
 	      newType->name,
 	      oldType->decl, newType->decl);
 
-    checkStatus(oldModule, smiGetTypeLine(oldType),
-		newModule, smiGetTypeLine(newType),
-		newType->name, oldType->status, newType->status);
+    if (newType->name) {
+	checkStatus(oldModule, smiGetTypeLine(oldType),
+		    newModule, smiGetTypeLine(newType),
+		    newType->name, oldType->status, newType->status);
+    }
 
     checkFormat(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
