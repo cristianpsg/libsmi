@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.48 2000/06/20 15:17:06 strauss Exp $
+ * @(#) $Id: error.c,v 1.49 2000/07/04 12:16:33 strauss Exp $
  */
 
 #include <config.h>
@@ -352,6 +352,18 @@ static Error errors[] = {
       "zero length description of `%s'" },
     { 6, ERR_INDEX_NOT_COLUMN, "index-element-not-column",
       "index element `%s' of row `%s' must be a column" },
+    { 2, ERR_AUGMENT_NESTED, "augment-nested",
+      "row `%s' augments `%s' which is not a base table row" },
+    { 2, ERR_AUGMENT_NO_ROW, "augment-no-row",
+      "row `%s' augments `%s' which is not a row" },
+    { 4, ERR_NODE_NOT_IN_GROUP, "group-membership",
+      "node `%s' must be contained in at least one conformance group" },
+    { 4, ERR_NOTIFICATION_NOT_IN_GROUP, "group-membership",
+      "notification `%s' must be contained in at least one conformance group" },
+    { 3, ERR_INVALID_GROUP_MEMBER, "group-member-invalid",
+      "node `%s' is an invalid member of group `%s'" },
+    { 3, ERR_MIXED_GROUP_MEMBERS, "group-member-mixed",
+      "group `%s' contains scalars/columns and notifications" },
 
     { 0, 0, NULL, NULL }
 };

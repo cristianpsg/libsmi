@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.3 2000/07/04 12:16:33 strauss Exp $
+ * @(#) $Id: check.c,v 1.4 2000/07/05 11:58:39 strauss Exp $
  */
 
 #include <config.h>
@@ -131,7 +131,7 @@ redefinition(Parser *parser, char *name1, Module *module,
  *	in a given module.
  *
  * Results:
- *      1 on success or 0 if the name already exists.
+ *      None.
  *
  * Side effects:
  *      None.
@@ -211,7 +211,7 @@ smiCheckObjectName(Parser *parser, Module *module, char *name)
  *	in a given module.
  *
  * Results:
- *      1 on success or 0 if the type already exists.
+ *      None.
  *
  * Side effects:
  *      None.
@@ -684,18 +684,33 @@ smiCheckIndex(Parser *parser, Object *object)
 void
 smiCheckAugment(Parser *parser, Object *object)
 {
-    /*
-     * TODO: Check that the related node is actually an entry node.
-     */
+    if (! object->relatedPtr) {
+	return;
+    }
 
+    if (object->relatedPtr->export.nodekind != SMI_NODEKIND_ROW) {
+	smiPrintErrorAtLine(parser, ERR_AUGMENT_NO_ROW, object->line,
+			    object->export.name,
+			    object->relatedPtr->export.name);
+	return;
+    }
+    
+    if (object->relatedPtr->export.indexkind != SMI_INDEX_INDEX) {
+	smiPrintErrorAtLine(parser, ERR_AUGMENT_NESTED, object->line,
+			    object->export.name,
+			    object->relatedPtr->export.name);
+	return;
+    }
+    
     /*
      * TODO: Check the size of the instance identifier and the OID
      * for this entry node.
      */
 
-    /*
-     * TODO: Check the the augmented table is not itself an augmentation.
-     */
+#if 0
+    fprintf(stderr, "** %s augments -> %s\n", object->export.name,
+	    object->relatedPtr->export.name);
+#endif
 }
 
 
@@ -708,7 +723,7 @@ smiCheckAugment(Parser *parser, Object *object)
  *      Check whether all ranges of a given type are valid.
  *
  * Results:
- *      1 on success or 0 if the ranges are invalid.
+ *      None.
  *
  * Side effects:
  *      None.
@@ -836,4 +851,105 @@ smiCheckTypeRanges(Parser *parser, Type *type)
 	    }
 	}
     }
-} /*  */
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckGroupMembers --
+ *
+ *      Check whether only scalar and column nodes and notifications
+ *	are contained in a conformance group.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckGroupMembers(Parser *parser, Object *group)
+{
+    List *listPtr;
+    Object *memberPtr;
+    int scalarsOrColumns = 0;
+    int notifications = 0;
+    
+    for (listPtr = group->listPtr;
+	 listPtr; listPtr = listPtr->nextPtr) {
+	
+	memberPtr = (Object *) listPtr->ptr;
+
+	if (((memberPtr->export.nodekind == SMI_NODEKIND_COLUMN
+	      || memberPtr->export.nodekind == SMI_NODEKIND_SCALAR)
+	     && memberPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE)
+	    || memberPtr->export.nodekind == SMI_NODEKIND_NOTIFICATION) {
+	    if (memberPtr->export.nodekind == SMI_NODEKIND_NOTIFICATION) {
+		notifications++;
+	    } else {
+		scalarsOrColumns++;
+	    }
+	    addObjectFlags(memberPtr, FLAG_INGROUP);
+	} else {
+	    smiPrintErrorAtLine(parser, ERR_INVALID_GROUP_MEMBER,
+				group->line,
+				memberPtr->export.name,
+				group->export.name);
+	}
+    }
+
+    if (scalarsOrColumns && notifications) {
+	smiPrintErrorAtLine(parser, ERR_MIXED_GROUP_MEMBERS,
+			    group->line,
+			    group->export.name);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckGroupMembership --
+ *
+ *      Check whether scalar and column nodes and notifications are
+ *	contained in at least one conformance group.
+ *
+ *	This function assumes that smiCheckGroupMembers() has been
+ *	called on all group objects before.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckGroupMembership(Parser *parser, Object *objectPtr)
+{
+    int found;
+    
+    if (((objectPtr->export.nodekind == SMI_NODEKIND_COLUMN
+	  || objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)
+	 && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE)
+	|| objectPtr->export.nodekind == SMI_NODEKIND_NOTIFICATION) {
+
+	found = (objectPtr->flags & FLAG_INGROUP);
+	    
+	if (! found) {
+	    if (objectPtr->export.nodekind == SMI_NODEKIND_NOTIFICATION) {
+		smiPrintErrorAtLine(parser, ERR_NOTIFICATION_NOT_IN_GROUP,
+				    objectPtr->line,
+				    objectPtr->export.name);
+	    } else {
+		smiPrintErrorAtLine(parser, ERR_NODE_NOT_IN_GROUP,
+				    objectPtr->line,
+				    objectPtr->export.name);
+	    }
+	}
+    }
+}
