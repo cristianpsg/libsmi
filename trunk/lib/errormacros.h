@@ -116,3 +116,11 @@
 #define ERR_SMIV2_NESTED_TEXTUAL_CONVENTION      115
 #define ERR_TABLE_ACCESS                         116
 #define ERR_ROW_ACCESS                           117
+#define ERR_ENUM_SUBTYPE                         118
+#define ERR_BITS_SUBTYPE                         119
+#define ERR_ENUM_NAME_REDEFINITION               120
+#define ERR_ENUM_NUMBER_REDEFINITION             121
+#define ERR_BITS_NAME_REDEFINITION               122
+#define ERR_BITS_NUMBER_REDEFINITION             123
+#define ERR_BITS_NUMBER_TOO_LARGE                124
+#define ERR_BITS_NUMBER_LARGE                    125
