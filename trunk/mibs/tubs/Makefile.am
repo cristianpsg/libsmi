@@ -8,10 +8,10 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.1 2000/02/11 11:08:31 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.2 2003/12/01 12:24:24 strauss Exp $
 #
 
-ietfdir			= $(mibdir)/ietf
+tubsdir			= $(mibdir)/tubs
 MIBS			= $(shell ls -1 $(srcdir) | egrep -v 'CVS|Makefile')
 EXTRA_DIST              = $(MIBS)
-ietf_DATA		= $(MIBS)
+tubs_DATA		= $(MIBS)
