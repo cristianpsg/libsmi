@@ -8,7 +8,7 @@ IMPORTS
         FROM SNMPv2-CONF
     DisplayString, DateAndTime, AutonomousType
         FROM SNMPv2-TC
-    applIndex, applGroup
+    applIndex, applGroups
         FROM NETWORK-SERVICES-MIB
     mib-2
         FROM RFC1213-MIB;
@@ -1276,7 +1276,7 @@ rdbmsCompliance     MODULE-COMPLIANCE
     MODULE HOST-RESOURCES-MIB
         MANDATORY-GROUPS    { hrSystem }
     MODULE NETWORK-SERVICES-MIB
-        MANDATORY-GROUPS { applGroup }
+        MANDATORY-GROUPS { applGroups }
     MODULE RDBMS-MIB
         MANDATORY-GROUPS { rdbmsGroup }
 
