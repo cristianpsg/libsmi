@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.8 2002/01/25 09:15:30 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.9 2002/02/15 18:23:47 schoenw Exp $
  */
 
 /*
@@ -2030,6 +2030,10 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    out = g_snmp_session_sync_get(s, in);\n"
 	    "    g_snmp_vbl_free(in);\n"
 	    "    if (out) {\n"
+	    "        if (s->error_status != G_SNMP_ERR_NOERROR) {\n"
+	    "            g_snmp_vbl_free(out);\n"
+	    "            return;\n"
+	    "        }\n"
 	    "        *%s = assign_%s(out);\n"
 	    "    }\n"
 	    "}\n"
@@ -2240,6 +2244,10 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    out = g_snmp_session_sync_getnext(s, in);\n"
 	    "    g_snmp_vbl_free(in);\n"
 	    "    if (out) {\n"
+	    "        if (s->error_status != G_SNMP_ERR_NOERROR) {\n"
+	    "            g_snmp_vbl_free(out);\n"
+	    "            return;\n"
+	    "        }\n"
 	    "        *%s = assign_%s(out);\n"
 	    "    }\n"
 	    "}\n"
