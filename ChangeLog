@@ -1,5 +1,9 @@
 1999-06-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* test/parser.test.in: started to write a set of MIB modules
+	to test the capabilities of MIB parsers to detect syntax and
+	semantic errors.
+
 	* tools/dump-smi.c: fixed bug when dumping modules without
 	any compliance statement.
 
