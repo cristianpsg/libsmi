@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.142 2001/03/05 17:57:50 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.143 2001/04/09 10:25:52 strauss Exp $
  */
 
 %{
@@ -262,15 +262,43 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    if (len < 6 || strcmp(objectPtr->export.name+len-5, "Entry")) {
 		smiPrintErrorAtLine(parserPtr, ERR_ROWNAME_ENTRY,
 				    objectPtr->line, objectPtr->export.name);
+	    } else {
+		Object *parentPtr;
+
+		if (objectPtr->nodePtr->parentPtr &&
+		    objectPtr->nodePtr->parentPtr->lastObjectPtr) {
+		    parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
+		} else {
+		    parentPtr = NULL;
+		}
+
+		/*
+		 * This misreports some cases where the table name
+		 * does not have the "*Table" suffix.  This is trying
+		 * to allow Entry names of either fooTableEntry or
+		 * fooEntry.
+		 */
+		if (parentPtr &&
+		    !((strlen(parentPtr->export.name) == len ||
+		       strlen(parentPtr->export.name) == len - 5) &&
+		      !strncmp(objectPtr->export.name, parentPtr->export.name,
+			len - 5))) {
+		    smiPrintErrorAtLine(parserPtr, ERR_ROWNAME_TABLENAME,
+					objectPtr->line,
+					objectPtr->export.name,
+					parentPtr->export.name);
+		}
 	    }
 	}
 
 	/*
 	 * Check whether a row's SEQUENCE contains exactly the list
-	 * of child nodes (columns).
+	 * of child nodes (columns).  An unknown SEQUENCE type
+	 * is handled later.
 	 */
 
-	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW &&
+	    ((objectPtr->typePtr->flags & FLAG_INCOMPLETE) == 0)) {
 	    List *p;
 	    Node *seqNodePtr, *childNodePtr;
 	    Object *colPtr;
@@ -286,6 +314,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		 p = p->nextPtr, childNodePtr = childNodePtr->nextPtr, i++) {
 		seqNodePtr = ((Object *)p->ptr)->nodePtr;
 		
+		/* unknown OIDs are handled later */
+		if (childNodePtr->flags & FLAG_INCOMPLETE) {
+		    continue;
+		}
+
 		if (seqNodePtr->parentPtr != childNodePtr->parentPtr) {
 		    smiPrintErrorAtLine(parserPtr, ERR_SEQUENCE_NO_COLUMN,
 					objectPtr->typePtr->line,
