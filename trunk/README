@@ -7,7 +7,7 @@ Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.21 2000/10/12 15:57:32 strauss Exp $
+@(#) $Id: README,v 1.22 2000/11/01 09:30:00 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -61,6 +61,9 @@ tools/smistrip.
 Now, you may run some checks by
 
 	make check
+
+Note that some tests of this test suite may fail, if GNU diff was not
+found.
 
 If you wish to install the library, the MIB modules, the tools
 and the man pages, run
