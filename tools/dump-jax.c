@@ -1,0 +1,382 @@
+/*
+ * dump-jax.c --
+ *
+ *      Operations to generate UCD SNMP mib module implementation code.
+ *
+ * Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
+ *
+ * See the file "COPYING" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ * @(#) $Id$
+ */
+
+#include <config.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <strings.h>
+#include <errno.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <time.h>
+
+#include "smi.h"
+#include "smidump.h"
+
+
+
+static struct {
+    SmiBasetype basetype;
+    char        *javatype;
+    char        *agentxtype;
+} convertType[] = {
+    { SMI_BASETYPE_INTEGER32,        "int",         "INTEGER" },
+    { SMI_BASETYPE_OCTETSTRING,      "byte[]",      "OCTETSTRING" },
+    { SMI_BASETYPE_OBJECTIDENTIFIER, "AgentXOID",   "OBJECTIDENTIFIER" },
+    { SMI_BASETYPE_UNSIGNED32,       "long",        "GAUGE32" },
+    { SMI_BASETYPE_INTEGER64,        "long",        "INTEGER" },
+    { SMI_BASETYPE_UNSIGNED64,       "long",        "COUNTER64" },
+    { SMI_BASETYPE_ENUM,             "int",         "INTEGER" },
+    { SMI_BASETYPE_BITS,             "byte[]",      "OCTETSTRING" },
+    { SMI_BASETYPE_UNKNOWN,          NULL,          NULL }
+};
+
+
+
+static char* translate(char *m)
+{
+    static char *s = NULL;
+    int i;
+
+    if (s) xfree(s);
+    s = xstrdup(m);
+    for (i = 0; s[i]; i++) {
+	if (s[i] == '-') s[i] = '_';
+    }
+  
+    return s;
+}
+
+
+
+static char* translateUpper(char *m)
+{
+    static char *s = NULL;
+    int i;
+
+    if (s) xfree(s);
+    s = xstrdup(m);
+    for (i = 0; s[i]; i++) {
+	if (s[i] == '-') s[i] = '_';
+	if (islower((int) s[i])) {
+	    s[i] = toupper(s[i]);
+	}
+    }
+  
+    return s;
+}
+
+
+
+static char* translate1Upper(char *m)
+{
+    static char *s = NULL;
+    int i;
+
+    if (s) xfree(s);
+    s = xstrdup(m);
+    for (i = 0; s[i]; i++) {
+	if (s[i] == '-') s[i] = '_';
+    }
+    if (islower((int) s[0])) {
+	s[0] = toupper(s[0]);
+    }
+    
+    return s;
+}
+
+
+
+static char* translateLower(char *m)
+{
+    static char *s = NULL;
+    int i;
+
+    if (s) xfree(s);
+    s = xstrdup(m);
+    for (i = 0; s[i]; i++) {
+	if (s[i] == '-') s[i] = '_';
+	if (isupper((int) s[i])) {
+	    s[i] = tolower(s[i]);
+	}
+    }
+  
+    return s;
+}
+
+
+
+static char *getJavaType(SmiBasetype basetype)
+{
+    int i;
+    
+    for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
+	if (basetype == convertType[i].basetype)
+	    return convertType[i].javatype;
+    }
+    return "<UNKNOWN>";
+}
+
+
+
+static char *getAgentXType(SmiBasetype basetype)
+{
+    int i;
+    
+    for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
+	if (basetype == convertType[i].basetype)
+	    return convertType[i].agentxtype;
+    }
+    return "<UNKNOWN>";
+}
+
+
+
+static int isGroup(SmiNode *smiNode)
+{
+    SmiNode *childNode;
+
+    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+	return 1;
+    }
+    
+    for(childNode = smiGetFirstChildNode(smiNode);
+	childNode;
+	childNode = smiGetNextChildNode(childNode)) {
+	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
+	    return 1;
+	}
+    }
+
+    return 0;
+}
+
+
+
+static int isAccessible(SmiNode *groupNode)
+{
+    SmiNode *smiNode;
+    int num = 0;
+    
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if ((smiNode->nodekind == SMI_NODEKIND_SCALAR
+	     || smiNode->nodekind == SMI_NODEKIND_COLUMN)
+	    && (smiNode->access == SMI_ACCESS_READ_ONLY
+		|| smiNode->access == SMI_ACCESS_READ_WRITE)) {
+	    num++;
+	}
+    }
+
+    return num;
+}
+
+
+
+static int getMaxSize(SmiType *smiType)
+{
+    SmiRange *smiRange;
+    SmiType  *parentType;
+    int max = 0, size;
+    
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_OCTETSTRING:
+	size = 65535;
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	size = 128;
+	break;
+    default:
+	return -1;
+    }
+
+    for(smiRange = smiGetFirstRange(smiType);
+	smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	if (smiRange->maxValue.value.unsigned32 > max) {
+	    max = smiRange->maxValue.value.unsigned32;
+	}
+    }
+    if (max > 0 && max < size) {
+	size = max;
+    }
+
+    parentType = smiGetParentType(smiType);
+    if (parentType) {
+	int psize = getMaxSize(parentType);
+	if (psize < size) {
+	    size = psize;
+	}
+    }
+
+    return size;
+}
+
+
+
+static void dumpTable(SmiNode *smiNode)
+{
+    FILE *f;
+    char s[100];
+    SmiNode *parentNode, *columnNode;
+    int i;
+    
+    parentNode = smiGetParentNode(smiNode);
+    
+    sprintf(s, "%s.java", translate1Upper(parentNode->name));
+    f = fopen(s, "w");
+    if (!f) {
+	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
+	perror(NULL);
+	exit(1);
+    }
+
+    fprintf(f,
+	    "/*\n"
+	    " * This Java file has been generated by smidump " VERSION "."
+                " Do not edit!\n"
+	    " * It is intended to be used within a Java AgentX sub-agent"
+	        " environment.\n"
+	    " *\n"
+	    " * $I" "d$\n"
+	    " */\n\n");
+
+    fprintf(f,
+	    "/**\n"
+	    "    This class represents a Java AgentX (JAX) implementation of\n"
+	    "    the table `%s' defined in %s.\n"
+	    "\n"
+	    "    @version 1\n"
+	    "    @author  smidump\n"
+	    "    @see     AgentXTable\n"
+	    " */\n\n", parentNode->name, smiGetNodeModule(smiNode)->name);
+    
+    fprintf(f,
+	    "import java.util.Vector;\n"
+	    "\n"
+	    "import jax.AgentXOID;\n"
+	    "import jax.AgentXVarBind;\n"
+	    "import jax.AgentXTable;\n"
+	    "import jax.AgentXEntry;\n"
+	    "\n");
+
+    fprintf(f, "public class %s extends AgentXTable\n{\n\n",
+	    translate1Upper(parentNode->name));
+
+    fprintf(f,
+	    "    // entry OID\n"
+	    "    private final static long[] OID = {");
+    for (i = 0; i < smiNode->oidlen; i++) {
+	fprintf(f, "%s%d", i ? ", " : "", smiNode->oid[i]);
+    }
+    fprintf(f, "};\n\n");
+
+    fprintf(f,
+	    "    // constructor\n"
+	    "    public %s()\n", translate1Upper(parentNode->name));
+    fprintf(f,
+	    "    {\n"
+	    "        oid = new AgentXOID(OID);\n"
+	    "\n"
+	    "        // register implemented columns\n");
+    for (columnNode = smiGetFirstChildNode(smiNode);
+	 columnNode;
+	 columnNode = smiGetNextChildNode(columnNode)) {
+	fprintf(f,
+		"        columns.addElement(new Long(%ld));\n",
+		columnNode->oid[columnNode->oidlen-1]);
+    }
+    fprintf(f,
+	    "    }\n\n");
+    
+    fprintf(f,
+	    "    private AgentXVarBind getVarBind(AgentXEntry entry,"
+	         " long column)\n");
+    fprintf(f,
+	    "    {\n"
+	    "        AgentXOID oid = new AgentXOID(column, entry.getInstance());\n"
+	    "\n"
+	    "        switch ((int)column) {\n");
+
+    for (columnNode = smiGetFirstChildNode(smiNode);
+	 columnNode;
+	 columnNode = smiGetNextChildNode(columnNode)) {
+	fprintf(f,
+		"        case %ld: // %s\n",
+		columnNode->oid[columnNode->oidlen-1],
+		columnNode->name);
+	fprintf(f,
+		"        {\n");
+	fprintf(f,
+		"            %s value = ((%s)entry).get_%s();\n",
+		getJavaType(smiGetNodeType(columnNode)->basetype),
+		translate1Upper(smiNode->name),
+		columnNode->name);
+	fprintf(f,
+		"            return new AgentXVarBind(oid, "
+		"AgentXVarBind.%s, value);\n",
+		getAgentXType(smiGetNodeType(columnNode)->basetype));
+	
+	fprintf(f,
+		"        }\n");
+    }
+
+    fprintf(f,
+	    "        }\n"
+	    "\n"
+	    "        return null;\n"
+	    "    }\n\n");
+
+    fprintf(f,
+	    "}\n\n");
+
+    fclose(f);
+}
+
+
+
+int dumpJax(char *modulename, int flags)
+{
+    SmiModule    *smiModule;
+    SmiNode      *smiNode;
+    char	 *cModuleName;
+    
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for Jax format\n");
+	exit(1);
+    }
+    
+    smiModule = smiGetModule(modulename);
+    if (!smiModule) {
+	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
+	exit(1);
+    }
+
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
+	smiNode;
+	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ROW)) {
+	if (isGroup(smiNode) && isAccessible(smiNode)) {
+	    dumpTable(smiNode);
+	    /* dumpEntry(smiNode); */
+	}
+    }
+    
+    
+    return 0;
+}
