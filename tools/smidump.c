@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.21 1999/12/12 12:51:08 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.22 2000/01/18 11:16:49 strauss Exp $
  */
 
 #include <stdio.h>
@@ -115,13 +115,15 @@ static void formats()
 static void usage()
 {
     fprintf(stderr,
-	    "Usage: smidump [-Vhls] [-f <format>] [-p <module>] <module_or_path>\n"
+	    "Usage: smidump [-Vhls] [-c <configfile>] [-f <format>]\n"
+	    "               [-p <module>] <module_or_path>\n"
 	    "-V                    show version and license information\n"
 	    "-h                    show usage information\n"
-	    "-l <level>            set maximum level of errors and warnings\n"
 	    "-s                    do not generate any comments\n"
-	    "-f <format>           use <format> when dumping (default %s)\n"
+	    "-c <configfile>       load a specific configuration file\n"
 	    "-p <module>           preload <module>\n"
+	    "-l <level>            set maximum level of errors and warnings\n"
+	    "-f <format>           use <format> when dumping (default %s)\n"
 	    "<module_or_path>      name of a MIB module or file path\n\n",
 	    driverTable->name);
     fprintf(stderr, "Supported formats are:\n");
@@ -144,19 +146,26 @@ main(argc, argv)
 {
     char c;
     char *modulename;
-    int flags;
+    int flags, i;
     int errors = 0;
     Driver *driver = driverTable;
 
-    smiInit("smidump");
+    for (i = 1; i < argc; i++) if (strstr(argv[i], "-c") == argv[i]) break;
+    if (i == argc) 
+	smiInit("smidump");
+    else
+	smiInit(NULL);
 
     flags = smiGetFlags();
     flags |= SMI_FLAG_ERRORS;
     smiSetFlags(flags);
 
     flags = 0;
-    while ((c = getopt(argc, argv, "Vhl:sf:p:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhl:sf:p:c:")) != -1) {
 	switch (c) {
+	case 'c':
+	    smiReadConfig(optarg, "smiquery");
+	    break;
 	case 'V':
 	    version();
 	    exit(0);

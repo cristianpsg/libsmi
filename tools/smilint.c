@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.21 1999/12/13 16:16:01 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.22 1999/12/17 10:44:24 strauss Exp $
  */
 
 #include <stdio.h>
@@ -27,14 +27,15 @@
 void usage()
 {
     fprintf(stderr,
-	    "Usage: smilint [-Vhvs] [-l <level>] <module_or_path>\n"
+	    "Usage: smilint [-Vhvs] [-c <configfile>] [-l <level>] <module_or_path>\n"
 	    "-V                    show version and license information\n"
 	    "-h                    show usage information\n"
 	    "-s                    print statistics on parsed MIB modules\n"
 	    "-r                    print errors also for imported modules\n"
-	    "-i <error-pattern>    ignore errors matching prefix pattern\n"
+	    "-c <configfile>       load a specific configuration file\n"
 	    "-p <module>           preload <module>\n"
 	    "-l <level>            set maximum level of errors and warnings\n"
+	    "-i <error-pattern>    ignore errors matching prefix pattern\n"
 	    "<module_or_path>      plain name of MIB module or file path\n");
 }
 
@@ -50,17 +51,24 @@ void version()
 int main(int argc, char *argv[])
 {
     char c;
-    int flags;
+    int flags, i;
 
-    smiInit("smilint");
+    for (i = 1; i < argc; i++) if (strstr(argv[i], "-c") == argv[i]) break;
+    if (i == argc) 
+	smiInit("smilint");
+    else
+	smiInit(NULL);
 
     flags = smiGetFlags();
     
     flags |= SMI_FLAG_ERRORS;
     smiSetFlags(flags);
     
-    while ((c = getopt(argc, argv, "Vhsrp:l:i:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhsrp:l:i:c:")) != -1) {
 	switch (c) {
+	case 'c':
+	    smiReadConfig(optarg, "smiquery");
+	    break;
 	case 'V':
 	    version();
 	    exit(0);

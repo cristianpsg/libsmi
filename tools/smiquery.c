@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.38 2000/02/09 15:33:23 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.39 2000/02/09 18:26:09 strauss Exp $
  */
 
 #include <stdio.h>
@@ -271,9 +271,10 @@ char *formatvalue(const SmiValue *value)
 void usage()
 {
     fprintf(stderr,
-    "Usage: smiquery [-Vh] [-p <module>] <command> <name>\n"
+    "Usage: smiquery [-Vh] [-c <configfile>] [-p <module>] <command> <name>\n"
 	    "-V                        show version and license information\n"
 	    "-h                        show usage information\n"
+	    "-c <configfile>           load a specific configuration file\n"
 	    "-p <module>               preload <module>\n"
 	    "module <module>           show information on module <module>\n"
 	    "imports <module>          show import list of module <module>\n"
@@ -311,16 +312,23 @@ int main(int argc, char *argv[])
     SmiRefinement *refinement;
     SmiListItem *listitem;
     char *command, *name;
-    int flags;
+    int flags, i;
     char c;
     char s1[40], s2[40];
-    
-    smiInit("smiquery");
+
+    for (i = 1; i < argc; i++) if (strstr(argv[i], "-c") == argv[i]) break;
+    if (i == argc) 
+	smiInit("smiquery");
+    else
+	smiInit(NULL);
 
     flags = smiGetFlags();
 
-    while ((c = getopt(argc, argv, "Vhp:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhp:c:")) != -1) {
 	switch (c) {
+	case 'c':
+	    smiReadConfig(optarg, "smiquery");
+	    break;
 	case 'p':
 	    if (smiLoadModule(optarg) == NULL) {
 		fprintf(stderr, "smiquery: cannot locate module `%s'\n",

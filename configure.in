@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.56 2000/02/07 23:23:28 strauss Exp $
+# @(#) $Id: configure.in,v 1.57 2000/02/09 18:25:54 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -37,9 +37,6 @@ AC_CHECK_FUNC(timegm, AC_DEFINE(HAVE_TIMEGM))
 
 AC_CHECK_HEADER(getopt.h, AC_DEFINE(HAVE_GETOPT_H))
 AC_CHECK_HEADER(pwd.h, AC_DEFINE(HAVE_PWD_H))
-
-AC_DEFINE_UNQUOTED(DEFAULT_GLOBALCONFIG, "${prefix}/etc/smi.conf")
-AC_DEFINE(DEFAULT_USERCONFIG, ".smirc")
 
 AC_ARG_WITH(mibdir,
 [  --with-mibdir=DIR       use DIR to install libsmi MIB modules [DATADIR/mibs]],
@@ -78,6 +75,13 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
+
+if test "x$prefix" = "xNONE"; then
+  prefix=/usr/local
+fi
+
+AC_DEFINE_UNQUOTED(DEFAULT_GLOBALCONFIG, "${prefix}/etc/smi.conf")
+AC_DEFINE(DEFAULT_USERCONFIG, ".smirc")
 
 if ${CONFIG_SHELL} ./libtool --features | grep "enable static" >/dev/null; then
   STATIC=-static

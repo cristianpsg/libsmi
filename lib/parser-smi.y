@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.74 2000/02/09 15:33:16 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.75 2000/02/09 18:25:56 strauss Exp $
  */
 
 %{
@@ -216,7 +216,8 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->export.oidlen == 0) {
 	    if (objectPtr->nodePtr->oidlen == 0) {
 		for (nodePtr = objectPtr->nodePtr, i = 1;
-		     nodePtr->parentPtr != rootNodePtr;
+		     nodePtr->parentPtr != pendingNodePtr &&
+			 nodePtr->parentPtr != rootNodePtr;
 		     nodePtr = nodePtr->parentPtr, i++);
 		objectPtr->nodePtr->oid = calloc(i, sizeof(unsigned int));
 		objectPtr->nodePtr->oidlen = i;
