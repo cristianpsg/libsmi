@@ -3,12 +3,12 @@
  *
  *      Operations to dump conceptual models for MIB modules.
  *
- * Copyright (c) 1999 A. Mueller, Technical University of Braunschweig.
+ * Copyright (c) 2000 A. Mueller, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.5 2000/04/11 08:33:33 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.6 2000/04/12 11:32:40 strauss Exp $
  */
 
 
@@ -22,11 +22,8 @@
  *
  * Kardinalitaeten
  *
- * Aggregationen ??
  *
- * Beschriftung der Links uberarbeiten.
- *
- * mehrere Connection Points benutzen.
+ * Stereotypes erzeugen (Class = Knotenname / Stereotype = Knotenname)
  */
 
 
@@ -75,8 +72,8 @@ typedef struct GraphNode{
     SmiNode          *smiNode;
     int              group;
     int              print;
-    int              connections;
-    int              conPoints[7];
+    int              connections;  /* ?? */
+    int              conPoints[7]; /* ?? */
     float            x,y,w,h;
 } GraphNode;
 
@@ -110,14 +107,17 @@ static const float HEADSPACESIZESCALAR = 0.6;
 static const float ATTRFONTSIZE        = 0.48;
 static const float ATTRSPACESIZE       = 2.4;
 static const float RECTCORRECTION      = 0.85;
-static const float EDGEYSPACING        = 2;
+static const float EDGEYSPACING        = 2.0;
+static const float SCALARHEIGHT        = 1.4;
+static const float TABLEHEIGHT         = 1.8;
+static const float TABLEELEMHEIGHT     = 0.6;
 
 /* global graph layout */
-static const float YSPACING            = 3;
-static const float XSPACING            = 3;
-static const float NEWLINEDISTANCE     = 40;
-static const float XOFFSET             = 3;
-static const float YOFFSET             = 3;
+static const float YSPACING            = 3.0;
+static const float XSPACING            = 3.0;
+static const float NEWLINEDISTANCE     = 40.0;
+static const float XOFFSET             = 2.0;
+static const float YOFFSET             = 2.0;
 
 static SmiModule *module;
 static int       XPLAIN;
@@ -214,7 +214,7 @@ static Graph *graphInsertEdge(Graph *graph, GraphNode *startNode,
     newEdge->startNode     = startNode;
     newEdge->endNode       = endNode;
     newEdge->indexkind     = indexkind;
-    newEdge->connection    = GRAPH_CON_AGGREGATION;
+    newEdge->connection    = GRAPH_CON_ASSOCIATION;
     newEdge->enhancedindex = enhancedindex;
     newEdge->print         = 0;
 
@@ -316,13 +316,6 @@ GraphEdge *graphGetNextEdge(Graph *graph, GraphEdge *edge)
 	return NULL;
     }
     
-/*    for (tEdge = graphGetFirstEdge(graph); tEdge; tEdge = tEdge->nextPtr) {
-	if (tEdge->startNode->smiNode->name ==
-	    edge->startNode->smiNode->name &&
-	    tEdge->endNode->smiNode->name ==
-	    edge->endNode->smiNode->name) break;
-	    } */
-  
     if (!edge->nextPtr) {
 	return NULL;
     }
@@ -1007,7 +1000,9 @@ static SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
 
 
 
+
 /* -------------- main functions ------------------------------------------- */
+
 
 
 
@@ -1141,7 +1136,7 @@ static Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode)
 	    return graph;
 	}
     }
-  
+
     graph = algInsertEdge(graph, baseTable, expTable, SMI_INDEX_EXPAND,
 			  GRAPH_ENHINDEX_INDEX);  
 
@@ -1452,12 +1447,13 @@ static Graph *algLinkTables(Graph *graph)
 	}
     }
 
-    if (XPLAIN==1) {
-	printf("--- First phase - getting the nodes and linking the tables \n\n");
-	graphShowNodes(graph);
-	printf("\n");
-	graphShowEdges(graph);
-    }
+   if (XPLAIN) {
+       printf("--- First phase - getting the nodes and linking the tables");
+       printf("\n\n");
+       graphShowNodes(graph);
+       printf("\n");
+       graphShowEdges(graph);
+   } 
 
     return graph;
 }
@@ -1523,7 +1519,7 @@ static Graph *algCheckLinksByName(Graph *graph)
 	}
     }
 
-    if (XPLAIN == 1) {
+    if (XPLAIN) {
 	printf("\n--- Second Phase - reordering the connections\n\n");
 	graphShowEdges(graph);
     }
@@ -1641,7 +1637,7 @@ static Graph *algGroupScalars(Graph *graph)
 	}
     }
 
-    if (XPLAIN == 1) {
+    if (XPLAIN) {
 	printf("Scalar Groups : \n");
 	for (actGroup = 1;
 	     actGroup <= algGetNumberOfGroups(graph);
@@ -1683,12 +1679,15 @@ static Graph *algLinkLonelyTables(Graph *graph)
 		for (tNode2 = graphGetFirstNode(graph);
 		     tNode2;
 		     tNode2 = graphGetNextNode(graph, tNode2)) {
+
 		    if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE &&
 			tNode != tNode2) {
+
 			for (smiElement2 = smiGetFirstElement(
 			    smiGetFirstChildNode(tNode2->smiNode));
 			     smiElement2;
 			     smiElement2 = smiGetNextElement(smiElement2)) {
+
 			    if (strcmp(algGetTypeName(
 				           smiGetElementNode(smiElement2)),
 				       algGetTypeName(
@@ -1742,7 +1741,7 @@ static Graph *algLinkLonelyTables(Graph *graph)
  */
 static Graph *algConnectLonelyNodes(Graph *graph) 
 {
-    if (XPLAIN == 1) {
+    if (XPLAIN) {
 	printf("\n--- Fourth Phase -  connecting isolated nodes\n\n");
     }
 
@@ -1752,7 +1751,7 @@ static Graph *algConnectLonelyNodes(Graph *graph)
 
     graph = algGroupScalars(graph);
 
-    if (XPLAIN == 1) {
+    if (XPLAIN) {
 	graphShowEdges(graph);
     }
 
@@ -1831,7 +1830,7 @@ static Graph *algCheckForDependency(Graph *graph)
 					      startTable, SMI_INDEX_UNKNOWN,
 					      GRAPH_ENHINDEX_TYPES);
 			tEdge2 = graphGetLastEdge(graph);
-			tEdge2->connection = GRAPH_CON_ASSOCIATION;
+			/*tEdge2->connection = GRAPH_CON_ASSOCIATION;*/
 			break;
 		    }
 		}
@@ -1839,7 +1838,7 @@ static Graph *algCheckForDependency(Graph *graph)
 	}
     }
 
-    if (XPLAIN == 1) {
+    if (XPLAIN) {
 	printf("\n--- Fifth Phase - checking for dependency connections\n\n");
 	graphShowEdges(graph);
     }
@@ -1850,7 +1849,8 @@ static Graph *algCheckForDependency(Graph *graph)
 /*
  * algCheckNotifications
  *
- * Checks the notifications for edges not yet present.
+ * Checks the notifications for connections between elements which are
+ * not yet linked.
  * Every notification objects is checked whether its elements are
  * connected or not.
  */
@@ -1882,10 +1882,9 @@ static Graph *algCheckNotifications(Graph *graph)
 		}
 	    }
 	}
-
     }
 
-    if (XPLAIN == 1) {
+    if (XPLAIN) {
 	printf("\n--- Third Phase - notifications \n\n");
 	graphShowEdges(graph);
     }
@@ -1949,9 +1948,13 @@ static void printCloseXML()
     printf("</diagram>\n");
 }
 
-static void printXMLObject(GraphNode *node, float x, float y)
+static void printXMLObject(Graph *graph,GraphNode *node, float x, float y)
 {
     SmiElement *smiElement;
+    GraphEdge  *tEdge;
+    
+    if (!node) return;
+    if (node->print == 1) return;
 
     node->x = x;
     node->y = y;
@@ -1960,13 +1963,13 @@ static void printXMLObject(GraphNode *node, float x, float y)
     printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
 	   node->smiNode->name);
     printf("      <attribute name=\"obj_pos\">\n");
-    printf("       <point val=\"%f,%f\"/>\n",x,y);
+    printf("       <point val=\"%2f,%2f\"/>\n",x,y);
     printf("      </attribute>\n");
     printf("     <attribute name=\"obj_bb\">\n");
     printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_corner\">\n");
-    printf("       <point val=\"%f,%f\"/>\n",x,y);
+    printf("       <point val=\"%2f,%2f\"/>\n",x,y);
     printf("     </attribute>\n");
     printf("     <attribute name=\"elem_width\">\n");
     printf("       <real val=\"%f\"/>\n",node->w);
@@ -2030,6 +2033,41 @@ static void printXMLObject(GraphNode *node, float x, float y)
 	printf("            <boolean val=\"false\"/>\n");
 	printf("          </attribute>\n");
 	printf("        </composite>\n");	
+    }
+
+    if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
+	for (tEdge = graphGetFirstEdgeByNode(graph,node);
+	     tEdge;
+	     tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
+	    if (tEdge->startNode == node &&
+		tEdge->endNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
+		tEdge->print = 1;
+		tEdge->endNode->print = 1;
+		
+		printf("        <composite type=\"umlattribute\">\n");
+		printf("          <attribute name=\"name\">\n");
+		printf("            <string>#%s#</string>\n",
+		       tEdge->endNode->smiNode->name);
+		printf("          </attribute>\n");
+		printf("          <attribute name=\"type\">\n");
+		printf("            <string>#%s#</string>\n",
+		       algGetTypeName(tEdge->endNode->smiNode));
+		printf("          </attribute>\n");
+		printf("          <attribute name=\"value\">\n");
+		printf("            <string/>\n");
+		printf("          </attribute>\n");
+		printf("          <attribute name=\"visibility\">\n");
+		printf("            <enum val=\"0\"/>\n");
+		printf("          </attribute>\n");
+		printf("          <attribute name=\"abstract\">\n");
+		printf("            <boolean val=\"false\"/>\n");
+		printf("          </attribute>\n");
+		printf("          <attribute name=\"class_scope\">\n");
+		printf("            <boolean val=\"true\"/>\n");
+		printf("          </attribute>\n");
+		printf("        </composite>\n");	
+	    }
+	}
     }
     
     printf("      </attribute>\n");
@@ -2136,21 +2174,6 @@ static void printXMLGroup(Graph *graph, int group, float x, float y)
     printf("   </object>\n");
 }
 
-static float getObjX(GraphNode *tNode)
-{
-    return (float) tNode->w / 2 + tNode->x;   
-}
-
-static float getObjY(GraphNode *tNode)
-{
-    return (float) tNode->y;
-}
-
-static float getObjYRel(GraphNode *tNode, int con)
-{
-    return (float) tNode->y-EDGEYSPACING-con;
-}
-
 static float getRectSX(GraphNode *tNode)
 {
     return (float) tNode->w / 2 + tNode->x - RECTCORRECTION;
@@ -2171,20 +2194,144 @@ static float getRectEY(GraphNode *tNode)
     return (float) tNode->y - 2 + RECTCORRECTION;
 }
 
-static void printXMLDependency(GraphEdge *tEdge, int con)
+
+static int getConPoint(GraphNode *snode, GraphNode *enode)
 {
-    if (tEdge->print == 1) return;
-    tEdge->print = 1;
+    float x1,y1,x2,y2;
+    int   con = 1;
+    
+    x1 = snode->x;
+    y1 = snode->y;
+    x2 = enode->x;
+    y2 = enode->y;    
 
-    printf("    <object type=\"UML - Dependency\" "
-	   "version=\"0\" id=\"Depend:%s:%s\">\n",
-	   tEdge->startNode->smiNode->name,
-	   tEdge->endNode->smiNode->name);    
+    if (x1 == x2 && y1 < y2) con = 6;
+    if (x1 == x2 && y1 > y1) con = 1;
+    if (x1 > x2 && y1 == y2) con = 3;
+    if (x1 < x2 && y1 == y2) con = 4;
+    if (x1 > x2 && y1 > y2)  con = 0;
+    if (x1 > x2 && y1 < y2)  con = 5;
+    if (x1 < x2 && y1 > y2)  con = 2;
+    if (x1 < x2 && y1 < y2)  con = 7;
 
+    snode->conPoints[con]++;
+    
+    return con;
+}
+
+static float getObjX(GraphNode *node, int con)
+{
+    switch (con) {
+    case 0 :
+	return node->x;
+	break;
+    case 1 :
+	return node->w / 2 + node->x;
+	break;
+    case 2 :
+	return node->x + node->w;
+	break;
+    case 3 :
+	return node->x;
+	break;	
+    case 4 :
+	return node->x + node->w;
+	break;
+    case 5 :
+	return node->x;
+	break;	
+    case 6 :
+	return node->w / 2 + node->x;
+	break;
+    case 7 :
+	return node->x + node->w;
+	break;
+    }
+}
+
+static float getObjY(GraphNode *node, int con)
+{
+    switch (con) {
+    case 0 :
+	return node->y;
+	break;
+    case 1 :
+	return node->y;
+	break;
+    case 2 :
+	return node->y;
+	break;
+    case 3 :
+	return node->y + TABLEHEIGHT / 2;
+	break;	
+    case 4 :
+	return node->y + TABLEHEIGHT / 2;
+	break;
+    case 5 :
+	return node->y + node->h;
+	break;	
+    case 6 :
+	return node->y + node->h;
+	break;
+    case 7 :
+	return node->y + node->h;
+	break;
+    }
+}
+
+static float getObjYRel(GraphEdge *edge, int con)
+{
+    GraphNode *node, *node2;
+    float     dist;
+    
+    node = edge->startNode;
+    node2 = edge->endNode;
+    dist = abs((node->y - node2->y) / 2);
+
+    switch (con) {
+    case 0 :
+	return node->y - dist;
+	break;
+    case 1 :
+	return node->y - dist;
+	break;
+    case 2 :
+	return node->y - dist;
+	break;
+    case 3 :
+	return node->y + TABLEHEIGHT / 2;
+	break;	
+    case 4 :
+	return node->y + TABLEHEIGHT / 2;
+	break;
+    case 5 :
+	return node->y + node->h + dist;
+	break;	
+    case 6 :
+	return node->y + node->h + dist;
+	break;
+    case 7 :
+	return node->y + node->h + dist;
+	break;
+    }
+}
+
+/*
+ * printCoordinates
+ *
+ * prints and calculates the coordinates of a given edge
+ */
+static void printCoordinates(GraphEdge *tEdge)
+{
+    int scon, econ;
+
+    scon = getConPoint(tEdge->startNode, tEdge->endNode);
+    econ = getConPoint(tEdge->endNode, tEdge->startNode);
+    
     printf("      <attribute name=\"obj_pos\">\n");
     printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjY(tEdge->startNode));	   
+	   ,getObjX(tEdge->startNode,scon)
+	   ,getObjY(tEdge->startNode,scon));	   
     printf("     </attribute>\n");
     printf("      <attribute name=\"obj_bb\">\n");
     printf("       <rectangle val=\"%f,%f;%f,%f\"/>\n"
@@ -2195,18 +2342,52 @@ static void printXMLDependency(GraphEdge *tEdge, int con)
     printf("     </attribute>\n");
     printf("     <attribute name=\"orth_points\">\n");
     printf("       <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjY(tEdge->startNode));	
+	   ,getObjX(tEdge->startNode,scon)
+	   ,getObjY(tEdge->startNode,scon));	
     printf("       <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjYRel(tEdge->startNode,con));
+	   ,getObjX(tEdge->startNode,scon)
+	   ,getObjYRel(tEdge,scon));
     printf("       <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->endNode)
-	   ,getObjYRel(tEdge->startNode,con));
+	   ,getObjX(tEdge->endNode,econ)
+	   ,getObjYRel(tEdge,scon));
     printf("       <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->endNode)
-	   ,getObjY(tEdge->endNode));	
+	   ,getObjX(tEdge->endNode,econ)
+	   ,getObjY(tEdge->endNode,econ));	
     printf("     </attribute>\n");
+}
+
+/*
+ * printConPoints
+ *
+ * prints the connection points of an edge
+ */
+static void printConPoints(GraphEdge *tEdge)
+{
+    int scon, econ;
+
+    scon = getConPoint(tEdge->startNode, tEdge->endNode);
+    econ = getConPoint(tEdge->endNode, tEdge->startNode);
+    
+    printf("    <connections>\n");
+    printf("      <connection handle=\"0\" to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->startNode->smiNode->name,scon);
+    printf("      <connection handle=\"1\" to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->endNode->smiNode->name, econ);
+    printf("    </connections>\n");    
+}
+
+static void printXMLDependency(GraphEdge *tEdge)
+{
+    if (tEdge->print == 1) return;
+    tEdge->print = 1;
+
+    printf("    <object type=\"UML - Dependency\" "
+	   "version=\"0\" id=\"Depend:%s:%s\">\n",
+	   tEdge->startNode->smiNode->name,
+	   tEdge->endNode->smiNode->name);    
+
+    printCoordinates(tEdge);
+    
     printf("     <attribute name=\"orth_orient\">\n");
     printf("       <enum val=\"1\"/>\n");
     printf("       <enum val=\"0\"/>\n");
@@ -2221,53 +2402,30 @@ static void printXMLDependency(GraphEdge *tEdge, int con)
     printf("     <attribute name=\"stereotype\">\n");
     printf("      <string/>\n");
     printf("    </attribute>\n");
-    printf("    <connections>\n");
 
-    printf("      <connection handle=\"0\" to=\"%s\" connection=\"%d\"/>\n",
-	   tEdge->startNode->smiNode->name,1);
-    printf("      <connection handle=\"1\" to=\"%s\" connection=\"%d\"/>\n",
-	   tEdge->endNode->smiNode->name,1);
+    printConPoints(tEdge);
     
-    printf("    </connections>\n");
     printf("    </object>\n");
 }
 
-static void printXMLAggregation(GraphEdge *tEdge, int con)
+/*
+ * Aggregation is a special case of the association.
+ * If aggregate = 1 it is an aggregation if 0 it is an association.
+ */
+static void printXMLAssociation(GraphEdge *tEdge, int aggregate)
 {
     if (tEdge->print == 1) return;
     tEdge->print = 1;
+    if (aggregate > 1) aggregate = 1;
+    if (aggregate < 0) aggregate = 0;
     
     printf("    <object type=\"UML - Association\" "
 	   "version=\"0\" id=\"Assoc:%s:%s\">\n",
 	   tEdge->startNode->smiNode->name,
 	   tEdge->endNode->smiNode->name);
     
-    printf("      <attribute name=\"obj_pos\">\n");
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjY(tEdge->startNode));
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"obj_bb\">\n");
-    printf("        <rectangle val=\"%f,%f;%f,%f\"/>\n"
-	   ,getRectSX(tEdge->startNode)
-	   ,getRectSY(tEdge->startNode)
-	   ,getRectEX(tEdge->startNode)
-	   ,getRectEY(tEdge->startNode));
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"orth_points\">\n");
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjY(tEdge->startNode));
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjYRel(tEdge->startNode,con));
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->endNode)
-	   ,getObjYRel(tEdge->startNode,con));
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->endNode)
-	   ,getObjY(tEdge->endNode));
-    printf("      </attribute>\n");
+    printCoordinates(tEdge);
+    
     printf("      <attribute name=\"orth_orient\">\n");
     printf("        <enum val=\"1\"/>\n");
     printf("        <enum val=\"0\"/>\n");
@@ -2281,16 +2439,17 @@ static void printXMLAggregation(GraphEdge *tEdge, int con)
 	case GRAPH_ENHINDEX_UNKNOWN :
 	    break;
 	case GRAPH_ENHINDEX_TYPES :
-	    printf("       <string>#%s#</string>\n","UNKNOWN (TYPES)");
+	    printf("       <string>#%s#</string>\n","EQUAL TYPES IN INDICES");
 	    break;
 	case GRAPH_ENHINDEX_NAMES :
-	    printf("       <string>#%s#</string>\n","UNKNOWN (NAMES)");
+	    printf("       <string>#%s#</string>\n","SAME PREFIX");
 	    break;
 	case GRAPH_ENHINDEX_NOTIFICATION :
-	    printf("       <string>#%s#</string>\n","UNKNOWN (NOTIFICATION)");
+	    printf("       <string>#%s#</string>\n","NOTIFICATION LINK");
 	    break;
 	case GRAPH_ENHINDEX_INDEX :
-	    printf("       <string>#%s#</string>\n","UNKNOWN (INDEX)");
+	    /* should not occur - is handled below */
+	    printf("       <string>#%s#</string>\n","INDEX");
 	    break;	    
 	}
 	break;
@@ -2378,115 +2537,39 @@ static void printXMLAggregation(GraphEdge *tEdge, int con)
     printf("            <boolean val=\"false\"/>\n");
     printf("          </attribute>\n");
     printf("          <attribute name=\"aggregate\">\n");
-    printf("            <enum val=\"1\"/>\n");
+    printf("            <enum val=\"%d\"/>\n",aggregate);
     printf("          </attribute>\n");
     printf("        </composite>\n");
     printf("      </attribute>\n");
-    printf("      <connections>\n");
-    printf("        <connection handle=\"0\" "
-	   "to=\"%s\" connection=\"%d\"/>\n",
-	   tEdge->startNode->smiNode->name, 1);
+
+    printConPoints(tEdge);
     
-    printf("        <connection handle=\"1\" "
-	   "to=\"%s\" connection=\"%d\"/>\n",
-	   tEdge->endNode->smiNode->name, 1);
-    
-    printf("      </connections>\n");
     printf("    </object>\n");
 }
 
-static void printXMLAssociation(GraphEdge *tEdge, int con)
+static void printXMLConnection(GraphEdge *tEdge)
 {
-    if (tEdge->print == 1) return;
-    tEdge->print = 1;
-    
-    printf("    <object type=\"UML - Association\" "
-	   "version=\"0\" id=\"Assoc:%s:%s\">\n",
-	   tEdge->startNode->smiNode->name,
-	   tEdge->endNode->smiNode->name);
-    
-    printf("      <attribute name=\"obj_pos\">\n");
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjY(tEdge->startNode));
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"obj_bb\">\n");
-    printf("        <rectangle val=\"%f,%f;%f,%f\"/>\n"
-	   ,getRectSX(tEdge->startNode)
-	   ,getRectSY(tEdge->startNode)
-	   ,getRectEX(tEdge->startNode)
-	   ,getRectEY(tEdge->startNode));
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"orth_points\">\n");
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjY(tEdge->startNode));
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->startNode)
-	   ,getObjYRel(tEdge->startNode,con));
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->endNode)
-	   ,getObjYRel(tEdge->startNode,con));
-    printf("        <point val=\"%f,%f\"/>\n"
-	   ,getObjX(tEdge->endNode)
-	   ,getObjY(tEdge->endNode));
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"orth_orient\">\n");
-    printf("        <enum val=\"1\"/>\n");
-    printf("        <enum val=\"1\"/>\n");
-    printf("        <enum val=\"1\"/>\n");   
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"name\">\n");
-    printf("        <string/>\n");    
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"direction\">\n");
-    printf("        <enum val=\"0\"/>\n");
-    printf("      </attribute>\n");
-    printf("      <attribute name=\"ends\">\n");
-    printf("        <composite>\n");
-    printf("          <attribute name=\"role\">\n");
-    printf("            <string/>\n");
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"multiplicity\">\n");
-    printf("            <string/>\n");
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"arrow\">\n");
-    printf("            <boolean val=\"false\"/>\n");
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"aggregate\">\n");
-    printf("            <enum val=\"0\"/>\n");
-    printf("          </attribute>\n");
-    printf("        </composite>\n");
-    printf("        <composite>\n");
-    printf("          <attribute name=\"role\">\n");
-    printf("            <string/>\n");
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"multiplicity\">\n");
-    printf("            <string/>\n");    
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"arrow\">\n");
-    printf("            <boolean val=\"false\"/>\n");
-    printf("          </attribute>\n");
-    printf("          <attribute name=\"aggregate\">\n");
-    printf("            <enum val=\"0\"/>\n");
-    printf("          </attribute>\n");
-    printf("        </composite>\n");
-    printf("      </attribute>\n");
-    printf("      <connections>\n");
-    printf("        <connection handle=\"0\" "
-	   "to=\"%s\" connection=\"%d\"/>\n",
-	   tEdge->startNode->smiNode->name, 1);
-    
-    printf("        <connection handle=\"1\" "
-	   "to=\"%s\" connection=\"%d\"/>\n",
-	   tEdge->endNode->smiNode->name, 1);
-    
-    printf("      </connections>\n");
-    printf("    </object>\n");
+    switch (tEdge->connection) {
+    case GRAPH_CON_AGGREGATION :
+	printXMLAssociation(tEdge,1);
+	break;
+    case GRAPH_CON_DEPENDENCY :
+	printXMLDependency(tEdge);
+	break;
+    case GRAPH_CON_ASSOCIATION :
+	printXMLAssociation(tEdge,0);
+	break;	    
+    }
 }
 
-static GraphNode *calcSize(GraphNode *node)
+/*
+ * calcSize
+ *
+ * Calculates the size of a given node for the UML representation.
+ */
+static GraphNode *calcSize(Graph *graph, GraphNode *node)
 {
+    GraphEdge  *tEdge;
     SmiNode    *tNode;
     SmiElement *smiElement;
 
@@ -2499,9 +2582,9 @@ static GraphNode *calcSize(GraphNode *node)
     }
     
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
-	node->h = 2;
+	node->h = SCALARHEIGHT;
     } else {
-	node->h = 2;
+	node->h = TABLEHEIGHT;
 	for (smiElement = smiGetFirstElement(
 	    smiGetFirstChildNode(node->smiNode));
 	     smiElement;
@@ -2511,39 +2594,79 @@ static GraphNode *calcSize(GraphNode *node)
 	    node->w = max(node->w, (strlen(tNode->name) +
 			  strlen(algGetTypeName(tNode))) * ATTRFONTSIZE
 			  + ATTRSPACESIZE);
-	    node->h++;
+	    node->h += TABLEELEMHEIGHT;
+	}
+
+	for (tEdge = graphGetFirstEdgeByNode(graph,node);
+	     tEdge;
+	     tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
+	    if (tEdge->startNode == node &&
+		tEdge->endNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
+		node->h += TABLEELEMHEIGHT;
+		tNode = tEdge->endNode->smiNode;
+		node->w = max(node->w, (strlen(tNode->name) +
+					strlen(algGetTypeName(tNode)))
+			      * ATTRFONTSIZE
+			      + ATTRSPACESIZE);		
+	    }
 	}
     }
     return node;
 }
 
+static float printNode(Graph *graph, GraphNode *node, float x, float y)
+{
+    GraphEdge *tEdge;
+
+    for (tEdge = graphGetFirstEdgeByNode(graph, node);
+	 tEdge;
+	 tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
+	if (tEdge->print == 0) {
+	    if (node == tEdge->startNode) {
+		y = y + tEdge->endNode->h + YSPACING;    
+		printXMLObject(graph, tEdge->endNode,x,y);
+		printXMLConnection(tEdge);
+
+		y = printNode(graph, tEdge->startNode,
+			      x,y);
+			      //(x+tEdge->startNode->w+XSPACING),y);
+		
+		y = printNode(graph, tEdge->endNode,
+		  (x+tEdge->startNode->w+XSPACING), y);
+	    }
+	}
+    }
+
+    return y;
+}
+
 static void printXML(Graph *graph)
 {
-    GraphNode *tNode;
-    GraphEdge *tEdge;
-    int       x,y,ydiff;
+    GraphNode *tNode, *node;
+    GraphEdge *tEdge, *tEdge2;
+    float     x,y,ydiff,xdiff;
     int       group;
-    int       conCounter;
     
     printHeader();
 
     for (tNode = graphGetFirstNode(graph);
 	 tNode;
 	 tNode = graphGetNextNode(graph, tNode)) {
-	tNode = calcSize(tNode);
+	tNode = calcSize(graph, tNode);
     }
 
     x = XOFFSET;
     y = YOFFSET;
-    ydiff = 1;
-
+    ydiff = 0;
+    
+#if 0
     for (tNode = graphGetFirstNode(graph);
 	 tNode;
 	 tNode = graphGetNextNode(graph, tNode)) {
 	if (tNode->group == 0) {
 
 	    if (tNode->print == 0) {
-		printXMLObject(tNode,x,y+tNode->connections);
+		printXMLObject(graph,tNode,x,y+tNode->connections);
 		x += XSPACING + tNode->w;
 		ydiff = max(ydiff, tNode->h+tNode->connections);
 		if (x > NEWLINEDISTANCE) {
@@ -2553,13 +2676,12 @@ static void printXML(Graph *graph)
 		}
 	    }
 	    
-	    conCounter = 1;
 	    for (tEdge = graphGetFirstEdgeByNode(graph, tNode);
 		 tEdge;
 		 tEdge = graphGetNextEdgeByNode(graph, tEdge, tNode)) {
 		if (tEdge->startNode == tNode) {
 		    if (tEdge->endNode->print == 0) {
-			printXMLObject(tEdge->endNode,x,
+			printXMLObject(graph,tEdge->endNode,x,
 				       y+tEdge->endNode->connections);
 			x += XSPACING + tEdge->endNode->w;
 			ydiff = max(ydiff,
@@ -2572,7 +2694,7 @@ static void printXML(Graph *graph)
 		    }
 		} else {
 		    if (tEdge->startNode->print == 0) {
-			printXMLObject(tEdge->startNode,x,
+			printXMLObject(graph,tEdge->startNode,x,
 				       y+tEdge->startNode->connections);
 			x += XSPACING + tEdge->startNode->w;
 			ydiff = max(ydiff,
@@ -2585,22 +2707,31 @@ static void printXML(Graph *graph)
 		    }	
 		}
 
-		conCounter++;
-		
-		switch (tEdge->connection) {
-		case GRAPH_CON_AGGREGATION :
-		    printXMLAggregation(tEdge, conCounter);
-		    break;
-		case GRAPH_CON_DEPENDENCY :
-		    printXMLDependency(tEdge, conCounter);
-		    break;
-		case GRAPH_CON_ASSOCIATION :
-		    printXMLAssociation(tEdge, conCounter);
-		    break;	    
-		}
+		printXMLConnection(tEdge);
 	    }
 	}
     }
+#else
+    for (tEdge = graphGetFirstEdge(graph);
+	 tEdge;
+	 tEdge = graphGetNextEdge(graph, tEdge)) {
+	if (!tEdge->print) {
+	    printXMLObject(graph, tEdge->startNode, x, y);
+	    x = x + tEdge->startNode->w + XSPACING;
+
+	    printXMLObject(graph, tEdge->endNode, x, y);
+	    printXMLConnection(tEdge);
+	    
+	    ydiff = tEdge->startNode->h;
+
+      	    y = printNode(graph,tEdge->startNode,x,y);
+	    y = printNode(graph,tEdge->endNode,x,y);    
+
+	    y = y + ydiff + YSPACING;
+	    x = XOFFSET;
+	}
+    }
+#endif
 
     x = XOFFSET;
     y += ydiff;
@@ -2647,7 +2778,7 @@ dumpCM(char *modulename, int flags)
     graph->nodes = NULL;
     graph->edges = NULL;
 
-    if (XPLAIN == 1) {
+    if (XPLAIN) {
        printf("\nConceptual Model of %s - generated by smidump " VERSION "\n\n"
 	    , modulename);
 }
@@ -2658,7 +2789,7 @@ dumpCM(char *modulename, int flags)
     graph = algConnectLonelyNodes(graph);
     graph = algCheckForDependency(graph);
 
-    if (XPLAIN == 0) {
+    if (!XPLAIN) {
 	printXML(graph);
     }
 
