@@ -2694,6 +2694,45 @@ static float diaPrintNode(GraphNode *node, float x, float y)
     return y;
 }
 
+/*
+ * Print the graph into a .dot file for use with neato or springgraph
+ */
+static void exportDOT(int modc, SmiModule **modv)
+{
+	GraphEdge *tEdge;
+
+	size_t  length;
+	char   *note;
+	int i;
+	const char *s1 = "digraph ";
+	const char *s2 = "{";
+	length = strlen(s1) + strlen(s2) + 1;
+	for (i = 0; i < modc; i++) {
+		length += strlen(modv[i]->name) + 1;
+	}
+	note = xmalloc(length);
+	strcpy(note, s1);
+	for (i = 0; i < modc; i++) {
+		strcat(note, modv[i]->name);
+		strcat(note, " ");
+	}
+	strcat(note, s2);
+	printf("%s\n", note);
+	xfree(note);
+
+	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+		if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
+			printf("%s -> %s\n",
+			 smiGetFirstChildNode(tEdge->startNode->smiNode)->name,
+			 smiGetFirstChildNode(tEdge->endNode->smiNode)->name);
+					//tEdge->startNode->smiNode->name,
+					//tEdge->endNode->smiNode->name);
+			tEdge->dia.flags |= DIA_PRINT_FLAG;
+		}
+	}
+	printf("}\n");
+}
+
 //TODO calculate maximal x- and y-sizes and print them into the header
 static void diaPrintXML(int modc, SmiModule **modv)
 {
@@ -2812,6 +2851,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	algCheckForPointerRels();
 	
 	if (!XPLAIN) {
+	    //exportDOT(modc, modv);
 	    diaPrintXML(modc, modv);
 	}
 	graphExit(graph);
@@ -2840,6 +2880,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	    algCheckForPointerRels();
 	    
 	    if (!XPLAIN) {
+		//exportDOT(1, &(modv[i]));
 		diaPrintXML(1, &(modv[i]));
 	    }
 	
