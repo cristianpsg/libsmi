@@ -1,7 +1,10 @@
 /*
  * dump-corba.c --
  *
- *      Operations to dump CORBA IDL and OID definitions.
+ *      Operations to dump CORBA IDL and OID definitions. This is based
+ *	on the JIDM Specification Translation developed by the JIDM task
+ *	force, published as Open Group <URL:http://www.opengroup.org/>
+ *	as document C802 (ISBN 1-85912-256-6, January 2000).
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 1999 J. Schoenwaelder, Technical University of Braunschweig.
@@ -9,13 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.4 1999/12/20 09:36:42 strauss Exp $
- */
-
-/*
- * TODO:
- *	  - notifications (3.5)
- *	  - factory interfaces (3.4.7)
+ * @(#) $Id: dump-corba.c,v 1.5 2000/01/13 12:24:38 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -99,9 +96,12 @@ typedef struct IdlEntry {
 static IdlEntry *idlModuleNameList = NULL;
 static IdlEntry *idlNodeNameList = NULL;
 static IdlEntry *idlTypeNameList = NULL;
+static IdlEntry *idlVBTypeNameList = NULL;
 
 static IdlEntry **idlNameLists[] = {
-    &idlModuleNameList, &idlNodeNameList, &idlTypeNameList, NULL
+    &idlModuleNameList, &idlNodeNameList,
+    &idlTypeNameList, &idlVBTypeNameList,
+    NULL
 };
 
 
@@ -246,6 +246,31 @@ static char* getIdlTypeName(char *module, char *name)
 
 
 
+static char* getIdlVBTypeName(char *module, char *name, int *isnew)
+{
+    char *s, *vbTypeName;
+
+    vbTypeName = xmalloc(strlen(name) + 10);
+    sprintf(vbTypeName, "%sVBType", name);
+    vbTypeName[0] = toupper((int) vbTypeName[0]);
+
+    if (isnew) {
+	*isnew = 0;
+    }
+    s = dictFindName(idlVBTypeNameList, module, vbTypeName);
+    if (! s) {
+	if (isnew) {
+	    *isnew = 1;
+	}
+	s = dictAddName(&idlVBTypeNameList, module, vbTypeName);
+    }
+
+    xfree(vbTypeName);
+    return s;
+}
+
+
+
 static int current(SmiStatus status)
 {
     switch (status) {
@@ -372,7 +397,7 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
 	if (valuePtr->value.bits) {
-	    for(p = valuePtr->value.bits; *p; p++) {
+	    for (p = valuePtr->value.bits; *p; p++) {
 		if (p != valuePtr->value.bits)
 		    sprintf(&s[strlen(s)], ", ");
 		sprintf(&s[strlen(s)], "%s", *p);
@@ -425,10 +450,10 @@ static void createImportList(char *modulename)
     SmiType     *smiType;
     SmiNodekind kind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
-    for(smiNode = smiGetFirstNode(modulename, kind);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, kind)) {
-
+    for (smiNode = smiGetFirstNode(modulename, kind);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, kind)) {
+	
 	smiType = smiGetType(smiNode->typemodule, smiNode->typename);
 	if (smiType && strcmp(smiType->module, modulename)) {
 	    if (strlen(smiType->module)) {
@@ -553,9 +578,9 @@ static int isGroup(SmiNode *smiNode)
 {
     SmiNode *childNode;
     
-    for(childNode = smiGetFirstChildNode(smiNode);
-	childNode;
-	childNode = smiGetNextChildNode(childNode)) {
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
 	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
 	     || childNode->nodekind == SMI_NODEKIND_TABLE)
 	    && current(childNode->status)) {
@@ -566,6 +591,33 @@ static int isGroup(SmiNode *smiNode)
 
     return 0;
 }
+
+
+
+static int isCreatable(SmiNode *smiNode)
+{
+    SmiNode *childNode;
+    
+    if ((isGroup(smiNode) || smiNode->nodekind == SMI_NODEKIND_ROW)
+	&& current(smiNode->status)) {
+
+	for (childNode = smiGetFirstChildNode(smiNode);
+	     childNode;
+	     childNode = smiGetNextChildNode(childNode)) {
+	    
+	    if ((childNode->nodekind == SMI_NODEKIND_SCALAR
+		 || childNode->nodekind == SMI_NODEKIND_COLUMN)
+		&& current(childNode->status)
+		&& childNode->access == SMI_ACCESS_READ_WRITE) {
+		smiFreeNode(childNode);
+		return 1;
+	    }
+	}
+    }
+
+    return 0;
+}
+
 
 
 static void printDescription(SmiNode *smiNode, int indent)
@@ -616,7 +668,7 @@ static void printIncludes(char *modulename)
     printf("#include <ASN1Types.idl>\n");
     printf("#include <SNMPMgmt.idl>\n");
 
-    for(import = importList; import; import = import->nextPtr) {
+    for (import = importList; import; import = import->nextPtr) {
 	if (!lastModulename
 	    || strcmp(lastModulename, import->module)) {
 	    printf("#include <%s.idl>\n",
@@ -636,7 +688,7 @@ static void printImportedTypedefs(char *modulename)
     int	      cnt = 0;
     char      *idlTypeName;
 
-    for(import = importList; import; import = import->nextPtr) {
+    for (import = importList; import; import = import->nextPtr) {
 	cnt++;
 	idlTypeName = getIdlTypeName(import->module, import->name);
 	printSegment(INDENT, "typedef ", 0);
@@ -689,8 +741,8 @@ static void printModule(char *modulename)
 		print("\n");
 		printMultilineString(smiModule->contactinfo);
 		print("\n\n");
-		for(; smiRevision;
-		    smiRevision = smiGetNextRevision(smiRevision)) {
+		for (; smiRevision;
+		     smiRevision = smiGetNextRevision(smiRevision)) {
 		    if (strcmp(smiRevision->description,
 	       "[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
 			printSegment(INDENT, "REVISION:", INDENTVALUE);
@@ -744,9 +796,9 @@ static void printType(SmiType *smiType)
 	   getBaseTypeString(smiType->basetype), idlTypeName);
     
     if (smiType->basetype == SMI_BASETYPE_ENUM) {
-	for(nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
-	    nn;
-	    nn = smiGetNextNamedNumber(nn)) {
+	for (nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	     nn;
+	     nn = smiGetNextNamedNumber(nn)) {
 	    printSegment(INDENT, "const ", 0);
 	    nnName = translate(nn->name);
 	    print("%s %s_%s = %s;\n", idlTypeName, idlTypeName, nnName,
@@ -755,9 +807,9 @@ static void printType(SmiType *smiType)
 	}
 	printSegment(INDENT, "const string ", 0);
 	print("%s_NameNumberList = \"", idlTypeName);
-	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
-	    nn;
-	    i++, nn = smiGetNextNamedNumber(nn)) {
+	for (i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	     nn;
+	     i++, nn = smiGetNextNamedNumber(nn)) {
 	    nnName = translate(nn->name);
 	    if (i) {
 		print(" , ");
@@ -838,9 +890,9 @@ static void printGroupInterface(SmiNode *smiNode)
     printSegment(INDENT, "interface", 0);
     print(" %s : SNMPMgmt::SmiEntry {\n", idlNodeName);
 
-    for(childNode = smiGetFirstChildNode(smiNode);
-	childNode;
-	childNode = smiGetNextChildNode(childNode)) {
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_TABLE
 	    && current(childNode->status)) {
 	    if (! silent) {
@@ -891,9 +943,9 @@ static void printRowInterface(SmiNode *smiNode)
 
     /* SMI_INDEX_EXPAND ? */
 
-    for(childNode = smiGetFirstChildNode(smiNode);
-	childNode;
-	childNode = smiGetNextChildNode(childNode)) {
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_COLUMN
 	    && current(childNode->status)) {
 	    printAttribute(childNode);
@@ -909,9 +961,9 @@ static void printInterfaces(char *modulename)
 {
     SmiNode *smiNode;
 
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
 	    printGroupInterface(smiNode);
 	}
@@ -924,6 +976,263 @@ static void printInterfaces(char *modulename)
 
 
 
+static void printConstructor(SmiNode *smiNode)
+{
+    SmiNode *childNode;
+    char    *idlNodeName;
+    char    *idlChildNodeName, *idlChildTypeName;
+    int	    cnt = 0;
+
+    idlNodeName = getIdlNodeName(smiNode->module, smiNode->name);
+
+    print("\n");
+    printSegment(2*INDENT, "", 0);
+    print("%s create_%s (\n", idlNodeName, idlNodeName);
+
+    /* XXX I think we need to include INDEX columns here XXX */
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
+	     || childNode->nodekind == SMI_NODEKIND_COLUMN)
+	    && current(childNode->status)
+	    && childNode->access == SMI_ACCESS_READ_WRITE) {
+
+	    cnt++;
+	    idlChildNodeName = getIdlNodeName(childNode->module,
+					      childNode->name);
+	    if (childNode->typemodule) {
+		idlChildTypeName = getIdlTypeName(
+		    childNode->typemodule, childNode->typename);
+	    } else {
+		idlChildTypeName = getBaseTypeString(
+		    childNode->basetype);
+	    }
+	    if (cnt > 1) {
+		print(",\n");
+	    }
+	    printSegment(3*INDENT, "in ", 0);
+	    print("%s %s", idlChildTypeName, idlChildNodeName);
+	}
+    }
+    print("\n");
+    
+    printSegment(2*INDENT, ") raises (\n", 0);
+    printSegment(3*INDENT, "SNMPMgmt::AlreadyExists,\n", 0);
+    printSegment(3*INDENT, "CosLifeCycle::InvalidCriteria,\n", 0);
+    printSegment(3*INDENT, "CosLifeCycle::CannotMeetCriteria\n", 0);
+    printSegment(2*INDENT, ");\n", 0);
+}
+
+
+
+static void printFactory(char *modulename)
+{
+    SmiNode *smiNode;
+    int	    cnt = 0;
+
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	
+	if (isCreatable(smiNode)) {
+	    cnt++;
+	    if (cnt == 1) {
+		printSegment(INDENT, "interface SmiEntryFactory : "
+			     "SNMPMgmt::GenericFactory {\n", 0);
+	    }
+	    printConstructor(smiNode);
+	}
+    }
+
+    if (cnt) {
+	printSegment(INDENT, "};\n\n", 0);
+    }
+}
+
+
+
+static void printNotificationVBTypes(char *modulename)
+{
+    SmiNode     *smiNode, *listSmiNode;
+    SmiListItem *listitem;
+    char	*idlTypeName;
+    char	*idlVBTypeName;
+    int		isnew;
+    
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+
+	for (listitem = smiGetFirstListItem(smiNode);
+	     listitem; listitem = smiGetNextListItem(listitem)) {
+	    idlVBTypeName = getIdlVBTypeName(listitem->module,
+					     listitem->name, &isnew);
+	    listSmiNode = smiGetNode(listitem->module, listitem->name);
+	    if (isnew && listSmiNode) {
+		printSegment(INDENT, "struct ", 0);
+		print("%s {\n", idlVBTypeName);
+		printSegment(2*INDENT, "string var_name;\n", 0);
+		printSegment(2*INDENT, "string var_index;\n", 0);
+		printSegment(2*INDENT, "", 0);
+		if (listSmiNode->typemodule) {
+		    idlTypeName = getIdlTypeName(listSmiNode->typemodule,
+						 listSmiNode->typename);
+		} else {
+		    idlTypeName = getBaseTypeString(listSmiNode->basetype);
+		}
+		print("%s %s;\n", idlTypeName, listitem->name);
+		printSegment(INDENT, "};\n\n", 0);
+	    }
+	    if (listSmiNode) {
+		smiFreeNode(listSmiNode);
+	    }
+	}
+    }
+}
+
+
+
+static void printNotificationTypes(char *modulename)
+{
+    SmiNode     *smiNode;
+    SmiListItem *listitem;
+    char	*idlTypeName;
+    char	*idlVBTypeName;
+    
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+
+	if ((listitem = smiGetFirstListItem(smiNode))) {
+	    idlTypeName = getIdlTypeName(smiNode->module, smiNode->name);
+	    printSegment(INDENT, "struct ", 0);
+	    print("%s {\n", idlTypeName);
+	    for (; listitem; listitem = smiGetNextListItem(listitem)) {
+		idlVBTypeName = getIdlVBTypeName(listitem->module,
+						 listitem->name, NULL);
+		printSegment(2*INDENT, "", 0);
+		print("%s %s;\n", idlVBTypeName, listitem->name);
+	    }
+	    printSegment(INDENT, "};\n\n", 0);
+	}
+    }
+}
+
+
+
+static void printPushNotifications(char *modulename)
+{
+    SmiNode     *smiNode;
+    SmiListItem *listitem;
+    char        *idlNodeName;
+    char	*idlTypeName;
+    int         cnt = 0;
+
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+
+	cnt++;
+	if (cnt == 1) {
+	    if (! silent) {
+		printSegment(INDENT,
+			     "/* typed push event communication */\n", 0);
+	    }
+	    printSegment(INDENT, "interface Notifications : ", 0);
+	    print("SNMPMgmt::Notifications {\n");
+	}
+	idlNodeName = getIdlNodeName(smiNode->module, smiNode->name);
+	if (! silent) {
+	    printDescription(smiNode, 2*INDENT);
+	}
+	printSegment(2*INDENT, "void ", 0);
+	print("%s (\n", idlNodeName);
+	printSegment(3*INDENT, "in CosNaming::Name src_entry_name,\n", 0);
+	printSegment(3*INDENT, "in CORBA::ScopedName event_type,\n", 0);
+	printSegment(3*INDENT, "in ASN1_GeneralizedTime event_time", 0);
+	if ((listitem = smiGetFirstListItem(smiNode))) {
+	    idlTypeName = getIdlTypeName(smiNode->module, smiNode->name);
+	    print(",\n");
+	    printSegment(3*INDENT, "in ", 0);
+	    print("%s notification_info", idlTypeName);
+	    smiFreeListItem(listitem);
+	}
+	print("\n");
+	printSegment(2*INDENT, ");\n", 0);
+    }    
+
+    if (cnt) {
+	printSegment(INDENT, "};\n\n", 0);
+    }
+}
+
+
+
+static void printPullNotifications(char *modulename)
+{
+    SmiNode     *smiNode;
+    SmiListItem *listitem;
+    int         cnt = 0;
+    char        *idlNodeName;
+    char	*idlTypeName;
+
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+
+	cnt++;
+	if (cnt == 1) {
+	    if (! silent) {
+		printSegment(INDENT,
+			     "/* typed pull event communication */\n", 0);
+	    }
+	    printSegment(INDENT, "interface PullNotifications : ", 0);
+	    print("SNMPMgmt::PullNotifications {\n");
+	}
+	idlNodeName = getIdlNodeName(smiNode->module, smiNode->name);
+	
+	if (! silent) {
+	    printDescription(smiNode, 2*INDENT);
+	}
+	printSegment(2*INDENT, "void ", 0);
+	print("pull_%s (\n", idlNodeName);
+	printSegment(3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
+	printSegment(3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
+	printSegment(3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
+	if ((listitem = smiGetFirstListItem(smiNode))) {
+	    idlTypeName = getIdlTypeName(smiNode->module, smiNode->name);
+	    print(",\n");
+	    printSegment(3*INDENT, "out ", 0);
+	    print("%s notification_info", idlTypeName);
+	    smiFreeListItem(listitem);
+	}
+	print("\n");
+	printSegment(2*INDENT, ");\n", 0);
+	printSegment(2*INDENT, "boolean ", 0);
+	print("try_%s (\n", idlNodeName);
+	printSegment(3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
+	printSegment(3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
+	printSegment(3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
+	if ((listitem = smiGetFirstListItem(smiNode))) {
+	    char *idlTypeName;
+	    idlTypeName = getIdlTypeName(smiNode->module, smiNode->name);
+	    print(",\n");
+	    printSegment(3*INDENT, "out ", 0);
+	    print("%s notification_info", idlTypeName);
+	    smiFreeListItem(listitem);
+	}
+	print("\n");
+	printSegment(2*INDENT, ");\n", 0);
+    }    
+
+    if (cnt) {
+	printSegment(INDENT, "};\n\n", 0);
+    }
+}
+
+
+
 static void printDefVals(char *modulename)
 {
     SmiNode *smiNode;
@@ -931,9 +1240,9 @@ static void printDefVals(char *modulename)
     char    *idlTypeName;
     
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	
 	if (smiNode->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    cnt++;
@@ -1039,6 +1348,11 @@ int dumpCorbaIdl(char *modulename, int flags)
     printModule(modulename);
     printTypedefs(modulename);
     printInterfaces(modulename);
+    printNotificationVBTypes(modulename);
+    printNotificationTypes(modulename);
+    printPushNotifications(modulename);
+    printPullNotifications(modulename);
+    printFactory(modulename);
     printDefVals(modulename);
     printDisplayHints(modulename);
     
@@ -1049,6 +1363,7 @@ int dumpCorbaIdl(char *modulename, int flags)
     dictFree(&idlModuleNameList);
     dictFree(&idlNodeNameList);
     dictFree(&idlTypeNameList);
+    dictFree(&idlVBTypeNameList);
     smiFreeModule(smiModule);
 
     return 0;
@@ -1088,9 +1403,9 @@ int dumpCorbaOid(char *modulename, int flags)
 	exit(1);
     }
 
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
 	if (isGroup(smiNode)) {
             printNameAndOid(smiNode, NULL);
