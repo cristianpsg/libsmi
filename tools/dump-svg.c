@@ -3009,6 +3009,9 @@ static void printNotificationType(int modc, SmiModule **modv,
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+		if (SUPPRESS_DEPRECATED
+				&& smiNode->status == SMI_STATUS_DEPRECATED)
+		    continue;
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
 
@@ -3097,6 +3100,9 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 		if (!isObjectGroup(smiNode))
+		    continue;
+		if (SUPPRESS_DEPRECATED
+				&& smiNode->status == SMI_STATUS_DEPRECATED)
 		    continue;
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
@@ -3187,6 +3193,9 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 		if (!isNotificationGroup(smiNode))
+		    continue;
+		if (SUPPRESS_DEPRECATED
+				&& smiNode->status == SMI_STATUS_DEPRECATED)
 		    continue;
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
@@ -3282,6 +3291,9 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_COMPLIANCE);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
+		if (SUPPRESS_DEPRECATED
+				&& smiNode->status == SMI_STATUS_DEPRECATED)
+		    continue;
 		printf(" <text x=\"%.2f\" y=\"%.2f\"><tspan", *x, *y);
 
 		if (smiNode->description) {
