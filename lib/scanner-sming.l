@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.12 1999/07/02 14:03:55 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.13 1999/12/22 14:44:03 strauss Exp $
  */
 
 %option noyywrap
@@ -521,6 +521,9 @@ SP		" "
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
+    if (strlen(yytext) > 64) {
+	printError(parser, ERR_UCIDENTIFIER_64, yytext);
+    }
     yylval.text = util_strdup(yytext);
     return ucIdentifier;
 }
@@ -530,6 +533,9 @@ SP		" "
     smingTrackInput(0, parser);
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
+    }
+    if (strlen(yytext) > 64) {
+	printError(parser, ERR_LCIDENTIFIER_64, yytext);
     }
     yylval.text = util_strdup(yytext);
     return lcIdentifier;
@@ -551,7 +557,7 @@ SP		" "
     if ((strlen(yytext) > sizeof(MAX_NUMBER)-1) ||
 	((strlen(yytext) == sizeof(MAX_NUMBER)-1) &&
 	 (strcmp(yytext, MAX_NUMBER) > 0))) {
-	printError(parser, ERR_NUMBER_TO_LARGE, yytext);
+	printError(parser, ERR_NUMBER_TOO_LARGE, yytext);
     }
     yylval.text = yytext;
     return decimalNumber;
@@ -585,7 +591,7 @@ SP		" "
     currentStringColumn = thisParser.column+1;
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentStringLength = 0;
     currentString[0] = '\0';
@@ -609,7 +615,7 @@ SP		" "
     smingTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = yytext[0];
     currentString[currentStringLength+1] = '\0';
@@ -621,7 +627,7 @@ SP		" "
     smingTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     if (currentStringFetchLine || (thisParser.column >= currentStringColumn)) {
 	currentString[currentStringLength] = yytext[0];
@@ -635,7 +641,7 @@ SP		" "
     smingTrackInput(1, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = '\n';
     currentString[currentStringLength+1] = '\0';
@@ -649,7 +655,7 @@ SP		" "
     smingTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
-        currentString = realloc(currentString, currentStringMaxLength);
+        currentString = util_realloc(currentString, currentStringMaxLength);
     }
     currentString[currentStringLength] = yytext[0];
     currentString[currentStringLength+1] = '\0';

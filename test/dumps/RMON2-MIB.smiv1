@@ -25,7 +25,7 @@ rmon OBJECT IDENTIFIER
     ::= { mib-2 16 }
 
 -- rmon MODULE-IDENTITY
---      LAST-UPDATED    "197001010000Z"
+--      LAST-UPDATED    "199605270000Z"
 --      ORGANIZATION    
 --              "IETF RMON MIB Working Group"
 --      CONTACT-INFO    

@@ -4700,7 +4700,7 @@ case 323:
 			    /* TODO */
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
 			    yyval.valuePtr->format = SMI_VALUEFORMAT_NATIVE;
-			    yyval.valuePtr->value.unsigned64 = 42;
+			    yyval.valuePtr->value.unsigned64 = strtoull(yyvsp[0].text, NULL, 0);
 			;
     break;}
 case 324:

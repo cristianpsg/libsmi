@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.32 1999/12/21 12:32:08 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.33 1999/12/22 15:36:22 strauss Exp $
  */
 
 %{
@@ -3238,7 +3238,7 @@ number:			hexadecimalNumber
 			    /* TODO */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
 			    $$->format = SMI_VALUEFORMAT_NATIVE;
-			    $$->value.unsigned64 = 42;
+			    $$->value.unsigned64 = strtoull($1, NULL, 0);
 			}
         |		decimalNumber
 			{

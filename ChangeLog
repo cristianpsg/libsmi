@@ -1,3 +1,15 @@
+2000-01-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: added revision by LAST-UPDATED clause for
+	modules without any REVISION clause.
+
+	* Juergen contributed another patch: SMIv1/SMIv2 scanner/parser
+	now get numbers as numbers and not as strings. Fixed a Y2K bug in
+	parser-smi.y. Make sure we use util_malloc() and friends
+	everywhere. Added a length check for identifiers in SMIng. Rewrote
+	the length checking code for SMIv1/SMIv2 to make it shorter.
+	Removed malloc error checks that will never happen.
+
 1999-12-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* Juergen contributed a lot of patches: some error cleanups,
