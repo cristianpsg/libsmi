@@ -1,3 +1,7 @@
+2000-04-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-smi.c: applied some patches from Ira Wolf.
+
 2000-03-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* Keith Dart <kdart@leviathan.kdart.com> has contributed a Python
