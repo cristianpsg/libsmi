@@ -163,7 +163,7 @@ getOid(n)
     if (!n) {
 	/* strip off heading `0.0' if in pending tree */
 	i -= 1;
-	strcpy(o, "<unknown>");
+	strcpy(o, "<unknown>.");
     } else {
 	strcpy(o, "");
     }
@@ -323,8 +323,7 @@ getObject(name, modulename)
 	/*
 	 * name in `1.3.0x6.1...' form.
 	 */
-	elements = strdup(name);
-	/* TODO: success? */
+	elements = util_strdup(name);
 	element = strtok(elements, ".");
 	nodePtr = rootNodePtr;
 	while (element) {
@@ -1224,7 +1223,6 @@ smiGetNames(spec, mod)
 	 * name in `1.3.0x6.1...' form.
 	 */
 	elements = util_strdup(name);
-	/* TODO: success? */
 	element = strtok(elements, ".");
 	nodePtr = rootNodePtr;
 	while (element) {
