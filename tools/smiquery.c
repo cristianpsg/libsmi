@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.62 2001/03/05 17:57:55 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.63 2001/03/08 14:49:46 schoenw Exp $
  */
 
 #include <config.h>
@@ -358,17 +358,13 @@ int main(int argc, char *argv[])
 
     optParseOptions(&argc, argv, opt, 0);
 
-    if (optind == argc) {
-	return 0;
-    }
-    
-    if (optind+2 != argc) {
+    if (argc != 3) {
 	usage();
-	return 0;
+	return 1;
     }
 	
-    command = argv[optind];
-    name = argv[optind+1];
+    command = argv[1];
+    name = argv[2];
 
     if (!strcmp(command, "module")) {
 	module = smiGetModule(name);
@@ -398,9 +394,7 @@ int main(int argc, char *argv[])
 		    printf(" Description: %s\n", format(revision->description));
 	    }
 	}
-    }
-
-    if (!strcmp(command, "imports")) {
+    } else if (!strcmp(command, "imports")) {
 	module = smiGetModule(name);
 	if (module && smiGetFirstImport(module)) {
 	    printf("     Imports:");
@@ -413,9 +407,7 @@ int main(int argc, char *argv[])
 	    }
 	    printf("\n");
 	}
-    }
-
-    if (!strcmp(command, "node")) {
+    } else if (!strcmp(command, "node")) {
 	node = smiGetNode(NULL, name);
 	if (node) {
 	    parent = smiGetParentNode(node);
@@ -471,9 +463,7 @@ int main(int argc, char *argv[])
 	    if (node->reference)
 		printf("   Reference: %s\n", format(node->reference));
 	}
-    }
-
-    if (!strcmp(command, "compliance")) {
+    } else if (!strcmp(command, "compliance")) {
 	node = smiGetNode(NULL, name);
 	if (node) {
 	    if (smiGetFirstElement(node)) {
@@ -524,9 +514,7 @@ int main(int argc, char *argv[])
 		}
 	    }
 	}
-    }
-
-    if (!strcmp(command, "children")) {
+    } else if (!strcmp(command, "children")) {
 	node = smiGetNode(NULL, name);
 	if (node && smiGetFirstChildNode(node)) {
 	    printf("    Children:");
@@ -540,9 +528,7 @@ int main(int argc, char *argv[])
 	    }
 	    printf("\n");
 	}
-    }
-
-    if (!strcmp(command, "type")) {
+    } else if (!strcmp(command, "type")) {
 	p = strrchr(name, ':');
 	if (!p) p = strrchr(name, '.');
 	if (!p) p = strrchr(name, '!');
@@ -602,9 +588,7 @@ int main(int argc, char *argv[])
 	    if (type->reference)
 		printf("   Reference: %s\n", format(type->reference));
 	}
-    }
-
-    if (!strcmp(command, "macro")) {
+    } else if (!strcmp(command, "macro")) {
 	macro = smiGetMacro(NULL, name);
 	if (macro) {
 	    printf("       Macro: %s\n", format(macro->name));
@@ -615,6 +599,9 @@ int main(int argc, char *argv[])
 	    if (macro->reference)
 		printf("   Reference: %s\n", format(macro->reference));
 	}
+    } else {
+	usage();
+	return 1;
     }
 
     smiExit();
