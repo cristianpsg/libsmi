@@ -1,5 +1,9 @@
 1999-12-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.1.8.tar.gz: released version 0.1.8.
+
+	* replaced updated SMIng I-D. updated README. minor cleanups.
+
 	* tools/*.1.in: updated option lists in man pages.
 	
 	* lib/smi.c (smiReadConfig): changed config file syntax.
@@ -55,6 +59,8 @@
 	modules from text documents like RFCs and I-Ds.
 
 1999-10-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.1.7.tar.gz: released version 0.1.7.
 
 	* lib/error.c: added check for illegal type restrictions
 	in SEQUENCEs.
