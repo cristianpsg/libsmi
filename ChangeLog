@@ -1,3 +1,7 @@
+2001-02-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/PINT-MIB: added (RFC 3055).
+
 2001-02-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/IPV6-MLD-MIB: added (RFC 3019).
