@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.9 2001/03/01 08:02:53 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.10 2001/03/02 09:26:47 schoenw Exp $
  */
 
 /*
@@ -461,6 +461,7 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
     SmiNode *smiNode, *indexNode;
     SmiType *smiType;
     char    *cModuleName, *cGroupName;
+    int     writable = 0;
 
     cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
@@ -500,13 +501,12 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	 smiNode;
 	 smiNode = smiGetNextChildNode(smiNode)) {
 	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
-#if 0
-	    && (smiNode->access == SMI_ACCESS_READ_ONLY
-		|| smiNode->access == SMI_ACCESS_READ_WRITE)
-#endif
-	    ) {
+	    && (smiNode->access >= SMI_ACCESS_READ_ONLY)) {
 	    if (isIndex(groupNode, smiNode)) {
 		continue;
+	    }
+	    if (smiNode->access == SMI_ACCESS_READ_WRITE) {
+		writable++;
 	    }
 	    smiType = smiGetNodeType(smiNode);
 	    if (! smiType) {
@@ -518,16 +518,36 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 
     fprintf(f, "} %s_t;\n\n", cGroupName);
 
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	char *cTableName;
+	SmiNode *tableNode;
+
+	tableNode = smiGetParentNode(groupNode);
+	if (tableNode) {
+	    cTableName = translate(tableNode->name);
+	    fprintf(f, "extern int\n"
+		    "%s_get_%s(host_snmp *s, %s_t ***%s);\n\n",
+		    cModuleName, cTableName, cGroupName, cGroupName);
+	    fprintf(f, "extern void\n"
+		    "%s_free_%s(%s_t **%s);\n\n",
+		    cModuleName, cTableName, cGroupName, cGroupName);
+	    xfree(cTableName);
+	}
+    }
+    fprintf(f, "extern %s_t *\n"
+	    "%s_new_%s();\n\n",
+	    cGroupName, cModuleName, cGroupName);
     fprintf(f, "extern int\n"
-	    "%s_get_%s(host_snmp *s, %s_t %s%s);\n\n",
-	    cModuleName, cGroupName, cGroupName,
-	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "***" : "**",
-	    cGroupName);
+	    "%s_get_%s(host_snmp *s, %s_t **%s);\n\n",
+	    cModuleName, cGroupName, cGroupName, cGroupName);
+    if (writable) {
+	fprintf(f, "extern int\n"
+		"%s_set_%s(host_snmp *s, %s_t *%s);\n\n",
+		cModuleName, cGroupName, cGroupName, cGroupName);
+    }
     fprintf(f, "extern void\n"
-	    "%s_free_%s(%s_t %s%s);\n\n",
-	    cModuleName, cGroupName, cGroupName,
-	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "**" : "*",
-	    cGroupName);
+	    "%s_free_%s(%s_t *%s);\n\n",
+	    cModuleName, cGroupName, cGroupName, cGroupName);
 	    
     xfree(cGroupName);
     xfree(cModuleName);
@@ -850,9 +870,10 @@ static void printVariableAssignement(FILE *f, SmiNode *groupNode)
 static void printAssignMethod(FILE *f, SmiModule *smiModule,
 			      SmiNode *groupNode)
 {
-    char *cGroupName;
+    char *cModuleName, *cGroupName;
     int i;
 
+    cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
@@ -875,12 +896,12 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
     fprintf(f, "};\n\n");
 
     fprintf(f,
-	    "    %s = (%s_t *) g_malloc0(sizeof(%s_t) + sizeof(GSList *));\n"
+	    "    %s = %s_new_%s();\n"
 	    "    if (! %s) {\n"
 	    "        return NULL;\n"
 	    "    }\n"
 	    "\n",
-	    cGroupName, cGroupName, cGroupName, cGroupName);
+	    cGroupName, cModuleName, cGroupName, cGroupName);
 
     fprintf(f,
 	    "    p = (char *) %s + sizeof(%s_t);\n"
@@ -919,6 +940,7 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 	    "\n", cGroupName);
 
     xfree(cGroupName);
+    xfree(cModuleName);
 }
  
 
@@ -962,6 +984,85 @@ static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
 
 
 
+static void printGetTableMethod(FILE *f, SmiModule *smiModule,
+				SmiNode *entryNode)
+{
+    SmiNode *smiNode, *tableNode;
+    char    *cModuleName, *cEntryName, *cTableName;
+    int     i;
+
+    tableNode = smiGetParentNode(entryNode);
+    if (! tableNode) {
+	return;
+    }
+
+    cModuleName = translateLower(smiModule->name);
+    cEntryName = translate(entryNode->name);
+    cTableName = translate(tableNode->name);
+
+    fprintf(f,
+	    "int\n"
+	    "%s_get_%s(host_snmp *s, %s_t ***%s)\n"
+	    "{\n"
+	    "    GSList *in = NULL, *out = NULL;\n",
+	    cModuleName, cTableName, cEntryName, cEntryName);
+
+    fprintf(f,
+	    "    GSList *row;\n"
+	    "    int i;\n");
+
+    fprintf(f, "    static guint32 base[] = {");
+    for (i = 0; i < entryNode->oidlen; i++) {
+	fprintf(f, "%u, ", entryNode->oid[i]);
+    }
+    fprintf(f, "0};\n");
+
+    fprintf(f,
+	    "\n"
+	    "    *%s = NULL;\n"
+	    "\n",
+	    cEntryName);
+
+    for (smiNode = smiGetFirstChildNode(entryNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	printAddVarBind(f, smiNode, entryNode);
+    }
+
+    fprintf(f,
+	    "\n"
+	    "    out = stls_snmp_gettable(s, in);\n"
+	    "    /* stls_vbl_free(in); */\n"
+	    "    if (! out) {\n"
+	    "        return -2;\n"
+	    "    }\n"
+	    "\n");
+    fprintf(f,
+	    "    *%s = (%s_t **) g_malloc0((g_slist_length(out) + 1) * sizeof(%s_t *));\n"
+	    "    if (! *%s) {\n"
+	    "        return -4;\n"
+	    "    }\n"
+	    "\n", cEntryName, cEntryName, cEntryName, cEntryName);
+    
+    fprintf(f,
+	    "    for (row = out, i = 0; row; row = g_slist_next(row), i++) {\n"
+	    "        (*%s)[i] = assign_%s(row->data);\n"
+	    "    }\n"
+	    "\n", cEntryName, cEntryName);
+    
+    fprintf(f,
+	    "    return 0;\n"
+	    "}\n"
+	    "\n");
+
+    xfree(cTableName);
+    xfree(cEntryName);
+    xfree(cModuleName);
+}
+ 
+
+
+
 static void printGetMethod(FILE *f, SmiModule *smiModule,
 			   SmiNode *groupNode)
 {
@@ -981,12 +1082,6 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "***" : "**",
 	    cGroupName);
 
-    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
-	fprintf(f,
-		"    GSList *row;\n"
-		"    int i;\n");
-    }
-
     fprintf(f, "    static guint32 base[] = {");
     for (i = 0; i < groupNode->oidlen; i++) {
 	fprintf(f, "%u, ", groupNode->oid[i]);
@@ -1005,48 +1100,95 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 	printAddVarBind(f, smiNode, groupNode);
     }
 
-    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
-	fprintf(f,
-		"\n"
-		"    out = stls_snmp_gettable(s, in);\n"
-		"    /* stls_vbl_free(in); */\n"
-		"    if (! out) {\n"
-		"        return -2;\n"
-		"    }\n"
-		"\n");
-	fprintf(f,
-		"    *%s = (%s_t **) g_malloc0((g_slist_length(out) + 1) * sizeof(%s_t *));\n"
-		"    if (! *%s) {\n"
-		"        return -4;\n"
-		"    }\n"
-		"\n", cGroupName, cGroupName, cGroupName, cGroupName);
-
-	fprintf(f,
-		"    for (row = out, i = 0; row; row = g_slist_next(row), i++) {\n"
-		"        (*%s)[i] = assign_%s(row->data);\n"
-		"    }\n"
-		"\n", cGroupName, cGroupName);
-	
-    } else {
-	fprintf(f,
-		"\n"
-		"    out = stls_snmp_getnext(s, in);\n"
-		"    stls_vbl_free(in);\n"
-		"    if (! out) {\n"
-		"        return -2;\n"
-		"    }\n"
-		"\n");
-	
-	fprintf(f,
-		"    *%s = assign_%s(out);\n"
-		"\n", cGroupName, cGroupName);
-    }
+    fprintf(f,
+	    "\n"
+	    "    out = stls_snmp_getnext(s, in);\n"
+	    "    stls_vbl_free(in);\n"
+	    "    if (! out) {\n"
+	    "        return -2;\n"
+	    "    }\n"
+	    "\n");
+    
+    fprintf(f,
+	    "    *%s = assign_%s(out);\n"
+	    "\n", cGroupName, cGroupName);
 
     fprintf(f,
 	    "    return 0;\n"
 	    "}\n"
 	    "\n");
 
+    xfree(cGroupName);
+    xfree(cModuleName);
+}
+
+
+
+static void printNewMethod(FILE *f, SmiModule *smiModule,
+			   SmiNode *groupNode)
+{
+    char *cModuleName, *cGroupName;
+
+    cModuleName = translateLower(smiModule->name);
+    cGroupName = translate(groupNode->name);
+
+    fprintf(f,
+	    "%s_t *\n"
+	    "%s_new_%s()\n"
+	    "{\n"
+	    "    %s_t *%s;\n"
+	    "\n",
+	    cGroupName, cModuleName, cGroupName, cGroupName, cGroupName);
+
+    fprintf(f,
+	    "    %s = (%s_t *) g_malloc0(sizeof(%s_t) + sizeof(gpointer));\n"
+	    "    return %s;\n"
+	    "}\n"
+	    "\n",
+	    cGroupName, cGroupName, cGroupName, cGroupName);
+
+    xfree(cGroupName);
+    xfree(cModuleName);
+}
+
+
+
+static void printFreeTableMethod(FILE *f, SmiModule *smiModule,
+				 SmiNode *groupNode)
+{
+    SmiNode *tableNode;
+    char *cModuleName, *cGroupName, *cTableName;
+
+    tableNode = smiGetParentNode(groupNode);
+    if (! tableNode) {
+	return;
+    }
+
+    cModuleName = translateLower(smiModule->name);
+    cGroupName = translate(groupNode->name);
+    cTableName = translate(tableNode->name);
+
+    fprintf(f,
+	    "void\n"
+	    "%s_free_%s(%s_t **%s)\n"
+	    "{\n"
+	    "    int i;\n"
+	    "\n",
+	    cModuleName, cTableName, cGroupName, cGroupName);
+
+    fprintf(f,	    
+	    "    if (%s) {\n"
+	    "        for (i = 0; %s[i]; i++) {\n"
+	    "            %s_free_%s(%s[i]);\n"
+	    "        }\n"
+	    "        g_free(%s);\n"
+	    "    }\n"
+	    "}\n"
+	    "\n",
+	    cGroupName, cGroupName, cModuleName,
+	    cGroupName, cGroupName, cGroupName);
+
+    xfree(cTableName);
     xfree(cGroupName);
     xfree(cModuleName);
 }
@@ -1064,46 +1206,24 @@ static void printFreeMethod(FILE *f, SmiModule *smiModule,
 
     fprintf(f,
 	    "void\n"
-	    "%s_free_%s(%s_t %s%s)\n"
+	    "%s_free_%s(%s_t *%s)\n"
 	    "{\n"
 	    "    GSList *vbl;\n"
-	    "    char *p;\n",
+	    "    char *p;\n"
+	    "\n",
 	    cModuleName, cGroupName, cGroupName, 
-	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "**" : "*",
 	    cGroupName);
 
-    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
-	fprintf(f,
-		"    int i;\n");
-    }
-
     fprintf(f,	    
-	    "\n"
-	    "    if (%s) {\n", cGroupName);
-
-    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
-	fprintf(f,
-		"        for (i = 0; %s[i]; i++) {\n"
-		"            p = (char *) %s[i] + sizeof(%s_t);\n"
-		"            vbl = * (GSList **) p;\n"
-		"            stls_vbl_free(vbl);\n"
-		"            g_free(%s[i]);\n"
-		"        }\n"
-		"        g_free(%s);\n",
-		cGroupName, cGroupName, cGroupName, cGroupName, cGroupName);
-    } else {
-	fprintf(f,
-		"        p = (char *) %s + sizeof(%s_t);\n"
-		"        vbl = * (GSList **) p;\n"
-		"        stls_vbl_free(vbl);\n"
-		"        g_free(%s);\n",
-		cGroupName, cGroupName, cGroupName);
-    }
-
-    fprintf(f,
+	    "    if (%s) {\n"
+	    "        p = (char *) %s + sizeof(%s_t);\n"
+	    "        vbl = * (GSList **) p;\n"
+	    "        stls_vbl_free(vbl);\n"
+	    "        g_free(%s);\n"
 	    "    }\n"
 	    "}\n"
-	    "\n");
+	    "\n",
+	    cGroupName, cGroupName, cGroupName, cGroupName);
 
     xfree(cGroupName);
     xfree(cModuleName);
@@ -1122,9 +1242,17 @@ static void printMethods(FILE *f, SmiModule *smiModule)
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
 	    cnt++;
+	    printNewMethod(f, smiModule, smiNode);
 	    printAssignMethod(f, smiModule, smiNode);
-	    printGetMethod(f, smiModule, smiNode);
+	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+		printGetTableMethod(f, smiModule, smiNode);
+	    } else {
+		printGetMethod(f, smiModule, smiNode);
+	    }
 	    printFreeMethod(f, smiModule, smiNode);
+	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+		printFreeTableMethod(f, smiModule, smiNode);
+	    }
 	}
     }
     
