@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.19 1998/11/20 19:33:19 strauss Exp $
+ * @(#) $Id: data.c,v 1.21 1998/11/21 21:25:17 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -126,7 +126,7 @@ addModule(name, path, fileoffset, flags, parser)
      * Create a Descriptor.
      */
     module->descriptor = NULL;
-    descriptor = addDescriptor(name, module, KIND_MODULE, module,
+    descriptor = addDescriptor(name, module, KIND_MODULE, &module,
 			       flags & FLAGS_GENERAL, parser);
     module->descriptor = descriptor;
     
@@ -417,13 +417,13 @@ checkImportDescriptors(modulename, parser)
 	 */
 	if (smiGetNode(descriptor->name, modulename, 0)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
-			  KIND_OBJECT, mod, FLAG_IMPORTED, parser);
+			  KIND_OBJECT, &mod, FLAG_IMPORTED, parser);
 	} else if (smiGetType(descriptor->name, modulename, 0)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
-			  KIND_TYPE, mod, FLAG_IMPORTED, parser);
+			  KIND_TYPE, &mod, FLAG_IMPORTED, parser);
 	} else if (smiGetMacro(descriptor->name, modulename)) {
 	    addDescriptor(descriptor->name, parser->thisModule,
-			  KIND_MACRO, mod, FLAG_IMPORTED, parser);
+			  KIND_MACRO, &mod, FLAG_IMPORTED, parser);
 	} else {
 	    printError(parser, ERR_IDENTIFIER_NOT_IN_MODULE,
 		       descriptor->name, modulename);
@@ -468,7 +468,8 @@ checkImportDescriptors(modulename, parser)
  *	NULL if terminated due to an error.
  *
  * Side effects:
- *      None.
+ *      When the defined descriptor has been forward referenced,
+ *	the &ptr parameter may be change by addDescriptor().
  *
  *----------------------------------------------------------------------
  */
@@ -485,10 +486,10 @@ addDescriptor(name, module, kind, ptr, flags, parser)
     Node *pending, *next;
     Type *t;
     
-    printDebug(5, "addDescriptor(\"%s\", %s, %s, 0x%p, %d, parser)\n",
+    printDebug(5, "addDescriptor(\"%s\", %s, %s, &%p, %d, parser)\n",
 	       name, module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
-	       stringKind(kind), ptr, flags);
+	       stringKind(kind), ptr ? *(void **)ptr : NULL, flags);
 
     /*
      * If this new descriptor is found as pending type,
@@ -499,18 +500,18 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	(!(flags & FLAG_IMPORTED))) {
 	t = findTypeByModuleAndName(module, name);
 	if (t && (t->flags & FLAG_INCOMPLETE) && !(flags & FLAG_INCOMPLETE)) {
-	    t->parent = ((Type *)ptr)->parent;
-	    t->syntax = ((Type *)ptr)->syntax;
-	    t->decl = ((Type *)ptr)->decl;
-	    t->status = ((Type *)ptr)->status;
-	    t->fileoffset = ((Type *)ptr)->fileoffset;
-	    t->flags = ((Type *)ptr)->flags;
-	    t->displayHint = ((Type *)ptr)->displayHint;
-	    t->description = ((Type *)ptr)->description;
+	    t->parent      = (*(Type **)ptr)->parent;
+	    t->syntax      = (*(Type **)ptr)->syntax;
+	    t->decl        = (*(Type **)ptr)->decl;
+	    t->status      = (*(Type **)ptr)->status;
+	    t->fileoffset  = (*(Type **)ptr)->fileoffset;
+	    t->flags       = (*(Type **)ptr)->flags;
+	    t->displayHint = (*(Type **)ptr)->displayHint;
+	    t->description = (*(Type **)ptr)->description;
 #ifdef TEXTS_IN_MEMORY
-	    free(((Type *)ptr)->description.ptr);
+	    free((*(Type **)ptr)->description.ptr);
 #endif
-	    free(ptr);
+	    free(*(Type **)ptr);
 	    return t->descriptor;
 	}
     }
@@ -522,16 +523,18 @@ addDescriptor(name, module, kind, ptr, flags, parser)
     }
 
     descriptor->name = strdup(name);
-    descriptor->ptr = ptr;
     descriptor->module = module;
     descriptor->kind = kind;
     descriptor->flags = flags;
+    if (ptr) {
+	descriptor->ptr = *(void **)ptr;
+    }
 
     /*
      * TODO: during development, there might be descriptors defined
-     * with ptr == NULL.
+     * with *ptr == NULL.
      */
-    if (ptr && (!(flags & FLAG_IMPORTED))) {
+    if (ptr && *(void **)ptr && (!(flags & FLAG_IMPORTED))) {
 	switch (kind) {
 	case KIND_MODULE:
 	    ((Module *)(descriptor->ptr))->descriptor = descriptor;
@@ -603,7 +606,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
      */
     if ((module) && (kind == KIND_OBJECT) &&
 	(!(flags & FLAG_IMPORTED)) &&
-	(((Object *)ptr)->node->parent != pendingRootNode)) {
+	((*(Object **)ptr)->node->parent != pendingRootNode)) {
 	
 	/*
 	 * check each root of pending subtrees. if it is the just defined
@@ -638,30 +641,32 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 		 * copy contents of the new node to pending.
 		 */
 		olddescriptor = pending->firstObject->descriptor;
-		pending->subid = ((Object *)ptr)->node->subid;
+		pending->subid = (*(Object **)ptr)->node->subid;
 		
-		pending->firstObject->flags = ((Object *)ptr)->flags;
-		pending->firstObject->decl = ((Object *)ptr)->decl;
-		pending->firstObject->fileoffset = ((Object *)ptr)->fileoffset;
-		pending->firstObject->descriptor = ((Object *)ptr)->descriptor;
+		pending->firstObject->flags = (*(Object **)ptr)->flags;
+		pending->firstObject->decl = (*(Object **)ptr)->decl;
+		pending->firstObject->fileoffset =
+		    (*(Object **)ptr)->fileoffset;
+		pending->firstObject->descriptor =
+		    (*(Object **)ptr)->descriptor;
 
 		/*
-		 * now link pending into ptr's place.
+		 * now link pending into *ptr's place.
 		 */
-		pending->parent = ((Object *)ptr)->node->parent;
-		pending->next = ((Object *)ptr)->node->next;
-		pending->prev = ((Object *)ptr)->node->prev;
-		if (((Object *)ptr)->node->parent->firstChild ==
-		    ((Object *)ptr)->node) {
-		    ((Object *)ptr)->node->parent->firstChild = pending;
+		pending->parent = (*(Object **)ptr)->node->parent;
+		pending->next = (*(Object **)ptr)->node->next;
+		pending->prev = (*(Object **)ptr)->node->prev;
+		if ((*(Object **)ptr)->node->parent->firstChild ==
+		    (*(Object **)ptr)->node) {
+		    (*(Object **)ptr)->node->parent->firstChild = pending;
 		} else {
-		    ((Object *)ptr)->node->prev->next = pending;
+		    (*(Object **)ptr)->node->prev->next = pending;
 		}
-		if (((Object *)ptr)->node->parent->lastChild ==
-		    ((Object *)ptr)->node) {
-		    ((Object *)ptr)->node->parent->lastChild = pending;
+		if ((*(Object **)ptr)->node->parent->lastChild ==
+		    (*(Object **)ptr)->node) {
+		    (*(Object **)ptr)->node->parent->lastChild = pending;
 		} else {
-		    ((Object *)ptr)->node->next->prev = pending;
+		    (*(Object **)ptr)->node->next->prev = pending;
 		}
 
 		/*
@@ -669,10 +674,11 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 		 */
 		deleteDescriptor(olddescriptor);
 #ifdef TEXTS_IN_MEMORY
-		free(((Object *)ptr)->description.ptr);
+		free((*(Object **)ptr)->description.ptr);
 #endif
-		free(((Object *)ptr)->node);
-		free(ptr);
+		free((*(Object **)ptr)->node);
+		free(*(void **)ptr);
+		*(Object **)ptr = pending->firstObject;
 		break;
 	    }
 	}
@@ -1388,7 +1394,7 @@ findObjectByNodeAndModule(node, module)
 {
     Object *object;
 
-    printDebug(4, "findObjectByNodeAndModule(0x%p, %s)", node,
+    printDebug(4, "findObjectByNodeAndModule(%p, %s)", node,
 	       module ? module->descriptor->name : "NULL");
 
     for (object = node->firstObject; object; object = object->next) {
@@ -1431,7 +1437,7 @@ findObjectByNodeAndModulename(node, modulename)
 {
     Object *object;
 
-    printDebug(4, "findObjectByNodeAndModulename(0x%p, \"%s\")", node,
+    printDebug(4, "findObjectByNodeAndModulename(%p, \"%s\")", node,
 	       modulename);
 
     for (object = node->firstObject; object; object = object->next) {
@@ -2254,7 +2260,7 @@ addMacro(name, module, fileoffset, flags, parser)
 	/*
 	 * Create a Descriptor.
 	 */
-	descriptor = addDescriptor(name, module, KIND_MACRO, macro,
+	descriptor = addDescriptor(name, module, KIND_MACRO, &macro,
 				   flags & FLAGS_GENERAL, parser);
 	macro->descriptor = descriptor;
     }
@@ -2409,11 +2415,11 @@ initData()
      * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt.
      */
     object = addObject(rootNode, 0, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("ccitt", NULL, KIND_OBJECT, object, FLAG_PERMANENT, NULL);
+    addDescriptor("ccitt", NULL, KIND_OBJECT, &object, FLAG_PERMANENT, NULL);
     object = addObject(rootNode, 1, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("iso", NULL, KIND_OBJECT, object, FLAG_PERMANENT, NULL);
+    addDescriptor("iso", NULL, KIND_OBJECT, &object, FLAG_PERMANENT, NULL);
     object = addObject(rootNode, 2, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("joint-iso-ccitt", NULL, KIND_OBJECT, object,
+    addDescriptor("joint-iso-ccitt", NULL, KIND_OBJECT, &object,
 		  FLAG_PERMANENT, NULL);
 
     /*
@@ -2423,34 +2429,34 @@ initData()
     /* ASN.1 */
     typeInteger = addType(NULL, SMI_SYNTAX_INTEGER,
 			  NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("INTEGER", NULL, KIND_TYPE, typeInteger,
+    addDescriptor("INTEGER", NULL, KIND_TYPE, &typeInteger,
 		  FLAG_PERMANENT, NULL);
     
 #if 0 /* SNMPv2-SMI */
-    addDescriptor("Integer32", NULL, KIND_TYPE, typeInteger,
+    addDescriptor("Integer32", NULL, KIND_TYPE, &typeInteger,
 		  FLAG_PERMANENT, NULL);
 #endif
 
     /* ASN.1 */
     typeOctetString = addType(NULL, SMI_SYNTAX_OCTET_STRING,
 			      NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("OCTET STRING", NULL, KIND_TYPE, typeOctetString,
+    addDescriptor("OCTET STRING", NULL, KIND_TYPE, &typeOctetString,
 		  FLAG_PERMANENT, NULL);
     
     /* ASN.1 */
     typeObjectIdentifier = addType(NULL, SMI_SYNTAX_OBJECT_IDENTIFIER,
 				   NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("OBJECT IDENTIFIER", NULL, KIND_TYPE, typeObjectIdentifier,
+    addDescriptor("OBJECT IDENTIFIER", NULL, KIND_TYPE, &typeObjectIdentifier,
 		  FLAG_PERMANENT, NULL);
     
 #if 0
     type = addType(NULL, SMI_SYNTAX_SEQUENCE, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("SEQUENCE", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    addDescriptor("SEQUENCE", NULL, KIND_TYPE, &type, FLAG_PERMANENT, NULL);
 #endif
     
 #if 0
     type = addType(NULL, SMI_SYNTAX_SEQUENCE_OF, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("SEQUENCE_OF", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    addDescriptor("SEQUENCE_OF", NULL, KIND_TYPE, &type, FLAG_PERMANENT, NULL);
 #endif
 
 #if 0

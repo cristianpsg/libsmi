@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.8 1998/11/20 19:33:24 strauss Exp $
+ * @(#) $Id: smi.c,v 1.9 1998/11/21 21:25:19 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -76,7 +76,7 @@ getString(s, m)
         return s->ptr;
     } else {
 	if (s->fileoffset < 0) {
-	    return NULL;
+	    return "";
 	}
 	i = (i+1) % 5;
         p[i] = realloc(p[i], s->length+1);
@@ -86,6 +86,7 @@ getString(s, m)
             lseek(fd, s->fileoffset, SEEK_SET);
             read(fd, p[i], s->length);
             /* TODO: loop if read() < length. */
+	    /* TODO: success? */
             close(fd);
             p[i][s->length] = 0;
             return p[i];

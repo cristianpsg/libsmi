@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.9 1998/11/21 21:25:16 strauss Exp $
+# @(#) $Id: Makefile,v 1.10 1998/11/21 21:59:58 strauss Exp $
 #
 
 CC	= gcc
@@ -20,7 +20,7 @@ default: libsmi.a miblint smid smiclient
 smid.c smi_xdr.c smi_clnt.c smi.h: smi.x smi.h-add
 	$(RPCGEN) smi.x
 	cat smi.h-add >> smi.h
-	cat smi_svc.c | awk '{if ($$0 ~ "^main") { x=1 } ; if (x && ($$0 == "")) { printf "\n        smi_svc_init(argc, argv);\n\n" ; x=0 } else { print } }' | sed -e 's/main(.*)/int main(int argc, char *argv[])/' > smid.c
+	cat smi_svc.c | awk '{if ($$0 ~ "^main") { x=1 } ; if (x && ($$0 == "")) { printf "\n        smi_svc_init(argc, argv);\n\n" ; x=0 } else { print } }' | sed -e 's/main(.*)/main(int argc, char *argv[])/' > smid.c
 
 smi.o: smi.c smi.h
 

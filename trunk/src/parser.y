@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.19 1998/11/21 18:16:15 strauss Exp $
+ * @(#) $Id: parser.y,v 1.20 1998/11/21 21:25:19 strauss Exp $
  */
 
 %{
@@ -786,7 +786,7 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -816,10 +816,13 @@ typeDeclaration:	typeName
 			}
 			COLON_COLON_EQUAL typeDeclarationRHS
 			{
+			    Type *type;
+			    
 			    if ((thisParser->flags & FLAG_ACTIVE) &&
 				(strlen($1))) {
+				type = $4;
 				addDescriptor($1, thisModule, KIND_TYPE,
-					      $4,
+					      &type,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -969,6 +972,8 @@ row:			UPPERCASE_IDENTIFIER
 			 * module.
 			 */
 			{
+			    Type *type;
+			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = findTypeByModulenameAndName(
 				    thisModule->descriptor->name, $1);
@@ -977,7 +982,7 @@ row:			UPPERCASE_IDENTIFIER
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
 				     */
-				    $$ = addType(NULL,
+				    type = addType(NULL,
 						 SMI_SYNTAX_SEQUENCE,
 						 thisModule,
 						 ((thisParser->flags &
@@ -987,13 +992,14 @@ row:			UPPERCASE_IDENTIFIER
 						 FLAG_INCOMPLETE,
 						 thisParser);
 				    addDescriptor($1, thisModule, KIND_TYPE,
-						  $$,
+						  &type,
 						  ((thisParser->flags &
 						    (FLAG_WHOLEMOD |
 						     FLAG_WHOLEFILE))
 						   ? FLAG_MODULE : 0) |
 						  FLAG_INCOMPLETE,
 						  thisParser);
+				    $$ = type;
 				}
 			    } else {
 				$$ = NULL;
@@ -1133,7 +1139,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -1194,7 +1200,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -1336,7 +1342,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -1404,7 +1410,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -1583,7 +1589,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							 thisParser);
 					addDescriptor($1, thisModule,
 						      KIND_TYPE,
-						      parent,
+						      &parent,
 						      ((thisParser->flags &
 							(FLAG_WHOLEMOD |
 							 FLAG_WHOLEFILE))
@@ -1613,7 +1619,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						       FLAG_WHOLEFILE))
 						     ? FLAG_MODULE : 0,
 						     thisParser);
-					free(stype); /* TODO: ??? */
 				    }
 				} else {
 				    $$ = addType(parent,
@@ -1663,7 +1668,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						       FLAG_WHOLEFILE))
 						     ? FLAG_MODULE : 0,
 						     thisParser);
-					free(stype); /* TODO: ??? */
 				    }
 				} else {
 				    $$ = addType(parent,
@@ -1707,7 +1711,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							 thisParser);
 					addDescriptor($1, thisModule,
 						      KIND_TYPE,
-						      parent,
+						      &parent,
 						      ((thisParser->flags &
 							(FLAG_WHOLEMOD |
 							 FLAG_WHOLEFILE))
@@ -1737,7 +1741,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						       FLAG_WHOLEFILE))
 						     ? FLAG_MODULE : 0,
 						     thisParser);
-					free(stype); /* TODO: ??? */
 				    }
 				} else {
 				    $$ = addType(parent,
@@ -1787,7 +1790,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						       FLAG_WHOLEFILE))
 						     ? FLAG_MODULE : 0,
 						     thisParser);
-					free(stype); /* TODO: ??? */
 				    }
 				} else {
 				    $$ = addType(parent,
@@ -1850,7 +1852,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							 thisParser);
 					addDescriptor($1, thisModule,
 						      KIND_TYPE,
-						      parent,
+						      &parent,
 						      ((thisParser->flags &
 							(FLAG_WHOLEMOD |
 							 FLAG_WHOLEFILE))
@@ -1880,7 +1882,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						       FLAG_WHOLEFILE))
 						     ? FLAG_MODULE : 0,
 						     thisParser);
-					free(stype); /* TODO: ??? */
 				    }
 				} else {
 				    $$ = addType(parent,
@@ -1930,7 +1931,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						       FLAG_WHOLEFILE))
 						     ? FLAG_MODULE : 0,
 						     thisParser);
-					free(stype); /* TODO: ??? */
 				    }
 				} else {
 				    $$ = addType(parent,
@@ -2581,12 +2581,12 @@ subidentifier:
 							   thisModule,
 							   FLAG_NOSUBID,
 							   parser);
-					$$ = object;
 					setObjectFileOffset(object,
 						        thisParser->character);
 					addDescriptor($1, thisModule,
 						      KIND_OBJECT,
-						      object, 0, parser);
+						      &object, 0, parser);
+					$$ = object;
 				    } else {
 					/*
 					 * imported object.
@@ -2601,7 +2601,6 @@ subidentifier:
 					  FLAG_IMPORTED,
 					  thisParser);
 					
-					free(snode); /* TODO: ??? */
 				    }
 				}
 				parent = $$->node;
@@ -2638,12 +2637,12 @@ subidentifier:
 							   thisModule,
 							   FLAG_NOSUBID,
 							   parser);
-					$$ = object;
 					setObjectFileOffset(object,
 						        thisParser->character);
 					addDescriptor($1, thisModule,
 						      KIND_OBJECT,
-						      object, 0, parser);
+						      &object, 0, parser);
+					$$ = object;
 				    } else {
 					/*
 					 * imported object.
@@ -2658,8 +2657,6 @@ subidentifier:
 					  FLAG_IMPORTED,
 					  thisParser);
 					
-					free(snode); /* TODO: ??? */
-
 				    }
 				}
 				parent = $$->node;
@@ -2719,16 +2716,16 @@ subidentifier:
 						  FLAG_WHOLEFILE))
 						? FLAG_MODULE : 0,
 						parser);
-				$$ = object;
 				setObjectFileOffset(object,
 						     thisParser->character);
 				addDescriptor($1, thisModule, KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      parser);
+				$$ = object;
 			    }
 			    
 			    parent = $$->node;
@@ -2760,16 +2757,16 @@ subidentifier:
 						  FLAG_WHOLEFILE))
 						? FLAG_MODULE : 0,
 						parser);
-				$$ = object;
 				setObjectFileOffset(object,
 						     thisParser->character);
 				addDescriptor($3, thisModule, KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      parser);
+				$$ = object;
 			    }
 
 			    parent = $$->node;
@@ -2824,7 +2821,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -2885,7 +2882,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -2946,7 +2943,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -3105,7 +3102,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      object,
+					      &object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
