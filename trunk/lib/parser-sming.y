@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.30 1999/12/15 15:47:55 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.31 1999/12/16 18:10:38 strauss Exp $
  */
 
 %{
@@ -2833,10 +2833,7 @@ date:			textSegment
 			    int        i, len;
 			    char       *p;
 
-			    tm.tm_isdst = 0;
-			    tm.tm_wday = 0;
-			    tm.tm_yday = 0;
-			    tm.tm_sec = 0;
+			    memset(&tm, 0, sizeof(tm));
 			    $$ = 0;
 
 			    len = strlen($1);
@@ -2900,14 +2897,14 @@ date:			textSegment
 
 				tm.tm_year -= 1900;
 				tm.tm_mon -= 1;
-				
-				putenv("TZ=UTC"); tzset();
-				/* TODO: a better way to make mktime()
-				   use UTC? */
+
+				tzset();
 				$$ = mktime(&tm);
 				if ($$ == (time_t)-1) {
 				    printError(thisParserPtr,
 					       ERR_DATE_VALUE, $1);
+				} else {
+				    $$ -= timezone;
 				}
 			    }
 			    

@@ -461,11 +461,11 @@ static const short yyrline[] = { 0,
   2593,  2601,  2605,  2611,  2617,  2630,  2636,  2644,  2648,  2654,
   2660,  2673,  2679,  2685,  2689,  2697,  2701,  2707,  2713,  2726,
   2732,  2736,  2742,  2746,  2752,  2763,  2769,  2780,  2786,  2800,
-  2804,  2810,  2814,  2824,  2830,  2920,  2926,  2939,  2966,  3012,
-  3034,  3040,  3046,  3059,  3083,  3088,  3095,  3099,  3103,  3109,
-  3113,  3117,  3121,  3127,  3156,  3192,  3198,  3202,  3209,  3213,
-  3223,  3232,  3238,  3246,  3255,  3264,  3268,  3278,  3285,  3291,
-  3297
+  2804,  2810,  2814,  2824,  2830,  2917,  2923,  2936,  2963,  3009,
+  3031,  3037,  3043,  3056,  3080,  3085,  3092,  3096,  3100,  3106,
+  3110,  3114,  3118,  3124,  3153,  3189,  3195,  3199,  3206,  3210,
+  3220,  3229,  3235,  3243,  3252,  3261,  3265,  3275,  3282,  3288,
+  3294
 };
 #endif
 
@@ -4270,10 +4270,7 @@ case 295:
 			    int        i, len;
 			    char       *p;
 
-			    tm.tm_isdst = 0;
-			    tm.tm_wday = 0;
-			    tm.tm_yday = 0;
-			    tm.tm_sec = 0;
+			    memset(&tm, 0, sizeof(tm));
 			    yyval.date = 0;
 
 			    len = strlen(yyvsp[0].text);
@@ -4337,14 +4334,14 @@ case 295:
 
 				tm.tm_year -= 1900;
 				tm.tm_mon -= 1;
-				
-				putenv("TZ=UTC"); tzset();
-				/* TODO: a better way to make mktime()
-				   use UTC? */
+
+				tzset();
 				yyval.date = mktime(&tm);
 				if (yyval.date == (time_t)-1) {
 				    printError(thisParserPtr,
 					       ERR_DATE_VALUE, yyvsp[0].text);
+				} else {
+				    yyval.date -= timezone;
 				}
 			    }
 			    
@@ -4354,19 +4351,19 @@ case 295:
 			;
     break;}
 case 296:
-#line 2921 "parser-sming.y"
+#line 2918 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 297:
-#line 2927 "parser-sming.y"
+#line 2924 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 298:
-#line 2940 "parser-sming.y"
+#line 2937 "parser-sming.y"
 {
 			    int i;
 			    List *listPtr, *nextPtr;
@@ -4395,7 +4392,7 @@ case 298:
 			;
     break;}
 case 299:
-#line 2967 "parser-sming.y"
+#line 2964 "parser-sming.y"
 {
 			    /* Note: might also be an OID or signed */
 			    switch (defaultBasetype) {
@@ -4443,7 +4440,7 @@ case 299:
 			;
     break;}
 case 300:
-#line 3013 "parser-sming.y"
+#line 3010 "parser-sming.y"
 {
 			    switch (defaultBasetype) {
 			    case SMI_BASETYPE_INTEGER32:
@@ -4467,7 +4464,7 @@ case 300:
 			;
     break;}
 case 301:
-#line 3035 "parser-sming.y"
+#line 3032 "parser-sming.y"
 {
 			    /* TODO */
 			    /* Note: might also be an octet string */
@@ -4475,7 +4472,7 @@ case 301:
 			;
     break;}
 case 302:
-#line 3041 "parser-sming.y"
+#line 3038 "parser-sming.y"
 {
 			    /* TODO */
 			    /* Note: might also be an OID */
@@ -4483,7 +4480,7 @@ case 302:
 			;
     break;}
 case 303:
-#line 3047 "parser-sming.y"
+#line 3044 "parser-sming.y"
 {
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				yyval.valuePtr = util_malloc(sizeof(SmiValue));
@@ -4498,7 +4495,7 @@ case 303:
 			;
     break;}
 case 304:
-#line 3060 "parser-sming.y"
+#line 3057 "parser-sming.y"
 {
 			    /* Note: might be an Enumeration item or OID */
 			    /* TODO: convert if it's an oid? */
@@ -4524,63 +4521,63 @@ case 304:
 			;
     break;}
 case 305:
-#line 3084 "parser-sming.y"
+#line 3081 "parser-sming.y"
 {
 			    /* TODO */
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 306:
-#line 3089 "parser-sming.y"
+#line 3086 "parser-sming.y"
 {
 			    /* TODO */
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 307:
-#line 3096 "parser-sming.y"
+#line 3093 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_CURRENT;
 			;
     break;}
 case 308:
-#line 3100 "parser-sming.y"
+#line 3097 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_DEPRECATED;
 			;
     break;}
 case 309:
-#line 3104 "parser-sming.y"
+#line 3101 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_OBSOLETE;
 			;
     break;}
 case 310:
-#line 3110 "parser-sming.y"
+#line 3107 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_NOT_ACCESSIBLE;
 			;
     break;}
 case 311:
-#line 3114 "parser-sming.y"
+#line 3111 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_NOTIFY;
 			;
     break;}
 case 312:
-#line 3118 "parser-sming.y"
+#line 3115 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_ONLY;
 			;
     break;}
 case 313:
-#line 3122 "parser-sming.y"
+#line 3119 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_WRITE;
 			;
     break;}
 case 314:
-#line 3128 "parser-sming.y"
+#line 3125 "parser-sming.y"
 {
 			    char *oid = NULL;
 			    Node *nodePtr;
@@ -4609,7 +4606,7 @@ case 314:
 			;
     break;}
 case 315:
-#line 3157 "parser-sming.y"
+#line 3154 "parser-sming.y"
 {
 			    Object *objectPtr;
 			    Node *nodePtr;
@@ -4647,32 +4644,32 @@ case 315:
 			;
     break;}
 case 316:
-#line 3193 "parser-sming.y"
+#line 3190 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 317:
-#line 3199 "parser-sming.y"
+#line 3196 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 318:
-#line 3203 "parser-sming.y"
+#line 3200 "parser-sming.y"
 {
 			    /* TODO: check upper limit of 127 subids */ 
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 319:
-#line 3210 "parser-sming.y"
+#line 3207 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 320:
-#line 3214 "parser-sming.y"
+#line 3211 "parser-sming.y"
 {
 			    yyval.text = util_malloc(strlen(yyvsp[-1].text) + strlen(yyvsp[0].text) + 1);
 			    strcpy(yyval.text, yyvsp[-1].text);
@@ -4682,7 +4679,7 @@ case 320:
 			;
     break;}
 case 321:
-#line 3224 "parser-sming.y"
+#line 3221 "parser-sming.y"
 {
 			    yyval.text = util_malloc(strlen(yyvsp[0].text) + 1 + 1);
 			    strcpy(yyval.text, ".");
@@ -4691,13 +4688,13 @@ case 321:
 			;
     break;}
 case 322:
-#line 3233 "parser-sming.y"
+#line 3230 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 323:
-#line 3239 "parser-sming.y"
+#line 3236 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO */
@@ -4707,7 +4704,7 @@ case 323:
 			;
     break;}
 case 324:
-#line 3247 "parser-sming.y"
+#line 3244 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
@@ -4716,7 +4713,7 @@ case 324:
 			;
     break;}
 case 325:
-#line 3256 "parser-sming.y"
+#line 3253 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER64;
@@ -4725,37 +4722,37 @@ case 325:
 			;
     break;}
 case 326:
-#line 3265 "parser-sming.y"
+#line 3262 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 327:
-#line 3269 "parser-sming.y"
+#line 3266 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 328:
-#line 3279 "parser-sming.y"
+#line 3276 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 329:
-#line 3286 "parser-sming.y"
+#line 3283 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 330:
-#line 3292 "parser-sming.y"
+#line 3289 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 331:
-#line 3298 "parser-sming.y"
+#line 3295 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
@@ -4982,7 +4979,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 3303 "parser-sming.y"
+#line 3300 "parser-sming.y"
 
 
 #endif

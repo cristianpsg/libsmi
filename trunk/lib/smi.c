@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.55 1999/12/17 10:44:21 strauss Exp $
+ * @(#) $Id: smi.c,v 1.56 1999/12/20 09:36:37 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -31,8 +31,8 @@
 #endif
 
 #include "smi.h"
-#include "error.h"
 #include "data.h"
+#include "error.h"
 #include "util.h"
 
 #ifdef BACKEND_SMI
@@ -622,7 +622,7 @@ int smiInit(const char *tag)
 	return -1;
     }
 
-    /* setup the smi MIB module searach path */
+    /* setup the smi MIB module search path */
     p = getenv("SMIPATH");
     if (p) {
 	if (p[0] == ':') {

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.25 1999/12/16 18:10:37 strauss Exp $
+ * @(#) $Id: error.c,v 1.26 1999/12/17 10:44:19 strauss Exp $
  */
 
 #include <string.h>
@@ -61,6 +61,8 @@ Error errors[] = {
       "Maximum IMPORTS nesting, probably a loop?" },
     { -1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
       "Lexically unexpected character (internal error!)" },
+    { -1, ERR_OUT_OF_MEMORY, "memory", 
+      "Out of memory (internal error!)" },
     { 1, ERR_OTHER_ERROR, "other", 
       "%s" },
     { 1, ERR_ILLEGAL_KEYWORD, "keyword-illegal", 
@@ -122,7 +124,7 @@ Error errors[] = {
     { 2, ERR_BIN_STRING_MUL8, "", 
       "Binary string `%s' length is not a multiple of 8" },
     { 2, ERR_HEX_STRING_MUL2, "", 
-      "Haxadecimal string `%s' length is not a multiple of 2" },
+      "Hexadecimal string `%s' length is not a multiple of 2" },
     { 5, ERR_FLUSH_DECLARATION, "", 
       "Flushing recent incorrect declaration, see previous error(s)" },
     { 2, ERR_MAX_ACCESS_IN_SMIV1, "", 
@@ -143,6 +145,8 @@ Error errors[] = {
       "Allocating descriptor: %s" },
     { 1, ERR_OPENING_INPUTFILE, "", 
       "Opening input file `%s': %s" },
+    { 1, ERR_ILLEGAL_INPUTFILE, "", 
+      "Opening input file `%s': unable to determine SMI version" },
     { 1, ERR_ALLOCATING_MIBMODULE, "", 
       "Allocating MIB module: %s" },
     { 1, ERR_UNKNOWN_OIDLABEL, "", 
@@ -317,9 +321,9 @@ printError(Parser *parser, int id, ...)
 	
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
-	    (thisParser->flags & SMI_FLAG_ERRORS) &&
+	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((lexDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-	    fprintf(stderr, "%s:%d: ", thisParser->path, thisParser->line);
+	    fprintf(stderr, "%s:%d: ", parser->path, parser->line);
 	    fmt = errors[id].fmt;
 	    va_start(ap, id);
 	    vfprintf(stderr, fmt, ap);
@@ -368,9 +372,9 @@ printErrorAtLine(Parser *parser, int id, int line, ...)
 	
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
-	    (thisParser->flags & SMI_FLAG_ERRORS) &&
+	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((lexDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-	    fprintf(stderr, "%s:%d: ", thisParser->path, line);
+	    fprintf(stderr, "%s:%d: ", parser->path, line);
 	    fmt = errors[id].fmt;
 	    va_start(ap, line);
 	    vfprintf(stderr, fmt, ap);
