@@ -57,8 +57,6 @@ o warnings: integer(signed) in index
 
 o check, wheather OIDs of indexed columns might be longer than 128 subids.
 
-o automake: Win32 (EXE_SUFFIX?)
-
 o how to convert SMIng types derived from other defined types correctly
   to SMIv2?
 
@@ -68,8 +66,16 @@ o warning detection: enumerations SHOULD NOT contain signedNumber's.
   SHOULD start at 1. SHOULD be numbered contiguously.
   e.g. DISMAN-SCHEDULE-MIB.SnmpPduErrorStatus
 
-o endless loop after parse error: smidump -f smiv1 ./RMON2-MIB.smiv1
-
 o Juergen's testsuite -> make check
 
-o smidump -ftypes dumps core for many modules
+o various dump modules don't print identifiers fully qualified where
+  appropriate
+
+o status of implicit types is unknown, but should be the same as the
+  object's status where it is implicitly defined
+
+o smidump -f types MIOX25-MIB
+
+o collapsing of type forward references in smiv2 parser. e.g.
+  smiquery type CHARACTER-MIB.CharSessEntry
+  should display the definition by a SEQUENCE statement, not `unknown'.

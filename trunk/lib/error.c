@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.16 1999/07/02 14:03:51 strauss Exp $
+ * @(#) $Id: error.c,v 1.17 1999/09/30 08:16:43 strauss Exp $
  */
 
 #include <string.h>
@@ -223,6 +223,12 @@ Error errors[] = {
       "Identifier `%s' differs from `%s' only in case" },
     { 2, ERR_INVALID_FORMAT,
       "Invalid format specification `%s'" },
+    { 3, ERR_REFINEMENT_ALREADY_EXISTS,
+      "A refinement for `%s' already exists in this compliance statement" },
+    { 3, ERR_OPTIONALGROUP_ALREADY_EXISTS,
+      "An optional group definition for `%s' already exists in this compliance statement" },
+    { 2, ERR_ILLEGAL_OID_DEFVAL,
+      "Cannot handle other default values than 0.0 for `%s'" },
  
     { 0, 0, NULL }
 };

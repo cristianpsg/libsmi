@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.21 1999/09/30 08:16:48 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.22 1999/10/01 12:46:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -457,11 +457,19 @@ static void createImportList(char *modulename)
 	smiNode = smiGetNextNode(smiNode, kind)) {
 	smiType = smiGetType(smiNode->typemodule, smiNode->typename);
 	if (smiType && strcmp(smiType->module, modulename)) {
-	    addImport(smiType->module, smiType->name);
+	    if (strlen(smiType->module)) {
+		addImport(smiType->module, smiType->name);
+	    }
 	}
 
 	if (! smiv1 && smiNode->basetype == SMI_BASETYPE_INTEGER32) {
 	    addImport("SNMPv2-SMI", "Integer32");
+	}
+
+	if ((!smiv1) &&
+	    (smiNode->value.basetype == SMI_BASETYPE_OBJECTIDENTIFIER) &&
+	    (!strcmp(smiNode->value.value.ptr, "zeroDotZero"))) {
+	    addImport("SNMPv2-SMI", "zeroDotZero");
 	}
     }
 
@@ -656,7 +664,11 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_UNKNOWN:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-	sprintf(s, "%s", valuePtr->value.ptr);
+	if (smiv1 && !strcmp(valuePtr->value.ptr, "zeroDotZero")) {
+	    sprintf(s, "{0 0}");
+	} else {
+	    sprintf(s, "%s", valuePtr->value.ptr);
+	}
 	break;
     }
 
@@ -787,6 +799,9 @@ static void printImports(char *modulename)
 	importedModulename = import->module;
 	importedDescriptor = import->name;
 
+	if (!strlen(importedModulename))
+	    continue;
+	
 	for(i = 0; convertImport[i]; i += 4) {
 	    if (convertImport[i] && convertImport[i+1]
 		&& !strcmp(importedModulename, convertImport[i])

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.27 1999/09/30 08:16:45 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.28 1999/10/01 12:46:56 strauss Exp $
  */
 
 %{
@@ -690,7 +690,7 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (typePtr && $13) {
-                                if (!checkFormat(defaultBasetype, $13)) {
+                                if (!checkFormat(typePtr->basetype, $13)) {
 				    printError(thisParserPtr,
 					       ERR_INVALID_FORMAT, $13);
 				}

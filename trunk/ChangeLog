@@ -1,3 +1,30 @@
+1999-10-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: fixed problems with OID DEFVALS in SMIv1
+	modules. now {0 0} works.
+
+	* lib/smi.c (smiGetParentNode): fixed a bug where the wrong
+	node has been returned for implicitly defined nodes as used
+	in notification types.
+
+	* lib/smi.c (smiGetNextNode): fixed a similar bug here that
+	caused loops.
+
+	* lib/parser-smi.y: added check for multiple groups or
+	object refinements for the same object in a single
+	compliance statement. this caused loops before.
+
+	* tools/smidump.c: applied another patch by Juergen Schoenwaelder
+	that beautifies various dump formats and introduces a regression
+	test system.
+	
+1999-10-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: fixed range of Counter64.
+
+	* tools/dump-types.c: applied a patch by Juergen Schoenwaelder
+	that beautifies the dump formats for imports and types.
+
 1999-09-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: fixed some more decl settings.

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.24 1999/09/30 08:16:49 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.25 1999/10/01 12:46:59 strauss Exp $
  */
 
 #include <stdio.h>
@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
 		for(nn = smiGetFirstNamedNumber(type->module, type->name);
 		    nn ; nn = smiGetNextNamedNumber(nn)) {
 		    printf(" %s(%ld)",
-			   nn->name, nn->value.value.unsigned32);
+			   nn->name, nn->value.value.integer32);
 		}
 	    } else {
 		for(range = smiGetFirstRange(type->module, type->name);
