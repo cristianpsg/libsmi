@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.51 2000/02/25 16:48:20 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.52 2000/02/28 12:24:24 strauss Exp $
  */
 
 #include <config.h>
@@ -204,7 +204,6 @@ char *formatvalue(const SmiValue *value, SmiType *type)
     static char    s[100];
     char           ss[9];
     int		   i, n;
-    char           **p;
     SmiNamedNumber *nn;
     SmiNode        *nodePtr;
     
@@ -234,9 +233,9 @@ char *formatvalue(const SmiValue *value, SmiType *type)
 		break;
 	}
 	if (nn) {
-	    sprintf(s, "%s(%d)", nn->name, nn->value.value.unsigned32);
+	    sprintf(s, "%s(%ld)", nn->name, nn->value.value.integer32);
 	} else {
-	    sprintf(s, "%d", value->value.unsigned32);
+	    sprintf(s, "%ld", value->value.integer32);
 	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:

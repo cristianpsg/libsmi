@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.72 2000/03/21 08:41:03 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.73 2000/03/21 10:30:40 strauss Exp $
  */
 
 #include <config.h>
@@ -377,7 +377,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	if (nn) {
 	    sprintf(s, "%s", nn->name);
 	} else {
-	    sprintf(s, "%d", valuePtr->value.unsigned32);
+	    sprintf(s, "%ld", valuePtr->value.integer32);
 	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:

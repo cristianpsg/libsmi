@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.14 2000/02/28 12:24:24 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.15 2000/03/02 09:22:34 strauss Exp $
  */
 
 #include <config.h>
@@ -20,6 +20,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include "smi.h"
 #include "smidump.h"
@@ -203,7 +204,6 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     static char    s[100];
     char           ss[9];
     int		   i, n;
-    char           **p;
     SmiNamedNumber *nn;
     SmiNode        *nodePtr;
     
@@ -235,7 +235,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	if (nn) {
 	    sprintf(s, "%s", nn->name);
 	} else {
-	    sprintf(s, "%d", valuePtr->value.unsigned32);
+	    sprintf(s, "%ld", valuePtr->value.integer32);
 	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
