@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.19 2000/11/13 11:02:49 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.20 2000/11/13 11:32:35 strauss Exp $
 #
 
 TESTMIBTOPDIR		= ../../mibs
@@ -35,7 +35,8 @@ TESTS			= smilint-smiv2.test \
 			  smidump-netsnmp.test \
 			  smidump-orig-smiv2.test \
 			  smidump-smiv2-smiv2.test \
-			  parser.test
+			  parser.test \
+			  smidiff.test
 
 TESTS_ENVIRONMENT	= SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
 
@@ -44,5 +45,5 @@ EXTRA_DIST		= $(TESTS)
 SUBDIRS                 = mibs dumps
 
 clean-local:
-	rm -rf *.out sync-dumps
+	rm -rf *.out smidiff/*.diffdiff smidiff/*.result sync-dumps
 
