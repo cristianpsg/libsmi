@@ -81,7 +81,7 @@ static Error errors[] = {
       "Usually this limit should never be reached. However, this error\n"
       "might occur when modules illegally import definitions in a loop."},
     { 0, ERR_OUT_OF_MEMORY, "internal-memory", 
-      "out of memory (internal error!)",
+      "out of memory",
       "Libsmi needs to allocate memory dynamically during runtime, but\n"
       "the system did run out of memory."},
     { 1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
