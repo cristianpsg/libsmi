@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.18 2000/06/06 12:59:07 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.19 2000/06/08 14:47:15 strauss Exp $
  */
 
 
@@ -1751,7 +1751,7 @@ static SmiNode *algFindTable(SmiNode *node)
     for (j = i; node->name[j]; j++) {
 	toFind[j-i] = node->name[j];
     }
-    toFind[strlen(node->name)  - i] = NULL;
+    toFind[strlen(node->name)  - i] = '\0';
     
 #if 0
     printf("%s %s %s\n", node->name, smiGetParentNode(node)->name, toFind);
