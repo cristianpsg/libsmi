@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_node.3.in,v 1.5 2000/11/06 15:10:21 strauss Exp $
+.\" $Id: smi_node.3.in,v 1.6 2001/06/11 09:59:19 strauss Exp $
 .\"
-.TH smi_node 3  "November 6, 2000" "IBR" "SMI Management Information Library"
+.TH smi_node 3  "August 16, 2001" "IBR" "SMI Management Information Library"
 .SH NAME
 .\" START OF MAN PAGE COPIES
 smiGetNode,
@@ -14,6 +14,7 @@ smiGetFirstChildNode,
 smiGetNextChildNode,
 smiGetNodeModule,
 smiGetNodeType,
+smiGetNodeLine,
 smiGetFirstElement,
 smiGetNextElement,
 smiGetElementNode,
@@ -63,6 +64,9 @@ information routines
 .RE
 .sp
 .BI "SmiType *smiGetNodeType(SmiNode *" smiNodePtr );
+.RE
+.sp
+.BI "int smiGetNodeLine(SmiNode *" smiNodePtr );
 .RE
 .sp
 .BI "SmiElement *smiGetFirstElement(SmiNode *" smiNodePtr );
@@ -207,6 +211,9 @@ the \fBsmiGetRefinementNode()\fP function. The optional refined type and
 write-type of a refinement can be retrieved by
 the \fBsmiGetRefinementType()\fP and \fBsmiGetRefinementWriteType()\fP
 functions. If they are not present, NULL is returned.
+.PP
+The \fBsmiGetNodeLine()\fP function returns the line number within the
+module where the node specified by \fIsmiNodePtr\fP is defined.
 .SH "FILES"
 .nf
 @prefix@/include/smi.h    SMI library header file
@@ -218,5 +225,5 @@ functions. If they are not present, NULL is returned.
 .BR smi_module "(3), "
 .BR smi.h
 .SH "AUTHOR"
-(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2001 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

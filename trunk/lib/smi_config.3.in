@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.15 2000/11/06 15:10:21 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.16 2001/06/11 09:59:19 strauss Exp $
 .\"
-.TH smi_config 3  "November 6, 2000" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "August 16, 2001" "IBR" "SMI Management Information Library"
 .SH NAME
 .\" START OF MAN PAGE COPIES
 smiInit,
@@ -230,5 +230,5 @@ $HOME/.smirc               user configuration file
 .BR libsmi "(3), "
 .BR smi.h
 .SH "AUTHOR"
-(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2001 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

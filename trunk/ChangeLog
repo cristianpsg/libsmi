@@ -1,3 +1,10 @@
+2001-08-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* Makefile.in,...: Kicked out files from the CVS repository
+	that don't belong there and added an autogen.sh script.
+
+	* lib/parser-smi.y,data.c: Fixed more memory leaks.
+
 2001-08-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* doc/draft-irtf-nmrg-smi-xml-00.txt,smi.dtd: Added these
