@@ -10,10 +10,9 @@ SLS-NEGOTIATION-PIB PIB-DEFINITIONS ::= BEGIN
              FROM SNMPv2-SMI
         ExtUTCTime
              FROM SNMPv2-SMI
-        InetAddressType, InetAddress
-             FROM INET-ADDRESS-MIB
+        InetAddressType, InetAddress,
         InetAddressPrefixLength, InetPortNumber
-             FROM INET-ADDRESS-TC-PIB
+             FROM INET-ADDRESS-MIB
         InterfaceIndex
              FROM IF-MIB
         DscpOrAny

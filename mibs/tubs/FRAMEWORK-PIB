@@ -11,10 +11,9 @@
        RoleCombination, PrcIdentifier, AttrIdentifier,  
        ClientType, ClientHandle  
                FROM FRAMEWORK-TC-PIB 
-       InetAddress, InetAddressType
-               FROM INET-ADDRESS-MIB 
+       InetAddress, InetAddressType,
        InetAddressPrefixLength, InetPortNumber 
-               FROM INET-ADDRESS-TC-PIB
+               FROM INET-ADDRESS-MIB 
        InterfaceIndex 
                FROM IF-MIB 
        DscpOrAny  
