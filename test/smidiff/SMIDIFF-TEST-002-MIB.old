@@ -81,4 +81,21 @@ scalar6 OBJECT-TYPE
 	"Multiple ranges. Second range will be reduced 
 	 from 12..15 to 13..15."
     ::= { libsmiTest002Mib 6 }
+
+scalar7 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9|12..15)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"Multiple ranges. Second range will be removed." 
+    ::= { libsmiTest002Mib 7 }
+
+scalar8 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"Multiple ranges. Second range will be added." 
+    ::= { libsmiTest002Mib 8 }
+
 END
