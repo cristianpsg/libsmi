@@ -1,5 +1,5 @@
 .\"
-.\" $Id$
+.\" $Id: smidump.1,v 1.2 1999/05/05 15:48:18 strauss Exp $
 .\"
 .TH smidump 1  "May 5, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -80,6 +80,14 @@ CONFIGURATION FILES for its format.
 .BI "-L " location
 Add \fIlocation\fP to the list of locations to search for MIB modules.
 See smi_config(3) section MODULE LOCATIONS for location details.
+.TP
+.BI "-D " format
+Use \fIformat\fP when dumping a module. Supported formats are
+\fBsming\fP for fully compliant SMIng, \fBsmiv2\fP for fully compliant
+SMIv2, \fBobjects\fP for a simple list of nodes in the object
+identifer tree known to libsmi (only for libsmi debugging) and
+\fBtypes\fP for a simple list of all types known to libsmi (also only
+for libsmi debugging). The default is to dump in SMIng format.
 .TP
 .I module
 This is the module to be checked. Note that this module is searched in
