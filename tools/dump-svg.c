@@ -177,6 +177,7 @@ static int       CANVASWIDTH           = 1100; /* width of the svg */
 static int       SHOW_DEPRECATED       = 0; /* false, show deprecated objects */
 static int       SHOW_DEPR_OBSOLETE    = 0; /* false, show deprecated and
 					       obsolete objects */
+static int       STATIC_OUTPUT         = 0; /* false, enable interactivity */
 //variables which are NOT configurable by the user
 static int       XPLAIN                = 0; /* false, generates ASCII output */
 static int       DEBUG_XPLAIN          = 0; /* false, generates additional
@@ -2063,19 +2064,22 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
     printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xMin, yMin, xMax-xMin-1, yMax-yMin-1);
     printf("       fill=\"none\" stroke=\"blue\" stroke-width=\"1\"/>\n");
-    printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
-           xMin, yMin, scale);
-    printf(" <g id=\"tooltip\" style=\"visibility: hidden\">\n");
-    printf("   <rect id=\"ttr\" x=\"0\" y=\"0\" rx=\"5\" ry=\"5\"");
-				    printf(" width=\"100\" height=\"16\"/>\n");
-    printf("   <text id=\"ttt\" x=\"0\" y=\"0\" style=\"visibility: hidden\">");
-						printf("dyn. Text</text>\n");
-    //FIXME: calculate number of lines dynamically.
-    for (i = 0; i < DYN_TEXT; i++) {
-	printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
+    if (!STATIC_OUTPUT) {
+	printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
+							xMin, yMin, scale);
+	printf(" <g id=\"tooltip\" style=\"visibility: hidden\">\n");
+	printf("   <rect id=\"ttr\" x=\"0\" y=\"0\" rx=\"5\" ry=\"5\"");
+	printf(" width=\"100\" height=\"16\"/>\n");
+	printf("   <text id=\"ttt\" x=\"0\" y=\"0\"");
+	printf(" style=\"visibility: hidden\">");
+	printf("dyn. Text</text>\n");
+	//FIXME: calculate number of lines dynamically.
+	for (i = 0; i < DYN_TEXT; i++) {
+	    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
+	}
+	printf(" </g>\n");
+	printf(" </g>\n");
     }
-    printf(" </g>\n");
-    printf(" </g>\n");
     printf("</svg>\n");
 }
 
@@ -2111,21 +2115,23 @@ static void printSVGAttribute(SmiNode *node, int index,
     }
 
     printf("<tspan");
-    if (node->description) {
+    if (!STATIC_OUTPUT && node->description) {
 	tooltip = (char *)xmalloc(2*strlen(node->description));
 	parseTooltip(node->description, tooltip);
 	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	printf(" onmouseout=\"HideTooltip(evt)\"");
 	xfree(tooltip);
     }
-    printf(">%s:</tspan> \n", node->name);
+    printf(">%s:</tspan>\n", node->name);
 
     printf("         <tspan");
     if (typeDescription = algGetTypeDescription(node)) {
-	tooltip = (char *)xmalloc(2*strlen(typeDescription));
-	parseTooltip(typeDescription, tooltip);
-	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-	printf(" onmouseout=\"HideTooltip(evt)\"");
+	if (!STATIC_OUTPUT) {
+	    tooltip = (char *)xmalloc(2*strlen(typeDescription));
+	    parseTooltip(typeDescription, tooltip);
+	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	    printf(" onmouseout=\"HideTooltip(evt)\"");
+	}
     }
     if (index) {
 	printf(">%s%s</tspan></text>\n", algGetTypeName(node), INDEXPROPERTY);
@@ -2234,26 +2240,30 @@ static void printSVGObject(GraphNode *node, int *classNr)
     printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
-    //the "+"-button
-    printf("    <g onclick=\"enlarge('%s',%i)\"\n",
-           smiGetFirstChildNode(node->smiNode)->name, *classNr);
-    printf("       transform=\"translate(%.2f,%.2f)\">\n",
-           xOrigin + node->dia.w - 26, yOrigin + 3);
-    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
-    printf("            style=\"stroke: black; fill: none\"/>\n");
-    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-    printf("          +</text>\n");
-    printf("    </g>\n");
-    //the "-"-button
-    printf("    <g onclick=\"scaledown('%s',%i)\"\n",
-           smiGetFirstChildNode(node->smiNode)->name, *classNr);
-    printf("       transform=\"translate(%.2f,%.2f)\">\n",
-           xOrigin + node->dia.w - 13, yOrigin + 3);
-    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
-    printf("            style=\"stroke: black; fill: none\"/>\n");
-    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-    printf("          -</text>\n");
-    printf("    </g>\n");
+    if (!STATIC_OUTPUT) {
+	//the "+"-button
+	printf("    <g onclick=\"enlarge('%s',%i)\"\n",
+			smiGetFirstChildNode(node->smiNode)->name, *classNr);
+	printf("       transform=\"translate(%.2f,%.2f)\">\n",
+				xOrigin + node->dia.w - 26, yOrigin + 3);
+	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
+	printf(" rx=\"2\"\n");
+	printf("            style=\"stroke: black; fill: none\"/>\n");
+	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+	printf("          +</text>\n");
+	printf("    </g>\n");
+	//the "-"-button
+	printf("    <g onclick=\"scaledown('%s',%i)\"\n",
+			smiGetFirstChildNode(node->smiNode)->name, *classNr);
+	printf("       transform=\"translate(%.2f,%.2f)\">\n",
+				xOrigin + node->dia.w - 13, yOrigin + 3);
+	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
+	printf(" rx=\"2\"\n");
+	printf("            style=\"stroke: black; fill: none\"/>\n");
+	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+	printf("          -</text>\n");
+	printf("    </g>\n");
+    }
 
     (*classNr)++;
 
@@ -2318,26 +2328,30 @@ static void printSVGGroup(int group, int *classNr)
     printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
-    //the "+"-button
-    printf("    <g onclick=\"enlarge('%s',%i)\"\n",
-           smiGetParentNode(tNode->smiNode)->name, *classNr);
-    printf("       transform=\"translate(%.2f,%.2f)\">\n",
-           xOrigin + tNode->dia.w - 26, yOrigin + 3);
-    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
-    printf("            style=\"stroke: black; fill: none\"/>\n");
-    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-    printf("          +</text>\n");
-    printf("    </g>\n");
-    //the "-"-button
-    printf("    <g onclick=\"scaledown('%s',%i)\"\n",
-           smiGetParentNode(tNode->smiNode)->name, *classNr);
-    printf("       transform=\"translate(%.2f,%.2f)\">\n",
-           xOrigin + tNode->dia.w - 13, yOrigin + 3);
-    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
-    printf("            style=\"stroke: black; fill: none\"/>\n");
-    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-    printf("          -</text>\n");
-    printf("    </g>\n");
+    if (!STATIC_OUTPUT) {
+	//the "+"-button
+	printf("    <g onclick=\"enlarge('%s',%i)\"\n",
+			smiGetParentNode(tNode->smiNode)->name, *classNr);
+	printf("       transform=\"translate(%.2f,%.2f)\">\n",
+				xOrigin + tNode->dia.w - 26, yOrigin + 3);
+	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
+	printf(" rx=\"2\"\n");
+	printf("            style=\"stroke: black; fill: none\"/>\n");
+	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+	printf("          +</text>\n");
+	printf("    </g>\n");
+	//the "-"-button
+	printf("    <g onclick=\"scaledown('%s',%i)\"\n",
+			smiGetParentNode(tNode->smiNode)->name, *classNr);
+	printf("       transform=\"translate(%.2f,%.2f)\">\n",
+				xOrigin + tNode->dia.w - 13, yOrigin + 3);
+	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
+	printf(" rx=\"2\"\n");
+	printf("            style=\"stroke: black; fill: none\"/>\n");
+	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+	printf("          -</text>\n");
+	printf("    </g>\n");
+    }
 
     (*classNr)++;
 
@@ -2635,126 +2649,131 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
     printf("     width=\"%i\" height=\"%i\" viewBox=\"%.2f %.2f %.2f %.2f\"\n",
            CANVASWIDTH, CANVASHEIGHT, xMin, yMin, xMax-xMin, yMax-yMin);
     printf("     version=\"1.1\"\n");
-    printf("     xmlns=\"http://www.w3.org/2000/svg\"\n");
-    printf("     onload=\"init(evt)\" onzoom=\"ZoomControl()\">\n");
+    printf("     xmlns=\"http://www.w3.org/2000/svg\"");
+    if (!STATIC_OUTPUT)
+	printf("\n     onload=\"init(evt)\" onzoom=\"ZoomControl()\"");
+    printf(">\n\n");
 
-    //the ecma-script for handling the "+"- and "-"-buttons
-    //and the tooltip
-    printf("\n<script type=\"text/ecmascript\">\n<![CDATA[\n");
-    printf("//The script for the tooltip was copied from:\n");
-    printf("//SVG - Learning By Coding - ");
+    if (!STATIC_OUTPUT) {
+	//the ecma-script for handling the "+"- and "-"-buttons
+	//and the tooltip
+	printf("<script type=\"text/ecmascript\">\n<![CDATA[\n");
+	printf("//The script for the tooltip was copied from:\n");
+	printf("//SVG - Learning By Coding - ");
 			    printf("http://www.datenverdrahten.de/svglbc/\n");
-    printf("//Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de\n");
-    printf("var svgdoc,svgroot;\n");
-    printf("var scalFac = new Array(%i);\n\n",nodecount);
-    printf("function getSVGDoc(load_evt) {\n");
-    printf("    svgdoc=load_evt.target.ownerDocument;\n");
-    printf("    svgroot=svgdoc.documentElement;\n");
-    printf("    texte=svgdoc.getElementById(\"tooltip\")");
+	printf("//Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de\n");
+	printf("var svgdoc,svgroot;\n");
+	printf("var scalFac = new Array(%i);\n\n",nodecount);
+	printf("function getSVGDoc(load_evt) {\n");
+	printf("    svgdoc=load_evt.target.ownerDocument;\n");
+	printf("    svgroot=svgdoc.documentElement;\n");
+	printf("    texte=svgdoc.getElementById(\"tooltip\")");
 				printf(".getElementsByTagName(\"text\");\n");
-    printf("}\n\n");
-    printf("function ShowTooltipMZ(mousemove_event,txt) {\n");
-    printf("    var ttrelem,tttelem,posx,posy,curtrans,ctx,cty,txt;\n");
-    printf("    var sollbreite,maxbreite,ges,anz,tmp,txl,neu,i,k,l\n");
-    printf("    ttrelem=svgdoc.getElementById(\"ttr\");\n");
-    printf("    tttelem=svgdoc.getElementById(\"ttt\");\n");
-    printf("    posx=mousemove_event.clientX;\n");
-    printf("    posy=mousemove_event.clientY;\n");
-    //FIXME: calculate number of lines dynamically.
-    printf("    for(i=1;i<=%i;i++)", DYN_TEXT);
+	printf("}\n\n");
+	printf("function ShowTooltipMZ(mousemove_event,txt) {\n");
+	printf("    var ttrelem,tttelem,posx,posy,curtrans,ctx,cty,txt;\n");
+	printf("    var sollbreite,maxbreite,ges,anz,tmp,txl,neu,i,k,l\n");
+	printf("    ttrelem=svgdoc.getElementById(\"ttr\");\n");
+	printf("    tttelem=svgdoc.getElementById(\"ttt\");\n");
+	printf("    posx=mousemove_event.clientX;\n");
+	printf("    posy=mousemove_event.clientY;\n");
+	//FIXME: calculate number of lines dynamically.
+	printf("    for(i=1;i<=%i;i++)", DYN_TEXT);
 				printf("texte.item(i).firstChild.data=\"\";\n");
-    printf("    sollbreite=200;\n");
-    printf("    tttelem.childNodes.item(0).data=txt;\n");
-    printf("    ges=tttelem.getComputedTextLength();\n");
-    printf("    tttelem.childNodes.item(0).data=\"\";\n");
-    printf("    anz=Math.ceil(ges/sollbreite);\n");
-    printf("    tmp=txt.split(\" \");\n");
-    printf("    txl=new Array(tmp.length);\n");
-    printf("    neu=new Array(anz);\n");
-    printf("    for(i=0;i<tmp.length;i++) {\n");
-    printf("        tttelem.childNodes.item(0).data=tmp[i];\n");
-    printf("        txl[i]=tttelem.getComputedTextLength();\n");
-    printf("    }\n");
-    printf("    k=0;\n");
-    printf("    maxbreite=0;\n");
-    printf("    for(i=0;i<anz;i++) {\n");
-    printf("        l=0,neu[i]=\"\";\n");
-    printf("        while(l+txl[k]<1.1*sollbreite && k<tmp.length) {\n");
-    printf("            l+=txl[k];\n");
-    printf("            neu[i]+=tmp[k]+\" \";\n");
-    printf("            k++;\n");
-    printf("            if(maxbreite<l)maxbreite=l;\n");
-    printf("        }\n");
-    printf("    }\n");
-    printf("    curtrans=svgroot.currentTranslate;\n");
-    printf("    ctx=curtrans.x;\n");
-    printf("    cty=curtrans.y;\n");
-    printf("    ttrelem.setAttribute(\"x\",posx-ctx+10);\n");
-    printf("    ttrelem.setAttribute(\"y\",posy-cty-20+10);\n");
-    printf("    if(maxbreite>sollbreite) {\n");
-    printf("        ttrelem.setAttribute(\"width\",");
+	printf("    sollbreite=200;\n");
+	printf("    tttelem.childNodes.item(0).data=txt;\n");
+	printf("    ges=tttelem.getComputedTextLength();\n");
+	printf("    tttelem.childNodes.item(0).data=\"\";\n");
+	printf("    anz=Math.ceil(ges/sollbreite);\n");
+	printf("    tmp=txt.split(\" \");\n");
+	printf("    txl=new Array(tmp.length);\n");
+	printf("    neu=new Array(anz);\n");
+	printf("    for(i=0;i<tmp.length;i++) {\n");
+	printf("        tttelem.childNodes.item(0).data=tmp[i];\n");
+	printf("        txl[i]=tttelem.getComputedTextLength();\n");
+	printf("    }\n");
+	printf("    k=0;\n");
+	printf("    maxbreite=0;\n");
+	printf("    for(i=0;i<anz;i++) {\n");
+	printf("        l=0,neu[i]=\"\";\n");
+	printf("        while(l+txl[k]<1.1*sollbreite && k<tmp.length) {\n");
+	printf("            l+=txl[k];\n");
+	printf("            neu[i]+=tmp[k]+\" \";\n");
+	printf("            k++;\n");
+	printf("            if(maxbreite<l)maxbreite=l;\n");
+	printf("        }\n");
+	printf("    }\n");
+	printf("    curtrans=svgroot.currentTranslate;\n");
+	printf("    ctx=curtrans.x;\n");
+	printf("    cty=curtrans.y;\n");
+	printf("    ttrelem.setAttribute(\"x\",posx-ctx+10);\n");
+	printf("    ttrelem.setAttribute(\"y\",posy-cty-20+10);\n");
+	printf("    if(maxbreite>sollbreite) {\n");
+	printf("        ttrelem.setAttribute(\"width\",");
 			    printf("maxbreite+2*(maxbreite-sollbreite)+3);\n");
-    printf("    } else {\n");
-    printf("        ttrelem.setAttribute(\"width\",");
+	printf("    } else {\n");
+	printf("        ttrelem.setAttribute(\"width\",");
 			    printf("maxbreite+2*(sollbreite-maxbreite)+3);\n");
-    printf("    }\n");
-    printf("    ttrelem.setAttribute(\"height\",anz*15+3);\n");
-    printf("    ttrelem.setAttribute(\"style\",");
+	printf("    }\n");
+	printf("    ttrelem.setAttribute(\"height\",anz*15+3);\n");
+	printf("    ttrelem.setAttribute(\"style\",");
 		printf("\"fill: #FFC; stroke: #000; stroke-width: 0.5px\");\n");
-    printf("    for(i=1;i<=anz;i++) {\n");
-    printf("        texte.item(i).firstChild.data=neu[i-1];\n");
-    printf("        texte.item(i).setAttribute(\"x\",posx-ctx+15);\n");
-    printf("        texte.item(i).setAttribute(\"y\",");
+	printf("    for(i=1;i<=anz;i++) {\n");
+	printf("        texte.item(i).firstChild.data=neu[i-1];\n");
+	printf("        texte.item(i).setAttribute(\"x\",posx-ctx+15);\n");
+	printf("        texte.item(i).setAttribute(\"y\",");
 				    printf("parseInt(i-1)*15+posy-cty+3);\n");
-    printf("        texte.item(i).setAttribute(\"style\",");
+	printf("        texte.item(i).setAttribute(\"style\",");
 				printf("\"fill: #00C; font-size: 11px\");\n");
-    printf("    }\n");
-    printf("    svgdoc.getElementById(\"tooltip\").style");
+	printf("    }\n");
+	printf("    svgdoc.getElementById(\"tooltip\").style");
 			printf(".setProperty(\"visibility\",\"visible\");\n");
-    printf("}\n\n");
-    printf("function HideTooltip() {\n");
-    printf("    svgdoc.getElementById(\"tooltip\").style");
+	printf("}\n\n");
+	printf("function HideTooltip() {\n");
+	printf("    svgdoc.getElementById(\"tooltip\").style");
 			printf(".setProperty(\"visibility\",\"hidden\");\n");
-    printf("}\n\n");
-    printf("function ZoomControl() {\n");
-    printf("    var curzoom;\n");
-    printf("    curzoom=svgroot.currentScale;\n");
-    printf("    svgdoc.getElementById(\"tooltip\")");
+	printf("}\n\n");
+	printf("function ZoomControl() {\n");
+	printf("    var curzoom;\n");
+	printf("    curzoom=svgroot.currentScale;\n");
+	printf("    svgdoc.getElementById(\"tooltip\")");
 	printf(".setAttribute(\"transform\",\"scale(\"+1/curzoom+\")\");\n");
-    printf("}\n\n");
-    printf("function init(evt) {\n");
-    printf("    for (i=0; i<%i; i++) {\n",nodecount);
-    printf("        scalFac[i] = %.1f;\n", STARTSCALE);
-    printf("    }\n");
-    printf("    getSVGDoc(evt);\n");
-    printf("}\n\n");
-    printf("function colorText(object, color) {\n");
-    printf("    var obj = svgDocument.getElementById(object);\n");
-    printf("    obj.setAttribute(\"style\",\"fill: \"+color);");
-    printf("}\n\n");
-    printf("function enlarge(name, number) {\n");
-    printf("    var obj = svgDocument.getElementById(name);\n");
-    printf("    scalFac[number] = scalFac[number] * 1.1;\n");
-    printf("    obj.setAttribute(\"transform\",");
-    printf("\"scale(\"+scalFac[number]+\")\");\n");
-    printf("}\n\n");
-    printf("function scaledown(name, number) {\n");
-    printf("    var obj = svgDocument.getElementById(name);\n");
-    printf("    scalFac[number] = scalFac[number] / 1.1;\n");
-    printf("    obj.setAttribute(\"transform\",");
-    printf("\"scale(\"+scalFac[number]+\")\");\n");
-    printf("}\n");
-    printf("// ]]>\n</script>\n\n");
+	printf("}\n\n");
+	printf("function init(evt) {\n");
+	printf("    for (i=0; i<%i; i++) {\n",nodecount);
+	printf("        scalFac[i] = %.1f;\n", STARTSCALE);
+	printf("    }\n");
+	printf("    getSVGDoc(evt);\n");
+	printf("}\n\n");
+	printf("function colorText(object, color) {\n");
+	printf("    var obj = svgDocument.getElementById(object);\n");
+	printf("    obj.setAttribute(\"style\",\"fill: \"+color);");
+	printf("}\n\n");
+	printf("function enlarge(name, number) {\n");
+	printf("    var obj = svgDocument.getElementById(name);\n");
+	printf("    scalFac[number] = scalFac[number] * 1.1;\n");
+	printf("    obj.setAttribute(\"transform\",");
+	printf("\"scale(\"+scalFac[number]+\")\");\n");
+	printf("}\n\n");
+	printf("function scaledown(name, number) {\n");
+	printf("    var obj = svgDocument.getElementById(name);\n");
+	printf("    scalFac[number] = scalFac[number] / 1.1;\n");
+	printf("    obj.setAttribute(\"transform\",");
+	printf("\"scale(\"+scalFac[number]+\")\");\n");
+	printf("}\n");
+	printf("// ]]>\n</script>\n\n");
+    }
 
     printf(" <title>%s</title>\n", note1);
 
     //definition for the arrowheads
     printf(" <defs>\n");
-    printf("     <marker id=\"arrowhead\" markerWidth=\"12\"");
+    printf("   <marker id=\"arrowhead\" markerWidth=\"12\"");
     printf(" markerHeight=\"8\" refX=\"12\" refY=\"4\" orient=\"auto\">\n");
-    printf("     <path d=\"M 0 0 12 4 0 8\" fill=\"none\" stroke=\"black\"/>");
-    printf("     </marker>");
-    printf(" </defs>\n");
+    printf("     <path d=\"M 0 0 12 4 0 8\"");
+    printf(" fill=\"none\" stroke=\"black\"/>\n");
+    printf("   </marker>\n");
+    printf(" </defs>\n\n");
 
     xfree(note1);
 }
@@ -2940,7 +2959,7 @@ static void printModuleIdentity(int modc, SmiModule **modv, float *x, float *y)
 
 	    //name and description of the module.
 	    *x += TABLEELEMHEIGHT;
-	    if (modv[i]->description) {
+	    if (!STATIC_OUTPUT && modv[i]->description) {
 		tooltip = (char *)xmalloc(2*strlen(modv[i]->description));
 		parseTooltip(modv[i]->description, tooltip);
 		printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
@@ -2966,7 +2985,7 @@ static void printModuleIdentity(int modc, SmiModule **modv, float *x, float *y)
 		for(; smiRevision;
 				smiRevision = smiGetNextRevision(smiRevision)) {
 		    printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
-		    if (smiRevision->description && strcmp(
+		    if (!STATIC_OUTPUT && smiRevision->description && strcmp(
 		smiRevision->description,
 		"[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
 			tooltip = (char *)xmalloc(2*
@@ -3023,51 +3042,54 @@ static void printNotificationType(int modc, SmiModule **modv,
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
 
-		smiElement = smiGetFirstElement(smiNode);
-		if (smiElement || smiNode->description) {
-		    printf(" onmousemove=\"");
-		}
-		if (smiNode->description) {
-		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
-		    parseTooltip(smiNode->description, tooltip);
-		    printf("ShowTooltipMZ(evt,'%s')", tooltip);
-		    xfree(tooltip);
-		}
-		if (smiElement && smiNode->description) {
-		    printf(";");
-		}
-		for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-		    if (j) {
+		if (!STATIC_OUTPUT) {
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement || smiNode->description) {
+			printf(" onmousemove=\"");
+		    }
+		    if (smiNode->description) {
+			tooltip =
+				(char *)xmalloc(2*strlen(smiNode->description));
+			parseTooltip(smiNode->description, tooltip);
+			printf("ShowTooltipMZ(evt,'%s')", tooltip);
+			xfree(tooltip);
+		    }
+		    if (smiElement && smiNode->description) {
 			printf(";");
 		    }
-		    printf("colorText('%s','red')",
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (j) {
+			    printf(";");
+			}
+			printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
-		}
-		if (j || smiNode->description) {
-		    printf("\"");
-		}
+		    }
+		    if (j || smiNode->description) {
+			printf("\"");
+		    }
 
-		smiElement = smiGetFirstElement(smiNode);
-		if (smiElement || smiNode->description) {
-		    printf(" onmouseout=\"");
-		}
-		if (smiNode->description) {
-		    printf("HideTooltip(evt)");
-		}
-		if (smiElement && smiNode->description) {
-		    printf(";");
-		}
-		for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-		    if (j) {
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement || smiNode->description) {
+			printf(" onmouseout=\"");
+		    }
+		    if (smiNode->description) {
+			printf("HideTooltip(evt)");
+		    }
+		    if (smiElement && smiNode->description) {
 			printf(";");
 		    }
-		    printf("colorText('%s','black')",
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (j) {
+			    printf(";");
+			}
+			printf("colorText('%s','black')",
 					smiGetElementNode(smiElement)->name);
-		}
-		if (j || smiNode->description) {
-		    printf("\"");
+		    }
+		    if (j || smiNode->description) {
+			printf("\"");
+		    }
 		}
 
 		printf(">%s</tspan>", smiNode->name);
@@ -3117,51 +3139,54 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
 
-		smiElement = smiGetFirstElement(smiNode);
-		if (smiElement || smiNode->description) {
-		    printf(" onmousemove=\"");
-		}
-		if (smiNode->description) {
-		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
-		    parseTooltip(smiNode->description, tooltip);
-		    printf("ShowTooltipMZ(evt,'%s')", tooltip);
-		    xfree(tooltip);
-		}
-		if (smiElement && smiNode->description) {
-		    printf(";");
-		}
-		for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-		    if (j) {
+		if (!STATIC_OUTPUT) {
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement || smiNode->description) {
+			printf(" onmousemove=\"");
+		    }
+		    if (smiNode->description) {
+			tooltip =
+				(char *)xmalloc(2*strlen(smiNode->description));
+			parseTooltip(smiNode->description, tooltip);
+			printf("ShowTooltipMZ(evt,'%s')", tooltip);
+			xfree(tooltip);
+		    }
+		    if (smiElement && smiNode->description) {
 			printf(";");
 		    }
-		    printf("colorText('%s','red')",
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (j) {
+			    printf(";");
+			}
+			printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
-		}
-		if (j || smiNode->description) {
-		    printf("\"");
-		}
+		    }
+		    if (j || smiNode->description) {
+			printf("\"");
+		    }
 
-		smiElement = smiGetFirstElement(smiNode);
-		if (smiElement || smiNode->description) {
-		    printf(" onmouseout=\"");
-		}
-		if (smiNode->description) {
-		    printf("HideTooltip(evt)");
-		}
-		if (smiElement && smiNode->description) {
-		    printf(";");
-		}
-		for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-		    if (j) {
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement || smiNode->description) {
+			printf(" onmouseout=\"");
+		    }
+		    if (smiNode->description) {
+			printf("HideTooltip(evt)");
+		    }
+		    if (smiElement && smiNode->description) {
 			printf(";");
 		    }
-		    printf("colorText('%s','black')",
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (j) {
+			    printf(";");
+			}
+			printf("colorText('%s','black')",
 					smiGetElementNode(smiElement)->name);
-		}
-		if (j || smiNode->description) {
-		    printf("\"");
+		    }
+		    if (j || smiNode->description) {
+			printf("\"");
+		    }
 		}
 
 		printf(">%s</tspan>", smiNode->name);
@@ -3212,51 +3237,54 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
 							smiNode->name, *x, *y);
 
-		smiElement = smiGetFirstElement(smiNode);
-		if (smiElement || smiNode->description) {
-		    printf(" onmousemove=\"");
-		}
-		if (smiNode->description) {
-		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
-		    parseTooltip(smiNode->description, tooltip);
-		    printf("ShowTooltipMZ(evt,'%s')", tooltip);
-		    xfree(tooltip);
-		}
-		if (smiElement && smiNode->description) {
-		    printf(";");
-		}
-		for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-		    if (j) {
+		if (!STATIC_OUTPUT) {
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement || smiNode->description) {
+			printf(" onmousemove=\"");
+		    }
+		    if (smiNode->description) {
+			tooltip =
+				(char *)xmalloc(2*strlen(smiNode->description));
+			parseTooltip(smiNode->description, tooltip);
+			printf("ShowTooltipMZ(evt,'%s')", tooltip);
+			xfree(tooltip);
+		    }
+		    if (smiElement && smiNode->description) {
 			printf(";");
 		    }
-		    printf("colorText('%s','red')",
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (j) {
+			    printf(";");
+			}
+			printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
-		}
-		if (j || smiNode->description) {
-		    printf("\"");
-		}
+		    }
+		    if (j || smiNode->description) {
+			printf("\"");
+		    }
 
-		smiElement = smiGetFirstElement(smiNode);
-		if (smiElement || smiNode->description) {
-		    printf(" onmouseout=\"");
-		}
-		if (smiNode->description) {
-		    printf("HideTooltip(evt)");
-		}
-		if (smiElement && smiNode->description) {
-		    printf(";");
-		}
-		for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-		    if (j) {
+		    smiElement = smiGetFirstElement(smiNode);
+		    if (smiElement || smiNode->description) {
+			printf(" onmouseout=\"");
+		    }
+		    if (smiNode->description) {
+			printf("HideTooltip(evt)");
+		    }
+		    if (smiElement && smiNode->description) {
 			printf(";");
 		    }
-		    printf("colorText('%s','black')",
+		    for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+			if (j) {
+			    printf(";");
+			}
+			printf("colorText('%s','black')",
 					smiGetElementNode(smiElement)->name);
-		}
-		if (j || smiNode->description) {
-		    printf("\"");
+		    }
+		    if (j || smiNode->description) {
+			printf("\"");
+		    }
 		}
 
 		printf(">%s</tspan>", smiNode->name);
@@ -3310,7 +3338,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    continue;
 		printf(" <text x=\"%.2f\" y=\"%.2f\"><tspan", *x, *y);
 
-		if (smiNode->description) {
+		if (!STATIC_OUTPUT && smiNode->description) {
 		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
 		    parseTooltip(smiNode->description, tooltip);
 		    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')", tooltip);
@@ -3332,43 +3360,45 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    //mandatory groups
 		    *x += TABLEELEMHEIGHT;
 		    printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement) {
-			printf(" onmousemove=\"");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (!strcmp(smiGetNodeModule(smiGetElementNode(
+		    if (!STATIC_OUTPUT) {
+			smiElement = smiGetFirstElement(smiNode);
+			if (smiElement) {
+			    printf(" onmousemove=\"");
+			}
+			for (j = 0; smiElement;
+			    j++, smiElement = smiGetNextElement(smiElement)) {
+			    if (!strcmp(smiGetNodeModule(smiGetElementNode(
 						smiElement))->name, module)) {
-			    if (j) {
-				printf(";");
-			    }
-			    printf("colorText('%s','red')",
+				if (j) {
+				    printf(";");
+				}
+				printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
+			    }
+			}
+			if (j) {
+			    printf("\"");
+			}
+			smiElement = smiGetFirstElement(smiNode);
+			if (smiElement) {
+			    printf(" onmouseout=\"");
+			}
+			for (j = 0; smiElement;
+			    j++, smiElement = smiGetNextElement(smiElement)) {
+			    if (!strcmp(smiGetNodeModule(smiGetElementNode(
+						smiElement))->name, module)) {
+				if (j) {
+				    printf(";");
+				}
+				printf("colorText('%s','black')",
+					smiGetElementNode(smiElement)->name);
+			    }
+			}
+			if (j) {
+			    printf("\"");
 			}
 		    }
-		    if (j) {
-			printf("\"");
-		    }
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement) {
-			printf(" onmouseout=\"");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (!strcmp(smiGetNodeModule(smiGetElementNode(
-						smiElement))->name, module)) {
-			    if (j) {
-				printf(";");
-			    }
-			    printf("colorText('%s','black')",
-					smiGetElementNode(smiElement)->name);
-			}
-		    }
-		    if (j) {
-			printf("\"");
-		    }
-		    printf(">MANDATORY-GROUPS</text>");
+		    printf(">MANDATORY-GROUPS</text>\n");
 		    *y += TABLEELEMHEIGHT;
 		    *x -= TABLEELEMHEIGHT;
 
@@ -3380,21 +3410,26 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 			smiModule2 = smiGetNodeModule(smiNode2);
 			if (!strcmp(smiModule2->name, module)) {
 			    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
-			    printf("GROUP <tspan onmousemove=\"");
-			    if (smiOption->description) {
-				tooltip = (char *)xmalloc(2*strlen(
+			    printf("GROUP <tspan");
+			    if (!STATIC_OUTPUT) {
+				printf(" onmousemove=\"");
+				if (smiOption->description) {
+				    tooltip = (char *)xmalloc(2*strlen(
 						smiOption->description));
-				parseTooltip(smiOption->description, tooltip);
-				printf("ShowTooltipMZ(evt,'%s');", tooltip);
-				xfree(tooltip);
+				    parseTooltip(smiOption->description,
+								tooltip);
+				    printf("ShowTooltipMZ(evt,'%s');", tooltip);
+				    xfree(tooltip);
+				}
+				printf("colorText('%s','red')", smiNode2->name);
+				printf("\" onmouseout=\"");
+				if (smiOption->description) {
+				    printf("HideTooltip(evt);");
+				}
+				printf("colorText('%s','black')\"",
+								smiNode2->name);
 			    }
-			    printf("colorText('%s','red')", smiNode2->name);
-			    printf("\" onmouseout=\"");
-			    if (smiOption->description) {
-				printf("HideTooltip(evt);");
-			    }
-			    printf("colorText('%s','black')", smiNode2->name);
-			    printf("\">%s</tspan></text>\n", smiNode2->name);
+			    printf(">%s</tspan></text>\n", smiNode2->name);
 			    *y += TABLEELEMHEIGHT;
 			}
 		    }
@@ -3409,22 +3444,26 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 			smiModule2 = smiGetNodeModule(smiNode2);
 			if (!strcmp(smiModule2->name, module)) {
 			    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
-			    printf("OBJECT <tspan onmousemove=\"");
-			    if (smiRefinement->description) {
-				tooltip = (char *)xmalloc(2*strlen(
+			    printf("OBJECT <tspan");
+			    if (!STATIC_OUTPUT) {
+				printf(" onmousemove=\"");
+				if (smiRefinement->description) {
+				    tooltip = (char *)xmalloc(2*strlen(
 						smiRefinement->description));
-				parseTooltip(smiRefinement->description,
+				    parseTooltip(smiRefinement->description,
 								tooltip);
-				printf("ShowTooltipMZ(evt,'%s');", tooltip);
-				xfree(tooltip);
+				    printf("ShowTooltipMZ(evt,'%s');", tooltip);
+				    xfree(tooltip);
+				}
+				printf("colorText('%s','red')", smiNode2->name);
+				printf("\" onmouseout=\"");
+				if (smiRefinement->description) {
+				    printf("HideTooltip(evt);");
+				}
+				printf("colorText('%s','black')\"",
+								smiNode2->name);
 			    }
-			    printf("colorText('%s','red')", smiNode2->name);
-			    printf("\" onmouseout=\"");
-			    if (smiRefinement->description) {
-				printf("HideTooltip(evt);");
-			    }
-			    printf("colorText('%s','black')", smiNode2->name);
-			    printf("\">%s</tspan></text>\n", smiNode2->name);
+			    printf(">%s</tspan></text>\n", smiNode2->name);
 			    *y += TABLEELEMHEIGHT;
 			}
 		    }
@@ -3994,6 +4033,8 @@ void initSvg()
 	  "show deprecated objects"},
 	{ "show-depr-obsolete", OPT_FLAG, &SHOW_DEPR_OBSOLETE, 0,
 	  "show deprecated and obsolete objects"},
+	{ "static-output", OPT_FLAG, &STATIC_OUTPUT, 0,
+	  "disable all interactivity (e.g. for printing)"},
         { 0, OPT_END, 0, 0 }
     };
 
