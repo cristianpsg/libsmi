@@ -1,77 +1,60 @@
-.TH miblint 1 "Aug 1998" "MIB Tools"
+.\"
+.\" $Id$
+.\"
+.TH smilint 1  "May 5, 1999" "IBR" "SMI Tools"
 .SH NAME
-miblint \- syntax and semantics checks of SMIv1/v2 MIB files
+smilint \- syntax and semantics checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
-.B miblint
+.B smilint
 [
-.B "-rRsSvVyY"
+.B "-sSvV"
 ] [
-.BI "-l level"
+.BI "-l " level
 ] [
-.BI "-d level"
+.BI "-d " level
 ] [
-.BI "-c config"
+.BI "-c " config
 ] [
-.BI "-m module"
+.BI "-L " location
 ]
-.BI "file ..."
-.SH NOTE
-This is work in progress. Don't expect this to be suited for
-productional use.
+.I "module"
 .SH DESCRIPTION
-The
-.B miblint
-program is used to check MIB
-.BR file s
-for syntax errors and also
-semantics at some degree. Both, SMIv1 and SMIv2 style MIB modules
-are supported. SIMv2 MIB modules are identified by importing
-anything from the SNMPv2-SMI module.
+The \fBsmilint\fP program is used to check MIB modules for syntax
+errors and semantics at some degree.  Both, SMIv1/v2 and SMIng style
+MIB modules are supported.
 .PP
-The rules that
-.B miblint
-is based on, are taken from RFC 1902, RFC 1903 and RFC 1904.
-(Actually, some refinements are under way in form of three
-internet-drafts that are expected to become full standard RFCs and
-obsolete the above mentiones RFC documents.)
-.br
+The rules that \fBsmilint\fP is based on, are taken from RFC 1155, RFC
+1212 and RFC 1215 for SMIv1, RFCs 2578-2580 for SMIv2 and the
+specifications of SMIng that are part of a master's thesis at the
+Technical University, Braunschweig.
+.PP
+\fBSmilint\fP first reads the global libsmi configuration file
+\fB/usr/local/etc/smi.conf\fP, as any libsmi application does. Then
+the command line options are interpreted and finally, the
+\fB/usr/local/etc/smilint.conf\fP configuration file is read, if present,
+before \fBsmilint\fP starts its main operation.
 .SH OPTIONS
 .TP
-.B "-r"
-Recursively report errors (and statistic, if enabled) on imported
-modules.
-.TP
-.B "-R"
-Don't recursively report errors and statistic (default).
-.TP
 .B "-s"
-Report some per module statistics.
+Report some per module statistics to stderr.
 .TP
 .B "-S"
 Don't report statistics (default).
 .TP
 .B "-v"
-On errors, do print the current line of input after the error message
-and a marker pointing to the actual token in the input stream. Note,
-that the corresponding point of error usually lies before this marker.
+On errors, do print the current line of input to stderr after the
+error message and a marker pointing to the current token in the input
+stream. Note that the corresponding point of error usually lies before
+this marker.
 .TP
 .B "-V"
 Don't print error lines (default).
 .TP
-.B "-y"
-Activate the yydebug output of bison. This is only of interest for
-.B miblint
-debugging purpose.
+.BI "-d " level
+Print libsmi debugging messages at the given \fIlevel\fP (default: 0).
 .TP
-.B "-Y"
-Deactivate yydebug output of bison (default).
-.TP
-.BI "-d level"
-Print debugging messages at the given level.
-.TP
-.BI "-l level"
-Report errors and warnings up to the given
-.BR level .
+.BI "-l " level
+Report errors and warnings up to the given \fIlevel\fP to stderr.
 A higher level shows more warnings. The actual levels are:
 .sp
 .nf
@@ -82,56 +65,44 @@ A higher level shows more warnings. The actual levels are:
      implementations,
  3   SMI error, tolerated by many implementations,
  4   something which is recommended to be changed,
-     but no read error,
  5   something that might be ok, but might not be
-     recommended under some circumstances
+     recommended under some circumstances.
 .fi
 .sp
 Higher levels are actually not used and lead to the same effects as
-level 5. Note, that errors up to level 3 are real errors and have to
-be fixed by the responsible author. Level 3 is the default level.
+level 5 does. Note that errors up to level 3 are errors violating the
+specification and must be fixed by the responsible author. Level 3 is
+the default level.
 .TP
-.BI "-c config"
-Read some configuration from the file
-.BR config .
-Besides empty lines and lines starting with a `#' character are
-ignored. The known configuration directives are:
-.sp
+.BI "-c " config
+Read the configuration from \fIfile\fP. See smi_config(3) section
+CONFIGURATION FILES for its format.
+.TP
+.BI "-L " location
+Add \fIlocation\fP to the list of locations to search for MIB modules.
+See smi_config(3) section MODULE LOCATIONS for location details.
+.TP
+.I module
+This is the module to be checked. Note that this module is searched in
+the list of known locations. If the module shall be taken from an
+SMIv1/v2 file in the current directory, a "\fB-L smi:.\fP" option
+should be added to the command line.
+.SH "FILES"
 .nf
- directory <dir>         Makes miblint try to look
-                         up MIB module files in the
-                         specified directory.
- module <module> <file>  Makes miblint look for
-                         the specified module in
-                         the specified file. This
-                         is not needed when those
-                         two names are equal. 
- preload <module>        Makes miblint preload all
-                         declarations from the
-                         specified module.
- importloging <0|1>      see options -r, -R.
- statistics <0|1>        see options -s, -S.
- errorlines <0|1>        see options -v, -V.
- yydebug <0|1>           see options -y, -Y.
- loglevel <level>        see option -l.
+/usr/local/etc/smi.conf     general configuration file
+/usr/local/etc/smilint.conf smilint configuration file
 .fi
-.sp
-.TP
-.BI "-m module"
-Read just the given MIB
-.B module
-from the input file, instead of the whole file
-which might contain multiple MIB modules.
+.SH "NOTES"
+Libsmi and this tool are work in progress. Expect changes in near
+future.
 .SH "SEE ALSO"
-http://www.ibr.cs.tu-bs.de/~strauss/sming/
-.br
-.BR scotty ( 1 ),
-.BR mosy ( 1 ),
-.BR smicng ( 1 ).
-.SH "BUGS"
-Definetely too many to mention at this point. Anyway, bug reports
-are welcome.
-.br
+The SMIng and
+.BR libsmi (3)
+project is documented at
+.BR "http://www.ibr.cs.tu-bs.de/~strauss/sming/" "."
+Other commonly used MIB checkers are
+.BR mosy "(1), "
+.BR smicng "(1)."
 .SH "AUTHOR"
-Frank Strauss (strauss@ibr.cs.tu-bs.de), TU Braunschweig.
+Frank Strauss <strauss@ibr.cs.tu-bs.de>
 .br
