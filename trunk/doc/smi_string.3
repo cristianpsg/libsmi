@@ -1,0 +1,119 @@
+.\"
+.\" $Id$
+.\"
+.TH smi_string 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.SH NAME
+smiStringStatus, smingStringStatus, smiStringAccess,
+smingStringAccess, smiStringDecl, smiStringBasetype, smiModule,
+smiDescriptor, smiMkTime, smiCTime, smingCTime \- SMI string
+conversion routines
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.B #include <smi.h>
+.RS
+.RE
+.sp
+.BI "char *smingStringStatus(SmiStatus " status );
+.RE
+.sp
+.BI "char *smiStringStatus(SmiStatus " status );
+.RE
+.sp
+.BI "char *smingStringAccess(SmiAccess " access );
+.RE
+.sp
+.BI "char *smiStringAccess(SmiAccess " access );
+.RE
+.sp
+.BI "char *smiStringDecl(SmiDecl " macro );
+.RE
+.sp
+.BI "char *smiStringBasetype(SmiBasetype " basetype );
+.RE
+.sp
+.BI "char *smiModule(char *" fullname );
+.RE
+.sp
+.BI "char *smiDescriptor(char *" fullname );
+.RE
+.sp
+.BI "time_t smiMkTime(const char *" s );
+.RE
+.sp
+.BI "char *smiCTime(time_t " t );
+.RE
+.sp
+.BI "char *smingCTime(time_t " t );
+.RE
+.fi
+.SH DESCRIPTION
+These functions allow conversions between various types of SMI elements
+and printable strings.
+.PP
+The \fBsmingStringStatus()\fP function returns a string that represents
+the SMIng notation of a the \fIstatus\fP value. If \fIstatus\fP is not
+an SMIng conformant status or does not allow an adequate conversion to
+SMIng, the string "<unknown>" is returned.
+.PP
+The \fBsmiStringStatus()\fP function returns a string that represents
+the SMIv1/v2 notation of a the \fIstatus\fP value. If \fIstatus\fP is
+not an SMIv1 or SMIv2 conformant status or does not allow an adequate
+conversion to SMIv2, the string "<unknown>" is returned.
+.PP
+The \fBsmingStringAccess()\fP function returns a string that represents
+the SMIng notation of a the \fIaccess\fP value. If \fIaccess\fP is
+not an SMIng conformant access level or does not allow an adequate
+conversion to SMIng, the string "<unknown>" is returned.
+.PP
+The \fBsmiStringAccess()\fP function returns a string that represents
+the SMIv1/v2 notation of a the \fIaccess\fP value. If \fIaccess\fP is
+not an SMIv1/v2 conformant access level or does not allow an adequate
+conversion to SMIv1/v2, the string "<unknown>" is returned.
+.PP
+The \fBsmiStringDecl()\fP function returns a string that represents
+the SMIv1/v2 notation of the macro or statement or the SMIng notation of
+the statement given by the \fImacro\fP value. If \fImacro\fP is
+not such a macro or statement, the string "<unknown>" is returned.
+.PP
+The \fBsmiStringBasetype()\fP function returns a string that represents
+the SMIng notation of the base type given by the \fIbasetype\fP value.
+If \fIbasetype\fP is
+not a valid base type, the string "<unknown>" is returned.
+.PP
+The \fBsmiModule()\fP function returns a string that represents
+the module part of the fully quallified descriptor \fIfullname\fP.
+.PP
+The \fBsmiDescriptor()\fP function returns a string that
+represent the local descriptor part of the fully quallified descriptor
+\fIfullname\fP.
+.PP
+The \fBsmiMkTime()\fP function takes a string argument that represents
+an 11-char or 13-char SMIv2 style date (\fBLAST-UPDATED\fP or
+\fBREVISION\fP), or a 10-char or 16-char SMIng style date
+(\fBrevision\fP) and returns its value of type \fItime_t\fP or
+zero if it cannot be converted.
+.PP
+The \fBsmiCTime()\fP function returns a string that represents the
+13-char SMIv2 style date and time given by \fIt\fP.
+.PP
+The \fBsmingCTime()\fP function returns a string that represents the
+16-char SMIng style date and time given by \fIt\fP.
+.SH "RETURN VALUE"
+The returned strings of all functions must not be released by the
+caller. The strings, returned by \fBsmiModule()\fP,
+\fBsmiDescriptor()\fP, \fBsmiCTime()\fP and \fBsmingCTime()\fP are
+static. Thus, the caller must copy them before the next call to the
+same function, if required.
+.SH "FILES"
+.nf
+/usr/local/include/smi.h    SMI library header file
+.fi
+.SH "NOTES"
+Libsmi is work in progress. Interface inconsistencies and deficiencies
+will change in near future.
+.SH "SEE ALSO"
+.BR smi.h ", " libsmi "(3)"
+.SH "AUTHOR"
+Frank Strauss <strauss@ibr.cs.tu-bs.de>
+.br

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.21 1999/05/04 09:00:51 strauss Exp $
+ * @(#) $Id: smi.c,v 1.22 1999/05/04 09:13:45 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1417,39 +1417,15 @@ smiGetChildren(spec, mod)
 
 
 char **
-smiGetImports(spec, mod)
-    char	        *spec;
-    char		*mod;
+smiGetImports(modulename)
+    char		*modulename;
 {
     Module		*modulePtr = NULL;
     Import		*importPtr;
-    char	        name[SMI_MAX_OID+1];
-    char	        modulename[SMI_MAX_DESCRIPTOR+1];
     char		**list = NULL;
     
-    printDebug(4, "smiGetImports(\"%s\", \"%s\")\n",
-	       spec, mod ? mod : "NULL");
+    printDebug(4, "smiGetImports(\"%s\")\n", modulename);
 
-    /*
-     * First determine the kind of input to decide what kind of member
-     * list we are looking for. It might be
-     *
-     * - a module name, to retrieve all imported identifiers,
-     * - a row (SEQUENCE), to retrieve all of its columnar object types,
-     * - a table (SEQUENCE OF), to retrieve all of its index object types,
-     * - a notification type, to retrieve all of its variables,
-     * - an object group, to retrieve all of its objects types,
-     * - a notification group, to retrieve all of its notification types,
-     *
-     */
-
-    getModulenameAndName(spec, mod, modulename, name);
-
-    if (!strlen(modulename)) {
-	strncpy(modulename, name, SMI_MAX_DESCRIPTOR);
-	name[0] = 0;
-    }
-    
     if (modulename) {
 	modulePtr = findModuleByName(modulename);
 	if (!modulePtr) {
@@ -1461,44 +1437,9 @@ smiGetImports(spec, mod)
 	return NULL;
     }
 
-    if (!strlen(name)) {
-
-	/*
-	 * a module name, to retrieve all imported identifiers
-	 */
-	for (importPtr = modulePtr->firstImportPtr; importPtr;
-	     importPtr = importPtr->nextPtr) {
-	    addName(&list, importPtr->module, importPtr->name);
-	}
-
-#if 0
-    } else if (!isupper((int)name[0])) {
-
-	/*
-	 * any object type, look closer...
-	 */
-	objectPtr = findObjectByModulenameAndName(modulename, name);
-	if (objectPtr) {
-	    if (objectPtr->typePtr->basetype == SMI_BASETYPE_SEQUENCEOF) {
-		/*
-		 * a table, to retrieve all of its index object types
-		 */
-	    } else if (objectPtr->typePtr->basetype == SMI_BASETYPE_SEQUENCE) {
-		/*
-		 * a row, to retrieve all of its columnar object types
-		 */
-	    }
-	    /*
-	     * a notification type, to retrieve all of its variables
-	     */
-	    /*
-	     * an object group, to retrieve all of its objects types
-	     */
-	    /*
-	     * a notification group, to retrieve all of its notification types
-	     */
-	}
-#endif
+    for (importPtr = modulePtr->firstImportPtr; importPtr;
+	 importPtr = importPtr->nextPtr) {
+	addName(&list, importPtr->module, importPtr->name);
     }
     
     return list;
