@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.29 2002/06/17 17:40:23 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.30 2002/06/21 09:40:55 tklie Exp $
  */
 
 #include <config.h>
@@ -251,21 +251,16 @@ fprintHexOrAsciiType( FILE *f, int indent, SmiType *parent,
     else {
 	fprint( f, "base=\"%s%s\">\n",parent->name, typeFlag );
     }
-    if( minLength == maxLength ) {
-	/* we have a fixed length string */
-	fprintSegment( f, indent + 2 * INDENT, "<xsd:length", 0 );
+   
+    if( minLength > 0 ) {
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:minLength", 0 );
 	fprint( f, " value=\"%d\"/>\n", minLength );
     }
-    else {
-	if( minLength > 0 ) {
-	    fprintSegment( f, indent + 2 * INDENT, "<xsd:minLength", 0 );
-	    fprint( f, " value=\"%d\"/>\n", minLength );
-	}
-	if( maxLength > -1 ) {
-	    fprintSegment( f, indent + 2 * INDENT, "<xsd:maxLength", 0 );
-	    fprint( f, " value=\"%d\"/>\n", maxLength );
-	}
+    if( maxLength > -1 ) {
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:maxLength", 0 );
+	fprint( f, " value=\"%d\"/>\n", maxLength );
     }
+
     fprintSegment( f, indent + INDENT, "</xsd:restriction>\n", 0 );
     fprintSegment( f, indent, "</xsd:simpleType>\n", 0 );
 }
@@ -700,7 +695,7 @@ static void fprintSubRangeType( FILE *f, int indent,
 	
     }
     
-    fprintSegment(f, indent, "</xsd:simpleType>\n\n", 0 );
+    fprintSegment(f, indent, "</xsd:simpleType>\n", 0 );
 }
 
 static void fprintDisplayHint( FILE *f, int indent, char *format )
@@ -712,7 +707,6 @@ static void fprintDisplayHint( FILE *f, int indent, char *format )
 static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 			  const char *name)
 {
-    int i;
     SmiRange *smiRange;
     int numSubRanges = getNumSubRanges( smiType );
 
@@ -772,7 +766,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	}
 	
 	fprintSegment( f, indent + INDENT, "</xsd:union>\n", 0 );
-	fprintSegment(f, indent, "</xsd:simpleType>\n\n", 0);
+	fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
     }
     else {
 	/* we do not have more than one subrange */
@@ -782,9 +776,11 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	    smiType->decl != SMI_DECL_IMPLICIT_TYPE ) {
 	    fprintRestriction(f, indent - INDENT, smiType, 1 );
 	}
-	if( smiType->decl != SMI_DECL_IMPLICIT_TYPE ) {
-	    fprint( f, "\n" );
-	}
+    }
+
+    /* print an empty line after global types */
+    if( smiType->decl != SMI_DECL_IMPLICIT_TYPE && name ) {
+	fprint( f, "\n" );
     }
   
 
@@ -1078,15 +1074,17 @@ static void fprintElement( FILE *f, int indent,
 			   "<xsd:simpleContent>\n", 0 );
 	    fprintSegment( f, indent + 3 * INDENT, "<xsd:extension", 0 );
 	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE  ) {
-		fprint( f, ">\n" );
-		fprintTypedef( f, indent + 4 * INDENT, smiType, NULL );
+		fprint( f, " base=\"%sType\">\n",
+			smiNode->name ); 
+/*		fprintTypedef( f, indent + 4 * INDENT, smiType, NULL );*/
 	    }
 	    else {
+
 		if( prefix ) {
 		    fprint( f, " base=\"%s:%s\">\n", prefix, typeName );
 		}
 		else {
-		    fprint( f, " base=\"%s\"", typeName );
+		    fprint( f, " base=\"%s\">\n", typeName );
 		}
 	    }
 	    
@@ -1094,8 +1092,15 @@ static void fprintElement( FILE *f, int indent,
 			   "<xsd:attribute name=\"enc\" " , 0 );
 	    fprint( f, "type=\"smi:EncAttrType\"/>\n" );
 	    fprintSegment( f, indent + 3 * INDENT, "</xsd:extension>\n", 0 );
+
 	    fprintSegment(f, indent + 2 * INDENT, "</xsd:simpleContent>\n", 0);
 	    fprintSegment( f, indent + INDENT, "</xsd:complexType>\n", 0 );
+	}
+
+	else if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	    fprint( f, ">\n" );
+	    fprintAnnotationElem( f, indent + INDENT, smiNode );
+	    fprintTypedef( f, indent + INDENT, smiType, NULL );
 	}
 	
 	else {
@@ -1108,7 +1113,6 @@ static void fprintElement( FILE *f, int indent,
 	    fprint( f, " minOccurs=\"0\">\n" );
 	    fprintAnnotationElem( f, indent + INDENT, smiNode );
 	}
-	
 	fprintSegment( f, indent, "</xsd:element>\n", 0 ); 
 	break;
     }
@@ -1140,7 +1144,7 @@ static void fprintRows( FILE *f, SmiModule *smiModule )
 }
 
 
-static void fprintBits( FILE *f, SmiModule *smiModule )
+static void fprintBitsAndStrings( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode;
     SmiType *smiType;
@@ -1159,13 +1163,12 @@ static void fprintBits( FILE *f, SmiModule *smiModule )
 			fprintTypedef( f, INDENT, smiType, iterNode->name );
 			break;
 		    }
-#if 0
+
 		case SMI_BASETYPE_OCTETSTRING:
-		    if( smiType->decl != SMI_DECL_IMPLICIT_TYPE ) {
-			fprintTypedef
-			    }
+		    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+			fprintTypedef( f, INDENT, smiType, iterNode->name );
+		    }
 		    break;
-#endif /* #if 0 */
 		default:
 		    break;
 		}
@@ -1246,7 +1249,7 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
     fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
 
-    fprintBits(f, smiModule);
+    fprintBitsAndStrings(f, smiModule);
 }
 
 
