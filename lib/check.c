@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.9 2000/11/06 14:27:56 strauss Exp $
+ * @(#) $Id: check.c,v 1.10 2000/11/08 23:12:02 strauss Exp $
  */
 
 #include <config.h>
@@ -92,29 +92,48 @@ compareValues(SmiValue *a, SmiValue *b) {
  */
 
 static void
-redefinition(Parser *parser, char *name1, Module *module,
-	     int line, char *name2)
+redefinition(Parser *parser, int line1, char *name1, Module *module,
+	     int line2, char *name2)
 {
     char *tmp = parser->path;
     int equal = (strcmp(name1, name2) == 0);
 
     if (! module) {
 	if (equal) {
-	    smiPrintError(parser, ERR_REDEFINITION, name1);
+	    if (line1) {
+		smiPrintErrorAtLine(parser, ERR_REDEFINITION, line1, name1);
+	    } else {
+		smiPrintError(parser, ERR_REDEFINITION, name1);
+	    }
 	} else {
-	    smiPrintError(parser, ERR_CASE_REDEFINITION, name1, name2);
+	    if (line1) {
+		smiPrintErrorAtLine(parser, ERR_CASE_REDEFINITION,
+						line1, name1, name2);
+	    } else {
+		smiPrintError(parser, ERR_CASE_REDEFINITION, name1, name2);
+	    }
 	}
     } else {
 	if (equal) {
-	    smiPrintError(parser, ERR_EXT_REDEFINITION,
-			  module->export.name, name1);
+	    if (line1) {
+		smiPrintErrorAtLine(parser, ERR_EXT_REDEFINITION, line1,
+			      module->export.name, name1);
+	    } else {
+		smiPrintError(parser, ERR_EXT_REDEFINITION,
+			      module->export.name, name1);
+	    }
 	} else {
-	    smiPrintError(parser, ERR_EXT_CASE_REDEFINITION,
-			  name1, module->export.name, name2);
+	    if (line1) {
+		smiPrintErrorAtLine(parser, ERR_EXT_CASE_REDEFINITION, line1,
+			      name1, module->export.name, name2);
+	    } else {
+		smiPrintError(parser, ERR_EXT_CASE_REDEFINITION,
+			      name1, module->export.name, name2);
+	    }
 	}
 	parser->path = module->export.path;
     }
-    smiPrintErrorAtLine(parser, ERR_PREVIOUS_DEFINITION, line, name2);
+    smiPrintErrorAtLine(parser, ERR_PREVIOUS_DEFINITION, line2, name2);
     if (module) {
 	parser->path = tmp;
     }
@@ -181,7 +200,7 @@ smiCheckObjectName(Parser *parser, Module *module, char *name)
 	     objectPtr; objectPtr = objectPtr->nextPtr) {
 	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
 		&& ! strcasecmp(name, objectPtr->export.name)) {
-		redefinition(parser, name,
+		redefinition(parser, 0, name,
 			     modPtr == module ? NULL : objectPtr->modulePtr,
 			     objectPtr->line, objectPtr->export.name);
 	    }
@@ -192,7 +211,7 @@ smiCheckObjectName(Parser *parser, Module *module, char *name)
 	    if (! (typePtr->flags & FLAG_INCOMPLETE)
 		&& typePtr->export.name
 		&& !strcasecmp(name, typePtr->export.name)) {
-		redefinition(parser, name,
+		redefinition(parser, 0, name,
 			     modPtr == module ? NULL : typePtr->modulePtr,
 			     typePtr->line, typePtr->export.name);
 	    }
@@ -220,7 +239,7 @@ smiCheckObjectName(Parser *parser, Module *module, char *name)
  */
 
 void
-smiCheckTypeName(Parser *parser, Module *module, char *name)
+smiCheckTypeName(Parser *parser, Module *module, char *name, int line)
 {
     Object	*objectPtr;
     Type        *typePtr;
@@ -263,7 +282,7 @@ smiCheckTypeName(Parser *parser, Module *module, char *name)
 	    if (! (typePtr->flags & FLAG_INCOMPLETE)
 		&& typePtr->export.name
 		&& !strcasecmp(name, typePtr->export.name)) {
-		redefinition(parser, name,
+		redefinition(parser, line, name,
 			     modPtr == module ? NULL : typePtr->modulePtr,
 			     typePtr->line, typePtr->export.name);
 	    }
@@ -273,7 +292,7 @@ smiCheckTypeName(Parser *parser, Module *module, char *name)
 	     objectPtr; objectPtr = objectPtr->nextPtr) {
 	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
 		&& ! strcasecmp(name, objectPtr->export.name)) {
-		redefinition(parser, name,
+		redefinition(parser, line, name,
 			     modPtr == module ? NULL : objectPtr->modulePtr,
 			     objectPtr->line, objectPtr->export.name);
 	    }
@@ -300,7 +319,7 @@ smiCheckTypeName(Parser *parser, Module *module, char *name)
  */
 
 void
-smiCheckFormat(Parser *parser, SmiBasetype basetype, char *format)
+smiCheckFormat(Parser *parser, SmiBasetype basetype, char *format, int line)
 {
     int n, repeat, error = 1;
     char *p = format;
@@ -355,7 +374,11 @@ smiCheckFormat(Parser *parser, SmiBasetype basetype, char *format)
     }
 
     if (error) {
-	smiPrintError(parser, ERR_INVALID_FORMAT, format);
+	if (line) {
+	    smiPrintErrorAtLine(parser, ERR_INVALID_FORMAT, line, format);
+	} else {
+	    smiPrintError(parser, ERR_INVALID_FORMAT, format);
+	}
     }
 }
 
@@ -917,7 +940,8 @@ smiCheckGroupMembers(Parser *parser, Object *group)
 		scalarsOrColumns++;
 	    }
 	    addObjectFlags(memberPtr, FLAG_INGROUP);
-	} else {
+	} else if (!(memberPtr->flags & FLAG_INCOMPLETE)) {
+	    /* unknown OIDs are already flagged */
 	    smiPrintErrorAtLine(parser, ERR_INVALID_GROUP_MEMBER,
 				group->line,
 				memberPtr->export.name,

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.64 2000/11/15 10:50:26 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.65 2000/11/16 14:58:10 strauss Exp $
  */
 
 %{
@@ -1015,7 +1015,7 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			{
 			    if (typePtr && $13) {
                                 smiCheckFormat(thisParserPtr,
-					       typePtr->export.basetype, $13);
+					       typePtr->export.basetype, $13, 0);
 				setTypeFormat(typePtr, $13);
 			    }
 			}
@@ -1216,7 +1216,7 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			{
 			    if (scalarObjectPtr && $19) {
 				smiCheckFormat(thisParserPtr,
-					       $11->export.basetype, $19);
+					       $11->export.basetype, $19, 0);
 				setObjectFormat(scalarObjectPtr, $19);
 			    }
 			}
@@ -1473,7 +1473,7 @@ columnStatement:	columnKeyword sep lcIdentifier
 			{
 			    if (columnObjectPtr && $19) {
                                 smiCheckFormat(thisParserPtr,
-					       $11->export.basetype, $19);
+					       $11->export.basetype, $19, 0);
 				setObjectFormat(columnObjectPtr, $19);
 			    }
 			}

@@ -2267,7 +2267,7 @@ case 32:
 {
 			    if (typePtr && yyvsp[0].text) {
                                 smiCheckFormat(thisParserPtr,
-					       typePtr->export.basetype, yyvsp[0].text);
+					       typePtr->export.basetype, yyvsp[0].text, 0);
 				setTypeFormat(typePtr, yyvsp[0].text);
 			    }
 			;
@@ -2495,7 +2495,7 @@ case 57:
 {
 			    if (scalarObjectPtr && yyvsp[0].text) {
 				smiCheckFormat(thisParserPtr,
-					       yyvsp[-8].typePtr->export.basetype, yyvsp[0].text);
+					       yyvsp[-8].typePtr->export.basetype, yyvsp[0].text, 0);
 				setObjectFormat(scalarObjectPtr, yyvsp[0].text);
 			    }
 			;
@@ -2793,7 +2793,7 @@ case 85:
 {
 			    if (columnObjectPtr && yyvsp[0].text) {
                                 smiCheckFormat(thisParserPtr,
-					       yyvsp[-8].typePtr->export.basetype, yyvsp[0].text);
+					       yyvsp[-8].typePtr->export.basetype, yyvsp[0].text, 0);
 				setObjectFormat(columnObjectPtr, yyvsp[0].text);
 			    }
 			;
