@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.50 2002/11/07 16:47:11 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.51 2002/11/13 12:29:26 schoenw Exp $
  */
 
 #include <config.h>
@@ -1502,7 +1502,7 @@ static char
 
 
 
-static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
+static void fprintElement( FILE *f, int indent, SmiNode *smiNode ) /*  */
 {
     switch( smiNode->nodekind ) {
 	SmiType *smiType;
@@ -1572,6 +1572,12 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 		return;
 	    }
 	}
+	
+	if( smiNode->access < SMI_ACCESS_READ_ONLY ) {
+	    /* only print accessible nodes */
+	    return;
+	}
+	
 	smiType = smiGetNodeType( smiNode );
 
 	fprintSegment( f, indent, "<xsd:element", 0 );
