@@ -126,3 +126,14 @@
 #define ERR_BITS_NUMBER_REDEFINITION             125
 #define ERR_BITS_NUMBER_TOO_LARGE                126
 #define ERR_BITS_NUMBER_LARGE                    127
+#define ERR_RANGE_OUT_OF_BASETYPE                128
+#define ERR_RANGE_OVERLAP                        129
+#define ERR_RANGES_NOT_ASCENDING                 130
+#define ERR_EXCHANGED_RANGE_LIMITS               131
+#define ERR_INDEX_BASETYPE                       132
+#define ERR_INDEX_TOO_LARGE                      133
+#define ERR_INDEX_NO_RANGE                       134
+#define ERR_INDEX_NO_SIZE                        135
+#define ERR_INDEX_NEGATIVE                       136
+#define ERR_EMPTY_DESCRIPTION                    137
+#define ERR_INDEX_NOT_COLUMN                     138

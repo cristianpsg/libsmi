@@ -1,3 +1,11 @@
+2000-06-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/RFC-1212: fixed recursive import.
+
+	* lib/check.c: Juergen added various checks for INDEX clauses.
+
+	* lib/check.c: added various checks for range and size restrictions.
+
 2000-06-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.c (smiReadConfig): Fixed path separator when path

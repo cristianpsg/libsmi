@@ -3,12 +3,12 @@
  *
  *      Definitions for the semantic check functions.
  *
- * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+ * Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.62 2000/06/14 13:15:16 strauss Exp $
+ * @(#) $Id: check.h,v 1.1 2000/06/18 11:23:13 strauss Exp $
  */
 
 #ifndef _CHECK_H
@@ -27,5 +27,16 @@ extern void smiCheckTypeName(Parser *parser,
 
 extern void smiCheckFormat(Parser *parser,
 			   SmiBasetype basetype, char *format);
+
+extern void smiCheckTypeRanges(Parser *parser,
+			       Type *type);
+
+extern void smiCheckNamedNumberRedefinition(Parser *parser, Type *type);
+
+extern void smiCheckNamedNumberSubtyping(Parser *parser, Type *type);
+
+extern void smiCheckIndex(Parser *parser, Object *object);
+
+extern void smiCheckAugment(Parser *parser, Object *object);
 
 #endif /* _CHECK_H */

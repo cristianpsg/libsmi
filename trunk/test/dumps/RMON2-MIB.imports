@@ -17,10 +17,7 @@ RMON2-MIB
   |  +--RFC-1212 [1 identifier]
   |     |
   |     +--RFC1155-SMI [1 identifier]
-  |     +--RFC1158-MIB [1 identifier]
-  |        |
-  |        +--RFC1155-SMI [7 identifiers]
-  |      
+  |   
   +--RMON-MIB [12 identifiers]
   |  |
   |  +--SNMPv2-SMI [8 identifiers]
@@ -38,31 +35,18 @@ RMON2-MIB
      +--RFC-1212 [1 identifier]
      |  |
      |  +--RFC1155-SMI [1 identifier]
-     |  +--RFC1158-MIB [1 identifier]
-     |     |
-     |     +--RFC1155-SMI [7 identifiers]
-     |   
+     |
      +--RFC1271-MIB [5 identifiers]
         |
         +--RFC1155-SMI [1 identifier]
-        +--RFC1158-MIB [1 identifier]
-        |  |
-        |  +--RFC1155-SMI [7 identifiers]
-        |
-        +--RFC1213-MIB [1 identifier]
+        +--RFC1213-MIB [2 identifiers]
         |  |
         |  +--RFC1155-SMI [6 identifiers]
         |  +--RFC-1212 [1 identifier]
         |     |
         |     +--RFC1155-SMI [1 identifier]
-        |     +--RFC1158-MIB [1 identifier]
-        |        |
-        |        +--RFC1155-SMI [7 identifiers]
-        |      
+        |   
         +--RFC-1212 [1 identifier]
            |
            +--RFC1155-SMI [1 identifier]
-           +--RFC1158-MIB [1 identifier]
-              |
-              +--RFC1155-SMI [7 identifiers]
-            
+         
