@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.2 1998/10/13 17:11:42 strauss Exp $
+# @(#) $Id: Makefile,v 1.3 1998/11/04 02:14:50 strauss Exp $
 #
 
 CC	= gcc
@@ -11,10 +11,18 @@ CFLAGS	= -Wall -g -DTEXTS_IN_MEMORY=200
 LEX	= flex
 YACC	= bison -y -v -t
 
+RPCGEN	= rpcgen
+
 LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o interface.o
 
 default: libsmi.a libsmi.h miblint
 
+smi_xdr.c smi_svc.c smi_clnt.c smi.h: smi.x
+	$(RPCGEN) smi.x
+
+smid: smid.o smi_svc.o libsmi.a
+
+smid.o: smid.c smi.h smi_
 
 scanner-flex.c: scanner.l scanner.h parser-bison.h
 	$(LEX) -t scanner.l > scanner-flex.c
