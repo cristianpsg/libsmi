@@ -480,6 +480,7 @@ parser-sming.tab.c: parser-sming.y scanner-sming.h parser-sming.h
 
 scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
 	@if [ "$(FLEX)" ] ; then \
+	    echo "$(FLEX) -Cfe -Psmi -t scanner-smi.l > scanner-smi.c" ; \
 	    "$(FLEX)" -Cfe -Psmi -t scanner-smi.l > scanner-smi.c ; \
 	else \
 	    echo "" ; \
@@ -489,6 +490,7 @@ scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
 
 scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
 	@if [ "$(FLEX)" ] ; then \
+	    echo "$(FLEX) -Cfe -Psming -t scanner-sming.l > scanner-sming.c" ; \
 	    "$(FLEX)" -Cfe -Psming -t scanner-sming.l > scanner-sming.c ; \
 	else \
 	    echo "" ; \

@@ -1,5 +1,8 @@
 2000-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/scanner-smi.l: Fixed scanning of module files ending
+	without a newline.
+
 	* win/: Juergen changed some win things.
 
 2000-06-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
