@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.78 2000/02/10 16:25:18 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.79 2000/02/10 20:36:43 strauss Exp $
  */
 
 %{
@@ -1345,7 +1345,6 @@ typeDeclarationRHS:	Syntax
 				 * new Type struct, inherited from $10.
 				 */
 				$$ = duplicateType($10, 0, thisParserPtr);
-				deleteTypeFlags($$, FLAG_IMPORTED);
 			    }
 			    setTypeDescription($$, $7);
 			    if ($8) {
@@ -4188,11 +4187,6 @@ MandatoryGroup:		objectIdentifier
 			{
 			    Import *importPtr;
 
-			    /*
-			     * The object found may be an implicitly
-			     * created object with flags & FLAG_IMPORTED.
-			     * We want to get the original definition:
-			     */
 			    $$ = $1;
 			    if (complianceModulePtr) {
 				$$ = findObjectByModuleAndName(
