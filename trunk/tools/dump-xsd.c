@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.72 2003/02/06 15:16:06 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.73 2003/04/01 15:29:43 tklie Exp $
  */
 
 #include <config.h>
@@ -135,6 +135,102 @@ static char* getStringAccess( SmiAccess smiAccess )
     default: return "unknown";
     }
 }
+#if 0
+static char
+*getStringValue(SmiValue *valuePtr, SmiType *typePtr)
+{
+    static char    s[100];
+    char           ss[9];
+    int		   n;
+    unsigned int   i;
+    SmiNamedNumber *nn;
+    SmiNode        *nodePtr;
+    
+    s[0] = 0;
+    
+    switch (valuePtr->basetype) {
+    case SMI_BASETYPE_UNSIGNED32:
+	sprintf(s, "%lu", valuePtr->value.unsigned32);
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	sprintf(s, "%ld", valuePtr->value.integer32);
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	sprintf(s, UINT64_FORMAT, valuePtr->value.unsigned64);
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	sprintf(s, INT64_FORMAT, valuePtr->value.integer64);
+	break;
+    case SMI_BASETYPE_FLOAT32:
+    case SMI_BASETYPE_FLOAT64:
+    case SMI_BASETYPE_FLOAT128:
+	break;
+    case SMI_BASETYPE_ENUM:
+	for (nn = smiGetFirstNamedNumber(typePtr); nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 == valuePtr->value.unsigned32)
+		break;
+	}
+	if (nn) {
+	    sprintf(s, "%s", nn->name);
+	} else {
+	    sprintf(s, "%ld", valuePtr->value.integer32);
+	}
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+	for (i = 0; i < valuePtr->len; i++) {
+	    if (!isprint((int)valuePtr->value.ptr[i])) break;
+	}
+	if (i == valuePtr->len) {
+	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	} else {
+            sprintf(s, "0x%*s", 2 * valuePtr->len, "");
+            for (i=0; i < valuePtr->len; i++) {
+                sprintf(ss, "%02x", valuePtr->value.ptr[i]);
+                strncpy(&s[2+2*i], ss, 2);
+            }
+	}
+	break;
+    case SMI_BASETYPE_BITS:
+	sprintf(s, "(");
+	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
+	    if (valuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
+		if (n)
+		    sprintf(&s[strlen(s)], ", ");
+		n++;
+		for (nn = smiGetFirstNamedNumber(typePtr); nn;
+		     nn = smiGetNextNamedNumber(nn)) {
+		    if (nn->value.value.unsigned32 == i)
+			break;
+		}
+		if (nn) {
+		    sprintf(&s[strlen(s)], "%s", nn->name);
+		} else {
+		    sprintf(s, "%d", i);
+		}
+	    }
+	}
+	sprintf(&s[strlen(s)], ")");
+	break;
+    case SMI_BASETYPE_UNKNOWN:
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);
+	if (nodePtr) {
+	    sprintf(s, "%s", nodePtr->name);
+	} else {
+	    strcpy(s, "");
+	    for (i=0; i < valuePtr->len; i++) {
+		if (i) strcat(s, ".");
+		sprintf(&s[strlen(s)], "%u", valuePtr->value.oid[i]);
+	    }
+	}
+	break;
+    }
+
+    return s;
+}
+#endif /* 0 */
 
 static int pow( int base, unsigned int exponent )
 {
@@ -1309,6 +1405,13 @@ static void fprintAnnotationElem( FILE *f, SmiNode *smiNode ) {
 
     fprintSegment( f, 0, "<status>%s</status>\n",
 		   getStringStatus( smiNode->status ) );
+    if( smiNode->value.basetype != SMI_BASETYPE_UNKNOWN ) {
+	char *defval = smiRenderValue( &smiNode->value,
+				       smiGetNodeType( smiNode ),
+				       SMI_RENDER_FORMAT );
+	fprintSegment( f, 0, "<defval>%s</defval>\n", defval );
+
+    }
 
 
     if( smiNode->format ) {
