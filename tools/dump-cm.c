@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.14 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.15 2000/05/28 14:39:04 strauss Exp $
  */
 
 
@@ -111,33 +111,36 @@ typedef struct Graph {
     GraphEdge *edges;
 } Graph;
 
-/*
- * list of modules for unified output
- */
-/*typedef struct Module {
-    char          *moduleName;
-    struct Module *nextPtr;
-    } Module;*/
 
 /*
- * definitions for the algorithm
+ * Constants used by the reverse engineering algorithm.
  */
-static char *pointer[]       = {"Index", NULL};
-static char *suffix[]        = {"OrZero", NULL};
-static char *supportObjs[]   = {"RowStatus", "StorageType", NULL};
-static char *baseTypes[]     = {"Integer32", "OctetString",
-				"Unsigned32", "Integer64",
-				"Unsigned64", "Float32",
-				"Float64", "Float128",
-				"Enumeration", "Counter32",
-				"Counter64","Bits",
-				"Gauge","Gauge32","Integer",
-				"TimeTicks","IpAddress","Opaque",
-				"Object Identifier", NULL};
+
+static char *pointer[] = {
+    "Index", NULL
+};
+
+static char *suffix[] = {
+    "OrZero", NULL
+};
+
+static char *supportObjs[] = {
+    "RowStatus", "StorageType", NULL
+};
+
+static char *baseTypes[] = {
+    "Integer32", "OctetString", "Unsigned32", "Integer64",
+    "Unsigned64", "Float32", "Float64", "Float128",
+    "Enumeration", "Counter32", "Counter64","Bits",
+    "Gauge", "Gauge32", "Integer", "TimeTicks",
+    "IpAddress", "Opaque", "ObjectIdentifier",
+    NULL
+};
 
 /*
- * definitions for the dia output driver (node layout)
+ * Definitions used by the dia output driver (node layout).
  */
+
 static const float HEADFONTSIZETABLE   = 0.51;
 static const float HEADSPACESIZETABLE  = 0.6;
 static const float HEADFONTSIZESCALAR  = 0.545;
@@ -184,7 +187,6 @@ static int       IGNOREIMPORTEDNODES   = 1; /* true */
  * global variables
  */
 static Graph     *graph  = NULL;            /* the graph */
-static Module    *moduleList = NULL;        /* list of loaded MIB modules */
 
 /*
  * help functions
@@ -621,7 +623,6 @@ static void graphShowEdges(Graph *graph)
 
 
 /* ------ algorithm primitives ------                                        */
-
 
 
 
@@ -1684,7 +1685,7 @@ static SmiNode *algFindTable(SmiNode *node)
 	toFind[j-i] = node->name[j];
     }
     
-    //printf("%s\n",toFind);
+    /* printf("%s\n",toFind); */
 		     
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
@@ -1695,9 +1696,9 @@ static SmiNode *algFindTable(SmiNode *node)
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
 		smiNode = smiGetElementNode(smiElement);
-		//printf("Checking ... %s\n",smiNode->name);
+		/* printf("Checking ... %s\n",smiNode->name); */
 		if (strstr(smiNode->name, toFind)) {
-		    //printf("Found %s \n",smiNode->name);
+		    /* printf("Found %s \n",smiNode->name); */
 		    xfree(toFind);
 		    return smiGetParentNode(smiGetParentNode(smiNode));
 		}
@@ -1737,7 +1738,7 @@ static void algCheckForPointerRels()
 
 		    for (i = 0; pointer[i]; i++) {
 			if (strstr(smiNode->name, pointer[i])) {
-			    //printf("%s \n",smiNode->name);
+			    /* printf("%s \n",smiNode->name); */
 			    table = algFindTable(smiNode);
 			    if (table) {
 				algInsertEdge(table, tNode->smiNode,
@@ -2492,11 +2493,11 @@ static void diaPrintXMLConnection(GraphEdge *tEdge)
  * Prints an UML note with a short information on it (Modulename and
  * smidump version).
  */
-static void diaPrintXMLInfoNote()
+static void diaPrintXMLInfoNote(Module *module)
 {
     int     length;
     float   width;
-    Module *tModule;
+    Module *mPtr;
     char   *note;
 
     const char *s1 = "Conceptual model of ";
@@ -2507,8 +2508,15 @@ static void diaPrintXMLInfoNote()
      */
     
     length = strlen(s1) + strlen(s2) + 1;
-    for (tModule = moduleList; tModule; tModule = tModule->nextPtr) {
-	length += strlen(tModule->smiModule->name)+1;
+
+    if (module->smiModule) {
+	length += strlen(module->smiModule->name);
+    } else {
+	for (mPtr = module; mPtr; mPtr = mPtr->nextPtr) {
+	    if (mPtr->smiModule) {
+		length += strlen(module->smiModule->name)+1;
+	    }
+	}
     }
 
     /*
@@ -2517,9 +2525,16 @@ static void diaPrintXMLInfoNote()
 
     note = xmalloc(length);
     strcpy(note, s1);
-    for (tModule = moduleList; tModule; tModule = tModule->nextPtr) {
-	strcat(note, tModule->smiModule->name);
+    if (module->smiModule) {
+	strcat(note, module->smiModule->name);
 	strcat(note, " ");
+    } else {
+	for (mPtr = module; mPtr; mPtr = mPtr->nextPtr) {
+	    if (mPtr->smiModule) {
+		strcat(note, mPtr->smiModule->name);
+		strcat(note, " ");
+	    }
+	}
     }
     strcat(note, s2);
 
@@ -2649,12 +2664,10 @@ static float diaPrintNode(GraphNode *node, float x, float y)
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
 	    if (node == tEdge->startNode) {
 		y += tEdge->endNode->dia.h + YSPACING;    
-		diaPrintXMLObject(tEdge->endNode,x,y);
+		diaPrintXMLObject(tEdge->endNode, x, y);
 		diaPrintXMLConnection(tEdge);
-
-		y = diaPrintNode(tEdge->startNode,
-			      x,y);
-			      //(x+tEdge->startNode->dia.w+XSPACING),y);
+		y = diaPrintNode(tEdge->startNode, x, y);
+			      /* (x+tEdge->startNode->dia.w+XSPACING),y); */
 		
 		y = diaPrintNode(tEdge->endNode,
 		  (x+tEdge->startNode->dia.w+XSPACING), y);
@@ -2665,7 +2678,7 @@ static float diaPrintNode(GraphNode *node, float x, float y)
     return y;
 }
 
-static void diaPrintXML()
+static void diaPrintXML(Module *module)
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
@@ -2678,7 +2691,7 @@ static void diaPrintXML()
 	tNode = diaCalcSize(tNode);
     }
 
-    diaPrintXMLInfoNote();
+    diaPrintXMLInfoNote(module);
     
     x = XOFFSET;
     y = YOFFSET;
@@ -2800,7 +2813,7 @@ static void dumpCM(Module *module)
 	algCheckForPointerRels();
 	
 	if (!XPLAIN) {
-	    diaPrintXML();
+	    diaPrintXML(module);
 	}
 	
 	graphExit(graph);
