@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.66 2000/02/14 17:18:26 strauss Exp $
+ * @(#) $Id: data.c,v 1.67 2000/02/22 17:11:11 strauss Exp $
  */
 
 #include <config.h>
@@ -321,11 +321,15 @@ setModuleContactInfo(modulePtr, contactinfo)
  */
 
 void
-setModuleDescription(modulePtr, description)
+setModuleDescription(modulePtr, description, parserPtr)
     Module *modulePtr;
     char *description;
+    Parser *parserPtr;
 {
-    modulePtr->export.description = description;
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	modulePtr->export.description = description;
+    else
+	util_free(description);
 }
 
 
@@ -347,11 +351,15 @@ setModuleDescription(modulePtr, description)
  */
 
 void
-setModuleReference(modulePtr, reference)
+setModuleReference(modulePtr, reference, parserPtr)
     Module *modulePtr;
     char *reference;
+    Parser *parserPtr;
 {
-    modulePtr->export.reference = reference;
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	modulePtr->export.reference = reference;
+    else
+	util_free(reference);
 }
 
 
@@ -1317,13 +1325,18 @@ setObjectStatus(objectPtr, status)
  */
 
 void
-setObjectDescription(objectPtr, description)
+setObjectDescription(objectPtr, description, parserPtr)
     Object    *objectPtr;
     char      *description;
+    Parser    *parserPtr;
 {
     if (objectPtr->export.description)
 	util_free(objectPtr->export.description);
-    objectPtr->export.description = description;
+
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	objectPtr->export.description = description;
+    else
+	util_free(description);
 }
 
 
@@ -1345,12 +1358,17 @@ setObjectDescription(objectPtr, description)
  */
 
 void
-setObjectReference(objectPtr, reference)
+setObjectReference(objectPtr, reference, parserPtr)
     Object    *objectPtr;
     char      *reference;
+    Parser    *parserPtr;
 {
     if (objectPtr->export.reference) util_free(objectPtr->export.reference);
-    objectPtr->export.reference = reference;
+
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	objectPtr->export.reference = reference;
+    else
+	util_free(reference);
 }
 
 
@@ -2361,12 +2379,17 @@ setTypeBasetype(typePtr, basetype)
  */
 
 void
-setTypeDescription(typePtr, description)
+setTypeDescription(typePtr, description, parserPtr)
     Type	   *typePtr;
     char	   *description;
+    Parser         *parserPtr;
 {
     if (typePtr->export.description) util_free(typePtr->export.description);
-    typePtr->export.description = description;
+
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	typePtr->export.description = description;
+    else
+	util_free(description);
 }
 
 
@@ -2388,12 +2411,17 @@ setTypeDescription(typePtr, description)
  */
 
 void
-setTypeReference(typePtr, reference)
+setTypeReference(typePtr, reference, parserPtr)
     Type	   *typePtr;
     char	   *reference;
+    Parser         *parserPtr;
 {
     if (typePtr->export.reference) util_free(typePtr->export.reference);
-    typePtr->export.reference = reference;
+
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	typePtr->export.reference = reference;
+    else
+	util_free(reference);
 }
 
 
@@ -2871,12 +2899,17 @@ setMacroStatus(macroPtr, status)
  */
 
 void
-setMacroDescription(macroPtr, description)
+setMacroDescription(macroPtr, description, parserPtr)
     Macro	   *macroPtr;
     char	   *description;
+    Parser	   *parserPtr;
 {
     if (macroPtr->export.description) util_free(macroPtr->export.description);
-    macroPtr->export.description = description;
+
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	macroPtr->export.description = description;
+    else
+	util_free(description);
 }
 
 
@@ -2898,12 +2931,17 @@ setMacroDescription(macroPtr, description)
  */
 
 void
-setMacroReference(macroPtr, reference)
+setMacroReference(macroPtr, reference, parserPtr)
     Macro	   *macroPtr;
     char	   *reference;
+    Parser         *parserPtr;
 {
     if (macroPtr->export.reference) util_free(macroPtr->export.reference);
-    macroPtr->export.reference = reference;
+
+    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
+	macroPtr->export.reference = reference;
+    else
+	util_free(reference);
 }
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.88 2000/02/15 10:41:10 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.89 2000/02/22 17:11:11 strauss Exp $
  */
 
 %{
@@ -1360,9 +1360,9 @@ typeDeclarationRHS:	Syntax
 				 */
 				$$ = duplicateType($10, 0, thisParserPtr);
 			    }
-			    setTypeDescription($$, $7);
+			    setTypeDescription($$, $7, thisParserPtr);
 			    if ($8) {
-				setTypeReference($$, $8);
+				setTypeReference($$, $8, thisParserPtr);
 			    }
 			    setTypeStatus($$, $5);
 			    if ($3) {
@@ -1656,9 +1656,9 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
 			    setObjectStatus(objectPtr, $6);
-			    setObjectDescription(objectPtr, $8);
+			    setObjectDescription(objectPtr, $8, thisParserPtr);
 			    if ($9) {
-				setObjectReference(objectPtr, $9);
+				setObjectReference(objectPtr, $9, thisParserPtr);
 			    }
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -1769,10 +1769,10 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    if ($11) {
-				setObjectDescription(objectPtr, $11);
+				setObjectDescription(objectPtr, $11, thisParserPtr);
 			    }
 			    if ($12) {
-				setObjectReference(objectPtr, $12);
+				setObjectReference(objectPtr, $12, thisParserPtr);
 			    }
 			    if ($13.indexkind != SMI_INDEX_UNKNOWN) {
 				setObjectList(objectPtr, $13.listPtr);
@@ -1871,9 +1871,9 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, $7);
 			    setObjectStatus(objectPtr, SMI_STATUS_CURRENT); 
-			    setObjectDescription(objectPtr, $8);
+			    setObjectDescription(objectPtr, $8, thisParserPtr);
 			    if ($9) {
-				setObjectReference(objectPtr, $9);
+				setObjectReference(objectPtr, $9, thisParserPtr);
 			    }
 			    $$ = 0;
 			}
@@ -1986,9 +1986,9 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, $5);
 			    setObjectStatus(objectPtr, $7);
-			    setObjectDescription(objectPtr, $9);
+			    setObjectDescription(objectPtr, $9, thisParserPtr);
 			    if ($10) {
-				setObjectReference(objectPtr, $10);
+				setObjectReference(objectPtr, $10, thisParserPtr);
 			    }
 			    $$ = 0;
 			}
@@ -2057,7 +2057,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    setModuleContactInfo(thisParserPtr->modulePtr,
 						 $11);
 			    setModuleDescription(thisParserPtr->modulePtr,
-						 $13);
+						 $13, thisParserPtr);
 			    /* setObjectDescription(objectPtr, $13); */
 			    $$ = 0;
 			}
@@ -3895,9 +3895,9 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
-			    setObjectDescription(objectPtr, $9);
+			    setObjectDescription(objectPtr, $9, thisParserPtr);
 			    if ($10) {
-				setObjectReference(objectPtr, $10);
+				setObjectReference(objectPtr, $10, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -3948,9 +3948,9 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
-			    setObjectDescription(objectPtr, $9);
+			    setObjectDescription(objectPtr, $9, thisParserPtr);
 			    if ($10) {
-				setObjectReference(objectPtr, $10);
+				setObjectReference(objectPtr, $10, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -4005,9 +4005,9 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
-			    setObjectDescription(objectPtr, $8);
+			    setObjectDescription(objectPtr, $8, thisParserPtr);
 			    if ($9) {
-				setObjectReference(objectPtr, $9);
+				setObjectReference(objectPtr, $9, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -4451,9 +4451,9 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $8);
-			    setObjectDescription(objectPtr, $10);
+			    setObjectDescription(objectPtr, $10, thisParserPtr);
 			    if ($11) {
-				setObjectReference(objectPtr, $11);
+				setObjectReference(objectPtr, $11, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);

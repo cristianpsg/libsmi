@@ -2404,9 +2404,9 @@ case 117:
 				 */
 				yyval.typePtr = duplicateType(yyvsp[0].typePtr, 0, thisParserPtr);
 			    }
-			    setTypeDescription(yyval.typePtr, yyvsp[-3].text);
+			    setTypeDescription(yyval.typePtr, yyvsp[-3].text, thisParserPtr);
 			    if (yyvsp[-2].text) {
-				setTypeReference(yyval.typePtr, yyvsp[-2].text);
+				setTypeReference(yyval.typePtr, yyvsp[-2].text, thisParserPtr);
 			    }
 			    setTypeStatus(yyval.typePtr, yyvsp[-5].status);
 			    if (yyvsp[-7].text) {
@@ -2696,9 +2696,9 @@ case 136:
 			    objectPtr = setObjectName(objectPtr, yyvsp[-12].id);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
 			    setObjectStatus(objectPtr, yyvsp[-7].status);
-			    setObjectDescription(objectPtr, yyvsp[-5].text);
+			    setObjectDescription(objectPtr, yyvsp[-5].text, thisParserPtr);
 			    if (yyvsp[-4].text) {
-				setObjectReference(objectPtr, yyvsp[-4].text);
+				setObjectReference(objectPtr, yyvsp[-4].text, thisParserPtr);
 			    }
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -2805,10 +2805,10 @@ case 139:
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    if (yyvsp[-7].text) {
-				setObjectDescription(objectPtr, yyvsp[-7].text);
+				setObjectDescription(objectPtr, yyvsp[-7].text, thisParserPtr);
 			    }
 			    if (yyvsp[-6].text) {
-				setObjectReference(objectPtr, yyvsp[-6].text);
+				setObjectReference(objectPtr, yyvsp[-6].text, thisParserPtr);
 			    }
 			    if (yyvsp[-5].index.indexkind != SMI_INDEX_UNKNOWN) {
 				setObjectList(objectPtr, yyvsp[-5].index.listPtr);
@@ -2908,9 +2908,9 @@ case 144:
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, yyvsp[-4].listPtr);
 			    setObjectStatus(objectPtr, SMI_STATUS_CURRENT); 
-			    setObjectDescription(objectPtr, yyvsp[-3].text);
+			    setObjectDescription(objectPtr, yyvsp[-3].text, thisParserPtr);
 			    if (yyvsp[-2].text) {
-				setObjectReference(objectPtr, yyvsp[-2].text);
+				setObjectReference(objectPtr, yyvsp[-2].text, thisParserPtr);
 			    }
 			    yyval.err = 0;
 			;
@@ -3033,9 +3033,9 @@ case 158:
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, yyvsp[-9].listPtr);
 			    setObjectStatus(objectPtr, yyvsp[-7].status);
-			    setObjectDescription(objectPtr, yyvsp[-5].text);
+			    setObjectDescription(objectPtr, yyvsp[-5].text, thisParserPtr);
 			    if (yyvsp[-4].text) {
-				setObjectReference(objectPtr, yyvsp[-4].text);
+				setObjectReference(objectPtr, yyvsp[-4].text, thisParserPtr);
 			    }
 			    yyval.err = 0;
 			;
@@ -3105,7 +3105,7 @@ case 162:
 			    setModuleContactInfo(thisParserPtr->modulePtr,
 						 yyvsp[-7].text);
 			    setModuleDescription(thisParserPtr->modulePtr,
-						 yyvsp[-5].text);
+						 yyvsp[-5].text, thisParserPtr);
 			    /* setObjectDescription(objectPtr, $13); */
 			    yyval.err = 0;
 			;
@@ -5048,9 +5048,9 @@ case 303:
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-7].status);
-			    setObjectDescription(objectPtr, yyvsp[-5].text);
+			    setObjectDescription(objectPtr, yyvsp[-5].text, thisParserPtr);
 			    if (yyvsp[-4].text) {
-				setObjectReference(objectPtr, yyvsp[-4].text);
+				setObjectReference(objectPtr, yyvsp[-4].text, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -5101,9 +5101,9 @@ case 306:
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-7].status);
-			    setObjectDescription(objectPtr, yyvsp[-5].text);
+			    setObjectDescription(objectPtr, yyvsp[-5].text, thisParserPtr);
 			    if (yyvsp[-4].text) {
-				setObjectReference(objectPtr, yyvsp[-4].text);
+				setObjectReference(objectPtr, yyvsp[-4].text, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -5158,9 +5158,9 @@ case 309:
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-8].status);
-			    setObjectDescription(objectPtr, yyvsp[-6].text);
+			    setObjectDescription(objectPtr, yyvsp[-6].text, thisParserPtr);
 			    if (yyvsp[-5].text) {
-				setObjectReference(objectPtr, yyvsp[-5].text);
+				setObjectReference(objectPtr, yyvsp[-5].text, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -5620,9 +5620,9 @@ case 340:
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-8].status);
-			    setObjectDescription(objectPtr, yyvsp[-6].text);
+			    setObjectDescription(objectPtr, yyvsp[-6].text, thisParserPtr);
 			    if (yyvsp[-5].text) {
-				setObjectReference(objectPtr, yyvsp[-5].text);
+				setObjectReference(objectPtr, yyvsp[-5].text, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);

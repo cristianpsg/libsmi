@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.23 2000/02/09 19:56:52 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.24 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
     flags = smiGetFlags();
     
     flags |= SMI_FLAG_ERRORS;
+    flags |= SMI_FLAG_NODESCR;
     smiSetFlags(flags);
     
     while ((c = getopt(argc, argv, "Vhsrp:l:i:c:")) != -1) {

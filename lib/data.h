@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.52 2000/02/10 21:26:41 strauss Exp $
+ * @(#) $Id: data.h,v 1.53 2000/02/22 17:11:11 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -275,10 +275,12 @@ extern void setModuleContactInfo(Module *modulePtr,
 				 char *contactinfo);
 
 extern void setModuleDescription(Module *modulePtr,
-				 char *description);
+				 char *description,
+				 Parser *parserPtr);
 
 extern void setModuleReference(Module *modulePtr,
-			       char *reference);
+			       char *reference,
+			       Parser *parserPtr);
 
 extern Module *findModuleByName(const char *modulename);
 
@@ -345,10 +347,12 @@ extern void setObjectStatus(Object *objectPtr,
 			    SmiStatus status);
 
 extern void setObjectDescription(Object *objectPtr,
-				 char *description);
+				 char *description,
+				 Parser *parserPtr);
 
 extern void setObjectReference(Object *objectPtr,
-				 char *reference);
+			       char *reference,
+			       Parser *parserPtr);
 
 extern void setObjectDecl(Object *objectPtr,
 			   SmiDecl decl);
@@ -440,10 +444,12 @@ extern void setTypeList(Type *typePtr,
 			struct List *listPtr);
 
 extern void setTypeDescription(Type *typePtr,
-			       char *description);
+			       char *description,
+			       Parser *parserPtr);
 
 extern void setTypeReference(Type *typePtr,
-			     char *reference);
+			     char *reference,
+			     Parser *parserPtr);
 
 extern void setTypeDecl(Type *typePtr,
 			SmiDecl decl);
@@ -482,13 +488,19 @@ extern Macro *addMacro(const char *macroname,
 		       int flags,
 		       Parser *parserPtr);
 
-extern void setMacroStatus(Macro *macroPtr, SmiStatus status);
+extern void setMacroStatus(Macro *macroPtr,
+			   SmiStatus status);
 
-extern void setMacroDescription(Macro *macroPtr, char *description);
+extern void setMacroDescription(Macro *macroPtr,
+				char *description,
+				Parser *parserPtr);
 
-extern void setMacroReference(Macro *macroPtr, char *reference);
+extern void setMacroReference(Macro *macroPtr,
+			      char *reference,
+			      Parser *parserPtr);
 
-extern void setMacroDecl(Macro *macroPtr, SmiDecl decl);
+extern void setMacroDecl(Macro *macroPtr,
+			 SmiDecl decl);
 
 extern Macro *findMacroByName(const char *macroname);
 
@@ -512,4 +524,4 @@ extern int checkFormat(SmiBasetype basetype, char *format);
 extern int checkObjectName(Module *modulePtr, char *name, Parser *parserPtr);
 
 #endif /* _DATA_H */
-
+       /*  */

@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.10 2000/02/11 10:44:11 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.11 2000/02/11 16:42:32 strauss Exp $
 .\"
 .TH smi_config 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -79,12 +79,14 @@ to tune a higher level.
 .PP
 The \fBsmiGetFlags()\fP and \fBsmiSetFlags()\fP functions allow to
 fetch, modify, and set some \fIuserflags\fP that control the SMI
-library's behaviour.  If \fBSMI_ERRORS\fP is not set, no error messages
+library's behaviour.  If \fBSMI_FLAG_ERRORS\fP is not set, no error messages
 are printed at all to keep the SMI library totally quiet, which might
-be mandatory for some applications. If \fBSMI_STATS\fP is set, the
-library prints some module statistics. If \fBSMI_RECURSIVE\fP is set,
+be mandatory for some applications. If \fBSMI_FLAG_STATS\fP is set, the
+library prints some module statistics. If \fBSMI_FLAG_RECURSIVE\fP is set,
 the library also complains about errors in modules that are read due
-to import statements.
+to import statements. If \fBSMI_FLAG_NODESCR\fP is set, no description
+and references strings are stored in memory. This may save a huge amount
+of memory in case of applications that do not need this information.
 .PP
 The \fBsmiSetSeverity()\fP function allows to set the severity of
 all error that have name prefixed by \fBpattern\fP to the value \fBseverity\fP.
