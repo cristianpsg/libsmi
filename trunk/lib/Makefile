@@ -32,7 +32,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id: Makefile.am,v 1.3 1999/05/28 14:52:05 strauss Exp $
+# @(#) $Id: Makefile.in,v 1.4 1999/05/30 21:50:44 strauss Exp $
 #
 
 
@@ -64,9 +64,9 @@ pkgincludedir = $(includedir)/libsmi
 
 top_builddir = ..
 
-ACLOCAL = /users/henkell/strauss/sming/libsmi/missing aclocal
+ACLOCAL = aclocal
 AUTOCONF = autoconf
-AUTOMAKE = /users/henkell/strauss/sming/libsmi/missing automake
+AUTOMAKE = automake
 AUTOHEADER = autoheader
 
 INSTALL = /usr/local/bin/install -c
@@ -81,15 +81,15 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-host_alias = mips-sgi-irix6.4
-host_triplet = mips-sgi-irix6.4
+host_alias = sparc-sun-solaris2.5.1
+host_triplet = sparc-sun-solaris2.5.1
 AS = @AS@
 BISON = bison
 CC = gcc
-CFLAGS = -g -O2
+CFLAGS = -Wall -g
 DLLTOOL = @DLLTOOL@
 FLEX = flex
-LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld -n32
+LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
 LN_S = ln -s
@@ -118,7 +118,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1\" -DBACKEND_SMI=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
