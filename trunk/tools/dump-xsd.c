@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.8 2002/02/07 18:58:12 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.9 2002/02/12 12:51:10 tklie Exp $
  */
 
 #include <config.h>
@@ -752,11 +752,12 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 	fprint(f, "            xmlns:%s=\"%s%s.xsd\"\n",
 	       DXSD_MIBPREFIX, DXSD_SCHEMALOCATION,
 	       modv[i]->name);
-	fprint(f, "            targetNamespace=\"%s%s.xsd\">\n",
+	fprint(f, "            targetNamespace=\"%s%s.xsd\"\n",
 	       DXSD_SCHEMALOCATION, modv[i]->name);
+	fprint(f, "            xml:lang=\"en\"\n");
 	fprint(f, "            xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-	fprint(f, "            xsi:noNamespaceSchemaLocation=\"http://www.w3.org/2001/XMLSchema.xsd\">\n");
-	fprint(f, "            xml:lang=\"en\">\n\n");
+	fprint(f, "            xsi:noNamespaceSchemaLocation=\"http://www.w3.org/2001/XMLSchema.xsd\">\n\n");
+
         
 	fprintSegment(f, INDENT, "<xsd:include", 0 );
 	fprint( f, " id=\"smi\" schemaLocation=\"%ssmi.xsd\"/>\n\n",
