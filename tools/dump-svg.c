@@ -2851,14 +2851,16 @@ static void diaPrintXML(int modc, SmiModule **modv)
     float     x,y,ydiff;
     int       group, nodecount = 0;
 
-    //FIXME: improve the nodecount-stuff
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
 	tNode = diaCalcSize(tNode);
-	nodecount++;
+	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
+	    nodecount++;
+	}
     }
 
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
 	calcGroupSize(group);
+	nodecount++;
     }
 
     printSVGHeaderAndTitle(modc, modv, nodecount);
