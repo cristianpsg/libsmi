@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.14 2000/05/16 07:03:30 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.15 2000/05/24 16:24:44 strauss Exp $
  */
 
 #include <config.h>
@@ -173,7 +173,6 @@ static char *getAgentXType(SmiType *smiType)
     SmiType *parentType;
     SmiModule *smiModule;
     
-printf("XXX 1 checking %s\n", smiType->name);
     parentType = smiGetParentType(smiType);
     if (parentType) {
 	smiModule = smiGetTypeModule(parentType);
@@ -184,14 +183,11 @@ printf("XXX 1 checking %s\n", smiType->name);
     
     for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
 	if (smiType->basetype == convertType[i].basetype) {
-printf("XXX checking %s\n", smiType->name);
 	    if (!convertType[i].smitype) {
-printf("XXX a %s %s\n", smiType->name, convertType[i].agentxtype);
 		return convertType[i].agentxtype;
 	    }
 	    if ((smiType->name) &&
 		(!strcmp(convertType[i].smitype, smiType->name))) {
-printf("XXX b %s %s\n", smiType->name, convertType[i].agentxtype);
 		return convertType[i].agentxtype;
 	    }
 	}
