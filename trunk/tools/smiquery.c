@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.18 1999/06/12 13:40:14 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.19 1999/06/15 14:09:49 strauss Exp $
  */
 
 #include <stdio.h>
@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
 	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
 	    printf("        Type: %s\n",
 		   formattype(node->typemodule, node->typename));
-	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
+	    printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
 	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
 	    printf("        Type: %s\n",
 		   formattype(node->typemodule, node->typename));
-	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
+	    printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
 	if (type) {
 	    printf("        Type: %s\n", format(type->name));
 	    printf("      Module: %s\n", format(type->module));
-	    printf("      Syntax: %s\n", smiStringBasetype(type->basetype));
+	    printf("    Basetype: %s\n", smiStringBasetype(type->basetype));
 	    printf(" Parent Type: %s\n",
 		   formattype(type->parentmodule, type->parentname));
 	    printf("Restrictions:");

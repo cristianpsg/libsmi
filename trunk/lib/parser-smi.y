@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.33 1999/06/15 14:09:37 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.34 1999/06/16 15:04:10 strauss Exp $
  */
 
 %{
@@ -388,6 +388,7 @@ module:			moduleName
 			{
 			    Object *objectPtr;
 			    SmiBasetype parentBasetype;
+			    Import *importPtr;
 
 			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
 				&&
@@ -467,6 +468,27 @@ module:			moduleName
 				    objectPtr->nodekind = SMI_NODEKIND_SCALAR;
 				}
 			    }
+
+			    /*
+			     * Check usage of all imported identifiers.
+			     */
+			    if (strcmp(thisModulePtr->name, "SNMPv2-TC") &&
+				strcmp(thisModulePtr->name, "SNMPv2-CONF") &&
+				strcmp(thisModulePtr->name, "RFC-1212") &&
+				strcmp(thisModulePtr->name, "RFC-1215")) {
+				for(importPtr = thisModulePtr->firstImportPtr;
+				    importPtr;
+				    importPtr = importPtr->nextPtr) {
+				    if (importPtr->use == 0) {
+					printErrorAtLine(thisParserPtr,
+							 ERR_UNUSED_IMPORT,
+							 importPtr->line,
+							 importPtr->importname,
+							 importPtr->importmodule);
+				    }
+				}
+			    }
+			    
 			    $$ = 0;
 			}
 	;
@@ -851,14 +873,43 @@ typeDeclaration:	typeName
 			}
 			COLON_COLON_EQUAL typeDeclarationRHS
 			{
-			    Type *typePtr;
-			    
 			    if (strlen($1)) {
-				typePtr = $4;
-				setTypeName(typePtr, $1);
+				setTypeName($4, $1);
 				$$ = 0;
 			    } else {
 				$$ = 0;
+			    }
+
+			    /*
+			     * If we are in an SMI module, some type
+			     * definitions derived from ASN.1 `INTEGER'
+			     * must modified to libsmi basetypes.
+			     */
+			    if (thisModulePtr &&
+				!strcmp(thisModulePtr->name, "SNMPv2-SMI")) {
+				if (!strcmp($1, "Counter32")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				} else if (!strcmp($1, "Gauge32")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				} else if (!strcmp($1, "Unsigned32")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				} else if (!strcmp($1, "Unsigned32")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				} else if (!strcmp($1, "TimeTicks")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				} else if (!strcmp($1, "Counter64")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED64;
+				}
+			    }
+			    if (thisModulePtr &&
+				!strcmp(thisModulePtr->name, "RFC1155-SMI")) {
+				if (!strcmp($1, "Counter")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				} else if (!strcmp($1, "Gauge")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				} else if (!strcmp($1, "TimeTicks")) {
+				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				}
 			    }
 			}
 	;
@@ -919,34 +970,51 @@ typeDeclarationRHS:	Syntax
 			    }
 			}
 	|		TEXTUAL_CONVENTION
+			{
+			    Import *importPtr;
+
+			    if (strcmp(thisModulePtr->name, "SNMPv2-TC")) {
+				importPtr =
+				    findImportByName("TEXTUAL-CONVENTION",
+						     thisModulePtr);
+				if (importPtr) {
+				    importPtr->use++;
+				} else {
+				    printError(thisParserPtr,
+					       ERR_MACRO_NOT_IMPORTED,
+					       "TEXTUAL-CONVENTION",
+					       "SNMPv2-TC");
+				}
+			    }
+			}
 			DisplayPart
 			STATUS Status
 			DESCRIPTION Text
 			ReferPart
 			SYNTAX Syntax
 			{
-			    if (($9) && !($9->name)) {
+			    if (($10) && !($10->name)) {
 				/*
 				 * If the Type we found has just been
 				 * defined, we don't have to allocate
 				 * a new one.
 				 */
-				$$ = $9;
+				$$ = $10;
 			    } else {
 				/*
 				 * Otherwise, we have to allocate a
 				 * new Type struct, inherited from $9.
 				 */
-				$$ = duplicateType($9, 0, thisParserPtr);
+				$$ = duplicateType($10, 0, thisParserPtr);
 				deleteTypeFlags($$, FLAG_IMPORTED);
 			    }
-			    setTypeDescription($$, $6);
-			    if ($7) {
-				setTypeReference($$, $7);
+			    setTypeDescription($$, $7);
+			    if ($8) {
+				setTypeReference($$, $8);
 			    }
-			    setTypeStatus($$, $4);
-			    if ($2) {
-				setTypeFormat($$, $2);
+			    setTypeStatus($$, $5);
+			    if ($3) {
+				setTypeFormat($$, $3);
 			    }
 			    setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
 			}
@@ -1003,6 +1071,7 @@ row:			UPPERCASE_IDENTIFIER
 				     * imported type.
 				     * TODO: is this allowed in a SEQUENCE? 
 				     */
+				    importPtr->use++;
 				    stypePtr = smiGetType(
 						  importPtr->importmodule, $1);
 				    if (stypePtr) {
@@ -1083,6 +1152,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				    /*
 				     * imported object.
 				     */
+				    importPtr->use++;
 				    snodePtr = smiGetNode(
 						  importPtr->importmodule, $1);
 				    $$ = addObject($1,
@@ -1158,6 +1228,7 @@ sequenceSyntax:		/* ObjectSyntax */
 				     * where we do not have to create
 				     * a new Type struct.
 				     */
+				    importPtr->use++;
 				}
 			    }
 			}
@@ -1219,6 +1290,22 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			}
 			OBJECT_IDENTITY
+			{
+			    Import *importPtr;
+
+			    if (strcmp(thisModulePtr->name, "SNMPv2-SMI")) {
+				importPtr = findImportByName("OBJECT-IDENTITY",
+							     thisModulePtr);
+				if (importPtr) {
+				    importPtr->use++;
+				} else {
+				    printError(thisParserPtr,
+					       ERR_MACRO_NOT_IMPORTED,
+					       "OBJECT-IDENTITY",
+					       "SNMPv2-SMI");
+				}
+			    }
+			}
 			STATUS Status
 			DESCRIPTION Text
 			ReferPart
@@ -1227,7 +1314,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $11;
+			    objectPtr = $12;
 			    
 			    if (objectPtr->modulePtr !=
 				thisParserPtr->modulePtr) {
@@ -1236,10 +1323,10 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
-			    setObjectStatus(objectPtr, $5);
-			    setObjectDescription(objectPtr, $7);
-			    if ($8) {
-				setObjectReference(objectPtr, $8);
+			    setObjectStatus(objectPtr, $6);
+			    setObjectDescription(objectPtr, $8);
+			    if ($9) {
+				setObjectReference(objectPtr, $9);
 			    }
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -1256,6 +1343,26 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			}
 			OBJECT_TYPE
+			{
+			    Import *importPtr;
+			    
+			    importPtr = findImportByName("OBJECT-TYPE",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    printError(thisParserPtr,
+					       ERR_MACRO_NOT_IMPORTED,
+					       "OBJECT-TYPE", "SNMPv2-SMI");
+				} else {
+				    printError(thisParserPtr,
+					       ERR_MACRO_NOT_IMPORTED,
+					       "OBJECT-TYPE", "RFC-1212");
+				}
+			    }
+			}
 			SYNTAX Syntax
 		        UnitsPart
 			MaxAccessPart
@@ -1269,7 +1376,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr, *parentPtr;
 			    List *listPtr, *newlistPtr;
 
-			    objectPtr = $16;
+			    objectPtr = $17;
 			    
 			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
 				objectPtr = duplicateObject(objectPtr,
@@ -1277,15 +1384,15 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
-			    setObjectType(objectPtr, $5);
-			    if (!($5->name)) {
+			    setObjectType(objectPtr, $6);
+			    if (!($6->name)) {
 				/*
 				 * An inlined type.
 				 */
-				setTypeName($5, $1);
+				setTypeName($6, $1);
 			    }
-			    setObjectAccess(objectPtr, $7);
-			    if ($7 == SMI_ACCESS_READ_CREATE) {
+			    setObjectAccess(objectPtr, $8);
+			    if ($8 == SMI_ACCESS_READ_CREATE) {
 				parentPtr =
 				  objectPtr->nodePtr->parentPtr->lastObjectPtr;
 				if (parentPtr && parentPtr->typePtr &&
@@ -1317,20 +1424,20 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				    addObjectFlags(parentPtr, FLAG_CREATABLE);
 				}
 			    }
-			    setObjectStatus(objectPtr, $9);
+			    setObjectStatus(objectPtr, $10);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-			    if ($10) {
-				setObjectDescription(objectPtr, $10);
-			    }
 			    if ($11) {
-				setObjectReference(objectPtr, $11);
+				setObjectDescription(objectPtr, $11);
 			    }
 			    if ($12) {
-				setObjectIndex(objectPtr, $12);
+				setObjectReference(objectPtr, $12);
 			    }
 			    if ($13) {
-				setObjectValue(objectPtr, $13);
+				setObjectIndex(objectPtr, $13);
+			    }
+			    if ($14) {
+				setObjectValue(objectPtr, $14);
 			    }
 			    $$ = 0;
 			}
@@ -1361,9 +1468,21 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			}
 			TRAP_TYPE
 			{
+			    Import *importPtr;
+			    
 			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
 			    {
 			        printError(thisParserPtr, ERR_TRAP_TYPE);
+			    }
+
+			    importPtr = findImportByName("TRAP-TYPE",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_MACRO_NOT_IMPORTED,
+					   "TRAP-TYPE", "RFC-1215");
 			    }
 			}
 			ENTERPRISE objectIdentifier
@@ -1428,6 +1547,19 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			}
 			NOTIFICATION_TYPE
+			{
+			    Import *importPtr;
+			    
+			    importPtr = findImportByName("NOTIFICATION-TYPE",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_MACRO_NOT_IMPORTED,
+					   "NOTIFICATION-TYPE", "SNMPv2-SMI");
+			    }
+			}
 			ObjectsPart
 			STATUS Status
 			DESCRIPTION Text
@@ -1437,7 +1569,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $12;
+			    objectPtr = $13;
 				
 			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
 				objectPtr = duplicateObject(objectPtr, 0,
@@ -1448,11 +1580,11 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 					  SMI_DECL_NOTIFICATIONTYPE);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-			    setObjectList(objectPtr, $4);
-			    setObjectStatus(objectPtr, $6);
-			    setObjectDescription(objectPtr, $8);
-			    if ($9) {
-				setObjectReference(objectPtr, $9);
+			    setObjectList(objectPtr, $5);
+			    setObjectStatus(objectPtr, $7);
+			    setObjectDescription(objectPtr, $9);
+			    if ($10) {
+				setObjectReference(objectPtr, $10);
 			    }
 			    $$ = 0;
 			}
@@ -1468,6 +1600,18 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			}
 			MODULE_IDENTITY
 			{
+			    Import *importPtr;
+			    
+			    importPtr = findImportByName("MODULE-IDENTITY",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_MACRO_NOT_IMPORTED,
+					   "MODULE-IDENTITY", "SNMPv2-SMI");
+			    }
+			    
 			    if (thisParserPtr->modulePtr->numModuleIdentities > 0)
 			    {
 			        printError(thisParserPtr,
@@ -1552,6 +1696,16 @@ ObjectSyntax:		SimpleSyntax
 			}
 	|		ApplicationSyntax
 			{
+			    Import *importPtr;
+
+			    if ($1) {
+				importPtr = findImportByName($1->name,
+							     thisModulePtr);
+				if (importPtr) {
+				    importPtr->use++;
+				}
+			    }
+
 			    /* TODO */
 			    $$ = $1;
 			}
@@ -1603,11 +1757,27 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
+			    Import *importPtr;
+
+			    importPtr = findImportByName("Integer32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    }
+
 			    /* TODO: any need to distinguish from INTEGER? */
 			    $$ = typeInteger32Ptr;
 			}
         |		INTEGER32 integerSubType
 			{
+			    Import *importPtr;
+
+			    importPtr = findImportByName("Integer32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    }
+
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeList($$, $2);
 			}
@@ -1640,6 +1810,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
+				    importPtr->use++;
 				    stypePtr = smiGetType(
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
@@ -1675,6 +1846,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
+				    importPtr->use++;
 				    stypePtr = smiGetType($1, $3);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
@@ -1718,6 +1890,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
+				    importPtr->use++;
 				    stypePtr = smiGetType(
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
@@ -1753,6 +1926,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
+				    importPtr->use++;
 				    stypePtr = smiGetType($1, $3);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
@@ -1807,6 +1981,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
+				    importPtr->use++;
 				    stypePtr = smiGetType(
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
@@ -1842,6 +2017,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
+				    importPtr->use++;
 				    stypePtr = smiGetType($1, $3);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
@@ -2800,6 +2976,7 @@ subidentifier:
 					/*
 					 * imported object.
 					 */
+					importPtr->use++;
 					snodePtr = smiGetNode(
 						  importPtr->importmodule, $1);
 					if (snodePtr) {
@@ -2870,6 +3047,7 @@ subidentifier:
 					/*
 					 * imported object.
 					 */
+					importPtr->use++;
 					snodePtr = smiGetNode($1, $3);
 					$$ = addObject($3, 
 					  getParentNode(
@@ -2997,6 +3175,19 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    }
 			}
 			OBJECT_GROUP
+			{
+			    Import *importPtr;
+			    
+			    importPtr = findImportByName("OBJECT-GROUP",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_MACRO_NOT_IMPORTED,
+					   "OBJECT-GROUP", "SNMPv2-CONF");
+			    }
+			}
 			ObjectsPart
 			STATUS Status
 			DESCRIPTION Text
@@ -3005,7 +3196,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $12;
+			    objectPtr = $13;
 
 			    if (objectPtr->modulePtr !=
 				thisParserPtr->modulePtr) {
@@ -3016,14 +3207,14 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-			    setObjectStatus(objectPtr, $6);
-			    setObjectDescription(objectPtr, $8);
-			    if ($9) {
-				setObjectReference(objectPtr, $9);
+			    setObjectStatus(objectPtr, $7);
+			    setObjectDescription(objectPtr, $9);
+			    if ($10) {
+				setObjectReference(objectPtr, $10);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-			    setObjectList(objectPtr, $4);
+			    setObjectList(objectPtr, $5);
 			    $$ = 0;
 			}
 	;
@@ -3037,6 +3228,20 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    }
 			}
 			NOTIFICATION_GROUP
+			{
+			    Import *importPtr;
+			    
+			    importPtr = findImportByName("NOTIFICATION-GROUP",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_MACRO_NOT_IMPORTED,
+					   "NOTIFICATION-GROUP",
+					   "SNMPv2-CONF");
+			    }
+			}
 			NotificationsPart
 			STATUS Status
 			DESCRIPTION Text
@@ -3045,7 +3250,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $12;
+			    objectPtr = $13;
 			    
 			    if (objectPtr->modulePtr !=
 				thisParserPtr->modulePtr) {
@@ -3057,14 +3262,14 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 					  SMI_DECL_NOTIFICATIONGROUP);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-			    setObjectStatus(objectPtr, $6);
-			    setObjectDescription(objectPtr, $8);
-			    if ($9) {
-				setObjectReference(objectPtr, $9);
+			    setObjectStatus(objectPtr, $7);
+			    setObjectDescription(objectPtr, $9);
+			    if ($10) {
+				setObjectReference(objectPtr, $10);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-			    setObjectList(objectPtr, $4);
+			    setObjectList(objectPtr, $5);
 			    $$ = 0;
 			}
 	;
@@ -3078,6 +3283,20 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    }
 			}
 			MODULE_COMPLIANCE
+			{
+			    Import *importPtr;
+			    
+			    importPtr = findImportByName("MODULE-COMPLIANCE",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_MACRO_NOT_IMPORTED,
+					   "MODULE-COMPLIANCE",
+					   "SNMPv2-CONF");
+			    }
+			}
 			STATUS Status
 			DESCRIPTION Text
 			ReferPart
@@ -3089,7 +3308,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    List *listPtr;
 			    char *s;
 			    
-			    objectPtr = $12;
+			    objectPtr = $13;
 			    
 			    if (objectPtr->modulePtr !=
 				thisParserPtr->modulePtr) {
@@ -3101,17 +3320,17 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 					  SMI_DECL_MODULECOMPLIANCE);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-			    setObjectStatus(objectPtr, $5);
-			    setObjectDescription(objectPtr, $7);
-			    if ($8) {
-				setObjectReference(objectPtr, $8);
+			    setObjectStatus(objectPtr, $6);
+			    setObjectDescription(objectPtr, $8);
+			    if ($9) {
+				setObjectReference(objectPtr, $9);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-			    setObjectList(objectPtr, $9.mandatorylistPtr);
-			    objectPtr->optionlistPtr = $9.optionlistPtr;
+			    setObjectList(objectPtr, $10.mandatorylistPtr);
+			    objectPtr->optionlistPtr = $10.optionlistPtr;
 			    objectPtr->refinementlistPtr =
-				                          $9.refinementlistPtr;
+				                          $10.refinementlistPtr;
 
 			    /*
 			     * Dirty: Fake the types' names in the
@@ -3119,8 +3338,8 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			     * ``<compliancename>+<objecttypename>+type''
 			     * ``<compliancename>+<objecttypename>+writetype''
 			     */
-			    if ($9.refinementlistPtr) {
-				for (listPtr = $9.refinementlistPtr;
+			    if ($10.refinementlistPtr) {
+				for (listPtr = $10.refinementlistPtr;
 				     listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
@@ -3432,6 +3651,20 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    }
 			}
 			AGENT_CAPABILITIES
+			{
+			    Import *importPtr;
+			    
+			    importPtr = findImportByName("AGENT-CAPABILITIES",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_MACRO_NOT_IMPORTED,
+					   "AGENT-CAPABILITIES",
+					   "SNMPv2-CONF");
+			    }
+			}
 			PRODUCT_RELEASE Text
 			STATUS Status_Capabilities
 			DESCRIPTION Text
@@ -3441,7 +3674,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $14;
+			    objectPtr = $15;
 			    
 			    if (objectPtr->modulePtr !=
 				thisParserPtr->modulePtr) {
@@ -3452,14 +3685,14 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 					  SMI_DECL_AGENTCAPABILITIES);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-			    setObjectStatus(objectPtr, $7);
-			    setObjectDescription(objectPtr, $9);
-			    if ($10) {
-				setObjectReference(objectPtr, $10);
+			    setObjectStatus(objectPtr, $8);
+			    setObjectDescription(objectPtr, $10);
+			    if ($11) {
+				setObjectReference(objectPtr, $11);
 			    }
 				/*
-				 * TODO: PRODUCT_RELEASE Text ($5)
-				 * TODO: ModulePart_Capabilities ($11)
+				 * TODO: PRODUCT_RELEASE Text
+				 * TODO: ModulePart_Capabilities
 				 */
 			    $$ = 0;
 			}

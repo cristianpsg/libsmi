@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.43 1999/06/15 14:09:40 strauss Exp $
+ * @(#) $Id: smi.c,v 1.44 1999/06/16 15:04:13 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -584,6 +584,8 @@ int smiInit()
     if (initialized) {
 	return 0;
     }
+
+    errorLevel = 3;
     
     if (initData()) {
 	return -1;

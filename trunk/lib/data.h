@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.35 1999/06/15 14:09:35 strauss Exp $
+ * @(#) $Id: data.h,v 1.36 1999/06/16 15:04:08 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -113,6 +113,8 @@ typedef struct Import {
     struct Import  *nextPtr;
     struct Import  *prevPtr;
     Kind	   kind;
+    int		   use;
+    int		   line;
 } Import;
 
 
@@ -123,6 +125,7 @@ typedef struct Revision {
     char	    *description;
     struct Revision *nextPtr;
     struct Revision *prevPtr;
+    int		    line;
 } Revision;
 
 
@@ -159,6 +162,7 @@ typedef struct Type {
     TypeFlags	   flags;
     struct Type    *nextPtr;
     struct Type    *prevPtr;
+    int		   line;
 } Type;
 
 
@@ -219,6 +223,7 @@ typedef struct Object {
     struct Object  *nextPtr;
     struct Object  *prevSameNodePtr;    /* chain of Objects for this Node  */
     struct Object  *nextSameNodePtr;
+    int		   line;
 } Object;
 
 
@@ -244,6 +249,7 @@ typedef struct Macro {
     MacroFlags	   flags;
     struct Macro   *nextPtr;
     struct Macro   *prevPtr;
+    int		   line;
 } Macro;
 
 

@@ -47,3 +47,5 @@ o clearly separate language dependant information at the API:
 o DISPLAY_HINT interpreter function
 
 o Java OID/Name Lookup Service
+
+o clean up SMI_BASETYPE_XXX / struct SmiValue
