@@ -526,9 +526,9 @@ addImport(name, parserPtr)
 
     modulePtr = parserPtr->modulePtr;
     
-    importPtr->module			 = NULL; /* not yet known */
     importPtr->name		       	 = util_strdup(name);
-    importPtr->kind			 = KIND_UNKNOWN;
+    importPtr->module			 = NULL; /* not yet known */
+    importPtr->kind			 = KIND_UNKNOWN; /* not yet known */
     
     importPtr->nextPtr			 = NULL;
     importPtr->prevPtr			 = modulePtr->lastImportPtr;
@@ -576,21 +576,22 @@ checkImports(modulename, parserPtr)
     for (importPtr = parserPtr->modulePtr->firstImportPtr;
 	 importPtr; importPtr = importPtr->nextPtr) {
 
-	if (smiGetNode(importPtr->name, modulename)) {
-	    importPtr->module = util_strdup(modulename);
-	    importPtr->kind   = KIND_OBJECT;
-	} else if (smiGetType(importPtr->name, modulename)) {
-	    importPtr->module = util_strdup(modulename);
-	    importPtr->kind   = KIND_TYPE;
-	} else if (smiGetMacro(importPtr->name, modulename)) {
-	    importPtr->module = util_strdup(modulename);
-	    importPtr->kind   = KIND_MACRO;
-	} else {
-	    n++;
-	    printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
-		       importPtr->name, modulename);
+	if (importPtr->kind == KIND_UNKNOWN) {
+	    if (smiGetNode(importPtr->name, modulename)) {
+		importPtr->module = util_strdup(modulename);
+		importPtr->kind   = KIND_OBJECT;
+	    } else if (smiGetType(importPtr->name, modulename)) {
+		importPtr->module = util_strdup(modulename);
+		importPtr->kind   = KIND_TYPE;
+	    } else if (smiGetMacro(importPtr->name, modulename)) {
+		importPtr->module = util_strdup(modulename);
+		importPtr->kind   = KIND_MACRO;
+	    } else {
+		n++;
+		printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
+			   importPtr->name, modulename);
+	    }
 	}
-
     }
 
 #ifdef DEBUG
@@ -1459,6 +1460,55 @@ findNodeByParentAndSubid(parentNodePtr, subid)
 /*
  *----------------------------------------------------------------------
  *
+ * findObjectByNode --
+ *
+ *      Lookup an Object by a given Node. Note, that their might be
+ *	multiple definitions for one node.
+ *
+ * Results:
+ *      A pointer to the first Object structure in the current View or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Object *
+findObjectByNode(nodePtr)
+    Node      *nodePtr;
+{
+    Object    *objectPtr;
+    View      *viewPtr;
+    
+#ifdef DEBUG
+    printDebug(4, "findObjectByNode(0x%x)", nodePtr);
+#endif
+    
+    for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
+	 objectPtr = objectPtr->nextSameNodePtr) {
+	for (viewPtr = firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
+	    if (!strcmp(objectPtr->modulePtr->name, viewPtr->name)) {
+#ifdef DEBUG
+		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
+#endif
+		return (objectPtr);
+	    }
+	}
+    }
+
+#ifdef DEBUG
+    printDebug(4, " = NULL\n");
+#endif
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * findObjectByModuleAndNode --
  *
  *      Lookup an Object by a given Node and Module. This is necessary
@@ -1488,7 +1538,7 @@ findObjectByModuleAndNode(modulePtr, nodePtr)
 #endif
     
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
-	 objectPtr = objectPtr->nextPtr) {
+	 objectPtr = objectPtr->nextSameNodePtr) {
 	if (objectPtr->modulePtr == modulePtr) {
 #ifdef DEBUG
 	    printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
@@ -1537,7 +1587,7 @@ findObjectByModulenameAndNode(modulename, nodePtr)
 #endif
 
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
-	 objectPtr = objectPtr->nextPtr) {
+	 objectPtr = objectPtr->nextSameNodePtr) {
 	if (!strcmp(objectPtr->modulePtr->name, modulename)) {
 #ifdef DEBUG
 	    printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);

@@ -49,6 +49,7 @@ lib/scanner-smi.c: lib/scanner-smi.l lib/scanner-smi.h lib/parser-smi.tab.h
 	$(FLEX) -t lib/scanner-smi.l > lib/scanner-smi.c
 
 lib/smi_xdr.o: lib/smi_xdr.c
+#	# Linux' rpcgen produced code that leads to warnings otherwise.
 	$(CC) $(CFLAGS) -Wno-unused -c $< -o $@
 
 $(LIBSMI_STATIC): lib/smi.h $(LIBSMI_OBJS)
