@@ -11,7 +11,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-perl.c,v 1.1 2001/01/04 10:10:20 strauss Exp $
+ * @(#) $Id: dump-perl.c,v 1.2 2001/11/08 07:37:31 schoenw Exp $
  */
 
 /*
@@ -819,13 +819,13 @@ static void printNotifications(SmiModule *smiModule)
         i++, smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
         if (i == 0) {
-            printSegment(INDENT, "\"notifications\" => {\n", 0);
+            printSegment(INDENT, "\"notifications\" => [\n", 0);
         }
         printNotification(2 * INDENT, smiNode);
     }
 
     if (i) {
-        printSegment(INDENT, "}, # notifications\n\n", 0);
+        printSegment(INDENT, "], # notifications\n\n", 0);
     }
 }
 
