@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.91 2002/05/17 12:23:17 strauss Exp $
+ * @(#) $Id: error.c,v 1.92 2002/05/17 13:08:35 schoenw Exp $
  */
 
 #include <config.h>
@@ -552,6 +552,8 @@ static Error errors[] = {
       "a PIB-TAG must point to an object with a SYNTAX of `TagId'" },
     { 3, ERR_ATTRIBUTE_NOT_IN_GROUP, "attribute-not-in-group",
       "this attribute is not a member of an OBJECT-GROUP" },
+    { 0, ERR_OBJECTPTR_ELEMENT_IN_USE, "objectptr-element-in-use",
+      "objectPtr->%s is already in use (%s)" },
     { 0, 0, NULL, NULL }
 };
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.78 2002/05/16 23:21:55 bunkus Exp $
+ * @(#) $Id: data.h,v 1.79 2002/05/17 11:34:29 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -196,11 +196,7 @@ typedef struct Object {
     struct Object  *nextPtr;
     struct Object  *prevSameNodePtr;    /* chain of Objects for this Node  */
     struct Object  *nextSameNodePtr;
-    struct Object  *pibReferencesPtr;   /* PIB-REFERENCES */
-    struct Object  *pibTagPtr;          /* PIB-TAG */
-    int            allSubjectCategories;/* SUBJECT-CATEGORIES all, others are stored in listPtr */
     struct List    *uniquenessPtr;      /* UNIQUENESS */
-    struct List    *installErrorsPtr;   /* INSTALL-ERRORS */
     int		   line;
 } Object;
 
@@ -398,12 +394,6 @@ extern void setObjectReference(Object *objectPtr,
 			       char *reference,
 			       Parser *parserPtr);
 
-extern void setObjectPibReferences(Object *objectPtr,
-			           Object *pibReferencesPtr);
-
-extern void setObjectPibTag(Object *objectPtr,
-			    Object *pibTagPtr);
-
 extern void setObjectDecl(Object *objectPtr,
 			   SmiDecl decl);
 
@@ -452,8 +442,6 @@ extern void setObjectUnits(Object *objectPtr,
 
 extern void setObjectValue(Object *objectPtr,
 			   SmiValue *valuePtr);
-
-extern void setObjectSubjectCategories(Object *objectPtr, int allCategories);
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);

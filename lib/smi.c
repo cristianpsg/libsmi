@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.107 2002/04/22 15:09:15 strauss Exp $
+ * @(#) $Id: smi.c,v 1.108 2002/05/16 19:18:04 strauss Exp $
  */
 
 #include <config.h>
@@ -1333,7 +1333,10 @@ SmiElement *smiGetNextElement(SmiElement *smiElementPtr)
 
 SmiNode *smiGetElementNode(SmiElement *smiElementPtr)
 {
-    return &((Object *)((List *)smiElementPtr)->ptr)->export;
+    if ((Object *)((List *)smiElementPtr)->ptr)
+        return &((Object *)((List *)smiElementPtr)->ptr)->export;
+    else
+        return NULL;
 }
 
 
@@ -1479,3 +1482,55 @@ SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr)
     
     return &typePtr->export;
 }
+
+
+
+SmiElement *smiGetFirstUniquenessElement(SmiNode *smiNodePtr)
+{
+    List	      *listPtr;
+    
+    if (!smiNodePtr) {
+	return NULL;
+    }
+
+    listPtr = ((Object *)smiNodePtr)->uniquenessPtr;
+
+    return (SmiElement *)listPtr;
+}
+
+
+
+/*SmiElement *smiGetFirstInstallErrorsElement(SmiNode *smiNodePtr)
+{
+    List	      *listPtr;
+    
+    if (!smiNodePtr) {
+	return NULL;
+    }
+
+    listPtr = ((Object *)smiNodePtr)->installErrorsPtr;
+
+    return (SmiElement *)listPtr;
+}
+
+
+
+SmiNode *smiGetPibReferencesNode(SmiNode *smiNodePtr)
+{
+    if (!smiNodePtr)
+        return NULL;
+   
+    return &((Object *)smiNodePtr)->pibReferencesPtr->export;
+}
+
+
+
+SmiNode *smiGetPibTagNode(SmiNode *smiNodePtr)
+{
+    if (!smiNodePtr)
+        return NULL;
+   
+    return &((Object *)smiNodePtr)->pibTagPtr->export;
+}*/
+
+

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.172 2002/05/16 23:21:55 bunkus Exp $
+ * @(#) $Id: parser-smi.y,v 1.173 2002/05/17 12:23:17 strauss Exp $
  */
 
 %{
@@ -622,7 +622,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		smiCheckIndex(parserPtr, objectPtr);
 		break;
 	    case SMI_INDEX_AUGMENT:
-            case SMI_INDEX_EXTEND:
+            case SMI_INDEX_SPARSE:
 		smiCheckAugment(parserPtr, objectPtr);
 		break;
 	    default:
@@ -692,7 +692,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
                 (parentPtr->export.nodekind == SMI_NODEKIND_TABLE) &&
                 (objectPtr->export.indexkind != SMI_INDEX_INDEX) &&
                 (objectPtr->export.indexkind != SMI_INDEX_AUGMENT) &&
-                (objectPtr->export.indexkind != SMI_INDEX_EXTEND))
+                (objectPtr->export.indexkind != SMI_INDEX_SPARSE))
                 smiPrintErrorAtLine(parserPtr, ERR_ROW_LACKS_PIB_INDEX,
                                     objectPtr->line);
 
@@ -764,15 +764,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
                                     objectPtr->line);
 
             /*
-             * Are INSTALL-ERRORS only used with tables?
-             * See RFC 3159 7.4
-             */
-            if (objectPtr->installErrorsPtr &&
-                (objectPtr->export.nodekind != SMI_NODEKIND_TABLE))
-                smiPrintErrorAtLine(parserPtr, ERR_INSTALL_ERRORS_FOR_NON_TABLE,
-                                    objectPtr->line);
-            
-            /*
              * Check the UNIQUENESS clause and its entries
              * See RFC 3159 7.9
              */
@@ -785,65 +776,25 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
             }
             
             /*
-             * Do all objects with a SYNTAX of ReferenceId have a
-             * PIB-REFERENCES clause?
-             * See RFC 3159 7.10
-             */
-            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
-                !strcmp(objectPtr->typePtr->export.name, "ReferenceId") && 
-                !objectPtr->pibReferencesPtr)
-                smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_REFERENCES,
-                                    objectPtr->line);
-            
-            /*
-             * Does any object with a SNYTAX other than ReferenceId have a
-             * PIB-REFERENCES clause?
-             * See RFC 3159 7.10
-             */
-            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
-                strcmp(objectPtr->typePtr->export.name, "ReferenceId") && 
-                objectPtr->pibReferencesPtr)
-                smiPrintErrorAtLine(parserPtr, ERR_PIB_REFERENCES_WRONG_TYPE,
-                                    objectPtr->line);
-            
-            /*
              * Does the PIB-REFERENCES object point to a PRC (table)?
              * See RFC 3159 7.10
              */
-            if (objectPtr->pibReferencesPtr &&
-                (objectPtr->pibReferencesPtr->export.nodekind != SMI_NODEKIND_ROW))
+            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                !strcmp(objectPtr->typePtr->export.name, "ReferenceId") &&
+                objectPtr->relatedPtr &&
+                (objectPtr->relatedPtr->export.nodekind != SMI_NODEKIND_ROW))
                 smiPrintErrorAtLine(parserPtr, ERR_PIB_REFERENCES_NOT_ROW,
                                     objectPtr->line);
 
             /*
-             * Do all objects with a SYNTAX of TagReferenceId have a
-             * PIB-TAG clause?
-             * See RFC 3159 7.11
-             */
-            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
-                !strcmp(objectPtr->typePtr->export.name, "TagReferenceId") && 
-                !objectPtr->pibTagPtr)
-                smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_TAG,
-                                    objectPtr->line);
-            
-            /*
-             * Does any object with a SNYTAX other than TagReferenceId have a
-             * PIB-TAG clause?
-             * See RFC 3159 7.11
-             */
-            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
-                strcmp(objectPtr->typePtr->export.name, "TagReferenceId") && 
-                objectPtr->pibTagPtr)
-                smiPrintErrorAtLine(parserPtr, ERR_PIB_TAG_WRONG_TYPE,
-                                    objectPtr->line);
-            
-            /*
              * Do all PIB-TAGs point to objects with a SYNTAX of TagId?
              * See RFC 3159 7.12
              */
-            if (objectPtr->pibTagPtr && objectPtr->pibTagPtr->typePtr &&
-                objectPtr->pibTagPtr->typePtr->export.name &&
-                strcmp(objectPtr->pibTagPtr->typePtr->export.name, "TagId"))
+            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                !strcmp(objectPtr->typePtr->export.name, "TagReferenceId") &&
+                objectPtr->relatedPtr && objectPtr->relatedPtr->typePtr &&
+                objectPtr->relatedPtr->typePtr->export.name &&
+                strcmp(objectPtr->relatedPtr->typePtr->export.name, "TagId"))
                 smiPrintErrorAtLine(parserPtr, ERR_PIB_TAG_TYPE, objectPtr->line);
             
             /*
@@ -2810,8 +2761,6 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    setObjectUnits(objectPtr, $7);
 			    setObjectAccess(objectPtr, $8);
-                            setObjectPibReferences(objectPtr, $9);
-                            setObjectPibTag(objectPtr, $10);
 			    if (thisParserPtr->flags & FLAG_CREATABLE) {
 				thisParserPtr->flags &= ~FLAG_CREATABLE;
 				parentPtr =
@@ -2859,9 +2808,6 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    if ($13) {
 				setObjectDescription(objectPtr, $13, thisParserPtr);
 			    }
-                            if ($14) {
-                                setObjectInstallErrors(objectPtr, $14);
-                            }
 			    if ($15) {
 				setObjectReference(objectPtr, $15, thisParserPtr);
 			    }
@@ -2935,6 +2881,75 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				    setObjectValue(objectPtr, $19);
 				}
 			    }
+                            if ($9) {
+                                if (objectPtr->relatedPtr)
+                                    smiPrintError(thisParserPtr, ERR_OBJECTPTR_ELEMENT_IN_USE,
+                                                  "relatedPtr", "PIB-REFERENCES");
+                                /*
+                                 * PIB-REFERENCES clauses are only allowed for
+                                 * objects with a SYNTAX of 'ReferenceId'.
+                                 * See RFC 3159 7.10
+                                 */
+                                if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                                    strcmp(objectPtr->typePtr->export.name, "ReferenceId"))
+                                    smiPrintErrorAtLine(parserPtr, ERR_PIB_REFERENCES_WRONG_TYPE,
+                                                        objectPtr->line);
+                                else
+                                    setObjectRelated(objectPtr, $9);
+                            } else {
+                               /*
+                                * Does this object have a SYNTAX of 'ReferenceId'
+                                * and a PIB-REFERENCES clause?
+                                * See RFC 3159 7.10
+                                */
+                               if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                                   !strcmp(objectPtr->typePtr->export.name, "ReferenceId"))
+                                   smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_REFERENCES,
+                                                       objectPtr->line);
+                            }
+                            if ($10) {
+                                if (objectPtr->relatedPtr)
+                                    smiPrintError(thisParserPtr, ERR_OBJECTPTR_ELEMENT_IN_USE,
+                                                  "relatedPtr", "PIB-TAG");
+                                /*
+                                 * PIB-TAG clauses are only allowed for
+                                 * objects with a SYNTAX of 'TagReferenceId'.
+                                 * See RFC 3159 7.11
+                                 */
+                                if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                                    strcmp(objectPtr->typePtr->export.name, "TagReferenceId"))
+                                    smiPrintErrorAtLine(parserPtr, ERR_PIB_TAG_WRONG_TYPE,
+                                                        objectPtr->line);
+                                else
+                                    setObjectRelated(objectPtr, $10);
+                            } else {
+                                /*
+                                 * Does this object have a SYNTAX of 'TagReferenceId'
+                                 * and a PIB-TAG clause?
+                                 * See RFC 3159 7.11
+                                 */
+                                if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                                    !strcmp(objectPtr->typePtr->export.name, "TagReferenceId"))
+                                    smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_TAG,
+                                                        objectPtr->line);
+
+                            }
+                            if ($14) {
+                                if (objectPtr->listPtr)
+                                    smiPrintError(thisParserPtr, ERR_OBJECTPTR_ELEMENT_IN_USE,
+                                                  "listPtr", "INSTALL-ERRORS");
+                                /*
+                                 * Are INSTALL-ERRORS only used with tables?
+                                 * See RFC 3159 7.4
+                                 */
+                                if (!((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
+                                    (objectPtr->typePtr) &&
+                                    (objectPtr->typePtr->export.decl == SMI_DECL_IMPL_SEQUENCEOF)))
+                                    smiPrintErrorAtLine(parserPtr, ERR_INSTALL_ERRORS_FOR_NON_TABLE,
+                                                        objectPtr->line);
+                                else
+                                    setObjectList(objectPtr, $14);
+                            }
 			    $$ = 0;
 			}
 	;
@@ -3228,29 +3243,19 @@ Error:                  LOWERCASE_IDENTIFIER '(' NUMBER ')'
 			{
 			    Object *objectPtr;
 			    
-			    /* TODO: search in local module and
-			     *       in imported modules
-			     */
-			    objectPtr = findObjectByModuleAndName(
-				thisParserPtr->modulePtr, $1);
-			    if (objectPtr) {
-				$$ = objectPtr;
-				if ($$->nodePtr->subid != $3) {
-				    smiPrintError(thisParserPtr,
-					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
-						  $3, $1);
-				}
-				smiFree($1);
-			    } else {
-                                if (($3 < 1) || ($3 > 65536))
-                                    smiPrintError(thisParserPtr, ERR_ERROR_NUMBER_RANGE, $3);
-				objectPtr = addObject($1, smiHandle->rootNodePtr,
-						      $3, 0,
-						      thisParserPtr);
-				setObjectDecl(objectPtr,
-					      SMI_DECL_VALUEASSIGNMENT);
-				$$ = objectPtr;
-			    }
+                            if (($3 < 1) || ($3 > 65536))
+                                smiPrintError(thisParserPtr, ERR_ERROR_NUMBER_RANGE, $3);
+                            /*
+                             * This is not a regular object that will be added vid
+                             * 'addObject' as error identifier have no other
+                             * meaning in PIBs. They are just used for
+                             * a direct mapping to the actual protocol fields.
+                             */
+                            objectPtr = smiMalloc(sizeof(Object));
+                            objectPtr->export.name = $1;
+                            objectPtr->export.oidlen = 1;
+                            objectPtr->export.oid = (void *)$3;
+			    $$ = objectPtr;
 			}
         ;
 
@@ -3434,8 +3439,6 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 						 $17, thisParserPtr);
                             if ($5 != NULL) {
                                 setObjectList(objectPtr, $5->categories);
-                                setObjectSubjectCategories(objectPtr,
-                                                           $5->allCategories);
                                 smiFree($5);
                             }
 			    /* setObjectDescription(objectPtr, $15); */
@@ -3461,10 +3464,6 @@ SubjectCategories:      CategoryIDs
                         {
                             $$ = smiMalloc(sizeof(SubjectCategories));
                             $$->categories    = $1;
-                            if ($1 == NULL)
-                                $$->allCategories = 1;
-                            else
-                                $$->allCategories = 0;
                         }
         ;
 
@@ -3491,10 +3490,24 @@ CategoryIDs:            CategoryID
         
 CategoryID:		LOWERCASE_IDENTIFIER
                         {
+                            Object *objectPtr;
+                            
                             if (strcmp($1, "all"))
                                 smiPrintError(thisParserPtr, ERR_SUBJECT_CATEGORIES_MISSING_SUBID);
-                            else
-                                $$ = NULL;
+                            else {
+                                /*
+                                 * This is not a regular object that will be added via
+                                 * 'addObject' as subject category dentifier have no
+                                 * other meaning in PIBs. They are just used for
+                                 * a direct mapping to the actual protocol fields.
+                                 */
+                                objectPtr = smiMalloc(sizeof(Object));
+                                objectPtr->export.name = "all";
+                                objectPtr->export.oidlen = 0;
+                                objectPtr->export.oid = 0;
+                                $$ = objectPtr;
+                            }
+                            smiFree($1);
                         }
         |               LOWERCASE_IDENTIFIER '(' NUMBER ')'
 			{
@@ -3504,32 +3517,17 @@ CategoryID:		LOWERCASE_IDENTIFIER
                                 smiPrintError(thisParserPtr, ERR_SUBJECT_CATEGORIES_ALL_WITH_SUBID);
                                 $$ = NULL;
                             } else {
-			        /* TODO: search in local module and
-			         *       in imported modules
-			         */
-			        objectPtr = findObjectByModuleAndName(
-				    thisParserPtr->modulePtr, $1);
-			        if (objectPtr) {
-                                    /* identifiers are global, see RFC3159 6.1 */
-				    smiPrintError(thisParserPtr,
-					          ERR_EXISTENT_OBJECT, $1);
-				    $$ = objectPtr;
-				    if ($$->nodePtr->subid != $3) {
-				        smiPrintError(thisParserPtr,
-					      ERR_SUBIDENTIFIER_VS_OIDLABEL,
-						      $3, $1);
-				    }
-				    smiFree($1);
-			        } else {
-                                    if ($3 < 1)
-                                        smiPrintError(thisParserPtr, ERR_CATEGORY_ID_RANGE, $3);
-				    objectPtr = addObject($1, smiHandle->rootNodePtr,
-						          $3, 0,
-						          thisParserPtr);
-				    setObjectDecl(objectPtr,
-					          SMI_DECL_VALUEASSIGNMENT);
-				    $$ = objectPtr;
-			        }
+                                /*
+                                 * This is not a regular object that will be added via
+                                 * 'addObject' as subject category dentifier have no
+                                 * other meaning in PIBs. They are just used for
+                                 * a direct mapping to the actual protocol fields.
+                                 */
+                                objectPtr = smiMalloc(sizeof(Object));
+                                objectPtr->export.name = $1;
+                                objectPtr->export.oidlen = 1;
+                                objectPtr->export.oid = (void *)$3;
+                                $$ = objectPtr;
                             }
 			}
         ;
@@ -5077,7 +5075,7 @@ IndexPart:              PIB_INDEX
                         }
                         '{' Entry '}'
 			{
-			    $$.indexkind    = SMI_INDEX_EXTEND;
+			    $$.indexkind    = SMI_INDEX_SPARSE;
 			    $$.implied      = 0;
 			    $$.listPtr      = NULL;
 			    $$.rowPtr       = $4;
