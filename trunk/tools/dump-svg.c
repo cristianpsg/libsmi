@@ -2473,12 +2473,69 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
 	tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
     printf("       stroke=\"black\"/>\n");
+
+    printf(" <text text-anchor=\"middle\">\n");
+    //TODO calculate offset
+    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"30%\">\n",
+	tEdge->startNode->smiNode->name,
+	tEdge->endNode->smiNode->name);
+    switch (tEdge->cardinality) {
+    case GRAPH_CARD_ZERO_TO_ONE:
+    case GRAPH_CARD_ZERO_TO_MANY:
+	printf("       0\n");
+	break;
+    case GRAPH_CARD_ONE_TO_ONE:
+    case GRAPH_CARD_ONE_TO_MANY:
+    case GRAPH_CARD_ONE_TO_ZERO_OR_ONE:
+	printf("       1\n");
+	break;
+    case GRAPH_CARD_UNKNOWN:
+    }
+    printf("    </textPath>\n");
+    printf(" </text>\n");
+
     printf(" <text text-anchor=\"middle\">\n");
     printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%\">\n",
 	tEdge->startNode->smiNode->name,
 	tEdge->endNode->smiNode->name);
-    // next TODO
-    printf("       test\n");
+    switch(tEdge->indexkind) {
+    case SMI_INDEX_AUGMENT:
+	printf("       augments\n");
+	break;
+    case SMI_INDEX_SPARSE:
+	printf("       sparses\n");
+	break;
+    case SMI_INDEX_REORDER:
+	printf("       reorders\n");
+	break;
+    case SMI_INDEX_EXPAND:
+	printf("       expands\n");
+	break;
+    case SMI_INDEX_UNKNOWN:
+    case SMI_INDEX_INDEX:
+    }
+    printf("    </textPath>\n");
+    printf(" </text>\n");
+
+    printf(" <text text-anchor=\"middle\">\n");
+    //TODO calculate offset
+    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"70%\">\n",
+	tEdge->startNode->smiNode->name,
+	tEdge->endNode->smiNode->name);
+    switch (tEdge->cardinality) {
+    case GRAPH_CARD_ONE_TO_ONE:
+    case GRAPH_CARD_ZERO_TO_ONE:
+	printf("       1\n");
+	break;
+    case GRAPH_CARD_ONE_TO_MANY:
+    case GRAPH_CARD_ZERO_TO_MANY:
+	printf("       *\n");
+	break;
+    case GRAPH_CARD_ONE_TO_ZERO_OR_ONE:
+	printf("       0..1\n");
+	break;
+    case GRAPH_CARD_UNKNOWN:
+    }
     printf("    </textPath>\n");
     printf(" </text>\n");
 
