@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.22 1999/10/01 12:46:59 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.23 1999/10/05 06:31:01 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -526,7 +526,7 @@ static void createImportList(char *modulename)
 
     for(smiImport = smiGetFirstImport(modulename); smiImport;
 	smiImport = smiGetNextImport(smiImport)) {
-#if 1
+#if 0
 	if (islower((int) smiImport->importname[0])) {
 #else
 	if (islower((int) smiImport->importname[0]) ||
