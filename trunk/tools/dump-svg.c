@@ -50,8 +50,6 @@ static const float ATTRSPACESIZE       = (float)2;
 static const float TABLEHEIGHT         = (float)20; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
-static const float RELATEDSCALARHEIGHT = (float)20; /*related scalars space*/
-static const float INDEXOBJECTHEIGHT   = (float)20; /*index objects space*/
 
 static const int MODULE_INFO_WIDTH     =150;
 //The description of RowStatus is quite long... :-/
@@ -285,10 +283,12 @@ static void printSVGAttribute(SmiNode *node, int index,
     //FIXME
     //printf(" textLength=\"100\" lengthAdjust=\"spacingAndGlyphs\"");
 
-    if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
-	printf("         -");
-    } else {
-	printf("         +");
+    if (!index) {
+	if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
+	    printf("         -");
+	} else {
+	    printf("         +");
+	}
     }
 
     printf("<tspan");
@@ -444,11 +444,6 @@ static void printSVGObject(GraphNode *node, int *classNr)
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
 	if (node->dia.relatedScalars) {
-	    printf("    <text x=\"%.2f\" y=\"%.2f\">\n",
-				textXOffset + ATTRSPACESIZE, textYOffset);
-	    printf("         related scalar objects:</text>\n");
-	    textYOffset += TABLEELEMHEIGHT;
-
 	    //A
 	    printSVGRelatedScalars(node, &textYOffset, &textXOffset);
 
@@ -458,15 +453,10 @@ static void printSVGObject(GraphNode *node, int *classNr)
 			    xOrigin + node->dia.w,
 			    textYOffset - TABLEELEMHEIGHT + TABLEBOTTOMHEIGHT);
 	    printf("          fill=\"none\" stroke=\"black\"/>\n");
-	    textYOffset += RELATEDSCALARHEIGHT - TABLEELEMHEIGHT;
+	    textYOffset += TABLEBOTTOMHEIGHT;
 	}
 
 	if (node->dia.indexObjects) {
-	    printf("    <text x=\"%.2f\" y=\"%.2f\">\n",
-				textXOffset + ATTRSPACESIZE, textYOffset);
-	    printf("         index objects:</text>\n");
-	    textYOffset += TABLEELEMHEIGHT;
-
 	    //B
 	    printSVGAugmentIndex(node, &textYOffset, &textXOffset);
 	    //C
@@ -484,7 +474,7 @@ static void printSVGObject(GraphNode *node, int *classNr)
 			    xOrigin + node->dia.w,
 			    textYOffset - TABLEELEMHEIGHT + TABLEBOTTOMHEIGHT);
 	    printf("          fill=\"none\" stroke=\"black\"/>\n");
-	    textYOffset += INDEXOBJECTHEIGHT - TABLEELEMHEIGHT;
+	    textYOffset += TABLEBOTTOMHEIGHT;
 	}
 
 	//D
@@ -960,7 +950,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
     }
     if (node->dia.h > lastHeight) {
 	node->dia.relatedScalars = 1;
-	node->dia.h += RELATEDSCALARHEIGHT;
+	node->dia.h += TABLEBOTTOMHEIGHT;
     }
 
     lastHeight = node->dia.h;
@@ -1003,7 +993,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
     }
     if (node->dia.h > lastHeight) {
 	node->dia.indexObjects = 1;
-	node->dia.h += INDEXOBJECTHEIGHT;
+	node->dia.h += TABLEBOTTOMHEIGHT;
     }
 
     //D
