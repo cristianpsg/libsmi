@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.4 2002/01/24 16:24:18 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.5 2002/01/29 19:01:28 tklie Exp $
  */
 
 #include <config.h>
@@ -458,19 +458,19 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 
     case SMI_BASETYPE_OCTETSTRING:
     {
-	int minLength, maxLength;
+	SmiInteger32  minLength, maxLength;
 
 	minLength = 0;
 	maxLength = -1;
 
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
-	    if( minLength == 0 || smiRange->minValue.len < minLength ) {
-		minLength = smiRange->minValue.len;	     
+	    if( minLength == 0 ||
+		smiRange->minValue.value.integer32 < minLength ) {
+		minLength = smiRange->minValue.value.integer32;	     
 	    }
-	    if( smiRange->maxValue.len > maxLength ) {
-		maxLength = smiRange->maxValue.len;
-		fprintf( f, "MAX: %d\n", maxLength );
+	    if( smiRange->maxValue.value.integer32 > maxLength ) {
+		maxLength = smiRange->maxValue.value.integer32;
 	    }
 	    smiRange = smiGetNextRange( smiRange );
 	}
@@ -491,6 +491,109 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 		free( buf );
 	    }
 	}
+    }
+
+    case SMI_BASETYPE_FLOAT128:
+    {
+	SmiFloat128 min, max;
+
+	/* xxx, only SMIng */
+	break;
+    }
+
+    case SMI_BASETYPE_FLOAT64:
+    {
+	SmiFloat64 min,max;
+
+	/* xxx, only SMIng */
+	break;
+    }
+    
+    case SMI_BASETYPE_FLOAT32:
+    {
+	SmiFloat32 min,max;
+
+	/* xxx, only SMIng */
+	break;
+    }
+
+    case SMI_BASETYPE_INTEGER64:
+    {
+	SmiInteger64 min,max;
+
+	/* xxx, only SMIng */
+	break;
+    }
+
+    case SMI_BASETYPE_UNSIGNED64:
+    {
+	SmiUnsigned64 min, max;
+
+	min = 0;
+	max = 18446744073709551615;
+
+	smiRange = smiGetFirstRange( smiType );
+	while( smiRange ) {
+	    if( smiRange->minValue.value.unsigned64 < min ) {
+		min = smiRange->minValue.value.unsigned64;
+	    }
+	    if( smiRange->maxValue.value.unsigned32 > max ) {
+		max = smiRange->maxValue.value.unsigned64;
+	    }
+	    smiRange = smiGetNextRange( smiRange );
+	}
+	
+	buf = malloc( 42 );
+	if( buf ) {
+	    sprintf( buf, "<xsd:minInclusive value=\"%lu\"/>\n", min );
+	    fprintSegment( f, indent + INDENT, buf, 0 );
+	    free( buf );
+	}
+	buf = malloc( 42 );
+	if( buf ) {
+	    sprintf( buf, "<xsd:maxInclusive value=\"%lu\"/>\n",max );
+	    fprintSegment( f, indent + INDENT, buf, 0 );
+	    free( buf );
+	}
+	
+	fprintSegment(f, indent, "</xsd:restriction>\n", 0);
+	
+	break;
+    }
+
+    case SMI_BASETYPE_UNSIGNED32:
+    {
+	SmiUnsigned32 min, max;
+
+	min = 0;
+	max = 4294967295;
+
+	smiRange = smiGetFirstRange( smiType );
+	while( smiRange ) {
+	    if( smiRange->minValue.value.unsigned32 < min ) {
+		min = smiRange->minValue.value.unsigned32;
+	    }
+	    if( smiRange->maxValue.value.unsigned32 > max ) {
+		max = smiRange->maxValue.value.unsigned32;
+	    }
+	    smiRange = smiGetNextRange( smiRange );
+	}
+	
+	buf = malloc( 42 );
+	if( buf ) {
+	    sprintf( buf, "<xsd:minInclusive value=\"%d\"/>\n", min );
+	    fprintSegment( f, indent + INDENT, buf, 0 );
+	    free( buf );
+	}
+	buf = malloc( 42 );
+	if( buf ) {
+	    sprintf( buf, "<xsd:maxInclusive value=\"%d\"/>\n",max );
+	    fprintSegment( f, indent + INDENT, buf, 0 );
+	    free( buf );
+	}
+	
+	fprintSegment(f, indent, "</xsd:restriction>\n", 0);
+	break;
     }
     }
 }
