@@ -220,9 +220,9 @@ function init(evt) {
     for (i=0; i<%i; i++) {
         scalFac[i] = %.1f;
     }
-    collapsed[0] = new Array(1000);
-    collapsed[1] = new Array(1000);
-    for (i=0; i<1000; i++) {
+    collapsed[0] = new Array(%i);
+    collapsed[1] = new Array(%i);
+    for (i=0; i<%i; i++) {
         collapsed[0][i] = 0;
         collapsed[1][i] = 0;
     }
