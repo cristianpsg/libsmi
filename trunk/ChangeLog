@@ -1,5 +1,7 @@
 1999-05-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* README et al: applied GNU General Public License (NOT L-GPL).
+
 	* tools/smiquery.c: adapted to current API.
 
 	* lib/smi.h: added IndexNode and MemberNode functions.
