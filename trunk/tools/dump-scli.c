@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.9 2002/02/15 18:23:47 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.10 2002/02/18 14:07:36 schoenw Exp $
  */
 
 /*
@@ -440,11 +440,11 @@ getSnmpType(SmiType *smiType)
     case SMI_BASETYPE_UNSIGNED64:
 	return "G_SNMP_COUNTER64";
     case SMI_BASETYPE_OCTETSTRING:
-	return "G_SNMP_OCTET_STRING";
+	return "G_SNMP_OCTETSTRING";
     case SMI_BASETYPE_BITS:
-	return "G_SNMP_OCTET_STRING";
+	return "G_SNMP_OCTETSTRING";
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-	return "G_SNMP_OBJECT_ID";
+	return "G_SNMP_OBJECTID";
     case SMI_BASETYPE_FLOAT32:
     case SMI_BASETYPE_FLOAT64:
     case SMI_BASETYPE_FLOAT128:
@@ -1209,8 +1209,10 @@ printStubUtilities(FILE *f, SmiModule *smiModule)
 	    "    for (i = 0; attributes[i].label; i++) {\n"
 	    "	if (vb->id_len > base_len && vb->id[base_len] == attributes[i].subid) {\n"
 	    "	    if (vb->type != attributes[i].type) {\n"
-	    "		g_warning(\"type tag 0x%%02x does not match 0x%%02x (%%s)\",\n"
-	    "			  vb->type, attributes[i].type, attributes[i].label);\n"
+	    "		const char *a = gsnmp_enum_get_label(gsnmp_enum_type_table, vb->type);\n"
+	    "		const char *b = gsnmp_enum_get_label(gsnmp_enum_type_table, attributes[i].type);\n"
+	    "		g_warning(\"%%s: type mismatch: %%s%%s%%s\", attributes[i].label,\n"
+	    "		          (a) ? a : \"\", (a || b) ? \" != \" : \"\", (b) ? b : \"\");\n"
 	    "		return -3;\n"
 	    "	    }\n"
 	    "	    *idx = attributes[i].subid;\n"
