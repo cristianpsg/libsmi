@@ -1523,7 +1523,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		printf("\"");
 	    }
 	}
-	printf(">MANDATORY-GROUPS</text>\n");
+	printf(">Mandatory Groups</text>\n");
 	printf(" </g>\n");
 	*y += TABLEELEMHEIGHT;
 	(*miNr)++;
@@ -1660,7 +1660,7 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 	printf("   <tspan style=\"text-anchor:middle\"");
 	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
     }
-    printf("   <tspan x=\"5\">MODULE-IDENTITY</tspan>\n");
+    printf("   <tspan x=\"5\">Modules</tspan>\n");
     printf("  </text>\n");
     printf(" </g>\n");
     (*miNr)++;
@@ -1754,7 +1754,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 	printf("   <tspan style=\"text-anchor:middle\"");
 	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
     }
-    printf("   <tspan x=\"5\">NOTIFICATION-TYPE</tspan>\n");
+    printf("   <tspan x=\"5\">Notifications</tspan>\n");
     printf("  </text>\n");
     printf(" </g>\n");
     (*miNr)++;
@@ -1827,7 +1827,7 @@ static void printObjectGroup(int modc, SmiModule **modv,
 	printf("   <tspan style=\"text-anchor:middle\"");
 	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
     }
-    printf("   <tspan x=\"5\">OBJECT-GROUP</tspan>\n");
+    printf("   <tspan x=\"5\">Object Groups</tspan>\n");
     printf("  </text>\n");
     printf(" </g>\n");
     (*miNr)++;
@@ -1900,7 +1900,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 	printf("   <tspan style=\"text-anchor:middle\"");
 	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
     }
-    printf("   <tspan x=\"5\">NOTIFICATION-GROUP</tspan>\n");
+    printf("   <tspan x=\"5\">Notification Groups</tspan>\n");
     printf("  </text>\n");
     printf(" </g>\n");
     (*miNr)++;
@@ -1973,7 +1973,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 	printf("   <tspan style=\"text-anchor:middle\"");
 	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
     }
-    printf("   <tspan x=\"5\">MODULE-COMPLIANCE</tspan>\n");
+    printf("   <tspan x=\"5\">Compliance Statements</tspan>\n");
     printf("  </text>\n");
     printf(" </g>\n");
     (*miNr)++;
