@@ -3,7 +3,7 @@ LIBSMI -- A LIBRARY FOR SMI MANAGEMENT INFORMATION
 ==================================================
 
 Part of Frank Strauss' master's thesis at the
-Technical University, Braunschweig, Germany.
+Technical University of Braunschweig, Germany.
 
 (C) 1999 Frank Strauss, TU Braunschweig, Germany.
 
@@ -51,4 +51,4 @@ information online at http://www.ibr.cs.tu-bs.de/~strauss/sming/. If
 this fails, contact me, <strauss@ibr.cs.tu-bs.de>.
 
 
-	Frank Strauss, 06-05-1999
+	Frank Strauss, 09-05-1999
