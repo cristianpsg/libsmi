@@ -82,3 +82,6 @@ o Web online conversion to SMIng?
 o make check: parse every mib once
 
 o special handling for well-known traps (reversibility?)
+
+o ERR_DATE_YEAR_2DIGITS for years < 90 ?!
+
