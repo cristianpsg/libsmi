@@ -1,3 +1,9 @@
+2001-05-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/Makefile.am: renamed parser-*.tab.c to parser-*.c. Harrie
+	Hazewinkel reported problems with libtool some systems would
+	have otherwise.
+
 2001-04-24  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* config.sub, config.guess: Updated to recent versions from GNU CVS

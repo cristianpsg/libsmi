@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.18 2000/12/05 10:04:24 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.19 2000/12/11 09:11:08 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -23,37 +23,39 @@ man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
 			  smi_node.3 smi_type.3
 lib_LTLIBRARIES		= libsmi.la
 libsmi_la_SOURCES	= data.c check.c error.c util.c smi.c \
-		  	  parser-smi.tab.c scanner-smi.c \
-		  	  parser-sming.tab.c scanner-sming.c
+		  	  parser-smi.c scanner-smi.c \
+		  	  parser-sming.c scanner-sming.c
 libsmi_la_LDFLAGS	= -version-info @VERSION_LIBTOOL@
 
-parser-smi.tab.c: parser-smi.y scanner-smi.h parser-smi.h
+parser-smi.c: parser-smi.y scanner-smi.h parser-smi.h
 	@if [ "$(BISON)" ] ; then \
 	    echo "$(BISON)" -v -t -d -psmi parser-smi.y ; \
 	    "$(BISON)" -v -t -d -psmi parser-smi.y ; \
 	else \
 	    echo "" ; \
-	    echo "NOTE: we cannot build the new parser-smi.tab.c from parser-smi.y" ; \
+	    echo "NOTE: we cannot build the new parser-smi.c from parser-smi.y" ; \
 	    echo "" ; \
 	fi
 #	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
 	sed -e 's/int yyparse (void);/int yyparse ();/' \
-	    parser-smi.tab.c > parser-smi.tab.c.tmp && \
-	mv parser-smi.tab.c.tmp parser-smi.tab.c
+	    parser-smi.tab.c > parser-smi.tmp && \
+	mv parser-smi.tmp parser-smi.c
+	rm parser-smi.tab.c
 
-parser-sming.tab.c: parser-sming.y scanner-sming.h parser-sming.h
+parser-sming.c: parser-sming.y scanner-sming.h parser-sming.h
 	@if [ "$(BISON)" ] ; then \
 	    echo "$(BISON)" -v -t -d -psming parser-sming.y ; \
 	    "$(BISON)" -v -t -d -psming parser-sming.y ; \
 	else \
 	    echo "" ; \
-	    echo "NOTE: we cannot build the new parser-sming.tab.c from parser-sming.y" ; \
+	    echo "NOTE: we cannot build the new parser-sming.c from parser-sming.y" ; \
 	    echo "" ; \
 	fi
 #	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
 	sed -e 's/int yyparse (void);/int yyparse ();/' \
-	    parser-sming.tab.c > parser-sming.tab.c.tmp && \
-	mv parser-sming.tab.c.tmp parser-sming.tab.c
+	    parser-sming.tab.c > parser-sming.tmp && \
+	mv parser-sming.tmp parser-sming.c
+	rm parser-sming.tab.c
 
 scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
 	@if [ "$(FLEX)" ] ; then \
