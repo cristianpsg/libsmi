@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.113 2002/05/17 12:56:35 schoenw Exp $
+ * @(#) $Id: data.c,v 1.114 2002/05/17 14:19:58 strauss Exp $
  */
 
 #include <config.h>
@@ -2485,7 +2485,8 @@ Type *duplicateType(Type *templatePtr, TypeFlags flags, Parser *parserPtr)
 Type *setTypeName(Type *typePtr, char *name)
 {
     Type              *type2Ptr;
-
+    List	      *listPtr;
+    
     if (typePtr->export.name) {
 	smiFree(typePtr->export.name);
     }
@@ -2534,6 +2535,18 @@ Type *setTypeName(Type *typePtr, char *name)
 	    type2Ptr->flags        = typePtr->flags;
 	    type2Ptr->line         = typePtr->line;
 
+	    /*
+	     * if it's an enum or bits type, we also have to adjust
+	     * the references from the named numbers back to the type.
+	     */
+	    if ((type2Ptr->export.basetype == SMI_BASETYPE_ENUM) ||
+		(type2Ptr->export.basetype == SMI_BASETYPE_BITS)) {
+		for (listPtr = type2Ptr->listPtr; listPtr;
+		     listPtr = listPtr->nextPtr) {
+		    ((NamedNumber *)(listPtr->ptr))->typePtr = type2Ptr;
+		}
+	    }
+	    
 	    smiFree(typePtr->export.name);
 	    smiFree(typePtr);
 
