@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.2 1999/10/06 16:05:28 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.3 1999/11/24 19:02:38 strauss Exp $
  */
 
 /*
@@ -184,11 +184,11 @@ static char* dictAddName(IdlEntry **listPtr, char *module, char *name)
 
 
 
-static void dictFree(IdlEntry *list)
+static void dictFree(IdlEntry **list)
 {
     IdlEntry *p, *q;
 
-    for (p = list; p; ) {
+    for (p = *list; p; ) {
 	q = p;
 	p = p->nextPtr;
 	xfree(q->module);
@@ -197,7 +197,7 @@ static void dictFree(IdlEntry *list)
 	xfree(q);
     }
 
-    list = NULL;
+    *list = NULL;
 }
 
 
@@ -468,7 +468,7 @@ static void print(char *fmt, ...)
     current_column += vsprintf(s, fmt, ap);
     va_end(ap);
 
-    printf("%s", s);
+    fputs(s, stdout);
 
     if ((p = strrchr(s, '\n'))) {
 	current_column = strlen(p) - 1;
@@ -492,26 +492,6 @@ static void printSegment(int column, char *string, int length)
 
 
 
-static void printMultiline(const char *s)
-{
-    int i;
-    
-    printSegment(INDENTTEXTS, "", 0);
-    if (s) {
-	for (i=0; i < strlen(s); i++) {
-	    if (s[i] != '\n') {
-		print("%c", s[i]);
-	    } else {
-		print("\n");
-		printSegment(INDENTTEXTS, "", 0);
-	    }
-	}
-    }
-    print("\n");
-}
-
-
-
 static void printMultilineString(const char *s)
 {
     int i;
@@ -528,6 +508,26 @@ static void printMultilineString(const char *s)
 	}
     }
     print("\"");
+}
+
+
+
+static void printMultiline(const char *s)
+{
+    int i;
+    
+    printSegment(INDENTTEXTS, "", 0);
+    if (s) {
+	for (i=0; i < strlen(s); i++) {
+	    if (s[i] != '\n') {
+		print("%c", s[i]);
+	    } else {
+		print("\n");
+		printSegment(INDENTTEXTS, "", 0);
+	    }
+	}
+    }
+    print("\n");
 }
 
 
@@ -1041,9 +1041,9 @@ int dumpCorbaIdl(char *modulename, int flags)
     printf("#endif /* !_%s_IDL_ */\n", idlModuleName);
 
     freeImportList();
-    dictFree(idlModuleNameList);
-    dictFree(idlNodeNameList);
-    dictFree(idlTypeNameList);
+    dictFree(&idlModuleNameList);
+    dictFree(&idlNodeNameList);
+    dictFree(&idlTypeNameList);
     smiFreeModule(smiModule);
 
     return 0;

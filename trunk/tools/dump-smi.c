@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.25 1999/11/24 19:02:40 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.26 1999/12/14 12:00:21 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -321,9 +321,9 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 
 static char *getUppercaseString(char *s)
 {
-    static char ss[200];
+    static char *ss;
 
-    strcpy(ss, s);
+    ss = xstrdup(s);
     ss[0] = (char)toupper((int)ss[0]);
     return ss;
 }
@@ -537,8 +537,8 @@ static void print(char *fmt, ...)
     current_column += vsprintf(s, fmt, ap);
     va_end(ap);
 
-    printf("%s", s);
-
+    fputs(s, stdout);
+    
     if ((p = strrchr(s, '\n'))) {
 	current_column = strlen(p) - 1;
     }
@@ -570,6 +570,26 @@ static void printWrapped(int column, char *string, int comment)
 	printSegment(column, "", 0, comment);
     }
     print("%s", string);
+}
+
+
+
+static void printMultilineString(const char *s, const int comment)
+{
+    int i;
+    
+    printSegment(INDENTTEXTS - 1, "\"", 0, comment);
+    if (s) {
+	for (i=0; i < strlen(s); i++) {
+	    if (s[i] != '\n') {
+		print("%c", s[i]);
+	    } else {
+		print("\n");
+		printSegment(INDENTTEXTS, "", 0, comment);
+	    }
+	}
+    }
+    print("\"");
 }
 
 
@@ -709,26 +729,6 @@ static void printSubtype(SmiType *smiType)
 	    print(")");
 	}
     }
-}
-
-
-
-static void printMultilineString(const char *s, const int comment)
-{
-    int i;
-    
-    printSegment(INDENTTEXTS - 1, "\"", 0, comment);
-    if (s) {
-	for (i=0; i < strlen(s); i++) {
-	    if (s[i] != '\n') {
-		print("%c", s[i]);
-	    } else {
-		print("\n");
-		printSegment(INDENTTEXTS, "", 0, comment);
-	    }
-	}
-    }
-    print("\"");
 }
 
 
@@ -1032,15 +1032,19 @@ static void printObjects(char *modulename)
 		    print("%s\n", rowNode->typename);
 		} else {
 		    /* guess typename is uppercase row name */
-		    print("%s\n", getUppercaseString(rowNode->name));
+		    char *s = getUppercaseString(rowNode->name);
+		    print("%s\n", s);
+		    xfree(s);
 		}
 		    /* TODO: print non-local name qualified */
 	    } else if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		if (smiNode->typename) {
 		    print("%s\n", smiNode->typename);
 		} else {
+		    char *s = getUppercaseString(smiNode->name);
 		    /* guess typename is uppercase row name */
-		    print("%s\n", getUppercaseString(smiNode->name));
+		    print("%s\n", s);
+		    xfree(s);
 		}
 		/* TODO: print non-local name qualified */
 	    } else if (smiNode->typename) {
@@ -1150,7 +1154,9 @@ static void printObjects(char *modulename)
 		print("%s ::=\n", smiNode->typename);
 	    } else {
 		/* guess typename is uppercase row name */
-		print("%s ::=\n", getUppercaseString(smiNode->name));
+		char *s = getUppercaseString(smiNode->name);
+		print("%s ::=\n", s);
+		xfree(s);
 	    }
 	    /* TODO: non-local name? */
 	    printSegment(INDENT, "SEQUENCE {", 0, 0);

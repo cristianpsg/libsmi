@@ -59,8 +59,6 @@ char *smiStringAccess(SmiAccess access)
 	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
 	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
 	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" :
-	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" :
 						"<unknown>";
 }
 
