@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.3 1999/06/16 15:52:23 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.4 1999/06/18 15:04:41 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -190,6 +190,33 @@ static char *getValueString(SmiValue *valuePtr)
 
 
 
+static void printIndex(SmiNode *smiNode)
+{
+    char *indexname;
+    int  i;
+    SmiIndex *smiIndex;
+    
+    printf("%%%-19s %-16s \"", "ei", smiNode->name);
+    indexname = NULL;
+    for (i = -1, smiIndex = smiGetFirstIndex(smiNode);
+	 smiIndex; smiIndex = smiGetNextIndex(smiIndex), i++) {
+	if (i > 0) printf(" ");
+	if (indexname) {
+	    printf(indexname);
+	}
+	indexname = smiIndex->name;
+    }
+    if (indexname) {
+	printf("%s%s%s",
+	       (i > 0) ? " " : "",
+	       (smiNode->implied) ? "*" : "",
+	       indexname);
+    }
+    printf("\"\n");
+}
+
+
+
 static void printAssignements(char *modulename)
 {
     int		 cnt = 0;
@@ -240,9 +267,8 @@ static void printTypedefs(char *modulename)
 static void printObjects(char *modulename)
 {
     int		   i, j, ignore, cnt = 0, aggregate;
-    char	   *typename, *indexname;
-    SmiNode	   *smiNode;
-    SmiIndex	   *index;
+    char	   *typename;
+    SmiNode	   *smiNode, *indexNode;
     SmiType	   *smiType;
     SmiNamedNumber *smiNamedNumber;
     SmiRange       *smiRange;
@@ -291,7 +317,7 @@ static void printObjects(char *modulename)
 	    if (strcmp(typename, "OCTET STRING") == 0) {
 		typename = "OctetString";
 	    }
-	    if (strcmp(typename, "Enum") == 0) {
+	    if (smiType->basetype == SMI_BASETYPE_ENUM) {
 		typename = "INTEGER";
 	    }
 	}
@@ -304,30 +330,29 @@ static void printObjects(char *modulename)
 	printf("%-15s %-15s %s\n", typename,
 	       stringAccess(smiNode->access),
 	       stringStatus(smiNode->status));
-	
-	if (smiNode->indexkind == SMI_INDEX_INDEX) {
-	    printf("%%%-19s %-16s \"", "ei", smiNode->name);
-	    indexname = NULL;
-	    for (i = -1, index = smiGetFirstIndex(smiNode);
-		 index; index = smiGetNextIndex(index), i++) {
-		if (i > 0) printf(" ");
-		if (indexname) {
-		    printf(indexname);
-		}
-		indexname = index->name;
-	    }
-	    if (indexname) {
-		printf("%s%s%s",
-		       (i > 0) ? " " : "",
-		       (smiNode->implied) ? "*" : "",
-		       indexname);
-	    }
-	    printf("\"\n");
-	}
 
-	if (smiNode->indexkind == SMI_INDEX_AUGMENT && smiNode->relatedname) {
-	    printf ("%%%-19s %-16s %s\n", "ea",
-		    smiNode->name, smiNode->relatedname);
+	switch (smiNode->indexkind) {
+	case SMI_INDEX_INDEX:
+	case SMI_INDEX_REORDER:
+	    printIndex(smiNode);
+	    break;
+	case SMI_INDEX_EXPAND:	/* TODO: we have to do more work here! */
+	    break;
+	case SMI_INDEX_AUGMENT:
+	    if (smiNode->relatedname) {
+		printf("%%%-19s %-16s %s\n", "ea",
+		       smiNode->name, smiNode->relatedname);
+	    }
+	    break;
+	case SMI_INDEX_SPARSE:
+	    indexNode = smiGetNode(smiNode->relatedmodule,
+				   smiNode->relatedname);
+	    if (indexNode) {
+		printIndex(indexNode);
+	    }
+	    break;
+	case SMI_INDEX_UNKNOWN:
+	    break;	    
 	}
 
 	if (smiType && islower((int)(smiType->name[0]))) {
@@ -359,10 +384,6 @@ static void printObjects(char *modulename)
 		}
 	    }
 	}
-
-	if (smiType) {
-/*	    smiFreeType(smiType); */
-	}
     }
 
     if (cnt) {
@@ -383,8 +404,8 @@ static void printNotifications(char *modulename)
 
 	cnt++;
 	
-	printf ("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf ("%%n0 %-16s notification\n", smiNode->name);
+	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	printf("%%n0 %-16s notification\n", smiNode->name);
     }
 
     if (cnt) {
@@ -416,10 +437,10 @@ static void printGroups(char *modulename)
 		(smiNodeMember->nodekind == SMI_NODEKIND_NOTIFICATION);
 	}
 
-	printf ("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf ("%%n0 %-16s %s\n", smiNode->name,
-		(objects && ! notifications) ? "object-group" :
-		(! objects && notifications) ? "notification-group" : "group");
+	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	printf("%%n0 %-16s %s\n", smiNode->name,
+	       (objects && ! notifications) ? "object-group" :
+	       (! objects && notifications) ? "notification-group" : "group");
     }
 
     if (cnt) {
@@ -439,8 +460,8 @@ static void printCompliances(char *modulename)
 	
 	cnt++;
 
-	printf ("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf ("%%n0 %-16s module-compliance\n", smiNode->name);
+	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	printf("%%n0 %-16s module-compliance\n", smiNode->name);
     }
 	    
     if (cnt) {

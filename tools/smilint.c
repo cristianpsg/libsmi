@@ -8,13 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.15 1999/06/17 16:57:08 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.16 1999/06/18 15:04:44 strauss Exp $
  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "smi.h"
 
@@ -79,7 +80,11 @@ int main(int argc, char *argv[])
     }
 
     while (optind < argc) {
-	smiLoadModule(argv[optind]);
+	if (smiLoadModule(argv[optind]) == NULL) {
+	    fprintf(stderr, "smilint: cannot locate module `%s'\n",
+		    argv[optind]);
+	    exit(1);
+	}
 	optind++;
     }
     

@@ -8,13 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.12 1999/06/07 15:44:18 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.13 1999/06/15 14:09:48 strauss Exp $
  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "smi.h"
 #include "dump-smi.h"
@@ -111,7 +112,7 @@ main(argc, argv)
 		}
 	    }
 	    if (!driver->name) {
-		fprintf(stderr, "Invalid dump format `%s'\n", optarg);
+		fprintf(stderr, "smidump: invalid dump format `%s'\n", optarg);
 		exit(1);
 	    }
 	    break;
@@ -126,7 +127,8 @@ main(argc, argv)
 	if (modulename) {
 	    errors += (driver->func)(modulename);
 	} else {
-	    fprintf(stderr, "Cannot locate module `%s'\n", argv[optind]);
+	    fprintf(stderr, "smidump: cannot locate module `%s'\n",
+		    argv[optind]);
 	    exit(1);
 	}
 	optind++;

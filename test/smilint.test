@@ -8,7 +8,7 @@ for mib in ${TESTMIBS} ; do
     ../tools/smilint -l9 $mib > smilint.out/$mib 2>&1
 done
 
-if [ `cat smilint.out/* | grep -v 'longer than 32' | wc -l` -ne 0 ] ; then
+if [ `cat smilint.out/* | grep -v 'longer than 32' | grep -v 'Implicit node definition' | wc -l` -ne 0 ] ; then
 	RC=1
 	echo "see directory smilint.out for results."
 else
