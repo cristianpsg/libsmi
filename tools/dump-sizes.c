@@ -533,7 +533,7 @@ ber_len_val_oid(SmiType *smiType, len_type flags)
     case len_mean:
 	/* see Aiko's measurements */
 	for (oidlen = 0; oidlen < 15; oidlen++) {
-	    oid[oidlen] = 0;
+	    oid[oidlen] = 1;
 	}
 	break;
     case len_min:
@@ -776,20 +776,40 @@ append_index(SmiSubid *oid, unsigned int *oidlen,
 
      switch (indexType->basetype) {
      case SMI_BASETYPE_OBJECTIDENTIFIER:
-	 fprintf(stderr, "*** xxx object identifiers in the index are not yet supported ***\n");
-#if 0
-	 if (flags) {
-	     int i;
-	     
-	     oid[0] = 2;
-	     for (i = 1; i < 128; i++) {
-		 oid[i] = 4294967295UL;
-	     }
-	 } else {
-	     oid[0] = oid[1] = 0, oidlen = 2;
+
+	 switch (flags) {
+	 case len_max:
+	     len = 128 - *oidlen;
+	     if (indexNode->implied) len--;
+	     break;
+	 case len_mean:
+	     len = 16;
+	     break;
+	 case len_min:
+	     len = 2;
+	     break;
 	 }
-	 len = ber_len_oid(oid, oidlen);
-#endif
+	 
+	 if (! indexNode->implied && *oidlen < 128) {
+	     oid[(*oidlen)++] = len;
+	 }
+	 for (i = 0; i < len && *oidlen < 128; i++) {
+	     switch (flags) {
+	     case len_max:
+		 if (i == 0) {
+		     oid[(*oidlen)++] = 2;
+		 } else {
+		     oid[(*oidlen)++] = 4294967295UL;
+		 }
+		 break;
+	     case len_mean:
+		 oid[(*oidlen)++] = i + 1;
+		 break;
+	     case len_min:
+		 oid[(*oidlen)++] = 0;
+		 break;
+	     }
+	 }
 	 break;
      case SMI_BASETYPE_OCTETSTRING:
      case SMI_BASETYPE_BITS:
@@ -837,7 +857,11 @@ append_index(SmiSubid *oid, unsigned int *oidlen,
 		 oid[(*oidlen)++] = 255;
 		 break;
 	     case len_mean:
-		 oid[(*oidlen)++] = (*oidlen) ? 255 : 0;
+		 if (i == 0) {
+		     oid[(*oidlen)++] = 1;
+		 } else {
+		     oid[(*oidlen)++] = (i%2) ? 85 : 170;
+		 }
 		 break;
 	     case len_min:
 		 oid[(*oidlen)++] = 0;
@@ -970,7 +994,6 @@ ber_len_varbind(SmiNode *smiNode, len_type flags)
      }
      fprintf(stderr, "\n");
 #endif
-
 
      len += ber_len_oid(oid, oidlen);
      len += ber_len_val(smiGetNodeType(smiNode), flags);
