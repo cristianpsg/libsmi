@@ -1554,7 +1554,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 static void printModuleCompliance(int modc, SmiModule **modv,
 				  float *x, float *y, int *miNr)
 {
-    int           i, j;
+    int           i, j, foreign_exists;
     char          *tooltip;
     char          *done = NULL;
     char          s[100];
@@ -1644,6 +1644,17 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		*x += TABLEELEMHEIGHT;
 		done = xstrdup("+");
 		for (module = modv[i]->name; module; ) {
+		    foreign_exists = 0;
+		    if (module == modv[i]->name) {
+			foreign_exists = 1;
+		    } else {
+			for (j = 0; j < modc; j++) {
+			    if (module == modv[j]->name) {
+				foreign_exists = 1;
+				break;
+			    }
+			}
+		    }
 		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 		    printf("(%.2f,%.2f)\">\n", *x, *y);
 		    printf("  <text>\n");
@@ -1664,7 +1675,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    printf("(%.2f,%.2f)\">\n", *x, *y);
 		    printf("  <text");
 		    //printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
-		    if (!STATIC_OUTPUT) {
+		    if (!STATIC_OUTPUT && foreign_exists) {
 			smiElement = smiGetFirstElement(smiNode);
 			if (smiElement) {
 			    printf(" onmousemove=\"");
@@ -1723,16 +1734,24 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 						smiOption->description));
 				    parseTooltip(smiOption->description,
 								tooltip);
-				    printf("ShowTooltipMZ(evt,'%s');", tooltip);
+				    printf("ShowTooltipMZ(evt,'%s')", tooltip);
 				    xfree(tooltip);
 				}
-				printf("colorText('%s','red')", smiNode2->name);
+				if (smiOption->description && foreign_exists)
+				    printf(";");
+				if (foreign_exists)
+				    printf("colorText('%s','red')",
+								smiNode2->name);
 				printf("\" onmouseout=\"");
 				if (smiOption->description) {
-				    printf("HideTooltip(evt);");
+				    printf("HideTooltip(evt)");
 				}
-				printf("colorText('%s','black')\"",
+				if (smiOption->description && foreign_exists)
+				    printf(";");
+				if (foreign_exists)
+				    printf("colorText('%s','black')",
 								smiNode2->name);
+				printf("\"");
 			    }
 			    printf(">GROUP %s</text>\n", smiNode2->name);
 			    printf(" </g>\n");
@@ -1758,16 +1777,26 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 						smiRefinement->description));
 				    parseTooltip(smiRefinement->description,
 								tooltip);
-				    printf("ShowTooltipMZ(evt,'%s');", tooltip);
+				    printf("ShowTooltipMZ(evt,'%s')", tooltip);
 				    xfree(tooltip);
 				}
-				printf("colorText('%s','red')", smiNode2->name);
+				if (smiRefinement->description
+				    && foreign_exists)
+				    printf(";");
+				if (foreign_exists)
+				    printf("colorText('%s','red')",
+								smiNode2->name);
 				printf("\" onmouseout=\"");
 				if (smiRefinement->description) {
-				    printf("HideTooltip(evt);");
+				    printf("HideTooltip(evt)");
 				}
-				printf("colorText('%s','black')\"",
+				if (smiRefinement->description
+				    && foreign_exists)
+				    printf(";");
+				if (foreign_exists)
+				    printf("colorText('%s','black')",
 								smiNode2->name);
+				printf("\"");
 			    }
 			    printf(">OBJECT %s</text>\n", smiNode2->name);
 			    printf(" </g>\n");
