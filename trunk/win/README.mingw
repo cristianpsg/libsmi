@@ -2,7 +2,7 @@
 LIBSMI NOTES FOR NATIVE WIN32 SUPPORT USING MINGW
 =================================================
 
-@(#) $Id$
+@(#) $Id: README.mingw,v 1.2 2002/11/13 19:22:15 schoenw Exp $
 
 Mingw32 is a gcc based environment allowing to build free Win32
 executables.
@@ -56,7 +56,7 @@ TODO's AND KNOWN PROBLEMS
 - The scanner, parser and the smi.h source have to be created within
   a Unix or cygnus environment.
 
-- The SMIPATH seperator character is the Windows style ; and not the
+- The SMIPATH separator character is the Windows style ; and not the
   Unix style : .
 
 - Should use configure and not a handmade Makefile.
