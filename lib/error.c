@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.56 2000/11/06 14:27:56 strauss Exp $
+ * @(#) $Id: error.c,v 1.57 2000/11/08 10:10:32 strauss Exp $
  */
 
 #include <config.h>
@@ -214,8 +214,12 @@ static Error errors[] = {
       "opening MIB directory or file `%s': %s" },
     { 1, ERR_UNKNOWN_LOCATION_TYPE, "", 
       "unknown MIB location type `%s'" },
-    { 2, ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE, "", 
+    { 2, ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE, "range-illegal", 
       "illegal range restriction for non-numerical parent type `%s'" },
+    { 2, ERR_ILLEGAL_SIZE_FOR_PARENT_TYPE, "size-illegal", 
+      "illegal size restriction for non-octet-string parent type `%s'" },
+    { 2, ERR_ILLEGAL_ENUM_FOR_PARENT_TYPE, "enum-illegal", 
+      "illegal enumeration or bits restriction for non-enumeration-or-bits parent type `%s'" },
     { 1, ERR_SMIV2_SIGNED_NUMBER_RANGE, "", 
       "number `%s' is out of SMIv1/SMIv2 signed number range" },
     { 1, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, "", 
