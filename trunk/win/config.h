@@ -79,4 +79,4 @@
 #define PACKAGE "libsmi"
 
 /* Version number of package */
-#define VERSION "0.4.0"
+#define VERSION "0.4.pre-1"
