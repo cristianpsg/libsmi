@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.36 2000/11/29 16:35:26 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.37 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -652,24 +652,6 @@ static char* translate(char *s)
 	if (s[i] == '-') s[i] = '_';
     }
 
-    return s;
-}
-
-
-
-static char* translateLower(char *m)
-{
-    char *s;
-    int i;
-
-    s = xstrdup(m);
-    for (i = 0; s[i]; i++) {
-	if (s[i] == '-') s[i] = '_';
-	if (isupper((int) s[i])) {
-	    s[i] = tolower(s[i]);
-	}
-    }
-  
     return s;
 }
 

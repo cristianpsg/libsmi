@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.134 2000/12/04 12:47:28 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.135 2000/12/05 08:23:31 strauss Exp $
  */
 
 %{
@@ -2459,7 +2459,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 
 			    $$ = duplicateType(typeInteger32Ptr, 0,
 					       thisParserPtr);
-			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeList($$, $3);
 			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
@@ -2473,9 +2472,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    
 			    $$ = duplicateType(typeEnumPtr, 0,
 					       thisParserPtr);
-			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, typeEnumPtr);
-			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $3);
 			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
@@ -2516,8 +2512,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					      "Integer32");
 			    }
 
-			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
-			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
+			    $$ = duplicateType(typeInteger32Ptr, 0,
+					       thisParserPtr);
 			    setTypeList($$, $3);
 			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
@@ -2553,13 +2549,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  $1);
 				    $$ = duplicateType(typeEnumPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, typeEnumPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 				/* 
@@ -2572,10 +2564,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						    thisParserPtr);
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, parentPtr);
 			    }
-			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $3);
 			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
@@ -2610,23 +2599,16 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  $3);
 				    $$ = duplicateType(typeEnumPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, typeEnumPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_UNKNOWN_TYPE, $3);
 				$$ = duplicateType(typeEnumPtr, 0,
 						   thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, typeEnumPtr);
 			    }
-			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $4);
 			    for (p = $4; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
@@ -2662,16 +2644,12 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  $1);
 				    $$ = duplicateType(typeInteger32Ptr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, typeInteger32Ptr);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				} else {
 				    defaultBasetype =
 					parentPtr->export.basetype;
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 				/* 
@@ -2684,8 +2662,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						    thisParserPtr);
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, parentPtr);
 				defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    }
 			    setTypeList($$, $2);
@@ -2722,24 +2698,18 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  $3);
 				    $$ = duplicateType(typeInteger32Ptr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, typeInteger32Ptr);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				} else {
 				    defaultBasetype =
 					parentPtr->export.basetype;
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_UNKNOWN_TYPE, $3);
 				$$ = duplicateType(typeInteger32Ptr, 0,
 						   thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, typeInteger32Ptr);
 				defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    }
 			    setTypeList($$, $4);
@@ -2759,8 +2729,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
-			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, typeOctetStringPtr);
 			    setTypeList($$, $4);
 			    smiCheckTypeRanges(thisParserPtr, $$);
 			}
@@ -2790,13 +2758,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  $1);
 				    $$ = duplicateType(typeOctetStringPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, typeOctetStringPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 				/* 
@@ -2809,8 +2773,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						    thisParserPtr);
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, parentPtr);
 			    }
 			    setTypeList($$, $2);
 			    smiCheckTypeRanges(thisParserPtr, $$);
@@ -2841,21 +2803,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  $3);
 				    $$ = duplicateType(typeOctetStringPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, typeOctetStringPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, parentPtr);
 				}
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_UNKNOWN_TYPE, $3);
 				$$ = duplicateType(typeOctetStringPtr, 0,
 						   thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, typeOctetStringPtr);
 			    }
 			    setTypeList($$, $4);
 			    smiCheckTypeRanges(thisParserPtr, $$);
@@ -3067,8 +3023,6 @@ ApplicationSyntax:	IPADDRESS
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				setTypeParent($$, parentPtr);
 				setTypeList($$, $2);
 				smiCheckTypeRanges(thisParserPtr, $$);
 			    }
@@ -3095,13 +3049,10 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		UNSIGNED32 integerSubType
 			{
-			    Type *parentPtr;
 			    Import *importPtr;
 			    
 			    $$ = duplicateType(typeUnsigned32Ptr, 0,
 					       thisParserPtr);
-			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, typeUnsigned32Ptr);
 			    setTypeList($$, $2);
 			    smiCheckTypeRanges(thisParserPtr, $$);
 			    importPtr = findImportByName("Unsigned32",
@@ -3144,10 +3095,10 @@ ApplicationSyntax:	IPADDRESS
 					      "Opaque");
 				$$ = NULL;
 			    } else {
-				    smiPrintError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
-				    $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-				    setTypeParent($$, parentPtr);
+				    smiPrintError(thisParserPtr,
+						  ERR_OPAQUE_OBSOLETE);
+				    $$ = duplicateType(parentPtr, 0,
+						       thisParserPtr);
 				    setTypeList($$, $2);
 				    smiCheckTypeRanges(thisParserPtr, $$);
 			    }
@@ -4643,7 +4594,6 @@ SyntaxPart:		SYNTAX Syntax
 			{
 			    if ($2->export.name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    } else {
 				$$ = $2;
 			    }
@@ -4658,7 +4608,6 @@ WriteSyntaxPart:	WRITE_SYNTAX WriteSyntax
 			{
 			    if ($2->export.name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
-				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    } else {
 				$$ = $2;
 			    }

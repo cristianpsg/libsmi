@@ -1,3 +1,14 @@
+2000-12-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.2.12.tar.gz: released version 0.2.12.
+
+	* configure.in: Bill added --with-yyerror-verbose option.
+
+	* lib/parser-smi.y: Patch from Bill: Reset capabilitiesModulePtr
+	at the end of each module. Fixed typo in unsigned32. Fixed
+	flawed data structures for Opaque as well. Removed a bunch of
+	unnecessary setTypeParent() and setTypeDecl() calls.
+
 2000-12-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Fixed `GAUGE32 integerSubType' rule.
