@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.190 2003/04/30 14:29:31 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.191 2003/05/05 08:05:45 strauss Exp $
  */
 
 %{
@@ -72,6 +72,7 @@ static Module      *complianceModulePtr = NULL;
 static Module      *capabilitiesModulePtr = NULL;
 static SmiNodekind variationkind;
 static int         firstStatementLine = 0;
+static int         currentDecl = SMI_DECL_UNKNOWN;
 static int	   firstRevisionLine = 0;
 
 static int	   indexFlag;
@@ -1548,6 +1549,7 @@ modules:		module
 module:			moduleName
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_MODULE;
 			    
 			    thisParserPtr->modulePtr = findModuleByName($1);
 			    if (!thisParserPtr->modulePtr) {
@@ -1631,6 +1633,7 @@ linkagePart:		linkageClause
 linkageClause:		IMPORTS importPart ';'
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_MODULE;
 
 			    if ((thisModulePtr->export.language != SMI_LANGUAGE_SMIV2) &&
                                 (thisModulePtr->export.language != SMI_LANGUAGE_SPPI))
@@ -1650,6 +1653,7 @@ exportsClause:		/* empty */
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "EXPORTS");
                             
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_MODULE;
 
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI") &&
@@ -1907,6 +1911,7 @@ macroClause:		macroName
 			    Macro *macroPtr;
 
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_MACRO;
 
 			    macroPtr = addMacro(smiStrdup($1),
 						0, thisParserPtr);
@@ -2012,6 +2017,7 @@ fuzzy_lowercase_identifier:	LOWERCASE_IDENTIFIER
 valueDeclaration:	fuzzy_lowercase_identifier
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_VALUEASSIGNMENT;
 
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -2051,6 +2057,7 @@ valueDeclaration:	fuzzy_lowercase_identifier
 typeDeclaration:	typeName
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_TYPEASSIGNMENT;
 
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_TYPENAME_32, ERR_TYPENAME_64);
@@ -2299,6 +2306,8 @@ typeDeclarationRHS:	Syntax
 	|		TEXTUAL_CONVENTION
 			{
 			    Import *importPtr;
+
+			    currentDecl = SMI_DECL_TEXTUALCONVENTION;
 
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;
@@ -2675,7 +2684,8 @@ NamedBit:		LOWERCASE_IDENTIFIER
 objectIdentityClause:	LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
-			    
+			    currentDecl = SMI_DECL_OBJECTIDENTITY;
+
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -2740,6 +2750,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 objectTypeClause:	LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_OBJECTTYPE;
 			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -3065,6 +3076,7 @@ descriptionClause:	/* empty */
 trapTypeClause:		fuzzy_lowercase_identifier
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_TRAPTYPE;
 			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -3375,7 +3387,8 @@ MaxAccessPart:		MAX_ACCESS
 notificationTypeClause:	LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
-			    
+			    currentDecl = SMI_DECL_NOTIFICATIONTYPE;
+
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -3438,6 +3451,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_MODULEIDENTITY;
 			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -5795,7 +5809,8 @@ Objects:		Object
 Object:			ObjectName
 			{
 			    $$ = $1;
-			    if ($$->modulePtr != thisParserPtr->modulePtr) {
+			    if ((currentDecl == SMI_DECL_OBJECTGROUP) &&
+				$$->modulePtr != thisParserPtr->modulePtr) {
                                 smiPrintError(thisParserPtr,
 					      ERR_COMPLIANCE_MEMBER_NOT_LOCAL,
 					      $$->export.name);
@@ -6185,6 +6200,7 @@ subidentifier_defval:	LOWERCASE_IDENTIFIER '(' NUMBER ')'
 objectGroupClause:	LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_OBJECTGROUP;
 			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -6247,6 +6263,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 notificationGroupClause: LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_NOTIFICATIONGROUP;
 			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -6313,6 +6330,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_MODULECOMPLIANCE;
 			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -6800,6 +6818,7 @@ AccessPart:		MIN_ACCESS Access
 agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			{
 			    firstStatementLine = thisParserPtr->line;
+			    currentDecl = SMI_DECL_AGENTCAPABILITIES;
 			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
