@@ -1,4 +1,4 @@
-SMIDIFF-TEST-002-MIB DEFINITIONS ::= BEGIN
+SMIDIFF-TEST-005-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE, Integer32
@@ -30,7 +30,7 @@ libsmiTest005Mib MODULE-IDENTITY
     REVISION        "200110120000Z"
     DESCRIPTION     
             "Initial Revision."
-    ::= { smidiffTestMib 2 }
+    ::= { smidiffTestMib 5 }
 
 table1 OBJECT-TYPE
     SYNTAX     SEQUENCE OF Table1Entry
