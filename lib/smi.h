@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smi.h,v 1.22 1999/05/25 17:36:31 strauss Exp $
+ * @(#) $Id: smi.h,v 1.23 1999/05/27 20:05:59 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -245,12 +245,9 @@ typedef struct SmiNode {
     SmiIdentifier       typemodule;
     SmiIndexkind        indexkind;
     int                 implied;
+    int                 create;
     SmiIdentifier       relatedmodule;    
     SmiIdentifier       relatedname;    
-#if 0
-    SmiOption           **option;
-    SmiRefinement       **refinement;
-#endif
     SmiDecl             decl;
     SmiBasetype         basetype;
     SmiAccess           access;
@@ -385,6 +382,11 @@ extern SmiNode *smiGetFirstMemberNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 				     SmiNode *smiMemberNodePtr);
+
+extern SmiNode *smiGetFirstObjectNode(SmiNode *smiNodePtr);
+
+extern SmiNode *smiGetNextObjectNode(SmiNode *smiNotificationNodePtr,
+				     SmiNode *smiObjectNodePtr);
 
 extern SmiNode *smiGetFirstMandatoryNode(SmiNode *smiNodePtr);
 

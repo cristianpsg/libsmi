@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smi.c,v 1.28 1999/05/25 17:00:34 strauss Exp $
+ * @(#) $Id: smi.c,v 1.29 1999/05/27 20:05:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -402,6 +402,15 @@ SmiNode *createSmiNode(Object *objectPtr)
 	    smiNodePtr->implied           = 0;
 	    smiNodePtr->relatedmodule     = NULL;
 	    smiNodePtr->relatedname       = NULL;
+	}
+
+	if (objectPtr->flags & FLAG_CREATABLE) {
+	    /*
+	     * If new rows can be created, ...
+	     */
+	    smiNodePtr->create            = 1;
+	} else {
+	    smiNodePtr->create            = 0;
 	}
 
 #if 0
@@ -1661,6 +1670,102 @@ SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 
 
 
+SmiNode *smiGetFirstObjectNode(SmiNode *smiGroupNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    
+    if (!smiGroupNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiGroupNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiGroupNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr, smiGroupNodePtr->name);
+
+    if ((!objectPtr) || (!objectPtr->listPtr)) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_NOTIFICATION) &&
+	(objectPtr->decl != SMI_DECL_NOTIFICATIONTYPE)) {
+	return NULL;
+    }
+						     
+    return createSmiNode(objectPtr->listPtr->ptr);
+}
+
+
+
+SmiNode *smiGetNextObjectNode(SmiNode *smiNotificationNodePtr,
+			      SmiNode *smiObjectNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    List	      *listPtr;
+    SmiIdentifier     module, node;
+    
+    if ((!smiNotificationNodePtr) || (!smiObjectNodePtr)) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiNotificationNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiNotificationNodePtr->module);
+    }
+
+    module = smiObjectNodePtr->module;
+    node = smiObjectNodePtr->name;
+        
+    smiFreeNode(smiObjectNodePtr);
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiNotificationNodePtr->name);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    if (!objectPtr->listPtr) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_NOTIFICATION) &&
+	(objectPtr->decl != SMI_DECL_NOTIFICATIONTYPE)) {
+	return NULL;
+    }
+
+    for (listPtr = objectPtr->listPtr; listPtr;
+	 listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) &&
+	    !strcmp(((Object *)(listPtr->ptr))->modulePtr->name, module) &&
+	    !strcmp(((Object *)(listPtr->ptr))->name, node)) {
+	    if (listPtr->nextPtr) {
+		return createSmiNode(listPtr->nextPtr->ptr);
+	    } else {
+		return NULL;
+	    }
+	}
+    }
+    
+    return NULL;
+}
+
+
+
 SmiNode *smiGetFirstMandatoryNode(SmiNode *smiComplianceNodePtr)
 {
     Module	      *modulePtr;
@@ -1762,8 +1867,8 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 {
     Module	      *modulePtr;
     Object	      *objectPtr;
+    Import	      *importPtr;
     Node	      *nodePtr;
-    char	      *module, *node;
     
     if (!smiNodePtr) {
 	return NULL;
@@ -1772,19 +1877,14 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
     modulePtr = findModuleByName(smiNodePtr->module);
 
     if (!modulePtr) {
-	modulePtr = loadModule(module);
+	modulePtr = loadModule(smiNodePtr->module);
     }
 
-    module = smiNodePtr->module;
-    node   = smiNodePtr->name;
-    
-    smiFreeNode(smiNodePtr);
-    
     if (!modulePtr) {
 	return NULL;
     }
 
-    objectPtr = findObjectByModuleAndName(modulePtr, node);
+    objectPtr = findObjectByModuleAndName(modulePtr, smiNodePtr->name);
 
     if (!objectPtr) {
 	return NULL;
@@ -1802,10 +1902,23 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
      * First, try to find a definition in the same module.
      */
     objectPtr = NULL;
-    if (module) {
-	objectPtr = findObjectByModulenameAndNode(module, nodePtr);
+    if (smiNodePtr->module) {
+	objectPtr = findObjectByModulenameAndNode(smiNodePtr->module, nodePtr);
     }
 
+    /*
+     * If found, check if it's imported. In case, get the original definition.
+     */
+    if (objectPtr && (objectPtr->flags & FLAG_IMPORTED)) {
+	importPtr = findImportByName(objectPtr->name, objectPtr->modulePtr);
+	if (importPtr) {
+	    objectPtr = findObjectByModulenameAndNode(importPtr->importmodule,
+						      nodePtr);
+	} else {
+	    objectPtr = NULL;
+	}
+    }
+    
     /*
      * If not yet found, try to find any definition.
      */
