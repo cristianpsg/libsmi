@@ -10,6 +10,19 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+#
+# Makefile.am --
+#
+#      Template to generate test Makefile.in using automake.
+#
+# Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+#
+# See the file "COPYING" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# @(#) $Id: Makefile.am,v 1.7 1999/06/06 07:40:36 strauss Exp $
+#
+
 
 SHELL = @SHELL@
 
@@ -59,9 +72,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
+DLLTOOL = @DLLTOOL@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -69,12 +84,15 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
+OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
 VERSION = @VERSION@
 mibdir = @mibdir@
 smipath = @smipath@
+
+TESTMIBS = SNMPv2-MIB IF-MIB MAU-MIB
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
@@ -82,7 +100,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
@@ -179,19 +197,38 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-test: test-smilint
+test: test-smilint 
 
 test-smilint: .PHONY
-	rm -rf test-smilint
-	if [ ! -d test-smilint ] ; then mkdir test-smilint ; fi
-	for d in `echo @smipath@ | sed -e 's/:/ /g'` ; do \
-	    for f in $$d/* ; do \
-		echo $$f ; \
-		../tools/smilint -l9 $$f > test-smilint/`basename $$f` 2>&1 ; \
-	    done ; \
+	-rm -rf test-smilint
+	mkdir test-smilint
+	SMIPATH=@smipath@ ; export SMIPATH
+	for mib in $(TESTMIBS) ; do \
+	    echo $$mib ; \
+	    ../tools/smilint -l9 $$mib > test-smilint/$$mib 2>&1 ; \
 	done
 	@echo ""
 	@echo "see directory test-smilint for results."
+
+test-smidump-smi-sming: .PHONY
+	-rm -rf test-smilint-smi-sming
+	mkdir test-smidump-smi-sming
+	SMIPATH=@smipath@ ; export SMIPATH
+	for mib in $(TESTMIBS) ; do \
+	    ../tools/smidump -fsming $$mib > test-smidump-smi-sming/$$mib 2>&1 ; \
+	done
+	@echo ""
+	@echo "see directory test-smidump-smi-sming for results."
+
+test-smidump-sming-sming: .PHONY
+	-rm -rf test-smilint-sming-sming
+	mkdir test-smidump-sming-sming
+	SMIPATH=@smipath@ ; export SMIPATH
+	for mib in $(TESTMIBS) ; do \
+	    ../tools/smidump -fsming $$mib > test-smidump-sming-sming/$$mib 2>&1 ; \
+	done
+	@echo ""
+	@echo "see directory test-smidump-sming-sming for results."
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.6 1999/06/03 21:13:11 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.7 1999/06/06 07:40:36 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -28,28 +28,52 @@ libsmi_la_SOURCES	= data.c error.c util.c smi.c scanner.c \
 libsmi_la_LDFLAGS	= -version-info 1:1:0
 
 parser-smi.tab.c: parser-smi.y scanner-smi.h parser-smi.h
-	$(BISON) -v -t -d -psmi parser-smi.y
+	@if [ "$(BISON)" ] ; then \
+	    "$(BISON)" -v -t -d -psmi parser-smi.y ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new parser-smi.tab.c from parser-smi.y" ; \
+	    echo "" ; \
+	fi
 #	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-#	# bison-1.27 is ok and would not the lines below.
 	sed -e 's/int yyparse (void);/int yyparse ();/' \
 	    parser-smi.tab.c > parser-smi.tab.c.tmp && \
 	mv parser-smi.tab.c.tmp parser-smi.tab.c
 
 parser-sming.tab.c: parser-sming.y scanner-sming.h parser-sming.h
-	$(BISON) -v -t -d -psming parser-sming.y
+	@if [ "$(BISON)" ] ; then \
+	    "$(BISON)" -v -t -d -psming parser-sming.y ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new parser-sming.tab.c from parser-sming.y" ; \
+	    echo "" ; \
+	fi
 #	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-#	# bison-1.27 is ok and would not the lines below.
 	sed -e 's/int yyparse (void);/int yyparse ();/' \
 	    parser-sming.tab.c > parser-sming.tab.c.tmp && \
 	mv parser-sming.tab.c.tmp parser-sming.tab.c
 
 scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
-	$(FLEX) -Psmi -t scanner-smi.l > scanner-smi.c
+	@if [ "$(FLEX)" ] ; then \
+	    "$(FLEX)" -Psmi -t scanner-smi.l > scanner-smi.c ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new scanner-smi.c from scanner-smi.l" ; \
+	    echo "" ; \
+	fi
 
 scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
-	$(FLEX) -Psming -t scanner-sming.l > scanner-sming.c
+	@if [ "$(FLEX)" ] ; then \
+	    "$(FLEX)" -Psming -t scanner-sming.l > scanner-sming.c ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new scanner-sming.c from scanner-sming.l" ; \
+	    echo "" ; \
+	fi
 
-error.i: error.c
+error.h: errormacros.h
+
+errormacros.h: error.c
 	cat error.c | grep ERR_ | \
 	sed -e 's/^.*\(ERR_[a-zA-Z0-9_]*\).*$$/\1/' | \
-	awk '{printf "#define %-40s %d\n", $$1, NR-1}' > error.i
+	awk '{printf "#define %-40s %d\n", $$1, NR-1}' > errormacros.h
