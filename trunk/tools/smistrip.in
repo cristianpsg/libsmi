@@ -9,7 +9,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# $Id: smistrip.in,v 1.7 2003/01/18 21:24:26 strauss Exp $
+# $Id: smistrip.in,v 1.8 2003/07/17 09:13:43 strauss Exp $
 #
 # NOTE, that this script relies on awk (tested with GNU awk) and getopts
 # (shell builtin like in bash or standalone).
@@ -27,10 +27,11 @@ do_version () {
 
 
 do_usage () {
-    echo "Usage: smistrip [-Vhn] [-d dir] [-m module] file1 [file2 [...]]"
+    echo "Usage: smistrip [-Vhn] [-i dir] [-d dir] [-m module] file1 [file2 [...]]"
     echo "-V         show version and license information"
     echo "-h         show usage information"
     echo "-n         do not write module files"
+    echo "-i dir     try to read files from directory dir"
     echo "-d dir     write module to directory dir"
     echo "-m module  strip only the specified module"
     echo "file1 ...  input files to parse (RFCs, I-Ds, ...)"
@@ -39,12 +40,22 @@ do_usage () {
 
 
 do_strip () {
-    if [ `basename "$1" .gz` = "$1" ] ; then
+    if [ "$indir" ] ; then
+	FILE="$indir/$1"
+    else
+	FILE="$1"
+    fi
+    if [ ! -f "$FILE" -a -f "$FILE.gz" ] ; then
+	FILE="$FILE.gz"
+    fi
+    echo "$FILE" | grep -q '\.gz$'
+    if [ $? -ne 0 ] ; then
     	CMD=cat
     else
     	CMD=zcat
     fi
-    $CMD "$1" | \
+
+    $CMD "$FILE" | \
     grep -i -v '^[ ]*Internet Draft' | \
     $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
@@ -138,11 +149,13 @@ do_strip () {
 
 
 
-while $GETOPTS Vhnm:d: c ; do
+while $GETOPTS Vhnm:i:d: c ; do
     case $c in
 	n)	test=1
 		;;
 	m)	single=$OPTARG
+		;;
+	i)	indir=$OPTARG
 		;;
 	d)	dir=$OPTARG
 		;;
