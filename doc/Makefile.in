@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.7 1999/06/06 07:40:34 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.1 1999/06/08 20:24:20 strauss Exp $
 #
 
 
@@ -72,11 +72,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
-DLLTOOL = @DLLTOOL@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -84,7 +82,6 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
@@ -100,7 +97,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:

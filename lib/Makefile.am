@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.7 1999/06/06 07:40:36 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.8 1999/06/07 15:43:56 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -71,7 +71,7 @@ scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
 	    echo "" ; \
 	fi
 
-error.h: errormacros.h
+error.h data.lo: errormacros.h
 
 errormacros.h: error.c
 	cat error.c | grep ERR_ | \
