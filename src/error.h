@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.7 1998/11/21 18:16:14 strauss Exp $
+ * @(#) $Id: error.h,v 1.8 1998/11/30 16:42:35 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -74,7 +74,7 @@
 #define ERR_EXISTENT_DESCRIPTOR			 54
 #define ERR_UNKNOWN_CONFIG_DIRECTIVE		 55
 #define ERR_ALLOCATING_PENDING_MIBNODE		 56
-#define ERR_ALLOCATING_IMPORTDESCRIPTOR		 57
+#define ERR_ALLOCATING_IMPORT   		 57
 #define ERR_IDENTIFIER_NOT_IN_MODULE		 58
 #define ERR_TYPE_ALREADY_EXISTS			 59
 #define ERR_ALLOCATING_TYPE			 60

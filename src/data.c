@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.32 1998/12/14 16:35:50 strauss Exp $
+ * @(#) $Id: data.c,v 1.33 1998/12/15 16:11:14 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -19,6 +19,7 @@
 #include <ctype.h>
 
 #include "error.h"
+#include "util.h"
 #include "data.h"
 #include "smi.h"
 
@@ -37,7 +38,7 @@
 Module          *firstModulePtr, *lastModulePtr;
 Node		*rootNodePtr;
 Node		*pendingNodePtr;
-Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
+Type		*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
 
 
 
@@ -67,12 +68,11 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     Parser	      *parserPtr;
 {
     Module	      *modulePtr;
-    int		      i;
 
 #ifdef DEBUG
     printDebug(4,
-      "addModule(modulename=\"%s\", path=\"%s\", flags=%d, parserPtr=0x%x)\n",
-	       modulename, path, fileoffset, parserPtr);
+      "addModule(%s, %s, %d, %d, 0x%x)\n",
+	       modulename, path, fileoffset, flags, parserPtr);
 #endif
     
     modulePtr = (Module *)util_malloc(sizeof(Module));
@@ -99,7 +99,7 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
 #endif
     
     modulePtr->numImportedIdentifiers		= 0;
-    modulePtr->numStaements			= 0;
+    modulePtr->numStatements			= 0;
     modulePtr->numModuleIdentities		= 0;
     
     modulePtr->lastUpdated.fileoffset		= -1;
@@ -150,7 +150,7 @@ setModuleLastUpdated(modulePtr, lastUpdatedPtr)
     String	*lastUpdatedPtr;
 {
 #ifdef DEBUG
-    printDebug(5, "setModuleLastUpdated(0x%x(%s), lastUpdatedPtr=0x%x(%s))\n",
+    printDebug(5, "setModuleLastUpdated(0x%x(%s), 0x%x(%s))\n",
 	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
 	       lastUpdatedPtr,
 	       lastUpdatedPtr->ptr ? lastUpdatedPtr->ptr : "...");
@@ -271,8 +271,7 @@ setModuleDescription(modulePtr, descriptionPtr)
 {
 #ifdef DEBUG
     printDebug(5, "setModuleDescription(0x%x(%s), 0x%x(%s))\n",
-	       modulePtr, modulePtr && modulePtr->name ? module->name : "",
-	       descriptionPtr,
+	       modulePtr, modulePtr->name, descriptionPtr,
 	       descriptionPtr->ptr ? descriptionPtr->ptr : "[FILE]");
 #endif
     
@@ -312,7 +311,8 @@ findModuleByName(modulename)
 
 #ifdef DEBUG
     printDebug(6, "findModuleByName(%s)", modulename);
-
+#endif
+    
     for (modulePtr = firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	if (!strcmp(modulePtr->name, modulename)) {
@@ -368,17 +368,17 @@ addImport(name, parserPtr)
 
     modulePtr = parserPtr->modulePtr;
     
-    importPtr->module				= NULL /* not yet known */
-    importPtr->name				= util_strdup(name);
-    importPtr->flags				= 0 || IMPORT_UNKNOWN_KIND;
+    importPtr->module			 = NULL; /* not yet known */
+    importPtr->name		       	 = util_strdup(name);
+    importPtr->kind			 = KIND_UNKNOWN;
     
-    importPtr->nextPtr				= NULL;
-    importPtr->prevPtr				= modulePtr->lastImportPtr;
+    importPtr->nextPtr			 = NULL;
+    importPtr->prevPtr			 = modulePtr->lastImportPtr;
     if (!modulePtr->firstImportPtr)
-	firstImportPtr				= importPtr;
+	modulePtr->firstImportPtr	 = importPtr;
     if (modulePtr->lastImportPtr)
-	modulePtr->lastImportPtr->nextPtr       = importPtr;
-    modulePtr->lastImportPtr			= importPtr;
+	modulePtr->lastImportPtr->nextPtr = importPtr;
+    modulePtr->lastImportPtr		 = importPtr;
     
     return (importPtr);
 }
@@ -395,7 +395,7 @@ addImport(name, parserPtr)
  *	module names.
  *
  * Results:
- *      0 on success or -1 on an error or number of Descriptors not found.
+ *      0 on success or -1 on an error or number of descriptors not found.
  *
  * Side effects:
  *      None.
@@ -415,7 +415,7 @@ checkImports(modulename, parserPtr)
     printDebug(4, "checkImports(%s, 0x%x)", modulename, parserPtr);
 #endif
 
-    for (importPtr = Ptr->thisModulePtr->firstImportPtr;
+    for (importPtr = parserPtr->modulePtr->firstImportPtr;
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (smiGetNode(importPtr->name, modulename, 0)) {
@@ -429,7 +429,7 @@ checkImports(modulename, parserPtr)
 	    importPtr->kind   = KIND_MACRO;
 	} else {
 	    n++;
-	    printError(parser, ERR_IDENTIFIER_NOT_IN_MODULE,
+	    printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
 		       importPtr->name, modulename);
 	}
 
@@ -922,26 +922,31 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
 
     modulePtr = parserPtr->modulePtr;
     
-    objectPtr->modulePtr		              = modulePtr;
-    objectPtr->name				     = util_strdup(objectname);
-    objectPtr->fileoffset			      = -1;
-    objectPtr->nodePtr				      = NULL;
-    objectPtr->prevPtr				      = NULL;
-    objectPtr->nextPtr				      = NULL;
-    objectPtr->prevSameNodePtr			      = NULL;
-    objectPtr->nextSameNodePtr			      = NULL;
-    objectPtr->typePtr				      = NULL;
-    objectPtr->indexPtr				      = NULL;
-    objectPtr->decl				      = SMI_DECL_UNKNOWN;
-    objectPtr->access				      = SMI_ACCESS_UNKNOWN;
-    objectPtr->status				      = SMI_STATUS_UNKNOWN;
-    objectPtr->flags				      = flags;
-    objectPtr->descriptor			      = NULL;
-    objectPtr->description.fileoffset		      = -1;
-    objectPtr->description.length		      = 0;
+    objectPtr->modulePtr		        = modulePtr;
+    objectPtr->name				= util_strdup(objectname);
+    objectPtr->fileoffset			= -1;
+    objectPtr->nodePtr				= NULL;
+    objectPtr->prevSameNodePtr			= NULL;
+    objectPtr->nextSameNodePtr			= NULL;
+    objectPtr->typePtr				= NULL;
+    objectPtr->indexPtr				= NULL;
+    objectPtr->decl				= SMI_DECL_UNKNOWN;
+    objectPtr->access				= SMI_ACCESS_UNKNOWN;
+    objectPtr->status				= SMI_STATUS_UNKNOWN;
+    objectPtr->flags				= flags;
+    objectPtr->description.fileoffset		= -1;
+    objectPtr->description.length		= 0;
 #ifdef TEXTS_IN_MEMORY
-    objectPtr->description.ptr			      = NULL;
+    objectPtr->description.ptr			= NULL;
 #endif
+    
+    objectPtr->nextPtr				= NULL;
+    objectPtr->prevPtr				= modulePtr->lastObjectPtr;
+    if (!modulePtr->firstObjectPtr)
+	modulePtr->firstObjectPtr		= objectPtr;
+    if (modulePtr->lastObjectPtr)
+	modulePtr->lastObjectPtr->nextPtr	= objectPtr;
+    modulePtr->lastObjectPtr			= objectPtr;
     
     /*
      * Link it into the tree.
@@ -957,7 +962,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     } else {
 
         objectPtr->prevSameNodePtr		      = nodePtr->lastObjectPtr;
-	if (!nodePtr->fistObjectPtr)
+	if (!nodePtr->firstObjectPtr)
 	    nodePtr->firstObjectPtr	              = objectPtr;
 	if (nodePtr->lastObjectPtr)
 	    nodePtr->lastObjectPtr->nextSameNodePtr   = objectPtr;
@@ -1001,6 +1006,7 @@ duplicateObject(templatePtr, flags, parserPtr)
 {
     Object		  *objectPtr;
     Node		  *nodePtr;
+    Module		  *modulePtr;
     
 #ifdef DEBUG
     printDebug(5, "duplicateObject(0x%x, %d, 0x%x)",
@@ -1036,8 +1042,16 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->description.ptr			      = NULL;
 #endif
 
+    objectPtr->nextPtr				= NULL;
+    objectPtr->prevPtr				= modulePtr->lastObjectPtr;
+    if (!modulePtr->firstObjectPtr)
+	modulePtr->firstObjectPtr		= objectPtr;
+    if (modulePtr->lastObjectPtr)
+	modulePtr->lastObjectPtr->nextPtr	= objectPtr;
+    modulePtr->lastObjectPtr			= objectPtr;
+    
     objectPtr->prevSameNodePtr			      = nodePtr->lastObjectPtr;
-    if (!nodePtr->fistObjectPtr)
+    if (!nodePtr->firstObjectPtr)
 	nodePtr->firstObjectPtr			      = objectPtr;
     if (nodePtr->lastObjectPtr)
 	nodePtr->lastObjectPtr->nextSameNodePtr       = objectPtr;
@@ -1095,7 +1109,7 @@ addNode (parentNodePtr, subid, flags, parserPtr)
     
     nodePtr->flags				= flags;
     nodePtr->subid				= subid;
-    nodePtr->parent				= parentNodePtr;
+    nodePtr->parentNodePtr			= parentNodePtr;
     nodePtr->firstChildPtr			= NULL;
     nodePtr->lastChildPtr			= NULL;
     nodePtr->firstObjectPtr			= NULL;
@@ -1107,7 +1121,7 @@ addNode (parentNodePtr, subid, flags, parserPtr)
 		 c && (c->subid < subid);
 		 c = c->nextPtr);
 	    if (c) {
-		if (c != parentNodePtr->firstChildNode) {
+		if (c != parentNodePtr->firstChildPtr) {
 		    c->prevPtr->nextPtr = nodePtr;
 		    nodePtr->prevPtr = c->prevPtr;
 		    c->prevPtr = nodePtr;
@@ -1262,18 +1276,18 @@ getLastSubid(oid)
  */
 
 void
-setObjectSyntax(objectPtr, syntax)
+setObjectType(objectPtr, typePtr)
     Object		   *objectPtr;
-    Syntax		   syntax;
+    Type		   *typePtr;
 {
 #ifdef DEBUG
-    printDebug(5, "setObjectSyntax(0x%x(%s), %s)\n",
-	       objectPtr, objectPtr->name, smiStringSyntax(syntax));
+    printDebug(5, "setObjectType(0x%x(%s), 0x%x(%s))\n",
+	       objectPtr, objectPtr->name, typePtr, typePtr->name);
 #endif
 
     /* TODO: why this check? */
-    if (objectPtr->syntax == SMI_SYNTAX_UNKNOWN) {
-	objectPtr->syntax = syntax;
+    if (objectPtr->typePtr == NULL) {
+	objectPtr->typePtr = typePtr;
     }
 }
 
@@ -1473,8 +1487,8 @@ setObjectDecl(objectPtr, decl)
 
 void
 addObjectFlags(objectPtr, flags)
-    Object   *objectPtr;
-    Flags    flags;
+    Object	   *objectPtr;
+    ObjectFlags    flags;
 {
 #ifdef DEBUG
     printDebug(5, "addObjectFlags(0x%x(%s), %d)\n",
@@ -1697,7 +1711,7 @@ findObjectByName(objectname)
     for (modulePtr = firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
-	     objectPtr = objectPtr->next) {
+	     objectPtr = objectPtr->nextPtr) {
 	    if (!strcmp(objectPtr->name, objectname)) {
 		/*
 		 * We return the first matching object.
@@ -1725,7 +1739,7 @@ findObjectByName(objectname)
  *
  * findObjectByModulenameAndName --
  *
- *      Lookup a Object by a given Module and Descriptor name.
+ *      Lookup a Object by a given Module and name.
  *
  * Results:
  *      A pointer to the Object structure or
@@ -1754,7 +1768,7 @@ findObjectByModulenameAndName(modulename, objectname)
 
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
-	     objectPtr = objectPtr->next) {
+	     objectPtr = objectPtr->nextPtr) {
 	    if (!strcmp(objectPtr->name, objectname)) {
 #ifdef DEBUG
 		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
@@ -1786,7 +1800,7 @@ findObjectByModulenameAndName(modulename, objectname)
  *
  * findObjectByModuleAndName --
  *
- *      Lookup a Object by a given Module and Descriptor name.
+ *      Lookup a Object by a given Module and name.
  *
  * Results:
  *      A pointer to the Object structure or
@@ -1803,6 +1817,7 @@ findObjectByModuleAndName(modulePtr, objectname)
     Module        *modulePtr;
     const char    *objectname;
 {
+    Object	  *objectPtr;
     
 #ifdef DEBUG
     printDebug(4, "findObjectByModuleAndName(0x%x(%s), %s)",
@@ -1811,7 +1826,7 @@ findObjectByModuleAndName(modulePtr, objectname)
 
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
-	     objectPtr = objectPtr->next) {
+	     objectPtr = objectPtr->nextPtr) {
 	    if (!strcmp(objectPtr->name, objectname)) {
 #ifdef DEBUG
 		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
@@ -1982,56 +1997,129 @@ dumpMosy(root)
  *---------------------------------------------------------------------- */
 
 Type *
-addType(parent, syntax, module, flags, parser)
-    Type       *parent;
-    smi_syntax syntax;
-    Module     *module;
-    Flags      flags;
-    Parser     *parser;
+addType(typename, syntax, flags, parserPtr)
+    const char     *typename;
+    smi_syntax	   syntax;
+    TypeFlags      flags;
+    Parser	   *parserPtr;
 {
-    Type *type;
+    Type	   *typePtr;
+    Module	   *modulePtr;
+    
+#ifdef DEBUG
+    printDebug(4, "addType(%s, %s, %d, 0x%x)",
+	       typename, smiStringSyntax(syntax), flags, parserPtr);
+#endif
 
-    printDebug(5, "addType(%p (%s), %s, %s, %d, parser)",
-	       parent, parent &&
-	         parent->descriptor ? parent->descriptor->name : "",
-	       smiStringSyntax(syntax),
-	       module &&
-	         module->descriptor ? module->descriptor->name : "NULL",
-	       flags);
-
-    /*
-     * Otherwise, create the Type.
-     */
-    type = malloc(sizeof(Type));
-    if (!type) {
-	printError(parser, ERR_ALLOCATING_TYPE, strerror(errno));
+    modulePtr = parserPtr->modulePtr;
+    
+    typePtr = util_malloc(sizeof(Type));
+    if (!typePtr) {
+	printError(parserPtr, ERR_ALLOCATING_TYPE, strerror(errno));
 	return (NULL);
     }
 
-    type->module = module;
-    type->parent = parent;
-    if (parent &&
-	(syntax == SMI_SYNTAX_UNKNOWN)) {
-	type->syntax = parent->syntax;
-    } else {
-	type->syntax = syntax;
-    }
-    type->decl = SMI_DECL_UNKNOWN;
-    type->status = SMI_STATUS_UNKNOWN;
-    type->flags = flags;
-    type->descriptor = NULL;
-    type->description.fileoffset = -1;
-    type->description.length = 0;
-    type->displayHint.fileoffset = -1;
-    type->displayHint.length = 0;
+    typePtr->name	                = util_strdup(typename);
+    typePtr->modulePtr			= parserPtr->modulePtr;
+    typePtr->syntax			= syntax;
+    typePtr->decl			= SMI_DECL_UNKNOWN;
+    typePtr->status			= SMI_STATUS_UNKNOWN;
+    typePtr->flags			= flags;
+    typePtr->parentType			= NULL;
+    typePtr->description.fileoffset	= -1;
+    typePtr->description.length		= 0;
+    typePtr->displayHint.fileoffset	= -1;
+    typePtr->displayHint.length		= 0;
 #ifdef TEXTS_IN_MEMORY
-    type->description.ptr = NULL;
-    type->displayHint.ptr = NULL;
+    typePtr->description.ptr		= NULL;
+    typePtr->displayHint.ptr		= NULL;
 #endif
 
-    printDebug(5, " = %p\n", type);
+    typePtr->nextPtr			= NULL;
+    typePtr->prevPtr			= modulePtr->lastTypePtr;
+    if (!modulePtr->firstTypePtr)
+	modulePtr->firstTypePtr		= typePtr;
+    if (modulePtr->lastTypePtr)
+	modulePtr->lastTypePtr->nextPtr	= typePtr;
+    modulePtr->lastTypePtr		= typePtr;
     
-    return (type);
+#ifdef DEBUG
+    printDebug(4, " = 0x%x\n", typePtr);
+#endif
+    return (typePtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * duplicateType --
+ *
+ *      Create a new Type as a duplicate of a given one but with
+ *      an affiliation to the current module.
+ *
+ * Results:
+ *      A pointer to the new Type structure or
+ *	NULL if terminated due to an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Type *
+duplicateType(templatePtr, flags, parserPtr)
+    Type		  *templatePtr;
+    TypeFlags		  flags;
+    Parser		  *parserPtr;
+{
+    Type		  *TypePtr;
+    Module		  *modulePtr;
+    
+#ifdef DEBUG
+    printDebug(5, "duplicateType(0x%x, %d, 0x%x)",
+	       templatePtr, flags, parserPtr);
+#endif
+    
+    typePtr = (Type *)util_malloc(sizeof(Type));
+    if (!typePtr) {
+	printError(parserPtr, ERR_ALLOCATING_TYPE, strerror(errno));
+	return (NULL);
+    }
+
+    modulePtr = parserPtr->modulePtr;
+    
+    typePtr->name	                = NULL;
+    typePtr->modulePtr			= modulePtr;
+    typePtr->syntax			= templatePtr->syntax;
+    typePtr->decl			= templatePtr->decl;
+    typePtr->status			= templatePtr->syntax;
+    typePtr->flags			= templatePtr->flags;
+    typePtr->parentType			= util_strdup(templatePtr->name);
+    typePtr->description.fileoffset	= -1;
+    typePtr->description.length		= 0;
+    typePtr->displayHint.fileoffset	= -1;
+    typePtr->displayHint.length		= 0;
+#ifdef TEXTS_IN_MEMORY
+    typePtr->description.ptr		= NULL;
+    typePtr->displayHint.ptr		= NULL;
+#endif
+
+    typePtr->nextPtr			= NULL;
+    typePtr->prevPtr			= modulePtr->lastTypePtr;
+    if (!modulePtr->firstTypePtr)
+	modulePtr->firstTypePtr		= typePtr;
+    if (modulePtr->lastTypePtr)
+	modulePtr->lastTypePtr->nextPtr	= typePtr;
+    modulePtr->lastTypePtr		= typePtr;
+    
+#ifdef DEBUG
+    printDebug(5, "...duplicateType() = 0x%x\n", typePtr);
+#endif
+    
+    return (typePtr);
 }
 
 
@@ -2053,16 +2141,18 @@ addType(parent, syntax, module, flags, parser)
  */
 
 void
-setTypeStatus(type, status)
-    Type       *type;
+setTypeStatus(typePtr, status)
+    Type       *typePtr;
     smi_status status;
 {
-    printDebug(5, "setTypeStatus(%s, %s)\n",
-	       type->descriptor ? type->descriptor->name : "?",
-	       smiStringStatus(status));
+#ifdef DEBUG
+    printDebug(5, "setTypeStatus(0x%x(%s), %s)\n",
+	       typePtr, typePtr->name, smiStringStatus(status));
+#endif
 
-    if (type->status == SMI_STATUS_UNKNOWN) {
-	type->status = status;
+    /* TODO: why this check? */
+    if (typePtr->status == SMI_STATUS_UNKNOWN) {
+	typePtr->status = status;
     }
 }
 
@@ -2085,20 +2175,89 @@ setTypeStatus(type, status)
  */
 
 void
-setTypeDescription(type, description)
-    Type *type;
-    String *description;
+setTypeDescription(typePtr, descriptionPtr)
+    Type	   *typePtr;
+    String	   *descriptionPtr;
 {
-    printDebug(5, "setTypeDescription(%s, \"%s\")\n",
-	       type->descriptor ? type->descriptor->name : "?",
-	       description->ptr ? description->ptr : "...");
-
-    if (type->description.fileoffset < 0) {
-	type->description.fileoffset = description->fileoffset;
-	type->description.length = description->length;
-#ifdef TEXTS_IN_MEMORY
-	type->description.ptr = description->ptr;
+#ifdef DEBUG
+    printDebug(5, "setTypeDescription(0x%x(%s), \"%s\"(%d,%d))\n",
+	       typePtr, typePtr->name,
+	       descriptionPtr->ptr ? descriptionPtr->ptr : "[FILE]",
+	       descriptionPtr->fileoffset, descriptionPtr->length);
 #endif
+    
+    if (typePtr->description.fileoffset < 0) {
+	typePtr->description.fileoffset = descriptionPtr->fileoffset;
+	typePtr->description.length = descriptionPtr->length;
+#ifdef TEXTS_IN_MEMORY
+	typePtr->description.ptr = descriptionPtr->ptr;
+#endif
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeParent --
+ *
+ *      Set the parent of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeParent(typePtr, parent)
+    Type	   *typePtr;
+    const char	   *parent;
+{
+#ifdef DEBUG
+    printDebug(5, "setTypeParent(0x%x(%s), %s)\n",
+	       typePtr, typePtr->name, parent);
+#endif
+    
+    if (!typePtr->parent) {
+	typePtr->parent  = util_strdup(parent);
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypePointer --
+ *
+ *      Set the pointer to void data of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypePointer(typePtr, pointer)
+    Type	   *typePtr;
+    void	   *pointer;
+{
+#ifdef DEBUG
+    printDebug(5, "setTypePointer(0x%x(%s), 0x%x)\n",
+	       typePtr, typePtr->name, pointer);
+#endif
+    
+    if (!typePtr->pointer) {
+	typePtr->pointer  = pointer;
     }
 }
 
@@ -2121,19 +2280,22 @@ setTypeDescription(type, description)
  */
 
 void
-setTypeDisplayHint(type, displayHint)
-    Type *type;
-    String *displayHint;
+setTypeDisplayHint(typePtr, displayHintPtr)
+    Type           *typePtr;
+    String	   *displayHintPtr;
 {
-    printDebug(5, "setTypeDisplayHint(%s, \"%s\")\n",
-	       type->descriptor ? type->descriptor->name : "?",
-	       displayHint->ptr);
-
-    if (type->displayHint.fileoffset < 0) {
-	type->displayHint.fileoffset = displayHint->fileoffset;
-	type->displayHint.length = displayHint->length;
+#ifdef DEBUG
+    printDebug(5, "setTypeDisplayHint(0x%x(%s), \"%s\")\n",
+	       typePtr, typePtr->name,
+	       displayHintPtr->ptr ? displayHintPtr->ptr : "[FILE]",
+	       displayHintPtr->fileoffset, displayHintPtr->length);
+#endif
+    
+    if (typePtr->displayHint.fileoffset < 0) {
+	typePtr->displayHint.fileoffset = displayHintPtr->fileoffset;
+	typePtr->displayHint.length = displayHintPtr->length;
 #ifdef TEXTS_IN_MEMORY
-	type->displayHint.ptr = displayHint->ptr;
+	typePtr->displayHint.ptr = displayHintPtr->ptr;
 #endif
     }
 }
@@ -2157,16 +2319,18 @@ setTypeDisplayHint(type, displayHint)
  */
 
 void
-setTypeFileOffset(type, fileoffset)
-    Type *type;
-    off_t fileoffset;
+setTypeFileOffset(typePtr, fileoffset)
+    Type     *typePtr;
+    off_t    fileoffset;
 {
-    printDebug(5, "setTypeFileOffset(%s, %d)\n",
-	       type->descriptor ? type->descriptor->name : "?",
-	       fileoffset);
+#ifdef DEBUG
+    printDebug(5, "setTypeFileOffset(0x%x(%s), %d)\n",
+	       typePtr, typePtr->name, fileoffset);
+#endif
 
-    if (type->fileoffset < 0) {
-	type->fileoffset = fileoffset;
+    /* TODO: why this check? */
+    if (typePtr->fileoffset < 0) {
+	typePtr->fileoffset = fileoffset;
     }
 }
 
@@ -2189,16 +2353,18 @@ setTypeFileOffset(type, fileoffset)
  */
 
 void
-setTypeDecl(type, decl)
-    Type     *type;
+setTypeDecl(typePtr, decl)
+    Type     *typePtr;
     smi_decl decl;
 {
-    printDebug(5, "setTypeDecl(%s, %s)\n",
-	       type->descriptor ? type->descriptor->name : "?",
-	       smiStringDecl(decl));
-
-    if (type->decl == SMI_DECL_UNKNOWN) {
-	type->decl = decl;
+#ifdef DEBUG
+    printDebug(5, "setTypeDecl(0x%x(%s), %s)\n",
+	       typePtr, typePtr->name, smiStringDecl(decl));
+#endif
+    
+    /* TODO: which this check? */
+    if (typePtr->decl == SMI_DECL_UNKNOWN) {
+	typePtr->decl = decl;
     }
 }
 
@@ -2207,9 +2373,9 @@ setTypeDecl(type, decl)
 /*
  *----------------------------------------------------------------------
  *
- * setTypeFlags --
+ * addTypeFlags --
  *
- *      Add(!) flags to the flags of a given Type.
+ *      Add flags to the flags of a given Type.
  *
  * Results:
  *	None.
@@ -2221,25 +2387,27 @@ setTypeDecl(type, decl)
  */
 
 void
-setTypeFlags(type, flags)
-    Type *type;
-    Flags flags;
+addTypeFlags(typePtr, flags)
+    Type        *typePtr;
+    TypeFlags   flags;
 {
-    printDebug(5, "setTypeFlags(%s, %d)\n",
-	       type->descriptor ? type->descriptor->name : "?",
-	       flags);
-
-    type->flags |= flags;
+#ifdef DEBUG
+    printDebug(5, "addTypeFlags(0x%x(%s), %d)\n",
+	       typePtr, typePtr->name, flags);
+#endif
+    
+    typePtr->flags |= flags;
 }
 
 
 
+#if 0
 /*
  *----------------------------------------------------------------------
  *
  * findTypeByName --
  *
- *      Lookup a Type by a given Descriptor name.
+ *      Lookup a Type by a given name.
  *
  * Results:
  *      A pointer to the Type structure or
@@ -2252,25 +2420,31 @@ setTypeFlags(type, flags)
  */
 
 Type *
-findTypeByName(name)
-    const char *name;
+findTypeByName(typename)
+    const char *typename;
 {
-    Descriptor *descriptor;
     
-    printDebug(4, "findTypeByName(\"%s\")", name);
-
+#ifdef DEBUG
+    printDebug(6, "findTypeByName(%s)", typename);
+#endif
+    
     for (descriptor = firstDescriptor[KIND_TYPE];
 	 descriptor; descriptor = descriptor->nextSameKind) {
 	if ((!strcmp(descriptor->name, name)) &&
 	    (!(descriptor->flags & FLAG_IMPORTED))) {
-	    printDebug(4, " = %p (%s)\n", descriptor->ptr, descriptor->name);
+#ifdef DEBUG
+	    printDebug(4, " = 0x%x(%s)\n", descriptor->ptr, descriptor->name);
+#endif
 	    return (descriptor->ptr);
 	}
     }
-	
+
+#ifdef DEBUG
     printDebug(4, " = NULL\n");
+#endif
     return (NULL);
 }
+#endif
 
 
 
@@ -2279,7 +2453,7 @@ findTypeByName(name)
  *
  * findTypeByModulenameAndName --
  *
- *      Lookup a Type by a given Module and Descriptor name.
+ *      Lookup a Type by a given Module and name.
  *
  * Results:
  *      A pointer to the Type structure or
@@ -2292,30 +2466,35 @@ findTypeByName(name)
  */
 
 Type *
-findTypeByModulenameAndName(modulename, name)
+findTypeByModulenameAndName(modulename, typename)
     const char *modulename;
-    const char *name;
+    const char *typename;
 {
-    Descriptor *descriptor;
-    Module *module;
-    
-    printDebug(4, "findTypeByModulenameAndName(\"%s\", \"%s\")\n",
-	       modulename, name);
+    Type       *typePtr;
+    Module     *modulePtr;
 
-    module = findModuleByName(modulename);
-    if (module) {
-	for (descriptor = module->firstDescriptor[KIND_TYPE];
-	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	    if ((!strcmp(descriptor->name, name)) &&
-		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, "... = %p (%s)\n", descriptor->ptr,
-			   descriptor->name);
-		return (descriptor->ptr);
+#ifdef DEBUG
+    printDebug(6, "findTypeByModulenameAndName(%s, %s)\n",
+	       modulename, typename);
+#endif
+
+    modulePtr = findModuleByName(modulename);
+
+    if (modulePtr) {
+	for (typePtr = modulePtr->firstTypePtr; typePtr;
+	     typePtr = typePtr->nextPtr) {
+	    if (!strcmp(typePtr->name, typename)) {
+#ifdef DEBUG
+		printDebug(6, "... = 0x%x(%s)\n", typePtr, typePtr->name);
+#endif
+		return (typePtr);
 	    }
 	}
     }
 	
-    printDebug(4, "... = NULL\n");
+#ifdef DEBUG
+    printDebug(6, "... = NULL\n");
+#endif
     return (NULL);
 }
 
@@ -2326,7 +2505,7 @@ findTypeByModulenameAndName(modulename, name)
  *
  * findTypeByModuleAndName --
  *
- *      Lookup a Type by a given Module and Descriptor name.
+ *      Lookup a Type by a given Module and name.
  *
  * Results:
  *      A pointer to the Type structure or
@@ -2339,30 +2518,38 @@ findTypeByModulenameAndName(modulename, name)
  */
 
 Type *
-findTypeByModuleAndName(module, name)
-    Module *module;
-    const char *name;
+findTypeByModuleAndName(modulePtr, typename)
+    Module      *modulePtr;
+    const char  *typename;
 {
-    Descriptor *descriptor;
-    
-    printDebug(4, "findTypeByModuleAndName(%s, \"%s\")",
-	       module->descriptor->name, name);
+    Type        *typePtr;
 
-    for (descriptor = module->firstDescriptor[KIND_TYPE];
-	 descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	if ((!strcmp(descriptor->name, name)) &&
-	    (!(descriptor->flags & FLAG_IMPORTED))) {
-	    printDebug(4, " = %p (%s)\n", descriptor->ptr, descriptor->name);
-	    return (descriptor->ptr);
+#ifdef DEBUG
+    printDebug(6, "findTypeByModuleAndName(0x%x(%s), %s)",
+	       modulePtr, modulePtr->name, typename);
+#endif
+
+    if (modulePtr) {
+	for (typePtr = modulePtr->firstTypePtr; typePtr;
+	     typePtr = typePtr->nextPtr) {
+	    if (!strcmp(typePtr->name, typename)) {
+#ifdef DEBUG
+		printDebug(6, "... = 0x%x(%s)\n", typePtr, typePtr->name);
+#endif
+		return (typePtr);
+	    }
 	}
     }
-	
-    printDebug(4, " = NULL\n");
+
+#ifdef DEBUG
+    printDebug(6, " = NULL\n");
+#endif
     return (NULL);
 }
 
 
 
+#if 0
 /*
  *----------------------------------------------------------------------
  *
@@ -2402,7 +2589,8 @@ dumpTypes()
     }
     
 }
-
+#endif
+ 
 
 
 /*
@@ -2410,8 +2598,7 @@ dumpTypes()
  *
  * addMacro --
  *
- *      Create a new Macro structure. Also creates a Descriptor if
- *      needed.
+ *      Create a new Macro structure.
  *
  * Results:
  *      A pointer to the new Macro structure or
@@ -2423,56 +2610,46 @@ dumpTypes()
  *---------------------------------------------------------------------- */
 
 Macro *
-addMacro(name, module, fileoffset, flags, parser)
-    const char *name;
-    Module *module;
-    off_t fileoffset;
-    int flags;
-    Parser *parser;
+addMacro(macroname, fileoffset, flags, parserPtr)
+    const char    *macroname;
+    off_t	  fileoffset;
+    MacroFlags	  flags;
+    Parser	  *parserPtr;
     
 {
-    Macro *macro;
-    Descriptor *descriptor;
-
-    printDebug(5, "addMacro(\"%s\", %s, %d, %d, parser)\n",
-	       name, module->descriptor->name, fileoffset, flags);
-
-    /*
-     * Check wheather this macro already exists.
-     */
-    macro = findMacroByModuleAndName(module, name);
-
-    /*
-     * If it exists by declaration in this module, it's an error.
-     */
-    if (macro) {
-	printError(parser, ERR_MACRO_ALREADY_EXISTS,
-		   macro->descriptor->module->descriptor->name,
-		   macro->descriptor->name);
-    } else {
-
-	/*
-	 * Otherwise, create the Macro.
-	 */
-	macro = malloc(sizeof(Macro));
-	if (!macro) {
-	    printError(parser, ERR_ALLOCATING_MACRO, strerror(errno));
-	    return (NULL);
-	}
-	    
-	macro->module = module;
-	macro->fileoffset = fileoffset;
-	macro->flags = flags;
-	    
-	/*
-	 * Create a Descriptor.
-	 */
-	descriptor = addDescriptor(name, module, KIND_MACRO, &macro,
-				   flags & FLAGS_GENERAL, parser);
-	macro->descriptor = descriptor;
-    }
+    Macro	  *macroPtr;
+    Module	  *modulePtr;
     
-    return (macro);
+#ifdef DEBUG
+    printDebug(5, "addMacro(%s, %d, %d, 0x%x)\n",
+	       macroname, fileoffset, flags, parserPtr);
+#endif
+
+    modulePtr = parserPtr->modulePtr;
+    
+    /* TODO: Check wheather this macro already exists?? */
+
+    macroPtr = (Macro *)util_malloc(sizeof(Macro));
+    if (!macroPtr) {
+	printError(parserPtr, ERR_ALLOCATING_MACRO, strerror(errno));
+	return (NULL);
+    }
+
+	    
+    macroPtr->modulePtr  = parserPtr->modulePtr;
+    macroPtr->name	 = util_strdup(macroname);
+    macroPtr->fileoffset = fileoffset;
+    macroPtr->flags      = flags;
+	    
+    macroPtr->nextPtr				= NULL;
+    macroPtr->prevPtr				= modulePtr->lastMacroPtr;
+    if (!modulePtr->firstMacroPtr)
+	modulePtr->firstMacroPtr		= macroPtr;
+    if (modulePtr->lastMacroPtr)
+	modulePtr->lastMacroPtr->nextPtr	= macroPtr;
+    modulePtr->lastMacroPtr			= macroPtr;
+    
+    return (macroPtr);
 }
 
 
@@ -2482,7 +2659,7 @@ addMacro(name, module, fileoffset, flags, parser)
  *
  * findMacroByModuleAndName --
  *
- *      Lookup a Macro by a given Module and Descriptor name.
+ *      Lookup a Macro by a given Module and name.
  *
  * Results:
  *      A pointer to the Macro structure or
@@ -2495,25 +2672,32 @@ addMacro(name, module, fileoffset, flags, parser)
  */
 
 Macro *
-findMacroByModuleAndName(module, name)
-    Module *module;
-    const char *name;
+findMacroByModuleAndName(modulePtr, macroname)
+    Module     *modulePtr;
+    const char *macroname;
 {
-    Descriptor *descriptor;
+    Macro      *macroPtr;
     
-    printDebug(4, "findMacroByModuleAndName(%s, \"%s\")",
-	       module->descriptor->name, name);
-
-    for (descriptor = module->firstDescriptor[KIND_MACRO];
-	 descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	if ((!strcmp(descriptor->name, name)) &&
-	    (!(descriptor->flags & FLAG_IMPORTED))) {
-	    printDebug(4, " = %s\n", descriptor->name);
-	    return (descriptor->ptr);
+#ifdef DEBUG
+    printDebug(6, "findMacroByModuleAndName(0x%x(%s), %s)",
+	       modulePtr, modulePtr->name, macroname);
+#endif
+    
+    if (modulePtr) {
+	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
+	     macroPtr = macroPtr->nextPtr) {
+	    if (!strcmp(macroPtr->name, macroname)) {
+#ifdef DEBUG
+		printDebug(6, "... = 0x%x(%s)\n", macroPtr, macroPtr->name);
+#endif
+		return (macroPtr);
+	    }
 	}
     }
-	
-    printDebug(4, " = NULL\n");
+
+#ifdef DEBUG
+    printDebug(6, " = NULL\n");
+#endif
     return (NULL);
 }
 
@@ -2524,7 +2708,7 @@ findMacroByModuleAndName(module, name)
  *
  * findMacroByModulenameAndName --
  *
- *      Lookup a Macro by a given Module and Descriptor name.
+ *      Lookup a Macro by a given Module and name.
  *
  * Results:
  *      A pointer to the Macro structure or
@@ -2537,29 +2721,33 @@ findMacroByModuleAndName(module, name)
  */
 
 Macro *
-findMacroByModulenameAndName(modulename, name)
+findMacroByModulenameAndName(modulename, macroname)
     const char *modulename;
-    const char *name;
+    const char *macroname;
 {
-    Descriptor *descriptor;
-    Module *module;
-    
-    printDebug(4, "findMacroByModulenameAndName(\"%s\", \"%s\")\n",
-	       modulename, name);
+    Module     *modulePtr;
+    Macro      *macroPtr;
 
-    module = findModuleByName(modulename);
-    if (module) {
-	for (descriptor = module->firstDescriptor[KIND_MACRO];
-	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
-	    if ((!strcmp(descriptor->name, name)) &&
-		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, "... = %s\n", descriptor->name);
-		return (descriptor->ptr);
+#ifdef DEBUG
+    printDebug(6, "findMacroByModulenameAndName(%s, %s)\n",
+	       modulename, macroname);
+#endif
+
+    modulePtr = findModuleByName(modulename);
+	
+    if (modulePtr) {
+	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
+	     macroPtr = macroPtr->nextPtr) {
+	    if (!strcmp(macroPtr->name, macroname)) {
+#ifdef DEBUG
+		printDebug(6, "... = 0x%x(%s)\n", macroPtr, macroPtr->name);
+#endif
+		return (macroPtr);
 	    }
 	}
     }
-	
-    printDebug(4, "... = NULL\n");
+
+    printDebug(6, "... = NULL\n");
     return (NULL);
 }
 
@@ -2584,7 +2772,6 @@ findMacroByModulenameAndName(modulename, name)
 int
 initData()
 {
-    int             i;
     Object	    *objectPtr;
     Module	    *modulePtr;
     
@@ -2603,23 +2790,19 @@ initData()
      * belonging to a dummy module "".
      */
     modulePtr = addModule("", "", -1, 0, NULL);
-
-    /* At this point, it should be ok to touch the parser structure?! */
-    parserPtr->modulePtr = modulePtr;
-    
     objectPtr = addObject("ccitt", rootNodePtr, 0, 0, NULL);
-    objectPtr = addObject("iso", rootNode, 1, 0, NULL);
-    objectPtr = addObject("joint-iso-ccitt", rootNode, 2, 0, NULL);
+    objectPtr = addObject("iso", rootNodePtr, 1, 0, NULL);
+    objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, NULL);
 
     /*
      * Initialize the well-known ASN.1 Types.
      */
-    typeInteger          = addType("INTEGER",
-				   SMI_SYNTAX_INTEGER, 0, NULL);
-    typeOctetString      = addType("OCTET STRING",
-				   SMI_SYNTAX_OCTET_STRING, 0, NULL);
-    typeObjectIdentifier = addType("OBJECT IDENTIFIER",
-				   SMI_SYNTAX_OBJECT_IDENTIFIER, 0, NULL);
+    typeIntegerPtr          = addType("INTEGER",
+				      SMI_SYNTAX_INTEGER, 0, NULL);
+    typeOctetStringPtr      = addType("OCTET STRING",
+				      SMI_SYNTAX_OCTET_STRING, 0, NULL);
+    typeObjectIdentifierPtr = addType("OBJECT IDENTIFIER",
+				      SMI_SYNTAX_OBJECT_IDENTIFIER, 0, NULL);
 
     return (0);
 }
@@ -2658,6 +2841,7 @@ readMibFile(path, modulename, flags)
     parser.path				= util_strdup(path);
     parser.module			= util_strdup(modulename);
     parser.flags			= flags;
+    parser.modulePtr			= NULL;
     
     parser.file				= fopen(parser.path, "r");
     if (!parser.file) {
@@ -2670,7 +2854,6 @@ readMibFile(path, modulename, flags)
 	    fclose(parser.file);
 	    return (-1);
 	}
-	parser.firstImportDescriptor    = NULL;
 	parser.line			= 1;
 	parser.column			= 1;
 	parser.character		= 1;

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.7 1998/11/21 18:16:14 strauss Exp $
+ * @(#) $Id: error.c,v 1.8 1998/11/30 16:42:35 strauss Exp $
  */
 
 #include <string.h>
@@ -157,7 +157,7 @@ Error errors[] = {
       "%s: Unknown directive `%s'" },
     { 1, ERR_ALLOCATING_PENDING_MIBNODE,
       "Allocating pending MIB node: %s" },
-    { 1, ERR_ALLOCATING_IMPORTDESCRIPTOR,
+    { 1, ERR_ALLOCATING_IMPORT,
       "Allocating import identifier: %s" },
     { 1, ERR_IDENTIFIER_NOT_IN_MODULE,
       "Identifier `%s' cannot be imported from module `%s'" },
