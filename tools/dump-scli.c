@@ -9,13 +9,12 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.33 2002/12/17 17:49:16 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.34 2003/02/20 15:35:25 schoenw Exp $
  */
 
 /*
  * TODO:
  *	  - range checks for 64 bit numbers
- *	  - range checks for index values
  */
 
 #include <config.h>
@@ -1320,7 +1319,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	if (tableNode) {
 	    cTableName = translate(tableNode->name);
 	    fprintf(f, "extern void\n"
-		    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint mask);\n\n",
+		    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint64 mask);\n\n",
 		    cPrefix, cTableName,
 		    cPrefix, cGroupName, cGroupName);
 	    fprintf(f, "extern void\n"
@@ -1341,10 +1340,10 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     }
-    fprintf(f, ", gint mask);\n\n");
+    fprintf(f, ", gint64 mask);\n\n");
     if (writable) {
 	fprintf(f, "extern void\n"
-		"%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask);\n\n",
+		"%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint64 mask);\n\n",
 		cPrefix, cGroupName,
 		cPrefix, cGroupName, cGroupName);
     }
@@ -2003,6 +2002,92 @@ printStubAttributes(FILE *f, SmiModule *smiModule)
 
 
 static void
+printInteger32RangeChecks(FILE *f, char *cGroupName, char *cName,
+			  SmiType *smiType)
+{
+    SmiRange *smiRange;
+    long int minSize, maxSize;
+    int c;
+
+    for (c = 0; smiType; smiType = smiGetParentType(smiType)) {
+	for (smiRange = smiGetFirstRange(smiType);
+	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	    minSize = smiRange->minValue.value.integer32;
+	    maxSize = smiRange->maxValue.value.integer32;
+	    if (! c) {
+		fprintf(f, "    if (");
+	    } else {
+		fprintf(f, "\n        && ");
+	    }
+	    if (minSize == -2147483647 - 1) {
+		fprintf(f, "(%s->%s > %ld)", cGroupName, cName, maxSize);
+	    } else if (maxSize == 2147483647) {
+		fprintf(f, "(%s->%s < %ld)", cGroupName, cName, minSize);
+	    } else if (minSize == maxSize) {
+		fprintf(f, "(%s->%s != %ld)", cGroupName, cName, maxSize);
+	    } else {
+		fprintf(f, "(%s->%s < %ld || %s->%s > %ld)",
+			cGroupName, cName, minSize,
+			cGroupName, cName, maxSize);
+	    }
+	    c++;
+	}
+    }
+
+    if (c) {
+	fprintf(f, ") {\n"
+		"         return -1;\n"
+		"    }\n");
+    }
+}
+
+
+
+static void
+printUnsigned32RangeChecks(FILE *f, char *cGroupName, char *cName,
+			   SmiType *smiType)
+{
+    SmiRange *smiRange;
+    unsigned long minSize, maxSize;
+    int c;
+
+    for (c = 0; smiType; smiType = smiGetParentType(smiType)) {
+	for (smiRange = smiGetFirstRange(smiType);
+	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	    minSize = smiRange->minValue.value.unsigned32;
+	    maxSize = smiRange->maxValue.value.unsigned32;
+	    if (minSize == 0 && maxSize == 4294967295U) {
+		continue;
+	    }
+	    if (! c) {
+		fprintf(f, "     if (");
+	    } else {
+		fprintf(f, "\n         && ");
+	    }
+	    if (minSize == 0) {
+		fprintf(f, "(%s->%s > %lu)", cGroupName, cName, maxSize);
+	    } else if (maxSize == 4294967295U) {
+		fprintf(f, "(%s->%s < %lu)", cGroupName, cName, minSize);
+	    } else if (minSize == maxSize) {
+		fprintf(f, "(%s->%s != %lu)", cGroupName, cName, maxSize);
+	    } else {
+		fprintf(f, "(%s->%s < %lu || %s->%s > %lu)",
+			cGroupName, cName, minSize,
+			cGroupName, cName, maxSize);
+	    }
+	    c++;
+	}
+    }
+    if (c) {
+	fprintf(f, ") {\n"
+		"         return -1;\n"
+		"    }\n");
+    }
+}
+
+
+
+static void
 printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiElement *smiElement;
@@ -2080,12 +2165,14 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			"    if (vb->oid_len < idx) return -1;\n"
 			"    %s->%s = vb->oid[idx++];\n",
 			cGroupName, cName);
+		printInteger32RangeChecks(f, cGroupName, cName, iType);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
 			"    if (vb->oid_len < idx) return -1;\n"
 			"    %s->%s = vb->oid[idx++];\n",
 			cGroupName, cName);
+		printUnsigned32RangeChecks(f, cGroupName, cName, iType);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 		maxSize = getMaxSize(iType);
@@ -2389,99 +2476,6 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
 
 static void
-printInteger32RangeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
-{
-    SmiRange *smiRange;
-    long int minSize, maxSize;
-    int c = 0;
-
-    if (! smiType) {
-	return;
-    }
-
-    for (smiRange = smiGetFirstRange(smiType);
-	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
-	minSize = smiRange->minValue.value.integer32;
-	maxSize = smiRange->maxValue.value.integer32;
-	if (! c) {
-	    fprintf(f, "            if (");
-	} else {
-	    fprintf(f, "\n                && ");
-	}
-	if (minSize == -2147483647 - 1) {
-	    fprintf(f, "(vb->syntax.i32[0] > %ld)", maxSize);
-	} else if (maxSize == 2147483647) {
-	    fprintf(f, "(vb->syntax.i32[0] < %ld)", minSize);
-	} else if (minSize == maxSize) {
-	    fprintf(f, "(vb->syntax.i32[0] != %ld)", maxSize);
-	} else {
-	    fprintf(f, "(vb->syntax.i32[0] < %ld || vb->syntax.i32[0] > %ld)",
-		    minSize, maxSize);
-	}
-	c++;
-    }
-    if (c) {
-	fprintf(f, ") {\n"
-		"                g_warning(\"%%s: value not within range contraints\", \"%s\");\n"
-		"                break;\n"
-		"            }\n",
-		smiNode->name);
-    }
-
-    printInteger32RangeChecks(f, smiNode, smiGetParentType(smiType));
-}
-
-
-
-static void
-printUnsigned32RangeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
-{
-    SmiRange *smiRange;
-    unsigned long minSize, maxSize;
-    int c = 0;
-
-    if (! smiType) {
-	return;
-    }
-
-    for (smiRange = smiGetFirstRange(smiType);
-	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
-	minSize = smiRange->minValue.value.unsigned32;
-	maxSize = smiRange->maxValue.value.unsigned32;
-	if (minSize == 0 && maxSize == 4294967295U) {
-	    continue;
-	}
-	if (! c) {
-	    fprintf(f, "            if (");
-	} else {
-	    fprintf(f, "\n                && ");
-	}
-	if (minSize == 0) {
-	    fprintf(f, "(vb->syntax.ui32[0] > %lu)", maxSize);
-	} else if (maxSize == 4294967295U) {
-	    fprintf(f, "(vb->syntax.ui32[0] < %lu)", minSize);
-	} else if (minSize == maxSize) {
-	    fprintf(f, "(vb->syntax.ui32[0] != %lu)", maxSize);
-	} else {
-	    fprintf(f, "(vb->syntax.ui32[0] < %lu || vb->syntax.ui32[0] > %lu)",
-		    minSize, maxSize);
-	}
-	c++;
-    }
-    if (c) {
-	fprintf(f, ") {\n"
-		"                g_warning(\"%%s: value not within range contraints\", \"%s\");\n"
-		"                break;\n"
-		"            }\n",
-		smiNode->name);
-    }
-
-    printUnsigned32RangeChecks(f, smiNode, smiGetParentType(smiType));
-}
-
-
-
-static void
 printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     char *cPrefix, *cGroupName;
@@ -2556,7 +2550,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint mask)\n"
+	    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cTableName, cPrefix, cRowName, cRowName);
@@ -2621,7 +2615,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
     foreachIndexDo(f, rowNode, printIndexParamsFunc, 1, 0);
     fprintf(f,
-	    ", gint mask)\n"
+	    ", gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n");
 
@@ -2696,7 +2690,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask)\n"
+	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
@@ -2971,7 +2965,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s, gint mask)\n"
+	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
@@ -3025,7 +3019,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask)\n"
+	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
