@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.147 2001/06/12 10:44:04 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.148 2001/06/15 07:14:55 strauss Exp $
  */
 
 %{
@@ -388,19 +388,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    }
 	}
 
-        /*
-	 * Complain about empty description clauses.
-	 */
-
-	if (! parserPtr->flags & SMI_FLAG_NODESCR
-	    && objectPtr->export.nodekind != SMI_NODEKIND_UNKNOWN
-	    && objectPtr->export.nodekind != SMI_NODEKIND_NODE
-	    && (! objectPtr->export.description
-		|| ! objectPtr->export.description[0])) {
-	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
-				objectPtr->line, objectPtr->export.name);
-	}
-	
 	/*
 	 * TODO: check whether the row is the only node below the
          * table node
@@ -593,17 +580,6 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 				typePtr->line,
 				typePtr->export.name,
 				typePtr->parentPtr->export.name);
-	}
-
-	/*
-	 * Complain about empty description clauses.
-	 */
-
-	if (! parserPtr->flags & SMI_FLAG_NODESCR
-	    && (! typePtr->export.description
-		|| ! typePtr->export.description[0])) {
-	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
-				typePtr->line, typePtr->export.name);
 	}
 
 	smiCheckNamedNumberRedefinition(parserPtr, typePtr);
@@ -1803,28 +1779,34 @@ typeDeclarationRHS:	Syntax
 			DisplayPart
 			STATUS Status
 			DESCRIPTION Text
+			{
+			    if ($7 && !strlen($7)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			ReferPart
 			SYNTAX Syntax
 			{
-			    if (($10) && !($10->export.name)) {
+			    if (($11) && !($11->export.name)) {
 				/*
 				 * If the Type we found has just been
 				 * defined, we don't have to allocate
 				 * a new one.
 				 */
-				$$ = $10;
+				$$ = $11;
 			    } else {
-				if (!($10))
+				if (!($11))
 				    smiPrintError(thisParserPtr, ERR_INTERNAL);
 				/*
 				 * Otherwise, we have to allocate a
 				 * new Type struct, inherited from $10.
 				 */
-				$$ = duplicateType($10, 0, thisParserPtr);
+				$$ = duplicateType($11, 0, thisParserPtr);
 			    }
 			    setTypeDescription($$, $7, thisParserPtr);
-			    if ($8) {
-				setTypeReference($$, $8, thisParserPtr);
+			    if ($9) {
+				setTypeReference($$, $9, thisParserPtr);
 			    }
 			    setTypeStatus($$, $5);
 			    if ($3) {
@@ -2117,13 +2099,19 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			}
 			STATUS Status
 			DESCRIPTION Text
+			{
+			    if ($8 && !strlen($8)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			ReferPart
 			COLON_COLON_EQUAL
 			'{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $12;
+			    objectPtr = $13;
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
 			    objectPtr = setObjectName(objectPtr, $1);
@@ -2132,8 +2120,8 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 					  thisParserPtr);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8, thisParserPtr);
-			    if ($9) {
-				setObjectReference(objectPtr, $9, thisParserPtr);
+			    if ($10) {
+				setObjectReference(objectPtr, $10, thisParserPtr);
 			    }
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -2277,6 +2265,10 @@ descriptionClause:	/* empty */
 	|		DESCRIPTION Text
 			{
 			    $$ = $2;
+			    if ($2 && !strlen($2)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
 			}
 	;
 
@@ -2396,7 +2388,13 @@ VarType:		ObjectName
 	;
 
 DescrPart:		DESCRIPTION Text
-			{ $$ = $2; }
+			{
+			    $$ = $2;
+			    if ($2 && !strlen($2)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 	|		/* empty */
 			{ $$ = NULL; }
 	;
@@ -2450,13 +2448,19 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			ObjectsPart
 			STATUS Status
 			DESCRIPTION Text
+			{
+			    if ($9 && !strlen($9)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			ReferPart
 			COLON_COLON_EQUAL
 			'{' NotificationName '}'
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $13;
+			    objectPtr = $14;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -2470,8 +2474,8 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    setObjectList(objectPtr, $5);
 			    setObjectStatus(objectPtr, $7);
 			    setObjectDescription(objectPtr, $9, thisParserPtr);
-			    if ($10) {
-				setObjectReference(objectPtr, $10, thisParserPtr);
+			    if ($11) {
+				setObjectReference(objectPtr, $11, thisParserPtr);
 			    }
 			    $$ = 0;
 			}
@@ -2516,15 +2520,33 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    setModuleLastUpdated(thisParserPtr->modulePtr, $6);
 			}
 			ORGANIZATION Text
+			{
+			    if ($9 && !strlen($9)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_ORGANIZATION);
+			    }
+			}
 			CONTACT_INFO Text
+			{
+			    if ($12 && !strlen($12)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_CONTACT);
+			    }
+			}
 			DESCRIPTION Text
+			{
+			    if ($15 && !strlen($15)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			RevisionPart
 			COLON_COLON_EQUAL
 			'{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $17;
+			    objectPtr = $20;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -2542,9 +2564,9 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    setModuleOrganization(thisParserPtr->modulePtr,
 						  $9);
 			    setModuleContactInfo(thisParserPtr->modulePtr,
-						 $11);
+						 $12);
 			    setModuleDescription(thisParserPtr->modulePtr,
-						 $13, thisParserPtr);
+						 $15, thisParserPtr);
 			    /* setObjectDescription(objectPtr, $13); */
 			    $$ = 0;
 			}
@@ -3698,6 +3720,11 @@ Status_Capabilities:	LOWERCASE_IDENTIFIER
 DisplayPart:		DISPLAY_HINT Text
 			{
 			    $$ = $2;
+			    
+			    if ($2 && !strlen($2)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_FORMAT);
+			    }
 			}
         |		/* empty */
 			{
@@ -3708,6 +3735,11 @@ DisplayPart:		DISPLAY_HINT Text
 UnitsPart:		UNITS Text
 			{
 			    $$ = $2;
+			    
+			    if ($2 && !strlen($2)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_UNITS);
+			    }
 			}
         |		/* empty */
 			{
@@ -3896,7 +3928,14 @@ NotificationName:	objectIdentifier
 	;
 
 ReferPart:		REFERENCE Text
-			{ $$ = $2; }
+			{
+			    $$ = $2;
+
+			    if ($2 && !strlen($2)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_REFERENCE);
+			    }
+			}
 	|		/* empty */
 			{ $$ = NULL; }
 	;
@@ -3935,6 +3974,11 @@ Revision:		REVISION ExtUTCTime
 					    smiStrdup(
 	           "[Revision added by libsmi due to a LAST-UPDATED clause.]"),
 					    thisParserPtr);
+			    }
+
+			    if ($4 && !strlen($4)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
 			    }
 			    
 			    if (addRevision($2, $4, thisParserPtr))
@@ -4359,12 +4403,18 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			ObjectsPart
 			STATUS Status
 			DESCRIPTION Text
+			{
+			    if ($9 && !strlen($9)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			ReferPart
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $13;
+			    objectPtr = $14;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -4376,8 +4426,8 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
 			    setObjectDescription(objectPtr, $9, thisParserPtr);
-			    if ($10) {
-				setObjectReference(objectPtr, $10, thisParserPtr);
+			    if ($11) {
+				setObjectReference(objectPtr, $11, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -4416,12 +4466,18 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			NotificationsPart
 			STATUS Status
 			DESCRIPTION Text
+			{
+			    if ($9 && !strlen($9)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			ReferPart
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $13;
+			    objectPtr = $14;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -4434,8 +4490,8 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
 			    setObjectDescription(objectPtr, $9, thisParserPtr);
-			    if ($10) {
-				setObjectReference(objectPtr, $10, thisParserPtr);
+			    if ($11) {
+				setObjectReference(objectPtr, $11, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -4472,6 +4528,12 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			}
 			STATUS Status
 			DESCRIPTION Text
+			{
+			    if ($8 && !strlen($8)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			ReferPart
 			ComplianceModulePart
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
@@ -4481,7 +4543,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    Refinement *refinementPtr;
 			    List *listPtr;
 			    
-			    objectPtr = $13;
+			    objectPtr = $14;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -4494,18 +4556,18 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8, thisParserPtr);
-			    if ($9) {
-				setObjectReference(objectPtr, $9, thisParserPtr);
+			    if ($10) {
+				setObjectReference(objectPtr, $10, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-			    setObjectList(objectPtr, $10.mandatorylistPtr);
-			    objectPtr->optionlistPtr = $10.optionlistPtr;
+			    setObjectList(objectPtr, $11.mandatorylistPtr);
+			    objectPtr->optionlistPtr = $11.optionlistPtr;
 			    objectPtr->refinementlistPtr =
-				                          $10.refinementlistPtr;
+				                          $11.refinementlistPtr;
 
-			    if ($10.optionlistPtr) {
-				for (listPtr = $10.optionlistPtr;
+			    if ($11.optionlistPtr) {
+				for (listPtr = $11.optionlistPtr;
 				     listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    optionPtr = ((Option *)(listPtr->ptr));
@@ -4519,8 +4581,8 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			     * ``<compliancename>+<objecttypename>+type''
 			     * ``<compliancename>+<objecttypename>+writetype''
 			     */
-			    if ($10.refinementlistPtr) {
-				for (listPtr = $10.refinementlistPtr;
+			    if ($11.refinementlistPtr) {
+				for (listPtr = $11.refinementlistPtr;
 				     listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
@@ -4794,6 +4856,11 @@ ComplianceGroup:	GROUP objectIdentifier
 				    importPtr->use++;
 			    }
 			    
+			    if ($4 && !strlen($4)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			    
 			    $$ = smiMalloc(sizeof(List));
 			    $$->nextPtr = NULL;
 			    $$->ptr = smiMalloc(sizeof(Option));
@@ -4819,6 +4886,11 @@ ComplianceObject:	OBJECT ObjectName
 						    thisModulePtr);
 				if (importPtr) 
 				    importPtr->use++;
+			    }
+			    
+			    if ($7 && !strlen($7)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
 			    }
 			    
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
@@ -4909,13 +4981,19 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			PRODUCT_RELEASE Text
 			STATUS Status_Capabilities
 			DESCRIPTION Text
+			{
+			    if ($10 && !strlen($10)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			}
 			ReferPart
 			ModulePart_Capabilities
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $15;
+			    objectPtr = $16;
 			    
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -4928,8 +5006,8 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $8);
 			    setObjectDescription(objectPtr, $10, thisParserPtr);
-			    if ($11) {
-				setObjectReference(objectPtr, $11, thisParserPtr);
+			    if ($12) {
+				setObjectReference(objectPtr, $12, thisParserPtr);
 			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
@@ -5084,6 +5162,12 @@ Variation:		VARIATION ObjectName
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
 			    $$ = 0;
 			    variationkind = SMI_NODEKIND_UNKNOWN;
+
+			    if ($14 && !strlen($14)) {
+				smiPrintError(thisParserPtr,
+					      ERR_EMPTY_DESCRIPTION);
+			    }
+			    
 			}
 	;
 
