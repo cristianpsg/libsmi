@@ -969,7 +969,7 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
 	printf("}\n\n");
 	printf("function colorText(object, color) {\n");
 	printf("    var obj = svgDocument.getElementById(object);\n");
-	printf("    obj.setAttribute(\"style\",\"fill: \"+color);");
+	printf("    obj.setAttribute(\"style\",\"fill: \"+color);\n");
 	printf("}\n\n");
 	printf("function enlarge(name, number) {\n");
 	printf("    var obj = svgDocument.getElementById(name);\n");
