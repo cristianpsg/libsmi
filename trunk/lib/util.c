@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.23 2000/06/08 09:36:15 strauss Exp $
+ * @(#) $Id: util.c,v 1.24 2000/06/14 13:15:19 strauss Exp $
  */
 
 #include <config.h>
@@ -77,7 +77,7 @@ void smiFree(void *ptr)
 
 int smiIsPath(const char *s)
 {
-    return (strchr(s, '.') || strchr(s, '/'));
+    return (strchr(s, '.') || strchr(s, DIR_SEPARATOR));
 }
 
 #ifndef HAVE_TIMEGM

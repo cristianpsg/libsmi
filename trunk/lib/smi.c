@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.95 2000/11/01 09:30:04 strauss Exp $
+ * @(#) $Id: smi.c,v 1.96 2000/11/12 17:46:42 strauss Exp $
  */
 
 #include <config.h>
@@ -250,7 +250,7 @@ int smiInit(const char *tag)
 	    /* 3. read user config file if present (append/prepend/replace) */
 	    p = smiMalloc(strlen(DEFAULT_USERCONFIG) +
 			    strlen(pw->pw_dir) + 2);
-	    sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
+	    sprintf(p, "%s%c%s", pw->pw_dir, DIR_SEPARATOR, DEFAULT_USERCONFIG);
 	    smiReadConfig(p, tag);
 	    smiFree(p);
 	}

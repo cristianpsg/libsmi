@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.58 2000/11/08 14:18:49 strauss Exp $
+ * @(#) $Id: error.c,v 1.59 2000/11/08 23:12:02 strauss Exp $
  */
 
 #include <config.h>
@@ -18,6 +18,10 @@
 #include <stdarg.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#if defined(HAVE_WIN_H)
+#include "win.h"
 #endif
 
 #ifdef HAVE_DMALLOC_H

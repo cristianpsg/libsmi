@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: win.h,v 1.4 2000/11/15 10:50:36 strauss Exp $
+ * @(#) $Id: win.h,v 1.5 2000/11/15 14:15:07 strauss Exp $
  */
 
 #ifndef _WIN_H
@@ -52,11 +52,21 @@ extern char *optarg;
 extern int getopt(int argc, char **argv, char *opts);
 
 /*
- * isascii() is a BSD extension not present in the Win32 API.
+ * other function prototypes 
  */
+#if defined(__STDC__)
+int __cdecl fileno(FILE *); 
+#endif
 
+
+/*
+ * isascii() is a non __STDC__ extension needed when __STDC__ is defined in
+ * Win32 environment.
+ */
+#if defined(__STDC__)
 #ifndef isascii
-#define isascii(c) !((c) & ~0177))
+#define isascii(_c)   ( (unsigned)(_c) < 0x80 )
+#endif
 #endif
 
 #endif _WIN_H

@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.82 2000/11/13 11:32:20 strauss Exp $
+# @(#) $Id: configure.in,v 1.83 2000/11/14 13:27:55 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -79,6 +79,10 @@ AC_ARG_WITH(pathseparator,
 [  --with-pathseparator=C  use C as the path separator [: on UNIX, ; on WIN32]],
 pathseparator="$withval", pathseparator="")
 
+AC_ARG_WITH(dirseparator,
+[  --with-dirseparator=C   use C as the dir separator [/ on UNIX, \\ on WIN32]],
+dirseparator="$withval", dirseparator="")
+
 AC_MSG_CHECKING([for path separator character])
 if test "$pathseparator" = "" ; then
   AC_TRY_RUN([#include <stdio.h>
@@ -93,7 +97,22 @@ if test "$pathseparator" = "" ; then
 fi
 echo $pathseparator
 
+AC_MSG_CHECKING([for dir separator character])
+if test "$dirseparator" = "" ; then
+  AC_TRY_RUN([#include <stdio.h>
+    main() {
+    #ifdef _WIN32
+	  exit(0);
+    #else
+	  exit(1);
+    #endif
+    }
+  ], dirseparator="\\", dirseparator="/", dirseparator="/")
+fi
+echo $dirseparator
+
 AC_DEFINE_UNQUOTED(PATH_SEPARATOR, '$pathseparator')
+AC_DEFINE_UNQUOTED(DIR_SEPARATOR, '$dirseparator')
 
 
 AC_MSG_CHECKING([for 64 bit types])
