@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.27 2000/11/16 14:58:10 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.28 2000/11/24 12:30:29 strauss Exp $
  */
 
 #ifndef _SMI_H

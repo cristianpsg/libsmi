@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.4 2000/11/14 13:28:34 strauss Exp $
+# @(#) $Id: makefile,v 1.5 2000/11/16 14:58:41 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -44,7 +44,7 @@ LIBDIR = $(INSTROOT)\lib
 ##
 PATH=$(TOOLS32)\bin;$(PATH)
 
-cc32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
+cc32	= cl
 CP      = copy
 RM      = del
 MKDIR	= md
