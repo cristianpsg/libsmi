@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.56 2001/01/30 16:33:43 schoenw Exp $
+ * @(#) $Id: smidump.c,v 1.57 2001/03/08 14:49:46 schoenw Exp $
  */
 
 #include <config.h>
@@ -263,6 +263,7 @@ int main(int argc, char *argv[])
 
     if (!driver) {
 	fprintf(stderr, "smidump: no dump formats registered\n");
+	smiExit();
 	exit(1);
     }
     

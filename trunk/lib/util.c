@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.24 2000/06/14 13:15:19 strauss Exp $
+ * @(#) $Id: util.c,v 1.25 2000/11/16 14:58:10 strauss Exp $
  */
 
 #include <config.h>
@@ -17,12 +17,68 @@
 #include <string.h>
 #include <time.h>
 
+#include "util.h"
+
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
 
-#include "util.h"
 
+
+#ifdef HAVE_DMALLOC_H
+
+void *_smiMalloc(char *file, int line, size_t size)
+{
+    char *m = _calloc_leap(file, line, 1, size);
+    if (! m) {
+	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    return m;
+}
+
+void *_smiRealloc(char *file, int line, void *ptr, size_t size)
+{
+    char *m = _realloc_leap(file, line, ptr, size);
+    if (! m) {
+	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    return m;
+}
+
+char *_smiStrdup(char *file, int line, const char *s1)
+{
+    if (s1) {
+	char *m = _strdup_leap(file, line, s1);
+	if (! m) {
+	    smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+	}
+	return m;
+    } else {
+	return NULL;
+    }
+}
+
+char *_smiStrndup(char *file, int line, const char *s1, size_t n)
+{
+    char *m;
+    
+    m = _smiMalloc(file, line, n+1);
+    if (! m) {
+	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    strncpy(m, s1, n);
+    m[n] = 0;
+    return m;
+}
+
+void _smiFree(char *file, int line, void *ptr)
+{
+    if (ptr) {
+	_free_leap(file, line, ptr);
+    }
+}
+
+#else
 
 void *smiMalloc(size_t size)
 {
@@ -75,10 +131,16 @@ void smiFree(void *ptr)
     }
 }
 
+#endif
+
+
+
 int smiIsPath(const char *s)
 {
     return (strchr(s, '.') || strchr(s, DIR_SEPARATOR));
 }
+
+
 
 #ifndef HAVE_TIMEGM
 time_t timegm(struct tm *tm)

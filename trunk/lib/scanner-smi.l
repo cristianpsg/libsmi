@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.33 2000/12/15 13:52:30 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.34 2001/02/15 17:48:05 strauss Exp $
  */
 
 %option noyywrap
@@ -27,17 +27,18 @@
 #include "win.h"
 #endif
 
-#ifdef HAVE_DMALLOC_H
-#include <dmalloc.h>
-#endif
-
 #include "error.h"
 #include "util.h"
 #include "parser-smi.h"
 #include "parser-smi.tab.h"
 #include "scanner-smi.h"
 
- 
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
+
+
+
 /* we need a reentrant parser, so yylex gets arguments */
 #define YY_DECL int yylex YY_PROTO((YYSTYPE *lvalp, void *parser))
     

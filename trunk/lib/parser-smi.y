@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.148 2001/06/15 07:14:55 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.149 2001/06/25 13:26:58 strauss Exp $
  */
 
 %{
@@ -29,10 +29,6 @@
 #include <malloc.h>
 #endif
 
-#ifdef HAVE_DMALLOC_H
-#include <dmalloc.h>
-#endif
-
 #include "smi.h"
 #include "error.h"
 #include "parser-smi.h"
@@ -41,6 +37,10 @@
 #include "check.h"
 #include "util.h"
     
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
+
 
 
 /*
@@ -507,10 +507,16 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (!modulePtr->prefixNodePtr) {
 	    modulePtr->prefixNodePtr = objectPtr->nodePtr;
 	} else {
-	    if (objectPtr->nodePtr->oidlen < modulePtr->prefixNodePtr->oidlen)
-		modulePtr->prefixNodePtr =
-		    findNodeByOid(objectPtr->nodePtr->oidlen,
-				  modulePtr->prefixNodePtr->oid);
+	    if (objectPtr->nodePtr->oidlen < modulePtr->prefixNodePtr->oidlen) {
+		Node *nodePtr = findNodeByOid(objectPtr->nodePtr->oidlen,
+					      modulePtr->prefixNodePtr->oid);
+		if (nodePtr)
+		    modulePtr->prefixNodePtr = nodePtr;
+		else
+		    smiPrintError(parserPtr, ERR_OTHER_ERROR,
+				  "Failed to create complete object tree - "
+				  "expect incorrect output");
+	    }
 	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++) {
 		if (modulePtr->prefixNodePtr->oid[i] !=
 		    objectPtr->nodePtr->oid[i]) {
@@ -632,6 +638,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		    objectPtr->export.value.value.ptr = NULL;
 		    objectPtr->export.value.basetype = SMI_BASETYPE_UNKNOWN;
 		} else {
+		    smiFree(objectPtr->export.value.value.ptr);
 		    objectPtr->export.value.len = object2Ptr->export.oidlen;
 		    objectPtr->export.value.value.ptr =
 			smiMalloc(object2Ptr->export.oidlen *
@@ -1276,6 +1283,7 @@ import:			importIdentifiers FROM moduleName
 				}
 			    }
 
+			    smiFree($3);
 			}
 	;
 
@@ -1439,10 +1447,18 @@ declaration:		typeDeclaration
  * documents readable.
  */
 macroClause:		macroName
-			MACRO
 			{
+			    Macro *macroPtr;
+
 			    firstStatementLine = thisParserPtr->line;
 
+			    macroPtr = addMacro(smiStrdup($1),
+						0, thisParserPtr);
+			    setMacroLine(macroPtr, firstStatementLine,
+					 thisParserPtr);
+			}
+			MACRO
+			{
 			    /*
 			     * ASN.1 macros are known to be in these
 			     * modules.
@@ -1467,26 +1483,20 @@ macroClause:		macroName
 			/* the scanner skips until... */
 			END
 			{
-			    Macro *macroPtr;
-
-			    macroPtr = addMacro($1, 0, thisParserPtr);
-			    setMacroLine(macroPtr, firstStatementLine,
-					 thisParserPtr);
-			    smiFree($1);
 			    $$ = 0;
                         }
 	;
 
-macroName:		MODULE_IDENTITY     { $$ = smiStrdup($1); }
-	|		OBJECT_TYPE	    { $$ = smiStrdup($1); }
-	|		TRAP_TYPE	    { $$ = smiStrdup($1); }
-	|		NOTIFICATION_TYPE   { $$ = smiStrdup($1); }
-	|		OBJECT_IDENTITY	    { $$ = smiStrdup($1); }
-	|		TEXTUAL_CONVENTION  { $$ = smiStrdup($1); }
-	|		OBJECT_GROUP	    { $$ = smiStrdup($1); }
-	|		NOTIFICATION_GROUP  { $$ = smiStrdup($1); }
-	|		MODULE_COMPLIANCE   { $$ = smiStrdup($1); }
-	|		AGENT_CAPABILITIES  { $$ = smiStrdup($1); }
+macroName:		MODULE_IDENTITY     { $$ = $1; }
+	|		OBJECT_TYPE	    { $$ = $1; }
+	|		TRAP_TYPE	    { $$ = $1; }
+	|		NOTIFICATION_TYPE   { $$ = $1; }
+	|		OBJECT_IDENTITY	    { $$ = $1; }
+	|		TEXTUAL_CONVENTION  { $$ = $1; }
+	|		OBJECT_GROUP	    { $$ = $1; }
+	|		NOTIFICATION_GROUP  { $$ = $1; }
+	|		MODULE_COMPLIANCE   { $$ = $1; }
+	|		AGENT_CAPABILITIES  { $$ = $1; }
 	;
 
 choiceClause:		CHOICE
@@ -1693,7 +1703,7 @@ typeDeclaration:	typeName
 						           "IpAddress"));
 				} else if (!strcmp($1, "IpAddress")) {
 				    typePtr = findTypeByModuleAndName(
-					thisModulePtr, smiStrdup("NetworkAddress"));
+					thisModulePtr, "NetworkAddress");
 				    if (typePtr) 
 					setTypeParent(typePtr, $4);
 				}
@@ -1874,7 +1884,10 @@ row:			UPPERCASE_IDENTIFIER
 				    $$ = findTypeByModulenameAndName(
 					importPtr->export.module,
 					importPtr->export.name);
+				    smiFree($1);
 				}
+			    } else {
+				smiFree($1);
 			    }
 			}
 		        /* TODO: this must be an entryType */
@@ -1940,7 +1953,10 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				    importPtr->use++;
 				    objectPtr = findObjectByModulenameAndName(
 					importPtr->export.module, $1);
+				    smiFree($1);
 				}
+			    } else {
+				smiFree($1);
 			    }
 
 			    $$ = objectPtr;
@@ -2012,7 +2028,10 @@ sequenceSyntax:		/* ObjectSyntax */
 				     * a new Type struct.
 				     */
 				    importPtr->use++;
+				    smiFree($1);
 				}
+			    } else {
+				smiFree($1);
 			    }
 			}
 	;
@@ -2788,6 +2807,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
 				}
+				smiFree($1);
 			    } else {
 				/* 
 				 * forward referenced type. create it,
@@ -2847,6 +2867,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    setTypeList($$, $4);
 			    for (p = $4; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
+			    smiFree($1);
+			    smiFree($3);
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
@@ -2886,6 +2908,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
 				}
+				smiFree($1);
 			    } else {
 				/* 
 				 * forward referenced type. create it,
@@ -2949,6 +2972,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    }
 			    setTypeList($$, $4);
 			    smiCheckTypeRanges(thisParserPtr, $$);
+			    smiFree($1);
+			    smiFree($3);
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -2997,6 +3022,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
 				}
+				smiFree($1);
 			    } else {
 				/* 
 				 * forward referenced type. create it,
@@ -3050,6 +3076,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    }
 			    setTypeList($$, $4);
 			    smiCheckTypeRanges(thisParserPtr, $$);
+			    smiFree($1);
+			    smiFree($3);
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -4103,6 +4131,7 @@ subidentifier:
 				thisParserPtr->modulePtr, $1);
 			    if (objectPtr) {
 				$$ = objectPtr;
+				smiFree($1);
 			    } else {
 				importPtr = findImportByName($1,
 							     thisModulePtr);
@@ -4118,7 +4147,7 @@ subidentifier:
 						complianceModulePtr, $1);
 					if (objectPtr) {
 					    importPtr = addImport(
-						smiStrdup($1),
+						$1,
 						thisParserPtr);
 					    setImportModulename(importPtr,
 								complianceModulePtr->export.name);
@@ -4138,7 +4167,7 @@ subidentifier:
 						capabilitiesModulePtr, $1);
 					if (objectPtr) {
 					    importPtr = addImport(
-						smiStrdup($1),
+						$1,
 						thisParserPtr);
 					    setImportModulename(importPtr,
 								capabilitiesModulePtr->
@@ -4173,6 +4202,7 @@ subidentifier:
 				    importPtr->use++;
 				    $$ = findObjectByModulenameAndName(
 					importPtr->export.module, $1);
+				    smiFree($1);
 				}
 			    }
 			    if ($$)
@@ -4196,6 +4226,8 @@ subidentifier:
 				    $1, $3);
 				if (objectPtr) {
 				    $$ = objectPtr;
+				    smiFree($1);
+				    smiFree($3);
 				} else {
 				    importPtr = findImportByModulenameAndName(
 					$1, $3, thisModulePtr);
@@ -4212,7 +4244,7 @@ subidentifier:
 						    complianceModulePtr, $1);
 					    if (objectPtr) {
 						importPtr = addImport(
-						    smiStrdup($1),
+						    $1,
 						    thisParserPtr);
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
@@ -4232,7 +4264,7 @@ subidentifier:
 						    capabilitiesModulePtr, $1);
 					    if (objectPtr) {
 						importPtr = addImport(
-						    smiStrdup($1),
+						    $1,
 						    thisParserPtr);
 						setImportModulename(importPtr,
 						        capabilitiesModulePtr->
@@ -4253,11 +4285,12 @@ subidentifier:
 					     * create it,
 					     * marked with FLAG_INCOMPLETE.
 					     */
-					    objectPtr = addObject($1,
+					    objectPtr = addObject($3,
 							    pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
+					    smiFree($1);
 					}
 					$$ = objectPtr;
 				    } else {
@@ -4266,7 +4299,9 @@ subidentifier:
 					 */
 					importPtr->use++;
 					$$ = findObjectByModulenameAndName(
-					    importPtr->export.module, $1);
+					    importPtr->export.module, $3);
+					smiFree($1);
+					smiFree($3);
 				    }
 				}
 				if ($$)
@@ -4315,6 +4350,7 @@ subidentifier:
 					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
 						  $3, $1);
 				}
+				smiFree($1);
 			    } else {
 				objectPtr = addObject($1, parentNodePtr,
 						      $3, 0,
@@ -4344,6 +4380,8 @@ subidentifier:
 					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
 						  $5, md);
 				}
+				smiFree($1);
+				smiFree($3);
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_ILLEGALLY_QUALIFIED, md);
@@ -4351,6 +4389,7 @@ subidentifier:
 						   $5, 0,
 						   thisParserPtr);
 				$$ = objectPtr;
+				smiFree($1);
 			    }
 			    smiFree(md);
 			    if ($$)
@@ -4676,6 +4715,7 @@ ComplianceModuleName:	UPPERCASE_IDENTIFIER objectIdentifier
 			    if (!$$) {
 				$$ = loadModule($1);
 			    }
+			    smiFree($1);
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
@@ -4683,6 +4723,7 @@ ComplianceModuleName:	UPPERCASE_IDENTIFIER objectIdentifier
 			    if (!$$) {
 				$$ = loadModule($1);
 			    }
+			    smiFree($1);
 			}
 	|		/* empty, only if contained in MIB module */
 			/* TODO: RFC 1904 looks a bit different, is this ok? */
@@ -4867,6 +4908,8 @@ ComplianceGroup:	GROUP objectIdentifier
 			    ((Option *)($$->ptr))->objectPtr = $2;
 			    if (! (thisModulePtr->flags & SMI_FLAG_NODESCR)) {
 				((Option *)($$->ptr))->export.description = $4;
+			    } else {
+				smiFree($4);
 			    }
 			}
 	;
@@ -4903,6 +4946,8 @@ ComplianceObject:	OBJECT ObjectName
 			    ((Refinement *)($$->ptr))->export.access = $5;
 			    if (! (thisParserPtr->flags & SMI_FLAG_NODESCR)) {
 				((Refinement *)($$->ptr))->export.description = $7;
+			    } else {
+				smiFree($7);
 			    }
 			}
 	;
@@ -5098,6 +5143,7 @@ ModuleName_Capabilities: UPPERCASE_IDENTIFIER objectIdentifier
 			    if (!$$) {
 				$$ = loadModule($1);
 			    }
+			    smiFree($1);
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
@@ -5105,6 +5151,7 @@ ModuleName_Capabilities: UPPERCASE_IDENTIFIER objectIdentifier
 			    if (!$$) {
 				$$ = loadModule($1);
 			    }
+			    smiFree($1);
 			}
 	;
 

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.20 2001/06/06 07:36:37 strauss Exp $
+ * @(#) $Id: check.c,v 1.21 2001/06/25 13:26:58 strauss Exp $
  */
 
 #include <config.h>
@@ -25,15 +25,15 @@
 #include "win.h"
 #endif
 
-#ifdef HAVE_DMALLOC_H
-#include <dmalloc.h>
-#endif
-
 #include "error.h"
 #include "util.h"
 #include "data.h"
 #include "check.h"
 #include "smi.h"
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
 
 
 
