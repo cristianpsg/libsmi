@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.26 2001/09/27 16:13:38 strauss Exp $
+ * @(#) $Id: check.c,v 1.27 2001/10/09 10:58:45 strauss Exp $
  */
 
 #include <config.h>
@@ -59,24 +59,6 @@
 
 static int
 compareValues(SmiValue *a, SmiValue *b) {
-#if 0
-    if (((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
-	 (b->basetype == SMI_BASETYPE_INTEGER32)) ||
-	((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
-	 (a->value.unsigned32 > b->value.unsigned32)) ||
-	((a->basetype == SMI_BASETYPE_INTEGER32) &&
-	 (a->value.integer32 > b->value.integer32))) {
-	return 1;
-    }
-    if ((a->basetype == b->basetype) &&
-	       (((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
-		 (a->value.unsigned32 == b->value.unsigned32)) ||
-		((a->basetype == SMI_BASETYPE_INTEGER32) &&
-		 (a->value.integer32 == b->value.integer32)))) {
-	return 0;
-    }
-    return -1;
-#else
     if ((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
 	(b->basetype == SMI_BASETYPE_UNSIGNED32)) {
 	if (a->value.unsigned32 == b->value.unsigned32) {
@@ -135,7 +117,7 @@ compareValues(SmiValue *a, SmiValue *b) {
 	}
 	return b->value.unsigned32 - a->value.integer32;
     }
-#endif
+    return 0;
 }
 
 
@@ -1559,6 +1541,7 @@ smiCheckGroupMembership(Parser *parser, Object *objectPtr)
 	if (!found && objectPtr->export.status != SMI_STATUS_OBSOLETE) {
 	    smiPrintErrorAtLine(parser, ERR_GROUP_OPTIONAL,
 				objectPtr->line,
+				status[objectPtr->export.status],
 				objectPtr->export.name);
 	}
     }
