@@ -7,25 +7,43 @@ IMPORTS
    TEXTUAL-CONVENTION
        FROM SNMPv2-TC;
 
-
 perfHistTCMIB MODULE-IDENTITY
-     LAST-UPDATED "9811071100Z"
-     ORGANIZATION "IETF AToMMIB and TrunkMIB WGs"
+     LAST-UPDATED "200308130000Z"
+     ORGANIZATION "IETF AToM MIB WG"
      CONTACT-INFO
-                  "Kaj Tesink
-         Postal:  Bellcore
+        "WG charter:
+           http://www.ietf.org/html.charters/atommib-charter.html
+
+         Mailing Lists:
+           General Discussion: atommib@research.telcordia.com
+           To Subscribe: atommib-request@research.telcordia.com
+
+         Editor:  Kaj Tesink
+         Postal:  Telcordia Technologies
                   331 Newman Springs Road
                   Red Bank, NJ 07701
                   USA
          Tel:     +1 732 758 5254
-         Fax:     +1 732 758 2269
-         E-mail:  kaj@bellcore.com"
+         E-mail:  kaj@research.telcordia.com"
+
      DESCRIPTION
       "This MIB Module provides Textual Conventions
-        to be used by systems supporting 15 minute
-        based performance history counts."
-     ::= { mib-2 58 }
+       to be used by systems supporting 15 minute
+       based performance history counts.
 
+       Copyright (C) The Internet Society (2003).
+       This version of this MIB module is part of
+       RFC 3593;  see the RFC itself for full
+       legal notices."
+     REVISION      "200308130000Z"
+     DESCRIPTION
+      "Contact information and references updated.
+       No technical changes have been applied.
+       Published as RFC 3593."
+     REVISION      "199811071100Z"
+     DESCRIPTION
+      "The RFC 2493 version of this MIB module."
+     ::= { mib-2 58 }
 
 
 
@@ -36,7 +54,7 @@ perfHistTCMIB MODULE-IDENTITY
 -- 0  The agent supports 15 minute based history
 --    counters.
 -- 0  The agent is capable of keeping a history of n
---    intervals of 15 minute performance data. The
+--    intervals of 15 minute performance data.  The
 --    value of n is defined by the specific MIB
 --    module but shall be 0 < n =< 96.
 -- 0  The agent may optionally support performance
@@ -50,14 +68,11 @@ perfHistTCMIB MODULE-IDENTITY
 --    these objects are applied to each instance of
 --    the measured entity (e.g., interfaces).
 --
-
-
 -- xyzTimeElapsed OBJECT-TYPE
 --       SYNTAX  INTEGER (0..899)
 --       MAX-ACCESS  read-only
 --       STATUS  current
 --       DESCRIPTION
-
 --       "The number of seconds that have elapsed since
 --       the beginning of the current measurement period.
 --       If, for some reason, such as an adjustment in the
@@ -79,7 +94,10 @@ perfHistTCMIB MODULE-IDENTITY
 --       (re-)started within the last (<n>*15) minutes, in which
 --       case the value will be the number of complete 15
 --       minute intervals for which the agent has at least
---       some data. In certain cases (e.g., in the case
+--       some data.  In certain cases (e.g., in the case
+
+
+
 --       where the agent is a proxy) it is possible that some
 --       intervals are unavailable.  In this case, this
 --       interval is the maximum interval number for
@@ -93,7 +111,7 @@ perfHistTCMIB MODULE-IDENTITY
 --     DESCRIPTION
 --       "The number of intervals in the range from
 --        0 to xyzValidIntervals for which no
---        data is available. This object will typically
+--        data is available.  This object will typically
 --        be zero except in cases where the data for some
 --        intervals are not available (e.g., in proxy
 --        situations)."
@@ -104,14 +122,14 @@ PerfCurrentCount ::= TEXTUAL-CONVENTION
       DESCRIPTION
          "A counter associated with a
           performance measurement in a current 15
-          minute measurement interval. The value
+          minute measurement interval.  The value
           of this counter starts from zero and is
           increased when associated events occur,
           until the end of the 15 minute interval.
           At that time the value of the counter is
           stored in the first 15 minute history
           interval, and the CurrentCount is
-          restarted at zero. In the
+          restarted at zero.  In the
           case where the agent has no valid data
           available for the current interval the
           corresponding object instance is not
@@ -123,12 +141,20 @@ PerfCurrentCount ::= TEXTUAL-CONVENTION
           SNMPv2 GET operation)."
        SYNTAX  Gauge32
 
+
+
+
+
+
+
+
+
 PerfIntervalCount ::= TEXTUAL-CONVENTION
       STATUS  current
       DESCRIPTION
          "A counter associated with a
           performance measurement in a previous
-          15 minute measurement interval. In the
+          15 minute measurement interval.  In the
           case where the agent has no valid data
           available for a particular interval the
           corresponding object instance is not
@@ -158,9 +184,8 @@ PerfTotalCount ::= TEXTUAL-CONVENTION
          "A counter associated with a
           performance measurements aggregating the
           previous valid 15 minute measurement
-          intervals. (Intervals for which no valid
+          intervals.  (Intervals for which no valid
           data was available are not counted)"
        SYNTAX  Gauge32
-
 
 END
