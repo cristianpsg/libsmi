@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiclient.c,v 1.4 1998/11/24 10:59:25 strauss Exp $
+ * @(#) $Id: smiclient.c,v 1.6 1998/11/25 02:50:58 strauss Exp $
  */
 
 #include <stdio.h>
@@ -30,6 +30,7 @@ main(argc, argv)
 {
     smi_getspec getspec;
     smi_fullname fullname;
+    smi_fullname *fullname2;
     smi_module *module;
     smi_node *node;
     smi_type *type;
@@ -46,7 +47,11 @@ main(argc, argv)
 	exit(1);
     }
 
-    if (!(cl = clnt_create(argv[1], SMIPROG, SMIVERS, "udp"))) {
+    /*
+     * We must use TCP, since some messages may exceed the UDP limitation
+     * of messages larger than UDPMSGSIZE==8800 (at least on Linux).
+     */
+    if (!(cl = clnt_create(argv[1], SMIPROG, SMIVERS, "tcp"))) {
 	clnt_pcreateerror(argv[1]);
 	exit(1);
     }
@@ -141,6 +146,16 @@ main(argc, argv)
 	    printf("     Members: %s\n", namelist->namelist);
 	} else {
 	    clnt_perror(cl, "smiproc_members_1");
+	}
+    }
+    
+    if (!strcmp(argv[2], "parent")) {
+	fullname = argv[3];
+	fullname2 = smiproc_parent_1(&fullname, cl);
+	if (fullname2) {
+	    printf("      Parent: %s\n", *fullname2);
+	} else {
+	    clnt_perror(cl, "smiproc_parent_1");
 	}
     }
     

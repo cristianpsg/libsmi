@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.28 1998/11/25 03:47:42 strauss Exp $
+ * @(#) $Id: data.c,v 1.29 1998/11/25 14:36:33 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2496,6 +2496,7 @@ initData()
 {
     int i;
     Object *object;
+    Module *module;
     
     for (i = 0; i < NUM_KINDS; i++) {
 	firstDescriptor[i] = NULL;
@@ -2515,14 +2516,17 @@ initData()
     pendingRootNode = object->node;
     
     /*
-     * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt.
+     * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt
+     * belonging to a dummy module.
      */
-    object = addObject(rootNode, 0, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("ccitt", NULL, KIND_OBJECT, &object, FLAG_PERMANENT, NULL);
-    object = addObject(rootNode, 1, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("iso", NULL, KIND_OBJECT, &object, FLAG_PERMANENT, NULL);
-    object = addObject(rootNode, 2, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("joint-iso-ccitt", NULL, KIND_OBJECT, &object,
+    module = addModule("", "", -1, FLAG_PERMANENT, NULL);
+
+    object = addObject(rootNode, 0, module, FLAG_PERMANENT, NULL);
+    addDescriptor("ccitt", module, KIND_OBJECT, &object, FLAG_PERMANENT, NULL);
+    object = addObject(rootNode, 1, module, FLAG_PERMANENT, NULL);
+    addDescriptor("iso", module, KIND_OBJECT, &object, FLAG_PERMANENT, NULL);
+    object = addObject(rootNode, 2, module, FLAG_PERMANENT, NULL);
+    addDescriptor("joint-iso-ccitt", module, KIND_OBJECT, &object,
 		  FLAG_PERMANENT, NULL);
 
     /*
