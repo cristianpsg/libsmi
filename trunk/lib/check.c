@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.30 2001/11/26 12:53:43 schoenw Exp $
+ * @(#) $Id: check.c,v 1.32 2001/11/26 17:06:28 strauss Exp $
  */
 
 #include <config.h>
@@ -869,15 +869,18 @@ smiCheckIndex(Parser *parser, Object *object)
 	}
 
 	/*
-	 * TODO: If SMIv2 or SMIng and if there is a non-index column,
-	 * then warn about not not-accessible index components.
+	 * TODO: The test below should not be performed if the table
+	 * only contains INDEX objects. In this case, one of the objects
+	 * has to be accessible (see 7.7 in RFC 2578).
 	 */
-#if 0	
-	if (indexPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
-	    fprintf(stderr, "** %s should be not-accessible??\n",
-		    indexPtr->export.name);
+
+	if (parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2) {
+	    if (indexPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+		smiPrintErrorAtLine(parser, ERR_INDEX_ACCESSIBLE,
+				    object->line,
+				    indexPtr->export.name, object->export.name);
+	    }
 	}
-#endif
     }
 
     if (object->export.oidlen + 1 + len > 128) {
