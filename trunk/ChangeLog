@@ -1,3 +1,9 @@
+2001-12-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Added check for incompatible types in SEQUENCE
+	item and object type definition. Thanks to Vivekanandan.V
+	<vivekav@future.futsoft.com>.
+
 2001-11-23  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.3.tar.gz: released version 0.3.

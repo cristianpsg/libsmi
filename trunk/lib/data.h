@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.74 2001/09/18 11:04:40 strauss Exp $
+ * @(#) $Id: data.h,v 1.75 2001/10/08 17:51:26 schoenw Exp $
  */
 
 #ifndef _DATA_H
@@ -50,6 +50,7 @@ typedef unsigned short MacroFlags;
 
 #define NODE_FLAG_ROOT		0x0001 /* mark node tree's root */
 
+#define FLAG_SEQTYPE		0x0002 /* type is set from SMIv1/2 SEQUENCE. */
 #define FLAG_REGISTERED		0x0004 /* On an Object: this is registered.  */
 #define FLAG_INCOMPLETE		0x0008 /* Just defined by a forward          */
 				       /* referenced type or object.         */
@@ -402,6 +403,8 @@ extern void addObjectFlags(Object *objectPtr,
 
 extern void deleteObjectFlags(Object *objectPtr,
 			      ObjectFlags flags);
+
+extern int checkObjectFlags(Object *objectPtr, ObjectFlags flags);
 
 extern void setObjectList(Object *objectPtr,
 			  struct List *listPtr);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.160 2001/10/12 07:00:36 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.161 2001/11/08 07:34:32 schoenw Exp $
  */
 
 %{
@@ -1942,6 +1942,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			{
 			    Object *objectPtr;
 			    Import *importPtr;
+			    Type *typePtr;
 			    
 			    objectPtr =
 			        findObjectByModuleAndName(thisParserPtr->modulePtr,
@@ -1954,8 +1955,10 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				    (importPtr->kind == KIND_NOTFOUND)) {
 				    objectPtr = addObject($1, smiHandle->pendingNodePtr,
 					                  0,
-					                  FLAG_INCOMPLETE,
+					                  FLAG_INCOMPLETE |
+							  FLAG_SEQTYPE,
 						          thisParserPtr);
+				    setObjectType(objectPtr, $2);
 				} else {
 				    /*
 				     * imported object.
@@ -1964,9 +1967,54 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				    objectPtr = findObjectByModulenameAndName(
 					importPtr->export.module, $1);
 				    smiFree($1);
+
+				    if (objectPtr->typePtr->export.name) {
+					typePtr = objectPtr->typePtr;
+				    } else {
+					typePtr = objectPtr->typePtr->parentPtr;
+				    }
+				    if (($2 != typePtr) &&
+					(($2->export.basetype !=
+					  SMI_BASETYPE_INTEGER32) ||
+					 (typePtr->export.basetype !=
+					  SMI_BASETYPE_ENUM)) &&
+					(($2->export.basetype !=
+					  SMI_BASETYPE_OCTETSTRING) ||
+					 (typePtr->export.basetype !=
+					  SMI_BASETYPE_BITS))) {
+					smiPrintError(thisParserPtr,
+						      ERR_SEQUENCE_TYPE_MISMATCH,
+						      objectPtr->export.name);
+				    }
 				}
 			    } else {
 				smiFree($1);
+				if (objectPtr->typePtr) {
+
+				    if (objectPtr->typePtr->export.name) {
+					typePtr = objectPtr->typePtr;
+				    } else {
+					typePtr = objectPtr->typePtr->parentPtr;
+				    }
+				    if (($2 != typePtr) &&
+					(($2->export.basetype !=
+					  SMI_BASETYPE_INTEGER32) ||
+					 (typePtr->export.basetype !=
+					  SMI_BASETYPE_ENUM)) &&
+					(($2->export.basetype !=
+					  SMI_BASETYPE_OCTETSTRING) ||
+					 (typePtr->export.basetype !=
+					  SMI_BASETYPE_BITS))) {
+					smiPrintError(thisParserPtr,
+						      ERR_SEQUENCE_TYPE_MISMATCH,
+						      objectPtr->export.name);
+				    }
+
+				} else {
+				    setObjectType(objectPtr, $2);
+				    addObjectFlags(objectPtr,
+						   FLAG_SEQTYPE);
+				}
 			    }
 
 			    $$ = objectPtr;
@@ -2031,14 +2079,10 @@ sequenceSyntax:		/* ObjectSyntax */
 						      thisParserPtr);
 				    $$ = typePtr;
 				} else {
-				    /*
-				     * imported type.
-				     *
-				     * We are in a SEQUENCE clause,
-				     * where we do not have to create
-				     * a new Type struct.
-				     */
 				    importPtr->use++;
+				    $$ = findTypeByModulenameAndName(
+					importPtr->export.module,
+					importPtr->export.name);
 				    smiFree($1);
 				}
 			    } else {
@@ -2200,7 +2244,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' ObjectName '}'
 			{
 			    Object *objectPtr, *parentPtr;
-
+			    Type *typePtr;
+			    
 			    objectPtr = $17;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
@@ -2209,6 +2254,27 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectLine(objectPtr, firstStatementLine,
 					  thisParserPtr);
+			    if (checkObjectFlags(objectPtr, FLAG_SEQTYPE)) {
+				deleteObjectFlags(objectPtr, FLAG_SEQTYPE);
+				if ($6->export.name) {
+				    typePtr = $6;
+				} else {
+				    typePtr = $6->parentPtr;
+				}
+				if ((objectPtr->typePtr != typePtr) &&
+				    ((objectPtr->typePtr->export.basetype !=
+				      SMI_BASETYPE_INTEGER32) ||
+					(typePtr->export.basetype !=
+					 SMI_BASETYPE_ENUM)) &&
+				    ((objectPtr->typePtr->export.basetype !=
+				      SMI_BASETYPE_OCTETSTRING) ||
+					(typePtr->export.basetype !=
+					 SMI_BASETYPE_BITS))) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SEQUENCE_TYPE_MISMATCH,
+						  objectPtr->export.name);
+				}
+			    }
 			    setObjectType(objectPtr, $6);
 			    if (!($6->export.name)) {
 				/*
