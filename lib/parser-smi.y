@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.49 1999/12/13 15:54:12 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.50 1999/12/15 15:47:54 strauss Exp $
  */
 
 %{
@@ -1926,11 +1926,17 @@ valueofObjectSyntax:	valueofSimpleSyntax
 
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				printError(thisParserPtr,ERR_INTEGER_IN_SMIV2);
+
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = typeInteger32Ptr;
 			}
 	|		INTEGER integerSubType
 			{
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				printError(thisParserPtr,ERR_INTEGER_IN_SMIV2);
+
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
@@ -3228,6 +3234,7 @@ ExtUTCTime:		QUOTED_STRING
 					printError(thisParserPtr,
 						   ERR_DATE_CHARACTER, $1);
 					$$ = (time_t) -1;
+					break;
 				    }
 				}
 			    } else {

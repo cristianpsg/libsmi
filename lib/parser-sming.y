@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.29 1999/10/05 06:30:58 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.30 1999/12/15 15:47:55 strauss Exp $
  */
 
 %{
@@ -2852,6 +2852,7 @@ date:			textSegment
 					printError(thisParserPtr,
 						   ERR_DATE_CHARACTER, $1);
 					$$ = (time_t) -1;
+					break;
 				    }
 				}
 			    } else {
