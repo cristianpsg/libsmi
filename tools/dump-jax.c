@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.33 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.34 2001/01/04 13:27:48 strauss Exp $
  */
 
 #include <config.h>
@@ -26,6 +26,10 @@
 
 #include "smi.h"
 #include "smidump.h"
+
+
+
+static char *package = NULL;
 
 
 
@@ -270,6 +274,11 @@ static void dumpTable(SmiNode *smiNode)
             "    @author  smidump " SMI_VERSION_STRING "\n"
             "    @see     AgentXTable\n"
             " */\n\n", parentNode->name, smiGetNodeModule(smiNode)->name);
+
+    if (package) {
+	fprintf(f,
+		"package %s;\n\n", package);
+    }
     
     fprintf(f,
             "import java.util.Vector;\n"
@@ -294,10 +303,32 @@ static void dumpTable(SmiNode *smiNode)
     fprintf(f, "};\n\n");
 
     fprintf(f,
-            "    // constructor\n"
+            "    // constructors\n"
             "    public %s()\n", translate1Upper(parentNode->name));
     fprintf(f,
             "    {\n"
+            "        oid = new AgentXOID(OID);\n"
+            "\n"
+            "        // register implemented columns\n");
+    for (columnNode = smiGetFirstChildNode(smiNode);
+         columnNode;
+         columnNode = smiGetNextChildNode(columnNode)) {
+        if (columnNode->access >= SMI_ACCESS_READ_ONLY) {
+            fprintf(f,
+                    "        columns.addElement(new Long(%d));\n",
+                    columnNode->oid[columnNode->oidlen-1]);
+        }
+    }
+    fprintf(f,
+            "    }\n\n");
+    
+    fprintf(f,
+            "    public %s(boolean shared)\n",
+	    translate1Upper(parentNode->name));
+    fprintf(f,
+            "    {\n"
+            "        super(shared);\n"
+	    "\n"
             "        oid = new AgentXOID(OID);\n"
             "\n"
             "        // register implemented columns\n");
@@ -440,6 +471,11 @@ static void dumpEntry(SmiNode *smiNode)
             "    @author  smidump " SMI_VERSION_STRING "\n"
             "    @see     AgentXTable, AgentXEntry\n"
             " */\n\n", smiNode->name, smiGetNodeModule(smiNode)->name);
+    
+    if (package) {
+	fprintf(f,
+		"package %s;\n\n", package);
+    }
     
     fprintf(f,
             "import jax.AgentXOID;\n"
@@ -694,6 +730,11 @@ static void dumpEntryImpl(SmiNode *smiNode)
             "    the table row %s defined in %s.\n"
             " */\n\n", smiNode->name, smiGetNodeModule(smiNode)->name);
     
+    if (package) {
+	fprintf(f,
+		"package %s;\n\n", package);
+    }
+    
     fprintf(f,
             "import jax.AgentXOID;\n"
             "import jax.AgentXSetPhase;\n"
@@ -850,6 +891,11 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
             "    @see     AgentXGroup, AgentXScalars\n"
             " */\n\n", parentNode->name, smiGetNodeModule(smiNode)->name);
 
+    if (package) {
+	fprintf(f,
+		"package %s;\n\n", package);
+    }
+    
     fprintf(f,
             "import java.util.Vector;\n"
             "import java.util.Enumeration;\n"
@@ -1124,6 +1170,12 @@ static void dumpNotifications(SmiNode *smiNode)
             " *\n"
             " * $I" "d$\n"
             " */\n\n");
+
+    if (package) {
+	fprintf(f,
+		"package %s;\n\n", package);
+    }
+    
     fprintf(f,
             "import jax.AgentXOID;\n"
             "import jax.AgentXVarBind;\n"
@@ -1290,6 +1342,11 @@ static void dumpScalarImpl(SmiNode *smiNode)
             "    the scalar group %s defined in %s.\n"
             " */\n\n", parentNode->name, smiGetNodeModule(smiNode)->name);
 
+    if (package) {
+	fprintf(f,
+		"package %s;\n\n", package);
+    }
+    
     fprintf(f,
             "import java.util.Vector;\n"
             "import java.util.Enumeration;\n"
@@ -1413,13 +1470,19 @@ static void dumpJax(int modc, SmiModule **modv, int flags, char *output)
 
 void initJax()
 {
+    static SmidumpDriverOption opt[] = {
+	{ "package", OPT_STRING, &package, 0,
+	  "make classes part of a given package"},
+        { 0, OPT_END, 0, 0 }
+    };
+
     static SmidumpDriver driver = {
 	"jax",
 	dumpJax,
 	SMI_FLAG_NODESCR,
 	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
 	"Java AgentX sub-agent classes in separate files",
-	NULL,
+	opt,
 	NULL
     };
 
