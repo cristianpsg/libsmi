@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.15 1998/11/19 19:43:57 strauss Exp $
+ * @(#) $Id: data.h,v 1.16 1998/11/20 17:10:09 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -24,10 +24,6 @@
 #include "parser.h"
 
 
-
-
-
-typedef unsigned int SubId;
 
 
 
@@ -192,7 +188,7 @@ typedef struct Object {
  * Node.
  */
 typedef struct Node {
-    unsigned int   subid;
+    smi_subid	   subid;
     Flags	   flags;
     struct Node	   *parent;
     struct Node	   *next;
@@ -288,7 +284,7 @@ extern Descriptor *findDescriptor(const char *name,
 
 
 extern Object *addObject(Node *parent,
-			 SubId subid,
+			 smi_subid subid,
 			 Module *module,
 			 Flags flags,
 			 Parser *parser);
@@ -315,7 +311,7 @@ extern void setObjectFlags(Object *object,
 			   Flags flags);
 
 extern Node *findNodeByParentAndSubid(Node *parent,
-				      unsigned int subid);
+				      smi_subid subid);
 
 extern Object *findObjectByName(const char *name);
 
