@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.199 2003/12/09 14:53:04 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.200 2004/03/13 22:21:32 schoenw Exp $
  */
 
 %{
@@ -3271,12 +3271,12 @@ MaxOrPIBAccessPart:     MaxAccessPart
                                 smiPrintError(thisParserPtr, ERR_NOT_ACCESSIBLE_IN_PIB_ACCESS);
                             $$ = $1;
                         }
+        |               /* empty */
+                        { $$ = 0;  }
         ;
 
 PibAccessPart:          PibAccess Access
                         { $$ = $2; }
-        |               /* empty */
-                        { $$ = 0;  }
         ;
 
 PibAccess:              POLICY_ACCESS
