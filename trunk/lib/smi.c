@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.109 2002/05/31 17:22:13 bunkus Exp $
+ * @(#) $Id: smi.c,v 1.110 2002/06/10 09:15:15 strauss Exp $
  */
 
 #include <config.h>
@@ -1500,39 +1500,5 @@ SmiElement *smiGetFirstUniquenessElement(SmiNode *smiNodePtr)
     return (SmiElement *)listPtr;
 }
 
-
-
-/*SmiElement *smiGetFirstInstallErrorsElement(SmiNode *smiNodePtr)
-{
-    List	      *listPtr;
-    
-    if (!smiNodePtr) {
-	return NULL;
-    }
-
-    listPtr = ((Object *)smiNodePtr)->installErrorsPtr;
-
-    return (SmiElement *)listPtr;
-}
-
-
-
-SmiNode *smiGetPibReferencesNode(SmiNode *smiNodePtr)
-{
-    if (!smiNodePtr)
-        return NULL;
-   
-    return &((Object *)smiNodePtr)->pibReferencesPtr->export;
-}
-
-
-
-SmiNode *smiGetPibTagNode(SmiNode *smiNodePtr)
-{
-    if (!smiNodePtr)
-        return NULL;
-   
-    return &((Object *)smiNodePtr)->pibTagPtr->export;
-}*/
 
 
