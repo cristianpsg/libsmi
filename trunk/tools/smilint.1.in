@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.6 2000/02/12 14:31:55 strauss Exp $
+.\" $Id: smilint.1.in,v 1.7 2000/05/02 12:57:17 strauss Exp $
 .\"
 .TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -7,7 +7,7 @@ smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
 .B smilint
 [
-.B "-Vhsr"
+.B "-Vhers"
 ] [
 .BI "-c " configfile
 ] [
@@ -35,11 +35,14 @@ Show the smilint version and exit.
 .B "-h"
 Show a help text and exit.
 .TP
-.B "-s"
-Report some per module statistics to stderr.
+.B "-e"
+Show a list of all known error messages and exit.
 .TP
 .B "-r"
 Report errors and warnings also for recursively imported modules.
+.TP
+.B "-s"
+Show the error severity in brackets before error messages.
 .TP
 .BI "-c " configfile
 Read \fIconfigfile\fP instead of any other (global and user)

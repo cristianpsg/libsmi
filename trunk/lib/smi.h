@@ -288,6 +288,10 @@ extern char *smiLoadModule(const char *module);
 extern int smiIsLoaded(const char *module);
 
 
+typedef void (SmiErrorHandler) (char *path, int line, int severity, char *msg);
+
+extern void smiSetErrorHandler(SmiErrorHandler smiErrorHandler);
+
 
 extern SmiModule *smiGetModule(const char *module);
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.44 2000/06/08 09:36:12 strauss Exp $
+ * @(#) $Id: error.c,v 1.45 2000/06/14 13:15:16 strauss Exp $
  */
 
 #include <config.h>
@@ -24,12 +24,29 @@
 #include <dmalloc.h>
 #endif
 
+#include "smi.h"
 #include "error.h"
 
 
 int smiErrorLevel;		/* Higher levels produce more warnings */
 
 
+
+/*
+ * The following function pointer marks the current error printing
+ * function. This may be overwritten by a language specific function
+ * in case the library is embedded into other programs.
+ */
+
+static void smiErrorHandler(char *path, int line, int severity, char *msg);
+static SmiErrorHandler *handler = smiErrorHandler;
+
+
+
+/*
+ * Structure to hold error messages with their associated error level.
+ * Note that it is possible to modify the error levels at run time.
+ */
 
 typedef struct Error {
     int level;			/* 0: fatal, no way to continue		     */
@@ -46,6 +63,7 @@ typedef struct Error {
     char *tag;			/* tag for error identification on cmd line  */
     char *fmt;			/* the complete error format string	     */
 } Error;
+
 
 
 /*
@@ -349,6 +367,30 @@ smiSetErrorSeverity(char *pattern, int severity)
 /*
  *----------------------------------------------------------------------
  *
+ * smiSetErrorHandler --
+ *
+ *      Set the function that is called to handle error messages.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Changes the error handler used for subsequent error messages.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiSetErrorHandler(SmiErrorHandler smiErrorHandler)
+{
+    handler = smiErrorHandler;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * smiGetErrorSeverity --
  *
  *      Return the severity of the error identified by id.
@@ -432,49 +474,85 @@ smiGetErrorMsg(int id)
 /*
  *----------------------------------------------------------------------
  *
- * smiPrintError --
+ * printError --
  *
- *      A more verbose wrapper for the yyerror() function.
+ *      This is the default error printing function. This is the
+ *	only place in the libsmi where any output is generated.
+ *	This function may be replaced by an application specific
+ *	error message handler.
  *
  * Results:
- *      TODO.
+ *      None.
  *
  * Side effects:
- *      TODO.
+ *      Prints error messages to the stderr output channel.
  *
  *----------------------------------------------------------------------
  */
 
-void
-smiPrintError(Parser *parser, int id, ...)
+static void
+smiErrorHandler(char *path, int line, int severity, char *msg)
 {
-    va_list ap;
-    char *fmt;
-	
+    if (path) {
+	fprintf(stderr, "%s:%d: ", path, line);
+    }
+    fprintf(stderr, "%s\n", msg);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * printError --
+ *
+ *      Internal error printer which is called by the varargs
+ *	entry points (see below). If formats the error message
+ *	and calls the error handling function that is currently
+ *	registered.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Terminates the program if the error is severe and there
+ *	is no way to continue.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+printError(Parser *parser, int id, int line, va_list ap)
+{
+    char buffer[1024];	/* TODO: check buffer boundaries! */
+    
+    if (! handler) {
+	return;
+    }
+
     if (parser) {
 	if ((errors[id].level <= smiErrorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-	    fprintf(stderr, "%s:%d: ", parser->path, parser->line);
-	    fmt = errors[id].fmt;
-	    va_start(ap, id);
-	    vfprintf(stderr, fmt, ap);
-	    fprintf(stderr, "\n");
-	    va_end(ap);
+	    vsprintf(buffer, errors[id].fmt, ap);
+	    (handler) (parser->path, line, errors[id].level, buffer);
 	}
     } else {
 	if (errors[id].level <= smiErrorLevel) {
-	    fmt = errors[id].fmt;
-	    va_start(ap, id);
-	    vfprintf(stderr, fmt, ap);
-	    fprintf(stderr, "\n");
-	    va_end(ap);
+	    vsprintf(buffer, errors[id].fmt, ap);
+	    (handler) (NULL, 0, errors[id].level, buffer);
 	}
     }
 
-    if (errors[id].level < 0) {
+    /*
+     * A severe error, no way to continue :-(
+     *
+     * TODO: Give the application a chance to overwrite the exit
+     * call so that it can at least do some cleanup.
+     */
+
+    if (errors[id].level <= 0) {
 	exit(-1);
-	/* severe error, no way to continue :-( */
     }
 }
 
@@ -485,13 +563,13 @@ smiPrintError(Parser *parser, int id, ...)
  *
  * smiPrintErrorAtLine --
  *
- *      Like printError() but shows a specfic line no.
+ *      Like smiPrintError() but shows a specfic line no.
  *
  * Results:
- *      TODO.
+ *      None.
  *
  * Side effects:
- *      TODO.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -500,31 +578,37 @@ void
 smiPrintErrorAtLine(Parser *parser, int id, int line, ...)
 {
     va_list ap;
-    char *fmt;
-	
-    if (parser) {
-	if ((errors[id].level <= smiErrorLevel) &&
-	    (parser->flags & SMI_FLAG_ERRORS) &&
-	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-	    fprintf(stderr, "%s:%d: ", parser->path, line);
-	    fmt = errors[id].fmt;
-	    va_start(ap, line);
-	    vfprintf(stderr, fmt, ap);
-	    fprintf(stderr, "\n");
-	    va_end(ap);
-	}
-    } else {
-	if (errors[id].level <= smiErrorLevel) {
-	    fmt = errors[id].fmt;
-	    va_start(ap, line);
-	    vfprintf(stderr, fmt, ap);
-	    fprintf(stderr, "\n");
-	    va_end(ap);
-	}
-    }
 
-    if (errors[id].level == 0) {
-	exit(-1);
-	/* severe error, no way to continue :-( */
-    }
+    va_start(ap, line);
+    printError(parser, id, line, ap);
+    va_end(ap);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiPrintError --
+ *
+ *      Prints an error message. The line number is taken from
+ *	the current parser position.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiPrintError(Parser *parser, int id, ...)
+{
+    va_list ap;
+
+    va_start(ap, id);
+    printError(parser, id, parser->line, ap);
+    va_end(ap);
 }
