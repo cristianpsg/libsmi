@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.46 1999/11/24 19:02:33 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.47 1999/12/10 19:29:21 strauss Exp $
  */
 
 %{
@@ -1089,7 +1089,7 @@ typeSMI:		INTEGER32   { $$ = util_strdup($1); }
 	|		GAUGE32     { $$ = util_strdup($1); }
 	|		UNSIGNED32  { $$ = util_strdup($1); }
 	|		TIMETICKS   { $$ = util_strdup($1); }
-	|		OPAQUE      { $$ = util_strdup($1); }
+	|		OPAQUE	    { $$ = util_strdup($1); }
 	|		COUNTER64   { $$ = util_strdup($1); }
 	;
 
@@ -2385,18 +2385,17 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
  * In a SEQUENCE { ... } there are no sub-types, enumerations or
  * named bits. REF: draft, p.29
  */
-sequenceSimpleSyntax:	INTEGER	anySubType	/* (-2147483648..2147483647) */
+sequenceSimpleSyntax:	INTEGER	anySubType
 			{
 			    $$ = typeInteger32Ptr;
 			}
-        |		INTEGER32 anySubType	/* (-2147483648..2147483647) */
+        |		INTEGER32 anySubType
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
 			    $$ = typeInteger32Ptr;
 			}
 	|		OCTET STRING anySubType
 			{
-			    /* TODO: warning: ignoring subtype in SEQUENCE */
 			    $$ = typeOctetStringPtr;
 			}
 	|		OBJECT IDENTIFIER
@@ -2481,7 +2480,25 @@ ApplicationSyntax:	IPADDRESS
 			    if (! $$) {
 				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					   "Opaque");
+			    } else {
+				printError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
 			    }
+			}
+	|		OPAQUE octetStringSubType
+			{
+			    Type *parentPtr;
+			    
+			    parentPtr = findTypeByName("Opaque");
+			    if (! parentPtr) {
+				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					   "Opaque");
+			    }
+			    printError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
+			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
+			    setTypeParent($$, parentPtr->modulePtr->name,
+					  parentPtr->name);
+			    setTypeList($$, $2);
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
@@ -2543,6 +2560,8 @@ sequenceApplicationSyntax: IPADDRESS
 			    if (! $$) {
 				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					   "Opaque");
+			    } else {
+				printError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
 			    }
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */

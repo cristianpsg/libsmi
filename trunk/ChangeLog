@@ -1,3 +1,8 @@
+1999-12-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Opaque size restrictions are now allowed.
+	Warning about Opaque usage in SMIv2 modules.
+
 1999-12-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.c (smiReadConfig): a global and a user configuration

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.19 1999/10/07 13:33:54 strauss Exp $
+ * @(#) $Id: error.c,v 1.20 1999/12/10 19:29:20 strauss Exp $
  */
 
 #include <string.h>
@@ -233,6 +233,8 @@ Error errors[] = {
       "Unexpected type restriction" },
     { 1, ERR_UNKNOWN_CONFIG_CMD,
       "Unknown configuration command `%s' in file `%s'" },
+    { 4, ERR_OPAQUE_OBSOLETE,
+      "SMIv2 provides Opaque solely for backward-compatibility" },
  
     { 0, 0, NULL }
 };

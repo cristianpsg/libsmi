@@ -8,11 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.39 1999/11/24 19:02:31 strauss Exp $
+# @(#) $Id: configure.in,v 1.40 1999/12/10 19:29:19 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
-AM_INIT_AUTOMAKE(libsmi,0.1.8-pre2)
+AM_INIT_AUTOMAKE(libsmi,0.1.8-pre3)
 # Note: also change shlib version version lib/Makefile.am:libsmi_la_LDFLAGS ?
 
 AC_DEFINE(BACKEND_SMI)
