@@ -1,3 +1,10 @@
+2000-11-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidump.c: Juergen did a major rework of the internal
+	smidump interface for the output drivers. Visible changes:
+	corba-idl and corba-oid are integrated into a single format
+	corba; -o option.
+
 2000-11-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/iana/*: Updated IANA maintained modules.

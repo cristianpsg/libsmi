@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.26 2000/08/02 14:46:27 mertens Exp $
+ * @(#) $Id: dump-jax.c,v 1.27 2000/08/25 10:08:34 strauss Exp $
  */
 
 #include <config.h>
@@ -1365,33 +1365,35 @@ static void dumpScalarImpl(SmiNode *smiNode)
 }
 
 
-void dumpJax(Module *module)
+void dumpJax(int modc, SmiModule **modv, int flags, char *output)
 {
-    SmiModule    *smiModule;
-    SmiNode      *smiNode;
-    
-    smiModule = module->smiModule;
+    SmiNode     *smiNode;
+    int		i;
 
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
-        smiNode;
-        smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ROW)) {
-        if (isGroup(smiNode) && isAccessible(smiNode)) {
-            dumpTable(smiNode);
-            dumpEntry(smiNode);
-            dumpEntryImpl(smiNode);
-        }
-    }
-    
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_SCALAR);
-        smiNode;
-        smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_SCALAR)) {
-        dumpScalarImpl(smiNode);
-        smiNode = dumpScalars(smiNode); 
-    }
+    for (i = 0; i < modc; i++) {
 
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
-        smiNode;
-        smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
-        dumpNotifications(smiNode);
+	for(smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_ROW);
+	    smiNode;
+	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ROW)) {
+	    if (isGroup(smiNode) && isAccessible(smiNode)) {
+		dumpTable(smiNode);
+		dumpEntry(smiNode);
+		dumpEntryImpl(smiNode);
+	    }
+	}
+    
+	for(smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_SCALAR);
+	    smiNode;
+	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_SCALAR)) {
+	    dumpScalarImpl(smiNode);
+	    smiNode = dumpScalars(smiNode); 
+	}
+	
+	for(smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
+	    smiNode;
+	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+	    dumpNotifications(smiNode);
+	}
     }
 }
+

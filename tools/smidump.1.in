@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.15 2000/10/25 08:56:52 strauss Exp $
+.\" $Id: smidump.1.in,v 1.16 2000/11/08 18:11:09 strauss Exp $
 .\"
 .TH smidump 1  "October 18, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -115,12 +115,8 @@ Metrics derived from a MIB module (experimental).
 identifiers
 List of identifiers defined in a MIB module.
 .TP
-corba-idl
-CORBA IDL definitions following the JIDM specification translation
-rules.
-.TP
-corba-oid
-CORBA OID definitions following the JIDM specification translation
+corba
+CORBA IDL and OID definitions following the JIDM specification translation
 rules.
 .TP
 netsnmp

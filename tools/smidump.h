@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.14 2000/10/19 16:15:26 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.15 2000/11/08 18:11:09 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -18,31 +18,17 @@
 
 
 /*
- * Smidump allocates the following structure for each module given on
- * the command line. A pointer to this structure is passed to the
- * output drivers. The structure is in fact the root of a linked list
- * of all modules already passed to the output driver, which is useful
- * when generating united output.
- */
-
-typedef struct Module {
-    SmiModule	  *smiModule;	/* SMI module to dump (may be NULL) */
-    int		  flags;	/* flags passed to the output driver */
-    struct Module *nextPtr;	/* next already processed module */
-} Module;
-
-
-/*
  * The following flags can be passed to output drivers in the flags
  * member of the struct above.
  */
 
-#define SMIDUMP_FLAG_SILENT	0x01
-#define SMIDUMP_FLAG_UNITE	0x02
-#define SMIDUMP_FLAG_CURRENT	0x04
-#define SMIDUMP_FLAG_DEPRECATED	0x08
-#define SMIDUMP_FLAG_OBSOLETE	0x08
-#define SMIDUMP_FLAG_COMPACT	0x10
+#define SMIDUMP_FLAG_SILENT	0x01	/* suppress comments */
+#define SMIDUMP_FLAG_UNITE	0x02	/* generated united output */
+
+#define SMIDUMP_FLAG_CURRENT	0x04	/* not yet used */
+#define SMIDUMP_FLAG_DEPRECATED	0x08	/* not yet used */
+#define SMIDUMP_FLAG_OBSOLETE	0x08	/* not yet used */
+#define SMIDUMP_FLAG_COMPACT	0x10	/* not yet used */
 
 
 /*
@@ -50,27 +36,26 @@ typedef struct Module {
  * smidump.
  */
 
-extern void dumpSmiV1(Module *module);
-extern void dumpSmiV2(Module *module);
-extern void dumpSming(Module *module);
-extern void dumpImports(Module *module);
-extern void dumpTypes(Module *module);
-extern void dumpTree(Module *module);
-extern void dumpIdentifiers(Module *module);
-extern void dumpMetrics(Module *module);
-extern void dumpMosy(Module *module);
-extern void dumpXml(Module *module);
-extern void dumpCorbaIdl(Module *module);
-extern void dumpCorbaOid(Module *module);
-extern void dumpCMDia(Module *module);
-extern void dumpCMXplain(Module *module);
-extern void dumpNetSnmp(Module *module);
-extern void dumpJax(Module *module);
-extern void dumpPython(Module *module);
+extern void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpSming(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpImports(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpTypes(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpTree(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpIdentifiers(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpMetrics(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpMosy(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpXml(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpCorba(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpCMDia(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpCMXplain(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpNetSnmp(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpJax(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpPython(int modc, SmiModule **modv, int flags, char *output);
 
-extern void dumpSql(Module *module);
-extern void dumpFigTree(Module *module);
-extern void dumpFigUml(Module *module);
+extern void dumpSql(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpFigTree(int modc, SmiModule **modv, int flags, char *output);
+extern void dumpFigUml(int modc, SmiModule **modv, int flags, char *output);
 
 
 /*
