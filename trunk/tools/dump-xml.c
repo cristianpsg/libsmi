@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.23 2002/01/09 13:57:53 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.24 2002/10/30 09:17:37 schoenw Exp $
  */
 
 /*
@@ -80,8 +80,8 @@ static char *getStringStatus(SmiStatus status)
 	(status == SMI_STATUS_CURRENT)     ? "current" :
 	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
 	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
-	(status == SMI_STATUS_MANDATORY)   ? "current" :
-	(status == SMI_STATUS_OPTIONAL)    ? "current" :
+	(status == SMI_STATUS_MANDATORY)   ? "mandatory" :
+	(status == SMI_STATUS_OPTIONAL)    ? "optional" :
 					     "<unknown>";
 }
 
