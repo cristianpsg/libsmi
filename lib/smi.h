@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.4 2000/02/09 18:48:51 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.5 2000/02/10 10:09:43 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -190,6 +190,7 @@ typedef struct SmiRange {
 /* SmiModule -- the main structure of a module                               */
 typedef struct SmiModule {
     SmiIdentifier       name;
+    char                *path;
     char                *organization;
     char                *contactinfo;
     char                *description;
@@ -333,10 +334,10 @@ extern SmiRange *smiGetNextRange(SmiRange *smiRangePtr);
 
 extern SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr);
 
-extern SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr);
+extern SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber
+					         *smiNamedNumberPtr);
 
 
-/*  */
 extern SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro);
 
 extern SmiMacro *smiGetFirstMacro(SmiModule *smiModulePtr);
@@ -399,10 +400,6 @@ extern SmiNode *smiGetRefinementNode(SmiRefinement *smiRefinementPtr);
 extern SmiType *smiGetRefinementType(SmiRefinement *smiRefinementPtr);
 
 extern SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr);
-
-
-
-/* extern char **smiGetNames(char *spec, char *mod); */
 
 
 
