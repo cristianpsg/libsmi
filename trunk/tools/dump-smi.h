@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: dump-smi.h,v 1.1 1999/04/06 17:49:26 strauss Exp $
+ * @(#) $Id: dump-smi.h,v 1.2 1999/05/25 17:00:37 strauss Exp $
  */
 
 #ifndef _DUMP_SMI_H
@@ -27,9 +27,9 @@
 
 
 
-extern void dumpSmiV1(const char *modulename);
+extern int dumpSmiV1(const char *modulename);
 
-extern void dumpSmiV2(const char *modulename);
+extern int dumpSmiV2(const char *modulename);
 
 
 

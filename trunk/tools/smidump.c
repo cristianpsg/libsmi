@@ -19,17 +19,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smidump.c,v 1.5 1999/05/20 17:01:45 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.6 1999/05/25 17:00:38 strauss Exp $
  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef linux
-#include <getopt.h>
-#endif
 
+#include "defs.h"
 #include "smi.h"
 #include "dump-smi.h"
 #include "dump-sming.h"
@@ -42,7 +40,28 @@
 #define DUMP_SMIV1      5
 #define DUMP_SMIV2      6
 
-#define SMIDUMP_CONFIG_FILE "/usr/local/etc/smidump.conf"
+
+
+void
+usage()
+{
+    fprintf(stderr,
+	    "Usage: smidump [-Vh] [-f <format>] [-p <module>] <module_or_path>\n"
+	    "-V                        show version and license information\n"
+	    "-h                        show usage information\n"
+	    "-f <format>               use <format> when dumping\n"
+	    "-p <module>               preload <module>\n"
+	    "<module_or_path>          plain name of MIB module or file path\n"
+	    "   supported formats are: sming, smiv2, mosy\n");
+}
+
+
+
+void
+version()
+{
+    printf("smidump " LIBSMI_VERSION "\n" COPYLEFT);
+}
 
 
 
@@ -52,99 +71,56 @@ main(argc, argv)
     char *argv[];
 {
     char c;
-    int dumpFormat;
+    char *dumpFormat = NULL;
     int flags;
-    int config;
+    int errors = 0;
     
-    dumpFormat = 1;
-    config = 0;
-
     smiInit();
 
     flags = smiGetFlags();
     
-    while ((c = getopt(argc, argv, "rRsSvVl:c:L:D:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhf:p:")) != -1) {
 	switch (c) {
-	case 'c':
-	    smiReadConfig(optarg);
-	    config++;
-	    break;
-	case 'l':
-	    smiSetErrorLevel(atoi(optarg));
-	    break;
-	case 'v':
-	    flags |= SMI_ERRORLINES;
-	    smiSetFlags(flags);
-	    break;
 	case 'V':
-	    flags &= ~SMI_ERRORLINES;
-	    smiSetFlags(flags);
+	    version();
+	    exit(0);
+	case 'h':
+	    usage();
+	    exit(0);
+	case 'p':
+	    smiLoadModule(optarg);
 	    break;
-	case 's':
-	    /* print some module statistics */
-	    flags |= SMI_STATS;
-	    smiSetFlags(flags);
-	    break;
-	case 'S':
-	    flags &= ~SMI_STATS;
-	    smiSetFlags(flags);
-	    break;
-	case 'L':
-	    smiAddLocation(optarg);
-	    break;
-	case 'D':
-	    if (strstr(optarg, "mosy")) {
-		dumpFormat = DUMP_MOSY;
-	    } else if (strstr(optarg, "sming")) {
-		dumpFormat = DUMP_SMING;
-	    } else if (strstr(optarg, "smiv1")) {
-		dumpFormat = DUMP_SMIV1;
-	    } else if (strstr(optarg, "smiv2")) {
-		dumpFormat = DUMP_SMIV2;
-	    } else if (strstr(optarg, "objects")) {
-		dumpFormat = DUMP_OBJECTS;
-	    } else if (strstr(optarg, "types")) {
-		dumpFormat = DUMP_TYPES;
-	    }
+	case 'f':
+	    dumpFormat = optarg;
 	    break;
 	default:
-	    fprintf(stderr, "Usage: %s [-vVrRsS] [-l level] [-c configfile]"
-		    " [-L location] [-D mosy|sming|smiv1|smiv2|objects|types] module\n", argv[0]);
+	    usage();
 	    exit(1);
 	}
     }
 
-#ifdef SMIDUMP_CONFIG_FILE
-    if (!config)
-	smiReadConfig(SMIDUMP_CONFIG_FILE);
-#endif
-        
     while (optind < argc) {
 	smiLoadModule(argv[optind]);
-	switch (dumpFormat) {
-	case DUMP_SMING:
-	    dumpSming(argv[optind]);
-	    break;
-	case DUMP_SMIV1:
-	    dumpSmiV1(argv[optind]);
-	    break;
-	case DUMP_SMIV2:
-	    dumpSmiV2(argv[optind]);
-	    break;
-	case DUMP_OBJECTS:
-	    dumpMibTree();
-	    break;
-	case DUMP_TYPES:
-	    dumpTypes();
-	    break;
+	if ((!dumpFormat) || (!strcasecmp(dumpFormat, "SMIng"))) {
+	    errors += dumpSming(argv[optind]);
+	} else if (!strcasecmp(dumpFormat, "SMIv1")) {
+	    errors += dumpSmiV1(argv[optind]);
+	} else if (!strcasecmp(dumpFormat, "SMIv2")) {
+	    errors += dumpSmiV2(argv[optind]);
 #if 0
-	case DUMP_MOSY:
-	    dumpMosy();
-	    break;
+	} else if (!strcasecmp(dumpFormat, "MOSY")) {
+	    errors += dumpMosy();
+	} else if (!strcasecmp(dumpFormat, "Objects")) {
+	    errors += dumpMibTree();
+	} else if (!strcasecmp(dumpFormat, "Types")) {
+	    errors += dumpTypes();
 #endif
+	} else {
+	    fprintf(stderr, "Unsupported dump format `%s'\n", dumpFormat);
+	    exit(1);
 	}
 	optind++;
     }
     
-    exit(0);
+    exit(errors);
 }

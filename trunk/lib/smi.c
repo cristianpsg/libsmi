@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smi.c,v 1.27 1999/05/21 22:33:58 strauss Exp $
+ * @(#) $Id: smi.c,v 1.28 1999/05/25 17:00:34 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -443,39 +443,6 @@ SmiNode *createSmiNode(Object *objectPtr)
 	}
 #endif
 	
-#if 0
-	smiNodePtr->option	= NULL;
-	for (listPtr = objectPtr->optionlistPtr; listPtr;
-	     listPtr = listPtr->nextPtr) {
-	    smiOption = util_malloc(sizeof(SmiOption));
-	    smiOption->name        = ((Option *)listPtr->ptr)->objectPtr->name;
-	    smiOption->module      =
-		          ((Option *)listPtr->ptr)->objectPtr->modulePtr->name;
-	    smiOption->description = ((Option *)listPtr->ptr)->description;
-	    addPtr(&smiNodePtr->option, smiOption);
-	}
-
-	smiNodePtr->refinement  = NULL;
-	for (listPtr = objectPtr->refinementlistPtr; listPtr;
-	     listPtr = listPtr->nextPtr) {
-	    smiRefinement = util_malloc(sizeof(SmiRefinement));
-	    smiRefinement->name    =
-		                 ((Refinement *)listPtr->ptr)->objectPtr->name;
-	    smiRefinement->module  =
-		      ((Refinement *)listPtr->ptr)->objectPtr->modulePtr->name;
-	    smiRefinement->type    =
-		            ((Refinement *)listPtr->ptr)->typePtr ?
-		            ((Refinement *)listPtr->ptr)->typePtr->name : NULL;
-	    smiRefinement->writetype =
-		       ((Refinement *)listPtr->ptr)->writetypePtr ?
-		       ((Refinement *)listPtr->ptr)->writetypePtr->name : NULL;
-	    smiRefinement->access  = ((Refinement *)listPtr->ptr)->access;
-	    smiRefinement->description =
-		                     ((Refinement *)listPtr->ptr)->description;
-	    addPtr(&smiNodePtr->refinement, smiRefinement);
-	}
-#endif
-	
 	return smiNodePtr;
     } else {
 	return NULL;
@@ -561,6 +528,64 @@ SmiMacro *createSmiMacro(Macro *macroPtr)
 	smiMacroPtr->name   = macroPtr->name;
 	smiMacroPtr->module = macroPtr->modulePtr->name;
 	return smiMacroPtr;
+    } else {
+	return NULL;
+    }
+}
+
+
+
+SmiOption *createSmiOption(Object *objectPtr, Option *optionPtr)
+{
+    SmiOption *smiOptionPtr;
+    
+    if (optionPtr) {
+        smiOptionPtr = util_malloc(sizeof(SmiOption));
+	smiOptionPtr->compliancemodule = objectPtr->modulePtr->name;
+	smiOptionPtr->compliancename   = objectPtr->name;
+	smiOptionPtr->module           = optionPtr->objectPtr->modulePtr->name;
+	smiOptionPtr->name             = optionPtr->objectPtr->name;
+	smiOptionPtr->description      = optionPtr->description;
+	return smiOptionPtr;
+    } else {
+	return NULL;
+    }
+}
+
+
+
+SmiRefinement *createSmiRefinement(Object *objectPtr,
+				   Refinement *refinementPtr)
+{
+    SmiRefinement *smiRefinementPtr;
+    
+    if (refinementPtr) {
+        smiRefinementPtr = util_malloc(sizeof(SmiRefinement));
+	smiRefinementPtr->compliancemodule = objectPtr->modulePtr->name;
+	smiRefinementPtr->compliancename   = objectPtr->name;
+	smiRefinementPtr->module           = refinementPtr->objectPtr->
+							       modulePtr->name;
+	smiRefinementPtr->name             = refinementPtr->objectPtr->name;
+	if (refinementPtr->typePtr) {
+	    smiRefinementPtr->typemodule   = refinementPtr->typePtr->
+							       modulePtr->name;
+	    smiRefinementPtr->typename     = refinementPtr->typePtr->name;
+	} else {
+	    smiRefinementPtr->typemodule   = NULL;
+	    smiRefinementPtr->typename     = NULL;
+	}
+	if (refinementPtr->writetypePtr) {
+	    smiRefinementPtr->writetypemodule  = refinementPtr->writetypePtr->
+							       modulePtr->name;
+	    smiRefinementPtr->writetypename    = refinementPtr->writetypePtr->
+									  name;
+	} else {
+	    smiRefinementPtr->writetypemodule  = NULL;
+	    smiRefinementPtr->writetypename    = NULL;
+	}
+	smiRefinementPtr->access           = refinementPtr->access;
+	smiRefinementPtr->description      = refinementPtr->description;
+	return smiRefinementPtr;
     } else {
 	return NULL;
     }
@@ -1455,7 +1480,6 @@ SmiNode *smiGetFirstIndexNode(SmiNode *smiRowNodePtr)
 {
     Module	      *modulePtr;
     Object	      *objectPtr;
-    Node	      *nodePtr;
     
     if (!smiRowNodePtr) {
 	return NULL;
@@ -1490,7 +1514,6 @@ SmiNode *smiGetNextIndexNode(SmiNode *smiRowNodePtr, SmiNode *smiIndexNodePtr)
 {
     Module	      *modulePtr;
     Object	      *objectPtr;
-    Node	      *nodePtr;
     List	      *listPtr;
     SmiIdentifier     module, node;
     
@@ -1545,7 +1568,6 @@ SmiNode *smiGetFirstMemberNode(SmiNode *smiGroupNodePtr)
 {
     Module	      *modulePtr;
     Object	      *objectPtr;
-    Node	      *nodePtr;
     
     if (!smiGroupNodePtr) {
 	return NULL;
@@ -1583,7 +1605,6 @@ SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 {
     Module	      *modulePtr;
     Object	      *objectPtr;
-    Node	      *nodePtr;
     List	      *listPtr;
     SmiIdentifier     module, node;
     
@@ -1622,6 +1643,103 @@ SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 	return NULL;
     }
 
+    for (listPtr = objectPtr->listPtr; listPtr;
+	 listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) &&
+	    !strcmp(((Object *)(listPtr->ptr))->modulePtr->name, module) &&
+	    !strcmp(((Object *)(listPtr->ptr))->name, node)) {
+	    if (listPtr->nextPtr) {
+		return createSmiNode(listPtr->nextPtr->ptr);
+	    } else {
+		return NULL;
+	    }
+	}
+    }
+    
+    return NULL;
+}
+
+
+
+SmiNode *smiGetFirstMandatoryNode(SmiNode *smiComplianceNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    
+    if (!smiComplianceNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiComplianceNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiComplianceNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiComplianceNodePtr->name);
+
+    if ((!objectPtr) || (!objectPtr->listPtr)) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
+	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+	return NULL;
+    }
+						     
+    return createSmiNode(objectPtr->listPtr->ptr);
+}
+
+
+
+SmiNode *smiGetNextMandatoryNode(SmiNode *smiComplianceNodePtr,
+				 SmiNode *smiMandatoryNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    List	      *listPtr;
+    SmiIdentifier     module, node;
+    
+    if ((!smiComplianceNodePtr) || (!smiMandatoryNodePtr)) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiComplianceNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiComplianceNodePtr->module);
+    }
+
+    module = smiMandatoryNodePtr->module;
+    node = smiMandatoryNodePtr->name;
+        
+    smiFreeNode(smiMandatoryNodePtr);
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiComplianceNodePtr->name);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    if (!objectPtr->listPtr) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
+	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+	return NULL;
+    }
+						     
     for (listPtr = objectPtr->listPtr; listPtr;
 	 listPtr = listPtr->nextPtr) {
 	if ((listPtr->ptr) &&
@@ -1722,3 +1840,218 @@ smiFreeNode(smiNodePtr)
 {
     util_free(smiNodePtr);
 }
+
+
+
+SmiOption *smiGetFirstOption(SmiNode *smiComplianceNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    
+    if (!smiComplianceNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiComplianceNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiComplianceNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiComplianceNodePtr->name);
+
+    if ((!objectPtr) || (!objectPtr->optionlistPtr)) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
+	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+	return NULL;
+    }
+						     
+    return createSmiOption(objectPtr, objectPtr->optionlistPtr->ptr);
+}
+
+
+
+SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    List	      *listPtr;
+    SmiIdentifier     module, node;
+    
+    if (!smiOptionPtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiOptionPtr->compliancemodule);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiOptionPtr->compliancemodule);
+    }
+
+    module = smiOptionPtr->module;
+    node = smiOptionPtr->name;
+        
+    smiFreeOption(smiOptionPtr);
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiOptionPtr->compliancename);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    if (!objectPtr->optionlistPtr) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
+	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+	return NULL;
+    }
+						     
+    for (listPtr = objectPtr->optionlistPtr; listPtr;
+	 listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) &&
+	    !strcmp(((Option *)(listPtr->ptr))->objectPtr->modulePtr->name,
+		    module) &&
+	    !strcmp(((Option *)(listPtr->ptr))->objectPtr->name, node)) {
+	    if (listPtr->nextPtr) {
+		return createSmiOption(objectPtr, listPtr->nextPtr->ptr);
+	    } else {
+		return NULL;
+	    }
+	}
+    }
+    
+    return NULL;
+}
+
+
+
+void
+smiFreeOption(smiOptionPtr)
+    SmiOption *smiOptionPtr;
+{
+    util_free(smiOptionPtr);
+}
+
+
+
+SmiRefinement *smiGetFirstRefinement(SmiNode *smiComplianceNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    
+    if (!smiComplianceNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiComplianceNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiComplianceNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiComplianceNodePtr->name);
+
+    if ((!objectPtr) || (!objectPtr->refinementlistPtr)) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
+	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+	return NULL;
+    }
+						     
+    return createSmiRefinement(objectPtr, objectPtr->refinementlistPtr->ptr);
+}
+
+
+
+SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    List	      *listPtr;
+    SmiIdentifier     module, node;
+    
+    if (!smiRefinementPtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiRefinementPtr->compliancemodule);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiRefinementPtr->compliancemodule);
+    }
+
+    module = smiRefinementPtr->module;
+    node = smiRefinementPtr->name;
+        
+    smiFreeRefinement(smiRefinementPtr);
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiRefinementPtr->compliancename);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    if (!objectPtr->refinementlistPtr) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_COMPLIANCE) &&
+	(objectPtr->decl != SMI_DECL_MODULECOMPLIANCE)) {
+	return NULL;
+    }
+						     
+    for (listPtr = objectPtr->refinementlistPtr; listPtr;
+	 listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) &&
+	    !strcmp(((Refinement *)(listPtr->ptr))->objectPtr->modulePtr->name,
+		    module) &&
+	    !strcmp(((Refinement *)(listPtr->ptr))->objectPtr->name, node)) {
+	    if (listPtr->nextPtr) {
+		return createSmiRefinement(objectPtr, listPtr->nextPtr->ptr);
+	    } else {
+		return NULL;
+	    }
+	}
+    }
+    
+    return NULL;
+}
+
+
+
+void
+smiFreeRefinement(smiRefinementPtr)
+    SmiRefinement *smiRefinementPtr;
+{
+    util_free(smiRefinementPtr);
+}
+
+
+

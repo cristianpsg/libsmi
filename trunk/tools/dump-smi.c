@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: dump-smi.c,v 1.6 1999/05/20 08:51:18 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.7 1999/05/25 17:00:37 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -71,6 +71,7 @@ static int version = 2;
 
 
 
+#if 0
 char * 
 smiStringStatus(status)
     SmiStatus status;
@@ -922,9 +923,7 @@ printNotificationGroups(modulename)
 
 
 
-static void
-printModuleCompliances(modulename)
-    char	  *modulename;
+static void printModuleCompliances(char *modulename)
 {
     SmiNode	  *smiNode;
     char	  **p;
@@ -1060,9 +1059,7 @@ printModuleCompliances(modulename)
 
 
 
-void
-dumpSmi(modulename)
-    char	 *modulename;
+int dumpSmi(char *modulename)
 {
     SmiModule	 *smiModule;
     
@@ -1098,22 +1095,31 @@ dumpSmi(modulename)
 
     }
 }
+#endif
 
 
 
-void dumpSmiV1(modulename)
+int dumpSmiV1(modulename)
     char *modulename;
 {
     version = 1;
-    dumpSmi(modulename);
+#if 0
+    return dumpSmi(modulename);
+#else
+    return 0;
+#endif
 }
 
 
 
-void dumpSmiV2(modulename)
+int dumpSmiV2(modulename)
     char *modulename;
 {
     version = 2;
-    dumpSmi(modulename);
+#if 0
+    return dumpSmi(modulename);
+#else
+    return 0;
+#endif
 }
 

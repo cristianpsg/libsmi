@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id: Makefile.in,v 1.4 1999/05/25 11:46:01 strauss Exp $
+# @(#) $Id: Makefile.in,v 1.5 1999/05/25 17:00:24 strauss Exp $
 #
 
 LIBSMI_VERSION	= @LIBSMI_VERSION@
@@ -40,7 +40,7 @@ INSTALL		= @INSTALL@
 AR		= ar
 YACC		= bison
 LEX		= flex
-DEFS		= @DEFS@
+DEFS		= @DEFS@ -DLIBSMI_VERSION=\"$(LIBSMI_VERSION)\"
 SHLIB_CFLAGS	= @SHLIB_CFLAGS@
 CFLAGS		= -Ilib @CFLAGS@ @SHLIB_CFLAGS@ $(DEFS)
 SHLIB_LD	= @SHLIB_LD@
@@ -89,17 +89,16 @@ lib/scanner-sming.c: lib/scanner-sming.l lib/scanner-sming.h lib/parser-sming.ta
 
 
 
-#tools: tools/smilint tools/smidump tools/smiquery
-tools: tools/smiquery
+tools: tools/smiquery tools/smilint tools/smidump
 
-tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
-	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC)
+tools/smilint: $(LIBSMI_SO) tools/smilint.o
+	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o -Llib -lsmi
 
-#tools/smisubtree: tools/smisubtree.o $(LIBSMI_STATIC)
-#	$(LD) $(LDFLAGS) -o tools/smisubtree $^
+#tools/smisubtree: $(LIBSMI_SO) tools/smisubtree.o
+#	$(LD) $(LDFLAGS) -o tools/smisubtree tools/smisubtree.o -Llib -lsmi
 
-tools/smidump: tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o $(LIBSMI_STATIC)
-	$(LD) $(LDFLAGS) -o tools/smidump $^
+tools/smidump: $(LIBSMI_SO) tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o
+	$(LD) $(LDFLAGS) -o tools/smidump tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o -Llib -lsmi
 
 tools/smiquery: $(LIBSMI_SO) tools/smiquery.o
 	$(LD) $(LDFLAGS) -o tools/smiquery tools/smiquery.o -Llib -lsmi

@@ -19,20 +19,39 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smilint.c,v 1.8 1999/05/20 17:01:45 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.9 1999/05/25 17:00:39 strauss Exp $
  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef linux
-#include <getopt.h>
-#endif
 
+#include "defs.h"
 #include "smi.h"
 
-#define SMILINT_CONFIG_FILE "/usr/local/etc/smilint.conf"
+
+
+void
+usage()
+{
+    fprintf(stderr,
+	    "Usage: smilint [-Vhvs] [-l <level>] <module_or_path>\n"
+	    "-V                        show version and license information\n"
+	    "-h                        show usage information\n"
+	    "-v                        print erroneous lines of MIB modules \n"
+	    "-s                        print statistics on parsed MIB modules\n"
+	    "-l <level>                set maximum level of errors and warnings\n"
+	    "<module_or_path>          plain name of MIB module or file path\n");
+}
+
+
+
+void
+version()
+{
+    printf("smilint " LIBSMI_VERSION "\n" COPYLEFT);
+}
 
 
 
@@ -43,10 +62,6 @@ main(argc, argv)
 {
     char c;
     int flags;
-    int config;
-    
-    config = 0;
-
     smiInit();
 
     flags = smiGetFlags();
@@ -54,12 +69,14 @@ main(argc, argv)
     flags |= SMI_ERRORS;
     smiSetFlags(flags);
     
-    while ((c = getopt(argc, argv, "sSvVl:c:L:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhsvl:")) != -1) {
 	switch (c) {
-	case 'c':
-	    smiReadConfig(optarg);
-	    config++;
-	    break;
+	case 'V':
+	    version();
+	    exit(0);
+	case 'h':
+	    usage();
+	    exit(0);
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
 	    break;
@@ -67,34 +84,16 @@ main(argc, argv)
 	    flags |= SMI_ERRORLINES;
 	    smiSetFlags(flags);
 	    break;
-	case 'V':
-	    flags &= ~SMI_ERRORLINES;
-	    smiSetFlags(flags);
-	    break;
 	case 's':
-	    /* print some module statistics */
 	    flags |= SMI_STATS;
 	    smiSetFlags(flags);
 	    break;
-	case 'S':
-	    flags &= ~SMI_STATS;
-	    smiSetFlags(flags);
-	    break;
-	case 'L':
-	    smiAddLocation(optarg);
-	    break;
 	default:
-	    fprintf(stderr, "Usage: %s [-vVsS] [-l level] [-c configfile]"
-		    " [-L location] module\n", argv[0]);
+	    usage();
 	    exit(1);
 	}
     }
 
-#ifdef SMILINT_CONFIG_FILE
-    if (!config)
-	smiReadConfig(SMILINT_CONFIG_FILE);
-#endif
-        
     while (optind < argc) {
 	smiLoadModule(argv[optind]);
 	optind++;
