@@ -1,8 +1,14 @@
-2002-11-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2003-12-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidiff.c: Fixed error messages on changed base
+	types for node comparisons: now the node names are reported
+	and not the underlying type names. Thanks to Mike.
+
+2003-11-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/ATM2-MIB: added (RFC 3606).
 
-2002-10-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2003-10-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: Fixed a bug with pending (forward, but not
 	resolved) definitions of identifiers that appear again in a
