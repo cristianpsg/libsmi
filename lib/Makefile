@@ -32,7 +32,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id: Makefile.am,v 1.2 1999/05/28 14:15:41 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.3 1999/05/28 14:52:05 strauss Exp $
 #
 
 
