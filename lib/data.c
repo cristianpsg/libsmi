@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.91 2000/10/25 08:56:39 strauss Exp $
+ * @(#) $Id: data.c,v 1.92 2000/11/06 14:27:56 strauss Exp $
  */
 
 #include <config.h>
@@ -42,14 +42,6 @@ extern int smiparse();
 #include "scanner-sming.h"
 extern int smingparse();
 #endif
-
-#ifdef _WIN32
-#define PATH_SEPARATOR  ";"
-#else
-#define PATH_SEPARATOR  ":"
-#endif
-
-
 
 #define stringKind(kind) ( \
 	(kind == KIND_ANY)                 ? "ANY" : \
@@ -3336,6 +3328,7 @@ Module *loadModule(const char *modulename)
     int		    sming = 0;
     int             c;
     FILE	    *file;
+    char	    sep[2];
     
     if ((!modulename) || !strlen(modulename)) {
 	return NULL;
@@ -3350,8 +3343,9 @@ Module *loadModule(const char *modulename)
 	}
 	
 	smipath = smiStrdup(smiPath);
-	for (dir = strtok(smipath, PATH_SEPARATOR);
-	     dir; dir = strtok(NULL, PATH_SEPARATOR)) {
+	sep[0] = PATH_SEPARATOR; sep[1] = 0;
+	for (dir = strtok(smipath, sep);
+	     dir; dir = strtok(NULL, sep)) {
 	    path = malloc(strlen(dir)+strlen(modulename)+8);
 	    sprintf(path, "%s/%s", dir, modulename);
 	    if (! access(path, R_OK)) {

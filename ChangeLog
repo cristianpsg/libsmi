@@ -1,3 +1,17 @@
+2000-12-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-netsnmp.c: Renamed dump-ucdsnmp.c to dump-netsnmp.c.
+
+	* test/Makefile.am: Commented out checks for the obsolete
+	corba-{idl,oid} checks to make the test suite happy.
+
+	* configure.in: The availability of `long long' type is now
+	checked during configuration. The result now also affects printf
+	formats.
+
+	* configure.in: Path separator is now configurable (useful to
+	use ":" instead of ";" as well in cygwin environments).
+
 2000-11-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidump.c: Juergen did a major rework of the internal

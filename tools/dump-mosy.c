@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.32 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.33 2000/11/09 22:29:54 strauss Exp $
  */
 
 #include <config.h>
@@ -141,10 +141,10 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(s, "%ld", valuePtr->value.integer32);
 	break;
     case SMI_BASETYPE_UNSIGNED64:
-	sprintf(s, "%llu", valuePtr->value.unsigned64);
+	sprintf(s, UINT64_FORMAT, valuePtr->value.unsigned64);
 	break;
     case SMI_BASETYPE_INTEGER64:
-	sprintf(s, "%lld", valuePtr->value.integer64);
+	sprintf(s, INT64_FORMAT, valuePtr->value.integer64);
 	break;
     case SMI_BASETYPE_FLOAT32:
     case SMI_BASETYPE_FLOAT64:

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.56 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.57 2000/11/06 14:28:00 strauss Exp $
  */
 
 #include <config.h>
@@ -221,10 +221,10 @@ char *formatvalue(const SmiValue *value, SmiType *type)
 	sprintf(s, "%ld", value->value.integer32);
 	break;
     case SMI_BASETYPE_UNSIGNED64:
-	sprintf(s, "%llu", value->value.unsigned64);
+	sprintf(s, UINT64_FORMAT, value->value.unsigned64);
 	break;
     case SMI_BASETYPE_INTEGER64:
-	sprintf(s, "%lld", value->value.integer64);
+	sprintf(s, INT64_FORMAT, value->value.integer64);
 	break;
     case SMI_BASETYPE_FLOAT32:
     case SMI_BASETYPE_FLOAT64:

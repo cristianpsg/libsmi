@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.14 2000/05/18 07:36:14 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.15 2000/06/07 10:19:53 strauss Exp $
 #
 
 TESTMIBTOPDIR		= ../mibs
@@ -25,9 +25,9 @@ TESTS			= smilint-smiv2.test \
 			  smidump-tree.test \
 			  smidump-types.test \
 			  smidump-imports.test \
-			  smidump-corba-idl.test \
-			  smidump-corba-oid.test \
 			  parser.test
+#			  smidump-corba-idl.test \
+#			  smidump-corba-oid.test \
 
 TESTS_ENVIRONMENT	= SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
 

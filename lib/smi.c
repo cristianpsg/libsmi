@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.94 2000/06/28 16:01:29 strauss Exp $
+ * @(#) $Id: smi.c,v 1.95 2000/11/01 09:30:04 strauss Exp $
  */
 
 #include <config.h>
@@ -49,11 +49,6 @@
 #define MAX(a, b)       ((a) < (b) ? (b) : (a))
 #endif
 
-#ifdef _WIN32
-#define PATH_SEPARATOR	';'
-#else
-#define PATH_SEPARATOR	':'
-#endif
 
 
 const char *smi_library_version = SMI_LIBRARY_VERSION;
