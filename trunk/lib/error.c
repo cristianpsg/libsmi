@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.62 2000/12/21 09:19:52 strauss Exp $
+ * @(#) $Id: error.c,v 1.63 2001/02/26 16:25:13 strauss Exp $
  */
 
 #include <config.h>
@@ -388,11 +388,11 @@ static Error errors[] = {
       "note, -- terminates a comment" },
     { 6, ERR_OBSOLETE_IMPORT, "obsolete-import",
       "identifier `%s' should be imported from `%s' instead of `%s'" },
-    { 2, ERR_GROUP_OBJECT_STATUS, "group-object-status",
+    { 4, ERR_GROUP_OBJECT_STATUS, "group-object-status",
       "%s group `%s' includes %s object `%s'" },
-    { 2, ERR_COMPLIANCE_GROUP_STATUS, "compliance-group-status",
+    { 4, ERR_COMPLIANCE_GROUP_STATUS, "compliance-group-status",
       "%s compliance statement `%s' includes %s group `%s'" },
-    { 2, ERR_COMPLIANCE_OBJECT_STATUS, "compliance-object-status",
+    { 4, ERR_COMPLIANCE_OBJECT_STATUS, "compliance-object-status",
       "%s compliance statement `%s' includes %s object `%s'" },
     { 0, 0, NULL, NULL }
 };

@@ -1,5 +1,7 @@
 2001-02-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/check.c: Lowered severity of recent compliant status checks.
+
 	* lib/parser-smi.y: Bill contributed check for imported Counter64
 	when used.
 
