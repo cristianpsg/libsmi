@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.4 1998/11/17 16:09:18 strauss Exp $
+ * @(#) $Id: error.c,v 1.5 1998/11/18 17:31:40 strauss Exp $
  */
 
 #include <string.h>
@@ -127,8 +127,8 @@ Error errors[] = {
       "completed%s" },
     { 1, ERR_OBJECT_IDENTIFIER_REGISTERED,
       "Object identifier label `%s.%s' already registered at `%s'" },
-    { 1, ERR_ALLOCATING_MIBNODE,
-      "Allocating MIB node: %s" },
+    { 1, ERR_ALLOCATING_OBJECT,
+      "Allocating MIB object: %s" },
     { 1, ERR_OPENING_CONFIGFILE,
       "Opening configuration file `%s': %s" },
     { 1, ERR_ALLOCATING_LOCATION,
@@ -271,4 +271,6 @@ printDebug(int level, char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
     }
-} /*  */
+}
+
+

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.14 1998/11/18 17:31:39 strauss Exp $
+ * @(#) $Id: data.h,v 1.15 1998/11/19 19:43:57 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -45,16 +45,6 @@ typedef struct String {
 
 
 /*
- * RevisionsPart of Module.
- */
-typedef struct Revision {
-    char       TODO;
-    struct Revision *next;
-} Revision;
-
-
-
-/*
  * Kinds of Descriptors.
  */
 typedef enum DescriptorKind {
@@ -62,7 +52,7 @@ typedef enum DescriptorKind {
     KIND_MODULE		 = 1 ,  /*					     */
     KIND_MACRO		 = 2 ,  /*					     */
     KIND_TYPE		 = 3 ,  /*					     */
-    KIND_MIBNODE	 = 4 ,  /*					     */
+    KIND_OBJECT		 = 4 ,  /*					     */
     KIND_IMPORT		 = 5 ,  /* descriptors to be imported.               */
     KIND_IMPORTED	 = 6    /* imported descriptor. syntax `mod.descr'.  */
 } DescriptorKind;
@@ -75,11 +65,11 @@ typedef enum DescriptorKind {
  * Flags (general and structure-specific ones).
  */
 typedef unsigned short Flags;
-#define FLAG_PERMANENT		0x0001 /* e.g. MibNode and Descriptor `iso'. */
+#define FLAG_PERMANENT		0x0001 /* e.g. Object and Descriptor `iso'.  */
 #define FLAG_IMPORTED		0x0002 /*				     */
 #define FLAG_REPOSITORY		0x0004 /*				     */
 #define FLAG_MODULE		0x0008 /* Declared in the current module.    */
-#define FLAG_REGISTERED		0x0010 /* On a MibNode: this is registered.  */
+#define FLAG_REGISTERED		0x0010 /* On an Object: this is registered.  */
 #define FLAG_INCOMPLETE		0x0020 /* Just defined by a forward          */
 				       /* referenced type.		     */
 
@@ -89,9 +79,9 @@ typedef unsigned short Flags;
 
 #define	FLAG_SMIV2	        0x0100 /* On a Module: This is an SMIv2 MIB. */
 
-#define FLAG_NOSUBID		0x0100 /* On a (pending) MibNode: This node's*/
+#define FLAG_NOSUBID		0x0100 /* On a (pending) Node: This node's   */
 				       /* subid value is not yet known.      */
-#define FLAG_ROOT	        0x0200 /* Marks the single root MibNode.     */
+#define FLAG_ROOT	        0x0200 /* Marks the single root Node.        */
 
 #define	FLAG_WHOLEFILE		0x0100 /* We want to read the whole */
 				       /* file, not just a single   */
@@ -148,7 +138,9 @@ typedef struct Module {
     String	  organization;
     String	  contactInfo;
     String	  description;
+#if 0
     Revision      firstRevision;
+#endif
     Flags	  flags;
     int		  numImportedIdentifiers;
     int		  numStatements;
@@ -165,7 +157,7 @@ typedef struct Type {
     Descriptor  *descriptor;
     struct Type	*parent;
     smi_syntax  syntax;
-    smi_decl	macro;
+    smi_decl	decl;
     String      displayHint;
     smi_status  status;
     String	description;
@@ -179,25 +171,37 @@ typedef struct Type {
 
 
 /*
- * Mib Node.
+ * Object.
  */
-typedef struct MibNode {
+typedef struct Object {
     struct Module  *module;
-    unsigned int   subid;
     Descriptor	   *descriptor;
     off_t	   fileoffset;
-    smi_decl	   macro;
+    smi_decl	   decl;
     Flags	   flags;
     Type	   *type;
     smi_access	   access;
     smi_status	   status;
     String	   description;
-    struct MibNode *parent;
-    struct MibNode *next;
-    struct MibNode *prev;
-    struct MibNode *firstChild;
-    struct MibNode *lastChild;
-} MibNode;
+    struct Node	   *node;
+    struct Object  *prev;
+    struct Object  *next;
+} Object;
+
+/*
+ * Node.
+ */
+typedef struct Node {
+    unsigned int   subid;
+    Flags	   flags;
+    struct Node	   *parent;
+    struct Node	   *next;
+    struct Node	   *prev;
+    struct Node	   *firstChild;
+    struct Node	   *lastChild;
+    Object	   *firstObject;
+    Object	   *lastObject;
+} Node;
 
 
 
@@ -231,8 +235,8 @@ typedef struct Parser {
 extern Descriptor	*firstDescriptor[NUM_KINDS];
 extern Descriptor	*lastDescriptor[NUM_KINDS];
 
-extern MibNode		*rootMibNode;
-extern MibNode		*pendingRootMibNode;
+extern Node		*rootNode;
+extern Node		*pendingRootNode;
 
 extern Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
 
@@ -242,6 +246,18 @@ extern Module *addModule(const char *name,
 			 off_t fileoffset,
 			 Flags flags,
 			 Parser *parser);
+
+extern void setModuleDescription(Module *node,
+				 String *description);
+
+extern void setModuleLastUpdated(Module *node,
+				 String *lastUpdated);
+
+extern void setModuleOrganization(Module *node,
+				  String *organization);
+
+extern void setModuleContactInfo(Module *node,
+				 String *contactInfo);
 
 extern Module *findModuleByName(const char *name);
 
@@ -271,51 +287,49 @@ extern Descriptor *findDescriptor(const char *name,
 
 
 
-extern MibNode *addMibNode(MibNode *parent,
-			   SubId subid,
-			   Module *module,
-			   Flags flags,
-			   Parser *parser);
+extern Object *addObject(Node *parent,
+			 SubId subid,
+			 Module *module,
+			 Flags flags,
+			 Parser *parser);
 
-extern void setMibNodeSyntax(MibNode *node,
-			     Type *type);
+extern void setObjectSyntax(Object *object,
+			    Type *type);
 
-extern void setMibNodeAccess(MibNode *node,
-			     smi_access access);
+extern void setObjectAccess(Object *object,
+			    smi_access access);
 
-extern void setMibNodeStatus(MibNode *node,
-			     smi_status status);
+extern void setObjectStatus(Object *object,
+			    smi_status status);
 
-extern void setMibNodeDescription(MibNode *node,
-				  String *description);
+extern void setObjectDescription(Object *object,
+				 String *description);
 
-extern void setMibNodeFileOffset(MibNode *node,
-				 off_t fileoffset);
+extern void setObjectFileOffset(Object *object,
+				off_t fileoffset);
 
-extern void setMibNodeMacro(MibNode *node,
-			    smi_decl macro);
+extern void setObjectDecl(Object *object,
+			   smi_decl decl);
 
-extern void setMibNodeFlags(MibNode *node,
-			    Flags flags);
+extern void setObjectFlags(Object *object,
+			   Flags flags);
 
-extern MibNode *findMibNodeByOID(const char *oid);
+extern Node *findNodeByParentAndSubid(Node *parent,
+				      unsigned int subid);
 
-extern MibNode *findMibNodeByParentAndSubid(MibNode *parent,
-					    unsigned int subid);
+extern Object *findObjectByName(const char *name);
 
-extern MibNode *findMibNodeByName(const char *name);
+extern Object *findObjectByModuleAndName(Module *module,
+					 const char *name);
 
-extern MibNode *findMibNodeByModuleAndName(Module *module,
-					   const char *name);
+extern Object *findObjectByModulenameAndName(const char *modulename,
+					      const char *name);
 
-extern MibNode *findMibNodeByModulenameAndName(const char *modulename,
-					       const char *name);
+extern void deleteMibTree(Node *root);
 
-extern void deleteMibTree(MibNode *root);
+extern void dumpMibTree(Node *root, const char *prefix);
 
-extern void dumpMibTree(MibNode *root, const char *prefix);
-
-extern void dumpMosy(MibNode *root);
+extern void dumpMosy(Node *root);
 
 
 
@@ -334,8 +348,8 @@ extern void setTypeDescription(Type *type,
 extern void setTypeFileOffset(Type *type,
 			      off_t fileoffset);
 
-extern void setTypeMacro(Type *type,
-			 smi_decl macro);
+extern void setTypeDecl(Type *type,
+			smi_decl decl);
 
 extern void setTypeFlags(Type *type,
 			 Flags flags);

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.1 1998/11/10 20:25:46 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.2 1998/11/19 19:44:02 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -24,6 +24,55 @@
 #define SMI_RECURSIVE   0x8000
 #define SMI_FLAGMASK    (SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
 
+
+#define smiStringAccess(access) ( \
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" : \
+	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" : \
+	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" : \
+	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" : \
+	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" : \
+	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" : \
+						"<unknown>" )
+
+#define smiStringStatus(status) ( \
+	(status == SMI_STATUS_CURRENT)     ? "current" : \
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" : \
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" : \
+	(status == SMI_STATUS_MANDATORY)   ? "mandatory" : \
+	(status == SMI_STATUS_OPTIONAL)    ? "optional" : \
+					     "<unknown>" )
+
+#define smiStringDecl(macro) ( \
+	(macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" : \
+	(macro == SMI_DECL_SIMPLEASSIGNMENT)  ? "<SIMPLE-ASSIGNMENT>" : \
+	(macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" : \
+	(macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" : \
+	(macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" : \
+	(macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" : \
+	(macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE" : \
+	(macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP" : \
+	(macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP" : \
+	(macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE" : \
+	(macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES" : \
+	(macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" : \
+					        "<unknown>" )
+
+#define smiStringSyntax(syntax) ( \
+	(syntax == SMI_SYNTAX_UNKNOWN)           ? "<UNKNOWN>" : \
+	(syntax == SMI_SYNTAX_INTEGER)           ? "INTEGER" : \
+	(syntax == SMI_SYNTAX_OCTET_STRING)      ? "OCTET STRING" : \
+	(syntax == SMI_SYNTAX_OBJECT_IDENTIFIER) ? "OBJECT IDENTIFIER" : \
+	(syntax == SMI_SYNTAX_SEQUENCE)          ? "SEQUENCE" : \
+	(syntax == SMI_SYNTAX_SEQUENCE_OF)       ? "SEQUENCE OF" : \
+	(syntax == SMI_SYNTAX_IPADDRESS)         ? "IpAddress" : \
+	(syntax == SMI_SYNTAX_COUNTER32)         ? "Counter32" : \
+	(syntax == SMI_SYNTAX_GAUGE32)           ? "Gauge32" : \
+	(syntax == SMI_SYNTAX_UNSIGNED32)        ? "Unsigned32" : \
+	(syntax == SMI_SYNTAX_TIMETICKS)         ? "TimeTicks" : \
+	(syntax == SMI_SYNTAX_OPAQUE)            ? "Opaque" : \
+	(syntax == SMI_SYNTAX_COUNTER64)         ? "Counter64" : \
+	(syntax == SMI_SYNTAX_CHOICE)            ? "CHOICE" : \
+					           "<unknown>" )
 
 
 extern void smiInit();
@@ -78,5 +127,7 @@ extern smi_fullname *smiGetParent(smi_fullname name,
 /*
  * TODO: status and (cache-)config functions ?
  */
+
+extern int smi_svc_init(int argc, char *argv[]);
 
 #endif /* _SMI_H_ADD */

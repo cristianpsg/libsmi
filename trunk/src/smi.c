@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.5 1998/11/18 17:31:41 strauss Exp $
+ * @(#) $Id: smi.c,v 1.6 1998/11/19 19:44:01 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -283,11 +283,13 @@ smiGetModule(name, wantdescr)
 
     /* TODO: other than local resources */
     module = findModuleByName(name);
-    
     if (module) {
 	res.name = strdup(module->descriptor->name);
 	res.oid = "TODO";
 	if (wantdescr) {
+	    res.lastupdated = getString(&module->lastUpdated, module);
+	    res.organization = getString(&module->organization, module);
+	    res.contactinfo = getString(&module->contactInfo, module);
 	    res.description = getString(&module->description, module);
 	} else {
 	    res.description = NULL;
@@ -307,7 +309,8 @@ smiGetNode(name, module, wantdescr)
     int wantdescr;
 {
     static smi_node res;
-    MibNode *node;
+    Object *object;
+    Node *node;
     char *elements, *element, *element1;
     unsigned int subid;
     
@@ -322,14 +325,18 @@ smiGetNode(name, module, wantdescr)
         elements = strdup(name);
         /* TODO: success? */
         element = strtok(elements, ".");
-        node = rootMibNode;
+        node = rootNode;
         while (element) {
             subid = (unsigned int)strtoul(element, NULL, 0);
-            node = findMibNodeByParentAndSubid(node, subid);
+            node = findNodeByParentAndSubid(node, subid);
 	    if (!node) break;
             element = strtok(NULL, ".");
         }
 	free(elements);
+	/*
+	 * Note: It is undefined which Object we get.
+	 */
+	object = node->firstObject;
     } else if (strchr(name, '!') || strchr(name, '.')) {
         /*
          * name in `Module!name' or `Module.name' form.
@@ -338,28 +345,30 @@ smiGetNode(name, module, wantdescr)
         /* TODO: success? */
         element1 = strtok(elements, "!.");
         element = strtok(NULL, " ");
-        node = findMibNodeByModulenameAndName(element1, element);
+        object = findObjectByModulenameAndName(element1, element);
+	node = object->node;
         free(elements);
     } else if (module && strlen(module)) {
 	/*
 	 * name in simple `name' form and module not empty.
 	 */
-	node = findMibNodeByModulenameAndName(module, name);
+	object = findObjectByModulenameAndName(module, name);
+	node = object->node;
     } else {
 	/* printError(NULL, ); */
 	return NULL;
     }
 	
-    if (node) {
-	res.name = strdup(node->descriptor->name);
-	res.module = strdup(node->module->descriptor->name);
+    if (object) {
+	res.name = strdup(object->descriptor->name);
+	res.module = strdup(object->module->descriptor->name);
 	res.oid = "TODO";
 	res.type = "TODO";
-	res.decl = node->macro;
-	res.access = node->access;
-	res.status = node->status;
+	res.decl = object->decl;
+	res.access = object->access;
+	res.status = object->status;
 	if (wantdescr) {
-	    res.description = getString(&node->description, node->module);
+	    res.description = getString(&object->description, object->module);
 	} else {
 	    res.description = NULL;
 	}
@@ -409,7 +418,7 @@ smiGetType(name, module, wantdescr)
 	res.name = strdup(type->descriptor->name);
 	res.module = strdup(type->module->descriptor->name);
 	res.syntax = type->syntax;
-	res.decl = type->macro;
+	res.decl = type->decl;
 	res.display = getString(&type->displayHint, type->module);
 	res.status = type->status;
 	if (wantdescr) {
