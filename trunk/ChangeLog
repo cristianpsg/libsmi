@@ -4,6 +4,9 @@
 	SMIv1 TRAPs. Thanks to <hanule@3ic.co.kr>. Sorry, I cannot determine
 	your name in ISO-8859-1. ;-)
 
+	* smi/util.c: Fixed type derivation checks used for TDomain/TAddress
+	and InetAddressType/InetAddress checks.
+
 2002-01-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/CIRCUIT-IF-MIB: added (RFC 3201).
