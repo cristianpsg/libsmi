@@ -1,10 +1,10 @@
 .\"
-.\" $Id: smi_string.3,v 1.2 1999/05/05 15:48:17 strauss Exp $
+.\" $Id: smi_string.3,v 1.3 1999/05/05 22:46:36 strauss Exp $
 .\"
 .TH smi_string 3  "May 5, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
-smiStringStatus, smingStringStatus, smiStringAccess,
-smingStringAccess, smiStringDecl, smiStringBasetype, smiModule,
+smingStringStatus, smiStringStatus, smingStringAccess,
+smiStringAccess, smiStringDecl, smiStringBasetype, smiModule,
 smiDescriptor, smiMkTime, smiCTime, smingCTime \- SMI string
 conversion routines
 .SH SYNOPSIS
@@ -82,10 +82,10 @@ If \fIbasetype\fP is
 not a valid base type, the string "<unknown>" is returned.
 .PP
 The \fBsmiModule()\fP function returns a string that represents
-the module part of the fully quallified descriptor \fIfullname\fP.
+the module part of the fully qualified descriptor \fIfullname\fP.
 .PP
 The \fBsmiDescriptor()\fP function returns a string that
-represent the local descriptor part of the fully quallified descriptor
+represent the local descriptor part of the fully qualified descriptor
 \fIfullname\fP.
 .PP
 The \fBsmiMkTime()\fP function takes a string argument that represents

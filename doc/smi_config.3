@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_config.3,v 1.2 1999/05/05 15:48:16 strauss Exp $
+.\" $Id: smi_config.3,v 1.3 1999/05/05 22:46:35 strauss Exp $
 .\"
 .TH smi_config 3  "May 5, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -37,7 +37,7 @@ configuration routines
 .RE
 .fi
 .SH DESCRIPTION
-These functions allow some initialization and adjustment operations
+These functions provide some initialization and adjustment operations
 for the SMI library.
 .PP
 The \fBsmiInit()\fP function should be the first SMI function called
@@ -53,7 +53,7 @@ level is 0.
 .PP
 The \fBsmiSetErrorLevel()\fP function sets the pedantic level (0-9) of
 the SMI parsers of the SMI library, currently SMIv1/v2 and SMIng
-(which might but should not be turned off at library compile
+(which might, but should not be turned off at library compile
 time). The higher the level, the louder it complains. Values up to 3
 should be regarded as errors, higher level could be interpreted as
 warnings.  But note that this classification is some kind of personal
@@ -62,14 +62,14 @@ to tune a higher level.
 .PP
 The \fBsmiGetFlags()\fP and \fBsmiSetFlags()\fP functions allow to
 fetch, modify and set some \fIuserflags\fP that control the SMI
-library's behaviour.  If \fBSMI_ERRORS\fP is not set no error messages
+library's behaviour.  If \fBSMI_ERRORS\fP is not set, no error messages
 are printed at all to keep the SMI library totally quiet, which might
 be mandatory for some applications. If \fBSMI_ERRORLINES\fP is set and
 an error is printed it is followed by two lines: the current source
 module line and a second line that marks the current point in the line
-above. If \fBSMI_STATS\fP is set and the error level is 9 the
+above. If \fBSMI_STATS\fP is set and the error level is 9, the
 library prints some module statistics. If \fBSMI_RECURSIVE\fP is set,
-the library also complains about errors in modules that are reads due
+the library also complains about errors in modules that are read due
 to import statements.
 .PP
 The \fBsmiReadConfig()\fP function allows to read an additional
@@ -93,8 +93,9 @@ other functions are void.
 The SMI library may retrieve MIB modules from different kinds of
 resources, named locations. A location is specified by the method
 (currently "smi" or "sming"), a colon ":" and a concrete specification
-which depends on the method (currently only a directory
-specification). Examples are:
+which depends on the method (currently only a directory specification,
+where modules are search by file name without any extension). Examples
+are:
 .nf
 
   smi:.
