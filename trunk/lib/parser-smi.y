@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.98 2000/02/28 16:36:11 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.99 2000/03/02 09:22:29 strauss Exp $
  */
 
 %{
@@ -1273,7 +1273,7 @@ typeDeclaration:	typeName
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
-				} else if (!strcmp($1, util_strdup("NetworkAddress"))) {
+				} else if (!strcmp($1, "NetworkAddress")) {
 				    setTypeName($4, util_strdup("NetworkAddress"));
 				    $4->export.basetype = SMI_BASETYPE_OCTETSTRING;
 				    setTypeParent($4, findTypeByModuleAndName(
