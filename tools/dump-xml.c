@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.11 2000/06/21 14:47:55 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.12 2000/07/04 10:07:10 strauss Exp $
  */
 
 /*
@@ -726,6 +726,12 @@ static void printNodes(SmiModule *smiModule)
 	printNode(2 * INDENT, smiNode, lastSmiNode);
     }
     
+    if (lastSmiNode
+	&& lastSmiNode->nodekind == SMI_NODEKIND_COLUMN) {
+	printNodeEndTag(3 * INDENT, "row");
+        printNodeEndTag(2 * INDENT, "table");
+    }
+
     if (i) {
 	printSegment(INDENT, "</nodes>\n\n", 0);
     }

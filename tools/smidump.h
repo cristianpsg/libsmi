@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.12 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.13 2000/08/18 10:35:10 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -67,6 +67,7 @@ extern void dumpCMXplain(Module *module);
 extern void dumpUcdH(Module *module);
 extern void dumpUcdC(Module *module);
 extern void dumpJax(Module *module);
+extern void dumpPython(Module *module);
 
 extern void dumpSql(Module *module);
 extern void dumpFigTree(Module *module);

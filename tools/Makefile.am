@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.18 2000/05/20 12:51:11 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.19 2000/08/18 10:35:10 strauss Exp $
 #
 
 INCLUDES		= -I../lib
@@ -33,7 +33,7 @@ smidump_SOURCES		= smidump.c smidump.h dump-sming.c dump-smi.c \
 			  dump-imports.c dump-types.c dump-tree.c \
 			  dump-mosy.c dump-corba.c dump-ucdsnmp.c \
 			  dump-jax.c dump-xml.c dump-identifiers.c \
-			  dump-metrics.c dump-cm.c
+			  dump-metrics.c dump-cm.c dump-python.c
 #			  dump-fig.c
 smidump_LDADD		= ../lib/libsmi.la
 

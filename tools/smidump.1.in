@@ -1,13 +1,13 @@
 .\"
-.\" $Id: smidump.1.in,v 1.12 2000/08/18 13:15:03 strauss Exp $
+.\" $Id: smidump.1.in,v 1.13 2000/08/24 12:09:18 strauss Exp $
 .\"
-.TH smidump 1  "August 18, 2000" "IBR" "SMI Tools"
+.TH smidump 1  "October 18, 2000" "IBR" "SMI Tools"
 .SH NAME
 smidump \- dump SMI modules in various formats
 .SH SYNOPSIS
 .B smidump
 [
-.B "-Vhsu"
+.B "-VhsuX"
 ] [
 .BI "-c " configfile
 ] [
@@ -79,6 +79,12 @@ Dump a unified output in case of multiple \fImodule(s)\fP instead of
 multiple concatenated output sections. This is not supported for all
 output formats.
 .TP
+.B "-X"
+Do lax parsing. In this mode object identifiers containing underscores
+and uppercase first letters are accepted. Note that if a module can only
+be compiled using this option, then the module is erroneous and should
+be fixed whenever possible.
+.TP
 .I module(s)
 These are the module(s) to be dumped. If a module argument represents a
 path name (identified by containing at least one dot or slash character),
@@ -137,6 +143,9 @@ Details about the reverse engineering process (experimental).
 .TP
 jax
 Java AgentX sub-agent classes in separate files (experimental).
+.TP
+python
+Python dictionaries represention the MIB module.
 .TP
 xml
 SMI in XML format (experimental).
