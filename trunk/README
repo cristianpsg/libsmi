@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.14 1999/06/10 15:28:17 strauss Exp $
+@(#) $Id: README,v 1.15 1999/12/14 14:42:28 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -76,6 +76,11 @@ Or this one, to extend the libsmi search path (note the leading colon):
 More detailed library options, including per-application optionsm, can
 be configured through a global and a user level configuration file. See
 the smi_config(3) man page.
+
+
+DEBUGGING
+=========
+
 
 
 FURTHER READING
