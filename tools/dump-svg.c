@@ -29,6 +29,7 @@
 #include "smi.h"
 #include "smidump.h"
 
+#define DEBUG
 
 
 #define ABS(a) ((float)((a > 0.0) ? (a) : (-(a))))
@@ -134,7 +135,7 @@ static char *baseTypes[] = {
  * Definitions used by the dia output driver (node layout).
  */
 
-//FIXME int statt float?
+//FIXME int or float?
 static const float HEADFONTSIZETABLE   = (float)7;
 static const float HEADSPACESIZETABLE  = (float)4;
 static const float ATTRFONTSIZE        = (float)6;
@@ -143,16 +144,16 @@ static const float RECTCORRECTION      = (float)0.85;
 static const float EDGEYSPACING        = (float)2.0;
 static const float TABLEHEIGHT         = (float)35; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
-static const float TABLEBOTTOMHEIGHT   = (float)5; /*bottom of the table*/
+static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
 /*
- * global dia graph layout
+ * global svg graph layout
  */
-static const float YSPACING            = (float)3.0;  /* y space between nodes */
-static const float XSPACING            = (float)4.0;  /* x space between nodes */ 
-static const float NEWLINEDISTANCE     = (float)40.0; /* length of one line */
-static const float XOFFSET             = (float)2.0;  /* left upper start of graph */
-static const float YOFFSET             = (float)5.0;  /* left upper start of graph */
+static const float YSPACING            = (float)30; /* y space between nodes */
+static const float XSPACING            = (float)40; /* x space between nodes */
+static const float NEWLINEDISTANCE     = (float)90; /* length of one line */
+static const float XOFFSET             = (float)10; /* left start of graph */
+static const float YOFFSET             = (float)10; /* upper start of graph */
 
 /*
  * Stereotype Name
@@ -168,7 +169,7 @@ static const char* INDEXPROPERTY       = " {index}";
  * driver output control
  */
 static int       XPLAIN                = 0; /* false, generates ASCII output */
-static int       DEBUG                 = 0; /* false, generates additional
+static int       DEBUG_XPLAIN          = 0; /* false, generates additional
 					       output in xplain-mode */
 static int       SUPPRESS_DEPRECATED   = 1; /* true, suppresses deprecated
 					       objects */
@@ -534,7 +535,7 @@ static void graphShowEdges(Graph *graph)
   
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 
-	if (DEBUG) {
+	if (DEBUG_XPLAIN) {
 	    switch (tEdge->enhancedindex) {
 	    case GRAPH_ENHINDEX_UNKNOWN :
 		printf("[UNKNOWN] ");
@@ -1865,25 +1866,12 @@ static void algCreateNodes(SmiModule *module)
 
 
 /*
- * Prints the header of the SVG output file.
- * FIXME&TODO
- * calculate size!
- */
-static void printSVGHeader()
-{
-    printf("<?xml version=\"1.0\"?>\n");
-    printf("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n");
-    printf("  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
-    printf("<svg width=\"1100\" height=\"600\" version=\"1.1\"\n");
-    //printf("<svg width=\"25cm\" height=\"20cm\" version=\"1.1\"\n");
-    printf("     xmlns=\"http://www.w3.org/2000/svg\">\n");
-}
-
-/*
  * Prints the footer of the SVG output file.
  */
 static void printSVGClose()
 {
+    printf("  <rect x=\"0\" y=\"0\" width=\"1100\" height=\"600\"\n");
+    printf("        fill=\"none\" stroke=\"blue\" stroke-width=\"1\"/>\n");
     printf("</svg>\n");
 }
 
@@ -1988,12 +1976,7 @@ static void printSVGAugmentIndex(GraphNode *tNode, float *textYOffset)
 }
 
 /*
- * TODO
- * Do some pretty-printing
- * adjust position of heading
- * translate to right position
- * shrink rectangles
- * print one attribute on one line
+ * create svg-output for the given node
  */
 static void printSVGObject(GraphNode *node, float x, float y)
 {
@@ -2003,11 +1986,16 @@ static void printSVGObject(GraphNode *node, float x, float y)
     if (!node) return;
     if (node->dia.flags & DIA_PRINT_FLAG) return;
 
+#ifdef DEBUG
+    fprintf(stderr, "    current node:%s\n",
+		    smiGetFirstChildNode(node->smiNode)->name);
+#endif
+
     node->dia.x = x;
     node->dia.y = y;
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
     
-    printf("  <g transform=\"translate(%.2f,20), scale(1)\">\n", tableOffset);
+    printf("  <g transform=\"translate(%.2f,%.2f), scale(1)\">\n", x, y);
     tableOffset += 250;
     printf("    <rect x=\"0\" y=\"0\" width=\"%.2f\" height=\"%.2f\"\n",
            node->dia.w,node->dia.h);
@@ -2536,13 +2524,12 @@ static void printSVGConnection(GraphEdge *tEdge)
 }
 
 /*
- * printSVGTitle
- *
  * Prints the title of the SVG output file (Modulename and smidump version).
- * FIXME&TODO
+ * TODO
  * Print title somewhere into the SVG.
+ * Make size of SVG configurable.
  */
-static void printSVGTitle(int modc, SmiModule **modv)
+static void printSVGHeaderAndTitle(int modc, SmiModule **modv)
 {
     size_t  length;
     char   *note;
@@ -2573,6 +2560,11 @@ static void printSVGTitle(int modc, SmiModule **modv)
     }
     strcat(note, s2);
 
+    printf("<?xml version=\"1.0\"?>\n");
+    printf("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n");
+    printf("  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
+    printf("<svg width=\"1100\" height=\"600\" version=\"1.1\"\n");
+    printf("     xmlns=\"http://www.w3.org/2000/svg\">\n");
     printf("  <title>%s</title>\n", note);
 
     xfree(note);
@@ -2712,14 +2704,12 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphEdge *tEdge;
     float     x,y,ydiff;
     int       group;
-    
-    printSVGHeader();
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
 	tNode = diaCalcSize(tNode);
     }
 
-    printSVGTitle(modc, modv);
+    printSVGHeaderAndTitle(modc, modv);
     
     x = XOFFSET;
     y = YOFFSET;
@@ -2733,6 +2723,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    printSVGObject(tEdge->endNode, x, y);
 	    printSVGConnection(tEdge);
 	    
+	    //y = tEdge->startNode->dia.h;
 	    ydiff = tEdge->startNode->dia.h;
 
       	    y = diaPrintNode(tEdge->startNode,x,y);
