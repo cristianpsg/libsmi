@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.20 1999/06/17 16:57:09 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.21 1999/06/18 15:04:44 strauss Exp $
  */
 
 #include <stdio.h>
@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "smi.h"
 
@@ -220,11 +221,15 @@ int main(int argc, char *argv[])
     smiInit();
 
     flags = smiGetFlags();
-    
+
     while ((c = getopt(argc, argv, "Vhp:")) != -1) {
 	switch (c) {
 	case 'p':
-	    smiLoadModule(optarg);
+	    if (smiLoadModule(optarg) == NULL) {
+		fprintf(stderr, "smiquery: cannot locate module `%s'\n",
+			optarg);
+		exit(1);
+	    }
 	    break;
 	case 'V':
 	    version();

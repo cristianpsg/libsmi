@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smilint.1.in,v 1.1 1999/06/01 20:47:21 strauss Exp $
+.\" $Id: smilint.1.in,v 1.2 1999/06/07 15:44:19 strauss Exp $
 .\"
-.TH smilint 1  "June 7, 1999" "IBR" "SMI Tools"
+.TH smilint 1  "June 22, 1999" "IBR" "SMI Tools"
 .SH NAME
 smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
@@ -45,13 +45,17 @@ A higher level shows more warnings. The actual levels are:
  3   SMI error, tolerated by many implementations,
  4   something which is recommended to be changed,
  5   something that might be ok, but might not be
-     recommended under some circumstances.
+     recommended under some circumstances,
+ 6   just a notice.
 .fi
 .sp
 Higher levels are actually not used and lead to the same effects as
 level 5 does. Note that errors up to level 3 are errors violating the
 specification and must be fixed by the responsible author. Level 3 is
 the default level.
+.TP
+.B "-r"
+Report errors and warnings also for imported modules.
 .TP
 .I module
 This is the module to be checked. If it represents a path name
