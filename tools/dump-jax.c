@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.37 2001/06/11 13:34:34 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.38 2002/01/28 08:55:01 strauss Exp $
  */
 
 #include <config.h>
@@ -215,7 +215,7 @@ static unsigned int getMaxSize(SmiType *smiType)
         size = 128;
         break;
     default:
-        return -1;
+        return 0xffffffff;
     }
 
     for(smiRange = smiGetFirstRange(smiType);

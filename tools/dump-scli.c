@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.22 2002/07/19 09:06:59 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.23 2002/07/21 19:55:46 schoenw Exp $
  */
 
 /*
@@ -353,7 +353,7 @@ getMinSize(SmiType *smiType)
 	size = 0;
 	break;
     default:
-	return -1;
+	return 0;
     }
 
     for (smiRange = smiGetFirstRange(smiType);
@@ -396,7 +396,7 @@ getMaxSize(SmiType *smiType)
 	size = 128;
 	break;
     default:
-	return -1;
+	return 0xffffffff;
     }
 
     if (smiType->basetype == SMI_BASETYPE_BITS) {
@@ -664,7 +664,7 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
     int      cnt = 0, len;
     char     *cName, *cModuleName;
     char     *dName, *dModuleName;
-    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
 
     cModuleName = translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
@@ -1204,7 +1204,7 @@ printHeaderTypedefs(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
-    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
@@ -1268,7 +1268,7 @@ printStubEnumerations(FILE *f, SmiModule *smiModule)
     char      *cName, *cModuleName;
     char      *dName, *dModuleName;
     int       cnt = 0, len;
-    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     cModuleName = translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
@@ -1582,7 +1582,7 @@ printStubContraints(FILE *f, SmiModule *smiModule)
 {
     SmiNode *smiNode;
     int cnt = 0;
-    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
@@ -1749,7 +1749,7 @@ printStubAttributes(FILE *f, SmiModule *smiModule)
     char         *cName;
     int          cnt = 0;
     unsigned int i;
-    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
         
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
@@ -2983,7 +2983,7 @@ printStubMethods(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
-    const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;

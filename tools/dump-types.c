@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.29 2001/11/08 07:37:31 schoenw Exp $
+ * @(#) $Id: dump-types.c,v 1.30 2002/05/17 13:40:49 schoenw Exp $
  */
 
 /*
@@ -568,8 +568,8 @@ static void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
     SmiType       *smiType;
     SmiRefinement *smiRefinement;
     int		  i;
-    const int	  nodekind = SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
     FILE          *f = stdout;
+    const unsigned32 int nodekind = SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
     
     if (output) {
 	f = fopen(output, "w");

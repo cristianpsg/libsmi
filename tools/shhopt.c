@@ -1,4 +1,4 @@
-/* $Id: shhopt.c,v 1.1 2000/11/29 16:35:55 strauss Exp $ */
+/* $Id: shhopt.c,v 1.2 2001/09/25 07:21:34 schoenw Exp $ */
 /*------------------------------------------------------------------------
  |  FILE            shhopt.c
  |
@@ -95,8 +95,9 @@ optStructCount(optStruct opt[])
 static int
 optMatch(optStruct opt[], const char *s, int lng)
 {
-    int        nopt, q, matchlen = 0;
+    int        nopt, q;
     const char *p;
+    size_t     matchlen = 0;
 
     nopt = optStructCount(opt);
     if (lng) {
