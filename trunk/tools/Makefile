@@ -58,7 +58,7 @@ AUTOCONF = autoconf
 AUTOMAKE = automake
 AUTOHEADER = autoheader
 
-INSTALL = /usr/local/bin/install -c
+INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL_PROGRAM}
@@ -70,21 +70,18 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-host_alias = sparc-sun-solaris2.5.1
-host_triplet = sparc-sun-solaris2.5.1
-AS = @AS@
+host_alias = i686-pc-linux-gnu
+host_triplet = i686-pc-linux-gnu
 BISON = bison
 CC = gcc
-CFLAGS = -g -O2
-DLLTOOL = @DLLTOOL@
+CFLAGS = -Wall -g
 FLEX = flex
-LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
+LD = /usr/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
+LIBTOOL_DEPS = 
 LN_S = ln -s
 MAKEINFO = makeinfo
-NM = /usr/local/bin/nm -B
-OBJDUMP = @OBJDUMP@
+NM = /usr/bin/nm -B
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
@@ -142,7 +139,7 @@ smiquery.1.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 SOURCES = $(smiquery_SOURCES) $(smilint_SOURCES) $(smidump_SOURCES)
 OBJECTS = $(smiquery_OBJECTS) $(smilint_OBJECTS) $(smidump_OBJECTS)
