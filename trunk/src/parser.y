@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.2 1998/10/12 15:11:07 strauss Exp $
+ * @(#) $Id: parser.y,v 1.4 1998/10/13 15:37:20 strauss Exp $
  */
 
 %{
@@ -47,7 +47,7 @@
 /*
  * NOTE: The argument lvalp ist not really a void pointer. Unfortunately,
  * we don't know it better at this point. bison generated C code declares
- * YYSTYPE just a few lines below from the `%union' declaration.
+ * YYSTYPE just a few lines below based on the `%union' declaration.
  */
 extern int yylex(void *lvalp, Parser *parser);
 
@@ -82,9 +82,9 @@ MibNode *parent;
     String text;				/* scanned quoted text       */
     char *id;					/* identifier name           */
     int err;					/* actually just a dummy     */
-    MibNode *mibnode;
-    Status status;
-    Access access;
+    MibNode *mibnode;				/* object identifier         */
+    Status status;				/* a STATUS value            */
+    Access access;				/* an ACCESS value           */
     Type *type;
 }
 
@@ -217,7 +217,7 @@ MibNode *parent;
 %type  <err>VarTypes
 %type  <err>VarType
 %type  <err>DescrPart
-%type  <err>MaxAccessPart
+%type  <access>MaxAccessPart
 %type  <err>notificationTypeClause
 %type  <err>moduleIdentityClause
 %type  <err>typeDeclaration
@@ -291,7 +291,7 @@ MibNode *parent;
 %type  <err>SyntaxPart
 %type  <err>WriteSyntaxPart
 %type  <err>WriteSyntax
-%type  <err>AccessPart
+%type  <access>AccessPart
 %type  <err>agentCapabilitiesClause
 %type  <err>ModulePart_Capabilities
 %type  <err>Modules_Capabilities
@@ -1072,7 +1072,6 @@ descriptionClause:	/* empty */
 			{
 #ifdef TEXTS_IN_MEMORY
 			    $$.ptr = $2.ptr;
-			    memcpy($$.ptr, $2.ptr, $2.length+1);
 #endif
 			    $$.fileoffset = $2.fileoffset;
 			    $$.length = $2.length;
@@ -1131,7 +1130,7 @@ MaxAccessPart:		MAX_ACCESS
 			    }
 			}
 			Access
-			{ $$ = 0; }
+			{ $$ = $3; }
 	|		ACCESS
 			{
 			    if (thisModule->flags & FLAG_SMIV2) {
@@ -1140,7 +1139,7 @@ MaxAccessPart:		MAX_ACCESS
 			}
 			Access
 			/* TODO: limited values in v1 */
-			{ $$ = 0; }
+			{ $$ = $3; }
 	;
 
 notificationTypeClause:	LOWERCASE_IDENTIFIER
@@ -2247,9 +2246,9 @@ WriteSyntax:		Syntax
 	;
 
 AccessPart:		MIN_ACCESS Access
-			{ $$ = 0; }
+			{ $$ = $2; }
 	|		/* empty */
-			{ $$ = 0; }
+			{ $$ = ACCESS_UNKNOWN; }
 	;
 
 agentCapabilitiesClause: LOWERCASE_IDENTIFIER

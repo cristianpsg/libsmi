@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.2 1998/10/12 15:11:04 strauss Exp $
+ * @(#) $Id: data.c,v 1.3 1998/10/13 14:55:49 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -20,6 +20,23 @@
 
 #include "error.h"
 #include "data.h"
+
+
+
+#define stringAccess(access) ( \
+	(access == ACCESS_NOT)         ? "not-accessible" : \
+	(access == ACCESS_NOTIFY)      ? "accessible-for-notify" : \
+	(access == ACCESS_READ_ONLY)   ? "read-only" : \
+	(access == ACCESS_READ_WRITE)  ? "read-write" : \
+	(access == ACCESS_READ_CREATE) ? "read-create" : \
+	(access == ACCESS_WRITE_ONLY)  ? "write-only" : \
+					 "unknown" )
+
+#define stringStatus(status) ( \
+	(status == STATUS_CURRENT)     ? "current" : \
+	(status == STATUS_DEPRECATED)  ? "deprecated" : \
+	(status == STATUS_OBSOLETE)    ? "obsolete" : \
+					 "unknown" )
 
 
 
@@ -888,7 +905,7 @@ setMibNodeDescription(node, description)
     node->description.fileoffset = description->fileoffset;
     node->description.length = description->length;
 #ifdef TEXTS_IN_MEMORY
-    node->description.ptr = strdup(description->ptr);
+    node->description.ptr = description->ptr;
 #endif
 }
 
@@ -1378,15 +1395,26 @@ dumpMosy(root)
     MibNode *root;
 {
     MibNode *c;
+    char s[200];
     
     if (root) {
 	if (root != rootMibNode) {
 	    if ((root->flags & FLAG_MODULE) &&
 		(root->descriptor && root->parent->descriptor)) {
-		printf("%-32s %s.%d\n",
-		       root->descriptor->name,
-		       root->parent->descriptor->name,
-		       root->subid);
+		sprintf(s, "%s.%d",
+			root->parent->descriptor->name, root->subid);
+		if (root->macro == MACRO_OBJECTTYPE) {
+		    printf("%-19s %-19s %-15s %-15s %s\n",
+			   root->descriptor->name,
+			   s,
+			   "<type>",
+			   stringAccess(root->access),
+			   stringStatus(root->status));
+		} else {
+		    printf("%-19s %s\n",
+			   root->descriptor->name,
+			   s);
+		}
 	    }
 	}
 	for (c = root->firstChild; c; c = c->next) {
@@ -1411,7 +1439,7 @@ dumpMosy(root)
 
 
 
-#if TODO
+#if 0
 /*
  *----------------------------------------------------------------------
  *
