@@ -1,3 +1,7 @@
+2002-06-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/DIFFSERV-MIB,DIFFSERV-DSCP-TC: added (RFC 3289).
+
 2002-05-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: Fixed lost named numbers in case of forward
