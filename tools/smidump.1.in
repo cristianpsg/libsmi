@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.25 2001/11/09 15:30:00 schoenw Exp $
+.\" $Id: smidump.1.in,v 1.26 2002/06/21 14:31:26 strauss Exp $
 .\"
 .TH smidump 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
@@ -119,7 +119,7 @@ types
 Types defined in a module.
 .TP
 tree
-OID tree structure of a module.
+OID registration tree structure of a module.
 .TP
 metrics
 Metrics derived from a module (experimental).
