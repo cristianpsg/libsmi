@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.39 2002/07/22 17:06:19 schoenw Exp $
+ * @(#) $Id: dump-xsd.c,v 1.40 2002/07/24 17:45:13 tklie Exp $
  */
 
 #include <config.h>
@@ -177,20 +177,16 @@ static void fprintMultilineString(FILE *f, int column, const char *s)
 	    }
 	    if (xmlEscapes[j].character) {
 		fputs(xmlEscapes[j].escape, f);
-/*		current_column += strlen(xmlEscapes[j].escape);*/
 	    } else {
 		putc(s[i], f);
-/*		current_column++;*/
 	    }
 	    if (s[i] == '\n') {
-/*		current_column = 0;*/
 #ifdef INDENTTEXTS
 		fprintSegment(f, column + INDENTTEXTS, "", 0);
 #endif
 	    }
 	}
     }
-/*    current_column++;*/
 }
 
 
@@ -261,6 +257,7 @@ fprintHexOrAsciiType( FILE *f, int indent, SmiType *parent,
 	fprintf( f, " value=\"%d\"/>\n", (int)minLength );
     }
     if( maxLength > -1 ) {
+
 	fprintSegment( f, indent + 2 * INDENT, "<xsd:maxLength", 0 );
 	fprintf( f, " value=\"%d\"/>\n", (int)maxLength );
     }
@@ -313,9 +310,230 @@ fprintStringUnion( FILE *f, int indent, SmiType *smiType,
 }
 
 
+/*
+ * build a regexp from this display hint
+ * NOTE: very experimental stuff
+ */
+static char* getStrDHType( char *hint,
+			   SmiInteger32 *lengths, unsigned int numSubranges  )
+{
+    unsigned int i = 0;
+    char *ret = NULL;
 
-static void fprintRestriction(FILE *f, int indent, SmiType *smiType,
-			      int secondTime)
+    do {
+	unsigned int pos = 0, intNum = 0;
+	int repeat = 0; /* xxx not yet implemented */
+	unsigned int octetsUsed = 0,
+	    lastRegexpUsesMin = 0, lastRegexpUsesMax = 0;
+	
+	/* switch between "", ")" and "|"
+	   ")" is used between regexps parts of subrange,
+	   "|" is used between regexps of subranges. 
+	   If there is no regexp (part) yet, "" should be used */
+	char *startChar = "";
+	int started;
+
+	if( i && ret ) {
+	    /* we have already created a regexp for a subrange, so the next
+	       regexp for a subrange is an alternative (= we use '|') */
+	    startChar = "|";
+	}
+	
+	while( pos < strlen( hint ) ) {
+	    if( octetsUsed >= lengths[ i+1 ] ) {
+		/* we have used the maximal number of octets
+		   for this subrange, so let's exit the loop here */
+		break;
+	    }
+	    started = 1;
+	    	    
+	    switch( hint[ pos ] ) {
+		
+	    case '0':
+	    case '1':
+	    case '2':
+	    case '3':
+	    case '4':
+	    case '5':
+	    case '6':
+	    case '7':
+	    case '8':
+	    case '9': {
+		unsigned int endPos;
+		char *strNum;
+		
+		/* find end of number */
+		for( endPos = pos; isdigit( hint[ endPos ] ); endPos++ );
+		
+		/* parse number */
+		strNum = xmalloc( endPos - pos );
+		strncpy( strNum, &hint[ pos ], endPos - pos );
+		strNum[ endPos - pos ] = '\0';
+		intNum= atoi( strNum );
+		xfree( strNum );
+		
+		/* forward the position pointer */
+		pos = endPos;
+		break;
+	    }
+	    
+	    case 'a':
+		/* render as ascii */
+		if( repeat ) {
+		    /* length depends on input */
+		    asprintf( &ret, "%s%s(%c*",
+			      /* if no string yet, append to "" */
+			      ret ? ret : "",
+			      startChar, hint[ ++pos ] );		    
+		}
+		else if( intNum ) {
+		    /* lengths depends on number read last iteration */
+		    asprintf( &ret, "%s%s(#x00-#x7f)",
+			      ret ? ret : "", ret ? startChar : "" );
+		    
+		    if( intNum > 1 ) {
+			/* we can have this char more than once */
+			asprintf( &ret, "%s{1,%d}", ret ? ret : "", intNum );
+		    }
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = intNum;
+		}
+		else {
+		    asprintf( &ret, "%s%s((%c*)",
+			      ret ? ret : "", ret ? startChar : "",
+			      hint[ ++pos ] );
+		}
+
+		startChar = ")";
+		pos++;
+		break;
+		
+	    case 'b':
+		/* render as binary */
+		/* xxx TBD: repeat, intNum = 0 */
+		if( intNum ) {
+		    asprintf( &ret, "%s%s(((0|1){8}){1,%d}",
+			      ret ? ret : "", ret ? startChar : "", intNum );
+		    
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = intNum;
+		}
+		startChar = ")";
+		pos++;
+		break;
+		
+	    case 'd':
+		/* render as decimal */
+		/* xxx TBD: repeat */
+		asprintf( &ret, "%s%s([1-9][0-9]*",
+			  ret ? ret : "", ret ? startChar : "" );
+
+		if( intNum ) {
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = intNum;
+		}
+		else {
+		    /* xxx how can we calculate this ?
+		       let's assume we use one octet */
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = 1;
+		}
+		startChar = ")";
+		pos++;
+		break;
+		
+	    case 'o':
+		/* render as octal */
+		asprintf( &ret, "%s%s([1-7][0-7]*",
+			  ret ? ret : "", ret ? startChar : "" );
+
+		if( intNum ) {
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = intNum;
+		}
+		else {
+		    /* xxx how can we calculate this ?
+		       let's assume we use one octet */
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = 1;
+		}
+		startChar = ")";
+		pos++;
+		break;
+		
+	    case 'x':
+		/* render as hex */
+		if( intNum ) {
+		    asprintf( &ret, "%s%s([0-9A-Ea-e]{%d,%d}",
+			      ret ? ret : "", ret ? startChar : "",
+			      2 * intNum, 2 * intNum );
+
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = intNum;
+		}
+		else {
+		    /* xxx how can we calculate this ?
+		       let's assume we use one octet */
+		    lastRegexpUsesMin = 1;
+		    lastRegexpUsesMax = 1;
+		}
+		startChar = ")";
+		pos++;
+		break;
+		
+	    case '*':
+		repeat = 1;
+		pos++;
+		break;
+		
+	    default:
+		/* add a seperator char*/
+		asprintf( &ret, "%s%c", ret ? ret : "", hint[ pos++ ] );
+		break;
+	    }
+	    
+	}
+	/* add closure to last regexp part */
+
+	if( numSubranges ) {
+	    unsigned int minLength = lengths[ i ] < octetsUsed ? 0 :
+		(unsigned int)( ( lengths[ i ] -
+				  ( octetsUsed - lastRegexpUsesMax ) )/
+				lastRegexpUsesMax );
+	    unsigned int maxLength = lengths[ i+1 ] < octetsUsed ? 0 :
+		(unsigned int)( ( lengths[ i+1 ] -
+				  ( octetsUsed - lastRegexpUsesMin ) ) /
+				lastRegexpUsesMin );
+	    if( minLength < maxLength || minLength != 1 ) { 
+		asprintf( &ret, "%s){%u,%u}", ret, minLength, maxLength );
+	    }
+	    else {
+		asprintf( &ret, "%s)", ret );
+	    }
+	}
+	else {
+	    /* we don't have subranges specifying range restrictions,
+	       so let's use no restriction for the pattern here */
+	    asprintf( &ret, "%s)*", ret  );
+	}
+	i++;i++;
+    } while( i < numSubranges * 2 );
+    return ret;
+}
+
+
+
+static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 {
     SmiRange *smiRange;
     
@@ -354,6 +572,7 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType,
     case SMI_BASETYPE_OCTETSTRING:
     {
 	SmiInteger32  minLength, maxLength;
+	unsigned int numSubRanges = 0;
 	
 	minLength = 0;
 	maxLength = -1;
@@ -369,16 +588,92 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType,
 	    if( smiRange->maxValue.value.integer32 > maxLength ) {
 		maxLength = smiRange->maxValue.value.integer32;
 	    }
+	    numSubRanges++;
 	}
 
-	if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	if( smiType->format && smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	    /*
 	    fprintStringUnion( f, indent, smiType,
 			       minLength, maxLength, 0, NULL );
+	    */
+	    SmiUnsigned32 *lengths = xmalloc( 2 * sizeof( SmiUnsigned32 ) *
+					      numSubRanges ),
+		lp = 0;
+	    SmiRange *smiRange;
+	    
+	    /* write subtype lengths to the array */
+	    for( smiRange = smiGetFirstRange( smiType );
+		 smiRange;
+		 smiRange = smiGetNextRange( smiRange ) ) {
+		lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+		lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+	    }
+	    
+	    fprintSegment( f, indent, "<xsd:restriction ", 0 );
+	    fprintf( f, "base=\"xsd:string\">\n" );
+	    fprintSegment( f, indent + 2 * INDENT, "<xsd:pattern ", 0 );
+	    fprintf( f, "value=\"%s\"/>\n", getStrDHType( smiType->format,
+							  lengths, numSubRanges ) );
+	    fprintSegment( f, indent, "<xsd:restriction>\n", 0 );
+	    
+	    xfree( lengths );
 	}
 	else {
+	    SmiType *parent = smiGetParentType( smiType );
+	    /*
 	    fprintStringUnion( f, indent, smiType,
 			       minLength, maxLength, secondTime,
 			       smiType->name );
+	    */
+	    if( parent ) {
+		if( ! parent->format ) {
+		    char *prefix = getTypePrefix( parent->name );
+
+		    fprintSegment( f, indent, "<xsd:restriction", 0 );
+		    if( prefix ) {
+			fprintf( f, " base=\"%s:%s\">\n",
+				 prefix, parent->name );
+		    }
+		    else {
+			fprintf( f, " base=\"%s\">\n", parent->name );
+		    }
+
+		    /* print length restriction */
+		    fprintSegment( f, indent + INDENT, "<xsd:minLength ", 0 );
+		    fprintf( f, "value=\"%d\"/>\n", (int)minLength );
+		    fprintSegment( f, indent + INDENT, "<xsd:maxLength ", 0 );
+		    fprintf( f, "value=\"%d\"/>\n", (int)maxLength );
+		    
+		    fprintSegment( f, indent, "</xsd:restriction>\n", 0 );
+		}
+		else {
+		    SmiUnsigned32 *lengths =
+			xmalloc( 2 * sizeof( SmiUnsigned32 ) * numSubRanges ),
+			lp = 0;
+		    SmiRange *smiRange;
+		    
+		    /* write subtype lengths to the array */
+		    for( smiRange = smiGetFirstRange( smiType );
+			 smiRange;
+			 smiRange = smiGetNextRange( smiRange ) ) {
+			lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+			lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+		    }
+		    
+		    fprintSegment( f, indent + INDENT, "<xsd:restriction ",
+				   0 );
+		    fprintf( f, "base=\"xsd:string\">\n" );
+		    fprintSegment( f, indent + 2 * INDENT, "<xsd:pattern ",
+				   0 );
+		    fprintf( f, "value=\"%s\"/>\n",
+			     getStrDHType( parent->format,
+					   lengths, numSubRanges ) );
+		    fprintSegment( f, indent + INDENT, "<xsd:restriction>\n",
+				   0 );
+		    xfree( lengths );
+		}
+		
+	    }
 	}
 	break;
     }
@@ -630,7 +925,6 @@ static void fprintSubRangeType( FILE *f, int indent,
 	if( smiRange->maxValue.value.integer32 > maxLength ) {
 	    maxLength = smiRange->maxValue.value.integer32;
 	}
-	fprintf( f, "HHHHHHH\n" );
 	fprintHexOrAsciiType( f, indent + INDENT, smiType,
 			      minLength, maxLength, NULL, 1 );
 	break;
@@ -710,226 +1004,6 @@ static void fprintDisplayHint( FILE *f, int indent, char *format )
 }
 
 
-/*
- * build a regexp from this display hint
- * NOTE: very experimental stuff
- */
-static char* getStrDHType( char *hint,
-			   SmiInteger32 *lengths, unsigned int numSubranges  )
-{
-    unsigned int i = 0;
-    char *ret = NULL;
-
-    do {
-	unsigned int pos = 0, intNum = 0;
-	int repeat = 0; /* xxx not yet implemented */
-	unsigned int octetsUsed = 0,
-	    lastRegexpUsesMin = 0, lastRegexpUsesMax = 0;
-	
-	/* switch between "", ")" and "|"
-	   ")" is used between regexps parts of subrange,
-	   "|" is used between regexps of subranges. 
-	   If there is no regexp (part) yet, "" should be used */
-	char *startChar = "";
-	int started;
-
-	if( i && ret ) {
-	    /* we have already created a regexp for a subrange, so the next
-	       regexp for a subrange is an alternative (= we use '|') */
-	    startChar = "|";
-	}
-	
-	while( pos < strlen( hint ) ) {
-	    if( octetsUsed >= lengths[ i+1 ] ) {
-		/* we have used the maximal number of octets
-		   for this subrange, so let's exit the loop here */
-		break;
-	    }
-	    started = 1;
-	    	    
-	    switch( hint[ pos ] ) {
-		
-	    case '0':
-	    case '1':
-	    case '2':
-	    case '3':
-	    case '4':
-	    case '5':
-	    case '6':
-	    case '7':
-	    case '8':
-	    case '9': {
-		unsigned int endPos;
-		char *strNum;
-		
-		/* find end of number */
-		for( endPos = pos; isdigit( hint[ endPos ] ); endPos++ );
-		
-		/* parse number */
-		strNum = xmalloc( endPos - pos );
-		strncpy( strNum, &hint[ pos ], endPos - pos );
-		strNum[ endPos - pos ] = '\0';
-		intNum= atoi( strNum );
-		xfree( strNum );
-		
-		/* forward the position pointer */
-		pos = endPos;
-		break;
-	    }
-	    
-	    case 'a':
-		/* render as ascii */
-		if( repeat ) {
-		    /* length depends on input */
-		    asprintf( &ret, "%s%s(%c*",
-			      /* if no string yet, append to "" */
-			      ret ? ret : "",
-			      startChar, hint[ ++pos ] );		    
-		}
-		else if( intNum ) {
-		    /* lengths depends on number read last iteration */
-		    asprintf( &ret, "%s%s(#x00-#x7f)",
-			      ret ? ret : "", ret ? startChar : "" );
-		    
-		    if( intNum > 1 ) {
-			/* we can have this char more than once */
-			asprintf( &ret, "%s{1,%d}", ret ? ret : "", intNum );
-		    }
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    asprintf( &ret, "%s%s((%c*)",
-			      ret ? ret : "", ret ? startChar : "",
-			      hint[ ++pos ] );
-		}
-
-		startChar = ")";
-		pos++;
-		break;
-		
-	    case 'b':
-		/* render as binary */
-		/* xxx TBD: repeat, intNum = 0 */
-		if( intNum ) {
-		    asprintf( &ret, "%s%s(((0|1){8}){1,%d}",
-			      ret ? ret : "", ret ? startChar : "", intNum );
-		    
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		startChar = ")";
-		pos++;
-		break;
-		
-	    case 'd':
-		/* render as decimal */
-		/* xxx TBD: repeat */
-		asprintf( &ret, "%s%s([1-9][0-9]*",
-			  ret ? ret : "", ret ? startChar : "" );
-
-		if( intNum ) {
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    /* xxx how can we calculate this ?
-		       let's assume we use one octet */
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = 1;
-		}
-		startChar = ")";
-		pos++;
-		break;
-		
-	    case 'o':
-		/* render as octal */
-		asprintf( &ret, "%s%s([1-7][0-7]*",
-			  ret ? ret : "", ret ? startChar : "" );
-
-		if( intNum ) {
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    /* xxx how can we calculate this ?
-		       let's assume we use one octet */
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = 1;
-		}
-		startChar = ")";
-		pos++;
-		break;
-		
-	    case 'x':
-		/* render as hex */
-		if( intNum ) {
-		    asprintf( &ret, "%s%s([0-9A-Ea-e]{%d,%d}",
-			      ret ? ret : "", ret ? startChar : "",
-			      2 * intNum, 2 * intNum );
-
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    /* xxx how can we calculate this ?
-		       let's assume we use one octet */
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = 1;
-		}
-		startChar = ")";
-		pos++;
-		break;
-		
-	    case '*':
-		repeat = 1;
-		pos++;
-		break;
-		
-	    default:
-		/* add a seperator char*/
-		asprintf( &ret, "%s%c", ret ? ret : "", hint[ pos++ ] );
-		break;
-	    }
-	    
-	}
-	/* add closure to last regexp part */
-
-	if( numSubranges ) {
-	    unsigned int minLength = lengths[ i ] < octetsUsed ? 0 :
-		(unsigned int)( ( lengths[ i ] -
-				  ( octetsUsed - lastRegexpUsesMax ) )/
-				lastRegexpUsesMax );
-	    unsigned int maxLength = lengths[ i+1 ] < octetsUsed ? 0 :
-		(unsigned int)( ( lengths[ i+1 ] -
-				  ( octetsUsed - lastRegexpUsesMin ) ) /
-				lastRegexpUsesMin );
-	    if( minLength < maxLength || minLength != 1 ) { 
-		asprintf( &ret, "%s){%u,%u}", ret, minLength, maxLength );
-	    }
-	    else {
-		asprintf( &ret, "%s)", ret );
-	    }
-	}
-	else {
-	    /* we don't have subranges specifying range restrictions,
-	       so let's use no restriction for the pattern here */
-	    asprintf( &ret, "%s)*", ret  );
-	}
-	i++;i++;
-    } while( i < numSubranges * 2 );
-    return ret;
-}
 
 
 static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
@@ -947,12 +1021,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
 	    if( smiType->name ) {
-/*		if( ! strcmp( smiType->name, name ) ) {*/
-		    fprintf( f, " name=\"%s\"", name );
-/*		}
-		else {
-		    fprintf( f, " name=\"%sType\"", name );
-		    }*/
+		    fprintf( f, " name=\"%s\"", smiType->name );
 	    }
 	    else {
 		fprintf( f, " name=\"%sType\"", name );
@@ -983,28 +1052,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     }
     
     if( smiType->format && smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
-	SmiUnsigned32 *lengths = xmalloc( numSubRanges * 2 *
-					 sizeof( SmiUnsigned32 ) ),
-//	    *lp = lengths;
-	    lp = 0;
-	SmiRange *smiRange;
-
-	/* write subtype lengths to the array */
-	for( smiRange = smiGetFirstRange( smiType );
-	     smiRange;
-	     smiRange = smiGetNextRange( smiRange ) ) {
-	    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
-	    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
-	}
-	
-	fprintSegment( f, indent + INDENT, "<xsd:restriction ", 0 );
-	fprintf( f, "base=\"xsd:string\">\n" );
-	fprintSegment( f, indent + 2 * INDENT, "<xsd:pattern ", 0 );
-	fprintf( f, "value=\"%s\"/>\n", getStrDHType( smiType->format,
-						     lengths, numSubRanges ) );
-	fprintSegment( f, indent + INDENT, "<xsd:restriction>\n", 0 );
-
-	xfree( lengths );
+	fprintRestriction( f, indent + INDENT, smiType );
     }
     
     else if( ( numSubRanges > 1 ) &&
@@ -1022,12 +1070,8 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
     }
     else {
-	fprintRestriction(f, indent + INDENT, smiType, 0 );
+	fprintRestriction(f, indent + INDENT, smiType );
 	fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
-	if( smiType->basetype == SMI_BASETYPE_OCTETSTRING &&
-	    smiType->decl != SMI_DECL_IMPLICIT_TYPE ) {
-	    fprintRestriction(f, indent - INDENT, smiType, 1 );
-	}
     }
 
     /* print an empty line after global types */
@@ -1256,7 +1300,6 @@ static int getIntDHType( char *hint, int *offset )
 
 
 
-
 static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 {
     switch( smiNode->nodekind ) {
@@ -1329,40 +1372,6 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 	}
 	smiType = smiGetNodeType( smiNode );
 
-	if( smiType->format ) {
-	    int *offset = xmalloc( sizeof( int ) );
-	    
-	    fprintf( f, "<!-- DH (type): %s -->\n", smiType->format );
-	    if( smiType->basetype != SMI_BASETYPE_OCTETSTRING ) {
-		if( getIntDHType( smiType->format, offset ) ==
-		    MD_DH_INT_DECIMAL ) {
-		    fprintf( f, "<!-- offset = %d -->\n", *offset );
-		}
-	    }
-	    else {
-		
-		unsigned int numSubRanges = getNumSubRanges( smiType ), lp = 0;
-		SmiRange *smiRange;
-		SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
-						   
-		/* write subtype lengths to the array */
-		for( smiRange = smiGetFirstRange( smiType );
-		     smiRange;
-		     smiRange = smiGetNextRange( smiRange ) ) {
-		    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
-		    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
-		}
-		fprintf( f, "<!-- DH regexp: %s -->\n",
-			 getStrDHType( smiType->format,
-				       lengths,
-				       numSubRanges ) );
-		xfree( lengths );
-	    }
-	}
-	if( smiNode->format ) {
-	    fprintf( f, "<!-- DH (node): %s -->\n", smiNode->format );
-	}
-
 	fprintSegment( f, indent, "<xsd:element", 0 );
 	fprintf( f, " name=\"%s\"", smiNode->name );
 
@@ -1390,18 +1399,58 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 	}
 
 	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
-	    fprintf( f, " minOccurs=\"0\">\n" );
+	    
+	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+		fprintf( f, " minOccurs=\"0\">\n" );
+		fprintTypedef( f, indent + INDENT, smiType, NULL );
+#if 0		
+		unsigned int numSubRanges = getNumSubRanges( smiType ), lp = 0;
+		SmiRange *smiRange;
+		SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
+		
+		/* write subtype lengths to the array */
+		for( smiRange = smiGetFirstRange( smiType );
+		     smiRange;
+		     smiRange = smiGetNextRange( smiRange ) ) {
+		    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+		    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+		}
+		fprintf( f, "<!-- DH regexp: %s -->\n",
+			 getStrDHType( smiType->format,
+				       lengths,
+				       numSubRanges ) );
+		xfree( lengths );
+#endif /* 0 */
+	    }
+
+	    else {
+		if( prefix ) {
+		    fprintf( f, " type=\"%s:%s\" minOccurs=\"0\">\n",
+			     prefix, typeName );
+		}
+		else {		    
+		    fprintf( f, " type=\"%s\" minOccurs=\"0\">\n",
+			     typeName );
+		}
+	    }
+	    
+	    if( smiNode->format ) {
+		fprintf( f, "<!-- DH (node): %s -->\n", smiNode->format );
+	    }
+	    
+
 	    fprintAnnotationElem( f, indent + INDENT, smiNode );
+#if 0
 	    fprintSegment( f, indent + INDENT, "<xsd:complexType>\n", 0 );
 	    fprintSegment( f, indent + 2 * INDENT,
 			   "<xsd:simpleContent>\n", 0 );
 	    fprintSegment( f, indent + 3 * INDENT, "<xsd:extension", 0 );
 	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE  ) {
 		fprintf( f, " base=\"%sType\">\n",
-			smiNode->name ); 
+			 smiNode->name ); 
 	    }
 	    else {
-
+		
 		if( prefix ) {
 		    fprintf( f, " base=\"%s:%s\">\n", prefix, typeName );
 		}
@@ -1414,9 +1463,10 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 			   "<xsd:attribute name=\"enc\" " , 0 );
 	    fprintf( f, "type=\"smi:EncAttrType\"/>\n" );
 	    fprintSegment( f, indent + 3 * INDENT, "</xsd:extension>\n", 0 );
-
+	    
 	    fprintSegment(f, indent + 2 * INDENT, "</xsd:simpleContent>\n", 0);
 	    fprintSegment( f, indent + INDENT, "</xsd:complexType>\n", 0 );
+#endif /* 0 */
 	}
 
 	else if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
@@ -1487,9 +1537,11 @@ static void fprintBitsAndStrings( FILE *f, SmiModule *smiModule )
 		    }
 
 		case SMI_BASETYPE_OCTETSTRING:
+#if 0
 		    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
 			fprintTypedef( f, INDENT, smiType, iterNode->name );
 		    }
+#endif /* 0 */
 		    break;
 		default:
 		    break;
