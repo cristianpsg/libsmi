@@ -9,7 +9,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# $Id$
+# $Id: smistrip.in,v 1.1 1999/12/12 11:46:04 strauss Exp $
 #
 # NOTE, that this script relies on awk (tested with GNU awk) and getopts
 # (shell builtin like in bash or standalone).
@@ -41,14 +41,12 @@ do_usage () {
 do_strip () {
     cat $1 | $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
-    BEGIN {
-	skip = 9
-	skipped = -1
-    }
-
     # start of module
     /^[ \t]*[A-Za-z0-9-]* *DEFINITIONS */ {
 	module = $1
+	skip = 9
+	skipped = -1
+	macro = 0
 	n = 0
     }
 
@@ -88,31 +86,40 @@ do_strip () {
 	}
     }
 
+    # remember when we enter a macro definition
+    / *MACRO *::=/ {
+	macro = 1
+    }
+
     # end of module
     /^[ \t]*END[ \t]*$/ {
-	if ((length(single) == 0) || (single == module)) {
-	    strip = 99
-	    for (i=0 ; i < n ; i++) {
-	        # find the minimum column that contains non-blank characters
-		# in order to cut a blank prefix off.
-	        p = match(line[i], "[^ ]")
-	        if ((p < strip) && (length(line[i]) > p)) { strip = p }
-	    }
-
-	    if (test != "1") {
-		if (dir) {
-		   f = dir"/"module
-		} else {
-		   f = module
+	if (macro == 0) {
+	    if ((length(single) == 0) || (single == module)) {
+		strip = 99
+		for (i=0 ; i < n ; i++) {
+		    # find the minimum column that contains non-blank characters
+		    # in order to cut a blank prefix off.
+		    p = match(line[i], "[^ ]")
+		    if ((p < strip) && (length(line[i]) > p)) { strip = p }
 		}
-	        for (i=0 ; i < n ; i++) {
-		    print substr(line[i], strip) >f
+    
+		if (test != "1") {
+		    if (dir) {
+		       f = dir"/"module
+		    } else {
+		       f = module
+		    }
+		    for (i=0 ; i < n ; i++) {
+			print substr(line[i], strip) >f
+		    }
 		}
+    
+		print module ": " n " lines."
 	    }
-
-	    print module ": " n " lines."
+	    module = ""
+	} else {
+	    macro = 0
 	}
-	module = ""
     }
     '
 }
