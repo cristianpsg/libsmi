@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.33 2002/06/26 12:11:27 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.34 2002/07/01 15:04:57 tklie Exp $
  */
 
 #include <config.h>
@@ -552,6 +552,7 @@ static int getNumSubRanges( SmiType *smiType )
     return num;
 }
 
+
 static void fprintSubRangeType( FILE *f, int indent,
 				SmiRange *smiRange, SmiType *smiType )
 {
@@ -704,6 +705,174 @@ static void fprintDisplayHint( FILE *f, int indent, char *format )
     fprint( f, "%s</displayHint>\n", format );
 }
 
+
+
+/*
+ * build a regexp from this display hint
+ * NOTE: very experimental stuff
+ * xxx TBD: use length and generate one regexp for each sub range
+ */
+static char* getStrDHType( char *hint,
+			   SmiInteger32 *lengths, unsigned int numSubranges  )
+{
+    unsigned int pos = 0, intNum = 0;
+    char *ret = NULL;
+    int repeat = 0;
+    
+    while( pos < strlen( hint ) ) {
+
+	switch( hint[ pos ] ) {
+
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9': {
+	    unsigned int endPos;
+	    char *strNum;
+
+	    /* find end of number */
+	    for( endPos = pos; isdigit( hint[ endPos ] ); endPos++ );
+	    
+	    /* parse number */
+	    strNum = xmalloc( endPos - pos );
+	    strncpy( strNum, &hint[ pos ], endPos - pos );
+	    strNum[ endPos - pos ] = '\0';
+	    intNum= atoi( strNum );
+	    xfree( strNum );
+
+	    /* forward the position pointer */
+	    pos = endPos;
+	    break;
+	}
+
+	case 'a':
+	    /* render as ascii */
+	    if( repeat ) {
+		/* length depends on input */
+		if( ret ){
+		    ret = xrealloc( ret, strlen( ret ) + 5 );
+		    sprintf( ret, "%s)(%c*", ret, hint[ ++pos ] );
+		}
+		else {
+		    ret = xmalloc( 4 );
+		    sprintf( ret, "(%c*", hint[ ++pos ] );
+		}		
+	    }
+	    else if( intNum ) {
+		/* lengths depends on number read last iteration*/
+		if( intNum > 1 ) {
+		    if( ret ) {
+			ret = xrealloc( ret, strlen( ret ) + 23 );
+			sprintf( ret, "%s)((#x20-#x7e){1,%d}", ret, intNum );
+		    }
+		    else {
+			ret = xmalloc( 22 );
+			sprintf( ret, "((#x20-#x7e){1,%d}", intNum ); 
+		    }
+		}
+		else {
+		    if( ret ) {
+			ret = xrealloc( ret, strlen( ret ) + 12 );
+			sprintf( ret, "%s)(#x20-#x7e", ret );
+		    }
+		    else {
+			ret = xmalloc( 11 );
+			sprintf( ret, "(#x20-#x7e" ); 
+		    }
+		}
+	    }
+	    else {
+		if( ret ) {
+		    ret = xrealloc( ret, strlen( ret ) + 7 );
+		    sprintf( ret, "%s)((%c*)", ret, hint[ ++pos ] );
+		}
+		else {
+		    ret = xmalloc( 4 );
+		    sprintf( ret, "(%c*", hint[ ++pos ] );
+		}
+	    }
+	    pos++;
+	    break;
+	    
+	case 'b':
+	    /* render as binary */
+	    /* xxx TBD: repeat */
+	    if( ret ) {
+		    ret = xrealloc( ret, strlen( ret ) + 22 );
+		    sprintf( ret, "%s)(((0|1){8}){1,%d}", ret, intNum );
+		}
+		else {
+		    ret = xmalloc( 21 );
+		    sprintf( ret, "(((0|1){8}){1,%d}", intNum ); 
+		}
+	    pos++;
+	    break;
+
+	case 'd':
+	    /* render as decimal */
+	    /* xxx TBD: repeat */
+	     if( ret ) {
+		    ret = xrealloc( ret, strlen( ret ) + 14 );
+		    sprintf( ret, "%s)([1-9][0-9]*", ret );
+	     }
+		else {
+		    ret = xmalloc( 13 );
+		    sprintf( ret, "([1-9][0-9]*" ); 
+		}
+	     pos++;
+	    break;
+
+	case 'o':
+	    /* render as octal */
+	    if( ret ) {
+		    ret = xrealloc( ret, strlen( ret ) + 14 );
+		    sprintf( ret, "%s)([1-7][0-7]*", ret );
+	     }
+		else {
+		    ret = xmalloc( 13 );
+		    sprintf( ret, "([1-7][0-7]*" ); 
+		}
+	     pos++;
+	     break;
+
+	case 'x':
+	    /* render as hex */
+	    if( ret ) {
+		ret = xrealloc( ret, strlen( ret ) + 20 );
+		    sprintf( ret, "%s)([1-9A-E][0-9A-E]*", ret );
+	     }
+		else {
+		    ret = xmalloc( 19 );
+		    sprintf( ret, "([1-9A-E][0-9A-E]*" ); 
+		}
+	     pos++;
+	    break;
+
+	case '*':
+	    repeat = 1;
+	    pos++;
+	    break;
+
+	default:
+	    /* add a seperator char*/
+	    ret = xrealloc( ret, strlen( ret ) + 2 );
+	    strncat( ret, &hint[ pos++ ], 1 );
+	    break;
+	}
+    }
+    /* add closure to last regexp part */
+    ret = xrealloc( ret, strlen( ret ) + 3 );
+    sprintf( ret, "%s)+", ret );
+    return ret;
+}
+
+
 static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 			  const char *name)
 {
@@ -753,12 +922,36 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	}
 	fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
     }
+    
+    if( smiType->format && smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
+	SmiInteger32 *lengths = xmalloc( numSubRanges * 2 *
+					 sizeof( SmiInteger32) ),
+	    *lp = lengths;
+	SmiRange *smiRange;
 
-    if( ( numSubRanges > 1 ) &&
-	( smiType->basetype != SMI_BASETYPE_OCTETSTRING ) ) {
+	/* write subtype lengths to the array */
+	for( smiRange = smiGetFirstRange( smiType );
+	     smiRange;
+	     smiRange = smiGetNextRange( smiRange ) ) {
+	    *(lp++) = smiRange->minValue.value.unsigned32;
+	    *(lp++) = smiRange->maxValue.value.unsigned32;
+	}
+	
+	fprintSegment( f, indent + INDENT, "<xsd:restriction ", 0 );
+	fprint( f, "base=\"xsd:string\">\n" );
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:pattern ", 0 );
+	fprint( f, "value=\"%s\"/>\n", getStrDHType( smiType->format,
+						     lengths, numSubRanges ) );
+	fprintSegment( f, indent + INDENT, "<xsd:restriction>\n", 0 );
+
+	xfree( lengths );
+    }
+    
+    else if( ( numSubRanges > 1 ) &&
+	     ( smiType->basetype != SMI_BASETYPE_OCTETSTRING ) ) {
 	
 	fprintSegment( f, indent + INDENT, "<xsd:union>\n", 0 );
-
+	
 	for( smiRange = smiGetFirstRange( smiType );
 	     smiRange;
 	     smiRange = smiGetNextRange( smiRange ) ) {
@@ -769,7 +962,6 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
     }
     else {
-	/* we do not have more than one subrange */
 	fprintRestriction(f, indent + INDENT, smiType, 0 );
 	fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
 	if( smiType->basetype == SMI_BASETYPE_OCTETSTRING &&
@@ -969,6 +1161,42 @@ static void fprintComplexType( FILE *f, int indent,
     }
 }
 
+#define MD_DH_INT_NORMAL   1
+#define MD_DH_INT_DECIMAL  2
+#define MD_DH_INT_BIN      3
+#define MD_DH_INT_OCT      4
+#define MD_DH_INT_HEX      5
+
+/* parse a (integer) displaty hint and specify the offset, if used */
+static int getIntDHType( char *hint, int *offset )
+{
+    switch( hint[ 0 ] ) {
+
+    case 'd':
+	if( hint[1] ) {
+	    *offset = 0;
+	    *offset = atoi( &hint[2] );
+	    return MD_DH_INT_DECIMAL;
+	}
+	return MD_DH_INT_NORMAL;
+
+    case 'b':
+	/* binary value */
+	return MD_DH_INT_BIN;
+    case 'o':
+	/* octet value */
+	return MD_DH_INT_OCT;
+    case 'x':
+	/* hex value */
+	return MD_DH_INT_HEX;
+    default:
+	/* should not occur */
+	return 0;
+    }
+}
+
+
+
 
 static void fprintElement( FILE *f, int indent,
 			   SmiNode *smiNode, const char *prefix )
@@ -1000,7 +1228,7 @@ static void fprintElement( FILE *f, int indent,
 	    fprintSegment( f, indent, "</xsd:element>\n", 0 );
 	}
 	break;
-
+	
     case SMI_NODEKIND_TABLE :
     {
 	SmiNode *iterNode;
@@ -1044,7 +1272,25 @@ static void fprintElement( FILE *f, int indent,
 	}
 	smiType = smiGetNodeType( smiNode );
 
-	
+	if( smiType->format ) {
+	    int *offset = xmalloc( sizeof( int ) );
+	    
+	    fprint( f, "<!-- DH (type): %s -->\n", smiType->format );
+	    if( smiType->basetype != SMI_BASETYPE_OCTETSTRING ) {
+		if( getIntDHType( smiType->format, offset ) ==
+		    MD_DH_INT_DECIMAL ) {
+		    fprint( f, "<!-- offset = %d -->\n", *offset );
+		}
+	    }
+	    else {
+		fprint( f, "<!-- DH regexp: %s -->\n",
+			"TBD" ); /* getStrDHType( smiType->format ) );*/
+	    }
+	}
+	if( smiNode->format ) {
+	    fprint( f, "<!-- DH (node): %s -->\n", smiNode->format );
+	}
+
 	fprintSegment( f, indent, "<xsd:element", 0 );
 	fprint( f, " name=\"%s\"", smiNode->name );
 
