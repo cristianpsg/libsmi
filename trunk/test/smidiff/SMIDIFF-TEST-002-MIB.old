@@ -1,4 +1,4 @@
-SMIDIFF-TEST-001-MIB DEFINITIONS ::= BEGIN
+SMIDIFF-TEST-002-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE
@@ -37,7 +37,48 @@ scalar1 OBJECT-TYPE
     MAX-ACCESS read-only
     STATUS     current
     DESCRIPTION
-        ""
+        "Assuming the original range of a display string to be 0..255,
+	 it will be reduced to 1..255"
     ::= { libsmiTest002Mib 1 }
 
+scalar2 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"The range of this integer will be reduced from 0..9 to 0..2."
+    ::= { libsmiTest002Mib 2 }
+
+scalar3 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"The range of this integer will be removed."
+    ::= { libsmiTest002Mib 3 }
+
+scalar4 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"Single range. No changes."
+    ::= { libsmiTest002Mib 4 }
+
+scalar5 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9|12..15)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"Multiple ranges. No change."
+    ::= { libsmiTest002Mib 5 }
+
+scalar6 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9|12..15)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"Multiple ranges. Second range will be reduced 
+	 from 12..15 to 13..15."
+    ::= { libsmiTest002Mib 6 }
 END
