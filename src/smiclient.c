@@ -76,6 +76,7 @@ main(argc, argv)
 	    printf("      Module: %s\n", node->module);
 	    printf("         OID: %s\n", node->oid);
 	    printf("        Type: %s\n", node->type);
+	    printf("      Syntax: %s\n", smiStringSyntax(node->syntax));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
 	    printf("      Status: %s\n", smiStringStatus(node->status));
@@ -130,6 +131,16 @@ main(argc, argv)
 	    printf("    Children: %s\n", namelist->namelist);
 	} else {
 	    clnt_perror(cl, "smiproc_children_1");
+	}
+    }
+    
+    if (!strcmp(argv[2], "members")) {
+	fullname = argv[3];
+	namelist = smiproc_members_1(&fullname, cl);
+	if (namelist) {
+	    printf("     Members: %s\n", namelist->namelist);
+	} else {
+	    clnt_perror(cl, "smiproc_members_1");
 	}
     }
     

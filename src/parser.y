@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.22 1998/11/23 10:55:19 strauss Exp $
+ * @(#) $Id: parser.y,v 1.23 1998/11/23 16:41:37 strauss Exp $
  */
 
 %{
@@ -88,6 +88,7 @@ Node *parent;
     smi_status status;				/* a STATUS value            */
     smi_access access;				/* an ACCESS value           */
     Type *type;
+    List *list;					/* SEQUENCE and INDEX lists  */
 }
 
 
@@ -204,8 +205,8 @@ Node *parent;
 %type  <type>conceptualTable
 %type  <type>row
 %type  <type>entryType
-%type  <type>sequenceItems
-%type  <type>sequenceItem
+%type  <list>sequenceItems
+%type  <object>sequenceItem
 %type  <type>Syntax
 %type  <type>sequenceSyntax
 %type  <type>NamedBits
@@ -246,11 +247,11 @@ Node *parent;
 %type  <textp>DisplayPart
 %type  <textp>UnitsPart
 %type  <access>Access
-%type  <err>IndexPart
-%type  <err>IndexTypes
-%type  <err>IndexType
-%type  <err>Index
-%type  <err>Entry
+%type  <list>IndexPart
+%type  <list>IndexTypes
+%type  <object>IndexType
+%type  <object>Index
+%type  <list>Entry
 %type  <err>DefValPart
 %type  <err>Value
 %type  <err>BitsValue
@@ -1018,19 +1019,15 @@ row:			UPPERCASE_IDENTIFIER
 /* REF:RFC1902,7.1.12. */
 entryType:		SEQUENCE '{' sequenceItems '}'
 			{
-			    if ($3 || 1 /* TODO $$ must be != NULL */ ) {
-				if (thisParser->flags & FLAG_ACTIVE) {
-				    $$ = addType($3,
-						 SMI_SYNTAX_SEQUENCE,
-						 thisModule,
-						 (thisParser->flags &
-						  (FLAG_WHOLEMOD |
-						   FLAG_WHOLEFILE))
-						 ? FLAG_MODULE : 0,
-						 thisParser);
-				} else {
-				    $$ = NULL;
-				}
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType((void *)$3,
+					     SMI_SYNTAX_SEQUENCE,
+					     thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
 			    } else {
 				$$ = NULL;
 			    }
@@ -1039,12 +1036,21 @@ entryType:		SEQUENCE '{' sequenceItems '}'
 
 sequenceItems:		sequenceItem
 			{
-			    $$ = $1;
+			    $$ = malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->next = NULL;
 			}
 	|		sequenceItems ',' sequenceItem
 			/* TODO: might this list be emtpy? */
 			{
-			    /* TODO: append $3 to $1 */
+			    List *p, *pp;
+			    
+			    p = malloc(sizeof(List));
+			    p->ptr = (void *)$3;
+			    p->next = NULL;
+			    for (pp = $1; pp->next; pp = pp->next);
+			    pp->next = p;
 			    $$ = $1;
 			}
 	;
@@ -1057,8 +1063,45 @@ sequenceItems:		sequenceItem
  */
 sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    Object *object;
+			    smi_node *snode;
+			    Descriptor *descriptor;
+			    
+			    object = findObjectByModuleAndName(thisModule, $1);
+			    if (object) {
+				$$ = object;
+			    } else {
+				descriptor = findDescriptor($1,
+							    thisModule,
+							    KIND_OBJECT);
+				if (!descriptor) {
+				    object = addObject(pendingRootNode,
+						       0,
+						       thisModule,
+						       FLAG_NOSUBID,
+						       parser);
+				    setObjectFileOffset(object,
+						        thisParser->character);
+				    addDescriptor($1, thisModule,
+						  KIND_OBJECT,
+						  &object, 0, parser);
+				    $$ = object;
+				} else {
+				    /*
+				     * imported object.
+				     */
+				    snode = smiGetNode($1,
+				       ((Descriptor *)descriptor->ptr)->name,
+						       0);
+				    $$ = addObject(
+					getParent(createNodes(snode->oid)),
+					getLastSubid(snode->oid),
+					thisModule,
+					FLAG_IMPORTED,
+					thisParser);
+				    
+				}
+			    }
 			}
 	;
 
@@ -1075,10 +1118,75 @@ Syntax:			ObjectSyntax
 			}
 	;
 
-sequenceSyntax:		ObjectSyntax
-			{ $$ = 0; }
+sequenceSyntax:		/* ObjectSyntax */
+			sequenceObjectSyntax
+			{
+			    $$ = $1;
+			}
 	|		BITS
-			{ $$ = 0; }
+			{
+			    /* TODO: $$ = $1; */
+			    $$ = NULL;
+			}
+	|		UPPERCASE_IDENTIFIER
+			{
+			    Type *type;
+			    Descriptor *descriptor;
+			    smi_type *stype;
+			    
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = findTypeByModulenameAndName(
+				    thisModule->descriptor->name, $1);
+				if (! $$) {
+				    descriptor = findDescriptor($1,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					/* 
+					 * forward referenced type. create it,
+					 * marked with FLAG_INCOMPLETE.
+					 */
+					type = addType(NULL,
+						       SMI_SYNTAX_UNKNOWN,
+						       thisModule,
+						       ((thisParser->flags &
+							 (FLAG_WHOLEMOD |
+							  FLAG_WHOLEFILE))
+							? FLAG_MODULE : 0) |
+						       FLAG_INCOMPLETE,
+						       thisParser);
+					addDescriptor($1, thisModule,
+						      KIND_TYPE,
+						      &type,
+						      ((thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0) |
+						      FLAG_INCOMPLETE,
+						      thisParser);
+					$$ = type;
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($1,
+					 ((Descriptor *)descriptor->ptr)->name,
+							   0);
+					$$ = addType((void *)descriptor,
+						     stype->syntax,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_PARENTIMPORTED,
+						     thisParser);
+				    }
+				}
+			    } else {
+				$$ = NULL;
+			    }
+			}
 	;
 
 NamedBits:		NamedBit
@@ -1194,7 +1302,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    Object *object;
 
 			    object = $16;
-			     
+			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				if (object->module != thisModule) {
 				    object = duplicateObject(object,
@@ -1226,9 +1334,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				if ($10) {
 				    setObjectDescription(object, $10);
 				}
+				setObjectIndex(object, $12);
 				/*
 				 * TODO: ReferPart ($11)
-				 * TODO: IndexPart ($12)
 				 * TODO: DefValPart ($13)
 				 */
 				$$ = 0;
@@ -1472,7 +1580,7 @@ ObjectSyntax:		SimpleSyntax
 			    /* TODO */
 			    $$ = $1;
 			}
-	|		entryType	     /* it's SEQUENCE { ... } phrase */
+	|		entryType	     /* SEQUENCE { ... } phrase */
 			{
 			    /* TODO */
 			    $$ = $1;
@@ -1618,13 +1726,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					stype = smiGetType($1,
 					 ((Descriptor *)descriptor->ptr)->name,
 							   0);
-					$$ = addType(NULL,
+					$$ = addType((void *)descriptor,
 						     stype->syntax,
 						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_PARENTIMPORTED,
 						     thisParser);
 				    }
 				} else {
@@ -1667,13 +1776,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					 */
 					stype = smiGetType($3, $1, 0);
 					/* TODO: success? */
-					$$ = addType(NULL,
+					$$ = addType((void *)descriptor,
 						     stype->syntax,
 						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_PARENTIMPORTED,
 						     thisParser);
 				    }
 				} else {
@@ -1740,13 +1850,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					stype = smiGetType($1,
 					 ((Descriptor *)descriptor->ptr)->name,
 							   0);
-					$$ = addType(NULL,
+					$$ = addType((void *)descriptor,
 						     stype->syntax,
 						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_PARENTIMPORTED,
 						     thisParser);
 				    }
 				} else {
@@ -1789,13 +1900,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					 */
 					stype = smiGetType($3, $1, 0);
 					/* TODO: success? */
-					$$ = addType(NULL,
+					$$ = addType((void *)descriptor,
 						     stype->syntax,
 						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_PARENTIMPORTED,
 						     thisParser);
 				    }
 				} else {
@@ -1881,13 +1993,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					stype = smiGetType($1,
 					 ((Descriptor *)descriptor->ptr)->name,
 							   0);
-					$$ = addType(NULL,
+					$$ = addType((void *)descriptor,
 						     stype->syntax,
 						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_PARENTIMPORTED,
 						     thisParser);
 				    }
 				} else {
@@ -1930,13 +2043,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					 */
 					stype = smiGetType($3, $1, 0);
 					/* TODO: success? */
-					$$ = addType(NULL,
+					$$ = addType((void *)descriptor,
 						     stype->syntax,
 						     thisModule,
-						     (thisParser->flags &
-						      (FLAG_WHOLEMOD |
-						       FLAG_WHOLEFILE))
-						     ? FLAG_MODULE : 0,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_PARENTIMPORTED,
 						     thisParser);
 				    }
 				} else {
@@ -2358,38 +2472,66 @@ Access:			LOWERCASE_IDENTIFIER
         ;
 
 IndexPart:		INDEX '{' IndexTypes '}'
-			{ $$ = 0; }
+			{ $$ = $3; }
         |		AUGMENTS '{' Entry '}'
 			/* TODO: no AUGMENTS clause in v1 */
-			{ $$ = 0; }
+			/* TODO: how to differ INDEX and AUGMENTS ? */
+			{ $$ = $3; }
         |		/* empty */
-			{ $$ = 0; }
+			{ $$ = NULL; }
 	;
 
 IndexTypes:		IndexType
-			{ $$ = 0; }
+			{
+			    $$ = malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->next = NULL;
+			}
         |		IndexTypes ',' IndexType
-			{ $$ = 0; }
+			/* TODO: might this list be emtpy? */
+			{
+			    List *p, *pp;
+			    
+			    p = malloc(sizeof(List));
+			    p->ptr = $3;
+			    p->next = NULL;
+			    for (pp = $1; pp->next; pp = pp->next);
+			    pp->next = p;
+			    $$ = $1;
+			}
 	;
 
 IndexType:		IMPLIED Index
-			{ $$ = 0; }
+			{
+			    /* TODO: handle `IMPLIED' ?! */
+			    $$ = $2;
+			}
 	|		Index
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	;
 
 Index:			ObjectName
 			/* TODO: use the SYNTAX value of the correspondent
 			 *       OBJECT-TYPE invocation
 			 */
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
         ;
 
 Entry:			ObjectName
 			/* TODO: use the SYNTAX value of the correspondent
 			 *       OBJECT-TYPE invocation
 			 */
-			{ $$ = 0; }
+			{
+			    $$ = malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->next = NULL;
+			}
         ;
 
 DefValPart:		DEFVAL '{' Value '}'
@@ -2607,7 +2749,6 @@ subidentifier:
 					  thisModule,
 					  FLAG_IMPORTED,
 					  thisParser);
-					
 				    }
 				}
 				parent = $$->node;

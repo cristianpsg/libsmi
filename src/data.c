@@ -434,6 +434,8 @@ checkImportDescriptors(modulename, parser)
 	free(descriptor);
     }
 
+    parser->thisModule->lastDescriptor[KIND_IMPORT] = NULL;
+    
     return (0);
 }
 
@@ -946,6 +948,7 @@ addObject(parent, subid, module, flags, parser)
     object->next = NULL;
     object->module = module;
     object->type = NULL;
+    object->index = NULL;
     object->fileoffset = -1;
     object->decl = SMI_DECL_UNKNOWN;
     object->access = SMI_ACCESS_UNKNOWN;
@@ -1185,8 +1188,8 @@ setObjectSyntax(object, type)
     Object *object;
     Type *type;
 {
-    printDebug(5, "setObjectSyntax(%p (%s), %s)\n", object,
-	       object->descriptor ? object->descriptor->name : "?",
+    printDebug(5, "setObjectSyntax(%p (%s), %p (%s))\n", object,
+	       object->descriptor ? object->descriptor->name : "?", type,
 	       type && type->descriptor ? type->descriptor->name : "NULL");
 
     if (object->type == NULL) {
@@ -1387,6 +1390,36 @@ setObjectFlags(object, flags)
 	       flags);
 
     object->flags |= flags;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectIndex --
+ *
+ *      Set the list of INDEX elements of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectIndex(object, list)
+    Object *object;
+    List *list;
+{
+    printDebug(5, "setObjectIndex(%p (%s), %p)\n", object,
+	       object->descriptor ? object->descriptor->name : "?",
+	       list);
+
+    object->index = list;
 }
 
 
@@ -1656,8 +1689,8 @@ findObjectByModuleAndName(module, name)
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, " = %p (%s) [XXX d=%p]\n", descriptor->ptr,
-			   descriptor->name, descriptor);
+		printDebug(4, " = %p (%s)\n", descriptor->ptr,
+			   descriptor->name);
 		return (descriptor->ptr);
 	    }
 	}
@@ -1842,9 +1875,9 @@ addType(parent, syntax, module, flags, parser)
 {
     Type *type;
 
-    printDebug(5, "addType(%s, %s, %s, %d, parser)\n",
-	       parent &&
-	         parent->descriptor ? parent->descriptor->name : "NULL",
+    printDebug(5, "addType(%p (%s), %s, %s, %d, parser)",
+	       parent, parent &&
+	         parent->descriptor ? parent->descriptor->name : "",
 	       smiStringSyntax(syntax),
 	       module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
@@ -1861,7 +1894,9 @@ addType(parent, syntax, module, flags, parser)
 
     type->module = module;
     type->parent = parent;
-    if (parent) {
+    if (parent &&
+	(syntax != SMI_SYNTAX_SEQUENCE) &&
+	(syntax != SMI_SYNTAX_SEQUENCE_OF)) {
 	type->syntax = parent->syntax;
     } else {
 	type->syntax = syntax;
@@ -1879,6 +1914,8 @@ addType(parent, syntax, module, flags, parser)
     type->displayHint.ptr = NULL;
 #endif
 
+    printDebug(5, " = %p\n", type);
+    
     return (type);
 }
 
@@ -2111,7 +2148,7 @@ findTypeByName(name)
 	 descriptor; descriptor = descriptor->nextSameKind) {
 	if ((!strcmp(descriptor->name, name)) &&
 	    (!(descriptor->flags & FLAG_IMPORTED))) {
-	    printDebug(4, " = %s\n", descriptor->name);
+	    printDebug(4, " = %p (%s)\n", descriptor->ptr, descriptor->name);
 	    return (descriptor->ptr);
 	}
     }
@@ -2156,7 +2193,8 @@ findTypeByModulenameAndName(modulename, name)
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, "... = %s\n", descriptor->name);
+		printDebug(4, "... = %p (%s)\n", descriptor->ptr,
+			   descriptor->name);
 		return (descriptor->ptr);
 	    }
 	}
@@ -2199,7 +2237,7 @@ findTypeByModuleAndName(module, name)
 	 descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	if ((!strcmp(descriptor->name, name)) &&
 	    (!(descriptor->flags & FLAG_IMPORTED))) {
-	    printDebug(4, " = %s\n", descriptor->name);
+	    printDebug(4, " = %p (%s)\n", descriptor->ptr, descriptor->name);
 	    return (descriptor->ptr);
 	}
     }
@@ -2237,7 +2275,8 @@ dumpTypes()
 	if (d->module) {
 	    fprintf(stderr, "%s!", d->module->descriptor->name);
 	}
-	for (t = d->ptr; t; t = t->parent) {
+	for (t = d->ptr; t && t->syntax != SMI_SYNTAX_SEQUENCE;
+	     t = t->parent) {
 	    fprintf(stderr, "%s", t->descriptor && t->descriptor->name ? t->descriptor->name : "?");
 	    if (t->syntax) {
 		fprintf(stderr, "(%s)", smiStringSyntax(t->syntax));

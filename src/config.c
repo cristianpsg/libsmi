@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: config.c,v 1.4 1998/11/18 17:31:38 strauss Exp $
+ * @(#) $Id: config.c,v 1.5 1998/11/23 12:56:57 strauss Exp $
  */
 
 #include <stdio.h>
@@ -58,6 +58,12 @@ readConfig(filename, flags)
 	    if (cmd[0] == '#') continue;
 	    if (!strcmp(cmd, "location")) {
 		smiAddLocation(arg1);
+ 	    } else if (!strcmp(cmd, "preload")) {
+#ifdef PARSER
+		readMibFile(arg1, "", *flags | FLAG_WHOLEFILE);
+#else
+		;
+#endif
 	    } else if (!strcmp(cmd, "loglevel")) {
 		errorLevel = atoi(arg1);
 	    } else if (!strcmp(cmd, "debuglevel")) {

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.19 1998/11/21 21:25:18 strauss Exp $
+ * @(#) $Id: data.h,v 1.20 1998/11/23 12:56:58 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -24,6 +24,16 @@
 #include "parser.h"
 
 
+
+
+
+/*
+ * Simple generic list type. For SEQUENCEs and INDEX lists.
+ */
+typedef struct List {
+    void *ptr;
+    struct List *next;
+} List;
 
 
 
@@ -63,7 +73,10 @@ typedef enum DescriptorKind {
 typedef unsigned short Flags;
 #define FLAG_PERMANENT		0x0001 /* e.g. Object and Descriptor `iso'.  */
 #define FLAG_IMPORTED		0x0002 /*				     */
-#define FLAG_REPOSITORY		0x0004 /*				     */
+#define FLAG_PARENTIMPORTED	0x0004 /* On a Type: This Type's parent is   */
+				       /* imported instead of local, hence   */
+				       /* its parent is a pointer to a       */
+				       /* descriptor instead of a type.      */
 #define FLAG_MODULE		0x0008 /* Declared in the current module.    */
 #define FLAG_REGISTERED		0x0010 /* On an Object: this is registered.  */
 #define FLAG_INCOMPLETE		0x0020 /* Just defined by a forward          */
@@ -178,6 +191,7 @@ typedef struct Object {
     Type	   *type;
     smi_access	   access;
     smi_status	   status;
+    struct List	   *index;
     String	   description;
     struct Node	   *node;
     struct Object  *prev;
@@ -330,6 +344,9 @@ extern void setObjectDecl(Object *object,
 
 extern void setObjectFlags(Object *object,
 			   Flags flags);
+
+extern void setObjectIndex(Object *object,
+			   List *list);
 
 extern Node *findNodeByParentAndSubid(Node *parent,
 				      smi_subid subid);

@@ -65,8 +65,8 @@ smiproc_node_1(getspec)
 #endif
 {
     static smi_node dummy = { "", "", "", "",
-			      SMI_DECL_UNKNOWN, SMI_ACCESS_UNKNOWN,
-			      SMI_STATUS_UNKNOWN, "" };
+			      SMI_DECL_UNKNOWN, SMI_SYNTAX_UNKNOWN,
+			      SMI_ACCESS_UNKNOWN, SMI_STATUS_UNKNOWN, "" };
     smi_node *n;
     
     printDebug(4, "smiproc_node_1(<%s,%d>)\n",
@@ -203,9 +203,9 @@ smiproc_members_1(fullname)
     static smi_namelist dummy = { "" };
     smi_namelist *n;
     
-    printDebug(4, "smiproc_children_1(%s)\n", fullname);
+    printDebug(4, "smiproc_members_1(%s)\n", fullname);
 
-    n = smiGetChildren(*fullname, NULL);
+    n = smiGetMembers(*fullname, NULL);
 
     if (n) {
 	return n;
