@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.82 2002/11/13 12:29:26 schoenw Exp $
+ * @(#) $Id: dump-smi.c,v 1.83 2002/11/19 12:45:44 strauss Exp $
  */
 
 #include <config.h>
@@ -32,6 +32,7 @@ extern int smiAsprintf(char **strp, const char *format, ...);
 #define  INDENT		4    /* indent factor */
 #define  INDENTVALUE	16   /* column to start values, except multiline */
 #define  INDENTTEXTS	 9   /* column to start multiline texts */
+#define  INDENTTEXTS2	15   /* column to start indented multiline texts */
 #define  INDENTMAX	72   /* max column to fill, break lines otherwise */
 
 
@@ -706,6 +707,28 @@ static void fprintMultilineString(FILE *f, const char *s, const int comment)
 	    if (s[i] == '\n') {
 		current_column = 0;
 		fprintSegment(f, INDENTTEXTS, "", 0, comment);
+	    }
+	}
+    }
+    putc('\"', f);
+    current_column++;
+}
+
+
+
+static void fprintMultilineString2(FILE *f, const char *s, const int comment)
+{
+    int i, len;
+    
+    fprintSegment(f, INDENTTEXTS2 - 1, "\"", 0, comment);
+    if (s) {
+	len = strlen(s);
+	for (i=0; i < len; i++) {
+	    putc(s[i], f);
+	    current_column++;
+	    if (s[i] == '\n') {
+		current_column = 0;
+		fprintSegment(f, INDENTTEXTS2, "", 0, comment);
 	    }
 	}
     }
@@ -1734,10 +1757,10 @@ static void fprintModuleCompliances(FILE *f, SmiModule *smiModule)
 				      INDENTVALUE, smiv1);
 			fprint(f, "\n");
 			if (smiOption->description) {
-			    fprintMultilineString(f, smiOption->description,
+			    fprintMultilineString2(f, smiOption->description,
 						  smiv1);
 			} else {
-			    fprintMultilineString(f, "...", smiv1);
+			    fprintMultilineString2(f, "...", smiv1);
 			}
 			fprint(f, "\n");
 		    }
@@ -1789,11 +1812,11 @@ static void fprintModuleCompliances(FILE *f, SmiModule *smiModule)
 				      INDENTVALUE, smiv1);
 			fprint(f, "\n");
 			if (smiRefinement->description) {
-			    fprintMultilineString(f,
+			    fprintMultilineString2(f,
 						  smiRefinement->description,
 						  smiv1);
 			} else {
-			    fprintMultilineString(f, "...", smiv1);
+			    fprintMultilineString2(f, "...", smiv1);
 			}
 			fprint(f, "\n");
 		    }
