@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.168 2002/03/19 10:56:13 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.169 2002/03/20 16:49:49 strauss Exp $
  */
 
 %{
@@ -267,6 +267,17 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		    smiPrintErrorAtLine(parserPtr, ERR_NOTIFICATION_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
 		}
+		if (parserPtr && parentPtr->nodePtr->parentPtr &&
+		    parentPtr->nodePtr->parentPtr->lastObjectPtr) {
+		    Object *parent2Ptr = parentPtr->nodePtr->parentPtr->lastObjectPtr;
+		    if ((parent2Ptr->export.nodekind != SMI_NODEKIND_NODE) &&
+			(parent2Ptr->export.nodekind != SMI_NODEKIND_UNKNOWN)) {
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_NOTIFICATION_PARENT_TYPE,
+					    objectPtr->line,
+					    objectPtr->export.name);
+		    }
+		}
 		break;
 	    case SMI_NODEKIND_NODE:
 		/* Node defined by OBJECT IDENTIFIER assignments can have
@@ -448,10 +459,18 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 			break;
 		}
 		if (!p) {
-		    smiPrintErrorAtLine(parserPtr, ERR_SEQUENCE_MISSING_COLUMN,
-					objectPtr->typePtr->line,
-					objectPtr->typePtr->export.name,
-					colPtr->export.name);
+		    if (colPtr->export.name) {
+			/*
+			 * Don't complain, if it's an implcitly defined
+			 * unnamed node (could happen for parent node of
+			 * TRAP-TYPE definitions).
+			 */
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_SEQUENCE_MISSING_COLUMN,
+					    objectPtr->typePtr->line,
+					    objectPtr->typePtr->export.name,
+					    colPtr->export.name);
+		    }
 		}
 	    }
 	    
