@@ -57,4 +57,5 @@ scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
 	$(FLEX) -Psmi -t scanner-smi.l > scanner-smi.c
 
 scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
-	$(
+	$(FLEX) -Psming -t scanner-sming.l > scanner-sming.c
+
