@@ -22,6 +22,13 @@
 
 
 
+char *excludeDescriptors[] = {
+    "ObjectName", "NotificationName", "ObjectSyntax", "SimpleSyntax",
+    "Integer32", "ApplicationSyntax", "IpAddress", "Counter32", "Gauge32",
+    "Unsigned32", "TimeTicks", "Opaque", "Counter64",
+    NULL };
+
+
 static char *
 getOidString(modulename, object)
     char	 *modulename;
@@ -34,7 +41,8 @@ getOidString(modulename, object)
 
     smiNode = smiGetNode(object, modulename);
     if (smiNode) {
-	sprintf (s, "%s_TODO", smiNode->oid);
+	sprintf (s, "%s", smiNode->oid);
+	XXX
     }
     return s;
 }
@@ -64,9 +72,80 @@ printMultilineString(s)
 
 
 static void
-printImports()
+printImports(modulename)
+    char	  *modulename;
 {
+    smi_namelist  *smiNamelist;
+    char	  *lastModulename = NULL;
+    char	  *importedModulename, *importedDescriptor, *p;
+    int		  convert, i;
+    
+    smiNamelist = smiGetMembers(modulename, "");
 
+    for(p = strtok(smiNamelist->namelist, " "); p; p = strtok(NULL, " ")) {
+	importedModulename = p;
+	importedDescriptor = strstr(p, SMI_NAMESPACE_OPERATOR);
+	importedDescriptor[0] = 0;
+	importedDescriptor =
+	    &importedDescriptor[strlen(SMI_NAMESPACE_OPERATOR)];
+
+	/*
+	 * imported SMI modules have to be handled more carefully:
+	 * The module name is mapped to an SMIng module and some definitions
+	 * are stripped off (namely macros). Also note, that this may
+	 * lead to an empty list of imported descriptors from that SMIv1/v2
+	 * module.
+	 */
+	convert = 0;
+	if (!strcmp(importedModulename, "SNMPv2-SMI")) {
+	    convert = 1;
+	    importedModulename = "IETF-SMING-BASE";
+	}
+	if (!strcmp(importedModulename, "SNMPv2-TC")) {
+	    convert = 1;
+	    importedModulename = "IETF-SMING-TYPES";
+	}
+	if (!strcmp(importedModulename, "SNMPv2-CONF")) {
+	    convert = 1;
+	    importedModulename = "";
+	}
+	if (convert) {
+	    /*
+	     * Exclude all-uppercase descriptors, assuming they are macros.
+	     */
+	    if (!strpbrk(importedDescriptor,
+			 "abcdefghijklmnopqrstuvwxyz")) {
+		importedDescriptor = "";
+	    }
+	    /*
+	     * Exclude descriptors from a list of well known SMIv1/v2 types,
+	     * which need not to be imported im SMIng.
+	     */
+	    for(i=0; excludeDescriptors[i]; i++) {
+		if (!strcmp(importedDescriptor, excludeDescriptors[i])) {
+		    importedDescriptor = "";
+		    break;
+		}
+	    }
+	}
+
+	if (strlen(importedDescriptor)) {
+	    if ((!lastModulename) ||
+		strcmp(importedModulename, lastModulename)) {
+		if (lastModulename) {
+		    printf("\n    );\n");
+		}
+		printf("    import %s (\n        ", importedModulename);
+		lastModulename = importedModulename;
+	    } else {
+		printf(",\n        ");
+	    }
+	    printf("%s", importedDescriptor);
+	}
+    }
+    if (lastModulename) {
+	printf("\n    );\n\n");
+    }
 }
 
 
@@ -98,7 +177,7 @@ dumpSming(modulename)
 	printf("{\n");
 	printf("\n");
 
-	printImports();
+	printImports(modulename);
 
 	if (strlen(smiModule->object)) {
 	    printf("    oid                 %s;\n",

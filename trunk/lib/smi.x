@@ -152,7 +152,7 @@ struct smi_macro {
 /*
  * smi_namelist represents a string containing a blank-separated list
  * of elements. These elements are usually fully qualified smi_fullnames
- * representing mib nodes or types.
+ * representing mib nodes, types, or imported descriptors.
  *
  * TODO: think about length limitations.
  */
@@ -201,6 +201,7 @@ program SMIPROG {
 	/*
 	 * SMIPROC_MEMBERS returns a blank-separated list of fully
 	 * qualified smi_fullnames representing
+	 * - all imported descriptors if it represents a module name, or
 	 * - all members of the given input node if it represents an
 	 *   object group, or (TODO)
 	 * - all members of the given input node if it represents a

@@ -349,6 +349,8 @@ extern void setObjectIndex(Object *objectPtr,
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      smi_subid subid);
 
+extern Object *findObjectByNode(Node *nodePtr);
+
 extern Object *findObjectByModuleAndNode(Module *modulePtr,
 					 Node *nodePtr);
 

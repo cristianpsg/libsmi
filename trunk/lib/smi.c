@@ -52,6 +52,27 @@ static int		initialized = 0;
  * Internal functions.
  */
 
+
+char *
+addMemberToListString(list, s)
+    char          **list;
+    char	  *s;
+{
+    static char   mem[SMI_MAX_STRING];
+
+    if (! *list) {
+	mem[0] = 0;
+    } else {
+	strcat(mem, " ");
+    }
+    strcat(mem, s);
+    *list = mem;
+
+    return mem;
+}
+
+
+
 char *
 getOid(n)
     Node *n;
@@ -86,7 +107,11 @@ getModulenameAndName(spec, mod, modulename, name)
      * label, label.1.2,
      */
     if (isupper((int)spec[0])) {
-	if ((p = strchr(spec, '!'))) {
+	if ((p = strstr(spec, SMI_NAMESPACE_OPERATOR))) {
+	    /* SMIng style module/label separator */
+	    strncpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)], SMI_MAX_OID);
+	    strncpy(modulename, spec, strcspn(spec, SMI_NAMESPACE_OPERATOR));
+	} else if ((p = strchr(spec, '!'))) {
 	    /* old scotty style module/label separator */
 	    strncpy(name, &p[1], SMI_MAX_OID);
 	    strncpy(modulename, spec, strcspn(spec, "!"));
@@ -94,10 +119,6 @@ getModulenameAndName(spec, mod, modulename, name)
 	    /* SMIv1/v2 style module/label separator */
 	    strncpy(name, &p[1], SMI_MAX_OID);
 	    strncpy(modulename, spec, strcspn(spec, "."));
-	} else if ((p = strstr(spec, SMI_NAMESPACE_OPERATOR))) {
-	    /* SMIng style module/label separator */
-	    strncpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)], SMI_MAX_OID);
-	    strncpy(modulename, spec, strcspn(spec, SMI_NAMESPACE_OPERATOR));
 	} else {
 	    strncpy(name, spec, SMI_MAX_OID);
 	    strncpy(modulename, mod, SMI_MAX_DESCRIPTOR);
@@ -203,16 +224,16 @@ filterNamelist(list)
 
 
 Object *
-getObject(name, module)
+getObject(name, modulename)
     char *name;
-    char *module;
+    char *modulename;
 {
-    Object	    *o = NULL;
-    Node	    *n;
+    Object	    *objectPtr = NULL;
+    Node	    *nodePtr;
     char	    *elements, *element;
     smi_subid	    subid;
     
-    printDebug(5, "getObject(%s, %s)\n", name, module ? module : "");
+    printDebug(5, "getObject(%s, %s)\n", name, modulename ? modulename : "");
 
     if (isdigit((int)name[0])) {
 	/*
@@ -221,20 +242,29 @@ getObject(name, module)
 	elements = strdup(name);
 	/* TODO: success? */
 	element = strtok(elements, ".");
-	n = rootNodePtr;
+	nodePtr = rootNodePtr;
 	while (element) {
 	    subid = (unsigned int)strtoul(element, NULL, 0);
-	    n = findNodeByParentAndSubid(n, subid);
-	    if (!n) break;
+	    nodePtr = findNodeByParentAndSubid(nodePtr, subid);
+	    if (!nodePtr) break;
 	    element = strtok(NULL, ".");
 	}
 	free(elements);
-	if (n)
-	    o = findObjectByModulenameAndNode(module, n);
+	if (nodePtr) {
+	    if (strlen(modulename)) {
+		objectPtr = findObjectByModulenameAndNode(modulename, nodePtr);
+	    } else {
+		objectPtr = findObjectByNode(nodePtr);
+	    }
+	}
     } else {
-	o = findObjectByModulenameAndName(module, name);
+	if (strlen(modulename)) {
+	    objectPtr = findObjectByModulenameAndName(modulename, name);
+	} else {
+	    objectPtr = findObjectByName(name);
+	}
     }
-    return o;
+    return objectPtr;
 }
 
 
@@ -535,14 +565,16 @@ smiGetNode(spec, mod)
 	       spec, mod ? mod : "NULL");
 
     getModulenameAndName(spec, mod, modulename, name);
+
+    if (modulename) {
+	modulePtr = findModuleByName(modulename);
+	if (!modulePtr) {
+	    modulePtr = loadModule(modulename);
+	}
+    }
+
+    objectPtr = getObject(name, modulename);
     
-    modulePtr = findModuleByName(modulename);
-    if (!modulePtr) {
-	modulePtr = loadModule(modulename);
-    }
-    if (modulePtr) {
-	objectPtr = getObject(name, modulename);
-    }
     if (objectPtr) {
 	smiNode.name   = objectPtr->name;
 	smiNode.module = objectPtr->modulePtr->name;
@@ -561,7 +593,16 @@ smiGetNode(spec, mod)
 	smiNode.status = objectPtr->status;
 	smiNode.syntax = objectPtr->typePtr ?
 	                     objectPtr->typePtr->syntax : SMI_SYNTAX_UNKNOWN;
-	smiNode.description = objectPtr->description;
+	if (objectPtr->description) {
+	    smiNode.description = objectPtr->description;
+	} else {
+	    smiNode.description = "";
+	}
+	if (objectPtr->reference) {
+	    smiNode.reference = objectPtr->reference;
+	} else {
+	    smiNode.reference = "";
+	}
 	printDebug(5, " ... = (%p,%s)\n", objectPtr, smiNode.name);
 	return &smiNode;
     } else {
@@ -1093,50 +1134,82 @@ smiGetMembers(spec, mod)
     smi_descriptor	mod;
 {
     static smi_namelist res;
-    Location		*l;
-    Module		*m;
-    Object		*o = NULL;
-    Type		*t;
+    Location		*locationPtr;
+    Module		*modulePtr;
+    Object		*objectPtr = NULL;
+    Type		*typePtr;
     char		name[SMI_MAX_OID+1];
-    char		module[SMI_MAX_DESCRIPTOR+1];
-    char		fullname[SMI_MAX_FULLNAME+1];
+    char		modulename[SMI_MAX_DESCRIPTOR+1];
     char		*s;
     char		ss[SMI_MAX_FULLNAME+1];
     static char		*p = NULL;
     static int		plen = 0;
     List		*e;
-
+    static char		*list = NULL;
+    Import		*importPtr;
+    char		imported[SMI_MAX_FULLNAME];
+    
     printDebug(4, "smiGetMembers(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
-    createFullname(spec, mod, fullname);
-    createModuleAndName(fullname, module, name);
+    getModulenameAndName(spec, mod, modulename, name);
 
+    if (modulename) {
+	modulePtr = findModuleByName(modulename);
+	if (!modulePtr) {
+	    modulePtr = loadModule(modulename);
+	}
+    }
+
+    if (isupper((int)name[0])) {
+	/* seems to be a modulename. get import list. */
+	modulePtr = findModuleByName(name);
+	if (!modulePtr) {
+	    modulePtr = loadModule(name);
+	}
+	for (importPtr = modulePtr->firstImportPtr; importPtr;
+	     importPtr = importPtr->nextPtr) {
+	    sprintf(imported, "%s%s%s",
+		    importPtr->module ? importPtr->module : "-",
+		    SMI_NAMESPACE_OPERATOR,
+		    importPtr->name ? importPtr->name : "-");
+	    addMemberToListString(&list, imported);
+	}
+	/* filterNamelist(list); */
+	res.namelist = list;
+	return &res;
+    }
+
+
+	
+	
     if (!p) {
 	p = malloc(200);
     }
     strcpy(p, "");
 
-    for (l = firstLocationPtr; l; l = l->nextPtr) {
+    for (locationPtr = firstLocationPtr; locationPtr;
+	 locationPtr = locationPtr->nextPtr) {
 
-	if (l->type == LOCATION_RPC) {
+	if (locationPtr->type == LOCATION_RPC) {
 
 	    /* TODO */
 
 #ifdef BACKEND_SMI
-	} else if (l->type == LOCATION_SMIDIR) {
+	} else if (locationPtr->type == LOCATION_SMIDIR) {
 
-	    if (strlen(module)) {
-		if (!(m = findModuleByName(module))) {
-		    m = loadModule(module);
+	    if (strlen(modulename)) {
+		if (!(modulePtr = findModuleByName(modulename))) {
+		    modulePtr = loadModule(modulename);
 		}
-		if (m) {
+		if (modulePtr) {
 		    if (isupper((int)name[0])) {
-			t = findTypeByModulenameAndName(module, name);
-			if (t) {
-			    if (t->syntax == SMI_SYNTAX_SEQUENCE) {
+			typePtr = findTypeByModulenameAndName(modulename,
+							      name);
+			if (typePtr) {
+			    if (typePtr->syntax == SMI_SYNTAX_SEQUENCE) {
 				/* It is a SEQUENCE -> return all columns. */
-				for (e = (void *)t->sequencePtr; e;
+				for (e = (void *)typePtr->sequencePtr; e;
 				     e = e->nextPtr) {
 				    sprintf(ss, "%s.%s",
 					 ((Object *)(e->ptr))->modulePtr->name,
@@ -1154,10 +1227,11 @@ smiGetMembers(spec, mod)
 			    }
 			}
 		    } else if (islower((int)name[0])) {
-			o = findObjectByModulenameAndName(module, name);
-			if (o) {
-			    if (o->indexPtr) {
-				for (e = (void *)o->indexPtr; e;
+			objectPtr = findObjectByModulenameAndName(modulename,
+								  name);
+			if (objectPtr) {
+			    if (objectPtr->indexPtr) {
+				for (e = (void *)objectPtr->indexPtr; e;
 				     e = e->nextPtr) {
 				    sprintf(ss, "%s.%s",
 					 ((Object *)(e->ptr))->modulePtr->name,
@@ -1179,15 +1253,15 @@ smiGetMembers(spec, mod)
 		}
 	    }
 
-	} else if (l->type == LOCATION_SMIFILE) {
+	} else if (locationPtr->type == LOCATION_SMIFILE) {
 	    
-	    if (strlen(module)) {
-		o = findObjectByModulenameAndName(module, name);
+	    if (strlen(modulename)) {
+		objectPtr = findObjectByModulenameAndName(modulename, name);
 	    }
 #endif
 	} else {
 	    
-	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, l->name);
+	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, locationPtr->name);
 	    
 	}
     }
