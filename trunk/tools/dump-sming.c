@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.74 2000/03/22 09:46:14 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.75 2000/03/29 16:09:09 strauss Exp $
  */
 
 #include <config.h>
@@ -186,26 +186,25 @@ static char *getStringTime(time_t t)
 
 
 
-static char *getTypeString(char *module, SmiBasetype basetype,
-			   SmiType *smiType)
+static char *getTypeString(SmiBasetype basetype, SmiType *smiType)
 {
     int         i;
-    char        *typemodule, *type_name;
+    char        *typeModule, *typeName;
 
-    type_name = smiType ? smiType->name : NULL;
-    typemodule = smiType ? smiGetTypeModule(smiType)->name : NULL;
+    typeName = smiType ? smiType->name : NULL;
+    typeModule = smiType ? smiGetTypeModule(smiType)->name : NULL;
     
-    if ((!typemodule) && (type_name) &&
+    if ((!typeModule) && (typeName) &&
 	(basetype != SMI_BASETYPE_ENUM) &&
 	(basetype != SMI_BASETYPE_BITS)) {
 	for(i=0; convertType[i]; i += 2) {
-	    if (!strcmp(type_name, convertType[i])) {
+	    if (!strcmp(typeName, convertType[i])) {
 		return convertType[i+1];
 	    }
 	}
     }
 
-    if ((!typemodule) || (!strlen(typemodule)) || (!type_name)) {
+    if ((!typeModule) || (!strlen(typeModule)) || (!typeName)) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "Enumeration";
 	}
@@ -214,13 +213,13 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 	
-    if (!type_name) {
+    if (!typeName) {
 	return getStringBasetype(basetype);
     }
     
     /* TODO: fully qualified if unambigous */
 
-    return type_name;
+    return typeName;
 }
 
 
@@ -659,7 +658,7 @@ static void printTypedefs(SmiModule *smiModule)
 	print("typedef %s {\n", smiType->name);
 
 	printSegment(2 * INDENT, "type", INDENTVALUE);
-	print("%s", getTypeString(smiModule->name, smiType->basetype,
+	print("%s", getTypeString(smiType->basetype,
 				  smiGetParentType(smiType)));
 	printSubtype(smiType);
 	print(";\n");
@@ -771,14 +770,13 @@ static void printObjects(SmiModule *smiModule)
 		/*
 		 * an implicitly restricted type.
 		 */
-		print("%s", getTypeString(smiModule->name, smiType->basetype,
+		print("%s", getTypeString(smiType->basetype,
 					  smiGetParentType(smiType)));
 		printSubtype(smiType);
 		print(";\n");
 	    } else {
 		print("%s;\n",
-		      getTypeString(smiModule->name, smiType->basetype,
-				    smiType));
+		      getTypeString(smiType->basetype, smiType));
 	    }
 	}
 
@@ -1145,7 +1143,7 @@ static void printCompliances(SmiModule *smiModule)
 		if (smiType) {
 		    printSegment(3 * INDENT, "type", INDENTVALUE);
 		    print("%s",
-			  getTypeString(smiModule->name, smiType->basetype,
+			  getTypeString(smiType->basetype,
 					smiGetParentType(smiType)));
 		    printSubtype(smiType);
 		    print(";\n");
@@ -1155,7 +1153,7 @@ static void printCompliances(SmiModule *smiModule)
 		if (smiType) {
 		    printSegment(3 * INDENT, "writetype", INDENTVALUE);
 		    print("%s",
-			  getTypeString(smiModule->name, smiType->basetype,
+			  getTypeString(smiType->basetype,
 					smiGetParentType(smiType)));
 		    printSubtype(smiType);
 		    print(";\n");

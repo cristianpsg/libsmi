@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.51 2000/03/29 16:09:09 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.52 2000/04/04 10:28:02 strauss Exp $
  */
 
 #include <config.h>
@@ -224,31 +224,30 @@ static char *getTimeString(time_t t)
 
 
 
-static char *getTypeString(char *module, SmiBasetype basetype,
-			   SmiType *smiType)
+static char *getTypeString(SmiBasetype basetype, SmiType *smiType)
 {
     int         i;
     char	**convertType;
-    char        *typemodule, *type_name;
+    char        *typeModule, *typeName;
 
-    type_name = smiType ? smiType->name : NULL;
-    typemodule = smiType ? smiGetTypeModule(smiType)->name : NULL;
+    typeName = smiType ? smiType->name : NULL;
+    typeModule = smiType ? smiGetTypeModule(smiType)->name : NULL;
 
     convertType = smiv1 ? convertTypev1 : convertTypev2;
 
-    if (type_name &&
+    if (typeName &&
 	(basetype != SMI_BASETYPE_ENUM) &&
 	(basetype != SMI_BASETYPE_BITS)) {
 	for(i=0; convertType[i+1]; i += 4) {
-	    if ((!strcmp(type_name, convertType[i+1])) &&
-		((!typemodule) || (!convertType[i]) ||
-		 (!strcmp(typemodule, convertType[i])))) {
+	    if ((!strcmp(typeName, convertType[i+1])) &&
+		((!typeModule) || (!convertType[i]) ||
+		 (!strcmp(typeModule, convertType[i])))) {
 		return convertType[i+3];
 	    }
 	}
     }
 
-    if ((!typemodule) || (!strlen(typemodule)) || (!type_name)) {
+    if ((!typeModule) || (!strlen(typeModule)) || (!typeName)) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "INTEGER";
 	}
@@ -263,7 +262,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	
     /* TODO: fully qualified if unambigous */
 
-    return type_name;
+    return typeName;
 }
 
 
@@ -472,7 +471,9 @@ static void createImportList(SmiModule *smiModule)
     if (! smiv1) {
 	smiNode = smiGetModuleIdentityNode(smiModule);
 	if (smiNode) {
-	    addImport("SNMPv2-SMI", "MODULE-IDENTITY");
+	    if (strcmp("SNMPv2-SMI", smiModule->name)) {
+		addImport("SNMPv2-SMI", "MODULE-IDENTITY");
+	    }
 	}
     }
     
@@ -481,7 +482,9 @@ static void createImportList(SmiModule *smiModule)
 	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 	    if (smiNode->status != SMI_STATUS_UNKNOWN &&
 		smiNode != smiGetModuleIdentityNode(smiModule)) {
-		addImport("SNMPv2-SMI", "OBJECT-IDENTITY");
+		if (strcmp("SNMPv2-SMI", smiModule->name)) {
+		    addImport("SNMPv2-SMI", "OBJECT-IDENTITY");
+		}
 		break;
 	    }
 	}
@@ -490,7 +493,9 @@ static void createImportList(SmiModule *smiModule)
     if (! smiv1) {
 	smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_COMPLIANCE);
 	if (smiNode) {
-	    addImport("SNMPv2-CONF", "MODULE-COMPLIANCE");
+	    if (strcmp("SNMPv2-CONF", smiModule->name)) {
+		addImport("SNMPv2-CONF", "MODULE-COMPLIANCE");
+	    }
 	}
     }
 
@@ -499,9 +504,13 @@ static void createImportList(SmiModule *smiModule)
 	    smiNode;
 	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 	    if (isObjectGroup(smiNode)) {
-		addImport("SNMPv2-CONF", "OBJECT-GROUP");
+		if (strcmp("SNMPv2-CONF", smiModule->name)) {
+		    addImport("SNMPv2-CONF", "OBJECT-GROUP");
+		}
 	    } else if (isNotificationGroup(smiNode)) {
-		addImport("SNMPv2-CONF", "NOTIFICATION-GROUP");
+		if (strcmp("SNMPv2-CONF", smiModule->name)) {
+		    addImport("SNMPv2-CONF", "NOTIFICATION-GROUP");
+		}
 	    }
 	}
     }
@@ -510,7 +519,9 @@ static void createImportList(SmiModule *smiModule)
 	for(smiType = smiGetFirstType(smiModule);
 	    smiType; smiType = smiGetNextType(smiType)) {
 	    if (smiType->description) {
-		addImport("SNMPv2-TC", "TEXTUAL-CONVENTION");
+		if (strcmp("SNMPv2-TC", smiModule->name)) {
+		    addImport("SNMPv2-TC", "TEXTUAL-CONVENTION");
+		}
 		break;
 	    }
 	}
@@ -949,7 +960,7 @@ static void printTypeDefinitions(SmiModule *smiModule)
 		print("%s ::=\n", smiType->name);
 	    }
 	    printSegment(INDENT, "", 0, invalid);
-	    print("%s", getTypeString(smiModule->name, smiType->basetype,
+	    print("%s", getTypeString(smiType->basetype,
 				      smiGetParentType(smiType)));
 	    printSubtype(smiType, invalid);
 	    print("\n\n");
@@ -971,7 +982,7 @@ static void printTextualConventions(SmiModule *smiModule)
 	    if (smiv1 && !invalid) {
 		print("%s ::=\n", smiType->name);
 		printSegment(INDENT, "", 0, invalid);
-		print("%s", getTypeString(smiModule->name, smiType->basetype,
+		print("%s", getTypeString(smiType->basetype,
 					  smiGetParentType(smiType)));
 		printSubtype(smiType, invalid);
 		print("\n\n");
@@ -1012,7 +1023,7 @@ static void printTextualConventions(SmiModule *smiModule)
 		}
 		printSegment(INDENT, "SYNTAX", INDENTVALUE, smiv1 || invalid);
 		print("%s",
-		      getTypeString(smiModule->name, smiType->basetype,
+		      getTypeString(smiType->basetype,
 				    smiGetParentType(smiType)));
 		printSubtype(smiType, smiv1 || invalid);
 		print("\n\n");
@@ -1115,15 +1126,13 @@ static void printObjects(SmiModule *smiModule)
 		    /*
 		     * an implicitly restricted type.
 		     */
-		    print("%s", getTypeString(smiModule->name,
-					      smiType->basetype,
+		    print("%s", getTypeString(smiType->basetype,
 					      smiGetParentType(smiType)));
 		    printSubtype(smiType, invalid);
 		    print("\n");
 		} else {
 		    print("%s\n",
-			  getTypeString(smiModule->name,
-					smiType->basetype, smiType));
+			  getTypeString(smiType->basetype, smiType));
 		}
 	    }
 	}
@@ -1236,14 +1245,12 @@ static void printObjects(SmiModule *smiModule)
 		    printSegment(2 * INDENT, colNode->name, INDENTSEQUENCE,
 				 invalid);
 		    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-			print("%s", getTypeString(smiModule->name,
-						  smiType->basetype,
+			print("%s", getTypeString(smiType->basetype,
 						  smiGetParentType(smiType)));
 		    } else {
 			print("%s",
-			      getTypeString(smiModule->name,
-					    smiType->basetype,
-				 smiGetNodeType(colNode)));
+			      getTypeString(smiType->basetype,
+					    smiGetNodeType(colNode)));
 		    }
 		}
 		i++;
@@ -1530,7 +1537,7 @@ static void printModuleCompliances(SmiModule *smiModule)
 			    printSegment(2 * INDENT, "SYNTAX", INDENTVALUE,
 					 smiv1);
 			    print("%s",
-				  getTypeString(module, smiType->basetype,
+				  getTypeString(smiType->basetype,
 						smiGetParentType(smiType)));
 			    printSubtype(smiType, smiv1);
 			    print("\n");
@@ -1541,7 +1548,7 @@ static void printModuleCompliances(SmiModule *smiModule)
 			    printSegment(2 * INDENT, "WRITE-SYNTAX",
 					 INDENTVALUE, smiv1);
 			    print("%s",
-				  getTypeString(module, smiType->basetype,
+				  getTypeString(smiType->basetype,
 						smiGetParentType(smiType)));
 			    printSubtype(smiType, smiv1);
 			    print("\n");

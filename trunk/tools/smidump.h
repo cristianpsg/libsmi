@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.5 2000/03/02 18:43:11 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.6 2000/03/21 10:30:40 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -57,6 +57,8 @@ extern int dumpXml(char *modulename, int flags);
 
 extern int dumpFigTree(char *modulename, int flags);
 extern int dumpFigUml(char *modulename, int flags);
+
+extern int dumpCM(char *modulename, int flags);
 
 /*
  * The functions are wrappers around the malloc functions
