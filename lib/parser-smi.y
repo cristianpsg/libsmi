@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.47 1999/12/10 19:29:21 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.48 1999/12/13 09:47:57 strauss Exp $
  */
 
 %{
@@ -2431,6 +2431,7 @@ ApplicationSyntax:	IPADDRESS
 	|		GAUGE32 integerSubType
 			{
 			    Type *parentPtr;
+			    Import *importPtr;
 			    
 			    parentPtr = findTypeByName("Gauge32");
 			    if (! parentPtr) {
@@ -2442,6 +2443,11 @@ ApplicationSyntax:	IPADDRESS
 			    setTypeParent($$, parentPtr->modulePtr->name,
 					  parentPtr->name);
 			    setTypeList($$, $2);
+			    importPtr = findImportByName("Gauge32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    }
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
@@ -2454,6 +2460,7 @@ ApplicationSyntax:	IPADDRESS
 	|		UNSIGNED32 integerSubType
 			{
 			    Type *parentPtr;
+			    Import *importPtr;
 			    
 			    parentPtr = findTypeByName("Unsigned32");
 			    if (! parentPtr) {
@@ -2465,6 +2472,11 @@ ApplicationSyntax:	IPADDRESS
 			    setTypeParent($$, parentPtr->modulePtr->name,
 					  parentPtr->name);
 			    setTypeList($$, $2);
+			    importPtr = findImportByName("Unsigned32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
@@ -2487,6 +2499,7 @@ ApplicationSyntax:	IPADDRESS
 	|		OPAQUE octetStringSubType
 			{
 			    Type *parentPtr;
+			    Import *importPtr;
 			    
 			    parentPtr = findTypeByName("Opaque");
 			    if (! parentPtr) {
@@ -2499,6 +2512,11 @@ ApplicationSyntax:	IPADDRESS
 			    setTypeParent($$, parentPtr->modulePtr->name,
 					  parentPtr->name);
 			    setTypeList($$, $2);
+			    importPtr = findImportByName("Opaque",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    }
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
@@ -3254,7 +3272,10 @@ subidentifier:
 						findObjectByModuleAndName(
 						    complianceModulePtr, $1);
 					    if (objectPtr) {
-						addImport($1, thisParserPtr);
+						importPtr = addImport($1,
+								thisParserPtr);
+						setImportModulename(importPtr,
+						    complianceModulePtr->name);
 					    }
 					} else {
 					    /* 
@@ -3330,7 +3351,10 @@ subidentifier:
 						findObjectByModuleAndName(
 						    complianceModulePtr, $1);
 					    if (objectPtr) {
-						addImport($1, thisParserPtr);
+						importPtr = addImport($1,
+								thisParserPtr);
+						setImportModulename(importPtr,
+						    complianceModulePtr->name);
 					    }
 					} else {
 					    /* 
@@ -3803,6 +3827,8 @@ MandatoryGroups:	MandatoryGroup
 
 MandatoryGroup:		objectIdentifier
 			{
+			    Import *importPtr;
+
 			    /*
 			     * The object found may be an implicitly
 			     * created object with flags & FLAG_IMPORTED.
@@ -3813,6 +3839,13 @@ MandatoryGroup:		objectIdentifier
 				$$ = findObjectByModuleAndName(
 				                           complianceModulePtr,
 							   $1->name);
+			    }
+			    if (complianceModulePtr && $1->name) {
+				importPtr = findImportByModulenameAndName(
+						    complianceModulePtr->name,
+						    $1->name,
+						    thisModulePtr);
+				importPtr->use++;
 			    }
 			}
 	;
@@ -3919,6 +3952,16 @@ Compliance:		ComplianceGroup
 ComplianceGroup:	GROUP objectIdentifier
 			DESCRIPTION Text
 			{
+			    Import *importPtr;
+			    
+			    if (complianceModulePtr && $2->name) {
+				importPtr = findImportByModulenameAndName(
+						    complianceModulePtr->name,
+						    $2->name,
+						    thisModulePtr);
+				importPtr->use++;
+			    }
+			    
 			    $$ = util_malloc(sizeof(List));
 			    $$->nextPtr = NULL;
 			    $$->ptr = util_malloc(sizeof(Option));
@@ -3934,6 +3977,16 @@ ComplianceObject:	OBJECT ObjectName
 			AccessPart
 			DESCRIPTION Text
 			{
+			    Import *importPtr;
+
+			    if (complianceModulePtr && $2->name) {
+				importPtr = findImportByModulenameAndName(
+						    complianceModulePtr->name,
+						    $2->name,
+						    thisModulePtr);
+				importPtr->use++;
+			    }
+			    
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
 			    $$ = util_malloc(sizeof(List));
 			    $$->nextPtr = NULL;
@@ -4178,4 +4231,4 @@ number:			NUMBER
 
 %%
 
-#endif
+#endif /*  */
