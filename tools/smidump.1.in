@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.27 2002/07/23 09:04:37 schoenw Exp $
+.\" $Id: smidump.1.in,v 1.28 2003/02/21 10:35:56 schoenw Exp $
 .\"
 .TH smidump 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
@@ -139,6 +139,9 @@ SMI in XML format (experimental).
 .TP
 xsd
 SMI in XML schema format (experimental).
+.TP
+sizes
+SNMP best case / worst case PDU sizes for typical PDUs (experimental).
 
 .SH "EXAMPLE"
 This example converts the SMIv2 module IF-MIB in the current directory

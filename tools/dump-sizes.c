@@ -8,13 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.84 2002/12/17 17:50:03 schoenw Exp $
- */
-
-/*
- * TODO:
- *       - add missing bytes for the remaining PDU fields and the
- *	   enclosing SEQUENCE encoding
+ * @(#) $Id: dump-sizes.c,v 1.1 2003/09/17 12:37:58 schoenw Exp $
  */
 
 #include <config.h>
@@ -525,13 +519,10 @@ ber_len_val(SmiType *smiType, int flags)
      case SMI_BASETYPE_ENUM:
 	  if (flags) {
 	       int32 = getAbsMaxEnum(smiType);
-	       fprintf(stderr, "** %s max enum %d\n", smiType->name, int32);
 	  } else {
 	       int32 = getAbsMinEnum(smiType);
-	       fprintf(stderr, "** %s min enum %d\n", smiType->name, int32);
 	  }
 	  len = ber_len_int32(int32);
-	  fprintf(stderr, "** %s ber_len %d\n", smiType->name, len);
 	  break;
      case SMI_BASETYPE_INTEGER32:
 	  if (flags) {
