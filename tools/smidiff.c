@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.39 2003/04/24 13:11:52 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.40 2003/04/30 14:51:29 strauss Exp $ 
  */
 
 #include <config.h>
@@ -138,10 +138,10 @@ typedef struct Error {
 #define ERR_OPTION_REMOVED			86
 #define ERR_EXT_OPTION_ADDED			87
 #define ERR_EXT_OPTION_REMOVED			88
-#define ERR_REFINEMENT_ADDED			85
-#define ERR_REFINEMENT_REMOVED			86
-#define ERR_EXT_REFINEMENT_ADDED		87
-#define ERR_EXT_REFINEMENT_REMOVED		88
+#define ERR_REFINEMENT_ADDED			89
+#define ERR_REFINEMENT_REMOVED			90
+#define ERR_EXT_REFINEMENT_ADDED		91
+#define ERR_EXT_REFINEMENT_REMOVED		92
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -169,7 +169,7 @@ static Error errors[] = {
     { 2, ERR_DESCR_REMOVED, "description-removed",
       "description removed from `%s'", NULL },
     { 5, ERR_DESCR_CHANGED, "description-changed",
-      "description of `%s' changed", NULL },
+      "description of %s `%s' changed", NULL },
     { 5, ERR_REF_ADDED, "ref-added",
       "reference added to `%s'", NULL },
     { 3, ERR_REF_REMOVED, "ref-removed",
@@ -321,15 +321,51 @@ static Error errors[] = {
     { 2, ERR_EXT_OPTION_REMOVED, "option-removed",
       "optional group `%s::%s' removed from `%s'", NULL },
     { 2, ERR_REFINEMENT_ADDED, "refinement-added",
-      "refined object `%s' added to `%s'", NULL },
+      "object refinement for `%s' added to `%s'", NULL },
     { 2, ERR_REFINEMENT_REMOVED, "refinement-removed",
-      "refined object `%s' removed from `%s'", NULL },
+      "object refinement for `%s' removed from `%s'", NULL },
     { 2, ERR_EXT_REFINEMENT_ADDED, "refinement-added",
-      "refined object `%s::%s' added to `%s'", NULL },
+      "object refinement for `%s::%s' added to `%s'", NULL },
     { 2, ERR_EXT_REFINEMENT_REMOVED, "refinement-removed",
-      "refined object `%s::%s' removed from `%s'", NULL },
+      "object refinement for `%s::%s' removed from `%s'", NULL },
     { 0, 0, NULL, NULL }
 };
+
+
+
+static char *smiStringDecl(SmiDecl macro)
+{
+    return
+        (macro == SMI_DECL_UNKNOWN)           ? "<unknown>" :
+        (macro == SMI_DECL_IMPLICIT_TYPE)     ? "<implicit>" :
+        (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<type-assignment>" :
+        (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<implicit-sequence-of>" :
+        (macro == SMI_DECL_VALUEASSIGNMENT)   ? "<value-assignment>" :
+        (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" :
+        (macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" :
+        (macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" :
+        (macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" :
+        (macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE" :
+        (macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP" :
+        (macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP" :
+        (macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE" :
+        (macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES" :
+        (macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" :
+        (macro == SMI_DECL_MACRO)             ? "MACRO" :
+        (macro == SMI_DECL_COMPL_GROUP)       ? "GROUP" :
+        (macro == SMI_DECL_COMPL_OBJECT)      ? "OBJECT" :
+        (macro == SMI_DECL_MODULE)	      ? "module" :
+        (macro == SMI_DECL_TYPEDEF)	      ? "typedef" :
+        (macro == SMI_DECL_NODE)	      ? "node" :
+        (macro == SMI_DECL_SCALAR)	      ? "scalar" :
+        (macro == SMI_DECL_TABLE)	      ? "table" :
+        (macro == SMI_DECL_ROW)		      ? "row" :
+        (macro == SMI_DECL_COLUMN)	      ? "column" :
+        (macro == SMI_DECL_NOTIFICATION)      ? "notification" :
+        (macro == SMI_DECL_GROUP)	      ? "group" :
+        (macro == SMI_DECL_COMPLIANCE)	      ? "compliance" :
+                                                "<UNDEFINED>";
+}
 
 
 
@@ -638,7 +674,7 @@ checkAccess(SmiModule *oldModule, int oldLine,
 static int
 checkDescription(SmiModule *oldModule, int oldLine,
 		 SmiModule *newModule, int newLine,
-		 char *name, char *oldDescr, char *newDescr)
+		 char *name, SmiDecl decl, char *oldDescr, char *newDescr)
 {
     int code = 0;
     
@@ -655,7 +691,7 @@ checkDescription(SmiModule *oldModule, int oldLine,
 
     if (oldDescr && newDescr && diffStrings(oldDescr, newDescr)) {
 	printErrorAtLine(newModule, ERR_DESCR_CHANGED,
-			 newLine, name);
+			 newLine, smiStringDecl(decl), name);
 	code |= CODE_SHOW_PREVIOUS;
     }
 
@@ -1513,7 +1549,7 @@ checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
 
     code |= checkDescription(oldModule, smiGetTypeLine(oldType),
 			     newModule, smiGetTypeLine(newType),
-			     newType->name,
+			     newType->name, oldType->decl,
 			     oldType->description, newType->description);
 
     code |= checkReference(oldModule, smiGetTypeLine(oldType),
@@ -1821,7 +1857,7 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 		       newNode->name, oldNode->units, newNode->units);
 
     code |= checkDescription(oldModule, oldLine, newModule, newLine,
-			     newNode->name,
+			     newNode->name, oldNode->decl,
 			     oldNode->description, newNode->description);
 
     code |= checkReference(oldModule, oldLine, newModule, newLine,
@@ -1980,7 +2016,7 @@ checkNotification(SmiModule *oldModule, const char *oldTag,
 
     code |= checkDescription(oldModule, smiGetNodeLine(oldNode),
 			     newModule, smiGetNodeLine(newNode),
-			     newNode->name,
+			     newNode->name, oldNode->decl,
 			     oldNode->description, newNode->description);
 
     code |= checkReference(oldModule, smiGetNodeLine(oldNode),
@@ -2148,7 +2184,7 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 
     code |= checkDescription(oldModule, oldLine,
 			     newModule, newLine,
-			     newModule->name,
+			     newModule->name, SMI_DECL_MODULEIDENTITY,
 			     oldModule->description, newModule->description);
 
     code |= checkReference(oldModule, oldLine, newModule, newLine, newModule->name,
@@ -2295,7 +2331,7 @@ checkGroup(SmiModule *oldModule, const char *oldTag,
 
     code |= checkDescription(oldModule, smiGetNodeLine(oldNode),
 			     newModule, smiGetNodeLine(newNode),
-			     newNode->name,
+			     newNode->name, oldNode->decl,
 			     oldNode->description, newNode->description);
 
     code |= checkReference(oldModule, smiGetNodeLine(oldNode),
@@ -2476,7 +2512,7 @@ checkComplOptions(SmiModule *oldModule, const char *oldTag,
 	    code = 0;
 	    code |= checkDescription(oldModule, smiGetOptionLine(oldOption),
 				     newModule, smiGetOptionLine(newOption),
-				     newOptionNode->name,
+				     newOptionNode->name, SMI_DECL_COMPL_GROUP,
 				     oldOption->description,
 				     newOption->description);
 	    if (code & CODE_SHOW_PREVIOUS) {
@@ -2559,6 +2595,7 @@ checkComplRefinements(SmiModule *oldModule, const char *oldTag,
 	    code |= checkDescription(oldModule, smiGetRefinementLine(oldRefinement),
 				     newModule, smiGetRefinementLine(newRefinement),
 				     newRefinementNode->name,
+				     SMI_DECL_COMPL_OBJECT,
 				     oldRefinement->description,
 				     newRefinement->description);
 
@@ -2641,7 +2678,7 @@ checkCompliance(SmiModule *oldModule, const char *oldTag,
 
     code |= checkDescription(oldModule, smiGetNodeLine(oldNode),
 			     newModule, smiGetNodeLine(newNode),
-			     newNode->name,
+			     newNode->name, oldNode->decl,
 			     oldNode->description, newNode->description);
 
     code |= checkReference(oldModule, smiGetNodeLine(oldNode),
