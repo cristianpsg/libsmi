@@ -1,7 +1,7 @@
 /*
  * dump-metrics.c --
  *
- *      Operations to compute and dump MIB metrics.
+ *      Operations to compute and dump some MIB metrics.
  *
  * Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 2000 J. Schoenwaelder, Technical University of Braunschweig.
@@ -10,15 +10,15 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.8 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-metrics.c,v 1.9 2002/11/19 10:34:34 schoenw Exp $
  */
 
 /*
   # revisions
   # imports
   # row creations:
-  <basetype usage distribution>
-  <complexity of table indexes>
+  # <basetype usage distribution>
+  # <complexity of table indexes>
  */
 
 #include <config.h>
@@ -32,59 +32,63 @@
 
 static int raw = 0;
 
+static int silent = 0;
+
 
 typedef struct StatusCounter {
-    unsigned int total;
-    unsigned int current;
-    unsigned int deprecated;
-    unsigned int obsolete;
+    unsigned long total;
+    unsigned long current;
+    unsigned long deprecated;
+    unsigned long obsolete;
 } StatusCounter;
 
 
 
 typedef struct AccessCounter {
-    unsigned int total;
-    unsigned int noaccess;
-    unsigned int notify;
-    unsigned int readonly;
-    unsigned int readwrite;
+    unsigned long total;
+    unsigned long noaccess;
+    unsigned long notify;
+    unsigned long readonly;
+    unsigned long readwrite;
 } AccessCounter;
 
 
 
 typedef struct IndexCounter {
-    unsigned int total;
-    unsigned int index;
-    unsigned int augment;
-    unsigned int reorder;
-    unsigned int sparse;
-    unsigned int expand;
+    unsigned long total;
+    unsigned long index;
+    unsigned long augment;
+    unsigned long reorder;
+    unsigned long sparse;
+    unsigned long expand;
 } IndexCounter;
 
 
 
+typedef struct IndexLenCounter {
+    unsigned long total;
+    unsigned long length[11];
+} IndexLenCounter;
+
+
+
 typedef struct LengthCounter {
-    unsigned int total;
-    unsigned int description;
-    unsigned int reference;
-    unsigned int units;
-    unsigned int format;
+    unsigned long total;
+    unsigned long descr;
+    unsigned long descr_len;
+    unsigned long reference;
+    unsigned long reference_len;
+    unsigned long units;
+    unsigned long units_len;
+    unsigned long format;
+    unsigned long format_len;
 } LengthCounter;
-
-
-
-typedef struct FeatureCounter {
-    unsigned int total;
-    unsigned int description;
-    unsigned int reference;
-    unsigned int units;
-    unsigned int format;
-} FeatureCounter;
 
 
 
 typedef struct Metrics {
     StatusCounter statusTypes;
+
     StatusCounter statusTables;
     StatusCounter statusColumns;
     StatusCounter statusScalars;
@@ -96,6 +100,7 @@ typedef struct Metrics {
     AccessCounter accessScalars;
     AccessCounter accessAll;
     IndexCounter  indexTables;
+    IndexLenCounter indexLenTables;
     LengthCounter lengthTypes;
     LengthCounter lengthTables;
     LengthCounter lengthRows;
@@ -105,6 +110,297 @@ typedef struct Metrics {
     LengthCounter lengthAll;
 } Metrics;
 
+
+
+typedef struct UsageCounter {
+    char     *module;
+    char     *name;
+    unsigned count;
+    struct UsageCounter *nextPtr;
+} UsageCounter;
+
+
+static UsageCounter *extTypeList = NULL;
+static UsageCounter *extNodeList = NULL;
+static UsageCounter *extModuleList = NULL;
+
+
+typedef void	(*ForEachIndexFunc)	(FILE *f, SmiNode *groupNode, SmiNode *smiNode, void *data);
+
+static void
+foreachIndexDo(FILE *f, SmiNode *smiNode, ForEachIndexFunc func, void *data)
+{
+    SmiNode *indexNode = NULL, *iNode;
+    SmiElement *smiElement;
+    
+    switch (smiNode->indexkind) {
+    case SMI_INDEX_INDEX:
+    case SMI_INDEX_REORDER:
+	indexNode = smiNode;
+	break;
+    case SMI_INDEX_EXPAND:	/* TODO: we have to do more work here! */
+	break;
+    case SMI_INDEX_AUGMENT:
+    case SMI_INDEX_SPARSE:
+	indexNode = smiGetRelatedNode(smiNode);
+	break;
+    case SMI_INDEX_UNKNOWN:
+	break;
+    }
+    if (indexNode) {
+	for (smiElement = smiGetFirstElement(indexNode);
+	     smiElement; smiElement = smiGetNextElement(smiElement)) {
+	    iNode = smiGetElementNode(smiElement);
+	    if (iNode) {
+		(func) (f, smiNode, iNode, data);
+	    }
+	}
+    }
+}
+
+
+
+static UsageCounter*
+incrUsageCounter(UsageCounter *typeList, char *module, char *name)
+{
+    UsageCounter *uCnt;
+
+    for (uCnt = typeList; uCnt; uCnt = uCnt->nextPtr) {
+	if (strcmp(uCnt->module, module) == 0
+	    && (! name || strcmp(uCnt->name, name) == 0)) {
+	    break;
+	}
+    }
+
+    if (! uCnt) {
+	uCnt = (UsageCounter *) xmalloc(sizeof(UsageCounter));
+	uCnt->module = xstrdup(module);
+	uCnt->name = name ? xstrdup(name) : NULL;
+	uCnt->count = 0;
+	uCnt->nextPtr = typeList;
+	typeList = uCnt;
+    }
+
+    uCnt->count++;
+    return typeList;
+}
+
+
+
+static void
+incrNodeUsageCounter(SmiModule *smiModule, SmiNode *smiNode)
+{
+    SmiType *smiType;
+    
+    smiType = smiGetNodeType(smiNode);
+    if (! smiType) {
+	return;
+    }
+    
+   if (smiType->name) {
+	char *extModule = smiGetTypeModule(smiType)->name;
+	if (extModule && *extModule
+	    && strcmp(extModule, smiModule->name) != 0) {
+	    extTypeList = incrUsageCounter(extTypeList,
+					   extModule, smiType->name);
+	    extModuleList = incrUsageCounter(extModuleList, extModule, NULL);
+	}
+    }
+}
+
+
+static int
+cmp(const void *va, const void *vb)
+{
+    UsageCounter **a = (UsageCounter **) va;
+    UsageCounter **b = (UsageCounter **) vb;
+
+    if ((*a)->count > (*b)->count) return -1;
+    if ((*a)->count < (*b)->count) return 1;
+    return 0;
+}
+
+
+static void
+fprintTypeUsage(FILE *f, UsageCounter *typeUsageList)
+{
+    UsageCounter *uCnt;
+    int modLen = 8, nameLen = 8;
+    unsigned total = 0;
+    int i, cnt = 0;
+    UsageCounter **sortCnt;
+
+    /* should be sorted */
+
+    for (uCnt = typeUsageList, cnt = 0; uCnt; uCnt = uCnt->nextPtr, cnt++) {
+	if (modLen < strlen(uCnt->module)) {
+	    modLen = strlen(uCnt->module);
+	}
+	if (nameLen < strlen(uCnt->name)) {
+	    nameLen = strlen(uCnt->name);
+	}
+	total += uCnt->count;
+    }
+
+    if (cnt == 0) {
+	return;
+    }
+
+    /* create an array for a quick qsort */
+
+    sortCnt = (UsageCounter **) xmalloc(cnt * sizeof(UsageCounter *));
+    memset(sortCnt, 0, cnt * sizeof(UsageCounter *));
+    for (uCnt = typeUsageList, i = 0; uCnt; uCnt = uCnt->nextPtr, i++) {
+	sortCnt[i] = uCnt;
+    }
+    qsort(sortCnt, cnt, sizeof(UsageCounter *), cmp);
+    
+    if (! silent) {
+	fputs(
+"# The following table shows the distribution of the number of references\n"
+"# to externally defined types in the set of loaded MIB modules.\n"
+"\n", f);
+    }
+    fprintf(f, "%-*s %-*s EXT-USAGE\n", modLen, "MODULE", nameLen, "TYPE");
+
+    for (i = 0; i < cnt; i++) {
+	fprintf(f, "%-*s %-*s ",
+		modLen, sortCnt[i]->module, nameLen, sortCnt[i]->name);
+	if (raw) {
+	    fprintf(f, "%8u\n", sortCnt[i]->count);
+	} else {
+	    fprintf(f, "%6.1f%%\n", (double) sortCnt[i]->count * 100 / total);
+	}
+    }
+
+    xfree(sortCnt);
+}
+
+
+
+static void
+fprintNodeUsage(FILE *f, UsageCounter *typeUsageList)
+{
+    UsageCounter *uCnt;
+    int modLen = 8, nameLen = 8;
+    unsigned total = 0;
+    int i, cnt = 0;
+    UsageCounter **sortCnt;
+
+    /* should be sorted */
+
+    for (uCnt = typeUsageList, cnt = 0; uCnt; uCnt = uCnt->nextPtr, cnt++) {
+	if (modLen < strlen(uCnt->module)) {
+	    modLen = strlen(uCnt->module);
+	}
+	if (nameLen < strlen(uCnt->name)) {
+	    nameLen = strlen(uCnt->name);
+	}
+	total += uCnt->count;
+    }
+
+    if (cnt == 0) {
+	return;
+    }
+
+    /* create an array for a quick qsort */
+
+    sortCnt = (UsageCounter **) xmalloc(cnt * sizeof(UsageCounter *));
+    memset(sortCnt, 0, cnt * sizeof(UsageCounter *));
+    for (uCnt = typeUsageList, i = 0; uCnt; uCnt = uCnt->nextPtr, i++) {
+	sortCnt[i] = uCnt;
+    }
+    qsort(sortCnt, cnt, sizeof(UsageCounter *), cmp);
+    
+    if (! silent) {
+	fputs(
+"# The following table shows the distribution of the number of references\n"
+"# to externally defined nodes in the set of loaded MIB modules.\n"
+"\n", f);
+    }
+    fprintf(f, "%-*s %-*s EXT-USAGE\n", modLen, "MODULE", nameLen, "NODE");
+
+    for (i = 0; i < cnt; i++) {
+	fprintf(f, "%-*s %-*s ",
+		modLen, sortCnt[i]->module, nameLen, sortCnt[i]->name);
+	if (raw) {
+	    fprintf(f, "%8u\n", sortCnt[i]->count);
+	} else {
+	    fprintf(f, "%6.1f%%\n", (double) sortCnt[i]->count * 100 / total);
+	}
+    }
+
+    xfree(sortCnt);
+}
+
+
+
+static void
+fprintModuleUsage(FILE *f, UsageCounter *modUsageList)
+{
+    UsageCounter *uCnt;
+    int modLen = 8;
+    unsigned total = 0;
+    int i, cnt = 0;
+    UsageCounter **sortCnt;
+
+    /* should be sorted */
+
+    for (uCnt = modUsageList, cnt = 0; uCnt; uCnt = uCnt->nextPtr, cnt++) {
+	if (modLen < strlen(uCnt->module)) {
+	    modLen = strlen(uCnt->module);
+	}
+	total += uCnt->count;
+    }
+
+    if (cnt == 0) {
+	return;
+    }
+
+    /* create an array for a quick qsort */
+
+    sortCnt = (UsageCounter **) xmalloc(cnt * sizeof(UsageCounter *));
+    memset(sortCnt, 0, cnt * sizeof(UsageCounter *));
+    for (uCnt = modUsageList, i = 0; uCnt; uCnt = uCnt->nextPtr, i++) {
+	sortCnt[i] = uCnt;
+    }
+    qsort(sortCnt, cnt, sizeof(UsageCounter *), cmp);
+
+    if (! silent) {
+	fputs(
+"# The following table shows the distribution of the number of references\n"
+"# to externally defined items (such as types or objects) accumulated by\n"
+"# defining MIB module in the set of loaded MIB modules.\n"
+"\n", f);
+    }
+    fprintf(f, "%-*s EXT-USAGE\n", modLen, "MODULE");
+
+    for (i = 0; i < cnt; i++) {
+	fprintf(f, "%-*s ", modLen, sortCnt[i]->module);
+	if (raw) {
+	    fprintf(f, "%8u\n", sortCnt[i]->count);
+	} else {
+	    fprintf(f, "%6.1f%%\n", (double) sortCnt[i]->count * 100 / total);
+	}
+    }
+
+    xfree(sortCnt);
+}
+
+
+
+static void
+freeUsageCounter(UsageCounter *usageCounterList)
+{
+    UsageCounter *uCnt, *p;
+    
+    for (uCnt = usageCounterList; uCnt; ) {
+	p = uCnt, uCnt = uCnt->nextPtr;
+	xfree(p->module);
+	xfree(p->name);
+	xfree(p);
+    }
+}
 
 
 static void
@@ -186,24 +482,65 @@ incrIndexCounter(IndexCounter *cnt, SmiIndexkind indexkind)
 
 
 static void
+incrIndexLenCounter(IndexLenCounter *cnt, int len)
+{
+    cnt->total++;
+    cnt->length[len]++;
+}
+
+
+
+static void
 incrLengthCounter(LengthCounter *cnt, char *description, char *reference,
 		  char *units, char *format)
 {
     cnt->total++;
     if (description) {
-	cnt->description += strlen(description);
+	cnt->descr++;
+	cnt->descr_len += strlen(description);
     }
+
     if (reference) {
-	cnt->reference += strlen(reference);
+	cnt->reference++;
+	cnt->reference_len += strlen(reference);
     }
     if (units) {
-	cnt->units += strlen(units);
+	cnt->units++;
+	cnt->units_len += strlen(units);
     }
     if (format) {
-	cnt->format += strlen(format);
+	cnt->format++;
+	cnt->format_len += strlen(format);
     }
 }
-    
+
+
+
+static void
+count(FILE *f, SmiNode *row, SmiNode *col, void *data)
+{
+    int *cnt = (int *) data;
+
+    (*cnt)++;
+}
+
+
+static void
+yadayada(FILE *f, SmiNode *row, SmiNode *col, void *data)
+{
+    SmiModule *smiModule = (SmiModule *) data;
+
+    if (col->name) {
+	char *extModule = smiGetNodeModule(col)->name;
+	if (extModule && *extModule
+	    && strcmp(extModule, smiModule->name) != 0) {
+	    extNodeList = incrUsageCounter(extNodeList,
+					   extModule, col->name);
+	    extModuleList = incrUsageCounter(extModuleList, extModule, NULL);
+	}
+    }
+}
+
 
 
 static void
@@ -236,6 +573,12 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 	    incrLengthCounter(&metrics->lengthAll,
 			      smiNode->description, smiNode->reference,
 			      smiNode->units, smiNode->format);
+	    {
+		int cnt = 0;
+		foreachIndexDo(NULL, smiNode, count, &cnt);
+		incrIndexLenCounter(&metrics->indexLenTables, cnt);
+		foreachIndexDo(NULL, smiNode, yadayada, smiModule);
+	    }
 	    break;
 	case SMI_NODEKIND_COLUMN:
 	    incrStatusCounter(&metrics->statusColumns, smiNode->status);
@@ -248,6 +591,7 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 	    incrLengthCounter(&metrics->lengthAll,
 			      smiNode->description, smiNode->reference,
 			      smiNode->units, smiNode->format);
+	    incrNodeUsageCounter(smiModule, smiNode);
 	    break;
 	case SMI_NODEKIND_SCALAR:
 	    incrStatusCounter(&metrics->statusScalars, smiNode->status);
@@ -260,6 +604,7 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 	    incrLengthCounter(&metrics->lengthAll,
 			      smiNode->description, smiNode->reference,
 			      smiNode->units, smiNode->format);
+	    incrNodeUsageCounter(smiModule, smiNode);
 	    break;
 	case SMI_NODEKIND_NOTIFICATION:
 	    incrStatusCounter(&metrics->statusNotifications, smiNode->status);
@@ -285,7 +630,20 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
     for (smiType = smiGetFirstType(smiModule);
 	 smiType;
 	 smiType = smiGetNextType(smiType)) {
-	len = smiType->description ? strlen(smiType->description) : 0;
+
+	/*
+	 * Ignore all types with empty descriptions coming from the
+	 * "SNMPv2-SMI" module since they are not really defined
+	 * types but part of the language itself.
+	 */
+
+	if (! smiType->description) {
+	    SmiModule *m = smiGetTypeModule(smiType);
+	    if (m && strcmp(m->name, "SNMPv2-SMI") == 0) {
+		continue;
+	    }
+	}
+    
 	incrStatusCounter(&metrics->statusTypes, smiType->status);
 	incrStatusCounter(&metrics->statusAll, smiType->status);
 	incrLengthCounter(&metrics->lengthTypes,
@@ -303,16 +661,22 @@ static void
 fprintStatusCounter(FILE *f, StatusCounter *cnt, char *s)
 {
     if (!s || !cnt) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the status distribution of various\n"
+"# definitions contained in the set of loaded MIB modules.\n"
+"\n", f);
+	}
 	fprintf(f, "%-14s %8s %8s %11s %9s\n", "CATEGORY",
 		"TOTAL", "CURRENT", "DEPRECATED", "OBSOLETE");
 	return;
     }
 
     if (raw) {
-	fprintf(f, "%-14s %8u %8u %11u %9u\n", s,
+	fprintf(f, "%-14s %8lu %8lu %11lu %9lu\n", s,
 		cnt->total, cnt->current, cnt->deprecated, cnt->obsolete);
     } else {
-	fprintf(f, "%-14s %8u %7.1f%% %10.1f%% %8.1f%%\n", s,
+	fprintf(f, "%-14s %8lu %7.1f%% %10.1f%% %8.1f%%\n", s,
 		cnt->total,
 		cnt->total ? (double) cnt->current * 100 / cnt->total : 0,
 		cnt->total ? (double) cnt->deprecated * 100 / cnt->total : 0,
@@ -326,17 +690,23 @@ static void
 fprintAccessCounter(FILE *f, AccessCounter *cnt, char *s)
 {
     if (!s || !cnt) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the access mode distribution of all scalar\n"
+"# or column definitions contained in the set of loaded MIB modules.\n"
+"\n", f);
+	}
 	fprintf(f, "%-14s %8s %10s %9s %7s %8s\n", "CATEGORY",
 		"TOTAL", "READWRITE", "READONLY", "NOTIFY", "NOACCES");
 	return;
     }
 
     if (raw) {
-	fprintf(f, "%-14s %8u %10u %9u %7u %8u\n", s,
+	fprintf(f, "%-14s %8lu %10lu %9lu %7lu %8lu\n", s,
 		cnt->total, cnt->readwrite, cnt->readonly,
 		cnt->notify, cnt->noaccess);
     } else {
-	fprintf(f, "%-14s %8u %9.1f%% %8.1f%% %6.1f%% %7.1f%%\n", s,
+	fprintf(f, "%-14s %8lu %9.1f%% %8.1f%% %6.1f%% %7.1f%%\n", s,
 		cnt->total,
 		cnt->total ? (double) cnt->readwrite * 100 / cnt->total : 0,
 		cnt->total ? (double) cnt->readonly * 100 / cnt->total : 0,
@@ -351,17 +721,23 @@ static void
 fprintIndexCounter(FILE *f, IndexCounter *cnt, char *s)
 {
     if (! s || ! cnt) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the table index kind distribution of\n"
+"# table definitions contained in the set of loaded MIB modules.\n"
+"\n", f);
 	fprintf(f, "%-14s %8s %8s %8s %8s %8s %8s\n", "CATEGORY",
 		"TOTAL", "INDEX", "AUGMENT", "REORDER", "SPARSE", "EXPAND");
+	}
 	return;
     }
     
     if (raw) {
-	fprintf(f, "%-14s %8u %8u %8u %8u %8u %8u\n", s,
+	fprintf(f, "%-14s %8lu %8lu %8lu %8lu %8lu %8lu\n", s,
 		cnt->total, cnt->index, cnt->augment,
 		cnt->reorder, cnt->sparse, cnt->expand);
     } else {
-	fprintf(f, "%-14s %8u %7.1f%% %7.1f%% %7.1f%% %7.1f%% %7.1f%%\n", s,
+	fprintf(f, "%-14s %8lu %7.1f%% %7.1f%% %7.1f%% %7.1f%% %7.1f%%\n", s,
 		cnt->total,
 		cnt->total ? (double) cnt->index * 100 / cnt->total : 0,
 		cnt->total ? (double) cnt->augment * 100 / cnt->total : 0,
@@ -374,15 +750,96 @@ fprintIndexCounter(FILE *f, IndexCounter *cnt, char *s)
 
 
 static void
+fprintIndexLenCounter(FILE *f, IndexLenCounter *cnt, char *s)
+{
+    int i;
+    
+    if (! s || ! cnt) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the table index length distribution of\n"
+"# table definitions contained in the set of loaded MIB modules.\n"
+"\n", f);
+	}
+	fprintf(f, "%-14s %6s %5s %5s %5s %5s %5s %5s %5s %5s\n",
+		"CATEGORY", "TOTAL",
+		"[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]");
+	return;
+    }
+
+    fprintf(f, "%-14s %6lu", s, cnt->total);
+    if (raw) {
+	for (i = 1; i < 9; i++) {
+	    fprintf(f, " %5lu", cnt->length[i]);
+	}
+    } else {
+	for (i = 1; i < 9; i++) {
+	    fprintf(f, " %4.1f%%", (double) cnt->length[i] * 100 / cnt->total);
+	}
+    }
+    
+    fprintf(f, "\n");
+}
+
+
+
+static void
 fprintLengthCounter(FILE *f, LengthCounter *cnt, char *s)
 {
-    if (s) {
-	fprintf(f, "%-14s %8u %12u %10u %8u %8u\n", s,
-		cnt->total, cnt->description, cnt->reference,
-		cnt->units, cnt->format);
-    } else {
+    if (! s) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the text clause usage distribution of all\n"
+"# definitions contained in the set of loaded MIB modules.\n"
+"\n", f);
+	}
 	fprintf(f, "%-14s %8s %12s %10s %8s %8s\n", "CATEGORY",
 		"TOTAL", "DESCRIPTION", "REFERENCE", "UNIT", "FORMAT");
+	return;
+    }
+    
+    if (raw) {
+	fprintf(f, "%-14s %8lu %12lu %10lu %8lu %8lu\n", s,
+		cnt->total, cnt->descr, cnt->reference,
+		cnt->units, cnt->format);
+    } else {
+	fprintf(f, "%-14s %8lu %11.1f%% %9.1f%% %7.1f%% %7.1f%%\n", s,
+		cnt->total,
+		cnt->total ? (double) cnt->descr * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->reference * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->units * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->format * 100 / cnt->total : 0);
+    }
+}
+
+
+
+static void
+fprintLengthCounter2(FILE *f, LengthCounter *cnt, char *s)
+{
+    if (! s) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the text clause length distribution of all\n"
+"# definitions contained in the set of loaded MIB modules.\n"
+"\n", f);
+	}
+	fprintf(f, "%-14s %8s %12s %10s %8s %8s\n", "CATEGORY",
+		"TOTAL", "DESCRIPTION", "REFERENCE", "UNIT", "FORMAT");
+	return;
+    }
+    
+    if (raw) {
+	fprintf(f, "%-14s %8lu %12lu %10lu %8lu %8lu\n", s,
+		cnt->total, cnt->descr_len, cnt->reference_len,
+		cnt->units_len, cnt->format_len);
+    } else {
+	fprintf(f, "%-14s %8lu %11.1fb %9.1fb %7.1fb %7.1fb\n", s,
+		cnt->total,
+		cnt->descr ? (double) cnt->descr_len / cnt->descr : 0,
+		cnt->reference ? (double) cnt->reference_len / cnt->reference : 0,
+		cnt->units ? (double) cnt->units_len / cnt->units : 0,
+		cnt->format ? (double) cnt->format_len / cnt->format : 0);
     }
 }
 
@@ -391,7 +848,7 @@ fprintLengthCounter(FILE *f, LengthCounter *cnt, char *s)
 static void
 fprintMetrics(FILE *f, Metrics *metrics)
 {
-    unsigned int objects;
+    unsigned long objects;
 
     objects = metrics->statusColumns.total + metrics->statusScalars.total;
 
@@ -413,6 +870,9 @@ fprintMetrics(FILE *f, Metrics *metrics)
     fprintIndexCounter(f, NULL, NULL);
     fprintIndexCounter(f, &metrics->indexTables, "Tables:");
     fprintf(f, "\n");
+    fprintIndexLenCounter(f, NULL, NULL);
+    fprintIndexLenCounter(f, &metrics->indexLenTables, "Tables:");
+    fprintf(f, "\n");
     fprintLengthCounter(f, NULL, NULL);
     fprintLengthCounter(f, &metrics->lengthTypes, "Types:");
     fprintLengthCounter(f, &metrics->lengthTables, "Tables:");
@@ -420,6 +880,23 @@ fprintMetrics(FILE *f, Metrics *metrics)
     fprintLengthCounter(f, &metrics->lengthScalars, "Scalars:");
     fprintLengthCounter(f, &metrics->lengthNotifications, "Notifications:");
     fprintLengthCounter(f, &metrics->lengthAll, "Summary:");
+    fprintf(f, "\n");
+    fprintLengthCounter2(f, NULL, NULL);
+    fprintLengthCounter2(f, &metrics->lengthTypes, "Types:");
+    fprintLengthCounter2(f, &metrics->lengthTables, "Tables:");
+    fprintLengthCounter2(f, &metrics->lengthColumns, "Columns:");
+    fprintLengthCounter2(f, &metrics->lengthScalars, "Scalars:");
+    fprintLengthCounter2(f, &metrics->lengthNotifications, "Notifications:");
+    fprintLengthCounter2(f, &metrics->lengthAll, "Summary:");
+    fprintf(f, "\n");
+    fprintTypeUsage(f, extTypeList);
+    freeUsageCounter(extTypeList), extTypeList = NULL;
+    fprintf(f, "\n");
+    fprintNodeUsage(f, extNodeList);
+    freeUsageCounter(extNodeList), extNodeList = NULL;
+    fprintf(f, "\n");
+    fprintModuleUsage(f, extModuleList);
+    freeUsageCounter(extModuleList), extModuleList = NULL;
 }
 
 
@@ -431,6 +908,8 @@ dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
     int       i;
     FILE      *f = stdout;
 
+    silent = (flags & SMIDUMP_FLAG_SILENT);
+
     if (output) {
 	f = fopen(output, "w");
 	if (!f) {
@@ -441,9 +920,21 @@ dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
     }
 
     if (flags & SMIDUMP_FLAG_UNITE) {
-	if (! (flags & SMIDUMP_FLAG_SILENT)) {
+	if (! silent) {
+	    int pos = 8888;
 	    fprintf(f, "# united module metrics (generated by smidump "
-		    SMI_VERSION_STRING ")\n\n");
+		    SMI_VERSION_STRING ")\n");
+	    fprintf(f, "#\n# smidump -u -f metrics");
+	    if (raw) fprintf(f, " --metrics-raw");
+	    for (i = 0; i < modc; i++) {
+		int len = strlen(modv[i]->name);
+		if (pos + len > 70) {
+		    fprintf(f, " \\\n#\t"), pos = 8;
+		}
+		fprintf(f, "%s ", modv[i]->name);
+		pos += len + 1;
+	    }
+	    fprintf(f, "%s\n", (pos == 8) ? "" : "\n");
 	}
 	for (i = 0; i < modc; i++) {
 	    memset(&metrics, 0, sizeof(Metrics));
@@ -454,7 +945,7 @@ dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 	fprintMetrics(f, &metrics);
     } else {
 	for (i = 0; i < modc; i++) {
-	    if (! (flags & SMIDUMP_FLAG_SILENT)) {
+	    if (! silent) {
 		fprintf(f, "# %s module metrics (generated by smidump "
 			SMI_VERSION_STRING ")\n\n", modv[i]->name);
 	    }
