@@ -98,4 +98,12 @@ scalar8 OBJECT-TYPE
 	"Multiple ranges. Second range will be added." 
     ::= { libsmiTest002Mib 8 }
 
+scalar9 OBJECT-TYPE
+    SYNTAX     INTEGER (0..9|20..29)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"Multiple ranges. Gap will be filled." 
+    ::= { libsmiTest002Mib 9 }
+
 END
