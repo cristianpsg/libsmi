@@ -5,13 +5,14 @@
 #       Makefile for VC++ (tested with version 6.0) for compiling
 #	libsmi and associated tools natively under Win32.
 #
+# Copyright (c) 2000-2003 Yigal Hochberg, DMH Software.
 # Copyright (c) 2000 E. Schoenfelder, Gaertner Datensysteme Braunschweig.
 # Copyright (c) 2000 J. Schoenwaelder, Technical University of Braunschweig.
 #
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.16 2002/12/27 21:05:14 schoenw Exp $
+# @(#) $Id: makefile,v 1.17 2003/01/18 21:23:52 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -104,7 +105,7 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-scli.obj			\
 	$(TMPDIR)\dump-xsd.obj			\
 	$(TMPDIR)\dump-sppi.obj			\
-	$(TMPDIR)\dump-smiv3.obj
+	$(TMPDIR)\dump-sizes.obj
 
 SMIDIFFOBJS =					\
 	$(TMPDIR)\smidiff.obj
