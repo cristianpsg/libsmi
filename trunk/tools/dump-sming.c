@@ -724,6 +724,7 @@ printObjects(modulename)
 	
 	if (smiNode->list) {
 	    printSegment((2 + indent) * INDENT, "create", INDENTVALUE);
+#if 0
 	    print("(");
 	    for(p = smiNode->list; *p; p++) {
 		if (p != smiNode->list) {
@@ -731,7 +732,9 @@ printObjects(modulename)
 		}
 		printWrapped(INDENTVALUE + 1, *p);
 	    }
-	    print(");\n");
+	    print(")");
+#endif
+	    print(";\n");
 	}
 	
 	if (smiNode->value) {

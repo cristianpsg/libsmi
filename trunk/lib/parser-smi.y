@@ -2799,7 +2799,7 @@ subidentifier:
 
 			    nodePtr = findNodeByParentAndSubid(parentNodePtr,
 							       $1);
-			    if (nodePtr) {
+			    if (nodePtr && nodePtr->lastObjectPtr) {
 				/*
 				 * hopefully, the last defined Object for
 				 * this Node is the one we expect.
