@@ -8,16 +8,16 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.118 2003/12/05 14:20:32 strauss Exp $
+# @(#) $Id: configure.in,v 1.119 2004/01/12 14:11:37 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=4
-LIBSMI_PATCHLEVEL=3-pre1
+LIBSMI_PATCHLEVEL=3
 LIBTOOL_VERSION=2
-LIBTOOL_REVISION=22
+LIBTOOL_REVISION=23
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
@@ -181,7 +181,7 @@ AC_DEFINE(BACKEND_SMI, 1, ""))
 
 AC_ARG_ENABLE(sming,
 [  --enable-sming          enable SMIng parser support],
-AC_DEFINE(BACKEND_SMING, 1, ""))
+AC_DEFINE(BACKEND_SMING, 0, ""))
 
 AC_PATH_PROG(FLEX, "flex")
 if test -z "${FLEX}" ; then
