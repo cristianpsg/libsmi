@@ -27,7 +27,7 @@ x shift/reduce conflict at
   solution: reserved keyword list (smi draft, section 3.7.)
 
 
-. if we want to tolerate MIBs with MODULE-IDENTITY not the first clause
+x if we want to tolerate MIBs with MODULE-IDENTITY not the first clause
   after the linkage part, we would need a lookahead > 1.
 
   for now, we get a parse error on such MIBs.
@@ -66,10 +66,10 @@ x shift/reduce conflict at
 . Forbid WS at some places ( - number, Module . label, ...)
 
 
-. stderr output only at printError
+x stderr output only at printError
 
 
-. tree structure of MibNodes
+x tree structure of MibNodes
 
 
 . Which items may be forward referenced?
@@ -292,3 +292,11 @@ x shift/reduce conflict at
   0.0	float, oid?
 
   -> must be determined from context!
+
+. need clearification on create statement. create; create(); create(...);
+
+. need clearification on extensibility.
+
+. need clearification on annotations.
+
+
