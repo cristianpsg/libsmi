@@ -1,8 +1,10 @@
 SMIDIFF-TEST-001-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, DisplayString
+    MODULE-IDENTITY, OBJECT-TYPE
         FROM SNMPv2-SMI
+    DisplayString
+	FROM SNMPv2-TC
     smidiffTestMib
         FROM SMIDIFF-TEST-MIB;
 
@@ -31,7 +33,7 @@ libsmiTest002Mib MODULE-IDENTITY
     ::= { smidiffTestMib 2 }
 
 scalar1 OBJECT-TYPE
-    SYNTAX     DisplayString (1..255)
+    SYNTAX     DisplayString (SIZE (1..255))
     MAX-ACCESS read-only
     STATUS     current
     DESCRIPTION
