@@ -7,7 +7,7 @@
     TEXTUAL-CONVENTION, DisplayString, PhysAddress,
     TimeStamp, RowStatus                     FROM SNMPv2-TC
     MODULE-COMPLIANCE, OBJECT-GROUP          FROM SNMPv2-CONF
-    ifIndex, transmission                    FROM RFC-1213;
+    ifIndex, transmission                    FROM RFC1213-MIB;
 
  frnetservMIB MODULE-IDENTITY
       LAST-UPDATED "9311161200Z"

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.81 2000/06/08 09:36:12 strauss Exp $
+ * @(#) $Id: data.c,v 1.82 2000/06/08 14:47:12 strauss Exp $
  */
 
 #include <config.h>
@@ -1502,6 +1502,37 @@ setObjectDecl(objectPtr, decl)
     SmiDecl     decl;
 {
     objectPtr->export.decl = decl;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectLine --
+ *
+ *      Set the line of definition of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectLine(objectPtr, line, parserPtr)
+    Object	*objectPtr;
+    int		line;
+    Parser	*parserPtr;
+{
+    if (line) {
+	objectPtr->line = line;
+    } else {
+	objectPtr->line = parserPtr ? parserPtr->line : -1;
+    }
 }
 
 
@@ -3322,7 +3353,6 @@ freeNodeTree(Node *rootPtr)
 	util_free(nodePtr->oid);
 	util_free(nodePtr);
     }
-    util_free(rootPtr);
 }
 
 
@@ -3453,6 +3483,8 @@ freeData()
 
     freeNodeTree(rootNodePtr);
     freeNodeTree(pendingNodePtr);
+    util_free(rootNodePtr);
+    util_free(pendingNodePtr);
     
     return;
 }

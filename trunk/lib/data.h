@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.59 2000/04/10 14:20:14 strauss Exp $
+ * @(#) $Id: data.h,v 1.60 2000/04/10 15:55:18 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -355,6 +355,10 @@ extern void setObjectReference(Object *objectPtr,
 
 extern void setObjectDecl(Object *objectPtr,
 			   SmiDecl decl);
+
+extern void setObjectLine(Object *objectPtr,
+			  int line,
+			  Parser *parserPtr);
 
 extern void setObjectNodekind(Object *objectPtr,
 			      SmiNodekind nodekind);

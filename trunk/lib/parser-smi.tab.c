@@ -1042,34 +1042,34 @@ static const short yyrline[] = { 0,
   1224,  1225,  1228,  1240,  1242,  1247,  1249,  1253,  1258,  1263,
   1268,  1273,  1278,  1283,  1288,  1293,  1298,  1303,  1308,  1313,
   1326,  1350,  1357,  1358,  1359,  1360,  1361,  1362,  1363,  1364,
-  1365,  1366,  1369,  1386,  1395,  1411,  1433,  1438,  1510,  1514,
-  1536,  1537,  1538,  1539,  1540,  1541,  1542,  1543,  1546,  1562,
-  1581,  1614,  1622,  1636,  1678,  1686,  1693,  1713,  1745,  1751,
-  1771,  1776,  1781,  1815,  1822,  1836,  1849,  1871,  1878,  1894,
-  1922,  1929,  1949,  2043,  2052,  2058,  2065,  2083,  2135,  2139,
-  2145,  2152,  2166,  2172,  2174,  2178,  2187,  2188,  2197,  2200,
-  2207,  2221,  2250,  2257,  2280,  2284,  2319,  2323,  2339,  2344,
-  2349,  2354,  2371,  2373,  2381,  2386,  2403,  2412,  2424,  2429,
-  2445,  2450,  2462,  2480,  2485,  2505,  2510,  2557,  2598,  2658,
-  2710,  2715,  2720,  2731,  2780,  2820,  2827,  2834,  2840,  2866,
-  2889,  2910,  2928,  2960,  2964,  2982,  2986,  2992,  3000,  3008,
-  3016,  3039,  3059,  3086,  3094,  3104,  3128,  3142,  3150,  3158,
-  3166,  3186,  3194,  3204,  3214,  3221,  3228,  3235,  3243,  3253,
-  3263,  3270,  3284,  3292,  3303,  3309,  3315,  3338,  3365,  3371,
-  3378,  3392,  3405,  3415,  3425,  3434,  3468,  3484,  3488,  3494,
-  3498,  3504,  3552,  3560,  3567,  3576,  3582,  3589,  3603,  3608,
-  3614,  3624,  3630,  3632,  3637,  3639,  3663,  3665,  3669,  3676,
-  3690,  3696,  3702,  3704,  3708,  3710,  3722,  3724,  3728,  3751,
-  3755,  3761,  3768,  3782,  3788,  3794,  3801,  3815,  3821,  3827,
-  3833,  3837,  3843,  3848,  3855,  3944,  4039,  4063,  4092,  4124,
-  4128,  4130,  4134,  4136,  4140,  4147,  4161,  4191,  4198,  4213,
-  4244,  4251,  4265,  4347,  4353,  4357,  4392,  4408,  4421,  4429,
-  4436,  4443,  4447,  4453,  4460,  4474,  4497,  4503,  4511,  4515,
-  4582,  4588,  4596,  4620,  4651,  4660,  4666,  4675,  4681,  4687,
-  4691,  4697,  4704,  4718,  4754,  4756,  4760,  4762,  4766,  4781,
-  4793,  4804,  4822,  4828,  4836,  4845,  4847,  4851,  4853,  4857,
-  4866,  4873,  4880,  4888,  4894,  4902,  4904,  4908,  4973,  4975,
-  4979,  4981,  4985
+  1365,  1366,  1369,  1386,  1395,  1411,  1434,  1439,  1511,  1515,
+  1537,  1538,  1539,  1540,  1541,  1542,  1543,  1544,  1547,  1563,
+  1582,  1615,  1623,  1637,  1679,  1687,  1694,  1714,  1746,  1752,
+  1772,  1777,  1782,  1816,  1823,  1837,  1850,  1872,  1879,  1895,
+  1924,  1931,  1951,  2046,  2055,  2061,  2068,  2086,  2139,  2143,
+  2149,  2156,  2170,  2176,  2178,  2182,  2191,  2192,  2201,  2204,
+  2211,  2225,  2255,  2262,  2285,  2289,  2325,  2329,  2345,  2350,
+  2355,  2360,  2377,  2379,  2387,  2392,  2409,  2418,  2430,  2435,
+  2451,  2456,  2468,  2486,  2491,  2511,  2516,  2563,  2604,  2664,
+  2716,  2721,  2726,  2737,  2786,  2826,  2833,  2840,  2846,  2872,
+  2895,  2916,  2934,  2966,  2970,  2988,  2992,  2998,  3006,  3014,
+  3022,  3045,  3065,  3092,  3100,  3110,  3134,  3148,  3156,  3164,
+  3172,  3192,  3200,  3210,  3220,  3227,  3234,  3241,  3249,  3259,
+  3269,  3276,  3290,  3298,  3309,  3315,  3321,  3344,  3371,  3377,
+  3384,  3398,  3411,  3421,  3431,  3440,  3474,  3490,  3494,  3500,
+  3504,  3510,  3558,  3566,  3573,  3582,  3588,  3595,  3609,  3614,
+  3620,  3630,  3636,  3638,  3643,  3645,  3669,  3671,  3675,  3682,
+  3696,  3702,  3708,  3710,  3714,  3716,  3728,  3730,  3734,  3757,
+  3761,  3767,  3774,  3788,  3794,  3800,  3807,  3821,  3827,  3833,
+  3839,  3843,  3849,  3854,  3861,  3950,  4045,  4069,  4098,  4130,
+  4134,  4136,  4140,  4142,  4146,  4153,  4167,  4198,  4205,  4220,
+  4252,  4259,  4273,  4356,  4362,  4366,  4401,  4417,  4430,  4438,
+  4445,  4452,  4456,  4462,  4469,  4483,  4506,  4512,  4520,  4524,
+  4591,  4597,  4605,  4629,  4660,  4669,  4675,  4684,  4690,  4696,
+  4700,  4706,  4713,  4727,  4764,  4766,  4770,  4772,  4776,  4791,
+  4803,  4814,  4832,  4838,  4846,  4855,  4857,  4861,  4863,  4867,
+  4876,  4883,  4890,  4898,  4904,  4912,  4914,  4918,  4983,  4985,
+  4989,  4991,  4995
 };
 #endif
 
@@ -2454,18 +2454,19 @@ case 76:
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    yyval.err = 0;
 			;
     break;}
 case 77:
-#line 1434 "parser-smi.y"
+#line 1435 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_TYPENAME_32, ERR_TYPENAME_64);
 			;
     break;}
 case 78:
-#line 1439 "parser-smi.y"
+#line 1440 "parser-smi.y"
 {
 			    Type *typePtr;
 			    
@@ -2537,13 +2538,13 @@ case 78:
 			;
     break;}
 case 79:
-#line 1511 "parser-smi.y"
+#line 1512 "parser-smi.y"
 {
 			    yyval.id = yyvsp[0].id;
 			;
     break;}
 case 80:
-#line 1515 "parser-smi.y"
+#line 1516 "parser-smi.y"
 {
 			    yyval.id = util_strdup(yyvsp[0].id);
 			    /*
@@ -2565,7 +2566,7 @@ case 80:
 			;
     break;}
 case 89:
-#line 1547 "parser-smi.y"
+#line 1548 "parser-smi.y"
 {
 			    if (yyvsp[0].typePtr->export.name) {
 				/*
@@ -2583,7 +2584,7 @@ case 89:
 			;
     break;}
 case 90:
-#line 1563 "parser-smi.y"
+#line 1564 "parser-smi.y"
 {
 			    Import *importPtr;
 
@@ -2603,7 +2604,7 @@ case 90:
 			;
     break;}
 case 91:
-#line 1585 "parser-smi.y"
+#line 1586 "parser-smi.y"
 {
 			    if ((yyvsp[0].typePtr) && !(yyvsp[0].typePtr->export.name)) {
 				/*
@@ -2635,14 +2636,14 @@ case 91:
 			;
     break;}
 case 92:
-#line 1615 "parser-smi.y"
+#line 1616 "parser-smi.y"
 {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			    setTypeDecl(yyval.typePtr, SMI_DECL_TYPEASSIGNMENT);
 			;
     break;}
 case 93:
-#line 1623 "parser-smi.y"
+#line 1624 "parser-smi.y"
 {
 			    if (yyvsp[0].typePtr) {
 				yyval.typePtr = addType(NULL,
@@ -2656,7 +2657,7 @@ case 93:
 			;
     break;}
 case 94:
-#line 1642 "parser-smi.y"
+#line 1643 "parser-smi.y"
 {
 			    Type *typePtr;
 			    Import *importPtr;
@@ -2691,7 +2692,7 @@ case 94:
 			;
     break;}
 case 95:
-#line 1679 "parser-smi.y"
+#line 1680 "parser-smi.y"
 {
 			    yyval.typePtr = addType(NULL, SMI_BASETYPE_UNKNOWN, 0,
 					 thisParserPtr);
@@ -2699,7 +2700,7 @@ case 95:
 			;
     break;}
 case 96:
-#line 1687 "parser-smi.y"
+#line 1688 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -2708,7 +2709,7 @@ case 96:
 			;
     break;}
 case 97:
-#line 1695 "parser-smi.y"
+#line 1696 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -2721,7 +2722,7 @@ case 97:
 			;
     break;}
 case 98:
-#line 1714 "parser-smi.y"
+#line 1715 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    Import *importPtr;
@@ -2753,7 +2754,7 @@ case 98:
 			;
     break;}
 case 99:
-#line 1746 "parser-smi.y"
+#line 1747 "parser-smi.y"
 {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			    if (yyval.typePtr)
@@ -2761,7 +2762,7 @@ case 99:
 			;
     break;}
 case 100:
-#line 1754 "parser-smi.y"
+#line 1755 "parser-smi.y"
 {
 			    Type *typePtr;
 			    List *p;
@@ -2779,20 +2780,20 @@ case 100:
 			;
     break;}
 case 101:
-#line 1773 "parser-smi.y"
+#line 1774 "parser-smi.y"
 {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 102:
-#line 1777 "parser-smi.y"
+#line 1778 "parser-smi.y"
 {
 			    /* TODO: */
 			    yyval.typePtr = typeOctetStringPtr;
 			;
     break;}
 case 103:
-#line 1782 "parser-smi.y"
+#line 1783 "parser-smi.y"
 {
 			    Type *typePtr;
 			    Import *importPtr;
@@ -2826,7 +2827,7 @@ case 103:
 			;
     break;}
 case 104:
-#line 1816 "parser-smi.y"
+#line 1817 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -2835,7 +2836,7 @@ case 104:
 			;
     break;}
 case 105:
-#line 1823 "parser-smi.y"
+#line 1824 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -2849,7 +2850,7 @@ case 105:
 			;
     break;}
 case 106:
-#line 1837 "parser-smi.y"
+#line 1838 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_BITNAME_32, ERR_BITNAME_64);
@@ -2864,7 +2865,7 @@ case 106:
 			;
     break;}
 case 107:
-#line 1850 "parser-smi.y"
+#line 1851 "parser-smi.y"
 {
 			    yyval.namedNumberPtr = util_malloc(sizeof(NamedNumber));
 			    yyval.namedNumberPtr->export.name = yyvsp[-4].id;
@@ -2886,7 +2887,7 @@ case 107:
 			;
     break;}
 case 108:
-#line 1872 "parser-smi.y"
+#line 1873 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -2894,7 +2895,7 @@ case 108:
 			;
     break;}
 case 109:
-#line 1878 "parser-smi.y"
+#line 1879 "parser-smi.y"
 {
 			    Import *importPtr;
 
@@ -2913,7 +2914,7 @@ case 109:
 			;
     break;}
 case 110:
-#line 1899 "parser-smi.y"
+#line 1900 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    
@@ -2926,6 +2927,7 @@ case 110:
 			    }
 			    objectPtr = setObjectName(objectPtr, yyvsp[-12].id);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    setObjectStatus(objectPtr, yyvsp[-7].status);
 			    setObjectDescription(objectPtr, yyvsp[-5].text, thisParserPtr);
 			    if (yyvsp[-4].text) {
@@ -2937,7 +2939,7 @@ case 110:
 			;
     break;}
 case 111:
-#line 1923 "parser-smi.y"
+#line 1925 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -2945,7 +2947,7 @@ case 111:
 			;
     break;}
 case 112:
-#line 1929 "parser-smi.y"
+#line 1931 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -2968,7 +2970,7 @@ case 112:
 			;
     break;}
 case 113:
-#line 1958 "parser-smi.y"
+#line 1960 "parser-smi.y"
 {
 			    Object *objectPtr, *parentPtr;
 			    List *listPtr, *newlistPtr;
@@ -2981,6 +2983,7 @@ case 113:
 			    }
 			    objectPtr = setObjectName(objectPtr, yyvsp[-17].id);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    setObjectType(objectPtr, yyvsp[-12].typePtr);
 			    if (!(yyvsp[-12].typePtr->export.name)) {
 				/*
@@ -3054,7 +3057,7 @@ case 113:
 			;
     break;}
 case 114:
-#line 2044 "parser-smi.y"
+#line 2047 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
@@ -3065,13 +3068,13 @@ case 114:
 			;
     break;}
 case 115:
-#line 2053 "parser-smi.y"
+#line 2056 "parser-smi.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 116:
-#line 2059 "parser-smi.y"
+#line 2062 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -3079,7 +3082,7 @@ case 116:
 			;
     break;}
 case 117:
-#line 2065 "parser-smi.y"
+#line 2068 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -3100,7 +3103,7 @@ case 117:
 			;
     break;}
 case 118:
-#line 2089 "parser-smi.y"
+#line 2092 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    Node *nodePtr;
@@ -3135,6 +3138,7 @@ case 118:
 			    objectPtr = setObjectName(objectPtr, yyvsp[-10].id);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_TRAPTYPE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, yyvsp[-4].listPtr);
@@ -3147,19 +3151,19 @@ case 118:
 			;
     break;}
 case 119:
-#line 2136 "parser-smi.y"
+#line 2140 "parser-smi.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
 case 120:
-#line 2140 "parser-smi.y"
+#line 2144 "parser-smi.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 121:
-#line 2146 "parser-smi.y"
+#line 2150 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -3168,7 +3172,7 @@ case 121:
 			;
     break;}
 case 122:
-#line 2153 "parser-smi.y"
+#line 2157 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -3182,21 +3186,21 @@ case 122:
 			;
     break;}
 case 123:
-#line 2167 "parser-smi.y"
+#line 2171 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
 case 124:
-#line 2173 "parser-smi.y"
+#line 2177 "parser-smi.y"
 { yyval.text = yyvsp[0].text; ;
     break;}
 case 125:
-#line 2175 "parser-smi.y"
+#line 2179 "parser-smi.y"
 { yyval.text = NULL; ;
     break;}
 case 126:
-#line 2179 "parser-smi.y"
+#line 2183 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV1)
 			    {
@@ -3206,11 +3210,11 @@ case 126:
 			;
     break;}
 case 127:
-#line 2187 "parser-smi.y"
+#line 2191 "parser-smi.y"
 { yyval.access = yyvsp[0].access; ;
     break;}
 case 128:
-#line 2189 "parser-smi.y"
+#line 2193 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
@@ -3219,11 +3223,11 @@ case 128:
 			;
     break;}
 case 129:
-#line 2197 "parser-smi.y"
+#line 2201 "parser-smi.y"
 { yyval.access = yyvsp[0].access; ;
     break;}
 case 130:
-#line 2201 "parser-smi.y"
+#line 2205 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -3231,7 +3235,7 @@ case 130:
 			;
     break;}
 case 131:
-#line 2207 "parser-smi.y"
+#line 2211 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -3247,7 +3251,7 @@ case 131:
 			;
     break;}
 case 132:
-#line 2226 "parser-smi.y"
+#line 2230 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    
@@ -3260,6 +3264,7 @@ case 132:
 			    objectPtr = setObjectName(objectPtr, yyvsp[-13].id);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, yyvsp[-9].listPtr);
@@ -3272,7 +3277,7 @@ case 132:
 			;
     break;}
 case 133:
-#line 2251 "parser-smi.y"
+#line 2256 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -3280,7 +3285,7 @@ case 133:
 			;
     break;}
 case 134:
-#line 2257 "parser-smi.y"
+#line 2262 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -3306,13 +3311,13 @@ case 134:
 			;
     break;}
 case 135:
-#line 2281 "parser-smi.y"
+#line 2286 "parser-smi.y"
 {
 			    setModuleLastUpdated(thisParserPtr->modulePtr, yyvsp[0].date);
 			;
     break;}
 case 136:
-#line 2290 "parser-smi.y"
+#line 2295 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    
@@ -3326,6 +3331,7 @@ case 136:
 			    }
 			    objectPtr = setObjectName(objectPtr, yyvsp[-17].id);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    setObjectStatus(objectPtr, SMI_STATUS_CURRENT);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -3342,13 +3348,13 @@ case 136:
 			;
     break;}
 case 137:
-#line 2320 "parser-smi.y"
+#line 2326 "parser-smi.y"
 {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 138:
-#line 2324 "parser-smi.y"
+#line 2330 "parser-smi.y"
 {
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
 				       "SNMPv2-SMI") &&
@@ -3366,28 +3372,28 @@ case 138:
 			;
     break;}
 case 139:
-#line 2340 "parser-smi.y"
+#line 2346 "parser-smi.y"
 {
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 140:
-#line 2345 "parser-smi.y"
+#line 2351 "parser-smi.y"
 {
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 141:
-#line 2350 "parser-smi.y"
+#line 2356 "parser-smi.y"
 {
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 142:
-#line 2355 "parser-smi.y"
+#line 2361 "parser-smi.y"
 {
 			    Import *importPtr;
 
@@ -3404,19 +3410,19 @@ case 142:
 			;
     break;}
 case 143:
-#line 2372 "parser-smi.y"
+#line 2378 "parser-smi.y"
 { yyval.err = 0; /* TODO: check range */ ;
     break;}
 case 144:
-#line 2374 "parser-smi.y"
+#line 2380 "parser-smi.y"
 { yyval.err = 0; /* TODO: check range */ ;
     break;}
 case 145:
-#line 2382 "parser-smi.y"
+#line 2388 "parser-smi.y"
 { yyval.typePtr = yyvsp[0].typePtr; ;
     break;}
 case 146:
-#line 2387 "parser-smi.y"
+#line 2393 "parser-smi.y"
 {
 			    Import *importPtr;
 
@@ -3433,11 +3439,11 @@ case 146:
 			;
     break;}
 case 147:
-#line 2404 "parser-smi.y"
+#line 2410 "parser-smi.y"
 { yyval.valuePtr = yyvsp[0].valuePtr; ;
     break;}
 case 148:
-#line 2413 "parser-smi.y"
+#line 2419 "parser-smi.y"
 {
 			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				&&
@@ -3451,13 +3457,13 @@ case 148:
 			;
     break;}
 case 149:
-#line 2425 "parser-smi.y"
+#line 2431 "parser-smi.y"
 {
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			;
     break;}
 case 150:
-#line 2429 "parser-smi.y"
+#line 2435 "parser-smi.y"
 {
 			    List *p;
 			    
@@ -3476,13 +3482,13 @@ case 150:
 			;
     break;}
 case 151:
-#line 2446 "parser-smi.y"
+#line 2452 "parser-smi.y"
 {
 			    defaultBasetype = SMI_BASETYPE_ENUM;
 			;
     break;}
 case 152:
-#line 2450 "parser-smi.y"
+#line 2456 "parser-smi.y"
 {
 			    List *p;
 			    
@@ -3497,7 +3503,7 @@ case 152:
 			;
     break;}
 case 153:
-#line 2463 "parser-smi.y"
+#line 2469 "parser-smi.y"
 {
 			    Import *importPtr;
 
@@ -3517,13 +3523,13 @@ case 153:
 			;
     break;}
 case 154:
-#line 2481 "parser-smi.y"
+#line 2487 "parser-smi.y"
 {
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			;
     break;}
 case 155:
-#line 2485 "parser-smi.y"
+#line 2491 "parser-smi.y"
 {
 			    Import *importPtr;
 			    List *p;
@@ -3546,13 +3552,13 @@ case 155:
 			;
     break;}
 case 156:
-#line 2506 "parser-smi.y"
+#line 2512 "parser-smi.y"
 {
 			    defaultBasetype = SMI_BASETYPE_ENUM;
 			;
     break;}
 case 157:
-#line 2510 "parser-smi.y"
+#line 2516 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -3602,7 +3608,7 @@ case 157:
 			;
     break;}
 case 158:
-#line 2559 "parser-smi.y"
+#line 2565 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -3644,7 +3650,7 @@ case 158:
 			;
     break;}
 case 159:
-#line 2599 "parser-smi.y"
+#line 2605 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -3706,7 +3712,7 @@ case 159:
 			;
     break;}
 case 160:
-#line 2660 "parser-smi.y"
+#line 2666 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -3759,20 +3765,20 @@ case 160:
 			;
     break;}
 case 161:
-#line 2711 "parser-smi.y"
+#line 2717 "parser-smi.y"
 {
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    yyval.typePtr = typeOctetStringPtr;
 			;
     break;}
 case 162:
-#line 2716 "parser-smi.y"
+#line 2722 "parser-smi.y"
 {
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			;
     break;}
 case 163:
-#line 2720 "parser-smi.y"
+#line 2726 "parser-smi.y"
 {
 			    List *p;
 			    
@@ -3786,7 +3792,7 @@ case 163:
 			;
     break;}
 case 164:
-#line 2732 "parser-smi.y"
+#line 2738 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -3837,7 +3843,7 @@ case 164:
 			;
     break;}
 case 165:
-#line 2782 "parser-smi.y"
+#line 2788 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -3878,14 +3884,14 @@ case 165:
 			;
     break;}
 case 166:
-#line 2821 "parser-smi.y"
+#line 2827 "parser-smi.y"
 {
 			    defaultBasetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 			    yyval.typePtr = typeObjectIdentifierPtr;
 			;
     break;}
 case 167:
-#line 2829 "parser-smi.y"
+#line 2835 "parser-smi.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
@@ -3893,7 +3899,7 @@ case 167:
 			;
     break;}
 case 168:
-#line 2835 "parser-smi.y"
+#line 2841 "parser-smi.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
@@ -3901,7 +3907,7 @@ case 168:
 			;
     break;}
 case 169:
-#line 2841 "parser-smi.y"
+#line 2847 "parser-smi.y"
 {
 			    char s[9];
 			    int i, len, j;
@@ -3929,7 +3935,7 @@ case 169:
 			;
     break;}
 case 170:
-#line 2867 "parser-smi.y"
+#line 2873 "parser-smi.y"
 {
 			    char s[3];
 			    int i, len;
@@ -3954,7 +3960,7 @@ case 170:
 			;
     break;}
 case 171:
-#line 2890 "parser-smi.y"
+#line 2896 "parser-smi.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
@@ -3977,7 +3983,7 @@ case 171:
 			;
     break;}
 case 172:
-#line 2911 "parser-smi.y"
+#line 2917 "parser-smi.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
@@ -3987,7 +3993,7 @@ case 172:
 			;
     break;}
 case 173:
-#line 2935 "parser-smi.y"
+#line 2941 "parser-smi.y"
 {
 			    /*
 			     * SMIv1 allows something like { 0 0 } !
@@ -4009,13 +4015,13 @@ case 173:
 			;
     break;}
 case 174:
-#line 2961 "parser-smi.y"
+#line 2967 "parser-smi.y"
 {
 			    yyval.typePtr = typeInteger32Ptr;
 			;
     break;}
 case 175:
-#line 2965 "parser-smi.y"
+#line 2971 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -4035,19 +4041,19 @@ case 175:
 			;
     break;}
 case 176:
-#line 2983 "parser-smi.y"
+#line 2989 "parser-smi.y"
 {
 			    yyval.typePtr = typeOctetStringPtr;
 			;
     break;}
 case 177:
-#line 2987 "parser-smi.y"
+#line 2993 "parser-smi.y"
 {
 			    yyval.typePtr = typeObjectIdentifierPtr;
 			;
     break;}
 case 178:
-#line 2993 "parser-smi.y"
+#line 2999 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("IpAddress");
 			    if (! yyval.typePtr) {
@@ -4057,7 +4063,7 @@ case 178:
 			;
     break;}
 case 179:
-#line 3001 "parser-smi.y"
+#line 3007 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Counter32");
 			    if (! yyval.typePtr) {
@@ -4067,7 +4073,7 @@ case 179:
 			;
     break;}
 case 180:
-#line 3009 "parser-smi.y"
+#line 3015 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Gauge32");
 			    if (! yyval.typePtr) {
@@ -4077,7 +4083,7 @@ case 180:
 			;
     break;}
 case 181:
-#line 3017 "parser-smi.y"
+#line 3023 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -4102,7 +4108,7 @@ case 181:
 			;
     break;}
 case 182:
-#line 3040 "parser-smi.y"
+#line 3046 "parser-smi.y"
 {
 			    Import *importPtr;
 
@@ -4124,7 +4130,7 @@ case 182:
 			;
     break;}
 case 183:
-#line 3060 "parser-smi.y"
+#line 3066 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -4153,7 +4159,7 @@ case 183:
 			;
     break;}
 case 184:
-#line 3087 "parser-smi.y"
+#line 3093 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("TimeTicks");
 			    if (! yyval.typePtr) {
@@ -4163,7 +4169,7 @@ case 184:
 			;
     break;}
 case 185:
-#line 3095 "parser-smi.y"
+#line 3101 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Opaque");
 			    if (! yyval.typePtr) {
@@ -4175,7 +4181,7 @@ case 185:
 			;
     break;}
 case 186:
-#line 3105 "parser-smi.y"
+#line 3111 "parser-smi.y"
 {
 			    Type *parentPtr;
 			    Import *importPtr;
@@ -4201,7 +4207,7 @@ case 186:
 			;
     break;}
 case 187:
-#line 3129 "parser-smi.y"
+#line 3135 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Counter64");
 			    if (! yyval.typePtr) {
@@ -4211,7 +4217,7 @@ case 187:
 			;
     break;}
 case 188:
-#line 3143 "parser-smi.y"
+#line 3149 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("IpAddress");
 			    if (! yyval.typePtr) {
@@ -4221,7 +4227,7 @@ case 188:
 			;
     break;}
 case 189:
-#line 3151 "parser-smi.y"
+#line 3157 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Counter32");
 			    if (! yyval.typePtr) {
@@ -4231,7 +4237,7 @@ case 189:
 			;
     break;}
 case 190:
-#line 3159 "parser-smi.y"
+#line 3165 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Gauge32");
 			    if (! yyval.typePtr) {
@@ -4241,7 +4247,7 @@ case 190:
 			;
     break;}
 case 191:
-#line 3167 "parser-smi.y"
+#line 3173 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -4263,7 +4269,7 @@ case 191:
 			;
     break;}
 case 192:
-#line 3187 "parser-smi.y"
+#line 3193 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("TimeTicks");
 			    if (! yyval.typePtr) {
@@ -4273,7 +4279,7 @@ case 192:
 			;
     break;}
 case 193:
-#line 3195 "parser-smi.y"
+#line 3201 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Opaque");
 			    if (! yyval.typePtr) {
@@ -4285,7 +4291,7 @@ case 193:
 			;
     break;}
 case 194:
-#line 3205 "parser-smi.y"
+#line 3211 "parser-smi.y"
 {
 			    yyval.typePtr = findTypeByName("Counter64");
 			    if (! yyval.typePtr) {
@@ -4295,7 +4301,7 @@ case 194:
 			;
     break;}
 case 195:
-#line 3215 "parser-smi.y"
+#line 3221 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				printError(thisParserPtr,
@@ -4304,7 +4310,7 @@ case 195:
 			;
     break;}
 case 196:
-#line 3222 "parser-smi.y"
+#line 3228 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				printError(thisParserPtr,
@@ -4313,7 +4319,7 @@ case 196:
 			;
     break;}
 case 197:
-#line 3229 "parser-smi.y"
+#line 3235 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				printError(thisParserPtr,
@@ -4322,21 +4328,21 @@ case 197:
 			;
     break;}
 case 198:
-#line 3236 "parser-smi.y"
+#line 3242 "parser-smi.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 199:
-#line 3250 "parser-smi.y"
+#line 3256 "parser-smi.y"
 { yyval.listPtr = yyvsp[-1].listPtr; ;
     break;}
 case 200:
-#line 3260 "parser-smi.y"
+#line 3266 "parser-smi.y"
 { yyval.listPtr = yyvsp[-2].listPtr; ;
     break;}
 case 201:
-#line 3264 "parser-smi.y"
+#line 3270 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -4345,7 +4351,7 @@ case 201:
 			;
     break;}
 case 202:
-#line 3271 "parser-smi.y"
+#line 3277 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -4359,7 +4365,7 @@ case 202:
 			;
     break;}
 case 203:
-#line 3285 "parser-smi.y"
+#line 3291 "parser-smi.y"
 {
 			    yyval.rangePtr = util_malloc(sizeof(Range));
 			    /* TODO: success? */
@@ -4369,7 +4375,7 @@ case 203:
 			;
     break;}
 case 204:
-#line 3293 "parser-smi.y"
+#line 3299 "parser-smi.y"
 {
 			    yyval.rangePtr = util_malloc(sizeof(Range));
 			    /* TODO: success? */
@@ -4380,7 +4386,7 @@ case 204:
 			;
     break;}
 case 205:
-#line 3304 "parser-smi.y"
+#line 3310 "parser-smi.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
@@ -4388,7 +4394,7 @@ case 205:
 			;
     break;}
 case 206:
-#line 3310 "parser-smi.y"
+#line 3316 "parser-smi.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
@@ -4396,7 +4402,7 @@ case 206:
 			;
     break;}
 case 207:
-#line 3316 "parser-smi.y"
+#line 3322 "parser-smi.y"
 {
 			    char s[3];
 			    int i, len;
@@ -4421,7 +4427,7 @@ case 207:
 			;
     break;}
 case 208:
-#line 3339 "parser-smi.y"
+#line 3345 "parser-smi.y"
 {
 			    char s[9];
 			    int i, len, j;
@@ -4448,13 +4454,13 @@ case 208:
 			;
     break;}
 case 209:
-#line 3366 "parser-smi.y"
+#line 3372 "parser-smi.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
 case 210:
-#line 3372 "parser-smi.y"
+#line 3378 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -4463,7 +4469,7 @@ case 210:
 			;
     break;}
 case 211:
-#line 3379 "parser-smi.y"
+#line 3385 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -4477,7 +4483,7 @@ case 211:
 			;
     break;}
 case 212:
-#line 3393 "parser-smi.y"
+#line 3399 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_ENUMNAME_32, ERR_ENUMNAME_64);
@@ -4492,7 +4498,7 @@ case 212:
 			;
     break;}
 case 213:
-#line 3406 "parser-smi.y"
+#line 3412 "parser-smi.y"
 {
 			    yyval.namedNumberPtr = util_malloc(sizeof(NamedNumber));
 			    /* TODO: success? */
@@ -4502,7 +4508,7 @@ case 213:
 			;
     break;}
 case 214:
-#line 3416 "parser-smi.y"
+#line 3422 "parser-smi.y"
 {
 			    if (yyvsp[0].unsigned32 > MAX_INTEGER32) {
 				printError(thisParserPtr,
@@ -4514,7 +4520,7 @@ case 214:
 			;
     break;}
 case 215:
-#line 3426 "parser-smi.y"
+#line 3432 "parser-smi.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
@@ -4523,7 +4529,7 @@ case 215:
 			;
     break;}
 case 216:
-#line 3435 "parser-smi.y"
+#line 3441 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
@@ -4557,7 +4563,7 @@ case 216:
 			;
     break;}
 case 217:
-#line 3469 "parser-smi.y"
+#line 3475 "parser-smi.y"
 {
 			    if (!strcmp(yyvsp[0].id, "current")) {
 				yyval.status = SMI_STATUS_CURRENT;
@@ -4573,31 +4579,31 @@ case 217:
 			;
     break;}
 case 218:
-#line 3485 "parser-smi.y"
+#line 3491 "parser-smi.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 219:
-#line 3489 "parser-smi.y"
+#line 3495 "parser-smi.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 220:
-#line 3495 "parser-smi.y"
+#line 3501 "parser-smi.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 221:
-#line 3499 "parser-smi.y"
+#line 3505 "parser-smi.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 222:
-#line 3505 "parser-smi.y"
+#line 3511 "parser-smi.y"
 {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
@@ -4645,7 +4651,7 @@ case 222:
 			;
     break;}
 case 223:
-#line 3553 "parser-smi.y"
+#line 3559 "parser-smi.y"
 {
 			    /*
 			     * Use a global variable to fetch and remember
@@ -4655,7 +4661,7 @@ case 223:
 			;
     break;}
 case 224:
-#line 3561 "parser-smi.y"
+#line 3567 "parser-smi.y"
 {
 			    yyval.index.indexkind = SMI_INDEX_INDEX;
 			    yyval.index.implied   = impliedFlag;
@@ -4664,7 +4670,7 @@ case 224:
 			;
     break;}
 case 225:
-#line 3570 "parser-smi.y"
+#line 3576 "parser-smi.y"
 {
 			    yyval.index.indexkind    = SMI_INDEX_AUGMENT;
 			    yyval.index.implied      = 0;
@@ -4673,13 +4679,13 @@ case 225:
 			;
     break;}
 case 226:
-#line 3577 "parser-smi.y"
+#line 3583 "parser-smi.y"
 {
 			    yyval.index.indexkind = SMI_INDEX_UNKNOWN;
 			;
     break;}
 case 227:
-#line 3583 "parser-smi.y"
+#line 3589 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -4688,7 +4694,7 @@ case 227:
 			;
     break;}
 case 228:
-#line 3591 "parser-smi.y"
+#line 3597 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -4701,44 +4707,44 @@ case 228:
 			;
     break;}
 case 229:
-#line 3604 "parser-smi.y"
+#line 3610 "parser-smi.y"
 {
 			    impliedFlag = 1;
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
 case 230:
-#line 3609 "parser-smi.y"
+#line 3615 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
 case 231:
-#line 3619 "parser-smi.y"
-{
-			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 232:
 #line 3625 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
-case 233:
+case 232:
 #line 3631 "parser-smi.y"
+{
+			    yyval.objectPtr = yyvsp[0].objectPtr;
+			;
+    break;}
+case 233:
+#line 3637 "parser-smi.y"
 { yyval.valuePtr = yyvsp[-1].valuePtr; ;
     break;}
 case 234:
-#line 3633 "parser-smi.y"
+#line 3639 "parser-smi.y"
 { yyval.valuePtr = NULL; ;
     break;}
 case 235:
-#line 3638 "parser-smi.y"
+#line 3644 "parser-smi.y"
 { yyval.valuePtr = yyvsp[0].valuePtr; ;
     break;}
 case 236:
-#line 3640 "parser-smi.y"
+#line 3646 "parser-smi.y"
 {
 			    int i = 0;
 			    List *listPtr;
@@ -4762,15 +4768,15 @@ case 236:
 			;
     break;}
 case 237:
-#line 3664 "parser-smi.y"
+#line 3670 "parser-smi.y"
 { yyval.listPtr = yyvsp[0].listPtr; ;
     break;}
 case 238:
-#line 3666 "parser-smi.y"
+#line 3672 "parser-smi.y"
 { yyval.listPtr = NULL; ;
     break;}
 case 239:
-#line 3670 "parser-smi.y"
+#line 3676 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -4779,7 +4785,7 @@ case 239:
 			;
     break;}
 case 240:
-#line 3677 "parser-smi.y"
+#line 3683 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -4793,31 +4799,31 @@ case 240:
 			;
     break;}
 case 241:
-#line 3691 "parser-smi.y"
-{
-			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 242:
 #line 3697 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
-case 243:
+case 242:
 #line 3703 "parser-smi.y"
+{
+			    yyval.objectPtr = yyvsp[0].objectPtr;
+			;
+    break;}
+case 243:
+#line 3709 "parser-smi.y"
 { yyval.text = yyvsp[0].text; ;
     break;}
 case 244:
-#line 3705 "parser-smi.y"
+#line 3711 "parser-smi.y"
 { yyval.text = NULL; ;
     break;}
 case 245:
-#line 3709 "parser-smi.y"
+#line 3715 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 246:
-#line 3711 "parser-smi.y"
+#line 3717 "parser-smi.y"
 {
 			    if (!thisModulePtr->firstRevisionPtr) {
 				addRevision(thisModulePtr->lastUpdated,
@@ -4829,15 +4835,15 @@ case 246:
 			;
     break;}
 case 247:
-#line 3723 "parser-smi.y"
+#line 3729 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 248:
-#line 3725 "parser-smi.y"
+#line 3731 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 249:
-#line 3730 "parser-smi.y"
+#line 3736 "parser-smi.y"
 {
 			    /*
 			     * If the first REVISION (which is the newest)
@@ -4859,19 +4865,19 @@ case 249:
 			;
     break;}
 case 250:
-#line 3752 "parser-smi.y"
+#line 3758 "parser-smi.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
 case 251:
-#line 3756 "parser-smi.y"
+#line 3762 "parser-smi.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 252:
-#line 3762 "parser-smi.y"
+#line 3768 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -4880,7 +4886,7 @@ case 252:
 			;
     break;}
 case 253:
-#line 3769 "parser-smi.y"
+#line 3775 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -4894,19 +4900,19 @@ case 253:
 			;
     break;}
 case 254:
-#line 3783 "parser-smi.y"
+#line 3789 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
 case 255:
-#line 3789 "parser-smi.y"
+#line 3795 "parser-smi.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
 case 256:
-#line 3795 "parser-smi.y"
+#line 3801 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -4915,7 +4921,7 @@ case 256:
 			;
     break;}
 case 257:
-#line 3802 "parser-smi.y"
+#line 3808 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -4929,50 +4935,50 @@ case 257:
 			;
     break;}
 case 258:
-#line 3816 "parser-smi.y"
+#line 3822 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
 case 259:
-#line 3822 "parser-smi.y"
+#line 3828 "parser-smi.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 260:
-#line 3828 "parser-smi.y"
+#line 3834 "parser-smi.y"
 {
 			    yyval.date = checkDate(thisParserPtr, yyvsp[0].text);
 			;
     break;}
 case 261:
-#line 3833 "parser-smi.y"
+#line 3839 "parser-smi.y"
 {
 			    parentNodePtr = rootNodePtr;
 			;
     break;}
 case 262:
-#line 3837 "parser-smi.y"
+#line 3843 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			    parentNodePtr = yyvsp[0].objectPtr->nodePtr;
 			;
     break;}
 case 263:
-#line 3845 "parser-smi.y"
+#line 3851 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
 case 264:
-#line 3850 "parser-smi.y"
+#line 3856 "parser-smi.y"
 {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			;
     break;}
 case 265:
-#line 3857 "parser-smi.y"
+#line 3863 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    Import *importPtr;
@@ -5062,7 +5068,7 @@ case 265:
 			;
     break;}
 case 266:
-#line 3945 "parser-smi.y"
+#line 3951 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    Import *importPtr;
@@ -5159,7 +5165,7 @@ case 266:
 			;
     break;}
 case 267:
-#line 4040 "parser-smi.y"
+#line 4046 "parser-smi.y"
 {
 			    Node *nodePtr;
 			    Object *objectPtr;
@@ -5185,7 +5191,7 @@ case 267:
 			;
     break;}
 case 268:
-#line 4064 "parser-smi.y"
+#line 4070 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    
@@ -5216,7 +5222,7 @@ case 268:
 			;
     break;}
 case 269:
-#line 4093 "parser-smi.y"
+#line 4099 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    char *md;
@@ -5248,27 +5254,27 @@ case 269:
 			;
     break;}
 case 270:
-#line 4125 "parser-smi.y"
+#line 4131 "parser-smi.y"
 { yyval.text = NULL; ;
     break;}
 case 271:
-#line 4129 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 272:
-#line 4131 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 273:
 #line 4135 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
-case 274:
+case 272:
 #line 4137 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
-case 275:
+case 273:
 #line 4141 "parser-smi.y"
+{ yyval.err = 0; ;
+    break;}
+case 274:
+#line 4143 "parser-smi.y"
+{ yyval.err = 0; ;
+    break;}
+case 275:
+#line 4147 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -5276,7 +5282,7 @@ case 275:
 			;
     break;}
 case 276:
-#line 4147 "parser-smi.y"
+#line 4153 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -5292,7 +5298,7 @@ case 276:
 			;
     break;}
 case 277:
-#line 4165 "parser-smi.y"
+#line 4171 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    
@@ -5305,6 +5311,7 @@ case 277:
 			    }
 			    objectPtr = setObjectName(objectPtr, yyvsp[-13].id);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-7].status);
@@ -5319,7 +5326,7 @@ case 277:
 			;
     break;}
 case 278:
-#line 4192 "parser-smi.y"
+#line 4199 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -5327,7 +5334,7 @@ case 278:
 			;
     break;}
 case 279:
-#line 4198 "parser-smi.y"
+#line 4205 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -5344,7 +5351,7 @@ case 279:
 			;
     break;}
 case 280:
-#line 4217 "parser-smi.y"
+#line 4224 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    
@@ -5358,6 +5365,7 @@ case 280:
 			    objectPtr = setObjectName(objectPtr, yyvsp[-13].id);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-7].status);
@@ -5372,7 +5380,7 @@ case 280:
 			;
     break;}
 case 281:
-#line 4245 "parser-smi.y"
+#line 4253 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -5380,7 +5388,7 @@ case 281:
 			;
     break;}
 case 282:
-#line 4251 "parser-smi.y"
+#line 4259 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -5397,7 +5405,7 @@ case 282:
 			;
     break;}
 case 283:
-#line 4270 "parser-smi.y"
+#line 4278 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    Option *optionPtr;
@@ -5415,6 +5423,7 @@ case 283:
 			    setObjectName(objectPtr, yyvsp[-13].id);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-8].status);
@@ -5475,19 +5484,19 @@ case 283:
 			;
     break;}
 case 284:
-#line 4348 "parser-smi.y"
+#line 4357 "parser-smi.y"
 {
 			    yyval.compl = yyvsp[0].compl;
 			;
     break;}
 case 285:
-#line 4354 "parser-smi.y"
+#line 4363 "parser-smi.y"
 {
 			    yyval.compl = yyvsp[0].compl;
 			;
     break;}
 case 286:
-#line 4358 "parser-smi.y"
+#line 4367 "parser-smi.y"
 {
 			    List *listPtr;
 			    
@@ -5522,7 +5531,7 @@ case 286:
 			;
     break;}
 case 287:
-#line 4393 "parser-smi.y"
+#line 4402 "parser-smi.y"
 {
 			    /*
 			     * Remember the module. SMIv2 is broken by
@@ -5539,7 +5548,7 @@ case 287:
 			;
     break;}
 case 288:
-#line 4409 "parser-smi.y"
+#line 4418 "parser-smi.y"
 {
 			    yyval.compl.mandatorylistPtr = yyvsp[-1].listPtr;
 			    yyval.compl.optionlistPtr = yyvsp[0].compl.optionlistPtr;
@@ -5552,7 +5561,7 @@ case 288:
 			;
     break;}
 case 289:
-#line 4422 "parser-smi.y"
+#line 4431 "parser-smi.y"
 {
 			    yyval.modulePtr = findModuleByName(yyvsp[-1].id);
 			    /* TODO: handle objectIdentifier */
@@ -5562,7 +5571,7 @@ case 289:
 			;
     break;}
 case 290:
-#line 4430 "parser-smi.y"
+#line 4439 "parser-smi.y"
 {
 			    yyval.modulePtr = findModuleByName(yyvsp[0].id);
 			    if (!yyval.modulePtr) {
@@ -5571,25 +5580,25 @@ case 290:
 			;
     break;}
 case 291:
-#line 4438 "parser-smi.y"
+#line 4447 "parser-smi.y"
 {
 			    yyval.modulePtr = thisModulePtr;
 			;
     break;}
 case 292:
-#line 4444 "parser-smi.y"
+#line 4453 "parser-smi.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
 case 293:
-#line 4448 "parser-smi.y"
+#line 4457 "parser-smi.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 294:
-#line 4454 "parser-smi.y"
+#line 4463 "parser-smi.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    /* TODO: success? */
@@ -5598,7 +5607,7 @@ case 294:
 			;
     break;}
 case 295:
-#line 4461 "parser-smi.y"
+#line 4470 "parser-smi.y"
 {
 			    List *p, *pp;
 			    
@@ -5612,7 +5621,7 @@ case 295:
 			;
     break;}
 case 296:
-#line 4475 "parser-smi.y"
+#line 4484 "parser-smi.y"
 {
 			    /* TODO: check that objectIdentifier is
 			       found, is defined in complianceModulePtr,
@@ -5635,7 +5644,7 @@ case 296:
 			;
     break;}
 case 297:
-#line 4498 "parser-smi.y"
+#line 4507 "parser-smi.y"
 {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = yyvsp[0].compl.optionlistPtr;
@@ -5643,7 +5652,7 @@ case 297:
 			;
     break;}
 case 298:
-#line 4504 "parser-smi.y"
+#line 4513 "parser-smi.y"
 {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = NULL;
@@ -5651,13 +5660,13 @@ case 298:
 			;
     break;}
 case 299:
-#line 4512 "parser-smi.y"
+#line 4521 "parser-smi.y"
 {
 			    yyval.compl = yyvsp[0].compl;
 			;
     break;}
 case 300:
-#line 4516 "parser-smi.y"
+#line 4525 "parser-smi.y"
 {
 			    List *listPtr;
 			    int stop;
@@ -5724,7 +5733,7 @@ case 300:
 			;
     break;}
 case 301:
-#line 4583 "parser-smi.y"
+#line 4592 "parser-smi.y"
 {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = yyvsp[0].listPtr;
@@ -5732,7 +5741,7 @@ case 301:
 			;
     break;}
 case 302:
-#line 4589 "parser-smi.y"
+#line 4598 "parser-smi.y"
 {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = NULL;
@@ -5740,7 +5749,7 @@ case 302:
 			;
     break;}
 case 303:
-#line 4598 "parser-smi.y"
+#line 4607 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -5763,7 +5772,7 @@ case 303:
 			;
     break;}
 case 304:
-#line 4625 "parser-smi.y"
+#line 4634 "parser-smi.y"
 {
 			    Import *importPtr;
 
@@ -5790,7 +5799,7 @@ case 304:
 			;
     break;}
 case 305:
-#line 4652 "parser-smi.y"
+#line 4661 "parser-smi.y"
 {
 			    if (yyvsp[0].typePtr->export.name) {
 				yyval.typePtr = duplicateType(yyvsp[0].typePtr, 0, thisParserPtr);
@@ -5801,13 +5810,13 @@ case 305:
 			;
     break;}
 case 306:
-#line 4661 "parser-smi.y"
+#line 4670 "parser-smi.y"
 {
 			    yyval.typePtr = NULL;
 			;
     break;}
 case 307:
-#line 4667 "parser-smi.y"
+#line 4676 "parser-smi.y"
 {
 			    if (yyvsp[0].typePtr->export.name) {
 				yyval.typePtr = duplicateType(yyvsp[0].typePtr, 0, thisParserPtr);
@@ -5818,31 +5827,31 @@ case 307:
 			;
     break;}
 case 308:
-#line 4676 "parser-smi.y"
+#line 4685 "parser-smi.y"
 {
 			    yyval.typePtr = NULL;
 			;
     break;}
 case 309:
-#line 4682 "parser-smi.y"
+#line 4691 "parser-smi.y"
 {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 310:
-#line 4688 "parser-smi.y"
+#line 4697 "parser-smi.y"
 {
 			    yyval.access = yyvsp[0].access;
 			;
     break;}
 case 311:
-#line 4692 "parser-smi.y"
+#line 4701 "parser-smi.y"
 {
 			    yyval.access = SMI_ACCESS_UNKNOWN;
 			;
     break;}
 case 312:
-#line 4698 "parser-smi.y"
+#line 4707 "parser-smi.y"
 {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
@@ -5850,7 +5859,7 @@ case 312:
 			;
     break;}
 case 313:
-#line 4704 "parser-smi.y"
+#line 4713 "parser-smi.y"
 {
 			    Import *importPtr;
 			    
@@ -5867,7 +5876,7 @@ case 313:
 			;
     break;}
 case 314:
-#line 4724 "parser-smi.y"
+#line 4733 "parser-smi.y"
 {
 			    Object *objectPtr;
 			    
@@ -5881,6 +5890,7 @@ case 314:
 			    setObjectName(objectPtr, yyvsp[-15].id);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
+			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, yyvsp[-8].status);
@@ -5898,23 +5908,23 @@ case 314:
 			;
     break;}
 case 315:
-#line 4755 "parser-smi.y"
+#line 4765 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 316:
-#line 4757 "parser-smi.y"
+#line 4767 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 317:
-#line 4761 "parser-smi.y"
+#line 4771 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 318:
-#line 4763 "parser-smi.y"
+#line 4773 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 319:
-#line 4767 "parser-smi.y"
+#line 4777 "parser-smi.y"
 {
 			    /*
 			     * Remember the module. SMIv2 is broken by
@@ -5931,7 +5941,7 @@ case 319:
 			;
     break;}
 case 320:
-#line 4783 "parser-smi.y"
+#line 4793 "parser-smi.y"
 {
 			    if (capabilitiesModulePtr) {
 				checkImports(capabilitiesModulePtr,
@@ -5942,7 +5952,7 @@ case 320:
 			;
     break;}
 case 321:
-#line 4794 "parser-smi.y"
+#line 4804 "parser-smi.y"
 {
 #if 0
 			    yyval.listPtr = util_malloc(sizeof(List));
@@ -5955,7 +5965,7 @@ case 321:
 			;
     break;}
 case 322:
-#line 4805 "parser-smi.y"
+#line 4815 "parser-smi.y"
 {
 #if 0
 			    List *p, *pp;
@@ -5973,13 +5983,13 @@ case 322:
 			;
     break;}
 case 323:
-#line 4823 "parser-smi.y"
+#line 4833 "parser-smi.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 324:
-#line 4829 "parser-smi.y"
+#line 4839 "parser-smi.y"
 {
 			    yyval.modulePtr = findModuleByName(yyvsp[-1].id);
 			    /* TODO: handle objectIdentifier */
@@ -5989,7 +5999,7 @@ case 324:
 			;
     break;}
 case 325:
-#line 4837 "parser-smi.y"
+#line 4847 "parser-smi.y"
 {
 			    yyval.modulePtr = findModuleByName(yyvsp[0].id);
 			    if (!yyval.modulePtr) {
@@ -5998,23 +6008,23 @@ case 325:
 			;
     break;}
 case 326:
-#line 4846 "parser-smi.y"
+#line 4856 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 327:
-#line 4848 "parser-smi.y"
+#line 4858 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 328:
-#line 4852 "parser-smi.y"
+#line 4862 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 329:
-#line 4854 "parser-smi.y"
+#line 4864 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 330:
-#line 4858 "parser-smi.y"
+#line 4868 "parser-smi.y"
 {
 			    if (yyvsp[0].objectPtr) {
 				variationkind = yyvsp[0].objectPtr->export.nodekind;
@@ -6024,7 +6034,7 @@ case 330:
 			;
     break;}
 case 331:
-#line 4866 "parser-smi.y"
+#line 4876 "parser-smi.y"
 {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				printError(thisParserPtr,
@@ -6033,7 +6043,7 @@ case 331:
 			;
     break;}
 case 332:
-#line 4873 "parser-smi.y"
+#line 4883 "parser-smi.y"
 {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				printError(thisParserPtr,
@@ -6042,7 +6052,7 @@ case 332:
 			;
     break;}
 case 333:
-#line 4881 "parser-smi.y"
+#line 4891 "parser-smi.y"
 {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				printError(thisParserPtr,
@@ -6051,7 +6061,7 @@ case 333:
 			;
     break;}
 case 334:
-#line 4888 "parser-smi.y"
+#line 4898 "parser-smi.y"
 {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				printError(thisParserPtr,
@@ -6060,7 +6070,7 @@ case 334:
 			;
     break;}
 case 335:
-#line 4895 "parser-smi.y"
+#line 4905 "parser-smi.y"
 {
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
 			    yyval.err = 0;
@@ -6068,15 +6078,15 @@ case 335:
 			;
     break;}
 case 336:
-#line 4903 "parser-smi.y"
+#line 4913 "parser-smi.y"
 { yyval.access = yyvsp[0].access; ;
     break;}
 case 337:
-#line 4905 "parser-smi.y"
+#line 4915 "parser-smi.y"
 { yyval.access = 0; ;
     break;}
 case 338:
-#line 4909 "parser-smi.y"
+#line 4919 "parser-smi.y"
 {
 			    if (!strcmp(yyvsp[0].id, "not-implemented")) {
 				yyval.access = SMI_ACCESS_NOT_IMPLEMENTED;
@@ -6141,23 +6151,23 @@ case 338:
 			;
     break;}
 case 339:
-#line 4974 "parser-smi.y"
+#line 4984 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 340:
-#line 4976 "parser-smi.y"
+#line 4986 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 341:
-#line 4980 "parser-smi.y"
+#line 4990 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 342:
-#line 4982 "parser-smi.y"
+#line 4992 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 case 343:
-#line 4986 "parser-smi.y"
+#line 4996 "parser-smi.y"
 { yyval.err = 0; ;
     break;}
 }
@@ -6382,7 +6392,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 4989 "parser-smi.y"
+#line 4999 "parser-smi.y"
 
 
 #endif
