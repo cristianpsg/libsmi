@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.102 2001/08/27 11:51:42 strauss Exp $
+ * @(#) $Id: data.c,v 1.103 2001/08/27 13:08:50 strauss Exp $
  */
 
 #include <config.h>
@@ -3293,8 +3293,6 @@ int smiInitData()
 void freeNodeTree(Node *rootPtr)
 {
     Node       *nodePtr, *nextPtr;
-    List       *listPtr, *nextListPtr;
-    Object     *objectPtr, *nextObjectPtr;
     
     for (nodePtr = rootPtr->firstChildPtr; nodePtr; nodePtr = nextPtr) {
 	nextPtr = nodePtr->nextPtr;
@@ -3480,10 +3478,6 @@ Module *loadModule(const char *modulename)
     int             c;
     FILE	    *file;
     char	    sep[2];
-    int             pid;
-    char            *argv[4];
-    char            *cmd;
-    int		    status;
     
     if ((!modulename) || !strlen(modulename)) {
 	return NULL;
@@ -3540,10 +3534,15 @@ Module *loadModule(const char *modulename)
 #if !defined(_MSC_VER)
     if (!path && smiHandle->cache && smiHandle->cacheProg) {
 	/* Not found in the path; now try to fetch & cache the module. */
+	int  pid;
+	char *argv[4];
+	char *cmd;
+	int  status;
 	path = smiMalloc(strlen(smiHandle->cache) + strlen(modulename) + 2);
 	sprintf(path, "%s%c%s", smiHandle->cache, DIR_SEPARATOR, modulename);
 	if (access(path, R_OK)) {
-	    cmd = smiMalloc(strlen(smiHandle->cacheProg) + strlen(modulename) + 2);
+	    cmd = smiMalloc(strlen(smiHandle->cacheProg) +
+			    strlen(modulename) + 2);
 	    sprintf(cmd, "%s %s", smiHandle->cacheProg, modulename);
 	    pid = fork();
 	    if (pid != -1) {
