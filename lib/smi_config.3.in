@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.8 1999/12/13 16:16:01 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.9 1999/12/14 12:00:09 strauss Exp $
 .\"
-.TH smi_config 3  "December 13, 1999" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
 smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
 smiLoadModule, smiGetPath, smiSetPath \- SMI library
@@ -13,6 +13,9 @@ configuration routines
 .RE
 .sp
 .BI "int smiInit(const char *" tag );
+.RE
+.sp
+.B "int smiExit();"
 .RE
 .sp
 .BI "void smiSetErrorLevel(int " level );
@@ -44,16 +47,21 @@ These functions provide some initialization and adjustment operations
 for the SMI library.
 .PP
 The \fBsmiInit()\fP function should be the first SMI function called
-in an application. It initializes its internal structures. The string
-\fItag\fP is used as an identifier to choose a set of configuration
-options from the configuration files that are read at initialization
-(see also \fBsmiReadConfig()\fP below).
+in an application. It initializes its internal structures. If \fItag\fP is
+not NULL, the global configuration file and (on UNIX systems)
+a user configuration file are read implicitly, if existent. All
+global statements and those statements with a tag (a ``tag: '' prefix) that
+matches the \fBtag\fP argument are executed.
+(see also CONFIGURATION FILES below).
 \fBsmiInit()\fP returns zero on success, or otherwise a negative value.
 .PP
+The \fBsmiExit()\fP function should be called when the application
+no longer needs any SMI information to release any allocated SMI
+resources.
+.PP
 The \fBsmiSetErrorLevel()\fP function sets the pedantic level (0-9) of
-the SMI parsers of the SMI library, currently SMIv1/v2 and SMIng
-(which might, but should not be turned off at library compile
-time). The higher the level, the louder it complains. Values up to 3
+the SMI parsers of the SMI library, currently SMIv1/v2 and SMIng.
+The higher the level, the louder it complains. Values up to 3
 should be regarded as errors, higher level could be interpreted as
 warnings.  But note that this classification is some kind of personal
 taste.  The default level is 0, since usually only MIB checkers want
@@ -63,10 +71,7 @@ The \fBsmiGetFlags()\fP and \fBsmiSetFlags()\fP functions allow to
 fetch, modify, and set some \fIuserflags\fP that control the SMI
 library's behaviour.  If \fBSMI_ERRORS\fP is not set, no error messages
 are printed at all to keep the SMI library totally quiet, which might
-be mandatory for some applications. If \fBSMI_ERRORLINES\fP is set and
-an error is printed, it is followed by two lines: the current source
-module line and a second line that marks the current point in the line
-above. If \fBSMI_STATS\fP is set and the error level is 9, the
+be mandatory for some applications. If \fBSMI_STATS\fP is set, the
 library prints some module statistics. If \fBSMI_RECURSIVE\fP is set,
 the library also complains about errors in modules that are read due
 to import statements.
@@ -74,8 +79,9 @@ to import statements.
 The \fBsmiSetSeverity()\fP function allows to set the severity of
 all error that have name prefixed by \fBpattern\fP to the value \fBseverity\fP.
 .PP
-The \fBsmiLoadModule()\fP function specifies an additional MIB module by
-\fImodule\fP that the application claims to know. Only after a
+The \fBsmiLoadModule()\fP function specifies an additional MIB \fImodule\fP
+that the application claims to know or an additional file path to read.
+Only after a
 module is made known through this function, iterating retrieval
 functions and retrieval functions without fully qualified identifiers
 will return results from this module. \fBsmiLoadModule()\fP returns the
@@ -84,24 +90,15 @@ name of the loaded module, of NULL if it could not be loaded.
 The \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions allow to
 fetch, modify, and set the path that is used to search MIB modules.
 \fBsmiGetPath()\fP returns a copy of the current search path in the
-form "DIR1:DIR2:...", if NULL if no path is set.
+form "DIR1:DIR2:...", or NULL if no path is set.
 The application should free this string if it is
 no longer needed. \fBsmiSetPath()\fP sets the search path to
 \fIpath\fP.
 .PP
 The \fBsmiReadConfig()\fP function reads the configuration file \fIfilename\fP.
-By default, on startup the global configuration file and a user configuration
-file are read implicitly, if present. Only the configuration file contents
-matching the \fBtag\fP are recognized. If \fBtag\fP is NULL, only the general
-configuration items of the `*' sections are read.
-.SH "RETURN VALUES"
-The functions \fBsmiLoadModule()\fP returns the
-name of the loaded module, of NULL if it could not be loaded.
-\fBsmiSetPath()\fP and \fBsmiSetPath()\fP return 0 on success, or a
-negative value on
-error. \fBsmiGetFlags()\fP returns the current set of flags.
-\fBsmiGetPath()\fP returns a copy of the MIB module search path or NULL
-if no path is set. Other functions are void.
+All global statements in the configuration file and those statements with
+a tag (a ``tag: '' prefix) that matches the \fBtag\fP argument, if present,
+are executed.
 .SH "MODULE LOCATIONS"
 The SMI library may retrieve MIB modules from different kinds of
 resources. Currently, SMIv1/v2 and SMIng module files are supported.
@@ -115,17 +112,18 @@ environment variable or by
 @mibdir@ if \fBSMIPATH\fP is not set. This path can also be controlled
 my the \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions (see above).
 .PP
-Files with a \fB.sming\fP
-extension are expected to be SMIng module files. Files with a \fB.my\fP or
-without any extension are expected to be SMIv1/v2 module files.
+When files are searched by a given module name, they might have the
+extensions `.smiv2', `.my', `.sming', or no extension. However, the
+MIB module language is identified by the file's content, not by its
+file name extension.
 .SH "CONFIGURATION FILES"
-The SMI library configuration files read at initialization and on demand
-by \fBsmiReadConfig()\fP have a very simple line oriented syntax. Empty lines
+SMI library configuration files read at initialization and on demand
+by \fBsmiReadConfig()\fP have a simple line oriented syntax. Empty lines
 and those starting with `#' are ignored. Other lines start with an optional
 tag (prepended by a colon),
 followed by a command and options dependent on the command. Tags
 are used to limit the scope of a command to those applications that are
-using this tag.
+using this tag. 
 .PP
 The \fBload\fP command is used to preload a given MIB module. If multiple
 modules shall be preloaded, multiple \fBload\fP commands must be used.
@@ -137,7 +135,7 @@ The \fBlevel\fP command sets the error level.
 .PP
 The \fBhide\fP command allows to tune the list of errors that are reported.
 It raises all errors with names prefixed by the given pattern to severity
-level 9.
+level 9. [Currently, there is no way to list the error names. RTFS: error.c.]
 .PP
 Example configuration:
 .nf
@@ -180,5 +178,5 @@ $HOME/.smirc               user configuration file
 .BR libsmi "(3), "
 .BR smi.h
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br
