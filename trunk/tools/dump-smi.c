@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.26 1999/12/14 12:00:21 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.27 1999/12/20 09:36:43 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -344,6 +344,8 @@ static int isObjectGroup(SmiNode *groupNode)
 	    && smiNode->nodekind != SMI_NODEKIND_COLUMN) {
 	    return 0;
 	}
+
+	smiFreeNode(smiNode);
     }
 
     return 1;
@@ -450,19 +452,27 @@ static void createImportList(char *modulename)
 	}
     }
 
-    if (smiGetFirstNode(modulename,
-			SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN
-			| SMI_NODEKIND_TABLE | SMI_NODEKIND_ROW)) {
+    smiNode = smiGetFirstNode(modulename,
+			      SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN
+			      | SMI_NODEKIND_TABLE | SMI_NODEKIND_ROW);
+    if (smiNode) {
 	addImport(smiv1 ? "RFC-1212" : "SNMPv2-SMI", "OBJECT-TYPE");
-    }
-    
-    if (smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION)) {
-	addImport(smiv1 ? "RFC-1215" : "SNMPv2-SMI",
-		      smiv1 ? "TRAP-TYPE" : "NOTIFICATION-TYPE");
+	smiFreeNode(smiNode);
     }
 
-    if (! smiv1 && smiGetFirstNode(modulename, SMI_NODEKIND_MODULE)) {
-	addImport("SNMPv2-SMI", "MODULE-IDENTITY");
+    smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+    if (smiNode) {
+	addImport(smiv1 ? "RFC-1215" : "SNMPv2-SMI",
+		  smiv1 ? "TRAP-TYPE" : "NOTIFICATION-TYPE");
+	smiFreeNode(smiNode);
+    }
+
+    if (! smiv1) {
+	smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_MODULE);
+	if (smiNode) {
+	    addImport("SNMPv2-SMI", "MODULE-IDENTITY");
+	    smiFreeNode(smiNode);
+	}
     }
     
     if (! smiv1) {
@@ -470,13 +480,18 @@ static void createImportList(char *modulename)
 	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 	    if (smiNode->description) {
 		addImport("SNMPv2-SMI", "OBJECT-IDENTITY");
+		smiFreeNode(smiNode);
 		break;
 	    }
 	}
     }
 
-    if (! smiv1 && smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE)) {
-	addImport("SNMPv2-CONF", "MODULE-COMPLIANCE");
+    if (! smiv1) {
+	smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+	if (smiNode) {
+	    addImport("SNMPv2-CONF", "MODULE-COMPLIANCE");
+	    smiFreeNode(smiNode);
+	}
     }
 
     if (! smiv1) {
@@ -496,6 +511,7 @@ static void createImportList(char *modulename)
 	    smiType; smiType = smiGetNextType(smiType)) {
 	    if (smiType->description) {
 		addImport("SNMPv2-TC", "TEXTUAL-CONVENTION");
+		smiFreeType(smiType);
 		break;
 	    }
 	}
@@ -911,7 +927,6 @@ static void printTypeDefinitions(char *modulename)
 	    print("\n\n");
 	}
     }
-    smiType = smiGetFirstType(modulename);
 }
 
 
@@ -992,6 +1007,9 @@ static void printObjects(char *modulename)
 
 	smiParentNode = smiGetParentNode(smiNode);
 	create = smiParentNode ? smiParentNode->create : 0;
+	if (smiParentNode) {
+	    smiFreeNode(smiParentNode);
+	}
 	
 	invalid = invalidType(smiNode->basetype);
 	assignement = 0;
@@ -1036,7 +1054,8 @@ static void printObjects(char *modulename)
 		    print("%s\n", s);
 		    xfree(s);
 		}
-		    /* TODO: print non-local name qualified */
+		smiFreeNode(rowNode);
+		/* TODO: print non-local name qualified */
 	    } else if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		if (smiNode->typename) {
 		    print("%s\n", smiNode->typename);
@@ -1118,6 +1137,7 @@ static void printObjects(char *modulename)
 				       smiNode->relatedname);
 		if (indexNode) {
 		    printIndex(indexNode, invalid);
+		    smiFreeNode(indexNode);
 		}
 	    }
 	    if (! smiv1 || ! silent) {
@@ -1132,6 +1152,7 @@ static void printObjects(char *modulename)
 				       smiNode->relatedname);
 		if (indexNode) {
 		    printIndex(indexNode, invalid);
+		    smiFreeNode(indexNode);
 		}
 	    }
 	    /* TODO: non-local name if non-local */
@@ -1188,6 +1209,9 @@ static void printObjects(char *modulename)
 						  colNode->typename));
 		    }
 		}
+		if (smiType) {
+		    smiFreeType(smiType);
+		}
 		i++;
 	    }
 	    print("\n");
@@ -1214,6 +1238,7 @@ static void printNotifications(char *modulename)
 	    parentNode = smiGetParentNode(smiNode);
 	    printSegment(INDENT, "ENTERPRISE", INDENTVALUE, 0);
 	    print("%s\n", parentNode->name);
+	    smiFreeNode(parentNode);
 	} else {
 	    print("%s NOTIFICATION-TYPE\n", smiNode->name);
 	}

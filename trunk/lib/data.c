@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.50 2000/01/03 17:07:40 strauss Exp $
+ * @(#) $Id: data.c,v 1.51 2000/01/10 10:34:13 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -485,20 +485,26 @@ checkImports(modulename, parserPtr)
 {
     int         n = 0;
     Import      *importPtr;
+    SmiNode	*smiNode;
+    SmiType	*smiType;
+    SmiMacro	*smiMacro;
     
     for (importPtr = parserPtr->modulePtr->firstImportPtr;
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (importPtr->kind == KIND_UNKNOWN) {
-	    if (smiGetNode(modulename, importPtr->importname)) {
+	    if (smiNode = smiGetNode(modulename, importPtr->importname)) {
 		importPtr->importmodule = util_strdup(modulename);
 		importPtr->kind		= KIND_OBJECT;
-	    } else if (smiGetType(modulename, importPtr->importname)) {
+		smiFreeNode(smiNode);
+	    } else if (smiType = smiGetType(modulename, importPtr->importname)) {
 		importPtr->importmodule = util_strdup(modulename);
 		importPtr->kind		= KIND_TYPE;
-	    } else if (smiGetMacro(modulename, importPtr->importname)) {
+		smiFreeType(smiType);
+	    } else if (smiMacro = smiGetMacro(modulename, importPtr->importname)) {
 		importPtr->importmodule = util_strdup(modulename);
 		importPtr->kind         = KIND_MACRO;
+		smiFreeMacro(smiMacro);
 	    } else {
 		n++;
 		importPtr->importmodule = util_strdup(modulename);
