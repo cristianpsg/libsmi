@@ -1,3 +1,8 @@
+2004-06-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-netsnmp.c: Cleanup session in case of errors,
+	Thanks to Michael Hocke.
+
 2004-04-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DIFFSERV-CONFIG-MIB: added (RFC 3747).
