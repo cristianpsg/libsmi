@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smidump.c,v 1.6 1999/05/25 17:00:38 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.7 1999/05/27 20:06:02 strauss Exp $
  */
 
 #include <stdio.h>
@@ -60,7 +60,7 @@ usage()
 void
 version()
 {
-    printf("smidump " LIBSMI_VERSION "\n" COPYLEFT);
+    printf("smidump " VERSION "\n" COPYLEFT);
 }
 
 

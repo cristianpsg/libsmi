@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smilint.c,v 1.9 1999/05/25 17:00:39 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.10 1999/05/27 20:06:02 strauss Exp $
  */
 
 #include <stdio.h>
@@ -50,7 +50,7 @@ usage()
 void
 version()
 {
-    printf("smilint " LIBSMI_VERSION "\n" COPYLEFT);
+    printf("smilint " VERSION "\n" COPYLEFT);
 }
 
 

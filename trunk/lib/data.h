@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: data.h,v 1.24 1999/05/21 19:55:12 strauss Exp $
+ * @(#) $Id: data.h,v 1.25 1999/05/25 17:00:27 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -524,3 +524,4 @@ extern Module *loadModule(char *modulename);
 
 
 #endif /* _DATA_H */
+
