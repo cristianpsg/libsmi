@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.16 1999/04/06 16:23:22 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.17 1999/04/07 18:21:32 strauss Exp $
  */
 
 %{
@@ -59,8 +59,8 @@ extern int yylex(void *lvalp, Parser *parserPtr);
 
 
 Node   *parentNodePtr;
-
 int    impliedFlag;
+static SmiBasetype defaultBasetype;
  
 
 
@@ -1028,6 +1028,13 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 Syntax:			ObjectSyntax
 			{
 			    $$ = $1;
+			    /*
+			     * Remember the basetype. This could be
+			     * needed if a following DEFVAL clause has
+			     * to decide whether a HEX or BIN string
+			     * is a number or an octet string.
+			     */
+			    defaultBasetype = $$->basetype;
 			}
 	|		BITS '{' NamedBits '}'
 			/* TODO: standalone `BITS' ok? seen in RMON2-MIB */
@@ -1818,17 +1825,37 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_BINSTRING;
-			    $$->value.ptr = util_strdup($1);
+			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
+				if (strlen($1)) {
+				    $$->basetype = SMI_BASETYPE_BINSTRING;
+				    $$->value.ptr = util_strdup($1);
+				} else {
+				    $$->basetype = SMI_BASETYPE_OCTETSTRING;
+				    $$->value.ptr = "";
+				}
+			    } else {
+				$$->basetype = SMI_BASETYPE_UNSIGNED32;
+				$$->value.unsigned32 = strtoul($1, NULL, 2);
+			    }
 			}
 	|		HEX_STRING		/* number or OCTET STRING */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_HEXSTRING;
-			    $$->value.ptr = util_strdup($1);
+			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
+				if (strlen($1)) {
+				    $$->basetype = SMI_BASETYPE_HEXSTRING;
+				    $$->value.ptr = util_strdup($1);
+				} else {
+				    $$->basetype = SMI_BASETYPE_OCTETSTRING;
+				    $$->value.ptr = "";
+				}
+			    } else {
+				$$->basetype = SMI_BASETYPE_UNSIGNED32;
+				$$->value.unsigned32 = strtoul($1, NULL, 16);
+			    }
 			}
-	|		LOWERCASE_IDENTIFIER	/* enumeration label */
+	|		LOWERCASE_IDENTIFIER	/* enumeration or named oid */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
@@ -1855,14 +1882,50 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 	|		'{' objectIdentifier_defval '}'
 			/*
 			 * This is only for some MIBs with invalid numerical
-			 * OID notation for DEFVALs
+			 * OID notation for DEFVALs. We DO NOT parse them
+			 * correctly. We just don't want to produce a
+			 * parser error.
 			 */
 			{
+			    Import *importPtr, *newPtr;
+			    Object *objectPtr;
+
+			    /* TODO: SMIv1 allows something like { 0 0 } !
+			     * SMIv2 does not! Check more carefully!
+			     */
 			    printError(thisParserPtr, ERR_OID_DEFVAL_TOO_LONG);
 			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-			    $$->value.oid = $2;
+			    $$->basetype = SMI_BASETYPE_LABEL;
+			    if (thisModulePtr->flags & FLAG_SMIV2) {
+				$$->value.oid = "zeroDotZero";
+				for (importPtr = thisModulePtr->firstImportPtr;
+				     importPtr;
+				     importPtr = importPtr->nextPtr) {
+				    if ((!importPtr->nextPtr) ||
+					(!strcmp(importPtr->nextPtr->module,
+						 "SNMPv2-SMI"))) {
+					break;
+				    }
+				    if (importPtr) {
+					newPtr = util_malloc(sizeof(Import));
+					newPtr->module =
+					    util_strdup("SNMPv2-SMI");
+					newPtr->name =
+					    util_strdup($$->value.oid);
+					newPtr->kind = KIND_OBJECT;
+					newPtr->nextPtr = importPtr->nextPtr;
+					newPtr->prevPtr = importPtr;
+					importPtr->nextPtr->prevPtr = newPtr;
+					importPtr->nextPtr = newPtr;
+				    }
+				}
+			    } else {
+				$$->value.oid = "zeroDotZero";
+				objectPtr = addObject("zeroDotZero",
+				      findNodeByParentAndSubid(rootNodePtr, 0),
+					  0, 0, thisParserPtr);
+				
+			    }
 			}
 	;
 
@@ -2135,15 +2198,15 @@ value:			'-' number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_HEXSTRING;
-			    $$->value.ptr = util_strdup($1);
+			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
+			    $$->value.unsigned32 = strtoul($1, NULL, 16);
 			}
 	|		BIN_STRING
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_BINSTRING;
-			    $$->value.ptr = util_strdup($1);
+			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
+			    $$->value.unsigned32 = strtoul($1, NULL, 2);
 			}
 	;
 
