@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.16 2001/03/06 09:38:11 strauss Exp $
+ * @(#) $Id: check.c,v 1.17 2001/03/06 11:42:09 strauss Exp $
  */
 
 #include <config.h>
@@ -1108,7 +1108,8 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 		    nodePtr =
 			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
 						 objectPtr->nodePtr->subid-1);
-		    if (nodePtr->lastObjectPtr->typePtr != tdomainPtr) {
+		    if (!nodePtr ||
+			nodePtr->lastObjectPtr->typePtr != tdomainPtr) {
 			smiPrintErrorAtLine(parserPtr,
 					    ERR_TADDRESS_WITHOUT_TDOMAIN,
 					    objectPtr->line);
@@ -1123,7 +1124,7 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 		    nodePtr =
 			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
 						 objectPtr->nodePtr->subid-1);
-		    if (nodePtr->lastObjectPtr->typePtr !=
+		    if (!nodePtr || nodePtr->lastObjectPtr->typePtr !=
 			inetAddressTypePtr) {
 			smiPrintErrorAtLine(parserPtr,
 					    ERR_INETADDRESS_WITHOUT_TYPE,
@@ -1190,6 +1191,21 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 	memberPtr = (Object *) listPtr->ptr;
 	if (!memberPtr)
 	    continue;
+	addObjectFlags(memberPtr, FLAG_INCOMPLIANCE);
+	if (memberPtr->export.status > compliance->export.status) {
+	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_GROUP_STATUS,
+				compliance->line,
+				status[compliance->export.status],
+				compliance->export.name,
+				status[memberPtr->export.status],
+				memberPtr->export.name);
+	}
+    }
+    for (listPtr = compliance->optionlistPtr;
+	 listPtr; listPtr = listPtr->nextPtr) {
+	
+	memberPtr = ((Option *) listPtr->ptr)->objectPtr;
+	addObjectFlags(memberPtr, FLAG_INCOMPLIANCE);
 	if (memberPtr->export.status > compliance->export.status) {
 	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_GROUP_STATUS,
 				compliance->line,
@@ -1203,6 +1219,7 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 	 listPtr; listPtr = listPtr->nextPtr) {
 	
 	memberPtr = ((Refinement *) listPtr->ptr)->objectPtr;
+	addObjectFlags(memberPtr, FLAG_INCOMPLIANCE);
 	if (memberPtr->export.status > compliance->export.status) {
 	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_OBJECT_STATUS,
 				compliance->line,
@@ -1290,7 +1307,8 @@ smiCheckGroupMembers(Parser *parser, Object *group)
  *	contained in at least one conformance group.
  *
  *	This function assumes that smiCheckGroupMembers() has been
- *	called on all group objects before.
+ *	called on all group objects and smiCheckComplianceStatus()
+ *      has been called on all compliance objects before.
  *
  * Results:
  *      None.
@@ -1325,6 +1343,17 @@ smiCheckGroupMembership(Parser *parser, Object *objectPtr)
 	    }
 	}
     }
+    if (objectPtr->export.nodekind == SMI_NODEKIND_GROUP) {
+
+	found = (objectPtr->flags & FLAG_INCOMPLIANCE);
+
+	if (!found) {
+	    smiPrintErrorAtLine(parser, ERR_GROUP_OPTIONAL,
+				objectPtr->line,
+				objectPtr->export.name);
+	}
+    }
+
 }
 
 /*

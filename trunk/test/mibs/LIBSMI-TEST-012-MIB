@@ -39,6 +39,7 @@ libsmiTest012Mib MODULE-IDENTITY
 LIBSMI-TEST-012-MIB:48: identifier `Foo_Bar' must not contain an underscore
 LIBSMI-TEST-012-MIB:54: identifier `bar_foo' must not contain an underscore
 LIBSMI-TEST-012-MIB:63: identifier `bar_foo' must not contain an underscore
+LIBSMI-TEST-012-MIB:62: group `barFooGroup' is unconditionally optional
 	    "
     REVISION        "200011080000Z"
     DESCRIPTION     

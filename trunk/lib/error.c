@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.67 2001/03/05 17:57:49 strauss Exp $
+ * @(#) $Id: error.c,v 1.68 2001/03/06 11:42:09 strauss Exp $
  */
 
 #include <config.h>
@@ -394,6 +394,8 @@ static Error errors[] = {
       "%s compliance statement `%s' includes %s group `%s'" },
     { 4, ERR_COMPLIANCE_OBJECT_STATUS, "compliance-object-status",
       "%s compliance statement `%s' includes %s object `%s'" },
+    { 6, ERR_GROUP_OPTIONAL, "group-optional",
+      "group `%s' is unconditionally optional" },
     { 5, ERR_SEQUENCE_ORDER, "sequence-order", 
       "SEQUENCE element #%d `%s' does not match order of columnar objects under `%s'" },
     { 3, ERR_SEQUENCE_NO_COLUMN, "sequence-no-column", 
