@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-jax.c,v 1.1 2000/03/02 18:43:34 strauss Exp $
  */
 
 #include <config.h>
@@ -32,18 +32,24 @@
 
 static struct {
     SmiBasetype basetype;
+    char        *smitype;
     char        *javatype;
     char        *agentxtype;
 } convertType[] = {
-    { SMI_BASETYPE_INTEGER32,        "int",         "INTEGER" },
-    { SMI_BASETYPE_OCTETSTRING,      "byte[]",      "OCTETSTRING" },
-    { SMI_BASETYPE_OBJECTIDENTIFIER, "AgentXOID",   "OBJECTIDENTIFIER" },
-    { SMI_BASETYPE_UNSIGNED32,       "long",        "GAUGE32" },
-    { SMI_BASETYPE_INTEGER64,        "long",        "INTEGER" },
-    { SMI_BASETYPE_UNSIGNED64,       "long",        "COUNTER64" },
-    { SMI_BASETYPE_ENUM,             "int",         "INTEGER" },
-    { SMI_BASETYPE_BITS,             "byte[]",      "OCTETSTRING" },
-    { SMI_BASETYPE_UNKNOWN,          NULL,          NULL }
+    { SMI_BASETYPE_OCTETSTRING,      "Opaque",    "byte[]",    "OPAQUE" },
+    { SMI_BASETYPE_OCTETSTRING,      "TimeTicks", "long",      "TIMETICKS" },
+    { SMI_BASETYPE_OCTETSTRING,      "Counter",   "long",      "COUNTER32" },
+    { SMI_BASETYPE_OCTETSTRING,      "Counter32", "long",      "COUNTER32" },
+    { SMI_BASETYPE_OCTETSTRING,      "IpAddress", "byte[]",    "IPADDRESS" },
+    { SMI_BASETYPE_INTEGER32,        NULL,	  "int",       "INTEGER" },
+    { SMI_BASETYPE_OCTETSTRING,      NULL,	  "byte[]",    "OCTETSTRING" },
+    { SMI_BASETYPE_OBJECTIDENTIFIER, NULL,	  "AgentXOID", "OBJECTIDENTIFIER" },
+    { SMI_BASETYPE_UNSIGNED32,       NULL,	  "long",      "GAUGE32" },
+    { SMI_BASETYPE_INTEGER64,        NULL,	  "long",      "INTEGER" },
+    { SMI_BASETYPE_UNSIGNED64,       NULL,	  "long",      "COUNTER64" },
+    { SMI_BASETYPE_ENUM,             NULL,	  "int",       "INTEGER" },
+    { SMI_BASETYPE_BITS,             NULL,	  "byte[]",    "OCTETSTRING" },
+    { SMI_BASETYPE_UNKNOWN,          NULL,	  NULL,        NULL }
 };
 
 
@@ -121,27 +127,45 @@ static char* translateLower(char *m)
 
 
 
-static char *getJavaType(SmiBasetype basetype)
+static char *getJavaType(SmiType *smiType)
 {
     int i;
     
     for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
-	if (basetype == convertType[i].basetype)
+	if (smiType->basetype == convertType[i].basetype)
 	    return convertType[i].javatype;
     }
+
     return "<UNKNOWN>";
 }
 
 
 
-static char *getAgentXType(SmiBasetype basetype)
+static char *getAgentXType(SmiType *smiType)
 {
     int i;
+    SmiType *parentType;
+    SmiModule *smiModule;
+    
+    parentType = smiGetParentType(smiType);
+    if (parentType) {
+	smiModule = smiGetTypeModule(parentType);
+	if (smiModule && strlen(smiModule->name)) {
+	    smiType = parentType;
+	}
+    }
     
     for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
-	if (basetype == convertType[i].basetype)
-	    return convertType[i].agentxtype;
+	if (smiType->basetype == convertType[i].basetype) {
+	    if (!convertType[i].smitype)
+		return convertType[i].agentxtype;
+	    if ((smiType->name) &&
+		(!strcmp(convertType[i].smitype, smiType->name)))
+		return convertType[i].agentxtype;
+	}
+	
     }
+
     return "<UNKNOWN>";
 }
 
@@ -259,7 +283,7 @@ static void dumpTable(SmiNode *smiNode)
     fprintf(f,
 	    "/**\n"
 	    "    This class represents a Java AgentX (JAX) implementation of\n"
-	    "    the table `%s' defined in %s.\n"
+	    "    the table %s defined in %s.\n"
 	    "\n"
 	    "    @version 1\n"
 	    "    @author  smidump\n"
@@ -305,7 +329,7 @@ static void dumpTable(SmiNode *smiNode)
 	    "    }\n\n");
     
     fprintf(f,
-	    "    private AgentXVarBind getVarBind(AgentXEntry entry,"
+	    "    public AgentXVarBind getVarBind(AgentXEntry entry,"
 	         " long column)\n");
     fprintf(f,
 	    "    {\n"
@@ -324,13 +348,13 @@ static void dumpTable(SmiNode *smiNode)
 		"        {\n");
 	fprintf(f,
 		"            %s value = ((%s)entry).get_%s();\n",
-		getJavaType(smiGetNodeType(columnNode)->basetype),
+		getJavaType(smiGetNodeType(columnNode)),
 		translate1Upper(smiNode->name),
 		columnNode->name);
 	fprintf(f,
 		"            return new AgentXVarBind(oid, "
 		"AgentXVarBind.%s, value);\n",
-		getAgentXType(smiGetNodeType(columnNode)->basetype));
+		getAgentXType(smiGetNodeType(columnNode)));
 	
 	fprintf(f,
 		"        }\n");
@@ -341,6 +365,199 @@ static void dumpTable(SmiNode *smiNode)
 	    "\n"
 	    "        return null;\n"
 	    "    }\n\n");
+
+    fprintf(f,
+	    "}\n\n");
+
+    fclose(f);
+}
+
+
+
+static void dumpEntry(SmiNode *smiNode)
+{
+    FILE *f;
+    char s[100];
+    SmiNode *columnNode, *indexNode;
+    SmiType *smiType;
+    SmiRange *smiRange;
+    SmiElement *element;
+    int i, cnt;
+    char *p;
+    char init[20];
+    
+    sprintf(s, "%s.java", translate1Upper(smiNode->name));
+    f = fopen(s, "w");
+    if (!f) {
+	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
+	perror(NULL);
+	exit(1);
+    }
+
+    fprintf(f,
+	    "/*\n"
+	    " * This Java file has been generated by smidump " VERSION "."
+                " Do not edit!\n"
+	    " * It is intended to be used within a Java AgentX sub-agent"
+	        " environment.\n"
+	    " *\n"
+	    " * $I" "d$\n"
+	    " */\n\n");
+
+    fprintf(f,
+	    "/**\n"
+	    "    This class represents a Java AgentX (JAX) implementation of\n"
+	    "    the table row %s defined in %s.\n"
+	    "\n"
+	    "    @version 1\n"
+	    "    @author  smidump\n"
+	    "    @see     AgentXTable, AgentXEntry\n"
+	    " */\n\n", smiNode->name, smiGetNodeModule(smiNode)->name);
+    
+    fprintf(f,
+	    "import jax.AgentXOID;\n"
+	    "import jax.AgentXEntry;\n"
+	    "\n");
+
+    fprintf(f, "public class %s extends AgentXEntry\n{\n\n",
+	    translate1Upper(smiNode->name));
+
+    for (columnNode = smiGetFirstChildNode(smiNode);
+	 columnNode;
+	 columnNode = smiGetNextChildNode(columnNode)) {
+	
+	smiType = smiGetNodeType(columnNode);
+	p = getJavaType(smiType);
+	if (!strcmp(p, "long")) {
+	    strcpy(init, "0");
+	} else if (!strcmp(p, "int")) {
+	    strcpy(init, "0");
+	} else if (!strcmp(p, "byte[]")) {
+	    smiRange = smiGetFirstRange(smiType);
+	    if ((smiRange && (!smiGetNextRange(smiRange)) &&
+		 (!bcmp(&smiRange->minValue, &smiRange->maxValue,
+			sizeof(SmiValue))))) {
+		sprintf(init, "new byte[%d]",
+			smiRange->maxValue.value.integer32);
+	    } else {
+		sprintf(init, "new byte[0]");
+	    }
+	} else if (!strcmp(p, "AgentXOID")) {
+	    strcpy(init, "new AgentXOID()");
+	} else {
+	    strcpy(init, "null");
+	}
+	fprintf(f,
+		"    protected %s %s = %s;\n",
+		getJavaType(smiGetNodeType(columnNode)),
+		columnNode->name,
+		init);
+    }
+    for (element = smiGetFirstElement(smiNode), cnt = 0;
+	 element;
+	 element = smiGetNextElement(element)) {
+	indexNode = smiGetElementNode(element);
+	for (columnNode = smiGetFirstChildNode(smiNode);
+	     columnNode;
+	     columnNode = smiGetNextChildNode(columnNode)) {
+	    if (!strcmp(columnNode->name, indexNode->name))
+		break;
+	}
+	if (!columnNode) {
+	    if (!cnt) {
+		fprintf(f, "    // foreign indices\n");
+	    }
+	    cnt++;
+	    fprintf(f, "    protected %s %s;\n",
+		    getJavaType(smiGetNodeType(indexNode)),
+		    indexNode->name);
+	}
+    }
+    fprintf(f, "\n");
+    
+    fprintf(f,
+	    "    // constructor\n"
+	    "    public %s(", translate1Upper(smiNode->name));
+    for (element = smiGetFirstElement(smiNode), cnt = 0;
+	 element;
+	 element = smiGetNextElement(element)) {
+	if (cnt) {
+	    fprintf(f, ",\n%*s", 4 + 7 + 1 + strlen(smiNode->name), " ");
+	}
+	cnt++;
+	indexNode = smiGetElementNode(element);
+	fprintf(f, "%s %s",
+		getJavaType(smiGetNodeType(indexNode)),
+		indexNode->name);
+    }
+    fprintf(f, ")\n"
+	    "    {\n");
+    for (element = smiGetFirstElement(smiNode);
+	 element;
+	 element = smiGetNextElement(element)) {
+	indexNode = smiGetElementNode(element);
+	fprintf(f, "        this.%s = %s;\n",
+		indexNode->name, indexNode->name);
+    }
+    fprintf(f, "\n");
+    for (element = smiGetFirstElement(smiNode);
+	 element;
+	 element = smiGetNextElement(element)) {
+	indexNode = smiGetElementNode(element);
+
+	p = getJavaType(smiGetNodeType(indexNode));
+	if (!strcmp(p, "long")) {
+	    fprintf(f, "        instance.append(%s);\n",
+		    indexNode->name);
+	} else if (!strcmp(p, "int")) {
+	    fprintf(f, "        instance.append(%s);\n",
+		    indexNode->name);
+	} else if (!strcmp(p, "byte[]")) {
+	    smiType = smiGetNodeType(indexNode);
+	    smiRange = smiGetFirstRange(smiType);
+	    if ((smiRange && (!smiGetNextRange(smiRange)) &&
+		 (!bcmp(&smiRange->minValue, &smiRange->maxValue,
+			sizeof(SmiValue)))) ||
+		(smiNode->implied && (!smiGetNextElement(element)))) {
+		fprintf(f, "        instance.appendImplied(%s);\n",
+			indexNode->name);
+	    } else {
+		fprintf(f, "        instance.append(%s);\n",
+			indexNode->name);
+	    }
+	} else if (!strcmp(p, "AgentXOID")) {
+	    if (smiNode->implied && (!smiGetNextElement(element))) {
+		fprintf(f, "        instance.appendImplied(%s);\n",
+			indexNode->name);
+	    } else {
+		fprintf(f, "        instance.append(%s);\n",
+			indexNode->name);
+	    }
+	} else {
+	    fprintf(f, "        XXX // [smidump: type of %s not supported]\n",
+		    indexNode->name);
+	}
+    }
+    
+    fprintf(f,
+	    "    }\n"
+	    "\n");
+
+    for (columnNode = smiGetFirstChildNode(smiNode);
+	 columnNode;
+	 columnNode = smiGetNextChildNode(columnNode)) {
+	smiType = smiGetNodeType(columnNode);
+	if (columnNode->access >= SMI_ACCESS_NOTIFY) {
+	    fprintf(f,
+		    "    public %s get_%s()\n"
+		    "    {\n"
+		    "        return %s;\n"
+		    "    }\n"
+		    "\n",
+		    getJavaType(smiType),
+		    columnNode->name, columnNode->name);
+	}
+    }
 
     fprintf(f,
 	    "}\n\n");
@@ -373,7 +590,7 @@ int dumpJax(char *modulename, int flags)
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ROW)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
 	    dumpTable(smiNode);
-	    /* dumpEntry(smiNode); */
+	    dumpEntry(smiNode);
 	}
     }
     

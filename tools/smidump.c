@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.30 2000/02/24 10:35:43 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.31 2000/03/02 18:43:11 strauss Exp $
  */
 
 #include <config.h>
@@ -67,7 +67,7 @@ static Driver driverTable[] = {
     { "dia",       dumpDia,	SMI_FLAG_NODESCR,
       "UML graphics in DIA XML format" },
     { "jax",       dumpJax,	SMI_FLAG_NODESCR,
-      "Java AgentX sub-agent classes format in separate files" },
+      "Java AgentX sub-agent classes in separate files" },
 #if 0
     { "fig-tree",  dumpFigTree,	SMI_FLAG_NODESCR,
       "tree graphics in xfig fig format" },
@@ -252,4 +252,4 @@ main(argc, argv)
     smiExit();
     
     exit(errors);
-}
+} /*  */
