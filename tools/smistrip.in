@@ -1,0 +1,154 @@
+#!@SH@
+#
+# smistrip --
+#
+#	Extract MIB modules from text files, like RFCs or I-Ds.
+#
+# Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+#
+# See the file "COPYING" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# $Id$
+#
+# NOTE, that this script relies on awk (tested with GNU awk) and getopts
+# (shell builtin like in bash or standalone).
+#
+
+AWK=@AWK@
+GETOPTS=getopts
+VERSION=@VERSION@
+
+
+do_version () {
+    echo "smistrip $VERSION"
+}
+
+
+
+do_usage () {
+    echo "Usage: smistrip [-Vhn] [-d dir] [-m module] file1 [file2 [...]]"
+    echo "-V         show version and license information"
+    echo "-h         show usage information"
+    echo "-n         do not write module files"
+    echo "-d dir     write module to directory dir"
+    echo "-m module  strip only the specified module"
+    echo "file1 ...  input files to parse (RFCs, I-Ds, ...)"
+}
+
+
+
+do_strip () {
+    cat $1 | $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
+
+    BEGIN {
+	skip = 9
+	skipped = -1
+    }
+
+    # start of module
+    /^[ \t]*[A-Za-z0-9-]* *DEFINITIONS */ {
+	module = $1
+	n = 0
+    }
+
+    # process each line
+    {
+	# at the end of a page we go back one line (which is expected to
+	# be a separator line), and start the counter skipped to skip the
+	# next few lines.
+	if ($0 ~ /\[Page [iv0-9]*\] */) {
+	    n--
+	    skipped = 0
+	}
+
+	# if we are skipping...
+	if (skipped >= 0) {
+	    skipped++
+
+	    # if we have skipped enough lines to the top of the next page...
+	    if (skipped >= skip) {
+		skipped = -1
+	    } else {
+    
+	    	# finish skipping, if we find a non-empty line, but not before
+	    	# we have skipped four lines. remember the miminum of lines
+	    	# we have ever skipped to keep empty lines in a modules that
+	    	# appear near the top of a page.
+	    	if ((skipped >= 4) && ($0 ~ /[^ \t]/)) {
+		    if (skipped < skip) { skip = skipped }
+		    skipped = -1
+	    	}   
+	    }
+	}
+
+	# so, if we are not skipping and inside a module, remember the line.
+        if ((skipped == -1) && (length(module) > 0)) {
+	    line[n++] = $0
+	}
+    }
+
+    # end of module
+    /^[ \t]*END[ \t]*$/ {
+	if ((length(single) == 0) || (single == module)) {
+	    strip = 99
+	    for (i=0 ; i < n ; i++) {
+	        # find the minimum column that contains non-blank characters
+		# in order to cut a blank prefix off.
+	        p = match(line[i], "[^ ]")
+	        if ((p < strip) && (length(line[i]) > p)) { strip = p }
+	    }
+
+	    if (test != "1") {
+		if (dir) {
+		   f = dir"/"module
+		} else {
+		   f = module
+		}
+	        for (i=0 ; i < n ; i++) {
+		    print substr(line[i], strip) >f
+		}
+	    }
+
+	    print module ": " n " lines."
+	}
+	module = ""
+    }
+    '
+}
+
+
+
+while $GETOPTS Vhnm:d: c ; do
+    case $c in
+	n)	test=1
+		;;
+	m)	single=$OPTARG
+		;;
+	d)	dir=$OPTARG
+		;;
+	h)	do_usage
+		exit 0
+		;;
+	V)	do_version
+		exit 0
+		;;
+	*)	do_usage
+		exit 1
+		;;
+    esac
+done
+
+shift `expr $OPTIND - 1`
+
+
+
+if [ $# -eq 0 ] ; then
+    do_strip -
+else 
+    for f in $@ ; do
+	do_strip $f
+    done
+fi
+
+exit 0
