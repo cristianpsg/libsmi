@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.52 2000/02/22 17:11:12 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.53 2000/02/22 18:27:01 strauss Exp $
  */
 
 %{
@@ -2755,13 +2755,10 @@ floatElement:		floatValue floatUpperLimit_01
 			{
 			    $$ = util_malloc(sizeof(Range));
 			    $$->export.minValue.basetype = SMI_BASETYPE_FLOAT64;
-			    $$->export.minValue.format = SMI_VALUEFORMAT_NATIVE;
 			    $$->export.minValue.value.float64 = strtod($1, NULL);
 			    if ($2) {
 				$$->export.maxValue.basetype =
 				                          SMI_BASETYPE_FLOAT64;
-				$$->export.maxValue.format =
-							SMI_VALUEFORMAT_NATIVE;
 				$$->export.maxValue.value.float64 =
 				                              strtod($2, NULL);
 			    } else {
@@ -3160,19 +3157,26 @@ anyValue:		bitsValue
 			    if (defaultBasetype == SMI_BASETYPE_BITS) {
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_BITS;
-				$$->format =
-				    SMI_VALUEFORMAT_NATIVE;
-				$$->value.bits = NULL;
-				for (i = 0, listPtr = $1; listPtr;
-				     i++, listPtr = nextPtr) {
-				    nextPtr = listPtr->nextPtr;
-				    $$->value.bits =
-					util_realloc($$->value.bits,
-						     sizeof(char *) * (i+2));
-				    $$->value.bits[i] = listPtr->ptr;
-				    $$->value.bits[i+1] = NULL;
-				    free(listPtr);
+#if 1
+				$$->value.ptr = NULL;
+#else
+				/* TODO: XXX */
+				bitsListPtr = objectPtr->typePtr->listPtr;
+				valueListPtr = (void *)objectPtr->export.value.value.ptr;
+				for (nBits = 0, p = bitsListPtr; p; nBits++, p = p->nextPtr);
+				objectPtr->export.value.value.ptr = util_malloc((nBits+7)/8);
+				memset(objectPtr->export.value.value.ptr, 0, (nBits+7)/8);
+				objectPtr->export.value.len = (nBits+7)/8;
+				for (i = 0, p = valueListPtr; p; i++, p = p->nextPtr) {
+				    for (bit = 0, pp = bitsListPtr; bit < nBits;
+					 bit++, pp = pp->nextPtr) {
+					if (!strcmp(p->ptr, pp->ptr)) break;
+				    }
+				    if (bit < nBits) {
+					objectPtr->export.value.value.ptr[bit+7/8] |= 1 << bit%8;
+				    }
 				}
+#endif
 			    } else {
 				printError(thisParserPtr,
 					   ERR_UNEXPECTED_VALUETYPE);
@@ -3186,31 +3190,26 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_UNSIGNED32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
-				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.unsigned32 = strtoul($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_UNSIGNED64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED64;
-				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.unsigned64 = strtoull($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
-				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer32 = strtol($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
-				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer64 = strtoll($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-				$$->format = SMI_VALUEFORMAT_OID;
 				$$->len = 2;
 				$$->value.oid =
 				    util_malloc(2 * sizeof(SmiSubid));
@@ -3231,13 +3230,11 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
-				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer32 = - strtoul($2, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
-				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer64 = - strtoull($2, NULL, 10);
 				break;
 			    default:
@@ -3264,8 +3261,8 @@ anyValue:		bitsValue
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
-				$$->format = SMI_VALUEFORMAT_TEXT;
 				$$->value.ptr = $1;
+				$$->len = strlen($1);
 			    } else {
 				printError(thisParserPtr,
 					   ERR_UNEXPECTED_VALUETYPE);
@@ -3280,14 +3277,14 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_ENUM:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_ENUM;
-				$$->format = SMI_VALUEFORMAT_NAME;
 				$$->value.ptr = $1;
+				/* TODO: XXX convert to int */
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-				$$->format = SMI_VALUEFORMAT_NAME;
 				$$->value.ptr = $1;
+				/* TODO: XXX convert to oid if found */
 				break;
 			    default:
 				printError(thisParserPtr,
@@ -3458,14 +3455,12 @@ number:			hexadecimalNumber
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			    $$->value.unsigned64 = strtoull($1, NULL, 0);
 			}
         |		decimalNumber
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			    $$->value.unsigned64 = strtoull($1, NULL, 10);
 			}
 	;
@@ -3474,7 +3469,6 @@ negativeNumber:		'-' decimalNumber
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER64;
-			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			    $$->value.integer64 = - strtoull($2, NULL, 10);
 			}
         ;

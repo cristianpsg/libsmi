@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.67 2000/02/24 15:30:01 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.68 2000/02/24 16:56:26 strauss Exp $
  */
 
 #include <config.h>
@@ -343,13 +343,14 @@ static void printMultilineString(const char *s)
 
 
 
-static char *getValueString(SmiValue *valuePtr)
+static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
-    static char s[100];
-    char        ss[9];
-    int		i;
-    char        **p;
-    
+    static char    s[100];
+    char           ss[9];
+    int		   i, n;
+    char           **p;
+    SmiNamedNumber *nn;
+
     s[0] = 0;
     
     switch (valuePtr->basetype) {
@@ -370,27 +371,48 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-	sprintf(s, "%s", valuePtr->value.ptr);
+	for (nn = smiGetFirstNamedNumber(typePtr); nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 == valuePtr->value.unsigned32)
+		break;
+	}
+	if (nn) {
+	    sprintf(s, "%s", nn->name);
+	} else {
+	    sprintf(s, "%d", valuePtr->value.unsigned32);
+	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	if ((valuePtr->format == SMI_VALUEFORMAT_TEXT) ||
-	    (valuePtr->len == 0)) {
+	for (i = 0; i < valuePtr->len; i++) {
+	    if (!isprint((int)valuePtr->value.ptr[i])) break;
+	}
+	if (i == valuePtr->len) {
 	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
 	} else {
-	    sprintf(s, "0x%*s", 2 * valuePtr->len, "");
-	    for (i=0; i < valuePtr->len; i++) {
-		sprintf(ss, "%02x", valuePtr->value.ptr[i]);
-		strncpy(&s[2+2*i], ss, 2);
-	    }
+            sprintf(s, "0x%*s", 2 * valuePtr->len, "");
+            for (i=0; i < valuePtr->len; i++) {
+                sprintf(ss, "%02x", valuePtr->value.ptr[i]);
+                strncpy(&s[2+2*i], ss, 2);
+            }
 	}
 	break;
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
-	if (valuePtr->value.bits) {
-	    for(p = valuePtr->value.bits; *p; p++) {
-		if (p != valuePtr->value.bits)
+	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
+	    if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
+		if (n)
 		    sprintf(&s[strlen(s)], ", ");
-		sprintf(&s[strlen(s)], "%s", *p);
+		n++;
+		for (nn = smiGetFirstNamedNumber(typePtr); nn;
+		     nn = smiGetNextNamedNumber(nn)) {
+		    if (nn->value.value.unsigned32 == i)
+			break;
+		}
+		if (nn) {
+		    sprintf(&s[strlen(s)], "%s", nn->name);
+		} else {
+		    sprintf(s, "%d", i);
+		}
 	    }
 	}
 	sprintf(&s[strlen(s)], ")");
@@ -423,7 +445,8 @@ static void printSubtype(SmiType *smiType)
 	    } else {
 		print(" (");
 	    }
-	    sprintf(s, "%s(%s)", nn->name, getValueString(&nn->value));
+	    sprintf(s, "%s(%s)", nn->name,
+		    getValueString(&nn->value, smiType));
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
 	if (i) {
@@ -439,11 +462,11 @@ static void printSubtype(SmiType *smiType)
 	    }	    
 	    if (bcmp(&range->minValue, &range->maxValue,
 		     sizeof(SmiValue))) {
-		sprintf(s, "%s", getValueString(&range->minValue));
+		sprintf(s, "%s", getValueString(&range->minValue, smiType));
 		sprintf(&s[strlen(s)], "..%s", 
-			getValueString(&range->maxValue));
+			getValueString(&range->maxValue, smiType));
 	    } else {
-		sprintf(s, "%s", getValueString(&range->minValue));
+		sprintf(s, "%s", getValueString(&range->minValue, smiType));
 	    }
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
@@ -635,7 +658,7 @@ static void printTypedefs(SmiModule *smiModule)
 
 	if (smiType->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    printSegment(2 * INDENT, "default", INDENTVALUE);
-	    print("%s", getValueString(&smiType->value));
+	    print("%s", getValueString(&smiType->value, smiType));
 	    print(";\n");
 	}
 	
@@ -852,7 +875,7 @@ static void printObjects(SmiModule *smiModule)
 	
 	if (smiNode->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    printSegment((2 + indent) * INDENT, "default", INDENTVALUE);
-	    print("%s", getValueString(&smiNode->value));
+	    print("%s", getValueString(&smiNode->value, smiType));
 	    print(";\n");
 	}
 	

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.49 2000/02/22 17:11:14 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.50 2000/02/24 15:30:01 strauss Exp $
  */
 
 #include <config.h>
@@ -199,12 +199,13 @@ char *formattype(SmiType *type)
 }
 
 
-char *formatvalue(const SmiValue *value)
+char *formatvalue(const SmiValue *value, SmiType *type)
 {
-    static char s[100];
-    char        ss[9];
-    int		i;
-    char        **p;
+    static char    s[100];
+    char           ss[9];
+    int		   i, n;
+    char           **p;
+    SmiNamedNumber *nn;
     
     s[0] = 0;
     
@@ -226,35 +227,48 @@ char *formatvalue(const SmiValue *value)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-	sprintf(s, "%s", value->value.ptr);
+	for (nn = smiGetFirstNamedNumber(type); nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 == value->value.unsigned32)
+		break;
+	}
+	if (nn) {
+	    sprintf(s, "%s(%d)", nn->name, nn->value.value.unsigned32);
+	} else {
+	    sprintf(s, "%d", value->value.unsigned32);
+	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	if (value->format == SMI_VALUEFORMAT_TEXT) {
+	for (i = 0; i < value->len; i++) {
+	    if (!isprint((int)value->value.ptr[i])) break;
+	}
+	if (i == value->len) {
 	    sprintf(s, "\"%s\"", value->value.ptr);
-	} else if (value->format == SMI_VALUEFORMAT_HEXSTRING) {
-	    sprintf(s, "'%*s'H", 2 * value->len, "");
-	    for (i=0; i < value->len; i++) {
-		sprintf(ss, "%02x", value->value.ptr[i]);
-		strncpy(&s[1+2*i], ss, 2);
-	    }
-	} else if (value->format == SMI_VALUEFORMAT_BINSTRING) {
-	    sprintf(s, "'%*s'B", 8 * value->len, "");
-	    for (i=0; i < value->len; i++) {
-		/* TODO */
-		sprintf(ss, "%02x", value->value.ptr[i]);
-		strncpy(&s[1+8*i], ss, 8);
-	    }
 	} else {
-	    sprintf(s, "\"%s\"", value->value.ptr);
+            sprintf(s, "0x%*s", 2 * value->len, "");
+            for (i=0; i < value->len; i++) {
+                sprintf(ss, "%02x", value->value.ptr[i]);
+                strncpy(&s[2+2*i], ss, 2);
+            }
 	}
 	break;
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
-	if (value->value.bits) {
-	    for(p = value->value.bits; *p; p++) {
-		if (p != value->value.bits)
+	for (i = 0, n = 0; i < value->len * 8; i++) {
+	    if (value->value.ptr[i/8] & (1 << i%8)) {
+		if (n)
 		    sprintf(&s[strlen(s)], ", ");
-		sprintf(&s[strlen(s)], "%s", *p);
+		n++;
+		for (nn = smiGetFirstNamedNumber(type); nn;
+		     nn = smiGetNextNamedNumber(nn)) {
+		    if (nn->value.value.unsigned32 == i)
+			break;
+		}
+		if (nn) {
+		    sprintf(&s[strlen(s)], "%s(%d)", nn->name, i);
+		} else {
+		    sprintf(s, "%d", i);
+		}
 	    }
 	}
 	sprintf(&s[strlen(s)], ")");
@@ -413,7 +427,7 @@ int main(int argc, char *argv[])
 	    if (type)
 		printf("        Type: %s\n", formattype(type));
 	    if (node->value.basetype != SMI_BASETYPE_UNKNOWN)
-		printf("     Default: %s\n", formatvalue(&node->value));
+		printf("     Default: %s\n", formatvalue(&node->value, type));
 	    if (node->decl != SMI_DECL_UNKNOWN)
 		printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
@@ -549,7 +563,7 @@ int main(int argc, char *argv[])
 	    if (parenttype)
 		printf(" Parent Type: %s\n", formattype(parenttype));
 	    if (type->value.basetype != SMI_BASETYPE_UNKNOWN)
-		printf("     Default: %s\n", formatvalue(&type->value));
+		printf("     Default: %s\n", formatvalue(&type->value, type));
 	    if ((type->basetype == SMI_BASETYPE_ENUM) ||
 		(type->basetype == SMI_BASETYPE_BITS)) {
 		if (smiGetFirstNamedNumber(type)) {
@@ -566,8 +580,8 @@ int main(int argc, char *argv[])
 		    printf("      Ranges:");
 		    for(range = smiGetFirstRange(type);
 			range ; range = smiGetNextRange(range)) {
-			strcpy(s1, formatvalue(&range->minValue));
-			strcpy(s2, formatvalue(&range->maxValue));
+			strcpy(s1, formatvalue(&range->minValue, type));
+			strcpy(s2, formatvalue(&range->maxValue, type));
 			printf(" %s", s1);
 			if (strcmp(s1, s2)) printf("..%s", s2);
 		    }
