@@ -8,11 +8,13 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: defs.h,v 1.3 1998/08/24 00:00:27 strauss Exp $
+ * @(#) $Id: defs.h,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 
-#define CONFIG_FILE	"/usr/local/etc/mibs.conf"
+#define SMI_CONFIG_FILE		"/usr/local/etc/smi.conf"
+
+#define SMID_CONFIG_FILE	"/usr/local/etc/smid.conf"
 
 #define MAX_PATH_LENGTH		256
 #define MAX_OID_STRING_LENGTH	256

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.25 1998/11/24 10:59:24 strauss Exp $
+ * @(#) $Id: data.c,v 1.28 1998/11/25 03:47:42 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -427,15 +427,10 @@ checkImportDescriptors(modulename, parser)
 	    printError(parser, ERR_IDENTIFIER_NOT_IN_MODULE,
 		       descriptor->name, modulename);
 	}
-	
-	parser->thisModule->firstDescriptor[KIND_IMPORT] =
-	    descriptor->nextSameModuleAndKind;
-	free(descriptor->name);
-	free(descriptor);
+
+	deleteDescriptor(descriptor);
     }
 
-    parser->thisModule->lastDescriptor[KIND_IMPORT] = NULL;
-    
     return (0);
 }
 
