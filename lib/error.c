@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.112 2003/04/30 10:59:16 strauss Exp $
+ * @(#) $Id: error.c,v 1.113 2003/04/30 11:06:47 strauss Exp $
  */
 
 #include <config.h>
@@ -65,13 +65,25 @@ typedef struct Error {
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
-      "internal error!!!", NULL},
+      "internal error!",
+      "An internal error in the libsmi core, which is not further specified\n"
+      "occured. This is not related to a bug in a MIB or any unexpected\n"
+      "circumstances of your system environment. Please submit a detailed\n"
+      "bug report to the libsmi maintainer."},
     { 0, ERR_MAX_LEX_DEPTH, "", 
-      "maximum IMPORTS nesting, probably a loop?", NULL},
+      "maximum IMPORTS nesting, probably a loop?",
+      "When a parsed module imports another module that has not yet been\n"
+      "parsed, at that point a new parser instance is created to\n"
+      "recursively read the imported one. The maximum depth of these\n"
+      "recursive imports is limited (30). Usually this limit should\n"
+      "never be reached. However, this error might occur, when modules\n"
+      "illegally import definitions in a loop."},
+    { 0, ERR_OUT_OF_MEMORY, "memory", 
+      "out of memory (internal error!)",
+      "Libsmi needs to allocate memory dynamically during runtime, but\n"
+      "the system ran out of memory."},
     { 1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
       "lexically unexpected character, skipping to end of line", NULL},
-    { 0, ERR_OUT_OF_MEMORY, "memory", 
-      "out of memory (internal error!)", NULL},
     { 1, ERR_OTHER_ERROR, "other", 
       "%s", NULL},
     { 1, ERR_ILLEGAL_KEYWORD, "keyword-illegal", 
