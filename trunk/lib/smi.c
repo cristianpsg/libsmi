@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.102 2001/08/15 17:07:04 strauss Exp $
+ * @(#) $Id: smi.c,v 1.103 2001/08/22 17:51:43 strauss Exp $
  */
 
 #include <config.h>
@@ -218,7 +218,7 @@ int smiInit(const char *tag)
     smiHandle->path = smiStrdup(DEFAULT_SMIPATH);
 
     tag2 = smiStrdup(tag);
-    tag2 = strtok(tag2, ":");
+    if (tag2) tag2 = strtok(tag2, ":");
     if (tag2) {
 	/* 2. read global config file if present (append/prepend/replace) */
 	smiReadConfig(DEFAULT_GLOBALCONFIG, tag2);
