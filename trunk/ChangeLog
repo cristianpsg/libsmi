@@ -1,3 +1,9 @@
+2000-06-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/IF-MIB: updated (RFC 2863).
+
+	* mibs/ietf/IF-INVERTED-STACK-MIB: added (RFC 2864).
+
 2000-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/HCNUM-TC: added (RFC 2856).
