@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.15 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.16 2003/09/30 11:51:31 schoenw Exp $
  */
 
 #include <config.h>
@@ -28,8 +28,6 @@
 static int moduleLen = 0;
 static int identifierLen = 0;
 
-static int ignoretypes = 0;
-static int ignorenodes = 0;
 static int showlines = 0;
 static int showpath = 0;
 
@@ -145,13 +143,8 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
 		    SMI_VERSION_STRING ")\n\n");
 	}
 
-	if (!ignoretypes) {
-	    fprintTypeIdentifiers(f, modc, modv);
-	}
-	
-	if (!ignorenodes) {
-	    fprintNodeIdentifiers(f, modc, modv);
-	}
+	fprintTypeIdentifiers(f, modc, modv);
+	fprintNodeIdentifiers(f, modc, modv);
 
     } else {
 
@@ -163,13 +156,8 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
 			modv[i]->name);
 	    }
 
-	    if (!ignoretypes) {
-		fprintTypeIdentifiers(f, 1, &(modv[i]));
-	    }
-
-	    if (!ignorenodes) {
-		fprintNodeIdentifiers(f, 1, &(modv[i]));
-	    }
+	    fprintTypeIdentifiers(f, 1, &(modv[i]));
+	    fprintNodeIdentifiers(f, 1, &(modv[i]));
 	}
     }
 
@@ -189,10 +177,6 @@ void initIdentifiers()
 {
     
     static SmidumpDriverOption opt[] = {
-	{ "ignore-types", OPT_FLAG, &ignoretypes, 0,
-	  "do not dump types"},
-	{ "ignore-nodes", OPT_FLAG, &ignorenodes, 0,
-	  "do not dump nodes"},
 	{ "show-lines", OPT_FLAG, &showlines, 0,
 	  "show line numbers"},
 	{ "show-path", OPT_FLAG, &showpath, 0,
