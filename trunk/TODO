@@ -278,3 +278,10 @@ x shift/reduce conflict at
 . /usr/local/lib/tnm3.0.0/mibs/RFC1382-MIB:1609:
   OBJECT IDENTIFIER DEFVALs must be expressed as a single identifier
                   DEFVAL { {0 0}...
+
+. have seen cases like `default ;'. where? 
+
+. scharfen blick auf die grammatik! ist alles in dump-sming.c implementiert,
+  was fuer die konvertierung von smiv2 wichtig ist? dann weiter mit dem
+  sming parser!
+
