@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.15 2001/04/06 13:50:24 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.16 2001/04/11 11:17:39 schoenw Exp $
  */
 
 /*
@@ -1127,7 +1127,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    "    len = %u;\n"
 			    "    if (vb->id_len < idx + len) return -1;\n"
 			    "    for (i = 0; i < len; i++) {\n"
-			    "        /* %s->%s[i] = vb->id[idx++]; */\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
 			    "    }\n",
 			    minSize, cGroupName, cName);
 		} else if (last && indexNode->implied) {
@@ -1135,7 +1135,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    "    if (vb->id_len < idx) return -1;\n"
 			    "    len = vb->id_len - idx;\n"
 			    "    for (i = 0; i < len; i++) {\n"
-			    "        /* %s->%s[i] = vb->id[idx++]; */\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
 			    "    }\n"
 			    "    %s->_%sLength = len;\n",
 			    cGroupName, cName, cGroupName, cName);
@@ -1145,7 +1145,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    "    len = vb->id[idx++];\n"
 			    "    if (vb->id_len < idx + len) return -1;\n"
 			    "    for (i = 0; i < len; i++) {\n"
-			    "        /* %s->%s[i] = vb->id[idx++]; */ idx++;\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
 			    "    }\n"
 			    "    %s->_%sLength = len;\n",
 			    cGroupName, cName, cGroupName, cName);
