@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.13 1999/06/10 11:16:52 strauss Exp $
+@(#) $Id: README,v 1.14 1999/06/10 15:28:17 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -23,7 +23,7 @@ TODO					incomplete list of things to be done
 configure				configure script
 lib/					library source code
 tools/					tools source code
-doc/draft-irtf-nmrg-sming-00.txt	SMIng specification
+doc/draft-irtf-nmrg-sming-01.txt	SMIng specification
 mibs/					MIB modules to be installed
 test/					some test patterns
 
@@ -38,33 +38,34 @@ To configure libsmi, first check
 
 	./configure --help
 
-output to see, what options are available. Then run ./configure with the
-options of your choice. Choose mibdir and smipath values appripriate
-for your environment so that users can live without an SMIPATH
-environment variable. Note, that SMIng is not supported by default.
+output to see, what options are available. Then run ./configure with
+the options of your choice. Choose mibdir and smipath values
+appripriate for your environment so that users can live without an
+SMIPATH environment variable and without configuration files.
 
 To build libsmi and the tools, run
 
 	make
 
 This should build the library libsmi in lib/ and the tools, namely
-tools/smilint, tools/smidump, and tools/smiquery.
-
-If you have some standard MIB modules installed and libsmi configured to
-find them and to support SMIng, you may run some checks:
-
-	make check
+tools/smilint, tools/smidump, tools/smiquery, and the shell script
+tools/smistrip.
 
 If you wish to install the library, some basic MIB modules, the tools
 and the man pages, run
 
 	make install
 
-To use libsmi applications you might want to set the SMIPATH
-environment variable to find more MIB modules than those ones
-installed to places that libsmi knows. E.g., if you have Scotty
-installed along with its MIB modules, you might want to add this line
-to your (bash style) shell startup script:
+If you have run make install (sorry, not beforehand), you may run some
+checks:
+
+	make check
+
+To use libsmi applications you might want to configure its behaviour.
+You can set the SMIPATH environment variable to find more MIB modules
+than those ones installed to places that libsmi knows. E.g., if you
+have Scotty installed along with its MIB modules, you might want to
+add this line to your (bash style) shell startup script:
 
 	export SMIPATH=/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
@@ -72,12 +73,16 @@ Or this one, to extend the libsmi search path (note the leading colon):
 
 	export SMIPATH=":/usr/local/lib/tnm3.0.0/mibs"
 
+More detailed library options, including per-application optionsm, can
+be configured through a global and a user level configuration file. See
+the smi_config(3) man page.
+
 
 FURTHER READING
 ===============
 
 Read the man pages for library concepts and usage and for the tools.
-Read the SMIng specification (doc/draft-irtf-nmrg-sming-00.txt) for
+Read the SMIng specification (doc/draft-irtf-nmrg-sming-01.txt) for
 details on SMIng. You may find further information online, along with
 the subscription information on the libsmi mailing list at
 
