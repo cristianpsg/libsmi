@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.5 2000/03/22 09:12:35 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.6 2000/03/29 14:04:16 strauss Exp $
  */
 
 #include <config.h>
@@ -1009,13 +1009,17 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     return smiNode;
 }
 
-
-
 static void dumpNotif(SmiNode *smiNode)
 {
     FILE *f;
     char s[100];
+    char *vb_type;
+    int cnt,i;
+    SmiElement *element;
+    SmiNode *elementNode;
 
+    SmiType *snt;
+    snt = smiGetNodeType(smiNode);
     sprintf(s, "%s.java", translate1Upper(smiNode->name));
     f = fopen(s, "w");
     if (!f) {
@@ -1035,11 +1039,85 @@ static void dumpNotif(SmiNode *smiNode)
 	    " */\n\n");
     fprintf(f,
 	    "import jax.*;\n"
+	    "import java.util.Vector;\n"
 	    "\n");
 
     fprintf(f, "public class %s extends AgentXNotification\n{\n\n",
 	    translate1Upper(smiNode->name));
-    
+    fprintf(f,
+	    "    private Vector vbl;\n\n"
+	    );
+    fprintf(f,
+	    "    private final static long[] trapOID = {1,3,6,1,6,3,1,1,4,1,0};\n");
+
+    fprintf(f,
+	    "    private final static long[] %sOID = {",
+	    smiNode->name);
+    for (i = 0; i < smiNode->oidlen; i++) {
+	fprintf(f, "%s%d", i ? ", " : "", smiNode->oid[i]);
+    }
+    fprintf(f, "};\n");	
+    fprintf(f,
+	    "    private static AgentXVarBind trapVB = new AgentXVarBind(\n"
+	    "            new AgentXOID(trapOID),\n"
+	    "            AgentXVarBind.OBJECTIDENTIFIER,\n"
+	    "            new AgentXOID(%sOID));\n",
+	    smiNode->name);
+    for (element = smiGetFirstElement(smiNode), cnt = 0;
+	 element;
+	 element = smiGetNextElement(element)) {
+	elementNode = smiGetElementNode(element);
+	fprintf(f,
+		"    private final static long[] %sOID = {",
+		elementNode->name);
+	for (i = 0; i < elementNode->oidlen; i++) {
+	    fprintf(f, "%s%d", i ? ", " : "", elementNode->oid[i]);
+	}
+	fprintf(f, "};\n\n");	
+	fprintf(f,
+		"    private static AgentXVarBind %sVB = new AgentXVarBind(\n"
+                "            new AgentXOID(%sOID),AgentXVarBind.%s\n);\n",
+		elementNode->name,
+		elementNode->name,
+		getAgentXType(smiGetNodeType(elementNode)));	
+    }    
+    fprintf(f, 
+	    "\n\n    public %s() {\n\n"
+	    "        vbl = new Vector();\n",
+	    translate1Upper(smiNode->name));
+    fprintf(f,
+	    "         vbl.addElement(trapVB);\n");
+    for (element = smiGetFirstElement(smiNode), cnt = 0;
+	 element;
+	 element = smiGetNextElement(element)) {
+	elementNode = smiGetElementNode(element);
+	fprintf(f,
+		"         vbl.addElement(%sVB);\n",
+		elementNode->name);
+    }    
+
+    fprintf(f,
+	    "    }\n\n");
+
+    for (element = smiGetFirstElement(smiNode), cnt = 0;
+	 element;
+	 element = smiGetNextElement(element)) {
+	elementNode = smiGetElementNode(element);
+	vb_type = getJavaType(smiGetNodeType(elementNode));
+	vb_type = strcmp("byte[]", vb_type) ? vb_type : "bytes";
+	fprintf(f,
+		"    public void set_%s(%s value) {\n"
+		"        %sVB.set%s(value);\n    }\n",
+		elementNode->name,
+		getJavaType(smiGetNodeType(elementNode)),
+		elementNode->name,
+		translate1Upper(vb_type)
+		);
+    }    
+
+    fprintf(f,
+	    "    public Vector getVarBindList() {\n"
+	    "        return vbl;\n    }\n\n");
 
     fprintf(f,
 	    "}\n\n");
@@ -1086,6 +1164,7 @@ int dumpJax(char *modulename, int flags)
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 	dumpNotif(smiNode);
     }
+    
     
     return 0;
 }
