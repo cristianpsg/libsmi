@@ -115,9 +115,10 @@ smiquery_LDADD = ../lib/libsmi.la
 smilint_SOURCES = smilint.c
 smilint_LDADD = ../lib/libsmi.la
 
-smidump_SOURCES = smidump.c smidump.h dump-sming.c dump-smi.c 			  dump-imports.c dump-types.c dump-tree.c 			  dump-mosy.c dump-corba.c dump-ucdsnmp.c
+smidump_SOURCES = smidump.c smidump.h dump-sming.c dump-smi.c 			  dump-imports.c dump-types.c dump-tree.c 			  dump-mosy.c dump-corba.c dump-ucdsnmp.c 			  dump-dia.c
 
-#			  dump-java.c dump-jdmk.c dump-fig.c
+#			  dump-fig.c
+#			  dump-java.c dump-jdmk.c
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
@@ -137,7 +138,8 @@ smilint_OBJECTS =  smilint.o
 smilint_DEPENDENCIES =  ../lib/libsmi.la
 smilint_LDFLAGS = 
 smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-imports.o \
-dump-types.o dump-tree.o dump-mosy.o dump-corba.o dump-ucdsnmp.o
+dump-types.o dump-tree.o dump-mosy.o dump-corba.o dump-ucdsnmp.o \
+dump-dia.o
 smidump_DEPENDENCIES =  ../lib/libsmi.la
 smidump_LDFLAGS = 
 SCRIPTS =  $(bin_SCRIPTS)

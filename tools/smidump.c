@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.26 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.27 2000/02/12 14:31:55 strauss Exp $
  */
 
 #include <config.h>
@@ -48,9 +48,14 @@ static Driver driverTable[] = {
     { "corba-oid", dumpCorbaOid, "corba OID definitions (JIDM)" },
     { "ucd-h",     dumpUcdH,     "UCD SNMP mib module C header" },
     { "ucd-c",	   dumpUcdC,     "UCD SNMP mib module C code" },
+#if 1
+    { "dia",       dumpDia,	 "UML graphics in DIA XML format" },
+#endif
 #if 0
     { "fig-tree",  dumpFigTree,	 "tree graphics in xfig fig format" },
     { "fig-uml",   dumpFigUml,	 "UML graphics in xfig fig format" },
+#endif
+#if 0
     { "java",      dumpJava,     "java manager stub code (JMGMT)" },
     { "jdmk",      dumpJdmk,     "java manager stub code (JDMK)" },
 #endif
