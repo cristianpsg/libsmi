@@ -151,9 +151,9 @@ static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
 //TODO make these values configurable by options passed to the driver
-static const int CANVASHEIGHT          =500;
-static const int CANVASWIDTH           =950;
-static const float STARTSCALE          =(float)0.7;
+static const int CANVASHEIGHT          =700;
+static const int CANVASWIDTH           =1100;
+static const float STARTSCALE          =(float)1;
 
 //used by the springembedder
 static const int ITERATIONS            =100;
@@ -2003,7 +2003,7 @@ static void printSVGAugmentIndex(GraphNode *tNode,
 /*
  * create svg-output for the given node
  */
-static void printSVGObject(GraphNode *node, float x, float y, int *classNr)
+static void printSVGObject(GraphNode *node, int *classNr)
 {
     SmiElement *smiElement;
     float textXOffset, textYOffset, xOrigin, yOrigin;
@@ -2011,8 +2011,6 @@ static void printSVGObject(GraphNode *node, float x, float y, int *classNr)
     if (!node) return;
     if (node->dia.flags & DIA_PRINT_FLAG) return;
 
-    //node->dia.x = x;
-    //node->dia.y = y;
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
 
     xOrigin = node->dia.w/-2;
@@ -2087,7 +2085,7 @@ static void printSVGObject(GraphNode *node, float x, float y, int *classNr)
 /*
  * prints a group of scalars denoted by group
  */
-static void diaPrintXMLGroup(int group, float x, float y, int *classNr)
+static void diaPrintXMLGroup(int group, int *classNr)
 {
     GraphNode *tNode;
     float textXOffset, textYOffset, xOrigin, yOrigin;
@@ -2904,7 +2902,7 @@ static void layoutGraph(int nodecount)
 	    vNode->dia.y = min(CANVASHEIGHT, max(0, vNode->dia.y));
 	}
 	//reduce the temperature as the layout approaches a better configuration
-	//t /= 2;
+	//t *= 0.7;
     }
 }
 
@@ -2913,36 +2911,11 @@ static void layoutGraph(int nodecount)
 
 
 
-static float diaPrintNode(GraphNode *node, float x, float y, int *classNr)
-{
-    GraphEdge *tEdge;
-
-    for (tEdge = graphGetFirstEdgeByNode(graph, node);
-	 tEdge;
-	 tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
-	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
-	    if (node == tEdge->startNode) {
-		y += tEdge->endNode->dia.h + YSPACING;    
-		printSVGObject(tEdge->endNode, x, y, classNr);
-		printSVGConnection(tEdge);
-		y = diaPrintNode(tEdge->startNode, x, y, classNr);
-			      /* (x+tEdge->startNode->dia.w+XSPACING),y); */
-		
-		y = diaPrintNode(tEdge->endNode,
-		  (x+tEdge->startNode->dia.w+XSPACING), y, classNr);
-	    }
-	}
-    }
-
-    return y;
-}
-
 //TODO calculate maximal x- and y-sizes and print them into the header
 static void diaPrintXML(int modc, SmiModule **modv)
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
-    float     x = 0, y = 0, ydiff;
     int       group, nodecount = 0, classNr = 0;
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
@@ -2976,82 +2949,35 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     printSVGHeaderAndTitle(modc, modv, nodecount);
     
+    //print the nodes
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
 	if (tNode->group == 0) {
-	    printSVGObject(tNode, x, y, &classNr);
+	    printSVGObject(tNode, &classNr);
 	} else {
-	    diaPrintXMLGroup(tNode->group, x, y, &classNr);
+	    diaPrintXMLGroup(tNode->group, &classNr);
 	}
     }
 
+    //print the edges
+    //TODO: bend edges orthogonal
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (!tEdge->use)
 	    continue;
-	printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
-	       tEdge->startNode->dia.x, tEdge->startNode->dia.y,
-	       tEdge->endNode->dia.x, tEdge->endNode->dia.y);
-	printf("          fill=\"none\" stroke=\"black\"/>\n");
+	printf(" <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
+	       tEdge->startNode->dia.x,
+	       tEdge->startNode->dia.y,
+	       tEdge->endNode->dia.x,
+	       tEdge->endNode->dia.y);
+	/*
+	       tEdge->startNode->dia.x + tEdge->startNode->dia.w/2,
+	       tEdge->startNode->dia.y + tEdge->startNode->dia.h/2,
+	       tEdge->endNode->dia.x + tEdge->endNode->dia.w/2,
+	       tEdge->endNode->dia.y + tEdge->endNode->dia.h/2);
+	*/
+	printf("       fill=\"none\" stroke=\"black\"/>\n");
     }
-
-    /*
-    x = XOFFSET;
-    y = YOFFSET;
-    ydiff = 0;
-
-    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
-	    printSVGObject(tEdge->startNode, x, y, &classNr);
-	    x = x + tEdge->startNode->dia.w + XSPACING;
-
-	    printSVGObject(tEdge->endNode, x, y, &classNr);
-	    printSVGConnection(tEdge);
-	    
-	    //y = tEdge->startNode->dia.h;
-	    ydiff = tEdge->startNode->dia.h;
-
-      	    y = diaPrintNode(tEdge->startNode,x,y, &classNr);
-	    y = diaPrintNode(tEdge->endNode,x,y, &classNr);    
-
-	    y = y + ydiff + YSPACING;
-	    x = XOFFSET;
-	}
-    }
-    
-    x = XOFFSET;
-    y += ydiff;
-    ydiff = 0;
-    */
-
-    /* printing singular tables */
-    /*
-    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
-	if (!graphGetFirstEdgeByNode(graph,tNode) &&
-	    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
-	    printSVGObject(tNode,x,y, &classNr);
-	    
-	    x += tNode->dia.w + XSPACING;
-	    ydiff = max(ydiff, tNode->dia.h);
-	    if (x >= NEWLINEDISTANCE) {
-		x = XOFFSET;
-		y += ydiff + YSPACING;
-	    }
-	}
-    }
-    */
-
-    /* printing scalar groups */
-    /*
-    x = XOFFSET + (CANVASWIDTH/2);
-    y = YOFFSET;
-    for (group = 1;
-	 group <= algGetNumberOfGroups();
-	 group++) {
-	diaPrintXMLGroup(group,x,y, &classNr);
-	y += 200;
-    }
-    */
 
     printSVGClose();
 }
