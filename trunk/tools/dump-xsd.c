@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.79 2003/12/09 14:53:06 strauss Exp $
+ * @(#) $Id: dump-xsd.c,v 1.80 2004/03/04 16:52:12 tklie Exp $
  */
 
 #include <config.h>
@@ -1024,7 +1024,7 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 	SmiUnsigned64 min, max;
 
 	min = 0;
-	max = 18446744073709551615U;
+	max = 18446744073709551615ULL;
 
 	fprintStdRestHead( f, smiType );
 	
@@ -1261,7 +1261,7 @@ static void fprintSubRangeType( FILE *f,
 	SmiUnsigned64 min, max;
 
 	min = 0;
-	max = 18446744073709551615U;
+	max = 18446744073709551615ULL;
 
 	if( smiRange->minValue.value.unsigned64 < min ) {
 	    min = smiRange->minValue.value.unsigned64;
