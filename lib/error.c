@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.95 2002/06/19 15:35:10 strauss Exp $
+ * @(#) $Id: error.c,v 1.96 2002/07/17 10:32:14 bunkus Exp $
  */
 
 #include <config.h>
@@ -143,11 +143,11 @@ static Error errors[] = {
     { 3, ERR_MODULE_IDENTITY_NOT_FIRST, "module-identity-not-first", 
       "MODULE-IDENTITY clause must be the first declaration in a module" },
     { 2, ERR_INVALID_SMIV1_STATUS, "status-invalid-smiv1", 
-      "invalid STATUS `%s' in SMIv1 MIB" },
+      "invalid status `%s' in SMIv1 MIB" },
     { 2, ERR_INVALID_SMIV2_STATUS, "status-invalid-smiv2", 
-      "invalid STATUS `%s' in SMIv2 MIB" },
+      "invalid status `%s' in SMIv2 MIB" },
     { 2, ERR_INVALID_CAPABILITIES_STATUS, "status-invalid-capabilities", 
-      "invalid STATUS `%s' in AGENT-CAPABILITIES macro" },
+      "invalid status `%s' in AGENT-CAPABILITIES macro" },
     { 5, ERR_OIDNAME_INCLUDES_HYPHEN, "hyphen-in-object",
       "object identifier name `%s' should not include hyphens in SMIv2 MIB" },
     { 2, ERR_ILLEGAL_CHAR_IN_STRING, "char-illegal-string", 
@@ -485,7 +485,7 @@ static Error errors[] = {
     { 2, ERR_INVALID_SPPI_ACCESS, "access-invalid-sppi", 
       "invalid access `%s' in SPPI PIB" },
     { 2, ERR_INVALID_SPPI_STATUS, "status-invalid-sppi", 
-      "invalid STATUS `%s' in SPPI PIB" },
+      "invalid status `%s' in SPPI PIB" },
     { 2, ERR_INDEX_SHOULD_BE_PIB_INDEX, "",
       "the PIB uses ACCESS where PIB-INDEX is required" },
     { 0, ERR_INDEX_USED_TWICE, "",
@@ -556,6 +556,10 @@ static Error errors[] = {
       "objectPtr->%s is already in use (%s)" },
     { 1, ERR_OID_ADMIN_ZERO, "",
       "last subidentifier assigned to `%s' may not be zero" },
+    { 5, ERR_TYPE_STATUS_DEPRECATED, "type-status-deprecated",
+      "type `%s' used by `%s' is deprecated" },
+    { 5, ERR_TYPE_STATUS_OBSOLETE, "type-status-obsolete",
+      "type `%s' used by `%s' is obsolete" },
     { 0, 0, NULL, NULL }
 };
 
