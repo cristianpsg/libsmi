@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.114 2002/11/18 09:43:14 strauss Exp $
+# @(#) $Id: configure.in,v 1.115 2002/11/29 12:07:41 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -70,9 +70,13 @@ AC_ARG_WITH(mibdir,
 [  --with-mibdir=DIR       use DIR to install libsmi MIB modules [DATADIR/mibs]],
 mibdir="$withval", mibdir="$prefix/share/mibs")
 
+AC_ARG_WITH(pibdir,
+[  --with-pibdir=DIR       use DIR to install libsmi PIB modules [DATADIR/pibs]],
+pibdir="$withval", pibdir="$prefix/share/pibs")
+
 AC_ARG_WITH(smipath,
-[  --with-smipath=DIR:DIR  default DIRs to search for MIB modules [MIBDIR...]],
-smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site:$mibdir/tubs")
+[  --with-smipath=DIR:DIR  default DIRs to search for MIB/PIB modules [MIBDIR...]],
+smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site:$mibdir/tubs:$pibdir/ietf:$pibdir/site:$pibdir/tubs")
 
 AC_DEFINE_UNQUOTED([DEFAULT_SMIPATH], "$smipath",
 [The default search path to lookup SMI module files.])
@@ -239,6 +243,7 @@ AC_SUBST(DIFF)
 AC_SUBST(CC)
 AC_SUBST(CFLAGS)
 AC_SUBST(mibdir)
+AC_SUBST(pibdir)
 AC_SUBST(smipath)
 
 AC_OUTPUT([
@@ -251,6 +256,10 @@ mibs/ietf/Makefile
 mibs/irtf/Makefile
 mibs/tubs/Makefile
 mibs/site/Makefile
+pibs/Makefile
+pibs/ietf/Makefile
+pibs/tubs/Makefile
+pibs/site/Makefile
 test/Makefile
 test/mibs/Makefile
 test/smidiff/Makefile

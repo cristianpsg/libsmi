@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.23 2002/10/24 11:01:50 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.24 2002/11/06 10:35:00 schoenw Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -19,7 +19,7 @@ EXTRA_DIST		= ANNOUNCE \
 			  win/makefile win/GNUmakefile win/win.c win/win.h \
 			  smi.conf-example libsmi.m4 libsmi.pc
 
-SUBDIRS			= lib tools mibs test doc
+SUBDIRS			= lib tools mibs pibs test doc
 
 m4datadir		= $(datadir)/aclocal
 m4data_DATA		= libsmi.m4
