@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.11 2000/02/11 09:50:59 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.12 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -489,8 +489,6 @@ int dumpTypes(char *modulename, int flags)
 {
     SmiModule   *smiModule;
     SmiType     *smiType;
-    SmiNode     *smiNode;
-    SmiNodekind nodekind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     
     currentModule = modulename;
     smiModule = modulename ? smiGetModule(modulename) : NULL;

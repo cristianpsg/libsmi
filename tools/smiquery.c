@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.47 2000/02/12 14:31:55 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.48 2000/02/13 13:20:53 strauss Exp $
  */
 
 #include <config.h>
@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <time.h>
 #include <unistd.h>
 #ifdef HAVE_GETOPT_H

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.80 2000/02/12 14:31:54 strauss Exp $
+ * @(#) $Id: smi.c,v 1.81 2000/02/12 16:23:11 strauss Exp $
  */
 
 #include <config.h>
@@ -64,8 +64,8 @@ static int initialized = 0;
  */
 
 
-
-int allowsNamedNumbers(SmiBasetype basetype)
+#if 0
+static int allowsNamedNumbers(SmiBasetype basetype)
 {
     if ((basetype == SMI_BASETYPE_INTEGER32) ||
 	(basetype == SMI_BASETYPE_BITS)) {
@@ -77,7 +77,7 @@ int allowsNamedNumbers(SmiBasetype basetype)
 
 
 
-int allowsRanges(SmiBasetype basetype)
+static int allowsRanges(SmiBasetype basetype)
 {
     if ((basetype == SMI_BASETYPE_INTEGER32) ||
 	(basetype == SMI_BASETYPE_INTEGER64) ||
@@ -90,11 +90,11 @@ int allowsRanges(SmiBasetype basetype)
 	return 0;
     }
 }
+#endif
 
 
-
-void getModulenameAndName(char *arg1, char *arg2,
-			  char **module, char **name)
+static void getModulenameAndName(char *arg1, char *arg2,
+				 char **module, char **name)
 {
     char	    *p;
     int		    l;
@@ -160,7 +160,7 @@ void getModulenameAndName(char *arg1, char *arg2,
 
 
 
-Node *getNode(unsigned int oidlen, SmiSubid oid[])
+static Node *getNode(unsigned int oidlen, SmiSubid oid[])
 {
     Node *nodePtr, *parentPtr;
     unsigned int i;
@@ -178,8 +178,8 @@ Node *getNode(unsigned int oidlen, SmiSubid oid[])
 
 
 
-Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
-			   SmiNodekind nodekind)
+static Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
+				  SmiNodekind nodekind)
 {
     Node   *nodePtr;
     Object *objectPtr = NULL;
@@ -1072,7 +1072,6 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
     Object	      *objectPtr;
     Import	      *importPtr;
     Node	      *nodePtr;
-    Object	      o;
     
     if (!smiNodePtr) {
 	return NULL;
@@ -1139,10 +1138,6 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 
 SmiNode *smiGetRelatedNode(SmiNode *smiNodePtr)
 {
-    Module	      *modulePtr;
-    Object	      *objectPtr;
-    Node	      *nodePtr;
-    
     if (!smiNodePtr) {
 	return NULL;
     }
@@ -1232,8 +1227,6 @@ SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
 
 SmiNode *smiGetModuleIdentityNode(SmiModule *smiModulePtr)
 {
-    Module	      *modulePtr;
-    
     if (!smiModulePtr) {
 	return NULL;
     }
@@ -1283,11 +1276,7 @@ SmiElement *smiGetFirstElement(SmiNode *smiNodePtr)
 
 SmiElement *smiGetNextElement(SmiElement *smiElementPtr)
 {
-    Module	      *modulePtr;
-    Object	      *listObjectPtr;
     List	      *listPtr;
-    SmiIdentifier     listname;
-    int		      number, i;
     
     if (!smiElementPtr) {
 	return NULL;
@@ -1332,10 +1321,7 @@ SmiOption *smiGetFirstOption(SmiNode *smiComplianceNodePtr)
 
 SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
 {
-    Module	      *modulePtr;
-    Object	      *objectPtr;
     List	      *listPtr;
-    SmiIdentifier     compliance;
     
     if (!smiOptionPtr) {
 	return NULL;
@@ -1391,10 +1377,7 @@ SmiRefinement *smiGetFirstRefinement(SmiNode *smiComplianceNodePtr)
 
 SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr)
 {
-    Module	      *modulePtr;
-    Object	      *objectPtr;
     List	      *listPtr;
-    SmiIdentifier     module, node, compliance;
     
     if (!smiRefinementPtr) {
 	return NULL;

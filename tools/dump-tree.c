@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.8 2000/02/11 09:50:59 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.9 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -42,6 +42,8 @@ static char *getFlags(SmiNode *smiNode)
 	return "r-n";
     case SMI_ACCESS_READ_WRITE:
 	return "rwn";
+    case SMI_ACCESS_NOT_IMPLEMENTED:
+	return "---";
     }
 
     return "";

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-dia.c,v 1.2 2000/02/16 21:14:59 strauss Exp $
+ * @(#) $Id: dump-dia.c,v 1.3 2000/02/17 09:00:54 strauss Exp $
  */
 
 #include <config.h>
@@ -34,7 +34,6 @@
 
 static char *getTypeName(SmiNode *smiNode)
 {
-    char *type;
     SmiType *smiType, *parentType;
 
     smiType = smiGetNodeType(smiNode);
@@ -71,7 +70,7 @@ static int isGroup(SmiNode *smiNode)
 
 
 
-static printAssiciation(SmiNode *node, SmiNode *relatedNode)
+static void printAssiciation(SmiNode *node, SmiNode *relatedNode)
 {
     int conn;
     SmiNode *parentNode, *columnNode;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.65 2000/02/12 10:56:20 strauss Exp $
+ * @(#) $Id: data.c,v 1.66 2000/02/14 17:18:26 strauss Exp $
  */
 
 #include <config.h>
@@ -152,10 +152,9 @@ isInView(modulename)
  */
 
 Module *
-addModule(modulename, path, fileoffset, flags, parserPtr)
+addModule(modulename, path, flags, parserPtr)
     char	      *modulename;
     char	      *path;
-    off_t	      fileoffset;
     ModuleFlags	      flags;
     Parser	      *parserPtr;
 {
@@ -172,7 +171,6 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     modulePtr->export.reference			= NULL;
 
     modulePtr->lastUpdated			= 0;
-    modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
     modulePtr->objectPtr			= NULL;
     
@@ -715,7 +713,6 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->export.nodekind		= SMI_NODEKIND_UNKNOWN;
 					
     objectPtr->modulePtr		= modulePtr;
-    objectPtr->fileoffset		= -1;
     objectPtr->nodePtr			= NULL;
     objectPtr->prevSameNodePtr		= NULL;
     objectPtr->nextSameNodePtr		= NULL;
@@ -815,7 +812,6 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->export.nodekind			= SMI_NODEKIND_UNKNOWN;
 						
     objectPtr->modulePtr		        = modulePtr;
-    objectPtr->fileoffset			= -1;
     objectPtr->nodePtr				= nodePtr;
     objectPtr->prevSameNodePtr			= NULL;
     objectPtr->nextSameNodePtr			= NULL;
@@ -1409,32 +1405,6 @@ setObjectUnits(objectPtr, units)
 {
     if (objectPtr->export.units) util_free(objectPtr->export.units);
     objectPtr->export.units = units;
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * setObjectFileOffset --
- *
- *      Set the fileoffset of a given Object.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-setObjectFileOffset(objectPtr, fileoffset)
-    Object      *objectPtr;
-    off_t       fileoffset;
-{
-    objectPtr->fileoffset = fileoffset;
 }
 
 
@@ -2308,7 +2278,6 @@ setTypeName(typePtr, name)
 	    
 	    type2Ptr->parentPtr    = typePtr->parentPtr;
 	    type2Ptr->listPtr      = typePtr->listPtr;
-	    type2Ptr->fileoffset   = typePtr->fileoffset;
 	    type2Ptr->flags        = typePtr->flags;
 	    type2Ptr->line         = typePtr->line;
 
@@ -2536,32 +2505,6 @@ setTypeUnits(typePtr, units)
 {
     if (typePtr->export.units) util_free(typePtr->export.units);
     typePtr->export.units = units;
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * setTypeFileOffset --
- *
- *      Set the fileoffset of a given Type.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-setTypeFileOffset(typePtr, fileoffset)
-    Type     *typePtr;
-    off_t    fileoffset;
-{
-    typePtr->fileoffset = fileoffset;
 }
 
 
@@ -2848,9 +2791,8 @@ findTypeByModuleAndName(modulePtr, typename)
  *---------------------------------------------------------------------- */
 
 Macro *
-addMacro(macroname, fileoffset, flags, parserPtr)
+addMacro(macroname, flags, parserPtr)
     const char    *macroname;
-    off_t	  fileoffset;
     MacroFlags	  flags;
     Parser	  *parserPtr;
     
@@ -2870,7 +2812,6 @@ addMacro(macroname, fileoffset, flags, parserPtr)
     macroPtr->export.reference   = NULL;
 
     macroPtr->modulePtr   	 = parserPtr->modulePtr;
-    macroPtr->fileoffset  	 = fileoffset;
     macroPtr->flags       	 = flags;
     macroPtr->line	  	 = parserPtr ? parserPtr->line : -1;
     
@@ -2963,32 +2904,6 @@ setMacroReference(macroPtr, reference)
 {
     if (macroPtr->export.reference) util_free(macroPtr->export.reference);
     macroPtr->export.reference = reference;
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * setMacroFileOffset --
- *
- *      Set the fileoffset of a given Macro.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-setMacroFileOffset(macroPtr, fileoffset)
-    Macro    *macroPtr;
-    off_t    fileoffset;
-{
-    macroPtr->fileoffset = fileoffset;
 }
 
 
@@ -3186,23 +3101,23 @@ initData()
     parser.flags		= smiFlags;
     parser.file			= NULL;
     parser.line			= -1;
-    parser.modulePtr = addModule(util_strdup(""), util_strdup(""), 0, 0, NULL);
+    parser.modulePtr = addModule(util_strdup(""), util_strdup(""), 0, NULL);
 
     addView("");
 
     objectPtr = addObject("ccitt", rootNodePtr, 0, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
-	util_calloc(1, sizeof(int));
+	util_malloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 0;
     objectPtr = addObject("iso", rootNodePtr, 1, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
-	util_calloc(1, sizeof(int));
+	util_malloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 1;
     objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
-	util_calloc(1, sizeof(int));
+	util_malloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 2;
     
@@ -3324,7 +3239,7 @@ freeData()
 	    util_free(macroPtr);
 	}
 
-#if 0
+#if 1
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = nextTypePtr) {
 	    nextTypePtr = typePtr->nextPtr;
@@ -3510,8 +3425,6 @@ loadModule(modulename)
 	}
 	smiDepth++;
 	parser.line			= 1;
-	parser.column			= 1;
-	parser.character		= 1;
 	smiparse((void *)&parser);
 	if (parser.flags & SMI_FLAG_STATS) {
 	    sprintf(s, "(%d lines)", parser.line-1);
@@ -3540,8 +3453,6 @@ loadModule(modulename)
 	}
 	smiDepth++;
 	parser.line			= 1;
-	parser.column			= 1;
-	parser.character		= 1;
 	smingparse((void *)&parser);
 	if (parser.flags & SMI_FLAG_STATS) {
 	    sprintf(s, "(%d lines)", parser.line-1);

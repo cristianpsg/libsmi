@@ -4,7 +4,7 @@
  *      Operations to dump CORBA IDL and OID definitions. This is based
  *	on the JIDM Specification Translation developed by the JIDM task
  *	force, published as Open Group <URL:http://www.opengroup.org/>
- *	as document C802 (ISBN 1-85912-256-6, January 2000).
+ *	document C802 (ISBN 1-85912-256-6, January 2000).
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 1999 J. Schoenwaelder, Technical University of Braunschweig.
@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.16 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.17 2000/02/13 13:20:53 strauss Exp $
  */
 
 #include <config.h>
@@ -549,40 +549,44 @@ static void printSegment(int column, char *string, int length)
 
 static void printMultilineString(const char *s)
 {
-    int i;
+    int i, len;
     
     printSegment(INDENTTEXTS - 1, "\"", 0);
     if (s) {
-	for (i=0; i < strlen(s); i++) {
-	    if (s[i] != '\n') {
-		print("%c", s[i]);
-	    } else {
-		print("\n");
+	len = strlen(s);
+	for (i=0; i < len; i++) {
+	    putc(s[i], stdout);
+	    current_column++;
+	    if (s[i] == '\n') {
+		current_column = 0;
 		printSegment(INDENTTEXTS, "", 0);
 	    }
 	}
     }
-    print("\"");
+    putc('\"', stdout);
+    current_column++;
 }
 
 
 
 static void printMultiline(const char *s)
 {
-    int i;
+    int i, len;
     
     printSegment(INDENTTEXTS, "", 0);
     if (s) {
-	for (i=0; i < strlen(s); i++) {
-	    if (s[i] != '\n') {
-		print("%c", s[i]);
-	    } else {
-		print("\n");
+	len = strlen(s);
+	for (i=0; i < len; i++) {
+	    putc(s[i], stdout);
+	    current_column++;
+	    if (s[i] == '\n') {
+		current_column = 0;
 		printSegment(INDENTTEXTS, "", 0);
 	    }
 	}
     }
-    print("\n");
+    putc('\n', stdout);
+    current_column++;
 }
 
 
@@ -886,8 +890,8 @@ static void printAttribute(SmiNode *smiNode)
 	return;
     }
 
-    idlNodeName = getIdlNodeName(smiGetNodeModule(smiNode)->name,
-				 smiNode->name);
+    smiModule = smiGetNodeModule(smiNode);
+    idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
     if (! silent) {
 	printDescription(smiNode, 2*INDENT);
     }
@@ -906,9 +910,10 @@ static void printGroupInterface(SmiNode *smiNode)
 {
     SmiNode *childNode;
     char *idlNodeName;
+    SmiModule *smiModule, *childModule;
 
-    idlNodeName = getIdlNodeName(smiGetNodeModule(smiNode)->name,
-				 smiNode->name);
+    smiModule = smiGetNodeModule(smiNode);
+    idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
     printSegment(INDENT, "interface", 0);
     print(" %s : SNMPMgmt::SmiEntry {\n", idlNodeName);
 
@@ -921,9 +926,9 @@ static void printGroupInterface(SmiNode *smiNode)
 		printDescription(childNode, 2*INDENT);
 	    }
 	    printSegment(2*INDENT, "SNMPMgmt::SmiTableIterator", 0);
-	    print(" get_%s();\n",
-		  getIdlNodeName(smiGetNodeModule(childNode)->name,
-				 childNode->name));
+	    childModule = smiGetNodeModule(childNode);
+	    print(" get_%s();\n", getIdlNodeName(childModule->name,
+						 childNode->name));
 	}
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR
 	    && current(childNode->status)) {
@@ -1010,8 +1015,8 @@ static void printConstructor(SmiNode *smiNode)
     char    *idlChildNodeName, *idlChildTypeName;
     int	    cnt = 0;
 
-    idlNodeName = getIdlNodeName(smiGetNodeModule(smiNode)->name,
-				 smiNode->name);
+    smiModule = smiGetNodeModule(smiNode);
+    idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
 
     print("\n");
     printSegment(2*INDENT, "", 0);
@@ -1081,7 +1086,6 @@ static void printNotificationVBTypes(SmiModule *smiModule)
     SmiNode     *smiNode, *listSmiNode;
     SmiElement  *smiElement;
     SmiType	*smiType;
-    SmiModule   *smiModule2;
     char	*idlTypeName;
     char	*idlVBTypeName;
     int		isnew;
@@ -1259,7 +1263,6 @@ static void printDefVals(SmiModule *smiModule)
 {
     SmiNode *smiNode;
     SmiType *smiType;
-    SmiModule *smiModule2;
     int     cnt = 0;
     char    *idlTypeName;
     

@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.10 1999/12/14 15:02:58 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.11 1999/12/22 14:44:02 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -55,7 +55,7 @@ parser-sming.tab.c: parser-sming.y scanner-sming.h parser-sming.h
 
 scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
 	@if [ "$(FLEX)" ] ; then \
-	    "$(FLEX)" -Psmi -t scanner-smi.l > scanner-smi.c ; \
+	    "$(FLEX)" -Cfe -Psmi -t scanner-smi.l > scanner-smi.c ; \
 	else \
 	    echo "" ; \
 	    echo "NOTE: we cannot build the new scanner-smi.c from scanner-smi.l" ; \
@@ -64,7 +64,7 @@ scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
 
 scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
 	@if [ "$(FLEX)" ] ; then \
-	    "$(FLEX)" -Psming -t scanner-sming.l > scanner-sming.c ; \
+	    "$(FLEX)" -Cfe -Psming -t scanner-sming.l > scanner-sming.c ; \
 	else \
 	    echo "" ; \
 	    echo "NOTE: we cannot build the new scanner-sming.c from scanner-sming.l" ; \
