@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.30 2001/11/13 18:38:39 tklie Exp $ 
+ * @(#) $Id: smidiff.c,v 1.31 2001/11/14 15:16:03 tklie Exp $ 
  */
 
 #include <config.h>
@@ -91,9 +91,9 @@ typedef struct Error {
 #define ERR_REVISION_ADDED		44
 #define ERR_REVISION_REMOVED		45
 #define ERR_REVISION_CHANGED		46
-#define ERR_SUBRANGE_REMOVED            47
-#define ERR_SUBRANGE_ADDED              48
-#define ERR_SUBRANGE_OF_TYPE_ADDED      49
+#define ERR_LENGTH_CHANGED              47
+#define ERR_LENGTH_OF_TYPE_CHANGED      48
+#define ERR_LENGTH_ADDED                49
 #define ERR_MEMBER_ADDED		50
 #define ERR_MEMBER_REMOVED		51
 #define ERR_MEMBER_CHANGED		52
@@ -117,14 +117,12 @@ typedef struct Error {
 #define ERR_NAMED_NUMBER_TO_TYPE_ADDED  70
 #define ERR_NAMED_NUMBER_OF_TYPE_CHANGED 71
 #define ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE 72
-#define ERR_SUBRANGE_OF_TYPE_REMOVED    73
+#define ERR_LENGTH_REMOVED              73
 #define ERR_PREVIOUS_IMPLICIT_DEFINITION 74
 #define ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT 75
 #define ERR_STATUS_CHANGED_IMPLICIT     76
-#define ERR_LENGTH_REMOVED              77
-#define ERR_LENGTH_ADDED                78
-#define ERR_LENGTH_OF_TYPE_REMOVED      79
-#define ERR_LENGTH_OF_TYPE_ADDED        80
+#define ERR_LENGTH_OF_TYPE_ADDED        77
+#define ERR_LENGTH_OF_TYPE_REMOVED      78
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -219,12 +217,12 @@ static Error errors[] = {
       "revision `%s' removed" },
     { 3, ERR_REVISION_CHANGED, "revision-changed",
       "revision `%s' changed" },
-    { 3, ERR_SUBRANGE_ADDED, "range-added",
-      "subrange `%s' added to type used in `%s'" },
-    { 3, ERR_SUBRANGE_REMOVED, "range-removed",
-      "subrange `%s' removed from type used in `%s'" },
-    { 3, ERR_SUBRANGE_OF_TYPE_ADDED, "range-added",
-      "subrange `%s' added to type `%s'" },
+    { 3, ERR_LENGTH_CHANGED, "range-changed",
+      "size of type used in `%s' changed from `%s' to `%s'" },
+    { 3, ERR_LENGTH_OF_TYPE_CHANGED, "range-changed",
+      "size of type `%s' changed from `%s' to `%s'" },
+    { 3, ERR_LENGTH_ADDED, "range-added",
+      "size `%s' added to type used in `%s'" },
     { 2, ERR_MEMBER_ADDED, "member-added",
       "member `%s' added" },
     { 2, ERR_MEMBER_REMOVED, "member-removed",
@@ -245,6 +243,8 @@ static Error errors[] = {
       "named number `%s' changed to `%s' at type used in `%s'" },
     { 3, ERR_NAMED_BIT_ADDED_OLD_BYTE, "named-bit-added-old-byte",
       "named bit `%s' added without starting in a new byte in type used in `%s'" },
+     { 3, ERR_LENGTH_REMOVED, "range-removed",
+      "size `%s' removed from type used in `%s'" },
     { 2, ERR_NODEKIND_CHANGED, "nodekind-changed",
       "node kind of `%s' changed" },
     { 2, ERR_INDEXKIND_CHANGED, "indexkind-changed",
@@ -271,22 +271,16 @@ static Error errors[] = {
       "named number `%s' changed to `%s' in type `%s'" },
     { 3, ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE, "named-bit-added-old-byte",
       "named bit `%s' added without starting in a new byte in type `%s'" },
-    { 3, ERR_SUBRANGE_OF_TYPE_REMOVED, "range-removed",
-      "subrange `%s' removed from type `%s'" },
     { 6, ERR_PREVIOUS_IMPLICIT_DEFINITION, "previous-definition",
       "previous implicit definition" },
     { 2, ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT, "status-change-error",
       "illegal status change from `%s' to `%s' for implicit type" },
     { 5, ERR_STATUS_CHANGED_IMPLICIT, "status-changed",
       "legal status change from `%s' to `%s' for implicit type" },
-    { 3, ERR_LENGTH_REMOVED, "range-removed",
-      "string length(s) `%s' removed from type used in `%s'" },
-    { 3, ERR_LENGTH_ADDED, "range-added",
-      "string length(s) `%s' added to type used in `%s'" },
-    { 3, ERR_LENGTH_OF_TYPE_REMOVED, "range-removed",
-      "string length(s) `%s' removed from type `%s'" },
     { 3, ERR_LENGTH_OF_TYPE_ADDED, "range-added",
-      "string length(s) `%s' added to type `%s'" },
+      "size `%s' added to type `%s'" },
+    { 3, ERR_LENGTH_OF_TYPE_REMOVED, "range-removed",
+      "size `%s' removed from type `%s'" },
     { 0, 0, NULL, NULL }
 };
 
@@ -963,24 +957,14 @@ getStringRange( SmiType *smiType )
 	range; i++, range = smiGetNextRange(range)) {
 	
 	if (i) {
-	    if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
-		str = realloc( str, strlen( str ) + 3 );
-		if( str ) {
-		    sprintf(str, "%s|(", str);
-		}
+	    str = realloc( str, strlen( str ) +2 );
+	    if( str ) {
+		sprintf(str, "%s|", str);
 	    }
-	    else {
-		str = realloc( str, strlen( str ) +2 );
-		if( str ) {
-		    sprintf(str, "%s|", str);
-		}
-	    }
-	} else {
-	    if (smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
-		str = strdup("(SIZE(");
-	    } else {
-		str = strdup("(");
-	    }
+	    
+	}
+	else {
+	    str = strdup("(");
 	}
 	
 	subRange = getStringSubrange( range, smiType );
@@ -993,19 +977,44 @@ getStringRange( SmiType *smiType )
 	}
 	sprintf( str, "%s%s", str, subRange );
 	
-	if ( smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
-	    
-	    str = realloc( str, strlen( str ) + 2 );
-	    if( str ) {
-		sprintf(str, "%s)", str);
-	    }
-	}
     }
     str = realloc( str, strlen( str ) + 2 );
     if( str ) {
 	sprintf(str, "%s)", str);
     }
     return str;
+}
+
+static void
+printRangeChangeError( SmiType *oldTwR, SmiType *newTwR,
+		       SmiModule *newModule, char *name )
+{
+    char *strOldRange, *strNewRange;
+    int error, errorOT;
+    if( newTwR->basetype == SMI_BASETYPE_OCTETSTRING ) {
+	error =  ERR_LENGTH_CHANGED;
+	errorOT = ERR_LENGTH_OF_TYPE_CHANGED;
+    }
+    else {
+	error = ERR_RANGE_CHANGED;
+	errorOT = ERR_RANGE_OF_TYPE_CHANGED;
+    }
+    strOldRange = getStringRange( oldTwR );
+    strNewRange = getStringRange( newTwR );
+    if( name ) {
+	printErrorAtLine(newModule,
+			 error,
+			 smiGetTypeLine( newTwR ),
+			 name, strOldRange, strNewRange );
+    }
+    else {
+	printErrorAtLine(newModule,
+			 errorOT,
+			 smiGetTypeLine( newTwR ),
+			 oldTwR->name, strOldRange, strNewRange );
+    }
+    free( strOldRange );
+    free( strNewRange );
 }
 
 static void
@@ -1021,14 +1030,23 @@ checkRanges(SmiModule *oldModule, int oldLine,
     
     if (!oldTwR && newTwR) {
 	char *strRange;
+	int error, errorOT;
 
 	strRange = getStringRange( newTwR );
+	if( newTwR->basetype == SMI_BASETYPE_OCTETSTRING ) {
+	    error = ERR_LENGTH_ADDED;
+	    errorOT = ERR_LENGTH_OF_TYPE_ADDED;
+	}
+	else {
+	    error = ERR_RANGE_ADDED;
+	    errorOT = ERR_RANGE_OF_TYPE_ADDED;
+	}
 	if( name ) {
-	    printErrorAtLine(newModule, ERR_RANGE_ADDED,
+	    printErrorAtLine(newModule, error,
 			     newLine, strRange, name);
 	}
 	else {
-	    printErrorAtLine( newModule, ERR_RANGE_OF_TYPE_ADDED,
+	    printErrorAtLine( newModule, errorOT,
 			      newLine, strRange, newTwR->name );
 	}
 	
@@ -1038,14 +1056,23 @@ checkRanges(SmiModule *oldModule, int oldLine,
     
     if (oldTwR && !newTwR) {
 	char *strRange;
+	int error, errorOT;
 	
 	strRange = getStringRange( oldTwR );
+	if( oldTwR->basetype == SMI_BASETYPE_OCTETSTRING ) {
+	    error = ERR_LENGTH_REMOVED;
+	    errorOT = ERR_LENGTH_OF_TYPE_REMOVED;
+	}
+	else {
+	    error = ERR_RANGE_REMOVED;
+	    errorOT = ERR_RANGE_OF_TYPE_REMOVED;
+	}
 	if( name ) {
-	    printErrorAtLine( newModule, ERR_RANGE_REMOVED,
+	    printErrorAtLine( newModule, error,
 			      newLine, strRange, name);
 	}
 	else {
-	    printErrorAtLine( newModule, ERR_RANGE_OF_TYPE_REMOVED,
+	    printErrorAtLine( newModule, errorOT,
 			      newLine, strRange, oldTwR->name );
 	}
 	free( strRange );
@@ -1081,84 +1108,19 @@ checkRanges(SmiModule *oldModule, int oldLine,
 		
 		if(cmpSmiValues(oldRange->minValue, newRange->minValue) ||
 		   cmpSmiValues(oldRange->maxValue, newRange->maxValue)) {
-
-		    char *oldStrRange, *newStrRange;
-
-		    oldStrRange = getStringRange( oldTwR );
-		    newStrRange = getStringRange( newTwR );
-		    if( name ) {
-			printErrorAtLine(newModule,
-					 ERR_RANGE_CHANGED,
-					 smiGetTypeLine( newType ),
-					 name, oldStrRange, newStrRange);  
-		    }
-		    else {
-			printErrorAtLine(newModule,
-					 ERR_RANGE_OF_TYPE_CHANGED,
-					 smiGetTypeLine( newType ),
-					 newType->name,
-					 oldStrRange, newStrRange);
-		    }
-		    free( oldStrRange );
-		    free( newStrRange );
-		    
+		    printRangeChangeError( oldTwR, newTwR, newModule, name );
 		    return;
 		}
 	    }
 	    
 	    else if (oldRange){
-		char *strRange;
-		int error, errorOT;
-		if( newTwR->basetype == SMI_BASETYPE_OCTETSTRING ) {
-		    error =  ERR_LENGTH_REMOVED;
-		    errorOT = ERR_LENGTH_OF_TYPE_REMOVED;
-		}
-		else {
-		    error = ERR_SUBRANGE_REMOVED;
-		    errorOT = ERR_SUBRANGE_OF_TYPE_REMOVED;
-		}
-		strRange = getStringSubrange( oldRange, oldTwR );
-		if( name ) {
-		    printErrorAtLine(newModule,
-				     error,
-				     smiGetTypeLine( newTwR ),
-				     strRange, name);
-		}
-		else {
-		    printErrorAtLine(newModule,
-				     errorOT,
-				     smiGetTypeLine( newTwR ),
-				     strRange, oldTwR->name);
-		}
-		free( strRange );
+		printRangeChangeError( oldTwR, newTwR, newModule, name );
+		return;
 	    }
 	    
 	    else if( newRange ) {
-		char *strRange;
-		int error, errorOT;
-		
-		if( newTwR->basetype == SMI_BASETYPE_OCTETSTRING ) {
-		    error =  ERR_LENGTH_ADDED;
-		    errorOT = ERR_LENGTH_OF_TYPE_ADDED;
-		}
-		else {
-		    error = ERR_SUBRANGE_ADDED;
-		    errorOT = ERR_SUBRANGE_OF_TYPE_ADDED;
-		}
-		strRange = getStringSubrange( newRange, newTwR );
-		if( name ) {
-		    printErrorAtLine(newModule,
-				     error,
-				     smiGetTypeLine( newType ),
-				     strRange, name);
-		}
-		else {
-		    printErrorAtLine(newModule,
-				     errorOT,
-				     smiGetTypeLine( newType ),
-				     strRange, newType->name);
-		}
-		free( strRange );
+		printRangeChangeError( oldTwR, newTwR, newModule, name );
+		return;
 	    }
 	    
 	    oldRange = smiGetNextRange( oldRange );
