@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.113 2003/04/30 11:06:47 strauss Exp $
+ * @(#) $Id: error.c,v 1.114 2003/05/14 10:55:33 strauss Exp $
  */
 
 #include <config.h>
@@ -66,22 +66,23 @@ typedef struct Error {
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
       "internal error!",
-      "An internal error in the libsmi core, which is not further specified\n"
-      "occured. This is not related to a bug in a MIB or any unexpected\n"
-      "circumstances of your system environment. Please submit a detailed\n"
-      "bug report to the libsmi maintainer."},
+      "An internal error occured in the libsmi core, which is not further\n"
+      "specified. This is most likely not related to a bug in a MIB module\n"
+      "or any unexpected circumstances of your system environment. Please\n"
+      "submit a detailed bug report to the libsmi maintainer and the libsmi\n"
+      "mailing list at <libsmi@ibr.cs.tu-bs.de>."},
     { 0, ERR_MAX_LEX_DEPTH, "", 
       "maximum IMPORTS nesting, probably a loop?",
-      "When a parsed module imports another module that has not yet been\n"
-      "parsed, at that point a new parser instance is created to\n"
-      "recursively read the imported one. The maximum depth of these\n"
-      "recursive imports is limited (30). Usually this limit should\n"
-      "never be reached. However, this error might occur, when modules\n"
-      "illegally import definitions in a loop."},
+      "A new parser instance is created whenever a module imports from\n"
+      "another module that has not yet been parsed. This might lead to\n"
+      "recursive creation of parser instancesin case of recursive imports.\n"
+      "The maximum depth of these recursive imports is limited (30).\n"
+      "Usually this limit should never be reached. However, this error\n"
+      "might occur when modules illegally import definitions in a loop."},
     { 0, ERR_OUT_OF_MEMORY, "memory", 
       "out of memory (internal error!)",
       "Libsmi needs to allocate memory dynamically during runtime, but\n"
-      "the system ran out of memory."},
+      "the system did run out of memory."},
     { 1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
       "lexically unexpected character, skipping to end of line", NULL},
     { 1, ERR_OTHER_ERROR, "other", 

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.48 2003/04/30 08:41:36 strauss Exp $
+ * @(#) $Id: check.c,v 1.49 2003/04/30 10:39:32 strauss Exp $
  */
 
 #include <config.h>
@@ -357,7 +357,7 @@ smiCheckTypeName(Parser *parser, Module *module, char *name, int line)
  *      Check whether a format specification is valid.
  *
  * Results:
- *      None.
+ *      Returns 1 of the format is acceptable and 0 otherwise.
  *
  * Side effects:
  *      None.
@@ -365,7 +365,7 @@ smiCheckTypeName(Parser *parser, Module *module, char *name, int line)
  *----------------------------------------------------------------------
  */
 
-void
+int
 smiCheckFormat(Parser *parser, SmiBasetype basetype, char *format, int line)
 {
     int n, repeat, error = 1;
@@ -427,6 +427,8 @@ smiCheckFormat(Parser *parser, SmiBasetype basetype, char *format, int line)
 	    smiPrintError(parser, ERR_INVALID_FORMAT, format);
 	}
     }
+
+    return ! error;
 }
 
 

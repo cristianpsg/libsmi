@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.70 2002/04/22 15:09:15 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.71 2002/12/06 18:37:46 strauss Exp $
  */
 
 %{
@@ -1016,9 +1016,10 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			}
 			formatStatement_stmtsep_01
 			{
-			    if (typePtr && $13) {
-                                smiCheckFormat(thisParserPtr,
-					       typePtr->export.basetype, $13, 0);
+			    if (typePtr && $13
+				&& smiCheckFormat(thisParserPtr,
+						  typePtr->export.basetype,
+						  $13, 0)) {
 				setTypeFormat(typePtr, $13);
 			    }
 			}
@@ -1218,9 +1219,10 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			}
 			formatStatement_stmtsep_01
 			{
-			    if (scalarObjectPtr && $19) {
-				smiCheckFormat(thisParserPtr,
-					       $11->export.basetype, $19, 0);
+			    if (scalarObjectPtr && $19
+				&& smiCheckFormat(thisParserPtr,
+						  $11->export.basetype,
+						  $19, 0)) {
 				setObjectFormat(scalarObjectPtr, $19);
 			    }
 			}
@@ -1475,9 +1477,10 @@ columnStatement:	columnKeyword sep lcIdentifier
 			}
 			formatStatement_stmtsep_01
 			{
-			    if (columnObjectPtr && $19) {
-                                smiCheckFormat(thisParserPtr,
-					       $11->export.basetype, $19, 0);
+			    if (columnObjectPtr && $19
+                                && smiCheckFormat(thisParserPtr,
+						  $11->export.basetype,
+						  $19, 0) {
 				setObjectFormat(columnObjectPtr, $19);
 			    }
 			}
