@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.3 1998/11/10 20:25:45 strauss Exp $
+ * @(#) $Id: error.c,v 1.4 1998/11/17 16:09:18 strauss Exp $
  */
 
 #include <string.h>
@@ -189,6 +189,8 @@ Error errors[] = {
       "Unknown type `%s'" },
     { 1, ERR_LOCATION,
       "Opening MIB directory or file `%s': %s" },
+    { 1, ERR_UNKNOWN_LOCATION_TYPE,
+      "Unknown MIB location type `%s'" },
  
     { 0, 0, NULL }
 };

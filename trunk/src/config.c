@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: config.c,v 1.2 1998/11/10 20:25:44 strauss Exp $
+ * @(#) $Id: config.c,v 1.3 1998/11/17 16:09:16 strauss Exp $
  */
 
 #include <stdio.h>
@@ -20,13 +20,22 @@
 #endif
 
 #include "defs.h"
+#include "smi.h"
 #include "config.h"
 #include "error.h"
+
+#ifdef PARSER
 #include "scanner.h"
 #include "parser-bison.h"
 #include "data.h"
+#endif
 
+
+
+#ifdef PARSER
 extern int yydebug;
+#endif
+
 
 
 int
@@ -48,13 +57,17 @@ readConfig(filename, flags)
 	    sscanf(line, "%s %s %s", cmd, arg1, arg2);
 	    if (cmd[0] == '#') continue;
 	    if (!strcmp(cmd, "directory")) {
-		addLocation(arg1, *flags);
+		smiAddLocation(arg1);
 	    } else if (!strcmp(cmd, "loglevel")) {
 		errorLevel = atoi(arg1);
 	    } else if (!strcmp(cmd, "debuglevel")) {
 		debugLevel = atoi(arg1);
 	    } else if (!strcmp(cmd, "yydebug")) {
+#ifdef PARSER
 		yydebug = atoi(arg1);
+#else
+		;
+#endif
 	    } else if (!strcmp(cmd, "statistics")) {
 		if (atoi(arg1))
 		    *flags |= FLAG_STATS;

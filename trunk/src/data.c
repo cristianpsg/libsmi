@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.14 1998/11/16 09:00:08 strauss Exp $
+ * @(#) $Id: data.c,v 1.15 1998/11/17 16:09:17 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -84,9 +84,6 @@
 
 
 
-Location	*firstLocation;		/* List of directories to search for */
-Location	*lastLocation;		/* MIB files.                        */
-
 Descriptor	*firstDescriptor[NUM_KINDS];
 Descriptor	*lastDescriptor[NUM_KINDS];
 					/* List of known Descriptors (OID    */
@@ -97,153 +94,6 @@ MibNode		*rootMibNode;
 MibNode		*pendingRootMibNode;
 
 Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
-
-
-
-/*
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- *
- * File and directory functions.
- *
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- */
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * addLocation --
- *
- *      Add a location (directory, file or RPC) to the list of
- *	locations to search for MIB module files.
- *
- * Results:
- *      A pointer to the new Location structure or
- *	NULL if terminated due to an error.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-Location *
-addLocation(loc, flags)
-    const char *loc;
-    Flags flags;
-{
-    Location *location;
-    struct stat st;
-    
-    printDebug(4, "addLocation(\"%s\")\n", loc);
-
-    location = (Location *)malloc(sizeof(Location));
-    if (!location) {
-	printError(NULL, ERR_ALLOCATING_LOCATION, strerror(errno));
-	return (NULL);
-    }
-    
-    if (strstr(loc, "smirpc://") == loc) {
-	location->type = LOCATION_RPC;
-	location->name = strdup(&loc[9]);
-    } else {
-	if (stat(loc, &st)) {
-	    printError(NULL, ERR_LOCATION, loc, strerror(errno));
-	} else {
-	    if (S_ISDIR(st.st_mode)) {
-		location->type = LOCATION_DIR;
-		location->name = strdup(loc);
-	    } else {
-		location->type = LOCATION_FILE;
-		location->name = strdup(loc);
-		readMibFile(loc, "", flags | FLAG_WHOLEFILE);
-	    }
-	}
-    }
-    
-    location->prev = lastLocation;
-    location->next = NULL;
-    if (lastLocation) {
-	lastLocation->next = location;
-    } else {
-	firstLocation = location;
-    }
-    lastLocation = location;
-    
-    return (location);
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * findLocationByModulename --
- *
- *      Lookup a location structure by a given MIB module name.
- *
- * Results:
- *      A pointer to a location structure containing the MIB module or
- *	NULL if it's not found.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-Location *
-findLocationByModulename(name)
-    const char *name;
-{
-    struct stat buf;
-    Location *location;
-    Module *module;
-    char *path;
-    
-    printDebug(4, "findLocationByModulename(\"%s\")\n", name);
-
-    for (location = firstLocation; location; location = location->next) {
-
-	if (location->type == LOCATION_DIR) {
-
-	    path = malloc(strlen(location->name)+strlen(name)+6);
-	    
-	    sprintf(path, "%s/%s", location->name, name);
-	    if (!stat(path, &buf)) {
-		free(path);
-		return location;
-	    }
-	    
-	    sprintf(path, "%s/%s.my", location->name, name);
-	    if (!stat(path, &buf)) {
-		free(path);
-		return location;
-	    }
-	    
-	} else if (location->type == LOCATION_FILE) {
-
-	    /* TODO */
-	    module = findModuleByName(name);
-	    if (module && (!strcmp(module->path, location->name))) {
-		return location;
-	    }
-	    
-	} else if (location->type == LOCATION_RPC) {
-
-	    /* TODO */
-
-	}
-
-    }
-    
-    return NULL;
-}
 
 
 
@@ -2210,7 +2060,6 @@ initData()
     int i;
     MibNode *node;
     
-    firstLocation = NULL;
     for (i = 0; i < NUM_KINDS; i++) {
 	firstDescriptor[i] = NULL;
 	lastDescriptor[i] = NULL;

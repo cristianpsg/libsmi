@@ -1,11 +1,11 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.4 1998/11/10 14:41:43 strauss Exp $
+# @(#) $Id: Makefile,v 1.5 1998/11/10 20:25:43 strauss Exp $
 #
 
 CC	= gcc
-CFLAGS	= -Wall -g -DTEXTS_IN_MEMORY=200
+CFLAGS	= -Wall -g -DTEXTS_IN_MEMORY=200 -DPARSER
 
 # We need flex and bison. Lex and yacc do not work.
 LEX	= flex
