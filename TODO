@@ -97,3 +97,8 @@ o RFC 1158 is not even SMIv1. It contains tables without INDEX constructs
   module or fix other modules' imports? (Frank prefers the first, Juergen
   the latter?)
 
+o Bert Helthuis: add error level to error messages.
+
+o Bert Helthuis: Don't send errors to stderr, instead support something like
+  smi_errno and smi_errorstring. But: How to handle multiple errors?
+  
