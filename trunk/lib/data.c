@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.12 1999/03/29 14:02:24 strauss Exp $
+ * @(#) $Id: data.c,v 1.13 1999/03/29 22:34:02 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -673,6 +673,7 @@ checkImports(modulename, parserPtr)
 		importPtr->module = util_strdup(modulename);
 		printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
 			   importPtr->name, modulename);
+		importPtr->kind   = KIND_NOTFOUND;
 	    }
 	}
     }
@@ -3389,6 +3390,7 @@ loadModule(modulename)
 		    parser.line			= 1;
 		    parser.column		= 1;
 		    parser.character		= 1;
+		    parser.linebuf[0]		= 0;
 		    yyparse((void *)&parser);
 		    leaveLexRecursion();
 		    fclose(parser.file);

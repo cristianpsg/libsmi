@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.12 1999/03/29 22:34:04 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.13 1999/03/30 18:37:20 strauss Exp $
  */
 
 %{
@@ -687,6 +687,8 @@ macroClause:		macroName
 				strcmp(thisParserPtr->modulePtr->name,
 				       "RFC-1212") &&
 				strcmp(thisParserPtr->modulePtr->name,
+				       "RFC-1215") &&
+				strcmp(thisParserPtr->modulePtr->name,
 				       "RFC1155-SMI")) {
 			        printError(thisParserPtr, ERR_MACRO);
 			    }
@@ -706,6 +708,7 @@ macroClause:		macroName
 
 macroName:		MODULE_IDENTITY     { $$ = util_strdup($1); } 
 	|		OBJECT_TYPE	    { $$ = util_strdup($1); }
+	|		TRAP_TYPE	    { $$ = util_strdup($1); }
 	|		NOTIFICATION_TYPE   { $$ = util_strdup($1); }
 	|		OBJECT_IDENTITY	    { $$ = util_strdup($1); }
 	|		TEXTUAL_CONVENTION  { $$ = util_strdup($1); }
@@ -850,6 +853,7 @@ typeDeclarationRHS:	Syntax
 				 * a new type for us.)
 				 */
 				$$ = duplicateType($1, 0, thisParserPtr);
+				setTypeDecl($$, SMI_DECL_TYPEASSIGNMENT);
 			    } else {
 				$$ = $1;
 			    }
@@ -2307,7 +2311,7 @@ IndexPart:		INDEX
 			    /* TODO: success? */
 			    p->indexkind = SMI_INDEX_INDEX;
 			    p->implied = impliedFlag;
-			    p->indexlistPtr = $4;
+			    p->listPtr = $4;
 			    p->rowPtr  = NULL;
 			    $$ = p;
 			}
@@ -2321,7 +2325,7 @@ IndexPart:		INDEX
 			    /* TODO: success? */
 			    p->indexkind    = SMI_INDEX_AUGMENT;
 			    p->implied      = 0;
-			    p->indexlistPtr = NULL;
+			    p->listPtr = NULL;
 			    p->rowPtr       = $3;
 			    $$ = p;
 			}

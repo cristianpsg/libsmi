@@ -274,3 +274,7 @@ x shift/reduce conflict at
 . SMIng parser
 
 . SMIv2 output
+
+. /usr/local/lib/tnm3.0.0/mibs/RFC1382-MIB:1609:
+  OBJECT IDENTIFIER DEFVALs must be expressed as a single identifier
+                  DEFVAL { {0 0}...

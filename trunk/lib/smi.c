@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.12 1999/03/29 22:34:05 strauss Exp $
+ * @(#) $Id: smi.c,v 1.13 1999/03/30 18:37:22 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -469,7 +469,10 @@ createSmiNode(objectPtr)
 	    smiNodePtr->implied    = objectPtr->indexPtr->implied;
 	    for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
 		 listPtr = listPtr->nextPtr) {
-		addName(&smiNodePtr->index, ((Object *)listPtr->ptr)->name);
+		/* XXX: Module::id if external */
+		addName(&smiNodePtr->index,
+			((Object *)listPtr->ptr)->modulePtr->name,
+			((Object *)listPtr->ptr)->name);
 	    }
 	    if (objectPtr->indexPtr->rowPtr) {
 		smiNodePtr->relatedrow = objectPtr->indexPtr->rowPtr->name;

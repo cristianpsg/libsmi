@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.11 1999/03/29 22:34:06 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.12 1999/03/30 18:37:24 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -542,6 +542,7 @@ printObjects(modulename)
     int		 lastindent = -1;
     char	 *typename;
     char	 *s;
+    char	 **p;
     
     strcpy(rowoid, "-");
     
@@ -578,12 +579,10 @@ printObjects(modulename)
 	    print("//\n// OBJECT DEFINITIONS\n//\n\n");
 	}
 
-#if 1
 	for (j = lastindent; j >= indent; j--) {
 	    printSegment((1 + j) * INDENT, "", 0);
 	    print("};\n");
 	}
-#endif
 	print("\n");
 	lastindent = indent;
 	
@@ -626,8 +625,73 @@ printObjects(modulename)
 		print("%s;\n", smingStringAccess(smiNode->access));
 	    }
 	}
-	
-	/* XXX index */
+
+	switch (smiNode->indexkind) {
+	case SMI_INDEX_INDEX:
+	    if (smiNode->implied) {
+		printSegment((2 + indent) * INDENT, "index implied",
+			     INDENTVALUE);
+	    } else {
+		printSegment((2 + indent) * INDENT, "index", INDENTVALUE);
+	    }
+	    print("(");
+	    for(p = smiNode->index; *p; p++) {
+		if (p != smiNode->index) {
+		    print(", ");
+		}
+		printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
+	    } /* TODO: empty? -> print error */
+	    print(");\n");
+	    break;
+	case SMI_INDEX_AUGMENT:
+	    if (smiNode->relatedrow) {
+		printSegment((2 + indent) * INDENT, "augments", INDENTVALUE);
+		print("%s;\n", smiNode->relatedrow);
+	    } /* TODO: else print error */
+	    break;
+	case SMI_INDEX_REORDER:
+	    if (smiNode->relatedrow) {
+		printSegment((2 + indent) * INDENT, "", 0);
+		print("reorders %s", smiNode->relatedrow);
+		if (smiNode->implied) {
+		    print(" implied");
+		}
+		print(" (");
+		for(p = smiNode->index; *p; p++) {
+		    if (p != smiNode->index) {
+			print(", ");
+		    }
+		    printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
+		}
+		print(");\n");
+	    } /* TODO: else print error */
+	    break;
+	case SMI_INDEX_SPARSE:
+	    if (smiNode->relatedrow) {
+		printSegment((2 + indent) * INDENT, "sparse", INDENTVALUE);
+		print("%s;\n", smiNode->relatedrow);
+	    } /* TODO: else print error */
+	    break;
+	case SMI_INDEX_EXPAND:
+	    if (smiNode->relatedrow) {
+		printSegment((2 + indent) * INDENT, "", 0);
+		print("expands %s", smiNode->relatedrow);
+		if (smiNode->implied) {
+		    print(" implied");
+		}
+		print(" (");
+		for(p = smiNode->index; *p; p++) {
+		    if (p != smiNode->index) {
+			print(", ");
+		    }
+		    printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
+		}
+		print(");\n");
+	    } /* TODO: else print error */
+	    break;
+	case SMI_INDEX_UNKNOWN:
+	    break;
+	}
 	
 	/* XXX create */
 	
@@ -1012,7 +1076,7 @@ dumpSming(modulename)
 	
 	printCompliances();
 	
-	print("};\n");
+	print("}; // end of module %s.\n", modulename);
 
     }
 }

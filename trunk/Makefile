@@ -1,10 +1,11 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.16 1999/03/25 21:57:43 strauss Exp $
+# @(#) $Id: Makefile,v 1.17 1999/03/26 17:01:55 strauss Exp $
 #
 
-MIBDIR		= ../scotty/tnm/mibs
+MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
+TESTMIBS	= `cd $(MIBDIR) ; ls -1 *`
 PREFIX		= /usr/local
 
 DEFINES_RPC	= -DRPC_SVC_FG -DBACKEND_RPC
@@ -68,7 +69,7 @@ tools/smiquery: $(LIBSMI_STATIC) tools/smiquery.o
 	$(LD) $(LDFLAGS) -o tools/smiquery tools/smiquery.o $(LIBSMI_STATIC) -ll -lnsl
 
 clean:
-	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c lib/smi-rpc_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser.y.html
+	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c lib/smi-rpc_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser.y.html test/*.log
 
 install: install-prg install-conf install-dev install-lib install-html
 
@@ -98,6 +99,35 @@ doc/parser.y.html: lib/parser-smi.y
 #	make -C src parser.y.html
 
 
+test: test-smilint test-smidump-sming
+
+test-smilint: tools/smilint
+	rm -f test/smilint.log
+	for mib in $(TESTMIBS) ; do \
+	    echo "### Testing: smilint $$mib" ; \
+	    echo "### Testing: smilint $$mib" >> test/smilint.log ; \
+	    tools/smilint -l9 -v -Lsmi:$(MIBDIR) $$mib \
+						   >> test/smilint.log 2>&1 ; \
+	done | egrep -v '(^$$|^/)'
+	@echo ""
+	@echo "### See test/smilint.log for smilint test protocol."
+	@echo ""
+
+test-smidump-sming: tools/smidump
+	rm -f test/smidump-sming.log
+	for mib in $(TESTMIBS) ; do \
+	    echo "### Testing: smidump -Dsming $$mib" ; \
+	    tools/smidump -l0 -Lsmi:$(MIBDIR) -Dsming $$mib \
+					          >> test/smidump-sming.log ; \
+	done
+	@echo ""
+	@echo "### See test/smidump-sming.log for smidump output."
+	@echo ""
+
+
+
+
+
 
 
 clobber: clean
@@ -107,11 +137,4 @@ dist:
 	rm -f mibs.tar.gz
 	cd .. ; tar cvf mibs/mibs.tar libsmi
 	gzip mibs.tar
-
-test: test-miblint
-
-test-miblint: miblint
-	for f in ${MIBDIR}/* ; do \
-	    if [ -f $$f ] ; then ./miblint -l9 $$f ; fi ; \
-	done
 
