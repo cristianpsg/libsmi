@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.12 1999/11/24 19:02:38 strauss Exp $
+# @(#) $Id: Makefile.in,v 1.48 1999/12/12 12:51:08 strauss Exp $
 #
 
 
