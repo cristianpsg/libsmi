@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.110 2002/06/10 09:15:15 strauss Exp $
+ * @(#) $Id: smi.c,v 1.111 2002/07/17 10:32:14 bunkus Exp $
  */
 
 #include <config.h>
@@ -228,9 +228,8 @@ int smiInit(const char *tag)
 	pw = getpwuid(getuid());
 	if (pw && pw->pw_dir) {
 	    /* 3. read user config file if present (append/prepend/replace) */
-	    p = smiMalloc(strlen(DEFAULT_USERCONFIG) +
-			    strlen(pw->pw_dir) + 2);
-	    sprintf(p, "%s%c%s", pw->pw_dir, DIR_SEPARATOR, DEFAULT_USERCONFIG);
+	    smiAsprintf(&p, "%s%c%s",
+			pw->pw_dir, DIR_SEPARATOR, DEFAULT_USERCONFIG);
 	    smiReadConfig(p, tag2);
 	    smiFree(p);
 	}
@@ -242,13 +241,11 @@ int smiInit(const char *tag)
     p = getenv("SMIPATH");
     if (p) {
 	if (p[0] == PATH_SEPARATOR) {
-	    pp = smiMalloc(strlen(p) + strlen(smiHandle->path) + 1);
-	    sprintf(pp, "%s%s", smiHandle->path, p);
+	    smiAsprintf(&pp, "%s%s", smiHandle->path, p);
 	    smiFree(smiHandle->path);
 	    smiHandle->path = pp;
 	} else if (p[strlen(p)-1] == PATH_SEPARATOR) {
-	    pp = smiMalloc(strlen(p) + strlen(smiHandle->path) + 1);
-	    sprintf(pp, "%s%s", p, smiHandle->path);
+	    smiAsprintf(&pp, "%s%s", p, smiHandle->path);
 	    smiFree(smiHandle->path);
 	    smiHandle->path = pp;
 	} else {
@@ -355,13 +352,11 @@ int smiReadConfig(const char *filename, const char *tag)
 	    } else if (!strcmp(cmd, "path")) {
 		if (arg) {
 		    if (arg[0] == PATH_SEPARATOR) {
-			s = smiMalloc(strlen(arg) + strlen(smiHandle->path) + 1);
-			sprintf(s, "%s%s", smiHandle->path, arg);
+			smiAsprintf(&s, "%s%s", smiHandle->path, arg);
 			smiFree(smiHandle->path);
 			smiHandle->path = s;
 		    } else if (arg[strlen(arg)-1] == PATH_SEPARATOR) {
-			s = smiMalloc(strlen(arg) + strlen(smiHandle->path) + 1);
-			sprintf(s, "%s%s", arg, smiHandle->path);
+			smiAsprintf(&s, "%s%s", arg, smiHandle->path);
 			smiFree(smiHandle->path);
 			smiHandle->path = s;
 		    } else {

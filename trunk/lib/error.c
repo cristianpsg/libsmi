@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.96 2002/07/17 10:32:14 bunkus Exp $
+ * @(#) $Id: error.c,v 1.97 2002/07/22 16:49:54 schoenw Exp $
  */
 
 #include <config.h>
@@ -762,7 +762,7 @@ smiErrorHandler(char *path, int line, int severity, char *msg, char *tag)
 static void
 printError(Parser *parser, int id, int line, va_list ap)
 {
-    char buffer[1024];
+    char *buffer;
     int i;
     
     if (! smiHandle->errorHandler) {
@@ -793,21 +793,15 @@ printError(Parser *parser, int id, int line, va_list ap)
 	if ((errors[i].level <= smiHandle->errorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-#ifdef HAVE_VSNPRINTF
-	    vsnprintf(buffer, sizeof(buffer), errors[i].fmt, ap);
-#else
-	    vsprintf(buffer, errors[i].fmt, ap);	/* buffer overwrite */
-#endif
-	    (smiHandle->errorHandler) (parser->path, line, errors[i].level, buffer, errors[i].tag);
+	    smiVasprintf(&buffer, errors[i].fmt, ap);
+	    (smiHandle->errorHandler) (parser->path, line,
+				       errors[i].level, buffer, errors[i].tag);
 	}
     } else {
 	if (errors[i].level <= smiHandle->errorLevel) {
-#ifdef HAVE_VSNPRINTF
-	    vsnprintf(buffer, sizeof(buffer), errors[i].fmt, ap);
-#else
-	    vsprintf(buffer, errors[i].fmt, ap);	/* buffer overwrite */
-#endif
-	    (smiHandle->errorHandler) (NULL, 0, errors[i].level, buffer, errors[i].tag);
+	    smiVasprintf(&buffer, errors[i].fmt, ap);
+	    (smiHandle->errorHandler) (NULL, 0, errors[i].level,
+				       buffer, errors[i].tag);
 	}
     }
 }
