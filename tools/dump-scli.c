@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.13 2002/03/11 08:52:44 strauss Exp $
+ * @(#) $Id: dump-scli.c,v 1.14 2002/03/26 16:15:46 schoenw Exp $
  */
 
 /*
@@ -1105,27 +1105,19 @@ printStubIdentities(FILE *f, SmiModule *smiModule)
 static int
 printSizeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
 {
-    SmiRange *smiRange, *lastRange = NULL;
+    SmiRange *smiRange;
     unsigned int minSize, maxSize;
     int cnt;
     char *cName;
 
     cName = translate(smiNode->name);
 
-    for (cnt = 0, smiType; smiType; smiType = smiGetParentType(smiType)) {
+    for (cnt = 0; !cnt && smiType; smiType = smiGetParentType(smiType)) {
 	for (smiRange = smiGetFirstRange(smiType);
 	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
 	    minSize = smiRange->minValue.value.unsigned32;
 	    maxSize = smiRange->maxValue.value.unsigned32;
 	    if (minSize == 0 && maxSize >= 65535) continue;
-	    /* People frequently use redundant size constraints when
-	     * dealing with strings. We try to catch at least some of
-	     * them. Ideally, libsmi should warn about this. */
-	    if (lastRange
-		&& lastRange->minValue.value.unsigned32 == minSize
-		&& lastRange->maxValue.value.unsigned32 == maxSize) {
-		continue;
-	    }
 	    if (f) {
 		if (cnt) {
 		    fprintf(f, ", %u, %u", minSize, maxSize);
@@ -1135,7 +1127,6 @@ printSizeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
 		}
 	    }
 	    cnt++;
-	    lastRange = smiRange;
 	}
     }
 
@@ -1156,7 +1147,7 @@ printInteger32RangeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
 
     cName = translate(smiNode->name);
 
-    for (cnt = 0, smiType; smiType; smiType = smiGetParentType(smiType)) {
+    for (cnt = 0; !cnt && smiType; smiType = smiGetParentType(smiType)) {
 	for (smiRange = smiGetFirstRange(smiType);
 	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
 	    minSize = smiRange->minValue.value.integer32;
@@ -1191,7 +1182,7 @@ printUnsigned32RangeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
 
     cName = translate(smiNode->name);
 
-    for (cnt = 0, smiType; smiType; smiType = smiGetParentType(smiType)) {
+    for (cnt = 0; !cnt && smiType; smiType = smiGetParentType(smiType)) {
 	for (smiRange = smiGetFirstRange(smiType);
 	     smiRange ; smiRange = smiGetNextRange(smiRange)) {
 	    minSize = smiRange->minValue.value.unsigned32;
@@ -1233,10 +1224,8 @@ printConstraints(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
      * MIBs where these objects were generally read-only.
      */
 
-    if (flags) {
-	if (isIndex(groupNode, smiNode)) {
-	    return 0;
-	}
+    if (flags && isIndex(groupNode, smiNode)) {
+	return 0;
     }
 
     switch (smiType->basetype) {
@@ -1350,10 +1339,8 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
      * MIBs where these objects were generally read-only.
      */
 
-    if (flags) {
-	if (isIndex(groupNode, smiNode)) {
-	    return;
-	}
+    if (flags && isIndex(groupNode, smiNode)) {
+	return;
     }
 
     dModuleName = translateUpper(smiGetNodeModule(smiNode)->name);
@@ -1388,9 +1375,13 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 	fprintf(f, "       NULL,\n");
     }
 
-    fprintf(f,
-	    "      G_STRUCT_OFFSET(%s_%s_t, %s),\n",
-	    cModuleName, cGroupName, cNodeName);
+    if (! flags && isIndex(groupNode, smiNode)) {
+	fprintf(f, "      -1,\n");
+    } else {
+	fprintf(f,
+		"      G_STRUCT_OFFSET(%s_%s_t, %s),\n",
+		cModuleName, cGroupName, cNodeName);
+    }
 
     switch (smiType->basetype) {
     case SMI_BASETYPE_OCTETSTRING:
