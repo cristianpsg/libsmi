@@ -1,3 +1,11 @@
+2001-02-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Bill contributed check for imported Counter64
+	when used.
+
+	* lib/check.c: Bill contributed check for node >= group >= compliance
+	status constraints.
+
 2001-02-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/scanner-smi.l: Martin Schulz noticed a problem with

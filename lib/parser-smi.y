@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.138 2000/12/21 09:19:52 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.139 2001/01/26 17:18:00 strauss Exp $
  */
 
 %{
@@ -218,6 +218,16 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->export.nodekind == SMI_NODEKIND_GROUP) {
 	    smiCheckGroupMembers(parserPtr, objectPtr);
 	}
+
+	/*
+	 * Check whether compliance statements contain out of date
+	 * groups or objects.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_COMPLIANCE) {
+	    smiCheckComplianceStatus(parserPtr, objectPtr);
+	}
+
 
 	/*
 	 * Check whether tables and rows are not accessible
@@ -3147,9 +3157,21 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
+			    Import *importPtr;
+
 			    $$ = findTypeByName("Counter64");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Counter64");
+			    }
+
+			    importPtr = findImportByName("Counter64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
 					      "Counter64");
 			    }
 			}
@@ -3219,9 +3241,21 @@ sequenceApplicationSyntax: IPADDRESS
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
+			    Import *importPtr;
+
 			    $$ = findTypeByName("Counter64");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Counter64");
+			    }
+
+			    importPtr = findImportByName("Counter64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
 					      "Counter64");
 			    }
 			}
