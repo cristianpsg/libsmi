@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.1 2000/03/02 18:43:34 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.2 2000/03/03 14:50:12 strauss Exp $
  */
 
 #include <config.h>
@@ -321,9 +321,11 @@ static void dumpTable(SmiNode *smiNode)
     for (columnNode = smiGetFirstChildNode(smiNode);
 	 columnNode;
 	 columnNode = smiGetNextChildNode(columnNode)) {
-	fprintf(f,
-		"        columns.addElement(new Long(%ld));\n",
-		columnNode->oid[columnNode->oidlen-1]);
+	if (columnNode->access >= SMI_ACCESS_READ_ONLY) {
+	    fprintf(f,
+		    "        columns.addElement(new Long(%ld));\n",
+		    columnNode->oid[columnNode->oidlen-1]);
+	}
     }
     fprintf(f,
 	    "    }\n\n");
@@ -333,31 +335,33 @@ static void dumpTable(SmiNode *smiNode)
 	         " long column)\n");
     fprintf(f,
 	    "    {\n"
-	    "        AgentXOID oid = new AgentXOID(column, entry.getInstance());\n"
+	    "        AgentXOID oid = new AgentXOID(getOID(), column, entry.getInstance());\n"
 	    "\n"
 	    "        switch ((int)column) {\n");
 
     for (columnNode = smiGetFirstChildNode(smiNode);
 	 columnNode;
 	 columnNode = smiGetNextChildNode(columnNode)) {
-	fprintf(f,
-		"        case %ld: // %s\n",
-		columnNode->oid[columnNode->oidlen-1],
-		columnNode->name);
-	fprintf(f,
-		"        {\n");
-	fprintf(f,
-		"            %s value = ((%s)entry).get_%s();\n",
-		getJavaType(smiGetNodeType(columnNode)),
-		translate1Upper(smiNode->name),
-		columnNode->name);
-	fprintf(f,
-		"            return new AgentXVarBind(oid, "
-		"AgentXVarBind.%s, value);\n",
-		getAgentXType(smiGetNodeType(columnNode)));
-	
-	fprintf(f,
-		"        }\n");
+	if (columnNode->access >= SMI_ACCESS_NOTIFY) {
+	    fprintf(f,
+		    "        case %ld: // %s\n",
+		    columnNode->oid[columnNode->oidlen-1],
+		    columnNode->name);
+	    fprintf(f,
+		    "        {\n");
+	    fprintf(f,
+		    "            %s value = ((%s)entry).get_%s();\n",
+		    getJavaType(smiGetNodeType(columnNode)),
+		    translate1Upper(smiNode->name),
+		    columnNode->name);
+	    fprintf(f,
+		    "            return new AgentXVarBind(oid, "
+		    "AgentXVarBind.%s, value);\n",
+		    getAgentXType(smiGetNodeType(columnNode)));
+	    
+	    fprintf(f,
+		    "        }\n");
+	}
     }
 
     fprintf(f,
