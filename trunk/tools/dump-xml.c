@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.8 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.9 2000/06/06 12:59:08 strauss Exp $
  */
 
 /*
@@ -133,9 +133,13 @@ static void print(char *fmt, ...)
     va_list ap;
     char    s[200];
     char    *p;
-    
+
     va_start(ap, fmt);
-    current_column += vsprintf(s, fmt, ap);
+#ifdef HAVE_VSNPRINTF
+    current_column += vsnprintf(s, sizeof(s), fmt, ap);
+#else
+    current_column += vsprintf(s, fmt, ap);	/* buffer overwrite */
+#endif
     va_end(ap);
 
     fputs(s, stdout);

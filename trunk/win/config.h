@@ -1,4 +1,4 @@
-/* config.h.  Generated manually for windows vc++ / mingw */
+/* config.h.  Generated manually for windows / vc++ */
 
 /* Define if the SMIv1/v2 parser shall be active. */
 #define BACKEND_SMI
@@ -42,6 +42,12 @@
 /* Define if the timegm() function is present in libc. */
 #undef HAVE_TIMEGM
 
+/* Define if you have the snprintf function.  */
+#define HAVE_SNPRINTF 1
+
+/* Define if you have the vsnprintf function.  */
+#define HAVE_VSNPRINTF 1
+
 /* Define if the win.h header file is present. */
 #define HAVE_WIN_H 1
 
@@ -49,5 +55,5 @@
 #define PACKAGE "libsmi"
 
 /* Version number of package */
-#define VERSION "0.2-cvs"
+#define VERSION "0.2.3"
 

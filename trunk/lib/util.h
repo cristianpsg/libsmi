@@ -8,13 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.18 2000/04/10 15:55:18 strauss Exp $
+ * @(#) $Id: util.h,v 1.19 2000/06/14 13:15:19 strauss Exp $
  */
 
 #ifndef _UTIL_H
 #define _UTIL_H
 
 #include <stdlib.h>
+#include <time.h>
 
 #include "smi.h"
 #include "error.h"
@@ -59,6 +60,10 @@ extern char *smiStrndup(const char *s1, size_t n);
 extern void smiFree(void *ptr);
 
 extern int smiIsPath(const char *s);
+
+#ifndef HAVE_TIMEGM
+time_t timegm(struct tm *tm)
+#endif
 
 #endif /* _UTIL_H */
 

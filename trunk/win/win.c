@@ -13,30 +13,13 @@
  */
 
 #include <stdio.h>
-#ifndef __MINGW32_
-# include <fcntl.h>
-# include <string.h>
-#endif
+#include <io.h>
+#include <fcntl.h>
+#include <string.h>
+#include <ctype.h>
+#include <memory.h>
 
 #include "win.h"
-
-
-#ifndef __MINGW32__
-
-/*
- * The Win32 API provides use with stricmp(), which is a string
- * lowercase compare function. This should be equivalent with
- * strcasecmp().
- */
-
-int
-strcasecmp (const char *s1, const char *s2)
-{
-  return stricmp (s1, s2);
-}
-
-#endif
-
 
 /*
  * getopt() helper from comp.sources.misc / volume2 / getopt.Z
@@ -97,7 +80,7 @@ char	**argv, *opts;
 	register int c;
 	register char *cp;
 
-	if (sp == 1) {
+	if(sp == 1)
 		if(optind >= argc ||
 		   argv[optind][0] != '-' || argv[optind][1] == '\0')
 			return(EOF);
@@ -105,7 +88,6 @@ char	**argv, *opts;
 			optind++;
 			return(EOF);
 		}
-	}
 	optopt = c = argv[optind][sp];
 	if(c == ':' || (cp=strchr(opts, c)) == NULL) {
 		ERR(": illegal option -- ", c);

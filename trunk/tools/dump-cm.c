@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.20 2000/06/13 06:58:21 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.21 2000/06/14 13:15:19 strauss Exp $
  */
 
 
@@ -29,6 +29,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
 
 #include "smi.h"
 #include "smidump.h"

@@ -1,50 +1,62 @@
 
-	README.win:					Apr 2000
-	(schoenfr)
+LIBSMI NOTES FOR NATIVE WIN32 SUPPORT
+=====================================
 
+@(#) $Id$
 
 This directory contains some help to compile the libsmi and associated
-tools on a Windows platform without the cygnus environment. The
-makefile works fine with VC++ v4.2, but later versions should work
-very well too.
-
-About mingw32 based compilation please have a look at README.mingw.
+tools on a Win32 platform (Windows 95, 98, 2000, NT) with the native
+Microsoft Visual C++ compiler. The makefile has been tested with VC++
+6.0, but later versions should work very well too.
 
 
-Compiling and Installation:
----------------------------
+INSTALLATION
+============
  
 To compile simply run
-	nmake -f makefile.vc
+
+	nmake
+
 and to install a
-	nmake -f makefile.vc install 
-should do what you expect.
+
+	nmake install
+
+should do what you expect. The default path's are c:\smi\mibs\... for
+the MIB-files and c:\smi\bin for the tools (smidump.exe, ...). The
+global configuration file is expected to be in c:\smi\smi.conf.
 
 
-Default path's are c:\smi\mibs\... for the MIB-files and c:\smi\bin
-for the tools (smidump.exe, ...).
-
-Globalconfig is defined as c:\smi\smi.conf.
-
-
-TODO's and Known Problems:
---------------------------
+KNOWN PROBLEMS
+==============
 
 - The 64 bit integer types (unsigned64 and signed64) are simply
   replaced by their 32 bit counterparts and will not work. This
   needs a general solution (probably using int64_t and friends).
 
-- The version define is hardwired in config.h.
+- The version number is hardwired in config.h.
 
-- scanner, parser and the smi.h source have to be created by within
+- The installation directories are hardwired in config.h.
+
+- scanner, parser and the smi.h source have to be created within the
   Unix environment.
 
 - The SMIPATH seperator character is the Windows style ; and not the
   Unix style : .
+ 
+
+FURTHER INFORMATION
+===================
+
+You may find further information online, along with the subscription
+information on the libsmi mailing list at
+
+	http://www.ibr.cs.tu-bs.de/projects/libsmi/.
 
 
+	Erik Schoenfelder <schoenfr@gaertner.de>
+	Juergen Schoenwaelder <schoenw@ibr.cs.tu-bs.de>
 
-Mon May  1 14:47:50 MEST 2000
+
 ---
 <stu> you should be afraid to use KDE because RMS might come to your
       house and cleave your monitor with an axe or something :)

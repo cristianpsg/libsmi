@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.27 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.28 2000/05/26 16:17:49 strauss Exp $
  */
 
 #include <config.h>
@@ -23,6 +23,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
 
 #include "smi.h"
 #include "smidump.h"
@@ -538,7 +541,11 @@ static void print(char *fmt, ...)
     char    *p;
     
     va_start(ap, fmt);
-    current_column += vsprintf(s, fmt, ap);
+#ifdef HAVE_VSNPRINTF
+    current_column += vsnprintf(s, sizeof(s), fmt, ap);
+#else
+    current_column += vsprintf(s, fmt, ap);	/* buffer overwrite */
+#endif
     va_end(ap);
 
     fputs(s, stdout);

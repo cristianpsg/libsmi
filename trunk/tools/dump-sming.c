@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.79 2000/05/18 11:47:42 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.80 2000/05/26 16:17:49 strauss Exp $
  */
 
 #include <config.h>
@@ -279,7 +279,11 @@ static void print(char *fmt, ...)
     char    *p;
     
     va_start(ap, fmt);
-    current_column += vsprintf(s, fmt, ap);
+#ifdef HAVE_VSNPRINTF
+    current_column += vsnprintf(s, sizeof(s), fmt, ap);
+#else
+    current_column += vsprintf(s, fmt, ap);	/* buffer overwrite */
+#endif
     va_end(ap);
 
     fputs(s, stdout);
