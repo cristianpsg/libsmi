@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.18 2001/06/13 07:45:45 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.19 2001/06/15 07:12:20 strauss Exp $
  */
 
 /*
@@ -1391,7 +1391,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
     fprintf(f,
 	    "\n"
 	    "    out = stls_snmp_gettable(s, in);\n"
-	    "    /* stls_vbl_free(in); */\n"
+	    "    /* g_snmp_vbl_free(in); */\n"
 	    "    if (! out) {\n"
 	    "        return -2;\n"
 	    "    }\n"
@@ -1435,12 +1435,10 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "int\n"
-	    "%s_get_%s(GSnmpSession *s, %s_%s_t %s%s)\n"
+	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
-	    cModuleName, cGroupName, cModuleName, cGroupName,
-	    (groupNode->nodekind == SMI_NODEKIND_ROW) ? "***" : "**",
-	    cGroupName);
+	    cModuleName, cGroupName, cModuleName, cGroupName, cGroupName);
 
     fprintf(f, "    static guint32 base[] = {");
     for (i = 0; i < groupNode->oidlen; i++) {
@@ -1460,8 +1458,8 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = stls_snmp_getnext(s, in);\n"
-	    "    stls_vbl_free(in);\n"
+	    "    out = g_snmp_session_sync_getnext(s, in);\n"
+	    "    g_snmp_vbl_free(in);\n"
 	    "    if (! out) {\n"
 	    "        return -2;\n"
 	    "    }\n"
@@ -1471,6 +1469,112 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    *%s = assign_%s(out);\n"
 	    "\n", cGroupName, cGroupName);
 
+    fprintf(f,
+	    "    return 0;\n"
+	    "}\n"
+	    "\n");
+
+    xfree(cGroupName);
+    xfree(cModuleName);
+}
+
+
+
+static void
+printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
+{
+    char         *cModuleName, *cGroupName, *cSmiNodeName;
+    SmiNode	 *smiNode;
+    SmiType	 *smiType;
+    unsigned int i;
+
+    cModuleName = translateLower(smiModule->name);
+    cGroupName = translate(groupNode->name);
+
+    /*
+     * First check whether we have any writable attributes.
+     */
+
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_SCALAR)
+	    && (smiNode->access >= SMI_ACCESS_READ_WRITE)) {
+	    break;
+	}
+    }
+    if (! smiNode) {
+	return;
+    }
+	    
+    fprintf(f,
+	    "int\n"
+	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s)\n"
+	    "{\n"
+	    "    GSList *in = NULL, *out = NULL;\n",
+	    cModuleName, cGroupName, cModuleName, cGroupName, cGroupName);
+
+    fprintf(f, "    static guint32 base[] = {");
+    for (i = 0; i < groupNode->oidlen; i++) {
+	fprintf(f, "%u, ", groupNode->oid[i]);
+    }
+    fprintf(f, "0, 0};\n\n");
+
+    for (smiNode = smiGetFirstChildNode(groupNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (smiNode->nodekind & (SMI_NODEKIND_SCALAR)
+	    && (smiNode->access >= SMI_ACCESS_READ_WRITE)) {
+
+	    smiType = smiGetNodeType(smiNode);
+	    if (!smiType) {
+		continue;
+	    }
+	    
+	    if (isIndex(groupNode, smiNode)) {
+		continue;
+	    }
+	    
+	    cSmiNodeName = translate(smiNode->name);
+	    fprintf(f,
+		    "    if (%s->%s) {\n"
+		    "        base[%u] = %u;\n"
+		    "        g_snmp_vbl_add(&in, base, sizeof(base)/sizeof(guint32),\n"
+		    "                       %s,\n"
+		    "                       %s->%s,\n",
+		    cGroupName, cSmiNodeName,
+		    smiNode->oidlen-1, smiNode->oid[smiNode->oidlen-1],
+		    getSnmpType(smiType),
+		    cGroupName, cSmiNodeName);
+	    switch (smiType->basetype) {
+	    case SMI_BASETYPE_OCTETSTRING:
+	    case SMI_BASETYPE_BITS:
+	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		fprintf(f,
+			"                       %s->_%sLength);\n",
+			cGroupName, cSmiNodeName);
+		break;
+	    default:
+		fprintf(f,
+			"                       0);\n");
+		break;
+	    }
+	    fprintf(f, "    }\n");
+		
+	    xfree(cSmiNodeName);
+	}	    
+    }
+
+    fprintf(f,
+	    "\n"
+	    "    out = g_snmp_session_sync_set(s, in);\n"
+	    "    g_snmp_vbl_free(in);\n"
+	    "    if (! out) {\n"
+	    "        return -2;\n"
+	    "    }\n"
+	    "    g_snmp_vbl_free(out);\n"
+	    "\n");
+    
     fprintf(f,
 	    "    return 0;\n"
 	    "}\n"
@@ -1578,7 +1682,7 @@ printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    if (%s) {\n"
 	    "        p = (char *) %s + sizeof(%s_%s_t);\n"
 	    "        vbl = * (GSList **) p;\n"
-	    "        stls_vbl_free(vbl);\n"
+	    "        g_snmp_vbl_free(vbl);\n"
 	    "        g_free(%s);\n"
 	    "    }\n"
 	    "}\n"
@@ -1609,6 +1713,7 @@ printStubMethods(FILE *f, SmiModule *smiModule)
 		printGetTableMethod(f, smiModule, smiNode);
 	    } else {
 		printGetScalarsMethod(f, smiModule, smiNode);
+		printSetScalarsMethod(f, smiModule, smiNode);
 	    }
 	    printFreeMethod(f, smiModule, smiNode);
 	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
