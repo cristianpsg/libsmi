@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.7 2000/02/06 23:30:59 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.8 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <stdio.h>
@@ -126,6 +126,12 @@ static int printImports(SmiModule *smiModule, char *prefix)
 int dumpImports(char *modulename, int flags)
 {
     SmiModule	 *smiModule;
+
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for IMPORTS format\n");
+	exit(1);
+    }
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {

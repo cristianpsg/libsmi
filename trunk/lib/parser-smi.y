@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.79 2000/02/10 20:36:43 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.80 2000/02/10 21:26:41 strauss Exp $
  */
 
 %{
@@ -150,6 +150,13 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    && objectPtr->typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
 	    printErrorAtLine(parserPtr, ERR_BASETYPE_UNKNOWN, objectPtr->line,
 			     objectPtr->typePtr->export.name, objectPtr->export.name);
+	    if (objectPtr->nodePtr->parentPtr->firstObjectPtr->export.nodekind
+		== SMI_NODEKIND_TABLE) {
+		/* the parent node is a table node, so assume this is
+		 *  a row node. this adjusts missing INDEXs in RFC 1158.
+		 */
+		objectPtr->export.nodekind = SMI_NODEKIND_ROW;
+	    }
 	}
 
 	/*

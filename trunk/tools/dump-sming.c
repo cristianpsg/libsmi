@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.58 2000/02/10 10:09:45 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.59 2000/02/10 17:59:44 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1151,6 +1151,12 @@ int dumpSming(char *modulename, int flags)
     SmiModule	 *smiModule;
     SmiNode	 *smiNode;
     
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for SMIng format\n");
+	exit(1);
+    }
+
     errors = 0;
     
     smiModule = smiGetModule(modulename);

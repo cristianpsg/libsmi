@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.9 2000/02/09 18:26:09 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.10 2000/02/10 10:09:45 strauss Exp $
  */
 
 /*
@@ -674,6 +674,12 @@ int dumpUcdH(char *modulename, int flags)
     char	 *cModuleName;
     char	 *cInitName;
 
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for UCD-H format\n");
+	exit(1);
+    }
+    
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
 	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
@@ -717,6 +723,12 @@ int dumpUcdC(char *modulename, int flags)
     SmiModule    *smiModule;
     char	 *cModuleName;
 
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for UCD-C format\n");
+	exit(1);
+    }
+    
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
 	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
