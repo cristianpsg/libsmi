@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.16 2001/06/11 09:59:19 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.17 2001/08/16 10:53:32 strauss Exp $
 .\"
-.TH smi_config 3  "August 16, 2001" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "August 22, 2001" "IBR" "SMI Management Information Library"
 .SH NAME
 .\" START OF MAN PAGE COPIES
 smiInit,
@@ -74,9 +74,15 @@ in an application. It initializes its internal structures. If \fItag\fP is
 not NULL, the global configuration file and (on UNIX systems)
 a user configuration file are read implicitly, if existent. All
 global statements and those statements with a tag (a ``tag: '' prefix) that
-matches the \fBtag\fP argument are executed.
+matches the \fBtag\fP argument are executed. 
 (see also CONFIGURATION FILES below).
 \fBsmiInit()\fP returns zero on success, or otherwise a negative value.
+.PP
+The \fBsmiInit()\fP function can also be used to support multiple sets
+of MIB data. In this case, the \fBtag\fP argument may be prepended by
+a colon and a name to differentiate the data sets. Any library
+function call subsequent to an \fBsmiInit("tag:dataset")\fP call is
+using the specified data set.
 .PP
 The \fBsmiExit()\fP function should be called when the application
 no longer needs any SMI information to release any allocated SMI
