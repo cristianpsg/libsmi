@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.18 1999/04/10 10:46:16 strauss Exp $
+ * @(#) $Id: data.c,v 1.19 1999/04/10 19:37:21 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -45,6 +45,7 @@ extern int smingparse();
 					     "unknown" )
 
 
+
 View	        *firstViewPtr, *lastViewPtr;
 Location	*firstLocationPtr, *lastLocationPtr;
 Module          *firstModulePtr, *lastModulePtr;
@@ -59,6 +60,8 @@ Type		*typeSmingOctetStringPtr, *typeSmingObjectIdentifierPtr,
 		*typeSmingFloat128Ptr,
 		*typeSmingEnumPtr, *typeSmingBitsPtr;
 int		smiFlags;
+char		*smiPath;
+
 
 
 /*
@@ -1358,8 +1361,8 @@ setObjectAccess(objectPtr, access)
     SmiAccess		   access;
 {
 #ifdef DEBUG
-    printDebug(5, "setObjectAccess(0x%x(%s), %s)\n",
-	       objectPtr, objectPtr->name, smiStringAccess(access));
+    printDebug(5, "setObjectAccess(0x%x(%s), %d)\n",
+	       objectPtr, objectPtr->name, access);
 #endif
 
     objectPtr->access = access;
@@ -1389,8 +1392,8 @@ setObjectStatus(objectPtr, status)
     SmiStatus		   status;
 {
 #ifdef DEBUG
-    printDebug(5, "setObjectStatus(0x%x(%s), %s)\n",
-	       objectPtr,  objectPtr->name, smiStringStatus(status));
+    printDebug(5, "setObjectStatus(0x%x(%s), %d)\n",
+	       objectPtr,  objectPtr->name, status);
 #endif
 
     objectPtr->status = status;
@@ -1575,8 +1578,8 @@ setObjectDecl(objectPtr, decl)
     SmiDecl     decl;
 {
 #ifdef DEBUG
-    printDebug(5, "setObjectDecl(0x%x(%s), %s)\n",
-	       objectPtr, objectPtr->name, smiStringDecl(decl));
+    printDebug(5, "setObjectDecl(0x%x(%s), %d)\n",
+	       objectPtr, objectPtr->name, decl);
 #endif
 
     objectPtr->decl = decl;
@@ -2214,133 +2217,6 @@ findObjectByModuleAndName(modulePtr, objectname)
 
 
 
-#if 0
-/*
- *----------------------------------------------------------------------
- *
- * dumpMibTree --
- *
- *      Dump MIB subtree with a certain root to stderr.
- *	For debugging purpose.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-dumpMibTree(root, prefix)
-    Node *root;
-    const char *prefix;
-{
-    Node *c;
-    char s[200];
-    
-    if (root) {
-	if (root == rootNode) {
-	    s[0] = 0;
-	} else {
-	    if (root->firstObject->descriptor) {
-		if (root->flags & FLAG_NOSUBID) {
-		    sprintf(s, "%s.%s(?)", prefix,
-			    root->firstObject->descriptor->name);
-		} else {
-		    sprintf(s, "%s.%s(%d)", prefix,
-			    root->firstObject->descriptor->name, root->subid);
-		}
-	    } else {
-		if (root->flags & FLAG_NOSUBID) {
-		    sprintf(s, "%s.?", prefix);
-		} else {
-		    sprintf(s, "%s.%d", prefix, root->subid);
-		}
-	    }
-	    fprintf(stderr, "%s", s);
-	    if (root->firstObject->module) {
-		fprintf(stderr, " == %s!%s",
-			root->firstObject->module->descriptor->name,
-			root->firstObject->descriptor->name);
-	    }
-	    if (root->firstObject->type &&
-		root->firstObject->type->descriptor) {
-		fprintf(stderr, "  [%s]",
-			root->firstObject->type->descriptor->name);
-	    } else {
-		if (root->firstObject->type &&
-		    root->firstObject->type->parent &&
-		    root->firstObject->type->parent->descriptor) {
-		    fprintf(stderr, "  [[%s]]",
-			    root->firstObject->type->parent->descriptor->name);
-		}
-	    }
-	    fprintf(stderr, "\n");
-	}
-	for (c = root->firstChild; c; c = c->next) {
-	    dumpMibTree(c, s);
-	}
-    }
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * dumpMosy --
- *
- *      Dump in Mosy format.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-dumpMosy(root)
-    Node *root;
-{
-    Node *c;
-    char s[200];
-    
-    if (root) {
-	if (root != rootNode) {
-	    if ((root->flags & FLAG_MODULE) &&
-		(root->firstObject->descriptor &&
-		 root->parent->firstObject->descriptor)) {
-		sprintf(s, "%s.%d",
-			root->parent->firstObject->descriptor->name,
-			root->subid);
-		if (root->firstObject->decl == SMI_DECL_OBJECTTYPE) {
-		    printf("%-19s %-19s %-15s %-15s %s\n",
-			   root->firstObject->descriptor->name,
-			   s,
-			   "<type>",
-			   smiStringAccess(root->firstObject->access),
-			   smiStringStatus(root->firstObject->status));
-		} else {
-		    printf("%-19s %s\n",
-			   root->firstObject->descriptor->name,
-			   s);
-		}
-	    }
-	}
-	for (c = root->firstChild; c; c = c->next) {
-	    dumpMosy(c);
-	}
-    }
-}
-#endif
-
-
-
 /*
  *----------------------------------------------------------------------
  *
@@ -2368,8 +2244,8 @@ addType(typename, basetype, flags, parserPtr)
     Module	   *modulePtr;
     
 #ifdef DEBUG
-    printDebug(4, "addType(%s, %s, %d, 0x%x)",
-	       typename ? typename : "\"\"", smiStringBasetype(basetype),
+    printDebug(4, "addType(%s, %d, %d, 0x%x)",
+	       typename ? typename : "\"\"", basetype,
 	       flags, parserPtr);
 #endif
 
@@ -2547,9 +2423,9 @@ setTypeStatus(typePtr, status)
     SmiStatus  status;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeStatus(0x%x(%s), %s)\n",
+    printDebug(5, "setTypeStatus(0x%x(%s), %d)\n",
 	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       smiStringStatus(status));
+	       status);
 #endif
 
     typePtr->status = status;
@@ -2579,9 +2455,9 @@ setTypeBasetype(typePtr, basetype)
     SmiBasetype  basetype;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeBasetype(0x%x(%s), %s)\n",
+    printDebug(5, "setTypeBasetype(0x%x(%s), %d)\n",
 	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       smiStringBasetype(basetype));
+	       basetype);
 #endif
 
     typePtr->basetype = basetype;
@@ -2839,9 +2715,9 @@ setTypeDecl(typePtr, decl)
     SmiDecl  decl;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeDecl(0x%x(%s), %s)\n",
+    printDebug(5, "setTypeDecl(0x%x(%s), %d)\n",
 	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       smiStringDecl(decl));
+	       decl);
 #endif
     
     typePtr->decl = decl;
@@ -3109,50 +2985,6 @@ findTypeByModuleAndName(modulePtr, typename)
     return (NULL);
 }
 
-
-
-#if 0
-/*
- *----------------------------------------------------------------------
- *
- * dumpTypes --
- *
- *      Dump Type hirarchie.
- *	For debugging purpose.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-dumpTypes()
-{
-    Type *t;
-    Descriptor *d;
-
-    for (d = firstDescriptor[KIND_TYPE]; d; d = d->nextSameKind) {
-	if (d->module) {
-	    fprintf(stderr, "%s!", d->module->descriptor->name);
-	}
-	for (t = d->ptr; t && t->basetype != SMI_BASETYPE_SEQUENCE;
-	     t = t->parent) {
-	    fprintf(stderr, "%s", t->descriptor && t->descriptor->name ? t->descriptor->name : "?");
-	    if (t->basetype) {
-		fprintf(stderr, "(%s)", smiStringBasetype(t->basetype));
-	    }
-	    fprintf(stderr, " <- ");
-	}
-	fprintf(stderr, "\n");
-    }
-    
-}
-#endif
- 
 
 
 /*

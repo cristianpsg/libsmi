@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.4 1999/05/04 23:27:03 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.5 1999/05/10 11:31:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "smi.h"
 #include "util.h"
@@ -56,6 +57,54 @@ static char *convertImport[] = {
 
 static int current_column = 0;
 static int version = 2;
+
+
+
+char * 
+smiStringStatus(status)
+    SmiStatus status;
+{
+    return
+	(status == SMI_STATUS_CURRENT)     ? "current" :
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
+	(status == SMI_STATUS_MANDATORY)   ? "mandatory" :
+	(status == SMI_STATUS_OPTIONAL)    ? "optional" :
+					     "<unknown>";
+}
+
+
+
+char *
+smiStringAccess(access)
+    SmiAccess access;
+{
+    return
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
+	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
+	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
+	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
+	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" :
+	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" :
+						"<unknown>";
+}
+
+
+
+char *
+smiCTime(t)
+    time_t t;
+{
+    static char   s[27];
+    struct tm	  *tm;
+
+    tm = gmtime(&t);
+    sprintf(s, "%04d%02d%02d%02d%02dZ",
+	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	    tm->tm_hour, tm->tm_min);
+    return s;
+}
+
 
 
 static char *

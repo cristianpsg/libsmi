@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.20 1999/04/08 15:25:03 strauss Exp $
+ * @(#) $Id: data.h,v 1.21 1999/04/10 19:37:22 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -281,6 +281,7 @@ typedef struct Parser {
 
 
 extern int	smiFlags;
+extern char     *smiPath;
 
 extern Node	*rootNodePtr;
 extern Node	*pendingNodePtr;
@@ -295,6 +296,8 @@ extern Type	*typeSmingOctetStringPtr, *typeSmingObjectIdentifierPtr,
 		*typeSmingEnumPtr, *typeSmingBitsPtr;
 
 extern Location	*firstLocationPtr, *lastLocationPtr;
+
+extern Module	*firstModulePtr, *lastModulePtr;
 
 extern View	*firstViewPtr, *lastViewPtr;
 
