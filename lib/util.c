@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.27 2001/11/26 16:45:41 strauss Exp $
+ * @(#) $Id: util.c,v 1.28 2002/01/09 09:09:00 strauss Exp $
  */
 
 #include <config.h>
@@ -162,7 +162,7 @@ time_t timegm(struct tm *tm)
     if (tz) {
 	putenv(s);
     } else {
-	putenv("TZ");
+	putenv("TZ=");
     }
     if (tofree) smiFree(tofree);
 
