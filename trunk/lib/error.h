@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.11 1999/06/06 07:40:38 strauss Exp $
+ * @(#) $Id: error.h,v 1.12 1999/06/07 15:44:01 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -21,6 +21,9 @@
 
 
 
+#ifdef yyerror
+#undef yyerror
+#endif
 #define yyerror(msg) printError(parserPtr, ERR_OTHER_ERROR, msg)
 
 

@@ -1,6 +1,11 @@
 1999-06-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-smi.c: fixed bug when dumping modules without
+	any compliance statement.
+
 	* libsmi-0.1.4.tar.gz: released version 0.1.4.
+
+	* lib/error.h: undef'ed yyerror to suppress compile warning.
 
 	* tools/dump-sming.c (printObjects): fixed bug with missing
 	nodes read from OBJECT-IDENTITY constructs.

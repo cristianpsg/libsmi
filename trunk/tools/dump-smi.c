@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.11 1999/06/09 19:43:37 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.12 1999/06/10 11:17:07 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -915,7 +915,7 @@ static void printModuleCompliances(char *modulename)
     SmiOption	  *smiOption;
     SmiRefinement *smiRefinement;
     char	  *module;
-    char	  *done; /* "+" separated list of module names */
+    char	  *done = NULL; /* "+" separated list of module names */
     char	  s[100];
     int		  j;
 

@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.12 1999/06/09 20:13:35 strauss Exp $
+@(#) $Id: README,v 1.13 1999/06/10 11:16:52 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -50,7 +50,8 @@ To build libsmi and the tools, run
 This should build the library libsmi in lib/ and the tools, namely
 tools/smilint, tools/smidump, and tools/smiquery.
 
-To run some checks, type
+If you have some standard MIB modules installed and libsmi configured to
+find them and to support SMIng, you may run some checks:
 
 	make check
 

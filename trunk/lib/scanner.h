@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner.h,v 1.3 1999/05/31 11:58:37 strauss Exp $
+ * @(#) $Id: scanner.h,v 1.4 1999/06/03 20:37:23 strauss Exp $
  */
 
 #include "error.h"
@@ -33,9 +33,5 @@ extern YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
 
 
 
-/* extern void yyerror(const char *msg); */
-
-
-
 extern void trackInput(int nl, Module *parser);
-			        /* XXX ??? */
+
