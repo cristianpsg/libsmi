@@ -8,11 +8,13 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.13 1999/03/30 18:37:20 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.14 1999/03/30 22:27:31 strauss Exp $
  */
 
 %{
 
+#ifdef BACKEND_SMI
+    
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -328,19 +330,6 @@ int    impliedFlag;
 
 /*
  * Yacc rules.
- *
- * Conventions:
- *
- * All uppercase symbols are terminals as given by the lexer.
- * 
- * Symbols with mixed characters and the first letter uppercase
- * are taken from the specifications in RFCs (and probably the
- * Simple Book). In some cases conflicts were resolved by appending
- * a `_' character and a context specification like in
- * ModuleName_Compliance.
- * 
- * Symbols starting with a lowercase letter are defined by the author
- * based on prosa definitions in documents or for other obvious use.
  *
  */
 
@@ -904,8 +893,8 @@ conceptualTable:	SEQUENCE OF row
 				$$ = addType(NULL,
 					     SMI_BASETYPE_SEQUENCEOF, 0,
 					     thisParserPtr);
-				sprintf(s, "%s!%s", $3->modulePtr->name,
-					$3->name);
+				sprintf(s, "%s%s%s", $3->modulePtr->name,
+					SMI_NAMESPACE_OPERATOR, $3->name);
 				setTypeParent($$, s);
 			    } else {
 				$$ = NULL;
@@ -1199,7 +1188,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			DefValPart
 			COLON_COLON_EQUAL '{' ObjectName '}'
 			{
-			    Object *objectPtr;
+			    Object *objectPtr, *parentPtr;
+			    List *listPtr, *newlistPtr;
 
 			    objectPtr = $16;
 			    
@@ -1217,6 +1207,33 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				setTypeName($5, $1);
 			    }
 			    setObjectAccess(objectPtr, $7);
+			    if ($7 == SMI_ACCESS_READ_CREATE) {
+				/*
+				 * add objectPtr to the parent object's
+				 * listPtr, which is the list of columns
+				 * needed for row creation.
+				 *
+				 * Note, that this would clash, if the
+				 * parent row object-type is not yet
+				 * defined.
+				 */
+				newlistPtr = util_malloc(sizeof(List));
+				newlistPtr->nextPtr = NULL;
+				newlistPtr->ptr = objectPtr;
+				/*
+				 * Look up the parent object-type.
+				 */
+				parentPtr =
+			          objectPtr->nodePtr->parentPtr->lastObjectPtr;
+				if (parentPtr->listPtr) {
+				    for(listPtr = parentPtr->listPtr;
+					listPtr->nextPtr;
+					listPtr = listPtr->nextPtr);
+				    listPtr->nextPtr = newlistPtr;
+				} else {
+				    parentPtr->listPtr = newlistPtr;
+				}
+			    }
 			    setObjectStatus(objectPtr, $9);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -3374,3 +3391,4 @@ number:			NUMBER
 
 %%
 
+#endif

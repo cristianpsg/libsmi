@@ -1,5 +1,5 @@
 /*
- * scanner-smi.h --
+ * scanner-sming.h --
  *
  *      Definition of lexical tokens of the SMIv1/v2 MIB module language.
  *
@@ -8,15 +8,15 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.h,v 1.1 1999/03/11 17:33:01 strauss Exp $
+ * @(#) $Id$
  */
 
-#ifndef _SCANNER_SMI_H
-#define _SCANNER_SMI_H
+#ifndef _SCANNER_SMING_H
+#define _SCANNER_SMING_H
 
 #include <stdio.h>
 
-#include "parser-smi.h"
+#include "parser-sming.h"
 
 #define YY_NO_UNPUT
 
@@ -28,7 +28,7 @@
 extern char *yytext;
 extern int yyleng;
 
-extern int smiEnterLexRecursion(FILE *file);
-extern void smiLeaveLexRecursion();
+extern int smingEnterLexRecursion(FILE *file);
+extern void smingLeaveLexRecursion();
 
-#endif /* _SCANNER_SMI_H */
+#endif /* _SCANNER_SMING_H */

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.13 1999/03/29 22:34:02 strauss Exp $
+ * @(#) $Id: data.c,v 1.14 1999/03/30 22:27:29 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -22,6 +22,16 @@
 #include "util.h"
 #include "data.h"
 #include "smi.h"
+
+#ifdef BACKEND_SMI
+#include "scanner-smi.h"
+extern int smiparse();
+#endif
+
+#ifdef BACKEND_SMING
+#include "scanner-sming.h"
+extern int smingparse();
+#endif
 
 
 
@@ -203,7 +213,7 @@ addLocation(location, flags)
 		    free(locationPtr);
 		    return NULL;
 		} else {
-		    if (enterLexRecursion(parser.file) < 0) {
+		    if (smiEnterLexRecursion(parser.file) < 0) {
 			printError(&parser, ERR_MAX_LEX_DEPTH);
 			fclose(parser.file);
 			free(locationPtr);
@@ -212,8 +222,8 @@ addLocation(location, flags)
 		    parser.line		= 1;
 		    parser.column	= 1;
 		    parser.character	= 1;
-		    yyparse((void *)&parser);
-		    leaveLexRecursion();
+		    smiparse((void *)&parser);
+		    smiLeaveLexRecursion();
 		    fclose(parser.file);
 		    if (parser.flags & FLAG_STATS) {
 			sprintf(s, " (%d lines)", parser.line-1);
@@ -3383,7 +3393,7 @@ loadModule(modulename)
 		    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
 			       strerror(errno));
 		} else {
-		    if (enterLexRecursion(parser.file) < 0) {
+		    if (smiEnterLexRecursion(parser.file) < 0) {
 			printError(&parser, ERR_MAX_LEX_DEPTH);
 			fclose(parser.file);
 		    }
@@ -3391,8 +3401,8 @@ loadModule(modulename)
 		    parser.column		= 1;
 		    parser.character		= 1;
 		    parser.linebuf[0]		= 0;
-		    yyparse((void *)&parser);
-		    leaveLexRecursion();
+		    smiparse((void *)&parser);
+		    smiLeaveLexRecursion();
 		    fclose(parser.file);
 		    if (parser.flags & FLAG_STATS) {
 			sprintf(s, " (%d lines)", parser.line-1);
@@ -3415,6 +3425,57 @@ loadModule(modulename)
 	    }
 	}
 #endif
+
+#ifdef BACKEND_SMING
+	if (locationPtr->type == LOCATION_SMINGDIR) {
+
+	    path = malloc(strlen(locationPtr->name)+strlen(modulename)+6);
+	    
+	    sprintf(path, "%s/%s", locationPtr->name, modulename);
+	    st = stat(path, &buf);
+	    if (!st) {
+		parser.path			= util_strdup(path);
+		parser.locationPtr		= locationPtr;
+		parser.flags			= smiFlags;
+		parser.modulePtr		= NULL;
+		parser.file			= fopen(parser.path, "r");
+		if (!parser.file) {
+		    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
+			       strerror(errno));
+		} else {
+		    if (smingEnterLexRecursion(parser.file) < 0) {
+			printError(&parser, ERR_MAX_LEX_DEPTH);
+			fclose(parser.file);
+		    }
+		    parser.line			= 1;
+		    parser.column		= 1;
+		    parser.character		= 1;
+		    parser.linebuf[0]		= 0;
+		    smingparse((void *)&parser);
+		    smingLeaveLexRecursion();
+		    fclose(parser.file);
+		    if (parser.flags & FLAG_STATS) {
+			sprintf(s, " (%d lines)", parser.line-1);
+			printError(&parser, ERR_STATISTICS, s);
+		    }
+		}
+
+		free(path);
+
+		return findModuleByName(modulename);
+		
+	    }
+	    
+	} else if (locationPtr->type == LOCATION_SMINGFILE) {
+
+	    /* TODO */
+	    modulePtr = findModuleByName(modulename);
+	    if (modulePtr) {
+		return (modulePtr);
+	    }
+	}
+#endif
+
     }
 
     return NULL;

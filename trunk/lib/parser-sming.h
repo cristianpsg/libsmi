@@ -1,5 +1,5 @@
 /*
- * parser-smi.h --
+ * parser-sming.h --
  *
  *      Definition for the SMIv1/v2 parser.
  *
@@ -8,11 +8,11 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.h,v 1.1 1999/03/11 17:33:00 strauss Exp $
+ * @(#) $Id$
  */
 
-#ifndef _PARSER_SMI_H
-#define _PARSER_SMI_H
+#ifndef _PARSER_SMING_H
+#define _PARSER_SMING_H
 
 #include <stdio.h>
 
@@ -21,9 +21,9 @@
 
 
 
-extern int smiparse();
+extern int smingparse();
 
 
 
-#endif /* _PARSER_SMI_H */
+#endif /* _PARSER_SMING_H */
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.12 1999/03/30 18:37:24 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.14 1999/03/30 23:18:23 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -119,10 +119,14 @@ getOidString(modulename, object, importedParent)
 		strcpy(s, append);
 		sprintf(append, "%s%s", strrchr(child, '.'), s);
 	    }
+	    strcpy(child, smiDescriptor(fullname));
+	} else {
+	    strcpy(child, "<unknown>");
+	    fullname = child;
+	    break;
 	}
-	strcpy(child, smiDescriptor(fullname));
-    } while (((!importedParent) || (!smiIsImported(modulename, fullname))) &&
-	     (strchr(smiDescriptor(fullname), '.')));
+    } while ((strchr(smiDescriptor(fullname), '.')) ||
+	     (importedParent && !smiIsImported(modulename, fullname)));
     sprintf(s, "%s%s", smiDescriptor(fullname), append);
 
     return s;
@@ -714,7 +718,17 @@ printObjects(modulename)
 	    break;
 	}
 	
-	/* TODO: create */
+	if (smiNode->list) {
+	    printSegment((2 + indent) * INDENT, "create", INDENTVALUE);
+	    print("(");
+	    for(p = smiNode->list; *p; p++) {
+		if (p != smiNode->list) {
+		    print(", ");
+		}
+		printWrapped(INDENTVALUE + 1, *p);
+	    }
+	    print(");\n");
+	}
 	
 	if (smiNode->value) {
 	    printSegment((2 + indent) * INDENT, "default", INDENTVALUE);
