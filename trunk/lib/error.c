@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.36 2000/02/10 20:36:42 strauss Exp $
+ * @(#) $Id: error.c,v 1.37 2000/02/12 10:56:20 strauss Exp $
  */
 
 #include <config.h>
@@ -111,10 +111,20 @@ Error errors[] = {
       "Access `write-only' is no longer allowed in SMIv2" },
     { 4, ERR_SMIV1_WRITE_ONLY, "access-write-only-smiv1", 
       "Access `write-only' is not a good idea" },
-    { 2, ERR_INVALID_NOTIFICATION_VARIATION_ACCESS, "variation-notification-access", 
+    { 2, ERR_INVALID_NOTIFICATION_VARIATION_ACCESS, "variation-access-notification", 
       "Invalid access `%s' in a notification variation" },
-    { 2, ERR_INVALID_OBJECT_VARIATION_ACCESS, "variation-object-access", 
+    { 2, ERR_INVALID_OBJECT_VARIATION_ACCESS, "variation-access-object", 
       "Invalid access `%s' in an object variation" },
+    { 2, ERR_INVALID_VARIATION_ACCESS, "variation-access", 
+      "Invalid access `%s' in a variation" },
+    { 2, ERR_NOTIFICATION_VARIATION_SYNTAX, "variation-syntax", 
+      "SYNTAX is not allowed in a notification variation" },
+    { 2, ERR_NOTIFICATION_VARIATION_WRITESYNTAX, "variation-writesyntax", 
+      "WRITE-SYNTAX is not allowed in a notification variation" },
+    { 2, ERR_NOTIFICATION_VARIATION_DEFVAL, "variation-defval", 
+      "DEFVAL is not allowed in a notification variation" },
+    { 2, ERR_NOTIFICATION_VARIATION_CREATION, "variation-creation", 
+      "CREATION-REQUIRES is not allowed in a notification variation" },
     { 3, ERR_MODULE_IDENTITY_NOT_FIRST, "module-identity-not-first", 
       "The MODULE-IDENTITY clause must be the first declaration in a module" },
     { 2, ERR_INVALID_SMIV1_STATUS, "status-invalid-smiv1", 

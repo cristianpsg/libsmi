@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.82 2000/02/12 10:56:20 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.83 2000/02/12 14:31:54 strauss Exp $
  */
 
 %{
@@ -61,6 +61,7 @@ static SmiBasetype defaultBasetype;
 static Module      *complianceModulePtr = NULL;
 static Module      *capabilitiesModulePtr = NULL;
 
+static SmiNodekind variationkind;
 
 #define MAX_UNSIGNED32		4294967295
 #define MIN_UNSIGNED32		0
@@ -709,12 +710,8 @@ checkDate(Parser *parserPtr, char *date)
 %type  <err>VariationPart
 %type  <err>Variations
 %type  <err>Variation
-%type  <access>NotificationVariationAccessPart
-%type  <access>ObjectVariationAccessPart
-%type  <access>NotificationVariationAccess
-%type  <access>ObjectVariationAccess
-%type  <err>NotificationVariation
-%type  <err>ObjectVariation
+%type  <access>VariationAccessPart
+%type  <access>VariationAccess
 %type  <err>CreationPart
 %type  <err>Cells
 %type  <err>Cell
@@ -4563,89 +4560,119 @@ Variations:		Variation
 			{ $$ = 0; }
 	;
 
-Variation:		ObjectVariation
-			{ $$ = 0; }
-	|		NotificationVariation
-			{ $$ = 0; }
-	;
-
-NotificationVariation:	VARIATION ObjectName
-			NotificationVariationAccessPart
-			DESCRIPTION Text
+Variation:		VARIATION ObjectName
 			{
-			    thisParserPtr->flags &= ~FLAG_CREATABLE;
-			    $$ = 0;
+			    if ($2) {
+				variationkind = $2->export.nodekind;
+			    } else {
+				variationkind = SMI_NODEKIND_UNKNOWN;
+			    }
 			}
-	;
-
-ObjectVariation:	VARIATION ObjectName
 			SyntaxPart
+			{
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				printError(thisParserPtr,
+					   ERR_NOTIFICATION_VARIATION_SYNTAX);
+			    }
+			}
 			WriteSyntaxPart
-			ObjectVariationAccessPart
+			{
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				printError(thisParserPtr,
+				       ERR_NOTIFICATION_VARIATION_WRITESYNTAX);
+			    }
+			}
+			VariationAccessPart
 			CreationPart
+			{
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				printError(thisParserPtr,
+					  ERR_NOTIFICATION_VARIATION_CREATION);
+			    }
+			}
 			DefValPart
+			{
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				printError(thisParserPtr,
+					   ERR_NOTIFICATION_VARIATION_DEFVAL);
+			    }
+			}
 			DESCRIPTION Text
 			{
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
 			    $$ = 0;
+			    variationkind = SMI_NODEKIND_UNKNOWN;
 			}
 	;
 
-NotificationVariationAccessPart: ACCESS NotificationVariationAccess
+VariationAccessPart:	ACCESS VariationAccess
 			{ $$ = $2; }
 	|		/* empty */
 			{ $$ = 0; }
 	;
 
-ObjectVariationAccessPart: ACCESS ObjectVariationAccess
-			{ $$ = $2; }
-	|		/* empty */
-			{ $$ = 0; }
-	;
-
-NotificationVariationAccess: LOWERCASE_IDENTIFIER
+VariationAccess:	LOWERCASE_IDENTIFIER
 			{
 			    if (!strcmp($1, "not-implemented")) {
 				$$ = SMI_ACCESS_NOT_IMPLEMENTED;
 			    } else if (!strcmp($1, "accessible-for-notify")) {
-				$$ = SMI_ACCESS_NOTIFY;
-			    } else if (!strcmp($1, "read-only")) {
-				$$ = SMI_ACCESS_READ_ONLY;
-			    } else if (!strcmp($1, "read-write")) {
-				$$ = SMI_ACCESS_READ_WRITE;
-			    } else if (!strcmp($1, "read-create")) {
-				$$ = SMI_ACCESS_READ_WRITE;
-			    } else {
-				printError(thisParserPtr,
+				if (variationkind ==
+				    SMI_NODEKIND_NOTIFICATION) {
+				    printError(thisParserPtr,
 				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
-					   $1);
-				$$ = SMI_ACCESS_UNKNOWN;
-			    }
-			    util_free($1);
-			}
-        ;
-
-ObjectVariationAccess:  LOWERCASE_IDENTIFIER
-			{
-			    if (!strcmp($1, "accessible-for-notify")) {
-				$$ = SMI_ACCESS_NOTIFY;
+					       $1);
+				    $$ = SMI_ACCESS_UNKNOWN;
+				} else {
+				    $$ = SMI_ACCESS_NOTIFY;
+				}
 			    } else if (!strcmp($1, "read-only")) {
-				$$ = SMI_ACCESS_READ_ONLY;
+				if (variationkind ==
+				    SMI_NODEKIND_NOTIFICATION) {
+				    printError(thisParserPtr,
+				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
+					       $1);
+				    $$ = SMI_ACCESS_UNKNOWN;
+				} else {
+				    $$ = SMI_ACCESS_READ_ONLY;
+				}
 			    } else if (!strcmp($1, "read-write")) {
-				$$ = SMI_ACCESS_READ_WRITE;
+				if (variationkind ==
+				    SMI_NODEKIND_NOTIFICATION) {
+				    printError(thisParserPtr,
+				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
+					       $1);
+				    $$ = SMI_ACCESS_UNKNOWN;
+				} else {
+				    $$ = SMI_ACCESS_READ_WRITE;
+				}
 			    } else if (!strcmp($1, "read-create")) {
-				$$ = SMI_ACCESS_READ_WRITE;
+				if (variationkind ==
+				    SMI_NODEKIND_NOTIFICATION) {
+				    printError(thisParserPtr,
+				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
+					       $1);
+				    $$ = SMI_ACCESS_UNKNOWN;
+				} else {
+				    $$ = SMI_ACCESS_READ_WRITE;
+				}
 			    } else if (!strcmp($1, "write-only")) {
-				$$ = SMI_ACCESS_READ_WRITE; /* TODO */
-				printError(thisParserPtr,
-					   ERR_SMIV2_WRITE_ONLY);
+				if (variationkind ==
+				    SMI_NODEKIND_NOTIFICATION) {
+				    printError(thisParserPtr,
+				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
+					       $1);
+				    $$ = SMI_ACCESS_UNKNOWN;
+				} else {
+				    $$ = SMI_ACCESS_READ_WRITE; /* TODO */
+				    printError(thisParserPtr,
+					       ERR_SMIV2_WRITE_ONLY);
+				}
 			    } else {
 				printError(thisParserPtr,
-				           ERR_INVALID_OBJECT_VARIATION_ACCESS,
+				           ERR_INVALID_VARIATION_ACCESS,
 					   $1);
 				$$ = SMI_ACCESS_UNKNOWN;
 			    }
-			    util_free($1);
 			}
         ;
 
