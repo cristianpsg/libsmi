@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.50 1999/12/15 15:47:54 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.51 1999/12/16 18:10:38 strauss Exp $
  */
 
 %{
@@ -372,17 +372,30 @@ module:			moduleName
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
-			    }
-			    thisParserPtr->modulePtr->numImportedIdentifiers
-				                                           = 0;
-			    thisParserPtr->modulePtr->numStatements = 0;
-			    thisParserPtr->modulePtr->numModuleIdentities = 0;
-			    if (!strcmp($1, "SNMPv2-SMI")) {
-			        /*
-				 * SNMPv2-SMI is an SMIv2 module that cannot
-				 * be identified by importing from SNMPv2-SMI.
+				thisParserPtr->modulePtr->
+				    numImportedIdentifiers = 0;
+				thisParserPtr->modulePtr->
+				    numStatements = 0;
+				thisParserPtr->modulePtr->
+				    numModuleIdentities = 0;
+				if (!strcmp($1, "SNMPv2-SMI")) {
+			            /*
+				     * SNMPv2-SMI is an SMIv2 module
+				     * that cannot be identified by
+				     * importing from SNMPv2-SMI.
+				     */
+				    thisModulePtr->language =
+					SMI_LANGUAGE_SMIV2;
+				}
+			    } else {
+			        printError(thisParserPtr,
+					   ERR_MODULE_ALREADY_LOADED,
+					   $1);
+				/*
+				 * this aborts parsing the whole file,
+				 * not only the current module.
 				 */
-			        thisModulePtr->language = SMI_LANGUAGE_SMIV2;
+				YYABORT;
 			    }
 
 			}
@@ -1231,6 +1244,7 @@ row:			UPPERCASE_IDENTIFIER
 					       FLAG_INCOMPLETE | FLAG_IMPORTED,
 						     thisParserPtr);
 				    }
+				    smiFreeType(stypePtr);
 #else
 				    $$ = findTypeByModulenameAndName(
 					importPtr->importmodule,
@@ -1312,6 +1326,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 							 snodePtr->oid)),
 					snodePtr->oid[snodePtr->oidlen-1],
 					FLAG_IMPORTED, thisParserPtr);
+				    smiFreeNode(snodePtr);
 				}
 			    }
 
@@ -2019,6 +2034,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
+				    smiFreeType(stypePtr);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
@@ -2058,6 +2074,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
+				    smiFreeType(stypePtr);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
@@ -2107,6 +2124,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
+				    smiFreeType(stypePtr);
 				}
 			    } else {
 				defaultBasetype = parentPtr->basetype;
@@ -2148,6 +2166,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
+				    smiFreeType(stypePtr);
 				}
 			    } else {
 				defaultBasetype = parentPtr->basetype;
@@ -2211,6 +2230,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
+				    smiFreeType(stypePtr);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
@@ -2250,6 +2270,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
+				    smiFreeType(stypePtr);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
@@ -3381,6 +3402,7 @@ subidentifier:
 					    snodePtr->oid[snodePtr->oidlen-1],
 							   FLAG_IMPORTED,
 							   thisParserPtr);
+					    smiFreeNode(snodePtr);
 					} else {
 					    $$ = addObject($1, pendingNodePtr,
 							   0,
@@ -3458,6 +3480,7 @@ subidentifier:
 					  snodePtr->oid[snodePtr->oidlen-1],
 					  FLAG_IMPORTED,
 					  thisParserPtr);
+					smiFreeNode(snodePtr);
 				    }
 				}
 				parentNodePtr = $$->nodePtr;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smitree.c,v 1.1 1999/10/05 15:52:22 strauss Exp $
+ * @(#) $Id: smitree.c,v 1.2 1999/12/12 12:51:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -36,7 +36,8 @@ int main(int argc, char *argv[])
                smiNode->module, smiNode->name);
         
     };
-    
+
+    smiExit();
     return 0;
 }
 
