@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.4 1999/06/01 23:20:07 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.5 1999/06/04 20:39:12 strauss Exp $
 #
 
 
@@ -72,11 +72,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
-DLLTOOL = @DLLTOOL@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -84,12 +82,12 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
 VERSION = @VERSION@
 mibdir = @mibdir@
+smipath = @smipath@
 
 INCLUDES = -I../lib
 
@@ -142,7 +140,7 @@ smiquery.1.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-data.P .deps/dump-imports.P .deps/dump-smi.P \
 .deps/dump-sming.P .deps/smidump.P .deps/smilint.P .deps/smiquery.P

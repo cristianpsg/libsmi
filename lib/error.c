@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.9 1999/05/25 17:00:28 strauss Exp $
+ * @(#) $Id: error.c,v 1.10 1999/05/31 11:58:31 strauss Exp $
  */
 
 #include <string.h>
@@ -40,6 +40,12 @@ typedef struct Error {
     int id;			/* error id, used in error() invocation	     */
     char *fmt;			/* a format string			     */
 } Error;
+
+
+/*
+ * Note: The Makefile produced a list of error macros for every `ERR...'
+ * pattern in this file (error.c). This list is written to error.i.
+ */
 
 Error errors[] = {
     { 0, ERR_INTERNAL,
@@ -249,11 +255,6 @@ printError(Parser *parser, int id, ...)
 	    vfprintf(stderr, fmt, ap);
 	    fprintf(stderr, "\n");
 	    va_end(ap);
-	    
-	    if (thisParser->flags & FLAG_ERRORLINES) {
-		fprintf(stderr, "%s...\n", thisParser->linebuf);
-		fprintf(stderr, "%*s\n", thisParser->column, "^");
-	    }
 	}
     } else {
 	if (errors[id].level <= errorLevel) {
