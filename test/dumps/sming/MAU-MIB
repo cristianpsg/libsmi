@@ -3,15 +3,8 @@
 //
 module MAU-MIB {
 
-//
-// IDENTIFIER IMPORTS
-//
-
-  import IRTF-NMRG-SMING-TYPES (Counter32);
-
-  import IRTF-NMRG-SMING (mib-2);
-
-  import IRTF-NMRG-SMING-TYPES (TruthValue);
+  import IRTF-NMRG-SMING      (Counter32, TruthValue);
+  import IRTF-NMRG-SMING-SNMP (mib-2);
 
 //
 // MODULE META INFORMATION

@@ -3,28 +3,21 @@
 //
 module RMON2-MIB {
 
-//
-// IDENTIFIER IMPORTS
-//
-
-  import IRTF-NMRG-SMING-TYPES (Counter32, Gauge32, IpAddress, 
-                      TimeTicks, RowStatus, DisplayString, 
-                      TimeStamp);
-
-  import IRTF-NMRG-SMING (mib-2);
-
-  import IF-MIB (ifIndex);
-
-  import RMON-MIB (OwnerString, statistics, history, hosts, 
-                      matrix, filter, etherStatsEntry, 
-                      historyControlEntry, hostControlEntry, 
-                      matrixControlEntry, filterEntry, 
-                      channelEntry);
-
-  import TOKEN-RING-RMON-MIB (tokenRing, tokenRingMLStatsEntry, 
-                      tokenRingPStatsEntry, 
-                      ringStationControlEntry, 
-                      sourceRoutingStatsEntry);
+  import IF-MIB               (ifIndex);
+  import IRTF-NMRG-SMING      (Counter32, DisplayString255, 
+                               Gauge32, IpAddress, TimeStamp, 
+                               TimeTicks);
+  import IRTF-NMRG-SMING-SNMP (RowStatus, mib-2);
+  import RMON-MIB             (OwnerString, channelEntry, 
+                               etherStatsEntry, filter, 
+                               filterEntry, history, 
+                               historyControlEntry, 
+                               hostControlEntry, hosts, matrix, 
+                               matrixControlEntry, statistics);
+  import TOKEN-RING-RMON-MIB  (ringStationControlEntry, 
+                               sourceRoutingStatsEntry, 
+                               tokenRing, tokenRingMLStatsEntry, 
+                               tokenRingPStatsEntry);
 
 //
 // MODULE META INFORMATION
