@@ -32,7 +32,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id: Makefile.am,v 1.3 1999/05/28 14:52:05 strauss Exp $
+# @(#) $Id: Makefile.in,v 1.3 1999/05/28 17:42:58 strauss Exp $
 #
 
 
@@ -69,7 +69,7 @@ AUTOCONF = autoconf
 AUTOMAKE = automake
 AUTOHEADER = autoheader
 
-INSTALL = /usr/local/bin/install -c
+INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL_PROGRAM}
@@ -81,20 +81,20 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-host_alias = sparc-sun-solaris2.5.1
-host_triplet = sparc-sun-solaris2.5.1
+host_alias = i686-pc-linux-gnu
+host_triplet = i686-pc-linux-gnu
 AS = @AS@
 BISON = bison
 CC = gcc
 CFLAGS = -g -O2
 DLLTOOL = @DLLTOOL@
 FLEX = flex
-LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
+LD = /usr/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
 LN_S = ln -s
 MAKEINFO = makeinfo
-NM = /usr/local/bin/nm -B
+NM = /usr/bin/nm -B
 OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
@@ -118,7 +118,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1\" -DBACKEND_SMI=1 -DSTDC_HEADERS=1 -DHAVE_FCNTL_H=1 -DHAVE_LIMITS_H=1 -DHAVE_MALLOC_H=1 -DHAVE_STRINGS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_VPRINTF=1 -DHAVE_MKTIME=1 -DHAVE_PUTENV=1 -DHAVE_STRCSPN=1 -DHAVE_STRDUP=1 -DHAVE_STRERROR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOD=1 -DHAVE_STRTOL=1 -DHAVE_STRTOUL=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DSTDC_HEADERS=1 -DHAVE_FCNTL_H=1 -DHAVE_LIMITS_H=1 -DHAVE_MALLOC_H=1 -DHAVE_STRINGS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_VPRINTF=1 -DHAVE_MKTIME=1 -DHAVE_PUTENV=1 -DHAVE_STRCSPN=1 -DHAVE_STRDUP=1 -DHAVE_STRERROR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOD=1 -DHAVE_STRTOL=1 -DHAVE_STRTOUL=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
