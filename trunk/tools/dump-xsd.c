@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.56 2002/12/11 17:22:24 strauss Exp $
+ * @(#) $Id: dump-xsd.c,v 1.57 2002/12/11 22:04:08 strauss Exp $
  */
 
 #include <config.h>
@@ -1344,6 +1344,8 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name )
 	fprintSegment( f, 1, "<xsd:complexType>\n" );
     }
 
+    fprintAnnotationElem( f, smiNode );
+
     numChildren = hasChildren( smiNode, SMI_NODEKIND_ANY );
     if( numChildren ) {
 	fprintSegment( f, 1, "<xsd:sequence>\n");
@@ -1752,15 +1754,37 @@ static void fprintImports( FILE *f, SmiModule *smiModule )
 }
 
 
-static void fprintNodes( FILE *f, SmiModule *smiModule )
+static void fprintGroupTypes( FILE *f, SmiModule *smiModule )
 {
-    SmiNode *iterNode;
-    
+    SmiNode *iterNode, *iterNode2;
+
+    /* scalar groups */
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NODE );
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_SCALAR ) ) {
-	    fprintElement( f, iterNode );
+	    fprintSegment(f, 1, "<xsd:complexType name=\"%sType\">\n",
+			  iterNode->name);
+	    fprintSegment( f, 1, "<xsd:sequence>\n");
+	    for( iterNode2 = smiGetFirstChildNode( iterNode );
+		 iterNode2;
+		 iterNode2 = smiGetNextChildNode( iterNode2 ) ) {
+		if( iterNode2->nodekind == SMI_NODEKIND_SCALAR ) {
+		    fprintElement( f, iterNode2 );
+		}
+	    }
+	    fprintSegment( f, -1, "</xsd:sequence>\n");
+	    fprintSegment(f, -1, "</xsd:complexType>\n");
+	}
+    }   
+
+    /* rows */
+    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
+	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
+	    fprintComplexType( f, iterNode, iterNode->name );
+	    
 	}
     }   
 }
@@ -1788,28 +1812,50 @@ static void fprintModuleHead(FILE *f, SmiModule *smiModule)
 }
 
 
-static void fprintElements(FILE *f, SmiModule *smiModule)
+static void fprintContext(FILE *f, SmiModule *smiModule)
 {
-    fprintSegment( f, 1, "<xsd:element ");
-    fprintf( f, "name=\"%s\">\n", smiModule->name );
+    SmiNode *iterNode;
+
+    fprintSegment( f, 1, "<xsd:element name=\"snmp-data\">\n");
     fprintSegment( f, 1, "<xsd:complexType>\n");
-    fprintSegment( f, 1, "<xsd:choice>\n");
     fprintSegment( f, 1, "<xsd:sequence>\n");
-    fprintNodes( f, smiModule );
-    fprintRows( f, smiModule );
-    fprintSegment( f, -1, "</xsd:sequence>\n");
+    fprintSegment( f, 1, "<xsd:element name=\"context\" "
+		   "minOccurs=\"0\" maxOccurs=\"unbounded\">\n");
+    fprintSegment( f, 1, "<xsd:complexType>\n");
     fprintSegment( f, 1, "<xsd:sequence>\n");
-    fprintNotifications( f, smiModule );
+
+    /* scalar groups */
+    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NODE );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
+	if( hasChildren( iterNode, SMI_NODEKIND_SCALAR ) ) {
+	    fprintSegment(f, 0, "<xsd:element name=\"%s\" type=\"%sType\" minOccurs=\"0\"/>\n",
+			  iterNode->name, iterNode->name);
+	}
+    }   
+
+    /* rows */
+    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
+	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
+	    fprintSegment(f, 0, "<xsd:element name=\"%s\" type=\"%sType\" minOccurs=\"0\" maxOccurs=\"unbounded\"/>\n",
+			  iterNode->name, iterNode->name);
+	}
+    }   
+
+
+
+    
     fprintSegment( f, -1, "</xsd:sequence>\n");
-    fprintSegment( f, -1, "</xsd:choice>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"agent\" type=\"xsd:NMTOKEN\" use=\"required\"/>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"community\" type=\"xsd:NMTOKEN\" use=\"required\"/>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"port\" type=\"xsd:unsignedInt\" use=\"required\"/>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"time\" type=\"xsd:dateTime\" use=\"required\"/>\n");
     fprintSegment( f, -1, "</xsd:complexType>\n");
-
-    fprintKeys( f, smiModule );
-    
+    fprintSegment( f, -1, "</xsd:element>\n");
+    fprintSegment( f, -1, "</xsd:sequence>\n");
+    fprintSegment( f, -1, "</xsd:complexType>\n");
     fprintSegment( f, -1, "</xsd:element>\n\n");
 }
 
@@ -1906,7 +1952,8 @@ static void dumpXsdModules(int modc, SmiModule **modv, int flags, char *output)
 
 	fprintModuleHead(f, modv[i]);
 	fprintImports(f, modv[i]);
-	fprintElements(f, modv[i]);
+	fprintContext(f, modv[i]);
+	fprintGroupTypes(f, modv[i]);
 	fprintImplicitTypes(f, modv[i]);
 	fprintTypedefs(f, modv[i]);
 
