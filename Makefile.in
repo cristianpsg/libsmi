@@ -72,14 +72,12 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 AWK = @AWK@
 BASH = @BASH@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
 DIFF = @DIFF@
-DLLTOOL = @DLLTOOL@
 EXEEXT = @EXEEXT@
 FLEX = @FLEX@
 LD = @LD@
@@ -89,7 +87,6 @@ LIBTOOL_VERSIONING = @LIBTOOL_VERSIONING@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SH = @SH@
@@ -113,7 +110,7 @@ install-sh ltconfig ltmain.sh missing mkinstalldirs
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
