@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.12 1998/11/04 02:14:54 strauss Exp $
+ * @(#) $Id: data.c,v 1.13 1998/11/04 23:44:50 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -186,6 +186,8 @@ findFileByModulename(name)
     Directory *directory;
     static char path[MAX_PATH_LENGTH*2+2];
     
+    printDebug(4, "findFileByModulename(\"%s\")\n", name);
+
     for (directory = firstDirectory; directory; directory = directory->next) {
 	
 	sprintf(path, "%s/%s", directory->dir, name);

@@ -9,19 +9,19 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.3 1998/11/10 20:25:47 strauss Exp $
+% * @(#) $Id: smi.x,v 1.4 1998/11/10 21:42:13 strauss Exp $
 % */
 %
 
 const SMI_MAX_DESCRIPTOR	= 64;
 const SMI_MAX_OID		= 1407;		/* 128 * 10 + 127 */
 const SMI_MAX_STRING		= 65535;
-const SMI_MAX_FULLNAME		= 129;		/* 64 + 1 + 64 */
+const SMI_MAX_NAMESPEC		= 129;		/* 64 + 1 + 64 */
 
 typedef string smi_descriptor<SMI_MAX_DESCRIPTOR>;
 typedef string smi_oid<SMI_MAX_OID>;
 typedef string smi_string<SMI_MAX_STRING>;
-typedef string smi_fullname<SMI_MAX_FULLNAME>;
+typedef string smi_namespec<SMI_MAX_NAMESPEC>;
 
 enum smi_syntax {
     SMI_SYNTAX_UNKNOWN		= 0,
@@ -95,7 +95,7 @@ struct smi_node {
     smi_descriptor	name;
     smi_descriptor	module;
     smi_oid		oid;
-    smi_fullname	type;
+    smi_namespec	type;
 #if 0
     /* TODO */
     smi_index		index;
@@ -176,6 +176,6 @@ program SMIPROG {
 	 * SMIPROC_PARENT returns a fully qualified smi_namespec
 	 * representing the parent of the given input node.
 	 */
-	smi_fullname	SMIPROC_PARENT(smi_namespec) 	= 6;
+	smi_namespec	SMIPROC_PARENT(smi_namespec) 	= 6;
     } = 1;
 } = 0x22315258; /* User-defined range: 0x20000000 - 0x3fffffff */
