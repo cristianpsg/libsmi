@@ -3,12 +3,12 @@
  *
  *      Operations to dump SMIv3 module information.
  *
- * Copyright (c) 2002 Frank Strauss, Technical University of Braunschweig.
+ * Copyright (c) 2002 J. Schoenwaelder, University of Osnabrueck
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smiv3.c,v 1.2 2002/06/10 13:57:15 schoenw Exp $
+ * @(#) $Id: dump-smiv3.c,v 1.3 2002/06/21 14:31:25 strauss Exp $
  */
 
 #include <config.h>
@@ -175,10 +175,10 @@ static char*
 getAccessString(SmiAccess access)
 {
     return
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
-	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
-	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
-	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
+	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
+	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
+	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
 						"<unknown>";
 }
 
@@ -212,9 +212,14 @@ getStringTime(time_t t)
     struct tm	  *tm;
 
     tm = gmtime(&t);
-    sprintf(s, "%04d-%02d-%02d %02d:%02d",
-	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	    tm->tm_hour, tm->tm_min);
+    if (tm->tm_hour || tm->tm_min) {
+	sprintf(s, "%04d-%02d-%02d %02d:%02d",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+		tm->tm_hour, tm->tm_min);
+    } else {
+	sprintf(s, "%04d-%02d-%02d",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+    }
     return s;
 }
 
