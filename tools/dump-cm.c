@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.24 2000/07/05 11:58:42 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.25 2000/08/18 10:13:33 strauss Exp $
  */
 
 
@@ -1285,9 +1285,7 @@ static void algLinkTables()
     }
 
    if (XPLAIN) {
-       printf("--- Second Phase - linking the tables");
-       printf("\n");
-       printf("\n");
+       printf("--- Second Phase - linking the tables\n\n");
        graphShowEdges(graph);
    } 
 }
@@ -2612,7 +2610,7 @@ static void diaPrintXMLInfoNote(Module *module)
     } else {
 	for (mPtr = module; mPtr; mPtr = mPtr->nextPtr) {
 	    if (mPtr->smiModule) {
-		length += strlen(module->smiModule->name)+1;
+		length += strlen(mPtr->smiModule->name)+1;
 	    }
 	}
     }
