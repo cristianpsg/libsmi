@@ -1,5 +1,11 @@
 2000-06-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/: minor patches from Juergen.
+
+	* tools/dump-types.c: dumping also implicit types.
+
+	* mibs/ietf/ and mibs/iana: various MIB module updates.
+
 	* mibs/ietf/RMON-MIB: updated RMON-MIB (RFC 2819).
 
 2000-06-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
