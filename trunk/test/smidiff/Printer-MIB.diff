@@ -252,7 +252,7 @@
 ../../mibs/ietf/Printer-MIB:1910 previous definition of `prtMarkerColorantMarkerIndex'
 ./Printer-MIB.new:3488 type `PrtMarkerColorantRoleTC' replaces implicit type for `prtMarkerColorantRole'
 ../../mibs/ietf/Printer-MIB:1920 previous definition of `prtMarkerColorantRole'
-./Printer-MIB.new:3498 range of type used in `prtMarkerColorantValue' changed from `(SIZE(0..63))' to `(SIZE(0..255))'
+./Printer-MIB.new:3498 size of type used in `prtMarkerColorantValue' changed from `(0..63)' to `(0..255)'
 ./Printer-MIB.new:3497 description of `prtMarkerColorantValue' changed
 ../../mibs/ietf/Printer-MIB:1933 previous definition of `prtMarkerColorantValue'
 ./Printer-MIB.new:3520 description of `prtMarkerColorantTonality' changed
