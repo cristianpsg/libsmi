@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.89 2002/04/03 17:55:49 schoenw Exp $
+ * @(#) $Id: error.c,v 1.90 2002/05/16 23:21:55 bunkus Exp $
  */
 
 #include <config.h>
@@ -310,6 +310,8 @@ static Error errors[] = {
       "table node `%s' must be `not-accessible'" },
     { 3, ERR_ROW_ACCESS, "access-row-illegal", 
       "row node `%s' must be `not-accessible'" },
+    { 4, ERR_COUNTER_ACCESS, "access-counter-illegal", 
+      "counter object `%s' must be `read-only' or `accessible-for-notify'" },
     { 2, ERR_ENUM_SUBTYPE, "subtype-enumeration-illegal", 
       "named number `%s(%d)' illegal in sub-type of `%s'" },
     { 2, ERR_BITS_SUBTYPE, "subtype-bits-illegal", 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.28 2002/01/09 09:09:00 strauss Exp $
+ * @(#) $Id: util.c,v 1.29 2002/03/20 08:05:46 schoenw Exp $
  */
 
 #include <config.h>
@@ -175,6 +175,10 @@ time_t timegm(struct tm *tm)
 int smiTypeDerivedFrom(Type *typePtr, Type *parentTypePtr)
 {
     Type *t;
+
+    if ((!typePtr) || (!parentTypePtr)) {
+	return 0;
+    }
     
     for (t = typePtr; t != NULL; t = t->parentPtr) {
 	if (parentTypePtr == t) {
