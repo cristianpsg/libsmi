@@ -1,3 +1,16 @@
+2000-19-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-python.c: a new dump format to generate Python MIB
+	dictionary code. Contributed by Pat Knight.
+
+	* tools/dump-xml.c: Fixed missing end tag of rows and tables
+	in certain cases. Contributed by Pat Knight.
+
+	* tools/smidump.c: Added option `-X' for `lax' parsing. Some
+	people wish to accept things like underscores or upper case
+	first letters in object type names. Note that it is usually
+	a *bad* idea to use lax parsing!
+
 2000-18-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/FRNETSERV-MIB: updated (RFC 2954).

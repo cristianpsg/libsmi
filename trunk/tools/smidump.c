@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.43 2000/08/18 10:35:10 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.44 2000/08/25 10:08:34 strauss Exp $
  */
 
 #include <config.h>
@@ -77,6 +77,8 @@ static Driver driverTable[] = {
       "UCD SNMP mib module C code" },
     { "jax",       dumpJax,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
       "Java AgentX sub-agent classes in separate files" },
+    { "python",    dumpPython,  0,			SMIDUMP_FLAG_UNITE,
+      "Python MIB dictionaries" },
 #if 0
     { "sql",       dumpSql,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
       "SQL data model definitions" },
@@ -196,6 +198,7 @@ static void usage()
 	    "-l <level>          set maximum level of errors and warnings\n"
 	    "-f <format>         use <format> when dumping (default %s)\n"
 	    "-u                  print a single united output of all modules\n"
+	    "-X	                 accept incorrect case and _ in identifiers\n"
 	    "<module_or_path>    name of a MIB module or file path\n\n",
 	    driverTable->name);
     fprintf(stderr, "Supported formats are:\n");
@@ -219,7 +222,7 @@ main(argc, argv)
     char c;
     char *modulename;
     SmiModule *smiModule;
-    int flags, smiflags, i;
+    int flags, smiflags, i, be_lax;
     Driver *driver = driverTable;
 
     for (i = 1; i < argc; i++) if (strstr(argv[i], "-c") == argv[i]) break;
@@ -229,7 +232,8 @@ main(argc, argv)
 	smiInit(NULL);
 
     flags = 0;
-    while ((c = getopt(argc, argv, "Vhsul:f:p:c:")) != -1) {
+    be_lax = 0;
+    while ((c = getopt(argc, argv, "VXhsul:f:p:c:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg, "smiquery");
@@ -252,6 +256,9 @@ main(argc, argv)
 	case 'u':
 	    flags |= SMIDUMP_FLAG_UNITE;
 	    break;
+	case 'X':
+	    be_lax = SMI_FLAG_BE_LAX;
+	    break;
 	case 'f':
 	    for (driver = driverTable; driver->name; driver++) {
 		if (strcasecmp(driver->name, optarg) == 0) {
@@ -272,7 +279,7 @@ main(argc, argv)
     }
 
     smiflags = smiGetFlags();
-    smiflags |= SMI_FLAG_ERRORS;
+    smiflags |= SMI_FLAG_ERRORS | be_lax;
     smiflags |= driver->smiflags;
     smiSetFlags(smiflags);
 
@@ -309,4 +316,4 @@ main(argc, argv)
     smiExit();
     
     return 0;
-} /*  */
+}
