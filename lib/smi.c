@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.25 1999/05/20 17:01:43 strauss Exp $
+ * @(#) $Id: smi.c,v 1.26 1999/05/21 19:55:17 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -24,9 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#ifdef linux
-#include <getopt.h>
-#endif
 
 #include "defs.h"
 #include "smi.h"

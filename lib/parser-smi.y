@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.21 1999/04/10 19:37:23 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.22 1999/05/21 19:55:15 strauss Exp $
  */
 
 %{
@@ -22,10 +22,6 @@
 #include <ctype.h>
 #include <limits.h>
     
-#ifdef linux
-#include <getopt.h>
-#endif
-
 #include "defs.h"
 #include "smi.h"
 #include "error.h"
