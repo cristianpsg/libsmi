@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.34 2002/03/19 09:04:35 schoenw Exp $
+ * @(#) $Id: smi.h.in,v 1.35 2002/05/16 23:21:55 bunkus Exp $
  */
 
 #ifndef _SMI_H
@@ -163,8 +163,7 @@ typedef enum SmiIndexkind {
     SMI_INDEX_AUGMENT           = 2,
     SMI_INDEX_REORDER           = 3,
     SMI_INDEX_SPARSE            = 4,
-    SMI_INDEX_EXPAND            = 5,
-    SMI_INDEX_EXTEND            = 6  /* SPPI only */
+    SMI_INDEX_EXPAND            = 5
 } SmiIndexkind;
 
 /* SmiValue -- any single value; for use in default values and subtyping     */
