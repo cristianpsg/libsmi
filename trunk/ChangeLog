@@ -1,27 +1,27 @@
-2000-27-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/check.c: Juergen fixed index checks for Bits/fixed-length
 	octet strings.
 
-2000-25-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidump.c: Removed again `-X' option to eliminate parser
 	options that might lead to different results.
 
-2000-21-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/error.c: Added a fourth arg to the error handler representing
 	the error name. This has been wished and contributed by Bill Fenner.
 	Note that this changed the API slightly.
 
-2000-20-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/check.c: Fixed index length checks for OCTET STRINGs,
 	IpAddresses and OBJECT-IDENTIFIERs. Thanks to Bill Fenner.
 
 	* lib/error.c: Fixed two minor typos. Thanks to Bill.
 
-2000-19-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-python.c: a new dump format to generate Python MIB
 	dictionary code. Contributed by Pat Knight.
@@ -34,17 +34,17 @@
 	first letters in object type names. Note that it is usually
 	a *bad* idea to use lax parsing!
 
-2000-18-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/FRNETSERV-MIB: updated (RFC 2954).
 
 	* mibs/ietf/FR-ATM-PVC-SERVICE-IWF-MIB: added (RFC 2955).
 
-2000-17-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-ucdsnmp.c: Juergen fixed BITS handling.
 
-2000-12-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-10-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/RTP-MIB: added (RFC 2959).
 
