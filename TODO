@@ -70,6 +70,8 @@ o special handling for well-known traps (reversibility?)
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
 
+o smidump might print defvals for OIDs by label without importing it.
+
 o line breaks in long bits defaults values (dump-*.c)
 
 o Get rid of SmiValueformat - only store primitive values (e.g. integers
@@ -93,3 +95,4 @@ o OID default values should be printed as identifiers where possible.
 
 o The default value conversion functions (e.g. getValueString()) should
   return malloced memory to avoid potential memory overwrite problems.
+

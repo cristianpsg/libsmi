@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.68 2000/02/24 16:56:26 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.69 2000/02/25 16:48:20 strauss Exp $
  */
 
 #include <config.h>
@@ -350,7 +350,8 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     int		   i, n;
     char           **p;
     SmiNamedNumber *nn;
-
+    SmiNode        *nodePtr;
+    
     s[0] = 0;
     
     switch (valuePtr->basetype) {
@@ -420,7 +421,16 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     case SMI_BASETYPE_UNKNOWN:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-	sprintf(s, "%s", valuePtr->value.ptr);
+	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);
+	if (nodePtr) {
+	    sprintf(s, "%s", nodePtr->name);
+	} else {
+	    strcpy(s, "");
+	    for (i=0; i < valuePtr->len; i++) {
+		if (i) strcat(s, ".");
+		sprintf(&s[strlen(s)], "%u", valuePtr->value.oid[i]);
+	    }
+	}
 	break;
     }
 

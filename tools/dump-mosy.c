@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.23 2000/02/14 17:19:01 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.24 2000/02/24 10:35:43 strauss Exp $
  */
 
 #include <config.h>
@@ -134,9 +134,8 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 
 static char *getValueString(SmiValue *valuePtr)
 {
-    static char s[100];
-    char        **p;
-    
+    static char    s[100];
+
     s[0] = 0;
     
     switch (valuePtr->basetype) {
@@ -157,26 +156,12 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-	sprintf(s, "%s", valuePtr->value.ptr);
-	break;
     case SMI_BASETYPE_OCTETSTRING:
-	sprintf(s, "\"%s\"", valuePtr->value.ptr);
-	break;
     case SMI_BASETYPE_BITS:
-	sprintf(s, "(");
-	if (valuePtr->value.bits) {
-	    for (p = valuePtr->value.bits; *p; p++) {
-		if (p != valuePtr->value.bits)
-		    sprintf(&s[strlen(s)], ", ");
-		sprintf(&s[strlen(s)], "%s", *p);
-	    }
-	}
-	sprintf(&s[strlen(s)], ")");
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	/* not required in MOSY format */
 	break;
     case SMI_BASETYPE_UNKNOWN:
-	break;
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	/* TODO */
 	break;
     }
 

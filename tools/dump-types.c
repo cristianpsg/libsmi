@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.12 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.13 2000/02/22 17:11:14 strauss Exp $
  */
 
 #include <config.h>
@@ -198,10 +198,14 @@ static int getBaseTypeCount(SmiBasetype basetype)
 
 
 
-static char *getValueString(SmiValue *valuePtr)
+static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
-    static char s[100];
-    char        **p;
+    static char    s[100];
+    char           ss[9];
+    int		   i, n;
+    char           **p;
+    SmiNamedNumber *nn;
+    SmiNode        *nodePtr;
     
     s[0] = 0;
     
@@ -223,18 +227,48 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-	sprintf(s, "%s", valuePtr->value.ptr);
+	for (nn = smiGetFirstNamedNumber(typePtr); nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 == valuePtr->value.unsigned32)
+		break;
+	}
+	if (nn) {
+	    sprintf(s, "%s", nn->name);
+	} else {
+	    sprintf(s, "%d", valuePtr->value.unsigned32);
+	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	for (i = 0; i < valuePtr->len; i++) {
+	    if (!isprint((int)valuePtr->value.ptr[i])) break;
+	}
+	if (i == valuePtr->len) {
+	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	} else {
+            sprintf(s, "0x%*s", 2 * valuePtr->len, "");
+            for (i=0; i < valuePtr->len; i++) {
+                sprintf(ss, "%02x", valuePtr->value.ptr[i]);
+                strncpy(&s[2+2*i], ss, 2);
+            }
+	}
 	break;
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
-	if (valuePtr->value.bits) {
-	    for(p = valuePtr->value.bits; *p; p++) {
-		if (p != valuePtr->value.bits)
+	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
+	    if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
+		if (n)
 		    sprintf(&s[strlen(s)], ", ");
-		sprintf(&s[strlen(s)], "%s", *p);
+		n++;
+		for (nn = smiGetFirstNamedNumber(typePtr); nn;
+		     nn = smiGetNextNamedNumber(nn)) {
+		    if (nn->value.value.unsigned32 == i)
+			break;
+		}
+		if (nn) {
+		    sprintf(&s[strlen(s)], "%s", nn->name);
+		} else {
+		    sprintf(s, "%d", i);
+		}
 	    }
 	}
 	sprintf(&s[strlen(s)], ")");
@@ -242,7 +276,16 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_UNKNOWN:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-        sprintf(s, "%s", valuePtr->value.ptr);
+	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);
+	if (!nodePtr) {
+	    sprintf(s, "%s", nodePtr->name);
+	} else {
+	    strcpy(s, "");
+	    for (i=0; i < valuePtr->len; i++) {
+		if (i) strcat(s, ".");
+		sprintf(&s[strlen(s)], "%u", valuePtr->value.oid[i]);
+	    }
+	}
 	break;
     }
 
@@ -371,8 +414,8 @@ static void printRestrictions(SmiType *smiType)
     } else {
 	for(i = 0, range = smiGetFirstRange(smiType);
 	    range ; range = smiGetNextRange(range), i++) {
-	    strcpy(s1, getValueString(&range->minValue));
-	    strcpy(s2, getValueString(&range->maxValue));
+	    strcpy(s1, getValueString(&range->minValue, smiType));
+	    strcpy(s2, getValueString(&range->maxValue, smiType));
 	    printf("%s%s", (i == 0) ? " [" : ", ", s1);
 	    if (strcmp(s1, s2)) printf("..%s", s2);
 	}
