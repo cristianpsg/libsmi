@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.101 2002/10/24 10:40:10 strauss Exp $
+ * @(#) $Id: error.c,v 1.102 2002/11/19 16:57:48 schoenw Exp $
  */
 
 #include <config.h>
@@ -428,7 +428,7 @@ static Error errors[] = {
     { 5, ERR_INETADDRESS_SPECIFIC, "inetaddress-specific", 
       "`InetAddress' should be used instead of `%s'" },
     { 5, ERR_TRANSPORTADDRESS_WITHOUT_TYPE, "transportaddress-transportaddresstype", 
-      "`TransportAddress' object should have an accompanied preceding `TransportAdressType' object" },
+      "`TransportAddress' object should have an accompanied preceding `TransportAdressType' or `TransportDomain' object" },
     { 5, ERR_TRANSPORTADDRESSTYPE_SUBTYPED, "transportaddresstype-subtyped", 
       "`TransportAddressType' should not be subtyped" },
     { 5, ERR_TRANSPORTADDRESS_SPECIFIC, "transportaddress-specific", 
