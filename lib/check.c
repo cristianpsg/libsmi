@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.21 2001/06/25 13:26:58 strauss Exp $
+ * @(#) $Id: check.c,v 1.22 2001/08/15 17:07:03 strauss Exp $
  */
 
 #include <config.h>
@@ -1121,6 +1121,21 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 
 		/* check InetAddressType/InetAddress pair */
 		if (objectPtr->typePtr == inetAddressPtr) {
+#if 1
+		    for (nodePtr =
+			     objectPtr->nodePtr->parentPtr->firstChildPtr;
+			 nodePtr &&
+			     nodePtr->subid < objectPtr->nodePtr->subid &&
+			     nodePtr->lastObjectPtr->typePtr !=
+			         inetAddressTypePtr;
+			 nodePtr = nodePtr->nextPtr);
+		    if (!nodePtr ||
+			nodePtr->subid >= objectPtr->nodePtr->subid) {
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_INETADDRESS_WITHOUT_TYPE,
+					    objectPtr->line);
+		}
+#else
 		    nodePtr =
 			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
 						 objectPtr->nodePtr->subid-1);
@@ -1130,6 +1145,7 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 					    ERR_INETADDRESS_WITHOUT_TYPE,
 					    objectPtr->line);
 		    }
+#endif
 		}
 
 		/* check InetAddressType subtyping */
