@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.107 2000/06/06 08:00:52 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.108 2000/06/06 12:58:19 strauss Exp $
  */
 
 %{
@@ -155,9 +155,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	} else if (objectPtr->export.decl == SMI_DECL_AGENTCAPABILITIES) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_CAPABILITIES;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
+		   (parentPtr) &&
 		   (parentPtr->export.indexkind != SMI_INDEX_UNKNOWN)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_COLUMN;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
+		   (parentPtr) &&
 		   (parentPtr->export.indexkind == SMI_INDEX_UNKNOWN)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_SCALAR;
 	}
@@ -2627,7 +2629,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, parentPtr);
-				    defaultBasetype = SMI_BASETYPE_INTEGER32;
+				    defaultBasetype = parentPtr->export.basetype;
 				}
 			    } else {
 				defaultBasetype = parentPtr->export.basetype;
@@ -2636,9 +2638,18 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$, parentPtr);
 			    }
-			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    if ((defaultBasetype == SMI_BASETYPE_INTEGER32) ||
+				(defaultBasetype == SMI_BASETYPE_INTEGER64) ||
+				(defaultBasetype == SMI_BASETYPE_UNSIGNED32) ||
+				(defaultBasetype == SMI_BASETYPE_UNSIGNED64)) {
+				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
+					   $1);
+			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
@@ -2670,7 +2681,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						 thisParserPtr);
 				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, parentPtr);
-				    defaultBasetype = SMI_BASETYPE_INTEGER32;
+				    defaultBasetype = parentPtr->export.basetype;
 				}
 			    } else {
 				defaultBasetype = parentPtr->export.basetype;
@@ -2679,9 +2690,18 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$, parentPtr);
 			    }
-			    setTypeList($$, $4);
-			    for (p = $4; p; p = p->nextPtr)
-				((Range *)p->ptr)->typePtr = $$;
+			    if ((defaultBasetype == SMI_BASETYPE_INTEGER32) ||
+				(defaultBasetype == SMI_BASETYPE_INTEGER64) ||
+				(defaultBasetype == SMI_BASETYPE_UNSIGNED32) ||
+				(defaultBasetype == SMI_BASETYPE_UNSIGNED64)) {
+				setTypeList($$, $4);
+				for (p = $4; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
+					   $3);
+			    }
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -2866,9 +2886,22 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = defaultBasetype;
-			    $$->len = -1; /* indicates unresolved ptr */
-			    $$->value.ptr = $1;	/* JS: needs strdup? */
+			    if ((defaultBasetype != SMI_BASETYPE_ENUM) &&
+				(defaultBasetype != SMI_BASETYPE_OBJECTIDENTIFIER)) {
+				printError(thisParserPtr, ERR_DEFVAL_SYNTAX);
+				$$->basetype = defaultBasetype;
+				if (defaultBasetype == SMI_BASETYPE_ENUM) {
+				    $$->len = 1;
+				    $$->value.unsigned32 = 0;
+				} else {
+				    $$->len = 0;
+				    $$->value.ptr = NULL;
+				}
+			    } else {
+				$$->basetype = defaultBasetype;
+				$$->len = -1;  /* indicates unresolved ptr */
+				$$->value.ptr = $1;   /* JS: needs strdup? */
+			    }
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
