@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.4 1998/10/13 17:11:43 strauss Exp $
+ * @(#) $Id: data.c,v 1.5 1998/10/22 12:59:54 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1915,7 +1915,6 @@ initData()
 {
     int i;
     MibNode *node;
-    Type *type;
     
     firstDirectory = NULL;
     for (i = 0; i < NUM_KINDS; i++) {
@@ -1923,8 +1922,19 @@ initData()
 	lastDescriptor[i] = NULL;
     }
 
+    /*
+     * Initialize a root MibNode for the main MIB tree.
+     */
     rootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
+    
+    /*
+     * Initialize a root MibNode for pending (forward referenced) nodes.
+     */
+    pendingRootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
 
+    /*
+     * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt.
+     */
     node = addMibNode(rootMibNode, 0, NULL, FLAG_PERMANENT, NULL);
     addDescriptor("ccitt", NULL, KIND_MIBNODE, node, FLAG_PERMANENT, NULL);
     node = addMibNode(rootMibNode, 1, NULL, FLAG_PERMANENT, NULL);
@@ -1933,38 +1943,76 @@ initData()
     addDescriptor("joint-iso-ccitt", NULL, KIND_MIBNODE, node,
 		  FLAG_PERMANENT, NULL);
 
-    pendingRootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
-
-    type = addType(NULL, SYNTAX_INTEGER, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("INTEGER", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    addDescriptor("Integer32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_OCTET_STRING, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("OCTET STRING", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_OBJECT_IDENTIFIER, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("OBJECT IDENTIFIER", NULL, KIND_TYPE, type, FLAG_PERMANENT,
-		  NULL);
+    /*
+     * Initialize the well-known (ASN.1 and SNMPv2-TC) Types.
+     */
+    typeInteger = addType(NULL, SYNTAX_INTEGER,
+			  NULL, FLAG_PERMANENT, NULL);
+#if 1
+    addDescriptor("INTEGER", NULL, KIND_TYPE, typeInteger,
+		  FLAG_PERMANENT, NULL);
+#endif    
+    addDescriptor("Integer32", NULL, KIND_TYPE, typeInteger,
+		  FLAG_PERMANENT, NULL);
+    
+    typeOctetString = addType(NULL, SYNTAX_OCTET_STRING,
+			      NULL, FLAG_PERMANENT, NULL);
+#if 1
+    addDescriptor("OCTET STRING", NULL, KIND_TYPE, typeOctetString,
+		  FLAG_PERMANENT, NULL);
+#endif
+    
+    typeObjectIdentifier = addType(NULL, SYNTAX_OBJECT_IDENTIFIER,
+				   NULL, FLAG_PERMANENT, NULL);
+#if 1
+    addDescriptor("OBJECT IDENTIFIER", NULL, KIND_TYPE, typeObjectIdentifier,
+		  FLAG_PERMANENT, NULL);
+    #endif
+    
 #if 0
     type = addType(NULL, SYNTAX_SEQUENCE, NULL, FLAG_PERMANENT, NULL);
     addDescriptor("SEQUENCE", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 #endif
+    
 #if 0
     type = addType(NULL, SYNTAX_SEQUENCE_OF, NULL, FLAG_PERMANENT, NULL);
     addDescriptor("SEQUENCE_OF", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 #endif
-    type = addType(NULL, SYNTAX_IPADDRESS, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("IpAddress", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_COUNTER32, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Counter32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_GAUGE32, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Gauge32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_UNSIGNED32, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Unsigned32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_TIMETICKS, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("TimeTicks", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_OPAQUE, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Opaque", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
-    type = addType(NULL, SYNTAX_COUNTER64, NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Counter64", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    
+    typeIpAddress = addType(NULL, SYNTAX_IPADDRESS,
+			    NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("IpAddress", NULL, KIND_TYPE, typeIpAddress,
+		  FLAG_PERMANENT, NULL);
+    
+    typeCounter32 = addType(NULL, SYNTAX_COUNTER32,
+			    NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Counter32", NULL, KIND_TYPE, typeCounter32,
+		  FLAG_PERMANENT, NULL);
+    
+    typeGauge32 = addType(NULL, SYNTAX_GAUGE32,
+			  NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Gauge32", NULL, KIND_TYPE, typeGauge32,
+		  FLAG_PERMANENT, NULL);
+    
+    typeUnsigned32 = addType(NULL, SYNTAX_UNSIGNED32,
+			     NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Unsigned32", NULL, KIND_TYPE, typeUnsigned32,
+		  FLAG_PERMANENT, NULL);
+    
+    typeTimeTicks = addType(NULL, SYNTAX_TIMETICKS,
+			    NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("TimeTicks", NULL, KIND_TYPE, typeTimeTicks,
+		  FLAG_PERMANENT, NULL);
+    
+    typeOpaque = addType(NULL, SYNTAX_OPAQUE,
+			 NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Opaque", NULL, KIND_TYPE, typeOpaque,
+		  FLAG_PERMANENT, NULL);
+    
+    typeCounter64 = addType(NULL, SYNTAX_COUNTER64,
+			    NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Counter64", NULL, KIND_TYPE, typeCounter64,
+		  FLAG_PERMANENT, NULL);
 	    
     return (0);
 }
