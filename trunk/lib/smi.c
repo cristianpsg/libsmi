@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.112 2002/07/23 11:48:14 strauss Exp $
+ * @(#) $Id: smi.c,v 1.113 2002/07/23 18:12:54 strauss Exp $
  */
 
 #include <config.h>
@@ -29,6 +29,7 @@
 #include "data.h"
 #include "error.h"
 #include "util.h"
+#include "snprintf.h"
 
 #ifdef BACKEND_SMI
 #include "scanner-smi.h"
@@ -1473,7 +1474,10 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
 
 char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 {
-    int i, j;
+    int i, j, k, n, pfx, have_pfx;
+    char *last_fmt, *fmt;
+    SmiUnsigned64 vv;
+    int xlen;
     SmiNamedNumber *nn;
     char *s, *ss;
     char f[8];
@@ -1680,129 +1684,126 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	s = smiRenderOID(smiValuePtr->len, smiValuePtr->value.oid, flags);
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	asprintf(&s, "\"%s\"", smiValuePtr->value.ptr);
-	break;
-#if 0 // XXX TODO grabbed from scotty...
-{
-    int i = 0, len, pfx, have_pfx;			/* counter prefix */
-    char *last_fmt;			/* save ptr to last seen fmt */
-    char *bytes;
-    Tcl_Obj *objPtr;
-
-    /* 
-     * Perform some sanity checks and get the octets to be formatted.
-     */
-
-    bytes = TnmGetOctetStringFromObj(NULL, val, &len);
-    if (! fmt || ! bytes) {
-	return NULL;
-    }
-
-    if (strcmp(fmt, "1x:") == 0) {
-	Tcl_InvalidateStringRep(val);
-	return NULL;
-    }
-
-    objPtr = Tcl_NewStringObj(NULL, 0);
-
-    while (*fmt && i < len) {
-
-        last_fmt = fmt;		/* save for loops */
-
-	have_pfx = pfx = 0;	/* scan prefix: */
-	while (*fmt && isdigit((int) *fmt)) {
-	    pfx = pfx * 10 + *fmt - '0', have_pfx = 1, fmt++;
-	}
-	if (! have_pfx) {
-	    pfx = 1;
-	}
-
-	switch (*fmt) {
-	case 'a': {
-	    int k, n;
-	    n = (pfx < (len-i)) ? pfx : len-i;
-	    for (k = i; k < n; k++) {
-		if (! isascii((int) bytes[k])) {
-		    Tcl_DecrRefCount(objPtr);
+	if (!(flags & SMI_RENDER_FORMAT) ||
+	    (!smiTypePtr->format)) {
+	    for (i = 0; i < smiValuePtr->len; i++) {
+		if (!isprint((int)smiValuePtr->value.ptr[i])) break;
+	    }
+	    if ((i < smiValuePtr->len) ||
+		!(flags & SMI_RENDER_PRINTABLE)) {
+		asprintf(&s, "");
+		for (i=0; i < smiValuePtr->len; i++) {
+		    ss = s;
+		    asprintf(&s, "%s%02x", ss, smiValuePtr->value.ptr[i]);
+		    smiFree(ss);
+		}
+	    } else {
+		asprintf(&s, "%s", smiValuePtr->value.ptr);
+	    }
+	} else {
+	    i = 0;
+	    asprintf(&s, "");
+	    fmt = smiTypePtr->format;
+	    while (*fmt && i < smiValuePtr->len) {
+		last_fmt = fmt;
+		have_pfx = pfx = 0; /* scan prefix: */
+		while (*fmt && isdigit((int)*fmt)) {
+		    pfx = pfx * 10 + *fmt - '0', have_pfx = 1, fmt++;
+		}
+		if (! have_pfx) {
+		    pfx = 1;
+		}
+		switch (*fmt) {
+		case 't':
+		    /* XXX UTF-8 not implemented, fall through to ASCII (a) */
+		case 'a':
+		    n = (pfx < (smiValuePtr->len - i)) ?
+			       pfx : smiValuePtr->len - i;
+		    for (k = 0; k < n; k++) {
+			if (! isascii((int) smiValuePtr->value.ptr[i+k])) {
+			    smiFree(s);
+			    return NULL;
+			}
+			ss = s;
+			asprintf(&s, "%s%c", ss, smiValuePtr->value.ptr[i+k]);
+			smiFree(ss);
+		    }
+		    i += n;
+		    break;
+		case 'b':
+		case 'd':
+		case 'o':
+		case 'x':
+		    /* XXX: limited to no more than
+		       sizeof(SmiUnsigned64) octets */
+		    vv = 0;
+		    xlen = pfx * 2;
+		    while (pfx > 0 && i < smiValuePtr->len) {
+			vv = vv * 256 +
+			     ((unsigned char)smiValuePtr->value.ptr[i]);
+			i++;
+			pfx--;
+		    }
+		    switch (*fmt) {
+		    case 'd':
+			ss = s;
+			sprintf(f, "%%s%s", UINT64_FORMAT);
+			asprintf(&s, f, ss, vv);
+			smiFree(ss);
+			break;
+		    case 'o':
+			ss = s;
+			sprintf(f, "%%s%s", UINT64_FORMAT);
+			f[strlen(f)-1] = 'o';
+			asprintf(&s, f, ss, vv);
+			smiFree(ss);
+			break;
+		    case 'x':
+			ss = s;
+			sprintf(f, "%%s%%0%s", UINT64_FORMAT);
+			f[4] = '*';
+			f[strlen(f)-1] = 'x';
+			asprintf(&s, f, ss, xlen, vv);
+			smiFree(ss);
+			break;
+		    case 'b':
+			k = pfx * 8 - 1;
+			if (k > sizeof(SmiUnsigned64) * 8 - 1)
+			    k = sizeof(SmiUnsigned64) * 8 - 1;
+			for (j = 0; k >= 0; k--, j++) {
+			    ss = s;
+			    asprintf(&s, "%s%c",
+				     ss, vv & (1 << k) ? '1' : '0');
+			    smiFree(ss);
+			}
+			break;
+		    }
+		    break;
+		default:
+		    smiFree(s);
 		    return NULL;
 		}
-	    }
-	    Tcl_AppendToObj(objPtr, bytes+i, n);
-	    i += n;
-	    break;
-	}
-	case 't': {
-	    /* XXX */
-	    Tcl_DecrRefCount(objPtr);
-	    return NULL;
-	}
-	case 'b':
-	case 'd':
-	case 'o':
-	case 'x': {
+		fmt++;
 
-	    char buf[80];
-	    long vv = 0;
-	    int xlen = pfx * 2;
-
-	    /* collect octets to format */
-	    
-	    while (pfx > 0 && i < len) {
-		vv = vv * 256 + (bytes[i] & 0xff);
-		i++;
-		pfx--;
-	    }
-	    
-	    switch (*fmt) {
-	    case 'd':
-	        sprintf(buf, "%ld", vv);
-		break;
-	    case 'o':
-		sprintf(buf, "%lo", vv);
-		break;
-	    case 'x':
-		sprintf(buf, "%.*lX", xlen, vv);
-		break;
-	    case 'b': {
-	        int i, j; 
-		for (i = (sizeof(int) * 8 - 1); i >= 0
-			 && ! (vv & (1 << i)); i--);
-		for (j = 0; i >= 0; i--, j++) {
-		    buf[j] = vv & (1 << i) ? '1' : '0';
+		/*
+		 * Check for a separator and repeat with last format if
+		 * data is still available.
+		 */
+		if (*fmt && ! isdigit((int) *fmt) && *fmt != '*') {
+		    if (i < smiValuePtr->len) {
+			ss = s;
+			asprintf(&s, "%s%c", ss, fmt[0]);
+			smiFree(ss);
+		    }
+		    fmt++;
 		}
-		buf[j] = 0;
-		break;
+
+		if (! *fmt && (i < smiValuePtr->len)) {
+		    fmt = last_fmt;
+		}
 	    }
-	    }
-	    Tcl_AppendToObj(objPtr, buf, (int) strlen(buf));
-	    break;
 	}
-	default:
-	    Tcl_DecrRefCount(objPtr);
-	    return NULL;
-	}
-	fmt++;
-
-	/*
-	 * Check for a separator and repeat with last format if
-	 * data is still available.
-	 */
-
-	if (*fmt && ! isdigit((int) *fmt) && *fmt != '*') {
-	    if (i < len) {
-		Tcl_AppendToObj(objPtr, fmt, 1);
-	    }
-	    fmt++;
-	}
-
-	if (! *fmt && (i < len)) {
-	    fmt = last_fmt;
-	}
-    }
-
-    return objPtr;
-}
-#endif
+	break;
     case SMI_BASETYPE_ENUM:
 	if (flags & SMI_RENDER_NAME) {
 	    for (nn = smiGetFirstNamedNumber(smiTypePtr); nn;

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: snprintf.c,v 1.4 2001/01/02 22:33:04 guy Exp $ */
+/* $Id: snprintf.c,v 1.1 2002/07/23 11:48:14 strauss Exp $ */
 
 #include <config.h>
 
@@ -45,6 +45,8 @@
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
+
+#include "snprintf.h"
 
 #ifndef MIN
 #define MIN(a, b)       ((a) < (b) ? (a) : (b))

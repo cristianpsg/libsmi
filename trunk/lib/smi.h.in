@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.37 2002/07/17 10:32:15 bunkus Exp $
+ * @(#) $Id: smi.h.in,v 1.38 2002/07/23 18:12:54 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -428,7 +428,8 @@ extern char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr,
 #define SMI_RENDER_NAME      0x02 /* render as plain name(s) */
 #define SMI_RENDER_QUALIFIED 0x04 /* render as qualified name(s) */
 #define SMI_RENDER_FORMAT    0x08 /* render by type's format if present */
-#define SMI_RENDER_ALL       0x0f
+#define SMI_RENDER_PRINTABLE 0x10 /* render strings printable if possible */
+#define SMI_RENDER_ALL       0xff /* render as `human friendly' as possible */
 
 #ifdef __cplusplus
 }
