@@ -88,7 +88,6 @@ BISON = bison
 CC = gcc
 CFLAGS = -g -O2
 DLLTOOL = @DLLTOOL@
-EXEEXT = 
 FLEX = flex
 LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
