@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.26 2002/06/21 14:31:26 strauss Exp $
+.\" $Id: smidump.1.in,v 1.27 2002/07/23 09:04:37 schoenw Exp $
 .\"
 .TH smidump 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
@@ -48,26 +48,9 @@ below. The default output format is SMIng. The \fIformat\fP argument is
 case insensitive.
 .TP
 \fB-l \fIlevel\fB, --level=\fIlevel\fP
-Report errors and warnings up to the given \fIlevel\fP.
-A higher level shows more warnings. The actual levels are:
-.sp
-.nf
- 0   internal error, no recovery possible,
- 1   major SMI/SPPI error, recovery somehow possible but
-     may lead to severe problems,
- 2   SMI/SPPI error, probably tolerated by some
-     implementations,
- 3   SMI/SPPI error, tolerated by many implementations,
- 4   something which is recommended to be changed,
- 5   something that might be ok, but might not be
-     recommended under some circumstances,
- 6   just a notice.
-.fi
-.sp
-Higher levels are actually not used and lead to the same effects as
-level 6 does. Note that errors up to level 3 are errors violating the
-specification and must be fixed by the responsible author. Level 3 is
-the default level.
+Report errors and warnings up to the given severity \fIlevel\fP. See
+the smilint(1) manual page for a description of the error levels. The
+default error level is 3.
 .TP
 \fB-o \fIname\fB, --output=\fIname\fB
 Write the output in one or multiple files instead of stdout. The file
