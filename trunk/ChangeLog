@@ -1,5 +1,7 @@
 2001-01-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-jax.c: Null pointer fixes from Juergen.
+
 	* tools/dump-perl.c: Martin Schulz <schulz@videotron.ca> contributed
 	a perl driver, based on the python driver. It maps each and every
 	piece of information to a string, even dates and and numerical
