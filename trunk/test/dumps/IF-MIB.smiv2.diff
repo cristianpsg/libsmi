@@ -1,0 +1,26 @@
+0a1
+> 
+511c512
+< IANAifType-MIB;
+---
+> IANAifType-MIB
+658c659
+< NOTIFICATION-TYPE
+---
+> NOTIFICATION-TYPE,
+808c809
+< SNMPv2-TC
+---
+> SNMPv2-TC;
+974c975
+< TestAndIncr
+---
+> TestAndIncr,
+986c987
+< TruthValue,
+---
+> TruthValue
+1465c1466
+< mib-2,
+---
+> mib-2
