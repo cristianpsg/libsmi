@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smiv3.c,v 1.4 2002/06/26 06:34:07 schoenw Exp $
+ * @(#) $Id: dump-smiv3.c,v 1.5 2002/10/30 09:17:37 schoenw Exp $
  */
 
 #include <config.h>
@@ -390,6 +390,10 @@ createImportList(SmiModule *smiModule)
 	 smiNode = smiGetNextNode(smiNode, kind)) {
 
 	smiType = smiGetNodeType(smiNode);
+	if (smiType && (smiType->decl == SMI_DECL_IMPLICIT_TYPE)) {
+	    smiType = smiGetParentType(smiType);
+	}
+
 	if (smiType) {
 	    smiTypeModule = smiGetTypeModule(smiType);
 	    if (smiTypeModule &&

@@ -325,6 +325,9 @@ static void createImportList(SmiModule *smiModule)
     for(smiNode = smiGetFirstNode(smiModule, kind); smiNode;
 	smiNode = smiGetNextNode(smiNode, kind)) {
 	smiType = smiGetNodeType(smiNode);
+	if (smiType && (smiType->decl == SMI_DECL_IMPLICIT_TYPE)) {
+	    smiType = smiGetParentType(smiType);
+	}
 	if (smiType) {
 	    smiModule2 = smiGetTypeModule(smiType);
 	    if (smiModule2 && (smiModule2 != smiModule)) {
