@@ -12,27 +12,21 @@ o /usr/local/lib/tnm3.0.0/mibs/RFC1382-MIB:1609:
 o have seen cases like `default ;'. where? 
 o BIN and HEX DEFVALs in SMIv1/v2 Parser.
 
-x autoconf (test on Solaris, Linux, Irix)
-x new API
-  o thread safety after modules are loaded
-  x no more lists (or arrays), but getFirst/getNext functions
-o man pages
-o smiGetNames() ??
-
-o Web Page on libsmi (online conversion to SMIng?)
-o Mailinglist?
-o test make, keeping BACKEND_SMING off
-o all files: (C) 1999, LICENSE, indentation?, #if 0 ?, XXX?, TODO?
 o grep SMI_NAMESPACE_OPERATOR
 o READ_CREATE should *never* occur in data.c / smi.c
 o test cases
 o simple documented example
-o smiquery supporting *all* data structures
-
-o testing on some major platforms
 
 o redesign of data structures: make SmiXXX structures the heads of the
   according data.h structures. This would obsolete the Free() functions
   and enable fast getNext() functions by accessing the underlying lists.
 
-o make `row creatable' information accessible
+o Web online conversion to SMIng?
+
+o smiGetNames()
+
+o thread safety
+
+o man pages
+
+o SmiDecl is language dependant.

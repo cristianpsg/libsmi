@@ -1,3 +1,7 @@
+1999-05-31  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* COPYING: applied the license that scotty uses to all files.
+
 1999-05-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/Makefile.am: added automake and libtool support
