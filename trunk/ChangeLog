@@ -2,6 +2,8 @@
 
 	* mibs/ietf/NOTIFICATION-LOG-MIB: added (RFC 3014).
 
+	* mibs/ietf/FR-MFR-MIB: added (RFC 3020).
+
 2000-12-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.2.12.tar.gz: released version 0.2.12.
