@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.122 2004/03/13 22:21:32 schoenw Exp $
+ * @(#) $Id: error.c,v 1.123 2004/07/22 11:52:39 strauss Exp $
  */
 
 #include <config.h>
@@ -658,6 +658,10 @@ static Error errors[] = {
       "module name `%s' should match `*-PIB'", NULL},
     { 5, ERR_TYPE_WITHOUT_FORMAT, "type-without-format", 
       "type `%s' has no format specification", NULL},
+    { 2, ERR_OBJECT_IN_NOTIFICATION_GROUP, "group-notifications-object",
+      "notification group `%s' includes object `%s'", NULL},
+    { 2, ERR_NOTIFICATION_IN_OBJECT_GROUP, "group-objects-notification",
+      "object group `%s' includes notification `%s'", NULL},
     { 0, 0, NULL, NULL, NULL }
 };
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.203 2004/07/09 13:55:33 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.204 2004/07/22 11:52:39 strauss Exp $
  */
 
 %{
@@ -1492,7 +1492,8 @@ checkDate(Parser *parserPtr, char *date)
 %type  <err>RevisionPart
 %type  <err>Revisions
 %type  <err>Revision
-%type  <listPtr>ObjectsPart
+%type  <listPtr>NotificationObjectsPart
+%type  <listPtr>ObjectGroupObjectsPart
 %type  <listPtr>Objects
 %type  <objectPtr>Object
 %type  <listPtr>NotificationsPart
@@ -3455,7 +3456,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 					      "SNMPv2-SMI");
 			    }
 			}
-			ObjectsPart
+			NotificationObjectsPart
 			STATUS Status
 			DESCRIPTION Text
 			{
@@ -5818,16 +5819,19 @@ Revision:		REVISION ExtUTCTime
 			}
 	;
 
-ObjectsPart:		OBJECTS '{' Objects '}'
+NotificationObjectsPart: OBJECTS '{' Objects '}'
 			{
 			    $$ = $3;
 			}
 	|		/* empty */
 			{
-                            /* must be present for PIBs */
-                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
-                                smiPrintError(thisParserPtr, ERR_OBJECTS_MISSING_IN_OBJECT_GROUP);
 			    $$ = NULL;
+			}
+	;
+
+ObjectGroupObjectsPart:	OBJECTS '{' Objects '}'
+			{
+			    $$ = $3;
 			}
 	;
 
@@ -6273,7 +6277,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 					      "OBJECT-GROUP", "SNMPv2-CONF");
 			    }
 			}
-			ObjectsPart
+			ObjectGroupObjectsPart
 			STATUS Status
 			DESCRIPTION Text
 			{
