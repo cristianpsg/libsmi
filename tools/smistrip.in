@@ -9,7 +9,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# $Id: smistrip.in,v 1.5 2001/06/12 10:44:08 strauss Exp $
+# $Id: smistrip.in,v 1.6 2002/05/16 23:21:55 bunkus Exp $
 #
 # NOTE, that this script relies on awk (tested with GNU awk) and getopts
 # (shell builtin like in bash or standalone).
@@ -91,7 +91,7 @@ do_strip () {
     }
 
     # remember when we enter a macro definition
-    / *MACRO *::=/ {
+    /^[ \t]*[A-Za-z0-9-]* *MACRO *::=/ {
 	macro = 1
     }
 
