@@ -1,5 +1,9 @@
 2000-11-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.2.7.tar.gz: released version 0.2.7.
+
+	* lib/parser-smi.y: Fixed `0' ranges for some core types on Solaris.
+
 	* lib/smi_config.3.in: Updated the library man pages.
 
 	* tools/smidump.c: addModule() now inserts NULL module at the

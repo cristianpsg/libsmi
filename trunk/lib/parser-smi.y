@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.122 2000/10/25 08:56:40 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.123 2000/11/06 14:27:57 strauss Exp $
  */
 
 %{
@@ -1441,36 +1441,36 @@ typeDeclaration:	typeName
 				    setTypeParent($4, typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
 				    }
 				} else if (!strcmp($1, "Gauge32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
 				    }
 				} else if (!strcmp($1, "Unsigned32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
 				    }
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
 				    }
 				} else if (!strcmp($1, "Counter64")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED64;
