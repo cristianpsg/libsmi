@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.36 1999/06/15 14:09:41 strauss Exp $
+ * @(#) $Id: smi.h,v 1.37 1999/06/15 18:57:52 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -27,10 +27,7 @@
 #define SMI_FLAGMASK    (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS)
 
 /* limits of string lengths                                                  */
-#define SMI_MAX_DESCRIPTOR      64             /*                            */
 #define SMI_MAX_OID             1407           /* 128 * 10 digits + 127 dots */
-#define SMI_MAX_STRING          65535          /* limit only valid in v1/v2  */
-#define SMI_MAX_FULLNAME        130            /* 64 + 2 separator + 64      */
 
 
 
@@ -99,19 +96,18 @@ typedef enum SmiAccess {
 } SmiAccess;
 
 /* SmiNodekind -- type or statement that leads to a definition               */
-typedef enum SmiNodekind {
-    SMI_NODEKIND_UNKNOWN        = 0,  /* should not occur                    */
-#define SMI_NODEKIND_ANY SMI_NODEKIND_UNKNOWN
-    SMI_NODEKIND_MODULE         = 1,
-    SMI_NODEKIND_NODE           = 2,
-    SMI_NODEKIND_SCALAR         = 3,
-    SMI_NODEKIND_TABLE          = 4,
-    SMI_NODEKIND_ROW            = 5,
-    SMI_NODEKIND_COLUMN         = 6,
-    SMI_NODEKIND_NOTIFICATION   = 7,
-    SMI_NODEKIND_GROUP          = 8,
-    SMI_NODEKIND_COMPLIANCE     = 9
-} SmiNodekind;
+typedef unsigned int SmiNodekind;
+#define SMI_NODEKIND_UNKNOWN      0x0000     /* should not occur             */
+#define SMI_NODEKIND_MODULE       0x0001
+#define SMI_NODEKIND_NODE         0x0002
+#define SMI_NODEKIND_SCALAR       0x0004
+#define SMI_NODEKIND_TABLE        0x0008
+#define SMI_NODEKIND_ROW          0x0010
+#define SMI_NODEKIND_COLUMN       0x0020
+#define SMI_NODEKIND_NOTIFICATION 0x0040
+#define SMI_NODEKIND_GROUP        0x0080
+#define SMI_NODEKIND_COMPLIANCE   0x0100
+#define SMI_NODEKIND_ANY          0xffff
 
 /* SmiDecl -- type or statement that leads to a definition                   */
 typedef enum SmiDecl {
@@ -380,6 +376,8 @@ extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
 
 extern SmiNode *smiGetNode(char *module, char *name);
+
+extern SmiNode *smiGetNodeByOID(unsigned int oidlen, SmiSubid oid[]);
 
 extern SmiNode *smiGetFirstNode(char *module, SmiNodekind nodekind);
 

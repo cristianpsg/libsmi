@@ -26,8 +26,6 @@ o smiGetNames()
 o thread safety (global vars? static vars? strtok() and other funcs?)
   different views
 
-o SmiDecl is language dependant.
-
 o add much more checks to the smiv1/v2 and sming parsers
 o smi_errno ?!
 o set up a catalogue of errors detected by the smiv1/v2 parser?
@@ -41,25 +39,13 @@ o if `parse error' occurs, the database is left in an incosistent state,
 
 o eliminate length restrictions (grep MAX_ *.[chly])
 
-o `::' instead of `.' as separator in tools' output? (Juergen)
-
-o tcpdump (Juergen)
-
 o need handle to distinguish different views.
 
 o FreeBSD/BSD/OS: quad_t
 
 o clearly separate language dependant information at the API:
-  SMI_DECL*, SMI_STATUS_*, SMI_ACCESS_*
-
-o need a more efficient OID representation: length&int[] instead of char *
+  SMI_STATUS_*, SMI_ACCESS_*
 
 o DISPLAY_HINT interpreter function
 
 o Java OID/Name Lookup Service
-
-o eliminate MAX_DESCRIPTOR
-
-o data.c:init()
-
-o Make SmiNodekind a bitset. dump-*.c: _ANY -> _XXX

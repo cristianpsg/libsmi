@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.42 1999/06/12 13:40:07 strauss Exp $
+ * @(#) $Id: smi.c,v 1.43 1999/06/15 14:09:40 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -154,12 +154,15 @@ void getModulenameAndName(char *arg1, char *arg2,
 
 Node *getNode(unsigned int oidlen, SmiSubid oid[])
 {
-    Node *nodePtr;
+    Node *nodePtr, *parentPtr;
     unsigned int i;
 
     for(nodePtr = rootNodePtr, i=0; i < oidlen; i++) {
-	nodePtr = findNodeByParentAndSubid(nodePtr, oid[i]);
-	if (!nodePtr) break;
+	parentPtr = nodePtr;
+	nodePtr = findNodeByParentAndSubid(parentPtr, oid[i]);
+	if (!nodePtr) {
+	    return parentPtr;
+	}
     }
     
     return nodePtr;
@@ -217,8 +220,8 @@ Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
 	     objectPtr = objectPtr->nextSameNodePtr) {
 	    if (((!modulePtr) || (objectPtr->modulePtr == modulePtr)) &&
 		(!(objectPtr->flags & FLAG_IMPORTED)) &&
-		((nodekind == SMI_NODEKIND_UNKNOWN) ||
-		 (nodekind == objectPtr->nodekind))) {
+		((nodekind == SMI_NODEKIND_ANY) ||
+		 (nodekind & objectPtr->nodekind))) {
 		break;
 	    }
 	}
@@ -424,14 +427,8 @@ SmiType *createSmiType(Type *typePtr)
 	smiTypePtr->name         = typePtr->name;
 	smiTypePtr->module       = typePtr->modulePtr->name;
 	smiTypePtr->basetype	 = typePtr->basetype;
-	if (typePtr->parentType &&
-	    strstr(typePtr->parentType, "::")) {
-	    smiTypePtr->parentmodule = smiModule(typePtr->parentType);
-	    smiTypePtr->parentname   = smiDescriptor(typePtr->parentType);
-	} else {
-	    smiTypePtr->parentmodule = NULL;
-	    smiTypePtr->parentname   = util_strdup(typePtr->parentType);
-	}
+	smiTypePtr->parentmodule = typePtr->parentmodule;
+	smiTypePtr->parentname   = typePtr->parentname;
 	smiTypePtr->decl	 = typePtr->decl;
 	smiTypePtr->format	 = typePtr->format;
 	smiTypePtr->valuePtr	 = typePtr->valuePtr;
@@ -1121,10 +1118,6 @@ SmiType *smiGetNextType(SmiType *smiTypePtr)
 
 void smiFreeType(SmiType *smiTypePtr)
 {
-    if (smiTypePtr) {
-	util_free(smiTypePtr->parentmodule);
-	util_free(smiTypePtr->parentname);
-    }
     util_free(smiTypePtr);
 }
 
@@ -1419,6 +1412,28 @@ SmiNode *smiGetNode(char *module, char *node)
     util_free(module2);
     util_free(node2);
     
+    return createSmiNode(objectPtr);
+}
+
+
+
+SmiNode *smiGetNodeByOID(unsigned int oidlen, SmiSubid oid[])
+{
+    Node            *nodePtr;
+    Object	    *objectPtr;
+    
+    if (!oidlen) {
+	return NULL;
+    }
+
+    nodePtr = getNode(oidlen, oid);
+
+    if (!nodePtr) {
+	return NULL;
+    }
+    
+    objectPtr = findObjectByNode(nodePtr);
+
     return createSmiNode(objectPtr);
 }
 

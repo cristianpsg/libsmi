@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.22 1999/06/12 13:40:06 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.23 1999/06/15 14:09:39 strauss Exp $
  */
 
 %{
@@ -1476,7 +1476,7 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 			{
 			    Refinement *refinementPtr;
 			    List *listPtr;
-			    char s[SMI_MAX_DESCRIPTOR * 2 + 15];
+			    char *s;
 			    
 			    complianceObjectPtr->refinementlistPtr = $22;
 			    if ($22) {
@@ -1485,6 +1485,8 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
 					((Refinement *)(listPtr->ptr));
+		    s = util_malloc(strlen(refinementPtr->objectPtr->name) +
+				    strlen(complianceIdentifier) + 13);
 				    if (refinementPtr->typePtr) {
 					sprintf(s, "%s+%s+type",
 						complianceIdentifier,
@@ -1498,6 +1500,7 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 					       refinementPtr->objectPtr->name);
 				   setTypeName(refinementPtr->writetypePtr, s);
 				    }
+				    util_free(s);
 				}
 			    }
 			}
@@ -2140,124 +2143,124 @@ refinedBaseType_refinedType: refinedBaseType
 refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingOctetStringPtr;
+				$$ = typeOctetStringPtr;
 			    } else {
-				$$ = duplicateType(typeSmingOctetStringPtr, 0,
+				$$ = duplicateType(typeOctetStringPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingOctetStringPtr->name);
+				setTypeParent($$, NULL,
+					      typeOctetStringPtr->name);
 				setTypeList($$, $2);
 			    }
 			}
         |		ObjectIdentifierKeyword
 			{
-			    $$ = typeSmingObjectIdentifierPtr;
+			    $$ = typeObjectIdentifierPtr;
 			}
 	|		Integer32Keyword optsep_numberSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingInteger32Ptr;
+				$$ = typeInteger32Ptr;
 			    } else {
-				$$ = duplicateType(typeSmingInteger32Ptr, 0,
+				$$ = duplicateType(typeInteger32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingInteger32Ptr->name);
+				setTypeParent($$, NULL,
+					      typeInteger32Ptr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		Unsigned32Keyword optsep_numberSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingUnsigned32Ptr;
+				$$ = typeUnsigned32Ptr;
 			    } else {
-				$$ = duplicateType(typeSmingUnsigned32Ptr, 0,
+				$$ = duplicateType(typeUnsigned32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingUnsigned32Ptr->name);
+				setTypeParent($$, NULL,
+					      typeUnsigned32Ptr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		Integer64Keyword optsep_numberSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingInteger64Ptr;
+				$$ = typeInteger64Ptr;
 			    } else {
-				$$ = duplicateType(typeSmingInteger64Ptr, 0,
+				$$ = duplicateType(typeInteger64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingInteger64Ptr->name);
+				setTypeParent($$, NULL,
+					      typeInteger64Ptr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		Unsigned64Keyword optsep_numberSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingUnsigned64Ptr;
+				$$ = typeUnsigned64Ptr;
 			    } else {
-				$$ = duplicateType(typeSmingUnsigned64Ptr, 0,
+				$$ = duplicateType(typeUnsigned64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingUnsigned64Ptr->name);
+				setTypeParent($$, NULL,
+					      typeUnsigned64Ptr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		Float32Keyword optsep_floatSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingFloat32Ptr;
+				$$ = typeFloat32Ptr;
 			    } else {
-				$$ = duplicateType(typeSmingFloat32Ptr, 0,
+				$$ = duplicateType(typeFloat32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingFloat32Ptr->name);
+				setTypeParent($$, NULL,
+					      typeFloat32Ptr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		Float64Keyword optsep_floatSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingFloat64Ptr;
+				$$ = typeFloat64Ptr;
 			    } else {
-				$$ = duplicateType(typeSmingFloat64Ptr, 0,
+				$$ = duplicateType(typeFloat64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingFloat64Ptr->name);
+				setTypeParent($$, NULL,
+					      typeFloat64Ptr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		Float128Keyword optsep_floatSpec_01
 			{
 			    if (!$2) {
-				$$ = typeSmingFloat128Ptr;
+				$$ = typeFloat128Ptr;
 			    } else {
-				$$ = duplicateType(typeSmingFloat128Ptr, 0,
+				$$ = duplicateType(typeFloat128Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingFloat128Ptr->name);
+				setTypeParent($$, NULL,
+					      typeFloat128Ptr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		EnumerationKeyword bitsOrEnumerationSpec
 			{
 			    if (!$2) {
-				$$ = typeSmingEnumPtr;
+				$$ = typeEnumPtr;
 			    } else {
-				$$ = duplicateType(typeSmingEnumPtr, 0,
+				$$ = duplicateType(typeEnumPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingEnumPtr->name);
+				setTypeParent($$, NULL,
+					      typeEnumPtr->name);
 				setTypeList($$, $2);
 			    }
 			}
 	|		BitsKeyword bitsOrEnumerationSpec
 			{
 			    if (!$2) {
-				$$ = typeSmingBitsPtr;
+				$$ = typeBitsPtr;
 			    } else {
-				$$ = duplicateType(typeSmingBitsPtr, 0,
+				$$ = duplicateType(typeBitsPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$,
-					      typeSmingBitsPtr->name);
+				setTypeParent($$, NULL,
+					      typeBitsPtr->name);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2265,16 +2268,10 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 
 refinedType:		qucIdentifier optsep_anySpec_01
 			{
-			    char s[SMI_MAX_FULLNAME];
-
 			    typePtr = findType($1, thisParserPtr);
 			    if (typePtr && $2) {
-				sprintf(s, "%s::%s",
-					typePtr->modulePtr->name,
-					typePtr->name);
 				typePtr = duplicateType(typePtr, 0,
 							thisParserPtr);
-				setTypeParent(typePtr, s);
 				setTypeList(typePtr, $2);
 			    }
 
@@ -3050,23 +3047,32 @@ qlcIdentifier_subid:	qlcIdentifier
 			{
 			    Object *objectPtr;
 			    Node *nodePtr;
-			    char s1[SMI_MAX_OID+1], s2[SMI_MAX_OID+1];
+			    char *s;
+			    char ss[20];
 			    
-			    /* TODO XXX: $1 might be numeric !? */
+			    /* TODO: $1 might be numeric !? */
 			    
 			    objectPtr = findObject($1, thisParserPtr);
 
 			    if (objectPtr) {
 				/* create OID string */
 				nodePtr = objectPtr->nodePtr;
-				sprintf(s1, "%u", nodePtr->subid);
+				s = util_malloc(100);
+				sprintf(s, "%u", nodePtr->subid);
 				while ((nodePtr->parentPtr) &&
 				       (nodePtr->parentPtr != rootNodePtr)) {
 				    nodePtr = nodePtr->parentPtr;
-				    sprintf(s2, "%u.%s", nodePtr->subid, s1);
-				    strcpy(s1, s2);
+
+				    sprintf(ss, "%u", nodePtr->subid);
+				    if (strlen(s) > 80)
+					s = util_realloc(s,
+						     strlen(s)+strlen(ss)+2);
+				    memmove(&s[strlen(ss)+1], s, strlen(s)+1);
+				    strncpy(s, ss, strlen(ss));
+				    s[strlen(ss)] = '.';
 				}
-				$$ = util_strdup(s1);
+				$$ = util_strdup(s);
+				util_free(s);
 			    } else {
 				printError(thisParserPtr,
 					   ERR_UNKNOWN_OIDLABEL, $1);

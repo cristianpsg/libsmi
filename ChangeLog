@@ -1,3 +1,18 @@
+1999-06-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.c: more changes to internal data structure to make
+	them language independant, especially hiding all occurances
+	of the SMIng namespace operator `::'.
+
+	* data.c: cleaned up libsmi base types to be less language
+	dependant.
+
+	* lib/smi.h: add API function smiGetNodeByOID() to retrieve
+	an SmiNode based on an OID given by an integer array.
+
+	* lib/smi.c: smiGetNode() now returns the node with the longest
+	common OID prefix, if its argument is given by OID.
+	
 1999-06-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.h: added SmiLanguage and an appropriate element to the

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.32 1999/06/12 13:40:02 strauss Exp $
+ * @(#) $Id: data.c,v 1.33 1999/06/15 14:09:34 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -50,14 +50,12 @@ View	        *firstViewPtr, *lastViewPtr;
 Module          *firstModulePtr, *lastModulePtr;
 Node		*rootNodePtr;
 Node		*pendingNodePtr;
-Type		*typeSmiIntegerPtr, *typeSmiOctetStringPtr,
-		*typeSmiObjectIdentifierPtr;
-Type		*typeSmingOctetStringPtr, *typeSmingObjectIdentifierPtr,
-		*typeSmingInteger32Ptr, *typeSmingUnsigned32Ptr,
-		*typeSmingInteger64Ptr, *typeSmingUnsigned64Ptr,
-		*typeSmingFloat32Ptr, *typeSmingFloat64Ptr,
-		*typeSmingFloat128Ptr,
-		*typeSmingEnumPtr, *typeSmingBitsPtr;
+Type		*typeOctetStringPtr, *typeObjectIdentifierPtr,
+		*typeInteger32Ptr, *typeUnsigned32Ptr,
+		*typeInteger64Ptr, *typeUnsigned64Ptr,
+		*typeFloat32Ptr, *typeFloat64Ptr,
+		*typeFloat128Ptr,
+		*typeEnumPtr, *typeBitsPtr;
 int		smiFlags;
 char		*smiPath;
 
@@ -1864,7 +1862,8 @@ addType(typename, basetype, flags, parserPtr)
     typePtr->status			= SMI_STATUS_UNKNOWN;
     typePtr->flags			= flags;
     typePtr->listPtr			= NULL;
-    typePtr->parentType			= NULL;
+    typePtr->parentmodule		= NULL;
+    typePtr->parentname			= NULL;
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
     typePtr->format			= NULL;
@@ -1931,9 +1930,14 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->listPtr			= NULL;
     typePtr->flags			= templatePtr->flags;
     if (templatePtr->name) {
-	typePtr->parentType		= util_strdup(templatePtr->name);
+	typePtr->parentname		= util_strdup(templatePtr->name);
     } else {
-	typePtr->parentType		= NULL;
+	typePtr->parentname		= NULL;
+    }
+    if (templatePtr->modulePtr) {
+	typePtr->parentmodule		= util_strdup(templatePtr->modulePtr->name);
+    } else {
+	typePtr->parentmodule		= NULL;
     }
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
@@ -2101,12 +2105,19 @@ setTypeReference(typePtr, reference)
  */
 
 void
-setTypeParent(typePtr, parent)
-    Type	   *typePtr;
-    const char	   *parent;
+setTypeParent(Type *typePtr, const char *parentmodule, const char *parentname)
 {
-    if (!typePtr->parentType) {
-	typePtr->parentType  = util_strdup(parent);
+    if (!typePtr->parentname) {
+	if (parentmodule) {
+	    typePtr->parentmodule  = util_strdup(parentmodule);
+	} else {
+	    typePtr->parentmodule  = NULL;
+	}
+	if (parentname) {
+	    typePtr->parentname    = util_strdup(parentname);
+	} else {
+	    typePtr->parentname    = NULL;
+	}
     }
 }
 
@@ -2675,38 +2686,27 @@ initData()
     objectPtr = addObject("iso", rootNodePtr, 1, 0, &parser);
     objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, &parser);
 
-    /*
-     * Initialize the well-known ASN.1 Types for SMIv1/v2 and
-     * the well-known SMIng Types.
-     */
-    typeSmiIntegerPtr          = addType("INTEGER",
-				      SMI_BASETYPE_INTEGER32, 0, &parser);
-    typeSmiOctetStringPtr      = addType("OCTET STRING",
-				      SMI_BASETYPE_OCTETSTRING, 0, &parser);
-    typeSmiObjectIdentifierPtr = addType("OBJECT IDENTIFIER",
-				      SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
-
-    typeSmingOctetStringPtr =
+    typeOctetStringPtr =
 	addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, NULL);
-    typeSmingObjectIdentifierPtr =
+    typeObjectIdentifierPtr =
 	addType("ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, 0, NULL);
-    typeSmingInteger32Ptr =
+    typeInteger32Ptr =
 	addType("Integer32", SMI_BASETYPE_INTEGER32, 0, NULL);
-    typeSmingUnsigned32Ptr =
+    typeUnsigned32Ptr =
 	addType("Unsigned32", SMI_BASETYPE_UNSIGNED32, 0, NULL);
-    typeSmingInteger64Ptr =
+    typeInteger64Ptr =
 	addType("Integer64", SMI_BASETYPE_INTEGER64, 0, NULL);
-    typeSmingUnsigned64Ptr =
+    typeUnsigned64Ptr =
 	addType("Unsigned64", SMI_BASETYPE_UNSIGNED64, 0, NULL);
-    typeSmingFloat32Ptr =
+    typeFloat32Ptr =
 	addType("Float32", SMI_BASETYPE_FLOAT32, 0, NULL);
-    typeSmingFloat64Ptr =
+    typeFloat64Ptr =
 	addType("Float64", SMI_BASETYPE_FLOAT64, 0, NULL);
-    typeSmingFloat128Ptr =
+    typeFloat128Ptr =
 	addType("Float128", SMI_BASETYPE_FLOAT128, 0, NULL);
-    typeSmingEnumPtr =
+    typeEnumPtr =
 	addType("Enum", SMI_BASETYPE_ENUM, 0, NULL);
-    typeSmingBitsPtr =
+    typeBitsPtr =
 	addType("Bits", SMI_BASETYPE_BITS, 0, NULL);
 
     return (0);

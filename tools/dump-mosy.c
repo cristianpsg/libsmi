@@ -2,9 +2,6 @@
  * dump-mosy.c --
  *
  *      Operations to dump MIB modules in the MOSY output format.
- *	This driver does not work correctly for SMIng modules. It
- *	should at least accept SMIv1/SMIv2 modules converted to
- *	SMIng and generate the "similar" output.
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 1999 J. Schoenwaelder, Technical University of Braunschweig.
@@ -12,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-mosy.c,v 1.1 1999/06/07 15:44:16 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -37,7 +34,7 @@ static char *ignoreTypeRanges[] = {
 };
 
 
-char *stringStatus(SmiStatus status)
+static char *stringStatus(SmiStatus status)
 {
     return
 	(status == SMI_STATUS_CURRENT)     ? "current" :
@@ -49,7 +46,7 @@ char *stringStatus(SmiStatus status)
 }
 
 
-char *stringAccess(SmiAccess access)
+static char *stringAccess(SmiAccess access)
 {
     return
 	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
@@ -75,7 +72,7 @@ static char *stringBasetype(SmiBasetype basetype)
         (basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" :
         (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
         (basetype == SMI_BASETYPE_ENUM)              ? "INTEGER" :
-        (basetype == SMI_BASETYPE_BITS)              ? "BITS" :
+        (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
 	(basetype == SMI_BASETYPE_SEQUENCE)          ? "Aggregate" :
 	(basetype == SMI_BASETYPE_SEQUENCEOF)	     ? "Aggregate" :
                                                    "<unknown>";
@@ -87,19 +84,21 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     SmiNode	 *parentNode, *node;
     static char	 s[SMI_MAX_OID+1];
     char	 append[SMI_MAX_OID+1];
-    char	 *p;
+    unsigned int i;
     
     append[0] = 0;
 
     parentNode = smiNode;
-    
+
     do {
+
+	if (parentNode->oidlen <= 1) {
+	    break;
+	}
 	
 	/* prepend the cut-off subidentifier to `append'. */
 	strcpy(s, append);
-	if ((p = strrchr(parentNode->oid, '.'))) {
-	    sprintf(append, "%s%s", p, s);
-	}
+	sprintf(append, ".%u%s", parentNode->oid[parentNode->oidlen-1], s);
 
 	/* retrieve the parent SmiNode */
 	node = parentNode;
@@ -108,11 +107,17 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	    smiFreeNode(node);
 	}
 
+	if (!parentNode) {
+	    sprintf(s, "%s", append);
+	    return s;
+	}
+	
 	/* found an imported or a local parent node? */
-	if (smiIsImported(smiNode->module,
-			  parentNode->module, parentNode->name) ||
-	    (!importedParent &&
-	     !strcmp(parentNode->module, smiNode->module))) {
+	if ((parentNode->name && strlen(parentNode->name)) &&
+	    (smiIsImported(smiNode->module,
+			   parentNode->module, parentNode->name) ||
+	     (!importedParent &&
+	      !strcmp(parentNode->module, smiNode->module)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    smiFreeNode(parentNode);
 	    return s;
@@ -120,7 +125,13 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
     } while (parentNode);
 
-    return smiNode->oid;
+    /* smiFreeNode(parentNode); */
+    s[0] = 0;
+    for (i=0; i < smiNode->oidlen; i++) {
+	if (i) strcat(s, ".");
+	sprintf(&s[strlen(s)], "%u", smiNode->oid[i]);
+    }
+    return s;
 }
 
 
@@ -192,17 +203,15 @@ static void printAssignements(char *modulename)
     int		 cnt = 0;
     SmiNode	 *smiNode;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
-
-	if (smiNode->decl != SMI_DECL_VALUEASSIGNMENT) {
-	    continue;
-	}
+    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NODE);
+	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 
 	cnt++;
 
+	if (! smiNode->description) {
 	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
 	printf("%%n0 %-16s object-id\n", smiNode->name);
+}
     }
 
     if (cnt) {
@@ -238,7 +247,7 @@ static void printTypedefs(char *modulename)
 
 static void printObjects(char *modulename)
 {
-    int		   i, j, ignore, cnt = 0;
+    int		   i, j, ignore, cnt = 0, aggregate;
     char	   *typename, *indexname;
     SmiNode	   *smiNode;
     SmiIndex	   *index;
@@ -246,19 +255,32 @@ static void printObjects(char *modulename)
     SmiNamedNumber *smiNamedNumber;
     SmiRange       *smiRange;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
+    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
-	if (smiNode->decl != SMI_DECL_OBJECTTYPE) {
+	if (smiNode->nodekind != SMI_NODEKIND_NODE
+	    && smiNode->nodekind != SMI_NODEKIND_SCALAR
+	    && smiNode->nodekind != SMI_NODEKIND_TABLE
+	    && smiNode->nodekind != SMI_NODEKIND_ROW
+	    && smiNode->nodekind != SMI_NODEKIND_COLUMN) {
+	    continue;
+	}
+	
+	cnt++;
+
+	if (smiNode->nodekind == SMI_NODEKIND_NODE) {
+	    if (smiNode->description) {
+		printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+		printf("%%n0 %-16s object-id\n", smiNode->name);
+	    }
 	    continue;
 	}
 
-	cnt++;
+	aggregate = smiNode->nodekind == SMI_NODEKIND_TABLE
+	    || smiNode->nodekind == SMI_NODEKIND_ROW;
 
 	smiType = NULL;
-	if (smiNode->basetype != SMI_BASETYPE_SEQUENCEOF
-	    && smiNode->basetype != SMI_BASETYPE_SEQUENCE
-	    && smiNode->typemodule && smiNode->typename) {
+	if (!aggregate && smiNode->typemodule && smiNode->typename) {
 	    smiType = smiGetType(smiNode->typemodule, smiNode->typename);
 	}
 
@@ -270,8 +292,20 @@ static void printObjects(char *modulename)
 	    }
 	}
 
-	if (smiType && smiType->name && islower((int) smiType->name[0])) {
+	if (smiType && smiType->name
+	    && islower((int) smiType->name[0])
+	    && smiType->parentname) {
 	    typename = smiType->parentname;
+	    if (strcmp(typename, "OCTET STRING") == 0) {
+		typename = "OctetString";
+	    }
+	    if (strcmp(typename, "Enum") == 0) {
+		typename = "INTEGER";
+	    }
+	}
+
+	if (aggregate) {
+	    typename = "Aggregate";
 	}
 	
 	printf("%-20s %-16s ", smiNode->name, getOidString(smiNode, 0));
@@ -351,13 +385,9 @@ static void printNotifications(char *modulename)
     int		 cnt = 0;
     SmiNode	 *smiNode;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
-
-	if ((smiNode->decl != SMI_DECL_NOTIFICATIONTYPE) &&
-	    (smiNode->decl != SMI_DECL_NOTIFICATION)) {
-	    continue;
-	}
+    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+	smiNode; 
+	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
 	cnt++;
 	
@@ -374,24 +404,30 @@ static void printNotifications(char *modulename)
 
 static void printGroups(char *modulename)
 {
-    SmiNode	*smiNode;
-    int		cnt = 0;
+    SmiNode	*smiNode, *smiNodeMember;
+    int		cnt = 0, objects, notifications;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
-
-	if ((smiNode->decl != SMI_DECL_OBJECTGROUP)
-	    && (smiNode->decl != SMI_DECL_NOTIFICATIONGROUP)) {
-	    continue;
-	}
+    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
+	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 
 	cnt ++;
-	
+
+	for (objects = 0, notifications = 0,
+	     smiNodeMember = smiGetFirstMemberNode(smiNode);
+	     smiNodeMember;
+	     smiNodeMember = smiGetNextMemberNode(smiNode, smiNodeMember)) {
+
+	    objects += 
+		(smiNodeMember->nodekind == SMI_NODEKIND_SCALAR)
+		|| (smiNodeMember->nodekind == SMI_NODEKIND_COLUMN);
+	    notifications +=
+		(smiNodeMember->nodekind == SMI_NODEKIND_NOTIFICATION);
+	}
+
 	printf ("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf ("%%n0 %-16s %s-group\n", smiNode->name,
-		smiNode->decl == SMI_DECL_OBJECTGROUP ? "object" :
-		smiNode->decl == SMI_DECL_NOTIFICATIONGROUP ? "notification" :
-		"unknown");
+	printf ("%%n0 %-16s %s\n", smiNode->name,
+		(objects && ! notifications) ? "object-group" :
+		(! objects && notifications) ? "notification-group" : "group");
     }
 
     if (cnt) {
@@ -406,13 +442,9 @@ static void printCompliances(char *modulename)
     int		  cnt = 0;
     SmiNode	  *smiNode;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
+    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
 	
-	if (smiNode->decl != SMI_DECL_MODULECOMPLIANCE) {
-	    continue;
-	}
-
 	cnt++;
 
 	printf ("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));

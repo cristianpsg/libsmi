@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.32 1999/06/12 13:40:05 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.33 1999/06/15 14:09:37 strauss Exp $
  */
 
 %{
@@ -959,15 +959,13 @@ typeDeclarationRHS:	Syntax
 /* REF:RFC1902,7.1.12. */
 conceptualTable:	SEQUENCE OF row
 			{
-			    char s[SMI_MAX_FULLNAME];
-			    
 			    if ($3) {
 				$$ = addType(NULL,
 					     SMI_BASETYPE_SEQUENCEOF, 0,
 					     thisParserPtr);
-				sprintf(s, "%s::%s", $3->modulePtr->name,
-					$3->name);
-				setTypeParent($$, s);
+				setTypeParent($$,
+					      $3->modulePtr->name,
+					      $3->name);
 			    } else {
 				$$ = NULL;
 			    }
@@ -1131,7 +1129,7 @@ sequenceSyntax:		/* ObjectSyntax */
 	|		BITS
 			{
 			    /* TODO: */
-			    $$ = typeSmiOctetStringPtr;
+			    $$ = typeOctetStringPtr;
 			}
 	|		UPPERCASE_IDENTIFIER anySubType
 			{
@@ -1590,37 +1588,33 @@ valueofObjectSyntax:	valueofSimpleSyntax
 
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
-			    $$ = typeSmiIntegerPtr;
+			    $$ = typeInteger32Ptr;
 			}
 	|		INTEGER integerSubType
 			{
-			    $$ = duplicateType(typeSmiIntegerPtr, 0, thisParserPtr);
-			    setTypeParent($$, typeSmiIntegerPtr->name);
+			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeList($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
-			    $$ = duplicateType(typeSmiIntegerPtr, 0, thisParserPtr);
-			    setTypeParent($$, typeSmiIntegerPtr->name);
+			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $2);
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
-			    $$ = typeSmiIntegerPtr;
+			    $$ = typeInteger32Ptr;
 			}
         |		INTEGER32 integerSubType
 			{
-			    $$ = duplicateType(typeSmiIntegerPtr, 0, thisParserPtr);
-			    setTypeParent($$, typeSmiIntegerPtr->name);
+			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeList($$, $2);
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
 			    Type *parentPtr;
 			    SmiType *stypePtr;
-			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModuleAndName(
@@ -1639,10 +1633,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						        thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    thisParserPtr->modulePtr->name,
-					    parentPtr->name);
-				    setTypeParent($$, s);
+				    setTypeParent($$,
+						thisParserPtr->modulePtr->name,
+						  parentPtr->name);
 				} else {
 				    /*
 				     * imported type.
@@ -1651,16 +1644,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    importPtr->importmodule,
-					    importPtr->importname);
-				    setTypeParent($$, s);
+				    setTypeParent($$, importPtr->importmodule,
+						  importPtr->importname);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s::%s",
-				        thisParserPtr->modulePtr->name, $1);
-				setTypeParent($$, s);
+				setTypeParent($$,
+					      thisParserPtr->modulePtr->name,
+					      $1);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $2);
@@ -1670,7 +1661,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    SmiType *stypePtr;
-			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModulenameAndName($1, $3);
@@ -1689,15 +1679,12 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    importPtr->importmodule,
-					    importPtr->importname);
-				    setTypeParent($$, s);
+				    setTypeParent($$, importPtr->importmodule,
+						  importPtr->importname);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s::%s", $1, $3);
-				setTypeParent($$, s);
+				setTypeParent($$, $1, $3);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $4);
@@ -1706,7 +1693,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    SmiType *stypePtr;
-			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModuleAndName(
@@ -1725,10 +1711,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    thisParserPtr->modulePtr->name,
-					    parentPtr->name);
-				    setTypeParent($$, s);
+				    setTypeParent($$,
+					        thisParserPtr->modulePtr->name,
+						  parentPtr->name);
 				} else {
 				    /*
 				     * imported type.
@@ -1737,17 +1722,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    importPtr->importmodule,
-					    importPtr->importname);
-				    setTypeParent($$, s);
+				    setTypeParent($$, importPtr->importmodule,
+						  importPtr->importname);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s::%s",
-				        thisParserPtr->modulePtr->name, $1);
-				setTypeParent($$, s);
+				setTypeParent($$,
+					      thisParserPtr->modulePtr->name,
+					      $1);
 			    }
 			    setTypeList($$, $2);
 			}
@@ -1756,7 +1739,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    SmiType *stypePtr;
-			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModulenameAndName($1, $3);
@@ -1775,35 +1757,31 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    importPtr->importmodule,
-					    importPtr->importname);
-				    setTypeParent($$, s);
+				    setTypeParent($$, importPtr->importmodule,
+						  importPtr->importname);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s::%s", $1, $3);
-				setTypeParent($$, s);
+				setTypeParent($$, $1, $3);
 			    }
 			    setTypeList($$, $4);
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
-			    $$ = typeSmiOctetStringPtr;
+			    $$ = typeOctetStringPtr;
 			}
 	|		OCTET STRING octetStringSubType
 			{
-			    $$ = duplicateType(typeSmiOctetStringPtr, 0,
+			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
-			    setTypeParent($$, typeSmiOctetStringPtr->name);
+			    setTypeParent($$, NULL, typeOctetStringPtr->name);
 			    setTypeList($$, $3);
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
 			    Type *parentPtr;
 			    SmiType *stypePtr;
-			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModuleAndName(
@@ -1822,10 +1800,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						     thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    thisParserPtr->modulePtr->name,
-					    parentPtr->name);
-				    setTypeParent($$, s);
+				    setTypeParent($$,
+						thisParserPtr->modulePtr->name,
+						  parentPtr->name);
 				} else {
 				    /*
 				     * imported type.
@@ -1834,17 +1811,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    importPtr->importmodule,
-					    importPtr->importname);
-				    setTypeParent($$, s);
+				    setTypeParent($$, importPtr->importmodule,
+						  importPtr->importname);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s::%s",
-				        thisParserPtr->modulePtr->name, $1);
-				setTypeParent($$, s);
+				setTypeParent($$,
+					      thisParserPtr->modulePtr->name,
+					      $1);
 			    }
 			    setTypeList($$, $2);
 			}
@@ -1853,7 +1828,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    SmiType *stypePtr;
-			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
 			    parentPtr = findTypeByModulenameAndName($1, $3);
@@ -1872,21 +1846,18 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s::%s",
-					    importPtr->importmodule,
-					    importPtr->importname);
-				    setTypeParent($$, s);
+				    setTypeParent($$, importPtr->importmodule,
+						  importPtr->importname);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s::%s", $1, $3);
-				setTypeParent($$, s);
+				setTypeParent($$, $1, $3);
 			    }
 			    setTypeList($$, $4);
 			}
 	|		OBJECT IDENTIFIER
 			{
-			    $$ = typeSmiObjectIdentifierPtr;
+			    $$ = typeObjectIdentifierPtr;
 			}
         ;
 
@@ -2022,21 +1993,21 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
  */
 sequenceSimpleSyntax:	INTEGER	anySubType	/* (-2147483648..2147483647) */
 			{
-			    $$ = typeSmiIntegerPtr;
+			    $$ = typeInteger32Ptr;
 			}
         |		INTEGER32 anySubType	/* (-2147483648..2147483647) */
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
-			    $$ = typeSmiIntegerPtr;
+			    $$ = typeInteger32Ptr;
 			}
 	|		OCTET STRING anySubType
 			{
 			    /* TODO: warning: ignoring subtype in SEQUENCE */
-			    $$ = typeSmiOctetStringPtr;
+			    $$ = typeOctetStringPtr;
 			}
 	|		OBJECT IDENTIFIER
 			{
-			    $$ = typeSmiObjectIdentifierPtr;
+			    $$ = typeObjectIdentifierPtr;
 			}
 	;
 
@@ -2074,7 +2045,8 @@ ApplicationSyntax:	IPADDRESS
 					   "Gauge32");
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
-			    setTypeParent($$, parentPtr->name);
+			    setTypeParent($$, parentPtr->modulePtr->name,
+					  parentPtr->name);
 			    setTypeList($$, $2);
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
@@ -2095,7 +2067,8 @@ ApplicationSyntax:	IPADDRESS
 					   "Unsigned32");
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
-			    setTypeParent($$, parentPtr->name);
+			    setTypeParent($$, parentPtr->modulePtr->name,
+					  parentPtr->name);
 			    setTypeList($$, $2);
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
@@ -3114,7 +3087,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    Refinement *refinementPtr;
 			    List *listPtr;
-			    char s[SMI_MAX_DESCRIPTOR * 2 + 15];
+			    char *s;
 			    
 			    objectPtr = $12;
 			    
@@ -3152,6 +3125,8 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
 					((Refinement *)(listPtr->ptr));
+		    s = util_malloc(strlen(refinementPtr->objectPtr->name) +
+				    strlen($1) + 13);
 				    if (refinementPtr->typePtr) {
 					sprintf(s, "%s+%s+type", $1,
 					       refinementPtr->objectPtr->name);
@@ -3162,6 +3137,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 					       refinementPtr->objectPtr->name);
 				   setTypeName(refinementPtr->writetypePtr, s);
 				    }
+				    util_free(s);
 				}
 			    }
 			    $$ = 0;

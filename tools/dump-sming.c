@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.39 1999/06/12 13:40:13 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.40 1999/06/15 14:09:47 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -190,7 +190,6 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 			   char *typemodule, char *typename)
 {
     int         i;
-    static char s[SMI_MAX_FULLNAME];
 
     if ((!typemodule) && (typename) &&
 	(basetype != SMI_BASETYPE_ENUM) &&
@@ -202,7 +201,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 
-    if ((!typemodule) || islower((int)typename[0])) {
+    if ((!typemodule) || (!typename) || islower((int)typename[0])) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "Enumeration";
 	}
@@ -215,10 +214,9 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	return smingStringBasetype(basetype);
     }
     
-    sprintf(s, "%s", typename);
     /* TODO: fully qualified if unambigous */
 
-    return s;
+    return typename;
 }
 
 
@@ -679,10 +677,14 @@ static void printObjects(char *modulename)
     int		 indent = 0;
     int		 lastindent = -1;
     char	 *s;
-    
-    for(i = 0, smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    SmiNodekind  nodekinds;
 
+    nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
+	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
+    
+    for(i = 0, smiNode = smiGetFirstNode(modulename, nodekinds);
+	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
+	
 	smiParentNode = smiGetParentNode(smiNode);
 	
 	if (smiNode->nodekind == SMI_NODEKIND_NODE) {
@@ -700,8 +702,6 @@ static void printObjects(char *modulename)
 	} else if (smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 	    indent = 0;
 	    s = "scalar";
-	} else {
-	    continue;
 	}
 
 	if (!i) {
@@ -887,12 +887,10 @@ static void printNotifications(char *modulename)
     int		 i, j;
     SmiNode	 *smiNode, *object;
     
-    for(i = 0, smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-
-	if (smiNode->nodekind != SMI_NODEKIND_NOTIFICATION) {
-	    continue;
-	}
+    for(i = 0, smiNode = smiGetFirstNode(modulename,
+					 SMI_NODEKIND_NOTIFICATION);
+	smiNode;
+	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
 	if (!i) {
 	    print("//\n// NOTIFICATION DEFINITIONS\n//\n\n");
@@ -957,13 +955,9 @@ static void printGroups(char *modulename)
     
     for (i = 0, d = 0; d < 3; d++) {
 	
-	for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
+	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 
-	    if (smiNode->nodekind != SMI_NODEKIND_GROUP) {
-		continue;
-	    }
-	    
 	    if (!i) {
 		print("//\n// GROUP DEFINITIONS\n//\n\n");
 	    }
@@ -1027,13 +1021,9 @@ static void printCompliances(char *modulename)
     SmiOption	  *option;
     SmiRefinement *refinement;
     
-    for(i = 0, smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
-	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+    for(i = 0, smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
 	
-	if (smiNode->nodekind != SMI_NODEKIND_COMPLIANCE) {
-	    continue;
-	}
-	    
 	if (!i) {
 	    print("//\n// COMPLIANCE DEFINITIONS\n//\n\n");
 	}
