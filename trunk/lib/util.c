@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.11 1999/06/09 19:43:32 strauss Exp $
+ * @(#) $Id: util.c,v 1.12 1999/12/15 15:47:55 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -18,9 +18,7 @@
 #include <time.h>
 #include <ctype.h>
 
-#include "smi.h"
-#include "error.h"
-#include "parser-smi.h"
+#include "util.h"
 
 
 

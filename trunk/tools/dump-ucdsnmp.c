@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.3 1999/12/13 16:16:01 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.4 1999/12/20 09:36:43 strauss Exp $
  */
 
 /*
@@ -33,6 +33,7 @@
 #include <time.h>
 
 #include "smi.h"
+#include "smidump.h"
 
 
 #define  INDENT		4    /* indent factor */
@@ -604,7 +605,7 @@ static void printTypedefs(SmiModule *smiModule)
 
 
 
-int dumpUcdH(char *modulename)
+int dumpUcdH(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     char	 *cModuleName;
@@ -646,7 +647,7 @@ int dumpUcdH(char *modulename)
 
 
 
-int dumpUcdC(char *modulename)
+int dumpUcdC(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     char	 *cModuleName;
@@ -663,7 +664,7 @@ int dumpUcdC(char *modulename)
     printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
     printf(" *\n");
     printf(" * This C file is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.3 1999/12/13 16:16:01 strauss Exp $\n");
+    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.4 1999/12/20 09:36:43 strauss Exp $\n");
     printf(" */\n\n");
 
     printf("#define UCD_SNMP\n/* #define CMU_LINUX_SNMP */\n\n");

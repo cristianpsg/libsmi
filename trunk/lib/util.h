@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.11 1999/10/01 12:46:57 strauss Exp $
+ * @(#) $Id: util.h,v 1.12 1999/12/15 15:47:55 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -54,11 +54,11 @@ extern char *util_strndup(const char *s1, size_t n);
 
 extern int util_strcmp(const char *s1, const char *s2);
 
-extern char *util_strcat(char **s1, const char *s2);
+extern char *util_strcat(char **s1, char *s2);
 
 extern void util_free(void *ptr);
 
-extern int util_ispath(const char *s);
+extern int util_ispath(char *s);
 
 #endif /* _UTIL_H */
 

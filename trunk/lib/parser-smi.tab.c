@@ -2036,7 +2036,7 @@ case 103:
 					((Range *)yyvsp[0].typePtr->listPtr->ptr)->minValuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
 					((Range *)yyvsp[0].typePtr->listPtr->ptr)->minValuePtr->value.unsigned64 = 0;
 					((Range *)yyvsp[0].typePtr->listPtr->ptr)->maxValuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
-					((Range *)yyvsp[0].typePtr->listPtr->ptr)->maxValuePtr->value.unsigned64 = 18446744073709551615;
+					((Range *)yyvsp[0].typePtr->listPtr->ptr)->maxValuePtr->value.unsigned64 = 18446744073709551615UL;
 				    }
 				    setTypeParent(yyvsp[0].typePtr, NULL, "Unsigned64");
 				}
