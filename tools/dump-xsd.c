@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.65 2003/01/23 14:35:22 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.66 2003/01/24 15:25:19 tklie Exp $
  */
 
 #include <config.h>
@@ -1544,21 +1544,20 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 	    }
 	}
     }
-
+    
     /* print subtables */
-    for( iterNode = smiGetFirstNode( smiGetNodeModule( smiNode ),
-				     SMI_NODEKIND_ROW );
-	 iterNode;
-	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
-	if( isSubTable( smiNode, iterNode ) ) {
+    if( nestSubtables ) {
+	for( iterNode = smiGetFirstNode( smiGetNodeModule( smiNode ),
+					 SMI_NODEKIND_ROW );
+	     iterNode;
+	     iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
+	    if( isSubTable( smiNode, iterNode ) ) {
 /*	    fputs( "<!-- Here BEGIN subtable entry -->\n", f );*/
-//	    fprintComplexType( f, iterNode, NULL, smiNode );
-	    fprintElement( f, iterNode, smiNode );
+		fprintElement( f, iterNode, smiNode );
 /*	    fputs( "<!-- Here END subtable entry -->\n", f );*/
+	    }
 	}
     }
-
-
     
     fprintSegment( f, -1, "</xsd:sequence>\n");
     fprintIndex( f, smiNode, NULL, parent );
@@ -1618,7 +1617,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 	break;
     }
 
-    case SMI_NODEKIND_ROW:
+    case SMI_NODEKIND_ROW:        
 	fprintSegment( f, 1, "<xsd:element name=\"%s\" "
 		       "minOccurs=\"0\" maxOccurs=\"unbounded\">\n",
 		       smiNode->name );
@@ -1628,7 +1627,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 	fprintComplexType( f, smiNode, NULL, parentNode );
 	fprintSegment( f, -1, "</xsd:element>\n");
 	break;
-	
+	    
     case SMI_NODEKIND_SCALAR:
     case SMI_NODEKIND_COLUMN:
     {
@@ -1979,6 +1978,7 @@ static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_SCALAR ) ) {
+	    
 	    if (container) {
 		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
 			      "type=\"%s:%sType\" minOccurs=\"0\"/>\n",
@@ -1997,6 +1997,28 @@ static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
+	    	    int st = 0;
+	    
+	    if( nestSubtables ){
+		SmiNode *iterNode2;
+		
+		for( iterNode2 = smiGetFirstNode( smiModule,
+						  SMI_NODEKIND_ROW );
+		     iterNode2;
+		     iterNode2 = smiGetNextNode( iterNode2,
+						 SMI_NODEKIND_ROW ) ) {
+
+		    if( isSubTable( iterNode2, iterNode ) ) {
+			st = 1;
+			break;
+		    }
+		}
+	    }
+
+	    if( st ) {
+		continue;
+	    }
+
 	    if (container) {
 		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
 			      "type=\"%s:%sType\" minOccurs=\"0\" "
