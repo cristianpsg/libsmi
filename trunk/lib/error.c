@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.2 1999/03/23 22:55:39 strauss Exp $
+ * @(#) $Id: error.c,v 1.3 1999/03/24 16:25:27 strauss Exp $
  */
 
 #include <string.h>
@@ -226,7 +226,7 @@ printError(Parser *parser, int id, ...)
 {
     va_list ap;
     char *fmt;
-    
+
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
 	    (thisParser->flags & FLAG_ERRORS)) {

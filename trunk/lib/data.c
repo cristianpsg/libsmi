@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.11 1999/03/26 17:01:55 strauss Exp $
+ * @(#) $Id: data.c,v 1.12 1999/03/29 14:02:24 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -838,6 +838,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->nextSameNodePtr			= NULL;
     objectPtr->typePtr				= NULL;
     objectPtr->indexPtr				= NULL;
+    objectPtr->listPtr				= NULL;
     objectPtr->decl				= SMI_DECL_UNKNOWN;
     objectPtr->access				= SMI_ACCESS_UNKNOWN;
     objectPtr->status				= SMI_STATUS_UNKNOWN;
@@ -941,6 +942,7 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->nextSameNodePtr			      = NULL;
     objectPtr->typePtr				      = NULL;
     objectPtr->indexPtr				      = NULL;
+    objectPtr->listPtr				      = NULL;
     objectPtr->decl				      = SMI_DECL_UNKNOWN;
     objectPtr->access				      = SMI_ACCESS_UNKNOWN;
     objectPtr->status				      = SMI_STATUS_UNKNOWN;
@@ -1617,6 +1619,38 @@ setObjectIndex(objectPtr, indexPtr)
 #endif
     
     objectPtr->indexPtr = indexPtr;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectList --
+ *
+ *      Set the list of objects of a notification type or object group
+ *	or the list of notifications of a notification group.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectList(objectPtr, listPtr)
+    Object	 *objectPtr;
+    List	 *listPtr;
+{
+#ifdef DEBUG
+    printDebug(5, "setObjectList(0x%x(%s), 0x%x)\n",
+	       objectPtr, objectPtr->name, listPtr);
+#endif
+    
+    objectPtr->listPtr = listPtr;
 }
 
 
@@ -2553,7 +2587,7 @@ setTypeParent(typePtr, parent)
 /*
  *----------------------------------------------------------------------
  *
- * setTypeItemlistPtr --
+ * setTypeList --
  *
  *      Set the pointer to a struct list. This used for
  *	- columns of a SEQUENCE type,
@@ -2571,12 +2605,12 @@ setTypeParent(typePtr, parent)
  */
 
 void
-setTypeListPtr(typePtr, listPtr)
+setTypeList(typePtr, listPtr)
     Type	   *typePtr;
     struct List	   *listPtr;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeListPtr(0x%x(%s), 0x%x)\n",
+    printDebug(5, "setTypeList(0x%x(%s), 0x%x)\n",
 	       typePtr, typePtr->name ? typePtr->name : "\"\"", listPtr);
 #endif
     

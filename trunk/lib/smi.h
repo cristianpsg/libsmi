@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.3 1999/03/26 17:01:58 strauss Exp $
+ * @(#) $Id: smi.h,v 1.4 1999/03/29 14:02:28 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -120,6 +120,13 @@ typedef enum SmiDecl {
     SMI_DECL_COMPLIANCE		= 42
 } SmiDecl;
 
+typedef enum SmiCompl {
+    SMI_COMPL_UNKNOWN		= 0,
+    SMI_COMPL_MANDATORY		= 1,
+    SMI_COMPL_OPTIONAL		= 2,
+    SMI_COMPL_REFINED		= 3
+} SmiCompl;
+
 
 
 typedef struct SmiRevision {
@@ -130,12 +137,13 @@ typedef struct SmiRevision {
 typedef struct SmiValue {
     SmiBasetype	        basetype;
     union {
-	SmiUnsigned64      unsigned64;
-	SmiInteger64       integer64;
-	SmiUnsigned32      unsigned32;
-	SmiInteger32       integer32;
-	char		   *ptr;
-	char		   **bits;
+	SmiUnsigned64       unsigned64;
+	SmiInteger64        integer64;
+	SmiUnsigned32       unsigned32;
+	SmiInteger32        integer32;
+	char		    *oid;
+	char		    *ptr;
+	char		    **bits;
 	/* TODO ... */
     } value;
 } SmiValue;
@@ -150,6 +158,15 @@ typedef struct SmiRange {
     SmiValue	        *maxValuePtr;
 } SmiRange;
 
+typedef struct SmiCompliance {
+    SmiCompl		compl; /* mandator, optional, refined */
+    char		*name; /* mandatory/optional: group, refined: object */
+    char		*description;
+    char		*type;      /* `compliance+refinedObject+type' */
+    char		*writetype; /* `compliance+refinedObject+writetype' */
+    SmiAccess		access;
+} SmiCompliance;
+    
 typedef struct SmiModule {
     char		*name;
     char		*object;
@@ -165,6 +182,7 @@ typedef struct SmiNode {
     char		*module;
     char		*oid;
     char		*type;
+    char		**list;
     char		**index;
     SmiDecl		decl;
     SmiBasetype		basetype;
@@ -317,6 +335,11 @@ extern SmiNode *smiGetFirstNode(char *modulename);
 
 extern SmiNode *smiGetNextNode(char *modulename,
 			       char *name);
+
+XXX extern SmiNode *smiGetFirstCompliance(char *spec, *mod);
+
+XXX extern SmiNode *smiGetNextCompliance(char *spec,
+				     char *name);
 
 extern SmiType *smiGetType(char *spec,
 			   char *mod);

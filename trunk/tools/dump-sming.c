@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.9 1999/03/26 17:01:59 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.10 1999/03/29 14:02:29 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -27,8 +27,8 @@
 
 
 #define  INDENT		2    /* indent factor */
-#define  INDENTVALUE	16   /* column to start values, except multiline */
-#define  INDENTTEXTS	17   /* column to start multiline texts */
+#define  INDENTVALUE	20   /* column to start values, except multiline */
+#define  INDENTTEXTS	13   /* column to start multiline texts */
 #define  INDENTMAX	72   /* max column to fill, break lines otherwise */
 
 #define  STYLE_IMPORTS  2
@@ -64,6 +64,10 @@ getTypeString(name, syntax)
 
     if (syntax == SMI_BASETYPE_ENUM) {
 	return "Enumeration";
+    }
+    
+    if (syntax == SMI_BASETYPE_BITS) {
+	return "Bits";
     }
     
     for(i=0; smi2smingTypes[i]; i += 2) {
@@ -177,12 +181,12 @@ getValueString(valuePtr)
     SmiValue  *valuePtr;
 {
     static char s[100];
-
+    char        **p;
+    
     s[0] = 0;
     
     switch (valuePtr->basetype) {
     case SMI_BASETYPE_UNSIGNED32:
-    case SMI_BASETYPE_OCTETSTRING:
 	sprintf(s, "%lu", valuePtr->value.unsigned32);
 	break;
     case SMI_BASETYPE_INTEGER32:
@@ -199,19 +203,30 @@ getValueString(valuePtr)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-	
+    case SMI_BASETYPE_LABEL:
+	sprintf(s, "%s", valuePtr->value.ptr);
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+	sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	break;
+    case SMI_BASETYPE_BITS:
+	sprintf(s, "(");
+	for(p = valuePtr->value.bits; *p; p++) {
+	    if (p != valuePtr->value.bits)
+		sprintf(&s[strlen(s)], ", ");
+	    sprintf(&s[strlen(s)], "%s", *p);
+	}
+	sprintf(&s[strlen(s)], ")");
 	break;
     case SMI_BASETYPE_UNKNOWN:
     case SMI_BASETYPE_CHOICE:
     case SMI_BASETYPE_OBJECTIDENTIFIER:
     case SMI_BASETYPE_SEQUENCE:
     case SMI_BASETYPE_SEQUENCEOF:
-    case SMI_BASETYPE_BITS:
-	/* XXX !!! */
-	
+	break;
     case SMI_BASETYPE_BINSTRING:
+	break;
     case SMI_BASETYPE_HEXSTRING:
-    case SMI_BASETYPE_LABEL:
 	break;
     }
 
@@ -705,6 +720,139 @@ printNotifications(modulename)
 
 
 
+static void
+printGroups(modulename)
+    char	 *modulename;
+{
+    int		 i, d;
+    SmiNode	 *smiNode;
+    char	 **p;
+    
+    for (i = 0, d = 0; d < 2; d++) {
+	
+	for (smiNode = smiGetFirstNode(modulename);
+	     smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
+	    
+	    if (((d == 0) && (smiNode->decl != SMI_DECL_OBJECTGROUP)) ||
+		((d == 1) && (smiNode->decl != SMI_DECL_NOTIFICATIONGROUP))) {
+		continue;
+	    }
+	    
+	    if (!i) {
+		print("//\n// GROUP DEFINITIONS\n//\n\n");
+	    }
+
+	    printSegment(INDENT, "", 0);
+	    print("group %s {\n", smiNode->name);
+	    
+	    if (smiNode->oid) {
+		printSegment(2 * INDENT, "oid", INDENTVALUE);
+		print("%s;\n", getOidString(modulename, smiNode->oid, 0));
+	    }
+	    
+	    if (smiNode->decl == SMI_DECL_OBJECTGROUP) {
+		printSegment(2 * INDENT, "objects", INDENTVALUE);
+	    } else {
+		printSegment(2 * INDENT, "notifications", INDENTVALUE);
+	    }
+	    print("(");
+	    for(p = smiNode->list; *p; p++) {
+		if (p != smiNode->list) {
+		    print(", ");
+		}
+		printWrapped(INDENTVALUE + 1, *p);
+	    }
+	    print(");\n");
+	    
+	    if ((smiNode->status != SMI_STATUS_CURRENT) &&
+		(smiNode->status != SMI_STATUS_UNKNOWN)) {
+		printSegment(2 * INDENT, "status", INDENTVALUE);
+		print("%s;\n", smingStringStatus(smiNode->status));
+	    }
+	    
+	    if (smiNode->description) {
+		printSegment(2 * INDENT, "description", INDENTVALUE);
+		print("\n");
+		printMultilineString(smiNode->description);
+		print(";\n");
+	    }
+	    
+	    if (smiNode->reference) {
+		printSegment(2 * INDENT, "reference", INDENTVALUE);
+		print("\n");
+		printMultilineString(smiNode->reference);
+		print(";\n");
+	    }
+	    
+	    printSegment(INDENT, "", 0);
+	    print("};\n\n");
+	    i++;
+	}
+    }
+}
+
+
+
+static void
+printCompliances(modulename)
+    char	 *modulename;
+{
+    int		 i;
+    SmiNode	 *smiNode;
+    
+    for (i = 0, smiNode = smiGetFirstNode(modulename);
+	 smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
+	
+	if (smiNode->decl != SMI_DECL_MODULECOMPLIANCE) {
+	    continue;
+	}
+	    
+	if (!i) {
+	    print("//\n// COMPLIANCE DEFINITIONS\n//\n\n");
+	}
+
+	printSegment(INDENT, "", 0);
+	print("compliance %s {\n", smiNode->name);
+	    
+	if (smiNode->oid) {
+	    printSegment(2 * INDENT, "oid", INDENTVALUE);
+	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
+	}
+	    
+	if ((smiNode->status != SMI_STATUS_CURRENT) &&
+	    (smiNode->status != SMI_STATUS_UNKNOWN)) {
+	    printSegment(2 * INDENT, "status", INDENTVALUE);
+	    print("%s;\n", smingStringStatus(smiNode->status));
+	}
+	    
+	if (smiNode->description) {
+	    printSegment(2 * INDENT, "description", INDENTVALUE);
+	    print("\n");
+	    printMultilineString(smiNode->description);
+	    print(";\n");
+	}
+	    
+	if (smiNode->reference) {
+	    printSegment(2 * INDENT, "reference", INDENTVALUE);
+	    print("\n");
+	    printMultilineString(smiNode->reference);
+	    print(";\n");
+	}
+
+	/* XXX mandatory */
+	
+	/* XXX optional */
+	
+	/* XXX refine */
+	
+	printSegment(INDENT, "", 0);
+	print("};\n\n");
+	i++;
+    }
+}
+
+
+
 void
 dumpSming(modulename)
     char	 *modulename;
@@ -765,9 +913,12 @@ dumpSming(modulename)
 	
 	printNotifications(modulename);
 	
-	/* printGroups(); */
-	/* printCompliances(); */	
+	printGroups();
+	
+	printCompliances();
+	
 	print("};\n");
+
     }
 }
 
