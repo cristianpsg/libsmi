@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.27 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.28 2000/12/11 08:41:22 strauss Exp $
  */
 
 /*
@@ -230,7 +230,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
 	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
-	    if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
+	    if (valuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
 		if (n)
 		    sprintf(&s[strlen(s)], ", ");
 		n++;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.72 2001/09/27 16:13:12 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.73 2001/11/07 17:53:33 schoenw Exp $
  */
 
 #include <config.h>
@@ -682,17 +682,15 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	break;
     case SMI_BASETYPE_BITS:
 	if (smiv1) {
-	    for (i = 0, nn = smiGetFirstNamedNumber(typePtr); nn;
-		 nn = smiGetNextNamedNumber(nn)) {
-		if (nn->value.value.unsigned32 > i) {
-		    i = nn->value.value.unsigned32;
-		}
-	    }
-	    sprintf(&s[strlen(s)], "'%0*d'H", (i/8+1)*2, 0);
+            sprintf(s, "'%*s'H", 2 * valuePtr->len, " ");
+            for (i=0; i < valuePtr->len; i++) {
+                sprintf(ss, "%02x", valuePtr->value.ptr[i]);
+                strncpy(&s[1+2*i], ss, 2);
+            }
 	} else {
 	    sprintf(s, "{");
 	    for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
-		if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
+		if (valuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
 		    for (nn = smiGetFirstNamedNumber(typePtr); nn;
 			 nn = smiGetNextNamedNumber(nn)) {
 			if (nn->value.value.unsigned32 == i)
