@@ -1,6 +1,6 @@
 TUBS-IBR-NFS-MIB DEFINITIONS ::= BEGIN
 
--- @(#) $Id: TUBS-IBR-NFS-MIB,v 1.2 2000/02/09 15:37:17 strauss Exp $
+-- @(#) $Id: TUBS-IBR-NFS-MIB,v 1.2 2000/02/12 08:43:08 schoenw Exp $
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE, 
@@ -16,10 +16,10 @@ nfsMIB MODULE-IDENTITY
 	"Juergen Schoenwaelder
 	 TU Braunschweig
 	 Bueltenweg 74/75
-	 38108 Braunschweig
+	 38106 Braunschweig
 	 Germany
 
-	 Tel: +49 531 391 3249
+	 Tel: +49 531 391 3283
 	 Fax: +49 531 391 5936
 	 E-mail: schoenw@ibr.cs.tu-bs.de"
     DESCRIPTION
