@@ -1884,9 +1884,11 @@ static void printSVGClose()
  * index = 0 -> no index element
  * index = 1 -> index element -> printed with "+"
  */
-static void printSVGAttribute(SmiNode *node, int index, float *textYOffset)
+static void printSVGAttribute(SmiNode *node, int index,
+			      float *textYOffset, float *textXOffset)
 {
-    printf("    <text x=\"%.2f\" y=\"%.2f\"", ATTRSPACESIZE, *textYOffset);
+    printf("    <text x=\"%.2f\" y=\"%.2f\"",
+           *textXOffset + ATTRSPACESIZE, *textYOffset);
     *textYOffset += TABLEELEMHEIGHT;
 
     //FIXME
@@ -1917,7 +1919,8 @@ static void printSVGAttribute(SmiNode *node, int index, float *textYOffset)
 /*
  * prints the related scalars for a given table
  */
-static void printSVGRelatedScalars(GraphNode *node, float *textYOffset)
+static void printSVGRelatedScalars(GraphNode *node,
+				   float *textYOffset, float *textXOffset)
 {
     GraphEdge *tEdge;
     
@@ -1929,7 +1932,8 @@ static void printSVGRelatedScalars(GraphNode *node, float *textYOffset)
 	    tEdge->dia.flags |= DIA_PRINT_FLAG;
 	    tEdge->endNode->dia.flags |= DIA_PRINT_FLAG;
 
-	    printSVGAttribute(tEdge->endNode->smiNode,0, textYOffset);
+	    printSVGAttribute(tEdge->endNode->smiNode,
+			      0, textYOffset, textXOffset);
 	}
     }
 }
@@ -1937,7 +1941,8 @@ static void printSVGRelatedScalars(GraphNode *node, float *textYOffset)
 /*
  * prints all columns objects of the given node
  */
-static void printSVGAllColumns(GraphNode *node, float *textYOffset)
+static void printSVGAllColumns(GraphNode *node,
+			       float *textYOffset, float *textXOffset)
 {
     SmiModule *module  = NULL;
     SmiNode   *smiNode = NULL;
@@ -1953,14 +1958,15 @@ static void printSVGAllColumns(GraphNode *node, float *textYOffset)
 	
 	if (!algIsIndexElement(node->smiNode, smiNode) &&
 	    cmpSmiNodes(node->smiNode, ppNode))
-	    printSVGAttribute(smiNode, 0, textYOffset);
+	    printSVGAttribute(smiNode, 0, textYOffset, textXOffset);
     }
 }
 
 /*
  * adds the index to an augmenting table (row-element)
  */
-static void printSVGAugmentIndex(GraphNode *tNode, float *textYOffset)
+static void printSVGAugmentIndex(GraphNode *tNode,
+				 float *textYOffset, float *textXOffset)
 {
     GraphEdge  *tEdge;
     SmiElement *smiElement;
@@ -1975,7 +1981,7 @@ static void printSVGAugmentIndex(GraphNode *tNode, float *textYOffset)
 		 smiElement = smiGetNextElement(smiElement)) {
 		if (!cmpSmiNodes(tNode->smiNode, tEdge->startNode->smiNode)) {
 		    printSVGAttribute(smiGetElementNode(smiElement),
-				    1, textYOffset);
+				    1, textYOffset, textXOffset);
 		}
 	    }
 	}
@@ -1988,7 +1994,7 @@ static void printSVGAugmentIndex(GraphNode *tNode, float *textYOffset)
 static void printSVGObject(GraphNode *node, float x, float y)
 {
     SmiElement *smiElement;
-    float textYOffset = TABLEHEIGHT + TABLEELEMHEIGHT;
+    float textXOffset, textYOffset, xOrigin, yOrigin;
     
     if (!node) return;
     if (node->dia.flags & DIA_PRINT_FLAG) return;
@@ -1996,24 +2002,32 @@ static void printSVGObject(GraphNode *node, float x, float y)
     node->dia.x = x;
     node->dia.y = y;
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
+
+    xOrigin = node->dia.w/-2;
+    yOrigin = node->dia.h/-2;
+    textYOffset = yOrigin + TABLEHEIGHT + TABLEELEMHEIGHT;
+    textXOffset = xOrigin;
     
-    printf(" <g transform=\"translate(%.2f,%.2f)\">\n", x, y);
+    printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
+           x + node->dia.w/2, y + node->dia.h/2);
     printf("  <g id=\"%i\">\n", classNr);
-    printf("    <rect x=\"0\" y=\"0\" width=\"%.2f\" height=\"%.2f\"\n",
-           node->dia.w,node->dia.h);
+    printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
+           xOrigin, yOrigin, node->dia.w, node->dia.h);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
-    printf("    <polygon points=\"0 %.2f %.2f, %.2f\"\n",
-           TABLEHEIGHT, node->dia.w, TABLEHEIGHT);
+    printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
+           xOrigin, yOrigin + TABLEHEIGHT,
+           xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
-    printf("    <text x=\"%.2f\" y=\"15\" style=\"text-anchor:middle\">\n",
-           node->dia.w/2);
+    printf("    <text x=\"0\" y=\"%.2f\" style=\"text-anchor:middle\">\n",
+           yOrigin + 15);
     printf("         &lt;&lt;%s&gt;&gt;</text>\n", STEREOTYPE);
-    printf("    <text x=\"%.2f\" y=\"30\"\n", node->dia.w/2);
+    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 30);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
     //the "+"-button
     printf("    <g onclick=\"enlarge(%i)\"\n", classNr);
-    printf("       transform=\"translate(%.2f,3)\">\n", node->dia.w - 26);
+    printf("       transform=\"translate(%.2f,%.2f)\">\n",
+           xOrigin + node->dia.w - 26, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
     printf("            style=\"stroke: black; fill: none\"/>\n");
     printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
@@ -2021,7 +2035,8 @@ static void printSVGObject(GraphNode *node, float x, float y)
     printf("    </g>\n");
     //the "-"-button
     printf("    <g onclick=\"scaledown(%i)\"\n", classNr);
-    printf("       transform=\"translate(%.2f,3)\">\n", node->dia.w - 13);
+    printf("       transform=\"translate(%.2f,%.2f)\">\n",
+           xOrigin + node->dia.w - 13, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
     printf("            style=\"stroke: black; fill: none\"/>\n");
     printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
@@ -2033,22 +2048,23 @@ static void printSVGObject(GraphNode *node, float x, float y)
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
 	//A
-	printSVGRelatedScalars(node, &textYOffset);
+	printSVGRelatedScalars(node, &textYOffset, &textXOffset);
 
 	//B
-	printSVGAugmentIndex(node, &textYOffset);
+	printSVGAugmentIndex(node, &textYOffset, &textXOffset);
 	
 	//C
 	for (smiElement = smiGetFirstElement(
 	    smiGetFirstChildNode(node->smiNode));
 	     smiElement;
 	     smiElement = smiGetNextElement(smiElement)) {
-	    printSVGAttribute(smiGetElementNode(smiElement), 1, &textYOffset);
+	    printSVGAttribute(smiGetElementNode(smiElement),
+			    1, &textYOffset, &textXOffset);
 	}
 
 	//D
 	if (PRINT_DETAILED_ATTR) {
-	    printSVGAllColumns(node, &textYOffset);
+	    printSVGAllColumns(node, &textYOffset, &textXOffset);
 	}
     }
 
