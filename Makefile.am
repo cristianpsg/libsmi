@@ -8,12 +8,14 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.10 1999/12/14 15:34:42 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.11 2000/02/09 18:54:22 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
 
-EXTRA_DIST		= ANNOUNCE
+EXTRA_DIST		= ANNOUNCE \
+			  win/Makefile.mingw win/README.mingw win/README.win \
+			  win/config.h win/makefile.vc win/win.c win/win.h
 
 SUBDIRS			= lib tools mibs test doc
 
