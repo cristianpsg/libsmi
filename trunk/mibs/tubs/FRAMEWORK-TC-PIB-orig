@@ -1,0 +1,120 @@
+   FRAMEWORK-TC-PIB  PIB-DEFINITIONS ::= BEGIN 
+    
+   IMPORTS  MODULE-IDENTITY, TEXTUAL-CONVENTION, pib FROM COPS-PR-SPPI; 
+    
+   frwkTcPib  MODULE-IDENTITY 
+       SUBJECT-CATEGORIES   { all } 
+       LAST-UPDATED "200111130400Z" 
+       ORGANIZATION "IETF RAP WG" 
+       CONTACT-INFO "Keith McCloghrie 
+                     Cisco Systems, Inc. 
+                     170 West Tasman Drive, 
+                     San Jose, CA 95134-1706 USA 
+                     Phone: +1 408 526 5260 
+                     Email: kzm@cisco.com 
+    
+                     John Seligson 
+                     Nortel Networks, Inc. 
+                     4401 Great America Parkway 
+                     Santa Clara, CA 95054 USA 
+                     Phone: +1 408 495 2992 
+                     Email: jseligso@nortelnetworks.com" 
+       DESCRIPTION 
+               "The PIB module containing the Role and  
+                RoleCombination Textual Conventions and other  
+                generic TCs." 
+    
+       ::= { pib tbd } -- tbd to be assigned by IANA 
+    
+   Role ::= TEXTUAL-CONVENTION 
+       STATUS       current 
+       DESCRIPTION 
+           "A role represents a functionality characteristic or 
+           capability of a resource to which policies are applied. 
+           Examples of roles include Backbone interface,   
+           Frame_Relay_interface, BGP-capable-router, web-server,  
+           firewall, etc. 
+           Valid characters are a-z, A-Z, 0-9, period, hyphen and 
+           underscore.  A role must not start with an underscore." 
+       SYNTAX OCTET STRING (SIZE (1..31)) 
+    
+   RoleCombination ::= TEXTUAL-CONVENTION 
+       STATUS       current 
+       DESCRIPTION 
+           "A Display string consisting of a set of roles concatenated 
+           with a '+' character where the roles are in lexicographic 
+           order from minimum to maximum. 
+           For example, a+b and b+a are NOT different  
+           role-combinations; rather, they are different formatting of 
+           the same (one) role-combination. 
+    
+           Notice the roles within a role-combination are in 
+           Lexicographic order from minimum to maximum, hence, we 
+           declare: 
+             a+b is the valid formatting of the role-combination, 
+             b+a is an invalid formatting of the role-combination. 
+    
+           Notice the need of zero-length role-combination as the role- 
+           combination of interfaces to which no roles have been 
+           assigned. This role-combination is also known as the null 
+           role-combination. (Note the deliberate use of lower case 
+           letters to avoid confusion with the ASCII NULL character 
+           which has a value of zero but length of one.)" 
+       SYNTAX OCTET STRING  (SIZE (0..255)) 
+ 
+   PrcIdentifier ::= TEXTUAL-CONVENTION 
+       STATUS       current 
+       DESCRIPTION 
+           "An OID that identifies a PRC. The value MUST be an OID  
+           assigned to a PRC's row definition. An attribute with this  
+           syntax can have the value 0.0 (zeroDotZero) to indicate that  
+           it currently does not identify a PRC." 
+       SYNTAX    OBJECT IDENTIFIER 
+ 
+   AttrIdentifier ::= TEXTUAL-CONVENTION 
+       STATUS       current 
+       DESCRIPTION 
+           "A Unsigned32 value that identifies an attribute in a PRC. 
+    
+            A AttrIdentifier value is always interpreted within the  
+            context of a PrcIdentifier value. The PrcIdentifier object  
+            which defines the context must be registered immediately  
+            before the object which uses the AttrIdentifier textual  
+            convention.  
+    
+           An attribute with this syntax can have the value 0 to  
+           indicate that it currently does not identify a PRC  
+           attribute." 
+       SYNTAX    Unsigned32 
+    
+   AttrIdentifierOid ::= TEXTUAL-CONVENTION 
+       STATUS       current 
+       DESCRIPTION 
+           "An OID that identifies an attribute in a PRC. The value  
+           MUST be an OID assigned to a PRC's attribute definition. The  
+           last sub-id is the position of the attribute as it is  
+           defined in the PRC entry definition. The prefix OID (after  
+           dropping the last sub-id) is the OID assigned to a defined  
+           PRC. An attribute with this syntax can have the value 0.0  
+           (zeroDotZero) to indicate that it currently does not  
+           identify a PRC's attribute." 
+       SYNTAX    OBJECT IDENTIFIER 
+    
+    
+    
+   ClientType ::= TEXTUAL-CONVENTION 
+       STATUS       current 
+       DESCRIPTION 
+           "An Unsigned32 value that identifies a COPS Client-type   
+           [COPS]. An attribute with this syntax must be set to zero if  
+           it does not specify a COPS client-type." 
+       SYNTAX    Unsigned32 (0..65535) 
+    
+   ClientHandle ::= TEXTUAL-CONVENTION 
+       STATUS       current 
+       DESCRIPTION 
+           "An octet string that identifies a COPS Client handle   
+           [COPS]." 
+       SYNTAX    OCTET STRING (SIZE(0..65535)) 
+    
+   END 
