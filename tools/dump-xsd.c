@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.34 2002/07/01 15:04:57 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.35 2002/07/05 15:38:29 tklie Exp $
  */
 
 #include <config.h>
@@ -29,9 +29,6 @@
 #define  INDENTVALUE	20   /* column to start values, except multiline */
 #define  INDENTTEXTS	4    /* column to start multiline texts */
 #define  INDENTMAX	64   /* max column to fill, break lines otherwise */
-
-/* xxx let the user configure this with command-line args */
-#define DXSD_MIBPREFIX "if"
 
 static char *schemaLocation = "http://www.ibr.cs.tu-bs.de/~tklie/";
 
@@ -60,8 +57,7 @@ static TypePrefix *typePrefixes = NULL;
 
 
 /* some forward declarations */
-static void fprintElement( FILE *f, int indent,
-			   SmiNode *smiNode, const char *prefix );
+static void fprintElement( FILE *f, int indent, SmiNode *smiNode );
 static char* getTypePrefix( char *typeName );
 
 static char *getStringBasetype(SmiBasetype basetype)
@@ -710,165 +706,239 @@ static void fprintDisplayHint( FILE *f, int indent, char *format )
 /*
  * build a regexp from this display hint
  * NOTE: very experimental stuff
- * xxx TBD: use length and generate one regexp for each sub range
  */
 static char* getStrDHType( char *hint,
 			   SmiInteger32 *lengths, unsigned int numSubranges  )
 {
-    unsigned int pos = 0, intNum = 0;
+    unsigned int i = 0;
     char *ret = NULL;
-    int repeat = 0;
-    
-    while( pos < strlen( hint ) ) {
 
-	switch( hint[ pos ] ) {
+    while( i < numSubranges * 2 ) {
+	unsigned int pos = 0, intNum = 0;
+	int repeat = 0; /* xxx not yet implemented */
+	unsigned int octetsUsed = 0, lastRegexpUses = 0;
 
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9': {
-	    unsigned int endPos;
-	    char *strNum;
+	/* switch between '(' and '|'
+	   '|' is used between regexps of subranges */
+	char startChar = '('; 
 
-	    /* find end of number */
-	    for( endPos = pos; isdigit( hint[ endPos ] ); endPos++ );
-	    
-	    /* parse number */
-	    strNum = xmalloc( endPos - pos );
-	    strncpy( strNum, &hint[ pos ], endPos - pos );
-	    strNum[ endPos - pos ] = '\0';
-	    intNum= atoi( strNum );
-	    xfree( strNum );
-
-	    /* forward the position pointer */
-	    pos = endPos;
-	    break;
+	if( i && ret ) {
+	    /* we have already created a regexp for a subrange, so the next
+	       regexp for a subrange is an alternative (= we use '|') */
+	    startChar = '|';
 	}
-
-	case 'a':
-	    /* render as ascii */
-	    if( repeat ) {
-		/* length depends on input */
-		if( ret ){
-		    ret = xrealloc( ret, strlen( ret ) + 5 );
-		    sprintf( ret, "%s)(%c*", ret, hint[ ++pos ] );
-		}
-		else {
-		    ret = xmalloc( 4 );
-		    sprintf( ret, "(%c*", hint[ ++pos ] );
-		}		
-	    }
-	    else if( intNum ) {
-		/* lengths depends on number read last iteration*/
-		if( intNum > 1 ) {
-		    if( ret ) {
-			ret = xrealloc( ret, strlen( ret ) + 23 );
-			sprintf( ret, "%s)((#x20-#x7e){1,%d}", ret, intNum );
-		    }
-		    else {
-			ret = xmalloc( 22 );
-			sprintf( ret, "((#x20-#x7e){1,%d}", intNum ); 
-		    }
-		}
-		else {
-		    if( ret ) {
-			ret = xrealloc( ret, strlen( ret ) + 12 );
-			sprintf( ret, "%s)(#x20-#x7e", ret );
-		    }
-		    else {
-			ret = xmalloc( 11 );
-			sprintf( ret, "(#x20-#x7e" ); 
-		    }
-		}
-	    }
-	    else {
-		if( ret ) {
-		    ret = xrealloc( ret, strlen( ret ) + 7 );
-		    sprintf( ret, "%s)((%c*)", ret, hint[ ++pos ] );
-		}
-		else {
-		    ret = xmalloc( 4 );
-		    sprintf( ret, "(%c*", hint[ ++pos ] );
-		}
-	    }
-	    pos++;
-	    break;
+	
+	while( pos < strlen( hint ) ) {
 	    
-	case 'b':
-	    /* render as binary */
-	    /* xxx TBD: repeat */
-	    if( ret ) {
-		    ret = xrealloc( ret, strlen( ret ) + 22 );
-		    sprintf( ret, "%s)(((0|1){8}){1,%d}", ret, intNum );
+	    switch( hint[ pos ] ) {
+		
+	    case '0':
+	    case '1':
+	    case '2':
+	    case '3':
+	    case '4':
+	    case '5':
+	    case '6':
+	    case '7':
+	    case '8':
+	    case '9': {
+		unsigned int endPos;
+		char *strNum;
+		
+		/* find end of number */
+		for( endPos = pos; isdigit( hint[ endPos ] ); endPos++ );
+		
+		/* parse number */
+		strNum = xmalloc( endPos - pos );
+		strncpy( strNum, &hint[ pos ], endPos - pos );
+		strNum[ endPos - pos ] = '\0';
+		intNum= atoi( strNum );
+		xfree( strNum );
+		
+		/* forward the position pointer */
+		pos = endPos;
+		break;
+	    }
+	    
+	    case 'a':
+		/* render as ascii */
+		if( repeat ) {
+		    /* length depends on input */
+		    if( ret ){
+			ret = xrealloc( ret, strlen( ret ) + 5 );
+			sprintf( ret, "%s%c(%c*", ret, startChar,
+				 hint[ ++pos ] );
+		    }
+		    else {
+			ret = xmalloc( 4 );
+			sprintf( ret, "(%c*", hint[ ++pos ] );
+		    }		
+		}
+		else if( intNum ) {
+		    /* lengths depends on number read last iteration*/
+		    if( intNum > 1 ) {
+			if( ret ) {
+			    ret = xrealloc( ret, strlen( ret ) + 23 );
+			sprintf( ret, "%s%c((#x20-#x7e){1,%d}", ret, startChar,
+				 intNum );
+			}
+			else {
+			    ret = xmalloc( 22 );
+			    sprintf( ret, "((#x20-#x7e){1,%d}", intNum ); 
+			}
+		    }
+		    else {
+			if( ret ) {
+			    ret = xrealloc( ret, strlen( ret ) + 12 );
+			    sprintf( ret, "%s%c(#x20-#x7e", ret, startChar );
+			}
+			else {
+			    ret = xmalloc( 11 );
+			    sprintf( ret, "(#x20-#x7e" ); 
+			}
+		    }
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUses = intNum;
 		}
 		else {
-		    ret = xmalloc( 21 );
-		    sprintf( ret, "(((0|1){8}){1,%d}", intNum ); 
+		    if( ret ) {
+			ret = xrealloc( ret, strlen( ret ) + 7 );
+			sprintf( ret, "%s%c((%c*)", ret, startChar,
+				 hint[ ++pos ] );
+		    }
+		    else {
+			ret = xmalloc( 4 );
+			sprintf( ret, "(%c*", hint[ ++pos ] );
+		    }
 		}
-	    pos++;
-	    break;
-
-	case 'd':
-	    /* render as decimal */
-	    /* xxx TBD: repeat */
-	     if( ret ) {
+		pos++;
+		break;
+		
+	    case 'b':
+		/* render as binary */
+		/* xxx TBD: repeat, intNum = 0 */
+		if( intNum ) {
+		    if( ret ) {
+			ret = xrealloc( ret, strlen( ret ) + 22 );
+			sprintf( ret, "%s%c(((0|1){8}){1,%d}",
+				 ret, startChar, intNum );
+		    }
+		    else {
+			ret = xmalloc( 21 );
+			sprintf( ret, "(((0|1){8}){1,%d}", intNum ); 
+		    }
+		    
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUses = intNum;
+		}
+		pos++;
+		break;
+		
+	    case 'd':
+		/* render as decimal */
+		/* xxx TBD: repeat */
+		if( ret ) {
 		    ret = xrealloc( ret, strlen( ret ) + 14 );
-		    sprintf( ret, "%s)([1-9][0-9]*", ret );
-	     }
+		    sprintf( ret, "%s%c([1-9][0-9]*", ret, startChar );
+		}
 		else {
 		    ret = xmalloc( 13 );
 		    sprintf( ret, "([1-9][0-9]*" ); 
 		}
-	     pos++;
-	    break;
+		if( intNum ) {
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUses = intNum;
+		}
+		else {
+		    // xxx how can we calculate this ?
+		    // let's assume we use one octet
+		    lastRegexpUses = 1;
+		}
 
-	case 'o':
-	    /* render as octal */
-	    if( ret ) {
+		pos++;
+		break;
+		
+	    case 'o':
+		/* render as octal */
+		if( ret ) {
 		    ret = xrealloc( ret, strlen( ret ) + 14 );
-		    sprintf( ret, "%s)([1-7][0-7]*", ret );
-	     }
+		    sprintf( ret, "%s%c([1-7][0-7]*", ret, startChar );
+		}
 		else {
 		    ret = xmalloc( 13 );
 		    sprintf( ret, "([1-7][0-7]*" ); 
 		}
-	     pos++;
-	     break;
 
-	case 'x':
-	    /* render as hex */
-	    if( ret ) {
-		ret = xrealloc( ret, strlen( ret ) + 20 );
-		    sprintf( ret, "%s)([1-9A-E][0-9A-E]*", ret );
-	     }
-		else {
-		    ret = xmalloc( 19 );
-		    sprintf( ret, "([1-9A-E][0-9A-E]*" ); 
+		if( intNum ) {
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUses = intNum;
 		}
-	     pos++;
-	    break;
-
-	case '*':
-	    repeat = 1;
-	    pos++;
-	    break;
-
-	default:
-	    /* add a seperator char*/
-	    ret = xrealloc( ret, strlen( ret ) + 2 );
-	    strncat( ret, &hint[ pos++ ], 1 );
-	    break;
+		else {
+		    // xxx how can we calculate this ?
+		    // let's assume we use one octet
+		    lastRegexpUses = 1;
+		}
+		pos++;
+		break;
+		
+	    case 'x':
+		/* render as hex */
+		if( intNum ) {
+		    if( ret ) {
+			ret = xrealloc( ret, strlen( ret ) + 28 );
+			sprintf( ret, "%s%c([1-9A-E]", ret, startChar );
+			if( intNum - 1 ) {
+			    sprintf( ret,"%s[0-9A-E]{0,%d}", ret, intNum-1 );
+			}
+		    }
+		    else {
+			ret = xmalloc( 19 );
+			sprintf( ret, "([1-9A-E]" );
+			if( intNum - 1 ) {
+			    sprintf( ret, "[0-9A-E]{0,%d}", intNum - 1 );
+			}
+		    }
+		    /* we have used some (intNum) octets */
+		    octetsUsed += intNum;
+		    lastRegexpUses = intNum;
+		}
+		else {
+		    /* xxx how can we calculate this ?
+		       let's assume we use one octet */
+		    lastRegexpUses = 1;
+		}
+		pos++;
+		break;
+		
+	    case '*':
+		repeat = 1;
+		pos++;
+		break;
+		
+	    default:
+		/* add a seperator char*/
+		ret = xrealloc( ret, strlen( ret ) + 2 );
+		strncat( ret, &hint[ pos++ ], 1 );
+		break;
+	    }
+	    
 	}
+	/* add closure to last regexp part */
+	ret = xrealloc( ret, strlen( ret ) + 15 );
+	
+	sprintf( ret, "%s){%u,%u}", ret,
+		 /* minLength */
+		 ( lengths[ i ] - ( octetsUsed - lastRegexpUses ) /
+		   lastRegexpUses ),
+		 /* maxLength */
+		 ( lengths[ i+1 ] - ( octetsUsed - lastRegexpUses )
+		   / lastRegexpUses ) );
+	i++;i++;
     }
-    /* add closure to last regexp part */
-    ret = xrealloc( ret, strlen( ret ) + 3 );
-    sprintf( ret, "%s)+", ret );
     return ret;
 }
 
@@ -924,17 +994,18 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     }
     
     if( smiType->format && smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
-	SmiInteger32 *lengths = xmalloc( numSubRanges * 2 *
-					 sizeof( SmiInteger32) ),
-	    *lp = lengths;
+	SmiUnsigned32 *lengths = xmalloc( numSubRanges * 2 *
+					 sizeof( SmiUnsigned32 ) ),
+//	    *lp = lengths;
+	    lp = 0;
 	SmiRange *smiRange;
 
 	/* write subtype lengths to the array */
 	for( smiRange = smiGetFirstRange( smiType );
 	     smiRange;
 	     smiRange = smiGetNextRange( smiRange ) ) {
-	    *(lp++) = smiRange->minValue.value.unsigned32;
-	    *(lp++) = smiRange->maxValue.value.unsigned32;
+	    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+	    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
 	}
 	
 	fprintSegment( f, indent + INDENT, "<xsd:restriction ", 0 );
@@ -1114,8 +1185,7 @@ static void fprintIndex( FILE *f, int indent, SmiNode *smiNode,
 
 
 static void fprintComplexType( FILE *f, int indent,
-			       SmiNode *smiNode,
-			       const char *prefix, const char *name )
+			       SmiNode *smiNode, const char *name )
 {
     SmiNode *iterNode;
     int numChildren;
@@ -1137,7 +1207,7 @@ static void fprintComplexType( FILE *f, int indent,
 	 iterNode;
 	 iterNode = smiGetNextChildNode( iterNode ) ) {
 	
-	fprintElement( f, indent + 2 * INDENT, iterNode, prefix );
+	fprintElement( f, indent + 2 * INDENT, iterNode );
 	
     }
     if( numChildren ) {
@@ -1156,7 +1226,7 @@ static void fprintComplexType( FILE *f, int indent,
 	 iterNode;
 	 iterNode = smiGetNextChildNode( iterNode ) ) {
 	if( iterNode->nodekind == SMI_NODEKIND_NODE ) {
-	    fprintComplexType( f, indent, iterNode, NULL, iterNode->name );
+	    fprintComplexType( f, indent, iterNode, iterNode->name );
 	}
     }
 }
@@ -1198,8 +1268,7 @@ static int getIntDHType( char *hint, int *offset )
 
 
 
-static void fprintElement( FILE *f, int indent,
-			   SmiNode *smiNode, const char *prefix )
+static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 {
     switch( smiNode->nodekind ) {
 	SmiType *smiType;
@@ -1220,7 +1289,7 @@ static void fprintElement( FILE *f, int indent,
 		 iterNode = smiGetNextChildNode( iterNode ) ) {
 		if( iterNode->nodekind == SMI_NODEKIND_SCALAR ) {
 		    fprintElement( f, indent + moreIndent + 2 * INDENT,
-				   iterNode, DXSD_MIBPREFIX );
+				   iterNode );
 		}
 	    }
 	    fprintSegment( f, indent + 2 * INDENT, "</xsd:sequence>\n", 0 );
@@ -1237,7 +1306,7 @@ static void fprintElement( FILE *f, int indent,
 	for( iterNode = smiGetFirstChildNode( smiNode );
 	     iterNode;
 	     iterNode = smiGetNextChildNode( iterNode ) ) {
-	    fprintElement( f, indent, iterNode, DXSD_MIBPREFIX );
+	    fprintElement( f, indent, iterNode );
 	}
 	break;
     }
@@ -1249,8 +1318,7 @@ static void fprintElement( FILE *f, int indent,
 
 	fprintAnnotationElem( f, indent + INDENT, smiNode );
 
-	fprintComplexType( f, indent + INDENT, smiNode,
-			   DXSD_MIBPREFIX, NULL );
+	fprintComplexType( f, indent + INDENT, smiNode, NULL );
 	fprintSegment( f, indent, "</xsd:element>\n", 0 );
 	break;
 	
@@ -1388,7 +1456,7 @@ static void fprintRows( FILE *f, SmiModule *smiModule )
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
-	    fprintElement( f, 5 * INDENT, iterNode, DXSD_MIBPREFIX );
+	    fprintElement( f, 5 * INDENT, iterNode );
 	}
     }
 }
@@ -1456,7 +1524,7 @@ static void fprintNodes( FILE *f, SmiModule *smiModule )
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_SCALAR ) ) {
-	    fprintElement( f, 5 * INDENT, iterNode, DXSD_MIBPREFIX );
+	    fprintElement( f, 5 * INDENT, iterNode );
 	}
     }   
 }
@@ -1468,7 +1536,7 @@ static void fprintNotifications( FILE *f, SmiModule *smiModule )
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NOTIFICATION );
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NOTIFICATION ) ) {
-	fprintElement( f, 5 * INDENT, iterNode, DXSD_MIBPREFIX );
+	fprintElement( f, 5 * INDENT, iterNode );
     }
 }
 
