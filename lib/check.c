@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.50 2003/06/16 15:17:42 schoenw Exp $
+ * @(#) $Id: check.c,v 1.51 2003/08/05 13:50:58 strauss Exp $
  */
 
 #include <config.h>
@@ -598,7 +598,7 @@ smiCheckNamedNumberSubtyping(Parser *parser, Type *type)
  *
  *      Check and normalize the order of named numbers in a bits
  *	or enumeration type.
-  *
+ *
  * Results:
  *      None.
  *
@@ -1175,10 +1175,54 @@ smiCheckTypeRanges(Parser *parser, Type *type)
 /*
  *----------------------------------------------------------------------
  *
+ * smiCheckTypeFormat --
+ *
+ *      Check whether we know a format specification for integer types.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckTypeFormat(Parser *parser, Type *type)
+{
+    Type *t;
+    
+    if (! type || !type->export.name) {
+	return;
+    }
+
+    if (type->export.basetype != SMI_BASETYPE_INTEGER32
+	&& type->export.basetype != SMI_BASETYPE_INTEGER64
+	&& type->export.basetype != SMI_BASETYPE_UNSIGNED32
+	&& type->export.basetype != SMI_BASETYPE_UNSIGNED64) {
+	return;
+    }
+
+    for (t = type; t; t = t->parentPtr) {
+	if (t->export.format) {
+	    break;
+	}
+    }
+
+    if (! t) {
+	smiPrintErrorAtLine(parser, ERR_TYPE_WITHOUT_FORMAT, type->line,
+			    type->export.name);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * smiCheckValueType --
  *
  *      Check whether a given value matches a given type.
-  *
+ *
  * Results:
  *      None.
  *
