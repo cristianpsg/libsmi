@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.6 2001/10/02 13:26:39 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.7 2002/01/04 15:10:56 schoenw Exp $
  */
 
 /*
@@ -38,7 +38,7 @@
 
 
 static char *pattern = NULL;
-static regex_t _regex, *regex = NULL;
+static regex_t _regex, *match_regex = NULL;
 
 
 
@@ -218,9 +218,9 @@ isGroup(SmiNode *smiNode)
 {
     SmiNode *childNode;
 
-    if (regex) {
+    if (match_regex) {
 	int status;
-	status = regexec(regex, smiNode->name, (size_t) 0, NULL, 0);
+	status = regexec(match_regex, smiNode->name, (size_t) 0, NULL, 0);
 	if (status != 0) {
 	    return 0;
 	}
@@ -2533,11 +2533,11 @@ dumpScli(int modc, SmiModule **modv, int flags, char *output)
     int		i, code;
 
     if (pattern) {
-	regex = &_regex;
-	code = regcomp(regex, pattern, REG_EXTENDED|REG_NOSUB);
+	match_regex = &_regex;
+	code = regcomp(match_regex, pattern, REG_EXTENDED|REG_NOSUB);
 	if (code != 0) {
 	    char buffer[256];
-	    regerror(code, regex, buffer, sizeof(buffer));
+	    regerror(code, match_regex, buffer, sizeof(buffer));
 	    fprintf(stderr, "smidump: regular expression error: %s\n", buffer);
 	    exit(1);
 	}
@@ -2554,9 +2554,9 @@ dumpScli(int modc, SmiModule **modv, int flags, char *output)
 	}
     }
 
-    if (regex) {
-	regfree(regex);
-	regex = NULL;
+    if (match_regex) {
+	regfree(match_regex);
+	match_regex = NULL;
     }
 }
 

@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.34 2001/12/05 16:22:49 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.35 2002/01/08 09:50:48 strauss Exp $ 
  */
 
 #include <config.h>
@@ -1809,11 +1809,11 @@ diffObjects(SmiModule *oldModule, const char *oldTag,
 	    case SMI_NODEKIND_ROW:
 	    case SMI_NODEKIND_COLUMN:
 	    case SMI_NODEKIND_SCALAR:
+		printErrorAtLine(oldModule, ERR_NODE_REMOVED,
+				 smiGetNodeLine(oldNode),
+				 getStringNodekind(oldNode->nodekind),
+				 oldNode->name);
 	    }
-	    printErrorAtLine(oldModule, ERR_NODE_REMOVED,
-			     smiGetNodeLine(oldNode),
-			     getStringNodekind(oldNode->nodekind),
-			     oldNode->name);
 	}
 	smiInit(oldTag);
     }
