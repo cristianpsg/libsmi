@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.157 2001/09/25 07:15:57 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.158 2001/10/09 07:43:16 schoenw Exp $
  */
 
 %{
@@ -1995,6 +1995,7 @@ Syntax:			ObjectSyntax
 			    setTypeList(typePtr, $3);
 			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = typePtr;
+			    smiCheckNamedNumbersOrder(parserPtr, typePtr);
 			    $$ = typePtr;
 			}
 	;
@@ -2755,6 +2756,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    setTypeList($$, $3);
 			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
+			    smiCheckNamedNumbersOrder(parserPtr, $$);
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
@@ -2849,6 +2851,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    setTypeList($$, $3);
 			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
+			    smiCheckNamedNumbersOrder(parserPtr, $$);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
@@ -2893,6 +2896,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    setTypeList($$, $4);
 			    for (p = $4; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
+			    smiCheckNamedNumbersOrder(parserPtr, $$);
 			    smiFree($1);
 			    smiFree($3);
 			}
