@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.181 2002/07/22 16:49:55 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.182 2002/07/23 18:02:53 strauss Exp $
  */
 
 %{
@@ -246,6 +246,18 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    }
 	}
 
+	/*
+	 * Mark types that are referenced in this module.
+	 */
+
+	if (objectPtr->typePtr
+	    && (objectPtr->export.nodekind == SMI_NODEKIND_COLUMN
+		|| objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)
+	    && (objectPtr->typePtr->export.decl == SMI_DECL_TYPEDEF
+		|| objectPtr->typePtr->export.decl == SMI_DECL_TEXTUALCONVENTION)) {
+	    addTypeFlags(objectPtr->typePtr, FLAG_INSYNTAX);
+	}
+	
 	/*
 	 * Check whether the status of the associated type matches the
 	 * status of the object.
@@ -881,6 +893,22 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 	    && strcmp(thisModulePtr->export.name, "SNMPv2-SMI")) {
 	    smiPrintErrorAtLine(parserPtr, ERR_SMIV2_TYPE_ASSIGNEMENT,
 				typePtr->line, typePtr->export.name);
+	}
+
+	/*
+	 * Check whether we have types that are not used in this
+	 * module.
+	 */
+
+	if ((typePtr->export.decl == SMI_DECL_TYPEDEF
+	     || typePtr->export.decl == SMI_DECL_TEXTUALCONVENTION)
+	    && ! (typePtr->flags & FLAG_INSYNTAX)) {
+	    static char *status[] = { "Unknown", "current", "deprecated",
+				      "mandatory", "optional", "obsolete" };
+	    smiPrintErrorAtLine(parserPtr, ERR_TYPE_UNREF,
+				typePtr->line,
+				status[typePtr->export.status],
+				typePtr->export.name);
 	}
 
 	/*
