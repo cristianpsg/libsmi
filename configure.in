@@ -8,12 +8,17 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.42 1999/12/14 12:00:04 strauss Exp $
+# @(#) $Id: configure.in,v 1.43 1999/12/14 14:48:12 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 AM_INIT_AUTOMAKE(libsmi,0.1.8)
-# Note: also change shlib version version lib/Makefile.am:libsmi_la_LDFLAGS ?
+LIBTOOL_VERSIONING="1:2:0"
+# NOTE: Though minor interface changes may take place between libsmi patch
+# levels (last number in AM_INIT_AUTOMAKE), we increment the libtool
+# versioning revision (first number in LIBTOOL_VERSIONING) only along with
+# major and minor revision changes (first and second number in
+# AM_INIT_AUTOMAKE).
 
 AC_DEFINE(BACKEND_SMI)
 AC_DEFINE(BACKEND_SMING)
@@ -83,6 +88,7 @@ else
 fi
 AC_SUBST(STATIC)
 
+AC_SUBST(LIBTOOL_VERSIONING)
 AC_SUBST(EXEEXT)
 AC_SUBST(BASH)
 AC_SUBST(SH)
