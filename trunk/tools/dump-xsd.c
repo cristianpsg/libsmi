@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.5 2002/01/29 19:01:28 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.6 2002/01/31 18:56:04 tklie Exp $
  */
 
 #include <config.h>
@@ -190,6 +190,36 @@ static void fprintDocumentation(FILE *f, int indent, const char *description)
 
 static void fprintImportedTypes( FILE *f, SmiModule *smiModule )
 {
+    SmiImport *iterImp;
+    SmiType *impType;
+    SmiModule *impModule; 
+    
+    fprintSegment( f, INDENT, "<!-- imported type(s) -->\n", 0 );
+
+    /* iterate imports */
+    for( iterImp = smiGetFirstImport( smiModule );
+	 iterImp;
+	 iterImp = smiGetNextImport( iterImp ) ) {
+	if( iterImp->name && iterImp->module ) {
+
+	    /* ignore standard imports */
+	    if( strcmp( iterImp->module , "SNMPv2-SMI" ) &&
+		strcmp( iterImp->module , "SNMPv2-TC" ) &&
+		strcmp( iterImp->module , "SNMPv2-CONF" ) &&
+		strcmp( iterImp->module , "SNMPv2-MIB" ) ) {
+
+		/* try to get imported type */
+		impModule = smiGetModule( iterImp->module );
+		if( impModule ) {
+		    impType = smiGetType( impModule, iterImp->name );
+		    if( impType && impType->name) {
+			fprintTypedef( f, INDENT, impType );
+			fprintf( f, "\n" );
+		    }
+		}
+	    }
+	}
+    }
     /* xxx */
 }
 
@@ -398,6 +428,7 @@ static void fprintRows( FILE *f, SmiModule *smiModule )
     
 static void fprintModule(FILE *f, SmiModule *smiModule)
 {
+    fprintImportedTypes( f, smiModule );
     fprintNodes(f, smiModule);
     fprintRows(f, smiModule);
     fprintSegment(f, INDENT, "<xsd:annotation>\n", 0);
@@ -405,6 +436,18 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintSegment(f, INDENT, "</xsd:annotation>\n", 0);
 }
 
+static void fprintNamedNumber( FILE *f, int indent, SmiNamedNumber *nn )
+{
+    fprintSegment( f, indent, "<xsd:enumeration ", 0 );
+    fprintf( f, "value=\"%s\">\n", nn->name );
+    fprintSegment( f, indent + INDENT, "<xsd:annotation>\n", 0 );
+    fprintSegment( f, indent + 2 * INDENT, "<xsd:appinfo>\n", 0 );
+    fprintSegment( f, indent + 3 * INDENT, "<intVal>", 0 );
+    fprintf( f, "%d</intVal>\n", nn->value.value.integer32 );
+    fprintSegment( f, indent + 2 * INDENT, "</xsd:appinfo>\n", 0 );
+    fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
+    fprintSegment( f, indent, "</xsd:enumeration>\n", 0 );
+}
 
 static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 {
@@ -412,9 +455,7 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     SmiValue *minRange, *maxRange;
     char *buf, *val;
     
-    fprintSegment(f, indent, "<xsd:restriction", 0);
-    fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
-	   getStringBasetype(smiType->basetype));
+  
 
     /* print ranges etc. */
     switch( smiType->basetype ) {
@@ -425,6 +466,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 
 	min = -2147483648;
 	max = 2147483647;
+
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
 	
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
@@ -463,6 +508,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	minLength = 0;
 	maxLength = -1;
 
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
+
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
 	    if( minLength == 0 ||
@@ -497,6 +546,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     {
 	SmiFloat128 min, max;
 
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
+
 	/* xxx, only SMIng */
 	break;
     }
@@ -505,6 +558,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     {
 	SmiFloat64 min,max;
 
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
+	
 	/* xxx, only SMIng */
 	break;
     }
@@ -513,6 +570,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     {
 	SmiFloat32 min,max;
 
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
+
 	/* xxx, only SMIng */
 	break;
     }
@@ -520,6 +581,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     case SMI_BASETYPE_INTEGER64:
     {
 	SmiInteger64 min,max;
+
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
 
 	/* xxx, only SMIng */
 	break;
@@ -531,6 +596,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 
 	min = 0;
 	max = 18446744073709551615;
+
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
 
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
@@ -565,6 +634,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     {
 	SmiUnsigned32 min, max;
 
+	fprintSegment(f, indent, "<xsd:restriction", 0);
+	fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
+	       getStringBasetype(smiType->basetype));
+	
 	min = 0;
 	max = 4294967295;
 
@@ -592,6 +665,22 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    free( buf );
 	}
 	
+	fprintSegment(f, indent, "</xsd:restriction>\n", 0);
+	break;
+    }
+
+    case SMI_BASETYPE_ENUM:
+    {
+	SmiNamedNumber *nn;
+	
+	fprintSegment(f, indent, "<xsd:restriction base=\"xsd:NMTOKEN\"", 0);
+
+	/* iterate named numbers */
+	for( nn = smiGetFirstNamedNumber( smiType );
+	     nn;
+	     nn = smiGetNextNamedNumber( nn ) ) {
+	    fprintNamedNumber( f, indent + INDENT, nn );
+	}
 	fprintSegment(f, indent, "</xsd:restriction>\n", 0);
 	break;
     }
