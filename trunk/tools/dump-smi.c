@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.46 2000/02/24 16:56:26 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.47 2000/02/28 12:24:24 strauss Exp $
  */
 
 #include <config.h>
@@ -229,18 +229,18 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 {
     int         i;
     char	**convertType;
-    char        *typemodule, *typename;
+    char        *typemodule, *type_name;
 
-    typename = smiType ? smiType->name : NULL;
+    type_name = smiType ? smiType->name : NULL;
     typemodule = smiType ? smiGetTypeModule(smiType)->name : NULL;
 
     convertType = smiv1 ? convertTypev1 : convertTypev2;
 
-    if (typename &&
+    if (type_name &&
 	(basetype != SMI_BASETYPE_ENUM) &&
 	(basetype != SMI_BASETYPE_BITS)) {
 	for(i=0; convertType[i+1]; i += 4) {
-	    if ((!strcmp(typename, convertType[i+1])) &&
+	    if ((!strcmp(type_name, convertType[i+1])) &&
 		((!typemodule) || (!convertType[i]) ||
 		 (!strcmp(typemodule, convertType[i])))) {
 		return convertType[i+3];
@@ -248,7 +248,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 
-    if ((!typemodule) || (!strlen(typemodule)) || (!typename)) {
+    if ((!typemodule) || (!strlen(typemodule)) || (!type_name)) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "INTEGER";
 	}
@@ -263,7 +263,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	
     /* TODO: fully qualified if unambigous */
 
-    return typename;
+    return type_name;
 }
 
 
@@ -1096,7 +1096,7 @@ static void printObjects(SmiModule *smiModule)
 		if (smiType) {
 		    print("%s\n", smiType->name);
 		} else {
-		    /* guess typename is uppercase row name */
+		    /* guess type name is uppercase row name */
 		    char *s = getUppercaseString(rowNode->name);
 		    print("%s\n", s);
 		    xfree(s);
@@ -1107,7 +1107,7 @@ static void printObjects(SmiModule *smiModule)
 		    print("%s\n", smiType->name);
 		} else {
 		    char *s = getUppercaseString(smiNode->name);
-		    /* guess typename is uppercase row name */
+		    /* guess type name is uppercase row name */
 		    print("%s\n", s);
 		    xfree(s);
 		}
@@ -1214,7 +1214,7 @@ static void printObjects(SmiModule *smiModule)
 	    if (smiType) {
 		print("%s ::=\n", smiType->name);
 	    } else {
-		/* guess typename is uppercase row name */
+		/* guess type name is uppercase row name */
 		char *s = getUppercaseString(smiNode->name);
 		print("%s ::=\n", s);
 		xfree(s);

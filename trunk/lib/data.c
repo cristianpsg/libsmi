@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.72 2000/02/25 16:48:17 strauss Exp $
+ * @(#) $Id: data.c,v 1.74 2000/02/28 16:36:10 strauss Exp $
  */
 
 #include <config.h>
@@ -483,7 +483,7 @@ addRevision(date, description, parserPtr)
 
 Import *
 addImport(name, parserPtr)
-    const char    *name;
+    char          *name;
     Parser	  *parserPtr;
 {
     Import        *importPtr;
@@ -494,7 +494,7 @@ addImport(name, parserPtr)
     modulePtr = parserPtr->modulePtr;
 
     importPtr->modulePtr		 = modulePtr;
-    importPtr->export.name       	 = util_strdup(name);
+    importPtr->export.name       	 = name;
     importPtr->export.module		 = NULL; /* not yet known */
     importPtr->kind			 = KIND_UNKNOWN; /* not yet known */
     importPtr->use			 = 0;
@@ -534,6 +534,9 @@ setImportModulename(importPtr, modulename)
     Import    *importPtr;
     char      *modulename;
 {
+    if (importPtr->export.module) {
+	util_free(importPtr->export.module);
+    }
     importPtr->export.module = modulename;
 }
 
@@ -719,8 +722,8 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr = (Object *)util_malloc(sizeof(Object));
 
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
-    
-    objectPtr->export.name		= util_strdup(objectname);
+
+    objectPtr->export.name		= objectname;
     objectPtr->export.decl		= SMI_DECL_UNKNOWN;
     objectPtr->export.access		= SMI_ACCESS_UNKNOWN;
     objectPtr->export.status		= SMI_STATUS_UNKNOWN;
@@ -1187,7 +1190,6 @@ setObjectName(objectPtr, name)
 	util_free(objectPtr->export.name);
     }
     objectPtr->export.name = name;
-
     /*
      * If this name is found on the pending list (at depth==1 in
      * pendingRootNode), we have to move the corresponding subtree to
@@ -2173,8 +2175,8 @@ findObjectByModuleAndName(modulePtr, objectname)
  */
 
 Type *
-addType(typename, basetype, flags, parserPtr)
-    const char     *typename;
+addType(type_name, basetype, flags, parserPtr)
+    char           *type_name;
     SmiBasetype	   basetype;
     TypeFlags      flags;
     Parser	   *parserPtr;
@@ -2186,11 +2188,7 @@ addType(typename, basetype, flags, parserPtr)
     
     typePtr = util_malloc(sizeof(Type));
 
-    if (typename) {
-	typePtr->export.name	        = util_strdup(typename);
-    } else {
-	typePtr->export.name		= NULL;
-    }
+    typePtr->export.name	        = type_name;
     typePtr->export.basetype		= basetype;
     typePtr->export.decl		= SMI_DECL_UNKNOWN;
     typePtr->export.format		= NULL;
@@ -2311,14 +2309,12 @@ setTypeName(typePtr, name)
     if (typePtr->export.name) {
 	util_free(typePtr->export.name);
     }
-    
-    if (!name) {
-	typePtr->export.name = NULL;
+    typePtr->export.name = name;
+
+    if (! typePtr->export.name) {
 	return typePtr;
     }
 	
-    typePtr->export.name = util_strdup(name);
-
     /*
      * If a type with this name already exists, it must be a forward
      * reference and both types have to be merged.
@@ -2722,8 +2718,8 @@ deleteTypeFlags(typePtr, flags)
  */
 
 Type *
-findTypeByName(typename)
-    const char *typename;
+findTypeByName(type_name)
+    const char *type_name;
 {
     Module *modulePtr;
     Type   *typePtr;
@@ -2733,7 +2729,7 @@ findTypeByName(typename)
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
 	    if ((typePtr->export.name) &&
-		!strcmp(typePtr->export.name, typename)) {
+		!strcmp(typePtr->export.name, type_name)) {
 		return (typePtr);
 	    }
 	}
@@ -2762,8 +2758,8 @@ findTypeByName(typename)
  */
 
 Type *
-findNextTypeByName(typename, prevTypePtr)
-    const char *typename;
+findNextTypeByName(type_name, prevTypePtr)
+    const char *type_name;
     Type       *prevTypePtr;
 {
     Module *modulePtr;
@@ -2774,7 +2770,7 @@ findNextTypeByName(typename, prevTypePtr)
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
 	    if ((typePtr->export.name) &&
-		!strcmp(typePtr->export.name, typename)) {
+		!strcmp(typePtr->export.name, type_name)) {
 		return (typePtr);
 	    }
 	}
@@ -2803,9 +2799,9 @@ findNextTypeByName(typename, prevTypePtr)
  */
 
 Type *
-findTypeByModulenameAndName(modulename, typename)
+findTypeByModulenameAndName(modulename, type_name)
     const char *modulename;
-    const char *typename;
+    const char *type_name;
 {
     Type       *typePtr;
     Module     *modulePtr;
@@ -2815,7 +2811,7 @@ findTypeByModulenameAndName(modulename, typename)
     if (modulePtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
-	    if ((typePtr->export.name) && !strcmp(typePtr->export.name, typename)) {
+	    if ((typePtr->export.name) && !strcmp(typePtr->export.name, type_name)) {
 		return (typePtr);
 	    }
 	}
@@ -2844,9 +2840,9 @@ findTypeByModulenameAndName(modulename, typename)
  */
 
 Type *
-findTypeByModuleAndName(modulePtr, typename)
+findTypeByModuleAndName(modulePtr, type_name)
     Module      *modulePtr;
-    const char  *typename;
+    const char  *type_name;
 {
     Type        *typePtr;
 
@@ -2854,7 +2850,7 @@ findTypeByModuleAndName(modulePtr, typename)
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
 	    if ((typePtr->export.name) &&
-		!strcmp(typePtr->export.name, typename)) {
+		!strcmp(typePtr->export.name, type_name)) {
 		return (typePtr);
 	    }
 	}
@@ -3209,17 +3205,17 @@ initData()
 
     addView("");
 
-    objectPtr = addObject("ccitt", rootNodePtr, 0, 0, &parser);
+    objectPtr = addObject(util_strdup("ccitt"), rootNodePtr, 0, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	util_malloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 0;
-    objectPtr = addObject("iso", rootNodePtr, 1, 0, &parser);
+    objectPtr = addObject(util_strdup("iso"), rootNodePtr, 1, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	util_malloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 1;
-    objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, &parser);
+    objectPtr = addObject(util_strdup("joint-iso-ccitt"), rootNodePtr, 2, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	util_malloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
@@ -3227,27 +3223,38 @@ initData()
     
     
     typeOctetStringPtr =
-	addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, &parser);
+	addType(util_strdup("OctetString"),
+		SMI_BASETYPE_OCTETSTRING, 0, &parser);
     typeObjectIdentifierPtr =
-	addType("ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
+	addType(util_strdup("ObjectIdentifier"),
+		SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
     typeInteger32Ptr =
-	addType("Integer32", SMI_BASETYPE_INTEGER32, 0, &parser);
+	addType(util_strdup("Integer32"),
+		SMI_BASETYPE_INTEGER32, 0, &parser);
     typeUnsigned32Ptr =
-	addType("Unsigned32", SMI_BASETYPE_UNSIGNED32, 0, &parser);
+	addType(util_strdup("Unsigned32"),
+		SMI_BASETYPE_UNSIGNED32, 0, &parser);
     typeInteger64Ptr =
-	addType("Integer64", SMI_BASETYPE_INTEGER64, 0, &parser);
+	addType(util_strdup("Integer64"),
+		SMI_BASETYPE_INTEGER64, 0, &parser);
     typeUnsigned64Ptr =
-	addType("Unsigned64", SMI_BASETYPE_UNSIGNED64, 0, &parser);
+	addType(util_strdup("Unsigned64"),
+		SMI_BASETYPE_UNSIGNED64, 0, &parser);
     typeFloat32Ptr =
-	addType("Float32", SMI_BASETYPE_FLOAT32, 0, &parser);
+	addType(util_strdup("Float32"),
+		SMI_BASETYPE_FLOAT32, 0, &parser);
     typeFloat64Ptr =
-	addType("Float64", SMI_BASETYPE_FLOAT64, 0, &parser);
+	addType(util_strdup("Float64"),
+		SMI_BASETYPE_FLOAT64, 0, &parser);
     typeFloat128Ptr =
-	addType("Float128", SMI_BASETYPE_FLOAT128, 0, &parser);
+	addType(util_strdup("Float128"),
+		SMI_BASETYPE_FLOAT128, 0, &parser);
     typeEnumPtr =
-	addType("Enumeration", SMI_BASETYPE_ENUM, 0, &parser);
+	addType(util_strdup("Enumeration"),
+		SMI_BASETYPE_ENUM, 0, &parser);
     typeBitsPtr =
-	addType("Bits", SMI_BASETYPE_BITS, 0, &parser);
+	addType(util_strdup("Bits"),
+		SMI_BASETYPE_BITS, 0, &parser);
 
     return (0);
 }
@@ -3278,6 +3285,7 @@ freeNodeTree(Node *rootPtr)
     for (nodePtr = rootPtr->firstChildPtr; nodePtr; nodePtr = nextPtr) {
 	nextPtr = nodePtr->nextPtr;
 	freeNodeTree(nodePtr);
+	util_free(nodePtr->oid);
 	util_free(nodePtr);
     }
 }
@@ -3403,6 +3411,8 @@ freeData()
 	util_free(modulePtr->export.path);
 	util_free(modulePtr->export.organization);
 	util_free(modulePtr->export.contactinfo);
+	util_free(modulePtr->export.description);
+	util_free(modulePtr->export.reference);
 	util_free(modulePtr);
     }
 
@@ -3434,7 +3444,7 @@ freeData()
 
 Module *
 loadModule(modulename)
-    char	    *modulename;
+    const char	    *modulename;
 {
     Parser	    parser;
     char	    s[200];
@@ -3535,6 +3545,7 @@ loadModule(modulename)
 	smiLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
+	util_free(parser.path);
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMI_NOT_SUPPORTED, path);
@@ -3563,6 +3574,7 @@ loadModule(modulename)
 	smingLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
+	util_free(parser.path);
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMING_NOT_SUPPORTED, path);

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.24 2000/02/24 10:35:43 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.25 2000/02/28 12:24:24 strauss Exp $
  */
 
 #include <config.h>
@@ -226,27 +226,27 @@ static void printTypedefs(SmiModule *smiModule)
     int		   i;
     SmiType	   *smiType, *smiParentType;
     SmiNamedNumber *nn;
-    char	   *typename;
+    char	   *type_name;
     
     for (i = 0, smiType = smiGetFirstType(smiModule);
 	 smiType; smiType = smiGetNextType(smiType)) {
 	
 	smiParentType = smiGetParentType(smiType);
-	typename = smiParentType->name;
+	type_name = smiParentType->name;
 	
 	if (smiParentType->decl == SMI_DECL_IMPLICIT_TYPE) {
 	    smiParentType = smiGetParentType(smiParentType);
-	    typename = smiParentType->name;
+	    type_name = smiParentType->name;
 	}
 	if (smiParentType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
-	    typename = "ObjectID";
+	    type_name = "ObjectID";
 	}
 	if (smiParentType->basetype == SMI_BASETYPE_ENUM) {
-	    typename = "INTEGER";
+	    type_name = "INTEGER";
 	}
 
 	printf("%%%-19s %-16s %-15s \"%s\"\n", "tc", smiType->name,
-	       typename,
+	       type_name,
 	       smiType->format ? smiType->format : "");
 	
 	for (i = 0, nn = smiGetFirstNamedNumber(smiType);
@@ -263,7 +263,7 @@ static void printTypedefs(SmiModule *smiModule)
 static void printObjects(SmiModule *smiModule)
 {
     int		   i, j, ignore, cnt = 0, aggregate, create;
-    char	   *typename;
+    char	   *type_name;
     SmiNode	   *smiNode, *relatedNode;
     SmiType	   *smiType;
     SmiNamedNumber *smiNamedNumber;
@@ -294,28 +294,28 @@ static void printObjects(SmiModule *smiModule)
 	aggregate = smiNode->nodekind == SMI_NODEKIND_TABLE
 	    || smiNode->nodekind == SMI_NODEKIND_ROW;
 
-	typename = NULL;
+	type_name = NULL;
 	smiType = smiGetNodeType(smiNode);
 	if (!aggregate) {
-	    typename = getBasetypeString(smiType->basetype);
+	    type_name = getBasetypeString(smiType->basetype);
 	    if (smiType && (smiType->decl != SMI_DECL_IMPLICIT_TYPE)) {
-		typename = smiType->name;
-		if (!strcmp(typename, "ObjectIdentifier")) {
-		    typename = "ObjectID";
+		type_name = smiType->name;
+		if (!strcmp(type_name, "ObjectIdentifier")) {
+		    type_name = "ObjectID";
 		}
 	    }
 	
 	    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-		typename = smiGetParentType(smiType)->name;
+		type_name = smiGetParentType(smiType)->name;
 		if (smiType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
-		    typename = "ObjectID";
+		    type_name = "ObjectID";
 		}
 		if (smiType->basetype == SMI_BASETYPE_ENUM) {
-		    typename = "INTEGER";
+		    type_name = "INTEGER";
 		}
 	    }
 	} else {
-	    typename = "Aggregate";
+	    type_name = "Aggregate";
 	}
 
 	if (smiNode->nodekind == SMI_NODEKIND_COLUMN) {
@@ -325,7 +325,7 @@ static void printObjects(SmiModule *smiModule)
 	}
 	
 	printf("%-20s %-16s ", smiNode->name, getOidString(smiNode, 0));
-	printf("%-15s %-15s %s\n", typename,
+	printf("%-15s %-15s %s\n", type_name,
 	       getAccessString(smiNode->access, create),
 	       getStatusString(smiNode->status));
 
@@ -362,7 +362,7 @@ static void printObjects(SmiModule *smiModule)
 	    }
 
 	    for (ignore = 0, j = 0; ignoreTypeRanges[j]; j++) {
-		if (strcmp(typename, ignoreTypeRanges[j]) == 0) {
+		if (strcmp(type_name, ignoreTypeRanges[j]) == 0) {
 		    ignore++;
 		    break;
 		}

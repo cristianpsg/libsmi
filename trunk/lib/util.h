@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.15 2000/02/09 15:33:16 strauss Exp $
+ * @(#) $Id: util.h,v 1.16 2000/02/22 17:11:12 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -22,6 +22,14 @@
 #include "smi.h"
 #include "error.h"
 #include "parser-smi.h"
+
+#ifdef __CHECKER__
+#undef HAVE_TIMEGM
+#undef HAVE_STRTOULL
+#undef HAVE_STRTOUQ
+#undef HAVE_STRTOLL
+#undef HAVE_STRTOQ
+#endif
 
 /*
  * Make sure we have strtoull() and strtoll() on this system.

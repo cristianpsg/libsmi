@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.95 2000/02/25 16:48:17 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.98 2000/02/28 16:36:11 strauss Exp $
  */
 
 %{
@@ -204,7 +204,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	 */
 
 	if (objectPtr->flags & FLAG_INCOMPLETE) {
-	    if (strlen(objectPtr->export.name)) {
+	    if (objectPtr->export.name) {
 		printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
 				 objectPtr->line, objectPtr->export.name);
 	    } else {
@@ -233,7 +233,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		     nodePtr->parentPtr != pendingNodePtr &&
 			 nodePtr->parentPtr != rootNodePtr;
 		     nodePtr = nodePtr->parentPtr, i++);
-		objectPtr->nodePtr->oid = calloc(i, sizeof(unsigned int));
+		objectPtr->nodePtr->oid = util_malloc(i * sizeof(SmiSubid));
 		objectPtr->nodePtr->oidlen = i;
 		for (nodePtr = objectPtr->nodePtr; i > 0; i--) {
 		    objectPtr->nodePtr->oid[i-1] = nodePtr->subid;
@@ -289,7 +289,8 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 
 	if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2
 	    && typePtr->export.decl == SMI_DECL_TYPEASSIGNMENT
-	    && typePtr->export.basetype != SMI_BASETYPE_UNKNOWN) {
+	    && typePtr->export.basetype != SMI_BASETYPE_UNKNOWN
+	    && strcmp(thisModulePtr->export.name, "SNMPv2-SMI")) {
 	    printErrorAtLine(parserPtr, ERR_SMIV2_TYPE_ASSIGNEMENT,
 			     typePtr->line, typePtr->export.name);
 	}
@@ -964,21 +965,19 @@ importIdentifier:	LOWERCASE_IDENTIFIER
 			{
 			    addImport($1, thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
-			    $$ = $1;
+			    $$ = 0;
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
 			    addImport($1, thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
-			    $$ = $1;
+			    $$ = 0;
 			}
 	|		importedKeyword
-			/* TODO: what exactly is allowed here?
-			 * What should be checked? */
 			{
-			    addImport($1, thisParserPtr);
+			    addImport(util_strdup($1), thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
-			    $$ = $1;
+			    $$ = 0;
 			}
 	;
 
@@ -990,54 +989,26 @@ importIdentifier:	LOWERCASE_IDENTIFIER
  * TODO: Think! Shall we really leave these words as keywords or should
  * we prefer the symbol table appropriately??
  */
-importedKeyword:	ACCESS
-        |		AGENT_CAPABILITIES
-	|		AUGMENTS
+importedKeyword:	AGENT_CAPABILITIES
 	|		BITS
-	|		CONTACT_INFO
-	|		CREATION_REQUIRES
 	|		COUNTER32
 	|		COUNTER64
-	|		DEFVAL
-	|		DESCRIPTION
-	|		DISPLAY_HINT
-	|		GROUP
 	|		GAUGE32
-	|		IMPLIED
-	|		INDEX
 	|		INTEGER32
 	|		IPADDRESS
-	|		LAST_UPDATED
 	|		MANDATORY_GROUPS
-	|		MAX_ACCESS
-	|		MIN_ACCESS
-	|		MODULE
 	|		MODULE_COMPLIANCE
 	|		MODULE_IDENTITY
-	|		NOTIFICATIONS
 	|		NOTIFICATION_GROUP
 	|		NOTIFICATION_TYPE
 	|		OBJECT_GROUP
 	|		OBJECT_IDENTITY
 	|		OBJECT_TYPE
-	|		OBJECTS
-	|		ORGANIZATION
 	|		OPAQUE
-	|		PRODUCT_RELEASE
-	|		REFERENCE
-	|		REVISION
-	|		STATUS
-	|		SUPPORTS
-	|		SYNTAX
 	|		TEXTUAL_CONVENTION
 	|		TIMETICKS
 	|		TRAP_TYPE
-	|		UNITS
 	|		UNSIGNED32
-	|		VARIATION
-	|		WRITE_SYNTAX
-			/* TODO: which keywords should really be
-			 * allowed in import clauses? */
 	;
 
 moduleName:		UPPERCASE_IDENTIFIER
@@ -1302,15 +1273,15 @@ typeDeclaration:	typeName
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
-				} else if (!strcmp($1, "NetworkAddress")) {
-				    setTypeName($4, "NetworkAddress");
+				} else if (!strcmp($1, util_strdup("NetworkAddress"))) {
+				    setTypeName($4, util_strdup("NetworkAddress"));
 				    $4->export.basetype = SMI_BASETYPE_OCTETSTRING;
 				    setTypeParent($4, findTypeByModuleAndName(
 					                   thisModulePtr,
 						           "IpAddress"));
 				} else if (!strcmp($1, "IpAddress")) {
 				    typePtr = findTypeByModuleAndName(
-					thisModulePtr, "NetworkAddress");
+					thisModulePtr, util_strdup("NetworkAddress"));
 				    if (typePtr) 
 					setTypeParent(typePtr, $4);
 				}
@@ -1324,6 +1295,7 @@ typeName:		UPPERCASE_IDENTIFIER
 			}
 	|		typeSMI
 			{
+			    $$ = util_strdup($1);
 			    /*
 			     * well known types (keywords in this grammar)
 			     * are known to be defined in these modules.
@@ -1343,14 +1315,14 @@ typeName:		UPPERCASE_IDENTIFIER
 			}
 	;
 
-typeSMI:		INTEGER32   { $$ = util_strdup($1); }
-	|		IPADDRESS   { $$ = util_strdup($1); }
-	|		COUNTER32   { $$ = util_strdup($1); }
-	|		GAUGE32     { $$ = util_strdup($1); }
-	|		UNSIGNED32  { $$ = util_strdup($1); }
-	|		TIMETICKS   { $$ = util_strdup($1); }
-	|		OPAQUE	    { $$ = util_strdup($1); }
-	|		COUNTER64   { $$ = util_strdup($1); }
+typeSMI:		INTEGER32
+	|		IPADDRESS
+	|		COUNTER32
+	|		GAUGE32
+	|		UNSIGNED32
+	|		TIMETICKS
+	|		OPAQUE
+	|		COUNTER64
 	;
 
 typeDeclarationRHS:	Syntax
@@ -1655,7 +1627,7 @@ NamedBit:		LOWERCASE_IDENTIFIER
 			'(' NUMBER ')'
 			{
 			    $$ = util_malloc(sizeof(NamedNumber));
-			    $$->export.name = $1; /* JS: needs strdup? */
+			    $$->export.name = $1;
 			    $$->export.value.basetype =
 				                       SMI_BASETYPE_UNSIGNED32;
 			    $$->export.value.value.unsigned32 = $4;
@@ -1895,13 +1867,13 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 				 */
 				objectPtr = nodePtr->lastObjectPtr;
 			    } else {
-				objectPtr = addObject("",
+				objectPtr = addObject(NULL,
 						      objectPtr->nodePtr,
 						      0,
 						      FLAG_INCOMPLETE,
 						      thisParserPtr);
 			    }
-			    objectPtr = addObject("",
+			    objectPtr = addObject(NULL,
 						  objectPtr->nodePtr,
 						  $11,
 						  FLAG_INCOMPLETE,
@@ -3163,7 +3135,7 @@ enumItem:		LOWERCASE_IDENTIFIER
 			{
 			    $$ = util_malloc(sizeof(NamedNumber));
 			    /* TODO: success? */
-			    $$->export.name = $1; /* JS: needs strdup? */
+			    $$->export.name = $1;
 			    $$->export.value = *$4;
 			    util_free($4);
 			}
@@ -3427,7 +3399,7 @@ BitNames:		LOWERCASE_IDENTIFIER
 			{
 			    $$ = util_malloc(sizeof(List));
 			    /* TODO: success? */
-			    $$->ptr = $1; /* JS: needs strdup? */
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
 	|		BitNames ',' LOWERCASE_IDENTIFIER
@@ -3436,7 +3408,7 @@ BitNames:		LOWERCASE_IDENTIFIER
 			    
 			    p = util_malloc(sizeof(List));
 			    /* TODO: success? */
-			    p->ptr = $3; /* JS: needs strdup? */
+			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -3637,8 +3609,9 @@ subidentifier:
 						findObjectByModuleAndName(
 						    complianceModulePtr, $1);
 					    if (objectPtr) {
-						importPtr = addImport($1,
-								thisParserPtr);
+						importPtr = addImport(
+						    util_strdup($1),
+						    thisParserPtr);
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
 						importPtr->use++;
@@ -3656,8 +3629,9 @@ subidentifier:
 						findObjectByModuleAndName(
 						    capabilitiesModulePtr, $1);
 					    if (objectPtr) {
-						importPtr = addImport($1,
-								thisParserPtr);
+						importPtr = addImport(
+						    util_strdup($1),
+						    thisParserPtr);
 						setImportModulename(importPtr,
 					                capabilitiesModulePtr->
 								  export.name);
@@ -3730,8 +3704,9 @@ subidentifier:
 						findObjectByModuleAndName(
 						    complianceModulePtr, $1);
 					    if (objectPtr) {
-						importPtr = addImport($1,
-								thisParserPtr);
+						importPtr = addImport(
+						    util_strdup($1),
+						    thisParserPtr);
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
 						importPtr->use++;
@@ -3749,8 +3724,9 @@ subidentifier:
 						findObjectByModuleAndName(
 						    capabilitiesModulePtr, $1);
 					    if (objectPtr) {
-						importPtr = addImport($1,
-								thisParserPtr);
+						importPtr = addImport(
+						    util_strdup($1),
+						    thisParserPtr);
 						setImportModulename(importPtr,
 						        capabilitiesModulePtr->
 								  export.name);
@@ -3805,7 +3781,7 @@ subidentifier:
 				 */
 				$$ = nodePtr->lastObjectPtr;
 			    } else {
-				objectPtr = addObject("",
+				objectPtr = addObject(NULL,
 						      parentNodePtr,
 						      $1,
 						      FLAG_INCOMPLETE,

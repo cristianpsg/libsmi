@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.9 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.10 2000/02/22 17:11:14 strauss Exp $
  */
 
 #include <config.h>
@@ -174,7 +174,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
     SmiType     *type;
     int         i = 0, cnt, prefixlen, newtypefieldlen = 8;
     char        c = 0;
-    char	*typename;
+    char	*type_name;
 
     if (smiNode) {
 	prefixlen = strlen(prefix);
@@ -183,15 +183,15 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	case SMI_NODEKIND_COLUMN:
 	    c = prefix[prefixlen-1];
 	    prefix[prefixlen-1] = getStatusChar(smiNode->status);
-	    typename = getTypeName(smiNode);
+	    type_name = getTypeName(smiNode);
 	    printf("%s-- %s %-*s %s(%u)\n",
 		   prefix,
 		   getFlags(smiNode),
 		   typefieldlen,
-		   typename,
+		   type_name,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
-	    xfree(typename);
+	    xfree(type_name);
 	    if (c) {
 		prefix[prefixlen-1] = c;
 	    }
@@ -258,12 +258,12 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	    if (! pruneSubTree(childNode)) {
 		type = smiGetNodeType(childNode);
 		if (type) {
-		    typename = getTypeName(childNode);
-		    if (typename) {
-			if (strlen(typename) > newtypefieldlen) {
-			    newtypefieldlen = strlen(typename);
+		    type_name = getTypeName(childNode);
+		    if (type_name) {
+			if (strlen(type_name) > newtypefieldlen) {
+			    newtypefieldlen = strlen(type_name);
 			}
-			xfree(typename);
+			xfree(type_name);
 		    }
 		}
 		cnt++;
