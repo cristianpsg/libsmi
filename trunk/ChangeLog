@@ -1,3 +1,9 @@
+2004-06-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/{MPLS-TE-STD-MIB,MPLS-LSR-STD-MIB,MPLS-FTN-STD-MIB,
+	MPLS-LDP-STD-MIB,MPLS-LDP-ATM-STD-MIB,MPLS-LDP-FRAME-RELAY-STD-MIB,
+	MPLS-LDP-GENERIC-STD-MIB}: added (RFCs 3812,3813,3814,3815).
+
 2004-06-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/{Printer-MIB,Finisher-MIB,MPLS-TC-STD-MIB},
