@@ -1,0 +1,60 @@
+INET-ADDRESS-TC-PIB PIB-DEFINITIONS ::= BEGIN
+
+IMPORTS
+    Unsigned32, MODULE-IDENTITY, TEXTUAL-CONVENTION
+        FROM COPS-PR-SPPI
+    ibrpib
+        FROM TUBS-SMI;
+
+inetAddressTcPib MODULE-IDENTITY
+    SUBJECT-CATEGORIES { all }
+    LAST-UPDATED "200205161500Z"
+    ORGANIZATION "TU Braunschweig"
+    CONTACT-INFO
+	"Moritz Bunkus
+	 TU Braunschweig
+         Muehlenpfordtstrasse 23, 1. OG
+         38106 Braunschweig
+	 Germany
+
+	 Tel: +49 531 391 3250
+	 Fax: +49 531 391 5936
+	 E-mail: bunkus@ibr.cs.tu-bs.de"
+    DESCRIPTION
+        "Dummy module that provides InetAddressPrefixLength and InetPortNumber"
+    ::= { ibrpib 1 }
+
+InetPortNumber ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION
+           "Represents a 16 bit port number of an Internet
+            transport layer protocol. Port numbers are assigned by
+            IANA. A list of all assignments is available from
+            <http://www.iana.org/>."
+    SYNTAX Unsigned32 (0..65535)
+
+InetAddressPrefixLength ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION
+           "Denotes the length of a generic Internet network address
+            prefix. A value of n corresponds to an IP address mask
+            which has n contiguous 1-bits from the most significant
+            bit (MSB) and all other bits set to 0.
+            
+            InetAddressPrefixLength values that are larger than
+            the maximum length of an IP address for a specific
+            InetAddressType are treated as the maximum significant
+            value applicable for the InetAddressType. The maximum
+            significant value is 32 for the InetAddressType
+            'ipv4(1)' and 128 for the InetAddressType 'ipv6(2)'.
+            The maximum significant value for the InetAddressType
+            'dns(16)' is 0.
+            
+            The value zero is object-specific and must be defined as
+            part of the description of any object which uses this
+            syntax. Examples of the usage of zero might include
+            situations where the Internet network address prefix
+            is unknown or does not apply."
+    SYNTAX Unsigned32
+
+END
