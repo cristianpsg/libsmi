@@ -8,16 +8,21 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.58 2000/02/09 19:56:47 strauss Exp $
+# @(#) $Id: configure.in,v 1.59 2000/02/11 11:08:24 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
-AM_INIT_AUTOMAKE(libsmi,0.1.9-pre12)
+AM_INIT_AUTOMAKE(libsmi,0.1.9-cvs)
+AM_CONFIG_HEADER(config.h)
+
 LIBTOOL_VERSIONING="2:1:0"
 # current:revision:age
 
 AC_DEFINE(BACKEND_SMI)
 AC_DEFINE(BACKEND_SMING)
+
+AC_DEFINE(MAX_LEX_DEPTH, 30)
+AC_DEFINE(DEFAULT_ERRORLEVEL, 3)
 
 AC_ARG_WITH(cflags,
 [  --with-cflags=FLAGS     use FLAGS for CFLAGS],
@@ -101,4 +106,4 @@ AC_SUBST(CFLAGS)
 AC_SUBST(mibdir)
 AC_SUBST(smipath)
 
-AC_OUTPUT(Makefile lib/Makefile tools/Makefile mibs/Makefile mibs/iana/Makefile mibs/ietf/Makefile mibs/irtf/Makefile mibs/tubs/Makefile mibs/site/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/smi.h lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smistrip tools/smiquery.1 tools/smilint.1 tools/smidump.1 tools/smistrip.1 test/parser.test test/smidump-corba-idl.test test/smidump-corba-oid.test test/smidump-imports.test test/smidump-mosy.test test/smidump-orig-smiv2.test test/smidump-sming.test test/smidump-smiv1.test test/smidump-smiv2-smiv2.test test/smidump-smiv2.test test/smidump-tree.test test/smidump-types.test test/smilint-smiv2.test, chmod a+x test/parser.test test/smidump-corba-idl.test test/smidump-corba-oid.test test/smidump-imports.test test/smidump-mosy.test test/smidump-orig-smiv2.test test/smidump-sming.test test/smidump-smiv1.test test/smidump-smiv2-smiv2.test test/smidump-smiv2.test test/smidump-tree.test test/smidump-types.test test/smilint-smiv2.test)
+AC_OUTPUT(config.h Makefile lib/Makefile tools/Makefile mibs/Makefile mibs/iana/Makefile mibs/ietf/Makefile mibs/irtf/Makefile mibs/tubs/Makefile mibs/site/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/smi.h lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smistrip tools/smiquery.1 tools/smilint.1 tools/smidump.1 tools/smistrip.1 test/parser.test test/smidump-corba-idl.test test/smidump-corba-oid.test test/smidump-imports.test test/smidump-mosy.test test/smidump-orig-smiv2.test test/smidump-sming.test test/smidump-smiv1.test test/smidump-smiv2-smiv2.test test/smidump-smiv2.test test/smidump-tree.test test/smidump-types.test test/smilint-smiv2.test, chmod a+x test/parser.test test/smidump-corba-idl.test test/smidump-corba-oid.test test/smidump-imports.test test/smidump-mosy.test test/smidump-orig-smiv2.test test/smidump-sming.test test/smidump-smiv1.test test/smidump-smiv2-smiv2.test test/smidump-smiv2.test test/smidump-tree.test test/smidump-types.test test/smilint-smiv2.test)

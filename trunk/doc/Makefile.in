@@ -97,6 +97,7 @@ smipath = @smipath@
 
 EXTRA_DIST = SMI.ps draft-irtf-nmrg-sming-01.txt
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
 

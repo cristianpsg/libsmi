@@ -101,6 +101,7 @@ MIBS = $(shell ls -1d [a-z]*/* | egrep -v 'CVS|Makefile')
 mib_DATA = $(MIBS)
 SUBDIRS = $(MIBDIRS)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
 DATA =  $(mib_DATA)
 

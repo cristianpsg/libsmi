@@ -8,8 +8,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smisubtree.c,v 1.8 1999/12/17 10:44:24 strauss Exp $
+ * @(#) $Id: smisubtree.c,v 1.9 2000/02/10 22:35:04 strauss Exp $
  */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <string.h>

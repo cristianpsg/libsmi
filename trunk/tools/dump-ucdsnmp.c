@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.10 2000/02/10 10:09:45 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.11 2000/02/11 09:50:59 strauss Exp $
  */
 
 /*
@@ -20,6 +20,8 @@
  *	  - generate stub codes for the various functions
  *	  - generate type and range checking code
  */
+
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>

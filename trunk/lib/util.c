@@ -8,8 +8,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.17 2000/02/09 19:56:49 strauss Exp $
+ * @(#) $Id: util.c,v 1.18 2000/02/09 21:04:29 strauss Exp $
  */
+
+#include <config.h>
 
 #include <sys/types.h>
 #include <unistd.h>

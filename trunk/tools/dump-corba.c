@@ -12,8 +12,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.14 2000/02/10 20:36:43 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.15 2000/02/11 09:50:58 strauss Exp $
  */
+
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>

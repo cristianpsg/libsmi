@@ -1,17 +1,21 @@
 .\"
-.\" $Id: smilint.1.in,v 1.3 1999/06/22 11:18:18 strauss Exp $
+.\" $Id: smilint.1.in,v 1.4 1999/12/14 12:00:21 strauss Exp $
 .\"
-.TH smilint 1  "June 22, 1999" "IBR" "SMI Tools"
+.TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
 smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
 .B smilint
 [
-.B "-Vhrs"
+.B "-Vhsr"
+] [
+.BI "-c " configfile
+] [
+.BI "-p " module
 ] [
 .BI "-l " level
 ] [
-.BI "-p " module
+.BI "-i " error-pattern
 ]
 .I "module"
 .SH DESCRIPTION
@@ -21,8 +25,8 @@ MIB modules are supported.
 .PP
 The rules that \fBsmilint\fP is based on are taken from RFC 1155, RFC
 1212 and RFC 1215 for SMIv1, RFCs 2578-2580 for SMIv2 and the
-specifications of SMIng that are part of a master's thesis at the
-Technical University of Braunschweig, Germany.
+specification of SMIng that is work in progress within the Network Management
+Research Group of the IRTF.
 .SH OPTIONS
 .TP
 .B "-V"
@@ -34,9 +38,21 @@ Show a help text and exit.
 .B "-s"
 Report some per module statistics to stderr.
 .TP
+.B "-r"
+Report errors and warnings also for recursively imported modules.
+.TP
+.BI "-c " configfile
+Read \fIconfigfile\fP instead of any other (global and user)
+configuration file.
+.TP
+.BI "-p " module
+Preload the module \fImodule\fP before reading the main
+module(s). This may be helpful if an incomplete main module misses to
+import some definitions.
+.TP
 .BI "-l " level
-Report errors and warnings up to the given \fIlevel\fP to stderr.
-A higher level shows more warnings. The actual levels are:
+Report errors and warnings up to the given severity \fIlevel\fP,
+i.e. a higher level shows more warnings. The actual severities are:
 .sp
 .nf
  0   internal error, no recovery possible,
@@ -51,9 +67,9 @@ A higher level shows more warnings. The actual levels are:
  6   just a notice.
 .fi
 .sp
-Higher levels are actually not used and lead to the same effects as
+Higher levels are currently not used and lead to the same effects as
 level 5 does. Note that errors up to level 3 are errors violating the
-specification and must be fixed by the responsible author. Level 3 is
+specifications and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP
 .BI "-p " module

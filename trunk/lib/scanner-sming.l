@@ -8,12 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.14 2000/01/03 17:07:40 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.15 2000/02/06 13:57:07 strauss Exp $
  */
 
 %option noyywrap
 
 %{
+
+#include <config.h>
     
 #include <stdio.h>
 #include <errno.h>
@@ -51,8 +53,6 @@ static int	       currentStringFetchLine;
 #define yylval (*lvalp)
 
 
-#define MAX_LEX_DEPTH            20
- 
 static YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
 
 static int lexDepth = 0; 
