@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.6 1999/05/31 11:58:28 strauss Exp $
+@(#) $Id: README,v 1.7 1999/05/31 12:59:50 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -56,7 +56,7 @@ FURTHER READING
 
 Read the man pages for library concepts and usage and for the tools.
 Read the SMIng specification for details on SMIng. You may find further
-information online at http://www.ibr.cs.tu-bs.de/~strauss/sming/.
+information online at http://www.ibr.cs.tu-bs.de/projects/sming/.
 
 
-	Frank Strauss
+	Frank Strauss <strauss@ibr.cs.tu-bs.de>
