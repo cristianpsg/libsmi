@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.48 2003/12/01 09:54:05 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.49 2004/01/12 14:11:46 strauss Exp $ 
  */
 
 /*
@@ -1467,14 +1467,18 @@ checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
     if ((!oldType) && (!newType)) return;
 
     if (!oldType) {
-	printErrorAtLine(newModule, ERR_TYPE_ADDED,
-			 smiGetTypeLine(newType));
+	if (newType->name) {
+	    printErrorAtLine(newModule, ERR_TYPE_ADDED,
+			     smiGetTypeLine(newType));
+	}
 	return;
     }
     
     if (!newType) {
-	printErrorAtLine(oldModule, ERR_TYPE_REMOVED,
-			 smiGetTypeLine(oldType));
+	if (oldType->name) {
+	    printErrorAtLine(oldModule, ERR_TYPE_REMOVED,
+			     smiGetTypeLine(oldType));
+	}
 	return;
     }
     
