@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.24 2002/05/25 12:19:21 strauss Exp $
+ * @(#) $Id: dump-xsd.c,v 1.25 2002/05/28 16:25:24 tklie Exp $
  */
 
 #include <config.h>
@@ -233,7 +233,7 @@ static void fprintStdRestHead( FILE *f, int indent, SmiType *smiType )
 static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 {
     SmiRange *smiRange;
-    char *prefix = getTypePrefix( smiType->name );
+    /*char *prefix = getTypePrefix( smiType->name );*/
     
     /* print ranges etc. */
     switch( smiType->basetype ) {
@@ -621,7 +621,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     int i;
     SmiRange *smiRange;
     int numSubRanges = getNumSubRanges( smiType );
-    char *prefix = getTypePrefix( name );
+    /* char *prefix = getTypePrefix( name ); */
 
     if( numSubRanges > 1 ) {
 	/* print out simple types for all subranges */
@@ -656,12 +656,15 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     }
 
     if( numSubRanges > 1 ) {
-	fprintSegment( f, indent + INDENT, "<xsd:union membertypes=\" ", 0 );
+	fprintSegment( f, indent + INDENT, "<xsd:union memberTypes=\"", 0 );
 	i = 0;
 	for( smiRange = smiGetFirstRange( smiType );
 	     smiRange;
 	     smiRange = smiGetNextRange( smiRange ) ) {
-	    fprint( f, "%sRange%dType ", smiType->name, i++ ); 
+	    if( i ) {
+		fprint( f, " " );
+	    }
+	    fprint( f, "%sRange%dType", smiType->name, i++ );
 	}
 	fprint( f, "\"/>\n" );
     }
@@ -680,7 +683,6 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 
 static char* getTypePrefix( char *typeName )
 {
-    int i;
     TypePrefix *iterTPr;
 
     if( !typeName ) {
@@ -692,13 +694,7 @@ static char* getTypePrefix( char *typeName )
 	    return iterTPr->prefix;
 	}
     }
-    /*
-    for( i = 0; i < numTypes; i++ ) {
-	if( !strcmp( typePrefixes[ i ].type, typeName ) ) {
-	    return typePrefixes[ i ].prefix;
-	}
-    }
-    */
+
     return NULL;
 }
 
@@ -773,10 +769,12 @@ static void fprintIndexAttr( FILE *f, int indent, SmiNode *smiNode,
     }
         
     if( augments ) {
-	fprintSegment( f, indent + INDENT, "<appinfo>\n", 0 );
-	fprintSegment( f, indent + 2 * INDENT, "<augments>", 0 );
+	fprintSegment( f, indent + INDENT, "<xsd:annotation>\n", 0 );
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:appinfo>\n", 0 );
+	fprintSegment( f, indent + 3 * INDENT, "<augments>", 0 );
 	fprint( f, "%s</augments>\n", augments->name );
-	fprintSegment( f, indent + INDENT, "</appinfo>", 0 );
+	fprintSegment( f, indent + 2 * INDENT, "</xsd:appinfo>", 0 );
+	fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
     }
     else {
 	fprintAnnotationElem( f, indent + INDENT, smiNode );
@@ -873,9 +871,7 @@ static void fprintElement( FILE *f, int indent,
 	    fprintSegment( f, indent, "<xsd:element", 0 );
 	    fprint( f, " name=\"%s\">\n", smiNode->name );
 	    fprintSegment( f, indent + INDENT, "<xsd:complexType>\n", 0 );
-	    if( numScalars > 1 ) {
-		fprintSegment( f, indent + 2 * INDENT, "<xsd:sequence>\n", 0 );
-	    }
+	    fprintSegment( f, indent + 2 * INDENT, "<xsd:sequence>\n", 0 );
 	    for( iterNode = smiGetFirstChildNode( smiNode );
 		 iterNode;
 		 iterNode = smiGetNextChildNode( iterNode ) ) {
@@ -884,10 +880,7 @@ static void fprintElement( FILE *f, int indent,
 				   iterNode, DXSD_MIBPREFIX );
 		}
 	    }
-	    if( numScalars > 1 ) {
-		fprintSegment( f, indent + 2 * INDENT, "</xsd:sequence>\n",
-			       0 );
-	    }
+	    fprintSegment( f, indent + 2 * INDENT, "</xsd:sequence>\n", 0 );
 	    fprintSegment( f, indent + INDENT, "</xsd:complexType>\n", 0 );
 	    fprintSegment( f, indent, "</xsd:element>\n", 0 );
 	}
@@ -1169,8 +1162,6 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
     }
   
     fprint(f, "            xml:lang=\"en\"\n");
-    fprint(f, "            xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-    fprint(f, "            xsi:schemaLocation=\"http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema.xsd\"\n");
     fprint(f, "            elementFormDefault=\"qualified\"\n");
     fprint(f, "            attributeFormDefault=\"unqualified\">\n\n");
 }
