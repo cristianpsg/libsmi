@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.11 2002/12/27 21:04:04 schoenw Exp $
+ * @(#) $Id: dump-metrics.c,v 1.12 2003/08/14 11:29:30 schoenw Exp $
  */
 
 /*
@@ -359,6 +359,17 @@ cmp(const void *va, const void *vb)
 
     if ((*a)->count > (*b)->count) return -1;
     if ((*a)->count < (*b)->count) return 1;
+
+    if ((*a)->module && (*b)->module) {
+	int x = strcmp((*a)->module,  (*b)->module);
+	if (x) return x;
+    }
+
+    if ((*a)->name && (*b)->name) {
+	int x = strcmp((*a)->name,  (*b)->name);
+	if (x) return x;
+    }
+
     return 0;
 }
 
