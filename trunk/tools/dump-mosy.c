@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.36 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.37 2000/12/09 16:34:05 strauss Exp $
  */
 
 #include <config.h>
@@ -507,6 +507,11 @@ static void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
 	printNotifications(f, modv[i]);
 	printGroups(f, modv[i]);
 	printCompliances(f, modv[i]);
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.22 2001/11/08 07:37:31 schoenw Exp $
+ * @(#) $Id: dump-xml.c,v 1.23 2002/01/09 13:57:53 strauss Exp $
  */
 
 /*
@@ -991,6 +991,11 @@ static void dumpXml(int modc, SmiModule **modv, int flags, char *output)
 	fprintCompliances(f, modv[i]);
 	
 	fprint(f, "</smi>\n");
+    }
+    
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

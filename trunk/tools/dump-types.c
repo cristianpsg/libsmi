@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.31 2002/07/22 17:06:19 schoenw Exp $
+ * @(#) $Id: dump-types.c,v 1.32 2002/07/23 09:04:37 schoenw Exp $
  */
 
 /*
@@ -651,6 +651,11 @@ static void dumpTypes(int modc, SmiModule **modv, int flags, char *output)
 	}
 	fprintTypeTree(f, &typeRoot, "");
 	freeTypeTree(&typeRoot);
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

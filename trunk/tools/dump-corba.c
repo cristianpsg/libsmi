@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.43 2002/03/08 14:39:44 schoenw Exp $
+ * @(#) $Id: dump-corba.c,v 1.44 2002/05/17 13:44:38 schoenw Exp $
  */
 
 #include <config.h>
@@ -1531,6 +1531,11 @@ static void dumpIdl(SmiModule *smiModule)
     dictFree(&idlTypeNameList);
     dictFree(&idlVBTypeNameList);
 
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
 }
 
@@ -1634,6 +1639,12 @@ static void dumpOid(SmiModule *smiModule)
     }
 
     dictFree(&idlModuleNameList);
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
 }
 

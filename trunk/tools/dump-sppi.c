@@ -1705,6 +1705,11 @@ static void dumpSppi(int modc, SmiModule **modv, int flags, char *output)
 	doDumpSppi(f, modv[i]);
     }
 
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+    
     if (output) {
 	fclose(f);
     }

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.35 2002/06/21 14:31:25 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.36 2002/10/24 10:41:07 strauss Exp $
  */
 
 
@@ -2935,6 +2935,11 @@ static void dumpCm(int modc, SmiModule **modv, int flags, char *output)
 	    graphExit(graph);
 	    graph = NULL;
 	}
+    }
+
+    if (fflush(stdout) || ferror(stdout)) {
+	perror("smidump: write error");
+	exit(1);
     }
 }
 

@@ -11,7 +11,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-perl.c,v 1.2 2001/11/08 07:37:31 schoenw Exp $
+ * @(#) $Id: dump-perl.c,v 1.3 2001/12/27 20:55:21 strauss Exp $
  */
 
 /*
@@ -1058,6 +1058,11 @@ static void dumpPerl(int modc, SmiModule **modv, int flags, char *output)
 
         print("  } # %s\n", modv[i]->name);
         print("};\n");
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

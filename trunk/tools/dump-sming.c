@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.90 2000/12/13 20:44:06 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.91 2002/01/09 12:02:03 schoenw Exp $
  */
 
 #include <config.h>
@@ -1306,6 +1306,11 @@ static void dumpSming(int modc, SmiModule **modv, int flags, char *output)
 	fprintCompliances(f, smiModule);
 	
 	fprint(f, "}; // end of module %s.\n", smiModule->name);
+    }
+    
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.69 2002/07/23 23:12:30 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.70 2002/07/24 11:54:42 strauss Exp $
  */
 
 #include <config.h>
@@ -477,5 +477,10 @@ int main(int argc, char *argv[])
 
     smiExit();
     
+    if (fflush(stdout) || ferror(stdout)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     return 0;
 }

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.31 2002/07/23 09:04:37 schoenw Exp $
+ * @(#) $Id: dump-tree.c,v 1.32 2002/07/23 23:12:30 strauss Exp $
  */
 
 #include <config.h>
@@ -408,6 +408,11 @@ static void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 	    }
 	    fprintTree(f);
 	}
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

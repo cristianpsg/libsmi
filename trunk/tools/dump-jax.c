@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.38 2002/01/28 08:55:01 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.39 2002/07/22 17:06:19 schoenw Exp $
  */
 
 #include <config.h>
@@ -431,6 +431,11 @@ static void dumpTable(SmiNode *smiNode)
     fprintf(f,
             "}\n\n");
 
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
 }
 
@@ -707,6 +712,11 @@ static void dumpEntry(SmiNode *smiNode)
     fprintf(f,
             "}\n\n");
 
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
 }
 
@@ -856,6 +866,11 @@ static void dumpEntryImpl(SmiNode *smiNode)
     
     fprintf(f,
             "}\n\n");
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
 
     fclose(f);
 }
@@ -1144,6 +1159,11 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     fprintf(f,
             "}\n\n");
 
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
     /* skip all already processed nodes */
     for(;
@@ -1319,8 +1339,12 @@ static void dumpNotifications(SmiNode *smiNode)
     fprintf(f,
             "}\n\n");
 
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
-    
 }
 
 static void dumpScalarImpl(SmiNode *smiNode)
@@ -1438,6 +1462,11 @@ static void dumpScalarImpl(SmiNode *smiNode)
     }
     fprintf(f,
             "}\n\n");
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
 
     fclose(f);
 }
