@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jdmk.c,v 1.3 2000/03/02 09:22:34 strauss Exp $
+ * @(#) $Id: dump-jdmk.c,v 1.4 2000/03/21 10:30:40 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -80,7 +80,7 @@ static char *getUpper(char *s)
 
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
-    SmiNode	 *parentNode, *node;
+    SmiNode	 *parentNode;
     static char	 s[200];
     char	 append[200];
     unsigned int i;
@@ -100,11 +100,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	sprintf(append, ".%u%s", parentNode->oid[parentNode->oidlen-1], s);
 
 	/* retrieve the parent SmiNode */
-	node = parentNode;
-	parentNode = smiGetParentNode(node);
-	if (node != smiNode) {
-	    smiFreeNode(node);
-	}
+	parentNode = smiGetParentNode(parentNode);
 
 	if (!parentNode) {
 	    sprintf(s, "%s", append);

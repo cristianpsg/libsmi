@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.49 2000/03/21 10:30:40 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.50 2000/03/22 09:46:14 strauss Exp $
  */
 
 #include <config.h>
@@ -270,7 +270,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
-    SmiNode	 *parentNode, *node;
+    SmiNode	 *parentNode;
     SmiModule	 *smiModule;
     static char	 s[200];
     char	 append[200];
@@ -292,8 +292,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	sprintf(append, " %u%s", parentNode->oid[parentNode->oidlen-1], s);
 
 	/* retrieve the parent SmiNode */
-	node = parentNode;
-	parentNode = smiGetParentNode(node);
+	parentNode = smiGetParentNode(parentNode);
 
 	if (!parentNode) {
 	    sprintf(s, "%s", append);
