@@ -9,19 +9,19 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.4 1998/11/10 21:42:13 strauss Exp $
+% * @(#) $Id: smi.x,v 1.5 1998/11/16 09:00:10 strauss Exp $
 % */
 %
 
 const SMI_MAX_DESCRIPTOR	= 64;
 const SMI_MAX_OID		= 1407;		/* 128 * 10 + 127 */
 const SMI_MAX_STRING		= 65535;
-const SMI_MAX_NAMESPEC		= 129;		/* 64 + 1 + 64 */
+const SMI_MAX_FULLNAME		= 129;		/* 64 + 1 + 64 */
 
 typedef string smi_descriptor<SMI_MAX_DESCRIPTOR>;
 typedef string smi_oid<SMI_MAX_OID>;
 typedef string smi_string<SMI_MAX_STRING>;
-typedef string smi_namespec<SMI_MAX_NAMESPEC>;
+typedef string smi_fullname<SMI_MAX_NAMESPEC>;
 
 enum smi_syntax {
     SMI_SYNTAX_UNKNOWN		= 0,
@@ -75,7 +75,7 @@ enum smi_decl {
 };
 
 struct smi_getspec {
-    smi_descriptor	name;
+    smi_fullname	name;
     int			wantdescr;
 };
 
@@ -95,7 +95,7 @@ struct smi_node {
     smi_descriptor	name;
     smi_descriptor	module;
     smi_oid		oid;
-    smi_namespec	type;
+    smi_fullname	type;
 #if 0
     /* TODO */
     smi_index		index;
@@ -118,9 +118,14 @@ struct smi_type {
     /* TODO: restrictions */
 };
 
+struct smi_macro {
+    smi_descriptor	name;
+    smi_descriptor	module;
+};
+
 /*
  * smi_namelist represents a string containing a blank-separated list
- * of elements. These elements are usually fully qualified smi_namespecs
+ * of elements. These elements are usually fully qualified smi_fullnames
  * representing mib nodes or types.
  *
  * TODO: think about length limitations.
@@ -133,12 +138,12 @@ program SMIPROG {
     version SMIVERS {
 	/*
 	 * SMIPROC_MODULE returns the module information. The input's
-	 * smi_getspec.smi_namespec value must be a module name.
+	 * smi_getspec.smi_fullname value must be a module name.
 	 */
 	smi_module	SMIPROC_MODULE(smi_getspec)	= 1;
 	/*
 	 * SMIPROC_NODE returns the node information. The input's
-	 * smi_getspec.smi_namespec might also be an object instance
+	 * smi_getspec.smi_fullname might also be an object instance
 	 * identifiers to retrieve the corresponding object type node.
 	 */
 	smi_node	SMIPROC_NODE(smi_getspec)	= 2;
@@ -147,35 +152,39 @@ program SMIPROG {
 	 */
 	smi_type	SMIPROC_TYPE(smi_getspec)	= 3;
 	/*
+	 * SMIPROC_MACRO
+	 */
+	smi_macro	SMIPROC_MACRO(smi_getspec)	= 4;
+	/*
 	 * SMIPROC_NAMES returns a blank-separated list of fully
-	 * qualified smi_namespecs that match the given input,
+	 * qualified smi_fullnames that match the given input,
 	 * which might be not unique.
 	 */
-	smi_namelist	SMIPROC_NAMES(smi_namespec) 	= 4;
+	smi_namelist	SMIPROC_NAMES(smi_fullname) 	= 5;
 	/*
 	 * SMIPROC_CHILDREN returns a blank-separated list of fully
-	 * qualified smi_namespecs representing all child nodes of
+	 * qualified smi_fullnames representing all child nodes of
 	 * the given input node.
 	 * TODO: Probably this list can get very large (e.g. mib-2).
 	 *	 Possible solution: return childeren as numerical OID
 	 *	 ranges. Problem: Then the client cannot filter out the
 	 *	 children that do not belong to its view by modules.
 	 */
-	smi_namelist	SMIPROC_CHILDREN(smi_namespec) 	= 5;
+	smi_namelist	SMIPROC_CHILDREN(smi_fullname) 	= 6;
 	/*
 	 * SMIPROC_MEMBERS returns a blank-separated list of fully
-	 * qualified smi_namespecs representing all members of the
+	 * qualified smi_fullnames representing all members of the
 	 * given input node if it represents an object group or
 	 * a notification group or all variables that must be present
 	 * in a notification if the input represents a notification
 	 * node.
 	 * TODO: Probably this list can get quite large.
 	 */
-	smi_namelist	SMIPROC_MEMBERS(smi_namespec) 	= 6;
+	smi_namelist	SMIPROC_MEMBERS(smi_fullname) 	= 7;
 	/*
-	 * SMIPROC_PARENT returns a fully qualified smi_namespec
+	 * SMIPROC_PARENT returns a fully qualified smi_fullname
 	 * representing the parent of the given input node.
 	 */
-	smi_namespec	SMIPROC_PARENT(smi_namespec) 	= 6;
+	smi_fullname	SMIPROC_PARENT(smi_fullname) 	= 8;
     } = 1;
 } = 0x22315258; /* User-defined range: 0x20000000 - 0x3fffffff */

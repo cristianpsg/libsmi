@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.11 1998/11/02 19:29:03 strauss Exp $
+ * @(#) $Id: data.h,v 1.12 1998/11/10 20:25:44 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -55,13 +55,26 @@ typedef struct Revision {
 
 
 /*
- * Directories to search for MIB module files.
+ * MIB location types.
  */
-typedef struct Directory {
-    char	     dir[MAX_PATH_LENGTH+1];
-    struct Directory *next;
-    struct Directory *prev;
-} Directory;
+typedef enum LocationType {
+    LOCATION_FILE	     = 0,
+    LOCATION_DIR	     = 1,
+    LOCATION_DBM	     = 2,
+    LOCATION_RPC	     = 3
+} LocationType;
+
+
+	
+/*
+ * Locations to search for MIB module files.
+ */
+typedef struct Location {
+    char	    name[MAX_PATH_LENGTH+1];
+    LocationType    type;
+    struct Location *next;
+    struct Location *prev;
+} Location;
 
 
 
@@ -120,15 +133,16 @@ typedef enum Access {
  * Kinds of Descriptors.
  */
 typedef enum DescriptorKind {
-    KIND_ANY	 = 0 ,
-    KIND_MODULE	 = 1 ,
-    KIND_MACRO	 = 2 ,
-    KIND_TYPE	 = 3 ,
-    KIND_MIBNODE = 4 ,
-    KIND_IMPORT	 = 5
+    KIND_ANY		 = 0 ,  /*					     */
+    KIND_MODULE		 = 1 ,  /*					     */
+    KIND_MACRO		 = 2 ,  /*					     */
+    KIND_TYPE		 = 3 ,  /*					     */
+    KIND_MIBNODE	 = 4 ,  /*					     */
+    KIND_IMPORT		 = 5 ,  /* descriptors to be imported.               */
+    KIND_IMPORTED	 = 6    /* imported descriptor. syntax `mod.descr'.  */
 } DescriptorKind;
 
-#define NUM_KINDS  6
+#define NUM_KINDS  7
 
 
 
@@ -199,19 +213,19 @@ typedef unsigned short Flags;
  * Known descriptors.
  */
 typedef struct Descriptor {
-    char       name[MAX_IDENTIFIER_LENGTH+1];
-    struct Module     *module;
-    void       *ptr;
-    DescriptorKind kind;
-    int	       flags;
-    struct Descriptor *next;
-    struct Descriptor *prev;
-    struct Descriptor *nextSameModule;
-    struct Descriptor *prevSameModule;
-    struct Descriptor *nextSameKind;
-    struct Descriptor *prevSameKind;
-    struct Descriptor *nextSameModuleAndKind;
-    struct Descriptor *prevSameModuleAndKind;
+    char		  *name;
+    struct Module	  *module;
+    void		  *ptr;
+    DescriptorKind	  kind;
+    int			  flags;
+    struct Descriptor	  *next;
+    struct Descriptor	  *prev;
+    struct Descriptor	  *nextSameModule;
+    struct Descriptor	  *prevSameModule;
+    struct Descriptor	  *nextSameKind;
+    struct Descriptor	  *prevSameKind;
+    struct Descriptor	  *nextSameModuleAndKind;
+    struct Descriptor	  *prevSameModuleAndKind;
 } Descriptor;
 
 
@@ -309,8 +323,8 @@ typedef struct Parser {
 
 
 
-extern Directory	*firstDirectory;
-extern Directory	*lastDirectory;
+extern Location		*firstLocation;
+extern Location		*lastLocation;
 extern Descriptor	*firstDescriptor[NUM_KINDS];
 extern Descriptor	*lastDescriptor[NUM_KINDS];
 
@@ -320,9 +334,9 @@ extern MibNode		*pendingRootMibNode;
 extern Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
 
 
-extern char *findFileByModulename(const char *module);
+extern Location *findLocationByModulename(const char *module);
 
-extern Directory *addDirectory(const char *dir);
+extern Location *addLocation(const char *loc, Flags flags);
 
 
 
@@ -339,7 +353,7 @@ extern Module *findModuleByName(const char *name);
 extern int addImportDescriptor(const char *name,
 			       Parser *parser);
 
-extern int checkImportDescriptors(Module *module,
+extern int checkImportDescriptors(char *modulename,
 				  Parser *parser);
 
 

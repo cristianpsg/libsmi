@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.13 1998/11/04 23:44:50 strauss Exp $
+ * @(#) $Id: data.c,v 1.14 1998/11/16 09:00:08 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -20,6 +20,7 @@
 
 #include "error.h"
 #include "data.h"
+#include "smi.h"
 
 
 
@@ -83,8 +84,8 @@
 
 
 
-Directory	*firstDirectory;	/* List of directories to search for */
-Directory	*lastDirectory;		/* MIB files.                        */
+Location	*firstLocation;		/* List of directories to search for */
+Location	*lastLocation;		/* MIB files.                        */
 
 Descriptor	*firstDescriptor[NUM_KINDS];
 Descriptor	*lastDescriptor[NUM_KINDS];
@@ -116,13 +117,13 @@ Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
 /*
  *----------------------------------------------------------------------
  *
- * addDirectory --
+ * addLocation --
  *
- *      Add a directory to the list of directories to search
- *	for MIB module files.
+ *      Add a location (directory, file or RPC) to the list of
+ *	locations to search for MIB module files.
  *
  * Results:
- *      A pointer to the new Directory structure or
+ *      A pointer to the new Location structure or
  *	NULL if terminated due to an error.
  *
  * Side effects:
@@ -131,32 +132,50 @@ Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
  *----------------------------------------------------------------------
  */
 
-Directory *
-addDirectory(dir)
-    const char *dir;
+Location *
+addLocation(loc, flags)
+    const char *loc;
+    Flags flags;
 {
-    Directory *directory;
+    Location *location;
+    struct stat st;
     
-    printDebug(4, "addDirectory(\"%s\")\n", dir);
+    printDebug(4, "addLocation(\"%s\")\n", loc);
 
-    directory = (Directory *)malloc(sizeof(Directory));
-    if (!directory) {
-	printError(NULL, ERR_ALLOCATING_DIRECTORY, strerror(errno));
+    location = (Location *)malloc(sizeof(Location));
+    if (!location) {
+	printError(NULL, ERR_ALLOCATING_LOCATION, strerror(errno));
 	return (NULL);
     }
     
-    strncpy(directory->dir, dir, sizeof(directory->dir)-1);
-
-    directory->prev = lastDirectory;
-    directory->next = NULL;
-    if (lastDirectory) {
-	lastDirectory->next = directory;
+    if (strstr(loc, "smirpc://") == loc) {
+	location->type = LOCATION_RPC;
+	location->name = strdup(&loc[9]);
     } else {
-	firstDirectory = directory;
+	if (stat(loc, &st)) {
+	    printError(NULL, ERR_LOCATION, loc, strerror(errno));
+	} else {
+	    if (S_ISDIR(st.st_mode)) {
+		location->type = LOCATION_DIR;
+		location->name = strdup(loc);
+	    } else {
+		location->type = LOCATION_FILE;
+		location->name = strdup(loc);
+		readMibFile(loc, "", flags | FLAG_WHOLEFILE);
+	    }
+	}
     }
-    lastDirectory = directory;
     
-    return (directory);
+    location->prev = lastLocation;
+    location->next = NULL;
+    if (lastLocation) {
+	lastLocation->next = location;
+    } else {
+	firstLocation = location;
+    }
+    lastLocation = location;
+    
+    return (location);
 }
 
 
@@ -164,12 +183,12 @@ addDirectory(dir)
 /*
  *----------------------------------------------------------------------
  *
- * findFileByModulename --
+ * findLocationByModulename --
  *
- *      Lookup a path by a given MIB module name.
+ *      Lookup a location structure by a given MIB module name.
  *
  * Results:
- *      A pointer to a static string containing the path or
+ *      A pointer to a location structure containing the MIB module or
  *	NULL if it's not found.
  *
  * Side effects:
@@ -178,29 +197,52 @@ addDirectory(dir)
  *----------------------------------------------------------------------
  */
 
-char *
-findFileByModulename(name)
+Location *
+findLocationByModulename(name)
     const char *name;
 {
     struct stat buf;
-    Directory *directory;
-    static char path[MAX_PATH_LENGTH*2+2];
+    Location *location;
+    Module *module;
+    char *path;
     
-    printDebug(4, "findFileByModulename(\"%s\")\n", name);
+    printDebug(4, "findLocationByModulename(\"%s\")\n", name);
 
-    for (directory = firstDirectory; directory; directory = directory->next) {
-	
-	sprintf(path, "%s/%s", directory->dir, name);
-	if (!stat(path, &buf))
-	    return (path);
-	
-	sprintf(path, "%s/%s.my", directory->dir, name);
-	if (!stat(path, &buf))
-	    return (path);
-	
+    for (location = firstLocation; location; location = location->next) {
+
+	if (location->type == LOCATION_DIR) {
+
+	    path = malloc(strlen(location->name)+strlen(name)+6);
+	    
+	    sprintf(path, "%s/%s", location->name, name);
+	    if (!stat(path, &buf)) {
+		free(path);
+		return location;
+	    }
+	    
+	    sprintf(path, "%s/%s.my", location->name, name);
+	    if (!stat(path, &buf)) {
+		free(path);
+		return location;
+	    }
+	    
+	} else if (location->type == LOCATION_FILE) {
+
+	    /* TODO */
+	    module = findModuleByName(name);
+	    if (module && (!strcmp(module->path, location->name))) {
+		return location;
+	    }
+	    
+	} else if (location->type == LOCATION_RPC) {
+
+	    /* TODO */
+
+	}
+
     }
     
-    return (NULL);
+    return NULL;
 }
 
 
@@ -257,7 +299,7 @@ addModule(name, path, fileoffset, flags, parser)
 	return (NULL);
     }
     
-    strncpy(module->path, path, sizeof(module->path)-1);
+    module->path = strdup(path);
     module->fileoffset = fileoffset;
     module->flags = flags;
     for (i = 0; i < NUM_KINDS; i++) {
@@ -378,7 +420,8 @@ addImportDescriptor(name, parser)
  *
  *      Check wheather all descriptors in the actual parser's list
  *	are imported by a given Module. Implicitly delete all items
- *	from the list.
+ *	from the list and append them to a list of imported descriptors
+ *	for the current module.
  *
  * Results:
  *      0 on success or -1 on an error.
@@ -390,31 +433,34 @@ addImportDescriptor(name, parser)
  */
 
 int
-checkImportDescriptors(module, parser)
-    Module *module;
+checkImportDescriptors(modulename, parser)
+    char *modulename;
     Parser *parser;
 {
     Descriptor *descriptor;
+    char fullname[SMI_MAX_FULLNAME+1];
     
-    printDebug(4, "checkImportIdentifiers(%s, parser)\n",
-	       module ? module->descriptor->name : "NULL");
-
+    printDebug(4, "checkImportIdentifiers(%s, parser)\n", modulename);
+    
     while (parser->firstImportDescriptor) {
 	descriptor = parser->firstImportDescriptor;
-	if (module) {
-	    if (findMibNodeByModuleAndName(module, descriptor->name)) {
-		;
-	    } else if (findTypeByModuleAndName(module, descriptor->name)) {
-		;
-	    } else if (findMacroByModuleAndName(module, descriptor->name)) {
-		;
-	    } else {
-		printError(parser, ERR_IDENTIFIER_NOT_IN_MODULE,
-			   descriptor->name, module->descriptor->name);
-	    }
+	sprintf(fullname, "%s!%s", modulename, descriptor->name);
+	if (SMIPROC_NODE(fullname)) {
+	    addDescriptor(descriptor->name, parser->thisModule,
+			  KIND_MIBNODE, NULL, FLAG_IMPORTED, parser);
+	} else if (SMIPROC_TYPE(fullname)) {
+	    addDescriptor(descriptor->name, parser->thisModule,
+			  KIND_TYPE, NULL, FLAG_IMPORTED, parser);
+	} else if (SMIPROC_MACRO(fullname)) {
+	    addDescriptor(descriptor->name, parser->thisModule,
+			  KIND_MACRO, NULL, FLAG_IMPORTED, parser);
+	} else {
+	    printError(parser, ERR_IDENTIFIER_NOT_IN_MODULE,
+		       descriptor->name, modulename);
 	}
 	
 	parser->firstImportDescriptor = descriptor->nextSameModuleAndKind;
+	free(descriptor->name);
 	free(descriptor);
     }
 
@@ -489,6 +535,9 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	    t->flags = ((Type *)ptr)->flags;
 	    t->displayHint = ((Type *)ptr)->displayHint;
 	    t->description = ((Type *)ptr)->description;
+#ifdef TEXTS_IN_MEMORY
+	    free(((Type *)ptr)->description.ptr);
+#endif
 	    free(ptr);
 	    return t->descriptor;
 	}
@@ -499,7 +548,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	return (NULL);
     }
 
-    strncpy(descriptor->name, name, sizeof(descriptor->name)-1);
+    descriptor->name = strdup(name);
     descriptor->ptr = ptr;
     descriptor->module = module;
     descriptor->kind = kind;
@@ -639,6 +688,9 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 		 * finally, delete the unneeded node and descriptor.
 		 */
 		deleteDescriptor(olddescriptor);
+#ifdef TEXTS_IN_MEMORY
+		free(((MibNode *)ptr)->description.ptr);
+#endif
 		free(ptr);
 		break;
 	    }
@@ -1433,7 +1485,10 @@ deleteMibTree(root)
 	if (root->parent->lastChild == root) {
 	    root->parent->lastChild = root->prev;
 	}
-	
+
+#ifdef TEXTS_IN_MEMORY
+	free(root->description.ptr);
+#endif
 	free(root);
     }
 }
@@ -2155,7 +2210,7 @@ initData()
     int i;
     MibNode *node;
     
-    firstDirectory = NULL;
+    firstLocation = NULL;
     for (i = 0; i < NUM_KINDS; i++) {
 	firstDescriptor[i] = NULL;
 	lastDescriptor[i] = NULL;
@@ -2276,8 +2331,8 @@ readMibFile(path, modulename, flags)
     printDebug(3, "readMibFile(\"%s\", \"%s\", %d)\n",
 	       path, modulename, flags);
 
-    strncpy(parser.path, path, sizeof(parser.path)-1);
-    strncpy(parser.module, modulename, sizeof(parser.module)-1);
+    parser.path = strdup (path);
+    parser.module = strdup(modulename);
     parser.flags = flags;
     
     parser.file = fopen(parser.path, "r");
