@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.153 2001/09/19 10:10:49 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.154 2001/09/19 16:11:21 strauss Exp $
  */
 
 %{
@@ -2266,9 +2266,10 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				setObjectRelated(objectPtr, $13.rowPtr);
 			    }
 			    if ($14) {
-				/* XXX: this check is not sufficient */
-				if ($14->basetype !=
-				    objectPtr->typePtr->export.basetype) {
+				if (((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING) &&
+				     ($14->basetype != SMI_BASETYPE_OCTETSTRING)) ||
+				    ((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OBJECTIDENTIFIER) &&
+				     ($14->basetype != SMI_BASETYPE_OBJECTIDENTIFIER))) {
 				    smiPrintError(thisParserPtr,
 						  ERR_DEFVAL_SYNTAX);
 				    if ($14->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
