@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.17 2000/06/14 13:15:16 strauss Exp $
+ * @(#) $Id: error.h,v 1.18 2000/06/16 13:53:57 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -22,7 +22,7 @@
 #ifdef yyerror
 #undef yyerror
 #endif
-#define yyerror(msg) smiPrintError(parserPtr, ERR_OTHER_ERROR, msg)
+#define yyerror(msg)	smiyyerror(msg, parserPtr)
 
 
 extern int smiErrorLevel;	/* Higher levels produce more warnings */

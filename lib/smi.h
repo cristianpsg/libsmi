@@ -43,8 +43,13 @@ extern const char *smi_version_string;
 typedef char                    *SmiIdentifier;
 typedef unsigned long           SmiUnsigned32;
 typedef long                    SmiInteger32;
+#ifdef _MSC_VER /* if using MSVC and not configure */
+typedef __int64                 SmiInteger64;
+typedef unsigned __int64        SmiUnsigned64;
+#else
 typedef unsigned long long           SmiUnsigned64;
 typedef long long            SmiInteger64;
+#endif
 typedef unsigned int            SmiSubid;
 typedef float                   SmiFloat32;
 typedef double                  SmiFloat64;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.31 2000/11/13 11:32:27 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.32 2000/11/16 14:58:10 strauss Exp $
  */
 
 %option noyywrap
@@ -197,6 +197,19 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <Comment>"--" {
+    thisParser.lcline = thisParser.line;
+    BEGIN(INITIAL);
+}
+
+ /* Special-case a common error (dashed seperator lines with
+  * 4n+1 dashes, meaning a single dash outside the comment).
+  * Print the "lexically unexpected" error that you would normally
+  * get, and stick in the comment FYI also.
+  */
+<Comment>"---"{eol} {
+    smiPrintError(parser, ERR_COMMENT_TERMINATES);
+    smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
+    thisParser.line++;
     BEGIN(INITIAL);
 }
     

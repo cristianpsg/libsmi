@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.14 2000/11/20 13:59:24 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.15 2000/11/29 16:47:54 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -16,7 +16,7 @@ AUTOMAKE_OPTIONS	= no-dependencies foreign
 EXTRA_DIST		= ANNOUNCE \
 			  win/Makefile.mingw win/README.mingw win/README.win \
 			  win/config.h win/config.h.in \
-			  win/makefile win/win.c win/win.h \
+			  win/makefile win/GNUmakefile win/win.c win/win.h \
 			  smi.conf-example
 
 SUBDIRS			= lib tools mibs test doc

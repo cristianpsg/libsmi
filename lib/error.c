@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.59 2000/11/08 23:12:02 strauss Exp $
+ * @(#) $Id: error.c,v 1.60 2000/11/16 14:58:06 strauss Exp $
  */
 
 #include <config.h>
@@ -266,8 +266,8 @@ static Error errors[] = {
       "optional group definition for `%s' already exists in this compliance statement" },
     { 2, ERR_ILLEGAL_OID_DEFVAL, "", 
       "cannot handle other default values than 0.0 for `%s'" },
-    { 2, ERR_UNEXPECTED_TYPE_RESTRICTION, "", 
-      "unexpected type restriction" },
+    { 2, ERR_UNEXPECTED_TYPE_RESTRICTION, "subtype-in-sequence", 
+      "subtyping not allowed in SEQUENCE" },
     { 1, ERR_UNKNOWN_CONFIG_CMD, "", 
       "unknown configuration command `%s' in file `%s'" },
     { 4, ERR_OPAQUE_OBSOLETE, "opaque", 
@@ -384,6 +384,10 @@ static Error errors[] = {
       "identifier `%s' registers OID already registered as identifier `%s'" },
     { 1, ERR_OID_RECURSIVE, "oid-recursive",
       "identifier `%s' defined recursively or OID too long" },
+    { 6, ERR_COMMENT_TERMINATES, "comment-terminates",
+      "note, -- terminates a comment" },
+    { 6, ERR_OBSOLETE_IMPORT, "obsolete-import",
+      "why not import identifier `%s' from module `%s' instead?" },
     { 0, 0, NULL, NULL }
 };
 

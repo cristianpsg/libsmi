@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.5 2000/11/16 14:58:41 strauss Exp $
+# @(#) $Id: makefile,v 1.6 2000/11/27 12:06:54 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -23,7 +23,7 @@
 ROOT	= .\..
 TMPDIR	= .
 #TOOLS32	= C:\MSDEV
-TOOLS32	= C:\PROGRA~1\MICROS~6\VC98
+TOOLS32	= C:\PROGRA~1\MICROS~2\VC98
 
 ##
 ## Installation paths: 
@@ -63,6 +63,7 @@ DEFINES = $(DEBUG)
 ##
 LIBSMIOBJS =					\
 	$(TMPDIR)\win.obj			\
+	$(TMPDIR)\shhopt.obj			\
 	$(TMPDIR)\data.obj			\
 	$(TMPDIR)\check.obj			\
 	$(TMPDIR)\error.obj			\
@@ -73,10 +74,10 @@ LIBSMIOBJS =					\
 	$(TMPDIR)\parser-sming.tab.obj		\
 	$(TMPDIR)\scanner-sming.obj
 
-SMIQUERYOBJS = \
+SMIQUERYOBJS =					\
 	$(TMPDIR)\smiquery.obj
 
-SMILINTOBJS = \
+SMILINTOBJS =					\
 	$(TMPDIR)\smilint.obj
 
 SMIDUMPOBJS =					\
@@ -95,6 +96,7 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-metrics.obj		\
 	$(TMPDIR)\dump-identifiers.obj		\
 	$(TMPDIR)\dump-python.obj		\
+	$(TMPDIR)\dump-lines.obj
 
 SMILIB = smi.lib
 
