@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.46 2000/10/25 08:56:52 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.47 2000/11/06 14:28:00 strauss Exp $
  */
 
 #include <config.h>
@@ -71,10 +71,8 @@ static Driver driverTable[] = {
       "reverse engineered conceptual model, dia format" },
     { "cm-xplain", dumpCMXplain,SMI_FLAG_NODESCR,	0,
       "reverse engineered conceptual model, ASCII format"},
-    { "ucd-h",     dumpUcdH,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
-      "UCD SNMP mib module C header" },
-    { "ucd-c",	   dumpUcdC,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
-      "UCD SNMP mib module C code" },
+    { "netsnmp",   dumpNetSnmp,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
+      "NET SNMP mib module C code" },
     { "jax",       dumpJax,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
       "Java AgentX sub-agent classes in separate files" },
     { "python",    dumpPython,  0,			SMIDUMP_FLAG_UNITE,
