@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.55 2000/02/08 21:39:23 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.56 2000/02/09 15:33:23 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -733,7 +733,7 @@ static void printObjects(SmiModule *smiModule)
 	}
 
 	smiType = smiGetNodeType(smiNode);
-	if (smiType && (smiNode->basetype != SMI_BASETYPE_UNKNOWN)) {
+	if (smiType && (smiType->basetype != SMI_BASETYPE_UNKNOWN)) {
 	    printSegment((2 + indent) * INDENT, "type", INDENTVALUE);
 	    if (islower((int)smiType->name[0])) {
 		/*
@@ -745,7 +745,7 @@ static void printObjects(SmiModule *smiModule)
 		print(";\n");
 	    } else {
 		print("%s;\n",
-		      getTypeString(smiModule->name, smiNode->basetype,
+		      getTypeString(smiModule->name, smiType->basetype,
 				    smiType));
 	    }
 	}

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.6 2000/02/07 23:23:30 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.7 2000/02/08 21:39:23 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -509,9 +509,9 @@ int dumpTypes(char *modulename, int flags)
  	    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
  		addType(smiType);
  	    }
+	    incrBaseTypeCount(smiType->basetype);
 	    smiFreeType(smiType);
  	}
-	incrBaseTypeCount(smiNode->basetype);
     }
     
     printTypeTree(&typeRoot, "");

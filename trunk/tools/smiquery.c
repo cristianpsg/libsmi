@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.37 2000/02/08 21:39:23 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.38 2000/02/09 15:33:23 strauss Exp $
  */
 
 #include <stdio.h>
@@ -404,8 +404,6 @@ int main(int argc, char *argv[])
 	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
 	    if (type)
 		printf("        Type: %s\n", formattype(type));
-	    if (node->basetype != SMI_BASETYPE_UNKNOWN)
-	       printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
 	    if (node->value.basetype != SMI_BASETYPE_UNKNOWN)
 		printf("     Default: %s\n", formatvalue(&node->value));
 	    if (node->decl != SMI_DECL_UNKNOWN)

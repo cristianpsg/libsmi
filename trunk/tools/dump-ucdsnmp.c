@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.7 2000/02/08 21:39:23 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.8 2000/02/09 16:56:49 strauss Exp $
  */
 
 /*
@@ -281,6 +281,7 @@ static void printDefinesGroup(SmiNode *groupNode, int cnt)
 {
     char      *cName, *cGroupName;
     SmiNode   *smiNode;
+    SmiType   *smiType;
     int	      i, num = 0;
 
     if (cnt == 1) {
@@ -320,9 +321,10 @@ static void printDefinesGroup(SmiNode *groupNode, int cnt)
 	    if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
 		&& (smiNode->access == SMI_ACCESS_READ_ONLY
 		    || smiNode->access == SMI_ACCESS_READ_WRITE)) {
+		smiType = smiGetNodeType(smiNode);
 		cName = translateUpper(smiNode->name);
 		printf("    { %s, %s, %s, read_%s_stub, %d, {%d} },\n",
-		       cName, getBaseTypeString(smiNode->basetype),
+		       cName, getBaseTypeString(smiType->basetype),
 		       getAccessString(smiNode->access),
 		       cGroupName, 1, smiNode->oid[smiNode->oidlen-1]);
 		xfree(cName);
@@ -419,6 +421,7 @@ static void printInit(SmiModule *smiModule)
 static void printReadMethod(SmiNode *groupNode)
 {
     SmiNode   *smiNode;
+    SmiType   *smiType;
     char      *cName, *sName, *lName;
 
     sName = translate(groupNode->name);
@@ -459,8 +462,9 @@ static void printReadMethod(SmiNode *groupNode)
 		|| smiNode->access == SMI_ACCESS_READ_WRITE)) {
 	    cName = translateUpper(smiNode->name);
 	    lName = translate(smiNode->name);
+	    smiType = smiGetNodeType(smiNode);
 	    printf("    case %s:\n", cName);
-	    switch (smiNode->basetype) {
+	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
 		printf("        *var_len = %s._%sLength;\n"
 		       "        return (unsigned char *) %s.%s;\n",
@@ -580,7 +584,7 @@ static void printTypedef(SmiNode *groupNode)
 	    ) {
 	    smiType = smiGetNodeType(smiNode);
 	    cName = translate(smiNode->name);
-	    switch (smiNode->basetype) {
+	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
 		printf("    u_int32_t %s[%u];\n", cName, getMaxSize(smiType));
 		printf("    size_t    _%sLength;\n", cName);

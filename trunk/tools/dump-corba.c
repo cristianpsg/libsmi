@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.10 2000/02/08 21:39:22 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.11 2000/02/09 15:33:23 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -463,13 +463,13 @@ static void createImportList(SmiModule *smiModule)
 		addImport(smiTypeModule->name, smiType->name);
 	    }
 	}
+	if (smiType->basetype == SMI_BASETYPE_INTEGER32) {
+	    addImport("SNMPv2-SMI", "Integer32");
+	}
 	if (smiType) {
 	    smiFreeType(smiType);
 	}
 
-	if (smiNode->basetype == SMI_BASETYPE_INTEGER32) {
-	    addImport("SNMPv2-SMI", "Integer32");
-	}
     }
 }
 
@@ -877,7 +877,7 @@ static void printAttribute(SmiNode *smiNode)
     if (smiModule && strlen(smiModule->name)) {
 	idlTypeName = getIdlTypeName(smiModule->name, smiType->name);
     } else {
-	idlTypeName = getBaseTypeString(smiNode->basetype);
+	idlTypeName = getBaseTypeString(smiType->basetype);
     }
     print(" %s %s;\n", idlTypeName, idlNodeName);
 }
@@ -1018,8 +1018,7 @@ static void printConstructor(SmiNode *smiNode)
 		idlChildTypeName = getIdlTypeName(smiModule->name,
 						  smiType->name);
 	    } else {
-		idlChildTypeName = getBaseTypeString(
-		    childNode->basetype);
+		idlChildTypeName = getBaseTypeString(smiType->basetype);
 	    }
 	    if (cnt > 1) {
 		print(",\n");
@@ -1097,7 +1096,7 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 		    idlTypeName = getIdlTypeName(smiModule2->name,
 						 smiType->name);
 		} else {
-		    idlTypeName = getBaseTypeString(listSmiNode->basetype);
+		    idlTypeName = getBaseTypeString(smiType->basetype);
 		}
 		print("%s %s;\n", idlTypeName, listitem->name);
 		printSegment(INDENT, "};\n\n", 0);
@@ -1282,7 +1281,7 @@ static void printDefVals(SmiModule *smiModule)
 	    if (smiModule2 && strlen(smiModule2->name)) {
 		idlTypeName = getIdlTypeName(smiModule2->name, smiType->name);
 	    } else {
-		idlTypeName = getBaseTypeString(smiNode->basetype);
+		idlTypeName = getBaseTypeString(smiType->basetype);
 	    }
 	    print("%s %s();\n\n", idlTypeName, smiNode->name);
 	}
@@ -1421,6 +1420,7 @@ int dumpCorbaOid(char *modulename, int flags)
 {
     SmiModule *smiModule;
     SmiNode   *smiNode;
+    SmiType   *smiType;
     
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
@@ -1438,6 +1438,8 @@ int dumpCorbaOid(char *modulename, int flags)
 	    /* XXX what if the node is also of SMI_NODEKIND_MODULE ?? */
 	    continue;
 	}
+
+	smiType = smiGetNodeType(smiNode);
 	
 	switch (smiNode->nodekind) {
 	case SMI_NODEKIND_MODULE:
@@ -1455,7 +1457,7 @@ int dumpCorbaOid(char *modulename, int flags)
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
 		printNameAndOid(smiNode, smiParentNode);
 		printf("%s %s\n",
-		       getBaseTypeString(smiNode->basetype),
+		       getBaseTypeString(smiType->basetype),
 		       getAccessString(smiNode->access, 0));
 		smiFreeNode(smiParentNode);
 	    }
@@ -1478,7 +1480,7 @@ int dumpCorbaOid(char *modulename, int flags)
 		int create = smiParentNode ? smiParentNode->create : 0;
 		printNameAndOid(smiNode, smiParentNode);
 		printf("%s %s\n",
-		       getBaseTypeString(smiNode->basetype),
+		       getBaseTypeString(smiType->basetype),
 		       getAccessString(smiNode->access, create));
 		if (smiParentNode) {
 		    smiFreeNode(smiParentNode);

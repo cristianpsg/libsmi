@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.15 2000/02/08 21:39:22 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.16 2000/02/09 15:33:23 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -311,10 +311,11 @@ static void printObjects(SmiModule *smiModule)
 	    || smiNode->nodekind == SMI_NODEKIND_ROW;
 
 	smiType = NULL;
+	typename = NULL;
 	if (!aggregate) {
 	    smiType = smiGetNodeType(smiNode);
+	    typename = getBasetypeString(smiType->basetype);
 	}
-	typename = getBasetypeString(smiNode->basetype);
 	if (smiType && (smiType->decl != SMI_DECL_IMPLICIT_TYPE)) {
 	    typename = smiType->name;
 	    if (!strcmp(typename, "ObjectIdentifier")) {

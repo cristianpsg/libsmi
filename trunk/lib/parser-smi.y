@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.73 2000/02/08 21:39:22 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.74 2000/02/09 15:33:16 strauss Exp $
  */
 
 %{
@@ -1722,7 +1722,6 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectType(objectPtr, $6);
-			    setObjectBasetype(objectPtr, $6->export.basetype);
 			    if (!($6->export.name)) {
 				/*
 				 * An inlined type.

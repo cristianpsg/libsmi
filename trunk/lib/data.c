@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.60 2000/02/08 21:39:21 strauss Exp $
+ * @(#) $Id: data.c,v 1.61 2000/02/09 15:33:16 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -699,9 +699,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
     objectPtr->export.name		= util_strdup(objectname);
-    objectPtr->export.module       = modulePtr ? modulePtr->export.name : NULL;
     objectPtr->export.decl		= SMI_DECL_UNKNOWN;
-    objectPtr->export.basetype		= SMI_BASETYPE_UNKNOWN;
     objectPtr->export.access		= SMI_ACCESS_UNKNOWN;
     objectPtr->export.status		= SMI_STATUS_UNKNOWN;
     objectPtr->export.format		= NULL;
@@ -802,7 +800,6 @@ duplicateObject(templatePtr, flags, parserPtr)
     
     objectPtr->export.name			= NULL;
     objectPtr->export.decl			= SMI_DECL_UNKNOWN;
-    objectPtr->export.basetype			= SMI_BASETYPE_UNKNOWN;
     objectPtr->export.access			= SMI_ACCESS_UNKNOWN;
     objectPtr->export.status			= SMI_STATUS_UNKNOWN;
     objectPtr->export.format			= NULL;
@@ -1249,32 +1246,6 @@ setObjectType(objectPtr, typePtr)
     Type		   *typePtr;
 {
     objectPtr->typePtr = typePtr;
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * setObjectBasetype --
- *
- *      Set the basetype of a given Object.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-setObjectBasetype(objectPtr, basetype)
-    Object       *objectPtr;
-    SmiBasetype  basetype;
-{
-    objectPtr->export.basetype = basetype;
 }
 
 
@@ -2172,7 +2143,6 @@ addType(typename, basetype, flags, parserPtr)
     } else {
 	typePtr->export.name		= NULL;
     }
-    typePtr->export.module         = modulePtr ? modulePtr->export.name : NULL;
     typePtr->export.basetype		= basetype;
     typePtr->export.decl		= SMI_DECL_UNKNOWN;
     typePtr->export.format		= NULL;
@@ -2887,7 +2857,6 @@ addMacro(macroname, fileoffset, flags, parserPtr)
     macroPtr = (Macro *)util_malloc(sizeof(Macro));
 	    
     macroPtr->export.name 	 = util_strdup(macroname);
-    macroPtr->export.module      = modulePtr ? modulePtr->export.name : NULL;
     macroPtr->export.status      = SMI_STATUS_UNKNOWN;
     macroPtr->export.description = NULL;
     macroPtr->export.reference   = NULL;
