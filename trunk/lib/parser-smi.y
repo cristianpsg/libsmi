@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.34 1999/06/16 15:04:10 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.35 1999/06/17 16:56:57 strauss Exp $
  */
 
 %{
@@ -815,7 +815,7 @@ choiceClause:		CHOICE
 			/* the scanner skips until... */
 			'}'
 			{
-			    $$ = addType(NULL, SMI_BASETYPE_CHOICE, 0,
+			    $$ = addType(NULL, SMI_BASETYPE_UNKNOWN, 0,
 					 thisParserPtr);
 			}
 	;
@@ -1271,6 +1271,7 @@ NamedBit:		identifier
 			    $$->name = util_strdup($1);
 			    $$->valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->valuePtr->value.unsigned32 = $4;
+			    $$->valuePtr->valueformat = SMI_VALUEFORMAT_NATIVE;
 			}
 	;
 
@@ -1698,7 +1699,7 @@ ObjectSyntax:		SimpleSyntax
 			{
 			    Import *importPtr;
 
-			    if ($1) {
+			    if ($1 && $1->name) {
 				importPtr = findImportByName($1->name,
 							     thisModulePtr);
 				if (importPtr) {
@@ -1727,7 +1728,20 @@ sequenceObjectSyntax:	sequenceSimpleSyntax
 /*	|		row		     /* the uppercase name of a row  */
 /*	|		entryType	     /* it's SEQUENCE { ... } phrase */
 	|		sequenceApplicationSyntax
-			{ $$ = $1; }
+			{
+			    Import *importPtr;
+
+			    if ($1 && $1->name) {
+				importPtr = findImportByName($1->name,
+							     thisModulePtr);
+				if (importPtr) {
+				    importPtr->use++;
+				}
+			    }
+
+			    /* TODO */
+			    $$ = $1;
+			}
         ;
 
 /* TODO: specify really according to ObjectSyntax!!! */
@@ -2044,6 +2058,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		'-' number		/* -2147483648..0 */
 			{
@@ -2051,19 +2066,29 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = - $2;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		BIN_STRING		/* number or OCTET STRING */
 			{
+			    char s[9];
+			    int i, j;
+			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
+			    $$->valueformat = SMI_VALUEFORMAT_BINSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
-				if (strlen($1)) {
-				    $$->basetype = SMI_BASETYPE_BINSTRING;
-				    $$->value.ptr = util_strdup($1);
-				} else {
-				    $$->basetype = SMI_BASETYPE_OCTETSTRING;
-				    $$->value.ptr = "";
+				$$->basetype = SMI_BASETYPE_OCTETSTRING;
+				$$->value.ptr =
+				    util_malloc((strlen($1)+7)/8+1);
+				for (i = 0; i < strlen($1); i += 8) {
+				    strncpy(s, &$1[i], 8);
+				    for (j = 1; j < 8; j++) {
+					if (!s[j]) s[j] = '0';
+				    }
+				    s[8] = 0;
+				    $$->value.ptr[i/8] = strtol(s, 0, 2);
 				}
+				$$->len = (strlen($1)+7)/8;
 			    } else {
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
 				$$->value.unsigned32 = strtoul($1, NULL, 2);
@@ -2071,16 +2096,23 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			}
 	|		HEX_STRING		/* number or OCTET STRING */
 			{
+			    char s[3];
+			    int i;
+			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
+			    $$->valueformat = SMI_VALUEFORMAT_HEXSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
-				if (strlen($1)) {
-				    $$->basetype = SMI_BASETYPE_HEXSTRING;
-				    $$->value.ptr = util_strdup($1);
-				} else {
-				    $$->basetype = SMI_BASETYPE_OCTETSTRING;
-				    $$->value.ptr = "";
+				$$->basetype = SMI_BASETYPE_OCTETSTRING;
+				$$->value.ptr =
+				    util_malloc((strlen($1)+1)/2+1);
+				for (i = 0; i < strlen($1); i += 2) {
+				    strncpy(s, &$1[i], 2);
+				    if (!s[1]) s[1] = '0';
+				    s[2] = 0;
+				    $$->value.ptr[i/2] = strtol(s, 0, 16);
 				}
+				$$->len = (strlen($1)+1)/2;
 			    } else {
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
 				$$->value.unsigned32 = strtoul($1, NULL, 16);
@@ -2090,8 +2122,9 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_LABEL;
+			    $$->basetype = defaultBasetype;
 			    $$->value.ptr = util_strdup($1);
+			    $$->valueformat = SMI_VALUEFORMAT_NAME;
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
@@ -2099,6 +2132,8 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_OCTETSTRING;
 			    $$->value.ptr = util_strdup($1);
+			    $$->valueformat = SMI_VALUEFORMAT_TEXT;
+			    $$->len = strlen($1);
 			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
 			 *       it must be expressed as a single ASN.1
@@ -2118,48 +2153,23 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			 * parser error.
 			 */
 			{
-			    /* TODO: SMIv1 allows something like { 0 0 } !
-			     * SMIv2 does not! Check more carefully!
+			    /*
+			     * SMIv1 allows something like { 0 0 } !
+			     * SMIv2 does not!
 			     */
-			    printError(thisParserPtr, ERR_OID_DEFVAL_TOO_LONG);
-			    $$ = util_malloc(sizeof(SmiValue));
-			    $$->basetype = SMI_BASETYPE_LABEL;
+			    /* TODO: make it work correctly for SMIv1 */
 			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
 			    {
-				$$->value.oidlen = 2;
-				$$->value.oid[0] = 0;
-				$$->value.oid[1] = 0;
-				/* TODO */
-#if 0
-				for (importPtr = thisModulePtr->firstImportPtr;
-				     importPtr;
-				     importPtr = importPtr->nextPtr) {
-				    if ((!importPtr->nextPtr) ||
-					(!strcmp(importPtr->nextPtr->importmodule,
-						 "SNMPv2-SMI"))) {
-					break;
-				    }
-				    if (importPtr) {
-					newPtr = util_malloc(sizeof(Import));
-					newPtr->importmodule =
-					    util_strdup("SNMPv2-SMI");
-					newPtr->importname =
-					    util_strdup($$->value.oid);
-					newPtr->kind = KIND_OBJECT;
-					newPtr->nextPtr = importPtr->nextPtr;
-					newPtr->prevPtr = importPtr;
-					importPtr->nextPtr->prevPtr = newPtr;
-					importPtr->nextPtr = newPtr;
-				    }
-				}
-			    } else {
-				$$->value.oid = "zeroDotZero";
-				objectPtr = addObject("zeroDotZero",
-				      findNodeByParentAndSubid(rootNodePtr, 0),
-					  0, 0, thisParserPtr);
-				
-#endif
+				printError(thisParserPtr,
+					   ERR_OID_DEFVAL_TOO_LONG);
 			    }
+			    $$ = util_malloc(sizeof(SmiValue));
+			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
+			    $$->valueformat = SMI_VALUEFORMAT_OID;
+			    $$->len = 2;
+			    $$->value.oid = util_malloc(2 * sizeof(SmiSubid));
+			    $$->value.oid[0] = 0;
+			    $$->value.oid[1] = 0;
 			}
 	;
 
@@ -2422,6 +2432,7 @@ value:			'-' number
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		number
 			{
@@ -2429,20 +2440,57 @@ value:			'-' number
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		HEX_STRING
 			{
+			    char s[3];
+			    int i;
+			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
-			    $$->value.unsigned32 = strtoul($1, NULL, 16);
+			    $$->valueformat = SMI_VALUEFORMAT_HEXSTRING;
+			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
+				$$->basetype = SMI_BASETYPE_OCTETSTRING;
+				$$->value.ptr =
+				    util_malloc((strlen($1)+1)/2+1);
+				for (i = 0; i < strlen($1); i += 2) {
+				    strncpy(s, &$1[i], 2);
+				    if (!s[1]) s[1] = '0';
+				    s[2] = 0;
+				    $$->value.ptr[i/2] = strtol(s, 0, 16);
+				}
+				$$->len = (strlen($1)+1)/2;
+			    } else {
+				$$->basetype = SMI_BASETYPE_UNSIGNED32;
+				$$->value.unsigned32 = strtoul($1, NULL, 16);
+			    }
 			}
 	|		BIN_STRING
 			{
+			    char s[9];
+			    int i, j;
+			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
-			    $$->value.unsigned32 = strtoul($1, NULL, 2);
+			    $$->valueformat = SMI_VALUEFORMAT_BINSTRING;
+			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
+				$$->basetype = SMI_BASETYPE_OCTETSTRING;
+				$$->value.ptr =
+				    util_malloc((strlen($1)+7)/8+1);
+				for (i = 0; i < strlen($1); i += 8) {
+				    strncpy(s, &$1[i], 8);
+				    for (j = 1; j < 8; j++) {
+					if (!s[j]) s[j] = '0';
+				    }
+				    s[8] = 0;
+				    $$->value.ptr[i/8] = strtol(s, 0, 2);
+				}
+				$$->len = (strlen($1)+7)/8;
+			    } else {
+				$$->basetype = SMI_BASETYPE_UNSIGNED32;
+				$$->value.unsigned32 = strtoul($1, NULL, 2);
+			    }
 			}
 	;
 
@@ -2497,6 +2545,7 @@ enumNumber:		number
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = $1;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		'-' number
 			{
@@ -2506,6 +2555,7 @@ enumNumber:		number
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
 			    /* TODO: non-negative is suggested */
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			}
 	;
 
@@ -2716,18 +2766,21 @@ Value:			valueofObjectSyntax
 	|		'{' BitsValue '}'
 			{
 			    int i = 0;
-			    List *listPtr;
+			    List *listPtr, *nextPtr;
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_BITS;
 			    $$->value.bits = NULL;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			    for (i = 0, listPtr = $2; listPtr;
-				 i++, listPtr = listPtr->nextPtr) {
+				 i++, listPtr = nextPtr) {
 				$$->value.bits = util_realloc($$->value.bits,
 						       sizeof(char *) * (i+2));
 				$$->value.bits[i] = listPtr->ptr;
 				$$->value.bits[i+1] = NULL;
+				nextPtr = listPtr->nextPtr;
+				util_free(listPtr);
 			    }
 			}
 	;
@@ -3152,19 +3205,19 @@ subidentifier:
 
 objectIdentifier_defval: subidentifiers_defval
 			{ $$ = NULL; }
-        ;		/* TODO: right? */
+        ;		/* TODO */
 
 subidentifiers_defval:	subidentifier_defval
 			{ $$ = 0; }
 	|		subidentifiers_defval subidentifier_defval
 			{ $$ = 0; }
-        ;		/* TODO: right? */
+        ;		/* TODO */
 
 subidentifier_defval:	LOWERCASE_IDENTIFIER '(' number ')'
 			{ $$ = 0; }
 	|		number
 			{ $$ = 0; }
-	;		/* TODO: right? range? */
+	;		/* TODO */
 
 objectGroupClause:	LOWERCASE_IDENTIFIER
 			{ 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.40 1999/06/16 15:52:18 strauss Exp $
+ * @(#) $Id: smi.h,v 1.41 1999/06/17 16:57:00 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -20,11 +20,12 @@
 
 
 
-#define SMI_VIEWALL     0x0800  /* all modules are `known', need no views.   */
-#define SMI_ERRORS      0x1000  /* print parser errors.                      */
-#define SMI_STATS       0x4000  /* print statistics after parsing a module.  */
-#define SMI_RECURSIVE   0x8000  /* recursively parse imported modules.       */
-#define SMI_FLAGMASK    (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS)
+#define SMI_FLAG_VIEWALL   0x1000 /* all modules are `known', need no views. */
+#define SMI_FLAG_ERRORS    0x2000 /* print parser errors.                    */
+#define SMI_FLAG_RECURSIVE 0x4000 /* recursively parse imported modules.     */
+#define SMI_FLAG_STATS     0x8000 /* print statistics after parsing module.  */
+#define SMI_FLAG_MASK      (SMI_FLAG_VIEWALL|SMI_FLAG_STATS|\
+			    SMI_FLAG_RECURSIVE|SMI_FLAG_ERRORS)
 
 
 
@@ -64,10 +65,6 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_ENUM                   = 10,
     SMI_BASETYPE_BITS                   = 11, /* only SMIv2 and SMIng        */
 
-    SMI_BASETYPE_HEXSTRING              = 12, /* only for values             */
-    SMI_BASETYPE_BINSTRING              = 13, /* only for values, SMIv1/v2   */
-    SMI_BASETYPE_LABEL                  = 14, /* labels as values            */
-    SMI_BASETYPE_CHOICE                 = 15, /* only for parsing SMI specs  */
     SMI_BASETYPE_SEQUENCE               = 16, /* only for parsing SMI specs  */
     SMI_BASETYPE_SEQUENCEOF             = 17  /* only for parsing SMI specs  */
 } SmiBasetype;
@@ -146,9 +143,19 @@ typedef enum SmiIndexkind {
     SMI_INDEX_EXPAND            = 5
 } SmiIndexkind;
 
+/* SmiValueformat -- how a value is formatted in the module                  */
+typedef enum SmiValueformat {
+    SMI_VALUEFORMAT_NATIVE      = 0, 
+    SMI_VALUEFORMAT_BINSTRING   = 1, /* OctetString or ObjectIdentifier      */
+    SMI_VALUEFORMAT_HEXSTRING   = 2, /* OctetString or ObjectIdentifier      */
+    SMI_VALUEFORMAT_TEXT        = 3, /* OctetString                          */
+    SMI_VALUEFORMAT_NAME        = 4, /* Enum or named ObjectIdentifier       */
+    SMI_VALUEFORMAT_OID         = 5, /* ObjectIdentifier (illegal in SMIv2)  */
+} SmiValueformat;
+
 /* SmiValue -- any single value; for use in default values and subtyping     */
 typedef struct SmiValue {
-    SmiBasetype         basetype;
+    SmiBasetype             basetype;
     union {
         SmiUnsigned64       unsigned64;
         SmiInteger64        integer64;
@@ -157,11 +164,12 @@ typedef struct SmiValue {
         SmiFloat32          float32;
         SmiFloat64          float64;
         SmiFloat128         float128;
-	unsigned int	    oidlen;
         SmiSubid	    *oid;
-        char                *ptr;
-        char                **bits;      /* array of SmiNamedNumber pointers */
+        char                *ptr;	 /* OctetString, Enum, or named OID  */
+        char                **bits;      /* array of BitNames                */
     } value;
+    unsigned int	    len;         /* only for OIDs and OctetStrings   */
+    SmiValueformat	    valueformat;
 } SmiValue;
 
 /* SmiNamedNumber -- a named number; for enumeration and bitset types        */

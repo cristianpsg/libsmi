@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.16 1999/06/16 15:04:22 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.17 1999/06/16 15:52:24 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -242,6 +242,8 @@ static void printWrapped(int column, char *string)
 static char *getValueString(SmiValue *valuePtr)
 {
     static char s[100];
+    char        ss[9];
+    int		i;
     char        **p;
     
     s[0] = 0;
@@ -264,11 +266,27 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-    case SMI_BASETYPE_LABEL:
 	sprintf(s, "%s", valuePtr->value.ptr);
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	if (valuePtr->valueformat == SMI_VALUEFORMAT_TEXT) {
+	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	} else if (valuePtr->valueformat == SMI_VALUEFORMAT_HEXSTRING) {
+	    sprintf(s, "'%*s'H", 2 * valuePtr->len, " ");
+	    for (i=0; i < valuePtr->len; i++) {
+		sprintf(ss, "%2x", valuePtr->value.ptr[i]);
+		strncpy(&s[1+2*i], ss, 2);
+	    }
+	} else if (valuePtr->valueformat == SMI_VALUEFORMAT_BINSTRING) {
+	    sprintf(s, "'%*s'B", 8 * valuePtr->len, " ");
+	    for (i=0; i < valuePtr->len; i++) {
+		/* TODO */
+		sprintf(ss, "%02x", valuePtr->value.ptr[i]);
+		strncpy(&s[1+8*i], ss, 8);
+	    }
+	} else {
+	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	}
 	break;
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
@@ -282,18 +300,11 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(&s[strlen(s)], ")");
 	break;
     case SMI_BASETYPE_UNKNOWN:
-    case SMI_BASETYPE_CHOICE:
     case SMI_BASETYPE_SEQUENCE:
     case SMI_BASETYPE_SEQUENCEOF:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */
-	break;
-    case SMI_BASETYPE_BINSTRING:
-	sprintf(s, "'%s'B", valuePtr->value.ptr);
-	break;
-    case SMI_BASETYPE_HEXSTRING:
-	sprintf(s, "'%s'H", valuePtr->value.ptr);
 	break;
     }
 

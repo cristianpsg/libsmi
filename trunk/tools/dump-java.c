@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-java.c,v 1.3 1999/06/16 15:04:21 strauss Exp $
+ * @(#) $Id: dump-java.c,v 1.4 1999/06/16 15:52:23 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -160,7 +160,6 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-    case SMI_BASETYPE_LABEL:
 	sprintf(s, "%s", valuePtr->value.ptr);
 	break;
     case SMI_BASETYPE_OCTETSTRING:
@@ -178,18 +177,11 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(&s[strlen(s)], ")");
 	break;
     case SMI_BASETYPE_UNKNOWN:
-    case SMI_BASETYPE_CHOICE:
     case SMI_BASETYPE_SEQUENCE:
     case SMI_BASETYPE_SEQUENCEOF:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */
-	break;
-    case SMI_BASETYPE_BINSTRING:
-	/* TODO */
-	break;
-    case SMI_BASETYPE_HEXSTRING:
-	sprintf(s, "0x%s", valuePtr->value.ptr);
 	break;
     }
 

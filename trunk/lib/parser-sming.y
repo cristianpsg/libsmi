@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.23 1999/06/15 14:09:39 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.24 1999/06/16 15:04:12 strauss Exp $
  */
 
 %{
@@ -2440,12 +2440,16 @@ floatElement:		floatValue floatUpperLimit_01
 			    $$ = util_malloc(sizeof(Range));
 			    $$->minValuePtr = util_malloc(sizeof(SmiValue));
 			    $$->minValuePtr->basetype = SMI_BASETYPE_FLOAT64;
+			    $$->minValuePtr->valueformat =
+				SMI_VALUEFORMAT_NATIVE;
 			    $$->minValuePtr->value.float64 = strtod($1, NULL);
 			    if ($2) {
 				$$->maxValuePtr =
 				                 util_malloc(sizeof(SmiValue));
 				$$->maxValuePtr->basetype =
 				                          SMI_BASETYPE_FLOAT64;
+				$$->maxValuePtr->valueformat =
+							SMI_VALUEFORMAT_NATIVE;
 				$$->maxValuePtr->value.float64 =
 				                              strtod($2, NULL);
 			    } else {
@@ -2844,6 +2848,8 @@ anyValue:		bitsValue
 			    if (defaultBasetype == SMI_BASETYPE_BITS) {
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_BITS;
+				$$->valueformat =
+				    SMI_VALUEFORMAT_NATIVE;
 				$$->value.bits = NULL;
 				for (i = 0, listPtr = $1; listPtr;
 				     i++, listPtr = nextPtr) {
@@ -2868,30 +2874,37 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_UNSIGNED32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
+				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
 				$$->value.unsigned32 = strtoul($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_UNSIGNED64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED64;
+				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
 				$$->value.unsigned64 = strtoull($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
+				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer32 = strtol($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
+				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer64 = strtoll($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-				/* TODO */
-				$$->value.oidlen = 2;
+				$$->valueformat = SMI_VALUEFORMAT_OID;
+				$$->len = 2;
+				$$->value.oid =
+				    util_malloc(2 * sizeof(SmiSubid));
 				$$->value.oid[0] = 0;
 				$$->value.oid[1] = 0;
+				/* TODO */
 				break;
 			    default:
 				printError(thisParserPtr,
@@ -2906,11 +2919,13 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
+				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer32 = - strtoul($2, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
+				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer64 = - strtoull($2, NULL, 10);
 				break;
 			    default:
@@ -2937,6 +2952,7 @@ anyValue:		bitsValue
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
+				$$->valueformat = SMI_VALUEFORMAT_TEXT;
 				$$->value.ptr = $1;
 			    } else {
 				printError(thisParserPtr,
@@ -2952,11 +2968,13 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_ENUM:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_ENUM;
+				$$->valueformat = SMI_VALUEFORMAT_NAME;
 				$$->value.ptr = $1;
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
+				$$->valueformat = SMI_VALUEFORMAT_NAME;
 				$$->value.ptr = $1;
 				break;
 			    default:
@@ -3130,12 +3148,14 @@ number:			hexadecimalNumber
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			    $$->value.unsigned64 = 42;
 			}
         |		decimalNumber
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			    $$->value.unsigned64 = strtoull($1, NULL, 10);
 			}
 	;
@@ -3144,6 +3164,7 @@ negativeNumber:		'-' decimalNumber
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER64;
+			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			    $$->value.integer64 = - strtoull($2, NULL, 10);
 			}
         ;

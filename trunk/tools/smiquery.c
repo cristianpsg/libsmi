@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.19 1999/06/15 14:09:49 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.20 1999/06/17 16:57:09 strauss Exp $
  */
 
 #include <stdio.h>
@@ -116,7 +116,6 @@ char *smiStringBasetype(SmiBasetype basetype)
         (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
         (basetype == SMI_BASETYPE_SEQUENCE)          ? "SEQUENCE" :
         (basetype == SMI_BASETYPE_SEQUENCEOF)        ? "SEQUENCE OF" :
-        (basetype == SMI_BASETYPE_CHOICE)            ? "CHOICE" :
                                                    "<unknown>";
 }
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.34 1999/06/16 15:04:07 strauss Exp $
+ * @(#) $Id: data.c,v 1.35 1999/06/17 16:56:53 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -124,7 +124,7 @@ isInView(modulename)
 {
     View	      *viewPtr;
 
-    if (smiFlags & SMI_VIEWALL) {
+    if (smiFlags & SMI_FLAG_VIEWALL) {
 	return 1;
     }
     
@@ -2826,7 +2826,7 @@ loadModule(modulename)
 	    smiparse((void *)&parser);
 	    smiLeaveLexRecursion();
 	    fclose(parser.file);
-	    if (parser.flags & FLAG_STATS) {
+	    if (parser.flags & SMI_FLAG_STATS) {
 		sprintf(s, " (%d lines)", parser.line-1);
 		printError(&parser, ERR_STATISTICS, s);
 	    }
@@ -2862,7 +2862,7 @@ loadModule(modulename)
 	    smingparse((void *)&parser);
 	    smingLeaveLexRecursion();
 	    fclose(parser.file);
-	    if (parser.flags & FLAG_STATS) {
+	    if (parser.flags & SMI_FLAG_STATS) {
 		sprintf(s, " (%d lines)", parser.line-1);
 		printError(&parser, ERR_STATISTICS, s);
 	    }

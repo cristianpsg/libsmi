@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.36 1999/06/16 15:04:08 strauss Exp $
+ * @(#) $Id: data.h,v 1.37 1999/06/17 16:56:53 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -57,16 +57,6 @@ typedef unsigned short MacroFlags;
 				       /* referenced type or object.         */
 #define	FLAG_CREATABLE	        0x0040 /* On a Row: New rows can be created. */
 
-#define	FLAG_ERRORS	SMI_ERRORS     /* Otherwise be quiet,       */
-				       /* useful when IMPORTing.    */
-#define FLAG_STATS	SMI_STATS      /* Print module statistics.  */
-#define FLAG_RECURSIVE	SMI_RECURSIVE  /* Errors and stats also for */
-				       /* imported modules.         */
-				       /* useful when IMPORTing.    */
-#define	FLAG_VIEWALL	SMI_VIEWALL    /* smiFunctions return all   */
-				       /* labels they know, not     */
-				       /* only the ones in the      */
-				       /* current view.             */
 
 
 typedef struct View {
