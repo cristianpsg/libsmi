@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.83 2002/11/19 12:45:44 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -325,8 +325,14 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* prepend the cut-off subidentifier to `append'. */
 	strcpy(s, append);
-	sprintf(append, " %u%s", parentNode->oid[parentNode->oidlen-1], s);
-
+	if (parentNode->decl != SMI_DECL_IMPL_OBJECT) {
+	    sprintf(append, " %u%s", parentNode->oid[parentNode->oidlen-1], s);
+	} else {
+	    sprintf(append, " %s(%u)%s",
+		    parentNode->name,
+		    parentNode->oid[parentNode->oidlen-1], s);
+	}
+	
 	/* retrieve the parent SmiNode */
 	parentNode = smiGetParentNode(parentNode);
 
@@ -336,15 +342,16 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	}
 	
 	/* found an imported or a local parent node? */
-	if ((parentNode->name && strlen(parentNode->name)) &&
+	if ((parentNode->decl != SMI_DECL_IMPL_OBJECT) &&
+	    ((parentNode->name && strlen(parentNode->name)) &&
 	    (smiIsImported(smiModule, NULL, parentNode->name) ||
 	     (!importedParent &&
 	      (smiGetNodeModule(parentNode) == smiModule)) ||
-	     (parentNode->oidlen == 1))) {
+	     (parentNode->oidlen == 1)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    return s;
 	}
-	
+
     } while (parentNode);
 
     s[0] = 0;
