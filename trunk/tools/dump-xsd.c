@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.67 2003/01/27 17:24:26 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.68 2003/01/28 16:42:09 tklie Exp $
  */
 
 #include <config.h>
@@ -1284,6 +1284,11 @@ fprintTypeWithHint( FILE *f, SmiNode *smiNode, SmiType *smiType, char *hint )
 	lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
     }		    
     fprintSegment( f, 1, "<xsd:simpleType>\n");
+    fprintSegment( f, 1, "<xsd:annotation>\n");
+    fprintSegment( f, 1, "<xsd:appinfo>\n");
+    fprintDisplayHint( f, hint );
+    fprintSegment( f, -1, "</xsd:appinfo>\n");
+    fprintSegment( f, -1, "</xsd:annotation>\n");
     fprintSegment( f, 1, "<xsd:restriction base=\"xsd:string\">\n");
     fprintSegment( f, 0, "<xsd:pattern value=\"%s\"/>\n",
 		   getStrDHType( hint, lengths, numSubRanges));
