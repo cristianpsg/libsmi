@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.16 2001/04/11 11:17:39 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.17 2001/04/11 13:43:45 schoenw Exp $
  */
 
 /*
@@ -696,7 +696,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	if (tableNode) {
 	    cTableName = translate(tableNode->name);
 	    fprintf(f, "extern int\n"
-		    "%s_get_%s(host_snmp *s, %s_%s_t ***%s);\n\n",
+		    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s);\n\n",
 		    cModuleName, cTableName,
 		    cModuleName, cGroupName, cGroupName);
 	    fprintf(f, "extern void\n"
@@ -710,12 +710,12 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "%s_new_%s();\n\n",
 	    cModuleName, cGroupName, cModuleName, cGroupName);
     fprintf(f, "extern int\n"
-	    "%s_get_%s(host_snmp *s, %s_%s_t **%s);\n\n",
+	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s);\n\n",
 	    cModuleName, cGroupName,
 	    cModuleName, cGroupName, cGroupName);
     if (writable) {
 	fprintf(f, "extern int\n"
-		"%s_set_%s(host_snmp *s, %s_%s_t *%s);\n\n",
+		"%s_set_%s(GSnmpSession *s, %s_%s_t *%s);\n\n",
 		cModuleName, cGroupName,
 		cModuleName, cGroupName, cGroupName);
     }
@@ -1362,7 +1362,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
 
     fprintf(f,
 	    "int\n"
-	    "%s_get_%s(host_snmp *s, %s_%s_t ***%s)\n"
+	    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
 	    cModuleName, cTableName, cModuleName, cEntryName, cEntryName);
@@ -1434,7 +1434,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "int\n"
-	    "%s_get_%s(host_snmp *s, %s_%s_t %s%s)\n"
+	    "%s_get_%s(GSnmpSession *s, %s_%s_t %s%s)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
 	    cModuleName, cGroupName, cModuleName, cGroupName,
