@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.33 2000/11/13 09:06:00 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.34 2000/11/15 10:50:34 strauss Exp $
  */
 
 #include <config.h>
@@ -1429,12 +1429,9 @@ static void fprintDisplayHints(FILE *f, SmiModule *smiModule)
 void dumpIdl(SmiModule *smiModule)
 {
     char      *idlModuleName;
-    char      *basename;
     FILE      *f;
 
-    basename = translateLower(smiModule->name);
-
-    f = createFile(basename, ".idl");
+    f = createFile(getIdlModuleName(smiModule->name), ".idl");
     if (! f) {
         return;
     }
@@ -1475,7 +1472,6 @@ void dumpIdl(SmiModule *smiModule)
     dictFree(&idlVBTypeNameList);
 
     fclose(f);
-    xfree(basename);
 }
 
 
@@ -1505,12 +1501,9 @@ void dumpOid(SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     SmiType   *smiType;
-    char      *basename;
     FILE      *f;
 
-    basename = translateLower(smiModule->name);
-
-    f = createFile(basename, ".oid");
+    f = createFile(getIdlModuleName(smiModule->name), ".oid");
     if (! f) {
         return;
     }
@@ -1580,8 +1573,8 @@ void dumpOid(SmiModule *smiModule)
 	}
     }
 
+    dictFree(&idlModuleNameList);
     fclose(f);
-    xfree(basename);
 }
 
 
