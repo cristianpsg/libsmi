@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: win.h,v 1.6 2000/11/16 14:58:41 strauss Exp $
+ * @(#) $Id: win.h,v 1.7 2001/03/08 14:49:09 schoenw Exp $
  */
 
 #ifndef _WIN_H
@@ -59,4 +59,4 @@ int __cdecl fileno(FILE *);
 #endif
 #endif
 
-#endif _WIN_H
+#endif /* _WIN_H */
