@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.50 2000/02/13 22:16:25 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.51 2000/02/14 17:18:27 strauss Exp $
  */
 
 %{
@@ -576,7 +576,6 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 				thisParserPtr->modulePtr =
 				    addModule($3,
 					      util_strdup(thisParserPtr->path),
-					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
 			    } else {
@@ -783,7 +782,6 @@ extensionStatement:	extensionKeyword sep lcIdentifier
 			{
 			    macroIdentifier = $3;
 			    macroPtr = addMacro(macroIdentifier,
-						thisParserPtr->character,
 						0,
 						thisParserPtr);
 			    setMacroDecl(macroPtr, SMI_DECL_EXTENSION);

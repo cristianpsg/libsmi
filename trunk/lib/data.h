@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.51 2000/02/10 11:35:37 strauss Exp $
+ * @(#) $Id: data.h,v 1.52 2000/02/10 21:26:41 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -70,7 +70,6 @@ typedef struct View {
 typedef struct Module {
     SmiModule	    export;
     time_t	    lastUpdated; /* only for SMIv2 modules */
-    off_t	    fileoffset;
     struct Object   *objectPtr;
     struct Object   *firstObjectPtr;
     struct Object   *lastObjectPtr;
@@ -133,7 +132,6 @@ typedef struct Type {
     Module         *modulePtr;
     struct Type    *parentPtr;
     struct List    *listPtr;
-    off_t          fileoffset;
     TypeFlags	   flags;
     struct Type    *nextPtr;
     struct Type    *prevPtr;
@@ -178,7 +176,6 @@ typedef struct Index {
 typedef struct Object {
     SmiNode        export;
     Module         *modulePtr;
-    off_t	   fileoffset;
     ObjectFlags	   flags;
     Type	   *typePtr;
     struct Object  *relatedPtr;         /* a related Object (augmented row) */
@@ -214,7 +211,6 @@ typedef struct Node {
 typedef struct Macro {
     SmiMacro	   export;
     Module	   *modulePtr;
-    off_t	   fileoffset;
     MacroFlags	   flags;
     struct Macro   *nextPtr;
     struct Macro   *prevPtr;
@@ -227,8 +223,6 @@ typedef struct Parser {
     char	   *path;
     FILE	   *file;
     int		   line;
-    int		   column;
-    int		   character;
     Module	   *modulePtr;
     ParserFlags	   flags;
     List	   *firstIndexlabelPtr; /* only for the SMIng parser */
@@ -265,7 +259,6 @@ extern int isInView(const char *modulename);
 
 extern Module *addModule(char *modulename,
 			 char *path,
-			 off_t fileoffset,
 			 ModuleFlags flags,
 			 Parser *parserPtr);
 
@@ -280,6 +273,12 @@ extern void setModuleOrganization(Module *modulePtr,
 
 extern void setModuleContactInfo(Module *modulePtr,
 				 char *contactinfo);
+
+extern void setModuleDescription(Module *modulePtr,
+				 char *description);
+
+extern void setModuleReference(Module *modulePtr,
+			       char *reference);
 
 extern Module *findModuleByName(const char *modulename);
 
@@ -350,9 +349,6 @@ extern void setObjectDescription(Object *objectPtr,
 
 extern void setObjectReference(Object *objectPtr,
 				 char *reference);
-
-extern void setObjectFileOffset(Object *objectPtr,
-				off_t fileoffset);
 
 extern void setObjectDecl(Object *objectPtr,
 			   SmiDecl decl);
@@ -449,9 +445,6 @@ extern void setTypeDescription(Type *typePtr,
 extern void setTypeReference(Type *typePtr,
 			     char *reference);
 
-extern void setTypeFileOffset(Type *typePtr,
-			      off_t fileoffset);
-
 extern void setTypeDecl(Type *typePtr,
 			SmiDecl decl);
 
@@ -486,9 +479,16 @@ extern Type *findTypeByModulenameAndName(const char *modulename,
 
 
 extern Macro *addMacro(const char *macroname,
-		       off_t fileoffset,
 		       int flags,
 		       Parser *parserPtr);
+
+extern void setMacroStatus(Macro *macroPtr, SmiStatus status);
+
+extern void setMacroDescription(Macro *macroPtr, char *description);
+
+extern void setMacroReference(Macro *macroPtr, char *reference);
+
+extern void setMacroDecl(Macro *macroPtr, SmiDecl decl);
 
 extern Macro *findMacroByName(const char *macroname);
 
@@ -512,4 +512,4 @@ extern int checkFormat(SmiBasetype basetype, char *format);
 extern int checkObjectName(Module *modulePtr, char *name, Parser *parserPtr);
 
 #endif /* _DATA_H */
-       /*  */
+

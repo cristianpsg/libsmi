@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.18 2000/02/09 21:04:29 strauss Exp $
+ * @(#) $Id: util.c,v 1.19 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -22,15 +22,6 @@
 
 #include "util.h"
 
-
-void *util_calloc(size_t n, size_t size)
-{
-    char *m = calloc(n, size);
-    if (! m) {
-	printError(NULL, ERR_OUT_OF_MEMORY);
-    }
-    return m;
-}
 
 void *util_malloc(size_t size)
 {
@@ -65,15 +56,15 @@ char *util_strdup(const char *s1)
 
 char *util_strndup(const char *s1, size_t n)
 {
-    char *p;
+    char *m;
     
-    p = util_malloc(n+1);
-    if (! p) {
+    m = util_malloc(n+1);
+    if (! m) {
 	printError(NULL, ERR_OUT_OF_MEMORY);
     }
-    strncpy(p, s1, n);
-    p[n] = 0;
-    return p;
+    strncpy(m, s1, n);
+    m[n] = 0;
+    return m;
 }
 
 void util_free(void *ptr)

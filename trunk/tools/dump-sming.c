@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.63 2000/02/13 13:20:53 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.64 2000/02/14 17:19:01 strauss Exp $
  */
 
 #include <config.h>
@@ -319,7 +319,8 @@ static void printSegment(int column, char *string, int length)
 static void printWrapped(int column, char *string)
 {
     if ((current_column + strlen(string)) > INDENTMAX) {
-	print("\n");
+	putc('\n', stdout);
+	current_column = 0;
 	printSegment(column, "", 0);
     }
     print("%s", string);
@@ -329,20 +330,22 @@ static void printWrapped(int column, char *string)
 
 static void printMultilineString(const char *s)
 {
-    int i;
+    int i, len;
     
     printSegment(INDENTTEXTS - 1, "\"", 0);
     if (s) {
-	for (i=0; i < strlen(s); i++) {
-	    if (s[i] != '\n') {
-		print("%c", s[i]);
-	    } else {
-		print("\n");
+	len = strlen(s);
+	for (i=0; i < len; i++) {
+	    putc(s[i], stdout);
+	    current_column++;
+	    if (s[i] == '\n') {
+		current_column = 0;
 		printSegment(INDENTTEXTS, "", 0);
 	    }
 	}
     }
-    print("\"");
+    putc('\"', stdout);
+    current_column++;
 }
 
 

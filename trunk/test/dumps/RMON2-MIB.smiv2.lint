@@ -7,3 +7,5 @@ dumps/RMON2-MIB.smiv2:3618: Object Identifier name `alMatrixTopNProtocolDirLocal
 dumps/RMON2-MIB.smiv2:3662: Object Identifier name `alMatrixTopNAppProtocolDirLocalIndex' longer than 32 characters
 dumps/RMON2-MIB.smiv2:3798: Object Identifier name `usrHistoryControlBucketsRequested' longer than 32 characters
 dumps/RMON2-MIB.smiv2:5037: Object Identifier name `rmon2MIBApplicationLayerCompliance' longer than 32 characters
+dumps/RMON2-MIB.smiv2:81: Textual convention `LastCreateTime' can not be derived from the textual convention `TimeStamp'
+dumps/RMON2-MIB.smiv2:222: Textual convention `ControlString' can not be derived from the textual convention `DisplayString'

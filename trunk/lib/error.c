@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.37 2000/02/12 10:56:20 strauss Exp $
+ * @(#) $Id: error.c,v 1.38 2000/02/12 16:06:24 strauss Exp $
  */
 
 #include <config.h>
@@ -136,7 +136,7 @@ Error errors[] = {
     { 5, ERR_OIDNAME_INCLUDES_HYPHEN, "hyphen-in-object",
       "Object Identifier name `%s' may only include hyphens in SMIv1 converted SMIv2 MIBs" },
     { 2, ERR_ILLEGAL_CHAR_IN_STRING, "char-illegal-string", 
-      "Illegal character in quoted string (%s)" },
+      "Illegal character `%c' (0x%2x) in quoted string" },
     { 2, ERR_BIN_STRING_MUL8, "", 
       "Binary string `%s' length is not a multiple of 8" },
     { 2, ERR_HEX_STRING_MUL2, "", 
@@ -279,6 +279,8 @@ Error errors[] = {
       "Type assignement `%s' should be a textual convention in SMIv2" },
     { 6, ERR_ILLEGAL_IMPORT, "import-illegal", 
       "Identifier `%s' may not be imported from module `%s'" },
+    { 4, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION, "textual-convention-nested", 
+      "Textual convention `%s' can not be derived from the textual convention `%s'" },
  
     { 0, 0, NULL, NULL }
 };

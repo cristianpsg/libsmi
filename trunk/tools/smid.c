@@ -105,7 +105,6 @@ char *smiStringNodekind(SmiNodekind nodekind)
 {
     return
         (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<UNKNOWN>" :
-        (nodekind == SMI_NODEKIND_MODULE)       ? "module" :
         (nodekind == SMI_NODEKIND_NODE)         ? "node" :
         (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
         (nodekind == SMI_NODEKIND_TABLE)        ? "table" :
@@ -140,10 +139,13 @@ char *smiStringBasetype(SmiBasetype basetype)
 int prefix(char *gaga, char *ga)
 {
     char *g;
-    int i, rc;
+    int i, len; rc;
     
     g = strdup(ga);
-    for (i=0; i < strlen(g); i++) g[i] = (char)tolower((int)g[i]);
+    len = strlen(g);
+    for (i=0; i < len; i++) {
+	g[i] = (char)tolower((int)g[i]);
+    }
     rc = (strstr(gaga, g) == gaga);
     free(g);
     return rc;

@@ -6,6 +6,8 @@ o error detection: detect IMPORTs of SMIv1 specific and SMIv2 specific
 o error detection: does table node have exactly one row sub node
   with oid == 1? (2578.7.10)
 
+o warning detection: empty strings in DESCRIPTION and similar clauses
+
 o warning detection: non continuous sub oids in column node list?
 
 o warning detection: integer(signed) in index
@@ -27,6 +29,12 @@ o warning detection: enumerations SHOULD NOT contain signedNumber's.
 
 o warning detection: zeroDotZero defined locally instead of
   imported from SMI.
+
+o warning detection: max-access for a counter must be readonly
+
+o warning detection: subtyping not allowed for counter or timeticks
+
+o warning detection: defvals not allowed for counter
 
 
 

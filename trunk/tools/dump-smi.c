@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.40 2000/02/12 14:31:54 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.41 2000/02/13 13:20:53 strauss Exp $
  */
 
 #include <config.h>
@@ -582,7 +582,8 @@ static void printSegment(int column, char *string, int length, int comment)
 static void printWrapped(int column, char *string, int comment)
 {
     if ((current_column + strlen(string)) > INDENTMAX) {
-	print("\n");
+	putc('\n', stdout);
+	current_column = 0;
 	printSegment(column, "", 0, comment);
     }
     print("%s", string);
@@ -592,20 +593,22 @@ static void printWrapped(int column, char *string, int comment)
 
 static void printMultilineString(const char *s, const int comment)
 {
-    int i;
+    int i, len;
     
     printSegment(INDENTTEXTS - 1, "\"", 0, comment);
     if (s) {
-	for (i=0; i < strlen(s); i++) {
-	    if (s[i] != '\n') {
-		print("%c", s[i]);
-	    } else {
-		print("\n");
+	len = strlen(s);
+	for (i=0; i < len; i++) {
+	    putc(s[i], stdout);
+	    current_column++;
+	    if (s[i] == '\n') {
+		current_column = 0;
 		printSegment(INDENTTEXTS, "", 0, comment);
 	    }
 	}
     }
-    print("\"");
+    putc('\"', stdout);
+    current_column++;
 }
 
 

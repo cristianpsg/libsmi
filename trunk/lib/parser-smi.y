@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.87 2000/02/14 22:29:04 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.88 2000/02/15 10:41:10 strauss Exp $
  */
 
 %{
@@ -264,14 +264,30 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 			     typePtr->line, typePtr->export.name);
 	}
 
+	/*
+	 * Use TCs instead of type assignments in SMIv2.
+	 */
+
 	if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2
 	    && typePtr->export.decl == SMI_DECL_TYPEASSIGNMENT
 	    && typePtr->export.basetype != SMI_BASETYPE_UNKNOWN) {
 	    printErrorAtLine(parserPtr, ERR_SMIV2_TYPE_ASSIGNEMENT,
 			     typePtr->line, typePtr->export.name);
 	}
-			    
-}
+
+	/*
+	 * Complain about TCs derived from other TCs (RFC 2579 3.5).
+	 */
+	
+	if (typePtr->parentPtr
+	    && typePtr->export.decl == SMI_DECL_TEXTUALCONVENTION
+	    && typePtr->export.decl == typePtr->parentPtr->export.decl) {
+	    printErrorAtLine(parserPtr, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION,
+			     typePtr->line,
+			     typePtr->export.name,
+			     typePtr->parentPtr->export.name);
+	}
+    }
 }
 
 				
@@ -318,7 +334,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 				 objectPtr->line,
 				 (char *)objectPtr->export.value.value.ptr);
 		objectPtr->export.value.value.ptr = NULL;
-		objectPtr->export.value.basetype == SMI_BASETYPE_UNKNOWN;
+		objectPtr->export.value.basetype = SMI_BASETYPE_UNKNOWN;
 	    } else {
 		objectPtr->export.value.value.ptr = (void *)object2Ptr;
 	    }
@@ -756,7 +772,6 @@ module:			moduleName
 				thisParserPtr->modulePtr =
 				    addModule($1,
 					      util_strdup(thisParserPtr->path),
-					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
 				thisParserPtr->modulePtr->
@@ -1101,8 +1116,7 @@ macroClause:		macroName
 			/* the scanner skips until... */
 			END
 			{
-			    addMacro($1, thisParserPtr->character, 0,
-				     thisParserPtr);
+			    addMacro($1, 0, thisParserPtr);
 			    util_free($1);
 			    $$ = 0;
                         }
@@ -1203,7 +1217,7 @@ typeDeclaration:	typeName
 			    /*
 			     * If we are in an SMI module, some type
 			     * definitions derived from ASN.1 `INTEGER'
-			     * must modified to libsmi basetypes.
+			     * must be modified to libsmi basetypes.
 			     */
 			    if (thisModulePtr &&
 				!strcmp(thisModulePtr->export.name, "SNMPv2-SMI")) {
@@ -1461,7 +1475,6 @@ sequenceItems:		sequenceItem
 sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			{
 			    Object *objectPtr;
-			    SmiNode *snodePtr;
 			    Import *importPtr;
 			    
 			    objectPtr =
@@ -1476,8 +1489,6 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 					                  0,
 					                  FLAG_INCOMPLETE,
 						          thisParserPtr);
-				    setObjectFileOffset(objectPtr,
-						        thisParserPtr->character);
 				} else {
 				    /*
 				     * imported object.
@@ -1842,16 +1853,12 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 						      0,
 						      FLAG_INCOMPLETE,
 						      thisParserPtr);
-				setObjectFileOffset(objectPtr,
-						    thisParserPtr->character);
 			    }
 			    objectPtr = addObject("",
 						  objectPtr->nodePtr,
 						  $11,
 						  FLAG_INCOMPLETE,
 						  thisParserPtr);
-			    setObjectFileOffset(objectPtr,
-						thisParserPtr->character);
 			    
 			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
 				objectPtr = duplicateObject(objectPtr, 0,
@@ -2561,16 +2568,17 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 	|		BIN_STRING		/* number or OCTET STRING */
 			{
 			    char s[9];
-			    int i, j;
+			    int i, len, j;
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->format = SMI_VALUEFORMAT_BINSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
+				len = strlen($1);
 				$$->value.ptr =
-				    util_malloc((strlen($1)+7)/8+1);
-				for (i = 0; i < strlen($1); i += 8) {
+				    util_malloc((len+7)/8+1);
+				for (i = 0; i < len; i += 8) {
 				    strncpy(s, &$1[i], 8);
 				    for (j = 1; j < 8; j++) {
 					if (!s[j]) s[j] = '0';
@@ -2578,7 +2586,7 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 				    s[8] = 0;
 				    $$->value.ptr[i/8] = strtol(s, 0, 2);
 				}
-				$$->len = (strlen($1)+7)/8;
+				$$->len = (len+7)/8;
 			    } else {
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
 				$$->value.unsigned32 = strtoul($1, NULL, 2);
@@ -2587,22 +2595,22 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 	|		HEX_STRING		/* number or OCTET STRING */
 			{
 			    char s[3];
-			    int i;
+			    int i, len;
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->format = SMI_VALUEFORMAT_HEXSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
-				$$->value.ptr =
-				    util_malloc((strlen($1)+1)/2+1);
-				for (i = 0; i < strlen($1); i += 2) {
+				len = strlen($1);
+				$$->value.ptr = util_malloc((len+1)/2+1);
+				for (i = 0; i < len; i += 2) {
 				    strncpy(s, &$1[i], 2);
 				    if (!s[1]) s[1] = '0';
 				    s[2] = 0;
 				    $$->value.ptr[i/2] = strtol(s, 0, 16);
 				}
-				$$->len = (strlen($1)+1)/2;
+				$$->len = (len+1)/2;
 			    } else {
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
 				$$->value.unsigned32 = strtoul($1, NULL, 16);
@@ -3027,22 +3035,22 @@ value:			NEGATIVENUMBER
 	|		HEX_STRING
 			{
 			    char s[3];
-			    int i;
+			    int i, len;
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->format = SMI_VALUEFORMAT_HEXSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
-				$$->value.ptr =
-				    util_malloc((strlen($1)+1)/2+1);
-				for (i = 0; i < strlen($1); i += 2) {
+				len = strlen($1);
+				$$->value.ptr = util_malloc((len+1)/2+1);
+				for (i = 0; i < len; i += 2) {
 				    strncpy(s, &$1[i], 2);
 				    if (!s[1]) s[1] = '0';
 				    s[2] = 0;
 				    $$->value.ptr[i/2] = strtol(s, 0, 16);
 				}
-				$$->len = (strlen($1)+1)/2;
+				$$->len = (len+1)/2;
 			    } else {
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
 				$$->value.unsigned32 = strtoul($1, NULL, 16);
@@ -3051,16 +3059,16 @@ value:			NEGATIVENUMBER
 	|		BIN_STRING
 			{
 			    char s[9];
-			    int i, j;
+			    int i, len, j;
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->format = SMI_VALUEFORMAT_BINSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
-				$$->value.ptr =
-				    util_malloc((strlen($1)+7)/8+1);
-				for (i = 0; i < strlen($1); i += 8) {
+				len = strlen($1);
+				$$->value.ptr = util_malloc((len+7)/8+1);
+				for (i = 0; i < len; i += 8) {
 				    strncpy(s, &$1[i], 8);
 				    for (j = 1; j < 8; j++) {
 					if (!s[j]) s[j] = '0';
@@ -3068,7 +3076,7 @@ value:			NEGATIVENUMBER
 				    s[8] = 0;
 				    $$->value.ptr[i/8] = strtol(s, 0, 2);
 				}
-				$$->len = (strlen($1)+7)/8;
+				$$->len = (len+7)/8;
 			    } else {
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
 				$$->value.unsigned32 = strtoul($1, NULL, 2);
@@ -3603,8 +3611,6 @@ subidentifier:
 						    pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
-						setObjectFileOffset(objectPtr,
-						     thisParserPtr->character);
 						printError(thisParserPtr,
 					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
 					     complianceModulePtr->export.name);
@@ -3625,8 +3631,6 @@ subidentifier:
 						    pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
-						setObjectFileOffset(objectPtr,
-						     thisParserPtr->character);
 						printError(thisParserPtr,
 					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
 					   capabilitiesModulePtr->export.name);
@@ -3642,8 +3646,6 @@ subidentifier:
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
-					    setObjectFileOffset(objectPtr,
-						     thisParserPtr->character);
 					}
 					$$ = objectPtr;
 				    } else {
@@ -3702,8 +3704,6 @@ subidentifier:
 						    pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
-						setObjectFileOffset(objectPtr,
-						     thisParserPtr->character);
 						printError(thisParserPtr,
 					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
 					     complianceModulePtr->export.name);
@@ -3724,8 +3724,6 @@ subidentifier:
 						    pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
-						setObjectFileOffset(objectPtr,
-						     thisParserPtr->character);
 						printError(thisParserPtr,
 					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
 					   capabilitiesModulePtr->export.name);
@@ -3741,8 +3739,6 @@ subidentifier:
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
-					    setObjectFileOffset(objectPtr,
-						     thisParserPtr->character);
 					}
 					$$ = objectPtr;
 				    } else {
@@ -3779,8 +3775,6 @@ subidentifier:
 						      FLAG_INCOMPLETE,
 						      thisParserPtr);
 				$$ = objectPtr;
-				setObjectFileOffset(objectPtr,
-						    thisParserPtr->character);
 			    }
 			    parentNodePtr = $$->nodePtr;
 			}
@@ -3808,8 +3802,6 @@ subidentifier:
 						      thisParserPtr);
 				setObjectDecl(objectPtr,
 					      SMI_DECL_VALUEASSIGNMENT);
-				setObjectFileOffset(objectPtr,
-						    thisParserPtr->character);
 				$$ = objectPtr;
 			    }
 			    if ($$) 
@@ -3839,8 +3831,6 @@ subidentifier:
 				objectPtr = addObject($3, parentNodePtr,
 						   $5, 0,
 						   thisParserPtr);
-				setObjectFileOffset(objectPtr,
-						    thisParserPtr->character);
 				$$ = objectPtr;
 			    }
 			    util_free(md);
