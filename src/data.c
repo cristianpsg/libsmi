@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.30 1998/11/26 00:50:05 strauss Exp $
+ * @(#) $Id: data.c,v 1.31 1998/12/04 14:36:45 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -35,30 +35,9 @@
 
 
 
-Descriptor	*firstDescriptor[NUM_KINDS];
-Descriptor	*lastDescriptor[NUM_KINDS];
-					/* List of known Descriptors (OID    */
-					/* labels, TCs Types, Modules).      */
-
-Node		*rootNode;
-
-Node		*pendingRootNode;
-
+Node		*rootNodePtr;
+Node		*pendingNodePtr;
 Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
-
-
-
-/*
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- *
- * Module functions.
- *
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- *----------------------------------------------------------------------
- */
 
 
 
@@ -80,57 +59,63 @@ Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
  */
 
 Module *
-addModule(name, path, fileoffset, flags, parser)
-    const char *name;
-    const char *path;
-    off_t fileoffset;
-    Flags flags;
-    Parser *parser;
+addModule(modulename, path, fileoffset, flags, parserPtr)
+    const char	      *modulename;
+    const char	      *path;
+    off_t	      fileoffset;
+    ModuleFlags	      flags;
+    Parser	      *parserPtr;
 {
-    Module *module;
-    Descriptor *descriptor;
-    int i;
-    
-    printDebug(4, "addModule(\"%s\", \"%s\", %d, parser)\n",
-	       name, path, fileoffset);
+    Module	      *modulePtr;
+    int		      i;
 
-    module = (Module *)malloc(sizeof(Module));
-    if (!module) {
-	printError(parser, ERR_ALLOCATING_MIBMODULE, strerror(errno));
+#ifdef DEBUG
+    printDebug(4,
+      "addModule(modulename=\"%s\", path=\"%s\", flags=%d, parserPtr=0x%x)\n",
+	       modulename, path, fileoffset, parserPtr);
+#endif
+    
+    modulePtr = (Module *)util_malloc(sizeof(Module));
+    if (!modulePtr) {
+	printError(parserPtr, ERR_ALLOCATING_MIBMODULE, strerror(errno));
 	return (NULL);
     }
     
-    module->path = strdup(path);
-    module->fileoffset = fileoffset;
-    module->flags = flags;
-    module->lastUpdated.fileoffset = -1;
-    module->lastUpdated.length = 0;
-    module->organization.fileoffset = -1;
-    module->organization.length = 0;
-    module->contactInfo.fileoffset = -1;
-    module->contactInfo.length = 0;
-    module->description.fileoffset = -1;
-    module->description.length = 0;
-#ifdef TEXTS_IN_MEMORY
-    module->lastUpdated.ptr = NULL;
-    module->organization.ptr = NULL;
-    module->contactInfo.ptr = NULL;
-    module->description.ptr = NULL;
+    modulePtr->path			= util_strdup(path);
+    modulePtr->fileoffset		= fileoffset;
+    modulePtr->flags			= flags;
+    
+    modulePtr->firstObjectPtr		= NULL;
+    modulePtr->lastObjectPtr		= NULL;
+    modulePtr->firstTypePtr		= NULL;
+    modulePtr->lastTypePtr		= NULL;
+    modulePtr->firstMacroPtr		= NULL;
+    modulePtr->lastMacroPtr		= NULL;
+#if 0
+    modulePtr->firstRevisionPtr		= NULL;
+    modulePtr->lastRevisionPtr		= NULL;
 #endif
-    for (i = 0; i < NUM_KINDS; i++) {
-	module->firstDescriptor[i] = NULL;
-	module->lastDescriptor[i] = NULL;
-    }
     
-    /*
-     * Create a Descriptor.
-     */
-    module->descriptor = NULL;
-    descriptor = addDescriptor(name, module, KIND_MODULE, &module,
-			       flags & FLAGS_GENERAL, parser);
-    module->descriptor = descriptor;
+    modulePtr->numImportedIdentifiers	= 0;
+    modulePtr->numStaements		= 0;
+    modulePtr->numModuleIdentities	= 0;
     
-    return (module);
+    modulePtr->lastUpdated.fileoffset	= -1;
+    modulePtr->lastUpdated.length	= 0;
+    modulePtr->organization.fileoffset	= -1;
+    modulePtr->organization.length	= 0;
+    modulePtr->contactInfo.fileoffset	= -1;
+    modulePtr->contactInfo.length	= 0;
+    modulePtr->description.fileoffset	= -1;
+    modulePtr->description.length	= 0;
+#ifdef TEXTS_IN_MEMORY
+    modulePtr->lastUpdated.ptr		= NULL;
+    modulePtr->organization.ptr		= NULL;
+    modulePtr->contactInfo.ptr		= NULL;
+    modulePtr->description.ptr		= NULL;
+#endif
+    
+    return (modulePtr);
 }
 
 
@@ -152,19 +137,23 @@ addModule(name, path, fileoffset, flags, parser)
  */
 
 void
-setModuleLastUpdated(module, lastUpdated)
-    Module *module;
-    String *lastUpdated;
+setModuleLastUpdated(modulePtr, lastUpdatedPtr)
+    Module	*modulePtr;
+    String	*lastUpdatedPtr;
 {
-    printDebug(5, "setModuleLastUpdated(%s, \"%s\")\n",
-	       module->descriptor ? module->descriptor->name : "?",
-	       lastUpdated->ptr ? lastUpdated->ptr : "...");
+#ifdef DEBUG
+    printDebug(5, "setModuleLastUpdated(0x%x(%s), lastUpdatedPtr=0x%x(%s))\n",
+	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
+	       lastUpdatedPtr,
+	       lastUpdatedPtr->ptr ? lastUpdatedPtr->ptr : "...");
+#endif
 
-    if (module->lastUpdated.fileoffset < 0) {
-	module->lastUpdated.fileoffset = lastUpdated->fileoffset;
-	module->lastUpdated.length = lastUpdated->length;
+    /* TODO: why this check? */
+    if (modulePtr->lastUpdated.fileoffset < 0) {
+	modulePtr->lastUpdated.fileoffset = lastUpdatedPtr->fileoffset;
+	modulePtr->lastUpdated.length = lastUpdatedPtr->length;
 #ifdef TEXTS_IN_MEMORY
-	module->lastUpdated.ptr = lastUpdated->ptr;
+	modulePtr->lastUpdated.ptr = lastUpdatedPtr->ptr;
 #endif
     }
 }
@@ -188,19 +177,23 @@ setModuleLastUpdated(module, lastUpdated)
  */
 
 void
-setModuleOrganization(module, organization)
-    Module *module;
-    String *organization;
+setModuleOrganization(modulePtr, organizationPtr)
+    Module *modulePtr;
+    String *organizationPtr;
 {
-    printDebug(5, "setModuleOrganization(%s, \"%s\")\n",
-	       module->descriptor ? module->descriptor->name : "?",
-	       organization->ptr ? organization->ptr : "...");
+#ifdef DEBUG
+    printDebug(5, "setModuleOrganization(0x%x(%s), px%x(%s))\n",
+	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
+	       organizationPtr,
+	       organizationPtr->ptr ? organizationPtr->ptr : "[FILE]");
+#endif
 
-    if (module->organization.fileoffset < 0) {
-	module->organization.fileoffset = organization->fileoffset;
-	module->organization.length = organization->length;
+    /* TODO: why this check */
+    if (modulePtr->organization.fileoffset < 0) {
+	modulePtr->organization.fileoffset = organizationPtr->fileoffset;
+	modulePtr->organization.length = organizationPtr->length;
 #ifdef TEXTS_IN_MEMORY
-	module->organization.ptr = organization->ptr;
+	modulePtr->organization.ptr = organizationPtr->ptr;
 #endif
     }
 }
@@ -224,19 +217,23 @@ setModuleOrganization(module, organization)
  */
 
 void
-setModuleContactInfo(module, contactInfo)
-    Module *module;
-    String *contactInfo;
+setModuleContactInfo(modulePtr, contactInfoPtr)
+    Module	  *modulePtr;
+    String	  *contactInfoPtr;
 {
-    printDebug(5, "setModuleContactInfo(%s, \"%s\")\n",
-	       module->descriptor ? module->descriptor->name : "?",
-	       contactInfo->ptr ? contactInfo->ptr : "...");
+#ifdef DEBUG
+    printDebug(5, "setModuleContactInfo(0x%x(%s), 0x%x(%s))\n",
+	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
+	       contactInfoPtr,
+	       contactInfoPtr->ptr ? contactInfoPtr->ptr : "[FILE]");
+#endif
 
-    if (module->contactInfo.fileoffset < 0) {
-	module->contactInfo.fileoffset = contactInfo->fileoffset;
-	module->contactInfo.length = contactInfo->length;
+    /* TODO: why this check? */
+    if (modulePtr->contactInfo.fileoffset < 0) {
+	modulePtr->contactInfo.fileoffset = contactInfoPtr->fileoffset;
+	modulePtr->contactInfo.length     = contactInfoPtr->length;
 #ifdef TEXTS_IN_MEMORY
-	module->contactInfo.ptr = contactInfo->ptr;
+	modulePtr->contactInfo.ptr        = contactInfoPtr->ptr;
 #endif
     }
 }
@@ -260,19 +257,22 @@ setModuleContactInfo(module, contactInfo)
  */
 
 void
-setModuleDescription(module, description)
-    Module *module;
-    String *description;
+setModuleDescription(modulePtr, descriptionPtr)
+    Module *modulePtr;
+    String *descriptionPtr;
 {
-    printDebug(5, "setModuleDescription(%s, \"%s\")\n",
-	       module->descriptor ? module->descriptor->name : "?",
-	       description->ptr ? description->ptr : "...");
-
-    if (module->description.fileoffset < 0) {
-	module->description.fileoffset = description->fileoffset;
-	module->description.length = description->length;
+#ifdef DEBUG
+    printDebug(5, "setModuleDescription(0x%x(%s), 0x%x(%s))\n",
+	       modulePtr, modulePtr && modulePtr->name ? module->name : "",
+	       descriptionPtr,
+	       descriptionPtr->ptr ? descriptionPtr->ptr : "[FILE]");
+#endif
+    
+    if (modulePtr->description.fileoffset < 0) {
+	modulePtr->description.fileoffset = descriptionPtr->fileoffset;
+	modulePtr->description.length     = descriptionPtr->length;
 #ifdef TEXTS_IN_MEMORY
-	module->description.ptr = description->ptr;
+	modulePtr->description.ptr        = descriptionPtr->ptr;
 #endif
     }
 }
@@ -297,28 +297,33 @@ setModuleDescription(module, description)
  */
 
 Module *
-findModuleByName(name)
-    const char *name;
+findModuleByName(modulename)
+    const char  *modulename;
 {
-    Descriptor *descriptor;
+    Module	*modulePtr;
 
-    printDebug(4, "findModuleByName(\"%s\")", name);
+#ifdef DEBUG
+    printDebug(6, "findModuleByName(%s)", modulename);
 
-    for (descriptor = firstDescriptor[KIND_MODULE]; descriptor;
-	 descriptor = descriptor->nextSameKind) {
-	if ((!strcmp(descriptor->name, name)) &&
-	    (!(descriptor->flags & FLAG_IMPORTED))) {
-	    printDebug(4, " = \"%s\"\n", descriptor->name);
-	    return (descriptor->module);
+    for (modulePtr = firstModulePtr; modulePtr;
+	 modulePtr = modulePtr->nextPtr) {
+	if (!strcmp(modulePtr->name, modulename)) {
+#ifdef DEBUG
+	    printDebug(4, " = 0x%x(%s)\n", modulePtr, modulePtr->name);
+#endif
+	    return (modulePtr);
 	}
     }
 
-    printDebug(4, " = NULL\n");
-
+#ifdef DEBUG
+    printDebug(6, " = NULL\n");
+#endif
     return (NULL);
 }
 
 
+/* XXX go on here... [14.12. 17:30]
+   
 
 /*
  *----------------------------------------------------------------------

@@ -253,12 +253,14 @@ x shift/reduce conflict at
 
   Descriptor: no longer needed
   Module    : firstObjectPtr firstTypePtr firstMacroPtr (&last) prevPtr nextPtr
-  Object    : modulePtr nodePtr prevPtr nextPtr
-  Node      : parentPtr, nextPtr, prevPtr, firstChildPtr, firstObjectPtr (&last)
-  Type      : modulePtr, parent???
+  Object    : modulePtr nodePtr prevPtr nextPtr (in module, same node)
+  Node      : parentPtr nextPtr prevPtr firstChildPtr firstObjectPtr (&last)
+  Type      : modulePtr parent???
   Macro     : modulePtr
 
   Parser    : modulePtr (thisModule), firstImportDescriptor???
 
 
-
+  IMPORT ... FROM ... -> modulePtr(lokal), name, importPtr
+  OBJECT-TYPE / MACRO / ... -> modulePtr, name
+  

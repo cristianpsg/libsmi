@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.21 1998/11/25 02:50:56 strauss Exp $
+ * @(#) $Id: data.h,v 1.22 1998/12/01 16:59:35 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -31,14 +31,14 @@
  * Simple generic list type. For SEQUENCEs and INDEX lists.
  */
 typedef struct List {
-    void *ptr;
-    struct List *next;
+    void	    *ptr;
+    struct List	    *next;
 } List;
 
 
 
 /*
- * Quoted String.
+ * Quoted String located in a MIB File.
  */
 typedef struct String {
 #ifdef TEXTS_IN_MEMORY
@@ -50,9 +50,6 @@ typedef struct String {
 
 
 
-/*
- * Kinds of Descriptors.
- */
 typedef enum DescriptorKind {
     KIND_ANY		 = 0 ,  /*					     */
     KIND_MODULE		 = 1 ,  /*					     */
@@ -67,9 +64,6 @@ typedef enum DescriptorKind {
 
 
 
-/*
- * Flags (general and structure-specific ones).
- */
 typedef unsigned short Flags;
 #define FLAG_PERMANENT		0x0001 /* e.g. Object and Descriptor `iso'.  */
 #define FLAG_IMPORTED		0x0002 /*				     */
@@ -117,174 +111,155 @@ typedef unsigned short Flags;
 
 
 
-/*
- * Known descriptors.
- */
-typedef struct Descriptor {
-    char		  *name;
-    struct Module	  *module;
-    void		  *ptr;
-    DescriptorKind	  kind;
-    int			  flags;
-    struct Descriptor	  *next;
-    struct Descriptor	  *prev;
-    struct Descriptor	  *nextSameModule;
-    struct Descriptor	  *prevSameModule;
-    struct Descriptor	  *nextSameKind;
-    struct Descriptor	  *prevSameKind;
-    struct Descriptor	  *nextSameModuleAndKind;
-    struct Descriptor	  *prevSameModuleAndKind;
-} Descriptor;
-
-
-
-/*
- * Mib Module.
- */
 typedef struct Module {
-    Descriptor    *descriptor;
-    Descriptor	  *firstDescriptor[NUM_KINDS];
-    Descriptor	  *lastDescriptor[NUM_KINDS];
-    char	  *path;
-    off_t	  fileoffset;
-    String	  lastUpdated;
-    String	  organization;
-    String	  contactInfo;
-    String	  description;
+    smi_descriptor name;
+    char	   *path;
+    off_t	   fileoffset;
+    Object	   *firstObjectPtr;
+    Object	   *lastObjectPtr;
+    Type	   *firstTypePtr;
+    Type	   *lastTypePtr;
+    Macro	   *firstMacroPtr;
+    Macro	   *lastMacroPtr;
+    String	   lastUpdated;
+    String	   organization;
+    String	   contactInfo;
+    String	   description;
 #if 0
-    Revision      firstRevision;
+    Revision       *firstRevisionPtr;
+    Revision       *lastRevisionPtr;
 #endif
-    Flags	  flags;
-    int		  numImportedIdentifiers;
-    int		  numStatements;
-    int		  numModuleIdentities;
+    ModuleFlags	   flags;
+    int		   numImportedIdentifiers;
+    int		   numStatements;
+    int		   numModuleIdentities;
 } Module;
 
 
 
-/*
- * Type.
- */
+typedef struct Import {
+    smi_descriptor *module;
+    smi_descriptor *name;
+		   *nextPtr;
+		   *prevPtr;
+		   kind;
+}
+
+
+
 typedef struct Type {
-    Module      *module;
-    Descriptor  *descriptor;
-    struct Type	*parent;
-    smi_syntax  syntax;
-    smi_decl	decl;
-    String      displayHint;
-    smi_status  status;
-    String	description;
+    Module         *modulePtr;
+    smi_descriptor name;
+    smi_fullname   parent;
+    smi_syntax	   syntax;
+    smi_decl	   decl;
+    String	   displayHint;
+    smi_status	   status;
+    String	   description;
 #if 0
-    Restriction *firstRestriction;
+    Restriction	   *firstRestriction;
+    Restriction	   *lastRestriction;
 #endif
-    off_t       fileoffset;
-    Flags       flags;
+    off_t          fileoffset;
+    TypeFlags	   flags;
 } Type;
 
 
 
-/*
- * Object.
- */
 typedef struct Object {
-    struct Module  *module;
-    Descriptor	   *descriptor;
+    Module         *modulePtr;
+    smi_descriptor name;
     off_t	   fileoffset;
     smi_decl	   decl;
-    Flags	   flags;
-    Type	   *type;
+    ObjectFlags	   flags;
+    Type	   *typePtr;
     smi_access	   access;
     smi_status	   status;
-    struct List	   *index;
+    struct List	   *indexPtr;
     String	   description;
-    struct Node	   *node;
-    struct Object  *prev;
-    struct Object  *next;
+    struct Node	   *nodePtr;
+    Object	   *prevPtr;		/* chain of Objects in this Module */
+    Object	   *nextPtr;
+    Object	   *prevSameNodePtr;    /* chain of Objects for this Node  */
+    Object	   *nextSameNodePtr;
+    
 } Object;
 
-/*
- * Node.
- */
+
+
 typedef struct Node {
     smi_subid	   subid;
-    Flags	   flags;
-    struct Node	   *parent;
-    struct Node	   *next;
-    struct Node	   *prev;
-    struct Node	   *firstChild;
-    struct Node	   *lastChild;
-    Object	   *firstObject;
-    Object	   *lastObject;
+    NodeFlags	   flags;
+    struct Node	   *parentPtr;
+    struct Node	   *nextPtr;
+    struct Node	   *prevPtr;
+    struct Node	   *firstChildPtr;
+    struct Node	   *lastChildPtr;
+    Object	   *firstObjectPtr;
+    Object	   *lastObjectPtr;
 } Node;
 
 
 
-/*
- * Macro.
- */
 typedef struct Macro {
-    Module     *module;
-    Descriptor *descriptor;
-    off_t      fileoffset;
-    Flags      flags;
+    Module	   *modulePtr;
+    smi_descriptor name;
+    off_t	   fileoffset;
+    MacroFlags	   flags;
 } Macro;
 
 
 
 typedef struct Parser {
-    char             *module;
-    char	     *path;
-    FILE	     *file;
-    int		     line;
-    int		     column;
-    int		     character;
-    char	     linebuf[MAX_LINEBUF_LENGTH+1];
-    Module	     *thisModule;
-    Descriptor	     *firstImportDescriptor;
-    Flags	     flags;
+    char           *module;
+    char	   *path;
+    FILE	   *file;
+    int		   line;
+    int		   column;
+    int		   character;
+    char	   linebuf[MAX_LINEBUF_LENGTH+1];
+    Module	   *modulePtr;
+    ParserFlags	   flags;
 } Parser;
 
 
 
-extern Descriptor	*firstDescriptor[NUM_KINDS];
-extern Descriptor	*lastDescriptor[NUM_KINDS];
+extern Node	   *rootNodePtr;
+extern Node	   *pendingNodePtr;
 
-extern Node		*rootNode;
-extern Node		*pendingRootNode;
-
-extern Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
+extern Type	   *typeInteger, *typeOctetString, *typeObjectIdentifier;
 
 
-extern Module *addModule(const char *name,
+extern Module *addModule(const char *modulename,
 			 const char *path,
 			 off_t fileoffset,
-			 Flags flags,
-			 Parser *parser);
+			 ModuleFlags flags,
+			 Parser *parserPtr);
 
-extern void setModuleDescription(Module *node,
-				 String *description);
+extern void setModuleDescription(Module *modulePtr,
+				 String *descriptionPtr);
 
-extern void setModuleLastUpdated(Module *node,
-				 String *lastUpdated);
+extern void setModuleLastUpdated(Module *modulePtr,
+				 String *lastUpdatedPtr);
 
-extern void setModuleOrganization(Module *node,
-				  String *organization);
+extern void setModuleOrganization(Module *modulePtr,
+				  String *organizationPtr);
 
-extern void setModuleContactInfo(Module *node,
-				 String *contactInfo);
+extern void setModuleContactInfo(Module *modulePtr,
+				 String *contactInfoPtr);
 
-extern Module *findModuleByName(const char *name);
-
-
-
-extern int addImportDescriptor(const char *name,
-			       Parser *parser);
-
-extern int checkImportDescriptors(char *modulename,
-				  Parser *parser);
+extern Module *findModuleByName(const char *modulename);
 
 
 
+extern int addImport(const char *name,
+		     Parser *parserPtr);
+
+extern int checkImports(char *modulename,
+			Parser *parserPtr);
+
+
+/*
 extern Descriptor *addDescriptor(const char *name,
 				 Module *module,
 				 DescriptorKind kind,
@@ -302,135 +277,140 @@ extern Descriptor *findNextDescriptor(const char *name,
 				      Module *module,
 				      DescriptorKind kind,
 				      Descriptor *start);
+*/
 
 
 
-
-extern Object *addObject(Node *parent,
+extern Object *addObject(Node *parentNodePtr,
 			 smi_subid subid,
-			 Module *module,
-			 Flags flags,
-			 Parser *parser);
+			 Module *modulePtr,
+			 ObjectFlags flags,
+			 Parser *parserPtr);
 
-extern Object *duplicateObject(Object *object,
-			       Module *module,
-			       Flags flags,
-			       Parser *parser);
+extern Object *duplicateObject(Object *objectPtr,
+			       Module *modulePtr,
+			       ObjectFlags flags,
+			       Parser *parserPtr);
 
-extern Node *addNode(Node *parent,
+extern Node *addNode(Node *parentPtr,
 		     smi_subid subid,
-		     Flags flags,
-		     Parser *parser);
+		     NodeFlags flags,
+		     Parser *parserPtr);
 
 extern Node *createNodes(const char *oid);
 
-extern Node *getParent(Node *node);
+extern Node *getParentNode(Node *nodePtr);
 
 extern smi_subid getLastSubid(const char *oid);
 
-extern void setObjectSyntax(Object *object,
-			    Type *type);
+extern void setObjectSyntax(Object *objectPtr,
+			    smi_syntax);
 
-extern void setObjectAccess(Object *object,
+extern void setObjectAccess(Object *objectPtr,
 			    smi_access access);
 
-extern void setObjectStatus(Object *object,
+extern void setObjectStatus(Object *objectPtr,
 			    smi_status status);
 
-extern void setObjectDescription(Object *object,
-				 String *description);
+extern void setObjectDescription(Object *objectPtr,
+				 String *descriptionPtr);
 
-extern void setObjectFileOffset(Object *object,
+extern void setObjectFileOffset(Object *objectPtr,
 				off_t fileoffset);
 
-extern void setObjectDecl(Object *object,
+extern void setObjectDecl(Object *objectPtr,
 			   smi_decl decl);
 
-extern void setObjectFlags(Object *object,
-			   Flags flags);
+extern void setObjectFlags(Object *objectPtr,
+			   ObjectFlags flags);
 
-extern void setObjectIndex(Object *object,
-			   List *list);
+extern void setObjectIndex(Object *objectPtr,
+			   List *listPtr);
 
-extern Node *findNodeByParentAndSubid(Node *parent,
+extern Node *findNodeByParentAndSubid(Node *parentPtr,
 				      smi_subid subid);
 
-extern Object *findObjectByNodeAndModule(Node *node,
-					 Module *module);
+extern Object *findObjectByModuleAndNode(Module *modulePtr,
+					 Node *nodePtr);
 
-extern Object *findObjectByNodeAndModulename(Node *node,
-					     const char *modulename);
+extern Object *findObjectByModulenameAndNode(const char *modulename,
+					     Node *nodePtr);
 
-extern Object *findObjectByName(const char *name);
+extern Object *findObjectByName(const char *objectname);
 
-extern Object *findObjectByModuleAndName(Module *module,
-					 const char *name);
+extern Object *findObjectByModuleAndName(Module *modulePtr,
+					 const char *objectname);
 
 extern Object *findObjectByModulenameAndName(const char *modulename,
-					      const char *name);
+					     const char *objectname);
 
+/*
 extern void deleteMibTree(Node *root);
 
 extern void dumpMibTree(Node *root, const char *prefix);
 
 extern void dumpMosy(Node *root);
+*/
 
 
-
-extern Type *addType(Type *parent,
+extern Type *addType(const char *typename,
+		     /* Module *modulePtr, parserPtr->modulePtr */
 		     smi_syntax syntax,
-		     Module *module,
-		     Flags flags,
-		     Parser *parser);
+		     TypeFlags flags,
+		     Parser *parserPtr);
 
-extern void setTypeStatus(Type *type,
+extern void setTypeStatus(Type *typePtr,
 			  smi_status status);
 
-extern void setTypeDescription(Type *type,
-			       String *description);
+extern void setTypeDescription(Type *typePtr,
+			       String *descriptionPtr);
 
-extern void setTypeFileOffset(Type *type,
+extern void setTypeFileOffset(Type *typePtr,
 			      off_t fileoffset);
 
-extern void setTypeDecl(Type *type,
+extern void setTypeDecl(Type *typePtr,
 			smi_decl decl);
 
-extern void setTypeFlags(Type *type,
+extern void setTypeFlags(Type *typePtr,
 			 Flags flags);
 
-extern void setTypeDisplayHint(Type *type,
-			       String *displayHint);
+extern void setTypeDisplayHint(Type *typePtr,
+			       String *displayHintPtr);
 
 
 
-extern Type *findTypeByName(const char *name);
+extern Type *findTypeByName(const char *typename);
 
-extern Type *findTypeByModuleAndName(Module *module,
-				     const char *name);
+extern Type *findTypeByModuleAndName(Module *modulePtr,
+				     const char *typename);
 
 extern Type *findTypeByModulenameAndName(const char *modulename,
-					 const char *name);
+					 const char *typename);
 
+/*
 extern void dumpTypes();
+*/
 
 
 
-extern Macro *addMacro(const char *name,
-		       Module *module,
+extern Macro *addMacro(const char *macroname,
+		       /* Module *modulePtr, parserPtr->modulePtr */
 		       off_t fileoffset,
 		       int flags,
-		       Parser *parser);
+		       Parser *parserPtr);
 
-extern Macro *findMacroByModuleAndName(Module *module,
-				       const char *name);
+extern Macro *findMacroByModuleAndName(Module *modulePtr,
+				       const char *macroname);
 
 extern Macro *findMacroByModulenameAndName(const char *modulename,
-					   const char *name);
+					   const char *macroname);
 
 
 
 extern int initData();
 
-extern int readMibFile(const char *path, const char *modulename, int flags);
+extern int readMibFile(const char *path,
+		       const char *modulename,
+		       ParserFlags flags);
 
 #endif /* _DATA_H */
