@@ -1,3 +1,8 @@
+2000-07-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-jax.c: simplified output by moving some code to
+	the static parent class of the JAX package. Some code cleanups.
+
 2000-07-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: fixed line numbers of object, type, and

@@ -842,7 +842,10 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     fprintf(f,
 	    "import java.util.Vector;\n"
 	    "import java.util.Enumeration;\n"
-	    "import jax.*;\n"
+	    "import jax.AgentXOID;\n"
+	    "import jax.AgentXSetPhase;\n"
+	    "import jax.AgentXResponsePDU;\n"
+	    "import jax.AgentXEntry;\n"
 	    "\n");
 
     fprintf(f, "public class %s extends AgentXScalars\n{\n\n",
@@ -1087,7 +1090,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 static void dumpNotifications(SmiNode *smiNode)
 {
     FILE *f;
-    int cnt,i;
+    int cnt, i;
     SmiElement *element;
     SmiNode *elementNode;
 
@@ -1109,49 +1112,46 @@ static void dumpNotifications(SmiNode *smiNode)
 	    " * $I" "d$\n"
 	    " */\n\n");
     fprintf(f,
-	    "import jax.*;\n"
+	    "import jax.AgentXOID;\n"
+	    "import jax.AgentXVarBind;\n"
+	    "import jax.AgentXNotification;\n"
 	    "import java.util.Vector;\n"
 	    "\n");
 
     fprintf(f, "public class %s extends AgentXNotification\n{\n\n",
 	    translate1Upper(smiNode->name));
-    fprintf(f,
-	    "    private Vector varBindList;\n\n"
-	    );
-    fprintf(f,
-	    "    private final static long[] snmpTrapOIDOID = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};\n");
 
     fprintf(f,
-	    "    private final static long[] %sOID = {",
+	    "    private final static long[] %s_OID = {",
 	    smiNode->name);
     for (i = 0; i < smiNode->oidlen; i++) {
 	fprintf(f, "%s%d", i ? ", " : "", smiNode->oid[i]);
     }
     fprintf(f, "};\n");	
     fprintf(f,
-	    "    private static AgentXVarBind snmpTrapOIDVarBind =\n"
-	    "        new AgentXVarBind(new AgentXOID(snmpTrapOIDOID),\n"
+	    "    private static AgentXVarBind snmpTrapOID_VarBind =\n"
+	    "        new AgentXVarBind(snmpTrapOID_OID,\n"
 	    "                          AgentXVarBind.OBJECTIDENTIFIER,\n"
-	    "                          new AgentXOID(%sOID));\n",
+	    "                          new AgentXOID(%s_OID));\n\n",
 	    smiNode->name);
-    for (element = smiGetFirstElement(smiNode), cnt = 0;
+
+    for (element = smiGetFirstElement(smiNode), cnt = 1;
 	 element;
-	 element = smiGetNextElement(element)) {
+	 element = smiGetNextElement(element), cnt++) {
 	elementNode = smiGetElementNode(element);
-	fprintf(f,
-		"    private final static long[] %sNode = {",
-		elementNode->name);
+	fprintf(f, "    private final static long[] OID%d = {", cnt);
 	for (i = 0; i < elementNode->oidlen; i++) {
 	    fprintf(f, "%s%d", i ? ", " : "", elementNode->oid[i]);
 	}
 	fprintf(f, 
 		"};\n"
-		"    private final static AgentXOID %sOID = new AgentXOID("
-		"%sNode);\n",
-		elementNode->name,
-		elementNode->name);	
+		"    private final static AgentXOID %s_OID = "
+		"new AgentXOID(OID%d",
+		elementNode->name, cnt);
+	fprintf(f,");\n");
+#if 0
 	if (elementNode->nodekind != SMI_NODEKIND_COLUMN || 
-	    (smiGetNodeModule(elementNode) != smiGetNodeModule(smiNode))){
+	    (smiGetNodeModule(elementNode) != smiGetNodeModule(smiNode))) {
 	    fprintf(f,
 		    "    private static AgentXVarBind varBind_%s = new AgentXVarBind(\n"
 		    "            %sOID, AgentXVarBind.%s\n);\n",
@@ -1159,43 +1159,48 @@ static void dumpNotifications(SmiNode *smiNode)
 		    elementNode->name,
 		    getAgentXType(smiGetNodeType(elementNode)));	
 	}
+#endif
     }    
     fprintf(f, 
 	    "\n\n    public %s(",
 	    translate1Upper(smiNode->name));
-    for (element = smiGetFirstElement(smiNode), cnt = 0;
-	 element;
-	 element = smiGetNextElement(element)) {
-	elementNode = smiGetElementNode(element); 
-	if (cnt) fprintf(f,", ");
-	if (elementNode->nodekind == SMI_NODEKIND_COLUMN && 
-	    (smiGetNodeModule(elementNode) == smiGetNodeModule(smiNode))){
-	    fprintf(f, "%s entry%d",
-		    translate1Upper(smiGetParentNode(elementNode)->name),
-	    	    cnt);
-	}
-    }
-    fprintf(f, ") {\n\n"
-	    "        varBindList = new Vector();\n"
-	    "        varBindList.addElement(snmpTrapOIDVarBind);\n");
     for (element = smiGetFirstElement(smiNode), cnt = 1;
 	 element;
-	 element = smiGetNextElement(element)) {
+	 element = smiGetNextElement(element), cnt++) {
+	elementNode = smiGetElementNode(element); 
+	if (cnt > 1) fprintf(f,", ");
+	if (elementNode->nodekind == SMI_NODEKIND_COLUMN && 
+	    (smiGetNodeModule(elementNode) == smiGetNodeModule(smiNode))) {
+	    fprintf(f, "%s %s",
+		    translate1Upper(smiGetParentNode(elementNode)->name),
+	    	    smiGetParentNode(elementNode)->name);
+	}
+    }
+    fprintf(f, ") {\n"
+	    "        AgentXOID oid;\n"
+	    "        AgentXVarBind varBind;\n"
+	    "\n"
+	    "        varBindList.addElement(snmpTrapOID_VarBind);\n");
+    for (element = smiGetFirstElement(smiNode), cnt = 1;
+	 element;
+	 element = smiGetNextElement(element), cnt++) {
 	elementNode = smiGetElementNode(element);
 	if (elementNode->nodekind == SMI_NODEKIND_COLUMN && 
-	    (smiGetNodeModule(elementNode) == smiGetNodeModule(smiNode))){
-	    	    fprintf(f, 
-			    "        %sOID.appendImplied(varBind_%d.getInstance());\n",
+	    (smiGetNodeModule(elementNode) == smiGetNodeModule(smiNode))) {
+	    	    fprintf(f, "\n"
+			    "        oid = %s_OID;\n"
+			    "        oid.appendImplied(%s.getInstance());\n",
 			    elementNode->name,
-			    cnt);
-	    	    fprintf(f, 
-			    "        varBindList.addElement(new "
-			    "AgentXVarBind(%sOID, AgentXVarBind.%s, "
-			    "varBind_%d.get_%s()));\n",
-			    elementNode->name,
+			    smiGetParentNode(elementNode)->name);
+	    	    fprintf(f,
+			    "        varBind = new AgentXVarBind(oid,\n"
+			    "                                    AgentXVarBind.%s,\n"
+			    "                                    %s.get_%s());\n",
 			    getAgentXType(smiGetNodeType(elementNode)),
-			    cnt,
+			    smiGetParentNode(elementNode)->name,
 			    elementNode->name);
+		    fprintf(f,
+			    "        varBindList.addElement(varBind);\n");
 	} else {
 	    fprintf(f,
 		    "         varBindList.addElement(varBind_%s);\n",
@@ -1248,7 +1253,7 @@ static void dumpScalarImpl(SmiNode *smiNode)
     fprintf(f,
 	    "import java.util.Vector;\n"
 	    "import java.util.Enumeration;\n"
-	    "import jax.*;\n"
+	    "import jax.AgentXOID;\n"
 	    "\n");
 
     fprintf(f, "public class %sImpl extends %s\n{\n\n",
