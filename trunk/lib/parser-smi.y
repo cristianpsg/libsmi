@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.30 1999/06/09 19:43:30 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.31 1999/06/10 15:28:22 strauss Exp $
  */
 
 %{
@@ -761,6 +761,8 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
+			    setObjectNodekind(objectPtr,
+					      SMI_NODEKIND_NODE);
 			    $$ = 0;
 			}
 	;
@@ -1016,8 +1018,9 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 						  importPtr->importmodule, $1);
 				    $$ = addObject($1,
 					getParentNode(
-					    createNodes(snodePtr->oid)),
-					getLastSubid(snodePtr->oid),
+				             createNodes(snodePtr->oidlen,
+							 snodePtr->oid)),
+					snodePtr->oid[snodePtr->oidlen-1],
 					FLAG_IMPORTED, thisParserPtr);
 				}
 			    }
@@ -1164,6 +1167,8 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
+			    setObjectNodekind(objectPtr,
+					      SMI_NODEKIND_NODE);
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
 			    if ($8) {
@@ -1205,6 +1210,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
+			    setObjectNodekind(objectPtr, SMI_NODEKIND_XXX);
+			    /* TODO XXX... detect from basetype, then
+			                   set nodekind */
 			    setObjectType(objectPtr, $5);
 			    if (!($5->name)) {
 				/*
@@ -1896,9 +1904,6 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			 * parser error.
 			 */
 			{
-			    Import *importPtr, *newPtr;
-			    Object *objectPtr;
-
 			    /* TODO: SMIv1 allows something like { 0 0 } !
 			     * SMIv2 does not! Check more carefully!
 			     */
@@ -1906,7 +1911,11 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_LABEL;
 			    if (thisModulePtr->flags & FLAG_SMIV2) {
-				$$->value.oid = "zeroDotZero";
+				$$->value.oidlen = 2;
+				$$->value.oid[0] = 0;
+				$$->value.oid[1] = 0;
+				/* TODO */
+#if 0
 				for (importPtr = thisModulePtr->firstImportPtr;
 				     importPtr;
 				     importPtr = importPtr->nextPtr) {
@@ -1934,6 +1943,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 				      findNodeByParentAndSubid(rootNodePtr, 0),
 					  0, 0, thisParserPtr);
 				
+#endif
 			    }
 			}
 	;
@@ -2752,8 +2762,9 @@ subidentifier:
 					if (snodePtr) {
 					    $$ = addObject($1, 
 							   getParentNode(
-					           createNodes(snodePtr->oid)),
-					           getLastSubid(snodePtr->oid),
+					          createNodes(snodePtr->oidlen,
+						 	      snodePtr->oid)),
+					    snodePtr->oid[snodePtr->oidlen-1],
 							   FLAG_IMPORTED,
 							   thisParserPtr);
 					} else {
@@ -2819,8 +2830,9 @@ subidentifier:
 					snodePtr = smiGetNode($1, $3);
 					$$ = addObject($3, 
 					  getParentNode(
-					      createNodes(snodePtr->oid)),
-					  getLastSubid(snodePtr->oid),
+					      createNodes(snodePtr->oidlen,
+						          snodePtr->oid)),
+					  snodePtr->oid[snodePtr->oidlen-1],
 					  FLAG_IMPORTED,
 					  thisParserPtr);
 				    }

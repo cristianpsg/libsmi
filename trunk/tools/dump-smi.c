@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.12 1999/06/10 11:17:07 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.13 1999/06/10 15:28:35 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -142,7 +142,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     SmiNode	 *parentNode, *node;
     static char	 s[SMI_MAX_OID+1];
     char	 append[SMI_MAX_OID+1];
-    char	 *p;
+    unsigned int i;
 
     append[0] = 0;
 
@@ -150,16 +150,13 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 
     do {
 	
+	if (parentNode->oidlen <= 1) {
+	    break;
+	}
+	
 	/* prepend the cut-off subidentifier to `append'. */
 	strcpy(s, append);
-	if ((p = strrchr(parentNode->oid, '.'))) {
-	    sprintf(append, "%s%s", p, s);
-	    append[0] = ' ';
-	} else {
-	    sprintf(s, "%s%s", parentNode->oid, append);
-	    smiFreeNode(parentNode);
-	    return s;
-	}
+	sprintf(append, " %u%s", parentNode->oid[parentNode->oidlen-1], s);
 
 	/* retrieve the parent SmiNode */
 	node = parentNode;
@@ -186,7 +183,13 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
     } while (parentNode);
 
-    return smiNode->oid;
+    /* smiFreeNode(parentNode); */
+    s[0] = 0;
+    for (i=0; i < smiNode->oidlen; i++) {
+	if (i) strcat(s, ".");
+	sprintf(&s[strlen(s)], "%u", smiNode->oid[i]);
+    }
+    return s;
 }
 
 
@@ -557,16 +560,15 @@ static void printTextualConventions(char *modulename)
 
 static void printObjects(char *modulename)
 {
-    SmiNode	 *smiNode, *rowNode, *colNode;
+    SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode;
     SmiType	 *smiType;
     SmiIndex	 *smiIndex;
-    char	 rowoid[SMI_MAX_OID+1];
     int		 i, j, n;
-    
-    strcpy(rowoid, "-");
     
     for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
 	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
+
+	smiParentNode = smiGetParentNode(smiNode);
 
 	if (((smiNode->decl == SMI_DECL_NODE) && (!smiNode->description)) ||
 	    (smiNode->decl == SMI_DECL_VALUEASSIGNMENT)) {
@@ -580,13 +582,9 @@ static void printObjects(char *modulename)
 	} else if ((smiNode->decl == SMI_DECL_ROW) ||
 		   (smiNode->basetype == SMI_BASETYPE_SEQUENCE)) {
 	    print("%s OBJECT-TYPE\n", smiNode->name);
-	    /*
-	     * Remember the row's oid to check for subsequent objects
-	     * being columns instead of scalars more efficiently.
-	     */
-	    strcpy(rowoid, smiNode->oid);
 	} else if ((smiNode->decl == SMI_DECL_COLUMN) ||
-		   (strstr(smiNode->oid, rowoid))) {
+		   (smiParentNode->decl == SMI_DECL_ROW) ||
+		   (smiParentNode->basetype == SMI_BASETYPE_SEQUENCE)) {
 	    print("%s OBJECT-TYPE\n", smiNode->name);
 	} else if ((smiNode->decl == SMI_DECL_SCALAR) ||
 		   (smiNode->decl == SMI_DECL_OBJECTTYPE)) {

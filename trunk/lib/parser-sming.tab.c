@@ -1,6 +1,6 @@
 
 /*  A Bison parser, made from parser-sming.y
- by  GNU Bison version 1.25
+ by  GNU Bison version 1.27
   */
 
 #define YYBISON 1  /* Identify Bison output.  */
@@ -12,70 +12,70 @@
 #define yychar smingchar
 #define yydebug smingdebug
 #define yynerrs smingnerrs
-#define	DOT_DOT	258
-#define	COLON_COLON	259
-#define	ucIdentifier	260
-#define	lcIdentifier	261
-#define	floatValue	262
-#define	textSegment	263
-#define	decimalNumber	264
-#define	hexadecimalNumber	265
-#define	moduleKeyword	266
-#define	importKeyword	267
-#define	revisionKeyword	268
-#define	oidKeyword	269
-#define	dateKeyword	270
-#define	organizationKeyword	271
-#define	contactKeyword	272
-#define	descriptionKeyword	273
-#define	referenceKeyword	274
-#define	typedefKeyword	275
-#define	typeKeyword	276
-#define	writetypeKeyword	277
-#define	nodeKeyword	278
-#define	scalarKeyword	279
-#define	tableKeyword	280
-#define	columnKeyword	281
-#define	rowKeyword	282
-#define	notificationKeyword	283
-#define	groupKeyword	284
-#define	complianceKeyword	285
-#define	formatKeyword	286
-#define	unitsKeyword	287
-#define	statusKeyword	288
-#define	accessKeyword	289
-#define	defaultKeyword	290
-#define	impliedKeyword	291
-#define	indexKeyword	292
-#define	augmentsKeyword	293
-#define	reordersKeyword	294
-#define	sparseKeyword	295
-#define	expandsKeyword	296
-#define	createKeyword	297
-#define	membersKeyword	298
-#define	objectsKeyword	299
-#define	mandatoryKeyword	300
-#define	optionalKeyword	301
-#define	refineKeyword	302
-#define	OctetStringKeyword	303
-#define	ObjectIdentifierKeyword	304
-#define	Integer32Keyword	305
-#define	Unsigned32Keyword	306
-#define	Integer64Keyword	307
-#define	Unsigned64Keyword	308
-#define	Float32Keyword	309
-#define	Float64Keyword	310
-#define	Float128Keyword	311
-#define	BitsKeyword	312
-#define	EnumerationKeyword	313
-#define	currentKeyword	314
-#define	deprecatedKeyword	315
-#define	obsoleteKeyword	316
-#define	noaccessKeyword	317
-#define	notifyonlyKeyword	318
-#define	readonlyKeyword	319
-#define	readwriteKeyword	320
-#define	readcreateKeyword	321
+#define	DOT_DOT	257
+#define	COLON_COLON	258
+#define	ucIdentifier	259
+#define	lcIdentifier	260
+#define	floatValue	261
+#define	textSegment	262
+#define	decimalNumber	263
+#define	hexadecimalNumber	264
+#define	moduleKeyword	265
+#define	importKeyword	266
+#define	revisionKeyword	267
+#define	oidKeyword	268
+#define	dateKeyword	269
+#define	organizationKeyword	270
+#define	contactKeyword	271
+#define	descriptionKeyword	272
+#define	referenceKeyword	273
+#define	typedefKeyword	274
+#define	typeKeyword	275
+#define	writetypeKeyword	276
+#define	nodeKeyword	277
+#define	scalarKeyword	278
+#define	tableKeyword	279
+#define	columnKeyword	280
+#define	rowKeyword	281
+#define	notificationKeyword	282
+#define	groupKeyword	283
+#define	complianceKeyword	284
+#define	formatKeyword	285
+#define	unitsKeyword	286
+#define	statusKeyword	287
+#define	accessKeyword	288
+#define	defaultKeyword	289
+#define	impliedKeyword	290
+#define	indexKeyword	291
+#define	augmentsKeyword	292
+#define	reordersKeyword	293
+#define	sparseKeyword	294
+#define	expandsKeyword	295
+#define	createKeyword	296
+#define	membersKeyword	297
+#define	objectsKeyword	298
+#define	mandatoryKeyword	299
+#define	optionalKeyword	300
+#define	refineKeyword	301
+#define	OctetStringKeyword	302
+#define	ObjectIdentifierKeyword	303
+#define	Integer32Keyword	304
+#define	Unsigned32Keyword	305
+#define	Integer64Keyword	306
+#define	Unsigned64Keyword	307
+#define	Float32Keyword	308
+#define	Float64Keyword	309
+#define	Float128Keyword	310
+#define	BitsKeyword	311
+#define	EnumerationKeyword	312
+#define	currentKeyword	313
+#define	deprecatedKeyword	314
+#define	obsoleteKeyword	315
+#define	noaccessKeyword	316
+#define	notifyonlyKeyword	317
+#define	readonlyKeyword	318
+#define	readwriteKeyword	319
+#define	readcreateKeyword	320
 
 #line 14 "parser-sming.y"
 
@@ -238,7 +238,7 @@ typedef union {
 #define	YYFLAG		-32768
 #define	YYNTBASE	76
 
-#define YYTRANSLATE(x) ((unsigned)(x) <= 321 ? yytranslate[x] : 301)
+#define YYTRANSLATE(x) ((unsigned)(x) <= 320 ? yytranslate[x] : 301)
 
 static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -266,14 +266,13 @@ static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-     2,     2,     2,     2,     2,     1,     2,     3,     4,     5,
-     6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-    16,    17,    18,    19,    20,    21,    22,    23,    24,    25,
-    26,    27,    28,    29,    30,    31,    32,    33,    34,    35,
-    36,    37,    38,    39,    40,    41,    42,    43,    44,    45,
-    46,    47,    48,    49,    50,    51,    52,    53,    54,    55,
-    56,    57,    58,    59,    60,    61,    62,    63,    64,    65,
-    66
+     2,     2,     2,     2,     2,     1,     3,     4,     5,     6,
+     7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
+    17,    18,    19,    20,    21,    22,    23,    24,    25,    26,
+    27,    28,    29,    30,    31,    32,    33,    34,    35,    36,
+    37,    38,    39,    40,    41,    42,    43,    44,    45,    46,
+    47,    48,    49,    50,    51,    52,    53,    54,    55,    56,
+    57,    58,    59,    60,    61,    62,    63,    64,    65,    66
 };
 
 #if YYDEBUG != 0
@@ -461,11 +460,11 @@ static const short yyrline[] = { 0,
   2562,  2570,  2574,  2580,  2586,  2599,  2605,  2613,  2617,  2623,
   2629,  2642,  2648,  2654,  2658,  2666,  2670,  2676,  2682,  2695,
   2701,  2705,  2711,  2715,  2721,  2732,  2738,  2749,  2755,  2769,
-  2773,  2779,  2783,  2793,  2799,  2806,  2812,  2825,  2850,  2886,
-  2906,  2912,  2918,  2930,  2952,  2957,  2964,  2968,  2972,  2978,
-  2982,  2986,  2990,  2994,  3000,  3029,  3056,  3062,  3066,  3073,
-  3077,  3087,  3096,  3102,  3109,  3117,  3125,  3129,  3139,  3146,
-  3152,  3158
+  2773,  2779,  2783,  2793,  2799,  2806,  2812,  2825,  2850,  2889,
+  2909,  2915,  2921,  2933,  2955,  2960,  2967,  2971,  2975,  2981,
+  2985,  2989,  2993,  2997,  3003,  3032,  3059,  3065,  3069,  3076,
+  3080,  3090,  3099,  3105,  3112,  3120,  3128,  3132,  3142,  3149,
+  3155,  3161
 };
 #endif
 
@@ -1085,7 +1084,8 @@ static const short yycheck[] = {     0,
 #define YYPURE 1
 
 /* -*-C-*-  Note some compilers choke on comments on `#line' lines.  */
-#line 3 "/usr/share/misc/bison.simple"
+#line 3 "/usr/local/share/bison.simple"
+/* This file comes from bison-1.27.  */
 
 /* Skeleton output parser for bison,
    Copyright (C) 1984, 1989, 1990 Free Software Foundation, Inc.
@@ -1102,46 +1102,66 @@ static const short yycheck[] = {     0,
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+   Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.  */
 
 /* As a special exception, when this file is copied by Bison into a
    Bison output file, you may use that output file without restriction.
    This special exception was added by the Free Software Foundation
    in version 1.24 of Bison.  */
 
-#ifndef alloca
-#ifdef __GNUC__
-#define alloca __builtin_alloca
-#else /* not GNU C.  */
-#if (!defined (__STDC__) && defined (sparc)) || defined (__sparc__) || defined (__sparc) || defined (__sgi)
-#include <alloca.h>
-#else /* not sparc */
-#if defined (MSDOS) && !defined (__TURBOC__)
-#include <malloc.h>
-#else /* not MSDOS, or __TURBOC__ */
-#if defined(_AIX)
-#include <malloc.h>
- #pragma alloca
-#else /* not MSDOS, __TURBOC__, or _AIX */
-#ifdef __hpux
-#ifdef __cplusplus
-extern "C" {
-void *alloca (unsigned int);
-};
-#else /* not __cplusplus */
-void *alloca ();
-#endif /* not __cplusplus */
-#endif /* __hpux */
-#endif /* not _AIX */
-#endif /* not MSDOS, or __TURBOC__ */
-#endif /* not sparc.  */
-#endif /* not GNU C.  */
-#endif /* alloca not defined.  */
-
 /* This is the parser code that is written into each bison parser
   when the %semantic_parser declaration is not specified in the grammar.
   It was written by Richard Stallman by simplifying the hairy parser
   used when %semantic_parser is specified.  */
+
+#ifndef YYSTACK_USE_ALLOCA
+#ifdef alloca
+#define YYSTACK_USE_ALLOCA
+#else /* alloca not defined */
+#ifdef __GNUC__
+#define YYSTACK_USE_ALLOCA
+#define alloca __builtin_alloca
+#else /* not GNU C.  */
+#if (!defined (__STDC__) && defined (sparc)) || defined (__sparc__) || defined (__sparc) || defined (__sgi) || (defined (__sun) && defined (__i386))
+#define YYSTACK_USE_ALLOCA
+#include <alloca.h>
+#else /* not sparc */
+/* We think this test detects Watcom and Microsoft C.  */
+/* This used to test MSDOS, but that is a bad idea
+   since that symbol is in the user namespace.  */
+#if (defined (_MSDOS) || defined (_MSDOS_)) && !defined (__TURBOC__)
+#if 0 /* No need for malloc.h, which pollutes the namespace;
+	 instead, just don't use alloca.  */
+#include <malloc.h>
+#endif
+#else /* not MSDOS, or __TURBOC__ */
+#if defined(_AIX)
+/* I don't know what this was needed for, but it pollutes the namespace.
+   So I turned it off.   rms, 2 May 1997.  */
+/* #include <malloc.h>  */
+ #pragma alloca
+#define YYSTACK_USE_ALLOCA
+#else /* not MSDOS, or __TURBOC__, or _AIX */
+#if 0
+#ifdef __hpux /* haible@ilog.fr says this works for HPUX 9.05 and up,
+		 and on HPUX 10.  Eventually we can turn this on.  */
+#define YYSTACK_USE_ALLOCA
+#define alloca __builtin_alloca
+#endif /* __hpux */
+#endif
+#endif /* not _AIX */
+#endif /* not MSDOS, or __TURBOC__ */
+#endif /* not sparc */
+#endif /* not GNU C */
+#endif /* alloca not defined */
+#endif /* YYSTACK_USE_ALLOCA not defined */
+
+#ifdef YYSTACK_USE_ALLOCA
+#define YYSTACK_ALLOC alloca
+#else
+#define YYSTACK_ALLOC malloc
+#endif
 
 /* Note: there must be only one dollar sign in this file.
    It is replaced by the list of actions, each action
@@ -1151,8 +1171,8 @@ void *alloca ();
 #define yyclearin	(yychar = YYEMPTY)
 #define YYEMPTY		-2
 #define YYEOF		0
-#define YYACCEPT	return(0)
-#define YYABORT 	return(1)
+#define YYACCEPT	goto yyacceptlab
+#define YYABORT 	goto yyabortlab
 #define YYERROR		goto yyerrlab1
 /* Like YYERROR except do call yyerror.
    This remains here temporarily to ease the
@@ -1233,14 +1253,12 @@ int yydebug;			/*  nonzero means print parse trace	*/
 #ifndef YYMAXDEPTH
 #define YYMAXDEPTH 10000
 #endif
-
-/* Prevent warning if -Wstrict-prototypes.  */
-#ifdef __GNUC__
-#ifndef YYPARSE_PARAM
-int yyparse ();
-#endif
-#endif
 
+/* Define __yy_memcpy.  Note that the size argument
+   should be passed with type unsigned int, because that is what the non-GCC
+   definitions require.  With GCC, __builtin_memcpy takes an arg
+   of type size_t, but it can handle unsigned int.  */
+
 #if __GNUC__ > 1		/* GNU C and GNU C++ define this.  */
 #define __yy_memcpy(TO,FROM,COUNT)	__builtin_memcpy(TO,FROM,COUNT)
 #else				/* not GNU C or C++ */
@@ -1252,7 +1270,7 @@ static void
 __yy_memcpy (to, from, count)
      char *to;
      char *from;
-     int count;
+     unsigned int count;
 {
   register char *f = from;
   register char *t = to;
@@ -1267,10 +1285,10 @@ __yy_memcpy (to, from, count)
 /* This is the most reliable way to avoid incompatibilities
    in available built-in functions on various systems.  */
 static void
-__yy_memcpy (char *to, char *from, int count)
+__yy_memcpy (char *to, char *from, unsigned int count)
 {
-  register char *f = from;
   register char *t = to;
+  register char *f = from;
   register int i = count;
 
   while (i-- > 0)
@@ -1280,7 +1298,7 @@ __yy_memcpy (char *to, char *from, int count)
 #endif
 #endif
 
-#line 196 "/usr/share/misc/bison.simple"
+#line 216 "/usr/local/share/bison.simple"
 
 /* The user can define YYPARSE_PARAM as the name of an argument to be passed
    into yyparse.  The argument should have type void *.
@@ -1300,6 +1318,15 @@ __yy_memcpy (char *to, char *from, int count)
 #define YYPARSE_PARAM_ARG
 #define YYPARSE_PARAM_DECL
 #endif /* not YYPARSE_PARAM */
+
+/* Prevent warning if -Wstrict-prototypes.  */
+#ifdef __GNUC__
+#ifdef YYPARSE_PARAM
+int yyparse (void *);
+#else
+int yyparse ();
+#endif
+#endif
 
 int
 yyparse(YYPARSE_PARAM_ARG)
@@ -1329,6 +1356,7 @@ yyparse(YYPARSE_PARAM_ARG)
 #endif
 
   int yystacksize = YYINITDEPTH;
+  int yyfree_stacks = 0;
 
 #ifdef YYPURE
   int yychar;
@@ -1413,18 +1441,32 @@ yynewstate:
       if (yystacksize >= YYMAXDEPTH)
 	{
 	  yyerror("parser stack overflow");
+	  if (yyfree_stacks)
+	    {
+	      free (yyss);
+	      free (yyvs);
+#ifdef YYLSP_NEEDED
+	      free (yyls);
+#endif
+	    }
 	  return 2;
 	}
       yystacksize *= 2;
       if (yystacksize > YYMAXDEPTH)
 	yystacksize = YYMAXDEPTH;
-      yyss = (short *) alloca (yystacksize * sizeof (*yyssp));
-      __yy_memcpy ((char *)yyss, (char *)yyss1, size * sizeof (*yyssp));
-      yyvs = (YYSTYPE *) alloca (yystacksize * sizeof (*yyvsp));
-      __yy_memcpy ((char *)yyvs, (char *)yyvs1, size * sizeof (*yyvsp));
+#ifndef YYSTACK_USE_ALLOCA
+      yyfree_stacks = 1;
+#endif
+      yyss = (short *) YYSTACK_ALLOC (yystacksize * sizeof (*yyssp));
+      __yy_memcpy ((char *)yyss, (char *)yyss1,
+		   size * (unsigned int) sizeof (*yyssp));
+      yyvs = (YYSTYPE *) YYSTACK_ALLOC (yystacksize * sizeof (*yyvsp));
+      __yy_memcpy ((char *)yyvs, (char *)yyvs1,
+		   size * (unsigned int) sizeof (*yyvsp));
 #ifdef YYLSP_NEEDED
-      yyls = (YYLTYPE *) alloca (yystacksize * sizeof (*yylsp));
-      __yy_memcpy ((char *)yyls, (char *)yyls1, size * sizeof (*yylsp));
+      yyls = (YYLTYPE *) YYSTACK_ALLOC (yystacksize * sizeof (*yylsp));
+      __yy_memcpy ((char *)yyls, (char *)yyls1,
+		   size * (unsigned int) sizeof (*yylsp));
 #endif
 #endif /* no yyoverflow */
 
@@ -4263,7 +4305,10 @@ case 299:
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				yyval.valuePtr = util_malloc(sizeof(SmiValue));
 				yyval.valuePtr->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-				yyval.valuePtr->value.oid = util_strdup(yyvsp[0].text);
+				/* TODO */
+				yyval.valuePtr->value.oidlen = 2;
+				yyval.valuePtr->value.oid[0] = 0;
+				yyval.valuePtr->value.oid[1] = 0;
 				break;
 			    default:
 				printError(thisParserPtr,
@@ -4274,7 +4319,7 @@ case 299:
 			;
     break;}
 case 300:
-#line 2887 "parser-sming.y"
+#line 2890 "parser-sming.y"
 {
 			    switch (defaultBasetype) {
 			    case SMI_BASETYPE_INTEGER32:
@@ -4296,7 +4341,7 @@ case 300:
 			;
     break;}
 case 301:
-#line 2907 "parser-sming.y"
+#line 2910 "parser-sming.y"
 {
 			    /* TODO */
 			    /* Note: might also be an octet string */
@@ -4304,7 +4349,7 @@ case 301:
 			;
     break;}
 case 302:
-#line 2913 "parser-sming.y"
+#line 2916 "parser-sming.y"
 {
 			    /* TODO */
 			    /* Note: might also be an OID */
@@ -4312,7 +4357,7 @@ case 302:
 			;
     break;}
 case 303:
-#line 2919 "parser-sming.y"
+#line 2922 "parser-sming.y"
 {
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				yyval.valuePtr = util_malloc(sizeof(SmiValue));
@@ -4326,7 +4371,7 @@ case 303:
 			;
     break;}
 case 304:
-#line 2931 "parser-sming.y"
+#line 2934 "parser-sming.y"
 {
 			    /* Note: might be an Enumeration item or OID */
 			    /* TODO: convert if it's an oid? */
@@ -4350,69 +4395,69 @@ case 304:
 			;
     break;}
 case 305:
-#line 2953 "parser-sming.y"
+#line 2956 "parser-sming.y"
 {
 			    /* TODO */
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 306:
-#line 2958 "parser-sming.y"
+#line 2961 "parser-sming.y"
 {
 			    /* TODO */
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 307:
-#line 2965 "parser-sming.y"
+#line 2968 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_CURRENT;
 			;
     break;}
 case 308:
-#line 2969 "parser-sming.y"
+#line 2972 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_DEPRECATED;
 			;
     break;}
 case 309:
-#line 2973 "parser-sming.y"
+#line 2976 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_OBSOLETE;
 			;
     break;}
 case 310:
-#line 2979 "parser-sming.y"
+#line 2982 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_NOT_ACCESSIBLE;
 			;
     break;}
 case 311:
-#line 2983 "parser-sming.y"
+#line 2986 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_NOTIFY;
 			;
     break;}
 case 312:
-#line 2987 "parser-sming.y"
+#line 2990 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_ONLY;
 			;
     break;}
 case 313:
-#line 2991 "parser-sming.y"
+#line 2994 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_WRITE;
 			;
     break;}
 case 314:
-#line 2995 "parser-sming.y"
+#line 2998 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_CREATE;
 			;
     break;}
 case 315:
-#line 3001 "parser-sming.y"
+#line 3004 "parser-sming.y"
 {
 			    char *oid = NULL;
 			    Node *nodePtr;
@@ -4432,7 +4477,7 @@ case 315:
 			    if (oid) {
 				nodePtr = findNodeByOidString(oid);
 				if (!nodePtr) {
-				    nodePtr = createNodes(oid);
+				    nodePtr = createNodesByOidString(oid);
 				}
 				yyval.nodePtr = nodePtr;
 			    } else {
@@ -4441,7 +4486,7 @@ case 315:
 			;
     break;}
 case 316:
-#line 3030 "parser-sming.y"
+#line 3033 "parser-sming.y"
 {
 			    Object *objectPtr;
 			    Node *nodePtr;
@@ -4470,32 +4515,32 @@ case 316:
 			;
     break;}
 case 317:
-#line 3057 "parser-sming.y"
+#line 3060 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 318:
-#line 3063 "parser-sming.y"
+#line 3066 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 319:
-#line 3067 "parser-sming.y"
+#line 3070 "parser-sming.y"
 {
 			    /* TODO: check upper limit of 127 subids */ 
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 320:
-#line 3074 "parser-sming.y"
+#line 3077 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 321:
-#line 3078 "parser-sming.y"
+#line 3081 "parser-sming.y"
 {
 			    yyval.text = util_malloc(strlen(yyvsp[-1].text) + strlen(yyvsp[0].text) + 1);
 			    strcpy(yyval.text, yyvsp[-1].text);
@@ -4505,7 +4550,7 @@ case 321:
 			;
     break;}
 case 322:
-#line 3088 "parser-sming.y"
+#line 3091 "parser-sming.y"
 {
 			    yyval.text = util_malloc(strlen(yyvsp[0].text) + 1 + 1);
 			    strcpy(yyval.text, ".");
@@ -4514,13 +4559,13 @@ case 322:
 			;
     break;}
 case 323:
-#line 3097 "parser-sming.y"
+#line 3100 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 324:
-#line 3103 "parser-sming.y"
+#line 3106 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO */
@@ -4529,7 +4574,7 @@ case 324:
 			;
     break;}
 case 325:
-#line 3110 "parser-sming.y"
+#line 3113 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
@@ -4537,7 +4582,7 @@ case 325:
 			;
     break;}
 case 326:
-#line 3118 "parser-sming.y"
+#line 3121 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER64;
@@ -4545,44 +4590,44 @@ case 326:
 			;
     break;}
 case 327:
-#line 3126 "parser-sming.y"
+#line 3129 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 328:
-#line 3130 "parser-sming.y"
+#line 3133 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 329:
-#line 3140 "parser-sming.y"
+#line 3143 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 330:
-#line 3147 "parser-sming.y"
+#line 3150 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 331:
-#line 3153 "parser-sming.y"
+#line 3156 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 332:
-#line 3159 "parser-sming.y"
+#line 3162 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 }
    /* the action file gets copied in in place of this dollarsign */
-#line 498 "/usr/share/misc/bison.simple"
+#line 542 "/usr/local/share/bison.simple"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -4777,8 +4822,32 @@ yyerrhandle:
 
   yystate = yyn;
   goto yynewstate;
+
+ yyacceptlab:
+  /* YYACCEPT comes here.  */
+  if (yyfree_stacks)
+    {
+      free (yyss);
+      free (yyvs);
+#ifdef YYLSP_NEEDED
+      free (yyls);
+#endif
+    }
+  return 0;
+
+ yyabortlab:
+  /* YYABORT comes here.  */
+  if (yyfree_stacks)
+    {
+      free (yyss);
+      free (yyvs);
+#ifdef YYLSP_NEEDED
+      free (yyls);
+#endif
+    }
+  return 1;
 }
-#line 3164 "parser-sming.y"
+#line 3167 "parser-sming.y"
 
 
 #endif

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.30 1999/06/08 20:15:54 strauss Exp $
+ * @(#) $Id: data.c,v 1.31 1999/06/09 19:43:28 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -628,6 +628,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->indexPtr				= NULL;
     objectPtr->listPtr				= NULL;
     objectPtr->decl				= SMI_DECL_UNKNOWN;
+    objectPtr->nodekind				= SMI_NODEKIND_UNKNOWN;
     objectPtr->access				= SMI_ACCESS_UNKNOWN;
     objectPtr->status				= SMI_STATUS_UNKNOWN;
     objectPtr->flags				= flags;
@@ -724,6 +725,7 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->indexPtr				      = NULL;
     objectPtr->listPtr				      = NULL;
     objectPtr->decl				      = SMI_DECL_UNKNOWN;
+    objectPtr->nodekind				      = SMI_NODEKIND_UNKNOWN;
     objectPtr->access				      = SMI_ACCESS_UNKNOWN;
     objectPtr->status				      = SMI_STATUS_UNKNOWN;
     objectPtr->flags				      = flags;
@@ -853,8 +855,45 @@ addNode (parentNodePtr, subid, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
+Node *createNodes(unsigned int oidlen, SmiSubid *oid)
+{
+    Node	 *parentNodePtr, *nodePtr;
+    unsigned int i;
+
+    parentNodePtr = rootNodePtr;
+
+    for(i = 0; i < oidlen; i++) {
+	if (!(nodePtr = findNodeByParentAndSubid(parentNodePtr, oid[i]))) {
+	    nodePtr = addNode(parentNodePtr, oid[i], 0, NULL);
+	}
+	parentNodePtr = nodePtr;
+    }
+
+    return parentNodePtr;    
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * createNodesByOidString --
+ *
+ *      Create all missing Nodes down the tree along all subids of
+ *	a given Oid.
+ *
+ * Results:
+ *      A pointer to the leaf Node structure or
+ *	NULL if terminated due to an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 Node *
-createNodes(oid)
+createNodesByOidString(oid)
     const char		*oid;
 {
     char		*p, *elements;
@@ -902,38 +941,6 @@ getParentNode(nodePtr)
     Node *nodePtr;
 {
     return nodePtr->parentPtr;
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * getLastSubid --
- *
- *      Return the value of the last subid of a given Oid.
- *
- * Results:
- *      A pointer to the parent Node structure.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-SmiSubid
-getLastSubid(oid)
-    const char    *oid;
-{
-    char	  *p;
-
-    p = strrchr(oid, '.');
-    if (p) {
-	return (unsigned int)strtoul(&p[1], NULL, 0);
-    } else {
-	return (unsigned int)strtoul(oid, NULL, 0);
-    }
 }
 
 
@@ -1274,6 +1281,32 @@ setObjectDecl(objectPtr, decl)
     SmiDecl     decl;
 {
     objectPtr->decl = decl;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectNodekind --
+ *
+ *      Set the language independant SmiNodekind of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectNodekind(objectPtr, nodekind)
+    Object	*objectPtr;
+    SmiNodekind nodekind;
+{
+    objectPtr->nodekind = nodekind;
 }
 
 

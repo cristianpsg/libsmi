@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.33 1999/06/04 20:39:09 strauss Exp $
+ * @(#) $Id: smi.h,v 1.34 1999/06/06 07:40:41 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -40,7 +40,6 @@ typedef unsigned long           SmiUnsigned32;
 typedef long                    SmiInteger32;
 typedef unsigned long long      SmiUnsigned64;
 typedef long long               SmiInteger64;
-typedef char                    *SmiObjectIdentifier;
 typedef unsigned int            SmiSubid;
 typedef float                   SmiFloat32;
 typedef double                  SmiFloat64;
@@ -91,10 +90,24 @@ typedef enum SmiAccess {
     SMI_ACCESS_WRITE_ONLY       = 6
 } SmiAccess;
 
+/* SmiNodekind -- type or statement that leads to a definition               */
+typedef enum SmiNodekind {
+    SMI_NODEKIND_UNKNOWN        = 0,  /* should not occur                    */
+    SMI_NODEKIND_MODULE         = 1,
+    SMI_NODEKIND_NODE           = 2,
+    SMI_NODEKIND_SCALAR         = 3,
+    SMI_NODEKIND_TABLE          = 4,
+    SMI_NODEKIND_ROW            = 5,
+    SMI_NODEKIND_COLUMN         = 6,
+    SMI_NODEKIND_NOTIFICATION   = 7,
+    SMI_NODEKIND_GROUP          = 8,
+    SMI_NODEKIND_COMPLIANCE     = 9
+} SmiNodekind;
+
 /* SmiDecl -- type or statement that leads to a definition                   */
 typedef enum SmiDecl {
     SMI_DECL_UNKNOWN            = 0,  /* should not occur                    */
-    /* SMIv1/V2 ASN.1 statements and macros */
+    /* SMIv1/v2 ASN.1 statements and macros */
     SMI_DECL_TYPEASSIGNMENT     = 1,
     SMI_DECL_VALUEASSIGNMENT    = 2,
     SMI_DECL_OBJECTTYPE         = 3,
@@ -130,6 +143,51 @@ typedef enum SmiIndexkind {
     SMI_INDEX_EXPAND            = 5
 } SmiIndexkind;
 
+/* SmiValue -- any single value; for use in default values and subtyping     */
+typedef struct SmiValue {
+    SmiBasetype         basetype;
+    union {
+        SmiUnsigned64       unsigned64;
+        SmiInteger64        integer64;
+        SmiUnsigned32       unsigned32;
+        SmiInteger32        integer32;
+        SmiFloat32          float32;
+        SmiFloat64          float64;
+        SmiFloat128         float128;
+	unsigned int	    oidlen;
+        SmiSubid	    *oid;
+        char                *ptr;
+        char                **bits;      /* array of SmiNamedNumber pointers */
+    } value;
+} SmiValue;
+
+/* SmiNamedNumber -- a named number; for enumeration and bitset types        */
+typedef struct SmiNamedNumber {
+    SmiIdentifier	module;
+    SmiIdentifier	type;
+    SmiIdentifier       name;
+    SmiValue            *valuePtr;
+} SmiNamedNumber;
+
+/* SmiRange -- a min-max value range; for subtyping of sizes or numbers      */
+typedef struct SmiRange {
+    SmiIdentifier	module;
+    SmiIdentifier	type;
+    SmiValue            *minValuePtr;
+    SmiValue            *maxValuePtr;
+} SmiRange;
+
+/* SmiModule -- the main structure of a module                               */
+typedef struct SmiModule {
+    SmiIdentifier       name;
+    SmiIdentifier       object;
+    time_t              lastupdated;   /* for apps with SMIv2 semantics */
+    char                *organization;
+    char                *contactinfo;
+    char                *description;
+    char                *reference;
+} SmiModule;
+
 /* SmiRevision -- content of a single module's revision clause               */
 typedef struct SmiRevision {
     SmiIdentifier       module;
@@ -144,30 +202,61 @@ typedef struct SmiImport {
     SmiIdentifier       importname;
 } SmiImport;
 
-/* SmiValue -- any single value; for use in default values and subtyping     */
-typedef struct SmiValue {
-    SmiBasetype         basetype;
-    union {
-        SmiUnsigned64       unsigned64;
-        SmiInteger64        integer64;
-        SmiUnsigned32       unsigned32;
-        SmiInteger32        integer32;
-        SmiFloat32          float32;
-        SmiFloat64          float64;
-        SmiFloat128         float128;
-        SmiObjectIdentifier oid;
-        char                *ptr;
-        char                **bits;      /* array of SmiNamedNumber pointers */
-    } value;
-} SmiValue;
-
-/* SmiNamedNumber -- a named number; for enumeration and bitset types        */
-typedef struct SmiNamedNumber {
-    SmiIdentifier	module;
-    SmiIdentifier	type;
+/* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
+typedef struct SmiMacro {
+    SmiIdentifier       module;
     SmiIdentifier       name;
+} SmiMacro;
+
+/* SmiType -- the main structure of a type definition (also base types)      */
+typedef struct SmiType {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiBasetype         basetype;
+    SmiIdentifier	parentmodule;
+    SmiIdentifier	parentname;
+    SmiDecl             decl;
+    char                *format;
     SmiValue            *valuePtr;
-} SmiNamedNumber;
+    char                *units;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
+} SmiType;
+
+/* SmiNode -- the main structure of any clause that defines a node           */
+typedef struct SmiNode {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    unsigned int	oidlen;
+    SmiSubid		*oid;
+    SmiIdentifier       typemodule;
+    SmiIdentifier       typename;
+    SmiIndexkind        indexkind;
+    int                 implied;
+    int                 create;
+    SmiIdentifier       relatedmodule;    
+    SmiIdentifier       relatedname;    
+    SmiNodekind         nodekind;
+    SmiDecl             decl;
+    SmiBasetype         basetype;
+    SmiAccess           access;
+    SmiStatus           status;
+    char                *format;
+    SmiValue            *valuePtr;
+    char                *units;
+    char                *description;
+    char                *reference;
+} SmiNode;
+
+/* SmiIndex -- a table row index column				             */
+typedef struct SmiIndex {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiIdentifier       rowmodule;
+    SmiIdentifier       rowname;
+    int			number;
+} SmiIndex;
 
 /* SmiMember -- a member of a group                                          */
 typedef struct SmiMember {
@@ -176,14 +265,6 @@ typedef struct SmiMember {
     SmiIdentifier       groupmodule;
     SmiIdentifier       groupname;
 } SmiMember;
-
-/* SmiRange -- a min-max value range; for subtyping of sizes or numbers      */
-typedef struct SmiRange {
-    SmiIdentifier	module;
-    SmiIdentifier	type;
-    SmiValue            *minValuePtr;
-    SmiValue            *maxValuePtr;
-} SmiRange;
 
 /* SmiOption -- an optional group in a compliance statement                  */
 typedef struct SmiOption {
@@ -207,71 +288,6 @@ typedef struct SmiRefinement {
     SmiAccess           access;
     char                *description;
 } SmiRefinement;
-
-/* SmiModule -- the main structure of a module                               */
-typedef struct SmiModule {
-    SmiIdentifier       name;
-    SmiIdentifier       object;
-    time_t              lastupdated;   /* for apps with SMIv2 semantics */
-    char                *organization;
-    char                *contactinfo;
-    char                *description;
-    char                *reference;
-} SmiModule;
-
-/* SmiNode -- the main structure of any clause that defines a node           */
-typedef struct SmiNode {
-    SmiIdentifier       module;
-    SmiIdentifier       name;
-    SmiObjectIdentifier oid;
-    SmiIdentifier       typemodule;
-    SmiIdentifier       typename;
-    SmiIndexkind        indexkind;
-    int                 implied;
-    int                 create;
-    SmiIdentifier       relatedmodule;    
-    SmiIdentifier       relatedname;    
-    SmiDecl             decl;
-    SmiBasetype         basetype;
-    SmiAccess           access;
-    SmiStatus           status;
-    char                *format;
-    SmiValue            *valuePtr;
-    char                *units;
-    char                *description;
-    char                *reference;
-} SmiNode;
-
-/* SmiIndex -- a table row index column				             */
-typedef struct SmiIndex {
-    SmiIdentifier       module;
-    SmiIdentifier       name;
-    SmiIdentifier       rowmodule;
-    SmiIdentifier       rowname;
-    int			number;
-} SmiIndex;
-
-/* SmiType -- the main structure of a type definition (also base types)      */
-typedef struct SmiType {
-    SmiIdentifier       module;
-    SmiIdentifier       name;
-    SmiBasetype         basetype;
-    SmiIdentifier	parentmodule;
-    SmiIdentifier	parentname;
-    SmiDecl             decl;
-    char                *format;
-    SmiValue            *valuePtr;
-    char                *units;
-    SmiStatus           status;
-    char                *description;
-    char                *reference;
-} SmiType;
-
-/* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
-typedef struct SmiMacro {
-    SmiIdentifier       module;
-    SmiIdentifier       name;
-} SmiMacro;
 
 
 
@@ -355,9 +371,9 @@ extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
 extern SmiNode *smiGetNode(char *module, char *name);
 
-extern SmiNode *smiGetFirstNode(char *module, SmiDecl decl);
+extern SmiNode *smiGetFirstNode(char *module, SmiNodekind nodekind);
 
-extern SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiDecl decl);
+extern SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind);
 
 extern SmiNode *smiGetParentNode(SmiNode *smiNodePtr);
 

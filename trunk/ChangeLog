@@ -1,3 +1,10 @@
+1999-06-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/smi.c: implemented smiGetFirstChild() and smiGetNextChild().
+
+	* lib/smi.h: OIDs are now represented by a more efficient array
+	of integers instead of a string.
+
 1999-06-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* test/parser.test.in: started to write a set of MIB modules
