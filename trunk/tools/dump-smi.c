@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.74 2001/11/08 07:37:31 schoenw Exp $
+ * @(#) $Id: dump-smi.c,v 1.75 2002/01/09 12:02:03 schoenw Exp $
  */
 
 #include <config.h>
@@ -1315,8 +1315,9 @@ static void fprintNotifications(FILE *f, SmiModule *smiModule)
 	if (smiv1) {
 	    fprint(f, "%s TRAP-TYPE\n", smiNode->name);
 	    parentNode = smiGetParentNode(smiNode);
-	    while ((!parentNode->name) ||
-		   (!parentNode->oid[parentNode->oidlen-1])) {
+	    while ((parentNode->oidlen > 0) &&
+		   ((!parentNode->name) ||
+		    (!parentNode->oid[parentNode->oidlen-1]))) {
 		parentNode = smiGetParentNode(parentNode);
 	    }
 	    fprintSegment(f, INDENT, "ENTERPRISE", INDENTVALUE, 0);
