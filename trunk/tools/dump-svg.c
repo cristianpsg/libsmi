@@ -872,6 +872,7 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 	//the ecma-script for handling the "+"- and "-"-buttons
 	//and the tooltip
 	//and the folding of the module information
+	//and the colorizing of the text
 	printf("<script type=\"text/ecmascript\">\n<![CDATA[\n");
 	//print the script from the included file
 	//FIXME calculate things dynamically:
@@ -917,17 +918,10 @@ static GraphNode *diaCalcSize(GraphNode *node)
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) return node;
 
     node->use = 1;
-    /*
-    node->dia.x = (float) (rand()/RAND_MAX*CANVASWIDTH);
-    node->dia.y = (float) (rand()/RAND_MAX*CANVASHEIGHT);
-    */
     node->dia.x = (float) rand();
     node->dia.y = (float) rand();
     node->dia.x /= (float) RAND_MAX;
     node->dia.y /= (float) RAND_MAX;
-    //node->dia.x *= (float) CANVASWIDTH;
-    //node->dia.y *= (float) CANVASHEIGHT;
-    //fprintf(stderr, "(%.2f,%.2f)\n", node->dia.x, node->dia.y);
     node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
     node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
@@ -1039,19 +1033,6 @@ static GraphNode *calcGroupSize(int group)
     if (!calcNode) return NULL;
 
     calcNode->use = 1;
-    /*
-    calcNode->dia.x = (float) (rand()/RAND_MAX*CANVASWIDTH);
-    calcNode->dia.y = (float) (rand()/RAND_MAX*CANVASHEIGHT);
-    */
-    /*
-    calcNode->dia.x = (float) rand();
-    calcNode->dia.y = (float) rand();
-    calcNode->dia.x /= (float) RAND_MAX;
-    calcNode->dia.y /= (float) RAND_MAX;
-    */
-    //calcNode->dia.x *= (float) CANVASWIDTH;
-    //calcNode->dia.y *= (float) CANVASHEIGHT;
-    //fprintf(stderr, "(%.2f,%.2f)\n", calcNode->dia.x, calcNode->dia.y);
     calcNode->dia.w = strlen(calcNode->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
     calcNode->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
@@ -1276,28 +1257,20 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
     }
 }
 
+/*
+ * calculate the number of entries in the module-information-section.
+ * headings for empty sections are counted here, but they are omitted
+ * in the svg, so the calculated number is an upper bound. the maximal
+ * size of this gap is 4*(modc+1). this may be considered as a bug.
+ */
 static void calcMiCount(int modc, SmiModule **modv, int *miCount,
 			int nType[], int oGroup[], int nGroup[], int mCompl[])
 {
-    //initialize arrays for the sections of the ModuleInformation
-    //TODO Die Funktionalitaet zum Speichern der gefuellten Abteilungen kann
-    //     auch gleich hier rein.
-    //FIXME Schieb dies in die einzelnen Funktionen!
-    /*
-    for (i=0; i<modc; i++) {
-	nType[i] = 0;
-	oGroup[i] = 0;
-	nGroup[i] = 0;
-	mCompl[i] = 0;
-    }
-    */
-
     calcModuleIdentityCount(modc, modv, miCount);
     calcNotificationTypeCount(modc, modv, miCount, nType);
     calcObjectGroupCount(modc, modv, miCount, oGroup);
     calcNotificationGroupCount(modc, modv, miCount, nGroup);
     calcModuleComplianceCount(modc, modv, miCount, mCompl);
-
 }
 
 
@@ -2396,23 +2369,6 @@ static void diaPrintXML(int modc, SmiModule **modv)
     //enlarge canvas for ModuleInformation
     xMax += MODULE_INFO_WIDTH;
 
-    //write some debug-information to stderr
-    /*
-    fprintf(stderr, "xMin\tyMin\txMax\tyMax\txOffset\tyOffset\n");
-    for (tCluster = graph->clusters->nextPtr; tCluster;
-						tCluster = tCluster->nextPtr) {
-	fprintf(stderr, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", tCluster->xMin, tCluster->yMin, tCluster->xMax, tCluster->yMax, tCluster->xOffset, tCluster->yOffset);
-    }
-    fprintf(stderr, "xMin\tyMin\txMax\tyMax\n");
-    fprintf(stderr, "%.2f\t%.2f\t%.2f\t%.2f\n", xMin, yMin, xMax, yMax);
-    fprintf(stderr, "group\tdegree\tposition\n");
-    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
-	if (!tNode->use)
-	    continue;
-	fprintf(stderr, "%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->dia.x, tNode->dia.y);
-    }
-    */
-
     //count entries in the ModuleInformation-Section
     calcMiCount(modc, modv, &miCount, nType, oGroup, nGroup, mCompl);
 
@@ -2460,8 +2416,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
 }
 
 
-
 /* ------------------------------------------------------------------------- */
+
 
 static void printModuleNames(int modc, SmiModule **modv)
 {
