@@ -1073,6 +1073,97 @@ static GraphNode *calcGroupSize(int group)
 /* ------------------------------------------------------------------------- */
 
 
+static void printInformationNode(SmiNode *smiNode,
+				 float *x, float *y, int *miNr)
+{
+    int         j;
+    char        *tooltip;
+    SmiElement  *smiElement;
+
+    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+    printf("(%.2f,%.2f)\">\n", *x, *y);
+    printf("  <text id=\"%s\"", smiNode->name);
+    switch (smiNode->status) {
+    case SMI_STATUS_DEPRECATED:
+	printf(" fill=\"rgb(40%,40%,40%)\"");
+	break;
+    case SMI_STATUS_OBSOLETE:
+	printf(" fill=\"rgb(60%,60%,60%)\"");
+	break;
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_MANDATORY:
+	printf(" fill=\"rgb(0%,0%,0%)\"");
+	break;
+    case SMI_STATUS_OPTIONAL:
+	printf(" fill=\"rgb(20%,20%,20%)\"");
+	break;
+    }
+
+    if (!STATIC_OUTPUT) {
+	smiElement = smiGetFirstElement(smiNode);
+	if (smiElement || smiNode->description) {
+	    printf(" onmousemove=\"");
+	}
+	if (smiNode->description) {
+	    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
+	    parseTooltip(smiNode->description, tooltip);
+	    printf("ShowTooltipMZ(evt,'%s')", tooltip);
+	    xfree(tooltip);
+	}
+	if (smiElement && smiNode->description) {
+	    printf(";");
+	}
+	for (j = 0; smiElement;
+	    j++, smiElement = smiGetNextElement(smiElement)) {
+	    if (j) {
+		printf(";");
+	    }
+	    printf("colorText('%s','red')",
+					smiGetElementNode(smiElement)->name);
+	}
+	if (j || smiNode->description) {
+	    printf("\"");
+	}
+
+	smiElement = smiGetFirstElement(smiNode);
+	if (smiElement || smiNode->description) {
+	    printf(" onmouseout=\"");
+	}
+	if (smiNode->description) {
+	    printf("HideTooltip(evt)");
+	}
+	if (smiElement && smiNode->description) {
+	    printf(";");
+	}
+	for (j = 0; smiElement;
+	    j++, smiElement = smiGetNextElement(smiElement)) {
+	    if (j) {
+		printf(";");
+	    }
+	    printf("colorText('%s','black')",
+					smiGetElementNode(smiElement)->name);
+	}
+	if (j || smiNode->description) {
+	    printf("\"");
+	}
+    }
+
+    printf(">%s", smiNode->name);
+    switch (smiNode->status) {
+    case SMI_STATUS_DEPRECATED:
+    case SMI_STATUS_OBSOLETE:
+	printf(" (%s)", getStatusString(smiNode->status));
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_MANDATORY:
+    case SMI_STATUS_OPTIONAL:
+    }
+    printf("</text>\n");
+    printf(" </g>\n");
+    *y += TABLEELEMHEIGHT;
+    (*miNr)++;
+}
+
+
 static void printModuleIdentity(int modc, SmiModule **modv,
 				float *x, float *y, int *miNr)
 {
@@ -1166,11 +1257,8 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 static void printNotificationType(int modc, SmiModule **modv,
 				  float *x, float *y, int *miNr)
 {
-    int         i, j;
-    char        *tooltip;
+    int         i;
     SmiNode     *smiNode;
-    SmiElement  *smiElement;
-    SmiRevision *smiRevision;
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1205,7 +1293,6 @@ static void printNotificationType(int modc, SmiModule **modv,
 	    *x -= TABLEELEMHEIGHT;
 
 	    //name, status and description of the notification
-	    //TODO print text in different grey colors for different statuses.
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
@@ -1216,88 +1303,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
-		printf("(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text id=\"%s\"", smiNode->name);
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		    printf(" fill=\"rgb(40%,40%,40%)\"");
-		    break;
-		case SMI_STATUS_OBSOLETE:
-		    printf(" fill=\"rgb(60%,60%,60%)\"");
-		    break;
-		case SMI_STATUS_CURRENT:
-		case SMI_STATUS_MANDATORY:
-		    printf(" fill=\"rgb(0%,0%,0%)\"");
-		    break;
-		case SMI_STATUS_OPTIONAL:
-		    printf(" fill=\"rgb(20%,20%,20%)\"");
-		    break;
-		}
-
-		if (!STATIC_OUTPUT) {
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement || smiNode->description) {
-			printf(" onmousemove=\"");
-		    }
-		    if (smiNode->description) {
-			tooltip =
-				(char *)xmalloc(2*strlen(smiNode->description));
-			parseTooltip(smiNode->description, tooltip);
-			printf("ShowTooltipMZ(evt,'%s')", tooltip);
-			xfree(tooltip);
-		    }
-		    if (smiElement && smiNode->description) {
-			printf(";");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (j) {
-			    printf(";");
-			}
-			printf("colorText('%s','red')",
-					smiGetElementNode(smiElement)->name);
-		    }
-		    if (j || smiNode->description) {
-			printf("\"");
-		    }
-
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement || smiNode->description) {
-			printf(" onmouseout=\"");
-		    }
-		    if (smiNode->description) {
-			printf("HideTooltip(evt)");
-		    }
-		    if (smiElement && smiNode->description) {
-			printf(";");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (j) {
-			    printf(";");
-			}
-			printf("colorText('%s','black')",
-					smiGetElementNode(smiElement)->name);
-		    }
-		    if (j || smiNode->description) {
-			printf("\"");
-		    }
-		}
-
-		printf(">%s", smiNode->name);
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		case SMI_STATUS_OBSOLETE:
-		    printf(" (%s)", getStatusString(smiNode->status));
-		case SMI_STATUS_CURRENT:
-		case SMI_STATUS_MANDATORY:
-		case SMI_STATUS_OPTIONAL:
-		}
-		printf("</text>\n");
-		printf(" </g>\n");
-		*y += TABLEELEMHEIGHT;
-		(*miNr)++;
+		printInformationNode(smiNode, x, y, miNr);
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	    *x -= TABLEBOTTOMHEIGHT;
@@ -1309,11 +1315,8 @@ static void printNotificationType(int modc, SmiModule **modv,
 static void printObjectGroup(int modc, SmiModule **modv,
 			     float *x, float *y, int *miNr)
 {
-    int         i, j;
-    char        *tooltip;
+    int         i;
     SmiNode     *smiNode;
-    SmiElement  *smiElement;
-    SmiRevision *smiRevision;
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1348,7 +1351,6 @@ static void printObjectGroup(int modc, SmiModule **modv,
 	    *x -= TABLEELEMHEIGHT;
 
 	    //name, status and description of the group
-	    //TODO print text in different grey colors for different statuses.
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
@@ -1361,88 +1363,7 @@ static void printObjectGroup(int modc, SmiModule **modv,
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
-		printf("(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text id=\"%s\"", smiNode->name);
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		    printf(" fill=\"rgb(40%,40%,40%)\"");
-		    break;
-		case SMI_STATUS_OBSOLETE:
-		    printf(" fill=\"rgb(60%,60%,60%)\"");
-		    break;
-		case SMI_STATUS_CURRENT:
-		case SMI_STATUS_MANDATORY:
-		    printf(" fill=\"rgb(0%,0%,0%)\"");
-		    break;
-		case SMI_STATUS_OPTIONAL:
-		    printf(" fill=\"rgb(20%,20%,20%)\"");
-		    break;
-		}
-
-		if (!STATIC_OUTPUT) {
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement || smiNode->description) {
-			printf(" onmousemove=\"");
-		    }
-		    if (smiNode->description) {
-			tooltip =
-				(char *)xmalloc(2*strlen(smiNode->description));
-			parseTooltip(smiNode->description, tooltip);
-			printf("ShowTooltipMZ(evt,'%s')", tooltip);
-			xfree(tooltip);
-		    }
-		    if (smiElement && smiNode->description) {
-			printf(";");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (j) {
-			    printf(";");
-			}
-			printf("colorText('%s','red')",
-					smiGetElementNode(smiElement)->name);
-		    }
-		    if (j || smiNode->description) {
-			printf("\"");
-		    }
-
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement || smiNode->description) {
-			printf(" onmouseout=\"");
-		    }
-		    if (smiNode->description) {
-			printf("HideTooltip(evt)");
-		    }
-		    if (smiElement && smiNode->description) {
-			printf(";");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (j) {
-			    printf(";");
-			}
-			printf("colorText('%s','black')",
-					smiGetElementNode(smiElement)->name);
-		    }
-		    if (j || smiNode->description) {
-			printf("\"");
-		    }
-		}
-
-		printf(">%s", smiNode->name);
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		case SMI_STATUS_OBSOLETE:
-		    printf(" (%s)", getStatusString(smiNode->status));
-		case SMI_STATUS_CURRENT:
-		case SMI_STATUS_MANDATORY:
-		case SMI_STATUS_OPTIONAL:
-		}
-		printf("</text>\n");
-		printf(" </g>\n");
-		*y += TABLEELEMHEIGHT;
-		(*miNr)++;
+		printInformationNode(smiNode, x, y, miNr);
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	    *x -= TABLEBOTTOMHEIGHT;
@@ -1454,11 +1375,8 @@ static void printObjectGroup(int modc, SmiModule **modv,
 static void printNotificationGroup(int modc, SmiModule **modv,
 				   float *x, float *y, int *miNr)
 {
-    int         i, j;
-    char        *tooltip;
+    int         i;
     SmiNode     *smiNode;
-    SmiElement  *smiElement;
-    SmiRevision *smiRevision;
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1493,7 +1411,6 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 	    *x -= TABLEELEMHEIGHT;
 
 	    //name, status and description of the group
-	    //TODO print text in different grey colors for different statuses.
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
@@ -1506,88 +1423,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
-		printf("(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text id=\"%s\"", smiNode->name);
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		    printf(" fill=\"rgb(40%,40%,40%)\"");
-		    break;
-		case SMI_STATUS_OBSOLETE:
-		    printf(" fill=\"rgb(60%,60%,60%)\"");
-		    break;
-		case SMI_STATUS_CURRENT:
-		case SMI_STATUS_MANDATORY:
-		    printf(" fill=\"rgb(0%,0%,0%)\"");
-		    break;
-		case SMI_STATUS_OPTIONAL:
-		    printf(" fill=\"rgb(20%,20%,20%)\"");
-		    break;
-		}
-
-		if (!STATIC_OUTPUT) {
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement || smiNode->description) {
-			printf(" onmousemove=\"");
-		    }
-		    if (smiNode->description) {
-			tooltip =
-				(char *)xmalloc(2*strlen(smiNode->description));
-			parseTooltip(smiNode->description, tooltip);
-			printf("ShowTooltipMZ(evt,'%s')", tooltip);
-			xfree(tooltip);
-		    }
-		    if (smiElement && smiNode->description) {
-			printf(";");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (j) {
-			    printf(";");
-			}
-			printf("colorText('%s','red')",
-					smiGetElementNode(smiElement)->name);
-		    }
-		    if (j || smiNode->description) {
-			printf("\"");
-		    }
-
-		    smiElement = smiGetFirstElement(smiNode);
-		    if (smiElement || smiNode->description) {
-			printf(" onmouseout=\"");
-		    }
-		    if (smiNode->description) {
-			printf("HideTooltip(evt)");
-		    }
-		    if (smiElement && smiNode->description) {
-			printf(";");
-		    }
-		    for (j = 0; smiElement;
-			j++, smiElement = smiGetNextElement(smiElement)) {
-			if (j) {
-			    printf(";");
-			}
-			printf("colorText('%s','black')",
-					smiGetElementNode(smiElement)->name);
-		    }
-		    if (j || smiNode->description) {
-			printf("\"");
-		    }
-		}
-
-		printf(">%s", smiNode->name);
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		case SMI_STATUS_OBSOLETE:
-		    printf(" (%s)", getStatusString(smiNode->status));
-		case SMI_STATUS_CURRENT:
-		case SMI_STATUS_MANDATORY:
-		case SMI_STATUS_OPTIONAL:
-		}
-		printf("</text>\n");
-		printf(" </g>\n");
-		*y += TABLEELEMHEIGHT;
-		(*miNr)++;
+		printInformationNode(smiNode, x, y, miNr);
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	    *x -= TABLEBOTTOMHEIGHT;
@@ -1644,7 +1480,6 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 	    *x -= TABLEELEMHEIGHT;
 
 	    //name, status and description of the compliance
-	    //TODO print text in different grey colors for different statuses.
 	    *x += 2*TABLEELEMHEIGHT;
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_COMPLIANCE);
 		smiNode;
@@ -2322,6 +2157,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //enlarge canvas for ModuleInformation
     xMax += MODULE_INFO_WIDTH;
+    //TODO: calculate miCount----------------------------------------------TODO
     //output of svg to stdout begins here
     printSVGHeaderAndTitle(modc, modv, nodecount, xMin, yMin, xMax, yMax);
 
