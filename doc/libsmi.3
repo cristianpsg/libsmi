@@ -1,0 +1,125 @@
+.\"
+.\" $Id$
+.\"
+.TH libsmi 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.SH NAME
+smiStringStatus, smingStringStatus, smiStringAccess, smingStringAccess,
+smiStringDecl, smiStringBasetype, smiModule, smiDescriptor,
+smiMkTime, smiCTime, smingCTime \- libsmi routines
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.B #include <smi.h>
+.RS
+.RE
+.sp
+.BI "char *smingStringStatus(SmiStatus " status );
+.RE
+.sp
+.BI "char *smiStringStatus(SmiStatus " status );
+.RE
+.sp
+.BI "char *smingStringAccess(SmiAccess " access );
+.RE
+.sp
+.BI "char *smiStringAccess(SmiAccess " access );
+.RE
+.sp
+.BI "char *smiStringDecl(SmiDecl " macro );
+.RE
+.sp
+.BI "char *smiStringBasetype(SmiBasetype " basetype );
+.RE
+.sp
+.BI "char *smiModule(char *" fullname );
+.RE
+.sp
+.BI "char *smiDescriptor(char *" fullname );
+.RE
+.sp
+.BI "time_t smiMkTime(const char *" s );
+.RE
+.sp
+.BI "char *smiCTime(time_t " t );
+.RE
+.sp
+.BI "char *smingCTime(time_t " t );
+
+
+
+
+.RE
+.sp
+.BI "int smiIsImported(char *" modulename ", char *" fullname );
+
+
+.RE
+.sp
+.BI "void smiInit();"
+.RE
+.sp
+.BI "void smiSetDebugLevel(int " level );
+.RE
+.sp
+.BI "void smiSetErrorLevel(int " level );
+.RE
+.sp
+.BI "void smiSetFlags(int " userflags );
+.RE
+.sp
+.BI "int smiGetFlags();"
+.RE
+.sp
+.BI "int smiReadConfig(const char *" file );
+.RE
+.sp
+.BI "int smiAddLocation(const char *" location );
+
+
+.RE
+.sp
+.BI "int smiLoadModule(char *" modulename );
+
+
+.RE
+.fi
+.SH DESCRIPTION
+These functions make queries to and interpret the responses from Internet
+domain name servers.
+.PP
+The \fBres_init()\fP function reads the configuration files (see
+resolv+(8)) to get the default domain name, search order and name
+server address(es).  If no server is given, the local host is tried.
+If no domain is given, that associated with the local host is used.
+It can be overridden with the environment variable LOCALDOMAIN.
+\fBres_init()\fP is normally executed by the first call to one of the
+other functions.
+.PP
+The \fBres_query()\fP function queries the name server for the
+fully-qualified domain name \fIname\fP of specified \fItype\fP and
+\fIclass\fP.  The reply is left in the buffer \fIanswer\fP of length
+\fIanslen\fP supplied by the caller.
+.PP
+The resolver routines use global configuration and state information
+contained in the structure \fI_res\fP, which is defined in 
+\fI<resolv.h>\fP.  The only field that is normally manipulated by the 
+user is \fI_res.options\fP.  This field can contain the bitwise ``or''
+of the following options:
+.sp
+.TP
+.B RES_INIT
+True if \fBres_init()\fP has been called.
+.TP
+.B RES_DNSRCH
+If set, \fBres_search()\fP will search for host names in the current
+domain and in parent domains.  This option is used by
+.BR gethostbyname (3).
+[Enabled by default].
+.SH "RETURN VALUE"
+The \fBres_init()\fP function returns 0 on success, or \-1 if an error
+occurs.
+.PP
+The \fBdn_comp()\fP and \fBdn_expand()\fP functions return the length
+of the compressed name, or \-1 if an error occurs.
+.SH "SEE ALSO"
+.BR smiGetNode "(3), " smi (3)

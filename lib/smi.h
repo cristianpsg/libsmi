@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.13 1999/05/04 17:04:59 strauss Exp $
+ * @(#) $Id: smi.h,v 1.14 1999/05/04 21:57:30 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -294,8 +294,7 @@ extern SmiModule *smiGetModule(char *spec);
 
 extern void smiFreeModule(SmiModule *smiModulePtr);
 
-extern char **smiGetImports(char *spec,
-                            char *mod);
+extern char **smiGetImports(char *modulenae);
 
 extern int smiIsImported(char *modulename,
                          char *fullname);

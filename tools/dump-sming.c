@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.24 1999/04/16 16:06:42 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.25 1999/05/04 09:00:53 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -370,7 +370,7 @@ printImports(modulename)
     char	  types[200];
     char	  *t;
     
-    list = smiGetImports(modulename, "");
+    list = smiGetImports(modulename);
 
     types[0] = 0;
     

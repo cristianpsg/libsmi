@@ -1,0 +1,102 @@
+.\"
+.\" $Id$
+.\"
+.TH smi_module 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.SH NAME
+smiGetModule, smiFreeModule, smiGetImports, smiIsImported, smiGetFirstRevision, smiGetNextRevision, smiFreeRevision \- SMI module information routines
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.B #include <smi.h>
+.RS
+.RE
+.sp
+.BI "SmiModule *smiGetModule(char *" spec );
+.RE
+.sp
+.BI "void smiFreeModule(SmiModule *" smiModulePtr );
+.RE
+.sp
+.BI "char **smiGetImports(char *" spec ", char *" mod );
+.RE
+.sp
+.BI "int smiIsImported(char *" modulename ", char *" fullname );
+.RE
+.sp
+.BI "SmiRevision *smiGetFirstRevision(char *" modulename );
+.RE
+.sp
+.BI "SmiRevision *smiGetNextRevision(char *" modulename ", time_t " date );
+.RE
+.sp
+.BI "void smiFreeRevision(SmiRevision *" smiRevisionPtr );
+.RE
+
+typedef struct SmiModule {
+    SmiIdentifier     name;
+    SmiQIdentifier    object; /* module identity object */
+    time_t            lastupdated;
+    char              *organization;
+    char              *contactinfo;
+    char              *description;
+    char              *reference;
+} SmiModule;
+
+typedef struct SmiRevision {
+    time_t            date;
+    char              *description;
+} SmiRevision;
+
+.fi
+.SH DESCRIPTION
+These functions retrieve different meta information on MIB
+modules. The functions to retrieve the definitions within a module are
+documented in smi_type(3), smi_node(3), and smi_macro(3).
+.PP
+The \fBsmiGetModule()\fP function retrieves a \fBstruct SmiModule\fP
+that represents the module named \fBspec\fP. Elements not available
+or not present in the module contain NULL.
+.PP
+The \fBsmiFreeModule()\fP function should be called when a retrieved
+\fBstruct SmiModule\fP is no longer needed to release its memory.
+.PP
+The \fBsmiGetImports()\fP function returns a list of all fully
+qualified descriptors imported in \fImodulename\fP.
+.PP
+The \fBsmiIsImported()\fP function returns a positive value if the
+fully qualified descriptor \fIfullname\fP is imported in module
+\fImodulename\fP, or zero otherwise.
+.PP
+The \fBsmiGetFirstRevision()\fP and \fBsmiGetNextRevision()\fP
+functions are used to iteratively retrieve \fBstruct SmiModule\fPs.
+\fBsmiGetFirstRevision()\fP returns the first (in the module, that is
+most recent) revision information on module
+\fImodulename\fP. Subsequent calls to \fBsmiGetNextRevision()\fP
+return the revision after (timely before) that one specified by
+\fIdate\fP which is usually the date of the last revision.  If there
+are no more revisions NULL is returned.
+.PP
+The \fBsmiFreeRevision()\fP function should be called for each retrieved
+\fBstruct SmiRevision\fP that is no longer needed to release its memory.
+.SH "RETURN VALUES"
+The retrieval functions \fBsmiGetModule()\fP,
+\fBsmiGetFirstRevision()\fP, and \fBsmiGetNextRevision()\fP return
+the requested structure on success, or NULL on error. Structures
+should be released after use by calling \fBsmiFreeModule()\fP, or
+\fBsmiFreeRevision()\fP, respectively.
+.PP
+\fBsmiGetImports()\fP returns a list of strings, or NULL on
+error. \fBsmiIsImported()\fP returns an appropriate integer truth
+value. Other functions are void.
+.SH "FILES"
+.nf
+/usr/local/include/smi.h    SMI library header file
+.fi
+.SH "NOTES"
+Libsmi is work in progress. Interface inconsistencies and deficiencies
+will change in near future.
+.SH "SEE ALSO"
+.BR smi.h ", " libsmi "(3), " smi_node "(3), " smi_type "(3), " smi_macro "(3)"
+.SH "AUTHOR"
+Frank Strauss <strauss@ibr.cs.tu-bs.de>
+.br
