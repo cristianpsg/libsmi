@@ -2919,7 +2919,6 @@ static float fa(float d, float k)
  * Zusammenhangskomponenten einzeln betrachten
  *
  * FIXME * nodecount counts all nodes. we need something like clusternodecount!
- *       * loop through the nodes of the cluster, don't use GraphNode.use!
  */
 static void layoutCluster(int nodecount, GraphCluster *cluster,
 			int overlap, int limit_frame)
@@ -2937,13 +2936,13 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
-	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
-	    if (!vNode->use || vNode->cluster!=cluster)
-		continue;
+	for (vNode = cluster->firstClusterNode; vNode;
+					vNode = vNode->nextClusterNode) {
 	    vNode->dia.xDisp = 0;
 	    vNode->dia.yDisp = 0;
-	    for (uNode = graph->nodes; uNode; uNode = uNode->nextPtr) {
-		if (!uNode->use || uNode->cluster!=cluster || vNode==uNode)
+	    for (uNode = cluster->firstClusterNode; uNode;
+					uNode = uNode->nextClusterNode) {
+		if (vNode==uNode)
 		    continue;
 		xDelta = vNode->dia.x - uNode->dia.x;
 		yDelta = vNode->dia.y - uNode->dia.y;
@@ -2975,11 +2974,10 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 	}
 	//limit the maximum displacement to the temperature t
 	//and prevent from being displaced outside the frame
-	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
-	    if (!vNode->use || vNode->cluster!=cluster)
-		continue;
+	for (vNode = cluster->firstClusterNode; vNode;
+					vNode = vNode->nextClusterNode) {
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
-				    + vNode->dia.yDisp*vNode->dia.yDisp));
+					+ vNode->dia.yDisp*vNode->dia.yDisp));
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
 	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
 	    /*
