@@ -9,7 +9,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# $Id: smistrip.in,v 1.2 2000/04/11 07:39:48 strauss Exp $
+# $Id: smistrip.in,v 1.3 2000/06/07 12:44:35 strauss Exp $
 #
 # NOTE, that this script relies on awk (tested with GNU awk) and getopts
 # (shell builtin like in bash or standalone).
@@ -40,7 +40,7 @@ do_usage () {
 
 do_strip () {
     cat $1 | \
-    grep -v '^Internet Draft' | \
+    grep -i -v '^[ ]*Internet Draft' | \
     $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
     # start of module

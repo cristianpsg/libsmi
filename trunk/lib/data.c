@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.87 2000/07/04 13:01:24 strauss Exp $
+ * @(#) $Id: data.c,v 1.88 2000/10/02 12:51:10 strauss Exp $
  */
 
 #include <config.h>
@@ -3368,6 +3368,14 @@ Module *loadModule(const char *modulename)
 	    if (! access(path, R_OK)) {
 		break;
 	    }
+	    sprintf(path, "%s/%s.mib", dir, modulename);
+	    if (! access(path, R_OK)) {
+		break;
+	    }
+	    sprintf(path, "%s/%s.txt", dir, modulename);
+	    if (! access(path, R_OK)) {
+		break;
+	    }
 	    smiFree(path);
 	    path = NULL;
 	}
@@ -3462,4 +3470,4 @@ Module *loadModule(const char *modulename)
 
     smiFree(path);
     return NULL;
-}
+} /*  */

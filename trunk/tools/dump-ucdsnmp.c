@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.17 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.18 2000/07/04 10:07:10 strauss Exp $
  */
 
 /*
@@ -171,9 +171,11 @@ static int getMaxSize(SmiType *smiType)
 {
     SmiRange *smiRange;
     SmiType  *parentType;
-    int max = 0, size;
+    SmiNamedNumber *nn;
+    unsigned int max = 0, size;
     
     switch (smiType->basetype) {
+    case SMI_BASETYPE_BITS:
     case SMI_BASETYPE_OCTETSTRING:
 	size = 65535;
 	break;
@@ -182,6 +184,18 @@ static int getMaxSize(SmiType *smiType)
 	break;
     default:
 	return -1;
+    }
+
+    if (smiType->basetype == SMI_BASETYPE_BITS) {
+	for (nn = smiGetFirstNamedNumber(smiType);
+	     nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 > max) {
+		max = nn->value.value.unsigned32;
+	    }
+	}
+	size = (max / 8) + 1;
+	return size;
     }
 
     for(smiRange = smiGetFirstRange(smiType);
