@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.22 1998/11/22 22:58:22 strauss Exp $
+ * @(#) $Id: data.c,v 1.23 1998/11/23 12:56:57 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -399,11 +399,10 @@ checkImportDescriptors(modulename, parser)
 {
     Descriptor *descriptor, *mod;
     
-    printDebug(4, "checkImportIdentifiers(%s, parser)\n", modulename);
+    printDebug(4, "checkImportDescriptors(%s, parser)\n", modulename);
     
     while (parser->thisModule->firstDescriptor[KIND_IMPORT]) {
 	descriptor = parser->thisModule->firstDescriptor[KIND_IMPORT];
-
 	/*
 	 * We add a module descriptor with FLAG_IMPORTED and
 	 * without a module struct...
@@ -800,7 +799,7 @@ findDescriptor(name, module, kind)
 {
     Descriptor *descriptor;
     
-    printDebug(5, "findDescriptor(name=\"%s\", module=%s, kind=%s)", name,
+    printDebug(5, "findDescriptor(\"%s\", %s, %s)", name,
 	       module ? module->descriptor->name : "any-module",
 	       stringKind(kind));
 
@@ -852,7 +851,7 @@ findNextDescriptor(name, module, kind, start)
 {
     Descriptor *descriptor;
     
-    printDebug(5, "findNextDescriptor(\"%s\", %s, %s, %s)", name,
+    printDebug(5, "findNextDescriptor(\"%s\", %s, %s, %s)\n", name,
 	       module ? module->descriptor->name : "any-module",
 	       stringKind(kind), start ? start->name : "NULL");
 
@@ -870,11 +869,11 @@ findNextDescriptor(name, module, kind, start)
 	                     : kind != KIND_ANY ?
 	     descriptor->nextSameKind : descriptor->next) {
 	if (!strcmp(descriptor->name, name)) {
-	    printDebug(5, " = %s\n", descriptor->name);
+	    printDebug(5, "... = %s\n", descriptor->name);
 	    return (descriptor);
 	}
     }
-    printDebug(5, " = NULL\n");
+    printDebug(5, "... = NULL\n");
     return (NULL);
 }
 
