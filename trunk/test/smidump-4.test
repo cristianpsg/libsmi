@@ -1,0 +1,21 @@
+#!/bin/sh
+
+rm -rf smidump-4.out
+mkdir smidump-4.out
+
+RC=0
+
+for mib in ${TESTMIBS} ; do
+    echo "$mib: comparing \`smidump -f mosy' output with dumps/$mib.mosy."
+    for d in `echo ${SMIPATH} | tr ':' ' '` ; do
+	if [ -f $d/$mib ] ; then break ; fi
+    done 
+    ../tools/smidump -f mosy $mib > smidump-4.out/$mib.mosy
+    WC=`diff -I smidump --ignore-blank-lines smidump-4.out/$mib.mosy dumps/$mib.mosy | wc -l`
+    if [ $WC -ne 0 ] ; then
+	echo "smidump -f mosy output for $mib differs from dump/$mib.mosy."
+	RC=1
+    fi
+done
+
+exit ${RC}

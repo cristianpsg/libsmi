@@ -1,0 +1,21 @@
+#!/bin/sh
+
+rm -rf smidump-7.out
+mkdir smidump-7.out
+
+RC=0
+
+for mib in ${TESTMIBS} ; do
+    echo "$mib: comparing \`smidump -f corba-idl' output with dumps/$mib.corba-idl."
+    for d in `echo ${SMIPATH} | tr ':' ' '` ; do
+	if [ -f $d/$mib ] ; then break ; fi
+    done 
+    ../tools/smidump -f corba-idl $mib > smidump-7.out/$mib.corba-idl
+    WC=`diff -I smidump --ignore-blank-lines smidump-7.out/$mib.corba-idl dumps/$mib.corba-idl | wc -l`
+    if [ $WC -ne 0 ] ; then
+	echo "smidump -f corba-idl output for $mib differs from dump/$mib.corba-idl."
+	RC=1
+    fi
+done
+
+exit ${RC}
