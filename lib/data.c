@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.71 2000/02/25 10:25:30 strauss Exp $
+ * @(#) $Id: data.c,v 1.72 2000/02/25 16:48:17 strauss Exp $
  */
 
 #include <config.h>
@@ -2231,7 +2231,6 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->modulePtr			= modulePtr;
     typePtr->listPtr			= NULL;
     typePtr->flags			= templatePtr->flags;
-    typePtr->parentPtr                  = templatePtr;
     typePtr->line			= parserPtr ? parserPtr->line : -1;
 
     typePtr->nextPtr			= NULL;
@@ -2241,6 +2240,8 @@ duplicateType(templatePtr, flags, parserPtr)
     if (modulePtr->lastTypePtr)
 	modulePtr->lastTypePtr->nextPtr	= typePtr;
     modulePtr->lastTypePtr		= typePtr;
+
+    setTypeParent(typePtr, templatePtr);
     
     return (typePtr);
 }
@@ -2328,6 +2329,30 @@ setTypeName(typePtr, name)
 	}
     }
     return typePtr;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeParent --
+ *
+ *      Set the parent of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeParent(Type *typePtr, Type *parentPtr)
+{
+    typePtr->parentPtr = parentPtr;
 }
 
 
@@ -2448,30 +2473,6 @@ setTypeReference(typePtr, reference, parserPtr)
     } else {
 	typePtr->export.reference = reference;
     }
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * setTypeParent --
- *
- *      Set the parent of a given Type.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-setTypeParent(Type *typePtr, Type *parentPtr)
-{
-    typePtr->parentPtr = parentPtr;
 }
 
 
