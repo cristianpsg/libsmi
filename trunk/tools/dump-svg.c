@@ -547,12 +547,54 @@ static void printSVGGroup(int group, int *classNr)
     printf(" </g>\n");
 }
 
-static void printSVGDependency(GraphEdge *tEdge)
+static void calculateIntersectionPoints(GraphEdge *tEdge)
 {
-    float alpha, beta, endPointX, endPointY;
+    float alpha, beta;
     const float PI = acos(-1);
 
-    //calculate intersection of edge and endNode for end-point of arrow
+    //calculate intersection of edge and startNode
+    alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
+		  tEdge->startNode->dia.x-tEdge->endNode->dia.x);
+    beta = atan2(tEdge->startNode->dia.h, tEdge->startNode->dia.w);
+    if (alpha < 0)
+	alpha += PI;
+    if (alpha < beta
+	|| (alpha > PI-beta && alpha < PI+beta)
+	|| alpha > 2*PI-beta) {
+	//intersection at left or right border
+	if (tEdge->startNode->dia.x < tEdge->endNode->dia.x) {
+	    tEdge->dia.startX = tEdge->startNode->dia.x +
+			tEdge->startNode->dia.w*STARTSCALE/2;
+	} else {
+	    tEdge->dia.startX = tEdge->startNode->dia.x -
+			tEdge->startNode->dia.w*STARTSCALE/2;
+	}
+	if (tEdge->startNode->dia.y < tEdge->endNode->dia.y) {
+	    tEdge->dia.startY = tEdge->startNode->dia.y +
+			fabsf(tEdge->startNode->dia.w*STARTSCALE*tan(alpha)/2);
+	} else {
+	    tEdge->dia.startY = tEdge->startNode->dia.y -
+			fabsf(tEdge->startNode->dia.w*STARTSCALE*tan(alpha)/2);
+	}
+    } else {
+	//intersection at top or bottom border
+	if (tEdge->startNode->dia.y < tEdge->endNode->dia.y) {
+	    tEdge->dia.startY = tEdge->startNode->dia.y +
+			tEdge->startNode->dia.h*STARTSCALE/2;
+	} else {
+	    tEdge->dia.startY = tEdge->startNode->dia.y -
+			tEdge->startNode->dia.h*STARTSCALE/2;
+	}
+	if (tEdge->startNode->dia.x < tEdge->endNode->dia.x) {
+	    tEdge->dia.startX = tEdge->startNode->dia.x +
+		fabsf(tEdge->startNode->dia.h*STARTSCALE/(2*tan(alpha)));
+	} else {
+	    tEdge->dia.startX = tEdge->startNode->dia.x -
+		fabsf(tEdge->startNode->dia.h*STARTSCALE/(2*tan(alpha)));
+	}
+    }
+
+    //calculate intersection of edge and endNode
     alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
 		  tEdge->startNode->dia.x-tEdge->endNode->dia.x);
     beta = atan2(tEdge->endNode->dia.h, tEdge->endNode->dia.w);
@@ -563,44 +605,49 @@ static void printSVGDependency(GraphEdge *tEdge)
 	|| alpha > 2*PI-beta) {
 	//intersection at left or right border
 	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
-	    endPointX = tEdge->endNode->dia.x +
+	    tEdge->dia.endX = tEdge->endNode->dia.x +
 			tEdge->endNode->dia.w*STARTSCALE/2;
 	} else {
-	    endPointX = tEdge->endNode->dia.x -
+	    tEdge->dia.endX = tEdge->endNode->dia.x -
 			tEdge->endNode->dia.w*STARTSCALE/2;
 	}
 	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
-	    endPointY = tEdge->endNode->dia.y +
+	    tEdge->dia.endY = tEdge->endNode->dia.y +
 			fabsf(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
 	} else {
-	    endPointY = tEdge->endNode->dia.y -
+	    tEdge->dia.endY = tEdge->endNode->dia.y -
 			fabsf(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
 	}
     } else {
 	//intersection at top or bottom border
 	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
-	    endPointY = tEdge->endNode->dia.y +
+	    tEdge->dia.endY = tEdge->endNode->dia.y +
 			tEdge->endNode->dia.h*STARTSCALE/2;
 	} else {
-	    endPointY = tEdge->endNode->dia.y -
+	    tEdge->dia.endY = tEdge->endNode->dia.y -
 			tEdge->endNode->dia.h*STARTSCALE/2;
 	}
 	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
-	    endPointX = tEdge->endNode->dia.x +
+	    tEdge->dia.endX = tEdge->endNode->dia.x +
 			fabsf(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
 	} else {
-	    endPointX = tEdge->endNode->dia.x -
+	    tEdge->dia.endX = tEdge->endNode->dia.x -
 			fabsf(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
 	}
     }
+}
+
+static void printSVGDependency(GraphEdge *tEdge)
+{
+    calculateIntersectionPoints(tEdge);
 
     printf(" <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\"\n",
-	tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
-	tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
-	endPointX + tEdge->endNode->cluster->xOffset,
-	endPointY + tEdge->endNode->cluster->yOffset);
+	tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
+	tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
+	tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
+	tEdge->dia.endY + tEdge->endNode->cluster->yOffset);
     printf("       stroke-dasharray=\"10, 10\" stroke=\"black\"");
-    printf(" marker-end=\"url(#arrowhead)\"/>\n");
+    printf(" marker-end=\"url(#arrowend)\"/>\n");
 }
 
 /*
@@ -610,11 +657,11 @@ static void printSVGDependency(GraphEdge *tEdge)
 static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 {
     int revert = 0;
-    float alpha, beta, offset;
-    const float PI = acos(-1);
 
     if (aggregate > 1) aggregate = 1;
     if (aggregate < 0) aggregate = 0;
+
+    calculateIntersectionPoints(tEdge);
 
     //expands should have cardinalities 1 *
     if (tEdge->indexkind==SMI_INDEX_EXPAND)
@@ -624,71 +671,65 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     if (tEdge->startNode->dia.x > tEdge->endNode->dia.x)
 	revert = 1;
 
+    //print edge
     printf(" <path id=\"%s%s\"\n",
 	tEdge->startNode->smiNode->name,
 	tEdge->endNode->smiNode->name);
     if (!revert) {
 	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	    tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
-	    tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
-	    tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
-	    tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
+	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
+	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset);
     } else {
 	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	    tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
-	    tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset,
-	    tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
-	    tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset);
+	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset,
+	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset);
     }
-    printf("       stroke=\"black\"/>\n");
-
-    if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
-	alpha = atan2(tEdge->endNode->dia.y-tEdge->startNode->dia.y,
-		      tEdge->endNode->dia.x-tEdge->startNode->dia.x);
-	beta = atan2(tEdge->startNode->dia.h, tEdge->startNode->dia.w);
-	if (alpha < 0)
-	    alpha += PI;
-	if (alpha < beta
-	    || (alpha > PI-beta && alpha < PI+beta)
-	    || alpha > 2*PI-beta) {
-	    //intersection at left or right border
-	    offset = 50*tEdge->startNode->dia.w*STARTSCALE
-		     / (abs(tEdge->endNode->dia.x-tEdge->startNode->dia.x));
-	} else {
-	    //intersection at top or bottom border
-	    offset = 50*tEdge->startNode->dia.h*STARTSCALE
-		     / (abs(tEdge->endNode->dia.y-tEdge->startNode->dia.y));
-	}
-	printf(" <text text-anchor=\"middle\">\n");
+    printf("       stroke=\"black\"");
+    if (tEdge->indexkind==SMI_INDEX_AUGMENT ||
+	tEdge->indexkind==SMI_INDEX_SPARSE ||
+	tEdge->indexkind==SMI_INDEX_EXPAND) {
 	if (!revert) {
-	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
-		tEdge->startNode->smiNode->name,
-		tEdge->endNode->smiNode->name,
-		//5% more gap than calculated for tilted text
-		5+offset);
+	    printf(" marker-start=\"url(#arrowstart)\"");
 	} else {
-	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
-		tEdge->startNode->smiNode->name,
-		tEdge->endNode->smiNode->name,
-		95-offset);
+	    printf(" marker-end=\"url(#arrowend)\"");
 	}
+    } else if (tEdge->indexkind==SMI_INDEX_REORDER) {
+	printf(" marker-start=\"url(#arrowstart)\"");
+	printf(" marker-end=\"url(#arrowend)\"");
+    }
+    printf("/>\n");
+
+    //edges without labels are finished here
+    if (tEdge->cardinality==GRAPH_CARD_UNKNOWN)
+	return;
+
+    //print labels
+    printf(" <text text-anchor=\"middle\">\n");
+    printf("    <textPath xlink:href=\"#%s%s\"",
+		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
+    if (!revert) {
+	printf(" startOffset=\"10%\">\n");
+    } else {
+	printf(" startOffset=\"90%\">\n");
     }
     switch (tEdge->cardinality) {
     case GRAPH_CARD_ZERO_TO_ONE:
     case GRAPH_CARD_ZERO_TO_MANY:
-	printf("       0\n");
+	printf("       0");
 	break;
     case GRAPH_CARD_ONE_TO_ONE:
     case GRAPH_CARD_ONE_TO_MANY:
     case GRAPH_CARD_ONE_TO_ZERO_OR_ONE:
-	printf("       1\n");
+	printf("       1");
 	break;
     case GRAPH_CARD_UNKNOWN:
     }
-	if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
-	printf("    </textPath>\n");
-	printf(" </text>\n");
-    }
+    printf("</textPath>\n");
+    printf(" </text>\n");
 
     if (tEdge->indexkind==SMI_INDEX_AUGMENT ||
 	tEdge->indexkind==SMI_INDEX_SPARSE ||
@@ -696,21 +737,20 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	tEdge->indexkind==SMI_INDEX_EXPAND) {
 	printf(" <text text-anchor=\"middle\">\n");
 	printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%\">\n",
-	    tEdge->startNode->smiNode->name,
-	    tEdge->endNode->smiNode->name);
+		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
     }
     switch(tEdge->indexkind) {
     case SMI_INDEX_AUGMENT:
-	printf("       augments\n");
+	printf("       augments");
 	break;
     case SMI_INDEX_SPARSE:
-	printf("       sparsly augments\n");
+	printf("       sparsly augments");
 	break;
     case SMI_INDEX_REORDER:
-	printf("       reorders\n");
+	printf("       reorders");
 	break;
     case SMI_INDEX_EXPAND:
-	printf("       expands\n");
+	printf("       expands");
 	break;
     case SMI_INDEX_UNKNOWN:
     case SMI_INDEX_INDEX:
@@ -719,58 +759,34 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	tEdge->indexkind==SMI_INDEX_SPARSE ||
 	tEdge->indexkind==SMI_INDEX_REORDER ||
 	tEdge->indexkind==SMI_INDEX_EXPAND) {
-	printf("    </textPath>\n");
+	printf("</textPath>\n");
 	printf(" </text>\n");
     }
 
-    if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
-	alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
-		      tEdge->startNode->dia.x-tEdge->endNode->dia.x);
-	beta = atan2(tEdge->endNode->dia.h, tEdge->endNode->dia.w);
-	if (alpha < 0)
-	    alpha += PI;
-	if (alpha < beta
-	    || (alpha > PI-beta && alpha < PI+beta)
-	    || alpha > 2*PI-beta) {
-	    //intersection at left or right border
-	    offset = 50*tEdge->endNode->dia.w*STARTSCALE
-		     / (abs(tEdge->startNode->dia.x-tEdge->endNode->dia.x));
-	} else {
-	    //intersection at top or bottom border
-	    offset = 50*tEdge->endNode->dia.h*STARTSCALE
-		     / (abs(tEdge->startNode->dia.y-tEdge->endNode->dia.y));
-	}
-	printf(" <text text-anchor=\"middle\">\n");
-	if (!revert) {
-	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
-		tEdge->startNode->smiNode->name,
-		tEdge->endNode->smiNode->name,
-		95-offset);
-	} else {
-	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
-		tEdge->startNode->smiNode->name,
-		tEdge->endNode->smiNode->name,
-		5+offset);
-	}
+    printf(" <text text-anchor=\"middle\">\n");
+    printf("    <textPath xlink:href=\"#%s%s\"",
+		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
+    if (!revert) {
+	printf(" startOffset=\"90%\">\n");
+    } else {
+	printf(" startOffset=\"10%\">\n");
     }
     switch (tEdge->cardinality) {
     case GRAPH_CARD_ONE_TO_ONE:
     case GRAPH_CARD_ZERO_TO_ONE:
-	printf("       1\n");
+	printf("       1");
 	break;
     case GRAPH_CARD_ONE_TO_MANY:
     case GRAPH_CARD_ZERO_TO_MANY:
-	printf("       *\n");
+	printf("       *");
 	break;
     case GRAPH_CARD_ONE_TO_ZERO_OR_ONE:
-	printf("       0..1\n");
+	printf("       0..1");
 	break;
     case GRAPH_CARD_UNKNOWN:
     }
-    if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
-	printf("    </textPath>\n");
-	printf(" </text>\n");
-    }
+    printf("</textPath>\n");
+    printf(" </text>\n");
 }
 
 static void printSVGConnection(GraphEdge *tEdge)
@@ -953,7 +969,12 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
 
     //definition for the arrowheads
     printf(" <defs>\n");
-    printf("   <marker id=\"arrowhead\" markerWidth=\"12\"");
+    printf("   <marker id=\"arrowstart\" markerWidth=\"12\"");
+    printf(" markerHeight=\"8\" refX=\"0\" refY=\"4\" orient=\"auto\">\n");
+    printf("     <path d=\"M 12 0 0 4 12 8\"");
+    printf(" fill=\"none\" stroke=\"black\"/>\n");
+    printf("   </marker>\n");
+    printf("   <marker id=\"arrowend\" markerWidth=\"12\"");
     printf(" markerHeight=\"8\" refX=\"12\" refY=\"4\" orient=\"auto\">\n");
     printf("     <path d=\"M 0 0 12 4 0 8\"");
     printf(" fill=\"none\" stroke=\"black\"/>\n");
