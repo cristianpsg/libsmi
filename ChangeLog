@@ -1,3 +1,9 @@
+2003-10-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/EtherLike-MIB: updated (RFC 3635).
+
+	* mibs/ietf/MAU-MIB: updated (RFC 3636).
+
 2003-09-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/IPV6-FLOW-LABEL-MIB: added (RFC 3595).
