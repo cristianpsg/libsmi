@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.137 2000/12/15 13:52:30 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.138 2000/12/21 09:19:52 strauss Exp $
  */
 
 %{
@@ -2026,6 +2026,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				setTypeName($6, $1);
 #endif
 			    }
+			    setObjectUnits(objectPtr, $7);
 			    setObjectAccess(objectPtr, $8);
 			    if (thisParserPtr->flags & FLAG_CREATABLE) {
 				thisParserPtr->flags &= ~FLAG_CREATABLE;
