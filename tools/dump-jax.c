@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.18 2000/06/07 07:41:18 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.19 2000/06/14 13:15:19 strauss Exp $
  */
 
 #include <config.h>
@@ -854,7 +854,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 	for (i = 0; i < currNode->oidlen; i++) {
 	    fprintf(f, "%s%d", i ? ", " : "", currNode->oid[i]);
 	}
-	fprintf(f, "};\n");
+	fprintf(f, ", 0};\n");
 
 	smiType = smiGetNodeType(currNode);
 	p = getJavaType(smiType);

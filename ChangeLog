@@ -1,3 +1,8 @@
+2000-06-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-jax.c: added a missing .0 instance indentifier
+	for scalar objects.
+
 2000-06-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: Juergen refined the conditional expensive checks

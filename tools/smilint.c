@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.27 2000/04/11 09:00:43 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.28 2000/06/14 13:15:19 strauss Exp $
  */
 
 #include <config.h>
@@ -89,7 +89,7 @@ static void errors()
     qsort(errors, cnt, sizeof(Error), compare);
     
     for (i = 0; i < cnt; i++) {
-	printf("%d: %s (%s)\n",
+	printf("[%d] %s (%s)\n",
 	       errors[i].severity, errors[i].msg, errors[i].tag);
     }
     
@@ -98,16 +98,16 @@ static void errors()
 
 
 
-
 static void usage()
 {
     fprintf(stderr,
-	    "Usage: smilint [-Vhsr] [-c <configfile>] [-p <module>] [-l <level>]\n"
+	    "Usage: smilint [-Vehrs] [-c <configfile>] [-p <module>] [-l <level>]\n"
 	    "               [-i <error-pattern>] <module_or_path>\n"
 	    "-V                    show version and license information\n"
+	    "-e                    print list of known error messages\n"
 	    "-h                    show usage information\n"
 	    "-r                    print errors also for imported modules\n"
-	    "-e                    print list of supported error messages\n"
+	    "-s                    print the severity of errors in brackets\n"
 	    "-c <configfile>       load a specific configuration file\n"
 	    "-p <module>           preload <module>\n"
 	    "-l <level>            set maximum level of errors and warnings\n"
@@ -120,6 +120,18 @@ static void usage()
 static void version()
 {
     printf("smilint " VERSION "\n");
+}
+
+
+
+static void
+errorHandler(char *path, int line, int severity, char *msg)
+{
+    if (path) {
+	fprintf(stderr, "%s:%d: ", path, line);
+    }
+    fprintf(stderr, "[%d] %s\n", severity, msg);
+
 }
 
 
@@ -139,8 +151,8 @@ int main(int argc, char *argv[])
     flags |= SMI_FLAG_ERRORS;
     flags |= SMI_FLAG_NODESCR;
     smiSetFlags(flags);
-    
-    while ((c = getopt(argc, argv, "Vehrp:l:i:c:")) != -1) {
+
+    while ((c = getopt(argc, argv, "Vehrsp:l:i:c:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg, "smiquery");
@@ -154,6 +166,13 @@ int main(int argc, char *argv[])
 	case 'h':
 	    usage();
 	    return 0;
+	case 'r':
+	    flags |= SMI_FLAG_RECURSIVE;
+	    smiSetFlags(flags);
+	    break;
+	case 's':
+	    smiSetErrorHandler(errorHandler);
+	    break;
 	case 'p':
 	    smiLoadModule(optarg);
 	    break;
@@ -162,10 +181,6 @@ int main(int argc, char *argv[])
 	    break;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
-	    break;
-	case 'r':
-	    flags |= SMI_FLAG_RECURSIVE;
-	    smiSetFlags(flags);
 	    break;
 	default:
 	    usage();
