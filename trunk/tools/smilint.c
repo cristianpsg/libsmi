@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.41 2001/09/05 11:01:11 schoenw Exp $
+ * @(#) $Id: smilint.c,v 1.42 2001/09/18 11:04:42 strauss Exp $
  */
 
 #include <config.h>
@@ -150,6 +150,10 @@ errorHandler(char *path, int line, int severity, char *msg, char *tag)
 	fprintf(stderr, "{%s} ", tag);
     }
     fprintf(stderr, "%s\n", msg);
+
+    if (severity <= 0) {
+	exit(1);
+    }
 }
 
 
