@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.80 2002/07/23 23:12:30 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.81 2002/10/30 09:17:37 schoenw Exp $
  */
 
 #include <config.h>
@@ -25,7 +25,7 @@
 
 
 
-extern int asprintf (char **ret, const char *format, ...);
+extern int smiAsprintf(char **strp, const char *format, ...);
 
 
 
@@ -240,9 +240,9 @@ static char *getTimeString(time_t t)
     if (s) xfree(s);
     
     tm = gmtime(&t);
-    asprintf(&s, "%04d%02d%02d%02d%02dZ",
-	     tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	     tm->tm_hour, tm->tm_min);
+    smiAsprintf(&s, "%04d%02d%02d%02d%02dZ",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+		tm->tm_hour, tm->tm_min);
     return s;
 }
 

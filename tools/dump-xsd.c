@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.49 2002/11/07 13:46:36 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.50 2002/11/07 16:47:11 tklie Exp $
  */
 
 #include <config.h>
@@ -22,6 +22,10 @@
 
 #include "smi.h"
 #include "smidump.h"
+
+
+extern int smiAsprintf(char **strp, const char *format, ...);
+
 
 #define  INDENT		2    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
@@ -497,9 +501,9 @@ static char* getStrDHType( char *hint,
 		/* there are more octets to come */
 		if( iterDH->type == 'd' ) {
 		    /* decimal number needs to be treated differently */
-		    asprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
-			      ret,
-			      numDigits( pow( 255, iterDH->number ) ) - 1);
+		    smiAsprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
+				 ret,
+				 numDigits( pow( 255, iterDH->number ) ) - 1);
 
 		    octetsUsed += iterDH->number;		    
 		    if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -509,14 +513,14 @@ static char* getStrDHType( char *hint,
 		    }
 		    
 		    else if( iterDH->separator ) {
-			asprintf( &ret, "%s%c", ret, iterDH->separator );
+			smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
 		    }
 		}
 		else {
 		    if( iterDH->next ){
-			asprintf( &ret, "%s(%s{%d})",
-				  ret,
-				  baseRegexp, iterDH->number );
+			smiAsprintf( &ret, "%s(%s{%d})",
+				     ret,
+				     baseRegexp, iterDH->number );
 
 			octetsUsed += iterDH->number;
 			if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -526,20 +530,20 @@ static char* getStrDHType( char *hint,
 			}
 
 			if( iterDH->separator ) {
-			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
 			}
 		    }
 		    else {			
-			asprintf( &ret, "%s(%s",
+			smiAsprintf( &ret, "%s(%s",
 				  ret, baseRegexp );
 
 			if( iterDH->separator ) {
-			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
 			}
 
-			asprintf( &ret, "%s{%u,%u})%s",
-				  ret, lengths[ i ] - 1, lengths[ i+1 ] - 1,
-				  baseRegexp );
+			smiAsprintf( &ret, "%s{%u,%u})%s",
+				     ret, lengths[ i ] - 1, lengths[ i+1 ] - 1,
+				     baseRegexp );
 			
 			octetsUsed += iterDH->number;
 			if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -556,9 +560,9 @@ static char* getStrDHType( char *hint,
 		if( iterDH->type == 'd' ) {
 		    /* decimal number needs to be treated differently */
 		    if( iterDH->number < lengths[ i+1 ] ) {
-			asprintf( &ret, "%s(0|[1-9]([0-9]{0,%d}))",
-				  ret,
-				  numDigits( pow( 255, iterDH->number ) ) );
+			smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d}))",
+				     ret,
+				     numDigits( pow( 255, iterDH->number ) ) );
 
 			octetsUsed += lengths[ i ];
 			if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -568,28 +572,28 @@ static char* getStrDHType( char *hint,
 			}
 
 			if( iterDH->separator ) {
-			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
 			}						
 		    }
 		    else {
-			asprintf( &ret, "%s(0|[1-9]([0-9]{0,%d})",
-				  ret,
-				  numDigits( pow( 255, lengths[ i+1 ] ) ) );
+			smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d})",
+				     ret,
+				     numDigits( pow( 255, lengths[ i+1 ] ) ) );
 		    }
 		}
 		else {
-		    asprintf( &ret, "%s(%s",  ret, baseRegexp );
+		    smiAsprintf( &ret, "%s(%s",  ret, baseRegexp );
 		    if( iterDH->next ) {
 			if( iterDH->separator ) {
-			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
 			}
 			if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-			    asprintf( &ret, "%s)*",ret );
+			    smiAsprintf( &ret, "%s)*",ret );
 			}
 			else{
-			    asprintf( &ret, "%s){%u,%u}",ret, lengths[ i ],
-				      MIN( iterDH->number,
-					   lengths[ i + 1] ) - 1 );
+			    smiAsprintf( &ret, "%s){%u,%u}",ret, lengths[ i ],
+					 MIN( iterDH->number,
+					      lengths[ i + 1] ) - 1 );
 			}
 			octetsUsed += lengths[ i ];
 			if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -604,26 +608,26 @@ static char* getStrDHType( char *hint,
 			    octetsUsed < lengths[ i + 1 ] ) {
 
 			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-				asprintf( &ret, "%s%c)*%s",
-					  ret, iterDH->separator, baseRegexp );
+				smiAsprintf( &ret, "%s%c)*%s",
+					     ret, iterDH->separator, baseRegexp );
 			    }
 			    else {
-				asprintf( &ret, "%s%c){%u,%u}%s",
-					  ret, iterDH->separator,
-					  lengths[ i ], lengths[ i + 1] - 1,
-					  baseRegexp );
+				smiAsprintf( &ret, "%s%c){%u,%u}%s",
+					     ret, iterDH->separator,
+					     lengths[ i ], lengths[ i + 1] - 1,
+					     baseRegexp );
 			    }
 			}
 			else {
 			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-				asprintf( &ret, "%s)*%c",
-					  ret, iterDH->separator );
+				smiAsprintf( &ret, "%s)*%c",
+					     ret, iterDH->separator );
 			    }
 			    else {
-				asprintf( &ret, "%s){%u,%u}%c",
-					  ret, lengths[ i ],
-					  lengths[ i + 1],
-					  iterDH->separator );
+				smiAsprintf( &ret, "%s){%u,%u}%c",
+					     ret, lengths[ i ],
+					     lengths[ i + 1],
+					     iterDH->separator );
  			    }			    
 			}
 		    }
@@ -639,12 +643,12 @@ static char* getStrDHType( char *hint,
 	i += 2;
 
 	if( i < numSubranges  * 2 ) {
-	    asprintf( &ret, "%s)|(", ret );
+	    smiAsprintf( &ret, "%s)|(", ret );
 	}
 	else {
-	    asprintf( &ret, "%s)", ret );
+	    smiAsprintf( &ret, "%s)", ret );
 	    if( ! lengths[ i - 2 ] ) {
-		asprintf( &ret, "%s){0,1}", ret );
+		smiAsprintf( &ret, "%s){0,1}", ret );
 	    }
 	}
     } while( i < numSubranges * 2 );
