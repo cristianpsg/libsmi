@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.12 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.1 2000/08/18 10:35:10 strauss Exp $
  */
 
 /*
@@ -80,7 +80,7 @@ static void printIdentifier(SmiModule *module)
 
 
 
-void dumpIdentifier(Module *module)
+void dumpIdentifiers(Module *module)
 {
     SmiModule *smiModule;
     Module    *mPtr;
