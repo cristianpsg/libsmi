@@ -151,12 +151,12 @@ static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
 //TODO make these values configurable by options passed to the driver
-static const int CANVASHEIGHT          =700;
-static const int CANVASWIDTH           =1100;
+static const int CANVASHEIGHT          =500;
+static const int CANVASWIDTH           =950;
 static const float STARTSCALE          =(float)0.7;
 
 //used by the springembedder
-static const int ITERATIONS            =10;
+static const int ITERATIONS            =100;
 
 /*
  * global svg graph layout
@@ -2011,8 +2011,8 @@ static void printSVGObject(GraphNode *node, float x, float y, int *classNr)
     if (!node) return;
     if (node->dia.flags & DIA_PRINT_FLAG) return;
 
-    node->dia.x = x;
-    node->dia.y = y;
+    //node->dia.x = x;
+    //node->dia.y = y;
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
 
     xOrigin = node->dia.w/-2;
@@ -2021,7 +2021,7 @@ static void printSVGObject(GraphNode *node, float x, float y, int *classNr)
     textXOffset = xOrigin;
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
-           x + node->dia.w/2, y + node->dia.h/2);
+           node->dia.x + node->dia.w/2, node->dia.y + node->dia.h/2);
     printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
@@ -2109,7 +2109,7 @@ static void diaPrintXMLGroup(int group, float x, float y, int *classNr)
     textXOffset = xOrigin;
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
-           x + tNode->dia.w/2, y + tNode->dia.h/2);
+           tNode->dia.x + tNode->dia.w/2, tNode->dia.y + tNode->dia.h/2);
     printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
@@ -2858,13 +2858,13 @@ static float fa(float d, float k)
 static void layoutGraph(int nodecount)
 {
     int i;
-    float area, k, c = 3, xDelta, yDelta, absDelta, absDisp, t;
+    float area, k, c = 1423, xDelta, yDelta, absDelta, absDisp, t;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
     area = CANVASHEIGHT * CANVASWIDTH;
     k = (float) (c*sqrt(area/nodecount));
-    t = CANVASWIDTH/10;
+    t = CANVASWIDTH/5;
 
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
@@ -2898,15 +2898,13 @@ static void layoutGraph(int nodecount)
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
 				    + vNode->dia.yDisp*vNode->dia.yDisp));
-	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
-	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
-	    vNode->dia.x = min(CANVASWIDTH/2,
-			    max(CANVASWIDTH/-2, vNode->dia.x));
-	    vNode->dia.y = min(CANVASHEIGHT/2,
-			    max(CANVASHEIGHT/-2, vNode->dia.y));
+	    //vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
+	    //vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
+	    vNode->dia.x = min(CANVASWIDTH, max(0, vNode->dia.x));
+	    vNode->dia.y = min(CANVASHEIGHT, max(0, vNode->dia.y));
 	}
 	//reduce the temperature as the layout approaches a better configuration
-	t /= 2;
+	//t /= 2;
     }
 }
 
@@ -2944,7 +2942,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
-    float     x,y,ydiff;
+    float     x = 0, y = 0, ydiff;
     int       group, nodecount = 0, classNr = 0;
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
@@ -2973,11 +2971,31 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	fprintf(stderr, "(%.2f,%.2f)\n", tNode->dia.x, tNode->dia.y);
+	fprintf(stderr, "(%.2f,%.2f)\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group);
     }
 
     printSVGHeaderAndTitle(modc, modv, nodecount);
     
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+	if (!tNode->use)
+	    continue;
+	if (tNode->group == 0) {
+	    printSVGObject(tNode, x, y, &classNr);
+	} else {
+	    diaPrintXMLGroup(tNode->group, x, y, &classNr);
+	}
+    }
+
+    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+	if (!tEdge->use)
+	    continue;
+	printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
+	       tEdge->startNode->dia.x, tEdge->startNode->dia.y,
+	       tEdge->endNode->dia.x, tEdge->endNode->dia.y);
+	printf("          fill=\"none\" stroke=\"black\"/>\n");
+    }
+
+    /*
     x = XOFFSET;
     y = YOFFSET;
     ydiff = 0;
@@ -3004,8 +3022,10 @@ static void diaPrintXML(int modc, SmiModule **modv)
     x = XOFFSET;
     y += ydiff;
     ydiff = 0;
+    */
 
     /* printing singular tables */
+    /*
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!graphGetFirstEdgeByNode(graph,tNode) &&
 	    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
@@ -3019,8 +3039,10 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    }
 	}
     }
+    */
 
     /* printing scalar groups */
+    /*
     x = XOFFSET + (CANVASWIDTH/2);
     y = YOFFSET;
     for (group = 1;
@@ -3029,6 +3051,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	diaPrintXMLGroup(group,x,y, &classNr);
 	y += 200;
     }
+    */
 
     printSVGClose();
 }
