@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.18 1998/11/21 18:16:13 strauss Exp $
+ * @(#) $Id: data.h,v 1.19 1998/11/21 21:25:18 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -279,6 +279,11 @@ extern void deleteDescriptor(Descriptor *descriptor);
 extern Descriptor *findDescriptor(const char *name,
 				  Module *module,
 				  DescriptorKind kind);
+
+extern Descriptor *findNextDescriptor(const char *name,
+				      Module *module,
+				      DescriptorKind kind,
+				      Descriptor *start);
 
 
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.9 1998/11/21 21:25:19 strauss Exp $
+ * @(#) $Id: smi.c,v 1.10 1998/11/22 22:58:23 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -522,7 +522,70 @@ smiGetNames(name, module)
     smi_fullname name;
     smi_descriptor module;
 {
-    return NULL;
+    static smi_namelist res;
+    char *n;
+    Module *m;
+    char *elements;
+    char s[SMI_MAX_FULLNAME+1];
+    static char *p = NULL;
+    static plen = 0;
+    Descriptor *descriptor;
+    
+    printDebug(4, "smiGetNames(\"%s\", \"%s\")\n",
+	       name, module ? module : "NULL");
+
+    /* TODO: other than local resources */
+
+    if (strchr(name, '!') || strchr(name, '.')) {
+        /*
+         * name in `Module!name' or `Module.name' form.
+         */
+        elements = strdup(name);
+        /* TODO: success? */
+        n = strtok(elements, "!.");
+        m = findModuleByName(strtok(NULL, " "));
+        free(elements);
+	if (!m) {
+	    return NULL;
+	}
+    } else {
+	n = name;
+	if ((!module) || (!strlen(module))) {
+	    m = NULL;
+	} else {
+	    m = findModuleByName(module);
+	    if (!m) {
+		return NULL;
+	    }
+	}
+    }
+
+    descriptor = NULL;
+    if (!p) {
+	p = malloc(200);
+    }
+    p[0] = 0;
+    do {
+	descriptor = findNextDescriptor(n, m, KIND_ANY, descriptor);
+	if (descriptor &&
+	    (descriptor->kind == KIND_OBJECT ||
+	     descriptor->kind == KIND_TYPE ||
+	     descriptor->kind == KIND_MACRO) &&
+	    (!(descriptor->flags & FLAG_IMPORTED))) {
+	    sprintf(s, "%s.%s",
+		    descriptor->module->descriptor->name, descriptor->name);
+	    if (strlen(p)+strlen(s)+2 > plen) {
+		p = realloc(p, strlen(p)+strlen(s)+2);
+	    }
+	    if (strlen(p)) {
+		strcat(p, " ");
+	    }
+	    strcat(p, s);
+	}
+    } while (descriptor);
+
+    res.namelist = p;
+    return &res;
 }
 
 

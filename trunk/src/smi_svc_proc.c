@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_proc.c,v 1.3 1998/11/21 22:00:00 strauss Exp $
+ * @(#) $Id: smi_svc_proc.c,v 1.4 1998/11/22 22:58:23 strauss Exp $
  */
 
 #include <stdio.h>
@@ -75,9 +75,6 @@ smiproc_node_1(getspec)
     n = smiGetNode(getspec->name, NULL, getspec->wantdescr);
 
     if (n) {
-	printf("%s\n%s\n%s\n%s\n%d\n%d\n%d\n%s\n.\n",
-	       n->name, n->module, n->oid, n->type,
-	       n->decl, n->access, n->status, n->description);
 	return n;
     } else {
 	return &dummy;
