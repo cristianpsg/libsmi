@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.15 2000/02/06 13:57:07 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.16 2000/02/12 10:56:21 strauss Exp $
  */
 
 %option noyywrap
@@ -407,6 +407,12 @@ SP		" "
     smingTrackInput(0, parser);
     yylval.id = yytext;
     return refineKeyword;
+}
+
+<INITIAL>abnf/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return abnfKeyword;
 }
 
 <INITIAL>OctetString/{delim} {

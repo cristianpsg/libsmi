@@ -2,9 +2,9 @@ module IRTF-NMRG-SMING {
 
 //
 // $RCSfile: IRTF-NMRG-SMING.sming,v $
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 // $Author: strauss $
-// $Date: 1999/10/06 16:05:25 $
+// $Date: 2000/02/13 21:34:21 $
 //
 
     organization    "IRTF Network Management Research Group (NMRG),
@@ -17,9 +17,8 @@ module IRTF-NMRG-SMING {
                              38106 Braunschweig
                              Germany
 
-                      Phone: +49 531 391-3283
-                      EMail: strauss@ibr.cs.tu-bs.de
-                       http://www.ibr.cs.tu-bs.de/~strauss/sming/";
+                      Phone: +49 531 391-3266
+                      EMail: strauss@ibr.cs.tu-bs.de";
 
     description     "Core node definitions for SMIng.";
 
@@ -32,7 +31,6 @@ module IRTF-NMRG-SMING {
         date        "1999-05-07";
         description "Initial Revision.";
     };
-
 
     node ccitt                          { oid 0;                };
 
