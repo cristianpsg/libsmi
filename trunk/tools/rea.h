@@ -70,6 +70,8 @@ typedef struct DiaNode {
     float x,y;			/* coordinates (left upper corner) */
     float xDisp,yDisp;		/* displacement vector for springembedder */
     float w,h;			/* width and height of the dia node */
+    int relatedScalars;		/* has related scalars -> print them */
+    int indexObjects;		/* has index objects -> print them */
 } DiaNode;
 
 typedef struct DiaEdge {

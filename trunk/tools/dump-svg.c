@@ -49,6 +49,8 @@ static const float ATTRSPACESIZE       = (float)2;
 static const float TABLEHEIGHT         = (float)20; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
+static const float RELATEDSCALARHEIGHT = (float)20; /*related scalars space*/
+static const float INDEXOBJECTHEIGHT   = (float)20; /*index objects space*/
 
 static const int MODULE_INFO_WIDTH     =150;
 //The description of RowStatus is quite long... :-/
@@ -451,19 +453,48 @@ static void printSVGObject(GraphNode *node, int *classNr)
 
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
-	//A
-	printSVGRelatedScalars(node, &textYOffset, &textXOffset);
+	if (node->dia.relatedScalars) {
+	    printf("    <text x=\"%.2f\" y=\"%.2f\">\n",
+				textXOffset + ATTRSPACESIZE, textYOffset);
+	    printf("         related scalar objects:</text>\n");
+	    textYOffset += TABLEELEMHEIGHT;
 
-	//B
-	printSVGAugmentIndex(node, &textYOffset, &textXOffset);
-	
-	//C
-	for (smiElement = smiGetFirstElement(
-	    smiGetFirstChildNode(node->smiNode));
-	     smiElement;
-	     smiElement = smiGetNextElement(smiElement)) {
-	    printSVGAttribute(smiGetElementNode(smiElement),
-			    1, &textYOffset, &textXOffset);
+	    //A
+	    printSVGRelatedScalars(node, &textYOffset, &textXOffset);
+
+	    printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
+			    xOrigin,
+			    textYOffset - TABLEELEMHEIGHT + TABLEBOTTOMHEIGHT,
+			    xOrigin + node->dia.w,
+			    textYOffset - TABLEELEMHEIGHT + TABLEBOTTOMHEIGHT);
+	    printf("          fill=\"none\" stroke=\"black\"/>\n");
+	    textYOffset += RELATEDSCALARHEIGHT - TABLEELEMHEIGHT;
+	}
+
+	if (node->dia.indexObjects) {
+	    printf("    <text x=\"%.2f\" y=\"%.2f\">\n",
+				textXOffset + ATTRSPACESIZE, textYOffset);
+	    printf("         index objects:</text>\n");
+	    textYOffset += TABLEELEMHEIGHT;
+
+	    //B
+	    printSVGAugmentIndex(node, &textYOffset, &textXOffset);
+	    //C
+	    for (smiElement = smiGetFirstElement(
+		smiGetFirstChildNode(node->smiNode));
+		 smiElement;
+		 smiElement = smiGetNextElement(smiElement)) {
+		printSVGAttribute(smiGetElementNode(smiElement),
+						1, &textYOffset, &textXOffset);
+	    }
+
+	    printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
+			    xOrigin,
+			    textYOffset - TABLEELEMHEIGHT + TABLEBOTTOMHEIGHT,
+			    xOrigin + node->dia.w,
+			    textYOffset - TABLEELEMHEIGHT + TABLEBOTTOMHEIGHT);
+	    printf("          fill=\"none\" stroke=\"black\"/>\n");
+	    textYOffset += INDEXOBJECTHEIGHT - TABLEELEMHEIGHT;
 	}
 
 	//D
@@ -968,7 +999,7 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
 
     printf(" <title>%s</title>\n", note1);
 
-    //definition for the arrowheads
+    //definitions for the arrowheads
     printf(" <defs>\n");
     printf("   <marker id=\"arrowstart\" markerWidth=\"12\"");
     printf(" markerHeight=\"8\" refX=\"0\" refY=\"4\" orient=\"auto\">\n");
@@ -997,6 +1028,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
     SmiNode    *tNode,*ppNode;
     SmiElement *smiElement;
     SmiModule  *module;
+    float      lastHeight;
 
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) return node;
 
@@ -1016,6 +1048,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	+ HEADSPACESIZETABLE;
     node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
 
+    lastHeight = node->dia.h;
     //A
     for (tEdge = graphGetFirstEdgeByNode(graph,node);
 	 tEdge;
@@ -1032,7 +1065,12 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	    node->dia.h += TABLEELEMHEIGHT;
 	}
     }
+    if (node->dia.h > lastHeight) {
+	node->dia.relatedScalars = 1;
+	node->dia.h += RELATEDSCALARHEIGHT;
+    }
 
+    lastHeight = node->dia.h;
     //B
     for (tEdge = graphGetFirstEdgeByNode(graph,node);
 	 tEdge;
@@ -1071,6 +1109,10 @@ static GraphNode *diaCalcSize(GraphNode *node)
 		      * ATTRFONTSIZE
 		      + ATTRSPACESIZE);
 	node->dia.h += TABLEELEMHEIGHT;
+    }
+    if (node->dia.h > lastHeight) {
+	node->dia.indexObjects = 1;
+	node->dia.h += INDEXOBJECTHEIGHT;
     }
 
     //D
