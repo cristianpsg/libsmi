@@ -187,7 +187,6 @@ static int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
  * global variables
  */
 static Graph     *graph  = NULL;            /* the graph */
-static int       classNr = 0;
 
 /*
  * help functions
@@ -1997,7 +1996,7 @@ static void printSVGAugmentIndex(GraphNode *tNode,
 /*
  * create svg-output for the given node
  */
-static void printSVGObject(GraphNode *node, float x, float y)
+static void printSVGObject(GraphNode *node, float x, float y, int *classNr)
 {
     SmiElement *smiElement;
     float textXOffset, textYOffset, xOrigin, yOrigin;
@@ -2021,7 +2020,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            x + node->dia.w/2, y + node->dia.h/2);
-    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", classNr, STARTSCALE);
+    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
@@ -2036,7 +2035,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
     //the "+"-button
-    printf("    <g onclick=\"enlarge(%i)\"\n", classNr);
+    printf("    <g onclick=\"enlarge(%i)\"\n", *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + node->dia.w - 26, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2045,7 +2044,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
     printf("          +</text>\n");
     printf("    </g>\n");
     //the "-"-button
-    printf("    <g onclick=\"scaledown(%i)\"\n", classNr);
+    printf("    <g onclick=\"scaledown(%i)\"\n", *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + node->dia.w - 13, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2054,7 +2053,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
     printf("          -</text>\n");
     printf("    </g>\n");
 
-    classNr++;
+    (*classNr)++;
 
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
@@ -2086,7 +2085,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
 /*
  * prints a group of scalars denoted by group
  */
-static void diaPrintXMLGroup(int group, float x, float y)
+static void diaPrintXMLGroup(int group, float x, float y, int *classNr)
 {
     GraphNode *tNode;
     float textXOffset, textYOffset, xOrigin, yOrigin;
@@ -2109,7 +2108,7 @@ static void diaPrintXMLGroup(int group, float x, float y)
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            x + tNode->dia.w/2, y + tNode->dia.h/2);
-    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", classNr, STARTSCALE);
+    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
@@ -2124,7 +2123,7 @@ static void diaPrintXMLGroup(int group, float x, float y)
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
     //the "+"-button
-    printf("    <g onclick=\"enlarge(%i)\"\n", classNr);
+    printf("    <g onclick=\"enlarge(%i)\"\n", *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + tNode->dia.w - 26, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2133,7 +2132,7 @@ static void diaPrintXMLGroup(int group, float x, float y)
     printf("          +</text>\n");
     printf("    </g>\n");
     //the "-"-button
-    printf("    <g onclick=\"scaledown(%i)\"\n", classNr);
+    printf("    <g onclick=\"scaledown(%i)\"\n", *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + tNode->dia.w - 13, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2142,7 +2141,7 @@ static void diaPrintXMLGroup(int group, float x, float y)
     printf("          -</text>\n");
     printf("    </g>\n");
 
-    classNr++;
+    (*classNr)++;
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) {
@@ -2819,7 +2818,7 @@ static void calcGroupSize(int group)
     }
 }
 
-static float diaPrintNode(GraphNode *node, float x, float y)
+static float diaPrintNode(GraphNode *node, float x, float y, int *classNr)
 {
     GraphEdge *tEdge;
 
@@ -2829,13 +2828,13 @@ static float diaPrintNode(GraphNode *node, float x, float y)
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
 	    if (node == tEdge->startNode) {
 		y += tEdge->endNode->dia.h + YSPACING;    
-		printSVGObject(tEdge->endNode, x, y);
+		printSVGObject(tEdge->endNode, x, y, classNr);
 		printSVGConnection(tEdge);
-		y = diaPrintNode(tEdge->startNode, x, y);
+		y = diaPrintNode(tEdge->startNode, x, y, classNr);
 			      /* (x+tEdge->startNode->dia.w+XSPACING),y); */
 		
 		y = diaPrintNode(tEdge->endNode,
-		  (x+tEdge->startNode->dia.w+XSPACING), y);
+		  (x+tEdge->startNode->dia.w+XSPACING), y, classNr);
 	    }
 	}
     }
@@ -2849,7 +2848,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphNode *tNode;
     GraphEdge *tEdge;
     float     x,y,ydiff;
-    int       group, nodecount = 0;
+    int       group, nodecount = 0, classNr = 0;
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
 	tNode = diaCalcSize(tNode);
@@ -2871,17 +2870,17 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (! (tEdge->dia.flags & DIA_PRINT_FLAG)) {
-	    printSVGObject(tEdge->startNode, x, y);
+	    printSVGObject(tEdge->startNode, x, y, &classNr);
 	    x = x + tEdge->startNode->dia.w + XSPACING;
 
-	    printSVGObject(tEdge->endNode, x, y);
+	    printSVGObject(tEdge->endNode, x, y, &classNr);
 	    printSVGConnection(tEdge);
 	    
 	    //y = tEdge->startNode->dia.h;
 	    ydiff = tEdge->startNode->dia.h;
 
-      	    y = diaPrintNode(tEdge->startNode,x,y);
-	    y = diaPrintNode(tEdge->endNode,x,y);    
+      	    y = diaPrintNode(tEdge->startNode,x,y, &classNr);
+	    y = diaPrintNode(tEdge->endNode,x,y, &classNr);    
 
 	    y = y + ydiff + YSPACING;
 	    x = XOFFSET;
@@ -2896,7 +2895,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!graphGetFirstEdgeByNode(graph,tNode) &&
 	    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
-	    printSVGObject(tNode,x,y);
+	    printSVGObject(tNode,x,y, &classNr);
 	    
 	    x += tNode->dia.w + XSPACING;
 	    ydiff = max(ydiff, tNode->dia.h);
@@ -2913,7 +2912,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (group = 1;
 	 group <= algGetNumberOfGroups();
 	 group++) {
-	diaPrintXMLGroup(group,x,y);
+	diaPrintXMLGroup(group,x,y, &classNr);
 	y += 200;
     }
 
