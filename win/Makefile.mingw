@@ -149,6 +149,9 @@ install-doc:
 	$(MKDIR) $(INSTROOT)
 	$(CP) ../README $(INSTROOT)
 	$(CP) ../COPYING $(INSTROOT)
+	$(CP) ../ChangeLog $(INSTROOT)
+	$(CP) ../THANKS $(INSTROOT)
+	$(CP) ../TODO $(INSTROOT)
 	$(CP) README.mingw $(INSTROOT)
 	$(MKDIR) $(INSTROOT)/doc
 	-$(CP) ../doc/*.txt $(INSTROOT)/doc
