@@ -139,7 +139,7 @@
 
 
 <!ELEMENT       smi             (module, 
-                                 imports+,
+                                 imports*,
                                  typedefs*,
                                  nodes*,
                                  notifications*,
@@ -182,7 +182,8 @@
 
 <!ELEMENT       nodes          (node|scalar|table)+>
 
-<!ELEMENT       node            (description?)>
+<!ELEMENT       node            (description?,
+                                 reference?)>
 <!ATTLIST       node            %at.name;
                                 %at.oid;
                                 %at.status;>
@@ -232,7 +233,7 @@
 <!ATTLIST       notification    %at.name;
                                 %at.oid;
                                 %at.status;>
-<!ELEMENT       objects         (object+)>
+<!ELEMENT       objects         (object*)>
 <!ELEMENT       object          EMPTY>
 <!ATTLIST       object          %at.module;
                                 %at.name;>
@@ -265,6 +266,7 @@
                                 %at.name;>
 <!ELEMENT       refinements     (refinement+)>
 <!ELEMENT       refinement      (syntax?,
+                                 writesyntax?,
                                  access?,
                                  description)>
 <!ATTLIST       refinement      %at.module;
