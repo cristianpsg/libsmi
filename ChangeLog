@@ -1,3 +1,9 @@
+2000-12-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/dump-*.c: More patches from Juergen. Most drivers are
+	now `-o file' aware. The `imports' driver does no longer hang
+	in an endless loop on recursive imports.
+
 2000-12-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-*.h: yyerror-verbose is now non-optional.

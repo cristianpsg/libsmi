@@ -96,8 +96,6 @@ o Check format specifier text in SMIng spec and add a `u' format specifier
 o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
   smidump -f tree -u SNA-SDLC-MIB IF-MIB : e.g. ifEntry differences.
 
-o import loops cause endless `smidump -f imports' loops.
-
 o rename test modules: TUBS-IBR prefix.
 
 o make libsmi aware of annotations (when SMIng supports annotations).

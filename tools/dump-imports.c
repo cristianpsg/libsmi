@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.17 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.18 2000/12/11 08:41:22 strauss Exp $
  */
 
 #include <config.h>
@@ -23,7 +23,9 @@
 
 typedef struct Imports {
     char *module;
+    char *name;
     int  count;
+    struct Imports *nextPtr;
 } Imports;
 
 
@@ -81,11 +83,24 @@ static void freeImports(Imports *imports, int n)
 
 
 
-static int fprintImports(FILE *f, SmiModule *smiModule, char *prefix)
+static int fprintImports(FILE *f, SmiModule *smiModule, char *prefix,
+			 Imports *backtrace)
 {
     SmiModule *smiModule2;
-    Imports *imports;
+    Imports *imports, *imp;
     int     i, n, recurse = 0, done = 0;
+
+    for (imp = backtrace; imp; imp = imp->nextPtr) {
+	if (strcmp(imp->module, smiModule->name) == 0) {
+	    fprintf(stderr, "%s  (recursion - aborted)\n", prefix);
+	    return 0;
+	}
+    }
+
+    imp = (Imports *) xmalloc(sizeof(Imports));
+    imp->module = smiModule->name;
+    imp->nextPtr = backtrace;
+    backtrace = imp;
 
     imports = getImports(smiModule, &n);
 
@@ -106,7 +121,7 @@ static int fprintImports(FILE *f, SmiModule *smiModule, char *prefix)
 	} else {
 	    strcat(newprefix, "  |");
 	}
-	done = fprintImports(f, smiModule2, newprefix);
+	done = fprintImports(f, smiModule2, newprefix, backtrace);
 	if (! recurse && done) {
 	    if (i == n-1) {
 		fprintf(f, "%s   \n", prefix);
@@ -118,6 +133,7 @@ static int fprintImports(FILE *f, SmiModule *smiModule, char *prefix)
     }
 
     freeImports(imports, n);
+    xfree(backtrace);
 
     return recurse;
 }
@@ -145,7 +161,7 @@ static void dumpImports(int modc, SmiModule **modv, int flags, char *output)
 	}
 
 	fprintf(f, "%s\n", modv[i]->name);
-	fprintImports(f, modv[i], "");
+	fprintImports(f, modv[i], "", NULL);
     }
 
     if (output) {
