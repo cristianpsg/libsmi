@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.4 1999/03/15 11:07:09 strauss Exp $
+ * @(#) $Id: data.h,v 1.6 1999/03/16 20:47:31 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -316,8 +316,13 @@ extern Node *getParentNode(Node *nodePtr);
 
 extern smi_subid getLastSubid(const char *oid);
 
-extern void setObjectName(Object *objectPtr,
-			   smi_descriptor name);
+/*
+ * setObjectName() might relink MIB tree object structures. If the
+ * current objectPtr is to be used after the call, it should look like
+ *   objectPtr = setObjectName(objectPtr, name);
+ */
+extern Object *setObjectName(Object *objectPtr,
+			     smi_descriptor name);
 
 extern void setObjectType(Object *objectPtr,
 			  Type *typePtr);

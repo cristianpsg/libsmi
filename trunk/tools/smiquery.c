@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.1 1999/03/11 17:33:55 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.2 1999/03/16 17:24:14 strauss Exp $
  */
 
 #include <stdio.h>
@@ -43,13 +43,23 @@ format(const char *s)
 }
 
 
+void
+usage()
+{
+    fprintf(stderr,
+	    "Usage: smiquery [-vVrRsS] [-d level] [-l level] [-c configfile]\n"
+	    "       [-L location] [-p module] command name\n"
+	    "known commands: module, node, type, macro, names, children, members, parent\n");
+}
+
+
 
 int
 main(argc, argv)
     int argc;
     char *argv[];
 {
-    smi_fullname *fullname2;
+    smi_fullname fullname;
     smi_module *module;
     smi_node *node;
     smi_type *type;
@@ -67,7 +77,7 @@ main(argc, argv)
         
     flags = smiGetFlags();
     
-    while ((c = getopt(argc, argv, "rRsSvVd:l:c:L:")) != -1) {
+    while ((c = getopt(argc, argv, "rRsSvVd:l:c:L:p:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg);
@@ -106,14 +116,20 @@ main(argc, argv)
 	case 'L':
 	    smiAddLocation(optarg);
 	    break;
+	case 'p':
+	    smiLoadModule(optarg);
+	    break;
 	default:
-	    fprintf(stderr, "Usage: smiquery [-vVrRsS] [-d level] [-l level] [-c configfile]"
-		    "       [-L location] command name\n"
-		    "known commands: module, node, type, macro, names, children, members, parent\n");
+	    usage();
 	    exit(1);
 	}
     }
 
+    if (optind+2 != argc) {
+	usage();
+	exit(0);
+    }
+	
     command = argv[optind];
     name = argv[optind+1];
 
@@ -189,9 +205,9 @@ main(argc, argv)
     }
     
     if (!strcmp(command, "parent")) {
-	fullname2 = smiGetParent(name, "");
-	if (fullname2) {
-	    printf("      Parent: %s\n", *fullname2);
+	fullname = smiGetParent(name, "");
+	if (fullname) {
+	    printf("      Parent: %s\n", fullname);
 	}
     }
     

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.4 1999/03/15 11:07:09 strauss Exp $
+ * @(#) $Id: data.c,v 1.6 1999/03/16 20:47:30 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -588,6 +588,7 @@ checkImports(modulename, parserPtr)
 		importPtr->kind   = KIND_MACRO;
 	    } else {
 		n++;
+		importPtr->module = util_strdup(modulename);
 		printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
 			   importPtr->name, modulename);
 	    }
@@ -733,8 +734,8 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     Module	     *modulePtr;
 
 #ifdef DEBUG
-    printDebug(5, "addObject(0x%x%s, %d, %d, 0x%x)\n",
-	       parentNodePtr,
+    printDebug(5, "addObject(%s, 0x%x%s, %d, %d, 0x%x)\n",
+	       objectname, parentNodePtr,
 	       parentNodePtr == pendingNodePtr ? "(pending)" : "",
 	       subid, flags, parserPtr);
 #endif
@@ -1098,17 +1099,95 @@ getLastSubid(oid)
  *----------------------------------------------------------------------
  */
 
-void
+Object *
 setObjectName(objectPtr, name)
     Object	      *objectPtr;
     smi_descriptor    name;
 {
+    Node	      *nodePtr, *nextPtr;
+    Module	      *modulePtr;
+    Object	      *newObjectPtr;
+    
 #ifdef DEBUG
-    printDebug(5, "setObjectName(0x%x, \"%s\")\n",
-	       objectPtr, name);
+    printDebug(5, "setObjectName(0x%x, \"%s\")\n", objectPtr, name);
 #endif
 
     objectPtr->name = util_strdup(name);
+
+    /*
+     * If this name is found on the pending list (at depth==1 in
+     * pendingRootNode), we have to move the corresponding subtree to
+     * the main tree.
+     */
+    for (nodePtr = pendingNodePtr->firstChildPtr; nodePtr;
+	 nodePtr = nextPtr) {
+
+	/*
+	 * probably we change the contents of `pending', so remember
+	 * the next pointer.
+	 */
+	nextPtr = nodePtr->nextPtr;
+	
+	if (!strcmp(nodePtr->firstObjectPtr->name, name)) {
+
+	    /*
+	     * remove nodePtr from the pendingRootNode tree.
+	     */
+	    if (nodePtr->prevPtr) {
+		nodePtr->prevPtr->nextPtr = nodePtr->nextPtr;
+	    } else {
+		pendingNodePtr->firstChildPtr = nodePtr->nextPtr;
+	    }
+	    if (nodePtr->nextPtr) {
+		nodePtr->nextPtr->prevPtr = nodePtr->prevPtr;
+	    } else {
+		pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
+	    }
+	    
+	    /*
+	     * copy contents of the new node to pending.
+	     */
+	    nodePtr->subid = objectPtr->nodePtr->subid;
+	    nodePtr->flags = objectPtr->nodePtr->flags;
+	    
+	    /*
+	     * now link pending node into place.
+	     */
+	    nodePtr->parentPtr = objectPtr->nodePtr->parentPtr;
+	    nodePtr->nextPtr = objectPtr->nodePtr->nextPtr;
+	    nodePtr->prevPtr = objectPtr->nodePtr->prevPtr;
+	    if (objectPtr->nodePtr->parentPtr->firstChildPtr ==
+		objectPtr->nodePtr) {
+		objectPtr->nodePtr->parentPtr->firstChildPtr = nodePtr;
+	    } else {
+		objectPtr->nodePtr->prevPtr->nextPtr = nodePtr;
+	    }
+	    if (objectPtr->nodePtr->parentPtr->lastChildPtr ==
+		objectPtr->nodePtr) {
+		objectPtr->nodePtr->parentPtr->lastChildPtr = nodePtr;
+	    } else {
+		objectPtr->nodePtr->nextPtr->prevPtr = nodePtr;
+	    }
+
+	    free(objectPtr->nodePtr);
+	    newObjectPtr = nodePtr->firstObjectPtr;
+	    modulePtr = newObjectPtr->modulePtr;
+	    if (modulePtr->objectPtr == objectPtr) {
+		modulePtr->objectPtr = newObjectPtr;
+	    }
+	    if (modulePtr->firstObjectPtr == objectPtr) {
+		modulePtr->firstObjectPtr = objectPtr->nextPtr;
+		modulePtr->firstObjectPtr->prevPtr = NULL;
+	    }
+	    if (modulePtr->lastObjectPtr == objectPtr) {
+		modulePtr->lastObjectPtr = objectPtr->prevPtr;
+		modulePtr->lastObjectPtr->nextPtr = NULL;
+	    }
+	    free(objectPtr);
+	    return newObjectPtr;
+	}
+    }
+    return objectPtr;
 }
 
 
@@ -2754,6 +2833,9 @@ initData()
     parser.flags		= smiFlags;
     parser.file			= NULL;
     parser.modulePtr = addModule("", "", NULL, 0, 0, NULL);
+
+    addView("");
+
     objectPtr = addObject("ccitt", rootNodePtr, 0, 0, &parser);
     objectPtr = addObject("iso", rootNodePtr, 1, 0, &parser);
     objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, &parser);
@@ -2763,11 +2845,11 @@ initData()
      * the well-known SMIng Types.
      */
     typeIntegerPtr          = addType("INTEGER",
-				      SMI_SYNTAX_INTEGER32, 0, NULL);
+				      SMI_SYNTAX_INTEGER32, 0, &parser);
     typeOctetStringPtr      = addType("OCTET STRING",
-				      SMI_SYNTAX_OCTETSTRING, 0, NULL);
+				      SMI_SYNTAX_OCTETSTRING, 0, &parser);
     typeObjectIdentifierPtr = addType("OBJECT IDENTIFIER",
-				      SMI_SYNTAX_OBJECTIDENTIFIER, 0, NULL);
+				      SMI_SYNTAX_OBJECTIDENTIFIER, 0, &parser);
 
     addType("OctetString", SMI_SYNTAX_OCTETSTRING, 0, NULL);
     addType("ObjectIdentifier", SMI_SYNTAX_OBJECTIDENTIFIER, 0, NULL);

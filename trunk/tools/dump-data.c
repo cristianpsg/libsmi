@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-data.c,v 1.1 1999/03/16 17:24:12 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -48,7 +48,7 @@ dumpSubTree(subRootPtr, prefix)
 		fprintf(stderr, " ==");
 		for (o = subRootPtr->firstObjectPtr; o;
 		     o = o->nextSameNodePtr) {
-		    if (o->modulePtr) {
+		    if (o->modulePtr && !(o->flags & FLAG_IMPORTED)) {
 			fprintf(stderr,
 				" %s::%s", o->modulePtr->name, o->name);
 		    }
@@ -82,5 +82,5 @@ void
 dumpMibTree()
 {
     dumpSubTree(rootNodePtr, "");
-    /* dumpSubTree(pendingNodePtr, "[pending]"); */
+    dumpSubTree(pendingNodePtr, "[pending]");
 }
