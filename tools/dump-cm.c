@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.9 2000/05/03 09:57:14 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.10 2000/05/04 10:23:34 strauss Exp $
  */
 
 
@@ -121,7 +121,7 @@ static const float TABLEELEMHEIGHT     = 0.6;
 
 /* global graph layout */
 static const float YSPACING            = 3.0;
-static const float XSPACING            = 3.0;
+static const float XSPACING            = 4.0;
 static const float NEWLINEDISTANCE     = 40.0;
 static const float XOFFSET             = 2.0;
 static const float YOFFSET             = 5.0;
@@ -2792,14 +2792,16 @@ static void printXML(Graph *graph)
 	    printXMLObject(graph,tNode,x,y);
 	    
 	    x += tNode->w;
-	    y = max(ydiff, tNode->h);
+	    ydiff = max(ydiff, tNode->h);
 	    if (x >= NEWLINEDISTANCE) {
 		x = XOFFSET;
 		y += ydiff + YSPACING;
 	    }
 	}
     }
-    
+
+    x = XOFFSET;
+    y += ydiff + YSPACING;
     for (group = 1;
 	 group <= algGetNumberOfGroups(graph);
 	 group++) {
