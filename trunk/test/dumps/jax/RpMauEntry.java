@@ -62,21 +62,6 @@ public class RpMauEntry extends AgentXEntry
         return rpMauIndex;
     }
 
-    public int get_rpMauGroupIndex()
-    {
-        return rpMauGroupIndex;
-    }
-
-    public int get_rpMauPortIndex()
-    {
-        return rpMauPortIndex;
-    }
-
-    public int get_rpMauIndex()
-    {
-        return rpMauIndex;
-    }
-
     public AgentXOID get_rpMauType()
     {
         return rpMauType;

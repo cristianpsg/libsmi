@@ -48,16 +48,6 @@ public class BroadMauBasicEntry extends AgentXEntry
         return broadMauIndex;
     }
 
-    public int get_broadMauIfIndex()
-    {
-        return broadMauIfIndex;
-    }
-
-    public int get_broadMauIndex()
-    {
-        return broadMauIndex;
-    }
-
     public int get_broadMauXmtRcvSplitType()
     {
         return broadMauXmtRcvSplitType;

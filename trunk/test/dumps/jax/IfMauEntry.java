@@ -58,16 +58,6 @@ public class IfMauEntry extends AgentXEntry
         return ifMauIndex;
     }
 
-    public int get_ifMauIfIndex()
-    {
-        return ifMauIfIndex;
-    }
-
-    public int get_ifMauIndex()
-    {
-        return ifMauIndex;
-    }
-
     public AgentXOID get_ifMauType()
     {
         return ifMauType;

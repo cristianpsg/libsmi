@@ -58,11 +58,6 @@ public class IfEntry extends AgentXEntry
         return ifIndex;
     }
 
-    public int get_ifIndex()
-    {
-        return ifIndex;
-    }
-
     public byte[] get_ifDescr()
     {
         return ifDescr;
