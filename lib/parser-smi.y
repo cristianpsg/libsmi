@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.111 2000/06/08 14:47:13 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.112 2000/06/14 08:49:39 strauss Exp $
  */
 
 %{
@@ -82,9 +82,9 @@ checkNameLen(Parser *parser, char *name, int error_32, int error_64)
     int len = strlen(name);
     
     if (len > 64) {
-	printError(parser, error_64, name);
+	smiPrintError(parser, error_64, name);
     } else if (len > 32) {
-	printError(parser, error_32, name);
+	smiPrintError(parser, error_32, name);
     }
 }
 
@@ -97,7 +97,7 @@ checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
 	&& strcmp(modulePtr->export.name, "SNMPv2-SMI")
 	&& strcmp(modulePtr->export.name, "SNMPv2-CONF")
 	&& strcmp(modulePtr->export.name, "SNMPv2-TC")) {
-	printError(parserPtr, ERR_NO_MODULE_IDENTITY);
+	smiPrintError(parserPtr, ERR_NO_MODULE_IDENTITY);
     }
 }
 
@@ -176,10 +176,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    && (objectPtr->export.nodekind == SMI_NODEKIND_COLUMN
 		|| objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)
 	    && objectPtr->typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
-	    printErrorAtLine(parserPtr, ERR_BASETYPE_UNKNOWN, objectPtr->line,
-			     objectPtr->typePtr->export.name ?
-			     objectPtr->typePtr->export.name : "[unknown]",
-			     objectPtr->export.name);
+	    smiPrintErrorAtLine(parserPtr, ERR_BASETYPE_UNKNOWN,
+				objectPtr->line,
+				objectPtr->typePtr->export.name ?
+				objectPtr->typePtr->export.name : "[unknown]",
+				objectPtr->export.name);
 	    if (objectPtr->nodePtr->parentPtr->firstObjectPtr->export.nodekind
 		== SMI_NODEKIND_TABLE) {
 		/* the parent node is a table node, so assume this is
@@ -196,14 +197,14 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 
 	if (objectPtr->export.nodekind == SMI_NODEKIND_TABLE
 	    && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
-	    printErrorAtLine(parserPtr, ERR_TABLE_ACCESS,
-			     objectPtr->line, objectPtr->export.name);
+	    smiPrintErrorAtLine(parserPtr, ERR_TABLE_ACCESS,
+				objectPtr->line, objectPtr->export.name);
 	}
 	
 	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW
 	    && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
-	    printErrorAtLine(parserPtr, ERR_ROW_ACCESS,
-			     objectPtr->line, objectPtr->export.name);
+	    smiPrintErrorAtLine(parserPtr, ERR_ROW_ACCESS,
+				objectPtr->line, objectPtr->export.name);
 	}
 	
 	/*
@@ -214,14 +215,14 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    int len;
 	    
 	    if (objectPtr->nodePtr->subid != 1) {
-		printErrorAtLine(parserPtr, ERR_ROW_SUBID_ONE,
-				 objectPtr->line, objectPtr->export.name);
+		smiPrintErrorAtLine(parserPtr, ERR_ROW_SUBID_ONE,
+				    objectPtr->line, objectPtr->export.name);
 	    }
 
 	    len = strlen(objectPtr->export.name);
-	    if (len < 6 || strcmp(objectPtr->export.name+len-5,"Entry")) {
-		printErrorAtLine(parserPtr, ERR_ROWNAME_ENTRY,
-				 objectPtr->line, objectPtr->export.name);
+	    if (len < 6 || strcmp(objectPtr->export.name+len-5, "Entry")) {
+		smiPrintErrorAtLine(parserPtr, ERR_ROWNAME_ENTRY,
+				    objectPtr->line, objectPtr->export.name);
 	    }
 	}
 
@@ -229,9 +230,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    int len;
 
 	    len = strlen(objectPtr->export.name);
-	    if (len < 6 || strcmp(objectPtr->export.name+len-5,"Table")) {
-		printErrorAtLine(parserPtr, ERR_TABLENAME_TABLE,
-				 objectPtr->line, objectPtr->export.name);
+	    if (len < 6 || strcmp(objectPtr->export.name+len-5, "Table")) {
+		smiPrintErrorAtLine(parserPtr, ERR_TABLENAME_TABLE,
+				    objectPtr->line, objectPtr->export.name);
 	    }
 	}
 
@@ -254,11 +255,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 
 	if (objectPtr->flags & FLAG_INCOMPLETE) {
 	    if (objectPtr->export.name) {
-		printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
-				 objectPtr->line, objectPtr->export.name);
+		smiPrintErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
+				    objectPtr->line, objectPtr->export.name);
 	    } else {
-		printErrorAtLine(parserPtr, ERR_IMPLICIT_NODE,
-				 objectPtr->line);
+		smiPrintErrorAtLine(parserPtr, ERR_IMPLICIT_NODE,
+				    objectPtr->line);
 	    }
 	}
 
@@ -332,7 +333,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 			 nodePtr->parentPtr != rootNodePtr &&
 			 nodePtr != nodePtr->parentPtr;
 		     nodePtr = nodePtr->parentPtr, i++);
-		objectPtr->nodePtr->oid = util_malloc(i * sizeof(SmiSubid));
+		objectPtr->nodePtr->oid = smiMalloc(i * sizeof(SmiSubid));
 		objectPtr->nodePtr->oidlen = i;
 		for (nodePtr = objectPtr->nodePtr; i > 0; i--) {
 		    objectPtr->nodePtr->oid[i-1] = nodePtr->subid;
@@ -369,17 +370,18 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 {
     Type *typePtr;
     
-    /*
-     * Check references to unknown types.
-     */
-    
     for(typePtr = modulePtr->firstTypePtr;
 	typePtr; typePtr = typePtr->nextPtr) {
+
+	/*
+	 * Check references to unknown types.
+	 */
+	
 	if ((typePtr->flags & FLAG_INCOMPLETE)
 	    && typePtr->export.name
 	    && (typePtr->export.decl == SMI_DECL_UNKNOWN)) {
-	    printErrorAtLine(parserPtr, ERR_UNKNOWN_TYPE,
-			     typePtr->line, typePtr->export.name);
+	    smiPrintErrorAtLine(parserPtr, ERR_UNKNOWN_TYPE,
+				typePtr->line, typePtr->export.name);
 	}
 
 	/*
@@ -390,8 +392,8 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 	    && typePtr->export.decl == SMI_DECL_TYPEASSIGNMENT
 	    && typePtr->export.basetype != SMI_BASETYPE_UNKNOWN
 	    && strcmp(thisModulePtr->export.name, "SNMPv2-SMI")) {
-	    printErrorAtLine(parserPtr, ERR_SMIV2_TYPE_ASSIGNEMENT,
-			     typePtr->line, typePtr->export.name);
+	    smiPrintErrorAtLine(parserPtr, ERR_SMIV2_TYPE_ASSIGNEMENT,
+				typePtr->line, typePtr->export.name);
 	}
 
 	/*
@@ -401,10 +403,10 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 	if (typePtr->parentPtr
 	    && typePtr->export.decl == SMI_DECL_TEXTUALCONVENTION
 	    && typePtr->export.decl == typePtr->parentPtr->export.decl) {
-	    printErrorAtLine(parserPtr, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION,
-			     typePtr->line,
-			     typePtr->export.name,
-			     typePtr->parentPtr->export.name);
+	    smiPrintErrorAtLine(parserPtr, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION,
+				typePtr->line,
+				typePtr->export.name,
+				typePtr->parentPtr->export.name);
 	}
 
 	/*
@@ -432,33 +434,33 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 		    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
 			if (!strcmp(nn1Ptr->export.name,
 				    nn2Ptr->export.name)) {
-			    printErrorAtLine(parserPtr,
-					     ERR_ENUM_NAME_REDEFINITION,
-					     typePtr->line,
-					     nn1Ptr->export.name);
+			    smiPrintErrorAtLine(parserPtr,
+						ERR_ENUM_NAME_REDEFINITION,
+						typePtr->line,
+						nn1Ptr->export.name);
 			}
 			if (nn1Ptr->export.value.value.integer32
 			    == nn2Ptr->export.value.value.integer32) {
-			    printErrorAtLine(parserPtr,
-				     ERR_ENUM_NUMBER_REDEFINITION,
-				     typePtr->line,
-				     nn1Ptr->export.value.value.integer32);
+			    smiPrintErrorAtLine(parserPtr,
+						ERR_ENUM_NUMBER_REDEFINITION,
+						typePtr->line,
+					nn1Ptr->export.value.value.integer32);
 			}
 		    }
 		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
 			if (!strcmp(nn1Ptr->export.name,
 				    nn2Ptr->export.name)) {
-			    printErrorAtLine(parserPtr,
-					     ERR_BITS_NAME_REDEFINITION,
-					     typePtr->line,
-					     nn1Ptr->export.name);
+			    smiPrintErrorAtLine(parserPtr,
+						ERR_BITS_NAME_REDEFINITION,
+						typePtr->line,
+						nn1Ptr->export.name);
 			}
 			if (nn1Ptr->export.value.value.unsigned32
 			    == nn2Ptr->export.value.value.unsigned32) {
-			    printErrorAtLine(parserPtr,
-				     ERR_BITS_NUMBER_REDEFINITION,
-				     typePtr->line,
-				     nn1Ptr->export.value.value.unsigned32);
+			    smiPrintErrorAtLine(parserPtr,
+						ERR_BITS_NUMBER_REDEFINITION,
+						typePtr->line,
+					nn1Ptr->export.value.value.unsigned32);
 			}
 		    }
 		}
@@ -507,16 +509,16 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 
 		if (! list2Ptr) {
 		    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
-			printErrorAtLine(parserPtr, ERR_ENUM_SUBTYPE,
-					 typePtr->line,
-					 nn1Ptr->export.name,
-					 typePtr->parentPtr->export.name);
+			smiPrintErrorAtLine(parserPtr, ERR_ENUM_SUBTYPE,
+					    typePtr->line,
+					    nn1Ptr->export.name,
+					    typePtr->parentPtr->export.name);
 		    }
 		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
-			printErrorAtLine(parserPtr, ERR_BITS_SUBTYPE,
-					 typePtr->line,
-					 nn1Ptr->export.name,
-					 typePtr->parentPtr->export.name);
+			smiPrintErrorAtLine(parserPtr, ERR_BITS_SUBTYPE,
+					    typePtr->line,
+					    nn1Ptr->export.name,
+					    typePtr->parentPtr->export.name);
 		    }
 		}
 	    }
@@ -562,17 +564,17 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		    }
 		}
 		if (!object2Ptr) {
-		    printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
-				     objectPtr->line,
-				    (char *)objectPtr->export.value.value.ptr);
-		    util_free(objectPtr->export.value.value.ptr);
+		    smiPrintErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
+					objectPtr->line,
+				(char *)objectPtr->export.value.value.ptr);
+		    smiFree(objectPtr->export.value.value.ptr);
 		    objectPtr->export.value.value.ptr = NULL;
 		    objectPtr->export.value.basetype = SMI_BASETYPE_UNKNOWN;
 		} else {
 		    objectPtr->export.value.len = object2Ptr->export.oidlen;
 		    objectPtr->export.value.value.ptr =
-			util_malloc(object2Ptr->export.oidlen *
-				    sizeof(SmiSubid));
+			smiMalloc(object2Ptr->export.oidlen *
+				  sizeof(SmiSubid));
 		    memcpy(objectPtr->export.value.value.ptr,
 			   object2Ptr->export.oid,
 			   object2Ptr->export.oidlen * sizeof(SmiSubid));
@@ -582,7 +584,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 	    bitsListPtr = objectPtr->typePtr->listPtr;
 	    valueListPtr = (void *)objectPtr->export.value.value.ptr;
 	    for (nBits = 0, p = bitsListPtr; p; nBits++, p = p->nextPtr);
-	    objectPtr->export.value.value.ptr = util_malloc((nBits+7)/8);
+	    objectPtr->export.value.value.ptr = smiMalloc((nBits+7)/8);
 	    memset(objectPtr->export.value.value.ptr, 0, (nBits+7)/8);
 	    objectPtr->export.value.len = (nBits+7)/8;
 	    for (i = 0, p = valueListPtr; p; i++) {
@@ -595,9 +597,9 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		if (bit < nBits) {
 		    objectPtr->export.value.value.ptr[bit/8] |= 1 << bit%8;
 		}
-		util_free(p->ptr);
+		smiFree(p->ptr);
 		nextPtr = p->nextPtr;
-		util_free(p);
+		smiFree(p);
 		p = nextPtr;
 	    }
 	} else if (objectPtr->export.value.basetype == SMI_BASETYPE_ENUM) {
@@ -607,7 +609,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		     listPtr = listPtr->nextPtr) {
 		    if (!strcmp(((NamedNumber *)(listPtr->ptr))->export.name,
 				objectPtr->export.value.value.ptr)) {
-			util_free(objectPtr->export.value.value.ptr);
+			smiFree(objectPtr->export.value.value.ptr);
 			objectPtr->export.value.value.unsigned32 =
 			    ((NamedNumber *)(listPtr->ptr))->
 			    export.value.value.unsigned32;
@@ -640,15 +642,17 @@ checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 		if (! strcmp(importPtr->export.name, "ExtUTCTime")
 		    || !strcmp(importPtr->export.name, "ObjectName")
 		    || !strcmp(importPtr->export.name, "NotificationName")) {
-		    printErrorAtLine(parserPtr, ERR_ILLEGAL_IMPORT,
-				     importPtr->line, importPtr->export.name,
-				     importPtr->export.module);
+		    smiPrintErrorAtLine(parserPtr, ERR_ILLEGAL_IMPORT,
+					importPtr->line,
+					importPtr->export.name,
+					importPtr->export.module);
 		}
 	    }
 	    if (importPtr->use == 0) {
-		printErrorAtLine(parserPtr, ERR_UNUSED_IMPORT,
-				 importPtr->line, importPtr->export.name,
-				 importPtr->export.module);
+		smiPrintErrorAtLine(parserPtr, ERR_UNUSED_IMPORT,
+				    importPtr->line,
+				    importPtr->export.name,
+				    importPtr->export.module);
 	    }
 	}
     }
@@ -671,13 +675,13 @@ checkDate(Parser *parserPtr, char *date)
 	for (i = 0; i < len; i++) {
 	    if ( (i < len-1 && ! isdigit(date[i]))
 		 || (i == len-1 && date[len-1] != 'Z')) {
-		printError(parserPtr, ERR_DATE_CHARACTER, date);
+		smiPrintError(parserPtr, ERR_DATE_CHARACTER, date);
 		anytime = (time_t) -1;
 		break;
 	    }
 	}
     } else {
-	printError(parserPtr, ERR_DATE_LENGTH, date);
+	smiPrintError(parserPtr, ERR_DATE_LENGTH, date);
 	anytime = (time_t) -1;
     }
 
@@ -689,7 +693,8 @@ checkDate(Parser *parserPtr, char *date)
 	if (len == 11) {
 	    tm.tm_year += 1900;
 	    if (tm.tm_year < 1990)
-		printError(parserPtr, ERR_DATE_YEAR_2DIGITS, date, tm.tm_year);
+		smiPrintError(parserPtr, ERR_DATE_YEAR_2DIGITS,
+			      date, tm.tm_year);
 	}
 	tm.tm_mon  = (p[0]-'0') * 10 + (p[1]-'0');
 	p += 2;
@@ -700,16 +705,16 @@ checkDate(Parser *parserPtr, char *date)
 	tm.tm_min  = (p[0]-'0') * 10 + (p[1]-'0');
 	
 	if (tm.tm_mon < 1 || tm.tm_mon > 12) {
-	    printError(parserPtr, ERR_DATE_MONTH, date);
+	    smiPrintError(parserPtr, ERR_DATE_MONTH, date);
 	}
 	if (tm.tm_mday < 1 || tm.tm_mday > 31) {
-	    printError(parserPtr, ERR_DATE_DAY, date);
+	    smiPrintError(parserPtr, ERR_DATE_DAY, date);
 	}
 	if (tm.tm_hour < 0 || tm.tm_hour > 23) {
-	    printError(parserPtr, ERR_DATE_HOUR, date);
+	    smiPrintError(parserPtr, ERR_DATE_HOUR, date);
 	}
 	if (tm.tm_min < 0 || tm.tm_min > 59) {
-	    printError(parserPtr, ERR_DATE_MINUTES, date);
+	    smiPrintError(parserPtr, ERR_DATE_MINUTES, date);
 	}
 	
 	tm.tm_year -= 1900;
@@ -719,13 +724,13 @@ checkDate(Parser *parserPtr, char *date)
 	anytime = timegm(&tm);
 	
 	if (anytime == (time_t) -1) {
-	    printError(parserPtr, ERR_DATE_VALUE, date);
+	    smiPrintError(parserPtr, ERR_DATE_VALUE, date);
 	} else {
 	    if (anytime < SMI_EPOCH) {
-		printError(parserPtr, ERR_DATE_IN_PAST, date);
+		smiPrintError(parserPtr, ERR_DATE_IN_PAST, date);
 	    }
 	    if (anytime > time(NULL)) {
-		printError(parserPtr, ERR_DATE_IN_FUTURE, date);
+		smiPrintError(parserPtr, ERR_DATE_IN_FUTURE, date);
 	    }
 	}
     }
@@ -1033,7 +1038,7 @@ module:			moduleName
 			    if (!thisParserPtr->modulePtr) {
 				thisParserPtr->modulePtr =
 				    addModule($1,
-					      util_strdup(thisParserPtr->path),
+					      smiStrdup(thisParserPtr->path),
 					      0,
 					      thisParserPtr);
 				thisParserPtr->modulePtr->
@@ -1052,9 +1057,9 @@ module:			moduleName
 					SMI_LANGUAGE_SMIV2;
 				}
 			    } else {
-			        printError(thisParserPtr,
-					   ERR_MODULE_ALREADY_LOADED,
-					   $1);
+			        smiPrintError(thisParserPtr,
+					      ERR_MODULE_ALREADY_LOADED,
+					      $1);
 				/*
 				 * this aborts parsing the whole file,
 				 * not only the current module.
@@ -1103,7 +1108,7 @@ exportsClause:		/* empty */
 			{
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
-			        printError(thisParserPtr, ERR_EXPORTS);
+			        smiPrintError(thisParserPtr, ERR_EXPORTS);
 			    }
 			}
 			/* the scanner skips until... */
@@ -1189,7 +1194,7 @@ importIdentifier:	LOWERCASE_IDENTIFIER
 			}
 	|		importedKeyword
 			{
-			    addImport(util_strdup($1), thisParserPtr);
+			    addImport(smiStrdup($1), thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
 			    $$ = 0;
 			}
@@ -1312,7 +1317,8 @@ declaration:		typeDeclaration
 			}
 	|		error '}'
 			{
-			    printError(thisParserPtr, ERR_FLUSH_DECLARATION);
+			    smiPrintError(thisParserPtr,
+					  ERR_FLUSH_DECLARATION);
 			    yyerrok;
 			    $$ = 1;
 			}
@@ -1342,28 +1348,28 @@ macroClause:		macroName
 				       "RFC-1215") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
-			        printError(thisParserPtr, ERR_MACRO);
+			        smiPrintError(thisParserPtr, ERR_MACRO);
 			    }
 			}
 			/* the scanner skips until... */
 			END
 			{
 			    addMacro($1, 0, thisParserPtr);
-			    util_free($1);
+			    smiFree($1);
 			    $$ = 0;
                         }
 	;
 
-macroName:		MODULE_IDENTITY     { $$ = util_strdup($1); }
-	|		OBJECT_TYPE	    { $$ = util_strdup($1); }
-	|		TRAP_TYPE	    { $$ = util_strdup($1); }
-	|		NOTIFICATION_TYPE   { $$ = util_strdup($1); }
-	|		OBJECT_IDENTITY	    { $$ = util_strdup($1); }
-	|		TEXTUAL_CONVENTION  { $$ = util_strdup($1); }
-	|		OBJECT_GROUP	    { $$ = util_strdup($1); }
-	|		NOTIFICATION_GROUP  { $$ = util_strdup($1); }
-	|		MODULE_COMPLIANCE   { $$ = util_strdup($1); }
-	|		AGENT_CAPABILITIES  { $$ = util_strdup($1); }
+macroName:		MODULE_IDENTITY     { $$ = smiStrdup($1); }
+	|		OBJECT_TYPE	    { $$ = smiStrdup($1); }
+	|		TRAP_TYPE	    { $$ = smiStrdup($1); }
+	|		NOTIFICATION_TYPE   { $$ = smiStrdup($1); }
+	|		OBJECT_IDENTITY	    { $$ = smiStrdup($1); }
+	|		TEXTUAL_CONVENTION  { $$ = smiStrdup($1); }
+	|		OBJECT_GROUP	    { $$ = smiStrdup($1); }
+	|		NOTIFICATION_GROUP  { $$ = smiStrdup($1); }
+	|		MODULE_COMPLIANCE   { $$ = smiStrdup($1); }
+	|		AGENT_CAPABILITIES  { $$ = smiStrdup($1); }
 	;
 
 choiceClause:		CHOICE
@@ -1378,7 +1384,7 @@ choiceClause:		CHOICE
 				       "RFC-1212") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
-			        printError(thisParserPtr, ERR_CHOICE);
+			        smiPrintError(thisParserPtr, ERR_CHOICE);
 			    }
 			}
 			/* the scanner skips until... */
@@ -1402,9 +1408,9 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			        if (strchr($1, '-') &&
 				    (strcmp($1, "mib-2") ||
 				  strcmp(thisModulePtr->export.name, "SNMPv2-SMI"))) {
-				    printError(thisParserPtr,
-					       ERR_OIDNAME_INCLUDES_HYPHEN,
-					       $1);
+				    smiPrintError(thisParserPtr,
+						  ERR_OIDNAME_INCLUDES_HYPHEN,
+						  $1);
 				}
 			    }
 			}
@@ -1441,6 +1447,9 @@ typeDeclaration:	typeName
 			    Type *typePtr;
 			    
 			    if (strlen($1)) {
+				if ($4->export.basetype != SMI_BASETYPE_UNKNOWN) {
+				    checkTypeName(thisModulePtr, $1, thisParserPtr);
+				}
 				setTypeName($4, $1);
 				$$ = 0;
 			    } else {
@@ -1493,14 +1502,14 @@ typeDeclaration:	typeName
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
 				} else if (!strcmp($1, "NetworkAddress")) {
-				    setTypeName($4, util_strdup("NetworkAddress"));
+				    setTypeName($4, smiStrdup("NetworkAddress"));
 				    $4->export.basetype = SMI_BASETYPE_OCTETSTRING;
 				    setTypeParent($4, findTypeByModuleAndName(
 					                   thisModulePtr,
 						           "IpAddress"));
 				} else if (!strcmp($1, "IpAddress")) {
 				    typePtr = findTypeByModuleAndName(
-					thisModulePtr, util_strdup("NetworkAddress"));
+					thisModulePtr, smiStrdup("NetworkAddress"));
 				    if (typePtr) 
 					setTypeParent(typePtr, $4);
 				}
@@ -1514,7 +1523,7 @@ typeName:		UPPERCASE_IDENTIFIER
 			}
 	|		typeSMI
 			{
-			    $$ = util_strdup($1);
+			    $$ = smiStrdup($1);
 			    /*
 			     * well known types (keywords in this grammar)
 			     * are known to be defined in these modules.
@@ -1529,7 +1538,7 @@ typeName:		UPPERCASE_IDENTIFIER
 				       "RFC-1212") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
-			        printError(thisParserPtr, ERR_TYPE_SMI, $1);
+			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, $1);
 			    }
 			}
 	;
@@ -1571,10 +1580,10 @@ typeDeclarationRHS:	Syntax
 				if (importPtr) {
 				    importPtr->use++;
 				} else {
-				    printError(thisParserPtr,
-					       ERR_MACRO_NOT_IMPORTED,
-					       "TEXTUAL-CONVENTION",
-					       "SNMPv2-TC");
+				    smiPrintError(thisParserPtr,
+						  ERR_MACRO_NOT_IMPORTED,
+						  "TEXTUAL-CONVENTION",
+						  "SNMPv2-TC");
 				}
 			    }
 			}
@@ -1605,8 +1614,8 @@ typeDeclarationRHS:	Syntax
 			    setTypeStatus($$, $5);
 			    if ($3) {
 				if (!checkFormat($$->export.basetype, $3)) {
-				    printError(thisParserPtr,
-					       ERR_INVALID_FORMAT, $3);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_FORMAT, $3);
 				}
 				setTypeFormat($$, $3);
 			    }
@@ -1686,8 +1695,7 @@ entryType:		SEQUENCE '{' sequenceItems '}'
 
 sequenceItems:		sequenceItem
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -1696,7 +1704,7 @@ sequenceItems:		sequenceItem
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = (void *)$3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -1815,8 +1823,7 @@ sequenceSyntax:		/* ObjectSyntax */
 
 NamedBits:		NamedBit
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -1824,8 +1831,7 @@ NamedBits:		NamedBit
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = (void *)$3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -1841,29 +1847,29 @@ NamedBit:		LOWERCASE_IDENTIFIER
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
 				if (strchr($1, '-')) {
-				    printError(thisParserPtr,
-					       ERR_NAMEDBIT_INCLUDES_HYPHEN,
-					       $1);
+				    smiPrintError(thisParserPtr,
+						  ERR_NAMEDBIT_INCLUDES_HYPHEN,
+						  $1);
 				}
 			    }
 			}
 			'(' NUMBER ')'
 			{
-			    $$ = util_malloc(sizeof(NamedNumber));
+			    $$ = smiMalloc(sizeof(NamedNumber));
 			    $$->export.name = $1;
 			    $$->export.value.basetype =
 				                       SMI_BASETYPE_UNSIGNED32;
 			    $$->export.value.value.unsigned32 = $4;
 			    /* RFC 2578 7.1.4 */
 			    if ($4 >= 65535*8) {
-				printError(thisParserPtr,
-					   ERR_BITS_NUMBER_TOO_LARGE,
-					   $1, $4);
+				smiPrintError(thisParserPtr,
+					      ERR_BITS_NUMBER_TOO_LARGE,
+					      $1, $4);
 			    } else {
 				if ($4 >= 128) {
-				    printError(thisParserPtr,
-					       ERR_BITS_NUMBER_LARGE,
-					       $1, $4);
+				    smiPrintError(thisParserPtr,
+						  ERR_BITS_NUMBER_LARGE,
+						  $1, $4);
 				}
 			    }
 			}
@@ -1885,10 +1891,10 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 				if (importPtr) {
 				    importPtr->use++;
 				} else {
-				    printError(thisParserPtr,
-					       ERR_MACRO_NOT_IMPORTED,
-					       "OBJECT-IDENTITY",
-					       "SNMPv2-SMI");
+				    smiPrintError(thisParserPtr,
+						  ERR_MACRO_NOT_IMPORTED,
+						  "OBJECT-IDENTITY",
+						  "SNMPv2-SMI");
 				}
 			    }
 			}
@@ -1938,13 +1944,13 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    } else {
 				if (thisModulePtr->export.language ==
 				    SMI_LANGUAGE_SMIV2) {
-				    printError(thisParserPtr,
-					       ERR_MACRO_NOT_IMPORTED,
-					       "OBJECT-TYPE", "SNMPv2-SMI");
+				    smiPrintError(thisParserPtr,
+						  ERR_MACRO_NOT_IMPORTED,
+						  "OBJECT-TYPE", "SNMPv2-SMI");
 				} else {
-				    printError(thisParserPtr,
-					       ERR_MACRO_NOT_IMPORTED,
-					       "OBJECT-TYPE", "RFC-1212");
+				    smiPrintError(thisParserPtr,
+						  ERR_MACRO_NOT_IMPORTED,
+						  "OBJECT-TYPE", "RFC-1212");
 				}
 			    }
 			}
@@ -1959,7 +1965,6 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' ObjectName '}'
 			{
 			    Object *objectPtr, *parentPtr;
-			    List *listPtr, *newlistPtr;
 
 			    objectPtr = $17;
 			    
@@ -1997,7 +2002,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				     * defined.
 				     */
 				    /*
-				    newlistPtr = util_malloc(sizeof(List));
+				    newlistPtr = smiMalloc(sizeof(List));
 				    newlistPtr->nextPtr = NULL;
 				    newlistPtr->ptr = objectPtr;
 				    */
@@ -2017,8 +2022,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				    addObjectFlags(parentPtr, FLAG_CREATABLE);
 				    setObjectCreate(parentPtr, 1);
 				} else {
-				    printError(thisParserPtr,
-					       ERR_SCALAR_READCREATE);
+				    smiPrintError(thisParserPtr,
+						  ERR_SCALAR_READCREATE);
 				}
 			    }
 			    setObjectStatus(objectPtr, $10);
@@ -2047,8 +2052,8 @@ descriptionClause:	/* empty */
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
-				printError(thisParserPtr,
-					   ERR_MISSING_DESCRIPTION);
+				smiPrintError(thisParserPtr,
+					      ERR_MISSING_DESCRIPTION);
 			    }
 			    $$ = NULL;
 			}
@@ -2070,7 +2075,7 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			    
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
-			        printError(thisParserPtr, ERR_TRAP_TYPE);
+			        smiPrintError(thisParserPtr, ERR_TRAP_TYPE);
 			    }
 
 			    importPtr = findImportByName("TRAP-TYPE",
@@ -2078,9 +2083,9 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_MACRO_NOT_IMPORTED,
-					   "TRAP-TYPE", "RFC-1215");
+				smiPrintError(thisParserPtr,
+					      ERR_MACRO_NOT_IMPORTED,
+					      "TRAP-TYPE", "RFC-1215");
 			    }
 			}
 			ENTERPRISE objectIdentifier
@@ -2148,8 +2153,7 @@ VarPart:		VARIABLES '{' VarTypes '}'
 
 VarTypes:		VarType
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2157,8 +2161,7 @@ VarTypes:		VarType
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2183,8 +2186,8 @@ MaxAccessPart:		MAX_ACCESS
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV1)
 			    {
-			        printError(thisParserPtr,
-					   ERR_MAX_ACCESS_IN_SMIV1);
+			        smiPrintError(thisParserPtr,
+					      ERR_MAX_ACCESS_IN_SMIV1);
 			    }
 			}
 			Access
@@ -2193,7 +2196,7 @@ MaxAccessPart:		MAX_ACCESS
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
-			        printError(thisParserPtr, ERR_ACCESS_IN_SMIV2);
+			        smiPrintError(thisParserPtr, ERR_ACCESS_IN_SMIV2);
 			    }
 			}
 			Access
@@ -2216,9 +2219,10 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_MACRO_NOT_IMPORTED,
-					   "NOTIFICATION-TYPE", "SNMPv2-SMI");
+				smiPrintError(thisParserPtr,
+					      ERR_MACRO_NOT_IMPORTED,
+					      "NOTIFICATION-TYPE",
+					      "SNMPv2-SMI");
 			    }
 			}
 			ObjectsPart
@@ -2267,19 +2271,20 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_MACRO_NOT_IMPORTED,
-					   "MODULE-IDENTITY", "SNMPv2-SMI");
+				smiPrintError(thisParserPtr,
+					      ERR_MACRO_NOT_IMPORTED,
+					      "MODULE-IDENTITY",
+					      "SNMPv2-SMI");
 			    }
 			    
 			    if (thisParserPtr->modulePtr->numModuleIdentities > 0)
 			    {
-			        printError(thisParserPtr,
-					   ERR_TOO_MANY_MODULE_IDENTITIES);
+			        smiPrintError(thisParserPtr,
+					      ERR_TOO_MANY_MODULE_IDENTITIES);
 			    }
 			    if (thisParserPtr->modulePtr->numStatements > 0) {
-			        printError(thisParserPtr,
-					   ERR_MODULE_IDENTITY_NOT_FIRST);
+			        smiPrintError(thisParserPtr,
+					      ERR_MODULE_IDENTITY_NOT_FIRST);
 			    }
 			}
 			LAST_UPDATED ExtUTCTime
@@ -2338,7 +2343,7 @@ ObjectSyntax:		SimpleSyntax
 				       "RFC-1212") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
-			        printError(thisParserPtr, ERR_TYPE_TAG, $1);
+			        smiPrintError(thisParserPtr, ERR_TYPE_TAG, $1);
 			    }
 			    $$ = $2;
 			}
@@ -2421,8 +2426,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				&&
 				(strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
 				 strcmp(thisModulePtr->export.name, "SNMPv2-TC")))
-				printError(thisParserPtr,
-					   ERR_INTEGER_IN_SMIV2);
+				smiPrintError(thisParserPtr,
+					      ERR_INTEGER_IN_SMIV2);
 
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = typeInteger32Ptr;
@@ -2439,7 +2444,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				&&
 				(strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
 				 strcmp(thisModulePtr->export.name, "SNMPv2-TC")))
-				printError(thisParserPtr,ERR_INTEGER_IN_SMIV2);
+				smiPrintError(thisParserPtr,
+					      ERR_INTEGER_IN_SMIV2);
 
 			    $$ = duplicateType(typeInteger32Ptr, 0,
 					       thisParserPtr);
@@ -2475,9 +2481,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_BASETYPE_NOT_IMPORTED,
-					   "Integer32");
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
+					      "Integer32");
 			    }
 
 			    /* TODO: any need to distinguish from INTEGER? */
@@ -2497,9 +2503,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_BASETYPE_NOT_IMPORTED,
-					   "Integer32");
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
+					      "Integer32");
 			    }
 
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
@@ -2574,8 +2580,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							  $3, thisModulePtr);
 				if (!importPtr ||
 				    (importPtr->kind == KIND_NOTFOUND)) {
-				    printError(thisParserPtr,
-					       ERR_UNKNOWN_TYPE, $3);
+				    smiPrintError(thisParserPtr,
+						  ERR_UNKNOWN_TYPE, $3);
 				    $$ = NULL;
 				} else {
 				    /*
@@ -2656,9 +2662,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
-					   $1);
+				smiPrintError(thisParserPtr,
+				      ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
+					      $1);
 			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
@@ -2675,8 +2681,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				if (!importPtr ||
 				    (importPtr->kind == KIND_NOTFOUND)) {
 				    defaultBasetype = SMI_BASETYPE_UNKNOWN;
-				    printError(thisParserPtr,
-					       ERR_UNKNOWN_TYPE, $3);
+				    smiPrintError(thisParserPtr,
+						  ERR_UNKNOWN_TYPE, $3);
 				    $$ = NULL;
 				} else {
 				    /*
@@ -2708,9 +2714,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				for (p = $4; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
-					   $3);
+				smiPrintError(thisParserPtr,
+				      ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
+					      $3);
 			    }
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
@@ -2797,8 +2803,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							  $3, thisModulePtr);
 				if (!importPtr ||
 				    (importPtr->kind == KIND_NOTFOUND)) {
-				    printError(thisParserPtr,
-					       ERR_UNKNOWN_TYPE, $3);
+				    smiPrintError(thisParserPtr,
+						  ERR_UNKNOWN_TYPE, $3);
 				    $$ = NULL;
 				} else {
 				    /*
@@ -2833,13 +2839,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			/* NOTE: Counter64 must not have a DEFVAL */
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
 			}
 	|		NEGATIVENUMBER		/* -2147483648..0 */
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
 			}
@@ -2848,13 +2854,12 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    char s[9];
 			    int i, len, j;
 			    
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
 				$$->value.ptr =
-				    util_malloc((len+7)/8+1);
+				    smiMalloc((len+7)/8+1);
 				for (i = 0; i < len; i += 8) {
 				    strncpy(s, &$1[i], 8);
 				    for (j = 1; j < 8; j++) {
@@ -2874,12 +2879,11 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    char s[3];
 			    int i, len;
 			    
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
-				$$->value.ptr = util_malloc((len+1)/2+1);
+				$$->value.ptr = smiMalloc((len+1)/2+1);
 				for (i = 0; i < len; i += 2) {
 				    strncpy(s, &$1[i], 2);
 				    if (!s[1]) s[1] = '0';
@@ -2894,11 +2898,10 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			}
 	|		LOWERCASE_IDENTIFIER	/* enumeration or named oid */
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    if ((defaultBasetype != SMI_BASETYPE_ENUM) &&
 				(defaultBasetype != SMI_BASETYPE_OBJECTIDENTIFIER)) {
-				printError(thisParserPtr, ERR_DEFVAL_SYNTAX);
+				smiPrintError(thisParserPtr, ERR_DEFVAL_SYNTAX);
 				$$->basetype = defaultBasetype;
 				if (defaultBasetype == SMI_BASETYPE_ENUM) {
 				    $$->len = 1;
@@ -2915,10 +2918,9 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_OCTETSTRING;
-			    $$->value.ptr = util_strdup($1);
+			    $$->value.ptr = smiStrdup($1);
 			    $$->len = strlen($1);
 			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
@@ -2947,13 +2949,13 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    if (thisModulePtr->export.language ==
 				SMI_LANGUAGE_SMIV2)
 			    {
-				printError(thisParserPtr,
-					   ERR_OID_DEFVAL_TOO_LONG);
+				smiPrintError(thisParserPtr,
+					      ERR_OID_DEFVAL_TOO_LONG);
 			    }
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 			    $$->len = 2;
-			    $$->value.oid = util_malloc(2 * sizeof(SmiSubid));
+			    $$->value.oid = smiMalloc(2 * sizeof(SmiSubid));
 			    $$->value.oid[0] = 0;
 			    $$->value.oid[1] = 0;
 			}
@@ -2979,9 +2981,9 @@ sequenceSimpleSyntax:	INTEGER	anySubType
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_BASETYPE_NOT_IMPORTED,
-					   "Integer32");
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
+					      "Integer32");
 			    }
 
 			}
@@ -2999,24 +3001,24 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    $$ = findTypeByName("IpAddress");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "IpAddress");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "IpAddress");
 			    }
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("Counter32");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Counter32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Counter32");
 			    }
 			}
 	|		GAUGE32			/* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("Gauge32");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Gauge32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Gauge32");
 			    }
 			}
 	|		GAUGE32 integerSubType
@@ -3027,8 +3029,8 @@ ApplicationSyntax:	IPADDRESS
 			    
 			    parentPtr = findTypeByName("Gauge32");
 			    if (! parentPtr) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Gauge32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Gauge32");
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
@@ -3048,8 +3050,8 @@ ApplicationSyntax:	IPADDRESS
 
 			    $$ = findTypeByName("Unsigned32");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Unsigned32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Unsigned32");
 			    }
 			    
 			    importPtr = findImportByName("Unsigned32",
@@ -3057,9 +3059,9 @@ ApplicationSyntax:	IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_BASETYPE_NOT_IMPORTED,
-					   "Unsigned32");
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
+					      "Unsigned32");
 			    }
 			}
 	|		UNSIGNED32 integerSubType
@@ -3070,8 +3072,8 @@ ApplicationSyntax:	IPADDRESS
 			    
 			    parentPtr = findTypeByName("Unsigned32");
 			    if (! parentPtr) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Unsigned32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Unsigned32");
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
@@ -3084,27 +3086,28 @@ ApplicationSyntax:	IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_BASETYPE_NOT_IMPORTED,
-					   "Unsigned32");
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
+					      "Unsigned32");
 			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("TimeTicks");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "TimeTicks");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "TimeTicks");
 			    }
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
 			    $$ = findTypeByName("Opaque");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Opaque");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Opaque");
 			    } else {
-				printError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
+				smiPrintError(thisParserPtr,
+					      ERR_OPAQUE_OBSOLETE);
 			    }
 			}
 	|		OPAQUE octetStringSubType
@@ -3115,10 +3118,10 @@ ApplicationSyntax:	IPADDRESS
 			    
 			    parentPtr = findTypeByName("Opaque");
 			    if (! parentPtr) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Opaque");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Opaque");
 			    }
-			    printError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
+			    smiPrintError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, parentPtr);
@@ -3135,8 +3138,8 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    $$ = findTypeByName("Counter64");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Counter64");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Counter64");
 			    }
 			}
 	;
@@ -3149,24 +3152,24 @@ sequenceApplicationSyntax: IPADDRESS
 			{
 			    $$ = findTypeByName("IpAddress");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "IpAddress");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "IpAddress");
 			    }
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("Counter32");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Counter32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Counter32");
 			    }
 			}
 	|		GAUGE32	anySubType	/* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("Gauge32");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Gauge32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Gauge32");
 			    }
 			}
 	|		UNSIGNED32 anySubType /* (0..4294967295)	     */
@@ -3175,8 +3178,8 @@ sequenceApplicationSyntax: IPADDRESS
 			    
 			    $$ = findTypeByName("Unsigned32");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Unsigned32");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Unsigned32");
 			    }
 
 			    importPtr = findImportByName("Unsigned32",
@@ -3184,35 +3187,36 @@ sequenceApplicationSyntax: IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_BASETYPE_NOT_IMPORTED,
-					   "Unsigned32");
+				smiPrintError(thisParserPtr,
+					      ERR_BASETYPE_NOT_IMPORTED,
+					      "Unsigned32");
 			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("TimeTicks");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "TimeTicks");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "TimeTicks");
 			    }
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
 			    $$ = findTypeByName("Opaque");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Opaque");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Opaque");
 			    } else {
-				printError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
+				smiPrintError(thisParserPtr,
+					      ERR_OPAQUE_OBSOLETE);
 			    }
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
 			    $$ = findTypeByName("Counter64");
 			    if (! $$) {
-				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					   "Counter64");
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Counter64");
 			    }
 			}
 	;
@@ -3220,22 +3224,22 @@ sequenceApplicationSyntax: IPADDRESS
 anySubType:		integerSubType
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_TYPE_RESTRICTION);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_TYPE_RESTRICTION);
 			    $$ = NULL;
 			}
 	|	        octetStringSubType
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_TYPE_RESTRICTION);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_TYPE_RESTRICTION);
 			    $$ = NULL;
 			}
 	|		enumSpec
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_TYPE_RESTRICTION);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_TYPE_RESTRICTION);
 			    $$ = NULL;
 			}
 	|		/* empty */
@@ -3268,8 +3272,7 @@ octetStringSubType:	'(' SIZE '(' ranges ')' ')'
 
 ranges:			range
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -3277,8 +3280,7 @@ ranges:			range
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = (void *)$3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3289,32 +3291,30 @@ ranges:			range
 
 range:			value
 			{
-			    $$ = util_malloc(sizeof(Range));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(Range));
 			    $$->export.minValue = *$1;
 			    $$->export.maxValue = *$1;
-			    util_free($1);
+			    smiFree($1);
 			}
 	|		value DOT_DOT value
 			{
-			    $$ = util_malloc(sizeof(Range));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(Range));
 			    $$->export.minValue = *$1;
 			    $$->export.maxValue = *$3;
-			    util_free($1);
-			    util_free($3);
+			    smiFree($1);
+			    smiFree($3);
 			}
 	;
 
 value:			NEGATIVENUMBER
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
 			}
 	|		NUMBER
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
 			}
@@ -3323,12 +3323,11 @@ value:			NEGATIVENUMBER
 			    char s[3];
 			    int i, len;
 			    
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
-				$$->value.ptr = util_malloc((len+1)/2+1);
+				$$->value.ptr = smiMalloc((len+1)/2+1);
 				for (i = 0; i < len; i += 2) {
 				    strncpy(s, &$1[i], 2);
 				    if (!s[1]) s[1] = '0';
@@ -3346,12 +3345,11 @@ value:			NEGATIVENUMBER
 			    char s[9];
 			    int i, len, j;
 			    
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				len = strlen($1);
-				$$->value.ptr = util_malloc((len+7)/8+1);
+				$$->value.ptr = smiMalloc((len+7)/8+1);
 				for (i = 0; i < len; i += 8) {
 				    strncpy(s, &$1[i], 8);
 				    for (j = 1; j < 8; j++) {
@@ -3376,8 +3374,7 @@ enumSpec:		'{' enumItems '}'
 
 enumItems:		enumItem
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -3385,8 +3382,7 @@ enumItems:		enumItem
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = (void *)$3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3402,35 +3398,34 @@ enumItem:		LOWERCASE_IDENTIFIER
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
 				if (strchr($1, '-')) {
-				    printError(thisParserPtr,
-					       ERR_NAMEDNUMBER_INCLUDES_HYPHEN,
-					       $1);
+				    smiPrintError(thisParserPtr,
+					  ERR_NAMEDNUMBER_INCLUDES_HYPHEN,
+						  $1);
 				}
 			    }
 			}
 			'(' enumNumber ')'
 			{
-			    $$ = util_malloc(sizeof(NamedNumber));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(NamedNumber));
 			    $$->export.name = $1;
 			    $$->export.value = *$4;
-			    util_free($4);
+			    smiFree($4);
 			}
 	;
 
 enumNumber:		NUMBER
 			{
 			    if ($1 > MAX_INTEGER32) {
-				printError(thisParserPtr,
-					   ERR_INTEGER32_TOO_LARGE, $1);
+				smiPrintError(thisParserPtr,
+					      ERR_INTEGER32_TOO_LARGE, $1);
 			    }
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
 			}
 	|		NEGATIVENUMBER
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
 			    /* TODO: non-negative is suggested */
@@ -3448,8 +3443,9 @@ Status:			LOWERCASE_IDENTIFIER
 				} else if (!strcmp($1, "obsolete")) {
 				    $$ = SMI_STATUS_OBSOLETE;
 				} else {
-				    printError(thisParserPtr,
-					       ERR_INVALID_SMIV2_STATUS, $1);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_SMIV2_STATUS,
+						  $1);
 				    $$ = SMI_STATUS_UNKNOWN;
 				}
 			    } else {
@@ -3462,12 +3458,13 @@ Status:			LOWERCASE_IDENTIFIER
 				} else if (!strcmp($1, "deprecated")) {
 				    $$ = SMI_STATUS_OBSOLETE;
 				} else {
-				    printError(thisParserPtr,
-					       ERR_INVALID_SMIV1_STATUS, $1);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_SMIV1_STATUS,
+						  $1);
 				    $$ = SMI_STATUS_UNKNOWN;
 				}
 			    }
-			    util_free($1);
+			    smiFree($1);
 			}
         ;		
 
@@ -3478,12 +3475,12 @@ Status_Capabilities:	LOWERCASE_IDENTIFIER
 			    } else if (!strcmp($1, "obsolete")) {
 				$$ = SMI_STATUS_OBSOLETE;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_INVALID_CAPABILITIES_STATUS,
-					   $1);
+				smiPrintError(thisParserPtr,
+					      ERR_INVALID_CAPABILITIES_STATUS,
+					      $1);
 				$$ = SMI_STATUS_UNKNOWN;
 			    }
-			    util_free($1);
+			    smiFree($1);
 			}
         ;
 
@@ -3525,13 +3522,13 @@ Access:			LOWERCASE_IDENTIFIER
 				    thisParserPtr->flags |= FLAG_CREATABLE;
 				    /* TODO:remember it's really read-create */
 				} else if (!strcmp($1, "write-only")) {
-				    printError(thisParserPtr,
-					       ERR_SMIV2_WRITE_ONLY);
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_WRITE_ONLY);
 				    $$ = SMI_ACCESS_READ_WRITE;
 				} else {
-				    printError(thisParserPtr,
-					       ERR_INVALID_SMIV2_ACCESS,
-					       $1);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_SMIV2_ACCESS,
+						  $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
 				}
 			    } else {
@@ -3542,16 +3539,17 @@ Access:			LOWERCASE_IDENTIFIER
 				} else if (!strcmp($1, "read-write")) {
 				    $$ = SMI_ACCESS_READ_WRITE;
 				} else if (!strcmp($1, "write-only")) {
-				    printError(thisParserPtr,
-					       ERR_SMIV1_WRITE_ONLY);
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV1_WRITE_ONLY);
 				    $$ = SMI_ACCESS_READ_WRITE;
 				} else {
-				    printError(thisParserPtr,
-					       ERR_INVALID_SMIV1_ACCESS, $1);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_SMIV1_ACCESS,
+						  $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
 				}
 			    }
-			    util_free($1);
+			    smiFree($1);
 			}
         ;
 
@@ -3587,8 +3585,7 @@ IndexPart:		INDEX
 
 IndexTypes:		IndexType
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -3597,7 +3594,7 @@ IndexTypes:		IndexType
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3644,25 +3641,9 @@ Value:			valueofObjectSyntax
 			{ $$ = $1; }
 	|		'{' BitsValue '}'
 			{
-			    int i = 0;
-			    List *listPtr;
-			    
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_BITS;
-#if 0 /* XXX */
-			    $$->value.bits = NULL;
-			    for (i = 0, listPtr = $2; listPtr;
-				 i++, listPtr = listPtr->nextPtr) {
-				$$->value.bits = util_realloc($$->value.bits,
-						       sizeof(char *) * (i+2));
-				$$->value.bits[i] = listPtr->ptr;
-				$$->value.bits[i+1] = NULL;
-				/* XXX util_free(listPtr); */
-			    }
-#else
 			    $$->value.ptr = (void *)$2;
-#endif
 			}
 	;
 
@@ -3674,8 +3655,7 @@ BitsValue:		BitNames
 
 BitNames:		LOWERCASE_IDENTIFIER
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -3683,8 +3663,7 @@ BitNames:		LOWERCASE_IDENTIFIER
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3717,7 +3696,7 @@ RevisionPart:		Revisions
 			{
 			    if (!thisModulePtr->firstRevisionPtr) {
 				addRevision(thisModulePtr->lastUpdated,
-					    util_strdup(
+					    smiStrdup(
 	           "[Revision added by libsmi due to a LAST-UPDATED clause.]"),
 					    thisParserPtr);
 			    }
@@ -3742,7 +3721,7 @@ Revision:		REVISION ExtUTCTime
 			    if ((!thisModulePtr->firstRevisionPtr) &&
 				($2 != thisModulePtr->lastUpdated)) {
 				addRevision(thisModulePtr->lastUpdated,
-					    util_strdup(
+					    smiStrdup(
 	           "[Revision added by libsmi due to a LAST-UPDATED clause.]"),
 					    thisParserPtr);
 			    }
@@ -3766,8 +3745,7 @@ ObjectsPart:		OBJECTS '{' Objects '}'
 
 Objects:		Object
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -3775,8 +3753,7 @@ Objects:		Object
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3799,8 +3776,7 @@ NotificationsPart:	NOTIFICATIONS '{' Notifications '}'
 
 Notifications:		Notification
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -3808,8 +3784,7 @@ Notifications:		Notification
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3826,7 +3801,7 @@ Notification:		NotificationName
 
 Text:			QUOTED_STRING
 			{
-			    $$ = util_strdup($1);
+			    $$ = smiStrdup($1);
 			}
 	;
 
@@ -3865,8 +3840,8 @@ subidentifier:
 			    Import *importPtr;
 			    
 			    if (parentNodePtr != rootNodePtr) {
-				printError(thisParserPtr,
-					   ERR_OIDLABEL_NOT_FIRST, $1);
+				smiPrintError(thisParserPtr,
+					      ERR_OIDLABEL_NOT_FIRST, $1);
 			    }
 			    objectPtr = findObjectByModuleAndName(
 				thisParserPtr->modulePtr, $1);
@@ -3887,7 +3862,7 @@ subidentifier:
 						complianceModulePtr, $1);
 					if (objectPtr) {
 					    importPtr = addImport(
-						util_strdup($1),
+						smiStrdup($1),
 						thisParserPtr);
 					    setImportModulename(importPtr,
 								complianceModulePtr->export.name);
@@ -3897,9 +3872,9 @@ subidentifier:
 								  pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
-					    printError(thisParserPtr,
-						       ERR_IDENTIFIER_NOT_IN_MODULE, $1,
-						       complianceModulePtr->export.name);
+					    smiPrintError(thisParserPtr,
+							  ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+							  complianceModulePtr->export.name);
 					}
 				    } else if (capabilitiesModulePtr) {
 					objectPtr =
@@ -3907,7 +3882,7 @@ subidentifier:
 						capabilitiesModulePtr, $1);
 					if (objectPtr) {
 					    importPtr = addImport(
-						util_strdup($1),
+						smiStrdup($1),
 						thisParserPtr);
 					    setImportModulename(importPtr,
 								capabilitiesModulePtr->
@@ -3918,9 +3893,9 @@ subidentifier:
 								  pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
-					    printError(thisParserPtr,
-						       ERR_IDENTIFIER_NOT_IN_MODULE, $1,
-						       capabilitiesModulePtr->export.name);
+					    smiPrintError(thisParserPtr,
+							  ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+							  capabilitiesModulePtr->export.name);
 					}
 				    } else {
 					/* 
@@ -3954,12 +3929,12 @@ subidentifier:
 			    char *md;
 			    
 			    if (parentNodePtr != rootNodePtr) {
-				md = util_malloc(sizeof(char) *
-					        (strlen($1) + strlen($3) + 2));
+				md = smiMalloc(sizeof(char) *
+					       (strlen($1) + strlen($3) + 2));
 				sprintf(md, "%s.%s", $1, $3);
-				printError(thisParserPtr,
-					   ERR_OIDLABEL_NOT_FIRST, md);
-				util_free(md);
+				smiPrintError(thisParserPtr,
+					      ERR_OIDLABEL_NOT_FIRST, md);
+				smiFree(md);
 			    } else {
 				objectPtr = findObjectByModulenameAndName(
 				    $1, $3);
@@ -3981,7 +3956,7 @@ subidentifier:
 						    complianceModulePtr, $1);
 					    if (objectPtr) {
 						importPtr = addImport(
-						    util_strdup($1),
+						    smiStrdup($1),
 						    thisParserPtr);
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
@@ -3991,7 +3966,7 @@ subidentifier:
 						    pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
-						printError(thisParserPtr,
+						smiPrintError(thisParserPtr,
 					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
 					     complianceModulePtr->export.name);
 					    }
@@ -4001,7 +3976,7 @@ subidentifier:
 						    capabilitiesModulePtr, $1);
 					    if (objectPtr) {
 						importPtr = addImport(
-						    util_strdup($1),
+						    smiStrdup($1),
 						    thisParserPtr);
 						setImportModulename(importPtr,
 						        capabilitiesModulePtr->
@@ -4012,7 +3987,7 @@ subidentifier:
 						    pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
-						printError(thisParserPtr,
+						smiPrintError(thisParserPtr,
 					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
 					   capabilitiesModulePtr->export.name);
 					    }
@@ -4076,13 +4051,13 @@ subidentifier:
 			    objectPtr = findObjectByModuleAndName(
 				thisParserPtr->modulePtr, $1);
 			    if (objectPtr) {
-				printError(thisParserPtr,
-					   ERR_EXISTENT_OBJECT, $1);
+				smiPrintError(thisParserPtr,
+					      ERR_EXISTENT_OBJECT, $1);
 				$$ = objectPtr;
 				if ($$->nodePtr->subid != $3) {
-				    printError(thisParserPtr,
-					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
-					       $3, $1);
+				    smiPrintError(thisParserPtr,
+					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
+						  $3, $1);
 				}
 			    } else {
 				objectPtr = addObject($1, parentNodePtr,
@@ -4100,28 +4075,28 @@ subidentifier:
 			    Object *objectPtr;
 			    char *md;
 
-			    md = util_malloc(sizeof(char) *
-					     (strlen($1) + strlen($3) + 2));
+			    md = smiMalloc(sizeof(char) *
+					   (strlen($1) + strlen($3) + 2));
 			    sprintf(md, "%s.%s", $1, $3);
 			    objectPtr = findObjectByModulenameAndName($1, $3);
 			    if (objectPtr) {
-				printError(thisParserPtr, ERR_EXISTENT_OBJECT,
-					   $1);
+				smiPrintError(thisParserPtr,
+					      ERR_EXISTENT_OBJECT, $1);
 				$$ = objectPtr;
 				if ($$->nodePtr->subid != $5) {
-				    printError(thisParserPtr,
-					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
-					       $5, md);
+				    smiPrintError(thisParserPtr,
+					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
+						  $5, md);
 				}
 			    } else {
-				printError(thisParserPtr,
-					   ERR_ILLEGALLY_QUALIFIED, md);
+				smiPrintError(thisParserPtr,
+					      ERR_ILLEGALLY_QUALIFIED, md);
 				objectPtr = addObject($3, parentNodePtr,
 						   $5, 0,
 						   thisParserPtr);
 				$$ = objectPtr;
 			    }
-			    util_free(md);
+			    smiFree(md);
 			    if ($$)
 				parentNodePtr = $$->nodePtr;
 			}
@@ -4158,9 +4133,9 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_MACRO_NOT_IMPORTED,
-					   "OBJECT-GROUP", "SNMPv2-CONF");
+				smiPrintError(thisParserPtr,
+					      ERR_MACRO_NOT_IMPORTED,
+					      "OBJECT-GROUP", "SNMPv2-CONF");
 			    }
 			}
 			ObjectsPart
@@ -4210,10 +4185,10 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_MACRO_NOT_IMPORTED,
-					   "NOTIFICATION-GROUP",
-					   "SNMPv2-CONF");
+				smiPrintError(thisParserPtr,
+					      ERR_MACRO_NOT_IMPORTED,
+					      "NOTIFICATION-GROUP",
+					      "SNMPv2-CONF");
 			    }
 			}
 			NotificationsPart
@@ -4264,10 +4239,10 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_MACRO_NOT_IMPORTED,
-					   "MODULE-COMPLIANCE",
-					   "SNMPv2-CONF");
+				smiPrintError(thisParserPtr,
+					      ERR_MACRO_NOT_IMPORTED,
+					      "MODULE-COMPLIANCE",
+					      "SNMPv2-CONF");
 			    }
 			}
 			STATUS Status
@@ -4280,7 +4255,6 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    Option *optionPtr;
 			    Refinement *refinementPtr;
 			    List *listPtr;
-			    char *s;
 			    
 			    objectPtr = $13;
 			    
@@ -4328,24 +4302,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
 					((Refinement *)(listPtr->ptr));
-				    
 				    refinementPtr->compliancePtr = objectPtr;
-#if 0 /* export implicitly defined types by the node's lowercase name */
-				    s = util_malloc(strlen(refinementPtr->
-						      objectPtr->export.name) +
-   				                              strlen($1) + 13);
-				    if (refinementPtr->typePtr) {
-					sprintf(s, "%s+%s+type", $1,
-					refinementPtr->objectPtr->export.name);
-					setTypeName(refinementPtr->typePtr, s);
-				    }
-				    if (refinementPtr->writetypePtr) {
-					sprintf(s, "%s+%s+writetype", $1,
-					refinementPtr->objectPtr->export.name);
-				   setTypeName(refinementPtr->writetypePtr, s);
-				    }
-				    util_free(s);
-#endif
 				}
 			    }
 
@@ -4461,8 +4418,7 @@ MandatoryPart:		MANDATORY_GROUPS '{' MandatoryGroups '}'
 
 MandatoryGroups:	MandatoryGroup
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -4470,8 +4426,7 @@ MandatoryGroups:	MandatoryGroup
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -4535,9 +4490,9 @@ Compliances:		Compliance
 				     listPtr = listPtr->nextPtr) {
 				    if (((Option *)listPtr->ptr)->objectPtr ==
 					((Option *)$2.optionlistPtr->ptr)->objectPtr) {
-					printError(thisParserPtr,
-						   ERR_OPTIONALGROUP_ALREADY_EXISTS,
-						   ((Option *)$2.optionlistPtr->ptr)->objectPtr->export.name);
+					smiPrintError(thisParserPtr,
+						      ERR_OPTIONALGROUP_ALREADY_EXISTS,
+						      ((Option *)$2.optionlistPtr->ptr)->objectPtr->export.name);
 					stop = 1;
 					$$.optionlistPtr = $1.optionlistPtr;
 				    }
@@ -4564,9 +4519,9 @@ Compliances:		Compliance
 				     listPtr = listPtr->nextPtr) {
 				    if (((Refinement *)listPtr->ptr)->objectPtr ==
 					((Refinement *)$2.refinementlistPtr->ptr)->objectPtr) {
-					printError(thisParserPtr,
-						   ERR_REFINEMENT_ALREADY_EXISTS,
-						   ((Refinement *)$2.refinementlistPtr->ptr)->objectPtr->export.name);
+					smiPrintError(thisParserPtr,
+						      ERR_REFINEMENT_ALREADY_EXISTS,
+						      ((Refinement *)$2.refinementlistPtr->ptr)->objectPtr->export.name);
 					stop = 1;
 					$$.refinementlistPtr = $1.refinementlistPtr;
 				    }
@@ -4616,9 +4571,9 @@ ComplianceGroup:	GROUP objectIdentifier
 				    importPtr->use++;
 			    }
 			    
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->nextPtr = NULL;
-			    $$->ptr = util_malloc(sizeof(Option));
+			    $$->ptr = smiMalloc(sizeof(Option));
 			    ((Option *)($$->ptr))->objectPtr = $2;
 			    if (! (thisModulePtr->flags & SMI_FLAG_NODESCR)) {
 				((Option *)($$->ptr))->export.description = $4;
@@ -4644,9 +4599,9 @@ ComplianceObject:	OBJECT ObjectName
 			    }
 			    
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->nextPtr = NULL;
-			    $$->ptr = util_malloc(sizeof(Refinement));
+			    $$->ptr = smiMalloc(sizeof(Refinement));
 			    ((Refinement *)($$->ptr))->objectPtr = $2;
 			    ((Refinement *)($$->ptr))->typePtr = $3;
 			    ((Refinement *)($$->ptr))->writetypePtr = $4;
@@ -4718,10 +4673,10 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				printError(thisParserPtr,
-					   ERR_MACRO_NOT_IMPORTED,
-					   "AGENT-CAPABILITIES",
-					   "SNMPv2-CONF");
+				smiPrintError(thisParserPtr,
+					      ERR_MACRO_NOT_IMPORTED,
+					      "AGENT-CAPABILITIES",
+					      "SNMPv2-CONF");
 			    }
 			}
 			PRODUCT_RELEASE Text
@@ -4803,8 +4758,7 @@ Module_Capabilities:	SUPPORTS ModuleName_Capabilities
 CapabilitiesGroups:	CapabilitiesGroup
 			{
 #if 0
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 #else
@@ -4816,8 +4770,7 @@ CapabilitiesGroups:	CapabilitiesGroup
 #if 0
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
-			    /* TODO: success? */
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $3;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -4875,30 +4828,30 @@ Variation:		VARIATION ObjectName
 			SyntaxPart
 			{
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				printError(thisParserPtr,
-					   ERR_NOTIFICATION_VARIATION_SYNTAX);
+				smiPrintError(thisParserPtr,
+				      ERR_NOTIFICATION_VARIATION_SYNTAX);
 			    }
 			}
 			WriteSyntaxPart
 			{
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				printError(thisParserPtr,
-				       ERR_NOTIFICATION_VARIATION_WRITESYNTAX);
+				smiPrintError(thisParserPtr,
+				      ERR_NOTIFICATION_VARIATION_WRITESYNTAX);
 			    }
 			}
 			VariationAccessPart
 			CreationPart
 			{
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				printError(thisParserPtr,
-					  ERR_NOTIFICATION_VARIATION_CREATION);
+				smiPrintError(thisParserPtr,
+				      ERR_NOTIFICATION_VARIATION_CREATION);
 			    }
 			}
 			DefValPart
 			{
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				printError(thisParserPtr,
-					   ERR_NOTIFICATION_VARIATION_DEFVAL);
+				smiPrintError(thisParserPtr,
+				      ERR_NOTIFICATION_VARIATION_DEFVAL);
 			    }
 			}
 			DESCRIPTION Text
@@ -4922,7 +4875,7 @@ VariationAccess:	LOWERCASE_IDENTIFIER
 			    } else if (!strcmp($1, "accessible-for-notify")) {
 				if (variationkind ==
 				    SMI_NODEKIND_NOTIFICATION) {
-				    printError(thisParserPtr,
+				    smiPrintError(thisParserPtr,
 				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
 					       $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
@@ -4932,7 +4885,7 @@ VariationAccess:	LOWERCASE_IDENTIFIER
 			    } else if (!strcmp($1, "read-only")) {
 				if (variationkind ==
 				    SMI_NODEKIND_NOTIFICATION) {
-				    printError(thisParserPtr,
+				    smiPrintError(thisParserPtr,
 				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
 					       $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
@@ -4942,7 +4895,7 @@ VariationAccess:	LOWERCASE_IDENTIFIER
 			    } else if (!strcmp($1, "read-write")) {
 				if (variationkind ==
 				    SMI_NODEKIND_NOTIFICATION) {
-				    printError(thisParserPtr,
+				    smiPrintError(thisParserPtr,
 				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
 					       $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
@@ -4952,7 +4905,7 @@ VariationAccess:	LOWERCASE_IDENTIFIER
 			    } else if (!strcmp($1, "read-create")) {
 				if (variationkind ==
 				    SMI_NODEKIND_NOTIFICATION) {
-				    printError(thisParserPtr,
+				    smiPrintError(thisParserPtr,
 				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
 					       $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
@@ -4962,19 +4915,19 @@ VariationAccess:	LOWERCASE_IDENTIFIER
 			    } else if (!strcmp($1, "write-only")) {
 				if (variationkind ==
 				    SMI_NODEKIND_NOTIFICATION) {
-				    printError(thisParserPtr,
+				    smiPrintError(thisParserPtr,
 				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
 					       $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
 				} else {
 				    $$ = SMI_ACCESS_READ_WRITE; /* TODO */
-				    printError(thisParserPtr,
+				    smiPrintError(thisParserPtr,
 					       ERR_SMIV2_WRITE_ONLY);
 				}
 			    } else {
-				printError(thisParserPtr,
-				           ERR_INVALID_VARIATION_ACCESS,
-					   $1);
+				smiPrintError(thisParserPtr,
+					      ERR_INVALID_VARIATION_ACCESS,
+					      $1);
 				$$ = SMI_ACCESS_UNKNOWN;
 			    }
 			}

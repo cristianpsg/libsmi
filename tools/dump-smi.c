@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.58 2000/05/18 11:47:42 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.59 2000/05/26 16:17:49 strauss Exp $
  */
 
 #include <config.h>
@@ -25,10 +25,9 @@
 
 
 #define  INDENT		4    /* indent factor */
-#define  INDENTVALUE	20   /* column to start values, except multiline */
-#define  INDENTTEXTS	13   /* column to start multiline texts */
+#define  INDENTVALUE	16   /* column to start values, except multiline */
+#define  INDENTTEXTS	 9   /* column to start multiline texts */
 #define  INDENTMAX	72   /* max column to fill, break lines otherwise */
-#define  INDENTSEQUENCE 40   /* column to start SEQUENCE tables' type column */
 
 
 
@@ -1035,7 +1034,7 @@ static void printObjects(SmiModule *smiModule)
     SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode, *relatedNode;
     SmiType	 *smiType;
     SmiNodekind  nodekinds;
-    int		 i, invalid, create, assignement;
+    int		 i, invalid, create, assignement, indentsequence;
     
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
 	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR |
@@ -1215,26 +1214,30 @@ static void printObjects(SmiModule *smiModule)
 	smiType = smiGetNodeType(smiNode);
 	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 	    if (smiType) {
-		print("%s ::=\n", smiType->name);
+		print("%s ::= SEQUENCE {", smiType->name);
 	    } else {
 		/* guess type name is uppercase row name */
 		char *s = getUppercaseString(smiNode->name);
-		print("%s ::=\n", s);
+		print("%s ::= SEQUENCE {", s);
 		xfree(s);
 	    }
-	    /* Find the last valid node in this sequence. Wen need it
-	     * to suppress its trailing camma. */
-	    for(i = 0, invalid = 0, colNode = smiGetFirstChildNode(smiNode);
+	    /* Find the last valid node in this sequence. We need it
+	     * to suppress its trailing comma. Compute the longest
+	     * column name so that we can adjust the indentation of
+	     * the type names in the SEQUENCE definition. */
+	    for(indentsequence = 0, colNode = smiGetFirstChildNode(smiNode);
 		colNode;
 		colNode = smiGetNextChildNode(colNode)) {
+		int len = strlen(colNode->name);
+		if (len > indentsequence) indentsequence = len;
 		smiType = smiGetNodeType(colNode);
 		if (!invalidType(smiType->basetype)) {
 		    relatedNode = colNode;
 		}
 	    }
 	    if (relatedNode) relatedNode = smiGetNextChildNode(relatedNode);
+	    indentsequence = (2*INDENT + indentsequence + 1) / INDENT * INDENT;
 	    /* TODO: non-local name? */
-	    printSegment(INDENT, "SEQUENCE {", 0, 0);
 	    for(i = 0, invalid = 0, colNode = smiGetFirstChildNode(smiNode);
 		colNode;
 		colNode = smiGetNextChildNode(colNode)) {
@@ -1249,7 +1252,7 @@ static void printObjects(SmiModule *smiModule)
 		invalid = invalidType(smiType->basetype);
 
 		if (! invalid || ! silent) {
-		    printSegment(2 * INDENT, colNode->name, INDENTSEQUENCE,
+		    printSegment(INDENT, colNode->name, indentsequence,
 				 invalid);
 		    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 			print("%s", getTypeString(smiType->basetype,
@@ -1263,7 +1266,7 @@ static void printObjects(SmiModule *smiModule)
 		i++;
 	    }
 	    print("\n");
-	    printSegment(INDENT, "}\n", 0, 0);
+	    print("}\n");
 	    print("\n");
 	}
     }

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.17 2000/03/02 09:22:29 strauss Exp $
+ * @(#) $Id: util.h,v 1.18 2000/04/10 15:55:18 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -48,17 +48,17 @@
 #endif
 #endif
 
-extern void *util_malloc(size_t size);
+extern void *smiMalloc(size_t size);
 
-extern void *util_realloc(void *ptr, size_t size);
+extern void *smiRealloc(void *ptr, size_t size);
 
-extern char *util_strdup(const char *s1);
+extern char *smiStrdup(const char *s1);
 
-extern char *util_strndup(const char *s1, size_t n);
+extern char *smiStrndup(const char *s1, size_t n);
 
-extern void util_free(void *ptr);
+extern void smiFree(void *ptr);
 
-extern int util_ispath(const char *s);
+extern int smiIsPath(const char *s);
 
 #endif /* _UTIL_H */
 

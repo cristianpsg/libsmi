@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.19 2000/06/08 14:47:15 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.20 2000/06/13 06:58:21 strauss Exp $
  */
 
 
@@ -1378,7 +1378,7 @@ static void algCheckLinksByName()
  */
 static void algLinkObjectsByNames()
 {
-    GraphNode *tNode, *tNode2, *newNode;
+    GraphNode *tNode, *tNode2;
     int       overlap,minoverlap,new;
 
     /* getting the minimum overlap for all nodes */
@@ -1651,9 +1651,9 @@ static int isloop(GraphEdge *tEdge, SmiNode *depTable)
 	 loopEdge;
 	 loopEdge = graphGetNextEdgeByNode(graph,loopEdge,tEdge->endNode)) {
 
-	if (cmpSmiNodes(loopEdge->startNode->smiNode, depTable) ||
-	    cmpSmiNodes(loopEdge->endNode->smiNode, depTable) &&
-	    loopEdge != tEdge) {
+	if ((cmpSmiNodes(loopEdge->startNode->smiNode, depTable)) ||
+	    (cmpSmiNodes(loopEdge->endNode->smiNode, depTable) &&
+	     (loopEdge != tEdge))) {
 	    return 1;
 	}
     }

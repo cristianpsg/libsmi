@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.26 2000/04/10 14:20:27 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.27 2000/04/11 09:00:43 strauss Exp $
  */
 
 #include <config.h>
@@ -28,17 +28,86 @@
 
 #include "smi.h"
 
+/*
+ * These are functions that are not officially exported by the libsmi.
+ * See the original prototype definitions in lib/error.h.
+ */
+
+extern int smiGetErrorSeverity(int id);
+extern char* smiGetErrorTag(int id);
+extern char* smiGetErrorMsg(int id);
 
 
-void usage()
+
+typedef struct Error {
+    int id;
+    int severity;
+    char *tag;
+    char *msg;
+} Error;
+
+
+
+static int compare(const void *v1, const void *v2)
+{
+    Error *err1 = (Error *) v1;
+    Error *err2 = (Error *) v2;
+
+    if (err1->severity < err2->severity) {
+	return -1;
+    }
+    if (err1->severity > err2->severity) {
+	return 1;
+    }
+    return strcmp(err1->msg, err2->msg);
+}
+
+
+
+static void errors()
+{
+    int i, cnt;
+    Error *errors;
+    
+    for (cnt = 0, i = 0; smiGetErrorSeverity(i) >= 0; i++) {
+	cnt++;
+    }
+    
+    errors = malloc(cnt * sizeof(Error));
+    if (! errors) {
+	fprintf(stderr, "smilint: malloc failed - running out of memory\n");
+	exit(1);
+    }
+    memset(errors, 0, cnt * sizeof(Error));
+    for (i = 0; i < cnt; i++) {
+	errors[i].id = i;
+	errors[i].severity = smiGetErrorSeverity(i);
+	errors[i].tag = smiGetErrorTag(i);
+	errors[i].msg = smiGetErrorMsg(i);
+    }
+
+    qsort(errors, cnt, sizeof(Error), compare);
+    
+    for (i = 0; i < cnt; i++) {
+	printf("%d: %s (%s)\n",
+	       errors[i].severity, errors[i].msg, errors[i].tag);
+    }
+    
+    free(errors);
+}
+
+
+
+
+static void usage()
 {
     fprintf(stderr,
 	    "Usage: smilint [-Vhsr] [-c <configfile>] [-p <module>] [-l <level>]\n"
 	    "               [-i <error-pattern>] <module_or_path>\n"
 	    "-V                    show version and license information\n"
 	    "-h                    show usage information\n"
-	    "-s                    print statistics on parsed MIB modules\n"
 	    "-r                    print errors also for imported modules\n"
+	    "-e                    print list of supported error messages\n"
 	    "-c <configfile>       load a specific configuration file\n"
 	    "-p <module>           preload <module>\n"
 	    "-l <level>            set maximum level of errors and warnings\n"
@@ -48,7 +117,7 @@ void usage()
 
 
 
-void version()
+static void version()
 {
     printf("smilint " VERSION "\n");
 }
@@ -71,7 +140,7 @@ int main(int argc, char *argv[])
     flags |= SMI_FLAG_NODESCR;
     smiSetFlags(flags);
     
-    while ((c = getopt(argc, argv, "Vhsrp:l:i:c:")) != -1) {
+    while ((c = getopt(argc, argv, "Vehrp:l:i:c:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg, "smiquery");
@@ -80,7 +149,7 @@ int main(int argc, char *argv[])
 	    version();
 	    return 0;
 	case 'e':
-	    /* smiPrintErrors(); */
+	    errors();
 	    return 0;
 	case 'h':
 	    usage();
@@ -96,10 +165,6 @@ int main(int argc, char *argv[])
 	    break;
 	case 'r':
 	    flags |= SMI_FLAG_RECURSIVE;
-	    smiSetFlags(flags);
-	    break;
-	case 's':
-	    flags |= SMI_FLAG_STATS;
 	    smiSetFlags(flags);
 	    break;
 	default:

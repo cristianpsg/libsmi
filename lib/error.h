@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.15 1999/12/13 16:15:59 strauss Exp $
+ * @(#) $Id: error.h,v 1.16 1999/12/22 14:44:03 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -22,15 +22,21 @@
 #ifdef yyerror
 #undef yyerror
 #endif
-#define yyerror(msg) printError(parserPtr, ERR_OTHER_ERROR, msg)
+#define yyerror(msg) smiPrintError(parserPtr, ERR_OTHER_ERROR, msg)
 
 
-extern int errorLevel;                   /* Higher level for more warnings   */
+extern int smiErrorLevel;	/* Higher levels produce more warnings */
 
-extern void errorSeverity(char *pattern, int severity);
+extern void smiSetErrorSeverity(char *pattern, int severity);
 
-extern void printError(Parser *parserPtr, int id, ...);
+extern int smiGetErrorSeverity(int id);
 
-extern void printErrorAtLine(Parser *parserPtr, int id, int line, ...);
+extern char* smiGetErrorTag(int id);
+
+extern char* smiGetErrorMsg(int id);
+
+extern void smiPrintError(Parser *parserPtr, int id, ...);
+
+extern void smiPrintErrorAtLine(Parser *parserPtr, int id, int line, ...);
 
 #endif /* _ERROR_H */

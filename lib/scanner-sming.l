@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.22 2000/05/17 10:16:45 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.23 2000/06/08 09:36:15 strauss Exp $
  */
 
 %option noyywrap
@@ -446,24 +446,24 @@ SP		" "
  /* e.g. module names: REF: draft,p.12-13 */
 <INITIAL>[A-Z](-?[a-zA-Z0-9]+)*-? {
     if (yytext[yyleng-1] == '-') {
-	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
+	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
     if (yyleng > 64) {
-	printError(parser, ERR_UCIDENTIFIER_64, yytext);
+	smiPrintError(parser, ERR_UCIDENTIFIER_64, yytext);
     }
-    yylval.text = util_strdup(yytext);
+    yylval.text = smiStrdup(yytext);
     return ucIdentifier;
 }
 
  /* same for lowercase names */
 <INITIAL>[a-z](-?[a-zA-Z0-9]+)*-? {
     if (yytext[yyleng-1] == '-') {
-	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
+	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
     if (yyleng > 64) {
-	printError(parser, ERR_LCIDENTIFIER_64, yytext);
+	smiPrintError(parser, ERR_LCIDENTIFIER_64, yytext);
     }
-    yylval.text = util_strdup(yytext);
+    yylval.text = smiStrdup(yytext);
     return lcIdentifier;
 }
 
@@ -474,14 +474,14 @@ SP		" "
   */
 
 <INITIAL>0+/[0-9] {
-    printError(parser, ERR_LEADING_ZEROS);
+    smiPrintError(parser, ERR_LEADING_ZEROS);
 }
 
 <INITIAL>([1-9][0-9]*|0)/[^0-9] {
     if ((yyleng > sizeof(MAX_NUMBER)-1) ||
 	((yyleng == sizeof(MAX_NUMBER)-1) &&
 	 (strcmp(yytext, MAX_NUMBER) > 0))) {
-	printError(parser, ERR_NUMBER_TOO_LARGE, yytext);
+	smiPrintError(parser, ERR_NUMBER_TOO_LARGE, yytext);
     }
     yylval.text = yytext;
     return decimalNumber;
@@ -489,7 +489,7 @@ SP		" "
 
 <INITIAL>0x[0-9a-fA-F]+/[^0-9a-fA-F] {
     if (yyleng % 2) {
-	printError(parser, ERR_HEX_STRING_MUL2, yytext);
+	smiPrintError(parser, ERR_HEX_STRING_MUL2, yytext);
     }
     yylval.text = yytext;
     return hexadecimalNumber;
@@ -547,8 +547,8 @@ SP		" "
 		}
 	    } else {				/* everything else */
 		if (! isascii(s[0])) {
-		    printError(parser, ERR_ILLEGAL_CHAR_IN_STRING,
-			       s[0], (unsigned char) s[0]);
+		    smiPrintError(parser, ERR_ILLEGAL_CHAR_IN_STRING,
+				  s[0], (unsigned char) s[0]);
 		}
 		d[0] = s[0];
 		newlineflag = 0;
@@ -569,7 +569,7 @@ SP		" "
   */
 
 . {
-    printError(parser, ERR_LEX_UNEXPECTED_CHAR);
+    smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
 }
 
 %%

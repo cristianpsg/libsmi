@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.57 2000/04/11 09:00:25 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.58 2000/06/08 09:36:15 strauss Exp $
  */
 
 %{
@@ -160,13 +160,13 @@ checkDate(Parser *parserPtr, char *date)
 		|| ((i == 4 || i == 7) && date[i] != '-')
 		|| (i == 10 && date[i] != ' ')
 		|| (i == 13 && date[i] != ':')) {
-		printError(parserPtr, ERR_DATE_CHARACTER, date);
+		smiPrintError(parserPtr, ERR_DATE_CHARACTER, date);
 		anytime = (time_t) -1;
 		break;
 	    }
 	}
     } else {
-	printError(parserPtr, ERR_DATE_LENGTH, date);
+	smiPrintError(parserPtr, ERR_DATE_LENGTH, date);
 	anytime = (time_t) -1;
     }
     
@@ -187,16 +187,16 @@ checkDate(Parser *parserPtr, char *date)
 	}
 	
 	if (tm.tm_mon < 1 || tm.tm_mon > 12) {
-	    printError(parserPtr, ERR_DATE_MONTH, date);
+	    smiPrintError(parserPtr, ERR_DATE_MONTH, date);
 	}
 	if (tm.tm_mday < 1 || tm.tm_mday > 31) {
-	    printError(parserPtr, ERR_DATE_DAY, date);
+	    smiPrintError(parserPtr, ERR_DATE_DAY, date);
 	}
 	if (tm.tm_hour < 0 || tm.tm_hour > 23) {
-	    printError(parserPtr, ERR_DATE_HOUR, date);
+	    smiPrintError(parserPtr, ERR_DATE_HOUR, date);
 	}
 	if (tm.tm_min < 0 || tm.tm_min > 59) {
-	    printError(parserPtr, ERR_DATE_MINUTES, date);
+	    smiPrintError(parserPtr, ERR_DATE_MINUTES, date);
 	}
 	
 	tm.tm_year -= 1900;
@@ -206,13 +206,13 @@ checkDate(Parser *parserPtr, char *date)
 	anytime = timegm(&tm);
 
 	if (anytime == (time_t) -1) {
-	    printError(parserPtr, ERR_DATE_VALUE, date);
+	    smiPrintError(parserPtr, ERR_DATE_VALUE, date);
 	} else {
 	    if (anytime < SMI_EPOCH) {
-		printError(parserPtr, ERR_DATE_IN_PAST, date);
+		smiPrintError(parserPtr, ERR_DATE_IN_PAST, date);
 	    }
 	    if (anytime > time(NULL)) {
-		printError(parserPtr, ERR_DATE_IN_FUTURE, date);
+		smiPrintError(parserPtr, ERR_DATE_IN_FUTURE, date);
 	    }
 	}
     }
@@ -580,13 +580,13 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    if (!thisParserPtr->modulePtr) {
 				thisParserPtr->modulePtr =
 				    addModule($3,
-					      util_strdup(thisParserPtr->path),
+					      smiStrdup(thisParserPtr->path),
 					      0,
 					      thisParserPtr);
 			    } else {
-			        printError(thisParserPtr,
-					   ERR_MODULE_ALREADY_LOADED,
-					   $3);
+			        smiPrintError(thisParserPtr,
+					      ERR_MODULE_ALREADY_LOADED,
+					      $3);
 				free($3);
 				/*
 				 * this aborts parsing the whole file,
@@ -934,8 +934,8 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			{
 			    if (typePtr && $13) {
                                 if (!checkFormat(typePtr->export.basetype, $13)) {
-				    printError(thisParserPtr,
-					       ERR_INVALID_FORMAT, $13);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_FORMAT, $13);
 				}
 				setTypeFormat(typePtr, $13);
 			    }
@@ -1137,8 +1137,8 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			{
 			    if (scalarObjectPtr && $19) {
 				if (!checkFormat($11->export.basetype, $19)) {
-				    printError(thisParserPtr,
-					       ERR_INVALID_FORMAT, $19);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_FORMAT, $19);
 				}
 				setObjectFormat(scalarObjectPtr, $19);
 			    }
@@ -1265,7 +1265,7 @@ rowStatement:		rowKeyword sep lcIdentifier
 				 * module has been parsed. See the end of
 				 * the moduleStatement rule above.
 				 */
-				listPtr = util_malloc(sizeof(List));
+				listPtr = smiMalloc(sizeof(List));
 				listPtr->ptr = rowObjectPtr;
 			  listPtr->nextPtr = thisParserPtr->firstIndexlabelPtr;
 				thisParserPtr->firstIndexlabelPtr = listPtr;
@@ -1396,8 +1396,8 @@ columnStatement:	columnKeyword sep lcIdentifier
 			{
 			    if (columnObjectPtr && $19) {
                                 if (!checkFormat($11->export.basetype, $19)) {
-				    printError(thisParserPtr,
-					       ERR_INVALID_FORMAT, $19);
+				    smiPrintError(thisParserPtr,
+						  ERR_INVALID_FORMAT, $19);
 				}
 				setObjectFormat(columnObjectPtr, $19);
 			    }
@@ -1779,7 +1779,6 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 			{
 			    Refinement *refinementPtr;
 			    List *listPtr;
-			    char *s;
 			    
 			    complianceObjectPtr->refinementlistPtr = $22;
 			    if ($22) {
@@ -1790,28 +1789,6 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 					((Refinement *)(listPtr->ptr));
 				    refinementPtr->compliancePtr =
 					complianceObjectPtr;
-#if 0 /* export implicitly defined types by the node's lowercase name */
-				    s = util_malloc(strlen(refinementPtr->
-					    objectPtr->export.name) +
-					    strlen(complianceIdentifier) + 13);
-				    if (refinementPtr->typePtr) {
-					sprintf(s, "%s+%s+type",
-						complianceIdentifier,
-						refinementPtr->objectPtr->
-						                  export.name);
-					setTypeName(refinementPtr->typePtr, s);
-					
-				    }
-				    if (refinementPtr->writetypePtr) {
-					sprintf(s, "%s+%s+writetype",
-						complianceIdentifier,
-						refinementPtr->objectPtr->
-						                  export.name);
-					setTypeName(refinementPtr->
-						              writetypePtr, s);
-				    }
-				    util_free(s);
-#endif
 				}
 			    }
 			}
@@ -1868,7 +1845,7 @@ importStatement_stmtsep: importStatement stmtsep
 
 importStatement:	importKeyword sep ucIdentifier
 			{
-			    importModulename = util_strdup($3);
+			    importModulename = smiStrdup($3);
 			}
 			optsep '(' optsep
 			identifierList
@@ -2344,7 +2321,7 @@ optionalStatement_stmtsep_0n: /* empty */
 
 optionalStatement_stmtsep_1n: optionalStatement_stmtsep
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2353,7 +2330,7 @@ optionalStatement_stmtsep_1n: optionalStatement_stmtsep
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2373,11 +2350,11 @@ optionalStatement:	optionalKeyword sep qlcIdentifier
 			descriptionStatement
 			stmtsep '}' optsep ';'
 			{
-			    $$ = util_malloc(sizeof(Option));
+			    $$ = smiMalloc(sizeof(Option));
 			    $$->objectPtr = findObject($3,
 						       thisParserPtr,
 						       thisModulePtr);
-			    $$->export.description = util_strdup($6);
+			    $$->export.description = smiStrdup($6);
 			}
         ;
 
@@ -2393,7 +2370,7 @@ refineStatement_stmtsep_0n: /* empty */
 
 refineStatement_stmtsep_1n: refineStatement_stmtsep
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2401,7 +2378,7 @@ refineStatement_stmtsep_1n: refineStatement_stmtsep
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2423,7 +2400,7 @@ refineStatement:	refineKeyword sep qlcIdentifier
 			accessStatement_stmtsep_01
 			descriptionStatement stmtsep '}' optsep ';'
 			{
-			    $$ = util_malloc(sizeof(Refinement));
+			    $$ = smiMalloc(sizeof(Refinement));
 			    $$->objectPtr = findObject($3,
 						       thisParserPtr,
 						       thisModulePtr);
@@ -2442,7 +2419,7 @@ refineStatement:	refineKeyword sep qlcIdentifier
 				$$->writetypePtr = NULL;
 			    }
 			    $$->export.access = $8;
-			    $$->export.description = util_strdup($9);
+			    $$->export.description = smiStrdup($9);
 			}
         ;
 
@@ -2659,7 +2636,7 @@ optsep_numberSpec_01:	/* empty */
 numberSpec:		'(' optsep numberElement furtherNumberElement_0n
 			optsep ')'
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $3;
 			    $$->nextPtr = $4;
 			}
@@ -2677,7 +2654,7 @@ furtherNumberElement_0n:	/* empty */
 
 furtherNumberElement_1n:	furtherNumberElement
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2685,7 +2662,7 @@ furtherNumberElement_1n:	furtherNumberElement
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2702,15 +2679,15 @@ furtherNumberElement:	optsep '|' optsep numberElement
 
 numberElement:		signedNumber numberUpperLimit_01
 			{
-			    $$ = util_malloc(sizeof(Range));
+			    $$ = smiMalloc(sizeof(Range));
 			    $$->export.minValue = *$1;
 			    if ($2) {
 				$$->export.maxValue = *$2;
-				util_free($2);
+				smiFree($2);
 			    } else {
 				$$->export.maxValue = *$1;
 			    }
-			    util_free($1);
+			    smiFree($1);
 			}
 	;
 
@@ -2743,7 +2720,7 @@ optsep_floatSpec_01:	/* empty */
 floatSpec:		'(' optsep floatElement furtherFloatElement_0n
 			optsep ')'
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $3;
 			    $$->nextPtr = $4;
 			}
@@ -2761,7 +2738,7 @@ furtherFloatElement_0n:	/* empty */
 
 furtherFloatElement_1n:	furtherFloatElement
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2769,7 +2746,7 @@ furtherFloatElement_1n:	furtherFloatElement
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2786,7 +2763,7 @@ furtherFloatElement:	optsep '|' optsep floatElement
 
 floatElement:		floatValue floatUpperLimit_01
 			{
-			    $$ = util_malloc(sizeof(Range));
+			    $$ = smiMalloc(sizeof(Range));
 			    $$->export.minValue.basetype = SMI_BASETYPE_FLOAT64;
 			    $$->export.minValue.value.float64 = strtod($1, NULL);
 			    if ($2) {
@@ -2825,7 +2802,7 @@ bitsOrEnumerationSpec:	'(' optsep bitsOrEnumerationList optsep ')'
 bitsOrEnumerationList:	bitsOrEnumerationItem furtherBitsOrEnumerationItem_0n
 			optsep_comma_01
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
@@ -2843,7 +2820,7 @@ furtherBitsOrEnumerationItem_0n: /* empty */
 
 furtherBitsOrEnumerationItem_1n: furtherBitsOrEnumerationItem
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2852,7 +2829,7 @@ furtherBitsOrEnumerationItem_1n: furtherBitsOrEnumerationItem
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2870,16 +2847,16 @@ furtherBitsOrEnumerationItem: optsep ',' optsep bitsOrEnumerationItem
 
 bitsOrEnumerationItem:	lcIdentifier optsep '(' optsep number optsep ')'
 			{
-			    $$ = util_malloc(sizeof(NamedNumber));
+			    $$ = smiMalloc(sizeof(NamedNumber));
 			    $$->export.name = $1;
 			    $$->export.value = *$5;
-			    util_free($5);
+			    smiFree($5);
 			}
         ;
 
 identifierList:		identifier furtherIdentifier_0n optsep_comma_01
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
@@ -2897,7 +2874,7 @@ furtherIdentifier_0n:	/* empty */
 
 furtherIdentifier_1n:	furtherIdentifier
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2905,7 +2882,7 @@ furtherIdentifier_1n:	furtherIdentifier
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2922,7 +2899,7 @@ furtherIdentifier:	optsep ',' optsep identifier
 
 qIdentifierList:	qIdentifier furtherQIdentifier_0n optsep_comma_01
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
@@ -2940,7 +2917,7 @@ furtherQIdentifier_0n:	/* empty */
 
 furtherQIdentifier_1n:	furtherQIdentifier
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2948,7 +2925,7 @@ furtherQIdentifier_1n:	furtherQIdentifier
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -2965,7 +2942,7 @@ furtherQIdentifier:	optsep ',' optsep qIdentifier
 
 qlcIdentifierList:	qlcIdentifier furtherQlcIdentifier_0n optsep_comma_01
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
@@ -2983,7 +2960,7 @@ furtherQlcIdentifier_0n: /* empty */
 
 furtherQlcIdentifier_1n:	furtherQlcIdentifier
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -2991,7 +2968,7 @@ furtherQlcIdentifier_1n:	furtherQlcIdentifier
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3018,7 +2995,7 @@ bitsList:		optsep_comma_01
 			}
         |		lcIdentifier furtherLcIdentifier_0n optsep_comma_01
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
@@ -3036,7 +3013,7 @@ furtherLcIdentifier_0n:	/* empty */
 
 furtherLcIdentifier_1n:	furtherLcIdentifier
 			{
-			    $$ = util_malloc(sizeof(List));
+			    $$ = smiMalloc(sizeof(List));
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
@@ -3044,7 +3021,7 @@ furtherLcIdentifier_1n:	furtherLcIdentifier
 			{
 			    List *p, *pp;
 			    
-			    p = util_malloc(sizeof(List));
+			    p = smiMalloc(sizeof(List));
 			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
@@ -3083,7 +3060,7 @@ qucIdentifier:		ucIdentifier COLON_COLON ucIdentifier
 			{
 			    char *s;
 
-			    s = util_malloc(strlen($1) +
+			    s = smiMalloc(strlen($1) +
 					    strlen($3) + 3);
 			    sprintf(s, "%s::%s", $1, $3);
 			    $$ = s;
@@ -3100,8 +3077,8 @@ qlcIdentifier:		ucIdentifier COLON_COLON lcIdentifier
 			{
 			    char *s;
 
-			    s = util_malloc(strlen($1) +
-					    strlen($3) + 3);
+			    s = smiMalloc(strlen($1) +
+					  strlen($3) + 3);
 			    sprintf(s, "%s::%s", $1, $3);
 			    $$ = s;
 			    free($1);
@@ -3116,13 +3093,13 @@ qlcIdentifier:		ucIdentifier COLON_COLON lcIdentifier
 text:			textSegment optsep_textSegment_0n
 			{
 			    if ($2) {
-				$$ = util_malloc(strlen($1) + strlen($2) + 1);
+				$$ = smiMalloc(strlen($1) + strlen($2) + 1);
 				strcpy($$, $1);
 				strcat($$, $2);
 				free($1);
 				free($2);
 			    } else {
-				$$ = util_strdup($1);
+				$$ = smiStrdup($1);
 			    }
 			}
         ;
@@ -3143,7 +3120,7 @@ optsep_textSegment_1n:	optsep_textSegment
 			}
         |		optsep_textSegment_1n optsep_textSegment
 			{
-			    $$ = util_malloc(strlen($1) + strlen($2) + 1);
+			    $$ = smiMalloc(strlen($1) + strlen($2) + 1);
 			    strcpy($$, $1);
 			    strcat($$, $2);
 			    free($1);
@@ -3153,7 +3130,7 @@ optsep_textSegment_1n:	optsep_textSegment
 
 optsep_textSegment:	optsep textSegment
 			{
-			    $$ = util_strdup($2);
+			    $$ = smiStrdup($2);
 			}
         ;
 
@@ -3165,13 +3142,13 @@ date:			textSegment
 
 format:			textSegment
 			{
-			    $$ = util_strdup($1);
+			    $$ = smiStrdup($1);
 			}
         ;
 
 units:			textSegment
 			{
-			    $$ = util_strdup($1);
+			    $$ = smiStrdup($1);
 			}
         ;
 
@@ -3184,35 +3161,13 @@ units:			textSegment
  */
 anyValue:		bitsValue
 			{
-			    int i;
-			    List *listPtr, *nextPtr;
-			    
 			    if (defaultBasetype == SMI_BASETYPE_BITS) {
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_BITS;
-#if 1
 				$$->value.ptr = NULL;
-#else
-				/* TODO: XXX */
-				bitsListPtr = objectPtr->typePtr->listPtr;
-				valueListPtr = (void *)objectPtr->export.value.value.ptr;
-				for (nBits = 0, p = bitsListPtr; p; nBits++, p = p->nextPtr);
-				objectPtr->export.value.value.ptr = util_malloc((nBits+7)/8);
-				memset(objectPtr->export.value.value.ptr, 0, (nBits+7)/8);
-				objectPtr->export.value.len = (nBits+7)/8;
-				for (i = 0, p = valueListPtr; p; i++, p = p->nextPtr) {
-				    for (bit = 0, pp = bitsListPtr; bit < nBits;
-					 bit++, pp = pp->nextPtr) {
-					if (!strcmp(p->ptr, pp->ptr)) break;
-				    }
-				    if (bit < nBits) {
-					objectPtr->export.value.value.ptr[bit+7/8] |= 1 << bit%8;
-				    }
-				}
-#endif
 			    } else {
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_VALUETYPE);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_VALUETYPE);
 				$$ = NULL;
 			    }
 			}
@@ -3221,38 +3176,38 @@ anyValue:		bitsValue
 			    /* Note: might also be an OID or signed */
 			    switch (defaultBasetype) {
 			    case SMI_BASETYPE_UNSIGNED32:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
 				$$->value.unsigned32 = strtoul($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_UNSIGNED64:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED64;
 				$$->value.unsigned64 = strtoull($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER32:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
 				$$->value.integer32 = strtol($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
 				$$->value.integer64 = strtoll($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 				$$->len = 2;
 				$$->value.oid =
-				    util_malloc(2 * sizeof(SmiSubid));
+				    smiMalloc(2 * sizeof(SmiSubid));
 				$$->value.oid[0] = 0;
 				$$->value.oid[1] = 0;
 				/* TODO */
 				break;
 			    default:
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_VALUETYPE);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_VALUETYPE);
 				$$ = NULL;
 				break;
 			    }
@@ -3261,18 +3216,18 @@ anyValue:		bitsValue
 			{
 			    switch (defaultBasetype) {
 			    case SMI_BASETYPE_INTEGER32:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
 				$$->value.integer32 = - strtoul($2, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
 				$$->value.integer64 = - strtoull($2, NULL, 10);
 				break;
 			    default:
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_VALUETYPE);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_VALUETYPE);
 				$$ = NULL;
 				break;
 			    }
@@ -3292,13 +3247,13 @@ anyValue:		bitsValue
 	|		text
 			{
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				$$->value.ptr = $1;
 				$$->len = strlen($1);
 			    } else {
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_VALUETYPE);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_VALUETYPE);
 				$$ = NULL;
 			    }
 			}
@@ -3308,20 +3263,20 @@ anyValue:		bitsValue
 			    /* TODO: convert if it's an oid? */
 			    switch (defaultBasetype) {
 			    case SMI_BASETYPE_ENUM:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_ENUM;
 				$$->value.ptr = $1;
 				/* TODO: XXX convert to int */
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
-				$$ = util_malloc(sizeof(SmiValue));
+				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 				$$->value.ptr = $1;
 				/* TODO: XXX convert to oid if found */
 				break;
 			    default:
-				printError(thisParserPtr,
-					   ERR_UNEXPECTED_VALUETYPE);
+				smiPrintError(thisParserPtr,
+					      ERR_UNEXPECTED_VALUETYPE);
 				$$ = NULL;
 				break;
 			    }
@@ -3376,13 +3331,13 @@ objectIdentifier:	qlcIdentifier_subid dot_subid_0127
 			    Node *nodePtr;
 
 			    if ($1 && $2) {
-				oid = util_malloc(strlen($1) + strlen($2) + 1);
+				oid = smiMalloc(strlen($1) + strlen($2) + 1);
 				strcpy(oid, $1);
 				strcat(oid, $2);
 				free($1);
 				free($2);
 			    } else if ($1) {
-				oid = util_malloc(strlen($1) + 1);
+				oid = smiMalloc(strlen($1) + 1);
 				strcpy(oid, $1);
 				free($1);
 			    }
@@ -3415,7 +3370,7 @@ qlcIdentifier_subid:	qlcIdentifier
 			    if (objectPtr) {
 				/* create OID string */
 				nodePtr = objectPtr->nodePtr;
-				s = util_malloc(100);
+				s = smiMalloc(100);
 				sprintf(s, "%u", nodePtr->subid);
 				while ((nodePtr->parentPtr) &&
 				       (nodePtr->parentPtr != rootNodePtr)) {
@@ -3423,17 +3378,17 @@ qlcIdentifier_subid:	qlcIdentifier
 
 				    sprintf(ss, "%u", nodePtr->subid);
 				    if (strlen(s) > 80)
-					s = util_realloc(s,
-						     strlen(s)+strlen(ss)+2);
+					s = smiRealloc(s,
+						       strlen(s)+strlen(ss)+2);
 				    memmove(&s[strlen(ss)+1], s, strlen(s)+1);
 				    strncpy(s, ss, strlen(ss));
 				    s[strlen(ss)] = '.';
 				}
-				$$ = util_strdup(s);
-				util_free(s);
+				$$ = smiStrdup(s);
+				smiFree(s);
 			    } else {
-				printError(thisParserPtr,
-					   ERR_UNKNOWN_OIDLABEL, $1);
+				smiPrintError(thisParserPtr,
+					      ERR_UNKNOWN_OIDLABEL, $1);
 				$$ = NULL;
 			    }
 			}
@@ -3460,7 +3415,7 @@ dot_subid_1n:		dot_subid
 			}
         |		dot_subid_1n dot_subid
 			{
-			    $$ = util_malloc(strlen($1) + strlen($2) + 1);
+			    $$ = smiMalloc(strlen($1) + strlen($2) + 1);
 			    strcpy($$, $1);
 			    strcat($$, $2);
 			    free($1);
@@ -3470,7 +3425,7 @@ dot_subid_1n:		dot_subid
 
 dot_subid:		'.' subid
 			{
-			    $$ = util_malloc(strlen($2) + 1 + 1);
+			    $$ = smiMalloc(strlen($2) + 1 + 1);
 			    strcpy($$, ".");
 			    strcat($$, $2);
 			    free($2);
@@ -3479,20 +3434,19 @@ dot_subid:		'.' subid
 
 subid:			decimalNumber
 			{
-			    $$ = util_strdup($1);
+			    $$ = smiStrdup($1);
 			}
         ;
 
 number:			hexadecimalNumber
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
-			    /* TODO */
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
 			    $$->value.unsigned64 = strtoull($1, NULL, 0);
 			}
         |		decimalNumber
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
 			    $$->value.unsigned64 = strtoull($1, NULL, 10);
 			}
@@ -3500,7 +3454,7 @@ number:			hexadecimalNumber
 
 negativeNumber:		'-' decimalNumber
 			{
-			    $$ = util_malloc(sizeof(SmiValue));
+			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER64;
 			    $$->value.integer64 = - strtoull($2, NULL, 10);
 			}

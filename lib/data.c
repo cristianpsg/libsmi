@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.82 2000/06/08 14:47:12 strauss Exp $
+ * @(#) $Id: data.c,v 1.83 2000/06/14 08:49:38 strauss Exp $
  */
 
 #include <config.h>
@@ -100,9 +100,9 @@ addView(modulename)
 {
     View	      *viewPtr;
 
-    viewPtr = (View *)util_malloc(sizeof(View));
+    viewPtr = (View *) smiMalloc(sizeof(View));
 
-    viewPtr->name				= util_strdup(modulename);
+    viewPtr->name				= smiStrdup(modulename);
     viewPtr->nextPtr				= NULL;
     viewPtr->prevPtr				= lastViewPtr;
     if (!firstViewPtr) firstViewPtr		= viewPtr;
@@ -175,7 +175,7 @@ addModule(modulename, path, flags, parserPtr)
 {
     Module	      *modulePtr;
 
-    modulePtr = (Module *)util_malloc(sizeof(Module));
+    modulePtr = (Module *) smiMalloc(sizeof(Module));
 
     modulePtr->export.name			= modulename;
     modulePtr->export.path			= path;
@@ -343,9 +343,9 @@ setModuleDescription(modulePtr, description, parserPtr)
     Parser *parserPtr;
 {
     if (modulePtr->export.description)
-	util_free(modulePtr->export.description);
+	smiFree(modulePtr->export.description);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(description);
+	smiFree(description);
 	modulePtr->export.description = NULL;
     } else {
 	modulePtr->export.description = description;
@@ -377,9 +377,9 @@ setModuleReference(modulePtr, reference, parserPtr)
     Parser *parserPtr;
 {
     if (modulePtr->export.reference)
-	util_free(modulePtr->export.reference);
+	smiFree(modulePtr->export.reference);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(reference);
+	smiFree(reference);
 	modulePtr->export.reference = NULL;
     } else {
 	modulePtr->export.reference = reference;
@@ -449,14 +449,14 @@ addRevision(date, description, parserPtr)
     Revision	  *revisionPtr;
     Module	  *modulePtr;
 
-    revisionPtr = (Revision *)util_malloc(sizeof(Revision));
+    revisionPtr = (Revision *) smiMalloc(sizeof(Revision));
 
     modulePtr = parserPtr->modulePtr;
 
     revisionPtr->modulePtr		 = modulePtr;
     revisionPtr->export.date	       	 = date;
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(description);
+	smiFree(description);
 	revisionPtr->export.description	 = NULL;
     } else {
 	revisionPtr->export.description	 = description;
@@ -504,7 +504,7 @@ addImport(name, parserPtr)
     Import        *importPtr;
     Module	  *modulePtr;
 
-    importPtr = (Import *)util_malloc(sizeof(Import));
+    importPtr = (Import *) smiMalloc(sizeof(Import));
 
     modulePtr = parserPtr->modulePtr;
 
@@ -550,7 +550,7 @@ setImportModulename(importPtr, modulename)
     char      *modulename;
 {
     if (importPtr->export.module) {
-	util_free(importPtr->export.module);
+	smiFree(importPtr->export.module);
     }
     importPtr->export.module = modulename;
 }
@@ -594,29 +594,30 @@ checkImports(modulePtr, parserPtr)
 		if ((smiNode = smiGetNode(&modulePtr->export,
 					  importPtr->export.name))) {
 		    importPtr->export.module =
-			util_strdup(modulePtr->export.name);
+			smiStrdup(modulePtr->export.name);
 		    importPtr->kind	= KIND_OBJECT;
 		} else if ((smiType = smiGetType(&modulePtr->export,
 						 importPtr->export.name))) {
 		    importPtr->export.module =
-			util_strdup(modulePtr->export.name);
+			smiStrdup(modulePtr->export.name);
 		    importPtr->kind	= KIND_TYPE;
 		} else if ((smiMacro = smiGetMacro(&modulePtr->export,
 						   importPtr->export.name))) {
 		    importPtr->export.module =
-			util_strdup(modulePtr->export.name);
+			smiStrdup(modulePtr->export.name);
 		    importPtr->kind = KIND_MACRO;
 		} else {
 		    n++;
 		    importPtr->export.module =
-			util_strdup(modulePtr->export.name);
-		    printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
-			       importPtr->export.name, modulePtr->export.name);
+			smiStrdup(modulePtr->export.name);
+		    smiPrintError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
+				  importPtr->export.name,
+				  modulePtr->export.name);
 		    importPtr->kind   = KIND_NOTFOUND;
 		}
 	    } else {
 		    n++;
-		    importPtr->export.module = util_strdup("");
+		    importPtr->export.module = smiStrdup("");
 		    importPtr->kind   = KIND_NOTFOUND;
 	    }
 	}
@@ -738,7 +739,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     Module	     *modulePtr;
 
 
-    objectPtr = (Object *)util_malloc(sizeof(Object));
+    objectPtr = (Object *) smiMalloc(sizeof(Object));
 
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
 
@@ -835,7 +836,7 @@ duplicateObject(templatePtr, flags, parserPtr)
     Node		  *nodePtr;
     Module		  *modulePtr;
     
-    objectPtr = (Object *)util_malloc(sizeof(Object));
+    objectPtr = (Object *) smiMalloc(sizeof(Object));
 
     modulePtr = parserPtr->modulePtr;
     nodePtr   = templatePtr->nodePtr;
@@ -918,7 +919,7 @@ addNode (parentNodePtr, subid, flags, parserPtr)
     Node	    *nodePtr;
     Node	    *c;
 
-    nodePtr = (Node *)util_malloc(sizeof(Node));
+    nodePtr = (Node *) smiMalloc(sizeof(Node));
     
     nodePtr->flags				= flags;
     nodePtr->subid				= subid;
@@ -1035,7 +1036,7 @@ createNodesByOidString(oid)
     SmiSubid		subid;
 
     parentNodePtr = rootNodePtr;
-    elements = util_strdup(oid);
+    elements = smiStrdup(oid);
 
     p = strtok(elements, ".");
     do {
@@ -1173,7 +1174,7 @@ void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
 	}
     }
 
-    util_free(fromNodePtr);
+    smiFree(fromNodePtr);
 }
 
 
@@ -1205,7 +1206,7 @@ setObjectName(objectPtr, name)
     Object	      *newObjectPtr;
 
     if (objectPtr->export.name) {
-	util_free(objectPtr->export.name);
+	smiFree(objectPtr->export.name);
     }
     objectPtr->export.name = name;
     /*
@@ -1381,9 +1382,9 @@ setObjectDescription(objectPtr, description, parserPtr)
     Parser    *parserPtr;
 {
     if (objectPtr->export.description)
-	util_free(objectPtr->export.description);
+	smiFree(objectPtr->export.description);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(description);
+	smiFree(description);
 	objectPtr->export.description = NULL;
     } else {
 	objectPtr->export.description = description;
@@ -1415,9 +1416,9 @@ setObjectReference(objectPtr, reference, parserPtr)
     Parser    *parserPtr;
 {
     if (objectPtr->export.reference)
-	util_free(objectPtr->export.reference);
+	smiFree(objectPtr->export.reference);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(reference);
+	smiFree(reference);
 	objectPtr->export.reference = NULL;
     } else {
 	objectPtr->export.reference = reference;
@@ -1447,7 +1448,7 @@ setObjectFormat(objectPtr, format)
     Object    *objectPtr;
     char      *format;
 {
-    if (objectPtr->export.format) util_free(objectPtr->export.format);
+    if (objectPtr->export.format) smiFree(objectPtr->export.format);
     objectPtr->export.format = format;
 }
 
@@ -1474,7 +1475,7 @@ setObjectUnits(objectPtr, units)
     Object    *objectPtr;
     char      *units;
 {
-    if (objectPtr->export.units) util_free(objectPtr->export.units);
+    if (objectPtr->export.units) smiFree(objectPtr->export.units);
     objectPtr->export.units = units;
 }
 
@@ -1897,7 +1898,7 @@ findNodeByOidString(oid)
     char *s;
     char *p;
     
-    s = util_strdup(oid);
+    s = smiStrdup(oid);
     nodePtr = rootNodePtr;
     for(p = strtok(s, ". "); p && nodePtr; p = strtok(NULL, ". ")) {
 	nodePtr = findNodeByParentAndSubid(nodePtr, atoi(p));
@@ -2251,7 +2252,7 @@ addType(type_name, basetype, flags, parserPtr)
     
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
-    typePtr = util_malloc(sizeof(Type));
+    typePtr = smiMalloc(sizeof(Type));
 
     typePtr->export.name	        = type_name;
     typePtr->export.basetype		= basetype;
@@ -2313,7 +2314,7 @@ duplicateType(templatePtr, flags, parserPtr)
     Type		  *typePtr;
     Module		  *modulePtr;
     
-    typePtr = (Type *)util_malloc(sizeof(Type));
+    typePtr = (Type *) smiMalloc(sizeof(Type));
 
     modulePtr = parserPtr->modulePtr;
     
@@ -2372,7 +2373,7 @@ setTypeName(typePtr, name)
     Type              *type2Ptr;
 
     if (typePtr->export.name) {
-	util_free(typePtr->export.name);
+	smiFree(typePtr->export.name);
     }
     typePtr->export.name = name;
 
@@ -2419,8 +2420,8 @@ setTypeName(typePtr, name)
 	    type2Ptr->flags        = typePtr->flags;
 	    type2Ptr->line         = typePtr->line;
 
-	    util_free(typePtr->export.name);
-	    util_free(typePtr);
+	    smiFree(typePtr->export.name);
+	    smiFree(typePtr);
 
 	    return type2Ptr;
 	}
@@ -2529,9 +2530,9 @@ setTypeDescription(typePtr, description, parserPtr)
     Parser         *parserPtr;
 {
     if (typePtr->export.description)
-	util_free(typePtr->export.description);
+	smiFree(typePtr->export.description);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(description);
+	smiFree(description);
 	typePtr->export.description = NULL;
     } else {
 	typePtr->export.description = description;
@@ -2563,9 +2564,9 @@ setTypeReference(typePtr, reference, parserPtr)
     Parser         *parserPtr;
 {
     if (typePtr->export.reference)
-	util_free(typePtr->export.reference);
+	smiFree(typePtr->export.reference);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(reference);
+	smiFree(reference);
 	typePtr->export.reference = NULL;
     } else {
 	typePtr->export.reference = reference;
@@ -2627,7 +2628,7 @@ setTypeFormat(typePtr, format)
     Type           *typePtr;
     char	   *format;
 {
-    if (typePtr->export.format) util_free(typePtr->export.format);
+    if (typePtr->export.format) smiFree(typePtr->export.format);
     typePtr->export.format = format;
 }
 
@@ -2655,7 +2656,7 @@ setTypeUnits(typePtr, units)
     Type           *typePtr;
     char	   *units;
 {
-    if (typePtr->export.units) util_free(typePtr->export.units);
+    if (typePtr->export.units) smiFree(typePtr->export.units);
     typePtr->export.units = units;
 }
 
@@ -2956,9 +2957,9 @@ addMacro(macroname, flags, parserPtr)
     
     /* TODO: Check wheather this macro already exists?? */
 
-    macroPtr = (Macro *)util_malloc(sizeof(Macro));
+    macroPtr = (Macro *) smiMalloc(sizeof(Macro));
 	    
-    macroPtr->export.name 	 = util_strdup(macroname);
+    macroPtr->export.name 	 = smiStrdup(macroname);
     macroPtr->export.status      = SMI_STATUS_UNKNOWN;
     macroPtr->export.description = NULL;
     macroPtr->export.reference   = NULL;
@@ -3028,9 +3029,9 @@ setMacroDescription(macroPtr, description, parserPtr)
     char	   *description;
     Parser	   *parserPtr;
 {
-    if (macroPtr->export.description) util_free(macroPtr->export.description);
+    if (macroPtr->export.description) smiFree(macroPtr->export.description);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(description);
+	smiFree(description);
 	macroPtr->export.description = NULL;
     } else {
 	macroPtr->export.description = description;
@@ -3062,9 +3063,9 @@ setMacroReference(macroPtr, reference, parserPtr)
     Parser         *parserPtr;
 {
     if (macroPtr->export.reference)
-	util_free(macroPtr->export.reference);
+	smiFree(macroPtr->export.reference);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	util_free(reference);
+	smiFree(reference);
 	macroPtr->export.reference = NULL;
     } else {
 	macroPtr->export.reference = reference;
@@ -3266,59 +3267,59 @@ initData()
     parser.flags		= smiFlags;
     parser.file			= NULL;
     parser.line			= -1;
-    parser.modulePtr = addModule(util_strdup(""), util_strdup(""), 0, NULL);
+    parser.modulePtr = addModule(smiStrdup(""), smiStrdup(""), 0, NULL);
 
     addView("");
 
-    objectPtr = addObject(util_strdup("ccitt"), rootNodePtr, 0, 0, &parser);
+    objectPtr = addObject(smiStrdup("ccitt"), rootNodePtr, 0, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
-	util_malloc(sizeof(int));
+	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 0;
-    objectPtr = addObject(util_strdup("iso"), rootNodePtr, 1, 0, &parser);
+    objectPtr = addObject(smiStrdup("iso"), rootNodePtr, 1, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
-	util_malloc(sizeof(int));
+	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 1;
-    objectPtr = addObject(util_strdup("joint-iso-ccitt"), rootNodePtr, 2, 0, &parser);
+    objectPtr = addObject(smiStrdup("joint-iso-ccitt"), rootNodePtr, 2, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
-	util_malloc(sizeof(int));
+	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 2;
     
     
     typeOctetStringPtr =
-	addType(util_strdup("OctetString"),
+	addType(smiStrdup("OctetString"),
 		SMI_BASETYPE_OCTETSTRING, 0, &parser);
     typeObjectIdentifierPtr =
-	addType(util_strdup("ObjectIdentifier"),
+	addType(smiStrdup("ObjectIdentifier"),
 		SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
     typeInteger32Ptr =
-	addType(util_strdup("Integer32"),
+	addType(smiStrdup("Integer32"),
 		SMI_BASETYPE_INTEGER32, 0, &parser);
     typeUnsigned32Ptr =
-	addType(util_strdup("Unsigned32"),
+	addType(smiStrdup("Unsigned32"),
 		SMI_BASETYPE_UNSIGNED32, 0, &parser);
     typeInteger64Ptr =
-	addType(util_strdup("Integer64"),
+	addType(smiStrdup("Integer64"),
 		SMI_BASETYPE_INTEGER64, 0, &parser);
     typeUnsigned64Ptr =
-	addType(util_strdup("Unsigned64"),
+	addType(smiStrdup("Unsigned64"),
 		SMI_BASETYPE_UNSIGNED64, 0, &parser);
     typeFloat32Ptr =
-	addType(util_strdup("Float32"),
+	addType(smiStrdup("Float32"),
 		SMI_BASETYPE_FLOAT32, 0, &parser);
     typeFloat64Ptr =
-	addType(util_strdup("Float64"),
+	addType(smiStrdup("Float64"),
 		SMI_BASETYPE_FLOAT64, 0, &parser);
     typeFloat128Ptr =
-	addType(util_strdup("Float128"),
+	addType(smiStrdup("Float128"),
 		SMI_BASETYPE_FLOAT128, 0, &parser);
     typeEnumPtr =
-	addType(util_strdup("Enumeration"),
+	addType(smiStrdup("Enumeration"),
 		SMI_BASETYPE_ENUM, 0, &parser);
     typeBitsPtr =
-	addType(util_strdup("Bits"),
+	addType(smiStrdup("Bits"),
 		SMI_BASETYPE_BITS, 0, &parser);
 
     return (0);
@@ -3350,8 +3351,8 @@ freeNodeTree(Node *rootPtr)
     for (nodePtr = rootPtr->firstChildPtr; nodePtr; nodePtr = nextPtr) {
 	nextPtr = nodePtr->nextPtr;
 	freeNodeTree(nodePtr);
-	util_free(nodePtr->oid);
-	util_free(nodePtr);
+	smiFree(nodePtr->oid);
+	smiFree(nodePtr);
     }
 }
 
@@ -3387,8 +3388,8 @@ freeData()
 
     for (viewPtr = firstViewPtr; viewPtr; viewPtr = nextViewPtr) {
 	nextViewPtr = viewPtr->nextPtr;
-	util_free(viewPtr->name);
-	util_free(viewPtr);
+	smiFree(viewPtr->name);
+	smiFree(viewPtr);
     }
 
     for (modulePtr = firstModulePtr; modulePtr; modulePtr = nextModulePtr) {
@@ -3397,23 +3398,23 @@ freeData()
 	for (importPtr = modulePtr->firstImportPtr; importPtr;
 	     importPtr = nextImportPtr) {
 	    nextImportPtr = importPtr->nextPtr;
-	    util_free(importPtr->export.module);
-	    util_free(importPtr->export.name);
-	    util_free(importPtr);
+	    smiFree(importPtr->export.module);
+	    smiFree(importPtr->export.name);
+	    smiFree(importPtr);
 	}
 
 	for (revisionPtr = modulePtr->firstRevisionPtr; revisionPtr;
 	     revisionPtr = nextRevisionPtr) {
 	    nextRevisionPtr = revisionPtr->nextPtr;
-	    util_free(revisionPtr->export.description);
-	    util_free(revisionPtr);
+	    smiFree(revisionPtr->export.description);
+	    smiFree(revisionPtr);
 	}
 
 	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
 	     macroPtr = nextMacroPtr) {
 	    nextMacroPtr = macroPtr->nextPtr;
-	    util_free(macroPtr->export.name);
-	    util_free(macroPtr);
+	    smiFree(macroPtr->export.name);
+	    smiFree(macroPtr);
 	}
 
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
@@ -3424,67 +3425,67 @@ freeData()
 		nextListPtr = listPtr->nextPtr;
 		if ((typePtr->export.basetype == SMI_BASETYPE_BITS) ||
 		    (typePtr->export.basetype == SMI_BASETYPE_ENUM)) {
-		    util_free(((NamedNumber *)(listPtr->ptr))->export.name);
-		    util_free((NamedNumber *)(listPtr->ptr));
+		    smiFree(((NamedNumber *)(listPtr->ptr))->export.name);
+		    smiFree((NamedNumber *)(listPtr->ptr));
 		} else if ((typePtr->export.basetype == SMI_BASETYPE_INTEGER32) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_INTEGER64) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED32) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED64) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING)) {
-		    util_free((Range *)(listPtr->ptr));
+		    smiFree((Range *)(listPtr->ptr));
 		}
-		util_free(listPtr);
+		smiFree(listPtr);
 	    }
-	    util_free(typePtr->export.name);
-	    util_free(typePtr->export.format);
-	    util_free(typePtr->export.units);
-	    util_free(typePtr->export.description);
-	    util_free(typePtr->export.reference);
-	    util_free(typePtr);
+	    smiFree(typePtr->export.name);
+	    smiFree(typePtr->export.format);
+	    smiFree(typePtr->export.units);
+	    smiFree(typePtr->export.description);
+	    smiFree(typePtr->export.reference);
+	    smiFree(typePtr);
 	}
 	
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = nextObjectPtr) {
 	    nextObjectPtr = objectPtr->nextPtr;
-	    util_free(objectPtr->export.name);
-	    util_free(objectPtr->export.description);
-	    util_free(objectPtr->export.reference);
-	    util_free(objectPtr->export.format);
-	    util_free(objectPtr->export.units);
+	    smiFree(objectPtr->export.name);
+	    smiFree(objectPtr->export.description);
+	    smiFree(objectPtr->export.reference);
+	    smiFree(objectPtr->export.format);
+	    smiFree(objectPtr->export.units);
 	    for (listPtr = objectPtr->listPtr; listPtr;
 		 listPtr = nextListPtr) {
 		nextListPtr = listPtr->nextPtr;
-		util_free(listPtr);
+		smiFree(listPtr);
 	    }
 	    for (listPtr = objectPtr->optionlistPtr; listPtr;
 		 listPtr = nextListPtr) {
 		nextListPtr = listPtr->nextPtr;
-		util_free(((Option *)(listPtr->ptr))->export.description);
-		util_free((Option *)(listPtr->ptr));
-		util_free(listPtr);
+		smiFree(((Option *)(listPtr->ptr))->export.description);
+		smiFree((Option *)(listPtr->ptr));
+		smiFree(listPtr);
 	    }
 	    for (listPtr = objectPtr->refinementlistPtr; listPtr;
 		 listPtr = nextListPtr) {
 		nextListPtr = listPtr->nextPtr;
-		util_free((Refinement *)(listPtr->ptr));
-		util_free(listPtr);
+		smiFree((Refinement *)(listPtr->ptr));
+		smiFree(listPtr);
 	    }
-	    util_free(objectPtr);
+	    smiFree(objectPtr);
 	}
 
-	util_free(modulePtr->export.name);
-	util_free(modulePtr->export.path);
-	util_free(modulePtr->export.organization);
-	util_free(modulePtr->export.contactinfo);
-	util_free(modulePtr->export.description);
-	util_free(modulePtr->export.reference);
-	util_free(modulePtr);
+	smiFree(modulePtr->export.name);
+	smiFree(modulePtr->export.path);
+	smiFree(modulePtr->export.organization);
+	smiFree(modulePtr->export.contactinfo);
+	smiFree(modulePtr->export.description);
+	smiFree(modulePtr->export.reference);
+	smiFree(modulePtr);
     }
 
     freeNodeTree(rootNodePtr);
     freeNodeTree(pendingNodePtr);
-    util_free(rootNodePtr);
-    util_free(pendingNodePtr);
+    smiFree(rootNodePtr);
+    smiFree(pendingNodePtr);
     
     return;
 }
@@ -3514,7 +3515,6 @@ loadModule(modulename)
     const char	    *modulename;
 {
     Parser	    parser;
-    char	    s[200];
     char	    *path = NULL, *dir, *smipath;
     int		    sming = 0;
     int             c;
@@ -3524,7 +3524,7 @@ loadModule(modulename)
 	return NULL;
     }
 
-    if (!util_ispath(modulename)) {
+    if (!smiIsPath(modulename)) {
 	/*
 	 * A plain modulename. Lookup the path along SMIPATH...
 	 */
@@ -3532,7 +3532,7 @@ loadModule(modulename)
 	    return NULL;
 	}
 	
-	smipath = util_strdup(smiPath);
+	smipath = smiStrdup(smiPath);
 	for (dir = strtok(smipath, PATH_SEPARATOR);
 	     dir; dir = strtok(NULL, PATH_SEPARATOR)) {
 	    path = malloc(strlen(dir)+strlen(modulename)+8);
@@ -3552,19 +3552,19 @@ loadModule(modulename)
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    util_free(path);
+	    smiFree(path);
 	    path = NULL;
 	}
-	util_free(smipath);
+	smiFree(smipath);
     } else {
 	/*
 	 * A full path. Take it.
 	 */
-	path = util_strdup(modulename);
+	path = smiStrdup(modulename);
     }
 
     if (!path) {
-	printError(NULL, ERR_MODULE_NOT_FOUND, modulename);
+	smiPrintError(NULL, ERR_MODULE_NOT_FOUND, modulename);
 	return NULL;
     }
 
@@ -3575,8 +3575,8 @@ loadModule(modulename)
 
     file = fopen(path, "r");
     if (! file) {
-	printError(NULL, ERR_OPENING_INPUTFILE, path, strerror(errno));
-	util_free(path);
+	smiPrintError(NULL, ERR_OPENING_INPUTFILE, path, strerror(errno));
+	smiFree(path);
 	return NULL;
     }
     while ((c = fgetc(file))) {
@@ -3587,8 +3587,8 @@ loadModule(modulename)
 	    sming = 1;
 	    break;
 	} else if (c == EOF || ! isspace(c)) {
-	    printError(NULL, ERR_ILLEGAL_INPUTFILE, path);
-	    util_free(path);
+	    smiPrintError(NULL, ERR_ILLEGAL_INPUTFILE, path);
+	    smiFree(path);
 	    return NULL;
 	}
     }
@@ -3601,24 +3601,20 @@ loadModule(modulename)
 	parser.modulePtr		= NULL;
 	parser.file			= file;
 	if (smiEnterLexRecursion(parser.file) < 0) {
-	    printError(&parser, ERR_MAX_LEX_DEPTH);
+	    smiPrintError(&parser, ERR_MAX_LEX_DEPTH);
 	    fclose(parser.file);
 	}
 	smiDepth++;
 	parser.line			= 1;
 	smiparse((void *)&parser);
-	if (parser.flags & SMI_FLAG_STATS) {
-	    sprintf(s, "(%d lines)", parser.line-1);
-	    printError(&parser, ERR_STATISTICS, s);
-	}
 	smiLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
-	util_free(path);
+	smiFree(path);
 	return parser.modulePtr;
 #else
-	printError(NULL, ERR_SMI_NOT_SUPPORTED, path);
-	util_free(path);
+	smiPrintError(NULL, ERR_SMI_NOT_SUPPORTED, path);
+	smiFree(path);
 	return NULL;
 #endif
     }
@@ -3630,39 +3626,88 @@ loadModule(modulename)
 	parser.modulePtr		= NULL;
 	parser.file			= file;
 	if (smingEnterLexRecursion(parser.file) < 0) {
-	    printError(&parser, ERR_MAX_LEX_DEPTH);
+	    smiPrintError(&parser, ERR_MAX_LEX_DEPTH);
 	    fclose(parser.file);
 	}
 	smiDepth++;
 	parser.line			= 1;
 	smingparse((void *)&parser);
-	if (parser.flags & SMI_FLAG_STATS) {
-	    sprintf(s, "(%d lines)", parser.line-1);
-	    printError(&parser, ERR_STATISTICS, s);
-	}
 	smingLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
-	util_free(path);
+	smiFree(path);
 	return parser.modulePtr;
 #else
-	printError(NULL, ERR_SMING_NOT_SUPPORTED, path);
-	util_free(path);
+	smiPrintError(NULL, ERR_SMING_NOT_SUPPORTED, path);
+	smiFree(path);
 	return NULL;
 #endif
     }
 
-    util_free(path);
+    smiFree(path);
     return NULL;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * redefinition --
+ *
+ *	Print out error messages about a (case) redefinition.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+redefinition(parserPtr, name1, modulePtr, line, name2)
+    Parser *parserPtr;
+    char *name1;
+    Module *modulePtr;
+    int line;
+    char *name2;
+{
+    char *tmp = parserPtr->path;
+    int equal = (strcmp(name1, name2) == 0);
+
+#if 0
+    fprintf(stderr, "name1 = %s, name2 = %s, equal = %d, errorlevel = %d\n",
+	name1, name2, equal, errorLevel);
+#endif
+
+    if (! modulePtr) {
+	if (equal) {
+	    smiPrintError(parserPtr, ERR_REDEFINITION, name1);
+	} else {
+	    smiPrintError(parserPtr, ERR_CASE_REDEFINITION, name1, name2);
+	}
+    } else {
+	if (equal) {
+	    smiPrintError(parserPtr, ERR_EXT_REDEFINITION,
+			  name1, modulePtr->export.name);
+	} else {
+	    smiPrintError(parserPtr, ERR_EXT_CASE_REDEFINITION,
+			  name1, name2, modulePtr->export.name);
+	}
+	parserPtr->path = modulePtr->export.path;
+    }
+    smiPrintErrorAtLine(parserPtr, ERR_PREVIOUS_DEFINITION, line, name2);
+    if (modulePtr) {
+	parserPtr->path = tmp;
+    }
+}
 
 /*
  *----------------------------------------------------------------------
  *
  * checkObjectName --
  *
- *      Check wheather a given object name already exists
+ *      Check whether a given object name already exists
  *	in a given module.
  *
  * Results:
@@ -3674,7 +3719,7 @@ loadModule(modulename)
  *----------------------------------------------------------------------
  */
 
-int
+void
 checkObjectName(modulePtr, name, parserPtr)
     Module	*modulePtr;
     char        *name;
@@ -3682,37 +3727,106 @@ checkObjectName(modulePtr, name, parserPtr)
 {
     Object	*objectPtr;
     Type        *typePtr;
+    Module	*modPtr;
+
+    if (! (parserPtr->flags & SMI_FLAG_ERRORS)
+	|| (smiGetErrorSeverity(ERR_REDEFINITION) > smiErrorLevel)) {
+	return;
+    }
 
     /*
      * This would really benefit from having a hash table...
      */
 
-    if (modulePtr) {
-        for (objectPtr = modulePtr->firstObjectPtr;
+    for (modPtr = firstModulePtr;
+	 modPtr; modPtr = modPtr->nextPtr) {
+
+        for (objectPtr = modPtr->firstObjectPtr;
 	     objectPtr; objectPtr = objectPtr->nextPtr) {
 	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
 		&& ! strcasecmp(name, objectPtr->export.name)) {
-		if (! strcmp(name, objectPtr->export.name)) {
-		    printError(parserPtr, ERR_REDEFINITION, name);
-		    return 0;
-		} else {
-		    printError(parserPtr, ERR_CASE_REDEFINITION,
-			       name, objectPtr->export.name);
-		}
+		redefinition(parserPtr, name,
+			     modPtr == modulePtr ? NULL : objectPtr->modulePtr,
+			     objectPtr->line, objectPtr->export.name);
 	    }
 	}
-	for (typePtr = modulePtr->firstTypePtr;
+	for (typePtr = modPtr->firstTypePtr;
 	     typePtr; typePtr = typePtr->nextPtr) {
 	    /* TODO: must ignore SEQUENCE types here ... */
 	    if (! (typePtr->flags & FLAG_INCOMPLETE)
 		&& typePtr->export.name
 		&& !strcasecmp(name, typePtr->export.name)) {
-		printError(parserPtr, ERR_CASE_REDEFINITION,
-			   name, typePtr->export.name);
+		redefinition(parserPtr, name,
+			     modPtr == modulePtr ? NULL : typePtr->modulePtr,
+			     typePtr->line, typePtr->export.name);
 	    }
 	}
     }
-    return 1;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * checkTypeName --
+ *
+ *      Check whether a given type name already exists
+ *	in a given module.
+ *
+ * Results:
+ *      1 on success or 0 if the type already exists.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+checkTypeName(modulePtr, name, parserPtr)
+    Module	*modulePtr;
+    char        *name;
+    Parser	*parserPtr;
+{
+    Object	*objectPtr;
+    Type        *typePtr;
+    Module	*modPtr;
+
+    if (! (parserPtr->flags & SMI_FLAG_ERRORS)
+	|| (smiGetErrorSeverity(ERR_REDEFINITION) > smiErrorLevel)) {
+	return;
+    }
+
+    /*
+     * This would really benefit from having a hash table...
+     */
+
+    for (modPtr = firstModulePtr;
+	 modPtr; modPtr = modPtr->nextPtr) {
+
+	for (typePtr = modPtr->firstTypePtr;
+	     typePtr; typePtr = typePtr->nextPtr) {
+	    /* TODO: must ignore SEQUENCE types here ... */
+	    if (! (typePtr->flags & FLAG_INCOMPLETE)
+		&& typePtr->export.name
+		&& !strcasecmp(name, typePtr->export.name)) {
+		redefinition(parserPtr, name,
+			     modPtr == modulePtr ? NULL : typePtr->modulePtr,
+			     typePtr->line, typePtr->export.name);
+	    }
+	}
+
+        for (objectPtr = modPtr->firstObjectPtr;
+	     objectPtr; objectPtr = objectPtr->nextPtr) {
+	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
+		&& ! strcasecmp(name, objectPtr->export.name)) {
+		redefinition(parserPtr, name,
+			     modPtr == modulePtr ? NULL : objectPtr->modulePtr,
+			     objectPtr->line, objectPtr->export.name);
+	    }
+	}
+    }
 }
 
 
@@ -3733,7 +3847,8 @@ checkObjectName(modulePtr, name, parserPtr)
  *----------------------------------------------------------------------
  */
 
-int checkFormat(basetype, p)
+int
+checkFormat(basetype, p)
     SmiBasetype basetype;
     char *p;
 {
