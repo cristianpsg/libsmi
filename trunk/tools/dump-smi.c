@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.62 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.63 2000/11/08 23:12:05 strauss Exp $
  */
 
 #include <config.h>
@@ -1634,12 +1634,8 @@ static void printModuleCompliances(SmiModule *smiModule)
 
 
 
-static void dumpSmi(Module *module)
+static void dumpSmi(FILE *f, SmiModule *smiModule)
 {
-    SmiModule	 *smiModule;
-
-    smiModule = module->smiModule;
-
     createImportList(smiModule);
     
     print("--\n");
@@ -1663,17 +1659,55 @@ static void dumpSmi(Module *module)
 }
 
 
-void dumpSmiV1(Module *module)
+void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output)
 {
+    int  i;
+    FILE *f = stdout;
+    
     smiv1 = 1;
-    silent = (module->flags & SMIDUMP_FLAG_SILENT);
-    dumpSmi(module);
+    silent = (flags & SMIDUMP_FLAG_SILENT);
+
+    if (output) {
+	f = fopen(output, "w");
+	if (!f) {
+	    fprintf(stderr, "smidump: cannot open %s for writing: ", output);
+	    perror(NULL);
+	    exit(1);
+	}
+    }
+
+    for (i = 0; i < modc; i++) {
+	dumpSmi(f, modv[i]);
+    }
+
+    if (output) {
+	fclose(f);
+    }
 }
 
 
-void dumpSmiV2(Module *module)
+void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output)
 {
+    int  i;
+    FILE *f = stdout;
+
     smiv1 = 0;
-    silent = (module->flags & SMIDUMP_FLAG_SILENT);
-    dumpSmi(module);
+    silent = (flags & SMIDUMP_FLAG_SILENT);
+
+    if (output) {
+	f = fopen(output, "w");
+	if (!f) {
+	    fprintf(stderr, "smidump: cannot open %s for writing: ", output);
+	    perror(NULL);
+	    exit(1);
+	}
+    }
+
+    for (i = 0; i < modc; i++) {
+	dumpSmi(f, modv[i]);
+    }
+
+    if (output) {
+	fclose(f);
+    }
 }

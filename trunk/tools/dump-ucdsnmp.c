@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.19 2000/10/18 07:47:32 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.20 2000/11/08 18:11:09 strauss Exp $
  */
 
 /*
@@ -930,17 +930,21 @@ static void dumpImplementation(SmiModule *smiModule, char *cModuleName)
 
 
 
-void dumpNetSnmp(Module *module)
+void dumpNetSnmp(int modc, SmiModule **modv, int flags, char *output)
 {
-    SmiModule   *smiModule;
-    char	*cModuleName;
+    char	*baseName;
+    int		i;
 
-    smiModule = module->smiModule;
-    cModuleName = translateLower(smiModule->name);
+    if (flags & SMIDUMP_FLAG_UNITE) {
+	/* not implemented yet */
+    } else {
+	for (i = 0; i < modc; i++) {
+	    baseName = output ? output : translateLower(modv[i]->name);
+	    dumpHeader(modv[i], baseName);
+	    dumpStub(modv[i], baseName);
+	    dumpImplementation(modv[i], baseName);
+	    if (! output) xfree(baseName);
+	}
+    }
 
-    dumpHeader(smiModule, cModuleName);
-    dumpStub(smiModule, cModuleName);
-    dumpImplementation(smiModule, cModuleName);
-
-    xfree(cModuleName);
 }

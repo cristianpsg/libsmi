@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.31 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.32 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -165,34 +165,34 @@ static char *getValueString(SmiValue *valuePtr)
 
 
 
-static void printIndex(SmiNode *smiNode)
+static void printIndex(FILE *f, SmiNode *smiNode)
 {
     char *indexname;
     int  i;
     SmiElement *smiElement;
     
-    printf("%%%-19s %-16s \"", "ei", smiNode->name);
+    fprintf(f, "%%%-19s %-16s \"", "ei", smiNode->name);
     indexname = NULL;
     for (i = -1, smiElement = smiGetFirstElement(smiNode);
 	 smiElement; smiElement = smiGetNextElement(smiElement), i++) {
-	if (i > 0) printf(" ");
+	if (i > 0) fprintf(f, " ");
 	if (indexname) {
-	    printf(indexname);
+	    fprintf(f, "%s", indexname);
 	}
 	indexname = smiGetElementNode(smiElement)->name;
     }
     if (indexname) {
-	printf("%s%s%s",
-	       (i > 0) ? " " : "",
-	       (smiNode->implied) ? "*" : "",
-	       indexname);
+	fprintf(f, "%s%s%s",
+		(i > 0) ? " " : "",
+		(smiNode->implied) ? "*" : "",
+		indexname);
     }
-    printf("\"\n");
+    fprintf(f, "\"\n");
 }
 
 
 
-static void printAssignements(SmiModule *smiModule)
+static void printAssignements(FILE *f, SmiModule *smiModule)
 {
     int		 cnt = 0;
     SmiNode	 *smiNode;
@@ -204,19 +204,19 @@ static void printAssignements(SmiModule *smiModule)
 	
 	if (smiNode->status == SMI_STATUS_UNKNOWN &&
 	    smiNode != smiGetModuleIdentityNode(smiModule)) {
-	    printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	    printf("%%n0 %-16s object-id\n", smiNode->name);
+	    fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	    fprintf(f, "%%n0 %-16s object-id\n", smiNode->name);
 	}
     }
 
     if (cnt) {
-	printf("\n");
+	fprintf(f, "\n");
     }
 }
 
 
 
-static void printTypedefs(SmiModule *smiModule)
+static void printTypedefs(FILE *f, SmiModule *smiModule)
 {
     int		   i;
     SmiType	   *smiType, *smiParentType;
@@ -240,22 +240,22 @@ static void printTypedefs(SmiModule *smiModule)
 	    type_name = "INTEGER";
 	}
 
-	printf("%%%-19s %-16s %-15s \"%s\"\n", "tc", smiType->name,
-	       type_name,
-	       smiType->format ? smiType->format : "");
+	fprintf(f, "%%%-19s %-16s %-15s \"%s\"\n", "tc",
+		smiType->name, type_name,
+		smiType->format ? smiType->format : "");
 	
 	for (i = 0, nn = smiGetFirstNamedNumber(smiType);
 	     nn ; i++, nn = smiGetNextNamedNumber(nn)) {
-	    printf("%%%-19s %-16s %-15s %s\n", "es",
-		   smiType->name, nn->name,
-		   getValueString(&nn->value));
+	    fprintf(f, "%%%-19s %-16s %-15s %s\n", "es",
+		    smiType->name, nn->name,
+		    getValueString(&nn->value));
 	}
     }
 }
 
 
 
-static void printObjects(SmiModule *smiModule)
+static void printObjects(FILE *f, SmiModule *smiModule)
 {
     int		   i, j, ignore, cnt = 0, aggregate, create;
     char	   *type_name;
@@ -280,8 +280,9 @@ static void printObjects(SmiModule *smiModule)
 	if (smiNode->nodekind == SMI_NODEKIND_NODE) {
 	    if (smiNode->status != SMI_STATUS_UNKNOWN &&
 		smiNode != smiGetModuleIdentityNode(smiModule)) {
-		printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-		printf("%%n0 %-16s object-id\n", smiNode->name);
+		fprintf(f, "%-20s %s\n", smiNode->name,
+			getOidString(smiNode, 0));
+		fprintf(f, "%%n0 %-16s object-id\n", smiNode->name);
 	    }
 	    continue;
 	}
@@ -319,28 +320,28 @@ static void printObjects(SmiModule *smiModule)
 	    create = 0;
 	}
 	
-	printf("%-20s %-16s ", smiNode->name, getOidString(smiNode, 0));
-	printf("%-15s %-15s %s\n", type_name,
-	       getAccessString(smiNode->access, create),
-	       getStatusString(smiNode->status));
+	fprintf(f, "%-20s %-16s ", smiNode->name, getOidString(smiNode, 0));
+	fprintf(f, "%-15s %-15s %s\n", type_name,
+		getAccessString(smiNode->access, create),
+		getStatusString(smiNode->status));
 
 	relatedNode = smiGetRelatedNode(smiNode);
 	switch (smiNode->indexkind) {
 	case SMI_INDEX_INDEX:
 	case SMI_INDEX_REORDER:
-	    printIndex(smiNode);
+	    printIndex(f, smiNode);
 	    break;
 	case SMI_INDEX_EXPAND:	/* TODO: we have to do more work here! */
 	    break;
 	case SMI_INDEX_AUGMENT:
 	    if (relatedNode) {
-		printf("%%%-19s %-16s %s\n", "ea",
-		       smiNode->name, relatedNode->name);
+		fprintf(f, "%%%-19s %-16s %s\n", "ea",
+			smiNode->name, relatedNode->name);
 	    }
 	    break;
 	case SMI_INDEX_SPARSE:
 	    if (relatedNode) {
-		printIndex(relatedNode);
+		printIndex(f, relatedNode);
 	    }
 	    break;
 	case SMI_INDEX_UNKNOWN:
@@ -351,9 +352,9 @@ static void printObjects(SmiModule *smiModule)
 	    for (i = 0, smiNamedNumber = smiGetFirstNamedNumber(smiType);
 		smiNamedNumber;
 		i++, smiNamedNumber = smiGetNextNamedNumber(smiNamedNumber)) {
-		printf("%%%-19s %-16s %-15s %s\n", "ev",
-		       smiNode->name, smiNamedNumber->name,
-		       getValueString(&smiNamedNumber->value));
+		fprintf(f, "%%%-19s %-16s %-15s %s\n", "ev",
+			smiNode->name, smiNamedNumber->name,
+			getValueString(&smiNamedNumber->value));
 	    }
 
 	    for (ignore = 0, j = 0; ignoreTypeRanges[j]; j++) {
@@ -367,23 +368,23 @@ static void printObjects(SmiModule *smiModule)
 		for (smiRange = smiGetFirstRange(smiType);
 		     smiRange;
 		     smiRange = smiGetNextRange(smiRange)) {
-		    printf("%%%-19s %-16s %-15s ", "er",
-			   smiNode->name,
-			   getValueString(&smiRange->minValue));
-		    printf("%s\n", getValueString(&smiRange->maxValue));
+		    fprintf(f, "%%%-19s %-16s %-15s ", "er",
+			    smiNode->name,
+			    getValueString(&smiRange->minValue));
+		    fprintf(f, "%s\n", getValueString(&smiRange->maxValue));
 		}
 	    }
 	}
     }
 
     if (cnt) {
-	printf("\n");
+	fprintf(f, "\n");
     }
 }
 
 
 
-static void printNotifications(SmiModule *smiModule)
+static void printNotifications(FILE *f, SmiModule *smiModule)
 {
     int		 cnt = 0;
     SmiNode	 *smiNode;
@@ -394,21 +395,21 @@ static void printNotifications(SmiModule *smiModule)
 
 	cnt++;
 	
-	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf("%%n0 %-16s notification\n", smiNode->name);
+	fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	fprintf(f, "%%n0 %-16s notification\n", smiNode->name);
     }
 
     if (cnt) {
-	printf("\n");
+	fprintf(f, "\n");
     }
 }
 
 
 
-static void printGroups(SmiModule *smiModule)
+static void printGroups(FILE *f, SmiModule *smiModule)
 {
     SmiNode	*smiNode, *smiNodeMember;
-    SmiElement *smiElement;
+    SmiElement  *smiElement;
     int		cnt = 0, objects, notifications;
     
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_GROUP);
@@ -430,20 +431,20 @@ static void printGroups(SmiModule *smiModule)
 		(smiNodeMember->nodekind == SMI_NODEKIND_NOTIFICATION);
 	}
 
-	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf("%%n0 %-16s %s\n", smiNode->name,
-	       (objects && ! notifications) ? "object-group" :
-	       (! objects && notifications) ? "notification-group" : "group");
+	fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	fprintf(f, "%%n0 %-16s %s\n", smiNode->name,
+		(objects && ! notifications) ? "object-group" :
+		(! objects && notifications) ? "notification-group" : "group");
     }
 
     if (cnt) {
-	printf("\n");
+	fprintf(f, "\n");
     }
 }
 
 
 
-static void printCompliances(SmiModule *smiModule)
+static void printCompliances(FILE *f, SmiModule *smiModule)
 {
     int		  cnt = 0;
     SmiNode	  *smiNode;
@@ -453,44 +454,59 @@ static void printCompliances(SmiModule *smiModule)
 	
 	cnt++;
 
-	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf("%%n0 %-16s module-compliance\n", smiNode->name);
+	fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	fprintf(f, "%%n0 %-16s module-compliance\n", smiNode->name);
     }
 	    
     if (cnt) {
-	printf("\n");
+	fprintf(f, "\n");
     }
 }
 
 
 
-void dumpMosy(Module *module)
+void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
 {
-    SmiModule	*smiModule;
     SmiNode	*smiNode;
-    int		flags;
+    int		i;
+    FILE	*f = stdout;
 
-    smiModule = module->smiModule;
-    flags = module->flags;
-
-    if (! (flags & SMIDUMP_FLAG_SILENT)) {
-	printf("-- automatically generated by smidump %s, do not edit!\n",
-	       SMI_VERSION_STRING);
-	printf("\n-- object definitions compiled from %s\n\n",
-	       smiModule->name);
+    if (output) {
+	f = fopen(output, "w");
+	if (!f) {
+	    fprintf(stderr, "smidump: cannot open %s for writing: ", output);
+	    perror(NULL);
+	    exit(1);
+	}
     }
 
-    smiNode = smiGetModuleIdentityNode(smiModule);
-    if (smiNode) {
-	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf("%%n0 %-16s module-compliance\n", smiNode->name);
-	printf("\n");
+    for (i = 0; i < modc; i++) {
+
+	if (! (flags & SMIDUMP_FLAG_SILENT)) {
+	    fprintf(f,
+		    "-- automatically generated by smidump %s, do not edit!\n",
+		    SMI_VERSION_STRING);
+	    fprintf(f,
+		    "\n-- object definitions compiled from %s\n\n",
+		    modv[i]->name);
+	}
+	
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+	    fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	    fprintf(f, "%%n0 %-16s module-compliance\n", smiNode->name);
+	    fprintf(f, "\n");
+	}
+	
+	printAssignements(f, modv[i]);
+	printTypedefs(f, modv[i]);
+	printObjects(f, modv[i]);
+	printNotifications(f, modv[i]);
+	printGroups(f, modv[i]);
+	printCompliances(f, modv[i]);
     }
-    
-    printAssignements(smiModule);
-    printTypedefs(smiModule);
-    printObjects(smiModule);
-    printNotifications(smiModule);
-    printGroups(smiModule);
-    printCompliances(smiModule);
+
+    if (output) {
+	fclose(f);
+    }
 }
