@@ -88,7 +88,6 @@ BISON = bison
 CC = gcc
 CFLAGS = -g -O2
 DLLTOOL = @DLLTOOL@
-EXEEXT = 
 FLEX = flex
 LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
@@ -122,7 +121,6 @@ smidump_SOURCES = smidump.c dump-sming.c dump-smi.c dump-data.c
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
-bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
@@ -231,16 +229,16 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-smiquery$(EXEEXT): $(smiquery_OBJECTS) $(smiquery_DEPENDENCIES)
-	@rm -f smiquery$(EXEEXT)
+smiquery: $(smiquery_OBJECTS) $(smiquery_DEPENDENCIES)
+	@rm -f smiquery
 	$(LINK) $(smiquery_LDFLAGS) $(smiquery_OBJECTS) $(smiquery_LDADD) $(LIBS)
 
-smilint$(EXEEXT): $(smilint_OBJECTS) $(smilint_DEPENDENCIES)
-	@rm -f smilint$(EXEEXT)
+smilint: $(smilint_OBJECTS) $(smilint_DEPENDENCIES)
+	@rm -f smilint
 	$(LINK) $(smilint_LDFLAGS) $(smilint_OBJECTS) $(smilint_LDADD) $(LIBS)
 
-smidump$(EXEEXT): $(smidump_OBJECTS) $(smidump_DEPENDENCIES)
-	@rm -f smidump$(EXEEXT)
+smidump: $(smidump_OBJECTS) $(smidump_DEPENDENCIES)
+	@rm -f smidump
 	$(LINK) $(smidump_LDFLAGS) $(smidump_OBJECTS) $(smidump_LDADD) $(LIBS)
 
 install-man1:

@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.3 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -35,7 +35,7 @@
 #
 
 
-SHELL = @SHELL@
+SHELL = /bin/sh
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -56,7 +56,7 @@ mandir = @mandir@
 includedir = @includedir@
 oldincludedir = /usr/include
 
-DESTDIR =
+DISTDIR =
 
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -70,7 +70,7 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
@@ -83,12 +83,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
-DLLTOOL = @DLLTOOL@
-EXEEXT = @EXEEXT@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -96,24 +93,28 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
 VERSION = @VERSION@
 
-AUTOMAKE_OPTIONS = no-dependencies foreign
+AUTOMAKE_OPTIONS	= no-dependencies foreign
 
-EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  defs.h data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
-
-include_HEADERS = smi.h
-CLEANFILES = parser-smi.output parser-sming.output
-man_MANS = libsmi.3 smi_config.3 smi_module.3 smi_macro.3 			  smi_node.3 smi_type.3
-
-lib_LTLIBRARIES = libsmi.la
-libsmi_la_SOURCES = data.c error.c util.c smi.c scanner.c 		  	  parser-smi.tab.c scanner-smi.c 		  	  parser-sming.tab.c scanner-sming.c
-
-libsmi_la_LDFLAGS = -version-info 1:1:0
+EXTRA_DIST		= parser-sming.y parser-smi.y \
+			  scanner-sming.l scanner-smi.l \
+			  defs.h data.h error.h util.h scanner-sming.h \
+			  parser-smi.h parser-sming.h scanner-smi.h scanner.h \
+			  parser-smi.tab.h parser-sming.tab.h \
+			  $(man_MANS)
+include_HEADERS		= smi.h
+CLEANFILES		= parser-smi.output parser-sming.output
+man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
+			  smi_node.3 smi_type.3
+lib_LTLIBRARIES		= libsmi.la
+libsmi_la_SOURCES	= data.c error.c util.c smi.c scanner.c \
+		  	  parser-smi.tab.c scanner-smi.c \
+		  	  parser-sming.tab.c scanner-sming.c
+libsmi_la_LDFLAGS	= -version-info 1:1:0
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 LTLIBRARIES =  $(lib_LTLIBRARIES)
@@ -126,10 +127,9 @@ LIBS = @LIBS@
 libsmi_la_LIBADD = 
 libsmi_la_OBJECTS =  data.lo error.lo util.lo smi.lo scanner.lo \
 parser-smi.tab.lo scanner-smi.lo parser-sming.tab.lo scanner-sming.lo
-COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
 man3dir = $(mandir)/man3
 MANS = $(man_MANS)
 
@@ -141,15 +141,16 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
-GZIP_ENV = --best
+TAR = tar
+GZIP = --best
 SOURCES = $(libsmi_la_SOURCES)
 OBJECTS = $(libsmi_la_OBJECTS)
 
-all: all-redirect
+all: Makefile $(LTLIBRARIES) $(MANS) $(HEADERS)
+
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign lib/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
@@ -171,8 +172,8 @@ install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
 	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p; \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
 	  else :; fi; \
 	done
 
@@ -257,10 +258,10 @@ uninstall-man3:
 	done
 install-man: $(MANS)
 	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) install-man3
+	$(MAKE) install-man3
 uninstall-man:
 	@$(NORMAL_UNINSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) uninstall-man3
+	$(MAKE) uninstall-man3
 
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
@@ -280,12 +281,8 @@ uninstall-includeHEADERS:
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES) $(LISP)
-	list='$(SOURCES) $(HEADERS)'; \
-	unique=`for i in $$list; do echo $$i; done | \
-	  awk '    { files[$$0] = 1; } \
-	       END { for (i in files) print i; }'`; \
 	here=`pwd` && cd $(srcdir) \
-	  && mkid -f$$here/ID $$unique $(LISP)
+	  && mkid -f$$here/ID $(SOURCES) $(HEADERS) $(LISP)
 
 TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	tags=; \
@@ -313,79 +310,65 @@ subdir = lib
 distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
-	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
-	  else \
-	    test -f $(distdir)/$$file \
-	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
-	    || cp -p $$d/$$file $(distdir)/$$file || :; \
-	  fi; \
+	  test -f $(distdir)/$$file \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
-info-am:
-info: info-am
-dvi-am:
-dvi: dvi-am
-check-am: all-am
-check: check-am
-installcheck-am:
-installcheck: installcheck-am
-install-exec-am: install-libLTLIBRARIES
-install-exec: install-exec-am
+info:
+dvi:
+check: all
+	$(MAKE)
+installcheck:
+install-exec: install-libLTLIBRARIES
+	@$(NORMAL_INSTALL)
 
-install-data-am: install-man install-includeHEADERS
-install-data: install-data-am
+install-data: install-man install-includeHEADERS
+	@$(NORMAL_INSTALL)
 
-install-am: all-am
-	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
-install: install-am
-uninstall-am: uninstall-libLTLIBRARIES uninstall-man \
-		uninstall-includeHEADERS
-uninstall: uninstall-am
-all-am: Makefile $(LTLIBRARIES) $(MANS) $(HEADERS)
-all-redirect: all-am
+install: install-exec install-data all
+	@:
+
+uninstall: uninstall-libLTLIBRARIES uninstall-man uninstall-includeHEADERS
+
 install-strip:
-	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(mandir)/man3 \
-		$(DESTDIR)$(includedir)
+	$(mkinstalldirs)  $(DATADIR)$(libdir) $(DESTDIR)$(mandir)/man3 \
+		$(DATADIR)$(includedir)
 
 
 mostlyclean-generic:
+	-test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
 clean-generic:
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
-	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f Makefile $(DISTCLEANFILES)
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
 		mostlyclean-libtool mostlyclean-tags \
 		mostlyclean-generic
 
-mostlyclean: mostlyclean-am
+clean:  clean-libLTLIBRARIES clean-compile clean-libtool clean-tags \
+		clean-generic mostlyclean
 
-clean-am:  clean-libLTLIBRARIES clean-compile clean-libtool clean-tags \
-		clean-generic mostlyclean-am
-
-clean: clean-am
-
-distclean-am:  distclean-libLTLIBRARIES distclean-compile \
-		distclean-libtool distclean-tags distclean-generic \
-		clean-am
+distclean:  distclean-libLTLIBRARIES distclean-compile distclean-libtool \
+		distclean-tags distclean-generic clean
+	-rm -f config.status
 	-rm -f libtool
 
-distclean: distclean-am
-
-maintainer-clean-am:  maintainer-clean-libLTLIBRARIES \
+maintainer-clean:  maintainer-clean-libLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
 		maintainer-clean-tags maintainer-clean-generic \
-		distclean-am
+		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
-
-maintainer-clean: maintainer-clean-am
 
 .PHONY: mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
 clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
@@ -395,11 +378,10 @@ mostlyclean-libtool distclean-libtool clean-libtool \
 maintainer-clean-libtool install-man3 uninstall-man3 install-man \
 uninstall-man uninstall-includeHEADERS install-includeHEADERS tags \
 mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
-distdir info-am info dvi-am dvi check check-am installcheck-am \
-installcheck install-exec-am install-exec install-data-am install-data \
-install-am install uninstall-am uninstall all-redirect all-am all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+distdir info dvi installcheck install-exec install-data install \
+uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 
 parser-smi.tab.c: parser-smi.y scanner-smi.h parser-smi.h
