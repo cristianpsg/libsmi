@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.9 2000/06/06 12:59:08 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.10 2000/06/21 10:33:41 strauss Exp $
  */
 
 /*
@@ -292,6 +292,9 @@ static void printNodeStartTag(int indent, const char *tag, SmiNode *smiNode)
 	print(i ? ".%u" : "%u", smiNode->oid[i]);
     }
     print("\"");
+    if (smiNode->create) {
+	print(" create=\"true\"");
+    }
     if (smiNode->status != SMI_STATUS_UNKNOWN) {
 	print(" status=\"%s\"", getStringStatus(smiNode->status));
     }
@@ -300,9 +303,9 @@ static void printNodeStartTag(int indent, const char *tag, SmiNode *smiNode)
 
 
 
-static void printNodeEndTag(int indent, const char *tag, SmiNode *smiNode)
+static void printNodeEndTag(int indent, const char *tag)
 {
-    printSegment(2 * INDENT, "", 0);
+    printSegment(indent, "", 0);
     print("</%s>\n", tag);
 }
 
@@ -630,11 +633,11 @@ static void printTypedefs(SmiModule *smiModule)
 
 
 
-static void printObject(int indent, SmiNode *smiNode)
+static void printNode(int indent, SmiNode *smiNode, SmiNode *lastSmiNode)
 {
-    SmiModule *smiModule;
-    SmiType   *smiType;
-    char      *tag = NULL;
+    SmiModule   *smiModule;
+    SmiType     *smiType;
+    char        *tag = NULL;
     
     if (smiNode->nodekind == SMI_NODEKIND_NODE) {
 	tag = "node";
@@ -643,11 +646,20 @@ static void printObject(int indent, SmiNode *smiNode)
     } else if (smiNode->nodekind == SMI_NODEKIND_TABLE) {
 	tag = "table";
     } else if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+	indent += INDENT;
 	tag = "row";
     } else if (smiNode->nodekind == SMI_NODEKIND_COLUMN) {
+	indent += 2 * INDENT;
 	tag = "column";
     } else if (smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 	tag = "scalar";
+    }
+
+    if (lastSmiNode
+	&& lastSmiNode->nodekind == SMI_NODEKIND_COLUMN
+	&& smiNode->nodekind != SMI_NODEKIND_COLUMN) {
+	printNodeEndTag(indent + INDENT, "row");
+        printNodeEndTag(indent, "table");
     }
 
     smiType = smiGetNodeType(smiNode);
@@ -672,48 +684,50 @@ static void printObject(int indent, SmiNode *smiNode)
 	(smiNode->nodekind != SMI_NODEKIND_NODE)) {
 	printAccess(indent + INDENT, smiNode->access);
     }
-    printFormat(indent + INDENT, smiNode->format);
-    printUnits(indent + INDENT, smiNode->units);
     if (smiType) {
 	printValue(indent + INDENT, &smiNode->value, smiType);
     }
+    printFormat(indent + INDENT, smiNode->format);
+    printUnits(indent + INDENT, smiNode->units);
     if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 	printIndex(indent + INDENT, smiNode);
-	if (smiNode->create) {
-	    printSegment(indent + INDENT, "<create/>\n", 0);
-	}
     }
     printDescription(indent + INDENT, smiNode->description);
     printReference(indent + INDENT, smiNode->reference);
-    
-    printNodeEndTag(indent, tag, smiNode);
+
+    if (smiNode->nodekind != SMI_NODEKIND_ROW
+	&& smiNode->nodekind != SMI_NODEKIND_TABLE) {
+	printNodeEndTag(indent, tag);
+    }
 }
 
 
 
-static void printObjects(SmiModule *smiModule)
+static void printNodes(SmiModule *smiModule)
 {
     int		 i;
-    SmiNode	 *smiNode;
+    SmiNode	 *smiNode, *lastSmiNode;
     SmiNodekind  nodekinds;
 
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
 	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR |
 	SMI_NODEKIND_CAPABILITIES;
     
-    for (i = 0, smiNode = smiGetFirstNode(smiModule, nodekinds);
+    for (i = 0, lastSmiNode = NULL,
+	     smiNode = smiGetFirstNode(smiModule, nodekinds);
 	 smiNode;
-	 i++, smiNode = smiGetNextNode(smiNode, nodekinds)) {
+	 i++, lastSmiNode = smiNode,
+	     smiNode = smiGetNextNode(smiNode, nodekinds)) {
 
 	if (i == 0) {
-	    printSegment(INDENT, "<objects>\n", 0);
+	    printSegment(INDENT, "<nodes>\n", 0);
 	}
 
-	printObject(2 * INDENT, smiNode);
+	printNode(2 * INDENT, smiNode, lastSmiNode);
     }
     
     if (i) {
-	printSegment(INDENT, "</objects>\n\n", 0);
+	printSegment(INDENT, "</nodes>\n\n", 0);
     }
 }
 
@@ -730,7 +744,7 @@ static void printNotification(int indent, SmiNode *smiNode)
     printDescription(indent + INDENT, smiNode->description);
     printReference(indent + INDENT, smiNode->reference);
     
-    printNodeEndTag(indent, "notification", smiNode);
+    printNodeEndTag(indent, "notification");
 }
 
 
@@ -768,7 +782,7 @@ static void printGroup(int indent, SmiNode *smiNode)
     printDescription(indent + INDENT, smiNode->description);
     printReference(indent + INDENT, smiNode->reference);
 
-    printNodeEndTag(indent, "group", smiNode);
+    printNodeEndTag(indent, "group");
 }
 
 
@@ -893,7 +907,7 @@ static void printCompliance(int indent, SmiNode *smiNode)
     printComplGroups(indent + INDENT, smiNode);
     printRefinements(indent + INDENT, smiNode);
 
-    printNodeEndTag(indent, "compliance", smiNode);
+    printNodeEndTag(indent, "compliance");
 }
 
 
@@ -939,7 +953,7 @@ void dumpXml(Module *module)
     printModule(smiModule);
     printImports(smiModule);
     printTypedefs(smiModule);
-    printObjects(smiModule);
+    printNodes(smiModule);
     printNotifications(smiModule);
     printGroups(smiModule);
     printCompliances(smiModule);
