@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.43 2003/06/24 09:54:05 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.44 2003/07/17 08:49:17 strauss Exp $ 
  */
 
 #include <config.h>
@@ -202,7 +202,7 @@ static Error errors[] = {
       "name changed from `%s' to `%s'", NULL },
     { 3, ERR_TO_IMPLICIT, "to-implicit",
       "implicit type for `%s' replaces type `%s'", NULL },
-    { 3, ERR_FROM_IMPLICIT, "from-implicit",
+    { 5, ERR_FROM_IMPLICIT, "from-implicit",
       "type `%s' replaces implicit type for `%s'", NULL },
     { 3, ERR_RANGE_ADDED, "range-added",
       "range `%s' added to type used in `%s'", NULL },
@@ -320,11 +320,11 @@ static Error errors[] = {
       "optional group `%s::%s' added to `%s'", NULL },
     { 2, ERR_EXT_OPTION_REMOVED, "option-removed",
       "optional group `%s::%s' removed from `%s'", NULL },
-    { 2, ERR_REFINEMENT_ADDED, "refinement-added",
+    { 5, ERR_REFINEMENT_ADDED, "refinement-added",
       "object refinement for `%s' added to `%s'", NULL },
     { 2, ERR_REFINEMENT_REMOVED, "refinement-removed",
       "object refinement for `%s' removed from `%s'", NULL },
-    { 2, ERR_EXT_REFINEMENT_ADDED, "refinement-added",
+    { 5, ERR_EXT_REFINEMENT_ADDED, "refinement-added",
       "object refinement for `%s::%s' added to `%s'", NULL },
     { 2, ERR_EXT_REFINEMENT_REMOVED, "refinement-removed",
       "object refinement for `%s::%s' removed from `%s'", NULL },
