@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smiquery.c,v 1.1 1998/11/27 10:55:29 strauss Exp $
  */
 
 #include <stdio.h>
@@ -36,7 +36,7 @@ main(argc, argv)
     smi_namelist *namelist;
     
     if (argc != 3) {
-	fprintf(stderr, "smiquery $Revision$\n");
+	fprintf(stderr, "smiquery $Revision: 1.1 $\n");
 	fprintf(stderr, "Usage: smiquery <command> <name>\n");
 	fprintf(stderr, "known commands: module, node, type, macro, names, children, members, parent\n");
 	exit(1);
@@ -79,7 +79,7 @@ main(argc, argv)
 	    printf("      Module: %s\n", type->module);
 	    printf("      Syntax: %s\n", smiStringSyntax(type->syntax));
 	    printf(" Declaration: %s\n", smiStringDecl(type->decl));
-	    printf(" DisplayHint: %s\n", type->display);
+	    printf(" DisplayHint: %s\n", type->format);
 	    printf("      Status: %s\n", smiStringStatus(type->status));
 	    printf(" Description: %s\n", type->description);
 	}

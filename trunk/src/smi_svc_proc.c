@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_proc.c,v 1.7 1998/11/25 02:50:58 strauss Exp $
+ * @(#) $Id: smi_svc_proc.c,v 1.8 1998/11/26 00:50:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -37,7 +37,7 @@ smiproc_module_1(getspec)
     smi_getspec *getspec;
 #endif
 {
-    static smi_module dummy = { "", "", "", "", "", "" };
+    static smi_module dummy = { "", "", "", "", "", "", "" };
     smi_module *m;
 
     printDebug(4, "smiproc_module_1(<%s,%d>)\n",
@@ -66,7 +66,8 @@ smiproc_node_1(getspec)
 {
     static smi_node dummy = { "", "", "", "",
 			      SMI_DECL_UNKNOWN, SMI_SYNTAX_UNKNOWN,
-			      SMI_ACCESS_UNKNOWN, SMI_STATUS_UNKNOWN, "" };
+			      SMI_ACCESS_UNKNOWN, SMI_STATUS_UNKNOWN,
+			      "", "", "" };
     smi_node *n;
     
     printDebug(4, "smiproc_node_1(<%s,%d>)\n",
@@ -95,7 +96,7 @@ smiproc_type_1(getspec)
 {
     static smi_type dummy = { "", "", SMI_SYNTAX_UNKNOWN,
 			      SMI_DECL_UNKNOWN, "", SMI_STATUS_UNKNOWN,
-			      "" };
+			      "", "" };
     smi_type *t;
     
     printDebug(4, "smiproc_type_1(<%s,%d>)\n",

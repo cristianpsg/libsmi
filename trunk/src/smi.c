@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.24 1998/12/04 14:36:46 strauss Exp $
+ * @(#) $Id: smi.c,v 1.25 1999/02/18 17:13:02 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -633,7 +633,7 @@ smiGetModule(name, wantdescr)
 	    res.lastupdated = getString(&m->lastUpdated, m);
 	    res.organization = getString(&m->organization, m);
 	    res.contactinfo = getString(&m->contactInfo, m);
-	    res.description = getString(&m->description, m);
+	    res.description = getString(&m->objectPtr->description, m);
 	} else {
 	    res.description = "";
 	}
@@ -849,7 +849,7 @@ smiGetType(spec, mod, wantdescr)
 	res.module = strdup(t->modulePtr->name);
 	res.syntax = t->syntax;
 	res.decl = t->decl;
-	res.display = getString(&t->displayHint, t->modulePtr);
+	res.format = getString(&t->format, t->modulePtr);
 	res.status = t->status;
 	if (wantdescr) {
 	    res.description = getString(&t->description, t->modulePtr);

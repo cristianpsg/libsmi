@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.21 1998/12/22 17:09:12 strauss Exp $
+# @(#) $Id: Makefile,v 1.22 1999/02/17 16:39:06 strauss Exp $
 #
 #
 # NOTE: We need flex and bison. Lex and yacc do not work.
@@ -42,11 +42,12 @@ scanner-flex.c: scanner.l scanner.h parser-bison.h
 
 parser-bison.c parser-bison.h: parser.y scanner.h parser.h
 	$(YACC) -d parser.y
-	mv y.tab.c parser-bison-buggy.c
 	mv y.tab.h parser-bison.h
-#	there's a slight bug in bison 1.25 with pure reentrant parsers:
-	sed -e 's/int yyparse (void);/int yyparse ();/' \
-	    parser-bison-buggy.c > parser-bison.c
+	mv y.tab.c parser-bison.c
+#	mv y.tab.c parser-bison-buggy.c
+##	there's a slight bug in bison 1.25 with pure reentrant parsers:
+#	sed -e 's/int yyparse (void);/int yyparse ();/' \
+#	    parser-bison-buggy.c > parser-bison.c
 
 libsmi.a: $(LOBJS)
 	ar ruv libsmi.a $(LOBJS)
@@ -68,6 +69,12 @@ yacc2html.c: yacc2html.l
 
 yacc2html: yacc2html.o
 	$(CC) -o yacc2html yacc2html.o -ll
+
+yacc2x.c: yacc2x.l
+	$(LEX) -t yacc2x.l > yacc2x.c
+
+yacc2x: yacc2x.o
+	$(CC) -o yacc2x yacc2x.o -ll
 
 parser.y.html: parser.y yacc2html
 	echo '<HTML><HEAD><TITLE>parser.y</TITLE></HEAD><BODY><PRE>' \

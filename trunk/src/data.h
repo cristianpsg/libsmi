@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.26 1999/02/17 16:39:08 strauss Exp $
+ * @(#) $Id: data.h,v 1.27 1999/02/18 17:12:59 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -111,7 +111,6 @@ typedef unsigned short MacroFlags;
 #define FLAGS_SPECIFIC		0xff00
 
 
-
 typedef struct Module {
     smi_descriptor name;
     char	   *path;
@@ -127,7 +126,7 @@ typedef struct Module {
     String	   lastUpdated;
     String	   organization;
     String	   contactInfo;
-    String	   description;
+    struct Object  *objectPtr;
 #if 0
     Revision       *firstRevisionPtr;
     Revision       *lastRevisionPtr;
@@ -158,10 +157,11 @@ typedef struct Type {
     smi_fullname   parentType;
     smi_syntax	   syntax;
     smi_decl	   decl;
-    String	   displayHint;
+    String	   format;
     smi_status	   status;
     struct List	   *sequencePtr;
     String	   description;
+    String	   reference;
 #if 0
     Restriction	   *firstRestriction;
     Restriction	   *lastRestriction;
@@ -185,6 +185,7 @@ typedef struct Object {
     smi_status	   status;
     struct List	   *indexPtr;
     String	   description;
+    String	   reference;
     struct Node	   *nodePtr;
     struct Object  *prevPtr;		/* chain of Objects in this Module */
     struct Object  *nextPtr;
@@ -245,9 +246,6 @@ extern Module *addModule(const char *modulename,
 			 ModuleFlags flags,
 			 Parser *parserPtr);
 
-extern void setModuleDescription(Module *modulePtr,
-				 String *descriptionPtr);
-
 extern void setModuleLastUpdated(Module *modulePtr,
 				 String *lastUpdatedPtr);
 
@@ -273,28 +271,6 @@ extern Import *findImportByName(const char *importname,
 extern Import *findImportByModulenameAndName(const char *modulename,
 					     const char *importname,
 					     Module *modulePtr);
-
-/*
-extern Descriptor *addDescriptor(const char *name,
-				 Module *module,
-				 DescriptorKind kind,
-				 void *ptr,
-				 int flags,
-				 Parser *parser);
-
-extern void deleteDescriptor(Descriptor *descriptor);
-
-extern Descriptor *findDescriptor(const char *name,
-				  Module *module,
-				  DescriptorKind kind);
-
-extern Descriptor *findNextDescriptor(const char *name,
-				      Module *module,
-				      DescriptorKind kind,
-				      Descriptor *start);
-*/
-
-
 
 extern Object *addObject(const char *objectname,
 			 Node *parentNodePtr,
@@ -332,6 +308,9 @@ extern void setObjectStatus(Object *objectPtr,
 extern void setObjectDescription(Object *objectPtr,
 				 String *descriptionPtr);
 
+extern void setObjectReference(Object *objectPtr,
+				 String *referencePtr);
+
 extern void setObjectFileOffset(Object *objectPtr,
 				off_t fileoffset);
 
@@ -361,13 +340,6 @@ extern Object *findObjectByModuleAndName(Module *modulePtr,
 extern Object *findObjectByModulenameAndName(const char *modulename,
 					     const char *objectname);
 
-/*
-extern void deleteMibTree(Node *root);
-
-extern void dumpMibTree(Node *root, const char *prefix);
-
-extern void dumpMosy(Node *root);
-*/
 
 
 extern Type *addType(const char *typename,
@@ -403,8 +375,8 @@ extern void setTypeDecl(Type *typePtr,
 extern void setTypeFlags(Type *typePtr,
 			 TypeFlags flags);
 
-extern void setTypeDisplayHint(Type *typePtr,
-			       String *displayHintPtr);
+extern void setTypeFormat(Type *typePtr,
+			  String *formatPtr);
 
 
 
@@ -415,10 +387,6 @@ extern Type *findTypeByModuleAndName(Module *modulePtr,
 
 extern Type *findTypeByModulenameAndName(const char *modulename,
 					 const char *typename);
-
-/*
-extern void dumpTypes();
-*/
 
 
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.30 1999/02/17 16:51:50 strauss Exp $
+ * @(#) $Id: parser.y,v 1.31 1999/02/18 17:13:01 strauss Exp $
  */
 
 %{
@@ -872,7 +872,7 @@ typeDeclarationRHS:	Syntax
 			    setTypeDescription($$, $6);
 			    setTypeStatus($$, $4);
 			    if ($2) {
-				setTypeDisplayHint($$, $2);
+				setTypeFormat($$, $2);
 			    }
 			    setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
 			}
@@ -889,7 +889,7 @@ conceptualTable:	SEQUENCE OF row
 			    
 			    if ($3) {
 				$$ = addType(NULL,
-					     SMI_SYNTAX_SEQUENCE_OF, 0,
+					     SMI_SYNTAX_SEQUENCEOF, 0,
 					     thisParserPtr);
 				sprintf(s, "%s!%s", $3->modulePtr->name,
 					$3->name);
@@ -1345,7 +1345,6 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    setModuleLastUpdated(thisParserPtr->modulePtr, $6);
 			    setModuleOrganization(thisParserPtr->modulePtr, $8);
 			    setModuleContactInfo(thisParserPtr->modulePtr, $10);
-			    setModuleDescription(thisParserPtr->modulePtr, $12);
 			    setObjectDescription(objectPtr, $12);
 			    $$ = 0;
 			}
@@ -1762,10 +1761,6 @@ sequenceSimpleSyntax:	INTEGER	anySubType	/* (-2147483648..2147483647) */
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
 			    $$ = typeIntegerPtr;
-			}
-	|		OCTET STRING		/* (SIZE (0..65535))	     */
-			{
-			    $$ = typeOctetStringPtr;
 			}
 	|		OCTET STRING anySubType
 			{
