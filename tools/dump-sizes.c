@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sizes.c,v 1.2 2003/11/18 12:52:40 schoenw Exp $
+ * @(#) $Id: dump-sizes.c,v 1.3 2003/12/09 14:24:43 strauss Exp $
  */
 
 #include <config.h>
@@ -581,59 +581,67 @@ append_index(SmiSubid *oid, unsigned int *oidlen,
 
      switch (indexType->basetype) {
      case SMI_BASETYPE_OBJECTIDENTIFIER:
-	  fprintf(stderr, "*** xxx object identifiers in the index are not supported ***\n");
+	 fprintf(stderr, "*** xxx object identifiers in the index are not yet supported ***\n");
 #if 0
-	  if (flags) {
-	       int i;
-
-	       oid[0] = 2;
-	       for (i = 1; i < 128; i++) {
-		    oid[i] = 4294967295UL;
-	       }
-	  } else {
-	       oid[0] = oid[1] = 0, oidlen = 2;
-	  }
-	  len = ber_len_oid(oid, oidlen);
+	 if (flags) {
+	     int i;
+	     
+	     oid[0] = 2;
+	     for (i = 1; i < 128; i++) {
+		 oid[i] = 4294967295UL;
+	     }
+	 } else {
+	     oid[0] = oid[1] = 0, oidlen = 2;
+	 }
+	 len = ber_len_oid(oid, oidlen);
 #endif
-	  break;
+	 break;
      case SMI_BASETYPE_OCTETSTRING:
      case SMI_BASETYPE_BITS:
-	  if (flags) {
-	       len = getMaxSize(indexType);
-	  } else {
-	       len = getMinSize(indexType);
+	 if (flags) {
+	     len = getMaxSize(indexType);
+	 } else {
+	     len = getMinSize(indexType);
+	 }
+	 if (! indexNode->implied) {
+	     oid[(*oidlen)++] = len;
+	 }
+	 for (i = 0; i < len && *oidlen < 128; i++) {
+	     oid[(*oidlen)++] = flags ? 255 : 0;
 	  }
-	  if (! indexNode->implied) {
-	       oid[(*oidlen)++] = len;
-	  }
-	  for (i = 0; i < len && *oidlen < 128; i++) {
-	       oid[(*oidlen)++] = flags ? 255 : 0;
-	  }
-	  break;
+	 break;
      case SMI_BASETYPE_ENUM:
-	  if (flags) {
-	       int32 = getAbsMaxEnum(indexType);
-	  } else {
-	       int32 = getAbsMinEnum(indexType);
-	  }
-	  oid[(*oidlen)++] = int32;
-	  break;
+	 if (flags) {
+	     int32 = getAbsMaxEnum(indexType);
+	 } else {
+	     int32 = getAbsMinEnum(indexType);
+	 }
+	 oid[(*oidlen)++] = int32;
+	 break;
      case SMI_BASETYPE_INTEGER32:
-	  if (flags) {
-	       int32 = getAbsMaxInteger32(indexType);
-	  } else {
-	       int32 = getAbsMinInteger32(indexType);
-	  }
-	  oid[(*oidlen)++] = int32;
-	  break;
+	 if (flags) {
+	     int32 = getAbsMaxInteger32(indexType);
+	 } else {
+	     int32 = getAbsMinInteger32(indexType);
+	 }
+	 oid[(*oidlen)++] = int32;
+	 break;
      case SMI_BASETYPE_UNSIGNED32:
-	  if (flags) {
-	       uint32 = getMaxUnsigned32(indexType);
-	  } else {
-	       uint32 = getMinUnsigned32(indexType);
-	  }
-	  oid[(*oidlen)++] = uint32;
-	  break;
+	 if (flags) {
+	     uint32 = getMaxUnsigned32(indexType);
+	 } else {
+	     uint32 = getMinUnsigned32(indexType);
+	 }
+	 oid[(*oidlen)++] = uint32;
+	 break;
+     case SMI_BASETYPE_UNKNOWN:
+     case SMI_BASETYPE_INTEGER64:
+     case SMI_BASETYPE_UNSIGNED64:
+     case SMI_BASETYPE_FLOAT32:
+     case SMI_BASETYPE_FLOAT64:
+     case SMI_BASETYPE_FLOAT128:
+	 /* should never really get here */
+	 break;
      }
 }
 
