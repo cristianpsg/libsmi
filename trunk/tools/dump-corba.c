@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.41 2001/11/08 07:37:31 schoenw Exp $
+ * @(#) $Id: dump-corba.c,v 1.42 2002/03/06 13:02:51 schoenw Exp $
  */
 
 #include <config.h>
@@ -529,24 +529,51 @@ static void createImportList(SmiModule *smiModule)
     SmiNode     *smiNode;
     SmiType     *smiType;
     SmiModule   *smiTypeModule;
-    SmiNodekind kind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
+    SmiElement  *smiElement;
+    SmiNode     *smiNodeIndex;
+    SmiNodekind kind = SMI_NODEKIND_SCALAR
+	 | SMI_NODEKIND_COLUMN | SMI_NODEKIND_ROW;
     
     for (smiNode = smiGetFirstNode(smiModule, kind);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, kind)) {
 
-	smiType = smiGetNodeType(smiNode);
-	if (smiType) {
-	    smiTypeModule = smiGetTypeModule(smiType);
-	    if (smiTypeModule &&
-		strcmp(smiTypeModule->name, smiModule->name)) {
-		if (strlen(smiTypeModule->name)) {
-		    addImport(smiTypeModule->name, smiType->name);
-		}
-	    }
-	    if (smiType->basetype == SMI_BASETYPE_INTEGER32) {
-		addImport("SNMPv2-SMI", "Integer32");
-	    }
+	 switch (smiNode->nodekind) {
+	 case SMI_NODEKIND_ROW:
+	      for (smiElement = smiGetFirstElement(smiNode); smiElement;
+		   smiElement = smiGetNextElement(smiElement)) {
+		   smiNodeIndex = smiGetElementNode(smiElement);
+		  smiType = smiGetNodeType(smiNodeIndex);
+		  if (smiType) {
+		      smiTypeModule = smiGetTypeModule(smiType);
+		      if (smiTypeModule &&
+			  strcmp(smiTypeModule->name, smiModule->name)) {
+			  if (strlen(smiTypeModule->name)) {
+			      addImport(smiTypeModule->name, smiType->name);
+			  }
+		      }
+		      if (smiType->basetype == SMI_BASETYPE_INTEGER32) {
+			   addImport("SNMPv2-SMI", "Integer32");
+		      }
+		  }
+	      }
+	      break;
+	 case SMI_NODEKIND_SCALAR:
+	 case SMI_NODEKIND_COLUMN:
+	      smiType = smiGetNodeType(smiNode);
+	      if (smiType) {
+		   smiTypeModule = smiGetTypeModule(smiType);
+		   if (smiTypeModule &&
+		       strcmp(smiTypeModule->name, smiModule->name)) {
+			if (strlen(smiTypeModule->name)) {
+			     addImport(smiTypeModule->name, smiType->name);
+			}
+		   }
+		   if (smiType->basetype == SMI_BASETYPE_INTEGER32) {
+			addImport("SNMPv2-SMI", "Integer32");
+		   }
+	      }
+	      break;
 	}
     }
 }
@@ -1095,21 +1122,24 @@ static void fprintConstructor(FILE *f, SmiNode *smiNode)
 
     /* First include the INDEXes as parameters to allow row creation
        for rows with not-accesible index objects. */
-    
-    for (smiElement = smiGetFirstElement(smiNode);
-	 smiElement; smiElement = smiGetNextElement(smiElement)) {
-	cnt++;
-	indexNode = smiGetElementNode(smiElement);
-	idlChildNodeName =
-	    getIdlNodeName(smiGetNodeModule(indexNode)->name,
-			   indexNode->name);
-	smiType = smiGetNodeType(indexNode);
-	idlChildTypeName = getIdlAnyTypeName(indexNode, smiType);
-	if (cnt > 1) {
-	    fprint(f, ",\n");
-	}
-	fprintSegment(f, 3*INDENT, "in ", 0);
-	fprint(f, "%s %s", idlChildTypeName, idlChildNodeName);
+
+    if (smiNode->indexkind == SMI_INDEX_INDEX
+	|| smiNode->indexkind == SMI_INDEX_REORDER) {
+	 for (smiElement = smiGetFirstElement(smiNode);
+	      smiElement; smiElement = smiGetNextElement(smiElement)) {
+	      cnt++;
+	      indexNode = smiGetElementNode(smiElement);
+	      idlChildNodeName =
+		   getIdlNodeName(smiGetNodeModule(indexNode)->name,
+				  indexNode->name);
+	      smiType = smiGetNodeType(indexNode);
+	      idlChildTypeName = getIdlAnyTypeName(indexNode, smiType);
+	      if (cnt > 1) {
+		   fprint(f, ",\n");
+	      }
+	      fprintSegment(f, 3*INDENT, "in ", 0);
+	      fprint(f, "%s %s", idlChildTypeName, idlChildNodeName);
+	 }
     }
     
     for (childNode = smiGetFirstChildNode(smiNode);
@@ -1123,12 +1153,15 @@ static void fprintConstructor(FILE *f, SmiNode *smiNode)
 
 	    /* Test if this column is already used as parameter
 	       because it is an INDEX of the row. */
-	    
-	    for (smiElement = smiGetFirstElement(smiNode);
-		 smiElement; smiElement = smiGetNextElement(smiElement)) {
-		indexNode = smiGetElementNode(smiElement);
-		if (indexNode == childNode) {
-		    break;
+
+	    if (childNode->nodekind == SMI_NODEKIND_SCALAR
+		|| childNode->nodekind == SMI_NODEKIND_COLUMN) {
+		for (smiElement = smiGetFirstElement(smiNode);
+		    smiElement; smiElement = smiGetNextElement(smiElement)) {
+		    indexNode = smiGetElementNode(smiElement);
+		    if (indexNode == childNode) {
+			break;
+		    }
 		}
 	    }
 
