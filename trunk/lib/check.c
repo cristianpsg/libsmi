@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.23 2001/08/22 15:40:09 strauss Exp $
+ * @(#) $Id: check.c,v 1.24 2001/08/22 17:51:42 strauss Exp $
  */
 
 #include <config.h>
@@ -925,7 +925,8 @@ smiCheckDefault(Parser *parser, Object *object)
 {
     List *p, *nextPtr;
     
-    if (object->export.value.basetype != SMI_BASETYPE_UNKNOWN) {
+    if (object->export.value.basetype != SMI_BASETYPE_UNKNOWN
+	&& object->typePtr) {
 
 	/*
 	 * If defval type and object type don't match, check whether
