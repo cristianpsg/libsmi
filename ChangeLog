@@ -1,3 +1,8 @@
+2000-05-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-metrics.c: New output format supplied by Juergen.
+	It prints metrics of MIB modules.
+
 2000-05-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-smi.c (printNotifications): fixed determination of

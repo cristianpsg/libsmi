@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.9 2000/04/12 11:32:41 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.10 2000/05/02 12:57:17 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -23,7 +23,10 @@
 
 #define SMIDUMP_FLAG_SILENT	0x01
 #define SMIDUMP_FLAG_UNITE	0x02
-
+#define SMIDUMP_FLAG_CURRENT	0x04
+#define SMIDUMP_FLAG_DEPRECATED	0x08
+#define SMIDUMP_FLAG_OBSOLETE	0x08
+#define SMIDUMP_FLAG_COMPACT	0x10
 
 /*
  * The output drivers that currently exist for smidump.
@@ -50,6 +53,8 @@ extern int dumpUcdC(char *modulename, int flags);
 extern int dumpJax(char *modulename, int flags);
 
 extern int dumpXml(char *modulename, int flags);
+
+extern int dumpMetrics(char *modulename, int flags);
 
 extern int dumpFigTree(char *modulename, int flags);
 extern int dumpFigUml(char *modulename, int flags);

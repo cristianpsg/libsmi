@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.14 2000/04/10 14:20:27 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.15 2000/05/02 12:57:17 strauss Exp $
  */
 
 /*
@@ -569,7 +569,7 @@ static void printTypedef(SmiNode *groupNode)
 	    cName = translate(smiNode->name);
 	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		printf("    u_int32_t %s[%u];\n", cName, getMaxSize(smiType));
+		printf("    uint32_t  %s[%u];\n", cName, getMaxSize(smiType));
 		printf("    size_t    _%sLength;\n", cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
@@ -582,7 +582,7 @@ static void printTypedef(SmiNode *groupNode)
 		printf("    int32_t   %s;\n", cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
-		printf("    u_int32_t %s;\n", cName);
+		printf("    uint32_t  %s;\n", cName);
 		break;
 	    default:
 		printf("    /* add code to return the value here */\n");
@@ -682,6 +682,10 @@ int dumpUcdH(char *modulename, int flags)
     printf("#define _%s_H_\n\n", cModuleName);
 
     printf("#include <stdlib.h>\n\n");
+
+    printf("#ifdef HAVE_STDINT_H\n"
+	   "#include <stdint.h>\n"
+	   "#endif\n\n");
 
     printf("/*\n"
 	   " * Initialization function:\n"

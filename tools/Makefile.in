@@ -115,7 +115,7 @@ smiquery_LDADD = ../lib/libsmi.la
 smilint_SOURCES = smilint.c
 smilint_LDADD = ../lib/libsmi.la
 
-smidump_SOURCES = smidump.c smidump.h dump-sming.c dump-smi.c 			  dump-imports.c dump-types.c dump-tree.c 			  dump-mosy.c dump-corba.c dump-ucdsnmp.c 			  dump-jax.c dump-xml.c dump-cm.c
+smidump_SOURCES = smidump.c smidump.h dump-sming.c dump-smi.c 			  dump-imports.c dump-types.c dump-tree.c 			  dump-mosy.c dump-corba.c dump-ucdsnmp.c 			  dump-jax.c dump-xml.c dump-metrics.c dump-cm.c
 
 #			  dump-fig.c
 smidump_LDADD = ../lib/libsmi.la
@@ -138,7 +138,7 @@ smilint_DEPENDENCIES =  ../lib/libsmi.la
 smilint_LDFLAGS = 
 smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-imports.o \
 dump-types.o dump-tree.o dump-mosy.o dump-corba.o dump-ucdsnmp.o \
-dump-jax.o dump-xml.o dump-cm.o
+dump-jax.o dump-xml.o dump-metrics.o dump-cm.o
 smidump_DEPENDENCIES =  ../lib/libsmi.la
 smidump_LDFLAGS = 
 SCRIPTS =  $(bin_SCRIPTS)
@@ -160,9 +160,10 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-cm.P .deps/dump-corba.P .deps/dump-imports.P \
-.deps/dump-jax.P .deps/dump-mosy.P .deps/dump-smi.P .deps/dump-sming.P \
-.deps/dump-tree.P .deps/dump-types.P .deps/dump-ucdsnmp.P \
-.deps/dump-xml.P .deps/smidump.P .deps/smilint.P .deps/smiquery.P
+.deps/dump-jax.P .deps/dump-metrics.P .deps/dump-mosy.P \
+.deps/dump-smi.P .deps/dump-sming.P .deps/dump-tree.P \
+.deps/dump-types.P .deps/dump-ucdsnmp.P .deps/dump-xml.P \
+.deps/smidump.P .deps/smilint.P .deps/smiquery.P
 SOURCES = $(smiquery_SOURCES) $(smilint_SOURCES) $(smidump_SOURCES)
 OBJECTS = $(smiquery_OBJECTS) $(smilint_OBJECTS) $(smidump_OBJECTS)
 
