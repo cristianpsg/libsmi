@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.c,v 1.3 1999/03/23 22:55:42 strauss Exp $
+ * @(#) $Id: dump-data.c,v 1.4 1999/03/29 14:02:28 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -54,20 +54,6 @@ dumpSubTree(subRootPtr, prefix)
 		    }
 		}
 	    }
-#if 0
-	    if (subRootPtr->firstObjectPtr->type &&
-		subRootPtr->firstObjectPtr->type->descriptor) {
-		fprintf(stderr, "  [%s]",
-			subRootPtr->firstObjectPtr->type->descriptor->name);
-	    } else {
-		if (subRootPtr->firstObjectPtr->type &&
-		    subRootPtr->firstObjectPtr->type->parent &&
-		    subRootPtr->firstObjectPtr->type->parent->descriptor) {
-		    fprintf(stderr, "  [[%s]]",
-			    subRootPtr->firstObjectPtr->typePtr->parentPtr->name);
-		}
-	    }
-#endif
 	    fprintf(stderr, "\n");
 	}
 	for (n = subRootPtr->firstChildPtr; n; n = n->nextPtr) {
@@ -99,12 +85,10 @@ dumpTypes()
 	modulePtr = findModuleByName(viewPtr->name);
 	for (typePtr = modulePtr->firstTypePtr;
 	     typePtr; typePtr = typePtr->nextPtr) {
-	    printf("%s%s%s syntax:%s status:%s\n",
+	    printf("%s%s%s\n",
 		   typePtr->modulePtr->name ? typePtr->modulePtr->name : "-",
 		   SMI_NAMESPACE_OPERATOR,
-		   typePtr->name ? typePtr->name : "-",
-		   smiStringBasetype(typePtr->basetype),
-		   smiStringStatus(typePtr->status));
+		   typePtr->name ? typePtr->name : "-");
 	}
     }
 }

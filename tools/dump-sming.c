@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.25 1999/05/04 09:00:53 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.26 1999/05/04 23:27:03 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "smi.h"
 #include "util.h"
@@ -33,6 +34,52 @@
 #define  INDENTMAX	64   /* max column to fill, break lines otherwise */
 
 #define  STYLE_IMPORTS  2
+
+
+
+char *
+smingStringStatus(status)
+    SmiStatus status;
+{
+    return
+	(status == SMI_STATUS_CURRENT)     ? "current" :
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
+	(status == SMI_STATUS_MANDATORY)   ? "current" :
+	(status == SMI_STATUS_OPTIONAL)    ? "current" :
+					     "<unknown>";
+}
+
+
+
+char *
+smingStringAccess(access)
+    SmiAccess access;
+{
+    return
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
+	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
+	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
+	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
+	(access == SMI_ACCESS_READ_CREATE)    ? "readwrite" :
+						"<unknown>";
+}
+
+
+
+char *
+smingCTime(t)
+    time_t t;
+{
+    static char   s[27];
+    struct tm	  *tm;
+
+    tm = gmtime(&t);
+    sprintf(s, "%04d-%02d-%02d %02d:%02d",
+	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	    tm->tm_hour, tm->tm_min);
+    return s;
+}
 
 
 

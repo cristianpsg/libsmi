@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.15 1999/05/04 23:27:02 strauss Exp $
+ * @(#) $Id: smi.h,v 1.16 1999/05/05 09:15:42 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -20,7 +20,7 @@
 
 
 
-#define SMI_CONFIG_FILE         "/usr/local/etc/smi.conf"
+#define SMI_PATH                "/usr/local/lib/smi"
 
 #define SMI_NAMESPACE_OPERATOR  "::"
 
@@ -100,7 +100,7 @@ typedef enum SmiAccess {
 
 /* SmiDecl -- type or statement that leads to a definition                   */
 typedef enum SmiDecl {
-    SMI_DECL_UNKNOWN            = 0,  /* shout not occur                     */
+    SMI_DECL_UNKNOWN            = 0,  /* should not occur                    */
     /* SMIv1/V2 ASN.1 statements and macros */
     SMI_DECL_TYPEASSIGNMENT     = 1,
     SMI_DECL_VALUEASSIGNMENT    = 2,
@@ -142,6 +142,12 @@ typedef struct SmiRevision {
     time_t              date;
     char                *description;
 } SmiRevision;
+
+/* SmiImport -- an imported descriptor                                       */
+typedef struct SmiImport {
+    char                *name;
+    char                *module;
+} SmiImport;
 
 /* SmiValue -- any single value; for use in default values and subtyping     */
 typedef struct SmiValue {
@@ -248,27 +254,9 @@ typedef struct SmiMacro {
 
 
 
-extern char *smingStringStatus(SmiStatus status);
-
-extern char *smiStringStatus(SmiStatus status);
-
-extern char *smingStringAccess(SmiAccess access);
-
-extern char *smiStringAccess(SmiAccess access);
-
-extern char *smiStringDecl(SmiDecl macro);
-
-extern char *smiStringBasetype(SmiBasetype basetype);
-
 extern char *smiModule(char *fullname);
 
 extern char *smiDescriptor(char *fullname);
-
-extern time_t smiMkTime(const char *s);
-
-extern char *smiCTime(time_t t);
-
-extern char *smingCTime(time_t t);
 
 
 
@@ -278,75 +266,89 @@ extern void smiSetDebugLevel(int level);
 
 extern void smiSetErrorLevel(int level);
 
-extern void smiSetFlags(int userflags);
-
 extern int smiGetFlags();
 
-extern int smiReadConfig(const char *file);
+extern void smiSetFlags(int userflags);
 
-extern int smiAddLocation(const char *location);
+extern int smiGetPath(const char *path);
 
-extern int smiLoadModule(char *modulename);
+extern int smiSetPath(const char *path);
+
+extern int smiLoadModule(char *module);
 
 
 
-extern SmiModule *smiGetModule(char *spec);
+extern SmiModule *smiGetModule(char *module);
 
+extern SmiModule *smiGetFirstModule();
+
+extern SmiModule *smiGetNextModule(char *module);
+      
 extern void smiFreeModule(SmiModule *smiModulePtr);
 
-extern char **smiGetImports(char *modulename);
+extern SmiImport *smiGetFirstImport(char *module);
 
-extern int smiIsImported(char *modulename,
-                         char *fullname);
+extern SmiImport *smiGetNextImport(char *module,
+				   char *importmodule, char *importname);
 
-extern SmiRevision *smiGetFirstRevision(char *modulename);
+extern void smiFreeImport(SmiImport *smiImportPtr);
 
-extern SmiRevision *smiGetNextRevision(char *modulename,
-                                       time_t date);
+extern int smiIsImported(char *module, char *importmodule, char *importname);
+
+extern SmiRevision *smiGetFirstRevision(char *module);
+
+extern SmiRevision *smiGetNextRevision(char *module, time_t date);
 
 extern void smiFreeRevision(SmiRevision *smiRevisionPtr);
 
 
 
-extern SmiType *smiGetType(char *spec,
-                           char *mod);
+extern SmiType *smiGetType(char *module, char *type);
 
-extern SmiType *smiGetFirstType(char *modulename);
+extern SmiType *smiGetFirstType(char *module);
 
-extern SmiType *smiGetNextType(char *modulename,
-                               char *name);
+extern SmiType *smiGetNextType(char *module, char *type);
 
 extern void smiFreeType(SmiType *smiTypePtr);
 
+extern SmiType *smiGetFirstRange(char *module, char *type);
+
+extern SmiType *smiGetNextRange(char *module, char *type, void *min XXX );
+
+extern SmiType *smiGetFirstNamedNumber(char *module, char *type);
+
+extern SmiType *smiGetNextNamedNumber(char *module, char *type, char *name);
 
 
-extern SmiMacro *smiGetMacro(char *spec,
-                             char *mod);
+
+extern SmiMacro *smiGetMacro(char *module, char *macro);
+
+extern SmiMacro *smiGetFirstMacro(char *module);
+
+extern SmiMacro *smiGetNextMacro(char *module, char *macro);
 
 extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
 
 
-extern SmiNode *smiGetNode(char *spec,
-                           char *mod);
+extern SmiNode *smiGetNode(char *module, char *name);
 
-extern SmiNode *smiGetFirstNode(char *modulename);
+extern SmiNode *smiGetFirstNode(char *module, SmiDecl decl);
 
-extern SmiNode *smiGetNextNode(char *modulename,
-                               char *name);
+extern SmiNode *smiGetNextNode(char *module, char *name, SmiDecl decl);
+
+extern SmiNode *smiGetParentNode(char *module, char *name);
+
+extern SmiNode *smiGetFirstChildNode(char *module, char *name);
+
+extern SmiNode *smiGetNextChildNode(char *module, char *name,
+				    char *childmodule, char *childname);
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 
 
 
-extern char **smiGetNames(char *spec,
-                          char *mod);
-
-extern char *smiGetParent(char *spec,
-                          char *mod);
-
-extern char **smiGetChildren(char *spec,
-                             char *mod);
+/* extern char **smiGetNames(char *spec, char *mod); */
 
 
 
