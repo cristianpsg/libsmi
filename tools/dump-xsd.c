@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.20 2002/03/18 16:50:00 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.21 2002/03/20 16:08:06 tklie Exp $
  */
 
 #include <config.h>
@@ -32,7 +32,8 @@
 
 /* xxx let the user configure this with command-line args */
 #define DXSD_MIBPREFIX "if"
-#define DXSD_SCHEMALOCATION "http://www.ibr.cs.tu-bs.de/~tklie/"
+
+static char *schemaLocation = "http://www.ibr.cs.tu-bs.de/~tklie/";
 
 typedef struct XmlEscape {
     char character;
@@ -741,36 +742,64 @@ static int hasChildren( SmiNode *smiNode, SmiNodekind nodekind )
     return childNodeCount;
 }
 
-static void fprintIndex( FILE *f, int indent, SmiNode *smiNode )
+static void fprintIndexAttr( FILE *f, int indent, SmiNode *smiNode,
+			     SmiNode *augments )
+{
+    char *typeName, *prefix;
+    SmiType *smiType;
+
+    smiType = smiGetNodeType( smiNode );
+    if( !smiType ) {
+/*	fprint( f, "<!-- error: no type in %s -->\n", smiNode->name );*/
+	return;
+    }
+    
+    typeName = smiType->name ?
+	smiType->name :
+	getStringBasetype( smiType->basetype );
+    prefix = getTypePrefix( typeName );
+    
+    fprintSegment( f, indent, "<xsd:attribute", 0 );
+    fprint( f, " name=\"%s\"", smiNode->name );
+    if( prefix ) {
+	fprint( f, " type=\"%s:%s\">\n", prefix, typeName );
+    }
+    else {
+	fprint( f, " type=\"%s\">\n", typeName );
+    }
+        
+    if( augments ) {
+	fprintSegment( f, indent + INDENT, "<appinfo>\n", 0 );
+	fprintSegment( f, indent + 2 * INDENT, "<augments>", 0 );
+	fprint( f, "%s</augments>\n", augments->name );
+	fprintSegment( f, indent + INDENT, "</appinfo>", 0 );
+    }
+    else {
+	fprintAnnotationElem( f, indent + INDENT, smiNode );
+    }
+    fprintSegment( f, indent, "</xsd:attribute>\n", 0 ); 
+}
+
+
+
+static void fprintIndex( FILE *f, int indent, SmiNode *smiNode,
+			 SmiNode *augments )
 {
     SmiNode *iterNode;
     SmiElement *iterElem;
-    SmiType *smiType;
-    char *typeName, *prefix;
-
+  
+    /* iterate INDEX columns */
     for( iterElem = smiGetFirstElement( smiNode );
 	 iterElem;
 	 iterElem = smiGetNextElement( iterElem ) ) {
 	iterNode = smiGetElementNode( iterElem );
-	smiType = smiGetNodeType( iterNode );
-	typeName = smiType->name ?
-	    smiType->name :
-	    getStringBasetype( smiType->basetype );
-	prefix = getTypePrefix( typeName );
+	fprintIndexAttr( f, indent, iterNode, augments );
+    }
 
-	fprintSegment( f, indent, "<xsd:attribute", 0 );
-	fprint( f, " name=\"%s\"", iterNode->name );
-	if( prefix ) {
-	    fprint( f, " type=\"%s:%s\">\n", prefix, typeName );
-	}
-	else {
-	    fprint( f, " type=\"%s\">\n", typeName );
-	}
-		
-	
-	fprintAnnotationElem( f, indent + INDENT, smiNode );
-	fprintSegment( f, indent, "</xsd:attribute>\n", 0 ); 
-	break;
+    /* print AUGMENTS-clause */
+    iterNode = smiGetRelatedNode( smiNode );
+    if( iterNode ) {
+	fprintIndex( f, indent, iterNode, iterNode );
     }
 }
 
@@ -805,7 +834,7 @@ static void fprintComplexType( FILE *f, int indent,
     if( numChildren ) {
 	fprintSegment( f, indent + INDENT, "</xsd:sequence>\n", 0 );
     }
-    fprintIndex( f, indent + INDENT, smiNode );
+    fprintIndex( f, indent + INDENT, smiNode, NULL );
     
     fprintSegment( f, indent, "</xsd:complexType>\n", 0 );
     if( name ) {
@@ -831,15 +860,6 @@ static void fprintElement( FILE *f, int indent,
 	SmiType *smiType;
 
     case SMI_NODEKIND_NODE :
-#ifdef _SMI_DUMP_XSD_OLD
-	if( hasChildren( smiNode, !SMI_NODEKIND_NODE & SMI_NODEKIND_ANY ) ) {
-	    fprint( f, "CCCC\n" );
-	}
-
-	fprintSegment( f, indent, "<xsd:element", 0 );
-	fprint( f, " name=\"%s\" type=\"%sType\"/>\n",
-		smiNode->name, smiNode->name );
-#else
 	{
 	    SmiNode *iterNode;
 	    int moreIndent;
@@ -867,7 +887,6 @@ static void fprintElement( FILE *f, int indent,
 	    fprintSegment( f, indent + INDENT, "</xsd:complexType>\n", 0 );
 	    fprintSegment( f, indent, "</xsd:element>\n", 0 );
 	}
-#endif /* #ifdef _SMI_DUMP_XSD_OLD */
 	break;
 
     case SMI_NODEKIND_TABLE :
@@ -886,16 +905,12 @@ static void fprintElement( FILE *f, int indent,
     case SMI_NODEKIND_ROW :
 	fprintSegment( f, indent, "<xsd:element", 0 );
 	fprint( f, " name=\"%s\"",  smiNode->name );
-#ifdef _SMI_DUMP_XSD_OLD
-	fprint( f, " type=\"%sType\"", smiNode->name );
-#endif
 	fprint( f, " minOccurs=\"0\" maxOccurs=\"unbounded\">\n" );
 
 	fprintAnnotationElem( f, indent + INDENT, smiNode );
-#ifndef _SMI_DUMP_XSD_OLD
+
 	fprintComplexType( f, indent + INDENT, smiNode,
 			   DXSD_MIBPREFIX, NULL );
-#endif
 	fprintSegment( f, indent, "</xsd:element>\n", 0 );
 	break;
 	
@@ -972,49 +987,6 @@ static void fprintElement( FILE *f, int indent,
 }
 
 
-#ifdef _SMI_DUMP_XSD_OLD
-static void fprintNodes(FILE *f, SmiModule *smiModule)
-{
-    SmiNode *iterNode;
-    unsigned int oidlen = 99999999;
-
-    /* print root node */
-    fprintSegment( f, INDENT, "<xsd:element ", 0 );
-    fprint( f, "name=\"%s\">\n", smiModule->name );
-    fprintSegment( f, 2 * INDENT, "<xsd:complexType>\n", 0 );
-    fprintSegment( f, 3* INDENT, "<xsd:sequence>\n", 0 );
-    
-    /* print child elements */
-    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NODE );
-	 iterNode;
-	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
-	if( oidlen >= iterNode->oidlen ) {
-	    /* skip child nodes here */
-	    oidlen = iterNode->oidlen;
-	    fprintElement( f, 4 * INDENT, iterNode, DXSD_MIBPREFIX );
-	}
-    }
-    
-    fprintSegment( f, 3 * INDENT, "</xsd:sequence>\n", 0 );
-    fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
-    fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
-
-    /* print typedefs for child elements */
-    oidlen = 99999999;
-    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NODE );
-	 iterNode;
-	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
-
-	if( oidlen >= iterNode->oidlen ) {
-	    /* skip child nodes here */
-	    oidlen = iterNode->oidlen;
-	    fprintComplexType( f, INDENT, iterNode,
-			       DXSD_MIBPREFIX, iterNode->name );
-	}
-    }
-}
-#endif /* #ifdef _SMI_DUMP_XSD_OLD */
-
 static void fprintRows( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode;
@@ -1023,13 +995,7 @@ static void fprintRows( FILE *f, SmiModule *smiModule )
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
-#ifdef _SMI_DUMP_XSD_OLD
-	    /* skip groups */
-	    fprintComplexType( f, INDENT, iterNode,
-			       DXSD_MIBPREFIX, iterNode->name );
-#else
 	    fprintElement( f, 5 * INDENT, iterNode, DXSD_MIBPREFIX );
-#endif /* #ifdef _SMI_DUMP_XSD_OLD */
 	}
     }
 }
@@ -1068,15 +1034,15 @@ static void fprintImports( FILE *f, int indent, SmiModule *smiModule )
 	if( strcmp( iterImp->module, lastModName ) ) {
 	    fprintSegment( f, indent, "<xsd:import ", 0 );
 	    fprint( f, "namespace=\"%s%s\" schemaLocation=\"%s%s.xsd\"/>\n",
-		    DXSD_SCHEMALOCATION, iterImp->module,
-		    DXSD_SCHEMALOCATION, iterImp->module );
+		    schemaLocation, iterImp->module,
+		    schemaLocation, iterImp->module );
 	}
 	lastModName = iterImp->module;
     }
     fprintSegment( f, indent, "<xsd:import namespace=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"/>\n\n", 0 );
 }
 
-#ifndef _SMI_DUMP_XSD_OLD
+
 static void fprintNodes( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode;
@@ -1100,7 +1066,7 @@ static void fprintNotifications( FILE *f, SmiModule *smiModule )
 	fprintElement( f, 5 * INDENT, iterNode, DXSD_MIBPREFIX );
     }
 }
-#endif /* #ifndef _SMI_DUMP_XSD_OLD */
+
 
 static void fprintModule(FILE *f, SmiModule *smiModule)
 {
@@ -1111,10 +1077,7 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     }
     
     fprintImports(f, INDENT, smiModule);
-#ifdef _SMI_DUMP_XSD_OLD
-    fprintNodes(f, smiModule);
-    fprintRows( f, smiModule );
-#else
+
     /* print root node */
     fprintSegment( f, INDENT, "<xsd:element ", 0 );
     fprint( f, "name=\"%s\">\n", smiModule->name );
@@ -1130,7 +1093,7 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintSegment( f, 3 * INDENT, "</xsd:choice>\n", 0 );
     fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
     fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
-#endif
+
     fprintBits(f, smiModule);
 }
 
@@ -1175,10 +1138,10 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
     
     fprint(f,
 	   "<xsd:schema targetNamespace=\"%s%s.xsd\"\n",
-	   DXSD_SCHEMALOCATION, smiModule->name);
+	   schemaLocation, smiModule->name);
     
     fprint(f, "            xmlns=\"%s%s.xsd\"\n",
-	   DXSD_SCHEMALOCATION, smiModule->name);
+	   schemaLocation, smiModule->name);
     fprint(f, "            xmlns:xml=\"http://www.w3.org/XML/1998/namespace\"\n");
     fprint(f, "            xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
     fprint(f, "            xmlns:smi=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"\n");
@@ -1190,7 +1153,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
 	/* assume imports to be ordered by module names */
 	if( strcmp( iterImp->module, lastModName ) ) {
 	    fprint( f, "            xmlns:%s=\"%s%s\"\n",
-		    iterImp->module, DXSD_SCHEMALOCATION, iterImp->module );
+		    iterImp->module, schemaLocation, iterImp->module );
 	}
 	lastModName = iterImp->module;
     }
@@ -1222,6 +1185,11 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 	registerType( "Integer32","smi" );
 	registerType( "ObjectIdentifier", "smi" );
 	registerType( "OctetString", "smi" );
+
+	/* make sure url ends with '/' */
+	if( schemaLocation[ strlen( schemaLocation ) - 1 ] != '/' ) {
+	    strcat( schemaLocation, "/" );
+	}
 	
 	fprint(f, "<?xml version=\"1.0\"?>\n"); 
 	fprint(f, "<!-- This module has been generated by smidump "
@@ -1248,6 +1216,12 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 
 void initXsd()
 {
+
+    static SmidumpDriverOption opt[] = {
+	{ "schema-url", OPT_STRING, &schemaLocation, 0,
+	  "The URL where the imported MIB modules reside" },
+	{ 0, OPT_END, 0, 0 }
+    };
     
     static SmidumpDriver driver = {
 	"xsd",
@@ -1255,7 +1229,7 @@ void initXsd()
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE,
 	"XML schema definitions",
-	NULL,
+	opt,
 	NULL
     };
     
