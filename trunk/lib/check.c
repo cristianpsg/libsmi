@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.28 2001/11/23 15:44:21 strauss Exp $
+ * @(#) $Id: check.c,v 1.29 2001/11/25 12:47:02 strauss Exp $
  */
 
 #include <config.h>
@@ -769,17 +769,19 @@ smiCheckIndex(Parser *parser, Object *object)
 	    maxSize = -1;
 	    if (! rTypePtr) {
 		if (object->modulePtr != indexPtr->modulePtr) {
-		    smiPrintErrorAtLine(parser, ERR_INDEX_NO_SIZE_MOD,
+		    smiPrintErrorAtLine(parser, ERR_INDEX_STRING_NO_SIZE_MOD,
 					object->line,
 					indexPtr->modulePtr->export.name,
 					indexPtr->export.name,
 					object->export.name);
 		} else {
-		    smiPrintErrorAtLine(parser, ERR_INDEX_NO_SIZE,
+		    smiPrintErrorAtLine(parser, ERR_INDEX_STRING_NO_SIZE,
 					indexPtr->line,
 					indexPtr->export.name,
 					object->export.name);
 		}
+		minSize = 0;
+		maxSize = 65535;
 	    } else {
 	        for (list2Ptr = rTypePtr->listPtr;
 		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
@@ -799,11 +801,25 @@ smiCheckIndex(Parser *parser, Object *object)
 		}
 	    }
 	    len += maxSize;
-	    if (!indexPtr->export.implied && minSize != maxSize) {
-		len++;
+	    if (minSize != maxSize) {
+		if (! (object->export.implied && (! listPtr->nextPtr))) {
+		    len++;
+		}
 	    }
 	    break;
 	case SMI_BASETYPE_OBJECTIDENTIFIER:
+	    if (object->modulePtr != indexPtr->modulePtr) {
+		smiPrintErrorAtLine(parser, ERR_INDEX_OID_NO_SIZE_MOD,
+				    object->line,
+				    indexPtr->modulePtr->export.name,
+				    indexPtr->export.name,
+				    object->export.name);
+	    } else {
+		smiPrintErrorAtLine(parser, ERR_INDEX_OID_NO_SIZE,
+				    indexPtr->line,
+				    indexPtr->export.name,
+				    object->export.name);
+	    }
 	    len += 128;
 	    if (!indexPtr->export.implied) {
 		len++;
@@ -845,6 +861,13 @@ smiCheckIndex(Parser *parser, Object *object)
 	    break;
 	}
 
+	if (indexPtr->export.value.basetype != SMI_BASETYPE_UNKNOWN) {
+	    smiPrintErrorAtLine(parser, ERR_INDEX_DEFVAL,
+				indexPtr->line,
+				indexPtr->export.name,
+				object->export.name);
+	}
+
 	/*
 	 * TODO: If SMIv2 or SMIng and if there is a non-index column,
 	 * then warn about not not-accessible index components.
@@ -859,7 +882,8 @@ smiCheckIndex(Parser *parser, Object *object)
 
     if (object->export.oidlen + 1 + len > 128) {
 	smiPrintErrorAtLine(parser, ERR_INDEX_TOO_LARGE, object->line,
-			    object->export.name);
+			    object->export.name,
+			    (object->export.oidlen + 1 + len) - 128);
     }
 }
 
