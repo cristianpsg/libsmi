@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.59 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.60 2000/11/29 16:35:27 strauss Exp $
  */
 
 #include <config.h>
@@ -338,7 +338,6 @@ int main(int argc, char *argv[])
     SmiElement *element;
     char *command, *name, *p;
     int flags, i;
-    char c;
     char s1[40], s2[40];
 
     static optStruct opt[] = {

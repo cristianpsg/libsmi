@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.35 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.36 2000/11/29 16:35:27 strauss Exp $
  */
 
 #include <config.h>
@@ -158,7 +158,6 @@ errorHandler(char *path, int line, int severity, char *msg, char *tag)
 
 int main(int argc, char *argv[])
 {
-    char c;
     int i;
 
     static optStruct opt[] = {

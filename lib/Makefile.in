@@ -77,7 +77,6 @@ AWK = @AWK@
 BASH = @BASH@
 BISON = @BISON@
 CC = @CC@
-CFLAGS = @CFLAGS@
 DIFF = @DIFF@
 DLLTOOL = @DLLTOOL@
 EXEEXT = @EXEEXT@
@@ -102,6 +101,7 @@ UINT64_TYPE = @UINT64_TYPE@
 VERSION = @VERSION@
 VERSION_LIBTOOL = @VERSION_LIBTOOL@
 VERSION_STRING = @VERSION_STRING@
+YYERROR_VERBOSE = @YYERROR_VERBOSE@
 mibdir = @mibdir@
 smipath = @smipath@
 
@@ -115,6 +115,7 @@ lib_LTLIBRARIES = libsmi.la
 libsmi_la_SOURCES = data.c check.c error.c util.c smi.c 		  	  parser-smi.tab.c scanner-smi.c 		  	  parser-sming.tab.c scanner-sming.c
 
 libsmi_la_LDFLAGS = -version-info @VERSION_LIBTOOL@
+CFLAGS = @CFLAGS@ @YYERROR_VERBOSE@
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES =  smi.h libsmi.3 smi_macro.3 smi_module.3 smi_node.3 \

@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.88 2000/11/29 16:34:45 strauss Exp $
+# @(#) $Id: configure.in,v 1.89 2000/12/04 12:47:23 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -53,6 +53,10 @@ AC_TRY_RUN([#include <stdio.h>
 ], ADDCFLAGS="-DYY_USE_PROTOS", ADDCFLAGS="", ADDCFLAGS="")
 echo $ADDCFLAGS
 CFLAGS="$CFLAGS $ADDCFLAGS"
+
+AC_ARG_WITH(yyerror-verbose,
+[  --with-yyerror-verbose  print verbose parser errors],
+YYERROR_VERBOSE=-DYYERROR_VERBOSE)
 
 AC_CHECK_FUNCS(strtoll strtoull strtoq strtouq)
 
@@ -216,6 +220,7 @@ AC_SUBST(AWK)
 AC_SUBST(DIFF)
 AC_SUBST(CC)
 AC_SUBST(CFLAGS)
+AC_SUBST(YYERROR_VERBOSE)
 AC_SUBST(mibdir)
 AC_SUBST(smipath)
 
