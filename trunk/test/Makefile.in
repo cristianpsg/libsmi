@@ -383,6 +383,12 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 clean-local:
 	rm -rf *.out
 
+sync-dumps:
+	echo "I hope you know, what you are doing..." ; sleep 5
+	for f in *.out/*.corba-idl *.out/*.corba-oid *.out/*.imports *.out/*.mosy *.out/*.sming *.out/*.smiv1 *.out/*.smiv2 *.out/*.diff *.out/*.smiv2.lint *.out/*.tree *.out/*.types ; do \
+	    cmp -s $$f dumps/`basename $$f` || cp $$f dumps/`basename $$f` ; \
+	done
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

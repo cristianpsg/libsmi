@@ -1,3 +1,8 @@
+2000-05-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* test/Makefile.am: removed GNU specific diff options
+	from check scripts.
+
 2000-05-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c (setObjectName): fixed crashes on unresolved

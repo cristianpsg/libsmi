@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.12 2000/01/27 09:45:10 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.13 2000/02/11 11:08:31 strauss Exp $
 #
 
 TESTMIBTOPDIR		= ../mibs
@@ -37,3 +37,10 @@ SUBDIRS                 = mibs dumps
 
 clean-local:
 	rm -rf *.out
+
+sync-dumps:
+	echo "I hope you know, what you are doing..." ; sleep 5
+	for f in *.out/*.corba-idl *.out/*.corba-oid *.out/*.imports *.out/*.mosy *.out/*.sming *.out/*.smiv1 *.out/*.smiv2 *.out/*.diff *.out/*.smiv2.lint *.out/*.tree *.out/*.types ; do \
+	    cmp -s $$f dumps/`basename $$f` || cp $$f dumps/`basename $$f` ; \
+	done
+	
