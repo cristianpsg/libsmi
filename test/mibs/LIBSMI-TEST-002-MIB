@@ -35,7 +35,7 @@ libsmiTest002Mib MODULE-IDENTITY
 	     definition.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-002-MIB:11: MODULE-IDENTITY clause must be the first declaration in a module
+LIBSMI-TEST-002-MIB:11: warning: MODULE-IDENTITY clause must be the first declaration in a module
 	     "
     REVISION        "199906101500Z"
     DESCRIPTION     

@@ -34,7 +34,7 @@ libsmiTest003Mib MODULE-IDENTITY
 
 	     The libsmi parser is expected to report:
 LIBSMI-TEST-003-MIB:44: more than one MODULE-IDENTITY clause in SMIv2 MIB
-LIBSMI-TEST-003-MIB:44: MODULE-IDENTITY clause must be the first declaration in a module
+LIBSMI-TEST-003-MIB:44: warning: MODULE-IDENTITY clause must be the first declaration in a module
 	     "
     REVISION        "199906101500Z"
     DESCRIPTION     
