@@ -1,11 +1,11 @@
 .\"
-.\" $Id: libsmi.3,v 1.1 1999/05/28 14:52:06 strauss Exp $
+.\" $Id: libsmi.3.in,v 1.1 1999/06/01 20:47:16 strauss Exp $
 .\"
-.TH libsmi 3  "June 1, 1999" "IBR" "SMI Management Information Library"
+.TH libsmi 3  "February 10, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
 libsmi \- library to access SMI management information
 .SH DESCRIPTION
-This library contains functions that allow access to management
+This library contains functions that allow access to SMI management
 information stored in repositories that are managed by \fBlibsmi\fP,
 currently directories containing SMIv1/v2 and SMIng MIB module files.
 .PP
@@ -27,34 +27,28 @@ be handled by libsmi.
  
 int main(int argc, char *argv[])
 {
-    char *modulename, *fullname, *oid;
     SmiNode *smiNode;
+    int oidlen, first = 1;
     
     if (argc != 2) {
         fprintf(stderr, "Usage: smisubtree oid\\n");
         exit(1);
     }
  
-    fullname   = argv[1];
-    modulename = smiModule(fullname);
-    
-    smiInit();
+    smiInit(NULL);
  
-    smiLoadModule(modulename);
+    for((smiNode = smiGetNode(NULL, argv[1])) &&
+	    (oidlen = smiNode->oidlen);
+	smiNode && (first || smiNode->oidlen > oidlen);
+        smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY),
+	    first = 0) {
  
-    smiNode = smiGetNode(NULL, fullname);
-    if (smiNode) oid = smiNode->oid;
- 
-    for(; smiNode && (strstr(smiNode->oid, oid) == smiNode->oid);
-        smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
- 
-        printf("%s.%-26s [%s]\\n",
-               smiNode->module, smiNode->name, smiNode->oid);
+        printf("%*s%-32s\\n",
+	       (smiNode->oidlen - oidlen + 1) * 2, " ",
+	       smiNode->name);
         
     };
     
-    smiFreeNode(smiNode);
-    free(modulename);
     exit(0);
 }
 .fi
@@ -64,9 +58,8 @@ int main(int argc, char *argv[])
 .fi
 .SH "SEE ALSO"
 .BR "RFCs 2578-2580"
-specify the SMIv2 standard.  SMIng is specified as part of a
-master's thesis by Frank Strauss at the Technical University of
-Braunschweig, Germany. The specification is a working document of the IRTF
+specify the SMIv2 standard [STD 58].  The SMIng specification is a
+working document of the IRTF
 Network Management Working Group (NMRG) (draft-irtf-nmrg-sming).
 .PP
 .BR smi.h ", "
@@ -76,5 +69,5 @@ Network Management Working Group (NMRG) (draft-irtf-nmrg-sming).
 .BR smi_type "(3), "
 .BR smi_macro "(3), "
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

@@ -79,3 +79,6 @@ o man pages!
 
 o SMIng: module identity object (grammar, I-D and parser)
 
+o think about smiModule(), smiDescriptor(), smiOidString(smiNode), ...
+  memory allocation?
+
