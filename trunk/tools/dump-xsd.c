@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.44 2002/09/27 16:47:27 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.45 2002/10/02 17:43:12 tklie Exp $
  */
 
 #include <config.h>
@@ -23,12 +23,14 @@
 #include "smi.h"
 #include "smidump.h"
 
-
-
 #define  INDENT		2    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
 #define  INDENTTEXTS	4    /* column to start multiline texts */
 #define  INDENTMAX	64   /* max column to fill, break lines otherwise */
+
+#ifndef MIN
+#define MIN(a,b) ((a)) < ((b)) ? ((a)) : ((b))
+#endif /* #ifndef MIN */
 
 static char *schemaLocation = "http://www.ibr.cs.tu-bs.de/~tklie/";
 
@@ -52,6 +54,17 @@ typedef struct TypePrefix {
 } TypePrefix;
 
 static TypePrefix *typePrefixes = NULL;
+
+/* part of a display hint */
+typedef struct DH {
+    unsigned int number;
+/*    int repeat;    //  repeat not yet supported */
+    char type;
+    char separator;
+/*    char repTerm;  // repeat not yet supported */
+    struct DH *next;
+} DH;
+
 
 
 /* some forward declarations */
@@ -131,6 +144,18 @@ static int pow( int base, int exponent )
     base *= base;
   }
   return base;
+}
+
+static int
+numDigits( int val )
+{
+    int ret  = 1;
+
+    for(; val / 10; val = val / 10 ) {
+	ret++;
+    }
+    
+    return ret;
 }
 
 
@@ -323,6 +348,105 @@ fprintStringUnion( FILE *f, int indent, SmiType *smiType,
 }
 
 
+static void
+initDH( struct DH *dh )
+{
+    	/* init with NULLs */
+	dh->number = 0;
+	/*dh->repeat = 0; repeat not yet supported */
+	dh->type = 0;
+	dh->separator = '\0';
+	/* dh->repTerm = '\0'; repeat not yet supported */
+	dh->next = NULL;
+}
+
+/* parse a display hint and create a list of DHs */
+static struct DH
+*parseDH( const char *hint )
+{
+    struct DH *iterDH = (struct DH *)malloc( sizeof( struct DH ) );
+    struct DH *ret = iterDH;
+    struct DH *oldIterDH = iterDH;
+    unsigned int pos = 0;
+    
+    if( !ret ) {
+	return NULL;
+    }
+
+    initDH( iterDH );
+    while( pos < strlen( hint ) ) {
+
+	if( ! iterDH ) {
+	    iterDH = (struct DH *)malloc( sizeof( struct DH ) );
+	    if( ! iterDH ) return NULL;
+	    initDH( iterDH );
+	    oldIterDH->next = iterDH;
+	    oldIterDH = iterDH;
+	}
+
+	switch( hint[ pos ] ) {
+	    
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9': {
+	    unsigned int endPos;
+	    char *strNum;
+	    
+	    /* find end of number */
+	    for( endPos = pos; isdigit( hint[ endPos ] ); endPos++ );
+	    
+	    /* parse number */
+	    strNum = (char *)malloc( endPos - pos );
+	    strncpy( strNum, &hint[ pos ], endPos - pos );
+	    strNum[ endPos - pos ] = '\0';
+	    iterDH->number = atoi( strNum );
+	    free( strNum );
+	    
+	    /* forward the position pointer */
+	    pos = endPos;
+	    break;
+	}
+	
+	case 'a':
+	case 'b':
+	case 'd':
+	case 'o':
+	case 'x':
+	    iterDH->type = hint[ pos++ ];
+	    if( isdigit( hint[ pos ] ) || hint[ pos ] == '*' ) {
+		iterDH = iterDH->next;
+	    }
+	    break;
+	    
+	case '*':
+	    /* repeat not supported */
+	    return NULL;
+	    
+	default:
+	    if( iterDH->separator ) {
+		/* iterDH->repTerm = hint[ pos++ ]; // repeat not supported */
+	    }
+	    else {
+		iterDH->separator = hint[ pos++ ];
+	    }
+	    if( isdigit( hint[ pos ] ) || hint[ pos ] == '*' ) {
+		iterDH = iterDH->next;
+	    }
+	    break;
+	}	
+    }
+    return ret;
+}
+
+
+
 /*
  * build a regexp from this display hint
  * NOTE: very experimental stuff
@@ -331,220 +455,204 @@ static char* getStrDHType( char *hint,
 			   SmiInteger32 *lengths, unsigned int numSubranges  )
 {
     unsigned int i = 0;
-    char *ret = NULL;
+    char *ret = lengths[ i ] ? "(" : "((";
+    DH *dh = parseDH( hint );
 
-    if( ! hint ) {
-	return NULL;
-    }
+    if(! dh ) return NULL;
 
     do {
-	unsigned int pos = 0, intNum = 0;
-	int repeat = 0; /* xxx not yet implemented */
-	unsigned int octetsUsed = 0,
-	    lastRegexpUsesMin = 0, lastRegexpUsesMax = 0;
+	unsigned int octetsUsed = 0;
+	DH *iterDH;
 	
-	/* switch between "", ")" and "|"
-	   ")" is used between regexps parts of subrange,
-	   "|" is used between regexps of subranges. 
-	   If there is no regexp (part) yet, "" should be used */
-	char *startChar = "";
-	int started;
+	for( iterDH = dh; iterDH; iterDH = iterDH->next ) {
+	    unsigned int dhUsesOctets = 0;
+	    char *baseRegexp = NULL;
 
-	if( i && ret ) {
-	    /* we have already created a regexp for a subrange, so the next
-	       regexp for a subrange is an alternative (= we use '|') */
-	    startChar = "|";
-	}
-	
-	while( pos < strlen( hint ) ) {
-	    if( octetsUsed >= lengths[ i+1 ] ) {
-		/* we have used the maximal number of octets
-		   for this subrange, so let's exit the loop here */
-		break;
-	    }
-	    started = 1;
-	    	    
-	    switch( hint[ pos ] ) {
-		
-	    case '0':
-	    case '1':
-	    case '2':
-	    case '3':
-	    case '4':
-	    case '5':
-	    case '6':
-	    case '7':
-	    case '8':
-	    case '9': {
-		unsigned int endPos;
-		char *strNum;
-		
-		/* find end of number */
-		for( endPos = pos; isdigit( hint[ endPos ] ); endPos++ );
-		
-		/* parse number */
-		strNum = xmalloc( endPos - pos );
-		strncpy( strNum, &hint[ pos ], endPos - pos );
-		strNum[ endPos - pos ] = '\0';
-		intNum= atoi( strNum );
-		xfree( strNum );
-		
-		/* forward the position pointer */
-		pos = endPos;
-		break;
-	    }
-	    
+	    switch( iterDH->type ) {
+
 	    case 'a':
-		/* render as ascii */
-		if( repeat ) {
-		    /* length depends on input */
-		    asprintf( &ret, "%s%s(%c*",
-			      /* if no string yet, append to "" */
-			      ret ? ret : "",
-			      startChar, hint[ ++pos ] );		    
-		}
-		else if( intNum ) {
-		    /* lengths depends on number read last iteration */
-		    asprintf( &ret, "%s%s(#x00-#x7f)",
-			      ret ? ret : "", ret ? startChar : "" );
-		    
-		    if( intNum > 1 ) {
-			/* we can have this char more than once */
-			asprintf( &ret, "%s{1,%d}", ret ? ret : "", intNum );
-		    }
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    asprintf( &ret, "%s%s((%c*)",
-			      ret ? ret : "", ret ? startChar : "",
-			      hint[ ++pos ] );
-		}
-
-		startChar = ")";
-		pos++;
+		/* ascii character */
+		baseRegexp = "(#x00-#x7f)";
 		break;
-		
+
 	    case 'b':
-		/* render as binary */
-		/* xxx TBD: repeat, intNum = 0 */
-		if( intNum ) {
-		    asprintf( &ret, "%s%s(((0|1){8}){1,%d}",
-			      ret ? ret : "", ret ? startChar : "", intNum );
-		    
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		startChar = ")";
-		pos++;
+		/* binary number */
+		baseRegexp = "((0|1){8})";
 		break;
-		
+
 	    case 'd':
-		/* render as decimal */
-		/* xxx TBD: repeat */
-		asprintf( &ret, "%s%s([1-9][0-9]*",
-			  ret ? ret : "", ret ? startChar : "" );
-
-		if( intNum ) {
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    /* xxx how can we calculate this ?
-		       let's assume we use one octet */
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = 1;
-		}
-		startChar = ")";
-		pos++;
+		/* decimal number */
+		baseRegexp = "([0-9]{3})";
 		break;
-		
+
 	    case 'o':
-		/* render as octal */
-		asprintf( &ret, "%s%s([1-7][0-7]*",
-			  ret ? ret : "", ret ? startChar : "" );
-
-		if( intNum ) {
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    /* xxx how can we calculate this ?
-		       let's assume we use one octet */
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = 1;
-		}
-		startChar = ")";
-		pos++;
+		/* octal number */
+		baseRegexp = "([0-7]{3})";
 		break;
-		
+
 	    case 'x':
-		/* render as hex */
-		if( intNum ) {
-		    asprintf( &ret, "%s%s([0-9A-Ea-e]{%d,%d}",
-			      ret ? ret : "", ret ? startChar : "",
-			      2 * intNum, 2 * intNum );
-
-		    /* we have used some (intNum) octets */
-		    octetsUsed += intNum;
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = intNum;
-		}
-		else {
-		    /* xxx how can we calculate this ?
-		       let's assume we use one octet */
-		    lastRegexpUsesMin = 1;
-		    lastRegexpUsesMax = 1;
-		}
-		startChar = ")";
-		pos++;
-		break;
-		
-	    case '*':
-		repeat = 1;
-		pos++;
-		break;
-		
-	    default:
-		/* add a seperator char*/
-		asprintf( &ret, "%s%c", ret ? ret : "", hint[ pos++ ] );
+		/* hexadecimal number */
+		baseRegexp = "([0-9A-Fa-f]{2})";
 		break;
 	    }
 	    
-	}
-	/* add closure to last regexp part */
 
-	if( numSubranges ) {
-	    unsigned int minLength = lengths[ i ] < octetsUsed ? 0 :
-		(unsigned int)( ( lengths[ i ] -
-				  ( octetsUsed - lastRegexpUsesMax ) )/
-				lastRegexpUsesMax );
-	    unsigned int maxLength = lengths[ i+1 ] < octetsUsed ? 0 :
-		(unsigned int)( ( lengths[ i+1 ] -
-				  ( octetsUsed - lastRegexpUsesMin ) ) /
-				lastRegexpUsesMin );
-	    if( minLength < maxLength || minLength != 1 ) { 
-		asprintf( &ret, "%s){%u,%u}", ret, minLength, maxLength );
+	    if( iterDH->number < lengths[ i ] ) {
+		/* there are more octets to come */
+		if( iterDH->type == 'd' ) {
+		    /* decimal number needs to be treated differently */
+		    asprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
+			      ret,
+			      numDigits( pow( 255, iterDH->number ) ) );
+
+		    octetsUsed += iterDH->number;		    
+		    if( octetsUsed >= lengths[ i + 1 ] ) {
+			/* maximum number of octets used,
+			   we must exit the loop */
+			break;
+		    }
+		    
+		    else if( iterDH->separator ) {
+			asprintf( &ret, "%s%c", ret, iterDH->separator );
+		    }
+		}
+		else {
+		    if( iterDH->next ){
+			asprintf( &ret, "%s(%s{%d})",
+				  ret,
+				  baseRegexp, iterDH->number );
+
+			octetsUsed += iterDH->number;
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			/* maximum number of octets used,
+			   we must exit the loop */			    
+			    break;
+			}
+
+			if( iterDH->separator ) {
+			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			}
+		    }
+		    else {			
+			asprintf( &ret, "%s(%s",
+				  ret, baseRegexp );
+
+			if( iterDH->separator ) {
+			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			}
+
+			asprintf( &ret, "%s{%u,%u})%s",
+				  ret, lengths[ i ] - 1, lengths[ i+1 ] - 1,
+				  baseRegexp );
+			
+			octetsUsed += iterDH->number;
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* maximum number of octets used,
+			       we must exit the loop */			    
+			    break;
+			}
+		    }
+		}
 	    }
 	    else {
-		asprintf( &ret, "%s)", ret );
+		/* might be the last one */
+
+		if( iterDH->type == 'd' ) {
+		    /* decimal number needs to be treated differently */
+		    if( iterDH->number < lengths[ i+1 ] ) {
+			asprintf( &ret, "%s(0|[1-9]([0-9]{0,%d}))",
+				  ret,
+				  numDigits( pow( 255, iterDH->number ) ) );
+
+			octetsUsed += lengths[ i ];
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* the maximum number of octets have been reached,
+			       we must exit the loop */
+			    break;
+			}
+
+			if( iterDH->separator ) {
+			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			}						
+		    }
+		    else {
+			asprintf( &ret, "%s(0|[1-9]([0-9]{0,%d})",
+				  ret,
+				  numDigits( pow( 255, lengths[ i+1 ] ) ) );
+		    }
+		}
+		else {
+		    asprintf( &ret, "%s(%s",  ret, baseRegexp );
+		    if( iterDH->next ) {
+			if( iterDH->separator ) {
+			    asprintf( &ret, "%s%c", ret, iterDH->separator );
+			}
+			if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
+			    asprintf( &ret, "%s)*",ret );
+			}
+			else{
+			    asprintf( &ret, "%s){%u,%u}",ret, lengths[ i ],
+				      MIN( iterDH->number,
+					   lengths[ i + 1] ) - 1 );
+			}
+			octetsUsed += lengths[ i ];
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* the maximum number of octets have been reached,
+			       we must exit the loop */
+			    break;
+			}						
+		    }
+		    else {
+			octetsUsed += lengths[ i ];
+			if( iterDH->separator &&
+			    octetsUsed < lengths[ i + 1 ] ) {
+
+			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
+				asprintf( &ret, "%s%c)*%s",
+					  ret, iterDH->separator, baseRegexp );
+			    }
+			    else {
+				asprintf( &ret, "%s%c){%u,%u}%s",
+					  ret, iterDH->separator,
+					  lengths[ i ], lengths[ i + 1] - 1,
+					  baseRegexp );
+			    }
+			}
+			else {
+			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
+				asprintf( &ret, "%s)*%c",
+					  ret, iterDH->separator );
+			    }
+			    else {
+				asprintf( &ret, "%s){%u,%u}%c",
+					  ret, lengths[ i ],
+					  lengths[ i + 1],
+					  iterDH->separator );
+ 			    }			    
+			}
+		    }
+		}
+		
+		if( octetsUsed >= lengths[ i + 1 ] ) {
+		    /* the maximum number of octets have been reached,
+		       we must exit the loop */
+		    break;
+		}
 	    }
 	}
-	else {
-	    /* we don't have subranges specifying range restrictions,
-	       so let's use no restriction for the pattern here */
-	    asprintf( &ret, "%s)*", ret  );
+	i += 2;
+
+	if( i < numSubranges  * 2 ) {
+	    asprintf( &ret, "%s)|(", ret );
 	}
-	i++;i++;
+	else {
+	    asprintf( &ret, "%s)", ret );
+	    if( ! lengths[ i - 2 ] ) {
+		asprintf( &ret, "%s){0,1}", ret );
+	    }
+	}
     } while( i < numSubranges * 2 );
+    
     return ret;
 }
 
@@ -565,7 +673,7 @@ dhInParent( SmiType *smiType ) {
 #define MD_DH_INT_OCT      4
 #define MD_DH_INT_HEX      5
 
-/* parse a (integer) displaty hint and specify the offset, if used */
+/* parse a (integer) display hint and specify the offset, if used */
 static int getIntDHType( char *hint, int *offset )
 {
     switch( hint[ 0 ] ) {
@@ -695,25 +803,46 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    fprintStringUnion( f, indent, smiType,
 			       minLength, maxLength, 0, NULL );
 	    */
-	    SmiUnsigned32 *lengths = xmalloc( 2 * sizeof( SmiUnsigned32 ) *
-					      numSubRanges ),
-		lp = 0;
-	    SmiRange *smiRange;
-	    
-	    /* write subtype lengths to the array */
-	    for( smiRange = smiGetFirstRange( smiType );
-		 smiRange;
-		 smiRange = smiGetNextRange( smiRange ) ) {
-		lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
-		lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+	    SmiUnsigned32 *lengths;
+	    char *dh;
+	    if( numSubRanges ) {
+		unsigned int lp = 0;
+		SmiRange *smiRange;
+		lengths = xmalloc( 2 * sizeof( SmiUnsigned32 ) *
+				   numSubRanges );
+				
+		/* write subtype lengths to the array */
+		for( smiRange = smiGetFirstRange( smiType );
+		     smiRange;
+		     smiRange = smiGetNextRange( smiRange ) ) {
+		    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+		    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+/*		lengths[ lp++ ] = smiRange->minValue.value.integer32;
+		lengths[ lp++ ] = smiRange->maxValue.value.integer32;*/
+		    
+		}
+	    }
+	    else {
+		lengths = xmalloc( 2 * sizeof( SmiUnsigned32 ) );
+		lengths[0] = 0;
+		lengths[1] = 65535;
 	    }
 	    
 	    fprintSegment( f, indent, "<xsd:restriction ", 0 );
 	    fprintf( f, "base=\"xsd:string\">\n" );
-	    fprintSegment( f, indent + 2 * INDENT, "<xsd:pattern ", 0 );
-	    fprintf( f, "value=\"%s\"/>\n", getStrDHType( smiType->format,
-							  lengths, numSubRanges ) );
-	    fprintSegment( f, indent, "</xsd:restriction>\n", 0 );
+
+	    /* create regexp */
+	    dh = getStrDHType( smiType->format, lengths, numSubRanges );
+
+	    if( dh ) {
+		fprintSegment( f, indent + 2 * INDENT, "<xsd:pattern ", 0 );
+		fprintf( f, "value=\"%s\"/>\n", dh );
+		fprintSegment( f, indent, "</xsd:restriction>\n", 0 );
+	    }
+	    else {
+		fprintf( f, "<!-- Warning: repeat in display hint. " );
+		fprintf( f, "This feature is not supported. -->\n" );
+	    }
 	    
 	    xfree( lengths );
 	}
@@ -747,8 +876,8 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 		}
 		else {
 		    SmiUnsigned32 *lengths =
-			xmalloc( 2 * sizeof( SmiUnsigned32 ) * numSubRanges ),
-			lp = 0;
+			xmalloc( 2 * sizeof( SmiUnsigned32 ) * numSubRanges );
+		    unsigned int lp = 0;
 		    SmiRange *smiRange;
 		    
 		    /* write subtype lengths to the array */
@@ -1845,7 +1974,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
     
     fprintf(f, "            xmlns=\"%s%s\"\n",
 	   schemaLocation, smiModule->name);
-    fprintf(f, "            xmlns:xml=\"http://www.w3.org/XML/1998/namespace\"\n");
+    fprintf(f, "            xmlns:xmn=\"http://www.w3.org/XML/1998/namespace\"\n");
     fprintf(f, "            xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
     fprintf(f, "            xmlns:smi=\"http://www.ibr.cs.tu-bs.de/~tklie/smi\"\n");
     
@@ -1861,7 +1990,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
 	lastModName = iterImp->module;
     }
   
-    fprintf(f, "            xml:lang=\"en\"\n");
+    fprintf(f, "            xmn:lang=\"en\"\n");
     fprintf(f, "            elementFormDefault=\"qualified\"\n");
     fprintf(f, "            attributeFormDefault=\"unqualified\">\n\n");
 }
