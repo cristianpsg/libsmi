@@ -1,3 +1,10 @@
+2000-01-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Andrew Hood pointed out wrong typed constants.
+
+	* test/Makefile.am: Andrew supplied a patch so that make check
+	works even before make install.
+
 2000-01-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/AGENTX-MIB: MIB module added.

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-fig.c,v 1.1 1999/10/05 15:52:21 strauss Exp $
+ * @(#) $Id: dump-fig.c,v 1.2 1999/11/24 19:02:39 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -124,7 +124,7 @@ static void printGroups(int *x, int *y, char *modulename)
 
 
 
-int dumpFigTree(char *modulename)
+int dumpFigTree(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     int		 x, y;
@@ -189,7 +189,7 @@ static void printClasses(int *x, int *y, char *modulename)
 
 
 
-int dumpFigUml(char *modulename)
+int dumpFigUml(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     int		 x, y;
