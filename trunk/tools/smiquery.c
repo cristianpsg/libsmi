@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.66 2001/09/25 07:21:34 schoenw Exp $
+ * @(#) $Id: smiquery.c,v 1.67 2001/11/08 07:37:31 schoenw Exp $
  */
 
 #include <config.h>
@@ -149,20 +149,6 @@ static char *format(const char *s)
 }
 
 
-static char *formatoid(unsigned int oidlen, SmiSubid *oid)
-{
-    static char  ss[20000];
-    unsigned int i;
-    
-    ss[0] = 0;
-    for (i=0; i < oidlen; i++) {
-	if (i) strcat(ss, ".");
-	sprintf(&ss[strlen(ss)], "%u", oid[i]);
-    }
-    return ss;
-}
-
-
 static char *formatnode(SmiNode *node)
 {
     static char ss[200];
@@ -198,99 +184,6 @@ static char *formattype(SmiType *type)
 	}
     }
     return ss;
-}
-
-
-static char *formatvalue(const SmiValue *value, SmiType *type)
-{
-    static char    s[100];
-    char           ss[9];
-    unsigned int   i;
-    int		   n;
-    SmiNamedNumber *nn;
-    SmiNode        *nodePtr;
-    
-    s[0] = 0;
-    
-    switch (value->basetype) {
-    case SMI_BASETYPE_UNSIGNED32:
-	sprintf(s, "%lu", value->value.unsigned32);
-	break;
-    case SMI_BASETYPE_INTEGER32:
-	sprintf(s, "%ld", value->value.integer32);
-	break;
-    case SMI_BASETYPE_UNSIGNED64:
-	sprintf(s, UINT64_FORMAT, value->value.unsigned64);
-	break;
-    case SMI_BASETYPE_INTEGER64:
-	sprintf(s, INT64_FORMAT, value->value.integer64);
-	break;
-    case SMI_BASETYPE_FLOAT32:
-    case SMI_BASETYPE_FLOAT64:
-    case SMI_BASETYPE_FLOAT128:
-	break;
-    case SMI_BASETYPE_ENUM:
-	for (nn = smiGetFirstNamedNumber(type); nn;
-	     nn = smiGetNextNamedNumber(nn)) {
-	    if (nn->value.value.integer32 == value->value.integer32)
-		break;
-	}
-	if (nn) {
-	    sprintf(s, "%s(%ld)", nn->name, nn->value.value.integer32);
-	} else {
-	    sprintf(s, "%ld", value->value.integer32);
-	}
-	break;
-    case SMI_BASETYPE_OCTETSTRING:
-	for (i = 0; i < value->len; i++) {
-	    if (!isprint((int)value->value.ptr[i])) break;
-	}
-	if (i == value->len) {
-	    sprintf(s, "\"%s\"", value->value.ptr);
-	} else {
-            sprintf(s, "0x%*s", 2 * value->len, "");
-            for (i=0; i < value->len; i++) {
-                sprintf(ss, "%02x", value->value.ptr[i]);
-                strncpy(&s[2+2*i], ss, 2);
-            }
-	}
-	break;
-    case SMI_BASETYPE_BITS:
-	sprintf(s, "(");
-	for (i = 0, n = 0; i < value->len * 8; i++) {
-	    if (value->value.ptr[i/8] & (1 << (7-(i%8)))) {
-		if (n)
-		    sprintf(&s[strlen(s)], ", ");
-		n++;
-		for (nn = smiGetFirstNamedNumber(type); nn;
-		     nn = smiGetNextNamedNumber(nn)) {
-		    if (nn->value.value.unsigned32 == i)
-			break;
-		}
-		if (nn) {
-		    sprintf(&s[strlen(s)], "%s(%d)", nn->name, i);
-		} else {
-		    sprintf(s, "%d", i);
-		}
-	    }
-	}
-	sprintf(&s[strlen(s)], ")");
-	break;
-    case SMI_BASETYPE_UNKNOWN:
-	sprintf(s, "-");
-	break;
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	nodePtr = smiGetNodeByOID(value->len, value->value.oid);
-	if (nodePtr) {
-	    sprintf(s, "%s::%s", smiGetNodeModule(nodePtr)->name,
-		    nodePtr->name);
-	} else {
-	    sprintf(s, formatoid(value->len, value->value.oid));
-	}
-	break;
-    }
-
-    return s;
 }
 
 
@@ -416,13 +309,15 @@ int main(int argc, char *argv[])
 	if (node) {
 	    type = smiGetNodeType(node);
 	    printf("     MibNode: %s\n", formatnode(node));
-	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
+	    printf("         OID: %s\n", smiRenderOID(node->oidlen, node->oid,
+						      0));
 	    if (parent)
 		printf("  ParentNode: %s\n", formatnode(parent));
 	    if (type)
 		printf("        Type: %s\n", formattype(type));
 	    if (node->value.basetype != SMI_BASETYPE_UNKNOWN)
-		printf("     Default: %s\n", formatvalue(&node->value, type));
+		printf("     Default: %s\n", smiRenderValue(&node->value, type,
+		    SMI_RENDER_FORMAT | SMI_RENDER_NAME | SMI_RENDER_NUMERIC));
 	    if (node->decl != SMI_DECL_UNKNOWN)
 		printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
@@ -541,7 +436,11 @@ int main(int argc, char *argv[])
 	if (islower((int)name[0]) || isdigit((int)name[0]) ||
 	    !isupper((int)p[0])) {
 	    node = smiGetNode(NULL, name);
-	    type = smiGetNodeType(node);
+	    if (node) {
+		type = smiGetNodeType(node);
+	    } else {
+		type = smiGetType(NULL, name);
+	    }
 	} else {
 	    type = smiGetType(NULL, name);
 	}
@@ -552,7 +451,8 @@ int main(int argc, char *argv[])
 	    if (parenttype)
 		printf(" Parent Type: %s\n", formattype(parenttype));
 	    if (type->value.basetype != SMI_BASETYPE_UNKNOWN)
-		printf("     Default: %s\n", formatvalue(&type->value, type));
+		printf("     Default: %s\n", smiRenderValue(&type->value, type,
+		    SMI_RENDER_FORMAT | SMI_RENDER_NAME | SMI_RENDER_NUMERIC));
 	    if ((type->basetype == SMI_BASETYPE_ENUM) ||
 		(type->basetype == SMI_BASETYPE_BITS)) {
 		if (smiGetFirstNamedNumber(type)) {
@@ -569,8 +469,8 @@ int main(int argc, char *argv[])
 		    printf("      Ranges:");
 		    for(range = smiGetFirstRange(type);
 			range ; range = smiGetNextRange(range)) {
-			strcpy(s1, formatvalue(&range->minValue, type));
-			strcpy(s2, formatvalue(&range->maxValue, type));
+			strcpy(s1, smiRenderValue(&range->minValue, type, 0));
+			strcpy(s2, smiRenderValue(&range->maxValue, type, 0));
 			printf(" %s", s1);
 			if (strcmp(s1, s2)) printf("..%s", s2);
 		    }
