@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.29 2000/11/13 09:30:33 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.30 2000/11/15 10:50:34 strauss Exp $
  */
 
 #include <config.h>
@@ -237,7 +237,7 @@ static void dumpTable(SmiNode *smiNode)
 {
     FILE *f;
     SmiNode *parentNode, *columnNode;
-    int i;
+    unsigned int i;
     char *vb_type;
 
     parentNode = smiGetParentNode(smiNode);
@@ -814,7 +814,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     SmiNode *parentNode, *currNode;
     SmiType *smiType;
     SmiRange *smiRange;
-    int i;
+    unsigned int i;
     char *p;
     char init[20];
 
@@ -1096,7 +1096,8 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 static void dumpNotifications(SmiNode *smiNode)
 {
     FILE *f;
-    int cnt, i;
+    int cnt;
+    unsigned int i;
     SmiElement *element;
     SmiNode *elementNode;
 
