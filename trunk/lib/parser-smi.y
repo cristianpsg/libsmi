@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.191 2003/05/05 08:05:45 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.192 2003/05/15 13:36:37 strauss Exp $
  */
 
 %{
@@ -2366,10 +2366,11 @@ typeDeclarationRHS:	Syntax
 			    }
 			    setTypeStatus($$, $5);
 			    if ($3) {
-				smiCheckFormat(thisParserPtr,
-					       $$->export.basetype, $3,
-					       firstStatementLine);
-				setTypeFormat($$, $3);
+				if (smiCheckFormat(thisParserPtr,
+						   $$->export.basetype, $3,
+						   firstStatementLine)) {
+				    setTypeFormat($$, $3);
+				}
 			    }
 			    setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
 			}
