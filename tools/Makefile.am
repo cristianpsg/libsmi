@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.25 2001/01/04 10:10:20 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.26 2001/01/30 16:33:42 schoenw Exp $
 #
 
 INCLUDES		= -I../lib
@@ -19,9 +19,9 @@ EXTRA_DIST		= smidump.h shhopt.h \
 
 bin_PROGRAMS		= smiquery smilint smidump
 
-bin_SCRIPTS		= smistrip
+bin_SCRIPTS		= smistrip smicache
 
-man_MANS		= smiquery.1 smilint.1 smidump.1 smistrip.1
+man_MANS		= smiquery.1 smilint.1 smidump.1 smistrip.1 smicache.1
 
 smiquery_SOURCES	= smiquery.c shhopt.c
 smiquery_LDADD		= ../lib/libsmi.la

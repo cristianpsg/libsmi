@@ -102,6 +102,7 @@ UINT64_TYPE = @UINT64_TYPE@
 VERSION = @VERSION@
 VERSION_LIBTOOL = @VERSION_LIBTOOL@
 VERSION_STRING = @VERSION_STRING@
+WGET = @WGET@
 mibdir = @mibdir@
 smipath = @smipath@
 
@@ -112,9 +113,9 @@ EXTRA_DIST = smidump.h shhopt.h 			  $(man_MANS) 			  dump-fig.c
 
 bin_PROGRAMS = smiquery smilint smidump
 
-bin_SCRIPTS = smistrip
+bin_SCRIPTS = smistrip smicache
 
-man_MANS = smiquery.1 smilint.1 smidump.1 smistrip.1
+man_MANS = smiquery.1 smilint.1 smidump.1 smistrip.1 smicache.1
 
 smiquery_SOURCES = smiquery.c shhopt.c
 smiquery_LDADD = ../lib/libsmi.la
@@ -128,7 +129,8 @@ smidump_SOURCES = smidump.c smidump.h shhopt.c 			  dump-sming.c dump-smi.c 			 
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
-CONFIG_CLEAN_FILES =  smistrip smiquery.1 smilint.1 smidump.1 smistrip.1
+CONFIG_CLEAN_FILES =  smistrip smicache smiquery.1 smilint.1 smidump.1 \
+smistrip.1 smicache.1
 bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
@@ -159,8 +161,8 @@ man1dir = $(mandir)/man1
 MANS = $(man_MANS)
 
 NROFF = nroff
-DIST_COMMON =  Makefile.am Makefile.in smidump.1.in smilint.1.in \
-smiquery.1.in smistrip.1.in smistrip.in
+DIST_COMMON =  Makefile.am Makefile.in smicache.1.in smicache.in \
+smidump.1.in smilint.1.in smiquery.1.in smistrip.1.in smistrip.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -189,6 +191,8 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 
 smistrip: $(top_builddir)/config.status smistrip.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smicache: $(top_builddir)/config.status smicache.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smiquery.1: $(top_builddir)/config.status smiquery.1.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smilint.1: $(top_builddir)/config.status smilint.1.in
@@ -196,6 +200,8 @@ smilint.1: $(top_builddir)/config.status smilint.1.in
 smidump.1: $(top_builddir)/config.status smidump.1.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smistrip.1: $(top_builddir)/config.status smistrip.1.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smicache.1: $(top_builddir)/config.status smicache.1.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 mostlyclean-binPROGRAMS:

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.98 2000/12/15 13:52:31 strauss Exp $
+ * @(#) $Id: smi.c,v 1.99 2000/12/18 15:19:24 strauss Exp $
  */
 
 #include <config.h>
@@ -222,6 +222,8 @@ int smiInit(const char *tag)
 
     smiErrorLevel = DEFAULT_ERRORLEVEL;
     smiDepth = 0;
+    smiCache = NULL;
+    smiCacheProg = NULL;
     
     if (smiInitData()) {
 	return -1;
@@ -292,6 +294,8 @@ void smiExit()
     smiFreeData();
 
     smiFree(smiPath);
+    smiFree(smiCache);
+    smiFree(smiCacheProg);
     
     initialized = 0;
     return;
@@ -379,7 +383,14 @@ int smiReadConfig(const char *filename, const char *tag)
 			smiPath = smiStrdup(arg);
 		    }
 		}
-
+	    } else if (!strcmp(cmd, "cache")) {
+		if (arg) {
+		    smiFree(smiCache);
+		    smiCache = smiStrdup(arg);
+		    arg = strtok(NULL, "\n\r");
+		    smiFree(smiCacheProg);
+		    smiCacheProg = smiStrdup(arg);
+		}
 	    } else if (!strcmp(cmd, "level")) {
 		smiSetErrorLevel(atoi(arg));
 	    } else if (!strcmp(cmd, "hide")) {

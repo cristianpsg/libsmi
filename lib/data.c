@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.95 2000/11/16 14:58:06 strauss Exp $
+ * @(#) $Id: data.c,v 1.96 2001/03/05 17:57:49 strauss Exp $
  */
 
 #include <config.h>
@@ -66,6 +66,8 @@ Type		*typeOctetStringPtr, *typeObjectIdentifierPtr,
 		*typeEnumPtr, *typeBitsPtr;
 int		smiFlags;
 char		*smiPath;
+char		*smiCache;
+char		*smiCacheProg;
 int		smiDepth = 0;
 
 
@@ -3362,6 +3364,10 @@ Module *loadModule(const char *modulename)
     int             c;
     FILE	    *file;
     char	    sep[2];
+    int             pid;
+    char            *argv[4];
+    char            *cmd;
+    int		    status;
     
     if ((!modulename) || !strlen(modulename)) {
 	return NULL;
@@ -3379,7 +3385,7 @@ Module *loadModule(const char *modulename)
 	sep[0] = PATH_SEPARATOR; sep[1] = 0;
 	for (dir = strtok(smipath, sep);
 	     dir; dir = strtok(NULL, sep)) {
-	    path = malloc(strlen(dir)+strlen(modulename)+8);
+	    path = smiMalloc(strlen(dir)+strlen(modulename)+8);
 	    sprintf(path, "%s%c%s", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
@@ -3415,6 +3421,30 @@ Module *loadModule(const char *modulename)
 	path = smiStrdup(modulename);
     }
 
+    if (!path && smiCache && smiCacheProg) {
+	/* Not found in the path; now try to fetch & cache the module. */
+	path = smiMalloc(strlen(smiCache) + strlen(modulename) + 2);
+	sprintf(path, "%s%c%s", smiCache, DIR_SEPARATOR, modulename);
+	if (access(path, R_OK)) {
+	    cmd = smiMalloc(strlen(smiCacheProg) + strlen(modulename) + 2);
+	    sprintf(cmd, "%s %s", smiCacheProg, modulename);
+	    pid = fork();
+	    if (pid != -1) {
+		if (!pid) {
+		    argv[0] = "sh"; argv[1] = "-c"; argv[2] = cmd; argv[3] = 0;
+		    execv("/bin/sh", argv);
+		    exit(127);
+		}
+		waitpid(pid, &status, 0);
+	    }
+	    smiFree(cmd);
+	    if (access(path, R_OK)) {
+		smiFree(path);
+		path = NULL;
+	    }
+	}
+    }
+    
     if (!path) {
 	smiPrintError(NULL, ERR_MODULE_NOT_FOUND, modulename);
 	return NULL;
