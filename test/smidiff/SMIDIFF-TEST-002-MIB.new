@@ -108,4 +108,10 @@ scalar9 OBJECT-TYPE
 	"Multiple ranges. Gap will be filled." 
     ::= { libsmiTest002Mib 9 }
 
+MyInt ::= TEXTUAL-CONVENTION
+    STATUS    current
+    DESCRIPTION
+	"TC. Range will change."
+    SYNTAX   INTEGER (0..7)
+
 END
