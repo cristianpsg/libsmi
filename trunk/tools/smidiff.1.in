@@ -1,5 +1,5 @@
 .\"
-.\" $Id$
+.\" $Id: smidiff.1.in,v 1.1 2001/09/05 11:24:37 schoenw Exp $
 .\"
 .TH smidiff 1  "September 5, 2001" "IBR" "SMI Tools"
 .SH NAME
@@ -10,6 +10,8 @@ smidiff \- check differences between a pair of SMI MIB modules
 .B "-Vh"
 ] [
 .BI "-c " file
+] [
+.BI "-l " level
 ] [
 .BI "-p " module
 ] [
@@ -38,6 +40,22 @@ configuration file.
 Preload the module \fImodule\fP before reading the main
 module(s). This may be helpful if an incomplete main module misses to
 import some definitions.
+.TP
+\fB-l \fIlevel\fB, --level=\fIlevel\fP
+Report errors and warnings up to the given severity \fIlevel\fP.
+A higher level shows more warnings. The actual severity levels are:
+.sp
+.nf
+ 0   internal error, no recovery possible,
+ 1   major SMI error, recovery somehow possible but
+     may lead to severe problems,
+ 2   SMI error, probably tolerated by some
+     implementations,
+ 3   SMI error, tolerated by many implementations,
+ 4   something which is recommended to be changed,
+ 5   something that might be ok, but might not be
+     recommended under some circumstances,
+ 6   just a notice.
 .TP
 .I oldmodule
 The original MIB module.
