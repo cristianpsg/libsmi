@@ -33,18 +33,31 @@ static char *convertType[] = {
     NULL,		 "Bits",	       NULL,	   "BITS",
     NULL,		 "OctetString",	       NULL,	   "OCTET STRING",
     NULL,		 "ObjectIdentifier",   NULL,	   "OBJECT IDENTIFIER",
+    NULL,		 "IpAddress",          NULL,	   "InetAddress",
+    NULL,		 "Counter64",          NULL,	   "Unsigned64",
+    NULL,		 "Counter32",          NULL,	   "Unsigned32",
+    NULL,		 "Gauge32",            NULL,	   "Unsigned32",
     NULL, NULL, NULL, NULL };
 
+static char *convertTypeMibToPib[] = {
+    NULL,		 "SnmpAdminString",    NULL,	   "OCTET STRING",
+    NULL, NULL, NULL, NULL };
 
 static char *convertImport[] = {
     "SNMPv2-SMI", "Integer32",      "COPS-PR-SPPI", "Integer32",
     "SNMPv2-SMI", "Unsigned32",     "COPS-PR-SPPI", "Unsigned32",
     "SNMPv2-SMI", "TimeTicks",      "COPS-PR-SPPI", "TimeTicks",
+    "SNMPv2-SMI", "IpAddress",      "INET-ADDRESS-MIB", "InetAddress",
+    "SNMPv2-SMI", "MODULE-IDENTITY","COPS-PR-SPPI", "MODULE-IDENTITY",
+    "SNMPv2-SMI", "MODULE-COMPLIANCE","COPS-PR-SPPI", "MODULE-COMPLIANCE",
+    "SNMPv2-SMI", "OBJECT-TYPE",    "COPS-PR-SPPI", "OBJECT-TYPE",
+    "SNMPv2-SMI", "OBJECT-IDENTITY","COPS-PR-SPPI", "OBJECT-IDENTITY",
+    "SNMPv2-TC",  "TEXTUAL-CONVENTION","COPS-PR-SPPI", "TEXTUAL-CONVENTION",
     NULL, NULL, NULL, NULL };
 
 static int current_column = 0;
 static int silent = 0;
-
+static int mibtopib = 0;
 
 
 typedef struct Import {
@@ -77,17 +90,26 @@ static char *getStatusString(SmiStatus status)
 
 
 
-static char *getAccessString(SmiAccess access, int create)
+static char *getAccessString(SmiAccess access, int pibaccess)
 {
     return
         (access == SMI_ACCESS_NOTIFY)	      ? "notify" :
         (access == SMI_ACCESS_INSTALL)	      ? "install" :
         (access == SMI_ACCESS_INSTALL_NOTIFY) ? "install-notify" :
         (access == SMI_ACCESS_REPORT_ONLY)    ? "report-only" :
-        (access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
+        (access == SMI_ACCESS_NOT_ACCESSIBLE) ?
+             (pibaccess == 1 ? "report-only" : "not-accessible") :
+        mibtopib                              ? "notify" : 
 					        "<unknown>";
 }
 
+
+static int isSmiOnlyType(char *type)
+{
+    return (!strcmp(type, "Counter32") ||
+            !strcmp(type, "Counter64") ||
+            !strcmp(type, "Gauge32"));
+}
 
 
 static char *getTimeString(time_t t)
@@ -115,6 +137,14 @@ static char *getTypeString(SmiBasetype basetype, SmiType *smiType)
     if (typeName &&
 	(basetype != SMI_BASETYPE_ENUM) &&
 	(basetype != SMI_BASETYPE_BITS)) {
+        if (mibtopib)
+            for(i=0; convertTypeMibToPib[i+1]; i += 4) {
+	        if ((!strcmp(typeName, convertTypeMibToPib[i+1])) &&
+	            ((!typeModule) || (!convertTypeMibToPib[i]) ||
+	             (!strcmp(typeModule, convertTypeMibToPib[i])))) {
+	            return convertTypeMibToPib[i+3];
+	        }
+            }
 	for(i=0; convertType[i+1]; i += 4) {
 	    if ((!strcmp(typeName, convertType[i+1])) &&
 		((!typeModule) || (!convertType[i]) ||
@@ -281,6 +311,16 @@ static void createImportList(SmiModule *smiModule)
     SmiNodekind kind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     SmiImport   *smiImport;
     SmiModule	*smiModule2;
+
+    if (mibtopib) {
+        addImport("TUBS-SMI", "ibrmibtopib");
+        if (smiGetFirstNode(smiModule, SMI_NODEKIND_COLUMN)) {
+            addImport("COPS-PR-SPPI", "MODULE-COMPLIANCE");
+            addImport("COPS-PR-SPPI", "OBJECT-GROUP");
+            addImport("COPS-PR-SPPI", "OBJECT-IDENTITY");
+            addImport("COPS-PR-SPPI-TC", "InstanceId");
+        }
+    }
     
     for(smiNode = smiGetFirstNode(smiModule, kind); smiNode;
 	smiNode = smiGetNextNode(smiNode, kind)) {
@@ -288,7 +328,8 @@ static void createImportList(SmiModule *smiModule)
 	if (smiType) {
 	    smiModule2 = smiGetTypeModule(smiType);
 	    if (smiModule2 && (smiModule2 != smiModule)) {
-		if (strlen(smiModule2->name) && smiType->name) {
+		if (strlen(smiModule2->name) && smiType->name &&
+                    !isSmiOnlyType(smiType->name)) {
 		    addImport(smiModule2->name, smiType->name);
 		}
 	    }
@@ -383,9 +424,10 @@ static void createImportList(SmiModule *smiModule)
 
     for (smiImport = smiGetFirstImport(smiModule); smiImport;
 	 smiImport = smiGetNextImport(smiImport)) {
-	if (islower((int) smiImport->name[0]) ||
+	if ((islower((int) smiImport->name[0]) ||
 	    (smiImport->module && !strcmp(smiImport->module, "SNMPv2-SMI")) ||
-	    (smiImport->module && !strcmp(smiImport->module, "SNMPv2-TC"))) {
+	    (smiImport->module && !strcmp(smiImport->module, "SNMPv2-TC"))) &&
+            !isSmiOnlyType(smiImport->name)) {
 	    addImport(smiImport->module, smiImport->name);
 	}
     }
@@ -649,33 +691,62 @@ static void fprintIndex(FILE *f, SmiNode *indexNode, const int comment)
     
     for (n = 0, smiElement = smiGetFirstElement(indexNode); smiElement;
 	 n++, smiElement = smiGetNextElement(smiElement));
-    for (j = 0, smiElement = smiGetFirstElement(indexNode); smiElement;
-	 j++, smiElement = smiGetNextElement(smiElement)) {
-        if (!j) {
-            switch (indexNode->indexkind) {
-                case SMI_INDEX_INDEX:
-                    fprintSegment(f, INDENT, "PIB-INDEX", INDENTVALUE, comment);
-                    break;
-                case SMI_INDEX_AUGMENT:
-                    fprintSegment(f, INDENT, "AUGMENTS", INDENTVALUE, comment);
-                    break;
-                case SMI_INDEX_SPARSE:
-                    fprintSegment(f, INDENT, "EXTENDS", INDENTVALUE, comment);
-                    break;
-            }
-            fprint(f, "{ ");
-        } else if (j == 1) {
-            fprintSegment(f, INDENT, "INDEX", INDENTVALUE, comment);
-            fprint(f, "{ ");
-        } else
-	    fprint(f, ", ");
-	if (indexNode->implied && ((j+1) == n)) {
-	    fprintWrapped(f, INDENTVALUE + 2, "IMPLIED ", 0);
-	}
-	fprintWrapped(f, INDENTVALUE + 2,
-		      smiGetElementNode(smiElement)->name, 0);
-	/* TODO: non-local name if non-local */
-    } /* TODO: empty? -> print error */
+    if (mibtopib) {
+        SmiNode *smiParentNode = smiGetParentNode(indexNode);
+        int len = strlen(smiParentNode->name);
+        char *instanceId = xmalloc(len + 11);
+
+        strcpy(instanceId, smiParentNode->name);
+        if (len > 54)
+          len = 54;
+        strcpy(&instanceId[len], "InstanceId");
+        fprintSegment(f, INDENT, "PIB-INDEX", INDENTVALUE, 0);
+        fprint(f, "{ ");
+        fprintWrapped(f, INDENTVALUE + 2, instanceId, 0);
+        fprint(f, " }\n");
+        fprintSegment(f, INDENT, "INDEX", INDENTVALUE, 0);
+        fprint(f, "{ ");
+        for (j = 0, smiElement = smiGetFirstElement(indexNode); smiElement;
+	     j++, smiElement = smiGetNextElement(smiElement)) {
+             if (j)
+                 fprint(f, ", ");
+             fprintWrapped(f, INDENTVALUE + 2,
+                           smiGetElementNode(smiElement)->name, 0);
+        }
+        xfree(instanceId);
+    }
+    else
+        for (j = 0, smiElement = smiGetFirstElement(indexNode); smiElement;
+	     j++, smiElement = smiGetNextElement(smiElement)) {
+            if (!j) {
+                switch (indexNode->indexkind) {
+                    case SMI_INDEX_INDEX:
+                        fprintSegment(f, INDENT, "PIB-INDEX", INDENTVALUE,
+                                      comment);
+                        break;
+                    case SMI_INDEX_AUGMENT:
+                        fprintSegment(f, INDENT, "AUGMENTS", INDENTVALUE,
+                                      comment);
+                        break;
+                    case SMI_INDEX_SPARSE:
+                        fprintSegment(f, INDENT, "EXTENDS", INDENTVALUE,
+                                      comment);
+                        break;
+                }
+                fprint(f, "{ ");
+            } else if (j == 1) {
+                fprint(f, " }\n");
+                fprintSegment(f, INDENT, "INDEX", INDENTVALUE, comment);
+                fprint(f, "{ ");
+            } else
+	        fprint(f, ", ");
+	    if (indexNode->implied && ((j+1) == n)) {
+	        fprintWrapped(f, INDENTVALUE + 2, "IMPLIED ", 0);
+	    }
+	    fprintWrapped(f, INDENTVALUE + 2,
+		          smiGetElementNode(smiElement)->name, 0);
+	    /* TODO: non-local name if non-local */
+        } /* TODO: empty? -> print error */
     fprint(f, " }\n");
 }
 
@@ -819,6 +890,9 @@ static void fprintModuleIdentity(FILE *f, SmiModule *smiModule)
                 xfree(id);
             }
             fprint(f, " }\n");
+        } else {
+        /* No SUBJECT-CATEGORIES entry was present, add one */
+            fprint(f, "all } -- added by smidump\n");
         }
 	fprintSegment(f, INDENT, "LAST-UPDATED", INDENTVALUE, 0);
 	smiRevision = smiGetFirstRevision(smiModule);
@@ -865,7 +939,11 @@ static void fprintModuleIdentity(FILE *f, SmiModule *smiModule)
 
 	if (smiNode) {
 	    fprintSegment(f, INDENT, "::= ", 0, 0);
-	    fprint(f, "{ %s }\n\n", getOidString(smiNode, 0));
+            if (!mibtopib)
+	        fprint(f, "{ %s }\n\n", getOidString(smiNode, 0));
+            else
+                fprint(f, "{ ibrmibtopib %d }\n\n",
+                       smiNode->oid[smiNode->oidlen - 1]);
 	}
 	/* TODO: else error */
 
@@ -958,12 +1036,11 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
     SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode, *relatedNode;
     SmiType	 *smiType;
     SmiNodekind  nodekinds;
-    int		 i, invalid, create, assignement, indentsequence;
+    int		 i, invalid, create, assignement, indentsequence, addinstanceid;
     
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
-	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR |
-	SMI_NODEKIND_CAPABILITIES;
-    
+	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
+            
     for(smiNode = smiGetFirstNode(smiModule, nodekinds);
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
 
@@ -1047,7 +1124,7 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 
 	if (! assignement && smiNode->nodekind == SMI_NODEKIND_TABLE) {
 	    fprintSegment(f, INDENT, "PIB-ACCESS", INDENTVALUE, 0);
-	    fprint(f, "%s\n", getAccessString(smiNode->access, create));
+	    fprint(f, "%s\n", getAccessString(smiNode->access, 1));
 	}
 
         if (! assignement && smiType && smiType->name &&
@@ -1124,7 +1201,10 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 	fprint(f, "{ %s }\n\n", getOidString(smiNode, 0));
 
 	smiType = smiGetNodeType(smiNode);
+        addinstanceid = 0;
 	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+            if (mibtopib)
+                addinstanceid = 1;
 	    if (smiType) {
 		fprint(f, "%s ::= SEQUENCE {", smiType->name);
 	    } else {
@@ -1147,6 +1227,12 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 		    relatedNode = colNode;
 		}
 	    }
+            if (mibtopib) {
+                int len = strlen(smiParentNode->name) + 10;
+                if (len > 64)
+                  len = 64;
+                indentsequence = len;
+            }
 	    if (relatedNode) relatedNode = smiGetNextChildNode(relatedNode);
 	    indentsequence = (2*INDENT + indentsequence + 1) / INDENT * INDENT;
 	    /* TODO: non-local name? */
@@ -1178,7 +1264,40 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 		}
 		i++;
 	    }
-	    fprint(f, "\n}\n\n");
+            if (mibtopib) {
+                int len = strlen(smiParentNode->name);
+                int maxid;
+                char *instanceId = xmalloc(len + 11);
+                strcpy(instanceId, smiParentNode->name);
+                if (len > 54)
+                  len = 54;
+                strcpy(&instanceId[len], "InstanceId");
+                fprint(f, ",\n");
+                fprintSegment(f, INDENT, instanceId, indentsequence, 0);
+                fprint(f, "InstanceId\n}\n\n");
+                
+                fprint(f, "%s OBJECT-TYPE\n", instanceId);
+	        fprintSegment(f, INDENT, "SYNTAX", INDENTVALUE, 0);
+                fprint(f, "InstanceId\n");
+                fprintSegment(f, INDENT, "STATUS", INDENTVALUE, 0);
+                fprint(f, "current\n");
+                fprintSegment(f, INDENT, "DESCRIPTION", INDENTVALUE, 0);
+                fprint(f, "\n");
+		fprintMultilineString(f, "Added by smidump for automatic " \
+                                      "MIB to PIB conversion.", 0);
+                fprint(f, "\n");
+	        fprintSegment(f, INDENT, "::= ", 0, 0);
+                for (maxid = 0, colNode = smiGetFirstChildNode(smiNode);
+                     colNode; colNode = smiGetNextChildNode(colNode))
+                     if (colNode->oidlen &&
+                         (colNode->oid[colNode->oidlen - 1] > maxid))
+                         maxid = colNode->oid[colNode->oidlen - 1];
+	        fprint(f, "{ %s %d }\n\n",
+                       smiGetFirstChildNode(smiParentNode)->name, 
+                       (maxid + 1) > 128 ? (maxid + 1) : 128);
+                xfree(instanceId);
+            } else
+ 	        fprint(f, "\n}\n\n");
 	}
     }
 }
@@ -1419,19 +1538,136 @@ static void fprintModuleCompliances(FILE *f, SmiModule *smiModule)
 	fprint(f, "{ %s }\n\n", getOidString(smiNode, 0));
     }
     xfree(done);
+    
+    if (mibtopib) {
+        char *newCompliance = xmalloc(65);
+        char *newGroup = xmalloc(65);
+        char *newId = xmalloc(65);
+        int len, maxid;
+        
+        for (maxid = 0, smiNode2 = smiGetFirstChildNode(smiNode);
+             smiNode2; smiNode2 = smiGetNextChildNode(smiNode2))
+             if (smiNode2->oidlen &&
+                 (smiNode2->oid[smiNode2->oidlen - 1] > maxid))
+                 maxid = smiNode2->oid[smiNode2->oidlen - 1];
+        maxid++;
+
+        smiNode = smiGetModuleIdentityNode(smiModule);
+        if (!smiNode || !newCompliance || !newGroup)
+            return;
+        len = strlen(smiNode->name);
+        
+        memset(newId, 0, 65);
+        strncpy(newId, smiNode->name, 46);
+        strcat(newId + (len > 46 ? 46 : len), "MIBtoPIBCompliance");
+
+        memset(newCompliance, 0, 65);
+        strncpy(newCompliance, smiNode->name, 46);
+        strcat(newCompliance + (len > 46 ? 46 : len), "MIBtoPIBModuleComp");
+
+        memset(newGroup, 0, 65);
+        strncpy(newGroup, smiNode->name, 51);
+        strcat(newGroup + (len > 51 ? 51 : len), "MIBtoPIBGroup");
+
+        fprintf(f, "-- The following three items were added in order " \
+                "to create a RFC compliant\n-- SPPI module. They do not " \
+                "provide any usable content.\n-- %s\n-- %s\n-- %s\n\n",
+                newId, newCompliance, newGroup);
+        
+        fprint(f, "%s OBJECT-IDENTITY\n", newId);
+        fprintSegment(f, INDENT, "STATUS", INDENTVALUE, 0);
+        fprint(f, "current\n");
+	fprintSegment(f, INDENT, "DESCRIPTION", INDENTVALUE, 0);
+	fprint(f, "\n");
+        fprintMultilineString(f, "Added by smidump for automatic " \
+                              "MIB to PIB conversion.", 0);
+	fprint(f, "\n");
+	fprintSegment(f, INDENT, "::= ", 0, 0);
+	fprint(f, "{ %s %d }\n\n", smiNode->name, (maxid > 128 ? maxid : 128));
+        
+        fprint(f, "%s MODULE-COMPLIANCE\n", newCompliance);
+	fprintSegment(f, INDENT, "STATUS", INDENTVALUE, 0);
+	fprint(f, "current\n");
+	fprintSegment(f, INDENT, "DESCRIPTION", INDENTVALUE, 0);
+	fprint(f, "\n");
+        fprintMultilineString(f, "Added by smidump for automatic " \
+                              "MIB to PIB conversion.", 0);
+	fprint(f, "\n");
+        
+        fprintSegment(f, INDENT, "MODULE", INDENTVALUE, 0);
+        fprint(f, "-- this module\n");
+        
+        fprintSegment(f, 2 * INDENT, "MANDATORY-GROUPS", INDENTVALUE, 0);
+        fprint(f, "{ ");
+        
+	fprintWrapped(f, INDENTVALUE + 2, newGroup, 0);
+        fprint(f, "}\n");
+        
+	fprintSegment(f, INDENT, "::= ", 0, 0);
+	fprint(f, "{ %s 1 }\n\n", newId);
+
+	fprint(f, "%s OBJECT-GROUP\n", newGroup);
+	fprintSegment(f, INDENT, "OBJECTS", INDENTVALUE, 0);
+	fprint(f, "{ ");
+        for (len=0, smiNode2 = smiGetFirstNode(smiModule, SMI_NODEKIND_COLUMN);
+            smiNode2; len = 1,
+            smiNode2 = smiGetNextNode(smiNode2, SMI_NODEKIND_COLUMN)) {
+            if (len)
+                fprint(f, ", ");
+	    fprintWrapped(f, INDENTVALUE + 2, smiNode2->name, 0);
+        }
+        for (smiNode2 = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
+             smiNode2; smiNode2 = smiGetNextNode(smiNode2, SMI_NODEKIND_ROW)) {
+            SmiNode *smiParentNode = smiGetParentNode(smiNode2);
+            int len = strlen(smiParentNode->name);
+            char *instanceId = xmalloc(len + 11);
+
+            strcpy(instanceId, smiParentNode->name);
+            if (len > 54)
+              len = 54;
+            strcpy(&instanceId[len], "InstanceId");
+            if (len)
+                fprint(f, ", ");
+	    fprintWrapped(f, INDENTVALUE + 2, instanceId, 0);
+            xfree(instanceId);
+        }
+
+	fprint(f, " }\n");
+
+	fprintSegment(f, INDENT, "STATUS", INDENTVALUE, 0);
+	fprint(f, "current\n");
+
+	fprintSegment(f, INDENT, "DESCRIPTION", INDENTVALUE, 0);
+	fprint(f, "\n");
+	fprintMultilineString(f, "Added by smidump for automatic" \
+                              "MIB to PIB conversion.", 0);
+	fprint(f, "\n");
+
+	fprintSegment(f, INDENT, "::= ", 0, 0);
+	fprint(f, "{ %s 2 }\n\n", newId);
+
+        xfree(newCompliance);
+        xfree(newGroup);
+    }
 }
 
 
 
 static void doDumpSppi(FILE *f, SmiModule *smiModule)
 {
+    if (smiModule->language != SMI_LANGUAGE_SPPI) /* MIB to PIB conversion */
+        mibtopib = 1;
+    else
+        mibtopib = 0;
+
     createImportList(smiModule);
     
     fprint(f, "--\n");
     fprint(f, "-- This SPPI module has been generated by smidump "
 	   SMI_VERSION_STRING ". Do not edit.\n");
     fprint(f, "--\n\n");
-    fprint(f, "%s PIB-DEFINITIONS ::= BEGIN\n\n", smiModule->name);
+    fprint(f, "%s%s PIB-DEFINITIONS ::= BEGIN\n\n", smiModule->name,
+           mibtopib ? "-PIB" : "");
 	
     fprintImports(f);
     fprintModuleIdentity(f, smiModule);
