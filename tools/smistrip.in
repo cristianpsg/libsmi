@@ -9,7 +9,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# $Id: smistrip.in,v 1.6 2002/05/16 23:21:55 bunkus Exp $
+# $Id: smistrip.in,v 1.7 2003/01/18 21:24:26 strauss Exp $
 #
 # NOTE, that this script relies on awk (tested with GNU awk) and getopts
 # (shell builtin like in bash or standalone).
@@ -39,7 +39,12 @@ do_usage () {
 
 
 do_strip () {
-    cat "$1" | \
+    if [ `basename "$1" .gz` = "$1" ] ; then
+    	CMD=cat
+    else
+    	CMD=zcat
+    fi
+    $CMD "$1" | \
     grep -i -v '^[ ]*Internet Draft' | \
     $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
