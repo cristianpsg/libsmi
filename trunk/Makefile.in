@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.in.
 #
-# @(#) $Id: Makefile.in,v 1.2 1999/05/21 22:46:26 strauss Exp $
+# @(#) $Id: Makefile.in,v 1.3 1999/05/21 23:00:57 strauss Exp $
 #
 
 LIBSMI_VERSION	= @LIBSMI_VERSION@
@@ -34,7 +34,11 @@ LIBSMI_OBJS	= lib/data.o lib/error.o lib/util.o lib/smi.o lib/scanner.o \
 LIBSMI_STATIC	= lib/libsmi.a
 LIBSMI_SO	= lib/libsmi$(SHLIB_SUFFIX)
 
+
+
 all: $(LIBSMI_STATIC) $(LIBSMI_SO) tools
+
+
 
 $(LIBSMI_STATIC): $(LIBSMI_OBJS)
 	$(AR) ruv $@ $(LIBSMI_OBJS)

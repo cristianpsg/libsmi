@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.18 1999/05/20 17:01:44 strauss Exp $
+ * @(#) $Id: smi.h,v 1.19 1999/05/21 19:55:18 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -41,7 +41,6 @@
 
 
 /* misc mappings of SMI types to C types                                     */
-typedef char                    *SmiQIdentifier;
 typedef char                    *SmiIdentifier;
 typedef unsigned long           SmiUnsigned32;
 typedef long                    SmiInteger32;
@@ -186,8 +185,10 @@ typedef struct SmiRange {
 
 /* SmiOption -- an optional group in a compliance statement                  */
 typedef struct SmiOption {
-    SmiIdentifier       name;
     SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiIdentifier       compliancemodule;
+    SmiIdentifier       compliancename;
     char                *description;
 } SmiOption;
 
@@ -195,16 +196,20 @@ typedef struct SmiOption {
 typedef struct SmiRefinement {
     SmiIdentifier       name;
     SmiIdentifier       module;
-    char                *description;
-    SmiQIdentifier      type;
-    SmiQIdentifier      writetype;
+    SmiIdentifier       compliancemodule;
+    SmiIdentifier       compliancename;
+    SmiIdentifier       typemodule;
+    SmiIdentifier       typename;
+    SmiIdentifier       writetypemodule;
+    SmiIdentifier       writetypename;
     SmiAccess           access;
+    char                *description;
 } SmiRefinement;
 
 /* SmiModule -- the main structure of a module                               */
 typedef struct SmiModule {
     SmiIdentifier       name;
-    SmiQIdentifier      object;
+    SmiIdentifier       object;
     time_t              lastupdated;   /* for apps with SMIv2 semantics */
     char                *organization;
     char                *contactinfo;
@@ -214,17 +219,19 @@ typedef struct SmiModule {
 
 /* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
-    char                *name;
-    char                *module;
+    SmiIdentifier       name;
+    SmiIdentifier       module;
     SmiObjectIdentifier oid;
-    char                *typename;
-    char                *typemodule;
+    SmiIdentifier       typename;
+    SmiIdentifier       typemodule;
 #if 0
     char                **list;
     SmiIndexkind        indexkind;
     int                 implied;
     char                **index;
     char                *relatedrow;
+#endif
+#if 0
     SmiOption           **option;
     SmiRefinement       **refinement;
 #endif
@@ -233,7 +240,7 @@ typedef struct SmiNode {
     SmiAccess           access;
     SmiStatus           status;
     char                *format;
-    SmiValue            *value;
+    SmiValue            *valuePtr;
     char                *units;
     char                *description;
     char                *reference;
@@ -241,14 +248,14 @@ typedef struct SmiNode {
 
 /* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
-    char                *name;
-    char                *module;
+    SmiIdentifier       name;
+    SmiIdentifier       module;
     SmiBasetype         basetype;
-    char		*parentmodule;
-    char		*parentname;
+    SmiIdentifier	parentmodule;
+    SmiIdentifier	parentname;
     SmiDecl             decl;
     char                *format;
-    SmiValue            *value;
+    SmiValue            *valuePtr;
     char                *units;
     SmiStatus           status;
     char                *description;
@@ -257,8 +264,8 @@ typedef struct SmiType {
 
 /* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
 typedef struct SmiMacro {
-    char                *name;
-    char                *module;
+    SmiIdentifier       name;
+    SmiIdentifier       module;
 } SmiMacro;
 
 
