@@ -1,5 +1,8 @@
 2000-11-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-corba.c: The driver now creates idl and oid files
+	instead of writing to stdout.
+	
 	* test/*: Reorganized the test suite. All scripts for
 	smidump scripts are now identical. Added jax test (and found
 	a bug that is not yet fixed).

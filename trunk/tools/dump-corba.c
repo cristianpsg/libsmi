@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.31 2000/11/09 22:29:53 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.32 2000/11/12 17:46:31 strauss Exp $
  */
 
 #include <config.h>
@@ -23,6 +23,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #ifdef HAVE_WIN_H
 #include "win.h"
 #endif
@@ -103,6 +106,34 @@ static IdlEntry **idlNameLists[] = {
     &idlTypeNameList, &idlVBTypeNameList,
     NULL
 };
+
+
+
+static FILE * createFile(char *name, char *suffix)
+{
+    char *fullname;
+    FILE *f;
+
+    fullname = xmalloc(strlen(name) + (suffix ? strlen(suffix) : 0) + 2);
+    strcpy(fullname, name);
+    if (suffix) {
+        strcat(fullname, suffix);
+    }
+    if (!access(fullname, R_OK)) {
+        fprintf(stderr, "smidump: %s already exists\n", fullname);
+        xfree(fullname);
+        return NULL;
+    }
+    f = fopen(fullname, "w");
+    if (!f) {
+        fprintf(stderr, "smidump: cannot open %s for writing: ", fullname);
+        perror(NULL);
+        xfree(fullname);
+        exit(1);
+    }
+    xfree(fullname);
+    return f;
+}
 
 
 
@@ -534,7 +565,7 @@ static void freeImportList(void)
 
 
 
-static void print(char *fmt, ...)
+static void fprint(FILE *f, char *fmt, ...)
 {
     va_list ap;
     char    s[200];
@@ -548,7 +579,7 @@ static void print(char *fmt, ...)
 #endif
     va_end(ap);
 
-    fputs(s, stdout);
+    fputs(s, f);
 
     if ((p = strrchr(s, '\n'))) {
 	current_column = strlen(p) - 1;
@@ -557,55 +588,55 @@ static void print(char *fmt, ...)
 
 
 
-static void printSegment(int column, char *string, int length)
+static void fprintSegment(FILE *f, int column, char *string, int length)
 {
-    print("%*c%s", column, ' ', string);
+    fprint(f, "%*c%s", column, ' ', string);
     if (length) {
-	print("%*c", length - strlen(string) - column, ' ');
+	fprint(f, "%*c", length - strlen(string) - column, ' ');
     }
 }
 
 
 
-static void printMultilineString(const char *s)
+static void fprintMultilineString(FILE *f, const char *s)
 {
     int i, len;
     
-    printSegment(INDENTTEXTS - 1, "\"", 0);
+    fprintSegment(f, INDENTTEXTS - 1, "\"", 0);
     if (s) {
 	len = strlen(s);
 	for (i=0; i < len; i++) {
-	    putc(s[i], stdout);
+	    putc(s[i], f);
 	    current_column++;
 	    if (s[i] == '\n') {
 		current_column = 0;
-		printSegment(INDENTTEXTS, "", 0);
+		fprintSegment(f, INDENTTEXTS, "", 0);
 	    }
 	}
     }
-    putc('\"', stdout);
+    putc('\"', f);
     current_column++;
 }
 
 
 
-static void printMultiline(const char *s)
+static void fprintMultiline(FILE *f, const char *s)
 {
     int i, len;
     
-    printSegment(INDENTTEXTS, "", 0);
+    fprintSegment(f, INDENTTEXTS, "", 0);
     if (s) {
 	len = strlen(s);
 	for (i=0; i < len; i++) {
-	    putc(s[i], stdout);
+	    putc(s[i], f);
 	    current_column++;
 	    if (s[i] == '\n') {
 		current_column = 0;
-		printSegment(INDENTTEXTS, "", 0);
+		fprintSegment(f, INDENTTEXTS, "", 0);
 	    }
 	}
     }
-    putc('\n', stdout);
+    putc('\n', f);
     current_column++;
 }
 
@@ -620,6 +651,24 @@ static char* translate(char *s)
 	if (s[i] == '-') s[i] = '_';
     }
 
+    return s;
+}
+
+
+
+static char* translateLower(char *m)
+{
+    char *s;
+    int i;
+
+    s = xstrdup(m);
+    for (i = 0; s[i]; i++) {
+	if (s[i] == '-') s[i] = '_';
+	if (isupper((int) s[i])) {
+	    s[i] = tolower(s[i]);
+	}
+    }
+  
     return s;
 }
 
@@ -669,31 +718,31 @@ static int isCreatable(SmiNode *smiNode)
 
 
 
-static void printDescription(SmiNode *smiNode, int indent)
+static void fprintDescription(FILE *f, SmiNode *smiNode, int indent)
 {
-    print("\n");
-    printSegment(indent, "/*\n", 0);
+    fprint(f, "\n");
+    fprintSegment(f, indent, "/*\n", 0);
     if (smiNode->description) {
-	printMultiline(smiNode->description);
+	fprintMultiline(f, smiNode->description);
     }
     if (smiNode->reference) {
-	printSegment(indent, "REFERENCE:", 0);
-	print("\n");
-	printMultilineString(smiNode->reference);
-	print("\n\n");
+	fprintSegment(f, indent, "REFERENCE:", 0);
+	fprint(f, "\n");
+	fprintMultilineString(f, smiNode->reference);
+	fprint(f, "\n\n");
     }
     if (smiNode->units) {
-	printSegment(indent, "UNITS:", 0);
-	print("\n");
-	printMultilineString(smiNode->units);
-	print("\n\n");
+	fprintSegment(f, indent, "UNITS:", 0);
+	fprint(f, "\n");
+	fprintMultilineString(f, smiNode->units);
+	fprint(f, "\n\n");
     }
-    printSegment(indent, "*/\n", 0);
+    fprintSegment(f, indent, "*/\n", 0);
 }
 
 
 
-static void printIndex(SmiNode *indexNode)
+static void fprintIndex(FILE *f, SmiNode *indexNode)
 {
     SmiElement *smiElement;
     int        j;
@@ -702,38 +751,38 @@ static void printIndex(SmiNode *indexNode)
 	 smiElement;
 	 j++, smiElement = smiGetNextElement(smiElement)) {
 	if (j) {
-	    print(" ");
+	    fprint(f, " ");
 	}
-	print(smiGetElementNode(smiElement)->name);
+	fprint(f, smiGetElementNode(smiElement)->name);
 	/* TODO: non-local name if non-local */
     } /* TODO: empty? -> print error */
 }
 
 
 
-static void printIncludes(SmiModule *smiModule)
+static void fprintIncludes(FILE *f, SmiModule *smiModule)
 {
     Import    *import;
     char      *lastModulename = NULL;
     
-    print("#include <ASN1Types.idl>\n");
-    print("#include <SNMPMgmt.idl>\n");
+    fprint(f, "#include <ASN1Types.idl>\n");
+    fprint(f, "#include <SNMPMgmt.idl>\n");
 
     for (import = importList; import; import = import->nextPtr) {
 	if (!lastModulename
 	    || strcmp(lastModulename, import->module)) {
-	    print("#include <%s.idl>\n",
+	    fprint(f, "#include <%s.idl>\n",
 		  getIdlModuleName(import->module));
 	    lastModulename = import->module;
 	}
     }
 
-    print("\n");
+    fprint(f, "\n");
 }
 
 
 
-static void printImportedTypedefs(SmiModule *smiModule)
+static void fprintImportedTypedefs(FILE *f, SmiModule *smiModule)
 {
     Import    *import;
     int	      cnt = 0;
@@ -742,19 +791,19 @@ static void printImportedTypedefs(SmiModule *smiModule)
     for (import = importList; import; import = import->nextPtr) {
 	cnt++;
 	idlTypeName = getIdlTypeName(import->module, import->name);
-	printSegment(INDENT, "typedef ", 0);
-	print("%s::%s %s;\n",
+	fprintSegment(f, INDENT, "typedef ", 0);
+	fprint(f, "%s::%s %s;\n",
 	      getIdlModuleName(import->module), idlTypeName, idlTypeName);
     }
 
     if (cnt) {
-	print("\n");
+	fprint(f, "\n");
     }
 }
 
 
 
-static void printModule(SmiModule *smiModule)
+static void fprintModule(FILE *f, SmiModule *smiModule)
 {
     SmiRevision  *smiRevision;
     SmiNode      *smiNode;
@@ -765,50 +814,50 @@ static void printModule(SmiModule *smiModule)
     if (smiNode) {
 
 	idlModuleName = getIdlModuleName(smiModule->name);
-	printSegment(INDENT, "const ", 0);
-	print("string moduleIdentity = \"%s\";\n", smiNode->name);
-	printSegment(INDENT, "const ", 0);
-	print("ASN1_ObjectIdentifier %s = \"::%s::%s\";\n\n",
+	fprintSegment(f, INDENT, "const ", 0);
+	fprint(f, "string moduleIdentity = \"%s\";\n", smiNode->name);
+	fprintSegment(f, INDENT, "const ", 0);
+	fprint(f, "ASN1_ObjectIdentifier %s = \"::%s::%s\";\n\n",
 	      getIdlModuleName(smiNode->name),
 	      idlModuleName, smiNode->name);
 	if (! silent) {
-	    printSegment(INDENT, "/*\n", 0);
+	    fprintSegment(f, INDENT, "/*\n", 0);
 	    if (smiModule->description) {
-		printMultiline(smiModule->description);
-		print("\n");
+		fprintMultiline(f, smiModule->description);
+		fprint(f, "\n");
 	    }
 	    smiRevision = smiGetFirstRevision(smiModule);
-	    printSegment(INDENT, "LAST-UPDATED:", INDENTVALUE);
-	    print(smiRevision
+	    fprintSegment(f, INDENT, "LAST-UPDATED:", INDENTVALUE);
+	    fprint(f, smiRevision
 		  ? getTimeString(smiRevision->date) : "197001010000Z");
-	    print("\n\n");
-	    printSegment(INDENT, "ORGANIZATION:", 0);
-	    print("\n");
-	    printMultilineString(smiModule->organization);
-	    print("\n\n");
-	    printSegment(INDENT, "CONTACT-INFO:", 0);
-	    print("\n");
-	    printMultilineString(smiModule->contactinfo);
-	    print("\n\n");
+	    fprint(f, "\n\n");
+	    fprintSegment(f, INDENT, "ORGANIZATION:", 0);
+	    fprint(f, "\n");
+	    fprintMultilineString(f, smiModule->organization);
+	    fprint(f, "\n\n");
+	    fprintSegment(f, INDENT, "CONTACT-INFO:", 0);
+	    fprint(f, "\n");
+	    fprintMultilineString(f, smiModule->contactinfo);
+	    fprint(f, "\n\n");
 	    for (; smiRevision;
 		 smiRevision = smiGetNextRevision(smiRevision)) {
 		if (! smiRevision->description ||
 		    strcmp(smiRevision->description,
 			   "[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
-		    printSegment(INDENT, "REVISION:", INDENTVALUE);
-		    print("\"%s\"\n", getTimeString(smiRevision->date));
-		    printSegment(INDENT, "REVISION-DESCRIPTION:", 0);
-		    print("\n");
+		    fprintSegment(f, INDENT, "REVISION:", INDENTVALUE);
+		    fprint(f, "\"%s\"\n", getTimeString(smiRevision->date));
+		    fprintSegment(f, INDENT, "REVISION-DESCRIPTION:", 0);
+		    fprint(f, "\n");
 		    if (smiRevision->description) {
-			printMultilineString(smiRevision->description);
+			fprintMultilineString(f, smiRevision->description);
 		    } else {
-			printMultilineString("...");
+			fprintMultilineString(f, "...");
 		    }
-		    print("\n\n");
+		    fprint(f, "\n\n");
 		}
 	    }
-	    printSegment(INDENT, "*/", 0);
-	    print("\n\n");
+	    fprintSegment(f, INDENT, "*/", 0);
+	    fprint(f, "\n\n");
 	}
     }
 
@@ -816,7 +865,7 @@ static void printModule(SmiModule *smiModule)
 
 
 
-static void printType(SmiNode *smiNode, SmiType *smiType)
+static void fprintType(FILE *f, SmiNode *smiNode, SmiType *smiType)
 {
     SmiNamedNumber *nn;
     char           *idlTypeName;
@@ -825,22 +874,22 @@ static void printType(SmiNode *smiNode, SmiType *smiType)
 
     if (! silent) {
 	if (smiType->name) {
-	    printSegment(INDENT, "/*\n", 0);
+	    fprintSegment(f, INDENT, "/*\n", 0);
 	    if (smiType->description) {
-		printMultiline(smiType->description);
+		fprintMultiline(f, smiType->description);
 	    }
 	    if (smiType->reference) {
-		printSegment(INDENT, "REFERENCE:", 0);
-		print("\n");
-		printMultilineString(smiType->reference);
-		print("\n\n");
+		fprintSegment(f, INDENT, "REFERENCE:", 0);
+		fprint(f, "\n");
+		fprintMultilineString(f, smiType->reference);
+		fprint(f, "\n\n");
 	    }
 	    if (smiType->format) {
-		printSegment(INDENT, "DISPLAY-HINT:", 0);
-		print(" %s\n", smiType->format);
-		print("\n\n");
+		fprintSegment(f, INDENT, "DISPLAY-HINT:", 0);
+		fprint(f, " %s\n", smiType->format);
+		fprint(f, "\n\n");
 	    }
-	    printSegment(INDENT, "*/\n", 0);
+	    fprintSegment(f, INDENT, "*/\n", 0);
 	}
     }
     if (! smiType->name) {
@@ -850,40 +899,40 @@ static void printType(SmiNode *smiNode, SmiType *smiType)
 	idlTypeName = getIdlTypeName(smiGetTypeModule(smiType)->name,
 				     smiType->name);
     }
-    printSegment(INDENT, "typedef ", 0);
-    print("%s %s; \n",
+    fprintSegment(f, INDENT, "typedef ", 0);
+    fprint(f, "%s %s; \n",
 	  getBaseTypeString(smiType->basetype), idlTypeName);
     
     if (smiType->basetype == SMI_BASETYPE_ENUM) {
 	for (nn = smiGetFirstNamedNumber(smiType);
 	     nn;
 	     nn = smiGetNextNamedNumber(nn)) {
-	    printSegment(INDENT, "const ", 0);
+	    fprintSegment(f, INDENT, "const ", 0);
 	    nnName = translate(nn->name);
-	    print("%s %s_%s = %s;\n", idlTypeName, idlTypeName, nnName,
+	    fprint(f, "%s %s_%s = %s;\n", idlTypeName, idlTypeName, nnName,
 		  getValueString(&nn->value, smiType));
 	    xfree(nnName);
 	}
-	printSegment(INDENT, "const string ", 0);
-	print("%s_NameNumberList = \"", idlTypeName);
+	fprintSegment(f, INDENT, "const string ", 0);
+	fprint(f, "%s_NameNumberList = \"", idlTypeName);
 	for (i = 0, nn = smiGetFirstNamedNumber(smiType);
 	     nn;
 	     i++, nn = smiGetNextNamedNumber(nn)) {
 	    nnName = translate(nn->name);
 	    if (i) {
-		print(" , ");
+		fprint(f, " , ");
 	    }
-	    print("%s (%s)", nnName, getValueString(&nn->value, smiType));
+	    fprint(f, "%s (%s)", nnName, getValueString(&nn->value, smiType));
 	    xfree(nnName);
 	}
-	print("\";\n");
+	fprint(f, "\";\n");
     }
-    print("\n");
+    fprint(f, "\n");
 }
 
 
 
-static void printTypedefs(SmiModule *smiModule)
+static void fprintTypedefs(FILE *f, SmiModule *smiModule)
 {
     SmiNode        *smiNode;
     SmiType        *smiType;
@@ -893,7 +942,7 @@ static void printTypedefs(SmiModule *smiModule)
 	 smiType;
 	 smiType = smiGetNextType(smiType)) {
 	if (current(smiType->status)) {
-	    printType(NULL, smiType);
+	    fprintType(f, NULL, smiType);
 	}
     }
 
@@ -903,7 +952,7 @@ static void printTypedefs(SmiModule *smiModule)
 	if (current(smiNode->status)) {
 	    smiType = smiGetNodeType(smiNode);
 	    if (smiType && ! smiType->name) {
-		printType(smiNode, smiType);
+		fprintType(f, smiNode, smiType);
 	    }
 	}
     }
@@ -911,7 +960,7 @@ static void printTypedefs(SmiModule *smiModule)
 
 
 
-static void printAttribute(SmiNode *smiNode)
+static void fprintAttribute(FILE *f, SmiNode *smiNode)
 {
     char *idlTypeName = NULL, *idlNodeName;
     SmiType *smiType;
@@ -924,20 +973,20 @@ static void printAttribute(SmiNode *smiNode)
     smiModule = smiGetNodeModule(smiNode);
     idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
     if (! silent) {
-	printDescription(smiNode, 2*INDENT);
+	fprintDescription(f, smiNode, 2*INDENT);
     }
-    printSegment(2*INDENT,
+    fprintSegment(f, 2*INDENT,
 		 smiNode->access == SMI_ACCESS_READ_ONLY
 		 ? "readonly attribute" : "attribute", 0);
 
     smiType = smiGetNodeType(smiNode);
     idlTypeName = getIdlAnyTypeName(smiNode, smiType);
-    print(" %s %s;\n", idlTypeName, idlNodeName);
+    fprint(f, " %s %s;\n", idlTypeName, idlNodeName);
 }
 
 
 
-static void printGroupInterface(SmiNode *smiNode)
+static void fprintGroupInterface(FILE *f, SmiNode *smiNode)
 {
     SmiNode *childNode;
     char *idlNodeName;
@@ -945,8 +994,8 @@ static void printGroupInterface(SmiNode *smiNode)
 
     smiModule = smiGetNodeModule(smiNode);
     idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
-    printSegment(INDENT, "interface", 0);
-    print(" %s : SNMPMgmt::SmiEntry {\n", idlNodeName);
+    fprintSegment(f, INDENT, "interface", 0);
+    fprint(f, " %s : SNMPMgmt::SmiEntry {\n", idlNodeName);
 
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
@@ -954,25 +1003,25 @@ static void printGroupInterface(SmiNode *smiNode)
 	if (childNode->nodekind == SMI_NODEKIND_TABLE
 	    && current(childNode->status)) {
 	    if (! silent) {
-		printDescription(childNode, 2*INDENT);
+		fprintDescription(f, childNode, 2*INDENT);
 	    }
-	    printSegment(2*INDENT, "SNMPMgmt::SmiTableIterator", 0);
+	    fprintSegment(f, 2*INDENT, "SNMPMgmt::SmiTableIterator", 0);
 	    childModule = smiGetNodeModule(childNode);
-	    print(" get_%s();\n", getIdlNodeName(childModule->name,
+	    fprint(f, " get_%s();\n", getIdlNodeName(childModule->name,
 						 childNode->name));
 	}
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR
 	    && current(childNode->status)) {
-	    printAttribute(childNode);
+	    fprintAttribute(f, childNode);
 	}
     }
 
-    printSegment(INDENT, "};\n\n", 0);
+    fprintSegment(f, INDENT, "};\n\n", 0);
 }
 
 
 
-static void printRowInterface(SmiNode *smiNode)
+static void fprintRowInterface(FILE *f, SmiNode *smiNode)
 {
     SmiNode *childNode, *relatedNode;
     char *idlModuleName, *idlNodeName;
@@ -980,26 +1029,26 @@ static void printRowInterface(SmiNode *smiNode)
     idlNodeName = getIdlNodeName(smiGetNodeModule(smiNode)->name,
 				 smiNode->name);
     if (! silent) {
-	printDescription(smiNode, INDENT);
+	fprintDescription(f, smiNode, INDENT);
     }
-    printSegment(INDENT, "interface", 0);
+    fprintSegment(f, INDENT, "interface", 0);
     if (smiNode->indexkind == SMI_INDEX_AUGMENT
 	|| smiNode->indexkind == SMI_INDEX_SPARSE) {
 	relatedNode = smiGetRelatedNode(smiNode);
 	idlModuleName = getIdlModuleName(smiGetNodeModule(relatedNode)->name);
-	print(" %s : %s::%s {\n", idlNodeName,
+	fprint(f, " %s : %s::%s {\n", idlNodeName,
 	      idlModuleName, relatedNode->name);
     } else {
-	print(" %s : SNMPMgmt::SmiEntry {\n", idlNodeName);	
+	fprint(f, " %s : SNMPMgmt::SmiEntry {\n", idlNodeName);	
     }
 
     if (smiNode->indexkind == SMI_INDEX_INDEX
 	|| smiNode->indexkind == SMI_INDEX_REORDER) {
-	print("\n");
-	printSegment(2*INDENT, "const ", 0);
-	print("string IndexVarList = \"");
-	printIndex(smiNode);
-	print("\";\n");
+	fprint(f, "\n");
+	fprintSegment(f, 2*INDENT, "const ", 0);
+	fprint(f, "string IndexVarList = \"");
+	fprintIndex(f, smiNode);
+	fprint(f, "\";\n");
     }
 
     /* SMI_INDEX_EXPAND ? */
@@ -1009,16 +1058,16 @@ static void printRowInterface(SmiNode *smiNode)
 	 childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_COLUMN
 	    && current(childNode->status)) {
-	    printAttribute(childNode);
+	    fprintAttribute(f, childNode);
 	}
     }
     
-    printSegment(INDENT, "};\n\n", 0);
+    fprintSegment(f, INDENT, "};\n\n", 0);
 }
 
 
 
-static void printInterfaces(SmiModule *smiModule)
+static void fprintInterfaces(FILE *f, SmiModule *smiModule)
 {
     SmiNode *smiNode;
 
@@ -1026,18 +1075,18 @@ static void printInterfaces(SmiModule *smiModule)
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
-	    printGroupInterface(smiNode);
+	    fprintGroupInterface(f, smiNode);
 	}
 	if (smiNode->nodekind == SMI_NODEKIND_ROW
 	    && current(smiNode->status)) {
-	    printRowInterface(smiNode);
+	    fprintRowInterface(f, smiNode);
 	}
     }
 }
 
 
 
-static void printConstructor(SmiNode *smiNode)
+static void fprintConstructor(FILE *f, SmiNode *smiNode)
 {
     SmiNode *childNode;
     SmiType *smiType;
@@ -1049,9 +1098,9 @@ static void printConstructor(SmiNode *smiNode)
     smiModule = smiGetNodeModule(smiNode);
     idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
 
-    print("\n");
-    printSegment(2*INDENT, "", 0);
-    print("%s create_%s (\n", idlNodeName, idlNodeName);
+    fprint(f, "\n");
+    fprintSegment(f, 2*INDENT, "", 0);
+    fprint(f, "%s create_%s (\n", idlNodeName, idlNodeName);
 
     /* XXX I think we need to include INDEX columns here XXX */
     for (childNode = smiGetFirstChildNode(smiNode);
@@ -1069,24 +1118,24 @@ static void printConstructor(SmiNode *smiNode)
 	    smiType = smiGetNodeType(childNode);
 	    idlChildTypeName = getIdlAnyTypeName(childNode, smiType);
 	    if (cnt > 1) {
-		print(",\n");
+		fprint(f, ",\n");
 	    }
-	    printSegment(3*INDENT, "in ", 0);
-	    print("%s %s", idlChildTypeName, idlChildNodeName);
+	    fprintSegment(f, 3*INDENT, "in ", 0);
+	    fprint(f, "%s %s", idlChildTypeName, idlChildNodeName);
 	}
     }
-    print("\n");
+    fprint(f, "\n");
     
-    printSegment(2*INDENT, ") raises (\n", 0);
-    printSegment(3*INDENT, "SNMPMgmt::AlreadyExists,\n", 0);
-    printSegment(3*INDENT, "CosLifeCycle::InvalidCriteria,\n", 0);
-    printSegment(3*INDENT, "CosLifeCycle::CannotMeetCriteria\n", 0);
-    printSegment(2*INDENT, ");\n", 0);
+    fprintSegment(f, 2*INDENT, ") raises (\n", 0);
+    fprintSegment(f, 3*INDENT, "SNMPMgmt::AlreadyExists,\n", 0);
+    fprintSegment(f, 3*INDENT, "CosLifeCycle::InvalidCriteria,\n", 0);
+    fprintSegment(f, 3*INDENT, "CosLifeCycle::CannotMeetCriteria\n", 0);
+    fprintSegment(f, 2*INDENT, ");\n", 0);
 }
 
 
 
-static void printFactory(SmiModule *smiModule)
+static void fprintFactory(FILE *f, SmiModule *smiModule)
 {
     SmiNode *smiNode;
     int	    cnt = 0;
@@ -1098,21 +1147,21 @@ static void printFactory(SmiModule *smiModule)
 	if (isCreatable(smiNode)) {
 	    cnt++;
 	    if (cnt == 1) {
-		printSegment(INDENT, "interface SmiEntryFactory : "
+		fprintSegment(f, INDENT, "interface SmiEntryFactory : "
 			     "SNMPMgmt::GenericFactory {\n", 0);
 	    }
-	    printConstructor(smiNode);
+	    fprintConstructor(f, smiNode);
 	}
     }
 
     if (cnt) {
-	printSegment(INDENT, "};\n\n", 0);
+	fprintSegment(f, INDENT, "};\n\n", 0);
     }
 }
 
 
 
-static void printNotificationVBTypes(SmiModule *smiModule)
+static void fprintNotificationVBTypes(FILE *f, SmiModule *smiModule)
 {
     SmiNode     *smiNode, *listSmiNode;
     SmiElement  *smiElement;
@@ -1132,16 +1181,16 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 		                           smiGetNodeModule(listSmiNode)->name,
 					   listSmiNode->name, &isnew);
 	    if (isnew && listSmiNode) {
-		printSegment(INDENT, "struct ", 0);
-		print("%s {\n", idlVBTypeName);
-		printSegment(2*INDENT, "string var_name;\n", 0);
-		printSegment(2*INDENT, "string var_index;\n", 0);
-		printSegment(2*INDENT, "", 0);
+		fprintSegment(f, INDENT, "struct ", 0);
+		fprint(f, "%s {\n", idlVBTypeName);
+		fprintSegment(f, 2*INDENT, "string var_name;\n", 0);
+		fprintSegment(f, 2*INDENT, "string var_index;\n", 0);
+		fprintSegment(f, 2*INDENT, "", 0);
 		smiType = smiGetNodeType(listSmiNode);
 		idlTypeName = getIdlAnyTypeName(listSmiNode, smiType);
-		print("%s %s;\n", idlTypeName,
+		fprint(f, "%s %s;\n", idlTypeName,
 		                  smiGetElementNode(smiElement)->name);
-		printSegment(INDENT, "};\n\n", 0);
+		fprintSegment(f, INDENT, "};\n\n", 0);
 	    }
 	}
     }
@@ -1149,7 +1198,7 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 
 
 
-static void printNotificationTypes(SmiModule *smiModule)
+static void fprintNotificationTypes(FILE *f, SmiModule *smiModule)
 {
     SmiNode     *smiNode;
     SmiElement  *smiElement;
@@ -1163,24 +1212,24 @@ static void printNotificationTypes(SmiModule *smiModule)
 	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    idlTypeName = getIdlTypeName(smiGetNodeModule(smiNode)->name,
 					 smiNode->name);
-	    printSegment(INDENT, "struct ", 0);
-	    print("%s {\n", idlTypeName);
+	    fprintSegment(f, INDENT, "struct ", 0);
+	    fprint(f, "%s {\n", idlTypeName);
 	    for (; smiElement; smiElement = smiGetNextElement(smiElement)) {
 		idlVBTypeName = getIdlVBTypeName(smiGetNodeModule(
 		                          smiGetElementNode(smiElement))->name,
 				    smiGetElementNode(smiElement)->name, NULL);
-		printSegment(2*INDENT, "", 0);
-		print("%s %s;\n", idlVBTypeName,
+		fprintSegment(f, 2*INDENT, "", 0);
+		fprint(f, "%s %s;\n", idlVBTypeName,
 		      smiGetElementNode(smiElement)->name);
 	    }
-	    printSegment(INDENT, "};\n\n", 0);
+	    fprintSegment(f, INDENT, "};\n\n", 0);
 	}
     }
 }
 
 
 
-static void printPushNotifications(SmiModule *smiModule)
+static void fprintPushNotifications(FILE *f, SmiModule *smiModule)
 {
     SmiNode     *smiNode;
     SmiElement  *smiElement;
@@ -1195,40 +1244,40 @@ static void printPushNotifications(SmiModule *smiModule)
 	cnt++;
 	if (cnt == 1) {
 	    if (! silent) {
-		printSegment(INDENT,
+		fprintSegment(f, INDENT,
 			     "/* typed push event communication */\n", 0);
 	    }
-	    printSegment(INDENT, "interface Notifications : ", 0);
-	    print("SNMPMgmt::Notifications {\n");
+	    fprintSegment(f, INDENT, "interface Notifications : ", 0);
+	    fprint(f, "SNMPMgmt::Notifications {\n");
 	}
 	idlNodeName = getIdlNodeName(smiModule->name,
 				     smiNode->name);
 	if (! silent) {
-	    printDescription(smiNode, 2*INDENT);
+	    fprintDescription(f, smiNode, 2*INDENT);
 	}
-	printSegment(2*INDENT, "void ", 0);
-	print("%s (\n", idlNodeName);
-	printSegment(3*INDENT, "in CosNaming::Name src_entry_name,\n", 0);
-	printSegment(3*INDENT, "in CORBA::ScopedName event_type,\n", 0);
-	printSegment(3*INDENT, "in ASN1_GeneralizedTime event_time", 0);
+	fprintSegment(f, 2*INDENT, "void ", 0);
+	fprint(f, "%s (\n", idlNodeName);
+	fprintSegment(f, 3*INDENT, "in CosNaming::Name src_entry_name,\n", 0);
+	fprintSegment(f, 3*INDENT, "in CORBA::ScopedName event_type,\n", 0);
+	fprintSegment(f, 3*INDENT, "in ASN1_GeneralizedTime event_time", 0);
 	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    idlTypeName = getIdlTypeName(smiModule->name, smiNode->name);
-	    print(",\n");
-	    printSegment(3*INDENT, "in ", 0);
-	    print("%s notification_info", idlTypeName);
+	    fprint(f, ",\n");
+	    fprintSegment(f, 3*INDENT, "in ", 0);
+	    fprint(f, "%s notification_info", idlTypeName);
 	}
-	print("\n");
-	printSegment(2*INDENT, ");\n", 0);
+	fprint(f, "\n");
+	fprintSegment(f, 2*INDENT, ");\n", 0);
     }    
 
     if (cnt) {
-	printSegment(INDENT, "};\n\n", 0);
+	fprintSegment(f, INDENT, "};\n\n", 0);
     }
 }
 
 
 
-static void printPullNotifications(SmiModule *smiModule)
+static void fprintPullNotifications(FILE *f, SmiModule *smiModule)
 {
     SmiNode     *smiNode;
     SmiElement  *smiElement;
@@ -1243,54 +1292,54 @@ static void printPullNotifications(SmiModule *smiModule)
 	cnt++;
 	if (cnt == 1) {
 	    if (! silent) {
-		printSegment(INDENT,
+		fprintSegment(f, INDENT,
 			     "/* typed pull event communication */\n", 0);
 	    }
-	    printSegment(INDENT, "interface PullNotifications : ", 0);
-	    print("SNMPMgmt::PullNotifications {\n");
+	    fprintSegment(f, INDENT, "interface PullNotifications : ", 0);
+	    fprint(f, "SNMPMgmt::PullNotifications {\n");
 	}
 	idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
 	
 	if (! silent) {
-	    printDescription(smiNode, 2*INDENT);
+	    fprintDescription(f, smiNode, 2*INDENT);
 	}
-	printSegment(2*INDENT, "void ", 0);
-	print("pull_%s (\n", idlNodeName);
-	printSegment(3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
-	printSegment(3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
-	printSegment(3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
+	fprintSegment(f, 2*INDENT, "void ", 0);
+	fprint(f, "pull_%s (\n", idlNodeName);
+	fprintSegment(f, 3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
+	fprintSegment(f, 3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
+	fprintSegment(f, 3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
 	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    idlTypeName = getIdlTypeName(smiModule->name, smiNode->name);
-	    print(",\n");
-	    printSegment(3*INDENT, "out ", 0);
-	    print("%s notification_info", idlTypeName);
+	    fprint(f, ",\n");
+	    fprintSegment(f, 3*INDENT, "out ", 0);
+	    fprint(f, "%s notification_info", idlTypeName);
 	}
-	print("\n");
-	printSegment(2*INDENT, ");\n", 0);
-	printSegment(2*INDENT, "boolean ", 0);
-	print("try_%s (\n", idlNodeName);
-	printSegment(3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
-	printSegment(3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
-	printSegment(3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
+	fprint(f, "\n");
+	fprintSegment(f, 2*INDENT, ");\n", 0);
+	fprintSegment(f, 2*INDENT, "boolean ", 0);
+	fprint(f, "try_%s (\n", idlNodeName);
+	fprintSegment(f, 3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
+	fprintSegment(f, 3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
+	fprintSegment(f, 3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
 	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    char *idlTypeName;
 	    idlTypeName = getIdlTypeName(smiModule->name, smiNode->name);
-	    print(",\n");
-	    printSegment(3*INDENT, "out ", 0);
-	    print("%s notification_info", idlTypeName);
+	    fprint(f, ",\n");
+	    fprintSegment(f, 3*INDENT, "out ", 0);
+	    fprint(f, "%s notification_info", idlTypeName);
 	}
-	print("\n");
-	printSegment(2*INDENT, ");\n", 0);
+	fprint(f, "\n");
+	fprintSegment(f, 2*INDENT, ");\n", 0);
     }    
 
     if (cnt) {
-	printSegment(INDENT, "};\n\n", 0);
+	fprintSegment(f, INDENT, "};\n\n", 0);
     }
 }
 
 
 
-static void printDefVals(SmiModule *smiModule)
+static void fprintDefVals(FILE *f, SmiModule *smiModule)
 {
     SmiNode *smiNode;
     SmiType *smiType;
@@ -1306,27 +1355,27 @@ static void printDefVals(SmiModule *smiModule)
 	    smiType = smiGetNodeType(smiNode);
 	    cnt++;
 	    if (cnt == 1) {
-		printSegment(INDENT, "/* pseudo */\n", 0);
-		printSegment(INDENT, "interface DefaultValues {\n", 0);
+		fprintSegment(f, INDENT, "/* pseudo */\n", 0);
+		fprintSegment(f, INDENT, "interface DefaultValues {\n", 0);
 	    }
 	    if (! silent) {
-		printSegment(2*INDENT, "/* DEFVAL: ", 0);
-		print(" %s */\n", getValueString(&smiNode->value, smiType));
+		fprintSegment(f, 2*INDENT, "/* DEFVAL: ", 0);
+		fprint(f, " %s */\n", getValueString(&smiNode->value, smiType));
 	    }
-	    printSegment(2*INDENT, "", 0);
+	    fprintSegment(f, 2*INDENT, "", 0);
 	    idlTypeName = getIdlAnyTypeName(smiNode, smiType);
-	    print("%s %s();\n\n", idlTypeName, smiNode->name);
+	    fprint(f, "%s %s();\n\n", idlTypeName, smiNode->name);
 	}
     }
 
     if (cnt) {
-	printSegment(INDENT, "};\n\n", 0);
+	fprintSegment(f, INDENT, "};\n\n", 0);
     }
 }
 
 
 
-static void printDisplayHints(SmiModule *smiModule)
+static void fprintDisplayHints(FILE *f, SmiModule *smiModule)
 {
     SmiType *smiType;
     int     cnt = 0;
@@ -1337,32 +1386,32 @@ static void printDisplayHints(SmiModule *smiModule)
 	if (current(smiType->status) && smiType->format) {
 	    cnt++;
 	    if (cnt == 1) {
-		printSegment(INDENT, "/* pseudo */\n", 0);
-		printSegment(INDENT, "interface TextualConventions {\n", 0);
+		fprintSegment(f, INDENT, "/* pseudo */\n", 0);
+		fprintSegment(f, INDENT, "interface TextualConventions {\n", 0);
 	    }
-	    print("\n");
+	    fprint(f, "\n");
 	    if (! silent) {
-		printSegment(2*INDENT, "/*\n", 0);
+		fprintSegment(f, 2*INDENT, "/*\n", 0);
 		if (smiType->description) {
-		    printMultiline(smiType->description);
+		    fprintMultiline(f, smiType->description);
 		}
 		if (smiType->reference) {
-		    printSegment(2*INDENT, "REFERENCE:", 0);
-		    print("\n");
-		    printMultilineString(smiType->reference);
+		    fprintSegment(f, 2*INDENT, "REFERENCE:", 0);
+		    fprint(f, "\n");
+		    fprintMultilineString(f, smiType->reference);
 		}
 		if (smiType->format) {
-		    printSegment(2*INDENT, "DISPLAY-HINT:", 0);
-		    print(" %s\n", smiType->format);
+		    fprintSegment(f, 2*INDENT, "DISPLAY-HINT:", 0);
+		    fprint(f, " %s\n", smiType->format);
 		}
-		printSegment(2*INDENT, "*/\n", 0);
+		fprintSegment(f, 2*INDENT, "*/\n", 0);
 	    }
-	    printSegment(2*INDENT, "", 0);
-	    print("string %sToString (in %s Value);\n", smiType->name,
+	    fprintSegment(f, 2*INDENT, "", 0);
+	    fprint(f, "string %sToString (in %s Value);\n", smiType->name,
 		  getIdlTypeName(smiGetTypeModule(smiType)->name,
 				 smiType->name));
-	    printSegment(2*INDENT, "", 0);
-	    print("%s %sFromString (in string str);\n",
+	    fprintSegment(f, 2*INDENT, "", 0);
+	    fprint(f, "%s %sFromString (in string str);\n",
 		  getIdlTypeName(smiGetTypeModule(smiType)->name,
 				 smiType->name),
 		  smiType->name);
@@ -1370,7 +1419,7 @@ static void printDisplayHints(SmiModule *smiModule)
     }
 
     if (cnt) {
-	printSegment(INDENT, "};\n\n", 0);
+	fprintSegment(f, INDENT, "};\n\n", 0);
     }
 }
 
@@ -1378,46 +1427,59 @@ static void printDisplayHints(SmiModule *smiModule)
 
 void dumpIdl(SmiModule *smiModule)
 {
-    char	*idlModuleName;
+    char      *idlModuleName;
+    char      *basename;
+    FILE      *f;
 
-    print("/*\n * This CORBA IDL file has been generated by smidump "
+    basename = translateLower(smiModule->name);
+
+    f = createFile(basename, ".idl");
+    if (! f) {
+        return;
+    }
+
+
+    fprint(f, "/*\n * This CORBA IDL file has been generated by smidump "
 	  SMI_VERSION_STRING ". Do not edit.\n */\n\n");
     
     idlModuleName = getIdlModuleName(smiModule->name);
     createImportList(smiModule);
 
-    print("#ifndef _%s_IDL_\n", idlModuleName);
-    print("#define _%s_IDL_\n\n", idlModuleName);
+    fprint(f, "#ifndef _%s_IDL_\n", idlModuleName);
+    fprint(f, "#define _%s_IDL_\n\n", idlModuleName);
 
-    printIncludes(smiModule);
+    fprintIncludes(f, smiModule);
 
-    print("module %s {\n\n", idlModuleName);
+    fprint(f, "module %s {\n\n", idlModuleName);
 
-    printImportedTypedefs(smiModule);
-    printModule(smiModule);
-    printTypedefs(smiModule);
-    printInterfaces(smiModule);
-    printNotificationVBTypes(smiModule);
-    printNotificationTypes(smiModule);
-    printPushNotifications(smiModule);
-    printPullNotifications(smiModule);
-    printFactory(smiModule);
-    printDefVals(smiModule);
-    printDisplayHints(smiModule);
+    fprintImportedTypedefs(f, smiModule);
+    fprintModule(f, smiModule);
+    fprintTypedefs(f, smiModule);
+    fprintInterfaces(f, smiModule);
+    fprintNotificationVBTypes(f, smiModule);
+    fprintNotificationTypes(f, smiModule);
+    fprintPushNotifications(f, smiModule);
+    fprintPullNotifications(f, smiModule);
+    fprintFactory(f, smiModule);
+    fprintDefVals(f, smiModule);
+    fprintDisplayHints(f, smiModule);
     
-    print("};\n\n");
-    print("#endif /* !_%s_IDL_ */\n", idlModuleName);
+    fprint(f, "};\n\n");
+    fprint(f, "#endif /* !_%s_IDL_ */\n", idlModuleName);
 
     freeImportList();
     dictFree(&idlModuleNameList);
     dictFree(&idlNodeNameList);
     dictFree(&idlTypeNameList);
     dictFree(&idlVBTypeNameList);
+
+    fclose(f);
+    xfree(basename);
 }
 
 
 
-static void printNameAndOid(SmiNode *smiNode, SmiNode *smiParentNode)
+static void fprintNameAndOid(FILE *f, SmiNode *smiNode, SmiNode *smiParentNode)
 {
     int  i;
     char *idlModuleName;
@@ -1425,15 +1487,15 @@ static void printNameAndOid(SmiNode *smiNode, SmiNode *smiParentNode)
     idlModuleName = getIdlModuleName(smiGetNodeModule(smiNode)->name);
 
     if (smiParentNode) {
-	print("::%s::%s::%s ",
+	fprint(f, "::%s::%s::%s ",
 	       idlModuleName, smiParentNode->name, smiNode->name);
     } else {
-	print("::%s::%s ", idlModuleName, smiNode->name);
+	fprint(f, "::%s::%s ", idlModuleName, smiNode->name);
     }
     for (i = 0; i < smiNode->oidlen; i++) {
-	print("%s%u", i ? "." : "", smiNode->oid[i]);
+	fprint(f, "%s%u", i ? "." : "", smiNode->oid[i]);
     }
-    print(" ");
+    fprint(f, " ");
 }
 
 
@@ -1442,14 +1504,23 @@ void dumpOid(SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     SmiType   *smiType;
+    char      *basename;
+    FILE      *f;
+
+    basename = translateLower(smiModule->name);
+
+    f = createFile(basename, ".oid");
+    if (! f) {
+        return;
+    }
 
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
 	if (isGroup(smiNode)) {
-            printNameAndOid(smiNode, NULL);
-	    print("Group not-accessible\n");
+            fprintNameAndOid(f, smiNode, NULL);
+	    fprint(f, "Group not-accessible\n");
 	    /* XXX what if the node is also of SMI_NODEKIND_MODULE ?? */
 	    continue;
 	}
@@ -1459,37 +1530,37 @@ void dumpOid(SmiModule *smiModule)
 	switch (smiNode->nodekind) {
 	case SMI_NODEKIND_NODE:
 	    if (current(smiNode->status)) {
-		printNameAndOid(smiNode, NULL);
-		print("ASN1_ObjectIdentifier not-accessible\n");
+		fprintNameAndOid(f, smiNode, NULL);
+		fprint(f, "ASN1_ObjectIdentifier not-accessible\n");
 	    }
 	    break;
 	case SMI_NODEKIND_SCALAR:
 	    if (current(smiNode->status)) {
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
-		printNameAndOid(smiNode, smiParentNode);
-		print("%s %s\n",
+		fprintNameAndOid(f, smiNode, smiParentNode);
+		fprint(f, "%s %s\n",
 		      getBaseTypeString(smiType->basetype),
 		      getAccessString(smiNode->access, 0));
 	    }
 	    break;
 	case SMI_NODEKIND_TABLE:
 	    if (current(smiNode->status)) {
-		printNameAndOid(smiNode, NULL);
-		print("Table not-accessible\n");
+		fprintNameAndOid(f, smiNode, NULL);
+		fprint(f, "Table not-accessible\n");
 	    }
 	    break;
 	case SMI_NODEKIND_ROW:
 	    if (current(smiNode->status)) {
-		printNameAndOid(smiNode, NULL);
-		print("TableEntry not-accessible\n");
+		fprintNameAndOid(f, smiNode, NULL);
+		fprint(f, "TableEntry not-accessible\n");
 	    }
 	    break;
 	case SMI_NODEKIND_COLUMN:
 	    if (current(smiNode->status)) {
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
 		int create = smiParentNode ? smiParentNode->create : 0;
-		printNameAndOid(smiNode, smiParentNode);
-		print("%s %s\n",
+		fprintNameAndOid(f, smiNode, smiParentNode);
+		fprint(f, "%s %s\n",
 		      getBaseTypeString(smiType->basetype),
 		      getAccessString(smiNode->access, create));
 	    }
@@ -1497,8 +1568,8 @@ void dumpOid(SmiModule *smiModule)
 	case SMI_NODEKIND_NOTIFICATION:
 	    if (current(smiNode->status)) {
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
-		printNameAndOid(smiNode, smiParentNode);
-		print("Notification not-accessible\n");
+		fprintNameAndOid(f, smiNode, smiParentNode);
+		fprint(f, "Notification not-accessible\n");
 	    }
 	    break;
 	case SMI_NODEKIND_GROUP:
@@ -1507,6 +1578,9 @@ void dumpOid(SmiModule *smiModule)
 	    break;
 	}
     }
+
+    fclose(f);
+    xfree(basename);
 }
 
 
