@@ -51,3 +51,8 @@ o Java OID/Name Lookup Service
 o clean up SMI_BASETYPE_XXX / struct SmiValue
 
 o cleanup putenv(TZ) hack
+
+o parser-smi.y: remember SEQUENCE contents and check them
+
+o smilint DLSW-MIB dumps core, only if smi.h:SmiValue struct contains
+  the two new elements valueformat and len. try gdb watch.

@@ -438,6 +438,7 @@ module:			moduleName
 					   (objectPtr->typePtr->basetype ==
 					    SMI_BASETYPE_SEQUENCEOF)) {
 				    objectPtr->nodekind = SMI_NODEKIND_TABLE;
+				    /* XXX */
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
 					   (objectPtr->typePtr->basetype ==
@@ -486,6 +487,20 @@ module:			moduleName
 							 importPtr->importname,
 							 importPtr->importmodule);
 				    }
+				}
+			    }
+			    
+			    /*
+			     * Check references to unknown identifiers.
+			     */
+			    for(objectPtr = thisModulePtr->firstObjectPtr;
+				objectPtr;
+				objectPtr = objectPtr->nextPtr) {
+				if (objectPtr->flags & FLAG_INCOMPLETE) {
+				    printErrorAtLine(thisParserPtr,
+						     ERR_UNKNOWN_OIDLABEL,
+						     objectPtr->line,
+						     objectPtr->name);
 				}
 			    }
 			    
@@ -1135,9 +1150,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			        findObjectByModuleAndName(thisParserPtr->modulePtr,
 							  $1);
 
-			    if (objectPtr) {
-				$$ = objectPtr;
-			    } else {
+			    if (!objectPtr) {
 				importPtr = findImportByName($1,
 							     thisModulePtr);
 				if (!importPtr) {
@@ -1147,7 +1160,6 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 						          thisParserPtr);
 				    setObjectFileOffset(objectPtr,
 						        thisParserPtr->character);
-				    $$ = objectPtr;
 				} else {
 				    /*
 				     * imported object.
@@ -1155,7 +1167,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				    importPtr->use++;
 				    snodePtr = smiGetNode(
 						  importPtr->importmodule, $1);
-				    $$ = addObject($1,
+				    objectPtr = addObject($1,
 					getParentNode(
 				             createNodes(snodePtr->oidlen,
 							 snodePtr->oid)),
@@ -1163,6 +1175,8 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 					FLAG_IMPORTED, thisParserPtr);
 				}
 			    }
+
+			    $$ = objectPtr;
 			}
 	;
 
@@ -2766,7 +2780,7 @@ Value:			valueofObjectSyntax
 	|		'{' BitsValue '}'
 			{
 			    int i = 0;
-			    List *listPtr, *nextPtr;
+			    List *listPtr;
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
@@ -2774,13 +2788,12 @@ Value:			valueofObjectSyntax
 			    $$->value.bits = NULL;
 			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
 			    for (i = 0, listPtr = $2; listPtr;
-				 i++, listPtr = nextPtr) {
+				 i++, listPtr = listPtr->nextPtr) {
 				$$->value.bits = util_realloc($$->value.bits,
 						       sizeof(char *) * (i+2));
 				$$->value.bits[i] = listPtr->ptr;
 				$$->value.bits[i+1] = NULL;
-				nextPtr = listPtr->nextPtr;
-				util_free(listPtr);
+				/* XXX util_free(listPtr); */
 			    }
 			}
 	;
@@ -3873,4 +3886,4 @@ number:			NUMBER
 
 %%
 
-#endif
+#endif /*  */
