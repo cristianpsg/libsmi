@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.31 1999/02/18 17:13:01 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.1 1999/03/11 17:33:00 strauss Exp $
  */
 
 %{
@@ -1342,9 +1342,13 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    setModuleIdentityObject(thisParserPtr->modulePtr,
+						    objectPtr);
 			    setModuleLastUpdated(thisParserPtr->modulePtr, $6);
-			    setModuleOrganization(thisParserPtr->modulePtr, $8);
-			    setModuleContactInfo(thisParserPtr->modulePtr, $10);
+			    setModuleOrganization(thisParserPtr->modulePtr,
+						  $8);
+			    setModuleContactInfo(thisParserPtr->modulePtr,
+						 $10);
 			    setObjectDescription(objectPtr, $12);
 			    $$ = 0;
 			}

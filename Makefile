@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.7 1998/11/30 16:42:33 strauss Exp $
+# @(#) $Id: Makefile,v 1.8 1999/03/11 18:36:29 strauss Exp $
 #
 
 MIBDIR		= ../scotty/tnm/mibs
@@ -19,12 +19,13 @@ BISON		= bison
 FLEX		= flex
 
 LIBSMI_OBJS	= lib/config.o lib/data.o lib/error.o lib/util.o lib/smi.o \
+		  lib/dump-sming.o \
 		  lib/parser-smi.tab.o lib/scanner-smi.o \
 		  lib/smi_clnt.o lib/smi_xdr.o
 
 LIBSMI_STATIC	= lib/libsmi.a
 
-all: tools/smilint
+all: tools/smilint tools/smidump
 
 
 tools/smid.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c: lib/smi.h-add lib/smi.x
@@ -45,10 +46,13 @@ $(LIBSMI_STATIC): lib/smi.h $(LIBSMI_OBJS)
 	$(AR) ruv $@ $(LIBSMI_OBJS)
 	$(RANLIB) $@
 	
-tools: tools/smilint tools/smiquery tools/smiclient tools/smid
+tools: tools/smilint tools/smidump tools/smiquery tools/smiclient tools/smid
 
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
 	$(LD) $(LD_FLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -ll -lnsl
+
+tools/smidump: $(LIBSMI_STATIC) tools/smidump.o
+	$(LD) $(LD_FLAGS) -o tools/smidump tools/smidump.o $(LIBSMI_STATIC) -ll -lnsl
 
 clean:
 	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c
