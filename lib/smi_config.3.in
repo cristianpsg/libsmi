@@ -112,6 +112,40 @@ my the \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions (see above).
 Files with a \fB.sming\fP
 extension are expected to be SMIng module files. Files with a \fB.my\fP or
 without any extension are expected to be SMIv1/v2 module files.
+.SH "CONFIGURATION FILES"
+The SMI library configuration files read at initialization and on demand
+by \fBsmiReadConfig()\fP have a very simple line oriented syntax. Empty lines
+and those starting with `#' are ignored. Other lines start with a command
+followed by options dependent on the command.
+.PP
+The \fBsection\fP command is followed by a section name. This starts
+a section with the given name. This section ends at the end of the file
+or at the start of another section. Lines before the first \fBsection\fP
+command and lines of a section named `*' belong a the default
+section.
+.PP
+When the SMI library reads a configuration file it parses only the default
+section and that section that matches the tag passed to \fBsmiInit()\fP
+or \fBsmiReadConfig()\fP. If the tag is NULL, only the default section
+is parsed. It is suggested to use program or package names as tags for
+their initialization.
+.PP
+The \fBload\fP command is used to preload a given MIB module. If multiple
+modules shall be preloaded, multiple \fBload\fP commands must be used.
+.PP
+Example configuration:
+.nf
+  #
+  # $HOME/.smirc
+  #
+  section *
+    load SNMPv2-SMI
+    load SNMPv2-TC
+    load SNMPv2-CONF
+  section smiquery
+    load IF-MIB
+    load DISMAN-SCRIPT-MIB
+.fi
 .SH "FILES"
 .nf
 @prefix@/etc/smi.conf    global configuration file
