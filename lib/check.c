@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.32 2001/11/26 17:06:28 strauss Exp $
+ * @(#) $Id: check.c,v 1.33 2001/12/17 18:05:23 schoenw Exp $
  */
 
 #include <config.h>
@@ -874,7 +874,10 @@ smiCheckIndex(Parser *parser, Object *object)
 	 * has to be accessible (see 7.7 in RFC 2578).
 	 */
 
-	if (parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2) {
+	/* A good test case is the SNMP-VIEW-BASED-ACM-MIB. */
+
+	if ((parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2)
+	    && (indexPtr->nodePtr->parentPtr == object->nodePtr)) {
 	    if (indexPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
 		smiPrintErrorAtLine(parser, ERR_INDEX_ACCESSIBLE,
 				    object->line,
@@ -1306,10 +1309,12 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 		}
 
 		/* check TDomain/TAddress pair */
-		if (objectPtr->typePtr == taddressPtr) {
-		    nodePtr =
-			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
-						 objectPtr->nodePtr->subid-1);
+		if (smiTypeDerivedFrom(objectPtr->typePtr, taddressPtr)) {
+		    for (nodePtr =
+			     objectPtr->nodePtr->parentPtr->firstChildPtr;
+			 nodePtr &&
+			     nodePtr->lastObjectPtr->typePtr != tdomainPtr;
+			 nodePtr = nodePtr->nextPtr);
 		    if (!nodePtr ||
 			nodePtr->lastObjectPtr->typePtr != tdomainPtr) {
 			smiPrintErrorAtLine(parserPtr,
@@ -1323,7 +1328,6 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 
 		/* check InetAddressType/InetAddress pair */
 		if (smiTypeDerivedFrom(objectPtr->typePtr, inetAddressPtr)) {
-#if 1
 		    for (nodePtr =
 			     objectPtr->nodePtr->parentPtr->firstChildPtr;
 			 nodePtr &&
@@ -1336,18 +1340,7 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 			smiPrintErrorAtLine(parserPtr,
 					    ERR_INETADDRESS_WITHOUT_TYPE,
 					    objectPtr->line);
-		}
-#else
-		    nodePtr =
-			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
-						 objectPtr->nodePtr->subid-1);
-		    if (!nodePtr || nodePtr->lastObjectPtr->typePtr !=
-			inetAddressTypePtr) {
-			smiPrintErrorAtLine(parserPtr,
-					    ERR_INETADDRESS_WITHOUT_TYPE,
-					    objectPtr->line);
 		    }
-#endif
 		}
 
 		/* check InetAddressType subtyping */
@@ -1378,6 +1371,19 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 static char *status[] = { "Unknown", "current", "deprecated",
 			  "mandatory", "optional", "obsolete" };
 
+static int
+memberOfGroup(Object *object, Object *group)
+{
+    List *listPtr;
+
+    for (listPtr = group->listPtr; listPtr; listPtr = listPtr->nextPtr) {
+	if (listPtr->ptr == object) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1400,8 +1406,9 @@ static char *status[] = { "Unknown", "current", "deprecated",
 void
 smiCheckComplianceStatus(Parser *parser, Object *compliance)
 {
-    List *listPtr;
+    List *listPtr, *groupListPtr;
     Object *memberPtr;
+    Object *group;
 
     for (listPtr = compliance->listPtr;
 	 listPtr; listPtr = listPtr->nextPtr) {
@@ -1437,6 +1444,33 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 	 listPtr; listPtr = listPtr->nextPtr) {
 	
 	memberPtr = ((Refinement *) listPtr->ptr)->objectPtr;
+
+	for (groupListPtr = compliance->listPtr;
+	     groupListPtr; groupListPtr = groupListPtr->nextPtr) {
+
+	    group = (Object *) groupListPtr->ptr;
+	    if (memberOfGroup(memberPtr, group)) {
+		break;
+	    }
+	}
+
+	if (! groupListPtr) {
+	    for (groupListPtr = compliance->optionlistPtr;
+		 groupListPtr; groupListPtr = groupListPtr->nextPtr) {
+
+		group = ((Option *) groupListPtr->ptr)->objectPtr;
+		if (memberOfGroup(memberPtr, group)) {
+		    break;
+		}
+	    }
+	}
+
+	if (! groupListPtr) {
+	    smiPrintErrorAtLine(parser, ERR_REFINEMENT_NOT_LISTED,
+				compliance->line,
+				memberPtr->export.name);
+	}
+		
 	addObjectFlags(memberPtr, FLAG_INCOMPLIANCE);
 	if (memberPtr->export.status > compliance->export.status) {
 	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_OBJECT_STATUS,
