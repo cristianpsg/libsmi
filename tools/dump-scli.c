@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.15 2002/03/27 13:39:38 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.16 2002/05/17 12:57:52 schoenw Exp $
  */
 
 /*
@@ -229,6 +229,9 @@ isGroup(SmiNode *smiNode, SmiNodekind memberkind)
 
     if (match_regex) {
 	int status;
+	if (! smiNode->name) {
+	    return 0;
+	}
 	status = regexec(match_regex, smiNode->name, (size_t) 0, NULL, 0);
 	if (status != 0) {
 	    return 0;
