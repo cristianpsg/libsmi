@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.52 1999/12/17 10:44:21 strauss Exp $
+ * @(#) $Id: smi.h,v 1.53 2000/01/10 10:34:20 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -105,8 +105,7 @@ typedef enum SmiDecl {
     /* SMIv1/v2 ASN.1 statements and macros */
     SMI_DECL_IMPLICIT_TYPE      = 1,
     SMI_DECL_TYPEASSIGNMENT     = 2,
-    SMI_DECL_IMPL_SEQUENCE      = 3,
-    SMI_DECL_IMPL_SEQUENCEOF    = 4,
+    SMI_DECL_IMPL_SEQUENCEOF    = 4,	/* this will go away */
     SMI_DECL_VALUEASSIGNMENT    = 5,
     SMI_DECL_OBJECTTYPE         = 6,
     SMI_DECL_OBJECTIDENTITY     = 7,

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.52 2000/01/13 12:15:40 strauss Exp $
+ * @(#) $Id: data.c,v 1.53 2000/01/14 09:11:27 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1927,7 +1927,8 @@ findObjectByModuleAndName(modulePtr, objectname)
  * Side effects:
  *      None.
  *
- *---------------------------------------------------------------------- */
+ *----------------------------------------------------------------------
+ */
 
 Type *
 addType(typename, basetype, flags, parserPtr)
@@ -3157,7 +3158,7 @@ loadModule(modulename)
 	parser.character		= 1;
 	smiparse((void *)&parser);
 	if (parser.flags & SMI_FLAG_STATS) {
-	    sprintf(s, " (%d lines)", parser.line-1);
+	    sprintf(s, "(%d lines)", parser.line-1);
 	    printError(&parser, ERR_STATISTICS, s);
 	}
 	smiLeaveLexRecursion();
@@ -3187,7 +3188,7 @@ loadModule(modulename)
 	parser.character		= 1;
 	smingparse((void *)&parser);
 	if (parser.flags & SMI_FLAG_STATS) {
-	    sprintf(s, " (%d lines)", parser.line-1);
+	    sprintf(s, "(%d lines)", parser.line-1);
 	    printError(&parser, ERR_STATISTICS, s);
 	}
 	smingLeaveLexRecursion();

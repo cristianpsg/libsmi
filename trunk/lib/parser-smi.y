@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.64 2000/01/27 10:46:06 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.65 2000/01/28 14:16:22 strauss Exp $
  */
 
 %{
@@ -227,7 +227,15 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 	    printErrorAtLine(parserPtr, ERR_UNKNOWN_TYPE,
 			     typePtr->line, typePtr->name);
 	}
-    }
+
+	if (thisModulePtr->language == SMI_LANGUAGE_SMIV2
+	    && typePtr->decl == SMI_DECL_TYPEASSIGNMENT
+	    && typePtr->basetype != SMI_BASETYPE_UNKNOWN) {
+	    printErrorAtLine(parserPtr, ERR_SMIV2_TYPE_ASSIGNEMENT,
+			     typePtr->line, typePtr->name);
+	}
+			    
+}
 }
 
 				
@@ -314,6 +322,15 @@ checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 	strcmp(modulePtr->name, "RFC-1215")) {
 	for(importPtr = modulePtr->firstImportPtr;
 	    importPtr; importPtr = importPtr->nextPtr) {
+	    if (! strcmp(importPtr->importmodule, "SNMPv2-SMI")) {
+		if (! strcmp(importPtr->importname, "ExtUTCTime")
+		    || !strcmp(importPtr->importname, "ObjectName")
+		    || !strcmp(importPtr->importname, "NotificationName")) {
+		    printErrorAtLine(parserPtr, ERR_ILLEGAL_IMPORT,
+				     importPtr->line, importPtr->importname,
+				     importPtr->importmodule);
+		}
+	    }
 	    if (importPtr->use == 0) {
 		printErrorAtLine(parserPtr, ERR_UNUSED_IMPORT,
 				 importPtr->line, importPtr->importname,
@@ -1386,7 +1403,6 @@ entryType:		SEQUENCE '{' sequenceItems '}'
 			{
 			    $$ = addType(NULL, SMI_BASETYPE_UNKNOWN, 0,
 					 thisParserPtr);
-			    setTypeDecl($$, SMI_DECL_IMPL_SEQUENCE);
 			    setTypeList($$, $3);
 			}
 ;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.29 2000/01/28 14:16:23 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.30 2000/01/31 15:05:25 strauss Exp $
  */
 
 #include <stdio.h>
@@ -62,7 +62,6 @@ char *smiStringDecl(SmiDecl macro)
         (macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" :
         (macro == SMI_DECL_IMPLICIT_TYPE)     ? "<IMPLICIT-TYPE-DEFINITION>" :
         (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<TYPE-ASSIGNMENT>" :
-        (macro == SMI_DECL_IMPL_SEQUENCE)     ? "<IMPLICIT_SEQUENCE>" :
         (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<IMPLICIT_SEQUENCE_OF>" :
         (macro == SMI_DECL_VALUEASSIGNMENT)   ? "<VALUE-ASSIGNMENT>" :
         (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" :
