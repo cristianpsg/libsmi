@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_module.3,v 1.2 1999/05/05 15:48:17 strauss Exp $
+.\" $Id: smi_module.3,v 1.3 1999/05/05 22:46:35 strauss Exp $
 .\"
 .TH smi_module 3  "May 5, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -60,7 +60,7 @@ or not present in the module contain NULL.
 The \fBsmiFreeModule()\fP function should be called when a retrieved
 \fBstruct SmiModule\fP is no longer needed to release its memory.
 .PP
-The \fBsmiGetImports()\fP function returns a list of all fully
+The \fBsmiGetImports()\fP function returns an array  of all fully
 qualified descriptors imported in \fImodulename\fP.
 .PP
 The \fBsmiIsImported()\fP function returns a positive value if the
@@ -85,7 +85,7 @@ the requested structure on success, or NULL on error. Structures
 should be released after use by calling \fBsmiFreeModule()\fP, or
 \fBsmiFreeRevision()\fP, respectively.
 .PP
-\fBsmiGetImports()\fP returns a list of strings, or NULL on
+\fBsmiGetImports()\fP returns an array of strings, or NULL on
 error. \fBsmiIsImported()\fP returns an appropriate integer truth
 value. Other functions are void.
 .SH "FILES"
