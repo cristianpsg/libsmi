@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.46 2003/02/27 12:10:15 schoenw Exp $
+ * @(#) $Id: check.c,v 1.47 2003/04/28 12:04:40 strauss Exp $
  */
 
 #include <config.h>
@@ -1173,6 +1173,109 @@ smiCheckTypeRanges(Parser *parser, Type *type)
 /*
  *----------------------------------------------------------------------
  *
+ * smiCheckValueType --
+ *
+ *      Check whether a given value matches a given type.
+  *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckValueType(Parser *parser, SmiValue *value, Type *type, int line)
+{
+    List *p, *nextPtr;
+    
+    if (value && (value->basetype != SMI_BASETYPE_UNKNOWN) && type) {
+
+	/*
+	 * If defval type and object type don't match, check whether
+	 * the defval value is in the allowed range of the object's basetype.
+	 */
+	if ((type->export.basetype == SMI_BASETYPE_INTEGER32) ||
+	    (type->export.basetype == SMI_BASETYPE_ENUM)) {
+	    if (((value->basetype == SMI_BASETYPE_INTEGER64) &&
+		 ((value->value.integer64 < (SmiInteger64)(-2147483647 - 1)) ||
+		  (value->value.integer64 > (SmiInteger64)2147483647))) ||
+		((value->basetype == SMI_BASETYPE_UNSIGNED32) &&
+		 ((value->value.unsigned32 > 2147483647))) ||
+		((value->basetype == SMI_BASETYPE_UNSIGNED64) &&
+		 ((value->value.unsigned32 > 2147483647)))) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_BASETYPE, line);
+	    }
+	}
+	if (type->export.basetype == SMI_BASETYPE_UNSIGNED32) {
+	    if (((value->basetype == SMI_BASETYPE_INTEGER64) &&
+		 ((value->value.integer64 < 0) ||
+		  (value->value.integer64 > (SmiInteger64)4294967295UL))) ||
+		((value->basetype == SMI_BASETYPE_INTEGER32) &&
+		 ((value->value.integer32 < 0))) ||
+		((value->basetype == SMI_BASETYPE_UNSIGNED64) &&
+		 ((value->value.unsigned32 > (SmiUnsigned32)4294967295UL)))) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_BASETYPE, line);
+	    }
+	}
+
+	/*
+	 * "cast" the defval to the object's basetype.
+	 */
+	value->basetype = type->export.basetype;
+
+	/*
+	 * check whether the defval matches the object's range restriction.
+	 */
+	if ((value->basetype == SMI_BASETYPE_UNSIGNED32) ||
+	    (value->basetype == SMI_BASETYPE_UNSIGNED64) ||
+	    (value->basetype == SMI_BASETYPE_INTEGER32) ||
+	    (value->basetype == SMI_BASETYPE_INTEGER64)) {
+	    for (p = type->listPtr; p; p = nextPtr) {
+		nextPtr = p->nextPtr;
+		if ((compareValues(&((Range *)p->ptr)->export.minValue,
+				   value) <= 0) &&
+		    (compareValues(&((Range *)p->ptr)->export.maxValue,
+				   value) >= 0)) {
+		    break;
+		}
+	    }
+	    if ((p == NULL) && type->listPtr) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_RANGE, line);
+	    }
+	}
+
+	/*
+	 * check whether the defval matches the object's enumeration.
+	 */
+	printf("XXX\n");
+	if (value->basetype == SMI_BASETYPE_ENUM) {
+	    for (p = type->listPtr; p; p = nextPtr) {
+		nextPtr = p->nextPtr;
+
+		printf("XXX %d ? %d XXX\n",
+		       ((NamedNumber *)(p->ptr))->export.value.value.integer32,
+		       value->value.integer32);
+		if (((NamedNumber *)(p->ptr))->export.value.value.integer32 ==
+		    value->value.integer32) {
+			break;
+		}
+	    }
+	    if (p == NULL) {
+		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_ENUM, line);
+	    }
+	}
+	printf("XXX\n");
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * smiCheckDefault --
  *
  *      Check whether the default value (if present) matches the
@@ -1191,92 +1294,9 @@ void
 smiCheckDefault(Parser *parser, Object *object)
 {
     List *p, *nextPtr;
-    
-    if (object->export.value.basetype != SMI_BASETYPE_UNKNOWN
-	&& object->typePtr) {
 
-	/*
-	 * If defval type and object type don't match, check whether
-	 * the defval value is in the allowed range of the object's basetype.
-	 */
-	if ((object->typePtr->export.basetype == SMI_BASETYPE_INTEGER32) ||
-	    (object->typePtr->export.basetype == SMI_BASETYPE_ENUM)) {
-	    if (((object->export.value.basetype ==
-		  SMI_BASETYPE_INTEGER64) &&
-		 ((object->export.value.value.integer64 < (SmiInteger64)(-2147483647 - 1)) ||
-		  (object->export.value.value.integer64 > (SmiInteger64)2147483647))) ||
-		((object->export.value.basetype ==
-		  SMI_BASETYPE_UNSIGNED32) &&
-		 ((object->export.value.value.unsigned32 > 2147483647))) ||
-		((object->export.value.basetype ==
-		  SMI_BASETYPE_UNSIGNED64) &&
-		 ((object->export.value.value.unsigned32 > 2147483647)))) {
-		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_BASETYPE,
-				    object->line);
-	    }
-	}
-	if (object->typePtr->export.basetype == SMI_BASETYPE_UNSIGNED32) {
-	    if (((object->export.value.basetype ==
-		  SMI_BASETYPE_INTEGER64) &&
-		 ((object->export.value.value.integer64 < 0) ||
-		  (object->export.value.value.integer64 > (SmiInteger64)4294967295UL))) ||
-		((object->export.value.basetype ==
-		  SMI_BASETYPE_INTEGER32) &&
-		 ((object->export.value.value.integer32 < 0))) ||
-		((object->export.value.basetype ==
-		  SMI_BASETYPE_UNSIGNED64) &&
-		 ((object->export.value.value.unsigned32 > (SmiUnsigned32)4294967295UL)))) {
-		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_BASETYPE,
-				    object->line);
-	    }
-	}
-
-	/*
-	 * "cast" the defval to the object's basetype.
-	 */
-	object->export.value.basetype = object->typePtr->export.basetype;
-
-	/*
-	 * check whether the defval matches the object's range restriction.
-	 */
-	if ((object->export.value.basetype == SMI_BASETYPE_UNSIGNED32) ||
-	    (object->export.value.basetype == SMI_BASETYPE_UNSIGNED64) ||
-	    (object->export.value.basetype == SMI_BASETYPE_INTEGER32) ||
-	    (object->export.value.basetype == SMI_BASETYPE_INTEGER64)) {
-	    for (p = object->typePtr->listPtr; p; p = nextPtr) {
-		nextPtr = p->nextPtr;
-		if ((compareValues(&((Range *)p->ptr)->export.minValue,
-				   &object->export.value) <= 0) &&
-		    (compareValues(&((Range *)p->ptr)->export.maxValue,
-				   &object->export.value) >= 0)) {
-		    break;
-		}
-	    }
-	    if ((p == NULL) && object->typePtr->listPtr) {
-		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_RANGE,
-				    object->line);
-	    }
-	}
-
-	/*
-	 * check whether the defval matches the object's enumeration.
-	 */
-	if (object->export.value.basetype == SMI_BASETYPE_ENUM) {
-	    for (p = object->typePtr->listPtr; p; p = nextPtr) {
-		nextPtr = p->nextPtr;
-
-		if (((NamedNumber *)(p->ptr))->export.value.value.integer32 ==
-		    object->export.value.value.integer32) {
-			break;
-		}
-	    }
-	    if (p == NULL) {
-		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_ENUM,
-				    object->line);
-	    }
-	    
-	}
-    }
+    smiCheckValueType(parser, &object->export.value, object->typePtr,
+		      object->line);
 }
 
 

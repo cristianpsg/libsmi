@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.186 2003/04/24 13:11:50 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.187 2003/04/28 12:04:40 strauss Exp $
  */
 
 %{
@@ -951,6 +951,95 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 
 				
 static void
+adjustDefval(Parser *parserPtr, SmiValue *valuePtr, Type *typePtr, int line)
+{
+    Object *object2Ptr;
+    List *bitsListPtr, *valueListPtr, *p, *pp, *nextPtr, *listPtr;
+    Import *importPtr;
+    int nBits, bit;
+    
+    if (valuePtr->basetype == SMI_BASETYPE_UNKNOWN)
+	return;
+	
+    if (valuePtr->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
+	/* a len of -1 indicates an unresolved label in ptr */
+	if (valuePtr->len == -1) {
+	    object2Ptr = findObjectByModuleAndName(parserPtr->modulePtr,
+						  (char *)valuePtr->value.ptr);
+	    if (!object2Ptr) {
+		importPtr = findImportByName(
+		    (char *)valuePtr->value.ptr, parserPtr->modulePtr);
+		if (importPtr) {		/* imported object */
+		    importPtr->use++;
+		    object2Ptr = findObjectByModulenameAndName(
+			importPtr->export.module,
+			importPtr->export.name);
+		}
+	    }
+	    if (!object2Ptr) {
+		smiPrintErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
+				    line,
+				    (char *)valuePtr->value.ptr);
+		smiFree(valuePtr->value.ptr);
+		valuePtr->value.ptr = NULL;
+		valuePtr->basetype = SMI_BASETYPE_UNKNOWN;
+	    } else {
+		smiFree(valuePtr->value.ptr);
+		valuePtr->len = object2Ptr->export.oidlen;
+		valuePtr->value.ptr = smiMalloc(object2Ptr->export.oidlen *
+						sizeof(SmiSubid));
+		memcpy(valuePtr->value.ptr,
+		       object2Ptr->export.oid,
+		       object2Ptr->export.oidlen * sizeof(SmiSubid));
+	    }
+	}
+    } else if (valuePtr->basetype == SMI_BASETYPE_BITS) {
+	bitsListPtr = typePtr->listPtr;
+	valueListPtr = (void *)valuePtr->value.ptr;
+	for (nBits = 0, p = bitsListPtr; p; p = p->nextPtr) {
+	    if (nBits < 1+((NamedNumber *)(p->ptr))->export.value.value.integer32) {
+		nBits = 1+((NamedNumber *)(p->ptr))->export.value.value.integer32;
+	    }
+	}
+	valuePtr->value.ptr = smiMalloc((nBits+7)/8);
+	memset(valuePtr->value.ptr, 0, (nBits+7)/8);
+	valuePtr->len = (nBits+7)/8;
+	for (p = valueListPtr; p;) {
+	    for (pp = bitsListPtr; pp; pp = pp->nextPtr) {
+		if (!strcmp(p->ptr,
+			    ((NamedNumber *)(pp->ptr))->export.name)) {
+		    bit = ((NamedNumber *)(pp->ptr))->export.value.value.integer32;
+		    valuePtr->value.ptr[bit/8] |=
+			1 << (7-(bit%8));
+		}
+	    }
+	    smiFree(p->ptr);
+	    nextPtr = p->nextPtr;
+	    smiFree(p);
+	    p = nextPtr;
+	}
+    } else if (valuePtr->basetype == SMI_BASETYPE_ENUM) {
+	/* a len of -1 indicates an unresolved enum label in ptr */
+	if (valuePtr->len == -1) {
+	    for (listPtr = typePtr->listPtr; listPtr;
+		 listPtr = listPtr->nextPtr) {
+		if (!strcmp(((NamedNumber *)(listPtr->ptr))->export.name,
+			    (char *)valuePtr->value.ptr)) {
+		    smiFree(valuePtr->value.ptr);
+		    valuePtr->value.integer32 =
+			((NamedNumber *)(listPtr->ptr))->
+			export.value.value.integer32;
+		    valuePtr->len = 1;
+		    break;
+		}
+	    }
+	}
+    }
+}
+
+
+
+static void
 checkDefvals(Parser *parserPtr, Module *modulePtr)
 {
     Object *objectPtr, *object2Ptr;
@@ -965,91 +1054,14 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
     for(objectPtr = modulePtr->firstObjectPtr;
 	objectPtr; objectPtr = objectPtr->nextPtr) {
 
-	if (objectPtr->export.value.basetype == SMI_BASETYPE_UNKNOWN)
-	    continue;
+	adjustDefval(parserPtr, &objectPtr->export.value,
+		     objectPtr->typePtr, objectPtr->line);
 	
-	if (objectPtr->export.value.basetype ==
-	    SMI_BASETYPE_OBJECTIDENTIFIER) {
-	    /* a len of -1 indicates an unresolved label in ptr */
-	    if (objectPtr->export.value.len == -1) {
-		object2Ptr = findObjectByModuleAndName(
-		    parserPtr->modulePtr,
-		    (char *)objectPtr->export.value.value.ptr);
-		if (!object2Ptr) {
-		    importPtr = findImportByName(
-			(char *)objectPtr->export.value.value.ptr, modulePtr);
-		    if (importPtr) {		/* imported object */
-			importPtr->use++;
-			object2Ptr = findObjectByModulenameAndName(
-			    importPtr->export.module,
-			    importPtr->export.name);
-		    }
-		}
-		if (!object2Ptr) {
-		    smiPrintErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
-					objectPtr->line,
-				(char *)objectPtr->export.value.value.ptr);
-		    smiFree(objectPtr->export.value.value.ptr);
-		    objectPtr->export.value.value.ptr = NULL;
-		    objectPtr->export.value.basetype = SMI_BASETYPE_UNKNOWN;
-		} else {
-		    smiFree(objectPtr->export.value.value.ptr);
-		    objectPtr->export.value.len = object2Ptr->export.oidlen;
-		    objectPtr->export.value.value.ptr =
-			smiMalloc(object2Ptr->export.oidlen *
-				  sizeof(SmiSubid));
-		    memcpy(objectPtr->export.value.value.ptr,
-			   object2Ptr->export.oid,
-			   object2Ptr->export.oidlen * sizeof(SmiSubid));
-		}
-	    }
-	} else if (objectPtr->export.value.basetype == SMI_BASETYPE_BITS) {
-	    bitsListPtr = objectPtr->typePtr->listPtr;
-	    valueListPtr = (void *)objectPtr->export.value.value.ptr;
-	    for (nBits = 0, p = bitsListPtr; p; p = p->nextPtr) {
-		if (nBits < 1+((NamedNumber *)(p->ptr))->export.value.value.integer32) {
-		    nBits = 1+((NamedNumber *)(p->ptr))->export.value.value.integer32;
-		}
-	    }
-	    objectPtr->export.value.value.ptr = smiMalloc((nBits+7)/8);
-	    memset(objectPtr->export.value.value.ptr, 0, (nBits+7)/8);
-	    objectPtr->export.value.len = (nBits+7)/8;
-	    for (p = valueListPtr; p;) {
-		for (pp = bitsListPtr; pp; pp = pp->nextPtr) {
-		    if (!strcmp(p->ptr,
-				((NamedNumber *)(pp->ptr))->export.name)) {
-			bit = ((NamedNumber *)(pp->ptr))->export.value.value.integer32;
-			objectPtr->export.value.value.ptr[bit/8] |=
-			    1 << (7-(bit%8));
-		    }
-		}
-		smiFree(p->ptr);
-		nextPtr = p->nextPtr;
-		smiFree(p);
-		p = nextPtr;
-	    }
-	} else if (objectPtr->export.value.basetype == SMI_BASETYPE_ENUM) {
-	    /* a len of -1 indicates an unresolved enum label in ptr */
-	    if (objectPtr->export.value.len == -1) {
-		for (listPtr = objectPtr->typePtr->listPtr; listPtr;
-		     listPtr = listPtr->nextPtr) {
-		    if (!strcmp(((NamedNumber *)(listPtr->ptr))->export.name,
-				(char *)objectPtr->export.value.value.ptr)) {
-			smiFree(objectPtr->export.value.value.ptr);
-			objectPtr->export.value.value.integer32 =
-			    ((NamedNumber *)(listPtr->ptr))->
-			    export.value.value.integer32;
-			objectPtr->export.value.len = 1;
-			break;
-		    }
-		}
-		if (objectPtr->export.value.len == -1) {
-		    smiPrintErrorAtLine(parserPtr,
-					ERR_DEFVAL_SYNTAX, objectPtr->line);
-		}
-	    }
+	if (objectPtr->export.value.len == -1) {
+	    smiPrintErrorAtLine(parserPtr,
+				ERR_DEFVAL_SYNTAX, objectPtr->line);
 	}
-
+	
 	smiCheckDefault(parserPtr, objectPtr);
     }
 }
@@ -4113,7 +4125,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    smiFree($1);
 			    smiFree($3);
 			}
-	|		OBJECT IDENTIFIER
+	|		OBJECT IDENTIFIER anySubType
 			{
 			    defaultBasetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 			    $$ = smiHandle->typeObjectIdentifierPtr;
@@ -4299,13 +4311,13 @@ sequenceSimpleSyntax:	INTEGER	anySubType
 			{
 			    $$ = smiHandle->typeOctetStringPtr;
 			}
-	|		OBJECT IDENTIFIER
+	|		OBJECT IDENTIFIER anySubType
 			{
 			    $$ = smiHandle->typeObjectIdentifierPtr;
 			}
 	;
 
-ApplicationSyntax:	IPADDRESS
+ApplicationSyntax:	IPADDRESS anySubType
 			{
 			    Import *importPtr;
 			    
@@ -4333,7 +4345,7 @@ ApplicationSyntax:	IPADDRESS
 				}
 			    }
 			}
-	|		COUNTER32		/* (0..4294967295)	     */
+	|		COUNTER32 anySubType  /* (0..4294967295)	     */
 			{
 			    Import *importPtr;
 
@@ -4506,7 +4518,7 @@ ApplicationSyntax:	IPADDRESS
 				}
 			    }
 			}
-	|		TIMETICKS		/* (0..4294967295)	     */
+	|		TIMETICKS anySubType
 			{
 			    Import *importPtr;
 			    
@@ -4533,37 +4545,6 @@ ApplicationSyntax:	IPADDRESS
 						  "TimeTicks");
 				}
 			    }
-			}
-	|		TIMETICKS integerSubType /* (0..4294967295)	     */
-			{
-			    Import *importPtr;
-			    
-			    $$ = findTypeByName("TimeTicks");
-			    if (! $$) {
-				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					      "TimeTicks");
-			    }
-			    
-			    importPtr = findImportByName("TimeTicks",
-							 thisModulePtr);
-			    if (importPtr) {
-				importPtr->use++;
-			    } else {
-				if (thisModulePtr->export.language ==
-				    SMI_LANGUAGE_SMIV2) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
-						  "TimeTicks");
-				} else if (thisModulePtr->export.language ==
-					   SMI_LANGUAGE_SPPI) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
-						  "TimeTicks");
-				}
-			    }
-			    
-			    smiPrintError(thisParserPtr,
-					  ERR_TIMETICKS_SUBTYPED);
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
@@ -4649,7 +4630,7 @@ ApplicationSyntax:	IPADDRESS
 				}
 			    }
 			}
-	|		COUNTER64	        /* (0..18446744073709551615) */
+	|		COUNTER64 anySubType   /* (0..18446744073709551615) */
 			{
 			    Import *importPtr;
 
@@ -4832,7 +4813,7 @@ ApplicationSyntax:	IPADDRESS
  * In a SEQUENCE { ... } there are no sub-types, enumerations or
  * named bits. REF: draft, p.29
  */
-sequenceApplicationSyntax: IPADDRESS
+sequenceApplicationSyntax: IPADDRESS anySubType
 			{
 			    Import *importPtr;
 			    
@@ -4860,7 +4841,7 @@ sequenceApplicationSyntax: IPADDRESS
 				}
 			    }
 			}
-	|		COUNTER32		/* (0..4294967295)	     */
+	|		COUNTER32 anySubType
 			{
 			    Import *importPtr;
 			    
@@ -4936,34 +4917,6 @@ sequenceApplicationSyntax: IPADDRESS
 				}
 			    }
 			}
-	|		TIMETICKS		/* (0..4294967295)	     */
-			{
-			    Import *importPtr;
-			    
-			    $$ = findTypeByName("TimeTicks");
-			    if (! $$) {
-				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					      "TimeTicks");
-			    }
-
-			    importPtr = findImportByName("TimeTicks",
-							 thisModulePtr);
-			    if (importPtr) {
-				importPtr->use++;
-			    } else {
-				if (thisModulePtr->export.language ==
-				    SMI_LANGUAGE_SMIV2) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
-						  "TimeTicks");
-				} else if (thisModulePtr->export.language ==
-					   SMI_LANGUAGE_SPPI) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
-						  "TimeTicks");
-				}
-			    }
-			}
 	|		TIMETICKS anySubType	/* (0..4294967295)	     */
 			{
 			    Import *importPtr;
@@ -4991,9 +4944,6 @@ sequenceApplicationSyntax: IPADDRESS
 						  "TimeTicks");
 				}
 			    }
-			    
-			    smiPrintError(thisParserPtr,
-					  ERR_TIMETICKS_SUBTYPED);
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
@@ -5035,7 +4985,7 @@ sequenceApplicationSyntax: IPADDRESS
 				}
 			    }
 			}
-	|		COUNTER64	        /* (0..18446744073709551615) */
+	|		COUNTER64 anySubType    /* (0..18446744073709551615) */
 			{
 			    Import *importPtr;
 
@@ -7031,6 +6981,13 @@ Variation:		VARIATION ObjectName
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				smiPrintError(thisParserPtr,
 				      ERR_NOTIFICATION_VARIATION_DEFVAL);
+			    } else if ($11) {
+				adjustDefval(thisParserPtr,
+					     $11, $2->typePtr,
+					     thisParserPtr->line);
+				smiCheckValueType(thisParserPtr,
+						  $11, $2->typePtr,
+						  thisParserPtr->line);
 			    }
 			}
 			DESCRIPTION Text
