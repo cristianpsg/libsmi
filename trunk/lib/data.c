@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.42 1999/12/10 19:29:20 strauss Exp $
+ * @(#) $Id: data.c,v 1.43 1999/12/13 16:15:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -3125,12 +3125,12 @@ loadModule(modulename)
 	    parser.linebuf		= util_malloc(200);
 	    parser.linebuf[0]		= 0;
 	    smiparse((void *)&parser);
-	    smiLeaveLexRecursion();
-	    fclose(parser.file);
 	    if (parser.flags & SMI_FLAG_STATS) {
 		sprintf(s, " (%d lines)", parser.line-1);
 		printError(&parser, ERR_STATISTICS, s);
 	    }
+	    smiLeaveLexRecursion();
+	    fclose(parser.file);
 	}
 	free(path);
 	return parser.modulePtr;
@@ -3161,12 +3161,12 @@ loadModule(modulename)
 	    parser.linebuf		= util_malloc(200);
 	    parser.linebuf[0]		= 0;
 	    smingparse((void *)&parser);
-	    smingLeaveLexRecursion();
-	    fclose(parser.file);
 	    if (parser.flags & SMI_FLAG_STATS) {
 		sprintf(s, " (%d lines)", parser.line-1);
 		printError(&parser, ERR_STATISTICS, s);
 	    }
+	    smingLeaveLexRecursion();
+	    fclose(parser.file);
 	}
 	free(path);
 	return parser.modulePtr;

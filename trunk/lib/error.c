@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.21 1999/12/13 09:47:56 strauss Exp $
+ * @(#) $Id: error.c,v 1.22 1999/12/13 16:15:58 strauss Exp $
  */
 
 #include <string.h>
@@ -32,7 +32,8 @@ extern int lexDepth;
 
 
 typedef struct Error {
-    int level;			/* 0: fatal, no way to continie		     */
+    int level;			/* -1: fatal, no way to continie	     */
+                 		/* 0: other output (e.g. statistics)	     */
                  		/* 1: severe, changing semantics to continue */
 				/*    must be corrected                      */
 				/* 2: error, but able to continue,           */
@@ -54,8 +55,12 @@ typedef struct Error {
  */
 
 Error errors[] = {
-    { 0, ERR_INTERNAL, "internal", 
+    { -1, ERR_INTERNAL, "internal", 
       "Internal error!!!" },
+    { -1, ERR_MAX_LEX_DEPTH, "", 
+      "Maximum IMPORTS nesting, probably a loop?" },
+    { -1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
+      "Lexically unexpected character (internal error!)" },
     { 1, ERR_OTHER_ERROR, "other", 
       "%s" },
     { 1, ERR_ILLEGAL_KEYWORD, "keyword-illegal", 
@@ -68,8 +73,6 @@ Error errors[] = {
       "Number `%s' too large" },
     { 2, ERR_HEX_ENDS_IN_B, "string-delimiter",
       "Hexadecimal string terminated by binary string delimiter, assume hex value" },
-    { 0, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
-      "Lexically unexpected character (internal error!)" },
     { 2, ERR_MODULENAME_64, "namelength-64-module",
       "Module name `%s' must not be longer that 64 characters" },
     { 4, ERR_MODULENAME_32, "namelength-32-module",
@@ -128,11 +131,9 @@ Error errors[] = {
       "ACCESS is SMIv1 style, use MAX-ACCESS in SMIv2 style MIBs instead" },
     { 5, ERR_UNWANTED_MODULE, "", 
       "Ignoring unwanted module `%s'" },
-    { 0, ERR_MAX_LEX_DEPTH, "", 
-      "Maximum IMPORTS nesting, probably a loop?" },
     { 1, ERR_MODULE_NOT_FOUND, "", 
       "Don't know where to find module `%s'" },
-    { 9, ERR_STATISTICS, "", 
+    { 0, ERR_STATISTICS, "", 
       "completed%s" },
     { 2, ERR_OBJECT_IDENTIFIER_REGISTERED, "", 
       "Object identifier label `%s.%s' already registered at `%s'" },
@@ -315,7 +316,7 @@ printError(Parser *parser, int id, ...)
 	}
     }
 
-    if (errors[id].level <= 0) {
+    if (errors[id].level < 0) {
 	exit(-1);
 	/* severe error, no way to continue :-( */
     }
@@ -366,7 +367,7 @@ printErrorAtLine(Parser *parser, int id, int line, ...)
 	}
     }
 
-    if (errors[id].level <= 0) {
+    if (errors[id].level < 0) {
 	exit(-1);
 	/* severe error, no way to continue :-( */
     }

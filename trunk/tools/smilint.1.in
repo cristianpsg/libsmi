@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.2 1999/06/07 15:44:19 strauss Exp $
+.\" $Id: smilint.1.in,v 1.3 1999/06/22 11:18:18 strauss Exp $
 .\"
 .TH smilint 1  "June 22, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -7,9 +7,11 @@ smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
 .B smilint
 [
-.B "-Vhs"
+.B "-Vhrs"
 ] [
 .BI "-l " level
+] [
+.BI "-p " module
 ]
 .I "module"
 .SH DESCRIPTION
@@ -53,6 +55,10 @@ Higher levels are actually not used and lead to the same effects as
 level 5 does. Note that errors up to level 3 are errors violating the
 specification and must be fixed by the responsible author. Level 3 is
 the default level.
+.TP
+.BI "-p " module
+Preload the module \fImodule\fP before reading the main module. This may
+be helpful if an incomplete main module misses to import some definitions.
 .TP
 .B "-r"
 Report errors and warnings also for imported modules.

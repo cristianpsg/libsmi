@@ -1,5 +1,5 @@
 .\"
-.\" $Id$
+.\" $Id: smistrip.1.in,v 1.1 1999/12/12 11:46:04 strauss Exp $
 .\"
 .TH smistrip 1  "October 25, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -7,7 +7,11 @@ smistrip \- extract MIB modules from text files, like RFCs or I-Ds
 .SH SYNOPSIS
 .B smistrip
 [
-.B "-Vh"
+.B "-Vhn"
+] [
+.BI "-d " dir
+] [
+.BI "-m " module
 ]
 [
 .I file(s)
