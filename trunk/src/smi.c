@@ -107,8 +107,12 @@ getOid(n)
     smi_subid a[128];
     int i, l;
 
-    for (i = 0; n != rootNode; a[i++] = n->subid, n = n->parent);
-    for (strcpy(o, ""), l = 0; i > 0; l += sprintf(&o[l], "%d.", a[--i]));
+    for (i = 0;
+	 n && (n != rootNode);
+	 a[i++] = n->subid, n = n->parent);
+    for (strcpy(o, n ? "" : "<incomplete>."), l = strlen(o);
+	 i > 0;
+	 l += sprintf(&o[l], "%d.", a[--i]));
     o[l-1] = 0;
 
     return o;
@@ -194,17 +198,17 @@ smiLoadMibModule(modulename)
     const char *modulename;
 {
     Location *location;
+#ifdef PARSER
+    Module *module;
     struct stat buf;
     char *path;
     int rc;
-#ifdef PARSER
-    Module *module;
 #endif
 	
     printDebug(4, "smiLoadMibModule(\"%s\")\n", modulename);
 
     if (!initialized) smiInit();
-    
+
     for (location = firstLocation; location; location = location->next) {
 
 	if (location->type == LOCATION_RPC) {
@@ -213,6 +217,11 @@ smiLoadMibModule(modulename)
 
 #ifdef PARSER
 	} else if (location->type == LOCATION_DIR) {
+
+	    module = findModuleByName(modulename);
+	    if (module) {
+		return 0; /* already loaded. */
+	    }
 
 	    path = malloc(strlen(location->name)+strlen(modulename)+6);
 	    
@@ -306,25 +315,84 @@ smiGetModule(name, wantdescr)
     int wantdescr;
 {
     static smi_module res;
+    Location *location;
+#ifdef PARSER
     Module *module;
-
-    /* TODO: other than local resources */
+    struct stat buf;
+    char *path;
+    int rc;
+#endif
+    
+#ifdef PARSER
     module = findModuleByName(name);
-    if (module) {
-	res.name = strdup(module->descriptor->name);
-	res.oid = "TODO";
-	if (wantdescr) {
-	    res.lastupdated = getString(&module->lastUpdated, module);
-	    res.organization = getString(&module->organization, module);
-	    res.contactinfo = getString(&module->contactInfo, module);
-	    res.description = getString(&module->description, module);
+#endif
+    
+    for (location = firstLocation; location; location = location->next) {
+
+	if (location->type == LOCATION_RPC) {
+
+	    /* TODO */
+
+#ifdef PARSER
+	} else if (location->type == LOCATION_DIR) {
+
+	    path = malloc(strlen(location->name)+strlen(name)+6);
+	    
+	    sprintf(path, "%s/%s", location->name, name);
+	    if (!stat(path, &buf) && (!module)) {
+		rc = readMibFile(path, name, flags | FLAG_WHOLEMOD);
+		free(path);
+		module = findModuleByName(name);
+	    }
+	    
+	    sprintf(path, "%s/%s.my", location->name, name);
+	    if (!stat(path, &buf) && (!module)) {
+		rc = readMibFile(path, name, flags | FLAG_WHOLEMOD);
+		free(path);
+		module = findModuleByName(name);
+	    }
+	    
+	    if (module) {
+		res.name = strdup(module->descriptor->name);
+		res.oid = "TODO";
+		if (wantdescr) {
+		    res.lastupdated = getString(&module->lastUpdated, module);
+		    res.organization = getString(&module->organization,
+						 module);
+		    res.contactinfo = getString(&module->contactInfo, module);
+		    res.description = getString(&module->description, module);
+		} else {
+		    res.description = "";
+		}
+		return &res;
+	    }
+		
+	} else if (location->type == LOCATION_FILE) {
+
+	    /* TODO: compare filenames more intelligent */
+	    if (module) {
+		res.name = strdup(module->descriptor->name);
+		res.oid = "TODO";
+		if (wantdescr) {
+		    res.lastupdated = getString(&module->lastUpdated, module);
+		    res.organization = getString(&module->organization,
+						 module);
+		    res.contactinfo = getString(&module->contactInfo, module);
+		    res.description = getString(&module->description, module);
+		} else {
+		    res.description = "";
+		}
+		return &res;
+	    }
+#endif
 	} else {
-	    res.description = "";
+
+	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, location->name);
+	    
 	}
-	return &res;
-    } else {
-	return NULL;
     }
+
+    return NULL;
 }
 
 
@@ -338,77 +406,123 @@ smiGetNode(name, module, wantdescr)
     static smi_node res;
     Object *object;
     Node *node;
-    char *elements, *element, *element1;
+    char *elements;
+    char *element;
+    char modulename[SMI_MAX_DESCRIPTOR+1], nodename[SMI_MAX_DESCRIPTOR+1];
     unsigned int subid;
+    Location *location;
+#ifdef PARSER
+    struct stat buf;
+    char *path;
+    int rc;
+#endif
     
     printDebug(4, "smiGetNode(\"%s\", \"%s\", %d)\n",
 	       name, module ? module : "NULL", wantdescr);
 
-    /* TODO: other than local resources */
+    strcpy(modulename, "");
+    strcpy(nodename, "");
     
-    /* "1.3.6...", "system", "Module.system", "Module!system" */
-
-    if (isdigit(name[0])) {
-        /*
-         * name in `1.3.0x6.1...' form. module not recognized.
-         */
-        elements = strdup(name);
-        /* TODO: success? */
-        element = strtok(elements, ".");
-        node = rootNode;
-        while (element) {
-            subid = (unsigned int)strtoul(element, NULL, 0);
-            node = findNodeByParentAndSubid(node, subid);
-	    if (!node) break;
-            element = strtok(NULL, ".");
-        }
-	free(elements);
-	if ((!module) || (!strlen(module))) {
-	    /*
-	     * Note: If no module is given,
-	     * it is undefined which Object we get.
-	     */
-	    object = node->firstObject;
-	} else {
-	    object = findObjectByNodeAndModulename(node, module);
-	}
-    } else if (strchr(name, '!') || strchr(name, '.')) {
-        /*
-         * name in `Module!name' or `Module.name' form.
-         */
-        elements = strdup(name);
-        /* TODO: success? */
-        element1 = strtok(elements, "!.");
-        element = strtok(NULL, " ");
-        object = findObjectByModulenameAndName(element1, element);
-        free(elements);
+    if (strchr(name, '!') || strchr(name, '.')) {
+	/*
+	 * name in `Module!name' or `Module.name' form.
+	 */
+	elements = strdup(name);
+	/* TODO: success? */
+	strncpy(modulename, strtok(elements, "!."), sizeof(modulename)-1);
+	strncpy(nodename, strtok(NULL, " "), sizeof(modulename)-1);
     } else if (module && strlen(module)) {
 	/*
 	 * name in simple `name' form and module not empty.
 	 */
-	object = findObjectByModulenameAndName(module, name);
-    } else {
-	/* printError(NULL, ); */
-	return NULL;
+	strncpy(modulename, module, sizeof(modulename)-1);
+	strncpy(nodename, name, sizeof(modulename)-1);
     }
-	
-    if (object) {
-	res.name = strdup(object->descriptor->name);
-	res.module = strdup(object->module->descriptor->name);
-	res.oid = getOid(object->node);
-	res.type = "TODO";
-	res.decl = object->decl;
-	res.access = object->access;
-	res.status = object->status;
-	if (wantdescr) {
-	    res.description = getString(&object->description, object->module);
+    
+    for (location = firstLocation; location; location = location->next) {
+
+	if (location->type == LOCATION_RPC) {
+
+	    /* TODO */
+
+#ifdef PARSER
+	} else if (location->type == LOCATION_DIR) {
+
+	    if (strlen(modulename)) {
+		if (!findModuleByName(modulename)) {
+
+		    path = malloc(strlen(location->name)+strlen(modulename)+6);
+		    
+		    sprintf(path, "%s/%s", location->name, modulename);
+		    if (!stat(path, &buf)) {
+			rc = readMibFile(path, modulename,
+					 flags | FLAG_WHOLEMOD);
+			free(path);
+		    }
+	    
+		    sprintf(path, "%s/%s.my", location->name, modulename);
+		    if (!stat(path, &buf)) {
+			rc = readMibFile(path, modulename,
+					 flags | FLAG_WHOLEMOD);
+			free(path);
+		    }
+		    
+		}
+
+		/* lookup in modulename */
+	    }
+	    
+	} else if (location->type == LOCATION_FILE) {
+
+	    if (strlen(modulename)) {
+
+		if (isdigit(name[0])) {
+		    /*
+		     * name in `1.3.0x6.1...' form.
+		     */
+		    elements = strdup(name);
+		    /* TODO: success? */
+		    element = strtok(elements, ".");
+		    node = rootNode;
+		    while (element) {
+			subid = (unsigned int)strtoul(element, NULL, 0);
+			node = findNodeByParentAndSubid(node, subid);
+			if (!node) break;
+			element = strtok(NULL, ".");
+		    }
+		    if (elements) free(elements);
+		    object = findObjectByNodeAndModulename(node, modulename);
+		} else {
+		    object = findObjectByModulenameAndName(modulename,
+							   nodename);
+		} 
+		
+		if (object) {
+		    res.name = strdup(object->descriptor->name);
+		    res.module = strdup(object->module->descriptor->name);
+		    res.oid = getOid(object->node);
+		    res.type = "TODO";
+		    res.decl = object->decl;
+		    res.access = object->access;
+		    res.status = object->status;
+		    if (wantdescr) {
+			res.description = getString(&object->description,
+						    object->module);
+		    } else {
+			res.description = "";
+		    }
+		    return &res;
+		}
+	    }
+#endif
 	} else {
-	    res.description = "";
+
+	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, location->name);
+	    
 	}
-	return &res;
-    } else {
-	return NULL;
     }
+
+    return NULL;
 }
 
 

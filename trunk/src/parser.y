@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.21 1998/11/22 22:58:22 strauss Exp $
+ * @(#) $Id: parser.y,v 1.22 1998/11/23 10:55:19 strauss Exp $
  */
 
 %{
@@ -365,8 +365,9 @@ module:			moduleName
 			     * In fact, we always parse it, but we just
 			     * remember its contents if needed.
 			     */
-			    if ((thisParser->flags & FLAG_WHOLEFILE) ||
-				(!strcmp(thisParser->module, $1))) {
+			    if ((!(thisModule = findModuleByName($1))) &&
+				((thisParser->flags & FLAG_WHOLEFILE) ||
+				 (!strcmp(thisParser->module, $1)))) {
 				thisParser->flags |= FLAG_ACTIVE;
 				thisModule = addModule($1,
 						       thisParser->path,
@@ -377,7 +378,8 @@ module:			moduleName
 			    } else {
 				printError(parser, ERR_UNWANTED_MODULE, $1);
 				thisParser->flags &= ~FLAG_ACTIVE;
-				thisModule = &dummyModule;
+				if (!thisModule)
+				    thisModule = &dummyModule;
 			    }
 			    thisModule->flags &= ~FLAG_SMIV2;
 			    thisModule->numImportedIdentifiers = 0;
