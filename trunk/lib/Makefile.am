@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id$
+# @(#) $Id: Makefile.am,v 1.2 1999/05/28 14:15:41 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -28,9 +28,12 @@ EXTRA_DIST		= parser-sming.y parser-smi.y \
 			  scanner-sming.l scanner-smi.l \
 			  defs.h data.h error.h util.h scanner-sming.h \
 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h \
-			  parser-smi.tab.h parser-sming.tab.h
+			  parser-smi.tab.h parser-sming.tab.h \
+			  $(man_MANS)
 include_HEADERS		= smi.h
 CLEANFILES		= parser-smi.output parser-sming.output
+man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
+			  smi_node.3 smi_type.3
 lib_LTLIBRARIES		= libsmi.la
 libsmi_la_SOURCES	= data.c error.c util.c smi.c scanner.c \
 		  	  parser-smi.tab.c scanner-smi.c \

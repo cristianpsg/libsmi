@@ -19,16 +19,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id$
+# @(#) $Id: Makefile.am,v 1.1 1999/05/28 14:15:18 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
 
 INCLUDES		= -I../lib
 
-EXTRA_DIST		= dump-smi.h dump-sming.h dump-data.h
+EXTRA_DIST		= dump-smi.h dump-sming.h dump-data.h $(man_MANS)
 
 bin_PROGRAMS		= smiquery smilint smidump
+
+man_MANS		= smiquery.1 smilint.1 smidump.1
 
 smiquery_SOURCES	= smiquery.c
 smiquery_LDADD		= ../lib/libsmi.la
