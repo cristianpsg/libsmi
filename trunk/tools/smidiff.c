@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.9 2001/09/27 11:32:36 schoenw Exp $
+ * @(#) $Id: smidiff.c,v 1.10 2001/09/27 11:35:39 tklie Exp $
  */
 
 #include <stdlib.h>
@@ -29,6 +29,10 @@
 static int errorLevel = 6;	/* smidiff/libsmi error level (inclusive) */
 static int mFlag = 0;		/* show the name for error messages */
 static int sFlag = 0;		/* show the severity for error messages */
+
+/* the `:' separates the view identifier */
+const char *oldTag = "smidiff:old";
+const char *newTag = "smidiff:new";
 
 
 typedef struct Error {
@@ -1335,20 +1339,20 @@ static void help() { usage(); exit(0); }
 static void version() { printf("smidiff " SMI_VERSION_STRING "\n"); exit(0); }
 static void config(char *filename) { smiReadConfig(filename, "smidiff"); }
 static void level(int lev) { errorLevel = lev; }
-static void preload(char *module) { smiLoadModule(module); }
 static void ignore(char *ign) { setErrorSeverity(ign, 9999); }
 
+static void preload(char *module) {
+    smiInit(oldTag);
+    smiLoadModule(module);
+    smiInit(newTag);
+    smiLoadModule(module);
+}
 
 
 int
 main(int argc, char *argv[])
 {
     SmiModule *oldModule, *newModule;
-
-    /* the `:' separates the view identifier */
-
-    const char *oldTag = "smidiff:old";
-    const char *newTag = "smidiff:new";
 
     static optStruct opt[] = {
 	/* short long              type        var/func       special       */
@@ -1363,6 +1367,9 @@ main(int argc, char *argv[])
 	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
     };
     
+    smiInit(oldTag);
+    smiInit(newTag);
+
     optParseOptions(&argc, argv, opt, 0);
 
     if (argc != 3) {
