@@ -1,5 +1,8 @@
 2002-05-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/ietf/INET-ADDRESS-MIB: updated to the new version
+	which is expected to be published as RFC rsn.
+
 	* lib/parser-smi.y: Added check for counter access.
 
 	* lib/check.c: Fixed check for not-accessible auxiliary objects.
