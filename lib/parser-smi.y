@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.109 2000/06/07 10:19:49 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.110 2000/06/08 09:36:14 strauss Exp $
  */
 
 %{
@@ -4792,13 +4792,18 @@ Module_Capabilities:	SUPPORTS ModuleName_Capabilities
 
 CapabilitiesGroups:	CapabilitiesGroup
 			{
+#if 0
 			    $$ = util_malloc(sizeof(List));
 			    /* TODO: success? */
 			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
+#else
+			    $$ = NULL;
+#endif
 			}
 	|		CapabilitiesGroups ',' CapabilitiesGroup
 			{
+#if 0
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
@@ -4808,6 +4813,9 @@ CapabilitiesGroups:	CapabilitiesGroup
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    $$ = $1;
+#else
+			    $$ = NULL;
+#endif
 			}
 	;
 
