@@ -62,10 +62,6 @@ o how to convert SMIng types derived from other defined types correctly
 o various dump modules don't print identifiers fully qualified where
   appropriate
 
-o collapsing of type forward references in smiv2 parser. e.g.
-  smiquery type CHARACTER-MIB.CharSessEntry
-  should display the definition by a SEQUENCE statement, not `unknown'.
-
 o Web online conversion to SMIng?
 
 o make check: parse every mib once, and don't crash
@@ -75,20 +71,12 @@ o special handling for well-known traps (reversibility?)
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
 
-o man pages!
-
 o SMIng: module identity object (grammar, I-D and parser)
 
 o think about smiModule(), smiDescriptor(), smiOidString(smiNode), ...
   memory allocation?
 
+
+
 o MessageSize                [0.."ÿÿÿ"]
   in smidump -f types -u /usr/local/share/mibs/ietf/* output
-
-
-
-extern char *smiModule(char *fullname);
-extern char *smiDescriptor(char *fullname);
-views
-vage get calls should retrieve the most recent definition?!
-yacc grammar conflicts

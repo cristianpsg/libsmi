@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.9 2000/02/11 23:19:09 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.10 2000/02/12 14:31:54 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -268,12 +268,6 @@ typedef struct SmiRefinement {
     SmiAccess           access;
     char                *description;
 } SmiRefinement;
-
-
-
-extern char *smiModule(char *fullname);
-
-extern char *smiDescriptor(char *fullname);
 
 
 
