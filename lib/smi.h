@@ -65,8 +65,8 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_ENUM                   = 10,
     SMI_BASETYPE_BITS                   = 11, /* only SMIv2 and SMIng        */
 
-    SMI_BASETYPE_SEQUENCE               = 16, /* only for parsing SMI specs  */
-    SMI_BASETYPE_SEQUENCEOF             = 17  /* only for parsing SMI specs  */
+    SMI_BASETYPE_SEQUENCE               = 16, /* internal use for parsing SMI*/
+    SMI_BASETYPE_SEQUENCEOF             = 17  /* internal use for parsing SMI*/
 } SmiBasetype;
 
 /* SmiStatus -- values of status levels                                      */
@@ -150,12 +150,16 @@ typedef enum SmiValueformat {
     SMI_VALUEFORMAT_HEXSTRING   = 2, /* OctetString or ObjectIdentifier      */
     SMI_VALUEFORMAT_TEXT        = 3, /* OctetString                          */
     SMI_VALUEFORMAT_NAME        = 4, /* Enum or named ObjectIdentifier       */
-    SMI_VALUEFORMAT_OID         = 5, /* ObjectIdentifier (illegal in SMIv2)  */
+    SMI_VALUEFORMAT_OID         = 5  /* ObjectIdentifier (illegal in SMIv2)  */
 } SmiValueformat;
 
 /* SmiValue -- any single value; for use in default values and subtyping     */
 typedef struct SmiValue {
     SmiBasetype             basetype;
+    SmiValueformat	    valueformat;
+#if 0
+    unsigned int	    len;         /* only for OIDs and OctetStrings   */
+#endif
     union {
         SmiUnsigned64       unsigned64;
         SmiInteger64        integer64;
@@ -168,8 +172,6 @@ typedef struct SmiValue {
         char                *ptr;	 /* OctetString, Enum, or named OID  */
         char                **bits;      /* array of BitNames                */
     } value;
-    unsigned int	    len;         /* only for OIDs and OctetStrings   */
-    SmiValueformat	    valueformat;
 } SmiValue;
 
 /* SmiNamedNumber -- a named number; for enumeration and bitset types        */
