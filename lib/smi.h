@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.43 1999/06/18 21:08:55 strauss Exp $
+ * @(#) $Id: smi.h,v 1.44 1999/06/22 10:16:51 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -109,17 +109,18 @@ typedef enum SmiDecl {
     SMI_DECL_UNKNOWN            = 0,  /* should not occur                    */
     /* SMIv1/v2 ASN.1 statements and macros */
     SMI_DECL_TYPEASSIGNMENT     = 1,
-    SMI_DECL_VALUEASSIGNMENT    = 2,
-    SMI_DECL_OBJECTTYPE         = 3,
-    SMI_DECL_OBJECTIDENTITY     = 4,
-    SMI_DECL_MODULEIDENTITY     = 5,
-    SMI_DECL_NOTIFICATIONTYPE   = 6,
-    SMI_DECL_TRAPTYPE           = 7,
-    SMI_DECL_OBJECTGROUP        = 8, 
-    SMI_DECL_NOTIFICATIONGROUP  = 9,
-    SMI_DECL_MODULECOMPLIANCE   = 10,
-    SMI_DECL_AGENTCAPABILITIES  = 11,
-    SMI_DECL_TEXTUALCONVENTION  = 12,
+    SMI_DECL_IMPL_SEQUENCEOF    = 2,
+    SMI_DECL_VALUEASSIGNMENT    = 3,
+    SMI_DECL_OBJECTTYPE         = 4,
+    SMI_DECL_OBJECTIDENTITY     = 5,
+    SMI_DECL_MODULEIDENTITY     = 6,
+    SMI_DECL_NOTIFICATIONTYPE   = 7,
+    SMI_DECL_TRAPTYPE           = 8,
+    SMI_DECL_OBJECTGROUP        = 9, 
+    SMI_DECL_NOTIFICATIONGROUP  = 10,
+    SMI_DECL_MODULECOMPLIANCE   = 11,
+    SMI_DECL_AGENTCAPABILITIES  = 12,
+    SMI_DECL_TEXTUALCONVENTION  = 13,
     /* SMIng statements */
     SMI_DECL_MODULE             = 33,
     SMI_DECL_TYPEDEF            = 34,

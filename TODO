@@ -56,3 +56,14 @@ o parser-smi.y: remember SEQUENCE contents and check them
 
 o smilint DLSW-MIB dumps core, only if smi.h:SmiValue struct contains
   the two new elements valueformat and len. try gdb watch.
+
+o parent types / restrictions, see smiquery type IF-MIB.ifAdminStatus,
+  smiquery type SNMPv2-SMI.Counter32
+
+o map STATUS to a non-language-dependant type
+
+o implcitly imported identifiers (MC MODULE sections) lead to
+  `imported but never used' warnings, e.g. SNMP-NOTIFICATION-MIB
+
+o type-flag: implcit/explicit
+  getType... also implicit types
