@@ -119,3 +119,5 @@ o extend smicache so that MIB authors can use it to submit URLs for their
 o Allow the MIB server to support lookup by OID.
 
 o Is there any value in MIB-by-OID lookup through DNS? ;-)
+
+o Include documents (draft on xml, etc.) with the distribution.

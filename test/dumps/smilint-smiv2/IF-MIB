@@ -1,2 +1,3 @@
 ../dumps/smiv2/IF-MIB:1237: index element `ifRcvAddressAddress' of row `ifRcvAddressEntry' must have a size restriction
+../dumps/smiv2/IF-MIB:1220: warning: index of row `ifRcvAddressEntry' can exceed OID size limit by 65420 subidentifier(s)
 ../dumps/smiv2/IF-MIB:1451: warning: deprecated group `ifOldObjectsGroup' is unconditionally optional
