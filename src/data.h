@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.28 1998/10/08 15:58:19 strauss Exp $
+ * @(#) $Id: data.h,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -26,15 +26,18 @@
 
 
 
+typedef unsigned int SubId;
+
+
 
 /*
- * Reference to the location of a quoted string in a MIB module file.
- * NOTE: Module name and path are taken from parent Module structure.
+ * Quoted String.
  */
-typedef struct TextRef {
-    off_t      fileoffset;
-    int	       length;
-} TextRef;
+typedef struct String {
+    char content[201];			/*   first 200 chars		    */
+    int fileoffset;			/*   offset in this file	    */
+    int length;				/*   full length		    */
+} String;
 
 
 
@@ -59,6 +62,27 @@ typedef struct Directory {
 
 
 
+/*
+ * SYNTAX.
+ */
+typedef enum Syntax {
+    SYNTAX_UNKNOWN           = 0,
+    SYNTAX_INTEGER           = 1, /* equal to INTEGER32 */
+    SYNTAX_OCTET_STRING	     = 2,
+    SYNTAX_OBJECT_IDENTIFIER = 3,
+    SYNTAX_SEQUENCE	     = 4,
+    SYNTAX_SEQUENCE_OF	     = 5,
+    SYNTAX_IPADDRESS	     = 6,
+    SYNTAX_COUNTER32	     = 7,
+    SYNTAX_GAUGE32	     = 8,
+    SYNTAX_UNSIGNED32	     = 9,
+    SYNTAX_TIMETICKS	     = 10,
+    SYNTAX_OPAQUE	     = 11,
+    SYNTAX_COUNTER64	     = 12
+} Syntax;
+
+
+	
 /*
  * STATUS values.
  */
@@ -105,21 +129,18 @@ typedef enum DescriptorKind {
 /*
  * Macros that may declare MibNodes.
  */
-#define	           NODE_IMPLICIT	  0
-#define	           NODE_VALUEASSIGNMENT   10
-#define		   NODE_INOIDVALUE	  11
-#define		   NODE_FORWARD		  12
 typedef enum DeclMacro {
-    MACRO_NONE		     = 0 ,
-    MACRO_OBJECTTYPE	     = 1 ,
-    MACRO_OBJECTIDENTITY     = 2 ,
-    MACRO_MODULEIDENTITY     = 3 ,
-    MACRO_NOTIFICATIONTYPE   = 4 ,
-    MACRO_TRAPTYPE	     = 5 ,
-    MACRO_OBJECTGROUP	     = 6 ,
-    MACRO_NOTIFICATIONGROUP  = 7 ,
-    MACRO_MODULECOMPLIANCE   = 8 ,
-    MACRO_AGENTCAPABILITIES  = 9
+    MACRO_UNKNOWN	     = 0 ,
+    MACRO_NONE		     = 1 ,
+    MACRO_OBJECTTYPE	     = 2 ,
+    MACRO_OBJECTIDENTITY     = 3 ,
+    MACRO_MODULEIDENTITY     = 4 ,
+    MACRO_NOTIFICATIONTYPE   = 5 ,
+    MACRO_TRAPTYPE	     = 6 ,
+    MACRO_OBJECTGROUP	     = 7 ,
+    MACRO_NOTIFICATIONGROUP  = 8 ,
+    MACRO_MODULECOMPLIANCE   = 9 ,
+    MACRO_AGENTCAPABILITIES  = 10
 } DeclMacro;
 
 
@@ -145,11 +166,11 @@ typedef unsigned short Flags;
 
 #define	FLAG_TC                 0x0100 /* On a Type: This type is declared   */
 				       /* by a TC instead of a simple ASN.1  */
-				       /* ASN.1 type declaration.            */
+				       /* type declaration.                  */
 
 #define	FLAG_SMIV2	        0x0100 /* On a Module: This is an SMIv2 MIB. */
 
-#define FLAG_NOVALUE		0x0100 /* On a (pending) MibNode: This node's*/
+#define FLAG_NOSUBID		0x0100 /* On a (pending) MibNode: This node's*/
 				       /* subid value is not yet known.      */
 #define FLAG_ROOT	        0x0200 /* Marks the single root MibNode.     */
 
@@ -193,28 +214,6 @@ typedef struct Descriptor {
 
 
 /*
- * Mib Node.
- */
-typedef struct MibNode {
-    struct Module  *module;
-#if 0
-    char	   oid[MAX_OID_STRING_LENGTH+1];
-#endif
-    unsigned int   subid;
-    Descriptor	   *descriptor;
-    off_t	   fileoffset;
-    DeclMacro	   macro;
-    Flags	   flags;
-    struct MibNode *parent;
-    struct MibNode *next;
-    struct MibNode *prev;
-    struct MibNode *firstChild;
-    struct MibNode *lastChild;
-} MibNode;
-
-
-
-/*
  * Mib Module.
  */
 typedef struct Module {
@@ -223,10 +222,10 @@ typedef struct Module {
     Descriptor	  *lastDescriptor[NUM_KINDS];
     char	  path[MAX_PATH_LENGTH+1];
     off_t	  fileoffset;
-    TextRef	  lastUpdated;
-    TextRef	  organization;
-    TextRef	  contactInfo;
-    TextRef	  description;
+    String	  lastUpdated;
+    String	  organization;
+    String	  contactInfo;
+    String	  description;
     Revision      firstRevision;
     Flags	  flags;
     int		  numImportedIdentifiers;
@@ -240,12 +239,44 @@ typedef struct Module {
  * Type.
  */
 typedef struct Type {
-    Module     *module;
-    char       syntax[MAX_OID_STRING_LENGTH+1];
-    Descriptor *descriptor;
-    off_t      fileoffset;
-    Flags      flags;
+    Module      *module;
+    Descriptor  *descriptor;
+    Syntax      syntax;
+    DeclMacro	macro;
+    char        *displayHint;
+    Status      status;
+#if 0
+    Restriction *firstRestriction;
+#endif
+    off_t       fileoffset;
+    Flags       flags;
 } Type;
+
+
+
+/*
+ * Mib Node.
+ */
+typedef struct MibNode {
+    struct Module  *module;
+#if 0
+    char	   oid[MAX_OID_STRING_LENGTH+1];
+#endif
+    unsigned int   subid;
+    Descriptor	   *descriptor;
+    off_t	   fileoffset;
+    DeclMacro	   macro;
+    Flags	   flags;
+    Type	   *type;
+    Access	   access;
+    Status	   status;
+    String	   description;
+    struct MibNode *parent;
+    struct MibNode *next;
+    struct MibNode *prev;
+    struct MibNode *firstChild;
+    struct MibNode *lastChild;
+} MibNode;
 
 
 
@@ -292,17 +323,6 @@ typedef struct PendingMibNode {
 
 
 /*
- * Quoted String.
- */
-typedef struct String {
-    char content[201];			/*   first 200 chars		    */
-    int fileoffset;			/*   offset in this file	    */
-    int length;				/*   full length		    */
-} String;
-
-
-
-/*
  *
  */
 typedef struct Node {
@@ -333,6 +353,10 @@ extern PendingMibNode	*firstPendingMibNode;
 extern MibNode		*rootMibNode;
 extern MibNode		*pendingRootMibNode;
 
+extern Type		*typeInteger, *typeInteger32, *typeCounter32,
+			*typeGauge32, *typeIpAddress, *typeTimeTicks,
+			*typeOpaque, *typeOctetString, *typeUnsigned32,
+			*typeObjectIdentifier, *typeCounter64;
 
 
 extern char *findFileByModulename(const char *module);
@@ -375,20 +399,30 @@ extern Descriptor *findDescriptor(const char *name,
 
 
 
-extern MibNode *addMibNode(const char *name,
+extern MibNode *addMibNode(MibNode *parent,
+			   SubId subid,
 			   Module *module,
-			   MibNode *parent,
-			   unsigned int subid,
-			   off_t fileoffset,
-			   DeclMacro macro,
 			   Flags flags,
 			   Parser *parser);
 
-extern void changeMibNode(MibNode *mibnode,
-			  Descriptor *descriptor,
-			  DeclMacro macro,
-			  Flags flags);
-			  
+extern void setMibNodeAccess(MibNode *node,
+			     Access access);
+
+extern void setMibNodeStatus(MibNode *node,
+			     Status status);
+
+extern void setMibNodeDescription(MibNode *node,
+				  String *description);
+
+extern void setMibNodeFileOffset(MibNode *node,
+				 off_t fileoffset);
+
+extern void setMibNodeMacro(MibNode *node,
+			    DeclMacro macro);
+
+extern void setMibNodeFlags(MibNode *node,
+			    Flags flags);
+
 extern MibNode *findMibNodeByOID(const char *oid);
 
 extern MibNode *findMibNodeByParentAndSubid(MibNode *parent,
@@ -408,12 +442,18 @@ extern void dumpMibTree(MibNode *root, const char *prefix);
 
 
 
+#if TODO
 extern Type *addType(const char *name,
 		     Module *module,
 		     const char *syntax,
+		     const char *displayHint,
+		     Status status,
+		     String *description,
 		     off_t fileoffset,
-		     int flags,
+		     DeclMacro macro,
+		     Flags flags,
 		     Parser *parser);
+#endif
 
 extern Type *findTypeByModuleAndName(Module *module,
 				     const char *name);

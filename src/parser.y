@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.58 1998/10/08 18:18:29 strauss Exp $
+ * @(#) $Id: parser.y,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 %{
@@ -85,6 +85,7 @@ MibNode *parent;
     MibNode *mibnode;
     Status status;
     Access access;
+    Type *type;
 }
 
 
@@ -203,10 +204,10 @@ MibNode *parent;
 %type  <err>entryType
 %type  <err>sequenceItems
 %type  <id>sequenceItem
-%type  <err>Syntax
-%type  <err>sequenceSyntax
-%type  <err>NamedBits
-%type  <err>NamedBit
+%type  <type>Syntax
+%type  <type>sequenceSyntax
+%type  <type>NamedBits
+%type  <type>NamedBit
 %type  <id>identifier
 %type  <err>objectIdentityClause
 %type  <err>objectTypeClause
@@ -220,15 +221,15 @@ MibNode *parent;
 %type  <err>notificationTypeClause
 %type  <err>moduleIdentityClause
 %type  <err>typeDeclaration
-%type  <err>typeDeclarationRHS
-%type  <err>ObjectSyntax
-%type  <err>sequenceObjectSyntax
+%type  <type>typeDeclarationRHS
+%type  <type>ObjectSyntax
+%type  <type>sequenceObjectSyntax
 %type  <err>valueofObjectSyntax
-%type  <err>SimpleSyntax
+%type  <type>SimpleSyntax
 %type  <err>valueofSimpleSyntax
-%type  <err>sequenceSimpleSyntax
-%type  <err>ApplicationSyntax
-%type  <err>sequenceApplicationSyntax
+%type  <type>sequenceSimpleSyntax
+%type  <type>ApplicationSyntax
+%type  <type>sequenceApplicationSyntax
 %type  <err>integerSubType
 %type  <err>octetStringSubType
 %type  <err>ranges
@@ -775,8 +776,6 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($7, descriptor, MACRO_NONE,
-					      0);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -797,15 +796,15 @@ typeDeclaration:	typeName
 			}
 			COLON_COLON_EQUAL typeDeclarationRHS
 			{
-			    if (thisParser->flags & FLAG_ACTIVE) {
-				addType($1, thisModule,
-					"$4.type", thisParser->character,
-					/* TODO: due to TC or SYNTAX ?!? */
-					(thisParser->flags &
-					 (FLAG_WHOLEMOD |
-					  FLAG_WHOLEFILE))
-					? FLAG_MODULE : 0,
-					thisParser);
+			    if ((thisParser->flags & FLAG_ACTIVE) &&
+				(strlen($1))) {
+				addDescriptor($1, thisModule, KIND_TYPE,
+					      $4,
+					      (thisParser->flags &
+					       (FLAG_WHOLEMOD |
+						FLAG_WHOLEFILE))
+					      ? FLAG_MODULE : 0,
+					      thisParser);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -835,7 +834,12 @@ typeName:		UPPERCASE_IDENTIFIER
 				       "RFC1155-SMI")) {
 			        printError(parser, ERR_TYPE_SMI, $1);
 			    }
-			    strncpy($$, $1, sizeof($$)-1);
+			    /*
+			     * clear $$, so that the `typeDeclarationRHS'
+			     * rule will not add a new Descriptor for this
+			     * already known type.
+			     */
+			    strcpy($$, "");
 			}
 	;
 
@@ -850,16 +854,21 @@ typeSMI:		INTEGER32	{ strncpy($$, $1, sizeof($$)-1); }
 	;
 
 typeDeclarationRHS:	Syntax
-			{ $$ = 0; }
+			{ $$ = $1; }
 	|		TEXTUAL_CONVENTION
 			DisplayPart
 			STATUS Status
 			DESCRIPTION Text
 			ReferPart
 			SYNTAX Syntax
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		choiceClause
-			{ $$ = 0; }
+			{
+			    $$ = NULL;
+			}
 	;
 
 /* REF:RFC1902,7.1.12. */
@@ -898,11 +907,15 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 	;
 
 Syntax:			ObjectSyntax
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	|		BITS '{' NamedBits '}'
 			/* TODO: standalone `BITS' ok? seen in RMON2-MIB */
 			/* -> no, it's only allowed in a SEQUENCE {...} */
-			{ $$ = 0; }
+			{
+			    $$ = $3;
+			}
 	;
 
 sequenceSyntax:		ObjectSyntax
@@ -912,9 +925,14 @@ sequenceSyntax:		ObjectSyntax
 	;
 
 NamedBits:		NamedBit
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	|		NamedBits ',' NamedBit
-			{ $$ = 0; }
+			{
+			    /* TODO: append $3 to $1 */
+			    $$ = $1;
+			}
 	;
 
 NamedBit:		identifier
@@ -926,7 +944,10 @@ NamedBit:		identifier
 			    }
 			}
 			'(' number ')'
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	;
 
 identifier:		LOWERCASE_IDENTIFIER
@@ -962,13 +983,18 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($11, descriptor,
-					      MACRO_OBJECTIDENTITY,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($11, MACRO_OBJECTIDENTITY);
+				setMibNodeFlags($11,
+						(thisParser->flags &
+						 (FLAG_WHOLEMOD |
+						  FLAG_WHOLEFILE))
+						? (FLAG_MODULE|FLAG_REGISTERED)
+						: 0);
+				setMibNodeStatus($11, $5);
+				setMibNodeDescription($11, &$7);
+#if 0
+				setMibNodeReferences($11, $8);
+#endif
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1006,13 +1032,17 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($16, descriptor,
-					      MACRO_OBJECTTYPE,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($16, MACRO_OBJECTTYPE);
+				setMibNodeFlags($16,
+						(thisParser->flags &
+						 (FLAG_WHOLEMOD |
+						  FLAG_WHOLEFILE))
+						? (FLAG_MODULE|FLAG_REGISTERED)
+						: 0);
+				/* TODO setMibNodeSyntax($16, $5); */
+				setMibNodeAccess($16, $7);
+				setMibNodeStatus($16, $9);
+				setMibNodeDescription($16, &$10);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1130,13 +1160,15 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($12, descriptor, 
-					      MACRO_NOTIFICATIONTYPE,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($12, MACRO_NOTIFICATIONTYPE);
+				if (thisParser->flags &
+				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				    setMibNodeFlags($12,
+						    FLAG_MODULE |
+						    FLAG_REGISTERED);
+				}
+				setMibNodeStatus($12, $6);
+				setMibNodeDescription($12, &$8);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1183,13 +1215,14 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($16, descriptor,
-					      MACRO_MODULEIDENTITY,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($16, MACRO_MODULEIDENTITY);
+				if (thisParser->flags &
+				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				    setMibNodeFlags($16,
+						    FLAG_MODULE |
+						    FLAG_REGISTERED);
+				}
+				setMibNodeDescription($16, &$12);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1198,7 +1231,9 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
         ;
 
 ObjectSyntax:		SimpleSyntax
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	|		typeTag SimpleSyntax
 			{
 			    if (strcmp(thisModule->descriptor->name,
@@ -1213,15 +1248,28 @@ ObjectSyntax:		SimpleSyntax
 				       "RFC1155-SMI")) {
 			        printError(parser, ERR_TYPE_TAG, $1);
 			    }
+			    $$ = NULL;
 			}
 	|		conceptualTable	     /* TODO: possible? row? entry? */
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		row		     /* the uppercase name of a row  */
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		entryType	     /* it's SEQUENCE { ... } phrase */
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		ApplicationSyntax
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
         ;
 
 typeTag:		'[' APPLICATION number ']' IMPLICIT
@@ -1254,36 +1302,75 @@ valueofObjectSyntax:	valueofSimpleSyntax
 	;
 
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
-			{ $$ = 0; }
+			{
+			    $$ = typeInteger;
+			}
 	|		INTEGER integerSubType
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = typeInteger;
+			}
 	|		INTEGER enumSpec
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = typeInteger;
+			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
-			{ $$ = 0; }
+			{
+			    /* TODO: any need to distinguish from INTEGER? */
+			    $$ = typeInteger;
+			}
         |		INTEGER32 integerSubType
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = typeInteger;
+			}
 	|		UPPERCASE_IDENTIFIER enumSpec
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		UPPERCASE_IDENTIFIER integerSubType
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeOctetString;
+			}
 	|		OCTET STRING octetStringSubType
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = typeOctetString;
+			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = NULL;
+			}
 	|		OBJECT IDENTIFIER
-			{ $$ = 0; }
+			{
+			    $$ = typeObjectIdentifier;
+			}
 	;
 
 valueofSimpleSyntax:	number			/* 0..2147483647 */
@@ -1324,33 +1411,62 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
  * named bits. REF: draft, p.29
  */
 sequenceSimpleSyntax:	INTEGER			/* (-2147483648..2147483647) */
-			{ $$ = 0; }
+			{
+			    $$ = typeInteger;
+			}
         |		INTEGER32		/* (-2147483648..2147483647) */
-			{ $$ = 0; }
+			{
+			    /* TODO: any need to distinguish from INTEGER? */
+			    $$ = typeInteger;
+			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeOctetString;
+			}
 	|		OBJECT IDENTIFIER
-			{ $$ = 0; }
+			{
+			    $$ = typeObjectIdentifier;
+			}
 	;
 
 ApplicationSyntax:	IPADDRESS
-			{ $$ = 0; }
+			{
+			    $$ = typeIpAddress;
+			}
 	|		COUNTER32		/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeCounter32;
+			}
 	|		GAUGE32			/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeGauge32;
+			}
 	|		GAUGE32 integerSubType
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = typeGauge32;
+			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeUnsigned32;
+			}
 	|		UNSIGNED32 integerSubType
-			{ $$ = 0; }
+			{
+			    /* TODO */
+			    $$ = typeUnsigned32;
+			}
 	|		TIMETICKS		/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeTimeTicks;
+			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
-			{ $$ = 0; }
+			{
+			    $$ = typeOpaque;
+			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
-			{ $$ = 0; }
+			{
+			    $$ = typeCounter64;
+			}
 	;
 
 /*
@@ -1358,19 +1474,33 @@ ApplicationSyntax:	IPADDRESS
  * named bits. REF: draft, p.29
  */
 sequenceApplicationSyntax: IPADDRESS
-			{ $$ = 0; }
+			{
+			    $$ = typeIpAddress;
+			}
 	|		COUNTER32		/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeCounter32;
+			}
 	|		GAUGE32			/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeGauge32;
+			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeUnsigned32;
+			}
 	|		TIMETICKS		/* (0..4294967295)	     */
-			{ $$ = 0; }
+			{
+			    $$ = typeTimeTicks;
+			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
-			{ $$ = 0; }
+			{
+			    $$ = typeOpaque;
+			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
-			{ $$ = 0; }
+			{
+			    $$ = typeCounter64;
+			}
 	;
 
 /* REF: draft,p.46 */
@@ -1704,13 +1834,15 @@ subidentifier:
 				if (node) {
 				    $$ = node;
 				} else {
-				    $$ = addMibNode($1, thisModule,
-						    pendingRootMibNode,
+				    $$ = addMibNode(pendingRootMibNode,
 						    0 /*subid not yet known*/,
-						    thisParser->character,
-						    MACRO_NONE,
-						    FLAG_MODULE | FLAG_NOVALUE,
+						    thisModule,
+						    FLAG_MODULE | FLAG_NOSUBID,
 						    parser);
+				    setMibNodeFileOffset($$,
+						        thisParser->character);
+				    addDescriptor($1, thisModule, KIND_MIBNODE,
+						  $$, FLAG_MODULE, parser);
 				}
 				parent = $$;
 			    }
@@ -1738,13 +1870,15 @@ subidentifier:
 				     */
 				    printError(parser,
 					       ERR_UNKNOWN_OIDLABEL, s);
-				    $$ = addMibNode($1, thisModule,
-						    pendingRootMibNode,
+				    $$ = addMibNode(pendingRootMibNode,
 						    0 /*subid not yet known*/,
-						    thisParser->character,
-						    MACRO_NONE,
-						    FLAG_MODULE | FLAG_NOVALUE,
+						    thisModule,
+						    FLAG_MODULE | FLAG_NOSUBID,
 						    parser);
+				    setMibNodeFileOffset($$,
+						        thisParser->character);
+				    addDescriptor($1, thisModule, KIND_MIBNODE,
+						  $$, FLAG_MODULE, parser);
 				}
 				parent = $$;
 			    }
@@ -1758,11 +1892,13 @@ subidentifier:
 			    if (node) {
 				$$ = node;
 			    } else {
-				$$ = addMibNode(NULL, thisModule,
-						parent, atoi($1.content),
-						thisParser->character,
-						MACRO_NONE, FLAG_MODULE,
+				$$ = addMibNode(parent,
+						atoi($1.content),
+						thisModule,
+						FLAG_MODULE,
 						parser);
+				setMibNodeFileOffset($$,
+						     thisParser->character);
 			    }
 			}
 	|		LOWERCASE_IDENTIFIER '(' number ')'
@@ -1780,11 +1916,15 @@ subidentifier:
 					       $3.content, $1);
 				}
 			    } else {
-				$$ = addMibNode($1, thisModule, parent,
+				$$ = addMibNode(parent,
 						atoi($3.content),
-						thisParser->character,
-						MACRO_NONE, FLAG_MODULE,
+						thisModule,
+						FLAG_MODULE,
 						parser);
+				setMibNodeFileOffset($$,
+						     thisParser->character);
+				addDescriptor($1, thisModule, KIND_MIBNODE,
+					      $$, FLAG_MODULE, parser);
 			    }
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER '(' number ')'
@@ -1806,11 +1946,15 @@ subidentifier:
 			    } else {
 				printError(parser, ERR_ILLEGALLY_QUALIFIED,
 					   md);
-				$$ = addMibNode($3, thisModule,
-						parent, atoi($5.content),
-						thisParser->character,
-						MACRO_NONE, FLAG_MODULE,
+				$$ = addMibNode(parent,
+						atoi($5.content),
+						thisModule,
+						FLAG_MODULE,
 						parser);
+				setMibNodeFileOffset($$,
+						     thisParser->character);
+				addDescriptor($3, thisModule, KIND_MIBNODE,
+					      $$, FLAG_MODULE, parser);
 			    }
 			}
 	;
@@ -1857,13 +2001,18 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($12, descriptor,
-					      MACRO_OBJECTGROUP,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($12, MACRO_OBJECTGROUP);
+				if (thisParser->flags &
+				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				    setMibNodeFlags($12,
+						    FLAG_MODULE |
+						    FLAG_REGISTERED);
+				}
+				setMibNodeStatus($12, $6);
+				setMibNodeDescription($12, &$8);
+#if 0
+				setMibNodeReferences($12, $9);
+#endif
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1898,13 +2047,18 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($12, descriptor,
-					      MACRO_NOTIFICATIONGROUP,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($12, MACRO_NOTIFICATIONGROUP);
+				if (thisParser->flags &
+				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				    setMibNodeFlags($12,
+						    FLAG_MODULE |
+						    FLAG_REGISTERED);
+				}
+				setMibNodeStatus($12, $6);
+				setMibNodeDescription($12, &$8);
+#if 0
+				setMibNodeReferences($12, $9);
+#endif
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1938,13 +2092,18 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($12, descriptor,
-					      MACRO_MODULECOMPLIANCE,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($12, MACRO_MODULECOMPLIANCE);
+				if (thisParser->flags &
+				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				    setMibNodeFlags($12,
+						    FLAG_MODULE |
+						    FLAG_REGISTERED);
+				}
+				setMibNodeStatus($12, $5);
+				setMibNodeDescription($12, &$7);
+#if 0
+				setMibNodeReferences($12, $8);
+#endif
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -2076,13 +2235,18 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				changeMibNode($14, descriptor,
-					      MACRO_AGENTCAPABILITIES,
-					      (thisParser->flags &
-					       (FLAG_WHOLEMOD |
-						FLAG_WHOLEFILE))
-					      ? (FLAG_MODULE | FLAG_REGISTERED)
-					      : 0);
+				setMibNodeMacro($14, MACRO_AGENTCAPABILITIES);
+				if (thisParser->flags &
+				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
+				    setMibNodeFlags($14,
+						    FLAG_MODULE |
+						    FLAG_REGISTERED);
+				}
+				setMibNodeStatus($14, $7);
+				setMibNodeDescription($14, &$9);
+#if 0
+				setMibNodeReferences($14, $10);
+#endif
 				$$ = 0;
 			    } else {
 				$$ = 0;

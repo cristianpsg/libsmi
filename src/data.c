@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.33 1998/10/08 15:58:18 strauss Exp $
+ * @(#) $Id: data.c,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -729,27 +729,23 @@ findDescriptor(name, module, kind)
  */
 
 MibNode *
-addMibNode(name, module, parent, subid, fileoffset, macro, flags, parser)
-    const char *name;
-    Module *module;
+addMibNode(parent, subid, module, flags, parser)
     MibNode *parent;
     unsigned int subid;
-    off_t fileoffset;
-    DeclMacro macro;
+    Module *module;
     Flags flags;
     Parser *parser;
 {
     MibNode *node;
-    Descriptor *descriptor;
     MibNode *c;
     
-    printDebug(5, "addMibNode(\"%s\", %s, %s, %d, %d, %d, %d, parser)\n",
-	       name ? name : "NULL",
-	       module &&
-	         module->descriptor ? module->descriptor->name : "NULL",
+    printDebug(5, "addMibNode(%s, %d, %s, %d, parser)\n",
 	       parent &&
 	         parent->descriptor ? parent->descriptor->name : "NULL",
-	       subid, fileoffset, macro, flags);
+	       subid,
+	       module &&
+	         module->descriptor ? module->descriptor->name : "NULL",
+	       flags);
 
     node = (MibNode *)malloc(sizeof(MibNode));
     if (!node) {
@@ -759,10 +755,14 @@ addMibNode(name, module, parent, subid, fileoffset, macro, flags, parser)
 
     node->module = module;
     node->subid = subid;
-    node->fileoffset = fileoffset;
-    node->macro = macro;
+    node->fileoffset = 0;
+    node->macro = MACRO_UNKNOWN;
     node->flags = flags;
-
+    node->descriptor = NULL;
+    node->description.fileoffset = 0;
+    node->description.length = 0;
+    strcpy(node->description.content, "");
+    
     /*
      * Link it into the tree.
      */
@@ -799,22 +799,171 @@ addMibNode(name, module, parent, subid, fileoffset, macro, flags, parser)
 	}
     }
 
-    /*
-     * Create a Descriptor.
-     */
-    if (name) {
-	descriptor = addDescriptor(name, module, KIND_MIBNODE, node,
-				   flags & FLAGS_GENERAL, parser);
-	node->descriptor = descriptor;
-    } else {
-	node->descriptor = NULL;
-    }
-    
     return (node);
 }
 
 
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMibNodeAccess --
+ *
+ *      Set the access of a given MibNode.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMibNodeAccess(node, access)
+    MibNode *node;
+    Access access;
+{
+    node->access = access;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMibNodeStatus --
+ *
+ *      Set the status of a given MibNode.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMibNodeStatus(node, status)
+    MibNode *node;
+    Status status;
+{
+    node->status = status;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMibNodeDescription --
+ *
+ *      Set the description of a given MibNode.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMibNodeDescription(node, description)
+    MibNode *node;
+    String *description;
+{
+    node->description.fileoffset = description->fileoffset;
+    node->description.length = description->length;
+    strncpy(node->description.content, description->content,
+	    sizeof(node->description.content)-1);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMibNodeFileOffset --
+ *
+ *      Set the fileoffset of a given MibNode.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMibNodeFileOffset(node, fileoffset)
+    MibNode *node;
+    off_t fileoffset;
+{
+    node->fileoffset = fileoffset;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMibNodeMacro --
+ *
+ *      Set the macro of a given MibNode.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMibNodeMacro(node, macro)
+    MibNode *node;
+    DeclMacro macro;
+{
+    node->macro = macro;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMibNodeFlags --
+ *
+ *      Add(!) flags to the flags of a given MibNode.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMibNodeFlags(node, flags)
+    MibNode *node;
+    Flags flags;
+{
+    node->flags |= flags;
+}
+
+
+
+#if 0
 /*
  *----------------------------------------------------------------------
  *
@@ -849,6 +998,7 @@ void changeMibNode(mibnode, descriptor, macro, flags)
 	mibnode->flags |= flags;
     }
 }
+#endif
 
 
 
@@ -1174,7 +1324,7 @@ dumpMibTree(root, prefix)
 	    sprintf(s, " ");
 	} else {
 	    if (root->descriptor) {
-		if (root->flags & FLAG_NOVALUE) {
+		if (root->flags & FLAG_NOSUBID) {
 		    sprintf(s, "%s.%s(?)", prefix,
 			    root->descriptor->name);
 		} else {
@@ -1182,7 +1332,7 @@ dumpMibTree(root, prefix)
 			    root->descriptor->name, root->subid);
 		}
 	    } else {
-		if (root->flags & FLAG_NOVALUE) {
+		if (root->flags & FLAG_NOSUBID) {
 		    sprintf(s, "%s.?", prefix);
 		} else {
 		    sprintf(s, "%s.%d", prefix, root->subid);
@@ -1212,6 +1362,7 @@ dumpMibTree(root, prefix)
 
 
 
+#if TODO
 /*
  *----------------------------------------------------------------------
  *
@@ -1231,10 +1382,13 @@ dumpMibTree(root, prefix)
  *---------------------------------------------------------------------- */
 
 Type *
-addType(name, module, syntax, fileoffset, flags, parser)
+addType(name, module, syntax, displayHint, status, description,
+	fileoffset, flags, parser)
     const char *name;
     Module     *module;
-    const char *syntax;
+    Syntax     *syntax;
+    char       *displayHint;
+    Status     status;
     off_t      fileoffset;
     Flags      flags;
     Parser     *parser;
@@ -1284,6 +1438,7 @@ addType(name, module, syntax, fileoffset, flags, parser)
 
     return (type);
 }
+#endif
 
 
 
@@ -1542,19 +1697,19 @@ initData()
 	lastDescriptor[i] = NULL;
     }
 
-    rootMibNode = addMibNode("", NULL, NULL, 0, 0,
-			     MACRO_NONE, FLAG_PERMANENT | FLAG_ROOT, NULL);
+    rootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
+
+    node = addMibNode(rootMibNode, 0, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("ccitt", NULL, KIND_MIBNODE, node, FLAG_PERMANENT, NULL);
+    node = addMibNode(rootMibNode, 1, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("iso", NULL, KIND_MIBNODE, node, FLAG_PERMANENT, NULL);
+    node = addMibNode(rootMibNode, 2, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("joint-iso-ccitt", NULL, KIND_MIBNODE, node,
+		  FLAG_PERMANENT, NULL);
+
+    pendingRootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
     
-    addMibNode("ccitt", NULL, rootMibNode, 0, 0,
-	       MACRO_NONE, FLAG_PERMANENT, NULL);
-    addMibNode("iso", NULL, rootMibNode, 1, 0,
-	       MACRO_NONE, FLAG_PERMANENT, NULL);
-    addMibNode("joint-iso-ccitt", NULL, rootMibNode, 2, 0,
-	       MACRO_NONE, FLAG_PERMANENT, NULL);
-
-    pendingRootMibNode = addMibNode("", NULL, NULL, 0, 0,
-				    MACRO_NONE, FLAG_ROOT, NULL);
-
+    addType("INTEGER", 
     return (0);
 }
 
