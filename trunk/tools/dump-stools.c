@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.6 2001/02/13 10:18:21 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.7 2001/02/20 14:39:21 schoenw Exp $
  */
 
 /*
@@ -832,6 +832,7 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 			      SmiNode *groupNode)
 {
     char *cGroupName;
+    int i;
 
     cGroupName = translate(groupNode->name);
 
@@ -841,9 +842,14 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 	    "{\n"
 	    "    GSList *elem;\n"
 	    "    %s_t *%s;\n"
-	    "    char *p;\n"
-	    "\n",
+	    "    char *p;\n",
 	    cGroupName, cGroupName, cGroupName, cGroupName);
+
+    fprintf(f, "    static guint32 const base[] = {");
+    for (i = 0; i < groupNode->oidlen; i++) {
+	fprintf(f, "%s%u", i ? ", " : "", groupNode->oid[i]);
+    }
+    fprintf(f, "};\n\n");
 
     fprintf(f,
 	    "    %s = (%s_t *) g_malloc0(sizeof(%s_t) + sizeof(GSList *));\n"
@@ -870,7 +876,9 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
             "            || (vb->type == G_SNMP_NOSUCHINSTANCE)) {\n"
             "            continue;\n"
 	    "        }\n"
-	);
+	    "        if (memcmp(vb->id, base, sizeof(base)) != 0) {\n"
+	    "            continue;\n"
+	    "        }\n");
     
     printVariableAssignement(f, groupNode);
     
@@ -913,7 +921,7 @@ static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
 	fprintf(f, "    if (s->version > G_SNMP_V1) {\n    ");
     }
     fprintf(f,
-	    "    var[%u] = %u; stls_vbl_add_null(&in, var, %u);\n",
+	    "    base[%u] = %u; stls_vbl_add_null(&in, base, %u);\n",
 	    smiNode->oidlen - 1, smiNode->oid[smiNode->oidlen - 1],
 	    smiNode->oidlen);
     if (smiType && smiType->basetype == SMI_BASETYPE_UNSIGNED64) {
@@ -950,7 +958,7 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 		"    int i;\n");
     }
 
-    fprintf(f, "    static guint32 var[] = {");
+    fprintf(f, "    static guint32 base[] = {");
     for (i = 0; i < groupNode->oidlen; i++) {
 	fprintf(f, "%u, ", groupNode->oid[i]);
     }
