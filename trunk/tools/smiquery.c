@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.42 2000/02/10 11:35:40 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.43 2000/02/10 14:29:28 strauss Exp $
  */
 
 #include <stdio.h>
@@ -620,6 +620,22 @@ int main(int argc, char *argv[])
 	}
     }
 
+    if (!strcmp(command, "x")) {
+	SmiModule *smiModule;
+	SmiType *smiType;
+	for (smiModule = smiGetFirstModule();
+	     smiModule;
+	     smiModule = smiGetNextModule(smiModule)) {
+	    printf("module %s\n", smiModule->name);
+	    for (smiType = smiGetFirstType(smiModule);
+		 smiType;
+		 smiType = smiGetNextType(smiType)) {
+		printf("  type %s::%s\n", smiModule->name, smiType->name);
+	    }
+	}
+    }
+
+    
     smiExit();
     
     exit(0);
