@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.2 1999/03/15 11:07:16 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.4 1999/03/16 20:47:34 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -30,19 +30,35 @@ char *excludeDescriptors[] = {
 
 
 static char *
-getOidString(modulename, object)
+getOidString(modulename, object, importedParent)
     char	 *modulename;
     char	 *object;
+    int		 importedParent;  /* force use of imported oid label (MI) */
 {
     smi_node     *smiNode;
     static char	 s[SMI_MAX_OID+1];
+    char	 child[SMI_MAX_OID+1];
+    smi_fullname smiFullname;
 
     s[0] = 0;
 
     smiNode = smiGetNode(object, modulename);
+
+    strcpy(child, object);
+    
+    smiFullname = smiGetParent(child, modulename);
+    if (smiFullname) {
+	if (((!importedParent) &&
+	     (!strcmp(smiModule(smiFullname), modulename))) ||
+	    (smiIsImported(modulename, smiFullname))) {
+	    sprintf(s, "%s%s", smiDescriptor(smiFullname),
+		    strrchr(smiNode->oid, '.'));
+	    return s;
+	}
+    }
+    
     if (smiNode) {
 	sprintf (s, "%s", smiNode->oid);
-	XXX
     }
     return s;
 }
@@ -155,13 +171,6 @@ dumpSming(modulename)
     char	 *modulename;
 {
     smi_module	 *smiModule;
-#if 0
-    smi_fullname *smiFullname;
-    smi_node	 *smiNode;
-    smi_type	 *smiType;
-    smi_macro	 *smiMacro;
-    smi_namelist *smiNamelist;
-#endif
     
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
@@ -181,7 +190,7 @@ dumpSming(modulename)
 
 	if (strlen(smiModule->object)) {
 	    printf("    oid                 %s;\n",
-		   getOidString(modulename, smiModule->object));
+		   getOidString(modulename, smiModule->object, 1));
 	    printf("\n");
 	    printf("    organization        \n");
 	    printMultilineString(smiModule->organization);

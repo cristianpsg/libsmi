@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.3 1999/03/15 11:07:11 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.4 1999/03/16 17:24:09 strauss Exp $
  */
 
 %{
@@ -749,13 +749,12 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			    Object *objectPtr;
 			    
 			    objectPtr = $7;
-			    
 			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
 				objectPtr =
 				    duplicateObject(objectPtr,
 						    0, thisParserPtr);
 			    }
-			    setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
 			    $$ = 0;
@@ -925,9 +924,15 @@ row:			UPPERCASE_IDENTIFIER
 				     */
 				    stypePtr = smiGetType($1,
 							  importPtr->module);
-				    $$ = addType($1, stypePtr->syntax,
-						 FLAG_IMPORTED,
-						 thisParserPtr);
+				    if (stypePtr) {
+					$$ = addType($1, stypePtr->syntax,
+						     FLAG_IMPORTED,
+						     thisParserPtr);
+				    } else {
+					$$ = addType($1, SMI_SYNTAX_UNKNOWN,
+						 FLAG_IMPORTED | FLAG_IMPORTED,
+						     thisParserPtr);
+				    }
 				}
 			    }
 			}
@@ -1121,7 +1126,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr,
 				                            0, thisParserPtr);
 			    }
-			    setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
@@ -1160,7 +1165,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr,
 				                            0, thisParserPtr);
 			    }
-			    setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectType(objectPtr, $5);
 			    setObjectAccess(objectPtr, $7);
@@ -1284,7 +1289,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr, 0,
 							    thisParserPtr);
 			    }
-			    setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
@@ -1331,7 +1336,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr, 0,
 							    thisParserPtr);
 			    }
-			    setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    setModuleIdentityObject(thisParserPtr->modulePtr,
@@ -2324,7 +2329,7 @@ subidentifier:
 					 * marked with FLAG_INCOMPLETE.
 					 */
 					objectPtr = addObject($1,
-							    pendingNodePtr,
+							      pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
@@ -2337,12 +2342,19 @@ subidentifier:
 					 */
 					snodePtr = smiGetNode($1,
 							    importPtr->module);
-					$$ = addObject($1, 
-					  getParentNode(
-					      createNodes(snodePtr->oid)),
-					  getLastSubid(snodePtr->oid),
-					  FLAG_IMPORTED,
-					  thisParserPtr);
+					if (snodePtr) {
+					    $$ = addObject($1, 
+							   getParentNode(
+					           createNodes(snodePtr->oid)),
+					           getLastSubid(snodePtr->oid),
+							   FLAG_IMPORTED,
+							   thisParserPtr);
+					} else {
+					    $$ = addObject($1, pendingNodePtr,
+							   0,
+					       FLAG_IMPORTED | FLAG_INCOMPLETE,
+							   thisParserPtr);
+					}
 				    }
 				}
 				parentNodePtr = $$->nodePtr;
@@ -2523,10 +2535,13 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr, 0,
 							    thisParserPtr);
 			    }
+			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
+			    setObjectAccess(objectPtr,
+					    SMI_ACCESS_NOT_ACCESSIBLE);
 #if 0
 				/*
 				 * TODO: ObjectsPart ($4)
@@ -2562,11 +2577,14 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr, 0,
 							    thisParserPtr);
 			    }
+			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
+			    setObjectAccess(objectPtr,
+					    SMI_ACCESS_NOT_ACCESSIBLE);
 #if 0
 				/*
 				 * TODO: NotificationsPart ($4)
