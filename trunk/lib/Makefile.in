@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.14 2000/04/11 09:06:45 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.15 2000/06/16 13:53:57 strauss Exp $
 #
 
 
@@ -98,14 +98,14 @@ VERSION = @VERSION@
 mibdir = @mibdir@
 smipath = @smipath@
 
-EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  errormacros.h data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
+EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  errormacros.h data.h check.h error.h util.h 			  scanner-smi.h parser-smi.h parser-smi.tab.h 			  scanner-sming.h parser-sming.h parser-sming.tab.h 			  $(man_MANS)
 
 include_HEADERS = smi.h
 CLEANFILES = parser-smi.output parser-sming.output
 man_MANS = libsmi.3 smi_config.3 smi_module.3 smi_macro.3 			  smi_node.3 smi_type.3
 
 lib_LTLIBRARIES = libsmi.la
-libsmi_la_SOURCES = data.c error.c util.c smi.c 		  	  parser-smi.tab.c scanner-smi.c 		  	  parser-sming.tab.c scanner-sming.c
+libsmi_la_SOURCES = data.c check.c error.c util.c smi.c 		  	  parser-smi.tab.c scanner-smi.c 		  	  parser-sming.tab.c scanner-sming.c
 
 libsmi_la_LDFLAGS = -version-info @LIBTOOL_VERSIONING@
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -120,8 +120,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libsmi_la_LIBADD = 
-libsmi_la_OBJECTS =  data.lo error.lo util.lo smi.lo parser-smi.tab.lo \
-scanner-smi.lo parser-sming.tab.lo scanner-sming.lo
+libsmi_la_OBJECTS =  data.lo check.lo error.lo util.lo smi.lo \
+parser-smi.tab.lo scanner-smi.lo parser-sming.tab.lo scanner-sming.lo
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -141,9 +141,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/data.P .deps/error.P .deps/parser-smi.tab.P \
-.deps/parser-sming.tab.P .deps/scanner-smi.P .deps/scanner-sming.P \
-.deps/smi.P .deps/util.P
+DEP_FILES =  .deps/check.P .deps/data.P .deps/error.P \
+.deps/parser-smi.tab.P .deps/parser-sming.tab.P .deps/scanner-smi.P \
+.deps/scanner-sming.P .deps/smi.P .deps/util.P
 SOURCES = $(libsmi_la_SOURCES)
 OBJECTS = $(libsmi_la_OBJECTS)
 
