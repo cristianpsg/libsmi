@@ -92,7 +92,7 @@ table2Entry OBJECT-TYPE
     MAX-ACCESS not-accessible
     STATUS     current
     DESCRIPTION
-	"Chaged INDEX to AUGMENTS."
+	"Changed INDEX to AUGMENTS."
     --INDEX { t1c1, t2c1 }
     AUGMENTS { table1Entry }
     ::= { table2 1 }
@@ -126,5 +126,146 @@ t2c3 OBJECT-TYPE
     DESCRIPTION
 	""
     ::= { table2Entry 3 }
+
+table3 OBJECT-TYPE
+    SYNTAX     SEQUENCE OF Table3Entry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION 
+	"A table. No changes."
+    ::= { libsmiTest005Mib 3 }
+
+table3Entry OBJECT-TYPE
+    SYNTAX     Table3Entry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+	""
+    INDEX { t3c1 }
+    ::= { table3 1 }
+
+Table3Entry ::= SEQUENCE {
+    t3c1 Integer32,
+    t3c2 Integer32,
+    t3c3 Integer32
+}
+
+t3c1 OBJECT-TYPE
+    SYNTAX Integer32 (0..9)
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table3Entry 1 }
+
+t3c2 OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table3Entry 2 }
+
+t3c3 OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table3Entry 3 }
+
+table4 OBJECT-TYPE
+    SYNTAX     SEQUENCE OF Table4Entry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION 
+	"A table."
+    ::= { libsmiTest005Mib 4 }
+
+table4Entry OBJECT-TYPE
+    SYNTAX     Table4Entry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+	"The index will change."
+    INDEX { t4c2 }
+    ::= { table4 1 }
+
+Table4Entry ::= SEQUENCE {
+    t4c1 Integer32,
+    t4c2 Integer32,
+    t4c3 Integer32
+}
+
+t4c1 OBJECT-TYPE
+    SYNTAX Integer32 (0..9)
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table4Entry 1 }
+
+t4c2 OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table4Entry 2 }
+
+t4c3 OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table4Entry 3 }
+
+table5 OBJECT-TYPE
+    SYNTAX SEQUENCE OF Table5Entry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION 
+	""
+    ::= { libsmiTest005Mib 5 }
+
+table5Entry OBJECT-TYPE
+    SYNTAX     Table5Entry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+	"Changed index."
+    AUGMENTS { table3Entry }
+    ::= { table5 1 }
+
+Table5Entry ::= SEQUENCE {
+    t5c1 Integer32,
+    t5c2 Integer32,
+    t5c3 Integer32
+}
+
+t5c1 OBJECT-TYPE
+    SYNTAX Integer32 (0..12)
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table5Entry 1 }
+
+t5c2 OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table5Entry 2 }
+
+t5c3 OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+	""
+    ::= { table5Entry 3 }
 
 END
