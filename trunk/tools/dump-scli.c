@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.4 2001/09/27 07:53:39 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.5 2001/09/30 20:07:29 schoenw Exp $
  */
 
 /*
@@ -648,15 +648,17 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	maxSize = getMaxSize(smiType);
 	minSize = getMinSize(smiType);
+	if (isIndex && maxSize > 128 - smiNode->oidlen) {
+	    maxSize = 128 - smiNode->oidlen;
+	}
 	if (maxSize == minSize) {
 	    fprintf(f,
-		    "#define %s_%sLENGTH %u\n", dModuleName, dNodeName,
-		    (!isIndex || maxSize < 128) ? maxSize : 128);
+		    "#define %s_%sLENGTH %u\n",
+		    dModuleName, dNodeName, maxSize);
 	}
 	if (isIndex) {
 	    fprintf(f,
-		    "    guint32  %s[%u];\n", cName,
-		    (!isIndex || maxSize < 128) ? maxSize : 128);
+		    "    guint32  %s[%u];\n", cName, maxSize);
 	} else {
 	    fprintf(f,
 		    "    guint32  *%s;\n", cName);
@@ -671,15 +673,17 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
     case SMI_BASETYPE_BITS:
 	maxSize = getMaxSize(smiType);
 	minSize = getMinSize(smiType);
+	if (isIndex && maxSize > 128 - smiNode->oidlen) {
+	    maxSize = 128 - smiNode->oidlen;
+	}
 	if (maxSize == minSize) {
 	    fprintf(f,
-		    "#define %s_%sLENGTH %u\n", dModuleName, dNodeName,
-		    (!isIndex || maxSize < 128) ? maxSize : 128);
+		    "#define %s_%sLENGTH %u\n",
+		    dModuleName, dNodeName, maxSize);
 	}
 	if (isIndex) {
 	    fprintf(f,
-		    "    guchar   %s[%u];\n", cName,
-		    (!isIndex || maxSize < 128) ? maxSize : 128);
+		    "    guchar   %s[%u];\n", cName, maxSize);
 	} else {
 	    fprintf(f,
 		    "    guchar   *%s;\n", cName);
@@ -1173,7 +1177,7 @@ printStubUtilities(FILE *f, SmiModule *smiModule)
 
     fprintf(f,
 	    "static void\n"
-	    "add_attributes(GSnmpSession *s, GSList **vbl, guint32 *base, guint16 len,\n"
+	    "add_attributes(GSnmpSession *s, GSList **vbl, guint32 *base, guint8 len,\n"
 	    "                guint idx, attribute_t *attributes, gint mask)\n"
 	    "{\n"
 	    "    int i;\n"
@@ -1349,6 +1353,9 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    case SMI_BASETYPE_OCTETSTRING:
 		maxSize = getMaxSize(iType);
 		minSize = getMinSize(iType);
+		if (maxSize > 128 - iNode->oidlen) {
+		    maxSize = 128 - iNode->oidlen;
+		}
 		if (minSize == maxSize) {
 		    fprintf(f,
 			    "    len = %u;\n"
@@ -1392,6 +1399,9 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
 		maxSize = getMaxSize(iType);
 		minSize = getMinSize(iType);
+		if (maxSize > 128 - iNode->oidlen) {
+		    maxSize = 128 - iNode->oidlen;
+		}
 		if (minSize == maxSize) {
 		    fprintf(f,
 			    "    len = %u;\n"
@@ -1534,6 +1544,9 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    case SMI_BASETYPE_OCTETSTRING:
 		maxSize = getMaxSize(iType);
 		minSize = getMinSize(iType);
+		if (maxSize > 128 - iNode->oidlen) {
+		    maxSize = 128 - iNode->oidlen;
+		}
 		if (minSize == maxSize) {
 		    fprintf(f,
 			    "    len = %u;\n",
@@ -1575,6 +1588,9 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
 		maxSize = getMaxSize(iType);
 		minSize = getMinSize(iType);
+		if (maxSize > 128 - iNode->oidlen) {
+		    maxSize = 128 - iNode->oidlen;
+		}
 		if (minSize == maxSize) {
 		    fprintf(f,
 			    "    len = %u;\n",
@@ -1694,6 +1710,22 @@ printVariableAssignement(FILE *f, SmiNode *groupNode)
 	    case SMI_BASETYPE_BITS:
 		maxSize = getMaxSize(smiType);
 		minSize = getMinSize(smiType);
+		if (minSize == maxSize) {
+		    fprintf(f,
+			    "            if (vb->syntax_len != %u) break;\n", minSize);
+		} else {
+		    if (minSize > 0 && maxSize < 65535) {
+			fprintf(f,
+				"            if (vb->syntax_len < %u || vb->syntax_len > %u) break;\n",
+				minSize, maxSize);
+		    } else if (minSize > 0 && maxSize == 65535) {
+			fprintf(f,
+				"            if (vb->syntax_len < %u) break;\n", minSize);
+		    } else if (minSize == 0 && maxSize < 65535) {
+			fprintf(f,
+				"            if (vb->syntax_len > %u) break;\n", maxSize);
+		    }
+		}
 		if (minSize != maxSize) {
 		    fprintf(f,
 			    "            %s->_%sLength = vb->syntax_len;\n",
@@ -1704,10 +1736,32 @@ printVariableAssignement(FILE *f, SmiNode *groupNode)
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		maxSize = getMaxSize(smiType);
+		minSize = getMinSize(smiType);
+		if (minSize == maxSize) {
+		    fprintf(f,
+			    "            if (vb->syntax_len != %u) break;\n", minSize);
+		} else {
+		    if (minSize > 0 && maxSize < 65535) {
+			fprintf(f,
+				"            if (vb->syntax_len < %u || vb->syntax_len > %u) break;\n",
+				minSize, maxSize);
+		    } else if (minSize > 0 && maxSize == 65535) {
+			fprintf(f,
+				"            if (vb->syntax_len < %u) break;\n", minSize);
+		    } else if (minSize == 0 && maxSize < 65535) {
+			fprintf(f,
+				"            if (vb->syntax_len > %u) break;\n", maxSize);
+		    }
+		}
+		if (minSize != maxSize) {
+		    fprintf(f,
+			    "            %s->_%sLength = vb->syntax_len / sizeof(guint32);\n",
+			    cGroupName, cName);
+		}
 		fprintf(f,
-			"            %s->_%sLength = vb->syntax_len / sizeof(guint32);\n"
 			"            %s->%s = vb->syntax.ui32;\n",
-			cGroupName, cName, cGroupName, cName);
+			cGroupName, cName);
 		break;
 	    default:
 		break;
@@ -1915,7 +1969,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "    guint32 base[128];\n"
-	    "    int len;\n"
+	    "    gint8 len;\n"
 	    "\n"
 	    "    memset(base, 0, sizeof(base));\n"
 	    "    memcpy(base, oid_%s, sizeof(oid_%s));\n",
@@ -2034,7 +2088,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "    guint32 base[128];\n"
-	    "    int len;\n"
+	    "    gint8 len;\n"
 	    "\n"
 	    "    memset(base, 0, sizeof(base));\n"
 	    "    memcpy(base, oid_%s, sizeof(oid_%s));\n",
