@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.38 2000/12/05 10:04:56 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.39 2000/12/09 16:34:05 strauss Exp $
  */
 
 #include <config.h>
@@ -1471,8 +1471,8 @@ static void dumpIdl(SmiModule *smiModule)
 
 static void fprintNameAndOid(FILE *f, SmiNode *smiNode, SmiNode *smiParentNode)
 {
-    int  i;
-    char *idlModuleName;
+    unsigned int i;
+    char         *idlModuleName;
 
     idlModuleName = getIdlModuleName(smiGetNodeModule(smiNode)->name);
 
