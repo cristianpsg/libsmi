@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.29 2000/02/05 18:05:58 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.30 2000/02/06 23:30:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1376,7 +1376,8 @@ static void printGroups(char *modulename)
 
 static void printModuleCompliances(char *modulename)
 {
-    SmiNode	  *smiNode;
+    SmiNode	  *smiNode, *smiNode2;
+    SmiModule     *smiModule2;
     SmiType	  *smiType;
     SmiOption	  *smiOption;
     SmiRefinement *smiRefinement;
@@ -1458,10 +1459,12 @@ static void printModuleCompliances(char *modulename)
 		
 		for(smiOption = smiGetFirstOption(smiNode); smiOption;
 		    smiOption = smiGetNextOption(smiOption)) {
-		    if (!strcmp(smiOption->module, module)) {
+		    smiNode2 = smiGetOptionNode(smiOption);
+		    smiModule2 = smiGetNodeModule(smiNode2);
+		    if (!strcmp(smiModule2->name, module)) {
 			print("\n");
 			printSegment(2 * INDENT, "GROUP", INDENTVALUE, smiv1);
-			print("%s\n", smiOption->name);
+			print("%s\n", smiNode2->name);
 			printSegment(2 * INDENT, "DESCRIPTION", INDENTVALUE, smiv1);
 			print("\n");
 			printMultilineString(smiOption->description, smiv1);

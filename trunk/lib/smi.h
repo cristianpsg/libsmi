@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.56 2000/02/06 13:57:08 strauss Exp $
+ * @(#) $Id: smi.h,v 1.57 2000/02/06 23:30:58 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -172,16 +172,12 @@ typedef struct SmiValue {
 
 /* SmiNamedNumber -- a named number; for enumeration and bitset types        */
 typedef struct SmiNamedNumber {
-    SmiIdentifier	typemodule;
-    SmiIdentifier	typename;
     SmiIdentifier       name;
     SmiValue            value;
 } SmiNamedNumber;
 
 /* SmiRange -- a min-max value range; for subtyping of sizes or numbers      */
 typedef struct SmiRange {
-    SmiIdentifier	typemodule;
-    SmiIdentifier	typename;
     SmiValue            minValue;
     SmiValue            maxValue;
 } SmiRange;
@@ -266,10 +262,6 @@ typedef struct SmiListItem {
 
 /* SmiOption -- an optional group in a compliance statement                  */
 typedef struct SmiOption {
-    SmiIdentifier       name;
-    SmiIdentifier       module;
-    SmiIdentifier       compliancename;
-    SmiIdentifier       compliancemodule;
     char                *description;
 } SmiOption;
 
@@ -412,6 +404,8 @@ extern void smiFreeListItem(SmiListItem *smiListItemPtr);
 extern SmiOption *smiGetFirstOption(SmiNode *smiComplianceNodePtr);
 
 extern SmiOption *smiGetNextOption(SmiOption *smiOptionPtr);
+
+extern SmiNode *smiGetOptionNode(SmiOption *smiOptionPtr);
 
 extern void smiFreeOption(SmiOption *smiOptionPtr);
 

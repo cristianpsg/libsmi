@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.46 2000/02/06 13:57:06 strauss Exp $
+ * @(#) $Id: data.h,v 1.47 2000/02/06 23:30:57 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -137,15 +137,15 @@ typedef struct Value {
 
 
 typedef struct NamedNumber {
-    SmiIdentifier  name;
-    SmiValue       *valuePtr;
+    SmiNamedNumber export;
+    struct Type    *typePtr;
 } NamedNumber;
 
 
 
 typedef struct Range {
-    SmiValue       *minValuePtr;
-    SmiValue       *maxValuePtr;
+    SmiRange       export;
+    struct Type    *typePtr;
 } Range;
 
 
@@ -181,8 +181,9 @@ typedef struct Type {
 
 
 typedef struct Option {
+    SmiOption      export;
+    struct Object  *compliancePtr;
     struct Object  *objectPtr;
-    char	   *description;
 } Option;
 
 
