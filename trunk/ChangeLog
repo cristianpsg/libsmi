@@ -1,3 +1,9 @@
+2004-06-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/{Printer-MIB,Finisher-MIB,MPLS-TC-STD-MIB},
+	mibs/iana/{IANA-PRINTER-MIB,IANA-FINISHER-MIB,IANA-CHARSET-MIB}:
+	updated and added (RFCs 3805,3806,3808,3811).
+
 2004-06-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/{ROHC-MIB,ROHC-RTP-MIB,ROHC-UNCOMPRESSED-MIB}:
