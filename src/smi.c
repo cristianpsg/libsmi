@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smi.c,v 1.1 1998/11/10 20:26:28 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -31,7 +31,7 @@
 
 
 static int flags;
-
+static int initialized = 0;
 
 
 int
@@ -43,11 +43,21 @@ isSmiRpc(name)
 
 
 
+void
+smiInit()
+{
+    initData();
+}
+
+
+
 int
 smiAddLocation (location)
     const char *location;
 {
     struct stat st;
+
+    if (!initialized) smiInit();
     
     if (isSmiRpc(location)) {
 	
@@ -71,6 +81,8 @@ int
 smiLoadMibModule(modulename)
     const char *modulename;
 {
+    if (!initialized) smiInit();
+    
     /* TODO */
     readMibFile(modulename, modulename, flags | FLAG_WHOLEMOD);
 
@@ -83,6 +95,8 @@ void
 smiSetDebugLevel(level)
     int level;
 {
+    if (!initialized) smiInit();
+    
     debugLevel = level;
 }
 
@@ -92,6 +106,8 @@ void
 smiSetErrorLevel(level)
     int level;
 {
+    if (!initialized) smiInit();
+    
     errorLevel = level;
 }
 
@@ -101,6 +117,8 @@ void
 smiSetFlags(userflags)
     int userflags;
 {
+    if (!initialized) smiInit();
+    
     flags = (flags & ~SMI_FLAGMASK) | userflags;
 }
 
@@ -110,5 +128,7 @@ int
 smiReadConfig(file)
     const char *file;
 {
+    if (!initialized) smiInit();
+    
     return readConfig(file, &flags);
 }
