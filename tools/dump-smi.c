@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.73 2001/11/07 17:53:33 schoenw Exp $
+ * @(#) $Id: dump-smi.c,v 1.74 2001/11/08 07:37:31 schoenw Exp $
  */
 
 #include <config.h>
@@ -526,8 +526,8 @@ static void createImportList(SmiModule *smiModule)
     for (smiImport = smiGetFirstImport(smiModule); smiImport;
 	 smiImport = smiGetNextImport(smiImport)) {
 	if (islower((int) smiImport->name[0]) ||
-	    (!strcmp(smiImport->module, "SNMPv2-SMI")) ||
-	    (!smiv1 && !strcmp(smiImport->module, "SNMPv2-TC"))) {
+	    (smiImport->module && !strcmp(smiImport->module, "SNMPv2-SMI")) ||
+	    (!smiv1 && smiImport->module && !strcmp(smiImport->module, "SNMPv2-TC"))) {
 	    addImport(smiImport->module, smiImport->name);
 	}
     }
