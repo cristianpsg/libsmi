@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.14 2001/06/15 07:12:20 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.15 2002/10/30 09:17:37 schoenw Exp $
  */
 
 #include <config.h>
@@ -34,6 +34,23 @@ static int showlines = 0;
 static int showpath = 0;
 
 
+static char *smiStringNodekind(SmiNodekind nodekind)
+{
+    return
+        (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<unknown>" :
+        (nodekind == SMI_NODEKIND_NODE)         ? "node" :
+        (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
+        (nodekind == SMI_NODEKIND_TABLE)        ? "table" :
+        (nodekind == SMI_NODEKIND_ROW)          ? "row" :
+        (nodekind == SMI_NODEKIND_COLUMN)       ? "column" :
+        (nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
+        (nodekind == SMI_NODEKIND_GROUP)        ? "group" :
+        (nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
+        (nodekind == SMI_NODEKIND_CAPABILITIES) ? "capabilities" :
+                                                  "<UNDEFINED>";
+}
+
+
 
 static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 {
@@ -51,7 +68,8 @@ static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 		if (showlines) {
 		    fprintf(f, ":%d:", smiGetNodeLine(smiNode));
 		}
-		fprintf(f, " %*s ", -identifierLen, smiNode->name);
+		fprintf(f, " %*s %-12s ", -identifierLen, smiNode->name,
+			smiStringNodekind(smiNode->nodekind));
 		for (j = 0; j < smiNode->oidlen; j++) {
 		    fprintf(f, j ? ".%u" : "%u", smiNode->oid[j]);
 		}
@@ -78,7 +96,8 @@ static void fprintTypeIdentifiers(FILE *f, int modc, SmiModule **modv)
 		if (showlines) {
 		    fprintf(f, ":%d:", smiGetTypeLine(smiType));
 		}
-		fprintf(f, " %*s\n", -identifierLen, smiType->name);
+		fprintf(f, " %*s %-12s\n", -identifierLen, smiType->name,
+			"type");
 	    }
 	}
     }
