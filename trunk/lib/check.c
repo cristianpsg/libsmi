@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.33 2001/12/17 18:05:23 schoenw Exp $
+ * @(#) $Id: check.c,v 1.34 2001/12/18 11:38:15 schoenw Exp $
  */
 
 #include <config.h>
@@ -1645,6 +1645,59 @@ smiCheckObjectReuse(Parser *parser, char *name, Object **objectPtr)
     
     if ((*objectPtr)->modulePtr != parser->modulePtr) {
 	*objectPtr = duplicateObject(*objectPtr, 0, parser);
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckNotificationOid --
+ *
+ *      Check whether SMIv2 notifications are reversible and whether
+ *	the last sub-identifer fits into a signed 32-bit integer.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckNotificationOid(Parser *parser, Module *module, Object *object)
+{
+    static const char *name[] = {
+	"SNMPv2-MIB", "coldStart",
+	"SNMPv2-MIB", "warmStart",
+	"IF-MIB", "linkDown",
+	"IF-MIB", "linkUp",
+	"SNMPv2-MIB", "authenticationFailure",
+	/* egpNeighborLoss is not really defined in any SMI module */
+	NULL, NULL };
+
+    int i;
+
+    if (parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2) {
+	for (i = 0; name[i]; i+= 2) {
+	    if (strcmp(name[i], module->export.name) == 0
+		&& strcmp(name[i+1], object->export.name) == 0) {
+		break;
+	    }
+	}
+	if (! name[i]) {
+	    Node *parent = object->nodePtr->parentPtr;
+	    if (parent && parent->subid != 0) {
+		smiPrintErrorAtLine(parser, ERR_NOTIFICATION_NOT_REVERSIBLE,
+				    object->line, object->export.name);
+	    }
+	}
+    }
+
+    if (object->nodePtr->subid > 2147483647) {
+	smiPrintErrorAtLine(parser, ERR_NOTIFICATION_ID_TOO_LARGE,
+			    object->line, object->export.name);
     }
 }
 
