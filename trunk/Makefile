@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.1.1.1 1998/10/09 10:16:32 strauss Exp $
+# @(#) $Id: Makefile,v 1.2 1998/10/13 14:55:47 strauss Exp $
 #
 
 MIBDIR	= ../scotty/tnm/mibs
@@ -24,12 +24,16 @@ test-miblint: miblint
 miblint:
 	make -C src miblint
 
+libsmi.a:
+	make -C src libsmi.a
+
 parser.y.html: src/parser.y
 	make -C src parser.y.html
 
 install-prg: miblint mibs.conf
 	cp mibs.conf ${PREFIX}/etc/mibs.conf
 	cp miblint ${PREFIX}/bin
+	cp libsmi.a ${PREFIX}/lib
 	cp miblint.1 ${PREFIX}/man/man1/miblint.1
 	if [ ! -d ${PREFIX}/lib/mibs ] ; then mkdir ${PREFIX}/lib/mibs ; fi
 	cp mibs/SNMP* mibs/RFC* ${PREFIX}/lib/mibs
@@ -44,7 +48,7 @@ clean:
 	rm -f core
 
 clobber: clean
-	rm -f miblint parser.y.html
+	rm -f miblint libsmi.h libsmi.a parser.y.html
 
 dist:
 	rm -f mibs.tar.gz

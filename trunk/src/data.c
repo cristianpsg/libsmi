@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.10 1998/11/02 08:11:04 strauss Exp $
+ * @(#) $Id: data.c,v 1.11 1998/11/02 19:29:02 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -915,7 +915,7 @@ setMibNodeSyntax(node, type)
 {
     printDebug(5, "setMibNodeSyntax(%s, %s)\n",
 	       node->descriptor ? node->descriptor->name : "?",
-	       type->descriptor->name);
+	       type && type->descriptor ? type->descriptor->name : "NULL");
 
     node->type = type;
 }

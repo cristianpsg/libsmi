@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+# @(#) $Id: Makefile,v 1.2 1998/10/13 17:11:42 strauss Exp $
 #
 
 CC	= gcc
@@ -11,8 +11,9 @@ CFLAGS	= -Wall -g -DTEXTS_IN_MEMORY=200
 LEX	= flex
 YACC	= bison -y -v -t
 
+LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o interface.o
 
-default: miblint
+default: libsmi.a libsmi.h miblint
 
 
 scanner-flex.c: scanner.l scanner.h parser-bison.h
@@ -28,16 +29,29 @@ parser-bison.c parser-bison.h: parser.y scanner.h parser.h
 
 scanner-flex.o: scanner-flex.c scanner.h error.h defs.h
 
-parser-bison.o: parser-bison.c parser-bison.h parser.h error.h defs.h
+parser-bison.o: parser-bison.c parser-bison.h parser.h error.h defs.h config.h
+
+config.o: parser-bison.c config.c config.h defs.h
 
 error.o: error.c error.h defs.h
 
 data.o: data.c data.h defs.h
 
+interface.o: parser-bison.c interface.c interface.h defs.h
+
 lint.o: lint.c error.h defs.h
 
-miblint: scanner-flex.o parser-bison.o error.o data.o lint.o
-	$(CC) -o miblint parser-bison.o scanner-flex.o error.o data.o lint.o -ll
+libsmi.h: interface.h
+	ln -f interface.h libsmi.h
+	ln -f interface.h ../libsmi.h
+
+libsmi.a: $(LOBJS)
+	  ar ruv libsmi.a $(LOBJS)
+	  ranlib libsmi.a
+	  ln -f libsmi.a ../libsmi.a
+
+miblint: libsmi.a lint.o
+	$(CC) -o miblint lint.o libsmi.a -ll
 	ln -f miblint ..
 
 
@@ -61,8 +75,8 @@ parser.y.html: parser.y yacc2html
 clean:
 	rm -f scanner-flex.c scanner-flex.o
 	rm -f parser-bison.c parser-bison-buggy.c parser-bison.h parser-bison.o
-	rm -f error.o lint.o data.o
+	rm -f error.o lint.o data.o interface.o config.o
 	rm -f core
-	rm -f miblint
+	rm -f miblint libsmi.h libsmi.a
 	rm -f y.tab.c y.tab.h y.output yacc.debug yacc.acts yacc.tmp
 	rm -f yacc2html.c yacc2html.o yacc2html parser.y.html

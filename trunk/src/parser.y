@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.11 1998/11/02 08:11:05 strauss Exp $
+ * @(#) $Id: parser.y,v 1.12 1998/11/02 19:29:03 strauss Exp $
  */
 
 %{
@@ -239,6 +239,7 @@ MibNode *parent;
 %type  <err>enumSpec
 %type  <err>enumItems
 %type  <err>enumItem
+%type  <err>enumNumber
 %type  <status>Status
 %type  <status>Status_Capabilities
 %type  <textp>DisplayPart
@@ -2038,9 +2039,19 @@ enumItem:		LOWERCASE_IDENTIFIER
 			        printError(parser, ERR_ENUMNAME_32, $1);
 			    }
 			}
-			'(' number ')'
-			/* TODO: these numbers might be negative, right? */
+			'(' enumNumber ')'
 			{ $$ = 0; }
+	;
+
+enumNumber:		number
+			{
+			    $$ = 0;
+			}
+	|		'-' number
+			{
+			    /* TODO: non-negative is suggested */
+			    $$ = 0;
+			}
 	;
 
 Status:			LOWERCASE_IDENTIFIER
