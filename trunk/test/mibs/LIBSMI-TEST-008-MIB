@@ -58,13 +58,13 @@ LIBSMI-TEST-008-MIB:163: named number `lesen' illegal in sub-type of `Access'
 Color ::= TEXTUAL-CONVENTION
     STATUS	current
     DESCRIPTION
-	""
+	"."
     SYNTAX INTEGER { red(1), green(2), blue(3) }
 
 Red ::= TEXTUAL-CONVENTION
     STATUS	current
     DESCRIPTION
-	""
+	"."
     SYNTAX Color { red(1) }
 
 enumTests OBJECT IDENTIFIER ::= { libsmiTest008Mib 1 }
@@ -116,13 +116,13 @@ enumTest5 OBJECT-TYPE
 Access ::= TEXTUAL-CONVENTION
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     SYNTAX BITS { read(1), write(2), execute(3) }
 
 FileAccess ::= TEXTUAL-CONVENTION
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     SYNTAX Access { read(1), write(2) }
 
 bitsTests OBJECT IDENTIFIER ::= { libsmiTest008Mib 2 }

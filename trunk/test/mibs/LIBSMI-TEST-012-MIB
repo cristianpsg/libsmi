@@ -49,7 +49,7 @@ LIBSMI-TEST-012-MIB:63: group `barFooGroup' is unconditionally optional
 Foo_Bar ::= TEXTUAL-CONVENTION
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     SYNTAX OBJECT IDENTIFIER
 
 bar_foo OBJECT-TYPE
@@ -57,14 +57,14 @@ bar_foo OBJECT-TYPE
     MAX-ACCESS	read-only
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { libsmiTest012Mib 1 }
 
 barFooGroup OBJECT-GROUP
     OBJECTS	{ bar_foo }
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { libsmiTest012Mib 2 }
 
 END

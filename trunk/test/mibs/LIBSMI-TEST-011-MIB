@@ -54,21 +54,21 @@ group1 OBJECT-GROUP
     OBJECTS	{ testScalar1 }
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { testGroups 1 }
 
 group2 NOTIFICATION-GROUP
     NOTIFICATIONS	{ testNotification1 }
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { testGroups 2 }
 
 testNotification1 NOTIFICATION-TYPE
     OBJECTS	{ testScalar1 }
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { testNotifications 1 }
 
 testScalar1 OBJECT-TYPE
@@ -84,7 +84,7 @@ testColumn1 OBJECT-TYPE
     MAX-ACCESS	not-accessible
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { testEntry 1 }
 
 testEntry OBJECT-TYPE
@@ -92,7 +92,7 @@ testEntry OBJECT-TYPE
     MAX-ACCESS	not-accessible
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     INDEX	{ testColumn1 }
     ::= { testTable 1 }
 
@@ -101,7 +101,7 @@ testTable OBJECT-TYPE
     MAX-ACCESS	not-accessible
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { testObjects 2 }
 
 TestEntry ::= SEQUENCE {
@@ -117,7 +117,7 @@ TestTc1 ::= TEXTUAL-CONVENTION
 textConst1 OBJECT-IDENTITY
     STATUS	current
     DESCRIPTION
-	""
+	"junk"
     ::= { testConstants 1 }
 
 testConstants OBJECT IDENTIFIER ::= { testDefinitions 3 }

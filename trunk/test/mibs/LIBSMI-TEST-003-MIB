@@ -48,7 +48,7 @@ libsmiTest003MibJunk MODULE-IDENTITY
     CONTACT-INFO    
             "junk"
     DESCRIPTION     
-            ""
+            "junk"
     REVISION        "199906101500Z"
     DESCRIPTION     
             "junk"
