@@ -13,14 +13,14 @@
 #
 # Makefile.am --
 #
-#      Template to generate the doc Makefile.in using automake.
+#      Template to generate test/mibs Makefile.in using automake.
 #
 # Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 #
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.1 1999/06/08 20:24:20 strauss Exp $
+# @(#) $Id$
 #
 
 
@@ -51,7 +51,7 @@ pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
 
-top_builddir = ..
+top_builddir = ../..
 
 ACLOCAL = @ACLOCAL@
 AUTOCONF = @AUTOCONF@
@@ -93,7 +93,8 @@ VERSION = @VERSION@
 mibdir = @mibdir@
 smipath = @smipath@
 
-EXTRA_DIST = SMI.ps draft-irtf-nmrg-sming-00.txt
+EXTRA_DIST = LIBSMI-TEST-MIB 			  LIBSMI-TEST-001-MIB LIBSMI-TEST-002-MIB 			  LIBSMI-TEST-003-MIB LIBSMI-TEST-004-MIB
+
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
@@ -106,7 +107,7 @@ GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu doc/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu test/mibs/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -118,14 +119,14 @@ TAGS:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = doc
+subdir = test/mibs
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu doc/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu test/mibs/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

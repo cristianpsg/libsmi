@@ -1,4 +1,4 @@
-#!@bash@
+#!@BASH@
 
 rm -rf parser.out
 mkdir parser.out
