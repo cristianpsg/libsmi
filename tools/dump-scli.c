@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.25 2002/09/13 17:47:27 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.26 2002/10/30 09:17:37 schoenw Exp $
  */
 
 /*
@@ -625,7 +625,8 @@ printIndexAssignmentFunc(FILE *f, SmiNode *smiNode, SmiNode *iNode,
 			 int flags, int maxlen)
 {
     SmiType *iType;
-    char *cName, *gName;
+    char *cName, *gName, *dName, *dModuleName;
+    unsigned minSize, maxSize;
 
     iType = smiGetNodeType(iNode);
     if (! iType) {
@@ -634,6 +635,8 @@ printIndexAssignmentFunc(FILE *f, SmiNode *smiNode, SmiNode *iNode,
 
     gName = translate(smiNode->name);
     cName = translate(iNode->name);
+    dName = translateUpper(iNode->name);
+    dModuleName = translateUpper(smiGetNodeModule(iNode)->name);
     switch (iType->basetype) {
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	fprintf(f, "    memcpy(%s->%s, %s, _%sLength * sizeof(guint32));\n",
@@ -641,8 +644,15 @@ printIndexAssignmentFunc(FILE *f, SmiNode *smiNode, SmiNode *iNode,
 	break;
     case SMI_BASETYPE_OCTETSTRING:
     case SMI_BASETYPE_BITS:
-	fprintf(f, "    memcpy(%s->%s, %s, _%sLength);\n",
-	    gName, cName, cName, cName);
+	maxSize = getMaxSize(iType);
+	minSize = getMinSize(iType);
+	if (minSize != maxSize) {
+	    fprintf(f, "    memcpy(%s->%s, %s, _%sLength);\n",
+		    gName, cName, cName, cName);
+	} else {
+	    fprintf(f, "    memcpy(%s->%s, %s, %s_%sLENGTH);\n",
+		    gName, cName, cName, dModuleName, dName);
+	}
 	break;
     case SMI_BASETYPE_ENUM:
     case SMI_BASETYPE_INTEGER32:
@@ -654,6 +664,8 @@ printIndexAssignmentFunc(FILE *f, SmiNode *smiNode, SmiNode *iNode,
 	fprintf(f, "    /* ?? %s */\n", cName);
 	break;
     }
+    xfree(dModuleName);
+    xfree(dName);
     xfree(cName);
     xfree(gName);
 }
@@ -960,7 +972,9 @@ printMethodPrototypes(FILE *f, SmiNode *groupNode)
 		    printCreateMethodPrototype(f, groupNode);
 		    printDeleteMethodPrototype(f, groupNode);
 		} else {
-		    printSetMethodPrototype(f, groupNode, smiNode);
+		    if (! isIndex(groupNode, smiNode)) {
+			printSetMethodPrototype(f, groupNode, smiNode);
+		    }
 		}
 	    }
 	}	    
@@ -972,9 +986,24 @@ printMethodPrototypes(FILE *f, SmiNode *groupNode)
 static void
 printHeaderTypedefMemberComment(FILE *f, SmiNode *smiNode, SmiType *smiType)
 {
-    const char *s;
-    
-    fprintf(f, "%s", smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+    const char *s = NULL;
+
+    switch (smiNode->access) {
+    case SMI_ACCESS_READ_WRITE:
+	s = "rw";
+	break;
+    case SMI_ACCESS_READ_ONLY:
+	s = "ro";
+	break;
+    case SMI_ACCESS_NOT_ACCESSIBLE:
+	s = "na";
+	break;
+    case SMI_ACCESS_NOTIFY:
+	s = "no";
+	break;
+    default:
+    }
+    if (s) fprintf(f, "%s", s);
     s = smiRenderType(smiType, SMI_RENDER_NAME);
     if (s) {
 	fprintf(f, " %s", s);
@@ -1006,13 +1035,15 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	if (isIndex) {
 	    fprintf(f,
 		    "    guint32  %s[%u];", cName, maxSize);
-	    fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+2, "",
-		    smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+2, "");
+	    printHeaderTypedefMemberComment(f, smiNode, smiType);
+	    fprintf(f, " */\n");
 	} else {
 	    fprintf(f,
 		    "    guint32  *%s;", cName);
-	    fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+5, "",
-		    smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	    printHeaderTypedefMemberComment(f, smiNode, smiType);
+	    fprintf(f, " */\n");
 	}
 	if (maxSize == minSize) {
 	    fprintf(f,
@@ -1039,13 +1070,15 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	if (isIndex) {
 	    fprintf(f,
 		    "    guchar   %s[%u];", cName, maxSize);
-	    fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+2, "",
-		    smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+2, "");
+	    printHeaderTypedefMemberComment(f, smiNode, smiType);
+	    fprintf(f, " */\n");
 	} else {
 	    fprintf(f,
 		    "    guchar   *%s;", cName);
-	    fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+5, "",
-		    smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	    printHeaderTypedefMemberComment(f, smiNode, smiType);
+	    fprintf(f, " */\n");
 	}
 	if (maxSize == minSize) {
 	    fprintf(f,
@@ -1155,7 +1188,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	}	    
     }
 
-    if (count > 1) {
+    if (count) {
 	fprintf(f, "\n");
     }
 
@@ -1277,7 +1310,9 @@ dumpHeader(SmiModule *smiModule, char *baseName)
 	    "#ifndef _%s_H_\n"
 	    "#define _%s_H_\n"
 	    "\n"
-	    "#include \"g_snmp.h\"\n"
+	    "#include \"gsnmp.h\"\n"
+	    "\n"
+	    "G_BEGIN_DECLS\n"
 	    "\n",
 	    pModuleName, pModuleName);
 
@@ -1286,6 +1321,8 @@ dumpHeader(SmiModule *smiModule, char *baseName)
     printHeaderTypedefs(f, smiModule);
 
     fprintf(f,
+	    "G_END_DECLS\n"
+	    "\n"
 	    "#endif /* _%s_H_ */\n",
 	    pModuleName);
 
@@ -1559,6 +1596,11 @@ printConstraints(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 	return 0;
     }
 
+    if (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE) {
+	fprintf(stderr, "*** skipping %s\n", smiNode->name);
+	return 0;
+    }
+
     switch (smiType->basetype) {
     case SMI_BASETYPE_OCTETSTRING:
 	cnt = printSizeConstraints(f, smiNode, smiType);
@@ -1671,6 +1713,11 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
      */
 
     if (flags && isIndex(groupNode, smiNode)) {
+	return;
+    }
+
+    if (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE) {
+	fprintf(stderr, "*** skipping %s\n", smiNode->name);
 	return;
     }
 
@@ -3010,7 +3057,9 @@ printStubMethod2(FILE *f, SmiNode *groupNode)
 		    printCreateMethod(f, groupNode, smiNode);
 		    printDeleteMethod(f, groupNode, smiNode);
 		} else {
-		    printSetMethod(f, groupNode, smiNode);
+		    if (! isIndex(groupNode, smiNode)) {
+			printSetMethod(f, groupNode, smiNode);
+		    }
 		}
 	    }
 	}	    
