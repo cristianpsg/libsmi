@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.42 2002/03/06 13:02:51 schoenw Exp $
+ * @(#) $Id: dump-corba.c,v 1.43 2002/03/08 14:39:44 schoenw Exp $
  */
 
 #include <config.h>
@@ -1108,7 +1108,7 @@ static void fprintConstructor(FILE *f, SmiNode *smiNode)
     SmiNode *indexNode;
     SmiType *smiType;
     SmiModule *smiModule;
-    SmiElement *smiElement;
+    SmiElement *smiElement = NULL;
     char    *idlNodeName;
     char    *idlChildNodeName, *idlChildTypeName;
     int	    cnt = 0;
