@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.30 2002/05/17 13:44:17 schoenw Exp $
+ * @(#) $Id: dump-tree.c,v 1.31 2002/07/23 09:04:37 schoenw Exp $
  */
 
 #include <config.h>
@@ -44,6 +44,12 @@ static char *getFlags(SmiNode *smiNode)
 	return "rwn";
     case SMI_ACCESS_NOT_IMPLEMENTED:
 	return "---";
+    case SMI_ACCESS_INSTALL:
+	return "-i-";
+    case SMI_ACCESS_INSTALL_NOTIFY:
+	return "-in";
+    case SMI_ACCESS_REPORT_ONLY:
+	return "--r";
     }
 
     return "";

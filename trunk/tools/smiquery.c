@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.67 2001/11/08 07:37:31 schoenw Exp $
+ * @(#) $Id: smiquery.c,v 1.68 2002/07/23 18:14:11 strauss Exp $
  */
 
 #include <config.h>
@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
 		printf("        Type: %s\n", formattype(type));
 	    if (node->value.basetype != SMI_BASETYPE_UNKNOWN)
 		printf("     Default: %s\n", smiRenderValue(&node->value, type,
-		    SMI_RENDER_FORMAT | SMI_RENDER_NAME | SMI_RENDER_NUMERIC));
+							    SMI_RENDER_ALL));
 	    if (node->decl != SMI_DECL_UNKNOWN)
 		printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
 		printf(" Parent Type: %s\n", formattype(parenttype));
 	    if (type->value.basetype != SMI_BASETYPE_UNKNOWN)
 		printf("     Default: %s\n", smiRenderValue(&type->value, type,
-		    SMI_RENDER_FORMAT | SMI_RENDER_NAME | SMI_RENDER_NUMERIC));
+							    SMI_RENDER_ALL));
 	    if ((type->basetype == SMI_BASETYPE_ENUM) ||
 		(type->basetype == SMI_BASETYPE_BITS)) {
 		if (smiGetFirstNamedNumber(type)) {
