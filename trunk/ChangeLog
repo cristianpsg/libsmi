@@ -1,3 +1,8 @@
+2002-02-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Added checks for appropriate nodekinds
+	of each node's parent node.
+
 2002-01-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-jax.c: Removed a misplaced `static' keyword from the

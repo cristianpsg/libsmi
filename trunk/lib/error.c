@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.84 2001/12/18 11:38:15 schoenw Exp $
+ * @(#) $Id: error.c,v 1.85 2002/01/31 18:19:45 schoenw Exp $
  */
 
 #include <config.h>
@@ -446,6 +446,24 @@ static Error errors[] = {
       "notification `%s' is not reversible" },
     { 5, ERR_NOTIFICATION_ID_TOO_LARGE, "notification-id-too-large",
       "last sub-identifier of notification `%s' too large" },
+    { 2, ERR_NODE_PARENT_TYPE, "parent-node",
+      "node's parent node must be simple node" },
+    { 2, ERR_SCALAR_PARENT_TYPE, "parent-scalar",
+      "scalar's parent node must be simple node" },
+    { 2, ERR_TABLE_PARENT_TYPE, "parent-table",
+      "table's parent node must be simple node" },
+    { 2, ERR_ROW_PARENT_TYPE, "parent-row",
+      "row's parent node must be a table node" },
+    { 2, ERR_COLUMN_PARENT_TYPE, "parent-column",
+      "columnar object's parent node must be a row" },
+    { 2, ERR_NOTIFICATION_PARENT_TYPE, "parent-notification",
+      "notifications's parent node must be a simple node" },
+    { 2, ERR_GROUP_PARENT_TYPE, "parent-group",
+      "group's parent node must be a simple node" },
+    { 2, ERR_COMPLIANCE_PARENT_TYPE, "parent-compliance",
+      "compliance's parent node must be a simple node" },
+    { 2, ERR_CAPABILITIES_PARENT_TYPE, "parent-capabilities",
+      "capabilities' parent node must be a simple node" },
     { 0, 0, NULL, NULL }
 };
 

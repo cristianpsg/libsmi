@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.163 2002/01/09 08:43:58 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.164 2002/01/31 18:19:45 schoenw Exp $
  */
 
 %{
@@ -200,6 +200,15 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
     for (objectPtr = modulePtr->firstObjectPtr;
 	 objectPtr; objectPtr = objectPtr->nextPtr) {
 
+	Object *parentPtr;
+	
+	if (objectPtr->nodePtr->parentPtr &&
+	    objectPtr->nodePtr->parentPtr->lastObjectPtr) {
+	    parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
+	} else {
+	    parentPtr = NULL;
+	}
+
 	/*
 	 * Check whether the associated type resolves to a known base type.
 	 */
@@ -222,6 +231,71 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    }
 	}
 
+	/*
+	 * Check the nodekind of the parent node.
+	 */
+	
+	switch (objectPtr->export.nodekind) {
+	case SMI_NODEKIND_COLUMN:
+	    if (parentPtr->export.nodekind != SMI_NODEKIND_ROW) {
+		smiPrintErrorAtLine(parserPtr, ERR_COLUMN_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_ROW:
+	    if (parentPtr->export.nodekind != SMI_NODEKIND_TABLE) {
+		smiPrintErrorAtLine(parserPtr, ERR_ROW_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_TABLE:
+	    if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		smiPrintErrorAtLine(parserPtr, ERR_TABLE_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_SCALAR:
+	    if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		smiPrintErrorAtLine(parserPtr, ERR_SCALAR_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_NOTIFICATION:
+	    if ((parentPtr->export.nodekind != SMI_NODEKIND_NODE) &&
+		(parentPtr->export.nodekind != SMI_NODEKIND_UNKNOWN)) {
+		smiPrintErrorAtLine(parserPtr, ERR_NOTIFICATION_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_NODE:
+	    /* Node defined by OBJECT IDENTIFIER assignments can have
+	       arbitrary parent node. */
+	    if ((parentPtr->export.nodekind != SMI_NODEKIND_NODE) &&
+		(objectPtr->export.decl != SMI_DECL_VALUEASSIGNMENT)) {
+		smiPrintErrorAtLine(parserPtr, ERR_NODE_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_GROUP:
+	    if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		smiPrintErrorAtLine(parserPtr, ERR_GROUP_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_COMPLIANCE:
+	    if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		smiPrintErrorAtLine(parserPtr, ERR_COMPLIANCE_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	case SMI_NODEKIND_CAPABILITIES:
+	    if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		smiPrintErrorAtLine(parserPtr, ERR_CAPABILITIES_PARENT_TYPE,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+	    break;
+	}
+	
 	/*
 	 * Check whether groups only contain scalars, columns and
 	 * notifications.
@@ -285,14 +359,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		smiPrintErrorAtLine(parserPtr, ERR_ROWNAME_ENTRY,
 				    objectPtr->line, objectPtr->export.name);
 	    } else {
-		Object *parentPtr;
-
-		if (objectPtr->nodePtr->parentPtr &&
-		    objectPtr->nodePtr->parentPtr->lastObjectPtr) {
-		    parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
-		} else {
-		    parentPtr = NULL;
-		}
 
 		/*
 		 * This misreports some cases where the table name
