@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.85 2000/06/14 13:57:33 strauss Exp $
+ * @(#) $Id: data.c,v 1.86 2000/06/16 13:53:57 strauss Exp $
  */
 
 #include <config.h>
@@ -2691,6 +2691,37 @@ setTypeDecl(typePtr, decl)
 /*
  *----------------------------------------------------------------------
  *
+ * setTypeLine --
+ *
+ *      Set the line of definition of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeLine(typePtr, line, parserPtr)
+    Type	*typePtr;
+    int		line;
+    Parser	*parserPtr;
+{
+    if (line) {
+	typePtr->line = line;
+    } else {
+	typePtr->line = parserPtr ? parserPtr->line : -1;
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * setTypeValue --
  *
  *      Set the default value pointer of a given Type.
@@ -3096,6 +3127,37 @@ setMacroDecl(macroPtr, decl)
     SmiDecl  decl;
 {
     macroPtr->export.decl = decl;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMacroLine --
+ *
+ *      Set the line of definition of a given Macro.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMacroLine(macroPtr, line, parserPtr)
+    Macro	*macroPtr;
+    int		line;
+    Parser	*parserPtr;
+{
+    if (line) {
+	macroPtr->line = line;
+    } else {
+	macroPtr->line = parserPtr ? parserPtr->line : -1;
+    }
 }
 
 

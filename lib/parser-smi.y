@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.115 2000/06/20 15:17:07 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.116 2000/06/21 10:33:37 strauss Exp $
  */
 
 %{
@@ -66,9 +66,9 @@ static int	   impliedFlag;
 static SmiBasetype defaultBasetype;
 static Module      *complianceModulePtr = NULL;
 static Module      *capabilitiesModulePtr = NULL;
-
 static SmiNodekind variationkind;
-
+static int         firstStatementLine = 0;
+ 
 #define MAX_UNSIGNED32		4294967295
 #define MIN_UNSIGNED32		0
 #define MAX_INTEGER32		2147483647
@@ -78,7 +78,7 @@ static SmiNodekind variationkind;
 
  
 
-static void				/*  */
+static void
 checkNameLen(Parser *parser, char *name, int error_32, int error_64)
 {
     int len = strlen(name);
@@ -935,6 +935,8 @@ modules:		module
  */
 module:			moduleName
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    thisParserPtr->modulePtr = findModuleByName($1);
 			    if (!thisParserPtr->modulePtr) {
 				thisParserPtr->modulePtr =
@@ -995,6 +997,8 @@ linkagePart:		linkageClause
 
 linkageClause:		IMPORTS importPart ';'
 			{
+			    firstStatementLine = thisParserPtr->line;
+
 			    if (thisModulePtr->export.language != SMI_LANGUAGE_SMIV2)
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV1;
 			    
@@ -1007,6 +1011,8 @@ exportsClause:		/* empty */
 			{ $$ = 0; }
 	|		EXPORTS
 			{
+			    firstStatementLine = thisParserPtr->line;
+
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
 			        smiPrintError(thisParserPtr, ERR_EXPORTS);
@@ -1233,6 +1239,8 @@ declaration:		typeDeclaration
 macroClause:		macroName
 			MACRO
 			{
+			    firstStatementLine = thisParserPtr->line;
+
 			    /*
 			     * ASN.1 macros are known to be in these
 			     * modules.
@@ -1256,6 +1264,8 @@ macroClause:		macroName
 			END
 			{
 			    addMacro($1, 0, thisParserPtr);
+			    setMacroLine($1, firstStatementLine,
+					 thisParserPtr);
 			    smiFree($1);
 			    $$ = 0;
                         }
@@ -1301,6 +1311,8 @@ choiceClause:		CHOICE
  */
 valueDeclaration:	LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -1329,9 +1341,10 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
 			    $$ = 0;
 			}
 	;
@@ -1341,6 +1354,8 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
  */
 typeDeclaration:	typeName
 			{
+			    firstStatementLine = thisParserPtr->line;
+
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_TYPENAME_32, ERR_TYPENAME_64);
 			}
@@ -1353,6 +1368,8 @@ typeDeclaration:	typeName
 				    smiCheckTypeName(thisParserPtr,
 						     thisModulePtr, $1);
 				}
+				setTypeLine($4, firstStatementLine,
+					    thisParserPtr);
 				setTypeName($4, $1);
 				$$ = 0;
 			    } else {
@@ -1802,6 +1819,8 @@ NamedBit:		LOWERCASE_IDENTIFIER
 
 objectIdentityClause:	LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -1841,7 +1860,8 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8, thisParserPtr);
 			    if ($9) {
@@ -1855,6 +1875,8 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 
 objectTypeClause:	LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -1901,7 +1923,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    setObjectType(objectPtr, $6);
 			    if (!($6->export.name)) {
 				/*
@@ -1992,6 +2015,8 @@ descriptionClause:	/* empty */
 
 trapTypeClause:		LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -2056,7 +2081,8 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_TRAPTYPE);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, $7);
@@ -2134,6 +2160,8 @@ MaxAccessPart:		MAX_ACCESS
 
 notificationTypeClause:	LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -2172,7 +2200,8 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectList(objectPtr, $5);
@@ -2187,6 +2216,8 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 
 moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -2240,7 +2271,8 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    setObjectStatus(objectPtr, SMI_STATUS_CURRENT);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
@@ -4043,6 +4075,8 @@ subidentifier_defval:	LOWERCASE_IDENTIFIER '(' NUMBER ')'
 
 objectGroupClause:	LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -4079,7 +4113,8 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
@@ -4096,6 +4131,8 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 
 notificationGroupClause: LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -4134,7 +4171,8 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
@@ -4151,6 +4189,8 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 
 moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -4192,7 +4232,8 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
@@ -4586,6 +4627,8 @@ AccessPart:		MIN_ACCESS Access
 
 agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			{
+			    firstStatementLine = thisParserPtr->line;
+			    
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
@@ -4625,7 +4668,8 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
-			    setObjectLine(objectPtr, 0, thisParserPtr);
+			    setObjectLine(objectPtr, firstStatementLine,
+					  thisParserPtr);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $8);
@@ -4878,4 +4922,4 @@ Cell:			ObjectName
 
 %%
 
-#endif /*  */
+#endif
