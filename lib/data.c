@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.111 2002/05/16 19:18:04 strauss Exp $
+ * @(#) $Id: data.c,v 1.112 2002/05/16 23:21:55 bunkus Exp $
  */
 
 #include <config.h>
@@ -17,7 +17,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/types.h>
-#if !defined(_MSC_VER)
+#if !defined(_MSC_VER) && !defined(__MINGW32__)
 #include <sys/wait.h>
 #endif
 #ifdef HAVE_UNISTD_H
@@ -3709,7 +3709,7 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	path = smiStrdup(modulename);
     }
 
-#if !defined(_MSC_VER)
+#if !defined(_MSC_VER) && !defined(__MINGW32__)
     if (!path && smiHandle->cache && smiHandle->cacheProg) {
 	/* Not found in the path; now try to fetch & cache the module. */
 	int  pid;
