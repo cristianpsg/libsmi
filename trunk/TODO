@@ -330,3 +330,11 @@ o new API
   o thread safety after modules are loaded
   o no more lists (or arrays), but getFirst/getNext functions
 o man pages
+o smiGetNames() ??
+
+o Web Page on libsmi (online conversion to SMIng?)
+o Mailinglist?
+o test make, keeping BACKEND_SMING off
+o all files: (C) 1999, LICENSE, indentation?, #if 0 ?, XXX?, TODO?
+o grep SMI_NAMESPACE_OPERATOR
+o READ_CREATE should *never* occur in data.c / smi.c

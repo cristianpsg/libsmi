@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.6 1999/04/07 18:21:30 strauss Exp $
+ * @(#) $Id: error.c,v 1.7 1999/05/20 17:01:42 strauss Exp $
  */
 
 #include <string.h>
@@ -200,6 +200,10 @@ Error errors[] = {
       "number `%s' is out of SMIv2 value range" },
     { 1, ERR_UNEXPECTED_VALUETYPE,
       "type of value does not match declaration" },
+    { 1, ERR_SMI_NOT_SUPPORTED,
+      "File `%s' seems to be SMIv1/v2 which is not supported" },
+    { 1, ERR_SMING_NOT_SUPPORTED,
+      "File `%s' seems to be SMIng which is not supported" },
  
     { 0, 0, NULL }
 };

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.5 1999/04/07 18:21:31 strauss Exp $
+ * @(#) $Id: error.h,v 1.6 1999/05/20 17:01:42 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -96,6 +96,8 @@
 #define ERR_ALLOCATING_REVISION			 76
 #define ERR_OUT_OF_NUMBER_RANGE			 77
 #define ERR_UNEXPECTED_VALUETYPE		 78
+#define ERR_SMI_NOT_SUPPORTED			 79
+#define ERR_SMING_NOT_SUPPORTED			 80
 
 
 #define yyerror(msg) printError(parserPtr, ERR_OTHER_ERROR, msg)

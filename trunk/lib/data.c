@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.20 1999/05/20 08:51:15 strauss Exp $
+ * @(#) $Id: data.c,v 1.21 1999/05/20 17:01:41 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -47,7 +47,6 @@ extern int smingparse();
 
 
 View	        *firstViewPtr, *lastViewPtr;
-Location	*firstLocationPtr, *lastLocationPtr;
 Module          *firstModulePtr, *lastModulePtr;
 Node		*rootNodePtr;
 Node		*pendingNodePtr;
@@ -139,145 +138,6 @@ isInView(modulename)
 /*
  *----------------------------------------------------------------------
  *
- * addLocation --
- *
- *      Create a new location to look for modules.
- *
- * Results:
- *      A pointer to the new Location structure or
- *	NULL if terminated due to an error.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-Location *
-addLocation(location, flags)
-    const char	      *location;
-    ModuleFlags	      flags;
-{
-    struct stat	      st;
-    Location	      *locationPtr;
-    Parser	      parser;
-    char	      s[200];
-
-    locationPtr = (Location *)util_malloc(sizeof(Location));
-    if (!locationPtr) {
-	printError(NULL, ERR_ALLOCATING_LOCATION, strerror(errno));
-	return (NULL);
-    }
-    locationPtr->type = LOCATION_UNKNOWN;
-
-#ifdef BACKEND_RPC
-    if (strstr(location, "smirpc://") == location) {
-	locationPtr->type = LOCATION_RPC;
-	locationPtr->name = util_strdup(&location[9]);
-	/*
-	 * We must use TCP, since some messages may exceed the UDP limitation
-	 * of messages larger than UDPMSGSIZE==8800 (at least on Linux).
-	 */
-	locationPtr->cl   = clnt_create(locationPtr->name,
-				     SMIPROG, SMIVERS, "tcp");
-	if (!locationPtr->cl) {
-	    clnt_pcreateerror(locationPtr->name);
-	    free(locationPtr);
-	    return NULL;
-	}
-    }
-#endif
-#ifdef BACKEND_SMI
-    if (strstr(location, "smi:") == location) {
-	locationPtr->name = util_strdup(&location[4]);
-	if (stat(locationPtr->name, &st)) {
-	    printError(NULL, ERR_LOCATION, location, strerror(errno));
-	    free(locationPtr);
-	    return NULL;
-	} else {
-	    if (S_ISDIR(st.st_mode)) {
-		locationPtr->type = LOCATION_SMIDIR;
-	    } else {
-		locationPtr->type = LOCATION_SMIFILE;
-		/*
-		 * MIB locations of type `file' are read immediately.
-		 */
-		parser.path		= util_strdup(locationPtr->name);
-		parser.locationPtr	= locationPtr;
-		parser.flags		= flags;
-		parser.modulePtr	= NULL;
-		parser.file		= fopen(parser.path, "r");
-		if (!parser.file) {
-		    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
-			       strerror(errno));
-		    free(locationPtr);
-		    return NULL;
-		} else {
-		    if (smiEnterLexRecursion(parser.file) < 0) {
-			printError(&parser, ERR_MAX_LEX_DEPTH);
-			fclose(parser.file);
-			free(locationPtr);
-			return NULL;
-		    }
-		    parser.line		= 1;
-		    parser.column	= 1;
-		    parser.character	= 1;
-		    smiparse((void *)&parser);
-		    smiLeaveLexRecursion();
-		    fclose(parser.file);
-		    if (parser.flags & FLAG_STATS) {
-			sprintf(s, " (%d lines)", parser.line-1);
-			printError(&parser, ERR_STATISTICS, s);
-		    }
-		}
-	    }
-	}
-    }
-#endif
-
-#ifdef BACKEND_SMING
-    if (strstr(location, "sming:") == location) {
-	locationPtr->name = util_strdup(&location[6]);
-	if (stat(locationPtr->name, &st)) {
-	    printError(NULL, ERR_LOCATION, location, strerror(errno));
-	    free(locationPtr);
-	    return NULL;
-	} else {
-	    if (S_ISDIR(st.st_mode)) {
-		locationPtr->type = LOCATION_SMINGDIR;
-	    } else {
-		locationPtr->type = LOCATION_SMINGFILE;
-		/*
-		 * MIB locations of type `file' are read immediately.
-		 */
-		/* TODO */
-	    }
-	}
-    }
-#endif
-
-    if (locationPtr->type == LOCATION_UNKNOWN) {
-	printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, location);
-	return NULL;
-    }
-    
-    locationPtr->prevPtr = lastLocationPtr;
-    locationPtr->nextPtr = NULL;
-    if (lastLocationPtr) {
-	lastLocationPtr->nextPtr = locationPtr;
-    } else {
-	firstLocationPtr = locationPtr;
-    }
-    lastLocationPtr = locationPtr;
-    
-    return (locationPtr);
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
  * addModule --
  *
  *      Create a new MIB module.
@@ -293,10 +153,9 @@ addLocation(location, flags)
  */
 
 Module *
-addModule(modulename, path, locationPtr, fileoffset, flags, parserPtr)
+addModule(modulename, path, fileoffset, flags, parserPtr)
     const char	      *modulename;
     const char	      *path;
-    Location	      *locationPtr;
     off_t	      fileoffset;
     ModuleFlags	      flags;
     Parser	      *parserPtr;
@@ -311,7 +170,6 @@ addModule(modulename, path, locationPtr, fileoffset, flags, parserPtr)
 
     modulePtr->name				= util_strdup(modulename);
     modulePtr->path			        = util_strdup(path);
-    modulePtr->locationPtr			= locationPtr;
     modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
     modulePtr->objectPtr			= NULL;
@@ -517,7 +375,8 @@ addRevision(date, description, parserPtr)
     }
 
     modulePtr = parserPtr->modulePtr;
-    
+
+    revisionPtr->modulePtr		 = modulePtr;
     revisionPtr->date		       	 = date;
     revisionPtr->description	       	 = util_strdup(description);
     
@@ -616,20 +475,20 @@ checkImports(modulename, parserPtr)
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (importPtr->kind == KIND_UNKNOWN) {
-	    if (smiGetNode(importPtr->name, modulename)) {
-		importPtr->module = util_strdup(modulename);
-		importPtr->kind   = KIND_OBJECT;
-	    } else if (smiGetType(importPtr->name, modulename)) {
-		importPtr->module = util_strdup(modulename);
-		importPtr->kind   = KIND_TYPE;
-	    } else if (smiGetMacro(importPtr->name, modulename)) {
-		importPtr->module = util_strdup(modulename);
-		importPtr->kind   = KIND_MACRO;
+	    if (smiGetNode(modulename, importPtr->importname)) {
+		importPtr->importmodule = util_strdup(modulename);
+		importPtr->kind		= KIND_OBJECT;
+	    } else if (smiGetType(modulename, importPtr->importname)) {
+		importPtr->importmodule = util_strdup(modulename);
+		importPtr->kind		= KIND_TYPE;
+	    } else if (smiGetMacro(modulename, importPtr->importname)) {
+		importPtr->importmodule = util_strdup(modulename);
+		importPtr->kind         = KIND_MACRO;
 	    } else {
 		n++;
-		importPtr->module = util_strdup(modulename);
+		importPtr->importmodule = util_strdup(modulename);
 		printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
-			   importPtr->name, modulename);
+			   importPtr->importname, modulename);
 		importPtr->kind   = KIND_NOTFOUND;
 	    }
 	}
@@ -2724,8 +2583,6 @@ initData()
     
     smiFlags = 0;
     
-    firstLocationPtr = NULL;
-    lastLocationPtr = NULL;
     firstModulePtr = NULL;
     lastModulePtr = NULL;
     firstViewPtr = NULL;
@@ -2747,10 +2604,9 @@ initData()
      * defines it in a special SMIng module.
      */
     parser.path			= NULL;
-    parser.locationPtr		= NULL;
     parser.flags		= smiFlags;
     parser.file			= NULL;
-    parser.modulePtr = addModule("", "", NULL, 0, 0, NULL);
+    parser.modulePtr = addModule("", "", 0, 0, NULL);
 
     addView("");
 
@@ -2802,10 +2658,9 @@ initData()
  *
  * loadModule --
  *
- *      Load a MIB module. It is search by the location list.
- *	If it is found in the location filesystem it is read completely.
- *	If it is found through an RPC location, just the module structure
- *	is read.
+ *      Load a MIB module. If modulename is a plain name, the file is
+ *	search along the SMIPATH environment variable. If modulename
+ *	contains a `.' or `/' it is assumed to be the path.
  *
  * Results:
  *      0 on success or -1 on an error.
@@ -2820,145 +2675,122 @@ Module *
 loadModule(modulename)
     char	    *modulename;
 {
-    Location	    *locationPtr;
     Parser	    parser;
-    Module	    *modulePtr;
-#ifdef BACKEND_RPC
-    SmiModule	    *smiModule;
-#endif
     char	    s[200];
-    char	    *path;
+    char	    *path, *dir, *smipath;
     struct stat	    buf;
-    int		    st;
+    int		    sming = 0;
     
-    if (!strlen(modulename)) {
+    if ((!modulename) || !strlen(modulename)) {
 	return NULL;
     }
-    
-    for (locationPtr = firstLocationPtr; locationPtr;
-	 locationPtr = locationPtr->nextPtr) {
 
-#ifdef BACKEND_RPC
-	if (locationPtr->type == LOCATION_RPC) {
-	    
-	    smiModule = smiproc_module_1(&modulename, locationPtr->cl);
-	    if (smiModule && strlen(smiModule->name)) {
-	        /* the RPC server knows this module */
-		modulePtr = addModule(modulename, "", locationPtr, 0, 0, NULL);
-		setModuleLastUpdated(modulePtr, smiModule->lastupdated);
-		setModuleOrganization(modulePtr, smiModule->organization);
-		setModuleContactInfo(modulePtr, smiModule->contactinfo);
-		/* TODO: setModuleIdentityObject */
-		/* TODO: setObjectDescription */
-		/* TODO: setObjectReference */
-		return modulePtr;
+    if (!strchr(modulename, '.') && !strchr(modulename, '/')) {
+	/*
+	 * A plain modulename. Lookup the path along SMIPATH...
+	 */
+	smipath = util_strdup(getenv("SMIPATH"));
+	for (dir = strtok(smipath, ":"); dir; dir = strtok(NULL, ":")) {
+	    path = malloc(strlen(dir)+strlen(modulename)+8);
+	    sprintf(path, "%s/%s", dir, modulename);
+	    if (!stat(path, &buf)) {
+		sming = 0;
+		break;
 	    }
+	    sprintf(path, "%s/%s.my", dir, modulename);
+	    if (!stat(path, &buf)) {
+		sming = 0;
+		break;
+	    }
+	    sprintf(path, "%s/%s.sming", dir, modulename);
+	    if (!stat(path, &buf)) {
+		sming = 1;
+		break;
+	    }
+	    util_free(path);
+	    path = NULL;
 	}
-#endif
+	util_free(smipath);
+    } else {
+	/*
+	 * A full path. Take it.
+	 */
+	path = util_strdup(modulename);
+	if (strstr(modulename, ".sming")) {
+	    sming = 1;
+	}
+    }
 
+    if (!path) {
+	return NULL;
+    }
+
+    if (sming == 0) {
 #ifdef BACKEND_SMI
-	if (locationPtr->type == LOCATION_SMIDIR) {
-
-	    path = malloc(strlen(locationPtr->name)+strlen(modulename)+6);
-	    
-	    sprintf(path, "%s/%s", locationPtr->name, modulename);
-	    if ((st = stat(path, &buf))) {
-		sprintf(path, "%s/%s.my", locationPtr->name, modulename);
-		st = stat(path, &buf);
+	parser.path			= util_strdup(path);
+	parser.flags			= smiFlags;
+	parser.modulePtr		= NULL;
+	parser.file			= fopen(parser.path, "r");
+	if (!parser.file) {
+	    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
+		       strerror(errno));
+	} else {
+	    if (smiEnterLexRecursion(parser.file) < 0) {
+		printError(&parser, ERR_MAX_LEX_DEPTH);
+		fclose(parser.file);
 	    }
-	    if (!st) {
-		parser.path			= util_strdup(path);
-		parser.locationPtr		= locationPtr;
-		parser.flags			= smiFlags;
-		parser.modulePtr		= NULL;
-		parser.file			= fopen(parser.path, "r");
-		if (!parser.file) {
-		    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
-			       strerror(errno));
-		} else {
-		    if (smiEnterLexRecursion(parser.file) < 0) {
-			printError(&parser, ERR_MAX_LEX_DEPTH);
-			fclose(parser.file);
-		    }
-		    parser.line			= 1;
-		    parser.column		= 1;
-		    parser.character		= 1;
-		    parser.linebuf[0]		= 0;
-		    smiparse((void *)&parser);
-		    smiLeaveLexRecursion();
-		    fclose(parser.file);
-		    if (parser.flags & FLAG_STATS) {
-			sprintf(s, " (%d lines)", parser.line-1);
-			printError(&parser, ERR_STATISTICS, s);
-		    }
-		}
-
-		free(path);
-
-		return findModuleByName(modulename);
-		
-	    }
-	    
-	} else if (locationPtr->type == LOCATION_SMIFILE) {
-
-	    /* TODO */
-	    modulePtr = findModuleByName(modulename);
-	    if (modulePtr) {
-		return (modulePtr);
+	    parser.line			= 1;
+	    parser.column		= 1;
+	    parser.character		= 1;
+	    parser.linebuf[0]		= 0;
+	    smiparse((void *)&parser);
+	    smiLeaveLexRecursion();
+	    fclose(parser.file);
+	    if (parser.flags & FLAG_STATS) {
+		sprintf(s, " (%d lines)", parser.line-1);
+		printError(&parser, ERR_STATISTICS, s);
 	    }
 	}
+	free(path);
+	return findModuleByName(modulename);
+#else
+	printError(NULL, ERR_SMI_NOT_SUPPORTED, parser.path);
+	return NULL;
 #endif
+    }
 
+    if (sming == 1) {
 #ifdef BACKEND_SMING
-	if (locationPtr->type == LOCATION_SMINGDIR) {
-
-	    path = malloc(strlen(locationPtr->name)+strlen(modulename)+6);
-	    
-	    sprintf(path, "%s/%s", locationPtr->name, modulename);
-	    st = stat(path, &buf);
-	    if (!st) {
-		parser.path			= util_strdup(path);
-		parser.locationPtr		= locationPtr;
-		parser.flags			= smiFlags;
-		parser.modulePtr		= NULL;
-		parser.file			= fopen(parser.path, "r");
-		if (!parser.file) {
-		    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
-			       strerror(errno));
-		} else {
-		    if (smingEnterLexRecursion(parser.file) < 0) {
-			printError(&parser, ERR_MAX_LEX_DEPTH);
-			fclose(parser.file);
-		    }
-		    parser.line			= 1;
-		    parser.column		= 1;
-		    parser.character		= 1;
-		    parser.linebuf[0]		= 0;
-		    smingparse((void *)&parser);
-		    smingLeaveLexRecursion();
-		    fclose(parser.file);
-		    if (parser.flags & FLAG_STATS) {
-			sprintf(s, " (%d lines)", parser.line-1);
-			printError(&parser, ERR_STATISTICS, s);
-		    }
-		}
-
-		free(path);
-
-		return findModuleByName(modulename);
-		
+	parser.path			= util_strdup(path);
+	parser.flags			= smiFlags;
+	parser.modulePtr		= NULL;
+	parser.file			= fopen(parser.path, "r");
+	if (!parser.file) {
+	    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
+		       strerror(errno));
+	} else {
+	    if (smingEnterLexRecursion(parser.file) < 0) {
+		printError(&parser, ERR_MAX_LEX_DEPTH);
+		fclose(parser.file);
 	    }
-	    
-	} else if (locationPtr->type == LOCATION_SMINGFILE) {
-
-	    /* TODO */
-	    modulePtr = findModuleByName(modulename);
-	    if (modulePtr) {
-		return (modulePtr);
+	    parser.line			= 1;
+	    parser.column		= 1;
+	    parser.character		= 1;
+	    parser.linebuf[0]		= 0;
+	    smingparse((void *)&parser);
+	    smingLeaveLexRecursion();
+	    fclose(parser.file);
+	    if (parser.flags & FLAG_STATS) {
+		sprintf(s, " (%d lines)", parser.line-1);
+		printError(&parser, ERR_STATISTICS, s);
 	    }
 	}
+	free(path);
+	return findModuleByName(modulename);
+#else
+	printError(NULL, ERR_SMING_NOT_SUPPORTED, parser.path);
+	return NULL;
 #endif
-
     }
 
     return NULL;

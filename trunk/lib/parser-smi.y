@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.20 1999/04/09 20:28:36 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.21 1999/04/10 19:37:23 strauss Exp $
  */
 
 %{
@@ -94,8 +94,8 @@ static Module      *complianceModulePtr = NULL;
     Type           *typePtr;
     Index          *indexPtr;
     List           *listPtr;			/* SEQUENCE and INDEX lists  */
-    SmiNamedNumber *namedNumberPtr;		/* BITS or enum item         */
-    SmiRange       *rangePtr;			/* type restricting range    */
+    NamedNumber    *namedNumberPtr;		/* BITS or enum item         */
+    Range          *rangePtr;			/* type restricting range    */
     SmiValue	   *valuePtr;
     SmiUnsigned32  unsigned32;			/*                           */
     SmiInteger32   integer32;			/*                           */
@@ -368,7 +368,6 @@ module:			moduleName
 				thisParserPtr->modulePtr =
 				    addModule($1,
 					      thisParserPtr->path,
-					      thisParserPtr->locationPtr,
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
@@ -933,8 +932,8 @@ row:			UPPERCASE_IDENTIFIER
 				     * imported type.
 				     * TODO: is this allowed in a SEQUENCE? 
 				     */
-				    stypePtr = smiGetType($1,
-							  importPtr->module);
+				    stypePtr = smiGetType(
+						  importPtr->importmodule, $1);
 				    if (stypePtr) {
 					$$ = addType($1, stypePtr->basetype,
 						     FLAG_IMPORTED,
@@ -1013,8 +1012,8 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				    /*
 				     * imported object.
 				     */
-				    snodePtr = smiGetNode($1,
-							  importPtr->module);
+				    snodePtr = smiGetNode(
+						  importPtr->importmodule, $1);
 				    $$ = addObject($1,
 					getParentNode(
 					    createNodes(snodePtr->oid)),
@@ -1123,7 +1122,7 @@ NamedBit:		identifier
 			}
 			'(' number ')'
 			{
-			    $$ = util_malloc(sizeof(SmiNamedNumber));
+			    $$ = util_malloc(sizeof(NamedNumber));
 			    $$->valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
 			    $$->name = util_strdup($1);
@@ -1570,13 +1569,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($1,
-							  importPtr->module);
+				    stypePtr = smiGetType(
+						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s", importPtr->module,
+				    sprintf(s, "%s%s%s",
+					    importPtr->importmodule,
 					    SMI_NAMESPACE_OPERATOR,
-					    importPtr->name);
+					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
@@ -1609,13 +1609,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($3, $1);
+				    stypePtr = smiGetType($1, $3);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s", importPtr->module,
+				    sprintf(s, "%s%s%s",
+					    importPtr->importmodule,
 					    SMI_NAMESPACE_OPERATOR,
-					    importPtr->name);
+					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
@@ -1659,13 +1660,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($1,
-							  importPtr->module);
+				    stypePtr = smiGetType(
+						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s", importPtr->module,
+				    sprintf(s, "%s%s%s",
+					    importPtr->importmodule,
 					    SMI_NAMESPACE_OPERATOR, 
-					    importPtr->name);
+					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
@@ -1698,13 +1700,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($3, $1);
+				    stypePtr = smiGetType($1, $3);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s", importPtr->module,
+				    sprintf(s, "%s%s%s",
+					    importPtr->importmodule,
 					    SMI_NAMESPACE_OPERATOR,
-					    importPtr->name);
+					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
@@ -1759,13 +1762,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($1,
-							  importPtr->module);
+				    stypePtr = smiGetType(
+						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s", importPtr->module,
+				    sprintf(s, "%s%s%s",
+					    importPtr->importmodule,
 					    SMI_NAMESPACE_OPERATOR,
-					    importPtr->name);
+					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
@@ -1798,13 +1802,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /*
 				     * imported type.
 				     */
-				    stypePtr = smiGetType($3, $1);
+				    stypePtr = smiGetType($1, $3);
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s", importPtr->module,
+				    sprintf(s, "%s%s%s",
+					    importPtr->importmodule,
 					    SMI_NAMESPACE_OPERATOR,
-					    importPtr->name);
+					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
@@ -1917,15 +1922,15 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 				     importPtr;
 				     importPtr = importPtr->nextPtr) {
 				    if ((!importPtr->nextPtr) ||
-					(!strcmp(importPtr->nextPtr->module,
+					(!strcmp(importPtr->nextPtr->importmodule,
 						 "SNMPv2-SMI"))) {
 					break;
 				    }
 				    if (importPtr) {
 					newPtr = util_malloc(sizeof(Import));
-					newPtr->module =
+					newPtr->importmodule =
 					    util_strdup("SNMPv2-SMI");
-					newPtr->name =
+					newPtr->importname =
 					    util_strdup($$->value.oid);
 					newPtr->kind = KIND_OBJECT;
 					newPtr->nextPtr = importPtr->nextPtr;
@@ -2180,14 +2185,14 @@ ranges:			range
 
 range:			value
 			{
-			    $$ = util_malloc(sizeof(SmiRange));
+			    $$ = util_malloc(sizeof(Range));
 			    /* TODO: success? */
 			    $$->minValuePtr = $1;
 			    $$->maxValuePtr = $1;
 			}
 	|		value DOT_DOT value
 			{
-			    $$ = util_malloc(sizeof(SmiRange));
+			    $$ = util_malloc(sizeof(Range));
 			    /* TODO: success? */
 			    $$->minValuePtr = $1;
 			    $$->maxValuePtr = $3;
@@ -2262,7 +2267,7 @@ enumItem:		LOWERCASE_IDENTIFIER
 			}
 			'(' enumNumber ')'
 			{
-			    $$ = util_malloc(sizeof(SmiNamedNumber));
+			    $$ = util_malloc(sizeof(NamedNumber));
 			    /* TODO: success? */
 			    $$->name = util_strdup($1);
 			    $$->valuePtr = $4;
@@ -2751,8 +2756,8 @@ subidentifier:
 					/*
 					 * imported object.
 					 */
-					snodePtr = smiGetNode($1,
-							    importPtr->module);
+					snodePtr = smiGetNode(
+						  importPtr->importmodule, $1);
 					if (snodePtr) {
 					    $$ = addObject($1, 
 							   getParentNode(
@@ -2824,7 +2829,7 @@ subidentifier:
 					/*
 					 * imported object.
 					 */
-					snodePtr = smiGetNode($3, $1);
+					snodePtr = smiGetNode($1, $3);
 					$$ = addObject($3, 
 					  getParentNode(
 					      createNodes(snodePtr->oid)),

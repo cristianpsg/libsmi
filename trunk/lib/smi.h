@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.17 1999/05/20 08:51:17 strauss Exp $
+ * @(#) $Id: smi.h,v 1.18 1999/05/20 17:01:44 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -51,7 +51,7 @@ typedef char                    *SmiObjectIdentifier;
 typedef unsigned int            SmiSubid;
 typedef float                   SmiFloat32;
 typedef double                  SmiFloat64;
-typedef double                  SmiFloat128;   /* currently, no 64/128 diffs */
+typedef long double             SmiFloat128;
 
 
 
@@ -139,6 +139,7 @@ typedef enum SmiIndexkind {
 
 /* SmiRevision -- content of a single module's revision clause               */
 typedef struct SmiRevision {
+    SmiIdentifier       module;
     time_t              date;
     char                *description;
 } SmiRevision;
@@ -216,7 +217,9 @@ typedef struct SmiNode {
     char                *name;
     char                *module;
     SmiObjectIdentifier oid;
-    char                *type;
+    char                *typename;
+    char                *typemodule;
+#if 0
     char                **list;
     SmiIndexkind        indexkind;
     int                 implied;
@@ -224,6 +227,7 @@ typedef struct SmiNode {
     char                *relatedrow;
     SmiOption           **option;
     SmiRefinement       **refinement;
+#endif
     SmiDecl             decl;
     SmiBasetype         basetype;
     SmiAccess           access;
@@ -240,8 +244,8 @@ typedef struct SmiType {
     char                *name;
     char                *module;
     SmiBasetype         basetype;
-    char                *parent;
-    void                **list;   /* SmiNamedNumber or SmiRange */
+    char		*parentmodule;
+    char		*parentname;
     SmiDecl             decl;
     char                *format;
     SmiValue            *value;
