@@ -79,3 +79,9 @@ o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
 
 o support parsing (but ignore) SMIv2 AGENT-CAPABILITIES.
 
+o don't export names of implicit types.
+
+o man pages!
+
+o SMIng: module identity object (grammar, I-D and parser)
+
