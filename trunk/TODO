@@ -142,3 +142,8 @@ o error detection: different types in SEQUENCE and OBJECT-TYPE macros
 o error detection: integer DEFVAL for an enumeration typed OBJECT-TYPE.
   Notify Bert when fixed.
 
+o API: several applications need a mechanism to iterate through the 
+  index components of a row definition, e.g. many of the dump-* drivers.
+  For example, see dump-scli.oc: foreachIndexDo(). Maybe something like
+  smiGetFirstIndex()/smiGetNextIndex() would be a good idea.
+
