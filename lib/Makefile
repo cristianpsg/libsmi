@@ -75,7 +75,7 @@ host_triplet = sparc-sun-solaris2.5.1
 AS = @AS@
 BISON = bison
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -g -O2
 DLLTOOL = @DLLTOOL@
 FLEX = flex
 LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
@@ -107,7 +107,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1\" -DBACKEND_SMI=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

@@ -1,10 +1,10 @@
 .\"
-.\" $Id: smi_config.3,v 1.5 1999/05/08 20:56:58 strauss Exp $
+.\" $Id: smi_config.3,v 1.1 1999/05/28 14:52:06 strauss Exp $
 .\"
-.TH smi_config 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "May 31, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
-smiInit, smiSetDebugLevel, smiSetErrorLevel, smiGetFlags, smiSetFlags,
-smiReadConfig, smiAddLocation, smiLoadModule \- SMI library
+smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
+smiLoadModule \- SMI library
 configuration routines
 .SH SYNOPSIS
 .nf
@@ -13,9 +13,6 @@ configuration routines
 .RE
 .sp
 .BI "void smiInit();"
-.RE
-.sp
-.BI "void smiSetDebugLevel(int " level );
 .RE
 .sp
 .BI "void smiSetErrorLevel(int " level );
@@ -27,13 +24,7 @@ configuration routines
 .BI "void smiSetFlags(int " userflags );
 .RE
 .sp
-.BI "int smiReadConfig(const char *" file );
-.RE
-.sp
-.BI "int smiAddLocation(const char *" location );
-.RE
-.sp
-.BI "int smiLoadModule(char *" modulename );
+.BI "int smiLoadModule(char *" module );
 .RE
 .fi
 .SH DESCRIPTION
@@ -41,15 +32,7 @@ These functions provide some initialization and adjustment operations
 for the SMI library.
 .PP
 The \fBsmiInit()\fP function should be the first SMI function called
-in an application. It initializes its internal structures and reads a
-global configuration file (\fB/usr/local/etc/smi.conf\fP) which may
-set some default behaviours. See \fICONFIGURATION FILES\fP below.
-.PP
-The \fBsmiSetDebugLevel()\fP function sets the debugging verbosity
-(0-9) of the SMI library. This is for library debugging purpose only
-and might even be turned off completely at library compile time. The
-higher the level, the louder it shouts. The perfect default
-level is 0.
+in an application. It initializes its internal structures.
 .PP
 The \fBsmiSetErrorLevel()\fP function sets the pedantic level (0-9) of
 the SMI parsers of the SMI library, currently SMIv1/v2 and SMIng
@@ -72,84 +55,33 @@ library prints some module statistics. If \fBSMI_RECURSIVE\fP is set,
 the library also complains about errors in modules that are read due
 to import statements.
 .PP
-The \fBsmiReadConfig()\fP function allows to read an additional
-configuration \fIfile\fP. See \fICONFIGURATION FILES\fP below.
-.PP
-The \fBsmiAddLocation()\fP function allows to specify an additional
-\fIlocation\fP where the SMI library looks for MIB modules to
-read. See \fIMODULE LOCATIONS\fP below.
-.PP
 The \fBsmiLoadModule()\fP function specifies an additional MIB module by
-\fImodulename\fP that the application claims to know. Only after a
+\fImodule\fP that the application claims to know. Only after a
 module is made known through this function, iterating retrieval
 functions and retrieval functions without fully qualified descriptors
 will return results from this module.
 .SH "RETURN VALUES"
-The functions \fBsmiReadConfig()\fP, \fBsmiAddLocation()\fP, and
-\fBsmiLoadModule()\fP return 0 on success, or negative values on
+The function \fBsmiLoadModule()\fP returns 0 on success, or negative values on
 error. \fBsmiGetFlags()\fP returns the current set of flags. The
 other functions are void.
 .SH "MODULE LOCATIONS"
 The SMI library may retrieve MIB modules from different kinds of
-resources, named locations. A location is specified by the method
-(currently "smi" or "sming"), a colon ":" and a concrete specification
-which depends on the method (currently only a directory specification,
-where modules are search by file name without any extension). Examples
-are:
-.nf
-
-  smi:.
-  smi:/usr/local/lib/smi/mibs-smi
-  sming:/usr/local/lib/smi/mibs-sming
-
-.fi
-Locations are searched in the order they are specified.
-.SH "CONFIGURATION FILES"
-Configuration files contain line oriented text. Lines starting
-with a '#' character and blank lines are ignored. Other lines
-are expected to be valid configuration statements starting with
-a keyword followed by an optional argument.
-.TP
-.I \fBlocation\fP \fIlocation\fP
-specifies an additional \fIlocation\fP, equivalent to a
-\fBsmiAddLocation()\fP call.
-.TP
-.I \fBpreload\fP \fImodule\fP
-(pre)loads a \fImodule\fP, equivalent to a \fBsmiLoadModule()\fP call.
-.TP
-.I \fBloglevel\fP \fIlevel\fP
-sets the level (0-9) of error logging to \fIlevel\fP, equivalent to a
-\fBsmiErrorLevel()\fP call.
-.TP
-.I \fBdebuglevel\fP \fIlevel\fP
-sets the level (0-9) of debugging to \fIlevel\fP, equivalent to a
-\fBsmiDebugLevel()\fP call.
-.TP
-.I \fByydebug\fP \fI1|0\fP
-turns the yyerror facility on or off, see bison(1).
-.TP
-.I \fBstatistics\fP \fI1|0\fP
-turns the statistics flag on or off, see \fBsmiSetFlags()\fP above.
-.TP
-.I \fBimportlogging\fP \fI1|0\fP
-turns the error logging of imported modules on or off, see
-\fBsmiSetFlags()\fP above.
-.TP
-.I \fBerrorlines\fP \fI1|0\fP
-turns the output of marked erroneous lines on or off, see
-\fBsmiSetFlags()\fP above.
-.PP
-The global configuration file \fB/usr/local/etc/smi.conf\fP is read
-before any other libsmi operation.
+resources. Currently, SMIv1/v2 and SMIng module files are supported.
+If in an \fBsmiLoadModule()\fP function call a module is specified by
+a path name (identified by containing at least one dot or slash character),
+this
+is assumed to be the exact file to read. Otherwise, if a module is identified
+by its plain module name, the correspondant file (either SMIv1/2 or
+SMIng) is searched along a path, which is initialized by the \fBSMIPATH\fP
+environment variable or by
+/usr/local/lib/smi if \fBSMIPATH\fP is not set. Files with a \fB.sming\fP
+extension are expected to be SMIng module files. Files with a \fB.my\fP or
+without any extension are expected to be SMIv1/v2 module files.
 .SH "FILES"
 .nf
 /usr/local/include/smi.h    SMI library header file
-/usr/local/etc/smi.conf     global configuration file
-/usr/local/etc/smi*.conf    other configuration files
+/usr/local/lib/smi/	  SMI module repository directory
 .fi
-.SH "NOTES"
-Libsmi is work in progress. Interface inconsistencies and deficiencies
-will be removed in near future.
 .SH "SEE ALSO"
 .BR libsmi "(3), "
 .BR smi.h
