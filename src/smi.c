@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.18 1998/11/26 11:28:32 strauss Exp $
+ * @(#) $Id: smi.c,v 1.19 1998/11/27 10:55:27 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -42,6 +42,7 @@ typedef enum LocationType {
 typedef struct Location {
     char	    *name;
     LocationType    type;
+    CLIENT	    *cl;
     struct Location *next;
     struct Location *prev;
 } Location;
@@ -285,6 +286,17 @@ smiAddLocation(name)
     if (strstr(name, "smirpc://") == name) {
 	location->type = LOCATION_RPC;
 	location->name = strdup(&name[9]);
+	/*
+	 * We must use TCP, since some messages may exceed the UDP limitation
+	 * of messages larger than UDPMSGSIZE==8800 (at least on Linux).
+	 */
+	location->cl   = clnt_create(location->name,
+				     SMIPROG, SMIVERS, "tcp");
+	if (!location->cl) {
+	    clnt_pcreateerror(location->name);
+	    free(location);
+	    return -1;
+	}
 #ifdef PARSER
     } else {
 	if (stat(name, &st)) {
@@ -326,6 +338,8 @@ smiLoadMibModule(modulename)
     smi_descriptor modulename;
 {
     Location *location;
+    smi_getspec getspec;
+    smi_module *smimodule;
 #ifdef PARSER
     Module *module;
     struct stat buf;
@@ -340,15 +354,22 @@ smiLoadMibModule(modulename)
     for (location = firstLocation; location; location = location->next) {
 
 	if (location->type == LOCATION_RPC) {
-
-	    /* TODO */
-
+	    
+	    getspec.name = modulename;
+	    getspec.wantdescr = 0;
+	    smimodule = smiproc_module_1(&getspec, location->cl);
+	    if (smimodule && strlen(smimodule->name)) {
+	        /* the RPC server knows this module */
+		return 0;
+	    }
+	    
 #ifdef PARSER
 	} else if (location->type == LOCATION_DIR) {
 
 	    module = findModuleByName(modulename);
 	    if (module) {
-		return 0; /* already loaded. */
+	        /* already loaded. */
+		return 0;
 	    }
 
 	    path = malloc(strlen(location->name)+strlen(modulename)+6);
@@ -443,6 +464,8 @@ smiGetModule(name, wantdescr)
     int wantdescr;
 {
     static smi_module res;
+    smi_getspec	      getspec;
+    smi_module	      *smimodule;
     Location	      *l;
 #ifdef PARSER
     Module	      *m;
@@ -461,7 +484,12 @@ smiGetModule(name, wantdescr)
 
 	if (l->type == LOCATION_RPC) {
 
-	    /* TODO */
+	    getspec.name = name;
+	    getspec.wantdescr = wantdescr;
+	    smimodule = smiproc_module_1(&getspec, l->cl);
+	    if (smimodule && strlen(smimodule->name)) {
+		return smimodule;
+	    }
 
 #ifdef PARSER
 	} else if (l->type == LOCATION_DIR) {
@@ -526,6 +554,9 @@ smiGetNode(name, module, wantdescr)
     Object          *o = NULL;
     Module	    *m = NULL;
     Location	    *l = NULL;
+    smi_getspec	    getspec;
+    smi_node	    *sminode;
+    char	    s[SMI_MAX_FULLNAME+1];
     char	    name2[SMI_MAX_OID+1];
     char	    module2[SMI_MAX_DESCRIPTOR+1];
     static char	    type[SMI_MAX_FULLNAME+1];
@@ -543,7 +574,13 @@ smiGetNode(name, module, wantdescr)
 
 	if (l->type == LOCATION_RPC) {
 
-	    /* TODO */
+	    sprintf(s, "%s.%s", module2, name2);
+	    getspec.name = s;
+	    getspec.wantdescr = wantdescr;
+	    sminode = smiproc_node_1(&getspec, l->cl);
+	    if (sminode && strlen(sminode->name)) {
+		return sminode;
+	    }
 
 #ifdef PARSER
 	} else if (l->type == LOCATION_DIR) {
@@ -644,6 +681,9 @@ smiGetType(name, module, wantdescr)
     Type	    *t = NULL;
     Module	    *m = NULL;
     Location	    *l = NULL;
+    smi_getspec	    getspec;
+    smi_type	    *smitype;
+    char	    s[SMI_MAX_FULLNAME+1];
     char	    name2[SMI_MAX_OID+1];
     char	    module2[SMI_MAX_DESCRIPTOR+1];
 #ifdef PARSER
@@ -660,7 +700,13 @@ smiGetType(name, module, wantdescr)
 
 	if (l->type == LOCATION_RPC) {
 
-	    /* TODO */
+	    sprintf(s, "%s.%s", module2, name2);
+	    getspec.name = s;
+	    getspec.wantdescr = wantdescr;
+	    smitype = smiproc_type_1(&getspec, l->cl);
+	    if (smitype && strlen(smitype->name)) {
+		return smitype;
+	    }
 
 #ifdef PARSER
 	} else if (l->type == LOCATION_DIR) {
@@ -737,6 +783,8 @@ smiGetMacro(name, module)
     Macro	    *ma = NULL;
     Module	    *m = NULL;
     Location	    *l = NULL;
+    smi_macro	    *smimacro;
+    char	    s[SMI_MAX_FULLNAME+1];
     char	    name2[SMI_MAX_OID+1];
     char	    module2[SMI_MAX_DESCRIPTOR+1];
 #ifdef PARSER
@@ -753,7 +801,11 @@ smiGetMacro(name, module)
 
 	if (l->type == LOCATION_RPC) {
 
-	    /* TODO */
+	    sprintf(s, "%s.%s", module2, name2);
+	    smimacro = smiproc_macro_1(&s, l->cl);
+	    if (smimacro && strlen(smimacro->name)) {
+		return smimacro;
+	    }
 
 #ifdef PARSER
 	} else if (l->type == LOCATION_DIR) {
@@ -822,10 +874,12 @@ smiGetNames(name, module)
     Object		*o;
     Descriptor		*d;
     Node		*n, *n2, *nn = NULL;
+    smi_namelist	*smilist;
     char		*elements, *element;
     char		name2[SMI_MAX_OID+1];
     char		module2[SMI_MAX_DESCRIPTOR+1];
-    char		s[SMI_MAX_FULLNAME+1];
+    char		*s;
+    char		ss[SMI_MAX_FULLNAME+1];
     smi_subid		subid;
     static char		*p = NULL;
     static		plen = 0;
@@ -901,7 +955,24 @@ smiGetNames(name, module)
 
 	if (l->type == LOCATION_RPC) {
 
-	    /* TODO */
+	    sprintf(ss, "%s.%s", module2, name2);
+	    smilist = smiproc_names_1(&ss, l->cl);
+	    if (smilist && strlen(smilist->namelist)) {
+
+		for(s = strtok(smilist->namelist, " ");
+		    s; s = strtok(NULL, " ")) {
+		    
+		    /* TODO: bounds check ($..^) */
+		    if (!strstr(p, s)) {
+			if (strlen(p)+strlen(s)+2 > plen) {
+			    p = realloc(p, strlen(p)+strlen(s)+2);
+			}
+			if (strlen(p)) strcat(p, " ");
+			strcat(p, s);
+		    }
+		}
+		
+	    }
 
 #ifdef PARSER
 	} else if ((l->type == LOCATION_DIR) ||
@@ -944,16 +1015,16 @@ smiGetNames(name, module)
 				 (!strcmp(l->name, o->module->path))) ||
 				((l->type == LOCATION_DIR) &&
 			       (!strcmp(l->name, dirname(o->module->path))))) {
-				sprintf(s, "%s.%s",
+				sprintf(ss, "%s.%s",
 					o->module->descriptor->name,
 					o->descriptor->name);
 				/* TODO: bounds check ($..^) */
-				if (!strstr(p, s)) {
-				    if (strlen(p)+strlen(s)+2 > plen) {
-					p = realloc(p, strlen(p)+strlen(s)+2);
+				if (!strstr(p, ss)) {
+				    if (strlen(p)+strlen(ss)+2 > plen) {
+					p = realloc(p, strlen(p)+strlen(ss)+2);
 				    }
 				    if (strlen(p)) strcat(p, " ");
-				    strcat(p, s);
+				    strcat(p, ss);
 				}
 			    }
 			}
@@ -973,15 +1044,15 @@ smiGetNames(name, module)
 			     d->kind == KIND_MACRO) &&
 			    (!(d->flags & FLAG_IMPORTED)) &&
 			    (d->flags & FLAG_MODULE)) {
-			    sprintf(s, "%s.%s",
+			    sprintf(ss, "%s.%s",
 				    d->module->descriptor->name, d->name);
 			    /* TODO: bounds check ($..^) */
-			    if (!strstr(p, s)) {
-				if (strlen(p)+strlen(s)+2 > plen) {
-				    p = realloc(p, strlen(p)+strlen(s)+2);
+			    if (!strstr(p, ss)) {
+				if (strlen(p)+strlen(ss)+2 > plen) {
+				    p = realloc(p, strlen(p)+strlen(ss)+2);
 				}
 				if (strlen(p)) strcat(p, " ");
-				strcat(p, s);
+				strcat(p, ss);
 			    }
 			}
 
@@ -1014,6 +1085,7 @@ smiGetChildren(name, module)
     Object		*o = NULL;
     Descriptor		*d;
     Node		*n = NULL;
+    smi_namelist	*smilist;
     char		name2[SMI_MAX_OID+1];
     char		module2[SMI_MAX_DESCRIPTOR+1];
     char		*s;
@@ -1042,7 +1114,24 @@ smiGetChildren(name, module)
 	
 	if (l->type == LOCATION_RPC) {
 
-	    /* TODO */
+	    sprintf(ss, "%s.%s", module2, name2);
+	    smilist = smiproc_children_1(&ss, l->cl);
+	    if (smilist && strlen(smilist->namelist)) {
+
+		for(s = strtok(smilist->namelist, " ");
+		    s; s = strtok(NULL, " ")) {
+		    
+		    /* TODO: bounds check ($..^) */
+		    if (!strstr(p, s)) {
+			if (strlen(p)+strlen(s)+2 > plen) {
+			    p = realloc(p, strlen(p)+strlen(s)+2);
+			}
+			if (strlen(p)) strcat(p, " ");
+			strcat(p, s);
+		    }
+		}
+		
+	    }
 
 #ifdef PARSER
 	} else if (l->type == LOCATION_DIR) {
@@ -1274,6 +1363,7 @@ smiGetParent(name, module)
     Node		*n;
     Module		*m;
     Location		*l;
+    smi_fullname	*sminame;
     char		name2[SMI_MAX_OID+1];
     char		module2[SMI_MAX_DESCRIPTOR+1];
     char		s[SMI_MAX_FULLNAME+1];
@@ -1291,7 +1381,11 @@ smiGetParent(name, module)
 
 	if (l->type == LOCATION_RPC) {
 
-	    /* TODO */
+	    sprintf(s, "%s.%s", module2, name2);
+	    sminame = smiproc_parent_1(&s, l->cl);
+	    if (sminame && strlen(sminame)) {
+		return sminame;
+	    }
 
 #ifdef PARSER
 	} else if (l->type == LOCATION_DIR) {

@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.14 1998/11/26 00:50:04 strauss Exp $
+# @(#) $Id: Makefile,v 1.15 1998/11/27 10:55:26 strauss Exp $
 #
 
 CC	= gcc
@@ -13,7 +13,7 @@ YACC	= bison -y -v -t
 
 RPCGEN	= rpcgen
 
-LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o smi.o
+LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o smi.o smi_clnt.o smi_xdr.o
 
 default: libsmi.a miblint smid smiclient smiquery
 
@@ -82,7 +82,7 @@ libsmi.a: $(LOBJS)
 	ln -f libsmi.a ../libsmi.a
 
 miblint: libsmi.a lint.o
-	$(CC) -o miblint lint.o libsmi.a -ll
+	$(CC) -o miblint lint.o libsmi.a -ll -lnsl
 	ln -f miblint ..
 
 
