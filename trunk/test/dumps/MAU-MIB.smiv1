@@ -104,10 +104,10 @@ JackType ::=
 --     DESCRIPTION     
 --             "Common enumeration values for repeater
 --              and interface MAU jack types."
---     SYNTAX          INTEGER { other(1), rj45(2), rj45S(3), db9(4), 
-                        bnc(5), fAUI(6), mAUI(7), fiberSC(8), 
-                        fiberMIC(9), fiberST(10), telco(11), mtrj(12), 
-                        hssdc(13) }
+--     SYNTAX          INTEGER
+--                       { other(1), rj45(2), rj45S(3), db9(4), bnc(5), 
+--                         fAUI(6), mAUI(7), fiberSC(8), fiberMIC(9), 
+--                         fiberST(10), telco(11), mtrj(12), hssdc(13) }
 
 snmpDot3MauMgt OBJECT IDENTIFIER
     ::= { mib-2 26 }

@@ -1622,7 +1622,8 @@ ifCompliance OBJECT IDENTIFIER
 --             "Write access is not required."
 
 --         OBJECT      ifStackStatus
---         SYNTAX      INTEGER { active(1) }
+--         SYNTAX      INTEGER
+--                       { active(1) }
 --         MIN-ACCESS  read-only
 --         DESCRIPTION 
 --             "Write access is not required, and only one of the six
@@ -1630,7 +1631,8 @@ ifCompliance OBJECT IDENTIFIER
 --              need be supported, specifically: active(1)."
 
 --         OBJECT      ifAdminStatus
---         SYNTAX      INTEGER { up(1), down(2) }
+--         SYNTAX      INTEGER
+--                       { up(1), down(2) }
 --         MIN-ACCESS  read-only
 --         DESCRIPTION 
 --             "Write access is not required, nor is support for the
@@ -1696,7 +1698,8 @@ ifCompliance2 OBJECT IDENTIFIER
 --             "Write access is not required."
 
 --         OBJECT      ifStackStatus
---         SYNTAX      INTEGER { active(1) }
+--         SYNTAX      INTEGER
+--                       { active(1) }
 --         MIN-ACCESS  read-only
 --         DESCRIPTION 
 --             "Write access is not required, and only one of the six
@@ -1704,7 +1707,8 @@ ifCompliance2 OBJECT IDENTIFIER
 --              need be supported, specifically: active(1)."
 
 --         OBJECT      ifAdminStatus
---         SYNTAX      INTEGER { up(1), down(2) }
+--         SYNTAX      INTEGER
+--                       { up(1), down(2) }
 --         MIN-ACCESS  read-only
 --         DESCRIPTION 
 --             "Write access is not required, nor is support for the
