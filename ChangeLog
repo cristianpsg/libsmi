@@ -1,3 +1,8 @@
+2002-06-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.c: Fixed illegal reference to already freed type
+	structs in smiFreeData(). Thanks to Nick.
+
 2002-06-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 	
 	* mibs/ietf/GSMP-MIB: added (RFC 3295).
