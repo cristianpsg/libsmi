@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.40 2003/04/30 14:51:29 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.41 2003/05/19 13:42:36 strauss Exp $ 
  */
 
 #include <config.h>
@@ -336,24 +336,24 @@ static Error errors[] = {
 static char *smiStringDecl(SmiDecl macro)
 {
     return
-        (macro == SMI_DECL_UNKNOWN)           ? "<unknown>" :
-        (macro == SMI_DECL_IMPLICIT_TYPE)     ? "<implicit>" :
-        (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<type-assignment>" :
-        (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<implicit-sequence-of>" :
-        (macro == SMI_DECL_VALUEASSIGNMENT)   ? "<value-assignment>" :
-        (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" :
-        (macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" :
-        (macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" :
-        (macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" :
-        (macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE" :
-        (macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP" :
-        (macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP" :
-        (macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE" :
-        (macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES" :
-        (macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" :
-        (macro == SMI_DECL_MACRO)             ? "MACRO" :
-        (macro == SMI_DECL_COMPL_GROUP)       ? "GROUP" :
-        (macro == SMI_DECL_COMPL_OBJECT)      ? "OBJECT" :
+        (macro == SMI_DECL_UNKNOWN)           ? "unknown construct" :
+        (macro == SMI_DECL_IMPLICIT_TYPE)     ? "implicit construct" :
+        (macro == SMI_DECL_TYPEASSIGNMENT)    ? "type assignment" :
+        (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "implicit sequence-of construct" :
+        (macro == SMI_DECL_VALUEASSIGNMENT)   ? "value assignment" :
+        (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE clause" :
+        (macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY clause" :
+        (macro == SMI_DECL_MODULEIDENTITY)    ? "module" :
+        (macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATION-TYPE clause" :
+        (macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE clause" :
+        (macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP clause" :
+        (macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP clause" :
+        (macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE clause" :
+        (macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES clause" :
+        (macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION clause" :
+        (macro == SMI_DECL_MACRO)             ? "MACRO clause" :
+        (macro == SMI_DECL_COMPL_GROUP)       ? "optional group" :
+        (macro == SMI_DECL_COMPL_OBJECT)      ? "object refinement" :
         (macro == SMI_DECL_MODULE)	      ? "module" :
         (macro == SMI_DECL_TYPEDEF)	      ? "typedef" :
         (macro == SMI_DECL_NODE)	      ? "node" :
