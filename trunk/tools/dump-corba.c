@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.45 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-corba.c,v 1.46 2004/03/13 22:27:57 schoenw Exp $
  */
 
 #include <config.h>
@@ -319,13 +319,15 @@ static int current(SmiStatus status)
 
 static char *getTimeString(time_t t)
 {
-    static char   s[27];
+    static char   *s = NULL;
     struct tm	  *tm;
 
+    if (s) xfree(s);
+
     tm = gmtime(&t);
-    sprintf(s, "%04d%02d%02d%02d%02dZ",
-	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	    tm->tm_hour, tm->tm_min);
+    smiAsprintf(&s, "%04d%02d%02d%02d%02dZ",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+		tm->tm_hour, tm->tm_min);
     return s;
 }
 
