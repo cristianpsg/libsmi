@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.25 1999/05/31 11:58:38 strauss Exp $
+ * @(#) $Id: smi.h,v 1.26 1999/05/31 12:59:54 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -230,8 +230,8 @@ typedef struct SmiNode {
     SmiIdentifier       module;
     SmiIdentifier       name;
     SmiObjectIdentifier oid;
-    SmiIdentifier       typename;
     SmiIdentifier       typemodule;
+    SmiIdentifier       typename;
     SmiIndexkind        indexkind;
     int                 implied;
     int                 create;
@@ -372,7 +372,7 @@ extern SmiNode *smiGetFirstMemberNode(SmiNode *smiNodePtr);
 extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 				     SmiNode *smiMemberNodePtr);
 
-extern SmiNode *smiGetFirstObjectNode(SmiNode *smiNodePtr);
+extern SmiNode *smiGetFirstObjectNode(SmiNode *smiNotificationNodePtr);
 
 extern SmiNode *smiGetNextObjectNode(SmiNode *smiNotificationNodePtr,
 				     SmiNode *smiObjectNodePtr);
