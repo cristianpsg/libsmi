@@ -1,6 +1,5 @@
 SONET-MIB DEFINITIONS ::= BEGIN
 
-
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE,
     Integer32, transmission
@@ -16,22 +15,64 @@ IMPORTS
 
 --  This is the MIB module for the SONET/SDH Interface objects.
 
-
 sonetMIB MODULE-IDENTITY
-    LAST-UPDATED "9810190000Z"
+    LAST-UPDATED "200308110000Z"
     ORGANIZATION "IETF AToM MIB Working Group"
+
+
+
     CONTACT-INFO
-      "Kaj Tesink
+      "WG charter:
+         http://www.ietf.org/html.charters/atommib-charter.html
+
+       Mailing Lists:
+         General Discussion: atommib@research.telcordia.com
+         To Subscribe: atommib-request@research.telcordia.com
+
+       Kaj Tesink
        Telcordia Technologies
        Tel: (732) 758-5254
        Fax: (732) 758-2269
        E-mail: kaj@research.telcordia.com."
     DESCRIPTION
-         "The MIB module to describe
-         SONET/SDH interfaces objects."
-    REVISION      "9810190000Z"
+      "The MIB module to describe SONET/SDH interface objects.
+
+       Copyright (C) The Internet Society (2003).  This version
+       of this MIB module is part of RFC 3592;  see the RFC
+       itself for full legal notices."
+    REVISION      "200308110000Z"
     DESCRIPTION
         "The key changes made to this MIB module
+        since its publication in RFC 2558
+        are as follows.
+
+        (1) Corrected typographical error
+            (bellcore1991(2) in sonetSESthresholdSet)
+
+        (2) Added support for sts192cSTM64(6) and
+            sts768cSTM256(7) in sonetPathCurrentWidth
+
+        (3) Corrected description of the applicability
+            of VTs for SDH for improved accuracy
+
+        (4) Added clarification in the SES description that
+            CV counts should be frozen during SESs
+
+        (5) Corrected typographical errors:
+            - Line Alarm Indication Signal description of the
+              Terminology section (20.5 --> 2.5 seconds)
+            - In the Terminology section
+              sonetSESThresholdSet  --> sonetSESthresholdSet
+            "
+    REVISION      "199810190000Z"
+    DESCRIPTION
+        "The RFC 2558 version of this MIB module.
+
+
+
+
+
+        The key changes made to this MIB module
         since its initial publication in RFC 1595
         are as follows.
 
@@ -80,11 +121,13 @@ sonetMIB MODULE-IDENTITY
             should be assumed, and the table containing those
             thresholds has been moved to Appendix B of this memo.
 
+
+
         (9) A column with SYNTAX TruthValue has been added to each
             interval table.  The purpose of the additional column
             is to indicate, for each interval, whether the data
             is valid in the sense intended by ANSI T1.231 clause
-            9.1.2.2 [31][35]. The objects in question are:
+            9.1.2.2 [T1.231a][T1.231b]. The objects in question are:
 
                 sonetSectionIntervalValidData
                 sonetLineIntervalValidData
@@ -104,12 +147,11 @@ sonetMIB MODULE-IDENTITY
             section have been corrected in order to prevent
             MIB compilation errors."
 
-    REVISION      "9401030000Z"
+    REVISION      "199401030000Z"
     DESCRIPTION
-        "The RFC1595 version of this MIB module."
+        "The RFC 1595 version of this MIB module."
 
     ::= { transmission 39 }
-
 
 --  This is the MIB module for the SONET/SDH objects
 
@@ -119,15 +161,18 @@ sonetObjectsPath  OBJECT IDENTIFIER ::= { sonetMIB 2 }
 
 sonetObjectsVT    OBJECT IDENTIFIER ::= { sonetMIB 3 }
 
-
 -- groups in the SONET/SDH MIB module
 
 sonetMedium        OBJECT IDENTIFIER ::= { sonetObjects 1 }
 
 sonetSection       OBJECT IDENTIFIER ::= { sonetObjects 2 }
+
 sonetLine          OBJECT IDENTIFIER ::= { sonetObjects 3 }
 
 sonetFarEndLine    OBJECT IDENTIFIER ::= { sonetObjects 4 }
+
+
+
 
 sonetPath          OBJECT IDENTIFIER ::= { sonetObjectsPath 1 }
 
@@ -177,6 +222,9 @@ sonetMediumType OBJECT-TYPE
     SYNTAX  INTEGER  {
                sonet(1),
                sdh(2)
+
+
+
             }
     MAX-ACCESS  read-write
     STATUS  current
@@ -225,6 +273,9 @@ sonetMediumLineCoding OBJECT-TYPE
     SYNTAX  INTEGER {
                 sonetMediumOther(1),
                 sonetMediumB3ZS(2),
+
+
+
                 sonetMediumCMI(3),
                 sonetMediumNRZ(4),
                 sonetMediumRZ(5)
@@ -271,6 +322,11 @@ sonetMediumCircuitIdentifier OBJECT-TYPE
        Note that the circuit identifier, if available,
        is also represented by ifPhysAddress."
     ::= { sonetMediumEntry 6 }
+
+
+
+
+
 sonetMediumInvalidIntervals OBJECT-TYPE
     SYNTAX  Integer32 (0..96)
     MAX-ACCESS  read-only
@@ -319,6 +375,9 @@ sonetSESthresholdSet    OBJECT-TYPE
     SYNTAX   INTEGER {
                other(1),
                bellcore1991(2),
+
+
+
                ansi1993(3),
                itu1995(4),
                ansi1997(5)
@@ -335,19 +394,19 @@ sonetSESthresholdSet    OBJECT-TYPE
          None of the following.
 
        bellcore1991(2)
-         Bellcore TR-NWT-000253, 1991 [32], or
-         ANSI T1M1.3/93-005R2, 1993 [22].
+         Bellcore TR-NWT-000253, 1991 [TR253], or
+         ANSI T1M1.3/93-005R2, 1993 [T1M1.3].
          See also Appendix B.
 
        ansi1993(3)
-         ANSI T1.231, 1993 [31], or
-         Bellcore GR-253-CORE, Issue 2, 1995 [34]
+         ANSI T1.231, 1993 [T1.231a], or
+         Bellcore GR-253-CORE, Issue 2, 1995 [GR253]
 
        itu1995(4)
-         ITU Recommendation G.826, 1995 [33]
+         ITU Recommendation G.826, 1995 [G.826]
 
        ansi1997(5)
-         ANSI T1.231, 1997 [35]
+         ANSI T1.231, 1997 [T1.231b]
 
        If a manager changes the value of this
        object then the SES statistics collected
@@ -360,14 +419,15 @@ sonetSESthresholdSet    OBJECT-TYPE
 -- - the SONET/SDH Section Current Table
 -- - the SONET/SDH Section Interval Table
 
-
-
 -- the SONET/SDH Section Current Table
 
 -- The SONET/SDH Section
-
 -- current table contains various statistics
 -- being collected for the current 15 minute interval.
+
+
+
+
 
 sonetSectionCurrentTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF SonetSectionCurrentEntry
@@ -395,7 +455,6 @@ SonetSectionCurrentEntry ::=
         sonetSectionCurrentCVs      PerfCurrentCount
     }
 
-
 sonetSectionCurrentStatus OBJECT-TYPE
     SYNTAX  Integer32 (1..6)
     MAX-ACCESS  read-only
@@ -417,6 +476,9 @@ sonetSectionCurrentStatus OBJECT-TYPE
              2   sonetSectionLOS
              4   sonetSectionLOF"
      ::= { sonetSectionCurrentEntry 1 }
+
+
+
 
 sonetSectionCurrentESs OBJECT-TYPE
     SYNTAX  PerfCurrentCount
@@ -466,6 +528,9 @@ sonetSectionCurrentCVs OBJECT-TYPE
 -- contains various statistics
 -- collected by each system over a maximum
 -- of the previous 24 hours of
+
+
+
 -- operation.  The past 24 hours may be broken into 96
 -- completed 15 minute intervals.
 -- A system is required to store at
@@ -500,7 +565,6 @@ SonetSectionIntervalEntry ::=
          sonetSectionIntervalValidData  TruthValue
     }
 
-
 sonetSectionIntervalNumber OBJECT-TYPE
     SYNTAX  Integer32 (1..96)
     MAX-ACCESS  not-accessible
@@ -515,6 +579,8 @@ sonetSectionIntervalNumber OBJECT-TYPE
       one identified
       by N-1."
      ::= { sonetSectionIntervalEntry 1 }
+
+
 
 sonetSectionIntervalESs OBJECT-TYPE
     SYNTAX  PerfIntervalCount
@@ -563,6 +629,10 @@ sonetSectionIntervalCVs OBJECT-TYPE
        in the past 24 hours."
     ::= { sonetSectionIntervalEntry 5 }
 
+
+
+
+
 sonetSectionIntervalValidData OBJECT-TYPE
     SYNTAX  TruthValue
     MAX-ACCESS  read-only
@@ -572,13 +642,11 @@ sonetSectionIntervalValidData OBJECT-TYPE
         interval is valid."
     ::= { sonetSectionIntervalEntry 6 }
 
-
 -- the SONET/SDH Line group
 
 -- this group consists of 2 tables:
 -- - the SONET/SDH Line Current Table
 -- - the SONET/SDH Line Interval Table
-
 
 -- the SONET/SDH Line Current Table
 
@@ -611,6 +679,9 @@ SonetLineCurrentEntry ::=
          sonetLineCurrentCVs       PerfCurrentCount,
          sonetLineCurrentUASs      PerfCurrentCount
      }
+
+
+
 
 
 sonetLineCurrentStatus OBJECT-TYPE
@@ -661,6 +732,9 @@ sonetLineCurrentCVs OBJECT-TYPE
     SYNTAX  PerfCurrentCount
     MAX-ACCESS  read-only
     STATUS  current
+
+
+
     DESCRIPTION
      "The counter associated with the number of Coding
      Violations encountered by a
@@ -678,7 +752,6 @@ sonetLineCurrentUASs OBJECT-TYPE
      minute
      interval."
     ::= { sonetLineCurrentEntry 5 }
-
 
 -- the SONET/SDH Line Interval Table
 
@@ -710,6 +783,9 @@ sonetLineIntervalEntry OBJECT-TYPE
              sonetLineIntervalNumber }
    ::= { sonetLineIntervalTable 1 }
 
+
+
+
 SonetLineIntervalEntry ::=
     SEQUENCE {
         sonetLineIntervalNumber    Integer32,
@@ -719,7 +795,6 @@ SonetLineIntervalEntry ::=
         sonetLineIntervalUASs      PerfIntervalCount,
         sonetLineIntervalValidData TruthValue
     }
-
 
 sonetLineIntervalNumber OBJECT-TYPE
     SYNTAX  Integer32 (1..96)
@@ -759,6 +834,8 @@ sonetLineIntervalSESs OBJECT-TYPE
        particular 15-minute interval
        in the past 24 hours."
       ::= { sonetLineIntervalEntry 3 }
+
+
 
 sonetLineIntervalCVs OBJECT-TYPE
     SYNTAX  PerfIntervalCount
@@ -802,14 +879,15 @@ sonetLineIntervalValidData OBJECT-TYPE
 --    SONET/SDH Far End Line Current Table
 --    SONET/SDH Far End Line Interval Table
 
-
-
 -- The SONET/SDH Far End Line Current Table
 
 -- The SONET/SDH Far End Line Current table contains
 -- various statistics being
 -- collected for the current 15 minute interval.
 -- The statistics are collected from the far end
+
+
+
 -- block error code (FEBE)
 -- within the third Z2 byte of the Line Overhead
 -- in Broadband ISDN applications.
@@ -858,6 +936,9 @@ sonetFarEndLineCurrentSESs OBJECT-TYPE
    DESCRIPTION
        "The counter associated with the number of
        Far End Severely Errored Seconds
+
+
+
        encountered by a SONET/SDH Medium/Section/Line
        interface in the current 15 minute
        interval."
@@ -888,13 +969,11 @@ sonetFarEndLineCurrentUASs OBJECT-TYPE
        interface in the current 15 minute interval."
    ::= { sonetFarEndLineCurrentEntry 4 }
 
-
 -- The SONET/SDH Far End Line Interval Table
 
 -- The SONET/SDH Far End Line Interval Table
 -- contains various statistics
 -- collected by each system over a maximum
-
 -- of the previous 24 hours of
 -- operation.  The past 24 hours may be broken into 96
 -- completed 15 minute intervals.
@@ -908,6 +987,9 @@ sonetFarEndLineIntervalTable OBJECT-TYPE
    STATUS  current
    DESCRIPTION
       "The SONET/SDH Far End Line Interval table."
+
+
+
    ::= { sonetFarEndLine 2 }
 
 sonetFarEndLineIntervalEntry OBJECT-TYPE
@@ -930,7 +1012,6 @@ SonetFarEndLineIntervalEntry ::=
          sonetFarEndLineIntervalUASs      PerfIntervalCount,
          sonetFarEndLineIntervalValidData TruthValue
     }
-
 
 sonetFarEndLineIntervalNumber OBJECT-TYPE
    SYNTAX  Integer32 (1..96)
@@ -957,6 +1038,9 @@ sonetFarEndLineIntervalESs OBJECT-TYPE
         by a SONET/SDH Line
         interface in a particular 15-minute interval
         in the past 24 hours."
+
+
+
   ::= { sonetFarEndLineIntervalEntry 2 }
 
 sonetFarEndLineIntervalSESs OBJECT-TYPE
@@ -1005,6 +1089,9 @@ sonetFarEndLineIntervalValidData OBJECT-TYPE
     DESCRIPTION
        "This variable indicates if the data for this
         interval is valid."
+
+
+
     ::= { sonetFarEndLineIntervalEntry 6 }
 
 -- the SONET/SDH Path group
@@ -1012,7 +1099,6 @@ sonetFarEndLineIntervalValidData OBJECT-TYPE
 -- this group consists of 2 tables:
 -- - the SONET/SDH Path Current Table
 -- - the SONET/SDH Path Interval Table
-
 
 -- the SONET/SDH Path Current Table
 
@@ -1047,23 +1133,27 @@ SonetPathCurrentEntry ::=
         sonetPathCurrentUASs       PerfCurrentCount
     }
 
-
 sonetPathCurrentWidth OBJECT-TYPE
     SYNTAX  INTEGER  {
             sts1(1),
             sts3cSTM1(2),
             sts12cSTM4(3),
             sts24c(4),
-            sts48cSTM16(5)
+            sts48cSTM16(5),
+
+
+
+            sts192cSTM64(6),
+            sts768cSTM256(7)
      }
     MAX-ACCESS  read-write
     STATUS  current
     DESCRIPTION
      "A value that indicates the type of the SONET/SDH
      Path.  For SONET, the assigned types are
-     the STS-Nc SPEs, where N = 1, 3, 12, 24, and 48.
+     the STS-Nc SPEs, where N = 1, 3, 12, 24, 48, 192 and 768.
      STS-1 is equal to 51.84 Mbps.  For SDH, the assigned
-     types are the STM-Nc VCs, where N = 1, 4, and 16."
+     types are the STM-Nc VCs, where N = 1, 4, 16, 64 and 256."
 ::= { sonetPathCurrentEntry 1 }
 
 sonetPathCurrentStatus OBJECT-TYPE
@@ -1100,6 +1190,9 @@ sonetPathCurrentESs OBJECT-TYPE
      Seconds encountered by a SONET/SDH
      Path in the current 15 minute interval."
 ::= { sonetPathCurrentEntry 3 }
+
+
+
 
 sonetPathCurrentSESs OBJECT-TYPE
     SYNTAX  PerfCurrentCount
@@ -1146,6 +1239,12 @@ sonetPathCurrentUASs OBJECT-TYPE
 -- least 4 completed 15 minute interval.
 -- The default value is 32 intervals.
 
+
+
+
+
+
+
 sonetPathIntervalTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF SonetPathIntervalEntry
     MAX-ACCESS  not-accessible
@@ -1164,7 +1263,6 @@ sonetPathIntervalEntry OBJECT-TYPE
               sonetPathIntervalNumber }
 ::= { sonetPathIntervalTable 1 }
 
-
 SonetPathIntervalEntry ::=
     SEQUENCE {
          sonetPathIntervalNumber     Integer32,
@@ -1174,7 +1272,6 @@ SonetPathIntervalEntry ::=
          sonetPathIntervalUASs       PerfIntervalCount,
          sonetPathIntervalValidData  TruthValue
     }
-
 
 sonetPathIntervalNumber OBJECT-TYPE
     SYNTAX  Integer32 (1..96)
@@ -1196,6 +1293,9 @@ sonetPathIntervalESs OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS  current
     DESCRIPTION
+
+
+
      "The counter associated with the number of
      Errored Seconds encountered
      by a SONET/SDH Path in a
@@ -1244,6 +1344,9 @@ sonetPathIntervalValidData OBJECT-TYPE
     STATUS  current
     DESCRIPTION
        "This variable indicates if the data for this
+
+
+
         interval is valid."
     ::= { sonetPathIntervalEntry 6 }
 
@@ -1288,6 +1391,11 @@ SonetFarEndPathCurrentEntry ::=
         sonetFarEndPathCurrentCVs       PerfCurrentCount,
         sonetFarEndPathCurrentUASs      PerfCurrentCount
     }
+
+
+
+
+
 
 
 sonetFarEndPathCurrentESs OBJECT-TYPE
@@ -1337,6 +1445,10 @@ sonetFarEndPathCurrentUASs OBJECT-TYPE
        the current 15 minute interval."
    ::= { sonetFarEndPathCurrentEntry 4 }
 
+
+
+
+
 -- The SONET/SDH Far End Path Interval Table
 
 -- The SONET/SDH Far End Path Interval Table
@@ -1385,6 +1497,9 @@ sonetFarEndPathIntervalNumber OBJECT-TYPE
    DESCRIPTION
         "A number between 1 and 96, which identifies the
         interval for which the set of statistics is available.
+
+
+
         The interval identified by 1 is the most recently
         completed 15 minute interval,
         and the interval identified
@@ -1431,6 +1546,11 @@ sonetFarEndPathIntervalCVs OBJECT-TYPE
          in the past 24 hours."
     ::= { sonetFarEndPathIntervalEntry 4 }
 
+
+
+
+
+
 sonetFarEndPathIntervalUASs OBJECT-TYPE
    SYNTAX  PerfIntervalCount
    MAX-ACCESS  read-only
@@ -1459,14 +1579,14 @@ sonetFarEndPathIntervalValidData OBJECT-TYPE
 -- - the SONET/SDH VT Current Table
 -- - the SONET/SDH VT Interval Table
 
--- For SDH signals, virtual tributaries are
--- called VCs instead of VTs
+-- Corresponding SDH signals for SONET VTs are
+-- as follows:
 
--- A VT1.5 = VC11
--- A VT2 = VC12
+-- A VT1.5 = TU11
+-- A VT2 = TU12
 -- A VT3 = none
--- A VT6 = VC3
-
+-- none  = TU3
+-- A VT6 = TU2
 
 -- the SONET/SDH VT Current Table
 
@@ -1474,6 +1594,13 @@ sonetFarEndPathIntervalValidData OBJECT-TYPE
 -- contains various statistics
 -- being collected for the
 -- current 15 minute interval.
+
+
+
+
+
+
+
 
 sonetVTCurrentTable OBJECT-TYPE
     SYNTAX  SEQUENCE OF SonetVTCurrentEntry
@@ -1517,6 +1644,14 @@ sonetVTCurrentWidth OBJECT-TYPE
      VT and SDH VC.  Assigned widths are
      VT1.5/VC11, VT2/VC12, VT3, VT6/VC2, and VT6c."
 ::= { sonetVTCurrentEntry 1 }
+
+
+
+
+
+
+
+
 
 sonetVTCurrentStatus OBJECT-TYPE
     SYNTAX  Integer32 (1..126)
@@ -1566,6 +1701,9 @@ sonetVTCurrentSESs OBJECT-TYPE
      interval."
 ::= { sonetVTCurrentEntry 4 }
 
+
+
+
 sonetVTCurrentCVs OBJECT-TYPE
     SYNTAX  PerfCurrentCount
     MAX-ACCESS  read-only
@@ -1586,7 +1724,6 @@ sonetVTCurrentUASs OBJECT-TYPE
      encountered by a VT in the current
      15 minute interval."
 ::= { sonetVTCurrentEntry 6 }
-
 
 -- the SONET/SDH VT Interval Table
 
@@ -1615,6 +1752,9 @@ sonetVTIntervalEntry OBJECT-TYPE
     DESCRIPTION
      "An entry in the SONET/SDH VT Interval table."
     INDEX   { ifIndex,
+
+
+
               sonetVTIntervalNumber }
 ::= { sonetVTIntervalTable 1 }
 
@@ -1663,6 +1803,9 @@ sonetVTIntervalSESs OBJECT-TYPE
      Severely Errored Seconds
      encountered by a SONET/SDH VT
      in a particular 15-minute interval
+
+
+
      in the past 24 hours."
 ::= { sonetVTIntervalEntry 3 }
 
@@ -1703,7 +1846,6 @@ sonetVTIntervalValidData OBJECT-TYPE
 --    SONET/SDH Far End VT Current Table
 --    SONET/SDH Far End VT Interval Table
 
-
 -- The SONET/SDH Far End VT Current
 
 -- The SONET/SDH Far End VT Current table
@@ -1712,6 +1854,9 @@ sonetVTIntervalValidData OBJECT-TYPE
 -- The statistics are collected from
 -- the far end block error code
 -- (FEBE) within the G1 byte of the VT Overhead.
+
+
+
 -- The definitions are the same as described for
 -- the near-end information.
 
@@ -1740,7 +1885,6 @@ SonetFarEndVTCurrentEntry ::=
         sonetFarEndVTCurrentUASs      PerfCurrentCount
     }
 
-
 sonetFarEndVTCurrentESs OBJECT-TYPE
     SYNTAX  PerfCurrentCount
     MAX-ACCESS  read-only
@@ -1761,6 +1905,9 @@ sonetFarEndVTCurrentSESs OBJECT-TYPE
         encountered by a SONET/SDH VT interface
         in the current 15 minute
         interval."
+
+
+
     ::= { sonetFarEndVTCurrentEntry 2 }
 
 sonetFarEndVTCurrentCVs OBJECT-TYPE
@@ -1807,6 +1954,10 @@ sonetFarEndVTIntervalTable OBJECT-TYPE
     DESCRIPTION
        "The SONET/SDH Far End VT Interval table."
     ::= { sonetFarEndVT 2 }
+
+
+
+
 
 sonetFarEndVTIntervalEntry OBJECT-TYPE
     SYNTAX  SonetFarEndVTIntervalEntry
@@ -1856,6 +2007,9 @@ sonetFarEndVTIntervalESs OBJECT-TYPE
           in the past 24 hours."
    ::= { sonetFarEndVTIntervalEntry 2 }
 
+
+
+
 sonetFarEndVTIntervalSESs OBJECT-TYPE
     SYNTAX  PerfIntervalCount
     MAX-ACCESS  read-only
@@ -1904,9 +2058,13 @@ sonetFarEndVTIntervalValidData OBJECT-TYPE
         interval is valid."
     ::= { sonetFarEndVTIntervalEntry 6 }
 
+
+
+
 -- conformance information
 
 sonetConformance OBJECT IDENTIFIER ::= { sonetMIB 4 }
+
 sonetGroups      OBJECT IDENTIFIER ::= { sonetConformance 1 }
 sonetCompliances OBJECT IDENTIFIER ::= { sonetConformance 2 }
 
@@ -1952,6 +2110,8 @@ sonetCompliance MODULE-COMPLIANCE
              Paths or Virtual Tributaries, and that process
              Far End information."
 
+
+
         GROUP       sonetVTStuff
         DESCRIPTION
             "Implementation of this group is mandatory for all
@@ -1971,7 +2131,6 @@ sonetCompliance MODULE-COMPLIANCE
              Far End information."
 
     ::= { sonetCompliances 1 }
-
 
 -- current compliance statements
 
@@ -2001,7 +2160,11 @@ sonetCompliance2 MODULE-COMPLIANCE
         OBJECT      sonetMediumCircuitIdentifier
         MIN-ACCESS  read-only
         DESCRIPTION
+
+
+
             "Write access is not required."
+
         OBJECT      sonetMediumLoopbackConfig
         MIN-ACCESS  read-only
         DESCRIPTION
@@ -2048,8 +2211,12 @@ sonetCompliance2 MODULE-COMPLIANCE
         GROUP       sonetVTStuff2
         DESCRIPTION
             "Implementation of this group is mandatory for all
+
+
+
              SONET/SDH systems that terminate SONET/SDH Virtual
              Tributaries."
+
         OBJECT      sonetVTCurrentWidth
         MIN-ACCESS  read-only
         DESCRIPTION
@@ -2095,6 +2262,9 @@ sonetSectionStuff    OBJECT-GROUP
     STATUS  deprecated
     DESCRIPTION
             "A collection of objects providing information
+
+
+
             specific to SONET/SDH Section interfaces."
     ::= { sonetGroups 2 }
 
@@ -2143,6 +2313,9 @@ sonetPathStuff    OBJECT-GROUP
               sonetPathIntervalUASs }
     STATUS  deprecated
     DESCRIPTION
+
+
+
             "A collection of objects providing information
             specific to SONET/SDH Path interfaces."
     ::= { sonetGroups 5 }
@@ -2191,6 +2364,9 @@ sonetFarEndVTStuff    OBJECT-GROUP
               sonetFarEndVTIntervalUASs }
     STATUS  deprecated
     DESCRIPTION
+
+
+
             "A collection of objects providing information
             specific to SONET/SDH VT interfaces,
             and maintaining VT Far End information."
@@ -2239,6 +2415,9 @@ sonetLineStuff2    OBJECT-GROUP
               sonetLineCurrentUASs,
               sonetLineIntervalESs,
               sonetLineIntervalSESs,
+
+
+
               sonetLineIntervalCVs,
               sonetLineIntervalUASs,
               sonetLineIntervalValidData }
@@ -2287,6 +2466,9 @@ sonetVTStuff2    OBJECT-GROUP
 sonetFarEndLineStuff2    OBJECT-GROUP
     OBJECTS { sonetFarEndLineCurrentESs,
               sonetFarEndLineCurrentSESs,
+
+
+
               sonetFarEndLineCurrentCVs,
               sonetFarEndLineCurrentUASs,
               sonetFarEndLineIntervalESs,
@@ -2334,6 +2516,8 @@ sonetFarEndVTStuff2    OBJECT-GROUP
             specific to SONET/SDH VT interfaces,
             and maintaining VT Far End information."
     ::= { sonetGroups 16 }
+
+
 
 
 END
