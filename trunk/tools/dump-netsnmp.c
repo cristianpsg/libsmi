@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-netsnmp.c,v 1.10 2001/01/31 12:14:04 schoenw Exp $
  */
 
 /*
@@ -600,7 +600,8 @@ static void printReadMethod(FILE *f, SmiNode *groupNode)
 		break;
 	    default:
 		fprintf(f,
-			"        /* add code to return the value here */\n");
+			"        return NULL; /* XXX add code here */\n");
+		break;
 	    }
 	    fprintf(f, "\n");
 	    xfree(cName);
@@ -742,9 +743,13 @@ static void printTypedef(FILE *f, SmiNode *groupNode)
 		fprintf(f,
 			"    uint32_t  %s;\n", cName);
 		break;
+	    case SMI_BASETYPE_UNSIGNED64:
+		fprintf(f,
+			"    uint64_t  %s;\n", cName);
+		break;
 	    default:
 		fprintf(f,
-			"    /* add code to return the value here */\n");
+			"    /* XXX add code here */\n");
 	    }
 	    xfree(cName);
 	}
