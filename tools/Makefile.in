@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.21 2000/11/13 00:13:49 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.22 2000/11/29 16:35:26 strauss Exp $
 #
 
 

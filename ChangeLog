@@ -1,5 +1,7 @@
 2000-11-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.2.11.tar.gz: released version 0.2.11.
+
 	* tools/dump-*.c: Now all smidump driver modules register their
 	format drivers with smidump with an init_<format>() function.
 	Additionally, we allow a driver to register format specific
