@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smi.h,v 1.20 1999/05/25 11:46:01 strauss Exp $
+ * @(#) $Id: smi.h,v 1.21 1999/05/25 17:00:34 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -248,10 +248,6 @@ typedef struct SmiNode {
     SmiIdentifier       relatedmodule;    
     SmiIdentifier       relatedname;    
 #if 0
-    char                **list;
-    char                **index;
-#endif
-#if 0
     SmiOption           **option;
     SmiRefinement       **refinement;
 #endif
@@ -392,6 +388,7 @@ extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 
+/* TODO: compl-mand/option/refine row-creatable?, */
 
 
 /* extern char **smiGetNames(char *spec, char *mod); */
