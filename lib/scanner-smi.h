@@ -1,22 +1,22 @@
 /*
- * scanner.h --
+ * scanner-smi.h --
  *
- *      Definition of lexical tokens of the MIB module language.
+ *      Definition of lexical tokens of the SMIv1/v2 MIB module language.
  *
  * Copyright (c) 1998 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner.h,v 1.12 1998/08/24 00:00:29 strauss Exp $
+ * @(#) $Id: scanner.h,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
-#ifndef _SCANNER_H
-#define _SCANNER_H
+#ifndef _SCANNER_SMI_H
+#define _SCANNER_SMI_H
 
 #include <stdio.h>
 
-#include "parser.h"
+#include "parser-smi.h"
 
 #define YY_NO_UNPUT
 
@@ -46,4 +46,4 @@ extern int enterLexRecursion(FILE *file);
 extern void leaveLexRecursion();
 extern int lexDepth;
 
-#endif /* _SCANNER_H */
+#endif /* _SCANNER_SMI_H */

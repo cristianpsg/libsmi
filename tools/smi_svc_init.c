@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_init.c,v 1.3 1998/11/25 14:36:34 strauss Exp $
+ * @(#) $Id: smi_svc_init.c,v 1.4 1998/12/01 16:59:37 strauss Exp $
  */
 
 #include <stdio.h>

@@ -1,5 +1,5 @@
 /*
- * util.h --
+ * util.c --
  *
  *      Misc utility functions.
  *
@@ -8,27 +8,33 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: util.c,v 1.1 1998/12/22 17:09:29 strauss Exp $
  */
-
-#ifndef _UTIL_H
-#define _UTIL_H
 
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "smi.h"
 #include "defs.h"
 #include "error.h"
-#include "parser.h"
+#include "parser-smi.h"
 
 
 
-void *util_malloc(size_t size);
+void *
+util_malloc(size)
+    size_t  size;
+{
+    return malloc(size);
+}
 
-char *util_strdup(const char *s1);
 
 
-
-#endif /* _UTIL_H */
+char *
+util_strdup(s1)
+    const char *s1;
+{
+    return strdup(s1);
+}

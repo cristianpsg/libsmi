@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: config.h,v 1.1 1998/11/04 02:14:52 strauss Exp $
  */
 
 #ifndef _CONFIG_H
@@ -20,7 +20,7 @@
 
 #include "defs.h"
 #include "error.h"
-#include "parser.h"
+#include "parser-smi.h"
 
 
 

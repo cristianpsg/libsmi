@@ -8,14 +8,14 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.10 1999/02/17 16:39:08 strauss Exp $
+ * @(#) $Id: error.h,v 1.11 1999/02/18 17:13:00 strauss Exp $
  */
 
 #ifndef _ERROR_H
 #define _ERROR_H
 
-#include "scanner.h"
-#include "parser.h"
+#include "scanner-smi.h"
+#include "parser-smi.h"
 
 #define ERR_INTERNAL                             0
 #define ERR_ILLEGAL_KEYWORD                      1

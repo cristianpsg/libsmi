@@ -1,5 +1,5 @@
 /*
- * lint.c --
+ * smilint.c --
  *
  *      MIB module checker main program.
  *
@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.10 1998/11/25 14:36:34 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <stdio.h>
@@ -23,8 +23,8 @@
 #include "defs.h"
 #include "config.h"
 #include "error.h"
-#include "scanner.h"
-#include "parser-bison.h"
+#include "scanner-smi.h"
+#include "parser-smi.tab.h"
 #include "data.h"
 
 extern int yydebug;

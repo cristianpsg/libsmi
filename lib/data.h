@@ -21,7 +21,7 @@
 #include "smi.h"
 #include "defs.h"
 #include "error.h"
-#include "parser.h"
+#include "parser-smi.h"
 
 
 
