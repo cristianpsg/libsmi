@@ -1,0 +1,17 @@
+TUBS-IBR-TNM-COMPAT DEFINITIONS ::= BEGIN
+
+IMPORTS
+    TEXTUAL-CONVENTION	FROM SNMPv2-TC;
+
+-- This file contains SNMPv2 compatible TC definitions
+-- for old SNMPv1 SMI style RFCs. Please let me know if
+-- more important things are missing here.
+
+InternationalDisplayString ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "255a"
+    STATUS       current
+    DESCRIPTION
+	"See definition in rfc1514."
+    SYNTAX       OCTET STRING (SIZE (0..255))
+
+END

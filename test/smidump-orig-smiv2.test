@@ -8,17 +8,17 @@ mkdir smidump-orig-${FORMAT}.out
 RC=0
 
 for mib in ${TESTMIBS} ; do
-    echo "comparing \`smidump -f ${FORMAT} $mib' output with ../mibs/$mib."
+    echo "comparing \`smidump -f ${FORMAT} $mib' output with ../mibs/ietf/$mib."
     ../tools/smidump -f ${FORMAT} $mib > smidump-orig-${FORMAT}.out/$mib.${FORMAT}
 
-    ./filter < ../mibs/$mib > smidump-orig-${FORMAT}.out/$mib.orig.filtered
+    ./filter < ../mibs/ietf/$mib > smidump-orig-${FORMAT}.out/$mib.orig.filtered
     ./filter < smidump-orig-${FORMAT}.out/$mib.${FORMAT} > smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered
 
     diff smidump-orig-${FORMAT}.out/$mib.orig.filtered smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered > smidump-orig-${FORMAT}.out/$mib.diff
 
     WC=`diff smidump-orig-${FORMAT}.out/$mib.diff dumps/$mib.${FORMAT}.diff | wc -l`
     if [ $WC -ne 0 ] ; then
-	echo "*** smidump -f ${FORMAT} $mib output differs unexpectedly from ../mibs/$mib."
+	echo "*** smidump -f ${FORMAT} $mib output differs unexpectedly from ../mibs/ietf/$mib."
 	RC=1
     fi
 done
