@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.61 2001/09/25 07:21:34 schoenw Exp $
+ * @(#) $Id: smidump.c,v 1.62 2001/09/25 14:40:54 schoenw Exp $
  */
 
 #include <config.h>
@@ -155,6 +155,7 @@ static void usage()
 {
     int i;
     SmidumpDriver *driver;
+    char *value = NULL;
     
     fprintf(stderr,
 	    "Usage: smidump [options] [module or path ...]\n"
@@ -177,9 +178,29 @@ static void usage()
 	fprintf(stderr, "\nSpecific option for the \"%s\" format:\n",
 		driver->name);
 	for (i = 0; driver->opt && driver->opt[i].type != OPT_END; i++) {
-	    fprintf(stderr, "  --%s-%-*s  %s\n",
-		    driver->name, 24 - strlen(driver->name),
-		    driver->opt[i].name,
+	    int n;
+	    switch (driver->opt[i].type) {
+	    case OPT_END:
+	    case OPT_FLAG:
+		value = NULL;
+		break;
+	    case OPT_STRING:
+		value = "string";
+		break;
+	    case OPT_INT:
+	    case OPT_UINT:
+	    case OPT_LONG:
+	    case OPT_ULONG:
+		value = "number";
+		break;
+	    }
+	    fprintf(stderr, "  --%s-%s%s%s%n",
+		    driver->name, driver->opt[i].name,
+		    value ? "=" : "",
+		    value ? value : "",
+		    &n);
+	    fprintf(stderr, "%*s%s\n",
+		    30-n, "",
 		    driver->opt[i].descr ? driver->opt[i].descr : "...");
 	}
     }
