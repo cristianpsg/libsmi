@@ -10,7 +10,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id$
+# @(#) $Id: makefile,v 1.1 2000/04/11 09:00:46 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -26,7 +26,8 @@ TOOLS32	= c:\msdev
 ##
 ## Installation paths: 
 ##
-## MIBROOT  -- definition for default search path (unix-style)
+## MIBROOT  -- definition for default search path (unix-style;
+##	       check aginst config.h)
 ## MIBDIR   -- same in windows style
 ## BINDIR   -- destination for the binaries (smidump.exe, ...)
 ##
@@ -50,8 +51,7 @@ MKDIR	= md
 ##
 # DEBUG = -W3 -Zi -Od /Yd
 INCLUDES = -I$(ROOT)\lib -I$(ROOT)/win -I$(TOOLS32)\include
-DEFINES = $(DEBUG) \
-	/DDEFAULT_SMIPATH=\"$(MIBROOT)/ietf:$(MIBROOT)/iana:$(MIBROOT)/irtf:$(MIBROOT)/site\"
+DEFINES = $(DEBUG)
 
 !include <ntwin32.mak>
 
@@ -80,7 +80,10 @@ TOOLSOBJS = \
 	$(TMPDIR)\dump-tree.obj \
 	$(TMPDIR)\dump-mosy.obj \
 	$(TMPDIR)\dump-corba.obj \
-	$(TMPDIR)\dump-ucdsnmp.obj
+	$(TMPDIR)\dump-ucdsnmp.obj \
+	$(TMPDIR)\dump-cm.obj \
+	$(TMPDIR)\dump-jax.obj \
+	$(TMPDIR)\dump-xml.obj
 
 SMILIB = smi.lib
 
@@ -119,7 +122,9 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) \
 		/osmidump.exe smidump.obj dump-sming.obj dump-smi.obj \
 		dump-imports.obj dump-types.obj dump-tree.obj dump-mosy.obj \
-		dump-corba.obj dump-ucdsnmp.obj $(SMILIB)
+		dump-corba.obj dump-ucdsnmp.obj dump-jax.obj dump-cm.obj \
+		dump-xml.obj $(SMILIB)
+
 clean:
 	del *.lib
 	del *.obj
@@ -151,6 +156,9 @@ install-mibs:
 	$(CP) ..\mibs\ietf\*.* $(MIBDIR)\ietf
 	$(MKDIR) $(MIBDIR)\irtf
 	$(CP) ..\mibs\irtf\*.* $(MIBDIR)\irtf
+	$(MKDIR) $(MIBDIR)\tubs
+	$(CP) ..\mibs\tubs\*.* $(MIBDIR)\tubs
 	$(MKDIR) $(MIBDIR)\site
+	$(CP) ..\mibs\site\*.* $(MIBDIR)\site
 
 ##

@@ -8,21 +8,23 @@ tools on a Windows platform without the cygnus environment. The
 makefile works fine with VC++ v4.2, but later versions should work
 very well too.
 
+About mingw32 based compilation please have a look at README.mingw.
+
 
 Compiling and Installation:
 ---------------------------
  
 To compile simply run
-	nmake
+	nmake -f makefile.vc
 and to install a
-	nmake install
+	nmake -f makefile.vc install 
 should do what you expect.
 
 
-Default path's are \smi\mibs\... for the MIB-files and \smi\bin for
-the tools (smidump.exe, ...).
+Default path's are c:\smi\mibs\... for the MIB-files and c:\smi\bin
+for the tools (smidump.exe, ...).
 
-Globalconfig is defined as \smi\smi.conf.
+Globalconfig is defined as c:\smi\smi.conf.
 
 
 TODO's and Known Problems:
@@ -32,12 +34,17 @@ TODO's and Known Problems:
   replaced by their 32 bit counterparts and will not work. This
   needs a general solution (probably using int64_t and friends).
 
-- The DEFAULT_USERCONFIG is not defined.
-
 - The version define is hardwired in config.h.
 
+- scanner, parser and the smi.h source have to be created by within
+  Unix environment.
+
+- The SMIPATH seperator character is the Windows style ; and not the
+  Unix style : .
 
 
+
+Mon May  1 14:47:50 MEST 2000
 ---
 <stu> you should be afraid to use KDE because RMS might come to your
       house and cleave your monitor with an axe or something :)
