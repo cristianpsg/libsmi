@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.20 1998/12/14 16:35:50 strauss Exp $
+# @(#) $Id: Makefile,v 1.21 1998/12/22 17:09:12 strauss Exp $
 #
 #
 # NOTE: We need flex and bison. Lex and yacc do not work.
@@ -75,6 +75,7 @@ parser.y.html: parser.y yacc2html
 	cat parser.y | \
 	    sed -e 's!<!\&lt;!g' -e 's!>!\&gt;!g' | \
 	    ./yacc2html | \
+	    grep -v '^			$$' | \
 	    sed -e 's!REF:RFC\([0-9]*\),\([0-9\.]*\)!REF:<A HREF="http://www.ibr.cs.tu-bs.de/doc/rfc?PATTERN=\1#\2">RFC\1,\2</A>!g' \
 	    >> parser.y.html
 	echo '</PRE></BODY></HTML>' >> parser.y.html
