@@ -16,10 +16,10 @@ for mib in ${TESTMIBS} ; do
 
     @DIFF@ smidump-orig-${FORMAT}.out/$mib.orig.filtered smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered > smidump-orig-${FORMAT}.out/$mib.diff
 
-    WC=`@DIFF@ smidump-orig-${FORMAT}.out/$mib.diff dumps/$mib.${FORMAT}.diff | wc -l`
+    WC=`@DIFF@ smidump-orig-${FORMAT}.out/$mib.diff dumps/$mib.diff | wc -l`
     if [ $WC -ne 0 ] ; then
 	echo "*** smidump -f ${FORMAT} output differs, for details take a look at"
-	echo "*** diff -u dumps/$mib.${FORMAT} smidump-${FORMAT}.out/$mib.${FORMAT}"
+	echo "*** diff dumps/$mib.${FORMAT} smidump-orig-${FORMAT}.out/$mib.${FORMAT}"
 	RC=1
     fi
 done
