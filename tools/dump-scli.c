@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.32 2002/11/27 13:04:06 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.33 2002/12/17 17:49:16 schoenw Exp $
  */
 
 /*
@@ -494,14 +494,14 @@ getSnmpType(SmiType *smiType)
 	char *name;
 	char *tag;
     } typemap[] = {
-	{ "RFC1155-SMI",	"Counter",	"G_SNMP_COUNTER32" },
-	{ "SNMPv2-SMI",		"Counter32",	"G_SNMP_COUNTER32" },
-	{ "RFC1155-SMI",	"TimeTicks",	"G_SNMP_TIMETICKS" },
-	{ "SNMPv2-SMI",		"TimeTicks",	"G_SNMP_TIMETICKS" },
-	{ "RFC1155-SMI",	"Opaque",	"G_SNMP_OPAQUE" },
-	{ "SNMPv2-SMI",		"Opaque",	"G_SNMP_OPAQUE" },
-	{ "RFC1155-SMI",	"IpAddress",	"G_SNMP_IPADDRESS" },
-	{ "SNMPv2-SMI",		"IpAddress",	"G_SNMP_IPADDRESS" },
+	{ "RFC1155-SMI","Counter",	"GNET_SNMP_VARBIND_TYPE_COUNTER32" },
+	{ "SNMPv2-SMI",	"Counter32",	"GNET_SNMP_VARBIND_TYPE_COUNTER32" },
+	{ "RFC1155-SMI","TimeTicks",	"GNET_SNMP_VARBIND_TYPE_TIMETICKS" },
+	{ "SNMPv2-SMI",	"TimeTicks",	"GNET_SNMP_VARBIND_TYPE_TIMETICKS" },
+	{ "RFC1155-SMI","Opaque",	"GNET_SNMP_VARBIND_TYPE_OPAQUE" },
+	{ "SNMPv2-SMI",	"Opaque",	"GNET_SNMP_VARBIND_TYPE_OPAQUE" },
+	{ "RFC1155-SMI","IpAddress",	"GNET_SNMP_VARBIND_TYPE_IPADDRESS" },
+	{ "SNMPv2-SMI",	"IpAddress",	"GNET_SNMP_VARBIND_TYPE_IPADDRESS" },
 	{ NULL, NULL, NULL }
     };
 
@@ -520,19 +520,19 @@ getSnmpType(SmiType *smiType)
     switch (basetype) {
     case SMI_BASETYPE_INTEGER32:
     case SMI_BASETYPE_ENUM:
-	return "G_SNMP_INTEGER32";
+	return "GNET_SNMP_VARBIND_TYPE_INTEGER32";
     case SMI_BASETYPE_UNSIGNED32:
-	return "G_SNMP_UNSIGNED32";
+	return "GNET_SNMP_VARBIND_TYPE_UNSIGNED32";
     case SMI_BASETYPE_INTEGER64:
 	return NULL;
     case SMI_BASETYPE_UNSIGNED64:
-	return "G_SNMP_COUNTER64";
+	return "GNET_SNMP_VARBIND_TYPE_COUNTER64";
     case SMI_BASETYPE_OCTETSTRING:
-	return "G_SNMP_OCTETSTRING";
+	return "GNET_SNMP_VARBIND_TYPE_OCTETSTRING";
     case SMI_BASETYPE_BITS:
-	return "G_SNMP_OCTETSTRING";
+	return "GNET_SNMP_VARBIND_TYPE_OCTETSTRING";
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-	return "G_SNMP_OBJECTID";
+	return "GNET_SNMP_VARBIND_TYPE_OBJECTID";
     case SMI_BASETYPE_FLOAT32:
     case SMI_BASETYPE_FLOAT64:
     case SMI_BASETYPE_FLOAT128:
@@ -2053,7 +2053,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "static inline int\n"
-	    "unpack_%s(GSnmpVarBind *vb, %s_%s_t *%s)\n"
+	    "unpack_%s(GNetSnmpVarBind *vb, %s_%s_t *%s)\n"
 	    "{\n"
 	    "    guint8 idx = %u;\n"
 	    "%s"
@@ -2077,14 +2077,14 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
 		fprintf(f,
-			"    if (vb->id_len < idx) return -1;\n"
-			"    %s->%s = vb->id[idx++];\n",
+			"    if (vb->oid_len < idx) return -1;\n"
+			"    %s->%s = vb->oid[idx++];\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
-			"    if (vb->id_len < idx) return -1;\n"
-			"    %s->%s = vb->id[idx++];\n",
+			"    if (vb->oid_len < idx) return -1;\n"
+			"    %s->%s = vb->oid[idx++];\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
@@ -2099,12 +2099,12 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    minSize);
 		} else if (last && indexNode->implied) {
 		    fprintf(f,
-			    "    if (vb->id_len < idx) return -1;\n"
-			    "    len = vb->id_len - idx;\n");
+			    "    if (vb->oid_len < idx) return -1;\n"
+			    "    len = vb->oid_len - idx;\n");
 		} else {
 		    fprintf(f,
-			    "    if (vb->id_len < idx) return -1;\n"
-			    "    len = vb->id[idx++];\n");
+			    "    if (vb->oid_len < idx) return -1;\n"
+			    "    len = vb->oid[idx++];\n");
 		}
 		if (minSize != maxSize) {
 		    if (minSize > 0 && maxSize < 65535) {
@@ -2120,9 +2120,9 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 		    }
 		}
 		fprintf(f,
-			"    if (vb->id_len < idx + len) return -1;\n"
+			"    if (vb->oid_len < idx + len) return -1;\n"
 			"    for (i = 0; i < len; i++) {\n"
-			"        %s->%s[i] = vb->id[idx++];\n"
+			"        %s->%s[i] = vb->oid[idx++];\n"
 			"    }\n",
 			cGroupName, cName);
 		if (minSize != maxSize) {
@@ -2139,17 +2139,17 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 		if (minSize == maxSize) {
 		    fprintf(f,
 			    "    len = %u;\n"
-			    "    if (vb->id_len < idx + len) return -1;\n",
+			    "    if (vb->oid_len < idx + len) return -1;\n",
 			    minSize);
 		} else if (last && indexNode->implied) {
 		    fprintf(f,
-			    "    if (vb->id_len < idx) return -1;\n"
-			    "    len = vb->id_len - idx;\n");
+			    "    if (vb->oid_len < idx) return -1;\n"
+			    "    len = vb->oid_len - idx;\n");
 		} else {
 		    fprintf(f,
-			    "    if (vb->id_len < idx) return -1;\n"
-			    "    len = vb->id[idx++];\n"
-			    "    if (vb->id_len < idx + len) return -1;\n");
+			    "    if (vb->oid_len < idx) return -1;\n"
+			    "    len = vb->oid[idx++];\n"
+			    "    if (vb->oid_len < idx + len) return -1;\n");
 		}
 		if (minSize != maxSize) {
 		    if (minSize > 0 && maxSize < 65535) {
@@ -2166,7 +2166,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 		}
 		fprintf(f,
 			"    for (i = 0; i < len; i++) {\n"
-			"        %s->%s[i] = vb->id[idx++];\n"
+			"        %s->%s[i] = vb->oid[idx++];\n"
 			"    }\n",
 			cGroupName, cName);
 		if (minSize != maxSize) {
@@ -2186,7 +2186,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     }
 
     fprintf(f,
-	    "    if (vb->id_len > idx) return -1;\n"
+	    "    if (vb->oid_len > idx) return -1;\n"
 	    "    return 0;\n"
 	    "}\n\n");
 
@@ -2496,7 +2496,7 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     
     fprintf(f,
 	    "static inline %s_%s_t *\n"
-	    "assign_%s(GSList *vbl)\n"
+	    "assign_%s(GList *vbl)\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
 	    "    char *p;\n"
@@ -2507,14 +2507,14 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,
 	    "    %s = %s_new_%s();\n"
 	    "    p = (char *) %s + sizeof(%s_%s_t);\n"
-	    "    * (GSList **) p = vbl;\n"
+	    "    * (GList **) p = vbl;\n"
 	    "\n",
 	    cGroupName, cPrefix, cGroupName,
 	    cGroupName, cPrefix, cGroupName);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	fprintf(f,
-		"    if (unpack_%s((GSnmpVarBind *) vbl->data, %s) < 0) {\n"
+		"    if (unpack_%s((GNetSnmpVarBind *) vbl->data, %s) < 0) {\n"
 		"        g_warning(\"%%s: invalid instance identifier\", \"%s\");\n"
 		"        g_free(%s);\n"
 		"        return NULL;\n"
@@ -2558,11 +2558,11 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "void\n"
 	    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint mask)\n"
 	    "{\n"
-	    "    GSList *in = NULL, *out = NULL;\n",
+	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cTableName, cPrefix, cRowName, cRowName);
 
     fprintf(f,
-	    "    GSList *row;\n"
+	    "    GList *row;\n"
 	    "    int i;\n");
 
     fprintf(f, "    static guint32 base[] = {");
@@ -2584,12 +2584,12 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    "\n"
 	    "    out = gsnmp_gettable(s, in);\n"
-	    "    /* g_snmp_vbl_free(in); */\n"
+	    "    /* gnet_snmp_varbind_list_free(in); */\n"
 	    "\n");
     fprintf(f,
 	    "    if (out) {\n"
-	    "        *%s = (%s_%s_t **) g_malloc0((g_slist_length(out) + 1) * sizeof(%s_%s_t *));\n"
-	    "        for (row = out, i = 0; row; row = g_slist_next(row), i++) {\n"
+	    "        *%s = (%s_%s_t **) g_malloc0((g_list_length(out) + 1) * sizeof(%s_%s_t *));\n"
+	    "        for (row = out, i = 0; row; row = g_list_next(row), i++) {\n"
 	    "            (*%s)[i] = assign_%s(row->data);\n"
 	    "        }\n"
 	    "    }\n"
@@ -2623,7 +2623,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    ", gint mask)\n"
 	    "{\n"
-	    "    GSList *in = NULL, *out = NULL;\n");
+	    "    GList *in = NULL, *out = NULL;\n");
 
     fprintf(f,
 	    "    guint32 base[128];\n"
@@ -2642,7 +2642,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    ");\n"
 	    "    if (len < 0) {\n"
 	    "        g_warning(\"%%s: invalid index values\", \"%s\");\n"
-	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
+	    "        s->error_status = GNET_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n",
 	    cRowName);
@@ -2660,10 +2660,12 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    "\n"
 	    "    out = g_snmp_session_sync_get(s, in);\n"
-	    "    g_snmp_vbl_free(in);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        if (s->error_status != G_SNMP_ERR_NOERROR) {\n"
-	    "            g_snmp_vbl_free(out);\n"
+	    "        if (s->error_status != GNET_SNMP_ERR_NOERROR) {\n"
+	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "            g_list_free(out);\n"
 	    "            return;\n"
 	    "        }\n"
 	    "        *%s = assign_%s(out);\n"
@@ -2696,7 +2698,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "void\n"
 	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask)\n"
 	    "{\n"
-	    "    GSList *in = NULL, *out = NULL;\n",
+	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
 
     fprintf(f,
@@ -2715,7 +2717,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    ");\n"
 	    "    if (len < 0) {\n"
 	    "        g_warning(\"%%s: invalid index values\", \"%s\");\n"
-	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
+	    "        s->error_status = GNET_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n"
 	    "\n",
@@ -2728,9 +2730,11 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    "\n"
 	    "    out = g_snmp_session_sync_set(s, in);\n"
-	    "    g_snmp_vbl_free(in);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        g_snmp_vbl_free(out);\n"
+	    "        g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "        g_list_free(out);\n"
 	    "    }\n"
 	    "}\n"
 	    "\n");
@@ -2969,7 +2973,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "void\n"
 	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s, gint mask)\n"
 	    "{\n"
-	    "    GSList *in = NULL, *out = NULL;\n",
+	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
 
     fprintf(f, "    static guint32 base[] = {");
@@ -2991,10 +2995,12 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,
 	    "\n"
 	    "    out = g_snmp_session_sync_getnext(s, in);\n"
-	    "    g_snmp_vbl_free(in);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        if (s->error_status != G_SNMP_ERR_NOERROR) {\n"
-	    "            g_snmp_vbl_free(out);\n"
+	    "        if (s->error_status != GNET_SNMP_ERR_NOERROR) {\n"
+	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "            g_list_free(out);\n"
 	    "            return;\n"
 	    "        }\n"
 	    "        *%s = assign_%s(out);\n"
@@ -3021,7 +3027,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "void\n"
 	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask)\n"
 	    "{\n"
-	    "    GSList *in = NULL, *out = NULL;\n",
+	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
 
     fprintf(f, "    static guint32 base[] = {");
@@ -3037,9 +3043,11 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,
 	    "\n"
 	    "    out = g_snmp_session_sync_set(s, in);\n"
-	    "    g_snmp_vbl_free(in);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        g_snmp_vbl_free(out);\n"
+	    "        g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "        g_list_free(out);\n"
 	    "    }\n"
 	    "}\n"
 	    "\n");
@@ -3137,7 +3145,7 @@ printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "void\n"
 	    "%s_free_%s(%s_%s_t *%s)\n"
 	    "{\n"
-	    "    GSList *vbl;\n"
+	    "    GList *vbl;\n"
 	    "    char *p;\n"
 	    "\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
@@ -3145,8 +3153,9 @@ printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,	    
 	    "    if (%s) {\n"
 	    "        p = (char *) %s + sizeof(%s_%s_t);\n"
-	    "        vbl = * (GSList **) p;\n"
-	    "        g_snmp_vbl_free(vbl);\n"
+	    "        vbl = * (GList **) p;\n"
+	    "        g_list_foreach(vbl, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "        g_list_free(vbl);\n"
 	    "        g_free(%s);\n"
 	    "    }\n"
 	    "}\n"
