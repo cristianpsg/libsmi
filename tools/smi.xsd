@@ -1,6 +1,6 @@
-<xsd:schema targetNamespace="http://www.ibr.cs.tu-bs.de/~tklie/smi"
+<xsd:schema targetNamespace="http://www.ibr.cs.tu-bs.de/projects/libsmi/xsd/smi"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns="http://www.ibr.cs.tu-bs.de/~tklie/smi">
+            xmlns="http://www.ibr.cs.tu-bs.de/projects/libsmi/xsd/smi">
   
   <xsd:simpleType name="Integer32">
     <xsd:restriction base="xsd:int"/>
