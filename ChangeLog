@@ -1,4 +1,9 @@
-2001-08-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2001-08-31  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.c: Fixed some missing fclose() calls. Thanks to
+	Abhay Deshmukh.
+
+2001-08-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DISMAN-SCRIPT-MIB: updated (RFC 3165).
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.103 2001/08/27 13:08:50 strauss Exp $
+ * @(#) $Id: data.c,v 1.104 2001/08/27 14:03:32 strauss Exp $
  */
 
 #include <config.h>
@@ -3588,6 +3588,7 @@ Module *loadModule(const char *modulename)
 	} else if (c == EOF || ! isspace(c)) {
 	    smiPrintError(NULL, ERR_ILLEGAL_INPUTFILE, path);
 	    smiFree(path);
+	    fclose(file);
 	    return NULL;
 	}
     }
@@ -3614,6 +3615,7 @@ Module *loadModule(const char *modulename)
 #else
 	smiPrintError(NULL, ERR_SMI_NOT_SUPPORTED, path);
 	smiFree(path);
+        fclose(file);
 	return NULL;
 #endif
     }
@@ -3639,10 +3641,12 @@ Module *loadModule(const char *modulename)
 #else
 	smiPrintError(NULL, ERR_SMING_NOT_SUPPORTED, path);
 	smiFree(path);
+        fclose(file);
 	return NULL;
 #endif
     }
 
     smiFree(path);
+    fclose(file);
     return NULL;
 }
