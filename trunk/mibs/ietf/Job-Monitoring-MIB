@@ -42,8 +42,6 @@ jobmonMIB MODULE-IDENTITY
         Implementers of this specification are encouraged to join the
         jmp mailing list in order to participate in discussions on any
         clarifications needed and registration proposals being reviewed
-
-
         in order to achieve consensus."
     DESCRIPTION
         "The MIB module for monitoring job in servers, printers, and
@@ -88,11 +86,6 @@ JmJobStringTC ::= TEXTUAL-CONVENTION
         See section 3.6.2, entitled: 'Text supplied by the job
         submitter'."
     SYNTAX      OCTET STRING (SIZE (0..63))
-
-
-
-
-
 
 JmNaturalLanguageTagTC  ::= TEXTUAL-CONVENTION
     STATUS      current
@@ -142,8 +135,6 @@ JmJobSourcePlatformTypeTC ::= TEXTUAL-CONVENTION
         devices in any of the 3 configurations.
 
         This is a type 2 enumeration.  See Section 3.7.1.2.  See also
-
-
         IANA operating-system-names registry."
     SYNTAX      INTEGER {
         other(1),
@@ -192,8 +183,6 @@ JmFinishingTC ::= TEXTUAL-CONVENTION
             drilling/punching, or by substituting pre-drilled media.
 
         cover(6),
-
-
             Select a non-printed (or pre-printed) cover for the
             document. This does not supplant the specification of a
             printed cover (on cover stock medium) by the document
@@ -242,8 +231,6 @@ JmPrinterResolutionTC ::= TEXTUAL-CONVENTION
         "Printer resolutions.
 
         Nine octets consisting of two 4-octet SIGNED-INTEGERs followed
-
-
         by a SIGNED-BYTE.  The values are the same as those specified
         in the Printer MIB [printmib]. The first SIGNED-INTEGER
         contains the value of prtMarkerAddressabilityXFeedDir.  The
@@ -292,8 +279,6 @@ JmBooleanTC ::= TEXTUAL-CONVENTION
 JmMediumTypeTC ::= TEXTUAL-CONVENTION
     STATUS      current
     DESCRIPTION
-
-
         "Identifies the type of medium.
 
         other(1),
@@ -341,9 +326,6 @@ JmMediumTypeTC ::= TEXTUAL-CONVENTION
         multiLayer(13)
             Form medium composed of multiple layers which are pre-
             attached to one another, e.g. for use with impact printers.
-
-
-
         This is a type 2 enumeration.  See Section 3.7.1.2.  These enum
         values correspond to the keyword name strings of the
         prtInputMediaType object in the Printer MIB [print-mib].  There
@@ -392,8 +374,6 @@ JmJobCollationTypeTC ::= TEXTUAL-CONVENTION
                                 -- Corresponds to IPP "multiple-
                                 -- document-handling"='separate-
                                 -- documents-uncollated-copies'
-
-
     }
 
 
@@ -442,8 +422,6 @@ JmJobStateTC ::= TEXTUAL-CONVENTION
         aborted, after the jobs have completed all activity, and all
         MIB objects and attributes have reached their final values for
         the job.
-
-
         These values are the same as the enum values of the IPP 'job-
         state' job attribute.  See Section 3.7.1.2.
 
@@ -492,8 +470,6 @@ JmJobStateTC ::= TEXTUAL-CONVENTION
             such a device MIB.
 
             Implementations MAY, though they NEED NOT, include
-
-
             additional values in the job's jmJobStateReasons1 object
             to indicate the progress of the job, such as adding the
             jobPrinting value to indicate when the device is actually
@@ -541,9 +517,6 @@ JmJobStateTC ::= TEXTUAL-CONVENTION
             contain the processingToStopPoint and abortedBySystem
             values.  If implemented, the abortedBySystem value SHALL
             remain while the job is in the aborted state.
-
-
-
         completed(9)
             The job has completed successfully or with warnings or
             errors after processing and all of the media have been
@@ -591,9 +564,6 @@ JmAttributeTypeTC ::= TEXTUAL-CONVENTION
         specifies the data type(s) of the attribute.
 
         This is a type 2 enumeration.  See Section 3.7.1.2."
-
-
-
     SYNTAX      INTEGER {
         other(1),                       -- Integer32 (-2..2147483647)
                                         -- AND/OR
@@ -643,7 +613,6 @@ JmAttributeTypeTC ::= TEXTUAL-CONVENTION
         outputBin(54),                  -- Integer32 (0..2147483647)
                                         -- AND/OR
 
-
                                         -- JmJobStringTC (SIZE(0..63))
         sides(55),                      -- Integer32 (-2..2)
         finishing(56),                  -- JmFinishingTC
@@ -692,8 +661,6 @@ JmAttributeTypeTC ::= TEXTUAL-CONVENTION
         sheetsCompletedCurrentCopy(152),-- Integer32 (-2..2147483647)
 
         -- Resource attributes:
-
-
         mediumRequested(170),           -- JmMediumTypeTC
                                         -- AND/OR
                                         -- JmJobStringTC (SIZE(0..63))
@@ -742,8 +709,6 @@ JmJobServiceTypesTC ::= TEXTUAL-CONVENTION
         represented as an enum that is bit encoded with each job
         service type so that more general and arbitrary services can be
         created, such as services with more than one destination type,
-
-
         or ones with only a source or only a destination.  For example,
         a job service might scan, faxOut, and print a single job.  In
         this case, three bits would be set in the jobServiceTypes
@@ -792,8 +757,6 @@ JmJobServiceTypesTC ::= TEXTUAL-CONVENTION
             files or documents
 
         putFile                           0x80
-
-
             The job contains some instructions that specify storing
             files or documents
 
@@ -842,8 +805,6 @@ JmJobStateReasons2TC ::= TEXTUAL-CONVENTION
     SYNTAX      INTEGER (0..2147483647)   -- 31 bits, all but sign bit
 
 JmJobStateReasons3TC ::= TEXTUAL-CONVENTION
-
-
     STATUS      current
     DESCRIPTION
         "This textual-convention is used with the jobStateReasons3
@@ -892,8 +853,6 @@ jmGeneralTable  OBJECT-TYPE
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
-
-
         "The jmGeneralTable consists of information of a general nature
         that are per-job-set, but are not per-job.  See Section 2
         entitled 'Terminology and Job Model' for the definition of a
@@ -942,8 +901,6 @@ jmGeneralJobSetIndex OBJECT-TYPE
         subsequent power-up.
 
         An implementation that has only one job set, such as a printer
-
-
         with a single queue, SHALL hard code this object with the value
         1.
 
@@ -992,8 +949,6 @@ jmGeneralOldestActiveJobIndex  OBJECT-TYPE
 jmGeneralNewestActiveJobIndex  OBJECT-TYPE
     SYNTAX      Integer32 (0..2147483647)
     MAX-ACCESS  read-only
-
-
     STATUS      current
     DESCRIPTION
         "The jmJobIndex of the newest job that is in one of the
@@ -1042,8 +997,6 @@ jmGeneralAttributePersistence OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-
-
         "The minimum time in seconds for this instance of the Job Set
         that an entry SHALL remain in the jmAttributeTable after
         processing has completed , i.e., the time in seconds starting
@@ -1092,8 +1045,6 @@ jmGeneralJobSetName OBJECT-TYPE
 -- The Job ID Group (MANDATORY)
 
 -- The jmJobIDGroup consists entirely of the jmJobIDTable.
-
-
 jmJobID  OBJECT IDENTIFIER ::= { jobmonMIBObjects 2 }
 
 jmJobIDTable  OBJECT-TYPE
@@ -1142,8 +1093,6 @@ JmJobIDEntry ::= SEQUENCE {
 
 
 jmJobSubmissionID OBJECT-TYPE
-
-
     SYNTAX      OCTET STRING(SIZE(48))
     MAX-ACCESS  not-accessible
     STATUS      current
@@ -1192,8 +1141,6 @@ jmJobIDJobSetIndex OBJECT-TYPE
         the job with the jmJobSubmissionID value, i.e., the job set
         index of the job set in which the job was placed when that
         server or device accepted the job.  This 16-bit value in
-
-
         combination with the jmJobIDJobIndex value permits the
         management application to access the other tables to obtain the
         job-specific objects for this job.
@@ -1241,8 +1188,6 @@ jmJobTable  OBJECT-TYPE
         The MANDATORY-GROUP macro specifies that this group is
         MANDATORY."
     ::= { jmJob 1 }
-
-
 
 jmJobEntry  OBJECT-TYPE
     SYNTAX      JmJobEntry
@@ -1292,8 +1237,6 @@ jmJobIndex OBJECT-TYPE
         index if the agent represents it as an 8-digit decimal number."
     ::= { jmJobEntry 1 }
 
-
-
 jmJobState OBJECT-TYPE
     SYNTAX      JmJobStateTC
     MAX-ACCESS  read-only
@@ -1339,10 +1282,6 @@ jmJobStateReasons1 OBJECT-TYPE
         additional information about the job's current state."
     DEFVAL      { 0 }      -- no reasons
     ::= { jmJobEntry 3 }
-
-
-
-
 
 jmNumberOfInterveningJobs OBJECT-TYPE
     SYNTAX      Integer32 (-2..2147483647)
@@ -1392,8 +1331,6 @@ jmJobKOctetsProcessed OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "The total number of octets processed by the server or device
-
-
         measured in units of K (1024) octets so far.  The agent SHALL
         round the actual number of octets processed up to the next
         higher K.  Thus 0 octets is represented as '0', 1-1024 octets
@@ -1442,8 +1379,6 @@ jmJobImpressionsPerCopyRequested OBJECT-TYPE
         measured in impressions independent of the number of copies.
 
         See the definition of the term 'impression' in Section 2."
-
-
     DEFVAL      { -2 }      -- default is unknown(-2)
     ::= { jmJobEntry 7 }
 
@@ -1492,8 +1427,6 @@ jmJobOwner OBJECT-TYPE
         submitting the job.
 
         See the OBJECT compliance macro for the minimum maximum length
-
-
         required for conformance."
     DEFVAL      { ''H }      -- default is empty string
     ::= { jmJobEntry 9 }
@@ -1542,8 +1475,6 @@ jmAttributeEntry  OBJECT-TYPE
         extra index for each type of attribute (jmAttributeTypeIndex)
         that a job can have and an additional index
         (jmAttributeInstanceIndex) for those attributes that can have
-
-
         multiple instances per job.  The jmAttributeTypeIndex object
         SHALL contain an enum type that indicates the type of attribute
         (see the JmAttributeTypeTC textual-convention).  The value of
@@ -1592,8 +1523,6 @@ jmAttributeTypeIndex OBJECT-TYPE
         "The type of attribute that this row entry represents.
 
         The type MAY identify information about the job or document(s)
-
-
         or MAY identify a resource required to process the job before
         the job start processing and/or consumed by the job as the job
         is processed.
@@ -1642,8 +1571,6 @@ jmAttributeValueAsInteger OBJECT-TYPE
     DESCRIPTION
         "The integer value of the attribute.  The value of the
         attribute SHALL be represented as an integer if the enum
-
-
         description in the JmAttributeTypeTC textual-convention
         definition has the tag: 'INTEGER:'.
 
@@ -1692,8 +1619,6 @@ jmAttributeValueAsOctets OBJECT-TYPE
     SYNTAX      OCTET STRING(SIZE(0..63))
     MAX-ACCESS  read-only
     STATUS      current
-
-
     DESCRIPTION
         "The octet string value of the attribute.  The value of the
         attribute SHALL be represented as an OCTET STRING if the enum
@@ -1741,9 +1666,6 @@ jmMIBCompliance MODULE-COMPLIANCE
     MODULE -- this module
     MANDATORY-GROUPS {
         jmGeneralGroup, jmJobIDGroup, jmJobGroup, jmAttributeGroup }
-
-
-
     OBJECT   jmGeneralJobSetName
     SYNTAX   JmUTF8StringTC (SIZE(0..8))
     DESCRIPTION
@@ -1792,8 +1714,6 @@ jmJobGroup OBJECT-GROUP
         jmJobImpressionsPerCopyRequested, jmJobImpressionsCompleted,
         jmJobOwner }
     STATUS  current
-
-
     DESCRIPTION
         "The job group."
     ::= { jmMIBGroups 3 }

@@ -1,22 +1,22 @@
-
   IANATn3270eTC-MIB DEFINITIONS ::= BEGIN
 
-  IMPORTS
+ IMPORTS
       MODULE-IDENTITY, mib-2
           FROM SNMPv2-SMI
       TEXTUAL-CONVENTION
           FROM SNMPv2-TC;
 
     ianaTn3270eTcMib MODULE-IDENTITY
-        LAST-UPDATED "9904060000Z" -- April 6, 1999
+        LAST-UPDATED "200005100000Z"  -- May 10, 2000
         ORGANIZATION "IANA"
         CONTACT-INFO
             "Internet Assigned Numbers Authority
 
-             Postal: USC/Information Sciences Institute
-                     4676 Admiralty Way, Marina del Rey, CA 90292
+             Postal: ICANN
+                     4676 Admiralty Way, Suite 330
+                     Marina del Rey, CA 90292
 
-             Tel:    +1  310 822 1511
+             Tel:    +1  310 823 9358 x20
              E-Mail: iana@iana.org"
         DESCRIPTION
             "This module defines a set of textual conventions
@@ -40,7 +40,13 @@
             no security issues associated with them unless
             explicitly stated in their corresponding
             DESCRIPTION clause."
-        REVISION  "9807270000Z" -- July 27, 1998
+
+     -- revision log, in reverse chronological order
+
+        REVISION    "200005100000Z"  -- May 10, 2000
+        DESCRIPTION "Fix to import mib-2 instead of experimental."
+
+        REVISION    "199909011000Z"  -- September 1, 1999
         DESCRIPTION
             "Initial version transferred from the TN3270E
             working group to IANA."
@@ -295,4 +301,3 @@ convention.
       SYNTAX OCTET STRING (SIZE (0 | 6..2048))
 
   END
-

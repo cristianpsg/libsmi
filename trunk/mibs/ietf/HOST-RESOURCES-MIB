@@ -23,9 +23,6 @@ hostResourcesMibModule MODULE-IDENTITY
        Phone:  650-318-1251
        Fax:    650-318-1633
        Email:  waldbusser@lucent.com
-
-
-
        In addition, the Host Resources MIB mailing list is
        dedicated to discussion of this MIB. To join the
        mailing list, send a request message to
@@ -73,9 +70,6 @@ hostResourcesMibModule MODULE-IDENTITY
        Added missing error bits to hrPrinterDetectedErrorState and
        clarified confusion resulting from suggested mappings to
        hrPrinterStatus.
-
-
-
        Clarified that size of objects of type
        InternationalDisplayString is number of octets, not number
        of encoded symbols.
@@ -124,8 +118,6 @@ ProductID ::= TEXTUAL-CONVENTION
     STATUS current
     DESCRIPTION
         "This textual convention is intended to identify the
-
-
         manufacturer, model, and version of a specific
         hardware or software product.  It is suggested that
         these OBJECT IDENTIFIERs are allocated such that all
@@ -174,8 +166,6 @@ hrSystemUptime OBJECT-TYPE
     MAX-ACCESS read-only
     STATUS     current
     DESCRIPTION
-
-
         "The amount of time since this host was last
         initialized.  Note that this is different from
         sysUpTime in the SNMPv2-MIB [RFC1907] because
@@ -224,8 +214,6 @@ hrSystemInitialLoadParameters OBJECT-TYPE
     ::= { hrSystem 4 }
 
 hrSystemNumUsers OBJECT-TYPE
-
-
     SYNTAX     Gauge32
     MAX-ACCESS read-only
     STATUS     current
@@ -273,8 +261,6 @@ hrMemorySize OBJECT-TYPE
         "The amount of physical read-write main memory,
         typically RAM, contained by the host."
     ::= { hrStorage 2 }
-
-
 
 hrStorageTable OBJECT-TYPE
     SYNTAX     SEQUENCE OF HrStorageEntry
@@ -324,8 +310,6 @@ hrStorageEntry OBJECT-TYPE
 
 HrStorageEntry ::= SEQUENCE {
         hrStorageIndex               Integer32,
-
-
         hrStorageType                AutonomousType,
         hrStorageDescr               DisplayString,
         hrStorageAllocationUnits     Integer32,
@@ -374,8 +358,6 @@ hrStorageAllocationUnits OBJECT-TYPE
     ::= { hrStorageEntry 4 }
 
 hrStorageSize OBJECT-TYPE
-
-
     SYNTAX     Integer32 (0..2147483647)
     MAX-ACCESS read-write
     STATUS     current
@@ -425,7 +407,6 @@ hrStorageAllocationFailures OBJECT-TYPE
 
 -- Registration point for device types, for use with hrDeviceType.
 
-
 -- These are defined in the HOST-RESOURCES-TYPES module.
 hrDeviceTypes             OBJECT IDENTIFIER ::= { hrDevice 1 }
 
@@ -474,8 +455,6 @@ hrDeviceType OBJECT-TYPE
     MAX-ACCESS read-only
     STATUS     current
     DESCRIPTION
-
-
         "An indication of the type of device.
 
         If this value is
@@ -524,8 +503,6 @@ hrDeviceStatus OBJECT-TYPE
                    warning(3),
                    testing(4),
                    down(5)
-
-
                }
     MAX-ACCESS read-only
     STATUS     current
@@ -573,8 +550,6 @@ hrProcessorTable OBJECT-TYPE
         value of the hrDeviceType object is
         `hrDeviceProcessor'."
     ::= { hrDevice 3 }
-
-
 
 hrProcessorEntry OBJECT-TYPE
     SYNTAX     HrProcessorEntry
@@ -624,8 +599,6 @@ hrNetworkTable OBJECT-TYPE
     DESCRIPTION
         "The (conceptual) table of network devices contained
         by the host.
-
-
         Note that this table is potentially sparse: a
         (conceptual) entry exists only if the correspondent
         value of the hrDeviceType object is
@@ -675,7 +648,6 @@ hrPrinterTable OBJECT-TYPE
         `hrDevicePrinter'."
     ::= { hrDevice 5 }
 
-
 hrPrinterEntry OBJECT-TYPE
     SYNTAX     HrPrinterEntry
     MAX-ACCESS not-accessible
@@ -724,8 +696,6 @@ hrPrinterDetectedErrorState OBJECT-TYPE
              Condition         Bit #
 
              lowPaper              0
-
-
              noPaper               1
              lowToner              2
              noToner               3
@@ -774,8 +744,6 @@ hrDiskStorageEntry OBJECT-TYPE
     SYNTAX     HrDiskStorageEntry
     MAX-ACCESS not-accessible
     STATUS     current
-
-
     DESCRIPTION
         "A (conceptual) entry for one long-term storage device
         contained by the host.  The hrDeviceIndex in the index
@@ -824,8 +792,6 @@ hrDiskStorageMedia OBJECT-TYPE
     DESCRIPTION
         "An indication of the type of media used in this long-
         term storage device."
-
-
     ::= { hrDiskStorageEntry 2 }
 
 hrDiskStorageRemoveble OBJECT-TYPE
@@ -875,7 +841,6 @@ hrPartitionEntry OBJECT-TYPE
     INDEX { hrDeviceIndex, hrPartitionIndex }
     ::= { hrPartitionTable 1 }
 
-
 HrPartitionEntry ::= SEQUENCE {
         hrPartitionIndex                Integer32,
         hrPartitionLabel                InternationalDisplayString,
@@ -924,8 +889,6 @@ hrPartitionSize OBJECT-TYPE
     ::= { hrPartitionEntry 4 }
 
 hrPartitionFSIndex OBJECT-TYPE
-
-
     SYNTAX     Integer32 (0..2147483647)
     MAX-ACCESS read-only
     STATUS     current
@@ -973,8 +936,6 @@ hrFSEntry OBJECT-TYPE
         named hrFSMountPoint.3"
     INDEX { hrFSIndex }
     ::= { hrFSTable 1 }
-
-
 
 HrFSEntry ::= SEQUENCE {
         hrFSIndex                   Integer32,
@@ -1024,8 +985,6 @@ hrFSType OBJECT-TYPE
     MAX-ACCESS read-only
     STATUS     current
     DESCRIPTION
-
-
         "The value of this object identifies the type of this
         file system."
     ::= { hrFSEntry 4 }
@@ -1074,8 +1033,6 @@ hrFSLastFullBackupDate OBJECT-TYPE
     STATUS     current
     DESCRIPTION
         "The last date at which this complete file system was
-
-
         copied to another storage device for backup.  This
         information is useful for ensuring that backups are
         being performed regularly.
@@ -1124,8 +1081,6 @@ hrSWRunTable OBJECT-TYPE
     SYNTAX     SEQUENCE OF HrSWRunEntry
     MAX-ACCESS not-accessible
     STATUS     current
-
-
     DESCRIPTION
         "The (conceptual) table of software running on the
         host."
@@ -1174,8 +1129,6 @@ hrSWRunIndex OBJECT-TYPE
 hrSWRunName OBJECT-TYPE
     SYNTAX     InternationalDisplayString (SIZE (0..64))
     MAX-ACCESS read-only
-
-
     STATUS     current
     DESCRIPTION
         "A textual description of this running piece of
@@ -1224,8 +1177,6 @@ hrSWRunType OBJECT-TYPE
     STATUS     current
     DESCRIPTION
         "The type of this software."
-
-
     ::= { hrSWRunEntry 6 }
 
 hrSWRunStatus OBJECT-TYPE
@@ -1274,8 +1225,6 @@ hrSWRunPerfEntry OBJECT-TYPE
 
 HrSWRunPerfEntry ::= SEQUENCE {
         hrSWRunPerfCPU          Integer32,
-
-
         hrSWRunPerfMem          KBytes
 }
 
@@ -1324,8 +1273,6 @@ hrSWRunPerfMem OBJECT-TYPE
 hrSWInstalledLastChange OBJECT-TYPE
     SYNTAX     TimeTicks
     MAX-ACCESS read-only
-
-
     STATUS     current
     DESCRIPTION
         "The value of sysUpTime when an entry in the
@@ -1374,8 +1321,6 @@ hrSWInstalledEntry OBJECT-TYPE
 
 HrSWInstalledEntry ::= SEQUENCE {
         hrSWInstalledIndex       Integer32,
-
-
         hrSWInstalledName        InternationalDisplayString,
         hrSWInstalledID          ProductID,
         hrSWInstalledType        INTEGER,
@@ -1425,7 +1370,6 @@ hrSWInstalledType OBJECT-TYPE
         "The type of this software."
     ::= { hrSWInstalledEntry 4 }
 
-
 hrSWInstalledDate OBJECT-TYPE
     SYNTAX     DateAndTime
     MAX-ACCESS read-only
@@ -1473,9 +1417,6 @@ hrMIBCompliance MODULE-COMPLIANCE
           MIN-ACCESS read-only
           DESCRIPTION
               "Write access is not required."
-
-
-
       OBJECT hrFSLastFullBackupDate
           MIN-ACCESS read-only
           DESCRIPTION
@@ -1523,8 +1464,6 @@ hrMIBCompliance MODULE-COMPLIANCE
         DESCRIPTION
             "The Host Resources System Group."
         ::= { hrMIBGroups 1 }
-
-
 
     hrStorageGroup OBJECT-GROUP
         OBJECTS {
@@ -1574,8 +1513,6 @@ hrMIBCompliance MODULE-COMPLIANCE
     hrSWRunPerfGroup OBJECT-GROUP
         OBJECTS { hrSWRunPerfCPU, hrSWRunPerfMem }
         STATUS current
-
-
         DESCRIPTION
             "The Host Resources Running Software
             Performance Group."

@@ -32,8 +32,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           policy definitions."
 
       --  Revision history
-
-
       REVISION     "200001240000Z"         -- 24 January 2000
       DESCRIPTION
           "This version published as RFC 2758."
@@ -82,8 +80,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
                      monitorMaxDelayExceeded(7),
                      monitorMinOutRateNotAchieved(8),
                      monitorMaxOutRateExceeded(9)
-
-
                    }
 
    SlapmPolicyRuleName ::= TEXTUAL-CONVENTION
@@ -132,8 +128,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       MAX-ACCESS  read-only
       STATUS      current
       DESCRIPTION
-
-
          "The total number of times that a policy lookup occurred
          with respect to a policy agent.
          This is the number of times that a reference was made to
@@ -182,8 +176,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       MAX-ACCESS  read-write
       STATUS      current
       DESCRIPTION
-
-
          "The purpose of this object is to define the amount
          of time (in seconds) to wait before removing an
          slapmPolicyRuleStatsEntry (or old slapmPolicyStatsEntry)
@@ -232,8 +224,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
    slapmPolicyTrapFilter   OBJECT-TYPE
       SYNTAX      Integer32 (0..64)
       UNITS       "intervals"
-
-
       MAX-ACCESS  read-write
       STATUS      current
       DESCRIPTION
@@ -282,8 +272,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
              slapmPolicyStatsSystemAddress,
              slapmPolicyStatsPolicyName,
              slapmPolicyStatsTrafficProfileName
-
-
             }
       ::= { slapmPolicyStatsTable 1 }
 
@@ -332,7 +320,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Policy name that this entry relates to."
       ::= { slapmPolicyStatsEntry 2 }
-
 
    slapmPolicyStatsTrafficProfileName OBJECT-TYPE
       SYNTAX      SlapmNameType
@@ -383,7 +370,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          affected by the corresponding policy entry."
       ::= { slapmPolicyStatsEntry 5 }
 
-
    slapmPolicyStatsTotalConns OBJECT-TYPE
       SYNTAX      Counter32
       MAX-ACCESS  read-only
@@ -432,8 +418,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       STATUS      deprecated
       DESCRIPTION
          "The number of octets that was transmitted by IP for an
-
-
          entity that map to this entry."
       ::= { slapmPolicyStatsEntry 10 }
 
@@ -482,8 +466,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       ::= { slapmPolicyStatsEntry 14 }
 
    slapmPolicyStatsOutDiscards OBJECT-TYPE
-
-
       SYNTAX      Counter32
       MAX-ACCESS  read-only
       STATUS      deprecated
@@ -532,8 +514,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
    slapmPolicyStatsMinRate OBJECT-TYPE
       SYNTAX      Integer32
       UNITS       "Kilobits per second"
-
-
       MAX-ACCESS  read-only
       STATUS      deprecated
       DESCRIPTION
@@ -582,8 +562,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           "Defines an entry in the slapmPolicyMonitorTable. This
           table defines which policies should be monitored on a
           per policy traffic profile basis."
-
-
       INDEX {
              slapmPolicyMonitorOwnerIndex,
              slapmPolicyMonitorSystemAddress,
@@ -632,8 +610,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          Such an initial index has a syntax of SnmpAdminString,
          and can thus be trivially mapped to a securityName or
          groupName as defined in VACM, in accordance with a
-
-
          security policy.
 
          All entries in that table belonging to a particular user
@@ -682,8 +658,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       SYNTAX      BITS {
                         monitorMinRate(0),
                         monitorMaxRate(1),
-
-
                         monitorMaxDelay(2),
                         enableAggregateTraps(3),
                         enableSubcomponentTraps(4),
@@ -732,8 +706,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
                      slaMinInRateNotAchieved(0),
                      slaMaxInRateExceeded(1),
                      slaMaxDelayExceeded(2),
-
-
                      slaMinOutRateNotAchieved(3),
                      slaMaxOutRateExceeded(4)
 
@@ -782,8 +754,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       ::= { slapmPolicyMonitorEntry 9 }
 
    slapmPolicyMonitorCurrentOutRate OBJECT-TYPE
-
-
       SYNTAX      Gauge32
       UNITS       "kilobits per second"
       MAX-ACCESS  read-only
@@ -832,8 +802,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
 
    slapmPolicyMonitorMinRateHigh OBJECT-TYPE
       SYNTAX      Integer32
-
-
       UNITS       "kilobits per second"
       MAX-ACCESS  read-create
       STATUS      deprecated
@@ -882,8 +850,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          enabled.  When enabled the default value for this object
          is the max rate value specified in the associated
          action definition plus 10%.  If the action definition
-
-
          doesn't have a max rate defined then there is no
          default for this object and a value MUST be specified
          prior to activating this entry when monitorMaxRate(1)
@@ -932,8 +898,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          that a monitored maximum delay rate has been exceeded.
 
          A slapmMonitoredEventNotAchieved notification is not
-
-
          generated again for an slapmPolicyMonitorEntry until
          the maximum delay rate falls below
          slapmPolicyMonitorMaxDelayLow (a slapmMonitoredEventOkay
@@ -982,8 +946,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          BITS setting, enableAggregateTraps(3), MUST be selected
          in order for any notification relating to this entry to
          potentially be generated."
-
-
       ::= { slapmPolicyMonitorEntry 16 }
 
    slapmPolicyMonitorMinInRateNotAchieves OBJECT-TYPE
@@ -1032,8 +994,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       ::= { slapmPolicyMonitorEntry 21 }
 
    slapmPolicyMonitorCurrentDelayRate OBJECT-TYPE
-
-
       SYNTAX      Gauge32
       UNITS       "milliseconds"
       MAX-ACCESS  read-only
@@ -1082,8 +1042,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
        MAX-ACCESS  not-accessible
        STATUS      current
        DESCRIPTION
-
-
             "Describes a particular subcomponent entry.  This
             table does not have an OwnerIndex as
             part of its indexing since this table's contents
@@ -1132,8 +1090,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          "Indicate the remote address of a subcomponent.
          A remote address can be either an ipv4 address in which
          case 4 octets are required or as an ipv6 address that
-
-
          requires 16 octets.  The value of this subidentifier
          is a zero length octet string when this entry relates
          to a UDP listener."
@@ -1182,8 +1138,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       ::= { slapmSubcomponentEntry 5 }
 
    slapmSubcomponentSystemAddress OBJECT-TYPE
-
-
       SYNTAX      OCTET STRING (SIZE(0 | 4 | 16))
       MAX-ACCESS  read-only
       STATUS      current
@@ -1232,8 +1186,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
 
    slapmSubcomponentInOctets OBJECT-TYPE
        SYNTAX      Counter32
-
-
        MAX-ACCESS  read-only
        STATUS      current
        DESCRIPTION
@@ -1282,8 +1234,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
    slapmSubcomponentTcpRoundTripTime OBJECT-TYPE
        SYNTAX       Integer32
        UNITS        "milliseconds"
-
-
        MAX-ACCESS   read-only
        STATUS       current
        DESCRIPTION
@@ -1332,8 +1282,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
              slapmSubcomponentProtocol    PDU Type
 
                   udpListener(1)          UDP datagrams
-
-
                   tcpConnection(2)        TCP segments"
        ::= { slapmSubcomponentEntry 18 }
 
@@ -1382,8 +1330,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          slapmPolicyMonitorControl) BITS setting
          monitorSubcomponents(5) enabled.  All of the
          octets returned when monitoring is not in effect
-
-
          must be zero."
       DEFVAL { '0000000000000000'H }
       ::= { slapmSubcomponentEntry 21 }
@@ -1432,8 +1378,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
      MAX-ACCESS  read-only
      STATUS      current
      DESCRIPTION
-
-
         "Points to an slapmPolicyNameEntry when combined with
         slapmSubcomponentSystemAddress to indicate the
         policy naming that relates to this entry.
@@ -1482,8 +1426,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Address of a system that an Policy rule definition relates
          to.  A zero length octet string must be used to indicate
-
-
          that only a single system is being represented.
          Otherwise, the length of the octet string must be
          4 for an ipv4 address or 16 for an ipv6 address."
@@ -1532,8 +1474,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           at a system."
       INDEX {
              slapmPolicyNameSystemAddress,
-
-
              slapmPolicyNameIndex
             }
       ::= { slapmPolicyRuleStatsTable 1 }
@@ -1582,8 +1522,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
            active(2)        - Policy entry is being used to affect
                               traffic flows.
            deleteNeeded(3)  - Either though local implementation
-
-
                               dependent methods or by discovering
                               that the directory entry corresponding
                               to this table entry no longer
@@ -1632,8 +1570,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       SYNTAX      DateAndTime
       MAX-ACCESS  read-only
       STATUS      current
-
-
       DESCRIPTION
          "The timestamp for when the last time
          that the associated policy entry was used."
@@ -1682,8 +1618,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
    slapmPolicyRuleStatsCountDenies OBJECT-TYPE
       SYNTAX      Counter32
       MAX-ACCESS  read-only
-
-
       STATUS      current
       DESCRIPTION
           "This counter is incremented when a policy action's
@@ -1731,8 +1665,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           "This counter counts the number of out packets sent
           by IP that relate to this policy entry."
       ::= { slapmPolicyRuleStatsEntry 14 }
-
-
 
    slapmPolicyRuleStatsInProOctets OBJECT-TYPE
       SYNTAX      Counter32
@@ -1782,8 +1714,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
    slapmPolicyRuleStatsTotalRsvpFlows OBJECT-TYPE
       SYNTAX      Counter32
       MAX-ACCESS  read-only
-
-
       STATUS      current
       DESCRIPTION
          "Total number of RSVP flows that have be activated."
@@ -1832,8 +1762,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           slapmPRMonOwnerIndex              SnmpAdminString,
           slapmPRMonSystemAddress           OCTET STRING,
           slapmPRMonIndex                   Unsigned32,
-
-
           slapmPRMonControl                 BITS,
           slapmPRMonStatus                  SlapmStatus,
           slapmPRMonInterval                Unsigned32,
@@ -1882,8 +1810,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          owner index portion, and vacmViewTreeFamilyMask
          'wildcarding' the column subidentifier.  More elaborate
          configurations are possible."
-
-
       ::= { slapmPRMonEntry 1 }
 
    slapmPRMonSystemAddress OBJECT-TYPE
@@ -1932,8 +1858,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
              enableAggregateTraps(3) - The enableAggregateTraps(3)
                    BITS setting enables notification generation
                    when monitoring a policy rule as an
-
-
                    aggregate using the values in the corresponding
                    slapmPRMonStatsEntry.  By default this function
                    is not enabled.
@@ -1982,8 +1906,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       SYNTAX      Unsigned32 (15..86400) -- 15 second min, 24 hour max
       UNITS       "seconds"
       MAX-ACCESS  read-create
-
-
       STATUS      current
       DESCRIPTION
          "The number of seconds that defines the sample period."
@@ -2032,8 +1954,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          "The threshold for generating a
          slapmPolicyRuleMonNotOkay notification, signalling
          that a monitored minimum transfer rate has not been meet.
-
-
          A slapmPolicyRuleMonNotOkay notification is not
          generated again for an slapmPRMonEntry until
          the minimum transfer rate
@@ -2082,8 +2002,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          Note: The corresponding slapmPRMonControl
          BITS setting, enableAggregateTraps(3), MUST be selected
          in order for any notification relating to this entry to
-
-
          potentially be generated."
       ::= { slapmPRMonEntry 11 }
 
@@ -2131,9 +2049,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          "The threshold for generating a slapmPolicyRuleMonOkay
          notification, signalling that a monitored maximum
          transfer rate has fallen to an acceptable level.
-
-
-
          A value of zero for this object is returned when the
          slapmPRMonControl monitorMaxRate(1) is not
          enabled.  When enabled the default value for this object
@@ -2182,8 +2097,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          Note: The corresponding slapmPRMonControl
          BITS setting, enableAggregateTraps(3), MUST be selected
          in order for any notification relating to this entry to
-
-
          potentially be generated."
       ::= { slapmPRMonEntry 14 }
 
@@ -2232,8 +2145,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       ::= { slapmPRMonEntry 17 }
 
    slapmPRMonMaxDelayExceeds OBJECT-TYPE
-
-
       SYNTAX      Counter32
       MAX-ACCESS  read-only
       STATUS      current
@@ -2282,8 +2193,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          is deleted by setting this object to destroy(6).
 
          Removal of an corresponding (same policy index)
-
-
          slapmPolicyRuleStatsEntry has the side effect of the
          automatic deletion an entry in this table.
 
@@ -2332,8 +2241,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           slapmPolicyMonitorStatus,
           slapmPolicyMonitorCurrentInRate,
           slapmPolicyMonitorCurrentOutRate,
-
-
           slapmPolicyMonitorCurrentDelayRate
       }
       STATUS  deprecated
@@ -2383,7 +2290,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          slapmPolicyTrapEnable is enabled(1)."
       ::= { slapmNotifications 3 }
 
-
    slapmPolicyMonitorDeleted NOTIFICATION-TYPE
       OBJECTS {
           slapmPolicyMonitorStatus,
@@ -2432,8 +2338,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          corresponding slapmPolicyMonitorControl can be examined
          to determine what is being monitored.  The first
          slapmSubcomponentMonitorStatus value supplies the current
-
-
          monitor status while the 2nd value supplies the
          previous status.
 
@@ -2482,8 +2386,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          applies only towards monitoring a policy rule
          as an aggregate via an associating
          slapmPolicyRuleStatsEntry.  The value
-
-
          of slapmPRMonControl can be examined to
          determine what is being monitored.  The first
          slapmPRMonStatus value supplies the current
@@ -2532,8 +2434,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           slapmPolicyRuleStatsLActivated,
           slapmPolicyRuleStatsLastMapping,
           slapmPolicyRuleStatsInOctets,
-
-
           slapmPolicyRuleStatsOutOctets,
           slapmPolicyRuleStatsConnLimit,
           slapmPolicyRuleStatsCountAccepts,
@@ -2582,8 +2482,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "A slapmPolicyRuleMonDeleted notification is sent when a
          slapmPRMonEntry is deleted if the value of
-
-
          slapmPolicyTrapEnable is enabled(1)."
       ::= { slapmNotifications 10 }
 
@@ -2632,8 +2530,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
       STATUS  current
       DESCRIPTION
          "This notification is generated when a monitored value
-
-
          has reached an acceptable level.
 
          Note: The corresponding slapmPRMonControl
@@ -2682,8 +2578,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
           GROUP slapmOptionalGroup
           DESCRIPTION
               "The contents of this group has been deprecated."
-
-
           GROUP slapmEndSystemGroup
           DESCRIPTION
               "The contents of this group has been deprecated in favor
@@ -2732,8 +2626,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
                slapmPolicyMonitorIntTime,
                slapmPolicyMonitorCurrentInRate,
                slapmPolicyMonitorCurrentOutRate,
-
-
                slapmPolicyMonitorMinRateLow,
                slapmPolicyMonitorMinRateHigh,
                slapmPolicyMonitorMaxRateHigh,
@@ -2782,8 +2674,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
                slapmSubcomponentTcpRoundTripVariance,
                slapmSubcomponentInPdus,
                slapmSubcomponentOutPdus,
-
-
                slapmSubcomponentApplName,
                slapmSubcomponentMonitorStatus,
                slapmSubcomponentMonitorIntTime,
@@ -2832,8 +2722,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
                slapmPolicyNameOfRule,
                slapmPolicyRuleStatsOperStatus,
                slapmPolicyRuleStatsActiveConns,
-
-
                slapmPolicyRuleStatsTotalConns,
                slapmPolicyRuleStatsLActivated,
                slapmPolicyRuleStatsLastMapping,
@@ -2882,8 +2770,6 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
    slapmEndSystemGroup2 OBJECT-GROUP
      OBJECTS {
                slapmPolicyTrapFilter,
-
-
                slapmSubcomponentProtocol,
                slapmSubcomponentSystemAddress,
                slapmSubcomponentLastActivity,
@@ -2932,6 +2818,4 @@ SLAPM-MIB DEFINITIONS ::= BEGIN
          "The group of objects defined by this MIB that are
          required for end system implementations."
      ::= { slapmGroups 9 }
-
-
 END

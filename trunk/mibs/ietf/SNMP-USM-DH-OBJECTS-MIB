@@ -44,8 +44,6 @@ usmDHKeyConformance OBJECT IDENTIFIER ::= { snmpUsmDHObjectsMIB 2 }
 
 -- Textual conventions
 
-
-
 DHKeyChange ::=         TEXTUAL-CONVENTION
     STATUS              current
     DESCRIPTION
@@ -95,7 +93,6 @@ DHKeyChange ::=         TEXTUAL-CONVENTION
             RSA Laboratories, November 1993"
     SYNTAX              OCTET STRING
 
-
 -- Diffie Hellman public values
 
 usmDHPublicObjects      OBJECT IDENTIFIER ::= { usmDHKeyObjects 1 }
@@ -144,8 +141,6 @@ usmDHUserKeyTable OBJECT-TYPE
     changes to be done in a manner where the knowledge of the current
     secret plus knowledge of the key change data exchanges (e.g. via
     wiretapping)  will not reveal the new key."
-
-
     ::= { usmDHPublicObjects 2 }
 
 usmDHUserKeyEntry OBJECT-TYPE
@@ -194,8 +189,6 @@ usmDHUserOwnAuthKeyChange OBJECT-TYPE
     ::= { usmDHUserKeyEntry 2 }
 
 usmDHUserPrivKeyChange OBJECT-TYPE
-
-
     SYNTAX  DHKeyChange
     MAX-ACCESS read-create
     STATUS  current
@@ -244,8 +237,6 @@ usmDHKickstartTable OBJECT-TYPE
     an implementor will specify one or more standard security names
     and will provide entries in the VACM tables granting various
     levels of access to those names.  The actual content of the VACM
-
-
     table is beyond the scope of this MIB.
 
     Note: This table is expected to be readable without authentication
@@ -294,8 +285,6 @@ usmDHKickstartMyPublic OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "The agent's Diffie-Hellman public value for this row.  At
-
-
     initialization, the agent generates a random number and derives
     its public value from that number.  This public value is published
     here.  This public value 'y' equals g^r MOD p where g is the from
@@ -343,9 +332,6 @@ usmDHKickstartMgrPublic OBJECT-TYPE
         "The manager's Diffie-Hellman public value for this row.  Note
     that this value is not set via the SNMP agent, but may be set via
     some out of band method, such as the device's configuration file.
-
-
-
     The manager calculates this value in the same manner and using the
     same parameter set as the agent does.  E.g. it selects a random
     number 'r', calculates y = g^r mod p and provides 'y' as the
@@ -394,8 +380,6 @@ usmDHKickstartMgrPublic OBJECT-TYPE
     strength of the confidentiality of the out of band provisioning
     data."
     REFERENCE
-
-
         "-- Password-Based Cryptography Standard, PKCS#5v2.0;
             RSA Laboratories, March 1999
          -- Applied Cryptography, 2nd Ed.; B. Schneier,
@@ -444,8 +428,6 @@ usmDHKeyMIBCompliance   MODULE-COMPLIANCE
         implements the usmUserTable and which wishes the ability to
         populate the USM table based on out-of-band provided DH
         ignition values.
-
-
              Any agent implementing this group is expected to provide
         preinstalled entries in the vacm tables as follows:
 
@@ -494,8 +476,6 @@ usmDHKeyMIBCompliance   MODULE-COMPLIANCE
         vacmViewTreeFamilyViewName      'dhKickRestricted'
         vacmViewTreeFamilySubtree       1.3.6.1.2.1.1  (system)
         vacmViewTreeFamilyMask          ''
-
-
         vacmViewTreeFamilyType          1
         vacmViewTreeFamilyStorageType   permanent
         vacmViewTreeFamilyStatus        active
@@ -544,8 +524,6 @@ usmDHKeyKickstartGroup OBJECT-GROUP
     OBJECTS     {
                   usmDHKickstartMyPublic,
                   usmDHKickstartMgrPublic,
-
-
                   usmDHKickstartSecurityName
                 }
     STATUS      current

@@ -22,6 +22,7 @@ DisplayString ::=
 -- This data type is used to model textual information taken
 -- from the NVT ASCII character set.  By convention, objects
 -- with this syntax are declared as having
+
 --
 --      SIZE (0..255)
 

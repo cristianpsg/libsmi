@@ -13,8 +13,6 @@ IMPORTS
 application MODULE-IDENTITY
     LAST-UPDATED "200003030000Z"
     ORGANIZATION "IETF Mail and Directory Management Working Group"
-
-
     CONTACT-INFO
       "        Ned Freed
 
@@ -63,8 +61,6 @@ application MODULE-IDENTITY
 
 DistinguishedName ::= TEXTUAL-CONVENTION
     DISPLAY-HINT "255a"
-
-
     STATUS current
     DESCRIPTION
         "A Distinguished Name represented in accordance with
@@ -113,8 +109,6 @@ ApplEntry ::= SEQUENCE {
     applName
         SnmpAdminString,
     applDirectoryName
-
-
         DistinguishedName,
     applVersion
         SnmpAdminString,
@@ -163,8 +157,6 @@ applName OBJECT-TYPE
     DESCRIPTION
       "The name the network service application chooses to be
        known by."
-
-
     ::= {applEntry 2}
 
 applDirectoryName OBJECT-TYPE
@@ -213,8 +205,6 @@ applOperStatus OBJECT-TYPE
     DESCRIPTION
       "Indicates the operational status of the network service
        application. 'down' indicates that the network service is
-
-
        not available. 'up' indicates that the network service
        is operational and available.  'halted' indicates that the
        service is operational but not available.  'congested'
@@ -263,8 +253,6 @@ applOutboundAssociations OBJECT-TYPE
     ::= {applEntry 9}
 
 applAccumulatedInboundAssociations OBJECT-TYPE
-
-
     SYNTAX Counter32
     MAX-ACCESS read-only
     STATUS current
@@ -313,8 +301,6 @@ applRejectedInboundAssociations OBJECT-TYPE
        entity has rejected, since application initialization.
        Rejected associations are not counted in the accumulated
        association totals.  Note that this only counts
-
-
        associations the application entity has rejected itself;
        it does not count rejections that occur at lower layers
        of the network.  Thus, this counter may not reflect the
@@ -363,8 +349,6 @@ assocTable OBJECT-TYPE
     STATUS current
     DESCRIPTION
         "The table holding a set of all active application
-
-
          associations."
     ::= {application 2}
 
@@ -413,8 +397,6 @@ assocRemoteApplication OBJECT-TYPE
        it should be the string encoded distinguished name of the
        managed object.  For X.400(1984) MTAs which do not have a
        Distinguished Name, the RFC 2156 syntax 'mta in
-
-
        globalid' used in X400-Received: fields can be used. Note,
        however, that not all connections an MTA makes are
        necessarily to another MTA."
@@ -463,8 +445,6 @@ assocDuration OBJECT-TYPE
        started.  If this association started prior to the last
        initialization of the network subsystem, then this
        object contains a zero value."
-
-
     ::= {assocEntry 5}
 
 
@@ -513,8 +493,6 @@ assocRFC2248Compliance MODULE-COMPLIANCE
     STATUS deprecated
     DESCRIPTION
       "The compliance statement for RFC 2248 implementations
-
-
        which support the Network Services Monitoring MIB for
        basic monitoring of network service applications and
        their associations."
@@ -563,8 +541,6 @@ applRFC1565Group OBJECT-GROUP
 
 assocRFC1565Group OBJECT-GROUP
     OBJECTS {
-
-
       assocRemoteApplication, assocApplicationProtocol,
       assocApplicationType, assocDuration}
     STATUS obsolete
@@ -613,8 +589,6 @@ applRFC2788Group OBJECT-GROUP
     DESCRIPTION
       "A collection of objects providing basic monitoring of
        network service applications.  This is the appropriate
-
-
        group for RFC 2788 -- it adds the applDirectoryName object
        missing in RFC 2248."
     ::= {applGroups 5}
