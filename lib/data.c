@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.36 1999/06/18 15:04:33 strauss Exp $
+ * @(#) $Id: data.c,v 1.37 1999/06/22 10:16:48 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -970,7 +970,7 @@ void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
 {
     Node	      *nodePtr, *toChildPtr, *nextPtr;
     Object	      *objectPtr;
-    
+
     /* (1) merge lists of Objects for this node */
     if (fromNodePtr->firstObjectPtr) {
 	if (!toNodePtr->firstObjectPtr) {
@@ -1026,6 +1026,7 @@ void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
 		} else if (nodePtr->subid > toNodePtr->lastChildPtr->subid) {
 		    /* move to the end. */
 		    nodePtr->prevPtr = toNodePtr->lastChildPtr;
+		    toNodePtr->lastChildPtr->nextPtr = nodePtr;
 		    toNodePtr->lastChildPtr = nodePtr;
 		} else {
 		    /* move to the appropriate place in the `to' list. */
@@ -1072,7 +1073,7 @@ setObjectName(objectPtr, name)
     Node	      *nodePtr, *nextPtr;
     Module	      *modulePtr;
     Object	      *newObjectPtr;
-    
+
     objectPtr->name = util_strdup(name);
 
     /*
@@ -1104,9 +1105,10 @@ setObjectName(objectPtr, name)
 	    } else {
 		pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
 	    }
-	    
+
 	    objectPtr->nodePtr->firstObjectPtr = NULL;
 	    objectPtr->nodePtr->lastObjectPtr = NULL;
+	    
 	    newObjectPtr = nodePtr->firstObjectPtr;
 	    modulePtr = newObjectPtr->modulePtr;
 	    if (modulePtr->objectPtr == objectPtr) {
@@ -1514,7 +1516,7 @@ setObjectList(objectPtr, listPtr)
 void
 setObjectValue(objectPtr, valuePtr)
     Object	 *objectPtr;
-    SmiValue	 *valuePtr;
+    Value	 *valuePtr;
 {
     objectPtr->valuePtr = valuePtr;
 }
@@ -1606,6 +1608,7 @@ findNodeByOidString(oid)
  *
  * Results:
  *      A pointer to the first Object structure in the current View or
+ *	a pointer to the first Object if none is in the current View or
  *	NULL if it is not found.
  *
  * Side effects:
@@ -1619,7 +1622,8 @@ findObjectByNode(nodePtr)
     Node      *nodePtr;
 {
     Object    *objectPtr;
-    
+
+    /* first, try ti find an object in the current view. */
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
 	if (isInView(objectPtr->modulePtr->name)) {
@@ -1627,7 +1631,11 @@ findObjectByNode(nodePtr)
 	}
     }
 
-    return (NULL);
+#if 0
+    return NULL;
+#else
+    return nodePtr->firstObjectPtr;
+#endif
 }
 
 
@@ -2189,17 +2197,15 @@ setTypeReference(typePtr, reference)
 void
 setTypeParent(Type *typePtr, const char *parentmodule, const char *parentname)
 {
-    if (!typePtr->parentname) {
-	if (parentmodule) {
-	    typePtr->parentmodule  = util_strdup(parentmodule);
-	} else {
-	    typePtr->parentmodule  = NULL;
-	}
-	if (parentname) {
-	    typePtr->parentname    = util_strdup(parentname);
-	} else {
-	    typePtr->parentname    = NULL;
-	}
+    if (parentmodule) {
+	typePtr->parentmodule  = util_strdup(parentmodule);
+    } else {
+	typePtr->parentmodule  = NULL;
+    }
+    if (parentname) {
+	typePtr->parentname    = util_strdup(parentname);
+    } else {
+	typePtr->parentname    = NULL;
     }
 }
 
@@ -2361,7 +2367,7 @@ setTypeDecl(typePtr, decl)
 void
 setTypeValue(typePtr, valuePtr)
     Type	 *typePtr;
-    SmiValue	 *valuePtr;
+    Value	 *valuePtr;
 {
     typePtr->valuePtr = valuePtr;
 }
@@ -2788,11 +2794,155 @@ initData()
     typeFloat128Ptr =
 	addType("Float128", SMI_BASETYPE_FLOAT128, 0, NULL);
     typeEnumPtr =
-	addType("Enum", SMI_BASETYPE_ENUM, 0, NULL);
+	addType("Enumeration", SMI_BASETYPE_ENUM, 0, NULL);
     typeBitsPtr =
 	addType("Bits", SMI_BASETYPE_BITS, 0, NULL);
 
     return (0);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * freeData --
+ *
+ *      Free all data structures.
+ *
+ * Results:
+ *      0 on success or -1 on an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+freeData()
+{
+    View       *viewPtr, *nextViewPtr;
+    Macro      *macroPtr, *nextMacroPtr;
+    Module     *modulePtr, *nextModulePtr;
+    Import     *importPtr, *nextImportPtr;
+    Revision   *revisionPtr, *nextRevisionPtr;
+    List       *listPtr, *nextListPtr;
+    Type       *typePtr, *nextTypePtr;
+    Object     *objectPtr, *nextObjectPtr;
+
+    return;
+    /* TODO: some weired ptrs :-(, waiting for purify... */
+    
+    for (viewPtr = firstViewPtr; viewPtr; viewPtr = nextViewPtr) {
+	nextViewPtr = viewPtr->nextPtr;
+	util_free(viewPtr->name);
+	util_free(viewPtr);
+    }
+
+    for (modulePtr = firstModulePtr; modulePtr; modulePtr = nextModulePtr) {
+	nextModulePtr = modulePtr->nextPtr;
+
+	for (importPtr = modulePtr->firstImportPtr; importPtr;
+	     importPtr = nextImportPtr) {
+	    nextImportPtr = importPtr->nextPtr;
+	    util_free(importPtr->importmodule);
+	    util_free(importPtr->importname);
+	    util_free(importPtr);
+	}
+
+	for (revisionPtr = modulePtr->firstRevisionPtr; revisionPtr;
+	     revisionPtr = nextRevisionPtr) {
+	    nextRevisionPtr = revisionPtr->nextPtr;
+	    util_free(revisionPtr->description);
+	    util_free(revisionPtr);
+	}
+
+	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
+	     macroPtr = nextMacroPtr) {
+	    nextMacroPtr = macroPtr->nextPtr;
+	    util_free(macroPtr->name);
+	    util_free(macroPtr);
+	}
+
+	for (typePtr = modulePtr->firstTypePtr; typePtr;
+	     typePtr = nextTypePtr) {
+	    nextTypePtr = typePtr->nextPtr;
+	    for (listPtr = typePtr->listPtr; listPtr;
+		 listPtr = nextListPtr) {
+		nextListPtr = listPtr->nextPtr;
+		if ((typePtr->basetype == SMI_BASETYPE_BITS) ||
+		    (typePtr->basetype == SMI_BASETYPE_ENUM)) {
+		    util_free(((NamedNumber *)(listPtr->ptr))->name);
+		    util_free((NamedNumber *)(listPtr->ptr));
+		} else {
+		    util_free(((Range *)(listPtr->ptr))->minValuePtr);
+		    util_free(((Range *)(listPtr->ptr))->maxValuePtr);
+		    util_free((Range *)(listPtr->ptr));
+		}
+		util_free(listPtr);
+	    }
+	    util_free(typePtr->name);
+	    util_free(typePtr->parentmodule);
+	    util_free(typePtr->parentname);
+	    util_free(typePtr->format);
+	    util_free(typePtr->units);
+	    util_free(typePtr->description);
+	    util_free(typePtr->reference);
+	    util_free(typePtr);
+	}
+
+	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
+	     objectPtr = nextObjectPtr) {
+	    nextObjectPtr = objectPtr->nextPtr;
+	    util_free(objectPtr->name);
+	    util_free(objectPtr->description);
+	    util_free(objectPtr->reference);
+	    util_free(objectPtr->format);
+	    util_free(objectPtr->units);
+	    if (objectPtr->indexPtr) {
+		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
+		     listPtr = nextListPtr) {
+		    nextListPtr = listPtr->nextPtr;
+		    util_free(listPtr);
+		}
+		util_free(objectPtr->indexPtr);
+	    }
+	    for (listPtr = objectPtr->listPtr; listPtr;
+		 listPtr = nextListPtr) {
+		nextListPtr = listPtr->nextPtr;
+		util_free(listPtr);
+	    }
+	    for (listPtr = objectPtr->optionlistPtr; listPtr;
+		 listPtr = nextListPtr) {
+		nextListPtr = listPtr->nextPtr;
+		util_free(((Option *)(listPtr->ptr))->description);
+		util_free((Option *)(listPtr->ptr));
+		util_free(listPtr);
+	    }
+	    for (listPtr = objectPtr->refinementlistPtr; listPtr;
+		 listPtr = nextListPtr) {
+		nextListPtr = listPtr->nextPtr;
+		util_free((Refinement *)(listPtr->ptr));
+		util_free(listPtr);
+	    }
+	    if (objectPtr->valuePtr) {
+		/* TODO: conditional ptrs in *valuePtr */
+		util_free(objectPtr->valuePtr);
+	    }
+	    util_free(objectPtr);
+	}
+
+	util_free(modulePtr->name);
+	util_free(modulePtr->path);
+	util_free(modulePtr->organization);
+	util_free(modulePtr->contactInfo);
+	util_free(modulePtr);
+    }
+
+    /* TODO: free Nodes */
+    
+    return;
 }
 
 
@@ -2821,7 +2971,7 @@ loadModule(modulename)
 {
     Parser	    parser;
     char	    s[200];
-    char	    *path, *dir, *smipath;
+    char	    *path = NULL, *dir, *smipath;
     struct stat	    buf;
     int		    sming = 0;
     
@@ -2954,3 +3104,122 @@ loadModule(modulename)
 }
 
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * checkObjectName --
+ *
+ *      Check wheather a given object name already exists
+ *	in a given module.
+ *
+ * Results:
+ *      1 on success or 0 if the name already exists.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+checkObjectName(modulePtr, name, parserPtr)
+    Module	*modulePtr;
+    char        *name;
+    Parser	*parserPtr;
+{
+    Object	*objectPtr;
+    Type        *typePtr;
+
+    /*
+     * This would really benefit from having a hash table...
+     */
+
+    if (modulePtr) {
+        for (objectPtr = modulePtr->firstObjectPtr;
+	     objectPtr; objectPtr = objectPtr->nextPtr) {
+	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
+		&& ! strcasecmp(name, objectPtr->name)) {
+		if (! strcmp(name, objectPtr->name)) {
+		    printError(parserPtr, ERR_REDEFINITION, name);
+		    return 0;
+		} else {
+		    printError(parserPtr, ERR_CASE_REDEFINITION,
+			       name, objectPtr->name);
+		}
+	    }
+	}
+	for (typePtr = modulePtr->firstTypePtr;
+	     typePtr; typePtr = typePtr->nextPtr) {
+	    /* TODO: must ignore SEQUENCE types here ... */
+	    if (! (typePtr->flags & FLAG_INCOMPLETE)
+		&& ! strcasecmp(name, typePtr->name)) {
+		printError(parserPtr, ERR_CASE_REDEFINITION,
+			   name, typePtr->name);
+	    }
+	}
+    }
+    return 1;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * checkFormat --
+ *
+ *      Check whether a format specification is valid.
+ *
+ * Results:
+ *      1 on success or 0 if the format is invalid.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int checkFormat(basetype, p)
+    SmiBasetype basetype;
+    char *p;
+{
+    int n, repeat;
+
+    switch (basetype) {
+    case SMI_BASETYPE_INTEGER32:
+    case SMI_BASETYPE_INTEGER64:
+    case SMI_BASETYPE_UNSIGNED32:
+    case SMI_BASETYPE_UNSIGNED64:
+	if (*p == 'x' || *p == 'o' || *p == 'b') {
+	    p++;
+	    return (*p == 0);
+	} else if (*p == 'd') {
+	    p++;
+	    if (! *p) return 1;
+	    if (*p != '-') return 0;
+	    for (n = 0, p++; *p && isdigit((int) *p); p++, n++) ;
+	    return (*p == 0 && n > 0);
+	}
+	return 0;
+    case SMI_BASETYPE_OCTETSTRING:
+	while (*p) {
+	    if ((repeat = (*p == '*'))) p++;                /* part 1 */
+	    
+	    for (n = 0; *p && isdigit((int) *p); p++, n++) ;/* part 2 */
+	    if (! *p || n == 0) return 0;
+	    
+	    if (*p != 'x' && *p != 'd' && *p != 'o'         /* part 3 */
+		&& *p != 'a' && *p != 't') return 0;
+	    p++;
+	    
+	    if (*p                                          /* part 4 */
+		&& ! isdigit((int) *p) && *p != '*') p++;
+	    
+	    if (repeat && *p                                /* part 5 */
+		&& ! isdigit((int) *p) && *p != '*') p++;
+	}
+	return 1;
+    default:
+	return 0;
+    }
+}

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.16 1999/06/18 15:04:44 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.17 1999/06/22 11:18:19 strauss Exp $
  */
 
 #include <stdio.h>
@@ -25,12 +25,12 @@ void usage()
 {
     fprintf(stderr,
 	    "Usage: smilint [-Vhvs] [-l <level>] <module_or_path>\n"
-	    "-V                        show version and license information\n"
-	    "-h                        show usage information\n"
-	    "-s                        print statistics on parsed MIB modules\n"
-	    "-r                        print errors also for imported modules\n"
-	    "-l <level>                set maximum level of errors and warnings\n"
-	    "<module_or_path>          plain name of MIB module or file path\n");
+	    "-V                    show version and license information\n"
+	    "-h                    show usage information\n"
+	    "-s                    print statistics on parsed MIB modules\n"
+	    "-r                    print errors also for imported modules\n"
+	    "-l <level>            set maximum level of errors and warnings\n"
+	    "<module_or_path>      plain name of MIB module or file path\n");
 }
 
 

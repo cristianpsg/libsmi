@@ -198,6 +198,12 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
+SMI.gif: SMI.eps
+	epsffit -sc 0 0 600 600 SMI.eps SMI.eps.tmp
+	ps2gif SMI.eps.tmp SMI.gif.tmp
+	giftopnm SMI.gif.tmp | pnmcrop | ppmtogif > SMI.gif
+	rm SMI.eps.tmp SMI.gif.tmp
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

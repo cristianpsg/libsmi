@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.in,v 1.38 1999/07/02 14:04:04 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.9 1999/07/02 14:04:03 strauss Exp $
 #
 
 
@@ -84,18 +84,18 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
 LN_S = ln -s
 MAKEINFO = makeinfo
-NM = /usr/ccs/bin/nm -p
+NM = /usr/local/bin/nm -B
 OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.7-pre2
+VERSION = 0.1.7-pre9
 mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
 INCLUDES = -I../lib
 
-EXTRA_DIST = dump-smi.h dump-sming.h dump-data.h dump-imports.h 			  dump-mosy.h dump-java.h dump-jdmk.h dump-corba.h 			  $(man_MANS)
+EXTRA_DIST = dump-smi.h dump-sming.h dump-data.h dump-imports.h 			  dump-mosy.h dump-corba.h 			  dump-ucdsnmp.h 			  $(man_MANS) 			  dump-java.h dump-jdmk.h 			  dump-java.c dump-jdmk.c
 
 
 bin_PROGRAMS = smiquery smilint smidump
@@ -108,15 +108,16 @@ smiquery_LDADD = ../lib/libsmi.la
 smilint_SOURCES = smilint.c
 smilint_LDADD = ../lib/libsmi.la
 
-smidump_SOURCES = smidump.c dump-sming.c dump-smi.c 			  dump-data.c dump-imports.c dump-mosy.c 			  dump-java.c dump-jdmk.c dump-corba.c
+smidump_SOURCES = smidump.c dump-sming.c dump-smi.c 			  dump-data.c dump-imports.c dump-mosy.c 			  dump-corba.c dump-ucdsnmp.c
 
+#			  dump-java.c dump-jdmk.c
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre9\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
@@ -127,7 +128,7 @@ smilint_OBJECTS =  smilint.o
 smilint_DEPENDENCIES =  ../lib/libsmi.la
 smilint_LDFLAGS = 
 smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-data.o \
-dump-imports.o dump-mosy.o dump-java.o dump-jdmk.o dump-corba.o
+dump-imports.o dump-mosy.o dump-corba.o dump-ucdsnmp.o
 smidump_DEPENDENCIES =  ../lib/libsmi.la
 smidump_LDFLAGS = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -147,8 +148,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-corba.P .deps/dump-data.P .deps/dump-imports.P \
-.deps/dump-java.P .deps/dump-jdmk.P .deps/dump-mosy.P .deps/dump-smi.P \
-.deps/dump-sming.P .deps/smidump.P .deps/smilint.P .deps/smiquery.P
+.deps/dump-mosy.P .deps/dump-smi.P .deps/dump-sming.P \
+.deps/dump-ucdsnmp.P .deps/smidump.P .deps/smilint.P .deps/smiquery.P
 SOURCES = $(smiquery_SOURCES) $(smilint_SOURCES) $(smidump_SOURCES)
 OBJECTS = $(smiquery_OBJECTS) $(smilint_OBJECTS) $(smidump_OBJECTS)
 

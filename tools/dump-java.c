@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-java.c,v 1.5 1999/06/18 15:04:40 strauss Exp $
+ * @(#) $Id: dump-java.c,v 1.6 1999/07/02 14:04:06 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -163,7 +163,7 @@ static void printObjects(char *modulename)
 		smiNamedNumber = smiGetNextNamedNumber(smiNamedNumber)) {
 		printf("    public static final long %s = %lu;\n",
 		       smiNamedNumber->name,
-		       smiNamedNumber->valuePtr->value.unsigned32);
+		       smiNamedNumber->value.value.unsigned32);
 	    }
 	    printf("\n");
 	    printf("    /**\n");

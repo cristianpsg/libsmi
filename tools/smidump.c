@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.15 1999/06/30 10:32:28 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.16 1999/07/02 14:04:09 strauss Exp $
  */
 
 #include <stdio.h>
@@ -23,9 +23,12 @@
 #include "dump-data.h"
 #include "dump-imports.h"
 #include "dump-mosy.h"
+#include "dump-corba.h"
+#include "dump-ucdsnmp.h"
+#if 0
 #include "dump-java.h"
 #include "dump-jdmk.h"
-#include "dump-corba.h"
+#endif
 
 
 
@@ -47,8 +50,12 @@ static Driver driverTable[] = {
     { "tree",	   dumpOidTree,  "structure of the OID tree" },
     { "corba-idl", dumpCorbaIdl, "corba IDL interface definitions (JIDM)" },
     { "corba-oid", dumpCorbaOid, "corba OID definitions (JIDM)" },
+    { "ucd-h",     dumpUcdH,     "UCD SNMP mib module C header" },
+    { "ucd-c",	   dumpUcdC,     "UCD SNMP mib module C code" },
+#if 0
     { "java",      dumpJava,     "java manager stub code (JMGMT)" },
-    { "jdmk",      dumpJdmk,     "jave manager stub code (JDMK)" },
+    { "jdmk",      dumpJdmk,     "java manager stub code (JDMK)" },
+#endif
     { NULL, NULL }
 };
 
@@ -69,9 +76,11 @@ static void formats()
 static void usage()
 {
     fprintf(stderr,
-	    "Usage: smidump [-Vh] [-f <format>] [-p <module>] <module_or_path>\n"
+	    "Usage: smidump [-Vhls] [-f <format>] [-p <module>] <module_or_path>\n"
 	    "-V                    show version and license information\n"
 	    "-h                    show usage information\n"
+	    "-l <level>            set maximum level of errors and warnings\n"
+	    "-s                    do not generate any comments\n"
 	    "-f <format>           use <format> when dumping (default %s)\n"
 	    "-p <module>           preload <module>\n"
 	    "<module_or_path>      plain name of MIB module or file path\n\n",
@@ -98,13 +107,17 @@ main(argc, argv)
     char *modulename;
     int flags;
     int errors = 0;
+    int silent = 0;
     Driver *driver = driverTable;
     
     smiInit();
 
     flags = smiGetFlags();
     
-    while ((c = getopt(argc, argv, "Vhf:p:")) != -1) {
+    flags |= SMI_FLAG_ERRORS;
+    smiSetFlags(flags);
+
+    while ((c = getopt(argc, argv, "Vhl:sf:p:")) != -1) {
 	switch (c) {
 	case 'V':
 	    version();
@@ -112,6 +125,12 @@ main(argc, argv)
 	case 'h':
 	    usage();
 	    exit(0);
+	case 'l':
+	    smiSetErrorLevel(atoi(optarg));
+	    break;
+	case 's':
+	    silent++;
+	    break;
 	case 'p':
 	    smiLoadModule(optarg);
 	    break;
@@ -141,10 +160,11 @@ main(argc, argv)
 	} else {
 	    fprintf(stderr, "smidump: cannot locate module `%s'\n",
 		    argv[optind]);
-	    exit(1);
 	}
 	optind++;
     }
+
+    smiExit();
     
     exit(errors);
 }

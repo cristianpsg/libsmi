@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.in,v 1.38 1999/07/02 14:03:50 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.9 1999/06/08 21:09:42 strauss Exp $
 #
 
 
@@ -84,12 +84,12 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
 LN_S = ln -s
 MAKEINFO = makeinfo
-NM = /usr/ccs/bin/nm -p
+NM = /usr/local/bin/nm -B
 OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.7-pre2
+VERSION = 0.1.7-pre9
 mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
@@ -109,7 +109,7 @@ smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre9\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

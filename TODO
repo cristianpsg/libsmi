@@ -1,19 +1,15 @@
 
-o check all `TODO' marks in parser.y for open questions.
-o add syntax error output (yyerror()) to parser.y.
-o handle forbidden WS at some places ( - number, Module . label, ...)
+o check all `TODO' marks in all source files for open questions.
+
+o parser-smi.y: handle forbidden WS at some places
+  ( - number, Module . label, ...)
+
 o detect IMPORTs of SMIv1 specific and SMIv2 specific items in the
   same module, e.g. old OBJECT-TYPE macro and (new) NOTIFICATION-TYPE macro.
-o ensure order without forward references in typedef sming dump.
-o dump-sming.c: all(!) kinds of index clauses
-o /usr/local/lib/tnm3.0.0/mibs/RFC1382-MIB:1609:
-  OBJECT IDENTIFIER DEFVALs must be expressed as a single identifier
-                  DEFVAL { {0 0}...
-o have seen cases like `default ;'. where? 
-o BIN and HEX DEFVALs in SMIv1/v2 Parser.
 
-o READ_CREATE should *never* occur in data.c / smi.c
-o simple documented example
+o dump-sming.c: ensure an order without forward references in typedef's.
+
+o dump-sming.c: support all(!) kinds of index clauses
 
 o redesign of data structures: make SmiXXX structures the heads of the
   according data.h structures. This would obsolete the Free() functions
@@ -21,64 +17,59 @@ o redesign of data structures: make SmiXXX structures the heads of the
 
 o Web online conversion to SMIng?
 
-o smiGetNames()
+o smiGetNames() is not yet implemented
 
 o thread safety (global vars? static vars? strtok() and other funcs?)
   different views
 
-o add much more checks to the smiv1/v2 and sming parsers
-o smi_errno ?!
 o set up a catalogue of errors detected by the smiv1/v2 parser?
+
 o grouping of error and warning messages
-o   does table node have exactly one row sub node with oid == 1? (2578.7.10)
-o   non continious sub oids in column node list?
-o   warning on NotificationName/ObjectName/ExtUTCTime definitions.
+
+o error detection: does table node have exactly one row sub node
+  with oid == 1? (2578.7.10)
+
+o warning detection: non continious sub oids in column node list?
+
+o warning detection: warning on NotificationName/ObjectName/ExtUTCTime
+  definitions.
 
 o if `parse error' occurs, the database is left in an incosistent state,
   e.g. index labels of sming modules are not adjusted.
 
-o need handle to distinguish different views.
+o need a handle to distinguish different views.
 
-o FreeBSD/BSD/OS: quad_t
+o clearly separate language dependant information at the API: SMI_STATUS_*
+  map STATUS to a non-language-dependant type
 
-o clearly separate language dependant information at the API:
-  SMI_STATUS_*, SMI_ACCESS_*
+o OID/Name Lookup Service (continue work on smid?)
 
-o DISPLAY_HINT interpreter function
-
-o Java OID/Name Lookup Service
-
-o clean up SMI_BASETYPE_XXX / struct SmiValue
+o error detection: parser-smi.y: remember SEQUENCE contents and check them
 
 o cleanup putenv(TZ) hack
-
-o parser-smi.y: remember SEQUENCE contents and check them
-
-o smilint DLSW-MIB dumps core, only if smi.h:SmiValue struct contains
-  the two new elements valueformat and len. try gdb watch.
-
-o parent types / restrictions, see smiquery type IF-MIB.ifAdminStatus,
-  smiquery type SNMPv2-SMI.Counter32
-
-o map STATUS to a non-language-dependant type
 
 o implcitly imported identifiers (MC MODULE sections) lead to
   `imported but never used' warnings, e.g. SNMP-NOTIFICATION-MIB
 
-o type-flag: implcit/explicit
-  getType... also implicit types
-
 o smistrip + man page + extract mibs/*
-
-
-o warnings: hyphens in named-numbers
 
 o warnings: integer(signed) in index
 
-o FreeBSD, Win32
+o check, wheather OIDs of indexed columns might be longer than 128 subids.
 
-o smiGetXXXChildNode() returns definitions from modules not in the view.
-  smidump -f tree IF-MIB returns strange ifEntry information.
-  see x.c
+o automake: Win32 (EXE_SUFFIX?)
 
+o how to convert SMIng types derived from other defined types correctly
+  to SMIv2?
 
+o purify: data.c:freeData() is broken
+
+o warning detection: enumerations SHOULD NOT contain signedNumber's.
+  SHOULD start at 1. SHOULD be numbered contiguously.
+  e.g. DISMAN-SCHEDULE-MIB.SnmpPduErrorStatus
+
+o endless loop after parse error: smidump -f smiv1 ./RMON2-MIB.smiv1
+
+o Juergen's testsuite -> make check
+
+o smidump -ftypes dumps core for many modules

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.15 1999/06/22 10:16:48 strauss Exp $
+ * @(#) $Id: error.c,v 1.16 1999/07/02 14:03:51 strauss Exp $
  */
 
 #include <string.h>
@@ -67,7 +67,7 @@ Error errors[] = {
       "Number `%s' too large" },
     { 2, ERR_HEX_ENDS_IN_B,
       "Hexadecimal string terminated by binary string delimiter, assume hex value" },
-    { 1, ERR_LEX_UNEXPECTED_CHAR,
+    { 0, ERR_LEX_UNEXPECTED_CHAR,
       "Lexically unexpected character (internal error!)" },
     { 2, ERR_MODULENAME_64,
       "Module name `%s' must not be longer that 64 characters" },
@@ -214,9 +214,15 @@ Error errors[] = {
     { 3, ERR_SCALAR_READCREATE,
       "Scalar object must not have a `read-create' access value" },
     { 4, ERR_NAMEDNUMBER_INCLUDES_HYPHEN,
-      "Named number %s must not include a hyphen in SMIv2" },
+      "Named number `%s' must not include a hyphen in SMIv2" },
     { 4, ERR_NAMEDBIT_INCLUDES_HYPHEN,
-      "Named bit %s must not include a hyphen in SMIv2" },
+      "Named bit `%s' must not include a hyphen in SMIv2" },
+    { 2, ERR_REDEFINITION,
+      "Redefinition of identifier `%s'" },
+    { 5, ERR_CASE_REDEFINITION,
+      "Identifier `%s' differs from `%s' only in case" },
+    { 2, ERR_INVALID_FORMAT,
+      "Invalid format specification `%s'" },
  
     { 0, 0, NULL }
 };

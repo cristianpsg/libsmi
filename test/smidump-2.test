@@ -7,7 +7,7 @@ RC=0
 
 for mib in ${TESTMIBS} ; do
     echo "$mib: dumping again from previous output and comparing."
-    ../tools/smidump -fsming smidump-1.out/$mib.sming > smidump-2.out/$mib.sming
+    ../tools/smidump -l0 -fsming smidump-1.out/$mib.sming > smidump-2.out/$mib.sming
     if [ $? -ne 0 ] ; then
 	echo "see directory smidump-2.out for results on $mib."
         RC=1

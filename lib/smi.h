@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.45 1999/06/30 10:32:22 strauss Exp $
+ * @(#) $Id: smi.h,v 1.46 1999/07/02 14:03:57 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -79,12 +79,10 @@ typedef enum SmiStatus {
 /* SmiAccess -- values of access levels                                      */
 typedef enum SmiAccess {
     SMI_ACCESS_UNKNOWN          = 0, /* should not occur                     */
-    SMI_ACCESS_NOT_ACCESSIBLE   = 1, /* the values 1 to 5 are allow to be    */
+    SMI_ACCESS_NOT_ACCESSIBLE   = 1, /* the values 1 to 5 are allowed to be  */
     SMI_ACCESS_NOTIFY           = 2, /* compared by relational operators.    */
     SMI_ACCESS_READ_ONLY        = 3,
     SMI_ACCESS_READ_WRITE       = 4
-/*    SMI_ACCESS_READ_CREATE      = 5, */
-/*    SMI_ACCESS_WRITE_ONLY       = 6  */
 } SmiAccess;
 
 /* SmiNodekind -- type or statement that leads to a definition               */
@@ -105,20 +103,21 @@ typedef unsigned int SmiNodekind;
 typedef enum SmiDecl {
     SMI_DECL_UNKNOWN            = 0,  /* should not occur                    */
     /* SMIv1/v2 ASN.1 statements and macros */
-    SMI_DECL_TYPEASSIGNMENT     = 1,
-    SMI_DECL_IMPL_SEQUENCE      = 2,
-    SMI_DECL_IMPL_SEQUENCEOF    = 3,
-    SMI_DECL_VALUEASSIGNMENT    = 4,
-    SMI_DECL_OBJECTTYPE         = 5,
-    SMI_DECL_OBJECTIDENTITY     = 6,
-    SMI_DECL_MODULEIDENTITY     = 7,
-    SMI_DECL_NOTIFICATIONTYPE   = 8,
-    SMI_DECL_TRAPTYPE           = 9,
-    SMI_DECL_OBJECTGROUP        = 10, 
-    SMI_DECL_NOTIFICATIONGROUP  = 11,
-    SMI_DECL_MODULECOMPLIANCE   = 12,
-    SMI_DECL_AGENTCAPABILITIES  = 13,
-    SMI_DECL_TEXTUALCONVENTION  = 14,
+    SMI_DECL_IMPLICIT_TYPE      = 1,
+    SMI_DECL_TYPEASSIGNMENT     = 2,
+    SMI_DECL_IMPL_SEQUENCE      = 3,
+    SMI_DECL_IMPL_SEQUENCEOF    = 4,
+    SMI_DECL_VALUEASSIGNMENT    = 5,
+    SMI_DECL_OBJECTTYPE         = 6,
+    SMI_DECL_OBJECTIDENTITY     = 7,
+    SMI_DECL_MODULEIDENTITY     = 8,
+    SMI_DECL_NOTIFICATIONTYPE   = 9,
+    SMI_DECL_TRAPTYPE           = 10,
+    SMI_DECL_OBJECTGROUP        = 11, 
+    SMI_DECL_NOTIFICATIONGROUP  = 12,
+    SMI_DECL_MODULECOMPLIANCE   = 13,
+    SMI_DECL_AGENTCAPABILITIES  = 14,
+    SMI_DECL_TEXTUALCONVENTION  = 15,
     /* SMIng statements */
     SMI_DECL_MODULE             = 33,
     SMI_DECL_TYPEDEF            = 34,
@@ -155,7 +154,7 @@ typedef enum SmiValueformat {
 /* SmiValue -- any single value; for use in default values and subtyping     */
 typedef struct SmiValue {
     SmiBasetype             basetype;
-    SmiValueformat	    valueformat;
+    SmiValueformat	    format;
     unsigned int	    len;         /* only for OIDs and OctetStrings   */
     union {
         SmiUnsigned64       unsigned64;
@@ -173,18 +172,18 @@ typedef struct SmiValue {
 
 /* SmiNamedNumber -- a named number; for enumeration and bitset types        */
 typedef struct SmiNamedNumber {
-    SmiIdentifier	module;
-    SmiIdentifier	type;
+    SmiIdentifier	typemodule;
+    SmiIdentifier	typename;
     SmiIdentifier       name;
-    SmiValue            *valuePtr;
+    SmiValue            value;
 } SmiNamedNumber;
 
 /* SmiRange -- a min-max value range; for subtyping of sizes or numbers      */
 typedef struct SmiRange {
-    SmiIdentifier	module;
-    SmiIdentifier	type;
-    SmiValue            *minValuePtr;
-    SmiValue            *maxValuePtr;
+    SmiIdentifier	typemodule;
+    SmiIdentifier	typename;
+    SmiValue            minValue;
+    SmiValue            maxValue;
 } SmiRange;
 
 /* SmiModule -- the main structure of a module                               */
@@ -221,14 +220,14 @@ typedef struct SmiMacro {
 
 /* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
-    SmiIdentifier       module;
     SmiIdentifier       name;
+    SmiIdentifier       module;
     SmiBasetype         basetype;
-    SmiIdentifier	parentmodule;
     SmiIdentifier	parentname;
+    SmiIdentifier	parentmodule;
     SmiDecl             decl;
     char                *format;
-    SmiValue            *valuePtr;
+    SmiValue            value;
     char                *units;
     SmiStatus           status;
     char                *description;
@@ -237,65 +236,65 @@ typedef struct SmiType {
 
 /* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
-    SmiIdentifier       module;
     SmiIdentifier       name;
+    SmiIdentifier       module;
     unsigned int	oidlen;
     SmiSubid		*oid;
-    SmiIdentifier       typemodule;
     SmiIdentifier       typename;
-    SmiIndexkind        indexkind;
-    int                 implied;
-    int                 create;
-    SmiIdentifier       relatedmodule;    
-    SmiIdentifier       relatedname;    
-    SmiNodekind         nodekind;
+    SmiIdentifier       typemodule;
     SmiDecl             decl;
     SmiBasetype         basetype;
     SmiAccess           access;
     SmiStatus           status;
     char                *format;
-    SmiValue            *valuePtr;
+    SmiValue            value;
     char                *units;
     char                *description;
     char                *reference;
+    SmiIndexkind        indexkind;
+    int                 implied;
+    int                 create;
+    SmiIdentifier       relatedname;    
+    SmiIdentifier       relatedmodule;    
+    SmiNodekind         nodekind;
 } SmiNode;
 
-/* SmiIndex -- a table row index column				             */
-typedef struct SmiIndex {
-    SmiIdentifier       module;
+/* SmiListItem -- an item in a list (row index column, notification object)  */
+typedef struct SmiListItem {
     SmiIdentifier       name;
-    SmiIdentifier       rowmodule;
-    SmiIdentifier       rowname;
+    SmiIdentifier       module;
+    SmiIdentifier       listname;
+    SmiIdentifier       listmodule;
     int			number;
-} SmiIndex;
+} SmiListItem;
 
 /* SmiMember -- a member of a group                                          */
 typedef struct SmiMember {
-    SmiIdentifier       module;
     SmiIdentifier       name;
-    SmiIdentifier       groupmodule;
+    SmiIdentifier       module;
     SmiIdentifier       groupname;
+    SmiIdentifier       groupmodule;
 } SmiMember;
 
 /* SmiOption -- an optional group in a compliance statement                  */
 typedef struct SmiOption {
-    SmiIdentifier       module;
     SmiIdentifier       name;
-    SmiIdentifier       compliancemodule;
+    SmiIdentifier       module;
     SmiIdentifier       compliancename;
+    SmiIdentifier       compliancemodule;
     char                *description;
 } SmiOption;
 
 /* SmiRefinement -- a refined object in a compliance statement               */
 typedef struct SmiRefinement {
-    SmiIdentifier       module;
     SmiIdentifier       name;
-    SmiIdentifier       compliancemodule;
+    SmiIdentifier       module;
     SmiIdentifier       compliancename;
-    SmiIdentifier       typemodule;
+    SmiIdentifier       compliancemodule;
     SmiIdentifier       typename;
-    SmiIdentifier       writetypemodule;
+    SmiIdentifier       typemodule;
     SmiIdentifier       writetypename;
+    SmiIdentifier       writetypemodule;
     SmiAccess           access;
     char                *description;
 } SmiRefinement;
@@ -310,6 +309,8 @@ extern char *smiDescriptor(char *fullname);
 
 extern int smiInit();
 
+extern void smiExit();
+
 extern void smiSetErrorLevel(int level);
 
 extern int smiGetFlags();
@@ -321,6 +322,8 @@ extern char *smiGetPath();
 extern int smiSetPath(const char *path);
 
 extern char *smiLoadModule(char *module);
+
+extern int smiModuleLoaded(char *module);
 
 
 
@@ -394,6 +397,7 @@ extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
 
+#if 0 /* XXX */
 extern SmiNode *smiGetFirstMemberNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
@@ -408,17 +412,18 @@ extern SmiNode *smiGetFirstMandatoryNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextMandatoryNode(SmiNode *smiComplianceNodePtr,
 					SmiNode *smiMandatoryNodePtr);
+#endif
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 
 
 
 
-extern SmiIndex *smiGetFirstIndex(SmiNode *smiRowNodePtr);
+extern SmiListItem *smiGetFirstListItem(SmiNode *smiListNodePtr);
 
-extern SmiIndex *smiGetNextIndex(SmiIndex *smiIndexPtr);
+extern SmiListItem *smiGetNextListItem(SmiListItem *smiListItemPtr);
 
-extern void smiFreeIndex(SmiIndex *smiIndexPtr);
+extern void smiFreeListItem(SmiListItem *smiListItemPtr);
 
 
 

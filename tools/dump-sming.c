@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.43 1999/06/18 15:04:43 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.44 1999/07/02 14:04:08 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -24,13 +24,12 @@
 #include <time.h>
 
 #include "smi.h"
-#include "util.h"
 
 
 
 #define  INDENT		2    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
-#define  INDENTTEXTS	9   /* column to start multiline texts */
+#define  INDENTTEXTS	9    /* column to start multiline texts */
 #define  INDENTMAX	64   /* max column to fill, break lines otherwise */
 
 #define  STYLE_IMPORTS  2
@@ -66,6 +65,7 @@ static char *convertImport[] = {
     "SNMPv2-SMI",   "ObjectSyntax",       NULL, NULL,
     "SNMPv2-SMI",   "SimpleSyntax",       NULL, NULL,
     "SNMPv2-SMI",   "Integer32",          NULL, NULL,
+    "SNMPv2-SMI",   "Unsigned32",         NULL, NULL,
     "SNMPv2-SMI",   "ApplicationSyntax",  NULL, NULL,
     "SNMPv2-SMI",   "IpAddress",          "IRTF-NMRG-SMING-TYPES", "IpAddress",
     "SNMPv2-SMI",   "Counter32",          "IRTF-NMRG-SMING-TYPES", "Counter32",
@@ -99,7 +99,7 @@ static char *convertImport[] = {
     "RFC1213-MIB",  "system",             "SNMPv2-MIB", "system",
     "RFC1213-MIB",  "interfaces",         "IF-MIB", "interfaces",
 /*  "RFC1213-MIB",  "at",                 "RFC1213-MIB", "at", */
-    "RFC1213-MIB",  "ip",                 "IP-MIB", "",
+    "RFC1213-MIB",  "ip",                 "IP-MIB", "ip",
     "RFC1213-MIB",  "icmp",               "IP-MIB", "icmp",
     "RFC1213-MIB",  "tcp",                "TCP-MIB", "tcp",
     "RFC1213-MIB",  "udp",                "UDP-MIB", "udp",
@@ -354,7 +354,7 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(s, "%s", valuePtr->value.ptr);
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	if ((valuePtr->valueformat == SMI_VALUEFORMAT_TEXT) ||
+	if ((valuePtr->format == SMI_VALUEFORMAT_TEXT) ||
 	    (valuePtr->len == 0)) {
 	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
 	} else {
@@ -379,7 +379,7 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_UNKNOWN:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-	/* TODO */
+	sprintf(s, "%s", valuePtr->value.ptr);
 	break;
     }
 
@@ -404,7 +404,7 @@ static void printSubtype(SmiType *smiType)
 	    } else {
 		print(" (");
 	    }
-	    sprintf(s, "%s(%s)", nn->name, getValueString(nn->valuePtr));
+	    sprintf(s, "%s(%s)", nn->name, getValueString(&nn->value));
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
 	if (i) {
@@ -418,13 +418,13 @@ static void printSubtype(SmiType *smiType)
 	    } else {
 		print(" (");
 	    }	    
-	    if (bcmp(range->minValuePtr, range->maxValuePtr,
+	    if (bcmp(&range->minValue, &range->maxValue,
 		     sizeof(SmiValue))) {
-		sprintf(s, "%s", getValueString(range->minValuePtr));
+		sprintf(s, "%s", getValueString(&range->minValue));
 		sprintf(&s[strlen(s)], "..%s", 
-			getValueString(range->maxValuePtr));
+			getValueString(&range->maxValue));
 	    } else {
-		sprintf(s, "%s", getValueString(range->minValuePtr));
+		sprintf(s, "%s", getValueString(&range->minValue));
 	    }
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
@@ -488,14 +488,15 @@ static void printImports(char *modulename)
 	 * module.
 	 */
 	for(i = 0; convertImport[i]; i += 4) {
-	    if ((!util_strcmp(importedModulename, convertImport[i])) &&
-		(!util_strcmp(importedDescriptor, convertImport[i+1]))) {
+	    if (convertImport[i] && convertImport[i+1]
+		&& !strcmp(importedModulename, convertImport[i])
+		&& !strcmp(importedDescriptor, convertImport[i+1])) {
 		importedModulename = convertImport[i+2];
 		importedDescriptor = convertImport[i+3];
 		/* TODO: hide duplicates */
 		break;
-	    } else if ((!util_strcmp(importedModulename, convertImport[i])) &&
-		       (!convertImport[i+1])) {
+	    } else if (convertImport[i] && !convertImport[i+1]
+		       && !strcmp(importedModulename, convertImport[i])) {
 		importedModulename = convertImport[i+2];
 		/* TODO: hide duplicates */
 		break;
@@ -630,9 +631,9 @@ static void printTypedefs(char *modulename)
 	printSubtype(smiType);
 	print(";\n");
 
-	if (smiType->valuePtr) {
+	if (smiType->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    printSegment(2 * INDENT, "default", INDENTVALUE);
-	    print("%s", getValueString(smiType->valuePtr));
+	    print("%s", getValueString(&smiType->value));
 	    print(";\n");
 	}
 	
@@ -672,11 +673,11 @@ static void printObjects(char *modulename)
 {
     int		 i, j;
     SmiNode	 *smiNode, *smiParentNode;
-    SmiIndex     *smiIndex;
+    SmiListItem  *smiListItem;
     SmiType	 *smiType;
     int		 indent = 0;
     int		 lastindent = -1;
-    char	 *s;
+    char	 *s = NULL;
     SmiNodekind  nodekinds;
 
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
@@ -761,12 +762,12 @@ static void printObjects(char *modulename)
 		printSegment((2 + indent) * INDENT, "index", INDENTVALUE);
 	    }
 	    print("(");
-	    for (j = 0, smiIndex = smiGetFirstIndex(smiNode); smiIndex;
-		 j++, smiIndex = smiGetNextIndex(smiIndex)) {
+	    for (j = 0, smiListItem = smiGetFirstListItem(smiNode); smiListItem;
+		 j++, smiListItem = smiGetNextListItem(smiListItem)) {
 		if (j) {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, smiIndex->name);
+		printWrapped(INDENTVALUE + 1, smiListItem->name);
 		/* TODO: non-local name if non-local */
 	    } /* TODO: empty? -> print error */
 	    print(");\n");
@@ -787,12 +788,12 @@ static void printObjects(char *modulename)
 		    print(" implied");
 		}
 		print(" (");
-		for (j = 0, smiIndex = smiGetFirstIndex(smiNode); smiIndex;
-		     j++, smiIndex = smiGetNextIndex(smiIndex)) {
+		for (j = 0, smiListItem = smiGetFirstListItem(smiNode); smiListItem;
+		     j++, smiListItem = smiGetNextListItem(smiListItem)) {
 		    if (j) {
 			print(", ");
 		    }
-		    printWrapped(INDENTVALUE + 1, smiIndex->name);
+		    printWrapped(INDENTVALUE + 1, smiListItem->name);
 		    /* TODO: non-local name if non-local */
 		} /* TODO: empty? -> print error */
 		print(");\n");
@@ -814,12 +815,12 @@ static void printObjects(char *modulename)
 		    print(" implied");
 		}
 		print(" (");
-		for (j = 0, smiIndex = smiGetFirstIndex(smiNode); smiIndex;
-		     j++, smiIndex = smiGetNextIndex(smiIndex)) {
+		for (j = 0, smiListItem = smiGetFirstListItem(smiNode); smiListItem;
+		     j++, smiListItem = smiGetNextListItem(smiListItem)) {
 		    if (j) {
 			print(", ");
 		    }
-		    printWrapped(INDENTVALUE + 1, smiIndex->name);
+		    printWrapped(INDENTVALUE + 1, smiListItem->name);
 		    /* TODO: non-local name if non-local */
 		} /* TODO: empty? -> print error */
 		print(");\n");
@@ -835,9 +836,9 @@ static void printObjects(char *modulename)
 	    print(";\n");
 	}
 	
-	if (smiNode->valuePtr) {
+	if (smiNode->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    printSegment((2 + indent) * INDENT, "default", INDENTVALUE);
-	    print("%s", getValueString(smiNode->valuePtr));
+	    print("%s", getValueString(&smiNode->value));
 	    print(";\n");
 	}
 	
@@ -882,7 +883,8 @@ static void printObjects(char *modulename)
 static void printNotifications(char *modulename)
 {
     int		 i, j;
-    SmiNode	 *smiNode, *object;
+    SmiNode	 *smiNode;
+    SmiListItem  *listitem;
     
     for(i = 0, smiNode = smiGetFirstNode(modulename,
 					 SMI_NODEKIND_NOTIFICATION);
@@ -901,15 +903,15 @@ static void printNotifications(char *modulename)
 	    print("%s;\n", getOidString(smiNode, 0));
 	}
 
-	if ((object = smiGetFirstMemberNode(smiNode))) {
+	if ((listitem = smiGetFirstListItem(smiNode))) {
 	    printSegment(2 * INDENT, "objects", INDENTVALUE);
 	    print("(");
-	    for (j = 0; object;
-		 j++, object = smiGetNextMemberNode(smiNode, object)) {
+	    for (j = 0; listitem;
+		 j++, listitem = smiGetNextListItem(listitem)) {
 		if (j) {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, object->name);
+		printWrapped(INDENTVALUE + 1, listitem->name);
 		/* TODO: non-local name if non-local */
 	    } /* TODO: empty? -> print error */
 	    print(");\n");
@@ -948,7 +950,8 @@ static void printNotifications(char *modulename)
 static void printGroups(char *modulename)
 {
     int		 i, d, j;
-    SmiNode	 *smiNode, *member;
+    SmiNode	 *smiNode;
+    SmiListItem  *listitem;
     
     for (i = 0, d = 0; d < 3; d++) {
 	
@@ -969,12 +972,12 @@ static void printGroups(char *modulename)
 	    
 	    printSegment(2 * INDENT, "members", INDENTVALUE);
 	    print("(");
-	    for (j = 0, member = smiGetFirstMemberNode(smiNode); member;
-		 j++, member = smiGetNextMemberNode(smiNode, member)) {
+	    for (j = 0, listitem = smiGetFirstListItem(smiNode); listitem;
+		 j++, listitem = smiGetNextListItem(listitem)) {
 		if (j) {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, member->name);
+		printWrapped(INDENTVALUE + 1, listitem->name);
 		/* TODO: non-local name if non-local */
 	    } /* TODO: empty? -> print error */
 	    print(");\n");
@@ -1013,10 +1016,11 @@ static void printGroups(char *modulename)
 static void printCompliances(char *modulename)
 {
     int		  i, j;
-    SmiNode	  *smiNode, *mandatory;
+    SmiNode	  *smiNode;
     SmiType	  *smiType;
     SmiOption	  *option;
     SmiRefinement *refinement;
+    SmiListItem   *listitem;
     
     for(i = 0, smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
 	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
@@ -1055,16 +1059,16 @@ static void printCompliances(char *modulename)
 	    print(";\n");
 	}
 
-	if ((mandatory = smiGetFirstMandatoryNode(smiNode))) {
+	if ((listitem = smiGetFirstListItem(smiNode))) {
 	    print("\n");
 	    printSegment(2 * INDENT, "mandatory", INDENTVALUE);
 	    print("(");
-	    for (j = 0; mandatory;
-		 j++,mandatory = smiGetNextMandatoryNode(smiNode, mandatory)) {
+	    for (j = 0; listitem;
+		 j++, listitem = smiGetNextListItem(listitem)) {
 		if (j) {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, mandatory->name);
+		printWrapped(INDENTVALUE + 1, listitem->name);
 		/* TODO: non-local name if non-local */
 	    } /* TODO: empty? -> print error */
 	    print(");\n");

@@ -1,3 +1,65 @@
+1999-09-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.h: new struct Value. Now all smi.h structs are
+	separated from the data.h structs. This was needed to handle
+	OID DEFVALs correctly.
+	
+	* tools/smiquery.c (main): added default values und beatified
+	some other output.
+
+	* lib/smi.h: SMI_DECL_IMPLICIT_TYPE denotes implicitly defined
+	types. Fixed some other decl settings for types in the SMIv1/v2
+	parser.
+
+	* tools/dump-data.c: Applied a patch from Juergen Schoenwaelder
+	that fixes some types for the tree dump format.
+	
+1999-09-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* configure.in: added checks for 64bit strtoX() functions to
+	work on FreeBSD systems.
+
+1999-09-24  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-smi.c: fixed some generated import for SMIv1
+	modules. also fixed some typename conversions for SMIv2
+	modules generated from SMIv1.
+
+	* lib/smi.c: fixed a conceptual bug that led to loops when a
+	single node appears multiple times in a list like in OBJECTS
+	of a NOTIFICATION-TYPE. This is similar to the earlier bug with
+	multiple items in an index clause. Hence, the struct SmiIndex
+	has been renamed to SmiListItem is used for different kinds
+	of lists. This also made some API functions obsolete that have
+	been removed: smiGetFirst/NextMemberNode,
+	smiGetFirst/NextObjectNode, smiGetFirst/NextMandatoryNode.
+	The bug has been reported by Ira Wolf on comp.protocols.snmp.
+
+1999-09-23  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/data.c (mergeNodeTrees): fixed a nasty ptr bug reported
+	by Jochen Friedrich some weeks ago.
+
+	* lib/parser-sming.y: a checkFormat() call contained a wrong
+	argument, leading to claimed format data that are correct.
+
+	* lib/parser-smi.y: David Reeder pointed out a slight bug where
+	an error message contained a wrong argument.
+
+	* tools/dump-mosy.c: Juergen Schoenwaelder contributed further
+	patches to various dump modules and some checks in SMI and SMIng
+	parsers.
+	
+	* tools/dump-ucdsnmp.c: Juergen Schoenwaelder contributed this
+	new dump module that generates UCD-SNMP mib2c like output.
+	
+1999-07-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/: extracted updated MIB modules from RFCs.
+
+	* lib/data.c: findObjectByNode() now first looks for objects in
+	the current view.
+
 1999-07-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidump.c: Juergen Schoenwaelder contributed further

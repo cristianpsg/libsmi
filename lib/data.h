@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.37 1999/06/17 16:56:53 strauss Exp $
+ * @(#) $Id: data.h,v 1.38 1999/06/18 15:04:34 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -120,16 +120,36 @@ typedef struct Revision {
 
 
 
+typedef struct Value {
+    SmiBasetype             basetype;
+    SmiValueformat	    format;
+    unsigned int	    len;
+    union {
+        SmiUnsigned64       unsigned64;
+        SmiInteger64        integer64;
+        SmiUnsigned32       unsigned32;
+        SmiInteger32        integer32;
+        SmiFloat32          float32;
+        SmiFloat64          float64;
+        SmiFloat128         float128;
+        SmiSubid	    *oid;
+        char                *ptr;
+        char                **bits;
+    } value;
+} Value;
+
+
+
 typedef struct NamedNumber {
-    SmiIdentifier       name;
-    SmiValue            *valuePtr;
+    SmiIdentifier   name;
+    Value           *valuePtr;
 } NamedNumber;
 
 
 
 typedef struct Range {
-    SmiValue            *minValuePtr;
-    SmiValue            *maxValuePtr;
+    Value           *minValuePtr;
+    Value           *maxValuePtr;
 } Range;
 
 
@@ -142,7 +162,7 @@ typedef struct Type {
     SmiBasetype	   basetype;
     SmiDecl	   decl;
     char	   *format;
-    SmiValue	   *valuePtr;
+    Value	   *valuePtr;
     char	   *units;
     SmiStatus	   status;
     struct List    *listPtr;
@@ -180,7 +200,7 @@ typedef struct Compl {
     List  *refinementlistPtr;
 } Compl;
 
- 
+
 
 typedef struct Index {
     int	           implied;
@@ -207,7 +227,7 @@ typedef struct Object {
     char	   *reference;
     char	   *format;
     char	   *units;
-    SmiValue	   *valuePtr;
+    Value	   *valuePtr;
     struct Node	   *nodePtr;
     struct Object  *prevPtr;		/* chain of Objects in this Module */
     struct Object  *nextPtr;
@@ -398,7 +418,7 @@ extern void setObjectUnits(Object *objectPtr,
 			   char *units);
 
 extern void setObjectValue(Object *objectPtr,
-			   SmiValue *valuePtr);
+			   Value *valuePtr);
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);
@@ -476,7 +496,7 @@ extern void setTypeUnits(Type *typePtr,
 			 char *units);
 
 extern void setTypeValue(Type *typePtr,
-			 SmiValue *valuePtr);
+			 Value *valuePtr);
 
 
 
@@ -508,9 +528,14 @@ extern Macro *findMacroByModulenameAndName(const char *modulename,
 
 extern int initData();
 
+extern void freeData();
+
 extern Module *loadModule(char *modulename);
 
 
+extern int checkFormat(SmiBasetype basetype, char *format);
+
+extern int checkObjectName(Module *modulePtr, char *name, Parser *parserPtr);
 
 #endif /* _DATA_H */
 

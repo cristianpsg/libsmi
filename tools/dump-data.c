@@ -25,43 +25,91 @@
 static char *currentModule;
 
 
+typedef struct TypeNode {
+    char *typename;
+    struct TypeNode *nextNodePtr;
+    struct TypeNode *childNodePtr;
+} TypeNode;
+
+static TypeNode _Bits = { "Bits", NULL, NULL };
+static TypeNode _Enumeration = { "Enumeration", &_Bits, NULL };
+static TypeNode _Float128 = { "Float128", &_Enumeration, NULL };
+static TypeNode _Float64 = { "Float64", &_Float128, NULL };
+static TypeNode _Float32 = { "Float32", &_Float64, NULL };
+static TypeNode _Unsigned64 = { "Unsigned64", &_Float32, NULL };
+static TypeNode _Unsigned32 = { "Unsigned32", &_Unsigned64, NULL };
+static TypeNode _Integer64 = { "Integer64", &_Unsigned32, NULL };
+static TypeNode _Integer32 = { "Integer32", &_Integer64, NULL };
+static TypeNode _ObjectIdentifier = { "ObjectIdentifier", &_Integer32, NULL };
+static TypeNode _OctetString = { "OctetString", &_ObjectIdentifier, NULL };
+static TypeNode typeRoot = { "", NULL, &_OctetString };
+
+
 static char *getFlags(SmiNode *smiNode)
 {
-    static char flags[5];
 
     switch (smiNode->access) {
     case SMI_ACCESS_UNKNOWN:
-	flags[0] = ' ';
+	return "---";
     case SMI_ACCESS_NOT_ACCESSIBLE:
-	flags[0] = '-'; break;
+	return "---";
     case SMI_ACCESS_NOTIFY:
-	flags[0] = 'N'; break;
+	return "--n";
     case SMI_ACCESS_READ_ONLY:
-	flags[0] = 'R'; break;
+	return "r-n";
     case SMI_ACCESS_READ_WRITE:
-	flags[0] = 'W'; break;
+	return "rwn";
     }
 
-    flags[1] = '-';
+    return "";
+}
 
-    switch (smiNode->status) {
+
+
+static char getStatusChar(SmiStatus status)
+{
+    switch (status) {
     case SMI_STATUS_UNKNOWN:
-	flags[2] = ' '; break;
+	return '+';
     case SMI_STATUS_CURRENT:
-	flags[2] = 'C'; break;
+	return '+';
     case SMI_STATUS_DEPRECATED:
-	flags[2] = 'D'; break;
-    case SMI_STATUS_OBSOLETE:
-	flags[2] = 'O'; break;
+	return 'x';
     case SMI_STATUS_MANDATORY:
-	flags[2] = 'M'; break;
+        return '+';
     case SMI_STATUS_OPTIONAL:
-	flags[2] = 'P'; break;
+	return '+';
+    case SMI_STATUS_OBSOLETE:
+	return 'o';
     }
 
-    flags[3] = 0;
+    return ' ';
+}
 
-    return flags;
+
+
+static char *getTypeName(SmiNode *smiNode)
+{
+    SmiType *smiType, *parentType;
+
+    smiType = smiGetType(smiNode->typemodule, smiNode->typename);
+    if (! smiType) {
+	return smiNode->typename;
+    }
+
+    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+	parentType = smiGetType(smiType->parentmodule, smiType->parentname);
+	if (! parentType) {
+	    return smiType->parentname;
+	}
+	smiType = parentType;
+    }
+
+    if (smiType) {
+	return smiType->name;
+    }
+
+    return smiNode->typename;
 }
 
 
@@ -70,16 +118,16 @@ static void printIndex(SmiNode *smiNode)
 {
     char *indexname;
     int  i;
-    SmiIndex *smiIndex;
+    SmiListItem *smiListItem;
     
     indexname = NULL;
-    for (i = -1, smiIndex = smiGetFirstIndex(smiNode);
-	 smiIndex; smiIndex = smiGetNextIndex(smiIndex), i++) {
+    for (i = -1, smiListItem = smiGetFirstListItem(smiNode);
+	 smiListItem; smiListItem = smiGetNextListItem(smiListItem), i++) {
 	if (i > 0) printf(",");
 	if (indexname) {
 	    printf(indexname);
 	}
-	indexname = smiIndex->name;
+	indexname = smiListItem->name;
     }
     if (indexname) {
 	printf("%s%s%s",
@@ -95,17 +143,17 @@ static void printObjects(SmiNode *smiNode)
 {
     char *objectname;
     int  i;
-    SmiNode *objectNode;
+    SmiListItem *listitem;
     
     objectname = NULL;
-    for (i = -1, objectNode = smiGetFirstObjectNode(smiNode);
-	 objectNode;
-	 objectNode = smiGetNextObjectNode(smiNode, objectNode), i++) {
+    for (i = -1, listitem = smiGetFirstListItem(smiNode);
+	 listitem;
+	 listitem = smiGetNextListItem(listitem), i++) {
 	if (i > 0) printf(",");
 	if (objectname) {
 	    printf(objectname);
 	}
-	objectname = objectNode->name;
+	objectname = listitem->name;
     }
     if (objectname) {
 	printf("%s%s", (i > 0) ? "," : "", objectname);
@@ -118,45 +166,51 @@ static int pruneSubTree(SmiNode *smiNode)
 {
     SmiNode *childNode;
     
-    if (smiNode) {
-	if (strcmp(currentModule, smiNode->module) == 0) {
-	    return 0;
-	} else {
-	    for (childNode = smiGetFirstChildNode(smiNode);
-		 childNode;
-		 childNode = smiGetNextChildNode(childNode)
-		) {
-		if (! pruneSubTree(childNode)) {
-		    return 0;
-		}
-	    }
-	    return 1;
-	}
-    } else {
+    if (! smiNode) {
 	return 1;
     }
+
+    if (strcmp(currentModule, smiNode->module) == 0) {
+	return 0;
+    }
+
+    for (childNode = smiGetFirstChildNode(smiNode); 
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if (! pruneSubTree(childNode)) {
+	    return 0;
+	}
+    }
+#ifdef DEBUG
+    fprintf(stderr, "** pruning %s (%s)\n",
+	    smiNode->name, smiNode->module);
+#endif
+    return 1;
 }
 
 
 
 static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 {
-    SmiNode     *childNode;
+    SmiNode     *childNode, *indexNode;
     SmiNodekind lastNodeKind = SMI_NODEKIND_UNKNOWN;
     int         i = 0, cnt, prefixlen, newtypefieldlen = 8;
     char        c = 0;
+    char	*typename;
 
     if (smiNode) {
 	prefixlen = strlen(prefix);
 	switch (smiNode->nodekind) {
 	case SMI_NODEKIND_SCALAR:
 	case SMI_NODEKIND_COLUMN:
-	    c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
-	    printf("%s-- %s %-*s %s.%s(%u)\n", prefix,
+	    c = prefix[prefixlen-1];
+	    prefix[prefixlen-1] = getStatusChar(smiNode->status);
+	    typename = getTypeName(smiNode);
+	    printf("%s-- %s %-*s %s(%u)\n",
+		   prefix,
 		   getFlags(smiNode),
 		   typefieldlen,
-		   smiNode->typename,
-		   smiNode->module,
+		   typename,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    if (c) {
@@ -165,13 +219,30 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	    break;
 	case SMI_NODEKIND_ROW:
 	    if (prefixlen) {
-		c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
+		c = prefix[prefixlen-1];
+		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
-	    printf("%s--%s.%s(%u) [", prefix,
-		   smiNode->module,
+	    printf("%s--%s(%u) [", prefix,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
-	    printIndex(smiNode);
+	    switch (smiNode->indexkind) {
+	    case SMI_INDEX_INDEX:
+	    case SMI_INDEX_REORDER:
+		printIndex(smiNode);
+		break;
+	    case SMI_INDEX_EXPAND:  /* TODO: we have to do more work here! */
+		break;
+	    case SMI_INDEX_AUGMENT:
+	    case SMI_INDEX_SPARSE:
+		indexNode = smiGetNode(smiNode->relatedmodule,
+				       smiNode->relatedname);
+		if (indexNode) {
+		    printIndex(indexNode);
+		}
+		break;
+	    case SMI_INDEX_UNKNOWN:
+		break;	    
+	    }
 	    printf("]\n");
 	    if (c) {
 		prefix[prefixlen-1] = c;
@@ -179,10 +250,10 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	    break;
 	case SMI_NODEKIND_NOTIFICATION:
 	    if (prefixlen) {
-		c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
+		c = prefix[prefixlen-1];
+		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
-	    printf("%s--%s.%s(%u) [", prefix,
-		   smiNode->module,
+	    printf("%s--%s(%u) [", prefix,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    printObjects(smiNode);
@@ -193,10 +264,10 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	    break;
 	default:
 	    if (prefixlen) {
-		c = prefix[prefixlen-1]; prefix[prefixlen-1] = '+';
+		c = prefix[prefixlen-1];
+		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
-	    printf("%s--%s.%s(%u)\n", prefix,
-		   smiNode->module,
+	    printf("%s--%s(%u)\n", prefix,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
 	    if (c) {
@@ -207,8 +278,11 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 	     childNode;
 	     childNode = smiGetNextChildNode(childNode)) {
 	    if (! pruneSubTree(childNode)) {
-		if (childNode->typename && (strlen(childNode->typename) > newtypefieldlen)) {
-		    newtypefieldlen = strlen(childNode->typename);
+		if (childNode->typename) {
+		    typename = getTypeName(childNode);
+		    if (strlen(typename) > newtypefieldlen) {
+			newtypefieldlen = strlen(typename);
+		    }
 		}
 		cnt++;
 	    }
@@ -275,7 +349,7 @@ static void printType(SmiType *smiType, int level)
 int dumpTypes(char *modulename)
 {
     SmiType *smiType;
-
+    
     for (smiType = smiGetFirstType(modulename);
 	 smiType; smiType = smiGetNextType(smiType)) {
 	printType(smiType, 1);
