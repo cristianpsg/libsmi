@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.22 1998/09/28 15:01:57 strauss Exp $
+ * @(#) $Id: error.c,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 #include <string.h>
@@ -186,6 +186,8 @@ Error errors[] = {
       "Missing DESCRIPTION on SMIv2 OBJECT-TYPE" },
     { 2, ERR_OIDLABEL_NOT_FIRST,
       "Object identifier element `%s' name only allowed as first element" },
+    { 2, ERR_UNKNOWN_TYPE,
+      "Unknown type `%s'" },
  
     { 0, 0, NULL }
 };

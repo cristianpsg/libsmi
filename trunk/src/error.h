@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.21 1998/09/28 15:01:58 strauss Exp $
+ * @(#) $Id: error.h,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -88,6 +88,7 @@
 #define ERR_ILLEGALLY_QUALIFIED			 68
 #define ERR_MISSING_DESCRIPTION			 69
 #define ERR_OIDLABEL_NOT_FIRST			 70
+#define ERR_UNKNOWN_TYPE			 71
 
 
 #define yyerror(msg) printError(parser, ERR_OTHER_ERROR, msg)

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.6 1998/10/22 12:59:56 strauss Exp $
+ * @(#) $Id: parser.y,v 1.7 1998/10/22 15:18:03 strauss Exp $
  */
 
 %{
@@ -199,11 +199,11 @@ MibNode *parent;
 %type  <id>typeSMI
 %type  <err>typeTag
 %type  <err>valueDeclaration
-%type  <err>conceptualTable
-%type  <err>row
-%type  <err>entryType
-%type  <err>sequenceItems
-%type  <id>sequenceItem
+%type  <type>conceptualTable
+%type  <type>row
+%type  <type>entryType
+%type  <type>sequenceItems
+%type  <type>sequenceItem
 %type  <type>Syntax
 %type  <type>sequenceSyntax
 %type  <type>NamedBits
@@ -880,6 +880,11 @@ typeDeclarationRHS:	Syntax
 			SYNTAX Syntax
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				/* TODO: if Syntax is a reference to a
+				 * base type (flags & PERMANENT?), then
+				 * create a new inherited type and aply
+				 * restrictions to that one.
+				 */
 				$$ = addType($9, SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
@@ -889,6 +894,7 @@ typeDeclarationRHS:	Syntax
 				setTypeDescription($$, &$6);
 				setTypeStatus($$, $4);
 				setTypeDisplayHint($$, &$2);
+				setTypeMacro($$, MACRO_TC);
 			    } else {
 				$$ = NULL;
 			    }
@@ -901,25 +907,71 @@ typeDeclarationRHS:	Syntax
 
 /* REF:RFC1902,7.1.12. */
 conceptualTable:	SEQUENCE OF row
-			{ $$ = 0; }
+			{
+			    if ($3) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType($3,
+						 SYNTAX_SEQUENCEOF,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				$$ = NULL;
+			    }
+			}
 	;
 
 row:			UPPERCASE_IDENTIFIER
 			/* in this case, we do NOT allow `Module.Type' */
-			{ $$ = 0; }
-			/* TODO: this must be an entryType */
+			{
+			    $$ = findTypeByName($1);
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE, $1);
+			    }
+                        }
+                        /* TODO: this must be an entryType */
 	;
 
 /* REF:RFC1902,7.1.12. */
 entryType:		SEQUENCE '{' sequenceItems '}'
-			{ $$ = 0; }
-	;
+			{
+			    $$ = 0;
+			    
+			    if ($3) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType($3,
+						 SYNTAX_SEQUENCE,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				$$ = NULL;
+			    }
+			}
+;
 
 sequenceItems:		sequenceItem
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	|		sequenceItems ',' sequenceItem
 			/* TODO: might this list be emtpy? */
-			{ $$ = 0; }
+			{
+			    /* TODO: append $3 to $1 */
+			    $$ = $1;
+			}
 	;
 
 /*
@@ -930,7 +982,8 @@ sequenceItems:		sequenceItem
  */
 sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			{
-			    $$ = strdup($1);
+			    /* TODO */
+			    $$ = NULL;
 			}
 	;
 
@@ -942,6 +995,7 @@ Syntax:			ObjectSyntax
 			/* TODO: standalone `BITS' ok? seen in RMON2-MIB */
 			/* -> no, it's only allowed in a SEQUENCE {...} */
 			{
+			    /* TODO: ?? */
 			    $$ = $3;
 			}
 	;
@@ -1284,22 +1338,22 @@ ObjectSyntax:		SimpleSyntax
 	|		conceptualTable	     /* TODO: possible? row? entry? */
 			{
 			    /* TODO */
-			    $$ = NULL;
+			    $$ = $1;
 			}
 	|		row		     /* the uppercase name of a row  */
 			{
 			    /* TODO */
-			    $$ = NULL;
+			    $$ = $1;
 			}
 	|		entryType	     /* it's SEQUENCE { ... } phrase */
 			{
 			    /* TODO */
-			    $$ = NULL;
+			    $$ = $1;
 			}
 	|		ApplicationSyntax
 			{
 			    /* TODO */
-			    $$ = NULL;
+			    $$ = $1;
 			}
         ;
 
@@ -1314,12 +1368,12 @@ typeTag:		'[' APPLICATION number ']' IMPLICIT
  * named bits. REF: draft, p.29
  */
 sequenceObjectSyntax:	sequenceSimpleSyntax
-			{ $$ = 0; }
+			{ $$ = $1; }
 /*	|		conceptualTable	     /* TODO: possible? row? entry? */
 /*	|		row		     /* the uppercase name of a row  */
 /*	|		entryType	     /* it's SEQUENCE { ... } phrase */
 	|		sequenceApplicationSyntax
-			{ $$ = 0; }
+			{ $$ = $1; }
         ;
 
 /* TODO: specify really according to ObjectSyntax!!! */
@@ -1338,13 +1392,33 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		INTEGER integerSubType
 			{
-			    /* TODO: subtype */
-			    $$ = typeInteger;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType(typeInteger,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		INTEGER enumSpec
 			{
-			    /* TODO: subtype */
-			    $$ = typeInteger;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType(typeInteger,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add enum restriction */
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
@@ -1353,30 +1427,118 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
         |		INTEGER32 integerSubType
 			{
-			    /* TODO: subtype */
-			    $$ = typeInteger;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType(typeInteger,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
+			    Type *parent;
+			    
 			    /* TODO: scope, subtype */
-			    $$ = findTypeByModuleAndName(thisModule, $1);
+			    parent = findTypeByName($1);
+			    if (parent) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType(parent,
+						 SYNTAX_UNKNOWN, thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				    /* TODO: add enum restriction */
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				printError(parser, ERR_UNKNOWN_TYPE, $1);
+				$$ = NULL;
+			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
 			{
-			    /* TODO: subtype */
-			    $$ = findTypeByModulenameAndName($1, $3);
+			    Type *parent;
+			    char s[2*MAX_IDENTIFIER_LENGTH+2];
+			    
+			    parent = findTypeByModulenameAndName($1, $3);
+			    if (parent) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType(parent,
+						 SYNTAX_UNKNOWN, thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				    /* TODO: add enum restriction */
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				sprintf(s, "%s.%s", $1, $3);
+				printError(parser, ERR_UNKNOWN_TYPE, s);
+				$$ = NULL;
+			    }
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
-			    /* TODO: scope, subtype */
-			    $$ = findTypeByModuleAndName(thisModule, $1);
+			    Type *parent;
+			    
+			    /* TODO: scope */
+			    parent = findTypeByName($1);
+			    if (parent) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType(parent,
+						 SYNTAX_UNKNOWN, thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				    /* TODO: add subtype restriction */
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				printError(parser, ERR_UNKNOWN_TYPE, $1);
+				$$ = NULL;
+			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
 			{
-			    /* TODO: subtype */
-			    $$ = findTypeByModulenameAndName($1, $3);
+			    Type *parent;
+			    char s[2*MAX_IDENTIFIER_LENGTH+2];
+			    
+			    parent = findTypeByModulenameAndName($1, $3);
+			    if (parent) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType(parent,
+						 SYNTAX_UNKNOWN, thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				    /* TODO: add subtype restriction */
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				sprintf(s, "%s.%s", $1, $3);
+				printError(parser, ERR_UNKNOWN_TYPE, s);
+				$$ = NULL;
+			    }
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -1384,19 +1546,68 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		OCTET STRING octetStringSubType
 			{
-			    /* TODO: subtype */
-			    $$ = typeOctetString;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType(typeOctetString,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
-			    /* TODO: scope, subtype */
-			    $$ = findTypeByModuleAndName(thisModule, $1);
+			    Type *parent;
+			    
+			    /* TODO: scope */
+			    parent = findTypeByName($1);
+			    if (parent) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType(parent,
+						 SYNTAX_UNKNOWN, thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				    /* TODO: add subtype restriction */
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				printError(parser, ERR_UNKNOWN_TYPE, $1);
+				$$ = NULL;
+			    }
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
 			{
-			    /* TODO: subtype */
-			    $$ = findTypeByModulenameAndName($1, $3);
+			    Type *parent;
+			    char s[2*MAX_IDENTIFIER_LENGTH+2];
+			    
+			    parent = findTypeByModulenameAndName($1, $3);
+			    if (parent) {
+				if (thisParser->flags & FLAG_ACTIVE) {
+				    $$ = addType(parent,
+						 SYNTAX_UNKNOWN, thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				    /* TODO: add subtype restriction */
+				} else {
+				    $$ = NULL;
+				}
+			    } else {
+				sprintf(s, "%s.%s", $1, $3);
+				printError(parser, ERR_UNKNOWN_TYPE, s);
+				$$ = NULL;
+			    }
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -1462,40 +1673,69 @@ sequenceSimpleSyntax:	INTEGER			/* (-2147483648..2147483647) */
 
 ApplicationSyntax:	IPADDRESS
 			{
+			    /* TODO: Lookup type descriptor */
 			    $$ = typeIpAddress;
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
+			    /* TODO: Lookup type descriptor */
 			    $$ = typeCounter32;
 			}
 	|		GAUGE32			/* (0..4294967295)	     */
 			{
+			    /* TODO: Lookup type descriptor */
 			    $$ = typeGauge32;
 			}
 	|		GAUGE32 integerSubType
 			{
-			    /* TODO: substype */
-			    $$ = typeGauge32;
+			    /* TODO: Lookup type descriptor */
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType(typeGauge32,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
+			    /* TODO: Lookup type descriptor */
 			    $$ = typeUnsigned32;
 			}
 	|		UNSIGNED32 integerSubType
 			{
-			    /* TODO: substype */
-			    $$ = typeUnsigned32;
+			    /* TODO: Lookup type descriptor */
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType(typeUnsigned32,
+					     SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				/* TODO: add subtype restriction */
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
+			    /* TODO: Lookup type descriptor */
 			    $$ = typeTimeTicks;
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
+			    /* TODO: Lookup type descriptor */
 			    $$ = typeOpaque;
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
+			    /* TODO: Lookup type descriptor */
 			    $$ = typeCounter64;
 			}
 	;

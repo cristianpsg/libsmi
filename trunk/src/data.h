@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.5 1998/10/22 12:59:55 strauss Exp $
+ * @(#) $Id: data.h,v 1.6 1998/10/22 15:18:02 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -80,7 +80,8 @@ typedef enum Syntax {
     SYNTAX_UNSIGNED32	     = 9,
     SYNTAX_TIMETICKS	     = 10,
     SYNTAX_OPAQUE	     = 11,
-    SYNTAX_COUNTER64	     = 12
+    SYNTAX_COUNTER64	     = 12,
+    SYNTAX_SEQUENCEOF	     = 13
 } Syntax;
 
 
@@ -142,7 +143,8 @@ typedef enum DeclMacro {
     MACRO_OBJECTGROUP	     = 7 ,
     MACRO_NOTIFICATIONGROUP  = 8 ,
     MACRO_MODULECOMPLIANCE   = 9 ,
-    MACRO_AGENTCAPABILITIES  = 10
+    MACRO_AGENTCAPABILITIES  = 10,
+    MACRO_TC		     = 11
 } DeclMacro;
 
 
@@ -423,6 +425,8 @@ extern void setTypeDisplayHint(Type *type,
 			       String *displayHint);
 
 
+
+extern Type *findTypeByName(const char *name);
 
 extern Type *findTypeByModuleAndName(Module *module,
 				     const char *name);
