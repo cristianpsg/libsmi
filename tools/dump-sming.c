@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.46 1999/10/01 12:46:59 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.47 1999/10/05 06:31:01 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1146,7 +1146,7 @@ static void printCompliances(char *modulename)
 
 
 
-int dumpSming(char *modulename)
+int dumpSming(char *modulename, int flags)
 {
     SmiModule	 *smiModule;
     SmiNode	 *smiNode;

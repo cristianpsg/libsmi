@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.39 1999/10/05 06:30:56 strauss Exp $
+ * @(#) $Id: data.c,v 1.40 1999/10/05 15:52:18 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -612,6 +612,8 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     Node	     *nodePtr;
     Module	     *modulePtr;
 
+    printf("[XXX %s %s]\n", modulePtr && modulePtr->name ? modulePtr->name : "-", objectname ? objectname : "-");
+    
     objectPtr = (Object *)util_malloc(sizeof(Object));
     if (!objectPtr) {
 	printError(parserPtr, ERR_ALLOCATING_OBJECT, strerror(errno));

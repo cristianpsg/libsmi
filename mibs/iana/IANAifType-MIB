@@ -1,3 +1,4 @@
+
    IANAifType-MIB DEFINITIONS ::= BEGIN
 
    IMPORTS
@@ -6,7 +7,7 @@
        TEXTUAL-CONVENTION                  FROM SNMPv2-TC;
 
    ianaifType MODULE-IDENTITY
-       LAST-UPDATED "9908311255Z"  --  August 31, 1999
+       LAST-UPDATED "9910081430Z"  --  October 8, 1999
        ORGANIZATION "IANA"
        CONTACT-INFO
 
@@ -22,7 +23,7 @@
                "The MIB module which defines the IANAifType textual
                convention, and thus the enumerated values of the
                ifType object defined in MIB-II's ifTable."
-       REVISION "9908311255Z"  -- August 31, 1999
+       REVISION "9910081430Z"  -- August 31, 1999
        DESCRIPTION
                "Updated to include new name assignments up to cnr(85).
                This is the first version available via the WWW."
@@ -218,7 +219,9 @@
 		   ss7SigLink (156),     -- SS7 Signaling Link 
 		   propWirelessP2P (157),  --  Prop. P2P wireless interface
 		   frForward (158),    -- Frame Forward Interface
-		   rfc1483 (159)	-- Multiprotocol over ATM AAL5
+		   rfc1483 (159),	-- Multiprotocol over ATM AAL5
+		   usb (160),		-- USB Interface
+		   ieee8023adLag(161)  -- IEEE 802.3ad Link Aggregate
 }
 
    END

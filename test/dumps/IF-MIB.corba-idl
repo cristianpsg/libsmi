@@ -36,7 +36,9 @@ module IF_MIB {
              version of MIB-II's ifTable, and incorporates the
              extensions defined in RFC 1229.
 
-    LAST-UPDATED:   199611031355Z    ORGANIZATION:
+    LAST-UPDATED:   199611031355Z
+
+    ORGANIZATION:
             "IETF Interfaces MIB Working Group"
 
     CONTACT-INFO:
@@ -108,16 +110,13 @@ module IF_MIB {
     */
     typedef ASN1_Integer InterfaceIndexOrZeroType; 
 
-
     typedef ASN1_OctetString IfDescrType; 
-
 
     typedef ASN1_Integer IfAdminStatusType; 
     const IfAdminStatusType IfAdminStatusType_up = 1;
     const IfAdminStatusType IfAdminStatusType_down = 2;
     const IfAdminStatusType IfAdminStatusType_testing = 3;
     const string IfAdminStatusType_NameNumberList = "up (1) , down (2) , testing (3)";
-
 
     typedef ASN1_Integer IfOperStatusType; 
     const IfOperStatusType IfOperStatusType_up = 1;
@@ -129,15 +128,12 @@ module IF_MIB {
     const IfOperStatusType IfOperStatusType_lowerLayerDown = 7;
     const string IfOperStatusType_NameNumberList = "up (1) , down (2) , testing (3) , unknown (4) , dormant (5) , notPresent (6) , lowerLayerDown (7)";
 
-
     typedef ASN1_Integer IfLinkUpDownTrapEnableType; 
     const IfLinkUpDownTrapEnableType IfLinkUpDownTrapEnableType_enabled = 1;
     const IfLinkUpDownTrapEnableType IfLinkUpDownTrapEnableType_disabled = 2;
     const string IfLinkUpDownTrapEnableType_NameNumberList = "enabled (1) , disabled (2)";
 
-
     typedef ASN1_OctetString IfAliasType; 
-
 
     typedef ASN1_Integer IfRcvAddressTypeType; 
     const IfRcvAddressTypeType IfRcvAddressTypeType_other = 1;
@@ -151,7 +147,7 @@ module IF_MIB {
              The number of network interfaces (regardless of their
              current state) present on this system.
         */
-        readonly attribute Integer32 ifNumber;
+        readonly attribute ASN1_Integer ifNumber;
 
         /*
              A list of interface entries.  The number of entries
@@ -177,7 +173,7 @@ module IF_MIB {
              one re-initialization of the entity's network
              management system to the next re-initialization.
         */
-        readonly attribute InterfaceIndex ifIndex;
+        readonly attribute InterfaceIndexType ifIndex;
 
         /*
              A textual string containing information about the
@@ -193,7 +189,7 @@ module IF_MIB {
              Authority (IANA), through updating the syntax of the
              IANAifType textual convention.
         */
-        readonly attribute IANAifType ifType;
+        readonly attribute IANAifTypeType ifType;
 
         /*
              The size of the largest packet which can be
@@ -202,7 +198,7 @@ module IF_MIB {
              datagrams, this is the size of the largest network
              datagram that can be sent on the interface.
         */
-        readonly attribute Integer32 ifMtu;
+        readonly attribute ASN1_Integer ifMtu;
 
         /*
              An estimate of the interface's current bandwidth in
@@ -217,7 +213,7 @@ module IF_MIB {
              has no concept of bandwidth, this object should be
              zero.
         */
-        readonly attribute Gauge32 ifSpeed;
+        readonly attribute Gauge32Type ifSpeed;
 
         /*
              The interface's address at its protocol sub-layer.
@@ -229,7 +225,7 @@ module IF_MIB {
              (e.g., a serial line), this object should contain an
              octet string of zero length.
         */
-        readonly attribute PhysAddress ifPhysAddress;
+        readonly attribute PhysAddressType ifPhysAddress;
 
         /*
              The desired state of the interface.  The testing(3)
@@ -269,7 +265,7 @@ module IF_MIB {
              of the local network management subsystem, then this
              object contains a zero value.
         */
-        readonly attribute TimeTicks ifLastChange;
+        readonly attribute TimeTicksType ifLastChange;
 
         /*
              The total number of octets received on the interface,
@@ -280,7 +276,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifInOctets;
+        readonly attribute Counter32Type ifInOctets;
 
         /*
              The number of packets, delivered by this sub-layer to
@@ -292,7 +288,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifInUcastPkts;
+        readonly attribute Counter32Type ifInUcastPkts;
 
         /*
              The number of inbound packets which were chosen to be
@@ -306,7 +302,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifInDiscards;
+        readonly attribute Counter32Type ifInDiscards;
 
         /*
              For packet-oriented interfaces, the number of inbound
@@ -322,7 +318,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifInErrors;
+        readonly attribute Counter32Type ifInErrors;
 
         /*
              For packet-oriented interfaces, the number of packets
@@ -340,7 +336,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifInUnknownProtos;
+        readonly attribute Counter32Type ifInUnknownProtos;
 
         /*
              The total number of octets transmitted out of the
@@ -351,7 +347,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifOutOctets;
+        readonly attribute Counter32Type ifOutOctets;
 
         /*
              The total number of packets that higher-level
@@ -365,7 +361,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifOutUcastPkts;
+        readonly attribute Counter32Type ifOutUcastPkts;
 
         /*
              The number of outbound packets which were chosen to
@@ -379,7 +375,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifOutDiscards;
+        readonly attribute Counter32Type ifOutDiscards;
 
         /*
              For packet-oriented interfaces, the number of
@@ -393,7 +389,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifOutErrors;
+        readonly attribute Counter32Type ifOutErrors;
     };
 
     interface ifMIBObjects : SNMPMgmt::SmiEntry {
@@ -462,7 +458,7 @@ module IF_MIB {
              last re-initialization of the local network management
              subsystem, then this object contains a zero value.
         */
-        readonly attribute TimeTicks ifTableLastChange;
+        readonly attribute TimeTicksType ifTableLastChange;
 
         /*
              The value of sysUpTime at the time of the last change
@@ -474,7 +470,7 @@ module IF_MIB {
              local network management subsystem, then this object
              contains a zero value.
         */
-        readonly attribute TimeTicks ifStackLastChange;
+        readonly attribute TimeTicksType ifStackLastChange;
     };
 
 
@@ -503,7 +499,7 @@ module IF_MIB {
              not applicable, then this object contains a zero-
              length string.
         */
-        readonly attribute DisplayString ifName;
+        readonly attribute DisplayStringType ifName;
 
         /*
              The number of packets, delivered by this sub-layer to
@@ -517,7 +513,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifInMulticastPkts;
+        readonly attribute Counter32Type ifInMulticastPkts;
 
         /*
              The number of packets, delivered by this sub-layer to
@@ -529,7 +525,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifInBroadcastPkts;
+        readonly attribute Counter32Type ifInBroadcastPkts;
 
         /*
              The total number of packets that higher-level
@@ -544,7 +540,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifOutMulticastPkts;
+        readonly attribute Counter32Type ifOutMulticastPkts;
 
         /*
              The total number of packets that higher-level
@@ -557,7 +553,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter32 ifOutBroadcastPkts;
+        readonly attribute Counter32Type ifOutBroadcastPkts;
 
         /*
              The total number of octets received on the interface,
@@ -569,7 +565,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCInOctets;
+        readonly attribute Counter64Type ifHCInOctets;
 
         /*
              The number of packets, delivered by this sub-layer to
@@ -582,7 +578,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCInUcastPkts;
+        readonly attribute Counter64Type ifHCInUcastPkts;
 
         /*
              The number of packets, delivered by this sub-layer to
@@ -597,7 +593,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCInMulticastPkts;
+        readonly attribute Counter64Type ifHCInMulticastPkts;
 
         /*
              The number of packets, delivered by this sub-layer to
@@ -610,7 +606,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCInBroadcastPkts;
+        readonly attribute Counter64Type ifHCInBroadcastPkts;
 
         /*
              The total number of octets transmitted out of the
@@ -622,7 +618,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCOutOctets;
+        readonly attribute Counter64Type ifHCOutOctets;
 
         /*
              The total number of packets that higher-level
@@ -637,7 +633,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCOutUcastPkts;
+        readonly attribute Counter64Type ifHCOutUcastPkts;
 
         /*
              The total number of packets that higher-level
@@ -652,7 +648,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCOutMulticastPkts;
+        readonly attribute Counter64Type ifHCOutMulticastPkts;
 
         /*
              The total number of packets that higher-level
@@ -666,7 +662,7 @@ module IF_MIB {
              other times as indicated by the value of
              ifCounterDiscontinuityTime.
         */
-        readonly attribute Counter64 ifHCOutBroadcastPkts;
+        readonly attribute Counter64Type ifHCOutBroadcastPkts;
 
         /*
              Indicates whether linkUp/linkDown traps should be
@@ -690,7 +686,7 @@ module IF_MIB {
              bandwidth.  For a sub-layer which has no concept of
              bandwidth, this object should be zero.
         */
-        readonly attribute Gauge32 ifHighSpeed;
+        readonly attribute Gauge32Type ifHighSpeed;
 
         /*
              This object has a value of false(2) if this interface
@@ -706,14 +702,14 @@ module IF_MIB {
              reception of broadcast and multicast packets/frames by
              the interface.
         */
-        attribute TruthValue ifPromiscuousMode;
+        attribute TruthValueType ifPromiscuousMode;
 
         /*
              This object has the value 'true(1)' if the interface
              sublayer has a physical connector and the value
              'false(2)' otherwise.
         */
-        readonly attribute TruthValue ifConnectorPresent;
+        readonly attribute TruthValueType ifConnectorPresent;
 
         /*
              This object is an 'alias' name for the interface as
@@ -757,7 +753,7 @@ module IF_MIB {
              management subsystem, then this object contains a zero
              value.
         */
-        readonly attribute TimeStamp ifCounterDiscontinuityTime;
+        readonly attribute TimeStampType ifCounterDiscontinuityTime;
     };
 
 
@@ -783,7 +779,7 @@ module IF_MIB {
              implementations will choose not to support write-
              access for any type of interface.
         */
-        attribute RowStatus ifStackStatus;
+        attribute RowStatusType ifStackStatus;
     };
 
 
@@ -801,7 +797,7 @@ module IF_MIB {
              This object is used to create and delete rows in the
              ifRcvAddressTable.
         */
-        attribute RowStatus ifRcvAddressStatus;
+        attribute RowStatusType ifRcvAddressStatus;
 
         /*
              This object has the value nonVolatile(3) for those
@@ -820,7 +816,7 @@ module IF_MIB {
     /* pseudo */
     interface DefaultValues {
         /* DEFVAL:  volatile */
-        ASN1_Integer ifRcvAddressType();
+        IfRcvAddressTypeType ifRcvAddressType();
 
     };
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.48 1999/09/30 08:16:45 strauss Exp $
+ * @(#) $Id: smi.c,v 1.49 1999/10/05 06:30:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -419,7 +419,6 @@ SmiNode *createSmiNode(Object *objectPtr)
 	} else {
 	    smiNodePtr->create            = 0;
 	}
-
 	return smiNodePtr;
     } else {
 	return NULL;

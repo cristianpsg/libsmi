@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.18 1999/10/01 12:46:59 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.19 1999/10/05 06:31:01 strauss Exp $
  */
 
 #include <stdio.h>
@@ -28,7 +28,7 @@
 
 typedef struct {
     char *name;				/* Name of the output driver. */
-    int (*func) (char *moduleName);	/* Output generating function. */
+    int (*func) (char *, int);		/* Output generating function. */
     char *descr;			/* Short description. */
 } Driver;
  
@@ -47,7 +47,8 @@ static Driver driverTable[] = {
     { "ucd-h",     dumpUcdH,     "UCD SNMP mib module C header" },
     { "ucd-c",	   dumpUcdC,     "UCD SNMP mib module C code" },
 #if 0
-    { "fig",       dumpFig,	 "graphics in xfig fig format" },
+    { "fig-tree",  dumpFigTree,	 "tree graphics in xfig fig format" },
+    { "fig-uml",   dumpFigUml,	 "UML graphics in xfig fig format" },
     { "java",      dumpJava,     "java manager stub code (JMGMT)" },
     { "jdmk",      dumpJdmk,     "java manager stub code (JDMK)" },
 #endif
@@ -61,6 +62,18 @@ void *xmalloc(size_t size)
     char *m = malloc(size);
     if (! m) {
 	fprintf(stderr, "smidump: malloc failed - running out of memory\n");
+	exit(1);
+    }
+    return m;
+}
+
+
+
+void *xrealloc(void *ptr, size_t size)
+{
+    char *m = realloc(ptr, size);
+    if (! m) {
+	fprintf(stderr, "smidump: realloc failed - running out of memory\n");
 	exit(1);
     }
     return m;
@@ -133,16 +146,15 @@ main(argc, argv)
     char *modulename;
     int flags;
     int errors = 0;
-    int silent = 0;
     Driver *driver = driverTable;
-    
+
     smiInit();
 
     flags = smiGetFlags();
-    
     flags |= SMI_FLAG_ERRORS;
     smiSetFlags(flags);
 
+    flags = 0;
     while ((c = getopt(argc, argv, "Vhl:sf:p:")) != -1) {
 	switch (c) {
 	case 'V':
@@ -155,7 +167,7 @@ main(argc, argv)
 	    smiSetErrorLevel(atoi(optarg));
 	    break;
 	case 's':
-	    silent++;
+	    flags |= SMIDUMP_FLAG_SILENT;
 	    break;
 	case 'p':
 	    smiLoadModule(optarg);
@@ -182,7 +194,7 @@ main(argc, argv)
     while (optind < argc) {
 	modulename = smiLoadModule(argv[optind]);
 	if (modulename) {
-	    errors += (driver->func)(modulename);
+	    errors += (driver->func)(modulename, flags);
 	} else {
 	    fprintf(stderr, "smidump: cannot locate module `%s'\n",
 		    argv[optind]);
