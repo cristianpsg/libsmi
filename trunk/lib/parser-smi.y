@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.195 2003/10/02 11:57:41 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.196 2003/10/05 13:04:39 schoenw Exp $
  */
 
 %{
@@ -524,11 +524,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		 p && childNodePtr;
 		 p = p->nextPtr, childNodePtr = childNodePtr->nextPtr, i++) {
 		seqNodePtr = ((Object *)p->ptr)->nodePtr;
-		
-		/* unknown OIDs are handled later */
-		if (childNodePtr->flags & FLAG_INCOMPLETE) {
-		    continue;
-		}
 
 		if (seqNodePtr->parentPtr != childNodePtr->parentPtr) {
 		    smiPrintErrorAtLine(parserPtr, ERR_SEQUENCE_NO_COLUMN,
