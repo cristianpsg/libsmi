@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.24 2000/07/05 08:03:00 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.25 2000/07/05 11:58:42 strauss Exp $
  */
 
 #include <config.h>
@@ -1283,6 +1283,8 @@ static void dumpScalarImpl(SmiNode *smiNode)
             "import java.util.Vector;\n"
             "import java.util.Enumeration;\n"
             "import jax.AgentXOID;\n"
+            "import jax.AgentXSetPhase;\n"
+            "import jax.AgentXResponsePDU;\n"
             "\n");
 
     fprintf(f, "public class %sImpl extends %s\n{\n\n",
