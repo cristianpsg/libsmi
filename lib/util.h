@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.19 2000/06/14 13:15:19 strauss Exp $
+ * @(#) $Id: util.h,v 1.20 2000/06/21 10:33:37 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -62,7 +62,7 @@ extern void smiFree(void *ptr);
 extern int smiIsPath(const char *s);
 
 #ifndef HAVE_TIMEGM
-time_t timegm(struct tm *tm)
+time_t timegm(struct tm *tm);
 #endif
 
 #endif /* _UTIL_H */
