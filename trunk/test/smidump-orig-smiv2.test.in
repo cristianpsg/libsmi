@@ -83,7 +83,8 @@ for mib in ${TESTMIBS} ; do
 	else
 	    FAILED=1
 	fi
-        echo "cp ${ACTUALDIR}/$file ${NOMINALDIR}/$file" >> sync-dumps
+
+	echo "cmp -s ${ACTUALDIR}/$file ${NOMINALDIR}/$file || \$CMDPREFIX cp -v ${ACTUALDIR}/$file ${NOMINALDIR}/$file" >> sync-dumps
     done
     rm -f ${ACTUALDIR}/*.orig ${ACTUALDIR}/*.out
 done

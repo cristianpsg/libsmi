@@ -8,13 +8,15 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.18 2000/11/13 00:06:35 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.19 2000/11/13 11:02:49 strauss Exp $
 #
 
 TESTMIBTOPDIR		= ../../mibs
 TESTMIBDIR		= $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site:$(TESTMIBTOPDIR)/tubs
 TESTMIBS		= SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
+# smilint-smiv2.test has to be the first test. It initializes the
+# sync-dumps script that is extended by subsequent tests.
 TESTS			= smilint-smiv2.test \
 			  smidump-smiv1.test \
 			  smidump-smiv2.test \
@@ -42,10 +44,5 @@ EXTRA_DIST		= $(TESTS)
 SUBDIRS                 = mibs dumps
 
 clean-local:
-	rm -rf *.out
+	rm -rf *.out sync-dumps
 
-#sync-dumps:
-#	for f in *.out/*.corba-idl *.out/*.corba-oid *.out/*.imports *.out/*.mosy *.out/*.sming *.out/*.smiv1 *.out/*.smiv2 *.out/*.diff *.out/*.smiv2.lint *.out/*.tree *.out/*.types ; do \
-#	    cmp -s $$f dumps/`basename $$f` || cp $$f dumps/`basename $$f` ; \
-#	done
-	

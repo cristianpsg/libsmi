@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.127 2000/11/09 10:11:39 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.128 2000/11/12 17:46:42 strauss Exp $
  */
 
 %{
@@ -611,7 +611,7 @@ checkDate(Parser *parserPtr, char *date)
     len = strlen(date);
     if (len == 11 || len == 13) {
 	for (i = 0; i < len; i++) {
-	    if ( (i < len-1 && ! isdigit(date[i]))
+	    if ( (i < len-1 && ! isdigit((int) date[i]))
 		 || (i == len-1 && date[len-1] != 'Z')) {
 		smiPrintError(parserPtr, ERR_DATE_CHARACTER, date);
 		anytime = (time_t) -1;

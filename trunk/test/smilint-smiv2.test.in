@@ -36,4 +36,21 @@ if [ "$FAILED" ] ; then
     RC=1
 fi
 
+rm -f sync-dumps
+cat > sync-dumps <<EOF
+#
+# sync-dumps
+#
+# This script copies test output files to the nominal files in the
+# dumps/ directory. It MUST ONLY be executed after carefully ensuring
+# that the current output files are valid. Otherwise the sense of
+# this test suite would be dubious.
+#
+
+CMDPREFIX=echo
+if [ "\$1" == "-f" ] ; then CMDPREFIX="" ; fi
+
+EOF
+chmod a+x sync-dumps
+
 exit ${RC}

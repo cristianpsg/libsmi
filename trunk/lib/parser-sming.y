@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.61 2000/06/20 15:17:07 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.62 2000/07/06 14:40:42 strauss Exp $
  */
 
 %{
@@ -291,7 +291,7 @@ checkDate(Parser *parserPtr, char *date)
     if (len == 10 || len == 16) {
 	for (i = 0; i < len; i++) {
 	    if (((i < 4 || i == 5 || i == 6 || i == 8 || i == 9 || i == 11
-		  || i == 12 || i == 14 || i == 15) && ! isdigit(date[i]))
+		  || i == 12 || i == 14 || i == 15) && ! isdigit((int)date[i]))
 		|| ((i == 4 || i == 7) && date[i] != '-')
 		|| (i == 10 && date[i] != ' ')
 		|| (i == 13 && date[i] != ':')) {

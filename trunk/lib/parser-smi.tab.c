@@ -691,7 +691,7 @@ checkDate(Parser *parserPtr, char *date)
     len = strlen(date);
     if (len == 11 || len == 13) {
 	for (i = 0; i < len; i++) {
-	    if ( (i < len-1 && ! isdigit(date[i]))
+	    if ( (i < len-1 && ! isdigit((int) date[i]))
 		 || (i == len-1 && date[len-1] != 'Z')) {
 		smiPrintError(parserPtr, ERR_DATE_CHARACTER, date);
 		anytime = (time_t) -1;

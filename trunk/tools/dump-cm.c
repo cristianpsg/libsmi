@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.26 2000/08/24 12:09:18 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.27 2000/11/09 22:29:52 strauss Exp $
  */
 
 
@@ -1351,7 +1351,7 @@ static void algCheckLinksByName()
 			/*
 			 * legal overlap ?
 			 */
-			if (islower(end[i]) && islower(end2[i])) {
+			if (islower((int)end[i]) && islower((int)end2[i])) {
 			    break;
 			}
 
@@ -1423,8 +1423,8 @@ static void algLinkObjectsByNames()
 		     */
 		    if (tNode->smiNode->name[new] &&
 			tNode2->smiNode->name[new]) {
-			if (!isupper(tNode->smiNode->name[new]) ||
-			    !isupper(tNode2->smiNode->name[new])) continue;
+			if (!isupper((int)tNode->smiNode->name[new]) ||
+			    !isupper((int)tNode2->smiNode->name[new])) continue;
 		    }
 		    
 		    overlap = new;

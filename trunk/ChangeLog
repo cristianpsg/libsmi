@@ -1,5 +1,8 @@
 2000-11-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* test/Makefile.am: Added tests for formats: identifiers,
+	metrics, xml, cm, python.
+	
 	* tools/dump-jax.c: Fixed dangling pointers. Test suite
 	is happy again.
 

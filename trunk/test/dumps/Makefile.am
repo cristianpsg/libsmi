@@ -8,9 +8,9 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.3 2000/11/13 09:49:36 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.4 2000/11/13 11:02:51 strauss Exp $
 #
 
 SUBDIRS = corba imports jax mosy orig-smiv2 smilint-smiv2 \
 	  sming smiv1 smiv2 smiv2-smiv2 tree types \
-	  identifiers metrics xml cm python
+	  identifiers metrics xml cm python netsnmp
