@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.13 2002/06/21 14:31:26 strauss Exp $
+.\" $Id: smilint.1.in,v 1.14 2002/06/21 14:46:46 strauss Exp $
 .\"
 .TH smilint 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
@@ -29,7 +29,7 @@ and the specification of SMIng that has been a research project
 within the Network Management Research Group of the IRTF.
 .SH OPTIONS
 .TP
-\fB-V, --verbose\fP
+\fB-V, --version\fP
 Show the smilint version and exit.
 .TP
 \fB-h, --help\fP
