@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.109 2003/04/03 15:31:45 strauss Exp $
+ * @(#) $Id: error.c,v 1.110 2003/04/28 12:04:40 strauss Exp $
  */
 
 #include <config.h>
@@ -258,8 +258,11 @@ static Error errors[] = {
       "optional group definition for `%s' already exists in this compliance statement", NULL},
     { 2, ERR_ILLEGAL_OID_DEFVAL, "", 
       "cannot handle other default values than 0.0 for `%s'", NULL},
-    { 2, ERR_UNEXPECTED_TYPE_RESTRICTION, "subtype-in-sequence", 
-      "subtyping not allowed in SEQUENCE", NULL},
+    { 2, ERR_UNEXPECTED_TYPE_RESTRICTION, "subtype-illegal", 
+      "subtyping not allowed",
+      "The types OBJECT IDENTIFIER, IpAddress, Counter32, Counter64,\n"
+      "and TimeTicks, and any types in a SEQUENCE clause must not be\n"
+      "sub-typed (RFC 2578, Sections 7.1.12 and 9)."},
     { 1, ERR_UNKNOWN_CONFIG_CMD, "", 
       "unknown configuration command `%s' in file `%s'", NULL},
     { 6, ERR_CACHE_CONFIG_NOT_SUPPORTED, "", 
@@ -342,8 +345,8 @@ static Error errors[] = {
       "named bit `%s(%u)' may cause interoperability or implementation problems", NULL},
     { 4, ERR_BITS_ZERO_NOT_NAMED, "bits-zero-not-used",
       "first bit (bit zero) has no name assigned",
-      "RFC 2578 section 7.1.4 requires that named bits start at bit\n"
-      "position zero." },
+      "Named bits should start at bit position zero (RFC 2578,\n"
+      "Section 7.1.4)."},
     { 2, ERR_RANGE_OUT_OF_BASETYPE, "range-bounds",
       "range limit exceeds underlying basetype", NULL},
     { 2, ERR_RANGE_OVERLAP, "range-overlap",
@@ -364,14 +367,24 @@ static Error errors[] = {
       "index element `%s::%s' of row `%s' must have a range restriction", NULL},
     { 1, ERR_INDEX_STRING_NO_SIZE, "index-element-no-size",
       "index element `%s' of row `%s' must have a size restriction",
-      "RFC 2578 section 3.5 restricts object identifier to have at\n"
-      "most 128 sub-identifier. This implies that index elements used\n"
-      "to form instance identifiers must have a size contraint which\n"
-      "ensures that the 128 sub-identifier constraint is kept intact." },
+      "Object identifiers are restricted in size to have at most 128\n"
+      "sub-identifiers. This implies that index elements used to form\n"
+      "instance identifiers must have a size contraint which ensures\n"
+      "that the 128 sub-identifier constraint is kept intact for any\n"
+      "possible combination of the index elements' values (RFC 2578,\n"
+      "Section 3.5)."},
     { 1, ERR_INDEX_STRING_NO_SIZE_MOD, "index-element-no-size",
       "index element `%s::%s' of row `%s' must have a size restriction", NULL},
     { 5, ERR_INDEX_OID_NO_SIZE, "index-element-no-size",
-      "index element `%s' of row `%s' should but cannot have a size restriction", NULL},
+      "index element `%s' of row `%s' should but cannot have a size restriction",
+      "Object identifiers are restricted in size to have at most 128\n"
+      "sub-identifiers. This implies that all index elements used to form\n"
+      "instance identifiers should have a size contraint which ensures\n"
+      "that the 128 sub-identifier constraint is kept intact for any\n"
+      "possible combination of the index elements' values (RFC 2578,\n"
+      "Section 3.5). However the type OBJECT IDENTIFIER cannot formally\n"
+      "be restricted in size (Section 9) although it is legal to use\n"
+      "objects type OBJECT IDENTIFIER as index elements."},
     { 5, ERR_INDEX_OID_NO_SIZE_MOD, "index-element-no-size",
       "index element `%s::%s' of row `%s' should but cannot have a size restriction", NULL},
     { 1, ERR_INDEX_RANGE_NEGATIVE, "index-element-range-negative",
@@ -590,8 +603,6 @@ static Error errors[] = {
       "`current' uses a type whose status has been changed to `obsolete'.\n"
       "Note that the status of imported types can change without the\n"
       "control of the modules using these types." },
-    { 2, ERR_TIMETICKS_SUBTYPED, "timeticks-subtyped", 
-      "`TimeTicks' must not be subtyped", NULL},
     { 0, 0, NULL, NULL, NULL }
 };
 
