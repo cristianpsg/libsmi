@@ -3,6 +3,9 @@
 	* lib/parser-smi.y,check.c: Bill contributed another table check
 	and improved two other checks.
 
+	* lib/parser-smi.y: fixed a bug in checkObjects() reported by
+	Dave Shield.
+
 2001-05-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-python.c: Keith submitted a patch that turns

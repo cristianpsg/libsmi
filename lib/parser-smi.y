@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.143 2001/04/09 10:25:52 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.144 2001/06/06 07:36:37 strauss Exp $
  */
 
 %{
@@ -509,6 +509,10 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (!modulePtr->prefixNodePtr) {
 	    modulePtr->prefixNodePtr = objectPtr->nodePtr;
 	} else {
+	    if (objectPtr->nodePtr->oidlen < modulePtr->prefixNodePtr->oidlen)
+		modulePtr->prefixNodePtr =
+		    findNodeByOid(objectPtr->nodePtr->oidlen,
+				  modulePtr->prefixNodePtr->oid);
 	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++) {
 		if (modulePtr->prefixNodePtr->oid[i] !=
 		    objectPtr->nodePtr->oid[i]) {
