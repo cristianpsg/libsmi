@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.4 1999/04/05 15:47:34 strauss Exp $
+ * @(#) $Id: error.h,v 1.5 1999/04/07 18:21:31 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -107,9 +107,7 @@ extern int character;			 /* Current absolute byte position.  */
 extern char linebuf[MAX_LINEBUF_LENGTH]; /* Current line up to current pos.  */
 
 extern int errorLevel;                   /* Higher level for more warnings   */
-extern int debugLevel;                   /* Higher level for more messages   */
 
 extern void printError(Parser *parserPtr, int id, ...);
-extern void printDebug(int level, char *fmt, ...);
 
 #endif /* _ERROR_H */

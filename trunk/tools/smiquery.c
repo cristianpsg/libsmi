@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.8 1999/05/04 23:27:03 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.9 1999/05/20 08:51:19 strauss Exp $
  */
 
 #include <stdio.h>
@@ -125,7 +125,7 @@ void
 usage()
 {
     fprintf(stderr,
-	    "Usage: smiquery [-vVrRsS] [-d level] [-l level] [-c configfile]\n"
+	    "Usage: smiquery [-vVrRsS] [-l level] [-c configfile]\n"
 	    "       [-L location] [-p module] command name\n"
 	    "known commands: module, node, type, macro, names, children, members, parent\n");
 }
@@ -157,16 +157,13 @@ main(argc, argv)
         
     flags = smiGetFlags();
     
-    while ((c = getopt(argc, argv, "rRsSvVd:l:c:L:p:")) != -1) {
+    while ((c = getopt(argc, argv, "rRsSvVl:c:L:p:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg);
 	    break;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
-	    break;
-	case 'd':
-	    smiSetDebugLevel(atoi(optarg));
 	    break;
 	case 'v':
 	    flags |= SMI_ERRORLINES;

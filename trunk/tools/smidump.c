@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.3 1999/04/05 15:47:36 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.4 1999/04/09 18:47:07 strauss Exp $
  */
 
 #include <stdio.h>
@@ -52,7 +52,7 @@ main(argc, argv)
 
     flags = smiGetFlags();
     
-    while ((c = getopt(argc, argv, "rRsSvVd:l:c:L:D:")) != -1) {
+    while ((c = getopt(argc, argv, "rRsSvVl:c:L:D:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg);
@@ -60,9 +60,6 @@ main(argc, argv)
 	    break;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
-	    break;
-	case 'd':
-	    smiSetDebugLevel(atoi(optarg));
 	    break;
 	case 'v':
 	    flags |= SMI_ERRORLINES;
@@ -100,7 +97,7 @@ main(argc, argv)
 	    }
 	    break;
 	default:
-	    fprintf(stderr, "Usage: %s [-vVrRsS] [-d level] [-l level] [-c configfile]"
+	    fprintf(stderr, "Usage: %s [-vVrRsS] [-l level] [-c configfile]"
 		    " [-L location] [-D mosy|sming|smiv1|smiv2|objects|types] module\n", argv[0]);
 	    exit(1);
 	}

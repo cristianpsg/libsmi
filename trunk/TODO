@@ -316,3 +316,17 @@ module IBR-ANNOTATIONS-IF-MIB {
 
 };
 
+
+. wie koennte eine schleife aussehen:
+
+  for (type = smiGetFirstType(module); type; type = smiGetNextType(type)) {
+    ;
+  }
+
+
+
+o autoconf (test on Solaris, Linux, Irix)
+o new API
+  o thread safety after modules are loaded
+  o no more lists (or arrays), but getFirst/getNext functions
+o man pages

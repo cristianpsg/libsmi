@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.3 1999/04/09 18:47:04 strauss Exp $
+ * @(#) $Id: util.h,v 1.4 1999/05/20 08:51:17 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -32,7 +32,11 @@ extern void *util_realloc(void *ptr, size_t size);
 
 extern char *util_strdup(const char *s1);
 
+extern char *util_strndup(const char *s1, size_t n);
+
 extern int util_strcmp(const char *s1, const char *s2);
+
+extern void util_free(void *ptr);
 
 extern time_t smiMkTime(const char *s);
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.16 1999/05/05 09:15:42 strauss Exp $
+ * @(#) $Id: smi.h,v 1.17 1999/05/20 08:51:17 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -145,8 +145,9 @@ typedef struct SmiRevision {
 
 /* SmiImport -- an imported descriptor                                       */
 typedef struct SmiImport {
-    char                *name;
-    char                *module;
+    SmiIdentifier       module;
+    SmiIdentifier       importmodule;
+    SmiIdentifier       importname;
 } SmiImport;
 
 /* SmiValue -- any single value; for use in default values and subtyping     */
@@ -168,12 +169,16 @@ typedef struct SmiValue {
 
 /* SmiNamedNumber -- a named number; for enumeration and bitset types        */
 typedef struct SmiNamedNumber {
+    SmiIdentifier	module;
+    SmiIdentifier	type;
     SmiIdentifier       name;
     SmiValue            *valuePtr;
 } SmiNamedNumber;
 
 /* SmiRange -- a min-max value range; for subtyping of sizes or numbers      */
 typedef struct SmiRange {
+    SmiIdentifier	module;
+    SmiIdentifier	type;
     SmiValue            *minValuePtr;
     SmiValue            *maxValuePtr;
 } SmiRange;
@@ -262,8 +267,6 @@ extern char *smiDescriptor(char *fullname);
 
 extern void smiInit();
 
-extern void smiSetDebugLevel(int level);
-
 extern void smiSetErrorLevel(int level);
 
 extern int smiGetFlags();
@@ -282,14 +285,13 @@ extern SmiModule *smiGetModule(char *module);
 
 extern SmiModule *smiGetFirstModule();
 
-extern SmiModule *smiGetNextModule(char *module);
+extern SmiModule *smiGetNextModule(SmiModule *smiModulePtr);
       
 extern void smiFreeModule(SmiModule *smiModulePtr);
 
 extern SmiImport *smiGetFirstImport(char *module);
 
-extern SmiImport *smiGetNextImport(char *module,
-				   char *importmodule, char *importname);
+extern SmiImport *smiGetNextImport(SmiImport *smiImportPtr);
 
 extern void smiFreeImport(SmiImport *smiImportPtr);
 
@@ -297,7 +299,7 @@ extern int smiIsImported(char *module, char *importmodule, char *importname);
 
 extern SmiRevision *smiGetFirstRevision(char *module);
 
-extern SmiRevision *smiGetNextRevision(char *module, time_t date);
+extern SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr);
 
 extern void smiFreeRevision(SmiRevision *smiRevisionPtr);
 
@@ -307,17 +309,21 @@ extern SmiType *smiGetType(char *module, char *type);
 
 extern SmiType *smiGetFirstType(char *module);
 
-extern SmiType *smiGetNextType(char *module, char *type);
+extern SmiType *smiGetNextType(SmiType *smiTypePtr);
 
 extern void smiFreeType(SmiType *smiTypePtr);
 
-extern SmiType *smiGetFirstRange(char *module, char *type);
+extern SmiRange *smiGetFirstRange(char *module, char *type);
 
-extern SmiType *smiGetNextRange(char *module, char *type, void *min XXX );
+extern SmiRange *smiGetNextRange(SmiRange *smiRangePtr);
 
-extern SmiType *smiGetFirstNamedNumber(char *module, char *type);
+extern void smiFreeRange(SmiRange *smiRangePtr);
 
-extern SmiType *smiGetNextNamedNumber(char *module, char *type, char *name);
+extern SmiNamedNumber *smiGetFirstNamedNumber(char *module, char *type);
+
+extern SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr);
+
+extern void smiFreeNamedNumber(SmiNamedNumber *smiNamedNumberPtr);
 
 
 
@@ -325,7 +331,7 @@ extern SmiMacro *smiGetMacro(char *module, char *macro);
 
 extern SmiMacro *smiGetFirstMacro(char *module);
 
-extern SmiMacro *smiGetNextMacro(char *module, char *macro);
+extern SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr);
 
 extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
@@ -335,14 +341,13 @@ extern SmiNode *smiGetNode(char *module, char *name);
 
 extern SmiNode *smiGetFirstNode(char *module, SmiDecl decl);
 
-extern SmiNode *smiGetNextNode(char *module, char *name, SmiDecl decl);
+extern SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiDecl decl);
 
-extern SmiNode *smiGetParentNode(char *module, char *name);
+extern SmiNode *smiGetParentNode(SmiNode *smiNodePtr);
 
-extern SmiNode *smiGetFirstChildNode(char *module, char *name);
+extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 
-extern SmiNode *smiGetNextChildNode(char *module, char *name,
-				    char *childmodule, char *childname);
+extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 
