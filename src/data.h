@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.3 1998/10/13 14:55:52 strauss Exp $
+ * @(#) $Id: data.h,v 1.4 1998/10/14 16:07:30 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -234,10 +234,12 @@ typedef struct Module {
 typedef struct Type {
     Module      *module;
     Descriptor  *descriptor;
+    struct Type	*parent;
     Syntax      syntax;
     DeclMacro	macro;
-    char        *displayHint;
+    String      displayHint;
     Status      status;
+    String	description;
 #if 0
     Restriction *firstRestriction;
 #endif
@@ -396,18 +398,31 @@ extern void dumpMosy(MibNode *root);
 
 
 
-#if TODO
-extern Type *addType(const char *name,
+extern Type *addType(Type *parent,
+		     Syntax syntax,
 		     Module *module,
-		     const char *syntax,
-		     const char *displayHint,
-		     Status status,
-		     String *description,
-		     off_t fileoffset,
-		     DeclMacro macro,
 		     Flags flags,
 		     Parser *parser);
-#endif
+
+extern void setTypeStatus(Type *type,
+			  Status status);
+
+extern void setTypeDescription(Type *type,
+			       String *description);
+
+extern void setTypeFileOffset(Type *type,
+			      off_t fileoffset);
+
+extern void setTypeMacro(Type *type,
+			 DeclMacro macro);
+
+extern void setTypeFlags(Type *type,
+			 Flags flags);
+
+extern void setTypeDisplayHint(Type *type,
+			       String *displayHint);
+
+
 
 extern Type *findTypeByModuleAndName(Module *module,
 				     const char *name);

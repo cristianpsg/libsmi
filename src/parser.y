@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.4 1998/10/13 15:37:20 strauss Exp $
+ * @(#) $Id: parser.y,v 1.5 1998/10/13 17:11:43 strauss Exp $
  */
 
 %{
@@ -240,8 +240,8 @@ MibNode *parent;
 %type  <err>enumItem
 %type  <status>Status
 %type  <status>Status_Capabilities
-%type  <err>DisplayPart
-%type  <err>UnitsPart
+%type  <text>DisplayPart
+%type  <text>UnitsPart
 %type  <access>Access
 %type  <err>IndexPart
 %type  <err>IndexTypes
@@ -860,7 +860,9 @@ typeSMI:		INTEGER32
 	;
 
 typeDeclarationRHS:	Syntax
-			{ $$ = $1; }
+			{
+			    $$ = $1;
+			}
 	|		TEXTUAL_CONVENTION
 			DisplayPart
 			STATUS Status
@@ -868,8 +870,19 @@ typeDeclarationRHS:	Syntax
 			ReferPart
 			SYNTAX Syntax
 			{
-			    /* TODO */
-			    $$ = NULL;
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = addType($9, SYNTAX_UNKNOWN, thisModule,
+					     (thisParser->flags &
+					      (FLAG_WHOLEMOD |
+					       FLAG_WHOLEFILE))
+					     ? FLAG_MODULE : 0,
+					     thisParser);
+				setTypeDescription($$, &$6);
+				setTypeStatus($$, $4);
+				setTypeDisplayHint($$, &$2);
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		choiceClause
 			{
@@ -1612,15 +1625,31 @@ Status_Capabilities:	LOWERCASE_IDENTIFIER
         ;
 
 DisplayPart:		DISPLAY_HINT QUOTED_STRING
-			{ $$ = 0; }
+			{
+			    $$.ptr = NULL;
+			    $$.fileoffset = 0;
+			    $$.length = 0;
+			}
         |		/* empty */
-			{ $$ = 0; }
+			{
+			    $$.ptr = NULL;
+			    $$.fileoffset = 0;
+			    $$.length = 0;
+			}
         ;
 
 UnitsPart:		UNITS QUOTED_STRING
-			{ $$ = 0; }
+			{
+			    $$.ptr = NULL;
+			    $$.fileoffset = 0;
+			    $$.length = 0;
+			}
         |		/* empty */
-			{ $$ = 0; }
+			{
+			    $$.ptr = NULL;
+			    $$.fileoffset = 0;
+			    $$.length = 0;
+			}
         ;
 
 Access:			LOWERCASE_IDENTIFIER
