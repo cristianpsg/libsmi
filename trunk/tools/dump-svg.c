@@ -224,8 +224,8 @@ static char *getStatusString(SmiStatus status)
 	(status == SMI_STATUS_CURRENT)     ? "current" :
 	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
 	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
-	(status == SMI_STATUS_MANDATORY)   ? "current" :
-	(status == SMI_STATUS_OPTIONAL)    ? "current" :
+	(status == SMI_STATUS_MANDATORY)   ? "mandatory" :
+	(status == SMI_STATUS_OPTIONAL)    ? "optional" :
 					     "<unknown>";
 }
 
@@ -1356,10 +1356,10 @@ static void printInformationNode(SmiNode *smiNode,
     switch (smiNode->status) {
     case SMI_STATUS_DEPRECATED:
     case SMI_STATUS_OBSOLETE:
-	printf(" (%s)", getStatusString(smiNode->status));
-    case SMI_STATUS_CURRENT:
     case SMI_STATUS_MANDATORY:
     case SMI_STATUS_OPTIONAL:
+	printf(" (%s)", getStatusString(smiNode->status));
+    case SMI_STATUS_CURRENT:
     }
     printf("</text>\n");
     printf(" </g>\n");
@@ -1742,10 +1742,10 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		switch (smiNode->status) {
 		case SMI_STATUS_DEPRECATED:
 		case SMI_STATUS_OBSOLETE:
-		    printf(" (%s)", getStatusString(smiNode->status));
-		case SMI_STATUS_CURRENT:
 		case SMI_STATUS_MANDATORY:
 		case SMI_STATUS_OPTIONAL:
+		    printf(" (%s)", getStatusString(smiNode->status));
+		case SMI_STATUS_CURRENT:
 		}
 		printf("</tspan>\n");
 		printf("  </text>\n");
