@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smidump.1.in,v 1.23 2001/03/06 11:42:40 strauss Exp $
+.\" $Id: smidump.1.in,v 1.24 2001/08/22 14:46:55 schoenw Exp $
 .\"
-.TH smidump 1  "March 6, 2001" "IBR" "SMI Tools"
+.TH smidump 1  "November 9, 2001" "IBR" "SMI Tools"
 .SH NAME
 smidump \- dump SMI modules in various formats
 .SH SYNOPSIS
@@ -148,6 +148,9 @@ Python dictionaries represention of the MIB module
 .TP
 xml
 SMI in XML format (experimental).
+.TP
+xsd
+SMI in XML schema format (even more experimental).
 
 .SH "EXAMPLE"
 This example converts the SMIv2 module IF-MIB in the current directory
