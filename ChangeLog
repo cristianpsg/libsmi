@@ -1,3 +1,7 @@
+2001-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Added some defval and type usage checks.
+
 2001-03-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Added checks to compare SEQUENCEs against

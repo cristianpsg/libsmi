@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.60 2000/11/29 16:35:27 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.61 2000/12/05 10:04:56 strauss Exp $
  */
 
 #include <config.h>
@@ -235,7 +235,7 @@ char *formatvalue(const SmiValue *value, SmiType *type)
     case SMI_BASETYPE_ENUM:
 	for (nn = smiGetFirstNamedNumber(type); nn;
 	     nn = smiGetNextNamedNumber(nn)) {
-	    if (nn->value.value.unsigned32 == value->value.unsigned32)
+	    if (nn->value.value.integer32 == value->value.integer32)
 		break;
 	}
 	if (nn) {

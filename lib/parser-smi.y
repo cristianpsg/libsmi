@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.140 2001/02/26 16:25:13 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.141 2001/03/01 14:36:37 strauss Exp $
  */
 
 %{
@@ -647,15 +647,21 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		    if (!strcmp(((NamedNumber *)(listPtr->ptr))->export.name,
 				objectPtr->export.value.value.ptr)) {
 			smiFree(objectPtr->export.value.value.ptr);
-			objectPtr->export.value.value.unsigned32 =
+			objectPtr->export.value.value.integer32 =
 			    ((NamedNumber *)(listPtr->ptr))->
-			    export.value.value.unsigned32;
+			    export.value.value.integer32;
 			objectPtr->export.value.len = 1;
 			break;
 		    }
 		}
+		if (objectPtr->export.value.len == -1) {
+		    smiPrintErrorAtLine(parserPtr,
+					ERR_DEFVAL_SYNTAX, objectPtr->line);
+		}
 	    }
 	}
+
+	smiCheckDefault(parserPtr, objectPtr);
     }
 }
 
@@ -1138,7 +1144,8 @@ module:			moduleName
 			    checkTypes(thisParserPtr, thisModulePtr);
 			    checkDefvals(thisParserPtr, thisModulePtr);
 			    checkImportsUsage(thisParserPtr, thisModulePtr);
-
+			    smiCheckTypeUsage(thisParserPtr, thisModulePtr);
+			    
 			    capabilitiesModulePtr = NULL;
 
                             $$ = 0;
