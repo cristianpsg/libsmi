@@ -87,7 +87,6 @@ typedef struct DiaEdge {
 typedef struct GraphCluster {
     struct GraphCluster *nextPtr;
     struct GraphNode    *firstClusterNode;
-    int                 number;		/* do we need this? */
     float               xMin;
     float               xMax;
     float               yMin;
@@ -282,7 +281,7 @@ static int strpfxlen(const char *s1, const char *s2)
  *
  * Result : pointer to the new cluster
  */
-static GraphCluster *graphInsertCluster(Graph *graph, int number)
+static GraphCluster *graphInsertCluster(Graph *graph)
 {
     GraphCluster *newCluster;
     GraphCluster *tCluster;
@@ -290,7 +289,6 @@ static GraphCluster *graphInsertCluster(Graph *graph, int number)
 
     newCluster = xmalloc(sizeof(GraphCluster));
     memset(newCluster, 0, sizeof(GraphCluster));
-    newCluster->number = number;
 
     if (graph->clusters == NULL) {
 	graph->clusters = newCluster;
@@ -2961,6 +2959,7 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 	    }
 	}
 	//calculate attractive forces
+	//FIXME calculate only edges of the given cluster!
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
 	    if (!eEdge->use)
 		continue;
@@ -2998,23 +2997,23 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 /* ------------------------------------------------------------------------- */
 
 
-static void addNodeToCluster(GraphNode *tNode, GraphCluster *currentCluster)
+static void addNodeToCluster(GraphNode *tNode, GraphCluster *tCluster)
 {
     GraphEdge *tEdge;
 
-    tNode->cluster = currentCluster;
+    tNode->cluster = tCluster;
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (!tEdge->use)
 	    continue;
 	if (tEdge->startNode == tNode && tEdge->endNode->cluster == NULL) {
 	    tEdge->endNode->nextClusterNode = tNode->nextClusterNode;
 	    tNode->nextClusterNode = tEdge->endNode;
-	    addNodeToCluster(tEdge->endNode, currentCluster);
+	    addNodeToCluster(tEdge->endNode, tCluster);
 	}
 	if (tEdge->endNode == tNode && tEdge->startNode->cluster == NULL) {
 	    tEdge->startNode->nextClusterNode = tNode->nextClusterNode;
 	    tNode->nextClusterNode = tEdge->startNode;
-	    addNodeToCluster(tEdge->startNode, currentCluster);
+	    addNodeToCluster(tEdge->startNode, tCluster);
 	}
     }
 }
@@ -3025,7 +3024,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphNode    *tNode, *lastNode;
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
-    int          group, nodecount = 0, classNr = 0, currentCluster = 0;
+    int          group, nodecount = 0, classNr = 0;
     float        xMin = 0, yMin = 0, xMax = 0, yMax = 0;
 
     //find edges which are supposed to be drawn
@@ -3040,7 +3039,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	}
     }
 
-    tCluster = graphInsertCluster(graph, currentCluster);
+    tCluster = graphInsertCluster(graph);
 
     //prepare nodes which are supposed to be drawn
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
@@ -3075,16 +3074,14 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     //cluster the graph
-    currentCluster++;
-    tCluster = graphInsertCluster(graph, currentCluster);
+    tCluster = graphInsertCluster(graph);
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
 	if (tNode->cluster == NULL) {
 	    tCluster->firstClusterNode = tNode;
 	    addNodeToCluster(tNode, tCluster);
-	    currentCluster++;
-	    tCluster = graphInsertCluster(graph, currentCluster);
+	    tCluster = graphInsertCluster(graph);
 	}
     }
 
@@ -3097,11 +3094,11 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //calculate bounding box and write some debug-information to stderr
     //FIXME move this into a function?
-    fprintf(stderr, "group\tdegree\tcluster\tposition\n");
+    fprintf(stderr, "group\tdegree\tposition\n");
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	fprintf(stderr, "%i\t%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->cluster->number, tNode->dia.x, tNode->dia.y);
+	fprintf(stderr, "%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->dia.x, tNode->dia.y);
 	if (tNode->dia.x - STARTSCALE*tNode->dia.w/2 < xMin)
 	    xMin = tNode->dia.x - STARTSCALE*tNode->dia.w/2;
 	if (tNode->dia.x + STARTSCALE*tNode->dia.w/2 > xMax)
