@@ -1110,6 +1110,7 @@ static void calcNotificationTypeCount(int modc, SmiModule **modv,
     //NOTIFICATION-TYPE
     (*miCount)++;
     for (i = 0; i < modc; i++) {
+	nType[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 	    //name of the module
@@ -1124,6 +1125,7 @@ static void calcNotificationTypeCount(int modc, SmiModule **modv,
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		(*miCount)++;
+		nType[i] = 1;
 	    }
 	}
     }
@@ -1138,6 +1140,7 @@ static void calcObjectGroupCount(int modc, SmiModule **modv,
     //OBJECT-GROUP
     (*miCount)++;
     for (i = 0; i < modc; i++) {
+	oGroup[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 	    //name of the module
@@ -1154,6 +1157,7 @@ static void calcObjectGroupCount(int modc, SmiModule **modv,
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		(*miCount)++;
+		oGroup[i] = 1;
 	    }
 	}
     }
@@ -1168,6 +1172,7 @@ static void calcNotificationGroupCount(int modc, SmiModule **modv,
     //NOTIFICATION-GROUP
     (*miCount)++;
     for (i = 0; i < modc; i++) {
+	nGroup[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 	    //name of the module
@@ -1184,6 +1189,7 @@ static void calcNotificationGroupCount(int modc, SmiModule **modv,
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		(*miCount)++;
+		nGroup[i] = 1;
 	    }
 	}
     }
@@ -1205,6 +1211,7 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
     //MODULE-COMPLIANCE
     (*miCount)++;
     for (i = 0; i < modc; i++) {
+	mCompl[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 	    //name of the module
@@ -1219,6 +1226,7 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
 		(*miCount)++;
+		mCompl[i] = 1;
 		//modules for the compliance
 		done = xstrdup("+");
 		for (module = modv[i]->name; module; ) {
@@ -1478,7 +1486,7 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 }
 
 static void printNotificationType(int modc, SmiModule **modv,
-				  float *x, float *y, int *miNr)
+				  float *x, float *y, int *miNr, int nType[])
 {
     int         i;
     SmiNode     *smiNode;
@@ -1496,6 +1504,8 @@ static void printNotificationType(int modc, SmiModule **modv,
     (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
+	if (!nType[i])
+	    continue;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
@@ -1536,7 +1546,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 }
 
 static void printObjectGroup(int modc, SmiModule **modv,
-			     float *x, float *y, int *miNr)
+			     float *x, float *y, int *miNr, int oGroup[])
 {
     int         i;
     SmiNode     *smiNode;
@@ -1554,6 +1564,8 @@ static void printObjectGroup(int modc, SmiModule **modv,
     (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
+	if (!oGroup[i])
+	    continue;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
@@ -1596,7 +1608,7 @@ static void printObjectGroup(int modc, SmiModule **modv,
 }
 
 static void printNotificationGroup(int modc, SmiModule **modv,
-				   float *x, float *y, int *miNr)
+				   float *x, float *y, int *miNr, int nGroup[])
 {
     int         i;
     SmiNode     *smiNode;
@@ -1614,6 +1626,8 @@ static void printNotificationGroup(int modc, SmiModule **modv,
     (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
+	if (!nGroup[i])
+	    continue;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
@@ -1656,7 +1670,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 }
 
 static void printModuleCompliance(int modc, SmiModule **modv,
-				  float *x, float *y, int *miNr)
+				  float *x, float *y, int *miNr, int mCompl[])
 {
     int           i, j, foreign_exists, textColor;
     char          *tooltip;
@@ -1683,6 +1697,8 @@ static void printModuleCompliance(int modc, SmiModule **modv,
     (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
+	if (!mCompl[i])
+	    continue;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
@@ -1990,9 +2006,13 @@ static void printModuleCompliance(int modc, SmiModule **modv,
     *y += TABLEELEMHEIGHT;
 }
 
-static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
+static void printModuleInformation(int modc, SmiModule **modv,
+				   float x, float y,
+				   int nType[], int oGroup[],
+				   int nGroup[], int mCompl[])
 {
-    int miNr = 0;
+    int i, miNr = 0;
+    int nTypePrint = 0, oGroupPrint = 0, nGroupPrint = 0, mComplPrint = 0;
 
     printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
 							x, y, STARTSCALE);
@@ -2000,11 +2020,23 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
     x = 0;
     y = 10;
 
+    //only print sections containig information
+    for (i = 0; i < modc; i++) {
+	nTypePrint |= nType[i];
+	oGroupPrint |= oGroup[i];
+	nGroupPrint |= nGroup[i];
+	mComplPrint |= mCompl[i];
+    }
+
     printModuleIdentity(modc, modv, &x, &y, &miNr);
-    printNotificationType(modc, modv, &x, &y, &miNr);
-    printObjectGroup(modc, modv, &x, &y, &miNr);
-    printNotificationGroup(modc, modv, &x, &y, &miNr);
-    printModuleCompliance(modc, modv, &x, &y, &miNr);
+    if (nTypePrint)
+	printNotificationType(modc, modv, &x, &y, &miNr, nType);
+    if (oGroupPrint)
+	printObjectGroup(modc, modv, &x, &y, &miNr, oGroup);
+    if (nGroupPrint)
+	printNotificationGroup(modc, modv, &x, &y, &miNr, nGroup);
+    if (mComplPrint)
+	printModuleCompliance(modc, modv, &x, &y, &miNr, mCompl);
 
     printf(" </g>\n");
 }
@@ -2420,7 +2452,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     //print MODULE-IDENTITY
-    printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10);
+    printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
+						nType, oGroup, nGroup, mCompl);
 
     //output of svg to stdout ends here
     printSVGClose(xMin, yMin, xMax, yMax);
