@@ -2012,11 +2012,6 @@ static void printSVGObject(GraphNode *node, float x, float y, int *classNr)
     yOrigin = node->dia.h/-2;
     textYOffset = yOrigin + TABLEHEIGHT + TABLEELEMHEIGHT;
     textXOffset = xOrigin;
-    
-#ifdef DOT
-    fprintf(stderr, "Node: %s\n",
-		    smiGetFirstChildNode(node->smiNode)->name);
-#endif
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            x + node->dia.w/2, y + node->dia.h/2);
@@ -2688,17 +2683,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
     SmiElement *smiElement;
     SmiModule  *module;
 
-#ifdef DOT
-    fprintf(stderr, "node->smiNode->name: %s\n",
-		    node->smiNode->name);
-#endif
-
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) return node;
-
-#ifdef DOT
-    fprintf(stderr, "TableName: %s\n",
-		    smiGetFirstChildNode(node->smiNode)->name);
-#endif
 
     node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
@@ -2793,27 +2778,27 @@ static GraphNode *diaCalcSize(GraphNode *node)
  */
 static void calcGroupSize(int group)
 {
-    GraphNode *node;
+    GraphNode *calcNode, *node;
     SmiNode   *tNode;
 
-    for (node = graph->nodes; node; node = node->nextPtr) {
-	if (node->group == group) break;
+    for (calcNode = graph->nodes; calcNode; calcNode = calcNode->nextPtr) {
+	if (calcNode->group == group) break;
     }
 
-    if (!node) return;
+    if (!calcNode) return;
 
-    node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
+    calcNode->dia.w = strlen(calcNode->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
-    node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
+    calcNode->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
 
     for (node = graph->nodes; node; node = node->nextPtr) {
 	if (node->group == group) {
 	    tNode = node->smiNode;
-	    node->dia.w = max(node->dia.w, (strlen(tNode->name) +
+	    calcNode->dia.w = max(calcNode->dia.w, (strlen(tNode->name) +
 				    strlen(algGetTypeName(tNode)) + 2)
 			    * ATTRFONTSIZE
 			    + ATTRSPACESIZE);
-	    node->dia.h += TABLEELEMHEIGHT;
+	    calcNode->dia.h += TABLEELEMHEIGHT;
 	}
     }
 }
