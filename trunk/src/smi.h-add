@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.3 1998/11/20 17:10:15 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.4 1998/11/26 00:50:08 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -44,7 +44,8 @@
 
 #define smiStringDecl(macro) ( \
 	(macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" : \
-	(macro == SMI_DECL_SIMPLEASSIGNMENT)  ? "<SIMPLE-ASSIGNMENT>" : \
+	(macro == SMI_DECL_TYPEASSIGNMENT)    ? "<TYPE-ASSIGNMENT>" : \
+	(macro == SMI_DECL_VALUEASSIGNMENT)   ? "<VALUE-ASSIGNMENT>" : \
 	(macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" : \
 	(macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" : \
 	(macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" : \

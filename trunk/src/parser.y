@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.25 1998/11/25 03:47:44 strauss Exp $
+ * @(#) $Id: parser.y,v 1.26 1998/11/26 11:28:31 strauss Exp $
  */
 
 %{
@@ -805,6 +805,8 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
 				    setObjectFlags(object, FLAG_MODULE);
 				}
+				setObjectDecl(object,
+					      SMI_DECL_VALUEASSIGNMENT);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1157,7 +1159,6 @@ sequenceSyntax:		/* ObjectSyntax */
 			{
 			    Type *type;
 			    Descriptor *descriptor;
-			    smi_type *stype;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = findTypeByModulenameAndName(

@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.13 1998/11/25 02:50:54 strauss Exp $
+# @(#) $Id: Makefile,v 1.14 1998/11/26 00:50:04 strauss Exp $
 #
 
 CC	= gcc
@@ -15,7 +15,7 @@ RPCGEN	= rpcgen
 
 LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o smi.o
 
-default: libsmi.a miblint smid smiclient
+default: libsmi.a miblint smid smiclient smiquery
 
 smid.c smi_xdr.c smi_clnt.c smi.h: smi.x smi.h-add
 	$(RPCGEN) smi.x
@@ -41,9 +41,15 @@ smi_clnt.o: smi_clnt.c
 
 smiclient.o: smiclient.c
 
-smiclient: smiclient.o smi_clnt.o smi_xdr.o 
+smiquery.o: smiquery.c
+
+smiclient: smiclient.o smi_clnt.o smi_xdr.o
 	$(CC) -o smiclient smiclient.o smi_clnt.o smi_xdr.o -lnsl
 	ln -f smiclient ..
+
+smiquery: smiquery.o smi.h libsmi.a
+	$(CC) -o smiquery smiquery.o libsmi.a -lnsl -ll
+	ln -f smiquery ..
 
 scanner-flex.c: scanner.l scanner.h parser-bison.h
 	$(LEX) -t scanner.l > scanner-flex.c
