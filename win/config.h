@@ -1,4 +1,4 @@
-/* config.h.  Generated manually for windows / vc++ */
+/* config.h.  Generated manually for windows / vc++ 6.0 */
 
 /* Define if the SMIv1/v2 parser shall be active. */
 #define BACKEND_SMI
@@ -22,11 +22,13 @@
 #define DEFAULT_SMIPATH "c:/smi/mibs/ietf;c:/smi/mibs/iana;c:/smi/mibs/irtf;c:/smi/mibs/site;c:/smi/mibs/tubs"
 
 /* The default path separator character. */
-#define PATH_SEPARATOR ':'
+#define PATH_SEPARATOR ';'
+
+/* The default path separator character. */
+#define DIR_SEPARATOR '\\'
 
 /* The 64 bit integer types, their formats, and their min/max values. */
-/* Needs changes... Erik? Juergen? ;-) */
-#ifdef _MSC_VER
+#ifdef _MSC_VER		/* msvc: max/min are defined in include/limits.h */
 #define UINT64_TYPE   unsigned __int64
 #define INT64_TYPE    __int64
 #define UINT64_FORMAT "%I64u"
@@ -72,7 +74,7 @@
 #define HAVE_SNPRINTF 1
 
 /* Define if you have the vsnprintf function.  */
-#define HAVE_VSNPRINTF 1
+#undef HAVE_VSNPRINTF
 
 /* Define if the win.h header file is present. */
 #define HAVE_WIN_H 1
@@ -82,4 +84,3 @@
 
 /* Version number of package */
 #define VERSION "0.2.8"
-

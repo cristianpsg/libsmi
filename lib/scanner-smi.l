@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.30 2000/11/08 10:10:34 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.31 2000/11/13 11:32:27 strauss Exp $
  */
 
 %option noyywrap
@@ -17,10 +17,15 @@
 
 #include <config.h>
     
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+
+#if defined(HAVE_WIN_H)
+#include "win.h"
+#endif
 
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>

@@ -1,0 +1,44 @@
+#
+# smi.conf - Global/User SMI configuration file. (EXAMPLE)
+#
+# Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
+#
+# See the file "COPYING" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# @(#) $Id$
+#
+#
+# See smi_config(3) for detailed information on configuration files.
+#
+
+# Extend (note the semicolon) the libsmi default module search path.
+# (On Windows systems, use `;' instead of `:', and `\' instead of `/'.)
+path :/usr/local/share/mibs/sun
+path :/usr/local/share/mibs/cisco
+
+# Add a private directory.
+path :/home/strauss/lib/mibs
+
+# Don't show any errors by default.
+level 0
+
+# Preload some basic SMIv2 modules.
+load SNMPv2-SMI
+load SNMPv2-TC
+load SNMPv2-CONF
+
+# Make smilint shout loud to report all errors and warnings.
+smilint: level 9
+
+# But please don't claim about any names longer than 32 chars.
+# (note: this is the prefix of errors `namelength-32-module,
+#  -type, -object, -enumeration, and -bit)
+smilint: hide namelength-32
+
+# Preloading some more modules for special applications.
+tcpdump: load DISMAN-SCRIPT-MIB
+tcpdump: load IF-MIB
+
+smiquery: load IF-MIB
+

@@ -2,7 +2,7 @@
 LIBSMI NOTES FOR NATIVE WIN32 SUPPORT
 =====================================
 
-@(#) $Id$
+@(#) $Id: README.win,v 1.3 2000/06/21 10:33:43 strauss Exp $
 
 This directory contains some help to compile the libsmi and associated
 tools on a Win32 platform (Windows 95, 98, 2000, NT) with the native
@@ -12,12 +12,15 @@ Microsoft Visual C++ compiler. The makefile has been tested with VC++
 
 INSTALLATION
 ============
- 
-To compile simply run
+
+(1) Change the compiler path macro TOOLS32 in ./makefile for the
+    specific msvc installation.
+  
+(2) To compile simply run
 
 	nmake
 
-and to install a
+(3) and to install a
 
 	nmake install
 
@@ -26,22 +29,26 @@ the MIB-files and c:\smi\bin for the tools (smidump.exe, ...). The
 global configuration file is expected to be in c:\smi\smi.conf.
 
 
-KNOWN PROBLEMS
-==============
+COMMENTS:
+=========
 
-- The 64 bit integer types (unsigned64 and signed64) are simply
-  replaced by their 32 bit counterparts and will not work. This
-  needs a general solution (probably using int64_t and friends).
+- The 64 bit integer types (unsigned and signed) are simply replaced
+  by their 64bit _int64 msvc counterparts. They work ok.  see related
+  definitions ./config.h
+
+- The compiler path in ./makefile is hardwired (TOOLS32)
 
 - The version number is hardwired in config.h.
 
 - The installation directories are hardwired in config.h.
 
 - scanner, parser and the smi.h source have to be created within the
-  Unix environment.
+  Unix environment. On windows environment you can use cygwin to run
+  ./configure.
 
-- The SMIPATH seperator character is the Windows style ; and not the
-  Unix style : .
+- The default SMIPATH separator character is the Windows style `;' and
+  not the Unix style `:'. It can be changed using the
+  --with-pathseparator=C configure option.
  
 
 FURTHER INFORMATION
@@ -55,6 +62,7 @@ information on the libsmi mailing list at
 
 	Erik Schoenfelder <schoenfr@gaertner.de>
 	Juergen Schoenwaelder <schoenw@ibr.cs.tu-bs.de>
+        Yigal Hochberg <hochberg@dmhsoftware.com>
 
 
 ---

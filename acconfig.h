@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: acconfig.h,v 1.4 2000/11/12 17:46:37 strauss Exp $
+ * @(#) $Id: acconfig.h,v 1.5 2000/11/14 13:27:54 strauss Exp $
  */
 
 /* Define if the SMIv1/v2 parser shall be active. */
@@ -34,6 +34,9 @@
 
 /* The default path separator character. */
 #define PATH_SEPARATOR ':'
+
+/* The default path separator character. */
+#define DIR_SEPARATOR '/'
 
 /* The 64 bit integer types, their formats, and their min/max values. */
 #define UINT64_TYPE uint64_t

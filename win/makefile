@@ -1,7 +1,8 @@
+
 #
 # makefile --
 #
-#       Makefile for VC++ (tested with version 4.2) for compiling
+#       Makefile for VC++ (tested with version 6.0) for compiling
 #	libsmi and associated tools natively under Win32.
 #
 # Copyright (c) 2000 E. Schoenfelder, Gaertner Datensysteme Braunschweig.
@@ -10,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.3 2000/06/21 10:33:43 strauss Exp $
+# @(#) $Id: makefile,v 1.4 2000/11/14 13:28:34 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -43,7 +44,7 @@ LIBDIR = $(INSTROOT)\lib
 ##
 PATH=$(TOOLS32)\bin;$(PATH)
 
-cc32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include -D__STDC__
+cc32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
 CP      = copy
 RM      = del
 MKDIR	= md
@@ -60,16 +61,16 @@ DEFINES = $(DEBUG)
 ## 
 ## Global makefile settings
 ##
-LIBSMIOBJS = \
-	$(TMPDIR)\win.obj \
-	$(TMPDIR)\data.obj \
-	$(TMPDIR)\check.obj \
-	$(TMPDIR)\error.obj \
-	$(TMPDIR)\util.obj \
-	$(TMPDIR)\smi.obj \
-	$(TMPDIR)\parser-smi.tab.obj \
-	$(TMPDIR)\scanner-smi.obj \
-	$(TMPDIR)\parser-sming.tab.obj \
+LIBSMIOBJS =					\
+	$(TMPDIR)\win.obj			\
+	$(TMPDIR)\data.obj			\
+	$(TMPDIR)\check.obj			\
+	$(TMPDIR)\error.obj			\
+	$(TMPDIR)\util.obj			\
+	$(TMPDIR)\smi.obj			\
+	$(TMPDIR)\parser-smi.tab.obj		\
+	$(TMPDIR)\scanner-smi.obj		\
+	$(TMPDIR)\parser-sming.tab.obj		\
 	$(TMPDIR)\scanner-sming.obj
 
 SMIQUERYOBJS = \
@@ -78,20 +79,22 @@ SMIQUERYOBJS = \
 SMILINTOBJS = \
 	$(TMPDIR)\smilint.obj
 
-SMIDUMPOBJS = \
-	$(TMPDIR)\smidump.obj \
-	$(TMPDIR)\dump-sming.obj \
-	$(TMPDIR)\dump-smi.obj \
-	$(TMPDIR)\dump-imports.obj \
-	$(TMPDIR)\dump-types.obj \
-	$(TMPDIR)\dump-tree.obj \
-	$(TMPDIR)\dump-mosy.obj \
-	$(TMPDIR)\dump-corba.obj \
-	$(TMPDIR)\dump-ucdsnmp.obj \
-	$(TMPDIR)\dump-jax.obj \
-	$(TMPDIR)\dump-xml.obj \
-	$(TMPDIR)\dump-cm.obj \
-	$(TMPDIR)\dump-metrics.obj
+SMIDUMPOBJS =					\
+	$(TMPDIR)\smidump.obj			\
+	$(TMPDIR)\dump-sming.obj		\
+	$(TMPDIR)\dump-smi.obj			\
+	$(TMPDIR)\dump-imports.obj		\
+	$(TMPDIR)\dump-types.obj		\
+	$(TMPDIR)\dump-tree.obj			\
+	$(TMPDIR)\dump-mosy.obj			\
+	$(TMPDIR)\dump-corba.obj		\
+	$(TMPDIR)\dump-netsnmp.obj		\
+	$(TMPDIR)\dump-jax.obj			\
+	$(TMPDIR)\dump-xml.obj			\
+	$(TMPDIR)\dump-cm.obj			\
+	$(TMPDIR)\dump-metrics.obj		\
+	$(TMPDIR)\dump-identifiers.obj		\
+	$(TMPDIR)\dump-python.obj		\
 
 SMILIB = smi.lib
 
@@ -101,9 +104,11 @@ SMILIB = smi.lib
 .c.obj:
 	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
+
 {$(ROOT)\lib}.c{$(TMPDIR)}.obj:
 	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
+
 {$(ROOT)\tools}.c{$(TMPDIR)}.obj:
 	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
@@ -114,6 +119,17 @@ SMILIB = smi.lib
 all:	libs tools
 
 libs:	$(SMILIB)
+
+# special compilation rules
+#
+$(TMPDIR)\scanner-smi.obj : $(ROOT)\lib\scanner-smi.c
+	$(cc32) $(cdebug) $(cflags) -D__STDC__ $(INCLUDES) \
+		$(DEFINES) -Fo$(TMPDIR)\ $?
+
+$(TMPDIR)\scanner-sming.obj : $(ROOT)\lib\scanner-sming.c
+	$(cc32) $(cdebug) $(cflags) -D__STDC__ $(INCLUDES) \
+		$(DEFINES) -Fo$(TMPDIR)\ $?
+
 
 $(SMILIB):	$(LIBSMIOBJS)
 	$(implib) /out:smi.lib $(LIBSMIOBJS)
@@ -167,4 +183,5 @@ install-mibs:
 	$(CP) ..\mibs\irtf\*.* $(MIBDIR)\irtf
 	$(MKDIR) $(MIBDIR)\site
 
-##
+
+# EOF: makefile

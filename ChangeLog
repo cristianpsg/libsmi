@@ -1,3 +1,12 @@
+2000-11-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* smi.conf-example: Added a configuration file example.
+
+	* configure.in: Dir separator is now configurable and distinguished
+	in util/smiIsPath().
+
+	* win/*: Some changes for clean MSVC compilation. Yigal.
+
 2000-11-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* win/config.h: Added macros for 64 bit types on MSVC systems.

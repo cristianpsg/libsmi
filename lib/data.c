@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.93 2000/11/12 17:46:41 strauss Exp $
+ * @(#) $Id: data.c,v 1.94 2000/11/15 10:50:24 strauss Exp $
  */
 
 #include <config.h>
@@ -3310,7 +3310,7 @@ void smiFreeData()
  *
  *      Load a MIB module. If modulename is a plain name, the file is
  *	search along the SMIPATH environment variable. If modulename
- *	contains a `.' or `/' it is assumed to be the path.
+ *	contains a `.' or DIR_SEPARATOR it is assumed to be the path.
  *
  * Results:
  *      0 on success or -1 on an error.
@@ -3347,27 +3347,27 @@ Module *loadModule(const char *modulename)
 	for (dir = strtok(smipath, sep);
 	     dir; dir = strtok(NULL, sep)) {
 	    path = malloc(strlen(dir)+strlen(modulename)+8);
-	    sprintf(path, "%s/%s", dir, modulename);
+	    sprintf(path, "%s%c%s", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s/%s.my", dir, modulename);
+	    sprintf(path, "%s%c%s.my", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s/%s.smiv2", dir, modulename);
+	    sprintf(path, "%s%c%s.smiv2", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s/%s.sming", dir, modulename);
+	    sprintf(path, "%s%c%s.sming", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s/%s.mib", dir, modulename);
+	    sprintf(path, "%s%c%s.mib", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s/%s.txt", dir, modulename);
+	    sprintf(path, "%s%c%s.txt", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }

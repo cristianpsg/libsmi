@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.25 2000/11/12 17:46:42 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.26 2000/11/15 10:50:26 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -155,7 +155,7 @@ typedef enum SmiIndexkind {
 /* SmiValue -- any single value; for use in default values and subtyping     */
 typedef struct SmiValue {
     SmiBasetype             basetype;
-    int			    len;         /* OID, OctetString, Bits           */
+    unsigned int	    len;         /* OID, OctetString, Bits           */
     union {
         SmiUnsigned64       unsigned64;
         SmiInteger64        integer64;
