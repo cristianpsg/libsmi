@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.21 2002/03/20 16:08:06 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.22 2002/04/08 17:29:07 tklie Exp $
  */
 
 #include <config.h>
@@ -53,10 +53,11 @@ static int current_column = 0;
 typedef struct TypePrefix {
     char *type;
     char *prefix;
+    struct TypePrefix *next;
 } TypePrefix;
 
-static TypePrefix *typePrefixes;
-static int numTypes;
+static TypePrefix *typePrefixes = NULL;
+
 
 /* some forward declarations */
 static void fprintElement( FILE *f, int indent,
@@ -212,23 +213,35 @@ static void fprintNamedNumber( FILE *f, int indent, SmiNamedNumber *nn )
     fprintSegment( f, indent, "</xsd:enumeration>\n", 0 );
 }
 
+
+static void fprintStdRestHead( FILE *f, int indent, SmiType *smiType )
+{
+    char *baseTypeName = getStringBasetype(smiType->basetype);
+    char *prefix = getTypePrefix( baseTypeName );
+    
+    fprintSegment(f, indent, "<xsd:restriction", 0);
+    if( prefix ) {
+	fprint(f, " base=\"%s:%s\">\n", prefix, baseTypeName );
+    }
+    else {
+	fprint(f, " base=\"%s\">\n", baseTypeName );
+    }
+}
+
+
 static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 {
     SmiRange *smiRange;
-
+    char *prefix = getTypePrefix( smiType->name );
+    
     /* print ranges etc. */
     switch( smiType->basetype ) {
 
     case SMI_BASETYPE_INTEGER32:
     {
-	SmiInteger32 min, max;
-
-	min = -2147483647;
-	max = 2147483646;
-
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n", 
-	       getStringBasetype(smiType->basetype));
+	SmiInteger32 min = -2147483647, max = -2147483647;
+	
+	fprintStdRestHead( f, indent, smiType );
 	
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
@@ -252,18 +265,16 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	fprintSegment(f, indent, "</xsd:restriction>\n", 0);
 	break;
     }
-
+    
     case SMI_BASETYPE_OCTETSTRING:
     {
 	SmiInteger32  minLength, maxLength;
-
+	
 	minLength = 0;
 	maxLength = -1;
 
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n",
-	       getStringBasetype(smiType->basetype));
-
+	fprintStdRestHead( f, indent, smiType );
+	
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
 	    if( minLength == 0 ||
@@ -293,11 +304,8 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     case SMI_BASETYPE_FLOAT128:
     {
 /*	SmiFloat128 min, max; */
-
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n",
-	       getStringBasetype(smiType->basetype));
-
+	fprintStdRestHead( f, indent, smiType );
+	
 	/* xxx, only SMIng */
 	break;
     }
@@ -305,11 +313,8 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     case SMI_BASETYPE_FLOAT64:
     {
 /*	SmiFloat64 min,max;*/
+	fprintStdRestHead( f, indent, smiType );
 
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n",
-	       getStringBasetype(smiType->basetype));
-	
 	/* xxx, only SMIng */
 	break;
     }
@@ -317,23 +322,17 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     case SMI_BASETYPE_FLOAT32:
     {
 /*	SmiFloat32 min,max;*/
-
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n",
-	       getStringBasetype(smiType->basetype));
-
+	fprintStdRestHead( f, indent,  smiType );
+	
 	/* xxx, only SMIng */
 	break;
     }
-
+    
     case SMI_BASETYPE_INTEGER64:
     {
 /*	SmiInteger64 min,max;*/
-
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n",
-	       getStringBasetype(smiType->basetype));
-
+	fprintStdRestHead( f, indent, smiType );
+	
 	/* xxx, only SMIng */
 	break;
     }
@@ -345,10 +344,8 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	min = 0;
 	max = 18446744073709551615U;
 
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n", 
-	       getStringBasetype(smiType->basetype));
-
+	fprintStdRestHead( f, indent, smiType );
+	
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
 	    if( smiRange->minValue.value.unsigned64 < min ) {
@@ -374,13 +371,11 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     {
 	SmiUnsigned32 min, max;
 
-	fprintSegment(f, indent, "<xsd:restriction", 0);
-	fprint(f, " base=\"%s\">\n",
-	       getStringBasetype(smiType->basetype));
-	
 	min = 0;
 	max = 4294967295UL;
 
+	fprintStdRestHead( f, indent, smiType );
+	
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
 	    if( smiRange->minValue.value.unsigned32 < min ) {
@@ -427,8 +422,9 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	/* should not occur */
 	break;
     }
-
 }
+    
+
 
 
 static void fprintBitList( FILE *f, int indent, SmiType *smiType,
@@ -470,9 +466,7 @@ static void fprintSubRangeType( FILE *f, int indent,
     fprintSegment( f, indent, "<xsd:simpleType ", 0 );
     fprint( f, "name=\"%sRange%dType\">\n", smiType->name, num );
 
-    fprintSegment(f, indent + INDENT, "<xsd:restriction", 0);
-    fprint(f, " base=\"%s\">\n",
-	       getStringBasetype(smiType->basetype));
+    fprintStdRestHead( f, indent + INDENT, smiType );
 
     switch( smiType->basetype ) {
 
@@ -626,6 +620,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     int i;
     SmiRange *smiRange;
     int numSubRanges = getNumSubRanges( smiType );
+    char *prefix = getTypePrefix( name );
 
     if( numSubRanges > 1 ) {
 	/* print out simple types for all subranges */
@@ -685,16 +680,24 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 static char* getTypePrefix( char *typeName )
 {
     int i;
+    TypePrefix *iterTPr;
 
     if( !typeName ) {
 	return NULL;
     }
 
+    for( iterTPr = typePrefixes; iterTPr; iterTPr = iterTPr->next ) {
+	if( ! strcmp( iterTPr->type, typeName ) ) {
+	    return iterTPr->prefix;
+	}
+    }
+    /*
     for( i = 0; i < numTypes; i++ ) {
 	if( !strcmp( typePrefixes[ i ].type, typeName ) ) {
 	    return typePrefixes[ i ].prefix;
 	}
     }
+    */
     return NULL;
 }
 
@@ -1039,7 +1042,7 @@ static void fprintImports( FILE *f, int indent, SmiModule *smiModule )
 	}
 	lastModName = iterImp->module;
     }
-    fprintSegment( f, indent, "<xsd:import namespace=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"/>\n\n", 0 );
+    fprintSegment( f, indent, "<xsd:import namespace=\"http://www.ibr.cs.tu-bs.de/~tklie/smi\" schemaLocation=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"/>\n\n", 0 );
 }
 
 
@@ -1113,18 +1116,24 @@ static void fprintTypedefs(FILE *f, SmiModule *smiModule)
 
 static void registerType( char *type, char *module )
 {
-    if( typePrefixes ) {
-	typePrefixes = realloc( typePrefixes,
-				++numTypes * sizeof( TypePrefix ) );
+    TypePrefix *oldTPr = NULL, *iterTPr = NULL;
+
+    for( iterTPr = typePrefixes; iterTPr; iterTPr = iterTPr->next ) {
+	oldTPr = iterTPr;
+    }
+    if( ! oldTPr ) {
+	/* type prefixes do not exist yet */
+	typePrefixes = xmalloc( sizeof( TypePrefix ) );
+	typePrefixes->type = type;
+	typePrefixes->prefix = module;
+	typePrefixes->next = NULL;
     }
     else {
-	/* typelist empty -->  create it */
-	typePrefixes = malloc( sizeof( TypePrefix ) );
-	numTypes = 1;
-    }
-    if( typePrefixes ) {
-	typePrefixes[ numTypes - 1 ].type = type;
-	typePrefixes[ numTypes - 1 ].prefix = module;
+	/* create new TypePrefix */
+	oldTPr->next = xmalloc( sizeof( TypePrefix ) );
+	oldTPr->next->type = type;
+	oldTPr->next->prefix = module;
+	oldTPr->next->next = NULL;
     }
 }
 
@@ -1137,14 +1146,14 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
        So let's use this to initialize variable. */
     
     fprint(f,
-	   "<xsd:schema targetNamespace=\"%s%s.xsd\"\n",
+	   "<xsd:schema targetNamespace=\"%s%s\"\n",
 	   schemaLocation, smiModule->name);
     
-    fprint(f, "            xmlns=\"%s%s.xsd\"\n",
+    fprint(f, "            xmlns=\"%s%s\"\n",
 	   schemaLocation, smiModule->name);
     fprint(f, "            xmlns:xml=\"http://www.w3.org/XML/1998/namespace\"\n");
     fprint(f, "            xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
-    fprint(f, "            xmlns:smi=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"\n");
+    fprint(f, "            xmlns:smi=\"http://www.ibr.cs.tu-bs.de/~tklie/smi\"\n");
     
     for( iterImp = smiGetFirstImport( smiModule );
 	 iterImp;
