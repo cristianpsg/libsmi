@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.13 1999/03/29 22:34:03 strauss Exp $
+ * @(#) $Id: data.h,v 1.14 1999/03/30 18:37:19 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -38,7 +38,8 @@ typedef enum Kind {
     KIND_TYPE		 = 3 ,  /*					     */
     KIND_OBJECT		 = 4 ,  /*					     */
     KIND_IMPORT		 = 5 ,  /* descriptors to be imported.               */
-    KIND_IMPORTED	 = 6    /* imported descriptor. syntax `mod.descr'.  */
+    KIND_IMPORTED	 = 6 ,  /* imported descriptor. syntax `mod.descr'.  */
+    KIND_NOTFOUND	 = 7    /* to be imported, but not found             */
 } Kind;
 #define NUM_KINDS  7
 
