@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.8 2000/12/11 08:41:22 strauss Exp $
+ * @(#) $Id: dump-python.c,v 1.9 2001/05/08 09:06:26 strauss Exp $
  */
 
 /*
@@ -453,7 +453,6 @@ static void fprintElementList(FILE *f, int indent, const char *tag,
 static void fprintListElement(FILE *f, int indent, const char *tag,
 			      SmiElement *smiElement)
 {
-    SmiModule *smiModule;
     SmiNode   *smiNode;
 
     for (; smiElement; smiElement = smiGetNextElement(smiElement)) {
