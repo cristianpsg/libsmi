@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.58 2000/06/08 09:36:15 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.59 2000/06/14 13:15:18 strauss Exp $
  */
 
 %{
@@ -933,7 +933,7 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (typePtr && $13) {
-                                if (!checkFormat(typePtr->export.basetype, $13)) {
+                                if (!smiCheckFormat(typePtr->export.basetype, $13)) {
 				    smiPrintError(thisParserPtr,
 						  ERR_INVALID_FORMAT, $13);
 				}
@@ -1136,7 +1136,7 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (scalarObjectPtr && $19) {
-				if (!checkFormat($11->export.basetype, $19)) {
+				if (!smiCheckFormat($11->export.basetype, $19)) {
 				    smiPrintError(thisParserPtr,
 						  ERR_INVALID_FORMAT, $19);
 				}
@@ -1395,10 +1395,8 @@ columnStatement:	columnKeyword sep lcIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (columnObjectPtr && $19) {
-                                if (!checkFormat($11->export.basetype, $19)) {
-				    smiPrintError(thisParserPtr,
-						  ERR_INVALID_FORMAT, $19);
-				}
+                                smiCheckFormat(thisParserPtr,
+					       $11->export.basetype, $19);
 				setObjectFormat(columnObjectPtr, $19);
 			    }
 			}

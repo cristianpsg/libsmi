@@ -33,8 +33,8 @@ libsmiTest003Mib MODULE-IDENTITY
 	     construct.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-003-MIB:44: There must be no more than exactly one MODULE-IDENTITY clause
-LIBSMI-TEST-003-MIB:44: The MODULE-IDENTITY clause must be the first declaration in a module
+LIBSMI-TEST-003-MIB:44: more than one MODULE-IDENTITY clause in SMIv2 MIB
+LIBSMI-TEST-003-MIB:44: MODULE-IDENTITY clause must be the first declaration in a module
 	     "
     REVISION        "199906101500Z"
     DESCRIPTION     

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.90 2000/06/08 09:36:15 strauss Exp $
+ * @(#) $Id: smi.c,v 1.91 2000/06/14 13:15:18 strauss Exp $
  */
 
 #include <config.h>
@@ -227,7 +227,7 @@ int smiInit(const char *tag)
     smiErrorLevel = DEFAULT_ERRORLEVEL;
     smiDepth = 0;
     
-    if (initData()) {
+    if (smiInitData()) {
 	return -1;
     }
 
@@ -279,7 +279,7 @@ void smiExit()
     if (!initialized)
 	return;
 
-    freeData();
+    smiFreeData();
 
     smiFree(smiPath);
     

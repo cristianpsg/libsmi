@@ -35,7 +35,7 @@ libsmiTest004Mib OBJECT-IDENTITY
 	     DESCRIPTION clause.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-004-MIB:45: Missing MODULE-IDENTITY clause in SMIv2 style MIB
+LIBSMI-TEST-004-MIB:45: missing MODULE-IDENTITY clause in SMIv2 MIB
 	     "
 --  REVISION        "199906101500Z"
 --  DESCRIPTION     

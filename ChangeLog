@@ -1,5 +1,9 @@
 2000-06-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* Juergen sent a huge patch: moved parser checks to a separate
+        C file, aligned error messages, aligned identifier prefixes,
+        aligned MIB test suite.
+
 	* mibs/ietf/INET-ADDRESS-MIB: added (RFC 2851).
 
 2000-06-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>

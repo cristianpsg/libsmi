@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.61 2000/06/14 08:49:38 strauss Exp $
+ * @(#) $Id: data.h,v 1.62 2000/06/14 13:15:16 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -171,6 +171,8 @@ typedef struct Index {
     struct List    *listPtr; /* list of index columns (Object *) */
     struct Object  *rowPtr;  /* a referenced row (e.g. SMIv2 AUGMENTS) */
 } Index;
+
+
 
 typedef struct Object {
     SmiNode        export;
@@ -517,17 +519,11 @@ extern Macro *findMacroByModulenameAndName(const char *modulename,
 
 
 
-extern int initData();
+extern int smiInitData();
 
-extern void freeData();
+extern void smiFreeData();
 
 extern Module *loadModule(const char *modulename);
 
-
-extern int checkFormat(SmiBasetype basetype, char *format);
-
-extern void checkObjectName(Module *modulePtr, char *name, Parser *parserPtr);
-
-extern void checkTypeName(Module *modulePtr, char *name, Parser *parserPtr);
 
 #endif /* _DATA_H */

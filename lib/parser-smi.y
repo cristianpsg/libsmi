@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.112 2000/06/14 08:49:39 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.113 2000/06/14 13:15:17 strauss Exp $
  */
 
 %{
@@ -34,6 +34,7 @@
 #include "parser-smi.h"
 #include "scanner-smi.h"
 #include "data.h"
+#include "check.h"
 #include "util.h"
     
 
@@ -1402,7 +1403,8 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
 			        if (strchr($1, '-') &&
@@ -1448,7 +1450,8 @@ typeDeclaration:	typeName
 			    
 			    if (strlen($1)) {
 				if ($4->export.basetype != SMI_BASETYPE_UNKNOWN) {
-				    checkTypeName(thisModulePtr, $1, thisParserPtr);
+				    smiCheckTypeName(thisParserPtr,
+						     thisModulePtr, $1);
 				}
 				setTypeName($4, $1);
 				$$ = 0;
@@ -1613,10 +1616,8 @@ typeDeclarationRHS:	Syntax
 			    }
 			    setTypeStatus($$, $5);
 			    if ($3) {
-				if (!checkFormat($$->export.basetype, $3)) {
-				    smiPrintError(thisParserPtr,
-						  ERR_INVALID_FORMAT, $3);
-				}
+				smiCheckFormat(thisParserPtr,
+					       $$->export.basetype, $3);
 				setTypeFormat($$, $3);
 			    }
 			    setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
@@ -1879,7 +1880,8 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			OBJECT_IDENTITY
 			{
@@ -1931,7 +1933,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			OBJECT_TYPE
 			{
@@ -2067,7 +2070,8 @@ trapTypeClause:		LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			TRAP_TYPE
 			{
@@ -2208,7 +2212,8 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			NOTIFICATION_TYPE
 			{
@@ -2260,7 +2265,8 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			MODULE_IDENTITY
 			{
@@ -4122,7 +4128,8 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			OBJECT_GROUP
 			{
@@ -4174,7 +4181,8 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			NOTIFICATION_GROUP
 			{
@@ -4228,7 +4236,8 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			MODULE_COMPLIANCE
 			{
@@ -4662,7 +4671,8 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			{
 			    checkNameLen(thisParserPtr, $1,
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
-			    checkObjectName(thisModulePtr, $1, thisParserPtr);
+			    smiCheckObjectName(thisParserPtr,
+					       thisModulePtr, $1);
 			}
 			AGENT_CAPABILITIES
 			{
