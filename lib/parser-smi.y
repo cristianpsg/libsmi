@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.8 1999/03/25 21:57:45 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.9 1999/03/26 17:01:57 strauss Exp $
  */
 
 %{
@@ -259,7 +259,7 @@ Node   *parentNodePtr;
 %type  <objectPtr>IndexType
 %type  <objectPtr>Index
 %type  <objectPtr>Entry
-%type  <err>DefValPart
+%type  <valuePtr>DefValPart
 %type  <valuePtr>Value
 %type  <listPtr>BitsValue
 %type  <listPtr>BitNames
@@ -2349,7 +2349,7 @@ Entry:			ObjectName
         ;
 
 DefValPart:		DEFVAL '{' Value '}'
-			{ $$ = 3; }
+			{ $$ = $3; }
 	|		/* empty */
 			{ $$ = NULL; }
 			/* TODO: different for DefValPart in AgentCaps ? */

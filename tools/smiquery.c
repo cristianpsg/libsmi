@@ -8,13 +8,14 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.3 1999/03/17 19:09:11 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.4 1999/03/25 21:57:49 strauss Exp $
  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #ifdef linux
 #include <getopt.h>
 #endif
