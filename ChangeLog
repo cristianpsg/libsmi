@@ -1,3 +1,7 @@
+2004-02-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/HC-PerfHist-TC-MIB: added (RFC 3705).
+
 2004-01-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidiff.c: Fixed potential segfault in
