@@ -9,7 +9,11 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.19 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.20 2000/05/26 16:17:49 strauss Exp $
+ */
+
+/*
+ * Decide how we want to name the implicitely defined types.
  */
 
 #include <config.h>
@@ -20,9 +24,6 @@
 
 #include "smi.h"
 #include "smidump.h"
-
-
-static char *currentModule;
 
 
 typedef struct BaseTypeCount {
@@ -48,51 +49,20 @@ static BaseTypeCount basetypes[] = {
 
 
 typedef struct TypeNode {
-    char        *module;
-    char        *name;
-    SmiBasetype basetype;
+    SmiType	*smiType;
+    SmiModule	*smiModule;
+    SmiBasetype smiBasetype;
     struct TypeNode *nextNodePtr;
     struct TypeNode *childNodePtr;
 } TypeNode;
 
 
-static TypeNode _Bits = {
-    NULL, "Bits", SMI_BASETYPE_BITS, NULL, NULL
-};
-static TypeNode _Enumeration = {
-    NULL, "Enumeration", SMI_BASETYPE_ENUM, &_Bits, NULL
-};
-static TypeNode _Float128 = {
-    NULL, "Float128", SMI_BASETYPE_FLOAT128, &_Enumeration, NULL
-};
-static TypeNode _Float64 = {
-    NULL, "Float64", SMI_BASETYPE_FLOAT64, &_Float128, NULL
-};
-static TypeNode _Float32 = {
-    NULL, "Float32", SMI_BASETYPE_FLOAT32, &_Float64, NULL
-};
-static TypeNode _Unsigned64 = {
-    NULL, "Unsigned64", SMI_BASETYPE_UNSIGNED64, &_Float32, NULL
-};
-static TypeNode _Unsigned32 = {
-    NULL, "Unsigned32", SMI_BASETYPE_UNSIGNED32, &_Unsigned64, NULL
-};
-static TypeNode _Integer64 = {
-    NULL, "Integer64", SMI_BASETYPE_INTEGER64, &_Unsigned32, NULL
-};
-static TypeNode _Integer32 = {
-    NULL, "Integer32", SMI_BASETYPE_INTEGER32, &_Integer64, NULL
-};
-static TypeNode _ObjectIdentifier = {
-    NULL, "ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, &_Integer32, NULL
-};
-static TypeNode _OctetString = {
-    NULL, "OctetString", SMI_BASETYPE_OCTETSTRING, &_ObjectIdentifier, NULL
-};
 static TypeNode typeRoot = {
-    NULL, "", SMI_BASETYPE_UNKNOWN, NULL, &_OctetString
+    NULL, NULL, SMI_BASETYPE_UNKNOWN, NULL, NULL
 };
 
+
+static Module *moduleList = NULL;
 
 
 static char getStatusChar(SmiStatus status)
@@ -117,10 +87,10 @@ static char getStatusChar(SmiStatus status)
 
 
 
-static char *getFlags(SmiType *smiType)
+static char *getFlags(SmiModule *smiModule, SmiType *smiType)
 {
+    Module      *mPtr;
     static char flags[4];
-    SmiModule *smiModule;
     
     memset(flags, 0, sizeof(flags));
     strcpy(flags, "---");
@@ -139,13 +109,18 @@ static char *getFlags(SmiType *smiType)
     default:
 	break;
     }
+    
+    for (mPtr = moduleList; mPtr; mPtr = mPtr->nextPtr) {
+	if (strcmp(mPtr->smiModule->name, smiModule->name) == 0) {
+	    break;
+	}
+    }
 
-    smiModule = smiGetTypeModule(smiType);
     if ((!smiModule) || (strlen(smiModule->name) == 0)) {
 	flags[2] = 'b';
-    } else if (!currentModule) {
+    } else if (!moduleList) {
 	flags[2] = '-';
-    } else if (strcmp(smiModule->name, currentModule) == 0) {
+    } else if (mPtr) {
 	flags[2] = 'l';
     } else {
 	flags[2] = 'i';
@@ -290,61 +265,52 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 
 
 
-static TypeNode *createTypeNode(SmiType *smiType)
+static void addToTypeTree(TypeNode *root,
+			  SmiModule *smiModule, SmiType *smiType)
 {
-    TypeNode *newType;
-    
-    newType = xmalloc(sizeof(TypeNode));
-    newType->module = smiGetTypeModule(smiType)->name;
-    newType->name = smiType->name;
-    newType->basetype = smiType->basetype;
-    newType->childNodePtr = NULL;
-    newType->nextNodePtr = NULL;
+    TypeNode  *newType, **typePtrPtr;
+    SmiType   *smiParentType;
+    SmiModule *smiParentModule;
 
-    return newType;
-}
-
-
-
-static void addToTypeTree(TypeNode *root, SmiType *smiType)
-{
-    TypeNode *newType, **typePtrPtr;
-    SmiType *smiParentType;
-    
     if (! root) {
 	return;
     }
 
     smiParentType = smiGetParentType(smiType);
-    
-    if ((!root->module
-	 || !smiParentType
-	 || strcmp(smiGetTypeModule(smiParentType)->name,
-		   root->module) == 0) &&
-	(!smiParentType || strcmp(smiParentType->name, root->name) == 0)) {
-	newType = createTypeNode(smiType);
-	newType->module = smiGetTypeModule(smiType)->name;
+    smiParentModule = smiParentType ? smiGetTypeModule(smiParentType) : NULL;
 
-	for (typePtrPtr = &(root->childNodePtr);
-	     *typePtrPtr; typePtrPtr = &((*typePtrPtr)->nextNodePtr)) ;
-	*typePtrPtr = newType;
-	return;
-    }
+    if ((root->smiModule == smiParentModule && root->smiType == smiParentType)
+	|| (! root->smiModule && ! root->smiType
+	    && root->smiBasetype == smiType->basetype)) {
 
-    if (root->nextNodePtr) {
-	addToTypeTree(root->nextNodePtr, smiType);
-    }
+	 newType = xmalloc(sizeof(TypeNode));
+	 newType->smiModule = smiModule;
+	 newType->smiType = smiType;
+	 newType->smiBasetype = smiType->basetype;
+	 newType->childNodePtr = NULL;
+	 newType->nextNodePtr = NULL;
 
-    if (root->childNodePtr) {
-	addToTypeTree(root->childNodePtr, smiType);
-    }
+	 for (typePtrPtr = &(root->childNodePtr);
+	      *typePtrPtr; typePtrPtr = &((*typePtrPtr)->nextNodePtr)) ;
+	 *typePtrPtr = newType;
+	 return;
+     }
+
+     if (root->nextNodePtr) {
+	 addToTypeTree(root->nextNodePtr, smiModule, smiType);
+     }
+     
+     if (root->childNodePtr) {
+	 addToTypeTree(root->childNodePtr, smiModule, smiType);
+     }
 }
+
 
 
 static void freeTypeTree(TypeNode *root)
 {
     if (root->childNodePtr) {
-	if (root->childNodePtr->module) {
+	if (root->childNodePtr->smiModule) {
 	    freeTypeTree(root->childNodePtr);
 	    root->childNodePtr = NULL;
 	} else {
@@ -353,41 +319,93 @@ static void freeTypeTree(TypeNode *root)
     }
     
     if (root->nextNodePtr) {
-	if (root->nextNodePtr->module) {
+	if (root->nextNodePtr->smiModule) {
 	    freeTypeTree(root->nextNodePtr);
 	    root->nextNodePtr = NULL;
 	} else {
 	    freeTypeTree(root->nextNodePtr);
 	}
     }
-
-    if (root->module) {
+    
+    if (root->smiModule) {
 	xfree(root);
     }
 }
- 
 
 
-static TypeNode *findInTypeTree(TypeNode *root, SmiType *smiType)
+
+static TypeNode *findInTypeTree(TypeNode *root,
+				SmiModule *smiModule, SmiType *smiType)
 {
     TypeNode *result = NULL;
     
-    if (root->module
- 	&& strcmp(root->module, smiGetTypeModule(smiType)->name) == 0
+    if (root->smiModule && root->smiModule == smiModule
 	&& smiType->name
- 	&& strcmp(root->name, smiType->name) == 0) {
+	&& root->smiType && root->smiType == smiType) {
 	result = root;
     }
     
     if (!result && root->childNodePtr) {
- 	result = findInTypeTree(root->childNodePtr, smiType);
+	result = findInTypeTree(root->childNodePtr, smiModule, smiType);
     }
     
-    if (! result && root->nextNodePtr) {
- 	result = findInTypeTree(root->nextNodePtr, smiType);
+    if (!result && root->nextNodePtr) {
+	result = findInTypeTree(root->nextNodePtr, smiModule, smiType);
     }
     
     return result;
+}
+
+
+
+static char* getTypeName(TypeNode *typeNode)
+{
+    SmiRefinement *smiRefinement;
+    SmiType *smiType;
+    char *name = "?";
+
+    if (typeNode->smiType->name) {
+	return xstrdup(typeNode->smiType->name);
+	
+    } else if (typeNode->smiModule) {
+	SmiNode *smiNode;
+
+	for (smiNode = smiGetFirstNode(typeNode->smiModule, SMI_NODEKIND_ANY);
+	     smiNode;
+	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	    if (smiGetNodeType(smiNode) == typeNode->smiType) {
+		name = xmalloc(strlen(smiNode->name) + 3);
+		sprintf(name, "(%s)", smiNode->name);
+		return name;
+	    }
+	}
+
+	for (smiNode = smiGetFirstNode(typeNode->smiModule,
+				       SMI_NODEKIND_COMPLIANCE);
+	     smiNode;
+	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
+	    for(smiRefinement = smiGetFirstRefinement(smiNode);
+		smiRefinement;
+		smiRefinement = smiGetNextRefinement(smiRefinement)) {
+		smiType = smiGetRefinementType(smiRefinement);
+		if (smiType == typeNode->smiType) {
+		    smiNode = smiGetRefinementNode(smiRefinement);
+		    name = xmalloc(strlen(smiNode->name) + 3);
+		    sprintf(name, "(%s)", smiNode->name);
+		    return name;
+		}
+		smiType = smiGetRefinementWriteType(smiRefinement);
+		if (smiType == typeNode->smiType) {
+		    smiNode = smiGetRefinementNode(smiRefinement);
+		    name = xmalloc(strlen(smiNode->name) + 3);
+		    sprintf(name, "(%s)", smiNode->name);
+		    return name;
+		}
+	    }
+	}
+    }
+
+    return xstrdup(name);
 }
 
 
@@ -424,41 +442,47 @@ static void printRestrictions(SmiType *smiType)
 static void printTypeTree(TypeNode *root, char *prefix)
 {
     TypeNode *typeNode, *nextNode;
+    char *name;
     int namelen = -1;
-    SmiModule *smiModule;
-    
-    if (root->module) {
+
+    if (root->smiModule) {
 	printf("%s  |\n", prefix);
     }
 
     for (typeNode = root; typeNode; typeNode = typeNode->nextNodePtr) {
-	int len = strlen(typeNode->name);
-	if (len > namelen) namelen = len;
+	if (typeNode->smiType) {
+	    int len;
+	    name = getTypeName(typeNode);
+	    len = strlen(name);
+	    if (len > namelen) namelen = len;
+	    xfree(name);
+	}
     }
     
     for (typeNode = root; typeNode; typeNode = typeNode->nextNodePtr) {
  	if (typeNode != &typeRoot) {
-	    SmiType *smiType;
 	    char c = '+', *flags;
-	    smiModule = smiGetModule(typeNode->module);
-	    smiType = smiGetType(smiModule, typeNode->name);
-	    if (smiType) {
-		c = getStatusChar(smiType->status);
-		if (getBaseTypeCount(typeNode->basetype)) {
-		    flags = getFlags(smiType);
+	    if (typeNode->smiType) {
+		name = getTypeName(typeNode);
+		c = getStatusChar(typeNode->smiType->status);
+		if (getBaseTypeCount(typeNode->smiBasetype)) {
+		    flags = getFlags(typeNode->smiModule, typeNode->smiType);
 		    if (flags && *flags) {
 			printf("%s  %c-- %s %-*s", prefix, c, flags,
-			       namelen, typeNode->name);
+			       namelen, name);
 		    } else {
 			printf("%s  %c--%-*s", prefix, c,
-			       namelen, typeNode->name);
+			       namelen, name);
 		    }
-		    printRestrictions(smiType);
-		    if (smiType->format) {
-			printf("\t\"%s\"", smiType->format);
+		    printRestrictions(typeNode->smiType);
+		    if (typeNode->smiType->format) {
+			printf("\t\"%s\"", typeNode->smiType->format);
 		    }
 		    printf("\n");
 		}
+		xfree(name);
+	    } else {
+		printf("xxxx\n");
 	    }
  	}
  	if (typeNode->childNodePtr) {
@@ -468,7 +492,7 @@ static void printTypeTree(TypeNode *root, char *prefix)
  	    if (typeNode != &typeRoot) {
 		for (nextNode = typeNode->nextNodePtr;
 		     nextNode; nextNode = nextNode->nextNodePtr) {
-		    if (getBaseTypeCount(nextNode->basetype)) {
+		    if (getBaseTypeCount(nextNode->smiBasetype)) {
 			break;
 		    }
 		}
@@ -482,7 +506,7 @@ static void printTypeTree(TypeNode *root, char *prefix)
  	    xfree(newprefix);
 	    for (nextNode = typeNode->nextNodePtr;
 		 nextNode; nextNode = nextNode->nextNodePtr) {
-		if (getBaseTypeCount(nextNode->basetype)) {
+		if (getBaseTypeCount(nextNode->smiBasetype)) {
 		    break;
 		}
 	    }
@@ -497,17 +521,15 @@ static void printTypeTree(TypeNode *root, char *prefix)
 
 static void addType(SmiType *smiType)
 {
-    SmiType *smiParentType;
+    SmiModule *smiModule;
+    SmiType   *smiParentType;
 
-    if (!smiType->name) {
-	return;
-    }
-	    
-    if (strlen(smiGetTypeModule(smiType)->name) == 0) {
+    smiModule = smiGetTypeModule(smiType);
+    if (! smiModule) {
 	return;
     }
     
-    if (findInTypeTree(&typeRoot, smiType)) {
+    if (findInTypeTree(&typeRoot, smiModule, smiType)) {
 	return;
     }
 
@@ -518,7 +540,7 @@ static void addType(SmiType *smiType)
  	}
     }
 
-    addToTypeTree(&typeRoot, smiType);
+    addToTypeTree(&typeRoot, smiModule, smiType);
     incrBaseTypeCount(smiType->basetype);
 }
 
@@ -527,12 +549,16 @@ static void addType(SmiType *smiType)
 void dumpTypes(Module *module)
 {
     SmiModule     *smiModule;
+    SmiNode	  *smiNode;
     SmiType       *smiType;
+    SmiRefinement *smiRefinement;
     int		  unite;
+    const int	  nodekind = SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
     
     smiModule = module->smiModule;
-    currentModule = smiModule->name;
     unite = (module->flags & SMIDUMP_FLAG_UNITE);
+
+    moduleList = smiModule ? module : module->nextPtr;
 
     if (smiModule && !unite) {
 	initBaseTypeCount();
@@ -544,13 +570,6 @@ void dumpTypes(Module *module)
 	     smiType = smiGetNextType(smiType)) {
 	    addType(smiType);
 	}
-    }
-    
-#if 0 /* no implicit types */
-    {
-	SmiNode		*smiNode;
-	SmiRefinement   *smiRefinement;
-	const int	nodekind = SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
 
 	for (smiNode = smiGetFirstNode(smiModule, nodekind);
 	     smiNode;
@@ -587,7 +606,6 @@ void dumpTypes(Module *module)
 	    }
 	}
     }
-#endif
 
     if ((smiModule && !unite) || (!smiModule && unite)) {
 	if (! (module->flags & SMIDUMP_FLAG_SILENT)) {

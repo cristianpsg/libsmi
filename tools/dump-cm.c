@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.16 2000/05/29 09:20:56 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.17 2000/06/01 15:32:52 strauss Exp $
  */
 
 
@@ -190,7 +190,6 @@ static Graph     *graph  = NULL;            /* the graph */
  */
 #define max(a, b) ((a < b) ? b : a)
 #define min(a, b) ((a < b) ? a : b)
-
 
 
 
@@ -1739,13 +1738,20 @@ static SmiNode *algFindTable(SmiNode *node)
     
     if (!node) return NULL;
 
+    /*
+     * The code below is broken since it does not generate \0
+     * terminated strings.
+     */
+
     i = strlen(smiGetParentNode(node)->name) - strlen("Entry");
     toFind = xmalloc(strlen(node->name)  - i);
     for (j = i; node->name[j]; j++) {
 	toFind[j-i] = node->name[j];
     }
-    
-    /* printf("%s\n",toFind); */
+
+#if 0
+    printf("%s %s %s\n", node->name, smiGetParentNode(node)->name, toFind);
+#endif
 		     
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {

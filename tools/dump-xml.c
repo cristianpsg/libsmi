@@ -9,16 +9,15 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.7 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.8 2000/05/26 16:17:49 strauss Exp $
  */
 
 /*
  * TODO:
  *
- * - create statements
  * - value representations (getValueString())
- * - refinement statements (xxx and yyy)
  * - finish DTD and check against it
+ * - shall we nest tables like in SMIng?
  */
 
 #include <config.h>
@@ -676,10 +675,13 @@ static void printObject(int indent, SmiNode *smiNode)
     }
     if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 	printIndex(indent + INDENT, smiNode);
+	if (smiNode->create) {
+	    printSegment(indent + INDENT, "<create/>\n", 0);
+	}
     }
     printDescription(indent + INDENT, smiNode->description);
     printReference(indent + INDENT, smiNode->reference);
-
+    
     printNodeEndTag(indent, tag, smiNode);
 }
 
@@ -704,15 +706,6 @@ static void printObjects(SmiModule *smiModule)
 	}
 
 	printObject(2 * INDENT, smiNode);
-
-#if 0
-	if (smiNode->create) {
-	    printSegment((2 + indent) * INDENT, "<create/>\n", INDENTVALUE);
-	    /* TODO: create list */
-	}
-	
-	i++;
-#endif
     }
     
     if (i) {
@@ -843,16 +836,16 @@ static void printRefinement(int indent, SmiRefinement *smiRefinement)
 
     smiType = smiGetRefinementType(smiRefinement);
     if (smiType) {
-	printSegment(indent + INDENT, "<xxx>\n", 0);
+	printSegment(indent + INDENT, "<syntax>\n", 0);
 	printTypedef(indent + 2 * INDENT, smiType);
-	printSegment(indent + INDENT, "</xxx>\n", 0);
+	printSegment(indent + INDENT, "</syntax>\n", 0);
     }
     
     smiType = smiGetRefinementWriteType(smiRefinement);
     if (smiType) {
-	printSegment(indent + INDENT, "<yyy>\n", 0);
+	printSegment(indent + INDENT, "<writesyntax>\n", 0);
 	printTypedef(indent + 2 * INDENT, smiType);
-	printSegment(indent + INDENT, "</yyy>\n", 0);
+	printSegment(indent + INDENT, "</writesyntax>\n", 0);
     }
 
     if (smiRefinement->access != SMI_ACCESS_UNKNOWN) {
