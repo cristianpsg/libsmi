@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.109 2001/12/17 18:05:22 schoenw Exp $
+ * @(#) $Id: data.c,v 1.110 2002/04/22 15:09:15 strauss Exp $
  */
 
 #include <config.h>
@@ -225,9 +225,11 @@ int isInView(const char *modulename)
 {
     View	      *viewPtr;
 
+#if 0
     if (smiHandle->flags & SMI_FLAG_VIEWALL) {
 	return 1;
     }
+#endif
     
     for (viewPtr = smiHandle->firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
 	if (!strcmp(modulename, viewPtr->name)) {
