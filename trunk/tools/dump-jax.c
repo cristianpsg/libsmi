@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.25 2000/07/05 11:58:42 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.26 2000/08/02 14:46:27 mertens Exp $
  */
 
 #include <config.h>
@@ -1225,8 +1225,7 @@ static void dumpNotifications(SmiNode *smiNode)
 			smiGetParentNode(elementNode)->name,
 			elementNode->name);
 		fprintf(f,
-			"        varBindList.addElement(varBind);\n",
-			elementNode->name);
+			"        varBindList.addElement(varBind);\n");
 	    }
 
         } else {
