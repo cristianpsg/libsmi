@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.40 2000/02/09 19:56:52 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.41 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <stdio.h>
@@ -361,6 +361,8 @@ int main(int argc, char *argv[])
 	if (module) {
 	    node = smiGetModuleIdentityNode(module);
 	    printf("      Module: %s\n", format(module->name));
+	    if (module->path)
+		printf("    Pathname: %s\n", module->path);
 	    if (node)
 		printf("      Object: %s\n", formatnode(node));
 	    if (module->organization)

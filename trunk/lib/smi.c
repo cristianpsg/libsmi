@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.69 2000/02/09 18:25:57 strauss Exp $
+ * @(#) $Id: smi.c,v 1.70 2000/02/10 10:09:43 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -101,9 +101,7 @@ void getModulenameAndName(char *arg1, char *arg2,
 	*module = NULL;
 	*name = NULL;
     } else if (!arg2) {
-#if 0
 	if (isupper((int)arg1[0])) {
-#endif
 	    if ((p = strstr(arg1, "::"))) {
 		/* SMIng style module/label separator */
 		*name = util_strdup(&p[2]);
@@ -123,16 +121,12 @@ void getModulenameAndName(char *arg1, char *arg2,
 		*name = util_strdup(arg1);
 		*module = util_strdup("");
 	    }
-#if 0
 	} else {
 	    *name = util_strdup(arg1);
 	    *module = util_strdup("");
 	}
-#endif
     } else if (!arg1) {
-#if 0
 	if (isupper((int)arg2[0])) {
-#endif
 	    if ((p = strstr(arg2, "::"))) {
 		/* SMIng style module/label separator */
 		*name = util_strdup(&p[2]);
@@ -152,12 +146,10 @@ void getModulenameAndName(char *arg1, char *arg2,
 		*name = util_strdup(arg2);
 		*module = util_strdup("");
 	    }
-#if 0
 	} else {
 	    *name = util_strdup(arg2);
 	    *module = util_strdup("");
 	}
-#endif
     } else {
 	*module = util_strdup(arg1);
 	*name = util_strdup(arg2);
@@ -180,42 +172,6 @@ Node *getNode(unsigned int oidlen, SmiSubid oid[])
     }
     
     return nodePtr;
-}
-
-
-
-Object *getObject(Module *modulePtr, char *name)
-{
-    Object	    *objectPtr = NULL;
-    Node	    *nodePtr;
-    SmiSubid	    oid[128];
-    unsigned int    oidlen;
-    char	    *p;
-    
-    if (isdigit((int)name[0])) {
-	/*
-	 * name in `1.3.0x6.1...' form.
-	 */
-	for (oidlen = 0, p = strtok(name, ". "); p && (oidlen < 128);
-	     oidlen++, p = strtok(NULL, ". ")) {
-	    oid[oidlen] = strtoul(p, NULL, 0);
-	}
-	nodePtr = getNode(oidlen, oid);
-	if (nodePtr) {
-	    if (modulePtr) {
-		objectPtr = findObjectByModuleAndNode(modulePtr, nodePtr);
-	    } else {
-		objectPtr = findObjectByNode(nodePtr);
-	    }
-	}
-    } else {
-	if (modulePtr) {
-	    objectPtr = findObjectByModuleAndName(modulePtr, name);
-	} else {
-	    objectPtr = findObjectByName(name);
-	}
-    }
-    return objectPtr;
 }
 
 
@@ -247,113 +203,6 @@ Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
 
     return objectPtr;
 }
-
-
-
-#if 0
-SmiNode *createSmiNode(Object *objectPtr)
-{
-    SmiNode       *smiNodePtr;
-    unsigned int  oidlen, i;
-    SmiSubid	  oid[128];
-    Node	  *nodePtr;
-    
-    if (objectPtr) {
-	smiNodePtr     = util_malloc(sizeof(SmiNode));
-	
-	smiNodePtr->name   = objectPtr->name;
-	if (objectPtr->modulePtr && objectPtr->modulePtr->export.name) {
-	    smiNodePtr->module = objectPtr->modulePtr->export.name;
-	} else {
-	    smiNodePtr->module = NULL;
-	}
-
-	for (oidlen = 0, nodePtr = objectPtr->nodePtr;
-	     (oidlen < 128) && nodePtr && (nodePtr != rootNodePtr);
-	     nodePtr = nodePtr->parentPtr) {
-	    oid[oidlen] = nodePtr->subid;
-	    oidlen++;
-	}
-	smiNodePtr->oidlen = oidlen;
-	smiNodePtr->oid    = util_malloc(oidlen * sizeof(SmiSubid));
-	for (i=0; i < oidlen; i++) {
-	    smiNodePtr->oid[i] = oid[oidlen-1-i];
-	}
-	
-	if (objectPtr->typePtr) {
-	    if (objectPtr->typePtr->export.name) {
-		if (objectPtr->typePtr->modulePtr &&
-		    objectPtr->typePtr->modulePtr->export.name &&
-		    strlen(objectPtr->typePtr->modulePtr->export.name)) {
-		  smiNodePtr->typemodule = objectPtr->typePtr->modulePtr->export.name;
-		} else {
-		    smiNodePtr->typemodule = NULL;
-		}
-		smiNodePtr->typename   = objectPtr->typePtr->export.name;
-	    } else {
-		/*
-		 * This is an inlined type restriction. It is accessible
-		 * by the same (lowercase!) name as the object.
-		 */
-		smiNodePtr->typemodule = objectPtr->modulePtr->export.name;
-		smiNodePtr->typename   = objectPtr->name;
-	    }
-	} else {
-	    smiNodePtr->typemodule = NULL;
-	    smiNodePtr->typename   = NULL;
-	}
-	if (objectPtr->valuePtr) {
-	    memcpy(&smiNodePtr->value, objectPtr->valuePtr,
-		   sizeof(struct SmiValue));
-	    if (smiNodePtr->value.format == SMI_VALUEFORMAT_OID) {
-		smiNodePtr->value.value.ptr =
-		    ((Object *)objectPtr->valuePtr->value.ptr)->name;
-	    }
-	} else {
-	    smiNodePtr->value.basetype = SMI_BASETYPE_UNKNOWN;
-	}
-	smiNodePtr->units       = objectPtr->units;
-	smiNodePtr->decl        = objectPtr->decl;
-	smiNodePtr->nodekind    = objectPtr->nodekind;
-	smiNodePtr->access      = objectPtr->access;
-	smiNodePtr->status      = objectPtr->status;
-	smiNodePtr->basetype    = objectPtr->typePtr ?
-                   objectPtr->typePtr->export.basetype : SMI_BASETYPE_UNKNOWN;
-	smiNodePtr->description = objectPtr->description;
-	smiNodePtr->reference   = objectPtr->reference;
-
-	if (objectPtr->indexPtr) {
-	    smiNodePtr->indexkind         = objectPtr->indexPtr->indexkind;
-	    smiNodePtr->implied           = objectPtr->indexPtr->implied;
-	    if (objectPtr->indexPtr->rowPtr) {
-		smiNodePtr->relatedmodule = objectPtr->indexPtr->rowPtr->
-							      modulePtr->export.name;
-		smiNodePtr->relatedname   = objectPtr->indexPtr->rowPtr->name;
-	    } else {
-	        smiNodePtr->relatedmodule = NULL;
-	        smiNodePtr->relatedname   = NULL;
-	    }
-	} else {
-	    smiNodePtr->indexkind         = SMI_INDEX_UNKNOWN;
-	    smiNodePtr->implied           = 0;
-	    smiNodePtr->relatedmodule     = NULL;
-	    smiNodePtr->relatedname       = NULL;
-	}
-
-	if (objectPtr->flags & FLAG_CREATABLE) {
-	    /*
-	     * If new rows can be created, ...
-	     */
-	    smiNodePtr->create            = 1;
-	} else {
-	    smiNodePtr->create            = 0;
-	}
-	return smiNodePtr;
-    } else {
-	return NULL;
-    }
-}
-#endif
 
 
 
@@ -789,32 +638,30 @@ SmiType *smiGetType(SmiModule *smiModulePtr, char *type)
     Module	    *modulePtr = NULL;
     char	    *module2, *type2;
 
-    if ((!smiModulePtr) && (!type)) {
+    if (!type) {
 	return NULL;
     }
-    
+
     modulePtr = (Module *)smiModulePtr;
 
     getModulenameAndName(smiModulePtr ? smiModulePtr->name : NULL, type,
 			 &module2, &type2);
-
-    if (!modulePtr && module2) {
+    
+    if (!modulePtr && module2 && strlen(module2)) {
 	if (!(modulePtr = findModuleByName(module2))) {
 	    modulePtr = loadModule(module2);
 	}
     }
-    
-    if (!modulePtr) {
-	util_free(module2);
-	util_free(type2);
-	return NULL;
+
+    if (modulePtr) {
+	typePtr = findTypeByModuleAndName(modulePtr, type2);
+    } else {
+	typePtr = findTypeByName(type2);
     }
-    
-    typePtr = findTypeByModuleAndName(modulePtr, type2);
     
     util_free(module2);
     util_free(type2);
-    return &typePtr->export;
+    return typePtr ? &typePtr->export : NULL;
 }
 
 
@@ -993,28 +840,26 @@ SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro)
     Module	    *modulePtr = NULL;
     char	    *module2, *macro2;
     
-    if ((!smiModulePtr) && (!macro)) {
+    if (!macro) {
 	return NULL;
     }
-    
+
     modulePtr = (Module *)smiModulePtr;
 
     getModulenameAndName(smiModulePtr ? smiModulePtr->name : NULL, macro,
 			 &module2, &macro2);
-
-    if (!modulePtr && module2) {
+    
+    if (!modulePtr && module2 && strlen(module2)) {
 	if (!(modulePtr = findModuleByName(module2))) {
 	    modulePtr = loadModule(module2);
 	}
     }
 
-    if (!modulePtr) {
-	util_free(module2);
-	util_free(macro2);
-	return NULL;
+    if (modulePtr) {
+	macroPtr = findMacroByModuleAndName(modulePtr, macro2);
+    } else {
+	macroPtr = findMacroByName(macro2);
     }
-    
-    macroPtr = findMacroByModuleAndName(modulePtr, macro2);
     
     util_free(module2);
     util_free(macro2);
@@ -1057,9 +902,12 @@ SmiNode *smiGetNode(SmiModule *smiModulePtr, char *node)
 {
     Object	    *objectPtr = NULL;
     Module	    *modulePtr = NULL;
-    char	    *module2, *node2;
+    Node            *nodePtr;
+    char	    *module2, *node2, *p;
+    unsigned int    oidlen;
+    SmiSubid	    oid[128];
     
-    if ((!smiModulePtr) && (!node)) {
+    if (!node) {
 	return NULL;
     }
 
@@ -1067,20 +915,33 @@ SmiNode *smiGetNode(SmiModule *smiModulePtr, char *node)
 
     getModulenameAndName(smiModulePtr ? smiModulePtr->name : NULL, node,
 			 &module2, &node2);
-
-    if (!modulePtr && module2) {
+    
+    if (!modulePtr && module2 && strlen(module2)) {
 	if (!(modulePtr = findModuleByName(module2))) {
 	    modulePtr = loadModule(module2);
 	}
     }
 
-    if (!modulePtr) {
-	util_free(module2);
-	util_free(node2);
-	return NULL;
+    if (isdigit((int)node2[0])) {
+	for (oidlen = 0, p = strtok(node2, ". "); p;
+	     oidlen++, p = strtok(NULL, ". ")) {
+	    oid[oidlen] = strtoul(p, NULL, 0);
+	}
+	nodePtr = getNode(oidlen, oid);
+	if (nodePtr) {
+	    if (modulePtr) {
+		objectPtr = findObjectByModuleAndNode(modulePtr, nodePtr);
+	    } else {
+		objectPtr = findObjectByNode(nodePtr);
+	    }
+	}
+    } else {
+	if (modulePtr) {
+	    objectPtr = findObjectByModuleAndName(modulePtr, node2);
+	} else {
+	    objectPtr = findObjectByName(node2);
+	}
     }
-    
-    objectPtr = getObject(modulePtr, node2);
     
     util_free(module2);
     util_free(node2);

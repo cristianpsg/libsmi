@@ -1,5 +1,12 @@
 2000-02-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/ietf/SNMPv2-USEC-MIB: added module (RFC 1910).
+	
+	* lib/smi.c: fixed smiGetXXX() functions to find items even
+	if no module is specified.
+
+	* lib/smi.h.in: added path to struct SmiModule.
+	
 	* ATTENTION: all the (internal and API) data structures are
 	changed for significantly improved performance. This means that
 	applications must be adapted to recompile, but it's worth!

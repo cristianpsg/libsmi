@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.61 2000/02/09 15:33:16 strauss Exp $
+ * @(#) $Id: data.c,v 1.62 2000/02/09 18:25:56 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -162,6 +162,7 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     modulePtr = (Module *)util_malloc(sizeof(Module));
 
     modulePtr->export.name			= modulename;
+    modulePtr->export.path			= path;
     modulePtr->export.language			= SMI_LANGUAGE_UNKNOWN;
     modulePtr->export.organization		= NULL;
     modulePtr->export.contactinfo		= NULL;
@@ -169,7 +170,6 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     modulePtr->export.reference			= NULL;
 
     modulePtr->lastUpdated			= 0;
-    modulePtr->path			        = path;
     modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
     modulePtr->objectPtr			= NULL;
@@ -3014,6 +3014,46 @@ setMacroDecl(macroPtr, decl)
 /*
  *----------------------------------------------------------------------
  *
+ * findMacroByName --
+ *
+ *      Lookup a Macro by a given name.
+ *
+ * Results:
+ *      A pointer to the Macro structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Macro *
+findMacroByName(macroname)
+    const char *macroname;
+{
+    Module *modulePtr;
+    Macro   *macroPtr;
+    
+    for (modulePtr = firstModulePtr; modulePtr;
+	 modulePtr = modulePtr->nextPtr) {
+	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
+	     macroPtr = macroPtr->nextPtr) {
+	    if ((macroPtr->export.name) &&
+		!strcmp(macroPtr->export.name, macroname)) {
+		return (macroPtr);
+	    }
+	}
+    }
+
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * findMacroByModuleAndName --
  *
  *      Lookup a Macro by a given Module and name.
@@ -3333,7 +3373,7 @@ freeData()
 	}
 
 	util_free(modulePtr->export.name);
-	util_free(modulePtr->path);
+	util_free(modulePtr->export.path);
 	util_free(modulePtr->export.organization);
 	util_free(modulePtr->export.contactinfo);
 	util_free(modulePtr);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.49 2000/02/08 21:39:22 strauss Exp $
+ * @(#) $Id: data.h,v 1.50 2000/02/10 10:09:42 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -24,7 +24,7 @@
 
 
 typedef struct List {
-    SmiElement      export;
+    SmiElement      export; /*  */
     void	    *ptr;
     struct List	    *nextPtr;
 } List;
@@ -71,7 +71,6 @@ typedef struct View {
 typedef struct Module {
     SmiModule	    export;
     time_t	    lastUpdated; /* only for SMIv2 modules */
-    char	    *path;
     off_t	    fileoffset;
     struct Object   *objectPtr;
     struct Object   *firstObjectPtr;
@@ -492,6 +491,8 @@ extern Macro *addMacro(const char *macroname,
 		       int flags,
 		       Parser *parserPtr);
 
+extern Macro *findMacroByName(const char *macroname);
+
 extern Macro *findMacroByModuleAndName(Module *modulePtr,
 				       const char *macroname);
 
@@ -512,4 +513,4 @@ extern int checkFormat(SmiBasetype basetype, char *format);
 extern int checkObjectName(Module *modulePtr, char *name, Parser *parserPtr);
 
 #endif /* _DATA_H */
-
+       /*  */
