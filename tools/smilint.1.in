@@ -1,9 +1,9 @@
 .\"
-.\" $Id: smilint.1.in,v 1.15 2002/11/12 10:03:42 schoenw Exp $
+.\" $Id: smilint.1.in,v 1.16 2003/02/21 10:35:56 schoenw Exp $
 .\"
-.TH smilint 1  "June 21, 2002" "IBR" "SMI Tools"
+.TH smilint 1  "August 10, 2004" "IBR" "SMI Tools"
 .SH NAME
-smilint \- syntax and semantic checks of SMIv1/v2, SPPI, and SMIng modules
+smilint \- syntax and semantic checks of SMIv1/v2 and SPPI modules
 .SH SYNOPSIS
 .B smilint
 [
@@ -20,13 +20,13 @@ smilint \- syntax and semantic checks of SMIv1/v2, SPPI, and SMIng modules
 .I "module(s)"
 .SH DESCRIPTION
 The \fBsmilint\fP program is used to check MIB or PIB modules for syntax
-errors and semantics at some degree.  SMIv1/v2 and SMIng style
+errors and semantics at some degree.  SMIv1/v2 style
 MIB modules as well as SPPI PIB modules are supported.
 .PP
 The rules that \fBsmilint\fP is based on are taken from RFC 1155, RFC
-1212 and RFC 1215 for SMIv1, RFCs 2578-2580 for SMIv2, RFC 3159 for SPPI,
-and the specification of SMIng that has been a research project
-within the Network Management Research Group of the IRTF.
+1212 and RFC 1215 for SMIv1, RFCs 2578-2580 for SMIv2, RFC 3159 for SPPI.
+.\" and the specification of SMIng that has been a research project
+.\" within the Network Management Research Group of the IRTF.
 .SH OPTIONS
 .TP
 \fB-V, --version\fP
@@ -136,10 +136,14 @@ project is documented at
 Other commonly used MIB checkers are
 .BR mosy "(1) and "
 .BR smicng "(1)."
-.SH "AUTHOR"
-(C) 1999-2002 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+.SH "AUTHORS"
+(C) 1999-2004 F. Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br
 (C) 1999-2002 J. Schoenwaelder, TU Braunschweig, Germany <schoenw@ibr.cs.tu-bs.de>
+.br
+(C) 2002-2003 J. Schoenwaelder, University of Osnabrueck, Germany
+.br
+(C) 2003-2004 J. Schoenwaelder, International University Bremen, Germany
 .br
 (C) 2001-2002 T. Klie, TU Braunschweig, Germany <tklie@ibr.cs.tu-bs.de>
 .br

@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smistrip.1.in,v 1.4 2002/05/16 23:21:55 bunkus Exp $
+.\" $Id: smistrip.1.in,v 1.5 2002/06/21 14:31:26 strauss Exp $
 .\"
-.TH smistrip 1  "June 21, 2002" "IBR" "SMI Tools"
+.TH smistrip 1  "August 10, 2004" "IBR" "SMI Tools"
 .SH NAME
 smistrip \- extract MIB or PIB modules from text files, like RFCs or I-Ds
 .SH SYNOPSIS
@@ -58,14 +58,14 @@ writes it to the directory /usr/local/tmp.
   $ smistrip -d /usr/local/tmp -m IPV6-MIB rfc2465
 .fi
 .SH "SEE ALSO"
-The SMIng and
+The
 .BR libsmi (3)
 project is documented at
-.BR "http://www.ibr.cs.tu-bs.de/projects/sming/" "."
+.BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
 .PP
 .BR smilint "(1)"
 .SH "AUTHOR"
-(C) 1999-2002 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2004 F. Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br
 (C) 2002 M. Bunkus, TU Braunschweig, Germany <bunkus@ibr.cs.tu-bs.de>
 .br
