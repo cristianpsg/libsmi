@@ -196,20 +196,20 @@ Internet-Draft                   SMIng                        April 1999
    13.8     Usage Example  . . . . . . . . . . . . . . . . . . . . .  55
    14.      SMIng Core Modules . . . . . . . . . . . . . . . . . . .  57
    14.1     IRTF-NMRG-SMING  . . . . . . . . . . . . . . . . . . . .  57
-   14.2     IRTF-NMRG-SMING-TYPES  . . . . . . . . . . . . . . . . .  59
-   14.3     IRTF-NMRG-SMING-EXTENSIONS . . . . . . . . . . . . . . .  78
-   15.      Extending a Module . . . . . . . . . . . . . . . . . . .  81
-   16.      SMIng Language Extensibility . . . . . . . . . . . . . .  83
-   17.      Module Conversions . . . . . . . . . . . . . . . . . . .  85
-   17.1     Converting SMIv2 to SMIng  . . . . . . . . . . . . . . .  85
-   17.2     Converting SMIng to SMIv2  . . . . . . . . . . . . . . .  85
-   17.3     SMIv1  . . . . . . . . . . . . . . . . . . . . . . . . .  85
-   18.      Security Considerations  . . . . . . . . . . . . . . . .  86
-   19.      Acknowledgements . . . . . . . . . . . . . . . . . . . .  87
-            References . . . . . . . . . . . . . . . . . . . . . . .  88
-            Author's Address . . . . . . . . . . . . . . . . . . . .  89
-   A.       The SMIng ABNF grammar . . . . . . . . . . . . . . . . .  90
-   B.       Glossary . . . . . . . . . . . . . . . . . . . . . . . . 102
+   14.2     IRTF-NMRG-SMING-TYPES  . . . . . . . . . . . . . . . . .  58
+   14.3     IRTF-NMRG-SMING-EXTENSIONS . . . . . . . . . . . . . . .  77
+   15.      Extending a Module . . . . . . . . . . . . . . . . . . .  80
+   16.      SMIng Language Extensibility . . . . . . . . . . . . . .  82
+   17.      Module Conversions . . . . . . . . . . . . . . . . . . .  84
+   17.1     Converting SMIv2 to SMIng  . . . . . . . . . . . . . . .  84
+   17.2     Converting SMIng to SMIv2  . . . . . . . . . . . . . . .  84
+   17.3     SMIv1  . . . . . . . . . . . . . . . . . . . . . . . . .  84
+   18.      Security Considerations  . . . . . . . . . . . . . . . .  85
+   19.      Acknowledgements . . . . . . . . . . . . . . . . . . . .  86
+            References . . . . . . . . . . . . . . . . . . . . . . .  87
+            Author's Address . . . . . . . . . . . . . . . . . . . .  88
+   A.       The SMIng ABNF grammar . . . . . . . . . . . . . . . . .  89
+   B.       Glossary . . . . . . . . . . . . . . . . . . . . . . . . 101
 
 
 
@@ -705,16 +705,16 @@ Internet-Draft                   SMIng                        April 1999
    for sizes in excess of 255 octets. 
 
    Values of octet strings may be denoted as textual data enclosed in
-   double quotes or as arbitrary binary data denoted as a hexadecimal
-   value of arbitrary but even length, where each pair of hexadecimal
-   digits represents a single octet. Letters in hexadecimal values MAY
-   be upper-case but lower-case characters are RECOMMENDED. Textual
-   data may contain any number (possibly zero) of any 7-bit displayable
-   ASCII characters except double quote `"', including tab characters,
-   spaces and line terminator characters (nl or cr & nl).  Textual data
-   may span multiple lines, where each subsequent line prefix
-   containing only white space up to the column where the first line's
-   data starts SHOULD be skipped by parsers for a better text
+   double quotes or as arbitrary binary data denoted as a `0x'-prefixed
+   hexadecimal value of arbitrary but even length, where each pair of
+   hexadecimal digits represents a single octet. Letters in hexadecimal
+   values MAY be upper-case but lower-case characters are RECOMMENDED.
+   Textual data may contain any number (possibly zero) of any 7-bit
+   displayable ASCII characters except double quote `"', including tab
+   characters, spaces and line terminator characters (nl or cr & nl). 
+   Textual data may span multiple lines, where each subsequent line
+   prefix containing only white space up to the column where the first
+   line's data starts SHOULD be skipped by parsers for a better text
    formatting. Note that textual data is not only used in object
    (default) values, but also in arguments of many SMIng statements. 
 
@@ -730,14 +730,14 @@ Internet-Draft                   SMIng                        April 1999
 
 
    size range consists of a lower bound, two consecutive dots `..' and
-   an upper bound. Each value can be given in decimal or hexadecimal
-   notation. Of course, size restricting values MUST NOT be negative.
-   If multiple values or ranges are given, they all MUST be disjunct
-   and SHOULD be in ascending order. If a size restriction is applied
-   to an already size restricted octet string the new restriction MUST
-   be more limiting, that is raising the lower bounds, reducing the
-   upper bounds, reducing the alternative size choices, or splitting
-   ranges into multiple ranges with intermediate gaps. 
+   an upper bound. Each value can be given in decimal or `0x'-prefixed
+   hexadecimal notation. Of course, size restricting values MUST NOT be
+   negative. If multiple values or ranges are given, they all MUST be
+   disjunct and SHOULD be in ascending order. If a size restriction is
+   applied to an already size restricted octet string the new
+   restriction MUST be more limiting, that is raising the lower bounds,
+   reducing the upper bounds, reducing the alternative size choices, or
+   splitting ranges into multiple ranges with intermediate gaps. 
 
    Value Examples: 
 
@@ -763,13 +763,13 @@ Internet-Draft                   SMIng                        April 1999
    Each sub-identifier has a value between 0 and 2^32-1 (4294967295). 
 
    Values of object identifiers may be denoted as a sequence of
-   numerical sub-identifier values (decimal or hexadecimal) separated
-   by single dots and without any intermediate white space.
-   Alternatively (and preferred in most cases), the first element may
-   be a previously defined or imported lower-case identifier,
-   representing a static object identifier prefix while the total
-   number of sub-identifiers MUST NOT exceed 128 including the expanded
-   identifier. 
+   numerical sub-identifier values (decimal or `0x'-prefixed
+   hexadecimal) separated by single dots and without any intermediate
+   white space. Alternatively (and preferred in most cases), the first
+   element may be a previously defined or imported lower-case
+   identifier, representing a static object identifier prefix while the
+   total number of sub-identifiers MUST NOT exceed 128 including the
+   expanded identifier. 
 
    Object identifier derived types cannot be restricted in any way. 
 
@@ -809,13 +809,13 @@ Internet-Draft                   SMIng                        April 1999
    appending a list of ranges or explicit values, separated by pipe `|'
    characters and the whole list enclosed in parenthesis. A range
    consists of a lower bound, two consecutive dots `..' and an upper
-   bound. Each value can be given in decimal or hexadecimal notation.
-   If multiple values or ranges are given they all MUST be disjunct and
-   SHOULD be in ascending order.  If a value restriction is applied to
-   an already restricted type the new restriction MUST be more
-   limiting, that is raising the lower bounds, reducing the upper
-   bounds, reducing the alternative choices, or splitting ranges into
-   multiple ranges with intermediate gaps. 
+   bound. Each value can be given in decimal or `0x'-prefixed
+   hexadecimal notation. If multiple values or ranges are given they
+   all MUST be disjunct and SHOULD be in ascending order.  If a value
+   restriction is applied to an already restricted type the new
+   restriction MUST be more limiting, that is raising the lower bounds,
+   reducing the upper bounds, reducing the alternative choices, or
+   splitting ranges into multiple ranges with intermediate gaps. 
 
    Value Examples: 
 
@@ -858,13 +858,13 @@ Internet-Draft                   SMIng                        April 1999
    appending a list of ranges or explicit values, separated by pipe `|'
    characters and the whole list enclosed in parenthesis. A range
    consists of a lower bound, two consecutive dots `..' and an upper
-   bound. Each value can be given in decimal or hexadecimal notation.
-   If multiple values or ranges are given they all MUST be disjunct and
-   SHOULD be in ascending order.  If a value restriction is applied to
-   an already restricted type the new restriction MUST be more
-   limiting, that is raising the lower bounds, reducing the upper
-   bounds, reducing the alternative choices, or splitting ranges into
-   multiple ranges with intermediate gaps. 
+   bound. Each value can be given in decimal or `0x'-prefixed
+   hexadecimal notation. If multiple values or ranges are given they
+   all MUST be disjunct and SHOULD be in ascending order.  If a value
+   restriction is applied to an already restricted type the new
+   restriction MUST be more limiting, that is raising the lower bounds,
+   reducing the upper bounds, reducing the alternative choices, or
+   splitting ranges into multiple ranges with intermediate gaps. 
 
 3.5 Unsigned32
 
@@ -882,13 +882,13 @@ Internet-Draft                   SMIng                        April 1999
    by appending a list of ranges or explicit values, separated by pipe
    `|' characters and the whole list enclosed in parenthesis. A range
    consists of a lower bound, two consecutive dots `..' and an upper
-   bound. Each value can be given in decimal or hexadecimal notation.
-   If multiple values or ranges are given they all MUST be disjunct and
-   SHOULD be in ascending order.  If a value restriction is applied to
-   an already restricted type the new restriction MUST be more
-   limiting, that is raising the lower bounds, reducing the upper
-   bounds, reducing the alternative choices, or splitting ranges into
-   multiple ranges with intermediate gaps. 
+   bound. Each value can be given in decimal or `0x'-prefixed
+   hexadecimal notation. If multiple values or ranges are given they
+   all MUST be disjunct and SHOULD be in ascending order.  If a value
+   restriction is applied to an already restricted type the new
+   restriction MUST be more limiting, that is raising the lower bounds,
+   reducing the upper bounds, reducing the alternative choices, or
+   splitting ranges into multiple ranges with intermediate gaps. 
 
 
 
@@ -913,13 +913,13 @@ Internet-Draft                   SMIng                        April 1999
    by appending a list of ranges or explicit values, separated by pipe
    `|' characters and the whole list enclosed in parenthesis. A range
    consists of a lower bound, two consecutive dots `..' and an upper
-   bound. Each value can be given in decimal or hexadecimal notation.
-   If multiple values or ranges are given they all MUST be disjunct and
-   SHOULD be in ascending order.  If a value restriction is applied to
-   an already restricted type the new restriction MUST be more
-   limiting, that is raising the lower bounds, reducing the upper
-   bounds, reducing the alternative choices, or splitting ranges into
-   multiple ranges with intermediate gaps. 
+   bound. Each value can be given in decimal or `0x'-prefixed
+   hexadecimal notation. If multiple values or ranges are given they
+   all MUST be disjunct and SHOULD be in ascending order.  If a value
+   restriction is applied to an already restricted type the new
+   restriction MUST be more limiting, that is raising the lower bounds,
+   reducing the upper bounds, reducing the alternative choices, or
+   splitting ranges into multiple ranges with intermediate gaps. 
 
 3.7 Float32
 
@@ -954,7 +954,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
    restrictions if they shall be included, where `snan' and `qnan'
-   cannot be used in ranges. If 0.0 is included, -0.0 will also be. 
+   cannot be used in ranges. 
 
    Note that encoding is not subject to this specification. It has to
    be described by protocols that transport objects of type Float32.
@@ -966,15 +966,15 @@ Internet-Draft                   SMIng                        April 1999
 
    Value Examples: 
 
-     00.1                        // illegal leading zero
-     3.1415                      // legal value
-     -2.5E+3                     // legal negative exponential value
+     00.1                       // illegal leading zero
+     3.1415                     // legal value
+     -2.5E+3                    // legal negative exponential value
 
    Restriction Examples: 
 
-     Float32 (-1.0..1.0)         // legal range spec
-     Float32 (1 | 3.3 | 5)       // probably unrepresentable 3.3
-     Float32 (-10.0..10.0 | 0)   // illegal overlapping
+     Float32 (-1.0..1.0)        // legal range spec
+     Float32 (1 | 3.3 | 5)      // legal, probably unrepresentable 3.3
+     Float32 (-10.0..10.0 | 0)  // illegal overlapping
 
 3.8 Float64
 
@@ -1021,15 +1021,15 @@ Internet-Draft                   SMIng                        April 1999
 
    Value Examples: 
 
-     00.1                        // illegal leading zero
-     3.1415                      // legal value
-     -2.5E+3                     // legal negative exponential value
+     00.1                       // illegal leading zero
+     3.1415                     // legal value
+     -2.5E+3                    // legal negative exponential value
 
    Restriction Examples: 
 
-     Float64 (-1.0..1.0)         // legal range spec
-     Float64 (1 | 3.3 | 5)       // probably unrepresentable 3.3
-     Float64 (-10.0..10.0 | 0)   // illegal overlapping
+     Float64 (-1.0..1.0)        // legal range spec
+     Float64 (1 | 3.3 | 5)      // legal, probably unrepresentable 3.3
+     Float64 (-10.0..10.0 | 0)  // illegal overlapping
 
 3.9 Float128
 
@@ -1075,15 +1075,15 @@ Internet-Draft                   SMIng                        April 1999
 
    Value Examples: 
 
-     00.1                        // illegal leading zero
-     3.1415                      // legal value
-     -2.5E+3                     // legal negative exponential value
+     00.1                       // illegal leading zero
+     3.1415                     // legal value
+     -2.5E+3                    // legal negative exponential value
 
    Restriction Examples: 
 
-     Float128 (-1.0..1.0)        // legal range spec
-     Float128 (1 | 3.3 | 5)      // probably unrepresentable 3.3
-     Float128 (-10.0..10.0 | 0)  // illegal overlapping
+     Float128 (-1.0..1.0)       // legal range spec
+     Float128 (1 | 3.3 | 5)     // legal, probably unrepresentable 3.3
+     Float128 (-10.0..10.0 | 0) // illegal overlapping
 
 3.10 Enumeration
 
@@ -1093,13 +1093,14 @@ Internet-Draft                   SMIng                        April 1999
    numbers has to be comma-separated, enclosed in parenthesis and
    appended to the `Enumeration' keyword. Each named number is denoted
    by its lower-case identifier followed by the assigned integer value,
-   denoted as a decimal or hexadecimal number, enclosed in parenthesis.
-   Every name and every number in an enumeration type MUST be unique.
-   It is RECOMMENDED that values start at 1 and be numbered
-   contiguously. 
+   denoted as a decimal or `0x'-prefixed hexadecimal number, enclosed
+   in parenthesis. Every name and every number in an enumeration type
+   MUST be unique. It is RECOMMENDED that values start at 1 and be
+   numbered contiguously. 
 
-   Values of enumeration types may be denoted as decimal or hexadecimal
-   numbers or preferably as their assigned names. 
+   Values of enumeration types may be denoted as decimal or
+   `0x'-prefixed hexadecimal numbers or preferably as their assigned
+   names. 
 
    When defining a type derived (directly or indirectly) from an
    enumeration type the set, of named numbers may be restricted by
@@ -1115,7 +1116,6 @@ Internet-Draft                   SMIng                        April 1999
      2                           // legal value given by number
 
 
-
 Strauss                Expires September 30, 1999              [Page 20]
 
 Internet-Draft                   SMIng                        April 1999
@@ -1129,15 +1129,17 @@ Internet-Draft                   SMIng                        April 1999
    has to be comma-separated, enclosed in parenthesis and appended to
    the `Bits' keyword. Each named number is denoted by its lower-case
    identifier followed by the assigned integer value, denoted as a
-   decimal or hexadecimal number, enclosed in parenthesis. Every name
-   and every number in a bits type MUST be unique. It is RECOMMENDED
-   that numbers start at 0 and be numbered contiguously. 
+   decimal or `0x'-prefixed hexadecimal number, enclosed in
+   parenthesis. Every name and every number in a bits type MUST be
+   unique. It is RECOMMENDED that numbers start at 0 and be numbered
+   contiguously. 
 
    Values of bits types may be denoted as a comma-separated list of
-   decimal or hexadecimal numbers or preferably their assigned names
-   enclosed in parenthesis. There MUST NOT be any element (by name or
-   number) listed more than once. It is RECOMMENDED to list elements in
-   ascending order, although the order is semantically irrelevant. 
+   decimal or `0x'-prefixed hexadecimal numbers or preferably their
+   assigned names enclosed in parenthesis. There MUST NOT be any
+   element (by name or number) listed more than once. It is RECOMMENDED
+   to list elements in ascending order, although the order is
+   semantically irrelevant. 
 
    When defining a type derived (directly or indirectly) from a bits
    type, the set of named numbers may be restricted by removing one or
@@ -1168,8 +1170,6 @@ Internet-Draft                   SMIng                        April 1999
    hexadecimal, or `d' for decimal, or `o' for octal, or `b' for
    binary.  For all types, when rendering the value, leading zeros are
    omitted, and for negative values, a minus sign is rendered
-   immediately before the digits.  The second part is always omitted
-   for `x', `o' and `b', and need not be present for `d'.  If present,
 
 
 Strauss                Expires September 30, 1999              [Page 21]
@@ -1177,6 +1177,8 @@ Strauss                Expires September 30, 1999              [Page 21]
 Internet-Draft                   SMIng                        April 1999
 
 
+   immediately before the digits.  The second part is always omitted
+   for `x', `o' and `b', and need not be present for `d'.  If present,
    the second part starts with a hyphen and is followed by a decimal
    number, which defines the implied decimal point when rendering the
    value. For example `d-2' suggests that a value of 1234 be rendered
@@ -1224,8 +1226,6 @@ Internet-Draft                   SMIng                        April 1999
        this octet specification.  This character can be any character
        other than a decimal digit and a `*'. 
 
-   5.  the (optional) repeat terminator character, which can be present
-       only if the display separator character is present and this
 
 
 Strauss                Expires September 30, 1999              [Page 22]
@@ -1233,6 +1233,8 @@ Strauss                Expires September 30, 1999              [Page 22]
 Internet-Draft                   SMIng                        April 1999
 
 
+   5.  the (optional) repeat terminator character, which can be present
+       only if the display separator character is present and this
        octet specification begins with a repeat indicator; if present,
        this part is a single character which is produced after all the
        zero or more repeated applications (as given by the repeat
@@ -1255,8 +1257,6 @@ Internet-Draft                   SMIng                        April 1999
    MUST ignore format specifications they cannot interpret. Also note
    that the SMIng grammar (Appendix A) does not specify the syntax of
    format specifications. 
-
-
 
 
 
@@ -3113,9 +3113,9 @@ Internet-Draft                   SMIng                        April 1999
 
    //
    // $RCSfile: IRTF-NMRG-SMING,v $
-   // $Revision: 1.8 $
+   // $Revision: 1.9 $
    // $Author: strauss $
-   // $Date: 1999/04/26 14:54:59 $
+   // $Date: 1999/05/07 15:57:26 $
    //
 
        oid             1.3.6.1.3.1575.1.8;
@@ -3137,24 +3137,14 @@ Strauss                Expires September 30, 1999              [Page 56]
 Internet-Draft                   SMIng                        April 1999
 
 
-                         EMail: strauss@ibr.cs.tu-bs.de
-
-                          http://www.ibr.cs.tu-bs.de/~strauss/sming/
-
-                                Juergen Schoenwaelder
-
-                        Postal: TU Braunschweig
-                                Bueltenweg 74/75
-                                38106 Braunschweig
-                                Germany
-
                          Phone: +49 531 391-3283
-                         EMail: schoenw@ibr.cs.tu-bs.de";
+                         EMail: strauss@ibr.cs.tu-bs.de
+                          http://www.ibr.cs.tu-bs.de/~strauss/sming/";
 
        description     "Core node definitions for SMIng.";
 
        revision {
-           date        "1999-04-26";
+           date        "1999-05-07";
            description "Initial Revision.";
        };
 
@@ -3187,21 +3177,22 @@ Internet-Draft                   SMIng                        April 1999
 
    };
 
-
-Strauss                Expires September 30, 1999              [Page 57]
-
-Internet-Draft                   SMIng                        April 1999
-
-
 14.2 IRTF-NMRG-SMING-TYPES
 
    module IRTF-NMRG-SMING-TYPES irtfNmrgSmingTypes {
 
    //
    // $RCSfile: IRTF-NMRG-SMING-TYPES,v $
-   // $Revision: 1.13 $
+   // $Revision: 1.14 $
    // $Author: strauss $
-   // $Date: 1999/05/04 17:06:13 $
+   // $Date: 1999/05/07 15:57:28 $
+
+
+Strauss                Expires September 30, 1999              [Page 57]
+
+Internet-Draft                   SMIng                        April 1999
+
+
    //
 
        oid             1.3.6.1.3.1575.1.9;
@@ -3217,24 +3208,14 @@ Internet-Draft                   SMIng                        April 1999
                                 38106 Braunschweig
                                 Germany
 
-                         EMail: strauss@ibr.cs.tu-bs.de
-
-                          http://www.ibr.cs.tu-bs.de/~strauss/sming/
-
-                                Juergen Schoenwaelder
-
-                        Postal: TU Braunschweig
-                                Bueltenweg 74/75
-                                38106 Braunschweig
-                                Germany
-
                          Phone: +49 531 391-3283
-                         EMail: schoenw@ibr.cs.tu-bs.de";
+                         EMail: strauss@ibr.cs.tu-bs.de
+                          http://www.ibr.cs.tu-bs.de/~strauss/sming/";
 
        description     "Core type definitions for SMIng.";
 
        revision {
-           date        "1999-05-05";
+           date        "1999-05-07";
            description "Initial Revision.";
        };
 
@@ -3242,13 +3223,6 @@ Internet-Draft                   SMIng                        April 1999
        typedef Gauge32 {
            type        Unsigned32;
            description
-
-
-Strauss                Expires September 30, 1999              [Page 58]
-
-Internet-Draft                   SMIng                        April 1999
-
-
               "The Gauge32 type represents a non-negative integer,
                which may increase or decrease, but shall never
                exceed a maximum value, nor fall below a minimum
@@ -3268,6 +3242,13 @@ Internet-Draft                   SMIng                        April 1999
                become `stuck' at its maximum or minimum value.)";
            reference
               "RFC 2578, Sections 2. and 7.1.7.";
+
+
+Strauss                Expires September 30, 1999              [Page 58]
+
+Internet-Draft                   SMIng                        April 1999
+
+
        };
 
        typedef Counter32 {
@@ -3298,13 +3279,6 @@ Internet-Draft                   SMIng                        April 1999
                or `notifyonly'.
 
                A default statement should not be used for objects
-
-
-Strauss                Expires September 30, 1999              [Page 59]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                with a type value of Counter32.";
            reference
               "RFC 2578, Sections 2. and 7.1.6.";
@@ -3324,6 +3298,13 @@ Internet-Draft                   SMIng                        April 1999
                maximum value, and has its minimum value whenever
                the information being modeled is smaller than or
                equal to its minimum value.  If the information
+
+
+Strauss                Expires September 30, 1999              [Page 59]
+
+Internet-Draft                   SMIng                        April 1999
+
+
                being modeled subsequently decreases below
                (increases above) the maximum (minimum) value, the
                Gauge64 also decreases (increases).  (Note that
@@ -3355,12 +3336,6 @@ Internet-Draft                   SMIng                        April 1999
                DateAndTime or TimeTicks (other types defined in this
                module).
 
-
-Strauss                Expires September 30, 1999              [Page 60]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                The value of the access statement for objects with a
                type value of Counter64 should be either `readonly'
                or `notifyonly'.
@@ -3379,6 +3354,13 @@ Internet-Draft                   SMIng                        April 1999
                newly-defined object types.
 
                The Opaque type supports the capability to pass
+
+
+Strauss                Expires September 30, 1999              [Page 60]
+
+Internet-Draft                   SMIng                        April 1999
+
+
                arbitrary ASN.1 syntax.  A value is encoded using
                the ASN.1 Basic Encoding Rules into a string of
                octets.  This, in turn, is encoded as an
@@ -3410,13 +3392,6 @@ Internet-Draft                   SMIng                        April 1999
                historical reasons. IPv4 and IPv6 addresses should
                be represented using the IpAddr type. Generic
                Network addresses should be represented using a
-
-
-Strauss                Expires September 30, 1999              [Page 61]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                pair of TDomain and TAddress types (all defined in
                this module).";
            reference
@@ -3435,6 +3410,12 @@ Internet-Draft                   SMIng                        April 1999
 
                For example, the TimeStamp type (defined in this
                module) is based on the TimeTicks type.
+
+
+Strauss                Expires September 30, 1999              [Page 61]
+
+Internet-Draft                   SMIng                        April 1999
+
 
                With a TimeStamp, the first reference epoch is
                defined as the time when SNMPv2-MIB::sysUpTime was
@@ -3466,13 +3447,6 @@ Internet-Draft                   SMIng                        April 1999
              - the graphics characters (32-126) are interpreted as
                US ASCII
 
-
-
-Strauss                Expires September 30, 1999              [Page 62]
-
-Internet-Draft                   SMIng                        April 1999
-
-
              - NUL, LF, CR, BEL, BS, HT, VT and FF have the special
                meanings specified in RFC 854
 
@@ -3492,6 +3466,12 @@ Internet-Draft                   SMIng                        April 1999
             Any object defined using this syntax may not exceed 255
             characters in length.";
        };
+
+
+Strauss                Expires September 30, 1999              [Page 62]
+
+Internet-Draft                   SMIng                        April 1999
+
 
        typedef PhysAddress {
            type        OctetString;
@@ -3522,13 +3502,6 @@ Internet-Draft                   SMIng                        April 1999
            description
            "Represents integer-valued information used for atomic
             operations.  When the management protocol is used to specify
-
-
-Strauss                Expires September 30, 1999              [Page 63]
-
-Internet-Draft                   SMIng                        April 1999
-
-
             that an object instance having this syntax is to be
             modified, the new value supplied via the management protocol
             must precisely match the value presently held by the
@@ -3549,6 +3522,13 @@ Internet-Draft                   SMIng                        April 1999
             When the network management portion of the system is re-
             initialized, the value of every object instance having this
             syntax must either be incremented from its value prior to
+
+
+Strauss                Expires September 30, 1999              [Page 63]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             the re-initialization, or (if the value prior to the re-
             initialization is unknown) be set to a pseudo-randomly
             generated value.";
@@ -3578,13 +3558,6 @@ Internet-Draft                   SMIng                        April 1999
        };
 
        typedef VariablePointer {
-
-
-Strauss                Expires September 30, 1999              [Page 64]
-
-Internet-Draft                   SMIng                        April 1999
-
-
            type        ObjectIdentifier;
            description
            "A pointer to a specific object instance.  For example,
@@ -3605,6 +3578,13 @@ Internet-Draft                   SMIng                        April 1999
 
        typedef RowStatus {
            type        Enumeration (active(1), notInService(2),
+
+
+Strauss                Expires September 30, 1999              [Page 64]
+
+Internet-Draft                   SMIng                        April 1999
+
+
                            notReady(3), createAndGo(4),
                            createAndWait(5), destroy(6));
            description
@@ -3634,13 +3614,6 @@ Internet-Draft                   SMIng                        April 1999
                 device;
 
                 - `createAndWait', which is supplied by a management
-
-
-Strauss                Expires September 30, 1999              [Page 65]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                 station wishing to create a new instance of a
                 conceptual row (but not make it available for use by
                 the managed device); and,
@@ -3661,6 +3634,13 @@ Internet-Draft                   SMIng                        April 1999
 
             agent has sufficient information to make it so (the status
             column has value `notInService'); or, it is not available
+
+
+Strauss                Expires September 30, 1999              [Page 65]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             for use by the managed device, and an attempt to make it so
             would fail because the agent has insufficient information
             (the state column has value `notReady').
@@ -3690,13 +3670,6 @@ Internet-Draft                   SMIng                        April 1999
             RowStatus column must also exist.
 
 
-
-
-Strauss                Expires September 30, 1999              [Page 66]
-
-Internet-Draft                   SMIng                        April 1999
-
-
             To summarize the effect of having a conceptual row with a
             status column having a SYNTAX clause value of RowStatus,
             consider the following state diagram:
@@ -3717,6 +3690,13 @@ Internet-Draft                   SMIng                        April 1999
    column to     |       or     |   entValue|        Value|        Value
    createAndWait |wrongValue    |           |             |
    --------------+--------------+-----------+-------------+-------------
+
+
+Strauss                Expires September 30, 1999              [Page 66]
+
+Internet-Draft                   SMIng                        April 1999
+
+
    set status    |inconsistent- |inconsist- |noError      |noError
    column to     |         Value|   entValue|             |
    active        |              |           |             |
@@ -3746,13 +3726,6 @@ Internet-Draft                   SMIng                        April 1999
             agent.
 
             (2) if other variable bindings included in the same PDU,
-
-
-Strauss                Expires September 30, 1999              [Page 67]
-
-Internet-Draft                   SMIng                        April 1999
-
-
             provide values for all columns which are missing but
             required, then return noError and goto D.
 
@@ -3773,6 +3746,12 @@ Internet-Draft                   SMIng                        April 1999
 
                 noError: because the agent chooses to create the
                 instance.
+
+
+Strauss                Expires September 30, 1999              [Page 67]
+
+Internet-Draft                   SMIng                        April 1999
+
 
             If noError is returned, then the instance of the status
             column must also be created, and the new state is B or C,
@@ -3802,13 +3781,6 @@ Internet-Draft                   SMIng                        April 1999
 
             NOTE: Other processing of the set request may result in a
             response other than noError being returned, e.g.,
-
-
-Strauss                Expires September 30, 1999              [Page 68]
-
-Internet-Draft                   SMIng                        April 1999
-
-
             wrongValue, noCreation, etc.
 
                              Conceptual Row Creation
@@ -3830,6 +3802,13 @@ Internet-Draft                   SMIng                        April 1999
 
             In other cases, the instance-identifier is used solely to
             distinguish conceptual rows, and a management station
+
+
+Strauss                Expires September 30, 1999              [Page 68]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             without specific knowledge of the conceptual row might
             examine the instances present in order to determine an
             unused instance-identifier.  (This approach may be used, but
@@ -3858,13 +3837,6 @@ Internet-Draft                   SMIng                        April 1999
 
             A MIB designer should choose between the two latter
             algorithms based on the size of the table (and therefore the
-
-
-Strauss                Expires September 30, 1999              [Page 69]
-
-Internet-Draft                   SMIng                        April 1999
-
-
             efficiency of each algorithm).  For tables in which a large
             number of entries are expected, it is recommended that a MIB
             object be defined that returns an acceptable index for
@@ -3886,6 +3858,13 @@ Internet-Draft                   SMIng                        April 1999
             which it must or must not provide values.  Depending on the
             complexity of the table and the management station's
             knowledge of the agent's capabilities, this determination
+
+
+Strauss                Expires September 30, 1999              [Page 69]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             can be made locally by the management station.  Alternately,
             the management station issues a management protocol get
             operation to examine all columns in the conceptual row that
@@ -3914,13 +3893,6 @@ Internet-Draft                   SMIng                        April 1999
                 accessible in the MIB view used by the retrieval.  As
                 such, the management station can not issue any
                 management protocol set operations to create an
-
-
-Strauss                Expires September 30, 1999              [Page 70]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                 instance of this column.
 
             Once the column requirements have been determined, a
@@ -3942,6 +3914,13 @@ Internet-Draft                   SMIng                        April 1999
             `active', and no further interactions are necessary (i.e.,
             interactions 3 and 4 are skipped).  If there is insufficient
             information, then the conceptual row is not created, and the
+
+
+Strauss                Expires September 30, 1999              [Page 70]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             set operation fails with an error of `inconsistentValue'.
             On this error, the management station can issue a management
             protocol retrieval operation to determine if this was
@@ -3970,13 +3949,6 @@ Internet-Draft                   SMIng                        April 1999
                 instance.  If not, the management station re-issues the
                 management protocol set operation, but without setting
                 a value for that particular columnar instance;
-
-
-Strauss                Expires September 30, 1999              [Page 71]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                 otherwise, the management station aborts the row
                 creation algorithm.
 
@@ -3998,6 +3970,13 @@ Internet-Draft                   SMIng                        April 1999
             sufficient information to make the conceptual row available
             for use by the managed device.  If there is sufficient
             information available, then the status column is set to
+
+
+Strauss                Expires September 30, 1999              [Page 71]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             `notInService'; otherwise, if there is insufficient
             information, then the status column is set to `notReady'.
             Regardless, we proceed to interaction 3.
@@ -4026,13 +4005,6 @@ Internet-Draft                   SMIng                        April 1999
                 associated with this column, and that this column in at
                 least one conceptual row would be accessible in the MIB
                 view used by the retrieval were it to exist. However,
-
-
-Strauss                Expires September 30, 1999              [Page 72]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                 the agent does not have sufficient information to
                 provide a value, and until a value is provided, the
                 conceptual row may not be made available for use by the
@@ -4054,6 +4026,13 @@ Internet-Draft                   SMIng                        April 1999
             If the value associated with the status column is
             `notReady', then the management station must first deal with
             all `noSuchInstance' columns, if any.  Having done so, the
+
+
+Strauss                Expires September 30, 1999              [Page 72]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             value of the status column becomes `notInService', and we
             proceed to interaction 4.
 
@@ -4082,13 +4061,6 @@ Internet-Draft                   SMIng                        April 1999
                 column to `active'.  In this case, when the management
                 protocol set operation is issued to set the status
                 column to `active', the values held in the agent
-
-
-Strauss                Expires September 30, 1999              [Page 73]
-
-Internet-Draft                   SMIng                        April 1999
-
-
                 supersede those used by the managed device.
 
             If the management station is prevented from setting the
@@ -4110,6 +4082,13 @@ Internet-Draft                   SMIng                        April 1999
             created rows, but also to previously active rows which are
             set to, and left in, the notInService state for a prolonged
             period exceeding that which is considered normal for such a
+
+
+Strauss                Expires September 30, 1999              [Page 73]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             conceptual row.
 
 
@@ -4139,12 +4118,6 @@ Internet-Draft                   SMIng                        April 1999
             immediately removed.";
        };
 
-
-Strauss                Expires September 30, 1999              [Page 74]
-
-Internet-Draft                   SMIng                        April 1999
-
-
        typedef TimeStamp {
            type        TimeTicks;
            description
@@ -4165,6 +4138,13 @@ Internet-Draft                   SMIng                        April 1999
        };
 
        typedef DateAndTime {
+
+
+Strauss                Expires September 30, 1999              [Page 74]
+
+Internet-Draft                   SMIng                        April 1999
+
+
            type        OctetString (8 | 11);
            format      "2d-1d-1d,1d:1d:1d.1d,1a1d:1d";
            description
@@ -4194,13 +4174,6 @@ Internet-Draft                   SMIng                        April 1999
                             1992-5-26,13:30:15.0,-4:0
 
             Note that if only local time is known, then timezone
-
-
-Strauss                Expires September 30, 1999              [Page 75]
-
-Internet-Draft                   SMIng                        April 1999
-
-
             information (fields 8-10) is not present.";
        };
 
@@ -4221,6 +4194,13 @@ Internet-Draft                   SMIng                        April 1999
             Conversely, if the value is either other(1), volatile(2) or
             nonVolatile(3), it cannot be modified to be permanent(4) or
             readOnly(5).  (All illegal modifications result in a
+
+
+Strauss                Expires September 30, 1999              [Page 75]
+
+Internet-Draft                   SMIng                        April 1999
+
+
             'wrongValue' error.)
 
             Every usage of this textual convention is required to
@@ -4251,12 +4231,6 @@ Internet-Draft                   SMIng                        April 1999
             information on snmpUDPDomain.";
        };
 
-
-Strauss                Expires September 30, 1999              [Page 76]
-
-Internet-Draft                   SMIng                        April 1999
-
-
        typedef IpAddr {
            type        OctetString (4 | 16);
            description
@@ -4273,9 +4247,16 @@ Internet-Draft                   SMIng                        April 1999
 
    //
    // $RCSfile: IRTF-NMRG-SMING-EXTENSIONS,v $
-   // $Revision: 1.6 $
+   // $Revision: 1.7 $
    // $Author: strauss $
-   // $Date: 1999/04/30 07:26:22 $
+   // $Date: 1999/05/07 15:57:27 $
+
+
+Strauss                Expires September 30, 1999              [Page 76]
+
+Internet-Draft                   SMIng                        April 1999
+
+
    //
 
        oid             1.3.6.1.3.1575.1.10;
@@ -4291,30 +4272,14 @@ Internet-Draft                   SMIng                        April 1999
                                 38106 Braunschweig
                                 Germany
 
-                         EMail: strauss@ibr.cs.tu-bs.de
-
-                          http://www.ibr.cs.tu-bs.de/~strauss/sming/
-
-                                Juergen Schoenwaelder
-
-                        Postal: TU Braunschweig
-                                Bueltenweg 74/75
-                                38106 Braunschweig
-                                Germany
-
                          Phone: +49 531 391-3283
-                         EMail: schoenw@ibr.cs.tu-bs.de";
+                         EMail: strauss@ibr.cs.tu-bs.de
+                          http://www.ibr.cs.tu-bs.de/~strauss/sming/";
 
        description     "Core extension definitions for SMIng.";
 
-
-Strauss                Expires September 30, 1999              [Page 77]
-
-Internet-Draft                   SMIng                        April 1999
-
-
        revision {
-           date        "1999-04-26";
+           date        "1999-05-07";
            description "Initial Revision.";
        };
 
@@ -4341,6 +4306,13 @@ Internet-Draft                   SMIng                        April 1999
                                          *1(statusStatement stmtsep)
                                          descriptionStatement stmtsep
                                          *1(referenceStatement stmtsep)
+
+
+Strauss                Expires September 30, 1999              [Page 77]
+
+Internet-Draft                   SMIng                        April 1999
+
+
                                          *(includesStatement stmtsep)
                                        `}' optsep `;'
 
@@ -4364,63 +4336,35 @@ Internet-Draft                   SMIng                        April 1999
    };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Strauss                Expires September 30, 1999              [Page 78]
-
-Internet-Draft                   SMIng                        April 1999
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Strauss                Expires September 30, 1999              [Page 79]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4476,7 +4420,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 80]
+Strauss                Expires September 30, 1999              [Page 79]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4532,7 +4476,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 81]
+Strauss                Expires September 30, 1999              [Page 80]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4588,7 +4532,7 @@ Internet-Draft                   SMIng                        April 1999
       informally or with formal methods (but within the description
 
 
-Strauss                Expires September 30, 1999              [Page 82]
+Strauss                Expires September 30, 1999              [Page 81]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4644,7 +4588,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 83]
+Strauss                Expires September 30, 1999              [Page 82]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4700,7 +4644,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 84]
+Strauss                Expires September 30, 1999              [Page 83]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4756,7 +4700,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 85]
+Strauss                Expires September 30, 1999              [Page 84]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4812,7 +4756,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 86]
+Strauss                Expires September 30, 1999              [Page 85]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4868,7 +4812,7 @@ References
    [14]  Wijnen, B., Levi, D., "V2ToV1 - Mapping SNMPv2 onto SNMPv1
 
 
-Strauss                Expires September 30, 1999              [Page 87]
+Strauss                Expires September 30, 1999              [Page 86]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4924,7 +4868,7 @@ Author's Address
 
 
 
-Strauss                Expires September 30, 1999              [Page 88]
+Strauss                Expires September 30, 1999              [Page 87]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -4980,7 +4924,7 @@ Appendix A. The SMIng ABNF grammar
                                  typedefTypeStatement stmtsep
 
 
-Strauss                Expires September 30, 1999              [Page 89]
+Strauss                Expires September 30, 1999              [Page 88]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5036,7 +4980,7 @@ Internet-Draft                   SMIng                        April 1999
                                  descriptionStatement stmtsep
 
 
-Strauss                Expires September 30, 1999              [Page 90]
+Strauss                Expires September 30, 1999              [Page 89]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5092,7 +5036,7 @@ Internet-Draft                   SMIng                        April 1999
                                  identifierList optsep
 
 
-Strauss                Expires September 30, 1999              [Page 91]
+Strauss                Expires September 30, 1999              [Page 90]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5148,7 +5092,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 92]
+Strauss                Expires September 30, 1999              [Page 91]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5204,7 +5148,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 93]
+Strauss                Expires September 30, 1999              [Page 92]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5260,7 +5204,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 94]
+Strauss                Expires September 30, 1999              [Page 93]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5316,7 +5260,7 @@ Internet-Draft                   SMIng                        April 1999
                              floatValue /
 
 
-Strauss                Expires September 30, 1999              [Page 95]
+Strauss                Expires September 30, 1999              [Page 94]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5372,7 +5316,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999              [Page 96]
+Strauss                Expires September 30, 1999              [Page 95]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5428,7 +5372,7 @@ Internet-Draft                   SMIng                        April 1999
    formatKeyword           = "format"
 
 
-Strauss                Expires September 30, 1999              [Page 97]
+Strauss                Expires September 30, 1999              [Page 96]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5484,7 +5428,7 @@ Internet-Draft                   SMIng                        April 1999
    snanKeyword             = "snan"
 
 
-Strauss                Expires September 30, 1999              [Page 98]
+Strauss                Expires September 30, 1999              [Page 97]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5540,7 +5484,7 @@ Internet-Draft                   SMIng                        April 1999
                           ; 0-9
 
 
-Strauss                Expires September 30, 1999              [Page 99]
+Strauss                Expires September 30, 1999              [Page 98]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5596,7 +5540,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999             [Page 100]
+Strauss                Expires September 30, 1999              [Page 99]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5652,7 +5596,7 @@ Appendix B. Glossary
       definitions declared by the SMIng keywords `scalar' or `column'. 
 
 
-Strauss                Expires September 30, 1999             [Page 101]
+Strauss                Expires September 30, 1999             [Page 100]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5708,7 +5652,7 @@ Internet-Draft                   SMIng                        April 1999
 
 
 
-Strauss                Expires September 30, 1999             [Page 102]
+Strauss                Expires September 30, 1999             [Page 101]
 
 Internet-Draft                   SMIng                        April 1999
 
@@ -5764,5 +5708,5 @@ Full Copyright Statement
 
 
 
-Strauss                Expires September 30, 1999             [Page 103]
+Strauss                Expires September 30, 1999             [Page 102]
 

@@ -2,9 +2,9 @@ module IRTF-NMRG-SMING-TYPES irtfNmrgSmingTypes {
 
 //
 // $RCSfile: IRTF-NMRG-SMING-TYPES,v $
-// $Revision: 1.13 $
+// $Revision: 1.14 $
 // $Author: strauss $
-// $Date: 1999/05/04 17:06:13 $
+// $Date: 1999/05/07 15:57:28 $
 //
 
     oid             1.3.6.1.3.1575.1.9;
@@ -20,24 +20,14 @@ module IRTF-NMRG-SMING-TYPES irtfNmrgSmingTypes {
                              38106 Braunschweig
                              Germany
 
-                      EMail: strauss@ibr.cs.tu-bs.de
-
-                       http://www.ibr.cs.tu-bs.de/~strauss/sming/
-
-                             Juergen Schoenwaelder
-
-                     Postal: TU Braunschweig
-                             Bueltenweg 74/75
-                             38106 Braunschweig
-                             Germany
-
                       Phone: +49 531 391-3283
-                      EMail: schoenw@ibr.cs.tu-bs.de";
+                      EMail: strauss@ibr.cs.tu-bs.de
+                       http://www.ibr.cs.tu-bs.de/~strauss/sming/";
 
     description     "Core type definitions for SMIng.";
 
     revision {
-        date        "1999-05-05";
+        date        "1999-05-07";
         description "Initial Revision.";
     };
 
