@@ -2959,9 +2959,8 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 	    }
 	}
 	//calculate attractive forces
-	//FIXME calculate only edges of the given cluster!
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
-	    if (!eEdge->use)
+	    if (!eEdge->use || eEdge->startNode->cluster != cluster)
 		continue;
 	    xDelta = eEdge->startNode->dia.x - eEdge->endNode->dia.x;
 	    yDelta = eEdge->startNode->dia.y - eEdge->endNode->dia.y;
@@ -3074,17 +3073,17 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     //cluster the graph
-    tCluster = graphInsertCluster(graph);
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
 	if (tNode->cluster == NULL) {
+	    tCluster = graphInsertCluster(graph);
 	    tCluster->firstClusterNode = tNode;
 	    addNodeToCluster(tNode, tCluster);
-	    tCluster = graphInsertCluster(graph);
 	}
     }
 
+    //layout the cluster
     for (tCluster = graph->clusters->nextPtr;
 	 tCluster; tCluster = tCluster->nextPtr) {
 	layoutCluster(nodecount, tCluster, 0, 0);
