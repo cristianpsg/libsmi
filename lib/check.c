@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.13 2001/02/26 16:25:13 strauss Exp $
+ * @(#) $Id: check.c,v 1.14 2001/03/05 17:57:49 strauss Exp $
  */
 
 #include <config.h>
@@ -934,7 +934,7 @@ smiCheckDefault(Parser *parser, Object *object)
 	    (object->typePtr->export.basetype == SMI_BASETYPE_ENUM)) {
 	    if (((object->export.value.basetype ==
 		  SMI_BASETYPE_INTEGER64) &&
-		 ((object->export.value.value.integer64 < (SmiInteger64)-2147483648LL) ||
+		 ((object->export.value.value.integer64 < (SmiInteger64)(-2147483647 - 1)) ||
 		  (object->export.value.value.integer64 > (SmiInteger64)2147483647))) ||
 		((object->export.value.basetype ==
 		  SMI_BASETYPE_UNSIGNED32) &&
@@ -950,13 +950,13 @@ smiCheckDefault(Parser *parser, Object *object)
 	    if (((object->export.value.basetype ==
 		  SMI_BASETYPE_INTEGER64) &&
 		 ((object->export.value.value.integer64 < 0) ||
-		  (object->export.value.value.integer64 > (SmiInteger64)4294967295LL))) ||
+		  (object->export.value.value.integer64 > (SmiInteger64)4294967295UL))) ||
 		((object->export.value.basetype ==
 		  SMI_BASETYPE_INTEGER32) &&
 		 ((object->export.value.value.integer32 < 0))) ||
 		((object->export.value.basetype ==
 		  SMI_BASETYPE_UNSIGNED64) &&
-		 ((object->export.value.value.unsigned32 > 4294967295UL)))) {
+		 ((object->export.value.value.unsigned32 > (SmiUnsigned32)4294967295UL)))) {
 		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_BASETYPE,
 				    object->line);
 	    }
