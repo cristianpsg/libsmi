@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.47 2003/04/28 12:04:40 strauss Exp $
+ * @(#) $Id: check.c,v 1.48 2003/04/30 08:41:36 strauss Exp $
  */
 
 #include <config.h>
@@ -1250,14 +1250,10 @@ smiCheckValueType(Parser *parser, SmiValue *value, Type *type, int line)
 	/*
 	 * check whether the defval matches the object's enumeration.
 	 */
-	printf("XXX\n");
 	if (value->basetype == SMI_BASETYPE_ENUM) {
 	    for (p = type->listPtr; p; p = nextPtr) {
 		nextPtr = p->nextPtr;
 
-		printf("XXX %d ? %d XXX\n",
-		       ((NamedNumber *)(p->ptr))->export.value.value.integer32,
-		       value->value.integer32);
 		if (((NamedNumber *)(p->ptr))->export.value.value.integer32 ==
 		    value->value.integer32) {
 			break;
@@ -1267,7 +1263,6 @@ smiCheckValueType(Parser *parser, SmiValue *value, Type *type, int line)
 		smiPrintErrorAtLine(parser, ERR_DEFVAL_OUT_OF_ENUM, line);
 	    }
 	}
-	printf("XXX\n");
     }
 }
 
