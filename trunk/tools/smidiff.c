@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.22 2001/11/08 07:42:12 schoenw Exp $	 
+ * @(#) $Id: smidiff.c,v 1.23 2001/11/08 10:26:39 tklie Exp $	 
  */
 
 #include <stdlib.h>
@@ -1362,7 +1362,6 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    SmiModule *newModule, SmiNode *newNode)
 {
     SmiType *oldType, *newType;
-    char *name;
 
     const int oldLine = smiGetNodeLine(oldNode);
     const int newLine = smiGetNodeLine(newNode);
@@ -1550,8 +1549,6 @@ checkNotification(SmiModule *oldModule, const char *oldTag,
 		  SmiModule *newModule, const char *newTag,
 		  SmiNode *oldNode, SmiNode *newNode)
 {
-    char * name;
-    
     checkDecl(oldModule, smiGetNodeLine(oldNode),
 	      newModule, smiGetNodeLine(newNode),
 	      newNode->name, oldNode->decl, newNode->decl);
@@ -1833,7 +1830,6 @@ checkGroup(SmiModule *oldModule, const char *oldTag,
 	   SmiModule *newModule, const char *newTag,
 	   SmiNode *oldNode, SmiNode *newNode)
 {
-    char *name;
     checkName(oldModule, smiGetNodeLine(oldNode),
 	      newModule, smiGetNodeLine(newNode),
 	      oldNode->name, newNode->name);
@@ -1952,6 +1948,7 @@ int
 main(int argc, char *argv[])
 {
     SmiModule *oldModule, *newModule;
+    int flags;
 
     static optStruct opt[] = {
 	/* short long              type        var/func       special       */
@@ -1966,8 +1963,18 @@ main(int argc, char *argv[])
 	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
     };
     
+
     smiInit(oldTag);
+    flags = smiGetFlags();
+    flags |= SMI_FLAG_ERRORS;
+    smiSetFlags(flags);
+    smiSetErrorLevel(errorLevel);
+
     smiInit(newTag);
+    flags = smiGetFlags();
+    flags |= SMI_FLAG_ERRORS;
+    smiSetFlags(flags);
+    smiSetErrorLevel(errorLevel);
 
     optParseOptions(&argc, argv, opt, 0);
 
@@ -1977,12 +1984,22 @@ main(int argc, char *argv[])
     }
 
     smiInit(oldTag);
-    smiSetErrorLevel(errorLevel);
     oldModule = smiGetModule(smiLoadModule(argv[1]));
- 
+    if (! oldModule) {
+	fprintf(stderr, "smidiff: cannot locate module `%s'\n", argv[1]);
+	smiExit();
+	exit(1);
+    }
+    
     smiInit(newTag);
-    smiSetErrorLevel(errorLevel);
     newModule = smiGetModule(smiLoadModule(argv[2]));
+    if (! newModule) {
+	fprintf(stderr, "smidiff: cannot locate module `%s'\n", argv[2]);
+	smiExit();
+	smiInit(oldTag);
+	smiExit();
+	exit(2);
+    }
 
     diffModules(oldModule, oldTag, newModule, newTag);
     diffTypes(oldModule, oldTag, newModule, newTag);
