@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.38 2002/07/23 18:12:54 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.39 2002/07/23 23:12:20 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -424,12 +424,22 @@ extern char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags);
 extern char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr,
 			    int flags);
 
-#define SMI_RENDER_NUMERIC   0x01 /* render as a numeric value (default) */
-#define SMI_RENDER_NAME      0x02 /* render as plain name(s) */
-#define SMI_RENDER_QUALIFIED 0x04 /* render as qualified name(s) */
-#define SMI_RENDER_FORMAT    0x08 /* render by type's format if present */
-#define SMI_RENDER_PRINTABLE 0x10 /* render strings printable if possible */
+extern char *smiRenderNode(SmiNode *smiNodePtr, int flags);
+
+extern char *smiRenderType(SmiType *smiTypePtr, int flags);
+
+#define SMI_RENDER_NUMERIC   0x01 /* render as numeric values */
+#define SMI_RENDER_NAME      0x02 /* render as names */
+#define SMI_RENDER_QUALIFIED 0x04 /* render names with module prefix */
+#define SMI_RENDER_FORMAT    0x08 /* render by applying the type's format if
+				     type is given and format is present */
+#define SMI_RENDER_PRINTABLE 0x10 /* render string values as a printable
+				     string if all octets are isprint() */
+#define SMI_RENDER_UNKNOWN   0x20 /* render even unknown items as strings
+  				     ("<unknown>") so that we never get NULL */
 #define SMI_RENDER_ALL       0xff /* render as `human friendly' as possible */
+
+#define SMI_UNKNOWN_LABEL "<unknown>"
 
 #ifdef __cplusplus
 }
