@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.57 2000/02/06 23:30:57 strauss Exp $
+ * @(#) $Id: data.c,v 1.58 2000/02/07 16:10:29 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -3134,20 +3134,13 @@ freeData()
 		nextListPtr = listPtr->nextPtr;
 		if ((typePtr->export.basetype == SMI_BASETYPE_BITS) ||
 		    (typePtr->export.basetype == SMI_BASETYPE_ENUM)) {
-		    util_free(((NamedNumber *)(listPtr->ptr))->name);
+		    util_free(((NamedNumber *)(listPtr->ptr))->export.name);
 		    util_free((NamedNumber *)(listPtr->ptr));
 		} else if ((typePtr->export.basetype == SMI_BASETYPE_INTEGER32) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_INTEGER64) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED32) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED64) ||
 			   (typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING)) {
-		    if (((Range *)(listPtr->ptr))->minValuePtr ==
-			((Range *)(listPtr->ptr))->maxValuePtr) {
-			util_free(((Range *)(listPtr->ptr))->minValuePtr);
-		    } else {
-			util_free(((Range *)(listPtr->ptr))->minValuePtr);
-			util_free(((Range *)(listPtr->ptr))->maxValuePtr);
-		    }
 		    util_free((Range *)(listPtr->ptr));
 		}
 		util_free(listPtr);
@@ -3184,7 +3177,7 @@ freeData()
 	    for (listPtr = objectPtr->optionlistPtr; listPtr;
 		 listPtr = nextListPtr) {
 		nextListPtr = listPtr->nextPtr;
-		util_free(((Option *)(listPtr->ptr))->description);
+		util_free(((Option *)(listPtr->ptr))->export.description);
 		util_free((Option *)(listPtr->ptr));
 		util_free(listPtr);
 	    }

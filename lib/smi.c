@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.64 2000/02/06 23:30:58 strauss Exp $
+ * @(#) $Id: smi.c,v 1.65 2000/02/07 16:10:30 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -366,64 +366,6 @@ SmiListItem *createSmiListItem(Object *listObjectPtr, Object *objectPtr, int num
 	smiListItemPtr->name       = objectPtr->name;
 	smiListItemPtr->number     = number;
 	return smiListItemPtr;
-    } else {
-	return NULL;
-    }
-}
-
-
-
-SmiNamedNumber *createSmiNamedNumber(Type *typePtr, NamedNumber *nnPtr)
-{
-    SmiNamedNumber *smiNamedNumberPtr;
-
-    if (typePtr && nnPtr) {
-	smiNamedNumberPtr = util_malloc(sizeof(SmiNamedNumber));
-	smiNamedNumberPtr->typemodule = typePtr->modulePtr->export.name;
-	smiNamedNumberPtr->typename   = typePtr->export.name;
-	smiNamedNumberPtr->name       = nnPtr->name;
-	memcpy(&smiNamedNumberPtr->value, nnPtr->valuePtr,
-	       sizeof(struct SmiValue));
-	return smiNamedNumberPtr;
-    } else {
-	return NULL;
-    }
-}
-
-
-
-SmiRange *createSmiRange(Type *typePtr, Range *rangePtr)
-{
-    SmiRange *smiRangePtr;
-
-    if (typePtr && rangePtr) {
-	smiRangePtr = util_malloc(sizeof(SmiRange));
-	smiRangePtr->typemodule  = typePtr->modulePtr->export.name;
-	smiRangePtr->typename    = typePtr->export.name;
-	memcpy(&smiRangePtr->minValue, rangePtr->minValuePtr,
-	       sizeof(struct SmiValue));
-	memcpy(&smiRangePtr->maxValue, rangePtr->maxValuePtr,
-	       sizeof(struct SmiValue));
-	return smiRangePtr;
-    } else {
-	return NULL;
-    }
-}
-
-
-
-SmiOption *createSmiOption(Object *objectPtr, Option *optionPtr)
-{
-    SmiOption *smiOptionPtr;
-    
-    if (optionPtr) {
-        smiOptionPtr = util_malloc(sizeof(SmiOption));
-	smiOptionPtr->compliancemodule = objectPtr->modulePtr->export.name;
-	smiOptionPtr->compliancename   = objectPtr->name;
-	smiOptionPtr->module           = optionPtr->objectPtr->modulePtr->export.name;
-	smiOptionPtr->name             = optionPtr->objectPtr->name;
-	smiOptionPtr->description      = optionPtr->description;
-	return smiOptionPtr;
     } else {
 	return NULL;
     }
@@ -999,7 +941,7 @@ SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr)
 	return NULL;
     }
     
-    return createSmiNamedNumber(typePtr, typePtr->listPtr->ptr);
+    return &((NamedNumber *)typePtr->listPtr->ptr)->export;
 }
 
 
@@ -1013,9 +955,9 @@ SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
 	return NULL;
     }
     
-    typePtr = findTypeByModulenameAndName(smiNamedNumberPtr->typemodule,
-					  smiNamedNumberPtr->typename);
+    typePtr = ((NamedNumber *)smiNamedNumberPtr)->typePtr;
 
+    
     if ((!typePtr) || (!typePtr->listPtr) ||
 	((typePtr->export.basetype != SMI_BASETYPE_ENUM) &&
 	 (typePtr->export.basetype != SMI_BASETYPE_BITS))) {
@@ -1023,24 +965,22 @@ SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
     }
 
     for (listPtr = typePtr->listPtr; listPtr; listPtr = listPtr->nextPtr) {
-	if (((NamedNumber *)(listPtr->ptr))->name == smiNamedNumberPtr->name)
+	if (((NamedNumber *)(listPtr->ptr))->export.name ==
+	                                               smiNamedNumberPtr->name)
 	    break;
     }
 
-    smiFreeNamedNumber(smiNamedNumberPtr);
-    
     if ((!listPtr) || (!listPtr->nextPtr)) {
 	return NULL;
     }
 	
-    return createSmiNamedNumber(typePtr, listPtr->nextPtr->ptr);
+    return &((NamedNumber *)listPtr->nextPtr->ptr)->export;
 }
 
 
 
 void smiFreeNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
 {
-    util_free(smiNamedNumberPtr);
 }
 
 
@@ -1057,7 +997,7 @@ SmiRange *smiGetFirstRange(SmiType *smiTypePtr)
 	return NULL;
     }
 
-    return createSmiRange(typePtr, typePtr->listPtr->ptr);
+    return &((Range *)typePtr->listPtr->ptr)->export;
 }
 
 
@@ -1071,8 +1011,7 @@ SmiRange *smiGetNextRange(SmiRange *smiRangePtr)
 	return NULL;
     }
     
-    typePtr = findTypeByModulenameAndName(smiRangePtr->typemodule,
-					  smiRangePtr->typename);
+    typePtr = ((Range *)smiRangePtr)->typePtr;
 
     if ((!typePtr) || (!typePtr->listPtr) ||
 	(typePtr->export.basetype == SMI_BASETYPE_ENUM) ||
@@ -1081,25 +1020,22 @@ SmiRange *smiGetNextRange(SmiRange *smiRangePtr)
     }
  
     for (listPtr = typePtr->listPtr; listPtr; listPtr = listPtr->nextPtr) {
-	if (!memcmp(((Range *)listPtr->ptr)->minValuePtr,
+	if (!memcmp(&((Range *)listPtr->ptr)->export.minValue,
 		    &smiRangePtr->minValue, sizeof(struct SmiValue)))
 	    break;
     }
 
-    smiFreeRange(smiRangePtr);
-    
     if ((!listPtr) || (!listPtr->nextPtr)) {
 	return NULL;
     }
 	
-    return createSmiRange(typePtr, listPtr->nextPtr->ptr);
+    return &((Range *)listPtr->nextPtr->ptr)->export;
 }
 
 
 
 void smiFreeRange(SmiRange *smiRangePtr)
 {
-    util_free(smiRangePtr);
 }
 
 
@@ -1570,7 +1506,12 @@ SmiNode *smiGetModuleIdentityNode(SmiModule *smiModulePtr)
 
 SmiModule *smiGetNodeModule(SmiNode *smiNodePtr)
 {
-    return &((Object *)smiNodePtr)->modulePtr->export;
+    Module *modulePtr;
+    
+    modulePtr = findModuleByName(smiNodePtr->module);
+
+    return &modulePtr->export;
+    /* return &((Object *)smiNodePtr)->modulePtr->export; */
 }
 
 
@@ -1734,7 +1675,7 @@ SmiOption *smiGetFirstOption(SmiNode *smiComplianceNodePtr)
 	return NULL;
     }
 						     
-    return createSmiOption(objectPtr, objectPtr->optionlistPtr->ptr);
+    return &((Option *)objectPtr->optionlistPtr->ptr)->export;
 }
 
 
@@ -1744,50 +1685,19 @@ SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
     Module	      *modulePtr;
     Object	      *objectPtr;
     List	      *listPtr;
-    SmiIdentifier     module, node, compliance;
+    SmiIdentifier     compliance;
     
     if (!smiOptionPtr) {
 	return NULL;
     }
-
-    modulePtr = findModuleByName(smiOptionPtr->compliancemodule);
-
-    if (!modulePtr) {
-	modulePtr = loadModule(smiOptionPtr->compliancemodule);
-    }
-
-    module = smiOptionPtr->module;
-    node = smiOptionPtr->name;
-    compliance = smiOptionPtr->compliancename;
-        
-    smiFreeOption(smiOptionPtr);
-
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    objectPtr = findObjectByModuleAndName(modulePtr, compliance);
-
-    if (!objectPtr) {
-	return NULL;
-    }
-
-    if (!objectPtr->optionlistPtr) {
-	return NULL;
-    }
-
-    if (objectPtr->nodekind != SMI_NODEKIND_COMPLIANCE) {
-	return NULL;
-    }
 						     
-    for (listPtr = objectPtr->optionlistPtr; listPtr;
+    for (listPtr =
+	    ((Option *)smiOptionPtr)->compliancePtr->optionlistPtr;
+	 listPtr;
 	 listPtr = listPtr->nextPtr) {
-	if ((listPtr->ptr) &&
-	    !strcmp(((Option *)(listPtr->ptr))->objectPtr->modulePtr->export.name,
-		    module) &&
-	    !strcmp(((Option *)(listPtr->ptr))->objectPtr->name, node)) {
+	if ((Option *)(listPtr->ptr) == (Option *)smiOptionPtr) {
 	    if (listPtr->nextPtr) {
-		return createSmiOption(objectPtr, listPtr->nextPtr->ptr);
+		return &((Option *)listPtr->nextPtr->ptr)->export;
 	    } else {
 		return NULL;
 	    }
@@ -1799,9 +1709,16 @@ SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
 
 
 
+SmiNode *smiGetOptionNode(SmiOption *smiOptionPtr)
+{
+    /* return &((Option *)smiOptionPtr)->objectPtr->export; */
+    return createSmiNode(((Option *)smiOptionPtr)->objectPtr);
+}
+
+
+
 void smiFreeOption(SmiOption *smiOptionPtr)
 {
-    util_free(smiOptionPtr);
 }
 
 

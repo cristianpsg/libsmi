@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.34 2000/02/06 23:30:59 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.35 2000/02/07 16:10:41 strauss Exp $
  */
 
 #include <stdio.h>
@@ -417,7 +417,8 @@ int main(int argc, char *argv[])
 	    printf("\n\n");
 	    for(option = smiGetFirstOption(node);
 		option ; option = smiGetNextOption(option)) {
-		printf("      Option: %s::%s\n", option->module, option->name);
+		node = smiGetOptionNode(option);
+		printf("      Option: %s::%s\n", node->module, node->name);
 		printf(" Description: %s\n\n", format(option->description));
 	    }
 	    printf("\n");

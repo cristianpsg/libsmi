@@ -74,7 +74,7 @@ o currently, make check passes only after make install
 
 o Web online conversion to SMIng?
 
-o make check: parse every mib once
+o make check: parse every mib once, and don't crash
 
 o special handling for well-known traps (reversibility?)
 
@@ -87,4 +87,4 @@ o smidump -f tree RMON2-MIB:
 
 o smidump -f tree ATM-ACCOUNTING-INFORMATION-MIB: endless loop
 
-
+o util:timegm: use POSIX putenv instead of BSD setenv/unsetenv

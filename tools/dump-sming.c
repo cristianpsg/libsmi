@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.52 2000/02/06 23:30:59 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.53 2000/02/07 16:10:41 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1023,10 +1023,10 @@ static void printGroups(char *modulename)
 static void printCompliances(char *modulename)
 {
     int		  i, j;
-    SmiNode	  *smiNode;
+    SmiNode	  *smiNode, *smiNode2;
     SmiType	  *smiType;
-    SmiOption	  *option;
-    SmiRefinement *refinement;
+    SmiOption	  *smiOption;
+    SmiRefinement *smiRefinement;
     SmiListItem   *listitem;
     
     for(i = 0, smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
@@ -1081,26 +1081,29 @@ static void printCompliances(char *modulename)
 	    print(");\n");
 	}
 	
-	if ((option = smiGetFirstOption(smiNode))) {
+	if ((smiOption = smiGetFirstOption(smiNode))) {
 	    print("\n");
-	    for(; option; option = smiGetNextOption(option)) {
+	    for(; smiOption; smiOption = smiGetNextOption(smiOption)) {
+		smiNode2 = smiGetOptionNode(smiOption);
 		printSegment(2 * INDENT, "", 0);
-		print("optional %s {\n", option->name);
+		print("optional %s {\n", smiNode2->name);
 		printSegment(3 * INDENT, "description", INDENTVALUE);
 		print("\n");
-		printMultilineString(option->description);
+		printMultilineString(smiOption->description);
 		print(";\n");
 		printSegment(2 * INDENT, "};\n", 0);
 	    }
 	}
 	
-	if ((refinement = smiGetFirstRefinement(smiNode))) {
+	if ((smiRefinement = smiGetFirstRefinement(smiNode))) {
 	    print("\n");
-	    for(; refinement; refinement = smiGetNextRefinement(refinement)) {
+	    for(; smiRefinement;
+		smiRefinement = smiGetNextRefinement(smiRefinement)) {
 		printSegment(2 * INDENT, "", 0);
-		print("refine %s {\n", smiGetRefinementNode(refinement)->name);
+		print("refine %s {\n",
+		      smiGetRefinementNode(smiRefinement)->name);
 
-		smiType = smiGetRefinementType(refinement);
+		smiType = smiGetRefinementType(smiRefinement);
 		if (smiType) {
 		    printSegment(3 * INDENT, "type", INDENTVALUE);
 		    print("%s",
@@ -1110,7 +1113,7 @@ static void printCompliances(char *modulename)
 		    print(";\n");
 		}
 
-		smiType = smiGetRefinementWriteType(refinement);
+		smiType = smiGetRefinementWriteType(smiRefinement);
 		if (smiType) {
 		    printSegment(3 * INDENT, "writetype", INDENTVALUE);
 		    print("%s",
@@ -1120,14 +1123,14 @@ static void printCompliances(char *modulename)
 		    print(";\n");
 		}
 
-		if (refinement->access != SMI_ACCESS_UNKNOWN) {
+		if (smiRefinement->access != SMI_ACCESS_UNKNOWN) {
 		    printSegment(3 * INDENT, "access", INDENTVALUE);
 		    print("%s;\n",
-			  smingStringAccess(refinement->access));
+			  smingStringAccess(smiRefinement->access));
 		}
 		printSegment(3 * INDENT, "description", INDENTVALUE);
 		print("\n");
-		printMultilineString(refinement->description);
+		printMultilineString(smiRefinement->description);
 		print(";\n");
 		printSegment(2 * INDENT, "};\n", 0);
 	    }

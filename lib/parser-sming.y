@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.40 2000/02/06 23:30:58 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.41 2000/02/07 23:23:29 strauss Exp $
  */
 
 %{
@@ -1672,7 +1672,19 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 			}
 			optionalStatement_stmtsep_0n
 			{
+			    Option *optionPtr;
+			    List *listPtr;
+			    
 			    complianceObjectPtr->optionlistPtr = $20;
+			    if ($20) {
+				for (listPtr = $20;
+				     listPtr;
+				     listPtr = listPtr->nextPtr) {
+				    optionPtr = ((Option *)(listPtr->ptr));
+				    optionPtr->compliancePtr =
+					complianceObjectPtr;
+				}
+			    }
 			}
 			refineStatement_stmtsep_0n
 			{
@@ -2271,7 +2283,7 @@ optionalStatement:	optionalKeyword sep qlcIdentifier
 			    $$->objectPtr = findObject($3,
 						       thisParserPtr,
 						       thisModulePtr);
-			    $$->description = util_strdup($6);
+			    $$->export.description = util_strdup($6);
 			}
         ;
 
@@ -2352,6 +2364,8 @@ refinedBaseType_refinedType: refinedBaseType
 
 refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeOctetStringPtr;
 			    } else {
@@ -2359,6 +2373,8 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeOctetStringPtr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
         |		ObjectIdentifierKeyword
@@ -2367,6 +2383,8 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			}
 	|		Integer32Keyword optsep_numberSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeInteger32Ptr;
 			    } else {
@@ -2374,10 +2392,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeInteger32Ptr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		Unsigned32Keyword optsep_numberSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeUnsigned32Ptr;
 			    } else {
@@ -2385,10 +2407,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeUnsigned32Ptr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		Integer64Keyword optsep_numberSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeInteger64Ptr;
 			    } else {
@@ -2396,10 +2422,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeInteger64Ptr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		Unsigned64Keyword optsep_numberSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeUnsigned64Ptr;
 			    } else {
@@ -2407,10 +2437,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeUnsigned64Ptr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		Float32Keyword optsep_floatSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeFloat32Ptr;
 			    } else {
@@ -2418,10 +2452,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeFloat32Ptr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		Float64Keyword optsep_floatSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeFloat64Ptr;
 			    } else {
@@ -2429,10 +2467,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeFloat64Ptr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		Float128Keyword optsep_floatSpec_01
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeFloat128Ptr;
 			    } else {
@@ -2440,10 +2482,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeFloat128Ptr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		EnumerationKeyword bitsOrEnumerationSpec
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeEnumPtr;
 			    } else {
@@ -2451,10 +2497,14 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeEnumPtr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((NamedNumber *)p->ptr)->typePtr = $$;
 			    }
 			}
 	|		BitsKeyword bitsOrEnumerationSpec
 			{
+			    List *p;
+			    
 			    if (!$2) {
 				$$ = typeBitsPtr;
 			    } else {
@@ -2462,6 +2512,8 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 						   thisParserPtr);
 				setTypeParent($$, typeBitsPtr);
 				setTypeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((NamedNumber *)p->ptr)->typePtr = $$;
 			    }
 			}
 	;
@@ -2557,12 +2609,14 @@ furtherNumberElement:	optsep '|' optsep numberElement
 numberElement:		signedNumber numberUpperLimit_01
 			{
 			    $$ = util_malloc(sizeof(Range));
-			    $$->minValuePtr = $1;
+			    $$->export.minValue = *$1;
 			    if ($2) {
-				$$->maxValuePtr = $2;
+				$$->export.maxValue = *$2;
+				util_free($2);
 			    } else {
-				$$->maxValuePtr = $1;
+				$$->export.maxValue = *$1;
 			    }
+			    util_free($1);
 			}
 	;
 
@@ -2639,22 +2693,18 @@ furtherFloatElement:	optsep '|' optsep floatElement
 floatElement:		floatValue floatUpperLimit_01
 			{
 			    $$ = util_malloc(sizeof(Range));
-			    $$->minValuePtr = util_malloc(sizeof(SmiValue));
-			    $$->minValuePtr->basetype = SMI_BASETYPE_FLOAT64;
-			    $$->minValuePtr->format =
-				SMI_VALUEFORMAT_NATIVE;
-			    $$->minValuePtr->value.float64 = strtod($1, NULL);
+			    $$->export.minValue.basetype = SMI_BASETYPE_FLOAT64;
+			    $$->export.minValue.format = SMI_VALUEFORMAT_NATIVE;
+			    $$->export.minValue.value.float64 = strtod($1, NULL);
 			    if ($2) {
-				$$->maxValuePtr =
-				                 util_malloc(sizeof(SmiValue));
-				$$->maxValuePtr->basetype =
+				$$->export.maxValue.basetype =
 				                          SMI_BASETYPE_FLOAT64;
-				$$->maxValuePtr->format =
+				$$->export.maxValue.format =
 							SMI_VALUEFORMAT_NATIVE;
-				$$->maxValuePtr->value.float64 =
+				$$->export.maxValue.value.float64 =
 				                              strtod($2, NULL);
 			    } else {
-				$$->maxValuePtr = $$->minValuePtr;
+				$$->export.maxValue = $$->export.minValue;
 			    }
 			}
 	;
@@ -2730,8 +2780,9 @@ furtherBitsOrEnumerationItem: optsep ',' optsep bitsOrEnumerationItem
 bitsOrEnumerationItem:	lcIdentifier optsep '(' optsep number optsep ')'
 			{
 			    $$ = util_malloc(sizeof(NamedNumber));
-			    $$->name = $1;
-			    $$->valuePtr = $5;
+			    $$->export.name = $1;
+			    $$->export.value = *$5;
+			    util_free($5);
 			}
         ;
 
