@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.66 2000/02/02 17:30:30 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.67 2000/02/05 18:05:57 strauss Exp $
  */
 
 %{
@@ -833,16 +833,18 @@ import:			importIdentifiers FROM moduleName
 			 * allowed? I guess so. refer ASN.1! */
 			{
 			    Import      *importPtr;
+			    Module      *modulePtr;
 			    
 			    /*
 			     * Recursively call the parser to suffer
 			     * the IMPORTS, if the module is not yet
 			     * loaded.
 			     */
-			    if (!findModuleByName($3)) {
-				loadModule($3);
+			    modulePtr = findModuleByName($3);
+			    if (!modulePtr) {
+				modulePtr = loadModule($3);
 			    }
-			    checkImports($3, thisParserPtr);
+			    checkImports(modulePtr, thisParserPtr);
 
 			    if (!strcmp($3, "SNMPv2-SMI")) {
 			        /*
@@ -4021,7 +4023,7 @@ ComplianceModule:	MODULE ComplianceModuleName
 			    $$.optionlistPtr = $5.optionlistPtr;
 			    $$.refinementlistPtr = $5.refinementlistPtr;
 			    if (complianceModulePtr) {
-				checkImports(complianceModulePtr->export.name,
+				checkImports(complianceModulePtr,
 					     thisParserPtr);
 				complianceModulePtr = NULL;
 			    }

@@ -1,9 +1,15 @@
+2000-02-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-sming.y: added parsing of SMIng extension statement.
+	Its contents are stored in new elements of struct SmiMacro.
+
 2000-02-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/smi.h: removed lastupdated from SmiModule. This information has
 	to be retrieved from the associated SmiRevisions, if present.
 
-	* first steps towards a reorganisation of internal data structures.
+	* lib/data.c: first steps towards a reorganisation of internal
+        data structures.
 
 2000-02-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 

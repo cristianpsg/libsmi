@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.44 2000/01/14 09:11:27 strauss Exp $
+ * @(#) $Id: data.h,v 1.45 2000/02/05 18:05:57 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -248,8 +248,8 @@ typedef struct Node {
 
 
 typedef struct Macro {
+    SmiMacro	   export;
     Module	   *modulePtr;
-    char	   *name;
     off_t	   fileoffset;
     MacroFlags	   flags;
     struct Macro   *nextPtr;
@@ -333,7 +333,7 @@ extern Import *addImport(const char *name,
 extern void setImportModulename(Import *importPtr,
 				char *modulename);
 
-extern int checkImports(char *modulename,
+extern int checkImports(Module *modulePtr,
 			Parser *parserPtr);
 
 extern Import *findImportByName(const char *importname,

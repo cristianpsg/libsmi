@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.61 2000/01/14 09:11:28 strauss Exp $
+ * @(#) $Id: smi.c,v 1.62 2000/02/05 18:05:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -441,22 +441,6 @@ SmiRange *createSmiRange(Type *typePtr, Range *rangePtr)
 
 
 
-SmiMacro *createSmiMacro(Macro *macroPtr)
-{
-    SmiMacro *smiMacroPtr;
-    
-    if (macroPtr) {
-	smiMacroPtr = util_malloc(sizeof(SmiMacro));
-	smiMacroPtr->name   = macroPtr->name;
-	smiMacroPtr->module = macroPtr->modulePtr->export.name;
-	return smiMacroPtr;
-    } else {
-	return NULL;
-    }
-}
-
-
-
 SmiOption *createSmiOption(Object *objectPtr, Option *optionPtr)
 {
     SmiOption *smiOptionPtr;
@@ -882,9 +866,6 @@ SmiImport *smiGetFirstImport(SmiModule *smiModulePtr)
 
 SmiImport *smiGetNextImport(SmiImport *smiImportPtr)
 {
-    Module	        *modulePtr;
-    Import	        *importPtr;
-    
     if (!smiImportPtr) {
 	return NULL;
     }
@@ -946,9 +927,6 @@ SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr)
 
 SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr)
 {
-    Module	        *modulePtr;
-    Revision	        *revisionPtr;
-    
     if (!smiRevisionPtr) {
 	return NULL;
     }
@@ -1254,21 +1232,26 @@ void smiFreeRange(SmiRange *smiRangePtr)
 
 
 
-SmiMacro *smiGetMacro(char *module, char *macro)
+SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro)
 {
     Macro	    *macroPtr = NULL;
     Module	    *modulePtr = NULL;
     char	    *module2, *macro2;
     
-    if ((!module) && (!macro)) {
+    if ((!smiModulePtr) && (!macro)) {
 	return NULL;
     }
     
-    getModulenameAndName(module, macro, &module2, &macro2);
+    getModulenameAndName(smiModulePtr ? smiModulePtr->name : NULL, macro,
+			 &module2, &macro2);
 
     if (module2) {
-	if (!(modulePtr = findModuleByName(module2))) {
-	    modulePtr = loadModule(module2);
+	if ((smiModulePtr) && !strcmp(module2, smiModulePtr->name)) {
+	    modulePtr = (Module *)smiModulePtr;
+	} else {
+	    if (!(modulePtr = findModuleByName(module2))) {
+		modulePtr = loadModule(module2);
+	    }
 	}
     }
 
@@ -1282,72 +1265,34 @@ SmiMacro *smiGetMacro(char *module, char *macro)
     
     util_free(module2);
     util_free(macro2);
-    return createSmiMacro(macroPtr);
+    return (SmiMacro *)macroPtr;
 }
 
 
 
-SmiMacro *smiGetFirstMacro(char *module)
+SmiMacro *smiGetFirstMacro(SmiModule *smiModulePtr)
 {
-    Module *modulePtr;
-
-    if (!module) {
+    if (!smiModulePtr) {
 	return NULL;
     }
     
-    modulePtr = findModuleByName(module);
-    
-    if (!modulePtr) {
-	modulePtr = loadModule(module);
-    }
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    return createSmiMacro(modulePtr->firstMacroPtr);
+    return (SmiMacro *)(((Module *)smiModulePtr)->firstMacroPtr);
 }
 
 
 
 SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr)
 {
-    Module	      *modulePtr;
-    Macro	      *macroPtr;
-    char	      *macro;
-    
     if (!smiMacroPtr) {
 	return NULL;
     }
 
-    modulePtr = findModuleByName(smiMacroPtr->module);
-
-    if (!modulePtr) {
-	modulePtr = loadModule(smiMacroPtr->module);
-    }
-
-    macro = smiMacroPtr->name;
-        
-    smiFreeMacro(smiMacroPtr);
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    macroPtr = findMacroByModuleAndName(modulePtr, macro);
-
-    if (!macroPtr) {
-	return NULL;
-    }
-    
-    return createSmiMacro(macroPtr->nextPtr);
+    return (SmiMacro *)(((Macro *)smiMacroPtr)->nextPtr);
 }
-
 
 
 void smiFreeMacro(SmiMacro *smiMacroPtr)
 {
-    util_free(smiMacroPtr);
 }
 
 

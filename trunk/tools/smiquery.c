@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.31 2000/02/02 17:30:32 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.32 2000/02/05 18:05:59 strauss Exp $
  */
 
 #include <stdio.h>
@@ -518,10 +518,12 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "macro")) {
-	macro = smiGetMacro(name, NULL);
+	macro = smiGetMacro(NULL, name);
 	if (macro) {
 	    printf("       Macro: %s\n", format(macro->name));
-	    printf("      Module: %s\n", format(macro->module));
+	    printf("      Status: %s\n", smiStringStatus(macro->status));
+	    printf(" Description: %s\n", format(macro->description));
+	    printf("   Reference: %s\n", format(macro->reference));
 	    smiFreeMacro(macro);
 	}
     }
