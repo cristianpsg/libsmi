@@ -3,6 +3,8 @@
 	* tools/dump-cm.c: added conception model (cm) dump format from
 	Andreas Mueller.
 
+	* tools/dump-xml.c: various cleanups from Juergen.
+
 2000-04-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-smi.c: applied some patches from Ira Wolf.
