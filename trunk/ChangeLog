@@ -1,3 +1,13 @@
+1999-10-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/error.c: added check for illegal type restrictions
+	in SEQUENCEs.
+
+1999-10-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/Makefile.am: the MIB module files have been reorganized in
+	subdirectories and updated to the latest RFCs and IANA modules.
+
 1999-10-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* test/Makefile.am: restructured tests slightly.

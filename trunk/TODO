@@ -79,3 +79,5 @@ o smidump -f types MIOX25-MIB
 o collapsing of type forward references in smiv2 parser. e.g.
   smiquery type CHARACTER-MIB.CharSessEntry
   should display the definition by a SEQUENCE statement, not `unknown'.
+
+o smilint on orig (RFC 1567) DSA-MIB crashes.

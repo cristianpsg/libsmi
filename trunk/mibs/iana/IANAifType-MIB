@@ -1,4 +1,3 @@
-
    IANAifType-MIB DEFINITIONS ::= BEGIN
 
    IMPORTS

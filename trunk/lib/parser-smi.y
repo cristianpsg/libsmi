@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.43 1999/10/05 06:30:57 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.44 1999/10/05 15:52:20 strauss Exp $
  */
 
 %{
@@ -2557,17 +2557,23 @@ sequenceApplicationSyntax: IPADDRESS
 
 anySubType:		integerSubType
 			{
-			    /* TODO: warning: ignoring SubType */
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_TYPE_RESTRICTION);
 			    $$ = NULL;
 			}
 	|	        octetStringSubType
 			{
-			    /* TODO: warning: ignoring SubType */
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_TYPE_RESTRICTION);
 			    $$ = NULL;
 			}
 	|		enumSpec
 			{
-			    /* TODO: warning: ignoring SubType */
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				printError(thisParserPtr,
+					   ERR_UNEXPECTED_TYPE_RESTRICTION);
 			    $$ = NULL;
 			}
 	|		/* empty */
