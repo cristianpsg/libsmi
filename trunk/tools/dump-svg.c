@@ -1367,6 +1367,282 @@ static void printInformationNode(SmiNode *smiNode,
     (*miNr)++;
 }
 
+static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
+				 float *x, float *y, int *miNr, int i)
+{
+    int           j, foreign_exists, textColor;
+    char          *tooltip;
+    char          *done = NULL;
+    char          s[100];
+    char          *module;
+    SmiNode       *smiNode2;
+    SmiModule     *smiModule2;
+    SmiElement    *smiElement;
+    SmiRevision   *smiRevision;
+    SmiOption     *smiOption;
+    SmiRefinement *smiRefinement;
+
+    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+    printf("(%.2f,%.2f)\">\n", *x, *y);
+    printf("  <text");
+    switch (smiNode->status) {
+    case SMI_STATUS_DEPRECATED:
+	printf(" fill=\"rgb(40%,40%,40%)\"");
+	textColor = 40;
+	break;
+    case SMI_STATUS_OBSOLETE:
+	printf(" fill=\"rgb(60%,60%,60%)\"");
+	textColor = 60;
+	break;
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_MANDATORY:
+	printf(" fill=\"rgb(0%,0%,0%)\"");
+	textColor = 0;
+	break;
+    case SMI_STATUS_OPTIONAL:
+	printf(" fill=\"rgb(20%,20%,20%)\"");
+	textColor = 20;
+	break;
+    }
+    printf(">\n");
+
+    if (!STATIC_OUTPUT) {
+	printf("   <tspan style=\"text-anchor:middle\"");
+	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+    }
+    printf("   <tspan x=\"5\"");
+
+    if (!STATIC_OUTPUT && smiNode->description) {
+	tooltip = (char *)xmalloc(2*strlen(smiNode->description));
+	parseTooltip(smiNode->description, tooltip);
+	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')", tooltip);
+	xfree(tooltip);
+	printf("\" onmouseout=\"HideTooltip(evt)\"");
+    }
+    printf(">%s", smiNode->name);
+    switch (smiNode->status) {
+    case SMI_STATUS_DEPRECATED:
+    case SMI_STATUS_OBSOLETE:
+    case SMI_STATUS_MANDATORY:
+    case SMI_STATUS_OPTIONAL:
+	printf(" (%s)", getStatusString(smiNode->status));
+    case SMI_STATUS_CURRENT:
+    }
+    printf("</tspan>\n");
+    printf("  </text>\n");
+    printf(" </g>\n");
+    (*miNr)++;
+    *y += TABLEELEMHEIGHT;
+
+    //modules for the compliance
+    *x += TABLEELEMHEIGHT;
+    done = xstrdup("+");
+    for (module = modv[i]->name; module; ) {
+	foreign_exists = 0;
+	if (module == modv[i]->name) {
+	    foreign_exists = 1;
+	} else {
+	    for (j = 0; j < modc; j++) {
+		if (module == modv[j]->name) {
+		    foreign_exists = 1;
+		    break;
+		}
+	    }
+	}
+	printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+	printf("(%.2f,%.2f)\">\n", *x, *y);
+	printf("  <text fill=\"rgb(%i%,%i%,%i%)\">\n",
+					    textColor, textColor, textColor);
+	if (!STATIC_OUTPUT) {
+	    printf("   <tspan style=\"text-anchor:middle\"");
+	    printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+	}
+	printf("   <tspan x=\"5\">%s</tspan>\n", module);
+	printf("  </text>\n");
+	printf(" </g>\n");
+	(*miNr)++;
+	*y += TABLEELEMHEIGHT;
+
+	//mandatory groups
+	*x += TABLEELEMHEIGHT;
+	*x += TABLEBOTTOMHEIGHT;
+	printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+	printf("(%.2f,%.2f)\">\n", *x, *y);
+	printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+					    textColor, textColor, textColor);
+	if (!STATIC_OUTPUT && foreign_exists) {
+	    smiElement = smiGetFirstElement(smiNode);
+	    if (smiElement) {
+		printf(" onmousemove=\"");
+	    }
+	    for (j = 0; smiElement;
+		j++, smiElement = smiGetNextElement(smiElement)) {
+		if (!strcmp(smiGetNodeModule(smiGetElementNode(
+						smiElement))->name, module)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s','red')",
+					smiGetElementNode(smiElement)->name);
+		}
+	    }
+	    if (j) {
+		printf("\"");
+	    }
+	    smiElement = smiGetFirstElement(smiNode);
+	    if (smiElement) {
+		printf(" onmouseout=\"");
+	    }
+	    for (j = 0; smiElement;
+		j++, smiElement = smiGetNextElement(smiElement)) {
+		if (!strcmp(smiGetNodeModule(smiGetElementNode(
+						smiElement))->name, module)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s',",
+					smiGetElementNode(smiElement)->name);
+		    switch (smiGetElementNode(smiElement)->status) {
+		    case SMI_STATUS_DEPRECATED:
+			printf("'rgb(40%,40%,40%)')");
+			break;
+		    case SMI_STATUS_OBSOLETE:
+			printf("'rgb(60%,60%,60%)')");
+			break;
+		    case SMI_STATUS_CURRENT:
+		    case SMI_STATUS_MANDATORY:
+			printf("'rgb(0%,0%,0%)')");
+			break;
+		    case SMI_STATUS_OPTIONAL:
+			printf("'rgb(20%,20%,20%)')");
+			break;
+		    }
+		}
+	    }
+	    if (j) {
+		printf("\"");
+	    }
+	}
+	printf(">MANDATORY-GROUPS</text>\n");
+	printf(" </g>\n");
+	*y += TABLEELEMHEIGHT;
+	(*miNr)++;
+
+	//groups
+	for (smiOption = smiGetFirstOption(smiNode); smiOption;
+				    smiOption = smiGetNextOption(smiOption)) {
+	    smiNode2 = smiGetOptionNode(smiOption);
+	    smiModule2 = smiGetNodeModule(smiNode2);
+	    if (!strcmp(smiModule2->name, module)) {
+		printf(" <g id=\"MI%i\" transform=", *miNr);
+		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
+		printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+					    textColor, textColor, textColor);
+		if (!STATIC_OUTPUT) {
+		    printf(" onmousemove=\"");
+		    if (smiOption->description) {
+			tooltip = (char *)xmalloc(2*strlen(
+						    smiOption->description));
+			parseTooltip(smiOption->description, tooltip);
+			printf("ShowTooltipMZ(evt,'%s')", tooltip);
+			xfree(tooltip);
+		    }
+		    if (smiOption->description && foreign_exists)
+			printf(";");
+		    if (foreign_exists)
+			printf("colorText('%s','red')", smiNode2->name);
+		    printf("\" onmouseout=\"");
+		    if (smiOption->description) {
+			printf("HideTooltip(evt)");
+		    }
+		    if (smiOption->description && foreign_exists)
+			printf(";");
+		    if (foreign_exists) {
+			printf("colorText('%s',", smiNode2->name);
+			switch (smiNode2->status) {
+			case SMI_STATUS_DEPRECATED:
+			    printf("'rgb(40%,40%,40%)')");
+			    break;
+			case SMI_STATUS_OBSOLETE:
+			    printf("'rgb(60%,60%,60%)')");
+			    break;
+			case SMI_STATUS_CURRENT:
+			case SMI_STATUS_MANDATORY:
+			    printf("'rgb(0%,0%,0%)')");
+			    break;
+			case SMI_STATUS_OPTIONAL:
+			    printf("'rgb(20%,20%,20%)')");
+			    break;
+			}
+		    }
+		    printf("\"");
+		}
+		printf(">GROUP %s</text>\n", smiNode2->name);
+		printf(" </g>\n");
+		*y += TABLEELEMHEIGHT;
+		(*miNr)++;
+	    }
+	}
+
+	//objects
+	for (smiRefinement = smiGetFirstRefinement(smiNode); smiRefinement;
+			smiRefinement = smiGetNextRefinement(smiRefinement)) {
+	    smiNode2 = smiGetRefinementNode(smiRefinement);
+	    smiModule2 = smiGetNodeModule(smiNode2);
+	    if (!strcmp(smiModule2->name, module)) {
+		printf(" <g id=\"MI%i\" transform=", *miNr);
+		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
+		printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+					    textColor, textColor, textColor);
+		if (!STATIC_OUTPUT) {
+		    printf(" onmousemove=\"");
+		    if (smiRefinement->description) {
+			tooltip = (char *)xmalloc(2*strlen(
+						smiRefinement->description));
+			parseTooltip(smiRefinement->description, tooltip);
+			printf("ShowTooltipMZ(evt,'%s')", tooltip);
+			xfree(tooltip);
+		    }
+		    if (smiRefinement->description && foreign_exists)
+			printf(";");
+		    if (foreign_exists)
+			printf("colorText('%s','red')", smiNode2->name);
+		    printf("\" onmouseout=\"");
+		    if (smiRefinement->description) {
+			printf("HideTooltip(evt)");
+		    }
+		    if (smiRefinement->description && foreign_exists)
+			printf(";");
+		    if (foreign_exists)
+			printf("colorText('%s','black')", smiNode2->name);
+		    printf("\"");
+		}
+		printf(">OBJECT %s</text>\n", smiNode2->name);
+		printf(" </g>\n");
+		*y += TABLEELEMHEIGHT;
+		(*miNr)++;
+	    }
+	}
+	*x -= TABLEELEMHEIGHT;
+	*x -= TABLEBOTTOMHEIGHT;
+
+	//find next module
+	done = xrealloc(done, strlen(done)+strlen(module)+2*sizeof(char));
+	strcat(done, module);
+	strcat(done, "+");
+	module = NULL;
+	for (smiElement = smiGetFirstElement(smiNode); smiElement;
+				smiElement = smiGetNextElement(smiElement)) {
+	    sprintf(s, "+%s+", smiGetNodeModule(smiGetElementNode(
+							smiElement))->name);
+	    if ((!strstr(done, s))) {
+		module = smiGetNodeModule(smiGetElementNode(smiElement))->name;
+		break;
+	    }
+	}
+    }
+    *x -= TABLEELEMHEIGHT;
+}
 
 static void printModuleIdentity(int modc, SmiModule **modv,
 				float *x, float *y, int *miNr)
@@ -1680,17 +1956,8 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 static void printModuleCompliance(int modc, SmiModule **modv,
 				  float *x, float *y, int *miNr, int mCompl[])
 {
-    int           i, j, foreign_exists, textColor;
-    char          *tooltip;
-    char          *done = NULL;
-    char          s[100];
-    char          *module;
-    SmiNode       *smiNode, *smiNode2;
-    SmiModule     *smiModule2;
-    SmiElement    *smiElement;
-    SmiRevision   *smiRevision;
-    SmiOption     *smiOption;
-    SmiRefinement *smiRefinement;
+    int           i;
+    SmiNode       *smiNode;
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1736,277 +2003,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
-		printf("(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text");
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		    printf(" fill=\"rgb(40%,40%,40%)\"");
-		    textColor = 40;
-		    break;
-		case SMI_STATUS_OBSOLETE:
-		    printf(" fill=\"rgb(60%,60%,60%)\"");
-		    textColor = 60;
-		    break;
-		case SMI_STATUS_CURRENT:
-		case SMI_STATUS_MANDATORY:
-		    printf(" fill=\"rgb(0%,0%,0%)\"");
-		    textColor = 0;
-		    break;
-		case SMI_STATUS_OPTIONAL:
-		    printf(" fill=\"rgb(20%,20%,20%)\"");
-		    textColor = 20;
-		    break;
-		}
-		printf(">\n");
-
-		if (!STATIC_OUTPUT) {
-		    printf("   <tspan style=\"text-anchor:middle\"");
-		    printf(" onclick=\"collapse(evt)\">--</tspan>\n");
-		}
-		printf("   <tspan x=\"5\"");
-
-		if (!STATIC_OUTPUT && smiNode->description) {
-		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
-		    parseTooltip(smiNode->description, tooltip);
-		    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')", tooltip);
-		    xfree(tooltip);
-		    printf("\" onmouseout=\"HideTooltip(evt)\"");
-		}
-		printf(">%s", smiNode->name);
-		switch (smiNode->status) {
-		case SMI_STATUS_DEPRECATED:
-		case SMI_STATUS_OBSOLETE:
-		case SMI_STATUS_MANDATORY:
-		case SMI_STATUS_OPTIONAL:
-		    printf(" (%s)", getStatusString(smiNode->status));
-		case SMI_STATUS_CURRENT:
-		}
-		printf("</tspan>\n");
-		printf("  </text>\n");
-		printf(" </g>\n");
-		(*miNr)++;
-		*y += TABLEELEMHEIGHT;
-
-		//modules for the compliance
-		*x += TABLEELEMHEIGHT;
-		done = xstrdup("+");
-		for (module = modv[i]->name; module; ) {
-		    foreign_exists = 0;
-		    if (module == modv[i]->name) {
-			foreign_exists = 1;
-		    } else {
-			for (j = 0; j < modc; j++) {
-			    if (module == modv[j]->name) {
-				foreign_exists = 1;
-				break;
-			    }
-			}
-		    }
-		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
-		    printf("(%.2f,%.2f)\">\n", *x, *y);
-		    printf("  <text fill=\"rgb(%i%,%i%,%i%)\">\n",
-					textColor, textColor, textColor);
-		    if (!STATIC_OUTPUT) {
-			printf("   <tspan style=\"text-anchor:middle\"");
-			printf(" onclick=\"collapse(evt)\">--</tspan>\n");
-		    }
-		    printf("   <tspan x=\"5\">%s</tspan>\n", module);
-		    printf("  </text>\n");
-		    printf(" </g>\n");
-		    (*miNr)++;
-		    *y += TABLEELEMHEIGHT;
-
-		    //mandatory groups
-		    *x += TABLEELEMHEIGHT;
-		    *x += TABLEBOTTOMHEIGHT;
-		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
-		    printf("(%.2f,%.2f)\">\n", *x, *y);
-		    printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
-					textColor, textColor, textColor);
-		    if (!STATIC_OUTPUT && foreign_exists) {
-			smiElement = smiGetFirstElement(smiNode);
-			if (smiElement) {
-			    printf(" onmousemove=\"");
-			}
-			for (j = 0; smiElement;
-			    j++, smiElement = smiGetNextElement(smiElement)) {
-			    if (!strcmp(smiGetNodeModule(smiGetElementNode(
-						smiElement))->name, module)) {
-				if (j) {
-				    printf(";");
-				}
-				printf("colorText('%s','red')",
-					smiGetElementNode(smiElement)->name);
-			    }
-			}
-			if (j) {
-			    printf("\"");
-			}
-			smiElement = smiGetFirstElement(smiNode);
-			if (smiElement) {
-			    printf(" onmouseout=\"");
-			}
-			for (j = 0; smiElement;
-			    j++, smiElement = smiGetNextElement(smiElement)) {
-			    if (!strcmp(smiGetNodeModule(smiGetElementNode(
-						smiElement))->name, module)) {
-				if (j) {
-				    printf(";");
-				}
-				printf("colorText('%s',",
-					smiGetElementNode(smiElement)->name);
-				switch (smiGetElementNode(smiElement)->status) {
-				case SMI_STATUS_DEPRECATED:
-				    printf("'rgb(40%,40%,40%)')");
-				    break;
-				case SMI_STATUS_OBSOLETE:
-				    printf("'rgb(60%,60%,60%)')");
-				    break;
-				case SMI_STATUS_CURRENT:
-				case SMI_STATUS_MANDATORY:
-				    printf("'rgb(0%,0%,0%)')");
-				    break;
-				case SMI_STATUS_OPTIONAL:
-				    printf("'rgb(20%,20%,20%)')");
-				    break;
-				}
-			    }
-			}
-			if (j) {
-			    printf("\"");
-			}
-		    }
-		    printf(">MANDATORY-GROUPS</text>\n");
-		    printf(" </g>\n");
-		    *y += TABLEELEMHEIGHT;
-		    (*miNr)++;
-
-		    //groups
-		    for (smiOption = smiGetFirstOption(smiNode); smiOption;
-				    smiOption = smiGetNextOption(smiOption)) {
-			smiNode2 = smiGetOptionNode(smiOption);
-			smiModule2 = smiGetNodeModule(smiNode2);
-			if (!strcmp(smiModule2->name, module)) {
-			    printf(" <g id=\"MI%i\" transform=", *miNr);
-			    printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-			    printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
-					textColor, textColor, textColor);
-			    if (!STATIC_OUTPUT) {
-				printf(" onmousemove=\"");
-				if (smiOption->description) {
-				    tooltip = (char *)xmalloc(2*strlen(
-						smiOption->description));
-				    parseTooltip(smiOption->description,
-								tooltip);
-				    printf("ShowTooltipMZ(evt,'%s')", tooltip);
-				    xfree(tooltip);
-				}
-				if (smiOption->description && foreign_exists)
-				    printf(";");
-				if (foreign_exists)
-				    printf("colorText('%s','red')",
-								smiNode2->name);
-				printf("\" onmouseout=\"");
-				if (smiOption->description) {
-				    printf("HideTooltip(evt)");
-				}
-				if (smiOption->description && foreign_exists)
-				    printf(";");
-				if (foreign_exists) {
-				    printf("colorText('%s',", smiNode2->name);
-				    switch (smiNode2->status) {
-				    case SMI_STATUS_DEPRECATED:
-					printf("'rgb(40%,40%,40%)')");
-					break;
-				    case SMI_STATUS_OBSOLETE:
-					printf("'rgb(60%,60%,60%)')");
-					break;
-				    case SMI_STATUS_CURRENT:
-				    case SMI_STATUS_MANDATORY:
-					printf("'rgb(0%,0%,0%)')");
-					break;
-				    case SMI_STATUS_OPTIONAL:
-					printf("'rgb(20%,20%,20%)')");
-					break;
-				    }
-				}
-				printf("\"");
-			    }
-			    printf(">GROUP %s</text>\n", smiNode2->name);
-			    printf(" </g>\n");
-			    *y += TABLEELEMHEIGHT;
-			    (*miNr)++;
-			}
-		    }
-
-		    //objects
-		    for (smiRefinement = smiGetFirstRefinement(smiNode);
-			smiRefinement;
-			smiRefinement = smiGetNextRefinement(smiRefinement)) {
-			smiNode2 = smiGetRefinementNode(smiRefinement);
-			smiModule2 = smiGetNodeModule(smiNode2);
-			if (!strcmp(smiModule2->name, module)) {
-			    printf(" <g id=\"MI%i\" transform=", *miNr);
-			    printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-			    printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
-					textColor, textColor, textColor);
-			    if (!STATIC_OUTPUT) {
-				printf(" onmousemove=\"");
-				if (smiRefinement->description) {
-				    tooltip = (char *)xmalloc(2*strlen(
-						smiRefinement->description));
-				    parseTooltip(smiRefinement->description,
-								tooltip);
-				    printf("ShowTooltipMZ(evt,'%s')", tooltip);
-				    xfree(tooltip);
-				}
-				if (smiRefinement->description
-				    && foreign_exists)
-				    printf(";");
-				if (foreign_exists)
-				    printf("colorText('%s','red')",
-								smiNode2->name);
-				printf("\" onmouseout=\"");
-				if (smiRefinement->description) {
-				    printf("HideTooltip(evt)");
-				}
-				if (smiRefinement->description
-				    && foreign_exists)
-				    printf(";");
-				if (foreign_exists)
-				    printf("colorText('%s','black')",
-								smiNode2->name);
-				printf("\"");
-			    }
-			    printf(">OBJECT %s</text>\n", smiNode2->name);
-			    printf(" </g>\n");
-			    *y += TABLEELEMHEIGHT;
-			    (*miNr)++;
-			}
-		    }
-		    *x -= TABLEELEMHEIGHT;
-		    *x -= TABLEBOTTOMHEIGHT;
-
-		    //find next module
-		    done = xrealloc(done,
-				strlen(done)+strlen(module)+2*sizeof(char));
-		    strcat(done, module);
-		    strcat(done, "+");
-		    module = NULL;
-		    for (smiElement = smiGetFirstElement(smiNode);
-			 smiElement;
-			 smiElement = smiGetNextElement(smiElement)) {
-			sprintf(s, "+%s+", smiGetNodeModule(smiGetElementNode(
-							smiElement))->name);
-			if ((!strstr(done, s))) {
-			    module = smiGetNodeModule(smiGetElementNode(
-							smiElement))->name;
-			    break;
-			}
-		    }
-		}
-		*x -= TABLEELEMHEIGHT;
+		printComplianceNode(smiNode, modc, modv, x, y, miNr, i);
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	}
