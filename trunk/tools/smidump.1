@@ -46,7 +46,7 @@ This is the module to be dumped. If it represents a path name
 is assumed to be the exact file to read. Otherwise, if a module is
 identified by its plain module name, the correspondant file (either
 SMIv1/2 or SMIng) is searched along a path, which is initialized by
-the \fBSMIPATH\fP environment variable or by @prefix@/lib/smi if
+the \fBSMIPATH\fP environment variable or by /usr/local/lib/smi if
 \fBSMIPATH\fP is not set. Files with a \fB.sming\fP extension are
 expected to be SMIng module files. Files with a \fB.my\fP or without
 any extension are expected to be SMIv1/v2 module files.
@@ -59,19 +59,11 @@ place that libsmi guesses on its own.
 
   $ smidump -f sming ./IF-MIB > IF-MIB.sming
 .fi
-.SH "FILES"
-.nf
-/usr/local/etc/smi.conf     general configuration file
-/usr/local/etc/smidump.conf smidump configuration file
-.fi
-.SH "NOTES"
-Libsmi and this tool are work in progress. Expect changes in near
-future.
 .SH "SEE ALSO"
 The SMIng and
 .BR libsmi (3)
 project is documented at
-.BR "http://www.ibr.cs.tu-bs.de/~strauss/sming/" "."
+.BR "http://www.ibr.cs.tu-bs.de/projects/sming/" "."
 .PP
 .BR smilint "(1)"
 .SH "AUTHOR"

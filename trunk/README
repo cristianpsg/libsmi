@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.7 1999/05/31 12:59:50 strauss Exp $
+@(#) $Id: README,v 1.8 1999/05/31 14:19:25 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -19,15 +19,13 @@ MANIFEST
 README					this file
 COPYING					the libsmi lincense terms
 ChangeLog				a rough history of changes
-TODO					a list of things to be done
+TODO					incomplete list of things to be done
 configure				configure script
 lib/					library source code
 tools/					tools source code
 doc/draft-irtf-nmrg-sming-00.txt	SMIng specification
 doc/sming.abnf				SMIng ABNF grammar
-doc/IRTF-NMRG-SMING*			SMIng modules from SMIng specification
-mibs/smi/				SMIv1/v2 modules to be installed
-mibs/sming/				SMIng modules to be installed
+mibs/					MIB modules to be installed
 
 
 INSTALLATION
@@ -46,17 +44,29 @@ To build libsmi and the tools, run
 
 This should build the library libsmi in lib/ and the tools, namely
 tools/smilint, tools/smidump, and tools/smiquery. If you wish to
-install the library, the tools and all man pages, run
+install the library, some MIB modules, the tools and all man pages, run
 
 	make install
+
+To use libsmi applications you might want to set the SMIPATH
+environment variable to find more MIB modules than those ones
+installed to @prefix@/lib/smi/. E.g., if you have Scotty installed
+along with its MIB modules, you want to add this line to your (bash
+style) shell startup script:
+
+	export SMIPATH=/usr/local/lib/smi:/usr/local/lib/tnm3.0.0/mibs
 
 
 FURTHER READING
 ===============
 
 Read the man pages for library concepts and usage and for the tools.
-Read the SMIng specification for details on SMIng. You may find further
-information online at http://www.ibr.cs.tu-bs.de/projects/sming/.
+Read the SMIng specification (doc/draft-irtf-nmrg-sming-00.txt) for
+details on SMIng. You may find further information online, along with
+the subscription information on the libsmi mailing list at
+
+	http://www.ibr.cs.tu-bs.de/projects/sming/.
+
 
 
 	Frank Strauss <strauss@ibr.cs.tu-bs.de>
