@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.23 1999/04/09 20:28:34 strauss Exp $
+# @(#) $Id: Makefile,v 1.24 1999/04/10 19:37:20 strauss Exp $
 #
 
 #MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
@@ -30,7 +30,7 @@ LIBSMI_OBJS	= lib/data.o lib/error.o lib/util.o lib/smi.o lib/scanner.o \
 
 LIBSMI_STATIC	= lib/libsmi.a
 
-all: tools/smilint tools/smidump tools/smiquery
+all: tools/smilint tools/smidump tools/smiquery tools/smisubtree
 
 
 tools/smid.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c: lib/smi-rpc.x
@@ -69,10 +69,13 @@ $(LIBSMI_STATIC): $(LIBSMI_OBJS)
 	$(AR) ruv $@ $(LIBSMI_OBJS)
 	$(RANLIB) $@
 	
-tools: tools/smilint tools/smidump tools/smiquery tools/smiclient tools/smid
+tools: tools/smilint tools/smidump tools/smiquery tools/smisubtree tools/smiclient tools/smid
 
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
 	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -lnsl
+
+tools/smisubtree: tools/smisubtree.o $(LIBSMI_STATIC)
+	$(LD) $(LDFLAGS) -o tools/smisubtree $^ -lnsl
 
 tools/smidump: tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o $(LIBSMI_STATIC)
 	$(LD) $(LDFLAGS) -o tools/smidump $^ -lnsl
