@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.in.
 #
-# @(#) $Id$
+# @(#) $Id: Makefile.in,v 1.1 1999/05/21 22:33:55 strauss Exp $
 #
 
 LIBSMI_VERSION	= @LIBSMI_VERSION@
@@ -167,5 +167,5 @@ test-dir:
 	if [ ! -d test ] ; then mkdir test ; fi
 
 dist:
-	cd .. ; tar cvzf libsmi/libsmi.tar.gz `cat libsmi/MANIFEST | sed -e 's!^!libsmi/!'`
+	cd .. ; tar cvzf libsmi/libsmi-$(LIBSMI_VERSION).tar.gz `cat libsmi/MANIFEST | sed -e 's!^!libsmi/!'`
 

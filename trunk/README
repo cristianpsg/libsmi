@@ -2,7 +2,7 @@
 LIBSMI -- A LIBRARY FOR SMI MANAGEMENT INFORMATION
 ==================================================
 
-Part of Frank Strauss' master's thesis at the
+Started as part of Frank Strauss' master's thesis at the
 Technical University of Braunschweig, Germany.
 
 (C) 1999 Frank Strauss, TU Braunschweig, Germany.
@@ -11,7 +11,7 @@ Technical University of Braunschweig, Germany.
 MANIFEST
 ========
 
-README					this File
+README					this file
 Makefile				Makefile to build and install libsmi
 lib/					library source code
 tools/					tools' source code
@@ -34,12 +34,16 @@ have on board. The compiler has to support `long long' types. Bison
 which is used by libsmi. Anyhow, a slight hack in the Makefile should
 make at least bison 1.25 work for libsmi.
 
-Sorry, libsmi does not yet have autoconf support.
+To build libsmi and the tools, run
 
-After checking the Makefile for local requirements, type `make'. This
-should build the static library lib/libsmi.a and the tools, namely
+	./configure
+	make
+
+This should build the library lib/libsmi.so and the tools, namely
 tools/smilint, tools/smidump, and tools/smiquery. If you wish to
-install it, type `make install'.
+install the library, the tools and all man pages, run
+
+	make install
 
 
 FURTHER READING
@@ -51,4 +55,5 @@ information online at http://www.ibr.cs.tu-bs.de/~strauss/sming/. If
 this fails, contact me, <strauss@ibr.cs.tu-bs.de>.
 
 
-	Frank Strauss, 09-05-1999
+	Frank Strauss, 22-May-1999
+

@@ -34,10 +34,6 @@ AC_ARG_ENABLE(sming,
 [  --enable-sming          enable SMIng support],
 AC_DEFINE(BACKEND_SMING))
 
-AC_ARG_ENABLE(debug,
-[  --enable-sming            enable SMIng support],
-CFLAGS="$CFLAGS -g -Wall")
-
 AC_PROG_YACC
 AC_PROG_LEX
 AC_PROG_CC
