@@ -3,6 +3,9 @@
 	* lib/data.c: Fixed illegal reference to already freed type
 	structs in smiFreeData(). Thanks to Nick.
 
+	* lib/parser-smi.h: Added a check for mismatching tables'
+	SEQUENCE OF types and row types. Thanks to Mike.
+
 2002-06-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 	
 	* mibs/ietf/GSMP-MIB: added (RFC 3295).

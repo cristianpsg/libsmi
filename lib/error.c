@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.93 2002/05/31 17:22:13 bunkus Exp $
+ * @(#) $Id: error.c,v 1.94 2002/06/07 17:51:59 schoenw Exp $
  */
 
 #include <config.h>
@@ -458,6 +458,8 @@ static Error errors[] = {
       "scalar's parent node must be simple node" },
     { 2, ERR_TABLE_PARENT_TYPE, "parent-table",
       "table's parent node must be simple node" },
+    { 2, ERR_TABLE_ROW_TYPE_MISMATCH, "table-type",
+      "table's SEQUENCE OF type does not match row type" },
     { 2, ERR_ROW_PARENT_TYPE, "parent-row",
       "row's parent node must be a table node" },
     { 2, ERR_COLUMN_PARENT_TYPE, "parent-column",
