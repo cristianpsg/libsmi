@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.28 2002/03/05 11:57:28 schoenw Exp $
+ * @(#) $Id: dump-tree.c,v 1.29 2002/03/11 08:52:44 strauss Exp $
  */
 
 #include <config.h>
@@ -414,9 +414,9 @@ static void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 void initTree()
 {
     static SmidumpDriverOption opt[] = {
-	{ "ignore-conformance", OPT_FLAG, &ignoreconformance, 0,
-	  "ignore conformance definitions"},
-	{ "no-full-path", OPT_FLAG, &compact, 0,
+	{ "no-conformance", OPT_FLAG, &ignoreconformance, 0,
+	  "do not show conformance definitions"},
+	{ "no-full-root", OPT_FLAG, &compact, 0,
 	  "do not show the full path to the root"},
         { 0, OPT_END, 0, 0 }
     };
