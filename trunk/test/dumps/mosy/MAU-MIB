@@ -42,6 +42,7 @@ mauModNotGrps        mauModConf.3
 %es                  JackType         telco           11
 %es                  JackType         mtrj            12
 %es                  JackType         hssdc           13
+%es                  JackType         fiberLC         14
 rpMauTable           dot3RpMauBasicGroup.1 Aggregate       not-accessible  current
 rpMauEntry           rpMauTable.1     Aggregate       not-accessible  current
 %ei                  rpMauEntry       "rpMauGroupIndex rpMauPortIndex rpMauIndex"
@@ -51,7 +52,7 @@ rpMauPortIndex       rpMauEntry.2     Integer32       read-only       current
 %er                  rpMauPortIndex   1               2147483647
 rpMauIndex           rpMauEntry.3     Integer32       read-only       current
 %er                  rpMauIndex       1               2147483647
-rpMauType            rpMauEntry.4     ObjectID        read-only       current
+rpMauType            rpMauEntry.4     AutonomousType  read-only       current
 rpMauStatus          rpMauEntry.5     INTEGER         read-write      current
 %ev                  rpMauStatus      other           1
 %ev                  rpMauStatus      unknown         2
@@ -88,11 +89,10 @@ rpJackType           rpJackEntry.2    JackType        read-only       current
 ifMauTable           dot3IfMauBasicGroup.1 Aggregate       not-accessible  current
 ifMauEntry           ifMauTable.1     Aggregate       not-accessible  current
 %ei                  ifMauEntry       "ifMauIfIndex ifMauIndex"
-ifMauIfIndex         ifMauEntry.1     Integer32       read-only       current
-%er                  ifMauIfIndex     1               2147483647
+ifMauIfIndex         ifMauEntry.1     InterfaceIndex  read-only       current
 ifMauIndex           ifMauEntry.2     Integer32       read-only       current
 %er                  ifMauIndex       1               2147483647
-ifMauType            ifMauEntry.3     ObjectID        read-only       current
+ifMauType            ifMauEntry.3     AutonomousType  read-only       current
 ifMauStatus          ifMauEntry.4     INTEGER         read-write      current
 %ev                  ifMauStatus      other           1
 %ev                  ifMauStatus      unknown         2
@@ -112,6 +112,13 @@ ifMauMediaAvailable  ifMauEntry.5     INTEGER         read-only       current
 %ev                  ifMauMediaAvailable remoteTest      9
 %ev                  ifMauMediaAvailable offline         10
 %ev                  ifMauMediaAvailable autoNegError    11
+%ev                  ifMauMediaAvailable pmdLinkFault    12
+%ev                  ifMauMediaAvailable wisFrameLoss    13
+%ev                  ifMauMediaAvailable wisSignalLoss   14
+%ev                  ifMauMediaAvailable pcsLinkFault    15
+%ev                  ifMauMediaAvailable excessiveBER    16
+%ev                  ifMauMediaAvailable dxsLinkFault    17
+%ev                  ifMauMediaAvailable pxsLinkFault    18
 ifMauMediaAvailableStateExits ifMauEntry.6     Counter32       read-only       current
 ifMauJabberState     ifMauEntry.7     INTEGER         read-only       current
 %ev                  ifMauJabberState other           1
@@ -121,7 +128,7 @@ ifMauJabberState     ifMauEntry.7     INTEGER         read-only       current
 ifMauJabberingStateEnters ifMauEntry.8     Counter32       read-only       current
 ifMauFalseCarriers   ifMauEntry.9     Counter32       read-only       current
 ifMauTypeList        ifMauEntry.10    Integer32       read-only       deprecated
-ifMauDefaultType     ifMauEntry.11    ObjectID        read-write      current
+ifMauDefaultType     ifMauEntry.11    AutonomousType  read-write      current
 ifMauAutoNegSupported ifMauEntry.12    TruthValue      read-only       current
 ifMauTypeListBits    ifMauEntry.13    Bits            read-only       current
 %ev                  ifMauTypeListBits bOther          0
@@ -155,6 +162,17 @@ ifMauTypeListBits    ifMauEntry.13    Bits            read-only       current
 %ev                  ifMauTypeListBits b1000baseCXFD   28
 %ev                  ifMauTypeListBits b1000baseTHD    29
 %ev                  ifMauTypeListBits b1000baseTFD    30
+%ev                  ifMauTypeListBits b10GbaseX       31
+%ev                  ifMauTypeListBits b10GbaseLX4     32
+%ev                  ifMauTypeListBits b10GbaseR       33
+%ev                  ifMauTypeListBits b10GbaseER      34
+%ev                  ifMauTypeListBits b10GbaseLR      35
+%ev                  ifMauTypeListBits b10GbaseSR      36
+%ev                  ifMauTypeListBits b10GbaseW       37
+%ev                  ifMauTypeListBits b10GbaseEW      38
+%ev                  ifMauTypeListBits b10GbaseLW      39
+%ev                  ifMauTypeListBits b10GbaseSW      40
+ifMauHCFalseCarriers ifMauEntry.14    Counter64       read-only       current
 ifJackTable          dot3IfMauBasicGroup.2 Aggregate       not-accessible  current
 ifJackEntry          ifJackTable.1    Aggregate       not-accessible  current
 %ei                  ifJackEntry      "ifMauIfIndex ifMauIndex ifJackIndex"
@@ -164,8 +182,7 @@ ifJackType           ifJackEntry.2    JackType        read-only       current
 broadMauBasicTable   dot3BroadMauBasicGroup.1 Aggregate       not-accessible  deprecated
 broadMauBasicEntry   broadMauBasicTable.1 Aggregate       not-accessible  deprecated
 %ei                  broadMauBasicEntry "broadMauIfIndex broadMauIndex"
-broadMauIfIndex      broadMauBasicEntry.1 Integer32       read-only       deprecated
-%er                  broadMauIfIndex  1               2147483647
+broadMauIfIndex      broadMauBasicEntry.1 InterfaceIndex  read-only       deprecated
 broadMauIndex        broadMauBasicEntry.2 Integer32       read-only       deprecated
 %er                  broadMauIndex    1               2147483647
 broadMauXmtRcvSplitType broadMauBasicEntry.3 INTEGER         read-only       deprecated
@@ -234,6 +251,26 @@ dot3MauType1000BaseTHD dot3MauType.29
 %n0 dot3MauType1000BaseTHD object-id
 dot3MauType1000BaseTFD dot3MauType.30
 %n0 dot3MauType1000BaseTFD object-id
+dot3MauType10GigBaseX dot3MauType.31
+%n0 dot3MauType10GigBaseX object-id
+dot3MauType10GigBaseLX4 dot3MauType.32
+%n0 dot3MauType10GigBaseLX4 object-id
+dot3MauType10GigBaseR dot3MauType.33
+%n0 dot3MauType10GigBaseR object-id
+dot3MauType10GigBaseER dot3MauType.34
+%n0 dot3MauType10GigBaseER object-id
+dot3MauType10GigBaseLR dot3MauType.35
+%n0 dot3MauType10GigBaseLR object-id
+dot3MauType10GigBaseSR dot3MauType.36
+%n0 dot3MauType10GigBaseSR object-id
+dot3MauType10GigBaseW dot3MauType.37
+%n0 dot3MauType10GigBaseW object-id
+dot3MauType10GigBaseEW dot3MauType.38
+%n0 dot3MauType10GigBaseEW object-id
+dot3MauType10GigBaseLW dot3MauType.39
+%n0 dot3MauType10GigBaseLW object-id
+dot3MauType10GigBaseSW dot3MauType.40
+%n0 dot3MauType10GigBaseSW object-id
 ifMauAutoNegTable    dot3IfMauAutoNegGroup.1 Aggregate       not-accessible  current
 ifMauAutoNegEntry    ifMauAutoNegTable.1 Aggregate       not-accessible  current
 %ei                  ifMauAutoNegEntry "ifMauIfIndex ifMauIndex"
@@ -344,6 +381,8 @@ mauIfGrpAutoNeg2     mauModObjGrps.10
 %n0 mauIfGrpAutoNeg2 object-group
 mauIfGrpAutoNeg1000Mbps mauModObjGrps.11
 %n0 mauIfGrpAutoNeg1000Mbps object-group
+mauIfGrpHCStats      mauModObjGrps.12
+%n0 mauIfGrpHCStats  object-group
 rpMauNotifications   mauModNotGrps.1
 %n0 rpMauNotifications notification-group
 ifMauNotifications   mauModNotGrps.2
@@ -357,4 +396,6 @@ mauModIfCompl2       mauModCompls.3
 %n0 mauModIfCompl2   module-compliance
 mauModRpCompl2       mauModCompls.4
 %n0 mauModRpCompl2   module-compliance
+mauModIfCompl3       mauModCompls.5
+%n0 mauModIfCompl3   module-compliance
 

@@ -236,7 +236,7 @@
             <string>#rpMauType#</string>
           </attribute>
           <attribute name="type">
-            <string>#ObjectIdentifier#</string>
+            <string>#AutonomousType#</string>
           </attribute>
           <attribute name="value">
             <string/>
@@ -663,19 +663,19 @@
     </object>
     <object type="UML - Class" version="0" id="ifMauTable">
       <attribute name="obj_pos">
-       <point val="21.36,35.10"/>
+       <point val="21.36,35.78"/>
       </attribute>
      <attribute name="obj_bb">
        <rectangle val="0.0,0.0;0.0,0.0"/>
      </attribute>
      <attribute name="elem_corner">
-       <point val="21.36,35.10"/>
+       <point val="21.36,35.78"/>
      </attribute>
      <attribute name="elem_width">
-       <real val="12.48"/>
+       <real val="16.32"/>
      </attribute>
      <attribute name="elem_height">
-       <real val="12.73"/>
+       <real val="13.40"/>
      </attribute>
      <attribute name="name">
        <string>#ifMauEntry#</string>
@@ -704,7 +704,7 @@
             <string>#ifMauIfIndex#</string>
           </attribute>
           <attribute name="type">
-            <string>#Integer32 {index}#</string>
+            <string>#InterfaceIndex {index}#</string>
           </attribute>
           <attribute name="value">
             <string/>
@@ -744,7 +744,7 @@
             <string>#ifMauIfIndex#</string>
           </attribute>
           <attribute name="type">
-            <string>#Integer32#</string>
+            <string>#InterfaceIndex#</string>
           </attribute>
           <attribute name="value">
             <string/>
@@ -784,7 +784,7 @@
             <string>#ifMauType#</string>
           </attribute>
           <attribute name="type">
-            <string>#ObjectIdentifier#</string>
+            <string>#AutonomousType#</string>
           </attribute>
           <attribute name="value">
             <string/>
@@ -944,7 +944,7 @@
             <string>#ifMauDefaultType#</string>
           </attribute>
           <attribute name="type">
-            <string>#ObjectIdentifier#</string>
+            <string>#AutonomousType#</string>
           </attribute>
           <attribute name="value">
             <string/>
@@ -999,6 +999,26 @@
             <boolean val="false"/>
           </attribute>
         </composite>
+        <composite type="umlattribute">
+          <attribute name="name">
+            <string>#ifMauHCFalseCarriers#</string>
+          </attribute>
+          <attribute name="type">
+            <string>#Counter64#</string>
+          </attribute>
+          <attribute name="value">
+            <string/>
+          </attribute>
+          <attribute name="visibility">
+            <enum val="0"/>
+          </attribute>
+          <attribute name="abstract">
+            <boolean val="false"/>
+          </attribute>
+          <attribute name="class_scope">
+            <boolean val="false"/>
+          </attribute>
+        </composite>
       </attribute>
      <attribute name="operations"/>
     <attribute name="template">
@@ -1015,9 +1035,9 @@
      </attribute>
      <attribute name="orth_points">
        <point val="17.36,16.38"/>
-       <point val="17.36,25.74"/>
-       <point val="21.36,25.74"/>
-       <point val="21.36,35.10"/>
+       <point val="17.36,26.08"/>
+       <point val="21.36,26.08"/>
+       <point val="21.36,35.78"/>
      </attribute>
       <attribute name="orth_orient">
         <enum val="1"/>
@@ -1067,13 +1087,13 @@
     </object>
     <object type="UML - Class" version="0" id="ifJackTable">
       <attribute name="obj_pos">
-       <point val="21.36,44.08"/>
+       <point val="21.36,44.75"/>
       </attribute>
      <attribute name="obj_bb">
        <rectangle val="0.0,0.0;0.0,0.0"/>
      </attribute>
      <attribute name="elem_corner">
-       <point val="21.36,44.08"/>
+       <point val="21.36,44.75"/>
      </attribute>
      <attribute name="elem_width">
        <real val="11.04"/>
@@ -1108,7 +1128,7 @@
             <string>#ifMauIfIndex#</string>
           </attribute>
           <attribute name="type">
-            <string>#Integer32 {index}#</string>
+            <string>#InterfaceIndex {index}#</string>
           </attribute>
           <attribute name="value">
             <string/>
@@ -1219,9 +1239,9 @@
      </attribute>
      <attribute name="orth_points">
        <point val="17.36,16.38"/>
-       <point val="17.36,30.23"/>
-       <point val="21.36,30.23"/>
-       <point val="21.36,44.08"/>
+       <point val="17.36,30.56"/>
+       <point val="21.36,30.56"/>
+       <point val="21.36,44.75"/>
      </attribute>
       <attribute name="orth_orient">
         <enum val="1"/>
@@ -1271,16 +1291,16 @@
     </object>
     <object type="UML - Association" version="0" id="Assoc:ifMauTable:ifJackTable">
       <attribute name="obj_pos">
-        <point val="27.60,47.83"/>
+        <point val="29.52,49.18"/>
      </attribute>
       <attribute name="obj_bb">
-       <rectangle val="26.75,32.25;28.45,33.95"/>
+       <rectangle val="28.67,32.93;30.37,34.63"/>
      </attribute>
      <attribute name="orth_points">
-       <point val="27.60,47.83"/>
-       <point val="27.60,49.70"/>
-       <point val="26.88,49.70"/>
-       <point val="26.88,44.08"/>
+       <point val="29.52,49.18"/>
+       <point val="29.52,51.39"/>
+       <point val="26.88,51.39"/>
+       <point val="26.88,44.75"/>
      </attribute>
       <attribute name="orth_orient">
         <enum val="1"/>
@@ -1330,13 +1350,13 @@
     </object>
     <object type="UML - Class" version="0" id="ifMauAutoNegTable">
       <attribute name="obj_pos">
-       <point val="40.72,68.10"/>
+       <point val="40.72,68.78"/>
       </attribute>
      <attribute name="obj_bb">
        <rectangle val="0.0,0.0;0.0,0.0"/>
      </attribute>
      <attribute name="elem_corner">
-       <point val="40.72,68.10"/>
+       <point val="40.72,68.78"/>
      </attribute>
      <attribute name="elem_width">
        <real val="22.56"/>
@@ -1371,7 +1391,7 @@
             <string>#ifMauIfIndex#</string>
           </attribute>
           <attribute name="type">
-            <string>#Integer32 {index}#</string>
+            <string>#InterfaceIndex {index}#</string>
           </attribute>
           <attribute name="value">
             <string/>
@@ -1655,16 +1675,16 @@
    </object>
     <object type="UML - Association" version="0" id="Assoc:ifMauTable:ifMauAutoNegTable">
       <attribute name="obj_pos">
-        <point val="33.84,47.83"/>
+        <point val="37.68,49.18"/>
      </attribute>
       <attribute name="obj_bb">
-       <rectangle val="26.75,32.25;28.45,33.95"/>
+       <rectangle val="28.67,32.93;30.37,34.63"/>
      </attribute>
      <attribute name="orth_points">
-       <point val="33.84,47.83"/>
-       <point val="33.84,57.96"/>
-       <point val="40.72,57.96"/>
-       <point val="40.72,68.10"/>
+       <point val="37.68,49.18"/>
+       <point val="37.68,58.98"/>
+       <point val="40.72,58.98"/>
+       <point val="40.72,68.78"/>
      </attribute>
       <attribute name="orth_orient">
         <enum val="1"/>
@@ -1714,16 +1734,16 @@
     </object>
     <object type="UML - Association" version="0" id="Assoc:ifMauTable:ifMauTable">
       <attribute name="obj_pos">
-        <point val="27.60,35.10"/>
+        <point val="29.52,35.78"/>
      </attribute>
       <attribute name="obj_bb">
-       <rectangle val="26.75,32.25;28.45,33.95"/>
+       <rectangle val="28.67,32.93;30.37,34.63"/>
      </attribute>
      <attribute name="orth_points">
-       <point val="27.60,35.10"/>
-       <point val="27.60,28.74"/>
-       <point val="27.60,28.74"/>
-       <point val="27.60,35.10"/>
+       <point val="29.52,35.78"/>
+       <point val="29.52,29.08"/>
+       <point val="29.52,29.08"/>
+       <point val="29.52,35.78"/>
      </attribute>
       <attribute name="orth_orient">
         <enum val="1"/>
