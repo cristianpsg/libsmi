@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.102 2000/04/11 09:00:25 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.103 2000/04/12 08:15:03 strauss Exp $
  */
 
 %{
@@ -99,6 +99,20 @@ checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
 
 
 static void
+checkIndex(Parser *parserPtr, Object *objectPtr)
+{
+
+    /*
+     * TODO: check that integers are positive
+     */
+
+    /*
+     * TODO: check that index components are not-accessible
+     */
+}
+
+
+static void
 checkObjects(Parser *parserPtr, Module *modulePtr)
 {
     Object *objectPtr, *parentPtr;
@@ -169,6 +183,23 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	}
 
 	/*
+	 * Check whether tables and rows are not accessible
+	 * (RFC 2578 7.1.12).
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_TABLE
+	    && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+	    printErrorAtLine(parserPtr, ERR_TABLE_ACCESS,
+			     objectPtr->line, objectPtr->export.name);
+	}
+	
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW
+	    && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+	    printErrorAtLine(parserPtr, ERR_ROW_ACCESS,
+			     objectPtr->line, objectPtr->export.name);
+	}
+	
+	/*
 	 * Check whether a row's subid is 1, see RFC 2578 7.10 (1).
 	 */
 	
@@ -201,6 +232,14 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	 * TODO: check whether the row is the only node below the
          * table node
 	 */
+
+	/*
+	 * Check INDEX constraints for row objects.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
+	    checkIndex(parserPtr, objectPtr);
+	}
 	
 	/*
 	 * Check references to unknown identifiers.

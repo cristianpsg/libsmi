@@ -114,3 +114,5 @@
 #define ERR_SMIV2_TYPE_ASSIGNEMENT               113
 #define ERR_ILLEGAL_IMPORT                       114
 #define ERR_SMIV2_NESTED_TEXTUAL_CONVENTION      115
+#define ERR_TABLE_ACCESS                         116
+#define ERR_ROW_ACCESS                           117
