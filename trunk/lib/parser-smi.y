@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.197 2003/10/06 10:48:45 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.198 2003/11/18 12:56:04 schoenw Exp $
  */
 
 %{
@@ -1071,10 +1071,7 @@ adjustDefval(Parser *parserPtr, SmiValue *valuePtr, Type *typePtr, int line)
 static void
 checkDefvals(Parser *parserPtr, Module *modulePtr)
 {
-    Object *objectPtr, *object2Ptr;
-    List *bitsListPtr, *valueListPtr, *p, *pp, *nextPtr, *listPtr;
-    Import *importPtr;
-    int nBits, bit;
+    Object *objectPtr;
     
     /*
      * Check unknown identifiers in OID DEFVALs.

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.51 2003/08/05 13:50:58 strauss Exp $
+ * @(#) $Id: check.c,v 1.52 2003/11/18 12:56:04 schoenw Exp $
  */
 
 #include <config.h>
@@ -1334,8 +1334,6 @@ smiCheckValueType(Parser *parser, SmiValue *value, Type *type, int line)
 void
 smiCheckDefault(Parser *parser, Object *object)
 {
-    List *p, *nextPtr;
-
     smiCheckValueType(parser, &object->export.value, object->typePtr,
 		      object->line);
 }
