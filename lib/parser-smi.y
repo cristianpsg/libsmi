@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.161 2001/11/08 07:34:32 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.162 2001/12/14 10:09:51 strauss Exp $
  */
 
 %{
@@ -2476,20 +2476,33 @@ VarPart:		VARIABLES '{' VarTypes '}'
 
 VarTypes:		VarType
 			{
-			    $$ = smiMalloc(sizeof(List));
-			    $$->ptr = $1;
-			    $$->nextPtr = NULL;
+			    if ($1) {
+				$$ = smiMalloc(sizeof(List));
+				$$->ptr = $1;
+				$$->nextPtr = NULL;
+			    } else {
+				$$ = NULL;
+			    }
 			}
 	|		VarTypes ',' VarType
 			{
 			    List *p, *pp;
-			    
-			    p = smiMalloc(sizeof(List));
-			    p->ptr = $3;
-			    p->nextPtr = NULL;
-			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
-			    pp->nextPtr = p;
-			    $$ = $1;
+
+			    if ($3) {
+				p = smiMalloc(sizeof(List));
+				p->ptr = $3;
+				p->nextPtr = NULL;
+				if ($1) {
+				    for (pp = $1; pp->nextPtr;
+					 pp = pp->nextPtr);
+				    pp->nextPtr = p;
+				    $$ = $1;
+				} else {
+				    $$ = p;
+				}
+			    } else {
+				$$ = $1;
+			    }
 			}
 	;
 
@@ -4247,7 +4260,11 @@ objectIdentifier:	{
 			subidentifiers
 			{
 			    $$ = $2;
-			    parentNodePtr = $2->nodePtr;
+			    if ($$) {
+				parentNodePtr = $2->nodePtr;
+			    } else {
+				parentNodePtr = NULL;
+			    }
 			}
 	;
 
