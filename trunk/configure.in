@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.119 2004/01/12 14:11:37 strauss Exp $
+# @(#) $Id: configure.in,v 1.120 2004/08/09 14:04:09 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -176,7 +176,7 @@ AC_DEFINE([HAVE_DMALLOC_H], 1, ""))
 
 AC_DEFINE(BACKEND_SMI, 1, "")
 AC_ARG_ENABLE(smi,
-[  --enable-smi           disable SMIv1/v2 parser support],
+[  --disable-smi           disable SMIv1/v2 parser support],
 AC_DEFINE(BACKEND_SMI, 1, ""))
 
 AC_ARG_ENABLE(sming,
