@@ -4,6 +4,10 @@
 
 	* tools/dump-cm.c: Update from Andreas.
 
+	* Erik contributed various patches to compile libsmi in Win32
+	systems using the VC++ compiler. Juergen aligned some of them.
+	Some are still left to be done.
+
 2000-04-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-cm.c: added conception model (cm) dump format from
