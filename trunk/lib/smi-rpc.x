@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.4 1999/03/23 22:55:41 strauss Exp $
+% * @(#) $Id: smi.x,v 1.5 1999/03/24 16:25:31 strauss Exp $
 % */
 %
 
@@ -151,8 +151,6 @@ struct smi_type {
     smi_descriptor	module;
     smi_syntax		syntax;
     smi_string		parent;
-    smi_namednumber	namednumber[];
-    smi_range           range[];
     smi_decl		decl;
     smi_string		format;
     smi_string		units;

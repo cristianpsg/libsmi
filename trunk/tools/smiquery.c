@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.2 1999/03/16 17:24:14 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.3 1999/03/17 19:09:11 strauss Exp $
  */
 
 #include <stdio.h>
@@ -31,14 +31,18 @@ format(const char *s)
     static char ss[20000];
     int i, j;
 
-    for(i = 0, j = 0; s[i]; i++) {
-	ss[j++] = s[i];
-	if (s[i] == '\n') {
-	    sprintf(&ss[j], "              ");
-	    j += 14;
+    if (!s) {
+	sprintf(ss, "-");
+    } else {
+	for(i = 0, j = 0; s[i]; i++) {
+	    ss[j++] = s[i];
+	    if (s[i] == '\n') {
+		sprintf(&ss[j], "              ");
+		j += 14;
+	    }
 	}
+	ss[j] = 0;
     }
-    ss[j] = 0;
     return ss;
 }
 
@@ -59,16 +63,18 @@ main(argc, argv)
     int argc;
     char *argv[];
 {
-    smi_fullname fullname;
-    smi_module *module;
-    smi_node *node;
-    smi_type *type;
-    smi_macro *macro;
-    smi_namelist *namelist;
+    char *fullname;
+    SmiModule *module;
+    SmiNode *node;
+    SmiType *type;
+    SmiMacro *macro;
+    char **list;
     char *command, *name;
     int flags;
     char c;
-	
+    char **p;
+    void **listPtr;
+    
     smiInit();
 
 #ifdef SMIQUERY_CONFIG_FILE
@@ -136,8 +142,8 @@ main(argc, argv)
     if (!strcmp(command, "module")) {
 	module = smiGetModule(name);
 	if (module) {
-	    printf("      Module: %s\n", module->name);
-	    printf("      Object: %s\n", module->object);
+	    printf("      Module: %s\n", format(module->name));
+	    printf("      Object: %s\n", format(module->object));
 	    printf(" LastUpdated: %s", ctime(&module->lastupdated));
 	    printf("Organization: %s\n", format(module->organization));
 	    printf(" ContactInfo: %s\n", format(module->contactinfo));
@@ -149,10 +155,10 @@ main(argc, argv)
     if (!strcmp(command, "node")) {
 	node = smiGetNode(name, "");
 	if (node) {
-	    printf("     MibNode: %s\n", node->name);
-	    printf("      Module: %s\n", node->module);
-	    printf("         OID: %s\n", node->oid);
-	    printf("        Type: %s\n", node->type);
+	    printf("     MibNode: %s\n", format(node->name));
+	    printf("      Module: %s\n", format(node->module));
+	    printf("         OID: %s\n", format(node->oid));
+	    printf("        Type: %s\n", format(node->type));
 	    printf("      Syntax: %s\n", smiStringSyntax(node->syntax));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
@@ -165,42 +171,71 @@ main(argc, argv)
     if (!strcmp(command, "type")) {
 	type = smiGetType(name, "");
 	if (type) {
-	    printf("        Type: %s\n", type->name);
-	    printf("      Module: %s\n", type->module);
+	    printf("        Type: %s\n", format(type->name));
+	    printf("      Module: %s\n", format(type->module));
 	    printf("      Syntax: %s\n", smiStringSyntax(type->syntax));
+	    printf(" Parent Type: %s\n", format(type->parent));
+	    printf("Restrictions:");
+	    if (type->list) {
+		for (listPtr = type->list; *listPtr; listPtr++) {
+		    if ((type->syntax == SMI_SYNTAX_ENUM) ||
+			(type->syntax == SMI_SYNTAX_BITS)) {
+			printf(" %s(%ld)",
+			       ((SmiNamedNumber *)*listPtr)->name,
+		     ((SmiNamedNumber *)*listPtr)->valuePtr->value.unsigned32);
+		    } else {
+			printf(" %ld..%ld",
+		         ((SmiRange *)*listPtr)->minValuePtr->value.unsigned32,
+		        ((SmiRange *)*listPtr)->maxValuePtr->value.unsigned32);
+		    }
+		}
+	    }
+	    printf("\n");
 	    printf(" Declaration: %s\n", smiStringDecl(type->decl));
-	    printf(" DisplayHint: %s\n", type->format);
+	    printf(" DisplayHint: %s\n", format(type->format));
 	    printf("      Status: %s\n", smiStringStatus(type->status));
-	    printf(" Description: %s\n", type->description);
+	    printf(" Description: %s\n", format(type->description));
 	}
     }
 
     if (!strcmp(command, "macro")) {
 	macro = smiGetMacro(name, "");
 	if (macro) {
-	    printf("       Macro: %s\n", macro->name);
-	    printf("      Module: %s\n", macro->module);
+	    printf("       Macro: %s\n", format(macro->name));
+	    printf("      Module: %s\n", format(macro->module));
 	}
     }
     
     if (!strcmp(command, "names")) {
-	namelist = smiGetNames(name, "");
-	if (namelist) {
-	    printf("       Names: %s\n", namelist->namelist);
+	list = smiGetNames(name, "");
+	if (list) {
+	    printf("       Names:");
+	    for (p = list; *p; p++) {
+		printf(" %s", *p);
+	    }
+	    printf("\n");
 	}
     }
     
     if (!strcmp(command, "children")) {
-	namelist = smiGetChildren(name, "");
-	if (namelist) {
-	    printf("    Children: %s\n", namelist->namelist);
+	list = smiGetChildren(name, "");
+	if (list) {
+	    printf("    Children:");
+	    for (p = list; *p; p++) {
+		printf(" %s", *p);
+	    }
+	    printf("\n");
 	}
     }
     
     if (!strcmp(command, "members")) {
-	namelist = smiGetMembers(name, "");
-	if (namelist) {
-	    printf("     Members: %s\n", namelist->namelist);
+	list = smiGetMembers(name, "");
+	if (list) {
+	    printf("     Members:");
+	    for (p = list; *p; p++) {
+		printf(" %s", *p);
+	    }
+	    printf("\n");
 	}
     }
     
