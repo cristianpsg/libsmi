@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.25 2000/07/17 09:34:48 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.26 2000/10/02 12:51:12 strauss Exp $
  */
 
 %option noyywrap
@@ -449,6 +449,9 @@ SP		" "
     if (yyleng > 64) {
 	smiPrintError(parser, ERR_UCIDENTIFIER_64, yytext);
     }
+    if (strchr(yytext, '_')) {
+        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER, yytext);
+    }
     yylval.text = smiStrdup(yytext);
     return ucIdentifier;
 }
@@ -460,6 +463,9 @@ SP		" "
     }
     if (yyleng > 64) {
 	smiPrintError(parser, ERR_LCIDENTIFIER_64, yytext);
+    }
+    if (strchr(yytext, '_')) {
+        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER, yytext);
     }
     yylval.text = smiStrdup(yytext);
     return lcIdentifier;

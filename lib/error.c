@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.52 2000/10/20 09:23:58 strauss Exp $
+ * @(#) $Id: error.c,v 1.53 2000/10/21 09:35:01 strauss Exp $
  */
 
 #include <config.h>
@@ -367,7 +367,7 @@ static Error errors[] = {
     { 2, ERR_BAD_LOWER_IDENTIFIER_CASE, "bad-identifier-case",
       "`%s' should start with a lower case letter" },
     { 2, ERR_UNDERSCORE_IN_IDENTIFIER, "underscore-in-identifier",
-      "identifiers should not contain underscores" },
+      "identifier `%s' must not contain an underscore" },
 
     { 0, 0, NULL, NULL }
 };

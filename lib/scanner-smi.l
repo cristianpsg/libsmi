@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.27 2000/10/04 08:07:29 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.28 2000/10/19 16:14:43 strauss Exp $
  */
 
 %option noyywrap
@@ -584,10 +584,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
     if (strchr(yytext, '_')) {
-        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER);
-	if ((thisParser.flags & SMI_FLAG_BE_LAX) == 0) {
-	    smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
-	}
+        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER, yytext);
     }
     yylval.id = smiStrdup(yytext);
     return UPPERCASE_IDENTIFIER;
@@ -599,10 +596,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
     if (strchr(yytext, '_')) {
-        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER);
-	if ((thisParser.flags & SMI_FLAG_BE_LAX) == 0) {
-	    smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
-	}
+        smiPrintError(parser, ERR_UNDERSCORE_IN_IDENTIFIER, yytext);
     }
     yylval.id = smiStrdup(yytext);
     return LOWERCASE_IDENTIFIER;

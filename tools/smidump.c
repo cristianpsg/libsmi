@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.44 2000/08/25 10:08:34 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.45 2000/10/19 16:15:26 strauss Exp $
  */
 
 #include <config.h>
@@ -255,9 +255,6 @@ main(argc, argv)
 	    break;
 	case 'u':
 	    flags |= SMIDUMP_FLAG_UNITE;
-	    break;
-	case 'X':
-	    be_lax = SMI_FLAG_BE_LAX;
 	    break;
 	case 'f':
 	    for (driver = driverTable; driver->name; driver++) {
