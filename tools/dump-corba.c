@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.37 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.38 2000/12/05 10:04:56 strauss Exp $
  */
 
 #include <config.h>
@@ -380,7 +380,7 @@ static char *getIdlAnyTypeName(SmiNode *smiNode, SmiType *smiType)
 {
     SmiModule *smiModule;
     char *typeName;
-    
+
     if (! smiType->name) {
 	smiModule = smiGetNodeModule(smiNode);
 	if (smiModule && strlen(smiModule->name)) {
@@ -536,17 +536,18 @@ static void createImportList(SmiModule *smiModule)
 	 smiNode = smiGetNextNode(smiNode, kind)) {
 
 	smiType = smiGetNodeType(smiNode);
-	smiTypeModule = smiGetTypeModule(smiType);
-	if (smiType && smiTypeModule &&
-	    strcmp(smiTypeModule->name, smiModule->name)) {
-	    if (strlen(smiTypeModule->name)) {
-		addImport(smiTypeModule->name, smiType->name);
+	if (smiType) {
+	    smiTypeModule = smiGetTypeModule(smiType);
+	    if (smiTypeModule &&
+		strcmp(smiTypeModule->name, smiModule->name)) {
+		if (strlen(smiTypeModule->name)) {
+		    addImport(smiTypeModule->name, smiType->name);
+		}
+	    }
+	    if (smiType->basetype == SMI_BASETYPE_INTEGER32) {
+		addImport("SNMPv2-SMI", "Integer32");
 	    }
 	}
-	if (smiType->basetype == SMI_BASETYPE_INTEGER32) {
-	    addImport("SNMPv2-SMI", "Integer32");
-	}
-
     }
 }
 
@@ -953,8 +954,15 @@ static void fprintAttribute(FILE *f, SmiNode *smiNode)
 	return;
     }
 
+    smiType = smiGetNodeType(smiNode);
     smiModule = smiGetNodeModule(smiNode);
+
+    if (! smiType) {
+	return;
+    }
+    
     idlNodeName = getIdlNodeName(smiModule->name, smiNode->name);
+    idlTypeName = getIdlAnyTypeName(smiNode, smiType);
     if (! silent) {
 	fprintDescription(f, smiNode, 2*INDENT);
     }
@@ -962,8 +970,6 @@ static void fprintAttribute(FILE *f, SmiNode *smiNode)
 		 smiNode->access == SMI_ACCESS_READ_ONLY
 		 ? "readonly attribute" : "attribute", 0);
 
-    smiType = smiGetNodeType(smiNode);
-    idlTypeName = getIdlAnyTypeName(smiNode, smiType);
     fprint(f, " %s %s;\n", idlTypeName, idlNodeName);
 }
 
@@ -1164,16 +1170,18 @@ static void fprintNotificationVBTypes(FILE *f, SmiModule *smiModule)
 		                           smiGetNodeModule(listSmiNode)->name,
 					   listSmiNode->name, &isnew);
 	    if (isnew && listSmiNode) {
-		fprintSegment(f, INDENT, "struct ", 0);
-		fprint(f, "%s {\n", idlVBTypeName);
-		fprintSegment(f, 2*INDENT, "string var_name;\n", 0);
-		fprintSegment(f, 2*INDENT, "string var_index;\n", 0);
-		fprintSegment(f, 2*INDENT, "", 0);
 		smiType = smiGetNodeType(listSmiNode);
-		idlTypeName = getIdlAnyTypeName(listSmiNode, smiType);
-		fprint(f, "%s %s;\n", idlTypeName,
-		                  smiGetElementNode(smiElement)->name);
-		fprintSegment(f, INDENT, "};\n\n", 0);
+		if (smiType) {
+		    idlTypeName = getIdlAnyTypeName(listSmiNode, smiType);
+		    fprintSegment(f, INDENT, "struct ", 0);
+		    fprint(f, "%s {\n", idlVBTypeName);
+		    fprintSegment(f, 2*INDENT, "string var_name;\n", 0);
+		    fprintSegment(f, 2*INDENT, "string var_index;\n", 0);
+		    fprintSegment(f, 2*INDENT, "", 0);
+		    fprint(f, "%s %s;\n", idlTypeName,
+			   smiGetElementNode(smiElement)->name);
+		    fprintSegment(f, INDENT, "};\n\n", 0);
+		}
 	    }
 	}
     }
@@ -1336,18 +1344,21 @@ static void fprintDefVals(FILE *f, SmiModule *smiModule)
 	
 	if (smiNode->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    smiType = smiGetNodeType(smiNode);
-	    cnt++;
-	    if (cnt == 1) {
-		fprintSegment(f, INDENT, "/* pseudo */\n", 0);
-		fprintSegment(f, INDENT, "interface DefaultValues {\n", 0);
+	    if (smiType) {
+		cnt++;
+		if (cnt == 1) {
+		    fprintSegment(f, INDENT, "/* pseudo */\n", 0);
+		    fprintSegment(f, INDENT, "interface DefaultValues {\n", 0);
+		}
+		if (! silent) {
+		    fprintSegment(f, 2*INDENT, "/* DEFVAL: ", 0);
+		    fprint(f, " %s */\n",
+			   getValueString(&smiNode->value, smiType));
+		}
+		fprintSegment(f, 2*INDENT, "", 0);
+		idlTypeName = getIdlAnyTypeName(smiNode, smiType);
+		fprint(f, "%s %s();\n\n", idlTypeName, smiNode->name);
 	    }
-	    if (! silent) {
-		fprintSegment(f, 2*INDENT, "/* DEFVAL: ", 0);
-		fprint(f, " %s */\n", getValueString(&smiNode->value, smiType));
-	    }
-	    fprintSegment(f, 2*INDENT, "", 0);
-	    idlTypeName = getIdlAnyTypeName(smiNode, smiType);
-	    fprint(f, "%s %s();\n\n", idlTypeName, smiNode->name);
 	}
     }
 
@@ -1511,12 +1522,12 @@ static void dumpOid(SmiModule *smiModule)
 	    }
 	    break;
 	case SMI_NODEKIND_SCALAR:
-	    if (current(smiNode->status)) {
+	    if (smiType && current(smiNode->status)) {
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
 		fprintNameAndOid(f, smiNode, smiParentNode);
 		fprint(f, "%s %s\n",
-		      getBaseTypeString(smiType->basetype),
-		      getAccessString(smiNode->access, 0));
+		       getBaseTypeString(smiType->basetype),
+		       getAccessString(smiNode->access, 0));
 	    }
 	    break;
 	case SMI_NODEKIND_TABLE:
@@ -1532,13 +1543,13 @@ static void dumpOid(SmiModule *smiModule)
 	    }
 	    break;
 	case SMI_NODEKIND_COLUMN:
-	    if (current(smiNode->status)) {
+	    if (smiType && current(smiNode->status)) {
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
 		int create = smiParentNode ? smiParentNode->create : 0;
 		fprintNameAndOid(f, smiNode, smiParentNode);
 		fprint(f, "%s %s\n",
-		      getBaseTypeString(smiType->basetype),
-		      getAccessString(smiNode->access, create));
+		       getBaseTypeString(smiType->basetype),
+		       getAccessString(smiNode->access, create));
 	    }
 	    break;
 	case SMI_NODEKIND_NOTIFICATION:

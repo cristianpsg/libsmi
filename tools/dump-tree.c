@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.24 2000/11/29 16:35:27 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.25 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -188,14 +188,16 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 	    c = prefix[prefixlen-1];
 	    prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    type_name = getTypeName(smiNode);
-	    printf("%s-- %s %-*s %s(%u)\n",
-		   prefix,
-		   getFlags(smiNode),
-		   typefieldlen,
-		   type_name ? type_name : "[unknown]",
-		   smiNode->name,
-		   smiNode->oid[smiNode->oidlen-1]);
-	    xfree(type_name);
+	    if (type_name) {
+		printf("%s-- %s %-*s %s(%u)\n",
+		       prefix,
+		       getFlags(smiNode),
+		       typefieldlen,
+		       type_name,
+		       smiNode->name,
+		       smiNode->oid[smiNode->oidlen-1]);
+		xfree(type_name);
+	    }
 	    if (c) {
 		prefix[prefixlen-1] = c;
 	    }

@@ -1,3 +1,7 @@
+2000-12-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-*.c: Fixes from Juergen.
+
 2000-12-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/NOTIFICATION-LOG-MIB: added (RFC 3014).

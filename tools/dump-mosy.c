@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.35 2000/11/29 16:35:26 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.36 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -293,6 +293,9 @@ static void printObjects(FILE *f, SmiModule *smiModule)
 	type_name = NULL;
 	smiType = smiGetNodeType(smiNode);
 	if (!aggregate) {
+	    if (! smiType) {
+		continue;
+	    }
 	    type_name = getBasetypeString(smiType->basetype);
 	    if (smiType && (smiType->decl != SMI_DECL_IMPLICIT_TYPE)) {
 		type_name = smiType->name;
