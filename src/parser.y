@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+ * @(#) $Id: parser.y,v 1.2 1998/10/12 15:11:07 strauss Exp $
  */
 
 %{
@@ -80,7 +80,7 @@ MibNode *parent;
  */
 %union {
     String text;				/* scanned quoted text       */
-    char id[201];				/* identifier name           */
+    char *id;					/* identifier name           */
     int err;					/* actually just a dummy     */
     MibNode *mibnode;
     Status status;
@@ -305,7 +305,7 @@ MibNode *parent;
 %type  <err>CreationPart
 %type  <err>Cells
 %type  <err>Cell
-%type  <text>number
+%type  <id>number
 
 %%
 
@@ -390,6 +390,7 @@ module:			moduleName
 			declarationPart
 			END
 			{
+			    /* TODO
 			    PendingMibNode *p;
 			    
 			    if ((thisModule->flags & FLAG_SMIV2) &&
@@ -400,6 +401,7 @@ module:			moduleName
 				printError(parser, ERR_UNKNOWN_OIDLABEL,
 					   p->descriptor->name);
 			    }
+			    */
 			    $$ = 0;
 			}
 	;
@@ -498,13 +500,13 @@ importIdentifier:	LOWERCASE_IDENTIFIER
 			{
 			    addImportDescriptor($1, parser);
 			    thisModule->numImportedIdentifiers++;
-			    strncpy($$, $1, sizeof($1)-1);
+			    $$ = strdup($1);
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
 			    addImportDescriptor($1, parser);
 			    thisModule->numImportedIdentifiers++;
-			    strncpy($$, $1, sizeof($1)-1);
+			    $$ = strdup($1);
 			}
 	|		importedKeyword
 			/* TODO: what exactly is allowed here?
@@ -512,7 +514,7 @@ importIdentifier:	LOWERCASE_IDENTIFIER
 			{
 			    addImportDescriptor($1, parser);
 			    thisModule->numImportedIdentifiers++;
-			    strncpy($$, $1, sizeof($1)-1);
+			    $$ = strdup($1);
 			}
 	;
 
@@ -524,52 +526,52 @@ importIdentifier:	LOWERCASE_IDENTIFIER
  * TODO: Think! Shall we really leave these words as keywords or should
  * we prefer the symbol table appropriately??
  */
-importedKeyword:	ACCESS		   { strncpy($$, $1, sizeof($$)-1); }
-	|		AGENT_CAPABILITIES { strncpy($$, $1, sizeof($$)-1); }
-	|		AUGMENTS	   { strncpy($$, $1, sizeof($$)-1); }
-	|		BITS		   { strncpy($$, $1, sizeof($$)-1); }
-	|		CONTACT_INFO	   { strncpy($$, $1, sizeof($$)-1); }
-	|		CREATION_REQUIRES  { strncpy($$, $1, sizeof($$)-1); }
-	|		COUNTER32	   { strncpy($$, $1, sizeof($$)-1); }
-	|		COUNTER64	   { strncpy($$, $1, sizeof($$)-1); }
-	|		DEFVAL		   { strncpy($$, $1, sizeof($$)-1); }
-	|		DESCRIPTION	   { strncpy($$, $1, sizeof($$)-1); }
-	|		DISPLAY_HINT	   { strncpy($$, $1, sizeof($$)-1); }
-	|		GROUP		   { strncpy($$, $1, sizeof($$)-1); }
-	|		GAUGE32		   { strncpy($$, $1, sizeof($$)-1); }
-	|		IMPLIED		   { strncpy($$, $1, sizeof($$)-1); }
-	|		INDEX		   { strncpy($$, $1, sizeof($$)-1); }
-	|		INTEGER32	   { strncpy($$, $1, sizeof($$)-1); }
-	|		IPADDRESS	   { strncpy($$, $1, sizeof($$)-1); }
-	|		LAST_UPDATED	   { strncpy($$, $1, sizeof($$)-1); }
-	|		MANDATORY_GROUPS   { strncpy($$, $1, sizeof($$)-1); }
-	|		MAX_ACCESS	   { strncpy($$, $1, sizeof($$)-1); }
-	|		MIN_ACCESS	   { strncpy($$, $1, sizeof($$)-1); }
-	|		MODULE		   { strncpy($$, $1, sizeof($$)-1); }
-	|		MODULE_COMPLIANCE  { strncpy($$, $1, sizeof($$)-1); }
-	|		MODULE_IDENTITY	   { strncpy($$, $1, sizeof($$)-1); }
-	|		NOTIFICATIONS	   { strncpy($$, $1, sizeof($$)-1); }
-	|		NOTIFICATION_GROUP { strncpy($$, $1, sizeof($$)-1); }
-	|		NOTIFICATION_TYPE  { strncpy($$, $1, sizeof($$)-1); }
-	|		OBJECT_GROUP	   { strncpy($$, $1, sizeof($$)-1); }
-	|		OBJECT_IDENTITY	   { strncpy($$, $1, sizeof($$)-1); }
-	|		OBJECT_TYPE	   { strncpy($$, $1, sizeof($$)-1); }
-	|		OBJECTS		   { strncpy($$, $1, sizeof($$)-1); }
-	|		ORGANIZATION	   { strncpy($$, $1, sizeof($$)-1); }
-	|		OPAQUE		   { strncpy($$, $1, sizeof($$)-1); }
-	|		PRODUCT_RELEASE	   { strncpy($$, $1, sizeof($$)-1); }
-	|		REFERENCE	   { strncpy($$, $1, sizeof($$)-1); }
-	|		REVISION	   { strncpy($$, $1, sizeof($$)-1); }
-	|		STATUS		   { strncpy($$, $1, sizeof($$)-1); }
-	|		SUPPORTS	   { strncpy($$, $1, sizeof($$)-1); }
-	|		SYNTAX		   { strncpy($$, $1, sizeof($$)-1); }
-	|		TEXTUAL_CONVENTION { strncpy($$, $1, sizeof($$)-1); }
-	|		TIMETICKS	   { strncpy($$, $1, sizeof($$)-1); }
-	|		TRAP_TYPE	   { strncpy($$, $1, sizeof($$)-1); }
-	|		UNITS		   { strncpy($$, $1, sizeof($$)-1); }
-	|		UNSIGNED32	   { strncpy($$, $1, sizeof($$)-1); }
-	|		VARIATION	   { strncpy($$, $1, sizeof($$)-1); }
-	|		WRITE_SYNTAX	   { strncpy($$, $1, sizeof($$)-1); }
+importedKeyword:	ACCESS
+        |		AGENT_CAPABILITIES
+	|		AUGMENTS
+	|		BITS
+	|		CONTACT_INFO
+	|		CREATION_REQUIRES
+	|		COUNTER32
+	|		COUNTER64
+	|		DEFVAL
+	|		DESCRIPTION
+	|		DISPLAY_HINT
+	|		GROUP
+	|		GAUGE32
+	|		IMPLIED
+	|		INDEX
+	|		INTEGER32
+	|		IPADDRESS
+	|		LAST_UPDATED
+	|		MANDATORY_GROUPS
+	|		MAX_ACCESS
+	|		MIN_ACCESS
+	|		MODULE
+	|		MODULE_COMPLIANCE
+	|		MODULE_IDENTITY
+	|		NOTIFICATIONS
+	|		NOTIFICATION_GROUP
+	|		NOTIFICATION_TYPE
+	|		OBJECT_GROUP
+	|		OBJECT_IDENTITY
+	|		OBJECT_TYPE
+	|		OBJECTS
+	|		ORGANIZATION
+	|		OPAQUE
+	|		PRODUCT_RELEASE
+	|		REFERENCE
+	|		REVISION
+	|		STATUS
+	|		SUPPORTS
+	|		SYNTAX
+	|		TEXTUAL_CONVENTION
+	|		TIMETICKS
+	|		TRAP_TYPE
+	|		UNITS
+	|		UNSIGNED32
+	|		VARIATION
+	|		WRITE_SYNTAX
 			/* TODO: which keywords should really be
 			 * allowed in import clauses? */
 	;
@@ -581,7 +583,7 @@ moduleName:		UPPERCASE_IDENTIFIER
 			    } else if (strlen($1) > 32) {
 			        printError(parser, ERR_MODULENAME_32, $1);
 			    }
-			    strncpy($$, $1, sizeof($1)-1);
+			    $$ = strdup($1);
 			}
 	;
 
@@ -713,15 +715,15 @@ macroClause:		macroName
                         }
 	;
 
-macroName:		MODULE_IDENTITY	    { strncpy($$, $1, sizeof($$)-1); }
-	|		OBJECT_TYPE	    { strncpy($$, $1, sizeof($$)-1); }
-	|		NOTIFICATION_TYPE   { strncpy($$, $1, sizeof($$)-1); }
-	|		OBJECT_IDENTITY	    { strncpy($$, $1, sizeof($$)-1); }
-	|		TEXTUAL_CONVENTION  { strncpy($$, $1, sizeof($$)-1); }
-	|		OBJECT_GROUP	    { strncpy($$, $1, sizeof($$)-1); }
-	|		NOTIFICATION_GROUP  { strncpy($$, $1, sizeof($$)-1); }
-	|		MODULE_COMPLIANCE   { strncpy($$, $1, sizeof($$)-1); }
-	|		AGENT_CAPABILITIES  { strncpy($$, $1, sizeof($$)-1); }
+macroName:		MODULE_IDENTITY
+	|		OBJECT_TYPE
+	|		NOTIFICATION_TYPE
+	|		OBJECT_IDENTITY
+	|		TEXTUAL_CONVENTION
+	|		OBJECT_GROUP
+	|		NOTIFICATION_GROUP
+	|		MODULE_COMPLIANCE
+	|		AGENT_CAPABILITIES
 	;
 
 choiceClause:		CHOICE
@@ -814,7 +816,7 @@ typeDeclaration:	typeName
 
 typeName:		UPPERCASE_IDENTIFIER
 			{
-			    strncpy($$, $1, sizeof($$)-1);
+			    $$ = strdup($1);
 			}
 	|		typeSMI
 			{
@@ -843,14 +845,14 @@ typeName:		UPPERCASE_IDENTIFIER
 			}
 	;
 
-typeSMI:		INTEGER32	{ strncpy($$, $1, sizeof($$)-1); }
-	|		IPADDRESS	{ strncpy($$, $1, sizeof($$)-1); }
-	|		COUNTER32	{ strncpy($$, $1, sizeof($$)-1); }
-	|		GAUGE32		{ strncpy($$, $1, sizeof($$)-1); }
-	|		UNSIGNED32	{ strncpy($$, $1, sizeof($$)-1); }
-	|		TIMETICKS	{ strncpy($$, $1, sizeof($$)-1); }
-	|		OPAQUE		{ strncpy($$, $1, sizeof($$)-1); }
-	|		COUNTER64	{ strncpy($$, $1, sizeof($$)-1); }
+typeSMI:		INTEGER32
+	|		IPADDRESS
+	|		COUNTER32
+	|		GAUGE32
+	|		UNSIGNED32
+	|		TIMETICKS
+	|		OPAQUE
+	|		COUNTER64
 	;
 
 typeDeclarationRHS:	Syntax
@@ -902,7 +904,7 @@ sequenceItems:		sequenceItem
  */
 sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			{
-			    strncpy($$, $1, sizeof($1)-1);
+			    $$ = strdup($1);
 			}
 	;
 
@@ -953,7 +955,7 @@ NamedBit:		identifier
 identifier:		LOWERCASE_IDENTIFIER
 			/* TODO */
 			{
-			    strncpy($$, $1, sizeof($1)-1);
+			    $$ = strdup($1);
 			}
 	;
 
@@ -1003,7 +1005,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 	;
 
 objectTypeClause:	LOWERCASE_IDENTIFIER
-			{ 
+			{
 			    if (strlen($1) > 64) {
 			        printError(parser, ERR_OIDNAME_64, $1);
 			    } else if (strlen($1) > 32) {
@@ -1056,14 +1058,18 @@ descriptionClause:	/* empty */
 				printError(parser,
 					   ERR_MISSING_DESCRIPTION);
 			    }
-			    strcpy($$.content, "");
+#ifdef TEXTS_IN_MEMORY
+			    $$.ptr = NULL;
+#endif
 			    $$.fileoffset = thisParser->character;
 			    $$.length = 0;
 			}
 	|		DESCRIPTION Text
 			{
-			    strncpy($$.content, $2.content,
-				    sizeof($$.content)-1);
+#ifdef TEXTS_IN_MEMORY
+			    $$.ptr = $2.ptr;
+			    memcpy($$.ptr, $2.ptr, $2.length+1);
+#endif
 			    $$.fileoffset = $2.fileoffset;
 			    $$.length = $2.length;
 			}
@@ -1783,8 +1789,18 @@ Notification:		NotificationName
 
 Text:			QUOTED_STRING
 			{
-			    strncpy($$.content, $1.content,
-				    sizeof($$.content)-1);
+#ifdef TEXTS_IN_MEMORY
+			    if ($1.length <= TEXTS_IN_MEMORY) { 
+				$$.ptr = malloc($1.length+1);
+				if ($$.ptr) {
+				    memcpy($$.ptr, $1.ptr, $1.length+1);
+				} else {
+				    /* TODO */
+				}
+			    } else {
+				$$.ptr = NULL;
+			    }
+#endif
 			    $$.fileoffset = $1.fileoffset;
 			    $$.length = $1.length;
 			}
@@ -1837,12 +1853,12 @@ subidentifier:
 				    $$ = addMibNode(pendingRootMibNode,
 						    0 /*subid not yet known*/,
 						    thisModule,
-						    FLAG_MODULE | FLAG_NOSUBID,
+						    FLAG_NOSUBID,
 						    parser);
 				    setMibNodeFileOffset($$,
 						        thisParser->character);
 				    addDescriptor($1, thisModule, KIND_MIBNODE,
-						  $$, FLAG_MODULE, parser);
+						  $$, 0, parser);
 				}
 				parent = $$;
 			    }
@@ -1873,12 +1889,12 @@ subidentifier:
 				    $$ = addMibNode(pendingRootMibNode,
 						    0 /*subid not yet known*/,
 						    thisModule,
-						    FLAG_MODULE | FLAG_NOSUBID,
+						    FLAG_NOSUBID,
 						    parser);
 				    setMibNodeFileOffset($$,
 						        thisParser->character);
 				    addDescriptor($1, thisModule, KIND_MIBNODE,
-						  $$, FLAG_MODULE, parser);
+						  $$, 0, parser);
 				}
 				parent = $$;
 			    }
@@ -1888,18 +1904,22 @@ subidentifier:
 			    MibNode *node;
 
 			    node = findMibNodeByParentAndSubid(parent,
-				       atoi($1.content));
+				       atoi($1));
 			    if (node) {
 				$$ = node;
 			    } else {
 				$$ = addMibNode(parent,
-						atoi($1.content),
+						atoi($1),
 						thisModule,
-						FLAG_MODULE,
+						(thisParser->flags &
+						 (FLAG_WHOLEMOD |
+						  FLAG_WHOLEFILE))
+						? FLAG_MODULE : 0,
 						parser);
 				setMibNodeFileOffset($$,
 						     thisParser->character);
 			    }
+			    parent = $$;
 			}
 	|		LOWERCASE_IDENTIFIER '(' number ')'
 			{
@@ -1910,22 +1930,32 @@ subidentifier:
 				printError(parser, ERR_EXISTENT_DESCRIPTOR,
 					   $1);
 				$$ = node;
-				if (node->subid != atoi($3.content)) {
+				if (node->subid != atoi($3)) {
 				    printError(parser,
 					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
-					       $3.content, $1);
+					       $3, $1);
 				}
 			    } else {
 				$$ = addMibNode(parent,
-						atoi($3.content),
+						atoi($3),
 						thisModule,
-						FLAG_MODULE,
+						(thisParser->flags &
+						 (FLAG_WHOLEMOD |
+						  FLAG_WHOLEFILE))
+						? FLAG_MODULE : 0,
 						parser);
 				setMibNodeFileOffset($$,
 						     thisParser->character);
 				addDescriptor($1, thisModule, KIND_MIBNODE,
-					      $$, FLAG_MODULE, parser);
+					      $$,
+					      (thisParser->flags &
+					       (FLAG_WHOLEMOD |
+						FLAG_WHOLEFILE))
+					      ? FLAG_MODULE : 0,
+					      parser);
 			    }
+			    
+			    parent = $$;
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER '(' number ')'
 			{
@@ -1938,24 +1968,34 @@ subidentifier:
 				printError(parser, ERR_EXISTENT_DESCRIPTOR,
 					   $1);
 				$$ = node;
-				if (node->subid != atoi($5.content)) {
+				if (node->subid != atoi($5)) {
 				    printError(parser,
 					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
-					       $5.content, md);
+					       $5, md);
 				}
 			    } else {
 				printError(parser, ERR_ILLEGALLY_QUALIFIED,
 					   md);
 				$$ = addMibNode(parent,
-						atoi($5.content),
+						atoi($5),
 						thisModule,
-						FLAG_MODULE,
+						(thisParser->flags &
+						 (FLAG_WHOLEMOD |
+						  FLAG_WHOLEFILE))
+						? FLAG_MODULE : 0,
 						parser);
 				setMibNodeFileOffset($$,
 						     thisParser->character);
 				addDescriptor($3, thisModule, KIND_MIBNODE,
-					      $$, FLAG_MODULE, parser);
+					      $$,
+					      (thisParser->flags &
+					       (FLAG_WHOLEMOD |
+						FLAG_WHOLEFILE))
+					      ? FLAG_MODULE : 0,
+					      parser);
 			    }
+
+			    parent = $$;
 			}
 	;
 
@@ -2336,8 +2376,8 @@ Cell:			ObjectName
 
 number:			NUMBER
 			{
-			    strncpy($$.content, $1,
-				    sizeof($$.content)-1);
+			    $$ = strdup($1);
+			    /* TODO */
 			}
 	;
 

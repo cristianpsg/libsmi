@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.23 1998/10/08 18:18:25 strauss Exp $
+# @(#) $Id: Makefile,v 1.1.1.1 1998/10/09 10:16:32 strauss Exp $
 #
 
 MIBDIR	= ../scotty/tnm/mibs
@@ -41,6 +41,7 @@ install-html: parser.y.html
 
 clean:
 	make -C src clean
+	rm -f core
 
 clobber: clean
 	rm -f miblint parser.y.html

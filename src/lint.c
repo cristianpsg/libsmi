@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.16 1998/10/08 14:47:52 strauss Exp $
+ * @(#) $Id: lint.c,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 #include <stdio.h>
@@ -106,13 +106,14 @@ main(argc, argv)
     char *argv[];
 {
     char c;
-    int dumpMib;
+    int dumpMib, mosy;
     
     yydebug = 0;
     printErrorLines = 0;
     errorLevel = 3;
     debugLevel = 0;
     dumpMib = 0;
+    mosy = 0;
 
     flags = FLAG_WHOLEFILE | FLAG_ERRORS | FLAG_WHOLEMOD;
     strcpy(module, "");
@@ -123,7 +124,7 @@ main(argc, argv)
     readConfig(CONFIG_FILE);
 #endif
     
-    while ((c = getopt(argc, argv, "DrRsSvVyYd:l:c:m:")) != -1) {
+    while ((c = getopt(argc, argv, "MDrRsSvVyYd:l:c:m:")) != -1) {
 	switch (c) {
 	case 'c':
 	    readConfig(optarg);
@@ -168,6 +169,9 @@ main(argc, argv)
 	case 'D':
 	    dumpMib = 1;
 	    break;
+	case 'M':
+	    mosy = 1;
+	    break;
 	default:
 	    fprintf(stderr, "Usage: %s [-yYvVrRsS] [-d level] [-l level] [-c configfile]"
 		    " [-m module] \n", argv[0]);
@@ -179,6 +183,9 @@ main(argc, argv)
 	readMibFile(argv[optind], module, flags);
 	if (dumpMib) {
 	    dumpMibTree(rootMibNode, "");
+	}
+	if (mosy) {
+	    dumpMosy(rootMibNode);
 	}
 	optind++;
     }
