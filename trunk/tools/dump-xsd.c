@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.7 2002/02/01 11:58:30 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.8 2002/02/07 18:58:12 tklie Exp $
  */
 
 #include <config.h>
@@ -181,7 +181,7 @@ static void fprintMultilineString(FILE *f, int column, const char *s)
 static void fprintDocumentation(FILE *f, int indent, const char *description)
 {
     if (description) {
-	fprintSegment(f, indent, "<xsd:documentation xml:lang=\"en\">\n", 0);
+	fprintSegment(f, indent, "<xsd:documentation>\n", 0);
 	fprintMultilineString(f, indent, description);
 	fprint(f, "\n");
 	fprintSegment(f, indent, "</xsd:documentation>\n", 0);
@@ -193,10 +193,10 @@ static void fprintNamedNumber( FILE *f, int indent, SmiNamedNumber *nn )
     fprintSegment( f, indent, "<xsd:enumeration ", 0 );
     fprint( f, "value=\"%s\">\n", nn->name );
     fprintSegment( f, indent + INDENT, "<xsd:annotation>\n", 0 );
-    fprintSegment( f, indent + 2 * INDENT, "<xsd:appinfo>\n", 0 );
+    fprintSegment( f, indent + 2 * INDENT, "<xsd:appInfo>\n", 0 );
     fprintSegment( f, indent + 3 * INDENT, "<intVal>", 0 );
     fprint( f, "%d</intVal>\n", nn->value.value.integer32 );
-    fprintSegment( f, indent + 2 * INDENT, "</xsd:appinfo>\n", 0 );
+    fprintSegment( f, indent + 2 * INDENT, "</xsd:appInfo>\n", 0 );
     fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
     fprintSegment( f, indent, "</xsd:enumeration>\n", 0 );
 }
@@ -273,6 +273,10 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    fprintSegment( f, indent + INDENT, "<xsd:maxLength", 0 );
 	    fprint( f, " value=\"%d\"/>\n>", maxLength );
 	}
+
+	fprintSegment( f, indent, "</xsd:restriction>\n", 0 );
+	
+	break;
     }
 
     case SMI_BASETYPE_FLOAT128:
@@ -391,7 +395,8 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     {
 	SmiNamedNumber *nn;
 	
-	fprintSegment(f, indent, "<xsd:restriction base=\"xsd:NMTOKEN>\n", 0);
+	fprintSegment(f, indent, "<xsd:restriction base=\"xsd:NMTOKEN\">\n",
+		      0);
 
 	/* iterate named numbers */
 	for( nn = smiGetFirstNamedNumber( smiType );
@@ -495,7 +500,7 @@ static void fprintImportedTypes( FILE *f, SmiModule *smiModule )
 static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
       
     fprintSegment( f, indent, "<xsd:annotation>\n", 0 );
-    fprintSegment( f, indent + INDENT, "<xsd:appinfo>\n", 0 );
+    fprintSegment( f, indent + INDENT, "<xsd:appInfo>\n", 0 );
 
     fprintSegment( f, indent + 2 * INDENT, "<maxAccess>", 0 );
     fprint( f, "%s</maxAccess>\n", getStringAccess( smiNode->access ) );
@@ -503,7 +508,7 @@ static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
     fprintSegment( f, indent + 2 * INDENT, "<status>", 0 );
     fprint( f, "%s</status>\n",  getStringStatus( smiNode->status ) );
   
-    fprintSegment( f, indent +  INDENT, "</xsd:appinfo>\n", 0 );
+    fprintSegment( f, indent +  INDENT, "</xsd:appInfo>\n", 0 );
     fprintDocumentation( f, indent + INDENT, smiNode->description );
     fprintSegment( f, indent, "</xsd:annotation>\n", 0 );
     
@@ -691,13 +696,14 @@ static void fprintBits( FILE *f, SmiModule *smiModule )
     
 static void fprintModule(FILE *f, SmiModule *smiModule)
 {
+    fprintSegment(f, INDENT, "<xsd:annotation>\n", 0);
+    fprintDocumentation(f, 2 * INDENT, smiModule->description);
+    fprintSegment(f, INDENT, "</xsd:annotation>\n\n", 0);
+    
     fprintImportedTypes( f, smiModule );
     fprintNodes(f, smiModule);
     fprintRows(f, smiModule);
     fprintBits(f, smiModule);
-    fprintSegment(f, INDENT, "<xsd:annotation>\n", 0);
-    fprintDocumentation(f, 2 * INDENT, smiModule->description);
-    fprintSegment(f, INDENT, "</xsd:annotation>\n", 0);
 }
 
 
@@ -740,18 +746,22 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 	       SMI_VERSION_STRING ". Do not edit. -->\n");
 	fprint(f, "\n");
 	
-	fprint(f, "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
+	fprint(f,
+	       "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
 
 	fprint(f, "            xmlns:%s=\"%s%s.xsd\"\n",
 	       DXSD_MIBPREFIX, DXSD_SCHEMALOCATION,
 	       modv[i]->name);
-	fprint(f, "            targetNamespace=\"%s%s.xsd\">\n\n",
+	fprint(f, "            targetNamespace=\"%s%s.xsd\">\n",
 	       DXSD_SCHEMALOCATION, modv[i]->name);
-	
+	fprint(f, "            xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+	fprint(f, "            xsi:noNamespaceSchemaLocation=\"http://www.w3.org/2001/XMLSchema.xsd\">\n");
+	fprint(f, "            xml:lang=\"en\">\n\n");
+        
 	fprintSegment(f, INDENT, "<xsd:include", 0 );
 	fprint( f, " id=\"smi\" schemaLocation=\"%ssmi.xsd\"/>\n\n",
 		DXSD_SCHEMALOCATION );
-		
+	
 	fprintModule(f, modv[i]);
 	fprintTypedefs(f, modv[i]);
 	
