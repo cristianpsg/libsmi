@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.12 2000/02/05 18:05:58 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.13 2000/02/06 23:30:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -47,9 +47,10 @@ static char *getStatusString(SmiStatus status)
 }
 
 
-static char *getAccessString(SmiAccess access)
+static char *getAccessString(SmiAccess access, int create)
 {
     return
+	(create && (access == SMI_ACCESS_READ_WRITE)) ? "read-create" :
 	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
 	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
 	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
@@ -240,14 +241,29 @@ static void printAssignements(char *modulename)
 static void printTypedefs(SmiModule *smiModule)
 {
     int		   i;
-    SmiType	   *smiType;
+    SmiType	   *smiType, *smiParentType;
     SmiNamedNumber *nn;
+    char	   *typename;
     
     for (i = 0, smiType = smiGetFirstType(smiModule);
 	 smiType; smiType = smiGetNextType(smiType)) {
+	
+	smiParentType = smiGetParentType(smiType);
+	typename = smiParentType->name;
+	
+	if (smiParentType->decl == SMI_DECL_IMPLICIT_TYPE) {
+	    smiParentType = smiGetParentType(smiParentType);
+	    typename = smiParentType->name;
+	}
+	if (smiParentType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
+	    typename = "ObjectID";
+	}
+	if (smiParentType->basetype == SMI_BASETYPE_ENUM) {
+	    typename = "INTEGER";
+	}
 
 	printf("%%%-19s %-16s %-15s \"%s\"\n", "tc", smiType->name,
-	       getBasetypeString(smiType->basetype),
+	       typename,
 	       smiType->format ? smiType->format : "");
 	
 	for (i = 0, nn = smiGetFirstNamedNumber(smiType);
@@ -263,10 +279,10 @@ static void printTypedefs(SmiModule *smiModule)
 
 static void printObjects(char *modulename)
 {
-    int		   i, j, ignore, cnt = 0, aggregate;
+    int		   i, j, ignore, cnt = 0, aggregate, create;
     char	   *typename;
     SmiNode	   *smiNode, *indexNode;
-    SmiType	   *smiType, *smiParentType;
+    SmiType	   *smiType;
     SmiNamedNumber *smiNamedNumber;
     SmiRange       *smiRange;
     
@@ -296,26 +312,18 @@ static void printObjects(char *modulename)
 
 	smiType = NULL;
 	if (!aggregate && smiNode->typemodule && smiNode->typename) {
-	    smiType = smiGetType(smiGetModule(smiNode->typemodule),
-				 smiNode->typename);
+	    smiType = smiGetNodeType(smiNode);
 	}
-
 	typename = getBasetypeString(smiNode->basetype);
-	smiParentType = smiGetParentType(smiType);
-	if (smiType && smiType->name
-	    && smiType->decl != SMI_DECL_IMPLICIT_TYPE) {
+	if (smiType && (smiType->decl != SMI_DECL_IMPLICIT_TYPE)) {
 	    typename = smiType->name;
-	    if (smiParentType) {
-		typename = smiParentType->name;
-	    }
 	}
-
+	
 	if (smiType && smiType->name
-	    && smiType->decl == SMI_DECL_IMPLICIT_TYPE
-	    && smiParentType) {
-	    typename = smiParentType->name;
-	    if (strcmp(typename, "OCTET STRING") == 0) {
-		typename = "OctetString";
+	    && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+	    typename = smiGetParentType(smiType)->name;
+	    if (smiType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
+		typename = "ObjectID";
 	    }
 	    if (smiType->basetype == SMI_BASETYPE_ENUM) {
 		typename = "INTEGER";
@@ -325,10 +333,16 @@ static void printObjects(char *modulename)
 	if (aggregate) {
 	    typename = "Aggregate";
 	}
+
+	if (smiNode->nodekind == SMI_NODEKIND_COLUMN) {
+	    create = smiGetParentNode(smiNode)->create;
+	} else {
+	    create = 0;
+	}
 	
 	printf("%-20s %-16s ", smiNode->name, getOidString(smiNode, 0));
 	printf("%-15s %-15s %s\n", typename,
-	       getAccessString(smiNode->access),
+	       getAccessString(smiNode->access, create),
 	       getStatusString(smiNode->status));
 
 	switch (smiNode->indexkind) {
@@ -503,7 +517,7 @@ int dumpMosy(char *modulename, int flags)
     }
     
     printAssignements(modulename);
-    printTypedefs(modulename);
+    printTypedefs(smiModule);
     printObjects(modulename);
     printNotifications(modulename);
     printGroups(modulename);

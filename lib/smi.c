@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.63 2000/02/06 13:57:07 strauss Exp $
+ * @(#) $Id: smi.c,v 1.64 2000/02/06 23:30:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -100,7 +100,9 @@ void getModulenameAndName(char *arg1, char *arg2,
 	*module = NULL;
 	*name = NULL;
     } else if (!arg2) {
+#if 0
 	if (isupper((int)arg1[0])) {
+#endif
 	    if ((p = strstr(arg1, "::"))) {
 		/* SMIng style module/label separator */
 		*name = util_strdup(&p[2]);
@@ -118,14 +120,18 @@ void getModulenameAndName(char *arg1, char *arg2,
 		*module = util_strndup(arg1, l);
 	    } else {
 		*name = util_strdup(arg1);
-		*module = NULL;
+		*module = util_strdup("");
 	    }
+#if 0
 	} else {
 	    *name = util_strdup(arg1);
-	    *module = NULL;
+	    *module = util_strdup("");
 	}
+#endif
     } else if (!arg1) {
+#if 0
 	if (isupper((int)arg2[0])) {
+#endif
 	    if ((p = strstr(arg2, "::"))) {
 		/* SMIng style module/label separator */
 		*name = util_strdup(&p[2]);
@@ -143,12 +149,14 @@ void getModulenameAndName(char *arg1, char *arg2,
 		*module = util_strndup(arg2, l);
 	    } else {
 		*name = util_strdup(arg2);
-		*module = NULL;
+		*module = util_strdup("");
 	    }
+#if 0
 	} else {
 	    *name = util_strdup(arg2);
-	    *module = NULL;
+	    *module = util_strdup("");
 	}
+#endif
     } else {
 	*module = util_strdup(arg1);
 	*name = util_strdup(arg2);
@@ -876,7 +884,7 @@ SmiType *smiGetType(SmiModule *smiModulePtr, char *type)
 	return NULL;
     }
     
-    getModulenameAndName(smiModulePtr ? smiModulePtr->name : "", type,
+    getModulenameAndName(smiModulePtr ? smiModulePtr->name : NULL, type,
 			 &module2, &type2);
 
     if (module2) {
@@ -1106,7 +1114,7 @@ SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro)
 	return NULL;
     }
     
-    getModulenameAndName(smiModulePtr ? smiModulePtr->name : "", macro,
+    getModulenameAndName(smiModulePtr ? smiModulePtr->name : NULL, macro,
 			 &module2, &macro2);
 
     if (module2) {
@@ -1569,7 +1577,12 @@ SmiModule *smiGetNodeModule(SmiNode *smiNodePtr)
 
 SmiType *smiGetNodeType(SmiNode *smiNodePtr)
 {
-    return &((Object *)smiNodePtr)->typePtr->export;
+    Type *typePtr;
+    
+    typePtr = findTypeByModulenameAndName(smiNodePtr->typemodule,
+					  smiNodePtr->typename);
+    return &typePtr->export;
+    /* return &((Object *)smiNodePtr)->typePtr->export; */
 }
 
 
@@ -1840,7 +1853,7 @@ SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr)
     }
 						     
     for (listPtr =
-	     ((Refinement *)smiRefinementPtr)->objectPtr->refinementlistPtr;
+	    ((Refinement *)smiRefinementPtr)->compliancePtr->refinementlistPtr;
 	 listPtr;
 	 listPtr = listPtr->nextPtr) {
 	if ((Refinement *)(listPtr->ptr) == (Refinement *)smiRefinementPtr) {

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.56 2000/02/06 13:57:06 strauss Exp $
+ * @(#) $Id: data.c,v 1.57 2000/02/06 23:30:57 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2303,9 +2303,7 @@ setTypeReference(typePtr, reference)
 void
 setTypeParent(Type *typePtr, Type *parentPtr)
 {
-    if (!typePtr->parentPtr) {
-	typePtr->parentPtr = parentPtr;
-    }
+    typePtr->parentPtr = parentPtr;
 }
 
 

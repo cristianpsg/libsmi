@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.33 2000/02/06 13:57:08 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.34 2000/02/06 23:30:59 strauss Exp $
  */
 
 #include <stdio.h>
@@ -370,11 +370,13 @@ int main(int argc, char *argv[])
     if (!strcmp(command, "node")) {
 	node = smiGetNode(name, NULL);
 	if (node) {
+	    type = smiGetNodeType(node);
+	    
 	    printf("     MibNode: %s\n", format(node->name));
 	    printf("      Module: %s\n", format(node->module));
 	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
 	    printf("        Type: %s\n",
-		   formattype(node->typemodule, node->typename));
+		         formattype(smiGetTypeModule(type)->name, type->name));
 	    printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
 	    printf("     Default: %s\n", formatvalue(&node->value));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
