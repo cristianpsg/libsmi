@@ -1,5 +1,5 @@
 /*
- * dump-list.c --
+ * dump-identifiers.c --
  *
  *      Operations to dump flat lists of SMI module information.
  *
@@ -9,12 +9,12 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.2 2000/08/18 12:00:46 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.3 2000/08/18 12:06:17 strauss Exp $
  */
 
 /*
  * TODO: - always generate node output in OID order
- *       - also generate a list of typedef identifiers
+ *       - smarter layout in columns
  *	 - add a type column which contains the type
  *	   for nodes or the parent type for typedefs
  */
@@ -64,17 +64,27 @@ static char *getOidString(SmiSubid *o, int l)
 
 
 
-static void printIdentifier(SmiModule *module)
+static void printIdentifiers(SmiModule *module)
 {
-    SmiNode *node;
-    int i;
-    
-    for (node = smiGetFirstNode(module, SMI_NODEKIND_ANY);
-	 node; node = smiGetNextNode(node, SMI_NODEKIND_ANY)) {
+    SmiNode *smiNode;
+    SmiType *smiType;
+
+    for (smiType = smiGetFirstType(module);
+	 smiType;
+	 smiType = smiGetNextType(smiType)) {
 	printf("%-15s %-20s %-12s %-30s\n",
-	       module->name, node->name ? node->name : "-",
-	       getNodekindString(node->nodekind),
-	       getOidString(node->oid, node->oidlen));
+	       module->name, smiType->name,
+	       "typedef",
+	       "-");
+    }
+    
+    for (smiNode = smiGetFirstNode(module, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	printf("%-15s %-20s %-12s %-30s\n",
+	       module->name, smiNode->name,
+	       getNodekindString(smiNode->nodekind),
+	       getOidString(smiNode->oid, smiNode->oidlen));
     }
 }
 
@@ -84,7 +94,6 @@ void dumpIdentifiers(Module *module)
 {
     SmiModule *smiModule;
     Module    *mPtr;
-    SmiNode   *smiNode;
     int	      unite;
 
     smiModule = module->smiModule;
@@ -99,12 +108,12 @@ void dumpIdentifiers(Module *module)
     }
 
     if (smiModule && !unite) {
-	printIdentifier(smiModule);
+	printIdentifiers(smiModule);
     }
 
     if (!smiModule && unite) {
 	for (mPtr = module; mPtr; mPtr = mPtr->nextPtr) {
-	    printIdentifier(mPtr->smiModule);
+	    printIdentifiers(mPtr->smiModule);
 	}
     }
 }
