@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.22 2001/11/28 16:39:07 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.23 2002/10/24 11:01:50 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -17,12 +17,16 @@ EXTRA_DIST		= ANNOUNCE \
 			  win/Makefile.mingw win/README.mingw win/README.win \
 			  win/config.h win/config.h.in \
 			  win/makefile win/GNUmakefile win/win.c win/win.h \
-			  smi.conf-example libsmi.m4
+			  smi.conf-example libsmi.m4 libsmi.pc
 
 SUBDIRS			= lib tools mibs test doc
 
 m4datadir		= $(datadir)/aclocal
 m4data_DATA		= libsmi.m4
+
+pkgconfigdir		= $(libdir)/pkgconfig
+pkgconfig_DATA		= libsmi.pc
+$(pkgconfig_DATA):	config.status
 
 anoncvs:
 	rsync -rlt --delete $(HOME)/.cvs-repository/libsmi /.amd/anoncvs
