@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.31 1999/06/07 15:43:59 strauss Exp $
+ * @(#) $Id: data.h,v 1.32 1999/06/08 16:08:07 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -466,6 +466,9 @@ extern void setTypeDecl(Type *typePtr,
 
 extern void addTypeFlags(Type *typePtr,
 			 TypeFlags flags);
+
+extern void deleteTypeFlags(Type *typePtr,
+			    TypeFlags flags);
 
 extern void setTypeFormat(Type *typePtr,
 			  char *format);

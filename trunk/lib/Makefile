@@ -75,7 +75,7 @@ host_triplet = sparc-sun-solaris2.5.1
 AS = @AS@
 BISON = /usr/local/bin/bison
 CC = gcc
-CFLAGS = -O0 -Wall -g
+CFLAGS = -Wall -g
 DLLTOOL = @DLLTOOL@
 FLEX = /usr/local/bin/flex
 LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
@@ -88,8 +88,8 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.3-pre4
-mibdir = NONE/share/mibs
+VERSION = 0.1.3
+mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
 EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
@@ -108,7 +108,7 @@ smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3-pre4\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.28 1999/06/06 07:40:37 strauss Exp $
+ * @(#) $Id: data.c,v 1.29 1999/06/07 15:43:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2263,6 +2263,32 @@ addTypeFlags(typePtr, flags)
     TypeFlags   flags;
 {
     typePtr->flags |= flags;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * deleteTypeFlags --
+ *
+ *      Delete flags from the flags of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+deleteTypeFlags(typePtr, flags)
+    Type        *typePtr;
+    TypeFlags   flags;
+{
+    typePtr->flags &= ~flags;
 }
 
 

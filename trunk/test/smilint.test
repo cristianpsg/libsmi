@@ -1,0 +1,19 @@
+#!/bin/sh
+
+rm -rf smilint.out
+mkdir smilint.out
+
+for mib in ${TESTMIBS} ; do
+    echo $mib
+    ../tools/smilint -l9 $mib > smilint.out/$mib 2>&1
+done
+
+# we expect three warning messages. 
+if [ `cat smilint.out/* | grep -v 'longer than 32' | wc -l` -ne 4 ] ; then
+	RC=1
+	echo "see directory smilint.out for results."
+else
+	RC=0
+fi
+
+exit ${RC}

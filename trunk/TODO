@@ -24,6 +24,7 @@ o Web online conversion to SMIng?
 o smiGetNames()
 
 o thread safety (global vars? static vars? strtok() and other funcs?)
+  different views
 
 o SmiDecl is language dependant.
 
@@ -42,14 +43,8 @@ o eliminate length restrictions (grep MAX_ *.[chly])
 
 o dump-smi.c
 
-o reading RMON2-MIB.sming gets a segfault.
-
 o `::' instead of `.' as separator in tools' output? (Juergen)
 
-o *.[13].in: construct correct autoconf @mibdir@ contents
-
 o tcpdump (Juergen)
-
-o SNMPv2-MIB.sming: snmpBasicNotificationsGroup is NOT sorted by OID !!!
 
 o need handle to distinguish different views.

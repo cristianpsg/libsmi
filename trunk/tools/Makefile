@@ -75,7 +75,7 @@ host_triplet = sparc-sun-solaris2.5.1
 AS = @AS@
 BISON = /usr/local/bin/bison
 CC = gcc
-CFLAGS = -O0 -Wall -g
+CFLAGS = -Wall -g
 DLLTOOL = @DLLTOOL@
 FLEX = /usr/local/bin/flex
 LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
@@ -88,8 +88,8 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.3-pre4
-mibdir = NONE/share/mibs
+VERSION = 0.1.3
+mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
 INCLUDES = -I../lib
@@ -115,7 +115,7 @@ CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3-pre4\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

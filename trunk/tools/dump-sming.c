@@ -146,7 +146,7 @@ char *smingStringAccess(SmiAccess access)
 	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
 	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
 	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
-	(access == SMI_ACCESS_READ_CREATE)    ? "readwrite" :
+	(access == SMI_ACCESS_READ_CREATE)    ? "readcreate" :
 						"<unknown>";
 }
 
@@ -607,7 +607,7 @@ static void printTypedefs(char *modulename)
     
     for(i = 0, smiType = smiGetFirstType(modulename);
 	smiType; smiType = smiGetNextType(smiType)) {
-
+	
 	if ((!(strcmp(modulename, "SNMPv2-SMI"))) ||
 	    (!(strcmp(modulename, "RFC1155-SMI")))) {
 	    for(j=0; excludeType[j]; j++) {
@@ -786,16 +786,15 @@ static void printObjects(char *modulename)
 	case SMI_INDEX_AUGMENT:
 	    if (smiNode->relatedname) {
 		printSegment((2 + indent) * INDENT, "augments", INDENTVALUE);
-		print("%s::%s;\n",
-		      smiNode->relatedmodule, smiNode->relatedname);
-		/* TODO: local name if local */
+		print("%s;\n", smiNode->relatedname);
+		/* TODO: non-local name if non-local */
 	    } /* TODO: else print error */
 	    break;
 	case SMI_INDEX_REORDER:
 	    if (smiNode->relatedname) {
 		printSegment((2 + indent) * INDENT, "", 0);
-		print("reorders %s::%s",
-		      smiNode->relatedmodule, smiNode->relatedname);
+		print("reorders %s", smiNode->relatedname);
+		/* TODO: non-local name if non-local */
 		if (smiNode->implied) {
 		    print(" implied");
 		}
@@ -814,15 +813,15 @@ static void printObjects(char *modulename)
 	case SMI_INDEX_SPARSE:
 	    if (smiNode->relatedname) {
 		printSegment((2 + indent) * INDENT, "sparse", INDENTVALUE);
-		print("%s::%s;\n",
-		      smiNode->relatedmodule, smiNode->relatedname);
+		print("%s;\n", smiNode->relatedname);
+		/* TODO: non-local name if non-local */
 	    } /* TODO: else print error */
 	    break;
 	case SMI_INDEX_EXPAND:
 	    if (smiNode->relatedname) {
 		printSegment((2 + indent) * INDENT, "", 0);
-		print("expands %s::%s",
-		      smiNode->relatedmodule, smiNode->relatedname);
+		print("expands %s", smiNode->relatedname);
+		/* TODO: non-local name if non-local */
 		if (smiNode->implied) {
 		    print(" implied");
 		}
