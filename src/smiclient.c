@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiclient.c,v 1.3 1998/11/23 12:57:00 strauss Exp $
+ * @(#) $Id: smiclient.c,v 1.4 1998/11/24 10:59:25 strauss Exp $
  */
 
 #include <stdio.h>
@@ -120,6 +120,16 @@ main(argc, argv)
 	    printf("       Names: %s\n", namelist->namelist);
 	} else {
 	    clnt_perror(cl, "smiproc_names_1");
+	}
+    }
+    
+    if (!strcmp(argv[2], "children")) {
+	fullname = argv[3];
+	namelist = smiproc_children_1(&fullname, cl);
+	if (namelist) {
+	    printf("    Children: %s\n", namelist->namelist);
+	} else {
+	    clnt_perror(cl, "smiproc_children_1");
 	}
     }
     

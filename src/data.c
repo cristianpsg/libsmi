@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.24 1998/11/23 16:41:37 strauss Exp $
+ * @(#) $Id: data.c,v 1.25 1998/11/24 10:59:24 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -490,10 +490,6 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	         module->descriptor ? module->descriptor->name : "NULL",
 	       stringKind(kind), ptr ? *(void **)ptr : NULL, flags);
 
-    { int i = 0; Descriptor *de ;
-      for (de = firstDescriptor[KIND_ANY]; de; de = de->next) {
-      fprintf(stderr, "XXX %s\n", de->name); } }
-
     /*
      * If this new descriptor is found as pending type,
      * we have to complete those Type and Descriptor structs instead of
@@ -515,6 +511,8 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	    free((*(Type **)ptr)->description.ptr);
 #endif
 	    free(*(Type **)ptr);
+
+	    printDebug(5, "... = %p\n", t->descriptor);
 	    return t->descriptor;
 	}
     }
@@ -682,12 +680,15 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 		free((*(Object **)ptr)->node);
 		free(*(void **)ptr);
 		*(Object **)ptr = pending->firstObject;
+		descriptor->ptr = *(Object **)ptr;
 		break;
 	    }
 	}
 	
     }
 
+    printDebug(5, "... = %p (ptr=%p)\n", descriptor, descriptor->ptr);
+    
     return (descriptor);
 }
 
@@ -973,6 +974,8 @@ addObject(parent, subid, module, flags, parser)
     }
     object->node = node;
     
+    printDebug(5, "... = %p\n", object);
+    
     return (object);
 }
 
@@ -1053,7 +1056,7 @@ addNode (parent, subid, flags, parser)
     Node *node;
     Node *c;
     
-    printDebug(5, "addNode(%p%s, %d, %d, parser)\n",
+    printDebug(5, "addNode(%p%s, %d, %d, parser)",
 	       parent, parent == pendingRootNode ? "(==pending)" : "",
 	       subid, flags);
 
@@ -1101,6 +1104,8 @@ addNode (parent, subid, flags, parser)
 	}
     }
 
+    printDebug(5, " = %p\n", node);
+    
     return node;
 }
 
@@ -1180,7 +1185,7 @@ setObjectSyntax(object, type)
     Object *object;
     Type *type;
 {
-    printDebug(5, "setObjectSyntax(%s, %s)\n",
+    printDebug(5, "setObjectSyntax(%p (%s), %s)\n", object,
 	       object->descriptor ? object->descriptor->name : "?",
 	       type && type->descriptor ? type->descriptor->name : "NULL");
 
@@ -1212,7 +1217,7 @@ setObjectAccess(object, access)
     Object *object;
     smi_access access;
 {
-    printDebug(5, "setObjectAccess(%s, %s)\n",
+    printDebug(5, "setObjectAccess(%p (%s), %s)\n", object,
 	       object->descriptor ? object->descriptor->name : "?",
 	       smiStringAccess(access));
 
@@ -1244,7 +1249,7 @@ setObjectStatus(object, status)
     Object *object;
     smi_status status;
 {
-    printDebug(5, "setObjectStatus(%s, %s)\n",
+    printDebug(5, "setObjectStatus(%p (%s), %s)\n", object,
 	       object->descriptor ? object->descriptor->name : "?",
 	       smiStringStatus(status));
 
@@ -1276,7 +1281,7 @@ setObjectDescription(object, description)
     Object *object;
     String *description;
 {
-    printDebug(5, "setObjectDescription(%s, \"%s\" (%d,%d))\n",
+    printDebug(5, "setObjectDescription(%p (%s), \"%s\" (%d,%d))\n", object,
 	       object->descriptor ? object->descriptor->name : "?",
 	       description->ptr ? description->ptr : "...",
 	       description->fileoffset, description->length);
@@ -1313,7 +1318,7 @@ setObjectFileOffset(object, fileoffset)
     Object *object;
     off_t fileoffset;
 {
-    printDebug(5, "setObjectFileOffset(%s, %d)\n",
+    printDebug(5, "setObjectFileOffset(%p (%s), %d)\n", object,
 	       object->descriptor ? object->descriptor->name : "?",
 	       fileoffset);
 
@@ -1345,7 +1350,7 @@ setObjectDecl(object, decl)
     Object *object;
     smi_decl decl;
 {
-    printDebug(5, "setObjectDecl(%s, %s)\n",
+    printDebug(5, "setObjectDecl(%p (%s), %s)\n", object,
 	       object->descriptor ? object->descriptor->name : "?",
 	       smiStringDecl(decl));
 
@@ -1377,7 +1382,7 @@ setObjectFlags(object, flags)
     Object *object;
     Flags flags;
 {
-    printDebug(5, "setObjectFlags(%s, %d)\n",
+    printDebug(5, "setObjectFlags(%p (%s), %d)\n", object,
 	       object->descriptor ? object->descriptor->name : "?",
 	       flags);
 
@@ -1460,7 +1465,7 @@ findObjectByNodeAndModule(node, module)
 
     for (object = node->firstObject; object; object = object->next) {
 	if (object->module == module) {
-	    printDebug(4, " = %s\n", object->descriptor->name);
+	    printDebug(4, " = %p (%s)\n", object, object->descriptor->name);
 	    return (object);
 	}
     }
@@ -1503,7 +1508,7 @@ findObjectByNodeAndModulename(node, modulename)
 
     for (object = node->firstObject; object; object = object->next) {
 	if (!strcmp(object->module->descriptor->name, modulename)) {
-	    printDebug(4, " = %s\n", object->descriptor->name);
+	    printDebug(4, " = %p (%s)\n", object, object->descriptor->name);
 	    return (object);
 	}
     }
@@ -1551,7 +1556,7 @@ findObjectByName(name)
 	     * TODO: probably we should check if there are more matching
 	     *       objects, and give a warning if there's another one.
 	     */
-	    printDebug(4, " = %s\n", descriptor->name);
+	    printDebug(4, " = %p (%s)\n", descriptor->ptr, descriptor->name);
 	    return (descriptor->ptr);
 	}
     }
@@ -1597,7 +1602,7 @@ findObjectByModulenameAndName(modulename, name)
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, "... = %s.%s\n",
+		printDebug(4, "... = %p (%s.%s)\n", descriptor->ptr,
 		       ((Object *)(descriptor->ptr))->module->descriptor->name,
 			   descriptor->name);
 		return (descriptor->ptr);
@@ -1651,7 +1656,8 @@ findObjectByModuleAndName(module, name)
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, " = %s\n", descriptor->name);
+		printDebug(4, " = %p (%s) [XXX d=%p]\n", descriptor->ptr,
+			   descriptor->name, descriptor);
 		return (descriptor->ptr);
 	    }
 	}
@@ -2398,7 +2404,7 @@ findMacroByModulenameAndName(modulename, name)
     Descriptor *descriptor;
     Module *module;
     
-    printDebug(4, "findMacroByModulenameAndName(\"%s\", \"%s\")",
+    printDebug(4, "findMacroByModulenameAndName(\"%s\", \"%s\")\n",
 	       modulename, name);
 
     module = findModuleByName(modulename);
@@ -2407,13 +2413,13 @@ findMacroByModulenameAndName(modulename, name)
 	     descriptor; descriptor = descriptor->nextSameModuleAndKind) {
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
-		printDebug(4, " = %s\n", descriptor->name);
+		printDebug(4, "... = %s\n", descriptor->name);
 		return (descriptor->ptr);
 	    }
 	}
     }
 	
-    printDebug(4, " = NULL\n");
+    printDebug(4, "... = NULL\n");
     return (NULL);
 }
 
