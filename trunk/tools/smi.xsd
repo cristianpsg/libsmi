@@ -6,7 +6,13 @@
     <xsd:restriction base="xsd:int"/>
   </xsd:simpleType>
 
-  <xsd:simpleType name="OctetString">
+  <xsd:simpleType name="OctetStringHex">
+    <xsd:restriction base="xsd:hexBinary">
+      <xsd:maxLength value="65535" fixed="false"/> 
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="OctetStringAscii">
     <xsd:restriction base="xsd:string">
       <xsd:maxLength value="65535" fixed="false"/> 
     </xsd:restriction>
