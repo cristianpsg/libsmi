@@ -1,3 +1,8 @@
+2001-12-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-perl.c: Martin Schulz submitted a patch to fix
+	the representation of notifications.
+	
 2001-12-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Added check for incompatible types in SEQUENCE
