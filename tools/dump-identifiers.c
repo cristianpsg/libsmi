@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.12 2000/12/15 13:52:33 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.13 2000/12/18 09:56:28 strauss Exp $
  */
 
 #include <config.h>
@@ -37,8 +37,9 @@ static int showpath = 0;
 
 static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 {
-    SmiNode   *smiNode;
-    unsigned int i,j;
+    SmiNode      *smiNode;
+    unsigned int j;
+    int          i;
 
     for (i = 0; i < modc; i++) {
 	for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_ANY);

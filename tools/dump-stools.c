@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.17 2001/04/11 13:43:45 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.18 2001/06/13 07:45:45 schoenw Exp $
  */
 
 /*
@@ -485,10 +485,11 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 static void
 printHeaderIdentities(FILE *f, SmiModule *smiModule)
 {
-    SmiNode  *smiNode, *moduleIdentityNode;
-    int      i, cnt = 0;
-    char     *dName, *dModuleName;
-    char     *cModuleName;
+    SmiNode      *smiNode, *moduleIdentityNode;
+    int          cnt = 0;
+    unsigned int i;
+    char         *dName, *dModuleName;
+    char         *cModuleName;
 
     moduleIdentityNode = smiGetModuleIdentityNode(smiModule);
     
@@ -1267,8 +1268,8 @@ printVariableAssignement(FILE *f, SmiNode *groupNode)
 static void
 printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char *cModuleName, *cGroupName;
-    int i;
+    char         *cModuleName, *cGroupName;
+    unsigned int i;
 
     cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
@@ -1347,9 +1348,9 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 static void
 printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
 {
-    SmiNode *tableNode;
-    char    *cModuleName, *cEntryName, *cTableName;
-    int     i;
+    SmiNode      *tableNode;
+    char         *cModuleName, *cEntryName, *cTableName;
+    unsigned int i;
 
     tableNode = smiGetParentNode(entryNode);
     if (! tableNode) {
@@ -1426,8 +1427,8 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *entryNode)
 static void
 printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char    *cModuleName, *cGroupName;
-    int     i;
+    char         *cModuleName, *cGroupName;
+    unsigned int i;
 
     cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
