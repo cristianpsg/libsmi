@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.16 1998/11/19 19:44:00 strauss Exp $
+ * @(#) $Id: parser.y,v 1.17 1998/11/20 17:10:13 strauss Exp $
  */
 
 %{
@@ -2505,12 +2505,8 @@ subidentifier:
 			    if (parent != rootNode) {
 				printError(parser, ERR_OIDLABEL_NOT_FIRST, $1);
 			    } else {
-
-				/* TODO: replace by ...ByModuleAndName !! */
-				/* TODO: search in local module and
-				 *       in imported modules
-				 */
-				object = findObjectByName($1);
+				object = findObjectByModuleAndName(thisModule,
+								   $1);
 				if (object) {
 				    $$ = object;
 				} else {
@@ -2599,7 +2595,8 @@ subidentifier:
 			    /* TODO: search in local module and
 			     *       in imported modules
 			     */
-			    object = findObjectByName($1); /* TODO AndModule */
+			    object = findObjectByModuleAndName(thisModule,
+							       $1);
 			    if (object) {
 				printError(parser, ERR_EXISTENT_DESCRIPTOR,
 					   $1);

@@ -203,3 +203,10 @@ x shift/reduce conflict at
     children: ??
     members: wie node.
     parent: wie node.
+
+
+. 20.11.98 weiter:
+    parser.y: findObject...(): hiernach bei scheitern in der liste
+    der importierten Objects suchen. aehnlich wie schon fuer Types
+    angefangen.
+

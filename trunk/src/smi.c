@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.6 1998/11/19 19:44:01 strauss Exp $
+ * @(#) $Id: smi.c,v 1.7 1998/11/20 17:10:14 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -65,15 +65,14 @@ getString(s, m)
     String *s;
     Module *m;
 {
-    char *p;
+    static char *p = NULL;
     int fd;
     
     if (s->ptr) {
         return s->ptr;
     } else {
-        p = malloc(s->length+1);
+        p = realloc(p, s->length+1);
         /* TODO: success? */
-        /* TODO: who will free() this? */
         fd = open(m->path, O_RDONLY);
         if (fd > 0) {
             lseek(fd, s->fileoffset, SEEK_SET);
@@ -87,6 +86,23 @@ getString(s, m)
             /* TODO: error handling? */
         }
     }
+}
+
+
+
+char *
+getOid(n)
+    Node *n;
+{
+    static char o[SMI_MAX_OID+1+1];
+    smi_subid a[128];
+    int i, l;
+
+    for (i = 0; n != rootNode; a[i++] = n->subid, n = n->parent);
+    for (strcpy(o, ""), l = 0; i > 0; l += sprintf(&o[l], "%d.", a[--i]));
+    o[l-1] = 0;
+
+    return o;
 }
 
 
@@ -346,14 +362,12 @@ smiGetNode(name, module, wantdescr)
         element1 = strtok(elements, "!.");
         element = strtok(NULL, " ");
         object = findObjectByModulenameAndName(element1, element);
-	node = object->node;
         free(elements);
     } else if (module && strlen(module)) {
 	/*
 	 * name in simple `name' form and module not empty.
 	 */
 	object = findObjectByModulenameAndName(module, name);
-	node = object->node;
     } else {
 	/* printError(NULL, ); */
 	return NULL;
@@ -362,7 +376,7 @@ smiGetNode(name, module, wantdescr)
     if (object) {
 	res.name = strdup(object->descriptor->name);
 	res.module = strdup(object->module->descriptor->name);
-	res.oid = "TODO";
+	res.oid = getOid(object->node);
 	res.type = "TODO";
 	res.decl = object->decl;
 	res.access = object->access;

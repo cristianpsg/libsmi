@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.7 1998/11/19 19:44:03 strauss Exp $
+% * @(#) $Id: smi.x,v 1.8 1998/11/20 17:10:16 strauss Exp $
 % */
 %
 
@@ -22,6 +22,8 @@ typedef string smi_descriptor<SMI_MAX_DESCRIPTOR>;
 typedef string smi_oid<SMI_MAX_OID>;
 typedef string smi_string<SMI_MAX_STRING>;
 typedef string smi_fullname<SMI_MAX_FULLNAME>;
+
+typedef unsigned int smi_subid;
 
 enum smi_syntax {
     SMI_SYNTAX_UNKNOWN		= 0,

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.17 1998/11/19 19:43:55 strauss Exp $
+ * @(#) $Id: data.c,v 1.18 1998/11/20 17:10:08 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -401,8 +401,8 @@ checkImportDescriptors(modulename, parser)
     
     printDebug(4, "checkImportIdentifiers(%s, parser)\n", modulename);
     
-    while (parser->firstImportDescriptor) {
-	descriptor = parser->firstImportDescriptor;
+    while (parser->thisModule->firstDescriptor[KIND_IMPORT]) {
+	descriptor = parser->thisModule->firstDescriptor[KIND_IMPORT];
 
 	/*
 	 * We add a module descriptor with FLAG_IMPORTED and
@@ -429,7 +429,8 @@ checkImportDescriptors(modulename, parser)
 		       descriptor->name, modulename);
 	}
 	
-	parser->firstImportDescriptor = descriptor->nextSameModuleAndKind;
+	parser->thisModule->firstDescriptor[KIND_IMPORT] =
+	    descriptor->nextSameModuleAndKind;
 	free(descriptor->name);
 	free(descriptor);
     }
@@ -494,7 +495,8 @@ addDescriptor(name, module, kind, ptr, flags, parser)
      * we have to complete those Type and Descriptor structs instead of
      * creating a new descriptor.
      */
-    if ((module) && (kind == KIND_TYPE)) {
+    if ((module) && (kind == KIND_TYPE) &&
+	(!(flags & FLAG_IMPORTED))) {
 	t = findTypeByModuleAndName(module, name);
 	if (t && (t->flags & FLAG_INCOMPLETE) && !(flags & FLAG_INCOMPLETE)) {
 	    t->parent = ((Type *)ptr)->parent;
@@ -529,7 +531,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
      * TODO: during development, there might be descriptors defined
      * with ptr == NULL.
      */
-    if (ptr) {
+    if (ptr && (!(flags & FLAG_IMPORTED))) {
 	switch (kind) {
 	case KIND_MODULE:
 	    ((Module *)(descriptor->ptr))->descriptor = descriptor;
@@ -600,6 +602,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
      * corresponding subtree to the main tree.
      */
     if ((module) && (kind == KIND_OBJECT) &&
+	(!(flags & FLAG_IMPORTED)) &&
 	(((Object *)ptr)->node->parent != pendingRootNode)) {
 	
 	/*
@@ -893,7 +896,7 @@ addObject(parent, subid, module, flags, parser)
      */
     if ((parent == pendingRootNode) ||
 	(!(node = findNodeByParentAndSubid(parent, subid)))) {
-	node = (Node *)malloc(sizeof(Node));
+ 	node = (Node *)malloc(sizeof(Node));
 	if (!node) {
 	    printError(parser, ERR_ALLOCATING_OBJECT, strerror(errno));
 	    free(object);
@@ -906,6 +909,38 @@ addObject(parent, subid, module, flags, parser)
 	node->lastChild = NULL;
 	node->firstObject = object;
 	node->lastObject = object;
+
+	if (parent) {
+	    if (parent->firstChild) {
+		for (c = parent->firstChild;
+		     c && (c->subid < subid);
+		     c = c->next);
+		if (c) {
+		    if (c != parent->firstChild) {
+			c->prev->next = node;
+			node->prev = c->prev;
+			c->prev = node;
+			node->next = c;
+		    } else {
+			c->prev = node;
+			node->next = c;
+			node->prev = NULL;
+			parent->firstChild = node;
+		    }
+		} else {
+		    node->next = NULL;
+		    node->prev = parent->lastChild;
+		    parent->lastChild->next = node;
+		    parent->lastChild = node;
+		}
+	    } else {
+		parent->firstChild = node;
+		parent->lastChild = node;
+		node->next = NULL;
+		node->prev = NULL;
+	    }
+	}
+	
     } else {
 	object->prev = node->lastObject;
 	node->lastObject->next = object;
@@ -913,35 +948,6 @@ addObject(parent, subid, module, flags, parser)
     }
     object->node = node;
     
-    if (parent) {
-	if (parent->firstChild) {
-	    for (c = parent->firstChild; c && (c->subid < subid); c = c->next);
-	    if (c) {
-		if (c != parent->firstChild) {
-		    c->prev->next = node;
-		    node->prev = c->prev;
-		    c->prev = node;
-		    node->next = c;
-		} else {
-		    c->prev = node;
-		    node->next = c;
-		    node->prev = NULL;
-		    parent->firstChild = node;
-		}
-	    } else {
-		node->next = NULL;
-		node->prev = parent->lastChild;
-		parent->lastChild->next = node;
-		parent->lastChild = node;
-	    }
-	} else {
-	    parent->firstChild = node;
-	    parent->lastChild = node;
-	    node->next = NULL;
-	    node->prev = NULL;
-	}
-    }
-
     return (object);
 }
 
@@ -1309,8 +1315,16 @@ findObjectByModulenameAndName(modulename, name)
 	    }
 	}
     }
+
+    /*
+     * Some toplevel Objects seem to be always known.
+     */
+    if ((!strcmp(name, "iso")) || (!strcmp(name, "ccitt")) ||
+	(!strcmp(name, "joint-iso-ccitt"))) {
+	return findObjectByName(name);
+    }
     
-    printDebug(4, " = NULL\n");
+    printDebug(4, "... = NULL\n");
     return (NULL);
 }
 
@@ -1352,8 +1366,14 @@ findObjectByModuleAndName(module, name)
 		return (descriptor->ptr);
 	    }
 	}
-    } else {
-	return (findObjectByName(name));
+    }
+    
+    /*
+     * Some toplevel Objects seem to be always known.
+     */
+    if ((!strcmp(name, "iso")) || (!strcmp(name, "ccitt")) ||
+	(!strcmp(name, "joint-iso-ccitt"))) {
+	return findObjectByName(name);
     }
     
     printDebug(4, " = NULL\n");
