@@ -12,14 +12,14 @@
 < SNMPv2-TC
 ---
 > SNMPv2-TC;
-974c975
+974d974
 < TestAndIncr
----
+975a976
 > TestAndIncr,
-986c987
-< TruthValue,
----
+985a987
 > TruthValue
+988d989
+< TruthValue,
 1465c1466
 < mib-2,
 ---
