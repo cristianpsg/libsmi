@@ -1,0 +1,71 @@
+module IRTF-NMRG-SMING irtfNmrgSming {
+
+//
+// $RCSfile: IRTF-NMRG-SMING,v $
+// $Revision: 1.8 $
+// $Author: strauss $
+// $Date: 1999/04/26 14:54:59 $
+//
+
+    oid             1.3.6.1.3.1575.1.8;
+                    // experimental.1575.1.8
+
+    organization    "IRTF Network Management Research Group (NMRG),
+                     Network Management Group, TU Braunschweig";
+
+    contact         "        Frank Strauss
+
+                     Postal: TU Braunschweig
+                             Bueltenweg 74/75
+                             38106 Braunschweig
+                             Germany
+
+                      EMail: strauss@ibr.cs.tu-bs.de
+
+                       http://www.ibr.cs.tu-bs.de/~strauss/sming/
+
+                             Juergen Schoenwaelder
+
+                     Postal: TU Braunschweig
+                             Bueltenweg 74/75
+                             38106 Braunschweig
+                             Germany
+
+                      Phone: +49 531 391-3283
+                      EMail: schoenw@ibr.cs.tu-bs.de";
+
+    description     "Core node definitions for SMIng.";
+
+    revision {
+        date        "1999-04-26";
+        description "Initial Revision.";
+    };
+
+
+    node ccitt                          { oid 0;                };
+
+    node   zeroDotZero {
+        oid         0.0;
+        description "A value used for null identifiers.";
+    };
+
+    node iso                            { oid 1;                };
+    node   org                          { oid iso.3;            };
+    node     dod                        { oid org.6;            };
+    node       internet                 { oid dod.1;            };
+    node         directory              { oid internet.1;       };
+    node         mgmt                   { oid internet.2;       };
+    node           mib-2                { oid mgmt.1;           };
+    node             transmission       { oid mib-2.10;         };
+    node         experimental           { oid internet.3;       };
+    node         private                { oid internet.4;       };
+    node           enterprises          { oid private.1;        };
+    node         security               { oid internet.5;       };
+    node         snmpV2                 { oid internet.6;       };
+    node           snmpDomains          { oid snmpV2.1;         };
+    node           snmpProxys           { oid snmpV2.2;         };
+    node           snmpModules          { oid snmpV2.3;         };
+
+    node joint-iso-ccitt                { oid 2;                };
+
+};
