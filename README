@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.11 1999/06/01 21:44:54 strauss Exp $
+@(#) $Id: README,v 1.12 1999/06/09 20:13:35 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -52,7 +52,7 @@ tools/smilint, tools/smidump, and tools/smiquery.
 
 To run some checks, type
 
-	make checks
+	make check
 
 If you wish to install the library, some basic MIB modules, the tools
 and the man pages, run

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.19 1999/06/07 15:44:04 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.20 1999/06/08 20:16:09 strauss Exp $
  */
 
 %{
@@ -1464,7 +1464,7 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 			    complianceObjectPtr->refinementlistPtr = $22;
 			    if ($22) {
 				for (listPtr = $22;
-				     listPtr->nextPtr;
+				     listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
 					((Refinement *)(listPtr->ptr));

@@ -3,10 +3,8 @@
 rm -rf smilint.out
 mkdir smilint.out
 
-echo "Checking SMIv2 MIB modules with smilint..."
-
 for mib in ${TESTMIBS} ; do
-    echo $mib
+    echo "$mib: checking SMIv2 MIB module with smilint."
     ../tools/smilint -l9 $mib > smilint.out/$mib 2>&1
 done
 
