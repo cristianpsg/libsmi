@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.37 2000/12/09 16:34:05 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.38 2002/10/30 09:17:37 schoenw Exp $
  */
 
 #include <config.h>
@@ -497,7 +497,7 @@ static void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 	    fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	    fprintf(f, "%%n0 %-16s module-compliance\n", smiNode->name);
+	    fprintf(f, "%%n0 %-16s module-identity\n", smiNode->name);
 	    fprintf(f, "\n");
 	}
 	
