@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.in,v 1.5 1999/05/31 12:59:51 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.4 1999/05/31 11:58:29 strauss Exp $
 #
 
 
@@ -103,7 +103,8 @@ libsmi_la_SOURCES = data.c error.c util.c smi.c scanner.c 		  	  parser-smi.tab.
 
 libsmi_la_LDFLAGS = -version-info 1:1:0
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES = 
+CONFIG_CLEAN_FILES =  libsmi.3 smi_macro.3 smi_module.3 smi_node.3 \
+smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
@@ -124,7 +125,8 @@ MANS = $(man_MANS)
 NROFF = nroff
 HEADERS =  $(include_HEADERS)
 
-DIST_COMMON =  Makefile.am Makefile.in
+DIST_COMMON =  Makefile.am Makefile.in libsmi.3.in smi_config.3.in \
+smi_macro.3.in smi_module.3.in smi_node.3.in smi_type.3.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -144,6 +146,18 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+libsmi.3: $(top_builddir)/config.status libsmi.3.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smi_macro.3: $(top_builddir)/config.status smi_macro.3.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smi_module.3: $(top_builddir)/config.status smi_module.3.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smi_node.3: $(top_builddir)/config.status smi_node.3.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smi_type.3: $(top_builddir)/config.status smi_type.3.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smi_config.3: $(top_builddir)/config.status smi_config.3.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 mostlyclean-libLTLIBRARIES:
 

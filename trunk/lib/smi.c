@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.30 1999/05/30 21:50:45 strauss Exp $
+ * @(#) $Id: smi.c,v 1.31 1999/05/31 11:58:37 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1659,26 +1659,27 @@ SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 
 
 
-SmiNode *smiGetFirstObjectNode(SmiNode *smiGroupNodePtr)
+SmiNode *smiGetFirstObjectNode(SmiNode *smiNotificationNodePtr)
 {
     Module	      *modulePtr;
     Object	      *objectPtr;
     
-    if (!smiGroupNodePtr) {
+    if (!smiNotificationNodePtr) {
 	return NULL;
     }
 
-    modulePtr = findModuleByName(smiGroupNodePtr->module);
+    modulePtr = findModuleByName(smiNotificationNodePtr->module);
 
     if (!modulePtr) {
-	modulePtr = loadModule(smiGroupNodePtr->module);
+	modulePtr = loadModule(smiNotificationNodePtr->module);
     }
 
     if (!modulePtr) {
 	return NULL;
     }
 
-    objectPtr = findObjectByModuleAndName(modulePtr, smiGroupNodePtr->name);
+    objectPtr = findObjectByModuleAndName(modulePtr,
+					  smiNotificationNodePtr->name);
 
     if ((!objectPtr) || (!objectPtr->listPtr)) {
 	return NULL;
