@@ -1,11 +1,13 @@
 TUBS-SMI DEFINITIONS ::= BEGIN
 
+-- @(#) $Id: TUBS-SMI,v 1.1 2000/02/09 14:53:49 schoenw Exp $
+
 IMPORTS
     MODULE-IDENTITY, OBJECT-IDENTITY, enterprises
 	FROM SNMPv2-SMI;
 
 tubs MODULE-IDENTITY
-    LAST-UPDATED "9702141023Z"
+    LAST-UPDATED "200002090000Z"
     ORGANIZATION "TU Braunschweig"
     CONTACT-INFO
 	"Juergen Schoenwaelder
@@ -20,6 +22,9 @@ tubs MODULE-IDENTITY
     DESCRIPTION
 	"The toplevel OID registration for the Technical University
 	 of Braunschweig, Germany."
+    REVISION	"200002090000Z"
+    DESCRIPTION
+	"Changed the module name from TUBS-REGISTRATION to TUBS-SMI."
     REVISION	"9702141023Z"
     DESCRIPTION
 	"The initial revision."
@@ -32,5 +37,17 @@ ibr OBJECT-IDENTITY
 	 and Computer Networks (Institut fuer Betriebssysteme und
 	 Rechnerverbund)."
     ::= { tubs 1 }
+
+-- Allocations below TUBS-SMI::ibr:
+--
+--   1  TUBS-IBR-TNM-MIB::tnmMIB
+--   2  TUBS-IBR-NFS-MIB::nfsMIB
+--   3  TUBS-IBR-PROC-MIB::procMIB
+--   4  <obsolete>
+--   5	TUBS-IBR-LINUX-MIB::linuxMIB
+--   6  TUBS-IBR-AGENT-CAPABILITIES::ibrAgentCapabilities
+--   7  TUBS-IBR-TEST-MIB::testMIB
+--   8	<obsolete>
+--   9  LIBSMI-TEST-MIB::testMib
 
 END
