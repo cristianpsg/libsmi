@@ -34,8 +34,6 @@ ianafinisherMIB MODULE-IDENTITY
 
                   Copyright (C) The Internet Society (2004). The
 
-
-
                   initial version of this MIB module was published
                   in RFC 3806. For full legal notices see the RFC
                   itself or see:
@@ -84,8 +82,6 @@ FinAttributeTypeTC  ::= TEXTUAL-CONVENTION
     SYNTAX       INTEGER {
          other(1),
          deviceName(3),
-
-
 
          deviceVendorName(4),
          deviceModel(5),
@@ -136,8 +132,6 @@ FinStitchingTypeTC ::= TEXTUAL-CONVENTION
       "The defined stitching type enumerations.  For the edgeStitch and
        stapleDual enums, the finReferenceEdge attribute is recommended
 
-
-
        to define the edge to which the operation applies."
     SYNTAX       INTEGER {
          other(1),         -- More information in other attributes
@@ -186,8 +180,6 @@ FinStitchingAngleTypeTC ::= TEXTUAL-CONVENTION
 FinFoldingTypeTC ::= TEXTUAL-CONVENTION
    STATUS       current
    DESCRIPTION
-
-
 
      "The defined folding device process enumerations."
    SYNTAX       INTEGER {
@@ -238,8 +230,6 @@ FinPunchPatternTC ::= TEXTUAL-CONVENTION
          unknown(2),
          twoHoleUSTop(4),    --Letter/legal, 8.5 inch edge
 
-
-
          threeHoleUS(5),     --Letter/ledger, 11 inch edge
          twoHoleDIN(6),      --A4/A3, 297 mm edge
          fourHoleDIN(7),     --A4/A3, 297 mm edge
@@ -288,8 +278,6 @@ FinStackOutputTypeTC ::= TEXTUAL-CONVENTION
          straight(4),     -- No offset, one on top of another
          offset(5),
          crissCross(6)    -- Rotated
-
-
 
         }
 END

@@ -11,8 +11,6 @@ IMPORTS
 ianaPrinterMIB MODULE-IDENTITY
     LAST-UPDATED  "200406020000Z" -- June 2, 2004
 
-
-
     ORGANIZATION  "IANA"
     CONTACT-INFO  "Internet Assigned Numbers Authority
                   Postal: ICANN
@@ -61,8 +59,6 @@ PrtCoverStatusTC ::= TEXTUAL-CONVENTION
                   coverClosed(4),
                   interlockOpen(5),
                   interlockClosed(6)
-
-
 
                   }
 
@@ -113,8 +109,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       --
                       -- prtChannelInformation entry:
 
-
-
                       --
                       -- Printer Name
                       --   Keyword:      Name
@@ -163,8 +157,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       --   Syntax:       Name
                       --   Multiplicity: Single
                       --   Description:  The tree's SAP name
-
-
 
                       --
                       -- NDS Printer object
@@ -215,8 +207,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       --   Description:  The bindery name of
                       --                 the PServer
 
-
-
                       --
                       -- NDS Tree
                       --   Keyword:      NDSTree
@@ -265,8 +255,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       -- [RFC3232].  This RFC should also be
                       -- referenced for other channel
                       -- enumerations utilizing TCP port
-
-
 
                       -- numbers 0 through 1024.
                   chCPAP(21),      -- TCP port 170
@@ -317,8 +305,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       --   Keyword:      Service
                       --   Syntax:       Name
 
-
-
                       --   Status:       Conditionally
                       --                 Mandatory
                       --   Multiplicity: Single
@@ -367,8 +353,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       -- ADSP is part of the AppleTalk
                       -- suite of protocols.
                       -- It is a symmetric, connection-
-
-
 
                       -- oriented protocol that makes
                       -- possible the establishment
@@ -419,8 +403,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                   chNDPS(43),  -- Not in RFC 1759
                       -- Novell, Inc.
 
-
-
                       --
                       -- prtChannelInformation entry:
                       --
@@ -469,8 +451,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       --       'requesting-user-name'
                       --         authenticated user in 'requesting-
                       --         user-name'
-
-
 
                       --       'basic'
                       --         authenticated user via HTTP Basic
@@ -521,8 +501,6 @@ PrtChannelTypeTC ::= TEXTUAL-CONVENTION
                       --     '1.1'
                       --       IPP/1.1 conforming Printer
 
-
-
                       --   Conformance:  An IPP Printer should list
                       --     all IPP versions it supports (all listed
                       --     in each IPP Channel entry).  An IPP
@@ -571,8 +549,6 @@ PrtInterpreterLangFamilyTC ::= TEXTUAL-CONVENTION
                              -- the data stream between data intended
                              -- for a page description language.
                              -- Hewlett-Packard Co.
-
-
 
         langPS(6),           -- PostScript (tm) Language
                              -- Postscript - a trademark of Adobe
@@ -623,8 +599,6 @@ PrtInterpreterLangFamilyTC ::= TEXTUAL-CONVENTION
                              -- objects (text, image, graphics, bar
                              -- codes), resources (fonts, overlays)
 
-
-
                              -- and page, form and finishing
                              -- instructions.
                              -- IBM Corporation.
@@ -673,8 +647,6 @@ PrtInterpreterLangFamilyTC ::= TEXTUAL-CONVENTION
                              -- simple-text:  character coded data,
                              -- including NUL, CR , LF, HT, and FF
                              -- control characters.  See ISO 10175
-
-
 
                              -- Document Printing Application (DPA)
                              -- [ISO10175].
@@ -725,8 +697,6 @@ PrtInterpreterLangFamilyTC ::= TEXTUAL-CONVENTION
         langLIPS(39),        -- LBP Image Processing System
         langTIFF(40),        -- Tagged Image File Format (Aldus)
 
-
-
         langDiagnostic(41),
                              -- A hex dump of the input to the
                              -- interpreter
@@ -775,8 +745,6 @@ PrtInterpreterLangFamilyTC ::= TEXTUAL-CONVENTION
         langIDP(52),         -- Not in RFC 1759
                              -- Imaging Device Protocol
                              -- Apple Computer.
-
-
 
         langXJCL(53),        -- Not in RFC 1759
                              -- Xerox Job Control Language (JCL).
@@ -827,8 +795,6 @@ PrtInterpreterLangFamilyTC ::= TEXTUAL-CONVENTION
         langCALS1(62),       -- Not in RFC 1759
                              -- US DOD CALS1 (see MIL-STD-1840)
 
-
-
                              -- MIME type 'application/cals-1840'
         langCALS2(63),       -- Not in RFC 1759
                              -- US DOD CALS2 (see MIL-STD-1840)
@@ -876,9 +842,6 @@ PrtOutputTypeTC ::= TEXTUAL-CONVENTION
                   mailBox(6),
                   continuousFanFold(7)
                   }
-
-
-
 
 --
 -- Marker Group TEXTUAL-CONVENTIONs
@@ -929,8 +892,6 @@ PrtMarkerSuppliesTypeTC ::= TEXTUAL-CONVENTION
                   other(1),
                   unknown(2),
 
-
-
                 -- Values for Printer MIB
                   toner(3),
                   wasteToner(4),
@@ -979,8 +940,6 @@ PrtMediaPathTypeTC ::= TEXTUAL-CONVENTION
     DESCRIPTION
         "The type of the media path for this media path."
     SYNTAX    INTEGER {
-
-
 
                   other(1),
                   unknown(2),
@@ -1031,8 +990,6 @@ PrtConsoleDisableTC ::= TEXTUAL-CONVENTION
 PrtAlertTrainingLevelTC ::= TEXTUAL-CONVENTION
     -- This TC was extracted from prtAlertTrainingLevel in RFC 1759.
 
-
-
     STATUS    current
     DESCRIPTION
         "The level of training required to handle this alert, if
@@ -1081,8 +1038,6 @@ PrtAlertGroupTC ::= TEXTUAL-CONVENTION
     -- Values of 30 and greater are for use in MIBs that augment
     -- the Printer MIB, such as the Finisher MIB.
     -- This TC extracted from prtAlertGroup in RFC 1759.
-
-
 
     STATUS    current
     DESCRIPTION
@@ -1133,8 +1088,6 @@ PrtAlertCodeTC ::= TEXTUAL-CONVENTION
     DESCRIPTION
         "The code that describes the type of alert for this entry in
 
-
-
         the table.  Binary change event alerts describe states of the
         subunit while unary change event alerts describe a single
         event.  The same alert code can be used for a binary change
@@ -1183,8 +1136,6 @@ PrtAlertCodeTC ::= TEXTUAL-CONVENTION
                                 alert table.
 
         Optionally, the agent may generate a trap coincident with
-
-
 
         removing the binary change event and placing the unary change
         event alertRemovalOfBinaryChangeEntry(1801) in the alert
@@ -1235,8 +1186,6 @@ PrtAlertCodeTC ::= TEXTUAL-CONVENTION
                                                -- Not in RFC 1759
                   subunitUnrecoverableFailure(30),
 
-
-
                                                -- Not in RFC 1759
                   subunitRecoverableStorageError(31),
                                                -- Not in RFC 1759
@@ -1285,8 +1234,6 @@ PrtAlertCodeTC ::= TEXTUAL-CONVENTION
                       -- description of the medium required to
                       -- satisfy the request.
                   inputManualInputRequest(810), -- Not in RFC 1759
-
-
 
                       -- An interpreter has detected that manual
                       -- input is required in this subunit.  The
@@ -1337,8 +1284,6 @@ PrtAlertCodeTC ::= TEXTUAL-CONVENTION
                   mediaPathMediaTrayFull(1303),
                   mediaPathCannotDuplexMediaSelected(1304),
 
-
-
                                         -- Not in RFC 1759
                 -- Interpreter Group
                   interpreterMemoryIncrease(1501),
@@ -1362,3 +1307,5 @@ PrtAlertCodeTC ::= TEXTUAL-CONVENTION
                       -- end of the alert table.
                   }
 END
+
+
