@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.57 2002/12/11 22:04:08 strauss Exp $
+ * @(#) $Id: dump-xsd.c,v 1.58 2002/12/11 23:25:32 strauss Exp $
  */
 
 #include <config.h>
@@ -1271,6 +1271,48 @@ static int hasChildren( SmiNode *smiNode, SmiNodekind nodekind )
     return childNodeCount;
 }
 
+static void
+fprintTypeWithHint( FILE *f, SmiNode *smiNode, SmiType *smiType, char *hint )
+{
+    unsigned int numSubRanges = getNumSubRanges( smiType ),
+	lp = 0;
+    SmiRange *smiRange;
+    SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
+    
+    fprintAnnotationElem( f, smiNode );
+    
+    /* write subtype lengths to the array */
+    for( smiRange = smiGetFirstRange( smiType );
+	 smiRange;
+	 smiRange = smiGetNextRange( smiRange ) ) {
+	lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+	lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+    }		    
+    fprintSegment( f, 1, "<xsd:simpleType>\n");
+    fprintSegment( f, 1, "<xsd:restriction base=\"xsd:string\">\n");
+    fprintSegment( f, 0, "<xsd:pattern value=\"%s\"/>\n",
+		   getStrDHType( hint, lengths, numSubRanges));
+    fprintSegment( f, -1, "</xsd:restriction>\n");
+    fprintSegment( f, -1, "</xsd:simpleType>\n");
+    xfree( lengths );
+}
+
+
+static char *getParentDisplayHint( SmiType *smiType )
+{
+    SmiType *iterType;
+
+    for( iterType = smiGetParentType( smiType );
+	 iterType;
+	 iterType = smiGetParentType( iterType ) ) {
+	if( iterType->format ) {
+	    return iterType->format;
+	}	
+    }
+    return NULL;
+}
+
+
 static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 {
     char *typeName, *prefix;
@@ -1281,30 +1323,84 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 /*	fprint( f, "<!-- error: no type in %s -->\n", smiNode->name );*/
 	return;
     }
-    
+
     typeName = smiType->name ?
 	smiType->name :
 	getStringBasetype( smiType->basetype );
     prefix = getTypePrefix( typeName );
     
-    if( prefix ) {
-	fprintSegment( f, 1, "<xsd:attribute name=\"%s\" type=\"%s:%s\">\n",
-		       smiNode->name, prefix, typeName );
+
+    if( smiType->basetype == SMI_BASETYPE_BITS ) {
+	    fprintSegment( f, 1, "<xsd:attribute name=\"%s\" type=\"%s%s\" "
+			   "use=\"required\">\n",
+			   smiNode->name,
+			   smiNode->name,
+			   getStringBasetype( smiType->basetype ) );
+	    fprintAnnotationElem( f, smiNode );
     }
-    else {
-	fprintSegment( f, 1, "<xsd:attribute name=\"%s\" type=\"%s\">\n",
-		       smiNode->name, typeName );
+
+    else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {	    
+	
+	if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	    char *hint = getParentDisplayHint( smiType );
+	    
+	    fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
+			   "use=\"required\">\n", smiNode->name );
+	    if( ! hint ) {
+		fprintAnnotationElem( f, smiNode );
+		fprintTypedef( f, smiType, NULL );
+	    }
+	    else {
+		fprintTypeWithHint( f, smiNode, smiType, hint );
+	    }
+	}
+	
+	else {
+	    if( prefix ) {
+		fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
+			       "type=\"%s:%s\" use=\"required\">\n",
+			       smiNode->name, prefix, typeName );
+	    }
+	    else {		    
+		fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
+			       "type=\"%s\" use=\"required\">\n",
+			       smiNode->name, typeName );
+	    }
+	    fprintAnnotationElem( f, smiNode );
+	}
     }
-        
-    if( augments ) {
-	fprintSegment( f, 1, "<xsd:annotation>\n");
-	fprintSegment( f, 1, "<xsd:appinfo>\n");
-	fprintSegment( f, 0, "<augments>%s</augments>\n", augments->name );
-	fprintSegment( f, -1, "</xsd:appinfo>\n");
-	fprintSegment( f, -1, "</xsd:annotation>\n");
-    }
-    else {
+    
+    /* check for other (implicit) types */
+    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
+		       "use=\"required\">\n",
+		       smiNode->name );
 	fprintAnnotationElem( f, smiNode );
+	fprintTypedef( f, smiType, NULL );
+    }
+    
+    else {	
+	if( prefix ) {
+	    fprintSegment( f, 1,"<xsd:attribute name=\"%s\" type=\"%s:%s\" ",
+			   smiNode->name, prefix, typeName );
+	    fprintf( f, "use=\"required\">\n" );
+	}
+	else {
+	    fprintSegment( f, 1, "<xsd:attribute name=\"%s\" type=\"%s\" ",
+			   smiNode->name, typeName );
+	    fprintf( f, "use=\"required\">\n" );
+	}
+	
+	if( augments ) {
+	    fprintSegment( f, 1, "<xsd:annotation>\n");
+	    fprintSegment( f, 1, "<xsd:appinfo>\n");
+	    fprintSegment( f, 0, "<augments>%s</augments>\n", augments->name );
+	    fprintSegment( f, -1, "</xsd:appinfo>\n");
+	    fprintSegment( f, -1, "</xsd:annotation>\n");
+	}
+	else {
+	    fprintAnnotationElem( f, smiNode );
+	}
     }
     fprintSegment( f, -1, "</xsd:attribute>\n"); 
 }
@@ -1377,23 +1473,7 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name )
 	    fprintComplexType( f, iterNode, iterNode->name );
 	}
     }
-}
-
-static char *getParentDisplayHint( SmiType *smiType )
-{
-    SmiType *iterType;
-
-    for( iterType = smiGetParentType( smiType );
-	 iterType;
-	 iterType = smiGetParentType( iterType ) ) {
-	if( iterType->format ) {
-	    return iterType->format;
-	}	
-    }
-    return NULL;
-}
-    
-
+}    
 
 
 static void fprintElement( FILE *f, SmiNode *smiNode )
@@ -1486,13 +1566,6 @@ static void fprintElement( FILE *f, SmiNode *smiNode )
 	    fprintAnnotationElem( f, smiNode );
 	}
 	
-	else if( smiType->basetype == SMI_BASETYPE_ENUM && ! smiType->name ) {
-	    fprintSegment( f, 1, "<xsd:element name=\"%s\" minOccurs=\"0\">\n",
-			   smiNode->name );
-	    fprintAnnotationElem( f, smiNode );
-	    fprintTypedef( f, smiType, NULL );
-	}
-
 	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {	    
 	    
 	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
@@ -1506,27 +1579,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode )
 		    fprintTypedef( f, smiType, NULL );
 		}
 		else {
-		    unsigned int numSubRanges = getNumSubRanges( smiType ),
-			lp = 0;
-		    SmiRange *smiRange;
-		    SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
-
-		    fprintAnnotationElem( f, smiNode );
-		    
-		    /* write subtype lengths to the array */
-		    for( smiRange = smiGetFirstRange( smiType );
-			 smiRange;
-			 smiRange = smiGetNextRange( smiRange ) ) {
-			lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
-			lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
-		    }		    
-		    fprintSegment( f, 1, "<xsd:simpleType>\n");
-		    fprintSegment( f, 1, "<xsd:restriction base=\"xsd:string\">\n");
-		    fprintSegment( f, 0, "<xsd:pattern value=\"%s\"/>\n",
-				   getStrDHType( hint, lengths, numSubRanges));
-		    fprintSegment( f, -1, "</xsd:restriction>\n");
-		    fprintSegment( f, -1, "</xsd:simpleType>\n");
-		    xfree( lengths );
+		    fprintTypeWithHint( f, smiNode, smiType, hint );
 		}
 	    }
 
