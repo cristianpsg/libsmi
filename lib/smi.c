@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.51 1999/12/10 19:29:21 strauss Exp $
+ * @(#) $Id: smi.c,v 1.52 1999/12/12 12:51:07 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -645,16 +645,19 @@ int smiInit(const char *tag)
     /* need this here, otherwise smiReadConfig would call smiInit in loop */
     initialized = 1;
 
-    /* read global and user configuration */
-    smiReadConfig(DEFAULT_GLOBALCONFIG, tag);
+    if (tag) {
+	/* read global and user configuration */
+	smiReadConfig(DEFAULT_GLOBALCONFIG, tag);
 #ifdef HAVE_PWD_H
-    pw = getpwuid(getuid());
-    if (pw && pw->pw_dir) {
-	p = util_malloc(strlen(DEFAULT_USERCONFIG) + strlen(pw->pw_dir) + 2);
-	sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
-	smiReadConfig(p, tag);
-    }
+	pw = getpwuid(getuid());
+	if (pw && pw->pw_dir) {
+	    p = util_malloc(strlen(DEFAULT_USERCONFIG) +
+			    strlen(pw->pw_dir) + 2);
+	    sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
+	    smiReadConfig(p, tag);
+	}
 #endif
+    }
     
     return 0;
 }
@@ -710,13 +713,23 @@ int smiSetPath(const char *s)
 
 
 
+void smiSetSeverity(const char *pattern, int severity)
+{
+    errorSeverity(pattern, severity);
+}
+
+
+
 int smiReadConfig(const char *filename, const char *tag)
 {
     FILE *file;
     char buf[201], cmd[201], arg[201], section[201];
+    char *s;
     
     strcpy(section, "*");
-
+    strcpy(cmd, "");
+    strcpy(arg, "");
+    
     file = fopen(filename, "r");
     if (file) {
 	while (!feof(file)) {
@@ -733,6 +746,15 @@ int smiReadConfig(const char *filename, const char *tag)
 	    }
 	    if (!strcmp(cmd, "load")) {
 		smiLoadModule(arg);
+	    } else if (!strcmp(cmd, "path")) {
+		s = util_malloc(strlen(smiPath) + strlen(arg) + 2);
+		sprintf(s, "%s:%s", smiPath, arg);
+		util_free(smiPath);
+		smiPath = s;
+	    } else if (!strcmp(cmd, "level")) {
+		smiSetErrorLevel(atoi(arg));
+	    } else if (!strcmp(cmd, "hide")) {
+		smiSetSeverity(arg, 9);
 	    } else {
 		printError(NULL, ERR_UNKNOWN_CONFIG_CMD, cmd, filename);
 	    }

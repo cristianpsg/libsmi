@@ -1,5 +1,20 @@
 1999-12-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/parser-smi.y: fixed wrong complaints about imported but
+	unused identifiers in MODULE sections of MODULE-COMPLIANCE
+	statements.
+
+	* lib/error.c (errorSeverity): error severities can now be
+	changed, e.g. by smilint `-i error-name-prefix options or config
+	file `hide error-name-prefix commands, the severity of all errors
+	with names prefixed by the pattern is raised to 9. this means
+	they only show up at error level 9. Note, that not yet all errors
+	have names, since it's not easy to find explanatory names with
+	grouping prefixes.
+
+	* lib/smi.c: new config file commands: `path' prepends an element
+	to the module search path. `level' sets the error level.
+	
 	* lib/parser-smi.y: Opaque size restrictions are now allowed.
 	Warning about Opaque usage in SMIv2 modules.
 

@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.5 1999/12/10 19:29:21 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.7 1999/12/12 13:25:25 strauss Exp $
 .\"
-.TH smi_config 3  "December 12, 1999" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "December 13, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
 smiLoadModule, smiGetPath, smiSetPath \- SMI library
@@ -31,6 +31,9 @@ configuration routines
 .RE
 .sp
 .BI "int smiSetPath(char *" path );
+.RE
+.sp
+.BI "int smiSetSeverity(char *" pattern ", int " severity );
 .RE
 .sp
 .BI "int smiReadConfig(char *" filename ", const char *" tag );
@@ -67,6 +70,9 @@ above. If \fBSMI_STATS\fP is set and the error level is 9, the
 library prints some module statistics. If \fBSMI_RECURSIVE\fP is set,
 the library also complains about errors in modules that are read due
 to import statements.
+.PP
+The \fBsmiSetSeverity()\fP function allows to set the severity of
+all error that have name prefixed by \fBpattern\fP to the value \fBseverity\fP.
 .PP
 The \fBsmiLoadModule()\fP function specifies an additional MIB module by
 \fImodule\fP that the application claims to know. Only after a
@@ -133,16 +139,48 @@ their initialization.
 The \fBload\fP command is used to preload a given MIB module. If multiple
 modules shall be preloaded, multiple \fBload\fP commands must be used.
 .PP
+The \fBpath\fP command allows to add a component to the MIB module
+search path.
+.PP
+The \fBlevel\fP command sets the error level.
+.PP
+The \fBhide\fP command allows to tune the list of errors that are reported.
+It raises all errors with names prefixed by the given pattern to severity
+level 9.
+.PP
 Example configuration:
 .nf
+
   #
   # $HOME/.smirc
   #
-  section *
-    load SNMPv2-SMI
-    load SNMPv2-TC
-    load SNMPv2-CONF
+
+  # add a private directory
+  path /usr/home/strauss/lib/mibs
+ 
+  # don't show any errors by default
+  level 0
+ 
+  # preload some basic modules
+  load SNMPv2-SMI
+  load SNMPv2-TC
+  load SNMPv2-CONF
+ 
+  section smilint
+ 
+    # want to make smilint shout
+    level 8
+ 
+    # but please don't claim about
+    # any names longer than 32 chars
+    hide namelength-32
+   
+  section tcpdump
+
+    load DISMAN-SCRIPT-MIB
+
   section smiquery
+
     load IF-MIB
     load DISMAN-SCRIPT-MIB
 .fi

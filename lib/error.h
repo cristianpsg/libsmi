@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.13 1999/06/10 15:28:20 strauss Exp $
+ * @(#) $Id: error.h,v 1.14 1999/06/17 16:56:55 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -32,6 +32,8 @@ extern int column;			 /* Current column in current line.  */
 extern int character;			 /* Current absolute byte position.  */
 
 extern int errorLevel;                   /* Higher level for more warnings   */
+
+extern void errorSeverity(char *pattern, int severity);
 
 extern void printError(Parser *parserPtr, int id, ...);
 

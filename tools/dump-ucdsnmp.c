@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.1 1999/10/05 15:52:21 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.2 1999/11/24 19:02:40 strauss Exp $
  */
 
 /*
@@ -130,6 +130,24 @@ static char* translateUpper(char *m)
 
 
 
+static char* translateLower(char *m)
+{
+    char *s;
+    int i;
+
+    s = safeStrdup(m);
+    for (i = 0; s[i]; i++) {
+	if (s[i] == '-') s[i] = '_';
+	if (isupper((int) s[i])) {
+	    s[i] = tolower(s[i]);
+	}
+    }
+  
+    return s;
+}
+
+
+
 static int isGroup(SmiNode *smiNode)
 {
     SmiNode *childNode;
@@ -189,7 +207,7 @@ static void printReadMethodDecls(SmiModule *smiModule)
 		       " */\n\n");
 	    }
 	    printf("static unsigned char *\nread_%s_stub(struct variable *,"
-		   " oid *, int *, int, int *, WriteMethod **);\n",
+		   " oid *, size_t *, int, size_t *, WriteMethod **);\n",
 		   smiNode->name);
 	}
     }
@@ -273,7 +291,7 @@ static void printDefinesGroup(SmiNode *groupNode, int cnt)
 		&& (smiNode->access == SMI_ACCESS_READ_ONLY
 		    || smiNode->access == SMI_ACCESS_READ_WRITE)) {
 		cName = translateUpper(smiNode->name);
-		printf("    { %s, %s, %s, read_%s_stub, %d, {%d} }\n",
+		printf("    { %s, %s, %s, read_%s_stub, %d, {%d} },\n",
 		       cName, getBaseTypeString(smiNode->basetype),
 		       getAccessString(smiNode->access),
 		       cGroupName, 1, smiNode->oid[smiNode->oidlen-1]);
@@ -394,9 +412,9 @@ static void printReadMethod(SmiNode *groupNode)
 
     printf("static unsigned char *\nread_%s_stub(struct variable *vp,\n"
 	   "         oid     *name,\n"
-	   "         int     *length,\n"
+	   "         size_t  *length,\n"
 	   "         int     exact,\n"
-	   "         int     *var_len,\n"
+	   "         size_t  *var_len,\n"
 	   "         WriteMethod **write_method)\n"
 	   "{\n", sName);
 
@@ -428,16 +446,14 @@ static void printReadMethod(SmiNode *groupNode)
 	    printf("    case %s:\n", cName);
 	    switch (smiNode->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		printf("        objid[0] = 0;\n"
-		       "        objid[1] = 0;\n"
-		       "        *var_len = 2*sizeof(oid);\n"
-		       "        return (unsigned char *) objid;\n");
+		printf("        *var_len = 0;\n"
+		       "        return (unsigned char *) NULL;\n");
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
-		printf("        *string = 0;\n"
-		       "        *var_len = strlen(string);\n"
-		       "        return (unsigned char *) string;\n");
+		printf("        *var_len = strlen(%s.%s);\n"
+		       "        return (unsigned char *) %s.%s;\n",
+		       sName, lName, sName, lName);
 		break;
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
@@ -547,11 +563,11 @@ static void printTypedef(SmiNode *groupNode)
 	    cName = translate(smiNode->name);
 	    switch (smiNode->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		printf("    oid       %s[%s];\n", cName, "MAX_OID_LEN");
+		printf("    oid       %s[%s];\n", cName, "128");
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
-		printf("    u_char    %s[%s];\n", cName, "SPRINT_MAX_LEN");
+		printf("    u_char    %s[%s];\n", cName, "65535");
 		break;
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
@@ -627,6 +643,9 @@ int dumpUcdH(char *modulename)
 
     printf("config_require(util_funcs)\n\n");
 
+    printf("#include <config.h>\n"
+	   "#include <stdlib.h>\n\n");
+
     printf("/* Initialization function: */\n\n");
     printf("void init_%s(void);\n\n", cModuleName);
 
@@ -657,12 +676,10 @@ int dumpUcdC(char *modulename)
     printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
     printf(" *\n");
     printf(" * This C file is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.1 1999/10/05 15:52:21 strauss Exp $\n");
+    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.2 1999/11/24 19:02:40 strauss Exp $\n");
     printf(" */\n\n");
 
-    printf("#ifdef REGISTER_MIB\n");
-    printf("#define UCD_SNMP\n");
-    printf("#endif\n\n");
+    printf("#define UCD_SNMP\n/* #define CMU_LINUX_SNMP */\n\n");
 
     printf("#ifdef CMU_LINUX_SNMP\n");
     printf("#include \"mib_module.h\"\n");
@@ -679,6 +696,11 @@ int dumpUcdC(char *modulename)
     printf("#include <string.h>\n");
     printf("#include <malloc.h>\n");
     printf("\n");
+
+    cModuleName = translateLower(smiModule->name);
+    printf("#include \"%s.h\"\n", cModuleName);
+    printf("\n");
+    free(cModuleName);
 
     printReadMethodDecls(smiModule);
     printWriteMethodDecls(smiModule);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.19 1999/10/01 12:46:59 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.20 1999/12/12 12:51:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -32,6 +32,8 @@ void usage()
 	    "-h                    show usage information\n"
 	    "-s                    print statistics on parsed MIB modules\n"
 	    "-r                    print errors also for imported modules\n"
+	    "-i <error-pattern>    ignore errors matching prefix pattern\n"
+	    "-p <module>           preload <module>\n"
 	    "-l <level>            set maximum level of errors and warnings\n"
 	    "<module_or_path>      plain name of MIB module or file path\n");
 }
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
     flags |= SMI_FLAG_ERRORS;
     smiSetFlags(flags);
     
-    while ((c = getopt(argc, argv, "Vhsrl:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhsrp:l:i:")) != -1) {
 	switch (c) {
 	case 'V':
 	    version();
@@ -65,6 +67,12 @@ int main(int argc, char *argv[])
 	case 'h':
 	    usage();
 	    exit(0);
+	case 'p':
+	    smiLoadModule(optarg);
+	    break;
+	case 'i':
+	    smiSetSeverity(optarg, 9);
+	    break;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
 	    break;
