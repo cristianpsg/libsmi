@@ -24,8 +24,6 @@ hostResourcesTypesModule MODULE-IDENTITY
   DESCRIPTION
       "This MIB module registers type definitions for
       storage types, device types, and file system types.
-
-
       After the initial revision, this module will be
       maintained by IANA."
   REVISION "200003060000Z"    -- 6 March 2000
@@ -74,8 +72,6 @@ hrStorageRemovableDisk OBJECT-IDENTITY
 hrStorageFloppyDisk OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
-
-
         "The storage type identifier used for non-rigid rotating
         magnetic storage devices."
     ::= { hrStorageTypes 6 }
@@ -123,8 +119,6 @@ hrDeviceUnknown OBJECT-IDENTITY
         "The device type identifier used when the device type is
         unknown."
     ::= { hrDeviceTypes 2 }
-
-
 
 hrDeviceProcessor OBJECT-IDENTITY
     STATUS current
@@ -174,8 +168,6 @@ hrDeviceKeyboard OBJECT-IDENTITY
         "The device type identifier used for a keyboard device."
     ::= { hrDeviceTypes 13 }
 
-
-
 hrDeviceModem OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
@@ -224,8 +216,6 @@ hrDeviceNonVolatileMemory OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
         "The device type identifier used for a non-volatile memory
-
-
         storage device."
     ::= { hrDeviceTypes 21 }
 
@@ -274,7 +264,6 @@ hrFSHPFS OBJECT-IDENTITY
         "The file system type identifier used for OS/2's
         High Performance File System."
     ::= { hrFSTypes 6 }
-
 
 hrFSHFS OBJECT-IDENTITY
     STATUS  current
@@ -325,7 +314,6 @@ hrFSRockRidge OBJECT-IDENTITY
         RockRidge File System for CD's."
     ::= { hrFSTypes 13 }
 
-
 hrFSNFS OBJECT-IDENTITY
     STATUS  current
     DESCRIPTION
@@ -374,7 +362,6 @@ hrFSDGCFS OBJECT-IDENTITY
         "The file system type identifier used for the
         Data General DGCFS."
     ::= { hrFSTypes 20 }
-
 
 hrFSBFS OBJECT-IDENTITY
     STATUS  current

@@ -630,7 +630,7 @@ rdbmsSrvInfoTable   OBJECT-TYPE
         "The table of additional information about database servers.
 
          Entries in this table correspond to applications in the
-         APPLICATION-MIB applTable.  Some objects in that table are
+         NETWORK-SERVICES-MIB applTable.  Some objects in that table are
          application-specific.  When they are associated with an RDBMS
          server in this table, the objects have the following
          meanings.

@@ -44,8 +44,6 @@ entityMIB MODULE-IDENTITY
              This version published as RFC 2737."
     REVISION        "9610310000Z"
     DESCRIPTION
-
-
             "Initial version (version 1), published as
              RFC 2037."
     ::= { mib-2 47 }
@@ -94,8 +92,6 @@ PhysicalClass ::= TEXTUAL-CONVENTION
             entity class is some sort of device for aggregating and
             forwarding networking traffic, such as a shared backplane in
             a modular ethernet switch.  Note that an agent may model a
-
-
             backplane as a single physical entity, which is actually
             implemented as multiple discrete physical components (within
             a chassis or stack).
@@ -144,8 +140,6 @@ PhysicalClass ::= TEXTUAL-CONVENTION
        other(1),
        unknown(2),
        chassis(3),
-
-
        backplane(4),
        container(5),     -- e.g., chassis slot or daughter-card holder
        powerSupply(6),
@@ -194,8 +188,6 @@ entPhysicalEntry       OBJECT-TYPE
             entPhysicalVendorType, and entPhysicalClass) to help an NMS
             identify and characterize the entry, and objects
             (entPhysicalContainedIn and entPhysicalParentRelPos) to help
-
-
             an NMS relate the particular entry to other entries in this
             table."
     INDEX   { entPhysicalIndex }
@@ -244,8 +236,6 @@ entPhysicalVendorType OBJECT-TYPE
     SYNTAX      AutonomousType
     MAX-ACCESS  read-only
     STATUS      current
-
-
     DESCRIPTION
             "An indication of the vendor-specific hardware type of the
             physical entity.  Note that this is different from the
@@ -294,8 +284,6 @@ entPhysicalClass OBJECT-TYPE
             than one.
 
             If no appropriate standard registration identifier exists
-
-
             for this physical entity, then the value 'other(1)' is
             returned. If the value is unknown by this agent, then the
             value 'unknown(2)' is returned."
@@ -344,8 +332,6 @@ entPhysicalParentRelPos OBJECT-TYPE
             continues to 'N', where 'N' represents the highest
             positioned child entity.  However, if the physical entities
             (e.g., slots) are labeled from a starting position of zero,
-
-
             then the first sibling should be associated with a
             entPhysicalParentRelPos value of '0'.  Note that this
             ordering may be sparse or dense, depending on agent
@@ -394,8 +380,6 @@ entPhysicalHardwareRev    OBJECT-TYPE
             (if present).
 
             Note that if revision information is stored internally in a
-
-
             non-printable (e.g., binary) format, then the agent must
             convert such information to a printable format, in an
             implementation-specific manner.
@@ -444,8 +428,6 @@ entPhysicalSoftwareRev    OBJECT-TYPE
 
 entPhysicalSerialNum   OBJECT-TYPE
     SYNTAX      SnmpAdminString (SIZE (0..32))
-
-
     MAX-ACCESS  read-write
     STATUS      current
     DESCRIPTION
@@ -494,8 +476,6 @@ entPhysicalMfgName   OBJECT-TYPE
             "The name of the manufacturer of this physical component.
             The preferred value is the manufacturer name string actually
             printed on the component itself (if present).
-
-
             Note that comparisons between instances of the
             entPhysicalModelName, entPhysicalFirmwareRev,
             entPhysicalSoftwareRev, and the entPhysicalSerialNum
@@ -544,8 +524,6 @@ entPhysicalAlias    OBJECT-TYPE
             entity for as long as that entity remains instantiated.
             This includes instantiations across all re-
             initializations/reboots of the network management system,
-
-
             including those which result in a change of the physical
             entity's entPhysicalIndex value."
     ::= { entPhysicalEntry 14 }
@@ -594,8 +572,6 @@ entPhysicalIsFRU OBJECT-TYPE
     DESCRIPTION
             "This object indicates whether or not this physical entity
             is considered a 'field replaceable unit' by the vendor.  If
-
-
             this object contains the value 'true(1)' then this
             entPhysicalEntry identifies a field replaceable unit.  For
             all entPhysicalEntries which represent components that are
@@ -644,8 +620,6 @@ entLogicalIndex OBJECT-TYPE
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
-
-
             "The value of this object uniquely identifies the logical
             entity. The value should be a small positive integer; index
             values for different logical entities are are not
@@ -694,8 +668,6 @@ entLogicalCommunity OBJECT-TYPE
             that an agent may return a community string with read-only
             privileges, even if this object is accessed with a read-
             write community string. However, the agent must take care
-
-
             not to return a community string which allows more
             privileges than the community string used to access this
             object.
@@ -744,8 +716,6 @@ entLogicalTAddress OBJECT-TYPE
             Consult 'Transport Mappings for Version 2 of the Simple
             Network Management Protocol' (RFC 1906 [RFC1906]) for
             further information on snmpUDPDomain."
-
-
     ::= { entLogicalEntry 5 }
 
 entLogicalTDomain OBJECT-TYPE
@@ -794,8 +764,6 @@ entLogicalContextName    OBJECT-TYPE
             This object, together with the associated
             entLogicalContextEngineID object, defines the context
             associated with a particular logical entity, and allows
-
-
             access to SNMP engines identified by a contextEngineId and
             contextName pair.
 
@@ -844,8 +812,6 @@ entLPMappingTable OBJECT-TYPE
 entLPMappingEntry       OBJECT-TYPE
     SYNTAX      EntLPMappingEntry
     MAX-ACCESS  not-accessible
-
-
     STATUS      current
     DESCRIPTION
             "Information about a particular logical entity to physical
@@ -894,8 +860,6 @@ entAliasMappingEntry       OBJECT-TYPE
     DESCRIPTION
             "Information about a particular physical equipment, logical
             entity to external identifier binding. Each logical
-
-
             entity/physical component pair may be associated with one
             alias mapping.  The logical entity index may also be used as
             a 'wildcard' (refer to the entAliasLogicalIndexOrZero object
@@ -944,8 +908,6 @@ entAliasLogicalIndexOrZero OBJECT-TYPE
             entries may exist, e.g.:
 
                     entAliasMappingIdentifier.33.0 = ifIndex.6
-
-
                     entAliasMappingIdentifier.33.4 =  ifIndex.1
                     entAliasMappingIdentifier.33.5 =  ifIndex.1
                     entAliasMappingIdentifier.33.10 = ifIndex.12
@@ -994,8 +956,6 @@ entPhysicalContainsTable OBJECT-TYPE
     STATUS      current
     DESCRIPTION
             "A table which exposes the container/'containee'
-
-
             relationships between physical entities. This table provides
             all the information found by constructing the virtual
             containment tree for a given entPhysicalTable, but in a more
@@ -1044,8 +1004,6 @@ entLastChangeTime OBJECT-TYPE
                     - entAliasMappingTable
                     - entPhysicalContainsTable
             "
-
-
     ::= { entityGeneral 1 }
 
 -- Entity MIB Trap Definitions
@@ -1094,8 +1052,6 @@ entityCompliance MODULE-COMPLIANCE
             version 1 of the Entity MIB."
     MODULE  -- this module
         MANDATORY-GROUPS {
-
-
                            entityPhysicalGroup,
                            entityLogicalGroup,
                            entityMappingGroup,
@@ -1144,8 +1100,6 @@ entity2Compliance MODULE-COMPLIANCE
             Write access is not required for agents which can identify
             serial number information for physical entities, but cannot
             provide non-volatile storage for NMS-assigned serial
-
-
             numbers.
 
             Write access is not required for physical entities for
@@ -1194,8 +1148,6 @@ entityLogicalGroup    OBJECT-GROUP
               entLogicalCommunity,
               entLogicalTAddress,
               entLogicalTDomain
-
-
             }
     STATUS  deprecated
     DESCRIPTION
@@ -1244,8 +1196,6 @@ entityPhysical2Group    OBJECT-GROUP
               entPhysicalSoftwareRev,
               entPhysicalSerialNum,
               entPhysicalMfgName,
-
-
               entPhysicalModelName,
               entPhysicalAlias,
               entPhysicalAssetID,

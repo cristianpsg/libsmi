@@ -44,8 +44,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
          to a VRID."
      SYNTAX      Integer32 (1..255)
 
-
-
 -- *******************************************************************
 --  VRRP MIB Groups
 -- *******************************************************************
@@ -94,8 +92,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
          "Operations table for a VRRP router which consists of a
           sequence (i.e., one or more conceptual rows) of
           'vrrpOperEntry' items."
-
-
      ::= { vrrpOperations 3 }
 
  vrrpOperEntry OBJECT-TYPE
@@ -144,8 +140,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
          vrrpOperVirtualRouterUpTime
              TimeStamp,
          vrrpOperProtocol
-
-
              INTEGER,
          vrrpOperRowStatus
              RowStatus
@@ -194,8 +188,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
              associated with this router.
 
          Setting the `vrrpOperAdminState' object (below) initiates
-
-
          transitions in the value of this object."
      ::= { vrrpOperEntry 3 }
 
@@ -244,8 +236,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      DEFVAL       { 100 }
      ::= { vrrpOperEntry 5 }
 
-
-
  vrrpOperIpAddrCount OBJECT-TYPE
      SYNTAX       Integer32 (0..255)
      MAX-ACCESS   read-only
@@ -293,9 +283,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-
-
-
          "Authentication type used for VRRP protocol exchanges between
          virtual routers. This value of this object is the same for a
          given ifIndex.
@@ -344,8 +331,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      ::= { vrrpOperEntry 12 }
 
  vrrpOperVirtualRouterUpTime OBJECT-TYPE
-
-
      SYNTAX       TimeStamp
      MAX-ACCESS   read-only
      STATUS       current
@@ -394,8 +379,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
          of all corresponding columns are appropriately configured,
          the value of the corresponding instance of the `vrrpOperRowStatus'
          column will be read as notReady(3).
-
-
          In particular, a newly created row cannot be made active(1)
          until (minimally) the corresponding instance of
          `vrrpOperVrId' has been set and there is at least one active
@@ -444,8 +427,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
 
  vrrpAssoIpAddr OBJECT-TYPE
      SYNTAX       IpAddress
-
-
      MAX-ACCESS   not-accessible
      STATUS       current
      DESCRIPTION
@@ -494,8 +475,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      SYNTAX       Counter32
      MAX-ACCESS   read-only
      STATUS       current
-
-
      DESCRIPTION
          "The total number of VRRP packets received with an invalid
          VRID for this virtual router."
@@ -544,8 +523,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
          vrrpStatsAddressListErrors
              Counter32,
          vrrpStatsInvalidAuthType
-
-
              Counter32,
          vrrpStatsAuthTypeMismatch
              Counter32,
@@ -594,8 +571,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      SYNTAX       Counter32
      MAX-ACCESS   read-only
      STATUS       current
-
-
      DESCRIPTION
          "The total number of VRRP packets received by the virtual
          router with IP TTL (Time-To-Live) not equal to 255."
@@ -644,8 +619,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      STATUS       current
      DESCRIPTION
          "The total number of packets received with an unknown
-
-
          authentication type."
      ::= { vrrpRouterStatsEntry 10 }
 
@@ -694,8 +667,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      DESCRIPTION
          "Potential types of configuration conflicts.
          Used by vrrpAuthFailure trap."
-
-
      ::= { vrrpOperations 6 }
 
  vrrpTrapNewMaster NOTIFICATION-TYPE
@@ -744,8 +715,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
      OBJECT        vrrpOperPriority
      WRITE-SYNTAX  Integer32 (1..255)
      DESCRIPTION  "SETable values are from 1 to 255."
-
-
      ::= { vrrpMIBCompliances 1 }
 
 -- ...................................................................
@@ -794,8 +763,6 @@ VRRP-MIB DEFINITIONS ::= BEGIN
          vrrpStatsInvalidAuthType,
          vrrpStatsAuthTypeMismatch,
          vrrpStatsPacketLengthErrors
-
-
          }
      STATUS current
      DESCRIPTION
