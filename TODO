@@ -243,3 +243,22 @@ x shift/reduce conflict at
 . Caching.
 
 . Types.
+
+. Aufraeumen
+
+. shlib
+
+. Datenstrukturen reorganisieren.
+  Descriptor, Module, Object, Node, Type, Macro, Location
+
+  Descriptor: no longer needed
+  Module    : firstObjectPtr firstTypePtr firstMacroPtr (&last) prevPtr nextPtr
+  Object    : modulePtr nodePtr prevPtr nextPtr
+  Node      : parentPtr, nextPtr, prevPtr, firstChildPtr, firstObjectPtr (&last)
+  Type      : modulePtr, parent???
+  Macro     : modulePtr
+
+  Parser    : modulePtr (thisModule), firstImportDescriptor???
+
+
+

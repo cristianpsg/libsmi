@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.22 1998/11/30 16:42:36 strauss Exp $
+ * @(#) $Id: smi.c,v 1.23 1998/12/01 16:59:36 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -735,15 +735,13 @@ smiGetNode(spec, mod, wantdescr)
 	res.module = strdup(o->module->descriptor->name);
 	res.oid = getOid(o->node);
 	if (o->type) {
-	    fprintf(stderr, "XXX %s %x\n", res.name, o->type->flags);
 	    if (o->type->flags & FLAG_PARENTIMPORTED) {
-		sprintf(type, "%s.%s <restriction>",
-		   ((Descriptor *)(o->type->parent))->module->descriptor->name,
+		sprintf(type, "%s.%s",
+                ((Descriptor *)(((Descriptor *)(o->type->parent))->ptr))->name,
 			((Descriptor *)(o->type->parent))->name);
 	    } else if (o->type->flags & FLAG_IMPORTED) {
-		sprintf(type, "gaga");
 		sprintf(type, "%s.%s",
-		   ((Descriptor *)(o->type->parent))->module->descriptor->name,
+                ((Descriptor *)(((Descriptor *)(o->type->parent))->ptr))->name,
 			((Descriptor *)(o->type->parent))->name);
 	    } else {
 		if (o->type->module && o->type->descriptor) {
