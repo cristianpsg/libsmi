@@ -7,7 +7,7 @@ IMPORTS
             FROM COPS-PR-SPPI 
     InstanceId, Prid 
             FROM COPS-PR-SPPI-TC  
-    RoleCombination, PrcIdentifier  
+    RoleCombination
             FROM FRAMEWORK-TC-PIB 
     InetAddress, InetAddressType 
             FROM INET-ADDRESS-MIB 

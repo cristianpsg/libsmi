@@ -11,7 +11,7 @@ IMPORTS
          FROM SNMPv2-SMI 
     TruthValue 
             FROM SNMPv2-TC 
-    RoleCombination, PrcIdentifier, AttrIdentifier 
+    RoleCombination, PrcIdentifierOid, AttrIdentifier 
             FROM FRAMEWORK-TC-PIB 
     Dscp 
             FROM DIFFSERV-DSCP-TC 
@@ -531,13 +531,13 @@ qosIfElmDepthCapsEntry OBJECT-TYPE
  
  
 QosIfElmDepthCapsEntry ::= SEQUENCE { 
-        qosIfElmDepthCapsPrc                PrcIdentifier, 
+        qosIfElmDepthCapsPrc                PrcIdentifierOid, 
         qosIfElmDepthCapsCascadeMax         Unsigned32 
 } 
  
  
 qosIfElmDepthCapsPrc OBJECT-TYPE 
-    SYNTAX         PrcIdentifier 
+    SYNTAX         PrcIdentifierOid 
     STATUS         current 
     DESCRIPTION 
       "The object identifier of a PRC that represents a functional  
@@ -590,14 +590,14 @@ qosIfElmLinkCapsEntry OBJECT-TYPE
  
  
 QosIfElmLinkCapsEntry ::= SEQUENCE { 
-        qosIfElmLinkCapsPrc               PrcIdentifier, 
+        qosIfElmLinkCapsPrc               PrcIdentifierOid, 
         qosIfElmLinkCapsAttr              AttrIdentifier, 
-        qosIfElmLinkCapsNextPrc           PrcIdentifier 
+        qosIfElmLinkCapsNextPrc           PrcIdentifierOid 
 } 
 
  
 qosIfElmLinkCapsPrc OBJECT-TYPE 
-    SYNTAX         PrcIdentifier 
+    SYNTAX         PrcIdentifierOid 
     STATUS         current 
     DESCRIPTION 
       "The value is the OID of a PRC that represents a 
@@ -622,7 +622,7 @@ qosIfElmLinkCapsAttr OBJECT-TYPE
  
  
 qosIfElmLinkCapsNextPrc OBJECT-TYPE 
-    SYNTAX         PrcIdentifier 
+    SYNTAX         PrcIdentifierOid 
     STATUS         current 
     DESCRIPTION 
       "The value is the OID of a PRC table entry from which 

@@ -9,7 +9,7 @@ IMPORTS
             FROM COPS-PR-SPPI-TC    
     frwkReferenceEntry
             FROM FRAMEWORK-PIB
-    RoleCombination, PrcIdentifier    
+    RoleCombination, PrcIdentifierOid
             FROM FRAMEWORK-TC-PIB   
     InetAddress, InetAddressType   
             FROM INET-ADDRESS-MIB   
@@ -735,7 +735,7 @@ contextDataEntry OBJECT-TYPE
 ContextDataEntry::= SEQUENCE {  
   contextDataId            InstanceId,  
   contextDataGroup         TagId,  
-  contextDataIfElement     PrcIdentifier,  
+  contextDataIfElement     PrcIdentifierOid,  
   contextDataEncapsulation INTEGER  
 }  
 
@@ -762,7 +762,7 @@ contextDataGroup  OBJECT-TYPE
 
 
 contextDataIfElement      OBJECT-TYPE   
-  SYNTAX        PrcIdentifier  
+  SYNTAX        PrcIdentifierOid
   STATUS        current   
   DESCRIPTION   
      "The OID of a class whose instance is to be included with   
