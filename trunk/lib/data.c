@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.31 1999/06/09 19:43:28 strauss Exp $
+ * @(#) $Id: data.c,v 1.32 1999/06/12 13:40:02 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -176,6 +176,7 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     modulePtr->path			        = util_strdup(path);
     modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
+    modulePtr->language				= SMI_LANGUAGE_UNKNOWN;
     modulePtr->objectPtr			= NULL;
     
     modulePtr->firstObjectPtr			= NULL;

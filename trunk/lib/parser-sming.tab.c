@@ -431,40 +431,40 @@ static const short yyrhs[] = {   299,
 
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
-   425,   435,   439,   445,   449,   464,   478,   499,   503,   530,
-   537,   544,   551,   557,   611,   615,   625,   629,   645,   659,
-   663,   684,   690,   696,   702,   708,   714,   719,   727,   731,
-   741,   745,   761,   775,   776,   777,   780,   784,   798,   804,
-   817,   822,   830,   834,   846,   859,   866,   872,   878,   884,
-   889,   896,   901,   910,   914,   929,   934,   941,   946,   955,
-   959,   973,   993,  1003,  1008,  1015,  1021,  1029,  1037,  1052,
-  1066,  1070,  1082,  1095,  1102,  1108,  1114,  1120,  1125,  1132,
-  1137,  1146,  1150,  1160,  1164,  1180,  1194,  1198,  1212,  1227,
-  1232,  1240,  1245,  1253,  1257,  1267,  1271,  1286,  1300,  1304,
-  1315,  1331,  1336,  1343,  1348,  1356,  1360,  1370,  1374,  1390,
-  1404,  1408,  1422,  1427,  1434,  1440,  1455,  1459,  1487,  1495,
-  1499,  1505,  1509,  1524,  1538,  1542,  1555,  1568,  1572,  1578,
-  1582,  1597,  1611,  1620,  1628,  1632,  1638,  1645,  1649,  1655,
-  1662,  1663,  1664,  1665,  1666,  1669,  1691,  1708,  1731,  1748,
-  1771,  1775,  1781,  1785,  1791,  1800,  1804,  1810,  1816,  1822,
-  1828,  1834,  1840,  1844,  1850,  1856,  1860,  1866,  1872,  1876,
-  1882,  1888,  1892,  1898,  1904,  1908,  1914,  1920,  1924,  1930,
-  1936,  1940,  1946,  1952,  1956,  1962,  1969,  1973,  1979,  1986,
-  1990,  1996,  2003,  2007,  2013,  2019,  2033,  2039,  2050,  2054,
-  2060,  2066,  2079,  2085,  2113,  2117,  2123,  2135,  2139,  2151,
-  2163,  2175,  2187,  2199,  2211,  2223,  2235,  2249,  2268,  2272,
-  2278,  2282,  2288,  2292,  2298,  2307,  2311,  2317,  2323,  2336,
-  2342,  2354,  2358,  2364,  2370,  2374,  2380,  2389,  2393,  2399,
-  2405,  2418,  2424,  2443,  2447,  2453,  2459,  2465,  2474,  2478,
-  2484,  2490,  2505,  2511,  2519,  2527,  2531,  2537,  2543,  2556,
-  2562,  2570,  2574,  2580,  2586,  2599,  2605,  2613,  2617,  2623,
-  2629,  2642,  2648,  2654,  2658,  2666,  2670,  2676,  2682,  2695,
-  2701,  2705,  2711,  2715,  2721,  2732,  2738,  2749,  2755,  2769,
-  2773,  2779,  2783,  2793,  2799,  2806,  2812,  2825,  2850,  2889,
-  2909,  2915,  2921,  2933,  2955,  2960,  2967,  2971,  2975,  2981,
-  2985,  2989,  2993,  2997,  3003,  3032,  3059,  3065,  3069,  3076,
-  3080,  3090,  3099,  3105,  3112,  3120,  3128,  3132,  3142,  3149,
-  3155,  3161
+   425,   435,   439,   445,   449,   464,   478,   498,   502,   531,
+   538,   545,   552,   558,   612,   616,   626,   630,   646,   660,
+   664,   685,   691,   697,   703,   709,   715,   720,   728,   732,
+   742,   746,   762,   776,   777,   778,   781,   785,   801,   807,
+   820,   825,   833,   837,   851,   864,   871,   877,   883,   889,
+   894,   901,   906,   915,   919,   936,   941,   948,   953,   962,
+   966,   982,  1002,  1012,  1017,  1024,  1030,  1038,  1046,  1061,
+  1075,  1079,  1093,  1106,  1113,  1119,  1125,  1131,  1136,  1143,
+  1148,  1157,  1161,  1171,  1175,  1191,  1205,  1209,  1225,  1240,
+  1245,  1253,  1258,  1266,  1270,  1280,  1284,  1299,  1313,  1317,
+  1330,  1346,  1351,  1358,  1363,  1371,  1375,  1385,  1389,  1405,
+  1419,  1423,  1439,  1444,  1451,  1457,  1472,  1476,  1504,  1512,
+  1516,  1522,  1526,  1541,  1555,  1559,  1572,  1585,  1589,  1595,
+  1599,  1614,  1628,  1637,  1645,  1649,  1655,  1662,  1666,  1672,
+  1679,  1680,  1681,  1682,  1683,  1686,  1708,  1725,  1748,  1765,
+  1788,  1792,  1798,  1802,  1808,  1817,  1821,  1827,  1833,  1839,
+  1845,  1851,  1857,  1861,  1867,  1873,  1877,  1883,  1889,  1893,
+  1899,  1905,  1909,  1915,  1921,  1925,  1931,  1937,  1941,  1947,
+  1953,  1957,  1963,  1969,  1973,  1979,  1986,  1990,  1996,  2003,
+  2007,  2013,  2020,  2024,  2030,  2036,  2050,  2056,  2067,  2071,
+  2077,  2083,  2096,  2102,  2130,  2134,  2140,  2152,  2156,  2168,
+  2180,  2192,  2204,  2216,  2228,  2240,  2252,  2266,  2285,  2289,
+  2295,  2299,  2305,  2309,  2315,  2324,  2328,  2334,  2340,  2353,
+  2359,  2371,  2375,  2381,  2387,  2391,  2397,  2406,  2410,  2416,
+  2422,  2435,  2441,  2460,  2464,  2470,  2476,  2482,  2491,  2495,
+  2501,  2507,  2522,  2528,  2536,  2544,  2548,  2554,  2560,  2573,
+  2579,  2587,  2591,  2597,  2603,  2616,  2622,  2630,  2634,  2640,
+  2646,  2659,  2665,  2671,  2675,  2683,  2687,  2693,  2699,  2712,
+  2718,  2722,  2728,  2732,  2738,  2749,  2755,  2766,  2772,  2786,
+  2790,  2796,  2800,  2810,  2816,  2823,  2829,  2842,  2867,  2906,
+  2926,  2932,  2938,  2950,  2972,  2977,  2984,  2988,  2992,  2998,
+  3002,  3006,  3010,  3014,  3020,  3049,  3076,  3082,  3086,  3093,
+  3097,  3107,  3116,  3122,  3129,  3137,  3145,  3149,  3159,  3166,
+  3172,  3178
 };
 #endif
 
@@ -1695,8 +1695,7 @@ case 7:
 					      0,
 					      thisParserPtr);
 			    }
-			    thisParserPtr->modulePtr->flags &= ~FLAG_SMIV2;
-			    thisParserPtr->modulePtr->flags |= FLAG_SMING;
+			    thisModulePtr->language = SMI_LANGUAGE_SMING;
 			    thisParserPtr->modulePtr->numImportedIdentifiers
 				                                           = 0;
 			    thisParserPtr->modulePtr->numStatements = 0;
@@ -1707,13 +1706,13 @@ case 7:
 			;
     break;}
 case 8:
-#line 500 "parser-sming.y"
+#line 499 "parser-sming.y"
 {
 			    thisParserPtr->identityObjectName = yyvsp[0].text;
 			;
     break;}
 case 9:
-#line 506 "parser-sming.y"
+#line 505 "parser-sming.y"
 {
 			    /*
 			     * Note: Due to parsing imported modules
@@ -1732,6 +1731,8 @@ case 9:
 							    0, thisParserPtr);
 				setObjectDecl(moduleObjectPtr,
 					      SMI_DECL_MODULE);
+				setObjectNodekind(moduleObjectPtr,
+						  SMI_NODEKIND_MODULE);
 				addObjectFlags(moduleObjectPtr,
 					       FLAG_REGISTERED);
 				setModuleIdentityObject(
@@ -1740,7 +1741,7 @@ case 9:
 			;
     break;}
 case 10:
-#line 531 "parser-sming.y"
+#line 532 "parser-sming.y"
 {
 			    if (yyvsp[-1].text) {
 				setModuleOrganization(thisParserPtr->modulePtr,
@@ -1749,7 +1750,7 @@ case 10:
 			;
     break;}
 case 11:
-#line 538 "parser-sming.y"
+#line 539 "parser-sming.y"
 {
 			    if (yyvsp[-1].text) {
 				setModuleContactInfo(thisParserPtr->modulePtr,
@@ -1758,7 +1759,7 @@ case 11:
 			;
     break;}
 case 12:
-#line 545 "parser-sming.y"
+#line 546 "parser-sming.y"
 {
 			    if (moduleObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(moduleObjectPtr, yyvsp[-1].text);
@@ -1766,7 +1767,7 @@ case 12:
 			;
     break;}
 case 13:
-#line 551 "parser-sming.y"
+#line 552 "parser-sming.y"
 {
 			    if (moduleObjectPtr && yyvsp[0].text) {
 				setObjectReference(moduleObjectPtr, yyvsp[0].text);
@@ -1774,7 +1775,7 @@ case 13:
 			;
     break;}
 case 14:
-#line 563 "parser-sming.y"
+#line 564 "parser-sming.y"
 {
 			    List *listPtr;
 			    Object *objectPtr;
@@ -1823,13 +1824,13 @@ case 14:
 			;
     break;}
 case 15:
-#line 612 "parser-sming.y"
+#line 613 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 16:
-#line 616 "parser-sming.y"
+#line 617 "parser-sming.y"
 {
 			    /*
 			     * Return the number of successfully
@@ -1839,13 +1840,13 @@ case 16:
 			;
     break;}
 case 17:
-#line 626 "parser-sming.y"
+#line 627 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 18:
-#line 631 "parser-sming.y"
+#line 632 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -1860,7 +1861,7 @@ case 18:
 			;
     break;}
 case 19:
-#line 646 "parser-sming.y"
+#line 647 "parser-sming.y"
 {
 			    /*
 			     * If we got a (Type *) return rc == 1,
@@ -1874,13 +1875,13 @@ case 19:
 			;
     break;}
 case 20:
-#line 660 "parser-sming.y"
+#line 661 "parser-sming.y"
 {
 			    typeIdentifier = yyvsp[0].text;
 			;
     break;}
 case 21:
-#line 665 "parser-sming.y"
+#line 666 "parser-sming.y"
 {
 			    if (yyvsp[-1].typePtr) {
 				if (yyvsp[-1].typePtr->name) {
@@ -1901,7 +1902,7 @@ case 21:
 			;
     break;}
 case 22:
-#line 684 "parser-sming.y"
+#line 685 "parser-sming.y"
 {
 			    if (typePtr && yyvsp[0].valuePtr) {
 				setTypeValue(typePtr, yyvsp[0].valuePtr);
@@ -1909,7 +1910,7 @@ case 22:
 			;
     break;}
 case 23:
-#line 690 "parser-sming.y"
+#line 691 "parser-sming.y"
 {
 			    if (typePtr && yyvsp[0].text) {
 				setTypeFormat(typePtr, yyvsp[0].text);
@@ -1917,7 +1918,7 @@ case 23:
 			;
     break;}
 case 24:
-#line 696 "parser-sming.y"
+#line 697 "parser-sming.y"
 {
 			    if (typePtr && yyvsp[0].text) {
 				setTypeUnits(typePtr, yyvsp[0].text);
@@ -1925,7 +1926,7 @@ case 24:
 			;
     break;}
 case 25:
-#line 702 "parser-sming.y"
+#line 703 "parser-sming.y"
 {
 			    if (typePtr && yyvsp[0].status) {
 				setTypeStatus(typePtr, yyvsp[0].status);
@@ -1933,7 +1934,7 @@ case 25:
 			;
     break;}
 case 26:
-#line 708 "parser-sming.y"
+#line 709 "parser-sming.y"
 {
 			    if (typePtr && yyvsp[0].text) {
 				setTypeDescription(typePtr, yyvsp[0].text);
@@ -1941,7 +1942,7 @@ case 26:
 			;
     break;}
 case 27:
-#line 714 "parser-sming.y"
+#line 715 "parser-sming.y"
 {
 			    if (typePtr && yyvsp[0].text) {
 				setTypeReference(typePtr, yyvsp[0].text);
@@ -1949,7 +1950,7 @@ case 27:
 			;
     break;}
 case 28:
-#line 720 "parser-sming.y"
+#line 721 "parser-sming.y"
 {
 			    yyval.typePtr = 0;
 			    typePtr = NULL;
@@ -1958,13 +1959,13 @@ case 28:
 			;
     break;}
 case 29:
-#line 728 "parser-sming.y"
+#line 729 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 30:
-#line 732 "parser-sming.y"
+#line 733 "parser-sming.y"
 {
 			    /*
 			     * Return the number of successfully
@@ -1974,13 +1975,13 @@ case 30:
 			;
     break;}
 case 31:
-#line 742 "parser-sming.y"
+#line 743 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 32:
-#line 747 "parser-sming.y"
+#line 748 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -1995,7 +1996,7 @@ case 32:
 			;
     break;}
 case 33:
-#line 762 "parser-sming.y"
+#line 763 "parser-sming.y"
 {
 			    /*
 			     * If we got an (Object *) return rc == 1,
@@ -2009,13 +2010,13 @@ case 33:
 			;
     break;}
 case 37:
-#line 781 "parser-sming.y"
+#line 782 "parser-sming.y"
 {
 			    nodeIdentifier = yyvsp[0].text;
 			;
     break;}
 case 38:
-#line 786 "parser-sming.y"
+#line 787 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				nodeObjectPtr = addObject(nodeIdentifier,
@@ -2023,13 +2024,15 @@ case 38:
 							  yyvsp[-1].nodePtr->subid,
 							  0, thisParserPtr);
 				setObjectDecl(nodeObjectPtr, SMI_DECL_NODE);
+				setObjectNodekind(nodeObjectPtr,
+						  SMI_NODEKIND_NODE);
 				setObjectAccess(nodeObjectPtr,
 						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
 			;
     break;}
 case 39:
-#line 798 "parser-sming.y"
+#line 801 "parser-sming.y"
 {
 			    if (nodeObjectPtr) {
 				setObjectStatus(nodeObjectPtr, yyvsp[0].status);
@@ -2037,7 +2040,7 @@ case 39:
 			;
     break;}
 case 40:
-#line 804 "parser-sming.y"
+#line 807 "parser-sming.y"
 {
 			    if (nodeObjectPtr && yyvsp[0].text) {
 				setObjectDescription(nodeObjectPtr, yyvsp[0].text);
@@ -2052,7 +2055,7 @@ case 40:
 			;
     break;}
 case 41:
-#line 817 "parser-sming.y"
+#line 820 "parser-sming.y"
 {
 			    if (nodeObjectPtr && yyvsp[0].text) {
 				setObjectReference(nodeObjectPtr, yyvsp[0].text);
@@ -2060,7 +2063,7 @@ case 41:
 			;
     break;}
 case 42:
-#line 823 "parser-sming.y"
+#line 826 "parser-sming.y"
 {
 			    yyval.objectPtr = nodeObjectPtr;
 			    nodeObjectPtr = NULL;
@@ -2068,13 +2071,13 @@ case 42:
 			;
     break;}
 case 43:
-#line 831 "parser-sming.y"
+#line 834 "parser-sming.y"
 {
 			    scalarIdentifier = yyvsp[0].text;
 			;
     break;}
 case 44:
-#line 836 "parser-sming.y"
+#line 839 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				scalarObjectPtr = addObject(scalarIdentifier,
@@ -2083,11 +2086,13 @@ case 44:
 							    0, thisParserPtr);
 				setObjectDecl(scalarObjectPtr,
 					      SMI_DECL_SCALAR);
+				setObjectNodekind(scalarObjectPtr,
+						  SMI_NODEKIND_SCALAR);
 			    }
 			;
     break;}
 case 45:
-#line 847 "parser-sming.y"
+#line 852 "parser-sming.y"
 {
 			    if (scalarObjectPtr && yyvsp[-1].typePtr) {
 				setObjectType(scalarObjectPtr, yyvsp[-1].typePtr);
@@ -2102,7 +2107,7 @@ case 45:
 			;
     break;}
 case 46:
-#line 860 "parser-sming.y"
+#line 865 "parser-sming.y"
 {
 			    if (scalarObjectPtr) {
 				setObjectAccess(scalarObjectPtr, yyvsp[-1].access);
@@ -2110,7 +2115,7 @@ case 46:
 			;
     break;}
 case 47:
-#line 866 "parser-sming.y"
+#line 871 "parser-sming.y"
 {
 			    if (scalarObjectPtr && yyvsp[0].valuePtr) {
 				setObjectValue(scalarObjectPtr, yyvsp[0].valuePtr);
@@ -2118,7 +2123,7 @@ case 47:
 			;
     break;}
 case 48:
-#line 872 "parser-sming.y"
+#line 877 "parser-sming.y"
 {
 			    if (scalarObjectPtr && yyvsp[0].text) {
 				setObjectFormat(scalarObjectPtr, yyvsp[0].text);
@@ -2126,7 +2131,7 @@ case 48:
 			;
     break;}
 case 49:
-#line 878 "parser-sming.y"
+#line 883 "parser-sming.y"
 {
 			    if (scalarObjectPtr && yyvsp[0].text) {
 				setObjectUnits(scalarObjectPtr, yyvsp[0].text);
@@ -2134,7 +2139,7 @@ case 49:
 			;
     break;}
 case 50:
-#line 884 "parser-sming.y"
+#line 889 "parser-sming.y"
 {
 			    if (scalarObjectPtr) {
 				setObjectStatus(scalarObjectPtr, yyvsp[0].status);
@@ -2142,7 +2147,7 @@ case 50:
 			;
     break;}
 case 51:
-#line 890 "parser-sming.y"
+#line 895 "parser-sming.y"
 {
 			    if (scalarObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(scalarObjectPtr, yyvsp[-1].text);
@@ -2150,7 +2155,7 @@ case 51:
 			;
     break;}
 case 52:
-#line 896 "parser-sming.y"
+#line 901 "parser-sming.y"
 {
 			    if (scalarObjectPtr && yyvsp[0].text) {
 				setObjectReference(scalarObjectPtr, yyvsp[0].text);
@@ -2158,7 +2163,7 @@ case 52:
 			;
     break;}
 case 53:
-#line 902 "parser-sming.y"
+#line 907 "parser-sming.y"
 {
 			    yyval.objectPtr = scalarObjectPtr;
 			    scalarObjectPtr = NULL;
@@ -2167,13 +2172,13 @@ case 53:
 			;
     break;}
 case 54:
-#line 911 "parser-sming.y"
+#line 916 "parser-sming.y"
 {
 			    tableIdentifier = yyvsp[0].text;
 			;
     break;}
 case 55:
-#line 916 "parser-sming.y"
+#line 921 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				tableObjectPtr = addObject(tableIdentifier,
@@ -2182,13 +2187,15 @@ case 55:
 							   0, thisParserPtr);
 				setObjectDecl(tableObjectPtr,
 					      SMI_DECL_TABLE);
+				setObjectNodekind(tableObjectPtr,
+						  SMI_NODEKIND_TABLE);
 				setObjectAccess(tableObjectPtr,
 						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
 			;
     break;}
 case 56:
-#line 929 "parser-sming.y"
+#line 936 "parser-sming.y"
 {
 			    if (tableObjectPtr) {
 				setObjectStatus(tableObjectPtr, yyvsp[0].status);
@@ -2196,7 +2203,7 @@ case 56:
 			;
     break;}
 case 57:
-#line 935 "parser-sming.y"
+#line 942 "parser-sming.y"
 {
 			    if (tableObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(tableObjectPtr, yyvsp[-1].text);
@@ -2204,7 +2211,7 @@ case 57:
 			;
     break;}
 case 58:
-#line 941 "parser-sming.y"
+#line 948 "parser-sming.y"
 {
 			    if (tableObjectPtr && yyvsp[0].text) {
 				setObjectReference(tableObjectPtr, yyvsp[0].text);
@@ -2212,7 +2219,7 @@ case 58:
 			;
     break;}
 case 59:
-#line 948 "parser-sming.y"
+#line 955 "parser-sming.y"
 {
 			    yyval.objectPtr = tableObjectPtr;
 			    tableObjectPtr = NULL;
@@ -2220,13 +2227,13 @@ case 59:
 			;
     break;}
 case 60:
-#line 956 "parser-sming.y"
+#line 963 "parser-sming.y"
 {
 			    rowIdentifier = yyvsp[0].text;
 			;
     break;}
 case 61:
-#line 961 "parser-sming.y"
+#line 968 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				rowObjectPtr = addObject(rowIdentifier,
@@ -2235,13 +2242,15 @@ case 61:
 							 0, thisParserPtr);
 				setObjectDecl(rowObjectPtr,
 					      SMI_DECL_ROW);
+				setObjectNodekind(rowObjectPtr,
+						  SMI_NODEKIND_ROW);
 				setObjectAccess(rowObjectPtr,
 						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
 			;
     break;}
 case 62:
-#line 974 "parser-sming.y"
+#line 983 "parser-sming.y"
 {
 			    List *listPtr;
 			    
@@ -2262,7 +2271,7 @@ case 62:
 			;
     break;}
 case 63:
-#line 993 "parser-sming.y"
+#line 1002 "parser-sming.y"
 {
 			    if (rowObjectPtr) {
 				setObjectList(rowObjectPtr, yyvsp[0].listPtr);
@@ -2274,7 +2283,7 @@ case 63:
 			;
     break;}
 case 64:
-#line 1003 "parser-sming.y"
+#line 1012 "parser-sming.y"
 {
 			    if (rowObjectPtr) {
 				setObjectStatus(rowObjectPtr, yyvsp[0].status);
@@ -2282,7 +2291,7 @@ case 64:
 			;
     break;}
 case 65:
-#line 1009 "parser-sming.y"
+#line 1018 "parser-sming.y"
 {
 			    if (rowObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(rowObjectPtr, yyvsp[-1].text);
@@ -2290,7 +2299,7 @@ case 65:
 			;
     break;}
 case 66:
-#line 1015 "parser-sming.y"
+#line 1024 "parser-sming.y"
 {
 			    if (rowObjectPtr && yyvsp[0].text) {
 				setObjectReference(rowObjectPtr, yyvsp[0].text);
@@ -2298,7 +2307,7 @@ case 66:
 			;
     break;}
 case 67:
-#line 1022 "parser-sming.y"
+#line 1031 "parser-sming.y"
 {
 			    yyval.objectPtr = rowObjectPtr;
 			    rowObjectPtr = NULL;
@@ -2306,7 +2315,7 @@ case 67:
 			;
     break;}
 case 68:
-#line 1030 "parser-sming.y"
+#line 1039 "parser-sming.y"
 {
 			    /*
 			     * Return the number of successfully
@@ -2316,7 +2325,7 @@ case 68:
 			;
     break;}
 case 69:
-#line 1038 "parser-sming.y"
+#line 1047 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -2331,7 +2340,7 @@ case 69:
 			;
     break;}
 case 70:
-#line 1053 "parser-sming.y"
+#line 1062 "parser-sming.y"
 {
 			    /*
 			     * If we got an (Object *) return rc == 1,
@@ -2345,13 +2354,13 @@ case 70:
 			;
     break;}
 case 71:
-#line 1067 "parser-sming.y"
+#line 1076 "parser-sming.y"
 {
 			    columnIdentifier = yyvsp[0].text;
 			;
     break;}
 case 72:
-#line 1072 "parser-sming.y"
+#line 1081 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				columnObjectPtr = addObject(columnIdentifier,
@@ -2360,11 +2369,13 @@ case 72:
 							    0, thisParserPtr);
 				setObjectDecl(columnObjectPtr,
 					      SMI_DECL_COLUMN);
+				setObjectNodekind(columnObjectPtr,
+						  SMI_NODEKIND_COLUMN);
 			    }
 			;
     break;}
 case 73:
-#line 1083 "parser-sming.y"
+#line 1094 "parser-sming.y"
 {
 			    if (columnObjectPtr && yyvsp[-1].typePtr) {
 				setObjectType(columnObjectPtr, yyvsp[-1].typePtr);
@@ -2379,7 +2390,7 @@ case 73:
 			;
     break;}
 case 74:
-#line 1096 "parser-sming.y"
+#line 1107 "parser-sming.y"
 {
 			    if (columnObjectPtr) {
 				setObjectAccess(columnObjectPtr, yyvsp[-1].access);
@@ -2387,7 +2398,7 @@ case 74:
 			;
     break;}
 case 75:
-#line 1102 "parser-sming.y"
+#line 1113 "parser-sming.y"
 {
 			    if (columnObjectPtr && yyvsp[0].valuePtr) {
 				setObjectValue(columnObjectPtr, yyvsp[0].valuePtr);
@@ -2395,7 +2406,7 @@ case 75:
 			;
     break;}
 case 76:
-#line 1108 "parser-sming.y"
+#line 1119 "parser-sming.y"
 {
 			    if (columnObjectPtr && yyvsp[0].text) {
 				setObjectFormat(columnObjectPtr, yyvsp[0].text);
@@ -2403,7 +2414,7 @@ case 76:
 			;
     break;}
 case 77:
-#line 1114 "parser-sming.y"
+#line 1125 "parser-sming.y"
 {
 			    if (columnObjectPtr && yyvsp[0].text) {
 				setObjectUnits(columnObjectPtr, yyvsp[0].text);
@@ -2411,7 +2422,7 @@ case 77:
 			;
     break;}
 case 78:
-#line 1120 "parser-sming.y"
+#line 1131 "parser-sming.y"
 {
 			    if (columnObjectPtr) {
 				setObjectStatus(columnObjectPtr, yyvsp[0].status);
@@ -2419,7 +2430,7 @@ case 78:
 			;
     break;}
 case 79:
-#line 1126 "parser-sming.y"
+#line 1137 "parser-sming.y"
 {
 			    if (columnObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(columnObjectPtr, yyvsp[-1].text);
@@ -2427,7 +2438,7 @@ case 79:
 			;
     break;}
 case 80:
-#line 1132 "parser-sming.y"
+#line 1143 "parser-sming.y"
 {
 			    if (columnObjectPtr && yyvsp[0].text) {
 				setObjectReference(columnObjectPtr, yyvsp[0].text);
@@ -2435,7 +2446,7 @@ case 80:
 			;
     break;}
 case 81:
-#line 1138 "parser-sming.y"
+#line 1149 "parser-sming.y"
 {
 			    yyval.objectPtr = columnObjectPtr;
 			    columnObjectPtr = NULL;
@@ -2444,13 +2455,13 @@ case 81:
 			;
     break;}
 case 82:
-#line 1147 "parser-sming.y"
+#line 1158 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 83:
-#line 1151 "parser-sming.y"
+#line 1162 "parser-sming.y"
 {
 			    /*
 			     * Return the number of successfully
@@ -2460,13 +2471,13 @@ case 83:
 			;
     break;}
 case 84:
-#line 1161 "parser-sming.y"
+#line 1172 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 85:
-#line 1166 "parser-sming.y"
+#line 1177 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -2481,7 +2492,7 @@ case 85:
 			;
     break;}
 case 86:
-#line 1181 "parser-sming.y"
+#line 1192 "parser-sming.y"
 {
 			    /*
 			     * If we got an (Object *) return rc == 1,
@@ -2495,13 +2506,13 @@ case 86:
 			;
     break;}
 case 87:
-#line 1195 "parser-sming.y"
+#line 1206 "parser-sming.y"
 {
 			    notificationIdentifier = yyvsp[0].text;
 			;
     break;}
 case 88:
-#line 1200 "parser-sming.y"
+#line 1211 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				notificationObjectPtr =
@@ -2511,11 +2522,13 @@ case 88:
 					      0, thisParserPtr);
 				setObjectDecl(notificationObjectPtr,
 					      SMI_DECL_NOTIFICATION);
+				setObjectNodekind(notificationObjectPtr,
+						  SMI_NODEKIND_NOTIFICATION);
 			    }
 			;
     break;}
 case 89:
-#line 1212 "parser-sming.y"
+#line 1225 "parser-sming.y"
 {
 			    List *listPtr;
 			    Object *objectPtr;
@@ -2532,7 +2545,7 @@ case 89:
 			;
     break;}
 case 90:
-#line 1227 "parser-sming.y"
+#line 1240 "parser-sming.y"
 {
 			    if (notificationObjectPtr) {
 				setObjectStatus(notificationObjectPtr, yyvsp[0].status);
@@ -2540,7 +2553,7 @@ case 90:
 			;
     break;}
 case 91:
-#line 1233 "parser-sming.y"
+#line 1246 "parser-sming.y"
 {
 			    if (notificationObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(notificationObjectPtr,
@@ -2549,7 +2562,7 @@ case 91:
 			;
     break;}
 case 92:
-#line 1240 "parser-sming.y"
+#line 1253 "parser-sming.y"
 {
 			    if (notificationObjectPtr && yyvsp[0].text) {
 				setObjectReference(notificationObjectPtr, yyvsp[0].text);
@@ -2557,7 +2570,7 @@ case 92:
 			;
     break;}
 case 93:
-#line 1246 "parser-sming.y"
+#line 1259 "parser-sming.y"
 {
 			    yyval.objectPtr = notificationObjectPtr;
 			    notificationObjectPtr = NULL;
@@ -2565,13 +2578,13 @@ case 93:
 			;
     break;}
 case 94:
-#line 1254 "parser-sming.y"
+#line 1267 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 95:
-#line 1258 "parser-sming.y"
+#line 1271 "parser-sming.y"
 {
 			    /*
 			     * Return the number of successfully
@@ -2581,13 +2594,13 @@ case 95:
 			;
     break;}
 case 96:
-#line 1268 "parser-sming.y"
+#line 1281 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 97:
-#line 1272 "parser-sming.y"
+#line 1285 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -2602,7 +2615,7 @@ case 97:
 			;
     break;}
 case 98:
-#line 1287 "parser-sming.y"
+#line 1300 "parser-sming.y"
 {
 			    /*
 			     * If we got an (Object *) return rc == 1,
@@ -2616,13 +2629,13 @@ case 98:
 			;
     break;}
 case 99:
-#line 1301 "parser-sming.y"
+#line 1314 "parser-sming.y"
 {
 			    groupIdentifier = yyvsp[0].text;
 			;
     break;}
 case 100:
-#line 1306 "parser-sming.y"
+#line 1319 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				groupObjectPtr = addObject(groupIdentifier,
@@ -2630,11 +2643,13 @@ case 100:
 							   yyvsp[-1].nodePtr->subid,
 							   0, thisParserPtr);
 				setObjectDecl(groupObjectPtr, SMI_DECL_GROUP);
+				setObjectNodekind(groupObjectPtr,
+						  SMI_NODEKIND_GROUP);
 			    }
 			;
     break;}
 case 101:
-#line 1316 "parser-sming.y"
+#line 1331 "parser-sming.y"
 {
 			    List *listPtr;
 			    Object *objectPtr;
@@ -2651,7 +2666,7 @@ case 101:
 			;
     break;}
 case 102:
-#line 1331 "parser-sming.y"
+#line 1346 "parser-sming.y"
 {
 			    if (groupObjectPtr) {
 				setObjectStatus(groupObjectPtr, yyvsp[0].status);
@@ -2659,7 +2674,7 @@ case 102:
 			;
     break;}
 case 103:
-#line 1337 "parser-sming.y"
+#line 1352 "parser-sming.y"
 {
 			    if (groupObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(groupObjectPtr, yyvsp[-1].text);
@@ -2667,7 +2682,7 @@ case 103:
 			;
     break;}
 case 104:
-#line 1343 "parser-sming.y"
+#line 1358 "parser-sming.y"
 {
 			    if (groupObjectPtr && yyvsp[0].text) {
 				setObjectReference(groupObjectPtr, yyvsp[0].text);
@@ -2675,7 +2690,7 @@ case 104:
 			;
     break;}
 case 105:
-#line 1349 "parser-sming.y"
+#line 1364 "parser-sming.y"
 {
 			    yyval.objectPtr = groupObjectPtr;
 			    groupObjectPtr = NULL;
@@ -2683,13 +2698,13 @@ case 105:
 			;
     break;}
 case 106:
-#line 1357 "parser-sming.y"
+#line 1372 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 107:
-#line 1361 "parser-sming.y"
+#line 1376 "parser-sming.y"
 {
 			    /*
 			     * Return the number of successfully
@@ -2699,13 +2714,13 @@ case 107:
 			;
     break;}
 case 108:
-#line 1371 "parser-sming.y"
+#line 1386 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 109:
-#line 1376 "parser-sming.y"
+#line 1391 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -2720,7 +2735,7 @@ case 109:
 			;
     break;}
 case 110:
-#line 1391 "parser-sming.y"
+#line 1406 "parser-sming.y"
 {
 			    /*
 			     * If we got an (Object *) return rc == 1,
@@ -2734,13 +2749,13 @@ case 110:
 			;
     break;}
 case 111:
-#line 1405 "parser-sming.y"
+#line 1420 "parser-sming.y"
 {
 			    complianceIdentifier = yyvsp[0].text;
 			;
     break;}
 case 112:
-#line 1410 "parser-sming.y"
+#line 1425 "parser-sming.y"
 {
 			    if (yyvsp[-1].nodePtr) {
 				complianceObjectPtr =
@@ -2750,11 +2765,13 @@ case 112:
 					      0, thisParserPtr);
 				setObjectDecl(complianceObjectPtr,
 					      SMI_DECL_COMPLIANCE);
+				setObjectNodekind(complianceObjectPtr,
+						  SMI_NODEKIND_COMPLIANCE);
 			    }
 			;
     break;}
 case 113:
-#line 1422 "parser-sming.y"
+#line 1439 "parser-sming.y"
 {
 			    if (complianceObjectPtr) {
 				setObjectStatus(complianceObjectPtr, yyvsp[0].status);
@@ -2762,7 +2779,7 @@ case 113:
 			;
     break;}
 case 114:
-#line 1428 "parser-sming.y"
+#line 1445 "parser-sming.y"
 {
 			    if (complianceObjectPtr && yyvsp[-1].text) {
 				setObjectDescription(complianceObjectPtr, yyvsp[-1].text);
@@ -2770,7 +2787,7 @@ case 114:
 			;
     break;}
 case 115:
-#line 1434 "parser-sming.y"
+#line 1451 "parser-sming.y"
 {
 			    if (complianceObjectPtr && yyvsp[0].text) {
 				setObjectReference(complianceObjectPtr, yyvsp[0].text);
@@ -2778,7 +2795,7 @@ case 115:
 			;
     break;}
 case 116:
-#line 1440 "parser-sming.y"
+#line 1457 "parser-sming.y"
 {
 			    List *listPtr;
 			    Object *objectPtr;
@@ -2795,13 +2812,13 @@ case 116:
 			;
     break;}
 case 117:
-#line 1455 "parser-sming.y"
+#line 1472 "parser-sming.y"
 {
 			    complianceObjectPtr->optionlistPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 118:
-#line 1459 "parser-sming.y"
+#line 1476 "parser-sming.y"
 {
 			    Refinement *refinementPtr;
 			    List *listPtr;
@@ -2832,7 +2849,7 @@ case 118:
 			;
     break;}
 case 119:
-#line 1488 "parser-sming.y"
+#line 1505 "parser-sming.y"
 {
 			    yyval.objectPtr = complianceObjectPtr;
 			    complianceObjectPtr = NULL;
@@ -2840,25 +2857,25 @@ case 119:
 			;
     break;}
 case 120:
-#line 1496 "parser-sming.y"
+#line 1513 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 121:
-#line 1500 "parser-sming.y"
+#line 1517 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 122:
-#line 1506 "parser-sming.y"
+#line 1523 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 123:
-#line 1510 "parser-sming.y"
+#line 1527 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -2873,7 +2890,7 @@ case 123:
 			;
     break;}
 case 124:
-#line 1525 "parser-sming.y"
+#line 1542 "parser-sming.y"
 {
 			    /*
 			     * If we got an (Object *) return rc == 1,
@@ -2887,13 +2904,13 @@ case 124:
 			;
     break;}
 case 125:
-#line 1539 "parser-sming.y"
+#line 1556 "parser-sming.y"
 {
 			    importModulename = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 126:
-#line 1544 "parser-sming.y"
+#line 1561 "parser-sming.y"
 {
 			    List *listPtr, *nextPtr;
 			    
@@ -2907,7 +2924,7 @@ case 126:
 			;
     break;}
 case 127:
-#line 1556 "parser-sming.y"
+#line 1573 "parser-sming.y"
 {
 			    char *s = importModulename;
 			    
@@ -2920,25 +2937,25 @@ case 127:
 			;
     break;}
 case 128:
-#line 1569 "parser-sming.y"
+#line 1586 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 129:
-#line 1573 "parser-sming.y"
+#line 1590 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 130:
-#line 1579 "parser-sming.y"
+#line 1596 "parser-sming.y"
 {
 			    yyval.rc = yyvsp[0].rc;
 			;
     break;}
 case 131:
-#line 1583 "parser-sming.y"
+#line 1600 "parser-sming.y"
 {
 			    /*
 			     * Sum up the number of successfully parsed
@@ -2953,7 +2970,7 @@ case 131:
 			;
     break;}
 case 132:
-#line 1598 "parser-sming.y"
+#line 1615 "parser-sming.y"
 {
 			       /*
 				* If we got a (Revision *) return rc == 1,
@@ -2967,55 +2984,55 @@ case 132:
 			   ;
     break;}
 case 133:
-#line 1615 "parser-sming.y"
+#line 1632 "parser-sming.y"
 {
 			    yyval.revisionPtr = addRevision(smiMkTime(yyvsp[-6].text), yyvsp[-4].text, thisParserPtr);
 			;
     break;}
 case 134:
-#line 1623 "parser-sming.y"
-{
-			    yyval.typePtr = yyvsp[-2].typePtr;
-			;
-    break;}
-case 135:
-#line 1629 "parser-sming.y"
-{
-			    yyval.typePtr = NULL;
-			;
-    break;}
-case 136:
-#line 1633 "parser-sming.y"
-{
-			    yyval.typePtr = yyvsp[-1].typePtr;
-			;
-    break;}
-case 137:
 #line 1640 "parser-sming.y"
 {
 			    yyval.typePtr = yyvsp[-2].typePtr;
 			;
     break;}
-case 138:
+case 135:
 #line 1646 "parser-sming.y"
 {
 			    yyval.typePtr = NULL;
 			;
     break;}
-case 139:
+case 136:
 #line 1650 "parser-sming.y"
 {
 			    yyval.typePtr = yyvsp[-1].typePtr;
 			;
     break;}
-case 140:
+case 137:
 #line 1657 "parser-sming.y"
 {
 			    yyval.typePtr = yyvsp[-2].typePtr;
 			;
     break;}
+case 138:
+#line 1663 "parser-sming.y"
+{
+			    yyval.typePtr = NULL;
+			;
+    break;}
+case 139:
+#line 1667 "parser-sming.y"
+{
+			    yyval.typePtr = yyvsp[-1].typePtr;
+			;
+    break;}
+case 140:
+#line 1674 "parser-sming.y"
+{
+			    yyval.typePtr = yyvsp[-2].typePtr;
+			;
+    break;}
 case 146:
-#line 1671 "parser-sming.y"
+#line 1688 "parser-sming.y"
 {
 			    yyval.indexPtr = util_malloc(sizeof(Index));
 			    if (yyvsp[-8].rc) {
@@ -3036,7 +3053,7 @@ case 146:
 			;
     break;}
 case 147:
-#line 1692 "parser-sming.y"
+#line 1709 "parser-sming.y"
 {
 			    yyval.indexPtr = util_malloc(sizeof(Index));
 			    yyval.indexPtr->implied = 0;
@@ -3053,7 +3070,7 @@ case 147:
 			;
     break;}
 case 148:
-#line 1711 "parser-sming.y"
+#line 1728 "parser-sming.y"
 {
 			    yyval.indexPtr = util_malloc(sizeof(Index));
 			    if (yyvsp[-8].rc) {
@@ -3074,7 +3091,7 @@ case 148:
 			;
     break;}
 case 149:
-#line 1732 "parser-sming.y"
+#line 1749 "parser-sming.y"
 {
 			    yyval.indexPtr = util_malloc(sizeof(Index));
 			    yyval.indexPtr->implied = 0;
@@ -3091,7 +3108,7 @@ case 149:
 			;
     break;}
 case 150:
-#line 1751 "parser-sming.y"
+#line 1768 "parser-sming.y"
 {
 			    yyval.indexPtr = util_malloc(sizeof(Index));
 			    if (yyvsp[-8].rc) {
@@ -3112,31 +3129,31 @@ case 150:
 			;
     break;}
 case 151:
-#line 1772 "parser-sming.y"
+#line 1789 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 152:
-#line 1776 "parser-sming.y"
+#line 1793 "parser-sming.y"
 {
 			    yyval.rc = 1;
 			;
     break;}
 case 153:
-#line 1782 "parser-sming.y"
+#line 1799 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 154:
-#line 1786 "parser-sming.y"
+#line 1803 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
 case 155:
-#line 1792 "parser-sming.y"
+#line 1809 "parser-sming.y"
 {
 			    if (rowObjectPtr) {
 				addObjectFlags(rowObjectPtr, FLAG_CREATABLE);
@@ -3145,241 +3162,241 @@ case 155:
 			;
     break;}
 case 156:
-#line 1801 "parser-sming.y"
+#line 1818 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 157:
-#line 1805 "parser-sming.y"
+#line 1822 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 158:
-#line 1811 "parser-sming.y"
+#line 1828 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-2].listPtr;
 			;
     break;}
 case 159:
-#line 1817 "parser-sming.y"
+#line 1834 "parser-sming.y"
 {
 			    yyval.nodePtr = yyvsp[-2].nodePtr;
 			;
     break;}
 case 160:
-#line 1823 "parser-sming.y"
+#line 1840 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-2].text;
 			;
     break;}
 case 161:
-#line 1829 "parser-sming.y"
+#line 1846 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-2].text;
 			;
     break;}
 case 162:
-#line 1835 "parser-sming.y"
+#line 1852 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-2].text;
 			;
     break;}
 case 163:
-#line 1841 "parser-sming.y"
+#line 1858 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 164:
-#line 1845 "parser-sming.y"
+#line 1862 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-1].text;
 			;
     break;}
 case 165:
-#line 1851 "parser-sming.y"
+#line 1868 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-2].text;
 			;
     break;}
 case 166:
-#line 1857 "parser-sming.y"
+#line 1874 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 167:
-#line 1861 "parser-sming.y"
+#line 1878 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-1].text;
 			;
     break;}
 case 168:
-#line 1867 "parser-sming.y"
+#line 1884 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-2].text;
 			;
     break;}
 case 169:
-#line 1873 "parser-sming.y"
+#line 1890 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_CURRENT;
 			;
     break;}
 case 170:
-#line 1877 "parser-sming.y"
+#line 1894 "parser-sming.y"
 {
 			    yyval.status = yyvsp[-1].status;
 			;
     break;}
 case 171:
-#line 1883 "parser-sming.y"
+#line 1900 "parser-sming.y"
 {
 			    yyval.status = yyvsp[-2].status;
 			;
     break;}
 case 172:
-#line 1889 "parser-sming.y"
+#line 1906 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_UNKNOWN;
 			;
     break;}
 case 173:
-#line 1893 "parser-sming.y"
+#line 1910 "parser-sming.y"
 {
 			    yyval.access = yyvsp[-1].access;
 			;
     break;}
 case 174:
-#line 1899 "parser-sming.y"
+#line 1916 "parser-sming.y"
 {
 			    yyval.access = yyvsp[-2].access;
 			;
     break;}
 case 175:
-#line 1905 "parser-sming.y"
+#line 1922 "parser-sming.y"
 {
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 176:
-#line 1909 "parser-sming.y"
+#line 1926 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[-1].valuePtr;
 			;
     break;}
 case 177:
-#line 1915 "parser-sming.y"
+#line 1932 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[-2].valuePtr;
 			;
     break;}
 case 178:
-#line 1921 "parser-sming.y"
+#line 1938 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 179:
-#line 1925 "parser-sming.y"
+#line 1942 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-1].text;
 			;
     break;}
 case 180:
-#line 1931 "parser-sming.y"
+#line 1948 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-2].text;
 			;
     break;}
 case 181:
-#line 1937 "parser-sming.y"
+#line 1954 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 182:
-#line 1941 "parser-sming.y"
+#line 1958 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-1].text;
 			;
     break;}
 case 183:
-#line 1947 "parser-sming.y"
+#line 1964 "parser-sming.y"
 {
 			    yyval.text = yyvsp[-2].text;
 			;
     break;}
 case 184:
-#line 1953 "parser-sming.y"
-{
-			    yyval.listPtr = NULL;
-			;
-    break;}
-case 185:
-#line 1957 "parser-sming.y"
-{
-			    yyval.listPtr = yyvsp[-1].listPtr;
-			;
-    break;}
-case 186:
-#line 1964 "parser-sming.y"
-{
-			    yyval.listPtr = yyvsp[-4].listPtr;
-			;
-    break;}
-case 187:
 #line 1970 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
-case 188:
+case 185:
 #line 1974 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
-case 189:
+case 186:
 #line 1981 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-4].listPtr;
 			;
     break;}
-case 190:
+case 187:
 #line 1987 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
-case 191:
+case 188:
 #line 1991 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-1].listPtr;
 			;
     break;}
-case 192:
+case 189:
 #line 1998 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-4].listPtr;
 			;
     break;}
-case 193:
+case 190:
 #line 2004 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
-case 194:
+case 191:
 #line 2008 "parser-sming.y"
+{
+			    yyval.listPtr = yyvsp[-1].listPtr;
+			;
+    break;}
+case 192:
+#line 2015 "parser-sming.y"
+{
+			    yyval.listPtr = yyvsp[-4].listPtr;
+			;
+    break;}
+case 193:
+#line 2021 "parser-sming.y"
+{
+			    yyval.listPtr = NULL;
+			;
+    break;}
+case 194:
+#line 2025 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 195:
-#line 2014 "parser-sming.y"
+#line 2031 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].optionPtr;
@@ -3387,7 +3404,7 @@ case 195:
 			;
     break;}
 case 196:
-#line 2021 "parser-sming.y"
+#line 2038 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -3400,13 +3417,13 @@ case 196:
 			;
     break;}
 case 197:
-#line 2034 "parser-sming.y"
+#line 2051 "parser-sming.y"
 {
 			       yyval.optionPtr = yyvsp[-1].optionPtr;
 			   ;
     break;}
 case 198:
-#line 2043 "parser-sming.y"
+#line 2060 "parser-sming.y"
 {
 			    yyval.optionPtr = util_malloc(sizeof(Option));
 			    yyval.optionPtr->objectPtr = findObject(yyvsp[-7].text, thisParserPtr);
@@ -3414,19 +3431,19 @@ case 198:
 			;
     break;}
 case 199:
-#line 2051 "parser-sming.y"
+#line 2068 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 200:
-#line 2055 "parser-sming.y"
+#line 2072 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 201:
-#line 2061 "parser-sming.y"
+#line 2078 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].refinementPtr;
@@ -3434,7 +3451,7 @@ case 201:
 			;
     break;}
 case 202:
-#line 2067 "parser-sming.y"
+#line 2084 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -3447,13 +3464,13 @@ case 202:
 			;
     break;}
 case 203:
-#line 2080 "parser-sming.y"
+#line 2097 "parser-sming.y"
 {
 			    yyval.refinementPtr = yyvsp[-1].refinementPtr;
 			;
     break;}
 case 204:
-#line 2091 "parser-sming.y"
+#line 2108 "parser-sming.y"
 {
 			    yyval.refinementPtr = util_malloc(sizeof(Refinement));
 			    yyval.refinementPtr->objectPtr = findObject(yyvsp[-10].text, thisParserPtr);
@@ -3476,19 +3493,19 @@ case 204:
 			;
     break;}
 case 205:
-#line 2114 "parser-sming.y"
+#line 2131 "parser-sming.y"
 {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 206:
-#line 2118 "parser-sming.y"
+#line 2135 "parser-sming.y"
 {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			;
     break;}
 case 207:
-#line 2124 "parser-sming.y"
+#line 2141 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingOctetStringPtr;
@@ -3502,13 +3519,13 @@ case 207:
 			;
     break;}
 case 208:
-#line 2136 "parser-sming.y"
+#line 2153 "parser-sming.y"
 {
 			    yyval.typePtr = typeSmingObjectIdentifierPtr;
 			;
     break;}
 case 209:
-#line 2140 "parser-sming.y"
+#line 2157 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingInteger32Ptr;
@@ -3522,7 +3539,7 @@ case 209:
 			;
     break;}
 case 210:
-#line 2152 "parser-sming.y"
+#line 2169 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingUnsigned32Ptr;
@@ -3536,7 +3553,7 @@ case 210:
 			;
     break;}
 case 211:
-#line 2164 "parser-sming.y"
+#line 2181 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingInteger64Ptr;
@@ -3550,7 +3567,7 @@ case 211:
 			;
     break;}
 case 212:
-#line 2176 "parser-sming.y"
+#line 2193 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingUnsigned64Ptr;
@@ -3564,7 +3581,7 @@ case 212:
 			;
     break;}
 case 213:
-#line 2188 "parser-sming.y"
+#line 2205 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingFloat32Ptr;
@@ -3578,7 +3595,7 @@ case 213:
 			;
     break;}
 case 214:
-#line 2200 "parser-sming.y"
+#line 2217 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingFloat64Ptr;
@@ -3592,7 +3609,7 @@ case 214:
 			;
     break;}
 case 215:
-#line 2212 "parser-sming.y"
+#line 2229 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingFloat128Ptr;
@@ -3606,7 +3623,7 @@ case 215:
 			;
     break;}
 case 216:
-#line 2224 "parser-sming.y"
+#line 2241 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingEnumPtr;
@@ -3620,7 +3637,7 @@ case 216:
 			;
     break;}
 case 217:
-#line 2236 "parser-sming.y"
+#line 2253 "parser-sming.y"
 {
 			    if (!yyvsp[0].listPtr) {
 				yyval.typePtr = typeSmingBitsPtr;
@@ -3634,7 +3651,7 @@ case 217:
 			;
     break;}
 case 218:
-#line 2250 "parser-sming.y"
+#line 2267 "parser-sming.y"
 {
 			    char s[SMI_MAX_FULLNAME];
 
@@ -3653,43 +3670,43 @@ case 218:
 			;
     break;}
 case 219:
-#line 2269 "parser-sming.y"
+#line 2286 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 220:
-#line 2273 "parser-sming.y"
+#line 2290 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 221:
-#line 2279 "parser-sming.y"
+#line 2296 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 222:
-#line 2283 "parser-sming.y"
+#line 2300 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 223:
-#line 2289 "parser-sming.y"
+#line 2306 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 224:
-#line 2293 "parser-sming.y"
+#line 2310 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 225:
-#line 2300 "parser-sming.y"
+#line 2317 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[-3].rangePtr;
@@ -3697,19 +3714,19 @@ case 225:
 			;
     break;}
 case 226:
-#line 2308 "parser-sming.y"
+#line 2325 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 227:
-#line 2312 "parser-sming.y"
+#line 2329 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 228:
-#line 2318 "parser-sming.y"
+#line 2335 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[0].rangePtr;
@@ -3717,7 +3734,7 @@ case 228:
 			;
     break;}
 case 229:
-#line 2324 "parser-sming.y"
+#line 2341 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -3730,13 +3747,13 @@ case 229:
 			;
     break;}
 case 230:
-#line 2337 "parser-sming.y"
+#line 2354 "parser-sming.y"
 {
 			    yyval.rangePtr = yyvsp[0].rangePtr;
 			;
     break;}
 case 231:
-#line 2343 "parser-sming.y"
+#line 2360 "parser-sming.y"
 {
 			    yyval.rangePtr = util_malloc(sizeof(Range));
 			    yyval.rangePtr->minValuePtr = yyvsp[-1].valuePtr;
@@ -3748,37 +3765,37 @@ case 231:
 			;
     break;}
 case 232:
-#line 2355 "parser-sming.y"
+#line 2372 "parser-sming.y"
 {
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 233:
-#line 2359 "parser-sming.y"
+#line 2376 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 234:
-#line 2365 "parser-sming.y"
+#line 2382 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 235:
-#line 2371 "parser-sming.y"
+#line 2388 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 236:
-#line 2375 "parser-sming.y"
+#line 2392 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 237:
-#line 2382 "parser-sming.y"
+#line 2399 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[-3].rangePtr;
@@ -3786,19 +3803,19 @@ case 237:
 			;
     break;}
 case 238:
-#line 2390 "parser-sming.y"
+#line 2407 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 239:
-#line 2394 "parser-sming.y"
+#line 2411 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 240:
-#line 2400 "parser-sming.y"
+#line 2417 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[0].rangePtr;
@@ -3806,7 +3823,7 @@ case 240:
 			;
     break;}
 case 241:
-#line 2406 "parser-sming.y"
+#line 2423 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -3819,13 +3836,13 @@ case 241:
 			;
     break;}
 case 242:
-#line 2419 "parser-sming.y"
+#line 2436 "parser-sming.y"
 {
 			    yyval.rangePtr = yyvsp[0].rangePtr;
 			;
     break;}
 case 243:
-#line 2425 "parser-sming.y"
+#line 2442 "parser-sming.y"
 {
 			    yyval.rangePtr = util_malloc(sizeof(Range));
 			    yyval.rangePtr->minValuePtr = util_malloc(sizeof(SmiValue));
@@ -3844,31 +3861,31 @@ case 243:
 			;
     break;}
 case 244:
-#line 2444 "parser-sming.y"
+#line 2461 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 245:
-#line 2448 "parser-sming.y"
+#line 2465 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 246:
-#line 2454 "parser-sming.y"
+#line 2471 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 247:
-#line 2460 "parser-sming.y"
+#line 2477 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-2].listPtr;
 			;
     break;}
 case 248:
-#line 2467 "parser-sming.y"
+#line 2484 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[-2].namedNumberPtr;
@@ -3876,19 +3893,19 @@ case 248:
 			;
     break;}
 case 249:
-#line 2475 "parser-sming.y"
+#line 2492 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 250:
-#line 2479 "parser-sming.y"
+#line 2496 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 251:
-#line 2485 "parser-sming.y"
+#line 2502 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[0].namedNumberPtr;
@@ -3896,7 +3913,7 @@ case 251:
 			;
     break;}
 case 252:
-#line 2492 "parser-sming.y"
+#line 2509 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -3909,13 +3926,13 @@ case 252:
 			;
     break;}
 case 253:
-#line 2506 "parser-sming.y"
+#line 2523 "parser-sming.y"
 {
 			    yyval.namedNumberPtr = yyvsp[0].namedNumberPtr;
 			;
     break;}
 case 254:
-#line 2512 "parser-sming.y"
+#line 2529 "parser-sming.y"
 {
 			    yyval.namedNumberPtr = util_malloc(sizeof(NamedNumber));
 			    yyval.namedNumberPtr->name = yyvsp[-6].text;
@@ -3923,7 +3940,7 @@ case 254:
 			;
     break;}
 case 255:
-#line 2520 "parser-sming.y"
+#line 2537 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[-2].text;
@@ -3931,19 +3948,19 @@ case 255:
 			;
     break;}
 case 256:
-#line 2528 "parser-sming.y"
+#line 2545 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 257:
-#line 2532 "parser-sming.y"
+#line 2549 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 258:
-#line 2538 "parser-sming.y"
+#line 2555 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
@@ -3951,7 +3968,7 @@ case 258:
 			;
     break;}
 case 259:
-#line 2544 "parser-sming.y"
+#line 2561 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -3964,13 +3981,13 @@ case 259:
 			;
     break;}
 case 260:
-#line 2557 "parser-sming.y"
+#line 2574 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 261:
-#line 2563 "parser-sming.y"
+#line 2580 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[-2].text;
@@ -3978,19 +3995,19 @@ case 261:
 			;
     break;}
 case 262:
-#line 2571 "parser-sming.y"
+#line 2588 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 263:
-#line 2575 "parser-sming.y"
+#line 2592 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 264:
-#line 2581 "parser-sming.y"
+#line 2598 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
@@ -3998,7 +4015,7 @@ case 264:
 			;
     break;}
 case 265:
-#line 2587 "parser-sming.y"
+#line 2604 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -4011,13 +4028,13 @@ case 265:
 			;
     break;}
 case 266:
-#line 2600 "parser-sming.y"
+#line 2617 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 267:
-#line 2606 "parser-sming.y"
+#line 2623 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[-2].text;
@@ -4025,19 +4042,19 @@ case 267:
 			;
     break;}
 case 268:
-#line 2614 "parser-sming.y"
+#line 2631 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 269:
-#line 2618 "parser-sming.y"
+#line 2635 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 270:
-#line 2624 "parser-sming.y"
+#line 2641 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
@@ -4045,7 +4062,7 @@ case 270:
 			;
     break;}
 case 271:
-#line 2630 "parser-sming.y"
+#line 2647 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -4058,25 +4075,25 @@ case 271:
 			;
     break;}
 case 272:
-#line 2643 "parser-sming.y"
+#line 2660 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 273:
-#line 2649 "parser-sming.y"
+#line 2666 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[-2].listPtr;
 			;
     break;}
 case 274:
-#line 2655 "parser-sming.y"
+#line 2672 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 275:
-#line 2659 "parser-sming.y"
+#line 2676 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[-2].text;
@@ -4084,19 +4101,19 @@ case 275:
 			;
     break;}
 case 276:
-#line 2667 "parser-sming.y"
+#line 2684 "parser-sming.y"
 {
 			    yyval.listPtr = NULL;
 			;
     break;}
 case 277:
-#line 2671 "parser-sming.y"
+#line 2688 "parser-sming.y"
 {
 			    yyval.listPtr = yyvsp[0].listPtr;
 			;
     break;}
 case 278:
-#line 2677 "parser-sming.y"
+#line 2694 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
 			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
@@ -4104,7 +4121,7 @@ case 278:
 			;
     break;}
 case 279:
-#line 2683 "parser-sming.y"
+#line 2700 "parser-sming.y"
 {
 			    List *p, *pp;
 			    
@@ -4117,55 +4134,36 @@ case 279:
 			;
     break;}
 case 280:
-#line 2696 "parser-sming.y"
+#line 2713 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 281:
-#line 2702 "parser-sming.y"
+#line 2719 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 282:
-#line 2706 "parser-sming.y"
+#line 2723 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 283:
-#line 2712 "parser-sming.y"
+#line 2729 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 284:
-#line 2716 "parser-sming.y"
-{
-			    yyval.text = yyvsp[0].text;
-			;
-    break;}
-case 285:
-#line 2722 "parser-sming.y"
-{
-			    char *s;
-
-			    s = util_malloc(strlen(yyvsp[-2].text) +
-					    strlen(yyvsp[0].text) + 3);
-			    sprintf(s, "%s::%s", yyvsp[-2].text, yyvsp[0].text);
-			    yyval.text = s;
-			    free(yyvsp[-2].text);
-			    free(yyvsp[0].text);
-			;
-    break;}
-case 286:
 #line 2733 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
-case 287:
+case 285:
 #line 2739 "parser-sming.y"
 {
 			    char *s;
@@ -4178,14 +4176,33 @@ case 287:
 			    free(yyvsp[0].text);
 			;
     break;}
-case 288:
+case 286:
 #line 2750 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
-case 289:
+case 287:
 #line 2756 "parser-sming.y"
+{
+			    char *s;
+
+			    s = util_malloc(strlen(yyvsp[-2].text) +
+					    strlen(yyvsp[0].text) + 3);
+			    sprintf(s, "%s::%s", yyvsp[-2].text, yyvsp[0].text);
+			    yyval.text = s;
+			    free(yyvsp[-2].text);
+			    free(yyvsp[0].text);
+			;
+    break;}
+case 288:
+#line 2767 "parser-sming.y"
+{
+			    yyval.text = yyvsp[0].text;
+			;
+    break;}
+case 289:
+#line 2773 "parser-sming.y"
 {
 			    if (yyvsp[0].text) {
 				yyval.text = util_malloc(strlen(yyvsp[-1].text) + strlen(yyvsp[0].text) + 1);
@@ -4199,25 +4216,25 @@ case 289:
 			;
     break;}
 case 290:
-#line 2770 "parser-sming.y"
+#line 2787 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 291:
-#line 2774 "parser-sming.y"
+#line 2791 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 292:
-#line 2780 "parser-sming.y"
+#line 2797 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 293:
-#line 2784 "parser-sming.y"
+#line 2801 "parser-sming.y"
 {
 			    yyval.text = util_malloc(strlen(yyvsp[-1].text) + strlen(yyvsp[0].text) + 1);
 			    strcpy(yyval.text, yyvsp[-1].text);
@@ -4227,31 +4244,31 @@ case 293:
 			;
     break;}
 case 294:
-#line 2794 "parser-sming.y"
+#line 2811 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 295:
-#line 2801 "parser-sming.y"
+#line 2818 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 296:
-#line 2807 "parser-sming.y"
+#line 2824 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 297:
-#line 2813 "parser-sming.y"
+#line 2830 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 298:
-#line 2826 "parser-sming.y"
+#line 2843 "parser-sming.y"
 {
 			    int i;
 			    List *listPtr, *nextPtr;
@@ -4278,7 +4295,7 @@ case 298:
 			;
     break;}
 case 299:
-#line 2851 "parser-sming.y"
+#line 2868 "parser-sming.y"
 {
 			    /* Note: might also be an OID or signed */
 			    switch (defaultBasetype) {
@@ -4319,7 +4336,7 @@ case 299:
 			;
     break;}
 case 300:
-#line 2890 "parser-sming.y"
+#line 2907 "parser-sming.y"
 {
 			    switch (defaultBasetype) {
 			    case SMI_BASETYPE_INTEGER32:
@@ -4341,7 +4358,7 @@ case 300:
 			;
     break;}
 case 301:
-#line 2910 "parser-sming.y"
+#line 2927 "parser-sming.y"
 {
 			    /* TODO */
 			    /* Note: might also be an octet string */
@@ -4349,7 +4366,7 @@ case 301:
 			;
     break;}
 case 302:
-#line 2916 "parser-sming.y"
+#line 2933 "parser-sming.y"
 {
 			    /* TODO */
 			    /* Note: might also be an OID */
@@ -4357,7 +4374,7 @@ case 302:
 			;
     break;}
 case 303:
-#line 2922 "parser-sming.y"
+#line 2939 "parser-sming.y"
 {
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				yyval.valuePtr = util_malloc(sizeof(SmiValue));
@@ -4371,7 +4388,7 @@ case 303:
 			;
     break;}
 case 304:
-#line 2934 "parser-sming.y"
+#line 2951 "parser-sming.y"
 {
 			    /* Note: might be an Enumeration item or OID */
 			    /* TODO: convert if it's an oid? */
@@ -4395,69 +4412,69 @@ case 304:
 			;
     break;}
 case 305:
-#line 2956 "parser-sming.y"
+#line 2973 "parser-sming.y"
 {
 			    /* TODO */
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 306:
-#line 2961 "parser-sming.y"
+#line 2978 "parser-sming.y"
 {
 			    /* TODO */
 			    yyval.valuePtr = NULL;
 			;
     break;}
 case 307:
-#line 2968 "parser-sming.y"
+#line 2985 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_CURRENT;
 			;
     break;}
 case 308:
-#line 2972 "parser-sming.y"
+#line 2989 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_DEPRECATED;
 			;
     break;}
 case 309:
-#line 2976 "parser-sming.y"
+#line 2993 "parser-sming.y"
 {
 			    yyval.status = SMI_STATUS_OBSOLETE;
 			;
     break;}
 case 310:
-#line 2982 "parser-sming.y"
+#line 2999 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_NOT_ACCESSIBLE;
 			;
     break;}
 case 311:
-#line 2986 "parser-sming.y"
+#line 3003 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_NOTIFY;
 			;
     break;}
 case 312:
-#line 2990 "parser-sming.y"
+#line 3007 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_ONLY;
 			;
     break;}
 case 313:
-#line 2994 "parser-sming.y"
+#line 3011 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_WRITE;
 			;
     break;}
 case 314:
-#line 2998 "parser-sming.y"
+#line 3015 "parser-sming.y"
 {
 			    yyval.access = SMI_ACCESS_READ_CREATE;
 			;
     break;}
 case 315:
-#line 3004 "parser-sming.y"
+#line 3021 "parser-sming.y"
 {
 			    char *oid = NULL;
 			    Node *nodePtr;
@@ -4486,7 +4503,7 @@ case 315:
 			;
     break;}
 case 316:
-#line 3033 "parser-sming.y"
+#line 3050 "parser-sming.y"
 {
 			    Object *objectPtr;
 			    Node *nodePtr;
@@ -4515,32 +4532,32 @@ case 316:
 			;
     break;}
 case 317:
-#line 3060 "parser-sming.y"
+#line 3077 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 318:
-#line 3066 "parser-sming.y"
+#line 3083 "parser-sming.y"
 {
 			    yyval.text = NULL;
 			;
     break;}
 case 319:
-#line 3070 "parser-sming.y"
+#line 3087 "parser-sming.y"
 {
 			    /* TODO: check upper limit of 127 subids */ 
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 320:
-#line 3077 "parser-sming.y"
+#line 3094 "parser-sming.y"
 {
 			    yyval.text = yyvsp[0].text;
 			;
     break;}
 case 321:
-#line 3081 "parser-sming.y"
+#line 3098 "parser-sming.y"
 {
 			    yyval.text = util_malloc(strlen(yyvsp[-1].text) + strlen(yyvsp[0].text) + 1);
 			    strcpy(yyval.text, yyvsp[-1].text);
@@ -4550,7 +4567,7 @@ case 321:
 			;
     break;}
 case 322:
-#line 3091 "parser-sming.y"
+#line 3108 "parser-sming.y"
 {
 			    yyval.text = util_malloc(strlen(yyvsp[0].text) + 1 + 1);
 			    strcpy(yyval.text, ".");
@@ -4559,13 +4576,13 @@ case 322:
 			;
     break;}
 case 323:
-#line 3100 "parser-sming.y"
+#line 3117 "parser-sming.y"
 {
 			    yyval.text = util_strdup(yyvsp[0].text);
 			;
     break;}
 case 324:
-#line 3106 "parser-sming.y"
+#line 3123 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    /* TODO */
@@ -4574,7 +4591,7 @@ case 324:
 			;
     break;}
 case 325:
-#line 3113 "parser-sming.y"
+#line 3130 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
@@ -4582,7 +4599,7 @@ case 325:
 			;
     break;}
 case 326:
-#line 3121 "parser-sming.y"
+#line 3138 "parser-sming.y"
 {
 			    yyval.valuePtr = util_malloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER64;
@@ -4590,37 +4607,37 @@ case 326:
 			;
     break;}
 case 327:
-#line 3129 "parser-sming.y"
+#line 3146 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 328:
-#line 3133 "parser-sming.y"
+#line 3150 "parser-sming.y"
 {
 			    yyval.valuePtr = yyvsp[0].valuePtr;
 			;
     break;}
 case 329:
-#line 3143 "parser-sming.y"
+#line 3160 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 330:
-#line 3150 "parser-sming.y"
+#line 3167 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 331:
-#line 3156 "parser-sming.y"
+#line 3173 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
     break;}
 case 332:
-#line 3162 "parser-sming.y"
+#line 3179 "parser-sming.y"
 {
 			    yyval.rc = 0;
 			;
@@ -4847,7 +4864,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 3167 "parser-sming.y"
+#line 3184 "parser-sming.y"
 
 
 #endif

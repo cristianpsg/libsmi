@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.21 1999/06/10 11:17:00 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.22 1999/06/12 13:40:06 strauss Exp $
  */
 
 %{
@@ -486,8 +486,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 					      0,
 					      thisParserPtr);
 			    }
-			    thisParserPtr->modulePtr->flags &= ~FLAG_SMIV2;
-			    thisParserPtr->modulePtr->flags |= FLAG_SMING;
+			    thisModulePtr->language = SMI_LANGUAGE_SMING;
 			    thisParserPtr->modulePtr->numImportedIdentifiers
 				                                           = 0;
 			    thisParserPtr->modulePtr->numStatements = 0;
@@ -521,6 +520,8 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 							    0, thisParserPtr);
 				setObjectDecl(moduleObjectPtr,
 					      SMI_DECL_MODULE);
+				setObjectNodekind(moduleObjectPtr,
+						  SMI_NODEKIND_MODULE);
 				addObjectFlags(moduleObjectPtr,
 					       FLAG_REGISTERED);
 				setModuleIdentityObject(
@@ -790,6 +791,8 @@ nodeStatement:		nodeKeyword sep lcIdentifier
 							  $8->subid,
 							  0, thisParserPtr);
 				setObjectDecl(nodeObjectPtr, SMI_DECL_NODE);
+				setObjectNodekind(nodeObjectPtr,
+						  SMI_NODEKIND_NODE);
 				setObjectAccess(nodeObjectPtr,
 						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
@@ -841,6 +844,8 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 							    0, thisParserPtr);
 				setObjectDecl(scalarObjectPtr,
 					      SMI_DECL_SCALAR);
+				setObjectNodekind(scalarObjectPtr,
+						  SMI_NODEKIND_SCALAR);
 			    }
 			}
 			typeStatement stmtsep
@@ -921,6 +926,8 @@ tableStatement:		tableKeyword sep lcIdentifier
 							   0, thisParserPtr);
 				setObjectDecl(tableObjectPtr,
 					      SMI_DECL_TABLE);
+				setObjectNodekind(tableObjectPtr,
+						  SMI_NODEKIND_TABLE);
 				setObjectAccess(tableObjectPtr,
 						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
@@ -966,6 +973,8 @@ rowStatement:		rowKeyword sep lcIdentifier
 							 0, thisParserPtr);
 				setObjectDecl(rowObjectPtr,
 					      SMI_DECL_ROW);
+				setObjectNodekind(rowObjectPtr,
+						  SMI_NODEKIND_ROW);
 				setObjectAccess(rowObjectPtr,
 						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
@@ -1077,6 +1086,8 @@ columnStatement:	columnKeyword sep lcIdentifier
 							    0, thisParserPtr);
 				setObjectDecl(columnObjectPtr,
 					      SMI_DECL_COLUMN);
+				setObjectNodekind(columnObjectPtr,
+						  SMI_NODEKIND_COLUMN);
 			    }
 			}
 			typeStatement stmtsep
@@ -1206,6 +1217,8 @@ notificationStatement:	notificationKeyword sep lcIdentifier
 					      0, thisParserPtr);
 				setObjectDecl(notificationObjectPtr,
 					      SMI_DECL_NOTIFICATION);
+				setObjectNodekind(notificationObjectPtr,
+						  SMI_NODEKIND_NOTIFICATION);
 			    }
 			}
 			objectsStatement_stmtsep_01
@@ -1310,6 +1323,8 @@ groupStatement:		groupKeyword sep lcIdentifier
 							   $8->subid,
 							   0, thisParserPtr);
 				setObjectDecl(groupObjectPtr, SMI_DECL_GROUP);
+				setObjectNodekind(groupObjectPtr,
+						  SMI_NODEKIND_GROUP);
 			    }
 			}
 			membersStatement stmtsep
@@ -1416,6 +1431,8 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 					      0, thisParserPtr);
 				setObjectDecl(complianceObjectPtr,
 					      SMI_DECL_COMPLIANCE);
+				setObjectNodekind(complianceObjectPtr,
+						  SMI_NODEKIND_COMPLIANCE);
 			    }
 			}
 			statusStatement_stmtsep_01
