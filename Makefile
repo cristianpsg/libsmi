@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.26 1999/05/05 16:13:33 strauss Exp $
+# @(#) $Id: Makefile,v 1.27 1999/05/06 11:53:36 strauss Exp $
 #
 
 #MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
@@ -86,6 +86,9 @@ tools/smiquery: $(LIBSMI_STATIC) tools/smiquery.o
 
 clean:
 	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/scanner-sming.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c lib/smi-rpc_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser-smi.y.html test/*.log doc/yacc2html.o doc/yacc2html.c doc/scanner-sming.l.html
+
+sync:
+	cp ../thesis/sming.abnf ../thesis/draft-irtf-nmrg-sming-00.txt ../thesis/IRTF-NMRG-SMING ../thesis/IRTF-NMRG-SMING-TYPES ../thesis/IRTF-NMRG-SMING-EXTENSIONS doc
 
 install: install-prg install-conf install-dev install-lib install-html
 
