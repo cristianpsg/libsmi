@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.29 2000/06/15 09:55:01 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.31 2000/06/16 13:53:36 strauss Exp $
  */
 
 #include <config.h>
@@ -128,7 +128,7 @@ static void usage()
 
 static void version()
 {
-    printf("smilint " VERSION "\n");
+    printf("smilint " SMI_VERSION_STRING "\n");
 }
 
 

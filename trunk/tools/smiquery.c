@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.54 2000/04/10 14:20:27 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.55 2000/04/11 09:00:44 strauss Exp $
  */
 
 #include <config.h>
@@ -316,7 +316,7 @@ void usage()
 
 void version()
 {
-    printf("smiquery " VERSION "\n");
+    printf("smiquery " SMI_VERSION_STRING "\n");
 }
 
 
