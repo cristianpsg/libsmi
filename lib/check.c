@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.14 2001/03/05 17:57:49 strauss Exp $
+ * @(#) $Id: check.c,v 1.15 2001/03/06 09:18:29 strauss Exp $
  */
 
 #include <config.h>
@@ -1059,6 +1059,7 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 
 	    if (tcModulePtr) {
 
+		/* check RowStatus DEFVAL */
 		if (objectPtr->typePtr == rowStatusPtr) {
 		    if ((objectPtr->export.value.value.integer32 >= 4) &&
 			(objectPtr->export.value.value.integer32 <= 6)) {
@@ -1071,6 +1072,7 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 		    }
 		}
 		
+		/* check StorageType DEFVAL */
 		if (objectPtr->typePtr == storageTypePtr) {
 		    if ((objectPtr->export.value.value.integer32 >= 4) &&
 			(objectPtr->export.value.value.integer32 <= 5)) {
@@ -1082,7 +1084,8 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 					    nnPtr->export.name);
 		    }
 		}
-		
+
+		/* check TDomain/TAddress pair */
 		if (objectPtr->typePtr == taddressPtr) {
 		    nodePtr =
 			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
