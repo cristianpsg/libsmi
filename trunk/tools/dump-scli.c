@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.31 2002/11/26 18:22:34 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.32 2002/11/27 13:04:06 schoenw Exp $
  */
 
 /*
@@ -50,6 +50,9 @@
 static char *prefix = NULL;
 static char *include = NULL;
 static char *exclude = NULL;
+static int  sflag = 0;
+static int  cflag = 0;
+static int  dflag = 0;
 static regex_t _incl_regex, *incl_regex = NULL;
 static regex_t _excl_regex, *excl_regex = NULL;
 
@@ -990,32 +993,6 @@ printCreateMethodPrototype(FILE *f, SmiNode *groupNode)
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     fprintf(f, ");\n\n");
 
-#if 0
-    {
-	SmiNode *smiNode;
-	SmiType *smiType;
-	
-	for (smiNode = smiGetFirstChildNode(groupNode);
-	     smiNode;
-	     smiNode = smiGetNextChildNode(smiNode)) {
-	    if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
-		&& (smiNode->access > SMI_ACCESS_READ_ONLY)) {
-		if (isIndex(groupNode, smiNode)) {
-		    continue;
-		}
-		smiType = smiGetNodeType(smiNode);
-		if (! smiType) {
-		    continue;
-		}
-		if (smiNode->value.basetype == SMI_BASETYPE_UNKNOWN
-		    && smiType->name && strcmp(smiType->name, "RowStatus") != 0) {
-		    fprintf(stderr, "%s: %s\n", groupNode->name, smiNode->name);
-		}
-	    }	    
-	}
-    }
-#endif
-
     xfree(cNodeName);
     xfree(cPrefix);
 }
@@ -1087,11 +1064,11 @@ printMethodPrototypes(FILE *f, SmiNode *groupNode)
 		smiType = smiGetNodeType(smiNode);
 		if (smiType && smiType->name
 		    && strcmp(smiType->name, "RowStatus") == 0) {
-		    printCreateMethodPrototype(f, groupNode);
-		    printDeleteMethodPrototype(f, groupNode);
+		    if (cflag) printCreateMethodPrototype(f, groupNode);
+		    if (dflag) printDeleteMethodPrototype(f, groupNode);
 		} else {
 		    if (! isIndex(groupNode, smiNode)) {
-			printSetMethodPrototype(f, groupNode, smiNode);
+			if (sflag) printSetMethodPrototype(f, groupNode, smiNode);
 		    }
 		}
 	    }
@@ -3198,11 +3175,11 @@ printStubMethod2(FILE *f, SmiNode *groupNode)
 		smiType = smiGetNodeType(smiNode);
 		if (smiType && smiType->name
 		    && strcmp(smiType->name, "RowStatus") == 0) {
-		    printCreateMethod(f, groupNode, smiNode);
-		    printDeleteMethod(f, groupNode, smiNode);
+		    if (cflag) printCreateMethod(f, groupNode, smiNode);
+		    if (dflag) printDeleteMethod(f, groupNode, smiNode);
 		} else {
 		    if (! isIndex(groupNode, smiNode)) {
-			printSetMethod(f, groupNode, smiNode);
+			if (sflag) printSetMethod(f, groupNode, smiNode);
 		    }
 		}
 	    }
@@ -3350,6 +3327,12 @@ void initScli()
 	  "include stubs for groups matching a regex"},
 	{ "exclude", OPT_STRING, &exclude, 0,
 	  "exclude stubs for groups matching a regex"},
+	{ "set", OPT_FLAG, &sflag, 0,
+	  "generate set stubs for writable objects"},
+	{ "create", OPT_FLAG, &cflag, 0,
+	  "generate create stubs for tables using RowStatus"},
+	{ "delete", OPT_FLAG, &dflag, 0,
+	  "generate delete stubs for tables using RowStatus"},
         { 0, OPT_END, 0, 0 }
     };
 
@@ -3358,7 +3341,7 @@ void initScli()
 	dumpScli,
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE,
-	"ANSI C gsnmp manager stubs for the scli package",
+	"ANSI C manager stubs for the gsnmp package",
 	opt,
 	NULL
     };
