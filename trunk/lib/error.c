@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.10 1999/05/31 11:58:31 strauss Exp $
+ * @(#) $Id: error.c,v 1.11 1999/06/06 07:40:38 strauss Exp $
  */
 
 #include <string.h>
@@ -271,3 +271,4 @@ printError(Parser *parser, int id, ...)
 	/* severe error, no way to continue :-( */
     }
 }
+

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.38 1999/06/07 15:44:06 strauss Exp $
+ * @(#) $Id: smi.c,v 1.39 1999/06/08 16:08:08 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2246,3 +2246,4 @@ void smiFreeRefinement(SmiRefinement *smiRefinementPtr)
 {
     util_free(smiRefinementPtr);
 }
+
