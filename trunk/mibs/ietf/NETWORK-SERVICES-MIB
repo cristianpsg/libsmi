@@ -1,16 +1,20 @@
-    NETWORK-SERVICES-MIB DEFINITIONS ::= BEGIN
+NETWORK-SERVICES-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
     OBJECT-TYPE, Counter32, Gauge32, MODULE-IDENTITY, mib-2
       FROM SNMPv2-SMI
-    DisplayString, TimeStamp, TEXTUAL-CONVENTION
+    TimeStamp, TEXTUAL-CONVENTION
       FROM SNMPv2-TC
     MODULE-COMPLIANCE, OBJECT-GROUP
-      FROM SNMPv2-CONF;
+      FROM SNMPv2-CONF
+    SnmpAdminString
+        FROM SNMP-FRAMEWORK-MIB;
 
 application MODULE-IDENTITY
-    LAST-UPDATED "9708170000Z"
+    LAST-UPDATED "200003030000Z"
     ORGANIZATION "IETF Mail and Directory Management Working Group"
+
+
     CONTACT-INFO
       "        Ned Freed
 
@@ -21,10 +25,33 @@ application MODULE-IDENTITY
 
           Tel: +1 626 919 3600
           Fax: +1 626 919 3614
+
        E-Mail: ned.freed@innosoft.com"
     DESCRIPTION
       "The MIB module describing network service applications"
-    REVISION "9311280000Z"
+    REVISION "200003030000Z"
+    DESCRIPTION
+      "This revision, published in RFC 2788, changes a number of
+       DisplayStrings to SnmpAdminStrings. Note that this change
+       is not strictly supported by SMIv2.  However, the alternative
+       of deprecating the old objects and defining new objects
+       would have a more adverse impact on backward compatibility
+       and interoperability, given the particular semantics of
+       these objects. The defining reference for distinguished
+       names has also been updated from RFC 1779 to RFC 2253."
+    REVISION "199905120000Z"
+    DESCRIPTION
+      "This revision fixes a few small technical problems found
+       in previous versions, mostly in regards to the conformance
+       groups for different versions of this MIB.  No changes have
+       been made to the objects this MIB defines since RFC 2248."
+    REVISION "199708170000Z"
+    DESCRIPTION
+      "This revision, published in RFC 2248, adds the
+       applDescription and applURL objects, adds the quiescing
+       state to the applOperStatus object and renames the MIB
+       from the APPLICATION-MIB to the NETWORK-SERVICE-MIB."
+    REVISION "199311280000Z"
     DESCRIPTION
       "The original version of this MIB was published in RFC 1565"
     ::= {mib-2 27}
@@ -35,20 +62,26 @@ application MODULE-IDENTITY
 -- directory.
 
 DistinguishedName ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "255a"
+
+
     STATUS current
     DESCRIPTION
         "A Distinguished Name represented in accordance with
-         RFC 1779 [8]."
-    SYNTAX DisplayString
+         RFC 2253, presented in the UTF-8 charset defined in
+         RFC 2279."
+    SYNTAX OCTET STRING (SIZE (0..255))
 
 -- Uniform Resource Locators are stored in URLStrings.
 
 URLString ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "255a"
     STATUS current
     DESCRIPTION
         "A Uniform Resource Locator represented in accordance
-         with RFC 1738 [10]."
-    SYNTAX DisplayString
+         with RFCs 1738 and 2368, presented in the NVT ASCII
+         charset defined in RFC 854."
+    SYNTAX OCTET STRING (SIZE (0..255))
 
 -- The basic applTable contains a list of the application
 -- entities.
@@ -78,11 +111,13 @@ ApplEntry ::= SEQUENCE {
     applIndex
         INTEGER,
     applName
-        DisplayString,
+        SnmpAdminString,
     applDirectoryName
+
+
         DistinguishedName,
     applVersion
-        DisplayString,
+        SnmpAdminString,
     applUptime
         TimeStamp,
     applOperStatus
@@ -106,7 +141,7 @@ ApplEntry ::= SEQUENCE {
     applFailedOutboundAssociations
         Counter32,
     applDescription
-        DisplayString,
+        SnmpAdminString,
     applURL
         URLString
 }
@@ -119,16 +154,17 @@ applIndex OBJECT-TYPE
       "An index to uniquely identify the network service
        application. This attribute is the index used for
        lexicographic ordering of the table."
-
     ::= {applEntry 1}
 
 applName OBJECT-TYPE
-    SYNTAX DisplayString
+    SYNTAX SnmpAdminString
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
       "The name the network service application chooses to be
        known by."
+
+
     ::= {applEntry 2}
 
 applDirectoryName OBJECT-TYPE
@@ -143,7 +179,7 @@ applDirectoryName OBJECT-TYPE
     ::= {applEntry 3}
 
 applVersion OBJECT-TYPE
-    SYNTAX DisplayString
+    SYNTAX SnmpAdminString
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -151,7 +187,6 @@ applVersion OBJECT-TYPE
        This field is usually defined by the vendor of the
        network service application software."
     ::= {applEntry 4}
-
 applUptime OBJECT-TYPE
     SYNTAX TimeStamp
     MAX-ACCESS read-only
@@ -178,11 +213,13 @@ applOperStatus OBJECT-TYPE
     DESCRIPTION
       "Indicates the operational status of the network service
        application. 'down' indicates that the network service is
+
+
        not available. 'up' indicates that the network service
        is operational and available.  'halted' indicates that the
        service is operational but not available.  'congested'
        indicates that the service is operational but no additional
-       inbound associations can be accomodated.  'restarting'
+       inbound associations can be accommodated.  'restarting'
        indicates that the service is currently unavailable but is
        in the process of restarting and will be available soon.
        'quiescing' indicates that service is currently operational
@@ -210,7 +247,7 @@ applInboundAssociations OBJECT-TYPE
     DESCRIPTION
       "The number of current associations to the network service
        application, where it is the responder.  An inbound
-       assocation occurs when a another application successfully
+       association occurs when another application successfully
        connects to this one."
     ::= {applEntry 8}
 
@@ -226,6 +263,8 @@ applOutboundAssociations OBJECT-TYPE
     ::= {applEntry 9}
 
 applAccumulatedInboundAssociations OBJECT-TYPE
+
+
     SYNTAX Counter32
     MAX-ACCESS read-only
     STATUS current
@@ -274,6 +313,8 @@ applRejectedInboundAssociations OBJECT-TYPE
        entity has rejected, since application initialization.
        Rejected associations are not counted in the accumulated
        association totals.  Note that this only counts
+
+
        associations the application entity has rejected itself;
        it does not count rejections that occur at lower layers
        of the network.  Thus, this counter may not reflect the
@@ -292,7 +333,7 @@ applFailedOutboundAssociations OBJECT-TYPE
     ::= {applEntry 15}
 
 applDescription OBJECT-TYPE
-    SYNTAX DisplayString
+    SYNTAX SnmpAdminString
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -311,7 +352,6 @@ applURL OBJECT-TYPE
        the application in a status display."
     ::= {applEntry 17}
 
-
 -- The assocTable augments the information in the applTable
 -- with information about associations.  Note that two levels
 -- of compliance are specified below, depending on whether
@@ -323,6 +363,8 @@ assocTable OBJECT-TYPE
     STATUS current
     DESCRIPTION
         "The table holding a set of all active application
+
+
          associations."
     ::= {application 2}
 
@@ -340,7 +382,7 @@ AssocEntry ::= SEQUENCE {
     assocIndex
         INTEGER,
     assocRemoteApplication
-        DisplayString,
+        SnmpAdminString,
     assocApplicationProtocol
         OBJECT IDENTIFIER,
     assocApplicationType
@@ -361,7 +403,7 @@ assocIndex OBJECT-TYPE
     ::= {assocEntry 1}
 
 assocRemoteApplication OBJECT-TYPE
-    SYNTAX DisplayString
+    SYNTAX SnmpAdminString
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -370,9 +412,12 @@ assocRemoteApplication OBJECT-TYPE
        either a domain name or IP address.  For an OSI application
        it should be the string encoded distinguished name of the
        managed object.  For X.400(1984) MTAs which do not have a
-       Distinguished Name, the RFC 1327 [9] syntax
-       'mta in globalid' should be used. Note, however, that not
-       all connections an MTA are necessarily to another MTA."
+       Distinguished Name, the RFC 2156 syntax 'mta in
+
+
+       globalid' used in X400-Received: fields can be used. Note,
+       however, that not all connections an MTA makes are
+       necessarily to another MTA."
     ::= {assocEntry 2}
 
 assocApplicationProtocol OBJECT-TYPE
@@ -382,27 +427,26 @@ assocApplicationProtocol OBJECT-TYPE
     DESCRIPTION
       "An identification of the protocol being used for the
        application.  For an OSI Application, this will be the
-       Application Context.  For Internet applications, the IANA
-       maintains a registry of the OIDs which correspond to
-       well-known applications.  If the application protocol is
-       not listed in the registry, an OID value of the form
-       {applTCPProtoID port} or {applUDProtoID port} are used for
-       TCP-based and UDP-based protocols, respectively. In either
-       case 'port' corresponds to the primary port number being
-       used by the protocol."
+       Application Context.  For Internet applications, OID
+       values of the form {applTCPProtoID port} or {applUDPProtoID
+       port} are used for TCP-based and UDP-based protocols,
+       respectively. In either case 'port' corresponds to the
+       primary port number being used by the protocol. The
+       usual IANA procedures may be used to register ports for
+       new protocols."
     ::= {assocEntry 3}
 
 assocApplicationType OBJECT-TYPE
     SYNTAX INTEGER {
-        ua-initiator(1),
-        ua-responder(2),
-        peer-initiator(3),
-        peer-responder(4)}
+        uainitiator(1),
+        uaresponder(2),
+        peerinitiator(3),
+        peerresponder(4)}
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
       "This indicates whether the remote application is some type of
-       client making use of this network service (e.g. a Mail User
+       client making use of this network service (e.g., a Mail User
        Agent) or a server acting as a peer. Also indicated is whether
        the remote end initiated an incoming connection to the network
        service or responded to an outgoing connection made by the
@@ -419,6 +463,8 @@ assocDuration OBJECT-TYPE
        started.  If this association started prior to the last
        initialization of the network subsystem, then this
        object contains a zero value."
+
+
     ::= {assocEntry 5}
 
 
@@ -429,33 +475,106 @@ applConformance OBJECT IDENTIFIER ::= {application 3}
 applGroups      OBJECT IDENTIFIER ::= {applConformance 1}
 applCompliances OBJECT IDENTIFIER ::= {applConformance 2}
 
-
 -- Compliance statements
 
 applCompliance MODULE-COMPLIANCE
-    STATUS current
+    STATUS obsolete
     DESCRIPTION
-      "The compliance statement for SNMPv2 entities
-       which implement the Network Services Monitoring MIB
-       for basic monitoring of network service applications."
-    MODULE  -- this module
-      MANDATORY-GROUPS {applGroup}
+      "The compliance statement for RFC 1565 implementations
+       which support the Network Services Monitoring MIB
+       for basic monitoring of network service applications.
+       This is the basic compliance statement for RFC 1565."
+    MODULE
+      MANDATORY-GROUPS {applRFC1565Group}
     ::= {applCompliances 1}
 
 assocCompliance MODULE-COMPLIANCE
+    STATUS obsolete
+    DESCRIPTION
+      "The compliance statement for RFC 1565 implementations
+       which support the Network Services Monitoring MIB
+       for basic monitoring of network service applications
+       and their associations."
+    MODULE
+      MANDATORY-GROUPS {applRFC1565Group, assocRFC1565Group}
+    ::= {applCompliances 2}
+
+applRFC2248Compliance MODULE-COMPLIANCE
+    STATUS deprecated
+    DESCRIPTION
+      "The compliance statement for RFC 2248 implementations
+       which support the Network Services Monitoring MIB
+       for basic monitoring of network service applications."
+    MODULE
+      MANDATORY-GROUPS {applRFC2248Group}
+    ::= {applCompliances 3}
+
+assocRFC2248Compliance MODULE-COMPLIANCE
+    STATUS deprecated
+    DESCRIPTION
+      "The compliance statement for RFC 2248 implementations
+
+
+       which support the Network Services Monitoring MIB for
+       basic monitoring of network service applications and
+       their associations."
+    MODULE
+      MANDATORY-GROUPS {applRFC2248Group, assocRFC2248Group}
+    ::= {applCompliances 4}
+
+applRFC2788Compliance MODULE-COMPLIANCE
     STATUS current
     DESCRIPTION
-      "The compliance statement for SNMPv2 entities which
-       implement the Network Services Monitoring MIB for basic
-       monitoring of network service applications and their
-       associations."
-    MODULE  -- this module
-      MANDATORY-GROUPS {applGroup, assocGroup}
-    ::= {applCompliances 2}
+      "The compliance statement for RFC 2788 implementations
+       which support the Network Services Monitoring MIB
+       for basic monitoring of network service applications."
+    MODULE
+      MANDATORY-GROUPS {applRFC2788Group}
+    ::= {applCompliances 5}
+
+assocRFC2788Compliance MODULE-COMPLIANCE
+    STATUS current
+    DESCRIPTION
+      "The compliance statement for RFC 2788 implementations
+       which support the Network Services Monitoring MIB for
+       basic monitoring of network service applications and
+       their associations."
+    MODULE
+      MANDATORY-GROUPS {applRFC2788Group, assocRFC2788Group}
+    ::= {applCompliances 6}
+
 
 -- Units of conformance
 
-applGroup OBJECT-GROUP
+applRFC1565Group OBJECT-GROUP
+    OBJECTS {
+      applName, applVersion, applUptime, applOperStatus,
+      applLastChange, applInboundAssociations,
+      applOutboundAssociations, applAccumulatedInboundAssociations,
+      applAccumulatedOutboundAssociations, applLastInboundActivity,
+      applLastOutboundActivity, applRejectedInboundAssociations,
+      applFailedOutboundAssociations}
+    STATUS obsolete
+    DESCRIPTION
+      "A collection of objects providing basic monitoring of
+       network service applications.  This is the original set
+       of such objects defined in RFC 1565."
+    ::= {applGroups 7}
+
+assocRFC1565Group OBJECT-GROUP
+    OBJECTS {
+
+
+      assocRemoteApplication, assocApplicationProtocol,
+      assocApplicationType, assocDuration}
+    STATUS obsolete
+    DESCRIPTION
+      "A collection of objects providing basic monitoring of
+       network service applications' associations.  This is the
+       original set of such objects defined in RFC 1565."
+    ::= {applGroups 2}
+
+applRFC2248Group OBJECT-GROUP
     OBJECTS {
       applName, applVersion, applUptime, applOperStatus,
       applLastChange, applInboundAssociations,
@@ -463,23 +582,53 @@ applGroup OBJECT-GROUP
       applAccumulatedOutboundAssociations, applLastInboundActivity,
       applLastOutboundActivity, applRejectedInboundAssociations,
       applFailedOutboundAssociations, applDescription, applURL}
+    STATUS deprecated
+    DESCRIPTION
+      "A collection of objects providing basic monitoring of
+       network service applications.  This group was originally
+       defined in RFC 2248; note that applDirectoryName is
+       missing."
+    ::= {applGroups 3}
+
+assocRFC2248Group OBJECT-GROUP
+    OBJECTS {
+      assocRemoteApplication, assocApplicationProtocol,
+      assocApplicationType, assocDuration}
+    STATUS deprecated
+    DESCRIPTION
+      "A collection of objects providing basic monitoring of
+       network service applications' associations.  This group
+       was originally defined by RFC 2248."
+    ::= {applGroups 4}
+
+applRFC2788Group OBJECT-GROUP
+    OBJECTS {
+      applName, applDirectoryName, applVersion, applUptime,
+      applOperStatus, applLastChange, applInboundAssociations,
+      applOutboundAssociations, applAccumulatedInboundAssociations,
+      applAccumulatedOutboundAssociations, applLastInboundActivity,
+      applLastOutboundActivity, applRejectedInboundAssociations,
+      applFailedOutboundAssociations, applDescription, applURL}
     STATUS current
     DESCRIPTION
       "A collection of objects providing basic monitoring of
-       network service applications."
-    ::= {applGroups 1}
+       network service applications.  This is the appropriate
 
 
-assocGroup OBJECT-GROUP
+       group for RFC 2788 -- it adds the applDirectoryName object
+       missing in RFC 2248."
+    ::= {applGroups 5}
+
+assocRFC2788Group OBJECT-GROUP
     OBJECTS {
       assocRemoteApplication, assocApplicationProtocol,
       assocApplicationType, assocDuration}
     STATUS current
     DESCRIPTION
       "A collection of objects providing basic monitoring of
-       network service applications' associations."
-    ::= {applGroups 2}
-
+       network service applications' associations.  This is
+       the appropriate group for RFC 2788."
+    ::= {applGroups 6}
 
 -- OIDs of the form {applTCPProtoID port} are intended to be used
 -- for TCP-based protocols that don't have OIDs assigned by other

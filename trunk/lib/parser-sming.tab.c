@@ -2163,7 +2163,7 @@ case 30:
 				} else {
 				    typePtr = yyvsp[-1].typePtr;
 				}
-				setTypeName(typePtr, typeIdentifier);
+				typePtr = setTypeName(typePtr, typeIdentifier);
 				setTypeDecl(typePtr, SMI_DECL_TYPEDEF);
 			    }
 			;
