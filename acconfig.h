@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: acconfig.h,v 1.5 2000/11/14 13:27:54 strauss Exp $
+ * @(#) $Id: acconfig.h,v 1.6 2000/11/16 14:58:03 strauss Exp $
  */
 
 /* Define if the SMIv1/v2 parser shall be active. */
@@ -39,8 +39,6 @@
 #define DIR_SEPARATOR '/'
 
 /* The 64 bit integer types, their formats, and their min/max values. */
-#define UINT64_TYPE uint64_t
-#define INT64_TYPE int64_t
 #define UINT64_FORMAT "%llu"
 #define INT64_FORMAT "%lld"
 #define LIBSMI_UINT64_MAX 18446744073709551615ULL

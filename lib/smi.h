@@ -1,7 +1,7 @@
 /*
  * smi.h --
  *
- *      Interface Definition of libsmi (version 2:9:0).
+ *      Interface Definition of libsmi (version 2:10:0).
  *
  * Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
  *
@@ -18,13 +18,13 @@
 #include <time.h>
 
 
-#define SMI_LIBRARY_VERSION "2:9:0"
+#define SMI_LIBRARY_VERSION "2:10:0"
 extern const char *smi_library_version;
 
 #define SMI_VERSION_MAJOR 0
 #define SMI_VERSION_MINOR 2
-#define SMI_VERSION_PATCHLEVEL 9
-#define SMI_VERSION_STRING "0.2.9"
+#define SMI_VERSION_PATCHLEVEL 10
+#define SMI_VERSION_STRING "0.2.10"
 extern const char *smi_version_string;
 
 
@@ -43,8 +43,8 @@ extern const char *smi_version_string;
 typedef char                    *SmiIdentifier;
 typedef unsigned long           SmiUnsigned32;
 typedef long                    SmiInteger32;
-typedef UINT64_TYPE             SmiUnsigned64;
-typedef INT64_TYPE              SmiInteger64;
+typedef unsigned long long           SmiUnsigned64;
+typedef long long            SmiInteger64;
 typedef unsigned int            SmiSubid;
 typedef float                   SmiFloat32;
 typedef double                  SmiFloat64;

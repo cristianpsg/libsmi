@@ -8,16 +8,16 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.85 2000/11/20 13:59:24 strauss Exp $
+# @(#) $Id: configure.in,v 1.86 2000/11/20 15:44:37 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=2
-LIBSMI_PATCHLEVEL=9
+LIBSMI_PATCHLEVEL=10
 LIBTOOL_VERSION=2	# increment, when MAJOR and/or MINOR changes
-LIBTOOL_REVISION=9	# increment, when PATCHLEVEL changes
+LIBTOOL_REVISION=10     # increment, when PATCHLEVEL changes
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
@@ -140,8 +140,8 @@ AC_TRY_RUN([#include <stdio.h>
 )
 echo $int64_type/$int64_format, etc.
 
-AC_DEFINE_UNQUOTED(UINT64_TYPE, $uint64_type)
-AC_DEFINE_UNQUOTED(INT64_TYPE, $int64_type)
+UINT64_TYPE=$uint64_type
+INT64_TYPE=$int64_type
 AC_DEFINE_UNQUOTED(UINT64_FORMAT, "$uint64_format")
 AC_DEFINE_UNQUOTED(INT64_FORMAT, "$int64_format")
 AC_DEFINE_UNQUOTED(LIBSMI_UINT64_MAX, $uint64_max)
@@ -206,6 +206,8 @@ AC_SUBST(LIBTOOL_REVISION)
 AC_SUBST(LIBTOOL_AGE)
 AC_SUBST(VERSION_STRING)
 AC_SUBST(VERSION_LIBTOOL)
+AC_SUBST(UINT64_TYPE)
+AC_SUBST(INT64_TYPE)
 
 AC_SUBST(EXEEXT)
 AC_SUBST(BASH)

@@ -29,16 +29,12 @@
 
 /* The 64 bit integer types, their formats, and their min/max values. */
 #ifdef _MSC_VER		/* msvc: max/min are defined in include/limits.h */
-#define UINT64_TYPE   unsigned __int64
-#define INT64_TYPE    __int64
 #define UINT64_FORMAT "%I64u"
 #define INT64_FORMAT  "%I64d"
 #define LIBSMI_UINT64_MAX    _UI64_MAX
 #define LIBSMI_INT64_MIN     _I64_MIN
 #define LIBSMI_INT64_MAX     _I64_MAX
 #else
-#define UINT64_TYPE   uint64_t
-#define INT64_TYPE    int64_t
 #define UINT64_FORMAT "%llu"
 #define INT64_FORMAT  "%lld"
 #define LIBSMI_UINT64_MAX    18446744073709551615ULL
