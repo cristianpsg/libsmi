@@ -31,7 +31,7 @@
 #include "smidump.h"
 
 //#define DOT
-#define NODENAMES_ONLY
+//#define NODENAMES_ONLY
 
 
 #define ABS(a) ((float)((a > 0.0) ? (a) : (-(a))))
@@ -154,7 +154,7 @@ static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 //TODO make these values configurable by options passed to the driver
 static const int CANVASHEIGHT          =700;
 static const int CANVASWIDTH           =1100;
-static const float STARTSCALE          =(float)1;
+static const float STARTSCALE          =(float)0.5;
 
 //used by the springembedder
 static const int ITERATIONS            =100;
@@ -2020,7 +2020,7 @@ static void printSVGObject(GraphNode *node, int *classNr)
     textXOffset = xOrigin;
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
-           node->dia.x + node->dia.w/2, node->dia.y + node->dia.h/2);
+           node->dia.x, node->dia.y);
     printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
@@ -2108,7 +2108,7 @@ static void diaPrintXMLGroup(int group, int *classNr)
     textXOffset = xOrigin;
 
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
-           tNode->dia.x + tNode->dia.w/2, tNode->dia.y + tNode->dia.h/2);
+           tNode->dia.x, tNode->dia.y);
     printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
@@ -2899,11 +2899,10 @@ static void layoutGraph(int nodecount)
 				    + vNode->dia.yDisp*vNode->dia.yDisp));
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
 	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
-	    vNode->dia.x = min(CANVASWIDTH, max(0, vNode->dia.x));
-	    vNode->dia.y = min(CANVASHEIGHT, max(0, vNode->dia.y));
-	    if (vNode->dia.x==(float)0 && vNode->dia.y==(float)0) {
-		fprintf(stderr, "test\n");
-	    }
+	    vNode->dia.x = min(CANVASWIDTH - STARTSCALE*vNode->dia.w/2,
+			       max(STARTSCALE*vNode->dia.w/2, vNode->dia.x));
+	    vNode->dia.y = min(CANVASHEIGHT - STARTSCALE*vNode->dia.h/2,
+			       max(STARTSCALE*vNode->dia.h/2, vNode->dia.y));
 	}
 	//reduce the temperature as the layout approaches a better configuration
 	t *= 0.5;
@@ -2984,12 +2983,6 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	       tEdge->startNode->dia.y,
 	       tEdge->endNode->dia.x,
 	       tEdge->endNode->dia.y);
-	/*
-	       tEdge->startNode->dia.x + tEdge->startNode->dia.w/2,
-	       tEdge->startNode->dia.y + tEdge->startNode->dia.h/2,
-	       tEdge->endNode->dia.x + tEdge->endNode->dia.w/2,
-	       tEdge->endNode->dia.y + tEdge->endNode->dia.h/2);
-	*/
 	printf("       fill=\"none\" stroke=\"black\"/>\n");
     }
 
