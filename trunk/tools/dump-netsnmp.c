@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.8 2001/01/25 14:33:05 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.12 2001/06/15 07:12:20 strauss Exp $
  */
 
 /*
@@ -237,7 +237,7 @@ static unsigned int getMinSize(SmiType *smiType)
 	size = 0;
 	break;
     default:
-	return -1;
+	return 0;
     }
 
     for (smiRange = smiGetFirstRange(smiType);
@@ -279,7 +279,7 @@ static unsigned int getMaxSize(SmiType *smiType)
 	size = 128;
 	break;
     default:
-	return -1;
+	return 0xffffffff;
     }
 
     if (smiType->basetype == SMI_BASETYPE_BITS) {

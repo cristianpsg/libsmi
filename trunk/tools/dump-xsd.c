@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.37 2002/07/12 15:01:12 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.38 2002/07/18 16:25:16 tklie Exp $
  */
 
 #include <config.h>
@@ -953,7 +953,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 			  const char *name)
 {
     SmiRange *smiRange;
-    int numSubRanges = getNumSubRanges( smiType );
+    unsigned int numSubRanges = getNumSubRanges( smiType );
     
     if ( name ) {
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {

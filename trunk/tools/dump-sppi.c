@@ -406,18 +406,20 @@ static void createImportList(SmiModule *smiModule)
 	}
         if (smiType->decl == SMI_DECL_TEXTUALCONVENTION) {
             switch (smiType->basetype) {
-                case SMI_BASETYPE_INTEGER32:
-                    addImport("COPS-PR-SPPI", "Integer32");
-                    break;
-                case SMI_BASETYPE_INTEGER64:
-                    addImport("COPS-PR-SPPI", "Integer64");
-                    break;
-                case SMI_BASETYPE_UNSIGNED32:
-                    addImport("COPS-PR-SPPI", "Unsigned32");
-                    break;
-                case SMI_BASETYPE_UNSIGNED64:
-                    addImport("COPS-PR-SPPI", "Unsigned64");
-                    break;
+	    case SMI_BASETYPE_INTEGER32:
+		addImport("COPS-PR-SPPI", "Integer32");
+		break;
+	    case SMI_BASETYPE_INTEGER64:
+		addImport("COPS-PR-SPPI", "Integer64");
+		break;
+	    case SMI_BASETYPE_UNSIGNED32:
+		addImport("COPS-PR-SPPI", "Unsigned32");
+		break;
+	    case SMI_BASETYPE_UNSIGNED64:
+		addImport("COPS-PR-SPPI", "Unsigned64");
+		break;
+	    default:
+		break;
             }
         }
     }
@@ -693,7 +695,7 @@ static void fprintIndex(FILE *f, SmiNode *indexNode, const int comment)
 	 n++, smiElement = smiGetNextElement(smiElement));
     if (mibtopib) {
         SmiNode *smiParentNode = smiGetParentNode(indexNode);
-        int len = strlen(smiParentNode->name);
+        size_t len = strlen(smiParentNode->name);
         char *instanceId = xmalloc(len + 11);
 
         strcpy(instanceId, smiParentNode->name);
@@ -1265,7 +1267,7 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 		i++;
 	    }
             if (mibtopib) {
-                int len = strlen(smiParentNode->name);
+                size_t len = strlen(smiParentNode->name);
                 int maxid;
                 char *instanceId = xmalloc(len + 11);
                 strcpy(instanceId, smiParentNode->name);
@@ -1619,7 +1621,7 @@ static void fprintModuleCompliances(FILE *f, SmiModule *smiModule)
         for (smiNode2 = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
              smiNode2; smiNode2 = smiGetNextNode(smiNode2, SMI_NODEKIND_ROW)) {
             SmiNode *smiParentNode = smiGetParentNode(smiNode2);
-            int len = strlen(smiParentNode->name);
+            size_t len = strlen(smiParentNode->name);
             char *instanceId = xmalloc(len + 11);
 
             strcpy(instanceId, smiParentNode->name);

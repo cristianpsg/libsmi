@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.24 2001/09/25 07:21:34 schoenw Exp $
+ * @(#) $Id: smidump.h,v 1.25 2002/06/08 12:58:26 schoenw Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -89,6 +89,7 @@ typedef struct SmidumpDriver {
 extern void initSmi(void);
 extern void initSming(void);
 extern void initSmiv3(void);
+extern void initSppi(void);
 extern void initImports(void);
 extern void initTypes(void);
 extern void initTree(void);
@@ -104,6 +105,7 @@ extern void initPython(void);
 extern void initPerl(void);
 extern void initScli(void);
 extern void initXsd(void);
+extern void initCompliance(void);
 
 extern void initSql(void);
 extern void initFig(void);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.76 2002/03/06 13:33:25 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.77 2002/07/17 10:35:43 bunkus Exp $
  */
 
 #include <config.h>
@@ -491,7 +491,7 @@ static void createImportList(SmiModule *smiModule)
 	if (smiType) {
 	    smiModule2 = smiGetTypeModule(smiType);
 	    if (smiModule2 && (smiModule2 != smiModule)) {
-                int len = strlen(smiModule2->name);
+                size_t len = strlen(smiModule2->name);
 		if (len && smiType->name) {
                     if (pibtomib && (len > 4) &&
                         !strcmp(&smiModule2->name[len - 4], "-PIB")) {
@@ -1425,7 +1425,7 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 		i++;
 	    }
             if (pibtomib) {
-                int len = strlen(smiParentNode->name);
+                size_t len = strlen(smiParentNode->name);
                 int maxid;
                 char *rowStatus = xmalloc(len + 10);
                 strcpy(rowStatus, smiParentNode->name);
