@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.159 2001/10/09 10:58:45 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.160 2001/10/12 07:00:36 strauss Exp $
  */
 
 %{
@@ -673,7 +673,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 			break;
 		}
 		if (bit < nBits) {
-		    objectPtr->export.value.value.ptr[bit/8] |= 1 << bit%8;
+		    objectPtr->export.value.value.ptr[bit/8] |= 1 << (7-(bit%8));
 		}
 		smiFree(p->ptr);
 		nextPtr = p->nextPtr;
