@@ -8,16 +8,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.14 2000/02/25 16:48:19 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.15 2000/03/02 09:22:29 strauss Exp $
  */
 
 #ifndef _SMI_H
 #define _SMI_H
 
-#include <sys/types.h>
-#include <unistd.h>
 #include <stdlib.h>
-
+#include <time.h>
 
 
 #define SMI_LIBRARY_VERSION "@LIBTOOL_VERSIONING@"
@@ -39,8 +37,13 @@ extern const char *smi_library_version;
 typedef char                    *SmiIdentifier;
 typedef unsigned long           SmiUnsigned32;
 typedef long                    SmiInteger32;
+#ifdef _WIN32
+typedef unsigned long           SmiUnsigned64;
+typedef long                    SmiInteger64;
+#else
 typedef unsigned long long      SmiUnsigned64;
 typedef long long               SmiInteger64;
+#endif
 typedef unsigned int            SmiSubid;
 typedef float                   SmiFloat32;
 typedef double                  SmiFloat64;
@@ -243,6 +246,9 @@ typedef struct SmiNode {
 
 /* SmiElement -- an item in a list (row index column, notification object)   */
 typedef struct SmiElement {
+#ifdef _WIN32
+    char dummy;		/* MS VC++ is unhappy with an empty structure. */
+#endif
     /* no visible attributes */
 } SmiElement;
 
