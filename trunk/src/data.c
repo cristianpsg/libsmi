@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.34 1998/12/22 17:09:12 strauss Exp $
+ * @(#) $Id: data.c,v 1.35 1999/02/17 16:39:07 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -440,6 +440,104 @@ checkImports(modulename, parserPtr)
 #endif
 
     return (n);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findImportByName --
+ *
+ *      Lookup an import descriptor by its name and the module to look in.
+ *
+ * Results:
+ *      A pointer to the Import structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Import *
+findImportByName(importname, modulePtr)
+    const char     *importname;
+    Module	   *modulePtr;
+{
+    Import           *importPtr;
+
+#ifdef DEBUG
+    printDebug(4, "findImportByName(%s, 0x%x)", importname, modulePtr);
+#endif
+
+    for (importPtr = modulePtr->firstImportPtr; importPtr;
+	 importPtr = importPtr->nextPtr) {
+	if (!strcmp(importPtr->name, importname)) {
+#ifdef DEBUG
+	    printDebug(4, " = 0x%x(%s)\n", importPtr, importPtr->name);
+#endif
+		return (importPtr);
+	}
+    }
+
+#ifdef DEBUG
+    printDebug(4, " = NULL\n");
+#endif
+    return (NULL);
+    
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findImportByModulenameAndName --
+ *
+ *      Lookup an import descriptor by its name and the modulename
+ *	it is imported from and the module to look in.
+ *
+ * Results:
+ *      A pointer to the Import structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Import *
+findImportByModulenameAndName(modulename, importname, modulePtr)
+    const char     *modulename;
+    const char     *importname;
+    Module	   *modulePtr;
+{
+    Import           *importPtr;
+
+#ifdef DEBUG
+    printDebug(4, "findImportByModulenameAndName(%s, %s, 0x%x)",
+	modulename, importname, modulePtr);
+#endif
+
+    for (importPtr = modulePtr->firstImportPtr; importPtr;
+	 importPtr = importPtr->nextPtr) {
+	if ((!strcmp(importPtr->name, importname)) &&
+	    (!strcmp(importPtr->module, modulename))) {
+#ifdef DEBUG
+	    printDebug(4, " = 0x%x(%s)\n", importPtr, importPtr->name);
+#endif
+	    return (importPtr);
+	}
+    }
+
+#ifdef DEBUG
+    printDebug(4, " = NULL\n");
+#endif
+    return (NULL);
+
 }
 
 
@@ -1109,7 +1207,7 @@ addNode (parentNodePtr, subid, flags, parserPtr)
     
     nodePtr->flags				= flags;
     nodePtr->subid				= subid;
-    nodePtr->parentNodePtr			= parentNodePtr;
+    nodePtr->parentPtr				= parentNodePtr;
     nodePtr->firstChildPtr			= NULL;
     nodePtr->lastChildPtr			= NULL;
     nodePtr->firstObjectPtr			= NULL;
@@ -1222,7 +1320,7 @@ Node *
 getParentNode(nodePtr)
     Node *nodePtr;
 {
-    return nodePtr->parentNodePtr;
+    return nodePtr->parentPtr;
 }
 
 
@@ -1276,16 +1374,16 @@ getLastSubid(oid)
  */
 
 void
-setObjectName(objectPtr, namePtr)
+setObjectName(objectPtr, name)
     Object	      *objectPtr;
-    smi_descriptor    *namePtr;
+    smi_descriptor    name;
 {
 #ifdef DEBUG
     printDebug(5, "setObjectName(0x%x, \"%s\")\n",
-	       objectPtr, namePtr);
+	       objectPtr, name);
 #endif
 
-    objectPtr->name = util_strdup(namePtr);
+    objectPtr->name = util_strdup(name);
 }
 
 
@@ -1614,7 +1712,7 @@ findNodeByParentAndSubid(parentNodePtr, subid)
 /*
  *----------------------------------------------------------------------
  *
- * findObjectByNodeAndModule --
+ * findObjectByModuleAndNode --
  *
  *      Lookup an Object by a given Node and Module. This is necessary
  *	since there might be different declarations in different modules
@@ -2056,6 +2154,7 @@ addType(typename, syntax, flags, parserPtr)
     typePtr->decl			= SMI_DECL_UNKNOWN;
     typePtr->status			= SMI_STATUS_UNKNOWN;
     typePtr->flags			= flags;
+    typePtr->sequencePtr		= NULL;
     typePtr->parentType			= NULL;
     typePtr->description.fileoffset	= -1;
     typePtr->description.length		= 0;
@@ -2106,7 +2205,7 @@ duplicateType(templatePtr, flags, parserPtr)
     TypeFlags		  flags;
     Parser		  *parserPtr;
 {
-    Type		  *TypePtr;
+    Type		  *typePtr;
     Module		  *modulePtr;
     
 #ifdef DEBUG
@@ -2127,6 +2226,7 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->syntax			= templatePtr->syntax;
     typePtr->decl			= templatePtr->decl;
     typePtr->status			= templatePtr->syntax;
+    typePtr->sequencePtr		= NULL;
     typePtr->flags			= templatePtr->flags;
     typePtr->parentType			= util_strdup(templatePtr->name);
     typePtr->description.fileoffset	= -1;
@@ -2172,16 +2272,16 @@ duplicateType(templatePtr, flags, parserPtr)
  */
 
 void
-setTypeName(typePtr, namePtr)
+setTypeName(typePtr, name)
     Type	      *typePtr;
-    smi_descriptor    *namePtr;
+    smi_descriptor    name;
 {
 #ifdef DEBUG
     printDebug(5, "setTypeName(0x%x, \"%s\")\n",
-	       typePtr, namePtr);
+	       typePtr, name);
 #endif
 
-    typePtr->name = util_strdup(namePtr);
+    typePtr->name = util_strdup(name);
 }
 
 
@@ -2285,8 +2385,8 @@ setTypeParent(typePtr, parent)
 	       typePtr, typePtr->name, parent);
 #endif
     
-    if (!typePtr->parent) {
-	typePtr->parent  = util_strdup(parent);
+    if (!typePtr->parentType) {
+	typePtr->parentType  = util_strdup(parent);
     }
 }
 
@@ -2295,9 +2395,9 @@ setTypeParent(typePtr, parent)
 /*
  *----------------------------------------------------------------------
  *
- * setTypePointer --
+ * setTypeSequence --
  *
- *      Set the pointer to void data of a given Type.
+ *      Set the pointer to a struct list in case of a SEQUENCE type.
  *
  * Results:
  *	None.
@@ -2309,17 +2409,17 @@ setTypeParent(typePtr, parent)
  */
 
 void
-setTypePointer(typePtr, pointer)
+setTypeSequencePtr(typePtr, sequencePtr)
     Type	   *typePtr;
-    void	   *pointer;
+    struct List	   *sequencePtr;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypePointer(0x%x(%s), 0x%x)\n",
-	       typePtr, typePtr->name, pointer);
+    printDebug(5, "setTypeSequencePtr(0x%x(%s), 0x%x)\n",
+	       typePtr, typePtr->name, sequencePtr);
 #endif
     
-    if (!typePtr->pointer) {
-	typePtr->pointer  = pointer;
+    if (!typePtr->sequencePtr) {
+	typePtr->sequencePtr  = sequencePtr;
     }
 }
 
@@ -2463,7 +2563,6 @@ addTypeFlags(typePtr, flags)
 
 
 
-#if 0
 /*
  *----------------------------------------------------------------------
  *
@@ -2485,19 +2584,23 @@ Type *
 findTypeByName(typename)
     const char *typename;
 {
+    Module *modulePtr;
+    Type   *typePtr;
     
 #ifdef DEBUG
     printDebug(6, "findTypeByName(%s)", typename);
 #endif
     
-    for (descriptor = firstDescriptor[KIND_TYPE];
-	 descriptor; descriptor = descriptor->nextSameKind) {
-	if ((!strcmp(descriptor->name, name)) &&
-	    (!(descriptor->flags & FLAG_IMPORTED))) {
+    for (modulePtr = firstModulePtr; modulePtr;
+	 modulePtr = modulePtr->nextPtr) {
+	for (typePtr = modulePtr->firstTypePtr; typePtr;
+	     typePtr = typePtr->nextPtr) {
+	    if (!strcmp(typePtr->name, typename)) {
 #ifdef DEBUG
-	    printDebug(4, " = 0x%x(%s)\n", descriptor->ptr, descriptor->name);
+		printDebug(4, " = 0x%x(%s)\n", typePtr, typePtr->name);
 #endif
-	    return (descriptor->ptr);
+		return (typePtr);
+	    }
 	}
     }
 
@@ -2506,7 +2609,6 @@ findTypeByName(typename)
 #endif
     return (NULL);
 }
-#endif
 
 
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.9 1998/11/20 17:10:12 strauss Exp $
+ * @(#) $Id: lint.c,v 1.10 1998/11/25 14:36:34 strauss Exp $
  */
 
 #include <stdio.h>
@@ -139,15 +139,17 @@ main(argc, argv)
 	} else {
 	    smiAddLocation(argv[optind]);
 	}
+#if 0
 	if (dumpMibFlag) {
-	    dumpMibTree(rootNode, "");
+	    dumpMibTree(rootNodePtr, "");
 	}
 	if (dumpTypesFlag) {
 	    dumpTypes();
 	}
 	if (dumpMosyFlag) {
-	    dumpMosy(rootNode);
+	    dumpMosy(rootNodePtr);
 	}
+#endif
 	optind++;
     }
     
