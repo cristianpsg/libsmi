@@ -1,4 +1,4 @@
-/* $Id: shhopt.c,v 1.5 1999/09/10 19:19:48 sverrehu Exp $ */
+/* $Id: shhopt.c,v 1.1 2000/11/29 16:35:55 strauss Exp $ */
 /*------------------------------------------------------------------------
  |  FILE            shhopt.c
  |
@@ -199,7 +199,7 @@ argvRemove(int *argc, char *argv[], int i)
  |
  |  RETURNS       Nothing. Aborts in case of error.
  */
-void
+static void
 optExecute(optStruct *opt, char *arg, int lng)
 {
     switch (opt->type) {
