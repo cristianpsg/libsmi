@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.72 2001/08/15 17:07:03 strauss Exp $
+ * @(#) $Id: data.h,v 1.73 2001/08/22 17:51:42 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -556,9 +556,9 @@ extern Macro *findMacroByModulenameAndName(const char *modulename,
 
 
 
-extern int smiInitData();
+extern int smiInitData(void);
 
-extern void smiFreeData();
+extern void smiFreeData(void);
 
 extern Module *loadModule(const char *modulename);
 
