@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.47 2000/02/28 12:24:24 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.48 2000/03/02 09:22:34 strauss Exp $
  */
 
 #include <config.h>
@@ -620,7 +620,6 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     static char    s[100];
     char           ss[9];
     int		   i, n;
-    char           **p;
     SmiNamedNumber *nn;
     SmiNode        *nodePtr;
     
@@ -753,8 +752,8 @@ static void printSubtype(SmiType *smiType)
 		    print(" (");
 		}
 	    }	    
-	    if (bcmp(&range->minValue, &range->maxValue,
-		     sizeof(SmiValue))) {
+	    if (memcmp(&range->minValue, &range->maxValue,
+		       sizeof(SmiValue))) {
 		sprintf(s, "%s", getValueString(&range->minValue, smiType));
 		sprintf(&s[strlen(s)], "..%s", 
 			getValueString(&range->maxValue, smiType));

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.2 2000/03/03 14:50:12 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.3 2000/03/13 13:25:54 strauss Exp $
  */
 
 #include <config.h>
@@ -439,8 +439,8 @@ static void dumpEntry(SmiNode *smiNode)
 	} else if (!strcmp(p, "byte[]")) {
 	    smiRange = smiGetFirstRange(smiType);
 	    if ((smiRange && (!smiGetNextRange(smiRange)) &&
-		 (!bcmp(&smiRange->minValue, &smiRange->maxValue,
-			sizeof(SmiValue))))) {
+		 (!memcmp(&smiRange->minValue, &smiRange->maxValue,
+			  sizeof(SmiValue))))) {
 		sprintf(init, "new byte[%d]",
 			smiRange->maxValue.value.integer32);
 	    } else {
@@ -520,8 +520,8 @@ static void dumpEntry(SmiNode *smiNode)
 	    smiType = smiGetNodeType(indexNode);
 	    smiRange = smiGetFirstRange(smiType);
 	    if ((smiRange && (!smiGetNextRange(smiRange)) &&
-		 (!bcmp(&smiRange->minValue, &smiRange->maxValue,
-			sizeof(SmiValue)))) ||
+		 (!memcmp(&smiRange->minValue, &smiRange->maxValue,
+			  sizeof(SmiValue)))) ||
 		(smiNode->implied && (!smiGetNextElement(element)))) {
 		fprintf(f, "        instance.appendImplied(%s);\n",
 			indexNode->name);
@@ -575,7 +575,6 @@ int dumpJax(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     SmiNode      *smiNode;
-    char	 *cModuleName;
     
     if (!modulename) {
 	fprintf(stderr,
