@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.7 2000/03/21 11:26:36 strauss Exp $
+.\" $Id: smidump.1.in,v 1.8 2000/04/06 13:37:27 strauss Exp $
 .\"
 .TH smidump 1  "April 8, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -20,11 +20,12 @@ smidump \- dump SMI modules in various formats
 .I "module(s)"
 .SH DESCRIPTION
 The \fBsmidump\fP program is used to dump the contents of a single MIB
-module or a collection of modules to stdout in a selectable output format.
-This format may be a simple tree of nodes, types or imported modules, but
-also a format fully compliant to SMIv1, SMIv2 or SMIng or CORBA IDL or
-C source code. E.g., this allows to convert modules from SMIv2 to SMIng
-and from SMIng to SMIv2, and to develop template based agent code.
+module or a collection of modules to stdout in a selectable output
+format.  This format may be a simple tree of nodes, types or imported
+modules, but also a format fully compliant to SMIv1, SMIv2 or SMIng or
+CORBA IDL or C source code. Smidump can thus be used to convert
+modules from SMIv2 to SMIng and from SMIng to SMIv2, or to develop
+template based agent code.
 .SH OPTIONS
 .TP
 .B "-V"
@@ -61,7 +62,7 @@ A higher level shows more warnings. The actual levels are:
 .fi
 .sp
 Higher levels are actually not used and lead to the same effects as
-level 5 does. Note that errors up to level 3 are errors violating the
+level 6 does. Note that errors up to level 3 are errors violating the
 specification and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP
@@ -75,7 +76,7 @@ gets suppressed depends on the output format.
 .TP
 .B "-u"
 Dump a unified output in case of multiple \fImodule(s)\fP instead of
-multiple concatinated output sections. This is not supported for all
+multiple concatenated output sections. This is not supported for all
 output formats.
 .TP
 .I module(s)
@@ -122,17 +123,17 @@ C source code header file for usage within the UCD SNMP agent (experimental).
 ucd-c
 C source code file for usage within the UCD SNMP agent (experimental).
 .TP
-dia
-UML style graphics in the DIA XML file format (experimental).
+cn-dia
+Reverse engineered conceptual model in DIA XML file format (experimental).
+.TP
+cn-xplain
+Details about the reverse engineering process (experimental).
 .TP
 jax
 Java AgentX sub-agent classes in separate files (experimental).
 .TP
 xml
-SMIng in XML format (experimental).
-.TP
-cm
-reverse engineered conceptual model (experimental).
+SMI in XML format (experimental).
 
 .SH "EXAMPLE"
 This example converts the SMIv2 module IF-MIB in the current directory

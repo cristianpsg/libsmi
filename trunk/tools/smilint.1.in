@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.5 2000/02/12 10:56:21 strauss Exp $
+.\" $Id: smilint.1.in,v 1.6 2000/02/12 14:31:55 strauss Exp $
 .\"
 .TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -68,7 +68,7 @@ i.e. a higher level shows more warnings. The actual severities are:
 .fi
 .sp
 Higher levels are currently not used and lead to the same effects as
-level 5 does. Note that errors up to level 3 are errors violating the
+level 6 does. Note that errors up to level 3 are errors violating the
 specifications and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP

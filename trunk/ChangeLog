@@ -1,3 +1,8 @@
+2000-05-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidump.c: Patch from Juergen: flags can now be passed
+	to the dump modules.
+
 2000-04-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: fixed seg-faults on various imported but

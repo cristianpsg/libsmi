@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.8 2000/04/11 09:00:43 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.9 2000/04/12 11:32:41 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -22,6 +22,7 @@
  */
 
 #define SMIDUMP_FLAG_SILENT	0x01
+#define SMIDUMP_FLAG_UNITE	0x02
 
 
 /*
