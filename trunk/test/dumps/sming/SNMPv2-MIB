@@ -3,16 +3,9 @@
 //
 module SNMPv2-MIB {
 
-//
-// IDENTIFIER IMPORTS
-//
-
-  import IRTF-NMRG-SMING-TYPES (TimeTicks, Counter32);
-
-  import IRTF-NMRG-SMING (snmpModules, mib-2);
-
-  import IRTF-NMRG-SMING-TYPES (DisplayString, TestAndIncr, 
-                      TimeStamp);
+  import IRTF-NMRG-SMING      (Counter32, DisplayString255, 
+                               TimeStamp, TimeTicks, snmpModules);
+  import IRTF-NMRG-SMING-SNMP (TestAndIncr, mib-2);
 
 //
 // MODULE META INFORMATION

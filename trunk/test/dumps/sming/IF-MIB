@@ -3,22 +3,14 @@
 //
 module IF-MIB {
 
-//
-// IDENTIFIER IMPORTS
-//
-
-  import IRTF-NMRG-SMING-TYPES (Counter32, Gauge32, Counter64, 
-                      TimeTicks);
-
-  import IRTF-NMRG-SMING (mib-2);
-
-  import IRTF-NMRG-SMING-TYPES (DisplayString, PhysAddress, 
-                      TruthValue, RowStatus, TimeStamp, 
-                      AutonomousType, TestAndIncr);
-
-  import SNMPv2-MIB (snmpTraps);
-
-  import IANAifType-MIB (IANAifType);
+  import IANAifType-MIB       (IANAifType);
+  import IRTF-NMRG-SMING      (Counter32, Counter64, 
+                               DisplayString255, Gauge32, 
+                               PhysAddress, TimeStamp, TimeTicks, 
+                               TruthValue);
+  import IRTF-NMRG-SMING-SNMP (AutonomousType, RowStatus, 
+                               TestAndIncr, mib-2);
+  import SNMPv2-MIB           (snmpTraps);
 
 //
 // MODULE META INFORMATION
