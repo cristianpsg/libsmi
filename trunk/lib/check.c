@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.24 2001/08/22 17:51:42 strauss Exp $
+ * @(#) $Id: check.c,v 1.25 2001/09/16 20:39:29 schoenw Exp $
  */
 
 #include <config.h>
@@ -45,7 +45,11 @@
  *	Compare two SmiValues a and b.
  *
  * Results:
- *	-1,0,1 if a is less than, equal, or greater than b.
+ *      <= -2   if a is less than b-1
+ *      -1      if a is b-1
+ *      0       if equal
+ *      1       if a is b+1
+ *      >= 2    if a is greater than b+1
  *
  * Side effects:
  *	None.
@@ -55,6 +59,7 @@
 
 static int
 compareValues(SmiValue *a, SmiValue *b) {
+#if 0
     if (((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
 	 (b->basetype == SMI_BASETYPE_INTEGER32)) ||
 	((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
@@ -62,15 +67,75 @@ compareValues(SmiValue *a, SmiValue *b) {
 	((a->basetype == SMI_BASETYPE_INTEGER32) &&
 	 (a->value.integer32 > b->value.integer32))) {
 	return 1;
-    } else if ((a->basetype == b->basetype) &&
+    }
+    if ((a->basetype == b->basetype) &&
 	       (((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
 		 (a->value.unsigned32 == b->value.unsigned32)) ||
 		((a->basetype == SMI_BASETYPE_INTEGER32) &&
 		 (a->value.integer32 == b->value.integer32)))) {
 	return 0;
-    } else {
-	return -1;
     }
+    return -1;
+#else
+    if ((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
+	(b->basetype == SMI_BASETYPE_UNSIGNED32)) {
+	if (a->value.unsigned32 == b->value.unsigned32) {
+	    return 0;
+	} else {
+	    if (a->value.unsigned32 > b->value.unsigned32) {
+		if (a->value.unsigned32 == b->value.unsigned32 + 1) {
+		    return 1;
+		} else {
+		    return 2;
+		}
+	    } else if (a->value.unsigned32 < b->value.unsigned32) {
+		if (a->value.unsigned32 + 1 == b->value.unsigned32) {
+		    return -1;
+		} else {
+		    return -2;
+		}
+	    }
+	}
+    }
+    if ((a->basetype == SMI_BASETYPE_INTEGER32) &&
+	(b->basetype == SMI_BASETYPE_INTEGER32)) {
+	if (a->value.integer32 == b->value.integer32) {
+	    return 0;
+	} else {
+	    if (a->value.integer32 > b->value.integer32) {
+		if (a->value.integer32 == b->value.integer32 + 1) {
+		    return 1;
+		} else {
+		    return 2;
+		}
+	    } else if (a->value.integer32 < b->value.integer32) {
+		if (a->value.integer32 + 1 == b->value.integer32) {
+		    return -1;
+		} else {
+		    return -2;
+		}
+	    }
+	}
+    }
+    if ((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
+	(b->basetype == SMI_BASETYPE_INTEGER32)) {
+	if ((b->value.integer32 < -1) ||
+	    ((a->value.unsigned32 > 1) &&
+	     (a->value.unsigned32-1 > 2147483647))) {
+	    return 2;
+	}
+	return a->value.unsigned32 - b->value.integer32;
+    }
+    if ((a->basetype == SMI_BASETYPE_INTEGER32) &&
+	(b->basetype == SMI_BASETYPE_UNSIGNED32)) {
+	if ((a->value.integer32 < -1) ||
+	    ((b->value.unsigned32 > 1) &&
+	     (b->value.unsigned32-1 > 2147483647))) {
+	    return -2;
+	}
+	return b->value.unsigned32 - a->value.integer32;
+    }
+#endif
 }
 
 
@@ -899,6 +964,27 @@ smiCheckTypeRanges(Parser *parser, Type *type)
 	    }
 	}
     }
+
+    /* range normalization */
+    for (p = type->listPtr; p; p = nextPtr) {
+	nextPtr = p->nextPtr;
+	if (nextPtr &&
+	    compareValues(&((Range *)p->ptr)->export.maxValue,
+			  &((Range *)nextPtr->ptr)->export.minValue) == -1) {
+	    ((Range *)nextPtr->ptr)->export.minValue =
+		((Range *)p->ptr)->export.minValue;
+	    if (p == type->listPtr) {
+		type->listPtr = nextPtr;
+	    } else {
+		pp->nextPtr = nextPtr;
+		pp = p;
+	    }
+	    smiFree(p);
+	} else {
+	    pp = p;
+	}
+    }
+    
 }
 
 
