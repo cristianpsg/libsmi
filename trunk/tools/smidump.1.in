@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.3 1999/06/07 15:44:17 strauss Exp $
+.\" $Id: smidump.1.in,v 1.4 1999/07/02 14:04:09 strauss Exp $
 .\"
 .TH smidump 1  "June 30, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -7,7 +7,9 @@ smidump \- dump and convert SMIv1/v2/ng modules
 .SH SYNOPSIS
 .B smidump
 [
-.B "-Vh"
+.B "-Vhs"
+] [
+.BI "-l " level
 ] [
 .BI "-f " format
 ] [
@@ -31,6 +33,28 @@ Show a help text and exit.
 .BI "-f " format
 Use \fIformat\fP when dumping a module. Supported formats are described 
 below. The default format is sming.
+.TP
+.BI "-l " level
+Report errors and warnings up to the given \fIlevel\fP to stderr.
+A higher level shows more warnings. The actual levels are:
+.sp
+.nf
+ 0   internal error, no recovery possible,
+ 1   major SMI error, recovery somehow possible but
+     may lead to severe problems,
+ 2   SMI error, probably tolerated by some
+     implementations,
+ 3   SMI error, tolerated by many implementations,
+ 4   something which is recommended to be changed,
+ 5   something that might be ok, but might not be
+     recommended under some circumstances,
+ 6   just a notice.
+.fi
+.sp
+Higher levels are actually not used and lead to the same effects as
+level 5 does. Note that errors up to level 3 are errors violating the
+specification and must be fixed by the responsible author. Level 3 is
+the default level.
 .TP
 .BI "-p " module
 Preload the module \fImodule\fP before reading the main module. This may
@@ -77,6 +101,12 @@ rules
 corba-oid
 CORBA OID definitions following the JIDM specification translation
 rules
+.TP
+ucd-h
+C source code header file for usage within the UCD SNMP agent
+.TP
+ucd-c
+C source code file for usage within the UCD SNMP agent
 
 .SH "EXAMPLE"
 This example converts the SMIv2 module IF-MIB in the current directory

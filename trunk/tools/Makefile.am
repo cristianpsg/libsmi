@@ -8,14 +8,17 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.8 1999/06/30 10:32:27 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.9 1999/07/02 14:04:03 strauss Exp $
 #
 
 INCLUDES		= -I../lib
 
 EXTRA_DIST		= dump-smi.h dump-sming.h dump-data.h dump-imports.h \
-			  dump-mosy.h dump-java.h dump-jdmk.h dump-corba.h \
-			  $(man_MANS)
+			  dump-mosy.h dump-corba.h \
+			  dump-ucdsnmp.h \
+			  $(man_MANS) \
+			  dump-java.h dump-jdmk.h \
+			  dump-java.c dump-jdmk.c
 
 bin_PROGRAMS		= smiquery smilint smidump
 
@@ -29,6 +32,7 @@ smilint_LDADD		= ../lib/libsmi.la
 
 smidump_SOURCES		= smidump.c dump-sming.c dump-smi.c \
 			  dump-data.c dump-imports.c dump-mosy.c \
-			  dump-java.c dump-jdmk.c dump-corba.c
+			  dump-corba.c dump-ucdsnmp.c
+#			  dump-java.c dump-jdmk.c
 smidump_LDADD		= ../lib/libsmi.la
 

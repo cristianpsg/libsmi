@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.22 1999/06/22 11:18:20 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.23 1999/07/02 14:04:10 strauss Exp $
  */
 
 #include <stdio.h>
@@ -57,6 +57,7 @@ char *smiStringDecl(SmiDecl macro)
 {
     return
         (macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" :
+        (macro == SMI_DECL_IMPLICIT_TYPE)     ? "<IMPLICIT-TYPE-DEFINITION>" :
         (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<TYPE-ASSIGNMENT>" :
         (macro == SMI_DECL_IMPL_SEQUENCE)     ? "<IMPLICIT_SEQUENCE>" :
         (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<IMPLICIT_SEQUENCE_OF>" :
@@ -170,6 +171,78 @@ char *formattype(const char *module, const char *name)
 }
 
 
+char *formatvalue(const SmiValue *value)
+{
+    static char s[100];
+    char        ss[9];
+    int		i;
+    char        **p;
+    
+    s[0] = 0;
+    
+    switch (value->basetype) {
+    case SMI_BASETYPE_UNSIGNED32:
+	sprintf(s, "%lu", value->value.unsigned32);
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	sprintf(s, "%ld", value->value.integer32);
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	sprintf(s, "%llu", value->value.unsigned64);
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	sprintf(s, "%lld", value->value.integer64);
+	break;
+    case SMI_BASETYPE_FLOAT32:
+    case SMI_BASETYPE_FLOAT64:
+    case SMI_BASETYPE_FLOAT128:
+	break;
+    case SMI_BASETYPE_ENUM:
+	sprintf(s, "%s", value->value.ptr);
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+	if (value->format == SMI_VALUEFORMAT_TEXT) {
+	    sprintf(s, "\"%s\"", value->value.ptr);
+	} else if (value->format == SMI_VALUEFORMAT_HEXSTRING) {
+	    sprintf(s, "'%*s'H", 2 * value->len, " ");
+	    for (i=0; i < value->len; i++) {
+		sprintf(ss, "%02x", value->value.ptr[i]);
+		strncpy(&s[1+2*i], ss, 2);
+	    }
+	} else if (value->format == SMI_VALUEFORMAT_BINSTRING) {
+	    sprintf(s, "'%*s'B", 8 * value->len, " ");
+	    for (i=0; i < value->len; i++) {
+		/* TODO */
+		sprintf(ss, "%02x", value->value.ptr[i]);
+		strncpy(&s[1+8*i], ss, 8);
+	    }
+	} else {
+	    sprintf(s, "\"%s\"", value->value.ptr);
+	}
+	break;
+    case SMI_BASETYPE_BITS:
+	sprintf(s, "(");
+	if (value->value.bits) {
+	    for(p = value->value.bits; *p; p++) {
+		if (p != value->value.bits)
+		    sprintf(&s[strlen(s)], ", ");
+		sprintf(&s[strlen(s)], "%s", *p);
+	    }
+	}
+	sprintf(&s[strlen(s)], ")");
+	break;
+    case SMI_BASETYPE_UNKNOWN:
+	sprintf(s, "-");
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	sprintf(s, "%s", value->value.ptr);
+	break;
+    }
+
+    return s;
+}
+
+
 void usage()
 {
     fprintf(stderr,
@@ -211,10 +284,11 @@ int main(int argc, char *argv[])
     SmiRevision *revision;
     SmiOption *option;
     SmiRefinement *refinement;
-    SmiIndex *index;
+    SmiListItem *listitem;
     char *command, *name;
     int flags;
     char c;
+    char s1[40], s2[40];
     
     smiInit();
 
@@ -260,6 +334,7 @@ int main(int argc, char *argv[])
 	    printf(" Description: %s\n", format(module->description));
 	    printf("   Reference: %s\n", format(module->reference));
 	    printf("    Language: %s\n", smiStringLanguage(module->language));
+	    printf("      Loaded: %s\n", smiModuleLoaded(name) ? "yes" : "no");
 	}
 	smiFreeModule(module);
     }
@@ -290,6 +365,7 @@ int main(int argc, char *argv[])
 	    printf("        Type: %s\n",
 		   formattype(node->typemodule, node->typename));
 	    printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
+	    printf("     Default: %s\n", formatvalue(&node->value));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
 	    if (node->nodekind == SMI_NODEKIND_ROW) {
@@ -310,15 +386,6 @@ int main(int argc, char *argv[])
 	    printf("     MibNode: %s\n", format(node->name));
 	    printf("      Module: %s\n", format(node->module));
 	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
-	    printf("        Type: %s\n",
-		   formattype(node->typemodule, node->typename));
-	    printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
-	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
-	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
-	    printf("      Access: %s\n", smiStringAccess(node->access));
-	    printf("      Status: %s\n", smiStringStatus(node->status));
-	    printf(" Description: %s\n", format(node->description));
-	    printf("   Reference: %s\n", format(node->reference));
 	}
 	smiFreeNode(child);
 	smiFreeNode(node);
@@ -327,9 +394,9 @@ int main(int argc, char *argv[])
     if (!strcmp(command, "compliance")) {
 	node = smiGetNode(name, NULL);
 	printf("   Mandatory:");
-	for(child = smiGetFirstMandatoryNode(node);
-	    child ; child = smiGetNextMandatoryNode(node, child)) {
-	    printf(" %s.%s", child->module, child->name);
+	for(listitem = smiGetFirstListItem(node);
+	    listitem ; listitem = smiGetNextListItem(listitem)) {
+	    printf(" %s.%s", listitem->module, listitem->name);
 	}
 	printf("\n\n");
 	for(option = smiGetFirstOption(node);
@@ -363,9 +430,9 @@ int main(int argc, char *argv[])
     if (!strcmp(command, "index")) {
 	node = smiGetNode(name, NULL);
 	printf("       Index:");
-	for(index = smiGetFirstIndex(node);
-	    index ; index = smiGetNextIndex(index)) {
-	    printf(" %s.%s", index->module, index->name);
+	for(listitem = smiGetFirstListItem(node);
+	    listitem ; listitem = smiGetNextListItem(listitem)) {
+	    printf(" %s.%s", listitem->module, listitem->name);
 	}
 	printf("\n");
 	smiFreeNode(node);
@@ -374,9 +441,9 @@ int main(int argc, char *argv[])
     if (!strcmp(command, "members")) {
 	node = smiGetNode(name, NULL);
 	printf("     Members:");
-	for(child = smiGetFirstMemberNode(node);
-	    child ; child = smiGetNextMemberNode(node, child)) {
-	    printf(" %s.%s", child->module, child->name);
+	for(listitem = smiGetFirstListItem(node);
+	    listitem ; listitem = smiGetNextListItem(listitem)) {
+	    printf(" %s.%s", listitem->module, listitem->name);
 	}
 	printf("\n");
 	smiFreeNode(node);
@@ -401,20 +468,22 @@ int main(int argc, char *argv[])
 	    printf("    Basetype: %s\n", smiStringBasetype(type->basetype));
 	    printf(" Parent Type: %s\n",
 		   formattype(type->parentmodule, type->parentname));
+	    printf("     Default: %s\n", formatvalue(&type->value));
 	    printf("Restrictions:");
 	    if ((type->basetype == SMI_BASETYPE_ENUM) ||
 		(type->basetype == SMI_BASETYPE_BITS)) {
 		for(nn = smiGetFirstNamedNumber(type->module, type->name);
 		    nn ; nn = smiGetNextNamedNumber(nn)) {
 		    printf(" %s(%ld)",
-			   nn->name, nn->valuePtr->value.unsigned32);
+			   nn->name, nn->value.value.unsigned32);
 		}
 	    } else {
 		for(range = smiGetFirstRange(type->module, type->name);
 		    range ; range = smiGetNextRange(range)) {
-		    printf(" %ld..%ld",
-			   range->minValuePtr->value.unsigned32,
-			   range->maxValuePtr->value.unsigned32);
+		    strcpy(s1, formatvalue(&range->minValue));
+		    strcpy(s2, formatvalue(&range->maxValue));
+		    printf(" %s", s1);
+		    if (strcmp(s1, s2)) printf("..%s", s2);
 		}
 	    }
 	    printf("\n");

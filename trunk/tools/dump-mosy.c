@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.5 1999/06/22 11:18:15 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.6 1999/07/02 14:04:07 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -34,7 +34,7 @@ static char *ignoreTypeRanges[] = {
 };
 
 
-static char *stringStatus(SmiStatus status)
+static char *getStatusString(SmiStatus status)
 {
     return
 	(status == SMI_STATUS_CURRENT)     ? "current" :
@@ -46,7 +46,7 @@ static char *stringStatus(SmiStatus status)
 }
 
 
-static char *stringAccess(SmiAccess access)
+static char *getAccessString(SmiAccess access)
 {
     return
 	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
@@ -57,7 +57,7 @@ static char *stringAccess(SmiAccess access)
 }
 
 
-static char *stringBasetype(SmiBasetype basetype)
+static char *getBasetypeString(SmiBasetype basetype)
 {
     return
         (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
@@ -189,17 +189,17 @@ static void printIndex(SmiNode *smiNode)
 {
     char *indexname;
     int  i;
-    SmiIndex *smiIndex;
+    SmiListItem *smiListItem;
     
     printf("%%%-19s %-16s \"", "ei", smiNode->name);
     indexname = NULL;
-    for (i = -1, smiIndex = smiGetFirstIndex(smiNode);
-	 smiIndex; smiIndex = smiGetNextIndex(smiIndex), i++) {
+    for (i = -1, smiListItem = smiGetFirstListItem(smiNode);
+	 smiListItem; smiListItem = smiGetNextListItem(smiListItem), i++) {
 	if (i > 0) printf(" ");
 	if (indexname) {
 	    printf(indexname);
 	}
-	indexname = smiIndex->name;
+	indexname = smiListItem->name;
     }
     if (indexname) {
 	printf("%s%s%s",
@@ -245,14 +245,14 @@ static void printTypedefs(char *modulename)
 	smiType; smiType = smiGetNextType(smiType)) {
 
 	printf("%%%-19s %-16s %-15s \"%s\"\n", "tc", smiType->name,
-	       stringBasetype(smiType->basetype),
+	       getBasetypeString(smiType->basetype),
 	       smiType->format ? smiType->format : "");
 	
 	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
 	    nn ; i++, nn = smiGetNextNamedNumber(nn)) {
 	    printf("%%%-19s %-16s %-15s %s\n", "es",
 		   smiType->name, nn->name,
-		   getValueString(nn->valuePtr));
+		   getValueString(&nn->value));
 	}
     }
 }
@@ -297,7 +297,7 @@ static void printObjects(char *modulename)
 	    smiType = smiGetType(smiNode->typemodule, smiNode->typename);
 	}
 
-	typename = stringBasetype(smiNode->basetype);
+	typename = getBasetypeString(smiNode->basetype);
 	if (smiType && smiType->name && isupper((int) smiType->name[0])) {
 	    typename = smiType->name;
 	    if (smiType->parentmodule && smiType->parentname) {
@@ -323,8 +323,8 @@ static void printObjects(char *modulename)
 	
 	printf("%-20s %-16s ", smiNode->name, getOidString(smiNode, 0));
 	printf("%-15s %-15s %s\n", typename,
-	       stringAccess(smiNode->access),
-	       stringStatus(smiNode->status));
+	       getAccessString(smiNode->access),
+	       getStatusString(smiNode->status));
 
 	switch (smiNode->indexkind) {
 	case SMI_INDEX_INDEX:
@@ -357,7 +357,7 @@ static void printObjects(char *modulename)
 		i++, smiNamedNumber = smiGetNextNamedNumber(smiNamedNumber)) {
 		printf("%%%-19s %-16s %-15s %s\n", "ev",
 		       smiType->name, smiNamedNumber->name,
-		       getValueString(smiNamedNumber->valuePtr));
+		       getValueString(&smiNamedNumber->value));
 	    }
 
 	    for (ignore = 0, j = 0; ignoreTypeRanges[j]; j++) {
@@ -374,8 +374,8 @@ static void printObjects(char *modulename)
 		     smiRange = smiGetNextRange(smiRange)) {
 		    printf("%%%-19s %-16s %-15s ", "er",
 			   smiType->name,
-			   getValueString(smiRange->minValuePtr));
-		    printf("%s\n", getValueString(smiRange->maxValuePtr));
+			   getValueString(&smiRange->minValue));
+		    printf("%s\n", getValueString(&smiRange->maxValue));
 		}
 	    }
 	}
@@ -413,6 +413,7 @@ static void printNotifications(char *modulename)
 static void printGroups(char *modulename)
 {
     SmiNode	*smiNode, *smiNodeMember;
+    SmiListItem *smiListItem;
     int		cnt = 0, objects, notifications;
     
     for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
@@ -421,10 +422,12 @@ static void printGroups(char *modulename)
 	cnt ++;
 
 	for (objects = 0, notifications = 0,
-	     smiNodeMember = smiGetFirstMemberNode(smiNode);
-	     smiNodeMember;
-	     smiNodeMember = smiGetNextMemberNode(smiNode, smiNodeMember)) {
+	     smiListItem = smiGetFirstListItem(smiNode);
+	     smiListItem;
+	     smiListItem = smiGetNextListItem(smiListItem)) {
 
+	    smiNodeMember = smiGetNode(smiListItem->module, smiListItem->name);
+	    
 	    objects += 
 		(smiNodeMember->nodekind == SMI_NODEKIND_SCALAR)
 		|| (smiNodeMember->nodekind == SMI_NODEKIND_COLUMN);

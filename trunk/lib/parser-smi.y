@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.39 1999/06/30 10:32:21 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.40 1999/07/02 14:03:52 strauss Exp $
  */
 
 %{
@@ -91,7 +91,7 @@ static Module      *complianceModulePtr = NULL;
     List           *listPtr;			/* SEQUENCE and INDEX lists  */
     NamedNumber    *namedNumberPtr;		/* BITS or enum item         */
     Range          *rangePtr;			/* type restricting range    */
-    SmiValue	   *valuePtr;
+    Value	   *valuePtr;
     SmiUnsigned32  unsigned32;			/*                           */
     SmiInteger32   integer32;			/*                           */
     struct Compl   compl;
@@ -391,7 +391,7 @@ module:			moduleName
 			declarationPart
 			END
 			{
-			    Object *objectPtr, *parentPtr;
+			    Object *objectPtr, *object2Ptr, *parentPtr;
 			    Import *importPtr;
 
 			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
@@ -480,18 +480,6 @@ module:			moduleName
 				}
 			    }
 
-#if 0
-			    /* TODO: detect node that could not be linked
-			     * into the main tree
-			     */
-			    for (nodePtr = pendingNodePtr->firstChildPtr;
-				 nodePtr; nodePtr = nodePtr->nextPtr) {
-				printErrorAtLine(parserPtr,
-						 ERR_UNKNOWN_OIDLABEL,
-						 nodePtr->firstObjectPtr->line,
-					       nodePtr->firstObjectPtr->name);
-			    }
-#else			    
 			    /*
 			     * Check references to unknown identifiers.
 			     */
@@ -511,8 +499,51 @@ module:			moduleName
 				    }
 				}
 			    }
-#endif
-			    
+
+			    /*
+			     * Check unknown identifiers in OID DEFVALs.
+			     */
+			    for(objectPtr = thisModulePtr->firstObjectPtr;
+				objectPtr;
+				objectPtr = objectPtr->nextPtr) {
+				if (objectPtr->valuePtr) {
+				    if (objectPtr->valuePtr->basetype ==
+					SMI_BASETYPE_OBJECTIDENTIFIER) {
+					object2Ptr =
+					    findObjectByModuleAndName(
+						thisParserPtr->modulePtr,
+				       (char *)objectPtr->valuePtr->value.ptr);
+					if (!object2Ptr) {
+					    importPtr = findImportByName(
+					(char *)objectPtr->valuePtr->value.ptr,
+							        thisModulePtr);
+					    if (importPtr) {
+						/*
+						 * imported object.
+						 */
+						importPtr->use++;
+						object2Ptr =
+						    findObjectByModulenameAndName(
+						    importPtr->importmodule,
+						    importPtr->importname);
+					    }
+					}
+					if (!object2Ptr) {
+					    printErrorAtLine(thisParserPtr,
+							  ERR_UNKNOWN_OIDLABEL,
+							       objectPtr->line,
+				       (char *)objectPtr->valuePtr->value.ptr);
+					 objectPtr->valuePtr->value.ptr = NULL;
+					} else {
+					    objectPtr->valuePtr->value.ptr =
+						(void *)object2Ptr;
+					}
+					objectPtr->valuePtr->format =
+					    SMI_VALUEFORMAT_OID;
+				    }
+				}
+			    }
+				
 			    $$ = 0;
 			}
 	;
@@ -567,23 +598,38 @@ import:			importIdentifiers FROM moduleName
 			/* TODO: multiple clauses with same moduleName
 			 * allowed? I guess so. refer ASN.1! */
 			{
-			    if (!strcmp($3, "SNMPv2-SMI")) {
-			        /*
-				 * A module that imports from SNMPv2-SMI
-				 * seems to be SMIv2 style.
-				 */
-			        thisModulePtr->language = SMI_LANGUAGE_SMIV2;
-			    }
-
+			    Import      *importPtr;
+			    
 			    /*
 			     * Recursively call the parser to suffer
 			     * the IMPORTS, if the module is not yet
 			     * loaded.
 			     */
 			    if (!findModuleByName($3)) {
-				smiLoadModule($3);
+				loadModule($3);
 			    }
 			    checkImports($3, thisParserPtr);
+
+			    if (!strcmp($3, "SNMPv2-SMI")) {
+			        /*
+				 * A module that imports a macro or
+				 * type definition from SNMPv2-SMI
+				 * seems to be SMIv2 style.
+				 */
+				for (importPtr =
+					 thisModulePtr->firstImportPtr;
+				     importPtr;
+				     importPtr = importPtr->nextPtr) {
+				    if ((!strcmp(importPtr->importmodule,
+						 $3)) &&
+					((importPtr->kind == KIND_MACRO) ||
+					 (importPtr->kind == KIND_TYPE))) {
+					thisModulePtr->language =
+					    SMI_LANGUAGE_SMIV2;
+				    }
+				}
+			    }
+
 			}
 	;
 
@@ -679,9 +725,10 @@ importedKeyword:	ACCESS
 
 moduleName:		UPPERCASE_IDENTIFIER
 			{
-			    if (strlen($1) > 64) {
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_MODULENAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_MODULENAME_32, $1);
 			    }
 			    $$ = util_strdup($1);
@@ -848,12 +895,14 @@ choiceClause:		CHOICE
  * The only ASN.1 value declarations are for OIDs, REF:RFC1902,491 .
  */
 valueDeclaration:	LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
 			    {
 			        if (strchr($1, '-') &&
@@ -888,10 +937,11 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
  * This is for simple ASN.1 style type assignments and textual conventions.
  */
 typeDeclaration:	typeName
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_TYPENAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_TYPENAME_32, $1);
 			    }
 			}
@@ -991,6 +1041,7 @@ typeDeclarationRHS:	Syntax
 				setTypeDecl($$, SMI_DECL_TYPEASSIGNMENT);
 			    } else {
 				$$ = $1;
+				setTypeDecl($$, SMI_DECL_TYPEASSIGNMENT);
 			    }
 			}
 	|		TEXTUAL_CONVENTION
@@ -1027,7 +1078,7 @@ typeDeclarationRHS:	Syntax
 			    } else {
 				/*
 				 * Otherwise, we have to allocate a
-				 * new Type struct, inherited from $9.
+				 * new Type struct, inherited from $10.
 				 */
 				$$ = duplicateType($10, 0, thisParserPtr);
 				deleteTypeFlags($$, FLAG_IMPORTED);
@@ -1038,6 +1089,10 @@ typeDeclarationRHS:	Syntax
 			    }
 			    setTypeStatus($$, $5);
 			    if ($3) {
+				if (!checkFormat($$->basetype, $3)) {
+				    printError(thisParserPtr,
+					       ERR_INVALID_FORMAT, $3);
+				}
 				setTypeFormat($$, $3);
 			    }
 			    setTypeDecl($$, SMI_DECL_TEXTUALCONVENTION);
@@ -1045,6 +1100,7 @@ typeDeclarationRHS:	Syntax
 	|		choiceClause
 			{
 			    $$ = $1;
+			    setTypeDecl($$, SMI_DECL_TYPEASSIGNMENT);
 			}
 	;
 
@@ -1074,7 +1130,6 @@ row:			UPPERCASE_IDENTIFIER
 			{
 			    Type *typePtr;
 			    Import *importPtr;
-			    SmiType *stypePtr;
 
 			    $$ = findTypeByModulenameAndName(
 				thisParserPtr->modulePtr->name, $1);
@@ -1288,10 +1343,11 @@ NamedBits:		NamedBit
 	;
 
 NamedBit:		identifier
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_BITNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_BITNAME_32, $1);
 			    }
 			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
@@ -1311,7 +1367,7 @@ NamedBit:		identifier
 			    $$->name = util_strdup($1);
 			    $$->valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->valuePtr->value.unsigned32 = $4;
-			    $$->valuePtr->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->valuePtr->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	;
 
@@ -1323,12 +1379,14 @@ identifier:		LOWERCASE_IDENTIFIER
 	;
 
 objectIdentityClause:	LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			}
 			OBJECT_IDENTITY
 			{
@@ -1377,11 +1435,13 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 
 objectTypeClause:	LOWERCASE_IDENTIFIER
 			{
-			    if (strlen($1) > 64) {
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			}
 			OBJECT_TYPE
 			{
@@ -1502,10 +1562,11 @@ descriptionClause:	/* empty */
 	;
 
 trapTypeClause:		LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
 			}
@@ -1582,12 +1643,14 @@ MaxAccessPart:		MAX_ACCESS
 	;
 
 notificationTypeClause:	LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			}
 			NOTIFICATION_TYPE
 			{
@@ -1634,12 +1697,14 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 	;
 
 moduleIdentityClause:	LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			}
 			MODULE_IDENTITY
 			{
@@ -1786,7 +1851,6 @@ sequenceObjectSyntax:	sequenceSimpleSyntax
 			}
         ;
 
-/* TODO: specify really according to ObjectSyntax!!! */
 valueofObjectSyntax:	valueofSimpleSyntax
 			{ $$ = $1; }
 			/* conceptualTables and rows do not have DEFVALs
@@ -1803,11 +1867,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		INTEGER integerSubType
 			{
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeList($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
+			    setTypeParent($$, NULL, "Enumeration");
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeList($$, $2);
 			}
@@ -1835,6 +1902,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    }
 
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeList($$, $2);
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
@@ -1859,6 +1927,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						        thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$,
 						thisParserPtr->modulePtr->name,
 						  parentPtr->name);
@@ -1871,11 +1940,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$,
 					      thisParserPtr->modulePtr->name,
 					      $1);
@@ -1907,11 +1978,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$, $1, $3);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
@@ -1939,6 +2012,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$,
 					        thisParserPtr->modulePtr->name,
 						  parentPtr->name);
@@ -1951,12 +2025,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$,
 					      thisParserPtr->modulePtr->name,
 					      $1);
@@ -1987,12 +2063,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$, $1, $3);
 			    }
 			    setTypeList($$, $4);
@@ -2005,6 +2083,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, NULL, typeOctetStringPtr->name);
 			    setTypeList($$, $3);
 			}
@@ -2030,6 +2109,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						     thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$,
 						thisParserPtr->modulePtr->name,
 						  parentPtr->name);
@@ -2042,12 +2122,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$,
 					      thisParserPtr->modulePtr->name,
 					      $1);
@@ -2078,11 +2160,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				    setTypeParent($$, importPtr->importmodule,
 						  importPtr->importname);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 				setTypeParent($$, $1, $3);
 			    }
 			    setTypeList($$, $4);
@@ -2100,7 +2184,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		'-' number		/* -2147483648..0 */
 			{
@@ -2108,7 +2192,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = - $2;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		BIN_STRING		/* number or OCTET STRING */
 			{
@@ -2117,7 +2201,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->valueformat = SMI_VALUEFORMAT_BINSTRING;
+			    $$->format = SMI_VALUEFORMAT_BINSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				$$->value.ptr =
@@ -2143,7 +2227,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->valueformat = SMI_VALUEFORMAT_HEXSTRING;
+			    $$->format = SMI_VALUEFORMAT_HEXSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				$$->value.ptr =
@@ -2166,7 +2250,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = defaultBasetype;
 			    $$->value.ptr = util_strdup($1);
-			    $$->valueformat = SMI_VALUEFORMAT_NAME;
+			    $$->format = SMI_VALUEFORMAT_NAME;
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
@@ -2174,7 +2258,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_OCTETSTRING;
 			    $$->value.ptr = util_strdup($1);
-			    $$->valueformat = SMI_VALUEFORMAT_TEXT;
+			    $$->format = SMI_VALUEFORMAT_TEXT;
 			    $$->len = strlen($1);
 			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
@@ -2207,7 +2291,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			    }
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-			    $$->valueformat = SMI_VALUEFORMAT_OID;
+			    $$->format = SMI_VALUEFORMAT_OID;
 			    $$->len = 2;
 			    $$->value.oid = util_malloc(2 * sizeof(SmiSubid));
 			    $$->value.oid[0] = 0;
@@ -2273,6 +2357,7 @@ ApplicationSyntax:	IPADDRESS
 					   "Gauge32");
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, parentPtr->modulePtr->name,
 					  parentPtr->name);
 			    setTypeList($$, $2);
@@ -2295,6 +2380,7 @@ ApplicationSyntax:	IPADDRESS
 					   "Unsigned32");
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, parentPtr->modulePtr->name,
 					  parentPtr->name);
 			    setTypeList($$, $2);
@@ -2474,7 +2560,7 @@ value:			'-' number
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		number
 			{
@@ -2482,7 +2568,7 @@ value:			'-' number
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		HEX_STRING
 			{
@@ -2491,7 +2577,7 @@ value:			'-' number
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->valueformat = SMI_VALUEFORMAT_HEXSTRING;
+			    $$->format = SMI_VALUEFORMAT_HEXSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				$$->value.ptr =
@@ -2515,7 +2601,7 @@ value:			'-' number
 			    
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->valueformat = SMI_VALUEFORMAT_BINSTRING;
+			    $$->format = SMI_VALUEFORMAT_BINSTRING;
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
 				$$->value.ptr =
@@ -2564,10 +2650,11 @@ enumItems:		enumItem
 	;
 
 enumItem:		LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_ENUMNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_ENUMNAME_32, $1);
 			    }
 			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
@@ -2595,7 +2682,7 @@ enumNumber:		number
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = $1;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	|		'-' number
 			{
@@ -2605,7 +2692,7 @@ enumNumber:		number
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
 			    /* TODO: non-negative is suggested */
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			}
 	;
 
@@ -2825,7 +2912,7 @@ Value:			valueofObjectSyntax
 			    /* TODO: success? */
 			    $$->basetype = SMI_BASETYPE_BITS;
 			    $$->value.bits = NULL;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			    for (i = 0, listPtr = $2; listPtr;
 				 i++, listPtr = listPtr->nextPtr) {
 				$$->value.bits = util_realloc($$->value.bits,
@@ -3108,10 +3195,15 @@ subidentifier:
 			    Object *objectPtr;
 			    SmiNode *snodePtr;
 			    Import *importPtr;
+			    char *md;
 			    
 			    if (parentNodePtr != rootNodePtr) {
+				md = util_malloc(sizeof(char) *
+					        (strlen($1) + strlen($3) + 2));
+				sprintf(md, "%s.%s", $1, $3);
 				printError(thisParserPtr,
-					   ERR_OIDLABEL_NOT_FIRST, $1);
+					   ERR_OIDLABEL_NOT_FIRST, md);
+				util_free(md);
 			    } else {
 				objectPtr = findObjectByModulenameAndName(
 				    $1, $3);
@@ -3173,7 +3265,8 @@ subidentifier:
 
 			    nodePtr = findNodeByParentAndSubid(parentNodePtr,
 							       $1);
-			    if (nodePtr && nodePtr->lastObjectPtr) {
+			    if (nodePtr && nodePtr->lastObjectPtr &&
+	       		(nodePtr->lastObjectPtr->modulePtr == thisModulePtr)) {
 				/*
 				 * hopefully, the last defined Object for
 				 * this Node is the one we expect.
@@ -3272,12 +3365,14 @@ subidentifier_defval:	LOWERCASE_IDENTIFIER '(' number ')'
 	;		/* TODO */
 
 objectGroupClause:	LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			}
 			OBJECT_GROUP
 			{
@@ -3325,12 +3420,14 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 	;
 
 notificationGroupClause: LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			}
 			NOTIFICATION_GROUP
 			{
@@ -3380,12 +3477,14 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 	;
 
 moduleComplianceClause:	LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
+			    checkObjectName(thisModulePtr, $1, thisParserPtr);
 			}
 			MODULE_COMPLIANCE
 			{
@@ -3547,16 +3646,14 @@ ComplianceModuleName:	UPPERCASE_IDENTIFIER objectIdentifier
 			    $$ = findModuleByName($1);
 			    /* TODO: handle objectIdentifier */
 			    if (!$$) {
-				smiLoadModule($1);
-				$$ = findModuleByName($1);
+				$$ = loadModule($1);
 			    }
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
 			    $$ = findModuleByName($1);
 			    if (!$$) {
-				smiLoadModule($1);
-				$$ = findModuleByName($1);
+				$$ = loadModule($1);
 			    }
 			}
 	|		/* empty, only if contained in MIB module */
@@ -3708,6 +3805,7 @@ SyntaxPart:		SYNTAX Syntax
 			{
 			    if ($2->name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    } else {
 				$$ = $2;
 			    }
@@ -3722,6 +3820,7 @@ WriteSyntaxPart:	WRITE_SYNTAX WriteSyntax
 			{
 			    if ($2->name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    } else {
 				$$ = $2;
 			    }
@@ -3749,10 +3848,11 @@ AccessPart:		MIN_ACCESS Access
 	;
 
 agentCapabilitiesClause: LOWERCASE_IDENTIFIER
-			{ 
-			    if (strlen($1) > 64) {
+			{
+			    int len = strlen($1);
+			    if (len > 64) {
 			        printError(thisParserPtr, ERR_OIDNAME_64, $1);
-			    } else if (strlen($1) > 32) {
+			    } else if (len > 32) {
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
 			}
@@ -3932,4 +4032,4 @@ number:			NUMBER
 
 %%
 
-#endif /*  */
+#endif

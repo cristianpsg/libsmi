@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.25 1999/06/18 15:04:37 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.26 1999/07/02 14:03:54 strauss Exp $
  */
 
 %{
@@ -167,7 +167,7 @@ findObject(spec, parserPtr)
     SmiAccess	   access;
     NamedNumber    *namedNumberPtr;
     Range	   *rangePtr;
-    SmiValue	   *valuePtr;
+    Value	   *valuePtr;
     List	   *listPtr;
     Revision	   *revisionPtr;
 }
@@ -690,6 +690,10 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (typePtr && $13) {
+                                if (!checkFormat(defaultBasetype, $13)) {
+				    printError(thisParserPtr,
+					       ERR_INVALID_FORMAT, $13);
+				}
 				setTypeFormat(typePtr, $13);
 			    }
 			}
@@ -876,6 +880,10 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (scalarObjectPtr && $19) {
+				if (!checkFormat($11->basetype, $19)) {
+				    printError(thisParserPtr,
+					       ERR_INVALID_FORMAT, $19);
+				}
 				setObjectFormat(scalarObjectPtr, $19);
 			    }
 			}
@@ -1118,6 +1126,10 @@ columnStatement:	columnKeyword sep lcIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (columnObjectPtr && $19) {
+                                if (!checkFormat($11->basetype, $19)) {
+				    printError(thisParserPtr,
+					       ERR_INVALID_FORMAT, $19);
+				}
 				setObjectFormat(columnObjectPtr, $19);
 			    }
 			}
@@ -1577,7 +1589,7 @@ importStatement:	importKeyword sep ucIdentifier
 			    char *s = importModulename;
 			    
 			    if (!findModuleByName(s)) {
-				smiLoadModule(s);
+				loadModule(s);
 			    }
 			    checkImports(s, thisParserPtr);
 			    free(s);
@@ -2440,7 +2452,7 @@ floatElement:		floatValue floatUpperLimit_01
 			    $$ = util_malloc(sizeof(Range));
 			    $$->minValuePtr = util_malloc(sizeof(SmiValue));
 			    $$->minValuePtr->basetype = SMI_BASETYPE_FLOAT64;
-			    $$->minValuePtr->valueformat =
+			    $$->minValuePtr->format =
 				SMI_VALUEFORMAT_NATIVE;
 			    $$->minValuePtr->value.float64 = strtod($1, NULL);
 			    if ($2) {
@@ -2448,7 +2460,7 @@ floatElement:		floatValue floatUpperLimit_01
 				                 util_malloc(sizeof(SmiValue));
 				$$->maxValuePtr->basetype =
 				                          SMI_BASETYPE_FLOAT64;
-				$$->maxValuePtr->valueformat =
+				$$->maxValuePtr->format =
 							SMI_VALUEFORMAT_NATIVE;
 				$$->maxValuePtr->value.float64 =
 				                              strtod($2, NULL);
@@ -2848,7 +2860,7 @@ anyValue:		bitsValue
 			    if (defaultBasetype == SMI_BASETYPE_BITS) {
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_BITS;
-				$$->valueformat =
+				$$->format =
 				    SMI_VALUEFORMAT_NATIVE;
 				$$->value.bits = NULL;
 				for (i = 0, listPtr = $1; listPtr;
@@ -2874,31 +2886,39 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_UNSIGNED32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED32;
-				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
+				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.unsigned32 = strtoul($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_UNSIGNED64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED64;
-				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
+				$$->format = SMI_VALUEFORMAT_NATIVE;
+#ifdef HAVE_STRTOULL
 				$$->value.unsigned64 = strtoull($1, NULL, 10);
+#else
+				$$->value.unsigned64 = strtouq($1, NULL, 10);
+#endif
 				break;
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
-				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
+				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer32 = strtol($1, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
-				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
+				$$->format = SMI_VALUEFORMAT_NATIVE;
+#ifdef HAVE_STRTOLL
 				$$->value.integer64 = strtoll($1, NULL, 10);
+#else
+				$$->value.integer64 = strtoq($1, NULL, 10);
+#endif
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-				$$->valueformat = SMI_VALUEFORMAT_OID;
+				$$->format = SMI_VALUEFORMAT_OID;
 				$$->len = 2;
 				$$->value.oid =
 				    util_malloc(2 * sizeof(SmiSubid));
@@ -2919,14 +2939,18 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
-				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
+				$$->format = SMI_VALUEFORMAT_NATIVE;
 				$$->value.integer32 = - strtoul($2, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
-				$$->valueformat = SMI_VALUEFORMAT_NATIVE;
+				$$->format = SMI_VALUEFORMAT_NATIVE;
+#ifdef HAVE_STRTOULL
 				$$->value.integer64 = - strtoull($2, NULL, 10);
+#else
+				$$->value.integer64 = - strtouq($2, NULL, 10);
+#endif
 				break;
 			    default:
 				printError(thisParserPtr,
@@ -2952,7 +2976,7 @@ anyValue:		bitsValue
 			    if (defaultBasetype == SMI_BASETYPE_OCTETSTRING) {
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OCTETSTRING;
-				$$->valueformat = SMI_VALUEFORMAT_TEXT;
+				$$->format = SMI_VALUEFORMAT_TEXT;
 				$$->value.ptr = $1;
 			    } else {
 				printError(thisParserPtr,
@@ -2968,13 +2992,13 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_ENUM:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_ENUM;
-				$$->valueformat = SMI_VALUEFORMAT_NAME;
+				$$->format = SMI_VALUEFORMAT_NAME;
 				$$->value.ptr = $1;
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-				$$->valueformat = SMI_VALUEFORMAT_NAME;
+				$$->format = SMI_VALUEFORMAT_NAME;
 				$$->value.ptr = $1;
 				break;
 			    default:
@@ -3144,15 +3168,19 @@ number:			hexadecimalNumber
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
 			    $$->value.unsigned64 = 42;
 			}
         |		decimalNumber
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
+#ifdef HAVE_STRTOULL
 			    $$->value.unsigned64 = strtoull($1, NULL, 10);
+#else
+			    $$->value.unsigned64 = strtouq($1, NULL, 10);
+#endif
 			}
 	;
 
@@ -3160,8 +3188,12 @@ negativeNumber:		'-' decimalNumber
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER64;
-			    $$->valueformat = SMI_VALUEFORMAT_NATIVE;
+			    $$->format = SMI_VALUEFORMAT_NATIVE;
+#ifdef HAVE_STRTOULL
 			    $$->value.integer64 = - strtoull($2, NULL, 10);
+#else
+			    $$->value.integer64 = - strtouq($2, NULL, 10);
+#endif
 			}
         ;
 
