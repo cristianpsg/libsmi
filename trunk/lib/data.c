@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.67 2000/02/22 17:11:11 strauss Exp $
+ * @(#) $Id: data.c,v 1.68 2000/02/22 18:27:00 strauss Exp $
  */
 
 #include <config.h>
@@ -328,8 +328,11 @@ setModuleDescription(modulePtr, description, parserPtr)
 {
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	modulePtr->export.description = description;
-    else
+    else {
 	util_free(description);
+	if (description)
+	    modulePtr->export.description = "";
+    }
 }
 
 
@@ -358,8 +361,11 @@ setModuleReference(modulePtr, reference, parserPtr)
 {
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	modulePtr->export.reference = reference;
-    else
+    else {
 	util_free(reference);
+	if (reference)
+	    modulePtr->export.reference = "";
+    }
 }
 
 
@@ -1335,8 +1341,11 @@ setObjectDescription(objectPtr, description, parserPtr)
 
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	objectPtr->export.description = description;
-    else
+    else {
 	util_free(description);
+	if (description)
+	    objectPtr->export.description = "";
+    }
 }
 
 
@@ -1367,8 +1376,11 @@ setObjectReference(objectPtr, reference, parserPtr)
 
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	objectPtr->export.reference = reference;
-    else
+    else {
 	util_free(reference);
+	if (reference)
+	    objectPtr->export.reference = "";
+    }
 }
 
 
@@ -2388,8 +2400,11 @@ setTypeDescription(typePtr, description, parserPtr)
 
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	typePtr->export.description = description;
-    else
+    else {
 	util_free(description);
+	if (description)
+	    typePtr->export.description = "";
+    }
 }
 
 
@@ -2420,8 +2435,11 @@ setTypeReference(typePtr, reference, parserPtr)
 
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	typePtr->export.reference = reference;
-    else
+    else {
 	util_free(reference);
+	if (reference)
+	    typePtr->export.reference = "";
+    }
 }
 
 
@@ -2908,8 +2926,11 @@ setMacroDescription(macroPtr, description, parserPtr)
 
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	macroPtr->export.description = description;
-    else
+    else {
 	util_free(description);
+	if (description)
+	    macroPtr->export.description = "";
+    }
 }
 
 
@@ -2940,8 +2961,11 @@ setMacroReference(macroPtr, reference, parserPtr)
 
     if (! (parserPtr->flags & SMI_FLAG_NODESCR))
 	macroPtr->export.reference = reference;
-    else
+    else {
 	util_free(reference);
+	if (reference)
+	    macroPtr->export.reference = "";
+    }
 }
 
 
