@@ -80,4 +80,4 @@ o currently, make check passes only after make install
 
 o Web online conversion to SMIng?
 
-
+o make check: parse every mib once
