@@ -1,23 +1,17 @@
 .\"
-.\" $Id: smidump.1,v 1.5 1999/05/08 20:56:59 strauss Exp $
+.\" $Id: smidump.1,v 1.1 1999/05/28 14:52:11 strauss Exp $
 .\"
-.TH smidump 1  "May 5, 1999" "IBR" "SMI Tools"
+.TH smidump 1  "June 1, 1999" "IBR" "SMI Tools"
 .SH NAME
 smidump \- dump and convert SMIv1/v2/ng modules
 .SH SYNOPSIS
 .B smidump
 [
-.B "-sSvV"
+.B "-Vh"
 ] [
-.BI "-l " level
+.BI "-f " format
 ] [
-.BI "-d " level
-] [
-.BI "-c " config
-] [
-.BI "-L " location
-] [
-.BI "-D " format
+.BI "-p " module
 ]
 .I "module"
 .SH DESCRIPTION
@@ -26,62 +20,15 @@ module to stdout in a selectable format. This format may be a simple
 list of objects or types but also a format fully compliant to SMIv2
 or SMIng. This allows to convert modules from SMIv2 to SMIng and from
 SMIng to SMIv2.
-.PP
-\fBSmidump\fP first reads the global libsmi configuration file
-\fB/usr/local/etc/smi.conf\fP, as any libsmi application does. Then
-the command line options are interpreted and finally, the
-\fB/usr/local/etc/smidump.conf\fP configuration file is read, if present,
-before \fBsmidump\fP starts its main operation.
 .SH OPTIONS
 .TP
-.B "-s"
-Report some per module statistics to stderr.
-.TP
-.B "-S"
-Don't report statistics (default).
-.TP
-.B "-v"
-On errors, do print the current line of input to stderr after the
-error message and a marker pointing to the current token in the input
-stream. Note that the corresponding point of error usually lies before
-this marker.
-.TP
 .B "-V"
-Don't print error lines (default).
+Show the smidump version and exit.
 .TP
-.BI "-d " level
-Print libsmi debugging messages at the given \fIlevel\fP (default: 0).
+.B "-h"
+Show a help text and exit.
 .TP
-.BI "-l " level
-Report errors and warnings up to the given \fIlevel\fP to stderr.
-A higher level shows more warnings. The actual levels are:
-.sp
-.nf
- 0   internal error, no recovery possible,
- 1   major SMI error, recovery somehow possible but
-     may lead to severe problems,
- 2   SMI error, probably tolerated by some
-     implementations,
- 3   SMI error, tolerated by many implementations,
- 4   something which is recommended to be changed,
- 5   something that might be ok, but might not be
-     recommended under some circumstances.
-.fi
-.sp
-Higher levels are actually not used and lead to the same effects as
-level 5 does. Note that errors up to level 3 are errors violating the
-specification and must be fixed by the responsible author. Level 3 is
-the default level.
-.TP
-.BI "-c " config
-Read the configuration from \fIfile\fP. See smi_config(3) section
-CONFIGURATION FILES for its format.
-.TP
-.BI "-L " location
-Add \fIlocation\fP to the list of locations to search for MIB modules.
-See smi_config(3) section MODULE LOCATIONS for location details.
-.TP
-.BI "-D " format
+.BI "-f " format
 Use \fIformat\fP when dumping a module. Supported formats are
 \fBsming\fP for fully compliant SMIng, \fBsmiv2\fP for fully compliant
 SMIv2, \fBobjects\fP for a simple list of nodes in the object
@@ -89,17 +36,28 @@ identifer tree known to libsmi (only for libsmi debugging) and
 \fBtypes\fP for a simple list of all types known to libsmi (also
 for libsmi debugging only). The default is to dump in SMIng format.
 .TP
+.BI "-p " module
+Preload the module \fImodule\fP before reading the main module. This may
+be helpful if an incomplete main module misses to import some definitions.
+.TP
 .I module
-This is the module to be checked. Note that this module is searched in
-the list of known locations. If the module shall be taken from an
-SMIv1/v2 file in the current directory, a "\fB-L smi:.\fP" option
-should be added to the command line.
+This is the module to be dumped. If it represents a path name
+(identified by containing at least one dot or slash character), this
+is assumed to be the exact file to read. Otherwise, if a module is
+identified by its plain module name, the correspondant file (either
+SMIv1/2 or SMIng) is searched along a path, which is initialized by
+the \fBSMIPATH\fP environment variable or by @prefix@/lib/smi if
+\fBSMIPATH\fP is not set. Files with a \fB.sming\fP extension are
+expected to be SMIng module files. Files with a \fB.my\fP or without
+any extension are expected to be SMIv1/v2 module files.
 .SH "EXAMPLE"
 This example converts the SMIv2 module IF-MIB in the current directory
-with the highest parser error verbosity to IF-MIB.sming in SMIng format.
+to IF-MIB.sming in SMIng format. Note that the ./ prefix is used to
+ensure reading the module from the current directory and not from a
+place that libsmi guesses on its own.
 .nf
 
-  $ smidump -Lsmi:. -l9 -Dsming IF-MIB > IF-MIB.sming
+  $ smidump -f sming ./IF-MIB > IF-MIB.sming
 .fi
 .SH "FILES"
 .nf

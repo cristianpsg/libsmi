@@ -1,7 +1,7 @@
 .\"
 .\" $Id: smi_config.3,v 1.1 1999/05/28 14:52:06 strauss Exp $
 .\"
-.TH smi_config 3  "May 31, 1999" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "June 1, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
 smiLoadModule \- SMI library
@@ -58,7 +58,7 @@ to import statements.
 The \fBsmiLoadModule()\fP function specifies an additional MIB module by
 \fImodule\fP that the application claims to know. Only after a
 module is made known through this function, iterating retrieval
-functions and retrieval functions without fully qualified descriptors
+functions and retrieval functions without fully qualified identifiers
 will return results from this module.
 .SH "RETURN VALUES"
 The function \fBsmiLoadModule()\fP returns 0 on success, or negative values on

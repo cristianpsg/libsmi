@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_type.3,v 1.3 1999/05/05 22:46:36 strauss Exp $
+.\" $Id: smi_type.3,v 1.1 1999/05/28 14:52:09 strauss Exp $
 .\"
-.TH smi_type 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.TH smi_type 3  "June 1, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiGetType, smiGetFirstType, smiGetNextType, smiFreeType \- SMI type
 information routines
@@ -11,32 +11,64 @@ information routines
 .RS
 .RE
 .sp
-.BI "SmiType *smiGetType(char *" spec ", char *" mod );
+.BI "SmiType *smiGetType(char *" module ", char *" type );
 .RE
 .sp
-.BI "SmiType *smiGetFirstType(char *" modulename );
+.BI "SmiType *smiGetFirstType(char *" module );
 .RE
 .sp
-.BI "SmiType *smiGetNextType(char *" modulename ", char *" name );
+.BI "SmiType *smiGetNextType(SmiType *" smiTypePtr );
 .RE
 .sp
 .BI "void smiFreeType(SmiType *" smiTypePtr );
 .RE
+.sp
+.BI "SmiRange *smiGetFirstRange(char *" module ", char *" type );
+.RE
+.sp
+.BI "SmiRange *smiGetNextRange(SmiRange *" smiRangePtr );
+.RE
+.sp
+.BI "void smiFreeRange(SmiRange *" smiRangePtr );
+.RE
+.sp
+.BI "SmiNamedNumber *smiGetFirstNamedNumber(char *" module ", char *" type );
+.RE
+.sp
+.BI "SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *" smiNamedNumberPtr );
+.RE
+.sp
+.BI "void smiFreeNamedNumber(SmiNamedNumber *" smiNamedNumberPtr );
+.RE
 
 typedef struct SmiType {
-    char         *name;
-    char         *module;
-    SmiBasetype  basetype;
-    char         *parent;  /* fully qualified */
-    void         **list;   /* SmiNamedNumber or SmiRange */
-    SmiDecl      decl;
-    char         *format;
-    SmiValue     *value;   /* default value */
-    char         *units;
-    SmiStatus    status;
-    char         *description;
-    char         *reference;
+    SmiIdentifier module;
+    SmiIdentifier name;
+    SmiBasetype   basetype;
+    SmiIdentifier parentmodule;
+    SmiIdentifier parentname;
+    SmiDecl       decl;
+    char          *format;
+    SmiValue      *valuePtr; /* default value */
+    char          *units;
+    SmiStatus     status;
+    char          *description;
+    char          *reference;
 } SmiType;
+
+typedef struct SmiRange {
+    SmiIdentifier       module;
+    SmiIdentifier       type;
+    SmiValue            *minValuePtr;
+    SmiValue            *maxValuePtr;
+} SmiRange;
+
+typedef struct SmiNamedNumber {
+    SmiIdentifier       module;
+    SmiIdentifier       type;
+    SmiIdentifier       name;
+    SmiValue            *valuePtr;
+} SmiNamedNumber;
 
 .fi
 .SH DESCRIPTION
@@ -46,36 +78,50 @@ definition (SMIv2). Base types may also be retrieved, their
 \fBmodule\fP element is an empty string.
 .PP
 The \fBsmiGetType()\fP function retrieves a \fBstruct SmiType\fP that
-represents a type or textual convention. Either \fIspec\fP must be the
-fully qualified descriptor leaving \fImod\fP NULL, or the name is
-split into the module \fImod\fP and descriptor \fIspec\fP.  Elements
+represents a type or textual convention. Either \fItype\fP must be the
+fully qualified identifier leaving \fImodule\fP NULL, or the name is
+split into the module \fImodule\fP and identifier \fItype\fP.  Elements
 not available or not present in the definition contain NULL. See \fBsmi.h\fP
 for the structure of contained elements.
 .PP
 The \fBsmiGetFirstType()\fP and \fBsmiGetNextType()\fP functions are
 used to iteratively retrieve \fBstruct SmiType\fPs.
 \fBsmiGetFirstType()\fP returns the first type or textual convention
-defined in module \fImodulename\fP.  Subsequent calls to
-\fBsmiGetNextType()\fP return the type or textual convention defined
-after that one specified by \fIname\fP which is usually the \fBname\fP
-element of the last returned \fBstruct SmiType\fP.  If there are no
-more type or textual convention definitions in the module NULL is
-returned.
+defined in module \fImodule\fP.  Subsequent calls to
+\fBsmiGetNextType()\fP release \fIsmiTypePtr\fP and
+return the type or textual convention defined after that one.  If there are no
+more type or textual convention definitions in the module NULL is returned.
+.PP
+Similarly, the \fBsmiGetFirstRange()\fP and \fBsmiGetNextRange()\fP
+functions are used to iteratively retrieve \fBstruct SmiRange\fPs
+that represent the size ranges of an octet string type or the value
+ranges of a numeric type specified by \fImodule\fP and \fItype\fP.
+.PP
+Similarly, the \fBsmiGetFirstNamedNumber()\fP and \fBsmiGetNextNamedNumber()\fP
+functions are used to iteratively retrieve \fBstruct SmiNamedNumber\fPs
+that represent the named numbers of a bit set or enumeration type
+specified by \fImodule\fP and \fItype\fP.
 .PP
 The \fBsmiFreeType()\fP function should be called when a retrieved
 \fBstruct SmiType\fP is no longer needed to release its memory.
+.PP
+Similarly, the \fBsmiFreeRange()\fP function should be called when a retrieved
+\fBstruct SmiRange\fP is no longer needed to release its memory.
+.PP
+Similarly, the \fBsmiFreeNamedNumber()\fP function should be called when a
+retrieved \fBstruct SmiNamedNumber\fP is no longer needed to release
+its memory.
 .SH "RETURN VALUES"
-The retrieval functions \fBsmiGetType()\fP, \fBsmiGetFirstType()\fP,
-and \fBsmiGetNextType()\fP return the requested \fBstruct smiType\fP
+The retrieval functions return the
+requested \fBstruct smiType\fP, \fBstruct smiRange\fP, 
+or \fBstruct smiNamedNumber\fP, respectively,
 on success, or NULL on error. Structures should be released after use
-by calling \fBsmiFreeType()\fP which is a void function.
+by calling \fBsmiFreeType()\fP, \fBsmiFreeRange()\fP,
+or \fBsmiFreeNamedNumber()\fP, respectively, which are a void functions.
 .SH "FILES"
 .nf
 /usr/local/include/smi.h    SMI library header file
 .fi
-.SH "NOTES"
-Libsmi is work in progress. Interface inconsistencies and deficiencies
-will be removed in near future.
 .SH "SEE ALSO"
 .BR libsmi "(3), "
 .BR smi.h

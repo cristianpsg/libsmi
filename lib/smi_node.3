@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_node.3,v 1.4 1999/05/07 07:57:13 strauss Exp $
+.\" $Id: smi_node.3,v 1.1 1999/05/28 14:52:08 strauss Exp $
 .\"
-.TH smi_node 3  "May 5, 1999" "IBR" "SMI Management Information Library"
+.TH smi_node 3  "June 1, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiGetNode, smiGetFirstNode, smiGetNextNode, smiFreeNode \- SMI type
 information routines
@@ -11,40 +11,112 @@ information routines
 .RS
 .RE
 .sp
-.BI "SmiNode *smiGetNode(char *" spec ", char *" mod );
+.BI "SmiNode *smiGetNode(char *" module ", char *" name );
 .RE
 .sp
-.BI "SmiNode *smiGetFirstNode(char *" modulename );
+.BI "SmiNode *smiGetFirstNode(char *" module ", SmiDecl " decl );
 .RE
 .sp
-.BI "SmiNode *smiGetNextNode(char *" modulename ", char *" name );
+.BI "SmiNode *smiGetNextNode(SmiNode *" smiNodePtr ", SmiDecl " decl );
+.RE
+.sp
+.BI "SmiNode *smiGetParentNode(SmiNode *" smiNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetFirstChildNode(SmiNode *" smiNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetNextChildNode(SmiNode *" smiNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetFirstIndexNode(SmiNode *" smiRowNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetNextIndexNode(SmiNode *" smiRowNodePtr ", SmiNode *" smiIndexNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetFirstMemberNode(SmiNode *" smiGroupNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetNextMemberNode(SmiNode *" smiGroupNodePtr ", SmiNode *" smiMemberNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetFirstObjectNode(SmiNode *" smiNotificationNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetNextObjectNode(SmiNode *" smiNotificationNodePtr ", SmiNode *" smiObjectNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetFirstMandatoryNode(SmiNode *" smiComplianceNodePtr );
+.RE
+.sp
+.BI "SmiNode *smiGetNextMandatoryNode(SmiNode *" smiComplianceNodePtr ", SmiNode *" smiMandatoryNodePtr );
 .RE
 .sp
 .BI "void smiFreeNode(SmiNode *" smiNodePtr );
 .RE
+.sp
+.BI "SmiOption *smiGetFirstOption(SmiNode *" smiComplianceNodePtr );
+.RE
+.sp
+.BI "SmiOption *smiGetNextOption(SmiNode *" smiComplianceNodePtr ", SmiOption *" smiOptionPtr );
+.RE
+.sp
+.BI "void smiFreeOption(SmiOption *" smiOptionPtr );
+.RE
+.sp
+.BI "SmiRefinement *smiGetFirstRefinement(SmiNode *" smiComplianceNodePtr );
+.RE
+.sp
+.BI "SmiRefinement *smiGetNextRefinement(SmiNode *" smiComplianceNodePtr ", SmiRefinement *" smiRefinementPtr );
+.RE
+.sp
+.BI "void smiFreeRefinement(SmiRefinement *" smiRefinementPtr );
+.RE
 
 typedef struct SmiNode {
-    char                *name;
-    char                *module;
-    SmiObjectIdentifier oid;          /* dotted string */
-    char                *type;        /* fully qualified */
-    char                **list;       /* depends on kind of node */
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiObjectIdentifier oid;        /* dotted string */
+    SmiIdentifier       typename;
+    SmiIdentifier       typemodule;
     SmiIndexkind        indexkind;    
-    int                 implied;
-    char                **index;
-    char                *relatedrow;
-    SmiOption           **option;     /* only compliance nodes */
-    SmiRefinement       **refinement; /* only compliance nodes */
+    int                 implied;    /* implied index length? */
+    int                 create;     /* creatable table rows? */
+    SmiIdentifier       relatedmodule;
+    SmiIdentifier       relatedname;
     SmiDecl             decl;
     SmiBasetype         basetype;
     SmiAccess           access;
     SmiStatus           status;
     char                *format;
-    SmiValue            *value;
+    SmiValue            *valuePtr;
     char                *units;
     char                *description;
     char                *reference;
 } SmiNode;
+
+typedef struct SmiOption {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiIdentifier       compliancemodule;
+    SmiIdentifier       compliancename;
+    char                *description;
+} SmiOption;
+ 
+typedef struct SmiRefinement {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiIdentifier       compliancemodule;
+    SmiIdentifier       compliancename;
+    SmiIdentifier       typemodule;
+    SmiIdentifier       typename;
+    SmiIdentifier       writetypemodule;
+    SmiIdentifier       writetypename;
+    SmiAccess           access;
+    char                *description;
+} SmiRefinement;
+
 
 .fi
 .SH DESCRIPTION
@@ -56,36 +128,77 @@ and AGENT-CAPABILITYs in SMIv1/v2 and module, node, scalar, table,
 row, column, notification, group, and compliance statements in SMIng.
 .PP
 The \fBsmiGetNode()\fP function retrieves a \fBstruct SmiNode\fP that
-represents a node of any kind. Either \fIspec\fP must be the fully
-qualified descriptor leaving \fImod\fP NULL, or the name is split into
-the module \fImod\fP and descriptor \fIspec\fP.  Elements not
+represents a node of any kind. Either \fIname\fP must be the fully
+qualified identifier leaving \fImodule\fP NULL, or the name is split into
+the module \fImodule\fP and identifier \fIname\fP.  Elements not
 available or not present in the definition contain NULL. See
 \fBsmi.h\fP for the structure of contained elements.
 .PP
 The \fBsmiGetFirstNode()\fP and \fBsmiGetNextNode()\fP functions are
 used to iteratively retrieve \fBstruct SmiNode\fPs.
-\fBsmiGetFirstNode()\fP returns the first node defined in module
-\fImodulename\fP with respect to an object identifier tree in
+\fBsmiGetFirstNode()\fP returns the first node of kind \fIdecl\fP
+defined in module
+\fImodule\fP with respect to an object identifier tree in
 pre-order (thus not necessarily the first defined in the MIB module).
-Subsequent calls to \fBsmiGetNextNode()\fP return the next node after
-that one specified by \fIname\fP which is usually the \fBname\fP
-element of the last returned \fBstruct SmiNode\fP. If there are no
+Subsequent calls to \fBsmiGetNextNode()\fP release \fIsmiNodePtr\fP and
+return the next node of kind \fIdecl\fP. If there are no
 more node definitions in the module NULL is returned.
+.PP
+Similarly, the \fBsmiGetFirstChildNode()\fP and \fBsmiGetNextChildNode()\fP
+functions are used to iteratively retrieve \fBstruct SmiNode\fPs that
+represent the immediate child nodes of that one specified
+by \fIsmiNodePtr\fP to the \fBsmiGetFirstChildNode()\fP call.
+.PP
+Similarly, the \fBsmiGetFirstIndexNode()\fP and \fBsmiGetNextIndexNode()\fP
+functions are used to iteratively retrieve \fBstruct SmiNode\fPs that
+represent the index nodes of the table row specified by \fIsmiRowNodePtr\fP.
+.PP
+Similarly, the \fBsmiGetFirstMemberNode()\fP and \fBsmiGetNextMemberNode()\fP
+functions are used to iteratively retrieve \fBstruct SmiNode\fPs that
+represent the member nodes of the (object or notification) group
+specified by \fIsmiGroupNodePtr\fP.
+.PP
+Similarly, the \fBsmiGetFirstObjectNode()\fP and \fBsmiGetNextObjectNode()\fP
+functions are used to iteratively retrieve \fBstruct SmiNode\fPs that
+represent the object nodes of the notification
+specified by \fIsmiNotificationNodePtr\fP.
+.PP
+Similarly, the \fBsmiGetFirstMandatoryNode()\fP
+and \fBsmiGetNextMandatoryNode()\fP
+functions are used to iteratively retrieve \fBstruct SmiNode\fPs that
+represent the mandatory (object or notification) groups of the compliance
+statement specified by \fIsmiComplianceNodePtr\fP.
+.PP
+Similarly, the \fBsmiGetFirstOption()\fP
+and \fBsmiGetNextOption()\fP
+functions are used to iteratively retrieve \fBstruct SmiOption\fPs that
+represent the optional (object or notification) groups of the compliance
+statement specified by \fIsmiComplianceNodePtr\fP.
+.PP
+Similarly, the \fBsmiGetFirstRefinement()\fP
+and \fBsmiGetNextRefinement()\fP
+functions are used to iteratively retrieve \fBstruct SmiRefinement\fPs that
+represent the refined objects of the compliance
+statement specified by \fIsmiComplianceNodePtr\fP.
 .PP
 The \fBsmiFreeNode()\fP function should be called when a retrieved
 \fBstruct SmiNode\fP is no longer needed to release its memory.
+.PP
+Similarly, the \fBsmiFreeOption()\fP function should be called when a retrieved
+\fBstruct SmiOption\fP is no longer needed to release its memory.
+.PP
+Similarly, the \fBsmiFreeRefinement()\fP function should be called when a
+retrieved \fBstruct SmiRefinement\fP is no longer needed to release its memory.
 .SH "RETURN VALUES"
-The retrieval functions \fBsmiGetNode()\fP, \fBsmiGetFirstNode()\fP,
-and \fBsmiGetNextNode()\fP return the requested \fBstruct smiNode\fP
+The retrieval functions return the requested \fBstruct smiNode\fP,
+\fBstruct smiOption\fP, or \fBstruct smiRefinement\fP,
 on success, or NULL on error. Structures should be released after use
-by calling \fBsmiFreeNode()\fP which is a void function.
+by calling \fBsmiFreeNode()\fP, \fBsmiFreeOption()\fP,
+or \fBsmiFreeRefinement()\fP, respectively, which are a void functions.
 .SH "FILES"
 .nf
 /usr/local/include/smi.h    SMI library header file
 .fi
-.SH "NOTES"
-Libsmi is work in progress. Interface inconsistencies and deficiencies
-will be removed in near future.
 .SH "SEE ALSO"
 .BR libsmi "(3), "
 .BR smi.h
