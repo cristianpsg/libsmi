@@ -1,5 +1,10 @@
 2000-05-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/data.c (loadModule): added checks for missing imported
+	modules.
+
+	* configure.in: fixed mibdir default. Thanks to Saurabh.
+
 	* lib/data.c (setObjectName): fixed bug in case of multiple
 	definitions for the same OID in multiple modules.
 

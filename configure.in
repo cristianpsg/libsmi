@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.63 2000/02/22 17:11:11 strauss Exp $
+# @(#) $Id: configure.in,v 1.64 2000/04/11 09:00:15 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -42,9 +42,13 @@ AC_CHECK_FUNC(timegm, AC_DEFINE(HAVE_TIMEGM))
 
 AC_CHECK_HEADERS(getopt.h pwd.h unistd.h)
 
+if test "x$prefix" = "xNONE"; then
+  prefix=/usr/local
+fi
+
 AC_ARG_WITH(mibdir,
 [  --with-mibdir=DIR       use DIR to install libsmi MIB modules [DATADIR/mibs]],
-mibdir="$withval", mibdir="/usr/local/share/mibs")
+mibdir="$withval", mibdir="$prefix/share/mibs")
 
 AC_ARG_WITH(smipath,
 [  --with-smipath=DIR:DIR  default DIRs to search for MIB modules [MIBDIR...]],
@@ -79,10 +83,6 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
-
-if test "x$prefix" = "xNONE"; then
-  prefix=/usr/local
-fi
 
 AC_DEFINE_UNQUOTED(DEFAULT_GLOBALCONFIG, "${prefix}/etc/smi.conf")
 AC_DEFINE(DEFAULT_USERCONFIG, ".smirc")
