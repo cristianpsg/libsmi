@@ -1,8 +1,8 @@
-2000-03-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-03-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/*.c: added dump-xml from Juergen. replaced bcmp by memcmp.
 
 	* mibs/ietf/: added HOST-RESOURCES-MIB and HOST-RESOURCES-TYPES.
-
-2000-03-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.h: changed //-comment to /* comment */.
 
