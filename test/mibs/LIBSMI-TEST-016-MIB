@@ -34,15 +34,16 @@ libsmiTest016Mib MODULE-IDENTITY
 	     TC as defined in RFC 3291.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-016-MIB:89: warning: node `t1Data' must be contained in at least one conformance group
-LIBSMI-TEST-016-MIB:125: warning: node `t2Data' must be contained in at least one conformance group
-LIBSMI-TEST-016-MIB:161: warning: node `t3Data' must be contained in at least one conformance group
-LIBSMI-TEST-016-MIB:206: warning: node `t4AddrType' must be contained in at least one conformance group
-LIBSMI-TEST-016-MIB:199: warning: node `t4Addr' must be contained in at least one conformance group
-LIBSMI-TEST-016-MIB:213: warning: node `t4AddrIPv6z' must be contained in at least one conformance group
-LIBSMI-TEST-016-MIB:206: warning: `InetAddressType' should not be subtyped
-LIBSMI-TEST-016-MIB:199: warning: `InetAddress' object should have an accompanied preceding `InetAdressType' object
-LIBSMI-TEST-016-MIB:213: warning: `InetAddress' should be used instead of `InetAddressIPv6z'
+LIBSMI-TEST-016-MIB:186: warning: SEQUENCE element #2 `t4AddrType' does not match order of columnar objects under `t4Entry'
+LIBSMI-TEST-016-MIB:90: warning: node `t1Data' must be contained in at least one conformance group
+LIBSMI-TEST-016-MIB:126: warning: node `t2Data' must be contained in at least one conformance group
+LIBSMI-TEST-016-MIB:162: warning: node `t3Data' must be contained in at least one conformance group
+LIBSMI-TEST-016-MIB:207: warning: node `t4AddrType' must be contained in at least one conformance group
+LIBSMI-TEST-016-MIB:200: warning: node `t4Addr' must be contained in at least one conformance group
+LIBSMI-TEST-016-MIB:214: warning: node `t4AddrIPv6z' must be contained in at least one conformance group
+LIBSMI-TEST-016-MIB:207: warning: `InetAddressType' should not be subtyped
+LIBSMI-TEST-016-MIB:200: warning: `InetAddress' object should have an accompanied preceding `InetAdressType' object
+LIBSMI-TEST-016-MIB:214: warning: `InetAddress' should be used instead of `InetAddressIPv6z'
 	    "
     REVISION        "200211190000Z"
     DESCRIPTION     

@@ -3,21 +3,21 @@
 #
 #      Process this file with autoconf to produce a configure script.
 #
-# Copyright (c) 1999-2002 Frank Strauss, Technical University of Braunschweig.
+# Copyright (c) 1999-2003 Frank Strauss, Technical University of Braunschweig.
 #
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.116 2002/12/22 16:12:23 strauss Exp $
+# @(#) $Id: configure.in,v 1.117 2003/12/01 12:24:15 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=4
-LIBSMI_PATCHLEVEL=2-pre1
+LIBSMI_PATCHLEVEL=2
 LIBTOOL_VERSION=2
-LIBTOOL_REVISION=21
+LIBTOOL_REVISION=22
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
