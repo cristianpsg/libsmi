@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.112 2002/05/16 23:21:55 bunkus Exp $
+ * @(#) $Id: data.c,v 1.113 2002/05/17 12:56:35 schoenw Exp $
  */
 
 #include <config.h>
@@ -3401,16 +3401,19 @@ int smiInitData()
 	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 0;
+    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
     objectPtr = addObject(smiStrdup("iso"), smiHandle->rootNodePtr, 1, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 1;
+    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
     objectPtr = addObject(smiStrdup("joint-iso-ccitt"), smiHandle->rootNodePtr, 2, 0, &parser);
     objectPtr->export.oid = objectPtr->nodePtr->oid =
 	smiMalloc(sizeof(int));
     objectPtr->export.oidlen = objectPtr->nodePtr->oidlen = 1;
     objectPtr->nodePtr->oid[0] = 2;
+    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
     
     
     smiHandle->typeOctetStringPtr =
