@@ -1,5 +1,7 @@
 2000-12-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/parser-*.h: yyerror-verbose is now non-optional.
+
 	* tools/dump-*.c: Juergen fixed various dump drivers. `cm' is
 	now a single format with an `explain' option. Man pages are
 	updated to include long options.

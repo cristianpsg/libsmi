@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.h,v 1.4 1999/05/31 11:58:32 strauss Exp $
+ * @(#) $Id: parser-smi.h,v 1.5 1999/06/03 20:37:09 strauss Exp $
  */
 
 #ifndef _PARSER_SMI_H
@@ -17,6 +17,10 @@
 #include <stdio.h>
 
 #include "data.h"
+
+
+
+#define YYERROR_VERBOSE
 
 
 
