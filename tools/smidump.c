@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.31 2000/03/02 18:43:11 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.32 2000/03/03 14:50:12 strauss Exp $
  */
 
 #include <config.h>
@@ -65,9 +65,11 @@ static Driver driverTable[] = {
     { "ucd-c",	   dumpUcdC,	SMI_FLAG_NODESCR,
       "UCD SNMP mib module C code" },
     { "dia",       dumpDia,	SMI_FLAG_NODESCR,
-      "UML graphics in DIA XML format" },
+      "UML style graphics in the DIA XML file format" },
     { "jax",       dumpJax,	SMI_FLAG_NODESCR,
       "Java AgentX sub-agent classes in separate files" },
+    { "xml",       dumpXml,	0,
+      "SMIng in XML format" },
 #if 0
     { "fig-tree",  dumpFigTree,	SMI_FLAG_NODESCR,
       "tree graphics in xfig fig format" },

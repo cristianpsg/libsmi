@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.5 1999/09/30 08:16:49 strauss Exp $
+.\" $Id: smidump.1.in,v 1.6 2000/02/12 14:31:55 strauss Exp $
 .\"
 .TH smidump 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -117,10 +117,19 @@ CORBA OID definitions following the JIDM specification translation
 rules.
 .TP
 ucd-h
-C source code header file for usage within the UCD SNMP agent.
+C source code header file for usage within the UCD SNMP agent (experimental).
 .TP
 ucd-c
-C source code file for usage within the UCD SNMP agent.
+C source code file for usage within the UCD SNMP agent (experimental).
+.TP
+dia
+UML style graphics in the DIA XML file format (experimental).
+.TP
+jax
+Java AgentX sub-agent classes in separate files (experimental).
+.TP
+xml
+SMIng in XML format (experimental).
 
 .SH "EXAMPLE"
 This example converts the SMIv2 module IF-MIB in the current directory
