@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.9 2001/01/26 15:24:19 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.1 2001/01/30 16:33:43 schoenw Exp $
  */
 
 /*
@@ -352,10 +352,10 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 		maxSize = getMaxSize(smiType);
 		minSize = getMinSize(smiType);
 		fprintf(f,
-			"    uint32_t  *%s;\n", cName);
+			"    guint32  *%s;\n", cName);
 		if (maxSize != minSize) {
 		    fprintf(f,
-			    "    size_t    _%sLength;\n", cName);
+			    "    gsize    _%sLength;\n", cName);
 		}
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
@@ -363,28 +363,28 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 		maxSize = getMaxSize(smiType);
 		minSize = getMinSize(smiType);
 		fprintf(f,
-			"    u_char    *%s;\n", cName);
+			"    guchar   *%s;\n", cName);
 		if (maxSize != minSize) {
 		    fprintf(f,
-			    "    size_t    _%sLength;\n", cName);
+			    "    gsize    _%sLength;\n", cName);
 		}
 		break;
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
 		fprintf(f,
-			"    int32_t   *%s;\n", cName);
+			"    gint32   *%s;\n", cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
-			"    uint32_t  *%s;\n", cName);
+			"    guint32  *%s;\n", cName);
 		break;
 	    case SMI_BASETYPE_INTEGER64:
 		fprintf(f,
-			"    int64_t   *%s; \n", cName);
+			"    gint64   *%s; \n", cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED64:
 		fprintf(f,
-			"    uint64_t  *%s; \n", cName);
+			"    guint64  *%s; \n", cName);
 		break;
 	    default:
 		fprintf(f,
@@ -394,7 +394,8 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	    xfree(cName);
 	}
     }
-    
+
+#if 0
     fprintf(f,
 	    "    void      *_clientData;\t\t"
 	    "/* pointer to client data structure */\n");
@@ -424,30 +425,30 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
 		maxSize = getMaxSize(smiType);
 		fprintf(f,
-			"    uint32_t  _%s[%u];\n", cName, maxSize);
+			"    guint32  _%s[%u];\n", cName, maxSize);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
 		maxSize = getMaxSize(smiType);
 		fprintf(f,
-			"    u_char    _%s[%u];\n", cName, maxSize);
+			"    guchar    _%s[%u];\n", cName, maxSize);
 		break;
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
 		fprintf(f,
-			"    int32_t   _%s;\n", cName);
+			"    gint32    _%s;\n", cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
-			"    uint32_t  _%s;\n", cName);
+			"    guint32   _%s;\n", cName);
 		break;
 	    case SMI_BASETYPE_INTEGER64:
 		fprintf(f,
-			"    int64_t   _%s; \n", cName);
+			"    gint64    _%s; \n", cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED64:
 		fprintf(f,
-			"    uint64_t  _%s; \n", cName);
+			"    guint64   _%s; \n", cName);
 		break;
 	    default:
 		fprintf(f,
@@ -457,11 +458,11 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	    xfree(cName);
 	}
     }
-
+#endif
     fprintf(f, "} %s_t;\n\n", cGroupName);
 
     fprintf(f, "extern int\n"
-	    "%s_mgr_get_%s(struct snmp_session *s, %s_t **%s);\n",
+	    "%s_get_%s(host_snmp *s, %s_t **%s);\n",
 	    cModuleName, cGroupName, cGroupName, cGroupName);
     fprintf(f, "\n");
 
@@ -547,7 +548,7 @@ static void printOidDefinitions(FILE *f, SmiModule *smiModule)
 	if (smiNode->nodekind & (SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR)
 	    && smiNode->access != SMI_ACCESS_NOTIFY) {
 	    cName = translate(smiNode->name);
-  	    fprintf(f, "static oid %s[] = {", cName);
+  	    fprintf(f, "static guint32 %s[] = {", cName);
 	    for (i = 0; i < smiNode->oidlen; i++) {
 		fprintf(f, "%s%u", i ? ", " : "", smiNode->oid[i]);
 	    }
@@ -583,45 +584,43 @@ static void printGetScalarAssignement(FILE *f, SmiNode *groupNode)
 	    
 	    cName = translate(smiNode->name);
 	    fprintf(f,
-		    "        if (vars->name_length > sizeof(%s)/sizeof(oid)\n"
-		    "            && memcmp(vars->name, %s, sizeof(%s)) == 0) {\n",
+		    "        if (vb->id_len > sizeof(%s)/sizeof(guint32)\n"
+		    "            && memcmp(vb->id, %s, sizeof(%s)) == 0) {\n",
 		    cName, cName, cName);
 	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_INTEGER32:
-	    case SMI_BASETYPE_UNSIGNED32:
 	    case SMI_BASETYPE_ENUM:
 		fprintf(f,
-			"            (*%s)->_%s = *vars->val.integer;\n"
-			"            (*%s)->%s = &((*%s)->_%s);\n",
-			cGroupName, cName,
-			cGroupName, cName, cGroupName, cName);
+			"            (*%s)->%s = (gint32 *) &(vb->syntax.l);\n",
+			cGroupName, cName);
+		break;
+	    case SMI_BASETYPE_UNSIGNED32:
+		fprintf(f,
+			"            (*%s)->%s = (guint32 *) &(vb->syntax.ul);\n",
+			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
 		maxSize = getMaxSize(smiType);
 		minSize = getMinSize(smiType);
-		fprintf(f,
-			"            memcpy((*%s)->_%s, vars->val.string, vars->val_len);\n",
-			cGroupName, cName);
 		if (minSize != maxSize) {
 		    fprintf(f,
-			    "            (*%s)->_%sLength = vars->val_len;\n",
+			    "            (*%s)->_%sLength = vb->syntax_len;\n",
 			    cGroupName, cName);
 		}
 		fprintf(f,
-			"            (*%s)->%s = (*%s)->_%s;\n",
-			cGroupName, cName, cGroupName, cName);
+			"            (*%s)->%s = vb->syntax.uc;\n",
+			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+#if 1
 		fprintf(f,
-			"            memcpy((*%s)->_%s, vars->val.string, vars->val_len);\n",
+			"            (*%s)->_%sLength = vb->syntax_len / sizeof(guint32);\n",
 			cGroupName, cName);
 		fprintf(f,
-			"            (*%s)->_%sLength = vars->val_len / sizeof(oid);\n",
+			"            (*%s)->%s = (guint32 *) vb->syntax.ul;\n",
 			cGroupName, cName);
-		fprintf(f,
-			"            (*%s)->%s = (*%s)->_%s;\n",
-			cGroupName, cName, cGroupName, cName);
+#endif
 		break;
 	    default:
 		break;
@@ -647,17 +646,13 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
     cGroupName = translate(groupNode->name);
 
     fprintf(f,
-	    "int %s_mgr_get_%s(struct snmp_session *s, %s_t **%s)\n"
+	    "int %s_get_%s(host_snmp *s, %s_t **%s)\n"
 	    "{\n"
-	    "    struct snmp_pdu *request, *response;\n"
-	    "    struct variable_list *vars;\n"
-	    "    int status;\n"
+	    "    GSList *in = NULL, *out = NULL, *elem;\n"
+
 	    "\n",
 	    cModuleName, cGroupName, cGroupName, cGroupName);
 
-    fprintf(f,
-	    "    request = snmp_pdu_create(SNMP_MSG_GETNEXT);\n");
-	    
     for (smiNode = smiGetFirstChildNode(groupNode);
 	 smiNode;
 	 smiNode = smiGetNextChildNode(smiNode)) {
@@ -665,22 +660,16 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 	    && (smiNode->access == SMI_ACCESS_READ_ONLY
 		|| smiNode->access == SMI_ACCESS_READ_WRITE)) {
 	    fprintf(f,
-	    "    snmp_add_null_var(request, %s, sizeof(%s)/sizeof(oid));\n",
+		    "    g_pdu_add_oid(&in, (gulong *) %s,\n"
+		    "                  sizeof(%s)/sizeof(guint32), SNMP_NULL, NULL);\n",
 		    smiNode->name, smiNode->name);
 	}
     }
 
     fprintf(f,
-#if 0
 	    "\n"
-	    "    peer = snmp_open(s);\n"
-	    "    if (!peer) {\n"
-	    "        return -1;\n"
-	    "    }\n"
-#endif
-	    "\n"
-	    "    status = snmp_synch_response(s, request, &response);\n"
-	    "    if (status != STAT_SUCCESS) {\n"
+	    "    out = g_sync_getnext(s, in);\n"
+	    "    if (! out) {\n"
 	    "        return -2;\n"
 	    "    }\n"
 	    "\n");
@@ -696,12 +685,14 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 	    cGroupName, cGroupName, cGroupName, cGroupName);
 
     fprintf(f,
-	    "    for (vars = response->variables; vars; vars = vars->next_variable) {\n"
-	    "        if (vars->type == SNMP_ENDOFMIBVIEW\n"
-            "            || (vars->type == SNMP_NOSUCHOBJECT)\n"
-            "            || (vars->type == SNMP_NOSUCHINSTANCE)) {\n"
+	    "    for (elem = out; elem; elem = g_slist_next(elem)) {\n"
+	    "        SNMP_OBJECT *vb = (SNMP_OBJECT *) elem->data;\n"
+	    "        if (vb->type == SNMP_ENDOFMIBVIEW\n"
+            "            || (vb->type == SNMP_NOSUCHOBJECT)\n"
+            "            || (vb->type == SNMP_NOSUCHINSTANCE)) {\n"
             "            continue;\n"
-	    "        }\n");
+	    "        }\n"
+	);
     printGetScalarAssignement(f, groupNode);
     fprintf(f,
 	    "    }\n"
@@ -720,14 +711,10 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
 #endif
 
     fprintf(f,
-	    "    if (response) snmp_free_pdu(response);\n"
-	    "\n"
 #if 0
-	    "    if (snmp_close(peer) == 0) {\n"
-	    "        return -5;\n"
-	    "    }\n"
-	    "\n"
+	    "    if (response) snmp_free_pdu(response);\n"
 #endif
+	    "\n"
 	    "    return 0;\n"
 	    "}\n\n");
 
@@ -759,7 +746,7 @@ static void printGetMethods(FILE *f, SmiModule *smiModule)
 
 
 
-static void dumpMgrStub(SmiModule *smiModule, char *baseName)
+static void dumpStubs(SmiModule *smiModule, char *baseName)
 {
     FILE *f;
 
@@ -802,7 +789,7 @@ static void dumpStools(int modc, SmiModule **modv, int flags, char *output)
 	for (i = 0; i < modc; i++) {
 	    baseName = output ? output : translateFileName(modv[i]->name);
 	    dumpHeader(modv[i], baseName);
-	    dumpMgrStub(modv[i], baseName);
+	    dumpStubs(modv[i], baseName);
 	    if (! output) xfree(baseName);
 	}
     }
