@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.20 2000/02/24 10:35:39 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.21 2000/04/11 09:00:25 strauss Exp $
  */
 
 %option noyywrap
@@ -28,6 +28,12 @@
 #include "parser-sming.tab.h"
 #include "scanner-sming.h"
 
+
+#if defined(_WIN32)
+# undef YY_DECL
+/* vc++ misses this; reason unclear */
+# define YY_DECL int sminglex   (YYSTYPE *lvalp, void *parser)   
+#endif
 
 
 #define thisParser (*(Parser *) parser)

@@ -3,6 +3,8 @@
 	* lib/data.c (setObjectName): fixed crashes on unresolved
 	labels. Thanks to Bill Fenner.
 
+	* win/: applied patches from Erik.
+
 2000-05-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c (loadModule): added checks for missing imported
