@@ -1,3 +1,10 @@
+2004-08-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.4.3.tar.gz: released version 0.4.3. Time for a new
+	release to get it out with the next stable Debian release (3.1).
+	The are numerous bug fixes, improvements to smidump drivers,
+	MIB updates, added MIBs, and new smilint checks.
+
 2004-07-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/check.c, lib/error.c: Added checks for object groups
