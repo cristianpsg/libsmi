@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.15 2000/03/02 09:22:34 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.16 2000/03/22 09:46:14 strauss Exp $
  */
 
 #include <config.h>
@@ -52,8 +52,8 @@ static BaseTypeCount basetypes[] = {
 
 
 typedef struct TypeNode {
-    char        *typemodule;
-    char        *type_name;
+    char        *module;
+    char        *name;
     SmiBasetype basetype;
     struct TypeNode *nextNodePtr;
     struct TypeNode *childNodePtr;
@@ -299,8 +299,8 @@ static TypeNode *createTypeNode(SmiType *smiType)
     TypeNode *newType;
     
     newType = xmalloc(sizeof(TypeNode));
-    newType->typemodule = smiGetTypeModule(smiType)->name;
-    newType->type_name = smiType->name;
+    newType->module = smiGetTypeModule(smiType)->name;
+    newType->name = smiType->name;
     newType->basetype = smiType->basetype;
     newType->childNodePtr = NULL;
     newType->nextNodePtr = NULL;
@@ -321,13 +321,13 @@ static void addToTypeTree(TypeNode *root, SmiType *smiType)
 
     smiParentType = smiGetParentType(smiType);
     
-    if ((!root->typemodule
+    if ((!root->module
 	 || !smiParentType
 	 || strcmp(smiGetTypeModule(smiParentType)->name,
-		   root->typemodule) == 0) &&
-	(!smiParentType || strcmp(smiParentType->name, root->type_name) == 0)) {
+		   root->module) == 0) &&
+	(!smiParentType || strcmp(smiParentType->name, root->name) == 0)) {
 	newType = createTypeNode(smiType);
-	newType->typemodule = smiGetTypeModule(smiType)->name;
+	newType->module = smiGetTypeModule(smiType)->name;
 
 	for (typePtrPtr = &(root->childNodePtr);
 	     *typePtrPtr; typePtrPtr = &((*typePtrPtr)->nextNodePtr)) ;
@@ -348,7 +348,7 @@ static void addToTypeTree(TypeNode *root, SmiType *smiType)
 static void freeTypeTree(TypeNode *root)
 {
     if (root->childNodePtr) {
-	if (root->childNodePtr->typemodule) {
+	if (root->childNodePtr->module) {
 	    freeTypeTree(root->childNodePtr);
 	    root->childNodePtr = NULL;
 	} else {
@@ -357,7 +357,7 @@ static void freeTypeTree(TypeNode *root)
     }
     
     if (root->nextNodePtr) {
-	if (root->nextNodePtr->typemodule) {
+	if (root->nextNodePtr->module) {
 	    freeTypeTree(root->nextNodePtr);
 	    root->nextNodePtr = NULL;
 	} else {
@@ -365,7 +365,7 @@ static void freeTypeTree(TypeNode *root)
 	}
     }
 
-    if (root->typemodule) {
+    if (root->module) {
 	xfree(root);
     }
 }
@@ -376,10 +376,10 @@ static TypeNode *findInTypeTree(TypeNode *root, SmiType *smiType)
 {
     TypeNode *result = NULL;
     
-    if (root->typemodule
- 	&& strcmp(root->typemodule, smiGetTypeModule(smiType)->name) == 0
+    if (root->module
+ 	&& strcmp(root->module, smiGetTypeModule(smiType)->name) == 0
 	&& smiType->name
- 	&& strcmp(root->type_name, smiType->name) == 0) {
+ 	&& strcmp(root->name, smiType->name) == 0) {
 	result = root;
     }
     
@@ -431,12 +431,12 @@ static void printTypeTree(TypeNode *root, char *prefix)
     int namelen = -1;
     SmiModule *smiModule;
     
-    if (root->typemodule) {
+    if (root->module) {
 	printf("%s  |\n", prefix);
     }
 
     for (typeNode = root; typeNode; typeNode = typeNode->nextNodePtr) {
-	int len = strlen(typeNode->type_name);
+	int len = strlen(typeNode->name);
 	if (len > namelen) namelen = len;
     }
     
@@ -444,18 +444,18 @@ static void printTypeTree(TypeNode *root, char *prefix)
  	if (typeNode != &typeRoot) {
 	    SmiType *smiType;
 	    char c = '+', *flags;
-	    smiModule = smiGetModule(typeNode->typemodule);
-	    smiType = smiGetType(smiModule, typeNode->type_name);
+	    smiModule = smiGetModule(typeNode->module);
+	    smiType = smiGetType(smiModule, typeNode->name);
 	    if (smiType) {
 		c = getStatusChar(smiType->status);
 		if (getBaseTypeCount(typeNode->basetype)) {
 		    flags = getFlags(smiType);
 		    if (flags && *flags) {
 			printf("%s  %c-- %s %-*s", prefix, c, flags,
-			       namelen, typeNode->type_name);
+			       namelen, typeNode->name);
 		    } else {
 			printf("%s  %c--%-*s", prefix, c,
-			       namelen, typeNode->type_name);
+			       namelen, typeNode->name);
 		    }
 		    printRestrictions(smiType);
 		    if (smiType->format) {

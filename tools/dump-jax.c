@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.6 2000/03/29 14:04:16 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.7 2000/03/31 07:58:18 strauss Exp $
  */
 
 #include <config.h>
@@ -433,7 +433,7 @@ static void dumpEntry(SmiNode *smiNode)
     SmiType *smiType;
     SmiRange *smiRange;
     SmiElement *element;
-    int i, cnt;
+    int cnt;
     char *p;
     char init[20];
     
@@ -700,7 +700,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     SmiNode *parentNode, *currNode;
     SmiType *smiType;
     SmiRange *smiRange;
-    int i, cnt;
+    int i;
     char *p;
     char init[20];
 
@@ -806,7 +806,6 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 	fprintf(f,
 		"        %sOID = new AgentXOID(%sName);\n"
 	        "        data.addElement(%sOID);\n",
-		translate1Upper(currNode->name),
 		translate1Upper(currNode->name),
 		translate1Upper(currNode->name),
 		translate1Upper(currNode->name),
