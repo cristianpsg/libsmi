@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.20 1999/12/12 12:51:08 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.21 1999/12/13 16:16:01 strauss Exp $
  */
 
 #include <stdio.h>
@@ -98,6 +98,8 @@ int main(int argc, char *argv[])
 	}
 	optind++;
     }
+
+    smiExit();
     
     exit(0);
 }

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.53 1999/12/13 16:16:00 strauss Exp $
+ * @(#) $Id: smi.c,v 1.54 1999/12/14 12:00:09 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -713,7 +713,7 @@ int smiSetPath(const char *s)
 
 
 
-void smiSetSeverity(const char *pattern, int severity)
+void smiSetSeverity(char *pattern, int severity)
 {
     errorSeverity(pattern, severity);
 }

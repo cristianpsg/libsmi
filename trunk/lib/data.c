@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.44 1999/12/14 12:00:09 strauss Exp $
+ * @(#) $Id: data.c,v 1.45 1999/12/17 09:55:54 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -280,7 +280,7 @@ setModuleOrganization(modulePtr, organization)
     Module *modulePtr;
     char *organization;
 {
-    modulePtr->organization = util_strdup(organization);
+    modulePtr->organization = organization;
 }
 
 
@@ -306,7 +306,7 @@ setModuleContactInfo(modulePtr, contactInfo)
     Module	  *modulePtr;
     char	  *contactInfo;
 {
-    modulePtr->contactInfo = util_strdup(contactInfo);
+    modulePtr->contactInfo = contactInfo;
 }
 
 
@@ -381,7 +381,7 @@ addRevision(date, description, parserPtr)
 
     revisionPtr->modulePtr		 = modulePtr;
     revisionPtr->date		       	 = date;
-    revisionPtr->description	       	 = util_strdup(description);
+    revisionPtr->description	       	 = description;
     revisionPtr->line			 = parserPtr ? parserPtr->line : -1;
     
     revisionPtr->nextPtr		 = NULL;
@@ -1100,6 +1100,9 @@ setObjectName(objectPtr, name)
     Module	      *modulePtr;
     Object	      *newObjectPtr;
 
+    if (objectPtr->name) {
+	util_free(objectPtr->name);
+    }
     objectPtr->name = util_strdup(name);
 
     /*
@@ -1257,7 +1260,7 @@ setObjectDescription(objectPtr, description)
     Object    *objectPtr;
     char      *description;
 {
-    objectPtr->description = util_strdup(description);
+    objectPtr->description = description;
 }
 
 
@@ -1283,7 +1286,7 @@ setObjectReference(objectPtr, reference)
     Object    *objectPtr;
     char      *reference;
 {
-    objectPtr->reference = util_strdup(reference);
+    objectPtr->reference = reference;
 }
 
 
@@ -1309,7 +1312,7 @@ setObjectFormat(objectPtr, format)
     Object    *objectPtr;
     char      *format;
 {
-    objectPtr->format = util_strdup(format);
+    objectPtr->format = format;
 }
 
 
@@ -1335,7 +1338,7 @@ setObjectUnits(objectPtr, units)
     Object    *objectPtr;
     char      *units;
 {
-    objectPtr->units = util_strdup(units);
+    objectPtr->units = units;
 }
 
 
@@ -2224,7 +2227,7 @@ setTypeDescription(typePtr, description)
     Type	   *typePtr;
     char	   *description;
 {
-    typePtr->description = util_strdup(description);
+    typePtr->description = description;
 }
 
 
@@ -2250,7 +2253,7 @@ setTypeReference(typePtr, reference)
     Type	   *typePtr;
     char	   *reference;
 {
-    typePtr->reference = util_strdup(reference);
+    typePtr->reference = reference;
 }
 
 
@@ -2341,7 +2344,7 @@ setTypeFormat(typePtr, format)
     Type           *typePtr;
     char	   *format;
 {
-    typePtr->format = util_strdup(format);
+    typePtr->format = format;
 }
 
 
@@ -2368,7 +2371,7 @@ setTypeUnits(typePtr, units)
     Type           *typePtr;
     char	   *units;
 {
-    typePtr->units = util_strdup(units);
+    typePtr->units = units;
 }
 
 
@@ -2909,9 +2912,6 @@ freeData()
     Type       *typePtr, *nextTypePtr;
     Object     *objectPtr, *nextObjectPtr;
 
-    /* return; */ /* XXX */
-    /* TODO: some weired ptrs :-(, waiting for purify... */
-    
     for (viewPtr = firstViewPtr; viewPtr; viewPtr = nextViewPtr) {
 	nextViewPtr = viewPtr->nextPtr;
 	util_free(viewPtr->name);
@@ -3310,4 +3310,4 @@ int checkFormat(basetype, p)
     default:
 	return 0;
     }
-}
+} /*  */

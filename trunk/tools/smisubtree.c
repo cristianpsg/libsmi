@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smisubtree.c,v 1.6 1999/05/31 15:48:51 strauss Exp $
+ * @(#) $Id: smisubtree.c,v 1.7 1999/12/12 12:51:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
     };
     
     smiFreeNode(smiNode);
+    smiExit();
     free(modulename);
     exit(0);
 }

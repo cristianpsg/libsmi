@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.26 1999/10/05 06:31:01 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.27 1999/12/12 12:51:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -508,5 +508,7 @@ int main(int argc, char *argv[])
 	smiFreeMacro(macro);
     }
 
+    smiExit();
+    
     exit(0);
 }

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.8 1999/06/03 20:37:20 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.9 1999/06/04 20:39:08 strauss Exp $
  */
 
 %option noyywrap
@@ -48,6 +48,13 @@
 YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
 
 
+
+#define STRINGPOOL_MAXLEN  200
+#define STRINGPOOL_MAX     200
+
+static char sp[STRINGPOOL_MAXLEN][STRINGPOOL_MAX];
+static int sp_current = 0;
+ 
  
 int
 smiEnterLexRecursion(file)
@@ -682,7 +689,9 @@ eol             ("\n"|"\n\015"|"\015\n")
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = strdup(yytext);
+    strncpy(sp[sp_current], yytext, STRINGPOOL_MAXLEN-1);
+    yylval.id = sp[sp_current];
+    sp_current++; if (sp_current >= STRINGPOOL_MAX) sp_current = 0;
     return UPPERCASE_IDENTIFIER;
 }
 
@@ -692,7 +701,9 @@ eol             ("\n"|"\n\015"|"\015\n")
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = strdup(yytext);
+    strncpy(sp[sp_current], yytext, STRINGPOOL_MAXLEN-1);
+    yylval.id = sp[sp_current];
+    sp_current++; if (sp_current >= STRINGPOOL_MAX) sp_current = 0;
     return LOWERCASE_IDENTIFIER;
 }
 
@@ -714,7 +725,9 @@ eol             ("\n"|"\n\015"|"\015\n")
 	 (strcmp(yytext, MAX_NUMBER) > 0))) {
 	printError(parser, ERR_NUMBER_TO_LARGE, yytext);
     }
-    yylval.id = strdup(yytext);
+    strncpy(sp[sp_current], yytext, STRINGPOOL_MAXLEN-1);
+    yylval.id = sp[sp_current];
+    sp_current++; if (sp_current >= STRINGPOOL_MAX) sp_current = 0;
     return NUMBER;
 }
 
