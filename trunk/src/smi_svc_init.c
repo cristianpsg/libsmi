@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_init.c,v 1.1 1998/11/20 17:10:17 strauss Exp $
+ * @(#) $Id: smi_svc_init.c,v 1.2 1998/11/24 20:13:36 strauss Exp $
  */
 
 #include <stdio.h>
@@ -42,8 +42,8 @@ smi_svc_init(argc, argv)
     flags = SMI_ERRORS | SMI_ERRORLINES;
     smiSetFlags(flags);
     
-#ifdef CONFIG_FILE
-    smiReadConfig(CONFIG_FILE);
+#ifdef SMID_CONFIG_FILE
+    smiReadConfig(SMID_CONFIG_FILE);
 #endif
     
     while ((c = getopt(argc, argv, "rRsSvVyYd:l:c:")) != -1) {

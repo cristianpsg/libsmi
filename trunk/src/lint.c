@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.8 1998/11/19 19:43:58 strauss Exp $
+ * @(#) $Id: lint.c,v 1.9 1998/11/20 17:10:12 strauss Exp $
  */
 
 #include <stdio.h>
@@ -66,13 +66,13 @@ main(argc, argv)
 
     smiInit();
     
-    smiSetDebugLevel(9);
-    smiSetErrorLevel(9);
+    smiSetDebugLevel(0);
+    smiSetErrorLevel(3);
     flags = SMI_ERRORS | SMI_ERRORLINES;
     smiSetFlags(flags);
     
-#ifdef CONFIG_FILE
-    smiReadConfig(CONFIG_FILE);
+#ifdef SMI_CONFIG_FILE
+    smiReadConfig(SMI_CONFIG_FILE);
 #endif
     
     while ((c = getopt(argc, argv, "MDrRsSvVyYd:l:c:m:")) != -1) {

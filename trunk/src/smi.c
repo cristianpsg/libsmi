@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.13 1998/11/24 10:59:25 strauss Exp $
+ * @(#) $Id: smi.c,v 1.15 1998/11/25 02:50:57 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -615,6 +615,7 @@ smiGetNode(name, module, wantdescr)
 	} else {
 	    res.description = "";
 	}
+	printDebug(5, " ... = (%p,%s)\n", o, res.name);
 	return &res;
     } else {
 	return NULL;
