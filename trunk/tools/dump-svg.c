@@ -182,7 +182,6 @@ static int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
  * global variables
  */
 static Graph     *graph  = NULL;            /* the graph */
-static float     tableOffset = 20;
 
 /*
  * help functions
@@ -1996,7 +1995,6 @@ static void printSVGObject(GraphNode *node, float x, float y)
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
     
     printf("  <g transform=\"translate(%.2f,%.2f), scale(1)\">\n", x, y);
-    tableOffset += 250;
     printf("    <rect x=\"0\" y=\"0\" width=\"%.2f\" height=\"%.2f\"\n",
            node->dia.w,node->dia.h);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
@@ -2006,8 +2004,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
     printf("    <text x=\"%.2f\" y=\"15\" style=\"text-anchor:middle\">\n",
            node->dia.w/2);
     printf("         &lt;&lt;%s&gt;&gt;</text>\n", STEREOTYPE);
-    printf("    <text x=\"%.2f\" y=\"30\"\n",
-           node->dia.w/2);
+    printf("    <text x=\"%.2f\" y=\"30\"\n", node->dia.w/2);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
 
