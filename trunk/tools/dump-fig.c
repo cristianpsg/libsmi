@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-fig.c,v 1.4 2000/02/10 14:58:46 strauss Exp $
+ * @(#) $Id: dump-fig.c,v 1.5 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -195,6 +195,12 @@ int dumpFigUml(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     int		 x, y;
+
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for fig format\n");
+	exit(1);
+    }
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {

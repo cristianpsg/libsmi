@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smitree.c,v 1.2 1999/12/12 12:51:08 strauss Exp $
+ * @(#) $Id: smitree.c,v 1.3 1999/12/17 10:44:24 strauss Exp $
  */
 
 #include <stdio.h>
@@ -17,8 +17,8 @@
 
 int main(int argc, char *argv[])
 {
-    char *module;
     SmiNode *smiNode;
+    SmiModule *smiModule;
     
     if (argc != 2) {
         fprintf(stderr, "Usage: smitree module\n");
@@ -26,14 +26,15 @@ int main(int argc, char *argv[])
     }
  
     smiInit("smitree");
-    module = argv[1];
-    smiLoadModule(module);
+    smiLoadModule(argv[1]);
+    smiModule = smiGetModule(argv[1]);
  
-    for(smiNode = smiGetFirstNode(module, SMI_NODEKIND_ANY); smiNode;
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	smiNode;
         smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
         printf("%*s%s::%s\n", smiNode->oidlen * 2, " ",
-               smiNode->module, smiNode->name);
+               smiModule->name, smiNode->name);
         
     };
 

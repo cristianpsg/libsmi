@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-dia.c,v 1.2 2000/02/16 21:14:59 strauss Exp $
  */
 
 #include <config.h>
@@ -352,6 +352,12 @@ int dumpDia(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     double	 x, y;
+
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for dia format\n");
+	exit(1);
+    }
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {

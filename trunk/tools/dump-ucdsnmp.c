@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.11 2000/02/11 09:50:59 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.12 2000/02/12 10:56:21 strauss Exp $
  */
 
 /*
@@ -37,13 +37,6 @@
 
 #include "smi.h"
 #include "smidump.h"
-
-
-#define  INDENT		4    /* indent factor */
-#define  INDENTVALUE	20   /* column to start values, except multiline */
-#define  INDENTTEXTS	13   /* column to start multiline texts */
-#define  INDENTMAX	72   /* max column to fill, break lines otherwise */
-
 
 
 static char *getAccessString(SmiAccess access)
