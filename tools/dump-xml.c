@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.1 2000/03/21 10:30:40 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.2 2000/03/22 09:46:14 strauss Exp $
  */
 
 /*
@@ -240,7 +240,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
-    SmiNode	 *parentNode, *node;
+    SmiNode	 *parentNode;
     SmiModule	 *smiModule;
     static char	 s[200];
     char	 append[200];
@@ -262,8 +262,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	sprintf(append, ".%u%s", parentNode->oid[parentNode->oidlen-1], s);
 
 	/* retrieve the parent SmiNode */
-	node = parentNode;
-	parentNode = smiGetParentNode(node);
+	parentNode = smiGetParentNode(parentNode);
 
 	if (!parentNode) {
 	    sprintf(s, "%s", append);

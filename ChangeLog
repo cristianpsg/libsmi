@@ -1,5 +1,7 @@
 2000-03-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/: some cleanups from Juergen.
+
 	* tools/dump-jax.c (dumpScalars): added Sven's patches for
 	notifications and scalar groups.
 

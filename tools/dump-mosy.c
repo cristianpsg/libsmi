@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.25 2000/02/28 12:24:24 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.26 2000/03/02 09:22:34 strauss Exp $
  */
 
 #include <config.h>
@@ -82,7 +82,7 @@ static char *getBasetypeString(SmiBasetype basetype)
 
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
-    SmiNode	 *parentNode, *node;
+    SmiNode	 *parentNode;
     SmiModule	 *smiModule;
     static char	 s[200];
     char	 append[200];
@@ -104,8 +104,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	sprintf(append, ".%u%s", parentNode->oid[parentNode->oidlen-1], s);
 
 	/* retrieve the parent SmiNode */
-	node = parentNode;
-	parentNode = smiGetParentNode(node);
+	parentNode = smiGetParentNode(parentNode);
 
 	if (!parentNode) {
 	    sprintf(s, "%s", append);
