@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.43 2002/03/05 16:19:59 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.44 2003/02/23 21:49:06 schoenw Exp $
  */
 
 #include <config.h>
@@ -159,17 +159,17 @@ static void display_used(Error *errors)
     int i, n;
 
     for (i = 0, n = 0; errors[i].msg; i++) {
-	if (errors[i].used) n++;
+	if (errors[i].used && errors[i].description) n++;
     }
 
     if (! n) {
 	return;
     }
 
-    fprintf(stderr, "\nDescription of error/warning messages:\n"); 
+    fprintf(stderr, "\nDescription of (selected) error/warning messages:\n"); 
 
     for (i = 0; errors[i].msg; i++) {
-	if (! errors[i].used) continue;
+	if (! errors[i].used || !errors[i].description) continue;
 	if (i) fprintf(stderr, "\n");
 	display_one(stderr, errors + i);
     }
@@ -218,6 +218,15 @@ errorHandler(char *path, int line, int severity, char *msg, char *tag)
     }
     if (mFlag) {
 	fprintf(stderr, "{%s} ", tag);
+    }
+    switch (severity) {
+    case 4:
+    case 5:
+	fprintf(stderr, "warning: ");
+	break;
+    case 6:	
+	fprintf(stderr, "info: ");
+	break;
     }
     fprintf(stderr, "%s\n", msg);
 
