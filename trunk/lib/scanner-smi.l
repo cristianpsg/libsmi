@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.10 1999/12/17 10:44:21 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.11 1999/12/17 13:28:47 strauss Exp $
  */
 
 %option noyywrap
@@ -25,8 +25,17 @@
 #include "util.h"
 #include "parser-smi.h"
 #include "parser-smi.tab.h"
-#include "scanner.h"
 #include "scanner-smi.h"
+
+
+static char            *currentString;
+static int	       currentStringLength;
+static int	       currentStringMaxLength;
+static int	       currentStringColumn;
+static int	       currentStringFetchLine; 
+
+ 
+#define thisParser (*(Parser *) parser)
 
 
 
@@ -44,9 +53,11 @@
 #define yylval (*lvalp)
 
 
+#define MAX_LEX_DEPTH		 20
 
-YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
+static YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
 
+static int lexDepth = 0; 
 
  
 int
@@ -72,35 +83,22 @@ smiLeaveLexRecursion()
 
 
 
-void
+static void
 smiTrackInput(nl, parser)
     int nl;
-    Module *parser;
+    Parser *parser;
 {
     if (nl) {
-	thisParser.line += 1;
-	thisParser.column = 1;
-	thisParser.character += yyleng;
-	thisParser.linebuf[0] = 0;
+	parser->line += 1;
+	parser->column = 1;
+	parser->character += yyleng;
     } else {
 	if ((yytext[0] != '\t') || (yyleng != 1)) {
-	    thisParser.column += yyleng;
-	    if (thisParser.column+1 >= thisParser.linebufsize) {
-		thisParser.linebufsize = thisParser.column+2;
-		thisParser.linebuf = util_realloc(thisParser.linebuf,
-						  thisParser.linebufsize);
-	    }
-	    strcat(thisParser.linebuf, yytext);
+	    parser->column += yyleng;
 	} else {
-	    thisParser.column += (8 - ((thisParser.column-1) % 8));
-	    if (thisParser.column+1 >= thisParser.linebufsize) {
-		thisParser.linebufsize = thisParser.column+2;
-		thisParser.linebuf = util_realloc(thisParser.linebuf,
-						  thisParser.linebufsize);
-	    }
-	    strcat(thisParser.linebuf, yytext);
+	    parser->column += (8 - ((parser->column-1) % 8));
 	}
-	thisParser.character += yyleng;
+	parser->character += yyleng;
     }
 }
 

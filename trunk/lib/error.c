@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.26 1999/12/17 10:44:19 strauss Exp $
+ * @(#) $Id: error.c,v 1.27 1999/12/21 12:32:07 strauss Exp $
  */
 
 #include <string.h>
@@ -17,17 +17,9 @@
 #include <stdarg.h>
 
 #include "error.h"
-#include "scanner-smi.h"
-#include "parser-smi.h"
-
-
-#define thisParser      ((Parser *)parser)
-
 
 
 int errorLevel;                          /* Higher level for more warnings   */
-
-extern int lexDepth;
 
 
 
@@ -322,7 +314,7 @@ printError(Parser *parser, int id, ...)
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
-	    ((lexDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
+	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 	    fprintf(stderr, "%s:%d: ", parser->path, parser->line);
 	    fmt = errors[id].fmt;
 	    va_start(ap, id);
@@ -373,7 +365,7 @@ printErrorAtLine(Parser *parser, int id, int line, ...)
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
-	    ((lexDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
+	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 	    fprintf(stderr, "%s:%d: ", parser->path, line);
 	    fmt = errors[id].fmt;
 	    va_start(ap, line);

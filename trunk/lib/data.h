@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.41 1999/12/13 16:15:58 strauss Exp $
+ * @(#) $Id: data.h,v 1.42 1999/12/21 09:16:23 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -270,8 +270,6 @@ typedef struct Parser {
     int		   line;
     int		   column;
     int		   character;
-    size_t	   linebufsize;
-    char	   *linebuf;
     Module	   *modulePtr;
     ParserFlags	   flags;
     List	   *firstIndexlabelPtr; /* only for the SMIng parser */
@@ -282,6 +280,7 @@ typedef struct Parser {
 
 extern int	smiFlags;
 extern char     *smiPath;
+extern int	smiDepth;	/* SMI parser recursion depth */
 
 extern Node	*rootNodePtr;
 extern Node	*pendingNodePtr;
