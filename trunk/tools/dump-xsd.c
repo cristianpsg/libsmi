@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.30 2002/06/21 09:40:55 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.31 2002/06/21 15:04:49 tklie Exp $
  */
 
 #include <config.h>
@@ -830,6 +830,11 @@ static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
     if( smiNode->format ) {
 	fprintDisplayHint( f, indent + 2 * INDENT, smiNode->format );
     }
+
+    if( smiNode->units ) {
+	fprintSegment( f, indent + 2 *INDENT, "<units>", 0 );
+	fprint( f, "%s</units>\n", smiNode->units );
+    }
   
     fprintSegment( f, indent +  INDENT, "</xsd:appinfo>\n", 0 );
     fprintDocumentation( f, indent + INDENT, smiNode->description );
@@ -1076,7 +1081,6 @@ static void fprintElement( FILE *f, int indent,
 	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE  ) {
 		fprint( f, " base=\"%sType\">\n",
 			smiNode->name ); 
-/*		fprintTypedef( f, indent + 4 * INDENT, smiType, NULL );*/
 	    }
 	    else {
 
@@ -1098,7 +1102,7 @@ static void fprintElement( FILE *f, int indent,
 	}
 
 	else if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
-	    fprint( f, ">\n" );
+	    fprint( f, " minOccurs=\"0\">\n" );
 	    fprintAnnotationElem( f, indent + INDENT, smiNode );
 	    fprintTypedef( f, indent + INDENT, smiType, NULL );
 	}
