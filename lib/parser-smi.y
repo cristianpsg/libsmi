@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.192 2003/05/15 13:36:37 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.193 2003/06/16 15:17:42 schoenw Exp $
  */
 
 %{
@@ -72,6 +72,7 @@ static Module      *complianceModulePtr = NULL;
 static Module      *capabilitiesModulePtr = NULL;
 static SmiNodekind variationkind;
 static int         firstStatementLine = 0;
+static int         firstNestedStatementLine = 0;
 static int         currentDecl = SMI_DECL_UNKNOWN;
 static int	   firstRevisionLine = 0;
 
@@ -6675,7 +6676,7 @@ Compliance:		ComplianceGroup
 
 ComplianceGroup:	GROUP
 			{
-			    firstStatementLine = thisParserPtr->line;
+			    firstNestedStatementLine = thisParserPtr->line;
 			}
 			objectIdentifier
 			DESCRIPTION Text
@@ -6699,7 +6700,7 @@ ComplianceGroup:	GROUP
 			    $$ = smiMalloc(sizeof(List));
 			    $$->nextPtr = NULL;
 			    $$->ptr = smiMalloc(sizeof(Option));
-			    ((Option *)($$->ptr))->line = firstStatementLine;
+			    ((Option *)($$->ptr))->line = firstNestedStatementLine;
 			    ((Option *)($$->ptr))->objectPtr = $3;
 			    if (! (thisModulePtr->flags & SMI_FLAG_NODESCR)) {
 				((Option *)($$->ptr))->export.description = $5;
@@ -6711,7 +6712,7 @@ ComplianceGroup:	GROUP
 
 ComplianceObject:	OBJECT
 			{
-			    firstStatementLine = thisParserPtr->line;
+			    firstNestedStatementLine = thisParserPtr->line;
 			}
 			ObjectName
 			SyntaxPart
@@ -6740,7 +6741,7 @@ ComplianceObject:	OBJECT
 			    $$->nextPtr = NULL;
 			    $$->ptr = smiMalloc(sizeof(Refinement));
 			    ((Refinement *)($$->ptr))->line =
-				firstStatementLine;
+				firstNestedStatementLine;
 			    ((Refinement *)($$->ptr))->objectPtr = $3;
 			    ((Refinement *)($$->ptr))->typePtr = $4;
 			    if ($4) {
