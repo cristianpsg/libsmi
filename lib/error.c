@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.32 2000/01/06 15:30:56 strauss Exp $
+ * @(#) $Id: error.c,v 1.33 2000/01/14 09:11:27 strauss Exp $
  */
 
 #include <string.h>
@@ -132,7 +132,7 @@ Error errors[] = {
     { 1, ERR_MODULE_NOT_FOUND, "", 
       "Don't know where to find module `%s'" },
     { 0, ERR_STATISTICS, "", 
-      "completed%s" },
+      "completed %s" },
     { 2, ERR_OBJECT_IDENTIFIER_REGISTERED, "", 
       "Object identifier label `%s.%s' already registered at `%s'" },
     { 1, ERR_OPENING_INPUTFILE, "", 
@@ -191,7 +191,7 @@ Error errors[] = {
       "File `%s' seems to be SMIv1/v2 which is not supported" },
     { 1, ERR_SMING_NOT_SUPPORTED, "", 
       "File `%s' seems to be SMIng which is not supported" },
-    { 6, ERR_UNUSED_IMPORT, "", 
+    { 6, ERR_UNUSED_IMPORT, "import-unused", 
       "Identifier `%s' imported from module `%s' is never used" },
     { 2, ERR_MACRO_NOT_IMPORTED, "", 
       "Macro `%s' has not been imported from module `%s'" },
@@ -257,6 +257,10 @@ Error errors[] = {
       "The identifier of the row `%s' should match `*Entry'" },
     { 6, ERR_TABLENAME_TABLE, "table-name-table", 
       "The identifier of the table `%s' should match `*Table'" },
+    { 6, ERR_SMIV2_TYPE_ASSIGNEMENT, "type-assignement-smiv2", 
+      "Type assignement `%s' should be a textual convention in SMIv2" },
+    { 6, ERR_ILLEGAL_IMPORT, "import-illegal", 
+      "Identifier `%s' may not be imported from module `%s'" },
  
     { 0, 0, NULL, NULL }
 };
