@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.3 2000/03/13 13:25:54 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.4 2000/03/21 10:30:40 strauss Exp $
  */
 
 #include <config.h>
@@ -259,7 +259,8 @@ static void dumpTable(SmiNode *smiNode)
     char s[100];
     SmiNode *parentNode, *columnNode;
     int i;
-    
+    char *vb_type;
+
     parentNode = smiGetParentNode(smiNode);
     
     sprintf(s, "%s.java", translate1Upper(parentNode->name));
@@ -295,6 +296,8 @@ static void dumpTable(SmiNode *smiNode)
 	    "\n"
 	    "import jax.AgentXOID;\n"
 	    "import jax.AgentXVarBind;\n"
+	    "import jax.AgentXResponsePDU;\n"
+	    "import jax.AgentXSetPhase;\n"
 	    "import jax.AgentXTable;\n"
 	    "import jax.AgentXEntry;\n"
 	    "\n");
@@ -371,6 +374,50 @@ static void dumpTable(SmiNode *smiNode)
 	    "    }\n\n");
 
     fprintf(f,
+	    "    public int setEntry(AgentXSetPhase phase,\n"
+	    "                        AgentXEntry entry,\n"
+	    "                        long column,\n"
+	    "                        AgentXVarBind vb)\n");
+    fprintf(f,
+	    "    {\n"
+	    "\n"
+	    "        switch ((int)column) {\n");
+    
+    for (columnNode = smiGetFirstChildNode(smiNode);
+	 columnNode;
+	 columnNode = smiGetNextChildNode(columnNode)) {
+	if (columnNode->access >= SMI_ACCESS_READ_WRITE) {
+	    fprintf(f,
+		    "        case %ld: // %s\n",
+		    columnNode->oid[columnNode->oidlen-1],
+		    columnNode->name);
+	    fprintf(f,
+		    "        {\n");
+	    fprintf(f,
+		    "            if (vb.getType() != AgentXVarBind.%s)\n"
+		    "                return AgentXResponsePDU.WRONG_TYPE;\n",
+		    getAgentXType(smiGetNodeType(columnNode)));      
+	    vb_type = getJavaType(smiGetNodeType(columnNode));
+	    vb_type = strcmp("byte[]", vb_type) ? vb_type : "bytes";
+	    fprintf(f,
+		    "            else\n"
+		    "                return ((%s)entry).set_%s(phase, vb.%sValue());\n",
+		    translate1Upper(smiNode->name),
+		    columnNode->name,
+		    vb_type);
+	    
+	    fprintf(f,
+		    "        }\n");
+	}
+    }
+
+    fprintf(f,
+	    "        }\n"
+	    "\n"
+	    "        return AgentXResponsePDU.NOT_WRITABLE;\n"
+	    "    }\n\n");
+
+    fprintf(f,
 	    "}\n\n");
 
     fclose(f);
@@ -420,6 +467,8 @@ static void dumpEntry(SmiNode *smiNode)
     
     fprintf(f,
 	    "import jax.AgentXOID;\n"
+	    "import jax.AgentXSetPhase;\n"
+	    "import jax.AgentXResponsePDU;\n"
 	    "import jax.AgentXEntry;\n"
 	    "\n");
 
@@ -456,6 +505,14 @@ static void dumpEntry(SmiNode *smiNode)
 		getJavaType(smiGetNodeType(columnNode)),
 		columnNode->name,
 		init);
+
+	if (columnNode->access == SMI_ACCESS_READ_WRITE) {
+	    fprintf(f,
+		    "    protected %s undo_%s = %s;\n",
+		    getJavaType(smiGetNodeType(columnNode)),
+		    columnNode->name,
+		    init);
+	}
     }
     for (element = smiGetFirstElement(smiNode), cnt = 0;
 	 element;
@@ -561,8 +618,72 @@ static void dumpEntry(SmiNode *smiNode)
 		    getJavaType(smiType),
 		    columnNode->name, columnNode->name);
 	}
-    }
+	if (columnNode->access == SMI_ACCESS_READ_WRITE) {
+	    fprintf(f,
+		    "    public int set_%s(AgentXSetPhase phase, %s value)\n"
+		    "    {\n",
+		    columnNode->name,
+		    getJavaType(smiGetNodeType(columnNode)));
+	    fprintf(f,
+		    "        switch (phase.getPhase()) {\n"
+		    "        case AgentXSetPhase.TEST_SET:\n"
+		    "            undo_%s = %s;\n",
+		    columnNode->name,
+		    columnNode->name);
+	    if (!strcmp("byte[]", getJavaType(smiGetNodeType(columnNode)))) {
+		fprintf(f,
+			"            %s = new byte[value.length];\n"
+			"            for(int i = 0; i < value.length; i++)\n"
+			"                %s[i] = value[i];\n",
+			columnNode->name,
+			columnNode->name);
+	    } else {
+		fprintf(f,
+			"            %s = value;\n",
+			columnNode->name);
+	    }
 
+	    fprintf(f,
+		    "            break;\n"			
+		    "        case AgentXSetPhase.COMMIT:\n");
+ 	    if (!strcmp("byte[]", getJavaType(smiGetNodeType(columnNode)))) {
+		fprintf(f,
+			"            if (undo_%s == null)\n",
+			columnNode->name);
+	    } else {
+		fprintf(f,
+			"            if (undo_%s == 0)\n",
+			columnNode->name);
+	    }
+	    fprintf(f,
+		    "	             return AgentXResponsePDU.COMMIT_FAILED;\n"
+		    "            break;\n"
+		    "        case AgentXSetPhase.UNDO:\n"
+		    "            %s = undo_%s;\n"
+		    "            break;\n",
+		    columnNode->name,
+		    columnNode->name);
+	    fprintf(f,
+		    "        case AgentXSetPhase.CLEANUP:\n");
+ 	    if (!strcmp("byte[]",getJavaType(smiGetNodeType(columnNode)))) {
+		fprintf(f,
+			"            undo_%s = null;\n",
+			columnNode->name);
+	    } else {
+		fprintf(f,
+			"            undo_%s = 0;\n",
+			columnNode->name);
+	    }
+	    fprintf(f,
+		    "            break;\n"
+		    "        default:\n"
+		    "            return AgentXResponsePDU.PROCESSING_ERROR;\n"
+		    "        }\n"
+                    "        return AgentXResponsePDU.NO_ERROR;\n"
+                    "    }\n");
+	}
+    }
+    
     fprintf(f,
 	    "}\n\n");
 
