@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.18 2000/02/10 10:09:45 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.19 2000/02/10 17:59:44 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -484,6 +484,12 @@ int dumpMosy(char *modulename, int flags)
 {
     SmiModule	 *smiModule;
     SmiNode	 *smiNode;
+
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for MOSY format\n");
+	exit(1);
+    }
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {

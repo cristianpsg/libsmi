@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.35 2000/02/10 10:09:45 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.36 2000/02/10 17:59:44 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1569,6 +1569,12 @@ static int dumpSmi(char *modulename)
 
 int dumpSmiV1(char *modulename, int flags)
 {
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for SMIv1 format\n");
+	exit(1);
+    }
+    
     smiv1 = 1;
     silent = (flags & SMIDUMP_FLAG_SILENT);
     return dumpSmi(modulename);
@@ -1577,6 +1583,12 @@ int dumpSmiV1(char *modulename, int flags)
 
 int dumpSmiV2(char *modulename, int flags)
 {
+    if (!modulename) {
+	fprintf(stderr,
+		"smidump: united output not supported for SMIv2 format\n");
+	exit(1);
+    }
+    
     smiv1 = 0;
     silent = (flags & SMIDUMP_FLAG_SILENT);
     return dumpSmi(modulename);

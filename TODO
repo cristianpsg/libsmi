@@ -82,3 +82,6 @@ o SMIng: module identity object (grammar, I-D and parser)
 o think about smiModule(), smiDescriptor(), smiOidString(smiNode), ...
   memory allocation?
 
+o MessageSize                [0.."ÿÿÿ"]
+  in smidump -f types -u /usr/local/share/mibs/ietf/* output
+

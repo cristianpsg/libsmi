@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.22 2000/01/18 11:16:49 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.23 2000/02/09 19:56:52 strauss Exp $
  */
 
 #include <stdio.h>
@@ -117,14 +117,15 @@ static void usage()
     fprintf(stderr,
 	    "Usage: smidump [-Vhls] [-c <configfile>] [-f <format>]\n"
 	    "               [-p <module>] <module_or_path>\n"
-	    "-V                    show version and license information\n"
-	    "-h                    show usage information\n"
-	    "-s                    do not generate any comments\n"
-	    "-c <configfile>       load a specific configuration file\n"
-	    "-p <module>           preload <module>\n"
-	    "-l <level>            set maximum level of errors and warnings\n"
-	    "-f <format>           use <format> when dumping (default %s)\n"
-	    "<module_or_path>      name of a MIB module or file path\n\n",
+	    "-V                  show version and license information\n"
+	    "-h                  show usage information\n"
+	    "-s                  do not generate any comments\n"
+	    "-c <configfile>     load a specific configuration file\n"
+	    "-p <module>         preload <module>\n"
+	    "-l <level>          set maximum level of errors and warnings\n"
+	    "-f <format>         use <format> when dumping (default %s)\n"
+	    "-u                  print a single united output of all modules\n"
+	    "<module_or_path>    name of a MIB module or file path\n\n",
 	    driverTable->name);
     fprintf(stderr, "Supported formats are:\n");
     formats();
@@ -148,6 +149,7 @@ main(argc, argv)
     char *modulename;
     int flags, i;
     int errors = 0;
+    int unite = 0;
     Driver *driver = driverTable;
 
     for (i = 1; i < argc; i++) if (strstr(argv[i], "-c") == argv[i]) break;
@@ -161,7 +163,7 @@ main(argc, argv)
     smiSetFlags(flags);
 
     flags = 0;
-    while ((c = getopt(argc, argv, "Vhl:sf:p:c:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhl:sf:p:c:u")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg, "smiquery");
@@ -180,6 +182,9 @@ main(argc, argv)
 	    break;
 	case 'p':
 	    smiLoadModule(optarg);
+	    break;
+	case 'u':
+	    unite++;
 	    break;
 	case 'f':
 	    for (driver = driverTable; driver->name; driver++) {
@@ -203,7 +208,8 @@ main(argc, argv)
     while (optind < argc) {
 	modulename = smiLoadModule(argv[optind]);
 	if (modulename) {
-	    errors += (driver->func)(modulename, flags);
+	    if (!unite)
+		errors += (driver->func)(modulename, flags);
 	} else {
 	    fprintf(stderr, "smidump: cannot locate module `%s'\n",
 		    argv[optind]);
@@ -211,6 +217,9 @@ main(argc, argv)
 	optind++;
     }
 
+    if (unite)
+	errors += (driver->func)(NULL, flags);
+    
     smiExit();
     
     exit(errors);
