@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.64 2003/01/22 17:28:52 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.65 2003/01/23 14:35:22 tklie Exp $
  */
 
 #include <config.h>
@@ -74,7 +74,7 @@ typedef struct DH {
 
 
 /* some forward declarations */
-static void fprintElement( FILE *f, SmiNode *smiNode );
+static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode );
 static char* getTypePrefix( char *typeName );
 
 static char *getStringBasetype(SmiBasetype basetype)
@@ -403,7 +403,7 @@ static char* getStrDHType( char *hint,
 	    case 'a':
 	    case 't':
 		/* ascii character */
-		baseRegexp = "(\\p{Basic Latin})";
+		baseRegexp = "(\\p{IsBasicLatin})";
 		break;
 
 	    case 'b':
@@ -1522,7 +1522,7 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 	 iterNode;
 	 iterNode = smiGetNextChildNode( iterNode ) ) {
 	
-	fprintElement( f, iterNode );
+	fprintElement( f, iterNode, NULL );
 	
     }
 
@@ -1539,7 +1539,7 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 		     augIterNode;
 		     augIterNode = smiGetNextChildNode( augIterNode ) ) {
 		    
-		    fprintElement( f, augIterNode );
+		    fprintElement( f, augIterNode, NULL );
 		}
 	    }
 	}
@@ -1552,7 +1552,8 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
 	if( isSubTable( smiNode, iterNode ) ) {
 /*	    fputs( "<!-- Here BEGIN subtable entry -->\n", f );*/
-	    fprintComplexType( f, iterNode, NULL, smiNode );
+//	    fprintComplexType( f, iterNode, NULL, smiNode );
+	    fprintElement( f, iterNode, smiNode );
 /*	    fputs( "<!-- Here END subtable entry -->\n", f );*/
 	}
     }
@@ -1579,7 +1580,7 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 }    
 
 
-static void fprintElement( FILE *f, SmiNode *smiNode )
+static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 {
     switch( smiNode->nodekind ) {
 	SmiType *smiType;
@@ -1595,7 +1596,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode )
 		 iterNode;
 		 iterNode = smiGetNextChildNode( iterNode ) ) {
 		if( iterNode->nodekind == SMI_NODEKIND_SCALAR ) {
-		    fprintElement( f, iterNode );
+		    fprintElement( f, iterNode, NULL );
 		}
 	    }
 	    fprintSegment( f, -1, "</xsd:sequence>\n");
@@ -1612,7 +1613,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode )
 	for( iterNode = smiGetFirstChildNode( smiNode );
 	     iterNode;
 	     iterNode = smiGetNextChildNode( iterNode ) ) {
-	    fprintElement( f, iterNode );
+	    fprintElement( f, iterNode, NULL );
 	}
 	break;
     }
@@ -1624,7 +1625,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode )
 
 	fprintAnnotationElem( f, smiNode );
 
-	fprintComplexType( f, smiNode, NULL, NULL );
+	fprintComplexType( f, smiNode, NULL, parentNode );
 	fprintSegment( f, -1, "</xsd:element>\n");
 	break;
 	
@@ -1771,7 +1772,7 @@ static void fprintRows( FILE *f, SmiModule *smiModule )
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
-	    fprintElement( f, iterNode );
+	    fprintElement( f, iterNode, NULL );
 	}
     }
 }
@@ -1926,7 +1927,7 @@ static void fprintGroupTypes( FILE *f, SmiModule *smiModule )
 		 iterNode2;
 		 iterNode2 = smiGetNextChildNode( iterNode2 ) ) {
 		if( iterNode2->nodekind == SMI_NODEKIND_SCALAR ) {
-		    fprintElement( f, iterNode2 );
+		    fprintElement( f, iterNode2, NULL );
 		}
 	    }
 	    fprintSegment( f, -1, "</xsd:sequence>\n");
@@ -1953,7 +1954,7 @@ static void fprintNotifications( FILE *f, SmiModule *smiModule )
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NOTIFICATION );
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NOTIFICATION ) ) {
-	fprintElement( f, iterNode );
+	fprintElement( f, iterNode, NULL );
     }
 }
 
