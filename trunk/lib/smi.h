@@ -26,9 +26,6 @@
 #define SMI_RECURSIVE   0x8000  /* recursively parse imported modules.       */
 #define SMI_FLAGMASK    (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS)
 
-/* limits of string lengths                                                  */
-#define SMI_MAX_OID             1407           /* 128 * 10 digits + 127 dots */
-
 
 
 /* misc mappings of SMI types to C types                                     */
