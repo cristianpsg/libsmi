@@ -1,3 +1,7 @@
+2001-08-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/check.c: Updated the InetAddressType/InetAddress check.
+
 2001-08-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* Makefile.in,...: Kicked out files from the CVS repository
