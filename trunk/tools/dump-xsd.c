@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.36 2002/07/09 15:12:54 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.37 2002/07/12 15:01:12 tklie Exp $
  */
 
 #include <config.h>
@@ -720,7 +720,8 @@ static char* getStrDHType( char *hint,
 
 	/* switch between '(' and '|'
 	   '|' is used between regexps of subranges */
-	char startChar = '('; 
+	char startChar = '(';
+	int started;
 
 	if( i && ret ) {
 	    /* we have already created a regexp for a subrange, so the next
@@ -729,6 +730,7 @@ static char* getStrDHType( char *hint,
 	}
 	
 	while( pos < strlen( hint ) ) {
+	    started = 1;
 	    
 	    switch( hint[ pos ] ) {
 		
@@ -889,18 +891,13 @@ static char* getStrDHType( char *hint,
 		/* render as hex */
 		if( intNum ) {
 		    if( ret ) {
-			ret = xrealloc( ret, strlen( ret ) + 28 );
-			sprintf( ret, "%s%c([1-9A-E]", ret, startChar );
-			if( intNum - 1 ) {
-			    sprintf( ret,"%s[0-9A-E]{0,%d}", ret, intNum-1 );
-			}
+			ret = xrealloc( ret, strlen( ret ) + 20 );
+			sprintf( ret, "%s%c([0-9A-E]{2,%d}",
+				 ret, startChar, 2 * intNum );
 		    }
 		    else {
 			ret = xmalloc( 19 );
-			sprintf( ret, "([1-9A-E]" );
-			if( intNum - 1 ) {
-			    sprintf( ret, "[0-9A-E]{0,%d}", intNum - 1 );
-			}
+			sprintf( ret, "([0-9A-E]{2,%d}", 2 * intNum );
 		    }
 		    /* we have used some (intNum) octets */
 		    octetsUsed += intNum;
@@ -928,16 +925,18 @@ static char* getStrDHType( char *hint,
 	    
 	}
 	/* add closure to last regexp part */
-	ret = xrealloc( ret, strlen( ret ) + 15 );
+	ret = xrealloc( ret, strlen( ret ) + 22 );
 
 	if( numSubranges ) {
 	    sprintf( ret, "%s){%u,%u}", ret,
 		     /* minLength */
-		     ( lengths[ i ] - ( octetsUsed - lastRegexpUses ) /
-		       lastRegexpUses ),
+		     (unsigned int)( lengths[ i ] -
+				     ( octetsUsed - lastRegexpUses ) /
+				     lastRegexpUses ),
 		     /* maxLength */
-		     ( lengths[ i+1 ] - ( octetsUsed - lastRegexpUses )
-		       / lastRegexpUses ) );
+		     (unsigned int)( lengths[ i+1 ] -
+				     ( octetsUsed - lastRegexpUses ) /
+				     lastRegexpUses ) );
 	}
 	else {
 	    /* we don't have subranges specifying range restrictions,
@@ -955,7 +954,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 {
     SmiRange *smiRange;
     int numSubRanges = getNumSubRanges( smiType );
-
+    
     if ( name ) {
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
