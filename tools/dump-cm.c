@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.39 2003/12/12 10:06:11 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.40 2003/12/12 10:20:12 strauss Exp $
  */
 
 
@@ -38,7 +38,7 @@
 
 
 
-#define ABS(a) ((a > 0.0) ? (a) : (-(a)))
+#define ABS(a) ((float)((a > 0.0) ? (a) : (-(a))))
 
 
 
@@ -2265,7 +2265,7 @@ static float getObjX(GraphNode *node, int con)
 	return node->dia.x + node->dia.w;
 	break;
     }
-    return 0;
+    return 0.0;
 }
 
 static float getObjY(GraphNode *node, int con)
@@ -2296,7 +2296,7 @@ static float getObjY(GraphNode *node, int con)
 	return node->dia.y + node->dia.h;
 	break;
     }
-    return 0;
+    return 0.0;
 }
 
 static float getObjYRel(GraphEdge *edge, int con)
@@ -2338,7 +2338,7 @@ static float getObjYRel(GraphEdge *edge, int con)
 	return node->dia.y + node->dia.h + dist;
 	break;
     }
-    return 0;
+    return 0.0;
 }
 
 /*
