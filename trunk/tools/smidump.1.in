@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.22 2001/01/30 16:33:43 schoenw Exp $
+.\" $Id: smidump.1.in,v 1.23 2001/03/06 11:42:40 strauss Exp $
 .\"
 .TH smidump 1  "March 6, 2001" "IBR" "SMI Tools"
 .SH NAME
@@ -127,10 +127,10 @@ CORBA IDL and OID definitions following the JIDM specification translation
 rules.
 .TP
 netsnmp
-C source code files for usage within the NET SNMP package (experimental).
+C source code files for usage within the net-snmp package (experimental).
 .TP
-stools
-ANSI C manager stubs for the stools package (experimental).
+scli
+ANSI C manager stubs for usage within the scli package (experimental).
 .TP
 cm
 Reverse engineered conceptual model in DIA XML file format (experimental).

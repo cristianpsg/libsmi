@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.57 2001/03/08 14:49:46 schoenw Exp $
+ * @(#) $Id: smidump.c,v 1.58 2001/08/15 17:07:40 strauss Exp $
  */
 
 #include <config.h>
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 #if 0
     initSql();
 #endif
-    initStools();
+    initScli();
     initTree();
     initTypes();
     initXml();
