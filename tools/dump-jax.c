@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.21 2000/06/28 16:01:41 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.22 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -1084,7 +1084,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     return smiNode;
 }
 
-static void dumpNotif(SmiNode *smiNode)
+static void dumpNotifications(SmiNode *smiNode)
 {
     FILE *f;
     int cnt,i;
@@ -1116,10 +1116,10 @@ static void dumpNotif(SmiNode *smiNode)
     fprintf(f, "public class %s extends AgentXNotification\n{\n\n",
 	    translate1Upper(smiNode->name));
     fprintf(f,
-	    "    private Vector vbl;\n\n"
+	    "    private Vector varBindList;\n\n"
 	    );
     fprintf(f,
-	    "    private final static long[] trapOID = {1,3,6,1,6,3,1,1,4,1,0};\n");
+	    "    private final static long[] snmpTrapOIDOID = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};\n");
 
     fprintf(f,
 	    "    private final static long[] %sOID = {",
@@ -1129,10 +1129,10 @@ static void dumpNotif(SmiNode *smiNode)
     }
     fprintf(f, "};\n");	
     fprintf(f,
-	    "    private static AgentXVarBind trapVB = new AgentXVarBind(\n"
-	    "            new AgentXOID(trapOID),\n"
-	    "            AgentXVarBind.OBJECTIDENTIFIER,\n"
-	    "            new AgentXOID(%sOID));\n",
+	    "    private static AgentXVarBind snmpTrapOIDVarBind =\n"
+	    "        new AgentXVarBind(new AgentXOID(snmpTrapOIDOID),\n"
+	    "                          AgentXVarBind.OBJECTIDENTIFIER,\n"
+	    "                          new AgentXOID(%sOID));\n",
 	    smiNode->name);
     for (element = smiGetFirstElement(smiNode), cnt = 0;
 	 element;
@@ -1153,7 +1153,7 @@ static void dumpNotif(SmiNode *smiNode)
 	if (elementNode->nodekind != SMI_NODEKIND_COLUMN || 
 	    (smiGetNodeModule(elementNode) != smiGetNodeModule(smiNode))){
 	    fprintf(f,
-		    "    private static AgentXVarBind %sVB = new AgentXVarBind(\n"
+		    "    private static AgentXVarBind varBind_%s = new AgentXVarBind(\n"
 		    "            %sOID, AgentXVarBind.%s\n);\n",
 		    elementNode->name,
 		    elementNode->name,
@@ -1176,29 +1176,29 @@ static void dumpNotif(SmiNode *smiNode)
 	}
     }
     fprintf(f, ") {\n\n"
-	    "        vbl = new Vector();\n"
-	    "        vbl.addElement(trapVB);\n");
-    for (element = smiGetFirstElement(smiNode), cnt = 0;
+	    "        varBindList = new Vector();\n"
+	    "        varBindList.addElement(snmpTrapOIDVarBind);\n");
+    for (element = smiGetFirstElement(smiNode), cnt = 1;
 	 element;
 	 element = smiGetNextElement(element)) {
 	elementNode = smiGetElementNode(element);
 	if (elementNode->nodekind == SMI_NODEKIND_COLUMN && 
 	    (smiGetNodeModule(elementNode) == smiGetNodeModule(smiNode))){
 	    	    fprintf(f, 
-			    "%sOID.appendImplied(entry%d.getInstance());\n",
+			    "        %sOID.appendImplied(varBind_%d.getInstance());\n",
 			    elementNode->name,
 			    cnt);
 	    	    fprintf(f, 
-			    "        vbl.addElement(new "
+			    "        varBindList.addElement(new "
 			    "AgentXVarBind(%sOID, AgentXVarBind.%s, "
-			    "entry%d.get_%s()));\n",
+			    "varBind_%d.get_%s()));\n",
 			    elementNode->name,
 			    getAgentXType(smiGetNodeType(elementNode)),
 			    cnt,
 			    elementNode->name);
 	} else {
 	    fprintf(f,
-		    "         vbl.addElement(%sVB);\n",
+		    "         varBindList.addElement(varBind_%s);\n",
 		    elementNode->name);
 	}
     }    
@@ -1208,7 +1208,7 @@ static void dumpNotif(SmiNode *smiNode)
 
     fprintf(f,
 	    "    public Vector getVarBindList() {\n"
-	    "        return vbl;\n    }\n\n");
+	    "        return varBindList;\n    }\n\n");
 
     fprintf(f,
 	    "}\n\n");
@@ -1357,6 +1357,6 @@ void dumpJax(Module *module)
     for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
-	dumpNotif(smiNode);
+	dumpNotifications(smiNode);
     }
 }
