@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.154 2001/09/19 16:11:21 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.155 2001/09/21 11:27:12 strauss Exp $
  */
 
 %{
@@ -3750,7 +3750,13 @@ Status:			LOWERCASE_IDENTIFIER
 				    smiPrintError(thisParserPtr,
 						  ERR_INVALID_SMIV2_STATUS,
 						  $1);
-				    $$ = SMI_STATUS_UNKNOWN;
+				    if (!strcmp($1, "mandatory")
+					|| !strcmp($1, "optional")) {
+					/* best guess */
+					$$ = SMI_STATUS_CURRENT;
+				    } else {
+					$$ = SMI_STATUS_UNKNOWN;
+				    }
 				}
 			    } else {
 				if (!strcmp($1, "mandatory")) {
@@ -3765,7 +3771,12 @@ Status:			LOWERCASE_IDENTIFIER
 				    smiPrintError(thisParserPtr,
 						  ERR_INVALID_SMIV1_STATUS,
 						  $1);
-				    $$ = SMI_STATUS_UNKNOWN;
+				    if (!strcmp($1, "current")) {
+					/* best guess */
+					$$ = SMI_STATUS_MANDATORY; 
+				    } else {
+					$$ = SMI_STATUS_UNKNOWN;
+				    }
 				}
 			    }
 			    smiFree($1);
