@@ -91,7 +91,7 @@ STATIC = -static
 VERSION = 0.1.2
 mibdir = ${prefix}/share/mibs
 
-EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  defs.h data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
+EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
 
 include_HEADERS = smi.h
 CLEANFILES = parser-smi.output parser-sming.output
