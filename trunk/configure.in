@@ -8,14 +8,14 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.113 2002/11/06 10:35:00 schoenw Exp $
+# @(#) $Id: configure.in,v 1.114 2002/11/18 09:43:14 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=4
-LIBSMI_PATCHLEVEL=1
+LIBSMI_PATCHLEVEL=2-pre1
 LIBTOOL_VERSION=2
 LIBTOOL_REVISION=21
 LIBTOOL_AGE=0
