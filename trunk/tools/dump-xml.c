@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.15 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.16 2000/11/15 10:50:34 strauss Exp $
  */
 
 /*
@@ -284,7 +284,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 
 static void printNodeStartTag(int indent, const char *tag, SmiNode *smiNode)
 {
-    int i;
+    unsigned int i;
     
     printSegment(indent, "", 0);
     print("<%s name=\"%s\"", tag, smiNode->name);

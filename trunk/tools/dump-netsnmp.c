@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.1 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.2 2000/11/20 15:45:10 strauss Exp $
  */
 
 /*
@@ -219,7 +219,7 @@ static int isAccessible(SmiNode *groupNode)
 
 
 
-static int getMaxSize(SmiType *smiType)
+static unsigned int getMaxSize(SmiType *smiType)
 {
     SmiRange *smiRange;
     SmiType  *parentType;
@@ -262,7 +262,7 @@ static int getMaxSize(SmiType *smiType)
 
     parentType = smiGetParentType(smiType);
     if (parentType) {
-	int psize = getMaxSize(parentType);
+	unsigned int psize = getMaxSize(parentType);
 	if (psize < size) {
 	    size = psize;
 	}
@@ -335,11 +335,12 @@ static void printWriteMethodDecls(FILE *f, SmiModule *smiModule)
 
 static void printDefinesGroup(FILE *f, SmiNode *groupNode, int cnt)
 {
-    char      *cName, *cGroupName;
-    SmiNode   *smiNode;
-    SmiType   *smiType;
-    int	      i, num = 0;
-
+    char         *cName, *cGroupName;
+    SmiNode   	 *smiNode;
+    SmiType   	 *smiType;
+    int	      	 num = 0;
+    unsigned int i;
+    
     if (cnt == 1) {
 	fprintf(f,
 	"/*\n"

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.6 2000/08/24 12:09:18 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.7 2000/11/09 22:29:54 strauss Exp $
  */
 
 #include <config.h>
@@ -64,9 +64,9 @@ static int pruneSubTree(SmiNode *smiNode)
 
 static void dumpNodeIdentifiers(FILE *f, SmiNode *smiNode)
 {
-    SmiModule *smiModule;
-    SmiNode   *childNode;
-    int       i;
+    SmiModule    *smiModule;
+    SmiNode      *childNode;
+    unsigned int i;
 
     if (smiNode) {
 

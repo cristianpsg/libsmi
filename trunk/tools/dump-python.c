@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.3 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: dump-python.c,v 1.4 2000/11/15 10:50:34 strauss Exp $
  */
 
 /*
@@ -284,7 +284,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 
 static void printNodeStartTag(int indent, const char *tag, SmiNode *smiNode)
 {
-    int i;
+    unsigned int i;
     
     printSegment(indent, "", 0);
     print("\"%s\" : {\n", smiNode->name);

@@ -1,5 +1,9 @@
 2000-11-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-*.c: Fixed some minor compiler warnings.
+
+	* ltconfig: Updated to libtool 1.3.5.
+
 	* win/GNUmakefile: Added this GNU makefile using the MSVC compiler
 	contributed by Yigal Hochberg.
 
