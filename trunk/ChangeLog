@@ -1,5 +1,8 @@
 2000-11-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* changed filenames of file created by the corba and netsnmp
+	dump drivers. Adapted test suite.
+
 	* libsmi-0.2.9.tar.gz: released version 0.2.9.
 
 2000-11-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-netsnmp.c,v 1.1 2000/11/12 17:46:31 strauss Exp $
  */
 
 /*
@@ -121,6 +121,24 @@ static char* translateLower(char *m)
     s = xstrdup(m);
     for (i = 0; s[i]; i++) {
 	if (s[i] == '-') s[i] = '_';
+	if (isupper((int) s[i])) {
+	    s[i] = tolower(s[i]);
+	}
+    }
+  
+    return s;
+}
+
+
+
+static char* translateFileName(char *m)
+{
+    char *s;
+    int i;
+
+    s = xstrdup(m);
+    for (i = 0; s[i]; i++) {
+	if (s[i] == '_') s[i] = '-';
 	if (isupper((int) s[i])) {
 	    s[i] = tolower(s[i]);
 	}
@@ -739,7 +757,7 @@ static void printTypedefs(FILE *f, SmiModule *smiModule)
 
 
 
-static void dumpHeader(SmiModule *smiModule, char *cModuleName)
+static void dumpHeader(SmiModule *smiModule, char *baseName)
 {
     char	*pModuleName;
     char	*cInitName;
@@ -747,7 +765,7 @@ static void dumpHeader(SmiModule *smiModule, char *cModuleName)
 
     pModuleName = translateUpper(smiModule->name);
 
-    f = createFile(cModuleName, ".h");
+    f = createFile(baseName, ".h");
     if (! f) {
 	return;
     }
@@ -790,17 +808,18 @@ static void dumpHeader(SmiModule *smiModule, char *cModuleName)
 
 
 
-static void dumpStub(SmiModule *smiModule, char *cModuleName)
+static void dumpStub(SmiModule *smiModule, char *baseName)
 {
     char	*stubModuleName;
     FILE	*f;
 
-    stubModuleName = xmalloc(strlen(cModuleName) + 10);
-    strcpy(stubModuleName, cModuleName);
-    strcat(stubModuleName, "_stub");
+    stubModuleName = xmalloc(strlen(baseName) + 10);
+    strcpy(stubModuleName, baseName);
+    strcat(stubModuleName, "-stub");
     
     f = createFile(stubModuleName, ".c");
     if (! f) {
+	xfree(stubModuleName);
         return;
     }
 
@@ -827,7 +846,7 @@ static void dumpStub(SmiModule *smiModule, char *cModuleName)
 	    "#include <snmp_impl.h>\n"
 	    "#include <snmp_vars.h>\n"
 	    "\n",
-	    cModuleName);
+	    baseName);
 
     printReadMethodDecls(f, smiModule);
     printWriteMethodDecls(f, smiModule);
@@ -843,14 +862,17 @@ static void dumpStub(SmiModule *smiModule, char *cModuleName)
 
 
 
-static void dumpImplementation(SmiModule *smiModule, char *cModuleName)
+static void dumpImplementation(SmiModule *smiModule, char *baseName)
 {
     FILE	*f;
+    char	*cModuleName;
 
-    f = createFile(cModuleName, ".c");
+    f = createFile(baseName, ".c");
     if (! f) {
         return;
     }
+
+    cModuleName = translateLower(smiModule->name);
 
     fprintf(f,
 	    "/*\n"
@@ -875,7 +897,7 @@ static void dumpImplementation(SmiModule *smiModule, char *cModuleName)
 	    "#include <snmp_impl.h>\n"
 	    "#include <snmp_vars.h>\n"
 	    "\n",
-	    cModuleName);
+	    baseName);
 
     fprintf(f,
 	    "static oid %s_caps[] = {0,0};\n"
@@ -923,7 +945,8 @@ static void dumpImplementation(SmiModule *smiModule, char *cModuleName)
 	    "}\n"
 	    "\n",
 	    cModuleName, cModuleName);
-	    
+
+    xfree(cModuleName);
 
     fclose(f);
 }
@@ -939,7 +962,7 @@ void dumpNetSnmp(int modc, SmiModule **modv, int flags, char *output)
 	/* not implemented yet */
     } else {
 	for (i = 0; i < modc; i++) {
-	    baseName = output ? output : translateLower(modv[i]->name);
+	    baseName = output ? output : translateFileName(modv[i]->name);
 	    dumpHeader(modv[i], baseName);
 	    dumpStub(modv[i], baseName);
 	    dumpImplementation(modv[i], baseName);
