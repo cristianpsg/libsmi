@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.78 2000/04/11 09:00:24 strauss Exp $
+ * @(#) $Id: data.c,v 1.79 2000/05/16 15:09:31 strauss Exp $
  */
 
 #include <config.h>
@@ -1250,21 +1250,25 @@ setObjectName(objectPtr, name)
 #endif
 	    
 	    newObjectPtr = nodePtr->firstObjectPtr;
-	    modulePtr = newObjectPtr->modulePtr;
-	    if (modulePtr->objectPtr == objectPtr) {
-		modulePtr->objectPtr = newObjectPtr;
-	    }
-	    if (modulePtr->firstObjectPtr == objectPtr) {
-		modulePtr->firstObjectPtr = objectPtr->nextPtr;
-		modulePtr->firstObjectPtr->prevPtr = NULL;
-	    }
-	    if (modulePtr->lastObjectPtr == objectPtr) {
-		modulePtr->lastObjectPtr = objectPtr->prevPtr;
-		modulePtr->lastObjectPtr->nextPtr = NULL;
-	    }
+	    if (newObjectPtr) {
+		modulePtr = newObjectPtr->modulePtr;
+		if (modulePtr->objectPtr == objectPtr) {
+		    modulePtr->objectPtr = newObjectPtr;
+		}
+		if (modulePtr->firstObjectPtr == objectPtr) {
+		    modulePtr->firstObjectPtr = objectPtr->nextPtr;
+		    modulePtr->firstObjectPtr->prevPtr = NULL;
+		}
+		if (modulePtr->lastObjectPtr == objectPtr) {
+		    modulePtr->lastObjectPtr = objectPtr->prevPtr;
+		    modulePtr->lastObjectPtr->nextPtr = NULL;
+		}
 
-	    mergeNodeTrees(objectPtr->nodePtr, nodePtr);
-	    return newObjectPtr;
+		mergeNodeTrees(objectPtr->nodePtr, nodePtr);
+		return newObjectPtr;
+	    } else {
+		return objectPtr;
+	    }
 	}
     }
     return objectPtr;
@@ -3523,6 +3527,7 @@ loadModule(modulename)
     }
 
     if (!path) {
+	printError(NULL, ERR_MODULE_NOT_FOUND, modulename);
 	return NULL;
     }
 

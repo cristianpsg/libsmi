@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.103 2000/04/12 08:15:03 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.104 2000/04/12 17:02:49 strauss Exp $
  */
 
 %{
@@ -138,6 +138,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		   (objectPtr->export.decl == SMI_DECL_OBJECTIDENTITY)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
+		   (objectPtr->typePtr) &&
 		   (objectPtr->typePtr->export.decl == SMI_DECL_IMPL_SEQUENCEOF)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_TABLE;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
@@ -969,7 +970,7 @@ import:			importIdentifiers FROM moduleName
 			    }
 			    checkImports(modulePtr, thisParserPtr);
 
-			    if (!strcmp($3, "SNMPv2-SMI")) {
+			    if (modulePtr && !strcmp($3, "SNMPv2-SMI")) {
 			        /*
 				 * A module that imports a macro or
 				 * type definition from SNMPv2-SMI
@@ -1572,7 +1573,8 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 Syntax:			ObjectSyntax
 			{
 			    $$ = $1;
-			    defaultBasetype = $$->export.basetype;
+			    if ($$)
+				defaultBasetype = $$->export.basetype;
 			}
 	|		BITS '{' NamedBits '}'
 			/* TODO: standalone `BITS' ok? seen in RMON2-MIB */
@@ -3644,86 +3646,85 @@ subidentifier:
 			    if (parentNodePtr != rootNodePtr) {
 				printError(thisParserPtr,
 					   ERR_OIDLABEL_NOT_FIRST, $1);
+			    }
+			    objectPtr = findObjectByModuleAndName(
+				thisParserPtr->modulePtr, $1);
+			    if (objectPtr) {
+				$$ = objectPtr;
 			    } else {
-				objectPtr = findObjectByModuleAndName(
-				    thisParserPtr->modulePtr, $1);
-				if (objectPtr) {
-				    $$ = objectPtr;
-				} else {
-				    importPtr = findImportByName($1,
-							       thisModulePtr);
-				    if (!importPtr ||
-					(importPtr->kind == KIND_NOTFOUND)) {
-					/*
-					 * If we are in a MODULE-COMPLIANCE
-					 * statement with a given MODULE...
-					 */
-					if (complianceModulePtr) {
-					    objectPtr =
-						findObjectByModuleAndName(
-						    complianceModulePtr, $1);
-					    if (objectPtr) {
-						importPtr = addImport(
-						    util_strdup($1),
-						    thisParserPtr);
-						setImportModulename(importPtr,
-						    complianceModulePtr->export.name);
-						importPtr->use++;
-					    } else {
-						objectPtr = addObject($1,
-						    pendingNodePtr, 0,
-						    FLAG_INCOMPLETE,
-						    thisParserPtr);
-						printError(thisParserPtr,
-					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
-					     complianceModulePtr->export.name);
-					    }
-					} else if (capabilitiesModulePtr) {
-					    objectPtr =
-						findObjectByModuleAndName(
-						    capabilitiesModulePtr, $1);
-					    if (objectPtr) {
-						importPtr = addImport(
-						    util_strdup($1),
-						    thisParserPtr);
-						setImportModulename(importPtr,
-					                capabilitiesModulePtr->
-								  export.name);
-						importPtr->use++;
-					    } else {
-						objectPtr = addObject($1,
-						    pendingNodePtr, 0,
-						    FLAG_INCOMPLETE,
-						    thisParserPtr);
-						printError(thisParserPtr,
-					      ERR_IDENTIFIER_NOT_IN_MODULE, $1,
-					   capabilitiesModulePtr->export.name);
-					    }
+				importPtr = findImportByName($1,
+							     thisModulePtr);
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
+				    /*
+				     * If we are in a MODULE-COMPLIANCE
+				     * statement with a given MODULE...
+				     */
+				    if (complianceModulePtr) {
+					objectPtr =
+					    findObjectByModuleAndName(
+						complianceModulePtr, $1);
+					if (objectPtr) {
+					    importPtr = addImport(
+						util_strdup($1),
+						thisParserPtr);
+					    setImportModulename(importPtr,
+								complianceModulePtr->export.name);
+					    importPtr->use++;
 					} else {
-					    /* 
-					     * forward referenced node.
-					     * create it,
-					     * marked with FLAG_INCOMPLETE.
-					     */
 					    objectPtr = addObject($1,
+								  pendingNodePtr, 0,
+								  FLAG_INCOMPLETE,
+								  thisParserPtr);
+					    printError(thisParserPtr,
+						       ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+						       complianceModulePtr->export.name);
+					}
+				    } else if (capabilitiesModulePtr) {
+					objectPtr =
+					    findObjectByModuleAndName(
+						capabilitiesModulePtr, $1);
+					if (objectPtr) {
+					    importPtr = addImport(
+						util_strdup($1),
+						thisParserPtr);
+					    setImportModulename(importPtr,
+								capabilitiesModulePtr->
+								export.name);
+					    importPtr->use++;
+					} else {
+					    objectPtr = addObject($1,
+								  pendingNodePtr, 0,
+								  FLAG_INCOMPLETE,
+								  thisParserPtr);
+					    printError(thisParserPtr,
+						       ERR_IDENTIFIER_NOT_IN_MODULE, $1,
+						       capabilitiesModulePtr->export.name);
+					}
+				    } else {
+					/* 
+					 * forward referenced node.
+					 * create it,
+					 * marked with FLAG_INCOMPLETE.
+					 */
+					objectPtr = addObject($1,
 							      pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
-					}
-					$$ = objectPtr;
-				    } else {
-					/*
-					 * imported object.
-					 */
-					importPtr->use++;
-					$$ = findObjectByModulenameAndName(
-					    importPtr->export.module, $1);
 				    }
+				    $$ = objectPtr;
+				} else {
+				    /*
+				     * imported object.
+				     */
+				    importPtr->use++;
+				    $$ = findObjectByModulenameAndName(
+					importPtr->export.module, $1);
 				}
-				if ($$)
-				    parentNodePtr = $$->nodePtr;
 			    }
+			    if ($$)
+				parentNodePtr = $$->nodePtr;
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER
 			{
