@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.2 2000/06/20 15:17:06 strauss Exp $
+ * @(#) $Id: check.c,v 1.3 2000/07/04 12:16:33 strauss Exp $
  */
 
 #include <config.h>
@@ -63,10 +63,10 @@ compareValues(SmiValue *a, SmiValue *b) {
 	 (a->value.integer32 > b->value.integer32))) {
 	return 1;
     } else if ((a->basetype == b->basetype) &&
-	       ((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
-		(a->value.unsigned32 == b->value.unsigned32)) ||
-	       ((a->basetype == SMI_BASETYPE_INTEGER32) &&
-		(a->value.integer32 == b->value.integer32))) {
+	       (((a->basetype == SMI_BASETYPE_UNSIGNED32) &&
+		 (a->value.unsigned32 == b->value.unsigned32)) ||
+		((a->basetype == SMI_BASETYPE_INTEGER32) &&
+		 (a->value.integer32 == b->value.integer32)))) {
 	return 0;
     } else {
 	return -1;

@@ -1,3 +1,12 @@
+o libsmi crashes on LIBSMI-TEST-010-MIB because it mixes up range, size
+  and named number restrictions internally so that later these data
+  structures are casted to the wrong type. A real fix to this problem
+  may require to redesign internal data structures to get rid of the
+  opaque list.
+
+o libsmi crashes on LIBSMI-TEST-011-MIB which contains a nice set of
+  nasty forward references.
+
 
 o error detection: detect IMPORTs of SMIv1 specific and SMIv2 specific
   items in the same module, e.g. old OBJECT-TYPE macro and (new)

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.117 2000/07/04 13:01:24 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.118 2000/07/04 15:31:30 strauss Exp $
  */
 
 %{
@@ -2402,8 +2402,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 			integerSubType
 			{
-			    List *p;
-			    
 			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				&&
 				(strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
@@ -2459,7 +2457,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			integerSubType
 			{
 			    Import *importPtr;
-			    List *p;
 			    
 			    importPtr = findImportByName("Integer32",
 							 thisModulePtr);
@@ -2573,7 +2570,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
-			    List *p;
 			    
 			    parentPtr = findTypeByModuleAndName(
 				thisParserPtr->modulePtr, $1);
@@ -2633,7 +2629,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
-			    List *p;
 			    
 			    parentPtr = findTypeByModulenameAndName($1, $3);
 			    if (!parentPtr) {
@@ -2690,7 +2685,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 			octetStringSubType
 			{
-			    List *p;
 			    
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
@@ -2703,7 +2697,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
-			    List *p;
 			    
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    parentPtr = findTypeByModuleAndName(
@@ -2752,7 +2745,6 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
-			    List *p;
 			    
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    parentPtr = findTypeByModulenameAndName($1, $3);
@@ -2982,7 +2974,6 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
-			    List *p;
 			    
 			    parentPtr = findTypeByName("Gauge32");
 			    if (! parentPtr) {
@@ -3024,7 +3015,6 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
-			    List *p;
 			    
 			    parentPtr = findTypeByName("Unsigned32");
 			    if (! parentPtr) {
@@ -3069,7 +3059,6 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
-			    List *p;
 			    
 			    parentPtr = findTypeByName("Opaque");
 			    if (! parentPtr) {
