@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.79 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: smi.c,v 1.80 2000/02/12 14:31:54 strauss Exp $
  */
 
 #include <config.h>
@@ -448,6 +448,7 @@ int smiGetFlags()
 
 
 
+#if 0
 char *smiModule(char *fullname)
 {
     int	 len;
@@ -501,6 +502,7 @@ char *smiDescriptor(char *fullname)
 	 
     return name;
 }
+#endif
 
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.46 2000/02/12 10:56:20 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.47 2000/02/12 16:06:25 strauss Exp $
  */
 
 %{
@@ -86,8 +86,9 @@ findType(spec, parserPtr, modulePtr)
     Type *typePtr;
     Import *importPtr;
     char *module, *type;
-    
-    if (!strstr(spec, "::")) {
+
+    type = strstr(spec, "::");
+    if (!type) {
 	typePtr = findTypeByModuleAndName(modulePtr, spec);
 	if (!typePtr) {
 	    importPtr = findImportByName(spec, modulePtr);
@@ -97,11 +98,9 @@ findType(spec, parserPtr, modulePtr)
 	    }
 	}
     } else {
-	module = smiModule(spec);
-	type   = smiDescriptor(spec);
+	module = strtok(spec, ":");
+	type = &type[2];
 	typePtr = findTypeByModulenameAndName(module, type);
-	util_free(module);
-	util_free(type);
     }
     return typePtr;
 }
@@ -117,8 +116,9 @@ findObject(spec, parserPtr, modulePtr)
     Object *objectPtr;
     Import *importPtr;
     char *module, *object;
-    
-    if (!strstr(spec, "::")) {
+
+    object = strstr(spec, "::");
+    if (!object) {
 	objectPtr = findObjectByModuleAndName(modulePtr, spec);
 	if (!objectPtr) {
 	    importPtr = findImportByName(spec, modulePtr);
@@ -128,11 +128,9 @@ findObject(spec, parserPtr, modulePtr)
 	    }
 	}
     } else {
-	module = smiModule(spec);
-	object = smiDescriptor(spec);
+	module = strtok(spec, ":");
+	object = &object[2];
 	objectPtr = findObjectByModulenameAndName(module, object);
-	util_free(module);
-	util_free(object);
     }
     return objectPtr;
 }
