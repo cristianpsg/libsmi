@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.2 1998/10/12 15:11:06 strauss Exp $
+ * @(#) $Id: data.h,v 1.3 1998/10/13 14:55:52 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -252,9 +252,6 @@ typedef struct Type {
  */
 typedef struct MibNode {
     struct Module  *module;
-#if 0
-    char	   oid[MAX_OID_STRING_LENGTH+1];
-#endif
     unsigned int   subid;
     Descriptor	   *descriptor;
     off_t	   fileoffset;
