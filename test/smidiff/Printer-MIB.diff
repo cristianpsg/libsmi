@@ -1,13 +1,11 @@
-./Printer-MIB.new:xx: contact of `Printer-MIB' changed
-../../mibs/ietf/Printer-MIB:xx: previous definition of `Printer-MIB'
-./Printer-MIB.new:xx: description of `Printer-MIB' changed
-../../mibs/ietf/Printer-MIB:xx: previous definition of `Printer-MIB'
-./Printer-MIB.new:xx: revision `2001-08-30 00:00' added
-../../mibs/ietf/Printer-MIB:28 type `MediaUnit' has been deleted
-../../mibs/ietf/Printer-MIB:38 type `CapacityUnit' has been deleted
-../../mibs/ietf/Printer-MIB:51 type `SubUnitStatus' has been deleted
+./Printer-MIB.new:11 contact of `Printer-MIB' changed
+/usr/local/share/mibs/ietf/Printer-MIB:10 previous definition of contact of module `Printer-MIB'
+./Printer-MIB.new:22 revision `2001-08-30 00:00' added
+/usr/local/share/mibs/ietf/Printer-MIB:28 type `MediaUnit' has been deleted
+/usr/local/share/mibs/ietf/Printer-MIB:38 type `CapacityUnit' has been deleted
+/usr/local/share/mibs/ietf/Printer-MIB:51 type `SubUnitStatus' has been deleted
 ./Printer-MIB.new:159 description of `CodedCharSet' changed
-../../mibs/ietf/Printer-MIB:104 previous definition of `CodedCharSet'
+/usr/local/share/mibs/ietf/Printer-MIB:104 previous definition of description of module `CodedCharSet'
 ./Printer-MIB.new:50 type `PrtMediaUnitTC' has been added
 ./Printer-MIB.new:61 type `PrtCapacityUnitTC' has been added
 ./Printer-MIB.new:79 type `PrtPrintOrientationTC' has been added
@@ -40,332 +38,468 @@
 ./Printer-MIB.new:1333 type `PrtAlertGroupTC' has been added
 ./Printer-MIB.new:1380 type `PrtAlertCodeTC' has been added
 ./Printer-MIB.new:1616 description of `prtGeneralEntry' changed
-../../mibs/ietf/Printer-MIB:232 previous definition of `prtGeneralEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:232 previous definition of description of module `prtGeneralEntry'
 ./Printer-MIB.new:1662 description of `prtGeneralConfigChanges' changed
-../../mibs/ietf/Printer-MIB:261 previous definition of `prtGeneralConfigChanges'
+/usr/local/share/mibs/ietf/Printer-MIB:261 previous definition of description of module `prtGeneralConfigChanges'
 ./Printer-MIB.new:1697 description of `prtGeneralCurrentLocalization' changed
-../../mibs/ietf/Printer-MIB:288 previous definition of `prtGeneralCurrentLocalization'
+/usr/local/share/mibs/ietf/Printer-MIB:288 previous definition of description of module `prtGeneralCurrentLocalization'
 ./Printer-MIB.new:1715 type `PrtGeneralResetTC' replaces implicit type for `prtGeneralReset'
-../../mibs/ietf/Printer-MIB:301 previous definition of `prtGeneralReset'
+/usr/local/share/mibs/ietf/Printer-MIB:301 previous definition of `prtGeneralReset'
 ./Printer-MIB.new:1715 description of `prtGeneralReset' changed
-../../mibs/ietf/Printer-MIB:301 previous definition of `prtGeneralReset'
+/usr/local/share/mibs/ietf/Printer-MIB:301 previous definition of description of module `prtGeneralReset'
 ./Printer-MIB.new:1735 description of `prtGeneralCurrentOperator' changed
-../../mibs/ietf/Printer-MIB:574 previous definition of `prtGeneralCurrentOperator'
+/usr/local/share/mibs/ietf/Printer-MIB:574 previous definition of description of module `prtGeneralCurrentOperator'
 ./Printer-MIB.new:1757 description of `prtGeneralServicePerson' changed
-../../mibs/ietf/Printer-MIB:585 previous definition of `prtGeneralServicePerson'
+/usr/local/share/mibs/ietf/Printer-MIB:585 previous definition of description of module `prtGeneralServicePerson'
 ./Printer-MIB.new:1785 type `Integer32' replaces implicit type for `prtInputDefaultIndex'
-../../mibs/ietf/Printer-MIB:610 previous definition of `prtInputDefaultIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:610 previous definition of `prtInputDefaultIndex'
+./Printer-MIB.new:1785 range removed from type used in `prtInputDefaultIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:610 previous definition of `prtInputDefaultIndex'
 ./Printer-MIB.new:1785 description of `prtInputDefaultIndex' changed
-../../mibs/ietf/Printer-MIB:610 previous definition of `prtInputDefaultIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:610 previous definition of description of module `prtInputDefaultIndex'
 ./Printer-MIB.new:1802 description of `prtOutputDefaultIndex' changed
-../../mibs/ietf/Printer-MIB:1041 previous definition of `prtOutputDefaultIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:1041 previous definition of description of module `prtOutputDefaultIndex'
 ./Printer-MIB.new:1845 description of `prtConsoleLocalization' changed
-../../mibs/ietf/Printer-MIB:2789 previous definition of `prtConsoleLocalization'
+/usr/local/share/mibs/ietf/Printer-MIB:2789 previous definition of description of module `prtConsoleLocalization'
 ./Printer-MIB.new:1880 type `PrtConsoleDisableTC' replaces implicit type for `prtConsoleDisable'
-../../mibs/ietf/Printer-MIB:2821 previous definition of `prtConsoleDisable'
+/usr/local/share/mibs/ietf/Printer-MIB:2821 previous definition of `prtConsoleDisable'
+./Printer-MIB.new:1247 named number `enabled' changed to `operatorConsoleEnabled'
+/usr/local/share/mibs/ietf/Printer-MIB:2825 previous definition of `enabled'
+./Printer-MIB.new:1247 named number `disabled' changed to `operatorConsoleDisabled'
+/usr/local/share/mibs/ietf/Printer-MIB:2825 previous definition of `disabled'
 ./Printer-MIB.new:1880 description of `prtConsoleDisable' changed
-../../mibs/ietf/Printer-MIB:2821 previous definition of `prtConsoleDisable'
+/usr/local/share/mibs/ietf/Printer-MIB:2821 previous definition of description of module `prtConsoleDisable'
 ./Printer-MIB.new:2137 description of `prtStorageRefEntry' changed
-../../mibs/ietf/Printer-MIB:487 previous definition of `prtStorageRefEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:487 previous definition of description of module `prtStorageRefEntry'
 ./Printer-MIB.new:2182 description of `prtDeviceRefEntry' changed
-../../mibs/ietf/Printer-MIB:532 previous definition of `prtDeviceRefEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:532 previous definition of description of module `prtDeviceRefEntry'
 ./Printer-MIB.new:1993 description of `prtCoverEntry' changed
-../../mibs/ietf/Printer-MIB:338 previous definition of `prtCoverEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:338 previous definition of description of module `prtCoverEntry'
 ./Printer-MIB.new:2010 description of `prtCoverIndex' changed
-../../mibs/ietf/Printer-MIB:355 previous definition of `prtCoverIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:355 previous definition of description of module `prtCoverIndex'
 ./Printer-MIB.new:2022 type `LocalizedDescriptionStringTC' replaces implicit type for `prtCoverDescription'
-../../mibs/ietf/Printer-MIB:367 previous definition of `prtCoverDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:367 previous definition of `prtCoverDescription'
 ./Printer-MIB.new:2031 type `PrtCoverStatusTC' replaces implicit type for `prtCoverStatus'
-../../mibs/ietf/Printer-MIB:376 previous definition of `prtCoverStatus'
+/usr/local/share/mibs/ietf/Printer-MIB:376 previous definition of `prtCoverStatus'
+./Printer-MIB.new:90 named number `doorOpen' changed to `coverOpen'
+/usr/local/share/mibs/ietf/Printer-MIB:384 previous definition of `doorOpen'
+./Printer-MIB.new:90 named number `doorClosed' changed to `coverClosed'
+/usr/local/share/mibs/ietf/Printer-MIB:384 previous definition of `doorClosed'
 ./Printer-MIB.new:2060 description of `prtLocalizationEntry' changed
-../../mibs/ietf/Printer-MIB:411 previous definition of `prtLocalizationEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:411 previous definition of description of module `prtLocalizationEntry'
 ./Printer-MIB.new:2078 description of `prtLocalizationIndex' changed
-../../mibs/ietf/Printer-MIB:429 previous definition of `prtLocalizationIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:429 previous definition of description of module `prtLocalizationIndex'
 ./Printer-MIB.new:2091 description of `prtLocalizationLanguage' changed
-../../mibs/ietf/Printer-MIB:441 previous definition of `prtLocalizationLanguage'
+/usr/local/share/mibs/ietf/Printer-MIB:441 previous definition of description of module `prtLocalizationLanguage'
 ./Printer-MIB.new:2100 description of `prtLocalizationCountry' changed
-../../mibs/ietf/Printer-MIB:450 previous definition of `prtLocalizationCountry'
+/usr/local/share/mibs/ietf/Printer-MIB:450 previous definition of description of module `prtLocalizationCountry'
 ./Printer-MIB.new:159 description of `CodedCharSet' changed
-../../mibs/ietf/Printer-MIB:104 previous definition of `CodedCharSet'
+/usr/local/share/mibs/ietf/Printer-MIB:104 previous definition of description of module `CodedCharSet'
 ./Printer-MIB.new:2243 description of `prtInputEntry' changed
-../../mibs/ietf/Printer-MIB:629 previous definition of `prtInputEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:629 previous definition of description of module `prtInputEntry'
 ./Printer-MIB.new:2283 description of `prtInputIndex' changed
-../../mibs/ietf/Printer-MIB:668 previous definition of `prtInputIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:668 previous definition of description of module `prtInputIndex'
 ./Printer-MIB.new:2295 type `PrtInputTypeTC' replaces implicit type for `prtInputType'
-../../mibs/ietf/Printer-MIB:680 previous definition of `prtInputType'
+/usr/local/share/mibs/ietf/Printer-MIB:680 previous definition of `prtInputType'
 ./Printer-MIB.new:50 name changed from `MediaUnit' to `PrtMediaUnitTC'
-../../mibs/ietf/Printer-MIB:28 previous definition of `MediaUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:28 previous definition of `MediaUnit'
 ./Printer-MIB.new:2316 description of `prtInputMediaDimFeedDirDeclared' changed
-../../mibs/ietf/Printer-MIB:709 previous definition of `prtInputMediaDimFeedDirDeclared'
+/usr/local/share/mibs/ietf/Printer-MIB:709 previous definition of description of module `prtInputMediaDimFeedDirDeclared'
 ./Printer-MIB.new:2335 description of `prtInputMediaDimXFeedDirDeclared' changed
-../../mibs/ietf/Printer-MIB:727 previous definition of `prtInputMediaDimXFeedDirDeclared'
+/usr/local/share/mibs/ietf/Printer-MIB:727 previous definition of description of module `prtInputMediaDimXFeedDirDeclared'
 ./Printer-MIB.new:2354 description of `prtInputMediaDimFeedDirChosen' changed
-../../mibs/ietf/Printer-MIB:746 previous definition of `prtInputMediaDimFeedDirChosen'
+/usr/local/share/mibs/ietf/Printer-MIB:746 previous definition of description of module `prtInputMediaDimFeedDirChosen'
 ./Printer-MIB.new:2375 description of `prtInputMediaDimXFeedDirChosen' changed
-../../mibs/ietf/Printer-MIB:767 previous definition of `prtInputMediaDimXFeedDirChosen'
+/usr/local/share/mibs/ietf/Printer-MIB:767 previous definition of description of module `prtInputMediaDimXFeedDirChosen'
 ./Printer-MIB.new:61 name changed from `CapacityUnit' to `PrtCapacityUnitTC'
-../../mibs/ietf/Printer-MIB:38 previous definition of `CapacityUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:38 previous definition of `CapacityUnit'
+./Printer-MIB.new:61 named number `other' added
+./Printer-MIB.new:61 named number `unknown' added
+./Printer-MIB.new:61 named number `items' added
+./Printer-MIB.new:61 named number `percent' added
 ./Printer-MIB.new:2405 description of `prtInputMaxCapacity' changed
-../../mibs/ietf/Printer-MIB:797 previous definition of `prtInputMaxCapacity'
+/usr/local/share/mibs/ietf/Printer-MIB:797 previous definition of description of module `prtInputMaxCapacity'
 ./Printer-MIB.new:2422 description of `prtInputCurrentLevel' changed
-../../mibs/ietf/Printer-MIB:815 previous definition of `prtInputCurrentLevel'
+/usr/local/share/mibs/ietf/Printer-MIB:815 previous definition of description of module `prtInputCurrentLevel'
 ./Printer-MIB.new:105 name changed from `SubUnitStatus' to `PrtSubUnitStatusTC'
-../../mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
 ./Printer-MIB.new:105 description of `PrtSubUnitStatusTC' changed
-../../mibs/ietf/Printer-MIB:51 previous definition of `PrtSubUnitStatusTC'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of description of module `PrtSubUnitStatusTC'
 ./Printer-MIB.new:2447 description of `prtInputMediaName' changed
-../../mibs/ietf/Printer-MIB:841 previous definition of `prtInputMediaName'
+/usr/local/share/mibs/ietf/Printer-MIB:841 previous definition of description of module `prtInputMediaName'
 ./Printer-MIB.new:2447 reference added to `prtInputMediaName'
 ./Printer-MIB.new:2524 type `LocalizedDescriptionStringTC' replaces implicit type for `prtInputDescription'
-../../mibs/ietf/Printer-MIB:915 previous definition of `prtInputDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:915 previous definition of `prtInputDescription'
 ./Printer-MIB.new:2567 description of `prtInputMediaType' changed
-../../mibs/ietf/Printer-MIB:958 previous definition of `prtInputMediaType'
+/usr/local/share/mibs/ietf/Printer-MIB:958 previous definition of description of module `prtInputMediaType'
 ./Printer-MIB.new:2609 description of `prtInputMediaColor' changed
-../../mibs/ietf/Printer-MIB:990 previous definition of `prtInputMediaColor'
+/usr/local/share/mibs/ietf/Printer-MIB:990 previous definition of description of module `prtInputMediaColor'
 ./Printer-MIB.new:2721 description of `prtOutputEntry' changed
-../../mibs/ietf/Printer-MIB:1060 previous definition of `prtOutputEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:1060 previous definition of description of module `prtOutputEntry'
 ./Printer-MIB.new:2761 implicit type for `prtOutputIndex' replaces type `Integer32'
-../../mibs/ietf/Printer-MIB:1100 previous definition of `prtOutputIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:1100 previous definition of `prtOutputIndex'
+./Printer-MIB.new:2761 range added to type used in `prtOutputIndex'
 ./Printer-MIB.new:2775 type `PrtOutputTypeTC' replaces implicit type for `prtOutputType'
-../../mibs/ietf/Printer-MIB:1113 previous definition of `prtOutputType'
+/usr/local/share/mibs/ietf/Printer-MIB:1113 previous definition of `prtOutputType'
 ./Printer-MIB.new:61 name changed from `CapacityUnit' to `PrtCapacityUnitTC'
-../../mibs/ietf/Printer-MIB:38 previous definition of `CapacityUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:38 previous definition of `CapacityUnit'
+./Printer-MIB.new:61 named number `other' added
+./Printer-MIB.new:61 named number `unknown' added
+./Printer-MIB.new:61 named number `items' added
+./Printer-MIB.new:61 named number `percent' added
 ./Printer-MIB.new:2793 description of `prtOutputMaxCapacity' changed
-../../mibs/ietf/Printer-MIB:1139 previous definition of `prtOutputMaxCapacity'
+/usr/local/share/mibs/ietf/Printer-MIB:1139 previous definition of description of module `prtOutputMaxCapacity'
 ./Printer-MIB.new:2810 description of `prtOutputRemainingCapacity' changed
-../../mibs/ietf/Printer-MIB:1157 previous definition of `prtOutputRemainingCapacity'
+/usr/local/share/mibs/ietf/Printer-MIB:1157 previous definition of description of module `prtOutputRemainingCapacity'
 ./Printer-MIB.new:105 name changed from `SubUnitStatus' to `PrtSubUnitStatusTC'
-../../mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
 ./Printer-MIB.new:105 description of `PrtSubUnitStatusTC' changed
-../../mibs/ietf/Printer-MIB:51 previous definition of `PrtSubUnitStatusTC'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of description of module `PrtSubUnitStatusTC'
 ./Printer-MIB.new:2872 description of `prtOutputModel' changed
-../../mibs/ietf/Printer-MIB:1219 previous definition of `prtOutputModel'
+/usr/local/share/mibs/ietf/Printer-MIB:1219 previous definition of description of module `prtOutputModel'
 ./Printer-MIB.new:2896 type `LocalizedDescriptionStringTC' replaces implicit type for `prtOutputDescription'
-../../mibs/ietf/Printer-MIB:1243 previous definition of `prtOutputDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:1243 previous definition of `prtOutputDescription'
 ./Printer-MIB.new:50 name changed from `MediaUnit' to `PrtMediaUnitTC'
-../../mibs/ietf/Printer-MIB:28 previous definition of `MediaUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:28 previous definition of `MediaUnit'
 ./Printer-MIB.new:2929 description of `prtOutputMaxDimFeedDir' changed
-../../mibs/ietf/Printer-MIB:1275 previous definition of `prtOutputMaxDimFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:1275 previous definition of description of module `prtOutputMaxDimFeedDir'
 ./Printer-MIB.new:2943 description of `prtOutputMaxDimXFeedDir' changed
-../../mibs/ietf/Printer-MIB:1289 previous definition of `prtOutputMaxDimXFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:1289 previous definition of description of module `prtOutputMaxDimXFeedDir'
 ./Printer-MIB.new:2958 description of `prtOutputMinDimFeedDir' changed
-../../mibs/ietf/Printer-MIB:1303 previous definition of `prtOutputMinDimFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:1303 previous definition of description of module `prtOutputMinDimFeedDir'
 ./Printer-MIB.new:2972 description of `prtOutputMinDimXFeedDir' changed
-../../mibs/ietf/Printer-MIB:1317 previous definition of `prtOutputMinDimXFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:1317 previous definition of description of module `prtOutputMinDimXFeedDir'
 ./Printer-MIB.new:2991 type `PrtOutputStackingOrderTC' replaces implicit type for `prtOutputStackingOrder'
-../../mibs/ietf/Printer-MIB:1336 previous definition of `prtOutputStackingOrder'
+/usr/local/share/mibs/ietf/Printer-MIB:1336 previous definition of `prtOutputStackingOrder'
 ./Printer-MIB.new:2991 description of `prtOutputStackingOrder' changed
-../../mibs/ietf/Printer-MIB:1336 previous definition of `prtOutputStackingOrder'
+/usr/local/share/mibs/ietf/Printer-MIB:1336 previous definition of description of module `prtOutputStackingOrder'
 ./Printer-MIB.new:3007 type `PrtOutputPageDeliveryOrientationTC' replaces implicit type for `prtOutputPageDeliveryOrientation'
-../../mibs/ietf/Printer-MIB:1355 previous definition of `prtOutputPageDeliveryOrientation'
+/usr/local/share/mibs/ietf/Printer-MIB:1355 previous definition of `prtOutputPageDeliveryOrientation'
 ./Printer-MIB.new:3007 description of `prtOutputPageDeliveryOrientation' changed
-../../mibs/ietf/Printer-MIB:1355 previous definition of `prtOutputPageDeliveryOrientation'
+/usr/local/share/mibs/ietf/Printer-MIB:1355 previous definition of description of module `prtOutputPageDeliveryOrientation'
 ./Printer-MIB.new:3021 description of `prtOutputBursting' changed
-../../mibs/ietf/Printer-MIB:1372 previous definition of `prtOutputBursting'
+/usr/local/share/mibs/ietf/Printer-MIB:1372 previous definition of description of module `prtOutputBursting'
 ./Printer-MIB.new:3033 description of `prtOutputDecollating' changed
-../../mibs/ietf/Printer-MIB:1384 previous definition of `prtOutputDecollating'
+/usr/local/share/mibs/ietf/Printer-MIB:1384 previous definition of description of module `prtOutputDecollating'
 ./Printer-MIB.new:3044 description of `prtOutputPageCollated' changed
-../../mibs/ietf/Printer-MIB:1396 previous definition of `prtOutputPageCollated'
+/usr/local/share/mibs/ietf/Printer-MIB:1396 previous definition of description of module `prtOutputPageCollated'
 ./Printer-MIB.new:3055 description of `prtOutputOffsetStacking' changed
-../../mibs/ietf/Printer-MIB:1406 previous definition of `prtOutputOffsetStacking'
+/usr/local/share/mibs/ietf/Printer-MIB:1406 previous definition of description of module `prtOutputOffsetStacking'
 ./Printer-MIB.new:3096 description of `prtMarkerEntry' changed
-../../mibs/ietf/Printer-MIB:1455 previous definition of `prtMarkerEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:1455 previous definition of description of module `prtMarkerEntry'
 ./Printer-MIB.new:3124 description of `prtMarkerIndex' changed
-../../mibs/ietf/Printer-MIB:1484 previous definition of `prtMarkerIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:1484 previous definition of description of module `prtMarkerIndex'
 ./Printer-MIB.new:3136 type `PrtMarkerMarkTechTC' replaces implicit type for `prtMarkerMarkTech'
-../../mibs/ietf/Printer-MIB:1496 previous definition of `prtMarkerMarkTech'
+/usr/local/share/mibs/ietf/Printer-MIB:1496 previous definition of `prtMarkerMarkTech'
 ./Printer-MIB.new:3146 type `PrtMarkerCounterUnitTC' replaces implicit type for `prtMarkerCounterUnit'
-../../mibs/ietf/Printer-MIB:1533 previous definition of `prtMarkerCounterUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:1533 previous definition of `prtMarkerCounterUnit'
 ./Printer-MIB.new:3159 description of `prtMarkerLifeCount' changed
-../../mibs/ietf/Printer-MIB:1558 previous definition of `prtMarkerLifeCount'
+/usr/local/share/mibs/ietf/Printer-MIB:1558 previous definition of description of module `prtMarkerLifeCount'
 ./Printer-MIB.new:3169 description of `prtMarkerPowerOnCount' changed
-../../mibs/ietf/Printer-MIB:1568 previous definition of `prtMarkerPowerOnCount'
+/usr/local/share/mibs/ietf/Printer-MIB:1568 previous definition of description of module `prtMarkerPowerOnCount'
 ./Printer-MIB.new:3179 description of `prtMarkerProcessColorants' changed
-../../mibs/ietf/Printer-MIB:1578 previous definition of `prtMarkerProcessColorants'
+/usr/local/share/mibs/ietf/Printer-MIB:1578 previous definition of description of module `prtMarkerProcessColorants'
 ./Printer-MIB.new:3191 description of `prtMarkerSpotColorants' changed
-../../mibs/ietf/Printer-MIB:1589 previous definition of `prtMarkerSpotColorants'
+/usr/local/share/mibs/ietf/Printer-MIB:1589 previous definition of description of module `prtMarkerSpotColorants'
 ./Printer-MIB.new:3201 type `PrtMarkerAddressabilityUnitTC' replaces implicit type for `prtMarkerAddressabilityUnit'
-../../mibs/ietf/Printer-MIB:1599 previous definition of `prtMarkerAddressabilityUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:1599 previous definition of `prtMarkerAddressabilityUnit'
 ./Printer-MIB.new:3201 description of `prtMarkerAddressabilityUnit' changed
-../../mibs/ietf/Printer-MIB:1599 previous definition of `prtMarkerAddressabilityUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:1599 previous definition of description of module `prtMarkerAddressabilityUnit'
 ./Printer-MIB.new:3211 description of `prtMarkerAddressabilityFeedDir' changed
-../../mibs/ietf/Printer-MIB:1611 previous definition of `prtMarkerAddressabilityFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:1611 previous definition of description of module `prtMarkerAddressabilityFeedDir'
 ./Printer-MIB.new:3222 description of `prtMarkerAddressabilityXFeedDir' changed
-../../mibs/ietf/Printer-MIB:1622 previous definition of `prtMarkerAddressabilityXFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:1622 previous definition of description of module `prtMarkerAddressabilityXFeedDir'
 ./Printer-MIB.new:3234 description of `prtMarkerNorthMargin' changed
-../../mibs/ietf/Printer-MIB:1633 previous definition of `prtMarkerNorthMargin'
+/usr/local/share/mibs/ietf/Printer-MIB:1633 previous definition of description of module `prtMarkerNorthMargin'
 ./Printer-MIB.new:3249 description of `prtMarkerSouthMargin' changed
-../../mibs/ietf/Printer-MIB:1649 previous definition of `prtMarkerSouthMargin'
+/usr/local/share/mibs/ietf/Printer-MIB:1649 previous definition of description of module `prtMarkerSouthMargin'
 ./Printer-MIB.new:3260 description of `prtMarkerWestMargin' changed
-../../mibs/ietf/Printer-MIB:1661 previous definition of `prtMarkerWestMargin'
+/usr/local/share/mibs/ietf/Printer-MIB:1661 previous definition of description of module `prtMarkerWestMargin'
 ./Printer-MIB.new:3271 description of `prtMarkerEastMargin' changed
-../../mibs/ietf/Printer-MIB:1673 previous definition of `prtMarkerEastMargin'
+/usr/local/share/mibs/ietf/Printer-MIB:1673 previous definition of description of module `prtMarkerEastMargin'
 ./Printer-MIB.new:105 name changed from `SubUnitStatus' to `PrtSubUnitStatusTC'
-../../mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
 ./Printer-MIB.new:105 description of `PrtSubUnitStatusTC' changed
-../../mibs/ietf/Printer-MIB:51 previous definition of `PrtSubUnitStatusTC'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of description of module `PrtSubUnitStatusTC'
 ./Printer-MIB.new:3306 description of `prtMarkerSuppliesEntry' changed
-../../mibs/ietf/Printer-MIB:1708 previous definition of `prtMarkerSuppliesEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:1708 previous definition of description of module `prtMarkerSuppliesEntry'
 ./Printer-MIB.new:3341 description of `prtMarkerSuppliesMarkerIndex' changed
-../../mibs/ietf/Printer-MIB:1745 previous definition of `prtMarkerSuppliesMarkerIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:1745 previous definition of description of module `prtMarkerSuppliesMarkerIndex'
 ./Printer-MIB.new:3350 description of `prtMarkerSuppliesColorantIndex' changed
-../../mibs/ietf/Printer-MIB:1755 previous definition of `prtMarkerSuppliesColorantIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:1755 previous definition of description of module `prtMarkerSuppliesColorantIndex'
 ./Printer-MIB.new:3361 type `PrtMarkerSuppliesClassTC' replaces implicit type for `prtMarkerSuppliesClass'
-../../mibs/ietf/Printer-MIB:1766 previous definition of `prtMarkerSuppliesClass'
+/usr/local/share/mibs/ietf/Printer-MIB:1766 previous definition of `prtMarkerSuppliesClass'
 ./Printer-MIB.new:3361 description of `prtMarkerSuppliesClass' changed
-../../mibs/ietf/Printer-MIB:1766 previous definition of `prtMarkerSuppliesClass'
+/usr/local/share/mibs/ietf/Printer-MIB:1766 previous definition of description of module `prtMarkerSuppliesClass'
 ./Printer-MIB.new:3372 type `PrtMarkerSuppliesTypeTC' replaces implicit type for `prtMarkerSuppliesType'
-../../mibs/ietf/Printer-MIB:1780 previous definition of `prtMarkerSuppliesType'
+/usr/local/share/mibs/ietf/Printer-MIB:1780 previous definition of `prtMarkerSuppliesType'
+./Printer-MIB.new:1070 named number `fuser' added
+./Printer-MIB.new:1070 named number `coronaWire' added
+./Printer-MIB.new:1070 named number `fuserOilWick' added
+./Printer-MIB.new:1070 named number `cleanerUnit' added
+./Printer-MIB.new:1070 named number `fuserCleaningPad' added
+./Printer-MIB.new:1070 named number `transferUnit' added
+./Printer-MIB.new:1070 named number `tonerCartridge' added
+./Printer-MIB.new:1070 named number `fuserOiler' added
+./Printer-MIB.new:1070 named number `water' added
+./Printer-MIB.new:1070 named number `wasteWater' added
+./Printer-MIB.new:1070 named number `glueWaterAdditive' added
+./Printer-MIB.new:1070 named number `wastePaper' added
+./Printer-MIB.new:1070 named number `bindingSupply' added
+./Printer-MIB.new:1070 named number `bandingSupply' added
+./Printer-MIB.new:1070 named number `stitchingWire' added
+./Printer-MIB.new:1070 named number `shrinkWrap' added
+./Printer-MIB.new:1070 named number `paperWrap' added
+./Printer-MIB.new:1070 named number `staples' added
+./Printer-MIB.new:1070 named number `inserts' added
+./Printer-MIB.new:1070 named number `covers' added
 ./Printer-MIB.new:3381 type `LocalizedDescriptionStringTC' replaces implicit type for `prtMarkerSuppliesDescription'
-../../mibs/ietf/Printer-MIB:1804 previous definition of `prtMarkerSuppliesDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:1804 previous definition of `prtMarkerSuppliesDescription'
 ./Printer-MIB.new:3390 type `PrtMarkerSuppliesSupplyUnitTC' replaces implicit type for `prtMarkerSuppliesSupplyUnit'
-../../mibs/ietf/Printer-MIB:1813 previous definition of `prtMarkerSuppliesSupplyUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:1813 previous definition of `prtMarkerSuppliesSupplyUnit'
+./Printer-MIB.new:1115 named number `other' added
+./Printer-MIB.new:1115 named number `unknown' added
+./Printer-MIB.new:1115 named number `impressions' added
+./Printer-MIB.new:1115 named number `sheets' added
+./Printer-MIB.new:1115 named number `hours' added
+./Printer-MIB.new:1115 named number `feet' added
+./Printer-MIB.new:1115 named number `meters' added
+./Printer-MIB.new:1115 named number `items' added
+./Printer-MIB.new:1115 named number `percent' added
 ./Printer-MIB.new:3390 description of `prtMarkerSuppliesSupplyUnit' changed
-../../mibs/ietf/Printer-MIB:1813 previous definition of `prtMarkerSuppliesSupplyUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:1813 previous definition of description of module `prtMarkerSuppliesSupplyUnit'
 ./Printer-MIB.new:3399 description of `prtMarkerSuppliesMaxCapacity' changed
-../../mibs/ietf/Printer-MIB:1829 previous definition of `prtMarkerSuppliesMaxCapacity'
+/usr/local/share/mibs/ietf/Printer-MIB:1829 previous definition of description of module `prtMarkerSuppliesMaxCapacity'
 ./Printer-MIB.new:3415 description of `prtMarkerSuppliesLevel' changed
-../../mibs/ietf/Printer-MIB:1845 previous definition of `prtMarkerSuppliesLevel'
+/usr/local/share/mibs/ietf/Printer-MIB:1845 previous definition of description of module `prtMarkerSuppliesLevel'
 ./Printer-MIB.new:3447 description of `prtMarkerColorantEntry' changed
-../../mibs/ietf/Printer-MIB:1878 previous definition of `prtMarkerColorantEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:1878 previous definition of description of module `prtMarkerColorantEntry'
 ./Printer-MIB.new:3479 description of `prtMarkerColorantMarkerIndex' changed
-../../mibs/ietf/Printer-MIB:1910 previous definition of `prtMarkerColorantMarkerIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:1910 previous definition of description of module `prtMarkerColorantMarkerIndex'
 ./Printer-MIB.new:3488 type `PrtMarkerColorantRoleTC' replaces implicit type for `prtMarkerColorantRole'
-../../mibs/ietf/Printer-MIB:1920 previous definition of `prtMarkerColorantRole'
+/usr/local/share/mibs/ietf/Printer-MIB:1920 previous definition of `prtMarkerColorantRole'
+./Printer-MIB.new:3498 range of type used in `prtMarkerColorantValue' changed
+./Printer-MIB.new:3498 range changed from `0..63' to `0..255'
 ./Printer-MIB.new:3497 description of `prtMarkerColorantValue' changed
-../../mibs/ietf/Printer-MIB:1933 previous definition of `prtMarkerColorantValue'
+/usr/local/share/mibs/ietf/Printer-MIB:1933 previous definition of description of module `prtMarkerColorantValue'
 ./Printer-MIB.new:3520 description of `prtMarkerColorantTonality' changed
-../../mibs/ietf/Printer-MIB:1956 previous definition of `prtMarkerColorantTonality'
+/usr/local/share/mibs/ietf/Printer-MIB:1956 previous definition of description of module `prtMarkerColorantTonality'
 ./Printer-MIB.new:3553 description of `prtMediaPathEntry' changed
-../../mibs/ietf/Printer-MIB:1997 previous definition of `prtMediaPathEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:1997 previous definition of description of module `prtMediaPathEntry'
 ./Printer-MIB.new:3590 type `PrtMediaPathMaxSpeedPrintUnitTC' replaces implicit type for `prtMediaPathMaxSpeedPrintUnit'
-../../mibs/ietf/Printer-MIB:2035 previous definition of `prtMediaPathMaxSpeedPrintUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:2035 previous definition of `prtMediaPathMaxSpeedPrintUnit'
 ./Printer-MIB.new:50 name changed from `MediaUnit' to `PrtMediaUnitTC'
-../../mibs/ietf/Printer-MIB:28 previous definition of `MediaUnit'
+/usr/local/share/mibs/ietf/Printer-MIB:28 previous definition of `MediaUnit'
 ./Printer-MIB.new:3619 description of `prtMediaPathMaxMediaFeedDir' changed
-../../mibs/ietf/Printer-MIB:2074 previous definition of `prtMediaPathMaxMediaFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:2074 previous definition of description of module `prtMediaPathMaxMediaFeedDir'
 ./Printer-MIB.new:3630 description of `prtMediaPathMaxMediaXFeedDir' changed
-../../mibs/ietf/Printer-MIB:2085 previous definition of `prtMediaPathMaxMediaXFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:2085 previous definition of description of module `prtMediaPathMaxMediaXFeedDir'
 ./Printer-MIB.new:3640 description of `prtMediaPathMinMediaFeedDir' changed
-../../mibs/ietf/Printer-MIB:2095 previous definition of `prtMediaPathMinMediaFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:2095 previous definition of description of module `prtMediaPathMinMediaFeedDir'
 ./Printer-MIB.new:3651 description of `prtMediaPathMinMediaXFeedDir' changed
-../../mibs/ietf/Printer-MIB:2105 previous definition of `prtMediaPathMinMediaXFeedDir'
+/usr/local/share/mibs/ietf/Printer-MIB:2105 previous definition of description of module `prtMediaPathMinMediaXFeedDir'
 ./Printer-MIB.new:3661 type `PrtMediaPathTypeTC' replaces implicit type for `prtMediaPathType'
-../../mibs/ietf/Printer-MIB:2115 previous definition of `prtMediaPathType'
+/usr/local/share/mibs/ietf/Printer-MIB:2115 previous definition of `prtMediaPathType'
 ./Printer-MIB.new:3670 type `LocalizedDescriptionStringTC' replaces implicit type for `prtMediaPathDescription'
-../../mibs/ietf/Printer-MIB:2130 previous definition of `prtMediaPathDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:2130 previous definition of `prtMediaPathDescription'
 ./Printer-MIB.new:105 name changed from `SubUnitStatus' to `PrtSubUnitStatusTC'
-../../mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
 ./Printer-MIB.new:105 description of `PrtSubUnitStatusTC' changed
-../../mibs/ietf/Printer-MIB:51 previous definition of `PrtSubUnitStatusTC'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of description of module `PrtSubUnitStatusTC'
 ./Printer-MIB.new:3787 description of `prtChannelEntry' changed
-../../mibs/ietf/Printer-MIB:2259 previous definition of `prtChannelEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:2259 previous definition of description of module `prtChannelEntry'
 ./Printer-MIB.new:3809 implicit type for `prtChannelIndex' replaces type `Integer32'
-../../mibs/ietf/Printer-MIB:2280 previous definition of `prtChannelIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:2280 previous definition of `prtChannelIndex'
+./Printer-MIB.new:3809 range added to type used in `prtChannelIndex'
 ./Printer-MIB.new:3821 type `PrtChannelTypeTC' replaces implicit type for `prtChannelType'
-../../mibs/ietf/Printer-MIB:2292 previous definition of `prtChannelType'
+/usr/local/share/mibs/ietf/Printer-MIB:2292 previous definition of `prtChannelType'
+./Printer-MIB.new:259 named number `chDPMF' changed to `chPSM'
+/usr/local/share/mibs/ietf/Printer-MIB:2333 previous definition of `chDPMF'
+./Printer-MIB.new:259 named number `chUSB' added
+./Printer-MIB.new:259 named number `chIRDA' added
+./Printer-MIB.new:259 named number `chPrintXChange' added
+./Printer-MIB.new:259 named number `chPortTCP' added
+./Printer-MIB.new:259 named number `chBidirPortTCP' added
+./Printer-MIB.new:259 named number `chUNPP' added
+./Printer-MIB.new:259 named number `chAppleTalkADSP' added
+./Printer-MIB.new:259 named number `chPortSPX' added
+./Printer-MIB.new:259 named number `chPortHTTP' added
+./Printer-MIB.new:259 named number `chNDPS' added
+./Printer-MIB.new:259 named number `chIPP' added
 ./Printer-MIB.new:3842 description of `prtChannelCurrentJobCntlLangIndex' changed
-../../mibs/ietf/Printer-MIB:2353 previous definition of `prtChannelCurrentJobCntlLangIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:2353 previous definition of description of module `prtChannelCurrentJobCntlLangIndex'
 ./Printer-MIB.new:3856 description of `prtChannelDefaultPageDescLangIndex' changed
-../../mibs/ietf/Printer-MIB:2366 previous definition of `prtChannelDefaultPageDescLangIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:2366 previous definition of description of module `prtChannelDefaultPageDescLangIndex'
 ./Printer-MIB.new:3871 type `PrtChannelStateTC' replaces implicit type for `prtChannelState'
-../../mibs/ietf/Printer-MIB:2380 previous definition of `prtChannelState'
+/usr/local/share/mibs/ietf/Printer-MIB:2380 previous definition of `prtChannelState'
 ./Printer-MIB.new:3883 description of `prtChannelIfIndex' changed
-../../mibs/ietf/Printer-MIB:2395 previous definition of `prtChannelIfIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:2395 previous definition of description of module `prtChannelIfIndex'
 ./Printer-MIB.new:105 name changed from `SubUnitStatus' to `PrtSubUnitStatusTC'
-../../mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of `SubUnitStatus'
 ./Printer-MIB.new:105 description of `PrtSubUnitStatusTC' changed
-../../mibs/ietf/Printer-MIB:51 previous definition of `PrtSubUnitStatusTC'
+/usr/local/share/mibs/ietf/Printer-MIB:51 previous definition of description of module `PrtSubUnitStatusTC'
 ./Printer-MIB.new:4055 description of `prtInterpreterEntry' changed
-../../mibs/ietf/Printer-MIB:2447 previous definition of `prtInterpreterEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:2447 previous definition of description of module `prtInterpreterEntry'
 ./Printer-MIB.new:4081 implicit type for `prtInterpreterIndex' replaces type `Integer32'
-../../mibs/ietf/Printer-MIB:2472 previous definition of `prtInterpreterIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:2472 previous definition of `prtInterpreterIndex'
+./Printer-MIB.new:4081 range added to type used in `prtInterpreterIndex'
 ./Printer-MIB.new:4095 type `PrtInterpreterLangFamilyTC' replaces implicit type for `prtInterpreterLangFamily'
-../../mibs/ietf/Printer-MIB:2486 previous definition of `prtInterpreterLangFamily'
+/usr/local/share/mibs/ietf/Printer-MIB:2486 previous definition of `prtInterpreterLangFamily'
+./Printer-MIB.new:683 named number `unknown' added
+./Printer-MIB.new:683 named number `langPCLXL' added
+./Printer-MIB.new:683 named number `langART' added
+./Printer-MIB.new:683 named number `langTIPSI' added
+./Printer-MIB.new:683 named number `langPrescribe' added
+./Printer-MIB.new:683 named number `langLinePrinter' added
+./Printer-MIB.new:683 named number `langIDP' added
+./Printer-MIB.new:683 named number `langXJCL' added
+./Printer-MIB.new:683 named number `langPDF' added
+./Printer-MIB.new:683 named number `langRPDL' added
+./Printer-MIB.new:683 named number `langIntermecIPL' added
+./Printer-MIB.new:683 named number `langUBIFingerprint' added
+./Printer-MIB.new:683 named number `langUBIDirectProtocol' added
+./Printer-MIB.new:683 named number `langFujitsu' added
 ./Printer-MIB.new:4095 description of `prtInterpreterLangFamily' changed
-../../mibs/ietf/Printer-MIB:2486 previous definition of `prtInterpreterLangFamily'
+/usr/local/share/mibs/ietf/Printer-MIB:2486 previous definition of description of module `prtInterpreterLangFamily'
 ./Printer-MIB.new:4130 type `LocalizedDescriptionStringTC' replaces implicit type for `prtInterpreterDescription'
-../../mibs/ietf/Printer-MIB:2678 previous definition of `prtInterpreterDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:2678 previous definition of `prtInterpreterDescription'
 ./Printer-MIB.new:4154 type `PrtPrintOrientationTC' replaces implicit type for `prtInterpreterDefaultOrientation'
-../../mibs/ietf/Printer-MIB:2701 previous definition of `prtInterpreterDefaultOrientation'
+/usr/local/share/mibs/ietf/Printer-MIB:2701 previous definition of `prtInterpreterDefaultOrientation'
 ./Printer-MIB.new:159 description of `CodedCharSet' changed
-../../mibs/ietf/Printer-MIB:104 previous definition of `CodedCharSet'
+/usr/local/share/mibs/ietf/Printer-MIB:104 previous definition of description of module `CodedCharSet'
 ./Printer-MIB.new:4189 description of `prtInterpreterDefaultCharSetIn' changed
-../../mibs/ietf/Printer-MIB:2741 previous definition of `prtInterpreterDefaultCharSetIn'
+/usr/local/share/mibs/ietf/Printer-MIB:2741 previous definition of description of module `prtInterpreterDefaultCharSetIn'
 ./Printer-MIB.new:159 description of `CodedCharSet' changed
-../../mibs/ietf/Printer-MIB:104 previous definition of `CodedCharSet'
+/usr/local/share/mibs/ietf/Printer-MIB:104 previous definition of description of module `CodedCharSet'
 ./Printer-MIB.new:4202 description of `prtInterpreterDefaultCharSetOut' changed
-../../mibs/ietf/Printer-MIB:2754 previous definition of `prtInterpreterDefaultCharSetOut'
+/usr/local/share/mibs/ietf/Printer-MIB:2754 previous definition of description of module `prtInterpreterDefaultCharSetOut'
 ./Printer-MIB.new:4212 type `PrtInterpreterTwoWayTC' replaces implicit type for `prtInterpreterTwoWay'
-../../mibs/ietf/Printer-MIB:2766 previous definition of `prtInterpreterTwoWay'
+/usr/local/share/mibs/ietf/Printer-MIB:2766 previous definition of `prtInterpreterTwoWay'
 ./Printer-MIB.new:4236 description of `prtConsoleDisplayBufferTable' changed
-../../mibs/ietf/Printer-MIB:2837 previous definition of `prtConsoleDisplayBufferTable'
+/usr/local/share/mibs/ietf/Printer-MIB:2837 previous definition of description of module `prtConsoleDisplayBufferTable'
 ./Printer-MIB.new:4246 description of `prtConsoleDisplayBufferEntry' changed
-../../mibs/ietf/Printer-MIB:2845 previous definition of `prtConsoleDisplayBufferEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:2845 previous definition of description of module `prtConsoleDisplayBufferEntry'
 ./Printer-MIB.new:4263 description of `prtConsoleDisplayBufferIndex' changed
-../../mibs/ietf/Printer-MIB:2863 previous definition of `prtConsoleDisplayBufferIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:2863 previous definition of description of module `prtConsoleDisplayBufferIndex'
 ./Printer-MIB.new:4276 type `ConsoleDescriptionStringTC' replaces implicit type for `prtConsoleDisplayBufferText'
-../../mibs/ietf/Printer-MIB:2876 previous definition of `prtConsoleDisplayBufferText'
+/usr/local/share/mibs/ietf/Printer-MIB:2876 previous definition of `prtConsoleDisplayBufferText'
 ./Printer-MIB.new:4276 description of `prtConsoleDisplayBufferText' changed
-../../mibs/ietf/Printer-MIB:2876 previous definition of `prtConsoleDisplayBufferText'
+/usr/local/share/mibs/ietf/Printer-MIB:2876 previous definition of description of module `prtConsoleDisplayBufferText'
 ./Printer-MIB.new:4307 description of `prtConsoleLightEntry' changed
-../../mibs/ietf/Printer-MIB:2907 previous definition of `prtConsoleLightEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:2907 previous definition of description of module `prtConsoleLightEntry'
+./Printer-MIB.new:4326 range of type used in `prtConsoleLightIndex' changed
+./Printer-MIB.new:4326 range changed from `0..65535' to `1..65535'
 ./Printer-MIB.new:4325 description of `prtConsoleLightIndex' changed
-../../mibs/ietf/Printer-MIB:2925 previous definition of `prtConsoleLightIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:2925 previous definition of description of module `prtConsoleLightIndex'
 ./Printer-MIB.new:4338 description of `prtConsoleOnTime' changed
-../../mibs/ietf/Printer-MIB:2937 previous definition of `prtConsoleOnTime'
+/usr/local/share/mibs/ietf/Printer-MIB:2937 previous definition of description of module `prtConsoleOnTime'
 ./Printer-MIB.new:4353 description of `prtConsoleOffTime' changed
-../../mibs/ietf/Printer-MIB:2948 previous definition of `prtConsoleOffTime'
+/usr/local/share/mibs/ietf/Printer-MIB:2948 previous definition of description of module `prtConsoleOffTime'
 ./Printer-MIB.new:4368 type `PrtConsoleColorTC' replaces implicit type for `prtConsoleColor'
-../../mibs/ietf/Printer-MIB:2959 previous definition of `prtConsoleColor'
+/usr/local/share/mibs/ietf/Printer-MIB:2959 previous definition of `prtConsoleColor'
+./Printer-MIB.new:1229 named number `orange' added
 ./Printer-MIB.new:4377 type `ConsoleDescriptionStringTC' replaces implicit type for `prtConsoleDescription'
-../../mibs/ietf/Printer-MIB:2978 previous definition of `prtConsoleDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:2978 previous definition of `prtConsoleDescription'
 ./Printer-MIB.new:4421 description of `prtAlertEntry' changed
-../../mibs/ietf/Printer-MIB:3014 previous definition of `prtAlertEntry'
+/usr/local/share/mibs/ietf/Printer-MIB:3014 previous definition of description of module `prtAlertEntry'
 ./Printer-MIB.new:4444 implicit type for `prtAlertIndex' replaces type `Integer32'
-../../mibs/ietf/Printer-MIB:3036 previous definition of `prtAlertIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:3036 previous definition of `prtAlertIndex'
+./Printer-MIB.new:4444 range added to type used in `prtAlertIndex'
 ./Printer-MIB.new:4444 description of `prtAlertIndex' changed
-../../mibs/ietf/Printer-MIB:3036 previous definition of `prtAlertIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:3036 previous definition of description of module `prtAlertIndex'
 ./Printer-MIB.new:4477 type `PrtAlertSeverityLevelTC' replaces implicit type for `prtAlertSeverityLevel'
-../../mibs/ietf/Printer-MIB:3070 previous definition of `prtAlertSeverityLevel'
+/usr/local/share/mibs/ietf/Printer-MIB:3070 previous definition of `prtAlertSeverityLevel'
+./Printer-MIB.new:1271 named number `warningBinaryChangeEvent' added
 ./Printer-MIB.new:4488 type `PrtAlertTrainingLevelTC' replaces implicit type for `prtAlertTrainingLevel'
-../../mibs/ietf/Printer-MIB:3085 previous definition of `prtAlertTrainingLevel'
+/usr/local/share/mibs/ietf/Printer-MIB:3085 previous definition of `prtAlertTrainingLevel'
+./Printer-MIB.new:1288 named number `noInterventionRequired' added
 ./Printer-MIB.new:4488 description of `prtAlertTrainingLevel' changed
-../../mibs/ietf/Printer-MIB:3085 previous definition of `prtAlertTrainingLevel'
+/usr/local/share/mibs/ietf/Printer-MIB:3085 previous definition of description of module `prtAlertTrainingLevel'
 ./Printer-MIB.new:4497 type `PrtAlertGroupTC' replaces implicit type for `prtAlertGroup'
-../../mibs/ietf/Printer-MIB:3133 previous definition of `prtAlertGroup'
+/usr/local/share/mibs/ietf/Printer-MIB:3133 previous definition of `prtAlertGroup'
+./Printer-MIB.new:1333 named number `alert' added
+./Printer-MIB.new:1333 named number `finDevice' added
+./Printer-MIB.new:1333 named number `finSupply' added
+./Printer-MIB.new:1333 named number `finSupplyMediaInput' added
+./Printer-MIB.new:1333 named number `finAttributeTable' added
 ./Printer-MIB.new:4497 description of `prtAlertGroup' changed
-../../mibs/ietf/Printer-MIB:3133 previous definition of `prtAlertGroup'
+/usr/local/share/mibs/ietf/Printer-MIB:3133 previous definition of description of module `prtAlertGroup'
 ./Printer-MIB.new:4510 description of `prtAlertGroupIndex' changed
-../../mibs/ietf/Printer-MIB:3165 previous definition of `prtAlertGroupIndex'
+/usr/local/share/mibs/ietf/Printer-MIB:3165 previous definition of description of module `prtAlertGroupIndex'
 ./Printer-MIB.new:4528 description of `prtAlertLocation' changed
-../../mibs/ietf/Printer-MIB:3184 previous definition of `prtAlertLocation'
+/usr/local/share/mibs/ietf/Printer-MIB:3184 previous definition of description of module `prtAlertLocation'
 ./Printer-MIB.new:4541 type `PrtAlertCodeTC' replaces implicit type for `prtAlertCode'
-../../mibs/ietf/Printer-MIB:3196 previous definition of `prtAlertCode'
+/usr/local/share/mibs/ietf/Printer-MIB:3196 previous definition of `prtAlertCode'
+./Printer-MIB.new:1380 named number `subunitMissing' added
+./Printer-MIB.new:1380 named number `subunitLifeAlmostOver' added
+./Printer-MIB.new:1380 named number `subunitLifeOver' added
+./Printer-MIB.new:1380 named number `subunitAlmostEmpty' added
+./Printer-MIB.new:1380 named number `subunitEmpty' added
+./Printer-MIB.new:1380 named number `subunitAlmostFull' added
+./Printer-MIB.new:1380 named number `subunitFull' added
+./Printer-MIB.new:1380 named number `subunitNearLimit' added
+./Printer-MIB.new:1380 named number `subunitAtLimit' added
+./Printer-MIB.new:1380 named number `subunitOpened' added
+./Printer-MIB.new:1380 named number `subunitClosed' added
+./Printer-MIB.new:1380 named number `subunitTurnedOn' added
+./Printer-MIB.new:1380 named number `subunitTurnedOff' added
+./Printer-MIB.new:1380 named number `subunitOffline' added
+./Printer-MIB.new:1380 named number `subunitPowerSaver' added
+./Printer-MIB.new:1380 named number `subunitWarmingUp' added
+./Printer-MIB.new:1380 named number `subunitAdded' added
+./Printer-MIB.new:1380 named number `subunitRemoved' added
+./Printer-MIB.new:1380 named number `subunitResourceAdded' added
+./Printer-MIB.new:1380 named number `subunitResourceRemoved' added
+./Printer-MIB.new:1380 named number `subunitRecoverableFailure' added
+./Printer-MIB.new:1380 named number `subunitUnrecoverableFailure' added
+./Printer-MIB.new:1380 named number `subunitRecoverableStorageError' added
+./Printer-MIB.new:1380 named number `subunitUnrecoverableStorageError' added
+./Printer-MIB.new:1380 named number `subunitMotorFailure' added
+./Printer-MIB.new:1380 named number `subunitMemoryExhausted' added
+./Printer-MIB.new:1380 named number `subunitUnderTemperature' added
+./Printer-MIB.new:1380 named number `subunitOverTemperature' added
+./Printer-MIB.new:1380 named number `subunitTimingFailure' added
+./Printer-MIB.new:1380 named number `subunitThermistorFailure' added
+./Printer-MIB.new:1380 named number `printerNMSReset' added
+./Printer-MIB.new:1380 named number `printerManualReset' added
+./Printer-MIB.new:1380 named number `printerReadyToPrint' added
+./Printer-MIB.new:1380 named number `inputMediaChangeRequest' added
+./Printer-MIB.new:1380 named number `inputManualInputRequest' added
+./Printer-MIB.new:1380 named number `inputTrayPositionFailure' added
+./Printer-MIB.new:1380 named number `inputTrayElevationFailure' added
+./Printer-MIB.new:1380 named number `inputCannotFeedSizeSelected' added
+./Printer-MIB.new:1380 named number `outputMailboxSelectFailure' added
+./Printer-MIB.new:1380 named number `markerFuserTimingFailure' added
+./Printer-MIB.new:1380 named number `markerFuserThermistorFailure' added
+./Printer-MIB.new:1380 named number `markerAdjustingPrintQuality' added
+./Printer-MIB.new:1380 named number `markerTonerCartridgeMissing' added
+./Printer-MIB.new:1380 named number `mediaPathcannotDuplexMediaSelected' added
+./Printer-MIB.new:1380 named number `interpreterComplexPageEncountered' added
+./Printer-MIB.new:1380 named number `alertRemovalOfBinaryChangeEntry' added
 ./Printer-MIB.new:4541 description of `prtAlertCode' changed
-../../mibs/ietf/Printer-MIB:3196 previous definition of `prtAlertCode'
+/usr/local/share/mibs/ietf/Printer-MIB:3196 previous definition of description of module `prtAlertCode'
 ./Printer-MIB.new:4550 type `LocalizedDescriptionStringTC' replaces implicit type for `prtAlertDescription'
-../../mibs/ietf/Printer-MIB:3266 previous definition of `prtAlertDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:3266 previous definition of `prtAlertDescription'
 ./Printer-MIB.new:4550 description of `prtAlertDescription' changed
-../../mibs/ietf/Printer-MIB:3266 previous definition of `prtAlertDescription'
+/usr/local/share/mibs/ietf/Printer-MIB:3266 previous definition of description of module `prtAlertDescription'
 ./Printer-MIB.new:4565 description of `prtAlertTime' changed
-../../mibs/ietf/Printer-MIB:3319 previous definition of `prtAlertTime'
+/usr/local/share/mibs/ietf/Printer-MIB:3319 previous definition of description of module `prtAlertTime'
 ./Printer-MIB.new:4575 description of `printerV1Alert' changed
-../../mibs/ietf/Printer-MIB:3280 previous definition of `printerV1Alert'
-./Printer-MIB.new:1900 node `prtAuxiliarySheetStartupPage' has been added
-./Printer-MIB.new:1911 node `prtAuxiliarySheetBannerPage' has been added
-./Printer-MIB.new:1926 node `prtGeneralPrinterName' has been added
-./Printer-MIB.new:1937 node `prtGeneralSerialNumber' has been added
-./Printer-MIB.new:1955 node `prtAlertCriticalEvents' has been added
-./Printer-MIB.new:1966 node `prtAlertAllEvents' has been added
-./Printer-MIB.new:2658 node `prtInputMediaLoadTimeout' has been added
-./Printer-MIB.new:2680 node `prtInputNextIndex' has been added
-./Printer-MIB.new:3904 node `prtChannelInformation' has been added
+/usr/local/share/mibs/ietf/Printer-MIB:3280 previous definition of description of module `printerV1Alert'
+./Printer-MIB.new:1900 column `prtAuxiliarySheetStartupPage' has been added
+./Printer-MIB.new:1911 column `prtAuxiliarySheetBannerPage' has been added
+./Printer-MIB.new:1926 column `prtGeneralPrinterName' has been added
+./Printer-MIB.new:1937 column `prtGeneralSerialNumber' has been added
+./Printer-MIB.new:1955 column `prtAlertCriticalEvents' has been added
+./Printer-MIB.new:1966 column `prtAlertAllEvents' has been added
+./Printer-MIB.new:2658 column `prtInputMediaLoadTimeout' has been added
+./Printer-MIB.new:2680 column `prtInputNextIndex' has been added
+./Printer-MIB.new:3904 column `prtChannelInformation' has been added
 ./Printer-MIB.new:5139 description of `prtAlertTableGroup' changed
-../../mibs/ietf/Printer-MIB:3539 previous definition of `prtAlertTableGroup'
-./Printer-MIB.new:5156 group `prtAuxiliarySheetGroup' added
-./Printer-MIB.new:5165 group `prtInputSwitchingGroup' added
-./Printer-MIB.new:5172 group `prtGeneralV2Group' added
-./Printer-MIB.new:5179 group `prtAlertTableV2Group' added
-./Printer-MIB.new:5186 group `prtChannelV2Group' added
-./Printer-MIB.new:5193 group `prtAlertTrapGroup' added
+/usr/local/share/mibs/ietf/Printer-MIB:3539 previous definition of description of module `prtAlertTableGroup'
+./Printer-MIB.new:5156 group `prtAuxiliarySheetGroup' has been added
+./Printer-MIB.new:5165 group `prtInputSwitchingGroup' has been added
+./Printer-MIB.new:5172 group `prtGeneralV2Group' has been added
+./Printer-MIB.new:5179 group `prtAlertTableV2Group' has been added
+./Printer-MIB.new:5186 group `prtChannelV2Group' has been added
+./Printer-MIB.new:5193 group `prtAlertTrapGroup' has been added
