@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.49 2004/01/12 14:11:46 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.50 2004/01/12 14:22:20 strauss Exp $ 
  */
 
 /*
@@ -1536,7 +1536,7 @@ checkNodeTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
 
     if ((!oldType) && (!newType)) return;
 
-    if (oldType->basetype != newType->basetype) {
+    if (oldType && newType && oldType->basetype != newType->basetype) {
 	printErrorAtLine(newModule, ERR_BASETYPE_CHANGED,
 			 newLine, newNode->name);
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
