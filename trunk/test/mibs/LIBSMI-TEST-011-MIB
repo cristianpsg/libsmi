@@ -36,8 +36,8 @@ libsmiTest011Mib MODULE-IDENTITY
              This module checks the proper handling of forward references.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-011-MIB:51: group `group1' is unconditionally optional
-LIBSMI-TEST-011-MIB:58: group `group2' is unconditionally optional
+LIBSMI-TEST-011-MIB:53: group `group1' is unconditionally optional
+LIBSMI-TEST-011-MIB:60: group `group2' is unconditionally optional
 	    "
     REVISION        "200007051000Z"
     DESCRIPTION     
