@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.46 2003/09/10 17:18:39 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.47 2003/11/28 11:42:14 schoenw Exp $ 
  */
 
 /*
@@ -1238,12 +1238,14 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 	return;
     }
 
+#if 0 /* changed base type is reported, anyway. */
     if (oldVal.basetype != newVal.basetype) {
 	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine, name);
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
 	return;
     }
-	
+#endif
+    
     if (cmpSmiValues(oldVal, newVal)) {
 	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
@@ -1509,6 +1511,46 @@ checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
 		newModule,
 		newLine > 0 ? newLine : smiGetTypeLine( newType ),
 		oldName,
+		oldType,
+		newType);
+}
+
+
+static void
+checkNodeTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
+			   SmiModule *newModule, SmiNode *newNode)
+{
+    SmiType *oldType, *newType;
+    
+    const int oldLine = smiGetNodeLine(oldNode);
+    const int newLine = smiGetNodeLine(newNode);
+
+    oldType = smiGetNodeType(oldNode);
+    newType = smiGetNodeType(newNode);
+
+    if ((!oldType) && (!newType)) return;
+
+    if (oldType->basetype != newType->basetype) {
+	printErrorAtLine(newModule, ERR_BASETYPE_CHANGED,
+			 newLine, newNode->name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 oldLine, oldNode->name);
+	return;
+    }
+
+    checkNamedNumbers(oldModule,
+		      oldLine,
+		      newModule,
+		      newLine > 0 ? newLine : smiGetTypeLine(newType),
+		      oldType->name,
+		      oldNode,
+		      oldType,
+		      newType);
+    checkRanges(oldModule,
+		oldLine,
+		newModule,
+		newLine > 0 ? newLine : smiGetTypeLine(newType),
+		oldNode->name,
 		oldType,
 		newType);
 }
@@ -1818,28 +1860,17 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 			     newNode->name, oldType->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
-	    
-	    checkTypeCompatibility(oldModule, oldNode, oldType,
-				   newModule,
-				   newNode ? smiGetNodeLine(newNode) : smiGetTypeLine(newType),
-				   newType);
 	} else if (!oldType->name && newType->name) {
 	    printErrorAtLine(newModule, ERR_FROM_IMPLICIT,
 			     smiGetNodeLine(newNode),
 			     newType->name, oldNode->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
-	    checkTypeCompatibility(oldModule, oldNode, oldType,
-				   newModule,
-				   newNode ? smiGetNodeLine(newNode) : smiGetTypeLine(newType),
-				   newType);
-	} else {
-	    checkTypeCompatibility(oldModule, oldNode, oldType,
-				   newModule,
-				   newNode ? smiGetNodeLine(newNode) : smiGetTypeLine(newType),
-				   newType);
 	}
     }
+
+    checkNodeTypeCompatibility(oldModule, oldNode,
+			       newModule, newNode);
 
     code |= checkDecl(oldModule, oldLine, newModule, newLine,
 		      newNode->name, oldNode->decl, newNode->decl);
