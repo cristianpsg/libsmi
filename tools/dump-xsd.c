@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.22 2002/04/08 17:29:07 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.23 2002/05/24 17:33:17 tklie Exp $
  */
 
 #include <config.h>
@@ -62,6 +62,7 @@ static TypePrefix *typePrefixes = NULL;
 /* some forward declarations */
 static void fprintElement( FILE *f, int indent,
 			   SmiNode *smiNode, const char *prefix );
+static char* getTypePrefix( char *typeName );
 
 static char *getStringBasetype(SmiBasetype basetype)
 {

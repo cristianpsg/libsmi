@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.11 2001/08/27 13:08:53 strauss Exp $
+# @(#) $Id: makefile,v 1.12 2002/05/17 12:55:55 schoenw Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -100,6 +100,9 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-scli.obj			\
 	$(TMPDIR)\dump-xsd.obj
 
+SMIDIFFOBJS =					\
+	$(TMPDIR)\smidiff.obj
+
 SMILIB = smi.lib
 
 ##
@@ -138,7 +141,7 @@ $(TMPDIR)\scanner-sming.obj : $(ROOT)\lib\scanner-sming.c
 $(SMILIB):	$(LIBSMIOBJS)
 	$(implib) /out:smi.lib $(LIBSMIOBJS)
 
-tools:	smiquery.exe smilint.exe smidump.exe
+tools:	smiquery.exe smilint.exe smidump.exe smidiff.exe
 
 smiquery.exe:	$(SMIQUERYOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) /osmiquery.exe $(SMIQUERYOBJS) $(SMILIB)
@@ -149,6 +152,10 @@ smilint.exe:	$(SMILINTOBJS) $(SMILIB)
 smidump.exe:	$(SMIDUMPOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) \
 		/osmidump.exe $(SMIDUMPOBJS) $(SMILIB)
+
+smidiff.exe:	$(SMIDIFFOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) \
+		/osmidiff.exe $(SMIDIFFOBJS) $(SMILIB)
 
 clean:
 	del *.lib
