@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.103 2001/08/22 17:51:43 strauss Exp $
+ * @(#) $Id: smi.c,v 1.104 2001/08/24 10:10:55 strauss Exp $
  */
 
 #include <config.h>
@@ -199,8 +199,10 @@ int smiInit(const char *tag)
 
     smiHandle->errorLevel = DEFAULT_ERRORLEVEL;
     smiHandle->errorHandler = smiErrorHandler;
+#if !defined(_MSC_VER)
     smiHandle->cache = NULL;
     smiHandle->cacheProg = NULL;
+#endif
     
     if (smiInitData()) {
 	return -1;
@@ -271,9 +273,11 @@ void smiExit()
     smiFreeData();
 
     smiFree(smiHandle->path);
+#if !defined(_MSC_VER)
     smiFree(smiHandle->cache);
     smiFree(smiHandle->cacheProg);
-
+#endif
+    
     removeHandle(smiHandle);
     
     smiHandle = NULL;
@@ -363,12 +367,19 @@ int smiReadConfig(const char *filename, const char *tag)
 		    }
 		}
 	    } else if (!strcmp(cmd, "cache")) {
+#if !defined(_MSC_VER)
 		smiFree(smiHandle->cache);
 		smiFree(smiHandle->cacheProg);
+#endif
 		if (arg && strcmp(arg, "off")) {
+#if !defined(_MSC_VER)
 		    smiHandle->cache = smiStrdup(arg);
 		    arg = strtok(NULL, "\n\r");
 		    smiHandle->cacheProg = smiStrdup(arg);
+#else
+		    smiPrintError(NULL, ERR_CACHE_CONFIG_NOT_SUPPORTED,
+				  filename);
+#endif
 		}
 	    } else if (!strcmp(cmd, "level")) {
 		smiSetErrorLevel(atoi(arg));

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.73 2001/08/15 17:07:03 strauss Exp $
+ * @(#) $Id: error.c,v 1.74 2001/08/22 17:51:42 strauss Exp $
  */
 
 #include <config.h>
@@ -256,6 +256,8 @@ static Error errors[] = {
       "subtyping not allowed in SEQUENCE" },
     { 1, ERR_UNKNOWN_CONFIG_CMD, "", 
       "unknown configuration command `%s' in file `%s'" },
+    { 6, ERR_CACHE_CONFIG_NOT_SUPPORTED, "", 
+      "MIB caching is not supported though configured in file `%s'" },
     { 4, ERR_OPAQUE_OBSOLETE, "opaque", 
       "SMIv2 provides Opaque solely for backward-compatibility" },
     { 2, ERR_DATE_CHARACTER, "date-character", 
