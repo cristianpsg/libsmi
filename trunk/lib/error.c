@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.82 2001/12/14 10:09:51 strauss Exp $
+ * @(#) $Id: error.c,v 1.83 2001/12/17 18:05:23 schoenw Exp $
  */
 
 #include <config.h>
@@ -409,7 +409,7 @@ static Error errors[] = {
     { 2, ERR_DEFVAL_OUT_OF_ENUM, "defval-enum", 
       "default value does not match underlying enumeration type" },
     { 5, ERR_TADDRESS_WITHOUT_TDOMAIN, "taddress-tdomain", 
-      "`TAddress' object should have an accompanied preceding `TDomain' object" },
+      "`TAddress' object should have an accompanied `TDomain' object" },
     { 5, ERR_INETADDRESS_WITHOUT_TYPE, "inetaddress-inetaddresstype", 
       "`InetAddress' object should have an accompanied preceding `InetAdressType' object" },
     { 5, ERR_INETADDRESSTYPE_SUBTYPED, "inetaddresstype-subtyped", 
@@ -440,6 +440,8 @@ static Error errors[] = {
       "type of `%s' in sequence and object type definition do not match" },
     { 5, ERR_INDEX_ACCESSIBLE, "index-element-accessible",
       "index element `%s' of row `%s' should be not-accessible in SMIv2 MIB" },
+    { 3, ERR_REFINEMENT_NOT_LISTED, "",
+      "refined object `%s' not listed in a mandatory or optional group" },
     { 0, 0, NULL, NULL }
 };
 
