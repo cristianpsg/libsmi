@@ -1,5 +1,8 @@
 2000-11-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/parser-smi.y: Added checks for illegal subtyping; adjusted
+	test suite, so that is runs successfully for all current tests.
+
 	* lib/scanner-smi.l,scanner-sming.l: Bill Fenner contributed
 	a patch to continue scanning after unexpected characters have
 	been read.

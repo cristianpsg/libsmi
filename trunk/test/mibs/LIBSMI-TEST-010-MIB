@@ -5,11 +5,13 @@ IMPORTS
 	FROM SNMPv2-SMI
     TEXTUAL-CONVENTION
 	FROM SNMPv2-TC
+    OBJECT-GROUP, MODULE-COMPLIANCE
+	FROM SNMPv2-CONF
     testMib
         FROM LIBSMI-TEST-MIB;
 
 libsmiTest010Mib MODULE-IDENTITY
-    LAST-UPDATED    "200007051000Z"
+    LAST-UPDATED    "200011081000Z"
     ORGANIZATION    
             "TU Braunschweig"
     CONTACT-INFO    
@@ -33,8 +35,13 @@ libsmiTest010Mib MODULE-IDENTITY
              The MIB parser should complain about improper subtyping.
 
 	     The libsmi parser is expected to report:
+LIBSMI-TEST-010-MIB:76: illegal size restriction for non-octet-string parent type `EnumTcTest1'
+LIBSMI-TEST-010-MIB:84: illegal range restriction for non-numerical parent type `EnumTcTest1'
+LIBSMI-TEST-010-MIB:92: illegal size restriction for non-octet-string parent type `BitsTcTest1'
+LIBSMI-TEST-010-MIB:100: illegal range restriction for non-numerical parent type `BitsTcTest1'
+LIBSMI-TEST-010-MIB:108: illegal enumeration or bits restriction for non-enumeration-or-bits parent type `OctetsStringTcTest1'
 	    "
-    REVISION        "200007051000Z"
+    REVISION        "200011081000Z"
     DESCRIPTION     
             "Initial Revision."
     ::= { testMib 10 }
@@ -104,5 +111,25 @@ test5 OBJECT-TYPE
     DESCRIPTION
 	"Invalid enumeration restriction on an octet string."
     ::= { libsmiTest010Mib 5 }
+
+--
+-- Conformance statements.
+--
+
+libsmiTest010Group OBJECT-GROUP
+    OBJECTS
+        { test1, test2, test3, test4, test5 }
+    STATUS      current
+    DESCRIPTION
+        "All object types."
+    ::= { libsmiTest010Mib 6 }
+
+libsmiTest010Compliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "All object types."
+    MODULE      -- this module
+        MANDATORY-GROUPS { libsmiTest010Group }
+    ::= { libsmiTest010Mib 7 }
 
 END
