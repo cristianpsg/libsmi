@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.15 2000/11/29 16:47:54 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.16 2000/12/15 13:52:19 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -20,6 +20,9 @@ EXTRA_DIST		= ANNOUNCE \
 			  smi.conf-example
 
 SUBDIRS			= lib tools mibs test doc
+
+m4datadir		= $(datadir)/aclocal
+m4data_DATA		= libsmi.m4
 
 anoncvs:
 	rsync -a $(HOME)/.cvs-repository/libsmi /usr/local/cvsroot-anon
