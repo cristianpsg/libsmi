@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.28 2001/11/13 16:23:01 tklie Exp $ 
+ * @(#) $Id: smidiff.c,v 1.29 2001/11/13 17:34:31 schoenw Exp $ 
  */
 
 #include <config.h>
@@ -91,6 +91,9 @@ typedef struct Error {
 #define ERR_REVISION_ADDED		44
 #define ERR_REVISION_REMOVED		45
 #define ERR_REVISION_CHANGED		46
+#define ERR_SUBRANGE_REMOVED            47
+#define ERR_SUBRANGE_ADDED              48
+#define ERR_SUBRANGE_OF_TYPE_ADDED      49
 #define ERR_MEMBER_ADDED		50
 #define ERR_MEMBER_REMOVED		51
 #define ERR_MEMBER_CHANGED		52
@@ -114,6 +117,10 @@ typedef struct Error {
 #define ERR_NAMED_NUMBER_TO_TYPE_ADDED  70
 #define ERR_NAMED_NUMBER_OF_TYPE_CHANGED 71
 #define ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE 72
+#define ERR_SUBRANGE_OF_TYPE_REMOVED    73
+#define ERR_PREVIOUS_IMPLICIT_DEFINITION 74
+#define ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT 75
+#define ERR_STATUS_CHANGED_IMPLICIT     76
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -131,11 +138,11 @@ static Error errors[] = {
     { 5, ERR_DECL_CHANGED, "decl-changed",
       "declaration changed for `%s'" },
     { 5, ERR_STATUS_CHANGED, "status-changed",
-      "legal status change from `%s' to `%s' for %s" },
+      "legal status change from `%s' to `%s' for `%s'" },
     { 6, ERR_PREVIOUS_DEFINITION, "previous-definition",
       "previous definition of `%s'" },
     { 2, ERR_ILLEGAL_STATUS_CHANGE, "status-change-error",
-      "illegal status change from `%s' to `%s' for %s" },
+      "illegal status change from `%s' to `%s' for `%s'" },
     { 5, ERR_DESCR_ADDED, "description-added",
       "description added to `%s'" },
     { 2, ERR_DESCR_REMOVED, "description-removed",
@@ -208,6 +215,12 @@ static Error errors[] = {
       "revision `%s' removed" },
     { 3, ERR_REVISION_CHANGED, "revision-changed",
       "revision `%s' changed" },
+    { 3, ERR_SUBRANGE_ADDED, "range-added",
+      "subrange `%s' added to type used in `%s'" },
+    { 3, ERR_SUBRANGE_REMOVED, "range-removed",
+      "subrange `%s' removed from type used in `%s'" },
+    { 3, ERR_SUBRANGE_OF_TYPE_ADDED, "range-added",
+      "subrange `%s' added to type `%s'" },
     { 2, ERR_MEMBER_ADDED, "member-added",
       "member `%s' added" },
     { 2, ERR_MEMBER_REMOVED, "member-removed",
@@ -236,14 +249,14 @@ static Error errors[] = {
       "index of `%s' changed from %s to %s" },
     { 6, ERR_TYPE_IS_AND_WAS, "type-is-and-was",
       "type changed from %s to %s" },
-    { 6, ERR_RANGE_OF_TYPE_CHANGED, "range-changed",
+    { 3, ERR_RANGE_OF_TYPE_CHANGED, "range-changed",
       "range of type `%s' changed from `%s' to `%s'" },
-    { 6, ERR_RANGE_OF_TYPE_ADDED, "range-added",
+    { 3, ERR_RANGE_OF_TYPE_ADDED, "range-added",
       "range `%s' added to type `%s'" },
-    { 6, ERR_RANGE_OF_TYPE_REMOVED, "range-removed",
+    { 3, ERR_RANGE_OF_TYPE_REMOVED, "range-removed",
       "range `%s' removed from type `%s'" },
     { 6, ERR_TYPE_BASED_ON, "type-based-on",
-      "type %s based on %s" },
+      "type `%s' based on `%s'" },
     { 2, ERR_INDEX_AUGMENT_CHANGED, "index-changed",
       "index of `%s' changed from augmenting `%s' to augmenting `%s'" },
     { 2, ERR_NAMED_NUMBER_OF_TYPE_REMOVED, "named-number-removed",
@@ -254,6 +267,14 @@ static Error errors[] = {
       "named number `%s' changed to `%s' in type `%s'" },
     { 3, ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE, "named-bit-added-old-byte",
       "named bit `%s' added without starting in a new byte in type `%s'" },
+    { 3, ERR_SUBRANGE_OF_TYPE_REMOVED, "range-removed",
+      "subrange `%s' removed from type `%s'" },
+    { 6, ERR_PREVIOUS_IMPLICIT_DEFINITION, "previous-definition",
+      "previous implicit definition" },
+    { 2, ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT, "status-change-error",
+      "illegal status change from `%s' to `%s' for implicit type" },
+    { 5, ERR_STATUS_CHANGED_IMPLICIT, "status-changed",
+      "legal status change from `%s' to `%s' for implicit type" },
     { 0, 0, NULL, NULL }
 };
 
@@ -377,16 +398,6 @@ diffStrings(const char *s1, const char *s2)
     return (s1[i] != s2[j]);
 }
 
-static char*
-sQuoteStr( char *str )
-{
-    char * qs;
-    qs = (char *)malloc( strlen( str ) + 3 );
-    sprintf( qs, "`%s'", str );
-    return qs;
-}
-
-
 static void
 checkName(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
@@ -463,21 +474,8 @@ checkStatus(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
 	    char *name, SmiStatus oldStatus, SmiStatus newStatus)
 {
-    char *qname;
-  
     if (oldStatus == newStatus) {
 	return;
-    }
-
-    if( name[0] == '`' ) {
-	qname = name;
-    }
-    else if( !strcmp( name, "implicit" ) ){
-	qname = strdup( "implicit type" );
-	name = qname;
-    }
-    else {
-	qname = sQuoteStr( name );
     }
     
     if (! (((oldStatus == SMI_STATUS_CURRENT
@@ -485,22 +483,40 @@ checkStatus(SmiModule *oldModule, int oldLine,
 		 || newStatus == SMI_STATUS_OBSOLETE)))
 	   || ((oldStatus == SMI_STATUS_DEPRECATED
 		&& newStatus == SMI_STATUS_OBSOLETE)))) {
-	printErrorAtLine(newModule, ERR_ILLEGAL_STATUS_CHANGE, newLine,
-			 getStringStatus( oldStatus ),
-			 getStringStatus( newStatus ),
-			 qname);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, qname);
-	free( qname );
+	if( name ) {
+	    printErrorAtLine(newModule, ERR_ILLEGAL_STATUS_CHANGE, newLine,
+			     getStringStatus( oldStatus ),
+			     getStringStatus( newStatus ),
+			     name);
+	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			     oldLine, name);
+	}
+	else {
+	    printErrorAtLine(newModule, ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT,
+			     newLine,
+			     getStringStatus( oldStatus ),
+			     getStringStatus( newStatus ));
+	    printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			     oldLine);
+	}
 	return;
     }
 
-    printErrorAtLine(newModule, ERR_STATUS_CHANGED, newLine,
-		     getStringStatus(oldStatus), getStringStatus(newStatus),
-		     qname);
-    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-		     oldLine, qname);
-    free( qname );
+    if( name ) {
+	printErrorAtLine(newModule, ERR_STATUS_CHANGED, newLine,
+			 getStringStatus(oldStatus),
+			 getStringStatus(newStatus),
+			 name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 oldLine, name);
+    }
+    else {
+	printErrorAtLine(newModule, ERR_STATUS_CHANGED_IMPLICIT, newLine,
+			 getStringStatus(oldStatus),
+			 getStringStatus(newStatus));
+	printErrorAtLine(oldModule, ERR_PREVIOUS_IMPLICIT_DEFINITION,
+			 oldLine);
+    }
 }
 
 static char*
@@ -729,19 +745,19 @@ getTypeName(SmiType *smiType, SmiModule *smiModule)
 	    if( smiModule->name ) {
 		name = (char *)malloc( strlen( smiType->name ) +
 				       strlen( tm->name ) + 5 );
-		sprintf( name, "`%s::%s'",
+		sprintf( name, "%s::%s",
 			 tm->name, smiType->name );
 	    }
 	    else {
-		name = sQuoteStr( smiType->name );
+		name = strdup( smiType->name );
 	    }
 	}
 	else {
-	    name = sQuoteStr( smiType->name );
+	    name = strdup( smiType->name );
 	}
     }
     else {
-	name = strdup("implicit");
+	name = NULL;
     }
     return name;
 }
@@ -759,11 +775,7 @@ iterateTypeImports(char *typeName,
     while( 1 ) {
 	iterType = smiGetParentType( iterType );
 	iterTypeName = getTypeName( iterType, smiModule );	
-	if( (!iterType) || (iterTypeName[1] == ':') ) {
-	    /* Basetypes do not have a path so getTypeName will return a String
-	       like "`:basetype'". The first character is a single quote,
-	       the second a colon. So let's stop if we reached a basetype.
-	       xxx find a better way to do this. */
+	if( (!iterType) || !iterTypeName ) {
 	    return;
 	}
 	printErrorAtLine( smiGetTypeModule( smiType ),
@@ -1083,13 +1095,13 @@ checkRanges(SmiModule *oldModule, int oldLine,
 		char *strRange = getStringSubrange( oldRange, oldTwR );
 		if( name ) {
 		    printErrorAtLine(newModule,
-				     ERR_RANGE_REMOVED,
+				     ERR_SUBRANGE_REMOVED,
 				     smiGetTypeLine( newTwR ),
 				     strRange, name);
 		}
 		else {
 		    printErrorAtLine(newModule,
-				     ERR_RANGE_OF_TYPE_REMOVED,
+				     ERR_SUBRANGE_OF_TYPE_REMOVED,
 				     smiGetTypeLine( newTwR ),
 				     strRange, oldTwR->name);
 		}
@@ -1102,13 +1114,13 @@ checkRanges(SmiModule *oldModule, int oldLine,
 		char *strRange = getStringSubrange( newRange, newTwR );
 		if( name ) {
 		    printErrorAtLine(newModule,
-				     ERR_RANGE_ADDED,
+				     ERR_SUBRANGE_ADDED,
 				     smiGetTypeLine( newType ),
 				     strRange, name);
 		}
 		else {
 		    printErrorAtLine(newModule,
-				     ERR_RANGE_OF_TYPE_ADDED,
+				     ERR_SUBRANGE_OF_TYPE_ADDED,
 				     smiGetTypeLine( newType ),
 				     strRange, newType->name);
 		}
