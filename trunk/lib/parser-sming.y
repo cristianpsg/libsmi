@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.51 2000/02/14 17:18:27 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.52 2000/02/22 17:11:12 strauss Exp $
  */
 
 %{
@@ -617,9 +617,10 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			{
 			    if ($15) {
 				setModuleDescription(thisParserPtr->modulePtr,
-						     $15);
+						     $15, thisParserPtr);
 				if (moduleObjectPtr) {
-				    setObjectDescription(moduleObjectPtr, $15);
+				    setObjectDescription(moduleObjectPtr, $15,
+							 thisParserPtr);
 				}
 			    }
 			}
@@ -627,9 +628,10 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			{
 			    if ($18) {
 				setModuleReference(thisParserPtr->modulePtr,
-						   $18);
+						   $18, thisParserPtr);
 				if (moduleObjectPtr) {
-				    setObjectReference(moduleObjectPtr, $18);
+				    setObjectReference(moduleObjectPtr, $18,
+						       thisParserPtr);
 				}
 			    }
 			}
@@ -796,13 +798,15 @@ extensionStatement:	extensionKeyword sep lcIdentifier
 			descriptionStatement_stmtsep_01
 			{
 			    if (macroPtr && $10) {
-				setMacroDescription(macroPtr, $10);
+				setMacroDescription(macroPtr, $10,
+						    thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (macroPtr && $12) {
-				setMacroReference(macroPtr, $12);
+				setMacroReference(macroPtr, $12,
+						  thisParserPtr);
 			    }
 			}
 			abnfStatement_stmtsep_01
@@ -918,13 +922,14 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			descriptionStatement_stmtsep_01
 			{
 			    if (typePtr && $19) {
-				setTypeDescription(typePtr, $19);
+				setTypeDescription(typePtr, $19,
+						   thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (typePtr && $21) {
-				setTypeReference(typePtr, $21);
+				setTypeReference(typePtr, $21, thisParserPtr);
 			    }
 			}
 			'}' optsep ';'
@@ -1016,7 +1021,8 @@ nodeStatement:		nodeKeyword sep lcIdentifier
 			descriptionStatement_stmtsep_01
 			{
 			    if (nodeObjectPtr && $13) {
-				setObjectDescription(nodeObjectPtr, $13);
+				setObjectDescription(nodeObjectPtr, $13,
+						     thisParserPtr);
 				/*
 				 * If the node has a description, it gets
 				 * registered. This is used to distinguish
@@ -1029,7 +1035,8 @@ nodeStatement:		nodeKeyword sep lcIdentifier
 			referenceStatement_stmtsep_01
 			{
 			    if (nodeObjectPtr && $15) {
-				setObjectReference(nodeObjectPtr, $15);
+				setObjectReference(nodeObjectPtr, $15,
+						   thisParserPtr);
 			    }
 			}
 			'}' optsep ';'
@@ -1118,13 +1125,15 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			descriptionStatement stmtsep
 			{
 			    if (scalarObjectPtr && $25) {
-				setObjectDescription(scalarObjectPtr, $25);
+				setObjectDescription(scalarObjectPtr, $25,
+						     thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (scalarObjectPtr && $28) {
-				setObjectReference(scalarObjectPtr, $28);
+				setObjectReference(scalarObjectPtr, $28,
+						   thisParserPtr);
 			    }
 			}
 			'}' optsep ';'
@@ -1165,13 +1174,15 @@ tableStatement:		tableKeyword sep lcIdentifier
 			descriptionStatement stmtsep
 			{
 			    if (tableObjectPtr && $13) {
-				setObjectDescription(tableObjectPtr, $13);
+				setObjectDescription(tableObjectPtr, $13,
+						     thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (tableObjectPtr && $16) {
-				setObjectReference(tableObjectPtr, $16);
+				setObjectReference(tableObjectPtr, $16,
+						   thisParserPtr);
 			    }
 			}
 			rowStatement stmtsep
@@ -1246,13 +1257,15 @@ rowStatement:		rowKeyword sep lcIdentifier
 			descriptionStatement stmtsep
 			{
 			    if (rowObjectPtr && $18) {
-				setObjectDescription(rowObjectPtr, $18);
+				setObjectDescription(rowObjectPtr, $18,
+						     thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (rowObjectPtr && $21) {
-				setObjectReference(rowObjectPtr, $21);
+				setObjectReference(rowObjectPtr, $21,
+						   thisParserPtr);
 			    }
 			}
 			columnStatement_stmtsep_1n
@@ -1371,13 +1384,15 @@ columnStatement:	columnKeyword sep lcIdentifier
 			descriptionStatement stmtsep
 			{
 			    if (columnObjectPtr && $25) {
-				setObjectDescription(columnObjectPtr, $25);
+				setObjectDescription(columnObjectPtr, $25,
+						     thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (columnObjectPtr && $28) {
-				setObjectReference(columnObjectPtr, $28);
+				setObjectReference(columnObjectPtr, $28,
+						   thisParserPtr);
 			    }
 			}
 			'}' optsep ';'
@@ -1482,13 +1497,14 @@ notificationStatement:	notificationKeyword sep lcIdentifier
 			{
 			    if (notificationObjectPtr && $15) {
 				setObjectDescription(notificationObjectPtr,
-						     $15);
+						     $15, thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (notificationObjectPtr && $18) {
-				setObjectReference(notificationObjectPtr, $18);
+				setObjectReference(notificationObjectPtr, $18,
+						   thisParserPtr);
 			    }
 			}
 			'}' optsep ';'
@@ -1588,13 +1604,15 @@ groupStatement:		groupKeyword sep lcIdentifier
 			descriptionStatement stmtsep
 			{
 			    if (groupObjectPtr && $16) {
-				setObjectDescription(groupObjectPtr, $16);
+				setObjectDescription(groupObjectPtr, $16,
+						     thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (groupObjectPtr && $19) {
-				setObjectReference(groupObjectPtr, $19);
+				setObjectReference(groupObjectPtr, $19,
+						   thisParserPtr);
 			    }
 			}
 			'}' optsep ';'
@@ -1681,13 +1699,15 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 			descriptionStatement stmtsep
 			{
 			    if (complianceObjectPtr && $13) {
-				setObjectDescription(complianceObjectPtr, $13);
+				setObjectDescription(complianceObjectPtr, $13,
+						     thisParserPtr);
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
 			    if (complianceObjectPtr && $16) {
-				setObjectReference(complianceObjectPtr, $16);
+				setObjectReference(complianceObjectPtr, $16,
+						   thisParserPtr);
 			    }
 			}
 			mandatoryStatement_stmtsep_01
