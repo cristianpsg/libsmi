@@ -2011,18 +2011,8 @@ static void printSVGAttribute(SmiNode *node, int index,
 {
     char        *tooltip;
 
-    if (node->description) {
-	tooltip = (char *)xmalloc(2*strlen(node->description));
-	parseTooltip(node->description, tooltip);
-	printf("    <text x=\"%.2f\" y=\"%.2f\"",
+    printf("    <text x=\"%.2f\" y=\"%.2f\"",
 				*textXOffset + ATTRSPACESIZE, *textYOffset);
-	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-	printf(" onmouseout=\"HideTooltip(evt)\"");
-	xfree(tooltip);
-    } else {
-	printf("    <text x=\"%.2f\" y=\"%.2f\"",
-				*textXOffset + ATTRSPACESIZE, *textYOffset);
-    }
 
     *textYOffset += TABLEELEMHEIGHT;
 
@@ -2041,12 +2031,21 @@ static void printSVGAttribute(SmiNode *node, int index,
 	printf("         +");
     }
 
-    printf("%s: ",node->name);
+    if (node->description) {
+	tooltip = (char *)xmalloc(2*strlen(node->description));
+	parseTooltip(node->description, tooltip);
+	printf("<tspan onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	printf(" onmouseout=\"HideTooltip(evt)\">%s:</tspan> ",node->name);
+	xfree(tooltip);
+    } else {
+	printf("<tspan>%s:</tspan> ",node->name);
+    }
 
     if (index) {
-	printf("%s%s</text>\n", algGetTypeName(node), INDEXPROPERTY);
+	printf("<tspan>%s%s</tspan></text>\n",
+					algGetTypeName(node), INDEXPROPERTY);
     } else {
-	printf("%s</text>\n", algGetTypeName(node));
+	printf("<tspan>%s</tspan></text>\n", algGetTypeName(node));
     }
 
 }
