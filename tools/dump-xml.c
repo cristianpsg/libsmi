@@ -9,58 +9,17 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.6 2000/04/10 14:20:27 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.7 2000/05/02 12:57:17 strauss Exp $
  */
 
 /*
  * TODO:
  *
- * - always print a full index list and in addition signal the table
- *   relationship (if any), e.g. whether it is an augments, sparse, ...
- *   (may affect SMIng?)
- * - should "sparse" not be changed to be a verb?
- *   (may affect SMIng?)
- * - mandatory, conditionally mandatory and optional groups in compliances
- *   are treated differently. Does this really make sense?
- *   (may affect SMIng?)
- * - index statements
  * - create statements
- * - value representations (e.g. Enumeration, Bits, Octetstring)
- * - compliance statements
+ * - value representations (getValueString())
+ * - refinement statements (xxx and yyy)
  * - finish DTD and check against it
  */
-
-#if 0
-<smi:compliance>
-  <smi:complgroups>
-    <smi:mandatory ... />
-    <smi:conditional ... />
-    <smi:optional ... />
-  </smi:complgroups>
-  <smi:refinements>
-  </smi:refinements
-</smi:compliance>
-#endif
-
-#if 0
-<xxx implied="true">
-   <index module="xx" name="xx"/>
-   <index module="xx" name="xx"/>
-
-   <augments module="xx" name="xx"/>
-   <sparse module="xx" name="xx"/>
-
-   <reorders module="xx" name="xx"/>
-     <index module="xx" name="xx"/>
-     <index module="xx" name="xx"/>
-   </reorders>
-
-   <expands module="xx" name="xx"/>
-     <index module="xx" name="xx"/>
-     <index module="xx" name="xx"/>
-   </expands>
-</xxx>
-#endif
 
 #include <config.h>
 
@@ -94,19 +53,6 @@ static XmlEscape xmlEscapes [] = {
     { '&',	"&amp;" },
     { 0,	NULL }
 };
-
-
-
-static char *convertType[] = {
-    "INTEGER",             "Integer32",
-    "OCTET STRING",        "OctetString",
-    "OBJECT IDENTIFIER",   "ObjectIdentifier",
-    
-    "Gauge",               "Gauge32",
-    "Counter",             "Counter32",
-    "NetworkAddress",      "IpAddress", /* ??? */
-    
-    NULL, NULL };
 
 
 static int current_column = 0;
@@ -183,44 +129,6 @@ static char *getTimeString(time_t t)
 
 
 
-static char *getTypeString(SmiBasetype basetype, SmiType *smiType)
-{
-    int         i;
-    char        *typeModule, *typeName;
-
-    typeName = smiType ? smiType->name : NULL;
-    typeModule = smiType ? smiGetTypeModule(smiType)->name : NULL;
-    
-    if ((!typeModule) && (typeName) &&
-	(basetype != SMI_BASETYPE_ENUM) &&
-	(basetype != SMI_BASETYPE_BITS)) {
-	for(i=0; convertType[i]; i += 2) {
-	    if (!strcmp(typeName, convertType[i])) {
-		return convertType[i+1];
-	    }
-	}
-    }
-
-    if ((!typeModule) || (!strlen(typeModule)) || (!typeName)) {
-	if (basetype == SMI_BASETYPE_ENUM) {
-	    return "Enumeration";
-	}
-	if (basetype == SMI_BASETYPE_BITS) {
-	    return "Bits";
-	}
-    }
-	
-    if (!typeName) {
-	return getStringBasetype(basetype);
-    }
-    
-    /* TODO: fully qualified if unambigous */
-
-    return typeName;
-}
-
-
-
 static void print(char *fmt, ...)
 {
     va_list ap;
@@ -246,18 +154,6 @@ static void printSegment(int column, char *string, int length)
     if (length) {
 	print("%*c", length - strlen(string) - column, ' ');
     }
-}
-
-
-
-static void printWrapped(int column, char *string)
-{
-    if ((current_column + strlen(string)) > INDENTMAX) {
-	putc('\n', stdout);
-	current_column = 0;
-	printSegment(column, "", 0);
-    }
-    print("%s", string);
 }
 
 
@@ -457,55 +353,6 @@ static void printValue(int indent, SmiValue *smiValue, SmiType *smiType)
 
 
 
-static void printSubtype(SmiType *smiType)
-{
-    SmiRange       *range;
-    SmiNamedNumber *nn;
-    char	   s[100];
-    int		   i;
-
-    if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
-	(smiType->basetype == SMI_BASETYPE_BITS)) {
-	for(i = 0, nn = smiGetFirstNamedNumber(smiType);
-	    nn ; i++, nn = smiGetNextNamedNumber(nn)) {
-	    if (i) {
-		print(", ");
-	    } else {
-		print(" (");
-	    }
-	    sprintf(s, "%s(%s)", nn->name,
-		    getValueString(&nn->value, smiType));
-	    printWrapped(INDENTVALUE + INDENT, s);
-	}
-	if (i) {
-	    print(")");
-	}
-    } else {
-	for(i = 0, range = smiGetFirstRange(smiType);
-	    range ; i++, range = smiGetNextRange(range)) {
-	    if (i) {
-		print(" | ");
-	    } else {
-		print(" (");
-	    }	    
-	    if (memcmp(&range->minValue, &range->maxValue,
-		       sizeof(SmiValue))) {
-		sprintf(s, "%s", getValueString(&range->minValue, smiType));
-		sprintf(&s[strlen(s)], "..%s", 
-			getValueString(&range->maxValue, smiType));
-	    } else {
-		sprintf(s, "%s", getValueString(&range->minValue, smiType));
-	    }
-	    printWrapped(INDENTVALUE + INDENT, s);
-	}
-	if (i) {
-	    print(")");
-	}
-    }
-}
-
-
-
 static void printDescription(int indent, const char *description)
 {
     if (description) {
@@ -582,7 +429,7 @@ static void printIndex(int indent, SmiNode *smiNode)
     SmiNode   *relatedNode;
     SmiModule *relatedModule = NULL;
 
-    printSegment(indent, "<xxxx", 0);
+    printSegment(indent, "<linkage", 0);
     if (smiNode->implied) {
 	print(" implied=\"true\"");
     }
@@ -632,7 +479,7 @@ static void printIndex(int indent, SmiNode *smiNode)
     case SMI_INDEX_UNKNOWN:
 	break;
     }
-    printSegment(indent, "</xxxx>\n", 0);
+    printSegment(indent, "</linkage>\n", 0);
 }
 
 
@@ -725,6 +572,9 @@ static void printImports(SmiModule *smiModule)
 
 static void printTypedef(int indent, SmiType *smiType)
 {
+    SmiModule *parentModule;
+    SmiType *parentType;
+    
     printSegment(indent, "<typedef", 0);
     if (smiType->name) {
 	print(" name=\"%s\"", smiType->name);
@@ -735,9 +585,13 @@ static void printTypedef(int indent, SmiType *smiType)
     }
     print(">\n");
     
-    printSegment(indent + INDENT, "<parent>", 0);
-    print("%s", getTypeString(smiType->basetype, smiGetParentType(smiType)));
-    print("</parent>\n");
+    parentType = smiGetParentType(smiType);
+    parentModule = smiGetTypeModule(parentType);
+    if (parentType && parentModule && strlen(parentModule->name)) {
+	printSegment(indent + INDENT, "<parent ", 0);
+	printf("module=\"%s\" name=\"%s\"/>\n",
+	       parentModule->name, parentType->name);
+    }
     printRanges(indent + INDENT, smiType);
     printNamedNumbers(indent + INDENT, smiType);
     printValue(indent + INDENT, &smiType->value, smiType);
@@ -775,8 +629,9 @@ static void printTypedefs(SmiModule *smiModule)
 
 static void printObject(int indent, SmiNode *smiNode)
 {
-    SmiType *smiType;
-    char    *tag = NULL;
+    SmiModule *smiModule;
+    SmiType   *smiType;
+    char      *tag = NULL;
     
     if (smiNode->nodekind == SMI_NODEKIND_NODE) {
 	tag = "node";
@@ -796,13 +651,17 @@ static void printObject(int indent, SmiNode *smiNode)
     
     printNodeStartTag(indent, tag, smiNode);
     if (smiType && (smiType->basetype != SMI_BASETYPE_UNKNOWN)) {
-	if (smiType->name) {
-	    printSegment(indent + INDENT, "", 0);
-	    print("<type>%s</type>\n",
-		  getTypeString(smiType->basetype, smiType));
+	printSegment(indent + INDENT, "<syntax>\n", 0);
+	smiModule = smiGetTypeModule(smiType);
+	if (smiType->name && smiModule) {
+	    printSegment(indent + 2 *INDENT, "", 0);
+	    print("<type ");
+	    printf("module=\"%s\" name=\"%s\"/>\n",
+		   smiModule->name, smiType->name);
 	} else {
-	    printTypedef(indent + INDENT, smiType);
+	    printTypedef(indent + 2 * INDENT, smiType);
 	}
+	printSegment(indent + INDENT, "</syntax>\n", 0);
     }
     if ((smiNode->nodekind != SMI_NODEKIND_TABLE) &&
 	(smiNode->nodekind != SMI_NODEKIND_ROW) &&
@@ -949,7 +808,7 @@ static void printComplGroups(int indent, SmiNode *smiNode)
 	return;
     }
     
-    printSegment(indent, "<options>\n", 0);
+    printSegment(indent, "<requires>\n", 0);
     printElementList(indent + INDENT, "mandatory",
 		     smiGetFirstElement(smiNode));
 
@@ -965,48 +824,42 @@ static void printComplGroups(int indent, SmiNode *smiNode)
 	printSegment(indent + INDENT, "</option>\n", 0);
     }
     
-    printSegment(indent, "</options>\n", 0);
+    printSegment(indent, "</requires>\n", 0);
 }
 
 
 
 static void printRefinement(int indent, SmiRefinement *smiRefinement)
 {
-#if 0
-	    printSegment(2 * INDENT, "", 0);
-	    print("refine %s {\n",
-		  smiGetRefinementNode(smiRefinement)->name);
-	    
-	    smiType = smiGetRefinementType(smiRefinement);
-	    if (smiType) {
-		printSegment(3 * INDENT, "type", INDENTVALUE);
-		print("%s",
-		      getTypeString(smiType->basetype,
-				    smiGetParentType(smiType)));
-		printSubtype(smiType);
-		print(";\n");
-	    }
-	    
-	    smiType = smiGetRefinementWriteType(smiRefinement);
-	    if (smiType) {
-		printSegment(3 * INDENT, "writetype", INDENTVALUE);
-		print("%s",
-		      getTypeString(smiType->basetype,
-				    smiGetParentType(smiType)));
-		printSubtype(smiType);
-		print(";\n");
-	    }
-	    
-	    if (smiRefinement->access != SMI_ACCESS_UNKNOWN) {
-		printSegment(3 * INDENT, "access", INDENTVALUE);
-		print("%s;\n", getAccessString(smiRefinement->access));
-	    }
-	    printSegment(3 * INDENT, "description", INDENTVALUE);
-	    print("\n");
-	    printMultilineString(3 * INDENT, smiRefinement->description);
-	    print(";\n");
-	    printSegment(2 * INDENT, "};\n", 0);
-#endif
+    SmiModule *smiModule;
+    SmiNode   *smiNode;
+    SmiType   *smiType;
+
+    smiNode = smiGetRefinementNode(smiRefinement);
+    smiModule = smiGetNodeModule(smiNode);
+
+    printSegment(indent, "<refinement ", 0);
+    printf("module=\"%s\" name=\"%s\">\n", smiModule->name, smiNode->name);
+
+    smiType = smiGetRefinementType(smiRefinement);
+    if (smiType) {
+	printSegment(indent + INDENT, "<xxx>\n", 0);
+	printTypedef(indent + 2 * INDENT, smiType);
+	printSegment(indent + INDENT, "</xxx>\n", 0);
+    }
+    
+    smiType = smiGetRefinementWriteType(smiRefinement);
+    if (smiType) {
+	printSegment(indent + INDENT, "<yyy>\n", 0);
+	printTypedef(indent + 2 * INDENT, smiType);
+	printSegment(indent + INDENT, "</yyy>\n", 0);
+    }
+
+    if (smiRefinement->access != SMI_ACCESS_UNKNOWN) {
+	printAccess(indent + INDENT, smiRefinement->access);
+    }
+    printDescription(indent + INDENT, smiRefinement->description);
+    printSegment(indent, "</refinement>\n", 0);
 }
 
 
@@ -1022,14 +875,12 @@ static void printRefinements(int indent, SmiNode *smiNode)
 
     	if (!i) {
 	    printSegment(indent, "<refinements>\n", 0);
-	    print("<!--\n");
 	}
 
 	printRefinement(indent + INDENT, smiRefinement);
     }
     
     if (i) {
-	print("-->\n");
 	printSegment(indent, "</refinements>\n\n", 0);
     }
 }
@@ -1073,15 +924,11 @@ static void printCompliances(SmiModule *smiModule)
 
 
 
-int dumpXml(char *modulename, int flags)
+void dumpXml(Module *module)
 {
-    SmiModule	 *smiModule;
+    SmiModule *smiModule;
     
-    smiModule = smiGetModule(modulename);
-    if (!smiModule) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
+    smiModule = module->smiModule;
 
     print("<?xml version=\"1.0\"?>\n");
     print("<!DOCTYPE smi:smi SYSTEM \"smi.dtd\">\n");
@@ -1101,5 +948,4 @@ int dumpXml(char *modulename, int flags)
     printCompliances(smiModule);
 
     print("</smi>\n");
-    return 0;
 }

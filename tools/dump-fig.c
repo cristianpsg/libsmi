@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-fig.c,v 1.7 2000/04/10 15:55:31 strauss Exp $
+ * @(#) $Id: dump-fig.c,v 1.8 2000/05/02 12:57:17 strauss Exp $
  */
 
 #include <config.h>
@@ -119,23 +119,17 @@ static void printGroups(int *x, int *y, SmiModule *smiModule)
 
 
 
-int dumpFigTree(char *modulename, int flags)
+void dumpFigTree(Module *module)
 {
     SmiModule    *smiModule;
     int		 x, y;
 
-    smiModule = smiGetModule(modulename);
-    if (!smiModule) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
+    smiModule = module->smiModule;
 
     setupPage();
 
     x = X_OFFSET, y = Y_OFFSET;
     printGroups(&x, &y, smiModule);
-
-    return 0;
 }
 
 
@@ -185,21 +179,15 @@ static void printClasses(int *x, int *y, SmiModule *smiModule)
 
 
 
-int dumpFigUml(char *modulename, int flags)
+void dumpFigUml(Module *module)
 {
     SmiModule    *smiModule;
     int		 x, y;
 
-    smiModule = smiGetModule(modulename);
-    if (!smiModule) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
-	exit(1);
-    }
+    smiModule = module->smiModule;
 
     setupPage();
 
     x = X_OFFSET, y = Y_OFFSET;
     printClasses(&x, &y, smiModule);
-
-    return 0;
 }
