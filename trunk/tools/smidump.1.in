@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smidump.1.in,v 1.9 2000/05/02 12:57:17 strauss Exp $
+.\" $Id: smidump.1.in,v 1.10 2000/05/20 12:51:11 strauss Exp $
 .\"
-.TH smidump 1  "April 8, 2000" "IBR" "SMI Tools"
+.TH smidump 1  "August 18, 2000" "IBR" "SMI Tools"
 .SH NAME
 smidump \- dump SMI modules in various formats
 .SH SYNOPSIS
@@ -108,6 +108,9 @@ Types defined in a MIB module.
 .TP
 tree
 OID tree structure of a MIB module.
+.TP
+identifiers
+A simple list of all node (and type ?) identifiers.
 .TP
 corba-idl
 CORBA IDL definitions following the JIDM specification translation
