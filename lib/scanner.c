@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: scanner.c,v 1.1 1999/03/31 17:24:29 strauss Exp $
  */
 
 #if defined(BACKEND_SMI) || defined(BACKEND_SMING)
@@ -39,3 +39,4 @@ int lexDepth = 0;
 
 
 #endif
+
