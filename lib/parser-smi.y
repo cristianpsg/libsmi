@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.54 1999/12/21 09:16:23 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.55 1999/12/21 12:32:08 strauss Exp $
  */
 
 %{
@@ -1932,7 +1932,8 @@ valueofObjectSyntax:	valueofSimpleSyntax
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
-				printError(thisParserPtr,ERR_INTEGER_IN_SMIV2);
+				printError(thisParserPtr,
+					   ERR_INTEGER_IN_SMIV2);
 
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = typeInteger32Ptr;
@@ -1943,14 +1944,16 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				printError(thisParserPtr,ERR_INTEGER_IN_SMIV2);
 
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
-			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
+			    $$ = duplicateType(typeInteger32Ptr, 0,
+					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeList($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
 			    defaultBasetype = SMI_BASETYPE_ENUM;
-			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
+			    $$ = duplicateType(typeInteger32Ptr, 0,
+					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, NULL, "Enumeration");
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
@@ -1965,6 +1968,10 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_BASETYPE_NOT_IMPORTED,
+					   "Integer32");
 			    }
 
 			    /* TODO: any need to distinguish from INTEGER? */
@@ -1979,6 +1986,10 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_BASETYPE_NOT_IMPORTED,
+					   "Integer32");
 			    }
 
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
@@ -2408,8 +2419,21 @@ sequenceSimpleSyntax:	INTEGER	anySubType
 			}
         |		INTEGER32 anySubType
 			{
+			    Import *importPtr;
+			    
 			    /* TODO: any need to distinguish from INTEGER? */
 			    $$ = typeInteger32Ptr;
+
+			    importPtr = findImportByName("Integer32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_BASETYPE_NOT_IMPORTED,
+					   "Integer32");
+			    }
+
 			}
 	|		OCTET STRING anySubType
 			{
@@ -2468,9 +2492,21 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+
 			    $$ = findTypeByName("Unsigned32");
 			    if (! $$) {
 				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					   "Unsigned32");
+			    }
+			    
+			    importPtr = findImportByName("Unsigned32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_BASETYPE_NOT_IMPORTED,
 					   "Unsigned32");
 			    }
 			}
@@ -2493,6 +2529,10 @@ ApplicationSyntax:	IPADDRESS
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_BASETYPE_NOT_IMPORTED,
+					   "Unsigned32");
 			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
@@ -2575,9 +2615,21 @@ sequenceApplicationSyntax: IPADDRESS
 			}
 	|		UNSIGNED32 anySubType /* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+			    
 			    $$ = findTypeByName("Unsigned32");
 			    if (! $$) {
 				printError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					   "Unsigned32");
+			    }
+
+			    importPtr = findImportByName("Unsigned32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				printError(thisParserPtr,
+					   ERR_BASETYPE_NOT_IMPORTED,
 					   "Unsigned32");
 			    }
 			}

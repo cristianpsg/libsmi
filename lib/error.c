@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.27 1999/12/21 12:32:07 strauss Exp $
+ * @(#) $Id: error.c,v 1.28 1999/12/22 14:44:03 strauss Exp $
  */
 
 #include <string.h>
@@ -253,6 +253,8 @@ Error errors[] = {
       "Use Integer32 instead of INTEGER in SMIv2" },
     { 5, ERR_MODULE_ALREADY_LOADED, "", 
       "The module `%s' is already loaded, aborting parser on this file" },
+    { 2, ERR_BASETYPE_NOT_IMPORTED, "basetype-not-imported", 
+      "The SMIv2 base type `%s' must be imported from SNMPv2-SMI" },
  
     { 0, 0, NULL, NULL }
 };
