@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.31 1999/05/31 11:58:37 strauss Exp $
+ * @(#) $Id: smi.c,v 1.32 1999/06/01 15:31:24 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -127,10 +127,10 @@ void getModulenameAndName(char *arg1, char *arg2,
 	*name = NULL;
     } else if (!arg2) {
 	if (isupper((int)arg1[0])) {
-	    if ((p = strstr(arg1, SMI_NAMESPACE_OPERATOR))) {
+	    if ((p = strstr(arg1, "::"))) {
 		/* SMIng style module/label separator */
-		*name = util_strdup(&p[strlen(SMI_NAMESPACE_OPERATOR)]);
-		l = strcspn(arg1, SMI_NAMESPACE_OPERATOR);
+		*name = util_strdup(&p[2]);
+		l = strcspn(arg1, "::");
 		*module = util_strndup(arg1, l);
 	    } else if ((p = strchr(arg1, '!'))) {
 		/* old scotty style module/label separator */
@@ -152,10 +152,10 @@ void getModulenameAndName(char *arg1, char *arg2,
 	}
     } else if (!arg1) {
 	if (isupper((int)arg2[0])) {
-	    if ((p = strstr(arg2, SMI_NAMESPACE_OPERATOR))) {
+	    if ((p = strstr(arg2, "::"))) {
 		/* SMIng style module/label separator */
-		*name = util_strdup(&p[strlen(SMI_NAMESPACE_OPERATOR)]);
-		l = strcspn(arg2, SMI_NAMESPACE_OPERATOR);
+		*name = util_strdup(&p[2]);
+		l = strcspn(arg2, "::");
 		*module = util_strndup(arg2, l);
 	    } else if ((p = strchr(arg2, '!'))) {
 		/* old scotty style module/label separator */
@@ -459,7 +459,7 @@ SmiType *createSmiType(Type *typePtr)
 	smiTypePtr->module       = typePtr->modulePtr->name;
 	smiTypePtr->basetype	 = typePtr->basetype;
 	if (typePtr->parentType &&
-	    strstr(typePtr->parentType, SMI_NAMESPACE_OPERATOR)) {
+	    strstr(typePtr->parentType, "::")) {
 	    smiTypePtr->parentmodule = smiModule(typePtr->parentType);
 	    smiTypePtr->parentname   = smiDescriptor(typePtr->parentType);
 	} else {
@@ -605,7 +605,7 @@ void smiInit()
     if (p) {
 	smiPath = util_strdup(p);
     } else {
-	smiPath = SMI_PATH;
+	smiPath = DEFAULT_SMIPATH;
     }
     
     initialized   = 1;
@@ -677,7 +677,7 @@ char *smiModule(char *fullname)
     }
     
     len = strcspn(fullname, "!.");
-    len = MIN(len, strcspn(fullname, SMI_NAMESPACE_OPERATOR));
+    len = MIN(len, strcspn(fullname, "::"));
     module = util_strndup(fullname, len);
 
     return module;
@@ -693,9 +693,9 @@ char *smiDescriptor(char *fullname)
 	return NULL;
     }
     
-    p = strstr(fullname, SMI_NAMESPACE_OPERATOR);
+    p = strstr(fullname, "::");
     if (p) {
-	name = strdup(&p[strlen(SMI_NAMESPACE_OPERATOR)]);
+	name = strdup(&p[2]);
     } else {
 	p = strchr(fullname, '!');
 	if (p) {

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.23 1999/05/25 17:00:26 strauss Exp $
+ * @(#) $Id: data.c,v 1.24 1999/05/31 11:58:30 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2689,7 +2689,7 @@ loadModule(modulename)
 	/*
 	 * A plain modulename. Lookup the path along SMIPATH...
 	 */
-	smipath = util_strdup(getenv("SMIPATH"));
+	smipath = util_strdup(smiPath);
 	for (dir = strtok(smipath, ":"); dir; dir = strtok(NULL, ":")) {
 	    path = malloc(strlen(dir)+strlen(modulename)+8);
 	    sprintf(path, "%s/%s", dir, modulename);

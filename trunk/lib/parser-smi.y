@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.24 1999/05/25 17:00:30 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.25 1999/05/31 11:58:33 strauss Exp $
  */
 
 %{
@@ -888,8 +888,8 @@ conceptualTable:	SEQUENCE OF row
 				$$ = addType(NULL,
 					     SMI_BASETYPE_SEQUENCEOF, 0,
 					     thisParserPtr);
-				sprintf(s, "%s%s%s", $3->modulePtr->name,
-					SMI_NAMESPACE_OPERATOR, $3->name);
+				sprintf(s, "%s::%s", $3->modulePtr->name,
+					$3->name);
 				setTypeParent($$, s);
 			    } else {
 				$$ = NULL;
@@ -1556,9 +1556,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						        thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    thisParserPtr->modulePtr->name,
-					    SMI_NAMESPACE_OPERATOR,
 					    parentPtr->name);
 				    setTypeParent($$, s);
 				} else {
@@ -1569,17 +1568,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    importPtr->importmodule,
-					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s%s%s",
-				        thisParserPtr->modulePtr->name,
-					SMI_NAMESPACE_OPERATOR, $1);
+				sprintf(s, "%s::%s",
+				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
@@ -1609,16 +1606,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    importPtr->importmodule,
-					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s%s%s",
-					$1, SMI_NAMESPACE_OPERATOR, $3);
+				sprintf(s, "%s::%s", $1, $3);
 				setTypeParent($$, s);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
@@ -1647,9 +1642,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    thisParserPtr->modulePtr->name,
-					    SMI_NAMESPACE_OPERATOR, 
 					    parentPtr->name);
 				    setTypeParent($$, s);
 				} else {
@@ -1660,18 +1654,16 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    importPtr->importmodule,
-					    SMI_NAMESPACE_OPERATOR, 
 					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s%s%s",
-				        thisParserPtr->modulePtr->name,
-					SMI_NAMESPACE_OPERATOR, $1);
+				sprintf(s, "%s::%s",
+				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $2);
@@ -1700,17 +1692,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    importPtr->importmodule,
-					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s%s%s",
-					$1, SMI_NAMESPACE_OPERATOR, $3);
+				sprintf(s, "%s::%s", $1, $3);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $4);
@@ -1749,9 +1739,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						     thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    thisParserPtr->modulePtr->name,
-					    SMI_NAMESPACE_OPERATOR,
 					    parentPtr->name);
 				    setTypeParent($$, s);
 				} else {
@@ -1762,18 +1751,16 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						  importPtr->importmodule, $1);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    importPtr->importmodule,
-					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s%s%s",
-				        thisParserPtr->modulePtr->name,
-					SMI_NAMESPACE_OPERATOR, $1);
+				sprintf(s, "%s::%s",
+				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $2);
@@ -1802,16 +1789,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s%s%s",
+				    sprintf(s, "%s::%s",
 					    importPtr->importmodule,
-					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->importname);
 				    setTypeParent($$, s);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s%s%s", $1,
-					SMI_NAMESPACE_OPERATOR, $3);
+				sprintf(s, "%s::%s", $1, $3);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $4);
@@ -2779,8 +2764,7 @@ subidentifier:
 			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    Import *importPtr;
 			    
-			    sprintf(s, "%s%s%s",
-				    $1, SMI_NAMESPACE_OPERATOR, $3);
+			    sprintf(s, "%s::%s", $1, $3);
 
 			    if (parentNodePtr != rootNodePtr) {
 				printError(thisParserPtr,
@@ -2898,8 +2882,7 @@ subidentifier:
 			    Object *objectPtr;
 			    char md[2*MAX_IDENTIFIER_LENGTH+2];
 			    
-			    sprintf(md, "%s%s%s",
-				    $1, SMI_NAMESPACE_OPERATOR, $3);
+			    sprintf(md, "%s::%s", $1, $3);
 			    objectPtr = findObjectByModulenameAndName($1, $3);
 			    if (objectPtr) {
 				printError(thisParserPtr, ERR_EXISTENT_OBJECT,

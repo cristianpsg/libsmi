@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.c,v 1.6 1999/05/25 17:00:36 strauss Exp $
+ * @(#) $Id: dump-data.c,v 1.7 1999/05/31 11:58:40 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -85,9 +85,8 @@ dumpTypes()
 	modulePtr = findModuleByName(viewPtr->name);
 	for (typePtr = modulePtr->firstTypePtr;
 	     typePtr; typePtr = typePtr->nextPtr) {
-	    printf("%s%s%s\n",
+	    printf("%s.%s\n",
 		   typePtr->modulePtr->name ? typePtr->modulePtr->name : "-",
-		   SMI_NAMESPACE_OPERATOR,
 		   typePtr->name ? typePtr->name : "-");
 	}
     }

@@ -12,7 +12,6 @@ o /usr/local/lib/tnm3.0.0/mibs/RFC1382-MIB:1609:
 o have seen cases like `default ;'. where? 
 o BIN and HEX DEFVALs in SMIv1/v2 Parser.
 
-o grep SMI_NAMESPACE_OPERATOR
 o READ_CREATE should *never* occur in data.c / smi.c
 o test cases
 o simple documented example
@@ -25,7 +24,7 @@ o Web online conversion to SMIng?
 
 o smiGetNames()
 
-o thread safety
+o thread safety (global vars? static vars? strtok() and other funcs?)
 
 o SmiDecl is language dependant.
 
@@ -33,9 +32,13 @@ o smi_errno ?!
 
 o grouping of error and warning messages
 
-o problem if SMIPATH is not set?
 o smiAddPath()
 
-o write ANNOUNCE
+o *.[13].in: construct correct autoconf @mibdir@ contents
 
-o segflt `smilint IF-MIB' if module is not found
+o add much more checks to the smiv1/v2 and sming parsers
+
+o set up a catalogue of errors detected by the smiv1/v2 parser?
+
+o smiv1 allows `deprecated'!
+
