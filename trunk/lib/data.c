@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.45 1999/12/17 09:55:54 strauss Exp $
+ * @(#) $Id: data.c,v 1.46 1999/12/17 10:44:19 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -472,7 +472,7 @@ setImportModulename(importPtr, modulename)
     Import    *importPtr;
     char      *modulename;
 {
-    importPtr->importmodule = util_strdup(modulename);
+    importPtr->importmodule = modulename;
 }
 
 
@@ -1660,11 +1660,7 @@ findObjectByNode(nodePtr)
 	}
     }
 
-#if 0
-    return NULL;
-#else
     return nodePtr->firstObjectPtr;
-#endif
 }
 
 
@@ -2100,7 +2096,10 @@ setTypeName(typePtr, name)
     char	      *name;
 {
     Type              *type2Ptr;
-    
+
+    if (typePtr->name) {
+	util_free(typePtr->name);
+    }
     typePtr->name = util_strdup(name);
 
     /*
@@ -2278,11 +2277,13 @@ void
 setTypeParent(Type *typePtr, const char *parentmodule, const char *parentname)
 {
     if (parentmodule) {
+	if (typePtr->parentmodule) util_free(typePtr->parentmodule);
 	typePtr->parentmodule  = util_strdup(parentmodule);
     } else {
 	typePtr->parentmodule  = NULL;
     }
     if (parentname) {
+	if (typePtr->parentname) util_free(typePtr->parentname);
 	typePtr->parentname    = util_strdup(parentname);
     } else {
 	typePtr->parentname    = NULL;
@@ -2887,6 +2888,36 @@ initData()
 /*
  *----------------------------------------------------------------------
  *
+ * freeNodeTree --
+ *
+ *      Free all node of a node (sub)tree.
+ *
+ * Results:
+ *      0 on success or -1 on an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+freeNodeTree(Node *rootPtr)
+{
+    Node *nodePtr, *nextPtr;
+    
+    for (nodePtr = rootPtr->firstChildPtr; nodePtr; nodePtr = nextPtr) {
+	nextPtr = nodePtr->nextPtr;
+	freeNodeTree(nodePtr);
+	util_free(nodePtr);
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * freeData --
  *
  *      Free all data structures.
@@ -3027,7 +3058,8 @@ freeData()
 	util_free(modulePtr);
     }
 
-    /* TODO: free Nodes */
+    freeNodeTree(rootNodePtr);
+    freeNodeTree(pendingNodePtr);
     
     return;
 }
@@ -3147,6 +3179,7 @@ loadModule(modulename)
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMI_NOT_SUPPORTED, parser.path);
+	util_free(path);
 	return NULL;
 #endif
     }
@@ -3183,10 +3216,12 @@ loadModule(modulename)
 	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMING_NOT_SUPPORTED, parser.path);
+	util_free(path);
 	return NULL;
 #endif
     }
 
+    util_free(path);
     return NULL;
 }
 
@@ -3310,4 +3345,4 @@ int checkFormat(basetype, p)
     default:
 	return 0;
     }
-} /*  */
+}
