@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.40 1999/07/02 14:03:52 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.41 1999/09/30 08:16:44 strauss Exp $
  */
 
 %{
@@ -963,26 +963,32 @@ typeDeclaration:	typeName
 				!strcmp(thisModulePtr->name, "SNMPv2-SMI")) {
 				if (!strcmp($1, "Counter32")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, NULL, "Unsigned32");
 				} else if (!strcmp($1, "Gauge32")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, NULL, "Unsigned32");
 				} else if (!strcmp($1, "Unsigned32")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
-				} else if (!strcmp($1, "Unsigned32")) {
-				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, NULL, "Unsigned32");
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, NULL, "Unsigned32");
 				} else if (!strcmp($1, "Counter64")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED64;
+				    setTypeParent($4, NULL, "Unsigned64");
 				}
 			    }
 			    if (thisModulePtr &&
 				!strcmp(thisModulePtr->name, "RFC1155-SMI")) {
 				if (!strcmp($1, "Counter")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, NULL, "Unsigned32");
 				} else if (!strcmp($1, "Gauge")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, NULL, "Unsigned32");
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, NULL, "Unsigned32");
 				}
 			    }
 			}
@@ -1273,6 +1279,8 @@ Syntax:			ObjectSyntax
 			    typePtr = addType(NULL, SMI_BASETYPE_BITS,
 					      FLAG_INCOMPLETE,
 					      thisParserPtr);
+			    setTypeDecl(typePtr, SMI_DECL_IMPLICIT_TYPE);
+			    setTypeParent(typePtr, NULL, "Bits");
 			    setTypeList(typePtr, $3);
 			    $$ = typePtr;
 			}
@@ -2557,6 +2565,7 @@ value:			'-' number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
+			    printf("[[XXX %d %s]]", defaultBasetype, $2); /* XXXXX */
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
@@ -2566,6 +2575,7 @@ value:			'-' number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
+			    printf("[[XXX %d ]]", defaultBasetype); /* XXXXX */
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
 			    $$->format = SMI_VALUEFORMAT_NATIVE;

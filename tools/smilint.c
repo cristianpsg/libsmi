@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.17 1999/06/22 11:18:19 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.18 1999/09/30 08:16:49 strauss Exp $
  */
 
 #include <stdio.h>
@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 #include "smi.h"
 

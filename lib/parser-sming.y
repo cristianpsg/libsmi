@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.26 1999/07/02 14:03:54 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.27 1999/09/30 08:16:45 strauss Exp $
  */
 
 %{
@@ -2893,11 +2893,7 @@ anyValue:		bitsValue
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_UNSIGNED64;
 				$$->format = SMI_VALUEFORMAT_NATIVE;
-#ifdef HAVE_STRTOULL
 				$$->value.unsigned64 = strtoull($1, NULL, 10);
-#else
-				$$->value.unsigned64 = strtouq($1, NULL, 10);
-#endif
 				break;
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = util_malloc(sizeof(SmiValue));
@@ -2909,11 +2905,7 @@ anyValue:		bitsValue
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
 				$$->format = SMI_VALUEFORMAT_NATIVE;
-#ifdef HAVE_STRTOLL
 				$$->value.integer64 = strtoll($1, NULL, 10);
-#else
-				$$->value.integer64 = strtoq($1, NULL, 10);
-#endif
 				break;
 			    case SMI_BASETYPE_OBJECTIDENTIFIER:
 				$$ = util_malloc(sizeof(SmiValue));
@@ -2946,11 +2938,7 @@ anyValue:		bitsValue
 				$$ = util_malloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
 				$$->format = SMI_VALUEFORMAT_NATIVE;
-#ifdef HAVE_STRTOULL
 				$$->value.integer64 = - strtoull($2, NULL, 10);
-#else
-				$$->value.integer64 = - strtouq($2, NULL, 10);
-#endif
 				break;
 			    default:
 				printError(thisParserPtr,
@@ -3176,11 +3164,7 @@ number:			hexadecimalNumber
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
 			    $$->format = SMI_VALUEFORMAT_NATIVE;
-#ifdef HAVE_STRTOULL
 			    $$->value.unsigned64 = strtoull($1, NULL, 10);
-#else
-			    $$->value.unsigned64 = strtouq($1, NULL, 10);
-#endif
 			}
 	;
 
@@ -3189,11 +3173,7 @@ negativeNumber:		'-' decimalNumber
 			    $$ = util_malloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER64;
 			    $$->format = SMI_VALUEFORMAT_NATIVE;
-#ifdef HAVE_STRTOULL
 			    $$->value.integer64 = - strtoull($2, NULL, 10);
-#else
-			    $$->value.integer64 = - strtouq($2, NULL, 10);
-#endif
 			}
         ;
 

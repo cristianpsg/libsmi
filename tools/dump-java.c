@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-java.c,v 1.6 1999/07/02 14:04:06 strauss Exp $
+ * @(#) $Id: dump-java.c,v 1.7 1999/09/30 08:16:48 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -24,7 +24,7 @@
 #include <time.h>
 
 #include "smi.h"
-#include "util.h"
+#include "smidump.h"
 
 
 
