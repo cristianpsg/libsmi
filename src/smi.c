@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.10 1998/11/22 22:58:23 strauss Exp $
+ * @(#) $Id: smi.c,v 1.12 1998/11/23 16:41:38 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -65,7 +65,7 @@ getString(s, m)
     String *s;
     Module *m;
 {
-    static char *p[5] = { NULL, NULL, NULL, NULL, NULL };
+    static char *p[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
     static int i = 0;
     int fd;
     
@@ -78,7 +78,7 @@ getString(s, m)
 	if (s->fileoffset < 0) {
 	    return "";
 	}
-	i = (i+1) % 5;
+	i = (i+1) % 8;
         p[i] = realloc(p[i], s->length+1);
         /* TODO: success? */
         fd = open(m->path, O_RDONLY);
@@ -323,6 +323,9 @@ smiGetModule(name, wantdescr)
     int rc;
 #endif
     
+    printDebug(4, "smiGetModule(\"%s\", %d)\n",
+	       name, wantdescr);
+
 #ifdef PARSER
     module = findModuleByName(name);
 #endif
@@ -337,20 +340,17 @@ smiGetModule(name, wantdescr)
 	} else if (location->type == LOCATION_DIR) {
 
 	    path = malloc(strlen(location->name)+strlen(name)+6);
-	    
 	    sprintf(path, "%s/%s", location->name, name);
 	    if (!stat(path, &buf) && (!module)) {
 		rc = readMibFile(path, name, flags | FLAG_WHOLEMOD);
-		free(path);
 		module = findModuleByName(name);
 	    }
-	    
 	    sprintf(path, "%s/%s.my", location->name, name);
 	    if (!stat(path, &buf) && (!module)) {
 		rc = readMibFile(path, name, flags | FLAG_WHOLEMOD);
-		free(path);
 		module = findModuleByName(name);
 	    }
+	    free(path);
 	    
 	    if (module) {
 		res.name = strdup(module->descriptor->name);
@@ -452,20 +452,18 @@ smiGetNode(name, module, wantdescr)
 		if (!findModuleByName(modulename)) {
 
 		    path = malloc(strlen(location->name)+strlen(modulename)+6);
-		    
 		    sprintf(path, "%s/%s", location->name, modulename);
 		    if (!stat(path, &buf)) {
 			rc = readMibFile(path, modulename,
 					 flags | FLAG_WHOLEMOD);
-			free(path);
 		    }
 	    
 		    sprintf(path, "%s/%s.my", location->name, modulename);
 		    if (!stat(path, &buf)) {
 			rc = readMibFile(path, modulename,
 					 flags | FLAG_WHOLEMOD);
-			free(path);
 		    }
+		    free(path);
 		    
 		}
 

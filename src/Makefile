@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.10 1998/11/21 21:59:58 strauss Exp $
+# @(#) $Id: Makefile,v 1.11 1998/11/22 22:58:21 strauss Exp $
 #
 
 CC	= gcc
@@ -33,6 +33,7 @@ smid.o: smid.c
 smi_svc_init.o: smi_svc_init.c 
 
 smid: smi_svc_proc.o smi_svc_init.o smid.o smi_xdr.o libsmi.a
+	#$(CC) -o smid smi_svc_proc.o smi_svc_init.o smid.o smi_xdr.o libsmi.a -lrpcsvc -lnsl -ll -lefence
 	$(CC) -o smid smi_svc_proc.o smi_svc_init.o smid.o smi_xdr.o libsmi.a -lrpcsvc -lnsl -ll
 	ln -f smid ..
 
