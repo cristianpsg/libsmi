@@ -1,3 +1,10 @@
+2001-01-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-perl.c: Martin Schulz <schulz@videotron.ca> contributed
+	a perl driver, based on the python driver. It maps each and every
+	piece of information to a string, even dates and and numerical
+	values. However, maybe it is useful to some people.
+
 2000-12-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Some well-known SMI identifiers imported

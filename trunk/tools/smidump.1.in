@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.19 2000/12/15 13:52:33 strauss Exp $
+.\" $Id: smidump.1.in,v 1.20 2000/12/18 09:56:28 strauss Exp $
 .\"
 .TH smidump 1  "October 18, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -135,8 +135,13 @@ Reverse engineered conceptual model in DIA XML file format (experimental).
 jax
 Java AgentX sub-agent classes in separate files (experimental).
 .TP
+perl
+Perl represention of the MIB module
+(contributed by Martin Schulz <schulz@videotron.ca>).
+.TP
 python
-Python dictionaries represention the MIB module.
+Python dictionaries represention of the MIB module
+(contributed by Pat Knight <pat@ktgroup.co.uk>).
 .TP
 xml
 SMI in XML format (experimental).

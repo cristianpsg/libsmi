@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.53 2000/12/15 13:52:33 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.54 2000/12/21 09:29:31 strauss Exp $
  */
 
 #include <config.h>
@@ -239,6 +239,7 @@ int main(int argc, char *argv[])
     initMetrics();
     initMosy();
     initNetsnmp();
+    initPerl();
     initPython();
     initSming();                defaultDriver = lastDriver;
     initSmi();
