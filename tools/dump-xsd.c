@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.47 2002/10/24 13:32:07 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.48 2002/10/30 09:17:38 schoenw Exp $
  */
 
 #include <config.h>
@@ -304,7 +304,7 @@ fprintHexOrAsciiType( FILE *f, int indent, SmiType *parent,
     fprintSegment( f, indent, "</xsd:simpleType>\n", 0 );
 }
 
-
+#if 0
 static void
 fprintStringUnion( FILE *f, int indent, SmiType *smiType,
 		   SmiInteger32 minLength, SmiInteger32 maxLength,
@@ -346,7 +346,7 @@ fprintStringUnion( FILE *f, int indent, SmiType *smiType,
 			      typeName, 0 );
     }
 }
-
+#endif /* 0 */
 
 static void
 initDH( struct DH *dh )
@@ -465,7 +465,6 @@ static char* getStrDHType( char *hint,
 	DH *iterDH;
 	
 	for( iterDH = dh; iterDH; iterDH = iterDH->next ) {
-	    unsigned int dhUsesOctets = 0;
 	    char *baseRegexp = NULL;
 
 	    switch( iterDH->type ) {
@@ -817,9 +816,6 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 		     smiRange = smiGetNextRange( smiRange ) ) {
 		    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
 		    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
-/*		lengths[ lp++ ] = smiRange->minValue.value.integer32;
-		lengths[ lp++ ] = smiRange->maxValue.value.integer32;*/
-		    
 		}
 	    }
 	    else {
@@ -1771,8 +1767,7 @@ static void fprintKeys( FILE *f, int indent, SmiModule *smiModule )
 {
     SmiNode *iterNode, *relNode;
     SmiElement *iterElem;
-    char *parentName ="where the parents have no name";
-    
+        
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
@@ -1827,6 +1822,16 @@ static void fprintKeys( FILE *f, int indent, SmiModule *smiModule )
 		fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
 	    }
 	    fprintSegment( f, indent, "</xsd:unique>\n\n", 0 );
+	    break;
+
+	case SMI_INDEX_REORDER:
+	case SMI_INDEX_SPARSE:
+	case SMI_INDEX_EXPAND:
+	    /* SMIng, not implemented yet */
+	    break;
+
+	default:
+	    fprintf( f, "<!-- Error: Unknown index type -->\n" );
 	    break;
 	}
     }
