@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.30 2000/01/31 15:05:25 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.31 2000/02/02 17:30:32 strauss Exp $
  */
 
 #include <stdio.h>
@@ -328,9 +328,9 @@ int main(int argc, char *argv[])
     if (!strcmp(command, "module")) {
 	module = smiGetModule(name);
 	if (module) {
+	    node = smiGetModuleIdentityNode(module);
 	    printf("      Module: %s\n", format(module->name));
-	    printf("      Object: %s\n", format(module->object));
-	    printf(" LastUpdated: %s", ctime(&module->lastupdated));
+	    printf("      Object: %s\n", node ? format(node->name) : "-");
 	    printf("Organization: %s\n", format(module->organization));
 	    printf(" ContactInfo: %s\n", format(module->contactinfo));
 	    printf(" Description: %s\n", format(module->description));
@@ -342,19 +342,28 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "imports")) {
-	printf("     Imports:");
-	for(import = smiGetFirstImport(name);
-	    import ; import = smiGetNextImport(import)) {
-	    printf(" %s::%s", import->importmodule, import->importname);
+	module = smiGetModule(name);
+	if (module) {
+	    printf("     Imports:");
+	    for(import = smiGetFirstImport(module); import ; ) {
+		printf(" %s::%s", import->importmodule, import->importname);
+		import = smiGetNextImport(import);
+		if (import) {
+		    printf("\n             ");
+		}
+	    }
+	    printf("\n");
 	}
-	printf("\n");
     }
 
     if (!strcmp(command, "revisions")) {
-	for(revision = smiGetFirstRevision(name);
-	    revision ; revision = smiGetNextRevision(revision)) {
-	    printf("    Revision: %s", ctime(&revision->date));
-	    printf(" Description: %s\n", format(revision->description));
+	module = smiGetModule(name);
+	if (module) {
+	    for(revision = smiGetFirstRevision(module);
+		revision ; revision = smiGetNextRevision(revision)) {
+		printf("    Revision: %s", ctime(&revision->date));
+		printf(" Description: %s\n", format(revision->description));
+	    }
 	}
     }
 

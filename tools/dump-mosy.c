@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.10 2000/01/14 09:11:34 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.11 2000/01/18 11:16:49 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -80,6 +80,7 @@ static char *getBasetypeString(SmiBasetype basetype)
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
     SmiNode	 *parentNode, *node;
+    SmiModule	 *smiModule;
     static char	 s[200];
     char	 append[200];
     unsigned int i;
@@ -87,7 +88,8 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     append[0] = 0;
 
     parentNode = smiNode;
-
+    smiModule = smiGetModule(smiNode->module);
+    
     do {
 
 	if (parentNode->oidlen <= 1) {
@@ -112,8 +114,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiNode->module,
-			   parentNode->module, parentNode->name) ||
+	    (smiIsImported(smiModule, parentNode->module, parentNode->name) ||
 	     (!importedParent &&
 	      !strcmp(parentNode->module, smiNode->module)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
@@ -481,6 +482,7 @@ static void printCompliances(char *modulename)
 int dumpMosy(char *modulename, int flags)
 {
     SmiModule	 *smiModule;
+    SmiNode	 *smiNode;
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
@@ -492,12 +494,10 @@ int dumpMosy(char *modulename, int flags)
 	   VERSION);
     printf("\n-- object definitions compiled from %s\n\n", modulename);
 
-
-    if (smiModule->object) {
-	SmiNode	 *smiNode;
-	smiNode = smiGetNode(smiModule->name, smiModule->object);
-	printf("%-20s %s\n", smiModule->object, getOidString(smiNode, 0));
-	printf("%%n0 %-16s module-compliance\n", smiModule->object);
+    smiNode = smiGetModuleIdentityNode(smiModule);
+    if (smiNode) {
+	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	printf("%%n0 %-16s module-compliance\n", smiNode->name);
 	printf("\n");
 	smiFreeNode(smiNode);
     }

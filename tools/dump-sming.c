@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.49 1999/12/20 09:36:43 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.50 2000/01/13 12:24:38 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -224,6 +224,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
     SmiNode	 *parentNode, *node;
+    SmiModule	 *smiModule;
     static char	 s[200];
     char	 append[200];
     unsigned int i;
@@ -231,7 +232,8 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     append[0] = 0;
 
     parentNode = smiNode;
-
+    smiModule = smiGetModule(smiNode->module);
+    
     do {
 
 	if (parentNode->oidlen <= 1) {
@@ -256,8 +258,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiNode->module,
-			   parentNode->module, parentNode->name) ||
+	    (smiIsImported(smiModule, parentNode->module, parentNode->name) ||
 	     (!importedParent &&
 	      !strcmp(parentNode->module, smiNode->module)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
@@ -457,7 +458,7 @@ static void printSubtype(SmiType *smiType)
 
 
 
-static void printImports(char *modulename)
+static void printImports(SmiModule *smiModule)
 {
     SmiImport     *smiImport;
     char	  *lastModulename = NULL;
@@ -476,7 +477,7 @@ static void printImports(char *modulename)
      *   - external refined objects ...
      */
     
-    for(smiImport = smiGetFirstImport(modulename); smiImport;
+    for(smiImport = smiGetFirstImport(smiModule); smiImport;
 	smiImport = smiGetNextImport(smiImport)) {
 	importedModulename = smiImport->importmodule;
 	importedDescriptor = smiImport->importname;
@@ -583,12 +584,12 @@ static void printImports(char *modulename)
 
 
 
-static void printRevisions(char *modulename)
+static void printRevisions(SmiModule *smiModule)
 {
     int i;
     SmiRevision *smiRevision;
     
-    for(i = 0, smiRevision = smiGetFirstRevision(modulename);
+    for(i = 0, smiRevision = smiGetFirstRevision(smiModule);
 	smiRevision; smiRevision = smiGetNextRevision(smiRevision)) {
 	printSegment(INDENT, "revision {\n", 0);
 	printSegment(2 * INDENT, "date", INDENTVALUE);
@@ -1162,23 +1163,22 @@ int dumpSming(char *modulename, int flags)
 	  VERSION ". Do not edit.\n");
     print("//\n");
     print("module %s ", smiModule->name);
-    if (smiModule->object) {
-	print("%s ", smiModule->object);
+    smiNode = smiGetModuleIdentityNode(smiModule);
+    if (smiNode) {
+	print("%s ", smiNode->name);
     }
     print("{\n");
     print("\n");
     
-    printImports(modulename);
+    printImports(smiModule);
     
     /*
      * Module Header
      */
-    if (smiModule->object) {
+    if (smiNode) {
 	print("//\n// MODULE META INFORMATION\n//\n\n");
 	printSegment(INDENT, "oid", INDENTVALUE);
-	smiNode = smiGetNode(smiModule->name, smiModule->object);
 	print("%s;\n\n", getOidString(smiNode, 1));
-	smiFreeNode(smiNode);
 	printSegment(INDENT, "organization", INDENTVALUE);
 	print("\n");
 	printMultilineString(smiModule->organization);
@@ -1198,7 +1198,7 @@ int dumpSming(char *modulename, int flags)
 	    print(";\n\n");
 	}
 	
-	printRevisions(modulename);
+	printRevisions(smiModule);
 	
     }
     

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.27 1999/12/20 09:36:43 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.28 2000/01/13 12:24:38 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -265,6 +265,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 static char *getOidString(SmiNode *smiNode, int importedParent)
 {
     SmiNode	 *parentNode, *node;
+    SmiModule	 *smiModule;
     static char	 s[200];
     char	 append[200];
     unsigned int i;
@@ -272,7 +273,8 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     append[0] = 0;
 
     parentNode = smiNode;
-
+    smiModule = smiGetModule(smiNode->module);
+    
     do {
 	
 	if (parentNode->oidlen <= 1) {
@@ -297,8 +299,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiNode->module,
-			   parentNode->module, parentNode->name) ||
+	    (smiIsImported(smiModule, parentNode->module, parentNode->name) ||
 	     (!importedParent &&
 	      !strcmp(parentNode->module, smiNode->module)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
@@ -425,17 +426,17 @@ static Import* addImport(char *module, char *name)
 
 
 
-static void createImportList(char *modulename)
+static void createImportList(SmiModule *smiModule)
 {
     SmiNode     *smiNode;
     SmiType     *smiType;
     SmiNodekind kind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     SmiImport   *smiImport;
     
-    for(smiNode = smiGetFirstNode(modulename, kind); smiNode;
+    for(smiNode = smiGetFirstNode(smiModule->name, kind); smiNode;
 	smiNode = smiGetNextNode(smiNode, kind)) {
 	smiType = smiGetType(smiNode->typemodule, smiNode->typename);
-	if (smiType && strcmp(smiType->module, modulename)) {
+	if (smiType && strcmp(smiType->module, smiModule->name)) {
 	    if (strlen(smiType->module)) {
 		addImport(smiType->module, smiType->name);
 	    }
@@ -452,7 +453,7 @@ static void createImportList(char *modulename)
 	}
     }
 
-    smiNode = smiGetFirstNode(modulename,
+    smiNode = smiGetFirstNode(smiModule->name,
 			      SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN
 			      | SMI_NODEKIND_TABLE | SMI_NODEKIND_ROW);
     if (smiNode) {
@@ -460,7 +461,7 @@ static void createImportList(char *modulename)
 	smiFreeNode(smiNode);
     }
 
-    smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+    smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_NOTIFICATION);
     if (smiNode) {
 	addImport(smiv1 ? "RFC-1215" : "SNMPv2-SMI",
 		  smiv1 ? "TRAP-TYPE" : "NOTIFICATION-TYPE");
@@ -468,7 +469,7 @@ static void createImportList(char *modulename)
     }
 
     if (! smiv1) {
-	smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_MODULE);
+	smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_MODULE);
 	if (smiNode) {
 	    addImport("SNMPv2-SMI", "MODULE-IDENTITY");
 	    smiFreeNode(smiNode);
@@ -476,7 +477,7 @@ static void createImportList(char *modulename)
     }
     
     if (! smiv1) {
-	for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NODE);
+	for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_NODE);
 	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 	    if (smiNode->description) {
 		addImport("SNMPv2-SMI", "OBJECT-IDENTITY");
@@ -487,7 +488,7 @@ static void createImportList(char *modulename)
     }
 
     if (! smiv1) {
-	smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+	smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_COMPLIANCE);
 	if (smiNode) {
 	    addImport("SNMPv2-CONF", "MODULE-COMPLIANCE");
 	    smiFreeNode(smiNode);
@@ -495,7 +496,7 @@ static void createImportList(char *modulename)
     }
 
     if (! smiv1) {
-	for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
+	for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_GROUP);
 	    smiNode;
 	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 	    if (isObjectGroup(smiNode)) {
@@ -507,7 +508,7 @@ static void createImportList(char *modulename)
     }
 
     if (! smiv1) {
-	for(smiType = smiGetFirstType(modulename);
+	for(smiType = smiGetFirstType(smiModule->name);
 	    smiType; smiType = smiGetNextType(smiType)) {
 	    if (smiType->description) {
 		addImport("SNMPv2-TC", "TEXTUAL-CONVENTION");
@@ -517,7 +518,7 @@ static void createImportList(char *modulename)
 	}
     }
 
-    for(smiImport = smiGetFirstImport(modulename); smiImport;
+    for(smiImport = smiGetFirstImport(smiModule); smiImport;
 	smiImport = smiGetNextImport(smiImport)) {
 	if (islower((int) smiImport->importname[0]) ||
 	    (!strcmp(smiImport->importmodule, "SNMPv2-SMI")) ||
@@ -835,20 +836,17 @@ static void printImports(char *modulename)
 
 
 
-static void printModuleIdentity(char *modulename)
+static void printModuleIdentity(SmiModule *smiModule)
 {
     SmiRevision  *smiRevision;
-    SmiModule	 *smiModule;
     SmiNode      *smiNode;
-    
-    smiModule = smiGetModule(modulename);
-    
-    if (smiModule->object) {
 
-	smiNode = smiGetNode(modulename, smiModule->object);
+    smiNode = smiGetModuleIdentityNode(smiModule);
+    
+    if (smiNode) {
 
 	if (smiv1 && smiNode) {
-	    print("%s OBJECT IDENTIFIER\n", smiModule->object);
+	    print("%s OBJECT IDENTIFIER\n", smiNode->name);
 	    printSegment(INDENT, "::= ", 0, 0);
 	    print("{ %s }\n\n", getOidString(smiNode, 0));
 	}
@@ -856,12 +854,12 @@ static void printModuleIdentity(char *modulename)
 	if (! smiv1 || ! silent) {
 
 	    if (smiv1) {
-		print("-- %s MODULE-IDENTITY\n", smiModule->object);
+		print("-- %s MODULE-IDENTITY\n", smiNode->name);
 	    } else {
-		print("%s MODULE-IDENTITY\n", smiModule->object);
+		print("%s MODULE-IDENTITY\n", smiNode->name);
 	    }
 	    printSegment(INDENT, "LAST-UPDATED", INDENTVALUE, smiv1);
-	    smiRevision = smiGetFirstRevision(modulename);
+	    smiRevision = smiGetFirstRevision(smiModule);
 	    if (smiRevision)
 		print("\"%s\"\n", getTimeString(smiRevision->date));
 	    else
@@ -1563,7 +1561,7 @@ static int dumpSmi(char *modulename)
 	exit(1);
     }
 
-    createImportList(modulename);
+    createImportList(smiModule);
     
     print("--\n");
     print("-- This %s module has been generated by smidump "
@@ -1572,7 +1570,7 @@ static int dumpSmi(char *modulename)
     print("%s DEFINITIONS ::= BEGIN\n\n", smiModule->name);
 	
     printImports(modulename);
-    printModuleIdentity(modulename);
+    printModuleIdentity(smiModule);
     printTypeDefinitions(modulename);
     printTextualConventions(modulename);
     printObjects(modulename);
