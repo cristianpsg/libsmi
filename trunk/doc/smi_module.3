@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_module.3,v 1.3 1999/05/05 22:46:35 strauss Exp $
+.\" $Id: smi_module.3,v 1.4 1999/05/07 07:57:13 strauss Exp $
 .\"
 .TH smi_module 3  "May 5, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -69,7 +69,7 @@ fully qualified descriptor \fIfullname\fP is imported in module
 .PP
 The \fBsmiGetFirstRevision()\fP and \fBsmiGetNextRevision()\fP
 functions are used to iteratively retrieve \fBstruct SmiModule\fPs.
-\fBsmiGetFirstRevision()\fP returns the first (in the module, that is
+\fBsmiGetFirstRevision()\fP returns the first (in the module that is
 most recent) revision information on module
 \fImodulename\fP. Subsequent calls to \fBsmiGetNextRevision()\fP
 return the revision after (timely before) that one specified by
