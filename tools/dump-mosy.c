@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.22 2000/02/13 13:20:53 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.23 2000/02/14 17:19:01 strauss Exp $
  */
 
 #include <config.h>
@@ -222,7 +222,7 @@ static void printAssignements(SmiModule *smiModule)
 
 	cnt++;
 	
-	if (! smiNode->description &&
+	if (smiNode->status == SMI_STATUS_UNKNOWN &&
 	    smiNode != smiGetModuleIdentityNode(smiModule)) {
 	    printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
 	    printf("%%n0 %-16s object-id\n", smiNode->name);
@@ -298,7 +298,7 @@ static void printObjects(SmiModule *smiModule)
 	cnt++;
 
 	if (smiNode->nodekind == SMI_NODEKIND_NODE) {
-	    if (smiNode->description &&
+	    if (smiNode->status != SMI_STATUS_UNKNOWN &&
 		smiNode != smiGetModuleIdentityNode(smiModule)) {
 		printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
 		printf("%%n0 %-16s object-id\n", smiNode->name);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.17 2000/02/12 10:56:20 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.18 2000/02/22 17:11:12 strauss Exp $
  */
 
 %option noyywrap
@@ -145,7 +145,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     thisParser.line++;
 }
 
-<Exports>[^\;] {
+<Exports>[^\;]* {
 }
 
 <Exports>\; {
@@ -167,7 +167,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     thisParser.line++;
 }
 
-<Choice>[^\}] {
+<Choice>[^\}]* {
 }
 
 <Choice>\} {
@@ -215,7 +215,7 @@ eol             ("\n"|"\n\015"|"\015\n")
   * Lex rules for white space.
   */
 
-<INITIAL>[ \t] {
+<INITIAL>[ \t]* {
 }
 
 <INITIAL>{eol} {
@@ -656,11 +656,13 @@ eol             ("\n"|"\n\015"|"\015\n")
 	    s++;
 	    newlineflag = 1;
 	    column = 0;
+	    if (cutoffcolumn < 0) cutoffcolumn = 0;
 	} else if (s[0] == '\n') {		/* simple newline */
 	    thisParser.line++;
 	    d[0] = '\n';
 	    newlineflag = 1;
 	    column = 0;
+	    if (cutoffcolumn < 0) cutoffcolumn = 0;
 	} else {
 	    if (newlineflag && isspace(s[0])) {	/* space after newline */
 		if (cutoffcolumn <= 0) {
@@ -675,7 +677,8 @@ eol             ("\n"|"\n\015"|"\015\n")
 		}
 	    } else {				/* everything else */
 		if (! isascii(s[0])) {
-		    printError(parser, ERR_ILLEGAL_CHAR_IN_STRING, s[0], s[0]);
+		    printError(parser, ERR_ILLEGAL_CHAR_IN_STRING,
+			       s[0], (unsigned char) s[0]);
 		}
 		d[0] = s[0];
 		newlineflag = 0;

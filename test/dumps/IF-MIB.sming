@@ -29,13 +29,13 @@ module IF-MIB {
 
   contact           
         "   Keith McCloghrie
-            Cisco Systems, Inc.
-            170 West Tasman Drive
-            San Jose, CA  95134-1706
-            US
+         Cisco Systems, Inc.
+         170 West Tasman Drive
+         San Jose, CA  95134-1706
+         US
          
-            408-526-5260
-            kzm@cisco.com";
+         408-526-5260
+         kzm@cisco.com";
 
   description       
         "The MIB module to describe generic objects for
@@ -861,7 +861,7 @@ module IF-MIB {
          value x runs over the sub-layer with ifIndex value y,
          then this table contains:
          
-          ifStackStatus.x.y=active
+           ifStackStatus.x.y=active
          
          For each ifIndex value, I, which identifies an active
          interface, there are always at least two instantiated
@@ -874,8 +874,8 @@ module IF-MIB {
          For example, two rows exist even for an interface
          which has no others stacked on top or below it:
          
-          ifStackStatus.0.x=active
-          ifStackStatus.x.0=active ";
+           ifStackStatus.0.x=active
+           ifStackStatus.x.0=active ";
 
     row ifStackEntry {
       oid           ifStackTable.1;
@@ -959,48 +959,48 @@ module IF-MIB {
          the ifTestId and ifTestStatus objects as follows:
          
          try_again:
-         get (ifTestId, ifTestStatus)
-         while (ifTestStatus != notInUse)
-             /*
-              * Loop while a test is running or some other
-              * manager is configuring a test.
-              */
-             short delay
-             get (ifTestId, ifTestStatus)
-         }
+          get (ifTestId, ifTestStatus)
+          while (ifTestStatus != notInUse)
+              /*
+               * Loop while a test is running or some other
+               * manager is configuring a test.
+               */
+              short delay
+              get (ifTestId, ifTestStatus)
+          }
          
-         /*
-          * Is not being used right now -- let's compete
-          * to see who gets it.
-          */
-         lock_value = ifTestId
+          /*
+           * Is not being used right now -- let's compete
+           * to see who gets it.
+           */
+          lock_value = ifTestId
          
-         if ( set(ifTestId = lock_value, ifTestStatus = inUse,
-                  ifTestOwner = 'my-IP-address') == FAILURE)
-             /*
-              * Another manager got the ifTestEntry -- go
-              * try again
-              */
-             goto try_again;
+          if ( set(ifTestId = lock_value, ifTestStatus = inUse,
+                   ifTestOwner = 'my-IP-address') == FAILURE)
+              /*
+               * Another manager got the ifTestEntry -- go
+               * try again
+               */
+              goto try_again;
          
-         /*
-          * I have the lock
-          */
-         set up any test parameters.
+          /*
+           * I have the lock
+           */
+          set up any test parameters.
          
-         /*
-          * This starts the test
-          */
-         set(ifTestType = test_to_run);
+          /*
+           * This starts the test
+           */
+          set(ifTestType = test_to_run);
          
-         wait for test completion by polling ifTestResult
+          wait for test completion by polling ifTestResult
          
-         when test completes, agent sets ifTestResult
-              agent also sets ifTestStatus = 'notInUse'
+          when test completes, agent sets ifTestResult
+               agent also sets ifTestStatus = 'notInUse'
          
-         retrieve any additional test results, and ifTestId
+          retrieve any additional test results, and ifTestId
          
-         if (ifTestId == lock_value+1) results are valid
+          if (ifTestId == lock_value+1) results are valid
          
          A manager station first retrieves the value of the
          appropriate ifTestId and ifTestStatus objects,
@@ -1110,7 +1110,7 @@ module IF-MIB {
          duplex loopback test, and defines the special meanings
          of the subject identifier:
          
-            noTest  OBJECT IDENTIFIER ::= { 0 0 }
+             noTest  OBJECT IDENTIFIER ::= { 0 0 }
          
          When the value noTest is written to this object, no
          action is taken unless a test is in progress, in which
@@ -1157,7 +1157,7 @@ module IF-MIB {
          InstancePointer textual conventions as defined in RFC
          1903.  The identifier:
          
-            testCodeUnknown  OBJECT IDENTIFIER ::= { 0 0 }
+             testCodeUnknown  OBJECT IDENTIFIER ::= { 0 0 }
          
          is defined for use if no additional result code is
          available.";

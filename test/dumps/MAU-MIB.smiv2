@@ -62,15 +62,15 @@ mauMod MODULE-IDENTITY
              this MIB module:
              
              [IEEE 802.3 Std] refers to
-             IEEE Std 802.3, 1998 Edition: 'Information
-             technology - Telecommunications and
-             information exchange between systems -
-             Local and metropolitan area networks -
-             Specific requirements - Part 3: Carrier
-             sense multiple access with collision
-             detection (CSMA/CD) access method and
-             physical layer specifications',
-             September 1998.
+                IEEE Std 802.3, 1998 Edition: 'Information
+                technology - Telecommunications and
+                information exchange between systems -
+                Local and metropolitan area networks -
+                Specific requirements - Part 3: Carrier
+                sense multiple access with collision
+                detection (CSMA/CD) access method and
+                physical layer specifications',
+                September 1998.
              
              Of particular interest is Clause 30, '10Mb/s,
              100Mb/s and 1000Mb/s Management'."
@@ -835,27 +835,27 @@ ifMauTypeList OBJECT-TYPE
              these:
              
              Power  Capability
-             0      other or unknown
-             1      AUI
-             2      10BASE-5
-             3      FOIRL
-             4      10BASE-2
-             5      10BASE-T duplex mode unknown
-             6      10BASE-FP
-             7      10BASE-FB
-             8      10BASE-FL duplex mode unknown
-             9      10BROAD36
-             10      10BASE-T  half duplex mode
-             11      10BASE-T  full duplex mode
-             12      10BASE-FL half duplex mode
-             13      10BASE-FL full duplex mode
-             14      100BASE-T4
-             15      100BASE-TX half duplex mode
-             16      100BASE-TX full duplex mode
-             17      100BASE-FX half duplex mode
-             18      100BASE-FX full duplex mode
-             19      100BASE-T2 half duplex mode
-             20      100BASE-T2 full duplex mode
+               0      other or unknown
+               1      AUI
+               2      10BASE-5
+               3      FOIRL
+               4      10BASE-2
+               5      10BASE-T duplex mode unknown
+               6      10BASE-FP
+               7      10BASE-FB
+               8      10BASE-FL duplex mode unknown
+               9      10BROAD36
+              10      10BASE-T  half duplex mode
+              11      10BASE-T  full duplex mode
+              12      10BASE-FL half duplex mode
+              13      10BASE-FL full duplex mode
+              14      100BASE-T4
+              15      100BASE-TX half duplex mode
+              16      100BASE-TX full duplex mode
+              17      100BASE-FX half duplex mode
+              18      100BASE-FX full duplex mode
+              19      100BASE-T2 half duplex mode
+              20      100BASE-T2 full duplex mode
              
              If auto-negotiation is present on this MAU, this
              object will map to ifMauAutoNegCapability.
@@ -1451,19 +1451,19 @@ ifMauAutoNegCapability OBJECT-TYPE
              these:
              
              Power   Capability
-             0       other or unknown
-             (1-9)    (reserved)
-             10       10BASE-T  half duplex mode
-             11       10BASE-T  full duplex mode
-             12       (reserved)
-             13       (reserved)
-             14       100BASE-T4
-             15       100BASE-TX half duplex mode
-             16       100BASE-TX full duplex mode
-             17       (reserved)
-             18       (reserved)
-             19      100BASE-T2 half duplex mode
-             20      100BASE-T2 full duplex mode
+               0       other or unknown
+              (1-9)    (reserved)
+              10       10BASE-T  half duplex mode
+              11       10BASE-T  full duplex mode
+              12       (reserved)
+              13       (reserved)
+              14       100BASE-T4
+              15       100BASE-TX half duplex mode
+              16       100BASE-TX full duplex mode
+              17       (reserved)
+              18       (reserved)
+              19      100BASE-T2 half duplex mode
+              20      100BASE-T2 full duplex mode
              
              Note that interfaces that support this MIB may
              have capabilities that extend beyond the scope

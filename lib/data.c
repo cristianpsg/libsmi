@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.68 2000/02/22 18:27:00 strauss Exp $
+ * @(#) $Id: data.c,v 1.69 2000/02/23 09:14:11 strauss Exp $
  */
 
 #include <config.h>
@@ -326,12 +326,13 @@ setModuleDescription(modulePtr, description, parserPtr)
     char *description;
     Parser *parserPtr;
 {
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	modulePtr->export.description = description;
-    else {
+    if (modulePtr->export.description)
+	util_free(modulePtr->export.description);
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(description);
-	if (description)
-	    modulePtr->export.description = "";
+	modulePtr->export.description = NULL;
+    } else {
+	modulePtr->export.description = description;
     }
 }
 
@@ -359,12 +360,13 @@ setModuleReference(modulePtr, reference, parserPtr)
     char *reference;
     Parser *parserPtr;
 {
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	modulePtr->export.reference = reference;
-    else {
+    if (modulePtr->export.reference)
+	util_free(modulePtr->export.reference);
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(reference);
-	if (reference)
-	    modulePtr->export.reference = "";
+	modulePtr->export.reference = NULL;
+    } else {
+	modulePtr->export.reference = reference;
     }
 }
 
@@ -437,7 +439,12 @@ addRevision(date, description, parserPtr)
 
     revisionPtr->modulePtr		 = modulePtr;
     revisionPtr->export.date	       	 = date;
-    revisionPtr->export.description    	 = description;
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
+	util_free(description);
+	revisionPtr->export.description	 = NULL;
+    } else {
+	revisionPtr->export.description	 = description;
+    }
     revisionPtr->line			 = parserPtr ? parserPtr->line : -1;
 
     /* TODO: probably, we should sort revisions by date by inserting
@@ -1338,13 +1345,11 @@ setObjectDescription(objectPtr, description, parserPtr)
 {
     if (objectPtr->export.description)
 	util_free(objectPtr->export.description);
-
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	objectPtr->export.description = description;
-    else {
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(description);
-	if (description)
-	    objectPtr->export.description = "";
+	objectPtr->export.description = NULL;
+    } else {
+	objectPtr->export.description = description;
     }
 }
 
@@ -1372,14 +1377,13 @@ setObjectReference(objectPtr, reference, parserPtr)
     char      *reference;
     Parser    *parserPtr;
 {
-    if (objectPtr->export.reference) util_free(objectPtr->export.reference);
-
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	objectPtr->export.reference = reference;
-    else {
+    if (objectPtr->export.reference)
+	util_free(objectPtr->export.reference);
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(reference);
-	if (reference)
-	    objectPtr->export.reference = "";
+	objectPtr->export.reference = NULL;
+    } else {
+	objectPtr->export.reference = reference;
     }
 }
 
@@ -2396,14 +2400,13 @@ setTypeDescription(typePtr, description, parserPtr)
     char	   *description;
     Parser         *parserPtr;
 {
-    if (typePtr->export.description) util_free(typePtr->export.description);
-
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	typePtr->export.description = description;
-    else {
+    if (typePtr->export.description)
+	util_free(typePtr->export.description);
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(description);
-	if (description)
-	    typePtr->export.description = "";
+	typePtr->export.description = NULL;
+    } else {
+	typePtr->export.description = description;
     }
 }
 
@@ -2431,14 +2434,13 @@ setTypeReference(typePtr, reference, parserPtr)
     char	   *reference;
     Parser         *parserPtr;
 {
-    if (typePtr->export.reference) util_free(typePtr->export.reference);
-
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	typePtr->export.reference = reference;
-    else {
+    if (typePtr->export.reference)
+	util_free(typePtr->export.reference);
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(reference);
-	if (reference)
-	    typePtr->export.reference = "";
+	typePtr->export.reference = NULL;
+    } else {
+	typePtr->export.reference = reference;
     }
 }
 
@@ -2923,13 +2925,11 @@ setMacroDescription(macroPtr, description, parserPtr)
     Parser	   *parserPtr;
 {
     if (macroPtr->export.description) util_free(macroPtr->export.description);
-
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	macroPtr->export.description = description;
-    else {
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(description);
-	if (description)
-	    macroPtr->export.description = "";
+	macroPtr->export.description = NULL;
+    } else {
+	macroPtr->export.description = description;
     }
 }
 
@@ -2957,14 +2957,13 @@ setMacroReference(macroPtr, reference, parserPtr)
     char	   *reference;
     Parser         *parserPtr;
 {
-    if (macroPtr->export.reference) util_free(macroPtr->export.reference);
-
-    if (! (parserPtr->flags & SMI_FLAG_NODESCR))
-	macroPtr->export.reference = reference;
-    else {
+    if (macroPtr->export.reference)
+	util_free(macroPtr->export.reference);
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	util_free(reference);
-	if (reference)
-	    macroPtr->export.reference = "";
+	macroPtr->export.reference = NULL;
+    } else {
+	macroPtr->export.reference = reference;
     }
 }
 

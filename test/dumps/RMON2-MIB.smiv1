@@ -916,8 +916,7 @@ protocolDirDescr OBJECT-TYPE
 
 protocolDirType OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { 
---                          extensible(0), addressRecognitionCapable(1) }
+--                        { extensible(0), addressRecognitionCapable(1) }
     ACCESS          read-only
     STATUS          mandatory
     DESCRIPTION     
@@ -4154,8 +4153,7 @@ probeConfig OBJECT IDENTIFIER
 
 probeCapabilities OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { 
---                          etherStats(0), historyControl(1), 
+--                        { etherStats(0), historyControl(1), 
 --                          etherHistory(2), alarm(3), hosts(4), 
 --                          hostTopN(5), matrix(6), filter(7), 
 --                          capture(8), event(9), tokenRingMLStats(10), 

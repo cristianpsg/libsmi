@@ -18,6 +18,7 @@ for mib in ${TESTMIBS} ; do
 
     WC=`@DIFF@ smidump-orig-${FORMAT}.out/$mib.diff dumps/$mib.${FORMAT}.diff | wc -l`
     if [ $WC -ne 0 ] ; then
+	echo "*** smidump -f ${FORMAT} output for $mib differs from dumps/$mib.${FORMAT}."
 	echo "*** smidump -f ${FORMAT} $mib output differs unexpectedly from ../mibs/ietf/$mib."
 	RC=1
     fi
