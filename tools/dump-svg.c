@@ -84,13 +84,26 @@ typedef struct DiaEdge {
  * Generic structures for the internal graph representation.
  */
 
+typedef struct GraphCluster {
+    struct GraphCluster *nextPtr;
+    struct GraphNode    *firstClusterNode;
+    int                 number;		/* do we need this? */
+    float               xMin;
+    float               xMax;
+    float               yMin;
+    float               yMax;
+    float               xOffset;
+    float               yOffset;
+} GraphCluster;
+
 typedef struct GraphNode {
     struct GraphNode *nextPtr;
     SmiNode          *smiNode;
     int              group;		/* group number of this graph node */
     int              use;		/* use node in the layout-algorithm */
     int              degree;		/* quantity of adjacent nodes */
-    int              cluster;		/* number of cluster the node belongs */
+    GraphCluster     *cluster;		/* cluster the node belongs to */
+    struct GraphNode *nextClusterNode;
     DiaNode          dia;
 } GraphNode;
 
@@ -107,8 +120,9 @@ typedef struct GraphEdge {
 } GraphEdge;
 
 typedef struct Graph {
-    GraphNode *nodes;
-    GraphEdge *edges;
+    GraphNode    *nodes;
+    GraphEdge    *edges;
+    GraphCluster *clusters;
 } Graph;
 
 
@@ -162,6 +176,7 @@ static const int ITERATIONS            =100;
 
 /*
  * global svg graph layout
+ * FIXME these constants seem to be obsolete...
  */
 static const float YSPACING            = (float)30; /* y space between nodes */
 static const float XSPACING            = (float)40; /* x space between nodes */
@@ -260,7 +275,37 @@ static int strpfxlen(const char *s1, const char *s2)
 /* ------ Graph primitives ------                                            */
 
 
+/*
+ * graphInsertCluster
+ *
+ *          Inserts a new cluster into an existing graph.
+ *
+ * Result : pointer to the new cluster
+ */
+static GraphCluster *graphInsertCluster(Graph *graph, int number)
+{
+    GraphCluster *newCluster;
+    GraphCluster *tCluster;
+    GraphCluster *lastCluster;
 
+    newCluster = xmalloc(sizeof(GraphCluster));
+    memset(newCluster, 0, sizeof(GraphCluster));
+    newCluster->number = number;
+
+    if (graph->clusters == NULL) {
+	graph->clusters = newCluster;
+	return newCluster;
+    }
+
+    lastCluster = NULL;
+    for (tCluster = graph->clusters; tCluster; tCluster = tCluster->nextPtr) {
+	lastCluster = tCluster;
+    }
+
+    lastCluster->nextPtr = newCluster;
+
+    return newCluster;
+}
 
 
 /*
@@ -369,6 +414,7 @@ static void graphExit(Graph *graph)
 {
     GraphEdge *tEdge, *dummyEdge;
     GraphNode *tNode, *dummyNode;
+    GraphCluster *tCluster, *dummyCluster;
 
     if (graph) {
 
@@ -388,6 +434,15 @@ static void graphExit(Graph *graph)
 	    tEdge = tEdge->nextPtr;
       
 	    xfree(dummyEdge);
+	}
+    
+	dummyCluster = NULL;
+	tCluster = graph->clusters;
+	while (tCluster != NULL) {
+	    dummyCluster = tCluster;
+	    tCluster = tCluster->nextPtr;
+      
+	    xfree(dummyCluster);
 	}
     
 	xfree(graph);
@@ -2797,7 +2852,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 /*
  * Calculates the size of a group-node for the UML representation.
  */
-static void calcGroupSize(int group)
+static GraphNode *calcGroupSize(int group)
 {
     GraphNode *calcNode, *node;
     SmiNode   *tNode;
@@ -2806,10 +2861,9 @@ static void calcGroupSize(int group)
 	if (calcNode->group == group) break;
     }
 
-    if (!calcNode) return;
+    if (!calcNode) return NULL;
 
     calcNode->use = 1;
-    calcNode->cluster = -1;
     /*
     calcNode->dia.x = (float) (rand()/RAND_MAX*CANVASWIDTH);
     calcNode->dia.y = (float) (rand()/RAND_MAX*CANVASHEIGHT);
@@ -2818,10 +2872,6 @@ static void calcGroupSize(int group)
     calcNode->dia.y = (float) rand();
     calcNode->dia.x /= (float) RAND_MAX;
     calcNode->dia.y /= (float) RAND_MAX;
-
-    calcNode->dia.x = 0;
-    calcNode->dia.y = 0;
-
     //calcNode->dia.x *= (float) CANVASWIDTH;
     //calcNode->dia.y *= (float) CANVASHEIGHT;
     //fprintf(stderr, "(%.2f,%.2f)\n", calcNode->dia.x, calcNode->dia.y);
@@ -2839,6 +2889,8 @@ static void calcGroupSize(int group)
 	    calcNode->dia.h += TABLEELEMHEIGHT;
 	}
     }
+
+    return calcNode;
 }
 
 
@@ -2865,8 +2917,11 @@ static float fa(float d, float k)
  * TODO erst Springembedder, dann Flaeche rausfinden
  * Kraefte in x- bzw. y-Richtung verschieden gewichten: aspect-ratio?
  * Zusammenhangskomponenten einzeln betrachten
+ *
+ * FIXME * nodecount counts all nodes. we need something like clusternodecount!
+ *       * loop through the nodes of the cluster, don't use GraphNode.use!
  */
-static void layoutCluster(int nodecount, int cluster,
+static void layoutCluster(int nodecount, GraphCluster *cluster,
 			int overlap, int limit_frame)
 {
     int i;
@@ -2945,7 +3000,7 @@ static void layoutCluster(int nodecount, int cluster,
 /* ------------------------------------------------------------------------- */
 
 
-static void addNodeToCluster(GraphNode *tNode, int currentCluster)
+static void addNodeToCluster(GraphNode *tNode, GraphCluster *currentCluster)
 {
     GraphEdge *tEdge;
 
@@ -2953,20 +3008,27 @@ static void addNodeToCluster(GraphNode *tNode, int currentCluster)
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (!tEdge->use)
 	    continue;
-	if (tEdge->startNode == tNode && tEdge->endNode->cluster == 0)
+	if (tEdge->startNode == tNode && tEdge->endNode->cluster == NULL) {
+	    tEdge->endNode->nextClusterNode = tNode->nextClusterNode;
+	    tNode->nextClusterNode = tEdge->endNode;
 	    addNodeToCluster(tEdge->endNode, currentCluster);
-	if (tEdge->endNode == tNode && tEdge->startNode->cluster == 0)
+	}
+	if (tEdge->endNode == tNode && tEdge->startNode->cluster == NULL) {
+	    tEdge->startNode->nextClusterNode = tNode->nextClusterNode;
+	    tNode->nextClusterNode = tEdge->startNode;
 	    addNodeToCluster(tEdge->startNode, currentCluster);
+	}
     }
 }
 
 //TODO calculate maximal x- and y-sizes and print them into the header
 static void diaPrintXML(int modc, SmiModule **modv)
 {
-    GraphNode *tNode;
-    GraphEdge *tEdge;
-    int       i, group, nodecount = 0, classNr = 0, currentCluster = 1;
-    float     xMin = 0, yMin = 0, xMax = 0, yMax = 0;
+    GraphNode    *tNode, *lastNode;
+    GraphEdge    *tEdge;
+    GraphCluster *tCluster;
+    int          group, nodecount = 0, classNr = 0, currentCluster = 0;
+    float        xMin = 0, yMin = 0, xMax = 0, yMax = 0;
 
     //find edges which are supposed to be drawn
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
@@ -2980,37 +3042,59 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	}
     }
 
+    tCluster = graphInsertCluster(graph, currentCluster);
+
     //prepare nodes which are supposed to be drawn
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	tNode = diaCalcSize(tNode);
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
 	    if (tNode->degree == 0) {
-		tNode->cluster = -1;
+		if (tCluster->firstClusterNode == NULL) {
+		    tCluster->firstClusterNode = tNode;
+		} else {
+		    lastNode->nextClusterNode = tNode;
+		}
+		lastNode = tNode;
+		tNode->cluster = tCluster;
 		tNode->dia.x = 0;
 		tNode->dia.y = 0;
 	    }
 	}
     }
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
-	calcGroupSize(group);
+	tNode = calcGroupSize(group);
 	nodecount++;
+	if (tCluster->firstClusterNode == NULL) {
+	    tCluster->firstClusterNode = tNode;
+	} else {
+	    lastNode->nextClusterNode = tNode;
+	}
+	lastNode = tNode;
+	tNode->cluster = tCluster;
+	tNode->dia.x = 0;
+	tNode->dia.y = 0;
     }
 
     //cluster the graph
+    currentCluster++;
+    tCluster = graphInsertCluster(graph, currentCluster);
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	if (tNode->cluster == 0) {
-	    addNodeToCluster(tNode, currentCluster);
+	if (tNode->cluster == NULL) {
+	    tCluster->firstClusterNode = tNode;
+	    addNodeToCluster(tNode, tCluster);
 	    currentCluster++;
+	    tCluster = graphInsertCluster(graph, currentCluster);
 	}
     }
 
-    for (i = 1; i < currentCluster; i++) {
-	layoutCluster(nodecount, i, 0, 0);
-	layoutCluster(nodecount, i, 1, 0);
-	//layoutCluster(nodecount, i, 1, 1);
+    for (tCluster = graph->clusters->nextPtr;
+	 tCluster; tCluster = tCluster->nextPtr) {
+	layoutCluster(nodecount, tCluster, 0, 0);
+	layoutCluster(nodecount, tCluster, 1, 0);
+	//layoutCluster(nodecount, tCluster, 1, 1);
     }
 
     //calculate bounding box and write some debug-information to stderr
@@ -3019,7 +3103,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	fprintf(stderr, "%i\t%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->cluster, tNode->dia.x, tNode->dia.y);
+	fprintf(stderr, "%i\t%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->cluster->number, tNode->dia.x, tNode->dia.y);
 	if (tNode->dia.x - STARTSCALE*tNode->dia.w/2 < xMin)
 	    xMin = tNode->dia.x - STARTSCALE*tNode->dia.w/2;
 	if (tNode->dia.x + STARTSCALE*tNode->dia.w/2 > xMax)
@@ -3088,6 +3172,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	    graph = xmalloc(sizeof(Graph));
 	    graph->nodes = NULL;
 	    graph->edges = NULL;
+	    graph->clusters = NULL;
 	}
 	
 	for (i = 0; i < modc; i++) {
@@ -3118,6 +3203,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 		graph = xmalloc(sizeof(Graph));
 		graph->nodes = NULL;
 		graph->edges = NULL;
+		graph->clusters = NULL;
 	    }
 	    
 	    algCreateNodes(modv[i]);
