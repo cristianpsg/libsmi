@@ -7,7 +7,7 @@ Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.15 1999/12/14 14:42:28 strauss Exp $
+@(#) $Id: README,v 1.16 2000/01/25 09:45:59 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -81,6 +81,15 @@ the smi_config(3) man page.
 DEBUGGING
 =========
 
+If you encounter any crashes or feel the need for any other reasons to
+debug the libsmi tools, you should link the tools statically. This is
+the easiest way to get around the problems when your debugger claims to
+be unable to read the libsmi binary files, since they are built using
+libtool. You can build the libsmi tools statically by
+
+	make clean
+	./configure --enable-static --disable-shared
+	make
 
 
 FURTHER READING
