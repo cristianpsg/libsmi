@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.11 2000/02/11 16:42:32 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.12 2000/02/22 18:27:01 strauss Exp $
 .\"
-.TH smi_config 3  "February 11, 2000" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "October 18, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
 .\" START OF MAN PAGE COPIES
 smiInit,
@@ -127,8 +127,9 @@ environment variable or by
 @mibdir@ if \fBSMIPATH\fP is not set. This path can also be controlled
 my the \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions (see above).
 .PP
-When files are searched by a given module name, they might have the
-extensions `.smiv2', `.my', `.sming', or no extension. However, the
+When files are searched by a given module name, they might have no
+extension or one of the extensions `.my', `.smiv2', `.sming', `.mib',
+or `.txt'. However, the
 MIB module language is identified by the file's content, not by its
 file name extension.
 .SH "CONFIGURATION FILES"
