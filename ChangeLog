@@ -1,3 +1,9 @@
+2001-10-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Chris Avis <chris@snmptech.com> supplied a
+	patch to detect zero value enumeration numbers in SMIv1, which
+	is illegal.
+
 2001-09-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Fixed warning on numerical OID DEFVALs.
