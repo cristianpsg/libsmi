@@ -192,4 +192,14 @@ x shift/reduce conflict at
 
   SunRPC/XDR
 
-  
+
+. brainstorming zum `url' ansatz:
+
+  . wie kann die libsmi die aufrufe auf das richtige backend mappen?
+    module: loop ueber searchlist, erster match.
+    node: loop nach module wie fuer module.
+    type: dito.
+    names: loop dito. erste nicht leere antwort liste ist resultat.
+    children: ??
+    members: wie node.
+    parent: wie node.

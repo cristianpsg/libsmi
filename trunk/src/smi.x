@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.2 1998/11/10 14:41:43 strauss Exp $
+% * @(#) $Id: smi.x,v 1.3 1998/11/10 20:25:47 strauss Exp $
 % */
 %
 
@@ -156,6 +156,10 @@ program SMIPROG {
 	 * SMIPROC_CHILDREN returns a blank-separated list of fully
 	 * qualified smi_namespecs representing all child nodes of
 	 * the given input node.
+	 * TODO: Probably this list can get very large (e.g. mib-2).
+	 *	 Possible solution: return childeren as numerical OID
+	 *	 ranges. Problem: Then the client cannot filter out the
+	 *	 children that do not belong to its view by modules.
 	 */
 	smi_namelist	SMIPROC_CHILDREN(smi_namespec) 	= 5;
 	/*
@@ -165,6 +169,7 @@ program SMIPROG {
 	 * a notification group or all variables that must be present
 	 * in a notification if the input represents a notification
 	 * node.
+	 * TODO: Probably this list can get quite large.
 	 */
 	smi_namelist	SMIPROC_MEMBERS(smi_namespec) 	= 6;
 	/*

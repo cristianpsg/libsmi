@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: lint.c,v 1.4 1998/11/04 02:14:57 strauss Exp $
+ * @(#) $Id: lint.c,v 1.5 1998/11/10 20:25:46 strauss Exp $
  */
 
 #include <stdio.h>
@@ -27,12 +27,8 @@
 #include "parser-bison.h"
 #include "data.h"
 
-/* flex/bison */
 extern int yydebug;
-extern int yyparse(void *);
-extern FILE *yyin;
 
-Parser toplevelParser;
 char module[MAX_IDENTIFIER_LENGTH+1];
 
 
@@ -67,8 +63,6 @@ main(argc, argv)
     dumpMosyFlag = 0;
 
     strcpy(module, "");
-
-    initData();
 
     smiSetDebugLevel(0);
     smiSetErrorLevel(3);
