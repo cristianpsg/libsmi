@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.30 2000/11/13 11:32:27 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.31 2000/11/16 14:58:10 strauss Exp $
  */
 
 %option noyywrap
@@ -546,7 +546,7 @@ SP		" "
 	    column = 0;
 	    if (cutoffcolumn < 0) cutoffcolumn = 0;
 	} else {
-	    if (newlineflag && isspace((int)s[0])) {	/* space after newline */
+	    if (newlineflag && isspace((int)(unsigned char)s[0])) {	/* space after newline */
 		if (cutoffcolumn <= 0) {
 		    cutoffcolumn -= (s[0] == '\t') ? (8-((column-1) % 8)) : 1;
 		}
