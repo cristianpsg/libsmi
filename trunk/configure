@@ -552,9 +552,9 @@ fi
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=2
-LIBSMI_PATCHLEVEL=8
+LIBSMI_PATCHLEVEL=9
 LIBTOOL_VERSION=2	# increment, when MAJOR and/or MINOR changes
-LIBTOOL_REVISION=8	# increment, when PATCHLEVEL changes
+LIBTOOL_REVISION=9	# increment, when PATCHLEVEL changes
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
@@ -1491,7 +1491,7 @@ else
 EOF
 if { (eval echo configure:1493: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
-  dirseparator="\\"
+  dirseparator="\\\\"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
@@ -1573,15 +1573,15 @@ cat >> confdefs.h <<EOF
 EOF
 
 cat >> confdefs.h <<EOF
-#define UINT64_MAX $uint64_max
+#define LIBSMI_UINT64_MAX $uint64_max
 EOF
 
 cat >> confdefs.h <<EOF
-#define INT64_MIN $int64_min
+#define LIBSMI_INT64_MIN $int64_min
 EOF
 
 cat >> confdefs.h <<EOF
-#define INT64_MAX $int64_max
+#define LIBSMI_INT64_MAX $int64_max
 EOF
 
 
