@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.3 2001/09/05 11:01:11 schoenw Exp $
+ * @(#) $Id: smidiff.c,v 1.4 2001/09/11 08:57:44 schoenw Exp $
  */
 
 #include <stdlib.h>
@@ -68,7 +68,7 @@ typedef struct Error {
 #define ERR_NAME_CHANGED		28
 #define ERR_TO_IMPLICIT			29
 #define ERR_FROM_IMPLICIT		30
-
+#define ERR_RANGE_CHANGED               31
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -131,6 +131,8 @@ static Error errors[] = {
       "implicit type for `%s' replaces type `%s'" },
     { 3, ERR_FROM_IMPLICIT, "from-implicit",
       "type `%s' replaces implicit type for `%s'" },
+    { 3, ERR_RANGE_CHANGED, "range-changed",
+      "range of `%s' changed" },
     { 0, 0, NULL, NULL }
 };
 
@@ -583,6 +585,24 @@ checkUnits(SmiModule *oldModule, int oldLine,
 }
 
 
+static void
+checkRanges(SmiModule *oldModule, int oldLine,
+	    SmiModule *newModule, int newLine,
+	    char *name, 
+	    SmiRange *oldRange, /* first SmiRange */
+	    SmiRange *newRange) /* first SmiRange */ 
+{
+  /* check existance of ranges */
+  if (!oldRange && newRange) {
+    printErrorAtLine(newModule, ERR_RANGE_CHANGED, newLine, name);
+  }
+  
+  if (oldRange && !newRange) {
+    printErrorAtLine(oldModule, ERR_RANGE_CHANGED, oldLine, name);
+  }
+  
+  /* xxx check ranges in detail */
+}
 
 static void
 checkTypes(SmiModule *oldModule, SmiType *oldType,
@@ -599,7 +619,11 @@ checkTypes(SmiModule *oldModule, SmiType *oldType,
 			 smiGetTypeLine(oldType), oldType->name);
     }
 
-    /* xxx check ranges */
+    checkRanges(oldModule, smiGetTypeLine(oldType),
+		newModule, smiGetTypeLine(newType),
+		oldType->name,
+		smiGetFirstRange(oldType),
+		smiGetFirstRange(newType));
 
     /* xxx check defval */
 
@@ -1006,7 +1030,7 @@ main(int argc, char *argv[])
 	switch( cmpres ) {
 	case SMI_NO_DIFF : break;
 	case ( SMI_NAME_CHANGED && SMI_OID_CHANGED ) :
-	    /* in this case probably a node as been moved, so
+	    /* in this case probably a node has been moved, so
 	       let us try to find a node with a same name */
 	    newnode = smiGetNode( newModule, node->name );
 	    if( ! newnode )
