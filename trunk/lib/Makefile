@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.6 1999/06/03 21:13:11 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.7 1999/06/06 07:40:36 strauss Exp $
 #
 
 
@@ -58,7 +58,7 @@ AUTOCONF = autoconf
 AUTOMAKE = automake
 AUTOHEADER = autoheader
 
-INSTALL = /usr/bin/install -c
+INSTALL = /usr/local/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL_PROGRAM}
@@ -70,24 +70,27 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-host_alias = i686-pc-linux-gnu
-host_triplet = i686-pc-linux-gnu
-BISON = bison
+host_alias = sparc-sun-solaris2.5.1
+host_triplet = sparc-sun-solaris2.5.1
+AS = @AS@
+BISON = /usr/local/bin/bison
 CC = gcc
 CFLAGS = -Wall -g
-FLEX = flex
-LD = /usr/bin/ld
+DLLTOOL = @DLLTOOL@
+FLEX = /usr/local/bin/flex
+LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_DEPS = 
+LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
 LN_S = ln -s
 MAKEINFO = makeinfo
-NM = /usr/bin/nm -B
+NM = /usr/local/bin/nm -B
+OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.3-pre2
+VERSION = 0.1.3-pre3
 mibdir = ${prefix}/share/mibs
-smipath = /usr/local/share/mibs:/usr/lib/tnm3.0.0/mibs
+smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
 EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
 
@@ -105,7 +108,7 @@ smi_type.3 smi_config.3
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3-pre3\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
@@ -128,7 +131,7 @@ smi_macro.3.in smi_module.3.in smi_node.3.in smi_type.3.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/data.P .deps/error.P .deps/parser-smi.tab.P \
 .deps/parser-sming.tab.P .deps/scanner-smi.P .deps/scanner-sming.P \
@@ -438,31 +441,55 @@ mostlyclean distclean maintainer-clean
 
 
 parser-smi.tab.c: parser-smi.y scanner-smi.h parser-smi.h
-	$(BISON) -v -t -d -psmi parser-smi.y
+	@if [ "$(BISON)" ] ; then \
+	    "$(BISON)" -v -t -d -psmi parser-smi.y ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new parser-smi.tab.c from parser-smi.y" ; \
+	    echo "" ; \
+	fi
 #	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-#	# bison-1.27 is ok and would not the lines below.
 	sed -e 's/int yyparse (void);/int yyparse ();/' \
 	    parser-smi.tab.c > parser-smi.tab.c.tmp && \
 	mv parser-smi.tab.c.tmp parser-smi.tab.c
 
 parser-sming.tab.c: parser-sming.y scanner-sming.h parser-sming.h
-	$(BISON) -v -t -d -psming parser-sming.y
+	@if [ "$(BISON)" ] ; then \
+	    "$(BISON)" -v -t -d -psming parser-sming.y ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new parser-sming.tab.c from parser-sming.y" ; \
+	    echo "" ; \
+	fi
 #	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-#	# bison-1.27 is ok and would not the lines below.
 	sed -e 's/int yyparse (void);/int yyparse ();/' \
 	    parser-sming.tab.c > parser-sming.tab.c.tmp && \
 	mv parser-sming.tab.c.tmp parser-sming.tab.c
 
 scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
-	$(FLEX) -Psmi -t scanner-smi.l > scanner-smi.c
+	@if [ "$(FLEX)" ] ; then \
+	    "$(FLEX)" -Psmi -t scanner-smi.l > scanner-smi.c ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new scanner-smi.c from scanner-smi.l" ; \
+	    echo "" ; \
+	fi
 
 scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
-	$(FLEX) -Psming -t scanner-sming.l > scanner-sming.c
+	@if [ "$(FLEX)" ] ; then \
+	    "$(FLEX)" -Psming -t scanner-sming.l > scanner-sming.c ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new scanner-sming.c from scanner-sming.l" ; \
+	    echo "" ; \
+	fi
 
-error.i: error.c
+error.h: errormacros.h
+
+errormacros.h: error.c
 	cat error.c | grep ERR_ | \
 	sed -e 's/^.*\(ERR_[a-zA-Z0-9_]*\).*$$/\1/' | \
-	awk '{printf "#define %-40s %d\n", $$1, NR-1}' > error.i
+	awk '{printf "#define %-40s %d\n", $$1, NR-1}' > errormacros.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.29 1999/06/04 20:39:04 strauss Exp $
+ * @(#) $Id: data.h,v 1.30 1999/06/06 07:40:38 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -58,8 +58,6 @@ typedef unsigned short MacroFlags;
 #define	FLAG_SMIV2	        0x0010 /* On a Module: This is an SMIv2 MIB. */
 #define	FLAG_SMING	        0x0020 /* On a Module: This is an SMIng MIB. */
 #define	FLAG_CREATABLE	        0x0040 /* On a Row: New rows can be created. */
-#define FLAG_INDEXLABELS	0x0080 /* On a Row: index and create lists   */
-				       /* contain labels, not yet (Object *) */
 
 #define	FLAG_ERRORS	SMI_ERRORS     /* Otherwise be quiet,       */
 				       /* useful when IMPORTing.    */

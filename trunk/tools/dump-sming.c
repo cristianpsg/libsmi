@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.32 1999/05/31 11:58:41 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.33 1999/06/04 20:39:13 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -403,8 +403,8 @@ static void printSubtype(SmiType *smiType)
 	    }
 	    sprintf(s, "%s(%s)", nn->name, getValueString(nn->valuePtr));
 	    printWrapped(INDENTVALUE + INDENT, s);
-	    print(")");
 	}
+	print(")");
     } else {
 	for(i = 0, range = smiGetFirstRange(smiType->module, smiType->name);
 	    range ; i++, range = smiGetNextRange(range)) {
@@ -422,8 +422,8 @@ static void printSubtype(SmiType *smiType)
 		sprintf(s, "%s", getValueString(range->minValuePtr));
 	    }
 	    printWrapped(INDENTVALUE + INDENT, s);
-	    print(")");
 	}
+	print(")");
     }
 }
 

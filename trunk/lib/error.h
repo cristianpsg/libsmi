@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.10 1999/06/03 20:37:08 strauss Exp $
+ * @(#) $Id: error.h,v 1.11 1999/06/06 07:40:38 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -17,7 +17,7 @@
 #include "scanner-smi.h"
 #include "parser-smi.h"
 
-#include "error.i" /* list of error macros generated from error.c */
+#include "errormacros.h" /* list of error macros generated from error.c */
 
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.10 1999/06/03 20:37:34 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.11 1999/06/04 20:39:14 strauss Exp $
  */
 
 #include <stdio.h>
@@ -20,33 +20,56 @@
 #include "dump-smi.h"
 #include "dump-sming.h"
 #include "dump-data.h"
-
-#define DUMP_SMING	1
-#define DUMP_MOSY	2
-#define DUMP_OBJECTS	3
-#define DUMP_TYPES	4
-#define DUMP_SMIV1      5
-#define DUMP_SMIV2      6
+#include "dump-imports.h"
+#include "dump-mosy.h"
 
 
 
-void
-usage()
+typedef struct {
+    char *name;				  /* Name of the output driver. */
+    int (*func) (const char *moduleName); /* Output generating function. */
+} Driver;
+ 
+
+
+static Driver driverTable[] = {
+    { "SMIng",	 dumpSming },
+    { "SMIv1",	 dumpSmiV1 },
+    { "SMIv2",	 dumpSmiV2 },
+    { "MOSY",	 dumpMosy },
+    { "Imports", dumpImports },
+#if 0
+    { "Objects", dumpMibTree },
+    { "Types",	 dumpTypes },
+#endif
+    { NULL, NULL }
+};
+
+
+
+void usage()
 {
+    Driver *driver = driverTable;
+    
     fprintf(stderr,
 	    "Usage: smidump [-Vh] [-f <format>] [-p <module>] <module_or_path>\n"
 	    "-V                        show version and license information\n"
 	    "-h                        show usage information\n"
-	    "-f <format>               use <format> when dumping\n"
+	    "-f <format>               use <format> when dumping (default %s)\n", driver->name);
+    fprintf(stderr,
+	    "                          supported formats:");
+    for (driver = driverTable; driver->name; driver++) {
+	fprintf(stderr, " %s", driver->name);
+    }
+    fprintf(stderr, "\n");
+    fprintf(stderr,
 	    "-p <module>               preload <module>\n"
-	    "<module_or_path>          plain name of MIB module or file path\n"
-	    "   supported formats are: sming, smiv2, mosy\n");
+	    "<module_or_path>          plain name of MIB module or file path\n");
 }
 
 
 
-void
-version()
+static void version()
 {
     printf("smidump " VERSION "\n");
 }
@@ -59,10 +82,10 @@ main(argc, argv)
     char *argv[];
 {
     char c;
-    char *dumpFormat = NULL;
     char *modulename;
     int flags;
     int errors = 0;
+    Driver *driver = driverTable;
     
     smiInit();
 
@@ -80,7 +103,15 @@ main(argc, argv)
 	    smiLoadModule(optarg);
 	    break;
 	case 'f':
-	    dumpFormat = optarg;
+	    for (driver = driverTable; driver->name; driver++) {
+		if (strcasecmp(driver->name, optarg) == 0) {
+		    break;
+		}
+	    }
+	    if (!driver->name) {
+		fprintf(stderr, "Invalid dump format `%s'\n", optarg);
+		exit(1);
+	    }
 	    break;
 	default:
 	    usage();
@@ -91,26 +122,7 @@ main(argc, argv)
     while (optind < argc) {
 	modulename = smiLoadModule(argv[optind]);
 	if (modulename) {
-	    if ((!dumpFormat) || (!strcasecmp(dumpFormat, "SMIng"))) {
-		errors += dumpSming(modulename);
-	    } else if (!strcasecmp(dumpFormat, "SMIv1")) {
-		errors += dumpSmiV1(modulename);
-	    } else if (!strcasecmp(dumpFormat, "SMIv2")) {
-		errors += dumpSmiV2(modulename);
-	    } else if (!strcasecmp(dumpFormat, "imports")) {
-		errors += dumpImports(modulename);
-#if 0
-	    } else if (!strcasecmp(dumpFormat, "MOSY")) {
-		errors += dumpMosy();
-	    } else if (!strcasecmp(dumpFormat, "Objects")) {
-		errors += dumpMibTree();
-	    } else if (!strcasecmp(dumpFormat, "Types")) {
-		errors += dumpTypes();
-#endif
-	    } else {
-		fprintf(stderr, "Unsupported dump format `%s'\n", dumpFormat);
-		exit(1);
-	    }
+	    errors += (driver->func)(modulename);
 	} else {
 	    fprintf(stderr, "Cannot locate module `%s'\n", argv[optind]);
 	    exit(1);

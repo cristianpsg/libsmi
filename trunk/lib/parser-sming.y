@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.17 1999/06/03 20:37:19 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.18 1999/06/04 20:39:07 strauss Exp $
  */
 
 %{
@@ -575,8 +575,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    Object *objectPtr;
 			    /*
 			     * Walk through the index structs of all table
-			     * rows of this module with
-			     * flag & FLAG_INDEXLABELS and convert their
+			     * rows of this module and convert their
 			     * labelstrings to (Object *). This is the
 			     * case for index column lists
 			     * (indexPtr->listPtr[]->ptr), index related
@@ -610,9 +609,6 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 							   thisParserPtr);
 				    listPtr->ptr = objectPtr;
 				}
-				deleteObjectFlags(
-			    (Object *)(thisParserPtr->firstIndexlabelPtr->ptr),
-				    FLAG_INDEXLABELS);
 			  listPtr = thisParserPtr->firstIndexlabelPtr->nextPtr;
 				free(thisParserPtr->firstIndexlabelPtr);
 				thisParserPtr->firstIndexlabelPtr = listPtr;
@@ -990,7 +986,6 @@ rowStatement:		rowKeyword sep lcIdentifier
 			    
 			    if (rowObjectPtr && $11) {
 				setObjectIndex(rowObjectPtr, $11);
-				addObjectFlags(rowObjectPtr, FLAG_INDEXLABELS);
 
 				/*
 				 * Add this row object to the list of rows
@@ -1008,6 +1003,10 @@ rowStatement:		rowKeyword sep lcIdentifier
 			{
 			    if (rowObjectPtr) {
 				setObjectList(rowObjectPtr, $14);
+				if ($14) {
+				    addObjectFlags(rowObjectPtr,
+						   FLAG_CREATABLE);
+				}
 			    }
 			}
 			statusStatement_stmtsep_01
@@ -1801,6 +1800,9 @@ createStatement_stmtsep_01: /* empty */
 
 createStatement:	createKeyword optsep_createColumns_01 optsep ';'
 			{
+			    if (rowObjectPtr) {
+				addObjectFlags(rowObjectPtr, FLAG_CREATABLE);
+			    }
 			    $$ = $2;
 			}
         ;

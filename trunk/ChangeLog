@@ -1,3 +1,20 @@
+1999-06-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/smi.c: added path expansion semantics if SMIPATH
+	environment variable starts or ends with a colon.
+	
+	* test/Makefile.am: started some test routines.
+
+	* lib/parser-sming.y: `create' statement bugfix.
+
+	* configure.in: added checks for flex and bison.
+	
+	* tools/dump-mosy.c: Juergen Schoenwaelder contributed a
+	dump module to generate MOSY conformant output and patches
+	to clean up the management of dump formats.
+
+	* tools/dump-sming.c: bug fix on SMIng subtype syntax.
+
 1999-06-05  Frank Strauss  <strauss@escape.de>
 
 	* lib/smi.c: minor fixes.

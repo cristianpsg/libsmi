@@ -27,22 +27,26 @@ o thread safety (global vars? static vars? strtok() and other funcs?)
 
 o SmiDecl is language dependant.
 
-o smi_errno ?!
-
-o grouping of error and warning messages
-
 o *.[13].in: construct correct autoconf @mibdir@ contents
 
 o add much more checks to the smiv1/v2 and sming parsers
-
+o smi_errno ?!
 o set up a catalogue of errors detected by the smiv1/v2 parser?
+o test cases
+o grouping of error and warning messages
+o   does table node have exactly one row sub node with oid == 1? (2578.7.10)
+o   non continious sub oids in column node list?
 
-o smiv1 allows `deprecated'!
+o if `parse error' occurs, the database is left in an incosistent state,
+  e.g. index labels of sming modules are not adjusted.
 
 o eliminate length restrictions (grep MAX_ *.[chly])
 
-o test cases
-
 o dump-smi.c
 
-o FLAG_INDEXLABELS obsolete?
+o reading RMON2-MIB.sming gets a segfault.
+
+o `::' instead of `.' as separator in tools' output? (Juergen)
+
+o tcpdump (Juergen)
+

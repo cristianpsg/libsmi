@@ -1,13 +1,13 @@
 .\"
-.\" $Id: smilint.1,v 1.1 1999/05/28 14:52:13 strauss Exp $
+.\" $Id: smilint.1.in,v 1.1 1999/06/01 20:47:21 strauss Exp $
 .\"
-.TH smilint 1  "June 1, 1999" "IBR" "SMI Tools"
+.TH smilint 1  "June 7, 1999" "IBR" "SMI Tools"
 .SH NAME
 smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
 .B smilint
 [
-.B "-Vhvs"
+.B "-Vhs"
 ] [
 .BI "-l " level
 ]
@@ -22,12 +22,6 @@ The rules that \fBsmilint\fP is based on are taken from RFC 1155, RFC
 specifications of SMIng that are part of a master's thesis at the
 Technical University of Braunschweig, Germany.
 .SH OPTIONS
-.TP
-.B "-v"
-On errors, do print the current line of input to stderr after the
-error message and a marker pointing to the current token in the input
-stream. Note that the corresponding point of error usually lies before
-this marker.
 .TP
 .B "-V"
 Show the smilint version and exit.

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.h,v 1.3 1999/05/25 17:00:36 strauss Exp $
+ * @(#) $Id: dump-data.h,v 1.4 1999/05/31 11:58:40 strauss Exp $
  */
 
 #ifndef _DUMP_DATA_H
@@ -16,9 +16,9 @@
 
 
 
-extern void dumpMibTree();
+extern void dumpMibTree(const char *modulename);
 
-extern void dumpTypes();
+extern void dumpTypes(const char *modulename);
 
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.36 1999/06/04 20:39:09 strauss Exp $
+ * @(#) $Id: smi.c,v 1.37 1999/06/06 07:40:41 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -400,45 +400,6 @@ SmiNode *createSmiNode(Object *objectPtr)
 	    smiNodePtr->create            = 0;
 	}
 
-#if 0
-	    if (objectPtr->flags & FLAG_INDEXLABELS) {
-		/*
-		 * This object's index ptrs contain unchecked identifier
-		 * strings instead of Object pointers, because it was read
-		 * from an SMIng module with potential forward references
-		 * in index clauses.
-		 */
-		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
-		     listPtr = listPtr->nextPtr) {
-		    if (listPtr->ptr) {
-			addPtr(&smiNodePtr->index, listPtr->ptr);
-		    }
-		}
-	    } else {
-		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
-		     listPtr = listPtr->nextPtr) {
-		    if (listPtr->ptr) {
-			addName(&smiNodePtr->index,
-				((Object *)listPtr->ptr)->modulePtr->name,
-				((Object *)listPtr->ptr)->name);
-		    }
-		}
-	    }
-	
-	smiNodePtr->list	= NULL;
-	if (objectPtr->flags & FLAG_CREATABLE) {
-	    /*
-	     * If new rows can be created, create at least an empty list,
-	     * instead of returning NULL as the list.
-	     */
-	    addPtr(&smiNodePtr->list, NULL);
-	}
-	for (listPtr = objectPtr->listPtr; listPtr;
-	     listPtr = listPtr->nextPtr) {
-	    addPtr(&smiNodePtr->list, ((Object *)listPtr->ptr)->name);
-	}
-#endif
-	
 	return smiNodePtr;
     } else {
 	return NULL;
@@ -626,7 +587,15 @@ int smiInit()
 
     p = getenv("SMIPATH");
     if (p) {
-	smiPath = util_strdup(p);
+	if (p[0] == ':') {
+	    smiPath = util_malloc(strlen(p) + strlen(DEFAULT_SMIPATH));
+	    sprintf(smiPath, "%s%s", DEFAULT_SMIPATH, p);
+	} else if (p[strlen(p)-1] == ':') {
+	    smiPath = util_malloc(strlen(p) + strlen(DEFAULT_SMIPATH));
+	    sprintf(smiPath, "%s%s", p, DEFAULT_SMIPATH);
+	} else {
+	    smiPath = util_strdup(p);
+	}
     } else {
 	smiPath = util_strdup(DEFAULT_SMIPATH);
     }

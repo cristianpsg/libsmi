@@ -1,5 +1,5 @@
 .\"
-.\" $Id$
+.\" $Id: smiquery.1.in,v 1.1 1999/06/01 20:47:21 strauss Exp $
 .\"
 .TH smiquery 1  "June 1, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -17,7 +17,7 @@ definition.
 .SH OPTIONS
 .TP
 .B "-V"
-Show the smidump version and exit.
+Show the smiquery version and exit.
 .TP
 .B "-h"
 Show a help text and exit.

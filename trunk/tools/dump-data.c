@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.c,v 1.7 1999/05/31 11:58:40 strauss Exp $
+ * @(#) $Id: dump-data.c,v 1.8 1999/06/02 16:52:37 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -65,7 +65,7 @@ dumpSubTree(subRootPtr, prefix)
 
 
 void
-dumpMibTree()
+dumpMibTree(char *modulename)
 {
     dumpSubTree(rootNodePtr, "");
     dumpSubTree(pendingNodePtr, "[pending]");
@@ -74,7 +74,7 @@ dumpMibTree()
 
 
 void
-dumpTypes()
+dumpTypes(char *modulename)
 {
     View     *viewPtr;
     Module   *modulePtr;
