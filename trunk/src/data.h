@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.22 1998/12/01 16:59:35 strauss Exp $
+ * @(#) $Id: data.h,v 1.23 1998/12/14 16:35:51 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -50,7 +50,7 @@ typedef struct String {
 
 
 
-typedef enum DescriptorKind {
+typedef enum Kind {
     KIND_ANY		 = 0 ,  /*					     */
     KIND_MODULE		 = 1 ,  /*					     */
     KIND_MACRO		 = 2 ,  /*					     */
@@ -58,7 +58,7 @@ typedef enum DescriptorKind {
     KIND_OBJECT		 = 4 ,  /*					     */
     KIND_IMPORT		 = 5 ,  /* descriptors to be imported.               */
     KIND_IMPORTED	 = 6    /* imported descriptor. syntax `mod.descr'.  */
-} DescriptorKind;
+} Kind;
 
 #define NUM_KINDS  7
 
@@ -121,6 +121,8 @@ typedef struct Module {
     Type	   *lastTypePtr;
     Macro	   *firstMacroPtr;
     Macro	   *lastMacroPtr;
+    Import	   *firstImportPtr;
+    Import	   *lastImportPtr;
     String	   lastUpdated;
     String	   organization;
     String	   contactInfo;
@@ -133,6 +135,8 @@ typedef struct Module {
     int		   numImportedIdentifiers;
     int		   numStatements;
     int		   numModuleIdentities;
+    struct Module  *nextPtr;
+    struct Module  *prevPtr;
 } Module;
 
 
@@ -140,9 +144,9 @@ typedef struct Module {
 typedef struct Import {
     smi_descriptor *module;
     smi_descriptor *name;
-		   *nextPtr;
-		   *prevPtr;
-		   kind;
+    struct Import  *nextPtr;
+    struct Import  *prevPtr;
+    Kind	   kind;
 }
 
 
@@ -162,6 +166,8 @@ typedef struct Type {
 #endif
     off_t          fileoffset;
     TypeFlags	   flags;
+    struct Type    *nextPtr;
+    struct Type    *prevPtr;
 } Type;
 
 
@@ -182,7 +188,6 @@ typedef struct Object {
     Object	   *nextPtr;
     Object	   *prevSameNodePtr;    /* chain of Objects for this Node  */
     Object	   *nextSameNodePtr;
-    
 } Object;
 
 
@@ -190,7 +195,7 @@ typedef struct Object {
 typedef struct Node {
     smi_subid	   subid;
     NodeFlags	   flags;
-    struct Node	   *parentPtr;
+    struct Node	   *parentNodePtr;
     struct Node	   *nextPtr;
     struct Node	   *prevPtr;
     struct Node	   *firstChildPtr;
@@ -206,6 +211,8 @@ typedef struct Macro {
     smi_descriptor name;
     off_t	   fileoffset;
     MacroFlags	   flags;
+    struct Macro   *nextPtr;
+    struct Macro   *prevPtr;
 } Macro;
 
 
@@ -281,18 +288,18 @@ extern Descriptor *findNextDescriptor(const char *name,
 
 
 
-extern Object *addObject(Node *parentNodePtr,
+extern Object *addObject(const char *objectname,
+			 Node *parentNodePtr,
 			 smi_subid subid,
-			 Module *modulePtr,
 			 ObjectFlags flags,
 			 Parser *parserPtr);
 
-extern Object *duplicateObject(Object *objectPtr,
-			       Module *modulePtr,
+extern Object *duplicateObject(const char *objectname,
+			       Object *objectPtr,
 			       ObjectFlags flags,
 			       Parser *parserPtr);
 
-extern Node *addNode(Node *parentPtr,
+extern Node *addNode(Node *parentNodePtr,
 		     smi_subid subid,
 		     NodeFlags flags,
 		     Parser *parserPtr);
@@ -327,7 +334,7 @@ extern void setObjectFlags(Object *objectPtr,
 extern void setObjectIndex(Object *objectPtr,
 			   List *listPtr);
 
-extern Node *findNodeByParentAndSubid(Node *parentPtr,
+extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      smi_subid subid);
 
 extern Object *findObjectByModuleAndNode(Module *modulePtr,
@@ -354,7 +361,6 @@ extern void dumpMosy(Node *root);
 
 
 extern Type *addType(const char *typename,
-		     /* Module *modulePtr, parserPtr->modulePtr */
 		     smi_syntax syntax,
 		     TypeFlags flags,
 		     Parser *parserPtr);
