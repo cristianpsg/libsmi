@@ -1,3 +1,7 @@
+2002-05-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/INET-ADDRESS-MIB: updated (RFC 3291).
+
 2002-05-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: Fixed nodekind for iso, ccitt, and joint-iso-ccitt.
