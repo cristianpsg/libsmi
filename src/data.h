@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.12 1998/11/10 20:25:44 strauss Exp $
+ * @(#) $Id: data.h,v 1.13 1998/11/17 16:09:18 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -51,30 +51,6 @@ typedef struct Revision {
     char       TODO;
     struct Revision *next;
 } Revision;
-
-
-
-/*
- * MIB location types.
- */
-typedef enum LocationType {
-    LOCATION_FILE	     = 0,
-    LOCATION_DIR	     = 1,
-    LOCATION_DBM	     = 2,
-    LOCATION_RPC	     = 3
-} LocationType;
-
-
-	
-/*
- * Locations to search for MIB module files.
- */
-typedef struct Location {
-    char	    name[MAX_PATH_LENGTH+1];
-    LocationType    type;
-    struct Location *next;
-    struct Location *prev;
-} Location;
 
 
 
@@ -323,8 +299,6 @@ typedef struct Parser {
 
 
 
-extern Location		*firstLocation;
-extern Location		*lastLocation;
 extern Descriptor	*firstDescriptor[NUM_KINDS];
 extern Descriptor	*lastDescriptor[NUM_KINDS];
 
@@ -332,12 +306,6 @@ extern MibNode		*rootMibNode;
 extern MibNode		*pendingRootMibNode;
 
 extern Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
-
-
-extern Location *findLocationByModulename(const char *module);
-
-extern Location *addLocation(const char *loc, Flags flags);
-
 
 
 extern Module *addModule(const char *name,

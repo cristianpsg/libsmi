@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.13 1998/11/04 02:14:59 strauss Exp $
+ * @(#) $Id: parser.y,v 1.14 1998/11/17 16:09:20 strauss Exp $
  */
 
 %{
@@ -475,7 +475,7 @@ import:			importIdentifiers FROM moduleName
 				if (!(flags & FLAG_RECURSIVE)) {
 				    flags &= ~(FLAG_ERRORS | FLAG_STATS);
 				}
-				loc = findLocationByModulename($3);
+				loc = findLocationByModule($3);
 				if (!loc) {
 				    printError(parser, ERR_MODULE_NOT_FOUND,
 					       $3);
@@ -2402,7 +2402,7 @@ subidentifier:
 			    if (parent != rootMibNode) {
 				printError(parser, ERR_OIDLABEL_NOT_FIRST, s);
 			    } else {
-
+				/* TODO SMIPROC_NODE() */
 				node = findMibNodeByModulenameAndName($1, $3);
 				if (node) {
 				    $$ = node;
