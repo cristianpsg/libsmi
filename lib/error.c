@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.79 2001/10/12 07:00:36 strauss Exp $
+ * @(#) $Id: error.c,v 1.80 2001/11/23 15:44:21 strauss Exp $
  */
 
 #include <config.h>
@@ -339,15 +339,19 @@ static Error errors[] = {
     { 1, ERR_INDEX_BASETYPE, "index-illegal-basetype", 
       "illegal base type `%s' in index element `%s' of row %s" },
     { 5, ERR_INDEX_TOO_LARGE, "index-exceeds-too-large", 
-      "index of row `%s' can exceed OID size limit" },
+      "index of row `%s' can exceed OID size limit by %d subidentifier(s)" },
     { 2, ERR_INDEX_NO_RANGE, "index-element-no-range",
       "index element `%s' of row `%s' must have a range restriction" },
     { 2, ERR_INDEX_NO_RANGE_MOD, "index-element-no-range",
       "index element `%s::%s' of row `%s' must have a range restriction" },
-    { 1, ERR_INDEX_NO_SIZE, "index-element-no-size",
+    { 1, ERR_INDEX_STRING_NO_SIZE, "index-element-no-size",
       "index element `%s' of row `%s' must have a size restriction" },
-    { 1, ERR_INDEX_NO_SIZE_MOD, "index-element-no-size",
+    { 1, ERR_INDEX_STRING_NO_SIZE_MOD, "index-element-no-size",
       "index element `%s::%s' of row `%s' must have a size restriction" },
+    { 6, ERR_INDEX_OID_NO_SIZE, "index-element-no-size",
+      "index element `%s' of row `%s' should but cannot have a size restriction" },
+    { 6, ERR_INDEX_OID_NO_SIZE_MOD, "index-element-no-size",
+      "index element `%s::%s' of row `%s' should but cannot have a size restriction" },
     { 1, ERR_INDEX_RANGE_NEGATIVE, "index-element-range-negative",
       "range restriction of index element `%s' of row `%s' must be non-negative" },
     { 1, ERR_INDEX_ENUM_NEGATIVE, "index-element-enum-negative",
@@ -430,6 +434,8 @@ static Error errors[] = {
       "zero-length format string" },
     { 6, ERR_EMPTY_UNITS, "empty-units",
       "zero-length units string" },
+    { 6, ERR_INDEX_DEFVAL, "index-element-has-default",
+      "index element `%s' of row `%s' has a default value" },
     { 0, 0, NULL, NULL }
 };
 
