@@ -178,7 +178,7 @@ libsmiTest008Group OBJECT-GROUP
     STATUS      current
     DESCRIPTION
         "All object types."
-    ::= { libsmiTest008Mib 2 }
+    ::= { libsmiTest008Mib 3 }
 
 libsmiTest008Compliance MODULE-COMPLIANCE
     STATUS      current
@@ -186,6 +186,6 @@ libsmiTest008Compliance MODULE-COMPLIANCE
         "All object types."
     MODULE      -- this module
         MANDATORY-GROUPS { libsmiTest008Group }
-    ::= { libsmiTest008Mib 3 }
+    ::= { libsmiTest008Mib 4 }
 
 END
