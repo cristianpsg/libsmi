@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.198 2003/11/18 12:56:04 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.199 2003/12/09 14:53:04 strauss Exp $
  */
 
 %{
@@ -139,6 +139,53 @@ checkNameLen(Parser *parser, char *name, int error_32, int error_64)
 
  
 static void
+checkModuleName(Parser *parserPtr, Module *modulePtr)
+{
+     static char *mib_ignore[] = {
+	 "SNMPv2-SMI", "SNMPv2-TC", "SNMPv2-CONF", NULL
+     };
+     
+     static char *pib_ignore[] = {
+	 "COPS-PR-SPPI", "COPS-PR-SPPI-TC",
+	 "SNMPv2-SMI", "SNMPv2-TC", "SNMPv2-CONF", NULL
+     };
+
+     const char *name = thisModulePtr->export.name;
+     const int len = strlen(name);
+     int i;
+
+     switch (modulePtr->export.language) {
+     case SMI_LANGUAGE_SMIV1:
+     case SMI_LANGUAGE_SMIV2:
+     case SMI_LANGUAGE_SMING:
+	 for (i = 0; mib_ignore[i]; i++) {
+	     if (strcmp(mib_ignore[i], name) == 0) {
+		 return;
+	     }
+	 }
+	 if (len > 3 && (strcmp(name + len - 4, "-MIB") != 0)) {
+	     smiPrintError(parserPtr, ERR_MIB_MODULENAME_SUFFIX, name);
+	     return;
+	 }
+	 break;
+     case SMI_LANGUAGE_SPPI:
+	 for (i = 0; pib_ignore[i]; i++) {
+	     if (strcmp(pib_ignore[i], name) == 0) {
+		 return;
+	     }
+	 }
+	 if (len > 3 && (strcmp(name + len - 4, "-PIB") != 0)) {
+	     smiPrintError(parserPtr, ERR_PIB_MODULENAME_SUFFIX, name);
+	 }
+	 break;
+     case SMI_LANGUAGE_UNKNOWN:
+	 break;
+     }
+}
+
+
+
+static void
 checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
 {
     if ((modulePtr->export.language == SMI_LANGUAGE_SMIV2)
@@ -149,31 +196,6 @@ checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
         && strcmp(modulePtr->export.name, "COPS-PR-SPPI")) {
 	smiPrintError(parserPtr, ERR_NO_MODULE_IDENTITY);
     }
-}
-
-
-
-static void
-checkModuleName(Parser *parserPtr, const char *name)
-{
-     static char *ignore[] = {
-	  "SNMPv2-SMI", "SNMPv2-TC", "SNMPv2-CONF", NULL
-     };
-
-     int i, len;
-
-     for (i = 0; ignore[i]; i++) {
-	  if (strcmp(ignore[i], name) == 0) {
-	       return;
-	  }
-     }
-
-     len = strlen(name);
-     if (len > 3 && (strcmp(name + len - 4, "-MIB") == 0)) {
-	  return;
-     }
-     
-     smiPrintError(parserPtr, ERR_MODULENAME_SUFFIX, name);
 }
 
 
@@ -1592,8 +1614,6 @@ module:			moduleName
 				    thisModulePtr->export.language =
 					SMI_LANGUAGE_SMIV2;
 				}
-				checkModuleName(thisParserPtr,
-						thisModulePtr->export.name);
 			    } else {
 			        smiPrintError(thisParserPtr,
 					      ERR_MODULE_ALREADY_LOADED,
@@ -1615,6 +1635,7 @@ module:			moduleName
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV1;
+			    checkModuleName(thisParserPtr, thisModulePtr);
 			    checkModuleIdentity(thisParserPtr, thisModulePtr);
 			    checkObjects(thisParserPtr, thisModulePtr);
 			    checkTypes(thisParserPtr, thisModulePtr);
@@ -5877,7 +5898,12 @@ Notification:		NotificationName
 
 Text:			QUOTED_STRING
 			{
+			    int len;
 			    $$ = smiStrdup($1);
+			    len = strlen($$);
+			    while (len > 0 && $$[len-1] == '\n') {
+				$$[--len] = 0;
+			    }
 			}
 	;
 
