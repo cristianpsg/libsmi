@@ -1,3 +1,11 @@
+2003-03-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* pibs/ietf/DIFFSERV-PIB: added (RFC 3317).
+
+	* pibs/ietf/FRAMEWORK-PIB,FRAMEWORK-TC-PIB: added (RFC 3318).
+
+	* mibs/ietf/APS-MIB: added (RFC 3498).
+
 2003-01-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/ADSL-LINE-EXT-MIB: added (RFC 3440).
