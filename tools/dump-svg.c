@@ -2862,7 +2862,8 @@ static float fa(float d, float k)
  * Kraefte in x- bzw. y-Richtung verschieden gewichten: aspect-ratio?
  * Zusammenhangskomponenten einzeln betrachten
  */
-static void layoutGraph(int nodecount, int overlap, int limit_frame)
+static void layoutCluster(int nodecount, int cluster,
+			int overlap, int limit_frame)
 {
     int i;
     float area, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
@@ -2878,12 +2879,12 @@ static void layoutGraph(int nodecount, int overlap, int limit_frame)
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
-	    if (!vNode->use)
+	    if (!vNode->use || vNode->cluster!=cluster)
 		continue;
 	    vNode->dia.xDisp = 0;
 	    vNode->dia.yDisp = 0;
 	    for (uNode = graph->nodes; uNode; uNode = uNode->nextPtr) {
-		if (!uNode->use || vNode==uNode)
+		if (!uNode->use || uNode->cluster!=cluster || vNode==uNode)
 		    continue;
 		xDelta = vNode->dia.x - uNode->dia.x;
 		yDelta = vNode->dia.y - uNode->dia.y;
@@ -2916,7 +2917,7 @@ static void layoutGraph(int nodecount, int overlap, int limit_frame)
 	//limit the maximum displacement to the temperature t
 	//and prevent from being displaced outside the frame
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
-	    if (!vNode->use)
+	    if (!vNode->use || vNode->cluster!=cluster)
 		continue;
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
 				    + vNode->dia.yDisp*vNode->dia.yDisp));
@@ -2960,7 +2961,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
-    int       group, nodecount = 0, classNr = 0, currentCluster = 1;
+    int       i, group, nodecount = 0, classNr = 0, currentCluster = 1;
     float     xMin = 0, yMin = 0, xMax = 0, yMax = 0;
 
     //find edges which are supposed to be drawn
@@ -3000,9 +3001,11 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	}
     }
 
-    layoutGraph(nodecount, 0, 0);
-    layoutGraph(nodecount, 1, 0);
-    //layoutGraph(nodecount, 1, 1);
+    for (i = 1; i < currentCluster; i++) {
+	layoutCluster(nodecount, i, 0, 0);
+	layoutCluster(nodecount, i, 1, 0);
+	//layoutCluster(nodecount, i, 1, 1);
+    }
 
     //FIXME move this into a function?
     fprintf(stderr, "group\tdegree\tcluster\tposition\n");
