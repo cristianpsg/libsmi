@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.189 2003/04/30 10:59:16 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.190 2003/04/30 14:29:31 strauss Exp $
  */
 
 %{
@@ -311,13 +311,15 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		}
 		break;
 	    case SMI_NODEKIND_TABLE:
-		if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		if ((parentPtr->export.nodekind != SMI_NODEKIND_UNKNOWN) &&
+		    (parentPtr->export.nodekind != SMI_NODEKIND_NODE)) {
 		    smiPrintErrorAtLine(parserPtr, ERR_TABLE_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
 		}
 		break;
 	    case SMI_NODEKIND_SCALAR:
-		if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		if ((parentPtr->export.nodekind != SMI_NODEKIND_UNKNOWN) &&
+		    (parentPtr->export.nodekind != SMI_NODEKIND_NODE)) {
 		    smiPrintErrorAtLine(parserPtr, ERR_SCALAR_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
 		}
@@ -343,26 +345,30 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    case SMI_NODEKIND_NODE:
 		/* Node defined by OBJECT IDENTIFIER assignments can have
 		   arbitrary parent node. */
-		if ((parentPtr->export.nodekind != SMI_NODEKIND_NODE) &&
+		if ((parentPtr->export.nodekind != SMI_NODEKIND_UNKNOWN) &&
+		    (parentPtr->export.nodekind != SMI_NODEKIND_NODE) &&
 		    (objectPtr->export.decl != SMI_DECL_VALUEASSIGNMENT)) {
 		    smiPrintErrorAtLine(parserPtr, ERR_NODE_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
 		}
 		break;
 	    case SMI_NODEKIND_GROUP:
-		if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		if ((parentPtr->export.nodekind != SMI_NODEKIND_UNKNOWN) &&
+		    (parentPtr->export.nodekind != SMI_NODEKIND_NODE)) {
 		    smiPrintErrorAtLine(parserPtr, ERR_GROUP_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
 		}
 		break;
 	    case SMI_NODEKIND_COMPLIANCE:
-		if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		if ((parentPtr->export.nodekind != SMI_NODEKIND_UNKNOWN) &&
+		    (parentPtr->export.nodekind != SMI_NODEKIND_NODE)) {
 		    smiPrintErrorAtLine(parserPtr, ERR_COMPLIANCE_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
 		}
 		break;
 	    case SMI_NODEKIND_CAPABILITIES:
-		if (parentPtr->export.nodekind != SMI_NODEKIND_NODE) {
+		if ((parentPtr->export.nodekind != SMI_NODEKIND_UNKNOWN) &&
+		    (parentPtr->export.nodekind != SMI_NODEKIND_NODE)) {
 		    smiPrintErrorAtLine(parserPtr, ERR_CAPABILITIES_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
 		}
