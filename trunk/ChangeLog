@@ -1,3 +1,13 @@
+2001-11-23  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.3.tar.gz: released version 0.3.
+
+	* ANNOUNCE: Finalized things for release 0.3.
+
+	* tools/smidiff.c: Torsten Klie <tklie@ibr.cs.tu-bs.de> and
+	Juergen Schoenwaelder <schoenw@ibr.cs.tu-bs.de> have spent a
+	lot of work on this new tool during the past three months.
+
 2001-10-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Chris Avis <chris@snmptech.com> supplied a

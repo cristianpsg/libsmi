@@ -8,16 +8,16 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.100 2001/09/21 11:15:59 strauss Exp $
+# @(#) $Id: configure.in,v 1.101 2001/09/26 22:03:21 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
-LIBSMI_MINOR=2
-LIBSMI_PATCHLEVEL=17
-LIBTOOL_VERSION=2	# increment, when MAJOR and/or MINOR changes
-LIBTOOL_REVISION=17     # increment, when PATCHLEVEL changes
+LIBSMI_MINOR=3
+LIBSMI_PATCHLEVEL=0
+LIBTOOL_VERSION=2
+LIBTOOL_REVISION=18
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
@@ -291,4 +291,3 @@ test/smidiff.test
 win/config.h],
 chmod a+x test/*.test
 )
-
