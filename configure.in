@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.99 2001/09/05 11:24:36 schoenw Exp $
+# @(#) $Id: configure.in,v 1.100 2001/09/21 11:15:59 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -287,6 +287,7 @@ test/smidump-xml.test
 test/smidump-cm.test
 test/smidump-python.test
 test/smilint-smiv2.test
+test/smidiff.test
 win/config.h],
 chmod a+x test/*.test
 )
