@@ -21,12 +21,6 @@
 /* The default search path to lookup SMI module files. */
 #define DEFAULT_SMIPATH "/usr/local/share/mibs/ietf"
 
-/* Define if getopt.h (argv[] option parser) is present. */
-#undef HAVE_GETOPT_H
-
-/* Define if pwd.h (/etc/passwd database) is present. */
-#undef HAVE_PWD_H
-
 /* Define if the string-to-long-long function is present in libc. */
 #undef HAVE_STRTOLL
 
@@ -41,6 +35,15 @@
 
 /* Define if the timegm() function is present in libc. */
 #undef HAVE_TIMEGM
+
+/* Define if you have the <getopt.h> header file.  */
+#undef HAVE_GETOPT_H
+
+/* Define if you have the <pwd.h> header file.  */
+#undef HAVE_PWD_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
 
 /* Name of package */
 #undef PACKAGE

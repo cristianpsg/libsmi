@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.100 2000/03/21 11:26:32 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.101 2000/04/10 15:55:18 strauss Exp $
  */
 
 %{
@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include <limits.h>
     
 #include "smi.h"
@@ -1254,9 +1255,13 @@ typeDeclaration:	typeName
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED64;
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED64;
-					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0ULL;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED64;
+#ifdef _WIN32
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;	/* XXX */
+#else
 					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 18446744073709551615ULL;
+#endif
 				    }
 				    setTypeParent($4, typeUnsigned64Ptr);
 				}

@@ -8,18 +8,19 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.85 2000/04/10 14:20:14 strauss Exp $
+ * @(#) $Id: smi.c,v 1.86 2000/04/10 15:55:18 strauss Exp $
  */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
-
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif

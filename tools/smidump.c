@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.34 2000/04/06 13:37:27 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.35 2000/04/10 14:20:27 strauss Exp $
  */
 
 #include <config.h>
@@ -17,9 +17,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#endif
+#ifdef HAVE_WIN_H
+#include "win.h"
 #endif
 
 #include "smi.h"
@@ -67,8 +72,6 @@ static Driver driverTable[] = {
       "UCD SNMP mib module C header" },
     { "ucd-c",	   dumpUcdC,	SMI_FLAG_NODESCR,
       "UCD SNMP mib module C code" },
-    { "dia",       dumpDia,	SMI_FLAG_NODESCR,
-      "UML style graphics in the DIA XML file format" },
     { "jax",       dumpJax,	SMI_FLAG_NODESCR,
       "Java AgentX sub-agent classes in separate files" },
     { "xml",       dumpXml,	0,
@@ -78,12 +81,6 @@ static Driver driverTable[] = {
       "tree graphics in xfig fig format" },
     { "fig-uml",   dumpFigUml,	SMI_FLAG_NODESCR,
       "UML graphics in xfig fig format" },
-#endif
-#if 0
-    { "java",      dumpJava,	SMI_FLAG_NODESCR,
-      "java manager stub code (JMGMT)" },
-    { "jdmk",      dumpJdmk,	SMI_FLAG_NODESCR,
-      "java manager stub code (JDMK)" },
 #endif
     { NULL, NULL, 0, NULL }
 };
@@ -199,10 +196,10 @@ main(argc, argv)
 	    break;
 	case 'V':
 	    version();
-	    exit(0);
+	    return 0;
 	case 'h':
 	    usage();
-	    exit(0);
+	    return 0;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
 	    break;
@@ -256,5 +253,5 @@ main(argc, argv)
     
     smiExit();
     
-    exit(errors);
+    return errors;
 } /*  */

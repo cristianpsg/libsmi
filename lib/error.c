@@ -8,15 +8,17 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.38 2000/02/12 16:06:24 strauss Exp $
+ * @(#) $Id: error.c,v 1.39 2000/02/22 17:11:11 strauss Exp $
  */
 
 #include <config.h>
 
 #include <string.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdarg.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "error.h"
 

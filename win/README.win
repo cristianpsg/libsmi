@@ -1,0 +1,43 @@
+
+	README.win:					Apr 2000
+	(schoenfr)
+
+
+This directory contains some help to compile the libsmi and associated
+tools on a Windows platform without the cygnus environment. The
+makefile works fine with VC++ v4.2, but later versions should work
+very well too.
+
+
+Compiling and Installation:
+---------------------------
+ 
+To compile simply run
+	nmake
+and to install a
+	nmake install
+should do what you expect.
+
+
+Default path's are \smi\mibs\... for the MIB-files and \smi\bin for
+the tools (smidump.exe, ...).
+
+Globalconfig is defined as \smi\smi.conf.
+
+
+TODO's and Known Problems:
+--------------------------
+
+- The 64 bit integer types (unsigned64 and signed64) are simply
+  replaced by their 32 bit counterparts and will not work. This
+  needs a general solution (probably using int64_t and friends).
+
+- The DEFAULT_USERCONFIG is not defined.
+
+- The version define is hardwired in config.h.
+
+
+
+---
+<stu> you should be afraid to use KDE because RMS might come to your
+      house and cleave your monitor with an axe or something :)

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.19 2000/02/22 17:11:12 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.20 2000/02/24 10:35:39 strauss Exp $
  */
 
 %option noyywrap
@@ -18,11 +18,9 @@
 #include <config.h>
     
 #include <stdio.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "error.h"
 #include "util.h"
