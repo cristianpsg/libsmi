@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.25 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.26 2000/12/09 16:34:05 strauss Exp $
  */
 
 #include <config.h>
@@ -93,7 +93,7 @@ static char *getTypeName(SmiNode *smiNode)
 
 
 
-static void printIndex(SmiNode *smiNode)
+static void fprintIndex(FILE *f, SmiNode *smiNode)
 {
     char *indexname;
     int  i;
@@ -102,23 +102,23 @@ static void printIndex(SmiNode *smiNode)
     indexname = NULL;
     for (i = -1, smiElement = smiGetFirstElement(smiNode);
 	 smiElement; smiElement = smiGetNextElement(smiElement), i++) {
-	if (i > 0) printf(",");
+	if (i > 0) fprintf(f, ",");
 	if (indexname) {
-	    printf(indexname);
+	    fprintf(f, indexname);
 	}
 	indexname = smiGetElementNode(smiElement)->name;
     }
     if (indexname) {
-	printf("%s%s%s",
-	       (i > 0) ? "," : "",
-	       (smiNode->implied) ? "*" : "",
-	       indexname);
+	fprintf(f, "%s%s%s",
+		(i > 0) ? "," : "",
+		(smiNode->implied) ? "*" : "",
+		indexname);
     }
 }
 
 
 
-static void printObjects(SmiNode *smiNode)
+static void fprintObjects(FILE *f, SmiNode *smiNode)
 {
     char *objectname;
     int  i;
@@ -128,14 +128,14 @@ static void printObjects(SmiNode *smiNode)
     for (i = -1, smiElement = smiGetFirstElement(smiNode);
 	 smiElement;
 	 smiElement = smiGetNextElement(smiElement), i++) {
-	if (i > 0) printf(",");
+	if (i > 0) fprintf(f, ",");
 	if (objectname) {
-	    printf(objectname);
+	    fprintf(f, objectname);
 	}
 	objectname = smiGetElementNode(smiElement)->name;
     }
     if (objectname) {
-	printf("%s%s", (i > 0) ? "," : "", objectname);
+	fprintf(f, "%s%s", (i > 0) ? "," : "", objectname);
     }
 }
 
@@ -170,7 +170,8 @@ static int pruneSubTree(SmiNode *smiNode)
 
 
 
-static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
+static void fprintSubTree(FILE *f, SmiNode *smiNode,
+			  char *prefix, size_t typefieldlen)
 {
     SmiNode     *childNode, *indexNode;
     SmiNodekind lastNodeKind = SMI_NODEKIND_UNKNOWN;
@@ -189,13 +190,13 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 	    prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    type_name = getTypeName(smiNode);
 	    if (type_name) {
-		printf("%s-- %s %-*s %s(%u)\n",
-		       prefix,
-		       getFlags(smiNode),
-		       typefieldlen,
-		       type_name,
-		       smiNode->name,
-		       smiNode->oid[smiNode->oidlen-1]);
+		fprintf(f, "%s-- %s %-*s %s(%u)\n",
+			prefix,
+			getFlags(smiNode),
+			typefieldlen,
+			type_name,
+			smiNode->name,
+			smiNode->oid[smiNode->oidlen-1]);
 		xfree(type_name);
 	    }
 	    if (c) {
@@ -207,13 +208,13 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
-	    printf("%s--%s(%u) [", prefix,
-		   smiNode->name,
-		   smiNode->oid[smiNode->oidlen-1]);
+	    fprintf(f, "%s--%s(%u) [", prefix,
+		    smiNode->name,
+		    smiNode->oid[smiNode->oidlen-1]);
 	    switch (smiNode->indexkind) {
 	    case SMI_INDEX_INDEX:
 	    case SMI_INDEX_REORDER:
-		printIndex(smiNode);
+		fprintIndex(f, smiNode);
 		break;
 	    case SMI_INDEX_EXPAND:  /* TODO: we have to do more work here! */
 		break;
@@ -221,13 +222,13 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 	    case SMI_INDEX_SPARSE:
 		indexNode = smiGetRelatedNode(smiNode);
 		if (indexNode) {
-		    printIndex(indexNode);
+		    fprintIndex(f, indexNode);
 		}
 		break;
 	    case SMI_INDEX_UNKNOWN:
 		break;	    
 	    }
-	    printf("]\n");
+	    fprintf(f, "]\n");
 	    if (c) {
 		prefix[prefixlen-1] = c;
 	    }
@@ -237,11 +238,11 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
-	    printf("%s--%s(%u) [", prefix,
-		   smiNode->name,
-		   smiNode->oid[smiNode->oidlen-1]);
-	    printObjects(smiNode);
-	    printf("]\n");
+	    fprintf(f, "%s--%s(%u) [", prefix,
+		    smiNode->name,
+		    smiNode->oid[smiNode->oidlen-1]);
+	    fprintObjects(f, smiNode);
+	    fprintf(f, "]\n");
 	    if (c) {
 		prefix[prefixlen-1] = c;
 	    }
@@ -252,12 +253,12 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
 	    if (smiNode->oid)
-		printf("%s--%s(%u)\n", prefix,
-		       smiNode->name ? smiNode->name : " ",
-		       smiNode->oid[smiNode->oidlen-1]);
+		fprintf(f, "%s--%s(%u)\n", prefix,
+			smiNode->name ? smiNode->name : " ",
+			smiNode->oid[smiNode->oidlen-1]);
 	    else
-		printf("%s--%s(??)\n", prefix,
-		       smiNode->name ? smiNode->name : " ");
+		fprintf(f, "%s--%s(??)\n", prefix,
+			smiNode->name ? smiNode->name : " ");
 	    if (c) {
 		prefix[prefixlen-1] = c;
 	    }
@@ -288,7 +289,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 	    if ((childNode->nodekind != SMI_NODEKIND_COLUMN
 		&& childNode->nodekind != SMI_NODEKIND_SCALAR)
 		|| (lastNodeKind != childNode->nodekind)) {
-		printf("%s  |\n", prefix);
+		fprintf(f, "%s  |\n", prefix);
 	    }
 	    newprefix = xmalloc(strlen(prefix)+10);
 	    strcpy(newprefix, prefix);
@@ -297,7 +298,7 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 	    } else {
 		strcat(newprefix, "  |");
 	    }
-	    dumpSubTree(childNode, newprefix, newtypefieldlen);
+	    fprintSubTree(f, childNode, newprefix, newtypefieldlen);
 	    xfree(newprefix);
 	    lastNodeKind = childNode->nodekind;
 	}
@@ -308,8 +309,18 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 
 static void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 {
-    SmiNode   *smiNode;
-    int	      i;
+    SmiNode *smiNode;
+    int     i;
+    FILE    *f = stdout;
+    
+    if (output) {
+	f = fopen(output, "w");
+	if (!f) {
+	    fprintf(stderr, "smidump: cannot open %s for writing: ", output);
+	    perror(NULL);
+	    exit(1);
+	}
+    }
 
     if (flags & SMIDUMP_FLAG_UNITE) {
 	
@@ -317,12 +328,12 @@ static void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 	pmodv = modv;
 	
 	if (! (flags & SMIDUMP_FLAG_SILENT)) {
-	    printf("# united registration tree (generated by smidump "
-		   SMI_VERSION_STRING ")\n\n");
+	    fprintf(f, "# united registration tree (generated by smidump "
+		    SMI_VERSION_STRING ")\n\n");
 	}
 	smiNode = smiGetNode(NULL, "iso");
 	if (smiNode) {
-	    dumpSubTree(smiNode, "", 0);
+	    fprintSubTree(f, smiNode, "", 0);
 	}
 	
     } else {
@@ -333,14 +344,17 @@ static void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 	    pmodv = &(modv[i]);
 	
 	    if (! (flags & SMIDUMP_FLAG_SILENT)) {
-		printf("# %s registration tree (generated by smidump "
-		       SMI_VERSION_STRING ")\n\n", modv[i]->name);
+		fprintf(f, "# %s registration tree (generated by smidump "
+			SMI_VERSION_STRING ")\n\n", modv[i]->name);
 	    }
 	    smiNode = smiGetNode(NULL, "iso");
 	    if (smiNode) {
-		dumpSubTree(smiNode, "", 0);
+		fprintSubTree(f, smiNode, "", 0);
 	    }
 	}
+    }
+    if (output) {
+	fclose(f);
     }
 }
 
@@ -353,7 +367,7 @@ void initTree()
 	"tree",
 	dumpTree,
 	SMI_FLAG_NODESCR,
-	0, /** output ? **/
+	0,
 	"structure of the OID tree",
 	NULL,
 	NULL

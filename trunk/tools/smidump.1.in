@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.16 2000/11/08 18:11:09 strauss Exp $
+.\" $Id: smidump.1.in,v 1.17 2000/11/09 22:29:54 strauss Exp $
 .\"
 .TH smidump 1  "October 18, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -9,7 +9,9 @@ smidump \- dump SMI modules in various formats
 [
 .B "-Vhsu"
 ] [
-.BI "-c " configfile
+.BI "-c " file
+] [
+.BI "-o " name
 ] [
 .BI "-p " module
 ] [
@@ -28,23 +30,23 @@ modules from SMIv2 to SMIng and from SMIng to SMIv2, or to develop
 template based agent code.
 .SH OPTIONS
 .TP
-.B "-V"
+\fB-V, --version\fP
 Show the smidump version and exit.
 .TP
-.B "-h"
+\fB-h, --help\fP
 Show a help text and exit. The help text contains a list of all
 supported output formats.
 .TP
-.BI "-c " configfile
-Read \fIconfigfile\fP instead of any other (global and user)
+\fB-c \fIfile\fB, --config=\fIfile\fP
+Read \fIfile\fP instead of any other (global and user)
 configuration file.
 .TP
-.BI "-f " format
+\fB-f \fIformat\fB, --format=\fIformat\fP
 Use \fIformat\fP when dumping a module. Supported output formats are described 
 below. The default output format is SMIng. The \fIformat\fP argument is
 case insensitive.
 .TP
-.BI "-l " level
+\fB-l \fIlevel\fB, --level=\fIlevel\fP
 Report errors and warnings up to the given \fIlevel\fP.
 A higher level shows more warnings. The actual levels are:
 .sp
@@ -66,15 +68,20 @@ level 6 does. Note that errors up to level 3 are errors violating the
 specification and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP
-.BI "-p " module
+\fB-o \fIname\fB, --output=\fIname\fB
+Write the output in one or multiple files instead of stdout. The file
+name(s) are derived from the \fIname\fP argument.  Not all format
+support this option.
+.TP
+\fB-p \fImodule\fB, --preload=\fImodule\fP
 Preload the module \fImodule\fP before reading the main module(s). This may
 be helpful if an incomplete main module misses to import some definitions.
 .TP
-.B "-s"
+\fB-s, --silent\fP
 Suppress comments from dumped modules. What kind of information
 gets suppressed depends on the output format.
 .TP
-.B "-u"
+\fB-u, --unified\fP
 Dump a unified output in case of multiple \fImodule(s)\fP instead of
 multiple concatenated output sections. This is not supported for all
 output formats.
@@ -122,11 +129,8 @@ rules.
 netsnmp
 C source code files for usage within the NET SNMP package (experimental).
 .TP
-cm-dia
+cm
 Reverse engineered conceptual model in DIA XML file format (experimental).
-.TP
-cm-xplain
-Details about the reverse engineering process (experimental).
 .TP
 jax
 Java AgentX sub-agent classes in separate files (experimental).

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.50 2000/11/29 16:35:27 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.51 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -174,8 +174,10 @@ static void usage()
     fprintf(stderr, "Supported formats are:\n");
     formats();
 
-    fprintf(stderr, "\nFormat driver specific options are:\n");
     for (driver = firstDriver; driver; driver = driver->next) {
+	if (! driver->opt) continue;
+	fprintf(stderr, "\nSpecific option for the \"%s\" format:\n",
+		driver->name);
 	for (i = 0; driver->opt && driver->opt[i].type != OPT_END; i++) {
 	    fprintf(stderr, "  --%s-%-*s  %s\n",
 		    driver->name, 24 - strlen(driver->name),

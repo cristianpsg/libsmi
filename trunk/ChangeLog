@@ -1,3 +1,9 @@
+2000-12-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-*.c: Juergen fixed various dump drivers. `cm' is
+	now a single format with an `explain' option. Man pages are
+	updated to include long options.
+
 2000-12-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-*.c: Fixes from Juergen.
