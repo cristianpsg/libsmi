@@ -2,6 +2,7 @@
 ../../mibs/ietf/RMON-MIB:88: info: previous definition of `rmon'
 ../dumps/smiv2/RMON2-MIB:25: warning: redefinition of identifier `RFC1271-MIB::rmon'
 ../../mibs/ietf/RFC1271-MIB:14: info: previous definition of `rmon'
+../dumps/smiv2/RMON2-MIB:46: revision for last update is missing
 ../dumps/smiv2/RMON2-MIB:2133: warning: object identifier name `hlMatrixControlNlMaxDesiredEntries' longer than 32 characters
 ../dumps/smiv2/RMON2-MIB:2229: warning: object identifier name `hlMatrixControlAlMaxDesiredEntries' longer than 32 characters
 ../dumps/smiv2/RMON2-MIB:2663: warning: object identifier name `nlMatrixTopNControlGeneratedReports' longer than 32 characters
