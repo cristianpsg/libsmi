@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.126 2000/11/08 23:12:04 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.127 2000/11/09 10:11:39 strauss Exp $
  */
 
 %{
@@ -1481,11 +1481,7 @@ typeDeclaration:	typeName
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED64;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED64;
-#ifdef _WIN32
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 4294967295U;	/* XXX */
-#else
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = 18446744073709551615ULL;
-#endif
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = UINT64_MAX;
 				    }
 				    setTypeParent($4, typeUnsigned64Ptr);
 				}

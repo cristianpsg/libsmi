@@ -1,5 +1,5 @@
 /*
- * dump-ucdsnmp.c --
+ * dump-netsnmp.c --
  *
  *      Operations to generate NET SNMP mib module implementation code.
  *
@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.20 2000/11/08 18:11:09 strauss Exp $
+ * @(#) $Id$
  */
 
 /*

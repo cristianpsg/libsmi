@@ -105,9 +105,6 @@ o make libsmi aware of annotations (when SMIng supports annotations).
 o dump-identifiers: print types, hide toplevel node `0'?, smidump.1.in,
   sort by oid, -u option
 
-o negative enumeration type values must be illegal in the SMIng parser.
-  the sming.abnf grammer has already been changed.
-
 o sming: in rule `refinedBaseType -> EnumerationKeyword optsep namedNumberSpec'
   the `optsep' has to be inserted.
 

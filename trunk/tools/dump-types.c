@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.22 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.23 2000/11/09 22:29:54 strauss Exp $
  */
 
 /*
@@ -191,10 +191,10 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	sprintf(s, "%ld", valuePtr->value.integer32);
 	break;
     case SMI_BASETYPE_UNSIGNED64:
-	sprintf(s, "%llu", valuePtr->value.unsigned64);
+	sprintf(s, UINT64_FORMAT, valuePtr->value.unsigned64);
 	break;
     case SMI_BASETYPE_INTEGER64:
-	sprintf(s, "%lld", valuePtr->value.integer64);
+	sprintf(s, INT64_FORMAT, valuePtr->value.integer64);
 	break;
     case SMI_BASETYPE_FLOAT32:
     case SMI_BASETYPE_FLOAT64:

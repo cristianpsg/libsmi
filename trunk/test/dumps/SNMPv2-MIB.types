@@ -5,16 +5,16 @@
   |  |
   |  +-- t-i DisplayString [0..255]	"255a"
   |     |
-  |     +-- i-l (sysDescr)    [0..255]
-  |     +-- i-l (sysContact)  [0..255]
-  |     +-- i-l (sysName)     [0..255]
-  |     +-- i-l (sysLocation) [0..255]
+  |     +-- i-i (sysDescr)    [0..255]
+  |     +-- i-i (sysContact)  [0..255]
+  |     +-- i-i (sysName)     [0..255]
+  |     +-- i-i (sysLocation) [0..255]
   |
   +-- --b Integer32  
   |  |
-  |  +-- i-l (sysServices) [0..127]
-  |  +-- i-l (sysORIndex)  [1..2147483647]
+  |  +-- i-i (sysServices) [0..127]
+  |  +-- i-i (sysORIndex)  [1..2147483647]
   |
   +-- --b Enumeration
      |
-     +-- i-l (snmpEnableAuthenTraps) {enabled(1), disabled(2)}
+     +-- i-i (snmpEnableAuthenTraps) {enabled(1), disabled(2)}

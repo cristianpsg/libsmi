@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: acconfig.h,v 1.2 2000/02/16 21:14:49 strauss Exp $
+ * @(#) $Id: acconfig.h,v 1.3 2000/06/08 09:36:08 strauss Exp $
  */
 
 /* Define if the SMIv1/v2 parser shall be active. */
@@ -31,6 +31,18 @@
 
 /* The default search path to lookup SMI module files. */
 #define DEFAULT_SMIPATH "/usr/local/share/mibs/ietf"
+
+/* The default path separator character. */
+#define PATH_SEPARATOR ':'
+
+/* The 64 bit integer types, their formats, and their min/max values. */
+#define UINT64_TYPE uint64_t
+#define INT64_TYPE int64_t
+#define UINT64_FORMAT "%llu"
+#define INT64_FORMAT "%lld"
+#define UINT64_MAX 18446744073709551615ULL
+#define INT64_MIN -9223372036854775808LL
+#define INT64_MAX 9223372036854775807LL
 
 /* Define if dmalloc.h is present and shall be used. */
 #undef HAVE_DMALLOC_H
