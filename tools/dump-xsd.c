@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.60 2002/12/18 13:13:11 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.61 2003/01/10 14:20:10 strauss Exp $
  */
 
 #include <config.h>
@@ -350,6 +350,7 @@ static struct DH *parseDH( const char *hint )
 	case 'b':
 	case 'd':
 	case 'o':
+	case 't':
 	case 'x':
 	    iterDH->type = hint[ pos++ ];
 	    if( isdigit( hint[ pos ] ) || hint[ pos ] == '*' ) {
@@ -398,6 +399,7 @@ static char* getStrDHType( char *hint,
 	    switch( iterDH->type ) {
 
 	    case 'a':
+	    case 't':
 		/* ascii character */
 		baseRegexp = "(#x00-#x7f)";
 		break;
@@ -421,7 +423,11 @@ static char* getStrDHType( char *hint,
 		/* hexadecimal number */
 		baseRegexp = "([0-9A-Fa-f]{2})";
 		break;
-	    }
+
+	    default:
+		fputs( "smidump: Warning: unknown type of display-hint",
+		       stderr );
+	    }	   
 	    
 
 	    if( iterDH->number < lengths[ i ] ) {
