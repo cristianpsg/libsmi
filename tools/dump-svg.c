@@ -1956,8 +1956,15 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 static void printModuleCompliance(int modc, SmiModule **modv,
 				  float *x, float *y, int *miNr, int mCompl[])
 {
-    int           i;
-    SmiNode       *smiNode;
+    int         i, j;
+    SmiNode     *smiNode;
+    int         statusOrder[5] = {
+		    SMI_STATUS_CURRENT,
+		    SMI_STATUS_MANDATORY,
+		    SMI_STATUS_OPTIONAL,
+		    SMI_STATUS_DEPRECATED,
+		    SMI_STATUS_OBSOLETE
+		};
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1995,15 +2002,21 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 
 	    //name, status and description of the compliance
 	    *x += 2*TABLEELEMHEIGHT;
-	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_COMPLIANCE);
-		smiNode;
-		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
-		if ((smiNode->status == SMI_STATUS_DEPRECATED
-		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
-		    || (smiNode->status == SMI_STATUS_OBSOLETE
-		    && !SHOW_DEPR_OBSOLETE))
-		    continue;
-		printComplianceNode(smiNode, modc, modv, x, y, miNr, i);
+	    for (j=0; j<5; j++) {
+		for (smiNode = smiGetFirstNode(modv[i],
+						    SMI_NODEKIND_COMPLIANCE);
+		    smiNode;
+		    smiNode = smiGetNextNode(smiNode,
+						    SMI_NODEKIND_COMPLIANCE)) {
+		    if (smiNode->status != statusOrder[j])
+			continue;
+		    if ((smiNode->status == SMI_STATUS_DEPRECATED
+			&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+			|| (smiNode->status == SMI_STATUS_OBSOLETE
+			&& !SHOW_DEPR_OBSOLETE))
+			continue;
+		    printComplianceNode(smiNode, modc, modv, x, y, miNr, i);
+		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	}
