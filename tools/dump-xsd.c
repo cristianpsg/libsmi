@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.58 2002/12/11 23:25:32 strauss Exp $
+ * @(#) $Id: dump-xsd.c,v 1.59 2002/12/13 14:09:46 tklie Exp $
  */
 
 #include <config.h>
@@ -1371,7 +1371,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
     }
     
     /* check for other (implicit) types */
-    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+    else if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
 	fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
 		       "use=\"required\">\n",
 		       smiNode->name );
@@ -1443,9 +1443,9 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name )
     fprintAnnotationElem( f, smiNode );
 
     numChildren = hasChildren( smiNode, SMI_NODEKIND_ANY );
-    if( numChildren ) {
-	fprintSegment( f, 1, "<xsd:sequence>\n");
-    }
+
+    fprintSegment( f, 1, "<xsd:sequence>\n");
+
     /* print child elements */
     for( iterNode = smiGetFirstChildNode( smiNode );
 	 iterNode;
@@ -1454,9 +1454,9 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name )
 	fprintElement( f, iterNode );
 	
     }
-    if( numChildren ) {
-	fprintSegment( f, -1, "</xsd:sequence>\n");
-    }
+
+
+    fprintSegment( f, -1, "</xsd:sequence>\n");
     fprintIndex( f, smiNode, NULL );
     
     fprintSegment( f, -1, "</xsd:complexType>\n");
