@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.50 2000/07/06 14:40:42 strauss Exp $
+ * @(#) $Id: error.c,v 1.51 2000/10/19 16:14:40 strauss Exp $
  */
 
 #include <config.h>
@@ -307,9 +307,9 @@ static Error errors[] = {
     { 4, ERR_SMIV2_NESTED_TEXTUAL_CONVENTION, "textual-convention-nested", 
       "textual convention `%s' can not be derived from the textual convention `%s'" },
     { 3, ERR_TABLE_ACCESS, "access-table-illegal", 
-      "table node `%s' must by `not-accessible'" },
+      "table node `%s' must be `not-accessible'" },
     { 3, ERR_ROW_ACCESS, "access-row-illegal", 
-      "row node `%s' must by `not-accessible'" },
+      "row node `%s' must be `not-accessible'" },
     { 2, ERR_ENUM_SUBTYPE, "subtype-enumeration-illegal", 
       "named number `%s' illegal in sub-type of `%s'" },
     { 2, ERR_BITS_SUBTYPE, "subtype-bits-illegal", 

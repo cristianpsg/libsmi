@@ -1,3 +1,10 @@
+2000-20-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/check.c: Fixed index length checks for OCTET STRINGs,
+	IpAddresses and OBJECT-IDENTIFIERs. Thanks to Bill Fenner.
+
+	* lib/error.c: Fixed two minor typos. Thanks to Bill.
+
 2000-19-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-python.c: a new dump format to generate Python MIB
