@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-cm.c,v 1.3 2000/04/10 10:41:08 strauss Exp $
  */
 
 
@@ -538,7 +538,6 @@ static void graphShowNodes(Graph *graph)
 static void graphShowEdges(Graph *graph) 
 {
     GraphEdge  *tEdge;
-    SmiElement *smiElement;
     
     if (!graph->edges) {
 	printf("No edges!\n");
@@ -1197,7 +1196,7 @@ static Graph *algCheckForReOrderRel(Graph *graph, SmiNode *smiNode)
     SmiNode      *baseTable;
     SmiNode      *reorderTable;
     SmiNode      *tNode;
-    GraphNode    *tGrNode;
+    GraphNode    *tGrNode = NULL;
     SmiElement   *smiElement;
     SmiElement   *findElement;
     unsigned int c1,c2;
@@ -1476,7 +1475,6 @@ static Graph *algCheckLinksByName(Graph *graph)
 static Graph *algLinkScalarsToTables(Graph *graph)
 {
     GraphNode *tNode, *tNode2, *newNode;
-    GraphEdge *tEdge;
     int       overlap,minoverlap;
 
     /* getting the min. overlap for all nodes */
@@ -1560,7 +1558,6 @@ static Graph *algLinkScalarsToTables(Graph *graph)
 static Graph *algGroupScalars(Graph *graph)
 {
     GraphNode *tNode;
-    char      *prefix;
     int       actGroup, fGroup;
     
     actGroup = 0;
@@ -1604,8 +1601,7 @@ static Graph *algGroupScalars(Graph *graph)
  */
 static Graph *algLinkLonelyTables(Graph *graph)
 {
-    SmiElement *smiElement, *smiElement2;
-    SmiNode    *tSmiNode;
+    SmiElement *smiElement, *smiElement2 = NULL;
     GraphNode  *tNode, *tNode2;
     int        i;
 
@@ -2445,6 +2441,7 @@ static GraphNode *calcSize(GraphNode *node)
 	    node->h++;
 	}
     }
+    return node;
 }
 
 static void printXML(Graph *graph)

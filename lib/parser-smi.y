@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.99 2000/03/02 09:22:29 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.100 2000/03/21 11:26:32 strauss Exp $
  */
 
 %{
@@ -317,7 +317,6 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
     Object *objectPtr, *object2Ptr;
     List *bitsListPtr, *valueListPtr, *p, *pp, *nextPtr, *listPtr;
     Import *importPtr;
-    char *s;
     int i, nBits, bit;
     
     /*
@@ -3585,7 +3584,6 @@ subidentifier:
 			LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
-			    SmiNode *snodePtr;
 			    Import *importPtr;
 			    
 			    if (parentNodePtr != rootNodePtr) {
@@ -3674,7 +3672,6 @@ subidentifier:
 	|		moduleName '.' LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
-			    SmiNode *snodePtr;
 			    Import *importPtr;
 			    char *md;
 			    
