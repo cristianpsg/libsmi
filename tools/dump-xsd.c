@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.28 2002/06/14 14:56:30 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.29 2002/06/17 17:40:23 tklie Exp $
  */
 
 #include <config.h>
@@ -231,49 +231,92 @@ static void fprintStdRestHead( FILE *f, int indent, SmiType *smiType )
 
 
 static void
-fprintStringUnion( FILE *f, int indent,
-		   SmiInteger32 minLength, SmiInteger32 maxLength )
+fprintHexOrAsciiType( FILE *f, int indent, SmiType *parent,
+		      SmiInteger32 minLength, SmiInteger32 maxLength,
+		      char *name, int hex )
 {
-    /* let's create a union of an hexBinary and an ascii string */
-    fprintSegment( f, indent, "<xsd:union>\n", 0 );
+    char *prefix = parent ? getTypePrefix( parent->name ) : NULL;
+    char *typeFlag = hex ? "Hex" : "Ascii";
     
-    /* print hexBinary subtype */
-    fprintSegment( f, indent + INDENT, "<xsd:simpleType>\n", 0 );
-    fprintSegment( f, indent + 2 * INDENT,
-		   "<xsd:restriction base=\"xsd:hexBinary\">\n", 0 );
-    if( minLength > 0 ) {
-	fprintSegment( f, indent + 3 * INDENT, "<xsd:minLength", 0 );
+    fprintSegment( f, indent, "<xsd:simpleType", 0 );
+    if( name ) {
+	fprint( f, " name=\"%s%s\"", name, typeFlag );
+    }
+    fprint( f,">\n", 0 );
+    fprintSegment( f, indent + INDENT,
+		   "<xsd:restriction ", 0 );
+    if( prefix ) {
+	fprint( f, "base=\"%s:%s%s\">\n", prefix, parent->name, typeFlag );
+    }
+    else {
+	fprint( f, "base=\"%s%s\">\n",parent->name, typeFlag );
+    }
+    if( minLength == maxLength ) {
+	/* we have a fixed length string */
+	fprintSegment( f, indent + 2 * INDENT, "<xsd:length", 0 );
 	fprint( f, " value=\"%d\"/>\n", minLength );
     }
-    if( maxLength > -1 ) {
-	fprintSegment( f, indent + 3 * INDENT, "<xsd:maxLength", 0 );
-	fprint( f, " value=\"%d\"/>\n", maxLength );
+    else {
+	if( minLength > 0 ) {
+	    fprintSegment( f, indent + 2 * INDENT, "<xsd:minLength", 0 );
+	    fprint( f, " value=\"%d\"/>\n", minLength );
+	}
+	if( maxLength > -1 ) {
+	    fprintSegment( f, indent + 2 * INDENT, "<xsd:maxLength", 0 );
+	    fprint( f, " value=\"%d\"/>\n", maxLength );
+	}
     }
-    fprintSegment( f, indent + 2 * INDENT, "</xsd:restriction>\n", 0 );
-    fprintSegment( f, indent + INDENT, "</xsd:simpleType>\n", 0 );
-    
-    /* print asciiString subtype */
-    fprintSegment( f, indent + INDENT, "<xsd:simpleType>\n", 0 );
-    fprintSegment( f, indent + 2 * INDENT,
-		   "<xsd:restriction base=\"xsd:string\">\n", 0 );
-    if( minLength > 0 ) {
-	fprintSegment( f, indent + 3 * INDENT, "<xsd:minLength", 0 );
-	fprint( f, " value=\"%d\"/>\n", minLength );
+    fprintSegment( f, indent + INDENT, "</xsd:restriction>\n", 0 );
+    fprintSegment( f, indent, "</xsd:simpleType>\n", 0 );
+}
+
+
+static void
+fprintStringUnion( FILE *f, int indent, SmiType *smiType,
+		   SmiInteger32 minLength, SmiInteger32 maxLength,
+		   int secondTime, char *typeName )
+{
+    SmiType *parent = smiGetParentType( smiType );
+
+    if( !secondTime ) {
+	/* let's create a union of an hexBinary and an ascii string */
+	fprintSegment( f, indent, "<xsd:union", 0 );
+	
+	if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	    
+	    fprint( f, ">\n" );
+
+	    /* print hexBinary subtype */
+	    fprintHexOrAsciiType( f, indent + INDENT, parent,
+				  minLength, maxLength, NULL, 1 );
+	    /* print Ascii subtype */
+	    fprintHexOrAsciiType( f, indent + INDENT, parent,
+				  minLength, maxLength, NULL, 0 );
+	    
+	    /* finish the union type */
+	    fprintSegment( f, indent, "</xsd:union>\n", 0 );
+	    
+	}
+	else {
+	    fprint( f, " memberTypes=\"%sHex %sAscii\"/>\n",
+		    smiType->name, smiType->name );
+	}
     }
-    if( maxLength > -1 ) {
-	fprintSegment( f, indent + 3 * INDENT, "<xsd:maxLength", 0 );
-	fprint( f, " value=\"%d\"/>\n", maxLength );
+    else {
+	/* we are her for the second time to print out the subtypes
+	   <typeName>Hex and <typeName>Ascii */
+
+	fprintHexOrAsciiType( f, indent + INDENT, parent, minLength, maxLength,
+			      typeName, 1 );
+	fprintHexOrAsciiType( f, indent + INDENT, parent, minLength, maxLength,
+			      typeName, 0 );
     }
-    fprintSegment( f, indent + 2 * INDENT, "</xsd:restriction>\n", 0 );
-    fprintSegment( f, indent + INDENT, "</xsd:simpleType>\n", 0 );
-    
-    /* finish the union type */
-    fprintSegment( f, indent, "</xsd:union>\n", 0 );
 }
 
 
 
-static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
+static void fprintRestriction(FILE *f, int indent, SmiType *smiType,
+			      int secondTime)
 {
     SmiRange *smiRange;
     
@@ -317,8 +360,9 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	maxLength = -1;
 
 	/* get range details */
-	smiRange = smiGetFirstRange( smiType );
-	while( smiRange ) {
+	for( smiRange = smiGetFirstRange( smiType );
+	     smiRange;
+	     smiRange = smiGetNextRange( smiRange ) ) {
 	    if( minLength == 0 ||
 		smiRange->minValue.value.integer32 < minLength ) {
 		minLength = smiRange->minValue.value.integer32;	     
@@ -326,13 +370,17 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    if( smiRange->maxValue.value.integer32 > maxLength ) {
 		maxLength = smiRange->maxValue.value.integer32;
 	    }
-	    smiRange = smiGetNextRange( smiRange );
 	}
 
-	fprintStringUnion( f, indent, minLength, maxLength );
-
-//	fprintSegment( f, indent, "</xsd:restriction>\n", 0 );
-	
+	if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
+	    fprintStringUnion( f, indent, smiType,
+			       minLength, maxLength, 0, NULL );
+	}
+	else {
+	    fprintStringUnion( f, indent, smiType,
+			       minLength, maxLength, secondTime,
+			       smiType->name );
+	}
 	break;
     }
 
@@ -510,14 +558,9 @@ static int getNumSubRanges( SmiType *smiType )
 }
 
 static void fprintSubRangeType( FILE *f, int indent,
-				SmiRange *smiRange, SmiType *smiType, int num )
+				SmiRange *smiRange, SmiType *smiType )
 {
-    fprintSegment( f, indent, "<xsd:simpleType ", 0 );
-
-    fprint( f, "name=\"%sRange%dType\">\n", smiType->name, num );
-
     
-
     switch( smiType->basetype ) {
 
     case SMI_BASETYPE_UNSIGNED32: {
@@ -532,7 +575,8 @@ static void fprintSubRangeType( FILE *f, int indent,
 	if( smiRange->maxValue.value.unsigned32 > max ) {
 	    max = smiRange->maxValue.value.unsigned32;
 	}
-
+	
+	fprintSegment( f, indent, "<xsd:simpleType>\n", 0 );
 	fprintStdRestHead( f, indent + INDENT, smiType );
 
 	fprintSegment( f, indent + 2 * INDENT, "<xsd:minInclusive", 0 );
@@ -560,7 +604,8 @@ static void fprintSubRangeType( FILE *f, int indent,
 	    max = smiRange->maxValue.value.integer32;
 	}
 
-	fprintStdRestHead( f, indent + INDENT, smiType );
+	fprintSegment( f, indent, "<xsd:simpleType>\n", 0 );
+    	fprintStdRestHead( f, indent + INDENT, smiType );
 	
 	fprintSegment( f, indent + 2 * INDENT, "<xsd:minInclusive", 0 );
 	fprint( f, " value=\"%d\"/>\n", min );
@@ -585,8 +630,9 @@ static void fprintSubRangeType( FILE *f, int indent,
 	if( smiRange->maxValue.value.integer32 > maxLength ) {
 	    maxLength = smiRange->maxValue.value.integer32;
 	}
-
-	fprintStringUnion( f, indent + INDENT, minLength, maxLength );
+	fprint( f, "HHHHHHH\n" );
+	fprintHexOrAsciiType( f, indent + INDENT, smiType,
+			      minLength, maxLength, NULL, 1 );
 	break;
     }
 
@@ -631,7 +677,8 @@ static void fprintSubRangeType( FILE *f, int indent,
 	if( smiRange->maxValue.value.unsigned32 > max ) {
 	    max = smiRange->maxValue.value.unsigned64;
 	}
-
+	
+	fprintSegment( f, indent, "<xsd:simpleType>\n", 0 );
 	fprintStdRestHead( f, indent + INDENT, smiType );
 
 	fprintSegment( f, indent + 2 * INDENT, "<xsd:minInclusive", 0 );
@@ -669,17 +716,6 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     SmiRange *smiRange;
     int numSubRanges = getNumSubRanges( smiType );
 
-    if( numSubRanges > 1 ) {
-	/* print out simple types for all subranges */
-	i = 0;
-	for( smiRange = smiGetFirstRange( smiType );
-	     smiRange;
-	     smiRange = smiGetNextRange( smiRange ) ) {
-	    fprintSubRangeType( f, indent, smiRange, smiType, i++ );
-	}
-    }
-   
-
     if ( name ) {
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
@@ -689,12 +725,12 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
 	    if( smiType->name ) {
-		if( ! strcmp( smiType->name, name ) ) {
+/*		if( ! strcmp( smiType->name, name ) ) {*/
 		    fprint( f, " name=\"%s\"", name );
-		}
+/*		}
 		else {
 		    fprint( f, " name=\"%sType\"", name );
-		}
+		    }*/
 	    }
 	    else {
 		fprint( f, " name=\"%sType\"", name );
@@ -709,6 +745,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     }
 
     else {
+	/* unnamed simple type */
 	fprintSegment(f, indent, "<xsd:simpleType>\n", 0 );
     }
 
@@ -723,25 +760,33 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
     }
 
-    if( numSubRanges > 1 ) {
-	fprintSegment( f, indent + INDENT, "<xsd:union memberTypes=\"", 0 );
-	i = 0;
+    if( ( numSubRanges > 1 ) &&
+	( smiType->basetype != SMI_BASETYPE_OCTETSTRING ) ) {
+	
+	fprintSegment( f, indent + INDENT, "<xsd:union>\n", 0 );
+
 	for( smiRange = smiGetFirstRange( smiType );
 	     smiRange;
 	     smiRange = smiGetNextRange( smiRange ) ) {
-	    if( i ) {
-		fprint( f, " " );
-	    }
-	    fprint( f, "%sRange%dType", smiType->name, i++ );
+	    fprintSubRangeType( f, indent + 2 * INDENT, smiRange, smiType );
 	}
-	fprint( f, "\"/>\n" );
+	
+	fprintSegment( f, indent + INDENT, "</xsd:union>\n", 0 );
+	fprintSegment(f, indent, "</xsd:simpleType>\n\n", 0);
     }
     else {
 	/* we do not have more than one subrange */
-	fprintRestriction(f, indent + INDENT, smiType);
+	fprintRestriction(f, indent + INDENT, smiType, 0 );
+	fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
+	if( smiType->basetype == SMI_BASETYPE_OCTETSTRING &&
+	    smiType->decl != SMI_DECL_IMPLICIT_TYPE ) {
+	    fprintRestriction(f, indent - INDENT, smiType, 1 );
+	}
+	if( smiType->decl != SMI_DECL_IMPLICIT_TYPE ) {
+	    fprint( f, "\n" );
+	}
     }
   
-    fprintSegment(f, indent, "</xsd:simpleType>\n\n", 0);
 
     if( smiType->basetype == SMI_BASETYPE_BITS ) {
 	/* if basetype is BITS we have to do something more */
@@ -1031,9 +1076,19 @@ static void fprintElement( FILE *f, int indent,
 	    fprintSegment( f, indent + INDENT, "<xsd:complexType>\n", 0 );
 	    fprintSegment( f, indent + 2 * INDENT,
 			   "<xsd:simpleContent>\n", 0 );
-	    fprintSegment( f, indent + 3 * INDENT, "<xsd:extension ", 0 );
-	    
-	    fprint( f, "base=\"%sType\">\n", smiNode->name );
+	    fprintSegment( f, indent + 3 * INDENT, "<xsd:extension", 0 );
+	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE  ) {
+		fprint( f, ">\n" );
+		fprintTypedef( f, indent + 4 * INDENT, smiType, NULL );
+	    }
+	    else {
+		if( prefix ) {
+		    fprint( f, " base=\"%s:%s\">\n", prefix, typeName );
+		}
+		else {
+		    fprint( f, " base=\"%s\"", typeName );
+		}
+	    }
 	    
 	    fprintSegment( f, indent + 4 * INDENT,
 			   "<xsd:attribute name=\"enc\" " , 0 );
@@ -1085,7 +1140,7 @@ static void fprintRows( FILE *f, SmiModule *smiModule )
 }
 
 
-static void fprintBitsAndStrings( FILE *f, SmiModule *smiModule )
+static void fprintBits( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode;
     SmiType *smiType;
@@ -1104,11 +1159,13 @@ static void fprintBitsAndStrings( FILE *f, SmiModule *smiModule )
 			fprintTypedef( f, INDENT, smiType, iterNode->name );
 			break;
 		    }
-		    
+#if 0
 		case SMI_BASETYPE_OCTETSTRING:
-		    fprintTypedef( f, INDENT, smiType, iterNode->name );
+		    if( smiType->decl != SMI_DECL_IMPLICIT_TYPE ) {
+			fprintTypedef
+			    }
 		    break;
-		    
+#endif /* #if 0 */
 		default:
 		    break;
 		}
@@ -1189,7 +1246,7 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
     fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
 
-    fprintBitsAndStrings(f, smiModule);
+    fprintBits(f, smiModule);
 }
 
 
