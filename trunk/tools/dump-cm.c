@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.8 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.9 2000/05/03 09:57:14 strauss Exp $
  */
 
 
@@ -95,14 +95,16 @@ typedef struct Graph {
 
 static const int SUFFIXCOUNT    = 1;
 static const int SUPPORTCOUNT   = 2;
-static const int BASETYPECOUNT  = 10;
+static const int BASETYPECOUNT  = 14;
 static char  *suffix[1]         = {"OrZero"};
 static char  *support[2]        = {"RowStatus", "StorageType"};
-static char  *baseTypes[10]     = {"Integer32", "OctetString",
+static char  *baseTypes[14]     = {"Integer32", "OctetString",
 				   "Unsigned32", "Integer64",
 				   "Unsigned64", "Float32",
 				   "Float64", "Float128",
-				   "Enumeration", "Counter32"};
+				   "Enumeration", "Counter32",
+				   "Counter64","Bits",
+				   "Gauge","Gauge32"};
 
 /* layout for the nodes */
 static const float HEADFONTSIZETABLE   = 0.51;
@@ -533,7 +535,10 @@ static void graphShowNodes(Graph *graph)
     for (tNode = graphGetFirstNode(graph); 
 	 tNode; 
 	 tNode = graphGetNextNode(graph,tNode)) {
-	printf("Node : %40s\n",tNode->smiNode->name);
+	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE)
+	    printf("Node :  [TABLE]");
+	else printf("Node : [SCALAR]");
+	printf("%40s\n", tNode->smiNode->name);
     }
 }
 
@@ -598,19 +603,19 @@ static void graphShowEdges(Graph *graph)
 
 	switch (tEdge->cardinality) {
 	case GRAPH_CARD_UNKNOWN      :
-	    printf(" (UNKNOWN) ");
+	    printf(" (-:-) ");
 	    break;
 	case GRAPH_CARD_ONE_TO_ONE   :
-	    printf("     (1:1) ");
+	    printf(" (1:1) ");
 	    break;
 	case GRAPH_CARD_ONE_TO_MANY  :
-	    printf("     (1:n) ");
+	    printf(" (1:n) ");
 	    break;
 	case GRAPH_CARD_ZERO_TO_ONE  :
-	    printf("     (0:1) ");
+	    printf(" (0:1) ");
 	    break;
 	case GRAPH_CARD_ZERO_TO_MANY :
-	    printf("     (0:n) ");
+	    printf(" (0:n) ");
 	    break;
 	}
 
@@ -1554,11 +1559,12 @@ static Graph *algCheckLinksByName(Graph *graph)
 }
 
 /*
- * algLinkScalarsToTables
+ * algLinkObjectsByNames
  *
- *
+ * Links Scalars to Tables using the prefix
+ * Links Tables to Tables using the prefix
  */
-static Graph *algLinkScalarsToTables(Graph *graph)
+static Graph *algLinkObjectsByNames(Graph *graph)
 {
     GraphNode *tNode, *tNode2, *newNode;
     int       overlap,minoverlap;
@@ -1665,12 +1671,15 @@ static Graph *algGroupScalars(Graph *graph)
 
     if (XPLAIN) {
 	printf("Scalar Groups : \n");
-	for (actGroup = 1;
-	     actGroup <= algGetNumberOfGroups(graph);
-	     actGroup++) {
-	    algPrintGroup(graph, actGroup);
-	    printf("\n");
-	}
+
+	if (algGetNumberOfGroups(graph) != 0) {
+	    for (actGroup = 1;
+		 actGroup <= algGetNumberOfGroups(graph);
+		 actGroup++) {
+		algPrintGroup(graph, actGroup);
+		printf("\n");
+	    }
+	} else printf("No groups!\n");
 	printf("\n");
     }
     
@@ -1767,7 +1776,7 @@ static Graph *algLinkLonelyTables(Graph *graph)
  * Connect the isolated nodes (scalars and tables)
  *
  * 1. Trying to link tables via the type of the index objects
- * 2. Trying to link scalars to tables via the names
+ * 2. Trying to link scalars to tables using the names
  * 3. Trying to group scalars which have not been adjacent to any edge.
  */
 static Graph *algConnectLonelyNodes(Graph *graph) 
@@ -1778,7 +1787,7 @@ static Graph *algConnectLonelyNodes(Graph *graph)
 
     graph = algLinkLonelyTables(graph);
 
-    graph = algLinkScalarsToTables(graph);
+    graph = algLinkObjectsByNames(graph);
 
     graph = algGroupScalars(graph);
 
@@ -2750,59 +2759,6 @@ static void printXML(Graph *graph)
     y = YOFFSET;
     ydiff = 0;
     
-#if 0
-    for (tNode = graphGetFirstNode(graph);
-	 tNode;
-	 tNode = graphGetNextNode(graph, tNode)) {
-	if (tNode->group == 0) {
-
-	    if (tNode->print == 0) {
-		printXMLObject(graph,tNode,x,y+tNode->connections);
-		x += XSPACING + tNode->w;
-		ydiff = max(ydiff, tNode->h+tNode->connections);
-		if (x > NEWLINEDISTANCE) {
-		    x = XOFFSET;
-		    y += ydiff + YSPACING;
-		    ydiff = 0;
-		}
-	    }
-	    
-	    for (tEdge = graphGetFirstEdgeByNode(graph, tNode);
-		 tEdge;
-		 tEdge = graphGetNextEdgeByNode(graph, tEdge, tNode)) {
-		if (tEdge->startNode == tNode) {
-		    if (tEdge->endNode->print == 0) {
-			printXMLObject(graph,tEdge->endNode,x,
-				       y+tEdge->endNode->connections);
-			x += XSPACING + tEdge->endNode->w;
-			ydiff = max(ydiff,
-				    tNode->h+tEdge->endNode->connections);
-			if (x > NEWLINEDISTANCE) {
-			    x = XOFFSET;
-			    y += ydiff + YSPACING;
-			    ydiff = 0;
-			}
-		    }
-		} else {
-		    if (tEdge->startNode->print == 0) {
-			printXMLObject(graph,tEdge->startNode,x,
-				       y+tEdge->startNode->connections);
-			x += XSPACING + tEdge->startNode->w;
-			ydiff = max(ydiff,
-				    tNode->h+tEdge->startNode->connections);
-			if (x > NEWLINEDISTANCE) {
-			    x = XOFFSET;
-			    y += ydiff + YSPACING;
-			    ydiff = 0;
-			}
-		    }	
-		}
-
-		printXMLConnection(tEdge);
-	    }
-	}
-    }
-#else
     for (tEdge = graphGetFirstEdge(graph);
 	 tEdge;
 	 tEdge = graphGetNextEdge(graph, tEdge)) {
@@ -2822,11 +2778,28 @@ static void printXML(Graph *graph)
 	    x = XOFFSET;
 	}
     }
-#endif
 
     x = XOFFSET;
     y += ydiff;
+    ydiff = 0;
+    
+    /* printing singular tables */
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph, tNode)) {
 
+	if (!graphGetFirstEdgeByNode(graph,tNode)) {
+	    printXMLObject(graph,tNode,x,y);
+	    
+	    x += tNode->w;
+	    y = max(ydiff, tNode->h);
+	    if (x >= NEWLINEDISTANCE) {
+		x = XOFFSET;
+		y += ydiff + YSPACING;
+	    }
+	}
+    }
+    
     for (group = 1;
 	 group <= algGetNumberOfGroups(graph);
 	 group++) {
