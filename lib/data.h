@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.71 2001/06/11 09:59:18 strauss Exp $
+ * @(#) $Id: data.h,v 1.72 2001/08/15 17:07:03 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -235,25 +235,48 @@ typedef struct Parser {
 
 
 
-extern int	smiFlags;
-extern char     *smiPath;
-extern int	smiDepth;	/* SMI parser recursion depth */
-extern char     *smiCache;
-extern char     *smiCacheProg;
+typedef struct Handle {
+    char            *name;
+    struct Handle   *prevPtr;
+    struct Handle   *nextPtr;
+    View     	    *firstViewPtr;
+    View     	    *lastViewPtr;
+    Module   	    *firstModulePtr;
+    Module   	    *lastModulePtr;
+    Node     	    *rootNodePtr;
+    Node     	    *pendingNodePtr;
+    Type     	    *typeOctetStringPtr;
+    Type     	    *typeObjectIdentifierPtr;
+    Type     	    *typeInteger32Ptr;
+    Type     	    *typeUnsigned32Ptr;
+    Type     	    *typeInteger64Ptr;
+    Type     	    *typeUnsigned64Ptr;
+    Type     	    *typeFloat32Ptr;
+    Type     	    *typeFloat64Ptr;
+    Type     	    *typeFloat128Ptr;
+    Type     	    *typeEnumPtr;
+    Type     	    *typeBitsPtr;
+    int	     	    flags;
+    char     	    *path;
+    char     	    *cache;
+    char     	    *cacheProg;
+    int      	    errorLevel;
+    SmiErrorHandler *errorHandler;
+} Handle;
 
-extern Node	*rootNodePtr;
-extern Node	*pendingNodePtr;
 
-extern Type	*typeOctetStringPtr, *typeObjectIdentifierPtr,
-		*typeInteger32Ptr, *typeUnsigned32Ptr,
-		*typeInteger64Ptr, *typeUnsigned64Ptr,
-		*typeFloat32Ptr, *typeFloat64Ptr,
-		*typeFloat128Ptr,
-		*typeEnumPtr, *typeBitsPtr;
 
-extern Module	*firstModulePtr, *lastModulePtr;
+extern int	 smiDepth;	/* SMI parser recursion depth */
 
-extern View	*firstViewPtr, *lastViewPtr;
+extern Handle    *smiHandle;    /* The current handle */
+
+
+
+extern Handle *addHandle(const char *name);
+
+extern void removeHandle(Handle *handlePtr);
+
+extern Handle *findHandleByName(const char *name);
 
 
 

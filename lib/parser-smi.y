@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.150 2001/08/15 17:07:04 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.151 2001/08/16 10:53:32 strauss Exp $
  */
 
 %{
@@ -461,8 +461,8 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->export.oidlen == 0) {
 	    if (objectPtr->nodePtr->oidlen == 0) {
 		for (nodePtr = objectPtr->nodePtr, i = 1;
-		     nodePtr->parentPtr != pendingNodePtr &&
-			 nodePtr->parentPtr != rootNodePtr &&
+		     nodePtr->parentPtr != smiHandle->pendingNodePtr &&
+			 nodePtr->parentPtr != smiHandle->rootNodePtr &&
 			 nodePtr != nodePtr->parentPtr &&
 			 i <= 128;
 		     nodePtr = nodePtr->parentPtr, i++);
@@ -1620,7 +1620,7 @@ typeDeclaration:	typeName
 				(!strcmp(thisModulePtr->export.name, "SNMPv2-SMI"))) {
 				if (!strcmp($1, "Counter32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, typeUnsigned32Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
@@ -1629,7 +1629,7 @@ typeDeclaration:	typeName
 				    }
 				} else if (!strcmp($1, "Gauge32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, typeUnsigned32Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
@@ -1638,7 +1638,7 @@ typeDeclaration:	typeName
 				    }
 				} else if (!strcmp($1, "Unsigned32")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, typeUnsigned32Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
@@ -1647,7 +1647,7 @@ typeDeclaration:	typeName
 				    }
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, typeUnsigned32Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
@@ -1662,7 +1662,7 @@ typeDeclaration:	typeName
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED64;
 					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = LIBSMI_UINT64_MAX;
 				    }
-				    setTypeParent($4, typeUnsigned64Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned64Ptr);
 				}
 			    }
 			    if (thisModulePtr &&
@@ -1670,7 +1670,7 @@ typeDeclaration:	typeName
 				 !strcmp(thisModulePtr->export.name, "RFC1065-SMI"))) {
 				if (!strcmp($1, "Counter")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, typeUnsigned32Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
@@ -1679,7 +1679,7 @@ typeDeclaration:	typeName
 				    }
 				} else if (!strcmp($1, "Gauge")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, typeUnsigned32Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
@@ -1688,7 +1688,7 @@ typeDeclaration:	typeName
 				    }
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
-				    setTypeParent($4, typeUnsigned32Ptr);
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
@@ -1942,7 +1942,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 							     thisModulePtr);
 				if (!importPtr ||
 				    (importPtr->kind == KIND_NOTFOUND)) {
-				    objectPtr = addObject($1, pendingNodePtr,
+				    objectPtr = addObject($1, smiHandle->pendingNodePtr,
 					                  0,
 					                  FLAG_INCOMPLETE,
 						          thisParserPtr);
@@ -1981,7 +1981,7 @@ Syntax:			ObjectSyntax
 					      FLAG_INCOMPLETE,
 					      thisParserPtr);
 			    setTypeDecl(typePtr, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent(typePtr, typeBitsPtr);
+			    setTypeParent(typePtr, smiHandle->typeBitsPtr);
 			    setTypeList(typePtr, $3);
 			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = typePtr;
@@ -1997,7 +1997,7 @@ sequenceSyntax:		/* ObjectSyntax */
 	|		BITS
 			{
 			    /* TODO: */
-			    $$ = typeOctetStringPtr;
+			    $$ = smiHandle->typeOctetStringPtr;
 			}
 	|		UPPERCASE_IDENTIFIER anySubType
 			{
@@ -2696,7 +2696,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					      ERR_INTEGER_IN_SMIV2);
 
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
-			    $$ = typeInteger32Ptr;
+			    $$ = smiHandle->typeInteger32Ptr;
 			}
 	|		INTEGER
 			{
@@ -2711,7 +2711,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				smiPrintError(thisParserPtr,
 					      ERR_INTEGER_IN_SMIV2);
 
-			    $$ = duplicateType(typeInteger32Ptr, 0,
+			    $$ = duplicateType(smiHandle->typeInteger32Ptr, 0,
 					       thisParserPtr);
 			    setTypeList($$, $3);
 			    smiCheckTypeRanges(thisParserPtr, $$);
@@ -2724,7 +2724,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    List *p;
 			    
-			    $$ = duplicateType(typeEnumPtr, 0,
+			    $$ = duplicateType(smiHandle->typeEnumPtr, 0,
 					       thisParserPtr);
 			    setTypeList($$, $3);
 			    for (p = $3; p; p = p->nextPtr)
@@ -2746,7 +2746,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    }
 
 			    /* TODO: any need to distinguish from INTEGER? */
-			    $$ = typeInteger32Ptr;
+			    $$ = smiHandle->typeInteger32Ptr;
 			}
         |		INTEGER32
 			{
@@ -2766,7 +2766,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 					      "Integer32");
 			    }
 
-			    $$ = duplicateType(typeInteger32Ptr, 0,
+			    $$ = duplicateType(smiHandle->typeInteger32Ptr, 0,
 					       thisParserPtr);
 			    setTypeList($$, $3);
 			    smiCheckTypeRanges(thisParserPtr, $$);
@@ -2801,7 +2801,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    smiPrintError(thisParserPtr,
 						  ERR_ILLEGAL_ENUM_FOR_PARENT_TYPE,
 						  $1);
-				    $$ = duplicateType(typeEnumPtr, 0,
+				    $$ = duplicateType(smiHandle->typeEnumPtr, 0,
 						       thisParserPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
@@ -2852,7 +2852,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    smiPrintError(thisParserPtr,
 						  ERR_ILLEGAL_ENUM_FOR_PARENT_TYPE,
 						  $3);
-				    $$ = duplicateType(typeEnumPtr, 0,
+				    $$ = duplicateType(smiHandle->typeEnumPtr, 0,
 						       thisParserPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
@@ -2861,7 +2861,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_UNKNOWN_TYPE, $3);
-				$$ = duplicateType(typeEnumPtr, 0,
+				$$ = duplicateType(smiHandle->typeEnumPtr, 0,
 						   thisParserPtr);
 			    }
 			    setTypeList($$, $4);
@@ -2899,7 +2899,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    smiPrintError(thisParserPtr,
 					     ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
 						  $1);
-				    $$ = duplicateType(typeInteger32Ptr, 0,
+				    $$ = duplicateType(smiHandle->typeInteger32Ptr, 0,
 						       thisParserPtr);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				} else {
@@ -2954,7 +2954,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    smiPrintError(thisParserPtr,
 					     ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE,
 						  $3);
-				    $$ = duplicateType(typeInteger32Ptr, 0,
+				    $$ = duplicateType(smiHandle->typeInteger32Ptr, 0,
 						       thisParserPtr);
 				    defaultBasetype = SMI_BASETYPE_INTEGER32;
 				} else {
@@ -2966,7 +2966,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_UNKNOWN_TYPE, $3);
-				$$ = duplicateType(typeInteger32Ptr, 0,
+				$$ = duplicateType(smiHandle->typeInteger32Ptr, 0,
 						   thisParserPtr);
 				defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    }
@@ -2978,7 +2978,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
-			    $$ = typeOctetStringPtr;
+			    $$ = smiHandle->typeOctetStringPtr;
 			}
 	|		OCTET STRING
 			{
@@ -2987,7 +2987,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			octetStringSubType
 			{
 			    
-			    $$ = duplicateType(typeOctetStringPtr, 0,
+			    $$ = duplicateType(smiHandle->typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeList($$, $4);
 			    smiCheckTypeRanges(thisParserPtr, $$);
@@ -3016,7 +3016,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    smiPrintError(thisParserPtr,
 					      ERR_ILLEGAL_SIZE_FOR_PARENT_TYPE,
 						  $1);
-				    $$ = duplicateType(typeOctetStringPtr, 0,
+				    $$ = duplicateType(smiHandle->typeOctetStringPtr, 0,
 						       thisParserPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
@@ -3062,7 +3062,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    smiPrintError(thisParserPtr,
 					      ERR_ILLEGAL_SIZE_FOR_PARENT_TYPE,
 						  $3);
-				    $$ = duplicateType(typeOctetStringPtr, 0,
+				    $$ = duplicateType(smiHandle->typeOctetStringPtr, 0,
 						       thisParserPtr);
 				} else {
 				    $$ = duplicateType(parentPtr, 0,
@@ -3071,7 +3071,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_UNKNOWN_TYPE, $3);
-				$$ = duplicateType(typeOctetStringPtr, 0,
+				$$ = duplicateType(smiHandle->typeOctetStringPtr, 0,
 						   thisParserPtr);
 			    }
 			    setTypeList($$, $4);
@@ -3082,7 +3082,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 	|		OBJECT IDENTIFIER
 			{
 			    defaultBasetype = SMI_BASETYPE_OBJECTIDENTIFIER;
-			    $$ = typeObjectIdentifierPtr;
+			    $$ = smiHandle->typeObjectIdentifierPtr;
 			}
         ;
 
@@ -3219,14 +3219,14 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
  */
 sequenceSimpleSyntax:	INTEGER	anySubType
 			{
-			    $$ = typeInteger32Ptr;
+			    $$ = smiHandle->typeInteger32Ptr;
 			}
         |		INTEGER32 anySubType
 			{
 			    Import *importPtr;
 			    
 			    /* TODO: any need to distinguish from INTEGER? */
-			    $$ = typeInteger32Ptr;
+			    $$ = smiHandle->typeInteger32Ptr;
 
 			    importPtr = findImportByName("Integer32",
 							 thisModulePtr);
@@ -3241,11 +3241,11 @@ sequenceSimpleSyntax:	INTEGER	anySubType
 			}
 	|		OCTET STRING anySubType
 			{
-			    $$ = typeOctetStringPtr;
+			    $$ = smiHandle->typeOctetStringPtr;
 			}
 	|		OBJECT IDENTIFIER
 			{
-			    $$ = typeObjectIdentifierPtr;
+			    $$ = smiHandle->typeObjectIdentifierPtr;
 			}
 	;
 
@@ -3299,7 +3299,7 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    Import *importPtr;
 
-			    $$ = typeUnsigned32Ptr;
+			    $$ = smiHandle->typeUnsigned32Ptr;
 			    importPtr = findImportByName("Unsigned32",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -3314,7 +3314,7 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    Import *importPtr;
 			    
-			    $$ = duplicateType(typeUnsigned32Ptr, 0,
+			    $$ = duplicateType(smiHandle->typeUnsigned32Ptr, 0,
 					       thisParserPtr);
 			    setTypeList($$, $2);
 			    smiCheckTypeRanges(thisParserPtr, $$);
@@ -3425,7 +3425,7 @@ sequenceApplicationSyntax: IPADDRESS
 			{
 			    Import *importPtr;
 			    
-			    $$ = typeUnsigned32Ptr;
+			    $$ = smiHandle->typeUnsigned32Ptr;
 			    importPtr = findImportByName("Unsigned32",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -4126,7 +4126,7 @@ ExtUTCTime:		QUOTED_STRING
 	;
 
 objectIdentifier:	{
-			    parentNodePtr = rootNodePtr;
+			    parentNodePtr = smiHandle->rootNodePtr;
 			}
 			subidentifiers
 			{
@@ -4154,7 +4154,7 @@ subidentifier:
 			    Object *objectPtr;
 			    Import *importPtr;
 			    
-			    if (parentNodePtr != rootNodePtr) {
+			    if (parentNodePtr != smiHandle->rootNodePtr) {
 				smiPrintError(thisParserPtr,
 					      ERR_OIDLABEL_NOT_FIRST, $1);
 			    }
@@ -4185,7 +4185,7 @@ subidentifier:
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject($1,
-								  pendingNodePtr, 0,
+								  smiHandle->pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
 					    smiPrintError(thisParserPtr,
@@ -4206,7 +4206,7 @@ subidentifier:
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject($1,
-								  pendingNodePtr, 0,
+								  smiHandle->pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
 					    smiPrintError(thisParserPtr,
@@ -4220,7 +4220,7 @@ subidentifier:
 					 * marked with FLAG_INCOMPLETE.
 					 */
 					objectPtr = addObject($1,
-							      pendingNodePtr,
+							      smiHandle->pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
@@ -4245,7 +4245,7 @@ subidentifier:
 			    Import *importPtr;
 			    char *md;
 			    
-			    if (parentNodePtr != rootNodePtr) {
+			    if (parentNodePtr != smiHandle->rootNodePtr) {
 				md = smiMalloc(sizeof(char) *
 					       (strlen($1) + strlen($3) + 2));
 				sprintf(md, "%s.%s", $1, $3);
@@ -4282,7 +4282,7 @@ subidentifier:
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject($1,
-						    pendingNodePtr, 0,
+						    smiHandle->pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
 						smiPrintError(thisParserPtr,
@@ -4303,7 +4303,7 @@ subidentifier:
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject($1,
-						    pendingNodePtr, 0,
+						    smiHandle->pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
 						smiPrintError(thisParserPtr,
@@ -4317,7 +4317,7 @@ subidentifier:
 					     * marked with FLAG_INCOMPLETE.
 					     */
 					    objectPtr = addObject($3,
-							    pendingNodePtr,
+							    smiHandle->pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);

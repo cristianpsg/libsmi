@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.67 2001/03/05 17:57:50 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.68 2001/08/15 17:07:04 strauss Exp $
  */
 
 %{
@@ -209,7 +209,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->export.oidlen == 0) {
 	    if (objectPtr->nodePtr->oidlen == 0) {
 		for (nodePtr = objectPtr->nodePtr, i = 1;
-		     nodePtr->parentPtr != rootNodePtr;
+		     nodePtr->parentPtr != smiHandle->rootNodePtr;
 		     nodePtr = nodePtr->parentPtr, i++);
 		objectPtr->nodePtr->oid = smiMalloc(i * sizeof(SmiSubid));
 		objectPtr->nodePtr->oidlen = i;
@@ -2515,11 +2515,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeOctetStringPtr;
+				$$ = smiHandle->typeOctetStringPtr;
 			    } else {
-				$$ = duplicateType(typeOctetStringPtr, 0,
+				$$ = duplicateType(smiHandle->typeOctetStringPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeOctetStringPtr);
+				setTypeParent($$, smiHandle->typeOctetStringPtr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2527,18 +2527,18 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			}
         |		ObjectIdentifierKeyword
 			{
-			    $$ = typeObjectIdentifierPtr;
+			    $$ = smiHandle->typeObjectIdentifierPtr;
 			}
 	|		Integer32Keyword optsep_numberSpec_01
 			{
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeInteger32Ptr;
+				$$ = smiHandle->typeInteger32Ptr;
 			    } else {
-				$$ = duplicateType(typeInteger32Ptr, 0,
+				$$ = duplicateType(smiHandle->typeInteger32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeInteger32Ptr);
+				setTypeParent($$, smiHandle->typeInteger32Ptr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2549,11 +2549,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeUnsigned32Ptr;
+				$$ = smiHandle->typeUnsigned32Ptr;
 			    } else {
-				$$ = duplicateType(typeUnsigned32Ptr, 0,
+				$$ = duplicateType(smiHandle->typeUnsigned32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeUnsigned32Ptr);
+				setTypeParent($$, smiHandle->typeUnsigned32Ptr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2564,11 +2564,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeInteger64Ptr;
+				$$ = smiHandle->typeInteger64Ptr;
 			    } else {
-				$$ = duplicateType(typeInteger64Ptr, 0,
+				$$ = duplicateType(smiHandle->typeInteger64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeInteger64Ptr);
+				setTypeParent($$, smiHandle->typeInteger64Ptr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2579,11 +2579,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeUnsigned64Ptr;
+				$$ = smiHandle->typeUnsigned64Ptr;
 			    } else {
-				$$ = duplicateType(typeUnsigned64Ptr, 0,
+				$$ = duplicateType(smiHandle->typeUnsigned64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeUnsigned64Ptr);
+				setTypeParent($$, smiHandle->typeUnsigned64Ptr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2594,11 +2594,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeFloat32Ptr;
+				$$ = smiHandle->typeFloat32Ptr;
 			    } else {
-				$$ = duplicateType(typeFloat32Ptr, 0,
+				$$ = duplicateType(smiHandle->typeFloat32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeFloat32Ptr);
+				setTypeParent($$, smiHandle->typeFloat32Ptr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2609,11 +2609,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeFloat64Ptr;
+				$$ = smiHandle->typeFloat64Ptr;
 			    } else {
-				$$ = duplicateType(typeFloat64Ptr, 0,
+				$$ = duplicateType(smiHandle->typeFloat64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeFloat64Ptr);
+				setTypeParent($$, smiHandle->typeFloat64Ptr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2624,11 +2624,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeFloat128Ptr;
+				$$ = smiHandle->typeFloat128Ptr;
 			    } else {
-				$$ = duplicateType(typeFloat128Ptr, 0,
+				$$ = duplicateType(smiHandle->typeFloat128Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeFloat128Ptr);
+				setTypeParent($$, smiHandle->typeFloat128Ptr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((Range *)p->ptr)->typePtr = $$;
@@ -2639,11 +2639,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeEnumPtr;
+				$$ = smiHandle->typeEnumPtr;
 			    } else {
-				$$ = duplicateType(typeEnumPtr, 0,
+				$$ = duplicateType(smiHandle->typeEnumPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeEnumPtr);
+				setTypeParent($$, smiHandle->typeEnumPtr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((NamedNumber *)p->ptr)->typePtr = $$;
@@ -2654,11 +2654,11 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    if (!$2) {
-				$$ = typeBitsPtr;
+				$$ = smiHandle->typeBitsPtr;
 			    } else {
-				$$ = duplicateType(typeBitsPtr, 0,
+				$$ = duplicateType(smiHandle->typeBitsPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$, typeBitsPtr);
+				setTypeParent($$, smiHandle->typeBitsPtr);
 				setTypeList($$, $2);
 				for (p = $2; p; p = p->nextPtr)
 				    ((NamedNumber *)p->ptr)->typePtr = $$;
@@ -3450,7 +3450,7 @@ qlcIdentifier_subid:	qlcIdentifier
 				s = smiMalloc(100);
 				sprintf(s, "%u", nodePtr->subid);
 				while ((nodePtr->parentPtr) &&
-				       (nodePtr->parentPtr != rootNodePtr)) {
+				       (nodePtr->parentPtr != smiHandle->rootNodePtr)) {
 				    nodePtr = nodePtr->parentPtr;
 
 				    sprintf(ss, "%u", nodePtr->subid);

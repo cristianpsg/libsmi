@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.72 2001/06/25 13:26:58 strauss Exp $
+ * @(#) $Id: error.c,v 1.73 2001/08/15 17:07:03 strauss Exp $
  */
 
 #include <config.h>
@@ -30,21 +30,6 @@
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
-
-
-
-int smiErrorLevel;		/* Higher levels produce more warnings */
-
-
-
-/*
- * The following function pointer marks the current error printing
- * function. This may be overwritten by a language specific function
- * in case the library is embedded into other programs.
- */
-
-static void smiErrorHandler(char *path, int line, int severity, char *msg, char *tag);
-static SmiErrorHandler *handler = smiErrorHandler;
 
 
 
@@ -493,7 +478,7 @@ smiSetErrorSeverity(char *pattern, int severity)
 void
 smiSetErrorHandler(SmiErrorHandler smiErrorHandler)
 {
-    handler = smiErrorHandler;
+    smiHandle->errorHandler = smiErrorHandler;
 }
 
 
@@ -597,7 +582,7 @@ smiGetErrorMsg(int id)
  *----------------------------------------------------------------------
  */
 
-static void
+void
 smiErrorHandler(char *path, int line, int severity, char *msg, char *tag)
 {
     if (path) {
@@ -633,7 +618,7 @@ printError(Parser *parser, int id, int line, va_list ap)
 {
     char buffer[1024];
     
-    if (! handler) {
+    if (! smiHandle->errorHandler) {
 	return;
     }
 
@@ -646,7 +631,7 @@ printError(Parser *parser, int id, int line, va_list ap)
 	    }
 	}
 	
-	if ((errors[id].level <= smiErrorLevel) &&
+	if ((errors[id].level <= smiHandle->errorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 #ifdef HAVE_VSNPRINTF
@@ -654,16 +639,16 @@ printError(Parser *parser, int id, int line, va_list ap)
 #else
 	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
 #endif
-	    (handler) (parser->path, line, errors[id].level, buffer, errors[id].tag);
+	    (smiHandle->errorHandler) (parser->path, line, errors[id].level, buffer, errors[id].tag);
 	}
     } else {
-	if (errors[id].level <= smiErrorLevel) {
+	if (errors[id].level <= smiHandle->errorLevel) {
 #ifdef HAVE_VSNPRINTF
 	    vsnprintf(buffer, sizeof(buffer), errors[id].fmt, ap);
 #else
 	    vsprintf(buffer, errors[id].fmt, ap);	/* buffer overwrite */
 #endif
-	    (handler) (NULL, 0, errors[id].level, buffer, errors[id].tag);
+	    (smiHandle->errorHandler) (NULL, 0, errors[id].level, buffer, errors[id].tag);
 	}
     }
 
