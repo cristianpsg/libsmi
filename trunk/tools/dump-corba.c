@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.40 2001/06/15 07:12:20 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.41 2001/11/08 07:37:31 schoenw Exp $
  */
 
 #include <config.h>
@@ -451,7 +451,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
             sprintf(s, "'%*s'H", 2 * valuePtr->len, "");
             for (i=0; i < valuePtr->len; i++) {
                 sprintf(ss, "%02x", valuePtr->value.ptr[i]);
-                strncpy(&s[2+2*i], ss, 2);
+                strncpy(&s[1+2*i], ss, 2);
             }
 	}
 	break;
@@ -1078,8 +1078,10 @@ static void fprintInterfaces(FILE *f, SmiModule *smiModule)
 static void fprintConstructor(FILE *f, SmiNode *smiNode)
 {
     SmiNode *childNode;
+    SmiNode *indexNode;
     SmiType *smiType;
     SmiModule *smiModule;
+    SmiElement *smiElement;
     char    *idlNodeName;
     char    *idlChildNodeName, *idlChildTypeName;
     int	    cnt = 0;
@@ -1091,26 +1093,58 @@ static void fprintConstructor(FILE *f, SmiNode *smiNode)
     fprintSegment(f, 2*INDENT, "", 0);
     fprint(f, "%s create_%s (\n", idlNodeName, idlNodeName);
 
-    /* XXX I think we need to include INDEX columns here XXX */
+    /* First include the INDEXes as parameters to allow row creation
+       for rows with not-accesible index objects. */
+    
+    for (smiElement = smiGetFirstElement(smiNode);
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	cnt++;
+	indexNode = smiGetElementNode(smiElement);
+	idlChildNodeName =
+	    getIdlNodeName(smiGetNodeModule(indexNode)->name,
+			   indexNode->name);
+	smiType = smiGetNodeType(indexNode);
+	idlChildTypeName = getIdlAnyTypeName(indexNode, smiType);
+	if (cnt > 1) {
+	    fprint(f, ",\n");
+	}
+	fprintSegment(f, 3*INDENT, "in ", 0);
+	fprint(f, "%s %s", idlChildTypeName, idlChildNodeName);
+    }
+    
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
+	
 	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
 	     || childNode->nodekind == SMI_NODEKIND_COLUMN)
 	    && current(childNode->status)
 	    && childNode->access == SMI_ACCESS_READ_WRITE) {
 
-	    cnt++;
-	    idlChildNodeName =
-		getIdlNodeName(smiGetNodeModule(childNode)->name,
-			       childNode->name);
-	    smiType = smiGetNodeType(childNode);
-	    idlChildTypeName = getIdlAnyTypeName(childNode, smiType);
-	    if (cnt > 1) {
-		fprint(f, ",\n");
+	    /* Test if this column is already used as parameter
+	       because it is an INDEX of the row. */
+	    
+	    for (smiElement = smiGetFirstElement(smiNode);
+		 smiElement; smiElement = smiGetNextElement(smiElement)) {
+		indexNode = smiGetElementNode(smiElement);
+		if (indexNode == childNode) {
+		    break;
+		}
 	    }
-	    fprintSegment(f, 3*INDENT, "in ", 0);
-	    fprint(f, "%s %s", idlChildTypeName, idlChildNodeName);
+
+	    if (! smiElement) {
+		cnt++;
+		idlChildNodeName =
+		    getIdlNodeName(smiGetNodeModule(childNode)->name,
+				   childNode->name);
+		smiType = smiGetNodeType(childNode);
+		idlChildTypeName = getIdlAnyTypeName(childNode, smiType);
+		if (cnt > 1) {
+		    fprint(f, ",\n");
+		}
+		fprintSegment(f, 3*INDENT, "in ", 0);
+		fprint(f, "%s %s", idlChildTypeName, idlChildNodeName);
+	    }
 	}
     }
     fprint(f, "\n");
