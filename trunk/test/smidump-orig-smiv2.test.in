@@ -14,9 +14,9 @@ for mib in ${TESTMIBS} ; do
     ./filter < ../mibs/ietf/$mib > smidump-orig-${FORMAT}.out/$mib.orig.filtered
     ./filter < smidump-orig-${FORMAT}.out/$mib.${FORMAT} > smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered
 
-    diff smidump-orig-${FORMAT}.out/$mib.orig.filtered smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered > smidump-orig-${FORMAT}.out/$mib.diff
+    @DIFF@ smidump-orig-${FORMAT}.out/$mib.orig.filtered smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered > smidump-orig-${FORMAT}.out/$mib.diff
 
-    WC=`diff smidump-orig-${FORMAT}.out/$mib.diff dumps/$mib.${FORMAT}.diff | wc -l`
+    WC=`@DIFF@ smidump-orig-${FORMAT}.out/$mib.diff dumps/$mib.${FORMAT}.diff | wc -l`
     if [ $WC -ne 0 ] ; then
 	echo "*** smidump -f ${FORMAT} $mib output differs unexpectedly from ../mibs/ietf/$mib."
 	RC=1

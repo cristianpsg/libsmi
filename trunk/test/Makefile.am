@@ -8,9 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.10 1999/10/05 17:10:25 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.11 1999/10/06 06:12:04 strauss Exp $
 #
 
+TESTMIBTOPDIR		= ../mibs
+TESTMIBDIR		= $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site
 TESTMIBS		= SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
 TESTS			= smilint-smiv2.test \
@@ -27,7 +29,7 @@ TESTS			= smilint-smiv2.test \
 			  smidump-corba-oid.test \
 			  parser.test
 
-TESTS_ENVIRONMENT	= SMIPATH="@smipath@:" TESTMIBS="$(TESTMIBS)"
+TESTS_ENVIRONMENT	= SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
 
 EXTRA_DIST		= $(TESTS) filter
 
