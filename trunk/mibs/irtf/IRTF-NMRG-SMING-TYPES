@@ -1,10 +1,10 @@
 module IRTF-NMRG-SMING-TYPES {
 
 //
-// $RCSfile: IRTF-NMRG-SMING-TYPES.sming,v $
-// $Revision: 1.3 $
+// $RCSfile: IRTF-NMRG-SMING-TYPES,v $
+// $Revision: 1.5 $
 // $Author: strauss $
-// $Date: 2000/02/13 21:34:21 $
+// $Date: 2000/10/19 16:11:55 $
 //
 
     organization    "IRTF Network Management Research Group (NMRG),
@@ -21,6 +21,12 @@ module IRTF-NMRG-SMING-TYPES {
                       EMail: strauss@ibr.cs.tu-bs.de";
 
     description     "Core type definitions for SMIng.";
+
+    revision {
+        date        "2000-10-19";
+        description "Special semantics and default value of 8 or 11
+		     zero bytes for the DateAndTime type.";
+    };
 
     revision {
         date        "2000-02-13";
@@ -213,9 +219,11 @@ module IRTF-NMRG-SMING-TYPES {
     };
 
     //
-    //  The following type definitions are plain
+    //  The following type definitions are
     //  conversions of the textual conventions from
-    //  the SNMPv2-TC module (RFC 2579).
+    //  the SNMPv2-TC module (RFC 2579), except for
+    //  TAddressOrZero, which is not present in
+    //  SNMPv2-TC.
     //
 
     typedef DisplayString {
@@ -842,6 +850,7 @@ value         |              |      see 1|          ->C|          ->D
 
     typedef DateAndTime {
         type        OctetString (8 | 11);
+	default     0x0000000000000000000000;
         format      "2d-1d-1d,1d:1d:1d.1d,1a1d:1d";
         description 
         "A date-time specification.
@@ -870,7 +879,10 @@ value         |              |      see 1|          ->C|          ->D
                          1992-5-26,13:30:15.0,-4:0
          
          Note that if only local time is known, then timezone
-         information (fields 8-10) is not present.";
+         information (fields 8-10) is not present.
+
+	 The two special values of 8 or 11 zero bytes denote an
+	 unknown date-time specification.";
     };
 
     typedef StorageType {
@@ -899,25 +911,42 @@ value         |              |      see 1|          ->C|          ->D
 
     typedef TDomain {
         type        ObjectIdentifier;
-        description 
+        description
         "Denotes a kind of transport service.
-         
-         Some possible values, such as snmpUDPDomain, are defined in
-         'Transport Mappings for Version 2 of the Simple Network
-         Management Protocol (SNMPv2)'.";
+
+         Some possible values, such as snmpUDPDomain, are defined
+         in the SNMPv2-TM MIB module.  Other possible values are
+         defined in other MIB modules."
+        reference
+        "The SNMPv2-TM MIB module is defined in RFC 1906."
+    };
+
+    typedef TAddressOrZero {
+        type        OctetString (0..255);
+        description
+        "Denotes a transport service address.
+
+         A TAddress value is always interpreted within the context
+         of a TDomain value.  Thus, each definition of a TDomain
+         value must be accompanied by a definition of a textual
+         convention for use with that TDomain.  Some possible
+         textual conventions, such as SnmpUDPAddress for
+         snmpUDPDomain, are defined in the SNMPv2-TM MIB module.
+         Other possible textual conventions are defined in
+         other MIB modules.
+
+         A zero-length TAddress value denotes an unknown transport
+         service address."
+        reference
+        "The SNMPv2-TM MIB module is defined in RFC 1906."
     };
 
     typedef TAddress {
-        type        OctetString (1..255);
-        description 
+        type        TAddressOrZero (1..255);
+        description
         "Denotes a transport service address.
-         
-         For snmpUDPDomain, a TAddress is 6 octets long, the initial
-         4 octets containing the IP-address in network-byte order and
-         the last 2 containing the UDP port in network-byte order.
-         Cosult 'Transport Mappings for Version 2 of the Simple
-         Network Management Protocol (SNMPv2)' for further
-         information on snmpUDPDomain.";
+
+         This type does not allow a zero-length TAddress value."
     };
 
 };
