@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.59 2002/12/13 14:09:46 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.60 2002/12/18 13:13:11 tklie Exp $
  */
 
 #include <config.h>
@@ -1865,25 +1865,25 @@ static void fprintModuleHead(FILE *f, SmiModule *smiModule)
 }
 
 
-static void fprintContext(FILE *f, SmiModule *smiModule)
+static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 {
     SmiNode *iterNode;
-
-    fprintSegment( f, 1, "<xsd:element name=\"snmp-data\">\n");
-    fprintSegment( f, 1, "<xsd:complexType>\n");
-    fprintSegment( f, 1, "<xsd:sequence>\n");
-    fprintSegment( f, 1, "<xsd:element name=\"context\" "
-		   "minOccurs=\"0\" maxOccurs=\"unbounded\">\n");
-    fprintSegment( f, 1, "<xsd:complexType>\n");
-    fprintSegment( f, 1, "<xsd:sequence>\n");
 
     /* scalar groups */
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NODE );
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_SCALAR ) ) {
-	    fprintSegment(f, 0, "<xsd:element name=\"%s\" type=\"%sType\" minOccurs=\"0\"/>\n",
-			  iterNode->name, iterNode->name);
+	    if (container) {
+		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
+			      "type=\"%s:%sType\" minOccurs=\"0\"/>\n",
+			      iterNode->name,
+			      smiModule->name, iterNode->name);
+	    } else {
+		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
+			      "type=\"%sType\" minOccurs=\"0\"/>\n",
+			      iterNode->name, iterNode->name);
+	    }
 	}
     }   
 
@@ -1892,18 +1892,43 @@ static void fprintContext(FILE *f, SmiModule *smiModule)
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
-	    fprintSegment(f, 0, "<xsd:element name=\"%s\" type=\"%sType\" minOccurs=\"0\" maxOccurs=\"unbounded\"/>\n",
-			  iterNode->name, iterNode->name);
+	    if (container) {
+		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
+			      "type=\"%s:%sType\" minOccurs=\"0\" "
+			      "maxOccurs=\"unbounded\"/>\n",
+			      iterNode->name,
+			      smiModule->name, iterNode->name);
+	    } else {
+		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
+			      "type=\"%sType\" minOccurs=\"0\" "
+			      "maxOccurs=\"unbounded\"/>\n",
+			      iterNode->name, iterNode->name);
+	    }
 	}
     }   
+}
 
 
+static void fprintContextHead(FILE *f)
+{
+    fprintSegment( f, 1, "<xsd:element name=\"snmp-data\">\n");
+    fprintSegment( f, 1, "<xsd:complexType>\n");
+    fprintSegment( f, 1, "<xsd:sequence>\n");
+    fprintSegment( f, 1, "<xsd:element name=\"context\" "
+		   "minOccurs=\"0\" maxOccurs=\"unbounded\">\n");
+    fprintSegment( f, 1, "<xsd:complexType>\n");
+    fprintSegment( f, 1, "<xsd:sequence>\n");
+}
 
-    
+
+static void fprintContextFoot(FILE *f)
+{
     fprintSegment( f, -1, "</xsd:sequence>\n");
-    fprintSegment( f, 0, "<xsd:attribute name=\"agent\" type=\"xsd:NMTOKEN\" use=\"required\"/>\n");
-    fprintSegment( f, 0, "<xsd:attribute name=\"community\" type=\"xsd:NMTOKEN\" use=\"required\"/>\n");
+    fprintSegment( f, 0, "<xsd:attribute name=\"ipaddr\" type=\"xsd:NMTOKEN\" use=\"required\"/>\n");
+    fprintSegment( f, 0, "<xsd:attribute name=\"hostname\" type=\"xsd:NMTOKEN\"/>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"port\" type=\"xsd:unsignedInt\" use=\"required\"/>\n");
+    fprintSegment( f, 0, "<xsd:attribute name=\"community\" type=\"xsd:NMTOKEN\" use=\"required\"/>\n");
+    fprintSegment( f, 0, "<xsd:attribute name=\"caching\" type=\"xsd:NMTOKEN\"/>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"time\" type=\"xsd:dateTime\" use=\"required\"/>\n");
     fprintSegment( f, -1, "</xsd:complexType>\n");
     fprintSegment( f, -1, "</xsd:element>\n");
@@ -1925,6 +1950,7 @@ static void fprintTypedefs(FILE *f, SmiModule *smiModule)
 	fprintTypedef(f, smiType, smiType->name);
     }
 }
+
 
 static void registerType( char *type, char *module )
 {
@@ -1948,7 +1974,6 @@ static void registerType( char *type, char *module )
 	oldTPr->next->next = NULL;
     }
 }
-
 
 
 static void dumpXsdModules(int modc, SmiModule **modv, int flags, char *output)
@@ -2005,7 +2030,9 @@ static void dumpXsdModules(int modc, SmiModule **modv, int flags, char *output)
 
 	fprintModuleHead(f, modv[i]);
 	fprintImports(f, modv[i]);
-	fprintContext(f, modv[i]);
+	fprintContextHead(f);
+	fprintGroupElements(f, modv[i]);
+	fprintContextFoot(f);
 	fprintGroupTypes(f, modv[i]);
 	fprintImplicitTypes(f, modv[i]);
 	fprintTypedefs(f, modv[i]);
@@ -2022,7 +2049,6 @@ static void dumpXsdModules(int modc, SmiModule **modv, int flags, char *output)
 	fclose(f);
     }
 }
-
 
 
 static void dumpXsdContainer(int modc, SmiModule **modv, int flags,
@@ -2061,10 +2087,22 @@ static void dumpXsdContainer(int modc, SmiModule **modv, int flags,
     fprintf(f, "            elementFormDefault=\"qualified\"\n");
     fprintf(f, "            attributeFormDefault=\"unqualified\">\n\n");
 
+    /* imports */
     for (i = 0; i < modc; i++) {
-	
-	
+	fprintSegment( f, 0, "<xsd:import ");
+	fprintf( f, "namespace=\"%s%s\" schemaLocation=\"%s%s.xsd\"/>\n",
+		 schemaLocation, modv[i]->name,
+		 schemaLocation, modv[i]->name);
     }
+    fprintf( f, "\n");
+    
+    /* context */
+    fprintContextHead(f);
+    for (i = 0; i < modc; i++) {
+	/* per module elements */
+	fprintGroupElements(f, modv[i]);
+    }
+    fprintContextFoot(f);
 
     fprintSegment(f, -1, "</xsd:schema>\n");
 
@@ -2077,7 +2115,6 @@ static void dumpXsdContainer(int modc, SmiModule **modv, int flags,
 	fclose(f);
     }
 }
-
 
 
 static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
@@ -2105,7 +2142,6 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
     /* delete type-prefix-mapping */
     free( typePrefixes ); /* XXX: TODO: free all malloced types in a loop */
 }
-
 
 
 void initXsd()
