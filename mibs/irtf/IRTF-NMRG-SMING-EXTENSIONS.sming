@@ -1,14 +1,11 @@
-module IRTF-NMRG-SMING-EXTENSIONS irtfNmrgSmingExtensions {
+module IRTF-NMRG-SMING-EXTENSIONS {
 
 //
 // $RCSfile: IRTF-NMRG-SMING-EXTENSIONS.sming,v $
 // $Revision: 1.1 $
 // $Author: strauss $
-// $Date: 1999/06/01 20:59:27 $
+// $Date: 1999/10/06 16:05:25 $
 //
-
-    oid             1.3.6.1.3.1575.1.10;
-                    // experimental.1575.1.10
 
     organization    "IRTF Network Management Research Group (NMRG),
                      Network Management Group, TU Braunschweig";
@@ -25,6 +22,11 @@ module IRTF-NMRG-SMING-EXTENSIONS irtfNmrgSmingExtensions {
                        http://www.ibr.cs.tu-bs.de/~strauss/sming/";
 
     description     "Core extension definitions for SMIng.";
+
+    revision {
+        date        "2000-02-13";
+        description "SMIng grammar dropped module identity objects.";
+    };
 
     revision {
         date        "1999-05-07";
