@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.37 2004/05/12 13:00:00 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.38 2004/06/07 21:25:22 schoenw Exp $
  */
 
 /*
@@ -1001,7 +1001,7 @@ printCreateMethodPrototype(FILE *f, SmiNode *groupNode)
     
     fprintf(f,
 	    "extern void\n"
-	    "%s_create_%s(GSnmpSession *s", cPrefix, cNodeName);
+	    "%s_create_%s(GNetSnmp *s", cPrefix, cNodeName);
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     fprintf(f, ");\n\n");
 
@@ -1023,7 +1023,7 @@ printDeleteMethodPrototype(FILE *f, SmiNode *groupNode)
     
     fprintf(f,
 	    "extern void\n"
-	    "%s_delete_%s(GSnmpSession *s", cPrefix, cNodeName);
+	    "%s_delete_%s(GNetSnmp *s", cPrefix, cNodeName);
     
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     
@@ -1047,7 +1047,7 @@ printSetMethodPrototype(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     
     fprintf(f,
 	    "extern void\n"
-	    "%s_set_%s(GSnmpSession *s",
+	    "%s_set_%s(GNetSnmp *s",
 	    cPrefix, cNodeName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
@@ -1332,7 +1332,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	if (tableNode) {
 	    cTableName = translate(tableNode->name);
 	    fprintf(f, "extern void\n"
-		    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint64 mask);\n\n",
+		    "%s_get_%s(GNetSnmp *s, %s_%s_t ***%s, gint64 mask);\n\n",
 		    cPrefix, cTableName,
 		    cPrefix, cGroupName, cGroupName);
 	    fprintf(f, "extern void\n"
@@ -1346,7 +1346,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "%s_new_%s(void);\n\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName);
     fprintf(f, "extern void\n"
-	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s",
+	    "%s_get_%s(GNetSnmp *s, %s_%s_t **%s",
 	    cPrefix, cGroupName,
 	    cPrefix, cGroupName,
 	    cGroupName);
@@ -1356,7 +1356,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f, ", gint64 mask);\n\n");
     if (writable) {
 	fprintf(f, "extern void\n"
-		"%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint64 mask);\n\n",
+		"%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask);\n\n",
 		cPrefix, cGroupName,
 		cPrefix, cGroupName, cGroupName);
     }
@@ -2563,7 +2563,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint64 mask)\n"
+	    "%s_get_%s(GNetSnmp *s, %s_%s_t ***%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cTableName, cPrefix, cRowName, cRowName);
@@ -2624,7 +2624,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s",
+	    "%s_get_%s(GNetSnmp *s, %s_%s_t **%s",
 	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
     foreachIndexDo(f, rowNode, printIndexParamsFunc, 1, 0);
     fprintf(f,
@@ -2666,7 +2666,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = g_snmp_session_sync_get(s, in);\n"
+	    "    out = gnet_snmp_sync_get(s, in);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
@@ -2703,7 +2703,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint64 mask)\n"
+	    "%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
@@ -2736,7 +2736,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = g_snmp_session_sync_set(s, in);\n"
+	    "    out = gnet_snmp_sync_set(s, in);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
@@ -2770,7 +2770,7 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_create_%s(GSnmpSession *s",
+	    "%s_create_%s(GNetSnmp *s",
 	    cPrefix, cGroupName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
@@ -2829,7 +2829,7 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_delete_%s(GSnmpSession *s",
+	    "%s_delete_%s(GNetSnmp *s",
 	    cPrefix, cGroupName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
@@ -2900,7 +2900,7 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_set_%s(GSnmpSession *s",
+	    "%s_set_%s(GNetSnmp *s",
 	    cPrefix, cNodeName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
@@ -2978,7 +2978,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s, gint64 mask)\n"
+	    "%s_get_%s(GNetSnmp *s, %s_%s_t **%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
@@ -3001,7 +3001,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = g_snmp_session_sync_getnext(s, in);\n"
+	    "    out = gnet_snmp_sync_getnext(s, in);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
@@ -3032,7 +3032,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint64 mask)\n"
+	    "%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
@@ -3049,7 +3049,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = g_snmp_session_sync_set(s, in);\n"
+	    "    out = gnet_snmp_sync_set(s, in);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
