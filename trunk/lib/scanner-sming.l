@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.26 2000/10/02 12:51:12 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.27 2000/10/25 08:56:40 strauss Exp $
  */
 
 %option noyywrap
@@ -442,7 +442,7 @@ SP		" "
   */
 
  /* e.g. module names: REF: draft,p.12-13 */
-<INITIAL>[A-Z](-?[a-zA-Z0-9]+)*-? {
+<INITIAL>[A-Z](-?[a-zA-Z0-9_]+)*-? {
     if (yytext[yyleng-1] == '-') {
 	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
@@ -457,7 +457,7 @@ SP		" "
 }
 
  /* same for lowercase names */
-<INITIAL>[a-z](-?[a-zA-Z0-9]+)*-? {
+<INITIAL>[a-z](-?[a-zA-Z0-9_]+)*-? {
     if (yytext[yyleng-1] == '-') {
 	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }

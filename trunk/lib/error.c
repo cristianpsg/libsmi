@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.53 2000/10/21 09:35:01 strauss Exp $
+ * @(#) $Id: error.c,v 1.54 2000/10/25 08:56:39 strauss Exp $
  */
 
 #include <config.h>
@@ -346,8 +346,10 @@ static Error errors[] = {
       "index element `%s' of row `%s' must have a size restriction" },
     { 1, ERR_INDEX_NO_SIZE_MOD, "index-element-no-size",
       "index element `%s::%s' of row `%s' must have a size restriction" },
-    { 1, ERR_INDEX_NEGATIVE, "index-element-negative",
+    { 1, ERR_INDEX_RANGE_NEGATIVE, "index-element-range-negative",
       "range restriction of index element `%s' of row `%s' must be non-negative" },
+    { 1, ERR_INDEX_ENUM_NEGATIVE, "index-element-enum-negative",
+      "enumerations of index element `%s' of row `%s' must be non-negative" },
     { 6, ERR_EMPTY_DESCRIPTION, "empty-description",
       "zero length description of `%s'" },
     { 6, ERR_INDEX_NOT_COLUMN, "index-element-not-column",
