@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.25 2002/11/29 14:47:19 schoenw Exp $
+ * @(#) $Id: dump-xml.c,v 1.26 2003/12/12 09:43:01 strauss Exp $
  */
 
 /*
@@ -121,13 +121,15 @@ static char *getStringBasetype(SmiBasetype basetype)
 
 static char *getTimeString(time_t t)
 {
-    static char   s[27];
+    static char   *s = NULL;
     struct tm	  *tm;
 
+    if (s) xfree(s);
+    
     tm = gmtime(&t);
-    sprintf(s, "%04d-%02d-%02d %02d:%02d",
-	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	    tm->tm_hour, tm->tm_min);
+    smiAsprintf(&s, "%04d-%02d-%02d %02d:%02d",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+		tm->tm_hour, tm->tm_min);
     return s;
 }
 
