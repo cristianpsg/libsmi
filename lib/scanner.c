@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner.c,v 1.4 1999/05/31 11:58:36 strauss Exp $
+ * @(#) $Id: scanner.c,v 1.5 1999/06/03 20:37:22 strauss Exp $
  */
 
 #if defined(BACKEND_SMI) || defined(BACKEND_SMING)
@@ -19,11 +19,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "error.h"
-
-
-
-#define thisParser      (*(Parser *)parser)
+#include "scanner.h"
 
 
 

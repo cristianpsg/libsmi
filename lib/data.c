@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.46 1999/12/17 10:44:19 strauss Exp $
+ * @(#) $Id: data.c,v 1.47 1999/12/18 13:35:43 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -365,7 +365,7 @@ findModuleByName(modulename)
 Revision *
 addRevision(date, description, parserPtr)
     time_t	  date;
-    const char	  *description;
+    char	  *description;
     Parser	  *parserPtr;
 {
     Revision	  *revisionPtr;
