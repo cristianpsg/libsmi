@@ -1121,6 +1121,7 @@ static void dumpCm(int modc, SmiModule **modv, int flags, char *output)
 	    graph = xmalloc(sizeof(Graph));
 	    graph->nodes = NULL;
 	    graph->edges = NULL;
+	    graph->clusters = NULL;
 	}
 	
 	for (i = 0; i < modc; i++) {
@@ -1151,6 +1152,7 @@ static void dumpCm(int modc, SmiModule **modv, int flags, char *output)
 		graph = xmalloc(sizeof(Graph));
 		graph->nodes = NULL;
 		graph->edges = NULL;
+		graph->clusters = NULL;
 	    }
 	    
 	    algCreateNodes(modv[i]);
