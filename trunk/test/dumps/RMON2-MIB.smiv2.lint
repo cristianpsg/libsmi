@@ -1,6 +1,6 @@
-dumps/RMON2-MIB.smiv2:25: redefinition of identifier `rmon' (RMON-MIB)
+dumps/RMON2-MIB.smiv2:25: redefinition of identifier `RMON-MIB::rmon'
 ../mibs/ietf/RMON-MIB:88: previous definition of `rmon'
-dumps/RMON2-MIB.smiv2:25: redefinition of identifier `rmon' (RFC1271-MIB)
+dumps/RMON2-MIB.smiv2:25: redefinition of identifier `RFC1271-MIB::rmon'
 ../mibs/ietf/RFC1271-MIB:14: previous definition of `rmon'
 dumps/RMON2-MIB.smiv2:2133: object identifier name `hlMatrixControlNlMaxDesiredEntries' longer than 32 characters
 dumps/RMON2-MIB.smiv2:2229: object identifier name `hlMatrixControlAlMaxDesiredEntries' longer than 32 characters
@@ -10,24 +10,24 @@ dumps/RMON2-MIB.smiv2:3417: object identifier name `alMatrixTopNControlGenerated
 dumps/RMON2-MIB.smiv2:3591: object identifier name `alMatrixTopNProtocolDirLocalIndex' longer than 32 characters
 dumps/RMON2-MIB.smiv2:3635: object identifier name `alMatrixTopNAppProtocolDirLocalIndex' longer than 32 characters
 dumps/RMON2-MIB.smiv2:3770: object identifier name `usrHistoryControlBucketsRequested' longer than 32 characters
-dumps/RMON2-MIB.smiv2:4754: redefinition of identifier `rmonConformance' (RMON-MIB)
+dumps/RMON2-MIB.smiv2:4754: redefinition of identifier `RMON-MIB::rmonConformance'
 ../mibs/ietf/RMON-MIB:211: previous definition of `rmonConformance'
 dumps/RMON2-MIB.smiv2:4990: object identifier name `rmon2MIBApplicationLayerCompliance' longer than 32 characters
-dumps/RMON2-MIB.smiv2:818: index element `protocolDirID' of row `protocolDirEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:841: index element `protocolDirParameters' of row `protocolDirEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:1483: index element `addressMapNetworkAddress' of row `addressMapEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:1448: index of row `addressMapEntry' can exceed OID size limit
-dumps/RMON2-MIB.smiv2:1897: index element `nlHostAddress' of row `nlHostEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2358: index element `nlMatrixSDSourceAddress' of row `nlMatrixSDEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2376: index element `nlMatrixSDDestAddress' of row `nlMatrixSDEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2515: index element `nlMatrixDSDestAddress' of row `nlMatrixDSEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2497: index element `nlMatrixDSSourceAddress' of row `nlMatrixDSEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:1897: index element `nlHostAddress' of row `alHostEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2358: index element `nlMatrixSDSourceAddress' of row `alMatrixSDEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2376: index element `nlMatrixSDDestAddress' of row `alMatrixSDEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2515: index element `nlMatrixDSDestAddress' of row `alMatrixDSEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:2497: index element `nlMatrixDSSourceAddress' of row `alMatrixDSEntry' must have a size restriction
-dumps/RMON2-MIB.smiv2:273: index element `ifIndex' of row `serialConfigEntry' must have a range restriction
-dumps/RMON2-MIB.smiv2:273: index element `ifIndex' of row `netConfigEntry' must have a range restriction
-dumps/RMON2-MIB.smiv2:81: textual convention `LastCreateTime' can not be derived from the textual convention `TimeStamp'
-dumps/RMON2-MIB.smiv2:222: textual convention `ControlString' can not be derived from the textual convention `DisplayString'
+dumps/RMON2-MIB.smiv2:793: index element `protocolDirID' of row `protocolDirEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:820: index element `protocolDirParameters' of row `protocolDirEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:1467: index element `addressMapNetworkAddress' of row `addressMapEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:1436: index of row `addressMapEntry' can exceed OID size limit
+dumps/RMON2-MIB.smiv2:1882: index element `nlHostAddress' of row `nlHostEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2343: index element `nlMatrixSDSourceAddress' of row `nlMatrixSDEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2360: index element `nlMatrixSDDestAddress' of row `nlMatrixSDEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2499: index element `nlMatrixDSDestAddress' of row `nlMatrixDSEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2482: index element `nlMatrixDSSourceAddress' of row `nlMatrixDSEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:1882: index element `nlHostAddress' of row `alHostEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2343: index element `nlMatrixSDSourceAddress' of row `alMatrixSDEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2360: index element `nlMatrixSDDestAddress' of row `alMatrixSDEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2499: index element `nlMatrixDSDestAddress' of row `alMatrixDSEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:2482: index element `nlMatrixDSSourceAddress' of row `alMatrixDSEntry' must have a size restriction
+dumps/RMON2-MIB.smiv2:4249: index element `RFC1213-MIB::ifIndex' of row `serialConfigEntry' must have a range restriction
+dumps/RMON2-MIB.smiv2:4416: index element `RFC1213-MIB::ifIndex' of row `netConfigEntry' must have a range restriction
+dumps/RMON2-MIB.smiv2:70: textual convention `LastCreateTime' can not be derived from the textual convention `TimeStamp'
+dumps/RMON2-MIB.smiv2:162: textual convention `ControlString' can not be derived from the textual convention `DisplayString'

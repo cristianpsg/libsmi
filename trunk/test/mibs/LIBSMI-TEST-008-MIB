@@ -5,6 +5,8 @@ IMPORTS
 	FROM SNMPv2-SMI
     TEXTUAL-CONVENTION
 	FROM SNMPv2-TC
+    OBJECT-GROUP, MODULE-COMPLIANCE
+	FROM SNMPv2-CONF
     testMib
         FROM LIBSMI-TEST-MIB;
 
@@ -35,14 +37,14 @@ libsmiTest008Mib MODULE-IDENTITY
 	     that are not specified in the SMIv2.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-008-MIB:66: textual convention `Red' can not be derived from the textual convention `Color'
-LIBSMI-TEST-008-MIB:87: named number `yellow' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:95: named number `red' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:103: named number `rot' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:124: textual convention `FileAccess' can not be derived from the textual convention `Access'
-LIBSMI-TEST-008-MIB:145: named number `create' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:153: named number `read' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:161: named number `lesen' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:64: textual convention `Red' can not be derived from the textual convention `Color'
+LIBSMI-TEST-008-MIB:89: named number `yellow' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:97: named number `red' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:105: named number `rot' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:122: textual convention `FileAccess' can not be derived from the textual convention `Access'
+LIBSMI-TEST-008-MIB:147: named number `create' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:155: named number `read' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:163: named number `lesen' illegal in sub-type of `Access'
             "
     REVISION        "200005291500Z"
     DESCRIPTION     
@@ -165,5 +167,25 @@ bitsTest5 OBJECT-TYPE
 	"Invalid, since lesen is defined as red(1)."
     ::= { bitsTests 5 }
 
+--
+-- Conformance statements.
+--
+
+libsmiTest008Group OBJECT-GROUP
+    OBJECTS
+        { enumTest1, enumTest2, enumTest3, enumTest4, enumTest5,
+	  bitsTest1, bitsTest2, bitsTest3, bitsTest4, bitsTest5 }
+    STATUS      current
+    DESCRIPTION
+        "All object types."
+    ::= { libsmiTest008Mib 2 }
+
+libsmiTest008Compliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "All object types."
+    MODULE      -- this module
+        MANDATORY-GROUPS { libsmiTest008Group }
+    ::= { libsmiTest008Mib 3 }
 
 END

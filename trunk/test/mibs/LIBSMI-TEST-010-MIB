@@ -102,7 +102,7 @@ test5 OBJECT-TYPE
     MAX-ACCESS	read-only
     STATUS	current
     DESCRIPTION
-	"Invalid size restriction on an octet string."
+	"Invalid enumeration restriction on an octet string."
     ::= { libsmiTest010Mib 5 }
 
 END
