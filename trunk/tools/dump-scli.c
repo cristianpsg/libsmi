@@ -8,12 +8,11 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.3 2001/09/25 07:24:38 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.4 2001/09/27 07:53:39 schoenw Exp $
  */
 
 /*
  * TODO:
- *	  - generate #defines for deprecated and obsolete objects
  *	  - generate range/size checking code
  */
 
@@ -484,7 +483,7 @@ printIndexParams(FILE *f, SmiNode *smiNode)
 		    minSize = getMinSize(iType);
 		    fprintf(f, ", guint32 *%s", cName);
 		    if (minSize != maxSize) {
-			fprintf(f, ", gsize _%sLength", cName);
+			fprintf(f, ", guint16 _%sLength", cName);
 		    }
 		    break;
 		case SMI_BASETYPE_OCTETSTRING:
@@ -493,7 +492,7 @@ printIndexParams(FILE *f, SmiNode *smiNode)
 		    minSize = getMinSize(iType);
 		    fprintf(f, ", guchar *%s", cName);
 		    if (minSize != maxSize) {
-			fprintf(f, ", gsize _%sLength", cName);
+			fprintf(f, ", guint16 _%sLength", cName);
 		    }
 		    break;
 		case SMI_BASETYPE_ENUM:
@@ -636,42 +635,59 @@ static void
 printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 			 SmiType *smiType, int isIndex)
 {
-    char *cName;
+    char *cName, *dNodeName, *dModuleName;
     unsigned minSize, maxSize;
+    SmiModule *smiModule;
+
+    smiModule = smiGetNodeModule(smiNode);
 
     cName = translate(smiNode->name);
+    dNodeName = translateUpper(smiNode->name);
+    dModuleName = translateUpper(smiModule ? smiModule->name : "");
     switch (smiType->basetype) {
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	maxSize = getMaxSize(smiType);
 	minSize = getMinSize(smiType);
+	if (maxSize == minSize) {
+	    fprintf(f,
+		    "#define %s_%sLENGTH %u\n", dModuleName, dNodeName,
+		    (!isIndex || maxSize < 128) ? maxSize : 128);
+	}
 	if (isIndex) {
 	    fprintf(f,
 		    "    guint32  %s[%u];\n", cName,
-		    maxSize < 128 ? maxSize : 128);
+		    (!isIndex || maxSize < 128) ? maxSize : 128);
 	} else {
 	    fprintf(f,
 		    "    guint32  *%s;\n", cName);
 	}
 	if (maxSize != minSize) {
 	    fprintf(f,
-		    "    gsize    _%sLength;\n", cName);
+		    "    guint16  _%sLength;\t/* (%u..%u) */\n",
+		    cName, minSize, maxSize);
 	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
     case SMI_BASETYPE_BITS:
 	maxSize = getMaxSize(smiType);
 	minSize = getMinSize(smiType);
+	if (maxSize == minSize) {
+	    fprintf(f,
+		    "#define %s_%sLENGTH %u\n", dModuleName, dNodeName,
+		    (!isIndex || maxSize < 128) ? maxSize : 128);
+	}
 	if (isIndex) {
 	    fprintf(f,
 		    "    guchar   %s[%u];\n", cName,
-		    maxSize < 128 ? maxSize : 128);
+		    (!isIndex || maxSize < 128) ? maxSize : 128);
 	} else {
 	    fprintf(f,
 		    "    guchar   *%s;\n", cName);
 	}
 	if (maxSize != minSize) {
 	    fprintf(f,
-		    "    gsize    _%sLength;\n", cName);
+		    "    guint16  _%sLength;\t/* (%u..%u) */\n",
+		    cName, minSize, maxSize);
 	}
 	break;
     case SMI_BASETYPE_ENUM:
@@ -1157,7 +1173,7 @@ printStubUtilities(FILE *f, SmiModule *smiModule)
 
     fprintf(f,
 	    "static void\n"
-	    "add_attributes(GSnmpSession *s, GSList **vbl, guint32 *base, gsize len,\n"
+	    "add_attributes(GSnmpSession *s, GSList **vbl, guint32 *base, guint16 len,\n"
 	    "                guint idx, attribute_t *attributes, gint mask)\n"
 	    "{\n"
 	    "    int i;\n"
@@ -1176,7 +1192,7 @@ printStubUtilities(FILE *f, SmiModule *smiModule)
 
     fprintf(f,
 	    "static int\n"
-	    "lookup(GSnmpVarBind *vb, guint32 const *base, gsize const base_len,\n"
+	    "lookup(GSnmpVarBind *vb, guint32 const *base, guint16 const base_len,\n"
 	    "	    attribute_t *attributes, guint32 *idx)\n"
 	    "{\n"
 	    "    int i;\n"
@@ -1299,10 +1315,12 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "static int\n"
 	    "unpack_%s(GSnmpVarBind *vb, %s_%s_t *%s)\n"
 	    "{\n"
-	    "    int %sidx = %u;\n"
+	    "    int idx = %u;\n"
+	    "%s"
 	    "\n",
 	    cGroupName, cModuleName, cGroupName, cGroupName,
-	    smiElement ? "i, len, " : "", groupNode->oidlen + 1);
+	    groupNode->oidlen + 1,
+	    smiElement ? "    guint16 i, len;\n" : "");
 
     for (smiElement = smiGetFirstElement(indexNode);
 	 smiElement; smiElement = smiGetNextElement(smiElement)) {
@@ -1334,30 +1352,41 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 		if (minSize == maxSize) {
 		    fprintf(f,
 			    "    len = %u;\n"
-			    "    if (vb->id_len < idx + len) return -1;\n"
-			    "    for (i = 0; i < len; i++) {\n"
-			    "        %s->%s[i] = vb->id[idx++];\n"
-			    "    }\n",
-			    minSize, cGroupName, cName);
+			    "    if (vb->id_len < idx + len) return -1;\n",
+			    minSize);
 		} else if (last && indexNode->implied) {
 		    fprintf(f,
 			    "    if (vb->id_len < idx) return -1;\n"
-			    "    len = vb->id_len - idx;\n"
-			    "    for (i = 0; i < len; i++) {\n"
-			    "        %s->%s[i] = vb->id[idx++];\n"
-			    "    }\n"
-			    "    %s->_%sLength = len;\n",
-			    cGroupName, cName, cGroupName, cName);
+			    "    len = vb->id_len - idx;\n");
 		} else {
 		    fprintf(f,
 			    "    if (vb->id_len < idx) return -1;\n"
-			    "    len = vb->id[idx++];\n"
-			    "    if (vb->id_len < idx + len) return -1;\n"
-			    "    for (i = 0; i < len; i++) {\n"
-			    "        %s->%s[i] = vb->id[idx++];\n"
-			    "    }\n"
-			    "    %s->_%sLength = len;\n",
-			    cGroupName, cName, cGroupName, cName);
+			    "    len = vb->id[idx++];\n");
+		}
+		if (minSize == maxSize) {
+		    fprintf(f, "    if (len != %u) return -1;\n", minSize);
+		} else {
+		    if (minSize > 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len < %u || len > %u) return -1;\n",
+				minSize, maxSize);
+		    } else if (minSize > 0 && maxSize == 65535) {
+			fprintf(f,
+				"    if (len < %u) return -1;\n", minSize);
+		    } else if (minSize == 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len > %u) return -1;\n", maxSize);
+		    }
+		}
+		fprintf(f,
+			"    if (vb->id_len < idx + len) return -1;\n"
+			"    for (i = 0; i < len; i++) {\n"
+			"        %s->%s[i] = vb->id[idx++];\n"
+			"    }\n",
+			cGroupName, cName);
+		if (minSize != maxSize) {
+		    fprintf(f, 
+			    "    %s->_%sLength = len;\n", cGroupName, cName);
 		}
 		break;
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
@@ -1366,30 +1395,41 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 		if (minSize == maxSize) {
 		    fprintf(f,
 			    "    len = %u;\n"
-			    "    if (vb->id_len < idx + len) return -1;\n"
-			    "    for (i = 0; i < len; i++) {\n"
-			    "        %s->%s[i] = vb->id[idx++];\n"
-			    "    }\n",
-			    minSize, cGroupName, cName);
+			    "    if (vb->id_len < idx + len) return -1;\n",
+			    minSize);
 		} else if (last && indexNode->implied) {
 		    fprintf(f,
 			    "    if (vb->id_len < idx) return -1;\n"
-			    "    len = vb->id_len - idx;\n"
-			    "    for (i = 0; i < len; i++) {\n"
-			    "        %s->%s[i] = vb->id[idx++];\n"
-			    "    }\n"
-			    "    %s->_%sLength = len;\n",
-			    cGroupName, cName, cGroupName, cName);
+			    "    len = vb->id_len - idx;\n");
 		} else {
 		    fprintf(f,
 			    "    if (vb->id_len < idx) return -1;\n"
 			    "    len = vb->id[idx++];\n"
-			    "    if (vb->id_len < idx + len) return -1;\n"
-			    "    for (i = 0; i < len; i++) {\n"
-			    "        %s->%s[i] = vb->id[idx++];\n"
-			    "    }\n"
-			    "    %s->_%sLength = len;\n",
-			    cGroupName, cName, cGroupName, cName);
+			    "    if (vb->id_len < idx + len) return -1;\n");
+		}
+		if (minSize == maxSize) {
+		    fprintf(f, "    if (len != %u) return -1;\n", minSize);
+		} else {
+		    if (minSize > 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len < %u || len > %u) return -1;\n",
+				minSize, maxSize);
+		    } else if (minSize > 0 && maxSize == 65535) {
+			fprintf(f,
+				"    if (len < %u) return -1;\n", minSize);
+		    } else if (minSize == 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len > %u) return -1;\n", maxSize);
+		    }
+		}
+		fprintf(f,
+			"    for (i = 0; i < len; i++) {\n"
+			"        %s->%s[i] = vb->id[idx++];\n"
+			"    }\n",
+			cGroupName, cName);
+		if (minSize != maxSize) {
+		    fprintf(f,
+			    "    %s->_%sLength = len;\n", cGroupName, cName);
 		}
 		break;
 	    default:
@@ -1463,9 +1503,11 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,
 	    ")\n"
 	    "{\n"
-	    "    int %sidx = %u;\n"
+	    "    int idx = %u;\n"
+	    "%s"
 	    "\n",
-	    smiElement ? "i, len, " : "", groupNode->oidlen + 1);
+	    groupNode->oidlen + 1,
+	    smiElement ? "    guint16 i, len;\n" : "");
 
     for (smiElement = smiGetFirstElement(indexNode);
 	 smiElement; smiElement = smiGetNextElement(smiElement)) {
@@ -1506,6 +1548,23 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    "    base[idx++] = len;\n",
 			    cName);
 		}
+		if (minSize == maxSize) {
+		    fprintf(f,
+			    "    if (len != %u) return -1;\n",
+			    minSize);
+		} else {
+		    if (minSize > 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len < %u || len > %u) return -1;\n",
+				minSize, maxSize);
+		    } else if (minSize > 0 && maxSize == 65535) {
+			fprintf(f,
+				"    if (len < %u) return -1;\n", minSize);
+		    } else if (minSize == 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len > %u) return -1;\n", maxSize);
+		    }
+		}
 		fprintf(f,
 			"    for (i = 0; i < len; i++) {\n"
 			"        base[idx++] = %s[i];\n"
@@ -1529,6 +1588,23 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 			    "    len = _%sLength;\n"
 			    "    base[idx++] = len;\n",
 			    cName);
+		}
+		if (minSize == maxSize) {
+		    fprintf(f,
+			    "    if (len != %u) return -1;\n",
+			    minSize);
+		} else {
+		    if (minSize > 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len < %u || len > %u) return -1;\n",
+				minSize, maxSize);
+		    } else if (minSize > 0 && maxSize == 65535) {
+			fprintf(f,
+				"    if (len < %u) return -1;\n", minSize);
+		    } else if (minSize == 0 && maxSize < 65535) {
+			fprintf(f,
+				"    if (len > %u) return -1;\n", maxSize);
+		    }
 		}
 		fprintf(f,
 			"    for (i = 0; i < len; i++) {\n"
@@ -1880,6 +1956,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    ");\n"
 	    "    if (len < 0) {\n"
 	    "        g_warning(\"illegal %s index values\");\n"
+	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n",
 	    cRowName);
@@ -1997,6 +2074,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    ");\n"
 	    "    if (len < 0) {\n"
 	    "        g_warning(\"illegal %s index values\");\n"
+	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n"
 	    "\n",
