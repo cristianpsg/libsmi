@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.33 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-tree.c,v 1.34 2002/11/13 12:29:47 schoenw Exp $
  */
 
 #include <config.h>
@@ -25,8 +25,9 @@ static int pmodc = 0;
 static SmiModule **pmodv = NULL;
 
 static int ignoreconformance = 0;
+static int ignoreleafs = 0;
 static int full = 0;
-
+static int compact = 0;
 
 static char *getFlags(SmiNode *smiNode)
 {
@@ -156,15 +157,31 @@ static int pruneSubTree(SmiNode *smiNode)
     SmiNode   *childNode;
     int       i;
 
-    const int mask = (SMI_NODEKIND_GROUP | SMI_NODEKIND_COMPLIANCE);
+    const int confmask = (SMI_NODEKIND_GROUP | SMI_NODEKIND_COMPLIANCE);
+    const int leafmask = (SMI_NODEKIND_GROUP | SMI_NODEKIND_COMPLIANCE
+			  | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR
+			  | SMI_NODEKIND_ROW | SMI_NODEKIND_NOTIFICATION);
 
     if (! smiNode) {
 	return 1;
     }
 
-    if (ignoreconformance && (smiNode->nodekind & mask)) {
+    /*
+     * First, prune all nodes which the user has told us to ignore.
+     */
+
+    if (ignoreconformance && (smiNode->nodekind & confmask)) {
 	return 1;
     }
+
+    if (ignoreleafs && (smiNode->nodekind & leafmask)) {
+	return 1;
+    }
+
+    /*
+     * Next, prune all nodes that do not belong to the set of modules
+     * we are looking at.
+     */
 
     smiModule = smiGetNodeModule(smiNode);
     for (i = 0; i < pmodc; i++) {
@@ -175,6 +192,12 @@ static int pruneSubTree(SmiNode *smiNode)
 	}
     }
 
+    /*
+     * Finally, prune all nodes where all child nodes are pruned. This
+     * actually prunes too much in the case of ignoreleafs since we
+     * still want to see the path to the leaves we have pruned. XXX
+     */
+
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
@@ -182,6 +205,7 @@ static int pruneSubTree(SmiNode *smiNode)
 	    return 0;
 	}
     }
+
     return 1;
 }
 
@@ -315,9 +339,10 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		continue;
 	    }
 	    i++;
-	    if ((childNode->nodekind != SMI_NODEKIND_COLUMN
-		&& childNode->nodekind != SMI_NODEKIND_SCALAR)
-		|| (lastNodeKind != childNode->nodekind)) {
+	    if (! compact &&
+		((childNode->nodekind != SMI_NODEKIND_COLUMN
+		  && childNode->nodekind != SMI_NODEKIND_SCALAR)
+		 || (lastNodeKind != childNode->nodekind))) {
 		fprintf(f, "%s  |\n", prefix);
 	    }
 	    newprefix = xmalloc(strlen(prefix)+10);
@@ -426,9 +451,13 @@ void initTree()
 {
     static SmidumpDriverOption opt[] = {
 	{ "no-conformance", OPT_FLAG, &ignoreconformance, 0,
-	  "do not show conformance definitions"},
+	  "do not show conformance nodes"},
+	{ "no-leafs", OPT_FLAG, &ignoreleafs, 0,
+	  "do not show leaf nodes"},
 	{ "full-root", OPT_FLAG, &full, 0,
-	  "show the full path to the root"},
+	  "generate the full path to the root"},
+	{ "compact", OPT_FLAG, &compact, 0,
+	  "generate a more compact representation"},
         { 0, OPT_END, 0, 0 }
     };
     
