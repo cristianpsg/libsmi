@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.3 1999/03/16 17:24:10 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.1 1999/03/31 17:24:28 strauss Exp $
  */
 
 %option noyywrap
@@ -106,10 +106,12 @@ smingTrackInput(nl, parser)
  * Lex pattern definitions.
  */
 delim		([^a-zA-Z0-9-])
-eol             ("\n"|"\n\015"|"\015\n")
-
-
-
+lineBreak       ("\n\015"|"\n")
+WSP		(" "|"\t")
+VCHAR		([\041-\176])
+textVChar	[!#-\176]
+HTAB		"\t"
+SP		" "
 /*
  * Lex state definitions.
  */
@@ -131,12 +133,12 @@ eol             ("\n"|"\n\015"|"\015\n")
     BEGIN(Comment);
 }
 
-<Comment>{eol} {
+<Comment>{lineBreak} {
     smingTrackInput(1, parser);
     BEGIN(INITIAL);
 }
 
-<Comment>. {
+<Comment>{WSP}|{VCHAR} {
     smingTrackInput(0, parser);
 }
 
@@ -160,15 +162,15 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
  /*
-  * Lex rules for white space.
+  * Lex rules for separators.
   */
 
-<INITIAL>[ \t] {
-    smingTrackInput(0, parser);
+<INITIAL>{lineBreak} {
+    smingTrackInput(1, parser);
 }
 
-<INITIAL>{eol} {
-    smingTrackInput(1, parser);
+<INITIAL>{WSP} {
+    smingTrackInput(0, parser);
 }
 
  /*
@@ -179,6 +181,330 @@ eol             ("\n"|"\n\015"|"\015\n")
     smingTrackInput(0, parser);
     yylval.id = yytext;
     return moduleKeyword;
+}
+
+<INITIAL>import/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return importKeyword;
+}
+
+<INITIAL>revision/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return revisionKeyword;
+}
+
+<INITIAL>oid/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return oidKeyword;
+}
+
+<INITIAL>date/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return dateKeyword;
+}
+
+<INITIAL>organization/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return organizationKeyword;
+}
+
+<INITIAL>contact/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return contactKeyword;
+}
+
+<INITIAL>description/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return descriptionKeyword;
+}
+
+<INITIAL>reference/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return referenceKeyword;
+}
+
+<INITIAL>typedef/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return typedefKeyword;
+}
+
+<INITIAL>type/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return typeKeyword;
+}
+
+<INITIAL>writetype/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return writetypeKeyword;
+}
+
+<INITIAL>node/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return nodeKeyword;
+}
+
+<INITIAL>scalar/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return scalarKeyword;
+}
+
+<INITIAL>table/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return tableKeyword;
+}
+
+<INITIAL>column/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return columnKeyword;
+}
+
+<INITIAL>row/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return rowKeyword;
+}
+
+<INITIAL>notification/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return notificationKeyword;
+}
+
+<INITIAL>group/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return groupKeyword;
+}
+
+<INITIAL>compliance/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return complianceKeyword;
+}
+
+<INITIAL>format/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return formatKeyword;
+}
+
+<INITIAL>units/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return unitsKeyword;
+}
+
+<INITIAL>status/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return statusKeyword;
+}
+
+<INITIAL>access/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return accessKeyword;
+}
+
+<INITIAL>default/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return defaultKeyword;
+}
+
+<INITIAL>implied/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return impliedKeyword;
+}
+
+<INITIAL>index/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return indexKeyword;
+}
+
+<INITIAL>augments/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return augmentsKeyword;
+}
+
+<INITIAL>reorders/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return reordersKeyword;
+}
+
+<INITIAL>sparse/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return sparseKeyword;
+}
+
+<INITIAL>expands/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return expandsKeyword;
+}
+
+<INITIAL>create/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return createKeyword;
+}
+
+<INITIAL>objects/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return objectsKeyword;
+}
+
+<INITIAL>notifications/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return notificationsKeyword;
+}
+
+<INITIAL>mandatory/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return mandatoryKeyword;
+}
+
+<INITIAL>optional/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return optionalKeyword;
+}
+
+<INITIAL>refine/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return refineKeyword;
+}
+
+<INITIAL>OctetString/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return OctetStringKeyword;
+}
+
+<INITIAL>ObjectIdentifier/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return ObjectIdentifierKeyword;
+}
+
+<INITIAL>Integer32/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return Integer32Keyword;
+}
+
+<INITIAL>Unsigned32/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return Unsigned32Keyword;
+}
+
+<INITIAL>Integer64/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return Integer64Keyword;
+}
+
+<INITIAL>Unsigned64/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return Unsigned64Keyword;
+}
+
+<INITIAL>Float32/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return Float32Keyword;
+}
+
+<INITIAL>Float64/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return Float64Keyword;
+}
+
+<INITIAL>Float128/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return Float128Keyword;
+}
+
+<INITIAL>Bits/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return BitsKeyword;
+}
+
+<INITIAL>Enumeration/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return EnumerationKeyword;
+}
+
+<INITIAL>current/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return currentKeyword;
+}
+
+<INITIAL>deprecated/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return deprecatedKeyword;
+}
+
+<INITIAL>obsolete/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return obsoleteKeyword;
+}
+
+<INITIAL>noaccess/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return noaccessKeyword;
+}
+
+<INITIAL>notifyonly/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return notifyonlyKeyword;
+}
+
+<INITIAL>readonly/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return readonlyKeyword;
+}
+
+<INITIAL>readwrite/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return readwriteKeyword;
 }
 
  /*
@@ -203,6 +529,119 @@ eol             ("\n"|"\n\015"|"\015\n")
     }
     yylval.id = strdup(yytext);
     return lcIdentifier;
+}
+
+ /*
+  * Lex rules for numbers.
+  *
+  * NOTE: `-' is a separate token. Hence, there are no negative numbers.
+  */
+
+<INITIAL>0+/[0-9] {
+    smingTrackInput(0, parser);
+    printError(parser, ERR_LEADING_ZEROS);
+}
+
+<INITIAL>([1-9][0-9]*|0)/[^0-9] {
+    smingTrackInput(0, parser);
+    if ((strlen(yytext) > sizeof(MAX_NUMBER)-1) ||
+	((strlen(yytext) == sizeof(MAX_NUMBER)-1) &&
+	 (strcmp(yytext, MAX_NUMBER) > 0))) {
+	printError(parser, ERR_NUMBER_TO_LARGE, yytext);
+    }
+    yylval.id = strdup(yytext);
+    return decimalNumber;
+}
+
+ /*
+  *
+  */
+
+<INITIAL>0.00/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return floatValue;
+}
+
+<INITIAL>"\"\""/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return textSegment;
+}
+
+<INITIAL>0x42/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return hexadecimalNumber;
+}
+
+ /*
+  * Lex rules for textSegments.
+  */
+
+<INITIAL>\" {
+    smingTrackInput(0, parser);
+    currentStringColumn = thisParser.column+1;
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
+    currentStringLength = 0;
+    currentString[0] = '\0';
+    BEGIN(String);
+}
+
+<String>\" {
+    smingTrackInput(0, parser);
+    yylval.text = currentString;
+    BEGIN(INITIAL);
+    return textSegment;
+}
+
+ /*
+  * any 7-bit displayable ASCII character
+  * tab character
+  * spaces, and
+  * line terminator characters (\n or \r\n)
+  */
+<String>{textVChar}|{HTAB}|{SP} {
+    smingTrackInput(0, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
+    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength+1] = '\0';
+    currentStringLength++;
+    currentStringFetchLine = 1;
+}
+
+<String>{lineBreak} {
+    smingTrackInput(1, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
+    currentString[currentStringLength] = '\n';
+    currentString[currentStringLength+1] = '\0';
+    currentStringLength++;
+    currentStringFetchLine = 0;
+}
+
+<String>. {
+    char a[20];
+
+    smingTrackInput(0, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
+    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength+1] = '\0';
+    currentStringLength++;
+    sprintf(a, "code %u, column %d", (unsigned char)yytext[0],
+	    thisParser.column-1);
+    printError(parser, ERR_ILLEGAL_CHAR_IN_STRING, a);
 }
 
  /*
