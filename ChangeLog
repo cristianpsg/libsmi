@@ -1,3 +1,8 @@
+2000-10-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/RDBMS-MIB: Fixed an unknown imported identifier.
+	Thanks to Pat Knight.
+
 2000-10-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/PTOPO-MIB: added (RFC 2922).
