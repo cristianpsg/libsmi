@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.103 2002/11/20 13:58:23 schoenw Exp $
+ * @(#) $Id: error.c,v 1.104 2003/02/21 10:36:36 schoenw Exp $
  */
 
 #include <config.h>
@@ -355,7 +355,11 @@ static Error errors[] = {
     { 2, ERR_INDEX_NO_RANGE_MOD, "index-element-no-range",
       "index element `%s::%s' of row `%s' must have a range restriction", NULL},
     { 1, ERR_INDEX_STRING_NO_SIZE, "index-element-no-size",
-      "index element `%s' of row `%s' must have a size restriction", NULL},
+      "index element `%s' of row `%s' must have a size restriction",
+      "RFC 2578 section 3.5 restricts object identifier to have at\n"
+      "most 128 sub-identifier. This implies that index elements used\n"
+      "to form instance identifiers must have a size contraint which\n"
+      "ensures that the 128 sub-identifier constraint is kept intact." },
     { 1, ERR_INDEX_STRING_NO_SIZE_MOD, "index-element-no-size",
       "index element `%s::%s' of row `%s' must have a size restriction", NULL},
     { 6, ERR_INDEX_OID_NO_SIZE, "index-element-no-size",
@@ -574,9 +578,9 @@ static Error errors[] = {
       "type `%s' used by `%s' is deprecated", NULL},
     { 5, ERR_TYPE_STATUS_OBSOLETE, "type-status-obsolete",
       "type `%s' used by `%s' is obsolete",
-      "This warning is generated in cases where something with status "
-      "`current' uses a type whose status has been changed to `obsolete'. "
-      "Note that the status of imported types can change without the "
+      "This warning is generated in cases where something with status\n"
+      "`current' uses a type whose status has been changed to `obsolete'.\n"
+      "Note that the status of imported types can change without the\n"
       "control of the modules using these types." },
     { 0, 0, NULL, NULL, NULL }
 };
@@ -685,7 +689,7 @@ smiGetErrorTag(int id)
     if (id < 0 || id >= sizeof(errors) / sizeof(Error)) {
 	return NULL;
     }
-    return errors[id].tag ? errors[id].tag : "";
+    return errors[id].tag;
 }
 
 
@@ -712,7 +716,7 @@ smiGetErrorMsg(int id)
     if (id < 0 || id >= sizeof(errors) / sizeof(Error)) {
 	return NULL;
     }
-    return errors[id].fmt ? errors[id].fmt : "";
+    return errors[id].fmt;
 }
 
 
@@ -739,7 +743,7 @@ smiGetErrorDescription(int id)
     if (id < 0 || id >= sizeof(errors) / sizeof(Error)) {
 	return NULL;
     }
-    return errors[id].description ? errors[id].description : "";
+    return errors[id].description;
 }
 
 
