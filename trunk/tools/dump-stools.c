@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.8 2001/02/23 15:00:51 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.9 2001/03/01 08:02:53 schoenw Exp $
  */
 
 /*
@@ -635,24 +635,17 @@ static void printEnumTables(FILE *f, SmiModule *smiModule)
 
 
 
-static void printIndexAssignement(FILE *f, SmiNode *groupNode)
+static void printUnpackMethod(FILE *f, SmiNode *groupNode)
 {
     SmiElement *smiElement;
     SmiNode *indexNode = NULL;
     SmiNode *iNode;
     SmiType *iType;
     char    *cGroupName, *cName;
-    unsigned idx = groupNode->oidlen + 1;
     unsigned maxSize, minSize;
     int last = 0;
     
     cGroupName = translate(groupNode->name);
-
-    fprintf(f,
-	    "    {\n"
-	    "        GSnmpVarBind *vb = (GSnmpVarBind *) vbl->data;\n"
-	    "        int idx = %u;\n",
-	    groupNode->oidlen + 1);
 
     switch (groupNode->indexkind) {
     case SMI_INDEX_INDEX:
@@ -670,7 +663,27 @@ static void printIndexAssignement(FILE *f, SmiNode *groupNode)
 	indexNode = NULL;
 	break;
     }
-    
+
+    for (smiElement = smiGetFirstElement(indexNode);
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	iNode = smiGetElementNode(smiElement);
+	if (iNode) {
+	    iType = smiGetNodeType(iNode);
+	    if (iType && iType->basetype == SMI_BASETYPE_OCTETSTRING) {
+		break;
+	    }
+	}
+    }
+
+    fprintf(f,
+	    "static int\n"
+	    "unpack_%s(GSnmpVarBind *vb, %s_t *%s)\n"
+	    "{\n"
+	    "    int %sidx = %u;\n"
+	    "\n",
+	    cGroupName, cGroupName, cGroupName,
+	    smiElement ? "i, len, " : "", groupNode->oidlen + 1);
+
     for (smiElement = smiGetFirstElement(indexNode);
 	 smiElement; smiElement = smiGetNextElement(smiElement)) {
 	iNode = smiGetElementNode(smiElement);
@@ -685,14 +698,14 @@ static void printIndexAssignement(FILE *f, SmiNode *groupNode)
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
 		fprintf(f,
-			"        if (vb->id_len < idx) goto illegal;\n"
-			"        %s->%s = vb->id[idx++];\n",
+			"    if (vb->id_len < idx) return -1;\n"
+			"    %s->%s = vb->id[idx++];\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
-			"        if (vb->id_len < idx) goto illegal;\n"
-			"        %s->%s = vb->id[idx++];\n",
+			"    if (vb->id_len < idx) return -1;\n"
+			"    %s->%s = vb->id[idx++];\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
@@ -700,40 +713,36 @@ static void printIndexAssignement(FILE *f, SmiNode *groupNode)
 		minSize = getMinSize(iType);
 		if (minSize == maxSize) {
 		    fprintf(f,
-			    "        if (vb->id_len < idx + %u) goto illegal;\n",
-			    minSize);
-		    fprintf(f,
-			    "        {\n"
-			    "            int i;\n"
-			    "            for (i = 0; i < %u; i++) {\n"
-			    "                %s->%s[i] = vb->id[idx++];\n"
-			    "            }\n"
-			    "        }\n",
+			    "    len = %u;\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n",
 			    minSize, cGroupName, cName);
-		    idx += minSize;
-		} else if (last && iNode->implied) {
-		    /* need to handle last implied string */
+		} else if (last && indexNode->implied) {
 		    fprintf(f,
-			    "        /* XXX fix this %s->%s = ?; */\n",
-			    cGroupName, cName);
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id_len - idx;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
+			    cGroupName, cName, cGroupName, cName);
 		} else {
 		    fprintf(f,
-			    "        {\n"
-			    "            int i, len;\n"
-			    "            if (vb->id_len < idx) goto illegal;\n"
-			    "            len = vb->id[idx++];\n"
-			    "            if (vb->id_len < idx + len) goto illegal;\n"
-			    "            for (i = 0; i < len; i++) {\n"
-			    "                %s->%s[i] = vb->id[idx++];\n"
-			    "            }\n"
-			    "            %s->_%sLength = len;\n"
-			    "        }\n",
+			    "    if (vb->id_len < idx) return -1;\n"
+			    "    len = vb->id[idx++];\n"
+			    "    if (vb->id_len < idx + len) return -1;\n"
+			    "    for (i = 0; i < len; i++) {\n"
+			    "        %s->%s[i] = vb->id[idx++];\n"
+			    "    }\n"
+			    "    %s->_%sLength = len;\n",
 			    cGroupName, cName, cGroupName, cName);
 		}
 		break;
 	    default:
 		fprintf(f,
-			"        /* XXX fix this %s->%s = ?; */\n",
+			"    /* XXX how to unpack %s->%s ? */\n",
 			cGroupName, cName);
 		break;
 	    }
@@ -742,17 +751,9 @@ static void printIndexAssignement(FILE *f, SmiNode *groupNode)
     }
 
     fprintf(f,
-	    "        if (vb->id_len > idx) { \n"
-	    "        illegal:\n"
-	    "            g_warning(\"illegal %s instance identifier\");\n"
-	    "            g_free(%s);\n"
-	    "            return NULL;\n"
-	    "        }\n",
-	    groupNode->name, cGroupName);
-
-    fprintf(f,
-	    "    }\n"
-	    "\n");
+	    "    if (vb->id_len > idx) return -1;\n"
+	    "    return 0;\n"
+	    "}\n\n");
 
     xfree(cGroupName);
 }
@@ -854,6 +855,10 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 
     cGroupName = translate(groupNode->name);
 
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	printUnpackMethod(f, groupNode);
+    }
+    
     fprintf(f,
 	    "static %s_t *\n"
 	    "assign_%s(GSList *vbl)\n"
@@ -883,7 +888,13 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 	    "\n", cGroupName, cGroupName);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
-	printIndexAssignement(f, groupNode);
+	fprintf(f,
+		"    if (unpack_%s((GSnmpVarBind *) vbl->data, %s) < 0) {\n"
+		"        g_warning(\"illegal %s instance identifier\");\n"
+		"        g_free(%s);\n"
+		"        return NULL;\n"
+		"    }\n\n",
+		cGroupName, cGroupName, cGroupName, cGroupName);
     }
     
     fprintf(f,
