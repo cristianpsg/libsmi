@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.4 1998/11/21 21:25:15 strauss Exp $
+# @(#) $Id: Makefile,v 1.5 1998/11/25 14:36:33 strauss Exp $
 #
 
 MIBDIR	= ../scotty/tnm/mibs
@@ -33,9 +33,13 @@ parser.y.html: src/parser.y
 install-prg: miblint mibs.conf
 	cp smi.conf ${PREFIX}/etc/smi.conf
 	cp smid.conf ${PREFIX}/etc/smid.conf
+	cp smiquery.conf ${PREFIX}/etc/smiquery.conf
+	#cp smiscotty.conf ${PREFIX}/etc/smiscotty.conf
 	cp miblint ${PREFIX}/bin
 	cp smiclient ${PREFIX}/bin
+	cp smiquery ${PREFIX}/bin
 	cp smid ${PREFIX}/sbin
+	cp smi.h ${PREFIX}/include
 	cp libsmi.a ${PREFIX}/lib
 	cp miblint.1 ${PREFIX}/man/man1/miblint.1
 	if [ ! -d ${PREFIX}/lib/smi ] ; then mkdir ${PREFIX}/lib/smi ; fi

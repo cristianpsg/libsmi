@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.12 1998/11/23 12:56:59 strauss Exp $
+% * @(#) $Id: smi.x,v 1.13 1998/11/25 02:50:57 strauss Exp $
 % */
 %
 
@@ -64,17 +64,18 @@ enum smi_access {
 
 enum smi_decl {
     SMI_DECL_UNKNOWN		= 0,
-    SMI_DECL_SIMPLEASSIGNMENT  	= 1,
-    SMI_DECL_OBJECTTYPE	     	= 2,
-    SMI_DECL_OBJECTIDENTITY     = 3,
-    SMI_DECL_MODULEIDENTITY     = 4,
-    SMI_DECL_NOTIFICATIONTYPE   = 5,
-    SMI_DECL_TRAPTYPE	     	= 6,
-    SMI_DECL_OBJECTGROUP	= 7, 
-    SMI_DECL_NOTIFICATIONGROUP  = 8,
-    SMI_DECL_MODULECOMPLIANCE   = 9,
-    SMI_DECL_AGENTCAPABILITIES  = 10,
-    SMI_DECL_TEXTUALCONVENTION	= 11
+    SMI_DECL_TYPEASSIGNMENT  	= 1,
+    SMI_DECL_VALUEASSIGNMENT  	= 2,
+    SMI_DECL_OBJECTTYPE	     	= 3,
+    SMI_DECL_OBJECTIDENTITY     = 4,
+    SMI_DECL_MODULEIDENTITY     = 5,
+    SMI_DECL_NOTIFICATIONTYPE   = 6,
+    SMI_DECL_TRAPTYPE	     	= 7,
+    SMI_DECL_OBJECTGROUP	= 8, 
+    SMI_DECL_NOTIFICATIONGROUP  = 9,
+    SMI_DECL_MODULECOMPLIANCE   = 10,
+    SMI_DECL_AGENTCAPABILITIES  = 11,
+    SMI_DECL_TEXTUALCONVENTION	= 12
 };
 
 struct smi_getspec {

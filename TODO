@@ -233,3 +233,7 @@ x shift/reduce conflict at
   smiproc_node_1: RPC: Unable to receive; errno = Connection reset by peer
 
   ok.
+
+. weiter mit: tnmMibTcl.c: WalkTree und cmdWalk
+
+
