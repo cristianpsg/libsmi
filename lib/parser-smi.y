@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.84 2000/02/12 16:06:24 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.85 2000/02/13 13:20:52 strauss Exp $
  */
 
 %{
@@ -751,13 +751,6 @@ modules:		module
  */
 module:			moduleName
 			{
-			    /*
-			     * This module is to be parsed, either if we
-			     * want the whole file or if its name matches
-			     * the module name we are looking for.
-			     * In fact, we always parse it, but we just
-			     * remember its contents if needed.
-			     */
 			    thisParserPtr->modulePtr = findModuleByName($1);
 			    if (!thisParserPtr->modulePtr) {
 				thisParserPtr->modulePtr =
@@ -791,7 +784,6 @@ module:			moduleName
 				 */
 				YYABORT;
 			    }
-
 			}
 			DEFINITIONS COLON_COLON_EQUAL BEGIN_
 			exportsClause
@@ -2059,7 +2051,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 						 $11);
 			    setModuleDescription(thisParserPtr->modulePtr,
 						 $13);
-			    setObjectDescription(objectPtr, $13);
+			    /* setObjectDescription(objectPtr, $13); */
 			    $$ = 0;
 			}
         ;

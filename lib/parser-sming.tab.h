@@ -19,17 +19,18 @@ typedef union {
     List	   *listPtr;
     Revision	   *revisionPtr;
 } YYSTYPE;
-#define	DOT_DOT	258
-#define	COLON_COLON	259
-#define	ucIdentifier	260
-#define	lcIdentifier	261
-#define	floatValue	262
-#define	textSegment	263
-#define	decimalNumber	264
-#define	hexadecimalNumber	265
-#define	moduleKeyword	266
-#define	importKeyword	267
-#define	revisionKeyword	268
+#define	DOT_DOT	257
+#define	COLON_COLON	258
+#define	ucIdentifier	259
+#define	lcIdentifier	260
+#define	floatValue	261
+#define	textSegment	262
+#define	decimalNumber	263
+#define	hexadecimalNumber	264
+#define	moduleKeyword	265
+#define	importKeyword	266
+#define	revisionKeyword	267
+#define	identityKeyword	268
 #define	oidKeyword	269
 #define	dateKeyword	270
 #define	organizationKeyword	271

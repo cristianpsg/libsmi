@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.64 2000/02/10 14:29:27 strauss Exp $
+ * @(#) $Id: data.c,v 1.65 2000/02/12 10:56:20 strauss Exp $
  */
 
 #include <config.h>
@@ -2210,7 +2210,7 @@ duplicateType(templatePtr, flags, parserPtr)
     
     typePtr->export.name	        = NULL;
     typePtr->export.basetype		= templatePtr->export.basetype;
-    typePtr->export.decl		= templatePtr->export.decl;
+    typePtr->export.decl		= SMI_DECL_IMPLICIT_TYPE;
     typePtr->export.format		= NULL;
     typePtr->export.value.basetype	= SMI_BASETYPE_UNKNOWN;
     typePtr->export.units		= NULL;
@@ -3324,6 +3324,7 @@ freeData()
 	    util_free(macroPtr);
 	}
 
+#if 0
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = nextTypePtr) {
 	    nextTypePtr = typePtr->nextPtr;
@@ -3350,7 +3351,8 @@ freeData()
 	    util_free(typePtr->export.reference);
 	    util_free(typePtr);
 	}
-
+#endif
+	
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = nextObjectPtr) {
 	    nextObjectPtr = objectPtr->nextPtr;
