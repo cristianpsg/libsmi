@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.12 2001/03/19 20:39:23 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.13 2001/03/23 03:40:30 schoenw Exp $
  */
 
 /*
@@ -1042,7 +1042,8 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
+static void printAddVarBind(FILE *f, SmiNode *smiNode,
+			    SmiNode *groupNode, int flags)
 {
     SmiType *smiType;
     char *cName, *cGroupName;
@@ -1057,8 +1058,10 @@ static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
      * Suppress all INDEX objects as if they were not-accessible.
      */
 
-    if (isIndex(groupNode, smiNode)) {
-	return;
+    if (flags) {
+	if (isIndex(groupNode, smiNode)) {
+	    return;
+	}
     }
 
     cName = translate(smiNode->name);
@@ -1085,7 +1088,7 @@ static void printGetTableMethod(FILE *f, SmiModule *smiModule,
 {
     SmiNode *smiNode, *tableNode;
     char    *cModuleName, *cEntryName, *cTableName;
-    int     i;
+    int     i, idx, cnt;
 
     tableNode = smiGetParentNode(entryNode);
     if (! tableNode) {
@@ -1119,10 +1122,17 @@ static void printGetTableMethod(FILE *f, SmiModule *smiModule,
 	    "\n",
 	    cEntryName);
 
+    for (smiNode = smiGetFirstChildNode(entryNode), idx = 0, cnt = 0;
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	if (isIndex(entryNode, smiNode)) idx++;
+	cnt++;
+    }
+    
     for (smiNode = smiGetFirstChildNode(entryNode);
 	 smiNode;
 	 smiNode = smiGetNextChildNode(smiNode)) {
-	printAddVarBind(f, smiNode, entryNode);
+	printAddVarBind(f, smiNode, entryNode, cnt > idx);
     }
 
     fprintf(f,
@@ -1159,8 +1169,8 @@ static void printGetTableMethod(FILE *f, SmiModule *smiModule,
 
 
 
-static void printGetMethod(FILE *f, SmiModule *smiModule,
-			   SmiNode *groupNode)
+static void printGetScalarsMethod(FILE *f, SmiModule *smiModule,
+				  SmiNode *groupNode)
 {
     SmiNode *smiNode;
     char    *cModuleName, *cGroupName;
@@ -1193,7 +1203,7 @@ static void printGetMethod(FILE *f, SmiModule *smiModule,
     for (smiNode = smiGetFirstChildNode(groupNode);
 	 smiNode;
 	 smiNode = smiGetNextChildNode(smiNode)) {
-	printAddVarBind(f, smiNode, groupNode);
+	printAddVarBind(f, smiNode, groupNode, 0);
     }
 
     fprintf(f,
@@ -1343,7 +1353,7 @@ static void printMethods(FILE *f, SmiModule *smiModule)
 	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		printGetTableMethod(f, smiModule, smiNode);
 	    } else {
-		printGetMethod(f, smiModule, smiNode);
+		printGetScalarsMethod(f, smiModule, smiNode);
 	    }
 	    printFreeMethod(f, smiModule, smiNode);
 	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
