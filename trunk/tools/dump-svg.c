@@ -151,7 +151,7 @@ static const float HEADFONTSIZETABLE   = (float)7;
 static const float HEADSPACESIZETABLE  = (float)4;
 static const float ATTRFONTSIZE        = (float)6;
 static const float ATTRSPACESIZE       = (float)2;
-static const float TABLEHEIGHT         = (float)35; /*headline of the table*/
+static const float TABLEHEIGHT         = (float)20; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
@@ -165,11 +165,6 @@ static const float STARTSCALE          =(float)0.5;
 
 //used by the springembedder
 static const int ITERATIONS            =100;
-
-/*
- * Stereotype Name
- */
-static const char* STEREOTYPE          = "smi mib class";
 
 /*
  * Property String for index objects
@@ -2230,10 +2225,7 @@ static void printSVGObject(GraphNode *node, int *classNr)
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
-    printf("    <text x=\"0\" y=\"%.2f\" style=\"text-anchor:middle\">\n",
-           yOrigin + 15);
-    printf("         &lt;&lt;%s&gt;&gt;</text>\n", STEREOTYPE);
-    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 30);
+    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
     //the "+"-button
@@ -2317,10 +2309,7 @@ static void printSVGGroup(int group, int *classNr)
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + tNode->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
-    printf("    <text x=\"0\" y=\"%.2f\" style=\"text-anchor:middle\">\n",
-           yOrigin + 15);
-    printf("         &lt;&lt;%s&gt;&gt;</text>\n", STEREOTYPE);
-    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 30);
+    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
     //the "+"-button
