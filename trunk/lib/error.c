@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.40 2000/04/11 09:00:24 strauss Exp $
+ * @(#) $Id: error.c,v 1.41 2000/04/12 17:02:48 strauss Exp $
  */
 
 #include <config.h>
@@ -287,6 +287,22 @@ Error errors[] = {
       "Table node `%s' must by `not-accessible'" },
     { 3, ERR_ROW_ACCESS, "access-row-illegal", 
       "Row node `%s' must by `not-accessible'" },
+    { 2, ERR_ENUM_SUBTYPE, "subtype-enumeration-illegal", 
+      "Named number `%s' illegal in sub-type of `%s'" },
+    { 2, ERR_BITS_SUBTYPE, "subtype-bits-illegal", 
+      "Named number `%s' illegal in sub-type of `%s'" },
+    { 2, ERR_ENUM_NAME_REDEFINITION, "enum-name-redefinition", 
+      "Redefinition of name `%s' in number enumeration" },
+    { 2, ERR_ENUM_NUMBER_REDEFINITION, "enum-number-redefinition", 
+      "Redefinition of number `%d' in number enumeration" },
+    { 2, ERR_BITS_NAME_REDEFINITION, "bits-name-redefinition", 
+      "Redefinition of name `%s' in named bits list" },
+    { 2, ERR_BITS_NUMBER_REDEFINITION, "bits-number-redefinition", 
+      "Redefinition of number `%u' in named bits list" },
+    { 2, ERR_BITS_NUMBER_TOO_LARGE, "bits-number-too-large", 
+      "Named bit `%s(%u)' exceeds maximum bit position" },
+    { 4, ERR_BITS_NUMBER_LARGE, "bits-number-large", 
+      "Named bit `%s(%u)' may cause interoperability or implementation problems" },
  
     { 0, 0, NULL, NULL }
 };
