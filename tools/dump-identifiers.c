@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.3 2000/08/18 12:06:17 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.4 2000/08/18 13:15:03 strauss Exp $
  */
 
 /*
@@ -81,6 +81,7 @@ static void printIdentifiers(SmiModule *module)
     for (smiNode = smiGetFirstNode(module, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	if (smiNode->oidlen == 1) continue;
 	printf("%-15s %-20s %-12s %-30s\n",
 	       module->name, smiNode->name,
 	       getNodekindString(smiNode->nodekind),
@@ -116,4 +117,4 @@ void dumpIdentifiers(Module *module)
 	    printIdentifiers(mPtr->smiModule);
 	}
     }
-}
+} /*  */
