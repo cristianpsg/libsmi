@@ -121,3 +121,9 @@ o Allow the MIB server to support lookup by OID.
 o Is there any value in MIB-by-OID lookup through DNS? ;-)
 
 o Include documents (draft on xml, etc.) with the distribution.
+
+o X.208, section 28 describes the allowed OID values. They can have the
+  form ``{ ObjIdComponentList }'' or ``{ DefinedValue ObjIdComponentList }''
+  where ObjIdComponentList must not be empty. We should fix the parser so
+  that it complains about something like ``{ mib-2 }''.
+
