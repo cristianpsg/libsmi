@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.29 2002/11/13 12:30:29 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.30 2002/11/18 07:51:03 schoenw Exp $
  */
 
 /*
@@ -47,6 +47,7 @@
 #define regfree(a)
 #endif
 
+static char *prefix = NULL;
 static char *include = NULL;
 static char *exclude = NULL;
 static regex_t _incl_regex, *incl_regex = NULL;
@@ -746,18 +747,66 @@ printIndexAssignmentFunc(FILE *f, SmiNode *smiNode, SmiNode *iNode,
 
 
 static void
+printHeaderEnumeration(FILE *f, SmiModule *smiModule,
+		       SmiNode * smiNode, SmiType *smiType)
+{
+    SmiNamedNumber *nn;
+    char *cName, *cPrefix;
+    char *dName, *dModuleName;
+    char *name;
+    int len;
+
+    if (smiType && smiType->name) {
+	name = smiType->name;
+    } else if (smiNode && smiNode->name) {
+	name = smiNode->name;
+    } else {
+	return;
+    }
+
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
+    dModuleName = translateUpper(smiModule->name);
+    cName = translate(name);
+    dName = translateUpper(name);
+    
+    for (len = 0, nn = smiGetFirstNamedNumber(smiType); nn;
+	 nn = smiGetNextNamedNumber(nn)) {
+	if (len < strlen(nn->name)) {
+	    len = strlen(nn->name);
+	}
+    }
+    for (nn = smiGetFirstNamedNumber(smiType); nn;
+		 nn = smiGetNextNamedNumber(nn)) {
+	char *dEnum = translateUpper(nn->name);
+	fprintf(f, "#define %s_%s_%-*s %d\n",
+		dModuleName, dName, len, dEnum,
+		(int) nn->value.value.integer32);
+	xfree(dEnum);
+    }
+    fprintf(f, "\nextern GSnmpEnum const %s_enums_%s[];\n\n",
+	    cPrefix, cName);
+    
+    xfree(dName);
+    xfree(cName);
+    xfree(dModuleName);
+    xfree(cPrefix);
+}
+
+
+
+static void
 printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 {
     SmiNode  *smiNode, *parentNode;
     SmiType  *smiType;
-    SmiNamedNumber *nn;
-    int      cnt = 0, len;
-    char     *cName, *cModuleName;
-    char     *dName, *dModuleName;
+    int      cnt = 0;
     const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
 
-    cModuleName = translateLower(smiModule->name);
-    dModuleName = translateUpper(smiModule->name);
+    const char *header =
+	"/*\n"
+	" * Tables to map enumerations to strings and vice versa.\n"
+	" */\n"
+	"\n";
 
     for (smiNode = smiGetFirstNode(smiModule, groupkind);
 	 smiNode;
@@ -767,44 +816,33 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 	    continue;
 	}
 	smiType = smiGetNodeType(smiNode);
-	if (smiType && smiType->basetype == SMI_BASETYPE_ENUM) {
+	if (smiType && !smiType->name
+	    && smiType->basetype == SMI_BASETYPE_ENUM
+	    && smiGetTypeModule(smiType) == smiModule) {
 	    if (! cnt) {
-		fprintf(f,
-			"/*\n"
-			" * Tables to map enumerations to strings and vice versa.\n"
-			" */\n"
-			"\n");
+		fputs(header, f);
 	    }
 	    cnt++;
-	    cName = translate(smiNode->name);
-	    dName = translateUpper(smiNode->name);
-	    for (len = 0, nn = smiGetFirstNamedNumber(smiType); nn;
-		 nn = smiGetNextNamedNumber(nn)) {
-		if (len < strlen(nn->name)) {
-		    len = strlen(nn->name);
-		}
+	    printHeaderEnumeration(f, smiModule, smiNode, smiType);
+	}
+    }
+
+    for (smiType = smiGetFirstType(smiModule);
+	 smiType;
+	 smiType = smiGetNextType(smiType)) {
+	if (smiType->basetype == SMI_BASETYPE_ENUM
+	    && smiGetTypeModule(smiType) == smiModule) {
+	    if (! cnt) {
+		fputs(header, f);
 	    }
-	    for (nn = smiGetFirstNamedNumber(smiType); nn;
-		 nn = smiGetNextNamedNumber(nn)) {
-		char *dEnum = translateUpper(nn->name);
-		fprintf(f, "#define %s_%s_%-*s %d\n",
-			dModuleName, dName, len, dEnum,
-			(int) nn->value.value.integer32);
-		xfree(dEnum);
-	    }
-	    fprintf(f, "\nextern GSnmpEnum const %s_enums_%s[];\n\n",
-		    cModuleName, cName);
-	    xfree(dName);
-	    xfree(cName);
+	    cnt++;
+	    printHeaderEnumeration(f, smiModule, NULL, smiType);
 	}
     }
     
     if (cnt) {
 	fprintf(f, "\n");
     }
-
-    xfree(dModuleName);
-    xfree(cModuleName);
 }
 
 
@@ -937,15 +975,15 @@ static void
 printCreateMethodPrototype(FILE *f, SmiNode *groupNode)
 {
     SmiModule *smiModule;
-    char *cModuleName, *cNodeName;
+    char *cPrefix, *cNodeName;
 
     smiModule = smiGetNodeModule(groupNode);
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cNodeName = translate(groupNode->name);
     
     fprintf(f,
 	    "extern void\n"
-	    "%s_create_%s(GSnmpSession *s", cModuleName, cNodeName);
+	    "%s_create_%s(GSnmpSession *s", cPrefix, cNodeName);
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     fprintf(f, ");\n\n");
 
@@ -975,8 +1013,8 @@ printCreateMethodPrototype(FILE *f, SmiNode *groupNode)
     }
 #endif
 
-    xfree(cModuleName);
     xfree(cNodeName);
+    xfree(cPrefix);
 }
 
 
@@ -985,22 +1023,22 @@ static void
 printDeleteMethodPrototype(FILE *f, SmiNode *groupNode)
 {
     SmiModule *smiModule;
-    char *cModuleName, *cNodeName;
+    char *cPrefix, *cNodeName;
 
     smiModule = smiGetNodeModule(groupNode);
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cNodeName = translate(groupNode->name);
     
     fprintf(f,
 	    "extern void\n"
-	    "%s_delete_%s(GSnmpSession *s", cModuleName, cNodeName);
+	    "%s_delete_%s(GSnmpSession *s", cPrefix, cNodeName);
     
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     
     fprintf(f, ");\n\n");
 
-    xfree(cModuleName);
     xfree(cNodeName);
+    xfree(cPrefix);
 }
 
 
@@ -1009,24 +1047,24 @@ static void
 printSetMethodPrototype(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 {
     SmiModule *smiModule;
-    char *cModuleName, *cNodeName;
+    char *cPrefix, *cNodeName;
 
     smiModule = smiGetNodeModule(smiNode);
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cNodeName = translate(smiNode->name);
     
     fprintf(f,
 	    "extern void\n"
 	    "%s_set_%s(GSnmpSession *s",
-	    cModuleName, cNodeName);
+	    cPrefix, cNodeName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     printParam(f, smiNode);
     
     fprintf(f, ");\n\n");
 
-    xfree(cModuleName);
     xfree(cNodeName);
+    xfree(cPrefix);
 }
 
 
@@ -1227,10 +1265,11 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiNode *smiNode;
     SmiType *smiType;
-    char    *cModuleName, *dModuleName, *cGroupName, *dGroupName, *dNodeName;
+    char    *cPrefix, *dModuleName, *cGroupName,
+	    *dGroupName, *dNodeName;
     int     writable = 0, count = 0, len = 0;
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
     cGroupName = translate(groupNode->name);
     dGroupName = translateUpper(groupNode->name);
@@ -1291,7 +1330,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	}	    
     }
 
-    fprintf(f, "} %s_%s_t;\n\n", cModuleName, cGroupName);
+    fprintf(f, "} %s_%s_t;\n\n", cPrefix, cGroupName);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	char *cTableName;
@@ -1302,22 +1341,22 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    cTableName = translate(tableNode->name);
 	    fprintf(f, "extern void\n"
 		    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint mask);\n\n",
-		    cModuleName, cTableName,
-		    cModuleName, cGroupName, cGroupName);
+		    cPrefix, cTableName,
+		    cPrefix, cGroupName, cGroupName);
 	    fprintf(f, "extern void\n"
 		    "%s_free_%s(%s_%s_t **%s);\n\n",
-		    cModuleName, cTableName,
-		    cModuleName, cGroupName, cGroupName);
+		    cPrefix, cTableName,
+		    cPrefix, cGroupName, cGroupName);
 	    xfree(cTableName);
 	}
     }
     fprintf(f, "extern %s_%s_t *\n"
 	    "%s_new_%s(void);\n\n",
-	    cModuleName, cGroupName, cModuleName, cGroupName);
+	    cPrefix, cGroupName, cPrefix, cGroupName);
     fprintf(f, "extern void\n"
 	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s",
-	    cModuleName, cGroupName,
-	    cModuleName, cGroupName,
+	    cPrefix, cGroupName,
+	    cPrefix, cGroupName,
 	    cGroupName);
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
@@ -1326,20 +1365,20 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     if (writable) {
 	fprintf(f, "extern void\n"
 		"%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask);\n\n",
-		cModuleName, cGroupName,
-		cModuleName, cGroupName, cGroupName);
+		cPrefix, cGroupName,
+		cPrefix, cGroupName, cGroupName);
     }
     fprintf(f, "extern void\n"
 	    "%s_free_%s(%s_%s_t *%s);\n\n",
-	    cModuleName, cGroupName,
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName,
+	    cPrefix, cGroupName, cGroupName);
 
     printMethodPrototypes(f, groupNode);
 	    
     xfree(dGroupName);
     xfree(cGroupName);
     xfree(dModuleName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -1414,18 +1453,64 @@ dumpHeader(SmiModule *smiModule, char *baseName)
 
 
 static void
+printStubEnumeration(FILE *f, SmiModule *smiModule,
+		     SmiNode *smiNode, SmiType *smiType)
+{
+    SmiNamedNumber *nn;
+    char *cName, *cPrefix;
+    char *dName, *dModuleName;
+    char *name;
+    int len;
+
+    if (smiType && smiType->name) {
+	name = smiType->name;
+    } else if (smiNode && smiNode->name) {
+	name = smiNode->name;
+    } else {
+	return;
+    }
+    
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
+    dModuleName = translateUpper(smiModule->name);
+    cName = translate(name);
+    dName = translateUpper(name);
+    
+    fprintf(f, "GSnmpEnum const %s_enums_%s[] = {\n",
+	    cPrefix, cName);
+    for (len = 0, nn = smiGetFirstNamedNumber(smiType); nn;
+	 nn = smiGetNextNamedNumber(nn)) {
+	if (len < strlen(nn->name)) {
+	    len = strlen(nn->name);
+	}
+    }
+    for (nn = smiGetFirstNamedNumber(smiType); nn;
+	 nn = smiGetNextNamedNumber(nn)) {
+	char *dEnum = translateUpper(nn->name);
+	fprintf(f, "    { %s_%s_%s,%*s \"%s\" },\n",
+		dModuleName, dName, dEnum,
+		len - strlen(dEnum), "", nn->name);
+	xfree(dEnum);
+    }
+    fprintf(f,
+	    "    { 0, NULL }\n"
+	    "};\n"
+	    "\n");
+    
+    xfree(dName);
+    xfree(cName);
+    xfree(dModuleName);
+    xfree(cPrefix);
+}
+
+
+
+static void
 printStubEnumerations(FILE *f, SmiModule *smiModule)
 {
     SmiNode   *smiNode, *parentNode;
     SmiType   *smiType;
-    SmiNamedNumber *nn;
-    char      *cName, *cModuleName;
-    char      *dName, *dModuleName;
-    int       cnt = 0, len;
+    int       cnt = 0;
     const unsigned int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
-    
-    cModuleName = translateLower(smiModule->name);
-    dModuleName = translateUpper(smiModule->name);
     
     for (smiNode = smiGetFirstNode(smiModule, groupkind);
 	 smiNode;
@@ -1435,41 +1520,27 @@ printStubEnumerations(FILE *f, SmiModule *smiModule)
 	    continue;
 	}
 	smiType = smiGetNodeType(smiNode);
-	if (smiType && smiType->basetype == SMI_BASETYPE_ENUM) {
+	if (smiType && !smiType->name
+	    && smiType->basetype == SMI_BASETYPE_ENUM
+	    && smiGetTypeModule(smiType) == smiModule) {
 	    cnt++;
-	    cName = translate(smiNode->name);
-	    dName = translateUpper(smiNode->name);
-	    fprintf(f, "GSnmpEnum const %s_enums_%s[] = {\n",
-		    cModuleName, cName);
-	    for (len = 0, nn = smiGetFirstNamedNumber(smiType); nn;
-		 nn = smiGetNextNamedNumber(nn)) {
-		if (len < strlen(nn->name)) {
-		    len = strlen(nn->name);
-		}
-	    }
-	    for (nn = smiGetFirstNamedNumber(smiType); nn;
-		 nn = smiGetNextNamedNumber(nn)) {
-		char *dEnum = translateUpper(nn->name);
-		fprintf(f, "    { %s_%s_%s,%*s \"%s\" },\n",
-			dModuleName, dName, dEnum,
-			len - strlen(dEnum), "", nn->name);
-		xfree(dEnum);
-	    }
-	    fprintf(f,
-		    "    { 0, NULL }\n"
-		    "};\n"
-		    "\n");
-	    xfree(dName);
-	    xfree(cName);
+	    printStubEnumeration(f, smiModule, smiNode, smiType);
+	}
+    }
+    
+    for (smiType = smiGetFirstType(smiModule);
+	 smiType;
+	 smiType = smiGetNextType(smiType)) {
+	if (smiType->basetype == SMI_BASETYPE_ENUM
+	    && smiGetTypeModule(smiType) == smiModule) {
+	    cnt++;
+	    printStubEnumeration(f, smiModule, NULL, smiType);
 	}
     }
     
     if (cnt) {
 	fprintf(f, "\n");
     }
-
-    xfree(dModuleName);
-    xfree(cModuleName);
 }
 
 
@@ -1768,7 +1839,7 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
     SmiType *smiType;
     char *snmpType;
     char *dModuleName, *dNodeName;
-    char *cModuleName, *cGroupName, *cNodeName;
+    char *cPrefix, *cGroupName, *cNodeName;
     unsigned maxSize = 0, minSize = 0;
     int cnt;
 
@@ -1801,7 +1872,7 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
     dNodeName = translateUpper(smiNode->name);
     cNodeName = translate(smiNode->name);
     cGroupName = translate(groupNode->name);
-    cModuleName = translateLower(smiGetNodeModule(smiNode)->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiGetNodeModule(smiNode)->name);
 
     fprintf(f,
 	    "    { %u, %s,\n"
@@ -1834,7 +1905,7 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
     } else {
 	fprintf(f,
 		"      G_STRUCT_OFFSET(%s_%s_t, %s),\n",
-		cModuleName, cGroupName, cNodeName);
+		cPrefix, cGroupName, cNodeName);
     }
 
     switch (smiType->basetype) {
@@ -1850,7 +1921,7 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
     if (minSize != maxSize) {
 	fprintf(f,
 		"      G_STRUCT_OFFSET(%s_%s_t, _%sLength)",
-		cModuleName, cGroupName, cNodeName);
+		cPrefix, cGroupName, cNodeName);
     } else {
 	fprintf(f,
 		"      0");
@@ -1861,7 +1932,7 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 	    "      %s },\n",
 	    (smiNode->access > SMI_ACCESS_READ_ONLY) ? "GSNMP_ATTR_FLAG_WRITABLE" : "0");
 
-    xfree(cModuleName);
+    xfree(cPrefix);
     xfree(cGroupName);
     xfree(cNodeName);
     xfree(dNodeName);
@@ -1958,11 +2029,11 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     SmiNode *indexNode = NULL;
     SmiNode *iNode;
     SmiType *iType;
-    char    *cModuleName, *cGroupName, *cName, *name;
+    char    *cPrefix, *cGroupName, *cName, *name;
     unsigned maxSize, minSize;
     int last = 0;
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     switch (groupNode->indexkind) {
@@ -2007,7 +2078,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    guint8 idx = %u;\n"
 	    "%s"
 	    "\n",
-	    cGroupName, cModuleName, cGroupName, cGroupName,
+	    cGroupName, cPrefix, cGroupName, cGroupName,
 	    groupNode->oidlen + 1,
 	    smiElement ? "    guint16 i, len;\n" : "");
 
@@ -2140,7 +2211,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "}\n\n");
 
     xfree(cGroupName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2152,11 +2223,10 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     SmiNode *indexNode = NULL;
     SmiNode *iNode;
     SmiType *iType;
-    char    *cModuleName, *cGroupName, *cName, *name;
+    char    *cGroupName, *cName, *name;
     unsigned maxSize, minSize;
     int last = 0;
 
-    cModuleName = translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     switch (groupNode->indexkind) {
@@ -2334,7 +2404,6 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "}\n\n");
 
     xfree(cGroupName);
-    xfree(cModuleName);
 }
 
 
@@ -2435,9 +2504,9 @@ printUnsigned32RangeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
 static void
 printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char *cModuleName, *cGroupName;
+    char *cPrefix, *cGroupName;
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
@@ -2452,8 +2521,8 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    %s_%s_t *%s;\n"
 	    "    char *p;\n"
 	    "\n",
-	    cModuleName, cGroupName, cGroupName,
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cGroupName,
+	    cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "    %s = %s_new_%s();\n"
@@ -2461,12 +2530,12 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "        return NULL;\n"
 	    "    }\n"
 	    "\n",
-	    cGroupName, cModuleName, cGroupName, cGroupName);
+	    cGroupName, cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "    p = (char *) %s + sizeof(%s_%s_t);\n"
 	    "    * (GSList **) p = vbl;\n"
-	    "\n", cGroupName, cModuleName, cGroupName);
+	    "\n", cGroupName, cPrefix, cGroupName);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	fprintf(f,
@@ -2487,7 +2556,7 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "\n", cGroupName, cGroupName, cGroupName, cGroupName, cGroupName);
 	    
     xfree(cGroupName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
  
 
@@ -2497,7 +2566,7 @@ static void
 printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 {
     SmiNode      *tableNode;
-    char         *cModuleName, *cRowName, *cTableName;
+    char         *cPrefix, *cModuleName, *cRowName, *cTableName;
     unsigned int i;
 
     tableNode = smiGetParentNode(rowNode);
@@ -2505,6 +2574,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	return;
     }
 
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cModuleName = translateLower(smiModule->name);
     cRowName = translate(rowNode->name);
     cTableName = translate(tableNode->name);
@@ -2514,7 +2584,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "%s_get_%s(GSnmpSession *s, %s_%s_t ***%s, gint mask)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
-	    cModuleName, cTableName, cModuleName, cRowName, cRowName);
+	    cPrefix, cTableName, cPrefix, cRowName, cRowName);
 
     fprintf(f,
 	    "    GSList *row;\n"
@@ -2555,13 +2625,14 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    }\n"
 	    "}\n"
 	    "\n",
-	    cRowName, cModuleName, cRowName,
-	    cModuleName, cRowName, cRowName,
+	    cRowName, cPrefix, cRowName,
+	    cPrefix, cRowName, cRowName,
 	    cRowName, cRowName);
     
     xfree(cTableName);
     xfree(cRowName);
     xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2569,15 +2640,15 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 static void
 printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 {
-    char       *cModuleName, *cRowName;
-    
-    cModuleName = translateLower(smiModule->name);
+    char       *cPrefix, *cRowName;
+
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cRowName = translate(rowNode->name);
 
     fprintf(f,
 	    "void\n"
 	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s",
-	    cModuleName, cRowName, cModuleName, cRowName, cRowName);
+	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
     foreachIndexDo(f, rowNode, printIndexParamsFunc, 1, 0);
     fprintf(f,
 	    ", gint mask)\n"
@@ -2632,7 +2703,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "\n", cRowName, cRowName);
     
     xfree(cRowName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2640,7 +2711,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 static void
 printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 {
-    char         *cModuleName, *cRowName, *cTableName;
+    char         *cPrefix, *cRowName, *cTableName;
     SmiNode      *tableNode;
 
     tableNode = smiGetParentNode(rowNode);
@@ -2648,7 +2719,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	return;
     }
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cRowName = translate(rowNode->name);
     cTableName = translate(tableNode->name);
 
@@ -2657,7 +2728,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
-	    cModuleName, cRowName, cModuleName, cRowName, cRowName);
+	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
 
     fprintf(f,
 	    "    guint32 base[128];\n"
@@ -2698,7 +2769,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     xfree(cTableName);
     xfree(cRowName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2706,13 +2777,13 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 static void
 printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 {
-    char        *cModuleName, *cNodeName, *cGroupName;
+    char        *cPrefix, *cNodeName, *cGroupName;
     char	*dModuleName, *dNodeName;
     SmiModule   *smiModule;
 
     smiModule = smiGetNodeModule(smiNode);
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
     cGroupName = translate(groupNode->name);
     cNodeName = translate(smiNode->name);
@@ -2721,7 +2792,7 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     fprintf(f,
 	    "void\n"
 	    "%s_create_%s(GSnmpSession *s",
-	    cModuleName, cGroupName);
+	    cPrefix, cGroupName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     
@@ -2729,14 +2800,13 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 	    ")\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
-	    "    gint32 create = %s_%s_CREATEANDGO;\n"
+	    "    gint32 create = 4; /* SNMPv2-TC::RowStatus createAndGo */\n"
 	    "\n",
-	    cModuleName, cGroupName, cGroupName,
-	    dModuleName, dNodeName);
+	    cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "    %s = %s_new_%s();\n",
-	    cGroupName, cModuleName, cGroupName);
+	    cGroupName, cPrefix, cGroupName);
 
     foreachIndexDo(f, groupNode, printIndexAssignmentFunc, 0, 0);
 
@@ -2746,9 +2816,9 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     fprintf(f,
 	    "    %s_set_%s(s, %s, %s_%s);\n"
 	    "    %s_free_%s(%s);\n",
-	    cModuleName, cGroupName, cGroupName,
+	    cPrefix, cGroupName, cGroupName,
 	    dModuleName, dNodeName,
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "}\n"
@@ -2758,7 +2828,7 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     xfree(cNodeName);
     xfree(cGroupName);
     xfree(dModuleName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2766,13 +2836,13 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 static void
 printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 {
-    char        *cModuleName, *cNodeName, *cGroupName;
+    char        *cPrefix, *cNodeName, *cGroupName;
     char	*dModuleName, *dNodeName;
     SmiModule   *smiModule;
 
     smiModule = smiGetNodeModule(smiNode);
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
     cGroupName = translate(groupNode->name);
     cNodeName = translate(smiNode->name);
@@ -2781,7 +2851,7 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     fprintf(f,
 	    "void\n"
 	    "%s_delete_%s(GSnmpSession *s",
-	    cModuleName, cGroupName);
+	    cPrefix, cGroupName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     
@@ -2789,14 +2859,13 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 	    ")\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
-	    "    gint32 destroy = %s_%s_DESTROY;\n"
+	    "    gint32 destroy = 6; /* SNMPv2-TC::RowStatus destroy */\n"
 	    "\n",
-	    cModuleName, cGroupName, cGroupName,
-	    dModuleName, dNodeName);
+	    cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "    %s_get_%s(s, &%s",
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cGroupName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 0, 0);
     
@@ -2812,9 +2881,9 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     fprintf(f,
 	    "    %s_set_%s(s, %s, %s_%s);\n"
 	    "    %s_free_%s(%s);\n",
-	    cModuleName, cGroupName, cGroupName,
+	    cPrefix, cGroupName, cGroupName,
 	    dModuleName, dNodeName,
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "}\n"
@@ -2824,7 +2893,7 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     xfree(cNodeName);
     xfree(cGroupName);
     xfree(dModuleName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2832,7 +2901,7 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 static void
 printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 {
-    char        *cModuleName, *cNodeName, *cGroupName;
+    char        *cPrefix, *cNodeName, *cGroupName;
     char	*dModuleName, *dNodeName;
     SmiType	*smiType;
     SmiModule   *smiModule;
@@ -2844,7 +2913,7 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 	return;
     }
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     dModuleName = translateUpper(smiModule->name);
     cGroupName = translate(groupNode->name);
     cNodeName = translate(smiNode->name);
@@ -2853,7 +2922,7 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     fprintf(f,
 	    "void\n"
 	    "%s_set_%s(GSnmpSession *s",
-	    cModuleName, cNodeName);
+	    cPrefix, cNodeName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     printParam(f, smiNode);
@@ -2862,11 +2931,11 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 	    ")\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
-	    "\n", cModuleName, cGroupName, cGroupName);
+	    "\n", cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "    %s_get_%s(s, &%s",
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cGroupName);
 
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 0, 0);
     
@@ -2902,9 +2971,9 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     fprintf(f,
 	    "    %s_set_%s(s, %s, %s_%s);\n"
 	    "    %s_free_%s(%s);\n",
-	    cModuleName, cGroupName, cGroupName,
+	    cPrefix, cGroupName, cGroupName,
 	    dModuleName, dNodeName,
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "}\n"
@@ -2914,7 +2983,7 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     xfree(cNodeName);
     xfree(cGroupName);
     xfree(dModuleName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2922,10 +2991,10 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 static void
 printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char         *cModuleName, *cGroupName;
+    char         *cPrefix, *cGroupName;
     unsigned int i;
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     fprintf(f,
@@ -2933,7 +3002,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "%s_get_%s(GSnmpSession *s, %s_%s_t **%s, gint mask)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
-	    cModuleName, cGroupName, cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
 
     fprintf(f, "    static guint32 base[] = {");
     for (i = 0; i < groupNode->oidlen; i++) {
@@ -2966,7 +3035,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "\n", cGroupName, cGroupName);
     
     xfree(cGroupName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -2974,10 +3043,10 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 static void
 printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char         *cModuleName, *cGroupName;
+    char         *cPrefix, *cGroupName;
     unsigned int i;
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     fprintf(f,
@@ -2985,7 +3054,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "%s_set_%s(GSnmpSession *s, %s_%s_t *%s, gint mask)\n"
 	    "{\n"
 	    "    GSList *in = NULL, *out = NULL;\n",
-	    cModuleName, cGroupName, cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
 
     fprintf(f, "    static guint32 base[] = {");
     for (i = 0; i < groupNode->oidlen; i++) {
@@ -3008,7 +3077,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "\n");
 
     xfree(cGroupName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -3016,9 +3085,9 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 static void
 printNewMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char *cModuleName, *cGroupName;
+    char *cPrefix, *cGroupName;
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     fprintf(f,
@@ -3027,20 +3096,20 @@ printNewMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
 	    "\n",
-	    cModuleName, cGroupName,
-	    cModuleName, cGroupName,
-	    cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName,
+	    cPrefix, cGroupName,
+	    cPrefix, cGroupName, cGroupName);
 
     fprintf(f,
 	    "    %s = (%s_%s_t *) g_malloc0(sizeof(%s_%s_t) + sizeof(gpointer));\n"
 	    "    return %s;\n"
 	    "}\n"
 	    "\n",
-	    cGroupName, cModuleName, cGroupName,
-	    cModuleName, cGroupName, cGroupName);
+	    cGroupName, cPrefix, cGroupName,
+	    cPrefix, cGroupName, cGroupName);
 
     xfree(cGroupName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
 
 
@@ -3049,14 +3118,14 @@ static void
 printFreeTableMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiNode *tableNode;
-    char *cModuleName, *cGroupName, *cTableName;
+    char *cPrefix, *cGroupName, *cTableName;
 
     tableNode = smiGetParentNode(groupNode);
     if (! tableNode) {
 	return;
     }
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
     cTableName = translate(tableNode->name);
 
@@ -3066,7 +3135,7 @@ printFreeTableMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "{\n"
 	    "    int i;\n"
 	    "\n",
-	    cModuleName, cTableName, cModuleName, cGroupName, cGroupName);
+	    cPrefix, cTableName, cPrefix, cGroupName, cGroupName);
 
     fprintf(f,	    
 	    "    if (%s) {\n"
@@ -3077,12 +3146,12 @@ printFreeTableMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    }\n"
 	    "}\n"
 	    "\n",
-	    cGroupName, cGroupName, cModuleName,
+	    cGroupName, cGroupName, cPrefix,
 	    cGroupName, cGroupName, cGroupName);
 
     xfree(cTableName);
     xfree(cGroupName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
  
 
@@ -3091,9 +3160,9 @@ printFreeTableMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 static void
 printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
-    char *cModuleName, *cGroupName;
+    char *cPrefix, *cGroupName;
 
-    cModuleName = translateLower(smiModule->name);
+    cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
     cGroupName = translate(groupNode->name);
 
     fprintf(f,
@@ -3103,7 +3172,7 @@ printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    GSList *vbl;\n"
 	    "    char *p;\n"
 	    "\n",
-	    cModuleName, cGroupName, cModuleName, cGroupName, cGroupName);
+	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
 
     fprintf(f,	    
 	    "    if (%s) {\n"
@@ -3114,10 +3183,10 @@ printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    }\n"
 	    "}\n"
 	    "\n",
-	    cGroupName, cGroupName, cModuleName, cGroupName, cGroupName);
+	    cGroupName, cGroupName, cPrefix, cGroupName, cGroupName);
 
     xfree(cGroupName);
-    xfree(cModuleName);
+    xfree(cPrefix);
 }
  
 
@@ -3284,10 +3353,12 @@ dumpScli(int modc, SmiModule **modv, int flags, char *output)
 void initScli()
 {
     static SmidumpDriverOption opt[] = {
+	{ "prefix", OPT_STRING, &prefix, 0,
+	  "use prefix instead of module name in stubs"},
 	{ "include", OPT_STRING, &include, 0,
-	  "include stubs for groups matching a regular expression"},
+	  "include stubs for groups matching a regex"},
 	{ "exclude", OPT_STRING, &exclude, 0,
-	  "exclude stubs for groups matching a regular expression"},
+	  "exclude stubs for groups matching a regex"},
         { 0, OPT_END, 0, 0 }
     };
 
