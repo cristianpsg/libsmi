@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.4 1999/03/16 20:47:33 strauss Exp $
+ * @(#) $Id: smi.c,v 1.5 1999/03/17 19:09:09 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -85,9 +85,9 @@ getOid(n)
     smi_subid a[128];
     int i, l;
 
-    for (i = 0;
-	 n && (n != rootNodePtr);
-	 a[i++] = n->subid, n = n->parentPtr);
+    for (i = 0; n && (n != rootNodePtr); n = n->parentPtr) {
+	a[i++] = n->subid;
+    }
     for (strcpy(o, n ? "" : "<incomplete>."), l = strlen(o);
 	 i > 0;
 	 l += sprintf(&o[l], "%d.", a[--i]));
@@ -293,6 +293,7 @@ getParent(spec, mod, parent)
     char		s[SMI_MAX_FULLNAME+1];
     char		*modulenamePtr;
     char		child[SMI_MAX_FULLNAME+1];
+    char		*p;
     
     printDebug(5, "getParent(%s, %s, <>)\n", spec, mod);
 
@@ -310,16 +311,11 @@ getParent(spec, mod, parent)
      * Otherwise we return the first declaration we find in our
      * view of modules.  Last resort: the numerical OID.
      */
-    
     objectPtr = getObject(name, modulename);
-    
+    if (!objectPtr) objectPtr = getObject(name, "");
+
     if (objectPtr && (objectPtr->nodePtr->parentPtr)) {
 	modulePtr = objectPtr->modulePtr;
-	printf("XXXX o:%p(%s::%s, %s) n:%p(%d) p:%p\n",
-	       objectPtr, objectPtr->modulePtr->name, objectPtr->name,
-	           smiStringDecl(objectPtr->decl),
-	       objectPtr->nodePtr, objectPtr->nodePtr->subid,
-	       objectPtr->nodePtr->parentPtr);
 	nodePtr = objectPtr->nodePtr->parentPtr;
 
 	/*
@@ -334,6 +330,10 @@ getParent(spec, mod, parent)
 	    }
 	}
 
+	/*
+	 * If it's not found in the current module, try to find it in
+	 * any module in the current view.
+	 */
 	if (!objectPtr) {
 	    for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 		 objectPtr = objectPtr->nextSameNodePtr) {
@@ -349,44 +349,59 @@ getParent(spec, mod, parent)
 		}
 	    }
 	}
+	/*
+	 * Now, if we have found the parent object, create the appropriate
+	 * OID string. Otherwise, call getParent() recursively.
+	 */
 	if (objectPtr) {
-	    if (!strlen(objectPtr->modulePtr->name)) {
-		sprintf(s, "%s", objectPtr->name);
-	    } else {
-		if (objectPtr->flags & FLAG_IMPORTED) {
-		    for(importPtr = objectPtr->modulePtr->firstImportPtr;
-			importPtr; importPtr = importPtr->nextPtr) {
-			if (!strcmp(importPtr->name, objectPtr->name)) {
-			    break;
-			}
-		    }
-		    modulenamePtr = importPtr->module;
+	    sprintf(s, "%s%s%s", objectPtr->modulePtr->name,
+		    SMI_NAMESPACE_OPERATOR, objectPtr->name);
+	    if (smiIsImported(modulename, s)) {
+		strcpy(parent, s);
+	    } else if (!(objectPtr->flags & FLAG_INCOMPLETE)) {
+		if (!strlen(objectPtr->modulePtr->name)) {
+		    sprintf(parent, "%s", objectPtr->name);
 		} else {
-		    modulenamePtr = objectPtr->modulePtr->name;
+		    if (objectPtr->flags & FLAG_IMPORTED) {
+			for(importPtr = objectPtr->modulePtr->firstImportPtr;
+			    importPtr; importPtr = importPtr->nextPtr) {
+			    if (!strcmp(importPtr->name, objectPtr->name)) {
+				break;
+			    }
+			}
+			modulenamePtr = importPtr->module;
+		    } else {
+			modulenamePtr = objectPtr->modulePtr->name;
+		    }
+		    sprintf(parent, "%s%s%s", modulenamePtr,
+			    SMI_NAMESPACE_OPERATOR, objectPtr->name);
 		}
-		sprintf(s, "%s%s%s", modulenamePtr,
-			SMI_NAMESPACE_OPERATOR, objectPtr->name);
+	    } else {
+		strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
+		getParent(child, modulename, parent);
+		sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
 	    }
-	    strncpy(parent, s, SMI_MAX_FULLNAME);
 	} else {
-#if 0
-	    strncpy(parent, getOid(nodePtr), SMI_MAX_FULLNAME);
-#else
 	    /*
 	     * call getParent() recursively to get the most verbose
 	     * name that is in the current view.
 	     */
-	    printf ("XXX %s\n", nodePtr->firstObjectPtr->name);
 	    strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
-	    printf ("XXX %s\n", child);
 	    getParent(child, "", parent);
-	    strncat(parent, ".", SMI_MAX_FULLNAME);
-	    strncat(parent, "x", SMI_MAX_FULLNAME);
-#endif
+	    sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
 	}
 
     } else {
-	parent[0] = 0;
+	p = strrchr(name, '.');
+	if (p && isdigit((int)p[1])) {
+	    sprintf(s, "%s%s%s", modulename, SMI_NAMESPACE_OPERATOR,
+		    name);
+	    p = strrchr(s, '.');
+	    p[0] = 0;
+	    strncpy(parent, s, SMI_MAX_FULLNAME);
+	} else {
+	    parent[0] = 0;
+	}
     }
 }
 
@@ -624,6 +639,7 @@ smiGetModule(name)
 {
     static smi_module smiModule;
     Module	      *modulePtr;
+    Revision	      *revisionPtr;
     
     printDebug(4, "smiGetModule(\"%s\")\n", name);
 
@@ -637,14 +653,16 @@ smiGetModule(name)
 	smiModule.name = modulePtr->name;
 	if (modulePtr->objectPtr) {
 	    smiModule.object = modulePtr->objectPtr->name;
+	} else {
+	    smiModule.object = "";
 	}
 	smiModule.lastupdated = modulePtr->lastUpdated;
-	if (smiModule.organization) {
+	if (modulePtr->organization) {
 	    smiModule.organization = modulePtr->organization;
 	} else {
 	    smiModule.organization = "";
 	}
-	if (smiModule.contactinfo) {
+	if (modulePtr->contactInfo) {
 	    smiModule.contactinfo = modulePtr->contactInfo;
 	} else {
 	    smiModule.contactinfo = "";
@@ -664,10 +682,82 @@ smiGetModule(name)
 	    smiModule.description = "";
 	    smiModule.reference = "";
 	}
+	for(smiModule.revisions = 0, revisionPtr = modulePtr->firstRevisionPtr;
+	    revisionPtr; revisionPtr = revisionPtr->nextPtr) {
+	    smiModule.revisions++;
+	}
 	return &smiModule;
     } else {
 	return NULL;
     }
+}
+
+
+
+smi_revision *
+smiGetFirstRevision(modulename)
+    smi_descriptor    modulename;
+{
+    static smi_revision smiRevision;
+    Module	        *modulePtr;
+    
+    printDebug(4, "smiGetFirstRevision(\"%s\")\n", modulename);
+
+    modulePtr = findModuleByName(modulename);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(modulename);
+    }
+    
+    if (modulePtr && (modulePtr->firstRevisionPtr)) {
+	smiRevision.date = modulePtr->firstRevisionPtr->date;
+	if (modulePtr->firstRevisionPtr->description) {
+	    smiRevision.description = modulePtr->firstRevisionPtr->description;
+	} else {
+	    smiRevision.description = "";
+	}
+	return &smiRevision;
+    }
+
+    return NULL;
+}
+
+
+
+smi_revision *
+smiGetNextRevision(modulename, date)
+    smi_descriptor    modulename;
+    time_t	      date;
+{
+    static smi_revision smiRevision;
+    Module	        *modulePtr;
+    Revision	        *revisionPtr;
+    
+    printDebug(4, "smiGetNextRevision(\"%s\", %ld)\n", modulename, date);
+
+    modulePtr = findModuleByName(modulename);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(modulename);
+    }
+    
+    if (modulePtr && (modulePtr->firstRevisionPtr)) {
+	for (revisionPtr = modulePtr->firstRevisionPtr;
+	     revisionPtr && (revisionPtr->date != date);
+	     revisionPtr = revisionPtr->nextPtr);
+	revisionPtr = revisionPtr->nextPtr;
+	if (revisionPtr) {
+	    smiRevision.date = revisionPtr->date;
+	    if (revisionPtr->description) {
+	    smiRevision.description = revisionPtr->description;
+	    } else {
+		smiRevision.description = "";
+	    }
+	    return &smiRevision;
+	}
+    }
+
+    return NULL;
 }
 
 
@@ -749,7 +839,6 @@ smiGetType(spec, mod)
     Type	    *t = NULL;
     Module	    *m = NULL;
     Location	    *l = NULL;
-    smi_getspec	    getspec;
     smi_type	    *smitype;
     smi_fullname    sminame;
     char	    name[SMI_MAX_OID+1];
@@ -767,9 +856,7 @@ smiGetType(spec, mod)
 	if (l->type == LOCATION_RPC) {
 
 	    sminame = fullname;
-	    getspec.name = sminame;
-	    getspec.wantdescr = 1;
-	    smitype = smiproc_type_1(&getspec, l->cl);
+	    smitype = smiproc_type_1(&sminame, l->cl);
 	    if (smitype && strlen(smitype->name)) {
 		return smitype;
 	    }
@@ -803,11 +890,12 @@ smiGetType(spec, mod)
     }
 
     if (t) {
-	res.name = strdup(t->name);
-	res.module = strdup(t->modulePtr->name);
+	res.name = t->name;
+	res.module = t->modulePtr->name;
 	res.syntax = t->syntax;
 	res.decl = t->decl;
 	res.format = t->format;
+	res.units = t->units;
 	res.status = t->status;
 	res.description = t->description;
 	return &res;
@@ -815,6 +903,99 @@ smiGetType(spec, mod)
 	return NULL;
     }
 
+}
+
+
+
+smi_type *
+smiGetFirstType(modulename)
+    smi_descriptor    modulename;
+{
+    static smi_type   smiType;
+    Module	      *modulePtr;
+    
+    printDebug(4, "smiGetFirstType(\"%s\")\n", modulename);
+
+    modulePtr = findModuleByName(modulename);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(modulename);
+    }
+
+    /* TODO: Ensure having all types of this module loaded. */
+
+    if (modulePtr && (modulePtr->firstTypePtr)) {
+	smiType.name        = modulePtr->firstTypePtr->name;
+	smiType.module	    = modulePtr->firstTypePtr->modulePtr->name;
+	smiType.syntax	    = modulePtr->firstTypePtr->syntax;
+	smiType.decl	    = modulePtr->firstTypePtr->decl;
+	smiType.format	    = modulePtr->firstTypePtr->format;
+	smiType.units	    = modulePtr->firstTypePtr->units;
+	smiType.status      = modulePtr->firstTypePtr->status;
+	smiType.description = modulePtr->firstTypePtr->description;
+	return &smiType;
+    }
+
+    return NULL;
+}
+
+
+
+smi_type *
+smiGetNextType(modulename, name)
+    smi_descriptor    modulename;
+    smi_descriptor    name;
+{
+    static smi_type   smiType;
+    Module	      *modulePtr;
+    Type	      *typePtr;
+    int		      hit;
+    
+    printDebug(4, "smiGetNextType(\"%s\", %s)\n", modulename, name);
+
+    modulePtr = findModuleByName(modulename);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(modulename);
+    }
+    
+    if (modulePtr && (modulePtr->firstTypePtr)) {
+#if 0
+	for (typePtr = modulePtr->firstTypePtr;
+	     typePtr; typePtr = typePtr->nextPtr) {
+	    printf("%s\n", typePtr->name ? typePtr->name : "-");
+	}
+	printf("XX\n");
+#endif
+	for (hit = 0, typePtr = modulePtr->firstTypePtr; typePtr;
+	     typePtr = typePtr->nextPtr) {
+	    if (typePtr->name && !strcmp(typePtr->name, name)) {
+		hit = 1;
+		typePtr = typePtr->nextPtr;
+	    }
+	    if (hit && typePtr && typePtr->name &&
+		(!(typePtr->flags & FLAG_IMPORTED)) &&
+		(typePtr->syntax != SMI_SYNTAX_UNKNOWN) &&
+		(typePtr->syntax != SMI_SYNTAX_SEQUENCE) &&
+		(typePtr->syntax != SMI_SYNTAX_SEQUENCEOF)) {
+		break;
+	    }
+	}
+	     
+	if (typePtr) {
+	    smiType.name        = typePtr->name;
+	    smiType.module	= typePtr->modulePtr->name;
+	    smiType.syntax	= typePtr->syntax;
+	    smiType.decl	= typePtr->decl;
+	    smiType.format	= typePtr->format;
+	    smiType.units	= typePtr->units;
+	    smiType.status      = typePtr->status;
+	    smiType.description = typePtr->description;
+	    return &smiType;
+	}
+    }
+
+    return NULL;
 }
 
 
@@ -1365,10 +1546,12 @@ smiGetParent(spec, mod)
 
 
 time_t
-smiMkTime(const char *s)
+smiMkTime(s)
+    const char *s;
 {
-    struct tm tm;
-    char tmp[3];
+    struct tm  tm;
+    char       tmp[3];
+    time_t     t;
     
     tm.tm_isdst = 0;
     tm.tm_wday = 0;
@@ -1384,7 +1567,7 @@ smiMkTime(const char *s)
 	tm.tm_hour = atoi(strncpy(tmp, &s[6], 2));
 	tm.tm_min = atoi(strncpy(tmp, &s[8], 2));
     } else if (strlen(s) == 13) {
-	/* seems to be SMIv2 11-char format yymmddhhmmZ */
+	/* seems to be SMIv2 13-char format yyyymmddhhmmZ */
 	tmp[4] = 0;
 	tm.tm_year = atoi(strncpy(tmp, &s[0], 4)) - 1900;
 	tmp[2] = 0;
@@ -1395,7 +1578,28 @@ smiMkTime(const char *s)
     }
     /* TODO: SMIng format */
 
-    return mktime(&tm);
+    putenv("TZ=UTC"); tzset();
+    /* TODO: a better way to make mktime() use UTC !? */
+
+    t = mktime(&tm);
+   
+    return t;
+}
+
+
+
+char *
+smiCTime(t)
+    time_t t;
+{
+    static char   s[27];
+    struct tm	  *tm;
+
+    tm = gmtime(&t);
+    sprintf(s, "%04d-%02d-%02d %02d:%02d",
+	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	    tm->tm_hour, tm->tm_min);
+    return s;
 }
 
 
@@ -1425,21 +1629,25 @@ smiDescriptor(smiFullname)
     static char	    name[SMI_MAX_DESCRIPTOR+1];
     char	    *p;
 
-    p = strchr(smiFullname, '!');
-    if (p) {
-	strcpy(name, &p[1]);
+    if (!isupper((int)smiFullname[0])) {
+	strcpy(name, smiFullname);
     } else {
-	 p = strchr(smiFullname, '.');
-	 if (p) {
-	     strcpy(name, &p[1]);
-	 } else {
-	     p = strstr(smiFullname, SMI_NAMESPACE_OPERATOR);
-	     if (p) {
-		 strcpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)]);
-	     } else {
-		 strcpy(name, smiFullname);
-	     }
-	 }
+	p = strstr(smiFullname, SMI_NAMESPACE_OPERATOR);
+	if (p) {
+	    strcpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)]);
+	} else {
+	    p = strchr(smiFullname, '!');
+	    if (p) {
+		strcpy(name, &p[1]);
+	    } else {
+		p = strchr(smiFullname, '.');
+		if (p) {
+		    strcpy(name, &p[1]);
+		} else {
+		    strcpy(name, smiFullname);
+		}
+	    }
+	}
     }
 	 
     return name;

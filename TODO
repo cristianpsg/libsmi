@@ -264,3 +264,9 @@ x shift/reduce conflict at
   IMPORT ... FROM ... -> modulePtr(lokal), name, importPtr
   OBJECT-TYPE / MACRO / ... -> modulePtr, name
   
+
+
+
+. ensure order without forward references in typedef sming dump.
+
+

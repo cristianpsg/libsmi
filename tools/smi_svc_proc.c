@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_proc.c,v 1.8 1998/11/26 00:50:08 strauss Exp $
+ * @(#) $Id: smi_svc_proc.c,v 1.1 1999/03/11 17:33:53 strauss Exp $
  */
 
 #include <stdio.h>
@@ -29,21 +29,20 @@
 
 smi_module *
 #ifdef linux
-smiproc_module_1_svc(getspec, req)
-    smi_getspec *getspec;
+smiproc_module_1_svc(name, req)
+    smi_fullname *name;
     struct svc_req *req;
 #else
-smiproc_module_1(getspec)
-    smi_getspec *getspec;
+smiproc_module_1(name)
+    smi_fullname *name;
 #endif
 {
     static smi_module dummy = { "", "", "", "", "", "", "" };
     smi_module *m;
 
-    printDebug(4, "smiproc_module_1(<%s,%d>)\n",
-	       getspec->name, getspec->wantdescr);
+    printDebug(4, "smiproc_module_1(<%s,%d>)\n", name);
 
-    m = smiGetModule(getspec->name, getspec->wantdescr);
+    m = smiGetModule(name);
 
     if (m) {
 	return m;
@@ -56,12 +55,12 @@ smiproc_module_1(getspec)
 
 smi_node *
 #ifdef linux
-smiproc_node_1_svc(getspec, req)
-    smi_getspec *getspec;
+smiproc_node_1_svc(name, req)
+    smi_fullname *name;
     struct svc_req *req;
 #else
-smiproc_node_1(getspec)
-    smi_getspec *getspec;
+smiproc_node_1(name)
+    smi_fullname *name;
 #endif
 {
     static smi_node dummy = { "", "", "", "",
@@ -70,10 +69,9 @@ smiproc_node_1(getspec)
 			      "", "", "" };
     smi_node *n;
     
-    printDebug(4, "smiproc_node_1(<%s,%d>)\n",
-	       getspec->name, getspec->wantdescr);
+    printDebug(4, "smiproc_node_1(<%s,%d>)\n", name);
 
-    n = smiGetNode(getspec->name, NULL, getspec->wantdescr);
+    n = smiGetNode(name, NULL);
 
     if (n) {
 	return n;
@@ -86,12 +84,12 @@ smiproc_node_1(getspec)
 
 smi_type *
 #ifdef linux
-smiproc_type_1_svc(getspec, req)
-    smi_getspec *getspec;
+smiproc_type_1_svc(name, req)
+    smi_fullname *name;
     struct svc_req *req;
 #else
-smiproc_type_1(getspec)
-    smi_getspec *getspec;
+smiproc_type_1(name)
+    smi_fullname *name;
 #endif
 {
     static smi_type dummy = { "", "", SMI_SYNTAX_UNKNOWN,
@@ -99,10 +97,9 @@ smiproc_type_1(getspec)
 			      "", "" };
     smi_type *t;
     
-    printDebug(4, "smiproc_type_1(<%s,%d>)\n",
-	       getspec->name, getspec->wantdescr);
+    printDebug(4, "smiproc_type_1(<%s,%d>)\n", name);
 
-    t = smiGetType(getspec->name, NULL, getspec->wantdescr);
+    t = smiGetType(name, NULL);
 
     if (t) {
 	return t;

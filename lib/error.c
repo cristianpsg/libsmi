@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.10 1999/02/18 17:12:59 strauss Exp $
+ * @(#) $Id: error.c,v 1.1 1999/03/11 17:32:59 strauss Exp $
  */
 
 #include <string.h>
@@ -195,6 +195,8 @@ Error errors[] = {
       "Allocating MIB object node: %s" },
     { 1, ERR_ALLOCATING_VIEW,
       "Allocating MIB module view: %s" },
+    { 1, ERR_ALLOCATING_REVISION,
+      "Allocating MIB module revision: %s" },
  
     { 0, 0, NULL }
 };

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.4 1999/03/16 17:24:09 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.5 1999/03/17 19:09:08 strauss Exp $
  */
 
 %{
@@ -930,7 +930,7 @@ row:			UPPERCASE_IDENTIFIER
 						     thisParserPtr);
 				    } else {
 					$$ = addType($1, SMI_SYNTAX_UNKNOWN,
-						 FLAG_IMPORTED | FLAG_IMPORTED,
+					       FLAG_INCOMPLETE | FLAG_IMPORTED,
 						     thisParserPtr);
 				    }
 				}
@@ -1036,6 +1036,7 @@ sequenceSyntax:		/* ObjectSyntax */
 			{
 			    /* TODO: $$ = $1; */
 			    $$ = NULL;
+			    $$ = typeOctetStringPtr;
 			}
 	|		UPPERCASE_IDENTIFIER anySubType
 			{
@@ -1092,6 +1093,7 @@ NamedBit:		identifier
 			{
 			    /* TODO */
 			    $$ = NULL;
+			    $$ = typeOctetStringPtr;
 			}
 	;
 
@@ -1320,6 +1322,10 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			}
 			LAST_UPDATED ExtUTCTime
+			{
+			    setModuleLastUpdated(thisParserPtr->modulePtr,
+						 smiMkTime($6));
+			}
 			ORGANIZATION Text
 			CONTACT_INFO Text
 			DESCRIPTION Text
@@ -1329,10 +1335,11 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $16;
+			    objectPtr = $17;
 			    
 			    thisParserPtr->modulePtr->numModuleIdentities++;
-			    if (objectPtr->modulePtr != thisParserPtr->modulePtr) {
+			    if (objectPtr->modulePtr !=
+				thisParserPtr->modulePtr) {
 				objectPtr = duplicateObject(objectPtr, 0,
 							    thisParserPtr);
 			    }
@@ -1341,13 +1348,11 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    setModuleIdentityObject(thisParserPtr->modulePtr,
 						    objectPtr);
-			    setModuleLastUpdated(thisParserPtr->modulePtr,
-						 smiMkTime($6));
 			    setModuleOrganization(thisParserPtr->modulePtr,
-						  $8);
+						  $9);
 			    setModuleContactInfo(thisParserPtr->modulePtr,
-						 $10);
-			    setObjectDescription(objectPtr, $12);
+						 $11);
+			    setObjectDescription(objectPtr, $13);
 			    $$ = 0;
 			}
         ;
@@ -2232,7 +2237,28 @@ Revisions:		Revision
 
 Revision:		REVISION ExtUTCTime
 			DESCRIPTION Text
-			{ $$ = 0; }
+			{
+			    time_t date;
+
+			    date = smiMkTime($2);
+
+			    /*
+			     * If the first REVISION (which is the newest)
+			     * has another date than the LAST-UPDATED clause,
+			     * we add an implicit Revision structure.
+			     */
+			    if ((!thisModulePtr->firstRevisionPtr) &&
+				(date != thisModulePtr->lastUpdated)) {
+				addRevision(thisModulePtr->lastUpdated,
+	     "[Revision added by libsmi due to an SMIv2 LAST-UPDATED clause.]",
+					    thisParserPtr);
+			    }
+			    
+			    if (addRevision(date, $4, thisParserPtr))
+				$$ = 0;
+			    else
+				$$ = -1;
+			}
 	;
 
 ObjectsPart:		OBJECTS '{' Objects '}'
@@ -2857,4 +2883,4 @@ number:			NUMBER
 			}
 	;
 
-%%
+%%			    /*  */

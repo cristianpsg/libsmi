@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.c,v 1.1 1999/03/16 17:24:12 strauss Exp $
+ * @(#) $Id: dump-data.c,v 1.2 1999/03/17 19:09:10 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -83,4 +83,28 @@ dumpMibTree()
 {
     dumpSubTree(rootNodePtr, "");
     dumpSubTree(pendingNodePtr, "[pending]");
+}
+
+
+
+void
+dumpTypes()
+{
+    View     *viewPtr;
+    Module   *modulePtr;
+    Type     *typePtr;
+
+    for (viewPtr = firstViewPtr;
+	 viewPtr; viewPtr = viewPtr->nextPtr) {
+	modulePtr = findModuleByName(viewPtr->name);
+	for (typePtr = modulePtr->firstTypePtr;
+	     typePtr; typePtr = typePtr->nextPtr) {
+	    printf("%s%s%s syntax:%s status:%s\n",
+		   typePtr->modulePtr->name ? typePtr->modulePtr->name : "-",
+		   SMI_NAMESPACE_OPERATOR,
+		   typePtr->name ? typePtr->name : "-",
+		   smiStringSyntax(typePtr->syntax),
+		   smiStringStatus(typePtr->status));
+	}
+    }
 }

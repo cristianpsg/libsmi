@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiclient.c,v 1.8 1998/11/26 12:35:56 strauss Exp $
+ * @(#) $Id: smiclient.c,v 1.1 1999/03/11 17:33:54 strauss Exp $
  */
 
 #include <stdio.h>
@@ -28,7 +28,6 @@ main(argc, argv)
     int argc;
     char *argv[];
 {
-    smi_getspec getspec;
     smi_fullname fullname;
     smi_fullname *fullname2;
     smi_module *module;
@@ -39,7 +38,7 @@ main(argc, argv)
     CLIENT *cl;
     
     if (argc != 4) {
-	fprintf(stderr, "smiclient $Revision: 1.8 $\n");
+	fprintf(stderr, "smiclient $Revision: 1.1 $\n");
 	fprintf(stderr, "Usage: smiclient <server> <command> <name>\n");
 	fprintf(stderr, "known commands: module, node, type, macro, names, children, members, parent\n");
 	exit(1);
@@ -55,9 +54,8 @@ main(argc, argv)
     }
 
     if (!strcmp(argv[2], "module")) {
-	getspec.name = argv[3];
-	getspec.wantdescr = 1;
-	module = smiproc_module_1(&getspec, cl);
+	fullname = argv[3];
+	module = smiproc_module_1(&fullname, cl);
 	if (module) {
 	    printf("      Module: %s\n", module->name);
 	    printf("         OID: %s\n", module->oid);
@@ -71,9 +69,8 @@ main(argc, argv)
     }
 
     if (!strcmp(argv[2], "node")) {
-	getspec.name = argv[3];
-	getspec.wantdescr = 1;
-	node = smiproc_node_1(&getspec, cl);
+	fullname = argv[3];
+	node = smiproc_node_1(&fullname, cl);
 	if (node) {
 	    printf("     MibNode: %s\n", node->name);
 	    printf("      Module: %s\n", node->module);
@@ -90,9 +87,8 @@ main(argc, argv)
     }
 
     if (!strcmp(argv[2], "type")) {
-	getspec.name = argv[3];
-	getspec.wantdescr = 1;
-	type = smiproc_type_1(&getspec, cl);
+	fullname = argv[3];
+	type = smiproc_type_1(&fullname, cl);
 	if (type) {
 	    printf("        Type: %s\n", type->name);
 	    printf("      Module: %s\n", type->module);
