@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.37 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-cm.c,v 1.38 2003/12/12 09:51:41 strauss Exp $
  */
 
 
@@ -2196,22 +2196,22 @@ static void diaPrintXMLGroup(int group, float x, float y)
 
 static float getRectSX(GraphNode *tNode)
 {
-    return (float) tNode->dia.w / 2 + tNode->dia.x - RECTCORRECTION;
+    return (float) tNode->dia.w / 2.0 + tNode->dia.x - RECTCORRECTION;
 }
 
 static float getRectEX(GraphNode *tNode)
 {
-    return (float) tNode->dia.w / 2 + tNode->dia.x + RECTCORRECTION;
+    return (float) tNode->dia.w / 2.0 + tNode->dia.x + RECTCORRECTION;
 }
 
 static float getRectSY(GraphNode *tNode)
 {
-    return (float) tNode->dia.y - 2 - RECTCORRECTION;
+    return (float) tNode->dia.y - 2.0 - RECTCORRECTION;
 }
 
 static float getRectEY(GraphNode *tNode)
 {
-    return (float) tNode->dia.y - 2 + RECTCORRECTION;
+    return (float) tNode->dia.y - 2.0 + RECTCORRECTION;
 }
 
 
