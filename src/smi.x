@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.9 1998/11/20 19:33:25 strauss Exp $
+% * @(#) $Id: smi.x,v 1.10 1998/11/21 21:59:59 strauss Exp $
 % */
 %
 
@@ -40,6 +40,7 @@ enum smi_syntax {
     SMI_SYNTAX_OPAQUE	     	= 11,
     SMI_SYNTAX_COUNTER64	= 12,
     SMI_SYNTAX_CHOICE	     	= 13 /* only for internal use */
+    /* TODO: BITS ? */
 };
 
 enum smi_status {

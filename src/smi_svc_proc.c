@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_proc.c,v 1.2 1998/11/20 17:10:18 strauss Exp $
+ * @(#) $Id: smi_svc_proc.c,v 1.3 1998/11/21 22:00:00 strauss Exp $
  */
 
 #include <stdio.h>
@@ -27,11 +27,17 @@
 #include "data.h"
 
 
-
-smi_module *smiproc_module_1(getspec)
+smi_module *
+#ifdef linux
+smiproc_module_1_svc(getspec, req)
     smi_getspec *getspec;
+    struct svc_req *req;
+#else
+smiproc_module_1(getspec)
+    smi_getspec *getspec;
+#endif
 {
-    static smi_module dummy = { NULL, NULL, NULL, NULL, NULL, NULL };
+    static smi_module dummy = { "", "", "", "", "", "" };
     smi_module *m;
 
     printDebug(4, "smiproc_module_1(<%s,%d>)\n",
@@ -48,20 +54,30 @@ smi_module *smiproc_module_1(getspec)
 
 
 
-smi_node *smiproc_node_1(getspec)
+smi_node *
+#ifdef linux
+smiproc_node_1_svc(getspec, req)
     smi_getspec *getspec;
+    struct svc_req *req;
+#else
+smiproc_node_1(getspec)
+    smi_getspec *getspec;
+#endif
 {
-    static smi_node dummy = { NULL, NULL, NULL, NULL,
+    static smi_node dummy = { "", "", "", "",
 			      SMI_DECL_UNKNOWN, SMI_ACCESS_UNKNOWN,
-			      SMI_STATUS_UNKNOWN, NULL };
+			      SMI_STATUS_UNKNOWN, "" };
     smi_node *n;
     
-    printDebug(4, "smiproc_node_1(<%s,%d>)",
+    printDebug(4, "smiproc_node_1(<%s,%d>)\n",
 	       getspec->name, getspec->wantdescr);
 
     n = smiGetNode(getspec->name, NULL, getspec->wantdescr);
 
     if (n) {
+	printf("%s\n%s\n%s\n%s\n%d\n%d\n%d\n%s\n.\n",
+	       n->name, n->module, n->oid, n->type,
+	       n->decl, n->access, n->status, n->description);
 	return n;
     } else {
 	return &dummy;
@@ -70,15 +86,22 @@ smi_node *smiproc_node_1(getspec)
 
 
 
-smi_type *smiproc_type_1(getspec)
+smi_type *
+#ifdef linux
+smiproc_type_1_svc(getspec, req)
     smi_getspec *getspec;
+    struct svc_req *req;
+#else
+smiproc_type_1(getspec)
+    smi_getspec *getspec;
+#endif
 {
-    static smi_type dummy = { NULL, NULL, SMI_SYNTAX_UNKNOWN,
-			      SMI_DECL_UNKNOWN, NULL, SMI_STATUS_UNKNOWN,
-			      NULL };
+    static smi_type dummy = { "", "", SMI_SYNTAX_UNKNOWN,
+			      SMI_DECL_UNKNOWN, "", SMI_STATUS_UNKNOWN,
+			      "" };
     smi_type *t;
     
-    printDebug(4, "smiproc_type_1(<%s,%d>)",
+    printDebug(4, "smiproc_type_1(<%s,%d>)\n",
 	       getspec->name, getspec->wantdescr);
 
     t = smiGetType(getspec->name, NULL, getspec->wantdescr);
@@ -92,15 +115,22 @@ smi_type *smiproc_type_1(getspec)
 
 
 
-smi_macro *smiproc_macro_1(fullname)
-    smi_fullname fullname;
+smi_macro *
+#ifdef linux
+smiproc_macro_1_svc(fullname, req)
+    smi_fullname *fullname;
+    struct svc_req *req;
+#else
+smiproc_macro_1(fullname)
+    smi_fullname *fullname;
+#endif
 {
-    static smi_macro dummy = { NULL, NULL };
+    static smi_macro dummy = { "", "" };
     smi_macro *m;
     
     printDebug(4, "smiproc_macro_1(%s)\n", fullname);
 
-    m = smiGetMacro(fullname, NULL);
+    m = smiGetMacro(*fullname, NULL);
 
     if (m) {
 	return m;
@@ -111,32 +141,60 @@ smi_macro *smiproc_macro_1(fullname)
 
 
 
-smi_namelist *smiproc_names_1(fullname)
-    smi_fullname fullname;
+smi_namelist *
+#ifdef linux
+smiproc_names_1_svc(fullname, req)
+    smi_fullname *fullname;
+    struct svc_req *req;
+#else
+smiproc_names_1(fullname)
+    smi_fullname *fullname;
+#endif
 {
-    return smiGetNames(fullname, NULL);
+    return smiGetNames(*fullname, NULL);
 }
 
 
 
-smi_namelist *smiproc_children_1(fullname)
-    smi_fullname fullname;
+smi_namelist *
+#ifdef linux
+smiproc_children_1_svc(fullname, req)
+    smi_fullname *fullname;
+    struct svc_req *req;
+#else
+smiproc_children_1(fullname)
+    smi_fullname *fullname;
+#endif
 {
-    return smiGetChildren(fullname, NULL);
+    return smiGetChildren(*fullname, NULL);
 }
 
 
 
-smi_namelist *smiproc_members_1(fullname)
-    smi_fullname fullname;
+smi_namelist *
+#ifdef linux
+smiproc_members_1_svc(fullname, req)
+    smi_fullname *fullname;
+    struct svc_req *req;
+#else
+smiproc_members_1(fullname)
+    smi_fullname *fullname;
+#endif
 {
-    return smiGetMembers(fullname, NULL);
+    return smiGetMembers(*fullname, NULL);
 }
 
 
 
-smi_fullname *smiproc_parent_1(fullname)
-    smi_fullname fullname;
+smi_fullname *
+#ifdef linux
+smiproc_parent_1_svc(fullname, req)
+    smi_fullname *fullname;
+    struct svc_req *req;
+#else
+smiproc_parent_1(fullname)
+    smi_fullname *fullname;
+#endif
 {
-    return smiGetParent(fullname, NULL);
+    return smiGetParent(*fullname, NULL);
 }
