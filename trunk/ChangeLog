@@ -1,3 +1,7 @@
+2003-12-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/POWER-ETHERNET-MIB: added (RFC 3621).
+
 2003-12-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-python.c, tools/dump-xml.c: Fixed segfaults upon
