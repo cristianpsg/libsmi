@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.39 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.40 2000/02/12 14:31:54 strauss Exp $
  */
 
 #include <config.h>
@@ -471,7 +471,7 @@ static void createImportList(SmiModule *smiModule)
     }
 
     if (! smiv1) {
-	smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_MODULE);
+	smiNode = smiGetModuleIdentityNode(smiModule);
 	if (smiNode) {
 	    addImport("SNMPv2-SMI", "MODULE-IDENTITY");
 	}
@@ -480,7 +480,8 @@ static void createImportList(SmiModule *smiModule)
     if (! smiv1) {
 	for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
 	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
-	    if (smiNode->description) {
+	    if (smiNode->description &&
+		smiNode != smiGetModuleIdentityNode(smiModule)) {
 		addImport("SNMPv2-SMI", "OBJECT-IDENTITY");
 		break;
 	    }
@@ -1014,6 +1015,10 @@ static void printObjects(SmiModule *smiModule)
 	    continue;
 	}
 
+	if (smiNode == smiGetModuleIdentityNode(smiModule)) {
+	    continue;
+	}
+	
 	if ((smiNode->nodekind == SMI_NODEKIND_NODE) &&
 	    (!smiNode->description)) {
 	    assignement = 1;

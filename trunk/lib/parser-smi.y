@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.83 2000/02/12 14:31:54 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.84 2000/02/12 16:06:24 strauss Exp $
  */
 
 %{
@@ -117,7 +117,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    parentPtr = NULL;
 	}
 	if (objectPtr->export.decl == SMI_DECL_MODULEIDENTITY) {
-	    objectPtr->export.nodekind = SMI_NODEKIND_MODULE;
+	    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
 	} else if ((objectPtr->export.decl == SMI_DECL_VALUEASSIGNMENT) ||
 		   (objectPtr->export.decl == SMI_DECL_OBJECTIDENTITY)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_NODE;
@@ -2048,6 +2048,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
+			    setObjectStatus(objectPtr, SMI_STATUS_CURRENT);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setModuleIdentityObject(thisParserPtr->modulePtr,

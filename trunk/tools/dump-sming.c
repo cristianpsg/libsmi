@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.61 2000/02/12 10:56:21 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.62 2000/02/12 14:31:54 strauss Exp $
  */
 
 #include <config.h>
@@ -1182,10 +1182,6 @@ int dumpSming(char *modulename, int flags)
 	  VERSION ". Do not edit.\n");
     print("//\n");
     print("module %s ", smiModule->name);
-    smiNode = smiGetModuleIdentityNode(smiModule);
-    if (smiNode) {
-	print("%s ", smiNode->name);
-    }
     print("{\n");
     print("\n");
     
@@ -1194,32 +1190,27 @@ int dumpSming(char *modulename, int flags)
     /*
      * Module Header
      */
-    if (smiNode) {
-	print("//\n// MODULE META INFORMATION\n//\n\n");
-	printSegment(INDENT, "oid", INDENTVALUE);
-	print("%s;\n\n", getOidString(smiNode, 1));
-	printSegment(INDENT, "organization", INDENTVALUE);
+    print("//\n// MODULE META INFORMATION\n//\n\n");
+    printSegment(INDENT, "organization", INDENTVALUE);
+    print("\n");
+    printMultilineString(smiModule->organization);
+    print(";\n\n");
+    printSegment(INDENT, "contact", INDENTVALUE);
+    print("\n");
+    printMultilineString(smiModule->contactinfo);
+    print(";\n\n");
+    printSegment(INDENT, "description", INDENTVALUE);
+    print("\n");
+    printMultilineString(smiModule->description);
+    print(";\n\n");
+    if (smiModule->reference) {
+	printSegment(INDENT, "reference", INDENTVALUE);
 	print("\n");
-	printMultilineString(smiModule->organization);
+	printMultilineString(smiModule->reference);
 	print(";\n\n");
-	printSegment(INDENT, "contact", INDENTVALUE);
-	print("\n");
-	printMultilineString(smiModule->contactinfo);
-	print(";\n\n");
-	printSegment(INDENT, "description", INDENTVALUE);
-	print("\n");
-	printMultilineString(smiModule->description);
-	print(";\n\n");
-	if (smiModule->reference) {
-	    printSegment(INDENT, "reference", INDENTVALUE);
-	    print("\n");
-	    printMultilineString(smiModule->reference);
-	    print(";\n\n");
-	}
-	
-	printRevisions(smiModule);
-	
     }
+	
+    printRevisions(smiModule);
     
     printTypedefs(smiModule);
     

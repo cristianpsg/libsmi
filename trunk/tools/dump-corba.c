@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.15 2000/02/11 09:50:58 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.16 2000/02/12 10:56:21 strauss Exp $
  */
 
 #include <config.h>
@@ -1451,10 +1451,6 @@ int dumpCorbaOid(char *modulename, int flags)
 	smiType = smiGetNodeType(smiNode);
 	
 	switch (smiNode->nodekind) {
-	case SMI_NODEKIND_MODULE:
-	    printNameAndOid(smiNode, NULL);
-	    printf("ASN1_ObjectIdentifier not-accessible\n");
-	    break;
 	case SMI_NODEKIND_NODE:
 	    if (current(smiNode->status)) {
 		printNameAndOid(smiNode, NULL);
