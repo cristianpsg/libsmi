@@ -18,10 +18,15 @@
  * RMON2-MIB ifTable hat 0 Elements???? (sollte 1 sein)
  *  ---> statt SPARSE liegt eine EXPAND Beziehung vor
  *
- * in algCheckForDependency evtl. noch RowPointer einfuegen
+ * in algCheckForDependency evtl. noch RowPointer einfuegen und in eine
+ * Liste packen.
  *
- * Wenn moeglich in 4. Phase den endTable an die neue Kante depTable - startTable
- * haengen. Bislang bleibt die Verbindung startTable - endTable.
+ * Heuristik in algLinkLonelyTables ...OrZero -> in eine Liste packen und
+ * zusaetzlich noch die Range uebepruefen. Momentan noch zu unsicher
+ *
+ * Notifications erweitern ->zwei verschiedene Tabellen noch nicht gelinkt ?
+ * linken
+ *
  */
 
 
@@ -42,12 +47,6 @@
 
 
 
-typedef enum GraphImport {
-  GRAPH_IMPORT_TRUE  = 1,
-  GRAPH_IMPORT_FALSE = 0
-} GraphImport;
-
-
 typedef enum GraphCardinality {
   GRAPH_CARD_UNKNOWN      = 0,
   GRAPH_CARD_ONE_TO_ONE   = 1,
@@ -59,15 +58,23 @@ typedef enum GraphCardinality {
 typedef enum GraphConnection {
     GRAPH_CON_UNKNOWN       = 0,
     GRAPH_CON_AGGREGATION   = 1,
-    GRAPH_CON_DEPENDENCY    = 2
+    GRAPH_CON_DEPENDENCY    = 2,
+    GRAPH_CON_ASSOCIATION   = 3
 } GraphConnection;
 
 typedef struct GraphNode{
     struct GraphNode *nextPtr;
     SmiNode          *smiNode;
-    GraphImport      imported;
+    int              group;
 } GraphNode;
 
+typedef enum GraphEnhIndex {
+    GRAPH_ENHINDEX_UNKNOWN      = 0,
+    GRAPH_ENHINDEX_NOTIFICATION = 1,
+    GRAPH_ENHINDEX_TYPES        = 2,
+    GRAPH_ENHINDEX_NAMES        = 3,
+    GRAPH_ENHINDEX_INDEX        = 4
+} GraphEnhIndex;
 
 typedef struct GraphEdge {
     struct GraphEdge *nextPtr;         
@@ -76,6 +83,7 @@ typedef struct GraphEdge {
     SmiIndexkind     indexkind;
     GraphConnection  connection;
     GraphCardinality cardinality;
+    GraphEnhIndex    enhancedindex;
 } GraphEdge;
 
 
@@ -90,7 +98,10 @@ static SmiModule *module;
 #define max(a, b) ((a < b) ? b : a)
 #define min(a, b) ((a < b) ? a : b)
 
-#define DEBUG
+/* enforces text output if defined / if not output is xml dia format */
+//#define DEBUG
+
+
 
 
 
@@ -120,7 +131,7 @@ static Graph *graphInsertNode(Graph *graph, SmiNode *smiNode)
     newNode           = xmalloc(sizeof(GraphNode));
     newNode->nextPtr  = NULL;
     newNode->smiNode  = smiNode;
-    newNode->imported = GRAPH_IMPORT_FALSE;
+    newNode->group    = 0; /* no grouping */
 
     if (graph->nodes == NULL) {
 	graph->nodes = newNode;
@@ -150,19 +161,22 @@ static Graph *graphInsertNode(Graph *graph, SmiNode *smiNode)
  * Result : pointer to the new edge list
  */
 static Graph *graphInsertEdge(Graph *graph, GraphNode *startNode,
-			      GraphNode *endNode, SmiIndexkind indexkind)
+			      GraphNode *endNode,
+			      SmiIndexkind indexkind,
+			      GraphEnhIndex enhancedindex)
 {
     GraphEdge *newEdge;
     GraphEdge *tEdge;
     GraphEdge *lastEdge;
 
-    newEdge              = xmalloc(sizeof(GraphEdge));
-    newEdge->nextPtr     = NULL;
-    newEdge->startNode   = startNode;
-    newEdge->endNode     = endNode;
-    newEdge->indexkind   = indexkind;
-    newEdge->connection  = GRAPH_CON_AGGREGATION;
- 
+    newEdge                = xmalloc(sizeof(GraphEdge));
+    newEdge->nextPtr       = NULL;
+    newEdge->startNode     = startNode;
+    newEdge->endNode       = endNode;
+    newEdge->indexkind     = indexkind;
+    newEdge->connection    = GRAPH_CON_AGGREGATION;
+    newEdge->enhancedindex = enhancedindex;
+    
     switch (newEdge->indexkind) {
     case SMI_INDEX_AUGMENT : 
 	newEdge->cardinality = GRAPH_CARD_ONE_TO_ONE; 
@@ -202,11 +216,7 @@ static Graph *graphInsertEdge(Graph *graph, GraphNode *startNode,
 /*
  * graphExit
  *
- *          Frees all memory allocated by the graph and calls smiExit().
- *
- * Input  : graph = pointer to a Graph structure
- *
- * Result : void
+ * Frees all memory allocated by the graph and calls smiExit().
  */
 static void graphExit(Graph *graph)
 {
@@ -242,13 +252,9 @@ static void graphExit(Graph *graph)
 /*
  * graphGetFirstEdge
  *
- *          Returns the first edge of the graph.
- *
- * Input  : graph = pointer to a graph structure
- *
- * Result : pointer to the first edge
+ * Returns the first edge of the graph.
  */
-GraphEdge *graphGetFirstEdge(Graph *graph) 
+static GraphEdge *graphGetFirstEdge(Graph *graph) 
 {
     return (graph->edges) ? (GraphEdge *)graph->edges : NULL;  
 }
@@ -256,26 +262,27 @@ GraphEdge *graphGetFirstEdge(Graph *graph)
 /*
  * graphGetNextEdge
  *
- *          Returns the next edge after the given edge.
- *
- * Input  : graph = pointer to a graph structure
- *          edge  = pointer to an edge
- *
- * Result : pointer to the next edge
+ * Returns the next edge after the given edge.
  */
 GraphEdge *graphGetNextEdge(Graph *graph, GraphEdge *edge) 
 {
     GraphEdge *tEdge;
 
-    if (!graph->edges || !edge) return NULL;
-
+    if (!graph->edges || !edge) {
+	return NULL;
+    }
+    
     for (tEdge = graphGetFirstEdge(graph); tEdge; tEdge = tEdge->nextPtr) {
-	if (tEdge->startNode->smiNode->name == edge->startNode->smiNode->name &&
-	    tEdge->endNode->smiNode->name == edge->endNode->smiNode->name) break;
+	if (tEdge->startNode->smiNode->name ==
+	    edge->startNode->smiNode->name &&
+	    tEdge->endNode->smiNode->name ==
+	    edge->endNode->smiNode->name) break;
     }
   
-    if (tEdge->nextPtr == NULL) return NULL;
-
+    if (!tEdge->nextPtr) {
+	return NULL;
+    }
+    
     return tEdge->nextPtr;
 }
 
@@ -284,7 +291,7 @@ GraphEdge *graphGetNextEdge(Graph *graph, GraphEdge *edge)
  *
  * Returns the last edge of the given graph.
  */
-GraphEdge *graphGetLastEdge(Graph *graph) 
+static GraphEdge *graphGetLastEdge(Graph *graph) 
 {
     GraphEdge *tEdge;
 
@@ -300,12 +307,14 @@ GraphEdge *graphGetLastEdge(Graph *graph)
  *
  * Returns the first edge adjacent to the given node (as startNode or EndNode).
  */
-GraphEdge *graphGetFirstEdgeByNode(Graph *graph, GraphNode *node)
+static GraphEdge *graphGetFirstEdgeByNode(Graph *graph, GraphNode *node)
 {
     GraphEdge *tEdge;
 
-    if (!graph || !node) return NULL;
-
+    if (!graph || !node) {
+	return NULL;
+    }
+    
     for (tEdge = graphGetFirstEdge(graph);
 	 tEdge;
 	 tEdge = graphGetNextEdge(graph, tEdge)) {
@@ -313,8 +322,10 @@ GraphEdge *graphGetFirstEdgeByNode(Graph *graph, GraphNode *node)
 	    tEdge->endNode->smiNode->name == node->smiNode->name) break;
     }
 
-    if (!tEdge) return NULL;
-
+    if (!tEdge) {
+	return NULL;
+    }
+    
     return tEdge;
 }
 
@@ -324,19 +335,23 @@ GraphEdge *graphGetFirstEdgeByNode(Graph *graph, GraphNode *node)
  * Returns the next edge adjacent to the given node (as startNode or EndNode)
  * after the given edge.
  */
-GraphEdge *graphGetNextEdgeByNode(Graph *graph, 
-				  GraphEdge *edge,
-				  GraphNode *node) 
+static GraphEdge *graphGetNextEdgeByNode(Graph *graph, 
+					 GraphEdge *edge,
+					 GraphNode *node) 
 {
     GraphEdge *tEdge;
 
-    if (!graph || !node) return NULL;
-
+    if (!graph || !node) {
+	return NULL;
+    }
+    
     for (tEdge = graphGetFirstEdge(graph);
 	 tEdge;
 	 tEdge = graphGetNextEdge(graph, tEdge)) {
-	if (tEdge->startNode->smiNode->name == edge->startNode->smiNode->name &&
-	    tEdge->endNode->smiNode->name == edge->endNode->smiNode->name) break;
+	if (tEdge->startNode->smiNode->name ==
+	    edge->startNode->smiNode->name &&
+	    tEdge->endNode->smiNode->name ==
+	    edge->endNode->smiNode->name) break;
     }
   
     for (tEdge = graphGetNextEdge(graph,tEdge);
@@ -346,8 +361,10 @@ GraphEdge *graphGetNextEdgeByNode(Graph *graph,
 	    tEdge->endNode->smiNode->name == node->smiNode->name) break;
     }
 
-    if (!tEdge) return NULL;
-
+    if (!tEdge) {
+	return NULL;
+    }
+    
     return tEdge;
 }
 
@@ -356,37 +373,41 @@ GraphEdge *graphGetNextEdgeByNode(Graph *graph,
  *
  * Finds redundant edges and returns 1 if one is found and 0 otherwise.
  */
-int graphCheckForRedundantEdge(Graph *graph, GraphNode *startNode, GraphNode *endNode)
+static int graphCheckForRedundantEdge(Graph *graph,
+			       GraphNode *startNode,
+			       GraphNode *endNode)
 {
     GraphEdge *tEdge;
 
-    if (!graph || !startNode || !endNode) return 0;
-
+    if (!graph || !startNode || !endNode) {
+	return 0;
+    }
+    
     for (tEdge = graphGetFirstEdge(graph);
 	 tEdge;
 	 tEdge = graphGetNextEdge(graph, tEdge)) {
 	if (tEdge->startNode->smiNode->name == startNode->smiNode->name &&
-	    tEdge->endNode->smiNode->name == endNode->smiNode->name) return 1;
+	    tEdge->endNode->smiNode->name == endNode->smiNode->name) {
+	    return 1;
+	}
     }
-
+    
     return 0;
 }
 
 /*
  * graphGetLastNode
  *
- *          Returns the last node of the list representing the graph nodes.
- *
- * Input  : graph = pointer to a graph structure
- *
- * Result : pointer to the last node of the list
+ * Returns the last node of the list representing the graph nodes.
  */
-GraphNode *graphGetLastNode(Graph *graph) 
+static GraphNode *graphGetLastNode(Graph *graph) 
 {
     GraphNode *tNode;
 
-    if (!graph->nodes) return NULL;
-
+    if (!graph->nodes) {
+	return NULL;
+    }
+    
     for (tNode = graph->nodes; tNode->nextPtr; tNode = tNode->nextPtr) {}
 
     return tNode;
@@ -395,13 +416,9 @@ GraphNode *graphGetLastNode(Graph *graph)
 /*
  * graphGetFirstNode
  *
- *          Returns the first node of the graph.
- *
- * Input  : graph   = pointer to a graph structure
- *
- * Result : pointer to the first node of the graph
+ * Returns the first node of the graph.
  */
-GraphNode *graphGetFirstNode(Graph *graph)
+static GraphNode *graphGetFirstNode(Graph *graph)
 {
     return (graph->nodes) ? (GraphNode *)graph->nodes : NULL;
 }
@@ -409,48 +426,46 @@ GraphNode *graphGetFirstNode(Graph *graph)
 /*
  * graphGetNextNode
  *
- *          Returns the next graph node after the given node.
- *
- * Input  : graph = pointer to a graph structure
- *          node  = pointer to the previous node
- *
- * Result : pointer to the next node.
+ * Returns the next graph node after the given node.
  */
-GraphNode *graphGetNextNode(Graph *graph, GraphNode *node) 
+static GraphNode *graphGetNextNode(Graph *graph, GraphNode *node) 
 {
     GraphNode *tNode;
 
-    if (!graph->nodes || !node) return NULL;
-
+    if (!graph->nodes || !node) {
+	return NULL;
+    }
+    
     for (tNode = graphGetFirstNode(graph); tNode; tNode = tNode->nextPtr) {
 	if (tNode->smiNode->name == node->smiNode->name) break;
     }
   
-    if (tNode->nextPtr == NULL) return NULL;
-
+    if (tNode->nextPtr == NULL) {
+	return NULL;
+    }
+    
     return tNode->nextPtr;
 }
 
 /*
  * graphGetNode
  *
- *          Returns the graph node containing smiNode.
- *
- * Input  : graph   = pointer to a graph structure
- *          smiNode = pointer to the SmiNode to be found
- *
- * Result : pointer to the GraphNode containing smiNode
+ * Returns the graph node containing smiNode.
  */
-GraphNode *graphGetNode(Graph *graph, SmiNode *smiNode)
+static GraphNode *graphGetNode(Graph *graph, SmiNode *smiNode)
 {
     GraphNode *tNode;
 
-    if (!smiNode || !graph) return NULL;
-
+    if (!smiNode || !graph) {
+	return NULL;
+    }
+    
     for (tNode = graphGetFirstNode(graph); 
 	 tNode; 
 	 tNode = graphGetNextNode(graph, tNode)) {
-	if (tNode->smiNode->name == smiNode->name) break;
+	if (tNode->smiNode->name == smiNode->name) {
+	    break;
+	}
     }
 
     return tNode;
@@ -459,17 +474,16 @@ GraphNode *graphGetNode(Graph *graph, SmiNode *smiNode)
 /*
  * graphShowNodes
  *
- *          Prints all the node of Graph.
- *
- * Input  : graph   = pointer to a graph structure
- *
- * Result : void
+ * Prints the nodes of the graph.
  */
-void graphShowNodes(Graph *graph) 
+static void graphShowNodes(Graph *graph) 
 {
     GraphNode *tNode;
   
-    if (graph->nodes == NULL) {printf("No nodes!\n"); return;}
+    if (!graph->nodes) {
+	printf("No nodes!\n");
+	return;
+    }
 
     for (tNode = graphGetFirstNode(graph); 
 	 tNode; 
@@ -481,23 +495,49 @@ void graphShowNodes(Graph *graph)
 /*
  * graphShowEdges
  *
- *          Prints all edges with their cardinality and type of relationship.
+ * Prints the edges with their attributes in the following order :
+ *    - start node
+ *    - reason for the link
+ *    - connection type in UML
+ *    - cardinality
+ *    - index relationship derived from the row-objects of the tables
  *
- * Input  : graph   = pointer to an edge structure
- *
- * Result : void
+ * AGGR.   = aggregation
+ * DEPEND. = dependency
  */
-void graphShowEdges(Graph *graph) 
+static void graphShowEdges(Graph *graph) 
 {
     GraphEdge  *tEdge;
-
-    if (graph->edges == NULL) {printf("No edges!\n"); return;};
+    SmiElement *smiElement;
+    
+    if (!graph->edges) {
+	printf("No edges!\n");
+	return;
+    }
   
     for (tEdge = graphGetFirstEdge(graph); 
 	 tEdge; 
 	 tEdge = graphGetNextEdge(graph,tEdge)) {
 	printf("Edge : %32s -",tEdge->startNode->smiNode->name);
 
+	switch (tEdge->enhancedindex) {
+	case GRAPH_ENHINDEX_UNKNOWN :
+	    printf("   [UNKNOWN] ");
+	    break;
+	case GRAPH_ENHINDEX_NOTIFICATION :
+	    printf(" [NOTIFICATION] ");
+	    break;
+	case GRAPH_ENHINDEX_NAMES :
+	    printf("    [NAMES]     ");
+	    break;
+	case GRAPH_ENHINDEX_TYPES :
+	    printf("    [TYPES]     ");
+	    break;
+	case GRAPH_ENHINDEX_INDEX :
+	    printf("    [INDEX]     ");
+	    break;
+	}
+	
 	switch (tEdge->connection) {
 	case GRAPH_CON_AGGREGATION:
 	    printf("   AGGR. ");
@@ -505,38 +545,66 @@ void graphShowEdges(Graph *graph)
 	case GRAPH_CON_DEPENDENCY:
 	    printf(" DEPEND. ");
 	    break;
+	case GRAPH_CON_ASSOCIATION:
+	    printf("  ASSOC. ");
+	    break;    
 	case GRAPH_CON_UNKNOWN:
 	    break;
 	}
 
 	switch (tEdge->cardinality) {
-	case GRAPH_CARD_UNKNOWN      : printf(" (UNKNOWN) "); break;
-	case GRAPH_CARD_ONE_TO_ONE   : printf("     (1:1) "); break;
-	case GRAPH_CARD_ONE_TO_MANY  : printf("     (1:n) "); break;
-	case GRAPH_CARD_ZERO_TO_ONE  : printf("     (0:1) "); break;
-	case GRAPH_CARD_ZERO_TO_MANY : printf("     (0:n) "); break;
+	case GRAPH_CARD_UNKNOWN      :
+	    printf(" (UNKNOWN) ");
+	    break;
+	case GRAPH_CARD_ONE_TO_ONE   :
+	    printf("     (1:1) ");
+	    break;
+	case GRAPH_CARD_ONE_TO_MANY  :
+	    printf("     (1:n) ");
+	    break;
+	case GRAPH_CARD_ZERO_TO_ONE  :
+	    printf("     (0:1) ");
+	    break;
+	case GRAPH_CARD_ZERO_TO_MANY :
+	    printf("     (0:n) ");
+	    break;
 	}
 
 	switch (tEdge->indexkind) {
-	case SMI_INDEX_UNKNOWN  : printf(" UNKNOWN "); break;
-	case SMI_INDEX_INDEX    : printf("   INDEX "); break;
-	case SMI_INDEX_AUGMENT  : printf(" AUGMENT "); break;
-	case SMI_INDEX_SPARSE   : printf("  SPARSE "); break;
-	case SMI_INDEX_EXPAND   : printf("  EXPAND "); break;
-	case SMI_INDEX_REORDER  : printf(" REORDER "); break;
+	case SMI_INDEX_UNKNOWN  :
+	    printf(" UNKNOWN ");
+	    break;
+	case SMI_INDEX_INDEX    :
+	    printf("   INDEX ");
+	    break;
+	case SMI_INDEX_AUGMENT  :
+	    printf(" AUGMENT ");
+	    break;
+	case SMI_INDEX_SPARSE   :
+	    printf("  SPARSE ");
+	    break;
+	case SMI_INDEX_EXPAND   :
+	    printf("  EXPAND ");
+	    break;
+	case SMI_INDEX_REORDER  :
+	    printf(" REORDER ");
+	    break;
 	}
 
 	printf("- %s\n",tEdge->endNode->smiNode->name);
     
 #if 0
 	printf("[");
-	for (smiElement = smiGetFirstElement(smiGetFirstChildNode(tEdge->startNode->smiNode));
+	for (smiElement = smiGetFirstElement(
+	    smiGetFirstChildNode(tEdge->startNode->smiNode));
 	     smiElement;
 	     smiElement = smiGetNextElement(smiElement)) {
 	    printf(" %s ",smiGetElementNode(smiElement)->name);
 	}
+	
 	printf("] - [");    
-	for (smiElement = smiGetFirstElement(smiGetFirstChildNode(tEdge->endNode->smiNode));
+	for (smiElement = smiGetFirstElement(
+	    smiGetFirstChildNode(tEdge->endNode->smiNode));
 	     smiElement;
 	     smiElement = smiGetNextElement(smiElement)) {
 	    printf(" %s ",smiGetElementNode(smiElement)->name);
@@ -561,19 +629,17 @@ void graphShowEdges(Graph *graph)
 /*
  * algCountElements
  *
- *          Returns the number of elements in a given row entry.
- *
- * Input  : smiNode = pointer to a row node
- *
- * Result : number of elements in the row node
+ * Returns the number of elements in a given row entry.
  */
-int algCountElements(SmiNode *smiNode) 
+static int algCountElements(SmiNode *smiNode) 
 {
     int          count;
     SmiElement   *smiElement;
 
-    if (smiNode->nodekind != SMI_NODEKIND_ROW) return 0;
-
+    if (smiNode->nodekind != SMI_NODEKIND_ROW) {
+	return 0;
+    }
+    
     count = 0;
     for (smiElement = smiGetFirstElement(smiNode);
 	 smiElement;
@@ -589,12 +655,14 @@ int algCountElements(SmiNode *smiNode)
  *
  * Inserts an edge in a given graph. The edge is adjacent to snode 
  * and enode.
- * The type of edge is given in indexkind.
+ * The type of edge is given in indexkind and the enhanced index as
+ * an additional information in enhancedindex.
  * Nodes which are not loaded yet into the node list of the graph
  * are added (nodes from imported MIBs).
  */
-Graph *algInsertEdge(Graph *graph, SmiNode *snode, SmiNode *enode, 
-		     SmiIndexkind indexkind) 
+static Graph *algInsertEdge(Graph *graph, SmiNode *snode, SmiNode *enode, 
+			    SmiIndexkind indexkind,
+			    GraphEnhIndex enhancedindex) 
 {
     GraphNode *startNode;
     GraphNode *endNode;
@@ -610,17 +678,18 @@ Graph *algInsertEdge(Graph *graph, SmiNode *snode, SmiNode *enode,
     if (startNode == NULL) {
 	graph = graphInsertNode(graph, snode);
 	startNode = graphGetNode(graph, snode);
-	startNode->imported = GRAPH_IMPORT_TRUE;    
     }
     if (endNode == NULL) {
 	graph = graphInsertNode(graph, enode);
 	endNode = graphGetNode(graph, enode);
-	endNode->imported = GRAPH_IMPORT_TRUE;
     }  
 
-    if (graphCheckForRedundantEdge(graph, startNode, endNode) == 0)
-	graph = graphInsertEdge(graph, startNode, endNode, indexkind); 
-
+    if (graphCheckForRedundantEdge(graph, startNode, endNode) == 0) {
+	graph = graphInsertEdge(graph, startNode, endNode,
+				indexkind,
+				enhancedindex); 
+    }
+    
     return graph;
 }
 
@@ -637,7 +706,8 @@ Graph *algInsertEdge(Graph *graph, SmiNode *snode, SmiNode *enode,
  *    if the number in the expanded table is greater -> 5.
  *    if the number in the base table is greater     -> 4.
  * 4. getting a second base table candidate :
- *    It is possible that a table expands an other table which is expanded by this.
+ *    It is possible that a table expands an other table which is expanded
+ *    by this.
  *    Therefore it is hard to track the base table.
  *    - scanning all tables which are different from the expanded table
  *    - the base table must have :
@@ -645,7 +715,7 @@ Graph *algInsertEdge(Graph *graph, SmiNode *snode, SmiNode *enode,
  *         - the same elementes must occur as in the expanded table
  * 5. the elements in both tables are checked for equality 
  */
-Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode) 
+static Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode) 
 {
     SmiNode      *tNode;
     SmiNode      *baseTable;
@@ -671,8 +741,11 @@ Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode)
 	tNode = smiGetElementNode(smiElement);
 	tNode = smiGetParentNode(tNode);
 	tNode = smiGetParentNode(tNode);
-	if (tNode->name == expTable->name) break;
 
+	if (tNode->name == expTable->name) {
+	    break;
+	}
+	
 	baseTable = tNode;
     }  
 
@@ -684,7 +757,8 @@ Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode)
     /* are baseTable and expTable identical ? */
     if (basecounter >= refcounter) {
 
-	/* searching for new base table candidate in order to handle multiple indices */
+	/* searching for new base table candidate in order to handle multiple
+	   indices */
 	for (baseTable = smiGetNextNode(baseTable, SMI_NODEKIND_TABLE);
 	     baseTable;
 	     baseTable = smiGetNextNode(baseTable, SMI_NODEKIND_TABLE)) {
@@ -693,7 +767,8 @@ Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode)
       
 	    if (basecounter < refcounter) {
 
-		for (smiElement = smiGetFirstElement(smiGetFirstChildNode(expTable)); 
+		for (smiElement = smiGetFirstElement(
+		    smiGetFirstChildNode(expTable)); 
 		     smiElement; 
 		     smiElement = smiGetNextElement(smiElement)) {
 		    tNode = smiGetElementNode(smiElement);
@@ -701,19 +776,27 @@ Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode)
 		    if (smiGetParentNode(smiGetParentNode(tNode))->name == 
 			expTable->name) break;
 	  
-		    for (findElement = smiGetFirstElement(smiGetFirstChildNode(baseTable)); 
+		    for (findElement = smiGetFirstElement(
+			smiGetFirstChildNode(baseTable)); 
 			 findElement; 
 			 findElement = smiGetNextElement(findElement)) {
-			if (tNode->name == smiGetElementNode(findElement)->name) break;
+			if (tNode->name ==
+			    smiGetElementNode(findElement)->name) {
+			    break;
+			}
 		    }
 	  
-		    if (!findElement) return graph;
+		    if (!findElement) {
+			return graph;
+		    }
 		}	
 		break;
 	    }
 	}
     
-	if (!baseTable) return graph; 
+	if (!baseTable) {
+	    return graph;
+	}
     }
 
     for (smiElement = smiGetFirstElement(smiGetFirstChildNode(baseTable)); 
@@ -724,13 +807,18 @@ Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode)
 	for (findElement = smiGetFirstElement(smiGetFirstChildNode(expTable)); 
 	     findElement; 
 	     findElement = smiGetNextElement(findElement)) {
-	    if (tNode->name == smiGetElementNode(findElement)->name) break;
+	    if (tNode->name == smiGetElementNode(findElement)->name) {
+		break;
+	    }
 	}
     
-	if (!findElement) return graph;
+	if (!findElement) {
+	    return graph;
+	}
     }
   
-    graph = algInsertEdge(graph, baseTable, expTable, SMI_INDEX_EXPAND);  
+    graph = algInsertEdge(graph, baseTable, expTable, SMI_INDEX_EXPAND,
+			  GRAPH_ENHINDEX_INDEX);  
 
     return graph;
 }
@@ -746,7 +834,7 @@ Graph *algCheckForExpandRel(Graph *graph, SmiNode *smiNode)
  * 1. Getting the basetable via the last element in the index of smiNode.
  * 2. comparing the number of elements
  */
-Graph *algCheckForSparseRel(Graph *graph, SmiNode *smiNode) 
+static Graph *algCheckForSparseRel(Graph *graph, SmiNode *smiNode) 
 {
     SmiNode      *tNode = NULL;
     SmiNode      *table;
@@ -776,7 +864,7 @@ Graph *algCheckForSparseRel(Graph *graph, SmiNode *smiNode)
 
     tNode = smiGetParentNode(tNode);  
 
-    /* Ueberpruefung auf Tabellengleichheit -> Vermeidung von Loops im Graphen */
+    /* Ueberpruefung auf Tabellengleichheit */
     if (table->name == smiGetParentNode(tNode)->name) return graph;
   
     refcounter = algCountElements(tNode);
@@ -802,10 +890,14 @@ Graph *algCheckForSparseRel(Graph *graph, SmiNode *smiNode)
 	       im falschen Vaterknoten gesucht wurde 
 	       (kann bei Mehrfachindizierungen vorkommen */
 	    tNode = smiGetElementNode(smiElement);
-	    for (findElement = smiGetFirstElement(smiGetFirstChildNode(table)); 
+	    for (findElement = smiGetFirstElement(
+		smiGetFirstChildNode(table)); 
 		 findElement; 
 		 findElement = smiGetNextElement(findElement)) {
-		if (smiGetElementNode(findElement)->name == tNode->name) refcounter++;
+		if (smiGetElementNode(findElement)->name == tNode->name) {
+		    refcounter++;
+
+		}
 	    }
 	}
     }  
@@ -814,7 +906,7 @@ Graph *algCheckForSparseRel(Graph *graph, SmiNode *smiNode)
     if (refcounter != basecounter) return graph;
 
     graph = algInsertEdge(graph, table, smiGetParentNode(smiNode), 
-			  SMI_INDEX_SPARSE); 
+			  SMI_INDEX_SPARSE, GRAPH_ENHINDEX_INDEX); 
     return graph;
 }
 
@@ -829,12 +921,12 @@ Graph *algCheckForSparseRel(Graph *graph, SmiNode *smiNode)
  *
  * 1.
  */
-Graph *algCheckForReOrderRel(Graph *graph, SmiNode *smiNode) 
+static Graph *algCheckForReOrderRel(Graph *graph, SmiNode *smiNode) 
 {
     SmiNode      *baseTable;
     SmiNode      *reorderTable;
     SmiNode      *tNode;
-    GraphNode    *tGrNode = NULL;
+    GraphNode    *tGrNode;
     SmiElement   *smiElement;
     SmiElement   *findElement;
     unsigned int c1,c2;
@@ -868,12 +960,15 @@ Graph *algCheckForReOrderRel(Graph *graph, SmiNode *smiNode)
 	}
     
 	/* no, they are not */
-	if (!findElement) break;
+	if (!findElement) {
+	    break;
+	}
     }
 
     /* looking for other baseTable */
     if (smiElement) {
 
+	tGrNode = NULL;
 	for (tGrNode = graphGetFirstNode(graph);
 	     tGrNode;
 	     tGrNode = graphGetNextNode(graph, tGrNode)) {
@@ -891,20 +986,26 @@ Graph *algCheckForReOrderRel(Graph *graph, SmiNode *smiNode)
 		     smiElement;
 		     smiElement = smiGetNextElement(smiElement)) {
 		    tNode = smiGetElementNode(smiElement);
-		    for (findElement = smiGetFirstElement(smiGetFirstChildNode(baseTable));
+		    for (findElement = smiGetFirstElement(
+			smiGetFirstChildNode(baseTable));
 			 findElement;
 			 findElement = smiGetNextElement(findElement)) {
-			if (tNode->name == smiGetElementNode(findElement)->name) break;
+			if (tNode->name ==
+			    smiGetElementNode(findElement)->name) break;
 		    }	  
 		    /* not the same elements */
-		    if (!findElement) break;
+		    if (!findElement) {
+			break;
+		    }
 		}
 	    }
 	}
     }
 
     /* no new baseTable found */
-    if (!tGrNode) return graph;
+    if (!tGrNode) {
+	return graph;
+    }
 
     /* do the elemnts appear in the same order ? */
     c1 = 0; /* pos. of element in the reorder table */
@@ -928,7 +1029,8 @@ Graph *algCheckForReOrderRel(Graph *graph, SmiNode *smiNode)
     }
 
     /* Table passed all tests -> inserting new reorder edge */
-    graph = algInsertEdge(graph, baseTable, reorderTable, SMI_INDEX_REORDER);
+    graph = algInsertEdge(graph, baseTable, reorderTable,
+			  SMI_INDEX_REORDER, GRAPH_ENHINDEX_INDEX);
   
     return graph;
 }
@@ -944,7 +1046,7 @@ Graph *algCheckForReOrderRel(Graph *graph, SmiNode *smiNode)
  *   - algCheckForReOrderRel
  * Look there for further information.
  */
-Graph *algGetIndexkind(Graph *graph, SmiNode *table) 
+static Graph *algGetIndexkind(Graph *graph, SmiNode *table) 
 {
     graph = algCheckForExpandRel(graph, table);
     graph = algCheckForSparseRel(graph, table);
@@ -964,7 +1066,7 @@ Graph *algGetIndexkind(Graph *graph, SmiNode *table)
  *     - for other relationships the subfunction algGetIndexkind is called
  *       look there for further information  
  */
-Graph *algLinkTables(Graph *graph) 
+static Graph *algLinkTables(Graph *graph) 
 {
     GraphNode  *tGraphNode;
     SmiNode    *node; 
@@ -996,7 +1098,8 @@ Graph *algLinkTables(Graph *graph)
 
 	    if (node->nodekind == SMI_NODEKIND_ROW) {
 
-		/* get the relationship between the tables and insert the edges */
+		/* get the relationship between the tables and insert
+		   the edges */
 		if (node->indexkind == SMI_INDEX_INDEX) 
 		    graph = algGetIndexkind(graph, node);
 
@@ -1005,15 +1108,18 @@ Graph *algLinkTables(Graph *graph)
 		    node = smiGetRelatedNode(node);
 		    node = smiGetParentNode(node);
 
-		    graph = algInsertEdge(graph, node, smiGetParentNode(tSmiNode), 
-					  SMI_INDEX_AUGMENT );
+		    graph = algInsertEdge(graph,
+					  node,
+					  smiGetParentNode(tSmiNode), 
+					  SMI_INDEX_AUGMENT,
+					  GRAPH_ENHINDEX_INDEX);
 		}
 	    }
 	}
     }
 
 #ifdef DEBUG
-    printf("--- First phase - getting the nodes and linking the tables ...\n\n");
+    printf("--- First phase - getting the nodes and linking the tables \n\n");
     graphShowNodes(graph);
     printf("\n");
     graphShowEdges(graph);
@@ -1053,7 +1159,7 @@ static int strpfxlen(const char *s1, const char *s2)
  * The starting node must be same as in the expand relationship to make sure
  * that there are no unrelated tables are linked.
  */
-Graph *algCheckLinksByName(Graph *graph) 
+static Graph *algCheckLinksByName(Graph *graph) 
 {
     GraphEdge *tEdge, *tEdge2, *newEdge;
     char      *start, *end, *end2;
@@ -1079,9 +1185,10 @@ Graph *algCheckLinksByName(Graph *graph)
 	    longestOverlap = overlap;
 	    for (tEdge2 = graphGetFirstEdgeByNode(graph,tEdge->startNode);
 		 tEdge2;
-		 tEdge2 = graphGetNextEdgeByNode(graph, tEdge2, tEdge->startNode)) {
+		 tEdge2 = graphGetNextEdgeByNode(graph, tEdge2,
+						 tEdge->startNode)) {
 	
-		/* must be a sparse relationship to get a correct edge change */
+		/* must be a sparse relationship to get a correct new edge */
 		if (tEdge2->indexkind == SMI_INDEX_SPARSE) {
 		    end2 = tEdge2->endNode->smiNode->name;
 	  
@@ -1101,7 +1208,7 @@ Graph *algCheckLinksByName(Graph *graph)
     }
 
 #ifdef DEBUG
-    printf("\n--- Second Phase - reordering the connections ... \n\n");
+    printf("\n--- Second Phase - reordering the connections\n\n");
     graphShowEdges(graph);
 #endif
 
@@ -1109,81 +1216,217 @@ Graph *algCheckLinksByName(Graph *graph)
 }
 
 /*
- * algConnectLonelyNodes
+ * algLinkScalarsToTables
+ *
  *
  */
-Graph *algConnectLonelyNodes(Graph *graph) 
+static Graph *algLinkScalarsToTables(Graph *graph)
 {
     GraphNode *tNode, *tNode2, *newNode;
     GraphEdge *tEdge;
-    int       found;
     int       overlap,minoverlap;
 
     /* getting the min. overlap for all nodes */
     minoverlap = 10000;
-    for (tNode = graphGetFirstNode(graph);
+    tNode2 = graphGetFirstNode(graph);
+    for (tNode = graphGetNextNode(graph,tNode2);
 	 tNode;
 	 tNode = graphGetNextNode(graph, tNode)) {
-    
-	for (tNode2 = graphGetFirstNode(graph);
-	     tNode2;
-	     tNode2 = graphGetNextNode(graph, tNode2)) {    
-	    minoverlap = min(minoverlap, strpfxlen(tNode->smiNode->name,
-						   tNode2->smiNode->name));
-	}
+	minoverlap = min(minoverlap, strpfxlen(tNode->smiNode->name,
+					       tNode2->smiNode->name));
     }
 
     for (tNode = graphGetFirstNode(graph);
 	 tNode;
 	 tNode = graphGetNextNode(graph, tNode)) {
     
-	found = 0;
-	for (tEdge = graphGetFirstEdgeByNode(graph, tNode);
-	     tEdge;
-	     tEdge = graphGetNextEdgeByNode(graph, tEdge, tNode)) {
-	    found = 1;
-	}
-
-	if (found == 0) {      
+	if (!graphGetFirstEdgeByNode(graph, tNode)) {
  
 	    overlap = 0;
 	    newNode = NULL;
 	    for (tNode2 = graphGetFirstNode(graph);
 		 tNode2;
 		 tNode2 = graphGetNextNode(graph, tNode2)) {
+		
 		/* Variante, in der ein gemeinsamer Prefix aussortiert wird */
 #if 1	
 		if (strpfxlen(tNode->smiNode->name,tNode2->smiNode->name) >
 		    overlap &&
 		    strpfxlen(tNode->smiNode->name,tNode2->smiNode->name) >
-		    minoverlap+1 &&  /* +1 (ggf. zusaetzliche Verbesserung ????? */
+		    minoverlap+1 &&  
 		    tNode->smiNode->name != tNode2->smiNode->name) {
-		    overlap = strpfxlen(tNode->smiNode->name,tNode2->smiNode->name);
+		    overlap = strpfxlen(tNode->smiNode->name,
+					tNode2->smiNode->name);
 		    newNode = tNode2;
 		}
+		
 		/* Original-Code */
 #else
 		if (strpfxlen(tNode->smiNode->name,tNode2->smiNode->name) >
 		    overlap &&
 		    tNode->smiNode->name != tNode2->smiNode->name) {
-		    overlap = strpfxlen(tNode->smiNode->name,tNode2->smiNode->name);
+		    overlap = strpfxlen(tNode->smiNode->name,
+					tNode2->smiNode->name);
 		    newNode = tNode2;
 		}
 #endif
 	    }
 
-	    if (newNode) graph = algInsertEdge(graph, 
-					       tNode->smiNode, 
-					       newNode->smiNode, SMI_INDEX_UNKNOWN);
+	    if (newNode) {
+		/* no scalar - scalar edge */
+		if (newNode->smiNode->nodekind != SMI_NODEKIND_SCALAR ||
+		    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
+
+		    /* getting the direction of the edge : table-scalar */
+		    if (newNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
+			graph = algInsertEdge(graph, 
+					      newNode->smiNode,
+					      tNode->smiNode,
+					      SMI_INDEX_UNKNOWN,
+					      GRAPH_ENHINDEX_NAMES);
+		    }
+		    else {
+			graph = algInsertEdge(graph, 
+					      tNode->smiNode, 
+					      newNode->smiNode,
+					      SMI_INDEX_UNKNOWN,
+					      GRAPH_ENHINDEX_NAMES);
+		    }
+		}
+	    }
+	}
+    }
+
+    return graph;
+}
+
+/*
+ * strgetpfx
+ *
+ * Returns the prefix of a given string.
+ */
+static char *strgetpfx(const char *s1)
+{
+    char *ss1;
+    int  i;
+
+    ss1 = strdup(s1);
+    for (i = 0; i < strlen(s1); i++) {
+	ss1[i] = 0;
+    }
+    
+    for (i = 0; s1[i]; i++) {
+	if (isupper(s1[i])) break;
+    }
+
+    strncpy(ss1, s1, i);
+
+    return strdup(ss1);
+}
+
+/*
+ * algGetGroupByPrefix
+ *
+ * Returns the group number associated with the prefix of the
+ * given node. If there is no group the result is 0 for no
+ * grouping.
+ */
+static int algGetGroupByPrefix(Graph *graph, SmiNode *smiNode)
+{
+    GraphNode *tNode;
+    
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph, tNode)) {
+	if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR &&
+	    !graphGetFirstEdgeByNode(graph, tNode)) {
+	    if (strcmp(strgetpfx(smiNode->name),
+		       strgetpfx(tNode->smiNode->name)) == 0) {
+		return tNode->group;
+	    }
+	}
+    }
+
+    return 0;
+}
+
+/*
+ * algGetNumberOfGroups
+ *
+ * Returns the number of groups.
+ */
+static int algGetNumberOfGroups(Graph *graph)
+{
+    GraphNode *tNode;
+    int       maxGroup;
+
+    maxGroup = 0;
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph, tNode)) {
+	maxGroup = max(maxGroup, tNode->group); 
+    }
+
+    return maxGroup;
+}
+
+/*
+ * algPrintGroup
+ *
+ * Prints the group with the number group.
+ */
+static void algPrintGroup(Graph *graph, int group)
+{
+    GraphNode *tNode;
+    
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph, tNode)) {   
+	if (tNode->group == group) {
+	    printf("%2d - %35s\n",group, tNode->smiNode->name);
+	}
+    }
+}
+
+/*
+ * algGroupScalars
+ *
+ */
+static Graph *algGroupScalars(Graph *graph)
+{
+    GraphNode *tNode;
+    char      *prefix;
+    int       actGroup, fGroup;
+    
+    actGroup = 0;
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph, tNode)) {
+	
+	if (!graphGetFirstEdgeByNode(graph, tNode) &&
+	    tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
+	    fGroup = algGetGroupByPrefix(graph, tNode->smiNode);
+	    if (fGroup == 0) {
+		tNode->group = ++actGroup;
+	    }
+	    else {
+		tNode->group = fGroup; 
+	    }
 	}
     }
 
 #ifdef DEBUG
-    printf("\n--- Third Phase -  connecting isolated nodes ... \n\n");
-    graphShowEdges(graph);
+    printf("Scalar Groups : \n");
+    for (actGroup = 1;
+	 actGroup <= algGetNumberOfGroups(graph);
+	 actGroup++) {
+	algPrintGroup(graph, actGroup);
+	printf("\n");
+    }
+    printf("\n");
 #endif
-
-    return graph;
+    
+    return graph; 
 }
 
 /*
@@ -1211,6 +1454,125 @@ static char *algGetTypeName(SmiNode *smiNode)
 }
 
 /*
+ * algLinkLonelyTables
+ *
+ * Links isolated tables with other tables via the types of the
+ * index objects.
+ */
+static Graph *algLinkLonelyTables(Graph *graph)
+{
+    SmiElement *smiElement, *smiElement2;
+    SmiNode    *tSmiNode;
+    GraphNode  *tNode, *tNode2;
+
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph, tNode)) {
+	if (!graphGetFirstEdgeByNode(graph, tNode) &&
+	    tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
+
+	    for (smiElement = smiGetFirstElement(
+		smiGetFirstChildNode(tNode->smiNode));
+		 smiElement;
+		 smiElement = smiGetNextElement(smiElement)) {
+
+		for (tNode2 = graphGetFirstNode(graph);
+		     tNode2;
+		     tNode2 = graphGetNextNode(graph, tNode2)) {
+		    if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE &&
+			tNode != tNode2) {
+			for (smiElement2 = smiGetFirstElement(
+			    smiGetFirstChildNode(tNode2->smiNode));
+			     smiElement2;
+			     smiElement2 = smiGetNextElement(smiElement2)) {
+			    if (strcmp(algGetTypeName(
+				           smiGetElementNode(smiElement2)),
+				       algGetTypeName(
+					   smiGetElementNode(smiElement)))
+				== 0) {
+				graph = graphInsertEdge(graph,tNode2, tNode,
+							SMI_INDEX_UNKNOWN,
+							GRAPH_ENHINDEX_TYPES);
+				break;
+			    }
+			    else {
+				if (strstr(algGetTypeName(
+				    smiGetElementNode(smiElement)), "OrZero"))
+				{
+				    graph =
+					graphInsertEdge(graph,tNode2,
+							tNode,
+							SMI_INDEX_UNKNOWN,
+							GRAPH_ENHINDEX_TYPES);
+				    break;   
+				}
+			    }
+			}
+		    }
+		    if (smiElement2) break;
+		}
+		if (tNode2) break;
+	    }
+		
+	}
+    }
+	 
+    return graph;
+}
+
+/*
+ * algConnectLonelyNodes
+ *
+ * Connect the isolated nodes (scalars and tables)
+ *
+ * 1. Trying to link tables via the type of the index objects
+ * 2. Trying to link scalars to tables via the names
+ * 3. Trying to group scalars which have not been adjacent to any edge.
+ */
+static Graph *algConnectLonelyNodes(Graph *graph) 
+{
+#ifdef DEBUG
+    printf("\n--- Fourth Phase -  connecting isolated nodes\n\n");
+#endif
+
+    graph = algLinkLonelyTables(graph);
+
+    graph = algLinkScalarsToTables(graph);
+
+    graph = algGroupScalars(graph);
+
+#ifdef DEBUG
+    graphShowEdges(graph);
+#endif
+
+    return graph;
+}
+
+/*
+ * algCountElementsFormOtherTables
+ *
+ * Returns the number of index objects derived from other tables than
+ * the given one.
+ */
+static int algCountElementsFromOtherTables(SmiNode *smiNode)
+{
+    SmiElement *smiElement;
+    int        elems = 0;
+    
+    for (smiElement = smiGetFirstElement(smiNode);
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	if (smiGetParentNode(smiGetParentNode(
+	    smiGetElementNode(smiElement)))->name !=
+	    smiGetParentNode(smiNode)->name) {
+	    elems++;
+	}
+    }
+
+    return elems;
+}
+
+/*
  * algGetNumberOfRows
  *
  * Returns the number of rows =
@@ -1222,7 +1584,7 @@ static char *algGetTypeName(SmiNode *smiNode)
  *
  * Subroutine for algCheckForDependency.
  */
-int algGetNumberOfRows(SmiNode *smiNode)
+static int algGetNumberOfRows(SmiNode *smiNode)
 {
     SmiNode *tSmiNode;
     SmiNode *table;
@@ -1231,18 +1593,24 @@ int algGetNumberOfRows(SmiNode *smiNode)
     elemCount = 0;
     table = smiNode;
     tSmiNode = smiGetFirstChildNode(table);
-    elemCount = algCountElements(tSmiNode);
+
+    elemCount = algCountElements(tSmiNode) -
+	algCountElementsFromOtherTables(tSmiNode);
+
     for (tSmiNode = smiGetNextNode(tSmiNode, SMI_NODEKIND_COLUMN);
 	 tSmiNode;
 	 tSmiNode = smiGetNextNode(tSmiNode, SMI_NODEKIND_COLUMN)) {
-    
-	if (table->name != smiGetParentNode(smiGetParentNode(tSmiNode))->name)
+
+	if (table->name != smiGetParentNode(
+	    smiGetParentNode(tSmiNode))->name) {
 	    break;
-  
+	}
+	
 	/* evtl. noch RowPointer einfuegen */
 	if (strcmp(algGetTypeName(tSmiNode), "RowStatus") != 0 &&
-	    strcmp(algGetTypeName(tSmiNode), "StorageType") != 0)  
+	    strcmp(algGetTypeName(tSmiNode), "StorageType") != 0) {  
 	    elemCount--;
+	}
     }
 
     return elemCount;
@@ -1256,7 +1624,7 @@ int algGetNumberOfRows(SmiNode *smiNode)
  *
  * Subroutine for algCheckForDependency. 
  */
-SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
+static SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
 {
     SmiElement *smiElement;
     SmiNode    *tSmiNode;
@@ -1273,7 +1641,8 @@ SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
 	     smiElement;
 	     smiElement = smiGetNextElement(smiElement)) {
 	    /* found type matching ? */
-	    if (strcmp(typeName, algGetTypeName(smiGetElementNode(smiElement)))== 0) {
+	    if (strcmp(typeName,
+		       algGetTypeName(smiGetElementNode(smiElement)))== 0) {
 		return tSmiNode;
 	    }
 	}
@@ -1297,9 +1666,9 @@ SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
  *    be connected with it (inserting a new edge). 
  *    The end-table is still connected to the start-table.
  */
-Graph *algCheckForDependency(Graph *graph) 
+static Graph *algCheckForDependency(Graph *graph) 
 {
-    GraphEdge  *tEdge;
+    GraphEdge  *tEdge, *tEdge2;
     SmiNode    *endTable, *startTable, *depTable;
     SmiElement *smiElement;
     int        elemCount;
@@ -1308,13 +1677,18 @@ Graph *algCheckForDependency(Graph *graph)
 	 tEdge;
 	 tEdge = graphGetNextEdge(graph, tEdge)) {
 
-	if (tEdge->indexkind == SMI_INDEX_EXPAND) {
-     
-	    elemCount = algGetNumberOfRows(tEdge->startNode->smiNode);
-	    if (elemCount > 0) tEdge->connection = GRAPH_CON_DEPENDENCY;
+	if (tEdge->indexkind == SMI_INDEX_EXPAND ||
+	    tEdge->indexkind == SMI_INDEX_UNKNOWN) {
 
-	    elemCount = algGetNumberOfRows(tEdge->endNode->smiNode);
-	    if (elemCount > 0) tEdge->connection = GRAPH_CON_DEPENDENCY;
+	    if (tEdge->startNode->smiNode->nodekind == SMI_NODEKIND_TABLE &&
+		tEdge->endNode->smiNode->nodekind   == SMI_NODEKIND_TABLE) {
+		
+		elemCount = algGetNumberOfRows(tEdge->startNode->smiNode);
+		if (elemCount >= 0) tEdge->connection = GRAPH_CON_DEPENDENCY;
+
+		elemCount = algGetNumberOfRows(tEdge->endNode->smiNode);
+		if (elemCount >= 0) tEdge->connection = GRAPH_CON_DEPENDENCY;
+	    }
 	}
     }
 
@@ -1327,22 +1701,29 @@ Graph *algCheckForDependency(Graph *graph)
 	    startTable = tEdge->startNode->smiNode;
 	    endTable = tEdge->endNode->smiNode;
       
-	    for (smiElement = smiGetFirstElement(smiGetFirstChildNode(endTable));
+	    for (smiElement = smiGetFirstElement(
+		smiGetFirstChildNode(endTable));
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
 	
 		/* look only at expanded indices (only present in endTable) */
-		if (smiGetParentNode(smiGetParentNode(smiGetElementNode(smiElement)))->name ==
+		if (smiGetParentNode(smiGetParentNode(
+		    smiGetElementNode(smiElement)))->name ==
 		    endTable->name) {
-		    depTable = algFindEqualType(startTable, smiGetElementNode(smiElement));
-		    /* depTable found and different to endTable ? */
-		    if (depTable && (strcmp(depTable->name, endTable->name) != 0)) {
-			/* insert only non-redundant edges -> example RMON2*/
-			/*if (graphCheckForRedundantEdge(graph,
-			  graphGetNode(graph,depTable), 
-			  graphGetNode(graph,startTable),
-			  SMI_INDEX_UNKNOWN) == 0) */
-			graph = algInsertEdge(graph, depTable, startTable, SMI_INDEX_UNKNOWN);
+
+		    depTable = algFindEqualType(startTable,
+						smiGetElementNode(smiElement));
+
+		    /* depTable different to endTable? */
+		    if (depTable && (strcmp(depTable->name, endTable->name)
+				     != 0)) {
+
+			graph = algInsertEdge(graph,
+					      depTable,
+					      startTable, SMI_INDEX_UNKNOWN,
+					      GRAPH_ENHINDEX_TYPES);
+			tEdge2 = graphGetLastEdge(graph);
+			tEdge2->connection = GRAPH_CON_ASSOCIATION;
 			break;
 		    }
 		}
@@ -1351,35 +1732,51 @@ Graph *algCheckForDependency(Graph *graph)
     }
 
 #ifdef DEBUG
-    printf("\n--- Fourth Phase - checking for dependency connections ... \n\n");
+    printf("\n--- Fifth Phase - checking for dependency connections\n\n");
     graphShowEdges(graph);
 #endif
 
     return graph;
 }
 
-Graph *algCheckNotifications(Graph *graph)
+/*
+ * algCheckNotifications
+ *
+ * Checks the notifications for edges not yet present.
+ * Every notification objects is checked whether its elements are
+ * connected or not.
+ */
+static Graph *algCheckNotifications(Graph *graph)
 {
-    SmiNode    *smiNode;
+    SmiNode    *smiNode, *smiNode2, *smiNode3;
     SmiElement *smiElement;
-
-#ifdef DEBUG
-    printf("\n--- Fifth Phase - notifications ... \n\n");
 
     for (smiNode = smiGetFirstNode(module, SMI_NODEKIND_NOTIFICATION);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
-	printf("Node : %s\n",smiNode->name);
-    
-	for (smiElement = smiGetFirstElement(smiNode);
-	     smiElement;
-	     smiElement = smiGetNextElement(smiElement)) {
-	    printf("Elem : %30s -- Father : %30s\n",smiGetElementNode(smiElement)->name,
-		   smiGetParentNode(smiGetParentNode(smiGetElementNode(smiElement)))->name);
+
+	smiElement = smiGetFirstElement(smiNode);
+	if (smiElement) {
+	    smiNode2 = smiGetParentNode(smiGetElementNode(smiElement));
+	    smiNode2 = smiGetParentNode(smiNode2);
+	    for (smiElement = smiGetNextElement(smiElement);
+		 smiElement;
+		 smiElement = smiGetNextElement(smiElement)) {
+		smiNode3 = smiGetParentNode(smiGetParentNode(
+		    smiGetElementNode(smiElement)));
+		if (smiNode2->name != smiNode3->name) {
+		    graph = algInsertEdge(graph, smiNode2, smiNode3,
+					  SMI_INDEX_UNKNOWN,
+					  GRAPH_ENHINDEX_NOTIFICATION); 
+		}
+	    }
 	}
 
     }
 
+#ifdef DEBUG
+    printf("\n--- Third Phase - notifications \n\n");
+    graphShowEdges(graph);
 #endif
 
     return graph;
@@ -1389,49 +1786,542 @@ Graph *algCheckNotifications(Graph *graph)
 
 
 
-/* ------ XML primitives ------                                                    */
+/* ------ XML primitives ------                                              */
 
 
 
 
 
-void printHeader()
+static void printHeader()
 {
     printf("<?xml version=\"1.0\"?>\n");
-    printf("<!-- This file has been generated by smidump " VERSION
-	   ". Do not edit. -->\n");
-    printf("<dia:diagram xmlns:dia=\"http://www.lysator.liu.se/~alla/dia/\">\n");
-    printf("  <dia:diagramdata>\n");
-    printf("    <dia:attribute name=\"background\">\n");
-    printf("      <dia:color val=\"#ffffff\"/>\n");
-    printf("    </dia:attribute>\n");
-    printf("  </dia:diagramdata>\n");
-    printf("  <dia:layer name=\"Background\" visible=\"true\">\n");
+    printf("<diagram xmlns:dia=\"http://www.lysator.liu.se/~alla/dia/\">\n");
+    printf("  <diagramdata>\n");
+    printf("    <attribute name=\"background\">\n");
+    printf("      <color val=\"#ffffff\"/>\n");
+    printf("    </attribute>\n");
+    printf("    <attribute name=\"paper\">\n");
+    printf("      <composite type=\"paper\">\n");
+    printf("        <attribute name=\"name\">\n");
+    printf("          <string>#A4#</string>\n");
+    printf("        </attribute>\n");
+    printf("        <attribute name=\"tmargin\">\n");
+    printf("         <real val=\"2.82\"/>\n");
+    printf("       </attribute>\n");
+    printf("       <attribute name=\"bmargin\">\n");
+    printf("         <real val=\"2.82\"/>\n");
+    printf("        </attribute>\n");
+    printf("       <attribute name=\"lmargin\">\n");
+    printf("         <real val=\"2.82\"/>\n");
+    printf("       </attribute>\n");
+    printf("       <attribute name=\"rmargin\">\n");
+    printf("         <real val=\"2.82\"/>\n");
+    printf("       </attribute>\n");
+    printf("       <attribute name=\"is_portrait\">\n");
+    printf("         <boolean val=\"true\"/>\n");
+    printf("       </attribute>\n");
+    printf("      <attribute name=\"scaling\">\n");
+    printf("         <real val=\"1\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"fitto\">\n");
+    printf("        <boolean val=\"false\"/>\n");
+    printf("      </attribute>\n");
+    printf("    </composite>\n");
+    printf("   </attribute>\n");
+    printf("  </diagramdata>\n");
+    printf("  <layer name=\"Background\" visible=\"true\">\n");   
 }
 
-void printCloseXML()
+static void printCloseXML()
 {
-    printf("  </dia:layer>\n");
-    printf("</dia:diagram>\n");
+    printf("  </layer>\n");
+    printf("</diagram>\n");
 }
 
-void printXML(Graph *graph)
+static void printXMLObject(GraphNode *node, int x, int y)
+{
+    SmiElement *smiElement;
+    
+    printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
+	   node->smiNode->name);
+    printf("      <attribute name=\"obj_pos\">\n");
+    printf("       <point val=\"8,7\"/>\n");
+    printf("      </attribute>\n");
+    printf("     <attribute name=\"obj_bb\">\n");
+    printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"elem_corner\">\n");
+    printf("       <point val=\"%d,%d\"/>\n",x,y);
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"elem_width\">\n");
+    printf("       <real val=\"%f\"/>\n",0.0);
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"elem_height\">\n");
+    printf("       <real val=\"%f\"/>\n",0.0);
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"name\">\n");
+    printf("       <string>#%s#</string>\n",node->smiNode->name);
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"stereotype\">\n");
+    printf("       <string/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"abstract\">\n");
+    printf("       <boolean val=\"false\"/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"suppress_attributes\">\n");
+    printf("        <boolean val=\"false\"/>\n");    
+    printf("      </attribute>\n");   
+    printf("      <attribute name=\"suppress_operations\">\n");
+    printf("        <boolean val=\"true\"/>\n");
+    printf("      </attribute>\n");
+    printf("     <attribute name=\"visible_attributes\">\n");
+
+    if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
+	printf("       <boolean val=\"false\"/>\n");
+    } else {
+	printf("       <boolean val=\"true\"/>\n");
+    }    
+
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"visible_operations\">\n");
+    printf("        <boolean val=\"false\"/>\n");
+    printf("      </attribute>\n");
+
+    printf("     <attribute name=\"attributes\">\n");
+
+    for (smiElement = smiGetFirstElement(smiGetFirstChildNode(node->smiNode));
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	printf("        <composite type=\"umlattribute\">\n");
+	printf("          <attribute name=\"name\">\n");
+	printf("            <string>#%s#</string>\n",
+	       smiGetElementNode(smiElement)->name);
+	printf("          </attribute>\n");
+	printf("          <attribute name=\"type\">\n");
+	printf("            <string>#%s#</string>\n",
+	       algGetTypeName(smiGetElementNode(smiElement)));
+	printf("          </attribute>\n");
+	printf("          <attribute name=\"value\">\n");
+	printf("            <string/>\n");
+	printf("          </attribute>\n");
+	printf("          <attribute name=\"visibility\">\n");
+	printf("            <enum val=\"0\"/>\n");
+	printf("          </attribute>\n");
+	printf("          <attribute name=\"abstract\">\n");
+	printf("            <boolean val=\"false\"/>\n");
+	printf("          </attribute>\n");
+	printf("          <attribute name=\"class_scope\">\n");
+	printf("            <boolean val=\"false\"/>\n");
+	printf("          </attribute>\n");
+	printf("        </composite>\n");	
+    }
+    
+    printf("      </attribute>\n");
+    
+    printf("     <attribute name=\"operations\"/>\n");
+    printf("    <attribute name=\"template\">\n");
+    printf("      <boolean val=\"false\"/>\n");
+    printf("    </attribute>\n");
+    printf("     <attribute name=\"templates\"/>\n");
+    printf("   </object>\n");
+}
+
+static void printXMLGroup(Graph *graph, int group, int x, int y)
 {
     GraphNode *tNode;
-
-    printHeader();
 
     for (tNode = graphGetFirstNode(graph);
 	 tNode;
 	 tNode = graphGetNextNode(graph, tNode)) {
+	if (tNode->group == group) break;
     }
 
+    if (!tNode) return;
+    
+    printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
+	   strgetpfx(tNode->smiNode->name));
+    printf("      <attribute name=\"obj_pos\">\n");
+    printf("       <point val=\"8,7\"/>\n");
+    printf("      </attribute>\n");
+    printf("     <attribute name=\"obj_bb\">\n");
+    printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"elem_corner\">\n");
+    printf("       <point val=\"%d,%d\"/>\n",x,y);
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"elem_width\">\n");
+    printf("       <real val=\"%f\"/>\n",0.0);
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"elem_height\">\n");
+    printf("       <real val=\"%f\"/>\n",0.0);
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"name\">\n");
+    printf("       <string>#%s - Group#</string>\n",
+	   strgetpfx(tNode->smiNode->name));
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"stereotype\">\n");
+    printf("       <string/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"abstract\">\n");
+    printf("       <boolean val=\"false\"/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"suppress_attributes\">\n");
+    printf("        <boolean val=\"false\"/>\n");    
+    printf("      </attribute>\n");   
+    printf("      <attribute name=\"suppress_operations\">\n");
+    printf("        <boolean val=\"true\"/>\n");
+    printf("      </attribute>\n");
+    printf("     <attribute name=\"visible_attributes\">\n");
+    printf("       <boolean val=\"true\"/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"visible_operations\">\n");
+    printf("        <boolean val=\"false\"/>\n");
+    printf("      </attribute>\n");
+
+    printf("     <attribute name=\"attributes\">\n");
+
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph,tNode)){
+
+	if (tNode->group == group) {
+	    printf("        <composite type=\"umlattribute\">\n");
+	    printf("          <attribute name=\"name\">\n");
+	    printf("            <string>#%s#</string>\n",
+		   tNode->smiNode->name);
+	    printf("          </attribute>\n");
+	    printf("          <attribute name=\"type\">\n");
+	    printf("            <string>#%s#</string>\n",
+		   algGetTypeName(tNode->smiNode));
+	    printf("          </attribute>\n");
+	    printf("          <attribute name=\"value\">\n");
+	    printf("            <string/>\n");
+	    printf("          </attribute>\n");
+	    printf("          <attribute name=\"visibility\">\n");
+	    printf("            <enum val=\"0\"/>\n");
+	    printf("          </attribute>\n");
+	    printf("          <attribute name=\"abstract\">\n");
+	    printf("            <boolean val=\"false\"/>\n");
+	    printf("          </attribute>\n");
+	    printf("          <attribute name=\"class_scope\">\n");
+	    printf("            <boolean val=\"false\"/>\n");
+	    printf("          </attribute>\n");
+	    printf("        </composite>\n");
+	}
+    }
+    
+    printf("      </attribute>\n");
+    
+    printf("     <attribute name=\"operations\"/>\n");
+    printf("    <attribute name=\"template\">\n");
+    printf("      <boolean val=\"false\"/>\n");
+    printf("    </attribute>\n");
+    printf("     <attribute name=\"templates\"/>\n");
+    printf("   </object>\n");
+}
+
+static void printXMLDependency(GraphEdge *tEdge)
+{
+    printf("    <object type=\"UML - Dependency\" "
+	   "version=\"0\" id=\"Depend:%s:%s\">\n",
+	   tEdge->startNode->smiNode->name,
+	   tEdge->endNode->smiNode->name);    
+
+    printf("      <attribute name=\"obj_pos\">\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("     </attribute>\n");
+    printf("      <attribute name=\"obj_bb\">\n");
+    printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"orth_points\">\n");
+    printf("       <point val=\"1,1\"/>\n");
+    printf("       <point val=\"1,1\"/>\n");
+    printf("       <point val=\"1,1\"/>\n");
+    printf("       <point val=\"1,1\"/>\n");
+    printf("     </attribute>\n");
+    printf("     <attribute name=\"orth_orient\">\n");
+    printf("       <enum val=\"1\"/>\n");
+    printf("       <enum val=\"0\"/>\n");
+    printf("       <enum val=\"1\"/>\n");
+    printf("     </attribute>\n");
+    printf("    <attribute name=\"draw_arrow\">\n");
+    printf("       <boolean val=\"true\"/>\n");
+    printf("      </attribute>\n");
+    printf("     <attribute name=\"name\">\n");
+    printf("        <string/>\n");
+    printf("   </attribute>\n");
+    printf("     <attribute name=\"stereotype\">\n");
+    printf("      <string/>\n");
+    printf("    </attribute>\n");
+    printf("    <connections>\n");
+    
+    printf("      <connection handle=\"0\" to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->startNode->smiNode->name,1);
+    printf("      <connection handle=\"1\" to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->endNode->smiNode->name,1);
+    
+    printf("    </connections>\n");
+    printf("    </object>\n");
+}
+
+
+static void printXMLAggregation(GraphEdge *tEdge)
+{
+    printf("    <object type=\"UML - Association\" "
+	   "version=\"0\" id=\"Assoc:%s:%s\">\n",
+	   tEdge->startNode->smiNode->name,
+	   tEdge->endNode->smiNode->name);
+    
+    printf("      <attribute name=\"obj_pos\">\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"obj_bb\">\n");
+    printf("        <rectangle val=\"0,0;0,0\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"orth_points\">\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"orth_orient\">\n");
+    printf("        <enum val=\"1\"/>\n");
+    printf("        <enum val=\"0\"/>\n");
+    printf("        <enum val=\"1\"/>\n");   
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"name\">\n");
+
+    switch(tEdge->indexkind) {
+    case SMI_INDEX_UNKNOWN :
+	printf("       <string>#%s#</string>\n","UNKNOWN");
+	break;
+    case SMI_INDEX_INDEX :
+	printf("       <string>#%s#</string>\n","INDEX");
+	break;
+    case SMI_INDEX_AUGMENT :
+	printf("       <string>#%s#</string>\n","AUGMENT");
+	break;
+    case SMI_INDEX_SPARSE :
+	printf("       <string>#%s#</string>\n","SPARSE");
+	break;
+    case SMI_INDEX_REORDER :
+	printf("       <string>#%s#</string>\n","REORDER");
+	break;
+    case SMI_INDEX_EXPAND :
+	printf("       <string>#%s#</string>\n","EXPAND");
+	break;
+    }
+    
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"direction\">\n");
+    printf("        <enum val=\"0\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"ends\">\n");
+    printf("        <composite>\n");
+    printf("          <attribute name=\"role\">\n");
+    printf("            <string/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"multiplicity\">\n");
+    
+    switch (tEdge->cardinality) {
+    case GRAPH_CARD_UNKNOWN :
+	printf("       <string>#-#</string>\n");
+	break;
+    case GRAPH_CARD_ONE_TO_ONE :
+	printf("       <string>#1#</string>\n");
+	break;
+    case GRAPH_CARD_ONE_TO_MANY :
+	printf("       <string>#1#</string>\n");
+	break;
+    case GRAPH_CARD_ZERO_TO_ONE :
+	printf("       <string>#0#</string>\n");
+	break;
+    case GRAPH_CARD_ZERO_TO_MANY :
+	printf("       <string>#0#</string>\n");
+	break;    
+    }
+   
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"arrow\">\n");
+    printf("            <boolean val=\"false\"/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"aggregate\">\n");
+    printf("            <enum val=\"0\"/>\n");
+    printf("          </attribute>\n");
+    printf("        </composite>\n");
+    printf("        <composite>\n");
+    printf("          <attribute name=\"role\">\n");
+    printf("            <string/>\n");
+    printf("          </attribute>\n");
+
+    printf("          <attribute name=\"multiplicity\">\n");
+
+    switch (tEdge->cardinality) {
+    case GRAPH_CARD_UNKNOWN :
+	printf("       <string>#-#</string>\n");
+	break;
+    case GRAPH_CARD_ONE_TO_ONE :
+	printf("       <string>#1#</string>\n");
+	break;
+    case GRAPH_CARD_ONE_TO_MANY :
+	printf("       <string>#n#</string>\n");
+	break;
+    case GRAPH_CARD_ZERO_TO_ONE :
+	printf("       <string>#1#</string>\n");
+	break;
+    case GRAPH_CARD_ZERO_TO_MANY :
+	printf("       <string>#n#</string>\n");
+	break;    
+    }
+    
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"arrow\">\n");
+    printf("            <boolean val=\"false\"/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"aggregate\">\n");
+    printf("            <enum val=\"1\"/>\n");
+    printf("          </attribute>\n");
+    printf("        </composite>\n");
+    printf("      </attribute>\n");
+    printf("      <connections>\n");
+    printf("        <connection handle=\"0\" "
+	   "to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->startNode->smiNode->name, 1);
+    
+    printf("        <connection handle=\"1\" "
+	   "to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->endNode->smiNode->name, 1);
+    
+    printf("      </connections>\n");
+    printf("    </object>\n");
+}
+
+static void printXMLAssociation(GraphEdge *tEdge)
+{
+    printf("    <object type=\"UML - Association\" "
+	   "version=\"0\" id=\"Assoc:%s:%s\">\n",
+	   tEdge->startNode->smiNode->name,
+	   tEdge->endNode->smiNode->name);
+    
+    printf("      <attribute name=\"obj_pos\">\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"obj_bb\">\n");
+    printf("        <rectangle val=\"1,1;1,1\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"orth_points\">\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("        <point val=\"1,1\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"orth_orient\">\n");
+    printf("        <enum val=\"1\"/>\n");
+    printf("        <enum val=\"1\"/>\n");
+    printf("        <enum val=\"1\"/>\n");   
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"name\">\n");
+    printf("        <string/>\n");    
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"direction\">\n");
+    printf("        <enum val=\"0\"/>\n");
+    printf("      </attribute>\n");
+    printf("      <attribute name=\"ends\">\n");
+    printf("        <composite>\n");
+    printf("          <attribute name=\"role\">\n");
+    printf("            <string/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"multiplicity\">\n");
+    printf("            <string/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"arrow\">\n");
+    printf("            <boolean val=\"false\"/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"aggregate\">\n");
+    printf("            <enum val=\"0\"/>\n");
+    printf("          </attribute>\n");
+    printf("        </composite>\n");
+    printf("        <composite>\n");
+    printf("          <attribute name=\"role\">\n");
+    printf("            <string/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"multiplicity\">\n");
+    printf("            <string/>\n");    
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"arrow\">\n");
+    printf("            <boolean val=\"false\"/>\n");
+    printf("          </attribute>\n");
+    printf("          <attribute name=\"aggregate\">\n");
+    printf("            <enum val=\"0\"/>\n");
+    printf("          </attribute>\n");
+    printf("        </composite>\n");
+    printf("      </attribute>\n");
+    printf("      <connections>\n");
+    printf("        <connection handle=\"0\" "
+	   "to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->startNode->smiNode->name, 1);
+    
+    printf("        <connection handle=\"1\" "
+	   "to=\"%s\" connection=\"%d\"/>\n",
+	   tEdge->endNode->smiNode->name, 1);
+    
+    printf("      </connections>\n");
+    printf("    </object>\n");
+}
+
+static void printXML(Graph *graph)
+{
+    GraphNode *tNode;
+    GraphEdge *tEdge;
+    int       x,y;
+    int       group;
+    
+    printHeader();
+
+    x = 3;
+    y = 3;
+    for (tNode = graphGetFirstNode(graph);
+	 tNode;
+	 tNode = graphGetNextNode(graph, tNode)) {
+	if (tNode->group == 0) {
+	    printXMLObject(tNode,x,y);
+	    x += 2;
+	    y += 2;
+	}
+    }
+
+    for (tEdge = graphGetFirstEdge(graph);
+	 tEdge;
+	 tEdge = graphGetNextEdge(graph, tEdge)) {
+	switch (tEdge->connection) {
+	case GRAPH_CON_AGGREGATION :
+	    printXMLAggregation(tEdge);
+	    break;
+	case GRAPH_CON_DEPENDENCY :
+	    printXMLDependency(tEdge);
+	    break;
+	case GRAPH_CON_ASSOCIATION :
+	    printXMLAssociation(tEdge);
+	    break;	    
+	}
+    }
+
+    x += 5;
+    y += 5;
+    for (group = 1;
+	 group <= algGetNumberOfGroups(graph);
+	 group++) {
+	printXMLGroup(graph,group,x,y);
+	x += 2;
+	y += 2;
+    }
+    
     printCloseXML();
 }
 
 
 
-/* --------------------------- */
+/* ------------------------------------------------------------------------- */
 
 
 
@@ -1445,13 +2335,13 @@ int dumpCM(char *modulename, int flags)
     Graph     *graph;
 
     if (!modulename) {
-	fprintf(stderr, "smidump: united output not supported for cm format\n");
+	fprintf(stderr,"smidump: united output not supported for cm format\n");
 	exit(1);
     }
   
     module = smiGetModule(modulename);
     if (!module) {
-	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
+	fprintf(stderr,"smidump: cannot locate module `%s'\n", modulename);
 	exit(1);
     }
 
@@ -1460,18 +2350,15 @@ int dumpCM(char *modulename, int flags)
     graph->edges = NULL;
 
 #ifdef DEBUG
-    printf("\nConceptual Model of %s - generated by smidump " VERSION "\n\n",modulename);
+    printf("\nConceptual Model of %s - generated by smidump " VERSION "\n\n",
+	   modulename);
 #endif
 
     graph = algLinkTables(graph);
     graph = algCheckLinksByName(graph);
-#if 1
-    graph = algConnectLonelyNodes(graph);
-#endif
-    graph = algCheckForDependency(graph);
-#if 1
     graph = algCheckNotifications(graph);
-#endif
+    graph = algConnectLonelyNodes(graph);
+    graph = algCheckForDependency(graph);
 
 #ifndef DEBUG
     printXML(graph);
