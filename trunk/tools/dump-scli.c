@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.35 2003/11/18 12:54:14 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.36 2004/03/13 22:36:31 schoenw Exp $
  */
 
 /*
@@ -801,7 +801,7 @@ printHeaderEnumeration(FILE *f, SmiModule *smiModule,
 		(int) nn->value.value.integer32);
 	xfree(dEnum);
     }
-    fprintf(f, "\nextern GSnmpEnum const %s_enums_%s[];\n\n",
+    fprintf(f, "\nextern GNetSnmpEnum const %s_enums_%s[];\n\n",
 	    cPrefix, cName);
     
     xfree(dName);
@@ -912,7 +912,7 @@ printHeaderIdentities(FILE *f, SmiModule *smiModule)
 	cModuleName = translateLower(smiModule->name);
 	fprintf(f,
 		"\n"
-		"extern GSnmpIdentity const %s_identities[];\n"
+		"extern GNetSnmpIdentity const %s_identities[];\n"
 		"\n",
 		cModuleName);
 	xfree(cModuleName);
@@ -1467,7 +1467,7 @@ printStubEnumeration(FILE *f, SmiModule *smiModule,
     cName = translate(name);
     dName = translateUpper(name);
     
-    fprintf(f, "GSnmpEnum const %s_enums_%s[] = {\n",
+    fprintf(f, "GNetSnmpEnum const %s_enums_%s[] = {\n",
 	    cPrefix, cName);
     for (len = 0, nn = smiGetFirstNamedNumber(smiType); nn;
 	 nn = smiGetNextNamedNumber(nn)) {
@@ -1576,7 +1576,7 @@ printStubIdentities(FILE *f, SmiModule *smiModule)
     if (cnt) {
 	fprintf(f,
 		"\n"
-		"GSnmpIdentity const %s_identities[] = {\n",
+		"GNetSnmpIdentity const %s_identities[] = {\n",
 		cModuleName);
     
 	for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
@@ -1992,7 +1992,7 @@ printStubAttributes(FILE *f, SmiModule *smiModule)
 	    fprintf(f, "};\n\n");
 	    
 	    fprintf(f,
-		    "static GSnmpAttribute %s_attr[] = {\n",
+		    "static GNetSnmpAttribute %s_attr[] = {\n",
 		    cName);
 	    if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		printTableAttributes(f, smiModule, smiNode);
@@ -2530,7 +2530,7 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     }
 
     fprintf(f,
-	    "    gsnmp_attr_assign(vbl, %s_oid, sizeof(%s_oid)/sizeof(guint32),\n"
+	    "    gnet_snmp_attr_assign(vbl, %s_oid, sizeof(%s_oid)/sizeof(guint32),\n"
 	    "                      %s_attr, %s);\n"
 	    "\n"
 	    "    return %s;\n"
@@ -2585,7 +2585,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    cRowName);
 
     fprintf(f,
-	    "    gsnmp_attr_get(s, &in, base, %u, %u, %s_attr, mask);\n",
+	    "    gnet_snmp_attr_get(s, &in, base, %u, %u, %s_attr, mask);\n",
 	    rowNode->oidlen+1, rowNode->oidlen, cRowName);
 
     fprintf(f,
@@ -2661,7 +2661,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    cRowName);
 
     fprintf(f,
-	    "    gsnmp_attr_get(s, &in, base, len, %u, %s_attr, mask);\n",
+	    "    gnet_snmp_attr_get(s, &in, base, len, %u, %s_attr, mask);\n",
 	    rowNode->oidlen, cRowName);
 
     fprintf(f,
@@ -2731,7 +2731,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    cRowName);
 
     fprintf(f,
-	    "    gsnmp_attr_set(s, &in, base, len, %u, %s_attr, mask, %s);\n",
+	    "    gnet_snmp_attr_set(s, &in, base, len, %u, %s_attr, mask, %s);\n",
 	    rowNode->oidlen, cRowName, cRowName);
 
     fprintf(f,
@@ -2996,7 +2996,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    cGroupName);
 
     fprintf(f,
-	    "    gsnmp_attr_get(s, &in, base, %u, %u, %s_attr, mask);\n",
+	    "    gnet_snmp_attr_get(s, &in, base, %u, %u, %s_attr, mask);\n",
 	    groupNode->oidlen + 1, groupNode->oidlen, cGroupName);
 
     fprintf(f,
@@ -3044,7 +3044,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f, "0, 0};\n\n");
 
     fprintf(f,
-	    "    gsnmp_attr_set(s, &in, base, %u, %u, %s_attr, mask, %s);\n",
+	    "    gnet_snmp_attr_set(s, &in, base, %u, %u, %s_attr, mask, %s);\n",
 	    groupNode->oidlen + 2, groupNode->oidlen, cGroupName, cGroupName);
 
     fprintf(f,
