@@ -927,7 +927,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->export.oidlen == 0) {
 	    if (objectPtr->nodePtr->oidlen == 0) {
 		for (nodePtr = objectPtr->nodePtr, i = 1;
-		     nodePtr->parentPtr != smiHandle->pendingNodePtr &&
+		     nodePtr->parentPtr != thisParserPtr->pendingNodePtr &&
 			 nodePtr->parentPtr != smiHandle->rootNodePtr &&
 			 nodePtr != nodePtr->parentPtr &&
 			 i <= 128;
@@ -3767,7 +3767,7 @@ yyreduce:
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-7].id, &objectPtr);
-			    objectPtr = setObjectName(objectPtr, yyvsp[-7].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-7].id, thisParserPtr);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -4211,7 +4211,7 @@ yyreduce:
 							     thisModulePtr);
 				if (!importPtr ||
 				    (importPtr->kind == KIND_NOTFOUND)) {
-				    objectPtr = addObject(yyvsp[-1].id, smiHandle->pendingNodePtr,
+				    objectPtr = addObject(yyvsp[-1].id, thisParserPtr->pendingNodePtr,
 					                  0,
 					                  FLAG_INCOMPLETE |
 							  FLAG_SEQTYPE,
@@ -4477,7 +4477,7 @@ yyreduce:
 			    objectPtr = yyvsp[-1].objectPtr;
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-13].id, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, yyvsp[-13].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-13].id, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -4545,7 +4545,7 @@ yyreduce:
 
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-22].id, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, yyvsp[-22].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-22].id, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -4884,7 +4884,7 @@ yyreduce:
 			    
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-10].id, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, yyvsp[-10].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-10].id, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_TRAPTYPE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -5254,7 +5254,7 @@ yyreduce:
 
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-14].id, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, yyvsp[-14].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-14].id, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -5382,7 +5382,7 @@ yyreduce:
 
 			    thisParserPtr->modulePtr->numModuleIdentities++;
 
-			    objectPtr = setObjectName(objectPtr, yyvsp[-23].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-23].id, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -8076,7 +8076,7 @@ yyreduce:
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject(yyvsp[0].id,
-								  smiHandle->pendingNodePtr, 0,
+								  thisParserPtr->pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
 					    smiPrintError(thisParserPtr,
@@ -8099,7 +8099,7 @@ yyreduce:
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject(yyvsp[0].id,
-								  smiHandle->pendingNodePtr, 0,
+								  thisParserPtr->pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
 					    smiPrintError(thisParserPtr,
@@ -8113,7 +8113,7 @@ yyreduce:
 					 * marked with FLAG_INCOMPLETE.
 					 */
 					objectPtr = addObject(yyvsp[0].id,
-							      smiHandle->pendingNodePtr,
+							      thisParserPtr->pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
@@ -8180,7 +8180,7 @@ yyreduce:
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject(yyvsp[-2].id,
-						    smiHandle->pendingNodePtr, 0,
+						    thisParserPtr->pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
 						smiPrintError(thisParserPtr,
@@ -8203,7 +8203,7 @@ yyreduce:
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject(yyvsp[-2].id,
-						    smiHandle->pendingNodePtr, 0,
+						    thisParserPtr->pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
 						smiPrintError(thisParserPtr,
@@ -8217,7 +8217,7 @@ yyreduce:
 					     * marked with FLAG_INCOMPLETE.
 					     */
 					    objectPtr = addObject(yyvsp[0].id,
-							    smiHandle->pendingNodePtr,
+							    thisParserPtr->pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
@@ -8414,7 +8414,7 @@ yyreduce:
 
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-14].id, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, yyvsp[-14].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-14].id, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -8487,7 +8487,7 @@ yyreduce:
 
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-14].id, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, yyvsp[-14].id);
+			    objectPtr = setObjectName(objectPtr, yyvsp[-14].id, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -8561,7 +8561,7 @@ yyreduce:
 
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-14].id, &objectPtr);
 
-			    setObjectName(objectPtr, yyvsp[-14].id);
+			    setObjectName(objectPtr, yyvsp[-14].id, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -9110,7 +9110,7 @@ yyreduce:
 			    
 			    smiCheckObjectReuse(thisParserPtr, yyvsp[-16].id, &objectPtr);
 
-			    setObjectName(objectPtr, yyvsp[-16].id);
+			    setObjectName(objectPtr, yyvsp[-16].id, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,

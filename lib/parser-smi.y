@@ -680,7 +680,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	if (objectPtr->export.oidlen == 0) {
 	    if (objectPtr->nodePtr->oidlen == 0) {
 		for (nodePtr = objectPtr->nodePtr, i = 1;
-		     nodePtr->parentPtr != smiHandle->pendingNodePtr &&
+		     nodePtr->parentPtr != thisParserPtr->pendingNodePtr &&
 			 nodePtr->parentPtr != smiHandle->rootNodePtr &&
 			 nodePtr != nodePtr->parentPtr &&
 			 i <= 128;
@@ -2079,7 +2079,7 @@ valueDeclaration:	fuzzy_lowercase_identifier
 			    
 			    objectPtr = $7;
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -2528,7 +2528,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 							     thisModulePtr);
 				if (!importPtr ||
 				    (importPtr->kind == KIND_NOTFOUND)) {
-				    objectPtr = addObject($1, smiHandle->pendingNodePtr,
+				    objectPtr = addObject($1, thisParserPtr->pendingNodePtr,
 					                  0,
 					                  FLAG_INCOMPLETE |
 							  FLAG_SEQTYPE,
@@ -2771,7 +2771,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = $13;
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -2845,7 +2845,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -3178,7 +3178,7 @@ trapTypeClause:		fuzzy_lowercase_identifier
 			    
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_TRAPTYPE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -3470,7 +3470,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -3574,7 +3574,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 
 			    thisParserPtr->modulePtr->numModuleIdentities++;
 
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -5980,7 +5980,7 @@ subidentifier:
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject($1,
-								  smiHandle->pendingNodePtr, 0,
+								  thisParserPtr->pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
 					    smiPrintError(thisParserPtr,
@@ -6003,7 +6003,7 @@ subidentifier:
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject($1,
-								  smiHandle->pendingNodePtr, 0,
+								  thisParserPtr->pendingNodePtr, 0,
 								  FLAG_INCOMPLETE,
 								  thisParserPtr);
 					    smiPrintError(thisParserPtr,
@@ -6017,7 +6017,7 @@ subidentifier:
 					 * marked with FLAG_INCOMPLETE.
 					 */
 					objectPtr = addObject($1,
-							      smiHandle->pendingNodePtr,
+							      thisParserPtr->pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
@@ -6081,7 +6081,7 @@ subidentifier:
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject($1,
-						    smiHandle->pendingNodePtr, 0,
+						    thisParserPtr->pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
 						smiPrintError(thisParserPtr,
@@ -6104,7 +6104,7 @@ subidentifier:
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject($1,
-						    smiHandle->pendingNodePtr, 0,
+						    thisParserPtr->pendingNodePtr, 0,
 						    FLAG_INCOMPLETE,
 						    thisParserPtr);
 						smiPrintError(thisParserPtr,
@@ -6118,7 +6118,7 @@ subidentifier:
 					     * marked with FLAG_INCOMPLETE.
 					     */
 					    objectPtr = addObject($3,
-							    smiHandle->pendingNodePtr,
+							    thisParserPtr->pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
@@ -6290,7 +6290,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
 					  thisParserPtr);
@@ -6356,7 +6356,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    objectPtr = setObjectName(objectPtr, $1);
+			    objectPtr = setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -6423,7 +6423,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    setObjectName(objectPtr, $1);
+			    setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,
@@ -6912,7 +6912,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
-			    setObjectName(objectPtr, $1);
+			    setObjectName(objectPtr, $1, thisParserPtr);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
 			    setObjectLine(objectPtr, thisParserPtr->firstStatementLine,

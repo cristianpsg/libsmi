@@ -899,7 +899,7 @@ Object *addObject(char *objectname, Node *parentNodePtr, SmiSubid subid,
      * Link it into the tree.
      */
     nodePtr = findNodeByParentAndSubid(parentNodePtr, subid);
-    if ((parentNodePtr == smiHandle->pendingNodePtr) || (!nodePtr)) {
+    if ((parentNodePtr == parserPtr->pendingNodePtr) || (!nodePtr)) {
 
 	/* a new Node has to be created for this Object */
 	nodePtr = addNode(parentNodePtr, subid, flags, parserPtr);
@@ -1147,7 +1147,7 @@ Node *createNodesByOidString(const char *oid)
     do {
 	subid = (unsigned int)strtoul(p, NULL, 0);
 	if (!(nodePtr = findNodeByParentAndSubid(parentNodePtr,
-						       subid))) {
+						 subid))) {
 	    nodePtr = addNode(parentNodePtr, subid, 0, NULL);
 	}
 	parentNodePtr = nodePtr;
@@ -1200,7 +1200,8 @@ Node *getParentNode(Node *nodePtr)
  *----------------------------------------------------------------------
  */
 
-static void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
+static void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr,
+			   Parser *parserPtr)
 {
     Node	      *nodePtr, *toChildPtr, *nextPtr;
     Object	      *objectPtr;
@@ -1248,7 +1249,7 @@ static void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
 		 * if a sub-node with the same subid is already present
 		 * in `to', merge them recursively.
 		 */
-		mergeNodeTrees(toChildPtr, nodePtr);
+		mergeNodeTrees(toChildPtr, nodePtr, parserPtr);
 	    } else {
 		/*
 		 * otherwise, move the sub-tree from `from' to `to'.
@@ -1299,7 +1300,7 @@ static void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
  *----------------------------------------------------------------------
  */
 
-Object *setObjectName(Object *objectPtr, char *name)
+Object *setObjectName(Object *objectPtr, char *name, Parser *parserPtr)
 {
     Node	      *nodePtr, *nextPtr;
     Module	      *modulePtr;
@@ -1314,7 +1315,7 @@ Object *setObjectName(Object *objectPtr, char *name)
      * pendingRootNode), we have to move the corresponding subtree to
      * the main tree.
      */
-    for (nodePtr = smiHandle->pendingNodePtr->firstChildPtr; nodePtr;
+    for (nodePtr = parserPtr->pendingNodePtr->firstChildPtr; nodePtr;
 	 nodePtr = nextPtr) {
 
 	/*
@@ -1331,12 +1332,12 @@ Object *setObjectName(Object *objectPtr, char *name)
 	    if (nodePtr->prevPtr) {
 		nodePtr->prevPtr->nextPtr = nodePtr->nextPtr;
 	    } else {
-		smiHandle->pendingNodePtr->firstChildPtr = nodePtr->nextPtr;
+		parserPtr->pendingNodePtr->firstChildPtr = nodePtr->nextPtr;
 	    }
 	    if (nodePtr->nextPtr) {
 		nodePtr->nextPtr->prevPtr = nodePtr->prevPtr;
 	    } else {
-		smiHandle->pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
+		parserPtr->pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
 	    }
 
 #if 0
@@ -1369,7 +1370,7 @@ Object *setObjectName(Object *objectPtr, char *name)
 		    modulePtr->lastObjectPtr->nextPtr = NULL;
 		}
 
-		mergeNodeTrees(objectPtr->nodePtr, nodePtr);
+		mergeNodeTrees(objectPtr->nodePtr, nodePtr, parserPtr);
 		smiFree(objectPtr->export.name);
 		smiFree(objectPtr);
 		return newObjectPtr;
@@ -1935,7 +1936,8 @@ Node *findNodeByParentAndSubid(Node *parentNodePtr, SmiSubid subid)
 {
     Node *nodePtr;
     
-    if (parentNodePtr && (parentNodePtr != smiHandle->pendingNodePtr)) {
+    if (parentNodePtr &&
+	(parentNodePtr != smiHandle->parserPtr->pendingNodePtr)) {
 	for (nodePtr = parentNodePtr->firstChildPtr; nodePtr;
 	     nodePtr = nodePtr->nextPtr) {
 	    if (nodePtr->subid == subid) {
@@ -3353,12 +3355,13 @@ int smiInitData()
      * Initialize a root Node for the main MIB tree.
      */
     smiHandle->rootNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
-    
+
     /*
      * Initialize a root Node for pending (forward referenced) nodes.
      */
-    smiHandle->pendingNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
-    
+    smiHandle->parserPtr = &parser;
+    parser.pendingNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
+
     /*
      * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt
      * belonging to a dummy module "". This is needed for SMIv1/v2. SMIng
@@ -3622,9 +3625,7 @@ void smiFreeData()
     }
 
     freeNodeTree(smiHandle->rootNodePtr);
-    freeNodeTree(smiHandle->pendingNodePtr);
     smiFree(smiHandle->rootNodePtr);
-    smiFree(smiHandle->pendingNodePtr);
     
     return;
 }
@@ -3652,6 +3653,7 @@ void smiFreeData()
 Module *loadModule(const char *modulename, Parser *parserPtr)
 {
     Parser	    parser;
+    Parser          *parentParserPtr;
     char	    *path = NULL, *dir, *smipath;
     int		    sming = 0;
     int             c, i;
@@ -3777,8 +3779,11 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
     }
     rewind(file);
 
+    
     if (sming == 0) {
 #ifdef BACKEND_SMI
+	parentParserPtr = smiHandle->parserPtr;
+	smiHandle->parserPtr = &parser;
 	parser.path			= path;
 	parser.flags			= smiHandle->flags;
 	parser.modulePtr		= NULL;
@@ -3789,6 +3794,12 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	parser.firstNestedStatementLine = 0;
 	parser.firstRevisionLine        = 0;
 	parser.file			= file;
+
+	/*
+	 * Initialize a root Node for pending (forward referenced) nodes.
+	 */
+	parser.pendingNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
+    
 	if (smiEnterLexRecursion(parser.file) < 0) {
 	    smiPrintError(&parser, ERR_MAX_LEX_DEPTH);
 	    fclose(parser.file);
@@ -3796,11 +3807,13 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	smiDepth++;
 	parser.line			= 1;
 	smiparse((void *)&parser);
-	freeNodeTree(smiHandle->pendingNodePtr);
+	freeNodeTree(parser.pendingNodePtr);
+	smiFree(parser.pendingNodePtr);
 	smiLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
 	smiFree(path);
+	smiHandle->parserPtr = parentParserPtr;
 	return parser.modulePtr;
 #else
 	smiPrintError(parserPtr, ERR_SMI_NOT_SUPPORTED, path);
@@ -3812,6 +3825,8 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
     
     if (sming == 1) {
 #ifdef BACKEND_SMING
+	parentParserPtr = smiHandle->parserPtr;
+	smiHandle->parserPtr = &parser;
 	parser.path			= path;
 	parser.flags			= smiHandle->flags;
 	parser.modulePtr		= NULL;
@@ -3822,6 +3837,12 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	parser.firstNestedStatementLine = 0;
 	parser.firstRevisionLine        = 0;
 	parser.file			= file;
+
+	/*
+	 * Initialize a root Node for pending (forward referenced) nodes.
+	 */
+	parser.pendingNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
+    
 	if (smingEnterLexRecursion(parser.file) < 0) {
 	    smiPrintError(&parser, ERR_MAX_LEX_DEPTH);
 	    fclose(parser.file);
@@ -3829,11 +3850,13 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	smiDepth++;
 	parser.line			= 1;
 	smingparse((void *)&parser);
-	freeNodeTree(smiHandle->pendingNodePtr);
+	freeNodeTree(parser.pendingNodePtr);
+	smiFree(parser.pendingNodePtr);
 	smingLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
 	smiFree(path);
+	smiHandle->parserPtr = parentParserPtr;
 	return parser.modulePtr;
 #else
 	smiPrintError(parserPtr, ERR_SMING_NOT_SUPPORTED, path);
