@@ -1,3 +1,8 @@
+2001-04-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Fixed RFC1155-SMI::Counter, Gauge, and
+	TimeTicks ranges.
+
 2001-03-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-jax.c: Fixed a bug on non not-accessible INDEX

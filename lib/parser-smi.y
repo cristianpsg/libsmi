@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.141 2001/03/01 14:36:37 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.142 2001/03/05 17:57:50 strauss Exp $
  */
 
 %{
@@ -1620,12 +1620,30 @@ typeDeclaration:	typeName
 				if (!strcmp($1, "Counter")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
+				    }
 				} else if (!strcmp($1, "Gauge")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
+				    }
 				} else if (!strcmp($1, "TimeTicks")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
+				    }
 				} else if (!strcmp($1, "NetworkAddress")) {
 				    setTypeName($4, smiStrdup("NetworkAddress"));
 				    $4->export.basetype = SMI_BASETYPE_OCTETSTRING;
