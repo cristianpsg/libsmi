@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.in,v 1.42 1999/10/05 06:31:00 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.11 1999/10/01 12:46:58 strauss Exp $
 #
 
 
@@ -92,7 +92,7 @@ RANLIB = ranlib
 STATIC = -static
 VERSION = 0.1.7-pre14
 mibdir = /usr/local/share/mibs
-smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
+smipath = /usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site
 
 INCLUDES = -I../lib
 
@@ -119,7 +119,7 @@ bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre14\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre14\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-corba.c,v 1.1 1999/10/05 15:52:20 strauss Exp $
  */
 
 /*
@@ -133,7 +133,7 @@ static char* dictFindName(IdlEntry *list, char *module, char* name)
 
     for (p = list; p; p = p->nextPtr) {
 	if (! strcasecmp(p->module, module)
-	    && ((! p->module && ! module) || ! strcasecmp(p->name, name))) {
+	    && ((! p->name && ! name) || ! strcasecmp(p->name, name))) {
 	    return p->idlname;
 	}
     }
