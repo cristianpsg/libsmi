@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.48 2000/02/08 14:46:01 strauss Exp $
+ * @(#) $Id: data.h,v 1.49 2000/02/08 21:39:22 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -24,6 +24,7 @@
 
 
 typedef struct List {
+    SmiElement      export;
     void	    *ptr;
     struct List	    *nextPtr;
 } List;

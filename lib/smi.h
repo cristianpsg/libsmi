@@ -1,7 +1,7 @@
 /*
  * smi.h --
  *
- *      Interface Definition of libsmi.
+ *      Interface Definition of libsmi (version 2:1:0).
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
@@ -250,14 +250,10 @@ typedef struct SmiNode {
     SmiNodekind         nodekind;
 } SmiNode;
 
-/* SmiListItem -- an item in a list (row index column, notification object)  */
-typedef struct SmiListItem {
-    SmiIdentifier       name;
-    SmiIdentifier       module;
-    SmiIdentifier       listname;
-    SmiIdentifier       listmodule;
-    int			number;
-} SmiListItem;
+/* SmiElement -- an item in a list (row index column, notification object)   */
+typedef struct SmiElement {
+    /* no visible attributes */
+} SmiElement;
 
 /* SmiOption -- an optional group in a compliance statement                  */
 typedef struct SmiOption {
@@ -308,13 +304,9 @@ extern SmiModule *smiGetFirstModule();
 
 extern SmiModule *smiGetNextModule(SmiModule *smiModulePtr);
       
-extern void smiFreeModule(SmiModule *smiModulePtr);
-
 extern SmiImport *smiGetFirstImport(SmiModule *smiModulePtr);
 
 extern SmiImport *smiGetNextImport(SmiImport *smiImportPtr);
-
-extern void smiFreeImport(SmiImport *smiImportPtr);
 
 extern int smiIsImported(SmiModule *smiModulePtr,
 			 SmiModule *importedModulePtr, char *importedName);
@@ -322,8 +314,6 @@ extern int smiIsImported(SmiModule *smiModulePtr,
 extern SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr);
 
 extern SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr);
-
-extern void smiFreeRevision(SmiRevision *smiRevisionPtr);
 
 
 
@@ -337,22 +327,16 @@ extern SmiType *smiGetParentType(SmiType *smiTypePtr);
 
 extern SmiModule *smiGetTypeModule(SmiType *smiTypePtr);
 
-extern void smiFreeType(SmiType *smiTypePtr);
-
 extern SmiRange *smiGetFirstRange(SmiType *smiTypePtr);
 
 extern SmiRange *smiGetNextRange(SmiRange *smiRangePtr);
-
-extern void smiFreeRange(SmiRange *smiRangePtr);
 
 extern SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr);
 
 extern SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr);
 
-extern void smiFreeNamedNumber(SmiNamedNumber *smiNamedNumberPtr);
 
-
-
+/*  */
 extern SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro);
 
 extern SmiMacro *smiGetFirstMacro(SmiModule *smiModulePtr);
@@ -360,8 +344,6 @@ extern SmiMacro *smiGetFirstMacro(SmiModule *smiModulePtr);
 extern SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr);
 
 extern SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr);
-
-extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
 
 
@@ -387,17 +369,14 @@ extern SmiModule *smiGetNodeModule(SmiNode *smiNodePtr);
 
 extern SmiType *smiGetNodeType(SmiNode *smiNodePtr);
 
-extern void smiFreeNode(SmiNode *smiNodePtr);
 
 
 
+extern SmiElement *smiGetFirstElement(SmiNode *smiNodePtr);
 
-extern SmiListItem *smiGetFirstListItem(SmiNode *smiListNodePtr);
+extern SmiElement *smiGetNextElement(SmiElement *smiElementPtr);
 
-extern SmiListItem *smiGetNextListItem(SmiListItem *smiListItemPtr);
-
-extern void smiFreeListItem(SmiListItem *smiListItemPtr);
-
+extern SmiNode *smiGetElementNode(SmiElement *smiElementPtr);
 
 
 
@@ -406,8 +385,6 @@ extern SmiOption *smiGetFirstOption(SmiNode *smiComplianceNodePtr);
 extern SmiOption *smiGetNextOption(SmiOption *smiOptionPtr);
 
 extern SmiNode *smiGetOptionNode(SmiOption *smiOptionPtr);
-
-extern void smiFreeOption(SmiOption *smiOptionPtr);
 
 
 
@@ -422,8 +399,6 @@ extern SmiNode *smiGetRefinementNode(SmiRefinement *smiRefinementPtr);
 extern SmiType *smiGetRefinementType(SmiRefinement *smiRefinementPtr);
 
 extern SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr);
-
-extern void smiFreeRefinement(SmiRefinement *smiRefinementPtr);
 
 
 

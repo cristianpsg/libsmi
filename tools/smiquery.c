@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.39 2000/02/09 18:26:09 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.40 2000/02/09 19:56:52 strauss Exp $
  */
 
 #include <stdio.h>
@@ -310,7 +310,7 @@ int main(int argc, char *argv[])
     SmiRevision *revision;
     SmiOption *option;
     SmiRefinement *refinement;
-    SmiListItem *listitem;
+    SmiElement *element;
     char *command, *name;
     int flags, i;
     char c;
@@ -373,7 +373,6 @@ int main(int argc, char *argv[])
 		printf("   Reference: %s\n", format(module->reference));
 	    printf("    Language: %s\n", smiStringLanguage(module->language));
 	    printf("      Loaded: %s\n", smiModuleLoaded(name) ? "yes" : "no");
-	    smiFreeModule(module);
 	}
     }
 
@@ -428,7 +427,6 @@ int main(int argc, char *argv[])
 		printf(" Description: %s\n", format(node->description));
 	    if (node->reference)
 		printf("   Reference: %s\n", format(node->reference));
-	    smiFreeNode(node);
 	}
     }
 
@@ -440,22 +438,21 @@ int main(int argc, char *argv[])
 		printf("     MibNode: %s\n", formatnode(node));
 		printf("         OID: %s\n", formatoid(node->oidlen,
 						       node->oid));
-		smiFreeNode(node);
 	    }
-	    smiFreeNode(child);
 	}
     }
 
     if (!strcmp(command, "compliance")) {
 	node = smiGetNode(NULL, name);
 	if (node) {
-	    if (smiGetFirstListItem(node)) {
+	    if (smiGetFirstElement(node)) {
 		printf("   Mandatory:");
-		for(listitem = smiGetFirstListItem(node);
-		    listitem ; ) {
-		    printf(" %s::%s", listitem->module, listitem->name);
-		    listitem = smiGetNextListItem(listitem);
-		    if (listitem) {
+		for(element = smiGetFirstElement(node);
+		    element ; ) {
+		    node2 = smiGetElementNode(element);
+		    printf(" %s", formatnode(node2));
+		    element = smiGetNextElement(element);
+		    if (element) {
 			printf("\n             ");
 		    }
 		}
@@ -494,42 +491,41 @@ int main(int argc, char *argv[])
 			printf(" Description: %s\n",
 			                      format(refinement->description));
 		}
-		smiFreeNode(node);
 	    }
 	}
     }
 
     if (!strcmp(command, "index")) {
 	node = smiGetNode(NULL, name);
-	if (node && smiGetFirstListItem(node)) {
+	if (node && smiGetFirstElement(node)) {
 	    printf("       Index:");
-	    for(listitem = smiGetFirstListItem(node);
-		listitem ; ) {
-		printf(" %s::%s", listitem->module, listitem->name);
-		listitem = smiGetNextListItem(listitem);
-		if (listitem) {
+	    for(element = smiGetFirstElement(node);
+		element ; ) {
+		node2 = smiGetElementNode(element);
+		printf(" %s", formatnode(node2));
+		element = smiGetNextElement(element);
+		if (element) {
 		    printf("\n             ");
 		}
 	    }
 	    printf("\n");
-	    smiFreeNode(node);
 	}
     }
 
     if (!strcmp(command, "members")) {
 	node = smiGetNode(NULL, name);
-	if (node && smiGetFirstListItem(node)) {
+	if (node && smiGetFirstElement(node)) {
 	    printf("     Members:");
-	    for(listitem = smiGetFirstListItem(node);
-		listitem ;) {
-		printf(" %s::%s", listitem->module, listitem->name);
-		listitem = smiGetNextListItem(listitem);
-		if (listitem) {
+	    for(element = smiGetFirstElement(node);
+		element ;) {
+		node2 = smiGetElementNode(element);
+		printf(" %s::%s", formatnode(node2));
+		element = smiGetNextElement(element);
+		if (element) {
 		    printf("\n             ");
 		}
 	    }
 	    printf("\n");
-	    smiFreeNode(node);
 	}
     }
 
@@ -546,7 +542,6 @@ int main(int argc, char *argv[])
 		}
 	    }
 	    printf("\n");
-	    smiFreeNode(node);
 	}
     }
 
@@ -593,7 +588,6 @@ int main(int argc, char *argv[])
 		printf(" Description: %s\n", format(type->description));
 	    if (type->reference)
 		printf("   Reference: %s\n", format(type->reference));
-	    smiFreeType(type);
 	}
     }
 
@@ -607,7 +601,6 @@ int main(int argc, char *argv[])
 		printf(" Description: %s\n", format(macro->description));
 	    if (macro->reference)
 		printf("   Reference: %s\n", format(macro->reference));
-	    smiFreeMacro(macro);
 	}
     }
 

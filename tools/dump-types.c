@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.7 2000/02/08 21:39:23 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.8 2000/02/09 18:26:09 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -415,7 +415,6 @@ static void printTypeTree(TypeNode *root, char *prefix)
 		    }
 		    printf("\n");
 		}
-		smiFreeType(smiType);
 	    }
  	}
  	if (typeNode->childNodePtr) {
@@ -468,7 +467,6 @@ static void addType(SmiType *smiType)
     if (smiParentType && smiParentType->name) {
  	if (smiParentType) {
  	    addType(smiParentType);
-	    smiFreeType(smiParentType);
  	}
     }
 
@@ -510,7 +508,6 @@ int dumpTypes(char *modulename, int flags)
  		addType(smiType);
  	    }
 	    incrBaseTypeCount(smiType->basetype);
-	    smiFreeType(smiType);
  	}
     }
     

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.68 2000/02/09 15:33:16 strauss Exp $
+ * @(#) $Id: smi.c,v 1.69 2000/02/09 18:25:57 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -354,25 +354,6 @@ SmiNode *createSmiNode(Object *objectPtr)
     }
 }
 #endif
-
-
-
-SmiListItem *createSmiListItem(Object *listObjectPtr, Object *objectPtr, int number)
-{
-    SmiListItem *smiListItemPtr;
-
-    if (objectPtr) {
-	smiListItemPtr = util_malloc(sizeof(SmiListItem));
-	smiListItemPtr->listmodule = listObjectPtr->modulePtr->export.name;
-	smiListItemPtr->listname   = listObjectPtr->export.name;
-	smiListItemPtr->module     = objectPtr->modulePtr->export.name;
-	smiListItemPtr->name       = objectPtr->export.name;
-	smiListItemPtr->number     = number;
-	return smiListItemPtr;
-    } else {
-	return NULL;
-    }
-}
 
 
 
@@ -724,12 +705,6 @@ SmiModule *smiGetNextModule(SmiModule *smiModulePtr)
 
 
 
-void smiFreeModule(SmiModule *smiModulePtr)
-{
-}
-
-
-
 SmiImport *smiGetFirstImport(SmiModule *smiModulePtr)
 {
     if (!smiModulePtr) {
@@ -748,12 +723,6 @@ SmiImport *smiGetNextImport(SmiImport *smiImportPtr)
     }
 
     return &((Import *)smiImportPtr)->nextPtr->export;
-}
-
-
-
-void smiFreeImport(SmiImport *smiImportPtr)
-{
 }
 
 
@@ -810,12 +779,6 @@ SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr)
     }
 
     return &((Revision *)smiRevisionPtr)->nextPtr->export;
-}
-
-
-
-void smiFreeRevision(SmiRevision *smiRevisionPtr)
-{
 }
 
 
@@ -925,12 +888,6 @@ SmiModule *smiGetTypeModule(SmiType *smiTypePtr)
 
 
 
-void smiFreeType(SmiType *smiTypePtr)
-{
-}
-
-
-
 SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr)
 {
     Type    *typePtr;
@@ -981,12 +938,6 @@ SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
 
 
 
-void smiFreeNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
-{
-}
-
-
-
 SmiRange *smiGetFirstRange(SmiType *smiTypePtr)
 {
     Type    *typePtr;
@@ -1032,12 +983,6 @@ SmiRange *smiGetNextRange(SmiRange *smiRangePtr)
     }
 	
     return &((Range *)listPtr->nextPtr->ptr)->export;
-}
-
-
-
-void smiFreeRange(SmiRange *smiRangePtr)
-{
 }
 
 
@@ -1104,12 +1049,6 @@ SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr)
 SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr)
 {
     return &((Macro *)smiMacroPtr)->modulePtr->export;
-}
-
-
-
-void smiFreeMacro(SmiMacro *smiMacroPtr)
-{
 }
 
 
@@ -1445,46 +1384,22 @@ SmiType *smiGetNodeType(SmiNode *smiNodePtr)
 
 
 
-void smiFreeNode(SmiNode *smiNodePtr)
+SmiElement *smiGetFirstElement(SmiNode *smiNodePtr)
 {
-}
-
-
-
-SmiListItem *smiGetFirstListItem(SmiNode *smiListNodePtr)
-{
-    Module	      *modulePtr;
-    Object	      *listObjectPtr;
     List	      *listPtr;
     
-    if (!smiListNodePtr) {
+    if (!smiNodePtr) {
 	return NULL;
     }
 
-    modulePtr = ((Object *)smiListNodePtr)->modulePtr;
+    listPtr = ((Object *)smiNodePtr)->listPtr;
 
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    listObjectPtr = findObjectByModuleAndName(modulePtr, smiListNodePtr->name);
-
-    if (!listObjectPtr) {
-	return NULL;
-    }
-
-    listPtr = listObjectPtr->listPtr;
-
-    if (!listPtr) {
-	return NULL;
-    }
-    
-    return createSmiListItem(listObjectPtr, listPtr->ptr, 1);
+    return (SmiElement *)listPtr;
 }
 
 
 
-SmiListItem *smiGetNextListItem(SmiListItem *smiListItemPtr)
+SmiElement *smiGetNextElement(SmiElement *smiElementPtr)
 {
     Module	      *modulePtr;
     Object	      *listObjectPtr;
@@ -1492,48 +1407,20 @@ SmiListItem *smiGetNextListItem(SmiListItem *smiListItemPtr)
     SmiIdentifier     listname;
     int		      number, i;
     
-    if (!smiListItemPtr) {
+    if (!smiElementPtr) {
 	return NULL;
     }
 
-    modulePtr = findModuleByName(smiListItemPtr->listmodule);
-
-    if (!modulePtr) {
-	modulePtr = loadModule(smiListItemPtr->listmodule);
-    }
-
-    listname = smiListItemPtr->listname;
-    number = smiListItemPtr->number;
+    listPtr = ((List *)smiElementPtr)->nextPtr;
     
-    smiFreeListItem(smiListItemPtr);
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    listObjectPtr = findObjectByModuleAndName(modulePtr, listname);
-
-    if (!listObjectPtr) {
-	return NULL;
-    }
-
-    listPtr = listObjectPtr->listPtr;
-    
-    for (i = 1; (i <= (number+1)) && listPtr;
-	 i++, listPtr = listPtr->nextPtr) {
-	if ((listPtr->ptr) && (i == (number+1))) {
-	    return createSmiListItem(listObjectPtr, listPtr->ptr, i);
-	}
-    }
-    
-    return NULL;
+    return (SmiElement *)listPtr;
 }
 
 
 
-void smiFreeListItem(SmiListItem *smiListItemPtr)
+SmiNode *smiGetElementNode(SmiElement *smiElementPtr)
 {
-    util_free(smiListItemPtr);
+    return &((Object *)((List *)smiElementPtr)->ptr)->export;
 }
 
 
@@ -1593,12 +1480,6 @@ SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
 SmiNode *smiGetOptionNode(SmiOption *smiOptionPtr)
 {
     return &((Option *)smiOptionPtr)->objectPtr->export;
-}
-
-
-
-void smiFreeOption(SmiOption *smiOptionPtr)
-{
 }
 
 
@@ -1680,10 +1561,3 @@ SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr)
 {
     return &((Refinement *)smiRefinementPtr)->writetypePtr->export;
 }
-
-
-
-void smiFreeRefinement(SmiRefinement *smiRefinementPtr)
-{
-}
-

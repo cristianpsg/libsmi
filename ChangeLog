@@ -1,9 +1,13 @@
-2000-02-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-02-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
-	* ATTENTION: most of the (internal and API) data structures are
+	* ATTENTION: all the (internal and API) data structures are
 	changed for significantly improved performance. This means that
 	applications must be adapted to recompile, but it's worth!
+
+	* configure.in: incremented libtool versioning major number.
 	
+2000-02-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
 	* tools/smilint.c: added `-c configfile' option to the three
 	tools. It allows to explicitly specifiy a configuration file.
 	If at least one configfile is specified no default files are

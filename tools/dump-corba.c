@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.11 2000/02/09 15:33:23 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.12 2000/02/09 18:26:09 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -466,9 +466,6 @@ static void createImportList(SmiModule *smiModule)
 	if (smiType->basetype == SMI_BASETYPE_INTEGER32) {
 	    addImport("SNMPv2-SMI", "Integer32");
 	}
-	if (smiType) {
-	    smiFreeType(smiType);
-	}
 
     }
 }
@@ -587,7 +584,6 @@ static int isGroup(SmiNode *smiNode)
 	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
 	     || childNode->nodekind == SMI_NODEKIND_TABLE)
 	    && current(childNode->status)) {
-	    smiFreeNode(childNode);
 	    return 1;
 	}
     }
@@ -612,7 +608,6 @@ static int isCreatable(SmiNode *smiNode)
 		 || childNode->nodekind == SMI_NODEKIND_COLUMN)
 		&& current(childNode->status)
 		&& childNode->access == SMI_ACCESS_READ_WRITE) {
-		smiFreeNode(childNode);
 		return 1;
 	    }
 	}
@@ -647,16 +642,16 @@ static void printDescription(SmiNode *smiNode, int indent)
 
 static void printIndex(SmiNode *indexNode)
 {
-    SmiListItem *smiListItem;
-    int      j;
+    SmiElement *smiElement;
+    int        j;
 
-    for (j = 0, smiListItem = smiGetFirstListItem(indexNode);
-	 smiListItem;
-	 j++, smiListItem = smiGetNextListItem(smiListItem)) {
+    for (j = 0, smiElement = smiGetFirstElement(indexNode);
+	 smiElement;
+	 j++, smiElement = smiGetNextElement(smiElement)) {
 	if (j) {
 	    print(" ");
 	}
-	print(smiListItem->name);
+	print(smiGetElementNode(smiElement)->name);
 	/* TODO: non-local name if non-local */
     } /* TODO: empty? -> print error */
 }
@@ -755,7 +750,6 @@ static void printModule(SmiModule *smiModule)
 	    printSegment(INDENT, "*/", 0);
 	    print("\n\n");
 	}
-	smiFreeNode(smiNode);
     }
 
 }
@@ -845,7 +839,6 @@ static void printTypedefs(SmiModule *smiModule)
 		if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 		    printType(smiType);
 		}
-		smiFreeType(smiType);
 	    }
 	}
     }
@@ -1067,7 +1060,7 @@ static void printFactory(SmiModule *smiModule)
 static void printNotificationVBTypes(SmiModule *smiModule)
 {
     SmiNode     *smiNode, *listSmiNode;
-    SmiListItem *listitem;
+    SmiElement  *smiElement;
     SmiType	*smiType;
     SmiModule   *smiModule2;
     char	*idlTypeName;
@@ -1078,12 +1071,12 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
-	for (listitem = smiGetFirstListItem(smiNode);
-	     listitem; listitem = smiGetNextListItem(listitem)) {
-	    idlVBTypeName = getIdlVBTypeName(listitem->module,
-					     listitem->name, &isnew);
-	    listSmiNode = smiGetNode(smiGetModule(listitem->module),
-				     listitem->name);
+	for (smiElement = smiGetFirstElement(smiNode);
+	     smiElement; smiElement = smiGetNextElement(smiElement)) {
+	    listSmiNode = smiGetElementNode(smiElement);
+	    idlVBTypeName = getIdlVBTypeName(
+		                           smiGetNodeModule(listSmiNode)->name,
+					   listSmiNode->name, &isnew);
 	    if (isnew && listSmiNode) {
 		printSegment(INDENT, "struct ", 0);
 		print("%s {\n", idlVBTypeName);
@@ -1098,11 +1091,9 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 		} else {
 		    idlTypeName = getBaseTypeString(smiType->basetype);
 		}
-		print("%s %s;\n", idlTypeName, listitem->name);
+		print("%s %s;\n", idlTypeName,
+		                  smiGetElementNode(smiElement)->name);
 		printSegment(INDENT, "};\n\n", 0);
-	    }
-	    if (listSmiNode) {
-		smiFreeNode(listSmiNode);
 	    }
 	}
     }
@@ -1113,7 +1104,7 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 static void printNotificationTypes(SmiModule *smiModule)
 {
     SmiNode     *smiNode;
-    SmiListItem *listitem;
+    SmiElement  *smiElement;
     char	*idlTypeName;
     char	*idlVBTypeName;
     
@@ -1121,16 +1112,18 @@ static void printNotificationTypes(SmiModule *smiModule)
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
-	if ((listitem = smiGetFirstListItem(smiNode))) {
+	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    idlTypeName = getIdlTypeName(smiGetNodeModule(smiNode)->name,
 					 smiNode->name);
 	    printSegment(INDENT, "struct ", 0);
 	    print("%s {\n", idlTypeName);
-	    for (; listitem; listitem = smiGetNextListItem(listitem)) {
-		idlVBTypeName = getIdlVBTypeName(listitem->module,
-						 listitem->name, NULL);
+	    for (; smiElement; smiElement = smiGetNextElement(smiElement)) {
+		idlVBTypeName = getIdlVBTypeName(smiGetNodeModule(
+		                          smiGetElementNode(smiElement))->name,
+				    smiGetElementNode(smiElement)->name, NULL);
 		printSegment(2*INDENT, "", 0);
-		print("%s %s;\n", idlVBTypeName, listitem->name);
+		print("%s %s;\n", idlVBTypeName,
+		      smiGetElementNode(smiElement)->name);
 	    }
 	    printSegment(INDENT, "};\n\n", 0);
 	}
@@ -1142,7 +1135,7 @@ static void printNotificationTypes(SmiModule *smiModule)
 static void printPushNotifications(SmiModule *smiModule)
 {
     SmiNode     *smiNode;
-    SmiListItem *listitem;
+    SmiElement  *smiElement;
     char        *idlNodeName;
     char	*idlTypeName;
     int         cnt = 0;
@@ -1170,12 +1163,11 @@ static void printPushNotifications(SmiModule *smiModule)
 	printSegment(3*INDENT, "in CosNaming::Name src_entry_name,\n", 0);
 	printSegment(3*INDENT, "in CORBA::ScopedName event_type,\n", 0);
 	printSegment(3*INDENT, "in ASN1_GeneralizedTime event_time", 0);
-	if ((listitem = smiGetFirstListItem(smiNode))) {
+	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    idlTypeName = getIdlTypeName(smiModule->name, smiNode->name);
 	    print(",\n");
 	    printSegment(3*INDENT, "in ", 0);
 	    print("%s notification_info", idlTypeName);
-	    smiFreeListItem(listitem);
 	}
 	print("\n");
 	printSegment(2*INDENT, ");\n", 0);
@@ -1191,7 +1183,7 @@ static void printPushNotifications(SmiModule *smiModule)
 static void printPullNotifications(SmiModule *smiModule)
 {
     SmiNode     *smiNode;
-    SmiListItem *listitem;
+    SmiElement  *smiElement;
     int         cnt = 0;
     char        *idlNodeName;
     char	*idlTypeName;
@@ -1219,12 +1211,11 @@ static void printPullNotifications(SmiModule *smiModule)
 	printSegment(3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
 	printSegment(3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
 	printSegment(3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
-	if ((listitem = smiGetFirstListItem(smiNode))) {
+	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    idlTypeName = getIdlTypeName(smiModule->name, smiNode->name);
 	    print(",\n");
 	    printSegment(3*INDENT, "out ", 0);
 	    print("%s notification_info", idlTypeName);
-	    smiFreeListItem(listitem);
 	}
 	print("\n");
 	printSegment(2*INDENT, ");\n", 0);
@@ -1233,13 +1224,12 @@ static void printPullNotifications(SmiModule *smiModule)
 	printSegment(3*INDENT, "out CosNaming::Name src_entry_name,\n", 0);
 	printSegment(3*INDENT, "out CORBA::ScopedName event_type,\n", 0);
 	printSegment(3*INDENT, "out ASN1_GeneralizedTime event_time", 0);
-	if ((listitem = smiGetFirstListItem(smiNode))) {
+	if ((smiElement = smiGetFirstElement(smiNode))) {
 	    char *idlTypeName;
 	    idlTypeName = getIdlTypeName(smiModule->name, smiNode->name);
 	    print(",\n");
 	    printSegment(3*INDENT, "out ", 0);
 	    print("%s notification_info", idlTypeName);
-	    smiFreeListItem(listitem);
 	}
 	print("\n");
 	printSegment(2*INDENT, ");\n", 0);
@@ -1388,7 +1378,6 @@ int dumpCorbaIdl(char *modulename, int flags)
     dictFree(&idlNodeNameList);
     dictFree(&idlTypeNameList);
     dictFree(&idlVBTypeNameList);
-    smiFreeModule(smiModule);
 
     return 0;
 }
@@ -1459,7 +1448,6 @@ int dumpCorbaOid(char *modulename, int flags)
 		printf("%s %s\n",
 		       getBaseTypeString(smiType->basetype),
 		       getAccessString(smiNode->access, 0));
-		smiFreeNode(smiParentNode);
 	    }
 	    break;
 	case SMI_NODEKIND_TABLE:
@@ -1482,9 +1470,6 @@ int dumpCorbaOid(char *modulename, int flags)
 		printf("%s %s\n",
 		       getBaseTypeString(smiType->basetype),
 		       getAccessString(smiNode->access, create));
-		if (smiParentNode) {
-		    smiFreeNode(smiParentNode);
-		}
 	    }
 	    break;
 	case SMI_NODEKIND_NOTIFICATION:
@@ -1492,7 +1477,6 @@ int dumpCorbaOid(char *modulename, int flags)
 		SmiNode *smiParentNode = smiGetParentNode(smiNode);
 		printNameAndOid(smiNode, smiParentNode);
 		printf("Notification not-accessible\n");
-		smiFreeNode(smiParentNode);
 	    }
 	    break;
 	case SMI_NODEKIND_GROUP:
@@ -1502,7 +1486,5 @@ int dumpCorbaOid(char *modulename, int flags)
 	}
     }
 
-    smiFreeModule(smiModule);
-    
     return 0;
 }

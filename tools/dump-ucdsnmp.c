@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.8 2000/02/09 16:56:49 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.9 2000/02/09 18:26:09 strauss Exp $
  */
 
 /*
@@ -149,7 +149,6 @@ static int isGroup(SmiNode *smiNode)
 	childNode;
 	childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
-	    smiFreeNode(childNode);
 	    return 1;
 	}
     }
@@ -213,7 +212,6 @@ static int getMaxSize(SmiType *smiType)
 	if (psize < size) {
 	    size = psize;
 	}
-	smiFreeType(parentType);
     }
 
     return size;
@@ -444,9 +442,6 @@ static void printReadMethod(SmiNode *groupNode)
 	       "        return NULL;\n"
 	       "    }\n\n");
     }
-    if (smiNode) {
-	smiFreeNode(smiNode);
-    }
 
     printf("    /* call the user supplied function to retrieve values */\n\n");
     printf("    read_%s(&%s);\n\n", sName, sName);
@@ -605,7 +600,6 @@ static void printTypedef(SmiNode *groupNode)
 		printf("    /* add code to return the value here */\n");
 	    }
 	    xfree(cName);
-	    smiFreeType(smiType);
 	}
     }
 
@@ -713,8 +707,6 @@ int dumpUcdH(char *modulename, int flags)
     printf("#endif /* _%s_H_ */\n", cModuleName);
     xfree(cModuleName);
 
-    smiFreeModule(smiModule);
-    
     return 0;
 }
 
@@ -763,8 +755,6 @@ int dumpUcdC(char *modulename, int flags)
 
     printReadMethods(smiModule);
     printWriteMethods(smiModule);
-
-    smiFreeModule(smiModule);
 
     return 0;
 }

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.4 2000/02/07 23:23:30 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.5 2000/02/08 21:39:23 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -81,12 +81,10 @@ static char *getTypeName(SmiNode *smiNode)
     
     if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 	parentType = smiGetParentType(smiType);
-	smiFreeType(smiType);
 	smiType = parentType;
     }
 
     type = xstrdup(smiType->name);
-    smiFreeType(smiType);
     return type;
 }
 
@@ -96,16 +94,16 @@ static void printIndex(SmiNode *smiNode)
 {
     char *indexname;
     int  i;
-    SmiListItem *smiListItem;
+    SmiElement *smiElement;
     
     indexname = NULL;
-    for (i = -1, smiListItem = smiGetFirstListItem(smiNode);
-	 smiListItem; smiListItem = smiGetNextListItem(smiListItem), i++) {
+    for (i = -1, smiElement = smiGetFirstElement(smiNode);
+	 smiElement; smiElement = smiGetNextElement(smiElement), i++) {
 	if (i > 0) printf(",");
 	if (indexname) {
 	    printf(indexname);
 	}
-	indexname = smiListItem->name;
+	indexname = smiGetElementNode(smiElement)->name;
     }
     if (indexname) {
 	printf("%s%s%s",
@@ -121,17 +119,17 @@ static void printObjects(SmiNode *smiNode)
 {
     char *objectname;
     int  i;
-    SmiListItem *listitem;
+    SmiElement *smiElement;
 
     objectname = NULL;
-    for (i = -1, listitem = smiGetFirstListItem(smiNode);
-	 listitem;
-	 listitem = smiGetNextListItem(listitem), i++) {
+    for (i = -1, smiElement = smiGetFirstElement(smiNode);
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement), i++) {
 	if (i > 0) printf(",");
 	if (objectname) {
 	    printf(objectname);
 	}
-	objectname = listitem->name;
+	objectname = smiGetElementNode(smiElement)->name;
     }
     if (objectname) {
 	printf("%s%s", (i > 0) ? "," : "", objectname);
@@ -156,7 +154,6 @@ static int pruneSubTree(SmiNode *smiNode)
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
 	if (! pruneSubTree(childNode)) {
-	    smiFreeNode(childNode);
 	    return 0;
 	}
     }
@@ -214,7 +211,6 @@ static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		indexNode = smiGetRelatedNode(smiNode);
 		if (indexNode) {
 		    printIndex(indexNode);
-		    smiFreeNode(indexNode);
 		}
 		break;
 	    case SMI_INDEX_UNKNOWN:
@@ -307,7 +303,6 @@ int dumpTree(char *modulename, int flags)
     smiNode = smiGetNode(NULL, "iso");
     if (smiNode) {
 	dumpSubTree(smiNode, "", 0);
-	smiFreeNode(smiNode);
     }
     
     return 0;

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.6 2000/02/05 18:05:58 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.7 2000/02/06 23:30:59 strauss Exp $
  */
 
 #include <stdio.h>
@@ -93,7 +93,6 @@ static int printImports(SmiModule *smiModule, char *prefix)
 	smiModule2 = smiGetModule(imports[i].module);
 	firstImport = smiGetFirstImport(smiModule2);
 	recurse = (firstImport == NULL);
-	smiFreeImport(firstImport);
 	if (recurse) {
 	    printf("%s  |\n", prefix);
 	}
@@ -141,8 +140,6 @@ int dumpImports(char *modulename, int flags)
 
     printf("%s\n", smiModule->name);
     printImports(smiModule, "");
-
-    smiFreeModule(smiModule);
 
     return 0;
 }

@@ -41,7 +41,7 @@ o redesign of data structures: make SmiXXX structures the heads of the
   according data.h structures. This would obsolete the Free() functions
   and enable fast getNext() functions by accessing the underlying lists.
 
-o smi.c: smiGetNames() is not yet implemented
+o smi.c: smiGetNames() is not yet implemented. do we really need it?
 
 o thread safety (global vars? static vars? strtok() and other funcs?)
   different views
@@ -76,8 +76,6 @@ o ERR_DATE_YEAR_2DIGITS for years < 90 ?!
 
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
-
-o think about `SmiListItem's
 
 o support parsing (but ignore) SMIv2 AGENT-CAPABILITIES.
 
