@@ -1,12 +1,12 @@
 2001-06-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smicache.in,lib/smi.c: Added a MIB caching scheme: 
-
 	The configuration file may contain the new `cache' statement
 	which, in combination with an external caching program like
 	smicache, can be used to fetch MIB modules that are not found
 	in one of the local directories from any (remote?) resources.
-
+	Note that this is *experimental*!
+	
 2001-06-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y,check.c: Bill contributed another table check
