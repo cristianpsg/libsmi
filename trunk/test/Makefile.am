@@ -8,11 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.11 1999/10/06 06:12:04 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.12 2000/01/27 09:45:10 strauss Exp $
 #
 
 TESTMIBTOPDIR		= ../mibs
-TESTMIBDIR		= $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site
+TESTMIBDIR		= $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site:$(TESTMIBTOPDIR)/tubs
 TESTMIBS		= SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
 TESTS			= smilint-smiv2.test \
