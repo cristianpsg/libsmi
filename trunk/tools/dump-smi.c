@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.67 2000/11/29 16:35:27 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.68 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -1113,7 +1113,7 @@ static void printObjects(SmiModule *smiModule)
 		    }
 		    /* TODO: print non-local name qualified */
 		} else {
-		    print("[unknown]\n");
+		    print("<unknown>\n");
 		}
 	    } else if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 		if (smiType) {
@@ -1271,7 +1271,7 @@ static void printObjects(SmiModule *smiModule)
 			      getTypeString(smiType->basetype,
 					    smiGetNodeType(colNode)));
 		    } else {
-			print("[unknown]");
+			print("<unknown>");
 		    }
 		}
 		i++;

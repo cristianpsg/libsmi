@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.86 2000/11/29 16:35:27 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.87 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -150,7 +150,7 @@ static char *getAccessString(SmiAccess access)
 static char *getStringBasetype(SmiBasetype basetype)
 {
     return
-        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
+        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<unknown>" :
         (basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
         (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
         (basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :

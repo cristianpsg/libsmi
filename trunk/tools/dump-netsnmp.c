@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.4 2000/11/29 16:35:27 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.5 2000/11/30 11:04:07 strauss Exp $
  */
 
 /*
@@ -380,6 +380,9 @@ static void printDefinesGroup(FILE *f, SmiNode *groupNode, int cnt)
 		&& (smiNode->access == SMI_ACCESS_READ_ONLY
 		    || smiNode->access == SMI_ACCESS_READ_WRITE)) {
 		smiType = smiGetNodeType(smiNode);
+		if (!smiType) {
+		    continue;
+		}
 		cName = translateUpper(smiNode->name);
 		fprintf(f, "    { %s, %s, %s, read_%s_stub, %d, {%d} },\n",
 			cName, getBaseTypeString(smiType->basetype),
@@ -530,6 +533,9 @@ static void printReadMethod(FILE *f, SmiNode *groupNode)
 	    cName = translateUpper(smiNode->name);
 	    lName = translate(smiNode->name);
 	    smiType = smiGetNodeType(smiNode);
+	    if (! smiType) {
+		continue;
+	    }
 	    fprintf(f, "    case %s:\n", cName);
 	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
@@ -660,6 +666,9 @@ static void printTypedef(FILE *f, SmiNode *groupNode)
 #endif
 	    ) {
 	    smiType = smiGetNodeType(smiNode);
+	    if (!smiType) {
+		continue;
+	    }
 	    cName = translate(smiNode->name);
 	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
