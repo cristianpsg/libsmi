@@ -6,7 +6,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.mingw,v 1.5 2002/11/13 12:35:23 schoenw Exp $
+# @(#) $Id: Makefile.mingw,v 1.6 2002/12/27 21:05:14 schoenw Exp $
 #
 
 ##
@@ -16,7 +16,7 @@
 ## PIBDIR   -- MIB destination (let it end with /pibs; check againt config.h)
 ## BINDIR   -- destination for the binaries (smidump.exe, ...)
 ##
-INSTROOT = c:\smi
+# INSTROOT = c:\smi
 INSTROOT = c/smi
 MIBDIR = $(INSTROOT)/mibs
 PIBDIR = $(INSTROOT)/pibs
@@ -30,16 +30,16 @@ CC	= gcc
 CP	= copy
 RM      = del
 AR	= ar
+MKDIR	= -mkdir
 
 ##
 ## Debian Linux mingw cross-compiler version:
 ##
-MKDIR	= -mkdir
-CC	= i586-mingw32msvc-gcc
-CP	= cp
-RM	= rm -f
-AR	= i586-mingw32msvc-ar
-MKDIR	= -mkdir
+# CC	= i586-mingw32msvc-gcc
+# CP	= cp
+# RM	= rm -f
+# AR	= i586-mingw32msvc-ar
+# MKDIR	= -mkdir
 
 ##
 ## Definitions:
