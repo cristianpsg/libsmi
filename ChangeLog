@@ -1,3 +1,9 @@
+2001-04-24  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* config.sub, config.guess: Updated to recent versions from GNU CVS
+	to get it working on PARISC. Thanks to LaMont Jones
+	<lamont@smallone.fc.hp.com>.
+
 2001-04-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-xml.c: Fixed DOCTYPE root identifier to contain
