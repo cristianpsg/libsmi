@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.115 2002/07/24 11:54:18 strauss Exp $
+ * @(#) $Id: smi.c,v 1.116 2002/09/06 08:11:49 strauss Exp $
  */
 
 #include <config.h>
@@ -1449,7 +1449,7 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
 
     if (!oid) {
 	if (flags & SMI_RENDER_UNKNOWN) {
-	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	    smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 	} else {
 	    s = NULL;
 	}
@@ -1464,22 +1464,22 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
 		modulePtr = smiGetNodeModule(nodePtr);
 	    }
 	    if (modulePtr) {
-		asprintf(&s, "%s::%s",
-			 modulePtr->name, nodePtr->name);
+		smiAsprintf(&s, "%s::%s",
+			    modulePtr->name, nodePtr->name);
 	    } else {
-		asprintf(&s, "%s", nodePtr->name);
+		smiAsprintf(&s, "%s", nodePtr->name);
 	    }
 	}
     }
 
     for (; i < oidlen; i++) {
 	ss = s;
-	asprintf(&s, "%s%s%u", ss ? ss : "", i ? "." : "", oid[i]);
+	smiAsprintf(&s, "%s%s%u", ss ? ss : "", i ? "." : "", oid[i]);
 	smiFree(ss);
     }
 
     if ((!s) && (flags & SMI_RENDER_UNKNOWN)) {
-	asprintf(&s, SMI_UNKNOWN_LABEL);
+	smiAsprintf(&s, SMI_UNKNOWN_LABEL);
     }
     
     return s;
@@ -1499,7 +1499,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
     
     if (!smiValuePtr) {
 	if (flags & SMI_RENDER_UNKNOWN) {
-	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	    smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 	} else {
 	    s = NULL;
 	}
@@ -1516,9 +1516,9 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		i = atoi(&smiTypePtr->format[2]);
 		if (i < 0) i = 0;
 		if (i > 20) i = 20;
-		asprintf(&s, "%0*lu.",
-			 1 + i,
-			 smiValuePtr->value.unsigned32);
+		smiAsprintf(&s, "%0*lu.",
+			    1 + i,
+			    smiValuePtr->value.unsigned32);
 		if (s) {
 		    for (j = strlen(s) - 1; i > 0; i--, j--) {
 			s[j] = s[j-1];
@@ -1526,12 +1526,12 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    s[j] = '.';
 		}
 	    } else {
-		asprintf(&s, "%lu", smiValuePtr->value.unsigned32);
+		smiAsprintf(&s, "%lu", smiValuePtr->value.unsigned32);
 	    }
 	} else if (smiTypePtr->format[0] == 'x') {
-	    asprintf(&s, "%lx", smiValuePtr->value.unsigned32);
+	    smiAsprintf(&s, "%lx", smiValuePtr->value.unsigned32);
 	} else if (smiTypePtr->format[0] == 'o') {
-	    asprintf(&s, "%lo", smiValuePtr->value.unsigned32);
+	    smiAsprintf(&s, "%lo", smiValuePtr->value.unsigned32);
 	} else if (smiTypePtr->format[0] == 'b') {
 	    for (i = 32 - 1;
 		 i > 0 && !(smiValuePtr->value.unsigned32 & (1 << i)); i--);
@@ -1555,9 +1555,9 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		if (i > 20) i = 20;
 		sprintf(f, "%%0%s.", UINT64_FORMAT);
 		f[2] = '*';
-		asprintf(&s, f,
-			 1 + i,
-			 smiValuePtr->value.unsigned64);
+		smiAsprintf(&s, f,
+			    1 + i,
+			    smiValuePtr->value.unsigned64);
 		if (s) {
 		    for (j = strlen(s) - 1; i > 0; i--, j--) {
 			s[j] = s[j-1];
@@ -1565,16 +1565,16 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    s[j] = '.';
 		}
 	    } else {
-		asprintf(&s, UINT64_FORMAT, smiValuePtr->value.unsigned64);
+		smiAsprintf(&s, UINT64_FORMAT, smiValuePtr->value.unsigned64);
 	    }
 	} else if (smiTypePtr->format[0] == 'x') {
 	    strcpy(f, UINT64_FORMAT);
 	    f[strlen(f)-1] = 'x';
-	    asprintf(&s, f, smiValuePtr->value.unsigned64);
+	    smiAsprintf(&s, f, smiValuePtr->value.unsigned64);
 	} else if (smiTypePtr->format[0] == 'o') {
 	    strcpy(f, UINT64_FORMAT);
 	    f[strlen(f)-1] = 'o';
-	    asprintf(&s, f, smiValuePtr->value.unsigned64);
+	    smiAsprintf(&s, f, smiValuePtr->value.unsigned64);
 	} else if (smiTypePtr->format[0] == 'b') {
 	    for (i = 64 - 1;
 		 i > 0 && !(smiValuePtr->value.unsigned64 & (1 << i)); i--);
@@ -1596,9 +1596,9 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		i = atoi(&smiTypePtr->format[2]);
 		if (i < 0) i = 0;
 		if (i > 20) i = 20;
-		asprintf(&s, "%0*ld.",
-			 1 + i + (smiValuePtr->value.integer32 < 0 ? 1 : 0),
-			 smiValuePtr->value.integer32);
+		smiAsprintf(&s, "%0*ld.",
+			    1 + i + (smiValuePtr->value.integer32 < 0 ? 1 : 0),
+			    smiValuePtr->value.integer32);
 		if (s) {
 		    for (j = strlen(s) - 1; i > 0; i--, j--) {
 			s[j] = s[j-1];
@@ -1606,19 +1606,19 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    s[j] = '.';
 		}
 	    } else {
-		asprintf(&s, "%ld", smiValuePtr->value.integer32);
+		smiAsprintf(&s, "%ld", smiValuePtr->value.integer32);
 	    }
 	} else if (smiTypePtr->format[0] == 'x') {
 	    if (smiValuePtr->value.integer32 >= 0) {
-		asprintf(&s, "%lx", smiValuePtr->value.integer32);
+		smiAsprintf(&s, "%lx", smiValuePtr->value.integer32);
 	    } else {
-		asprintf(&s, "-%lx", - smiValuePtr->value.integer32);
+		smiAsprintf(&s, "-%lx", - smiValuePtr->value.integer32);
 	    }
 	} else if (smiTypePtr->format[0] == 'o') {
 	    if (smiValuePtr->value.integer32 >= 0) {
-		asprintf(&s, "%lo", smiValuePtr->value.integer32);
+		smiAsprintf(&s, "%lo", smiValuePtr->value.integer32);
 	    } else {
-		asprintf(&s, "-%lo", - smiValuePtr->value.integer32);
+		smiAsprintf(&s, "-%lo", - smiValuePtr->value.integer32);
 	    }
 	} else if (smiTypePtr->format[0] == 'b') {
 	    if (smiValuePtr->value.integer32 >= 0) {
@@ -1651,9 +1651,9 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		if (i > 20) i = 20;
 		sprintf(f, "%%0%s.", INT64_FORMAT);
 		f[2] = '*';
-		asprintf(&s, f,
-			 1 + i + (smiValuePtr->value.integer64 < 0 ? 1 : 0),
-			 smiValuePtr->value.integer64);
+		smiAsprintf(&s, f,
+			    1 + i + (smiValuePtr->value.integer64 < 0 ? 1 : 0),
+			    smiValuePtr->value.integer64);
 		if (s) {
 		    for (j = strlen(s) - 1; i > 0; i--, j--) {
 			s[j] = s[j-1];
@@ -1661,26 +1661,26 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    s[j] = '.';
 		}
 	    } else {
-		asprintf(&s, INT64_FORMAT, smiValuePtr->value.integer64);
+		smiAsprintf(&s, INT64_FORMAT, smiValuePtr->value.integer64);
 	    }
 	} else if (smiTypePtr->format[0] == 'x') {
 	    if (smiValuePtr->value.integer64 >= 0) {
 		strcpy(f, UINT64_FORMAT);
 		f[strlen(f)-1] = 'x';
-		asprintf(&s, f, smiValuePtr->value.integer64);
+		smiAsprintf(&s, f, smiValuePtr->value.integer64);
 	    } else {
 		sprintf(f, "-%s", UINT64_FORMAT);
 		f[strlen(f)-1] = 'x';
-		asprintf(&s, f, - smiValuePtr->value.integer64);
+		smiAsprintf(&s, f, - smiValuePtr->value.integer64);
 	    }
 	} else if (smiTypePtr->format[0] == 'o') {
 	    if (smiValuePtr->value.integer64 >= 0) {
 		strcpy(f, UINT64_FORMAT);
 		sprintf(f, "-%s", UINT64_FORMAT);
 		f[strlen(f)-1] = 'o';
-		asprintf(&s, f, smiValuePtr->value.integer64);
+		smiAsprintf(&s, f, smiValuePtr->value.integer64);
 	    } else {
-		asprintf(&s, f, - smiValuePtr->value.integer64);
+		smiAsprintf(&s, f, - smiValuePtr->value.integer64);
 	    }
 	} else if (smiTypePtr->format[0] == 'b') {
 	    if (smiValuePtr->value.integer64 >= 0) {
@@ -1713,18 +1713,18 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	    }
 	    if ((i < smiValuePtr->len) ||
 		!(flags & SMI_RENDER_PRINTABLE)) {
-		asprintf(&s, "");
+		smiAsprintf(&s, "");
 		for (i=0; i < smiValuePtr->len; i++) {
 		    ss = s;
-		    asprintf(&s, "%s%02x", ss, smiValuePtr->value.ptr[i]);
+		    smiAsprintf(&s, "%s%02x", ss, smiValuePtr->value.ptr[i]);
 		    smiFree(ss);
 		}
 	    } else {
-		asprintf(&s, "%s", smiValuePtr->value.ptr);
+		smiAsprintf(&s, "%s", smiValuePtr->value.ptr);
 	    }
 	} else {
 	    i = 0;
-	    asprintf(&s, "");
+	    smiAsprintf(&s, "");
 	    fmt = smiTypePtr->format;
 	    while (*fmt && i < smiValuePtr->len) {
 		last_fmt = fmt;
@@ -1745,14 +1745,14 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 			if (! isascii((int) smiValuePtr->value.ptr[i+k])) {
 			    smiFree(s);
 			    if (flags & SMI_RENDER_UNKNOWN) {
-				asprintf(&s, SMI_LANGUAGE_UNKNOWN);
+				smiAsprintf(&s, SMI_LANGUAGE_UNKNOWN);
 			    } else {
 				s = NULL;
 			    }
 			    return s;
 			}
 			ss = s;
-			asprintf(&s, "%s%c", ss, smiValuePtr->value.ptr[i+k]);
+			smiAsprintf(&s, "%s%c", ss, smiValuePtr->value.ptr[i+k]);
 			smiFree(ss);
 		    }
 		    i += n;
@@ -1775,14 +1775,14 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    case 'd':
 			ss = s;
 			sprintf(f, "%%s%s", UINT64_FORMAT);
-			asprintf(&s, f, ss, vv);
+			smiAsprintf(&s, f, ss, vv);
 			smiFree(ss);
 			break;
 		    case 'o':
 			ss = s;
 			sprintf(f, "%%s%s", UINT64_FORMAT);
 			f[strlen(f)-1] = 'o';
-			asprintf(&s, f, ss, vv);
+			smiAsprintf(&s, f, ss, vv);
 			smiFree(ss);
 			break;
 		    case 'x':
@@ -1790,7 +1790,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 			sprintf(f, "%%s%%0%s", UINT64_FORMAT);
 			f[4] = '*';
 			f[strlen(f)-1] = 'x';
-			asprintf(&s, f, ss, xlen, vv);
+			smiAsprintf(&s, f, ss, xlen, vv);
 			smiFree(ss);
 			break;
 		    case 'b':
@@ -1799,8 +1799,8 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 			    k = sizeof(SmiUnsigned64) * 8 - 1;
 			for (j = 0; k >= 0; k--, j++) {
 			    ss = s;
-			    asprintf(&s, "%s%c",
-				     ss, vv & (1 << k) ? '1' : '0');
+			    smiAsprintf(&s, "%s%c",
+					ss, vv & (1 << k) ? '1' : '0');
 			    smiFree(ss);
 			}
 			break;
@@ -1809,7 +1809,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		default:
 		    smiFree(s);
 		    if (flags & SMI_RENDER_UNKNOWN) {
-			asprintf(&s, SMI_LANGUAGE_UNKNOWN);
+			smiAsprintf(&s, SMI_LANGUAGE_UNKNOWN);
 		    } else {
 			s = NULL;
 		    }
@@ -1824,7 +1824,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		if (*fmt && ! isdigit((int) *fmt) && *fmt != '*') {
 		    if (i < smiValuePtr->len) {
 			ss = s;
-			asprintf(&s, "%s%c", ss, fmt[0]);
+			smiAsprintf(&s, "%s%c", ss, fmt[0]);
 			smiFree(ss);
 		    }
 		    fmt++;
@@ -1845,20 +1845,20 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	    }
 	    if (nn) {
 		if (flags & SMI_RENDER_NUMERIC) {
-		    asprintf(&s, "%s(%ld)",
-			     nn->name, nn->value.value.integer32);
+		    smiAsprintf(&s, "%s(%ld)",
+				nn->name, nn->value.value.integer32);
 		} else {
-		    asprintf(&s, "%s", nn->name);
+		    smiAsprintf(&s, "%s", nn->name);
 		}
 	    } else {
-		asprintf(&s, "%ld", smiValuePtr->value.integer32);
+		smiAsprintf(&s, "%ld", smiValuePtr->value.integer32);
 	    }
 	} else {
-	    asprintf(&s, "%ld", smiValuePtr->value.integer32);
+	    smiAsprintf(&s, "%ld", smiValuePtr->value.integer32);
 	}
 	break;
     case SMI_BASETYPE_BITS:
-	asprintf(&s, "");
+	smiAsprintf(&s, "");
 	for (i = 0, nn = NULL; i < smiValuePtr->len * 8; i++) {
 	    if (smiValuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
 		if ((flags & SMI_RENDER_NAME) && (smiTypePtr)) {
@@ -1871,14 +1871,14 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		ss = s;
 		if ((flags & SMI_RENDER_NAME) &&
 		    (flags & SMI_RENDER_NUMERIC) && nn) {
-		    asprintf(&s, "%s%s%s(%d)",
-			     ss, strlen(ss) ? " " : "", nn->name, i);
+		    smiAsprintf(&s, "%s%s%s(%d)",
+				ss, strlen(ss) ? " " : "", nn->name, i);
 		} else if (nn) {
-		    asprintf(&s, "%s%s%s",
-			     ss, strlen(ss) ? " " : "", nn->name);
+		    smiAsprintf(&s, "%s%s%s",
+				ss, strlen(ss) ? " " : "", nn->name);
 		} else {
-		    asprintf(&s, "%s%s%d",
-			     ss, strlen(ss) ? " " : "", i);
+		    smiAsprintf(&s, "%s%s%d",
+				ss, strlen(ss) ? " " : "", i);
 		}
 		smiFree(ss);
 	    }
@@ -1890,7 +1890,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
     case SMI_BASETYPE_UNKNOWN:
     default:
 	if (flags & SMI_RENDER_UNKNOWN) {
-	    asprintf(&s, SMI_LANGUAGE_UNKNOWN);
+	    smiAsprintf(&s, SMI_LANGUAGE_UNKNOWN);
 	} else {
 	    s = NULL;
 	}
@@ -1907,7 +1907,7 @@ char *smiRenderNode(SmiNode *smiNodePtr, int flags)
     
     if ((!smiNodePtr) || (smiNodePtr->name == NULL)) {
 	if (flags & SMI_RENDER_UNKNOWN) {
-	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	    smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 	} else {
 	    s = NULL;
 	}
@@ -1916,9 +1916,9 @@ char *smiRenderNode(SmiNode *smiNodePtr, int flags)
 	if ((!(flags & SMI_RENDER_QUALIFIED)) ||
 	    (!modulePtr) ||
 	    (!strlen(modulePtr->name))) {
-	    asprintf(&s, "%s", smiNodePtr->name);
+	    smiAsprintf(&s, "%s", smiNodePtr->name);
 	} else {
-	    asprintf(&s, "%s::%s", modulePtr->name, smiNodePtr->name);
+	    smiAsprintf(&s, "%s::%s", modulePtr->name, smiNodePtr->name);
 	}
     }
     return s;
@@ -1931,7 +1931,7 @@ char *smiRenderType(SmiType *smiTypePtr, int flags)
     
     if ((!smiTypePtr) || (smiTypePtr->name == NULL)) {
 	if (flags & SMI_RENDER_UNKNOWN) {
-	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	    smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 	} else {
 	    s = NULL;
 	}
@@ -1940,9 +1940,9 @@ char *smiRenderType(SmiType *smiTypePtr, int flags)
 	if ((!(flags & SMI_RENDER_QUALIFIED)) ||
 	    (!modulePtr) ||
 	    (!strlen(modulePtr->name))) {
-	    asprintf(&s, "%s", smiTypePtr->name);
+	    smiAsprintf(&s, "%s", smiTypePtr->name);
 	} else {
-	    asprintf(&s, "%s::%s", modulePtr->name, smiTypePtr->name);
+	    smiAsprintf(&s, "%s::%s", modulePtr->name, smiTypePtr->name);
 	}
     }
     return s;
