@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.8 1999/10/01 12:46:58 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.9 1999/11/24 19:02:39 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -365,6 +365,9 @@ static void printObjects(char *modulename)
 	    for (ignore = 0, j = 0; ignoreTypeRanges[j]; j++) {
 		if (strcmp(smiType->name, ignoreTypeRanges[j]) == 0) {
 		    ignore++;
+		    if (smiType) {
+			smiFreeType(smiType);
+		    }
 		    break;
 		}
 	    }
@@ -380,6 +383,9 @@ static void printObjects(char *modulename)
 		    printf("%s\n", getValueString(&smiRange->maxValue));
 		}
 	    }
+	}
+	if (smiType) {
+	    smiFreeType(smiType);
 	}
     }
 
@@ -435,6 +441,7 @@ static void printGroups(char *modulename)
 		|| (smiNodeMember->nodekind == SMI_NODEKIND_COLUMN);
 	    notifications +=
 		(smiNodeMember->nodekind == SMI_NODEKIND_NOTIFICATION);
+	    smiFreeNode(smiNodeMember);
 	}
 
 	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
@@ -474,7 +481,6 @@ static void printCompliances(char *modulename)
 int dumpMosy(char *modulename, int flags)
 {
     SmiModule	 *smiModule;
-    SmiNode	 *smiNode;
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
@@ -488,10 +494,12 @@ int dumpMosy(char *modulename, int flags)
 
 
     if (smiModule->object) {
+	SmiNode	 *smiNode;
 	smiNode = smiGetNode(smiModule->name, smiModule->object);
 	printf("%-20s %s\n", smiModule->object, getOidString(smiNode, 0));
 	printf("%%n0 %-16s module-compliance\n", smiModule->object);
 	printf("\n");
+	smiFreeNode(smiNode);
     }
     
     printAssignements(modulename);
@@ -500,6 +508,8 @@ int dumpMosy(char *modulename, int flags)
     printNotifications(modulename);
     printGroups(modulename);
     printCompliances(modulename);
+
+    smiFreeModule(smiModule);
 
     return 0;
 }

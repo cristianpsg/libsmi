@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.59 2000/01/13 09:30:17 strauss Exp $
+ * @(#) $Id: smi.c,v 1.60 2000/01/13 12:15:40 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1261,7 +1261,7 @@ void smiFreeType(SmiType *smiTypePtr)
 
 SmiNamedNumber *smiGetFirstNamedNumber(char *module, char *type)
 {
-    Module  *modulePtr;
+    Module  *modulePtr = NULL;
     Type    *typePtr;
     char    *module2, *type2;
 
@@ -1342,7 +1342,7 @@ void smiFreeNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
 
 SmiRange *smiGetFirstRange(char *module, char *type)
 {
-    Module  *modulePtr;
+    Module  *modulePtr = NULL;
     Type    *typePtr;
     char    *module2, *type2;
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.51 2000/01/10 10:34:13 strauss Exp $
+ * @(#) $Id: data.c,v 1.52 2000/01/13 12:15:40 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -151,8 +151,8 @@ isInView(modulename)
 
 Module *
 addModule(modulename, path, fileoffset, flags, parserPtr)
-    const char	      *modulename;
-    const char	      *path;
+    char	      *modulename;
+    char	      *path;
     off_t	      fileoffset;
     ModuleFlags	      flags;
     Parser	      *parserPtr;
@@ -161,8 +161,8 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
 
     modulePtr = (Module *)util_malloc(sizeof(Module));
 
-    modulePtr->name				= util_strdup(modulename);
-    modulePtr->path			        = util_strdup(path);
+    modulePtr->name				= modulename;
+    modulePtr->path			        = path;
     modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
     modulePtr->language				= SMI_LANGUAGE_UNKNOWN;
@@ -493,15 +493,17 @@ checkImports(modulename, parserPtr)
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (importPtr->kind == KIND_UNKNOWN) {
-	    if (smiNode = smiGetNode(modulename, importPtr->importname)) {
+	    if ((smiNode = smiGetNode(modulename, importPtr->importname))) {
 		importPtr->importmodule = util_strdup(modulename);
 		importPtr->kind		= KIND_OBJECT;
 		smiFreeNode(smiNode);
-	    } else if (smiType = smiGetType(modulename, importPtr->importname)) {
+	    } else if ((smiType = smiGetType(modulename,
+					     importPtr->importname))) {
 		importPtr->importmodule = util_strdup(modulename);
 		importPtr->kind		= KIND_TYPE;
 		smiFreeType(smiType);
-	    } else if (smiMacro = smiGetMacro(modulename, importPtr->importname)) {
+	    } else if ((smiMacro = smiGetMacro(modulename,
+					       importPtr->importname))) {
 		importPtr->importmodule = util_strdup(modulename);
 		importPtr->kind         = KIND_MACRO;
 		smiFreeMacro(smiMacro);
@@ -2821,7 +2823,7 @@ initData()
     parser.flags		= smiFlags;
     parser.file			= NULL;
     parser.line			= -1;
-    parser.modulePtr = addModule("", "", 0, 0, NULL);
+    parser.modulePtr = addModule(util_strdup(""), util_strdup(""), 0, 0, NULL);
 
     addView("");
 
