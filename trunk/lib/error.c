@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.99 2002/07/23 18:12:54 strauss Exp $
+ * @(#) $Id: error.c,v 1.100 2002/09/13 17:49:27 schoenw Exp $
  */
 
 #include <config.h>
@@ -207,6 +207,8 @@ static Error errors[] = {
       "opening MIB directory or file `%s': %s" },
     { 1, ERR_UNKNOWN_LOCATION_TYPE, "", 
       "unknown MIB location type `%s'" },
+    { 2, ERR_ILLEGAL_RANGE_FOR_COUNTER, "counter-range-illegal", 
+      "illegal range restriction for counter type `%s'" },
     { 2, ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE, "range-illegal", 
       "illegal range restriction for non-numerical parent type `%s'" },
     { 2, ERR_ILLEGAL_SIZE_FOR_PARENT_TYPE, "size-illegal", 
@@ -261,8 +263,10 @@ static Error errors[] = {
       "unknown configuration command `%s' in file `%s'" },
     { 6, ERR_CACHE_CONFIG_NOT_SUPPORTED, "", 
       "MIB caching is not supported though configured in file `%s'" },
-    { 4, ERR_OPAQUE_OBSOLETE, "opaque", 
+    { 4, ERR_SMIV2_OPAQUE_OBSOLETE, "opaque-smiv2", 
       "SMIv2 provides Opaque solely for backward-compatibility" },
+    { 4, ERR_SPPI_OPAQUE_OBSOLETE, "opaque-sppi", 
+      "SPPI provides Opaque solely for backward-compatibility" },
     { 2, ERR_DATE_CHARACTER, "date-character", 
       "date specification `%s' contains an illegal character" },
     { 2, ERR_DATE_LENGTH, "date-length", 
@@ -289,7 +293,7 @@ static Error errors[] = {
       "use Integer32 instead of INTEGER in SMIv2" },
     { 5, ERR_MODULE_ALREADY_LOADED, "", 
       "module `%s' is already loaded, aborting parser on this file" },
-    { 2, ERR_BASETYPE_NOT_IMPORTED, "basetype-not-imported", 
+    { 2, ERR_SMIV2_BASETYPE_NOT_IMPORTED, "basetype-not-imported", 
       "SMIv2 base type `%s' must be imported from SNMPv2-SMI" },
     { 2, ERR_BASETYPE_UNKNOWN, "basetype-unknown", 
       "type `%s' of node `%s' does not resolve to a known base type" },

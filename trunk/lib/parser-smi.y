@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.182 2002/07/23 18:02:53 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.183 2002/09/13 17:49:27 schoenw Exp $
  */
 
 %{
@@ -254,8 +254,12 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    && (objectPtr->export.nodekind == SMI_NODEKIND_COLUMN
 		|| objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)
 	    && (objectPtr->typePtr->export.decl == SMI_DECL_TYPEDEF
-		|| objectPtr->typePtr->export.decl == SMI_DECL_TEXTUALCONVENTION)) {
+		|| objectPtr->typePtr->export.decl == SMI_DECL_TEXTUALCONVENTION
+		|| objectPtr->typePtr->export.decl == SMI_DECL_IMPLICIT_TYPE)) {
 	    addTypeFlags(objectPtr->typePtr, FLAG_INSYNTAX);
+	    if (objectPtr->typePtr->export.decl == SMI_DECL_IMPLICIT_TYPE) {
+		addTypeFlags(objectPtr->typePtr->parentPtr, FLAG_INSYNTAX);
+	    }
 	}
 	
 	/*
@@ -3752,9 +3756,17 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
-					      "Integer32");
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Integer32");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Integer32");
+				}
 			    }
 
 			    /* TODO: any need to distinguish from INTEGER? */
@@ -3773,9 +3785,17 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
-					      "Integer32");
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Integer32");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Integer32");
+				}
 			    }
 
 			    $$ = duplicateType(smiHandle->typeInteger32Ptr, 0,
@@ -4262,11 +4282,18 @@ sequenceSimpleSyntax:	INTEGER	anySubType
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
-					      "Integer32");
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Integer32");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Integer32");
+				}
 			    }
-
 			}
 	|		OCTET STRING anySubType
 			{
@@ -4280,14 +4307,36 @@ sequenceSimpleSyntax:	INTEGER	anySubType
 
 ApplicationSyntax:	IPADDRESS
 			{
+			    Import *importPtr;
+			    
 			    $$ = findTypeByName("IpAddress");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "IpAddress");
 			    }
+			    
+			    importPtr = findImportByName("IpAddress",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "IpAddress");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "IpAddress");
+				}
+			    }
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
                                 !findImportByName("Counter32", thisParserPtr->modulePtr))
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "COUNTER32");
@@ -4296,9 +4345,61 @@ ApplicationSyntax:	IPADDRESS
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Counter32");
 			    }
+			    
+			    importPtr = findImportByName("Counter32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Counter32");
+				}
+			    }
+			}
+	|		COUNTER32 integerSubType
+			{
+			    Import *importPtr;
+			    List *listPtr, *nextListPtr;
+			    
+			    smiPrintError(thisParserPtr,
+					  ERR_ILLEGAL_RANGE_FOR_COUNTER,
+					  "Counter32");
+			    for (listPtr = $2; listPtr;
+				 listPtr = nextListPtr) {
+				nextListPtr = listPtr->nextPtr;
+				smiFree((Range *)listPtr->ptr);
+				smiFree(listPtr);
+			    }
+			    
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Counter32", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Counter32");
+			    $$ = findTypeByName("Counter32");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Counter32");
+			    }
+			    
+			    importPtr = findImportByName("Counter32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Counter32");
+				}
+			    }
 			}
 	|		GAUGE32			/* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
                                 !findImportByName("Gauge32", thisParserPtr->modulePtr))
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Gauge32");
@@ -4306,6 +4407,19 @@ ApplicationSyntax:	IPADDRESS
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Gauge32");
+			    }
+			    
+			    importPtr = findImportByName("Gauge32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Gauge32");
+				}
 			    }
 			}
 	|		GAUGE32 integerSubType
@@ -4327,10 +4441,18 @@ ApplicationSyntax:	IPADDRESS
 				setTypeList($$, $2);
 				smiCheckTypeRanges(thisParserPtr, $$);
 			    }
+			    
 			    importPtr = findImportByName("Gauge32",
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Gauge32");
+				}
 			    }
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
@@ -4338,14 +4460,23 @@ ApplicationSyntax:	IPADDRESS
 			    Import *importPtr;
 
 			    $$ = smiHandle->typeUnsigned32Ptr;
+			    
 			    importPtr = findImportByName("Unsigned32",
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
-					      "Unsigned32");
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Unsigned32");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Unsigned32");
+				}
 			    }
 			}
 	|		UNSIGNED32 integerSubType
@@ -4356,33 +4487,89 @@ ApplicationSyntax:	IPADDRESS
 					       thisParserPtr);
 			    setTypeList($$, $2);
 			    smiCheckTypeRanges(thisParserPtr, $$);
+
 			    importPtr = findImportByName("Unsigned32",
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
-					      "Unsigned32");
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Unsigned32");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Unsigned32");
+				}
 			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+			    
 			    $$ = findTypeByName("TimeTicks");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "TimeTicks");
 			    }
+			    
+			    importPtr = findImportByName("TimeTicks",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				}
+			    }
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
+			    Import *importPtr;
+			    
 			    $$ = findTypeByName("Opaque");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Opaque");
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_OPAQUE_OBSOLETE);
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_OPAQUE_OBSOLETE);
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_OPAQUE_OBSOLETE);
+				}
+			    }
+			    
+			    importPtr = findImportByName("Opaque",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Opaque");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Opaque");
+				}
 			    }
 			}
 	|		OPAQUE octetStringSubType
@@ -4396,17 +4583,39 @@ ApplicationSyntax:	IPADDRESS
 					      "Opaque");
 				$$ = NULL;
 			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
 				    smiPrintError(thisParserPtr,
-						  ERR_OPAQUE_OBSOLETE);
-				    $$ = duplicateType(parentPtr, 0,
-						       thisParserPtr);
-				    setTypeList($$, $2);
-				    smiCheckTypeRanges(thisParserPtr, $$);
+						  ERR_SMIV2_OPAQUE_OBSOLETE,
+						  "Opaque");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_OPAQUE_OBSOLETE,
+						  "Opaque");
+				}
+				$$ = duplicateType(parentPtr, 0,
+						   thisParserPtr);
+				setTypeList($$, $2);
+				smiCheckTypeRanges(thisParserPtr, $$);
 			    }
+
 			    importPtr = findImportByName("Opaque",
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Opaque");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Opaque");
+				}
 			    }
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
@@ -4427,9 +4636,49 @@ ApplicationSyntax:	IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Counter64");
+				}
+			    }
+			}
+	|		COUNTER64 integerSubType
+			{
+			    Import *importPtr;
+			    List *listPtr, *nextListPtr;
+			    
+			    smiPrintError(thisParserPtr,
+					  ERR_ILLEGAL_RANGE_FOR_COUNTER,
+					  "Counter64");
+			    for (listPtr = $2; listPtr;
+				 listPtr = nextListPtr) {
+				nextListPtr = listPtr->nextPtr;
+				smiFree((Range *)listPtr->ptr);
+				smiFree(listPtr);
+			    }
+			    
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Counter64", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Counter64");
+			    $$ = findTypeByName("Counter64");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Counter64");
+			    }
+
+			    importPtr = findImportByName("Counter64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Counter64");
+				}
 			    }
 			}
 	|		INTEGER64               /* (-9223372036854775807..9223372036854775807) */
@@ -4449,9 +4698,12 @@ ApplicationSyntax:	IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
-					      "Integer64");
+				if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Integer64");
+				}
 			    }
 			}
 	|		INTEGER64 integerSubType
@@ -4472,14 +4724,18 @@ ApplicationSyntax:	IPADDRESS
 				setTypeList($$, $2);
 				smiCheckTypeRanges(thisParserPtr, $$);
 			    }
+
 			    importPtr = findImportByName("Integer64",
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
-					      "Integer64");
+				if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Integer64");
+				}
 			    }
 			}
 	|		UNSIGNED64	        /* (0..18446744073709551615) */
@@ -4499,9 +4755,12 @@ ApplicationSyntax:	IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
-					      "Unsigned64");
+				if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Unsigned64");
+				}
 			    }
 			}
 	|		UNSIGNED64 integerSubType
@@ -4522,14 +4781,18 @@ ApplicationSyntax:	IPADDRESS
 				setTypeList($$, $2);
 				smiCheckTypeRanges(thisParserPtr, $$);
 			    }
+
 			    importPtr = findImportByName("Unsigned64",
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
-					      "Unsigned64");
+				if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Unsigned64");
+				}
 			    }
 			}
 	;
@@ -4540,14 +4803,36 @@ ApplicationSyntax:	IPADDRESS
  */
 sequenceApplicationSyntax: IPADDRESS
 			{
+			    Import *importPtr;
+			    
 			    $$ = findTypeByName("IpAddress");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "IpAddress");
 			    }
+
+			    importPtr = findImportByName("IpAddress",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "IpAddress");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "IpAddress");
+				}
+			    }
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+			    
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
                                 !findImportByName("Counter32", thisParserPtr->modulePtr))
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Counter32");
@@ -4556,9 +4841,24 @@ sequenceApplicationSyntax: IPADDRESS
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Counter32");
 			    }
+
+			    importPtr = findImportByName("Counter32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Counter32");
+				}
+			    }
 			}
 	|		GAUGE32	anySubType	/* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+			    
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
                                 !findImportByName("Gauge32", thisParserPtr->modulePtr))
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Gauge32");
@@ -4567,39 +4867,110 @@ sequenceApplicationSyntax: IPADDRESS
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Gauge32");
 			    }
+
+			    importPtr = findImportByName("Gauge32",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Gauge32");
+				}
+			    }
 			}
 	|		UNSIGNED32 anySubType /* (0..4294967295)	     */
 			{
 			    Import *importPtr;
 			    
 			    $$ = smiHandle->typeUnsigned32Ptr;
+
 			    importPtr = findImportByName("Unsigned32",
 							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
-					      "Unsigned32");
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Unsigned32");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Unsigned32");
+				}
 			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
+			    Import *importPtr;
+			    
 			    $$ = findTypeByName("TimeTicks");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "TimeTicks");
 			    }
+
+			    importPtr = findImportByName("TimeTicks",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				}
+			    }
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
+			    Import *importPtr;
+			    
 			    $$ = findTypeByName("Opaque");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Opaque");
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_OPAQUE_OBSOLETE);
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_OPAQUE_OBSOLETE,
+						  "Opaque");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_OPAQUE_OBSOLETE,
+						  "Opaque");
+				}
+			    }
+
+			    importPtr = findImportByName("Opaque",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Opaque");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Opaque");
+				}
 			    }
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
@@ -4620,9 +4991,12 @@ sequenceApplicationSyntax: IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_BASETYPE_NOT_IMPORTED,
-					      "Counter64");
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "Counter64");
+				}
 			    }
 			}
 	|		INTEGER64	        /* (-9223372036854775807..9223372036854775807) */
@@ -4642,9 +5016,12 @@ sequenceApplicationSyntax: IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
-					      "Integer64");
+				if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Integer64");
+				}
 			    }
 			}
 	|		UNSIGNED64	        /* (0..18446744073709551615) */
@@ -4664,9 +5041,12 @@ sequenceApplicationSyntax: IPADDRESS
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {
-				smiPrintError(thisParserPtr,
-					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
-					      "Unsigned64");
+				if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "Unsigned64");
+				}
 			    }
 			}
 	;
