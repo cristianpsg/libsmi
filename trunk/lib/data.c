@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.69 2000/02/23 09:14:11 strauss Exp $
+ * @(#) $Id: data.c,v 1.70 2000/02/24 10:35:38 strauss Exp $
  */
 
 #include <config.h>
@@ -1811,7 +1811,7 @@ findNodeByOidString(oid)
  *
  * findObjectByNode --
  *
- *      Lookup an Object by a given Node. Note, that their might be
+ *      Lookup an Object by a given Node. Note, that there might be
  *	multiple definitions for one node.
  *
  * Results:
@@ -1830,16 +1830,22 @@ findObjectByNode(nodePtr)
     Node      *nodePtr;
 {
     Object    *objectPtr;
+    Object    *goodObjectPtr = NULL;
 
     /* first, try to find an object in the current view. */
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
 	if (isInView(objectPtr->modulePtr->export.name)) {
-	    return (objectPtr);
+	    if (! goodObjectPtr) {
+		goodObjectPtr = objectPtr;
+	    } else if (objectPtr->modulePtr->export.language
+		       > goodObjectPtr->modulePtr->export.language) {
+		goodObjectPtr = objectPtr;
+	    }
 	}
     }
 
-    return nodePtr->firstObjectPtr;
+    return goodObjectPtr ? goodObjectPtr : nodePtr->firstObjectPtr;
 }
 
 

@@ -71,3 +71,25 @@ o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
 
 o line breaks in long bits defaults values (dump-*.c)
+
+o Get rid of SmiValueformat - only store primitive values (e.g. integers
+  for Enumerations) and let the application do a "reverse lookup" if
+  needed.
+
+o Add smiGetFirstChildType(SmiType *smiType) and 
+  smiGetNextChildType(SmiType *smiType) to the API.
+
+o Make smiGetFirstNode()/smiGetNextNode() more efficient by saving the
+  longest OID of the subtree which contains all definitions of a MIB
+  module in the Module structure.
+
+o Make sure we always get the newest definition when looking up things
+  that are not unique.
+
+o The SMIv1/SMIv2/SMIng dump modules should build proper IMPORTS for
+  OIDs that show up in DEFVAL or default clauses.
+
+o OID default values should be printed as identifiers where possible.
+
+o The default value conversion functions (e.g. getValueString()) should
+  return malloced memory to avoid potential memory overwrite problems.
