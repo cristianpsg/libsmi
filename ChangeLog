@@ -1,3 +1,8 @@
+2001-03-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Added checks to compare SEQUENCEs against
+	columnar objects.
+
 2001-02-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/check.c: Lowered severity of recent compliant status checks.

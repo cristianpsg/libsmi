@@ -154,3 +154,9 @@
 #define ERR_OID_RECURSIVE                        153
 #define ERR_COMMENT_TERMINATES                   154
 #define ERR_OBSOLETE_IMPORT                      155
+#define ERR_GROUP_OBJECT_STATUS                  156
+#define ERR_COMPLIANCE_GROUP_STATUS              157
+#define ERR_COMPLIANCE_OBJECT_STATUS             158
+#define ERR_SEQUENCE_ORDER                       159
+#define ERR_SEQUENCE_NO_COLUMN                   160
+#define ERR_SEQUENCE_MISSING_COLUMN              161

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.139 2001/01/26 17:18:00 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.140 2001/02/26 16:25:13 strauss Exp $
  */
 
 %{
@@ -265,6 +265,75 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    }
 	}
 
+	/*
+	 * Check whether a row's SEQUENCE contains exactly the list
+	 * of child nodes (columns).
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
+	    List *p;
+	    Node *seqNodePtr, *childNodePtr;
+	    Object *colPtr;
+	    int i;
+	    
+	    /*
+	     * Walk through the SEQUENCE elements and find those
+	     * that are misordered or have no matching columnar object.
+	     */
+	    for (p = objectPtr->typePtr->listPtr, i = 1,
+		     childNodePtr = objectPtr->nodePtr->firstChildPtr;
+		 p && childNodePtr;
+		 p = p->nextPtr, childNodePtr = childNodePtr->nextPtr, i++) {
+		seqNodePtr = ((Object *)p->ptr)->nodePtr;
+		
+		if (seqNodePtr->parentPtr != childNodePtr->parentPtr) {
+		    smiPrintErrorAtLine(parserPtr, ERR_SEQUENCE_NO_COLUMN,
+					objectPtr->typePtr->line,
+					i,
+					((Object *)p->ptr)->export.name,
+					objectPtr->export.name);
+		    continue;
+		}
+
+		if (seqNodePtr != childNodePtr) {
+		    smiPrintErrorAtLine(parserPtr, ERR_SEQUENCE_ORDER,
+					objectPtr->typePtr->line,
+					i,
+					((Object *)p->ptr)->export.name,
+					objectPtr->export.name);
+		    break;
+		}
+	    }
+	    if ((p != NULL) && (childNodePtr == NULL)) {
+		smiPrintErrorAtLine(parserPtr, ERR_SEQUENCE_NO_COLUMN,
+				    objectPtr->typePtr->line,
+				    i, 
+				    ((Object *)p->ptr)->export.name,
+				    objectPtr->export.name);
+	    }
+
+	    /*
+	     * Walk through all child objects and find those
+	     * that were missing in the SEQUENCE.
+	     */
+	    for (childNodePtr = objectPtr->nodePtr->firstChildPtr;
+		 childNodePtr; childNodePtr = childNodePtr->nextPtr) {
+		colPtr = findObjectByModuleAndNode(modulePtr, childNodePtr);
+		if (!colPtr) continue;
+		for (p = objectPtr->typePtr->listPtr; p; p = p->nextPtr) {
+		    if (((Object *)p->ptr)->nodePtr == colPtr->nodePtr)
+			break;
+		}
+		if (!p) {
+		    smiPrintErrorAtLine(parserPtr, ERR_SEQUENCE_MISSING_COLUMN,
+					objectPtr->typePtr->line,
+					objectPtr->typePtr->export.name,
+					colPtr->export.name);
+		}
+	    }
+	    
+	}
+	
 	if (objectPtr->export.nodekind == SMI_NODEKIND_TABLE) {
 	    int len;
 
