@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.33 1998/12/15 16:11:14 strauss Exp $
+ * @(#) $Id: data.c,v 1.34 1998/12/22 17:09:12 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1262,9 +1262,40 @@ getLastSubid(oid)
 /*
  *----------------------------------------------------------------------
  *
- * setObjectSyntax --
+ * setObjectName --
  *
- *      Set the syntax (pointer to a Type struct) of a given Object.
+ *      Set the name of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectName(objectPtr, namePtr)
+    Object	      *objectPtr;
+    smi_descriptor    *namePtr;
+{
+#ifdef DEBUG
+    printDebug(5, "setObjectName(0x%x, \"%s\")\n",
+	       objectPtr, namePtr);
+#endif
+
+    objectPtr->name = util_strdup(namePtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectType --
+ *
+ *      Set the syntax/type (pointer to a Type struct) of a given Object.
  *
  * Results:
  *	None.
@@ -2120,6 +2151,37 @@ duplicateType(templatePtr, flags, parserPtr)
 #endif
     
     return (typePtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeName --
+ *
+ *      Set the name of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeName(typePtr, namePtr)
+    Type	      *typePtr;
+    smi_descriptor    *namePtr;
+{
+#ifdef DEBUG
+    printDebug(5, "setTypeName(0x%x, \"%s\")\n",
+	       typePtr, namePtr);
+#endif
+
+    typePtr->name = util_strdup(namePtr);
 }
 
 

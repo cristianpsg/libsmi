@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.8 1998/11/30 16:42:35 strauss Exp $
+ * @(#) $Id: error.h,v 1.9 1998/12/22 17:09:14 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -95,7 +95,7 @@
 #define ERR_ALLOCATING_VIEW			 75
 
 
-#define yyerror(msg) printError(parser, ERR_OTHER_ERROR, msg)
+#define yyerror(msg) printError(parserPtr, ERR_OTHER_ERROR, msg)
 
 
 extern int line;			 /* Current line in source file.     */
@@ -106,7 +106,7 @@ extern char linebuf[MAX_LINEBUF_LENGTH]; /* Current line up to current pos.  */
 extern int errorLevel;                   /* Higher level for more warnings   */
 extern int debugLevel;                   /* Higher level for more messages   */
 
-extern void printError(Parser *parser, int id, ...);
+extern void printError(Parser *parserPtr, int id, ...);
 extern void printDebug(int level, char *fmt, ...);
 
 #endif /* _ERROR_H */

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.24 1998/12/15 16:11:15 strauss Exp $
+ * @(#) $Id: data.h,v 1.25 1998/12/22 17:09:13 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -29,7 +29,7 @@
 
 typedef struct List {
     void	    *ptr;
-    struct List	    *next;
+    struct List	    *nextPtr;
 } List;
 
 
@@ -77,7 +77,7 @@ typedef unsigned short MacroFlags;
 #define FLAG_MODULE		0x0008 /* Declared in the current module.    */
 #define FLAG_REGISTERED		0x0010 /* On an Object: this is registered.  */
 #define FLAG_INCOMPLETE		0x0020 /* Just defined by a forward          */
-				       /* referenced type.		     */
+				       /* referenced type or object.         */
 
 #define	FLAG_TC                 0x0100 /* On a Type: This type is declared   */
 				       /* by a TC instead of a simple ASN.1  */
@@ -85,8 +85,6 @@ typedef unsigned short MacroFlags;
 
 #define	FLAG_SMIV2	        0x0100 /* On a Module: This is an SMIv2 MIB. */
 
-#define FLAG_NOSUBID		0x0100 /* On a (pending) Node: This node's   */
-				       /* subid value is not yet known.      */
 #define FLAG_ROOT	        0x0200 /* Marks the single root Node.        */
 
 #define	FLAG_WHOLEFILE		0x0100 /* We want to read the whole */
@@ -270,6 +268,9 @@ extern int checkImports(char *modulename,
 
 extern Import *findImportByName(const char *importname);
 
+extern Import *findImportByModulenameAndName(const char *modulename,
+					     const char *importname);
+
 /*
 extern Descriptor *addDescriptor(const char *name,
 				 Module *module,
@@ -313,6 +314,9 @@ extern Node *getParentNode(Node *nodePtr);
 
 extern smi_subid getLastSubid(const char *oid);
 
+extern void setObjectName(Object *objectPtr,
+			   smi_descriptor name);
+
 extern void setObjectType(Object *objectPtr,
 			  Type *typePtr);
 
@@ -331,7 +335,7 @@ extern void setObjectFileOffset(Object *objectPtr,
 extern void setObjectDecl(Object *objectPtr,
 			   smi_decl decl);
 
-extern void setObjectFlags(Object *objectPtr,
+extern void addObjectFlags(Object *objectPtr,
 			   ObjectFlags flags);
 
 extern void setObjectIndex(Object *objectPtr,
@@ -371,6 +375,9 @@ extern Type *addType(const char *typename,
 extern Type *duplicateType(Type *templatePtr,
 			   TypeFlags flags,
 			   Parser *parserPtr);
+
+extern void setTypeName(Type *typePtr,
+			smi_descriptor name);
 
 extern void setTypeStatus(Type *typePtr,
 			  smi_status status);
