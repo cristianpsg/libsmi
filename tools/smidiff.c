@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.10 2001/09/27 11:35:39 tklie Exp $
+ * @(#) $Id: smidiff.c,v 1.11 2001/09/27 16:14:51 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -670,13 +670,9 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 
 
 static void
-checkTypes(SmiModule *oldModule, SmiType *oldType,
-	   SmiModule *newModule, SmiType *newType)
+checkTypeCompatibility(SmiModule *oldModule, SmiType *oldType,
+		       SmiModule *newModule, SmiType *newType)
 {
-    checkName(oldModule, smiGetTypeLine(oldType),
-	      newModule, smiGetTypeLine(newType),
-	      oldType->name, newType->name);
-	
     if (oldType->basetype != newType->basetype) {
 	printErrorAtLine(newModule, ERR_BASETYPE_CHANGED,
 			 smiGetTypeLine(newType), newType->name);
@@ -691,7 +687,20 @@ checkTypes(SmiModule *oldModule, SmiType *oldType,
 		oldType->name,
 		oldType,
 		newType);
+}
 
+
+static void
+checkTypes(SmiModule *oldModule, SmiType *oldType,
+	   SmiModule *newModule, SmiType *newType)
+{
+    checkName(oldModule, smiGetTypeLine(oldType),
+	      newModule, smiGetTypeLine(newType),
+	      oldType->name, newType->name);
+
+    checkTypeCompatibility(oldModule, oldType,
+			   newModule, newType);
+	
     checkDefVal(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
 		oldType->name, 
@@ -797,13 +806,15 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 			     newNode->name, oldType->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
+	    checkTypeCompatibility(oldModule, oldType, newModule, newType);
 	} else if (!oldType->name && newType->name) {
 	    printErrorAtLine(newModule, ERR_FROM_IMPLICIT,
 			     smiGetNodeLine(newNode),
 			     newType->name, oldNode->name);
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     smiGetNodeLine(oldNode), oldNode->name);
-	} else {	
+	    checkTypeCompatibility(oldModule, oldType, newModule, newType);
+	} else {
 	    checkTypes(oldModule, oldType, newModule, newType);
 	}
     }
