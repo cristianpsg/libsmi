@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.94 2002/06/07 17:51:59 schoenw Exp $
+ * @(#) $Id: error.c,v 1.95 2002/06/19 15:35:10 strauss Exp $
  */
 
 #include <config.h>
@@ -530,8 +530,6 @@ static Error errors[] = {
       "`%s', which is used in a UNIQUENESS clause, is not a column in this table" },
     { 2, ERR_EXTENDS_WRONG_ROW_TYPE, "extend-row-type",
       "row `%s' extends `%s' which is neither a base table row nor a sparsely-augmented table row" },
-    { 2, ERR_PIB_INDEX_NOT_A_COLUMN, "pib-index-not-a-column",
-      "the PIB-INDEX `%s' is not a column in the current row" },
     { 2, ERR_PIB_INDEX_NOT_INSTANCEID, "pib-index-not-instanceid",
       "the PIB-INDEX `%s' must be of type `InstanceId'" },
     { 2, ERR_LACKING_PIB_REFERENCES, "type-lacking-pib-references",

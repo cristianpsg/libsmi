@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.35 2002/05/16 23:21:55 bunkus Exp $
+ * @(#) $Id: smi.h.in,v 1.36 2002/07/02 12:00:43 bunkus Exp $
  */
 
 #ifndef _SMI_H
@@ -414,6 +414,10 @@ extern SmiType *smiGetRefinementType(SmiRefinement *smiRefinementPtr);
 
 extern SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr);
 
+
+extern SmiElement *smiGetFirstUniquenessElement(SmiNode *smiNodePtr);
+
+#define smiGetNextUniquenessElement(p) smiGetNextElement(p)
 
 #ifdef __cplusplus
 }

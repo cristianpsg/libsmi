@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.35 2001/08/15 17:07:04 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.36 2002/05/16 23:21:55 bunkus Exp $
  */
 
 %option noyywrap
@@ -741,7 +741,8 @@ eol             ("\n"|"\n\015"|"\015\n")
     yylval.unsigned32 = strtoul(yytext, NULL, 10);
     if (errno == ERANGE) {
         /* TODO: proper handling for SPPI vs SMI modules. */
-        if (thisParser.modulePtr->export.language == SMI_LANGUAGE_SPPI) {
+        if ((thisParser.modulePtr->export.language == SMI_LANGUAGE_SPPI) ||
+            (thisParser.modulePtr->export.language == SMI_LANGUAGE_SMIV2)) {
             yylval.unsigned64 = strtoull(yytext, NULL, 10);
             if (errno == ERANGE) {
                 /*

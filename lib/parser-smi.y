@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.178 2002/06/19 15:35:10 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.179 2002/07/09 14:48:52 strauss Exp $
  */
 
 %{
@@ -733,29 +733,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
                  * See RFC 3159 7.5
                  */
                 if (objectPtr->listPtr && objectPtr->listPtr->ptr) {
-                    Object *index = (Object *)objectPtr->listPtr->ptr;
-                    if (index->typePtr && strcmp(index->typePtr->export.name,
-                        "InstanceId"))
+                    Object *pibindex = (Object *)objectPtr->listPtr->ptr;
+                    if (pibindex->typePtr && pibindex->typePtr->export.name &&
+                        strcmp(pibindex->typePtr->export.name, "InstanceId"))
                         smiPrintErrorAtLine(thisParserPtr, ERR_PIB_INDEX_NOT_INSTANCEID,
-                                            index->line, index->export.name);
-                }
-                for (p = objectPtr->listPtr; p; p = p->nextPtr) {
-                    Object *index = (Object *)p->ptr;
-                    int found = 0;
-                    List *pp;
-
-                    if (index && objectPtr->typePtr) {
-                        for (pp = objectPtr->typePtr->listPtr; pp; pp = pp->nextPtr)
-                            if (pp->ptr &&
-                                !strcmp(index->export.name, ((Object *)pp->ptr)->export.name)) {
-                                found = 1;
-                                break;
-                            }
-                        if (!found)
-                            smiPrintErrorAtLine(thisParserPtr, ERR_PIB_INDEX_NOT_A_COLUMN,
-                                                objectPtr->line, index->export.name);
-                        
-                    }
+                                            pibindex->line, pibindex->export.name);
                 }
             }
             
@@ -2629,7 +2611,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 				        smiPrintError(thisParserPtr,
 						      ERR_MACRO_NOT_IMPORTED,
 						      "OBJECT-IDENTITY",
-						      "COPS-PR-SPPIs");
+						      "COPS-PR-SPPI");
 				}
 			    }
 			}
@@ -2916,7 +2898,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
                                 * and a PIB-REFERENCES clause?
                                 * See RFC 3159 7.10
                                 */
-                               if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                               if ((thisModulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                   objectPtr->typePtr && objectPtr->typePtr->export.name &&
                                    !strcmp(objectPtr->typePtr->export.name, "ReferenceId"))
                                    smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_REFERENCES,
                                                        objectPtr->line);
@@ -2942,7 +2925,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
                                  * and a PIB-TAG clause?
                                  * See RFC 3159 7.11
                                  */
-                                if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                                if ((thisModulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                    objectPtr->typePtr && objectPtr->typePtr->export.name &&
                                     !strcmp(objectPtr->typePtr->export.name, "TagReferenceId"))
                                     smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_TAG,
                                                         objectPtr->line);
