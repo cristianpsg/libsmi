@@ -1,3 +1,18 @@
+2002-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/: Updated man pages.
+	
+	* test/: Updated test suite.
+	
+	* libsmi-0.4.tar.gz: released version 0.4. There are two major
+	improvements in this release: It is the first release that
+	supports parsing and dumping of SPPI PIB modules (thanks to
+	Moritz for this great piece of good work!). Additionally the
+	support of an XML Schema dump format (smidump -f xsd) has
+	received a lot of enhancements, which might be of interest to
+	some people (thanks to Torsten for his great former and
+	ongoing work on all the details of this topic!).
+
 2002-06-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: Fixed illegal reference to already freed type

@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smilint.1.in,v 1.11 2000/10/21 09:42:41 strauss Exp $
+.\" $Id: smilint.1.in,v 1.12 2000/12/11 08:41:22 strauss Exp $
 .\"
-.TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
+.TH smilint 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
 smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 .SH SYNOPSIS
@@ -19,14 +19,14 @@ smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 ]
 .I "module(s)"
 .SH DESCRIPTION
-The \fBsmilint\fP program is used to check MIB modules for syntax
-errors and semantics at some degree.  Both, SMIv1/v2 and SMIng style
-MIB modules are supported.
+The \fBsmilint\fP program is used to check MIB or PIB modules for syntax
+errors and semantics at some degree.  SMIv1/v2 and SMIng style
+MIB modules as well as SPPI PIB modules are supported.
 .PP
 The rules that \fBsmilint\fP is based on are taken from RFC 1155, RFC
-1212 and RFC 1215 for SMIv1, RFCs 2578-2580 for SMIv2 and the
-specification of SMIng that is work in progress within the Network Management
-Research Group of the IRTF.
+1212 and RFC 1215 for SMIv1, RFCs 2578-2580 for SMIv2, RFC 3159 for SPPI,
+and the specification of SMIng that has been a research project
+within the Network Management Research Group of the IRTF.
 .SH OPTIONS
 .TP
 \fB-V, --verbose\fP
@@ -64,11 +64,11 @@ A higher level shows more warnings. The actual severity levels are:
 .sp
 .nf
  0   internal error, no recovery possible,
- 1   major SMI error, recovery somehow possible but
+ 1   major SMI/SPPI error, recovery somehow possible but
      may lead to severe problems,
- 2   SMI error, probably tolerated by some
+ 2   SMI/SPPI error, probably tolerated by some
      implementations,
- 3   SMI error, tolerated by many implementations,
+ 3   SMI/SPPI error, tolerated by many implementations,
  4   something which is recommended to be changed,
  5   something that might be ok, but might not be
      recommended under some circumstances,
@@ -117,5 +117,13 @@ Other commonly used MIB checkers are
 .BR mosy "(1) and "
 .BR smicng "(1)."
 .SH "AUTHOR"
-(C) 1999, 2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2002 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+.br
+(C) 1999-2002 J. Schoenwaelder, TU Braunschweig, Germany <schoenw@ibr.cs.tu-bs.de>
+.br
+(C) 2001-2002 T. Klie, TU Braunschweig, Germany <tklie@ibr.cs.tu-bs.de>
+.br
+(C) 2002 M. Bunkus, TU Braunschweig, Germany <bunkus@ibr.cs.tu-bs.de>
+.br
+and contributions by many other people.
 .br

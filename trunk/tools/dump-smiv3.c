@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smiv3.c,v 1.1 2002/06/08 12:58:26 schoenw Exp $
+ * @(#) $Id: dump-smiv3.c,v 1.2 2002/06/10 13:57:15 schoenw Exp $
  */
 
 #include <config.h>
@@ -1583,7 +1583,7 @@ initSmiv3()
 	dumpSmiv3,
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE,
-	"SMIv3",
+	"SMIv3 (experimental)",
 	NULL,
 	NULL
     };
