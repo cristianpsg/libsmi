@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.16 2002/03/08 15:33:53 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.17 2002/03/11 08:52:44 strauss Exp $
  */
 
 #include <config.h>
@@ -416,7 +416,7 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	fprintSegment( f, indent,
-		       "<xsd:restriction base=\"OBJECT_IDENTIFIER\"/>\n", 0 );
+		       "<xsd:restriction base=\"smi:ObjectIdentifier\"/>\n", 0 );
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	/* should not occur */
@@ -463,7 +463,7 @@ static void fprintSubRangeType( FILE *f, int indent,
 				SmiRange *smiRange, SmiType *smiType, int num )
 {
     fprintSegment( f, indent, "<xsd:simpleType ", 0 );
-    fprint( f, "name=\"%sRange%dType\"/>\n", smiType->name, num );
+    fprint( f, "name=\"%sRange%dType\">\n", smiType->name, num );
 
     fprintSegment(f, indent + INDENT, "<xsd:restriction", 0);
     fprint(f, " base=\"%s\">\n",
@@ -965,7 +965,7 @@ static void fprintImports( FILE *f, int indent, SmiModule *smiModule )
 	}
 	lastModName = iterImp->module;
     }
-   
+    fprintSegment( f, indent, "<xsd:import namespace=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"/>\n", 0 );
 }
 
     
@@ -1030,6 +1030,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
 	   DXSD_SCHEMALOCATION, smiModule->name);
     fprint(f, "            xmlns:xml=\"http://www.w3.org/XML/1998/namespace\"\n");
     fprint(f, "            xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
+    fprint(f, "            xmlns:smi=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"\n");
     
     for( iterImp = smiGetFirstImport( smiModule );
 	 iterImp;
