@@ -1,19 +1,19 @@
 /*
  * dump-scli.c --
  *
- *      Operations to generate MIB module stubs for the scli package
+ *      Operations to generate MIB module stubs for the scli package.
  *
  * Copyright (c) 2001 J. Schoenwaelder, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.10 2002/02/18 14:07:36 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.11 2002/02/21 08:50:12 schoenw Exp $
  */
 
 /*
  * TODO:
- *	  - generate range/size checking code
+ *	  - generate range checking code for 64 bit numbers
  */
 
 #include <config.h>
@@ -1651,6 +1651,141 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
 
 static void
+printInteger32RangeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
+{
+    SmiRange *smiRange;
+    long int minSize, maxSize;
+    int c = 0;
+
+    if (! smiType) {
+	return;
+    }
+
+    for (smiRange = smiGetFirstRange(smiType);
+	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	minSize = smiRange->minValue.value.integer32;
+	maxSize = smiRange->maxValue.value.integer32;
+	if (! c) {
+	    fprintf(f, "            if (");
+	} else {
+	    fprintf(f, "\n                && ");
+	}
+	if (minSize == -2147483647 - 1) {
+	    fprintf(f, "(vb->syntax.i32[0] > %ld)", maxSize);
+	} else if (maxSize == 2147483647) {
+	    fprintf(f, "(vb->syntax.i32[0] < %ld)", minSize);
+	} else if (minSize == maxSize) {
+	    fprintf(f, "(vb->syntax.i32[0] != %ld)", maxSize);
+	} else {
+	    fprintf(f, "(vb->syntax.i32[0] < %ld || vb->syntax.i32[0] > %ld)",
+		    minSize, maxSize);
+	}
+	c++;
+    }
+    if (c) {
+	fprintf(f, ") {\n"
+		"                g_warning(\"%s: value not within %s%srange constraints\");\n"
+		"                break;\n"
+		"            }\n",
+		smiNode->name, smiType->name ? smiType->name : "", smiType->name ? " " : "");
+    }
+
+    printInteger32RangeChecks(f, smiNode, smiGetParentType(smiType));
+}
+
+
+
+static void
+printUnsigned32RangeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
+{
+    SmiRange *smiRange;
+    unsigned long minSize, maxSize;
+    int c = 0;
+
+    if (! smiType) {
+	return;
+    }
+
+    for (smiRange = smiGetFirstRange(smiType);
+	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	minSize = smiRange->minValue.value.unsigned32;
+	maxSize = smiRange->maxValue.value.unsigned32;
+	if (minSize == 0 && maxSize == 4294967295U) {
+	    continue;
+	}
+	if (! c) {
+	    fprintf(f, "            if (");
+	} else {
+	    fprintf(f, "\n                && ");
+	}
+	if (minSize == 0) {
+	    fprintf(f, "(vb->syntax.ui32[0] > %lu)", maxSize);
+	} else if (maxSize == 4294967295U) {
+	    fprintf(f, "(vb->syntax.ui32[0] < %lu)", minSize);
+	} else if (minSize == maxSize) {
+	    fprintf(f, "(vb->syntax.ui32[0] != %lu)", maxSize);
+	} else {
+	    fprintf(f, "(vb->syntax.ui32[0] < %lu || vb->syntax.ui32[0] > %lu)",
+		    minSize, maxSize);
+	}
+	c++;
+    }
+    if (c) {
+	fprintf(f, ") {\n"
+		"                g_warning(\"%s: value not within %s%srange constraints\");\n"
+		"                break;\n"
+		"            }\n",
+		smiNode->name, smiType->name ? smiType->name : "", smiType->name ? " " : "");
+    }
+
+    printUnsigned32RangeChecks(f, smiNode, smiGetParentType(smiType));
+}
+
+
+
+static void
+printSizeChecks(FILE *f, SmiNode *smiNode, SmiType *smiType)
+{
+    SmiRange *smiRange;
+    unsigned int minSize, maxSize;
+    int c;
+
+    if (! smiType) {
+	return;
+    }
+    
+    for (smiRange = smiGetFirstRange(smiType), c = 0;
+	 smiRange ; smiRange = smiGetNextRange(smiRange), c++) {
+	minSize = smiRange->minValue.value.unsigned32;
+	maxSize = smiRange->maxValue.value.unsigned32;
+	if (! c) {
+	    fprintf(f, "            if (");
+	} else {
+	    fprintf(f, "\n                && ");
+	}
+	if (! minSize) {
+	    fprintf(f, "(vb->syntax_len > %u)", maxSize);
+	} else if (minSize == maxSize) {
+	    fprintf(f, "(vb->syntax_len != %u)", maxSize);
+	} else {
+	    fprintf(f, "(vb->syntax_len < %u || vb->syntax_len > %u)",
+		    minSize, maxSize);
+	}
+    }
+    if (c) {
+	fprintf(f, ") {\n"
+		"                g_warning(\"%s: value not within %s%ssize constraints\");\n"
+		"                break;\n"
+		"            }\n",
+		smiNode->name, smiType->name ? smiType->name : "", smiType->name ? " " : "");
+    }
+
+    printSizeChecks(f, smiNode, smiGetParentType(smiType));
+}
+
+
+
+static void
 printVariableAssignement(FILE *f, SmiNode *groupNode)
 {
     SmiNode *smiNode;
@@ -1688,12 +1823,14 @@ printVariableAssignement(FILE *f, SmiNode *groupNode)
 	    
 	    switch (smiType->basetype) {
 	    case SMI_BASETYPE_INTEGER32:
+		printInteger32RangeChecks(f, smiNode, smiType);
 	    case SMI_BASETYPE_ENUM:
 		fprintf(f,
 			"            %s->%s = &(vb->syntax.i32[0]);\n",
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
+		printUnsigned32RangeChecks(f, smiNode, smiType);
 		fprintf(f,
 			"            %s->%s = &(vb->syntax.ui32[0]);\n",
 			cGroupName, cName);
@@ -1709,6 +1846,18 @@ printVariableAssignement(FILE *f, SmiNode *groupNode)
 			cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
+		printSizeChecks(f, smiNode, smiType);
+		maxSize = getMaxSize(smiType);
+		minSize = getMinSize(smiType);
+		if (minSize != maxSize) {
+		    fprintf(f,
+			    "            %s->_%sLength = vb->syntax_len;\n",
+			    cGroupName, cName);
+		}
+		fprintf(f,
+			"            %s->%s = vb->syntax.uc;\n",
+			cGroupName, cName);
+		break;
 	    case SMI_BASETYPE_BITS:
 		maxSize = getMaxSize(smiType);
 		minSize = getMinSize(smiType);
@@ -1821,7 +1970,7 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	fprintf(f,
 		"    if (unpack_%s((GSnmpVarBind *) vbl->data, %s) < 0) {\n"
-		"        g_warning(\"illegal %s instance identifier\");\n"
+		"        g_warning(\"%s: invalid instance identifier\");\n"
 		"        g_free(%s);\n"
 		"        return NULL;\n"
 		"    }\n\n",
@@ -2011,7 +2160,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    ");\n"
 	    "    if (len < 0) {\n"
-	    "        g_warning(\"illegal %s index values\");\n"
+	    "        g_warning(\"%s: invalid index values\");\n"
 	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n",
@@ -2133,7 +2282,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    ");\n"
 	    "    if (len < 0) {\n"
-	    "        g_warning(\"illegal %s index values\");\n"
+	    "        g_warning(\"%s: invalid index values\");\n"
 	    "        s->error_status = G_SNMP_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n"
@@ -2573,7 +2722,7 @@ void initScli()
 {
     static SmidumpDriverOption opt[] = {
 	{ "match", OPT_STRING, &pattern, 0,
-	  "produce stubs for groups matching a pattern"},
+	  "produce stubs for groups matching a regular expression"},
         { 0, OPT_END, 0, 0 }
     };
 
