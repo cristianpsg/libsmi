@@ -33,8 +33,9 @@ libsmiTest003Mib MODULE-IDENTITY
 	     construct.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-003-MIB:44: more than one MODULE-IDENTITY clause in SMIv2 MIB
-LIBSMI-TEST-003-MIB:44: MODULE-IDENTITY clause must be the first declaration in a module
+LIBSMI-TEST-003-MIB:45: more than one MODULE-IDENTITY clause in SMIv2 MIB
+LIBSMI-TEST-003-MIB:45: MODULE-IDENTITY clause must be the first declaration in a module
+LIBSMI-TEST-003-MIB:53: revision not in reverse chronological order
 	     "
     REVISION        "199906101500Z"
     DESCRIPTION     
