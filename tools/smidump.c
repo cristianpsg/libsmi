@@ -307,6 +307,7 @@ int main(int argc, char *argv[])
     initSql();
 #endif
     initScli();
+    initSvg();
     initTree();
     initTypes();
     initSizes();

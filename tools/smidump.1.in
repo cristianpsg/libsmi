@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.29 2003/11/18 12:52:40 schoenw Exp $
+.\" $Id$
 .\"
 .TH smidump 1  "August 10, 2004" "IBR" "SMI Tools"
 .SH NAME
@@ -128,6 +128,9 @@ ANSI C manager stubs for usage within the scli package (experimental).
 .TP
 cm
 Reverse engineered conceptual model in DIA XML file format (experimental).
+.TP
+svg
+SVG diagram of MIB modules (work in progress --- don't use).
 .TP
 jax
 Java AgentX sub-agent classes in separate files (experimental).
