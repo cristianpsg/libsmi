@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.53 2002/12/10 09:50:56 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.54 2002/12/11 16:43:15 strauss Exp $
  */
 
 #include <config.h>
@@ -1981,44 +1981,12 @@ static void registerType( char *type, char *module )
 }
 
 
-static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
-{
-    SmiImport *iterImp;
-    char *lastModName = "lastModName";
-    /* There is no mib called "lastModName", is there?
-       So let's use this to initialize variable. */
-    
-    fprintf(f,
-	   "<xsd:schema targetNamespace=\"%s%s\"\n",
-	   schemaLocation, smiModule->name);
-    
-    fprintf(f, "            xmlns=\"%s%s\"\n",
-	   schemaLocation, smiModule->name);
-/*    fprintf(f, "            xmlns:xmn=\"http://www.w3.org/XML/1998/namespace\"\n"); */
-    fprintf(f, "            xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
-    fprintf(f, "            xmlns:smi=\"%ssmi\"\n", schemaLocation);
-    
-    for( iterImp = smiGetFirstImport( smiModule );
-	 iterImp;
-	 iterImp = smiGetNextImport( iterImp ) ) {
-	registerType( iterImp->name, iterImp->module );
-	/* assume imports to be ordered by module names */
-	if( strcmp( iterImp->module, lastModName ) ) {
-	    fprintf( f, "            xmlns:%s=\"%s%s\"\n",
-		    iterImp->module, schemaLocation, iterImp->module );
-	}
-	lastModName = iterImp->module;
-    }
-  
-    fprintf(f, "            xml:lang=\"en\"\n");
-    fprintf(f, "            elementFormDefault=\"qualified\"\n");
-    fprintf(f, "            attributeFormDefault=\"unqualified\">\n\n");
-}
-
 static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 {
     int  i;
     FILE *f = stdout;
+    SmiImport *iterImp;
+    char *lastModName = "";
 
     if (output) {
 	f = fopen(output, "w");
@@ -2054,8 +2022,31 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 	fprintf(f, "%s ", schemaLocation);
 	fputs( "are subject to changes. -->\n\n", f );
 
-	fprintSchemaDef(f, modv[i]);	
-	IND(1);
+	fprintSegment(f, IND(1), "<xsd:schema ", 0);
+	fprintf(f, "targetNamespace=\"%s%s\"\n",
+		schemaLocation, modv[i]->name);
+    
+	fprintf(f, "            xmlns=\"%s%s\"\n",
+		schemaLocation, modv[i]->name);
+/*      fprintf(f, "            xmlns:xmn=\"http://www.w3.org/XML/1998/namespace\"\n"); */
+	fprintf(f, "            xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n");
+	fprintf(f, "            xmlns:smi=\"%ssmi\"\n", schemaLocation);
+    
+	for( iterImp = smiGetFirstImport( modv[i] );
+	     iterImp;
+	     iterImp = smiGetNextImport( iterImp ) ) {
+	    registerType( iterImp->name, iterImp->module );
+	    /* assume imports to be ordered by module names */
+	    if( strcmp( iterImp->module, lastModName ) ) {
+		fprintf( f, "            xmlns:%s=\"%s%s\"\n",
+			 iterImp->module, schemaLocation, iterImp->module );
+	    }
+	    lastModName = iterImp->module;
+	}
+  
+	fprintf(f, "            xml:lang=\"en\"\n");
+	fprintf(f, "            elementFormDefault=\"qualified\"\n");
+	fprintf(f, "            attributeFormDefault=\"unqualified\">\n\n");
 	
 	fprintModule(f, modv[i]);
 	fprintTypedefs(f, modv[i]);
