@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.146 2001/06/11 09:59:18 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.147 2001/06/12 10:44:04 strauss Exp $
  */
 
 %{
@@ -693,7 +693,7 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		for (listPtr = objectPtr->typePtr->listPtr; listPtr;
 		     listPtr = listPtr->nextPtr) {
 		    if (!strcmp(((NamedNumber *)(listPtr->ptr))->export.name,
-				objectPtr->export.value.value.ptr)) {
+				(char *)objectPtr->export.value.value.ptr)) {
 			smiFree(objectPtr->export.value.value.ptr);
 			objectPtr->export.value.value.integer32 =
 			    ((NamedNumber *)(listPtr->ptr))->
@@ -3115,14 +3115,14 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    } else {
 				$$->basetype = defaultBasetype;
 				$$->len = -1;  /* indicates unresolved ptr */
-				$$->value.ptr = $1;   /* JS: needs strdup? */
+				$$->value.ptr = (unsigned char *)$1; /* JS: needs strdup? */
 			    }
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
 			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_OCTETSTRING;
-			    $$->value.ptr = smiStrdup($1);
+			    $$->value.ptr = (unsigned char *)smiStrdup($1);
 			    $$->len = strlen($1);
 			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
