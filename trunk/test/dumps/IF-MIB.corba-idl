@@ -43,13 +43,13 @@ module IF_MIB {
 
     CONTACT-INFO:
             "   Keith McCloghrie
-                Cisco Systems, Inc.
-                170 West Tasman Drive
-                San Jose, CA  95134-1706
-                US
+             Cisco Systems, Inc.
+             170 West Tasman Drive
+             San Jose, CA  95134-1706
+             US
              
-                408-526-5260
-                kzm@cisco.com"
+             408-526-5260
+             kzm@cisco.com"
 
     REVISION:       "199602282155Z"
     REVISION-DESCRIPTION:
@@ -411,7 +411,7 @@ module IF_MIB {
              value x runs over the sub-layer with ifIndex value y,
              then this table contains:
              
-              ifStackStatus.x.y=active
+               ifStackStatus.x.y=active
              
              For each ifIndex value, I, which identifies an active
              interface, there are always at least two instantiated
@@ -424,8 +424,8 @@ module IF_MIB {
              For example, two rows exist even for an interface
              which has no others stacked on top or below it:
              
-              ifStackStatus.0.x=active
-              ifStackStatus.x.0=active 
+               ifStackStatus.0.x=active
+               ifStackStatus.x.0=active 
         */
         SNMPMgmt::SmiTableIterator get_ifStackTable();
 

@@ -8,7 +8,7 @@
       TEXTUAL-CONVENTION                  FROM SNMPv2-TC;
 
   ianaAddressFamilyNumbers MODULE-IDENTITY
-      LAST-UPDATED "9908260000Z"  -- August 26, 1999
+      LAST-UPDATED "200002040000Z"  -- February 4, 2000
       ORGANIZATION "IANA"
       CONTACT-INFO
           "Postal:    Internet Assigned Numbers Authority
@@ -25,6 +25,9 @@
           textual convention."
 
       -- revision history
+
+      REVISION     "200002040000Z"  -- February 4, 2000
+      DESCRIPTION  "AddressFamilyNumbers assignment 16 to dns."
 
       REVISION     "9908260000Z"  -- August 26, 1999
       DESCRIPTION  "Initial version, published as RFC 2677."
@@ -64,6 +67,7 @@
           banyanVines(14),  -- Banyan Vines
           e164withNsap(15),
                        -- (E.164 with NSAP format subaddress)
+          dns(16),     -- (Domain Name System)
 
           reserved(65535)
 
@@ -89,6 +93,7 @@
                   decnetIV(13),
                   banyanVines(14),
                   e164withNsap(15),
+                  dns(16), 
                   reserved(65535)
               }
       END

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.18 2000/02/14 17:18:27 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.19 2000/02/22 17:11:12 strauss Exp $
  */
 
 %option noyywrap
@@ -518,11 +518,13 @@ SP		" "
 	    s++;
 	    newlineflag = 1;
 	    column = 0;
+	    if (cutoffcolumn < 0) cutoffcolumn = 0;
 	} else if (s[0] == '\n') {		/* simple newline */
 	    thisParser.line += 1;
 	    d[0] = '\n';
 	    newlineflag = 1;
 	    column = 0;
+	    if (cutoffcolumn < 0) cutoffcolumn = 0;
 	} else {
 	    if (newlineflag && isspace(s[0])) {	/* space after newline */
 		if (cutoffcolumn <= 0) {
@@ -537,7 +539,8 @@ SP		" "
 		}
 	    } else {				/* everything else */
 		if (! isascii(s[0])) {
-		    printError(parser, ERR_ILLEGAL_CHAR_IN_STRING, s[0], s[0]);
+		    printError(parser, ERR_ILLEGAL_CHAR_IN_STRING,
+			       s[0], (unsigned char) s[0]);
 		}
 		d[0] = s[0];
 		newlineflag = 0;

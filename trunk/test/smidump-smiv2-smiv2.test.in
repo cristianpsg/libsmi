@@ -12,7 +12,8 @@ for mib in ${TESTMIBS} ; do
     ../tools/smidump -f ${FORMAT} dumps/$mib.${FORMAT} > smidump-${FORMAT}-${FORMAT}.out/$mib.${FORMAT}
     WC=`@DIFF@ -I smidump --ignore-blank-lines smidump-${FORMAT}-${FORMAT}.out/$mib.${FORMAT} dumps/$mib.${FORMAT} | wc -l`
     if [ $WC -ne 0 ] ; then
-	echo "*** smidump -f ${FORMAT} dumps/$mib.${FORMAT} output differs from dumps/$mib.${FORMAT}."
+	echo "*** smidump -f ${FORMAT} output differs, for details take a look at"
+	echo "*** diff -u dumps/$mib.${FORMAT} smidump-${FORMAT}.out/$mib.${FORMAT}"
 	RC=1
     fi
 done

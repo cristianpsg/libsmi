@@ -931,20 +931,20 @@ ifMauAutoNegSupported OBJECT-TYPE
 
 ifMauTypeListBits OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { bOther(0), 
---                          bAUI(1), b10base5(2), bFoirl(3), b10base2(4), 
---                          b10baseT(5), b10baseFP(6), b10baseFB(7), 
---                          b10baseFL(8), b10broad36(9), b10baseTHD(10), 
---                          b10baseTFD(11), b10baseFLHD(12), 
---                          b10baseFLFD(13), b100baseT4(14), 
---                          b100baseTXHD(15), b100baseTXFD(16), 
---                          b100baseFXHD(17), b100baseFXFD(18), 
---                          b100baseT2HD(19), b100baseT2FD(20), 
---                          b1000baseXHD(21), b1000baseXFD(22), 
---                          b1000baseLXHD(23), b1000baseLXFD(24), 
---                          b1000baseSXHD(25), b1000baseSXFD(26), 
---                          b1000baseCXHD(27), b1000baseCXFD(28), 
---                          b1000baseTHD(29), b1000baseTFD(30) }
+--                        { bOther(0), bAUI(1), b10base5(2), bFoirl(3), 
+--                          b10base2(4), b10baseT(5), b10baseFP(6), 
+--                          b10baseFB(7), b10baseFL(8), b10broad36(9), 
+--                          b10baseTHD(10), b10baseTFD(11), 
+--                          b10baseFLHD(12), b10baseFLFD(13), 
+--                          b100baseT4(14), b100baseTXHD(15), 
+--                          b100baseTXFD(16), b100baseFXHD(17), 
+--                          b100baseFXFD(18), b100baseT2HD(19), 
+--                          b100baseT2FD(20), b1000baseXHD(21), 
+--                          b1000baseXFD(22), b1000baseLXHD(23), 
+--                          b1000baseLXFD(24), b1000baseSXHD(25), 
+--                          b1000baseSXFD(26), b1000baseCXHD(27), 
+--                          b1000baseCXFD(28), b1000baseTHD(29), 
+--                          b1000baseTFD(30) }
     ACCESS          read-only
     STATUS          mandatory
     DESCRIPTION     
@@ -1433,14 +1433,13 @@ ifMauAutoNegRestart OBJECT-TYPE
 
 ifMauAutoNegCapabilityBits OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { bOther(0), 
---                          b10baseT(1), b10baseTFD(2), b100baseT4(3), 
---                          b100baseTX(4), b100baseTXFD(5), 
---                          b100baseT2(6), b100baseT2FD(7), bfdxPause(8), 
---                          bfdxAPause(9), bfdxSPause(10), 
---                          bfdxBPause(11), b1000baseX(12), 
---                          b1000baseXFD(13), b1000baseT(14), 
---                          b1000baseTFD(15) }
+--                        { bOther(0), b10baseT(1), b10baseTFD(2), 
+--                          b100baseT4(3), b100baseTX(4), 
+--                          b100baseTXFD(5), b100baseT2(6), 
+--                          b100baseT2FD(7), bfdxPause(8), bfdxAPause(9), 
+--                          bfdxSPause(10), bfdxBPause(11), 
+--                          b1000baseX(12), b1000baseXFD(13), 
+--                          b1000baseT(14), b1000baseTFD(15) }
     ACCESS          read-only
     STATUS          mandatory
     DESCRIPTION     
@@ -1462,14 +1461,13 @@ ifMauAutoNegCapabilityBits OBJECT-TYPE
 
 ifMauAutoNegCapAdvertisedBits OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { bOther(0), 
---                          b10baseT(1), b10baseTFD(2), b100baseT4(3), 
---                          b100baseTX(4), b100baseTXFD(5), 
---                          b100baseT2(6), b100baseT2FD(7), bFdxPause(8), 
---                          bFdxAPause(9), bFdxSPause(10), 
---                          bFdxBPause(11), b1000baseX(12), 
---                          b1000baseXFD(13), b1000baseT(14), 
---                          b1000baseTFD(15) }
+--                        { bOther(0), b10baseT(1), b10baseTFD(2), 
+--                          b100baseT4(3), b100baseTX(4), 
+--                          b100baseTXFD(5), b100baseT2(6), 
+--                          b100baseT2FD(7), bFdxPause(8), bFdxAPause(9), 
+--                          bFdxSPause(10), bFdxBPause(11), 
+--                          b1000baseX(12), b1000baseXFD(13), 
+--                          b1000baseT(14), b1000baseTFD(15) }
     ACCESS          read-write
     STATUS          mandatory
     DESCRIPTION     
@@ -1492,14 +1490,13 @@ ifMauAutoNegCapAdvertisedBits OBJECT-TYPE
 
 ifMauAutoNegCapReceivedBits OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { bOther(0), 
---                          b10baseT(1), b10baseTFD(2), b100baseT4(3), 
---                          b100baseTX(4), b100baseTXFD(5), 
---                          b100baseT2(6), b100baseT2FD(7), bFdxPause(8), 
---                          bFdxAPause(9), bFdxSPause(10), 
---                          bFdxBPause(11), b1000baseX(12), 
---                          b1000baseXFD(13), b1000baseT(14), 
---                          b1000baseTFD(15) }
+--                        { bOther(0), b10baseT(1), b10baseTFD(2), 
+--                          b100baseT4(3), b100baseTX(4), 
+--                          b100baseTXFD(5), b100baseT2(6), 
+--                          b100baseT2FD(7), bFdxPause(8), bFdxAPause(9), 
+--                          bFdxSPause(10), bFdxBPause(11), 
+--                          b1000baseX(12), b1000baseXFD(13), 
+--                          b1000baseT(14), b1000baseTFD(15) }
     ACCESS          read-only
     STATUS          mandatory
     DESCRIPTION     

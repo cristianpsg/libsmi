@@ -9,10 +9,11 @@ RC=0
 
 for mib in ${TESTMIBS} ; do
     echo "comparing \`smilint -l 9 dumps/$mib.${FORMAT}' output with dumps/$mib.${FORMAT}.lint."
-    ../tools/smilint -l 9 dumps/$mib.${FORMAT} > smilint-${FORMAT}.out/$mib.${FORMAT}.lint 2>&1
+    ../tools/smilint -c /dev/null -l 9 dumps/$mib.${FORMAT} > smilint-${FORMAT}.out/$mib.${FORMAT}.lint 2>&1
     WC=`@DIFF@ --ignore-blank-lines smilint-${FORMAT}.out/$mib.${FORMAT}.lint dumps/$mib.${FORMAT}.lint | wc -l`
     if [ $WC -ne 0 ] ; then
-	echo "*** smilint -l 9 dumps/$mib.${FORMAT} output differs from dumps/$mib.${FORMAT}.lint."
+	echo "*** smidump -f ${FORMAT} output differs, for details take a look at"
+	echo "*** diff -u dumps/$mib.${FORMAT} smidump-${FORMAT}.out/$mib.${FORMAT}"
 	RC=1
     fi
 done

@@ -143,12 +143,12 @@ module SNMPv2-MIB {
          of the Internet suite of protocols, values should be
          calculated accordingly:
          
-             layer      functionality
-               1        physical (e.g., repeaters)
-               2        datalink/subnetwork (e.g., bridges)
-               3        internet (e.g., supports the IP)
-               4        end-to-end  (e.g., supports the TCP)
-               7        applications (e.g., supports the SMTP)
+              layer      functionality
+                1        physical (e.g., repeaters)
+                2        datalink/subnetwork (e.g., bridges)
+                3        internet (e.g., supports the IP)
+                4        end-to-end  (e.g., supports the TCP)
+                7        applications (e.g., supports the SMTP)
          
          For systems including OSI protocols, layers 5 and 6 may also
          be counted.";

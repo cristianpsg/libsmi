@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.89 2000/02/22 17:11:11 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.90 2000/02/22 18:27:00 strauss Exp $
  */
 
 %{
@@ -4329,7 +4329,9 @@ ComplianceGroup:	GROUP objectIdentifier
 			    $$->nextPtr = NULL;
 			    $$->ptr = util_malloc(sizeof(Option));
 			    ((Option *)($$->ptr))->objectPtr = $2;
-			    ((Option *)($$->ptr))->export.description = $4;
+			    if (! (thisModulePtr->flags & SMI_FLAG_NODESCR)) {
+				((Option *)($$->ptr))->export.description = $4;
+			    }
 			}
 	;
 
@@ -4358,7 +4360,9 @@ ComplianceObject:	OBJECT ObjectName
 			    ((Refinement *)($$->ptr))->typePtr = $3;
 			    ((Refinement *)($$->ptr))->writetypePtr = $4;
 			    ((Refinement *)($$->ptr))->export.access = $5;
-			    ((Refinement *)($$->ptr))->export.description = $7;
+			    if (! (thisParserPtr->flags & SMI_FLAG_NODESCR)) {
+				((Refinement *)($$->ptr))->export.description = $7;
+			    }
 			}
 	;
 
