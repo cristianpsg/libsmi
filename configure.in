@@ -8,16 +8,16 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.109 2002/07/23 18:11:38 strauss Exp $
+# @(#) $Id: configure.in,v 1.110 2002/07/24 11:54:01 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=4
-LIBSMI_PATCHLEVEL=pre-1
+LIBSMI_PATCHLEVEL=1
 LIBTOOL_VERSION=2
-LIBTOOL_REVISION=20
+LIBTOOL_REVISION=21
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
@@ -26,11 +26,11 @@ VERSION_LIBTOOL="$LIBTOOL_VERSION:$LIBTOOL_REVISION:$LIBTOOL_AGE"
 AM_INIT_AUTOMAKE(libsmi,$VERSION_STRING)
 AM_CONFIG_HEADER(config.h)
 
-AC_DEFINE(BACKEND_SMI)
-AC_DEFINE(BACKEND_SMING)
+AC_DEFINE([MAX_LEX_DEPTH], 30,
+[The maximum module import recursion depth.])
 
-AC_DEFINE(MAX_LEX_DEPTH, 30)
-AC_DEFINE(DEFAULT_ERRORLEVEL, 3)
+AC_DEFINE([DEFAULT_ERRORLEVEL], 3,
+[The default error level at libsmi initialization.])
 
 AC_ARG_WITH(cflags,
 [  --with-cflags=FLAGS     use FLAGS for CFLAGS],
@@ -73,7 +73,9 @@ mibdir="$withval", mibdir="$prefix/share/mibs")
 AC_ARG_WITH(smipath,
 [  --with-smipath=DIR:DIR  default DIRs to search for MIB modules [MIBDIR...]],
 smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site:$mibdir/tubs")
-AC_DEFINE_UNQUOTED(DEFAULT_SMIPATH, "$smipath")
+
+AC_DEFINE_UNQUOTED([DEFAULT_SMIPATH], "$smipath",
+[The default search path to lookup SMI module files.])
 
 AC_ARG_WITH(pathseparator,
 [  --with-pathseparator=C  use C as the path separator [: on UNIX, ; on WIN32]],
@@ -111,8 +113,11 @@ if test "$dirseparator" = "" ; then
 fi
 echo $dirseparator
 
-AC_DEFINE_UNQUOTED(PATH_SEPARATOR, '$pathseparator')
-AC_DEFINE_UNQUOTED(DIR_SEPARATOR, '$dirseparator')
+AC_DEFINE_UNQUOTED([PATH_SEPARATOR], '$pathseparator',
+[The default path separator character.])
+
+AC_DEFINE_UNQUOTED([DIR_SEPARATOR], '$dirseparator',
+[The default path separator character.])
 
 
 AC_MSG_CHECKING([for 64 bit types])
@@ -148,25 +153,31 @@ echo $int64_type/$int64_format, etc.
 
 UINT64_TYPE=$uint64_type
 INT64_TYPE=$int64_type
-AC_DEFINE_UNQUOTED(UINT64_FORMAT, "$uint64_format")
-AC_DEFINE_UNQUOTED(INT64_FORMAT, "$int64_format")
-AC_DEFINE_UNQUOTED(LIBSMI_UINT64_MAX, $uint64_max)
-AC_DEFINE_UNQUOTED(LIBSMI_INT64_MIN, $int64_min)
-AC_DEFINE_UNQUOTED(LIBSMI_INT64_MAX, $int64_max)
+AC_DEFINE_UNQUOTED([UINT64_FORMAT], "$uint64_format",
+[The unsigned 64 bit integer format conversion specification string.])
+AC_DEFINE_UNQUOTED([INT64_FORMAT], "$int64_format",
+[The signed 64 bit integer format conversion specification string.])
+AC_DEFINE_UNQUOTED([LIBSMI_UINT64_MAX], $uint64_max,
+[The unsigned 64 bit integer maximum value.])
+AC_DEFINE_UNQUOTED([LIBSMI_INT64_MIN], $int64_min,
+[The unsigned 64 bit integer minimum value.])
+AC_DEFINE_UNQUOTED([LIBSMI_INT64_MAX], $int64_max,
+[The signed 64 bit integer maximum value.])
 
 
 AC_ARG_ENABLE(dmalloc,
 [  --enable-dmalloc        enable dmalloc debugging (www.dmalloc.com)],
 LIBS="$LIBS -ldmalloc"
-AC_DEFINE(HAVE_DMALLOC_H))
+AC_DEFINE([HAVE_DMALLOC_H], 1, ""))
 
+AC_DEFINE(BACKEND_SMI, 1, "")
 AC_ARG_ENABLE(smi,
-[  --enable-smi            enable SMIv1/v2 parser support],
-AC_DEFINE(BACKEND_SMI))
+[  --enable-smi           disable SMIv1/v2 parser support],
+AC_DEFINE(BACKEND_SMI, 1, ""))
 
 AC_ARG_ENABLE(sming,
 [  --enable-sming          enable SMIng parser support],
-AC_DEFINE(BACKEND_SMING))
+AC_DEFINE(BACKEND_SMING, 1, ""))
 
 AC_PATH_PROG(FLEX, "flex")
 if test -z "${FLEX}" ; then
@@ -195,8 +206,11 @@ AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 
-AC_DEFINE_UNQUOTED(DEFAULT_GLOBALCONFIG, "${prefix}/etc/smi.conf")
-AC_DEFINE(DEFAULT_USERCONFIG, ".smirc")
+AC_DEFINE_UNQUOTED([DEFAULT_GLOBALCONFIG], "${prefix}/etc/smi.conf",
+[The full pathname of the global configuration file.])
+
+AC_DEFINE([DEFAULT_USERCONFIG], ".smirc",
+[The basename of the per-user configuration file searched in $HOME.])
 
 if ${CONFIG_SHELL} ./libtool --features | grep "enable static" >/dev/null; then
   STATIC=-static
