@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.23 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.24 2000/07/05 11:58:42 strauss Exp $
  */
 
 
@@ -1246,7 +1246,7 @@ static void algGetIndexkind(SmiNode *row)
  *
  *  1. Getting the tables and the scalars from the given module.
  *  2. Linking the tables :
- *     - AUGMENT no work to do just adding the correspondend edge
+ *     - AUGMENT no work to do just adding the corresponding edge
  *     - for other relationships the subfunction algGetIndexkind is called
  *       look there for further information  
  */
@@ -1285,7 +1285,7 @@ static void algLinkTables()
     }
 
    if (XPLAIN) {
-       printf("--- First phase - linking the tables");
+       printf("--- Second Phase - linking the tables");
        printf("\n");
        printf("\n");
        graphShowEdges(graph);
@@ -1371,7 +1371,7 @@ static void algCheckLinksByName()
     }
 
     if (XPLAIN) {
-	printf("\n--- Second Phase - reordering the connections\n\n");
+	printf("\n--- Third Phase - reordering the connections\n\n");
 	graphShowEdges(graph);
     }
 }
@@ -1604,7 +1604,7 @@ static void algLinkLonelyTables()
 static void algConnectLonelyNodes() 
 {
     if (XPLAIN) {
-	printf("\n--- Third Phase -  connecting isolated nodes\n\n");
+	printf("\n--- Fourth Phase -  connecting isolated nodes\n\n");
     }
 
     algLinkLonelyTables();
@@ -1734,7 +1734,7 @@ static void algCheckForDependency()
     }
 
     if (XPLAIN) {
-	printf("\n--- Fourth Phase - checking for dependency relationships\n\n");
+	printf("\n--- Fifth Phase - checking for dependency relationships\n\n");
 	graphShowEdges(graph);
     }
 }
@@ -1819,7 +1819,7 @@ static void algCheckForPointerRels()
     }
 
     if (XPLAIN) {
-	printf("\n--- Fifth Phase - checking for pointer relationships\n\n");
+	printf("\n--- Sixth Phase - checking for pointer relationships\n\n");
 	graphShowEdges(graph);	
     }
 }
@@ -2901,7 +2901,9 @@ static void dumpCM(Module *module)
 
 	if (XPLAIN) {
 	    printModuleNames(module);
+	    printf("\n--- First Phase - loading tables and scalars\n\n");
 	    graphShowNodes(graph);
+	    printf("\n");
 	}
 	
 	algLinkTables();
