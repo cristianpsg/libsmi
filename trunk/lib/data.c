@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.16 1999/04/07 18:21:29 strauss Exp $
+ * @(#) $Id: data.c,v 1.17 1999/04/08 11:52:52 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -3578,4 +3578,5 @@ loadModule(modulename)
 
     return NULL;
 }
+
 
