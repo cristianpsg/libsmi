@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.68 2001/03/06 11:42:09 strauss Exp $
+ * @(#) $Id: error.c,v 1.69 2001/03/12 11:23:26 strauss Exp $
  */
 
 #include <config.h>
@@ -127,7 +127,7 @@ static Error errors[] = {
     { 2, ERR_NO_MODULE_IDENTITY, "module-identity-missing",
       "missing MODULE-IDENTITY clause in SMIv2 MIB" },
     { 4, ERR_OID_DEFVAL_TOO_LONG, "default-too-long",
-      "OBJECT IDENTIFIER DEFVALs must be expressed as a single identifier" },
+      "OBJECT IDENTIFIER default values must be expressed as a single identifier" },
     { 2, ERR_INVALID_SMIV1_ACCESS, "access-invalid-smiv1", 
       "invalid access `%s' in SMIv1 MIB" },
     { 2, ERR_INVALID_SMIV2_ACCESS, "access-invalid-smiv2",
@@ -147,9 +147,9 @@ static Error errors[] = {
     { 2, ERR_NOTIFICATION_VARIATION_WRITESYNTAX, "variation-writesyntax", 
       "WRITE-SYNTAX is not allowed in a notification variation" },
     { 2, ERR_DEFVAL_SYNTAX, "defval-syntax", 
-      "DEFVAL syntax does not match object syntax" },
+      "default value syntax does not match object syntax" },
     { 2, ERR_NOTIFICATION_VARIATION_DEFVAL, "variation-defval", 
-      "DEFVAL is not allowed in a notification variation" },
+      "default value is not allowed in a notification variation" },
     { 2, ERR_NOTIFICATION_VARIATION_CREATION, "variation-creation", 
       "CREATION-REQUIRES is not allowed in a notification variation" },
     { 3, ERR_MODULE_IDENTITY_NOT_FIRST, "module-identity-not-first", 
@@ -407,11 +407,11 @@ static Error errors[] = {
     { 4, ERR_ILLEGAL_STORAGETYPE_DEFAULT, "storagetype-default", 
       "illegal `StorageType' default value `%s'" },
     { 2, ERR_DEFVAL_OUT_OF_BASETYPE, "defval-basetype", 
-      "DEFVAL exceeds range of underlying basetype" },
+      "default value exceeds range of underlying basetype" },
     { 2, ERR_DEFVAL_OUT_OF_RANGE, "defval-range", 
-      "DEFVAL does not match range restriction of underlying type" },
+      "default value does not match range restriction of underlying type" },
     { 2, ERR_DEFVAL_OUT_OF_ENUM, "defval-enum", 
-      "DEFVAL does not match underlying enumeration type" },
+      "default value does not match underlying enumeration type" },
     { 5, ERR_TADDRESS_WITHOUT_TDOMAIN, "taddress-tdomain", 
       "`TAddress' object should have an accompanied preceding `TDomain' object" },
     { 5, ERR_INETADDRESS_WITHOUT_TYPE, "inetaddress-inetaddresstype", 
@@ -420,6 +420,12 @@ static Error errors[] = {
       "`InetAddressType' should not be subtyped" },
     { 5, ERR_INETADDRESS_SPECIFIC, "inetaddress-specific", 
       "`InetAddress' should be used instead of `%s'" },
+    { 3, ERR_NOTIFICATION_OBJECT_TYPE, "notification-object-type", 
+      "object `%s' of notification `%s' must be a scalar or column" },
+    { 3, ERR_NOTIFICATION_OBJECT_ACCESS, "notification-object-access", 
+      "object `%s' of notification `%s' must not be `not-accessible'" },
+    { 5, ERR_NOTIFICATION_OBJECT_MIX, "notification-object-mix", 
+      "notification `%s' contains objects from multiple tables/groups" },
     { 0, 0, NULL, NULL }
 };
 
