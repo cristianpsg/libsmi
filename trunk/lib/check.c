@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.8 2000/10/27 14:03:13 strauss Exp $
+ * @(#) $Id: check.c,v 1.9 2000/11/06 14:27:56 strauss Exp $
  */
 
 #include <config.h>
@@ -536,7 +536,9 @@ smiCheckIndex(Parser *parser, Object *object)
 	indexPtr = (Object *) listPtr->ptr;
 	typePtr = indexPtr->typePtr;
 
-	if (indexPtr->export.nodekind != SMI_NODEKIND_COLUMN) {
+	/* checkObjects() already handles unknown objects */
+	if (indexPtr->export.nodekind != SMI_NODEKIND_COLUMN &&
+	    ((indexPtr->flags & FLAG_INCOMPLETE) == 0)) {
 	    smiPrintErrorAtLine(parser, ERR_INDEX_NOT_COLUMN,
 				indexPtr->line,
 				indexPtr->export.name,
