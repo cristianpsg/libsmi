@@ -1461,8 +1461,15 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 static void printNotificationType(int modc, SmiModule **modv,
 				  float *x, float *y, int *miNr, int nType[])
 {
-    int         i;
+    int         i, j;
     SmiNode     *smiNode;
+    int         statusOrder[5] = {
+		    SMI_STATUS_CURRENT,
+		    SMI_STATUS_MANDATORY,
+		    SMI_STATUS_OPTIONAL,
+		    SMI_STATUS_DEPRECATED,
+		    SMI_STATUS_OBSOLETE
+		};
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1501,15 +1508,21 @@ static void printNotificationType(int modc, SmiModule **modv,
 	    //name, status and description of the notification
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
-	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
-		smiNode;
-		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
-		if ((smiNode->status == SMI_STATUS_DEPRECATED
-		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
-		    || (smiNode->status == SMI_STATUS_OBSOLETE
-		    && !SHOW_DEPR_OBSOLETE))
-		    continue;
-		printInformationNode(smiNode, x, y, miNr);
+	    for (j=0; j<5; j++) {
+		for (smiNode = smiGetFirstNode(modv[i],
+						    SMI_NODEKIND_NOTIFICATION);
+		    smiNode;
+		    smiNode = smiGetNextNode(smiNode,
+						SMI_NODEKIND_NOTIFICATION)) {
+		    if (smiNode->status != statusOrder[j])
+			continue;
+		    if ((smiNode->status == SMI_STATUS_DEPRECATED
+			&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+			|| (smiNode->status == SMI_STATUS_OBSOLETE
+			&& !SHOW_DEPR_OBSOLETE))
+			continue;
+		    printInformationNode(smiNode, x, y, miNr);
+		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	    *x -= TABLEBOTTOMHEIGHT;
@@ -1521,8 +1534,15 @@ static void printNotificationType(int modc, SmiModule **modv,
 static void printObjectGroup(int modc, SmiModule **modv,
 			     float *x, float *y, int *miNr, int oGroup[])
 {
-    int         i;
+    int         i, j;
     SmiNode     *smiNode;
+    int         statusOrder[5] = {
+		    SMI_STATUS_CURRENT,
+		    SMI_STATUS_MANDATORY,
+		    SMI_STATUS_OPTIONAL,
+		    SMI_STATUS_DEPRECATED,
+		    SMI_STATUS_OBSOLETE
+		};
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1561,17 +1581,21 @@ static void printObjectGroup(int modc, SmiModule **modv,
 	    //name, status and description of the group
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
-	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
-		smiNode;
-		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
-		if (!isObjectGroup(smiNode))
-		    continue;
-		if ((smiNode->status == SMI_STATUS_DEPRECATED
-		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
-		    || (smiNode->status == SMI_STATUS_OBSOLETE
-		    && !SHOW_DEPR_OBSOLETE))
-		    continue;
-		printInformationNode(smiNode, x, y, miNr);
+	    for (j=0; j<5; j++) {
+		for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
+		    smiNode;
+		    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
+		    if (!isObjectGroup(smiNode))
+			continue;
+		    if (smiNode->status != statusOrder[j])
+			continue;
+		    if ((smiNode->status == SMI_STATUS_DEPRECATED
+			&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+			|| (smiNode->status == SMI_STATUS_OBSOLETE
+			&& !SHOW_DEPR_OBSOLETE))
+			continue;
+		    printInformationNode(smiNode, x, y, miNr);
+		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	    *x -= TABLEBOTTOMHEIGHT;
@@ -1583,8 +1607,15 @@ static void printObjectGroup(int modc, SmiModule **modv,
 static void printNotificationGroup(int modc, SmiModule **modv,
 				   float *x, float *y, int *miNr, int nGroup[])
 {
-    int         i;
+    int         i, j;
     SmiNode     *smiNode;
+    int         statusOrder[5] = {
+		    SMI_STATUS_CURRENT,
+		    SMI_STATUS_MANDATORY,
+		    SMI_STATUS_OPTIONAL,
+		    SMI_STATUS_DEPRECATED,
+		    SMI_STATUS_OBSOLETE
+		};
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1623,17 +1654,21 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 	    //name, status and description of the group
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
-	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
-		smiNode;
-		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
-		if (!isNotificationGroup(smiNode))
-		    continue;
-		if ((smiNode->status == SMI_STATUS_DEPRECATED
-		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
-		    || (smiNode->status == SMI_STATUS_OBSOLETE
-		    && !SHOW_DEPR_OBSOLETE))
-		    continue;
-		printInformationNode(smiNode, x, y, miNr);
+	    for (j=0; j<5; j++) {
+		for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
+		    smiNode;
+		    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
+		    if (!isNotificationGroup(smiNode))
+			continue;
+		    if (smiNode->status != statusOrder[j])
+			continue;
+		    if ((smiNode->status == SMI_STATUS_DEPRECATED
+			&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+			|| (smiNode->status == SMI_STATUS_OBSOLETE
+			&& !SHOW_DEPR_OBSOLETE))
+			continue;
+		    printInformationNode(smiNode, x, y, miNr);
+		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
 	    *x -= TABLEBOTTOMHEIGHT;
