@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.14 2001/10/08 14:46:04 schoenw Exp $	 
+ * @(#) $Id: smidiff.c,v 1.15 2001/10/08 17:42:30 tklie Exp $	 
  */
 
 #include <stdlib.h>
@@ -619,7 +619,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
     newTwR = findTypeWithRange(newType);
     
     /*  The oldModule/newModule, oldLine/newLine are generally not
-	be correct for oldTwR and newTwR. This can lead to strange
+	correct for oldTwR and newTwR. This can lead to strange
 	"previous" output. Therfor it is left out here. */
 
     if (!oldTwR && newTwR) {
@@ -813,6 +813,8 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		    newNN = smiGetNextNamedNumber( newNN );
 		}
 		break;
+	    default:
+		break;
 	    }
 	}
     }
@@ -994,13 +996,6 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
     oldType = smiGetNodeType(oldNode);
     newType = smiGetNodeType(newNode);
     
-    if (oldNode->nodekind != newNode->nodekind) {
-	printErrorAtLine(newModule, ERR_NODEKIND_CHANGED,
-			 newLine, newNode->name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, oldNode->name);
-    }
-
     checkName(oldModule, oldLine, newModule, newLine,
 	      oldNode->name, newNode->name);
     
