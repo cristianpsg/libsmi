@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.36 2004/03/13 22:36:31 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.37 2004/05/12 13:00:00 schoenw Exp $
  */
 
 /*
@@ -1590,7 +1590,7 @@ printStubIdentities(FILE *f, SmiModule *smiModule)
 	    }
 	    cName = translate(smiNode->name);
 	    fprintf(f, "    { %s,\n"
-		    "      sizeof(%s)/sizeof(guint32),\n"
+		    "      G_N_ELEMENTS(%s),\n"
 		    "      \"%s\" },\n",
 		    cName, cName, smiNode->name);
 	    xfree(cName);
@@ -2530,7 +2530,7 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     }
 
     fprintf(f,
-	    "    gnet_snmp_attr_assign(vbl, %s_oid, sizeof(%s_oid)/sizeof(guint32),\n"
+	    "    gnet_snmp_attr_assign(vbl, %s_oid, G_N_ELEMENTS(%s_oid),\n"
 	    "                      %s_attr, %s);\n"
 	    "\n"
 	    "    return %s;\n"
