@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.110 2003/04/28 12:04:40 strauss Exp $
+ * @(#) $Id: error.c,v 1.111 2003/04/30 08:41:36 strauss Exp $
  */
 
 #include <config.h>
@@ -603,7 +603,14 @@ static Error errors[] = {
       "`current' uses a type whose status has been changed to `obsolete'.\n"
       "Note that the status of imported types can change without the\n"
       "control of the modules using these types." },
-    { 0, 0, NULL, NULL, NULL }
+    { 5, ERR_COMPLIANCE_MEMBER_NOT_LOCAL, "compliance-member-not-local",
+      "OBJECTS or NOTIFICATIONS member `%s' is not defined in this module",
+      "All elements of an OBJECTS statement within an OBJECT-GROUP clause\n"
+      "and all elements of a NOTIFICATIONS statement within a\n"
+      "NOTIFICATION-GROUP clause must be defined in the same module\n"
+      "where this OBJECT-GROUP or NOTIFICATION-GROUP appears (RFC 2580,\n"
+      "Sections 3.1 and 4.1)."},
+    { 3, 0, NULL, NULL, NULL }
 };
 
 
