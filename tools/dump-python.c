@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.11 2001/11/08 07:37:31 schoenw Exp $
+ * @(#) $Id: dump-python.c,v 1.12 2002/10/30 09:17:37 schoenw Exp $
  */
 
 /*
@@ -645,7 +645,8 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType)
     
     parentType = smiGetParentType(smiType);
     parentModule = smiGetTypeModule(parentType);
-    if (parentType && parentModule && strlen(parentModule->name)) {
+    if (parentType && parentType->name &&
+	parentModule && strlen(parentModule->name)) {
 	fprintSegment(f, indent + INDENT, "\"parent module\" : {\n", 0);
 	fprintSegment(f, indent + (2 * INDENT), "", 0);
 	fprint(f, "\"name\" : \"%s\",\n", parentModule->name);

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.24 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-xml.c,v 1.25 2002/11/29 14:47:19 schoenw Exp $
  */
 
 /*
@@ -601,7 +601,8 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType)
     
     parentType = smiGetParentType(smiType);
     parentModule = smiGetTypeModule(parentType);
-    if (parentType && parentModule && strlen(parentModule->name)) {
+    if (parentType && parentType->name &&
+	parentModule && strlen(parentModule->name)) {
 	fprintSegment(f, indent + INDENT, "<parent ", 0);
 	fprintf(f, "module=\"%s\" name=\"%s\"/>\n",
 		parentModule->name, parentType->name);
