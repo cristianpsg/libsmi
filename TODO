@@ -300,3 +300,18 @@ x tree structure of MibNodes
 . need clearification on annotations.
 
 
+. extensibitlty/annotations:
+
+
+module IBR-ANNOTATIONS-IF-MIB {
+
+    import IF-MIB (ifNumber);
+
+    organization "...";
+
+    // ...
+
+
+    annotation ifNumber 
+
+};

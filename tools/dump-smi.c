@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-smi.c,v 1.1 1999/04/06 17:49:25 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -23,6 +23,7 @@
 #include <stdarg.h>
 
 #include "smi.h"
+#include "util.h"
 
 
 
@@ -30,30 +31,26 @@
 #define  INDENTVALUE	20   /* column to start values, except multiline */
 #define  INDENTTEXTS	13   /* column to start multiline texts */
 #define  INDENTMAX	72   /* max column to fill, break lines otherwise */
-
-#define  STYLE_IMPORTS  2
-
+#define  INDENTSEQUENCE 40   /* column to start SEQUENCE tables' type column */
 
 
-static char *excludeDescriptors[] = {
-    "ObjectName", "NotificationName", "ObjectSyntax", "SimpleSyntax",
-    "Integer32", "ApplicationSyntax", "Unsigned32",
-    "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
-    NULL };
 
-static char *typeDescriptors[] = {
-    "IpAddress", "Counter32", "Gauge32", "TimeTicks", "Opaque", "Counter64",
-    NULL };
-
-static char *excludeTypes[] = {
-    "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
-    NULL };
-    
-static char *smi2smingTypes[] = {
-    "INTEGER", "Integer32",
-    "OCTET STRING", "OctetString",
-    "OBJECT IDENTIFIER", "ObjectIdentifier",
+static char *convertType[] = {
+    "Enumeration",	   "INTEGER",
+    "Bits",		   "BITS",
+    "OctetString",	   "OCTET STRING",
+    "ObjectIdentifier",	   "OBJECT IDENTIFIER",
     NULL, NULL };
+
+static char *convertImport[] = {
+    "IRTF-NMRG-SMING-TYPES", "IpAddress",   "SNMPv2-SMI",  "IpAddress",
+    "IRTF-NMRG-SMING-TYPES", "Counter32",   "SNMPv2-SMI",  "Counter32",
+    "IRTF-NMRG-SMING-TYPES", "Gauge32",	    "SNMPv2-SMI",  "Gauge32",
+    "IRTF-NMRG-SMING-TYPES", "TimeTicks",   "SNMPv2-SMI",  "TimeTicks",
+    "IRTF-NMRG-SMING-TYPES", "Opaque",	    "SNMPv2-SMI",  "Opaque",
+    "IRTF-NMRG-SMING-TYPES", "Counter64",   "SNMPv2-SMI",  "Counter64",
+    "IRTF-NMRG-SMING", NULL,		    "SNMPv2-SMI",  NULL,
+    NULL, NULL, NULL, NULL };
 
 
 
@@ -68,20 +65,20 @@ getTypeString(name, syntax)
     int i;
 
     if (syntax == SMI_BASETYPE_ENUM) {
-	return "Enumeration";
+	return "INTEGER";
     }
     
     if (syntax == SMI_BASETYPE_BITS) {
-	return "Bits";
+	return "BITS";
     }
 
     if (!name) {
 	return "<unknown>";
     }
     
-    for(i=0; smi2smingTypes[i]; i += 2) {
-	if (!strcmp(name, smi2smingTypes[i])) {
-	    return smi2smingTypes[i+1];
+    for(i=0; convertType[i]; i += 2) {
+	if (!strcmp(name, convertType[i])) {
+	    return convertType[i+1];
 	}
     }
     return name;
@@ -129,6 +126,9 @@ getOidString(modulename, object, importedParent)
 	     (importedParent && !smiIsImported(modulename, fullname)));
     sprintf(s, "%s%s", smiDescriptor(fullname), append);
 
+    for (p = s; p[0]; p++)
+	if (*p == '.') *p = ' ';
+    
     return s;
 }
 
@@ -254,8 +254,13 @@ printSubtype(smiType)
 {
     void    **listPtr;
     char    s[100];
-    
-    print("(");
+
+    if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
+	    (smiType->basetype == SMI_BASETYPE_BITS)) {
+	print("{ ");
+    } else {
+	print("(");
+    }
     for (listPtr = smiType->list; *listPtr; listPtr++) {
 	if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
 	    (smiType->basetype == SMI_BASETYPE_BITS)) {
@@ -267,21 +272,33 @@ printSubtype(smiType)
 	} else {
 	    if (listPtr != smiType->list)
 		print(" | ");
+	    s[0] = 0;
+	    if (smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
+		sprintf(&s[strlen(s)], "SIZE(");
+	    }
 	    if (bcmp(((SmiRange *)*listPtr)->minValuePtr,
 		     ((SmiRange *)*listPtr)->maxValuePtr,
 		     sizeof(SmiValue))) {
-		sprintf(s, "%s", 
+		sprintf(&s[strlen(s)], "%s", 
 			getValueString(((SmiRange *)*listPtr)->minValuePtr));
 		sprintf(&s[strlen(s)], "..%s", 
 			getValueString(((SmiRange *)*listPtr)->maxValuePtr));
 	    } else {
-		sprintf(s, "%s",
+		sprintf(&s[strlen(s)], "%s",
 			getValueString(((SmiRange *)*listPtr)->minValuePtr));
+	    }
+	    if (smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
+		sprintf(&s[strlen(s)], ")");
 	    }
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
     }
-    print(")");
+    if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
+	    (smiType->basetype == SMI_BASETYPE_BITS)) {
+	print(" }");
+    } else {
+	print(")");
+    }
 }
 
 
@@ -316,9 +333,8 @@ printImports(modulename)
     char	  *lastModulename = NULL;
     char	  *importedModulename, *importedDescriptor;
     char	  **p;
-    int		  convert, i;
+    int		  i;
     char	  types[200];
-    char	  *t;
     
     list = smiGetMembers(modulename, "");
 
@@ -335,7 +351,22 @@ printImports(modulename)
 	importedDescriptor[0] = 0;
 	importedDescriptor =
 	    &importedDescriptor[strlen(SMI_NAMESPACE_OPERATOR)];
-	if (strlen(importedDescriptor)) {
+
+	for(i = 0; convertImport[i]; i += 4) {
+	    if ((!util_strcmp(importedModulename, convertImport[i])) &&
+		(!util_strcmp(importedDescriptor, convertImport[i+1]))) {
+		importedModulename = convertImport[i+2];
+		importedDescriptor = convertImport[i+3];
+		break;
+	    } else if ((!util_strcmp(importedModulename, convertImport[i])) &&
+		       (!convertImport[i+1])) {
+		importedModulename = convertImport[i+2];
+		break;
+	    }
+	}
+
+	if (importedModulename && importedDescriptor &&
+	    strlen(importedDescriptor)) {
 	    if ((!lastModulename) ||
 		strcmp(importedModulename, lastModulename)) {
 		if (!lastModulename) {
@@ -365,27 +396,50 @@ printImports(modulename)
 
 
 static void
-printRevisions(modulename)
+printModuleIdentity(modulename)
     char	 *modulename;
 {
-    int i;
-    SmiRevision *smiRevision;
+    int		 i;
+    SmiRevision  *smiRevision;
+    SmiModule	 *smiModule;
     
-    for(i = 0, smiRevision = smiGetFirstRevision(modulename);
-	smiRevision;
-	smiRevision = smiGetNextRevision(modulename,
-					 smiRevision->date)) {
-	printSegment(INDENT, "revision {\n", 0);
-	printSegment(2 * INDENT, "date", INDENTVALUE);
-	print("\"%s\";\n", smiCTime(smiRevision->date));
-	printSegment(2 * INDENT, "description", INDENTVALUE);
+    smiModule = smiGetModule(modulename);
+    
+    if (smiModule->object) {
+	print("%s MODULE-IDENTITY\n", smiModule->object);
+	printSegment(INDENT, "LAST-UPDATED", INDENTVALUE);
+	smiRevision = smiGetFirstRevision(modulename);
+	if (smiRevision)
+	    print("\"%s\"\n", smiCTime(smiRevision->date));
+	else
+	    print("\"197001010000Z\"\n");
+	printSegment(INDENT, "ORGANIZATION", INDENTVALUE);
 	print("\n");
-	printMultilineString(smiRevision->description);
-	print(";\n");
-        printSegment(INDENT, "};\n", 0);
-	i++;
-    }
-    if (i) {
+	printMultilineString(smiModule->organization);
+	print("\n");
+	printSegment(INDENT, "CONTACT-INFO", INDENTVALUE);
+	print("\n");
+	printMultilineString(smiModule->contactinfo);
+	print("\n");
+	printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
+	print("\n");
+	printMultilineString(smiModule->description);
+	print("\n");
+	
+	for(i = 0; smiRevision;
+	    smiRevision = smiGetNextRevision(modulename, smiRevision->date)) {
+	    if (strcmp(smiRevision->description,
+	         "[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
+		printSegment(INDENT, "REVISION", INDENTVALUE);
+		print("\"%s\";\n", smiCTime(smiRevision->date));
+		printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
+		print("\n");
+		printMultilineString(smiRevision->description);
+		print("\n");
+	    }
+	    i++;
+	}
+
 	print("\n");
     }
 }
@@ -393,70 +447,71 @@ printRevisions(modulename)
 
 
 static void
-printTypedefs(modulename)
+printTypeDefinitions(modulename)
     char	 *modulename;
 {
-    int		 i, j;
     SmiType	 *smiType;
     
-    for(i = 0, smiType = smiGetFirstType(modulename);
+    for(smiType = smiGetFirstType(modulename);
 	smiType; smiType = smiGetNextType(modulename, smiType->name)) {
-
-	if ((!(strcmp(modulename, "SNMPv2-SMI"))) ||
-	    (!(strcmp(modulename, "RFC1155-SMI")))) {
-	    for(j=0; excludeTypes[j]; j++) {
-		if (!strcmp(smiType->name, excludeTypes[j])) break;
+	if ((smiType->decl == SMI_DECL_TYPEASSIGNMENT) ||
+	    ((smiType->decl == SMI_DECL_TYPEDEF) &&
+	     (!smiType->description))) {
+	    print("%s ::=\n", smiType->name);
+	    printSegment(INDENT, "", 0);
+	    print("%s", getTypeString(smiType->parent, smiType->basetype));
+	    if (smiType->list) {
+		print(" ");
+		printSubtype(smiType);
 	    }
-	    if (excludeTypes[j]) break;
+	    print("\n\n");
 	}
+    }
+}
+
+
+
+static void
+printTextualConventions(modulename)
+    char	 *modulename;
+{
+    SmiType	 *smiType;
+    
+    for(smiType = smiGetFirstType(modulename);
+	smiType; smiType = smiGetNextType(modulename, smiType->name)) {
+	if ((smiType->decl == SMI_DECL_TEXTUALCONVENTION) ||
+	    ((smiType->decl == SMI_DECL_TYPEDEF) &&
+	     (smiType->description))) {
+	    print("%s ::= TEXTUAL-CONVENTION\n", smiType->name);
+
+	    if (smiType->format) {
+		printSegment(INDENT, "DISPLAY-HINT", INDENTVALUE);
+		print ("\"%s\"\n", smiType->format);
+	    }
 	    
-	if (!i) {
-	    print("//\n// TYPE DEFINITIONS\n//\n\n");
-	}
-	printSegment(INDENT, "", 0);
-	print("typedef %s {\n", smiType->name);
-
-	printSegment(2 * INDENT, "type", INDENTVALUE);
-	print("%s", getTypeString(smiType->parent, smiType->basetype));
-	if (smiType->list) {
-	    print(" ");
-	    printSubtype(smiType);
-	}
-	print(";\n");
-
-	if (smiType->value) {
-	    printSegment(2 * INDENT, "default", INDENTVALUE);
-	    print("%s", getValueString(smiType->value));
-	    print(";\n");
-	}
-	
-	if (smiType->format) {
-	    printSegment(2 * INDENT, "format", INDENTVALUE);
-	    print ("\"%s\";\n", smiType->format);
-	}
-	if (smiType->units) {
-	    printSegment(2 * INDENT, "units", INDENTVALUE);
-	    print ("\"%s\";\n", smiType->units);
-	}
-	if ((smiType->status != SMI_STATUS_CURRENT) &&
-	    (smiType->status != SMI_STATUS_UNKNOWN) &&
-	    (smiType->status != SMI_STATUS_MANDATORY) &&
-	    (smiType->status != SMI_STATUS_OPTIONAL)) {
-	    printSegment(2 * INDENT, "status", INDENTVALUE);
-	    print ("%s;\n", smingStringStatus(smiType->status));
-	}
-	printSegment(2 * INDENT, "description", INDENTVALUE);
-	print ("\n");
-	printMultilineString(smiType->description);
-	print(";\n");
-	if (smiType->reference) {
-	    printSegment(2 * INDENT, "reference", INDENTVALUE);
+	    printSegment(INDENT, "STATUS", INDENTVALUE);
+	    print ("%s\n", smiStringStatus(smiType->status));
+	    
+	    printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
 	    print("\n");
-	    printMultilineString(smiType->reference);
-	    print(";\n");
+	    printMultilineString(smiType->description);
+	    print("\n");
+
+	    if (smiType->reference) {
+		printSegment(INDENT, "REFERENCE", INDENTVALUE);
+		print("\n");
+		printMultilineString(smiType->description);
+		print("\n");
+	    }
+	    
+	    printSegment(INDENT, "SYNTAX", INDENTVALUE);
+	    print("%s", getTypeString(smiType->parent, smiType->basetype));
+	    if (smiType->list) {
+		print(" ");
+		printSubtype(smiType);
+	    }
+	    print("\n\n");
 	}
-	printSegment(INDENT, "};\n\n", 0);
-	i++;
     }
 }
 
@@ -466,70 +521,57 @@ static void
 printObjects(modulename)
     char	 *modulename;
 {
-    int		 i, j;
-    SmiNode	 *smiNode;
+    SmiNode	 *smiNode, *rowNode, *colNode;
     SmiType	 *smiType;
     char	 rowoid[SMI_MAX_OID+1];
-    int		 indent = 0;
-    int		 lastindent = -1;
     char	 *typename;
-    char	 *s;
     char	 **p;
+    int		 i;
     
     strcpy(rowoid, "-");
     
-    for(i = 0, smiNode = smiGetFirstNode(modulename);
+    for(smiNode = smiGetFirstNode(modulename);
 	smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 
-	if (smiNode->decl == SMI_DECL_VALUEASSIGNMENT) {
-	    indent = 0;
-	    s = "node";
-	} else if (smiNode->decl == SMI_DECL_OBJECTTYPE) {
-	    if (smiNode->basetype ==SMI_BASETYPE_SEQUENCEOF) {
-		indent = 0;
-		s = "table";
-	    } else if (smiNode->basetype ==SMI_BASETYPE_SEQUENCE) {
-		indent = 1;
-		s = "row";
-		/*
-		 * Remember the row's oid to check for subsequent objects
-		 * being columns instead of scalars more efficiently.
-		 */
-		strcpy(rowoid, smiNode->oid);
-	    } else if (strstr(smiNode->oid, rowoid)) {
-		indent = 2;
-		s = "column";
-	    } else {
-		indent = 0;
-		s = "scalar";
-	    }
+	if ((smiNode->decl == SMI_DECL_NODE) ||
+	    (smiNode->decl == SMI_DECL_VALUEASSIGNMENT)) {
+	    print("%s OBJECT IDENTIFIER\n", smiNode->name);
+	} else if ((smiNode->decl == SMI_DECL_TABLE) ||
+		   (smiNode->basetype == SMI_BASETYPE_SEQUENCEOF)) {
+	    print("%s OBJECT-TYPE\n", smiNode->name);
+	} else if ((smiNode->decl == SMI_DECL_ROW) ||
+		   (smiNode->basetype == SMI_BASETYPE_SEQUENCE)) {
+	    print("%s OBJECT-TYPE\n", smiNode->name);
+	    /*
+	     * Remember the row's oid to check for subsequent objects
+	     * being columns instead of scalars more efficiently.
+	     */
+	    strcpy(rowoid, smiNode->oid);
+	} else if ((smiNode->decl == SMI_DECL_COLUMN) ||
+		   (strstr(smiNode->oid, rowoid))) {
+	    print("%s OBJECT-TYPE\n", smiNode->name);
+	} else if ((smiNode->decl == SMI_DECL_SCALAR) ||
+		   (smiNode->decl == SMI_DECL_OBJECTTYPE)) {
+	    print("%s OBJECT-TYPE\n", smiNode->name);
 	} else {
 	    continue;
 	}
 
-	if (!i) {
-	    print("//\n// OBJECT DEFINITIONS\n//\n\n");
-	}
-
-	for (j = lastindent; j >= indent; j--) {
-	    printSegment((1 + j) * INDENT, "", 0);
-	    print("};\n");
-	}
-	print("\n");
-	lastindent = indent;
-	
-	printSegment((1 + indent) * INDENT, "", 0);
-	print("%s %s {\n", s, smiNode->name);
-	
-	if (smiNode->oid) {
-	    printSegment((2 + indent) * INDENT, "oid", INDENTVALUE);
-	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
-	}
-
-	if ((smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
-	    (smiNode->basetype != SMI_BASETYPE_SEQUENCEOF)) {
-	    if (smiNode->type) {
-		printSegment((2 + indent) * INDENT, "type", INDENTVALUE);
+	if ((smiNode->decl != SMI_DECL_NODE) &&
+	    (smiNode->decl != SMI_DECL_VALUEASSIGNMENT)) {
+	    
+	    printSegment(INDENT, "SYNTAX", INDENTVALUE);
+	    if ((smiNode->decl == SMI_DECL_TABLE) ||
+		   (smiNode->basetype == SMI_BASETYPE_SEQUENCEOF)) {
+		print("SEQUENCE OF ");
+		rowNode = smiGetNextNode(modulename, smiNode->name);
+		print("%s\n", getTypeString(smiDescriptor(rowNode->type),
+					  SMI_BASETYPE_UNKNOWN));
+	    } else if ((smiNode->decl == SMI_DECL_ROW) ||
+		   (smiNode->basetype == SMI_BASETYPE_SEQUENCE)) {
+		print("%s\n", getTypeString(smiDescriptor(smiNode->type),
+					    SMI_BASETYPE_UNKNOWN));
+	    } else if (smiNode->type) {
 		typename = smiDescriptor(smiNode->type);
 		if (islower((int)typename[0])) {
 		    /*
@@ -542,140 +584,104 @@ printObjects(modulename)
 			print(" ");
 			printSubtype(smiType);
 		    }
-		    print(";\n");
+		    print("\n");
 		} else {
-		    print("%s;\n", getTypeString(typename,
-						 SMI_BASETYPE_UNKNOWN));
+		    print("%s\n", getTypeString(typename,
+						SMI_BASETYPE_UNKNOWN));
 		}
 	    }
-	}
-
-	if ((smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
-	    (smiNode->basetype != SMI_BASETYPE_SEQUENCEOF)) {
-	    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
-		printSegment((2 + indent) * INDENT, "access", INDENTVALUE);
-		print("%s;\n", smingStringAccess(smiNode->access));
+	    
+	    if (smiNode->units) {
+		printSegment(INDENT, "UNITS", INDENTVALUE);
+		print("\"%s\"\n", smiNode->units);
 	    }
-	}
-
-	switch (smiNode->indexkind) {
-	case SMI_INDEX_INDEX:
-	    if (smiNode->implied) {
-		printSegment((2 + indent) * INDENT, "index implied",
-			     INDENTVALUE);
-	    } else {
-		printSegment((2 + indent) * INDENT, "index", INDENTVALUE);
+	    
+	    printSegment(INDENT, "MAX-ACCESS", INDENTVALUE);
+	    print("%s\n", smiStringAccess(smiNode->access));
+	    /* TODO: read-create */
+		
+	    printSegment(INDENT, "STATUS", INDENTVALUE);
+	    print("%s\n", smiStringStatus(smiNode->status));
+	    
+	    if (smiNode->description) {
+		printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
+		print("\n");
+		printMultilineString(smiNode->description);
+		print("\n");
 	    }
-	    print("(");
-	    for(p = smiNode->index; *p; p++) {
-		if (p != smiNode->index) {
-		    print(", ");
-		}
-		printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
-	    } /* TODO: empty? -> print error */
-	    print(");\n");
-	    break;
-	case SMI_INDEX_AUGMENT:
-	    if (smiNode->relatedrow) {
-		printSegment((2 + indent) * INDENT, "augments", INDENTVALUE);
-		print("%s;\n", smiNode->relatedrow);
-	    } /* TODO: else print error */
-	    break;
-	case SMI_INDEX_REORDER:
-	    if (smiNode->relatedrow) {
-		printSegment((2 + indent) * INDENT, "", 0);
-		print("reorders %s", smiNode->relatedrow);
-		if (smiNode->implied) {
-		    print(" implied");
-		}
-		print(" (");
+	    
+	    if (smiNode->reference) {
+		printSegment(INDENT, "REFERENCE", INDENTVALUE);
+		print("\n");
+		printMultilineString(smiNode->reference);
+		print("\n");
+	    }
+	    
+	    switch (smiNode->indexkind) {
+	    case SMI_INDEX_INDEX:
+	    case SMI_INDEX_REORDER:
+	    case SMI_INDEX_EXPAND:
+		printSegment(INDENT, "INDEX", INDENTVALUE);
+		/* TODO: if (smiNode->implied) ... */
+		print("{ ");
 		for(p = smiNode->index; *p; p++) {
 		    if (p != smiNode->index) {
 			print(", ");
 		    }
 		    printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
-		}
-		print(");\n");
-	    } /* TODO: else print error */
-	    break;
-	case SMI_INDEX_SPARSE:
-	    if (smiNode->relatedrow) {
-		printSegment((2 + indent) * INDENT, "sparse", INDENTVALUE);
-		print("%s;\n", smiNode->relatedrow);
-	    } /* TODO: else print error */
-	    break;
-	case SMI_INDEX_EXPAND:
-	    if (smiNode->relatedrow) {
-		printSegment((2 + indent) * INDENT, "", 0);
-		print("expands %s", smiNode->relatedrow);
-		if (smiNode->implied) {
-		    print(" implied");
-		}
-		print(" (");
-		for(p = smiNode->index; *p; p++) {
-		    if (p != smiNode->index) {
-			print(", ");
-		    }
-		    printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
-		}
-		print(");\n");
-	    } /* TODO: else print error */
-	    break;
-	case SMI_INDEX_UNKNOWN:
-	    break;
-	}
-	
-	if (smiNode->list) {
-	    printSegment((2 + indent) * INDENT, "create", INDENTVALUE);
-	    print("(");
-	    for(p = smiNode->list; *p; p++) {
-		if (p != smiNode->list) {
-		    print(", ");
-		}
-		printWrapped(INDENTVALUE + 1, *p);
+		} /* TODO: empty? -> print error */
+		print(" }\n");
+		break;
+	    case SMI_INDEX_AUGMENT:
+	    case SMI_INDEX_SPARSE:
+		printSegment(INDENT, "AUGMENTS", INDENTVALUE);
+		print("{ %s }\n", smiNode->relatedrow);
+		break;
+	    case SMI_INDEX_UNKNOWN:
+		break;
 	    }
-	    print(");\n");
+	    
+	    if (smiNode->value) {
+		printSegment(INDENT, "DEFVAL", INDENTVALUE);
+		print("%s", getValueString(smiNode->value));
+		print("\n");
+	    }
+
 	}
-	
-	if (smiNode->value) {
-	    printSegment((2 + indent) * INDENT, "default", INDENTVALUE);
-	    print("%s", getValueString(smiNode->value));
-	    print(";\n");
-	}
-	
-	if (smiNode->format) {
-	    printSegment((2 + indent) * INDENT, "format", INDENTVALUE);
-	    print("\"%s\";\n",smiNode->format);
-	}
-	if (smiNode->units) {
-	    printSegment((2 + indent) * INDENT, "units", INDENTVALUE);
-	    print("\"%s\";\n", smiNode->units);
-	}
-	if ((smiNode->status != SMI_STATUS_CURRENT) &&
-	    (smiNode->status != SMI_STATUS_UNKNOWN) &&
-	    (smiNode->status != SMI_STATUS_MANDATORY) &&
-	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
-	    printSegment((2 + indent) * INDENT, "status", INDENTVALUE);
-	    print("%s;\n", smingStringStatus(smiNode->status));
-	}
-	if (smiNode->description) {
-	    printSegment((2 + indent) * INDENT, "description", INDENTVALUE);
+	printSegment(INDENT, "::= ", 0);
+	print("{ %s }\n\n", getOidString(modulename, smiNode->oid, 0));
+
+	if ((smiNode->decl == SMI_DECL_ROW) ||
+	    (smiNode->basetype == SMI_BASETYPE_SEQUENCE)) {
+	    print("%s ::=\n", getTypeString(smiDescriptor(smiNode->type),
+					    SMI_BASETYPE_UNKNOWN));
+	    printSegment(INDENT, "SEQUENCE {", 0);
+	    for(i = 0, colNode = smiGetNextNode(modulename, smiNode->name);
+		colNode && strstr(colNode->oid, rowoid);
+		colNode = smiGetNextNode(modulename, colNode->name)) {
+		if (i) {
+		    print(",");
+		}
+		print("\n");
+		printSegment(2 * INDENT, colNode->name, INDENTSEQUENCE);
+		typename = smiDescriptor(colNode->type);
+		if (islower((int)typename[0])) {
+		    /*
+		     * an implicitly restricted type.
+		     */
+		    smiType = smiGetType(colNode->type, "");
+		    print("%s", getTypeString(smiDescriptor(smiType->parent),
+					      smiType->basetype));
+		} else {
+		    print("%s", getTypeString(typename,
+					      SMI_BASETYPE_UNKNOWN));
+		}
+		i++;
+	    }
 	    print("\n");
-	    printMultilineString(smiNode->description);
-	    print(";\n");
-	}
-	if (smiNode->reference) {
-	    printSegment((2 + indent) * INDENT, "reference", INDENTVALUE);
+	    printSegment(INDENT, "}\n", 0);
 	    print("\n");
-	    printMultilineString(smiNode->reference);
-	    print(";\n");
 	}
-	i++;
-    }
-    
-    if (i) {
-	printSegment((1 + indent) * INDENT, "", 0);
-	print("};\n\n");
     }
 }
 
@@ -685,211 +691,244 @@ static void
 printNotifications(modulename)
     char	 *modulename;
 {
-    int		 i;
     SmiNode	 *smiNode;
     char	 **p;
     
-    for(i = 0, smiNode = smiGetFirstNode(modulename);
+    for(smiNode = smiGetFirstNode(modulename);
 	smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 
-	if (smiNode->decl != SMI_DECL_NOTIFICATIONTYPE) {
+	if ((smiNode->decl != SMI_DECL_NOTIFICATIONTYPE) &&
+	    (smiNode->decl != SMI_DECL_NOTIFICATION)) {
 	    continue;
 	}
 
-	if (!i) {
-	    print("//\n// NOTIFICATION DEFINITIONS\n//\n\n");
-	}
+	print("%s NOTIFICATION-TYPE\n", smiNode->name);
 
-	printSegment(INDENT, "", 0);
-	print("notification %s {\n", smiNode->name);
-
-	if (smiNode->oid) {
-	    printSegment(2 * INDENT, "oid", INDENTVALUE);
-	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
-	}
-
+	printSegment(INDENT, "OBJECTS", INDENTVALUE);
+	print("{ ");
 	if (smiNode->list) {
-	    printSegment(2 * INDENT, "objects", INDENTVALUE);
-	    print("(");
 	    for(p = smiNode->list; *p; p++) {
 		if (p != smiNode->list) {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, *p);
+		printWrapped(INDENTVALUE + 2, *p);
 	    }
-	    print(");\n");
 	}
-	
-	if ((smiNode->status != SMI_STATUS_CURRENT) &&
-	    (smiNode->status != SMI_STATUS_UNKNOWN) &&
-	    (smiNode->status != SMI_STATUS_MANDATORY) &&
-	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
-	    printSegment(2 * INDENT, "status", INDENTVALUE);
-	    print("%s;\n", smingStringStatus(smiNode->status));
-	}
-	
+	print(" }\n");
+
+	printSegment(INDENT, "STATUS", INDENTVALUE);
+	print("%s\n", smiStringStatus(smiNode->status));
+
 	if (smiNode->description) {
-	    printSegment(2 * INDENT, "description", INDENTVALUE);
+	    printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
 	    print("\n");
 	    printMultilineString(smiNode->description);
-	    print(";\n");
+	    print("\n");
 	}
-
+	    
 	if (smiNode->reference) {
-	    printSegment(2 * INDENT, "reference", INDENTVALUE);
+	    printSegment(INDENT, "REFERENCE", INDENTVALUE);
 	    print("\n");
 	    printMultilineString(smiNode->reference);
-	    print(";\n");
+	    print("\n");
 	}
 
-	printSegment(INDENT, "", 0);
-	print("};\n\n");
-	i++;
+	printSegment(INDENT, "::= ", 0);
+	print("{ %s }\n\n", getOidString(modulename, smiNode->oid, 0));
     }
 }
 
 
 
 static void
-printGroups(modulename)
+printObjectGroups(modulename)
     char	 *modulename;
 {
-    int		 i, d;
-    SmiNode	 *smiNode;
+    SmiNode	 *smiNode, *objectNode;
     char	 **p;
     
-    for (i = 0, d = 0; d < 2; d++) {
-	
-	for (smiNode = smiGetFirstNode(modulename);
-	     smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
+    for (smiNode = smiGetFirstNode(modulename);
+	 smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 	    
-	    if (((d == 0) && (smiNode->decl != SMI_DECL_OBJECTGROUP)) ||
-		((d == 1) && (smiNode->decl != SMI_DECL_NOTIFICATIONGROUP))) {
+	if ((smiNode->decl != SMI_DECL_OBJECTGROUP) &&
+	    (smiNode->decl != SMI_DECL_GROUP)) {
+	    continue;
+	}
+	if (smiNode->list) {
+	    objectNode = smiGetNode(*(smiNode->list), modulename);
+	    if (objectNode &&
+		((objectNode->decl == SMI_DECL_NOTIFICATIONTYPE) ||
+		 (objectNode->decl == SMI_DECL_NOTIFICATION))) {
 		continue;
 	    }
+	}
 	    
-	    if (!i) {
-		print("//\n// GROUP DEFINITIONS\n//\n\n");
-	    }
-
-	    printSegment(INDENT, "", 0);
-	    print("group %s {\n", smiNode->name);
+	print("%s OBJECT-GROUP\n", smiNode->name);
 	    
-	    if (smiNode->oid) {
-		printSegment(2 * INDENT, "oid", INDENTVALUE);
-		print("%s;\n", getOidString(modulename, smiNode->oid, 0));
-	    }
-	    
-	    if (smiNode->decl == SMI_DECL_OBJECTGROUP) {
-		printSegment(2 * INDENT, "objects", INDENTVALUE);
-	    } else {
-		printSegment(2 * INDENT, "notifications", INDENTVALUE);
-	    }
-	    print("(");
+	printSegment(INDENT, "OBJECTS", INDENTVALUE);
+	print("{ ");
+	if (smiNode->list) {
 	    for(p = smiNode->list; *p; p++) {
 		if (p != smiNode->list) {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, *p);
+		printWrapped(INDENTVALUE + 2, *p);
 	    }
-	    print(");\n");
-	    
-	    if ((smiNode->status != SMI_STATUS_CURRENT) &&
-		(smiNode->status != SMI_STATUS_UNKNOWN) &&
-		(smiNode->status != SMI_STATUS_MANDATORY) &&
-		(smiNode->status != SMI_STATUS_OPTIONAL)) {
-		printSegment(2 * INDENT, "status", INDENTVALUE);
-		print("%s;\n", smingStringStatus(smiNode->status));
-	    }
-	    
-	    if (smiNode->description) {
-		printSegment(2 * INDENT, "description", INDENTVALUE);
-		print("\n");
-		printMultilineString(smiNode->description);
-		print(";\n");
-	    }
-	    
-	    if (smiNode->reference) {
-		printSegment(2 * INDENT, "reference", INDENTVALUE);
-		print("\n");
-		printMultilineString(smiNode->reference);
-		print(";\n");
-	    }
-	    
-	    printSegment(INDENT, "", 0);
-	    print("};\n\n");
-	    i++;
 	}
+	print(" }\n");
+
+	printSegment(INDENT, "STATUS", INDENTVALUE);
+	print("%s\n", smiStringStatus(smiNode->status));
+
+	if (smiNode->description) {
+	    printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
+	    print("\n");
+	    printMultilineString(smiNode->description);
+	    print("\n");
+	}
+	    
+	if (smiNode->reference) {
+	    printSegment(INDENT, "REFERENCE", INDENTVALUE);
+	    print("\n");
+	    printMultilineString(smiNode->reference);
+	    print("\n");
+	}
+
+	printSegment(INDENT, "::= ", 0);
+	print("{ %s }\n\n", getOidString(modulename, smiNode->oid, 0));
     }
 }
 
 
 
 static void
-printCompliances(modulename)
+printNotificationGroups(modulename)
+    char	 *modulename;
+{
+    SmiNode	 *smiNode, *objectNode;
+    char	 **p;
+    
+    for (smiNode = smiGetFirstNode(modulename);
+	 smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
+	    
+	if ((smiNode->decl != SMI_DECL_NOTIFICATIONGROUP) &&
+	    (smiNode->decl != SMI_DECL_GROUP)) {
+	    continue;
+	}
+	if (smiNode->list) {
+	    objectNode = smiGetNode(*(smiNode->list), modulename);
+	    if (objectNode &&
+		(objectNode->decl != SMI_DECL_NOTIFICATIONTYPE) &&
+		(objectNode->decl != SMI_DECL_NOTIFICATION)) {
+		continue;
+	    }
+	}
+	    
+	print("%s NOTIFICATION-GROUP\n", smiNode->name);
+	    
+	printSegment(INDENT, "NOTIFICATIONS", INDENTVALUE);
+	print("{ ");
+	if (smiNode->list) {
+	    for(p = smiNode->list; *p; p++) {
+		if (p != smiNode->list) {
+		    print(", ");
+		}
+		printWrapped(INDENTVALUE + 2, *p);
+	    }
+	}
+	print(" }\n");
+
+	printSegment(INDENT, "STATUS", INDENTVALUE);
+	print("%s\n", smiStringStatus(smiNode->status));
+
+	if (smiNode->description) {
+	    printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
+	    print("\n");
+	    printMultilineString(smiNode->description);
+	    print("\n");
+	}
+	    
+	if (smiNode->reference) {
+	    printSegment(INDENT, "REFERENCE", INDENTVALUE);
+	    print("\n");
+	    printMultilineString(smiNode->reference);
+	    print("\n");
+	}
+
+	printSegment(INDENT, "::= ", 0);
+	print("{ %s }\n\n", getOidString(modulename, smiNode->oid, 0));
+    }
+}
+
+
+
+static void
+printModuleCompliances(modulename)
     char	  *modulename;
 {
-    int		  i;
     SmiNode	  *smiNode;
     SmiType	  *smiType;
     SmiOption	  **smiOption;
     SmiRefinement **smiRefinement;
     char	  **p;
+    char	  lastModule[100];
     
-    for (i = 0, smiNode = smiGetFirstNode(modulename);
+    for (smiNode = smiGetFirstNode(modulename);
 	 smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 	
-	if (smiNode->decl != SMI_DECL_MODULECOMPLIANCE) {
+	if ((smiNode->decl != SMI_DECL_MODULECOMPLIANCE) &&
+	    (smiNode->decl != SMI_DECL_COMPLIANCE)) {
 	    continue;
 	}
 	    
-	if (!i) {
-	    print("//\n// COMPLIANCE DEFINITIONS\n//\n\n");
-	}
+	print("%s MODULE-COMPLIANCE\n", smiNode->name);
 
-	printSegment(INDENT, "", 0);
-	print("compliance %s {\n", smiNode->name);
-	    
-	if (smiNode->oid) {
-	    printSegment(2 * INDENT, "oid", INDENTVALUE);
-	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
-	}
-	    
-	if ((smiNode->status != SMI_STATUS_CURRENT) &&
-	    (smiNode->status != SMI_STATUS_UNKNOWN) &&
-	    (smiNode->status != SMI_STATUS_MANDATORY) &&
-	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
-	    printSegment(2 * INDENT, "status", INDENTVALUE);
-	    print("%s;\n", smingStringStatus(smiNode->status));
-	}
-	    
+	printSegment(INDENT, "STATUS", INDENTVALUE);
+	print("%s\n", smiStringStatus(smiNode->status));
+
 	if (smiNode->description) {
-	    printSegment(2 * INDENT, "description", INDENTVALUE);
+	    printSegment(INDENT, "DESCRIPTION", INDENTVALUE);
 	    print("\n");
 	    printMultilineString(smiNode->description);
-	    print(";\n");
+	    print("\n");
 	}
 	    
 	if (smiNode->reference) {
-	    printSegment(2 * INDENT, "reference", INDENTVALUE);
+	    printSegment(INDENT, "REFERENCE", INDENTVALUE);
 	    print("\n");
 	    printMultilineString(smiNode->reference);
-	    print(";\n");
+	    print("\n");
 	}
 
+
+
+	
 	if (smiNode->list) {
-	    print("\n");
-	    printSegment(2 * INDENT, "mandatory", INDENTVALUE);
-	    print("(");
+	    lastModule[0] = '-';
 	    for(p = smiNode->list; *p; p++) {
-		if (p != smiNode->list) {
+		if (strcmp(lastModule, smiModule(*p))) {
+		    if (p != smiNode->list) {
+			print(" }\n");
+		    }
+		    strcpy(lastModule, smiModule(*p));
+		    printSegment(INDENT, "MODULE", 0);
+		    if (strlen(smiModule(*p)) &&
+			strcmp(modulename, smiModule(*p))) {
+			print(" %s\n", smiModule(*p));
+		    } else {
+			print(" -- this module\n");
+		    }
+		    printSegment(2 * INDENT, "MANDATORY-GROUPS", INDENTVALUE);
+		    print("{ ");
+		} else {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, *p);
+		printWrapped(INDENTVALUE + 2, smiDescriptor(*p));
 	    }
-	    print(");\n");
+	    print(" }\n");
 	}
-	
+
+#if 0	
 	if (smiNode->option) {
 	    print("\n");
 	    for(smiOption = smiNode->option; *smiOption; smiOption++) {
@@ -953,12 +992,14 @@ printCompliances(modulename)
 		printSegment(2 * INDENT, "};\n", 0);
 	    }
 	}
+#endif
+
 	
-	printSegment(INDENT, "", 0);
-	print("};\n\n");
-	i++;
+	printSegment(INDENT, "::= ", 0);
+	print("{ %s }\n\n", getOidString(modulename, smiNode->oid, 0));
     }
 }
+
 
 
 
@@ -973,55 +1014,28 @@ dumpSmi(modulename)
 	fprintf(stderr, "Cannot locate module `%s'\n", modulename);
 	exit(1);
     } else {
-	print("//\n");
-	print("// This module has been generated by smidump. Do not edit.\n");
-	print("//\n");
+	print("--\n");
+	print("-- This module has been generated by smidump. Do not edit.\n");
+	print("--\n");
 	print("%s DEFINITIONS ::= BEGIN\n\n", smiModule->name);
 
 	printImports(modulename);
 
-#if 0
-	/*
-	 * Module Header
-	 */
-	if (smiModule->object) {
-	    print("//\n// MODULE META INFORMATION\n//\n\n");
-	    printSegment(INDENT, "oid", INDENTVALUE);
-	    print("%s;\n\n",
-			 getOidString(modulename, smiModule->object, 1));
-	    printSegment(INDENT, "organization", INDENTVALUE);
-	    print("\n");
-	    printMultilineString(smiModule->organization);
-	    print(";\n\n");
-	    printSegment(INDENT, "contact", INDENTVALUE);
-	    print("\n");
-	    printMultilineString(smiModule->contactinfo);
-	    print(";\n\n");
-	    printSegment(INDENT, "description", INDENTVALUE);
-	    print("\n");
-	    printMultilineString(smiModule->description);
-	    print(";\n\n");
-	    if (smiModule->reference) {
-		printSegment(INDENT, "reference", INDENTVALUE);
-		print("\n");
-		printMultilineString(smiModule->reference);
-		print(";\n\n");
-	    }
+	printModuleIdentity(modulename);
 
-	    printRevisions(modulename);
-	    
-	}
-	
-	printTypedefs(modulename);
-	
+	printTypeDefinitions(modulename);
+
+	printTextualConventions(modulename);
+
 	printObjects(modulename);
 	
 	printNotifications(modulename);
 	
-	printGroups();
+	printObjectGroups();
 	
-	printCompliances();
-#endif
+	printNotificationGroups();
+	
+	printModuleCompliances();
 	
 	print("END -- end of module %s.\n", modulename);
 
