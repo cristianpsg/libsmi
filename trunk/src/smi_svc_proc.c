@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_proc.c,v 1.4 1998/11/22 22:58:23 strauss Exp $
+ * @(#) $Id: smi_svc_proc.c,v 1.5 1998/11/23 12:57:00 strauss Exp $
  */
 
 #include <stdio.h>
@@ -148,7 +148,18 @@ smiproc_names_1(fullname)
     smi_fullname *fullname;
 #endif
 {
-    return smiGetNames(*fullname, NULL);
+    static smi_namelist dummy = { "" };
+    smi_namelist *n;
+    
+    printDebug(4, "smiproc_names_1(%s)\n", fullname);
+
+    n = smiGetNames(*fullname, NULL);
+
+    if (n) {
+	return n;
+    } else {
+	return &dummy;
+    }	    
 }
 
 
@@ -163,7 +174,18 @@ smiproc_children_1(fullname)
     smi_fullname *fullname;
 #endif
 {
-    return smiGetChildren(*fullname, NULL);
+    static smi_namelist dummy = { "" };
+    smi_namelist *n;
+    
+    printDebug(4, "smiproc_children_1(%s)\n", fullname);
+
+    n = smiGetChildren(*fullname, NULL);
+
+    if (n) {
+	return n;
+    } else {
+	return &dummy;
+    }	    
 }
 
 
@@ -178,7 +200,18 @@ smiproc_members_1(fullname)
     smi_fullname *fullname;
 #endif
 {
-    return smiGetMembers(*fullname, NULL);
+    static smi_namelist dummy = { "" };
+    smi_namelist *n;
+    
+    printDebug(4, "smiproc_children_1(%s)\n", fullname);
+
+    n = smiGetChildren(*fullname, NULL);
+
+    if (n) {
+	return n;
+    } else {
+	return &dummy;
+    }	    
 }
 
 
