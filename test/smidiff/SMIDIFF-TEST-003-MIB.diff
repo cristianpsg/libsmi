@@ -1,0 +1,14 @@
+./SMIDIFF-TEST-003-MIB.new:35 default value added to `scalar1'
+./SMIDIFF-TEST-003-MIB.new:45 named number `blue' removed
+./SMIDIFF-TEST-003-MIB.old:44 previous definition of `blue'
+./SMIDIFF-TEST-003-MIB.new:53 named bit `yellow' added without starting in a new byte
+./SMIDIFF-TEST-003-MIB.new:61 named number `yellow' added
+./SMIDIFF-TEST-003-MIB.new:77 named number `blue' removed
+./SMIDIFF-TEST-003-MIB.old:76 previous definition of `blue'
+./SMIDIFF-TEST-003-MIB.new:85 named number `green' added
+./SMIDIFF-TEST-003-MIB.old:84 named number `green' removed
+./SMIDIFF-TEST-003-MIB.new:93 named number `green' changed to `white'
+./SMIDIFF-TEST-003-MIB.old:92 previous definition of `green'
+./SMIDIFF-TEST-003-MIB.new:101 named number `yellow' added
+./SMIDIFF-TEST-003-MIB.new:109 named number `yellow' added
+./SMIDIFF-TEST-003-MIB.new:117 named number `yellow' added
