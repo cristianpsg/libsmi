@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.169 2002/03/20 16:49:49 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.170 2002/04/11 15:01:10 strauss Exp $
  */
 
 %{
@@ -1357,7 +1357,7 @@ import:			importIdentifiers FROM moduleName
 			     */
 			    modulePtr = findModuleByName($3);
 			    if (!modulePtr) {
-				modulePtr = loadModule($3);
+				modulePtr = loadModule($3, thisParserPtr);
 			    }
 			    checkImports(modulePtr, thisParserPtr);
 
@@ -4973,7 +4973,7 @@ ComplianceModuleName:	UPPERCASE_IDENTIFIER objectIdentifier
 			    $$ = findModuleByName($1);
 			    /* TODO: handle objectIdentifier */
 			    if (!$$) {
-				$$ = loadModule($1);
+				$$ = loadModule($1, thisParserPtr);
 			    }
 			    smiFree($1);
 			}
@@ -4981,7 +4981,7 @@ ComplianceModuleName:	UPPERCASE_IDENTIFIER objectIdentifier
 			{
 			    $$ = findModuleByName($1);
 			    if (!$$) {
-				$$ = loadModule($1);
+				$$ = loadModule($1, thisParserPtr);
 			    }
 			    smiFree($1);
 			}
@@ -5401,7 +5401,7 @@ ModuleName_Capabilities: UPPERCASE_IDENTIFIER objectIdentifier
 			    $$ = findModuleByName($1);
 			    /* TODO: handle objectIdentifier */
 			    if (!$$) {
-				$$ = loadModule($1);
+				$$ = loadModule($1, thisParserPtr);
 			    }
 			    smiFree($1);
 			}
@@ -5409,7 +5409,7 @@ ModuleName_Capabilities: UPPERCASE_IDENTIFIER objectIdentifier
 			{
 			    $$ = findModuleByName($1);
 			    if (!$$) {
-				$$ = loadModule($1);
+				$$ = loadModule($1, thisParserPtr);
 			    }
 			    smiFree($1);
 			}

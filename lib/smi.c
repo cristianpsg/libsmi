@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.105 2001/08/27 11:51:42 strauss Exp $
+ * @(#) $Id: smi.c,v 1.106 2001/10/08 14:16:57 schoenw Exp $
  */
 
 #include <config.h>
@@ -415,7 +415,7 @@ char *smiLoadModule(const char *module)
 
     if (smiIsPath(module)) {
 
-	modulePtr = loadModule(module);
+	modulePtr = loadModule(module, NULL);
 
 	if (modulePtr) {
 	    if (!isInView(modulePtr->export.name)) {
@@ -436,7 +436,7 @@ char *smiLoadModule(const char *module)
 	    /* already loaded. */
 	    return modulePtr->export.name;
 	} else {
-	    if ((modulePtr = loadModule(module))) {
+	    if ((modulePtr = loadModule(module, NULL))) {
 		return modulePtr->export.name;
 	    } else {
 		return NULL;
@@ -543,7 +543,7 @@ SmiModule *smiGetModule(const char *module)
     modulePtr = findModuleByName(module);
     
     if (!modulePtr) {
-	modulePtr = loadModule(module);
+	modulePtr = loadModule(module, NULL);
     }
     
     return &modulePtr->export;
@@ -686,7 +686,7 @@ SmiType *smiGetType(SmiModule *smiModulePtr, char *type)
     
     if (!modulePtr && module2 && strlen(module2)) {
 	if (!(modulePtr = findModuleByName(module2))) {
-	    modulePtr = loadModule(module2);
+	    modulePtr = loadModule(module2, NULL);
 	}
     }
 
@@ -900,7 +900,7 @@ SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro)
     
     if (!modulePtr && module2 && strlen(module2)) {
 	if (!(modulePtr = findModuleByName(module2))) {
-	    modulePtr = loadModule(module2);
+	    modulePtr = loadModule(module2, NULL);
 	}
     }
 
@@ -966,7 +966,7 @@ SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *node)
     
     if (!modulePtr && module2 && strlen(module2)) {
 	if (!(modulePtr = findModuleByName(module2))) {
-	    modulePtr = loadModule(module2);
+	    modulePtr = loadModule(module2, NULL);
 	}
     }
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.68 2001/08/15 17:07:04 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.69 2001/08/22 17:51:43 strauss Exp $
  */
 
 %{
@@ -1944,7 +1944,7 @@ importStatement:	importKeyword sep ucIdentifier
 
 			    modulePtr = findModuleByName(s);
 			    if (!modulePtr) {
-				modulePtr = loadModule(s);
+				modulePtr = loadModule(s, thisParserPtr);
 			    }
 			    checkImports(modulePtr, thisParserPtr);
 			    free(s);

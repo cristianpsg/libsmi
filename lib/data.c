@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.108 2001/12/14 10:09:50 strauss Exp $
+ * @(#) $Id: data.c,v 1.109 2001/12/17 18:05:22 schoenw Exp $
  */
 
 #include <config.h>
@@ -3520,7 +3520,7 @@ void smiFreeData()
  *----------------------------------------------------------------------
  */
 
-Module *loadModule(const char *modulename)
+Module *loadModule(const char *modulename, Parser *parserPtr)
 {
     Parser	    parser;
     char	    *path = NULL, *dir, *smipath;
@@ -3613,7 +3613,7 @@ Module *loadModule(const char *modulename)
 #endif
     
     if (!path) {
-	smiPrintError(NULL, ERR_MODULE_NOT_FOUND, modulename);
+	smiPrintError(parserPtr, ERR_MODULE_NOT_FOUND, modulename);
 	return NULL;
     }
 
@@ -3626,7 +3626,7 @@ Module *loadModule(const char *modulename)
 
     file = fopen(path, "r");
     if (! file) {
-	smiPrintError(NULL, ERR_OPENING_INPUTFILE, path, strerror(errno));
+	smiPrintError(parserPtr, ERR_OPENING_INPUTFILE, path, strerror(errno));
 	smiFree(path);
 	return NULL;
     }
@@ -3638,7 +3638,7 @@ Module *loadModule(const char *modulename)
 	    sming = 1;
 	    break;
 	} else if (c == EOF || ! isspace(c)) {
-	    smiPrintError(NULL, ERR_ILLEGAL_INPUTFILE, path);
+	    smiPrintError(parserPtr, ERR_ILLEGAL_INPUTFILE, path);
 	    smiFree(path);
 	    fclose(file);
 	    return NULL;
@@ -3665,7 +3665,7 @@ Module *loadModule(const char *modulename)
 	smiFree(path);
 	return parser.modulePtr;
 #else
-	smiPrintError(NULL, ERR_SMI_NOT_SUPPORTED, path);
+	smiPrintError(parserPtr, ERR_SMI_NOT_SUPPORTED, path);
 	smiFree(path);
         fclose(file);
 	return NULL;
@@ -3691,7 +3691,7 @@ Module *loadModule(const char *modulename)
 	smiFree(path);
 	return parser.modulePtr;
 #else
-	smiPrintError(NULL, ERR_SMING_NOT_SUPPORTED, path);
+	smiPrintError(parserPtr, ERR_SMING_NOT_SUPPORTED, path);
 	smiFree(path);
         fclose(file);
 	return NULL;

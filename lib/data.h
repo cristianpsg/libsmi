@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.75 2001/10/08 17:51:26 schoenw Exp $
+ * @(#) $Id: data.h,v 1.76 2001/12/14 10:09:51 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -567,7 +567,7 @@ extern int smiInitData(void);
 
 extern void smiFreeData(void);
 
-extern Module *loadModule(const char *modulename);
+extern Module *loadModule(const char *modulename, Parser *parserPtr);
 
 
 #endif /* _DATA_H */
