@@ -1,5 +1,8 @@
 2000-11-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-jax.c: Fixed dangling pointers. Test suite
+	is happy again.
+
 	* tools/dump-corba.c: The driver now creates idl and oid files
 	instead of writing to stdout.
 	
