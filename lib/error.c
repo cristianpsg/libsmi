@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.83 2001/12/17 18:05:23 schoenw Exp $
+ * @(#) $Id: error.c,v 1.84 2001/12/18 11:38:15 schoenw Exp $
  */
 
 #include <config.h>
@@ -440,8 +440,12 @@ static Error errors[] = {
       "type of `%s' in sequence and object type definition do not match" },
     { 5, ERR_INDEX_ACCESSIBLE, "index-element-accessible",
       "index element `%s' of row `%s' should be not-accessible in SMIv2 MIB" },
-    { 3, ERR_REFINEMENT_NOT_LISTED, "",
+    { 3, ERR_REFINEMENT_NOT_LISTED, "refinement-not-listed",
       "refined object `%s' not listed in a mandatory or optional group" },
+    { 5, ERR_NOTIFICATION_NOT_REVERSIBLE, "notification-not-reversible",
+      "notification `%s' is not reversible" },
+    { 5, ERR_NOTIFICATION_ID_TOO_LARGE, "notification-id-too-large",
+      "last sub-identifier of notification `%s' too large" },
     { 0, 0, NULL, NULL }
 };
 
