@@ -1,3 +1,8 @@
+2000-05-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Juergen added code for checks of inherited
+	types.
+
 2000-05-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-cm.c: changed dump driver calling conventions

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.104 2000/04/12 17:02:49 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.105 2000/05/17 09:48:54 strauss Exp $
  */
 
 %{
@@ -267,6 +267,46 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	}
 
 	/*
+	 * Link implicit type definition from refinements into
+	 * the type derivation tree.
+	 */
+
+#if 0
+	if (objectPtr->export.nodekind == SMI_NODEKIND_COMPLIANCE) {
+
+	    List *listPtr;
+
+	    for (listPtr = objectPtr->refinementlistPtr;
+		 listPtr;
+		 listPtr = listPtr->nextPtr) {
+
+		Refinement *refinementPtr;
+		Type *typePtr;
+		
+		refinementPtr = ((Refinement *)(listPtr->ptr));
+		typePtr = refinementPtr->typePtr;
+		if (typePtr) {
+		    fprintf(stderr,
+			    "** type refinement of %s derived from %s\n",
+			    refinementPtr->objectPtr->export.name,
+			    typePtr->parentPtr->export.name);
+		}
+
+		typePtr = refinementPtr->writetypePtr;
+		if (typePtr) {
+		    fprintf(stderr,
+			    "** write type refinement of %s derived from %s\n",
+			    refinementPtr->objectPtr->export.name,
+			    typePtr->parentPtr->export.name);
+		}
+		
+	    }
+	    /* relocate the refinement type into the type tree */
+	    /* relocate the write refinement type into the type tree */
+	}
+#endif
+
+	/*
 	 * Set the oidlen/oid values that are not yet correct.
 	 */
 
@@ -350,6 +390,122 @@ checkTypes(Parser *parserPtr, Module *modulePtr)
 			     typePtr->export.name,
 			     typePtr->parentPtr->export.name);
 	}
+
+	/*
+	 * Check named numbers lists for redefinitions of names or
+	 * redefinitions of numbers.
+	 */
+
+	if (typePtr
+	    && (typePtr->export.basetype == SMI_BASETYPE_ENUM
+		|| typePtr->export.basetype == SMI_BASETYPE_BITS)) {
+	    
+	    List *list1Ptr, *list2Ptr;
+	    NamedNumber *nn1Ptr, *nn2Ptr;
+
+	    for (list1Ptr = typePtr->listPtr;
+		 list1Ptr; list1Ptr = list1Ptr->nextPtr) {
+
+		nn1Ptr = (NamedNumber *)(list1Ptr->ptr);
+
+		for (list2Ptr = list1Ptr->nextPtr;
+		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
+
+		    nn2Ptr = (NamedNumber *)(list2Ptr->ptr);
+
+		    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
+			if (!strcmp(nn1Ptr->export.name,
+				    nn2Ptr->export.name)) {
+			    printErrorAtLine(parserPtr,
+					     ERR_ENUM_NAME_REDEFINITION,
+					     typePtr->line,
+					     nn1Ptr->export.name);
+			}
+			if (nn1Ptr->export.value.value.integer32
+			    == nn2Ptr->export.value.value.integer32) {
+			    printErrorAtLine(parserPtr,
+				     ERR_ENUM_NUMBER_REDEFINITION,
+				     typePtr->line,
+				     nn1Ptr->export.value.value.integer32);
+			}
+		    }
+		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
+			if (!strcmp(nn1Ptr->export.name,
+				    nn2Ptr->export.name)) {
+			    printErrorAtLine(parserPtr,
+					     ERR_BITS_NAME_REDEFINITION,
+					     typePtr->line,
+					     nn1Ptr->export.name);
+			}
+			if (nn1Ptr->export.value.value.unsigned32
+			    == nn2Ptr->export.value.value.unsigned32) {
+			    printErrorAtLine(parserPtr,
+				     ERR_BITS_NUMBER_REDEFINITION,
+				     typePtr->line,
+				     nn1Ptr->export.value.value.unsigned32);
+			}
+		    }
+		}
+	    }   
+	}
+
+	/*
+	 * Check for "compatible" named numbers in sub-typed
+	 * enumerations or named bits lists.
+	 */
+
+	if (typePtr->parentPtr
+	    && typePtr->parentPtr->parentPtr
+	    && (typePtr->export.basetype == SMI_BASETYPE_ENUM
+		|| typePtr->export.basetype == SMI_BASETYPE_BITS)) {
+
+	    List *list1Ptr, *list2Ptr;
+	    NamedNumber *nn1Ptr, *nn2Ptr;
+
+	    for (list1Ptr = typePtr->listPtr;
+		 list1Ptr; list1Ptr = list1Ptr->nextPtr) {
+
+		nn1Ptr = (NamedNumber *)(list1Ptr->ptr);
+
+		for (list2Ptr = typePtr->parentPtr->listPtr;
+		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
+
+		    nn2Ptr = (NamedNumber *)(list2Ptr->ptr);
+
+                    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
+			if (! strcmp(nn1Ptr->export.name, nn2Ptr->export.name)
+			    && nn1Ptr->export.value.value.integer32
+			    == nn2Ptr->export.value.value.integer32) {
+			    break;
+			}
+		    }
+
+		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
+			if (! strcmp(nn1Ptr->export.name, nn2Ptr->export.name)
+			    && nn1Ptr->export.value.value.unsigned32
+			    == nn2Ptr->export.value.value.unsigned32) {
+			    break;
+			}
+		    }
+		}
+
+		if (! list2Ptr) {
+		    if (typePtr->export.basetype == SMI_BASETYPE_ENUM) {
+			printErrorAtLine(parserPtr, ERR_ENUM_SUBTYPE,
+					 typePtr->line,
+					 nn1Ptr->export.name,
+					 typePtr->parentPtr->export.name);
+		    }
+		    if (typePtr->export.basetype == SMI_BASETYPE_BITS) {
+			printErrorAtLine(parserPtr, ERR_BITS_SUBTYPE,
+					 typePtr->line,
+					 nn1Ptr->export.name,
+					 typePtr->parentPtr->export.name);
+		    }
+		}
+	    }
+	}
+
     }
 }
 
@@ -1681,6 +1837,18 @@ NamedBit:		LOWERCASE_IDENTIFIER
 			    $$->export.value.basetype =
 				                       SMI_BASETYPE_UNSIGNED32;
 			    $$->export.value.value.unsigned32 = $4;
+			    /* RFC 2578 7.1.4 */
+			    if ($4 >= 65535*8) {
+				printError(thisParserPtr,
+					   ERR_BITS_NUMBER_TOO_LARGE,
+					   $1, $4);
+			    } else {
+				if ($4 >= 128) {
+				    printError(thisParserPtr,
+					       ERR_BITS_NUMBER_LARGE,
+					       $1, $4);
+				}
+			    }
 			}
 	;
 
