@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.5 2000/11/28 09:19:36 strauss Exp $
+ * @(#) $Id: dump-python.c,v 1.6 2000/11/29 16:35:27 strauss Exp $
  */
 
 /*
@@ -987,7 +987,7 @@ static void printCompliances(SmiModule *smiModule)
 
 
 
-void dumpPython(int modc, SmiModule **modv, int flags, char *output)
+static void dumpPython(int modc, SmiModule **modv, int flags, char *output)
 {
     int  i;
     FILE *f = stdout;
@@ -1030,7 +1030,7 @@ void dumpPython(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_python()
+void initPython()
 {
     static SmidumpDriver driver = {
 	"python",

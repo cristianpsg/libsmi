@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xml.c,v 1.17 2000/11/28 09:19:36 strauss Exp $
+ * @(#) $Id: dump-xml.c,v 1.18 2000/11/29 16:35:27 strauss Exp $
  */
 
 /*
@@ -942,7 +942,7 @@ static void printCompliances(SmiModule *smiModule)
 
 
 
-void dumpXml(int modc, SmiModule **modv, int flags, char *output)
+static void dumpXml(int modc, SmiModule **modv, int flags, char *output)
 {
     int         i;
 
@@ -971,7 +971,7 @@ void dumpXml(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_xml()
+void initXml()
 {
     
     static SmidumpDriver driver = {

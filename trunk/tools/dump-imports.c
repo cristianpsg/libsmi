@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.15 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.16 2000/11/29 16:35:26 strauss Exp $
  */
 
 #include <config.h>
@@ -126,7 +126,7 @@ static int printImports(FILE *f, SmiModule *smiModule, char *prefix)
 
 
 
-void dumpImports(int modc, SmiModule **modv, int flags, char *output)
+static void dumpImports(int modc, SmiModule **modv, int flags, char *output)
 {
     int  i;
     FILE *f = stdout;
@@ -157,7 +157,7 @@ void dumpImports(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_imports()
+void initImports()
 {
     
     static SmidumpDriver driver = {

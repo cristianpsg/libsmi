@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.8 2000/11/28 09:19:36 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.9 2000/11/29 16:35:26 strauss Exp $
  */
 
 #include <config.h>
@@ -125,7 +125,8 @@ static void dumpTypeIdentifiers(FILE *f, int modc, SmiModule **modv)
 
 
 
-void dumpIdentifiers(int modc, SmiModule **modv, int flags, char *output)
+static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
+			    char *output)
 {
     SmiNode   *smiNode;
     int	      i, len;
@@ -207,7 +208,7 @@ void dumpIdentifiers(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_identifiers()
+void initIdentifiers()
 {
     
     static SmidumpDriverOption opt[] = {

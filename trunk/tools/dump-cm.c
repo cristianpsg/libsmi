@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.30 2000/11/28 09:19:36 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.31 2000/11/29 16:35:26 strauss Exp $
  */
 
 
@@ -2927,7 +2927,7 @@ static void dumpCM(int modc, SmiModule **modv, int flags, char *output)
  * called interface function for UML output in dia format
  */
 
-void dumpCMDia(int modc, SmiModule **modv, int flags, char *output)
+static void dumpCMDia(int modc, SmiModule **modv, int flags, char *output)
 {
     XPLAIN = 0;
     
@@ -2938,7 +2938,7 @@ void dumpCMDia(int modc, SmiModule **modv, int flags, char *output)
  * called interface function for ASCII output with explanations
  */
 
-void dumpCMXplain(int modc, SmiModule **modv, int flags, char *output)
+static void dumpCMXplain(int modc, SmiModule **modv, int flags, char *output)
 {
     XPLAIN = 1;
     
@@ -2947,7 +2947,7 @@ void dumpCMXplain(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void init_cm()
+void initCm()
 {
     static SmidumpDriver driverDia = {
 	"cm-dia",
