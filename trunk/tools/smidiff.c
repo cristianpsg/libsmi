@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.4 2001/09/11 08:57:44 schoenw Exp $
+ * @(#) $Id: smidiff.c,v 1.5 2001/09/19 17:38:35 tklie Exp $
  */
 
 #include <stdlib.h>
@@ -68,7 +68,11 @@ typedef struct Error {
 #define ERR_NAME_CHANGED		28
 #define ERR_TO_IMPLICIT			29
 #define ERR_FROM_IMPLICIT		30
-#define ERR_RANGE_CHANGED               31
+#define ERR_RANGE_ADDED                 31
+#define ERR_RANGE_REMOVED               32
+#define ERR_RANGE_CHANGED               33
+#define ERR_DEFVAL_REMOVED              34
+#define ERR_DEFVAL_CHANGED              35
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -131,8 +135,16 @@ static Error errors[] = {
       "implicit type for `%s' replaces type `%s'" },
     { 3, ERR_FROM_IMPLICIT, "from-implicit",
       "type `%s' replaces implicit type for `%s'" },
+    { 3, ERR_RANGE_ADDED, "range-added",
+      "range added to `%s'" },
+    { 3, ERR_RANGE_REMOVED, "range-removed",
+      "range removed from `%s'" },
     { 3, ERR_RANGE_CHANGED, "range-changed",
       "range of `%s' changed" },
+    { 3, ERR_DEFVAL_REMOVED, "defval-removed",
+      "default value removed from `%s'" },
+    { 3, ERR_DEFVAL_CHANGED, "defval-changed",
+      "default value of `%s' changed" },
     { 0, 0, NULL, NULL }
 };
 
@@ -584,24 +596,135 @@ checkUnits(SmiModule *oldModule, int oldLine,
     }
 }
 
+SmiType
+*smiFindTypeWithRange(SmiType *smiType)
+{
+  SmiType *iterType, *typeWithRange;
+  for (iterType = smiType; iterType; iterType = smiGetParentType(iterType)){
+    if (iterType) {
+      SmiRange *smiRange = smiGetFirstRange(iterType);
+      if (smiRange)
+	return iterType;
+    }
+  }
+  return NULL;
+}
 
 static void
 checkRanges(SmiModule *oldModule, int oldLine,
 	    SmiModule *newModule, int newLine,
 	    char *name, 
-	    SmiRange *oldRange, /* first SmiRange */
-	    SmiRange *newRange) /* first SmiRange */ 
+	    SmiType *oldType, SmiType *newType)
 {
+  SmiType *oldTwR, *newTwR; /* types with ranges */
+
+  /* find (parent) type with ranges */
+  oldTwR = smiFindTypeWithRange(oldType);
+  newTwR = smiFindTypeWithRange(newType);
+  
   /* check existance of ranges */
-  if (!oldRange && newRange) {
+  if (!oldTwR && newTwR) {
     printErrorAtLine(newModule, ERR_RANGE_CHANGED, newLine, name);
   }
   
-  if (oldRange && !newRange) {
+  if (oldTwR && !newTwR) {
     printErrorAtLine(oldModule, ERR_RANGE_CHANGED, oldLine, name);
   }
+
+  if( oldTwR && newTwR) {
+    SmiRange *oldRange, *newRange;
+    oldRange = smiGetFirstRange(oldTwR);
+    newRange = smiGetFirstRange(newTwR);
+    
+    /* xxx check ranges in detail */
+  }
+}
+
+static void
+checkDefVal(SmiModule *oldModule, int oldLine,
+	    SmiModule *newModule, int newLine,
+	    char *name,
+	    SmiValue oldVal, SmiValue newVal)
+{
+  if( (oldVal.basetype != SMI_BASETYPE_UNKNOWN) && 
+      (newVal.basetype == SMI_BASETYPE_UNKNOWN)) {
+    printErrorAtLine(oldModule, ERR_DEFVAL_REMOVED, oldLine, name);
+  }
   
-  /* xxx check ranges in detail */
+  else if( oldVal.basetype != newVal.basetype ) {
+    printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+  }
+
+  else {
+    switch (oldVal.basetype) {
+    case SMI_BASETYPE_INTEGER32  :
+      if( oldVal.value.integer32 != newVal.value.integer32 ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_UNSIGNED32 :
+      if( oldVal.value.unsigned32 != newVal.value.unsigned32 ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_INTEGER64  :
+      if( oldVal.value.integer64 != newVal.value.integer64 ){
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_UNSIGNED64 :
+      if( oldVal.value.unsigned64 != newVal.value.unsigned64 ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_FLOAT32    :
+      if( oldVal.value.float32 != newVal.value.float32 ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_FLOAT64    :
+      if( oldVal.value.float64 != newVal.value.float64 ) {	
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_FLOAT128   :
+      if( oldVal.value.float128 != newVal.value.float128 ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_OCTETSTRING :
+    case SMI_BASETYPE_BITS:
+      if( oldVal.len != newVal.len ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      else if( strncmp(oldVal.value.ptr, newVal.value.ptr, oldVal.len) ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+      if( oldVal.len != newVal.len ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      else if( 0 /* TBD */ ) {
+	printErrorAtLine(newModule, ERR_DEFVAL_CHANGED, newLine,name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
+      }
+      break;
+    case SMI_BASETYPE_ENUM :
+      /* TBD */
+    }
+  }
 }
 
 static void
@@ -622,10 +745,13 @@ checkTypes(SmiModule *oldModule, SmiType *oldType,
     checkRanges(oldModule, smiGetTypeLine(oldType),
 		newModule, smiGetTypeLine(newType),
 		oldType->name,
-		smiGetFirstRange(oldType),
-		smiGetFirstRange(newType));
+		oldType,
+		newType);
 
-    /* xxx check defval */
+    checkDefVal(oldModule, smiGetTypeLine(oldType),
+		newModule, smiGetTypeLine(newType),
+		oldType->name, 
+		oldType->value, newType->value);
 
     checkDecl(oldModule, smiGetTypeLine(oldType),
 	      newModule, smiGetTypeLine(newType),
@@ -752,7 +878,12 @@ checkObjects(SmiModule *oldModule, SmiNode *oldNode,
 
     /* check nodekind */
     /* check names */
-    /* check defval */
+
+    checkDefVal(oldModule, smiGetNodeLine(oldNode),
+		newModule, smiGetNodeLine(newNode),
+		newNode->name,
+		oldNode->value, newNode->value);
+
     /* check index */
 
     checkFormat(oldModule, smiGetNodeLine(oldNode),
