@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.8 1999/05/31 15:48:45 strauss Exp $
+# @(#) $Id: configure.in,v 1.9 1999/06/01 17:39:19 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -45,4 +45,4 @@ AC_SUBST(CFLAGS)
 AC_SUBST(BISON)
 AC_SUBST(FLEX)
 
-AC_OUTPUT(Makefile lib/Makefile tools/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1)
+AC_OUTPUT(Makefile lib/Makefile tools/Makefile mibs/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 lib/smi.h)

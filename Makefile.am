@@ -8,10 +8,10 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.2 1999/05/28 17:26:11 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.3 1999/05/31 11:58:27 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
 
-SUBDIRS			= lib tools
+SUBDIRS			= lib tools mibs
 
