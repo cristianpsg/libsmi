@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.69 2003/01/29 16:42:52 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.70 2003/02/03 16:30:51 tklie Exp $
  */
 
 #include <config.h>
@@ -1286,8 +1286,19 @@ static void fprintAnnotationElem( FILE *f, SmiNode *smiNode ) {
     
     fprintSegment( f, 1, "<xsd:annotation>\n");
     fprintSegment( f, 1, "<xsd:appinfo>\n");
-    fprintSegment( f, 0, "<implied>%s</implied>\n",
-		   smiNode->implied ? "true" : "false" );
+
+    if( smiNode->nodekind == SMI_NODEKIND_ROW &&
+	( smiNode->implied || smiNode->create ) ) {
+	fprintSegment( f, 0, "<flags" );
+	if( smiNode->implied ) {
+	    fprintf( f, " implied=\"yes\"" );
+	}
+	if( smiNode->create ) {
+	    fprintf( f, " create=\"yes\"" );
+	}
+	fprintf( f, "/>\n" );
+    }
+    
     fprintSegment( f, 0, "<maxAccess>%s</maxAccess>\n",
 		   getStringAccess( smiNode->access ) );
     fprintSegment( f, 0, "<oid>");
@@ -1337,7 +1348,7 @@ fprintTypeWithHint( FILE *f, SmiNode *smiNode, SmiType *smiType, char *hint )
     SmiRange *smiRange;
     SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
     
-    fprintAnnotationElem( f, smiNode );
+/*    fprintAnnotationElem( f, smiNode );*/
     
     /* write subtype lengths to the array */
     for( smiRange = smiGetFirstRange( smiType );
@@ -1399,7 +1410,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 			   smiNode->name,
 			   smiNode->name,
 			   getStringBasetype( smiType->basetype ) );
-	    fprintAnnotationElem( f, smiNode );
+/*	    fprintAnnotationElem( f, smiNode );*/
     }
 
     else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {	    
@@ -1410,7 +1421,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	    fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
 			   "use=\"required\">\n", smiNode->name );
 	    if( ! hint ) {
-		fprintAnnotationElem( f, smiNode );
+/*		fprintAnnotationElem( f, smiNode );*/
 		fprintTypedef( f, smiType, NULL );
 	    }
 	    else {
@@ -1429,7 +1440,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 			       "type=\"%s\" use=\"required\">\n",
 			       smiNode->name, typeName );
 	    }
-	    fprintAnnotationElem( f, smiNode );
+/*	    fprintAnnotationElem( f, smiNode );*/
 	}
     }
     
@@ -1438,7 +1449,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
 		       "use=\"required\">\n",
 		       smiNode->name );
-	fprintAnnotationElem( f, smiNode );
+/*	fprintAnnotationElem( f, smiNode );*/
 	fprintTypedef( f, smiType, NULL );
     }
     
@@ -1461,9 +1472,9 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	    fprintSegment( f, -1, "</xsd:appinfo>\n");
 	    fprintSegment( f, -1, "</xsd:annotation>\n");
 	}
-	else {
+/*	else {
 	    fprintAnnotationElem( f, smiNode );
-	}
+	    }*/
     }
     fprintSegment( f, -1, "</xsd:attribute>\n"); 
 }
@@ -1565,7 +1576,7 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 	fprintSegment( f, 1, "<xsd:complexType>\n" );
     }
 
-    fprintAnnotationElem( f, smiNode );
+/*    fprintAnnotationElem( f, smiNode ); */
 
     numChildren = hasChildren( smiNode, SMI_NODEKIND_ANY );
 
@@ -1630,6 +1641,7 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 	    fprintComplexType( f, iterNode, iterNode->name, NULL );
 	}
     }
+
 }    
 
 
@@ -2037,15 +2049,17 @@ static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 	if( hasChildren( iterNode, SMI_NODEKIND_SCALAR ) ) {
 	    
 	    if (container) {
-		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
-			      "type=\"%s:%sType\" minOccurs=\"0\"/>\n",
+		fprintSegment(f, 1, "<xsd:element name=\"%s\" "
+			      "type=\"%s:%sType\" minOccurs=\"0\">\n",
 			      iterNode->name,
 			      smiModule->name, iterNode->name);
 	    } else {
-		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
-			      "type=\"%sType\" minOccurs=\"0\"/>\n",
+		fprintSegment(f, 1, "<xsd:element name=\"%s\" "
+			      "type=\"%sType\" minOccurs=\"0\">\n",
 			      iterNode->name, iterNode->name);
 	    }
+	    fprintAnnotationElem( f, iterNode );
+	    fprintSegment( f, -1, "</xsd:element>\n" );
 	}
     }   
 
@@ -2077,17 +2091,19 @@ static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 	    }
 
 	    if (container) {
-		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
+		fprintSegment(f, 1, "<xsd:element name=\"%s\" "
 			      "type=\"%s:%sType\" minOccurs=\"0\" "
-			      "maxOccurs=\"unbounded\"/>\n",
+			      "maxOccurs=\"unbounded\">\n",
 			      iterNode->name,
 			      smiModule->name, iterNode->name);
 	    } else {
-		fprintSegment(f, 0, "<xsd:element name=\"%s\" "
+		fprintSegment(f, 1, "<xsd:element name=\"%s\" "
 			      "type=\"%sType\" minOccurs=\"0\" "
-			      "maxOccurs=\"unbounded\"/>\n",
+			      "maxOccurs=\"unbounded\">\n",
 			      iterNode->name, iterNode->name);
 	    }
+	    fprintAnnotationElem( f, iterNode );
+	    fprintSegment( f, -1, "</xsd:element>\n" );
 	}
     }   
 }
