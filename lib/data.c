@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.54 2000/02/02 17:30:30 strauss Exp $
+ * @(#) $Id: data.c,v 1.55 2000/02/05 18:05:57 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -536,8 +536,8 @@ setImportModulename(importPtr, modulename)
  */
 
 int
-checkImports(modulename, parserPtr)
-    char        *modulename;
+checkImports(modulePtr, parserPtr)
+    Module      *modulePtr;
     Parser	*parserPtr;
 {
     int         n = 0;
@@ -550,26 +550,25 @@ checkImports(modulename, parserPtr)
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (importPtr->kind == KIND_UNKNOWN) {
-	    if ((smiNode = smiGetNode(modulename,
+	    if ((smiNode = smiGetNode(modulePtr->export.name,
 				      importPtr->export.importname))) {
-		importPtr->export.importmodule = util_strdup(modulename);
+		importPtr->export.importmodule = util_strdup(modulePtr->export.name);
 		importPtr->kind	= KIND_OBJECT;
 		smiFreeNode(smiNode);
-	    } else if ((smiType = smiGetType(modulename,
+	    } else if ((smiType = smiGetType(modulePtr->export.name,
 					     importPtr->export.importname))) {
-		importPtr->export.importmodule = util_strdup(modulename);
+		importPtr->export.importmodule = util_strdup(modulePtr->export.name);
 		importPtr->kind	= KIND_TYPE;
 		smiFreeType(smiType);
-	    } else if ((smiMacro = smiGetMacro(modulename,
+	    } else if ((smiMacro = smiGetMacro(&modulePtr->export,
 					      importPtr->export.importname))) {
-		importPtr->export.importmodule = util_strdup(modulename);
+		importPtr->export.importmodule = util_strdup(modulePtr->export.name);
 		importPtr->kind = KIND_MACRO;
-		smiFreeMacro(smiMacro);
 	    } else {
 		n++;
-		importPtr->export.importmodule = util_strdup(modulename);
+		importPtr->export.importmodule = util_strdup(modulePtr->export.name);
 		printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
-			   importPtr->export.importname, modulename);
+			   importPtr->export.importname, modulePtr->export.name);
 		importPtr->kind   = KIND_NOTFOUND;
 	    }
 	}
@@ -2736,11 +2735,15 @@ addMacro(macroname, fileoffset, flags, parserPtr)
 
     macroPtr = (Macro *)util_malloc(sizeof(Macro));
 	    
-    macroPtr->modulePtr  = parserPtr->modulePtr;
-    macroPtr->name	 = util_strdup(macroname);
-    macroPtr->fileoffset = fileoffset;
-    macroPtr->flags      = flags;
-    macroPtr->line	 = parserPtr ? parserPtr->line : -1;
+    macroPtr->export.name 	 = util_strdup(macroname);
+    macroPtr->export.status      = SMI_STATUS_UNKNOWN;
+    macroPtr->export.description = NULL;
+    macroPtr->export.reference   = NULL;
+
+    macroPtr->modulePtr   	 = parserPtr->modulePtr;
+    macroPtr->fileoffset  	 = fileoffset;
+    macroPtr->flags       	 = flags;
+    macroPtr->line	  	 = parserPtr ? parserPtr->line : -1;
     
     macroPtr->nextPtr				= NULL;
     macroPtr->prevPtr				= modulePtr->lastMacroPtr;
@@ -2751,6 +2754,138 @@ addMacro(macroname, fileoffset, flags, parserPtr)
     modulePtr->lastMacroPtr			= macroPtr;
     
     return (macroPtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMacroStatus --
+ *
+ *      Set the status of a given Macro.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMacroStatus(macroPtr, status)
+    Macro      *macroPtr;
+    SmiStatus  status;
+{
+    macroPtr->export.status = status;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMacroDescription --
+ *
+ *      Set the description of a given Macro.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMacroDescription(macroPtr, description)
+    Macro	   *macroPtr;
+    char	   *description;
+{
+    if (macroPtr->export.description) util_free(macroPtr->export.description);
+    macroPtr->export.description = description;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMacroReference --
+ *
+ *      Set the reference of a given Macro.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMacroReference(macroPtr, reference)
+    Macro	   *macroPtr;
+    char	   *reference;
+{
+    if (macroPtr->export.reference) util_free(macroPtr->export.reference);
+    macroPtr->export.reference = reference;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMacroFileOffset --
+ *
+ *      Set the fileoffset of a given Macro.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMacroFileOffset(macroPtr, fileoffset)
+    Macro    *macroPtr;
+    off_t    fileoffset;
+{
+    macroPtr->fileoffset = fileoffset;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setMacroDecl --
+ *
+ *      Set the declaring macro of a given Macro.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setMacroDecl(macroPtr, decl)
+    Macro    *macroPtr;
+    SmiDecl  decl;
+{
+    macroPtr->export.decl = decl;
 }
 
 
@@ -2782,7 +2917,7 @@ findMacroByModuleAndName(modulePtr, macroname)
     if (modulePtr) {
 	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
 	     macroPtr = macroPtr->nextPtr) {
-	    if (!strcmp(macroPtr->name, macroname)) {
+	    if (!strcmp(macroPtr->export.name, macroname)) {
 		return (macroPtr);
 	    }
 	}
@@ -2823,7 +2958,7 @@ findMacroByModulenameAndName(modulename, macroname)
     if (modulePtr) {
 	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
 	     macroPtr = macroPtr->nextPtr) {
-	    if (!strcmp(macroPtr->name, macroname)) {
+	    if (!strcmp(macroPtr->export.name, macroname)) {
 		return (macroPtr);
 	    }
 	}
@@ -3003,7 +3138,7 @@ freeData()
 	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
 	     macroPtr = nextMacroPtr) {
 	    nextMacroPtr = macroPtr->nextPtr;
-	    util_free(macroPtr->name);
+	    util_free(macroPtr->export.name);
 	    util_free(macroPtr);
 	}
 

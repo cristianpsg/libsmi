@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.54 2000/02/02 17:30:30 strauss Exp $
+ * @(#) $Id: smi.h,v 1.55 2000/02/05 18:05:58 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -119,15 +119,16 @@ typedef enum SmiDecl {
     SMI_DECL_TEXTUALCONVENTION  = 15,
     /* SMIng statements */
     SMI_DECL_MODULE             = 33,
-    SMI_DECL_TYPEDEF            = 34,
-    SMI_DECL_NODE               = 35,
-    SMI_DECL_SCALAR             = 36,
-    SMI_DECL_TABLE              = 37,
-    SMI_DECL_ROW                = 38,
-    SMI_DECL_COLUMN             = 39,
-    SMI_DECL_NOTIFICATION       = 40,
-    SMI_DECL_GROUP              = 41,
-    SMI_DECL_COMPLIANCE         = 42
+    SMI_DECL_EXTENSION          = 34,
+    SMI_DECL_TYPEDEF            = 35,
+    SMI_DECL_NODE               = 36,
+    SMI_DECL_SCALAR             = 37,
+    SMI_DECL_TABLE              = 38,
+    SMI_DECL_ROW                = 39,
+    SMI_DECL_COLUMN             = 40,
+    SMI_DECL_NOTIFICATION       = 41,
+    SMI_DECL_GROUP              = 42,
+    SMI_DECL_COMPLIANCE         = 43
 } SmiDecl;
 
 /* SmiIndexkind -- actual kind of a table row's index method                 */
@@ -209,8 +210,11 @@ typedef struct SmiImport {
 
 /* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
 typedef struct SmiMacro {
-    SmiIdentifier       module;
     SmiIdentifier       name;
+    SmiDecl             decl;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
 } SmiMacro;
 
 /* SmiType -- the main structure of a type definition (also base types)      */
@@ -262,14 +266,6 @@ typedef struct SmiListItem {
     SmiIdentifier       listmodule;
     int			number;
 } SmiListItem;
-
-/* SmiMember -- a member of a group                                          */
-typedef struct SmiMember {
-    SmiIdentifier       name;
-    SmiIdentifier       module;
-    SmiIdentifier       groupname;
-    SmiIdentifier       groupmodule;
-} SmiMember;
 
 /* SmiOption -- an optional group in a compliance statement                  */
 typedef struct SmiOption {
@@ -374,9 +370,9 @@ extern void smiFreeNamedNumber(SmiNamedNumber *smiNamedNumberPtr);
 
 
 
-extern SmiMacro *smiGetMacro(char *module, char *macro);
+extern SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro);
 
-extern SmiMacro *smiGetFirstMacro(char *module);
+extern SmiMacro *smiGetFirstMacro(SmiModule *smiModulePtr);
 
 extern SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr);
 

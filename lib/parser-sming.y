@@ -53,7 +53,7 @@ extern int yylex(void *lvalp, Parser *parserPtr);
 
 
 
-static char *typeIdentifier, *nodeIdentifier,
+static char *typeIdentifier, *macroIdentifier, *nodeIdentifier,
 	    *scalarIdentifier, *tableIdentifier, *rowIdentifier,
 	    *columnIdentifier, *notificationIdentifier,
 	    *groupIdentifier, *complianceIdentifier;
@@ -68,6 +68,7 @@ static Object *notificationObjectPtr = NULL;
 static Object *groupObjectPtr = NULL;
 static Object *complianceObjectPtr = NULL;
 static Type *typePtr = NULL;
+static Macro *macroPtr = NULL;
 static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
 
 
@@ -141,7 +142,7 @@ checkDate(Parser *parserPtr, char *date)
     struct tm	tm;
     time_t	anytime;
     int		i, len;
-    char	*p;
+    char	*p, *tz;
 
     memset(&tm, 0, sizeof(tm));
     anytime = 0;
@@ -195,9 +196,20 @@ checkDate(Parser *parserPtr, char *date)
 	
 	tm.tm_year -= 1900;
 	tm.tm_mon -= 1;
+	tm.tm_isdst = 0;
 
-	tzset();
+	/* ensure to call mktime() for UTC */
+	tz = getenv("TZ");
+	if (tz) tz = strdup(tz);
+	setenv("TZ", "NULL", 1);
 	anytime = mktime(&tm);
+	if (tz) {
+	    setenv("TZ", tz, 1);
+	    free(tz);
+	} else {
+	    unsetenv("TZ");
+	}
+
 	if (anytime == (time_t) -1) {
 	    printError(parserPtr, ERR_DATE_VALUE, date);
 	} else {
@@ -207,7 +219,6 @@ checkDate(Parser *parserPtr, char *date)
 	    if (anytime > time(NULL)) {
 		printError(parserPtr, ERR_DATE_IN_FUTURE, date);
 	    }
-	    anytime -= timezone;
 	}
     }
     
@@ -243,6 +254,7 @@ checkDate(Parser *parserPtr, char *date)
     Module	   *modulePtr;
     Node	   *nodePtr;
     Object	   *objectPtr;
+    Macro	   *macroPtr;
     Type	   *typePtr;
     Index	   *indexPtr;
     Option	   *optionPtr;
@@ -281,6 +293,7 @@ checkDate(Parser *parserPtr, char *date)
 %token <rc>contactKeyword
 %token <rc>descriptionKeyword
 %token <rc>referenceKeyword
+%token <rc>extensionKeyword
 %token <rc>typedefKeyword
 %token <rc>typeKeyword
 %token <rc>writetypeKeyword
@@ -339,6 +352,10 @@ checkDate(Parser *parserPtr, char *date)
 %type <rc>moduleStatement_optsep_1n
 %type <rc>moduleStatement_optsep
 %type <modulePtr>moduleStatement
+%type <rc>extensionStatement_stmtsep_0n
+%type <rc>extensionStatement_stmtsep_1n
+%type <rc>extensionStatement_stmtsep
+%type <macroPtr>extensionStatement
 %type <rc>typedefStatement_stmtsep_0n
 %type <rc>typedefStatement_stmtsep_1n
 %type <rc>typedefStatement_stmtsep
@@ -569,13 +586,14 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
+			    } else {
+				free($3);
 			    }
 			    thisModulePtr->export.language = SMI_LANGUAGE_SMING;
 			    thisParserPtr->modulePtr->numImportedIdentifiers
 				                                           = 0;
 			    thisParserPtr->modulePtr->numStatements = 0;
 			    thisParserPtr->modulePtr->numModuleIdentities = 0;
-			    free($3);
 			    thisParserPtr->firstIndexlabelPtr = NULL;
 			    thisParserPtr->identityObjectName = NULL;
 			}
@@ -647,6 +665,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    }
 			}
 			revisionStatement_stmtsep_0n
+			extensionStatement_stmtsep_0n
 			typedefStatement_stmtsep_0n
 			anyObjectStatement_stmtsep_0n
 			notificationStatement_stmtsep_0n
@@ -704,6 +723,89 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			}
 	;
 
+extensionStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
+        |		extensionStatement_stmtsep_1n
+			{
+			    /*
+			     * Return the number of successfully
+			     * parsed extension statements.
+			     */
+			    $$ = $1;
+			}
+	;
+
+extensionStatement_stmtsep_1n: extensionStatement_stmtsep
+			{
+			    $$ = $1;
+			}
+        |		extensionStatement_stmtsep_1n
+			extensionStatement_stmtsep
+			{
+			    /*
+			     * Sum up the number of successfully parsed
+			     * extensions or return -1, if at least one
+			     * failed.
+			     */
+			    if (($1 >= 0) && ($2 >= 0)) {
+				$$ = $1 + $2;
+			    } else {
+				$$ = -1;
+			    }
+			}
+        ;
+
+extensionStatement_stmtsep: extensionStatement stmtsep
+			{
+			    /*
+			     * If we got a (Type *) return rc == 1,
+			     * otherwise parsing failed (rc == -1).
+			     */
+			    if ($1) {
+				$$ = 1;
+			    } else {
+				$$ = -1;
+			    }
+			}
+        ;
+
+extensionStatement:	extensionKeyword sep lcIdentifier
+			{
+			    macroIdentifier = $3;
+			    macroPtr = addMacro(macroIdentifier,
+						thisParserPtr->character,
+						0,
+						thisParserPtr);
+			    setMacroDecl(macroPtr, SMI_DECL_EXTENSION);
+			}
+			optsep '{' stmtsep
+			statusStatement_stmtsep_01
+			{
+			    if (macroPtr && $8) {
+				setMacroStatus(macroPtr, $8);
+			    }
+			}
+			descriptionStatement_stmtsep_01
+			{
+			    if (macroPtr && $10) {
+				setMacroDescription(macroPtr, $10);
+			    }
+			}
+			referenceStatement_stmtsep_01
+			{
+			    if (macroPtr && $12) {
+				setMacroReference(macroPtr, $12);
+			    }
+			}
+			'}' optsep ';'
+			{
+			    $$ = 0;
+			    macroPtr = NULL;
+			    free(macroIdentifier);
+			}
+
 typedefStatement_stmtsep_0n: /* empty */
 			{
 			    $$ = 0;
@@ -728,7 +830,7 @@ typedefStatement_stmtsep_1n: typedefStatement_stmtsep
 			    /*
 			     * Sum up the number of successfully parsed
 			     * typedefs or return -1, if at least one
-			     * module failed.
+			     * failed.
 			     */
 			    if (($1 >= 0) && ($2 >= 0)) {
 				$$ = $1 + $2;
@@ -1684,12 +1786,14 @@ importStatement:	importKeyword sep ucIdentifier
 			}
 			optsep ')' optsep ';'
 			{
+			    Module *modulePtr;
 			    char *s = importModulename;
-			    
-			    if (!findModuleByName(s)) {
-				loadModule(s);
+
+			    modulePtr = findModuleByName(s);
+			    if (!modulePtr) {
+				modulePtr = loadModule(s);
 			    }
-			    checkImports(s, thisParserPtr);
+			    checkImports(modulePtr, thisParserPtr);
 			    free(s);
 			    $$ = NULL;
 			}
