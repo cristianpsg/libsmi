@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.4 1999/12/20 09:36:43 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.5 1999/12/21 09:16:36 strauss Exp $
  */
 
 /*
@@ -416,6 +416,9 @@ static void printReadMethod(SmiNode *groupNode)
 	       "        return NULL;\n"
 	       "    }\n\n");
     }
+    if (smiNode) {
+	smiFreeNode(smiNode);
+    }
 
     printf("    /* call the user supplied function to retrieve values */\n\n");
     printf("    read_%s(&%s);\n\n", sName, sName);
@@ -641,6 +644,8 @@ int dumpUcdH(char *modulename, int flags)
 
     printf("#endif /* _%s_H_ */\n", cModuleName);
     free(cModuleName);
+
+    smiFreeModule(smiModule);
     
     return 0;
 }
@@ -664,7 +669,7 @@ int dumpUcdC(char *modulename, int flags)
     printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
     printf(" *\n");
     printf(" * This C file is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.4 1999/12/20 09:36:43 strauss Exp $\n");
+    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.5 1999/12/21 09:16:36 strauss Exp $\n");
     printf(" */\n\n");
 
     printf("#define UCD_SNMP\n/* #define CMU_LINUX_SNMP */\n\n");
@@ -701,6 +706,8 @@ int dumpUcdC(char *modulename, int flags)
     cModuleName = translate(smiModule->name);
 
     free(cModuleName);
+
+    smiFreeModule(smiModule);
 
     return 0;
 }

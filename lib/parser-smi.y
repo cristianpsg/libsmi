@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.61 2000/01/13 14:44:19 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.62 2000/01/13 15:03:02 strauss Exp $
  */
 
 %{
@@ -80,6 +80,327 @@ checkNameLen(Parser *parser, char *name, int error_32, int error_64)
 }
 
 
+static void
+checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
+{
+    if ((modulePtr->language == SMI_LANGUAGE_SMIV2)
+	&& (modulePtr->numModuleIdentities < 1)
+	&& strcmp(modulePtr->name, "SNMPv2-SMI")
+	&& strcmp(modulePtr->name, "SNMPv2-CONF")
+	&& strcmp(modulePtr->name, "SNMPv2-TC")) {
+	printError(parserPtr, ERR_NO_MODULE_IDENTITY);
+    }
+}
+
+
+static void
+checkObjects(Parser *parserPtr, Module *modulePtr)
+{
+    Object *objectPtr, *parentPtr;
+    
+    /*
+     * Set nodekinds of all newly defined objects.
+     */
+    
+    for (objectPtr = modulePtr->firstObjectPtr;
+	 objectPtr; objectPtr = objectPtr->nextPtr) {
+	if (objectPtr->nodePtr->parentPtr &&
+	    objectPtr->nodePtr->parentPtr->lastObjectPtr) {
+	    parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
+	} else {
+	    parentPtr = NULL;
+	}
+	if (objectPtr->decl == SMI_DECL_MODULEIDENTITY) {
+	    objectPtr->nodekind = SMI_NODEKIND_MODULE;
+	} else if ((objectPtr->decl == SMI_DECL_VALUEASSIGNMENT) ||
+		   (objectPtr->decl == SMI_DECL_OBJECTIDENTITY)) {
+	    objectPtr->nodekind = SMI_NODEKIND_NODE;
+	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
+		   (objectPtr->typePtr->decl == SMI_DECL_IMPL_SEQUENCEOF)) {
+	    objectPtr->nodekind = SMI_NODEKIND_TABLE;
+	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
+		   (objectPtr->indexPtr)) {
+	    objectPtr->nodekind = SMI_NODEKIND_ROW;
+	} else if ((objectPtr->decl == SMI_DECL_NOTIFICATIONTYPE) ||
+		   (objectPtr->decl == SMI_DECL_TRAPTYPE)) {
+	    objectPtr->nodekind = SMI_NODEKIND_NOTIFICATION;
+	} else if ((objectPtr->decl == SMI_DECL_OBJECTGROUP) ||
+		   (objectPtr->decl == SMI_DECL_NOTIFICATIONGROUP)) {
+	    objectPtr->nodekind = SMI_NODEKIND_GROUP;
+	} else if (objectPtr->decl == SMI_DECL_MODULECOMPLIANCE) {
+	    objectPtr->nodekind = SMI_NODEKIND_COMPLIANCE;
+	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
+		   (parentPtr->indexPtr)) {
+	    objectPtr->nodekind = SMI_NODEKIND_COLUMN;
+	} else if ((objectPtr->decl == SMI_DECL_OBJECTTYPE) &&
+		   (!parentPtr->indexPtr)) {
+	    objectPtr->nodekind = SMI_NODEKIND_SCALAR;
+	}
+
+	/*
+	 * Check whether the associated type resolves to a known base type.
+	 */
+	
+	if (objectPtr->typePtr
+	    && (objectPtr->nodekind == SMI_NODEKIND_COLUMN
+		|| objectPtr->nodekind == SMI_NODEKIND_SCALAR)
+	    && objectPtr->typePtr->basetype == SMI_BASETYPE_UNKNOWN) {
+	    printErrorAtLine(parserPtr, ERR_BASETYPE_UNKNOWN, objectPtr->line,
+			     objectPtr->typePtr->name, objectPtr->name);
+	}
+
+	/*
+	 * Check whether a row's subid is 1, see RFC 2578 7.10 (1).
+	 */
+	
+	if (objectPtr->nodekind == SMI_NODEKIND_ROW) {
+	    int len;
+	    
+	    if (objectPtr->nodePtr->subid != 1) {
+		printErrorAtLine(parserPtr, ERR_ROW_SUBID_ONE,
+				 objectPtr->line, objectPtr->name);
+	    }
+
+	    len = strlen(objectPtr->name);
+	    if (len < 6 || strcmp(objectPtr->name+len-5,"Entry")) {
+		printErrorAtLine(parserPtr, ERR_ROWNAME_ENTRY,
+				 objectPtr->line, objectPtr->name);
+	    }
+	}
+
+	if (objectPtr->nodekind == SMI_NODEKIND_TABLE) {
+	    int len;
+
+	    len = strlen(objectPtr->name);
+	    if (len < 6 || strcmp(objectPtr->name+len-5,"Table")) {
+		printErrorAtLine(parserPtr, ERR_TABLENAME_TABLE,
+				 objectPtr->line, objectPtr->name);
+	    }
+	}
+
+	/*
+	 * TODO: check whether the row is the only node below the
+         * table node
+	 */
+	
+	/*
+	 * Check references to unknown identifiers.
+	 */
+
+	if (objectPtr->flags & FLAG_INCOMPLETE) {
+	    if (strlen(objectPtr->name)) {
+		printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
+				 objectPtr->line, objectPtr->name);
+	    } else {
+		printErrorAtLine(parserPtr, ERR_IMPLICIT_NODE,
+				 objectPtr->line);
+	    }
+	}
+
+	/*
+	 * Adjust the status of implicit type definitions.
+	 */
+	
+	if (objectPtr->typePtr
+	    && (objectPtr->typePtr->decl == SMI_DECL_IMPLICIT_TYPE)
+	    && (objectPtr->typePtr->status == SMI_STATUS_UNKNOWN)) {
+	    objectPtr->typePtr->status = objectPtr->status;
+	}
+    }
+}
+
+
+static void
+checkTypes(Parser *parserPtr, Module *modulePtr)
+{
+    Type *typePtr;
+    
+    /*
+     * Check references to unknown types.
+     */
+    
+    for(typePtr = modulePtr->firstTypePtr;
+	typePtr; typePtr = typePtr->nextPtr) {
+	if ((typePtr->flags & FLAG_INCOMPLETE)
+	    && typePtr->name
+	    && (typePtr->decl == SMI_DECL_UNKNOWN)) {
+	    printErrorAtLine(parserPtr, ERR_UNKNOWN_TYPE,
+			     typePtr->line, typePtr->name);
+	}
+    }
+}
+
+				
+static void
+checkDefvals(Parser *parserPtr, Module *modulePtr)
+{
+    Object *objectPtr, *object2Ptr;
+    Import *importPtr;
+
+    /*
+     * Check unknown identifiers in OID DEFVALs.
+     */
+
+    for(objectPtr = modulePtr->firstObjectPtr;
+	objectPtr; objectPtr = objectPtr->nextPtr) {
+
+	Value *valuePtr = objectPtr->valuePtr;
+	
+	if (! valuePtr) continue;
+
+	/*
+	 * Set the basetype to the type's basetype if not done yet.
+	 */
+	    
+	if (valuePtr->basetype == SMI_BASETYPE_UNKNOWN) {
+	    valuePtr->basetype = objectPtr->typePtr->basetype;
+	}
+	
+	if ((valuePtr->basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
+	    && (valuePtr->format == SMI_VALUEFORMAT_NAME)) {
+	    object2Ptr = findObjectByModuleAndName(parserPtr->modulePtr,
+					   (char *) valuePtr->value.ptr);
+	    if (!object2Ptr) {
+		importPtr = findImportByName((char *) valuePtr->value.ptr,
+					     modulePtr);
+		if (importPtr) {		/* imported object */
+		    importPtr->use++;
+		    object2Ptr = findObjectByModulenameAndName(
+			importPtr->importmodule,
+			importPtr->importname);
+		}
+	    }
+	    if (!object2Ptr) {
+		printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
+				 objectPtr->line,
+				 (char *) valuePtr->value.ptr);
+		valuePtr->value.ptr = NULL;
+	    } else {
+		valuePtr->value.ptr = (void *) object2Ptr;
+	    }
+	    valuePtr->format = SMI_VALUEFORMAT_OID;
+	} else if ((valuePtr->basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
+		   && (valuePtr->format == SMI_VALUEFORMAT_OID)) {
+	    if ((valuePtr->len != 2) ||
+		(valuePtr->value.oid[0] != 0) ||
+		(valuePtr->value.oid[1] != 0)) {
+		printErrorAtLine(parserPtr, ERR_ILLEGAL_OID_DEFVAL,
+				 objectPtr->line, objectPtr->name);
+	    }
+	    if (!findModuleByName("SNMPv2-SMI")) {
+		loadModule("SNMPv2-SMI");
+	    }
+	    object2Ptr = findObjectByModulenameAndName("SNMPv2-SMI",
+						       "zeroDotZero");
+	    valuePtr->format = SMI_VALUEFORMAT_OID;
+	    valuePtr->value.ptr = (void *) object2Ptr;
+	}
+    }
+}
+
+
+static void
+checkImportsUsage(Parser *parserPtr, Module *modulePtr)
+{
+    Import *importPtr;
+    
+    /*
+     * Check usage of all imported identifiers.
+     */
+
+    if (strcmp(modulePtr->name, "SNMPv2-TC") &&
+	strcmp(modulePtr->name, "SNMPv2-CONF") &&
+	strcmp(modulePtr->name, "RFC-1212") &&
+	strcmp(modulePtr->name, "RFC-1215")) {
+	for(importPtr = modulePtr->firstImportPtr;
+	    importPtr; importPtr = importPtr->nextPtr) {
+	    if (importPtr->use == 0) {
+		printErrorAtLine(parserPtr, ERR_UNUSED_IMPORT,
+				 importPtr->line, importPtr->importname,
+				 importPtr->importmodule);
+	    }
+	}
+    }
+}
+
+
+static time_t
+checkDate(Parser *parserPtr, char *date)
+{
+    struct tm	tm;
+    time_t	anytime;
+    int		i, len;
+    char	*p;
+    
+    memset(&tm, 0, sizeof(tm));
+    anytime = 0;
+    
+    len = strlen(date);
+    if (len == 11 || len == 13) {
+	for (i = 0; i < len; i++) {
+	    if ( (i < len-1 && ! isdigit(date[i]))
+		 || (i == len-1 && date[len-1] != 'Z')) {
+		printError(parserPtr, ERR_DATE_CHARACTER, date);
+		anytime = (time_t) -1;
+		break;
+	    }
+	}
+    } else {
+	printError(parserPtr, ERR_DATE_LENGTH, date);
+	anytime = (time_t) -1;
+    }
+
+    if (anytime == 0) {
+	for (i = 0, p = date, tm.tm_year = 0;
+	     i < ((len == 11) ? 2 : 4); i++, p++) {
+	    tm.tm_year = tm.tm_year * 10 + (*p - '0');
+	}
+	if (len == 11) {
+	    tm.tm_year += 1900;
+	    printError(parserPtr, ERR_DATE_YEAR_2DIGITS, date, tm.tm_year);
+	}
+	tm.tm_mon  = (p[0]-'0') * 10 + (p[1]-'0');
+	p += 2;
+	tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
+	p += 2;
+	tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
+	p += 2;
+	tm.tm_min  = (p[0]-'0') * 10 + (p[1]-'0');
+	
+	if (tm.tm_mon < 1 || tm.tm_mon > 12) {
+	    printError(parserPtr, ERR_DATE_MONTH, date);
+	}
+	if (tm.tm_mday < 1 || tm.tm_mday > 31) {
+	    printError(parserPtr, ERR_DATE_DAY, date);
+	}
+	if (tm.tm_hour < 0 || tm.tm_hour > 23) {
+	    printError(parserPtr, ERR_DATE_HOUR, date);
+	}
+	if (tm.tm_min < 0 || tm.tm_min > 59) {
+	    printError(parserPtr, ERR_DATE_MINUTES, date);
+	}
+	
+	tm.tm_year -= 1900;
+	tm.tm_mon -= 1;
+	
+	tzset();
+	anytime = mktime(&tm);
+	if (anytime == (time_t) -1) {
+	    printError(parserPtr, ERR_DATE_VALUE, date);
+	} else {
+	    if (anytime < SMI_EPOCH) {
+		printError(parserPtr, ERR_DATE_IN_PAST, date);
+	    }
+	    if (anytime > time(NULL)) {
+		printError(parserPtr, ERR_DATE_IN_FUTURE, date);
+	    }
+	    anytime -= timezone;
+	}
+    }
+
+    return (anytime == (time_t) -1) ? 0 : anytime;
+}
+    
 %}
 
 /*
@@ -387,7 +708,7 @@ module:			moduleName
 			    if (!thisParserPtr->modulePtr) {
 				thisParserPtr->modulePtr =
 				    addModule($1,
-					      thisParserPtr->path,
+					      util_strdup(thisParserPtr->path),
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
@@ -424,213 +745,12 @@ module:			moduleName
 			declarationPart
 			END
 			{
-			    Object *objectPtr, *object2Ptr, *parentPtr;
-			    Type *typePtr;
-			    Import *importPtr;
-
-			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
-				&&
-				(thisModulePtr->numModuleIdentities < 1) &&
-				strcmp(thisModulePtr->name, "SNMPv2-SMI") &&
-				strcmp(thisModulePtr->name, "SNMPv2-CONF") &&
-				strcmp(thisModulePtr->name, "SNMPv2-TC")) {
-			        printError(thisParserPtr,
-					   ERR_NO_MODULE_IDENTITY);
-			    }
+			    checkModuleIdentity(thisParserPtr, thisModulePtr);
+			    checkObjects(thisParserPtr, thisModulePtr);
+			    checkTypes(thisParserPtr, thisModulePtr);
+			    checkDefvals(thisParserPtr, thisModulePtr);
+			    checkImportsUsage(thisParserPtr, thisModulePtr);
 			    
-			    /*
-			     * Set nodekinds of all newly defined objects.
-			     */
-			    for (objectPtr = thisModulePtr->firstObjectPtr;
-				 objectPtr; objectPtr = objectPtr->nextPtr) {
-				if (objectPtr->nodePtr->parentPtr &&
-				    objectPtr->nodePtr->parentPtr->
-				    lastObjectPtr) {
-				    parentPtr =
-					objectPtr->nodePtr->parentPtr->
-					lastObjectPtr;
-				} else {
-				    parentPtr = NULL;
-				}
-				if (objectPtr->decl ==
-				    SMI_DECL_MODULEIDENTITY) {
-				    objectPtr->nodekind = SMI_NODEKIND_MODULE;
-				} else if ((objectPtr->decl ==
-					    SMI_DECL_VALUEASSIGNMENT) ||
-					   (objectPtr->decl ==
-					    SMI_DECL_OBJECTIDENTITY)) {
-				    objectPtr->nodekind = SMI_NODEKIND_NODE;
-				} else if ((objectPtr->decl ==
-					    SMI_DECL_OBJECTTYPE) &&
-					   (objectPtr->typePtr->decl ==
-					    SMI_DECL_IMPL_SEQUENCEOF)) {
-				    objectPtr->nodekind = SMI_NODEKIND_TABLE;
-				} else if ((objectPtr->decl ==
-					    SMI_DECL_OBJECTTYPE) &&
-					   (objectPtr->indexPtr)) {
-				    objectPtr->nodekind = SMI_NODEKIND_ROW;
-				} else if ((objectPtr->decl ==
-					    SMI_DECL_NOTIFICATIONTYPE) ||
-					   (objectPtr->decl ==
-					    SMI_DECL_TRAPTYPE)) {
-				    objectPtr->nodekind =
-					SMI_NODEKIND_NOTIFICATION;
-				} else if ((objectPtr->decl ==
-					    SMI_DECL_OBJECTGROUP) ||
-					   (objectPtr->decl ==
-					    SMI_DECL_NOTIFICATIONGROUP)) {
-				    objectPtr->nodekind = SMI_NODEKIND_GROUP;
-				} else if (objectPtr->decl ==
-					   SMI_DECL_MODULECOMPLIANCE) {
-				    objectPtr->nodekind =
-					SMI_NODEKIND_COMPLIANCE;
-				} else if ((objectPtr->decl ==
-					    SMI_DECL_OBJECTTYPE) &&
-					   (parentPtr->indexPtr)) {
-				    objectPtr->nodekind = SMI_NODEKIND_COLUMN;
-				} else if ((objectPtr->decl ==
-					    SMI_DECL_OBJECTTYPE) &&
-					   (!parentPtr->indexPtr)) {
-				    objectPtr->nodekind = SMI_NODEKIND_SCALAR;
-				}
-			    }
-
-			    /*
-			     * Check usage of all imported identifiers.
-			     */
-			    if (strcmp(thisModulePtr->name, "SNMPv2-TC") &&
-				strcmp(thisModulePtr->name, "SNMPv2-CONF") &&
-				strcmp(thisModulePtr->name, "RFC-1212") &&
-				strcmp(thisModulePtr->name, "RFC-1215")) {
-				for(importPtr = thisModulePtr->firstImportPtr;
-				    importPtr;
-				    importPtr = importPtr->nextPtr) {
-				    if (importPtr->use == 0) {
-					printErrorAtLine(thisParserPtr,
-							 ERR_UNUSED_IMPORT,
-							 importPtr->line,
-							 importPtr->importname,
-							 importPtr->importmodule);
-				    }
-				}
-			    }
-
-			    /*
-			     * Check references to unknown identifiers.
-			     * Adjust status of implicit type definitions.
-			     */
-			    for(objectPtr = thisModulePtr->firstObjectPtr;
-				objectPtr;
-				objectPtr = objectPtr->nextPtr) {
-
-				if (objectPtr->flags & FLAG_INCOMPLETE) {
-				    if (strlen(objectPtr->name)) {
-					printErrorAtLine(thisParserPtr,
-							 ERR_UNKNOWN_OIDLABEL,
-							 objectPtr->line,
-							 objectPtr->name);
-				    } else {
-					printErrorAtLine(thisParserPtr,
-							 ERR_IMPLICIT_NODE,
-							 objectPtr->line);
-				    }
-				}
-
-				if (objectPtr->typePtr &&
-				    (objectPtr->typePtr->decl ==
-				     SMI_DECL_IMPLICIT_TYPE) &&
-				    (objectPtr->typePtr->status ==
-				     SMI_STATUS_UNKNOWN)) {
-				    objectPtr->typePtr->status =
-					objectPtr->status;
-				}
-			    }
-			    
-			    /*
-			     * Check references to unknown types.
-			     */
-			    for(typePtr = thisModulePtr->firstTypePtr;
-				typePtr;
-				typePtr = typePtr->nextPtr) {
-				if ((typePtr->flags & FLAG_INCOMPLETE) &&
-				    typePtr->name &&
-				    (typePtr->decl == SMI_DECL_UNKNOWN)) {
-				    printErrorAtLine(thisParserPtr,
-						     ERR_UNKNOWN_TYPE,
-						     typePtr->line,
-						     typePtr->name);
-				}
-
-			    }
-				
-			    /*
-			     * Check unknown identifiers in OID DEFVALs.
-			     */
-			    for(objectPtr = thisModulePtr->firstObjectPtr;
-				objectPtr;
-				objectPtr = objectPtr->nextPtr) {
-				if (objectPtr->valuePtr) {
-				    if ((objectPtr->valuePtr->basetype ==
-					 SMI_BASETYPE_OBJECTIDENTIFIER) &&
-					(objectPtr->valuePtr->format ==
-					 SMI_VALUEFORMAT_NAME)) {
-					object2Ptr =
-					    findObjectByModuleAndName(
-						thisParserPtr->modulePtr,
-				       (char *)objectPtr->valuePtr->value.ptr);
-					if (!object2Ptr) {
-					    importPtr = findImportByName(
-					(char *)objectPtr->valuePtr->value.ptr,
-							        thisModulePtr);
-					    if (importPtr) {
-						/*
-						 * imported object.
-						 */
-						importPtr->use++;
-						object2Ptr =
-						    findObjectByModulenameAndName(
-						    importPtr->importmodule,
-						    importPtr->importname);
-					    }
-					}
-					if (!object2Ptr) {
-					    printErrorAtLine(thisParserPtr,
-							  ERR_UNKNOWN_OIDLABEL,
-							       objectPtr->line,
-				       (char *)objectPtr->valuePtr->value.ptr);
-					 objectPtr->valuePtr->value.ptr = NULL;
-					} else {
-					    objectPtr->valuePtr->value.ptr =
-						(void *)object2Ptr;
-					}
-					objectPtr->valuePtr->format =
-					    SMI_VALUEFORMAT_OID;
-				    } else if ((objectPtr->valuePtr->basetype ==
-						SMI_BASETYPE_OBJECTIDENTIFIER) &&
-					       (objectPtr->valuePtr->format ==
-						SMI_VALUEFORMAT_OID)) {
-					if ((objectPtr->valuePtr->len != 2) ||
-				    (objectPtr->valuePtr->value.oid[0] != 0) ||
-				    (objectPtr->valuePtr->value.oid[1] != 0)) {
-					    printErrorAtLine(thisParserPtr,
-							     ERR_ILLEGAL_OID_DEFVAL,
-							     objectPtr->line,
-							     objectPtr->name);
-					}
-					if (!findModuleByName("SNMPv2-SMI")) {
-					    loadModule("SNMPv2-SMI");
-					}
-					object2Ptr =
-					    findObjectByModulenameAndName(
-						"SNMPv2-SMI", "zeroDotZero");
-					objectPtr->valuePtr->format =
-					    SMI_VALUEFORMAT_OID;
-					objectPtr->valuePtr->value.ptr =
-					    (void *)object2Ptr;
-				    }
-				}
-			    }
-				
 			    $$ = 0;
 			}
 	;
@@ -3331,89 +3451,7 @@ Text:			QUOTED_STRING
 
 ExtUTCTime:		QUOTED_STRING
 			{
-			    struct tm  tm;
-			    int        i, len;
-			    char       *p;
-
-			    memset(&tm, 0, sizeof(tm));
-			    $$ = 0;
-
-			    len = strlen($1);
-			    if (len == 11 || len == 13) {
-				for (i = 0; i < len; i++) {
-				    if ( (i < len-1 && ! isdigit($1[i]))
-					 || (i == len-1 && $1[len-1] != 'Z')) {
-					printError(thisParserPtr,
-						   ERR_DATE_CHARACTER, $1);
-					$$ = (time_t) -1;
-					break;
-				    }
-				}
-			    } else {
-				printError(thisParserPtr, ERR_DATE_LENGTH, $1);
-				$$ = (time_t) -1;
-			    }
-
-			    if ($$ == 0) {
-				for (i = 0, p = $1, tm.tm_year = 0;
-				     i < ((len == 11) ? 2 : 4); i++, p++) {
-				    tm.tm_year = tm.tm_year * 10 + (*p - '0');
-				}
-				if (len == 11) {
-				    tm.tm_year += 1900;
-				    printError(thisParserPtr,
-					       ERR_DATE_YEAR_2DIGITS,
-					       $1, tm.tm_year);
-				}
-				tm.tm_mon  = (p[0]-'0') * 10 + (p[1]-'0');
-				p += 2;
-				tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
-				p += 2;
-				tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
-				p += 2;
-				tm.tm_min  = (p[0]-'0') * 10 + (p[1]-'0');
-
-				if (tm.tm_mon < 1 || tm.tm_mon > 12) {
-				    printError(thisParserPtr,
-					       ERR_DATE_MONTH, $1);
-				}
-				if (tm.tm_mday < 1 || tm.tm_mday > 31) {
-				    printError(thisParserPtr,
-					       ERR_DATE_DAY, $1);
-				}
-				if (tm.tm_hour < 0 || tm.tm_hour > 23) {
-				    printError(thisParserPtr,
-					       ERR_DATE_HOUR, $1);
-				}
-				if (tm.tm_min < 0 || tm.tm_min > 59) {
-				    printError(thisParserPtr,
-					       ERR_DATE_MINUTES, $1);
-				}
-
-				tm.tm_year -= 1900;
-				tm.tm_mon -= 1;
-
-				tzset();
-				$$ = mktime(&tm);
-				if ($$ == (time_t)-1) {
-				    printError(thisParserPtr,
-					       ERR_DATE_VALUE, $1);
-				} else {
-				    if ($$ < SMI_EPOCH) {
-					printError(thisParserPtr,
-						   ERR_DATE_IN_PAST, $1);
-				    }
-				    if ($$ > time(NULL)) {
-					printError(thisParserPtr,
-						   ERR_DATE_IN_FUTURE, $1);
-				    }
-				    $$ -= timezone;
-				}
-			    }
-
-			    if ($$ == (time_t)-1) {
-				$$ = 0;
-			    }
+			    $$ = checkDate(thisParserPtr, $1);
 			}
 	;
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.31 2000/01/04 12:43:39 strauss Exp $
+ * @(#) $Id: error.c,v 1.32 2000/01/06 15:30:56 strauss Exp $
  */
 
 #include <string.h>
@@ -249,6 +249,14 @@ Error errors[] = {
       "The module `%s' is already loaded, aborting parser on this file" },
     { 2, ERR_BASETYPE_NOT_IMPORTED, "basetype-not-imported", 
       "The SMIv2 base type `%s' must be imported from SNMPv2-SMI" },
+    { 2, ERR_BASETYPE_UNKNOWN, "basetype-unknown", 
+      "The type `%s' of node `%s' does not resolve to a known base type" },
+    { 2, ERR_ROW_SUBID_ONE, "row-node-subidentifier-one", 
+      "The subidentifier of row node `%s' must be 1" },
+    { 6, ERR_ROWNAME_ENTRY, "row-name-entry", 
+      "The identifier of the row `%s' should match `*Entry'" },
+    { 6, ERR_TABLENAME_TABLE, "table-name-table", 
+      "The identifier of the table `%s' should match `*Table'" },
  
     { 0, 0, NULL, NULL }
 };

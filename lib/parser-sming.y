@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.35 2000/01/06 15:30:56 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.36 2000/01/10 10:34:19 strauss Exp $
  */
 
 %{
@@ -75,18 +75,19 @@ static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
  
 
 static Type *
-findType(spec, parserPtr)
+findType(spec, parserPtr, modulePtr)
     char *spec;
-    Parser *parserPtr; 
+    Parser *parserPtr;
+    Module *modulePtr;
 {
     Type *typePtr;
     Import *importPtr;
     char *module, *type;
     
     if (!strstr(spec, "::")) {
-	typePtr = findTypeByModuleAndName(thisModulePtr, spec);
+	typePtr = findTypeByModuleAndName(modulePtr, spec);
 	if (!typePtr) {
-	    importPtr = findImportByName(spec, thisModulePtr);
+	    importPtr = findImportByName(spec, modulePtr);
 	    if (importPtr) {
 		typePtr = findTypeByModulenameAndName(importPtr->importmodule,
 						      spec);
@@ -105,18 +106,19 @@ findType(spec, parserPtr)
 
 			    
 static Object *
-findObject(spec, parserPtr)
+findObject(spec, parserPtr, modulePtr)
     char *spec;
-    Parser *parserPtr; 
+    Parser *parserPtr;
+    Module *modulePtr;
 {
     Object *objectPtr;
     Import *importPtr;
     char *module, *object;
     
     if (!strstr(spec, "::")) {
-	objectPtr = findObjectByModuleAndName(thisModulePtr, spec);
+	objectPtr = findObjectByModuleAndName(modulePtr, spec);
 	if (!objectPtr) {
-	    importPtr = findImportByName(spec, thisModulePtr);
+	    importPtr = findImportByName(spec, modulePtr);
 	    if (importPtr) {
 	     objectPtr = findObjectByModulenameAndName(importPtr->importmodule,
 							  spec);
@@ -131,7 +133,86 @@ findObject(spec, parserPtr)
     }
     return objectPtr;
 }
- 
+
+
+static time_t
+checkDate(Parser *parserPtr, char *date)
+{
+    struct tm	tm;
+    time_t	anytime;
+    int		i, len;
+    char	*p;
+
+    memset(&tm, 0, sizeof(tm));
+    anytime = 0;
+
+    len = strlen(date);
+    if (len == 10 || len == 16) {
+	for (i = 0; i < len; i++) {
+	    if (((i < 4 || i == 5 || i == 6 || i == 8 || i == 9 || i == 11
+		  || i == 12 || i == 14 || i == 15) && ! isdigit(date[i]))
+		|| ((i == 4 || i == 7) && date[i] != '-')
+		|| (i == 10 && date[i] != ' ')
+		|| (i == 13 && date[i] != ':')) {
+		printError(parserPtr, ERR_DATE_CHARACTER, date);
+		anytime = (time_t) -1;
+		break;
+	    }
+	}
+    } else {
+	printError(parserPtr, ERR_DATE_LENGTH, date);
+	anytime = (time_t) -1;
+    }
+    
+    if (anytime == 0) {
+	for (i = 0, p = date, tm.tm_year = 0; i < 4; i++, p++) {
+	    tm.tm_year = tm.tm_year * 10 + (*p - '0');
+	}
+	p++;
+	tm.tm_mon = (p[0]-'0') * 10 + (p[1]-'0');
+	p += 3;
+	tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
+	p += 2;
+	if (len == 16) {
+	    p++;
+	    tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
+	    p += 3;
+	    tm.tm_min = (p[0]-'0') * 10 + (p[1]-'0');
+	}
+	
+	if (tm.tm_mon < 1 || tm.tm_mon > 12) {
+	    printError(parserPtr, ERR_DATE_MONTH, date);
+	}
+	if (tm.tm_mday < 1 || tm.tm_mday > 31) {
+	    printError(parserPtr, ERR_DATE_DAY, date);
+	}
+	if (tm.tm_hour < 0 || tm.tm_hour > 23) {
+	    printError(parserPtr, ERR_DATE_HOUR, date);
+	}
+	if (tm.tm_min < 0 || tm.tm_min > 59) {
+	    printError(parserPtr, ERR_DATE_MINUTES, date);
+	}
+	
+	tm.tm_year -= 1900;
+	tm.tm_mon -= 1;
+
+	tzset();
+	anytime = mktime(&tm);
+	if (anytime == (time_t) -1) {
+	    printError(parserPtr, ERR_DATE_VALUE, date);
+	} else {
+	    if (anytime < SMI_EPOCH) {
+		printError(parserPtr, ERR_DATE_IN_PAST, date);
+	    }
+	    if (anytime > time(NULL)) {
+		printError(parserPtr, ERR_DATE_IN_FUTURE, date);
+	    }
+	    anytime -= timezone;
+	}
+    }
+    
+    return (anytime == (time_t) -1) ? 0 : anytime;
+}
 
 			    
 %}
@@ -484,7 +565,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    if (!thisParserPtr->modulePtr) {
 				thisParserPtr->modulePtr =
 				    addModule($3,
-					      thisParserPtr->path,
+					      util_strdup(thisParserPtr->path),
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
@@ -582,7 +663,8 @@ moduleStatement:	moduleKeyword sep ucIdentifier
        ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->indexPtr->listPtr;
 				     listPtr; listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
-							   thisParserPtr);
+							   thisParserPtr,
+							   thisModulePtr);
 				    listPtr->ptr = objectPtr;
 				}
 				/* adjust indexPtr->rowPtr */
@@ -591,7 +673,8 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 				    objectPtr = findObject(
   		        ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
 					indexPtr->rowPtr,
-					thisParserPtr);
+					thisParserPtr,
+			                thisModulePtr);
 			 ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
 				    indexPtr->rowPtr = objectPtr;
 				}
@@ -600,7 +683,8 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 		 ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->listPtr;
 				     listPtr; listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
-							   thisParserPtr);
+							   thisParserPtr,
+							   thisModulePtr);
 				    listPtr->ptr = objectPtr;
 				}
 			  listPtr = thisParserPtr->firstIndexlabelPtr->nextPtr;
@@ -1245,7 +1329,8 @@ notificationStatement:	notificationKeyword sep lcIdentifier
 				for (listPtr = $11; listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
-							   thisParserPtr);
+							   thisParserPtr,
+							   thisModulePtr);
 				    listPtr->ptr = objectPtr;
 				}
 				setObjectList(notificationObjectPtr, $11);
@@ -1351,7 +1436,8 @@ groupStatement:		groupKeyword sep lcIdentifier
 				for (listPtr = $11; listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
-							   thisParserPtr);
+							   thisParserPtr,
+							   thisModulePtr);
 				    listPtr->ptr = objectPtr;
 				}
 				setObjectList(groupObjectPtr, $11);
@@ -1477,7 +1563,8 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 				for (listPtr = $18; listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
-							   thisParserPtr);
+							   thisParserPtr,
+							   thisModulePtr);
 				    listPtr->ptr = objectPtr;
 				}
 				setObjectList(complianceObjectPtr, $18);
@@ -2077,7 +2164,9 @@ optionalStatement:	optionalKeyword sep qlcIdentifier
 			stmtsep '}' optsep ';'
 			{
 			    $$ = util_malloc(sizeof(Option));
-			    $$->objectPtr = findObject($3, thisParserPtr);
+			    $$->objectPtr = findObject($3,
+						       thisParserPtr,
+						       thisModulePtr);
 			    $$->description = util_strdup($6);
 			}
         ;
@@ -2125,7 +2214,9 @@ refineStatement:	refineKeyword sep qlcIdentifier
 			descriptionStatement stmtsep '}' optsep ';'
 			{
 			    $$ = util_malloc(sizeof(Refinement));
-			    $$->objectPtr = findObject($3, thisParserPtr);
+			    $$->objectPtr = findObject($3,
+						       thisParserPtr,
+						       thisModulePtr);
 			    if ($6) {
 				$$->typePtr = duplicateType($6, 0,
 							    thisParserPtr);
@@ -2283,7 +2374,8 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 
 refinedType:		qucIdentifier optsep_anySpec_01
 			{
-			    typePtr = findType($1, thisParserPtr);
+			    typePtr = findType($1, thisParserPtr,
+					       thisModulePtr);
 			    if (typePtr && $2) {
 				typePtr = duplicateType(typePtr, 0,
 							thisParserPtr);
@@ -2831,92 +2923,7 @@ optsep_textSegment:	optsep textSegment
 
 date:			textSegment
 			{
-			    struct tm  tm;
-			    int        i, len;
-			    char       *p;
-
-			    memset(&tm, 0, sizeof(tm));
-			    $$ = 0;
-
-			    len = strlen($1);
-			    if (len == 10 || len == 16) {
-			    	for (i = 0; i < len; i++) {
-				    if (((i < 4 || i == 5 || i == 6 || i == 8
-					  || i == 9 || i == 11 || i == 12
-					  || i == 14 || i == 15)
-					 && ! isdigit($1[i]))
-					|| ((i == 4 || i == 7) && $1[i] != '-')
-					|| (i == 10 && $1[i] != ' ')
-					|| (i == 13 && $1[i] != ':')) {
-					printError(thisParserPtr,
-						   ERR_DATE_CHARACTER, $1);
-					$$ = (time_t) -1;
-					break;
-				    }
-				}
-			    } else {
-				printError(thisParserPtr, ERR_DATE_LENGTH, $1);
-				$$ = (time_t) -1;
-			    }
-
-			    if ($$ == 0) {
-				for (i = 0, p = $1, tm.tm_year = 0;
-				     i < 4; i++, p++) {
-				    tm.tm_year = tm.tm_year * 10 + (*p - '0');
-				}
-				p++;
-				tm.tm_mon = (p[0]-'0') * 10 + (p[1]-'0');
-				p += 3;
-				tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
-				p += 2;
-				if (len == 16) {
-				    p++;
-				    tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
-				    p += 3;
-				    tm.tm_min = (p[0]-'0') * 10 + (p[1]-'0');
-				}
-				
-				if (tm.tm_mon < 1 || tm.tm_mon > 12) {
-				    printError(thisParserPtr,
-					       ERR_DATE_MONTH, $1);
-				}
-				if (tm.tm_mday < 1 || tm.tm_mday > 31) {
-				    printError(thisParserPtr,
-					       ERR_DATE_DAY, $1);
-				}
-				if (tm.tm_hour < 0 || tm.tm_hour > 23) {
-				    printError(thisParserPtr,
-					       ERR_DATE_HOUR, $1);
-				}
-				if (tm.tm_min < 0 || tm.tm_min > 59) {
-				    printError(thisParserPtr,
-					       ERR_DATE_MINUTES, $1);
-				}
-
-				tm.tm_year -= 1900;
-				tm.tm_mon -= 1;
-
-				tzset();
-				$$ = mktime(&tm);
-				if ($$ == (time_t)-1) {
-				    printError(thisParserPtr,
-					       ERR_DATE_VALUE, $1);
-				} else {
-				    if ($$ < SMI_EPOCH) {
-					printError(thisParserPtr,
-						   ERR_DATE_IN_PAST, $1);
-				    }
-				    if ($$ > time(NULL)) {
-					printError(thisParserPtr,
-						   ERR_DATE_IN_FUTURE, $1);
-				    }
-				    $$ -= timezone;
-				}
-			    }
-			    
-			    if ($$ == (time_t)-1) {
-				$$ = 0;
-			    }
+			    $$ = checkDate(thisParserPtr, $1);
 			}
         ;
 
@@ -3165,7 +3172,9 @@ qlcIdentifier_subid:	qlcIdentifier
 			    
 			    /* TODO: $1 might be numeric !? */
 			    
-			    objectPtr = findObject($1, thisParserPtr);
+			    objectPtr = findObject($1,
+						   thisParserPtr,
+						   thisModulePtr);
 
 			    if (objectPtr) {
 				/* create OID string */

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.42 1999/12/21 09:16:23 strauss Exp $
+ * @(#) $Id: data.h,v 1.43 1999/12/22 14:44:03 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -304,8 +304,8 @@ extern int isInView(const char *modulename);
 
 
 
-extern Module *addModule(const char *modulename,
-			 const char *path,
+extern Module *addModule(char *modulename,
+			 char *path,
 			 off_t fileoffset,
 			 ModuleFlags flags,
 			 Parser *parserPtr);
