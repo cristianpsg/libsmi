@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.32 2001/02/15 17:48:05 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.33 2001/08/15 17:07:04 strauss Exp $
  */
 
 %option noyywrap
@@ -39,7 +39,11 @@
 
 
 /* we need a reentrant parser, so yylex gets arguments */
+#if 0
 #define YY_DECL int yylex YY_PROTO((YYSTYPE *lvalp, void *parser))
+#else
+#define YY_DECL int yylex(YYSTYPE *lvalp, void *parser)
+#endif
 
 
 
