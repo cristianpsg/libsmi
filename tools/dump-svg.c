@@ -824,7 +824,8 @@ static void printSVGConnection(GraphEdge *tEdge)
  * Print title somewhere into the SVG.
  * Make size of SVG configurable.
  */
-static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
+static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
+				   int nodecount, int miCount,
 				   float xMin, float yMin,
 				   float xMax, float yMax)
 {
@@ -875,8 +876,8 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
 	//print the script from the included file
 	//FIXME calculate things dynamically:
 	//      * maximal number of lines for the tooltip.
-	//      * size of the array for the module-information.
-	printf(code, nodecount, DYN_TEXT, nodecount, STARTSCALE);
+	printf(code, nodecount, DYN_TEXT, nodecount, STARTSCALE,
+						    miCount, miCount, miCount);
 	printf("// ]]>\n</script>\n\n");
     }
 
@@ -1067,6 +1068,228 @@ static GraphNode *calcGroupSize(int group)
     }
 
     return calcNode;
+}
+
+
+/* ------------------------------------------------------------------------- */
+
+
+static void calcModuleIdentityCount(int modc, SmiModule **modv, int *miCount)
+{
+    int         i;
+    SmiNode     *smiNode;
+    SmiRevision *smiRevision;
+
+    //MODULE-IDENTITY
+    (*miCount)++;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+	    //name of the module
+	    (*miCount)++;
+	    //revision history of the module
+	    smiRevision = smiGetFirstRevision(modv[i]);
+	    if (!smiRevision) {
+		(*miCount)++;
+	    } else {
+		for(; smiRevision;
+				smiRevision = smiGetNextRevision(smiRevision)) {
+		    (*miCount)++;
+		}
+	    }
+	}
+    }
+}
+
+static void calcNotificationTypeCount(int modc, SmiModule **modv,
+				      int *miCount, int nType[])
+{
+    int     i;
+    SmiNode *smiNode;
+
+    //NOTIFICATION-TYPE
+    (*miCount)++;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+	    //name of the module
+	    (*miCount)++;
+	    //name of the notification
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
+		    continue;
+		(*miCount)++;
+	    }
+	}
+    }
+}
+
+static void calcObjectGroupCount(int modc, SmiModule **modv,
+				 int *miCount, int oGroup[])
+{
+    int     i;
+    SmiNode *smiNode;
+
+    //OBJECT-GROUP
+    (*miCount)++;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+	    //name of the module
+	    (*miCount)++;
+	    //name of the group
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
+		if (!isObjectGroup(smiNode))
+		    continue;
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
+		    continue;
+		(*miCount)++;
+	    }
+	}
+    }
+}
+
+static void calcNotificationGroupCount(int modc, SmiModule **modv,
+				       int *miCount, int nGroup[])
+{
+    int     i;
+    SmiNode *smiNode;
+
+    //NOTIFICATION-GROUP
+    (*miCount)++;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+	    //name of the module
+	    (*miCount)++;
+	    //name of the group
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
+		if (!isNotificationGroup(smiNode))
+		    continue;
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
+		    continue;
+		(*miCount)++;
+	    }
+	}
+    }
+}
+
+static void calcModuleComplianceCount(int modc, SmiModule **modv,
+				      int *miCount, int mCompl[])
+{
+    int           i;
+    char          *done = NULL;
+    char          s[100];
+    char          *module;
+    SmiNode       *smiNode, *smiNode2;
+    SmiModule     *smiModule2;
+    SmiElement    *smiElement;
+    SmiOption     *smiOption;
+    SmiRefinement *smiRefinement;
+
+    //MODULE-COMPLIANCE
+    (*miCount)++;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+	    //name of the module
+	    (*miCount)++;
+	    //name of the compliance
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_COMPLIANCE);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
+		if ((smiNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (smiNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
+		    continue;
+		(*miCount)++;
+		//modules for the compliance
+		done = xstrdup("+");
+		for (module = modv[i]->name; module; ) {
+		    //name of the module
+		    (*miCount)++;
+		    //mandatory groups
+		    (*miCount)++;
+		    //groups
+		    for (smiOption = smiGetFirstOption(smiNode); smiOption;
+				    smiOption = smiGetNextOption(smiOption)) {
+			smiNode2 = smiGetOptionNode(smiOption);
+			smiModule2 = smiGetNodeModule(smiNode2);
+			if (!strcmp(smiModule2->name, module)) {
+			    (*miCount)++;
+			}
+		    }
+		    //objects
+		    for (smiRefinement = smiGetFirstRefinement(smiNode);
+			smiRefinement;
+			smiRefinement = smiGetNextRefinement(smiRefinement)) {
+			smiNode2 = smiGetRefinementNode(smiRefinement);
+			smiModule2 = smiGetNodeModule(smiNode2);
+			if (!strcmp(smiModule2->name, module)) {
+			    (*miCount)++;
+			}
+		    }
+		    //find next module
+		    done = xrealloc(done,
+				strlen(done)+strlen(module)+2*sizeof(char));
+		    strcat(done, module);
+		    strcat(done, "+");
+		    module = NULL;
+		    for (smiElement = smiGetFirstElement(smiNode);
+			 smiElement;
+			 smiElement = smiGetNextElement(smiElement)) {
+			sprintf(s, "+%s+", smiGetNodeModule(smiGetElementNode(
+							smiElement))->name);
+			if ((!strstr(done, s))) {
+			    module = smiGetNodeModule(smiGetElementNode(
+							smiElement))->name;
+			    break;
+			}
+		    }
+		}
+	    }
+	}
+    }
+}
+
+static void calcMiCount(int modc, SmiModule **modv, int *miCount,
+			int nType[], int oGroup[], int nGroup[], int mCompl[])
+{
+    //initialize arrays for the sections of the ModuleInformation
+    //TODO Die Funktionalitaet zum Speichern der gefuellten Abteilungen kann
+    //     auch gleich hier rein.
+    //FIXME Schieb dies in die einzelnen Funktionen!
+    /*
+    for (i=0; i<modc; i++) {
+	nType[i] = 0;
+	oGroup[i] = 0;
+	nGroup[i] = 0;
+	mCompl[i] = 0;
+    }
+    */
+
+    calcModuleIdentityCount(modc, modv, miCount);
+    calcNotificationTypeCount(modc, modv, miCount, nType);
+    calcObjectGroupCount(modc, modv, miCount, oGroup);
+    calcNotificationGroupCount(modc, modv, miCount, nGroup);
+    calcModuleComplianceCount(modc, modv, miCount, mCompl);
+
 }
 
 
@@ -2026,8 +2249,9 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphNode    *tNode, *lastNode;
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
-    int          group, nodecount = 0, classNr = 0, singleNodes = 1;
-    float        x = 10, xMin = 0, yMin = 0, xMax = 0, yMax = 0, maxHeight = 0;
+    int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
+    float        x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
+    int          nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
 
     //find edges which are supposed to be drawn
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
@@ -2137,6 +2361,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
     graph->clusters->yOffset = yMax + maxHeight/2;
     if (singleNodes)
 	yMax += maxHeight + 10;
+    //enlarge canvas for ModuleInformation
+    xMax += MODULE_INFO_WIDTH;
 
     //write some debug-information to stderr
     /*
@@ -2155,11 +2381,12 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
     */
 
-    //enlarge canvas for ModuleInformation
-    xMax += MODULE_INFO_WIDTH;
-    //TODO: calculate miCount----------------------------------------------TODO
+    //count entries in the ModuleInformation-Section
+    calcMiCount(modc, modv, &miCount, nType, oGroup, nGroup, mCompl);
+
     //output of svg to stdout begins here
-    printSVGHeaderAndTitle(modc, modv, nodecount, xMin, yMin, xMax, yMax);
+    printSVGHeaderAndTitle(modc, modv, nodecount, miCount,
+							xMin, yMin, xMax, yMax);
 
     //loop through cluster (except first) to print edges and nodes
     for (tCluster = graph->clusters->nextPtr; tCluster;
