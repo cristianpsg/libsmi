@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.77 2002/07/17 10:35:43 bunkus Exp $
+ * @(#) $Id: dump-smi.c,v 1.78 2002/07/22 17:06:19 schoenw Exp $
  */
 
 #include <config.h>
@@ -229,13 +229,15 @@ static char *getAccessString(SmiAccess access, int create)
 
 static char *getTimeString(time_t t)
 {
-    static char   s[27];
+    static char   *s = NULL;
     struct tm	  *tm;
 
+    if (s) xfree(s);
+    
     tm = gmtime(&t);
-    sprintf(s, "%04d%02d%02d%02d%02dZ",
-	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	    tm->tm_hour, tm->tm_min);
+    asprintf(&s, "%04d%02d%02d%02d%02dZ",
+	     tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	     tm->tm_hour, tm->tm_min);
     return s;
 }
 
