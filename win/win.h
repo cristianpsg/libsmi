@@ -9,19 +9,15 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: win.h,v 1.1 2000/04/11 09:00:46 strauss Exp $
  */
 
 #ifndef _WIN_H
 #define _WIN_H
 
-/*
- * The Win32 API provides use with stricmp(), which is a string
- * lowercase compare function. This should be equivalent with
- * strcasecmp().
- */
+#include <io.h>
 
-#define strcasecmp stricmp
+#ifndef __MINGW32__
 
 /*
  * The access() function exists in the Win32 API, but there are no
@@ -31,6 +27,8 @@
 #define F_OK	00
 #define W_OK	02
 #define R_OK	04
+
+#endif
 
 /*
  * The Win32 API does not have getopt (or something equivalent).
