@@ -9,11 +9,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: win.h,v 1.3 2000/06/21 10:33:43 strauss Exp $
+ * @(#) $Id: win.h,v 1.4 2000/11/15 10:50:36 strauss Exp $
  */
 
 #ifndef _WIN_H
 #define _WIN_H
+
+#include <ctype.h>
+#include <io.h>
 
 /*
  * The Win32 API provides use with stricmp(), which is a string
