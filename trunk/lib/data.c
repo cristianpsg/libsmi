@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.35 1999/06/17 16:56:53 strauss Exp $
+ * @(#) $Id: data.c,v 1.36 1999/06/18 15:04:33 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -952,6 +952,104 @@ getParentNode(nodePtr)
 /*
  *----------------------------------------------------------------------
  *
+ * mergeNodeTrees --
+ *
+ *      Merge the subtree rooted at `from' into the `to' tree recursively
+ *      and release the `from' tree.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
+{
+    Node	      *nodePtr, *toChildPtr, *nextPtr;
+    Object	      *objectPtr;
+    
+    /* (1) merge lists of Objects for this node */
+    if (fromNodePtr->firstObjectPtr) {
+	if (!toNodePtr->firstObjectPtr) {
+	    toNodePtr->firstObjectPtr = fromNodePtr->firstObjectPtr;
+	    toNodePtr->lastObjectPtr = fromNodePtr->lastObjectPtr;
+	} else {
+	    fromNodePtr->firstObjectPtr->prevSameNodePtr =
+		toNodePtr->lastObjectPtr;
+	    toNodePtr->lastObjectPtr->nextSameNodePtr =
+		fromNodePtr->firstObjectPtr;
+	    toNodePtr->lastObjectPtr = fromNodePtr->lastObjectPtr;
+	}
+    }
+    for (objectPtr = fromNodePtr->firstObjectPtr;
+	 objectPtr; objectPtr = objectPtr->nextSameNodePtr) {
+	objectPtr->nodePtr = toNodePtr;
+
+    }
+    
+    /* (2) loop: merge all first-level `from' sub-trees to `to' */
+    /* adjust all `from' sub-nodes' parentPtrs */
+    for (nodePtr = fromNodePtr->firstChildPtr; nodePtr;
+	 nodePtr = nodePtr->nextPtr) {
+	nodePtr->parentPtr = toNodePtr;
+    }
+    if (!toNodePtr->firstChildPtr) {
+	/*
+	 * if `to' has no sub-nodes, just move the `from' sub-nodes.
+	 */
+	toNodePtr->firstChildPtr = fromNodePtr->firstChildPtr;
+	toNodePtr->lastChildPtr = fromNodePtr->lastChildPtr;
+    } else {
+	/*
+	 * otherwise, we really have to merge both trees...
+	 */
+	for (nodePtr = fromNodePtr->firstChildPtr; nodePtr; ) {
+	    nextPtr = nodePtr->nextPtr;
+	    if ((toChildPtr = findNodeByParentAndSubid(toNodePtr,
+						       nodePtr->subid))) {
+		/*
+		 * if a sub-node with the same subid is already present
+		 * in `to', merge them recursively.
+		 */
+		mergeNodeTrees(toChildPtr, nodePtr);
+	    } else {
+		/*
+		 * otherwise, move the sub-tree from `from' to `to'.
+		 */
+		if (nodePtr->subid < toNodePtr->firstChildPtr->subid) {
+		    /* move to the head. */
+		    nodePtr->nextPtr = toNodePtr->firstChildPtr;
+		    toNodePtr->firstChildPtr = nodePtr;
+		} else if (nodePtr->subid > toNodePtr->lastChildPtr->subid) {
+		    /* move to the end. */
+		    nodePtr->prevPtr = toNodePtr->lastChildPtr;
+		    toNodePtr->lastChildPtr = nodePtr;
+		} else {
+		    /* move to the appropriate place in the `to' list. */
+		    for (toChildPtr = toNodePtr->firstChildPtr;
+			 toChildPtr->nextPtr->subid < nodePtr->subid;
+			 toChildPtr = toChildPtr->nextPtr);
+		    toChildPtr->nextPtr->prevPtr = nodePtr;
+		    nodePtr->nextPtr = toChildPtr->nextPtr;
+		    nodePtr->prevPtr = toChildPtr;
+		    toChildPtr->nextPtr = nodePtr;
+		}
+	    }
+	    nodePtr = nextPtr;
+	}
+    }
+
+    util_free(fromNodePtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * setObjectName --
  *
  *      Set the name of a given Object. Combine two Objects if the name
@@ -1007,32 +1105,8 @@ setObjectName(objectPtr, name)
 		pendingNodePtr->lastChildPtr = nodePtr->prevPtr;
 	    }
 	    
-	    /*
-	     * copy contents of the new node to pending.
-	     */
-	    nodePtr->subid = objectPtr->nodePtr->subid;
-	    nodePtr->flags = objectPtr->nodePtr->flags;
-	    
-	    /*
-	     * now link pending node into place.
-	     */
-	    nodePtr->parentPtr = objectPtr->nodePtr->parentPtr;
-	    nodePtr->nextPtr = objectPtr->nodePtr->nextPtr;
-	    nodePtr->prevPtr = objectPtr->nodePtr->prevPtr;
-	    if (objectPtr->nodePtr->parentPtr->firstChildPtr ==
-		objectPtr->nodePtr) {
-		objectPtr->nodePtr->parentPtr->firstChildPtr = nodePtr;
-	    } else {
-		objectPtr->nodePtr->prevPtr->nextPtr = nodePtr;
-	    }
-	    if (objectPtr->nodePtr->parentPtr->lastChildPtr ==
-		objectPtr->nodePtr) {
-		objectPtr->nodePtr->parentPtr->lastChildPtr = nodePtr;
-	    } else {
-		objectPtr->nodePtr->nextPtr->prevPtr = nodePtr;
-	    }
-
-	    free(objectPtr->nodePtr);
+	    objectPtr->nodePtr->firstObjectPtr = NULL;
+	    objectPtr->nodePtr->lastObjectPtr = NULL;
 	    newObjectPtr = nodePtr->firstObjectPtr;
 	    modulePtr = newObjectPtr->modulePtr;
 	    if (modulePtr->objectPtr == objectPtr) {
@@ -1046,7 +1120,8 @@ setObjectName(objectPtr, name)
 		modulePtr->lastObjectPtr = objectPtr->prevPtr;
 		modulePtr->lastObjectPtr->nextPtr = NULL;
 	    }
-	    free(objectPtr);
+
+	    mergeNodeTrees(objectPtr->nodePtr, nodePtr);
 	    return newObjectPtr;
 	}
     }
