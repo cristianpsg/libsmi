@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.17 2000/11/12 19:42:08 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.18 2000/11/13 00:06:35 strauss Exp $
 #
 
 TESTMIBTOPDIR		= ../../mibs
@@ -23,8 +23,14 @@ TESTS			= smilint-smiv2.test \
 			  smidump-tree.test \
 			  smidump-types.test \
 			  smidump-imports.test \
+			  smidump-identifiers.test \
+			  smidump-metrics.test \
+			  smidump-xml.test \
+			  smidump-python.test \
+			  smidump-cm.test \
 			  smidump-corba.test \
 			  smidump-jax.test \
+			  smidump-netsnmp.test \
 			  smidump-orig-smiv2.test \
 			  smidump-smiv2-smiv2.test \
 			  parser.test
@@ -38,8 +44,8 @@ SUBDIRS                 = mibs dumps
 clean-local:
 	rm -rf *.out
 
-sync-dumps:
-	for f in *.out/*.corba-idl *.out/*.corba-oid *.out/*.imports *.out/*.mosy *.out/*.sming *.out/*.smiv1 *.out/*.smiv2 *.out/*.diff *.out/*.smiv2.lint *.out/*.tree *.out/*.types ; do \
-	    cmp -s $$f dumps/`basename $$f` || cp $$f dumps/`basename $$f` ; \
-	done
+#sync-dumps:
+#	for f in *.out/*.corba-idl *.out/*.corba-oid *.out/*.imports *.out/*.mosy *.out/*.sming *.out/*.smiv1 *.out/*.smiv2 *.out/*.diff *.out/*.smiv2.lint *.out/*.tree *.out/*.types ; do \
+#	    cmp -s $$f dumps/`basename $$f` || cp $$f dumps/`basename $$f` ; \
+#	done
 	
