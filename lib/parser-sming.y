@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.45 2000/02/10 14:29:27 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.46 2000/02/12 10:56:20 strauss Exp $
  */
 
 %{
@@ -417,7 +417,6 @@ checkDate(Parser *parserPtr, char *date)
 %type <text>descriptionStatement
 %type <text>referenceStatement_stmtsep_01
 %type <text>referenceStatement
-%type <listPtr>membersStatement_stmtsep_01
 %type <listPtr>membersStatement
 %type <listPtr>objectsStatement_stmtsep_01
 %type <listPtr>objectsStatement
@@ -2099,7 +2098,7 @@ formatStatement_stmtsep_01: /* empty */
 			}
 	;
 
-formatStatement:	formatKeyword sep text optsep ';'
+formatStatement:	formatKeyword sep format optsep ';'
 			{
 			    $$ = $3;
 			}
@@ -2115,7 +2114,7 @@ unitsStatement_stmtsep_01: /* empty */
 			}
 	;
 
-unitsStatement:		unitsKeyword sep text optsep ';'
+unitsStatement:		unitsKeyword sep units optsep ';'
 			{
 			    $$ = $3;
 			}
@@ -2200,16 +2199,6 @@ referenceStatement:	referenceKeyword sep text optsep ';'
 			    $$ = $3;
 			}
         ;
-
-membersStatement_stmtsep_01: /* empty */
-			{
-			    $$ = NULL;
-			}
-        |		membersStatement stmtsep
-			{
-			    $$ = $1;
-			}
-	;
 
 membersStatement:	membersKeyword optsep '(' optsep
 			qlcIdentifierList optsep ')' optsep ';'
