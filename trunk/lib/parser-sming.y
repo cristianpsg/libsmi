@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.56 2000/03/27 10:08:11 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.57 2000/04/11 09:00:25 strauss Exp $
  */
 
 %{
@@ -24,7 +24,11 @@
 #include <ctype.h>
 #include <time.h>
 #include <limits.h>
-    
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
+#endif
+
 #include "smi.h"
 #include "error.h"
 #include "parser-sming.h"

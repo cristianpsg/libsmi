@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.88 2000/05/16 15:09:31 strauss Exp $
+ * @(#) $Id: smi.c,v 1.89 2000/06/07 07:57:53 strauss Exp $
  */
 
 #include <config.h>
@@ -23,6 +23,10 @@
 #endif
 #ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
+
+#ifdef HAVE_DMALLOC_H
+#include <dmalloc.h>
 #endif
 
 #include "smi.h"
