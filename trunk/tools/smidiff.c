@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.45 2003/09/08 15:35:39 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.46 2003/09/10 17:18:39 schoenw Exp $ 
  */
 
 /*
@@ -1227,7 +1227,8 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 {
     if ((oldVal.basetype != SMI_BASETYPE_UNKNOWN) && 
 	(newVal.basetype == SMI_BASETYPE_UNKNOWN)) {
-	printErrorAtLine(oldModule, ERR_DEFVAL_REMOVED, oldLine, name);
+	printErrorAtLine(newModule, ERR_DEFVAL_REMOVED, newLine, name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine, name);
 	return;
     }
 
