@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.17 2001/08/16 10:53:32 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.18 2001/08/22 20:10:31 strauss Exp $
 .\"
 .TH smi_config 3  "August 22, 2001" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -218,7 +218,7 @@ Example configuration:
  
   # but please don't claim about
   # any names longer than 32 chars
-  smiint: hide namelength-32
+  smilint: hide namelength-32
    
   tcpdump: load DISMAN-SCRIPT-MIB
 
