@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.32 2002/06/24 17:47:07 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.33 2002/06/26 12:11:27 tklie Exp $
  */
 
 #include <config.h>
@@ -1259,6 +1259,9 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintSegment( f, 3 * INDENT,
 		   "<xsd:attribute name=\"port\" "
 		   "type=\"xsd:unsignedInt\" use=\"required\"/>\n", 0 );
+    fprintSegment( f, 3 * INDENT,
+		   "<xsd:attribute name=\"time\" "
+		   "type=\"xsd:dateTime\" use=\"required\"/>\n", 0 );
     fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
     fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
 
