@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.10 2002/12/17 17:47:55 schoenw Exp $
+ * @(#) $Id: dump-metrics.c,v 1.11 2002/12/27 21:04:04 schoenw Exp $
  */
 
 /*
@@ -569,18 +569,17 @@ fprintIndexComplexity(FILE *f, UsageCounter *modUsageList)
     if (! silent) {
 	fputs(
 "# The following table shows the distribution of the index complexity\n"
-"# xxx\n"
-"# the defining MIB module in the set of loaded MIB modules.\n"
+"# in the set of loaded MIB modules.\n"
 "\n", f);
     }
-    fprintf(f, "%-*s %-*s EXT-USAGE\n", modLen, "MODULE", nameLen, "TABLE");
+    fprintf(f, "%-*s %-*s COMPLEXITY\n", modLen, "MODULE", nameLen, "TABLE");
 
     for (i = 0; i < cnt; i++) {
 	fprintf(f, "%-*s %-*s ", modLen, sortCnt[i]->module, nameLen, sortCnt[i]->name);
 	if (raw) {
 	    fprintf(f, "%8u\n", sortCnt[i]->count);
 	} else {
-	    fprintf(f, "%6.1f%%\n", (double) sortCnt[i]->count * 100 / total);
+	    fprintf(f, "%6.1f%%\n", (double) sortCnt[i]->count);
 	}
     }
 
@@ -831,7 +830,6 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 		foreachIndexDo(NULL, smiNode, complexity, &cmplx);
 		incrIndexComplexityCounter(smiModule, smiNode, cmplx);
 		incrIndexComplexityMetric(&metrics->indexComplexity, cmplx);
-		fprintf(stdout, "XX %d %s\n", cmplx, smiNode->name);
 	    }
 	    break;
 	case SMI_NODEKIND_COLUMN:
