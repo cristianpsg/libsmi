@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.86 2000/04/10 15:55:18 strauss Exp $
+ * @(#) $Id: smi.c,v 1.87 2000/04/11 09:00:25 strauss Exp $
  */
 
 #include <config.h>
@@ -1162,7 +1162,7 @@ SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr)
     Module	      *modulePtr;
     Object	      *objectPtr;
     Node	      *nodePtr;
-    
+
     if (!smiNodePtr) {
 	return NULL;
     }
@@ -1181,15 +1181,8 @@ SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr)
 	return NULL;
     }
 
-#if 0
     objectPtr = findObjectByModuleAndNode(modulePtr, nodePtr);
-
-    if (!objectPtr) {
-	objectPtr = findObjectByNode(nodePtr);
-    }
-#else
-    objectPtr = findObjectByNode(nodePtr);
-#endif
+    if (!objectPtr) objectPtr = findObjectByNode(nodePtr);
 
     return objectPtr ? &objectPtr->export : NULL;
 }
@@ -1220,15 +1213,8 @@ SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
 	return NULL;
     }
 
-#if 0
     objectPtr = findObjectByModuleAndNode(modulePtr, nodePtr);
-
-    if (!objectPtr) {
-	objectPtr = findObjectByNode(nodePtr);
-    }
-#else
-    objectPtr = findObjectByNode(nodePtr);
-#endif
+    if (!objectPtr) objectPtr = findObjectByNode(nodePtr);
     
     return objectPtr ? &objectPtr->export : NULL;
 }

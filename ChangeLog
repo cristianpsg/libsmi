@@ -1,5 +1,8 @@
 2000-05-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/data.c (setObjectName): fixed bug in case of multiple
+	definitions for the same OID in multiple modules.
+
 	* tools/dump-jax.c: Patch from Juergen: made file creation more
 	generic.
 
