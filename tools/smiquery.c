@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.63 2001/03/08 14:49:46 schoenw Exp $
+ * @(#) $Id: smiquery.c,v 1.64 2001/04/14 16:36:02 strauss Exp $
  */
 
 #include <config.h>
@@ -294,7 +294,7 @@ char *formatvalue(const SmiValue *value, SmiType *type)
 }
 
 
-void usage()
+static void usage()
 {
     fprintf(stderr,
 	    "Usage: smiquery [options] command name\n"
@@ -314,7 +314,8 @@ void usage()
 
 
 
-static void version() { printf("smiquery " SMI_VERSION_STRING "\n"); }
+static void help() { usage(); exit(0); }
+static void version() { printf("smiquery " SMI_VERSION_STRING "\n"); exit(0); }
 static void config(char *filename) { smiReadConfig(filename, "smiquery"); }
 static void preload(char *module) { smiLoadModule(module); }
 
@@ -339,7 +340,7 @@ int main(int argc, char *argv[])
 
     static optStruct opt[] = {
 	/* short long              type        var/func       special       */
-	{ 'h', "help",           OPT_FLAG,   usage,         OPT_CALLFUNC },
+	{ 'h', "help",           OPT_FLAG,   help,          OPT_CALLFUNC },
 	{ 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
 	{ 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
 	{ 'p', "preload",        OPT_STRING, preload,       OPT_CALLFUNC },
