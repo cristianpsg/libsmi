@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.26 2002/05/29 12:50:38 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.27 2002/06/07 16:36:43 tklie Exp $
  */
 
 #include <config.h>
@@ -283,7 +283,8 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 		minLength = smiRange->minValue.value.integer32;	     
 	    }
 	    if( smiRange->maxValue.value.integer32 > maxLength ) {
-		maxLength = smiRange->maxValue.value.integer32;
+		/* Hex-Strings use two chars for one octet */
+		maxLength = 2 * smiRange->maxValue.value.integer32;
 	    }
 	    smiRange = smiGetNextRange( smiRange );
 	}
@@ -426,6 +427,20 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 }
     
 
+static unsigned int
+getNamedNumberCount( SmiType *smiType )
+{
+    SmiNamedNumber *nn;
+    unsigned int ret = 0;
+
+    for( nn = smiGetFirstNamedNumber( smiType );
+	 nn;
+	 nn = smiGetNextNamedNumber( nn ) ) {
+	ret++;
+    }
+
+    return ret;
+}
 
 
 static void fprintBitList( FILE *f, int indent, SmiType *smiType,
@@ -441,8 +456,8 @@ static void fprintBitList( FILE *f, int indent, SmiType *smiType,
     fprint( f, " name=\"%sBits\">\n", name );
     fprintSegment( f, indent + INDENT, "<xsd:restriction", 0 );
     fprint( f, " base=\"%sBitList\">\n", name );
-    fprintSegment( f, indent + 2 * INDENT, "<xsd:maxlength", 0 );
-    fprint( f, " value=\"%d\"/>\n", smiType->value.len );
+    fprintSegment( f, indent + 2 * INDENT, "<xsd:maxLength", 0 );
+    fprint( f, " value=\"%d\"/>\n", getNamedNumberCount( smiType ) );
     fprintSegment( f, indent + INDENT, "</xsd:restriction>\n", 0 );
     fprintSegment( f, indent, "</xsd:simpleType>\n\n", 0 );
 }
@@ -530,7 +545,8 @@ static void fprintSubRangeType( FILE *f, int indent,
 	    minLength = smiRange->minValue.value.integer32;	     
 	}
 	if( smiRange->maxValue.value.integer32 > maxLength ) {
-	    maxLength = smiRange->maxValue.value.integer32;
+	    /* Hex-Strings use two chars for one octet */
+	    maxLength = 2 * smiRange->maxValue.value.integer32;
 	}
 	
 	if( minLength > 0 ) {
