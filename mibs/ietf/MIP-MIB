@@ -1,7 +1,8 @@
     MIP-MIB DEFINITIONS ::= BEGIN
 
     IMPORTS
-        Counter32, Gauge32, Integer32, IpAddress, mib-2,
+        Counter32, Gauge32, Integer32, Unsigned32,
+        IpAddress, mib-2,
         MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE
                                         FROM SNMPv2-SMI
         RowStatus, TruthValue, TimeStamp,
