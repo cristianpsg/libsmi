@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.23 1998/11/23 12:56:57 strauss Exp $
+ * @(#) $Id: data.c,v 1.24 1998/11/23 16:41:37 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -489,6 +489,10 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	       name, module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
 	       stringKind(kind), ptr ? *(void **)ptr : NULL, flags);
+
+    { int i = 0; Descriptor *de ;
+      for (de = firstDescriptor[KIND_ANY]; de; de = de->next) {
+      fprintf(stderr, "XXX %s\n", de->name); } }
 
     /*
      * If this new descriptor is found as pending type,
