@@ -10,8 +10,10 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.23 2001/11/08 10:26:39 tklie Exp $	 
+ * @(#) $Id: smidiff.c,v 1.24 2001/11/09 14:05:48 schoenw Exp $ 
  */
+
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -104,11 +106,16 @@ typedef struct Error {
 #define ERR_INDEX_CHANGED               62
 #define ERR_PREVIOUS_DEFINITION_TEXT    63
 #define ERR_TYPE_IS_AND_WAS             64
-#define ERR_RANGE_IS_AND_WAS            65
-#define ERR_RANGE_IS                    66
-#define ERR_RANGE_WAS                   67
+#define ERR_RANGE_OF_TYPE_CHANGED       65
+#define ERR_RANGE_OF_TYPE_ADDED         66
+#define ERR_RANGE_OF_TYPE_REMOVED       67
 #define ERR_TYPE_BASED_ON               68
 #define ERR_PREVIOUS_DEFINITION_NQ      69
+#define ERR_INDEX_AUGMENT_CHANGED       70
+#define ERR_NAMED_NUMBER_OF_TYPE_REMOVED 71
+#define ERR_NAMED_NUMBER_TO_TYPE_ADDED  72
+#define ERR_NAMED_NUMBER_OF_TYPE_CHANGED 73
+#define ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE 74
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -160,7 +167,7 @@ static Error errors[] = {
     { 3, ERR_ACCESS_REMOVED, "access-removed",
       "access removed from `%s'" },
     { 5, ERR_ACCESS_CHANGED, "access-changed",
-      "access of `%s' changed" },
+      "access of `%s' changed from `%s' to `%s'" },
     { 5, ERR_NAME_ADDED, "name-added",
       "name added to `%s'" },
     { 3, ERR_NAME_REMOVED, "name-removed",
@@ -172,11 +179,11 @@ static Error errors[] = {
     { 3, ERR_FROM_IMPLICIT, "from-implicit",
       "type `%s' replaces implicit type for `%s'" },
     { 3, ERR_RANGE_ADDED, "range-added",
-      "range added to type used in `%s'" },
+      "range `%s' added to type used in `%s'" },
     { 3, ERR_RANGE_REMOVED, "range-removed",
-      "range removed from type used in `%s'" },
+      "range `%s' removed from type used in `%s'" },
     { 3, ERR_RANGE_CHANGED, "range-changed",
-      "range of type used in `%s' changed" }, 
+      "range of type used in `%s' changed from `%s' to `%s'" }, 
     { 3, ERR_DEFVAL_ADDED, "defval-added",
       "default value added to `%s'" },
     { 3, ERR_DEFVAL_REMOVED, "defval-removed",
@@ -216,33 +223,43 @@ static Error errors[] = {
     { 3, ERR_OBJECT_CHANGED, "object-changed",
       "object `%s' changed" },
     { 5, ERR_NAMED_NUMBER_ADDED, "named-number-added",
-      "named number `%s' added" },
+      "named number `%s' added to type used in `%s'" },
     { 2, ERR_NAMED_NUMBER_REMOVED, "named-number-removed",
-      "named number `%s' removed from type %s" },
+      "named number `%s' removed from type used in `%s'" },
     { 5, ERR_NAMED_NUMBER_CHANGED, "named-number-changed",
-      "named number `%s' changed to `%s'" },
+      "named number `%s' changed to `%s' at type used in `%s'" },
     { 3, ERR_NAMED_BIT_ADDED_OLD_BYTE, "named-bit-added-old-byte",
-      "named bit `%s' added without starting in a new byte" },
+      "named bit `%s' added without starting in a new byte in type used in `%s'" },
     { 2, ERR_NODEKIND_CHANGED, "nodekind-changed",
       "node kind of `%s' changed" },
     { 2, ERR_INDEXKIND_CHANGED, "indexkind-changed",
       "changed kind of index from `%s' to `%s' in node `%s'" },
     { 2, ERR_INDEX_CHANGED, "index-changed",
-      "index of `%s' changed" },
+      "index of `%s' changed from %s to %s" },
     { 6, ERR_PREVIOUS_DEFINITION_TEXT, "previous-defininition",
       "previous definition of %s `%s'" },
     { 6, ERR_TYPE_IS_AND_WAS, "type-is-and-was",
       "type changed from %s to %s" },
-    { 6, ERR_RANGE_IS_AND_WAS, "range-is-and-was",
-      "range changed from `%d..%d' to `%d..%d'" },
-    { 6, ERR_RANGE_IS, "range-is",
-      "range `%d..%d' added" },
-    { 6, ERR_RANGE_WAS, "range-was",
-      "range `%d..%d' removed" },
+    { 6, ERR_RANGE_OF_TYPE_CHANGED, "range-changed",
+      "range of type `%s' changed from `%s' to `%s'" },
+    { 6, ERR_RANGE_OF_TYPE_ADDED, "range-added",
+      "range `%s' added to type `%s'" },
+    { 6, ERR_RANGE_OF_TYPE_REMOVED, "range-removed",
+      "range `%s' removed from type `%s'" },
     { 6, ERR_TYPE_BASED_ON, "type-based-on",
       "type %s based on %s" },
     { 6, ERR_PREVIOUS_DEFINITION_NQ, "previous-definition",
       "previous definition of %s" },
+    { 2, ERR_INDEX_AUGMENT_CHANGED, "index-changed",
+      "index of `%s' changed from augmenting `%s' to augmenting `%s'" },
+    { 2, ERR_NAMED_NUMBER_OF_TYPE_REMOVED, "named-number-removed",
+      "named number `%s' removed from type `%s'" },
+    { 5, ERR_NAMED_NUMBER_TO_TYPE_ADDED, "named-number-added",
+      "named number `%s' added to type `%s'" },
+    { 5, ERR_NAMED_NUMBER_OF_TYPE_CHANGED, "named-number-changed",
+      "named number `%s' changed to `%s' in type `%s'" },
+    { 3, ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE, "named-bit-added-old-byte",
+      "named bit `%s' added without starting in a new byte in type `%s'" },
     { 0, 0, NULL, NULL }
 };
 
@@ -492,6 +509,19 @@ checkStatus(SmiModule *oldModule, int oldLine,
     free( qname );
 }
 
+static char*
+getStringAccess( SmiAccess smiAccess )
+{
+    switch( smiAccess ) {
+    case SMI_ACCESS_NOT_IMPLEMENTED: return "not implemented";
+    case SMI_ACCESS_NOT_ACCESSIBLE : return "not accessible";
+    case SMI_ACCESS_NOTIFY         : return "notify";
+    case SMI_ACCESS_READ_ONLY      : return "read only";
+    case SMI_ACCESS_READ_WRITE     : return "read write";
+    case SMI_ACCESS_UNKNOWN:
+    default: return "unknown";
+    }
+}
 
 
 static void
@@ -511,7 +541,9 @@ checkAccess(SmiModule *oldModule, int oldLine,
 			 newLine, name);
     } else {
 	printErrorAtLine(newModule, ERR_ACCESS_CHANGED,
-			 newLine, name);
+			 newLine, name,
+			 getStringAccess( oldAccess ),
+			 getStringAccess( newAccess ));
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			 oldLine, name);
     }
@@ -786,6 +818,131 @@ printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
     free(newTypeName);
 }
 
+static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
+{
+    static char    s[100];
+    char           ss[9];
+    int		   n;
+    unsigned int   i;
+    SmiNamedNumber *nn;
+    SmiNode        *nodePtr;
+    
+    s[0] = 0;
+    
+    switch (valuePtr->basetype) {
+    case SMI_BASETYPE_UNSIGNED32:
+	sprintf(s, "%lu", valuePtr->value.unsigned32);
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	sprintf(s, "%ld", valuePtr->value.integer32);
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	sprintf(s, UINT64_FORMAT, valuePtr->value.unsigned64);
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	sprintf(s, INT64_FORMAT, valuePtr->value.integer64);
+	break;
+    case SMI_BASETYPE_FLOAT32:
+    case SMI_BASETYPE_FLOAT64:
+    case SMI_BASETYPE_FLOAT128:
+	break;
+    case SMI_BASETYPE_ENUM:
+	for (nn = smiGetFirstNamedNumber(typePtr); nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 == valuePtr->value.unsigned32)
+		break;
+	}
+	if (nn) {
+	    sprintf(s, "%s", nn->name);
+	} else {
+	    sprintf(s, "%ld", valuePtr->value.integer32);
+	}
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+	for (i = 0; i < valuePtr->len; i++) {
+	    if (!isprint((int)valuePtr->value.ptr[i])) break;
+	}
+	if (i == valuePtr->len) {
+	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
+	} else {
+            sprintf(s, "'%*s'H", 2 * valuePtr->len, " ");
+            for (i=0; i < valuePtr->len; i++) {
+                sprintf(ss, "%02x", valuePtr->value.ptr[i]);
+                strncpy(&s[1+2*i], ss, 2);
+            }
+	}
+	break;
+    case SMI_BASETYPE_BITS:
+	
+	sprintf(s, "{");
+	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
+	    if (valuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
+		for (nn = smiGetFirstNamedNumber(typePtr); nn;
+		     nn = smiGetNextNamedNumber(nn)) {
+		    if (nn->value.value.unsigned32 == i)
+			break;
+		}
+		if (nn) {
+		    if (n)
+			sprintf(&s[strlen(s)], ", ");
+		    n++;
+		    sprintf(&s[strlen(s)], "%s", nn->name);
+		}
+	    }
+	}
+	sprintf(&s[strlen(s)], "}");
+	break;
+    case SMI_BASETYPE_UNKNOWN:
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);
+	if (nodePtr) {
+	    sprintf(s, "%s", nodePtr->name);
+	} else {
+	    strcpy(s, "{");
+	    for (i=0; i < valuePtr->len; i++) {
+		if (i) strcat(s, " ");
+		sprintf(&s[strlen(s)], "%u", valuePtr->value.oid[i]);
+	    }
+	    strcat(s, "}");
+	}
+	break;
+    }
+
+    return s;
+}
+
+
+static char*
+getStringRange( SmiType *smiType )
+{
+    SmiRange *range;
+    int i;
+    char *str = malloc(2);
+    if(!str) {
+	return NULL;
+    }
+    sprintf( str, "(" );  
+    for(i = 0, range = smiGetFirstRange(smiType);
+	range; i++, range = smiGetNextRange(range)) {
+	char *minStr, *maxStr;
+	if (i) {
+	    str = realloc( str, strlen( str ) + 2 );
+	    sprintf(str, "%s|",str);
+	}
+	minStr = strdup( getValueString(&range->minValue, smiType) );
+	maxStr = strdup( getValueString(&range->maxValue, smiType) );
+	str = realloc(str, strlen(str) + strlen(minStr) + strlen(maxStr) + 3);
+	if( str ) {
+	    sprintf(str, "%s%s..%s", str, minStr, maxStr);
+	}
+    }
+    str = realloc( str, strlen( str ) + 2 );
+    if( str ) {
+	sprintf(str, "%s)",str);
+    }
+    return str;
+}
 
 static void
 checkRanges(SmiModule *oldModule, int oldLine, 
@@ -794,35 +951,45 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	    SmiType *oldType, SmiType *newType)
 {
     SmiType *oldTwR, *newTwR; /* parent types with ranges */
-  
+   
     oldTwR = findTypeWithRange(oldType);
     newTwR = findTypeWithRange(newType);
     
     if (!oldTwR && newTwR) {
 	SmiRange *newRange;
-
+	char *strRange;
 	char *typeName = getTypeName( newTwR, newModule );
-	
-	printErrorAtLine(newModule, ERR_RANGE_ADDED,
-			 newLine, name);
-	printTypeImportChain( oldType, oldTwR, newType, newTwR,
-			      oldModule, newModule );
 
-	for( newRange = smiGetFirstRange( newTwR );
-	     newRange;
-	     newRange = smiGetNextRange( newRange ) ) {
-	    printErrorAtLine(newModule, ERR_RANGE_IS,
-			     smiGetTypeLine( newType ),
-			     newRange->minValue.value.integer32,
-			     newRange->maxValue.value.integer32);
+	strRange = getStringRange( newTwR );
+	if( name ) {
+	    printErrorAtLine(newModule, ERR_RANGE_ADDED,
+			     newLine, strRange, name);
 	}
+	else {
+	    printErrorAtLine( newModule, ERR_RANGE_OF_TYPE_ADDED,
+			      newLine, strRange, newTwR->name );
+	}
+	free( strRange );
+/*	printTypeImportChain( oldType, oldTwR, newType, newTwR, 
+	oldModule, newModule ); */
+
     }
     
     if (oldTwR && !newTwR) {
-	printErrorAtLine( newModule, ERR_RANGE_REMOVED,
-			  newLine, name);
-	printTypeImportChain( oldType, oldTwR, newType, newTwR,
+	char *strRange;
+	strRange = getStringRange( oldTwR );
+	if( name ) {
+	    printErrorAtLine( newModule, ERR_RANGE_REMOVED,
+			      newLine, strRange, name);
+	}
+	else {
+	    printErrorAtLine( newModule, ERR_RANGE_OF_TYPE_REMOVED,
+			      newLine, strRange, oldTwR->name );
+	}
+	free( strRange );
+/*	printTypeImportChain( oldType, oldTwR, newType, newTwR,
 			      oldModule, newModule  );
+*/
 	
 	
 	if( oldTwR == oldType ) {
@@ -853,66 +1020,73 @@ checkRanges(SmiModule *oldModule, int oldLine,
 
 	    if( oldRange && newRange ) {
 		
-		/* we assume that range->mxxValue is always Integer32 */
-		if((oldRange->minValue.value.integer32 !=
-		    newRange->minValue.value.integer32 ) ||
-		   (oldRange->maxValue.value.integer32 !=
-		    newRange->maxValue.value.integer32)) {
+		
+		if(cmpSmiValues(oldRange->minValue, newRange->minValue) ||
+		   cmpSmiValues(oldRange->maxValue, newRange->maxValue)) {
 
-		    
-		    printErrorAtLine(newModule,
-				     ERR_RANGE_CHANGED,
-				     smiGetTypeLine( newType ),
-				     name);		  
-		    printErrorAtLine( newModule,
-				      ERR_RANGE_IS_AND_WAS,
-				      smiGetTypeLine( newType ),
-				      oldRange->minValue.value.integer32,
-				      oldRange->maxValue.value.integer32,
-				      newRange->minValue.value.integer32,
-				      newRange->maxValue.value.integer32);
+		    char *oldStrRange, *newStrRange;
+
+		    oldStrRange = getStringRange( oldTwR );
+		    newStrRange = getStringRange( newTwR );
+		    if( name ) {
+			printErrorAtLine(newModule,
+					 ERR_RANGE_CHANGED,
+					 smiGetTypeLine( newType ),
+					 name, oldStrRange, newStrRange);
+		    }
+		    else {
+			printErrorAtLine(newModule,
+					 ERR_RANGE_OF_TYPE_CHANGED,
+					 smiGetTypeLine( newType ),
+					 newType->name,
+					 oldStrRange, newStrRange);
+		    }
+		    free( oldStrRange );
+		    free( newStrRange );
+
+		    /*
 		    printTypeImportChain( oldType, oldTwR, newType, newTwR,
 					  oldModule, newModule );
-		    
-		    /* If the range has been enlarged,
-		       continue comparison after the enlarged range. */
-		    while( oldRange ) {
-			if( oldRange->minValue.value.integer32 <
-			    newRange->maxValue.value.integer32 ) {
-			    oldRange = smiGetNextRange( oldRange );
-			}
-			else {
-			    break;
-			}
-		    }
+		    */
+
+		    return;
 		}
 	    }
 	    
 	    else if (oldRange){
-		printErrorAtLine(newModule,
-				 ERR_RANGE_REMOVED,
-				 smiGetTypeLine( newTwR ),
-				 name);
-		printErrorAtLine(newModule,
-				 ERR_RANGE_WAS,
-				 smiGetTypeLine( newType ),
-				 oldRange->minValue.value.integer32,
-				 oldRange->maxValue.value.integer32);
-		printTypeImportChain( oldType, oldTwR, newType, newTwR,
-				      oldModule, newModule );
+		char *strRange = getStringRange( oldTwR );
+		if( name ) {
+		    printErrorAtLine(newModule,
+				     ERR_RANGE_REMOVED,
+				     smiGetTypeLine( newTwR ),
+				     strRange, name);
+		}
+		else {
+		    printErrorAtLine(newModule,
+				     ERR_RANGE_OF_TYPE_REMOVED,
+				     smiGetTypeLine( newTwR ),
+				     strRange, oldTwR->name);
+		}
+		free( strRange );
+/*		printTypeImportChain( oldType, oldTwR, newType, newTwR,
+		oldModule, newModule ); */
 	    }
 
 	    else if( newRange ) {
-		printErrorAtLine(newModule,
-				 ERR_RANGE_ADDED,
-				 smiGetTypeLine( newType ),
-				 name);
-		/* we assume that ranges always are specified thru integer32 */
-		printErrorAtLine(newModule,
-				 ERR_RANGE_IS,
-				 smiGetTypeLine( newType ),
-				 newRange->minValue.value.integer32,
-				 newRange->maxValue.value.integer32);
+		char *strRange = getStringRange( newTwR );
+		if( name ) {
+		    printErrorAtLine(newModule,
+				     ERR_RANGE_ADDED,
+				     smiGetTypeLine( newType ),
+				     strRange, name);
+		}
+		else {
+		    printErrorAtLine(newModule,
+				     ERR_RANGE_OF_TYPE_ADDED,
+				     smiGetTypeLine( newType ),
+				     strRange, newType->name);
+		}
+		free( strRange );
 	    }
 	    
 	    oldRange = smiGetNextRange( oldRange );
@@ -958,26 +1132,24 @@ checkDefVal(SmiModule *oldModule, int oldLine,
 static void
 checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		  SmiModule *newModule, int newLine,
-		  char *name, 
+		  char *name, SmiNode *smiNode,
 		  SmiType *oldType, SmiType *newType)
 {
     SmiNamedNumber *oldNN, *newNN;
 
-    if( ! name ) {
-	name = "implicit type";
-    }
-
-    /* xxx Do we have to find named numbers of parent types
-       (see checkRanges) ? */
     oldNN = smiGetFirstNamedNumber( oldType );
     newNN = smiGetFirstNamedNumber( newType );
 
     while( oldNN || newNN ) {
 	if( oldNN && !newNN ) {
-	    printErrorAtLine(newModule, ERR_NAMED_NUMBER_REMOVED, newLine,
-			     oldNN->name, getTypeName( oldType, oldModule ));
-	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION, oldLine,
-			     oldNN->name);
+	    if( smiNode ) {
+		printErrorAtLine(newModule, ERR_NAMED_NUMBER_REMOVED, newLine,
+				 oldNN->name, smiNode->name);
+	    }
+	    else {
+		printErrorAtLine(newModule, ERR_NAMED_NUMBER_OF_TYPE_REMOVED,
+				 newLine, oldNN->name, name);
+	    }
 	    oldNN = smiGetNextNamedNumber( oldNN );
 	}
 	else if( !oldNN && newNN ) {
@@ -996,23 +1168,52 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		       of bits are stored in NN->value.value.unsigned32 */
 		    if( newNN->value.value.unsigned32 / 8 <=
 			veryOldNN->value.value.unsigned32 / 8 ) {
-			printErrorAtLine( newModule,
-					  ERR_NAMED_BIT_ADDED_OLD_BYTE,
-					  newLine, newNN->name );
+			if( smiNode ) {
+			    printErrorAtLine( newModule,
+					      ERR_NAMED_BIT_ADDED_OLD_BYTE,
+					      newLine, newNN->name,
+					      smiNode->name );
+			}
+			else {
+			    printErrorAtLine( newModule,
+					      ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE,
+					      newLine, newNN->name, name );
+			}
 		    }
 		    else {
-			printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
-					 newLine, newNN->name);
+			if( smiNode ){
+			    printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
+					     newLine, newNN->name,
+					     smiNode->name);
+			}
+			else {
+			    printErrorAtLine(newModule,
+					     ERR_NAMED_NUMBER_TO_TYPE_ADDED,
+					     newLine, newNN->name, name);
+			}
 		    }
 		}
 		else {
-		    printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
-				     newLine, newNN->name);
+		    if( smiNode ) {
+			printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
+					 newLine, newNN->name, smiNode->name);
+		    }
+		    else {
+			printErrorAtLine(newModule,
+					 ERR_NAMED_NUMBER_TO_TYPE_ADDED,
+					 newLine, newNN->name, name);
+		    }
 		}
 	    }
 	    else {
-		printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
-				 newLine, newNN->name);
+		if( smiNode ) {
+		    printErrorAtLine(newModule, ERR_NAMED_NUMBER_ADDED,
+				     newLine, newNN->name, smiNode->name);
+		}
+		else {
+		    printErrorAtLine(newModule, ERR_NAMED_NUMBER_TO_TYPE_ADDED,
+				     newLine, newNN->name, name);
+		}
 	    }
 	    newNN = smiGetNextNamedNumber( newNN );
 	}
@@ -1023,25 +1224,49 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		   of bits are stored in NN->value.value.unsigned32 */
 		if( oldNN->value.value.unsigned32 <
 		    newNN->value.value.unsigned32 ) {
-		    printErrorAtLine( oldModule, ERR_NAMED_NUMBER_REMOVED,
-				      smiGetTypeLine( oldType ),oldNN->name,
-				      getTypeName( oldType, oldModule ) );
+		    if( smiNode ) {
+			printErrorAtLine( newModule, ERR_NAMED_NUMBER_REMOVED,
+					  newLine,
+					  oldNN->name,
+					  smiNode->name );
+		    }
+		    else {
+			printErrorAtLine( newModule,
+					  ERR_NAMED_NUMBER_OF_TYPE_REMOVED,
+					  newLine,
+					  oldNN->name, name );
+		    }
 		    oldNN = smiGetNextNamedNumber( oldNN );
 		}
 		else if( oldNN->value.value.unsigned32 >
 			 newNN->value.value.unsigned32 ) {
-		    printErrorAtLine( newModule, ERR_NAMED_NUMBER_ADDED,
-				      smiGetTypeLine( newType ),newNN->name );
+		    if( smiNode ) {
+			printErrorAtLine( newModule, ERR_NAMED_NUMBER_ADDED,
+					  newLine, newNN->name,
+					  smiNode->name );
+		    }
+		    else {
+			printErrorAtLine( newModule,
+					  ERR_NAMED_NUMBER_TO_TYPE_ADDED,
+					  newLine, newNN->name, name );
+		    }
 		    newNN = smiGetNextNamedNumber( newNN );
 		}
 		else {
 		    if( strcmp( oldNN->name, newNN->name ) ) {
-			printErrorAtLine( newModule, ERR_NAMED_NUMBER_CHANGED,
-					  smiGetTypeLine( newType ),
-					  oldNN->name, newNN->name );
-			printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
-					  smiGetTypeLine( oldType ),
-					  oldNN->name );
+			if( smiNode ) {
+			    printErrorAtLine( newModule,
+					      ERR_NAMED_NUMBER_CHANGED,
+					      newLine,
+					      oldNN->name, newNN->name,
+					      smiNode->name );
+			}
+			else {
+			    printErrorAtLine( newModule,
+					      ERR_NAMED_NUMBER_OF_TYPE_CHANGED,
+					      newLine,
+					      oldNN->name, newNN->name, name );
+			}
 		    }
 		    oldNN = smiGetNextNamedNumber( oldNN );
 		    newNN = smiGetNextNamedNumber( newNN );
@@ -1052,25 +1277,46 @@ checkNamedNumbers(SmiModule *oldModule, int oldLine,
 		   of an enumeration are stored in NN->value.value.integer32 */
 		if( oldNN->value.value.integer32 <
 		    newNN->value.value.integer32 ) {
-		    printErrorAtLine( oldModule, ERR_NAMED_NUMBER_REMOVED,
-				      smiGetTypeLine( oldType ),oldNN->name,
-				      name);
+		    if( smiNode ) {
+			printErrorAtLine( newModule, ERR_NAMED_NUMBER_REMOVED,
+					  newLine,oldNN->name,
+					  smiNode->name );
+		    }
+		    else {
+			printErrorAtLine( newModule,
+					  ERR_NAMED_NUMBER_OF_TYPE_REMOVED,
+					  newLine, oldNN->name, name );
+		    }
 		    oldNN = smiGetNextNamedNumber( oldNN );
 		}
 		else if( oldNN->value.value.integer32 >
 			 newNN->value.value.integer32 ) {
-		    printErrorAtLine( newModule, ERR_NAMED_NUMBER_ADDED,
-				      smiGetTypeLine( newType ),newNN->name );
+		    if( smiNode ) {
+			printErrorAtLine( newModule, ERR_NAMED_NUMBER_ADDED,
+					  newLine ,newNN->name,
+					  smiNode->name );
+		    }
+		    else {
+			printErrorAtLine( newModule,
+					  ERR_NAMED_NUMBER_TO_TYPE_ADDED,
+					  newLine, newNN->name, name );
+		    }
 		    newNN = smiGetNextNamedNumber( newNN );
 		}
 		else {
 		    if( strcmp( oldNN->name, newNN->name ) ) {
-			printErrorAtLine( newModule, ERR_NAMED_NUMBER_CHANGED,
-					  smiGetTypeLine( newType ),
-					  oldNN->name, newNN->name );
-			printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
-					  smiGetTypeLine( oldType ),
-					  oldNN->name );
+			if( smiNode ) {
+			    printErrorAtLine( newModule,
+					      ERR_NAMED_NUMBER_CHANGED,
+					      newLine, oldNN->name,
+					      newNN->name, smiNode->name );
+			}
+			else {
+			    printErrorAtLine( newModule,
+					      ERR_NAMED_NUMBER_OF_TYPE_CHANGED,
+					      newLine, oldNN->name,
+					      newNN->name, name );
+			}
 		    }
 		    oldNN = smiGetNextNamedNumber( oldNN );
 		    newNN = smiGetNextNamedNumber( newNN );
@@ -1112,18 +1358,16 @@ checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
 	}
     }
 
-    checkNamedNumbers(oldModule, smiGetTypeLine(oldType),
-		      newModule, smiGetTypeLine(newType),
+    oldLine = oldNode ? smiGetNodeLine( oldNode ) : smiGetTypeLine( oldType );
+    newLine = newNode ? smiGetNodeLine( newNode ) : smiGetTypeLine( newType );
+    checkNamedNumbers(oldModule, oldLine,
+		      newModule, newLine,
 		      oldType->name,
+		      oldNode,
 		      oldType,
 		      newType);
 
-    oldLine = oldNode ? smiGetNodeLine( oldNode ) : smiGetTypeLine( oldType );
-    newLine = newNode ? smiGetNodeLine( newNode ) : smiGetTypeLine( newType );
-    oldName = oldNode ? oldNode->name : "<unnamed>";
-    /* Assumption: If xxxNode is null, xxxModule is the module where
-       xxxType is defined. Otherwise it is the module where the node
-       resides. */
+    oldName = oldNode ? oldNode->name : NULL;
     checkRanges(oldModule, oldLine,
 		newModule, newLine,
 		oldName,
@@ -1258,7 +1502,32 @@ getStringIndexkind( SmiIndexkind indexkind )
     default: return "unknown";
     }
 }
-    
+
+static char*
+getStringIndexList( SmiNode *smiNode )
+{
+    SmiNode *indexNode;
+    SmiElement *smiElement;
+    char *strIdxLst;
+
+    smiElement = smiGetFirstElement( smiNode );
+    indexNode = smiGetElementNode( smiElement );
+    strIdxLst = (char *)malloc( strlen( indexNode->name ) + 3);
+    if( strIdxLst ) {
+	sprintf( strIdxLst, "`%s'", indexNode->name );
+    }
+    smiElement = smiGetNextElement( smiElement );
+    while ( smiElement ) {
+	indexNode = smiGetElementNode( smiElement );
+	strIdxLst = (char *)realloc( strIdxLst,
+				     strlen( strIdxLst ) +
+				     strlen( indexNode->name ) + 4 );
+	sprintf( strIdxLst, "%s, `%s'", indexNode->name );
+	smiElement = smiGetNextElement( smiElement );
+    }
+    return strIdxLst;
+}
+
 static void
 checkIndex(SmiModule *oldModule, SmiNode *oldNode,
 	   SmiModule *newModule, SmiNode *newNode)
@@ -1296,8 +1565,13 @@ checkIndex(SmiModule *oldModule, SmiNode *oldNode,
 	    newIndexNode = smiGetElementNode( newElement );
 
 	    if( oldIndexNode->oidlen != newIndexNode->oidlen ) {
+		char *oldIdxLst, *newIdxLst;
+		oldIdxLst = getStringIndexList( oldNode );
+		newIdxLst = getStringIndexList( newNode );
 		printErrorAtLine( newModule, ERR_INDEX_CHANGED,
 				  smiGetNodeLine( newNode ), oldNode->name );
+		free( oldIdxLst );
+		free( newIdxLst );
 		printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
 				  smiGetNodeLine( oldNode ), oldNode->name );
 		return;
@@ -1305,12 +1579,19 @@ checkIndex(SmiModule *oldModule, SmiNode *oldNode,
 
 	    for( i = 0; i < oldIndexNode->oidlen; i++ ) {
 		if( oldIndexNode->oid[i] != newIndexNode->oid[i] ) {
+		    char *oldIdxLst, *newIdxLst;
+		    oldIdxLst = getStringIndexList( oldNode );
+		    newIdxLst = getStringIndexList( newNode );
 		    printErrorAtLine( newModule, ERR_INDEX_CHANGED,
 				      smiGetNodeLine( newNode ),
-				      oldNode->name );
+				      oldNode->name,
+				      oldIdxLst, newIdxLst);
+		    free( oldIdxLst );
+		    free( newIdxLst );
 		    printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
 				      smiGetNodeLine( oldNode ),
 				      oldNode->name );
+		    return;
 		}
 	    }
 	    oldElement = smiGetNextElement( oldElement );
@@ -1328,17 +1609,19 @@ checkIndex(SmiModule *oldModule, SmiNode *oldNode,
 	    return;
 	}
 	if( oldRelNode->oidlen != newRelNode->oidlen ) {
-	    printErrorAtLine( newModule, ERR_INDEX_CHANGED,
-			      smiGetNodeLine( newNode ), oldNode->name );
+	    printErrorAtLine( newModule, ERR_INDEX_AUGMENT_CHANGED,
+			      smiGetNodeLine( newNode ), oldNode->name,
+			      oldRelNode->name, newRelNode->name);
 	    printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
 			      smiGetNodeLine( oldNode ), oldNode->name );
 	    return;
 	}
 	for( i = 0; i < oldRelNode->oidlen; i++ ) {
 	    if( oldRelNode->oid[i] != newRelNode->oid[i] ) {
-		printErrorAtLine( newModule, ERR_INDEX_CHANGED,
+		printErrorAtLine( newModule, ERR_INDEX_AUGMENT_CHANGED,
 				  smiGetNodeLine( newNode ),
-				  oldNode->name );
+				  oldNode->name,
+				  oldRelNode->name, newRelNode->name);
 		printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
 				  smiGetNodeLine( oldNode ), oldNode->name );
 	    }
@@ -1362,6 +1645,7 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    SmiModule *newModule, SmiNode *newNode)
 {
     SmiType *oldType, *newType;
+    char *name;
 
     const int oldLine = smiGetNodeLine(oldNode);
     const int newLine = smiGetNodeLine(newNode);
@@ -1549,6 +1833,8 @@ checkNotification(SmiModule *oldModule, const char *oldTag,
 		  SmiModule *newModule, const char *newTag,
 		  SmiNode *oldNode, SmiNode *newNode)
 {
+    char * name;
+    
     checkDecl(oldModule, smiGetNodeLine(oldNode),
 	      newModule, smiGetNodeLine(newNode),
 	      newNode->name, oldNode->decl, newNode->decl);
@@ -1830,6 +2116,7 @@ checkGroup(SmiModule *oldModule, const char *oldTag,
 	   SmiModule *newModule, const char *newTag,
 	   SmiNode *oldNode, SmiNode *newNode)
 {
+    char *name;
     checkName(oldModule, smiGetNodeLine(oldNode),
 	      newModule, smiGetNodeLine(newNode),
 	      oldNode->name, newNode->name);
@@ -1963,7 +2250,6 @@ main(int argc, char *argv[])
 	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
     };
     
-
     smiInit(oldTag);
     flags = smiGetFlags();
     flags |= SMI_FLAG_ERRORS;
@@ -1984,21 +2270,23 @@ main(int argc, char *argv[])
     }
 
     smiInit(oldTag);
+    smiSetErrorLevel(errorLevel);
     oldModule = smiGetModule(smiLoadModule(argv[1]));
     if (! oldModule) {
-	fprintf(stderr, "smidiff: cannot locate module `%s'\n", argv[1]);
-	smiExit();
-	exit(1);
+        fprintf(stderr, "smidiff: cannot locate module `%s'\n", argv[1]);
+        smiExit();
+        exit(1);
     }
-    
+
     smiInit(newTag);
+    smiSetErrorLevel(errorLevel);
     newModule = smiGetModule(smiLoadModule(argv[2]));
     if (! newModule) {
-	fprintf(stderr, "smidiff: cannot locate module `%s'\n", argv[2]);
-	smiExit();
-	smiInit(oldTag);
-	smiExit();
-	exit(2);
+        fprintf(stderr, "smidiff: cannot locate module `%s'\n", argv[2]);
+        smiExit();
+        smiInit(oldTag);
+        smiExit();
+        exit(2);
     }
 
     diffModules(oldModule, oldTag, newModule, newTag);
