@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.48 1999/12/13 09:47:57 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.49 1999/12/13 15:54:12 strauss Exp $
  */
 
 %{
@@ -83,6 +83,7 @@ static Module      *complianceModulePtr = NULL;
     char           *text;	  		/* scanned quoted text       */
     char           *id;				/* identifier name           */
     int            err;				/* actually just a dummy     */
+    time_t	   date;			/* a date value              */
     Object         *objectPtr;			/* object identifier         */
     SmiStatus      status;			/* a STATUS value            */
     SmiAccess      access;			/* an ACCESS value           */
@@ -278,7 +279,7 @@ static Module      *complianceModulePtr = NULL;
 %type  <listPtr>Notifications
 %type  <objectPtr>Notification
 %type  <text>Text
-%type  <text>ExtUTCTime
+%type  <date>ExtUTCTime
 %type  <objectPtr>objectIdentifier
 %type  <objectPtr>subidentifiers
 %type  <objectPtr>subidentifier
@@ -1793,8 +1794,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			}
 			LAST_UPDATED ExtUTCTime
 			{
-			    setModuleLastUpdated(thisParserPtr->modulePtr,
-						 smiMkTime($6));
+			    setModuleLastUpdated(thisParserPtr->modulePtr, $6);
 			}
 			ORGANIZATION Text
 			CONTACT_INFO Text
@@ -3113,23 +3113,19 @@ Revisions:		Revision
 Revision:		REVISION ExtUTCTime
 			DESCRIPTION Text
 			{
-			    time_t date;
-
-			    date = smiMkTime($2);
-
 			    /*
 			     * If the first REVISION (which is the newest)
 			     * has another date than the LAST-UPDATED clause,
 			     * we add an implicit Revision structure.
 			     */
 			    if ((!thisModulePtr->firstRevisionPtr) &&
-				(date != thisModulePtr->lastUpdated)) {
+				($2 != thisModulePtr->lastUpdated)) {
 				addRevision(thisModulePtr->lastUpdated,
 	            "[Revision added by libsmi due to a LAST-UPDATED clause.]",
 					    thisParserPtr);
 			    }
 			    
-			    if (addRevision(date, $4, thisParserPtr))
+			    if (addRevision($2, $4, thisParserPtr))
 				$$ = 0;
 			    else
 				$$ = -1;
@@ -3212,13 +3208,84 @@ Text:			QUOTED_STRING
 			}
 	;
 
-/*
- * TODO: REF: 
- */
 ExtUTCTime:		QUOTED_STRING
 			{
-			    /* TODO: check length and format */
-			    $$ = util_strdup($1);
+			    struct tm  tm;
+			    int        i, len;
+			    char       *p;
+
+			    tm.tm_isdst = 0;
+			    tm.tm_wday = 0;
+			    tm.tm_yday = 0;
+			    tm.tm_sec = 0;
+			    $$ = 0;
+
+			    len = strlen($1);
+			    if (len == 11 || len == 13) {
+				for (i = 0; i < len; i++) {
+				    if ( (i < len-1 && ! isdigit($1[i]))
+					 || (i == len-1 && $1[len-1] != 'Z')) {
+					printError(thisParserPtr,
+						   ERR_DATE_CHARACTER, $1);
+					$$ = (time_t) -1;
+				    }
+				}
+			    } else {
+				printError(thisParserPtr, ERR_DATE_LENGTH, $1);
+				$$ = (time_t) -1;
+			    }
+
+			    if ($$ == 0) {
+				for (i = 0, p = $1, tm.tm_year = 0;
+				     i < ((len == 11) ? 2 : 4); i++, p++) {
+				    tm.tm_year = tm.tm_year * 10 + (*p - '0');
+				}
+				tm.tm_year += (len == 11) ? 1900 : 0;
+				tm.tm_mon  = (p[0]-'0') * 10 + (p[1]-'0');
+				p += 2;
+				tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
+				p += 2;
+				tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
+				p += 2;
+				tm.tm_min  = (p[0]-'0') * 10 + (p[1]-'0');
+
+				if (tm.tm_year < 1990) {
+				    printError(thisParserPtr,
+					       ERR_DATE_YEAR, $1);
+				}
+				if (tm.tm_mon < 1 || tm.tm_mon > 12) {
+				    printError(thisParserPtr,
+					       ERR_DATE_MONTH, $1);
+				}
+				if (tm.tm_mday < 1 || tm.tm_mday > 31) {
+				    printError(thisParserPtr,
+					       ERR_DATE_DAY, $1);
+				}
+				if (tm.tm_hour < 0 || tm.tm_hour > 23) {
+				    printError(thisParserPtr,
+					       ERR_DATE_HOUR, $1);
+				}
+				if (tm.tm_min < 0 || tm.tm_min > 59) {
+				    printError(thisParserPtr,
+					       ERR_DATE_MINUTES, $1);
+				}
+
+				tm.tm_year -= 1900;
+				tm.tm_mon -= 1;
+
+				putenv("TZ=UTC"); tzset();
+				/* TODO: a better way to make mktime()
+				   use UTC? */
+				$$ = mktime(&tm);
+				if ($$ == (time_t)-1) {
+				    printError(thisParserPtr,
+					       ERR_DATE_VALUE, $1);
+				}
+			    }
+
+			    if ($$ == (time_t)-1) {
+				$$ = 0;
+			    }
 			}
 	;
 
@@ -3845,7 +3912,8 @@ MandatoryGroup:		objectIdentifier
 						    complianceModulePtr->name,
 						    $1->name,
 						    thisModulePtr);
-				importPtr->use++;
+				if (importPtr)
+				    importPtr->use++;
 			    }
 			}
 	;
@@ -3959,7 +4027,8 @@ ComplianceGroup:	GROUP objectIdentifier
 						    complianceModulePtr->name,
 						    $2->name,
 						    thisModulePtr);
-				importPtr->use++;
+				if (importPtr)
+				    importPtr->use++;
 			    }
 			    
 			    $$ = util_malloc(sizeof(List));
@@ -3984,7 +4053,8 @@ ComplianceObject:	OBJECT ObjectName
 						    complianceModulePtr->name,
 						    $2->name,
 						    thisModulePtr);
-				importPtr->use++;
+				if (importPtr) 
+				    importPtr->use++;
 			    }
 			    
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;

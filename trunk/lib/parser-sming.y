@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.28 1999/10/01 12:46:56 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.29 1999/10/05 06:30:58 strauss Exp $
  */
 
 %{
@@ -155,6 +155,7 @@ findObject(spec, parserPtr)
 %union {
     char           *id;				/* identifier name           */
     int            rc;				/* >=0: ok, <0: error        */
+    time_t	   date;			/* a date value		     */
     char	   *text;
     Module	   *modulePtr;
     Node	   *nodePtr;
@@ -307,7 +308,7 @@ findObject(spec, parserPtr)
 %type <listPtr>optsep_createColumns_01
 %type <listPtr>createColumns
 %type <nodePtr>oidStatement
-%type <text>dateStatement
+%type <date>dateStatement
 %type <text>organizationStatement
 %type <text>contactStatement
 %type <text>formatStatement_stmtsep_01
@@ -390,7 +391,7 @@ findObject(spec, parserPtr)
 %type <text>optsep_textSegment_0n
 %type <text>optsep_textSegment_1n
 %type <text>optsep_textSegment
-%type <text>date
+%type <date>date
 %type <text>format
 %type <text>units
 %type <valuePtr>anyValue
@@ -1645,7 +1646,7 @@ revisionStatement:	revisionKeyword optsep '{' stmtsep
 			descriptionStatement stmtsep
 			'}' optsep ';'
 			{
-			    $$ = addRevision(smiMkTime($5), $7, thisParserPtr);
+			    $$ = addRevision($5, $7, thisParserPtr);
 			}
         ;
 
@@ -2827,9 +2828,91 @@ optsep_textSegment:	optsep textSegment
         ;
 
 date:			textSegment
-			/* TODO: check "YYYY-MM-DD HH:MM" or "YYYY-MM-DD" */
 			{
-			    $$ = util_strdup($1);
+			    struct tm  tm;
+			    int        i, len;
+			    char       *p;
+
+			    tm.tm_isdst = 0;
+			    tm.tm_wday = 0;
+			    tm.tm_yday = 0;
+			    tm.tm_sec = 0;
+			    $$ = 0;
+
+			    len = strlen($1);
+			    if (len == 10 || len == 16) {
+			    	for (i = 0; i < len; i++) {
+				    if (((i < 4 || i == 5 || i == 6 || i == 8
+					  || i == 9 || i == 11 || i == 12
+					  || i == 14 || i == 15)
+					 && ! isdigit($1[i]))
+					|| ((i == 4 || i == 7) && $1[i] != '-')
+					|| (i == 10 && $1[i] != ' ')
+					|| (i == 13 && $1[i] != ':')) {
+					printError(thisParserPtr,
+						   ERR_DATE_CHARACTER, $1);
+					$$ = (time_t) -1;
+				    }
+				}
+			    } else {
+				printError(thisParserPtr, ERR_DATE_LENGTH, $1);
+				$$ = (time_t) -1;
+			    }
+
+			    if ($$ == 0) {
+				for (i = 0, p = $1, tm.tm_year = 0;
+				     i < 4; i++, p++) {
+				    tm.tm_year = tm.tm_year * 10 + (*p - '0');
+				}
+				p++;
+				tm.tm_mon = (p[0]-'0') * 10 + (p[1]-'0');
+				p += 3;
+				tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
+				p += 2;
+				if (len == 16) {
+				    p++;
+				    tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
+				    p += 3;
+				    tm.tm_min = (p[0]-'0') * 10 + (p[1]-'0');
+				}
+				
+				if (tm.tm_year < 1990) {
+				    printError(thisParserPtr,
+					       ERR_DATE_YEAR, $1);
+				}
+				if (tm.tm_mon < 1 || tm.tm_mon > 12) {
+				    printError(thisParserPtr,
+					       ERR_DATE_MONTH, $1);
+				}
+				if (tm.tm_mday < 1 || tm.tm_mday > 31) {
+				    printError(thisParserPtr,
+					       ERR_DATE_DAY, $1);
+				}
+				if (tm.tm_hour < 0 || tm.tm_hour > 23) {
+				    printError(thisParserPtr,
+					       ERR_DATE_HOUR, $1);
+				}
+				if (tm.tm_min < 0 || tm.tm_min > 59) {
+				    printError(thisParserPtr,
+					       ERR_DATE_MINUTES, $1);
+				}
+
+				tm.tm_year -= 1900;
+				tm.tm_mon -= 1;
+				
+				putenv("TZ=UTC"); tzset();
+				/* TODO: a better way to make mktime()
+				   use UTC? */
+				$$ = mktime(&tm);
+				if ($$ == (time_t)-1) {
+				    printError(thisParserPtr,
+					       ERR_DATE_VALUE, $1);
+				}
+			    }
+			    
+			    if ($$ == (time_t)-1) {
+				$$ = 0;
+			    }
 			}
         ;
 

@@ -2,6 +2,7 @@ typedef union {
     char           *text;	  		/* scanned quoted text       */
     char           *id;				/* identifier name           */
     int            err;				/* actually just a dummy     */
+    time_t	   date;			/* a date value              */
     Object         *objectPtr;			/* object identifier         */
     SmiStatus      status;			/* a STATUS value            */
     SmiAccess      access;			/* an ACCESS value           */
