@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.6 1999/03/29 22:34:07 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.7 1999/04/09 18:47:08 strauss Exp $
  */
 
 #include <stdio.h>
@@ -43,7 +43,7 @@ main(argc, argv)
     flags |= SMI_ERRORS;
     smiSetFlags(flags);
     
-    while ((c = getopt(argc, argv, "sSvVd:l:c:L:")) != -1) {
+    while ((c = getopt(argc, argv, "sSvVl:c:L:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg);
@@ -51,9 +51,6 @@ main(argc, argv)
 	    break;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
-	    break;
-	case 'd':
-	    smiSetDebugLevel(atoi(optarg));
 	    break;
 	case 'v':
 	    flags |= SMI_ERRORLINES;
@@ -76,7 +73,7 @@ main(argc, argv)
 	    smiAddLocation(optarg);
 	    break;
 	default:
-	    fprintf(stderr, "Usage: %s [-vVsS] [-d level] [-l level] [-c configfile]"
+	    fprintf(stderr, "Usage: %s [-vVsS] [-l level] [-c configfile]"
 		    " [-L location] module\n", argv[0]);
 	    exit(1);
 	}

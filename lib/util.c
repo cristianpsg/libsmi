@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.4 1999/04/10 19:37:24 strauss Exp $
+ * @(#) $Id: util.c,v 1.5 1999/05/20 08:51:17 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -52,6 +52,21 @@ util_strdup(s1)
 
 
 
+char *
+util_strndup(s1, n)
+    const char *s1;
+    size_t     n;
+{
+    char *p;
+    
+    p = util_malloc(n+1);
+    strncpy(p, s1, n);
+    p[n] = 0;
+    return p;
+}
+
+
+
 int
 util_strcmp(s1, s2)
     const char *s1;
@@ -63,6 +78,15 @@ util_strcmp(s1, s2)
     return strcmp(s1, s2);
 }
 
+
+
+void
+util_free(ptr)
+    void *ptr;
+{
+    if (ptr)
+	free(ptr);
+}
 
 
 time_t

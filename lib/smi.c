@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.23 1999/05/04 23:27:02 strauss Exp $
+ * @(#) $Id: smi.c,v 1.24 1999/05/20 08:51:16 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -164,73 +164,68 @@ char *getOid(Node *n)
 
 
 
-void getModulenameAndName(char *arg1, char *arg2, char *modulename, char *name)
+void getModulenameAndName(char *arg1, char *arg2,
+			  char **module, char **name)
 {
     char	    *p;
     int		    l;
 
     if ((!arg1) && (!arg2)) {
-	modulename = NULL;
-	name = NULL;
+	*module = NULL;
+	*name = NULL;
     } else if (!arg2) {
 	if (isupper((int)arg1[0])) {
 	    if ((p = strstr(arg1, SMI_NAMESPACE_OPERATOR))) {
 		/* SMIng style module/label separator */
-		strncpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)], SMI_MAX_OID);
+		*name = util_strdup(&p[strlen(SMI_NAMESPACE_OPERATOR)]);
 		l = strcspn(arg1, SMI_NAMESPACE_OPERATOR);
-		strncpy(modulename, arg1, l);
-		modulename[l] = 0;
+		*module = util_strndup(arg1, l);
 	    } else if ((p = strchr(arg1, '!'))) {
 		/* old scotty style module/label separator */
-		strncpy(name, &p[1], SMI_MAX_OID);
+		name = util_strdup(&p[1]);
 		l = strcspn(arg1, "!");
-		strncpy(modulename, arg1, l);
-		modulename[l] = 0;
+		*module = util_strndup(arg1, l);
 	    } else if ((p = strchr(arg1, '.'))) {
 		/* SMIv1/v2 style module/label separator */
-		strncpy(name, &p[1], SMI_MAX_OID);
+		*name = util_strdup(&p[1]);
 		l = strcspn(arg1, ".");
-		strncpy(modulename, arg1, l);
-		modulename[l] = 0;
+		*module = util_strndup(arg1, l);
 	    } else {
-		strncpy(name, arg1, SMI_MAX_OID);
-		modulename = NULL;
+		*name = util_strdup(arg1);
+		*module = NULL;
 	    }
 	} else {
-	    strncpy(name, arg1, SMI_MAX_OID);
-	    modulename = NULL;
+	    *name = util_strdup(arg1);
+	    *module = NULL;
 	}
     } else if (!arg1) {
 	if (isupper((int)arg2[0])) {
 	    if ((p = strstr(arg2, SMI_NAMESPACE_OPERATOR))) {
 		/* SMIng style module/label separator */
-		strncpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)], SMI_MAX_OID);
+		*name = util_strdup(&p[strlen(SMI_NAMESPACE_OPERATOR)]);
 		l = strcspn(arg2, SMI_NAMESPACE_OPERATOR);
-		strncpy(modulename, arg2, l);
-		modulename[l] = 0;
+		*module = util_strndup(arg2, l);
 	    } else if ((p = strchr(arg2, '!'))) {
 		/* old scotty style module/label separator */
-		strncpy(name, &p[1], SMI_MAX_OID);
+		name = util_strdup(&p[1]);
 		l = strcspn(arg2, "!");
-		strncpy(modulename, arg2, l);
-		modulename[l] = 0;
+		*module = util_strndup(arg2, l);
 	    } else if ((p = strchr(arg2, '.'))) {
 		/* SMIv1/v2 style module/label separator */
-		strncpy(name, &p[1], SMI_MAX_OID);
+		*name = util_strdup(&p[1]);
 		l = strcspn(arg2, ".");
-		strncpy(modulename, arg2, l);
-		modulename[l] = 0;
+		*module = util_strndup(arg2, l);
 	    } else {
-		strncpy(name, arg2, SMI_MAX_OID);
-		modulename = NULL;
+		*name = util_strdup(arg2);
+		*module = NULL;
 	    }
 	} else {
-	    strncpy(name, arg2, SMI_MAX_OID);
-	    modulename = NULL;
+	    *name = util_strdup(arg2);
+	    *module = NULL;
 	}
     } else {
-	strncpy(modulename, arg1, SMI_MAX_DESCRIPTOR);
-	strncpy(name, arg2, SMI_MAX_OID);
+	*module = util_strdup(arg1);
+	*name = util_strdup(arg2);
     }
 }
 
@@ -243,8 +238,6 @@ Object *getObject(char *name, char *modulename)
     char	    *elements, *element;
     SmiSubid	    subid;
     
-    printDebug(5, "getObject(%s, %s)\n", name, modulename ? modulename : "");
-
     if (isdigit((int)name[0])) {
 	/*
 	 * name in `1.3.0x6.1...' form.
@@ -344,6 +337,44 @@ SmiModule *createSmiModule(Module *modulePtr)
 	    smiModulePtr->reference = NULL;
 	}
 	return smiModulePtr;
+    } else {
+	return NULL;
+    }
+}
+
+
+
+SmiImport *createSmiImport(Import *importPtr)
+{
+    SmiImport *smiImportPtr;
+    
+    if (importPtr) {
+	smiImportPtr = util_malloc(sizeof(SmiImport));
+	smiImportPtr->module       = importPtr->modulePtr->name;
+	smiImportPtr->importmodule = importPtr->module;
+	smiImportPtr->importname   = importPtr->name;
+	return smiImportPtr;
+    } else {
+	return NULL;
+    }
+}
+
+
+
+SmiRevision *createSmiRevision(Revision *revisionPtr)
+{
+    SmiRevision *smiRevisionPtr;
+    
+    if (revisionPtr) {
+        smiRevisionPtr = util_malloc(sizeof(SmiRevision));
+	smiRevisionPtr->date = modulePtr->firstRevisionPtr->date;
+	if (modulePtr->firstRevisionPtr->description) {
+	    smiRevisionPtr->description =
+		modulePtr->firstRevisionPtr->description;
+	} else {
+	    smiRevisionPtr->description = NULL;
+	}
+	return smiRevisionPtr;
     } else {
 	return NULL;
     }
@@ -569,17 +600,15 @@ void smiInit()
 int smiLoadModule(char modulename)
 {
 
-    printDebug(4, "smiLoadModule(\"%s\")\n", modulename);
-
     if (!initialized) smiInit();
+
+    if (!isInView(modulename)) {
+	addView(modulename);
+    }
 
     if (findModuleByName(modulename)) {
 	/* already loaded. */
 	return 0;
-    }
-
-    if (!isInView(modulename)) {
-	addView(modulename);
     }
 
     if (loadModule(modulename)) {
@@ -591,21 +620,8 @@ int smiLoadModule(char modulename)
  
 
 
-void smiSetDebugLevel(int level)
-{
-    printDebug(4, "smiSetDebugLevel(%d)\n", level);
-
-    debugLevel = level;
-
-    if (!initialized) smiInit();
-}
-
-
-
 void smiSetErrorLevel(int level)
 {
-    printDebug(4, "smiSetErrorLevel(%d)\n", level);
-
     if (!initialized) smiInit();
     
     errorLevel = level;
@@ -615,8 +631,6 @@ void smiSetErrorLevel(int level)
 
 void smiSetFlags(int userflags)
 {
-    printDebug(4, "smiSetFlags(%x)\n", userflags);
-
     if (!initialized) smiInit();
     
     smiFlags = (smiFlags & ~SMI_FLAGMASK) | userflags;
@@ -626,8 +640,6 @@ void smiSetFlags(int userflags)
 
 int smiGetFlags()
 {
-    printDebug(4, "smiGetFlags()\n");
-
     if (!initialized) smiInit();
     
     return smiFlags & SMI_FLAGMASK;
@@ -635,96 +647,13 @@ int smiGetFlags()
 
 
 
-SmiModule *smiGetModule(char *name)
+SmiModule *smiGetModule(char *module)
 {
     Module	      *modulePtr;
     
-    printDebug(4, "smiGetModule(\"%s\")\n", name);
-
-    modulePtr = findModuleByName(name);
-    
-    if (!modulePtr) {
-	modulePtr = loadModule(name);
-    }
-    
-    if (modulePtr) {
-	return createSmiModule(modulePtr);
-    } else {
+    if (!module) {
 	return NULL;
     }
-}
-
-
-
-SmiModule *smiGetFirstModule()
-{
-    Module	      *modulePtr;
-    
-    printDebug(4, "smiGetFirstModule()\n");
-
-    modulePtr = firstModulePtr;
-    
-    if (modulePtr) {
-	return createSmiModule(modulePtr);
-    } else {
-	return NULL;
-    }
-}
-
-
-
-SmiModule *smiGetNextModule(char *name)
-{
-    Module	      *modulePtr;
-    
-    printDebug(4, "smiGetNextModule(\"%s\")\n", name);
-
-    modulePtr = findModuleByName(name);
-    
-    if (modulePtr) {
-	modulePtr = modulePtr->nextPtr;
-    }
-    
-    if (modulePtr) {
-	return createSmiModule(modulePtr);
-    } else {
-	return NULL;
-    }
-}
-
-
-
-void smiFreeModule(SmiModule *smiModulePtr)
-{
-    free(smiModulePtr);
-}
-
-
-
-SmiImport *smiGetFirstImport(char *modulename)
-{
-    printDebug(4, "smiGetFirstImport(\"%s\")\n", modulename);
-    return smiGetNextImport(modulename, NULL, NULL);
-}
-
-
-
-SmiImport *smiGetNextImport(char *module,
-			    char *importmodule, char *importname)
-{
-    SmiImport	      *smiImportPtr;
-    Module	      *modulePtr;
-    Import	      *importPtr;
-    int		      hit;
-    char	      name[SMI_MAX_OID+1];
-    char	      modulename[SMI_MAX_DESCRIPTOR+1];
-    
-    printDebug(4, "smiGetNextImport(\"%s\", %s, %s)\n",
-	       modulename,
-	       importmodule ? importmodule : "",
-	       importname ? importname : "");
-
-    getModulenameAndName(importmodule, importname, modulename, name);
 
     modulePtr = findModuleByName(module);
     
@@ -732,30 +661,100 @@ SmiImport *smiGetNextImport(char *module,
 	modulePtr = loadModule(module);
     }
     
-    if (modulePtr && (modulePtr->firstImportPtr)) {
-	for (hit = 0, importPtr = modulePtr->firstImportPtr; importPtr;
-	    importPtr = importPtr->nextPtr) {
-	    if (!name) {
-		hit = 1;
-	    }
-	    /*
-	     * If we have found the import named name, we will return
-	     * the next one.
-	     */
-	    if (importPtr->name && name && !strcmp(importPtr->name, name) &&
-		importPtr->module && modulename &&
-		!strcmp(importPtr->module, modulename)) {
-		hit = 1;
-		importPtr = importPtr->nextPtr;
-		break;
-	    }
-	}
-	     
-	if (importPtr) {
-	    smiImportPtr = util_malloc(sizeof(SmiImport));
-	    smiImportPtr->name      = importPtr->name;
-	    smiImportPtr->module    = importPtr->module;
-	    return smiImportPtr;
+    return createSmiModule(modulePtr);
+}
+
+
+
+SmiModule *smiGetFirstModule()
+{
+    return createSmiModule(firstModulePtr);
+}
+
+
+
+SmiModule *smiGetNextModule(SmiModule *smiModulePtr)
+{
+    Module	      *modulePtr;
+
+    if (!smiModulePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiModulePtr->name);
+
+    smiFreeModule(smiModulePtr);
+    
+    if (!modulePtr) {
+	return NULL;
+    }
+    
+    return createSmiModule(modulePtr->nextPtr);
+}
+
+
+
+void smiFreeModule(SmiModule *smiModulePtr)
+{
+    if (smiModulePtr) {
+	free(smiModulePtr);
+    }
+}
+
+
+
+SmiImport *smiGetFirstImport(char *module)
+{
+    if (!module) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(module);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(module);
+    }
+    
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    return createSmiImport(modulePtr->firstImportPtr);
+}
+
+
+
+SmiImport *smiGetNextImport(SmiImport *smiImportPtr)
+{
+    SmiImport	      *smiImportPtr;
+    Module	      *modulePtr;
+    Import	      *importPtr;
+    char	      *importname;
+    char	      *importmodule;
+
+    if (!smiImportPtr) {
+	return NULL;
+    }
+
+    modulePtr    = findModuleByName(smiImportPtr->module);
+    if (!modulePtr) {
+	modulePtr = loadModule(module);
+    }
+
+    importmodule = smiImport->importmodule;
+    importname   = smiImport->importname;
+        
+    smiFreeImport(smiImportPtr);
+    
+    if (!modulePtr) {
+	return NULL;
+    }
+    
+    for (importPtr = modulePtr->firstImportPtr; importPtr;
+	 importPtr = importPtr->nextPtr) {
+	if (!strcmp(importPtr->importname, importname) &&
+	    !strcmp(importPtr->importmodule, importmodule)) {
+	    return createSmiImport(importPtr->nextPtr);
 	}
     }
 
@@ -766,7 +765,9 @@ SmiImport *smiGetNextImport(char *module,
 
 void smiFreeImport(SmiImport *smiImportPtr)
 {
-    free(smiImportPtr);
+    if (smiImportPtr) {
+	free(smiImportPtr);
+    }
 }
 
 
@@ -775,28 +776,37 @@ int smiIsImported(char *module, char *importmodule, char *importname)
 {
     Import	   *importPtr;
     Module	   *modulePtr;
-    char	   name[SMI_MAX_OID+1];
-    char	   modulename[SMI_MAX_DESCRIPTOR+1];
+    char	   *importmodule2, *importname2;
+    
+    if ((!module) || (!importmodule) || (!importname)) {
+	return 0;
+    }
     
     modulePtr = findModuleByName(module);
     
     if (!modulePtr) {
 	modulePtr = loadModule(module);
     }
+
+    if (!modulePtr) {
+	return 0;
+    }
     
-    getModulenameAndName(importmodule, importname, modulename, name);
+    getModulenameAndName(importmodule, importname,
+			 &importmodule2, &importname2);
 
-    if (modulePtr) {
-
-	for (importPtr = modulePtr->firstImportPtr; importPtr;
-	     importPtr = importPtr->nextPtr) {
-	    if ((!strcmp(importmodule, importPtr->module)) &&
-		(!strcmp(importname, importPtr->name))) {
-		return 1;
-	    }
+    for (importPtr = modulePtr->firstImportPtr; importPtr;
+	 importPtr = importPtr->nextPtr) {
+	if ((!strcmp(importmodule2, importPtr->importmodule)) &&
+	    (!strcmp(importname2, importPtr->importname))) {
+	    util_free(importmodule2);
+	    util_free(importname2);
+	    return 1;
 	}
     }
 
+    util_free(importmodule2);
+    util_free(importname2);
     return 0;
 }
 
@@ -806,62 +816,54 @@ SmiRevision *smiGetFirstRevision(char *module)
 {
     SmiRevision		*smiRevisionPtr;
     Module	        *modulePtr;
-    
-    printDebug(4, "smiGetFirstRevision(\"%s\")\n", module);
 
+    if (!module) {
+	return NULL;
+    }
+    
     modulePtr = findModuleByName(module);
     
     if (!modulePtr) {
 	modulePtr = loadModule(module);
     }
     
-    if (modulePtr && (modulePtr->firstRevisionPtr)) {
-	smiRevisionPtr = util_malloc(sizeof(SmiRevision));
-	
-	smiRevisionPtr->date = modulePtr->firstRevisionPtr->date;
-	if (modulePtr->firstRevisionPtr->description) {
-	    smiRevisionPtr->description =
-		modulePtr->firstRevisionPtr->description;
-	} else {
-	    smiRevisionPtr->description = NULL;
-	}
-	return smiRevisionPtr;
+    if (!modulePtr) {
+	return NULL;
     }
 
-    return NULL;
+    return createSmiRevision(modulePtr->firstRevisionPtr);
 }
 
 
 
-SmiRevision *smiGetNextRevision(char *module, time_t date)
+SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr)
 {
     SmiRevision		*smiRevisionPtr;
     Module	        *modulePtr;
     Revision	        *revisionPtr;
+    time_t		date;
     
-    printDebug(4, "smiGetNextRevision(\"%s\", %ld)\n", module, date);
+    if (!smiRevisionPtr) {
+	return NULL;
+    }
 
-    modulePtr = findModuleByName(module);
-    
+    modulePtr    = findModuleByName(smiRevisionPtr->module);
     if (!modulePtr) {
 	modulePtr = loadModule(module);
     }
-    
-    if (modulePtr && (modulePtr->firstRevisionPtr)) {
-	for (revisionPtr = modulePtr->firstRevisionPtr;
-	     revisionPtr && (revisionPtr->date != date);
-	     revisionPtr = revisionPtr->nextPtr);
-	revisionPtr = revisionPtr->nextPtr;
-	if (revisionPtr) {
-	    smiRevisionPtr = util_malloc(sizeof(SmiRevision));
 
-	    smiRevisionPtr->date = revisionPtr->date;
-	    if (revisionPtr->description) {
-	    smiRevisionPtr->description = revisionPtr->description;
-	    } else {
-		smiRevisionPtr->description = NULL;
-	    }
-	    return smiRevisionPtr;
+    date = smiRevisionPtr->date;
+        
+    smiFreeRevision(smiRevisionPtr);
+    
+    if (!modulePtr) {
+	return NULL;
+    }
+    
+    for (revisionPtr = modulePtr->firstRevisionPtr; revisionPtr;
+	 revisionPtr = revisionPtr->nextPtr) {
+	if (revisionPtr->date == date) {
+	    return createSmiRevision(revisionPtr->nextPtr);
 	}
     }
 
@@ -872,7 +874,9 @@ SmiRevision *smiGetNextRevision(char *module, time_t date)
 
 void smiFreeRevision(SmiRevision *smiRevisionPtr)
 {
-    free(smiRevisionPtr);
+    if (smiRevisionPtr) {
+	free(smiRevisionPtr);
+    }
 }
 
 
@@ -881,57 +885,101 @@ SmiType *smiGetType(char *module, char *type)
 {
     Type	    *typePtr = NULL;
     Module	    *modulePtr = NULL;
-    List	    *listPtr;
-    char	    name[SMI_MAX_OID+1];
-    char	    modulename[SMI_MAX_DESCRIPTOR+1];
+    char	    *module2, *type2;
+
+    if ((!module) || (!type)) {
+	return NULL;
+    }
     
-    printDebug(4, "smiGetType(\"%s\", \"%s\")\n",
-	       module ? module : "NULL", type ? type : "NULL");
+    getModulenameAndName(module, type, &module2, &type2);
 
-    getModulenameAndName(module, type, modulename, name);
-
-    if (modulename) {
-	modulePtr = findModuleByName(modulename);
-	if (!modulePtr) {
-	    modulePtr = loadModule(modulename);
+    if (module2) {
+	if (!findModuleByName(module2)) {
+	    loadModule(module2);
 	}
     }
 
-    typePtr = findTypeByModulenameAndName(modulename, name);
+    typePtr = findTypeByModulenameAndName(module2, type2);
     
-    if (typePtr) {
-	return createSmiType(typePtr);
-    } else {
+    util_free(module2);
+    util_free(type2);
+    return createSmiType(typePtr);
+}
+
+
+
+SmiType *smiGetFirstType(char *module)
+{
+    Type *typePtr;
+	  
+    if (!module) {
+	return NULL;
+    }
+    
+    modulePtr = findModuleByName(module);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(module);
+    }
+    
+    if (!modulePtr) {
 	return NULL;
     }
 
+    for (typePtr = modulePtr->firstTypePtr; typePtr;
+	 typePtr = typePtr->nextPtr) {
+	/* loop until we found a `real' type */
+	if (typePtr && typePtr->name &&
+	    isupper((int)typePtr->name[0]) &&
+	    (!(typePtr->flags & FLAG_IMPORTED)) &&
+	    (typePtr->basetype != SMI_BASETYPE_UNKNOWN) &&
+	    (typePtr->basetype != SMI_BASETYPE_SEQUENCE) &&
+	    (typePtr->basetype != SMI_BASETYPE_SEQUENCEOF)) {
+	    break;
+	}
+    }
+    
+    return createSmiType(typePtr);
 }
 
 
 
-SmiType *
-smiGetFirstType(modulename)
-    char	*modulename;
+SmiType *smiGetNextType(SmiType *smiTypePtr)
 {
-    printDebug(4, "smiGetFirstType(\"%s\")\n", modulename);
-    return smiGetNextType(modulename, NULL);
-}
-
-
-
-SmiType *
-smiGetNextType(modulename, name)
-    char	      *modulename;
-    char	      *name;
-{
-    SmiType	      *smiTypePtr;
     Module	      *modulePtr;
     Type	      *typePtr;
-    int		      hit;
-    List	      *listPtr;
+    char	      *type;
     
-    printDebug(4, "smiGetNextType(\"%s\", %s)\n",
-	       modulename, name ? name : "");
+    if (!smiTypePtr) {
+	return NULL;
+    }
+
+    modulePtr    = findModuleByName(smiTypePtr->module);
+    if (!modulePtr) {
+	modulePtr = loadModule(module);
+    }
+
+    type = smiTypePtr->name;
+        
+    smiFreeType(smiTypePtr);
+    
+    if (!modulePtr) {
+	return NULL;
+    }
+XXX    
+    for (revisionPtr = modulePtr->firstRevisionPtr; revisionPtr;
+	 revisionPtr = revisionPtr->nextPtr) {
+	if (revisionPtr->date == date) {
+	    return createSmiRevision(revisionPtr->nextPtr);
+	}
+    }
+
+    return NULL;
+
+
+
+
+
 
     modulePtr = findModuleByName(modulename);
     
@@ -1000,11 +1048,7 @@ smiGetMacro(module, macro)
     char	    name[SMI_MAX_OID+1];
     char	    modulename[SMI_MAX_DESCRIPTOR+1];
     
-    printDebug(4, "smiGetMacro(\"%s\", \"%s\")\n",
-	       module ? module : "NULL",
-	       macro ? macro : "NULL");
-
-    getModulenameAndName(module, macro, modulename, name);
+    getModulenameAndName(module, macro, &modulename, &name);
 
     if (modulename) {
 	modulePtr = findModuleByName(modulename);
@@ -1043,10 +1087,7 @@ smiGetNode(spec, mod)
     char	    name[SMI_MAX_OID+1];
     char	    modulename[SMI_MAX_DESCRIPTOR+1];
     
-    printDebug(4, "smiGetNode(\"%s\", \"%s\")\n",
-	       spec, mod ? mod : "NULL");
-
-    getModulenameAndName(mod, spec, modulename, name);
+    getModulenameAndName(mod, spec, &modulename, &name);
 
     if (modulename) {
 	modulePtr = findModuleByName(modulename);
@@ -1066,7 +1107,6 @@ SmiNode *
 smiGetFirstNode(modulename)
     char	*modulename;
 {
-    printDebug(4, "smiGetFirstNode(\"%s\")\n", modulename);
     return smiGetNextNode(modulename, NULL);
 }
 
@@ -1081,9 +1121,6 @@ smiGetNextNode(modulename, name)
     Node	      *nodePtr = NULL;
     Object	      *objectPtr;
     
-    printDebug(4, "smiGetNextNode(\"%s\", %s)\n",
-	       modulename, name ? name : "");
-
     modulePtr = findModuleByName(modulename);
     
     if (!modulePtr) {
@@ -1151,10 +1188,7 @@ smiGetNames(spec, mod)
     SmiSubid	        subid;
     char		**list = NULL;
     
-    printDebug(4, "smiGetNames(\"%s\", \"%s\")\n",
-	       spec, mod ? mod : "NULL");
-
-    getModulenameAndName(mod, spec, modulename, name);
+    getModulenameAndName(mod, spec, &modulename, &name);
 
     if (modulename) {
 	modulePtr = findModuleByName(modulename);
@@ -1253,12 +1287,9 @@ smiGetParent(spec, mod)
     char		*p;
     char		*parent;
     
-    printDebug(4, "smiGetParent(\"%s\", \"%s\")\n",
-	       spec, mod ? mod : "NULL");
-
     parent = util_malloc(sizeof(char) * (SMI_MAX_FULLNAME+1));
 	    
-    getModulenameAndName(mod, spec, modulename, name);
+    getModulenameAndName(mod, spec, &modulename, &name);
 
     if (modulename) {
 	if (!findModuleByName(modulename)) {
@@ -1386,8 +1417,6 @@ smiGetParent(spec, mod)
 	    parent = NULL;
 	}
     }
-
-    printDebug(5, " ... = %s\n", parent ? parent : "");
 
     return parent;
 }

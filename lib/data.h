@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.21 1999/04/10 19:37:22 strauss Exp $
+ * @(#) $Id: data.h,v 1.22 1999/05/20 08:51:16 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -143,8 +143,9 @@ typedef struct Module {
 
 
 typedef struct Import {
-    char           *module;
-    char	   *name;
+    Module         *modulePtr;
+    char           *importmodule;
+    char	   *importname;
     struct Import  *nextPtr;
     struct Import  *prevPtr;
     Kind	   kind;

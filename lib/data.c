@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.19 1999/04/10 19:37:21 strauss Exp $
+ * @(#) $Id: data.c,v 1.20 1999/05/20 08:51:15 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -87,11 +87,6 @@ addView(modulename)
 {
     View	      *viewPtr;
 
-#ifdef DEBUG
-    printDebug(4,
-      "addView(%s)\n", modulename);
-#endif
-    
     viewPtr = (View *)util_malloc(sizeof(View));
     if (!viewPtr) {
 	printError(NULL, ERR_ALLOCATING_VIEW, strerror(errno));
@@ -168,11 +163,6 @@ addLocation(location, flags)
     Parser	      parser;
     char	      s[200];
 
-#ifdef DEBUG
-    printDebug(4,
-      "addLocation(%s, %d)\n", location, flags);
-#endif
-    
     locationPtr = (Location *)util_malloc(sizeof(Location));
     if (!locationPtr) {
 	printError(NULL, ERR_ALLOCATING_LOCATION, strerror(errno));
@@ -313,14 +303,6 @@ addModule(modulename, path, locationPtr, fileoffset, flags, parserPtr)
 {
     Module	      *modulePtr;
 
-#ifdef DEBUG
-    printDebug(4,
-      "addModule(%s, %s, 0x%x(%s), %d, %d, 0x%x)\n",
-	       modulename, path, locationPtr,
-	       locationPtr ? locationPtr->name : "",
-	       fileoffset, flags, parserPtr);
-#endif
-    
     modulePtr = (Module *)util_malloc(sizeof(Module));
     if (!modulePtr) {
 	printError(parserPtr, ERR_ALLOCATING_MIBMODULE, strerror(errno));
@@ -385,13 +367,6 @@ setModuleIdentityObject(modulePtr, objectPtr)
     Module	*modulePtr;
     Object	*objectPtr;
 {
-#ifdef DEBUG
-    printDebug(5, "setModuleIdentityObject(0x%x(%s), 0x%x(%s))\n",
-	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
-	       objectPtr,
-	       objectPtr->name ? objectPtr->name : "\"\"");
-#endif
-
     modulePtr->objectPtr = objectPtr;
 }
 
@@ -418,12 +393,6 @@ setModuleLastUpdated(modulePtr, lastUpdated)
     Module	*modulePtr;
     time_t	lastUpdated;
 {
-#ifdef DEBUG
-    printDebug(5, "setModuleLastUpdated(0x%x(%s), %ld)\n",
-	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
-	       lastUpdated);
-#endif
-
     modulePtr->lastUpdated = lastUpdated;
 }
 
@@ -450,12 +419,6 @@ setModuleOrganization(modulePtr, organization)
     Module *modulePtr;
     char *organization;
 {
-#ifdef DEBUG
-    printDebug(5, "setModuleOrganization(0x%x(%s), %s)\n",
-	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
-	       organization);
-#endif
-
     modulePtr->organization = util_strdup(organization);
 }
 
@@ -482,12 +445,6 @@ setModuleContactInfo(modulePtr, contactInfo)
     Module	  *modulePtr;
     char	  *contactInfo;
 {
-#ifdef DEBUG
-    printDebug(5, "setModuleContactInfo(0x%x(%s), %s)\n",
-	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
-	       contactInfo);
-#endif
-
     modulePtr->contactInfo = util_strdup(contactInfo);
 }
 
@@ -516,23 +473,13 @@ findModuleByName(modulename)
 {
     Module	*modulePtr;
 
-#ifdef DEBUG
-    printDebug(6, "findModuleByName(%s)", modulename);
-#endif
-    
     for (modulePtr = firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	if ((modulePtr->name) && !strcmp(modulePtr->name, modulename)) {
-#ifdef DEBUG
-	    printDebug(4, " = 0x%x(%s)\n", modulePtr, modulePtr->name);
-#endif
 	    return (modulePtr);
 	}
     }
 
-#ifdef DEBUG
-    printDebug(6, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -562,10 +509,6 @@ addRevision(date, description, parserPtr)
 {
     Revision	  *revisionPtr;
     Module	  *modulePtr;
-#ifdef DEBUG
-    printDebug(4, "addRevision(%ld, %s, 0x%x)\n",
-	       date, description, parserPtr);
-#endif
 
     revisionPtr = (Revision *)util_malloc(sizeof(Revision));
     if (!revisionPtr) {
@@ -616,9 +559,6 @@ addImport(name, parserPtr)
 {
     Import        *importPtr;
     Module	  *modulePtr;
-#ifdef DEBUG
-    printDebug(4, "addImport(%s, 0x%x)\n", name, parserPtr);
-#endif
 
     importPtr = (Import *)util_malloc(sizeof(Import));
     if (!importPtr) {
@@ -627,9 +567,10 @@ addImport(name, parserPtr)
     }
 
     modulePtr = parserPtr->modulePtr;
-    
-    importPtr->name		       	 = util_strdup(name);
-    importPtr->module			 = NULL; /* not yet known */
+
+    importPtr->modulePtr		 = modulePtr;
+    importPtr->importname	       	 = util_strdup(name);
+    importPtr->importmodule		 = NULL; /* not yet known */
     importPtr->kind			 = KIND_UNKNOWN; /* not yet known */
     
     importPtr->nextPtr			 = NULL;
@@ -671,10 +612,6 @@ checkImports(modulename, parserPtr)
     int         n = 0;
     Import      *importPtr;
     
-#ifdef DEBUG
-    printDebug(4, "checkImports(%s, 0x%x) ...\n", modulename, parserPtr);
-#endif
-
     for (importPtr = parserPtr->modulePtr->firstImportPtr;
 	 importPtr; importPtr = importPtr->nextPtr) {
 
@@ -697,10 +634,6 @@ checkImports(modulename, parserPtr)
 	    }
 	}
     }
-
-#ifdef DEBUG
-    printDebug(4, "... = %d\n", n);
-#endif
 
     return (n);
 }
@@ -731,23 +664,13 @@ findImportByName(importname, modulePtr)
 {
     Import           *importPtr;
 
-#ifdef DEBUG
-    printDebug(4, "findImportByName(%s, 0x%x)", importname, modulePtr);
-#endif
-
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
-	if (!strcmp(importPtr->name, importname)) {
-#ifdef DEBUG
-	    printDebug(4, " = 0x%x(%s)\n", importPtr, importPtr->name);
-#endif
+	if (!strcmp(importPtr->importname, importname)) {
 		return (importPtr);
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
     
 }
@@ -780,27 +703,15 @@ findImportByModulenameAndName(modulename, importname, modulePtr)
 {
     Import           *importPtr;
 
-#ifdef DEBUG
-    printDebug(4, "findImportByModulenameAndName(%s, %s, 0x%x)",
-	modulename, importname, modulePtr);
-#endif
-
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
-	if ((!strcmp(importPtr->name, importname)) &&
-	    (!strcmp(importPtr->module, modulename))) {
-#ifdef DEBUG
-	    printDebug(4, " = 0x%x(%s)\n", importPtr, importPtr->name);
-#endif
+	if ((!strcmp(importPtr->importname, importname)) &&
+	    (!strcmp(importPtr->importmodule, modulename))) {
 	    return (importPtr);
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
-
 }
 
 
@@ -835,13 +746,6 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     Object	     *objectPtr;
     Node	     *nodePtr;
     Module	     *modulePtr;
-
-#ifdef DEBUG
-    printDebug(5, "addObject(%s, 0x%x%s, %d, %d, 0x%x)\n",
-	       objectname, parentNodePtr,
-	       parentNodePtr == pendingNodePtr ? "(pending)" : "",
-	       subid, flags, parserPtr);
-#endif
 
     objectPtr = (Object *)util_malloc(sizeof(Object));
     if (!objectPtr) {
@@ -904,10 +808,6 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     }
     objectPtr->nodePtr				      = nodePtr;
 
-#ifdef DEBUG
-    printDebug(5, "...addObject() = 0x%x\n", objectPtr);
-#endif
-    
     return (objectPtr);
 }
 
@@ -941,11 +841,6 @@ duplicateObject(templatePtr, flags, parserPtr)
     Object		  *objectPtr;
     Node		  *nodePtr;
     Module		  *modulePtr;
-    
-#ifdef DEBUG
-    printDebug(5, "duplicateObject(0x%x, %d, 0x%x)",
-	       templatePtr, flags, parserPtr);
-#endif
     
     objectPtr = (Object *)util_malloc(sizeof(Object));
     if (!objectPtr) {
@@ -995,10 +890,6 @@ duplicateObject(templatePtr, flags, parserPtr)
     nodePtr->lastObjectPtr			      = objectPtr;
     objectPtr->nodePtr				      = nodePtr;
 
-#ifdef DEBUG
-    printDebug(5, "...duplicateObject() = 0x%x\n", objectPtr);
-#endif
-    
     return (objectPtr);
 }
 
@@ -1030,13 +921,6 @@ addNode (parentNodePtr, subid, flags, parserPtr)
 {
     Node	    *nodePtr;
     Node	    *c;
-
-#ifdef DEBUG
-    printDebug(5, "addNode(0x%x%s, %d, %d, 0x%x)",
-	       parentNodePtr,
-	       parentNodePtr == pendingNodePtr ? "(pending)" : "",
-	       subid, flags, parserPtr);
-#endif
 
     nodePtr = (Node *)util_malloc(sizeof(Node));
     if (!nodePtr) {
@@ -1083,8 +967,6 @@ addNode (parentNodePtr, subid, flags, parserPtr)
 	}
     }
 
-    printDebug(5, " = 0x%x\n", nodePtr);
-    
     return nodePtr;
 }
 
@@ -1115,10 +997,6 @@ createNodes(oid)
     char		*p, *elements;
     Node		*parentNodePtr, *nodePtr;
     SmiSubid		subid;
-
-#ifdef DEBUG
-    printDebug(5, "createNodes(%s)\n", oid);
-#endif
 
     parentNodePtr = rootNodePtr;
     elements = util_strdup(oid);
@@ -1223,10 +1101,6 @@ setObjectName(objectPtr, name)
     Module	      *modulePtr;
     Object	      *newObjectPtr;
     
-#ifdef DEBUG
-    printDebug(5, "setObjectName(0x%x, \"%s\")\n", objectPtr, name);
-#endif
-
     objectPtr->name = util_strdup(name);
 
     /*
@@ -1328,12 +1202,6 @@ setObjectType(objectPtr, typePtr)
     Object		   *objectPtr;
     Type		   *typePtr;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectType(0x%x(%s), 0x%x(%s))\n",
-	       objectPtr, objectPtr->name, typePtr,
-	       typePtr->name ? typePtr->name : "\"\"");
-#endif
-
     objectPtr->typePtr = typePtr;
 }
 
@@ -1360,11 +1228,6 @@ setObjectAccess(objectPtr, access)
     Object		   *objectPtr;
     SmiAccess		   access;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectAccess(0x%x(%s), %d)\n",
-	       objectPtr, objectPtr->name, access);
-#endif
-
     objectPtr->access = access;
 }
 
@@ -1391,11 +1254,6 @@ setObjectStatus(objectPtr, status)
     Object		   *objectPtr;
     SmiStatus		   status;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectStatus(0x%x(%s), %d)\n",
-	       objectPtr,  objectPtr->name, status);
-#endif
-
     objectPtr->status = status;
 }
 
@@ -1422,11 +1280,6 @@ setObjectDescription(objectPtr, description)
     Object    *objectPtr;
     char      *description;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectDescription(0x%x(%s), %s)\n",
-	       objectPtr, objectPtr->name, description);
-#endif
-
     objectPtr->description = util_strdup(description);
 }
 
@@ -1453,11 +1306,6 @@ setObjectReference(objectPtr, reference)
     Object    *objectPtr;
     char      *reference;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectReference(0x%x(%s), %s)\n",
-	       objectPtr, objectPtr->name, reference);
-#endif
-
     objectPtr->reference = util_strdup(reference);
 }
 
@@ -1484,11 +1332,6 @@ setObjectFormat(objectPtr, format)
     Object    *objectPtr;
     char      *format;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectFormat(0x%x(%s), %s)\n",
-	       objectPtr, objectPtr->name, format);
-#endif
-
     objectPtr->format = util_strdup(format);
 }
 
@@ -1515,11 +1358,6 @@ setObjectUnits(objectPtr, units)
     Object    *objectPtr;
     char      *units;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectUnits(0x%x(%s), %s)\n",
-	       objectPtr, objectPtr->name, units);
-#endif
-
     objectPtr->units = util_strdup(units);
 }
 
@@ -1546,11 +1384,6 @@ setObjectFileOffset(objectPtr, fileoffset)
     Object      *objectPtr;
     off_t       fileoffset;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectFileOffset(0x%x(%s), %d)\n",
-	       objectPtr, objectPtr->name, fileoffset);
-#endif
-
     objectPtr->fileoffset = fileoffset;
 }
 
@@ -1577,11 +1410,6 @@ setObjectDecl(objectPtr, decl)
     Object	*objectPtr;
     SmiDecl     decl;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectDecl(0x%x(%s), %d)\n",
-	       objectPtr, objectPtr->name, decl);
-#endif
-
     objectPtr->decl = decl;
 }
 
@@ -1608,11 +1436,6 @@ addObjectFlags(objectPtr, flags)
     Object	   *objectPtr;
     ObjectFlags    flags;
 {
-#ifdef DEBUG
-    printDebug(5, "addObjectFlags(0x%x(%s), %d)\n",
-	       objectPtr, objectPtr->name, flags);
-#endif
-
     objectPtr->flags |= flags;
 }
 
@@ -1639,11 +1462,6 @@ deleteObjectFlags(objectPtr, flags)
     Object	   *objectPtr;
     ObjectFlags    flags;
 {
-#ifdef DEBUG
-    printDebug(5, "deleteObjectFlags(0x%x(%s), %d)\n",
-	       objectPtr, objectPtr->name, flags);
-#endif
-
     objectPtr->flags &= ~flags;
 }
 
@@ -1670,11 +1488,6 @@ setObjectIndex(objectPtr, indexPtr)
     Object	 *objectPtr;
     Index	 *indexPtr;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectIndex(0x%x(%s), 0x%x)\n",
-	       objectPtr, objectPtr->name, indexPtr);
-#endif
-    
     objectPtr->indexPtr = indexPtr;
 }
 
@@ -1702,11 +1515,6 @@ setObjectList(objectPtr, listPtr)
     Object	 *objectPtr;
     List	 *listPtr;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectList(0x%x(%s), 0x%x)\n",
-	       objectPtr, objectPtr->name, listPtr);
-#endif
-    
     objectPtr->listPtr = listPtr;
 }
 
@@ -1733,11 +1541,6 @@ setObjectValue(objectPtr, valuePtr)
     Object	 *objectPtr;
     SmiValue	 *valuePtr;
 {
-#ifdef DEBUG
-    printDebug(5, "setObjectValue(0x%x(%s), 0x%x)\n",
-	       objectPtr, objectPtr->name, valuePtr);
-#endif
-    
     objectPtr->valuePtr = valuePtr;
 }
 
@@ -1766,27 +1569,16 @@ findNodeByParentAndSubid(parentNodePtr, subid)
     unsigned int    subid;
 {
     Node *nodePtr;
-
-#ifdef DEBUG
-    printDebug(4, "findNodeByParentAndSubid(0x%x, %d)",
-	       parentNodePtr, subid);
-#endif
     
     if (parentNodePtr) {
 	for (nodePtr = parentNodePtr->firstChildPtr; nodePtr;
 	     nodePtr = nodePtr->nextPtr) {
 	    if (nodePtr->subid == subid) {
-#ifdef DEBUG
-		printDebug(4, " = %p\n", nodePtr);
-#endif
 		return (nodePtr);
 	    }
 	}
     }
     
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -1817,19 +1609,12 @@ findNodeByOidString(oid)
     char *s;
     char *p;
     
-#ifdef DEBUG
-    printDebug(4, "findNodeByOidString(%s)", oid);
-#endif
-
     s = util_strdup(oid);
     nodePtr = rootNodePtr;
     for(p = strtok(s, ". "); p && nodePtr; p = strtok(NULL, ". ")) {
 	nodePtr = findNodeByParentAndSubid(nodePtr, atoi(p));
     }
     
-#ifdef DEBUG
-    printDebug(4, " = %p\n", nodePtr);
-#endif
     free(s);
     return (nodePtr);
 }
@@ -1861,25 +1646,15 @@ findObjectByNode(nodePtr)
     Object    *objectPtr;
     View      *viewPtr;
     
-#ifdef DEBUG
-    printDebug(4, "findObjectByNode(0x%x)", nodePtr);
-#endif
-    
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
 	for (viewPtr = firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
 	    if (!strcmp(objectPtr->modulePtr->name, viewPtr->name)) {
-#ifdef DEBUG
-		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
-#endif
 		return (objectPtr);
 	    }
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -1911,24 +1686,13 @@ findObjectByModuleAndNode(modulePtr, nodePtr)
 {
     Object    *objectPtr;
 
-#ifdef DEBUG
-    printDebug(4, "findObjectByModuleAndNode(0x%x, 0x%x)",
-	       modulePtr, nodePtr);
-#endif
-    
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
 	if (objectPtr->modulePtr == modulePtr) {
-#ifdef DEBUG
-	    printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
-#endif
 	    return (objectPtr);
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -1960,24 +1724,13 @@ findObjectByModulenameAndNode(modulename, nodePtr)
 {
     Object     *objectPtr;
 
-#ifdef DEBUG
-    printDebug(4, "findObjectByModulenameAndNode(%s, 0x%x)",
-	       modulename, nodePtr);
-#endif
-
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
 	if (!strcmp(objectPtr->modulePtr->name, modulename)) {
-#ifdef DEBUG
-	    printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
-#endif
 	    return (objectPtr);
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2009,10 +1762,6 @@ findObjectByName(objectname)
     Module	     *modulePtr;
     Object           *objectPtr;
 
-#ifdef DEBUG
-    printDebug(4, "findObjectByName(%s)", objectname);
-#endif
-
     for (modulePtr = firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
@@ -2023,17 +1772,11 @@ findObjectByName(objectname)
 		 * TODO: probably we should check if there are more matching
 		 *       objects, and give a warning if there's another one.
 		 */
-#ifdef DEBUG
-		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
-#endif
 		return (objectPtr);
 	    }
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2065,10 +1808,6 @@ findNextObjectByName(objectname, prevObjectPtr)
     Module	     *modulePtr;
     Object           *objectPtr;
 
-#ifdef DEBUG
-    printDebug(4, "findNextObjectByName(%s, %p)", objectname, prevObjectPtr);
-#endif
-
     for (modulePtr = prevObjectPtr->modulePtr->nextPtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
@@ -2079,17 +1818,11 @@ findNextObjectByName(objectname, prevObjectPtr)
 		 * TODO: probably we should check if there are more matching
 		 *       objects, and give a warning if there's another one.
 		 */
-#ifdef DEBUG
-		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
-#endif
 		return (objectPtr);
 	    }
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2120,20 +1853,12 @@ findObjectByModulenameAndName(modulename, objectname)
     Module	     *modulePtr;
     Object	     *objectPtr;
 
-#ifdef DEBUG
-    printDebug(4, "findObjectByModulenameAndName(%s, %s)\n",
-	       modulename, objectname);
-#endif
-
     modulePtr = findModuleByName(modulename);
 
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
 	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
-#ifdef DEBUG
-		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
-#endif
 		return (objectPtr);
 	    }
 	}
@@ -2148,9 +1873,6 @@ findObjectByModulenameAndName(modulename, objectname)
 	return findObjectByName(objectname);
     }
 
-#ifdef DEBUG
-    printDebug(4, "... = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2180,18 +1902,10 @@ findObjectByModuleAndName(modulePtr, objectname)
 {
     Object	  *objectPtr;
     
-#ifdef DEBUG
-    printDebug(4, "findObjectByModuleAndName(0x%x(%s), %s)",
-	       modulePtr, modulePtr->name, objectname);
-#endif
-
     if (modulePtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextPtr) {
 	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
-#ifdef DEBUG
-		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
-#endif
 		return (objectPtr);
 	    }
 	}
@@ -2203,15 +1917,9 @@ findObjectByModuleAndName(modulePtr, objectname)
     if ((!strcmp(objectname, "iso")) ||
 	(!strcmp(objectname, "ccitt")) ||
 	(!strcmp(objectname, "joint-iso-ccitt"))) {
-#ifdef DEBUG
-	printDebug(4, " ...\n");
-#endif
 	return findObjectByName(objectname);
     }
     
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2243,12 +1951,6 @@ addType(typename, basetype, flags, parserPtr)
     Type	   *typePtr;
     Module	   *modulePtr;
     
-#ifdef DEBUG
-    printDebug(4, "addType(%s, %d, %d, 0x%x)",
-	       typename ? typename : "\"\"", basetype,
-	       flags, parserPtr);
-#endif
-
     modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
     typePtr = util_malloc(sizeof(Type));
@@ -2287,9 +1989,6 @@ addType(typename, basetype, flags, parserPtr)
 	typePtr->prevPtr		= NULL;
     }
 	
-#ifdef DEBUG
-    printDebug(4, " = 0x%x\n", typePtr);
-#endif
     return (typePtr);
 }
 
@@ -2321,11 +2020,6 @@ duplicateType(templatePtr, flags, parserPtr)
 {
     Type		  *typePtr;
     Module		  *modulePtr;
-    
-#ifdef DEBUG
-    printDebug(5, "duplicateType(0x%x, %d, 0x%x)...\n",
-	       templatePtr, flags, parserPtr);
-#endif
     
     typePtr = (Type *)util_malloc(sizeof(Type));
     if (!typePtr) {
@@ -2361,10 +2055,6 @@ duplicateType(templatePtr, flags, parserPtr)
 	modulePtr->lastTypePtr->nextPtr	= typePtr;
     modulePtr->lastTypePtr		= typePtr;
     
-#ifdef DEBUG
-    printDebug(5, "...duplicateType() = 0x%x\n", typePtr);
-#endif
-    
     return (typePtr);
 }
 
@@ -2391,11 +2081,6 @@ setTypeName(typePtr, name)
     Type	      *typePtr;
     char	      *name;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeName(0x%x, \"%s\")\n",
-	       typePtr, name);
-#endif
-
     typePtr->name = util_strdup(name);
 }
 
@@ -2422,12 +2107,6 @@ setTypeStatus(typePtr, status)
     Type       *typePtr;
     SmiStatus  status;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeStatus(0x%x(%s), %d)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       status);
-#endif
-
     typePtr->status = status;
 }
 
@@ -2454,12 +2133,6 @@ setTypeBasetype(typePtr, basetype)
     Type       *typePtr;
     SmiBasetype  basetype;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeBasetype(0x%x(%s), %d)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       basetype);
-#endif
-
     typePtr->basetype = basetype;
 }
 
@@ -2486,12 +2159,6 @@ setTypeDescription(typePtr, description)
     Type	   *typePtr;
     char	   *description;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeDescription(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       description);
-#endif
-    
     typePtr->description = util_strdup(description);
 }
 
@@ -2518,12 +2185,6 @@ setTypeReference(typePtr, reference)
     Type	   *typePtr;
     char	   *reference;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeReference(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       reference);
-#endif
-    
     typePtr->reference = util_strdup(reference);
 }
 
@@ -2550,11 +2211,6 @@ setTypeParent(typePtr, parent)
     Type	   *typePtr;
     const char	   *parent;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeParent(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name ? typePtr->name : "", parent);
-#endif
-    
     if (!typePtr->parentType) {
 	typePtr->parentType  = util_strdup(parent);
     }
@@ -2587,11 +2243,6 @@ setTypeList(typePtr, listPtr)
     Type	   *typePtr;
     struct List	   *listPtr;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeList(0x%x(%s), 0x%x)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", listPtr);
-#endif
-    
     if (!typePtr->listPtr) {
 	typePtr->listPtr  = listPtr;
     }
@@ -2620,11 +2271,6 @@ setTypeFormat(typePtr, format)
     Type           *typePtr;
     char	   *format;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeFormat(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", format);
-#endif
-    
     typePtr->format = util_strdup(format);
 }
 
@@ -2652,11 +2298,6 @@ setTypeUnits(typePtr, units)
     Type           *typePtr;
     char	   *units;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeUnits(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", units);
-#endif
-    
     typePtr->units = util_strdup(units);
 }
 
@@ -2683,11 +2324,6 @@ setTypeFileOffset(typePtr, fileoffset)
     Type     *typePtr;
     off_t    fileoffset;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeFileOffset(0x%x(%s), %d)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", fileoffset);
-#endif
-
     typePtr->fileoffset = fileoffset;
 }
 
@@ -2714,12 +2350,6 @@ setTypeDecl(typePtr, decl)
     Type     *typePtr;
     SmiDecl  decl;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeDecl(0x%x(%s), %d)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       decl);
-#endif
-    
     typePtr->decl = decl;
 }
 
@@ -2746,11 +2376,6 @@ setTypeValue(typePtr, valuePtr)
     Type	 *typePtr;
     SmiValue	 *valuePtr;
 {
-#ifdef DEBUG
-    printDebug(5, "setTypeValue(0x%x(%s), 0x%x)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", valuePtr);
-#endif
-    
     typePtr->valuePtr = valuePtr;
 }
 
@@ -2777,11 +2402,6 @@ addTypeFlags(typePtr, flags)
     Type        *typePtr;
     TypeFlags   flags;
 {
-#ifdef DEBUG
-    printDebug(5, "addTypeFlags(0x%x(%s), %d)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", flags);
-#endif
-    
     typePtr->flags |= flags;
 }
 
@@ -2811,26 +2431,16 @@ findTypeByName(typename)
     Module *modulePtr;
     Type   *typePtr;
     
-#ifdef DEBUG
-    printDebug(6, "findTypeByName(%s)", typename);
-#endif
-    
     for (modulePtr = firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
 	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
-#ifdef DEBUG
-		printDebug(4, " = 0x%x(%s)\n", typePtr, typePtr->name);
-#endif
 		return (typePtr);
 	    }
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2861,26 +2471,16 @@ findNextTypeByName(typename, prevTypePtr)
     Module *modulePtr;
     Type   *typePtr;
     
-#ifdef DEBUG
-    printDebug(6, "findNextTypeByName(%s)", typename);
-#endif
-    
     for (modulePtr = prevTypePtr->modulePtr->nextPtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
 	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
-#ifdef DEBUG
-		printDebug(4, " = 0x%x(%s)\n", typePtr, typePtr->name);
-#endif
 		return (typePtr);
 	    }
 	}
     }
 
-#ifdef DEBUG
-    printDebug(4, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2911,28 +2511,17 @@ findTypeByModulenameAndName(modulename, typename)
     Type       *typePtr;
     Module     *modulePtr;
 
-#ifdef DEBUG
-    printDebug(6, "findTypeByModulenameAndName(%s, %s)\n",
-	       modulename, typename);
-#endif
-
     modulePtr = findModuleByName(modulename);
 
     if (modulePtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
 	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
-#ifdef DEBUG
-		printDebug(6, "... = 0x%x(%s)\n", typePtr, typePtr->name);
-#endif
 		return (typePtr);
 	    }
 	}
     }
 	
-#ifdef DEBUG
-    printDebug(6, "... = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -2962,26 +2551,15 @@ findTypeByModuleAndName(modulePtr, typename)
 {
     Type        *typePtr;
 
-#ifdef DEBUG
-    printDebug(6, "findTypeByModuleAndName(0x%x(%s), %s)",
-	       modulePtr, modulePtr->name, typename);
-#endif
-
     if (modulePtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
 	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
-#ifdef DEBUG
-		printDebug(6, "... = 0x%x(%s)\n", typePtr, typePtr->name);
-#endif
 		return (typePtr);
 	    }
 	}
     }
 
-#ifdef DEBUG
-    printDebug(6, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -3014,11 +2592,6 @@ addMacro(macroname, fileoffset, flags, parserPtr)
     Macro	  *macroPtr;
     Module	  *modulePtr;
     
-#ifdef DEBUG
-    printDebug(5, "addMacro(%s, %d, %d, 0x%x)\n",
-	       macroname, fileoffset, flags, parserPtr);
-#endif
-
     modulePtr = parserPtr->modulePtr;
     
     /* TODO: Check wheather this macro already exists?? */
@@ -3072,26 +2645,15 @@ findMacroByModuleAndName(modulePtr, macroname)
 {
     Macro      *macroPtr;
     
-#ifdef DEBUG
-    printDebug(6, "findMacroByModuleAndName(0x%x(%s), %s)",
-	       modulePtr, modulePtr->name, macroname);
-#endif
-    
     if (modulePtr) {
 	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
 	     macroPtr = macroPtr->nextPtr) {
 	    if (!strcmp(macroPtr->name, macroname)) {
-#ifdef DEBUG
-		printDebug(6, "... = 0x%x(%s)\n", macroPtr, macroPtr->name);
-#endif
 		return (macroPtr);
 	    }
 	}
     }
 
-#ifdef DEBUG
-    printDebug(6, " = NULL\n");
-#endif
     return (NULL);
 }
 
@@ -3122,26 +2684,17 @@ findMacroByModulenameAndName(modulename, macroname)
     Module     *modulePtr;
     Macro      *macroPtr;
 
-#ifdef DEBUG
-    printDebug(6, "findMacroByModulenameAndName(%s, %s)\n",
-	       modulename, macroname);
-#endif
-
     modulePtr = findModuleByName(modulename);
 	
     if (modulePtr) {
 	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
 	     macroPtr = macroPtr->nextPtr) {
 	    if (!strcmp(macroPtr->name, macroname)) {
-#ifdef DEBUG
-		printDebug(6, "... = 0x%x(%s)\n", macroPtr, macroPtr->name);
-#endif
 		return (macroPtr);
 	    }
 	}
     }
 
-    printDebug(6, "... = NULL\n");
     return (NULL);
 }
 
@@ -3278,10 +2831,6 @@ loadModule(modulename)
     struct stat	    buf;
     int		    st;
     
-#ifdef DEBUG
-    printDebug(3, "loadModule(%s)\n", modulename);
-#endif
-
     if (!strlen(modulename)) {
 	return NULL;
     }

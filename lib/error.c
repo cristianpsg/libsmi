@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.5 1999/04/05 15:47:34 strauss Exp $
+ * @(#) $Id: error.c,v 1.6 1999/04/07 18:21:30 strauss Exp $
  */
 
 #include <string.h>
@@ -26,7 +26,6 @@
 
 
 int errorLevel;                          /* Higher level for more warnings   */
-int debugLevel;                          /* Higher level for more messages   */
 
 typedef struct Error {
     int level;			/* 0: fatal, no way to continie		     */
@@ -267,20 +266,3 @@ printError(Parser *parser, int id, ...)
 	/* severe error, no way to continue :-( */
     }
 }
-
-
-
-void
-printDebug(int level, char *fmt, ...)
-{
-    va_list ap;
-
-    if (level <= debugLevel) {
-	va_start(ap, fmt);
-	if (fmt[0] != ' ') fprintf(stderr, "*** ");
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-    }
-}
-
-
