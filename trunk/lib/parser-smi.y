@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.58 2000/01/04 12:43:41 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.59 2000/01/06 15:30:56 strauss Exp $
  */
 
 %{
@@ -2958,6 +2958,7 @@ Status:			LOWERCASE_IDENTIFIER
 				    $$ = SMI_STATUS_UNKNOWN;
 				}
 			    }
+			    util_free($1);
 			}
         ;		
 
@@ -2973,6 +2974,7 @@ Status_Capabilities:	LOWERCASE_IDENTIFIER
 					   $1);
 				$$ = SMI_STATUS_UNKNOWN;
 			    }
+			    util_free($1);
 			}
         ;
 
@@ -3035,6 +3037,7 @@ Access:			LOWERCASE_IDENTIFIER
 				    $$ = SMI_ACCESS_UNKNOWN;
 				}
 			    }
+			    util_free($1);
 			}
         ;
 

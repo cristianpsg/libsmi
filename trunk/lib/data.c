@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.49 1999/12/22 14:44:02 strauss Exp $
+ * @(#) $Id: data.c,v 1.50 2000/01/03 17:07:40 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1074,7 +1074,7 @@ setObjectName(objectPtr, name)
     if (objectPtr->name) {
 	util_free(objectPtr->name);
     }
-    objectPtr->name = util_strdup(name);
+    objectPtr->name = name;
 
     /*
      * If this name is found on the pending list (at depth==1 in
@@ -1231,6 +1231,7 @@ setObjectDescription(objectPtr, description)
     Object    *objectPtr;
     char      *description;
 {
+    if (objectPtr->description) util_free(objectPtr->description);
     objectPtr->description = description;
 }
 
@@ -1257,6 +1258,7 @@ setObjectReference(objectPtr, reference)
     Object    *objectPtr;
     char      *reference;
 {
+    if (objectPtr->reference) util_free(objectPtr->reference);
     objectPtr->reference = reference;
 }
 
@@ -1283,6 +1285,7 @@ setObjectFormat(objectPtr, format)
     Object    *objectPtr;
     char      *format;
 {
+    if (objectPtr->format) util_free(objectPtr->format);
     objectPtr->format = format;
 }
 
@@ -1309,6 +1312,7 @@ setObjectUnits(objectPtr, units)
     Object    *objectPtr;
     char      *units;
 {
+    if (objectPtr->units) util_free(objectPtr->units);
     objectPtr->units = units;
 }
 
@@ -2189,6 +2193,7 @@ setTypeDescription(typePtr, description)
     Type	   *typePtr;
     char	   *description;
 {
+    if (typePtr->description) util_free(typePtr->description);
     typePtr->description = description;
 }
 
@@ -2215,6 +2220,7 @@ setTypeReference(typePtr, reference)
     Type	   *typePtr;
     char	   *reference;
 {
+    if (typePtr->reference) util_free(typePtr->reference);
     typePtr->reference = reference;
 }
 
@@ -2308,6 +2314,7 @@ setTypeFormat(typePtr, format)
     Type           *typePtr;
     char	   *format;
 {
+    if (typePtr->format) util_free(typePtr->format);
     typePtr->format = format;
 }
 
@@ -2335,6 +2342,7 @@ setTypeUnits(typePtr, units)
     Type           *typePtr;
     char	   *units;
 {
+    if (typePtr->units) util_free(typePtr->units);
     typePtr->units = units;
 }
 
