@@ -209,4 +209,8 @@ x shift/reduce conflict at
     parser.y: findObject...(): hiernach bei scheitern in der liste
     der importierten Objects suchen. aehnlich wie schon fuer Types
     angefangen.
+  ok.
+
+. miblint stuerzt beim laden von MAU-MIB ab.
+  miblint ../scotty/tnm/mibs/MAU-MIB
 

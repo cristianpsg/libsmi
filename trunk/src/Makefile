@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.8 1998/11/20 17:10:07 strauss Exp $
+# @(#) $Id: Makefile,v 1.9 1998/11/21 21:25:16 strauss Exp $
 #
 
 CC	= gcc
@@ -17,7 +17,7 @@ LOBJS	= config.o scanner-flex.o parser-bison.o error.o data.o smi.o
 
 default: libsmi.a miblint smid smiclient
 
-smid.c smi_xdr.c smid.c smi_clnt.c smi.h: smi.x smi.h-add
+smid.c smi_xdr.c smi_clnt.c smi.h: smi.x smi.h-add
 	$(RPCGEN) smi.x
 	cat smi.h-add >> smi.h
 	cat smi_svc.c | awk '{if ($$0 ~ "^main") { x=1 } ; if (x && ($$0 == "")) { printf "\n        smi_svc_init(argc, argv);\n\n" ; x=0 } else { print } }' | sed -e 's/main(.*)/int main(int argc, char *argv[])/' > smid.c
@@ -104,4 +104,4 @@ clean:
 	rm -f core miblint libsmi.a smid.o smid smi_svc.o smid.o smi_xdr.o
 	rm -f smi.h smi_svc_proc.o smi_xdr.c smi_svc.c smi_clnt.c smi.o
 	rm -f y.tab.c y.tab.h y.output yacc.debug yacc.acts yacc.tmp
-	rm -f yacc2html.c yacc2html.o yacc2html parser.y.html
+	rm -f yacc2html.c yacc2html.o yacc2html parser.y.html TAGS
