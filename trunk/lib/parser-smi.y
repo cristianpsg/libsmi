@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.176 2002/06/08 20:08:09 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.177 2002/06/10 16:31:45 bunkus Exp $
  */
 
 %{
@@ -262,6 +262,12 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		if (parentPtr->export.nodekind != SMI_NODEKIND_TABLE) {
 		    smiPrintErrorAtLine(parserPtr, ERR_ROW_PARENT_TYPE,
 					objectPtr->line, objectPtr->export.name);
+		}
+		if (strcmp(parentPtr->typePtr->parentPtr->export.name,
+			   objectPtr->typePtr->export.name)) {
+		    smiPrintErrorAtLine(parserPtr, ERR_TABLE_ROW_TYPE_MISMATCH,
+					objectPtr->line,
+					objectPtr->export.name);
 		}
 		break;
 	    case SMI_NODEKIND_TABLE:
