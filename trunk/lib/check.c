@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.38 2002/04/03 17:55:49 schoenw Exp $
+ * @(#) $Id: check.c,v 1.39 2002/05/16 23:21:54 bunkus Exp $
  */
 
 #include <config.h>
@@ -875,7 +875,7 @@ smiCheckIndex(Parser *parser, Object *object)
 				object->export.name);
 	}
 
-    	for (nodePtr = object->nodePtr->firstChildPtr, aux = 0;
+    	for (nodePtr = object->nodePtr->firstChildPtr;
 	     nodePtr; nodePtr = nodePtr->nextPtr) {
 	    if (indexPtr == nodePtr->lastObjectPtr) {
 		aux++;
@@ -897,7 +897,7 @@ smiCheckIndex(Parser *parser, Object *object)
 	
 	indexPtr = (Object *) listPtr->ptr;
 	typePtr = indexPtr->typePtr;
-	
+
 	if (aux < cols) {
 	    if ((parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2)
 		&& (indexPtr->nodePtr->parentPtr == object->nodePtr)) {
