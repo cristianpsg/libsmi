@@ -7,8 +7,8 @@
   </xsd:simpleType>
 
   <xsd:simpleType name="OctetString">
-    <xsd:restriction base="xsd:hexBinary">
-      <xsd:maxLength value="65535" fixed="false"/>
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="65535" fixed="false"/> 
     </xsd:restriction>
   </xsd:simpleType>
 
@@ -38,6 +38,13 @@
 
  <xsd:simpleType name="Unsigned64">
     <xsd:restriction base="xsd:unsignedLong"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="EncAttrType">
+    <xsd:restriction base="xsd:NMTOKEN">
+      <xsd:enumeration value="ascii"/>
+      <xsd:enumeration value="hex"/>
+    </xsd:restriction>
   </xsd:simpleType>
 
 </xsd:schema>
