@@ -1012,7 +1012,7 @@ duplicateObject(template, module, flags, parser)
 {
     Object *object;
     
-    printDebug(5, "duplicateObject(%p, %s, %d, parser)\n",
+    printDebug(5, "duplicateObject(%p, %s, %d, parser)",
 	       template,
 	       module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
@@ -1043,6 +1043,8 @@ duplicateObject(template, module, flags, parser)
 #ifdef TEXTS_IN_MEMORY
     object->description.ptr = NULL;
 #endif
+    
+    printDebug(5, " = %p (node=%p)\n", object, object->node);
     
     return (object);
 }

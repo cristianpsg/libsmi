@@ -214,3 +214,12 @@ x shift/reduce conflict at
 . miblint stuerzt beim laden von MAU-MIB ab.
   miblint ../scotty/tnm/mibs/MAU-MIB
 
+
+. strauss@henkell libsmi/ 1144 $ src/smiclient henkell node IF-MIB.ifDescr
+     MibNode: ifDescr
+      Module: IF-MIB
+         OID: <incomplete>.0.0.34.1.1.1.1.9
+        Type: IF-MIB.DisplayString
+      Syntax: OBJECT IDENTIFIER
+
+  :-(

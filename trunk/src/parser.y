@@ -233,6 +233,7 @@ Node *parent;
 %type  <type>sequenceSimpleSyntax
 %type  <type>ApplicationSyntax
 %type  <type>sequenceApplicationSyntax
+%type  <err>anySubType
 %type  <err>integerSubType
 %type  <err>octetStringSubType
 %type  <err>ranges
@@ -1128,7 +1129,7 @@ sequenceSyntax:		/* ObjectSyntax */
 			    /* TODO: $$ = $1; */
 			    $$ = NULL;
 			}
-	|		UPPERCASE_IDENTIFIER
+	|		UPPERCASE_IDENTIFIER anySubType
 			{
 			    Type *type;
 			    Descriptor *descriptor;
@@ -2109,17 +2110,22 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
  * In a SEQUENCE { ... } there are no sub-types, enumerations or
  * named bits. REF: draft, p.29
  */
-sequenceSimpleSyntax:	INTEGER			/* (-2147483648..2147483647) */
+sequenceSimpleSyntax:	INTEGER	anySubType	/* (-2147483648..2147483647) */
 			{
 			    $$ = typeInteger;
 			}
-        |		INTEGER32		/* (-2147483648..2147483647) */
+        |		INTEGER32 anySubType	/* (-2147483648..2147483647) */
 			{
 			    /* TODO: any need to distinguish from INTEGER? */
 			    $$ = typeInteger;
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
+			    $$ = typeOctetString;
+			}
+	|		OCTET STRING anySubType
+			{
+			    /* TODO: warning: ignoring subtype in SEQUENCE */
 			    $$ = typeOctetString;
 			}
 	|		OBJECT IDENTIFIER
@@ -2250,7 +2256,7 @@ sequenceApplicationSyntax: IPADDRESS
 					   "Counter32");
 			    }
 			}
-	|		GAUGE32			/* (0..4294967295)	     */
+	|		GAUGE32	anySubType	/* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("Gauge32");
 			    if (! $$) {
@@ -2258,7 +2264,7 @@ sequenceApplicationSyntax: IPADDRESS
 					   "Gauge32");
 			    }
 			}
-	|		UNSIGNED32		/* (0..4294967295)	     */
+	|		UNSIGNED32 anySubType /* (0..4294967295)	     */
 			{
 			    $$ = findTypeByName("Unsigned32");
 			    if (! $$) {
@@ -2291,6 +2297,17 @@ sequenceApplicationSyntax: IPADDRESS
 			    }
 			}
 	;
+
+anySubType:		integerSubType
+			/* TODO: warning: ignoring SubType */
+	|	        octetStringSubType
+			/* TODO: warning: ignoring SubType */
+	|		enumSpec
+			/* TODO: warning: ignoring SubType */
+	|		/* empty */
+			{ $$ = 0; }
+        ;		      
+
 
 /* REF: draft,p.46 */
 integerSubType:		'(' ranges ')'		/* at least one range        */
