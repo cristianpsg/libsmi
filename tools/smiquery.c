@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.41 2000/02/10 10:09:45 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.42 2000/02/10 11:35:40 strauss Exp $
  */
 
 #include <stdio.h>
@@ -182,8 +182,8 @@ char *formattype(SmiType *type)
     static char ss[200];
     SmiModule *module;
     
-    if (!type) {
-	strcpy(ss, "<unknown>");
+    if (!type->name) {
+	strcpy(ss, "<implicit>");
     } else {
 	module = smiGetTypeModule(type);
 	if (!module || !strlen(module->name)) {
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
     SmiOption *option;
     SmiRefinement *refinement;
     SmiElement *element;
-    char *command, *name;
+    char *command, *name, *p;
     int flags, i;
     char c;
     char s1[40], s2[40];
@@ -548,7 +548,21 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "type")) {
-	type = smiGetType(NULL, name);
+	p = strrchr(name, ':');
+	if (!p) p = strrchr(name, '.');
+	if (!p) p = strrchr(name, '!');
+	if (p) {
+	    p++;
+	} else {
+	    p = name;
+	}
+	if (islower((int)name[0]) || isdigit((int)name[0]) ||
+	    !isupper((int)p[0])) {
+	    node = smiGetNode(NULL, name);
+	    type = smiGetNodeType(node);
+	} else {
+	    type = smiGetType(NULL, name);
+	}
 	if (type) {
 	    parenttype = smiGetParentType(type);
 	    printf("        Type: %s\n", formattype(type));
