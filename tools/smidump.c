@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.60 2001/09/05 11:01:11 schoenw Exp $
+ * @(#) $Id: smidump.c,v 1.61 2001/09/25 07:21:34 schoenw Exp $
  */
 
 #include <config.h>
@@ -249,7 +249,9 @@ int main(int argc, char *argv[])
     initTree();
     initTypes();
     initXml();
+#if 0
     initXsd();
+#endif
     
     for (i = 1; i < argc; i++)
 	if ((strstr(argv[i], "-c") == argv[i]) ||
