@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.5 1999/03/29 22:34:05 strauss Exp $
+ * @(#) $Id: smi.h,v 1.6 1999/03/30 18:37:23 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -49,7 +49,7 @@ typedef long			SmiInteger32;
 
 typedef unsigned int		SmiSubid;
 
-typedef unsigned long long	SmiNumber;
+typedef double			SmiFloat64; /* currently, no 32/64/128 diffs */
 
 
 
@@ -141,6 +141,7 @@ typedef struct SmiValue {
 	SmiInteger64        integer64;
 	SmiUnsigned32       unsigned32;
 	SmiInteger32        integer32;
+	SmiFloat64	    float64;
 	char		    *oid;
 	char		    *ptr;
 	char		    **bits;
@@ -334,10 +335,14 @@ extern int smiLoadModule(char *modulename);
 
 extern SmiModule *smiGetModule(char *spec);
 
+extern void smiFreeModule(SmiModule *smiModulePtr);
+
 extern SmiRevision *smiGetFirstRevision(char *modulename);
 
 extern SmiRevision *smiGetNextRevision(char *modulename,
 				       time_t date);
+
+extern void smiFreeRevision(SmiRevision *smiRevisionPtr);
 
 extern SmiNode *smiGetNode(char *spec,
 			   char *mod);
@@ -347,16 +352,10 @@ extern SmiNode *smiGetFirstNode(char *modulename);
 extern SmiNode *smiGetNextNode(char *modulename,
 			       char *name);
 
+extern void smiFreeNode(SmiNode *smiNodePtr);
+
 extern char **smiGetMandatoryGroups(char *spec,
 				    char *mod);
-
-#if 0
-extern SmiOptionalGroups *smiGetFirstOptionalGroup(char *spec,
-						   char *name);
-
-extern SmiOptionalGroups *smiGetNextOptionalGroup(char *spec,
-						  char *name);
-#endif
 
 extern SmiType *smiGetType(char *spec,
 			   char *mod);
@@ -366,8 +365,12 @@ extern SmiType *smiGetFirstType(char *modulename);
 extern SmiType *smiGetNextType(char *modulename,
 			       char *name);
 
+extern void smiFreeType(SmiType *smiTypePtr);
+
 extern SmiMacro *smiGetMacro(char *spec,
 			     char *mod);
+
+extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
 extern char **smiGetNames(char *spec,
 			  char *mod);
