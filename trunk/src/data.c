@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.3 1998/10/13 14:55:49 strauss Exp $
+ * @(#) $Id: data.c,v 1.4 1998/10/13 17:11:43 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1439,15 +1439,12 @@ dumpMosy(root)
 
 
 
-#if 0
 /*
  *----------------------------------------------------------------------
  *
  * addType --
  *
- *      Create a new Type structure. Also creates a Descriptor if
- *      needed and updates other Types and MibNodes referencing this
- *	new Type. * TODO!! *
+ *      Create a new Type structure.
  *
  * Results:
  *      A pointer to the new Type structure or
@@ -1459,63 +1456,214 @@ dumpMosy(root)
  *---------------------------------------------------------------------- */
 
 Type *
-addType(name, module, syntax, displayHint, status, description,
-	fileoffset, flags, parser)
-    const char *name;
+addType(parent, syntax, module, flags, parser)
+    Type       *parent;
+    Syntax     syntax;
     Module     *module;
-    Syntax     *syntax;
-    char       *displayHint;
-    Status     status;
-    off_t      fileoffset;
     Flags      flags;
     Parser     *parser;
-    
 {
     Type *type;
-    Descriptor *descriptor;
 
-    printDebug(5, "addType(\"%s\", %s, \"%s\", %d, %d, %d, parser)\n",
-	       name, module->descriptor->name, syntax, fileoffset, flags);
+    printDebug(5, "addType(%s, %d, %s, %d, parser)\n",
+	       parent &&
+	         parent->descriptor ? parent->descriptor->name : "NULL",
+	       syntax,
+	       module &&
+	         module->descriptor ? module->descriptor->name : "NULL",
+	       flags);
 
     /*
-     * Check wheather this type already exists.
+     * Otherwise, create the Type.
      */
-    type = findTypeByModuleAndName(module, name);
-
-    /*
-     * If it exists by declaration in this module, it's an error.
-     */
-    if (type) {
-	printError(parser, ERR_TYPE_ALREADY_EXISTS,
-		   type->descriptor->module->descriptor->name,
-		   type->descriptor->name);
-    } else {
-
-	/*
-	 * Otherwise, create the Type.
-	 */
-	type = malloc(sizeof(Type));
-	if (!type) {
-	    printError(parser, ERR_ALLOCATING_TYPE, strerror(errno));
-	    return (NULL);
-	}
-	    
-	strncpy(type->syntax, syntax, sizeof(type->syntax)-1);
-	type->module = module;
-	type->fileoffset = fileoffset;
-	type->flags = flags;
-	    
-	/*
-	 * Create a Descriptor.
-	 */
-	descriptor = addDescriptor(name, module, KIND_TYPE, type,
-				   flags & FLAGS_GENERAL, parser);
-	type->descriptor = descriptor;
+    type = malloc(sizeof(Type));
+    if (!type) {
+	printError(parser, ERR_ALLOCATING_TYPE, strerror(errno));
+	return (NULL);
     }
+
+    type->module = module;
+    type->parent = parent;
+    if (parent) {
+	type->syntax = parent->syntax;
+    } else {
+	type->syntax = syntax;
+    }
+    type->macro = MACRO_UNKNOWN;
+    type->flags = flags;
+    type->descriptor = NULL;
+    type->description.fileoffset = 0;
+    type->description.length = 0;
+#ifdef TEXTS_IN_MEMORY
+    type->description.ptr = NULL;
+#endif
 
     return (type);
 }
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeStatus --
+ *
+ *      Set the status of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeStatus(type, status)
+    Type *type;
+    Status status;
+{
+    type->status = status;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeDescription --
+ *
+ *      Set the description of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeDescription(type, description)
+    Type *type;
+    String *description;
+{
+    type->description.fileoffset = description->fileoffset;
+    type->description.length = description->length;
+#ifdef TEXTS_IN_MEMORY
+    type->description.ptr = description->ptr;
 #endif
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeDisplayHint --
+ *
+ *      Set the displayHint of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeDisplayHint(type, displayHint)
+    Type *type;
+    String *displayHint;
+{
+    type->displayHint.fileoffset = displayHint->fileoffset;
+    type->displayHint.length = displayHint->length;
+#ifdef TEXTS_IN_MEMORY
+    type->displayHint.ptr = displayHint->ptr;
+#endif
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeFileOffset --
+ *
+ *      Set the fileoffset of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeFileOffset(type, fileoffset)
+    Type *type;
+    off_t fileoffset;
+{
+    type->fileoffset = fileoffset;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeMacro --
+ *
+ *      Set the macro of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeMacro(type, macro)
+    Type *type;
+    DeclMacro macro;
+{
+    type->macro = macro;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeFlags --
+ *
+ *      Add(!) flags to the flags of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeFlags(type, flags)
+    Type *type;
+    Flags flags;
+{
+    type->flags |= flags;
+}
 
 
 
@@ -1767,6 +1915,7 @@ initData()
 {
     int i;
     MibNode *node;
+    Type *type;
     
     firstDirectory = NULL;
     for (i = 0; i < NUM_KINDS; i++) {
@@ -1786,9 +1935,36 @@ initData()
 
     pendingRootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
 
-#if TODO
-    addType("INTEGER", ...
+    type = addType(NULL, SYNTAX_INTEGER, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("INTEGER", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    addDescriptor("Integer32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_OCTET_STRING, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("OCTET STRING", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_OBJECT_IDENTIFIER, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("OBJECT IDENTIFIER", NULL, KIND_TYPE, type, FLAG_PERMANENT,
+		  NULL);
+#if 0
+    type = addType(NULL, SYNTAX_SEQUENCE, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("SEQUENCE", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 #endif
+#if 0
+    type = addType(NULL, SYNTAX_SEQUENCE_OF, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("SEQUENCE_OF", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+#endif
+    type = addType(NULL, SYNTAX_IPADDRESS, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("IpAddress", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_COUNTER32, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Counter32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_GAUGE32, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Gauge32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_UNSIGNED32, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Unsigned32", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_TIMETICKS, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("TimeTicks", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_OPAQUE, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Opaque", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
+    type = addType(NULL, SYNTAX_COUNTER64, NULL, FLAG_PERMANENT, NULL);
+    addDescriptor("Counter64", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 	    
     return (0);
 }
