@@ -89,6 +89,8 @@ typedef struct GraphNode {
     SmiNode          *smiNode;
     int              group;		/* group number of this graph node */
     int              use;		/* use node in the layout-algorithm */
+    int              degree;		/* quantity of adjacent nodes */
+    int              cluster;		/* number of cluster the node belongs */
     DiaNode          dia;
 } GraphNode;
 
@@ -2807,6 +2809,7 @@ static void calcGroupSize(int group)
     if (!calcNode) return;
 
     calcNode->use = 1;
+    calcNode->cluster = -1;
     /*
     calcNode->dia.x = (float) (rand()/RAND_MAX*CANVASWIDTH);
     calcNode->dia.y = (float) (rand()/RAND_MAX*CANVASHEIGHT);
@@ -2937,34 +2940,64 @@ static void layoutGraph(int nodecount, int overlap, int limit_frame)
 /* ------------------------------------------------------------------------- */
 
 
+static void addNodeToCluster(GraphNode *tNode, int currentCluster)
+{
+    GraphEdge *tEdge;
+
+    tNode->cluster = currentCluster;
+    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+	if (!tEdge->use)
+	    continue;
+	if (tEdge->startNode == tNode && tEdge->endNode->cluster == 0)
+	    addNodeToCluster(tEdge->endNode, currentCluster);
+	if (tEdge->endNode == tNode && tEdge->startNode->cluster == 0)
+	    addNodeToCluster(tEdge->startNode, currentCluster);
+    }
+}
 
 //TODO calculate maximal x- and y-sizes and print them into the header
 static void diaPrintXML(int modc, SmiModule **modv)
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
-    int       group, nodecount = 0, classNr = 0;
+    int       group, nodecount = 0, classNr = 0, currentCluster = 1;
     float     xMin = 0, yMin = 0, xMax = 0, yMax = 0;
 
+    //find edges which are supposed to be drawn
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (tEdge->connection != GRAPH_CON_UNKNOWN
 	    && tEdge->startNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
 	    && tEdge->endNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
 	    && tEdge->startNode != tEdge->endNode) {
 	    tEdge->use = 1;
+	    (tEdge->startNode->degree)++;
+	    (tEdge->endNode->degree)++;
 	}
     }
 
+    //prepare nodes which are supposed to be drawn
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	tNode = diaCalcSize(tNode);
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
+	    if (tNode->degree == 0) {
+		tNode->cluster = -1;
+	    }
 	}
     }
-
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
 	calcGroupSize(group);
 	nodecount++;
+    }
+
+    //cluster the graph
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+	if (!tNode->use)
+	    continue;
+	if (tNode->cluster == 0) {
+	    addNodeToCluster(tNode, currentCluster);
+	    currentCluster++;
+	}
     }
 
     layoutGraph(nodecount, 0, 0);
@@ -2975,7 +3008,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	fprintf(stderr, "(%.2f,%.2f)\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group);
+	fprintf(stderr, "%i\t%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->cluster, tNode->dia.x, tNode->dia.y);
 	if (tNode->dia.x - STARTSCALE*tNode->dia.w/2 < xMin)
 	    xMin = tNode->dia.x - STARTSCALE*tNode->dia.w/2;
 	if (tNode->dia.x + STARTSCALE*tNode->dia.w/2 > xMax)
