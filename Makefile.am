@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.25 2002/12/22 16:12:23 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.26 2003/03/20 21:23:40 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -30,8 +30,8 @@ $(pkgconfig_DATA):	config.status
 
 anoncvs:
 	rsync -rlt --delete $(HOME)/.cvs-repository/libsmi agitator:/var/lib/cvs
-	chgrp -R anoncvs /.amd/anoncvs/libsmi
-	chmod -R ug+rw /.amd/anoncvs/libsmi
+	ssh agitator chgrp -R anoncvs /var/lib/cvs/libsmi
+	ssh agitator chmod -R ug+rw /var/lib/cvs/libsmi
 #
 #	mkdir /tmp/libsmi-diff
 #	tar xzCf /tmp/libsmi-diff /ftp/local/libsmi/libsmi-current.tar.gz
