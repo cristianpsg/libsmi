@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.70 2003/02/03 16:30:51 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.71 2003/02/04 15:20:50 tklie Exp $
  */
 
 #include <config.h>
@@ -1746,8 +1746,8 @@ static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 
 		fprintSegment( f, 1, "<xsd:element name=\"%s\" "
 			       "minOccurs=\"0\">\n", smiNode->name );
+		fprintAnnotationElem( f, smiNode );
 		if( ! hint ) {
-		    fprintAnnotationElem( f, smiNode );
 		    fprintTypedef( f, smiType, NULL );
 		}
 		else {
@@ -1768,32 +1768,6 @@ static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 		}
 		fprintAnnotationElem( f, smiNode );
 	    }	   	   
-#if 0
-	    fprintSegment( f, 1, "<xsd:complexType>\n");
-	    fprintSegment( f, 1, "<xsd:simpleContent>\n");
-	    fprintSegment( f, indent + 3 * INDENT, "<xsd:extension");
-	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE  ) {
-		fprintf( f, " base=\"%sType\">\n",
-			 smiNode->name ); 
-	    }
-	    else {
-		
-		if( prefix ) {
-		    fprintf( f, " base=\"%s:%s\">\n", prefix, typeName );
-		}
-		else {
-		    fprintf( f, " base=\"%s\">\n", typeName );
-		}
-	    }
-	    
-	    fprintSegment( f, indent + 4 * INDENT,
-			   "<xsd:attribute name=\"enc\" " , 0 );
-	    fprintf( f, "type=\"smi:EncAttrType\"/>\n" );
-	    fprintSegment( f, indent + 3 * INDENT, "</xsd:extension>\n");
-	    
-	    fprintSegment(f, indent + 2 * INDENT, "</xsd:simpleContent>\n");
-	    fprintSegment( f, indent + INDENT, "</xsd:complexType>\n");
-#endif /* 0 */
 	}
 
 	else if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
