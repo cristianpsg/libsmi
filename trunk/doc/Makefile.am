@@ -8,13 +8,13 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.3 1999/12/14 15:34:44 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.4 2000/02/15 10:41:05 strauss Exp $
 #
 
 EXTRA_DIST		= draft-irtf-nmrg-sming-02.txt
 
-SMI.gif: SMI.eps
-	epsffit -sc 0 0 600 600 SMI.eps SMI.eps.tmp
-	ps2gif SMI.eps.tmp SMI.gif.tmp
-	giftopnm SMI.gif.tmp | pnmcrop | ppmtogif > SMI.gif
-	rm SMI.eps.tmp SMI.gif.tmp
+smi.gif: smi.eps
+	epsffit -sc 0 0 600 600 smi.eps smi.eps.tmp
+	ps2gif smi.eps.tmp smi.gif.tmp
+	giftopnm smi.gif.tmp | pnmcrop | ppmtogif > smi.gif
+	rm smi.eps.tmp smi.gif.tmp

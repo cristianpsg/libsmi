@@ -71,25 +71,42 @@ static int isGroup(SmiNode *smiNode)
 
 
 
-static printAssiciation(SmiNode *smiNode, SmiNode *smiNode2)
+static printAssiciation(SmiNode *node, SmiNode *relatedNode)
 {
+    int conn;
+    SmiNode *parentNode, *columnNode;
+
+
+    if (relatedNode->nodekind == SMI_NODEKIND_ROW) {
+	parentNode = relatedNode;
+	conn = 1;
+    } else {
+	parentNode = smiGetParentNode(relatedNode);
+	for (conn = 8, columnNode = smiGetFirstChildNode(parentNode);
+	     columnNode && columnNode != relatedNode;
+	     conn += 2, columnNode = smiGetNextChildNode(columnNode));
+    }
+
+    fprintf(stderr, "[%s]-[%s:%d]\n", node->name, parentNode->name, conn);
+    
     printf("    <dia:object type=\"UML - Association\" "
 	   "version=\"0\" id=\"Assoc:%s:%s\">\n",
-	   smiNode->name, smiNode2->name);
+	   node->name, parentNode->name);
     
     printf("      <dia:attribute name=\"obj_pos\">\n");
-    printf("        <dia:point val=\"0.1,0.1\"/>\n");
+    printf("        <dia:point val=\"0,0\"/>\n");
     printf("      </dia:attribute>\n");
     printf("      <dia:attribute name=\"obj_bb\">\n");
-    printf("        <dia:rectangle "
-	   "val=\"0.1,0.1;0.1,0.1\"/>\n");
+    printf("        <dia:rectangle val=\"0,0;0,0\"/>\n");
     printf("      </dia:attribute>\n");
     printf("      <dia:attribute name=\"orth_points\">\n");
-    printf("        <dia:point val=\"0.1,0.1\"/>\n");
-    printf("        <dia:point val=\"0.1,0.1\"/>\n");
+    printf("        <dia:point val=\"0,0\"/>\n");
+    printf("        <dia:point val=\"0,0\"/>\n");
+    printf("        <dia:point val=\"0,0\"/>\n");
     printf("      </dia:attribute>\n");
     printf("      <dia:attribute name=\"orth_orient\">\n");
     printf("        <dia:enum val=\"1\"/>\n");
+    printf("        <dia:enum val=\"0\"/>\n");
     printf("      </dia:attribute>\n");
     printf("      <dia:attribute name=\"name\">\n");
     printf("        <dia:string/>\n");
@@ -129,24 +146,29 @@ static printAssiciation(SmiNode *smiNode, SmiNode *smiNode2)
     printf("      </dia:attribute>\n");
     printf("      <dia:connections>\n");
     printf("        <dia:connection handle=\"0\" "
-	   "to=\"Node:%s\" connection=\"1\"/>\n",
-	   smiNode->name);
+	   "to=\"Node:%s\" connection=\"%d\"/>\n",
+	   node->name, 1);
+
     printf("        <dia:connection handle=\"1\" "
-	   "to=\"Node:%s\" connection=\"2\"/>\n",
-	   smiNode2->name);
+	   "to=\"Node:%s\" connection=\"%d\"/>\n",
+	   parentNode->name, conn);
+    
     printf("      </dia:connections>\n");
     printf("    </dia:object>\n");
 }
 
 
 
-static void printClass(double *x, double *y, SmiNode *smiNode)
+static void printClass(double *x, double *y, SmiNode *node)
 {
     SmiNode *childNode;
-    SmiType *smiType;
+    SmiNode *relatedNode;
+    SmiElement *element;
+
+    /* printf("    <dia:group>\n"); */
 
     printf("    <dia:object type=\"UML - Class\" "
-	   "version=\"0\" id=\"Node:%s\">\n", smiNode->name);
+	   "version=\"0\" id=\"Node:%s\">\n", node->name);
     printf("      <dia:attribute name=\"obj_pos\">\n");
     printf("        <dia:point val=\"%f,%f\"/>\n", *x, *y);
     printf("      </dia:attribute>\n");
@@ -163,7 +185,7 @@ static void printClass(double *x, double *y, SmiNode *smiNode)
     printf("        <dia:real val=\"%f\"/>\n", 0.1);
     printf("      </dia:attribute>\n");
     printf("      <dia:attribute name=\"name\">\n");
-    printf("        <dia:string>#%s#</dia:string>\n", smiNode->name);
+    printf("        <dia:string>#%s#</dia:string>\n", node->name);
     printf("      </dia:attribute>\n");
     printf("      <dia:attribute name=\"stereotype\">\n");
     printf("        <dia:string/>\n");
@@ -186,13 +208,12 @@ static void printClass(double *x, double *y, SmiNode *smiNode)
 
     printf("      <dia:attribute name=\"attributes\">\n");
 
-    for(childNode = smiGetFirstChildNode(smiNode);
+    for(childNode = smiGetFirstChildNode(node);
 	childNode;
 	childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR
 	    || childNode->nodekind == SMI_NODEKIND_COLUMN) {
 	    if (childNode->status != SMI_STATUS_OBSOLETE) {
-		smiType = smiGetNodeType(childNode);
 		printf("        <dia:composite type=\"umlattribute\">\n");
 		printf("          <dia:attribute name=\"name\">\n");
 		printf("            <dia:string>#%s#</dia:string>\n",
@@ -228,6 +249,38 @@ static void printClass(double *x, double *y, SmiNode *smiNode)
     printf("      <dia:attribute name=\"templates\"/>\n");
     printf("    </dia:object>\n");
 
+    if (node->nodekind == SMI_NODEKIND_ROW) {
+
+	relatedNode = NULL;
+	switch (node->indexkind) {
+	case SMI_INDEX_INDEX:
+	case SMI_INDEX_REORDER:
+	    break;
+	case SMI_INDEX_EXPAND:  /* TODO: we have to do more work here! */
+	    break;
+	case SMI_INDEX_AUGMENT:
+	case SMI_INDEX_SPARSE:
+	    relatedNode = smiGetRelatedNode(node);
+	    break;
+	case SMI_INDEX_UNKNOWN:
+	    break;	    
+	}
+
+	if (!relatedNode) {
+	    for (element = smiGetFirstElement(node);
+		 element;
+		 element = smiGetNextElement(element)) {
+		relatedNode = smiGetElementNode(element);
+
+		printAssiciation(node, relatedNode);
+	    }
+	} else {
+	    printAssiciation(node, relatedNode);
+	}
+    }
+
+    /* printf("    </dia:group>\n"); */
+
     *x += X_OFFSET;
     *y += Y_OFFSET;
     
@@ -253,17 +306,17 @@ static void printClasses(double *x, double *y, SmiModule *smiModule)
 
 
 
-static void printIndexAssociations(SmiModule *smiModule)
+static void printIndexAssociations(SmiModule *module)
 {
-    SmiNode *smiNode, *smiNode2, *relatedNode;
-    SmiElement *smiElement;
+    SmiNode *node, *relatedNode;
+    SmiElement *element;
     
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ROW)) {
+    for(node = smiGetFirstNode(module, SMI_NODEKIND_ROW);
+	node;
+	node = smiGetNextNode(node, SMI_NODEKIND_ROW)) {
 
 	relatedNode = NULL;
-	switch (smiNode->indexkind) {
+	switch (node->indexkind) {
 	case SMI_INDEX_INDEX:
 	case SMI_INDEX_REORDER:
 	    break;
@@ -271,25 +324,24 @@ static void printIndexAssociations(SmiModule *smiModule)
 	    break;
 	case SMI_INDEX_AUGMENT:
 	case SMI_INDEX_SPARSE:
-	    relatedNode = smiGetRelatedNode(smiNode);
+	    relatedNode = smiGetRelatedNode(node);
 	    break;
 	case SMI_INDEX_UNKNOWN:
 	    break;	    
 	}
 
 	if (!relatedNode) {
-	    for (smiElement = smiGetFirstElement(smiNode);
-		 smiElement;
-		 smiElement = smiGetNextElement(smiElement)) {
-		smiNode2 = smiGetElementNode(smiElement);
+	    for (element = smiGetFirstElement(node);
+		 element;
+		 element = smiGetNextElement(element)) {
+		relatedNode = smiGetElementNode(element);
 
-		relatedNode = smiGetParentNode(smiNode2);
-		printAssiciation(smiNode, relatedNode);
+		printAssiciation(node, relatedNode);
 		
 	    }
 	} else {
 
-	    printAssiciation(smiNode, relatedNode);
+	    printAssiciation(node, relatedNode);
 	}
     }
 }
@@ -321,8 +373,6 @@ int dumpDia(char *modulename, int flags)
     x = X_OFFSET, y = Y_OFFSET;
 
     printClasses(&x, &y, smiModule);
-
-    printIndexAssociations(smiModule);
 
     printf("  </dia:layer>\n");
     printf("</dia:diagram>\n");

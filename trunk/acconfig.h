@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: acconfig.h,v 1.1 2000/02/12 10:56:19 strauss Exp $
  */
 
 /* Define if the SMIv1/v2 parser shall be active. */
@@ -52,3 +52,10 @@
 
 /* Define if the timegm() function is present in libc. */
 #undef HAVE_TIMEGM
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
+
