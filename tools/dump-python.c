@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.10 2001/09/25 07:22:19 schoenw Exp $
+ * @(#) $Id: dump-python.c,v 1.11 2001/11/08 07:37:31 schoenw Exp $
  */
 
 /*
@@ -1044,6 +1044,11 @@ static void dumpPython(int modc, SmiModule **modv, int flags, char *output)
 	fprintCompliances(f, modv[i]);
 	
 	fprint(f, "}\n");
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

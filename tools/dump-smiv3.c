@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smiv3.c,v 1.3 2002/06/21 14:31:25 strauss Exp $
+ * @(#) $Id: dump-smiv3.c,v 1.4 2002/06/26 06:34:07 schoenw Exp $
  */
 
 #include <config.h>
@@ -1571,6 +1571,11 @@ dumpSmiv3(int modc, SmiModule **modv, int flags, char *output)
 #endif
 	
 	fprint(f, "}\n", smiModule->name);
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

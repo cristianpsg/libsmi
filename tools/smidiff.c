@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.35 2002/01/08 09:50:48 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.36 2002/01/25 09:15:30 schoenw Exp $ 
  */
 
 #include <config.h>
@@ -2410,6 +2410,11 @@ main(int argc, char *argv[])
 
     smiInit(newTag);
     smiExit();
+
+    if (fflush(stdout) || ferror(stdout)) {
+	perror("smidump: write error");
+	exit(1);
+    }
 
     return 0;
 }

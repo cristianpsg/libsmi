@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.46 2002/10/24 13:01:44 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.47 2002/10/24 13:32:07 tklie Exp $
  */
 
 #include <config.h>
@@ -2037,6 +2037,11 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 
 	/* delete type-prefix-mapping */
 	free( typePrefixes );
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.24 2002/07/22 17:06:19 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.25 2002/09/13 17:47:27 schoenw Exp $
  */
 
 /*
@@ -970,6 +970,20 @@ printMethodPrototypes(FILE *f, SmiNode *groupNode)
 
 
 static void
+printHeaderTypedefMemberComment(FILE *f, SmiNode *smiNode, SmiType *smiType)
+{
+    const char *s;
+    
+    fprintf(f, "%s", smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+    s = smiRenderType(smiType, SMI_RENDER_NAME);
+    if (s) {
+	fprintf(f, " %s", s);
+    }
+}
+
+
+
+static void
 printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 			 SmiType *smiType, int isIndex, int maxlen)
 {
@@ -1050,28 +1064,28 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	break;
     case SMI_BASETYPE_ENUM:
     case SMI_BASETYPE_INTEGER32:
-	fprintf(f,
-		"    gint32   %s%s;", isIndex ? "" : "*", cName);
-	fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+5+isIndex, "",
-		smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	fprintf(f, "    gint32   %s%s;", isIndex ? "" : "*", cName);
+	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5+isIndex, "");
+	printHeaderTypedefMemberComment(f, smiNode, smiType);
+	fprintf(f, " */\n");
 	break;
     case SMI_BASETYPE_UNSIGNED32:
-	fprintf(f,
-		"    guint32  %s%s;", isIndex ? "" : "*", cName);
-	fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+5+isIndex, "",
-		smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	fprintf(f, "    guint32  %s%s;", isIndex ? "" : "*", cName);
+	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5+isIndex, "");
+	printHeaderTypedefMemberComment(f, smiNode, smiType);
+	fprintf(f, " */\n");
 	break;
     case SMI_BASETYPE_INTEGER64:
-	fprintf(f,
-		"    gint64   *%s;", cName);
-	fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+5, "",
-		smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	fprintf(f, "    gint64   *%s;", cName);
+	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	printHeaderTypedefMemberComment(f, smiNode, smiType);
+	fprintf(f, " */\n");
 	break;
     case SMI_BASETYPE_UNSIGNED64:
-	fprintf(f,
-		"    guint64  *%s;", cName);
-	fprintf(f, "%*s/* %s */\n", maxlen-strlen(cName)+5, "",
-		smiNode->access == SMI_ACCESS_READ_WRITE ? "rw" : "ro");
+	fprintf(f, "    guint64  *%s;", cName);
+	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	printHeaderTypedefMemberComment(f, smiNode, smiType);
+	fprintf(f, " */\n");
 	break;
     default:
 	fprintf(f,
@@ -1274,6 +1288,11 @@ dumpHeader(SmiModule *smiModule, char *baseName)
     fprintf(f,
 	    "#endif /* _%s_H_ */\n",
 	    pModuleName);
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
 
     fclose(f);
     xfree(pModuleName);
@@ -3065,6 +3084,11 @@ dumpStubs(SmiModule *smiModule, char *baseName)
     printStubAttributes(f, smiModule);
     printStubMethods(f, smiModule);
     
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
 }
 

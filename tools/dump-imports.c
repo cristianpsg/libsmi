@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.19 2000/12/12 22:37:53 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.20 2002/01/09 12:02:03 schoenw Exp $
  */
 
 #include <config.h>
@@ -164,6 +164,11 @@ static void dumpImports(int modc, SmiModule **modv, int flags, char *output)
 
 	fprintf(f, "%s\n", modv[i]->name);
 	fprintImports(f, modv[i], "", NULL);
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

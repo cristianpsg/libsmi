@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.12 2001/06/15 07:12:20 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.13 2002/07/22 17:06:19 schoenw Exp $
  */
 
 /*
@@ -1266,6 +1266,11 @@ static void dumpMgrStub(SmiModule *smiModule, char *baseName)
     
     printMgrGetMethods(f, smiModule);
     
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
+
     fclose(f);
     xfree(stubModuleName);
 }
@@ -1363,6 +1368,11 @@ static void dumpAgtImpl(SmiModule *smiModule, char *baseName)
 	    cModuleName, cModuleName);
 
     xfree(cModuleName);
+    
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
+    }
 
     fclose(f);
     xfree(stubModuleName);

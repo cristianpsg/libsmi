@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.13 2000/12/18 09:56:28 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.14 2001/06/15 07:12:20 strauss Exp $
  */
 
 #include <config.h>
@@ -152,6 +152,11 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
 		fprintNodeIdentifiers(f, 1, &(modv[i]));
 	    }
 	}
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

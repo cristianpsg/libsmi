@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.6 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-metrics.c,v 1.7 2000/12/11 08:41:22 strauss Exp $
  */
 
 /*
@@ -162,6 +162,11 @@ static void dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 	    addMetrics(&metrics, modv[i]);
 	    fprintMetrics(f, &metrics);
 	}
+    }
+
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {

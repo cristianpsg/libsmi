@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.79 2002/07/23 18:14:11 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.80 2002/07/23 23:12:30 strauss Exp $
  */
 
 #include <config.h>
@@ -1888,6 +1888,10 @@ static void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output)
 
     for (i = 0; i < modc; i++) {
 	dumpSmi(f, modv[i]);
+	if (fflush(f) || ferror(f)) {
+	    perror("smidump: write error");
+	    exit(1);
+	}
     }
 
     if (output) {
@@ -1915,6 +1919,11 @@ static void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output)
 
     for (i = 0; i < modc; i++) {
 	dumpSmi(f, modv[i]);
+    }
+    
+    if (fflush(f) || ferror(f)) {
+	perror("smidump: write error");
+	exit(1);
     }
 
     if (output) {
