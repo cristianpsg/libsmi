@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.104 2001/08/27 14:03:32 strauss Exp $
+ * @(#) $Id: data.c,v 1.105 2001/08/31 07:33:49 strauss Exp $
  */
 
 #include <config.h>
@@ -3566,6 +3566,8 @@ Module *loadModule(const char *modulename)
 	smiPrintError(NULL, ERR_MODULE_NOT_FOUND, modulename);
 	return NULL;
     }
+
+    parser.path			= path;
 
     /*
      * Look into the file to determine whether it contains
