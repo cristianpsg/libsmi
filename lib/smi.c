@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.118 2002/11/13 13:15:03 strauss Exp $
+ * @(#) $Id: smi.c,v 1.119 2003/04/24 13:11:50 strauss Exp $
  */
 
 #include <config.h>
@@ -1725,7 +1725,8 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	break;
     case SMI_BASETYPE_OCTETSTRING:
 	if (!(flags & SMI_RENDER_FORMAT) ||
-	    (!smiTypePtr->format)) {
+	    (!smiTypePtr->format &&
+	     (smiTypePtr->name && strcmp( smiTypePtr->name, "IpAddress")) ) ) {
 	    for (i = 0; i < smiValuePtr->len; i++) {
 		if (!isprint((int)smiValuePtr->value.ptr[i])) break;
 	    }
@@ -1743,7 +1744,11 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	} else {
 	    i = 0;
 	    smiAsprintf(&s, "");
-	    fmt = smiTypePtr->format;
+	    /* SNMPv2-SMI:IpAddress does not have a display hint.
+	       ==> let's use this one: "1d." if we have an IpAddress here */
+	    fmt = (smiTypePtr->name &&
+		   strcmp( smiTypePtr->name, "IpAddress" ) ) ?
+		smiTypePtr->format : "1d.";
 	    while (*fmt && i < smiValuePtr->len) {
 		last_fmt = fmt;
 		have_pfx = pfx = 0; /* scan prefix: */
