@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.8 1999/03/23 22:55:38 strauss Exp $
+ * @(#) $Id: data.c,v 1.9 1999/03/24 16:25:24 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -88,6 +88,37 @@ addView(modulename)
     return (viewPtr);
 }
 
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * isInView --
+ *
+ *      Check, whether a given module is in the current view.
+ *
+ * Results:
+ *      != 0 if in view, 0 otherwise.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+isInView(modulename)
+    const char	      *modulename;
+{
+    View	      *viewPtr;
+    
+    for (viewPtr = firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
+	if (!strcmp(modulename, viewPtr->name)) {
+	    return 1;
+	}
+    }
+    return 0;
+}
 
 
 /*
@@ -776,7 +807,7 @@ Object *
 addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     const char	     *objectname;
     Node             *parentNodePtr;
-    smi_subid	     subid;
+    SmiSubid	     subid;
     ObjectFlags	     flags;
     Parser	     *parserPtr;
 {
@@ -814,6 +845,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->description			= NULL;
     objectPtr->reference			= NULL;
     objectPtr->units				= NULL;
+    objectPtr->valuePtr				= NULL;
     
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -966,7 +998,7 @@ duplicateObject(templatePtr, flags, parserPtr)
 Node *
 addNode (parentNodePtr, subid, flags, parserPtr)
     Node	    *parentNodePtr;
-    smi_subid	    subid;
+    SmiSubid	    subid;
     NodeFlags	    flags;
     Parser	    *parserPtr;
 {
@@ -1056,7 +1088,7 @@ createNodes(oid)
 {
     char		*p, *elements;
     Node		*parentNodePtr;
-    smi_subid		subid;
+    SmiSubid		subid;
 
 #ifdef DEBUG
     printDebug(5, "createNodes(%s)\n", oid);
@@ -1122,7 +1154,7 @@ getParentNode(nodePtr)
  *----------------------------------------------------------------------
  */
 
-smi_subid
+SmiSubid
 getLastSubid(oid)
     const char    *oid;
 {
@@ -1157,7 +1189,7 @@ getLastSubid(oid)
 Object *
 setObjectName(objectPtr, name)
     Object	      *objectPtr;
-    smi_descriptor    name;
+    char	      *name;
 {
     Node	      *nodePtr, *nextPtr;
     Module	      *modulePtr;
@@ -1274,10 +1306,7 @@ setObjectType(objectPtr, typePtr)
 	       typePtr->name ? typePtr->name : "\"\"");
 #endif
 
-    /* TODO: why this check? */
-    if (objectPtr->typePtr == NULL) {
-	objectPtr->typePtr = typePtr;
-    }
+    objectPtr->typePtr = typePtr;
 }
 
 
@@ -1301,17 +1330,14 @@ setObjectType(objectPtr, typePtr)
 void
 setObjectAccess(objectPtr, access)
     Object		   *objectPtr;
-    smi_access		   access;
+    SmiAccess		   access;
 {
 #ifdef DEBUG
     printDebug(5, "setObjectAccess(0x%x(%s), %s)\n",
 	       objectPtr, objectPtr->name, smiStringAccess(access));
 #endif
 
-    /* TODO: why this check? */
-    if (objectPtr->access == SMI_ACCESS_UNKNOWN) {
-	objectPtr->access = access;
-    }
+    objectPtr->access = access;
 }
 
 
@@ -1335,17 +1361,14 @@ setObjectAccess(objectPtr, access)
 void
 setObjectStatus(objectPtr, status)
     Object		   *objectPtr;
-    smi_status		   status;
+    SmiStatus		   status;
 {
 #ifdef DEBUG
     printDebug(5, "setObjectStatus(0x%x(%s), %s)\n",
 	       objectPtr,  objectPtr->name, smiStringStatus(status));
 #endif
 
-    /* TODO: why this check? */
-    if (objectPtr->status == SMI_STATUS_UNKNOWN) {
-	objectPtr->status = status;
-    }
+    objectPtr->status = status;
 }
 
 
@@ -1469,10 +1492,7 @@ setObjectFileOffset(objectPtr, fileoffset)
 	       objectPtr, objectPtr->name, fileoffset);
 #endif
 
-    /* TODO: why this check? */
-    if (objectPtr->fileoffset < 0) {
-	objectPtr->fileoffset = fileoffset;
-    }
+    objectPtr->fileoffset = fileoffset;
 }
 
 
@@ -1496,17 +1516,14 @@ setObjectFileOffset(objectPtr, fileoffset)
 void
 setObjectDecl(objectPtr, decl)
     Object	*objectPtr;
-    smi_decl    decl;
+    SmiDecl     decl;
 {
 #ifdef DEBUG
     printDebug(5, "setObjectDecl(0x%x(%s), %s)\n",
 	       objectPtr, objectPtr->name, smiStringDecl(decl));
 #endif
 
-    /* TODO: why this check? */
-    if (objectPtr->decl == SMI_DECL_UNKNOWN) {
-	objectPtr->decl = decl;
-    }
+    objectPtr->decl = decl;
 }
 
 
@@ -1828,6 +1845,62 @@ findObjectByName(objectname)
 /*
  *----------------------------------------------------------------------
  *
+ * findNextObjectByName --
+ *
+ *      Lookup the next Object by a given name. Note, that
+ *	there might be more than one Object with the same name.
+ *
+ * Results:
+ *      A pointer to the Object structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Object *
+findNextObjectByName(objectname, prevObjectPtr)
+    const char       *objectname;
+    Object	     *prevObjectPtr;
+{
+    Module	     *modulePtr;
+    Object           *objectPtr;
+
+#ifdef DEBUG
+    printDebug(4, "findNextObjectByName(%s, %p)", objectname, prevObjectPtr);
+#endif
+
+    for (modulePtr = prevObjectPtr->modulePtr->nextPtr; modulePtr;
+	 modulePtr = modulePtr->nextPtr) {
+	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
+	     objectPtr = objectPtr->nextPtr) {
+	    if ((objectPtr->name) && !strcmp(objectPtr->name, objectname)) {
+		/*
+		 * We return the first matching object.
+		 * TODO: probably we should check if there are more matching
+		 *       objects, and give a warning if there's another one.
+		 */
+#ifdef DEBUG
+		printDebug(4, " = 0x%x(%s)\n", objectPtr, objectPtr->name);
+#endif
+		return (objectPtr);
+	    }
+	}
+    }
+
+#ifdef DEBUG
+    printDebug(4, " = NULL\n");
+#endif
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * findObjectByModulenameAndName --
  *
  *      Lookup a Object by a given Module and name.
@@ -2093,7 +2166,7 @@ dumpMosy(root)
 Type *
 addType(typename, syntax, flags, parserPtr)
     const char     *typename;
-    smi_syntax	   syntax;
+    SmiSyntax	   syntax;
     TypeFlags      flags;
     Parser	   *parserPtr;
 {
@@ -2124,12 +2197,13 @@ addType(typename, syntax, flags, parserPtr)
     typePtr->decl			= SMI_DECL_UNKNOWN;
     typePtr->status			= SMI_STATUS_UNKNOWN;
     typePtr->flags			= flags;
-    typePtr->itemlistPtr		= NULL;
+    typePtr->listPtr			= NULL;
     typePtr->parentType			= NULL;
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
     typePtr->format			= NULL;
     typePtr->units			= NULL;
+    typePtr->valuePtr			= NULL;
 
     typePtr->nextPtr			= NULL;
     if (modulePtr) {
@@ -2196,13 +2270,14 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->syntax			= templatePtr->syntax;
     typePtr->decl			= templatePtr->decl;
     typePtr->status			= templatePtr->syntax;
-    typePtr->itemlistPtr		= NULL;
+    typePtr->listPtr			= NULL;
     typePtr->flags			= templatePtr->flags;
     typePtr->parentType			= util_strdup(templatePtr->name);
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
     typePtr->format			= NULL;
     typePtr->units			= NULL;
+    typePtr->valuePtr			= NULL;
 
     typePtr->nextPtr			= NULL;
     typePtr->prevPtr			= modulePtr->lastTypePtr;
@@ -2240,7 +2315,7 @@ duplicateType(templatePtr, flags, parserPtr)
 void
 setTypeName(typePtr, name)
     Type	      *typePtr;
-    smi_descriptor    name;
+    char	      *name;
 {
 #ifdef DEBUG
     printDebug(5, "setTypeName(0x%x, \"%s\")\n",
@@ -2271,7 +2346,7 @@ setTypeName(typePtr, name)
 void
 setTypeStatus(typePtr, status)
     Type       *typePtr;
-    smi_status status;
+    SmiStatus  status;
 {
 #ifdef DEBUG
     printDebug(5, "setTypeStatus(0x%x(%s), %s)\n",
@@ -2279,10 +2354,39 @@ setTypeStatus(typePtr, status)
 	       smiStringStatus(status));
 #endif
 
-    /* TODO: why this check? */
-    if (typePtr->status == SMI_STATUS_UNKNOWN) {
-	typePtr->status = status;
-    }
+    typePtr->status = status;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeSyntax --
+ *
+ *      Set the syntax of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeSyntax(typePtr, syntax)
+    Type       *typePtr;
+    SmiSyntax  syntax;
+{
+#ifdef DEBUG
+    printDebug(5, "setTypeSyntax(0x%x(%s), %s)\n",
+	       typePtr, typePtr->name ? typePtr->name : "\"\"",
+	       smiStringSyntax(syntax));
+#endif
+
+    typePtr->syntax = syntax;
 }
 
 
@@ -2373,17 +2477,17 @@ setTypeParent(typePtr, parent)
  */
 
 void
-setTypeItemlistPtr(typePtr, itemlistPtr)
+setTypeListPtr(typePtr, listPtr)
     Type	   *typePtr;
-    struct List	   *itemlistPtr;
+    struct List	   *listPtr;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeitemlistPtr(0x%x(%s), 0x%x)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", itemlistPtr);
+    printDebug(5, "setTypeListPtr(0x%x(%s), 0x%x)\n",
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", listPtr);
 #endif
     
-    if (!typePtr->itemlistPtr) {
-	typePtr->itemlistPtr  = itemlistPtr;
+    if (!typePtr->listPtr) {
+	typePtr->listPtr  = listPtr;
     }
 }
 
@@ -2478,10 +2582,7 @@ setTypeFileOffset(typePtr, fileoffset)
 	       typePtr, typePtr->name ? typePtr->name : "\"\"", fileoffset);
 #endif
 
-    /* TODO: why this check? */
-    if (typePtr->fileoffset < 0) {
-	typePtr->fileoffset = fileoffset;
-    }
+    typePtr->fileoffset = fileoffset;
 }
 
 
@@ -2505,7 +2606,7 @@ setTypeFileOffset(typePtr, fileoffset)
 void
 setTypeDecl(typePtr, decl)
     Type     *typePtr;
-    smi_decl decl;
+    SmiDecl  decl;
 {
 #ifdef DEBUG
     printDebug(5, "setTypeDecl(0x%x(%s), %s)\n",
@@ -2581,6 +2682,56 @@ findTypeByName(typename)
 #endif
     
     for (modulePtr = firstModulePtr; modulePtr;
+	 modulePtr = modulePtr->nextPtr) {
+	for (typePtr = modulePtr->firstTypePtr; typePtr;
+	     typePtr = typePtr->nextPtr) {
+	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
+#ifdef DEBUG
+		printDebug(4, " = 0x%x(%s)\n", typePtr, typePtr->name);
+#endif
+		return (typePtr);
+	    }
+	}
+    }
+
+#ifdef DEBUG
+    printDebug(4, " = NULL\n");
+#endif
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findNextTypeByName --
+ *
+ *      Lookup the next Type by a given name.
+ *
+ * Results:
+ *      A pointer to the Type structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Type *
+findNextTypeByName(typename, prevTypePtr)
+    const char *typename;
+    Type       *prevTypePtr;
+{
+    Module *modulePtr;
+    Type   *typePtr;
+    
+#ifdef DEBUG
+    printDebug(6, "findNextTypeByName(%s)", typename);
+#endif
+    
+    for (modulePtr = prevTypePtr->modulePtr->nextPtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
@@ -3025,7 +3176,9 @@ loadModule(modulename)
     Location	    *locationPtr;
     Parser	    parser;
     Module	    *modulePtr;
-    smi_module	    *smimodule;
+#ifdef BACKEND_RPC
+    SmiModule	    *smiModule;
+#endif
     char	    s[200];
     char	    *path;
     struct stat	    buf;
@@ -3045,13 +3198,13 @@ loadModule(modulename)
 #ifdef BACKEND_RPC
 	if (locationPtr->type == LOCATION_RPC) {
 	    
-	    smimodule = smiproc_module_1(&modulename, locationPtr->cl);
-	    if (smimodule && strlen(smimodule->name)) {
+	    smiModule = smiproc_module_1(&modulename, locationPtr->cl);
+	    if (smiModule && strlen(smiModule->name)) {
 	        /* the RPC server knows this module */
 		modulePtr = addModule(modulename, "", locationPtr, 0, 0, NULL);
-		setModuleLastUpdated(modulePtr, smimodule->lastupdated);
-		setModuleOrganization(modulePtr, smimodule->organization);
-		setModuleContactInfo(modulePtr, smimodule->contactinfo);
+		setModuleLastUpdated(modulePtr, smiModule->lastupdated);
+		setModuleOrganization(modulePtr, smiModule->organization);
+		setModuleContactInfo(modulePtr, smiModule->contactinfo);
 		/* TODO: setModuleIdentityObject */
 		/* TODO: setObjectDescription */
 		/* TODO: setObjectReference */

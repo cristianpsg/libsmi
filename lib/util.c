@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.1 1998/12/22 17:09:29 strauss Exp $
+ * @(#) $Id: util.c,v 1.1 1999/03/11 17:33:06 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -27,7 +27,17 @@ void *
 util_malloc(size)
     size_t  size;
 {
-    return malloc(size);
+    return calloc(size, 1);
+}
+
+
+
+void *
+util_realloc(ptr, size)
+    void    *ptr;
+    size_t  size;
+{
+    return realloc(ptr, size);
 }
 
 

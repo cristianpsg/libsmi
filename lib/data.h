@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.8 1999/03/23 22:55:39 strauss Exp $
+ * @(#) $Id: data.h,v 1.9 1999/03/24 16:25:25 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -30,22 +30,6 @@ typedef struct List {
     void	    *ptr;
     struct List	    *nextPtr;
 } List;
-
-
-
-typedef struct NamedNumber {
-    char	    *name;
-    smi_number	    number;
-} NamedNumber;
-
-
-
-typedef struct Range {
-    smi_number	    min;
-    smi_number	    max;
-} Range;
-
-
 
 typedef enum Kind {
     KIND_UNKNOWN	 = 0 ,  /*					     */
@@ -128,7 +112,7 @@ typedef struct View {
 
 
 typedef struct Module {
-    smi_descriptor name;
+    char            *name;
     char	    *path;
     Location	    *locationPtr;
     off_t	    fileoffset;
@@ -157,8 +141,8 @@ typedef struct Module {
 
 
 typedef struct Import {
-    smi_descriptor module;
-    smi_descriptor name;
+    char           *module;
+    char	   *name;
     struct Import  *nextPtr;
     struct Import  *prevPtr;
     Kind	   kind;
@@ -177,14 +161,15 @@ typedef struct Revision {
 
 typedef struct Type {
     Module         *modulePtr;
-    smi_descriptor name;
-    smi_fullname   parentType;
-    smi_syntax	   syntax;
-    smi_decl	   decl;
+    char	   * name;
+    char	   *parentType;
+    SmiSyntax	   syntax;
+    SmiDecl	   decl;
     char	   *format;
+    SmiValue	   *valuePtr;
     char	   *units;
-    smi_status	   status;
-    struct List	   *itemlistPtr;
+    SmiStatus	   status;
+    struct List    *listPtr;
     char	   *description;
     char	   *reference;
     off_t          fileoffset;
@@ -197,17 +182,18 @@ typedef struct Type {
 
 typedef struct Object {
     Module         *modulePtr;
-    smi_descriptor name;
+    char	   *name;
     off_t	   fileoffset;
-    smi_decl	   decl;
+    SmiDecl	   decl;
     ObjectFlags	   flags;
     Type	   *typePtr;
-    smi_access	   access;
-    smi_status	   status;
-    struct List	   *indexPtr;
+    SmiAccess	   access;
+    SmiStatus	   status;
+    struct List    *indexPtr;
     char	   *description;
     char	   *reference;
     char	   *units;
+    SmiValue	   *valuePtr;
     struct Node	   *nodePtr;
     struct Object  *prevPtr;		/* chain of Objects in this Module */
     struct Object  *nextPtr;
@@ -218,7 +204,7 @@ typedef struct Object {
 
 
 typedef struct Node {
-    smi_subid	   subid;
+    SmiSubid	   subid;
     NodeFlags	   flags;
     struct Node	   *parentPtr;
     struct Node	   *nextPtr;
@@ -233,7 +219,7 @@ typedef struct Node {
 
 typedef struct Macro {
     Module	   *modulePtr;
-    smi_descriptor name;
+    char	   *name;
     off_t	   fileoffset;
     MacroFlags	   flags;
     struct Macro   *nextPtr;
@@ -270,6 +256,8 @@ extern View	*firstViewPtr, *lastViewPtr;
 
 
 extern View *addView(const char *modulename);
+
+extern int isInView(const char *modulename);
 
 
 
@@ -322,7 +310,7 @@ extern Import *findImportByModulenameAndName(const char *modulename,
 
 extern Object *addObject(const char *objectname,
 			 Node *parentNodePtr,
-			 smi_subid subid,
+			 SmiSubid subid,
 			 ObjectFlags flags,
 			 Parser *parserPtr);
 
@@ -331,7 +319,7 @@ extern Object *duplicateObject(Object *templatePtr,
 			       Parser *parserPtr);
 
 extern Node *addNode(Node *parentNodePtr,
-		     smi_subid subid,
+		     SmiSubid subid,
 		     NodeFlags flags,
 		     Parser *parserPtr);
 
@@ -339,7 +327,7 @@ extern Node *createNodes(const char *oid);
 
 extern Node *getParentNode(Node *nodePtr);
 
-extern smi_subid getLastSubid(const char *oid);
+extern SmiSubid getLastSubid(const char *oid);
 
 /*
  * setObjectName() might relink MIB tree object structures. If the
@@ -347,16 +335,16 @@ extern smi_subid getLastSubid(const char *oid);
  *   objectPtr = setObjectName(objectPtr, name);
  */
 extern Object *setObjectName(Object *objectPtr,
-			     smi_descriptor name);
+			     char *name);
 
 extern void setObjectType(Object *objectPtr,
 			  Type *typePtr);
 
 extern void setObjectAccess(Object *objectPtr,
-			    smi_access access);
+			    SmiAccess access);
 
 extern void setObjectStatus(Object *objectPtr,
-			    smi_status status);
+			    SmiStatus status);
 
 extern void setObjectDescription(Object *objectPtr,
 				 char *description);
@@ -368,7 +356,7 @@ extern void setObjectFileOffset(Object *objectPtr,
 				off_t fileoffset);
 
 extern void setObjectDecl(Object *objectPtr,
-			   smi_decl decl);
+			   SmiDecl decl);
 
 extern void addObjectFlags(Object *objectPtr,
 			   ObjectFlags flags);
@@ -377,7 +365,7 @@ extern void setObjectIndex(Object *objectPtr,
 			   List *listPtr);
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
-				      smi_subid subid);
+				      SmiSubid subid);
 
 extern Object *findObjectByNode(Node *nodePtr);
 
@@ -389,6 +377,9 @@ extern Object *findObjectByModulenameAndNode(const char *modulename,
 
 extern Object *findObjectByName(const char *objectname);
 
+extern Object *findNextObjectByName(const char *objectname,
+				    Object *prevObjectPtr);
+
 extern Object *findObjectByModuleAndName(Module *modulePtr,
 					 const char *objectname);
 
@@ -398,7 +389,7 @@ extern Object *findObjectByModulenameAndName(const char *modulename,
 
 
 extern Type *addType(const char *typename,
-		     smi_syntax syntax,
+		     SmiSyntax syntax,
 		     TypeFlags flags,
 		     Parser *parserPtr);
 
@@ -407,16 +398,19 @@ extern Type *duplicateType(Type *templatePtr,
 			   Parser *parserPtr);
 
 extern void setTypeName(Type *typePtr,
-			smi_descriptor name);
+			char *name);
 
 extern void setTypeStatus(Type *typePtr,
-			  smi_status status);
+			  SmiStatus status);
+
+extern void setTypeSyntax(Type *typePtr,
+			  SmiSyntax syntax);
 
 extern void setTypeParent(Type *typePtr,
 			  const char *parent);
 
-extern void setTypeItemlistPtr(Type *typePtr,
-			       struct List *itemlistPtr);
+extern void setTypeListPtr(Type *typePtr,
+			   struct List *listPtr);
 
 extern void setTypeDescription(Type *typePtr,
 			       char *description);
@@ -425,7 +419,7 @@ extern void setTypeFileOffset(Type *typePtr,
 			      off_t fileoffset);
 
 extern void setTypeDecl(Type *typePtr,
-			smi_decl decl);
+			SmiDecl decl);
 
 extern void setTypeFlags(Type *typePtr,
 			 TypeFlags flags);
@@ -436,6 +430,9 @@ extern void setTypeFormat(Type *typePtr,
 
 
 extern Type *findTypeByName(const char *typename);
+
+extern Type *findNextTypeByName(const char *typename,
+				Type *prevTypePtr);
 
 extern Type *findTypeByModuleAndName(Module *modulePtr,
 				     const char *typename);

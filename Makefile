@@ -1,13 +1,13 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.14 1999/03/23 22:55:36 strauss Exp $
+# @(#) $Id: Makefile,v 1.15 1999/03/24 16:25:23 strauss Exp $
 #
 
 MIBDIR		= ../scotty/tnm/mibs
 PREFIX		= /usr/local
 
-DEFINES		= -DRPC_SVC_FG -DDEBUG -DBACKEND_RPC -DBACKEND_SMI -DBACKEND_SMING
+DEFINES		= -DRPC_SVC_FG -DDEBUG -DBACKEND_SMI -DBACKEND_SMING
 CC		= gcc
 CFLAGS		= -I. -Ilib -Wall -g $(DEFINES)
 LD		= gcc
@@ -20,21 +20,19 @@ BISON		= bison
 FLEX		= flex
 
 LIBSMI_OBJS	= lib/data.o lib/error.o lib/util.o lib/smi.o \
-		  lib/parser-smi.tab.o lib/scanner-smi.o \
-		  lib/smi_clnt.o lib/smi_xdr.o
+		  lib/parser-smi.tab.o lib/scanner-smi.o
+#		  lib/smi-rpc_clnt.o lib/smi-rpc_xdr.o
 
 LIBSMI_STATIC	= lib/libsmi.a
 
 all: tools/smilint tools/smidump tools/smiquery
 
 
-tools/smid.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c: lib/smi.h-add lib/smi.x
-	$(RPCGEN) lib/smi.x
-#	# add some definitions to smi.h
-	cat lib/smi.h-add >> lib/smi.h
+tools/smid.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c: lib/smi-rpc.x
+	$(RPCGEN) lib/smi-rpc.x
 #	# patch the main function created by rpcgen so that it calls
 #	# smi_svc_init() and write the patched file to tools/smid.c
-	cat lib/smi_svc.c | awk '{if ($$0 ~ "^main") { x=1 } ; if (x && ($$0 == "")) { printf "\n        smi_svc_init(argc, argv);\n\n" ; x=0 } else { print } }' | sed -e 's/main(.*)/main(int argc, char *argv[])/' > tools/smid.c
+	cat lib/smi-rpc_svc.c | awk '{if ($$0 ~ "^main") { x=1 } ; if (x && ($$0 == "")) { printf "\n        smi_svc_init(argc, argv);\n\n" ; x=0 } else { print } }' | sed -e 's/main(.*)/main(int argc, char *argv[])/' > tools/smid.c
 
 lib/parser-smi.tab.c lib/parser-smi.tab.h: lib/parser-smi.y lib/scanner-smi.h lib/parser-smi.h
 	$(BISON) -v -t -d lib/parser-smi.y
@@ -53,7 +51,7 @@ lib/smi_xdr.o: lib/smi_xdr.c
 #	# Linux' rpcgen produced code that leads to warnings otherwise.
 	$(CC) $(CFLAGS) -Wno-unused -c $< -o $@
 
-$(LIBSMI_STATIC): lib/smi.h $(LIBSMI_OBJS)
+$(LIBSMI_STATIC): $(LIBSMI_OBJS)
 	$(AR) ruv $@ $(LIBSMI_OBJS)
 	$(RANLIB) $@
 	
@@ -69,7 +67,7 @@ tools/smiquery: $(LIBSMI_STATIC) tools/smiquery.o
 	$(LD) $(LDFLAGS) -o tools/smiquery tools/smiquery.o $(LIBSMI_STATIC) -ll -lnsl
 
 clean:
-	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser.y.html
+	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi-rpc.h lib/smi-rpc_xdr.c lib/smi-rpc_clnt.c lib/smi-rpc_svc.c lib/*.output tools/*.o tools/smid.c core */core doc/parser.y.html
 
 install: install-prg install-conf install-dev install-lib install-html
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smi.h,v 1.1 1999/03/25 14:15:15 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -137,7 +137,7 @@ typedef struct SmiRevision {
 } SmiRevision;
 
 typedef struct SmiValue {
-    SmiSyntax	       syntax;
+    SmiSyntax	        syntax;
     union {
 	SmiUnsigned64      unsigned64;
 	SmiInteger64       integer64;
@@ -181,6 +181,7 @@ typedef struct SmiNode {
     SmiAccess		access;
     SmiStatus		status;
     char		*format;
+    SmiValue	        *value;
     char		*units;
     char		*description;
     char		*reference;
@@ -191,10 +192,10 @@ typedef struct SmiType {
     char		*module;
     SmiSyntax		syntax;
     char		*parent;
-    SmiNamedNumber	**namednumber;
-    SmiRange            **range;
+    void		**list;   /* SmiNamedNumber or SmiRange */
     SmiDecl		decl;
     char		*format;
+    SmiValue	        *value;
     char		*units;
     SmiStatus		status;
     char		*description;
@@ -312,6 +313,11 @@ extern SmiRevision *smiGetNextRevision(char *modulename,
 
 extern SmiNode *smiGetNode(char *spec,
 			   char *mod);
+
+extern SmiNode *smiGetFirstNode(char *modulename);
+
+extern SmiNode *smiGetNextNode(char *modulename,
+			       char *name);
 
 extern SmiType *smiGetType(char *spec,
 			   char *mod);

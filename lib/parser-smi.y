@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.6 1999/03/23 22:55:40 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.7 1999/03/24 16:25:29 strauss Exp $
  */
 
 %{
@@ -85,13 +85,15 @@ Node   *parentNodePtr;
     char        *id;				/* identifier name           */
     int         err;				/* actually just a dummy     */
     Object      *objectPtr;			/* object identifier         */
-    smi_status  status;				/* a STATUS value            */
-    smi_access  access;				/* an ACCESS value           */
+    SmiStatus   status;				/* a STATUS value            */
+    SmiAccess   access;				/* an ACCESS value           */
     Type        *typePtr;
     List        *listPtr;			/* SEQUENCE and INDEX lists  */
-    long	number;				/* value, e.g. in DEFVAL     */
-    NamedNumber *namedNumberPtr;		/* BITS or enum item         */
-    Range       *rangePtr;			/* type restricting range    */
+    SmiNamedNumber *namedNumberPtr;		/* BITS or enum item         */
+    SmiRange       *rangePtr;			/* type restricting range    */
+    SmiValue	   *valuePtr;
+    SmiUnsigned32 unsigned32;			/*                           */
+    SmiInteger32  integer32;			/*                           */
 }
 
 
@@ -230,9 +232,9 @@ Node   *parentNodePtr;
 %type  <typePtr>typeDeclarationRHS
 %type  <typePtr>ObjectSyntax
 %type  <typePtr>sequenceObjectSyntax
-%type  <err>valueofObjectSyntax
+%type  <valuePtr>valueofObjectSyntax
 %type  <typePtr>SimpleSyntax
-%type  <err>valueofSimpleSyntax
+%type  <valuePtr>valueofSimpleSyntax
 %type  <typePtr>sequenceSimpleSyntax
 %type  <typePtr>ApplicationSyntax
 %type  <typePtr>sequenceApplicationSyntax
@@ -241,11 +243,11 @@ Node   *parentNodePtr;
 %type  <listPtr>octetStringSubType
 %type  <listPtr>ranges
 %type  <rangePtr>range
-%type  <number>value
+%type  <valuePtr>value
 %type  <listPtr>enumSpec
 %type  <listPtr>enumItems
 %type  <namedNumberPtr>enumItem
-%type  <number>enumNumber
+%type  <valuePtr>enumNumber
 %type  <status>Status
 %type  <status>Status_Capabilities
 %type  <text>DisplayPart
@@ -257,10 +259,10 @@ Node   *parentNodePtr;
 %type  <objectPtr>Index
 %type  <listPtr>Entry
 %type  <err>DefValPart
-%type  <err>Value
-%type  <err>BitsValue
-%type  <err>BitNames
-%type  <err>BitName
+%type  <valuePtr>Value
+%type  <listPtr>BitsValue
+%type  <listPtr>BitNames
+%type  <text>BitName
 %type  <objectPtr>ObjectName
 %type  <objectPtr>NotificationName
 %type  <err>ReferPart
@@ -313,7 +315,7 @@ Node   *parentNodePtr;
 %type  <err>CreationPart
 %type  <err>Cells
 %type  <err>Cell
-%type  <number>number
+%type  <unsigned32>number
 
 %%
 
@@ -905,7 +907,7 @@ row:			UPPERCASE_IDENTIFIER
 			{
 			    Type *typePtr;
 			    Import *importPtr;
-			    smi_type *stypePtr;
+			    SmiType *stypePtr;
 
 			    $$ = findTypeByModulenameAndName(
 				thisParserPtr->modulePtr->name, $1);
@@ -948,7 +950,7 @@ entryType:		SEQUENCE '{' sequenceItems '}'
 			{
 			    $$ = addType(NULL, SMI_SYNTAX_SEQUENCE, 0,
 					 thisParserPtr);
-			    setTypeItemlistPtr($$, $3);
+			    setTypeListPtr($$, $3);
 			}
 ;
 
@@ -982,7 +984,7 @@ sequenceItems:		sequenceItem
 sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			{
 			    Object *objectPtr;
-			    smi_node *snodePtr;
+			    SmiNode *snodePtr;
 			    Import *importPtr;
 			    
 			    objectPtr =
@@ -1031,7 +1033,7 @@ Syntax:			ObjectSyntax
 			    typePtr = addType(NULL, SMI_SYNTAX_BITS,
 					      FLAG_INCOMPLETE,
 					      thisParserPtr);
-			    setTypeItemlistPtr(typePtr, $3);
+			    setTypeListPtr(typePtr, $3);
 			    $$ = typePtr;
 			}
 	;
@@ -1109,10 +1111,11 @@ NamedBit:		identifier
 			}
 			'(' number ')'
 			{
-			    $$ = util_malloc(sizeof(NamedNumber));
+			    $$ = util_malloc(sizeof(SmiNamedNumber));
 			    /* TODO: success? */
 			    $$->name = util_strdup($1);
-			    $$->number = $4;
+			    $$->valuePtr->syntax = SMI_SYNTAX_UNSIGNED32;
+			    $$->valuePtr->value.unsigned32 = $4;
 			}
 	;
 
@@ -1439,7 +1442,7 @@ sequenceObjectSyntax:	sequenceSimpleSyntax
 
 /* TODO: specify really according to ObjectSyntax!!! */
 valueofObjectSyntax:	valueofSimpleSyntax
-			{ $$ = 0; }
+			{ $$ = $1; }
 			/* conceptualTables and rows do not have DEFVALs
 			 */
 			/* valueofApplicationSyntax would not introduce any
@@ -1455,13 +1458,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-			    setTypeItemlistPtr($$, $2);
+			    setTypeListPtr($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-			    setTypeItemlistPtr($$, $2);
+			    setTypeSyntax($$, SMI_SYNTAX_ENUM);
+			    setTypeListPtr($$, $2);
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
@@ -1472,12 +1476,12 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-			    setTypeItemlistPtr($$, $2);
+			    setTypeListPtr($$, $2);
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
 			    Type *parentPtr;
-			    smi_type *stypePtr;
+			    SmiType *stypePtr;
 			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
@@ -1518,13 +1522,14 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-			    setTypeItemlistPtr($$, $2);
+			    setTypeSyntax($$, SMI_SYNTAX_ENUM);
+			    setTypeListPtr($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
 			{
 			    Type *parentPtr;
-			    smi_type *stypePtr;
+			    SmiType *stypePtr;
 			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
@@ -1553,12 +1558,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-			    setTypeItemlistPtr($$, $4);
+			    setTypeSyntax($$, SMI_SYNTAX_ENUM);
+			    setTypeListPtr($$, $4);
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
 			    Type *parentPtr;
-			    smi_type *stypePtr;
+			    SmiType *stypePtr;
 			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
@@ -1601,13 +1607,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-			    setTypeItemlistPtr($$, $2);
+			    setTypeListPtr($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
 			{
 			    Type *parentPtr;
-			    smi_type *stypePtr;
+			    SmiType *stypePtr;
 			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
@@ -1637,7 +1643,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-			    setTypeItemlistPtr($$, $4);
+			    setTypeListPtr($$, $4);
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -1648,12 +1654,12 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeParent($$, typeOctetStringPtr->name);
-			    setTypeItemlistPtr($$, $3);
+			    setTypeListPtr($$, $3);
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
 			    Type *parentPtr;
-			    smi_type *stypePtr;
+			    SmiType *stypePtr;
 			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
@@ -1696,13 +1702,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-			    setTypeItemlistPtr($$, $2);
+			    setTypeListPtr($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
 			{
 			    Type *parentPtr;
-			    smi_type *stypePtr;
+			    SmiType *stypePtr;
 			    char s[SMI_MAX_FULLNAME];
 			    Import *importPtr;
 			    
@@ -1731,7 +1737,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-			    setTypeItemlistPtr($$, $4);
+			    setTypeListPtr($$, $4);
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -1741,17 +1747,47 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 
 valueofSimpleSyntax:	number			/* 0..2147483647 */
 			/* NOTE: Counter64 must not have a DEFVAL */
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_UNSIGNED32;
+			    $$->value.unsigned32 = $1;
+			}
 	|		'-' number		/* -2147483648..0 */
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    $$->value.integer32 = - $2;
+			}
 	|		BIN_STRING		/* number or OCTET STRING */
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_BIN;
+			    $$->value.ptr = $1;
+			}
 	|		HEX_STRING		/* number or OCTET STRING */
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_HEX;
+			    $$->value.ptr = $1;
+			}
 	|		LOWERCASE_IDENTIFIER	/* enumeration label */
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_STRING;
+			    $$->value.ptr = $1;
+			}
 	|		QUOTED_STRING		/* an OCTET STRING */
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_STRING;
+			    $$->value.ptr = $1;
+			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
 			 *       it must be expressed as a single ASN.1
 			 *	 identifier, and not as a collection of
@@ -1769,7 +1805,12 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			/* TODO: need context knowledge about SYNTAX
 			 *       to decide what is allowed
 			 */
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_OBJECTIDENTIFIER;
+			    /* TODO: set $$->value.? ... */
+			}
 	;
 
 /*
@@ -1831,7 +1872,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeParent($$, parentPtr->name);
-			    setTypeItemlistPtr($$, $2);
+			    setTypeListPtr($$, $2);
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
@@ -1852,7 +1893,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeParent($$, parentPtr->name);
-			    setTypeItemlistPtr($$, $2);
+			    setTypeListPtr($$, $2);
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
@@ -1943,13 +1984,24 @@ sequenceApplicationSyntax: IPADDRESS
 	;
 
 anySubType:		integerSubType
-			/* TODO: warning: ignoring SubType */
+			{
+			    /* TODO: warning: ignoring SubType */
+			    $$ = NULL;
+			}
 	|	        octetStringSubType
-			/* TODO: warning: ignoring SubType */
+			{
+			    /* TODO: warning: ignoring SubType */
+			    $$ = NULL;
+			}
 	|		enumSpec
-			/* TODO: warning: ignoring SubType */
+			{
+			    /* TODO: warning: ignoring SubType */
+			    $$ = NULL;
+			}
 	|		/* empty */
-			{ $$ = NULL; }
+			{
+			    $$ = NULL;
+			}
         ;		      
 
 
@@ -1997,40 +2049,55 @@ ranges:			range
 
 range:			value
 			{
-			    $$ = util_malloc(sizeof(Range));
+			    $$ = util_malloc(sizeof(SmiRange));
 			    /* TODO: success? */
-			    $$->min = $1;
-			    $$->max = $1;
+			    $$->minValuePtr = $1;
+			    $$->maxValuePtr = $1;
 			}
 	|		value DOT_DOT value
 			{
-			    $$ = util_malloc(sizeof(Range));
+			    $$ = util_malloc(sizeof(SmiRange));
 			    /* TODO: success? */
-			    $$->min = $1;
-			    $$->max = $3;
+			    $$->minValuePtr = $1;
+			    $$->maxValuePtr = $3;
 			}
 	;
 
 value:			'-' number
 			{
-			    $$ = - $2;
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    /* TODO: range check */
+			    $$->value.integer32 = - $2;
 			}
 	|		number
 			{
-			    $$ = $1;
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_UNSIGNED32;
+			    $$->value.unsigned32 = $1;
 			}
 	|		HEX_STRING
 			{
-			    $$ = 42; /* TODO */
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_HEX;
+			    $$->value.ptr = util_strdup($1);
 			}
 	|		BIN_STRING
 			{
-			    $$ = 42; /* TODO */
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_BIN;
+			    $$->value.ptr = util_strdup($1);
 			}
 	;
 
 enumSpec:		'{' enumItems '}'
-			{ $$ = $2; }
+			{
+			    $$ = $2;
+			}
 	;
 
 enumItems:		enumItem
@@ -2064,22 +2131,29 @@ enumItem:		LOWERCASE_IDENTIFIER
 			}
 			'(' enumNumber ')'
 			{
-			    $$ = util_malloc(sizeof(NamedNumber));
+			    $$ = util_malloc(sizeof(SmiNamedNumber));
 			    /* TODO: success? */
 			    $$->name = util_strdup($1);
-			    $$->number = $4;
+			    $$->valuePtr = $4;
 			}
 	;
 
 enumNumber:		number
 			{
-			    /* XXX */
-			    $$ = $1;
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    /* TODO: range check */
+			    $$->value.integer32 = $1;
 			}
 	|		'-' number
 			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    /* TODO: range check */
+			    $$->value.integer32 = - $2;
 			    /* TODO: non-negative is suggested */
-			    $$ = - $2;
 			}
 	;
 
@@ -2250,32 +2324,53 @@ Entry:			ObjectName
         ;
 
 DefValPart:		DEFVAL '{' Value '}'
-			{ $$ = 0; }
+			{ $$ = 3; }
 	|		/* empty */
-			{ $$ = 0; }
+			{ $$ = NULL; }
 			/* TODO: different for DefValPart in AgentCaps ? */
 	;
 
 Value:			valueofObjectSyntax
-			{ $$ = 0; }
+			{ $$ = $1; }
 	|		'{' BitsValue '}'
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(SmiValue));
+			    /* TODO: success? */
+			    $$->syntax = SMI_SYNTAX_BITS;
+			    $$->value.bits = NULL;
+			    /* TODO: setup *list[] */
+			}
 	;
 
 BitsValue:		BitNames
-			{ $$ = 0; }
+			{ $$ = $1; }
 	|		/* empty */
-			{ $$ = 0; }
+			{ $$ = NULL; }
 	;
 
 BitNames:		BitName
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
 	|		BitNames ',' BitName
-			{ $$ = 0; }
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
 	;
 
 BitName:		identifier
-			{ $$ = 0; }
+			{ $$ = $1; }
 	;
 
 ObjectName:		objectIdentifier
@@ -2408,7 +2503,7 @@ subidentifier:
 			LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
-			    smi_node *snodePtr;
+			    SmiNode *snodePtr;
 			    Import *importPtr;
 			    
 			    if (parentNodePtr != rootNodePtr) {
@@ -2462,7 +2557,7 @@ subidentifier:
 	|		moduleName '.' LOWERCASE_IDENTIFIER
 			{
 			    Object *objectPtr;
-			    smi_node *snodePtr;
+			    SmiNode *snodePtr;
 			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    Import *importPtr;
 			    
@@ -2723,12 +2818,10 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
-#if 0
 				/*
 				 * TODO: ReferPart ($8)
 				 * TODO: ModulePart_Compliance ($9)
 				 */
-#endif
 			    $$ = 0;
 			}
 	;
@@ -2858,13 +2951,11 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    setObjectStatus(objectPtr, $7);
 			    setObjectDescription(objectPtr, $9);
-#if 0
 				/*
 				 * TODO: PRODUCT_RELEASE Text ($5)
 				 * TODO: ReferPart ($10)
 				 * TODO: ModulePart_Capabilities ($11)
 				 */
-#endif
 			    $$ = 0;
 			}
 	;
@@ -2951,16 +3042,12 @@ Cell:			ObjectName
 
 number:			NUMBER
 			{
-			    unsigned long long ull;
+			    unsigned long ul;
 			    
-			    ull = strtoull($1, NULL, 10);
+			    ul = strtoul($1, NULL, 10);
 			    /* TODO: success? */
-			    if (ull > (unsigned long long)ULONG_MAX) {
-				printError(thisParserPtr,
-					   ERR_OUT_OF_NUMBER_RANGE, $1);
-				ull = ULONG_MAX;
-			    }
-			    $$ = (unsigned long) ull;
+			    
+			    $$ = ul;
 			    
 			    /* TODO */
 			}

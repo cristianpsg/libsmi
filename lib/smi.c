@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.7 1999/03/24 16:25:30 strauss Exp $
+ * @(#) $Id: smi.c,v 1.8 1999/03/25 14:18:08 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -340,6 +340,35 @@ getObject(name, modulename)
 
 
 
+Object *
+getNextChildObject(startNodePtr, modulePtr)
+    Node   *startNodePtr;
+    Module *modulePtr;
+{
+    Node   *nodePtr;
+    Object *objectPtr = NULL;
+
+    if (!startNodePtr || !modulePtr)
+	return NULL;
+
+    for (nodePtr = startNodePtr; nodePtr; nodePtr = nodePtr->nextPtr) {
+	for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
+	     objectPtr = objectPtr->nextSameNodePtr) {
+	    if ((objectPtr->modulePtr == modulePtr) &&
+		(!(objectPtr->flags & FLAG_IMPORTED))) {
+		break;
+	    }
+	}
+	if (objectPtr) break;
+	objectPtr = getNextChildObject(nodePtr->firstChildPtr, modulePtr);
+	if (objectPtr) break;
+    }
+
+    return objectPtr;
+}
+
+
+
 Type *
 getType(name, module)
     char *name;
@@ -372,22 +401,55 @@ getMacro(name, module)
 
 
 
-#if 0
-char *
-dirname(path)
-    char *path;
+SmiNode *
+createSmiNode(objectPtr)
+    Object  *objectPtr;
 {
-    char *p = NULL;
-    char *pp;
+    SmiNode *smiNodePtr;
+    char    typename[SMI_MAX_FULLNAME+1];
     
-    p = realloc(p, strlen(path)+1);
-    /* TODO: success? */
-    strcpy(p, path);
-    pp = strrchr(p, '/');
-    if (pp) *pp = 0;
-    return p;
+    if (objectPtr) {
+	smiNodePtr     = util_malloc(sizeof(SmiNode));
+	
+	smiNodePtr->name   = objectPtr->name;
+	smiNodePtr->module = objectPtr->modulePtr->name;
+	smiNodePtr->oid    = getOid(objectPtr->nodePtr);
+	if (objectPtr->typePtr && objectPtr->typePtr->name) {
+	    if (objectPtr->typePtr->modulePtr) {
+		sprintf(typename, "%s%s%s",
+			objectPtr->typePtr->modulePtr->name,
+			SMI_NAMESPACE_OPERATOR,
+			objectPtr->typePtr->name);
+	    } else {
+		sprintf(typename, "%s",
+			objectPtr->typePtr->name);
+	    }
+	    smiNodePtr->type   = util_strdup(typename);
+	} else {
+	    smiNodePtr->type   = NULL;
+	}
+	smiNodePtr->value      = objectPtr->valuePtr;
+	smiNodePtr->decl       = objectPtr->decl;
+	smiNodePtr->access     = objectPtr->access;
+	smiNodePtr->status     = objectPtr->status;
+	smiNodePtr->syntax     = objectPtr->typePtr ?
+	                     objectPtr->typePtr->syntax : SMI_SYNTAX_UNKNOWN;
+	if (objectPtr->description) {
+	    smiNodePtr->description = objectPtr->description;
+	} else {
+	    smiNodePtr->description = NULL;
+	}
+	if (objectPtr->reference) {
+	    smiNodePtr->reference = objectPtr->reference;
+	} else {
+	    smiNodePtr->reference = NULL;
+	}
+	return smiNodePtr;
+    } else {
+	return NULL;
+    }
 }
-#endif
+
 
 
 /*
@@ -704,12 +766,10 @@ smiGetNode(spec, mod)
     char	    *spec;
     char	    *mod;
 {
-    SmiNode	    *smiNodePtr;
     Object          *objectPtr = NULL;
     Module	    *modulePtr = NULL;
     char	    name[SMI_MAX_OID+1];
     char	    modulename[SMI_MAX_DESCRIPTOR+1];
-    char	    typename[SMI_MAX_FULLNAME+1];
     
     printDebug(4, "smiGetNode(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
@@ -724,47 +784,72 @@ smiGetNode(spec, mod)
     }
 
     objectPtr = getObject(name, modulename);
+
+    return createSmiNode(objectPtr);
+}
+
+
+
+SmiNode *
+smiGetFirstNode(modulename)
+    char	*modulename;
+{
+    printDebug(4, "smiGetFirstNode(\"%s\")\n", modulename);
+    return smiGetNextNode(modulename, NULL);
+}
+
+
+
+SmiNode *
+smiGetNextNode(modulename, name)
+    char	      *modulename;
+    char	      *name;
+{
+    Module	      *modulePtr;
+    Node	      *nodePtr = NULL;
+    Object	      *objectPtr;
     
-    if (objectPtr) {
-	smiNodePtr     = util_malloc(sizeof(SmiNode));
-	
-	smiNodePtr->name   = objectPtr->name;
-	smiNodePtr->module = objectPtr->modulePtr->name;
-	smiNodePtr->oid    = getOid(objectPtr->nodePtr);
-	if (objectPtr->typePtr) {
-	    if (objectPtr->typePtr->modulePtr) {
-		sprintf(typename, "%s%s%s",
-			objectPtr->typePtr->modulePtr->name,
-			SMI_NAMESPACE_OPERATOR,
-			objectPtr->typePtr->name);
-	    } else {
-		sprintf(typename, "%s",
-			objectPtr->typePtr->name);
-	    }
-	    smiNodePtr->type   = util_strdup(typename);
-	} else {
-	    smiNodePtr->type   = NULL;
-	}
-	smiNodePtr->decl   = objectPtr->decl;
-	smiNodePtr->access = objectPtr->access;
-	smiNodePtr->status = objectPtr->status;
-	smiNodePtr->syntax = objectPtr->typePtr ?
-	                     objectPtr->typePtr->syntax : SMI_SYNTAX_UNKNOWN;
-	if (objectPtr->description) {
-	    smiNodePtr->description = objectPtr->description;
-	} else {
-	    smiNodePtr->description = NULL;
-	}
-	if (objectPtr->reference) {
-	    smiNodePtr->reference = objectPtr->reference;
-	} else {
-	    smiNodePtr->reference = NULL;
-	}
-	printDebug(5, " ... = (%p,%s)\n", objectPtr, smiNodePtr->name);
-	return smiNodePtr;
-    } else {
-	return NULL;
+    printDebug(4, "smiGetNextNode(\"%s\", %s)\n",
+	       modulename, name ? name : "");
+
+    modulePtr = findModuleByName(modulename);
+    
+    if (!modulePtr) {
+	modulePtr = loadModule(modulename);
     }
+
+    /*
+     * If there's a `name', find the node to start from.
+     * Otherwise, start from the root.
+     */
+    if (name) {
+	objectPtr = findObjectByModulenameAndName(modulename, name);
+	if (objectPtr) {
+	    nodePtr = objectPtr->nodePtr;
+	}
+    } else {
+	nodePtr = rootNodePtr;
+    }
+
+ again:
+    if (nodePtr->firstChildPtr) {
+	nodePtr = nodePtr->firstChildPtr;
+    } else if (nodePtr->nextPtr) {
+	nodePtr = nodePtr->nextPtr;
+    } else {
+	for (nodePtr = nodePtr->parentPtr;
+	     (nodePtr->parentPtr) && (!nodePtr->nextPtr);
+	     nodePtr = nodePtr->parentPtr);
+	nodePtr = nodePtr->nextPtr;
+    }
+    
+    objectPtr = getNextChildObject(nodePtr, modulePtr);
+
+    if (!objectPtr) {
+	goto again;
+    }
+    
+    return createSmiNode(objectPtr);
 }
 
 
@@ -802,24 +887,14 @@ smiGetType(spec, mod)
 	smiTypePtr->module      = typePtr->modulePtr->name;
 	smiTypePtr->syntax	= typePtr->syntax;
 	smiTypePtr->parent	= typePtr->parentType;
-	smiTypePtr->namednumber = NULL;
-	if (allowsNamedNumbers(typePtr->syntax)) {
+        smiTypePtr->list	= NULL;
 	    for (listPtr = typePtr->listPtr; listPtr;
 		 listPtr = listPtr->nextPtr) {
-		addPtr(&smiTypePtr->namednumber,
-		       (SmiNamedNumber *)(listPtr->ptr));
+		addPtr(&smiTypePtr->list, listPtr->ptr);
 	    }
-	}
-	smiTypePtr->range       = NULL;
-	if (allowsRanges(typePtr->syntax)) {
-	    for (listPtr = typePtr->listPtr; listPtr;
-		 listPtr = listPtr->nextPtr) {
-		addPtr(&smiTypePtr->range,
-		       (SmiRange *)(listPtr->ptr));
-	    }
-	}
 	smiTypePtr->decl	= typePtr->decl;
 	smiTypePtr->format	= typePtr->format;
+	smiTypePtr->value	= typePtr->valuePtr;
 	smiTypePtr->units	= typePtr->units;
 	smiTypePtr->status	= typePtr->status;
 	smiTypePtr->description = typePtr->description;
@@ -854,7 +929,8 @@ smiGetNextType(modulename, name)
     int		      hit;
     List	      *listPtr;
     
-    printDebug(4, "smiGetNextType(\"%s\", %s)\n", modulename, name);
+    printDebug(4, "smiGetNextType(\"%s\", %s)\n",
+	       modulename, name ? name : "");
 
     modulePtr = findModuleByName(modulename);
     
@@ -879,6 +955,7 @@ smiGetNextType(modulename, name)
 	    if (typePtr->name && name && !strcmp(typePtr->name, name)) {
 		hit = 1;
 		typePtr = typePtr->nextPtr;
+		if (!typePtr) break;
 	    }
 	    /*
 	     * If hit, continue loop, until we have found a real type.
@@ -899,23 +976,14 @@ smiGetNextType(modulename, name)
 	    smiTypePtr->module	    = typePtr->modulePtr->name;
 	    smiTypePtr->syntax	    = typePtr->syntax;
 	    smiTypePtr->parent	    = typePtr->parentType;
-	    if (allowsNamedNumbers(typePtr->syntax)) {
-		for (listPtr = typePtr->listPtr; listPtr;
-		     listPtr = listPtr->nextPtr) {
-		    addPtr(&smiTypePtr->namednumber,
-			   (SmiNamedNumber *)(listPtr->ptr));
-		}
-	    }
-	    smiTypePtr->range       = NULL;
-	    if (allowsRanges(typePtr->syntax)) {
-		for (listPtr = typePtr->listPtr; listPtr;
-		     listPtr = listPtr->nextPtr) {
-		    addPtr(&smiTypePtr->range,
-			   (SmiRange *)(listPtr->ptr));
-		}
+	    smiTypePtr->list	    = NULL;
+	    for (listPtr = typePtr->listPtr; listPtr;
+		 listPtr = listPtr->nextPtr) {
+		addPtr(&smiTypePtr->list, listPtr->ptr);
 	    }
 	    smiTypePtr->decl	    = typePtr->decl;
 	    smiTypePtr->format	    = typePtr->format;
+	    smiTypePtr->value	    = typePtr->valuePtr;
 	    smiTypePtr->units	    = typePtr->units;
 	    smiTypePtr->status      = typePtr->status;
 	    smiTypePtr->description = typePtr->description;
