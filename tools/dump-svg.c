@@ -31,6 +31,7 @@
 #include "smidump.h"
 
 //#define DOT
+#define NODENAMES_ONLY
 
 
 #define ABS(a) ((float)((a > 0.0) ? (a) : (-(a))))
@@ -156,7 +157,7 @@ static const int CANVASWIDTH           =1100;
 static const float STARTSCALE          =(float)1;
 
 //used by the springembedder
-static const int ITERATIONS            =50;
+static const int ITERATIONS            =100;
 
 /*
  * global svg graph layout
@@ -2838,7 +2839,7 @@ static void calcGroupSize(int group)
 
 static float fr(float d, float k)
 {
-    return (float) (-k*k/d);
+    return (float) (k*k/d);
 }
 
 static float fa(float d, float k)
@@ -2856,13 +2857,13 @@ static float fa(float d, float k)
 static void layoutGraph(int nodecount)
 {
     int i;
-    float area, k, c = 13423, xDelta, yDelta, absDelta, absDisp, t;
+    float area, k, c = 1, xDelta, yDelta, absDelta, absDisp, t;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
     area = CANVASHEIGHT * CANVASWIDTH;
     k = (float) (c*sqrt(area/nodecount));
-    t = CANVASWIDTH/5;
+    t = CANVASWIDTH/10;
 
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
@@ -2905,7 +2906,7 @@ static void layoutGraph(int nodecount)
 	    }
 	}
 	//reduce the temperature as the layout approaches a better configuration
-	t *= 0.3;
+	t *= 0.5;
     }
 }
 
@@ -2957,13 +2958,19 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	if (!tNode->use)
 	    continue;
 	if (tNode->group == 0) {
+#ifdef NODENAMES_ONLY
 	    printf(" <text x=\"%2.f\" y=\"%2.f\" style=\"text-anchor:middle\">\n", tNode->dia.x, tNode->dia.y);
 	    printf("      %s</text>\n", smiGetFirstChildNode(tNode->smiNode)->name);
-	    //printSVGObject(tNode, &classNr);
+#else
+	    printSVGObject(tNode, &classNr);
+#endif
 	} else {
+#ifdef NODENAMES_ONLY
 	    printf(" <text x=\"%2.f\" y=\"%2.f\" style=\"text-anchor:middle\">\n", tNode->dia.x, tNode->dia.y);
 	    printf("      %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
-	    //diaPrintXMLGroup(tNode->group, &classNr);
+#else
+	    diaPrintXMLGroup(tNode->group, &classNr);
+#endif
 	}
     }
 
