@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.55 2000/04/11 09:00:44 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.56 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -397,6 +397,7 @@ int main(int argc, char *argv[])
 	    if (module->reference)
 		printf("   Reference: %s\n", format(module->reference));
 	    printf("    Language: %s\n", smiStringLanguage(module->language));
+	    printf(" Conformance: %d\n", module->conformance);
 	    printf("      Loaded: %s\n", smiIsLoaded(name) ? "yes" : "no");
 
 	    for(revision = smiGetFirstRevision(module);

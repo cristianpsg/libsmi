@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.54 2000/10/25 08:56:39 strauss Exp $
+ * @(#) $Id: error.c,v 1.55 2000/10/27 14:03:13 strauss Exp $
  */
 
 #include <config.h>
@@ -370,7 +370,12 @@ static Error errors[] = {
       "`%s' should start with a lower case letter" },
     { 2, ERR_UNDERSCORE_IN_IDENTIFIER, "underscore-in-identifier",
       "identifier `%s' must not contain an underscore" },
-
+    { 6, ERR_OID_REUSE, "oid-reuse",
+      "identifier `%s' reuses OID assigned to identifier `%s'" },
+    { 1, ERR_OID_REGISTERED, "oid-registered",
+      "identifier `%s' registers OID already registered as identifier `%s'" },
+    { 1, ERR_OID_RECURSIVE, "oid-recursive",
+      "identifier `%s' defined recursively or OID too long" },
     { 0, 0, NULL, NULL }
 };
 
@@ -570,6 +575,14 @@ printError(Parser *parser, int id, int line, va_list ap)
     }
 
     if (parser) {
+
+	if (parser->modulePtr) {
+	    if ((parser->modulePtr->export.conformance > errors[id].level) ||
+		(parser->modulePtr->export.conformance == 0)) {
+		parser->modulePtr->export.conformance = errors[id].level;
+	    }
+	}
+	
 	if ((errors[id].level <= smiErrorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
@@ -658,4 +671,4 @@ smiPrintError(Parser *parser, int id, ...)
     va_start(ap, id);
     printError(parser, id, parser ? parser->line : 0, ap);
     va_end(ap);
-} /*  */
+}

@@ -123,8 +123,8 @@ typedef enum SmiDecl {
     SMI_DECL_TYPEASSIGNMENT     = 2,
     SMI_DECL_IMPL_SEQUENCEOF    = 4,	/* this will go away */
     SMI_DECL_VALUEASSIGNMENT    = 5,
-    SMI_DECL_OBJECTTYPE         = 6,
-    SMI_DECL_OBJECTIDENTITY     = 7,
+    SMI_DECL_OBJECTTYPE         = 6,    /* values >= 6 are assumed to be */
+    SMI_DECL_OBJECTIDENTITY     = 7,    /* registering an OID, see check.c */
     SMI_DECL_MODULEIDENTITY     = 8,
     SMI_DECL_NOTIFICATIONTYPE   = 9,
     SMI_DECL_TRAPTYPE           = 10,
@@ -195,6 +195,7 @@ typedef struct SmiModule {
     char                *description;
     char                *reference;
     SmiLanguage		language;
+    int                 conformance;
 } SmiModule;
 
 /* SmiRevision -- content of a single module's revision clause               */

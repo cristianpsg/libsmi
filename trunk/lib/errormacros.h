@@ -147,3 +147,6 @@
 #define ERR_MIXED_GROUP_MEMBERS                  146
 #define ERR_BAD_LOWER_IDENTIFIER_CASE            147
 #define ERR_UNDERSCORE_IN_IDENTIFIER             148
+#define ERR_OID_REUSE                            149
+#define ERR_OID_REGISTERED                       150
+#define ERR_OID_RECURSIVE                        151
