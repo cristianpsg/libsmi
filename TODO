@@ -285,3 +285,6 @@ x shift/reduce conflict at
   was fuer die konvertierung von smiv2 wichtig ist? dann weiter mit dem
   sming parser!
 
+. BIN and HEX DEFVALs in SMIv1/v2 Parser.
+
+

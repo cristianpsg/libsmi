@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.14 1999/03/30 22:27:32 strauss Exp $
+ * @(#) $Id: smi.c,v 1.15 1999/03/30 23:18:22 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -39,8 +39,17 @@
 #include "parser-smi.h"
 #endif
 
+#ifdef BACKEND_SMING
+#include "scanner-sming.h"
+#include "parser-sming.h"
+#endif
+
 #ifdef BACKEND_SMI
-extern int yydebug;
+extern int smidebug;
+#endif
+
+#ifdef BACKEND_SMING
+extern int smingdebug;
 #endif
 
 #ifndef MIN
@@ -151,11 +160,15 @@ getOid(n)
     for (i = 0; n && (n != rootNodePtr); n = n->parentPtr) {
 	a[i++] = n->subid;
     }
-    for (strcpy(o, n ? "" : "<incomplete>."), l = strlen(o);
-	 i > 0;
-	 l += sprintf(&o[l], "%d.", a[--i]));
+    if (!n) {
+	/* strip off heading `0.0' if in pending tree */
+	i -= 1;
+	strcpy(o, "<unknown>");
+    } else {
+	strcpy(o, "");
+    }
+    for (l = strlen(o); i > 0; l += sprintf(&o[l], "%d.", a[--i]));
     o[l-1] = 0;
-
     return util_strdup(o);
 }
 
@@ -662,7 +675,12 @@ smiReadConfig(filename)
 		debugLevel = atoi(arg1);
 	    } else if (!strcmp(cmd, "yydebug")) {
 #ifdef BACKEND_SMI
-		yydebug = atoi(arg1);
+		smidebug = atoi(arg1);
+#else
+		;
+#endif
+#ifdef BACKEND_SMING
+		smingdebug = atoi(arg1);
 #else
 		;
 #endif
@@ -1527,7 +1545,11 @@ smiGetParent(spec, mod)
 	    } else {
 		strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
 		p = smiGetParent(child, modulename);
-		strcpy(parent, p);
+		if (p) {
+		    strcpy(parent, p);
+		} else {
+		    parent[0] = 0;
+		}
 		sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
 	    }
 	} else {

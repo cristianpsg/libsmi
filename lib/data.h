@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.14 1999/03/30 18:37:19 strauss Exp $
+ * @(#) $Id: data.h,v 1.15 1999/03/30 22:27:30 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -17,12 +17,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "smi.h"
 #include "defs.h"
-#include "parser-smi.h"
-
-
 
 
 

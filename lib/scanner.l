@@ -1,17 +1,15 @@
 /*
- * scanner-smi.l --
+ * scanner-sming.l --
  *
- *      Lexical rules for scanning the SMIv1/v2 MIB module language.
+ *      Lexical rules for scanning the SMIng MIB module language.
  *
  * Copyright (c) 1998 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.3 1999/03/16 17:24:10 strauss Exp $
+ * @(#) $Id$
  */
-
-%option noyywrap
 
 %{
     
@@ -23,18 +21,12 @@
 
 #include "defs.h"    
 #include "error.h"
-#include "parser-smi.h"
-#include "parser-smi.tab.h"
-#include "scanner.h"
-#include "scanner-smi.h"
+#include "parser-sming.h"
+#include "parser-sming.tab.h"
+#include "scanner-sming.h"
 
 
-
-#define MAX_NUMBER		"18446744073709551615" /* max Counter64 */
-#define MAX_BIN_STRING_LENGTH	128
-#define MAX_HEX_STRING_LENGTH	128
-#define MAX_QUOTED_STRING_LENGTH 65535
-
+#define thisParser      (*(Parser *)parser)
 
 
 /*
@@ -43,14 +35,16 @@
  */
 #define yylval (*lvalp)
 
-
-
+char *currentString = NULL;
+int currentStringLength = 0;
+int currentStringMaxLength = 0;
+int currentStringColumn = 0;
+int currentStringFetchLine = 0; 
+int lexDepth = 0;
 YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
-
-
  
 int
-smiEnterLexRecursion(file)
+enterLexRecursion(file)
     FILE *file;
 {
     if (lexDepth >= MAX_LEX_DEPTH) {
@@ -61,19 +55,34 @@ smiEnterLexRecursion(file)
     return (lexDepth);
 }
 
-
  
 void
-smiLeaveLexRecursion()
+leaveLexRecursion()
 {    
     yy_delete_buffer(YY_CURRENT_BUFFER);
     yy_switch_to_buffer(yybuffer[--lexDepth]);
 }
 
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * trackInput --
+ *
+ *      track the input character stream to keep line number,
+ *      coulmn, and line buffer up to date.
+ *
+ * Results:
+ *      TODO.
+ *
+ * Side effects:
+ *      TODO.
+ *
+ *----------------------------------------------------------------------
+ */
 
 void
-smiTrackInput(nl, parser)
+trackInput(nl, parser)
     int nl;
     Module *parser;
 {
@@ -134,102 +143,90 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
  /*
-  * Lex rules for skipping MACRO.
+  * Lex rules for comments.
   */
 
 <INITIAL>MACRO {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(Macro);
     yylval.id = yytext;
     return MACRO;
 }
 
 <Macro>{eol} {
-    smiTrackInput(1, parser);
+    trackInput(1, parser);
 }
 
 <Macro>. {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
 }
 
 <Macro>END {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(INITIAL);
     yylval.id = yytext;
     return END;
 }
 
- /*
-  * Lex rules for skipping EXPORTS.
-  */
-
 <INITIAL>EXPORTS {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(Exports);
     yylval.id = yytext;
     return EXPORTS;
 }
 
 <Exports>{eol} {
-    smiTrackInput(1, parser);
+    trackInput(1, parser);
 }
 
 <Exports>[^\;] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
 }
 
 <Exports>\; {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(INITIAL);
     return yytext[0];
 }
 
- /*
-  * Lex rules for skipping CHOICE.
-  */
-
 <INITIAL>CHOICE {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(Choice);
     yylval.id = yytext;
     return CHOICE;
 }
 
 <Choice>{eol} {
-    smiTrackInput(1, parser);
+    trackInput(1, parser);
 }
 
 <Choice>[^\}] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
 }
 
 <Choice>\} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(INITIAL);
     return yytext[0];
 }
 
- /*
-  * Lex rules for comments.
-  */
-
 <INITIAL>"--" {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(Comment);
 }
 
 <Comment>"--" {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(INITIAL);
 }
     
 <Comment>{eol} {
-    smiTrackInput(1, parser);
+    trackInput(1, parser);
     BEGIN(INITIAL);
 }
 
 <Comment>. {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
 }
 
  /*
@@ -237,17 +234,17 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>[\[\]\{\}\(\)\:\;\,\-\.\|] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     return yytext[0];
 }
     
 <INITIAL>".." {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     return DOT_DOT;
 }
 
 <INITIAL>"::=" {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     return COLON_COLON_EQUAL;
 }
 
@@ -256,11 +253,11 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>[ \t] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
 }
 
 <INITIAL>{eol} {
-    smiTrackInput(1, parser);
+    trackInput(1, parser);
 }
 
  /*
@@ -268,391 +265,391 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>ACCESS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return ACCESS;
 }
 
 <INITIAL>AGENT-CAPABILITIES/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return AGENT_CAPABILITIES;
 }
 
 <INITIAL>APPLICATION/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return APPLICATION;
 }
 
 <INITIAL>AUGMENTS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return AUGMENTS;
 }
 
 <INITIAL>BEGIN/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return BEGIN_;
 }
 
 <INITIAL>BITS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return BITS;
 }
 
 <INITIAL>CONTACT-INFO/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return CONTACT_INFO;
 }
 
 <INITIAL>CREATION-REQUIRES/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return CREATION_REQUIRES;
 }
 
 <INITIAL>Counter32/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return COUNTER32;
 }
 
 <INITIAL>Counter64/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return COUNTER64;
 }
 
 <INITIAL>DEFINITIONS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return DEFINITIONS;
 }
 
 <INITIAL>DEFVAL/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return DEFVAL;
 }
 
 <INITIAL>DESCRIPTION/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return DESCRIPTION;
 }
 
 <INITIAL>DISPLAY-HINT/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return DISPLAY_HINT;
 }
 
 <INITIAL>END/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return END;
 }
 
 <INITIAL>ENTERPRISE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return ENTERPRISE;
 }
 
 <INITIAL>FROM/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return FROM;
 }
 
 <INITIAL>GROUP/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return GROUP;
 }
 
 <INITIAL>Gauge32/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return GAUGE32;
 }
 
 <INITIAL>IDENTIFIER/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return IDENTIFIER;
 }
 
 <INITIAL>IMPLICIT/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return IMPLICIT;
 }
 
 <INITIAL>IMPLIED/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return IMPLIED;
 }
 
 <INITIAL>IMPORTS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return IMPORTS;
 }
 
 <INITIAL>INCLUDES/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return INCLUDES;
 }
 
 <INITIAL>INDEX/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return INDEX;
 }
 
 <INITIAL>INTEGER/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return INTEGER;
 }
 
 <INITIAL>Integer32/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return INTEGER32;
 }
 
 <INITIAL>IpAddress/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return IPADDRESS;
 }
 
 <INITIAL>LAST-UPDATED/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return LAST_UPDATED;
 }
 
 <INITIAL>MANDATORY-GROUPS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return MANDATORY_GROUPS;
 }
 
 <INITIAL>MAX-ACCESS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return MAX_ACCESS;
 }
 
 <INITIAL>MIN-ACCESS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return MIN_ACCESS;
 }
 
 <INITIAL>MODULE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return MODULE;
 }
 
 <INITIAL>MODULE-COMPLIANCE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return MODULE_COMPLIANCE;
 }
 
 <INITIAL>MODULE-IDENTITY/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return MODULE_IDENTITY;
 }
 
 <INITIAL>NOTIFICATION-GROUP/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return NOTIFICATION_GROUP;
 }
 
 <INITIAL>NOTIFICATION-TYPE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return NOTIFICATION_TYPE;
 }
 
 <INITIAL>NOTIFICATIONS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return NOTIFICATIONS;
 }
 
 <INITIAL>OBJECT/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OBJECT;
 }
 
 <INITIAL>OBJECT-GROUP/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OBJECT_GROUP;
 }
 
 <INITIAL>OBJECT-IDENTITY/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OBJECT_IDENTITY;
 }
 
 <INITIAL>OBJECT-TYPE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OBJECT_TYPE;
 }
 
 <INITIAL>OBJECTS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OBJECTS;
 }
 
 <INITIAL>OCTET/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OCTET;
 }
 
 <INITIAL>OF/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OF;
 }
 
 <INITIAL>ORGANIZATION/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return ORGANIZATION;
 }
 
 <INITIAL>Opaque/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return OPAQUE;
 }
 
 <INITIAL>PRODUCT-RELEASE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return PRODUCT_RELEASE;
 }
 
 <INITIAL>REFERENCE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return REFERENCE;
 }
 
 <INITIAL>REVISION/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return REVISION;
 }
 
 <INITIAL>SEQUENCE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return SEQUENCE;
 }
 
 <INITIAL>SIZE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return SIZE;
 }
 
 <INITIAL>STATUS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return STATUS;
 }
 
 <INITIAL>STRING/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return STRING;
 }
 
 <INITIAL>SUPPORTS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return SUPPORTS;
 }
 
 <INITIAL>SYNTAX/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return SYNTAX;
 }
 
 <INITIAL>TEXTUAL-CONVENTION/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return TEXTUAL_CONVENTION;
 }
 
 <INITIAL>TimeTicks/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return TIMETICKS;
 }
 
 <INITIAL>TRAP-TYPE/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return TRAP_TYPE;
 }
 
 <INITIAL>UNITS/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return UNITS;
 }
 
 <INITIAL>UNIVERSAL/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return UNIVERSAL;
 }
 
 <INITIAL>Unsigned32/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return UNSIGNED32;
 }
 
 <INITIAL>VARIABLES/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return VARIABLES;
 }
 
 <INITIAL>VARIATION/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return VARIATION;
 }
 
 <INITIAL>WRITE-SYNTAX/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.id = yytext;
     return WRITE_SYNTAX;
 }
@@ -662,7 +659,7 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>ABSENT|ANY|BIT|BOOLEAN|BY|COMPONENT|COMPONENTS|DEFAULT|DEFINED|ENUMERATED|EXPLICIT|EXTERNAL|FALSE|MAX|MIN|MINUS-INFINITY|NULL|OPTIONAL|PLUS-INFINITY|PRESENT|PRIVATE|REAL|SET|TAGS|TRUE|WITH/{delim} {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     printError(parser, ERR_ILLEGAL_KEYWORD, yytext);
 }
 
@@ -672,7 +669,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 
  /* e.g. module names: REF: draft,p.12-13 */
 <INITIAL>[A-Z](-?[a-zA-Z0-9]+)*-? {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
@@ -682,7 +679,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 
  /* same for lowercase names */
 <INITIAL>[a-z](-?[a-zA-Z0-9]+)*-? {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
@@ -697,12 +694,12 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>0+/[0-9] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     printError(parser, ERR_LEADING_ZEROS);
 }
 
 <INITIAL>([1-9][0-9]*|0)/[^0-9] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if ((strlen(yytext) > sizeof(MAX_NUMBER)-1) ||
 	((strlen(yytext) == sizeof(MAX_NUMBER)-1) &&
 	 (strcmp(yytext, MAX_NUMBER) > 0))) {
@@ -717,7 +714,7 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>\' {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -728,7 +725,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <BinOrHex>\'[bB] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     BEGIN(INITIAL);
     yylval.text = currentString;
     if (strlen(yylval.text) % 8) {
@@ -738,7 +735,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <Hex>\'[bB] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     printError(parser, ERR_HEX_ENDS_IN_B);
     yylval.text = currentString;
     if (strlen(yylval.text) % 2) {
@@ -749,7 +746,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <BinOrHex,Hex>\'[hH] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.text = currentString;
     if (strlen(yylval.text) % 2) {
 	printError(parser, ERR_HEX_STRING_MUL8, currentString);
@@ -759,7 +756,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <BinOrHex,Hex>[2-9A-Fa-f] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -771,7 +768,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <BinOrHex,Hex>[01] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -782,7 +779,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <INITIAL>\" {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     currentStringColumn = thisParser.column+1;
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
@@ -794,7 +791,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <String>\" {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     yylval.text = currentString;
     BEGIN(INITIAL);
 
@@ -810,7 +807,7 @@ eol             ("\n"|"\n\015"|"\015\n")
   * line terminator characters (\n or \r\n)
   */
 <String>[!#-\176] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -822,7 +819,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <String>[ \t] {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -836,7 +833,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 <String>{eol} {
-    smiTrackInput(1, parser);
+    trackInput(1, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -850,7 +847,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 <String>. {
     char a[20];
 
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
         currentString = realloc(currentString, currentStringMaxLength);
@@ -864,7 +861,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
 . {
-    smiTrackInput(0, parser);
+    trackInput(0, parser);
     printError(parser, ERR_LEX_UNEXPECTED_CHAR);
 }
 
