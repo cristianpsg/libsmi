@@ -1,7 +1,7 @@
 /*
  * smi.h --
  *
- *      Interface Definition of libsmi (version 2:4:0).
+ *      Interface Definition of libsmi (version 2:5:0).
  *
  * Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
  *
@@ -18,13 +18,13 @@
 #include <time.h>
 
 
-#define SMI_LIBRARY_VERSION "2:4:0"
+#define SMI_LIBRARY_VERSION "2:5:0"
 extern const char *smi_library_version;
 
 #define SMI_VERSION_MAJOR 0
 #define SMI_VERSION_MINOR 2
-#define SMI_VERSION_PATCHLEVEL 4
-#define SMI_VERSION_STRING "0.2.4"
+#define SMI_VERSION_PATCHLEVEL 5
+#define SMI_VERSION_STRING "0.2.5"
 extern const char *smi_version_string;
 
 
@@ -252,8 +252,8 @@ typedef struct SmiNode {
 
 /* SmiElement -- an item in a list (row index column, notification object)   */
 typedef struct SmiElement {
-#ifdef _WIN32
-    char dummy;		/* MS VC++ is unhappy with an empty structure. */
+#ifndef __GNUC__
+    char dummy;		/* many compilers are unhappy with empty structures. */
 #endif
     /* no visible attributes */
 } SmiElement;

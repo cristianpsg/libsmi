@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.18 2000/06/15 09:55:01 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.19 2000/06/28 16:01:29 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -252,8 +252,8 @@ typedef struct SmiNode {
 
 /* SmiElement -- an item in a list (row index column, notification object)   */
 typedef struct SmiElement {
-#ifdef _WIN32
-    char dummy;		/* MS VC++ is unhappy with an empty structure. */
+#ifndef __GNUC__
+    char dummy;		/* many compilers are unhappy with empty structures. */
 #endif
     /* no visible attributes */
 } SmiElement;

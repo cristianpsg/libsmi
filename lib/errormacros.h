@@ -138,3 +138,9 @@
 #define ERR_INDEX_NEGATIVE                       137
 #define ERR_EMPTY_DESCRIPTION                    138
 #define ERR_INDEX_NOT_COLUMN                     139
+#define ERR_AUGMENT_NESTED                       140
+#define ERR_AUGMENT_NO_ROW                       141
+#define ERR_NODE_NOT_IN_GROUP                    142
+#define ERR_NOTIFICATION_NOT_IN_GROUP            143
+#define ERR_INVALID_GROUP_MEMBER                 144
+#define ERR_MIXED_GROUP_MEMBERS                  145
