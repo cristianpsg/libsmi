@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.4 1998/11/26 00:50:08 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.5 1998/11/27 10:55:28 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -99,31 +99,31 @@ extern int smiLoadMibModule(smi_descriptor modulename);
  * form `Module.Descriptor', `module' has to be NULL.
  */
 
-extern smi_module *smiGetModule(smi_descriptor name,
+extern smi_module *smiGetModule(smi_descriptor spec,
 			       int wantdescr);
 
-extern smi_node *smiGetNode(smi_fullname name,
-			    smi_descriptor module,
+extern smi_node *smiGetNode(smi_fullname spec,
+			    smi_descriptor mod,
 			    int wantdescr);
 
-extern smi_type *smiGetType(smi_fullname name,
-			    smi_descriptor module,
+extern smi_type *smiGetType(smi_fullname spec,
+			    smi_descriptor mod,
 			    int wantdescr);
 
-extern smi_macro *smiGetMacro(smi_fullname name,
-			      smi_descriptor module);
+extern smi_macro *smiGetMacro(smi_fullname spec,
+			      smi_descriptor mod);
 
-extern smi_namelist *smiGetNames(smi_fullname name,
-				 smi_descriptor module);
+extern smi_namelist *smiGetNames(smi_fullname spec,
+				 smi_descriptor mod);
 
-extern smi_namelist *smiGetChildren(smi_fullname name,
-				    smi_descriptor module);
+extern smi_namelist *smiGetChildren(smi_fullname spec,
+				    smi_descriptor mod);
 
-extern smi_namelist *smiGetMembers(smi_fullname name,
-				   smi_descriptor module);
+extern smi_namelist *smiGetMembers(smi_fullname spec,
+				   smi_descriptor mod);
 
-extern smi_fullname *smiGetParent(smi_fullname name,
-				  smi_descriptor module);
+extern smi_fullname *smiGetParent(smi_fullname spec,
+				  smi_descriptor mod);
 
 /*
  * TODO: status and (cache-)config functions ?
