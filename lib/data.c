@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.117 2002/06/19 15:04:39 strauss Exp $
+ * @(#) $Id: data.c,v 1.118 2002/07/23 11:48:14 strauss Exp $
  */
 
 #include <config.h>
@@ -600,6 +600,7 @@ Import *addImport(char *name, Parser *parserPtr)
     importPtr->export.module		 = NULL; /* not yet known */
     importPtr->kind			 = KIND_UNKNOWN; /* not yet known */
     importPtr->use			 = 0;
+    importPtr->flags			 = 0;
     importPtr->line			 = parserPtr ? parserPtr->line : -1;
     
     importPtr->nextPtr			 = NULL;
@@ -611,6 +612,29 @@ Import *addImport(char *name, Parser *parserPtr)
     modulePtr->lastImportPtr		 = importPtr;
     
     return (importPtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * addImportFlags --
+ *
+ *      Add flags to the flags of a given Import struct.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void addImportFlags(Import *importPtr, ImportFlags flags)
+{
+    importPtr->flags |= flags;
 }
 
 
@@ -735,7 +759,8 @@ Import *findImportByName(const char *name, Module *modulePtr)
     
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
-	if (!strcmp(importPtr->export.name, name)) {
+	if ((!strcmp(importPtr->export.name, name)) &&
+	    (!(importPtr->flags & FLAG_INCOMPLIANCE))) {
 		return (importPtr);
 	}
     }

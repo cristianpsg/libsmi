@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.188 2003/04/30 08:41:36 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.189 2003/04/30 10:59:16 strauss Exp $
  */
 
 %{
@@ -5906,6 +5906,8 @@ subidentifier:
 						thisParserPtr);
 					    setImportModulename(importPtr,
 								complianceModulePtr->export.name);
+					    addImportFlags(importPtr,
+							   FLAG_INCOMPLIANCE);
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject($1,
@@ -5927,6 +5929,8 @@ subidentifier:
 					    setImportModulename(importPtr,
 								capabilitiesModulePtr->
 								export.name);
+					    addImportFlags(importPtr,
+							   FLAG_INCOMPLIANCE);
 					    importPtr->use++;
 					} else {
 					    objectPtr = addObject($1,
@@ -6003,6 +6007,8 @@ subidentifier:
 						    thisParserPtr);
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
+						addImportFlags(importPtr,
+							       FLAG_INCOMPLIANCE);
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject($1,
@@ -6024,6 +6030,8 @@ subidentifier:
 						setImportModulename(importPtr,
 						        capabilitiesModulePtr->
 								  export.name);
+						addImportFlags(importPtr,
+							       FLAG_INCOMPLIANCE);
 						importPtr->use++;
 					    } else {
 						objectPtr = addObject($1,

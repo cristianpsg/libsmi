@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.81 2002/09/13 17:49:27 schoenw Exp $
+ * @(#) $Id: data.h,v 1.82 2003/04/24 13:11:50 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -43,6 +43,7 @@ typedef enum Kind {
 
 typedef unsigned short ParserFlags;
 typedef unsigned short ModuleFlags;
+typedef unsigned short ImportFlags;
 typedef unsigned short ObjectFlags;
 typedef unsigned short NodeFlags;
 typedef unsigned short TypeFlags;
@@ -57,7 +58,10 @@ typedef unsigned short MacroFlags;
 #define	FLAG_CREATABLE	        0x0040 /* On a Row: New rows can be created. */
 #define FLAG_INGROUP		0x0080 /* Node is contained in a group.      */
 #define	FLAG_INCOMPLIANCE	0x0100 /* Group is mentioned in a compliance
-                                           statement.                        */
+                                           statement.
+					   In case of ImportFlags: the import
+				           is done through a compliance
+				           MODULE phrase.                    */
 #define	FLAG_INSYNTAX		0x0200 /* Type is mentioned in a syntax
                                            statement.                        */
 
@@ -108,6 +112,7 @@ typedef struct Revision {
 typedef struct Import {
     SmiImport      export;
     Module         *modulePtr;
+    ImportFlags	   flags;
     struct Import  *nextPtr;
     struct Import  *prevPtr;
     Kind	   kind;
@@ -338,6 +343,8 @@ extern void setRevisionLine(Revision *revisionPtr,
 
 extern Import *addImport(char *name,
 			 Parser *parserPtr);
+
+extern void addImportFlags(Import *importPtr, ImportFlags flags);
 
 extern void setImportModulename(Import *importPtr,
 				char *modulename);
