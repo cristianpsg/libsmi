@@ -7,7 +7,7 @@
 MIBDIR		= ../scotty/tnm/mibs
 PREFIX		= /usr/local
 
-DEFINES		= -DTEXTS_IN_MEMORY=200 -DPARSER -DRPC_SVC_FG -DDEBUG
+DEFINES		= -DTEXTS_IN_MEMORY=20000 -DPARSER -DRPC_SVC_FG -DDEBUG
 CC		= gcc
 CFLAGS		= -I. -Ilib -Wall -g $(DEFINES)
 LD		= gcc
@@ -19,7 +19,6 @@ BISON		= bison
 FLEX		= flex
 
 LIBSMI_OBJS	= lib/config.o lib/data.o lib/error.o lib/util.o lib/smi.o \
-		  lib/dump-sming.o \
 		  lib/parser-smi.tab.o lib/scanner-smi.o \
 		  lib/smi_clnt.o lib/smi_xdr.o
 
@@ -51,8 +50,8 @@ tools: tools/smilint tools/smidump tools/smiquery tools/smiclient tools/smid
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
 	$(LD) $(LD_FLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -ll -lnsl
 
-tools/smidump: $(LIBSMI_STATIC) tools/smidump.o
-	$(LD) $(LD_FLAGS) -o tools/smidump tools/smidump.o $(LIBSMI_STATIC) -ll -lnsl
+tools/smidump: $(LIBSMI_STATIC) tools/smidump.o tools/dump-sming.o
+	$(LD) $(LD_FLAGS) -o tools/smidump tools/smidump.o tools/dump-sming.o $(LIBSMI_STATIC) -ll -lnsl
 
 clean:
 	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c
