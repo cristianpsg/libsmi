@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.94 2000/02/24 16:56:26 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.95 2000/02/25 16:48:17 strauss Exp $
  */
 
 %{
@@ -47,7 +47,7 @@
 
     
 /*
- * NOTE: The argument lvalp ist not really a void pointer. Unfortunately,
+ * NOTE: The argument lvalp is not really a void pointer. Unfortunately,
  * we don't know it better at this point. bison generated C code declares
  * YYSTYPE just a few lines below based on the `%union' declaration.
  */

@@ -127,7 +127,7 @@
 
     
 /*
- * NOTE: The argument lvalp ist not really a void pointer. Unfortunately,
+ * NOTE: The argument lvalp is not really a void pointer. Unfortunately,
  * we don't know it better at this point. bison generated C code declares
  * YYSTYPE just a few lines below based on the `%union' declaration.
  */

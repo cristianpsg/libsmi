@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.21 2000/02/24 15:30:01 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.22 2000/02/24 16:56:26 strauss Exp $
  */
 
 #include <config.h>
@@ -372,12 +372,14 @@ static char *getIdlAnyTypeName(SmiNode *smiNode, SmiType *smiType)
 }
 
 
-static char *getValueString(SmiValue *valuePtr)
+static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
-    static char s[100];
-    char        ss[9];
-    int		i;
-    char        **p;
+    static char    s[100];
+    char           ss[9];
+    int		   i, n;
+    char           **p;
+    SmiNamedNumber *nn;
+    SmiNode        *nodePtr;
     
     s[0] = 0;
     
@@ -399,43 +401,65 @@ static char *getValueString(SmiValue *valuePtr)
     case SMI_BASETYPE_FLOAT128:
 	break;
     case SMI_BASETYPE_ENUM:
-	sprintf(s, "%s", valuePtr->value.ptr);
+	for (nn = smiGetFirstNamedNumber(typePtr); nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 == valuePtr->value.unsigned32)
+		break;
+	}
+	if (nn) {
+	    sprintf(s, "%s", nn->name);
+	} else {
+	    sprintf(s, "%d", valuePtr->value.unsigned32);
+	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	if (valuePtr->format == SMI_VALUEFORMAT_TEXT) {
+	for (i = 0; i < valuePtr->len; i++) {
+	    if (!isprint((int)valuePtr->value.ptr[i])) break;
+	}
+	if (i == valuePtr->len) {
 	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
-	} else if (valuePtr->format == SMI_VALUEFORMAT_HEXSTRING) {
-	    sprintf(s, "'%*s'H", 2 * valuePtr->len, "");
-	    for (i=0; i < valuePtr->len; i++) {
-		sprintf(ss, "%02x", valuePtr->value.ptr[i]);
-		strncpy(&s[1+2*i], ss, 2);
-	    }
-	} else if (valuePtr->format == SMI_VALUEFORMAT_BINSTRING) {
-	    sprintf(s, "'%*s'B", 8 * valuePtr->len, "");
-	    for (i=0; i < valuePtr->len; i++) {
-		/* TODO */
-		sprintf(ss, "%02x", valuePtr->value.ptr[i]);
-		strncpy(&s[1+8*i], ss, 8);
-	    }
 	} else {
-	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
+            sprintf(s, "'%*s'H", 2 * valuePtr->len, "");
+            for (i=0; i < valuePtr->len; i++) {
+                sprintf(ss, "%02x", valuePtr->value.ptr[i]);
+                strncpy(&s[2+2*i], ss, 2);
+            }
 	}
 	break;
     case SMI_BASETYPE_BITS:
-	sprintf(s, "(");
-	if (valuePtr->value.bits) {
-	    for (p = valuePtr->value.bits; *p; p++) {
-		if (p != valuePtr->value.bits)
-		    sprintf(&s[strlen(s)], ", ");
-		sprintf(&s[strlen(s)], "%s", *p);
+	sprintf(s, "{");
+	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
+	    if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
+		for (nn = smiGetFirstNamedNumber(typePtr); nn;
+		     nn = smiGetNextNamedNumber(nn)) {
+		    if (nn->value.value.unsigned32 == i)
+			break;
+		}
+		if (nn) {
+		    if (n)
+			sprintf(&s[strlen(s)], ", ");
+		    n++;
+		    sprintf(&s[strlen(s)], "%s", nn->name);
+		}
 	    }
 	}
-	sprintf(&s[strlen(s)], ")");
+	sprintf(&s[strlen(s)], "}");
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */
+	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);
+	if (nodePtr) {
+	    sprintf(s, "%s", nodePtr->name);
+	} else {
+	    strcpy(s, "{");
+	    for (i=0; i < valuePtr->len; i++) {
+		if (i) strcat(s, " ");
+		sprintf(&s[strlen(s)], "%u", valuePtr->value.oid[i]);
+	    }
+	    strcat(s, "}");
+	}
 	break;
     }
 
@@ -836,7 +860,7 @@ static void printType(SmiNode *smiNode, SmiType *smiType)
 	    printSegment(INDENT, "const ", 0);
 	    nnName = translate(nn->name);
 	    print("%s %s_%s = %s;\n", idlTypeName, idlTypeName, nnName,
-		  getValueString(&nn->value));
+		  getValueString(&nn->value, smiType));
 	    xfree(nnName);
 	}
 	printSegment(INDENT, "const string ", 0);
@@ -848,7 +872,7 @@ static void printType(SmiNode *smiNode, SmiType *smiType)
 	    if (i) {
 		print(" , ");
 	    }
-	    print("%s (%s)", nnName, getValueString(&nn->value));
+	    print("%s (%s)", nnName, getValueString(&nn->value, smiType));
 	    xfree(nnName);
 	}
 	print("\";\n");
@@ -1278,6 +1302,7 @@ static void printDefVals(SmiModule *smiModule)
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	
 	if (smiNode->value.basetype != SMI_BASETYPE_UNKNOWN) {
+	    smiType = smiGetNodeType(smiNode);
 	    cnt++;
 	    if (cnt == 1) {
 		printSegment(INDENT, "/* pseudo */\n", 0);
@@ -1285,10 +1310,9 @@ static void printDefVals(SmiModule *smiModule)
 	    }
 	    if (! silent) {
 		printSegment(2*INDENT, "/* DEFVAL: ", 0);
-		print(" %s */\n", getValueString(&smiNode->value));
+		print(" %s */\n", getValueString(&smiNode->value, smiType));
 	    }
 	    printSegment(2*INDENT, "", 0);
-	    smiType = smiGetNodeType(smiNode);
 	    idlTypeName = getIdlAnyTypeName(smiNode, smiType);
 	    print("%s %s();\n\n", idlTypeName, smiNode->name);
 	}

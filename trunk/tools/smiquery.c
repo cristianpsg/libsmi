@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.50 2000/02/24 15:30:01 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.51 2000/02/25 16:48:20 strauss Exp $
  */
 
 #include <config.h>
@@ -206,6 +206,7 @@ char *formatvalue(const SmiValue *value, SmiType *type)
     int		   i, n;
     char           **p;
     SmiNamedNumber *nn;
+    SmiNode        *nodePtr;
     
     s[0] = 0;
     
@@ -277,7 +278,13 @@ char *formatvalue(const SmiValue *value, SmiType *type)
 	sprintf(s, "-");
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
-	sprintf(s, "%s", value->value.ptr);
+	nodePtr = smiGetNodeByOID(value->len, value->value.oid);
+	if (nodePtr) {
+	    sprintf(s, "%s::%s", smiGetNodeModule(nodePtr)->name,
+		    nodePtr->name);
+	} else {
+	    sprintf(s, formatoid(value->len, value->value.oid));
+	}
 	break;
     }
 
