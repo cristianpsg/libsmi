@@ -34,30 +34,18 @@
 #include <config.h>
 
 #include <sys/types.h>
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 
-#ifndef HAVE_SNPRINTF
 extern int snprintf (char *str, size_t sz, const char *format, ...);
-#endif
 
-#ifndef HAVE_ASPRINTF
 extern int asprintf (char **ret, const char *format, ...);
-#endif
 
-#ifndef HAVE_ASNPRINTF
 extern int asnprintf (char **ret, size_t max_sz, const char *format, ...);
-#endif
 
-#ifndef HAVE_VASPRINTF
 extern int vasprintf (char **ret, const char *format, va_list args);
-#endif
 
-#ifndef HAVE_VASNPRINTF
 extern int vasnprintf (char **ret, size_t max_sz, const char *format,
 		       va_list args);
-#endif
 
-#ifndef HAVE_VSNPRINTF
 extern int vsnprintf (char *str, size_t sz, const char *format, va_list args);
-#endif
