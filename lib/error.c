@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.3 1999/03/24 16:25:27 strauss Exp $
+ * @(#) $Id: error.c,v 1.4 1999/03/29 22:34:03 strauss Exp $
  */
 
 #include <string.h>
@@ -105,7 +105,7 @@ Error errors[] = {
       "Illegal character in quoted string (%s)" },
     { 2, ERR_BIN_STRING_MUL8,
       "Binary string `%s' length is not a multiple of 8" },
-    { 2, ERR_HEX_STRING_MUL8,
+    { 2, ERR_HEX_STRING_MUL2,
       "Haxadecimal string `%s' length is not a multiple of 2" },
     { 5, ERR_FLUSH_DECLARATION,
       "Flushing recent incorrect declaration, see previous error(s)" },

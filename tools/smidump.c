@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.1 1999/03/26 17:03:09 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.2 1999/03/29 22:34:06 strauss Exp $
  */
 
 #include <stdio.h>
@@ -20,14 +20,16 @@
 #endif
 
 #include "smi.h"
+#include "dump-smi.h"
 #include "dump-sming.h"
 #include "dump-data.h"
-
 
 #define DUMP_SMING	1
 #define DUMP_MOSY	2
 #define DUMP_OBJECTS	3
 #define DUMP_TYPES	4
+#define DUMP_SMIV1      5
+#define DUMP_SMIV2      6
 
 #define SMIDUMP_CONFIG_FILE "/usr/local/etc/smidump.conf"
 
@@ -88,6 +90,10 @@ main(argc, argv)
 		dumpFormat = DUMP_MOSY;
 	    } else if (strstr(optarg, "sming")) {
 		dumpFormat = DUMP_SMING;
+	    } else if (strstr(optarg, "smiv1")) {
+		dumpFormat = DUMP_SMIV1;
+	    } else if (strstr(optarg, "smiv2")) {
+		dumpFormat = DUMP_SMIV2;
 	    } else if (strstr(optarg, "objects")) {
 		dumpFormat = DUMP_OBJECTS;
 	    } else if (strstr(optarg, "types")) {
@@ -96,7 +102,7 @@ main(argc, argv)
 	    break;
 	default:
 	    fprintf(stderr, "Usage: %s [-vVrRsS] [-d level] [-l level] [-c configfile]"
-		    " [-L location] [-D mosy|sming|objects|types] module\n", argv[0]);
+		    " [-L location] [-D mosy|sming|smiv1|smiv2|objects|types] module\n", argv[0]);
 	    exit(1);
 	}
     }
@@ -106,6 +112,12 @@ main(argc, argv)
 	switch (dumpFormat) {
 	case DUMP_SMING:
 	    dumpSming(argv[optind]);
+	    break;
+	case DUMP_SMIV1:
+	    dumpSmiV1(argv[optind]);
+	    break;
+	case DUMP_SMIV2:
+	    dumpSmiV2(argv[optind]);
 	    break;
 	case DUMP_OBJECTS:
 	    dumpMibTree();

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.2 1999/03/23 22:55:40 strauss Exp $
+ * @(#) $Id: error.h,v 1.3 1999/03/24 16:25:28 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -48,7 +48,7 @@
 #define ERR_OIDNAME_INCLUDES_HYPHEN              28
 #define ERR_ILLEGAL_CHAR_IN_STRING               29
 #define ERR_BIN_STRING_MUL8			 30
-#define ERR_HEX_STRING_MUL8			 31
+#define ERR_HEX_STRING_MUL2			 31
 #define ERR_FLUSH_DECLARATION			 32
 #define ERR_OTHER_ERROR				 33
 #define ERR_MAX_ACCESS_IN_SMIV1			 34
