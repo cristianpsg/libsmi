@@ -1350,7 +1350,8 @@ static GraphNode *calcGroupSize(int group)
 /* ------------------------------------------------------------------------- */
 
 
-static void printModuleIdentity(int modc, SmiModule **modv, float *x, float *y)
+static void printModuleIdentity(int modc, SmiModule **modv,
+				float *x, float *y, int *miNr)
 {
     int         i, j;
     char        *tooltip;
@@ -1358,7 +1359,17 @@ static void printModuleIdentity(int modc, SmiModule **modv, float *x, float *y)
     SmiElement  *smiElement;
     SmiRevision *smiRevision;
 
-    printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-IDENTITY</text>\n", *x, *y);
+    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+    printf("  <text>\n");
+    if (!STATIC_OUTPUT) {
+	printf("   <tspan style=\"text-anchor:middle\"");
+	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+    }
+    printf("   <tspan x=\"5\">MODULE-IDENTITY</tspan>\n");
+    printf("  </text>\n");
+    printf(" </g>\n");
+    (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
 	smiNode = smiGetModuleIdentityNode(modv[i]);
@@ -1366,32 +1377,45 @@ static void printModuleIdentity(int modc, SmiModule **modv, float *x, float *y)
 
 	    //name and description of the module.
 	    *x += TABLEELEMHEIGHT;
+	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+	    printf("  <text>\n");
+	    if (!STATIC_OUTPUT) {
+		printf("   <tspan style=\"text-anchor:middle\"");
+		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+	    }
+	    printf("   <tspan x=\"5\"");
 	    if (!STATIC_OUTPUT && modv[i]->description) {
 		tooltip = (char *)xmalloc(2*strlen(modv[i]->description));
 		parseTooltip(modv[i]->description, tooltip);
-		printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
 		printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-		printf(" onmouseout=\"HideTooltip(evt)\">%s</text>\n",
-								smiNode->name);
+		printf(" onmouseout=\"HideTooltip(evt)\"");
 		xfree(tooltip);
-	    } else {
-		printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
-							*x, *y, smiNode->name);
 	    }
+	    printf(">%s</tspan>\n", smiNode->name);
+	    printf("  </text>\n");
+	    printf(" </g>\n");
+	    (*miNr)++;
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
 	    //revision history of the module.
 	    *x += 2*TABLEELEMHEIGHT;
+	    *x += TABLEBOTTOMHEIGHT;
 	    smiRevision = smiGetFirstRevision(modv[i]);
 	    if (!smiRevision) {
-		printf(" <text x=\"%.2f\" y=\"%.2f\">197001010000Z</text>\n",
-									*x, *y);
+		printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+		printf("  <text>1970-01-01</text>\n");
+		printf(" </g>\n");
+		(*miNr)++;
 		*y += TABLEELEMHEIGHT;
 	    } else {
 		for(; smiRevision;
 				smiRevision = smiGetNextRevision(smiRevision)) {
-		    printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
+		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+		    printf("(%.2f,%.2f)\">\n", *x, *y);
+		    printf("  <text");
 		    if (!STATIC_OUTPUT && smiRevision->description && strcmp(
 		smiRevision->description,
 		"[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
@@ -1404,17 +1428,20 @@ static void printModuleIdentity(int modc, SmiModule **modv, float *x, float *y)
 			xfree(tooltip);
 		    }
 		    printf(">%s</text>\n", getTimeString(smiRevision->date));
+		    printf(" </g>\n");
 		    *y += TABLEELEMHEIGHT;
+		    (*miNr)++;
 		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
+	    *x -= TABLEBOTTOMHEIGHT;
 	}
     }
     *y += TABLEELEMHEIGHT;
 }
 
 static void printNotificationType(int modc, SmiModule **modv,
-				  float *x, float *y)
+				  float *x, float *y, int *miNr)
 {
     int         i, j;
     char        *tooltip;
@@ -1422,7 +1449,17 @@ static void printNotificationType(int modc, SmiModule **modv,
     SmiElement  *smiElement;
     SmiRevision *smiRevision;
 
-    printf(" <text x=\"%.2f\" y=\"%.2f\">NOTIFICATION-TYPE</text>\n", *x, *y);
+    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+    printf("  <text>\n");
+    if (!STATIC_OUTPUT) {
+	printf("   <tspan style=\"text-anchor:middle\"");
+	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+    }
+    printf("   <tspan x=\"5\">NOTIFICATION-TYPE</tspan>\n");
+    printf("  </text>\n");
+    printf(" </g>\n");
+    (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
 	smiNode = smiGetModuleIdentityNode(modv[i]);
@@ -1430,14 +1467,24 @@ static void printNotificationType(int modc, SmiModule **modv,
 
 	    //name of the module
 	    *x += TABLEELEMHEIGHT;
-	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
-							*x, *y, smiNode->name);
+	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+	    printf("  <text>\n");
+	    if (!STATIC_OUTPUT) {
+		printf("   <tspan style=\"text-anchor:middle\"");
+		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+	    }
+	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("  </text>\n");
+	    printf(" </g>\n");
+	    (*miNr)++;
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
 	    //name, status and description of the notification
 	    //TODO print text in different grey colors for different statuses.
 	    *x += 2*TABLEELEMHEIGHT;
+	    *x += TABLEBOTTOMHEIGHT;
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
@@ -1446,8 +1493,9 @@ static void printNotificationType(int modc, SmiModule **modv,
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
-							smiNode->name, *x, *y);
+		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+		printf("(%.2f,%.2f)\">\n", *x, *y);
+		printf("  <text id=\"%s\"", smiNode->name);
 
 		if (!STATIC_OUTPUT) {
 		    smiElement = smiGetFirstElement(smiNode);
@@ -1499,17 +1547,21 @@ static void printNotificationType(int modc, SmiModule **modv,
 		    }
 		}
 
-		printf(">%s</tspan>", smiNode->name);
+		printf(">%s", smiNode->name);
 		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
+		(*miNr)++;
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
+	    *x -= TABLEBOTTOMHEIGHT;
 	}
     }
     *y += TABLEELEMHEIGHT;
 }
 
-static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
+static void printObjectGroup(int modc, SmiModule **modv,
+			     float *x, float *y, int *miNr)
 {
     int         i, j;
     char        *tooltip;
@@ -1517,7 +1569,17 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
     SmiElement  *smiElement;
     SmiRevision *smiRevision;
 
-    printf(" <text x=\"%.2f\" y=\"%.2f\">OBJECT-GROUP</text>\n", *x, *y);
+    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+    printf("  <text>\n");
+    if (!STATIC_OUTPUT) {
+	printf("   <tspan style=\"text-anchor:middle\"");
+	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+    }
+    printf("   <tspan x=\"5\">OBJECT-GROUP</tspan>\n");
+    printf("  </text>\n");
+    printf(" </g>\n");
+    (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
 	smiNode = smiGetModuleIdentityNode(modv[i]);
@@ -1525,14 +1587,24 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 
 	    //name of the module
 	    *x += TABLEELEMHEIGHT;
-	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
-							*x, *y, smiNode->name);
+	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+	    printf("  <text>\n");
+	    if (!STATIC_OUTPUT) {
+		printf("   <tspan style=\"text-anchor:middle\"");
+		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+	    }
+	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("  </text>\n");
+	    printf(" </g>\n");
+	    (*miNr)++;
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
 	    //name, status and description of the group
 	    //TODO print text in different grey colors for different statuses.
 	    *x += 2*TABLEELEMHEIGHT;
+	    *x += TABLEBOTTOMHEIGHT;
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
@@ -1543,8 +1615,9 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
-							smiNode->name, *x, *y);
+		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+		printf("(%.2f,%.2f)\">\n", *x, *y);
+		printf("  <text id=\"%s\"", smiNode->name);
 
 		if (!STATIC_OUTPUT) {
 		    smiElement = smiGetFirstElement(smiNode);
@@ -1596,18 +1669,21 @@ static void printObjectGroup(int modc, SmiModule **modv, float *x, float *y)
 		    }
 		}
 
-		printf(">%s</tspan>", smiNode->name);
+		printf(">%s", smiNode->name);
 		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
+		(*miNr)++;
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
+	    *x -= TABLEBOTTOMHEIGHT;
 	}
     }
     *y += TABLEELEMHEIGHT;
 }
 
 static void printNotificationGroup(int modc, SmiModule **modv,
-				   float *x, float *y)
+				   float *x, float *y, int *miNr)
 {
     int         i, j;
     char        *tooltip;
@@ -1615,7 +1691,17 @@ static void printNotificationGroup(int modc, SmiModule **modv,
     SmiElement  *smiElement;
     SmiRevision *smiRevision;
 
-    printf(" <text x=\"%.2f\" y=\"%.2f\">NOTIFICATION-GROUP</text>\n", *x, *y);
+    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+    printf("  <text>\n");
+    if (!STATIC_OUTPUT) {
+	printf("   <tspan style=\"text-anchor:middle\"");
+	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+    }
+    printf("   <tspan x=\"5\">NOTIFICATION-GROUP</tspan>\n");
+    printf("  </text>\n");
+    printf(" </g>\n");
+    (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
 	smiNode = smiGetModuleIdentityNode(modv[i]);
@@ -1623,14 +1709,24 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 
 	    //name of the module
 	    *x += TABLEELEMHEIGHT;
-	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
-							*x, *y, smiNode->name);
+	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+	    printf("  <text>\n");
+	    if (!STATIC_OUTPUT) {
+		printf("   <tspan style=\"text-anchor:middle\"");
+		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+	    }
+	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("  </text>\n");
+	    printf(" </g>\n");
+	    (*miNr)++;
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
 	    //name, status and description of the group
 	    //TODO print text in different grey colors for different statuses.
 	    *x += 2*TABLEELEMHEIGHT;
+	    *x += TABLEBOTTOMHEIGHT;
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
@@ -1641,8 +1737,9 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
-							smiNode->name, *x, *y);
+		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+		printf("(%.2f,%.2f)\">\n", *x, *y);
+		printf("  <text id=\"%s\"", smiNode->name);
 
 		if (!STATIC_OUTPUT) {
 		    smiElement = smiGetFirstElement(smiNode);
@@ -1694,18 +1791,21 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		    }
 		}
 
-		printf(">%s</tspan>", smiNode->name);
+		printf(">%s", smiNode->name);
 		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
+		(*miNr)++;
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
+	    *x -= TABLEBOTTOMHEIGHT;
 	}
     }
     *y += TABLEELEMHEIGHT;
 }
 
 static void printModuleCompliance(int modc, SmiModule **modv,
-				  float *x, float *y)
+				  float *x, float *y, int *miNr)
 {
     int           i, j;
     char          *tooltip;
@@ -1719,7 +1819,17 @@ static void printModuleCompliance(int modc, SmiModule **modv,
     SmiOption     *smiOption;
     SmiRefinement *smiRefinement;
 
-    printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-COMPLIANCE</text>\n", *x, *y);
+    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+    printf("  <text>\n");
+    if (!STATIC_OUTPUT) {
+	printf("   <tspan style=\"text-anchor:middle\"");
+	printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+    }
+    printf("   <tspan x=\"5\">MODULE-COMPLIANCE</tspan>\n");
+    printf("  </text>\n");
+    printf(" </g>\n");
+    (*miNr)++;
     *y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
 	smiNode = smiGetModuleIdentityNode(modv[i]);
@@ -1727,8 +1837,17 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 
 	    //name of the module
 	    *x += TABLEELEMHEIGHT;
-	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
-							*x, *y, smiNode->name);
+	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
+								*miNr, *x, *y);
+	    printf("  <text>\n");
+	    if (!STATIC_OUTPUT) {
+		printf("   <tspan style=\"text-anchor:middle\"");
+		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+	    }
+	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("  </text>\n");
+	    printf(" </g>\n");
+	    (*miNr)++;
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
@@ -1743,7 +1862,14 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    || (smiNode->status == SMI_STATUS_OBSOLETE
 		    && !SHOW_DEPR_OBSOLETE))
 		    continue;
-		printf(" <text x=\"%.2f\" y=\"%.2f\"><tspan", *x, *y);
+		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+		printf("(%.2f,%.2f)\">\n", *x, *y);
+		printf("  <text>\n");
+		if (!STATIC_OUTPUT) {
+		    printf("   <tspan style=\"text-anchor:middle\"");
+		    printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+		}
+		printf("   <tspan x=\"5\"");
 
 		if (!STATIC_OUTPUT && smiNode->description) {
 		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
@@ -1752,21 +1878,37 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    xfree(tooltip);
 		    printf("\" onmouseout=\"HideTooltip(evt)\"");
 		}
-		printf(">%s</tspan>", smiNode->name);
-		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		printf(">%s", smiNode->name);
+		printf(" (%s)</tspan>\n", getStatusString(smiNode->status));
+		printf("  </text>\n");
+		printf(" </g>\n");
+		(*miNr)++;
 		*y += TABLEELEMHEIGHT;
 
 		//modules for the compliance
 		*x += TABLEELEMHEIGHT;
 		done = xstrdup("+");
 		for (module = modv[i]->name; module; ) {
-		    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
-		    printf("%s</text>\n", module);
+		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+		    printf("(%.2f,%.2f)\">\n", *x, *y);
+		    printf("  <text>\n");
+		    if (!STATIC_OUTPUT) {
+			printf("   <tspan style=\"text-anchor:middle\"");
+			printf(" onclick=\"collapse(evt)\">--</tspan>\n");
+		    }
+		    printf("   <tspan x=\"5\">%s</tspan>\n", module);
+		    printf("  </text>\n");
+		    printf(" </g>\n");
+		    (*miNr)++;
 		    *y += TABLEELEMHEIGHT;
 
 		    //mandatory groups
 		    *x += TABLEELEMHEIGHT;
-		    printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
+		    *x += TABLEBOTTOMHEIGHT;
+		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
+		    printf("(%.2f,%.2f)\">\n", *x, *y);
+		    printf("  <text");
+		    //printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
 		    if (!STATIC_OUTPUT) {
 			smiElement = smiGetFirstElement(smiNode);
 			if (smiElement) {
@@ -1806,18 +1948,19 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 			}
 		    }
 		    printf(">MANDATORY-GROUPS</text>\n");
+		    printf(" </g>\n");
 		    *y += TABLEELEMHEIGHT;
-		    *x -= TABLEELEMHEIGHT;
+		    (*miNr)++;
 
 		    //groups
-		    *x += TABLEELEMHEIGHT;
 		    for (smiOption = smiGetFirstOption(smiNode); smiOption;
 				    smiOption = smiGetNextOption(smiOption)) {
 			smiNode2 = smiGetOptionNode(smiOption);
 			smiModule2 = smiGetNodeModule(smiNode2);
 			if (!strcmp(smiModule2->name, module)) {
-			    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
-			    printf("GROUP <tspan");
+			    printf(" <g id=\"MI%i\" transform=", *miNr);
+			    printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
+			    printf("  <text");
 			    if (!STATIC_OUTPUT) {
 				printf(" onmousemove=\"");
 				if (smiOption->description) {
@@ -1836,22 +1979,23 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 				printf("colorText('%s','black')\"",
 								smiNode2->name);
 			    }
-			    printf(">%s</tspan></text>\n", smiNode2->name);
+			    printf(">GROUP %s</text>\n", smiNode2->name);
+			    printf(" </g>\n");
 			    *y += TABLEELEMHEIGHT;
+			    (*miNr)++;
 			}
 		    }
-		    *x -= TABLEELEMHEIGHT;
 
 		    //objects
-		    *x += TABLEELEMHEIGHT;
 		    for (smiRefinement = smiGetFirstRefinement(smiNode);
 			smiRefinement;
 			smiRefinement = smiGetNextRefinement(smiRefinement)) {
 			smiNode2 = smiGetRefinementNode(smiRefinement);
 			smiModule2 = smiGetNodeModule(smiNode2);
 			if (!strcmp(smiModule2->name, module)) {
-			    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
-			    printf("OBJECT <tspan");
+			    printf(" <g id=\"MI%i\" transform=", *miNr);
+			    printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
+			    printf("  <text");
 			    if (!STATIC_OUTPUT) {
 				printf(" onmousemove=\"");
 				if (smiRefinement->description) {
@@ -1870,11 +2014,14 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 				printf("colorText('%s','black')\"",
 								smiNode2->name);
 			    }
-			    printf(">%s</tspan></text>\n", smiNode2->name);
+			    printf(">OBJECT %s</text>\n", smiNode2->name);
+			    printf(" </g>\n");
 			    *y += TABLEELEMHEIGHT;
+			    (*miNr)++;
 			}
 		    }
 		    *x -= TABLEELEMHEIGHT;
+		    *x -= TABLEBOTTOMHEIGHT;
 
 		    //find next module
 		    done = xrealloc(done,
@@ -1904,17 +2051,19 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 
 static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
 {
+    int miNr = 0;
+
     printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
 							x, y, STARTSCALE);
     //now use x and y as relative coordinates.
     x = 0;
     y = 10;
 
-    printModuleIdentity(modc, modv, &x, &y);
-    printNotificationType(modc, modv, &x, &y);
-    printObjectGroup(modc, modv, &x, &y);
-    printNotificationGroup(modc, modv, &x, &y);
-    printModuleCompliance(modc, modv, &x, &y);
+    printModuleIdentity(modc, modv, &x, &y, &miNr);
+    printNotificationType(modc, modv, &x, &y, &miNr);
+    printObjectGroup(modc, modv, &x, &y, &miNr);
+    printNotificationGroup(modc, modv, &x, &y, &miNr);
+    printModuleCompliance(modc, modv, &x, &y, &miNr);
 
     printf(" </g>\n");
 }
