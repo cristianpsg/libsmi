@@ -1,8 +1,51 @@
 #!/bin/sh
+#
+# smidump-FORMAT.test --
+#
+#       smidump test for various output formats and conversions.
+#
+# FORMAT=xxx : 
+#   Check `smidump -f xxx' output for all TESTMIBS read from the libsmi MIB
+#   repository against nominal dumps/xxx/ files.
+#
+# FORMAT=xxx-yyy :
+#   Check `smidump -f yyy' output for all TESTMIBS read from dumps/xxx/
+#   against nominal dumps/yyy-xxx/ files.
+#
+# FORMAT=orig-yyy : 
+#   Check `smidump -f yyy' output for all TESTMIBS read from the libsmi MIB
+#   repository against the original files from the repository. This is done
+#   by extracting unified characteristics of both files of each check
+#   (see the filter shell function) and comparing the diff with the nominal
+#   diff in dumps/orig-yyy/.
+#
 
 FORMAT=`echo $0 | sed -e 's/^.*smidump-\(.*\).test/\1/'`
 ACTUALDIR=smidump-${FORMAT}.out
 NOMINALDIR=dumps/${FORMAT}
+INFORMAT=`echo -$FORMAT | sed -e 's/-[^-]*$//' -e 's/-//'`
+OUTFORMAT=`echo $FORMAT | sed -e 's/[a-z0-9]*-//'`
+
+
+
+filter() {
+    # 1. strip off comments
+    # 2. condens white space
+    # 3. remove ambigious white space
+    # 4. strip off texts enclosed in double qoutes
+    # 5. convert blanks back to nl, and finally
+    # 6. sort
+    sed -e 's/\"[a-z]*\"//g' | \
+    sed -e 's/--[^\"-]*--//g' -e 's/--[^\"]*$//' | \
+    tr '\t\n' '  ' | \
+    sed -e 's/  */ /g' | \
+    sed -e 's/SIZE (/SIZE(/g' -e 's/ }/}/g' | \
+    sed -e 's/\"[^\"]*\"/\"\"/g' | \
+    tr ' ' '\n' | \
+    sort
+}
+
+
 
 rm -rf ${ACTUALDIR}
 mkdir ${ACTUALDIR}
@@ -10,16 +53,28 @@ mkdir ${ACTUALDIR}
 RC=0
 FAILED=""
 for mib in ${TESTMIBS} ; do
-    echo "comparing \`smidump -f ${FORMAT} $mib' output with ${NOMINALDIR}/*."
+    if [ "$INFORMAT" -a "$INFORMAT" != "orig" ] ; then
+        input=../dumps/${INFORMAT}/$mib
+    else
+        input=$mib
+    fi
+    echo "comparing \`smidump -f ${OUTFORMAT} $input' output with ${NOMINALDIR}/*."
     cd ${ACTUALDIR}
-    ../../tools/smidump -f ${FORMAT} $mib > $mib 2>/dev/null
+    ../../tools/smidump -f ${OUTFORMAT} $input > $mib 2>/dev/null
     if [ ! -s $mib ] ; then
 	rm $mib
     fi
-    FILES=`echo *`
+    FILES=`ls -1 | egrep -v '\.(diff|out|orig)'`
     cd ..
     for file in $FILES ; do
-        @DIFF@ ${ACTUALDIR}/$file ${NOMINALDIR}/$file >> ${ACTUALDIR}/$file.diff
+	if [ "$INFORMAT" != "orig" ] ; then
+	    @DIFF@ ${ACTUALDIR}/$file ${NOMINALDIR}/$file >> ${ACTUALDIR}/$file.diff
+	else
+	    filter < ../mibs/ietf/$mib > ${ACTUALDIR}/$file.orig
+	    filter < ${ACTUALDIR}/$mib > ${ACTUALDIR}/$file.out
+	    @DIFF@ ${ACTUALDIR}/$file.orig ${ACTUALDIR}/$file.out > ${ACTUALDIR}/$file
+	    @DIFF@ ${ACTUALDIR}/$file ${NOMINALDIR}/$file > ${ACTUALDIR}/$file.diff
+	fi
 	if [ ! -s ${ACTUALDIR}/$file.diff ] ; then
 	    rm ${ACTUALDIR}/$file.diff
 	else
@@ -29,7 +84,7 @@ for mib in ${TESTMIBS} ; do
 done
 
 if [ "$FAILED" ] ; then
-    echo "*** smidump -f ${FORMAT} output differs, see ${ACTUALDIR}/*.diff"
+    echo "*** smidump output differs, see ${ACTUALDIR}/*.diff"
     RC=1
 fi
 

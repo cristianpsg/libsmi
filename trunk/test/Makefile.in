@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.15 2000/06/07 10:19:53 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.17 2000/11/12 19:42:08 strauss Exp $
 #
 
 
@@ -105,33 +105,30 @@ VERSION_STRING = @VERSION_STRING@
 mibdir = @mibdir@
 smipath = @smipath@
 
-TESTMIBTOPDIR = ../mibs
+TESTMIBTOPDIR = ../../mibs
 TESTMIBDIR = $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site:$(TESTMIBTOPDIR)/tubs
 TESTMIBS = SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
-TESTS = smilint-smiv2.test 			  smidump-orig-smiv2.test 			  smidump-smiv1.test 			  smidump-smiv2.test 			  smidump-smiv2-smiv2.test 			  smidump-sming.test 			  smidump-mosy.test 			  smidump-tree.test 			  smidump-types.test 			  smidump-imports.test 			  parser.test
+TESTS = smilint-smiv2.test 			  smidump-smiv1.test 			  smidump-smiv2.test 			  smidump-sming.test 			  smidump-mosy.test 			  smidump-tree.test 			  smidump-types.test 			  smidump-imports.test 			  smidump-corba.test 			  smidump-jax.test 			  smidump-orig-smiv2.test 			  smidump-smiv2-smiv2.test 			  parser.test
 
-#			  smidump-corba-idl.test \
-#			  smidump-corba-oid.test \
 
 TESTS_ENVIRONMENT = SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
 
-EXTRA_DIST = $(TESTS) filter
+EXTRA_DIST = $(TESTS)
 
 SUBDIRS = mibs dumps
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
-CONFIG_CLEAN_FILES =  parser.test smidump-corba-idl.test \
-smidump-corba-oid.test smidump-imports.test smidump-mosy.test \
-smidump-orig-smiv2.test smidump-sming.test smidump-smiv1.test \
-smidump-smiv2-smiv2.test smidump-smiv2.test smidump-tree.test \
-smidump-types.test smilint-smiv2.test
+CONFIG_CLEAN_FILES =  parser.test smidump-corba.test smidump-jax.test \
+smidump-imports.test smidump-mosy.test smidump-orig-smiv2.test \
+smidump-sming.test smidump-smiv1.test smidump-smiv2-smiv2.test \
+smidump-smiv2.test smidump-tree.test smidump-types.test \
+smilint-smiv2.test
 DIST_COMMON =  Makefile.am Makefile.in parser.test.in \
-smidump-corba-idl.test.in smidump-corba-oid.test.in \
-smidump-imports.test.in smidump-mosy.test.in smidump-orig-smiv2.test.in \
-smidump-sming.test.in smidump-smiv1.test.in smidump-smiv2-smiv2.test.in \
-smidump-smiv2.test.in smidump-tree.test.in smidump-types.test.in \
-smilint-smiv2.test.in
+smidump-corba.test.in smidump-imports.test.in smidump-jax.test.in \
+smidump-mosy.test.in smidump-orig-smiv2.test.in smidump-sming.test.in \
+smidump-smiv1.test.in smidump-smiv2-smiv2.test.in smidump-smiv2.test.in \
+smidump-tree.test.in smidump-types.test.in smilint-smiv2.test.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -149,9 +146,9 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 
 parser.test: $(top_builddir)/config.status parser.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-smidump-corba-idl.test: $(top_builddir)/config.status smidump-corba-idl.test.in
+smidump-corba.test: $(top_builddir)/config.status smidump-corba.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-smidump-corba-oid.test: $(top_builddir)/config.status smidump-corba-oid.test.in
+smidump-jax.test: $(top_builddir)/config.status smidump-jax.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 smidump-imports.test: $(top_builddir)/config.status smidump-imports.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status

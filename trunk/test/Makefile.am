@@ -8,18 +8,16 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.16 2000/11/12 17:46:49 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.17 2000/11/12 19:42:08 strauss Exp $
 #
 
-TESTMIBTOPDIR		= ../mibs
+TESTMIBTOPDIR		= ../../mibs
 TESTMIBDIR		= $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site:$(TESTMIBTOPDIR)/tubs
 TESTMIBS		= SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
 TESTS			= smilint-smiv2.test \
-			  smidump-orig-smiv2.test \
 			  smidump-smiv1.test \
 			  smidump-smiv2.test \
-			  smidump-smiv2-smiv2.test \
 			  smidump-sming.test \
 			  smidump-mosy.test \
 			  smidump-tree.test \
@@ -27,13 +25,13 @@ TESTS			= smilint-smiv2.test \
 			  smidump-imports.test \
 			  smidump-corba.test \
 			  smidump-jax.test \
+			  smidump-orig-smiv2.test \
+			  smidump-smiv2-smiv2.test \
 			  parser.test
-#			  smidump-corba-idl.test \
-#			  smidump-corba-oid.test \
 
 TESTS_ENVIRONMENT	= SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
 
-EXTRA_DIST		= $(TESTS) filter
+EXTRA_DIST		= $(TESTS)
 
 SUBDIRS                 = mibs dumps
 

@@ -1,3 +1,0 @@
-dumps/SNMPv2-MIB.smiv2:542: node `snmpTrapOID' must be contained in at least one conformance group
-dumps/SNMPv2-MIB.smiv2:552: node `snmpTrapEnterprise' must be contained in at least one conformance group
-dumps/SNMPv2-MIB.smiv2:600: notification `warmStart' must be contained in at least one conformance group

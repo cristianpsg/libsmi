@@ -1,21 +1,39 @@
 #!/bin/sh
+#
+# smilint-FORMAT.test --
+#
+#       smilint test for various input formats.
+#
+# FORMAT=xxx : 
+#   Check `smilint -l9' output for all TESTMIBS read from dumps/xxx/
+#   against nominal dumps/smilint-xxx/ output files.
+#
 
 FORMAT=`echo $0 | sed -e 's/^.*smilint-\(.*\).test/\1/'`
+ACTUALDIR=smilint-${FORMAT}.out
+NOMINALDIR=dumps/smilint-${FORMAT}
 
-rm -rf smilint-${FORMAT}.out
-mkdir smilint-${FORMAT}.out
+rm -rf ${ACTUALDIR}
+mkdir ${ACTUALDIR}
 
 RC=0
-
+FAILED=""
 for mib in ${TESTMIBS} ; do
-    echo "comparing \`smilint -l 9 dumps/$mib.${FORMAT}' output with dumps/$mib.${FORMAT}.lint."
-    ../tools/smilint -c /dev/null -l 9 dumps/$mib.${FORMAT} > smilint-${FORMAT}.out/$mib.${FORMAT}.lint 2>&1
-    WC=`@DIFF@ smilint-${FORMAT}.out/$mib.${FORMAT}.lint dumps/$mib.${FORMAT}.lint | wc -l`
-    if [ $WC -ne 0 ] ; then
-	echo "*** smilint -l 9 output differs, for details take a look at"
-	echo "*** diff dumps/$mib.${FORMAT}.lint smilint-${FORMAT}.out/$mib.${FORMAT}.lint"
-	RC=1
+    echo "comparing \`smilint -l9 dumps/${FORMAT}/$mib' output with ${NOMINALDIR}/*."
+    cd ${ACTUALDIR}
+    ../../tools/smilint -c/dev/null -l9 ../dumps/${FORMAT}/$mib > $mib 2>&1
+    cd ..
+    @DIFF@ ${ACTUALDIR}/$mib ${NOMINALDIR}/$mib > ${ACTUALDIR}/$mib.diff
+    if [ ! -s ${ACTUALDIR}/$mib.diff ] ; then
+	rm ${ACTUALDIR}/$mib.diff
+    else
+	FAILED=1
     fi
 done
+
+if [ "$FAILED" ] ; then
+    echo "*** smilint output differs, see ${ACTUALDIR}/*.diff"
+    RC=1
+fi
 
 exit ${RC}
