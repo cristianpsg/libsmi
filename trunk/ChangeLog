@@ -1,3 +1,8 @@
+2000-03-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-jax.c (dumpScalars): added Sven's patches for
+	notifications and scalar groups.
+
 2000-03-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/*.c: added dump-xml from Juergen. replaced bcmp by memcmp.
