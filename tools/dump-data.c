@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.c,v 1.2 1999/03/17 19:09:10 strauss Exp $
+ * @(#) $Id: dump-data.c,v 1.3 1999/03/23 22:55:42 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -103,7 +103,7 @@ dumpTypes()
 		   typePtr->modulePtr->name ? typePtr->modulePtr->name : "-",
 		   SMI_NAMESPACE_OPERATOR,
 		   typePtr->name ? typePtr->name : "-",
-		   smiStringSyntax(typePtr->syntax),
+		   smiStringBasetype(typePtr->basetype),
 		   smiStringStatus(typePtr->status));
 	}
     }

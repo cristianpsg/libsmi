@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.4 1999/03/25 21:57:49 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.5 1999/03/28 19:26:27 strauss Exp $
  */
 
 #include <stdio.h>
@@ -160,7 +160,7 @@ main(argc, argv)
 	    printf("      Module: %s\n", format(node->module));
 	    printf("         OID: %s\n", format(node->oid));
 	    printf("        Type: %s\n", format(node->type));
-	    printf("      Syntax: %s\n", smiStringSyntax(node->syntax));
+	    printf("      Syntax: %s\n", smiStringBasetype(node->basetype));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("      Access: %s\n", smiStringAccess(node->access));
 	    printf("      Status: %s\n", smiStringStatus(node->status));
@@ -174,13 +174,13 @@ main(argc, argv)
 	if (type) {
 	    printf("        Type: %s\n", format(type->name));
 	    printf("      Module: %s\n", format(type->module));
-	    printf("      Syntax: %s\n", smiStringSyntax(type->syntax));
+	    printf("      Syntax: %s\n", smiStringBasetype(type->basetype));
 	    printf(" Parent Type: %s\n", format(type->parent));
 	    printf("Restrictions:");
 	    if (type->list) {
 		for (listPtr = type->list; *listPtr; listPtr++) {
-		    if ((type->syntax == SMI_SYNTAX_ENUM) ||
-			(type->syntax == SMI_SYNTAX_BITS)) {
+		    if ((type->basetype == SMI_BASETYPE_ENUM) ||
+			(type->basetype == SMI_BASETYPE_BITS)) {
 			printf(" %s(%ld)",
 			       ((SmiNamedNumber *)*listPtr)->name,
 		     ((SmiNamedNumber *)*listPtr)->valuePtr->value.unsigned32);
