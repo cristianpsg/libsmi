@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.155 2001/09/21 11:27:12 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.156 2001/09/21 15:31:55 schoenw Exp $
  */
 
 %{
@@ -237,6 +237,15 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 
 	if (objectPtr->export.nodekind == SMI_NODEKIND_COMPLIANCE) {
 	    smiCheckComplianceStatus(parserPtr, objectPtr);
+	}
+
+	/*
+	 * Check whether notification statements contain useful
+	 * objects.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_NOTIFICATION) {
+	    smiCheckNotificationMembers(parserPtr, objectPtr);
 	}
 
 
