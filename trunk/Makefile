@@ -1,13 +1,13 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.8 1999/03/11 18:36:29 strauss Exp $
+# @(#) $Id: Makefile,v 1.10 1999/03/12 18:43:43 strauss Exp $
 #
 
 MIBDIR		= ../scotty/tnm/mibs
 PREFIX		= /usr/local
 
-DEFINES		= -DTEXTS_IN_MEMORY=20000 -DPARSER -DRPC_SVC_FG -DDEBUG
+DEFINES		= -DTEXTS_IN_MEMORY=20000 -DRPC_SVC_FG -DDEBUG -DBACKEND_RPC -DBACKEND_SMI -DBACKEND_SMING
 CC		= gcc
 CFLAGS		= -I. -Ilib -Wall -g $(DEFINES)
 LD		= gcc
@@ -37,6 +37,13 @@ tools/smid.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c: lib/smi.h-add lib/smi.x
 
 lib/parser-smi.tab.c lib/parser-smi.tab.h: lib/parser-smi.y lib/scanner-smi.h lib/parser-smi.h
 	$(BISON) -v -t -d lib/parser-smi.y
+#	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
+#	# bison-1.27 is ok and does not need this.
+	sed -e 's/int yyparse (void);/int yyparse ();/' \
+	    lib/parser-smi.tab.c > lib/parser-smi.tab.c.tmp && \
+	mv lib/parser-smi.tab.c.tmp lib/parser-smi.tab.c
+
+
 
 lib/scanner-smi.c: lib/scanner-smi.l lib/scanner-smi.h lib/parser-smi.tab.h
 	$(FLEX) -t lib/scanner-smi.l > lib/scanner-smi.c
@@ -54,7 +61,7 @@ tools/smidump: $(LIBSMI_STATIC) tools/smidump.o tools/dump-sming.o
 	$(LD) $(LD_FLAGS) -o tools/smidump tools/smidump.o tools/dump-sming.o $(LIBSMI_STATIC) -ll -lnsl
 
 clean:
-	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c
+	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c
 
 
 

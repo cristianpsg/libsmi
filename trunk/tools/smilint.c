@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.2 1999/03/12 12:49:13 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.3 1999/03/12 16:59:34 strauss Exp $
  */
 
 #include <stdio.h>
@@ -21,7 +21,6 @@
 
 #include "smi.h"
 #include "defs.h"
-#include "config.h"
 #include "error.h"
 #include "scanner-smi.h"
 #include "parser-smi.tab.h"

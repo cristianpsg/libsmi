@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.1 1999/03/11 17:33:00 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.2 1999/03/12 16:59:33 strauss Exp $
  */
 
 %{
@@ -367,6 +367,7 @@ module:			moduleName
 				thisParserPtr->modulePtr =
 				    addModule($1,
 					      thisParserPtr->path,
+					      thisParserPtr->location,
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
