@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.9 1999/03/26 17:01:57 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.10 1999/03/28 19:26:27 strauss Exp $
  */
 
 %{
@@ -266,7 +266,7 @@ Node   *parentNodePtr;
 %type  <text>BitName
 %type  <objectPtr>ObjectName
 %type  <objectPtr>NotificationName
-%type  <err>ReferPart
+%type  <text>ReferPart
 %type  <err>RevisionPart
 %type  <err>Revisions
 %type  <err>Revision
@@ -727,7 +727,7 @@ choiceClause:		CHOICE
 			/* the scanner skips until... */
 			'}'
 			{
-			    $$ = addType(NULL, SMI_SYNTAX_CHOICE, 0,
+			    $$ = addType(NULL, SMI_BASETYPE_CHOICE, 0,
 					 thisParserPtr);
 			}
 	;
@@ -870,6 +870,9 @@ typeDeclarationRHS:	Syntax
 				$$ = duplicateType($9, 0, thisParserPtr);
 			    }
 			    setTypeDescription($$, $6);
+			    if ($7) {
+				setTypeReference($$, $7);
+			    }
 			    setTypeStatus($$, $4);
 			    if ($2) {
 				setTypeFormat($$, $2);
@@ -889,7 +892,7 @@ conceptualTable:	SEQUENCE OF row
 			    
 			    if ($3) {
 				$$ = addType(NULL,
-					     SMI_SYNTAX_SEQUENCEOF, 0,
+					     SMI_BASETYPE_SEQUENCEOF, 0,
 					     thisParserPtr);
 				sprintf(s, "%s!%s", $3->modulePtr->name,
 					$3->name);
@@ -921,9 +924,10 @@ row:			UPPERCASE_IDENTIFIER
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
 				     */
-				    typePtr = addType($1, SMI_SYNTAX_SEQUENCE,
-						   FLAG_INCOMPLETE,
-						   thisParserPtr);
+				    typePtr = addType($1,
+						      SMI_BASETYPE_SEQUENCE,
+						      FLAG_INCOMPLETE,
+						      thisParserPtr);
 				    $$ = typePtr;
 				} else {
 				    /*
@@ -933,11 +937,11 @@ row:			UPPERCASE_IDENTIFIER
 				    stypePtr = smiGetType($1,
 							  importPtr->module);
 				    if (stypePtr) {
-					$$ = addType($1, stypePtr->syntax,
+					$$ = addType($1, stypePtr->basetype,
 						     FLAG_IMPORTED,
 						     thisParserPtr);
 				    } else {
-					$$ = addType($1, SMI_SYNTAX_UNKNOWN,
+					$$ = addType($1, SMI_BASETYPE_UNKNOWN,
 					       FLAG_INCOMPLETE | FLAG_IMPORTED,
 						     thisParserPtr);
 				    }
@@ -950,7 +954,7 @@ row:			UPPERCASE_IDENTIFIER
 /* REF:RFC1902,7.1.12. */
 entryType:		SEQUENCE '{' sequenceItems '}'
 			{
-			    $$ = addType(NULL, SMI_SYNTAX_SEQUENCE, 0,
+			    $$ = addType(NULL, SMI_BASETYPE_SEQUENCE, 0,
 					 thisParserPtr);
 			    setTypeListPtr($$, $3);
 			}
@@ -1032,7 +1036,7 @@ Syntax:			ObjectSyntax
 			{
 			    Type *typePtr;
 			    
-			    typePtr = addType(NULL, SMI_SYNTAX_BITS,
+			    typePtr = addType(NULL, SMI_BASETYPE_BITS,
 					      FLAG_INCOMPLETE,
 					      thisParserPtr);
 			    setTypeListPtr(typePtr, $3);
@@ -1065,7 +1069,7 @@ sequenceSyntax:		/* ObjectSyntax */
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
 				     */
-				    typePtr = addType($1, SMI_SYNTAX_UNKNOWN,
+				    typePtr = addType($1, SMI_BASETYPE_UNKNOWN,
 						      FLAG_INCOMPLETE,
 						      thisParserPtr);
 				    $$ = typePtr;
@@ -1116,7 +1120,7 @@ NamedBit:		identifier
 			    $$ = util_malloc(sizeof(SmiNamedNumber));
 			    /* TODO: success? */
 			    $$->name = util_strdup($1);
-			    $$->valuePtr->syntax = SMI_SYNTAX_UNSIGNED32;
+			    $$->valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->valuePtr->value.unsigned32 = $4;
 			}
 	;
@@ -1156,11 +1160,11 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTIDENTITY);
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
+			    if ($8) {
+				setObjectReference(objectPtr, $8);
+			    }
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-#if 0
-			    setObjectReferences(objectPtr, $8);
-#endif
 			    $$ = 0;
 			}
 	;
@@ -1208,11 +1212,11 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    if ($10) {
 				setObjectDescription(objectPtr, $10);
 			    }
+			    if ($11) {
+				setObjectReference(objectPtr, $11);
+			    }
 			    setObjectIndex(objectPtr, $12);
-			    /*
-			     * TODO: ReferPart ($11)
-			     * TODO: DefValPart ($13)
-			     */
+			    setObjectValue(objectPtr, $13);
 			    $$ = 0;
 			}
 	;
@@ -1330,6 +1334,9 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
+			    if ($9) {
+				setObjectReference(objectPtr, $9);
+			    }
 			    $$ = 0;
 			}
 	;
@@ -1476,7 +1483,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-			    setTypeSyntax($$, SMI_SYNTAX_ENUM);
+			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeListPtr($$, $2);
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
@@ -1507,7 +1514,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
 				     */
-				    parentPtr = addType($1, SMI_SYNTAX_UNKNOWN,
+				    parentPtr = addType($1,
+							SMI_BASETYPE_UNKNOWN,
 						        FLAG_INCOMPLETE,
 						        thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
@@ -1522,7 +1530,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     */
 				    stypePtr = smiGetType($1,
 							  importPtr->module);
-				    $$ = addType(NULL, stypePtr->syntax, 0,
+				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
 					    importPtr->name);
@@ -1534,7 +1542,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-			    setTypeSyntax($$, SMI_SYNTAX_ENUM);
+			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeListPtr($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
@@ -1559,7 +1567,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     */
 				    stypePtr = smiGetType($3, $1);
 				    /* TODO: success? */
-				    $$ = addType(NULL, stypePtr->syntax, 0,
+				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
 					    importPtr->name);
@@ -1570,7 +1578,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-			    setTypeSyntax($$, SMI_SYNTAX_ENUM);
+			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
 			    setTypeListPtr($$, $4);
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
@@ -1591,7 +1599,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * marked with FLAG_INCOMPLETE.
 				     */
 				    parentPtr = addType($1,
-							SMI_SYNTAX_UNKNOWN,
+							SMI_BASETYPE_UNKNOWN,
 							FLAG_INCOMPLETE,
 							thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
@@ -1606,7 +1614,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     */
 				    stypePtr = smiGetType($1,
 							  importPtr->module);
-				    $$ = addType(NULL, stypePtr->syntax, 0,
+				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
 					    importPtr->name);
@@ -1643,7 +1651,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     */
 				    stypePtr = smiGetType($3, $1);
 				    /* TODO: success? */
-				    $$ = addType(NULL, stypePtr->syntax, 0,
+				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
 					    importPtr->name);
@@ -1686,7 +1694,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * marked with FLAG_INCOMPLETE.
 				     */
 				    parentPtr = addType($1,
-						     SMI_SYNTAX_UNKNOWN,
+						     SMI_BASETYPE_UNKNOWN,
 						     FLAG_INCOMPLETE,
 						     thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
@@ -1701,7 +1709,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     */
 				    stypePtr = smiGetType($1,
 							  importPtr->module);
-				    $$ = addType(NULL, stypePtr->syntax, 0,
+				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
 					    importPtr->name);
@@ -1738,7 +1746,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     */
 				    stypePtr = smiGetType($3, $1);
 				    /* TODO: success? */
-				    $$ = addType(NULL, stypePtr->syntax, 0,
+				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
 				    sprintf(s, "%s.%s", importPtr->module,
 					    importPtr->name);
@@ -1762,42 +1770,42 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_UNSIGNED32;
+			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
 			}
 	|		'-' number		/* -2147483648..0 */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = - $2;
 			}
 	|		BIN_STRING		/* number or OCTET STRING */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_BIN;
+			    $$->basetype = SMI_BASETYPE_BINSTRING;
 			    $$->value.ptr = $1;
 			}
 	|		HEX_STRING		/* number or OCTET STRING */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_HEX;
+			    $$->basetype = SMI_BASETYPE_HEXSTRING;
 			    $$->value.ptr = $1;
 			}
 	|		LOWERCASE_IDENTIFIER	/* enumeration label */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_STRING;
+			    $$->basetype = SMI_BASETYPE_LABEL;
 			    $$->value.ptr = $1;
 			}
 	|		QUOTED_STRING		/* an OCTET STRING */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_STRING;
+			    $$->basetype = SMI_BASETYPE_OCTETSTRING;
 			    $$->value.ptr = $1;
 			}
 			/* NOTE: If the value is an OBJECT IDENTIFIER, then
@@ -1820,7 +1828,7 @@ valueofSimpleSyntax:	number			/* 0..2147483647 */
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_OBJECTIDENTIFIER;
+			    $$->basetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 			    /* TODO: set $$->value.? ... */
 			}
 	;
@@ -2079,7 +2087,7 @@ value:			'-' number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
 			}
@@ -2087,21 +2095,21 @@ value:			'-' number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_UNSIGNED32;
+			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
 			}
 	|		HEX_STRING
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_HEX;
+			    $$->basetype = SMI_BASETYPE_HEXSTRING;
 			    $$->value.ptr = util_strdup($1);
 			}
 	|		BIN_STRING
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_BIN;
+			    $$->basetype = SMI_BASETYPE_BINSTRING;
 			    $$->value.ptr = util_strdup($1);
 			}
 	;
@@ -2154,7 +2162,7 @@ enumNumber:		number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = $1;
 			}
@@ -2162,7 +2170,7 @@ enumNumber:		number
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_INTEGER32;
+			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    /* TODO: range check */
 			    $$->value.integer32 = - $2;
 			    /* TODO: non-negative is suggested */
@@ -2361,7 +2369,7 @@ Value:			valueofObjectSyntax
 			{
 			    $$ = util_malloc(sizeof(SmiValue));
 			    /* TODO: success? */
-			    $$->syntax = SMI_SYNTAX_BITS;
+			    $$->basetype = SMI_BASETYPE_BITS;
 			    $$->value.bits = NULL;
 			    /* TODO: setup *list[] */
 			}
@@ -2411,9 +2419,9 @@ NotificationName:	objectIdentifier
 	;
 
 ReferPart:		REFERENCE Text
-			{ $$ = 0; }
+			{ $$ = $2; }
 	|		/* empty */
-			{ $$ = 0; }
+			{ $$ = NULL; }
 	;
 
 RevisionPart:		Revisions
@@ -2760,14 +2768,14 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
+			    if ($9) {
+				setObjectReference(objectPtr, $9);
+			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-#if 0
 				/*
 				 * TODO: ObjectsPart ($4)
-				 * TODO: ReferPart ($9)
 				 */
-#endif
 			    $$ = 0;
 			}
 	;
@@ -2804,14 +2812,14 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
+			    if ($9) {
+				setObjectReference(objectPtr, $9);
+			    }
 			    setObjectAccess(objectPtr,
 					    SMI_ACCESS_NOT_ACCESSIBLE);
-#if 0
 				/*
 				 * TODO: NotificationsPart ($4)
-				 * TODO: ReferPart ($9)
 				 */
-#endif
 			    $$ = 0;
 			}
 	;
@@ -2846,8 +2854,10 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
+			    if ($8) {
+				setObjectReference(objectPtr, $8);
+			    }
 				/*
-				 * TODO: ReferPart ($8)
 				 * TODO: ModulePart_Compliance ($9)
 				 */
 			    $$ = 0;
@@ -2980,9 +2990,11 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
 			    setObjectDescription(objectPtr, $9);
+			    if ($10) {
+				setObjectReference(objectPtr, $10);
+			    }
 				/*
 				 * TODO: PRODUCT_RELEASE Text ($5)
-				 * TODO: ReferPart ($10)
 				 * TODO: ModulePart_Capabilities ($11)
 				 */
 			    $$ = 0;

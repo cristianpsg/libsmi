@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.2 1999/03/25 21:57:47 strauss Exp $
+ * @(#) $Id: smi.h,v 1.3 1999/03/26 17:01:58 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -53,35 +53,26 @@ typedef unsigned long long	SmiNumber;
 
 
 
-typedef enum SmiSyntax {
-    SMI_SYNTAX_UNKNOWN		= 0,
-    SMI_SYNTAX_INTEGER32        = 1, /* equal to INTEGER */
-    SMI_SYNTAX_OCTETSTRING	= 2,
-    SMI_SYNTAX_OBJECTIDENTIFIER = 3,
-    SMI_SYNTAX_SEQUENCE	     	= 4,
-    SMI_SYNTAX_SEQUENCEOF	= 5,
-    SMI_SYNTAX_IPADDRESS	= 6,
-    SMI_SYNTAX_COUNTER32	= 7,
-    SMI_SYNTAX_GAUGE32	     	= 8,
-    SMI_SYNTAX_UNSIGNED32	= 9,
-    SMI_SYNTAX_TIMETICKS	= 10,
-    SMI_SYNTAX_OPAQUE	     	= 11,
-    SMI_SYNTAX_COUNTER64	= 12,
-    SMI_SYNTAX_CHOICE	     	= 13, /* only for internal use */
-    SMI_SYNTAX_BITS             = 14,
-
-    SMI_SYNTAX_INTEGER64	= 33,
-    SMI_SYNTAX_UNSIGNED64       = 34,
-    SMI_SYNTAX_GAUGE64          = 35,
-    SMI_SYNTAX_FLOAT32          = 36,
-    SMI_SYNTAX_FLOAT64          = 37,
-    SMI_SYNTAX_FLOAT128         = 38,
-    SMI_SYNTAX_ENUM             = 39,
-
-    SMI_SYNTAX_HEX		= 65, /* for internal use */
-    SMI_SYNTAX_BIN		= 66, /* for internal use */
-    SMI_SYNTAX_STRING		= 67  /* for internal use */
-} SmiSyntax;
+typedef enum SmiBasetype {
+    SMI_BASETYPE_UNKNOWN		= 0,
+    SMI_BASETYPE_INTEGER32		= 1,
+    SMI_BASETYPE_OCTETSTRING		= 2,
+    SMI_BASETYPE_OBJECTIDENTIFIER	= 3,
+    SMI_BASETYPE_UNSIGNED32		= 4,
+    SMI_BASETYPE_INTEGER64		= 5,
+    SMI_BASETYPE_UNSIGNED64		= 6,
+    SMI_BASETYPE_FLOAT32		= 7,
+    SMI_BASETYPE_FLOAT64		= 8,
+    SMI_BASETYPE_FLOAT128		= 9,
+    SMI_BASETYPE_ENUM			= 10,
+    SMI_BASETYPE_BITS			= 11,
+    SMI_BASETYPE_HEXSTRING		= 12,
+    SMI_BASETYPE_BINSTRING		= 13,
+    SMI_BASETYPE_LABEL			= 14,
+    SMI_BASETYPE_CHOICE			= 15,
+    SMI_BASETYPE_SEQUENCE	     	= 16,
+    SMI_BASETYPE_SEQUENCEOF		= 17
+} SmiBasetype;
 
 typedef enum SmiStatus {
     SMI_STATUS_UNKNOWN	 	= 0,
@@ -137,7 +128,7 @@ typedef struct SmiRevision {
 } SmiRevision;
 
 typedef struct SmiValue {
-    SmiSyntax	        syntax;
+    SmiBasetype	        basetype;
     union {
 	SmiUnsigned64      unsigned64;
 	SmiInteger64       integer64;
@@ -176,7 +167,7 @@ typedef struct SmiNode {
     char		*type;
     char		**index;
     SmiDecl		decl;
-    SmiSyntax		syntax;
+    SmiBasetype		basetype;
     SmiAccess		access;
     SmiStatus		status;
     char		*format;
@@ -189,7 +180,7 @@ typedef struct SmiNode {
 typedef struct SmiType {
     char		*name;
     char		*module;
-    SmiSyntax		syntax;
+    SmiBasetype		basetype;
     char		*parent;
     void		**list;   /* SmiNamedNumber or SmiRange */
     SmiDecl		decl;
@@ -261,21 +252,22 @@ typedef struct SmiMacro {
 	(macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" : \
 					        "<unknown>" )
 
-#define smiStringSyntax(syntax) ( \
-	(syntax == SMI_SYNTAX_UNKNOWN)           ? "<UNKNOWN>" : \
-	(syntax == SMI_SYNTAX_INTEGER32)         ? "INTEGER" : \
-	(syntax == SMI_SYNTAX_OCTETSTRING)       ? "OCTET STRING" : \
-	(syntax == SMI_SYNTAX_OBJECTIDENTIFIER)  ? "OBJECT IDENTIFIER" : \
-	(syntax == SMI_SYNTAX_SEQUENCE)          ? "SEQUENCE" : \
-	(syntax == SMI_SYNTAX_SEQUENCEOF)        ? "SEQUENCE OF" : \
-	(syntax == SMI_SYNTAX_IPADDRESS)         ? "IpAddress" : \
-	(syntax == SMI_SYNTAX_COUNTER32)         ? "Counter32" : \
-	(syntax == SMI_SYNTAX_GAUGE32)           ? "Gauge32" : \
-	(syntax == SMI_SYNTAX_UNSIGNED32)        ? "Unsigned32" : \
-	(syntax == SMI_SYNTAX_TIMETICKS)         ? "TimeTicks" : \
-	(syntax == SMI_SYNTAX_OPAQUE)            ? "Opaque" : \
-	(syntax == SMI_SYNTAX_COUNTER64)         ? "Counter64" : \
-	(syntax == SMI_SYNTAX_CHOICE)            ? "CHOICE" : \
+#define smiStringBasetype(basetype) ( \
+	(basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" : \
+	(basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" : \
+	(basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" : \
+	(basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" : \
+	(basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" : \
+	(basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" : \
+	(basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" : \
+	(basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" : \
+	(basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" : \
+	(basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" : \
+	(basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" : \
+	(basetype == SMI_BASETYPE_BITS)              ? "Bits" : \
+	(basetype == SMI_BASETYPE_SEQUENCE)          ? "SEQUENCE" : \
+	(basetype == SMI_BASETYPE_SEQUENCEOF)        ? "SEQUENCE OF" : \
+	(basetype == SMI_BASETYPE_CHOICE)            ? "CHOICE" : \
 					           "<unknown>" )
 
 

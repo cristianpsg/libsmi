@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.9 1999/03/25 21:57:46 strauss Exp $
+ * @(#) $Id: smi.c,v 1.10 1999/03/26 17:01:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -60,11 +60,11 @@ static int		initialized = 0;
 
 
 int
-allowsNamedNumbers(syntax)
-    SmiSyntax syntax;
+allowsNamedNumbers(basetype)
+    SmiBasetype basetype;
 {
-    if ((syntax == SMI_SYNTAX_INTEGER32) ||
-	(syntax == SMI_SYNTAX_BITS)) {
+    if ((basetype == SMI_BASETYPE_INTEGER32) ||
+	(basetype == SMI_BASETYPE_BITS)) {
 	return 1;
     } else {
 	return 0;
@@ -74,15 +74,15 @@ allowsNamedNumbers(syntax)
 
 
 int
-allowsRanges(syntax)
-    SmiSyntax syntax;
+allowsRanges(basetype)
+    SmiBasetype basetype;
 {
-    if ((syntax == SMI_SYNTAX_INTEGER32) ||
-	(syntax == SMI_SYNTAX_INTEGER64) ||
-	(syntax == SMI_SYNTAX_UNSIGNED32) ||
-	(syntax == SMI_SYNTAX_UNSIGNED64) ||
-	(syntax == SMI_SYNTAX_OCTETSTRING) ||
-	(syntax == SMI_SYNTAX_BITS)) {
+    if ((basetype == SMI_BASETYPE_INTEGER32) ||
+	(basetype == SMI_BASETYPE_INTEGER64) ||
+	(basetype == SMI_BASETYPE_UNSIGNED32) ||
+	(basetype == SMI_BASETYPE_UNSIGNED64) ||
+	(basetype == SMI_BASETYPE_OCTETSTRING) ||
+	(basetype == SMI_BASETYPE_BITS)) {
 	return 1;
     } else {
 	return 0;
@@ -444,8 +444,8 @@ createSmiNode(objectPtr)
 	smiNodePtr->decl       = objectPtr->decl;
 	smiNodePtr->access     = objectPtr->access;
 	smiNodePtr->status     = objectPtr->status;
-	smiNodePtr->syntax     = objectPtr->typePtr ?
-	                     objectPtr->typePtr->syntax : SMI_SYNTAX_UNKNOWN;
+	smiNodePtr->basetype     = objectPtr->typePtr ?
+	                     objectPtr->typePtr->basetype : SMI_BASETYPE_UNKNOWN;
 	if (objectPtr->description) {
 	    smiNodePtr->description = objectPtr->description;
 	} else {
@@ -896,7 +896,7 @@ smiGetType(spec, mod)
 
 	smiTypePtr->name        = typePtr->name;
 	smiTypePtr->module      = typePtr->modulePtr->name;
-	smiTypePtr->syntax	= typePtr->syntax;
+	smiTypePtr->basetype	= typePtr->basetype;
 	smiTypePtr->parent	= typePtr->parentType;
         smiTypePtr->list	= NULL;
 	    for (listPtr = typePtr->listPtr; listPtr;
@@ -974,9 +974,9 @@ smiGetNextType(modulename, name)
 	    if (hit && typePtr && typePtr->name &&
 		isupper((int)typePtr->name[0]) &&
 		(!(typePtr->flags & FLAG_IMPORTED)) &&
-		(typePtr->syntax != SMI_SYNTAX_UNKNOWN) &&
-		(typePtr->syntax != SMI_SYNTAX_SEQUENCE) &&
-		(typePtr->syntax != SMI_SYNTAX_SEQUENCEOF)) {
+		(typePtr->basetype != SMI_BASETYPE_UNKNOWN) &&
+		(typePtr->basetype != SMI_BASETYPE_SEQUENCE) &&
+		(typePtr->basetype != SMI_BASETYPE_SEQUENCEOF)) {
 		break;
 	    }
 	}
@@ -986,7 +986,7 @@ smiGetNextType(modulename, name)
 	    
 	    smiTypePtr->name        = typePtr->name;
 	    smiTypePtr->module	    = typePtr->modulePtr->name;
-	    smiTypePtr->syntax	    = typePtr->syntax;
+	    smiTypePtr->basetype	    = typePtr->basetype;
 	    smiTypePtr->parent	    = typePtr->parentType;
 	    smiTypePtr->list	    = NULL;
 	    for (listPtr = typePtr->listPtr; listPtr;
@@ -1342,7 +1342,7 @@ smiGetMembers(spec, mod)
 #if 0
 	typePtr = findTypeByModulenameAndName(modulename, name);
 	if (typePtr) {
-	    if (typePtr->syntax == SMI_SYNTAX_SEQUENCE) {
+	    if (typePtr->basetype == SMI_BASETYPE_SEQUENCE) {
 				/* It is a SEQUENCE -> return all columns. */
 		for (e = (void *)typePtr->itemlistPtr; e;
 		     e = e->nextPtr) {
@@ -1370,7 +1370,7 @@ smiGetMembers(spec, mod)
 	 */
 	objectPtr = findObjectByModulenameAndName(modulename, name);
 	if (objectPtr) {
-	    if (objectPtr->typePtr->syntax == SMI_SYNTAX_SEQUENCEOF) {
+	    if (objectPtr->typePtr->basetype == SMI_BASETYPE_SEQUENCEOF) {
 		/*
 		 * a table, to retrieve all of its index object types
 		 */
@@ -1393,7 +1393,7 @@ smiGetMembers(spec, mod)
 		    }
 		}
 #endif
-	    } else if (objectPtr->typePtr->syntax == SMI_SYNTAX_SEQUENCE) {
+	    } else if (objectPtr->typePtr->basetype == SMI_BASETYPE_SEQUENCE) {
 		/*
 		 * a row, to retrieve all of its columnar object types
 		 */

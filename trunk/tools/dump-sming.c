@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.8 1999/03/25 21:57:49 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.9 1999/03/26 17:01:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -37,8 +37,11 @@
 
 char *excludeDescriptors[] = {
     "ObjectName", "NotificationName", "ObjectSyntax", "SimpleSyntax",
-    "Integer32", "ApplicationSyntax", "IpAddress", "Counter32", "Gauge32",
-    "Unsigned32", "TimeTicks", "Opaque", "Counter64",
+    "Integer32", "ApplicationSyntax", "Unsigned32",
+    NULL };
+
+char *typeDescriptors[] = {
+    "IpAddress", "Counter32", "Gauge32", "TimeTicks", "Opaque", "Counter64",
     NULL };
 
 char *smi2smingTypes[] = {
@@ -54,12 +57,12 @@ static int current_column = 0;
 
 
 static char *
-getSmingType(name, syntax)
+getTypeString(name, syntax)
     char *name;
 {
     int i;
 
-    if (syntax == SMI_SYNTAX_ENUM) {
+    if (syntax == SMI_BASETYPE_ENUM) {
 	return "Enumeration";
     }
     
@@ -177,43 +180,38 @@ getValueString(valuePtr)
 
     s[0] = 0;
     
-    switch (valuePtr->syntax) {
-    case SMI_SYNTAX_UNSIGNED32:
-    case SMI_SYNTAX_OCTETSTRING:
+    switch (valuePtr->basetype) {
+    case SMI_BASETYPE_UNSIGNED32:
+    case SMI_BASETYPE_OCTETSTRING:
 	sprintf(s, "%lu", valuePtr->value.unsigned32);
 	break;
-    case SMI_SYNTAX_INTEGER32:
-    case SMI_SYNTAX_GAUGE32:
+    case SMI_BASETYPE_INTEGER32:
 	sprintf(s, "%ld", valuePtr->value.integer32);
 	break;
-    case SMI_SYNTAX_UNSIGNED64:
+    case SMI_BASETYPE_UNSIGNED64:
 	sprintf(s, "%llu", valuePtr->value.unsigned64);
 	break;
-    case SMI_SYNTAX_INTEGER64:
-    case SMI_SYNTAX_GAUGE64:
+    case SMI_BASETYPE_INTEGER64:
 	sprintf(s, "%lld", valuePtr->value.integer64);
 	break;
-    case SMI_SYNTAX_FLOAT32:
-    case SMI_SYNTAX_FLOAT64:
-    case SMI_SYNTAX_FLOAT128:
-		
-    case SMI_SYNTAX_UNKNOWN:
-    case SMI_SYNTAX_IPADDRESS:
-    case SMI_SYNTAX_COUNTER32:
-    case SMI_SYNTAX_COUNTER64:
-    case SMI_SYNTAX_TIMETICKS:
-    case SMI_SYNTAX_OPAQUE:
-    case SMI_SYNTAX_CHOICE:
-    case SMI_SYNTAX_OBJECTIDENTIFIER:
-    case SMI_SYNTAX_SEQUENCE:
-    case SMI_SYNTAX_SEQUENCEOF:
-    case SMI_SYNTAX_ENUM:
-    case SMI_SYNTAX_BITS:
+    case SMI_BASETYPE_FLOAT32:
+    case SMI_BASETYPE_FLOAT64:
+    case SMI_BASETYPE_FLOAT128:
+	break;
+    case SMI_BASETYPE_ENUM:
+	
+	break;
+    case SMI_BASETYPE_UNKNOWN:
+    case SMI_BASETYPE_CHOICE:
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+    case SMI_BASETYPE_SEQUENCE:
+    case SMI_BASETYPE_SEQUENCEOF:
+    case SMI_BASETYPE_BITS:
 	/* XXX !!! */
 	
-    case SMI_SYNTAX_BIN:
-    case SMI_SYNTAX_HEX:
-    case SMI_SYNTAX_STRING:
+    case SMI_BASETYPE_BINSTRING:
+    case SMI_BASETYPE_HEXSTRING:
+    case SMI_BASETYPE_LABEL:
 	break;
     }
 
@@ -231,8 +229,8 @@ printSubtype(smiType)
     
     print("(");
     for (listPtr = smiType->list; *listPtr; listPtr++) {
-	if ((smiType->syntax == SMI_SYNTAX_ENUM) ||
-	    (smiType->syntax == SMI_SYNTAX_BITS)) {
+	if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
+	    (smiType->basetype == SMI_BASETYPE_BITS)) {
 	    if (listPtr != smiType->list)
 		print(", ");
 	    sprintf(s, "%s(%s)", ((SmiNamedNumber *)*listPtr)->name,
@@ -291,9 +289,13 @@ printImports(modulename)
     char	  *importedModulename, *importedDescriptor;
     char	  **p;
     int		  convert, i;
+    char	  types[200];
+    char	  *t;
     
     list = smiGetMembers(modulename, "");
 
+    types[0] = 0;
+    
     if (!list)
 	return;
     
@@ -314,11 +316,11 @@ printImports(modulename)
 	convert = 0;
 	if (!strcmp(importedModulename, "SNMPv2-SMI")) {
 	    convert = 1;
-	    importedModulename = "IETF-SMING-BASE";
+	    importedModulename = "IRTF-NMRG-SMING";
 	}
 	if (!strcmp(importedModulename, "SNMPv2-TC")) {
 	    convert = 1;
-	    importedModulename = "IETF-SMING-TYPES";
+	    importedModulename = "IRTF-NMRG-SMING-CORE-TYPES";
 	}
 	if (!strcmp(importedModulename, "SNMPv2-CONF")) {
 	    convert = 1;
@@ -342,6 +344,14 @@ printImports(modulename)
 		    break;
 		}
 	    }
+	    for(i=0; typeDescriptors[i]; i++) {
+		if (!strcmp(importedDescriptor, typeDescriptors[i])) {
+		    strcat(types, importedDescriptor);
+		    strcat(types, " ");
+		    importedDescriptor = "";
+		    break;
+		}
+	    }
 	}
 
 	if (strlen(importedDescriptor)) {
@@ -355,6 +365,35 @@ printImports(modulename)
 #if STYLE_IMPORTS == 2
 		    print(");\n\n");
 #endif
+		    if (strlen(types)) {
+			printSegment(INDENT, "", 0);
+			print("import IRTF-NMRG-SMING-TYPES (");
+			for (t = strtok(types, " "); t;
+			     t = strtok(NULL, " ")) {
+			    if (t != types) {
+				print(",");
+#if STYLE_IMPORTS == 2
+				print(" ");
+#endif
+			    }
+#if STYLE_IMPORTS == 1
+			    print("\n");
+			    printSegment(2 * INDENT, "", 0);
+			    print("%s", t);
+#endif
+#if STYLE_IMPORTS == 2
+			    printWrapped(INDENTVALUE + INDENT, t);
+#endif
+			}
+#if STYLE_IMPORTS == 1
+			print("\n");
+			printSegment(INDENT, ");\n\n", 0);
+#endif
+#if STYLE_IMPORTS == 2
+			print(");\n\n");
+#endif
+			types[0] = 0;
+		    }
 		} else {
 		    print("//\n// IDENTIFIER IMPORTS\n//\n\n");
 		}
@@ -434,7 +473,7 @@ printTypedefs(modulename)
 	print("typedef %s {\n", smiType->name);
 
 	printSegment(2 * INDENT, "type", INDENTVALUE);
-	print("%s", getSmingType(smiType->parent, smiType->syntax));
+	print("%s", getTypeString(smiType->parent, smiType->basetype));
 	if (smiType->list) {
 	    print(" ");
 	    printSubtype(smiType);
@@ -499,10 +538,10 @@ printObjects(modulename)
 	    indent = 0;
 	    s = "node";
 	} else if (smiNode->decl == SMI_DECL_OBJECTTYPE) {
-	    if (smiNode->syntax ==SMI_SYNTAX_SEQUENCEOF) {
+	    if (smiNode->basetype ==SMI_BASETYPE_SEQUENCEOF) {
 		indent = 0;
 		s = "table";
-	    } else if (smiNode->syntax ==SMI_SYNTAX_SEQUENCE) {
+	    } else if (smiNode->basetype ==SMI_BASETYPE_SEQUENCE) {
 		indent = 1;
 		s = "row";
 		/*
@@ -528,15 +567,15 @@ printObjects(modulename)
 	printSegment((1 + indent) * INDENT, "", 0);
 	print("%s %s {\n", s, smiNode->name);
 	
-	/* XXX oid in case of row or column */
+	/* XXX subid in case of row or column */
 
 	if (smiNode->oid) {
 	    printSegment((2 + indent) * INDENT, "oid", INDENTVALUE);
 	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
 	}
 
-	if ((smiNode->syntax != SMI_SYNTAX_SEQUENCE) &&
-	    (smiNode->syntax != SMI_SYNTAX_SEQUENCEOF)) {
+	if ((smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
+	    (smiNode->basetype != SMI_BASETYPE_SEQUENCEOF)) {
 	    if (smiNode->type) {
 		printSegment((2 + indent) * INDENT, "type", INDENTVALUE);
 		typename = smiDescriptor(smiNode->type);
@@ -545,22 +584,22 @@ printObjects(modulename)
 		     * an implicitly restricted type.
 		     */
 		    smiType = smiGetType(smiNode->type, "");
-		    print("%s", getSmingType(smiDescriptor(smiType->parent),
-					      smiType->syntax));
+		    print("%s", getTypeString(smiDescriptor(smiType->parent),
+					      smiType->basetype));
 		    if (smiType->list) {
 			print(" ");
 			printSubtype(smiType);
 		    }
 		    print(";\n");
 		} else {
-		    print("%s;\n", getSmingType(typename,
-						 SMI_SYNTAX_UNKNOWN));
+		    print("%s;\n", getTypeString(typename,
+						 SMI_BASETYPE_UNKNOWN));
 		}
 	    }
 	}
 
-	if ((smiNode->syntax != SMI_SYNTAX_SEQUENCE) &&
-	    (smiNode->syntax != SMI_SYNTAX_SEQUENCEOF)) {
+	if ((smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
+	    (smiNode->basetype != SMI_BASETYPE_SEQUENCEOF)) {
 	    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
 		printSegment((2 + indent) * INDENT, "access", INDENTVALUE);
 		print("%s;\n", smingStringAccess(smiNode->access));
@@ -573,7 +612,7 @@ printObjects(modulename)
 	
 	if (smiNode->value) {
 	    printSegment((2 + indent) * INDENT, "default", INDENTVALUE);
-	    print("%s", getSmingType(smiNode->value));
+	    print("%s", getValueString(smiNode->value));
 	    print(";\n");
 	}
 	

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.10 1999/03/25 21:57:45 strauss Exp $
+ * @(#) $Id: data.h,v 1.11 1999/03/26 17:01:56 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -163,7 +163,7 @@ typedef struct Type {
     Module         *modulePtr;
     char	   * name;
     char	   *parentType;
-    SmiSyntax	   syntax;
+    SmiBasetype	   basetype;
     SmiDecl	   decl;
     char	   *format;
     SmiValue	   *valuePtr;
@@ -375,6 +375,9 @@ extern void deleteObjectFlags(Object *objectPtr,
 extern void setObjectIndex(Object *objectPtr,
 			   Index *indexPtr);
 
+extern void setObjectValue(Object *objectPtr,
+			   SmiValue *valuePtr);
+
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);
 
@@ -400,7 +403,7 @@ extern Object *findObjectByModulenameAndName(const char *modulename,
 
 
 extern Type *addType(const char *typename,
-		     SmiSyntax syntax,
+		     SmiBasetype basetype,
 		     TypeFlags flags,
 		     Parser *parserPtr);
 
@@ -414,8 +417,8 @@ extern void setTypeName(Type *typePtr,
 extern void setTypeStatus(Type *typePtr,
 			  SmiStatus status);
 
-extern void setTypeSyntax(Type *typePtr,
-			  SmiSyntax syntax);
+extern void setTypeBasetype(Type *typePtr,
+			  SmiBasetype basetype);
 
 extern void setTypeParent(Type *typePtr,
 			  const char *parent);
@@ -425,6 +428,9 @@ extern void setTypeListPtr(Type *typePtr,
 
 extern void setTypeDescription(Type *typePtr,
 			       char *description);
+
+extern void setTypeReference(Type *typePtr,
+			     char *reference);
 
 extern void setTypeFileOffset(Type *typePtr,
 			      off_t fileoffset);

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.10 1999/03/25 21:57:44 strauss Exp $
+ * @(#) $Id: data.c,v 1.11 1999/03/26 17:01:55 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1284,7 +1284,7 @@ setObjectName(objectPtr, name)
  *
  * setObjectType --
  *
- *      Set the syntax/type (pointer to a Type struct) of a given Object.
+ *      Set the type (pointer to a Type struct) of a given Object.
  *
  * Results:
  *	None.
@@ -1617,6 +1617,37 @@ setObjectIndex(objectPtr, indexPtr)
 #endif
     
     objectPtr->indexPtr = indexPtr;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectValue --
+ *
+ *      Set the default value pointer of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectValue(objectPtr, valuePtr)
+    Object	 *objectPtr;
+    SmiValue	 *valuePtr;
+{
+#ifdef DEBUG
+    printDebug(5, "setObjectValue(0x%x(%s), 0x%x)\n",
+	       objectPtr, objectPtr->name, valuePtr);
+#endif
+    
+    objectPtr->valuePtr = valuePtr;
 }
 
 
@@ -2195,9 +2226,9 @@ dumpMosy(root)
  *---------------------------------------------------------------------- */
 
 Type *
-addType(typename, syntax, flags, parserPtr)
+addType(typename, basetype, flags, parserPtr)
     const char     *typename;
-    SmiSyntax	   syntax;
+    SmiBasetype	   basetype;
     TypeFlags      flags;
     Parser	   *parserPtr;
 {
@@ -2206,7 +2237,7 @@ addType(typename, syntax, flags, parserPtr)
     
 #ifdef DEBUG
     printDebug(4, "addType(%s, %s, %d, 0x%x)",
-	       typename ? typename : "\"\"", smiStringSyntax(syntax),
+	       typename ? typename : "\"\"", smiStringBasetype(basetype),
 	       flags, parserPtr);
 #endif
 
@@ -2224,7 +2255,7 @@ addType(typename, syntax, flags, parserPtr)
 	typePtr->name			= NULL;
     }
     typePtr->modulePtr			= modulePtr;
-    typePtr->syntax			= syntax;
+    typePtr->basetype			= basetype;
     typePtr->decl			= SMI_DECL_UNKNOWN;
     typePtr->status			= SMI_STATUS_UNKNOWN;
     typePtr->flags			= flags;
@@ -2298,9 +2329,9 @@ duplicateType(templatePtr, flags, parserPtr)
     
     typePtr->name	                = NULL;
     typePtr->modulePtr			= modulePtr;
-    typePtr->syntax			= templatePtr->syntax;
+    typePtr->basetype			= templatePtr->basetype;
     typePtr->decl			= templatePtr->decl;
-    typePtr->status			= templatePtr->syntax;
+    typePtr->status			= templatePtr->status;
     typePtr->listPtr			= NULL;
     typePtr->flags			= templatePtr->flags;
     typePtr->parentType			= util_strdup(templatePtr->name);
@@ -2393,9 +2424,9 @@ setTypeStatus(typePtr, status)
 /*
  *----------------------------------------------------------------------
  *
- * setTypeSyntax --
+ * setTypeBasetype --
  *
- *      Set the syntax of a given Type.
+ *      Set the basetype of a given Type.
  *
  * Results:
  *	None.
@@ -2407,17 +2438,17 @@ setTypeStatus(typePtr, status)
  */
 
 void
-setTypeSyntax(typePtr, syntax)
+setTypeBasetype(typePtr, basetype)
     Type       *typePtr;
-    SmiSyntax  syntax;
+    SmiBasetype  basetype;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeSyntax(0x%x(%s), %s)\n",
+    printDebug(5, "setTypeBasetype(0x%x(%s), %s)\n",
 	       typePtr, typePtr->name ? typePtr->name : "\"\"",
-	       smiStringSyntax(syntax));
+	       smiStringBasetype(basetype));
 #endif
 
-    typePtr->syntax = syntax;
+    typePtr->basetype = basetype;
 }
 
 
@@ -2450,6 +2481,38 @@ setTypeDescription(typePtr, description)
 #endif
     
     typePtr->description = util_strdup(description);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeReference --
+ *
+ *      Set the reference of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeReference(typePtr, reference)
+    Type	   *typePtr;
+    char	   *reference;
+{
+#ifdef DEBUG
+    printDebug(5, "setTypeReference(0x%x(%s), %s)\n",
+	       typePtr, typePtr->name ? typePtr->name : "\"\"",
+	       reference);
+#endif
+    
+    typePtr->reference = util_strdup(reference);
 }
 
 
@@ -2645,10 +2708,38 @@ setTypeDecl(typePtr, decl)
 	       smiStringDecl(decl));
 #endif
     
-    /* TODO: which this check? */
-    if (typePtr->decl == SMI_DECL_UNKNOWN) {
-	typePtr->decl = decl;
-    }
+    typePtr->decl = decl;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeValue --
+ *
+ *      Set the default value pointer of a given Type.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setTypeValue(typePtr, valuePtr)
+    Type	 *typePtr;
+    SmiValue	 *valuePtr;
+{
+#ifdef DEBUG
+    printDebug(5, "setTypeValue(0x%x(%s), 0x%x)\n",
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", valuePtr);
+#endif
+    
+    typePtr->valuePtr = valuePtr;
 }
 
 
@@ -2912,11 +3003,11 @@ dumpTypes()
 	if (d->module) {
 	    fprintf(stderr, "%s!", d->module->descriptor->name);
 	}
-	for (t = d->ptr; t && t->syntax != SMI_SYNTAX_SEQUENCE;
+	for (t = d->ptr; t && t->basetype != SMI_BASETYPE_SEQUENCE;
 	     t = t->parent) {
 	    fprintf(stderr, "%s", t->descriptor && t->descriptor->name ? t->descriptor->name : "?");
-	    if (t->syntax) {
-		fprintf(stderr, "(%s)", smiStringSyntax(t->syntax));
+	    if (t->basetype) {
+		fprintf(stderr, "(%s)", smiStringBasetype(t->basetype));
 	    }
 	    fprintf(stderr, " <- ");
 	}
@@ -3151,30 +3242,23 @@ initData()
      * the well-known SMIng Types.
      */
     typeIntegerPtr          = addType("INTEGER",
-				      SMI_SYNTAX_INTEGER32, 0, &parser);
+				      SMI_BASETYPE_INTEGER32, 0, &parser);
     typeOctetStringPtr      = addType("OCTET STRING",
-				      SMI_SYNTAX_OCTETSTRING, 0, &parser);
+				      SMI_BASETYPE_OCTETSTRING, 0, &parser);
     typeObjectIdentifierPtr = addType("OBJECT IDENTIFIER",
-				      SMI_SYNTAX_OBJECTIDENTIFIER, 0, &parser);
+				      SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
 
-    addType("OctetString", SMI_SYNTAX_OCTETSTRING, 0, NULL);
-    addType("ObjectIdentifier", SMI_SYNTAX_OBJECTIDENTIFIER, 0, NULL);
-    addType("TimeTicks", SMI_SYNTAX_TIMETICKS, 0, NULL);
-    addType("Opaque", SMI_SYNTAX_OPAQUE, 0, NULL);
-    addType("IpAddress", SMI_SYNTAX_IPADDRESS, 0, NULL);
-    addType("Integer32", SMI_SYNTAX_INTEGER32, 0, NULL);
-    addType("Unsigned32", SMI_SYNTAX_UNSIGNED32, 0, NULL);
-    addType("Counter32", SMI_SYNTAX_COUNTER32, 0, NULL);
-    addType("Gauge32", SMI_SYNTAX_GAUGE32, 0, NULL);
-    addType("Integer64", SMI_SYNTAX_INTEGER64, 0, NULL);
-    addType("Unsigned64", SMI_SYNTAX_UNSIGNED64, 0, NULL);
-    addType("Counter64", SMI_SYNTAX_COUNTER64, 0, NULL);
-    addType("Gauge64", SMI_SYNTAX_GAUGE64, 0, NULL);
-    addType("Float32", SMI_SYNTAX_FLOAT32, 0, NULL);
-    addType("Float64", SMI_SYNTAX_FLOAT64, 0, NULL);
-    addType("Float128", SMI_SYNTAX_FLOAT128, 0, NULL);
-    addType("Enum", SMI_SYNTAX_ENUM, 0, NULL);
-    addType("Bits", SMI_SYNTAX_BITS, 0, NULL);
+    addType("OctetString", SMI_BASETYPE_OCTETSTRING, 0, NULL);
+    addType("ObjectIdentifier", SMI_BASETYPE_OBJECTIDENTIFIER, 0, NULL);
+    addType("Integer32", SMI_BASETYPE_INTEGER32, 0, NULL);
+    addType("Unsigned32", SMI_BASETYPE_UNSIGNED32, 0, NULL);
+    addType("Integer64", SMI_BASETYPE_INTEGER64, 0, NULL);
+    addType("Unsigned64", SMI_BASETYPE_UNSIGNED64, 0, NULL);
+    addType("Float32", SMI_BASETYPE_FLOAT32, 0, NULL);
+    addType("Float64", SMI_BASETYPE_FLOAT64, 0, NULL);
+    addType("Float128", SMI_BASETYPE_FLOAT128, 0, NULL);
+    addType("Enum", SMI_BASETYPE_ENUM, 0, NULL);
+    addType("Bits", SMI_BASETYPE_BITS, 0, NULL);
 
     return (0);
 }
