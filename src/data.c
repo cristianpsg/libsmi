@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.6 1998/10/22 15:18:00 strauss Exp $
+ * @(#) $Id: data.c,v 1.7 1998/10/27 13:32:42 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -37,6 +37,46 @@
 	(status == STATUS_DEPRECATED)  ? "deprecated" : \
 	(status == STATUS_OBSOLETE)    ? "obsolete" : \
 					 "unknown" )
+
+#define stringMacro(macro) ( \
+	(macro == MACRO_UNKNOWN)           ? "UNKNOWN" : \
+	(macro == MACRO_NONE)              ? "NONE" : \
+	(macro == MACRO_OBJECTTYPE)        ? "OBJECTTYPE" : \
+	(macro == MACRO_OBJECTIDENTITY)    ? "OBJECTIDENTITY" : \
+	(macro == MACRO_MODULEIDENTITY)    ? "MODULEIDENTITY" : \
+	(macro == MACRO_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" : \
+	(macro == MACRO_TRAPTYPE)          ? "TRAPTYPE" : \
+	(macro == MACRO_OBJECTGROUP)       ? "OBJECTGROUP" : \
+	(macro == MACRO_NOTIFICATIONGROUP) ? "NOTIFICATIONGROUP" : \
+	(macro == MACRO_MODULECOMPLIANCE)  ? "MODULECOMPLIANCE" : \
+	(macro == MACRO_AGENTCAPABILITIES) ? "AGENTCAPABILITIES" : \
+	(macro == MACRO_TC)                ? "TC" : \
+					     "unknown" )
+
+#define stringKind(kind) ( \
+	(kind == KIND_ANY)                 ? "ANY" : \
+	(kind == KIND_MODULE)              ? "MODULE" : \
+	(kind == KIND_MACRO)               ? "MACRO" : \
+	(kind == KIND_TYPE)                ? "TYPE" : \
+	(kind == KIND_MIBNODE)             ? "MIBNODE" : \
+	(kind == KIND_IMPORT)              ? "IMPORT" : \
+					     "unknown" )
+
+#define stringSyntax(syntax) ( \
+	(syntax == SYNTAX_UNKNOWN)           ? "UNKNOWN" : \
+	(syntax == SYNTAX_INTEGER)           ? "INTEGER" : \
+	(syntax == SYNTAX_OCTET_STRING)      ? "OCTET_STRING" : \
+	(syntax == SYNTAX_OBJECT_IDENTIFIER) ? "OBJECT_IDENTIFIER" : \
+	(syntax == SYNTAX_SEQUENCE)          ? "SEQUENCE" : \
+	(syntax == SYNTAX_SEQUENCE_OF)       ? "SEQUENCE_OF" : \
+	(syntax == SYNTAX_IPADDRESS)         ? "IPADDRESS" : \
+	(syntax == SYNTAX_COUNTER32)         ? "COUNTER32" : \
+	(syntax == SYNTAX_GAUGE32)           ? "GAUGE32" : \
+	(syntax == SYNTAX_UNSIGNED32)        ? "UNSIGNED32" : \
+	(syntax == SYNTAX_TIMETICKS)         ? "TIMETICKS" : \
+	(syntax == SYNTAX_OPAQUE)            ? "OPAQUE" : \
+	(syntax == SYNTAX_COUNTER64)         ? "COUNTER64" : \
+					       "unknown" )
 
 
 
@@ -226,6 +266,7 @@ addModule(name, path, fileoffset, flags, parser)
     /*
      * Create a Descriptor.
      */
+    module->descriptor = NULL;
     descriptor = addDescriptor(name, module, KIND_MODULE, module,
 			       flags & FLAGS_GENERAL, parser);
     module->descriptor = descriptor;
@@ -424,10 +465,10 @@ addDescriptor(name, module, kind, ptr, flags, parser)
     Descriptor *descriptor, *olddescriptor;
     MibNode *pending, *next;
     
-    printDebug(5, "addDescriptor(\"%s\", %s, %d, ptr, %d, parser)\n",
+    printDebug(5, "addDescriptor(\"%s\", %s, %s, ptr, %d, parser)\n",
 	       name, module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
-	       kind, flags);
+	       stringKind(kind), flags);
 
     descriptor = (Descriptor *)malloc(sizeof(Descriptor));
     if (!descriptor) {
@@ -697,8 +738,9 @@ findDescriptor(name, module, kind)
 {
     Descriptor *descriptor;
     
-    printDebug(5, "findDescriptor(name=\"%s\", module=%s, kind=%d)", name,
-	       module ? module->descriptor->name : "any-module", kind);
+    printDebug(5, "findDescriptor(name=\"%s\", module=%s, kind=%s)", name,
+	       module ? module->descriptor->name : "any-module",
+	       stringKind(kind));
 
     for (descriptor = module ?
 	     module->firstDescriptor[kind] : firstDescriptor[kind];
@@ -850,6 +892,10 @@ setMibNodeAccess(node, access)
     MibNode *node;
     Access access;
 {
+    printDebug(5, "setMibNodeAccess(%s, %s)\n",
+	       node->descriptor ? node->descriptor->name : "?",
+	       stringAccess(access));
+
     node->access = access;
 }
 
@@ -876,6 +922,10 @@ setMibNodeStatus(node, status)
     MibNode *node;
     Status status;
 {
+    printDebug(5, "setMibNodeStatus(%s, %s)\n",
+	       node->descriptor ? node->descriptor->name : "?",
+	       stringStatus(status));
+
     node->status = status;
 }
 
@@ -902,6 +952,10 @@ setMibNodeDescription(node, description)
     MibNode *node;
     String *description;
 {
+    printDebug(5, "setMibNodeDescription(%s, \"%s\")\n",
+	       node->descriptor ? node->descriptor->name : "?",
+	       description->ptr);
+
     node->description.fileoffset = description->fileoffset;
     node->description.length = description->length;
 #ifdef TEXTS_IN_MEMORY
@@ -932,6 +986,10 @@ setMibNodeFileOffset(node, fileoffset)
     MibNode *node;
     off_t fileoffset;
 {
+    printDebug(5, "setMibNodeFileOffset(%s, %d)\n",
+	       node->descriptor ? node->descriptor->name : "?",
+	       fileoffset);
+
     node->fileoffset = fileoffset;
 }
 
@@ -958,6 +1016,10 @@ setMibNodeMacro(node, macro)
     MibNode *node;
     DeclMacro macro;
 {
+    printDebug(5, "setMibNodeMacro(%s, %s)\n",
+	       node->descriptor ? node->descriptor->name : "?",
+	       stringMacro(macro));
+
     node->macro = macro;
 }
 
@@ -984,6 +1046,10 @@ setMibNodeFlags(node, flags)
     MibNode *node;
     Flags flags;
 {
+    printDebug(5, "setMibNodeFlags(%s, %d)\n",
+	       node->descriptor ? node->descriptor->name : "?",
+	       flags);
+
     node->flags |= flags;
 }
 
@@ -1465,10 +1531,10 @@ addType(parent, syntax, module, flags, parser)
 {
     Type *type;
 
-    printDebug(5, "addType(%s, %d, %s, %d, parser)\n",
+    printDebug(5, "addType(%s, %s, %s, %d, parser)\n",
 	       parent &&
 	         parent->descriptor ? parent->descriptor->name : "NULL",
-	       syntax,
+	       stringSyntax(syntax),
 	       module &&
 	         module->descriptor ? module->descriptor->name : "NULL",
 	       flags);
@@ -1524,6 +1590,10 @@ setTypeStatus(type, status)
     Type *type;
     Status status;
 {
+    printDebug(5, "setTypeStatus(%s, %s)\n",
+	       type->descriptor ? type->descriptor->name : "?",
+	       stringStatus(status));
+
     type->status = status;
 }
 
@@ -1550,6 +1620,10 @@ setTypeDescription(type, description)
     Type *type;
     String *description;
 {
+    printDebug(5, "setTypeDescription(%s, \"%s\")\n",
+	       type->descriptor ? type->descriptor->name : "?",
+	       description->ptr);
+
     type->description.fileoffset = description->fileoffset;
     type->description.length = description->length;
 #ifdef TEXTS_IN_MEMORY
@@ -1580,6 +1654,10 @@ setTypeDisplayHint(type, displayHint)
     Type *type;
     String *displayHint;
 {
+    printDebug(5, "setTypeDisplayHint(%s, \"%s\")\n",
+	       type->descriptor ? type->descriptor->name : "?",
+	       displayHint->ptr);
+
     type->displayHint.fileoffset = displayHint->fileoffset;
     type->displayHint.length = displayHint->length;
 #ifdef TEXTS_IN_MEMORY
@@ -1610,6 +1688,10 @@ setTypeFileOffset(type, fileoffset)
     Type *type;
     off_t fileoffset;
 {
+    printDebug(5, "setTypeFileOffset(%s, %d)\n",
+	       type->descriptor ? type->descriptor->name : "?",
+	       fileoffset);
+
     type->fileoffset = fileoffset;
 }
 
@@ -1636,6 +1718,10 @@ setTypeMacro(type, macro)
     Type *type;
     DeclMacro macro;
 {
+    printDebug(5, "setTypeMacro(%s, %s)\n",
+	       type->descriptor ? type->descriptor->name : "?",
+	       stringMacro(macro));
+
     type->macro = macro;
 }
 
@@ -1662,6 +1748,10 @@ setTypeFlags(type, flags)
     Type *type;
     Flags flags;
 {
+    printDebug(5, "setTypeFlags(%s, %d)\n",
+	       type->descriptor ? type->descriptor->name : "?",
+	       flags);
+
     type->flags |= flags;
 }
 
@@ -1689,7 +1779,6 @@ findTypeByName(name)
     const char *name;
 {
     Descriptor *descriptor;
-    Module *module;
     
     printDebug(4, "findTypeByName(\"%s\")", name);
 
@@ -1984,30 +2073,31 @@ initData()
 		  FLAG_PERMANENT, NULL);
 
     /*
-     * Initialize the well-known (ASN.1 and SNMPv2-TC) Types.
+     * Initialize the well-known (ASN.1 (and SNMPv2-TC/SMI??)) Types.
      */
+    
+    /* ASN.1 */
     typeInteger = addType(NULL, SYNTAX_INTEGER,
 			  NULL, FLAG_PERMANENT, NULL);
-#if 1
     addDescriptor("INTEGER", NULL, KIND_TYPE, typeInteger,
 		  FLAG_PERMANENT, NULL);
-#endif    
+    
+#if 0 /* SNMPv2-SMI */
     addDescriptor("Integer32", NULL, KIND_TYPE, typeInteger,
 		  FLAG_PERMANENT, NULL);
-    
+#endif
+
+    /* ASN.1 */
     typeOctetString = addType(NULL, SYNTAX_OCTET_STRING,
 			      NULL, FLAG_PERMANENT, NULL);
-#if 1
     addDescriptor("OCTET STRING", NULL, KIND_TYPE, typeOctetString,
 		  FLAG_PERMANENT, NULL);
-#endif
     
+    /* ASN.1 */
     typeObjectIdentifier = addType(NULL, SYNTAX_OBJECT_IDENTIFIER,
 				   NULL, FLAG_PERMANENT, NULL);
-#if 1
     addDescriptor("OBJECT IDENTIFIER", NULL, KIND_TYPE, typeObjectIdentifier,
 		  FLAG_PERMANENT, NULL);
-    #endif
     
 #if 0
     type = addType(NULL, SYNTAX_SEQUENCE, NULL, FLAG_PERMANENT, NULL);
@@ -2018,7 +2108,8 @@ initData()
     type = addType(NULL, SYNTAX_SEQUENCE_OF, NULL, FLAG_PERMANENT, NULL);
     addDescriptor("SEQUENCE_OF", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 #endif
-    
+
+#if 0 /* SNMPv2-SMI */
     typeIpAddress = addType(NULL, SYNTAX_IPADDRESS,
 			    NULL, FLAG_PERMANENT, NULL);
     addDescriptor("IpAddress", NULL, KIND_TYPE, typeIpAddress,
@@ -2053,7 +2144,8 @@ initData()
 			    NULL, FLAG_PERMANENT, NULL);
     addDescriptor("Counter64", NULL, KIND_TYPE, typeCounter64,
 		  FLAG_PERMANENT, NULL);
-	    
+#endif
+    
     return (0);
 }
 

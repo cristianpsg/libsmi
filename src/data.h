@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.6 1998/10/22 15:18:02 strauss Exp $
+ * @(#) $Id: data.h,v 1.7 1998/10/27 13:32:42 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -80,8 +80,7 @@ typedef enum Syntax {
     SYNTAX_UNSIGNED32	     = 9,
     SYNTAX_TIMETICKS	     = 10,
     SYNTAX_OPAQUE	     = 11,
-    SYNTAX_COUNTER64	     = 12,
-    SYNTAX_SEQUENCEOF	     = 13
+    SYNTAX_COUNTER64	     = 12
 } Syntax;
 
 
