@@ -2858,7 +2858,7 @@ static float fa(float d, float k)
 static void layoutGraph(int nodecount)
 {
     int i;
-    float area, k, c = 1, xDelta, yDelta, absDelta, absDisp, t;
+    float area, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
     float gamma = 1, xBary = 0, yBary = 0;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
@@ -2870,6 +2870,8 @@ static void layoutGraph(int nodecount)
     for (i=0; i<ITERATIONS; i++) {
 	//calculate the barycenter
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
+	    if (!vNode->use)
+		continue;
 	    xBary += vNode->dia.x;
 	    yBary += vNode->dia.y;
 	}
@@ -2896,6 +2898,8 @@ static void layoutGraph(int nodecount)
 	}
 	//calculate attractive forces
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
+	    if (!eEdge->use)
+		continue;
 	    xDelta = eEdge->startNode->dia.x - eEdge->endNode->dia.x;
 	    yDelta = eEdge->startNode->dia.y - eEdge->endNode->dia.y;
 	    absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
@@ -2907,6 +2911,8 @@ static void layoutGraph(int nodecount)
 	//limit the maximum displacement to the temperature t
 	//and prevent from being displaced outside the frame
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
+	    if (!vNode->use)
+		continue;
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
 				    + vNode->dia.yDisp*vNode->dia.yDisp));
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
@@ -2931,7 +2937,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
-    int       group, nodecount = 0, classNr = 0;
+    int       group, nodecount = 0, classNr = 0, maxDegree = 0;
 
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (tEdge->connection != GRAPH_CON_UNKNOWN
@@ -2940,12 +2946,30 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    && tEdge->startNode != tEdge->endNode) {
 	    tEdge->use = 1;
 	    (tEdge->startNode->degree)++;
+	    if (tEdge->startNode->degree > maxDegree) {
+		maxDegree = tEdge->startNode->degree;
+	    }
 	    (tEdge->endNode->degree)++;
+	    if (tEdge->endNode->degree > maxDegree) {
+		maxDegree = tEdge->endNode->degree;
+	    }
 	}
     }
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	tNode = diaCalcSize(tNode);
+	/*
+	//Place vertices with maximum degree near the center
+	if (tNode->degree == maxDegree) {
+	    tNode->dia.x = (float) rand();
+	    tNode->dia.y = (float) rand();
+	    tNode->dia.x /= (float) RAND_MAX;
+	    tNode->dia.y /= (float) RAND_MAX;
+	    tNode->dia.x += CANVASWIDTH/2;
+	    tNode->dia.y += CANVASHEIGHT/2;
+	    fprintf(stderr, "center: (%.2f,%.2f)\t%i\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group, tNode->degree);
+	}
+	*/
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
 	}
