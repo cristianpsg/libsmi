@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.23 1999/12/14 12:00:09 strauss Exp $
+ * @(#) $Id: error.c,v 1.24 1999/12/15 15:47:54 strauss Exp $
  */
 
 #include <string.h>
@@ -253,6 +253,8 @@ Error errors[] = {
       "Date specification `%s' contains an illegal hour" },
     { 2, ERR_DATE_MINUTES, "date-minutes", 
       "Date specification `%s' contains illegal minutes" },
+    { 6, ERR_INTEGER_IN_SMIV2, "integer-misuse", 
+      "Use Integer32 instead of INTEGER in SMIv2" },
  
     { 0, 0, NULL, NULL }
 };
