@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.15 2000/03/02 09:22:29 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.16 2000/04/11 11:34:26 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -37,7 +37,7 @@ extern const char *smi_library_version;
 typedef char                    *SmiIdentifier;
 typedef unsigned long           SmiUnsigned32;
 typedef long                    SmiInteger32;
-#ifdef _WIN32
+#if defined(_WIN32) && ! defined(__MINGW32__)
 typedef unsigned long           SmiUnsigned64;
 typedef long                    SmiInteger64;
 #else
