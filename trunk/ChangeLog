@@ -1,5 +1,12 @@
 2000-11-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/iana/*: Updated IANA maintained modules.
+
+	* lib/parser-smi.y: Suppressed an module conformance error
+	message in case of SMIv1.
+
+2000-11-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
 	* lib/check.c,parser-smi.y: Bill Fenner fixed some duplicated
 	error messages.
 
