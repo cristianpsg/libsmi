@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.7 2000/11/30 11:04:07 strauss Exp $
+ * @(#) $Id: dump-python.c,v 1.8 2000/12/11 08:41:22 strauss Exp $
  */
 
 /*
@@ -450,18 +450,31 @@ static void fprintElementList(FILE *f, int indent, const char *tag,
     }
 }
 
+static void fprintListElement(FILE *f, int indent, const char *tag,
+			      SmiElement *smiElement)
+{
+    SmiModule *smiModule;
+    SmiNode   *smiNode;
+
+    for (; smiElement; smiElement = smiGetNextElement(smiElement)) {
+	smiNode = smiGetElementNode(smiElement);
+	fprintSegment(f, indent, "", 0);
+	fprint(f, "\"%s\",\n", smiNode->name);
+    }
+}
+
 
 
 static void fprintIndexModule(FILE *f, int indent, const char *modname,
 			      const char *nodename, const char *indexkind)
 {
     fprintSegment(f, indent + INDENT, "", 0);
-    fprint(f, "\"%s\" : {\n", modname);
+    fprint(f, "{ \"%s\" : {\n", modname);
     fprintSegment(f, indent + (2 * INDENT), "", 0);
     fprint(f, "\"indexkind\" : \"%s\",\n", indexkind);
     fprintSegment(f, indent + (2 * INDENT), "", 0);
     fprint(f, "\"relatedNode\" : \"%s\",\n", nodename);
-    fprintSegment(f, indent + INDENT, "},\n", 0);
+    fprintSegment(f, indent + INDENT, "}},\n", 0);
 }
 
 
@@ -471,9 +484,9 @@ static void fprintIndex(FILE *f, int indent, SmiNode *smiNode)
     SmiNode   *relatedNode;
     SmiModule *relatedModule = NULL;
 
-    fprintSegment(f, indent, "\"linkage\" : {\n", 0);
+    fprintSegment(f, indent, "\"linkage\" : [\n", 0);
     if (smiNode->implied) {
-	fprintSegment(f, indent + INDENT, "\"implied\" : \"true\",\n", 0);
+	/* fprintSegment(f, indent + INDENT, "\"implied\" : \"true\",\n", 0); */
     }
 
     relatedNode = smiGetRelatedNode(smiNode);
@@ -482,7 +495,7 @@ static void fprintIndex(FILE *f, int indent, SmiNode *smiNode)
     }
     switch (smiNode->indexkind) {
     case SMI_INDEX_INDEX:
-	fprintElementList(f, indent + INDENT, "index",
+	fprintListElement(f, indent + INDENT, "index",
 			  smiGetFirstElement(smiNode));
 	break;
     case SMI_INDEX_AUGMENT:
@@ -514,7 +527,7 @@ static void fprintIndex(FILE *f, int indent, SmiNode *smiNode)
     case SMI_INDEX_UNKNOWN:
 	break;
     }
-    fprintSegment(f, indent, "},\n", 0);
+    fprintSegment(f, indent, "],\n", 0);
 }
 
 
