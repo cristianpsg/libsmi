@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.44 1999/06/22 10:16:51 strauss Exp $
+ * @(#) $Id: smi.h,v 1.45 1999/06/30 10:32:22 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -63,10 +63,7 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_FLOAT64                = 8,  /* only SMIng                  */
     SMI_BASETYPE_FLOAT128               = 9,  /* only SMIng                  */
     SMI_BASETYPE_ENUM                   = 10,
-    SMI_BASETYPE_BITS                   = 11, /* only SMIv2 and SMIng        */
-
-    SMI_BASETYPE_SEQUENCE               = 16, /* internal use for parsing SMI*/
-    SMI_BASETYPE_SEQUENCEOF             = 17  /* internal use for parsing SMI*/
+    SMI_BASETYPE_BITS                   = 11  /* only SMIv2 and SMIng        */
 } SmiBasetype;
 
 /* SmiStatus -- values of status levels                                      */
@@ -85,9 +82,9 @@ typedef enum SmiAccess {
     SMI_ACCESS_NOT_ACCESSIBLE   = 1, /* the values 1 to 5 are allow to be    */
     SMI_ACCESS_NOTIFY           = 2, /* compared by relational operators.    */
     SMI_ACCESS_READ_ONLY        = 3,
-    SMI_ACCESS_READ_WRITE       = 4,
-    SMI_ACCESS_READ_CREATE      = 5,
-    SMI_ACCESS_WRITE_ONLY       = 6
+    SMI_ACCESS_READ_WRITE       = 4
+/*    SMI_ACCESS_READ_CREATE      = 5, */
+/*    SMI_ACCESS_WRITE_ONLY       = 6  */
 } SmiAccess;
 
 /* SmiNodekind -- type or statement that leads to a definition               */
@@ -109,18 +106,19 @@ typedef enum SmiDecl {
     SMI_DECL_UNKNOWN            = 0,  /* should not occur                    */
     /* SMIv1/v2 ASN.1 statements and macros */
     SMI_DECL_TYPEASSIGNMENT     = 1,
-    SMI_DECL_IMPL_SEQUENCEOF    = 2,
-    SMI_DECL_VALUEASSIGNMENT    = 3,
-    SMI_DECL_OBJECTTYPE         = 4,
-    SMI_DECL_OBJECTIDENTITY     = 5,
-    SMI_DECL_MODULEIDENTITY     = 6,
-    SMI_DECL_NOTIFICATIONTYPE   = 7,
-    SMI_DECL_TRAPTYPE           = 8,
-    SMI_DECL_OBJECTGROUP        = 9, 
-    SMI_DECL_NOTIFICATIONGROUP  = 10,
-    SMI_DECL_MODULECOMPLIANCE   = 11,
-    SMI_DECL_AGENTCAPABILITIES  = 12,
-    SMI_DECL_TEXTUALCONVENTION  = 13,
+    SMI_DECL_IMPL_SEQUENCE      = 2,
+    SMI_DECL_IMPL_SEQUENCEOF    = 3,
+    SMI_DECL_VALUEASSIGNMENT    = 4,
+    SMI_DECL_OBJECTTYPE         = 5,
+    SMI_DECL_OBJECTIDENTITY     = 6,
+    SMI_DECL_MODULEIDENTITY     = 7,
+    SMI_DECL_NOTIFICATIONTYPE   = 8,
+    SMI_DECL_TRAPTYPE           = 9,
+    SMI_DECL_OBJECTGROUP        = 10, 
+    SMI_DECL_NOTIFICATIONGROUP  = 11,
+    SMI_DECL_MODULECOMPLIANCE   = 12,
+    SMI_DECL_AGENTCAPABILITIES  = 13,
+    SMI_DECL_TEXTUALCONVENTION  = 14,
     /* SMIng statements */
     SMI_DECL_MODULE             = 33,
     SMI_DECL_TYPEDEF            = 34,

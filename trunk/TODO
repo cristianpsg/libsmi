@@ -67,3 +67,12 @@ o implcitly imported identifiers (MC MODULE sections) lead to
 
 o type-flag: implcit/explicit
   getType... also implicit types
+
+o smistrip + man page + extract mibs/*
+
+
+o warnings: hyphens in named-numbers
+
+o warnings: integer(signed) in index
+
+o FreeBSD, Win32

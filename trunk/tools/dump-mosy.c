@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.4 1999/06/18 15:04:41 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.5 1999/06/22 11:18:15 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -53,7 +53,6 @@ static char *stringAccess(SmiAccess access)
 	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
 	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
 	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" :
 						"<unknown>";
 }
 
@@ -73,8 +72,6 @@ static char *stringBasetype(SmiBasetype basetype)
         (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
         (basetype == SMI_BASETYPE_ENUM)              ? "INTEGER" :
         (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
-	(basetype == SMI_BASETYPE_SEQUENCE)          ? "Aggregate" :
-	(basetype == SMI_BASETYPE_SEQUENCEOF)	     ? "Aggregate" :
                                                    "<unknown>";
 }
 
@@ -177,8 +174,6 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(&s[strlen(s)], ")");
 	break;
     case SMI_BASETYPE_UNKNOWN:
-    case SMI_BASETYPE_SEQUENCE:
-    case SMI_BASETYPE_SEQUENCEOF:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */
@@ -226,11 +221,11 @@ static void printAssignements(char *modulename)
 	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 
 	cnt++;
-
+	
 	if (! smiNode->description) {
-	printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
-	printf("%%n0 %-16s object-id\n", smiNode->name);
-}
+	    printf("%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	    printf("%%n0 %-16s object-id\n", smiNode->name);
+	}
     }
 
     if (cnt) {
@@ -478,7 +473,7 @@ int dumpMosy(char *modulename)
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
-	fprintf(stderr, "Cannot locate module `%s'\n", modulename);
+	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
 	exit(1);
     }
 

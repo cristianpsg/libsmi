@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.18 1999/06/18 15:04:42 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.19 1999/06/22 11:18:16 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -35,8 +35,6 @@
 #define  INDENTSEQUENCE 40   /* column to start SEQUENCE tables' type column */
 
 
-
-static int errors;
 
 static char *convertTypev1[] = {
     NULL,		 "Counter32",	       NULL,	   "Counter",
@@ -170,7 +168,7 @@ static char *smiStringStatus(SmiStatus status)
 
 
 
-static char *smiStringAccess(SmiAccess access)
+static char *smiStringAccess(SmiAccess access, int create)
 {
     if (smiv1) {
 	return
@@ -178,18 +176,18 @@ static char *smiStringAccess(SmiAccess access)
 	    (access == SMI_ACCESS_NOTIFY)	  ? "read-only" :
 	    (access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
 	    (access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-	    (access == SMI_ACCESS_READ_CREATE)    ? "read-write" :
-	    (access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" :
 						    "<unknown>";
     } else {
-	return
+	if (create && (access == SMI_ACCESS_READ_WRITE)) {
+	    return "read-create";
+	} else {
+	    return
 	    (access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
 	    (access == SMI_ACCESS_NOTIFY)	  ? "accessible-for-notify" :
 	    (access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
 	    (access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-	    (access == SMI_ACCESS_READ_CREATE)    ? "read-create" :
-	    (access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" :
 						    "<unknown>";
+	}
     }
 }
 
@@ -233,11 +231,6 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "INTEGER";
 	}
-#if 0
-	if (smiv1 && (basetype == SMI_BASETYPE_BITS)) {
-	    return "OCTET STRING";
-	}
-#else
 	if (basetype == SMI_BASETYPE_BITS) {
 	    if (smiv1) {
 		return "OCTET STRING";
@@ -245,7 +238,6 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 		return "BITS";
 	    }
 	}
-#endif
     }
 	
     /* TODO: fully qualified if unambigous */
@@ -308,6 +300,17 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	sprintf(&s[strlen(s)], "%u", smiNode->oid[i]);
     }
     return s;
+}
+
+
+
+static char *getUppercaseString(char *s)
+{
+    static char ss[200];
+
+    strcpy(ss, s);
+    ss[0] = (char)toupper((int)ss[0]);
+    return ss;
 }
 
 
@@ -420,8 +423,6 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(&s[strlen(s)], ")");
 	break;
     case SMI_BASETYPE_UNKNOWN:
-    case SMI_BASETYPE_SEQUENCE:
-    case SMI_BASETYPE_SEQUENCEOF:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */
@@ -560,8 +561,6 @@ static void printImports(char *modulename)
 	importedModulename = smiImport->importmodule;
 	importedDescriptor = smiImport->importname;
 
-/*	printf("** %s::%s\n", importedModulename, importedDescriptor);*/
-
 	for(i = 0; convertImport[i]; i += 4) {
 	    if ((!util_strcmp(importedModulename, convertImport[i])) &&
 		(!util_strcmp(importedDescriptor, convertImport[i+1]))) {
@@ -678,13 +677,7 @@ static void printTypeDefinitions(char *modulename)
 
     for(smiType = smiGetFirstType(modulename);
 	smiType; smiType = smiGetNextType(smiType)) {
-#if 0
-	if ((smiType->decl == SMI_DECL_TYPEASSIGNMENT) ||
-	    ((smiType->decl == SMI_DECL_TYPEDEF) &&
-	     (!smiType->description))) {
-#else
 	if (!smiType->description) {
-#endif
 	    invalid = invalidType(smiType->basetype);
 	    if (invalid) {
 		print("-- %s ::=\n", smiType->name);
@@ -711,13 +704,7 @@ static void printTextualConventions(char *modulename)
     
     for(smiType = smiGetFirstType(modulename);
 	smiType; smiType = smiGetNextType(smiType)) {
-#if 0
-	if ((smiType->decl == SMI_DECL_TEXTUALCONVENTION) ||
-	    ((smiType->decl == SMI_DECL_TYPEDEF) &&
-	     (smiType->description))) {
-#else
 	if (smiType->description) {
-#endif
 	    invalid = invalidType(smiType->basetype);
 	    if (smiv1 && !invalid) {
 		print("%s ::=\n", smiType->name);
@@ -773,7 +760,7 @@ static void printObjects(char *modulename)
     SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode;
     SmiType	 *smiType;
     SmiNodekind  nodekinds;
-    int		 i, invalid;
+    int		 i, invalid, create;
     
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
 	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
@@ -782,7 +769,8 @@ static void printObjects(char *modulename)
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
 
 	smiParentNode = smiGetParentNode(smiNode);
-
+	create = smiParentNode ? smiParentNode->create : 0;
+	
 	invalid = invalidType(smiNode->basetype);
 
 	if ((smiNode->nodekind == SMI_NODEKIND_NODE) &&
@@ -802,16 +790,27 @@ static void printObjects(char *modulename)
 	    }
 	}
 
-	if ((smiNode->basetype != SMI_BASETYPE_UNKNOWN) ||
+	if ((smiNode->nodekind == SMI_NODEKIND_TABLE) ||
+	    (smiNode->nodekind == SMI_NODEKIND_ROW) ||
 	    (smiNode->typename)) {
 	    printSegment(INDENT, "SYNTAX", INDENTVALUE, invalid);
 	    if (smiNode->nodekind == SMI_NODEKIND_TABLE) {
 		print("SEQUENCE OF ");
 		rowNode = smiGetFirstChildNode(smiNode);
-		print("%s\n", rowNode->typename);
+		if (rowNode->typename) {
+		    print("%s\n", rowNode->typename);
+		} else {
+		    /* guess typename is uppercase row name */
+		    print("%s\n", getUppercaseString(rowNode->name));
+		}
 		    /* TODO: print non-local name qualified */
 	    } else if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-		print("%s\n", smiNode->typename);
+		if (smiNode->typename) {
+		    print("%s\n", smiNode->typename);
+		} else {
+		    /* guess typename is uppercase row name */
+		    print("%s\n", getUppercaseString(smiNode->name));
+		}
 		/* TODO: print non-local name qualified */
 	    } else if (smiNode->typename) {
 		if (islower((int)smiNode->typename[0])) {
@@ -846,7 +845,7 @@ static void printObjects(char *modulename)
 	    } else {
 		printSegment(INDENT, "MAX-ACCESS", INDENTVALUE, 0);
 	    }
-	    print("%s\n", smiStringAccess(smiNode->access));
+	    print("%s\n", smiStringAccess(smiNode->access, create));
 	    /* TODO: read-create */
 	}
 
@@ -914,7 +913,12 @@ static void printObjects(char *modulename)
 	print("{ %s }\n\n", getOidString(smiNode, 0));
 
 	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-	    print("%s ::=\n", smiNode->typename);
+	    if (smiNode->typename) {
+		print("%s ::=\n", smiNode->typename);
+	    } else {
+		/* guess typename is uppercase row name */
+		print("%s ::=\n", getUppercaseString(smiNode->name));
+	    }
 	    /* TODO: non-local name? */
 	    printSegment(INDENT, "SEQUENCE {", 0, 0);
 	    for(i = 0, invalid = 0, colNode = smiGetFirstChildNode(smiNode);
@@ -928,10 +932,8 @@ static void printObjects(char *modulename)
 		if (islower((int)colNode->typename[0])) {
 		    smiType = smiGetType(colNode->typemodule,
 					 colNode->typename);
-/*		    fprintf(stderr, "** %s %d\n", smiType->name, colNode->basetype);*/
 		    invalid = invalidType(smiType->basetype);
 		} else {
-/*		    fprintf(stderr, "** %s %d\n", colNode->name, colNode->basetype);*/
 		    invalid = invalidType(colNode->basetype);
 		}
 		invalid = invalidType(colNode->basetype);
@@ -976,7 +978,7 @@ static void printNotifications(char *modulename)
 	    print("%s TRAP-TYPE\n", smiNode->name);
 	    parentNode = smiGetParentNode(smiNode);
 	    printSegment(INDENT, "ENTERPRISE", INDENTVALUE, 0);
-	    print("{ %s }\n", parentNode->name);
+	    print("%s\n", parentNode->name);
 	} else {
 	    print("%s NOTIFICATION-TYPE\n", smiNode->name);
 	}
@@ -1284,7 +1286,10 @@ static void printModuleCompliances(char *modulename)
 			printSegment(2 * INDENT, "MIN-ACCESS", INDENTVALUE,
 				     smiv1);
 			print("%s\n",
-			      smiStringAccess(smiRefinement->access));
+			      smiStringAccess(smiRefinement->access, 0));
+			/* we assume, that read-create does not appear in
+			 * an OT refinement.
+			 */
 		    }
 		    printSegment(2 * INDENT, "DESCRIPTION", INDENTVALUE,
 				 smiv1);
@@ -1331,11 +1336,9 @@ static int dumpSmi(char *modulename)
 {
     SmiModule	 *smiModule;
 
-    errors = 0;
-    
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
-	fprintf(stderr, "Cannot locate module `%s'\n", modulename);
+	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
 	exit(1);
     } else {
 	print("--\n");
@@ -1366,7 +1369,7 @@ static int dumpSmi(char *modulename)
 
     }
 
-    return errors;
+    return 0;
 }
 
 

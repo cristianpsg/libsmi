@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-imports.c,v 1.1 1999/06/04 20:50:10 strauss Exp $
  */
 
 #include <stdio.h>
@@ -41,8 +41,9 @@ static void printImports(char *modulename, int indent)
     }
 
     for (i = 0; i < n; i++) {
-	printf("%*s%s [%d identifiers]\n",
-	       indent + 4, "", gotcha[i], count[i]);
+	printf("%*s%s [%d identifier%s]\n",
+	       indent + 4, "", gotcha[i], count[i],
+	       count[i] > 1 ? "s" : "");
 	printImports(gotcha[i], indent + 4);
     }
     
@@ -56,7 +57,7 @@ int dumpImports(char *modulename)
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
-	fprintf(stderr, "Cannot locate module `%s'\n", modulename);
+	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
 	exit(1);
     } else {
 	printf("%s\n", smiModule->name);

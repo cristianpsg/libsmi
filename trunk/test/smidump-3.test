@@ -14,7 +14,7 @@ for mib in ${TESTMIBS} ; do
     ../tools/smidump -fsmiv2 $mib | ./filter > smidump-3.out/$mib.smiv2
     WC=`diff smidump-3.out/$mib.orig smidump-3.out/$mib.smiv2 | wc -l`
     # ugly checks ;-/ anyway, this is what we expect...
-    if [ $mib = "RMON2-MIB" -a $WC -ne 28 -o \
+    if [ $mib = "RMON2-MIB" -a $WC -ne 32 -o \
 	 $mib = "IF-MIB" -a $WC -ne 2 -o \
 	 $mib = "MAU-MIB" -a $WC -ne 2 -o \
 	 $mib = "SNMPv2-MIB" -a $WC -ne 10 ] ; then
