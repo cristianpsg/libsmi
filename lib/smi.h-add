@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.7 1998/12/01 16:59:37 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.1 1999/03/11 17:33:04 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -17,6 +17,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#define SMI_CONFIG_FILE         "/usr/local/etc/smi.conf"
 
 #define SMI_VIEWALL     0x0800
 #define SMI_ERRORS      0x1000

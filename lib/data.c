@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.1 1999/03/11 17:32:57 strauss Exp $
+ * @(#) $Id: data.c,v 1.3 1999/03/12 16:59:32 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -35,10 +35,126 @@
 					     "unknown" )
 
 
+Location	*firstLocationPtr, *lastLocationPtr;
 Module          *firstModulePtr, *lastModulePtr;
 Node		*rootNodePtr;
 Node		*pendingNodePtr;
 Type		*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * addLocation --
+ *
+ *      Create a new location to look for modules.
+ *
+ * Results:
+ *      A pointer to the new Location structure or
+ *	NULL if terminated due to an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Location *
+addLocation(location, flags)
+    const char	      *location;
+    ModuleFlags	      flags;
+{
+    struct stat st;
+    Location	      *locationPtr;
+
+#ifdef DEBUG
+    printDebug(4,
+      "addLocation(%s, %d)\n", location, flags);
+#endif
+    
+    locationPtr = (Location *)util_malloc(sizeof(Location));
+    if (!locationPtr) {
+	printError(NULL, ERR_ALLOCATING_LOCATION, strerror(errno));
+	return (NULL);
+    }
+    locationPtr->type = LOCATION_UNKNOWN;
+
+#ifdef BACKEND_RPC
+    if (strstr(location, "smirpc://") == location) {
+	locationPtr->type = LOCATION_RPC;
+	locationPtr->name = util_strdup(&location[9]);
+	/*
+	 * We must use TCP, since some messages may exceed the UDP limitation
+	 * of messages larger than UDPMSGSIZE==8800 (at least on Linux).
+	 */
+	locationPtr->cl   = clnt_create(locationPtr->name,
+				     SMIPROG, SMIVERS, "tcp");
+	if (!locationPtr->cl) {
+	    clnt_pcreateerror(locationPtr->name);
+	    free(locationPtr);
+	    return NULL;
+	}
+    }
+#endif
+#ifdef BACKEND_SMI
+    if (strstr(location, "smi:") == location) {
+	locationPtr->name = util_strdup(&location[4]);
+	if (stat(locationPtr->name, &st)) {
+	    printError(NULL, ERR_LOCATION, location, strerror(errno));
+	    free(locationPtr);
+	    return NULL;
+	} else {
+	    if (S_ISDIR(st.st_mode)) {
+		locationPtr->type = LOCATION_SMIDIR;
+	    } else {
+		locationPtr->type = LOCATION_SMIFILE;
+		/*
+		 * MIB file locationPtrs are read immediately.
+		 */
+		readMibFile(locationPtr->name, locationPtr, "",
+			    flags | FLAG_WHOLEFILE);
+	    }
+	}
+    }
+#endif
+#ifdef BACKEND_SMING
+    if (strstr(location, "sming:") == location) {
+	locationPtr->name = util_strdup(&location[6]);
+	if (stat(locationPtr->name, &st)) {
+	    printError(NULL, ERR_LOCATION, location, strerror(errno));
+	    free(locationPtr);
+	    return NULL;
+	} else {
+	    if (S_ISDIR(st.st_mode)) {
+		locationPtr->type = LOCATION_SMINGDIR;
+	    } else {
+		locationPtr->type = LOCATION_SMINGFILE;
+		/*
+		 * MIB file locationPtrs are read immediately.
+		 */
+		fprintf(stderr, "TODO: SMIng parser.\n");
+	    }
+	}
+    }
+#endif
+
+    if (locationPtr->type == LOCATION_UNKNOWN) {
+	printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, location);
+	return NULL;
+    }
+    
+    locationPtr->prev = lastLocationPtr;
+    locationPtr->next = NULL;
+    if (lastLocationPtr) {
+	lastLocationPtr->next = locationPtr;
+    } else {
+	firstLocationPtr = locationPtr;
+    }
+    lastLocationPtr = locationPtr;
+    
+    return (locationPtr);
+}
 
 
 
@@ -60,9 +176,10 @@ Type		*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
  */
 
 Module *
-addModule(modulename, path, fileoffset, flags, parserPtr)
+addModule(modulename, path, locationPtr, fileoffset, flags, parserPtr)
     const char	      *modulename;
     const char	      *path;
+    Location	      *locationPtr;
     off_t	      fileoffset;
     ModuleFlags	      flags;
     Parser	      *parserPtr;
@@ -71,8 +188,9 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
 
 #ifdef DEBUG
     printDebug(4,
-      "addModule(%s, %s, %d, %d, 0x%x)\n",
-	       modulename, path, fileoffset, flags, parserPtr);
+      "addModule(%s, %s, 0x%x(%s), %d, %d, 0x%x)\n",
+	       modulename, path, locationPtr, locationPtr->name,
+	       fileoffset, flags, parserPtr);
 #endif
     
     modulePtr = (Module *)util_malloc(sizeof(Module));
@@ -83,6 +201,7 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
 
     modulePtr->name				= util_strdup(modulename);
     modulePtr->path			        = util_strdup(path);
+    modulePtr->locationPtr			= locationPtr;
     modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
     modulePtr->objectPtr			= NULL;
@@ -607,7 +726,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	return (NULL);
     }
 
-    descriptor->name = strdup(name);
+    descriptor->name = util_strdup(name);
     descriptor->module = module;
     descriptor->kind = kind;
     descriptor->flags = flags;
@@ -3014,7 +3133,12 @@ int
 initData()
 {
     Object	    *objectPtr;
-    
+
+    firstLocationPtr = NULL;
+    lastLocationPtr = NULL;
+    firstModulePtr = NULL;
+    lastModulePtr = NULL;
+
     /*
      * Initialize a root Node for the main MIB tree.
      */
@@ -3086,8 +3210,9 @@ initData()
  */
 
 int
-readMibFile(path, modulename, flags)
+readMibFile(path, locationPtr, modulename, flags)
     const char      *path;
+    Location	    *locationPtr;
     const char      *modulename;
     ParserFlags     flags;
 {
@@ -3095,10 +3220,12 @@ readMibFile(path, modulename, flags)
     char	    s[200];
 
 #ifdef DEBUG
-    printDebug(3, "readMibFile(%s, %s, %d)\n", path, modulename, flags);
+    printDebug(3, "readMibFile(%s, 0x%x(%s), %s, %d)\n", path,
+	       locationPtr, locationPtr->name, modulename, flags);
 #endif
     
     parser.path				= util_strdup(path);
+    parser.locationPtr			= locationPtr;
     parser.module			= util_strdup(modulename);
     parser.flags			= flags;
     parser.modulePtr			= NULL;

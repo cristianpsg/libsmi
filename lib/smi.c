@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.25 1999/02/18 17:13:02 strauss Exp $
+ * @(#) $Id: smi.c,v 1.1 1999/03/11 17:33:03 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -20,37 +20,27 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#include <strings.h>
+#include <stdio.h>
+#include <stdlib.h>
+#ifdef linux
+#include <getopt.h>
+#endif
 
 #include "defs.h"
 #include "smi.h"
-#include "config.h"
 #include "error.h"
-
-#ifdef PARSER
 #include "data.h"
+
+#ifdef BACKEND_SMI
+#include "scanner-smi.h"
+#include "parser-smi.h"
+#endif
+
+#ifdef BACKEND_SMI
+extern int yydebug;
 #endif
 
 
-
-#define MIN(X,Y)	((X) < (Y) ? (X) : (Y))
-
-
-
-typedef enum LocationType {
-    LOCATION_FILE	     = 0,
-    LOCATION_DIR	     = 1,
-    LOCATION_DBM	     = 2,
-    LOCATION_RPC	     = 3
-} LocationType;
-
-typedef struct Location {
-    char	    *name;
-    LocationType    type;
-    CLIENT	    *cl;
-    struct Location *next;
-    struct Location *prev;
-} Location;
 
 typedef struct View {
     char	    *name;
@@ -62,9 +52,6 @@ typedef struct View {
 
 static int		flags = 0;
 static int		initialized = 0;
-
-static Location		*firstLocation = NULL;
-static Location		*lastLocation = NULL;
 
 static View		*firstView = NULL;
 static View		*lastView = NULL;
@@ -322,13 +309,14 @@ smiInit()
 {
     initData();
     
-    initialized   = 1;
-    
-    firstLocation = NULL;
-    lastLocation  = NULL;
-
     firstView     = NULL;
     lastView      = NULL;
+
+    initialized   = 1;
+
+#ifdef SMI_CONFIG_FILE
+    smiReadConfig(SMI_CONFIG_FILE);
+#endif
 }
 
 
@@ -337,65 +325,15 @@ int
 smiAddLocation(name)
     const char *name;
 {
-    Location *location;
-    struct stat st;
-    
     if (!initialized) smiInit();
     
     printDebug(4, "smiAddLocation(\"%s\")\n", name);
 
-    location = (Location *)malloc(sizeof(Location));
-    if (!location) {
-	printError(NULL, ERR_ALLOCATING_LOCATION, strerror(errno));
+    if (addLocation(name, flags)) {
+	return 0;
+    } else {
 	return -1;
     }
-    
-    if (strstr(name, "smirpc://") == name) {
-	location->type = LOCATION_RPC;
-	location->name = strdup(&name[9]);
-	/*
-	 * We must use TCP, since some messages may exceed the UDP limitation
-	 * of messages larger than UDPMSGSIZE==8800 (at least on Linux).
-	 */
-	location->cl   = clnt_create(location->name,
-				     SMIPROG, SMIVERS, "tcp");
-	if (!location->cl) {
-	    clnt_pcreateerror(location->name);
-	    free(location);
-	    return -1;
-	}
-#ifdef PARSER
-    } else {
-	if (stat(name, &st)) {
-	    printError(NULL, ERR_LOCATION, name, strerror(errno));
-	    free(location);
-	    return -1;
-	} else {
-	    if (S_ISDIR(st.st_mode)) {
-		location->type = LOCATION_DIR;
-		location->name = strdup(name);
-	    } else {
-		location->type = LOCATION_FILE;
-		location->name = strdup(name);
-		/*
-		 * MIB file locations are read immediately.
-		 */
-		readMibFile(location->name, "", flags | FLAG_WHOLEFILE);
-	    }
-	}
-#endif
-    }
-    
-    location->prev = lastLocation;
-    location->next = NULL;
-    if (lastLocation) {
-	lastLocation->next = location;
-    } else {
-	firstLocation = location;
-    }
-    lastLocation = location;
-    
-    return 0;
 }
 
 
@@ -408,7 +346,7 @@ smiLoadMibModule(modulename)
     View *view;
     smi_getspec getspec;
     smi_module *smimodule;
-#ifdef PARSER
+#if defined(BACKEND_SMI) || defined(BACKEND_SMING)
     Module *module;
     struct stat buf;
     char *path;
@@ -419,6 +357,12 @@ smiLoadMibModule(modulename)
 
     if (!initialized) smiInit();
 
+    module = findModuleByName(modulename);
+    if (module) {
+	/* already loaded. */
+	return 0;
+    }
+    
     view = (View *)malloc(sizeof(View));
     if (!view) {
 	printError(NULL, ERR_ALLOCATING_VIEW, strerror(errno));
@@ -434,57 +378,58 @@ smiLoadMibModule(modulename)
     }
     lastView = view;    
     
-    for (location = firstLocation; location; location = location->next) {
+    for (location = firstLocationPtr; location; location = location->next) {
 
+#ifdef BACKEND_RPC
 	if (location->type == LOCATION_RPC) {
 	    
 	    getspec.name = modulename;
-	    getspec.wantdescr = 0;
+	    getspec.wantdescr = 1;
 	    smimodule = smiproc_module_1(&getspec, location->cl);
 	    if (smimodule && strlen(smimodule->name)) {
 	        /* the RPC server knows this module */
-		return 0;
+		module = addModule(modulename, "", location, 0, 0, NULL);
+		setModuleLastUpdated(module, smimodule.lastupdated);
+		setModuleOrganization(module, smimodule.organization);
+		setModuleContactInfo(module, smimodule.contactinfo);
+		/* TODO: setModuleIdentityObject */
+		/* TODO: setObjectDescription */
+		/* TODO: setObjectReference */
 	    }
-	    
-#ifdef PARSER
-	} else if (location->type == LOCATION_DIR) {
-
-	    module = findModuleByName(modulename);
-	    if (module) {
-	        /* already loaded. */
-		return 0;
-	    }
+	}
+#endif
+	
+#ifdef BACKEND_SMI
+	if (location->type == LOCATION_SMIDIR) {
 
 	    path = malloc(strlen(location->name)+strlen(modulename)+6);
 	    
 	    sprintf(path, "%s/%s", location->name, modulename);
 	    if (!stat(path, &buf)) {
-		rc = readMibFile(path, modulename, flags | FLAG_WHOLEMOD);
+		rc = readMibFile(path, location,
+				 modulename, flags | FLAG_WHOLEMOD);
 		free(path);
 		return rc;
 	    }
 	    
 	    sprintf(path, "%s/%s.my", location->name, modulename);
 	    if (!stat(path, &buf)) {
-		rc = readMibFile(path, modulename, flags | FLAG_WHOLEMOD);
+		rc = readMibFile(path, location,
+				 modulename, flags | FLAG_WHOLEMOD);
 		free(path);
 		return rc;
 	    }
 	    
-	} else if (location->type == LOCATION_FILE) {
+	} else if (location->type == LOCATION_SMIFILE) {
 
 	    /* TODO */
 	    module = findModuleByName(modulename);
 	    /* TODO: compare filenames more intelligent */
 	    if (module && (!strcmp(module->path, location->name))) {
 		return 0; /* already loaded. */
-	    } 
-#endif
-	} else {
-
-	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, location->name);
-	    
+	    }
 	}
+#endif
     }
 
     return -1;
@@ -544,18 +489,76 @@ smiGetFlags()
 
 
 int
-smiReadConfig(file)
-    const char *file;
+smiReadConfig(filename)
+    const char *filename;
 {
+    char line[201], cmd[201], arg1[201], arg2[201];
+    FILE *file;
+    
     if (!initialized) smiInit();
     
-    return readConfig(file, &flags);
+    file = fopen(filename, "r");
+    if (!file) {
+	printError(NULL, ERR_OPENING_CONFIGFILE, filename,
+		   strerror(errno));
+	return -1;
+    } else {
+	while (fgets(line, sizeof(line), file)) {
+	    if (feof(file)) break;
+	    sscanf(line, "%s %s %s", cmd, arg1, arg2);
+	    if (cmd[0] == '#') continue;
+	    if (!strcmp(cmd, "location")) {
+		smiAddLocation(arg1);
+ 	    } else if (!strcmp(cmd, "preload")) {
+#if 0
+#ifdef BACKEND_SMI
+		readMibFile(arg1, "", *flags | FLAG_WHOLEFILE);
+#else
+		;
+#endif
+#else
+		smiLoadMibModule(arg1);
+#endif
+	    } else if (!strcmp(cmd, "loglevel")) {
+		errorLevel = atoi(arg1);
+	    } else if (!strcmp(cmd, "debuglevel")) {
+		debugLevel = atoi(arg1);
+	    } else if (!strcmp(cmd, "yydebug")) {
+#ifdef BACKEND_SMI
+		yydebug = atoi(arg1);
+#else
+		;
+#endif
+	    } else if (!strcmp(cmd, "viewall")) {
+		if (atoi(arg1))
+		    flags |= FLAG_VIEWALL;
+		else
+		    flags &= ~FLAG_VIEWALL;
+	    } else if (!strcmp(cmd, "statistics")) {
+		if (atoi(arg1))
+		    flags |= FLAG_STATS;
+		else
+		    flags &= ~FLAG_STATS;
+	    } else if (!strcmp(cmd, "importlogging")) {
+		if (atoi(arg1))
+		    flags |= FLAG_RECURSIVE;
+		else
+		    flags &= ~FLAG_RECURSIVE;
+	    } else if (!strcmp(cmd, "errorlines")) {
+		if (atoi(arg1))
+		    flags |= FLAG_ERRORLINES;
+		else
+		    flags &= ~FLAG_ERRORLINES;
+	    } else {
+		printError(NULL, ERR_UNKNOWN_CONFIG_DIRECTIVE,
+			   filename, cmd);
+	    }
+	}
+	fclose(file);
+    }
+
+    return 0;
 }
-
-
-
-
-
 
 
 
@@ -568,20 +571,16 @@ smiGetModule(name, wantdescr)
     smi_getspec	      getspec;
     smi_module	      *smimodule;
     Location	      *l;
-#ifdef PARSER
     Module	      *m;
     struct stat	      buf;
     char	      *path;
     int		      rc;
-#endif
     
     printDebug(4, "smiGetModule(\"%s\", %d)\n", name, wantdescr);
 
-#ifdef PARSER
     m = findModuleByName(name);
-#endif
     
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
@@ -592,8 +591,8 @@ smiGetModule(name, wantdescr)
 		return smimodule;
 	    }
 
-#ifdef PARSER
-	} else if (l->type == LOCATION_DIR) {
+#ifdef BACKEND_SMI
+	} else if (l->type == LOCATION_SMIDIR) {
 
 	    path = malloc(strlen(l->name)+strlen(name)+6);
 	    sprintf(path, "%s/%s", l->name, name);
@@ -612,7 +611,7 @@ smiGetModule(name, wantdescr)
 		break;
 	    }
 		
-	} else if (l->type == LOCATION_FILE) {
+	} else if (l->type == LOCATION_SMIFILE) {
 
 	    if (m) {
 		break;
@@ -662,7 +661,7 @@ smiGetNode(spec, mod, wantdescr)
     char	    module[SMI_MAX_DESCRIPTOR+1];
     static char	    type[SMI_MAX_FULLNAME+1];
     char	    fullname[SMI_MAX_FULLNAME+1];
-#ifdef PARSER
+#ifdef BACKEND_SMI
     struct stat	    buf;
     char	    *path;
 #endif
@@ -673,7 +672,7 @@ smiGetNode(spec, mod, wantdescr)
     createFullname(spec, mod, fullname);
     createModuleAndName(fullname, module, name);
 
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
@@ -685,8 +684,8 @@ smiGetNode(spec, mod, wantdescr)
 		return sminode;
 	    }
 
-#ifdef PARSER
-	} else if (l->type == LOCATION_DIR) {
+#ifdef BACKEND_SMI
+	} else if (l->type == LOCATION_SMIDIR) {
 
 	    if (strlen(module)) {
 		if (!(m = findModuleByName(module))) {
@@ -716,7 +715,7 @@ smiGetNode(spec, mod, wantdescr)
 		}
 	    }
 	    
-	} else if (l->type == LOCATION_FILE) {
+	} else if (l->type == LOCATION_SMIFILE) {
 
 	    if (strlen(module)) {
 		o = getObject(name, module);
@@ -776,7 +775,7 @@ smiGetType(spec, mod, wantdescr)
     char	    name[SMI_MAX_OID+1];
     char	    module[SMI_MAX_DESCRIPTOR+1];
     char	    fullname[SMI_MAX_FULLNAME+1];
-#ifdef PARSER
+#ifdef BACKEND_SMI
     struct stat	    buf;
     char	    *path;
 #endif
@@ -787,7 +786,7 @@ smiGetType(spec, mod, wantdescr)
     createFullname(spec, mod, fullname);
     createModuleAndName(fullname, module, name);
 
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
@@ -799,8 +798,8 @@ smiGetType(spec, mod, wantdescr)
 		return smitype;
 	    }
 
-#ifdef PARSER
-	} else if (l->type == LOCATION_DIR) {
+#ifdef BACKEND_SMI
+	} else if (l->type == LOCATION_SMIDIR) {
 
 	    if (strlen(module)) {
 		if (!(m = findModuleByName(module))) {
@@ -830,7 +829,7 @@ smiGetType(spec, mod, wantdescr)
 		}
 	    }
 	    
-	} else if (l->type == LOCATION_FILE) {
+	} else if (l->type == LOCATION_SMIFILE) {
 
 	    if (strlen(module)) {
 		t = getType(name, module);
@@ -879,7 +878,7 @@ smiGetMacro(spec, mod)
     char	    name[SMI_MAX_OID+1];
     char	    module[SMI_MAX_DESCRIPTOR+1];
     char	    fullname[SMI_MAX_FULLNAME+1];
-#ifdef PARSER
+#ifdef BACKEND_SMI
     struct stat	    buf;
     char	    *path;
 #endif
@@ -890,7 +889,7 @@ smiGetMacro(spec, mod)
     createFullname(spec, mod, fullname);
     createModuleAndName(fullname, module, name);
 
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
@@ -900,8 +899,8 @@ smiGetMacro(spec, mod)
 		return smimacro;
 	    }
 
-#ifdef PARSER
-	} else if (l->type == LOCATION_DIR) {
+#ifdef BACKEND_SMI
+	} else if (l->type == LOCATION_SMIDIR) {
 
 	    if (strlen(module)) {
 		if (!(m = findModuleByName(module))) {
@@ -931,7 +930,7 @@ smiGetMacro(spec, mod)
 		}
 	    }
 	    
-	} else if (l->type == LOCATION_FILE) {
+	} else if (l->type == LOCATION_SMIFILE) {
 
 	    if (strlen(module)) {
 		ma = getMacro(name, module);
@@ -976,7 +975,7 @@ smiGetNames(spec, mod)
     smi_subid		subid;
     static char		*p = NULL;
     static		plen = 0;
-#ifdef PARSER
+#ifdef BACKEND_SMI
     struct stat	    buf;
     char	    *path;
 #endif
@@ -1000,7 +999,7 @@ smiGetNames(spec, mod)
     }
     strcpy(p, "");
 
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	if ((l->type == LOCATION_RPC) && (l->cl)) {
 
@@ -1014,11 +1013,11 @@ smiGetNames(spec, mod)
 		strcat(p, smilist->namelist);
 	    }
 
-#ifdef PARSER
-	} else if ((l->type == LOCATION_DIR) ||
-		   (l->type == LOCATION_FILE)) {
+#ifdef BACKEND_SMI
+	} else if ((l->type == LOCATION_SMIDIR) ||
+		   (l->type == LOCATION_SMIFILE)) {
 	    
-	    if (l->type == LOCATION_DIR) {
+	    if (l->type == LOCATION_SMIDIR) {
 		
 		if ((!m) && (strlen(module))) {
 		    if (!(m = findModuleByName(module))) {
@@ -1098,9 +1097,9 @@ smiGetNames(spec, mod)
 
 		    for (o = nn->firstObjectPtr; o; o = o->nextPtr) {
 			if (((!strlen(module)) || (o->modulePtr == m))) {
-			    if (((l->type == LOCATION_FILE) &&
+			    if (((l->type == LOCATION_SMIFILE) &&
 				 (!strcmp(l->name, o->modulePtr->path))) ||
-				((l->type == LOCATION_DIR) &&
+				((l->type == LOCATION_SMIDIR) &&
 			       (!strcmp(l->name,
 					dirname(o->modulePtr->path))))) {
 				sprintf(ss, "%s.%s",
@@ -1120,9 +1119,9 @@ smiGetNames(spec, mod)
 		    do {
 			d = findNextDescriptor(name, m, KIND_ANY, d);
 			if (d &&
-			    (((l->type == LOCATION_FILE) &&
+			    (((l->type == LOCATION_SMIFILE) &&
 			      (!strcmp(l->name, d->module->path))) ||
-			     ((l->type == LOCATION_DIR) &&
+			     ((l->type == LOCATION_SMIDIR) &&
 			      (!strcmp(l->name, dirname(d->module->path))))) &&
 			    (d->kind == KIND_OBJECT ||
 			     d->kind == KIND_TYPE ||
@@ -1178,7 +1177,7 @@ smiGetChildren(spec, mod)
     char		ss[SMI_MAX_FULLNAME+1];
     static char		*p = NULL;
     static		plen = 0;
-#ifdef PARSER
+#ifdef BACKEND_SMI
     struct stat	    buf;
     char	    *path;
 #endif
@@ -1194,7 +1193,7 @@ smiGetChildren(spec, mod)
     }
     strcpy(p, "");
 
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	o = NULL;
 	
@@ -1216,8 +1215,8 @@ smiGetChildren(spec, mod)
 		
 	    }
 
-#ifdef PARSER
-	} else if (l->type == LOCATION_DIR) {
+#ifdef BACKEND_SMI
+	} else if (l->type == LOCATION_SMIDIR) {
 
 	    if (strlen(module)) {
 		if (!(m = findModuleByName(module))) {
@@ -1246,7 +1245,7 @@ smiGetChildren(spec, mod)
 		}
 	    }
 	    
-	} else if (l->type == LOCATION_FILE) {
+	} else if (l->type == LOCATION_SMIFILE) {
 
 	    if (strlen(module)) {
 		o = findObjectByModulenameAndName(module, name);
@@ -1319,7 +1318,7 @@ smiGetMembers(spec, mod)
     static char		*p = NULL;
     static		plen = 0;
     List		*e;
-#ifdef PARSER
+#ifdef BACKEND_SMI
     struct stat	    buf;
     char	    *path;
 #endif
@@ -1335,14 +1334,14 @@ smiGetMembers(spec, mod)
     }
     strcpy(p, "");
 
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
 	    /* TODO */
 
-#ifdef PARSER
-	} else if (l->type == LOCATION_DIR) {
+#ifdef BACKEND_SMI
+	} else if (l->type == LOCATION_SMIDIR) {
 
 	    if (strlen(module)) {
 		if (!(m = findModuleByName(module))) {
@@ -1415,7 +1414,7 @@ smiGetMembers(spec, mod)
 		}
 	    }
 
-	} else if (l->type == LOCATION_FILE) {
+	} else if (l->type == LOCATION_SMIFILE) {
 	    
 	    if (strlen(module)) {
 		o = findObjectByModulenameAndName(module, name);
@@ -1453,7 +1452,7 @@ smiGetParent(spec, mod)
     char		module[SMI_MAX_DESCRIPTOR+1];
     char		fullname[SMI_MAX_FULLNAME+1];
     char		s[SMI_MAX_FULLNAME+1];
-#ifdef PARSER
+#ifdef BACKEND_SMI
     struct stat		buf;
     char		*path;
 #endif
@@ -1464,7 +1463,7 @@ smiGetParent(spec, mod)
     createFullname(spec, mod, fullname);
     createModuleAndName(fullname, module, name);
     
-    for (l = firstLocation; l; l = l->next) {
+    for (l = firstLocationPtr; l; l = l->next) {
 
 	if (l->type == LOCATION_RPC) {
 
@@ -1474,8 +1473,8 @@ smiGetParent(spec, mod)
 		return sminame2;
 	    }
 
-#ifdef PARSER
-	} else if (l->type == LOCATION_DIR) {
+#ifdef BACKEND_SMI
+	} else if (l->type == LOCATION_SMIDIR) {
 
 	    if (strlen(module)) {
 		if (!(m = findModuleByName(module))) {
@@ -1505,7 +1504,7 @@ smiGetParent(spec, mod)
 		}
 	    }
 	    
-	} else if (l->type == LOCATION_FILE) {
+	} else if (l->type == LOCATION_SMIFILE) {
 
 	    if (strlen(module)) {
 		o = getObject(name, module);

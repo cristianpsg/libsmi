@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.2 1999/03/12 15:23:24 strauss Exp $
+ * @(#) $Id: data.h,v 1.3 1999/03/12 16:59:32 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -111,9 +111,38 @@ typedef unsigned short MacroFlags;
 #define FLAGS_SPECIFIC		0xff00
 
 
+typedef enum LocationType {
+#ifdef BACKEND_SMI
+    LOCATION_SMIFILE	     = 1,
+    LOCATION_SMIDIR	     = 2,
+#endif
+#ifdef BACKEND_SMING
+    LOCATION_SMINGFILE	     = 3,
+    LOCATION_SMINGDIR	     = 4,
+#endif
+#ifdef BACKEND_DBM
+    LOCATION_DBM	     = 5,
+#endif
+#ifdef BACKEND_RPC
+    LOCATION_RPC	     = 6,
+#endif
+    LOCATION_UNKNOWN         = 0
+} LocationType;
+
+typedef struct Location {
+    char	    *name;
+    LocationType    type;
+#ifdef BACKEND_RPC
+    CLIENT	    *cl;
+#endif
+    struct Location *next;
+    struct Location *prev;
+} Location;
+
 typedef struct Module {
     smi_descriptor name;
     char	   *path;
+    Location	   *locationPtr;
     off_t	   fileoffset;
     struct Object  *firstObjectPtr;
     struct Object  *lastObjectPtr;
@@ -223,6 +252,7 @@ typedef struct Macro {
 typedef struct Parser {
     char           *module;
     char	   *path;
+    Location	   *locationPtr;
     FILE	   *file;
     int		   line;
     int		   column;
@@ -239,9 +269,14 @@ extern Node	*pendingNodePtr;
 
 extern Type	*typeIntegerPtr, *typeOctetStringPtr, *typeObjectIdentifierPtr;
 
+extern Location	*firstLocationPtr, *lastLocationPtr;
+
+extern Location *addLocation(const char *location,
+			     ModuleFlags flags);
 
 extern Module *addModule(const char *modulename,
 			 const char *path,
+			 Location *locationPtr,
 			 off_t fileoffset,
 			 ModuleFlags flags,
 			 Parser *parserPtr);
@@ -409,6 +444,7 @@ extern Macro *findMacroByModulenameAndName(const char *modulename,
 extern int initData();
 
 extern int readMibFile(const char *path,
+		       Location *locationPtr,
 		       const char *modulename,
 		       ParserFlags flags);
 
