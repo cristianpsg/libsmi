@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.57 1999/12/21 12:32:09 strauss Exp $
+ * @(#) $Id: smi.c,v 1.58 1999/12/22 14:44:04 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1898,6 +1898,7 @@ SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
 
 void smiFreeNode(SmiNode *smiNodePtr)
 {
+    util_free(smiNodePtr->oid);
     util_free(smiNodePtr);
 }
 
