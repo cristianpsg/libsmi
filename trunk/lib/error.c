@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.100 2002/09/13 17:49:27 schoenw Exp $
+ * @(#) $Id: error.c,v 1.101 2002/10/24 10:40:10 strauss Exp $
  */
 
 #include <config.h>
@@ -427,6 +427,12 @@ static Error errors[] = {
       "`InetAddressType' should not be subtyped" },
     { 5, ERR_INETADDRESS_SPECIFIC, "inetaddress-specific", 
       "`InetAddress' should be used instead of `%s'" },
+    { 5, ERR_TRANSPORTADDRESS_WITHOUT_TYPE, "transportaddress-transportaddresstype", 
+      "`TransportAddress' object should have an accompanied preceding `TransportAdressType' object" },
+    { 5, ERR_TRANSPORTADDRESSTYPE_SUBTYPED, "transportaddresstype-subtyped", 
+      "`TransportAddressType' should not be subtyped" },
+    { 5, ERR_TRANSPORTADDRESS_SPECIFIC, "transportaddress-specific", 
+      "`TransportAddress' should be used instead of `%s'" },
     { 3, ERR_NOTIFICATION_OBJECT_TYPE, "notification-object-type", 
       "object `%s' of notification `%s' must be a scalar or column" },
     { 3, ERR_NOTIFICATION_OBJECT_ACCESS, "notification-object-access", 
