@@ -3,7 +3,7 @@ SMIDIFF-TEST-002-MIB DEFINITIONS ::= BEGIN
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE
         FROM SNMPv2-SMI
-    DisplayString
+    DisplayString, TEXTUAL-CONVENTION
 	FROM SNMPv2-TC
     smidiffTestMib
         FROM SMIDIFF-TEST-MIB;
@@ -106,10 +106,24 @@ scalar9 OBJECT-TYPE
 	"Multiple ranges. Gap will be filled." 
     ::= { libsmiTest002Mib 9 }
 
+scalar10 OBJECT-TYPE
+    SYNTAX     OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "Size restriction will be removed."
+    ::= { libsmiTest002Mib 10 }
+
 MyInt ::= TEXTUAL-CONVENTION
     STATUS    current
     DESCRIPTION
 	"TC. Range will change."
     SYNTAX   INTEGER (0..9)
+
+MyString ::= TEXTUAL-CONVENTION
+    STATUS    current
+    DESCRIPTION
+	"TC. Range will change."
+    SYNTAX   OCTET STRING (SIZE(0..9))
 
 END
