@@ -38,12 +38,17 @@
 char *excludeDescriptors[] = {
     "ObjectName", "NotificationName", "ObjectSyntax", "SimpleSyntax",
     "Integer32", "ApplicationSyntax", "Unsigned32",
+    "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
     NULL };
 
 char *typeDescriptors[] = {
     "IpAddress", "Counter32", "Gauge32", "TimeTicks", "Opaque", "Counter64",
     NULL };
 
+char *excludeTypes[] = {
+    "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
+    NULL };
+    
 char *smi2smingTypes[] = {
     "INTEGER", "Integer32",
     "OCTET STRING", "OctetString",
@@ -68,6 +73,10 @@ getTypeString(name, syntax)
     
     if (syntax == SMI_BASETYPE_BITS) {
 	return "Bits";
+    }
+
+    if (!name) {
+	return "<unknown>";
     }
     
     for(i=0; smi2smingTypes[i]; i += 2) {
@@ -476,11 +485,20 @@ static void
 printTypedefs(modulename)
     char	 *modulename;
 {
-    int		 i;
+    int		 i, j;
     SmiType	 *smiType;
     
     for(i = 0, smiType = smiGetFirstType(modulename);
 	smiType; smiType = smiGetNextType(modulename, smiType->name)) {
+
+	if ((!(strcmp(modulename, "SNMPv2-SMI"))) ||
+	    (!(strcmp(modulename, "RFC1155-SMI")))) {
+	    for(j=0; excludeTypes[j]; j++) {
+		if (!strcmp(smiType->name, excludeTypes[j])) break;
+	    }
+	    if (excludeTypes[j]) break;
+	}
+	    
 	if (!i) {
 	    print("//\n// TYPE DEFINITIONS\n//\n\n");
 	}
@@ -509,7 +527,10 @@ printTypedefs(modulename)
 	    printSegment(2 * INDENT, "units", INDENTVALUE);
 	    print ("\"%s\";\n", smiType->units);
 	}
-	if (smiType->status != SMI_STATUS_CURRENT) {
+	if ((smiType->status != SMI_STATUS_CURRENT) &&
+	    (smiType->status != SMI_STATUS_UNKNOWN) &&
+	    (smiType->status != SMI_STATUS_MANDATORY) &&
+	    (smiType->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment(2 * INDENT, "status", INDENTVALUE);
 	    print ("%s;\n", smingStringStatus(smiType->status));
 	}
@@ -693,7 +714,7 @@ printObjects(modulename)
 	    break;
 	}
 	
-	/* XXX create */
+	/* TODO: create */
 	
 	if (smiNode->value) {
 	    printSegment((2 + indent) * INDENT, "default", INDENTVALUE);
@@ -710,7 +731,9 @@ printObjects(modulename)
 	    print("\"%s\";\n", smiNode->units);
 	}
 	if ((smiNode->status != SMI_STATUS_CURRENT) &&
-	    (smiNode->status != SMI_STATUS_UNKNOWN)) {
+	    (smiNode->status != SMI_STATUS_UNKNOWN) &&
+	    (smiNode->status != SMI_STATUS_MANDATORY) &&
+	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment((2 + indent) * INDENT, "status", INDENTVALUE);
 	    print("%s;\n", smingStringStatus(smiNode->status));
 	}
@@ -777,7 +800,9 @@ printNotifications(modulename)
 	}
 	
 	if ((smiNode->status != SMI_STATUS_CURRENT) &&
-	    (smiNode->status != SMI_STATUS_UNKNOWN)) {
+	    (smiNode->status != SMI_STATUS_UNKNOWN) &&
+	    (smiNode->status != SMI_STATUS_MANDATORY) &&
+	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment(2 * INDENT, "status", INDENTVALUE);
 	    print("%s;\n", smingStringStatus(smiNode->status));
 	}
@@ -849,7 +874,9 @@ printGroups(modulename)
 	    print(");\n");
 	    
 	    if ((smiNode->status != SMI_STATUS_CURRENT) &&
-		(smiNode->status != SMI_STATUS_UNKNOWN)) {
+		(smiNode->status != SMI_STATUS_UNKNOWN) &&
+		(smiNode->status != SMI_STATUS_MANDATORY) &&
+		(smiNode->status != SMI_STATUS_OPTIONAL)) {
 		printSegment(2 * INDENT, "status", INDENTVALUE);
 		print("%s;\n", smingStringStatus(smiNode->status));
 	    }
@@ -908,7 +935,9 @@ printCompliances(modulename)
 	}
 	    
 	if ((smiNode->status != SMI_STATUS_CURRENT) &&
-	    (smiNode->status != SMI_STATUS_UNKNOWN)) {
+	    (smiNode->status != SMI_STATUS_UNKNOWN) &&
+	    (smiNode->status != SMI_STATUS_MANDATORY) &&
+	    (smiNode->status != SMI_STATUS_OPTIONAL)) {
 	    printSegment(2 * INDENT, "status", INDENTVALUE);
 	    print("%s;\n", smingStringStatus(smiNode->status));
 	}

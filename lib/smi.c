@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.13 1999/03/30 18:37:22 strauss Exp $
+ * @(#) $Id: smi.c,v 1.14 1999/03/30 22:27:32 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -469,7 +469,6 @@ createSmiNode(objectPtr)
 	    smiNodePtr->implied    = objectPtr->indexPtr->implied;
 	    for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
 		 listPtr = listPtr->nextPtr) {
-		/* XXX: Module::id if external */
 		addName(&smiNodePtr->index,
 			((Object *)listPtr->ptr)->modulePtr->name,
 			((Object *)listPtr->ptr)->name);
@@ -1339,15 +1338,6 @@ smiGetMembers(spec, mod)
     char	        name[SMI_MAX_OID+1];
     char	        modulename[SMI_MAX_DESCRIPTOR+1];
     char		**list = NULL;
-#if 0
-    Node		*nodePtr = NULL;
-    Type		*typePtr = NULL;
-    char		*s;
-    char		ss[SMI_MAX_FULLNAME+1];
-    static char		*p = NULL;
-    static int		plen = 0;
-    List		*e;
-#endif
     
     printDebug(4, "smiGetMembers(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
@@ -1398,29 +1388,6 @@ smiGetMembers(spec, mod)
 	/*
 	 * a type
 	 */
-#if 0
-	typePtr = findTypeByModulenameAndName(modulename, name);
-	if (typePtr) {
-	    if (typePtr->basetype == SMI_BASETYPE_SEQUENCE) {
-				/* It is a SEQUENCE -> return all columns. */
-		for (e = (void *)typePtr->itemlistPtr; e;
-		     e = e->nextPtr) {
-		    sprintf(ss, "%s.%s",
-			    ((Object *)(e->ptr))->modulePtr->name,
-			    ((Object *)(e->ptr))->name);
-		    s = ss;
-		    if (!strstr(p, s)) {
-			if (strlen(p)+strlen(s)+2 > plen) {
-			    p = realloc(p,
-					strlen(p)+strlen(s)+2);
-			}
-			if (strlen(p)) strcat(p, " ");
-			strcat(p, s);
-		    }
-		}
-	    }
-	}
-#endif
 
     } else if (!isupper((int)name[0])) {
 
@@ -1433,34 +1400,11 @@ smiGetMembers(spec, mod)
 		/*
 		 * a table, to retrieve all of its index object types
 		 */
-#if 0
-		if (objectPtr->indexPtr) {
-		    for (e = (void *)objectPtr->indexPtr; e;
-			 e = e->nextPtr) {
-			sprintf(ss, "%s.%s",
-				((Object *)(e->ptr))->modulePtr->name,
-				((Object *)(e->ptr))->name);
-			s = ss;
-			if (!strstr(p, s)) {
-			    if (strlen(p)+strlen(s)+2 > plen) {
-				p = realloc(p,
-					    strlen(p)+strlen(s)+2);
-			    }
-			    if (strlen(p)) strcat(p, " ");
-			    strcat(p, s);
-			}
-		    }
-		}
-#endif
 	    } else if (objectPtr->typePtr->basetype == SMI_BASETYPE_SEQUENCE) {
 		/*
 		 * a row, to retrieve all of its columnar object types
 		 */
-#if 0
-		XXX
-#endif
 	    }
-#if 0
 	    /*
 	     * a notification type, to retrieve all of its variables
 	     */
@@ -1470,7 +1414,6 @@ smiGetMembers(spec, mod)
 	    /*
 	     * a notification group, to retrieve all of its notification types
 	     */
-#endif
 	}
     }
 
