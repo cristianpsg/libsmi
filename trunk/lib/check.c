@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.11 2000/11/27 12:06:40 strauss Exp $
+ * @(#) $Id: check.c,v 1.12 2000/12/15 13:52:29 strauss Exp $
  */
 
 #include <config.h>
@@ -900,6 +900,64 @@ smiCheckTypeRanges(Parser *parser, Type *type)
     }
 }
 
+static char *status[] = { "Unknown", "current", "deprecated",
+			  "mandatory", "optional", "obsolete" };
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckComplianceStatus --
+ *
+ *      Make sure that all groups and objects in a compliance statement
+ *      are at least as current as the compliance itself.
+ *      XXX I'm not sure I traversed the whole compliance statement,
+ *          this at least covers the common case
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckComplianceStatus(Parser *parser, Object *compliance)
+{
+    List *listPtr;
+    Object *memberPtr;
+
+    for (listPtr = compliance->listPtr;
+	 listPtr; listPtr = listPtr->nextPtr) {
+	
+	memberPtr = (Object *) listPtr->ptr;
+	if (!memberPtr)
+	    continue;
+	if (memberPtr->export.status > compliance->export.status) {
+	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_GROUP_STATUS,
+				compliance->line,
+				status[compliance->export.status],
+				compliance->export.name,
+				status[memberPtr->export.status],
+				memberPtr->export.name);
+	}
+    }
+    for (listPtr = compliance->refinementlistPtr;
+	 listPtr; listPtr = listPtr->nextPtr) {
+	
+	memberPtr = ((Refinement *) listPtr->ptr)->objectPtr;
+	if (memberPtr->export.status > compliance->export.status) {
+	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_OBJECT_STATUS,
+				compliance->line,
+				status[compliance->export.status],
+				compliance->export.name,
+				status[memberPtr->export.status],
+				memberPtr->export.name);
+	}
+    }
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -907,6 +965,9 @@ smiCheckTypeRanges(Parser *parser, Type *type)
  *
  *      Check whether only scalar and column nodes and notifications
  *	are contained in a conformance group.
+ *
+ *      Also ensure that group members are at least as current
+ *      as the group itself.
  *
  * Results:
  *      None.
@@ -946,6 +1007,14 @@ smiCheckGroupMembers(Parser *parser, Object *group)
 				group->line,
 				memberPtr->export.name,
 				group->export.name);
+	}
+	if (memberPtr->export.status > group->export.status) {
+	    smiPrintErrorAtLine(parser, ERR_GROUP_OBJECT_STATUS,
+				group->line,
+				status[group->export.status],
+				group->export.name,
+				status[memberPtr->export.status],
+				memberPtr->export.name);
 	}
     }
 
