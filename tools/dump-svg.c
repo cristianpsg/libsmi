@@ -2221,7 +2221,8 @@ static void printSVGObject(GraphNode *node, int *classNr)
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            node->dia.x + node->cluster->xOffset,
            node->dia.y + node->cluster->yOffset);
-    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
+    printf("  <g id=\"%s\" transform=\"scale(%.1f)\">\n",
+           smiGetFirstChildNode(node->smiNode)->name, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
     printf("          fill=\"white\" stroke=\"black\"/>\n");
@@ -2236,7 +2237,8 @@ static void printSVGObject(GraphNode *node, int *classNr)
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
     //the "+"-button
-    printf("    <g onclick=\"enlarge(%i)\"\n", *classNr);
+    printf("    <g onclick=\"enlarge('%s',%i)\"\n",
+           smiGetFirstChildNode(node->smiNode)->name, *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + node->dia.w - 26, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2245,7 +2247,8 @@ static void printSVGObject(GraphNode *node, int *classNr)
     printf("          +</text>\n");
     printf("    </g>\n");
     //the "-"-button
-    printf("    <g onclick=\"scaledown(%i)\"\n", *classNr);
+    printf("    <g onclick=\"scaledown('%s',%i)\"\n",
+           smiGetFirstChildNode(node->smiNode)->name, *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + node->dia.w - 13, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2305,7 +2308,8 @@ static void printSVGGroup(int group, int *classNr)
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            tNode->dia.x + tNode->cluster->xOffset,
            tNode->dia.y + tNode->cluster->yOffset);
-    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", *classNr, STARTSCALE);
+    printf("  <g id=\"%s\" transform=\"scale(%.1f)\">\n",
+           smiGetParentNode(tNode->smiNode)->name, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
     printf("          fill=\"white\" stroke=\"black\"/>\n");
@@ -2320,7 +2324,8 @@ static void printSVGGroup(int group, int *classNr)
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
     //the "+"-button
-    printf("    <g onclick=\"enlarge(%i)\"\n", *classNr);
+    printf("    <g onclick=\"enlarge('%s',%i)\"\n",
+           smiGetParentNode(tNode->smiNode)->name, *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + tNode->dia.w - 26, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2329,7 +2334,8 @@ static void printSVGGroup(int group, int *classNr)
     printf("          +</text>\n");
     printf("    </g>\n");
     //the "-"-button
-    printf("    <g onclick=\"scaledown(%i)\"\n", *classNr);
+    printf("    <g onclick=\"scaledown('%s',%i)\"\n",
+           smiGetParentNode(tNode->smiNode)->name, *classNr);
     printf("       transform=\"translate(%.2f,%.2f)\">\n",
            xOrigin + tNode->dia.w - 13, yOrigin + 3);
     printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
@@ -2731,17 +2737,17 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
     printf("    var obj = svgDocument.getElementById(object);\n");
     printf("    obj.setAttribute(\"style\",\"fill: \"+color);");
     printf("}\n\n");
-    printf("function enlarge(classNr) {\n");
-    printf("    var obj = svgDocument.getElementById(classNr);\n");
-    printf("    scalFac[classNr] = scalFac[classNr] * 1.1;\n");
+    printf("function enlarge(name, number) {\n");
+    printf("    var obj = svgDocument.getElementById(name);\n");
+    printf("    scalFac[number] = scalFac[number] * 1.1;\n");
     printf("    obj.setAttribute(\"transform\",");
-    printf("\"scale(\"+scalFac[classNr]+\")\");\n");
+    printf("\"scale(\"+scalFac[number]+\")\");\n");
     printf("}\n\n");
-    printf("function scaledown(classNr) {\n");
-    printf("    var obj = svgDocument.getElementById(classNr);\n");
-    printf("    scalFac[classNr] = scalFac[classNr] / 1.1;\n");
+    printf("function scaledown(name, number) {\n");
+    printf("    var obj = svgDocument.getElementById(name);\n");
+    printf("    scalFac[number] = scalFac[number] / 1.1;\n");
     printf("    obj.setAttribute(\"transform\",");
-    printf("\"scale(\"+scalFac[classNr]+\")\");\n");
+    printf("\"scale(\"+scalFac[number]+\")\");\n");
     printf("}\n");
     printf("// ]]>\n</script>\n\n");
 
