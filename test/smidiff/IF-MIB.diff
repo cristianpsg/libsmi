@@ -1,7 +1,7 @@
 ../../mibs/ietf/IF-MIB:16 contact of `IF-MIB' changed
-./IF-MIB.old:18 previous definition of `IF-MIB'
 ../../mibs/ietf/IF-MIB:35 revision `2000-06-14 00:00' added
 ../../mibs/ietf/IF-MIB:39 revision `1996-02-28 21:55' added
+./IF-MIB.old:18 previous definition of `IF-MIB'
 ../../mibs/ietf/IF-MIB:60 legal status change from `current' to `deprecated' for `OwnerString'
 ./IF-MIB.old:52 previous definition of `OwnerString'
 ../../mibs/ietf/IF-MIB:79 range `(1..2147483647)' added to type `InterfaceIndex'
@@ -80,14 +80,13 @@
 ../../mibs/ietf/IF-MIB:1644 legal status change from `current' to `deprecated' for `ifTestResult'
 ./IF-MIB.old:1058 previous definition of `ifTestResult'
 ../../mibs/ietf/IF-MIB:1665 legal status change from `current' to `deprecated' for `ifTestCode'
-./IF-MIB.old:1081 previous definition of `ifTestCode'
 ../../mibs/ietf/IF-MIB:1665 description of `ifTestCode' changed
 ./IF-MIB.old:1081 previous definition of `ifTestCode'
 ../../mibs/ietf/IF-MIB:1685 legal status change from `current' to `deprecated' for `ifTestOwner'
 ./IF-MIB.old:1101 previous definition of `ifTestOwner'
 ../../mibs/ietf/IF-MIB:1070 description of `ifRcvAddressTable' changed
 ./IF-MIB.old:1123 previous definition of `ifRcvAddressTable'
-../../mibs/ietf/IF-MIB:1112 access of `ifRcvAddressAddress' changed from `read write' to `not accessible'
+../../mibs/ietf/IF-MIB:1112 access of `ifRcvAddressAddress' changed from `read-write' to `not-accessible'
 ./IF-MIB.old:1163 previous definition of `ifRcvAddressAddress'
 ../../mibs/ietf/IF-MIB:892 column `ifAlias' has been added
 ../../mibs/ietf/IF-MIB:924 column `ifCounterDiscontinuityTime' has been added
@@ -98,7 +97,6 @@
 ../../mibs/ietf/IF-MIB:1223 description of `linkUp' changed
 ./IF-MIB.old:1169 previous definition of `linkUp'
 ../../mibs/ietf/IF-MIB:1697 legal status change from `current' to `deprecated' for `ifGeneralGroup'
-./IF-MIB.old:1326 previous definition of `ifGeneralGroup'
 ../../mibs/ietf/IF-MIB:1697 description of `ifGeneralGroup' changed
 ./IF-MIB.old:1326 previous definition of `ifGeneralGroup'
 ../../mibs/ietf/IF-MIB:1315 description of `ifFixedLengthGroup' changed
@@ -108,7 +106,6 @@
 ../../mibs/ietf/IF-MIB:1709 legal status change from `current' to `deprecated' for `ifTestGroup'
 ./IF-MIB.old:1428 previous definition of `ifTestGroup'
 ../../mibs/ietf/IF-MIB:1719 legal status change from `current' to `deprecated' for `ifStackGroup'
-./IF-MIB.old:1437 previous definition of `ifStackGroup'
 ../../mibs/ietf/IF-MIB:1719 description of `ifStackGroup' changed
 ./IF-MIB.old:1437 previous definition of `ifStackGroup'
 ../../mibs/ietf/IF-MIB:1300 group `ifGeneralInformationGroup' has been added

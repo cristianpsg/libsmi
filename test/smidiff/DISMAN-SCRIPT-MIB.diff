@@ -1,6 +1,6 @@
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:17 contact of `DISMAN-SCRIPT-MIB' changed
-./DISMAN-SCRIPT-MIB.old:17 previous definition of `DISMAN-SCRIPT-MIB'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:53 revision `2001-08-21 00:00' added
+./DISMAN-SCRIPT-MIB.old:17 previous definition of `DISMAN-SCRIPT-MIB'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:125 description of `smLangIndex' changed
 ./DISMAN-SCRIPT-MIB.old:87 previous definition of `smLangIndex'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:165 description of `smLangVendor' changed
@@ -66,7 +66,6 @@
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:1796 legal status change from `current' to `deprecated' for `smRunGroup'
 ./DISMAN-SCRIPT-MIB.old:1436 previous definition of `smRunGroup'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:1810 legal status change from `current' to `deprecated' for `smNotificationsGroup'
-./DISMAN-SCRIPT-MIB.old:1455 previous definition of `smNotificationsGroup'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:1810 description of `smNotificationsGroup' changed
 ./DISMAN-SCRIPT-MIB.old:1455 previous definition of `smNotificationsGroup'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:1644 group `smScriptGroup2' has been added

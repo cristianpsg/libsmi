@@ -1,6 +1,6 @@
 ./Printer-MIB.new:11 contact of `Printer-MIB' changed
-../../mibs/ietf/Printer-MIB:10 previous definition of `Printer-MIB'
 ./Printer-MIB.new:22 revision `2001-08-30 00:00' added
+../../mibs/ietf/Printer-MIB:10 previous definition of `Printer-MIB'
 ../../mibs/ietf/Printer-MIB:28 type `MediaUnit' has been deleted
 ../../mibs/ietf/Printer-MIB:38 type `CapacityUnit' has been deleted
 ../../mibs/ietf/Printer-MIB:51 type `SubUnitStatus' has been deleted
@@ -112,8 +112,8 @@
 ./Printer-MIB.new:2422 description of `prtInputCurrentLevel' changed
 ../../mibs/ietf/Printer-MIB:815 previous definition of `prtInputCurrentLevel'
 ./Printer-MIB.new:2447 description of `prtInputMediaName' changed
-../../mibs/ietf/Printer-MIB:841 previous definition of `prtInputMediaName'
 ./Printer-MIB.new:2447 reference added to `prtInputMediaName'
+../../mibs/ietf/Printer-MIB:841 previous definition of `prtInputMediaName'
 ./Printer-MIB.new:2524 type `LocalizedDescriptionStringTC' replaces implicit type for `prtInputDescription'
 ../../mibs/ietf/Printer-MIB:915 previous definition of `prtInputDescription'
 ./Printer-MIB.new:2567 description of `prtInputMediaType' changed

@@ -1,8 +1,7 @@
 ./INET-ADDRESS-MIB.new:9 contact of `INET-ADDRESS-MIB' changed
-../../mibs/ietf/INET-ADDRESS-MIB:9 previous definition of `INET-ADDRESS-MIB'
 ./INET-ADDRESS-MIB.new:9 description of `INET-ADDRESS-MIB' changed
-../../mibs/ietf/INET-ADDRESS-MIB:9 previous definition of `INET-ADDRESS-MIB'
 ./INET-ADDRESS-MIB.new:31 revision `2001-09-20 00:00' added
+../../mibs/ietf/INET-ADDRESS-MIB:9 previous definition of `INET-ADDRESS-MIB'
 ./INET-ADDRESS-MIB.new:44 named number `ipv4z' added to type `InetAddressType'
 ./INET-ADDRESS-MIB.new:44 named number `ipv6z' added to type `InetAddressType'
 ./INET-ADDRESS-MIB.new:44 description of `InetAddressType' changed
@@ -13,7 +12,6 @@
 ../../mibs/ietf/INET-ADDRESS-MIB:121 previous definition of `InetAddressIPv4'
 ./INET-ADDRESS-MIB.new:142 size of type `InetAddressIPv6' changed from `(16|20)' to `(16)'
 ./INET-ADDRESS-MIB.new:142 format of `InetAddressIPv6' changed
-../../mibs/ietf/INET-ADDRESS-MIB:133 previous definition of `InetAddressIPv6'
 ./INET-ADDRESS-MIB.new:142 description of `InetAddressIPv6' changed
 ../../mibs/ietf/INET-ADDRESS-MIB:133 previous definition of `InetAddressIPv6'
 ./INET-ADDRESS-MIB.new:154 type `InetAddressIPv4z' has been added

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.34 2001/12/18 11:38:15 schoenw Exp $
+ * @(#) $Id: check.c,v 1.35 2002/01/31 18:19:45 schoenw Exp $
  */
 
 #include <config.h>
@@ -1093,16 +1093,16 @@ smiCheckTypeRanges(Parser *parser, Type *type)
 		((Range *)p->ptr)->export.minValue;
 	    if (p == type->listPtr) {
 		type->listPtr = nextPtr;
+		pp = nextPtr;
 	    } else {
 		pp->nextPtr = nextPtr;
-		pp = p;
 	    }
 	    smiFree(p);
 	} else {
 	    pp = p;
 	}
     }
-    
+
 }
 
 
