@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.81 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-smi.c,v 1.82 2002/11/13 12:29:26 schoenw Exp $
  */
 
 #include <config.h>
@@ -60,7 +60,11 @@ static char *convertTypev2[] = {
 static char *convertTypePIBtoMIB[] = {
     NULL,		 "Unsigned64",	       NULL,	   "IBRUnsigned64",
     NULL,		 "Integer64",	       NULL,	   "IBRInteger64",
+/* XXX This breaks SMIv2 -> SMIv? compilation such that the IMPORT statement
+   for SnmpAdminString is removed. I've remove this as a quick fix, but I'm
+   not sure what to do for PIB compilation here.
     NULL,		 "SnmpAdminString",    NULL,	   "OCTET STRING",
+*/
     NULL, NULL, NULL, NULL };
 
 static char *convertImportv2[] = {
@@ -495,6 +499,9 @@ static void createImportList(SmiModule *smiModule)
     for(smiNode = smiGetFirstNode(smiModule, kind); smiNode;
 	smiNode = smiGetNextNode(smiNode, kind)) {
 	smiType = smiGetNodeType(smiNode);
+	if (smiType && (smiType->decl == SMI_DECL_IMPLICIT_TYPE)) {
+	    smiType = smiGetParentType(smiType);
+	}
 	if (smiType) {
 	    smiModule2 = smiGetTypeModule(smiType);
 	    if (smiModule2 && (smiModule2 != smiModule)) {

@@ -1,3 +1,9 @@
+2002-11-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-{smi,sming,smiv3}.c: Fixed list of imports in case
+	of imported types only used for inline restricted types. Thanks
+	to Linda.
+	
 2002-11-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.4.1.tar.gz: released version 0.4.1. It's just time
