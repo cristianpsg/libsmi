@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.26 2001/11/12 15:29:03 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.27 2001/11/13 15:51:19 tklie Exp $ 
  */
 
 #include <config.h>
@@ -947,6 +947,29 @@ getStringRange( SmiType *smiType )
     return str;
 }
 
+static char*
+getStringSubrange( SmiRange *range, SmiType *smiType )
+{
+    char *str;
+    char *minStr, *maxStr;
+    
+    minStr = strdup( getValueString(&range->minValue, smiType) );
+    maxStr = strdup( getValueString(&range->maxValue, smiType) );
+    
+    str = malloc( strlen( minStr ) + strlen( maxStr ) + 5 );
+    if(!str) {
+	return NULL;
+    }
+
+    if( strcmp( minStr, maxStr ) ) {
+	sprintf( str, "(%s..%s)", minStr, maxStr );
+    }
+    else {
+	sprintf( str, "(%s)", minStr );
+    }
+    return str;
+}
+
 static void
 checkRanges(SmiModule *oldModule, int oldLine, 
 	    SmiModule *newModule, int newLine,
@@ -975,6 +998,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	free( strRange );
 /*	printTypeImportChain( oldType, oldTwR, newType, newTwR, 
 	oldModule, newModule ); */
+	return;
 
     }
     
@@ -996,7 +1020,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	
 	
 	if( oldTwR == oldType ) {
-
+	    
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     oldLine, name);
 	}
@@ -1011,6 +1035,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 			      line, name );
 
 	}
+	return;
     }
 
     if (oldTwR && newTwR) {
@@ -1057,7 +1082,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	    }
 	    
 	    else if (oldRange){
-		char *strRange = getStringRange( oldTwR );
+		char *strRange = getStringSubrange( oldRange, oldTwR );
 		if( name ) {
 		    printErrorAtLine(newModule,
 				     ERR_RANGE_REMOVED,
@@ -1076,7 +1101,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	    }
 
 	    else if( newRange ) {
-		char *strRange = getStringRange( newTwR );
+		char *strRange = getStringSubrange( newRange, newTwR );
 		if( name ) {
 		    printErrorAtLine(newModule,
 				     ERR_RANGE_ADDED,
