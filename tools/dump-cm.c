@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.32 2000/11/30 11:04:06 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.33 2000/12/11 08:41:22 strauss Exp $
  */
 
 
@@ -637,13 +637,13 @@ static void graphShowEdges(Graph *graph)
 
 
 
-
 /*
- * algCountElements
+ * algCountIndexElements
  *
- * Returns the number of elements in a given row entry.
+ * Returns the number of index elements in a given row entry.
  */
-static int algCountElements(SmiNode *smiNode) 
+
+static int algCountIndexElements(SmiNode *smiNode) 
 {
     int          count;
     SmiElement   *smiElement;
@@ -832,7 +832,7 @@ static int algGetNumberOfRows(SmiNode *smiNode)
     table = smiNode;
     tSmiNode = smiGetFirstChildNode(table);
 
-    elemCount = algCountElements(tSmiNode) -
+    elemCount = algCountIndexElements(tSmiNode) -
 	algCountElementsFromOtherTables(tSmiNode);
 
     for (tSmiNode = smiGetNextNode(tSmiNode, SMI_NODEKIND_COLUMN);
@@ -845,8 +845,10 @@ static int algGetNumberOfRows(SmiNode *smiNode)
 	}
 	
 	for (i = 0; supportObjs[i]; i++) {
-	    if (strcasecmp(algGetTypeName(tSmiNode),
-			   supportObjs[i]) == 0) break;
+	    char *typeName = algGetTypeName(tSmiNode);
+	    if (typeName && (strcasecmp(typeName, supportObjs[i]) == 0)) {
+		break;
+	    }
 	}
 
 	if (!supportObjs[i]) elemCount--;
@@ -938,8 +940,8 @@ static SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
 	return 3;
     }
     
-    number1 = algCountElements(firstRow);
-    number2 = algCountElements(secondRow);
+    number1 = algCountIndexElements(firstRow);
+    number2 = algCountIndexElements(secondRow);
 
     if (number1 != number2) {
 	/* printf("Different number of elements\n"); */
@@ -1000,19 +1002,33 @@ static SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
 }
 
 /*
- * Returns 1 is the smiNode is an index objects and otherwise 0.
+ * algIsIndexElement
+ *
+ * Tests whether a given node is part of the index of a particular
+ * table. Returns 1 if the node is an index node and 0 otherwise.
  */
-static int isElementObject(SmiNode *table, SmiNode *smiNode)
+
+static int algIsIndexElement(SmiNode *table, SmiNode *node)
 {
     SmiElement *smiElement;
-    SmiNode    *tNode;
+    SmiNode    *row;
 
-    tNode = smiGetFirstChildNode(table);
+    if (node->nodekind != SMI_NODEKIND_TABLE) {
+	return 0;
+    }
     
-    for (smiElement = smiGetFirstElement(tNode);
+    row = smiGetFirstChildNode(table);
+    if (!row || row->nodekind != SMI_NODEKIND_ROW) {
+	return 0;
+    }
+    
+    for (smiElement = smiGetFirstElement(row);
 	 smiElement;
 	 smiElement = smiGetNextElement(smiElement)) {
-	if (cmpSmiNodes(smiGetElementNode(smiElement), smiNode)) return 1;
+	SmiNode *indexNode = smiGetElementNode(smiElement);
+	if (cmpSmiNodes(indexNode, node)) {
+	    return 1;
+	}
     }
 
     return 0;
@@ -1060,7 +1076,7 @@ static void algCheckForExpandRel(SmiNode *smiNode)
     expTable = smiGetParentNode(smiNode);  
 
     /* count the elements in the given table <- father of smiNode */
-    refcounter = algCountElements(smiNode);
+    refcounter = algCountIndexElements(smiNode);
 
     /* find the base table <- via the last element which does not refer to 
        the expTable */
@@ -1080,7 +1096,7 @@ static void algCheckForExpandRel(SmiNode *smiNode)
     if (!baseTable) return;
 
     /* count the elements in the basetable */
-    basecounter = algCountElements(smiGetFirstChildNode(baseTable));
+    basecounter = algCountIndexElements(smiGetFirstChildNode(baseTable));
 
     /* are baseTable and expTable identical ? */
     if (basecounter >= refcounter) {
@@ -1091,7 +1107,7 @@ static void algCheckForExpandRel(SmiNode *smiNode)
 	     baseTable;
 	     baseTable = smiGetNextNode(baseTable, SMI_NODEKIND_TABLE)) {
       
-	    basecounter = algCountElements(smiGetFirstChildNode(baseTable));
+	    basecounter = algCountIndexElements(smiGetFirstChildNode(baseTable));
       
 	    if (basecounter < refcounter) {
 
@@ -1170,7 +1186,7 @@ static void algCheckForSparseRel(SmiNode *smiNode)
 
     table = smiGetParentNode(smiNode);
 
-    basecounter = algCountElements(smiNode);
+    basecounter = algCountIndexElements(smiNode);
 
     /* getting the basetable via the father node of the last element
        to handle multiple instanceing */
@@ -1799,7 +1815,7 @@ static void algCheckForPointerRels()
 		ppNode = smiGetParentNode(smiNode);
 		ppNode = smiGetParentNode(ppNode);
 	
-		if (!isElementObject(tNode->smiNode, smiNode) &&
+		if (!algIsIndexElement(tNode->smiNode, smiNode) &&
 		    cmpSmiNodes(tNode->smiNode, ppNode)) {
 
 		    for (i = 0; pointer[i]; i++) {
@@ -1996,7 +2012,7 @@ static void diaPrintXMLAllColumns(GraphNode *node)
 	ppNode = smiGetParentNode(smiNode);
 	ppNode = smiGetParentNode(ppNode);
 	
-	if (!isElementObject(node->smiNode, smiNode) &&
+	if (!algIsIndexElement(node->smiNode, smiNode) &&
 	    cmpSmiNodes(node->smiNode, ppNode))
 	    diaPrintXMLAttribute(smiNode, 0);
     }
@@ -2727,11 +2743,15 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	    ppNode = smiGetParentNode(ppNode);
 
 	    if (cmpSmiNodes(node->smiNode, ppNode)) {
+		int len;
+		char *typeName;
+
+		typeName = algGetTypeName(tNode);
+		len = strlen(tNode->name) + (typeName ? strlen(typeName) : 0);
 		node->dia.h += TABLEELEMHEIGHT;
-		node->dia.w = max(node->dia.w,(strlen(tNode->name) +
-				       strlen(algGetTypeName(tNode)))
-			      * ATTRFONTSIZE
-			      + ATTRSPACESIZE);
+		node->dia.w = max(node->dia.w, len)
+		    * ATTRFONTSIZE
+		    + ATTRSPACESIZE;
 	    }
 	}
     }

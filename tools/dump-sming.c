@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.88 2000/12/09 16:34:05 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.89 2000/12/12 22:37:53 strauss Exp $
  */
 
 #include <config.h>
@@ -29,8 +29,6 @@
 #define  INDENTVALUE	20   /* column to start values, except multiline */
 #define  INDENTTEXTS	4    /* column to start multiline texts */
 #define  INDENTMAX	64   /* max column to fill, break lines otherwise */
-
-#define  STYLE_IMPORTS  2
 
 
 
