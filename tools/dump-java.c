@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-java.c,v 1.4 1999/06/16 15:52:23 strauss Exp $
+ * @(#) $Id: dump-java.c,v 1.5 1999/06/18 15:04:40 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -78,63 +78,6 @@ static char *getUpper(char *s)
 }
 
 
-static char *getOidString(SmiNode *smiNode, int importedParent)
-{
-    SmiNode	 *parentNode, *node;
-    static char	 s[200];
-    char	 append[200];
-    unsigned int i;
-    
-    append[0] = 0;
-
-    parentNode = smiNode;
-
-    do {
-
-	if (parentNode->oidlen <= 1) {
-	    break;
-	}
-	
-	/* prepend the cut-off subidentifier to `append'. */
-	strcpy(s, append);
-	sprintf(append, ".%u%s", parentNode->oid[parentNode->oidlen-1], s);
-
-	/* retrieve the parent SmiNode */
-	node = parentNode;
-	parentNode = smiGetParentNode(node);
-	if (node != smiNode) {
-	    smiFreeNode(node);
-	}
-
-	if (!parentNode) {
-	    sprintf(s, "%s", append);
-	    return s;
-	}
-	
-	/* found an imported or a local parent node? */
-	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiNode->module,
-			   parentNode->module, parentNode->name) ||
-	     (!importedParent &&
-	      !strcmp(parentNode->module, smiNode->module)))) {
-	    sprintf(s, "%s%s", parentNode->name, append);
-	    smiFreeNode(parentNode);
-	    return s;
-	}
-	
-    } while (parentNode);
-
-    /* smiFreeNode(parentNode); */
-    s[0] = 0;
-    for (i=0; i < smiNode->oidlen; i++) {
-	if (i) strcat(s, ".");
-	sprintf(&s[strlen(s)], "%u", smiNode->oid[i]);
-    }
-    return s;
-}
-
-
-
 static char *getValueString(SmiValue *valuePtr)
 {
     static char s[100];
@@ -177,8 +120,6 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(&s[strlen(s)], ")");
 	break;
     case SMI_BASETYPE_UNKNOWN:
-    case SMI_BASETYPE_SEQUENCE:
-    case SMI_BASETYPE_SEQUENCEOF:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */
@@ -186,50 +127,6 @@ static char *getValueString(SmiValue *valuePtr)
     }
 
     return s;
-}
-
-
-
-static void printSubtype(SmiType *smiType)
-{
-    SmiRange       *range;
-    SmiNamedNumber *nn;
-    int		   i;
-
-    if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
-	(smiType->basetype == SMI_BASETYPE_BITS)) {
-	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
-	    nn ; i++, nn = smiGetNextNamedNumber(nn)) {
-	    if (i) {
-		printf(", ");
-	    } else {
-		printf(" (");
-	    }
-	    printf("%s(%s)", nn->name, getValueString(nn->valuePtr));
-	}
-	if (i) {
-	    printf(")");
-	}
-    } else {
-	for(i = 0, range = smiGetFirstRange(smiType->module, smiType->name);
-	    range ; i++, range = smiGetNextRange(range)) {
-	    if (i) {
-		printf(" | ");
-	    } else {
-		printf(" (");
-	    }	    
-	    if (bcmp(range->minValuePtr, range->maxValuePtr,
-		     sizeof(SmiValue))) {
-		printf("%s", getValueString(range->minValuePtr));
-		printf("..%s",  getValueString(range->maxValuePtr));
-	    } else {
-		printf("%s", getValueString(range->minValuePtr));
-	    }
-	}
-	if (i) {
-	    printf(")");
-	}
-    }
 }
 
 
@@ -411,7 +308,7 @@ int dumpJava(char *modulename)
     
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
-	fprintf(stderr, "Cannot locate module `%s'\n", modulename);
+	fprintf(stderr, "smilint: cannot locate module `%s'\n", modulename);
 	exit(1);
     } else {
 	printf("//\n");

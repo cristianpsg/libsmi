@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.24 1999/06/16 15:04:12 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.25 1999/06/18 15:04:37 strauss Exp $
  */
 
 %{
@@ -3025,10 +3025,6 @@ access:			noaccessKeyword
 	|		readwriteKeyword
 			{
 			    $$ = SMI_ACCESS_READ_WRITE;
-			}
-	|		readcreateKeyword
-			{
-			    $$ = SMI_ACCESS_READ_CREATE;
 			}
 	;
 

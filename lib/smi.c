@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.45 1999/06/17 16:56:59 strauss Exp $
+ * @(#) $Id: smi.c,v 1.46 1999/06/18 15:04:38 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1058,9 +1058,7 @@ SmiType *smiGetFirstType(char *module)
 	if (typePtr && typePtr->name &&
 	    isupper((int)typePtr->name[0]) &&
 	    (!(typePtr->flags & FLAG_IMPORTED)) &&
-	    (typePtr->basetype != SMI_BASETYPE_UNKNOWN) &&
-	    (typePtr->basetype != SMI_BASETYPE_SEQUENCE) &&
-	    (typePtr->basetype != SMI_BASETYPE_SEQUENCEOF)) {
+	    (typePtr->basetype != SMI_BASETYPE_UNKNOWN)) {
 	    break;
 	}
     }
@@ -1106,9 +1104,7 @@ SmiType *smiGetNextType(SmiType *smiTypePtr)
 	if (typePtr && typePtr->name &&
 	    isupper((int)typePtr->name[0]) &&
 	    (!(typePtr->flags & FLAG_IMPORTED)) &&
-	    (typePtr->basetype != SMI_BASETYPE_UNKNOWN) &&
-	    (typePtr->basetype != SMI_BASETYPE_SEQUENCE) &&
-	    (typePtr->basetype != SMI_BASETYPE_SEQUENCEOF)) {
+	    (typePtr->basetype != SMI_BASETYPE_UNKNOWN)) {
 	    break;
 	}
     }
@@ -1540,7 +1536,7 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
     if ((!objectPtr) && nodePtr) {
 	goto again;
     }
-    
+
     return createSmiNode(objectPtr);
 }
 

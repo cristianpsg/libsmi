@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.38 1999/06/22 10:16:50 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.39 1999/06/30 10:32:21 strauss Exp $
  */
 
 %{
@@ -391,8 +391,7 @@ module:			moduleName
 			declarationPart
 			END
 			{
-			    Object *objectPtr;
-			    SmiDecl parentDecl;
+			    Object *objectPtr, *parentPtr;
 			    Import *importPtr;
 
 			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
@@ -412,14 +411,12 @@ module:			moduleName
 				 objectPtr; objectPtr = objectPtr->nextPtr) {
 				if (objectPtr->nodePtr->parentPtr &&
 				    objectPtr->nodePtr->parentPtr->
-				    lastObjectPtr &&
-				    objectPtr->nodePtr->parentPtr->
-				    lastObjectPtr->typePtr) {
-				    parentDecl =
+				    lastObjectPtr) {
+				    parentPtr =
 					objectPtr->nodePtr->parentPtr->
-					lastObjectPtr->typePtr->decl;
+					lastObjectPtr;
 				} else {
-				    parentDecl = SMI_DECL_UNKNOWN;
+				    parentPtr = NULL;
 				}
 				if (objectPtr->decl ==
 				    SMI_DECL_MODULEIDENTITY) {
@@ -437,8 +434,7 @@ module:			moduleName
 				    /* XXX */
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
-					   (objectPtr->typePtr->decl ==
-					    SMI_DECL_IMPL_SEQUENCE)) {
+					   (objectPtr->indexPtr)) {
 				    objectPtr->nodekind = SMI_NODEKIND_ROW;
 				} else if (objectPtr->decl ==
 					   SMI_DECL_NOTIFICATIONTYPE) {
@@ -455,13 +451,11 @@ module:			moduleName
 					SMI_NODEKIND_COMPLIANCE;
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
-					   (parentDecl ==
-					    SMI_DECL_IMPL_SEQUENCE)) {
+					   (parentPtr->indexPtr)) {
 				    objectPtr->nodekind = SMI_NODEKIND_COLUMN;
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
-					   (parentDecl !=
-					    SMI_DECL_IMPL_SEQUENCE)) {
+					   (!parentPtr->indexPtr)) {
 				    objectPtr->nodekind = SMI_NODEKIND_SCALAR;
 				}
 			    }
@@ -1096,8 +1090,6 @@ row:			UPPERCASE_IDENTIFIER
 						      SMI_BASETYPE_UNKNOWN,
 						      FLAG_INCOMPLETE,
 						      thisParserPtr);
-				    setTypeDecl(typePtr,
-						SMI_DECL_IMPL_SEQUENCE);
 				    $$ = typePtr;
 				} else {
 				    /*
@@ -1105,6 +1097,8 @@ row:			UPPERCASE_IDENTIFIER
 				     * TODO: is this allowed in a SEQUENCE? 
 				     */
 				    importPtr->use++;
+#if 0
+				    XXX
 				    stypePtr = smiGetType(
 						  importPtr->importmodule, $1);
 				    if (stypePtr) {
@@ -1116,6 +1110,11 @@ row:			UPPERCASE_IDENTIFIER
 					       FLAG_INCOMPLETE | FLAG_IMPORTED,
 						     thisParserPtr);
 				    }
+#else
+				    $$ = findTypeByModulenameAndName(
+					importPtr->importmodule,
+					importPtr->importname);
+#endif
 				}
 			    }
 			}
@@ -1295,6 +1294,14 @@ NamedBit:		identifier
 			    } else if (strlen($1) > 32) {
 			        printError(thisParserPtr, ERR_BITNAME_32, $1);
 			    }
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
+				if (strchr($1, '-')) {
+				    printError(thisParserPtr,
+					       ERR_NAMEDBIT_INCLUDES_HYPHEN,
+					       $1);
+				}
+			    }
 			}
 			'(' number ')'
 			{
@@ -1426,12 +1433,11 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				setTypeName($6, $1);
 			    }
 			    setObjectAccess(objectPtr, $8);
-			    if ($8 == SMI_ACCESS_READ_CREATE) {
+			    if (thisParserPtr->flags & FLAG_CREATABLE) {
+				thisParserPtr->flags &= ~FLAG_CREATABLE;
 				parentPtr =
 				  objectPtr->nodePtr->parentPtr->lastObjectPtr;
-				if (parentPtr && parentPtr->typePtr &&
-				    (parentPtr->typePtr->decl ==
-				       SMI_DECL_IMPL_SEQUENCEOF)) {
+				if (parentPtr && parentPtr->indexPtr) {
 				    /*
 				     * add objectPtr to the parent object's
 				     * listPtr, which is the list of columns
@@ -1456,6 +1462,9 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 					parentPtr->listPtr = newlistPtr;
 				    }
 				    addObjectFlags(parentPtr, FLAG_CREATABLE);
+				} else {
+				    printError(thisParserPtr,
+					       ERR_SCALAR_READCREATE);
 				}
 			    }
 			    setObjectStatus(objectPtr, $10);
@@ -2561,6 +2570,14 @@ enumItem:		LOWERCASE_IDENTIFIER
 			    } else if (strlen($1) > 32) {
 			        printError(thisParserPtr, ERR_ENUMNAME_32, $1);
 			    }
+			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    {
+				if (strchr($1, '-')) {
+				    printError(thisParserPtr,
+					       ERR_NAMEDNUMBER_INCLUDES_HYPHEN,
+					       $1);
+				}
+			    }
 			}
 			'(' enumNumber ')'
 			{
@@ -2674,7 +2691,9 @@ Access:			LOWERCASE_IDENTIFIER
 				} else if (!strcmp($1, "read-write")) {
 				    $$ = SMI_ACCESS_READ_WRITE;
 				} else if (!strcmp($1, "read-create")) {
-				    $$ = SMI_ACCESS_READ_CREATE;
+				    $$ = SMI_ACCESS_READ_WRITE;
+				    thisParserPtr->flags |= FLAG_CREATABLE;
+				    /* TODO:remember it's really read-create */
 				} else {
 				    printError(thisParserPtr,
 					       ERR_INVALID_SMIV2_ACCESS,
@@ -2689,7 +2708,8 @@ Access:			LOWERCASE_IDENTIFIER
 				} else if (!strcmp($1, "read-write")) {
 				    $$ = SMI_ACCESS_READ_WRITE;
 				} else if (!strcmp($1, "write-only")) {
-				    $$ = SMI_ACCESS_WRITE_ONLY;
+				    $$ = SMI_ACCESS_READ_WRITE;
+				    /* TODO: remember it's really write-only */
 				} else {
 				    printError(thisParserPtr,
 					       ERR_INVALID_SMIV1_ACCESS, $1);
@@ -3671,6 +3691,7 @@ ComplianceObject:	OBJECT ObjectName
 			AccessPart
 			DESCRIPTION Text
 			{
+			    thisParserPtr->flags &= ~FLAG_CREATABLE;
 			    $$ = util_malloc(sizeof(List));
 			    $$->nextPtr = NULL;
 			    $$->ptr = util_malloc(sizeof(Refinement));
@@ -3861,7 +3882,10 @@ Variation:		ObjectVariation
 NotificationVariation:	VARIATION ObjectName
 			AccessPart
 			DESCRIPTION Text
-			{ $$ = 0; }
+			{
+			    thisParserPtr->flags &= ~FLAG_CREATABLE;
+			    $$ = 0;
+			}
 	;
 
 ObjectVariation:	VARIATION ObjectName
@@ -3871,7 +3895,10 @@ ObjectVariation:	VARIATION ObjectName
 			CreationPart
 			DefValPart
 			DESCRIPTION Text
-			{ $$ = 0; }
+			{
+			    thisParserPtr->flags &= ~FLAG_CREATABLE;
+			    $$ = 0;
+			}
 	;
 
 CreationPart:		CREATION_REQUIRES '{' Cells '}'
@@ -3905,4 +3932,4 @@ number:			NUMBER
 
 %%
 
-#endif
+#endif /*  */

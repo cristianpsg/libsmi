@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.42 1999/06/16 15:52:24 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.43 1999/06/18 15:04:43 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -146,7 +146,6 @@ char *smingStringAccess(SmiAccess access)
 	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
 	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
 	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
-	(access == SMI_ACCESS_READ_CREATE)    ? "readcreate" :
 						"<unknown>";
 }
 
@@ -378,8 +377,6 @@ static char *getValueString(SmiValue *valuePtr)
 	sprintf(&s[strlen(s)], ")");
 	break;
     case SMI_BASETYPE_UNKNOWN:
-    case SMI_BASETYPE_SEQUENCE:
-    case SMI_BASETYPE_SEQUENCEOF:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */
@@ -687,7 +684,7 @@ static void printObjects(char *modulename)
     
     for(i = 0, smiNode = smiGetFirstNode(modulename, nodekinds);
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
-	
+
 	smiParentNode = smiGetParentNode(smiNode);
 	
 	if (smiNode->nodekind == SMI_NODEKIND_NODE) {
@@ -726,26 +723,23 @@ static void printObjects(char *modulename)
 	    print("%s;\n", getOidString(smiNode, 0));
 	}
 
-	if ((smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
-	    (smiNode->basetype != SMI_BASETYPE_SEQUENCEOF)) {
-	    if (smiNode->typename) {
-		printSegment((2 + indent) * INDENT, "type", INDENTVALUE);
-		if (islower((int)smiNode->typename[0])) {
-		    /*
-		     * an implicitly restricted type.
-		     */
-		    smiType = smiGetType(smiNode->typemodule,
-					 smiNode->typename);
-		    print("%s", getTypeString(modulename, smiType->basetype,
-					      smiType->parentmodule,
-					      smiType->parentname));
-		    printSubtype(smiType);
-		    print(";\n");
-		} else {
-		    print("%s;\n", getTypeString(modulename, smiNode->basetype,
-						 smiNode->typemodule,
-						 smiNode->typename));
-		}
+	if (smiNode->typename && (smiNode->basetype != SMI_BASETYPE_UNKNOWN)) {
+	    printSegment((2 + indent) * INDENT, "type", INDENTVALUE);
+	    if (islower((int)smiNode->typename[0])) {
+		/*
+		 * an implicitly restricted type.
+		 */
+		smiType = smiGetType(smiNode->typemodule,
+				     smiNode->typename);
+		print("%s", getTypeString(modulename, smiType->basetype,
+					  smiType->parentmodule,
+					  smiType->parentname));
+		printSubtype(smiType);
+		print(";\n");
+	    } else {
+		print("%s;\n", getTypeString(modulename, smiNode->basetype,
+					     smiNode->typemodule,
+					     smiNode->typename));
 	    }
 	}
 
@@ -1153,7 +1147,7 @@ int dumpSming(char *modulename)
     
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
-	fprintf(stderr, "Cannot locate module `%s'\n", modulename);
+	fprintf(stderr, "smidump: cannot locate module `%s'\n", modulename);
 	exit(1);
     } else {
 	print("//\n");

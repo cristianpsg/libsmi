@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.21 1999/06/18 15:04:44 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.22 1999/06/22 11:18:20 strauss Exp $
  */
 
 #include <stdio.h>
@@ -40,8 +40,6 @@ char *smiStringAccess(SmiAccess access)
 	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
 	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
 	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-	(access == SMI_ACCESS_READ_CREATE)    ? "read-create" :
-	(access == SMI_ACCESS_WRITE_ONLY)     ? "write-only" :
 						"<unknown>";
 }
 
@@ -60,6 +58,8 @@ char *smiStringDecl(SmiDecl macro)
     return
         (macro == SMI_DECL_UNKNOWN)           ? "<UNKNOWN>" :
         (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<TYPE-ASSIGNMENT>" :
+        (macro == SMI_DECL_IMPL_SEQUENCE)     ? "<IMPLICIT_SEQUENCE>" :
+        (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<IMPLICIT_SEQUENCE_OF>" :
         (macro == SMI_DECL_VALUEASSIGNMENT)   ? "<VALUE-ASSIGNMENT>" :
         (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" :
         (macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" :
@@ -115,8 +115,6 @@ char *smiStringBasetype(SmiBasetype basetype)
         (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
         (basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
         (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
-        (basetype == SMI_BASETYPE_SEQUENCE)          ? "SEQUENCE" :
-        (basetype == SMI_BASETYPE_SEQUENCEOF)        ? "SEQUENCE OF" :
                                                    "<unknown>";
 }
 
@@ -294,6 +292,9 @@ int main(int argc, char *argv[])
 	    printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
 	    printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
+	    if (node->nodekind == SMI_NODEKIND_ROW) {
+		printf ("   Creatable: %s\n", node->create ? "yes" : "no");
+	    }
 	    printf("      Access: %s\n", smiStringAccess(node->access));
 	    printf("      Status: %s\n", smiStringStatus(node->status));
 	    printf(" Description: %s\n", format(node->description));

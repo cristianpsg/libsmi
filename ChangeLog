@@ -1,7 +1,26 @@
+1999-07-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidump.c: Juergen Schoenwaelder contributed further
+	smidump cleanup and formats: CORBA IDL files can be written
+	according to the JIDM specifications (formats corba-idl and
+	corba-oid) and nice trees of MIB nodes can be drawn with the
+	tree format.
+
+1999-06-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/error.c: added minor checks
+
+	* lib/smi.h: removed SEQUENCE and SEQUENCEOF basetypes.
+	Removed WRITE_ONLY and READ_CREATE access values.
+
+1999-06-23  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.1.6.tar.gz: released version 0.1.6.
+
 1999-06-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
-	* Juergen Schoenwaelder contributed another smidump patch: now
-	smidump supports SMIv1 output format.
+	* tools/smidump.c: Juergen Schoenwaelder contributed another
+	smidump patch: now smidump supports SMIv1 output format.
 
 1999-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 

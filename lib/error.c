@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.14 1999/06/18 15:04:34 strauss Exp $
+ * @(#) $Id: error.c,v 1.15 1999/06/22 10:16:48 strauss Exp $
  */
 
 #include <string.h>
@@ -211,6 +211,12 @@ Error errors[] = {
       "Macro `%s' has not been imported from module `%s'" },
     { 6, ERR_IMPLICIT_NODE,
       "Implicit node definition" },
+    { 3, ERR_SCALAR_READCREATE,
+      "Scalar object must not have a `read-create' access value" },
+    { 4, ERR_NAMEDNUMBER_INCLUDES_HYPHEN,
+      "Named number %s must not include a hyphen in SMIv2" },
+    { 4, ERR_NAMEDBIT_INCLUDES_HYPHEN,
+      "Named bit %s must not include a hyphen in SMIv2" },
  
     { 0, 0, NULL }
 };
