@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: yacc2html.l,v 1.3 1998/08/22 13:54:03 strauss Exp $
+ * @(#) $Id: yacc2html.l,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 %{

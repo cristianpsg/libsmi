@@ -1,14 +1,14 @@
 /*
- * scanner.l --
+ * scanner-smi.l --
  *
- *      Lexical rules for scanning the MIB module language.
+ *      Lexical rules for scanning the SMIv1/v2 MIB module language.
  *
  * Copyright (c) 1998 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner.l,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+ * @(#) $Id: scanner.l,v 1.3 1998/10/13 15:37:20 strauss Exp $
  */
 
 %{
@@ -21,9 +21,9 @@
 
 #include "defs.h"    
 #include "error.h"
-#include "parser.h"
-#include "parser-bison.h"
-#include "scanner.h"
+#include "parser-smi.h"
+#include "parser-smi.tab.h"
+#include "scanner-smi.h"
 
 
 #define thisParser      (*(Parser *)parser)

@@ -1,7 +1,7 @@
 /*
- * parser.y --
+ * parser-smi.y --
  *
- *      Syntax rules for parsing the MIB module language.
+ *      Syntax rules for parsing the SMIv1/v2 MIB module language.
  *
  * Copyright (c) 1998 Technical University of Braunschweig.
  *
@@ -26,8 +26,8 @@
 #include "defs.h"
 #include "smi.h"
 #include "error.h"
-#include "parser.h"
-#include "scanner.h"
+#include "parser-smi.h"
+#include "scanner-smi.h"
 #include "data.h"
 #include "util.h"
     

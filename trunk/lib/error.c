@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.9 1998/12/22 17:09:14 strauss Exp $
+ * @(#) $Id: error.c,v 1.10 1999/02/18 17:12:59 strauss Exp $
  */
 
 #include <string.h>
@@ -17,8 +17,8 @@
 #include <stdarg.h>
 
 #include "error.h"
-#include "scanner.h"
-#include "parser.h"
+#include "scanner-smi.h"
+#include "parser-smi.h"
 
 
 #define thisParser      ((Parser *)parser)

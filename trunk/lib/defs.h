@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: defs.h,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+ * @(#) $Id: defs.h,v 1.2 1998/11/25 14:36:34 strauss Exp $
  */
 
 

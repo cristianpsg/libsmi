@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: config.c,v 1.6 1998/11/25 02:50:55 strauss Exp $
+ * @(#) $Id: config.c,v 1.7 1998/12/01 16:59:35 strauss Exp $
  */
 
 #include <stdio.h>
@@ -25,8 +25,8 @@
 #include "error.h"
 
 #ifdef PARSER
-#include "scanner.h"
-#include "parser-bison.h"
+#include "scanner-smi.h"
+#include "parser-smi.h"
 #include "data.h"
 #endif
 
