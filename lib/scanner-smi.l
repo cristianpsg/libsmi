@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.34 2001/02/15 17:48:05 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.35 2001/08/15 17:07:04 strauss Exp $
  */
 
 %option noyywrap
@@ -47,7 +47,8 @@
 #define thisParser (*(Parser *) parser)
 
 
-
+#define MAX_UNSIGNED64		"18446744073709551615"
+#define MIN_UNSIGNED64          0
 #define MAX_UNSIGNED32		4294967295
 #define MIN_UNSIGNED32		0
 #define MAX_INTEGER32		2147483647
@@ -139,7 +140,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 <Macro>. {
 }
 
-<Macro>END {
+<Macro>END/{delim} {
     BEGIN(INITIAL);
     yylval.id = yytext;
     return END;
@@ -181,7 +182,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     thisParser.line++;
 }
 
-<Choice>[^\}]* {
+<Choice>[^\}] {
 }
 
 <Choice>\} {
@@ -255,11 +256,13 @@ eol             ("\n"|"\n\015"|"\015\n")
   * Lex rules for known keywords.
   */
 
+ /* SMI(ng) specific */
 <INITIAL>ACCESS/{delim} {
     yylval.id = yytext;
     return ACCESS;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>AGENT-CAPABILITIES/{delim} {
     yylval.id = yytext;
     return AGENT_CAPABILITIES;
@@ -290,21 +293,25 @@ eol             ("\n"|"\n\015"|"\015\n")
     return CONTACT_INFO;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>CREATION-REQUIRES/{delim} {
     yylval.id = yytext;
     return CREATION_REQUIRES;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>Counter32/{delim} {
     yylval.id = yytext;
     return COUNTER32;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>Counter64/{delim} {
     yylval.id = yytext;
     return COUNTER64;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>DEFINITIONS/{delim} {
     yylval.id = yytext;
     return DEFINITIONS;
@@ -330,9 +337,16 @@ eol             ("\n"|"\n\015"|"\015\n")
     return END;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>ENTERPRISE/{delim} {
     yylval.id = yytext;
     return ENTERPRISE;
+}
+
+ /* SPPI specific */
+<INITIAL>EXTENDS/{delim} {
+    yylval.id = yytext;
+    return EXTENDS;
 }
 
 <INITIAL>FROM/{delim} {
@@ -345,6 +359,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     return GROUP;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>Gauge32/{delim} {
     yylval.id = yytext;
     return GAUGE32;
@@ -370,6 +385,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     return IMPORTS;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>INCLUDES/{delim} {
     yylval.id = yytext;
     return INCLUDES;
@@ -380,6 +396,12 @@ eol             ("\n"|"\n\015"|"\015\n")
     return INDEX;
 }
 
+ /* SPPI specific */
+<INITIAL>INSTALL-ERRORS/{delim} {
+  yylval.id = yytext;
+  return INSTALL_ERRORS;
+}
+
 <INITIAL>INTEGER/{delim} {
     yylval.id = yytext;
     return INTEGER;
@@ -388,6 +410,12 @@ eol             ("\n"|"\n\015"|"\015\n")
 <INITIAL>Integer32/{delim} {
     yylval.id = yytext;
     return INTEGER32;
+}
+
+ /* SPPI specific */
+<INITIAL>Integer64/{delim} {
+  yylval.id = yytext;
+  return INTEGER64;
 }
 
 <INITIAL>IpAddress/{delim} {
@@ -405,11 +433,13 @@ eol             ("\n"|"\n\015"|"\015\n")
     return MANDATORY_GROUPS;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>MAX-ACCESS/{delim} {
     yylval.id = yytext;
     return MAX_ACCESS;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>MIN-ACCESS/{delim} {
     yylval.id = yytext;
     return MIN_ACCESS;
@@ -430,16 +460,19 @@ eol             ("\n"|"\n\015"|"\015\n")
     return MODULE_IDENTITY;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>NOTIFICATION-GROUP/{delim} {
     yylval.id = yytext;
     return NOTIFICATION_GROUP;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>NOTIFICATION-TYPE/{delim} {
     yylval.id = yytext;
     return NOTIFICATION_TYPE;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>NOTIFICATIONS/{delim} {
     yylval.id = yytext;
     return NOTIFICATIONS;
@@ -490,6 +523,49 @@ eol             ("\n"|"\n\015"|"\015\n")
     return OPAQUE;
 }
 
+ /* SPPI specific */
+<INITIAL>PIB-ACCESS/{delim} {
+  yylval.id = yytext;
+  return PIB_ACCESS;
+}
+
+ /* SPPI specific */
+<INITIAL>PIB-DEFINITIONS/{delim} {
+    yylval.id = yytext;
+    return PIB_DEFINITIONS;
+}
+
+ /* SPPI specific */
+<INITIAL>PIB-INDEX/{delim} {
+  yylval.id = yytext;
+  return PIB_INDEX;
+}
+
+ /* SPPI specific */
+<INITIAL>PIB-MIN-ACCESS/{delim} {
+  yylval.id = yytext;
+  return PIB_MIN_ACCESS;
+}
+
+ /* SPPI specific */
+<INITIAL>PIB-REFERENCES/{delim} {
+  yylval.id = yytext;
+  return PIB_REFERENCES;
+}
+
+ /* SPPI specific */
+<INITIAL>PIB-TAG/{delim} {
+  yylval.id = yytext;
+  return PIB_TAG;
+}
+
+ /* SPPI specific */
+<INITIAL>POLICY-ACCESS/{delim} {
+  yylval.id = yytext;
+  return POLICY_ACCESS;
+}
+
+ /* SMI(ng) specific */
 <INITIAL>PRODUCT-RELEASE/{delim} {
     yylval.id = yytext;
     return PRODUCT_RELEASE;
@@ -525,6 +601,13 @@ eol             ("\n"|"\n\015"|"\015\n")
     return STRING;
 }
 
+ /* SPPI specific */
+<INITIAL>SUBJECT-CATEGORIES/{delim} {
+  yylval.id = yytext;
+  return SUBJECT_CATEGORIES;
+}
+
+ /* SMI(ng) specific */
 <INITIAL>SUPPORTS/{delim} {
     yylval.id = yytext;
     return SUPPORTS;
@@ -545,9 +628,16 @@ eol             ("\n"|"\n\015"|"\015\n")
     return TIMETICKS;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>TRAP-TYPE/{delim} {
     yylval.id = yytext;
     return TRAP_TYPE;
+}
+
+ /* SPPI specific */
+<INITIAL>UNIQUENESS/{delim} {
+  yylval.id = yytext;
+  return UNIQUENESS;
 }
 
 <INITIAL>UNITS/{delim} {
@@ -555,6 +645,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     return UNITS;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>UNIVERSAL/{delim} {
     yylval.id = yytext;
     return UNIVERSAL;
@@ -565,16 +656,31 @@ eol             ("\n"|"\n\015"|"\015\n")
     return UNSIGNED32;
 }
 
+ /* SPPI specific */
+<INITIAL>Unsigned64/{delim} {
+  yylval.id = yytext;
+  return UNSIGNED64;
+}
+
+ /* SPPI specific */
+<INITIAL>VALUE/{delim} {
+  yylval.id = yytext;
+  return VALUE;
+}
+
+ /* SMI(ng) specific */
 <INITIAL>VARIABLES/{delim} {
     yylval.id = yytext;
     return VARIABLES;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>VARIATION/{delim} {
     yylval.id = yytext;
     return VARIATION;
 }
 
+ /* SMI(ng) specific */
 <INITIAL>WRITE-SYNTAX/{delim} {
     yylval.id = yytext;
     return WRITE_SYNTAX;
@@ -634,8 +740,28 @@ eol             ("\n"|"\n\015"|"\015\n")
     errno = 0;
     yylval.unsigned32 = strtoul(yytext, NULL, 10);
     if (errno == ERANGE) {
-	/* We don't want to see this error for the SNMPv2-SMI module. */
-	if (strcmp(thisParser.modulePtr->export.name, "SNMPv2-SMI")) {
+        /* TODO: proper handling for SPPI vs SMI modules. */
+        if (thisParser.modulePtr->export.language == SMI_LANGUAGE_SPPI) {
+            yylval.unsigned64 = strtoull(yytext, NULL, 10);
+            if (errno == ERANGE) {
+                /*
+                 * Dirty hack - on my system strtoull returns ERANGE for
+                 * numbers that definitely are in range for 64 bit types.
+                 * Nevertheless strtoull returns the correct value. To
+                 * check this we convert the number back to a string.
+                 */
+                char tmpbuf[24];
+                sprintf(tmpbuf, "%llu", yylval.unsigned64);
+                if (strcmp(yytext, tmpbuf))
+                    smiPrintError(parser, ERR_SPPI_UNSIGNED64_NUMBER_RANGE, yytext);
+            }
+            return NUMBER64;
+        }
+        
+	/* We don't want to see this error for the SNMPv2-SMI module,
+         * neither for COPS-PR-SPPI. */
+	if (strcmp(thisParser.modulePtr->export.name, "SNMPv2-SMI") &&
+            strcmp(thisParser.modulePtr->export.name, "COPS-PR-SPPI")) {
 	    smiPrintError(parser, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, yytext);
 	}
     }
@@ -646,7 +772,26 @@ eol             ("\n"|"\n\015"|"\015\n")
     errno = 0;
     yylval.integer32 = strtol(yytext, NULL, 10);
     if (errno == ERANGE) {
-	smiPrintError(parser, ERR_SMIV2_SIGNED_NUMBER_RANGE, yytext);
+        /* TODO: proper handling for SPPI vs SMI modules. */
+        if (thisParser.modulePtr->export.language == SMI_LANGUAGE_SPPI) {
+            yylval.integer64 = strtoll(yytext, NULL, 10);
+            if (errno == ERANGE) {
+                /*
+                 * Dirty hack - on my system strtoull returns ERANGE for
+                 * numbers that definitely are in range for 64 bit types.
+                 * Nevertheless strtoull returns the correct value. To
+                 * check this we convert the number back to a string.
+                 */
+                char tmpbuf[24];
+                sprintf(tmpbuf, "%lld", yylval.integer64);
+                if (strcmp(yytext, tmpbuf))
+                    smiPrintError(parser, ERR_SPPI_SIGNED64_NUMBER_RANGE, yytext);
+            }
+            return NEGATIVENUMBER64;
+        }
+	/* We don't want to see this error for the COPS-PR-SPPI module. */
+	if (strcmp(thisParser.modulePtr->export.name, "COPS-PR-SPPI"))
+	    smiPrintError(parser, ERR_SMIV2_SIGNED_NUMBER_RANGE, yytext);
     }
     return NEGATIVENUMBER;
 }

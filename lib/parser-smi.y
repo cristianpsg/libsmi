@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.170 2002/04/11 15:01:10 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.171 2002/04/22 15:09:15 strauss Exp $
  */
 
 %{
@@ -73,6 +73,15 @@ static Module      *capabilitiesModulePtr = NULL;
 static SmiNodekind variationkind;
 static int         firstStatementLine = 0;
 static int	   firstRevisionLine = 0;
+
+static int	   indexFlag;
+/*
+ * Values for the indexFlag variable
+ */
+#define INDEXFLAG_NONE     0
+#define INDEXFLAG_PIBINDEX 1
+#define INDEXFLAG_AUGMENTS 2
+#define INDEXFLAG_EXTENDS  3
  
 #define MAX_UNSIGNED32		4294967295
 #define MIN_UNSIGNED32		0
@@ -134,7 +143,8 @@ checkModuleIdentity(Parser *parserPtr, Module *modulePtr)
 	&& (modulePtr->numModuleIdentities < 1)
 	&& strcmp(modulePtr->export.name, "SNMPv2-SMI")
 	&& strcmp(modulePtr->export.name, "SNMPv2-CONF")
-	&& strcmp(modulePtr->export.name, "SNMPv2-TC")) {
+	&& strcmp(modulePtr->export.name, "SNMPv2-TC")
+        && strcmp(modulePtr->export.name, "COPS-PR-SPPI")) {
 	smiPrintError(parserPtr, ERR_NO_MODULE_IDENTITY);
     }
 }
@@ -337,23 +347,24 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    smiCheckNotificationMembers(parserPtr, objectPtr);
 	}
 
+        if (modulePtr->export.language != SMI_LANGUAGE_SPPI) {
+	    /*
+	     * Check whether tables and rows are not accessible
+	     * (RFC 2578 7.1.12).
+	     */
 
-	/*
-	 * Check whether tables and rows are not accessible
-	 * (RFC 2578 7.1.12).
-	 */
+	    if (objectPtr->export.nodekind == SMI_NODEKIND_TABLE
+	        && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+	        smiPrintErrorAtLine(parserPtr, ERR_TABLE_ACCESS,
+				    objectPtr->line, objectPtr->export.name);
+	    }
 
-	if (objectPtr->export.nodekind == SMI_NODEKIND_TABLE
-	    && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
-	    smiPrintErrorAtLine(parserPtr, ERR_TABLE_ACCESS,
-				objectPtr->line, objectPtr->export.name);
-	}
-	
-	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW
-	    && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
-	    smiPrintErrorAtLine(parserPtr, ERR_ROW_ACCESS,
-				objectPtr->line, objectPtr->export.name);
-	}
+	    if (objectPtr->export.nodekind == SMI_NODEKIND_ROW
+	        && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+	        smiPrintErrorAtLine(parserPtr, ERR_ROW_ACCESS,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+        }
 	
 	/*
 	 * Check whether a row's subid is 1, see RFC 2578 7.10 (1).
@@ -591,6 +602,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		smiCheckIndex(parserPtr, objectPtr);
 		break;
 	    case SMI_INDEX_AUGMENT:
+            case SMI_INDEX_EXTEND:
 		smiCheckAugment(parserPtr, objectPtr);
 		break;
 	    default:
@@ -637,6 +649,213 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    
 	    smiCheckGroupMembership(parserPtr, objectPtr);
 	}
+    }
+
+    if (modulePtr->export.language == SMI_LANGUAGE_SPPI) {
+        Object *parentPtr;
+        
+        for (objectPtr = modulePtr->firstObjectPtr;
+             objectPtr; objectPtr = objectPtr->nextPtr) {
+            /*
+             * All checks for SPPI constructs
+             */
+            if (objectPtr->nodePtr->parentPtr)
+                parentPtr = objectPtr->nodePtr->parentPtr->lastObjectPtr;
+            else
+                parentPtr = NULL;
+            
+            /*
+             * Do all rows contain a PIB-INDEX/AUGMENTS/EXTENDS ?
+             * See RFC 3159 7.5, 7.7, 7.8
+             */
+            if (parentPtr  &&
+                (parentPtr->export.nodekind == SMI_NODEKIND_TABLE) &&
+                (objectPtr->export.indexkind != SMI_INDEX_INDEX) &&
+                (objectPtr->export.indexkind != SMI_INDEX_AUGMENT) &&
+                (objectPtr->export.indexkind != SMI_INDEX_EXTEND))
+                smiPrintErrorAtLine(parserPtr, ERR_ROW_LACKS_PIB_INDEX,
+                                    objectPtr->line);
+
+            /*
+             * Does any non row contain a PIB-INDEX/AUGMENTS/EXTENDS ?
+             * See RFC 3159 7.5, 7.7, 7.8
+             */
+            if ((objectPtr->export.nodekind != SMI_NODEKIND_ROW) &&
+                (objectPtr->export.indexkind != SMI_INDEX_UNKNOWN))
+                smiPrintErrorAtLine(parserPtr, ERR_PIB_INDEX_FOR_NON_ROW_TYPE,
+                                    objectPtr->line);
+
+            /*
+             * Check the PIB-INDEX and other indices
+             */
+            if ((objectPtr->export.nodekind == SMI_NODEKIND_ROW) &&
+                (objectPtr->export.indexkind == SMI_INDEX_INDEX)) {
+                List *p;
+
+                /*
+                 * Only the first element (PIB-INDEX) has to be an InstanceId.
+                 * See RFC 3159 7.5
+                 */
+                if (objectPtr->listPtr && objectPtr->listPtr->ptr) {
+                    Object *index = (Object *)objectPtr->listPtr->ptr;
+                    if (index->typePtr && strcmp(index->typePtr->export.name,
+                        "InstanceId"))
+                        smiPrintErrorAtLine(thisParserPtr, ERR_PIB_INDEX_NOT_INSTANCEID,
+                                            index->line, index->export.name);
+                }
+                for (p = objectPtr->listPtr; p; p = p->nextPtr) {
+                    Object *index = (Object *)p->ptr;
+                    int found = 0;
+                    List *pp;
+
+                    if (index && objectPtr->typePtr) {
+                        for (pp = objectPtr->typePtr->listPtr; pp; pp = pp->nextPtr)
+                            if (pp->ptr &&
+                                !strcmp(index->export.name, ((Object *)pp->ptr)->export.name)) {
+                                found = 1;
+                                break;
+                            }
+                        if (!found)
+                            smiPrintErrorAtLine(thisParserPtr, ERR_PIB_INDEX_NOT_A_COLUMN,
+                                                objectPtr->line, index->export.name);
+                        
+                    }
+                }
+            }
+            
+            /*
+             * Do all tables contain a PIB-ACCESS clause?
+             * See RFC 3159 7.3
+             */
+            if ((objectPtr->export.nodekind == SMI_NODEKIND_TABLE) &&
+                (objectPtr->export.access == SMI_ACCESS_UNKNOWN))
+                smiPrintErrorAtLine(parserPtr, ERR_TABLE_LACKS_PIB_ACCESS,
+                                    objectPtr->line);
+
+            /*
+             * Does any non table types contain a PIB-ACCESS clause?
+             * See RFC 3159 7.3
+             */
+            if (((objectPtr->export.nodekind == SMI_NODEKIND_NODE) ||
+                 (objectPtr->export.nodekind == SMI_NODEKIND_ROW) ||
+                 (objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)) &&
+                (objectPtr->export.access != SMI_ACCESS_UNKNOWN))
+                smiPrintErrorAtLine(parserPtr, ERR_PIB_ACCESS_FOR_NON_TABLE,
+                                    objectPtr->line);
+
+            /*
+             * Are INSTALL-ERRORS only used with tables?
+             * See RFC 3159 7.4
+             */
+            if (objectPtr->installErrorsPtr &&
+                (objectPtr->export.nodekind != SMI_NODEKIND_TABLE))
+                smiPrintErrorAtLine(parserPtr, ERR_INSTALL_ERRORS_FOR_NON_TABLE,
+                                    objectPtr->line);
+            
+            /*
+             * Check the UNIQUENESS clause and its entries
+             * See RFC 3159 7.9
+             */
+            if (objectPtr->uniquenessPtr) {
+                if (objectPtr->export.nodekind != SMI_NODEKIND_ROW)
+                    smiPrintErrorAtLine(parserPtr, ERR_UNIQUENESS_FOR_NON_ROW,
+                                        objectPtr->line);
+                else
+                    smiCheckUniqueness(parserPtr, objectPtr);
+            }
+            
+            /*
+             * Do all objects with a SYNTAX of ReferenceId have a
+             * PIB-REFERENCES clause?
+             * See RFC 3159 7.10
+             */
+            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                !strcmp(objectPtr->typePtr->export.name, "ReferenceId") && 
+                !objectPtr->pibReferencesPtr)
+                smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_REFERENCES,
+                                    objectPtr->line);
+            
+            /*
+             * Does any object with a SNYTAX other than ReferenceId have a
+             * PIB-REFERENCES clause?
+             * See RFC 3159 7.10
+             */
+            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                strcmp(objectPtr->typePtr->export.name, "ReferenceId") && 
+                objectPtr->pibReferencesPtr)
+                smiPrintErrorAtLine(parserPtr, ERR_PIB_REFERENCES_WRONG_TYPE,
+                                    objectPtr->line);
+            
+            /*
+             * Does the PIB-REFERENCES object point to a PRC (table)?
+             * See RFC 3159 7.10
+             */
+            if (objectPtr->pibReferencesPtr &&
+                (objectPtr->pibReferencesPtr->export.nodekind != SMI_NODEKIND_ROW))
+                smiPrintErrorAtLine(parserPtr, ERR_PIB_REFERENCES_NOT_ROW,
+                                    objectPtr->line);
+
+            /*
+             * Do all objects with a SYNTAX of TagReferenceId have a
+             * PIB-TAG clause?
+             * See RFC 3159 7.11
+             */
+            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                !strcmp(objectPtr->typePtr->export.name, "TagReferenceId") && 
+                !objectPtr->pibTagPtr)
+                smiPrintErrorAtLine(parserPtr, ERR_LACKING_PIB_TAG,
+                                    objectPtr->line);
+            
+            /*
+             * Does any object with a SNYTAX other than TagReferenceId have a
+             * PIB-TAG clause?
+             * See RFC 3159 7.11
+             */
+            if (objectPtr->typePtr && objectPtr->typePtr->export.name &&
+                strcmp(objectPtr->typePtr->export.name, "TagReferenceId") && 
+                objectPtr->pibTagPtr)
+                smiPrintErrorAtLine(parserPtr, ERR_PIB_TAG_WRONG_TYPE,
+                                    objectPtr->line);
+            
+            /*
+             * Do all PIB-TAGs point to objects with a SYNTAX of TagId?
+             * See RFC 3159 7.12
+             */
+            if (objectPtr->pibTagPtr && objectPtr->pibTagPtr->typePtr &&
+                objectPtr->pibTagPtr->typePtr->export.name &&
+                strcmp(objectPtr->pibTagPtr->typePtr->export.name, "TagId"))
+                smiPrintErrorAtLine(parserPtr, ERR_PIB_TAG_TYPE, objectPtr->line);
+            
+            /*
+             * Is the attribute member of at least one compliance group?
+             * See RFC 3159 9.1
+             */
+            if (objectPtr->export.nodekind & SMI_NODEKIND_COLUMN) {
+                Object *group;
+                int found = 0;
+                
+                for (group = modulePtr->firstObjectPtr; group;
+                     group = group->nextPtr) {
+                    if ((group->export.nodekind == SMI_NODEKIND_GROUP) &&
+                        group->listPtr) {
+                        List *l;
+                        
+                        for (l = group->listPtr; l; l = l->nextPtr)
+                            if (((Object *)l->ptr)->export.name &&
+                                !strcmp(((Object *)l->ptr)->export.name,
+                                        objectPtr->export.name)) {
+                                found = 1;
+                                break;
+                            }
+                    }
+                    if (found)
+                        break;
+                }
+                if (!found)
+                    smiPrintErrorAtLine(parserPtr, ERR_ATTRIBUTE_NOT_IN_GROUP,
+                                        objectPtr->line);
+            }
+        }
     }
 }
 
@@ -929,7 +1148,7 @@ checkDate(Parser *parserPtr, char *date)
 
     return (anytime == (time_t) -1) ? 0 : anytime;
 }
-    
+
 %}
 
 /*
@@ -965,9 +1184,12 @@ checkDate(Parser *parserPtr, char *date)
     SmiValue	   *valuePtr;
     SmiUnsigned32  unsigned32;			/*                           */
     SmiInteger32   integer32;			/*                           */
+    SmiUnsigned64  unsigned64;			/*                           */
+    SmiInteger64   integer64;			/*                           */
     struct Compl   compl;
     struct Index   index;
     Module	   *modulePtr;
+    SubjectCategories *subjectCategoriesPtr;
 }
 
 
@@ -982,6 +1204,8 @@ checkDate(Parser *parserPtr, char *date)
 %token <id>LOWERCASE_IDENTIFIER
 %token <unsigned32>NUMBER
 %token <integer32>NEGATIVENUMBER
+%token <unsigned64>NUMBER64
+%token <integer64>NEGATIVENUMBER64
 %token <text>BIN_STRING
 %token <text>HEX_STRING
 %token <text>QUOTED_STRING
@@ -1004,6 +1228,7 @@ checkDate(Parser *parserPtr, char *date)
 %token <id>END
 %token <id>ENTERPRISE
 %token <id>EXPORTS
+%token <id>EXTENDS
 %token <id>FROM
 %token <id>GROUP
 %token <id>GAUGE32
@@ -1013,8 +1238,10 @@ checkDate(Parser *parserPtr, char *date)
 %token <id>IMPORTS
 %token <id>INCLUDES
 %token <id>INDEX
+%token <id>INSTALL_ERRORS
 %token <id>INTEGER
 %token <id>INTEGER32
+%token <id>INTEGER64
 %token <id>IPADDRESS
 %token <id>LAST_UPDATED
 %token <id>MACRO
@@ -1024,6 +1251,7 @@ checkDate(Parser *parserPtr, char *date)
 %token <id>MODULE
 %token <id>MODULE_COMPLIANCE
 %token <id>MODULE_IDENTITY
+%token <id>NOT_ACCESSIBLE
 %token <id>NOTIFICATIONS
 %token <id>NOTIFICATION_GROUP
 %token <id>NOTIFICATION_TYPE
@@ -1036,6 +1264,13 @@ checkDate(Parser *parserPtr, char *date)
 %token <id>OF
 %token <id>ORGANIZATION
 %token <id>OPAQUE
+%token <id>PIB_ACCESS
+%token <id>PIB_DEFINITIONS
+%token <id>PIB_INDEX
+%token <id>PIB_MIN_ACCESS
+%token <id>PIB_REFERENCES
+%token <id>PIB_TAG
+%token <id>POLICY_ACCESS
 %token <id>PRODUCT_RELEASE
 %token <id>REFERENCE
 %token <id>REVISION
@@ -1043,14 +1278,18 @@ checkDate(Parser *parserPtr, char *date)
 %token <id>SIZE
 %token <id>STATUS
 %token <id>STRING
+%token <id>SUBJECT_CATEGORIES
 %token <id>SUPPORTS
 %token <id>SYNTAX
 %token <id>TEXTUAL_CONVENTION
 %token <id>TIMETICKS
 %token <id>TRAP_TYPE
+%token <id>UNIQUENESS
 %token <id>UNITS
 %token <id>UNIVERSAL
 %token <id>UNSIGNED32
+%token <id>UNSIGNED64
+%token <id>VALUE
 %token <id>VARIABLES
 %token <id>VARIATION
 %token <id>WRITE_SYNTAX
@@ -1068,6 +1307,8 @@ checkDate(Parser *parserPtr, char *date)
 %type  <id>importIdentifier
 %type  <err>importIdentifiers
 %type  <id>importedKeyword
+%type  <id>importedSMIKeyword
+%type  <id>importedSPPIKeyword
 %type  <err>linkagePart
 %type  <err>linkageClause
 %type  <err>importPart
@@ -1081,6 +1322,9 @@ checkDate(Parser *parserPtr, char *date)
 %type  <typePtr>choiceClause
 %type  <id>typeName
 %type  <id>typeSMI
+%type  <id>typeSMIonly
+%type  <id>typeSMIandSPPI
+%type  <id>typeSPPIonly
 %type  <err>typeTag
 %type  <id>fuzzy_lowercase_identifier
 %type  <err>valueDeclaration
@@ -1102,6 +1346,8 @@ checkDate(Parser *parserPtr, char *date)
 %type  <objectPtr>VarType
 %type  <text>DescrPart
 %type  <access>MaxAccessPart
+%type  <access>MaxOrPIBAccessPart
+%type  <access>PibAccessPart
 %type  <err>notificationTypeClause
 %type  <err>moduleIdentityClause
 %type  <err>typeDeclaration
@@ -1130,6 +1376,7 @@ checkDate(Parser *parserPtr, char *date)
 %type  <text>UnitsPart
 %type  <access>Access
 %type  <index>IndexPart
+%type  <index>MibIndex
 %type  <listPtr>IndexTypes
 %type  <objectPtr>IndexType
 %type  <objectPtr>Index
@@ -1192,6 +1439,19 @@ checkDate(Parser *parserPtr, char *date)
 %type  <err>CreationPart
 %type  <err>Cells
 %type  <err>Cell
+%type  <objectPtr>SPPIPibReferencesPart
+%type  <objectPtr>SPPIPibTagPart
+%type  <subjectCategoriesPtr>SubjectCategoriesPart
+%type  <subjectCategoriesPtr>SubjectCategories
+%type  <listPtr>CategoryIDs
+%type  <objectPtr>CategoryID
+%type  <objectPtr>UniqueType
+%type  <listPtr>UniqueTypes
+%type  <listPtr>UniqueTypesPart
+%type  <listPtr>SPPIUniquePart
+%type  <objectPtr>Error
+%type  <listPtr>Errors
+%type  <listPtr>SPPIErrorsPart
 
 %%
 
@@ -1264,7 +1524,8 @@ module:			moduleName
 			    }
 			}
 			moduleOid
-			DEFINITIONS COLON_COLON_EQUAL BEGIN_
+			definitions
+                        COLON_COLON_EQUAL BEGIN_
 			exportsClause
 			linkagePart
 			declarationPart
@@ -1291,6 +1552,14 @@ moduleOid:		'{' objectIdentifier '}'
 			{ $$ = 0; }
 	;
 
+definitions:            DEFINITIONS
+                        { }
+        |               PIB_DEFINITIONS
+                        {
+                            thisModulePtr->export.language = SMI_LANGUAGE_SPPI;
+                        }
+        ;
+
 /*
  * REF:RFC1902,3.2.
  */
@@ -1304,7 +1573,8 @@ linkageClause:		IMPORTS importPart ';'
 			{
 			    firstStatementLine = thisParserPtr->line;
 
-			    if (thisModulePtr->export.language != SMI_LANGUAGE_SMIV2)
+			    if ((thisModulePtr->export.language != SMI_LANGUAGE_SMIV2) &&
+                                (thisModulePtr->export.language != SMI_LANGUAGE_SPPI))
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV1;
 			    
 			    $$ = 0;
@@ -1316,6 +1586,10 @@ exportsClause:		/* empty */
 			{ $$ = 0; }
 	|		EXPORTS
 			{
+                            if (thisParserPtr->modulePtr->export.language ==
+                                 SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "EXPORTS");
+                            
 			    firstStatementLine = thisParserPtr->line;
 
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
@@ -1349,6 +1623,8 @@ import:			importIdentifiers FROM moduleName
 			{
 			    Import      *importPtr;
 			    Module      *modulePtr;
+                            
+                            char *dummy = $3;
 			    
 			    /*
 			     * Recursively call the parser to suffer
@@ -1365,20 +1641,23 @@ import:			importIdentifiers FROM moduleName
 			        /*
 				 * A module that imports a macro or
 				 * type definition from SNMPv2-SMI
-				 * seems to be SMIv2 style.
+				 * seems to be SMIv2 style - but only if
+                                 * it is not SPPI yet.
 				 */
-				for (importPtr =
-					 thisModulePtr->firstImportPtr;
-				     importPtr;
-				     importPtr = importPtr->nextPtr) {
-				    if ((!strcmp(importPtr->export.module,
-						 $3)) &&
-					((importPtr->kind == KIND_MACRO) ||
-					 (importPtr->kind == KIND_TYPE))) {
-					thisModulePtr->export.language =
-					    SMI_LANGUAGE_SMIV2;
+                                if (thisModulePtr->export.language != SMI_LANGUAGE_SPPI) {
+				    for (importPtr =
+					     thisModulePtr->firstImportPtr;
+				         importPtr;
+				         importPtr = importPtr->nextPtr) {
+				        if ((!strcmp(importPtr->export.module,
+						     $3)) &&
+					    ((importPtr->kind == KIND_MACRO) ||
+					     (importPtr->kind == KIND_TYPE))) {
+					    thisModulePtr->export.language =
+					        SMI_LANGUAGE_SMIV2;
+				        }
 				    }
-				}
+                                }
 			    }
 
 			    smiFree($3);
@@ -1423,26 +1702,48 @@ importIdentifier:	LOWERCASE_IDENTIFIER
  * TODO: Think! Shall we really leave these words as keywords or should
  * we prefer the symbol table appropriately??
  */
-importedKeyword:	AGENT_CAPABILITIES
-	|		BITS
-	|		COUNTER32
-	|		COUNTER64
-	|		GAUGE32
+importedKeyword:	importedSMIKeyword
+                        {
+                            /*
+                             * There are PIBs that import e.g. Counter64 - so
+                             * don't complain here about SMI keywords.
+                             */
+                           /* if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                              smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, $1);*/
+                            $$ = $1;
+                        }
+        |               importedSPPIKeyword
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                              smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, $1);
+                            $$ = $1;
+                        }
+        |               BITS
 	|		INTEGER32
 	|		IPADDRESS
 	|		MANDATORY_GROUPS
 	|		MODULE_COMPLIANCE
 	|		MODULE_IDENTITY
-	|		NOTIFICATION_GROUP
-	|		NOTIFICATION_TYPE
 	|		OBJECT_GROUP
 	|		OBJECT_IDENTITY
 	|		OBJECT_TYPE
 	|		OPAQUE
 	|		TEXTUAL_CONVENTION
 	|		TIMETICKS
-	|		TRAP_TYPE
 	|		UNSIGNED32
+        ;
+
+importedSMIKeyword:     AGENT_CAPABILITIES
+	|		COUNTER32
+	|		COUNTER64
+	|		GAUGE32
+	|		NOTIFICATION_GROUP
+	|		NOTIFICATION_TYPE
+	|		TRAP_TYPE
+	;
+
+importedSPPIKeyword:	INTEGER64
+	|		UNSIGNED64
 	;
 
 moduleName:		UPPERCASE_IDENTIFIER
@@ -1574,7 +1875,11 @@ macroClause:		macroName
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1065-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
-				       "RFC1155-SMI")) {
+				       "RFC1155-SMI") &&
+                                strcmp(thisParserPtr->modulePtr->export.name,
+                                       "COPS-PR-SPPI") &&
+                                strcmp(thisParserPtr->modulePtr->export.name,
+                                       "COPS-PR-SPPI-TC")) {
 			        smiPrintError(thisParserPtr, ERR_MACRO);
 			    }
 			}
@@ -1610,7 +1915,9 @@ choiceClause:		CHOICE
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1065-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
-				       "RFC1155-SMI")) {
+				       "RFC1155-SMI") && 
+                                strcmp(thisParserPtr->modulePtr->export.name,
+                                       "COPS-PR-SPPI")) {
 			        smiPrintError(thisParserPtr, ERR_CHOICE);
 			    }
 			}
@@ -1806,6 +2113,46 @@ typeDeclaration:	typeName
 					setTypeParent(typePtr, $4);
 				}
 			    }
+			    if (thisModulePtr &&
+				(!strcmp(thisModulePtr->export.name, "COPS-PR-SPPI"))) {
+				if (!strcmp($1, "Unsigned32")) {
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
+				    }
+				} else if (!strcmp($1, "TimeTicks")) {
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
+				    setTypeParent($4, smiHandle->typeUnsigned32Ptr);
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned32 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned32 = 4294967295U;
+				    }
+				} else if (!strcmp($1, "Unsigned64")) {
+				    $4->export.basetype = SMI_BASETYPE_UNSIGNED64;
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED64;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED64;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = LIBSMI_UINT64_MAX;
+				    }
+				    setTypeParent($4, smiHandle->typeUnsigned64Ptr);
+				} else if (!strcmp($1, "Integer64")) {
+				    $4->export.basetype = SMI_BASETYPE_INTEGER64;
+				    if ($4->listPtr) {
+					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_INTEGER64;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.integer64 = LIBSMI_INT64_MIN;
+					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_INTEGER64;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.integer64 = LIBSMI_INT64_MAX;
+				    }
+				    setTypeParent($4, smiHandle->typeInteger64Ptr);
+				}
+			    }
 			}
 	;
 
@@ -1831,21 +2178,50 @@ typeName:		UPPERCASE_IDENTIFIER
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1065-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
-				       "RFC1155-SMI")) {
+				       "RFC1155-SMI") &&
+				strcmp(thisParserPtr->modulePtr->export.name,
+				       "COPS-PR-SPPI")) {
 			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, $1);
 			    }
 			}
+        |               typeSPPIonly
+                        {
+			    $$ = smiStrdup($1);
+			    /*
+			     * well known types (keywords in this grammar)
+			     * are known to be defined in these modules.
+			     */
+			    if (strcmp(thisParserPtr->modulePtr->export.name,
+				       "COPS-PR-SPPI"))
+			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, $1);
+                        }
 	;
 
-typeSMI:		IPADDRESS
+typeSMI:                typeSMIandSPPI
+        |               typeSMIonly
+                        {
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName($1, thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, $1);
+                            $$ = $1;
+                        }
+        ;
+
+typeSMIandSPPI:		IPADDRESS
 	|		TIMETICKS
 	|		OPAQUE
 	|		INTEGER32
-	|		COUNTER32
-	|		GAUGE32
 	|		UNSIGNED32
+        ;
+
+typeSMIonly:		COUNTER32
+	|		GAUGE32
 	|		COUNTER64
 	;
+
+typeSPPIonly:           INTEGER64
+        |               UNSIGNED64
+        ;
 
 typeDeclarationRHS:	Syntax
 			{
@@ -1877,10 +2253,16 @@ typeDeclarationRHS:	Syntax
 				if (importPtr) {
 				    importPtr->use++;
 				} else {
-				    smiPrintError(thisParserPtr,
-						  ERR_MACRO_NOT_IMPORTED,
-						  "TEXTUAL-CONVENTION",
-						  "SNMPv2-TC");
+                                    if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+				        smiPrintError(thisParserPtr,
+						      ERR_MACRO_NOT_IMPORTED,
+						      "TEXTUAL-CONVENTION",
+						      "SNMPv2-TC");
+                                    else
+				        smiPrintError(thisParserPtr,
+						      ERR_MACRO_NOT_IMPORTED,
+						      "TEXTUAL-CONVENTION",
+						      "COPS-PR-SPPI");
 				}
 			    }
 			}
@@ -2246,16 +2628,23 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			{
 			    Import *importPtr;
 
-			    if (strcmp(thisModulePtr->export.name, "SNMPv2-SMI")) {
+			    if (strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
+                                strcmp(thisModulePtr->export.name, "COPS-PR-SPPI")) {
 				importPtr = findImportByName("OBJECT-IDENTITY",
 							     thisModulePtr);
 				if (importPtr) {
 				    importPtr->use++;
 				} else {
-				    smiPrintError(thisParserPtr,
-						  ERR_MACRO_NOT_IMPORTED,
-						  "OBJECT-IDENTITY",
-						  "SNMPv2-SMI");
+                                    if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+				        smiPrintError(thisParserPtr,
+						      ERR_MACRO_NOT_IMPORTED,
+						      "OBJECT-IDENTITY",
+						      "SNMPv2-SMI");
+                                    else
+				        smiPrintError(thisParserPtr,
+						      ERR_MACRO_NOT_IMPORTED,
+						      "OBJECT-IDENTITY",
+						      "COPS-PR-SPPIs");
 				}
 			    }
 			}
@@ -2314,27 +2703,38 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				    smiPrintError(thisParserPtr,
 						  ERR_MACRO_NOT_IMPORTED,
 						  "OBJECT-TYPE", "SNMPv2-SMI");
-				} else {
+				} else if (thisModulePtr->export.language ==
+                                    SMI_LANGUAGE_SPPI) {
+                                    smiPrintError(thisParserPtr,
+                                                  ERR_MACRO_NOT_IMPORTED,
+                                                  "OBJECT-TYPE", "COPS-PR-SPPI");
+                                } else {
 				    smiPrintError(thisParserPtr,
 						  ERR_MACRO_NOT_IMPORTED,
 						  "OBJECT-TYPE", "RFC-1212");
 				}
 			    }
+                            indexFlag = 0;
 			}
-			SYNTAX Syntax
-		        UnitsPart
-			MaxAccessPart
-			STATUS Status
-			descriptionClause
-			ReferPart
-			IndexPart
-			DefValPart
-			COLON_COLON_EQUAL '{' ObjectName '}'
+			SYNTAX Syntax                /* old $6, new $6 */
+		        UnitsPart                    /* old $7, new $7 */
+                        MaxOrPIBAccessPart           /* old $8, new $8 */
+                        SPPIPibReferencesPart        /* SPPI only, $9 */
+                        SPPIPibTagPart               /* SPPI only, $10 */
+			STATUS Status                /* old $9 $10, new $11 $12 */
+			descriptionClause            /* old $11, new $13 */
+                        SPPIErrorsPart               /* SPPI only, $14 */
+			ReferPart                    /* old $12, new $15 */
+			IndexPart                    /* modified, old $13, new $16 */
+                        MibIndex                     /* new, $17 */
+                        SPPIUniquePart               /* SPPI only, $18 */
+			DefValPart                   /* old $14, new $19 */
+			COLON_COLON_EQUAL '{' ObjectName '}' /* old $17, new $22 */
 			{
 			    Object *objectPtr, *parentPtr;
 			    Type *typePtr = NULL;
 			    
-			    objectPtr = $17;
+			    objectPtr = $22;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -2347,6 +2747,20 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				if ($6) {
 				    if ($6->export.name) {
 					typePtr = $6;
+                                        /*
+                                         * According to RFC 3159 7.1.3. Opaque must not be used
+                                         * in a SYNTAX clause.
+                                         */
+                                        if ((thisModulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                            !strcmp(typePtr->export.name, "Opaque"))
+                                            smiPrintError(thisParserPtr, ERR_OPAQUE_IN_SYNTAX);
+                                        /*
+                                         * According to RFC 3159 7.1.4. IpAddress must not be used
+                                         * in a SYNTAX clause.
+                                         */
+                                        if ((thisModulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                            !strcmp(typePtr->export.name, "IpAddress"))
+                                            smiPrintError(thisParserPtr, ERR_IPADDRESS_IN_SYNTAX);
 				    } else {
 					typePtr = $6->parentPtr;
 				    }
@@ -2376,6 +2790,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    }
 			    setObjectUnits(objectPtr, $7);
 			    setObjectAccess(objectPtr, $8);
+                            setObjectPibReferences(objectPtr, $9);
+                            setObjectPibTag(objectPtr, $10);
 			    if (thisParserPtr->flags & FLAG_CREATABLE) {
 				thisParserPtr->flags &= ~FLAG_CREATABLE;
 				parentPtr =
@@ -2417,39 +2833,86 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 						  ERR_SCALAR_READCREATE);
 				}
 			    }
-			    setObjectStatus(objectPtr, $10);
+			    setObjectStatus(objectPtr, $12);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
-			    if ($11) {
-				setObjectDescription(objectPtr, $11, thisParserPtr);
+			    if ($13) {
+				setObjectDescription(objectPtr, $13, thisParserPtr);
 			    }
-			    if ($12) {
-				setObjectReference(objectPtr, $12, thisParserPtr);
+                            if ($14) {
+                                setObjectInstallErrors(objectPtr, $14);
+                            }
+			    if ($15) {
+				setObjectReference(objectPtr, $15, thisParserPtr);
 			    }
-			    if ($13.indexkind != SMI_INDEX_UNKNOWN) {
-				setObjectList(objectPtr, $13.listPtr);
-				setObjectImplied(objectPtr, $13.implied);
-				setObjectIndexkind(objectPtr, $13.indexkind);
-				setObjectRelated(objectPtr, $13.rowPtr);
-			    }
-			    if ($14) {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI) {
+                                /*
+                                 * For SMI documents either $16 (IndexPart) or $17 (MibIndex)
+                                 * are used, but not both. This is signalled via the indexFlag
+                                 * which is 1 if IndexPart has been used.
+                                 */
+                                if (indexFlag == INDEXFLAG_AUGMENTS) { /* IndexPart was used */
+			            if ($16.indexkind != SMI_INDEX_UNKNOWN) {
+				        setObjectList(objectPtr, $16.listPtr);
+				        setObjectImplied(objectPtr, $16.implied);
+				        setObjectIndexkind(objectPtr, $16.indexkind);
+				        setObjectRelated(objectPtr, $16.rowPtr);
+			            }
+                                } else {
+			            if ($17.indexkind != SMI_INDEX_UNKNOWN) {
+				        setObjectList(objectPtr, $17.listPtr);
+				        setObjectImplied(objectPtr, $17.implied);
+				        setObjectIndexkind(objectPtr, $17.indexkind);
+				        setObjectRelated(objectPtr, $17.rowPtr);
+			            }
+                                }
+                            } else {
+                                /*
+                                 * PIBs contain either PIB-INDEX or AUGMENTS or EXTENDS - 
+                                 * but only with one Index entry. A PIB-INDEX may be
+                                 * followed by a full INDEX. We get the indexkind
+                                 * from the first.
+                                 * Note that PIB-INDEX/AUGMENTS/EXTENS is always
+                                 * the first element in objectPtr->listPtr.
+                                 * If an optional INDEX exists then it is
+                                 * appended to this list.
+                                 */
+			        if ($16.indexkind != SMI_INDEX_UNKNOWN) {
+                                    setObjectList(objectPtr, $16.listPtr);
+				    setObjectIndexkind(objectPtr, $16.indexkind);
+				    setObjectRelated(objectPtr, $16.rowPtr);
+			        }
+			        if ($17.indexkind != SMI_INDEX_UNKNOWN) {
+                                    if (objectPtr->listPtr) {
+                                        List *p;
+                                        for (p = objectPtr->listPtr; p->nextPtr;
+                                             p = p->nextPtr);
+                                        p->nextPtr = $17.listPtr;
+                                    }
+				    setObjectImplied(objectPtr, $17.implied);
+			        }
+                            }
+                            if ($18) {
+                                setObjectUniqueness(objectPtr, $18);
+                            }
+			    if ($19) {
 				if (objectPtr->typePtr
 				    && (((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING) &&
-					 ($14->basetype != SMI_BASETYPE_OCTETSTRING))
+					 ($19->basetype != SMI_BASETYPE_OCTETSTRING))
 					|| ((objectPtr->typePtr->export.basetype == SMI_BASETYPE_OBJECTIDENTIFIER) &&
-					    ($14->basetype != SMI_BASETYPE_OBJECTIDENTIFIER)))) {
+					    ($19->basetype != SMI_BASETYPE_OBJECTIDENTIFIER)))) {
 				    smiPrintError(thisParserPtr,
 						  ERR_DEFVAL_SYNTAX);
-				    if ($14->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
-					smiFree($14->value.oid);
+				    if ($19->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
+					smiFree($19->value.oid);
 				    }
-				    if (($14->basetype == SMI_BASETYPE_BITS) ||
-					($14->basetype == SMI_BASETYPE_OCTETSTRING)) {
-					smiFree($14->value.ptr);
+				    if (($19->basetype == SMI_BASETYPE_BITS) ||
+					($19->basetype == SMI_BASETYPE_OCTETSTRING)) {
+					smiFree($19->value.ptr);
 				    }
-				    smiFree($14);
+				    smiFree($19);
 				} else {
-				    setObjectValue(objectPtr, $14);
+				    setObjectValue(objectPtr, $19);
 				}
 			    }
 			    $$ = 0;
@@ -2458,7 +2921,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 
 descriptionClause:	/* empty */
 			{
-			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
+			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2) ||
+                                (thisModulePtr->export.language == SMI_LANGUAGE_SPPI))
 			    {
 				smiPrintError(thisParserPtr,
 					      ERR_MISSING_DESCRIPTION);
@@ -2487,6 +2951,8 @@ trapTypeClause:		fuzzy_lowercase_identifier
 			TRAP_TYPE
 			{
 			    Import *importPtr;
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "TRAP-TYPE");
 			    
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
@@ -2517,7 +2983,7 @@ trapTypeClause:		fuzzy_lowercase_identifier
 			    nodePtr = findNodeByParentAndSubid(
 				objectPtr->nodePtr, 0);
 			    if (nodePtr && nodePtr->lastObjectPtr &&
-	       		(nodePtr->lastObjectPtr->modulePtr == thisModulePtr)) {
+	       		        (nodePtr->lastObjectPtr->modulePtr == thisModulePtr)) {
 				/*
 				 * hopefully, the last defined Object for
 				 * this Node is the one we expect.
@@ -2615,13 +3081,168 @@ DescrPart:		DESCRIPTION Text
 			{ $$ = NULL; }
 	;
 
+MaxOrPIBAccessPart:     MaxAccessPart
+                        {
+                            $$ = $1;
+                        }
+        |               PibAccessPart
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "MAX-ACCESS");
+                            if ($1 == SMI_ACCESS_NOT_ACCESSIBLE)
+                                smiPrintError(thisParserPtr, ERR_NOT_ACCESSIBLE_IN_PIB_ACCESS);
+                            $$ = $1;
+                        }
+        ;
+
+PibAccessPart:          PibAccess Access
+                        { $$ = $2; }
+        |               /* empty */
+                        { $$ = 0;  }
+        ;
+
+PibAccess:              POLICY_ACCESS
+                        { 
+                            smiPrintError(thisParserPtr, ERR_POLICY_ACCESS_IN_PIB);
+                        }
+        |               PIB_ACCESS
+                        { }
+        ;        
+
+SPPIPibReferencesPart:  PIB_REFERENCES
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-REFERENCES");
+                        }
+                        '{' Entry '}'
+                        { $$ = $4; }
+        |               /* empty */
+                        { $$ = 0; }
+        ;
+
+SPPIPibTagPart:         PIB_TAG
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-TAG");
+                        }
+                        '{' ObjectName '}'
+                        { $$ = $4; }
+        |               /* empty */
+                        { $$ = 0; }
+        ;
+
+
+SPPIUniquePart:         UNIQUENESS
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "UNIQUENESS");
+                        }
+                        '{' UniqueTypesPart '}'
+                        { $$ = $4; }
+        |               /* empty */
+                        { $$ = NULL; }
+        ;
+
+UniqueTypesPart:        UniqueTypes
+                        { $$ = $1; }
+        |               /* empty */
+                        { $$ = NULL; }
+        ;
+
+UniqueTypes:            UniqueType
+                        {
+			    $$ = smiMalloc(sizeof(List));
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
+        |               UniqueTypes ',' UniqueType
+			/* TODO: might this list be emtpy? */
+			{
+			    List *p, *pp;
+			    
+			    p = smiMalloc(sizeof(List));
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+                        }
+        ;
+
+UniqueType:             ObjectName
+                        { $$ = $1; }
+        ;
+
+SPPIErrorsPart:         INSTALL_ERRORS
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "INSTALL-ERRORS");
+                        }
+                        '{' Errors '}'
+                        { $$ = $4; }
+        |               /* empty */
+                        { $$ = NULL; }
+        ;
+
+Errors:                 Error
+                        {
+			    $$ = smiMalloc(sizeof(List));
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
+        |               Errors ',' Error
+			/* TODO: might this list be emtpy? */
+			{
+			    List *p, *pp;
+			    
+			    p = smiMalloc(sizeof(List));
+			    p->ptr = $3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+                        }
+        ;
+
+Error:                  LOWERCASE_IDENTIFIER '(' NUMBER ')'
+			{
+			    Object *objectPtr;
+			    
+			    /* TODO: search in local module and
+			     *       in imported modules
+			     */
+			    objectPtr = findObjectByModuleAndName(
+				thisParserPtr->modulePtr, $1);
+			    if (objectPtr) {
+				$$ = objectPtr;
+				if ($$->nodePtr->subid != $3) {
+				    smiPrintError(thisParserPtr,
+					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
+						  $3, $1);
+				}
+				smiFree($1);
+			    } else {
+                                if (($3 < 1) || ($3 > 65536))
+                                    smiPrintError(thisParserPtr, ERR_ERROR_NUMBER_RANGE, $3);
+				objectPtr = addObject($1, smiHandle->rootNodePtr,
+						      $3, 0,
+						      thisParserPtr);
+				setObjectDecl(objectPtr,
+					      SMI_DECL_VALUEASSIGNMENT);
+				$$ = objectPtr;
+			    }
+			}
+        ;
+
+
 MaxAccessPart:		MAX_ACCESS
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV1)
 			    {
 			        smiPrintError(thisParserPtr,
 					      ERR_MAX_ACCESS_IN_SMIV1);
-			    }
+			    } else if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "MAX-ACCESS");
 			}
 			Access
 			{ $$ = $3; }
@@ -2630,7 +3251,8 @@ MaxAccessPart:		MAX_ACCESS
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
 			        smiPrintError(thisParserPtr, ERR_ACCESS_IN_SMIV2);
-			    }
+			    } else if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "ACCESS");
 			}
 			Access
 			/* TODO: limited values in v1 */
@@ -2649,7 +3271,10 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			NOTIFICATION_TYPE
 			{
 			    Import *importPtr;
-			    
+
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "NOTIFICATION-TYPE");
+                                
 			    importPtr = findImportByName("NOTIFICATION-TYPE",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -2731,38 +3356,42 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 					      ERR_MODULE_IDENTITY_NOT_FIRST);
 			    }
 			}
-			LAST_UPDATED ExtUTCTime
+                        SubjectCategoriesPart        /* SPPI only */
+                        {
+                          /* do nothing at the moment */
+                        }
+			LAST_UPDATED ExtUTCTime      /* old 5-7, new $7-9 */
 			{
-			    setModuleLastUpdated(thisParserPtr->modulePtr, $6);
+			    setModuleLastUpdated(thisParserPtr->modulePtr, $8);
 			}
-			ORGANIZATION Text
+			ORGANIZATION Text            /* old 8-10, new $10-12 */
 			{
-			    if ($9 && !strlen($9)) {
+			    if ($11 && !strlen($11)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_ORGANIZATION);
 			    }
 			}
-			CONTACT_INFO Text
+			CONTACT_INFO Text             /* old 11-13, new 13-15 */
 			{
-			    if ($12 && !strlen($12)) {
+			    if ($14 && !strlen($14)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_CONTACT);
 			    }
 			}
-			DESCRIPTION Text
+			DESCRIPTION Text              /* old 14-16, new 16-18 */
 			{
-			    if ($15 && !strlen($15)) {
+			    if ($17 && !strlen($17)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_DESCRIPTION);
 			    }
 			}
-			RevisionPart
+			RevisionPart                  /* old 17, new 19 */
 			COLON_COLON_EQUAL
-			'{' objectIdentifier '}'
+			'{' objectIdentifier '}'      /* old 19-21, new 21-23 */
 			{
 			    Object *objectPtr;
 			    
-			    objectPtr = $20;
+			    objectPtr = $22;
 
 			    smiCheckObjectReuse(thisParserPtr, $1, &objectPtr);
 
@@ -2778,13 +3407,110 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    setModuleIdentityObject(thisParserPtr->modulePtr,
 						    objectPtr);
 			    setModuleOrganization(thisParserPtr->modulePtr,
-						  $9);
+						  $11);
 			    setModuleContactInfo(thisParserPtr->modulePtr,
-						 $12);
+						 $14);
 			    setModuleDescription(thisParserPtr->modulePtr,
-						 $15, thisParserPtr);
-			    /* setObjectDescription(objectPtr, $13); */
+						 $17, thisParserPtr);
+                            if ($5 != NULL) {
+                                setObjectList(objectPtr, $5->categories);
+                                setObjectSubjectCategories(objectPtr,
+                                                           $5->allCategories);
+                                smiFree($5);
+                            }
+			    /* setObjectDescription(objectPtr, $15); */
 			    $$ = 0;
+			}
+        ;
+
+SubjectCategoriesPart:  SUBJECT_CATEGORIES '{' SubjectCategories '}'
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "SUBJECT-CATEGORIES");
+                            $$ = $3;
+                        }
+        |               /* empty */
+                        {
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SUBJECT_CATEGORIES_MISSING);
+                            $$ = NULL;
+                        }
+        ;
+                        
+SubjectCategories:      CategoryIDs
+                        {
+                            $$ = smiMalloc(sizeof(SubjectCategories));
+                            $$->categories    = $1;
+                            if ($1 == NULL)
+                                $$->allCategories = 1;
+                            else
+                                $$->allCategories = 0;
+                        }
+        ;
+
+CategoryIDs:            CategoryID
+			{
+			    $$ = smiMalloc(sizeof(List));
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
+        |               CategoryIDs ',' CategoryID
+			{
+			    List *p, *pp;
+			    
+                            if ($1->ptr == NULL)
+                                smiPrintError(thisParserPtr, ERR_SUBJECT_CATEGORIES_ALL);
+			    p = smiMalloc(sizeof(List));
+			    p->ptr = (void *)$3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
+        ;
+        
+CategoryID:		LOWERCASE_IDENTIFIER
+                        {
+                            if (strcmp($1, "all"))
+                                smiPrintError(thisParserPtr, ERR_SUBJECT_CATEGORIES_MISSING_SUBID);
+                            else
+                                $$ = NULL;
+                        }
+        |               LOWERCASE_IDENTIFIER '(' NUMBER ')'
+			{
+			    Object *objectPtr;
+			    
+                            if (!strcmp($1, "all")) {
+                                smiPrintError(thisParserPtr, ERR_SUBJECT_CATEGORIES_ALL_WITH_SUBID);
+                                $$ = NULL;
+                            } else {
+			        /* TODO: search in local module and
+			         *       in imported modules
+			         */
+			        objectPtr = findObjectByModuleAndName(
+				    thisParserPtr->modulePtr, $1);
+			        if (objectPtr) {
+                                    /* identifiers are global, see RFC3159 6.1 */
+				    smiPrintError(thisParserPtr,
+					          ERR_EXISTENT_OBJECT, $1);
+				    $$ = objectPtr;
+				    if ($$->nodePtr->subid != $3) {
+				        smiPrintError(thisParserPtr,
+					      ERR_SUBIDENTIFIER_VS_OIDLABEL,
+						      $3, $1);
+				    }
+				    smiFree($1);
+			        } else {
+                                    if ($3 < 1)
+                                        smiPrintError(thisParserPtr, ERR_CATEGORY_ID_RANGE, $3);
+				    objectPtr = addObject($1, smiHandle->rootNodePtr,
+						          $3, 0,
+						          thisParserPtr);
+				    setObjectDecl(objectPtr,
+					          SMI_DECL_VALUEASSIGNMENT);
+				    $$ = objectPtr;
+			        }
+                            }
 			}
         ;
 
@@ -2805,7 +3531,9 @@ ObjectSyntax:		SimpleSyntax
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1065-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
-				       "RFC1155-SMI")) {
+				       "RFC1155-SMI") &&
+                                strcmp(thisParserPtr->modulePtr->export.name,
+                                       "COPS-PR-SPPI")) {
 			        smiPrintError(thisParserPtr, ERR_TYPE_TAG, $1);
 			    }
 			    $$ = $2;
@@ -2888,7 +3616,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				&&
 				(strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
-				 strcmp(thisModulePtr->export.name, "SNMPv2-TC")))
+				 strcmp(thisModulePtr->export.name, "SNMPv2-TC") &&
+                                 strcmp(thisModulePtr->export.name, "COPS-PR-SPPI")))
 				smiPrintError(thisParserPtr,
 					      ERR_INTEGER_IN_SMIV2);
 
@@ -2904,7 +3633,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				&&
 				(strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
-				 strcmp(thisModulePtr->export.name, "SNMPv2-TC")))
+				 strcmp(thisModulePtr->export.name, "SNMPv2-TC") &&
+                                 strcmp(thisModulePtr->export.name, "COPS-PR-SPPI")))
 				smiPrintError(thisParserPtr,
 					      ERR_INTEGER_IN_SMIV2);
 
@@ -3299,6 +4029,20 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 			    $$->basetype = SMI_BASETYPE_INTEGER32;
 			    $$->value.integer32 = $1;
 			}
+        |               NUMBER64		/* 0..18446744073709551615 */
+			{   
+                            /* The scanner already checks for the language */
+			    $$ = smiMalloc(sizeof(SmiValue));
+			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
+			    $$->value.unsigned64 = $1;
+			}
+	|		NEGATIVENUMBER64	/* -9223372036854775807..0 */
+			{
+                            /* The scanner already checks for the language */
+			    $$ = smiMalloc(sizeof(SmiValue));
+			    $$->basetype = SMI_BASETYPE_INTEGER64;
+			    $$->value.integer64 = $1;
+			}
 	|		BIN_STRING		/* number or OCTET STRING */
 			{
 			    char s[9];
@@ -3460,6 +4204,9 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Counter32", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "COUNTER32");
 			    $$ = findTypeByName("Counter32");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
@@ -3468,6 +4215,9 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		GAUGE32			/* (0..4294967295)	     */
 			{
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Gauge32", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Gauge32");
 			    $$ = findTypeByName("Gauge32");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
@@ -3479,6 +4229,9 @@ ApplicationSyntax:	IPADDRESS
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Gauge32", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Gauge32");
 			    parentPtr = findTypeByName("Gauge32");
 			    if (! parentPtr) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
@@ -3576,6 +4329,9 @@ ApplicationSyntax:	IPADDRESS
 			{
 			    Import *importPtr;
 
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Counter64", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Counter64");
 			    $$ = findTypeByName("Counter64");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
@@ -3590,6 +4346,106 @@ ApplicationSyntax:	IPADDRESS
 				smiPrintError(thisParserPtr,
 					      ERR_BASETYPE_NOT_IMPORTED,
 					      "Counter64");
+			    }
+			}
+	|		INTEGER64               /* (-9223372036854775807..9223372036854775807) */
+			{
+			    Import *importPtr;
+
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Integer64");
+			    $$ = findTypeByName("Integer64");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Integer64");
+			    }
+
+			    importPtr = findImportByName("Integer64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+					      "Integer64");
+			    }
+			}
+	|		INTEGER64 integerSubType
+			{
+			    Type *parentPtr;
+			    Import *importPtr;
+			    
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Integer64");
+			    parentPtr = findTypeByName("Integer64");
+			    if (! parentPtr) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Integer64");
+				$$ = NULL;
+			    } else {
+				$$ = duplicateType(parentPtr, 0,
+						   thisParserPtr);
+				setTypeList($$, $2);
+				smiCheckTypeRanges(thisParserPtr, $$);
+			    }
+			    importPtr = findImportByName("Integer64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+					      "Integer64");
+			    }
+			}
+	|		UNSIGNED64	        /* (0..18446744073709551615) */
+			{
+			    Import *importPtr;
+
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
+			    $$ = findTypeByName("Unsigned64");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Unsigned64");
+			    }
+
+			    importPtr = findImportByName("Unsigned64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+					      "Unsigned64");
+			    }
+			}
+	|		UNSIGNED64 integerSubType
+			{
+			    Type *parentPtr;
+			    Import *importPtr;
+			    
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
+			    parentPtr = findTypeByName("Unsigned64");
+			    if (! parentPtr) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Unsigned64");
+				$$ = NULL;
+			    } else {
+				$$ = duplicateType(parentPtr, 0,
+						   thisParserPtr);
+				setTypeList($$, $2);
+				smiCheckTypeRanges(thisParserPtr, $$);
+			    }
+			    importPtr = findImportByName("Unsigned64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+					      "Unsigned64");
 			    }
 			}
 	;
@@ -3608,6 +4464,9 @@ sequenceApplicationSyntax: IPADDRESS
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Counter32", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Counter32");
 			    $$ = findTypeByName("Counter32");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
@@ -3616,6 +4475,9 @@ sequenceApplicationSyntax: IPADDRESS
 			}
 	|		GAUGE32	anySubType	/* (0..4294967295)	     */
 			{
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Gauge32", thisParserPtr->modulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Gauge32");
 			    $$ = findTypeByName("Gauge32");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
@@ -3660,6 +4522,9 @@ sequenceApplicationSyntax: IPADDRESS
 			{
 			    Import *importPtr;
 
+                            if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
+                                !findImportByName("Counter64", thisModulePtr))
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "Counter64");
 			    $$ = findTypeByName("Counter64");
 			    if (! $$) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
@@ -3674,6 +4539,50 @@ sequenceApplicationSyntax: IPADDRESS
 				smiPrintError(thisParserPtr,
 					      ERR_BASETYPE_NOT_IMPORTED,
 					      "Counter64");
+			    }
+			}
+	|		INTEGER64	        /* (-9223372036854775807..9223372036854775807) */
+			{
+			    Import *importPtr;
+
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Integer64");
+			    $$ = findTypeByName("Integer64");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Integer64");
+			    }
+
+			    importPtr = findImportByName("Integer64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+					      "Integer64");
+			    }
+			}
+	|		UNSIGNED64	        /* (0..18446744073709551615) */
+			{
+			    Import *importPtr;
+
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
+			    $$ = findTypeByName("Unsigned64");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "Unsigned64");
+			    }
+
+			    importPtr = findImportByName("Unsigned64",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				smiPrintError(thisParserPtr,
+					      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+					      "Unsigned64");
 			    }
 			}
 	;
@@ -3809,6 +4718,18 @@ value:			NEGATIVENUMBER
 			    $$->basetype = SMI_BASETYPE_UNSIGNED32;
 			    $$->value.unsigned32 = $1;
 			}
+	|		NEGATIVENUMBER64
+			{
+			    $$ = smiMalloc(sizeof(SmiValue));
+			    $$->basetype = SMI_BASETYPE_INTEGER64;
+			    $$->value.integer64 = $1;
+			}
+	|		NUMBER64
+			{
+			    $$ = smiMalloc(sizeof(SmiValue));
+			    $$->basetype = SMI_BASETYPE_UNSIGNED64;
+			    $$->value.unsigned64 = $1;
+			}
 	|		HEX_STRING
 			{
 			    char s[3];
@@ -3934,45 +4855,57 @@ Status:			LOWERCASE_IDENTIFIER
 			{
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
-				if (!strcmp($1, "current")) {
+			        if (!strcmp($1, "current")) {
 				    $$ = SMI_STATUS_CURRENT;
-				} else if (!strcmp($1, "deprecated")) {
+			        } else if (!strcmp($1, "deprecated")) {
 				    $$ = SMI_STATUS_DEPRECATED;
-				} else if (!strcmp($1, "obsolete")) {
+			        } else if (!strcmp($1, "obsolete")) {
 				    $$ = SMI_STATUS_OBSOLETE;
-				} else {
+			        } else {
 				    smiPrintError(thisParserPtr,
-						  ERR_INVALID_SMIV2_STATUS,
-						  $1);
+					          ERR_INVALID_SMIV2_STATUS,
+					          $1);
 				    if (!strcmp($1, "mandatory")
-					|| !strcmp($1, "optional")) {
-					/* best guess */
-					$$ = SMI_STATUS_CURRENT;
+				        || !strcmp($1, "optional")) {
+				        /* best guess */
+				        $$ = SMI_STATUS_CURRENT;
 				    } else {
-					$$ = SMI_STATUS_UNKNOWN;
+				        $$ = SMI_STATUS_UNKNOWN;
 				    }
-				}
-			    } else {
-				if (!strcmp($1, "mandatory")) {
+			        }
+			    } else if (thisModulePtr->export.language != SMI_LANGUAGE_SPPI) {
+			        if (!strcmp($1, "mandatory")) {
 				    $$ = SMI_STATUS_MANDATORY;
-				} else if (!strcmp($1, "optional")) {
+			        } else if (!strcmp($1, "optional")) {
 				    $$ = SMI_STATUS_OPTIONAL;
-				} else if (!strcmp($1, "obsolete")) {
+			        } else if (!strcmp($1, "obsolete")) {
 				    $$ = SMI_STATUS_OBSOLETE;
-				} else if (!strcmp($1, "deprecated")) {
+			        } else if (!strcmp($1, "deprecated")) {
 				    $$ = SMI_STATUS_OBSOLETE;
-				} else {
+			        } else {
 				    smiPrintError(thisParserPtr,
-						  ERR_INVALID_SMIV1_STATUS,
-						  $1);
+					          ERR_INVALID_SMIV1_STATUS,
+					          $1);
 				    if (!strcmp($1, "current")) {
-					/* best guess */
-					$$ = SMI_STATUS_MANDATORY; 
+				        /* best guess */
+				        $$ = SMI_STATUS_MANDATORY; 
 				    } else {
-					$$ = SMI_STATUS_UNKNOWN;
+				        $$ = SMI_STATUS_UNKNOWN;
 				    }
-				}
-			    }
+			        }
+			    } else { /* it is SPPI */
+			        if (!strcmp($1, "current")) {
+				    $$ = SMI_STATUS_CURRENT;
+			        } else if (!strcmp($1, "obsolete")) {
+				    $$ = SMI_STATUS_OBSOLETE;
+			        } else if (!strcmp($1, "deprecated")) {
+				    $$ = SMI_STATUS_OBSOLETE;
+                                } else {
+                                    smiPrintError(thisParserPtr,
+                                                  ERR_INVALID_SPPI_STATUS, $1);
+                                    $$ = SMI_STATUS_UNKNOWN;
+                                }
+                            }
 			    smiFree($1);
 			}
         ;		
@@ -4050,7 +4983,7 @@ Access:			LOWERCASE_IDENTIFIER
 						  $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
 				}
-			    } else {
+			    } else if (thisModulePtr->export.language != SMI_LANGUAGE_SPPI) {
 				if (!strcmp($1, "not-accessible")) {
 				    $$ = SMI_ACCESS_NOT_ACCESSIBLE;
 				} else if (!strcmp($1, "read-only")) {
@@ -4067,13 +5000,95 @@ Access:			LOWERCASE_IDENTIFIER
 						  $1);
 				    $$ = SMI_ACCESS_UNKNOWN;
 				}
-			    }
+			    } else {
+			        if (!strcmp($1, "install")) {
+				    $$ = SMI_ACCESS_INSTALL;
+			        } else if (!strcmp($1, "install-notify")) {
+				    $$ = SMI_ACCESS_INSTALL_NOTIFY;
+			        } else if (!strcmp($1, "notify")) {
+				    $$ = SMI_ACCESS_NOTIFY;
+			        } else if (!strcmp($1, "report-only")) {
+				    $$ = SMI_ACCESS_REPORT_ONLY;
+			        } else if (!strcmp($1, "not-accessible")) {
+				    $$ = SMI_ACCESS_NOT_ACCESSIBLE;
+                                } else {
+				    smiPrintError(thisParserPtr,
+					          ERR_INVALID_SPPI_ACCESS,
+					          $1);
+				    $$ = SMI_ACCESS_UNKNOWN;
+			        }
+                            }
 			    smiFree($1);
 			}
         ;
 
-IndexPart:		INDEX
+IndexPart:              PIB_INDEX
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-INDEX");
+                        }
+                        '{' Entry '}'
+                        {
+                            List *p = smiMalloc(sizeof(List));
+                            
+                            p->ptr       = $4;
+                            p->nextPtr   = NULL;
+                            
+			    $$.indexkind = SMI_INDEX_INDEX;
+			    $$.implied   = impliedFlag;
+			    $$.listPtr   = p;
+			    $$.rowPtr    = NULL;
+                            indexFlag    = INDEXFLAG_PIBINDEX;
+			}
+        |		AUGMENTS '{' Entry '}'
+			/* TODO: no AUGMENTS clause in v1 */
+			/* TODO: how to differ INDEX and AUGMENTS ? */
 			{
+			    $$.indexkind    = SMI_INDEX_AUGMENT;
+			    $$.implied      = 0;
+			    $$.listPtr      = NULL;
+			    $$.rowPtr       = $3;
+                            indexFlag       = INDEXFLAG_AUGMENTS;
+			}
+        |		EXTENDS
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "EXTENDS");
+                        }
+                        '{' Entry '}'
+			{
+			    $$.indexkind    = SMI_INDEX_EXTEND;
+			    $$.implied      = 0;
+			    $$.listPtr      = NULL;
+			    $$.rowPtr       = $4;
+                            indexFlag       = INDEXFLAG_EXTENDS;
+			} 
+        |		/* empty */
+			{
+			    $$.indexkind = SMI_INDEX_UNKNOWN;
+			}
+	;
+
+MibIndex:		INDEX
+                        {
+                            /* 
+                             * To avoid ambiguity caused by merging
+                             * the SMI and SPPI parser we use a flag.
+                             */
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI) {
+                                /*
+                                 * Only INDEX or AUGMENTS are allowed for SMI
+                                 */
+                                if (indexFlag != INDEXFLAG_NONE)
+                                    smiPrintError(thisParserPtr, ERR_INDEX_AND_AUGMENTS_USED);
+                            } else {
+                                /*
+                                 * INDEX may only be used if PIB_INDEX was used
+                                 */
+                                if (indexFlag != INDEXFLAG_PIBINDEX)
+                                    smiPrintError(thisParserPtr, ERR_INDEX_WITHOUT_PIB_INDEX);
+                            }
+                            
 			    /*
 			     * Use a global variable to fetch and remember
 			     * whether we have seen an IMPLIED keyword.
@@ -4086,22 +5101,13 @@ IndexPart:		INDEX
 			    $$.implied   = impliedFlag;
 			    $$.listPtr   = $4;
 			    $$.rowPtr    = NULL;
-			}
-        |		AUGMENTS '{' Entry '}'
-			/* TODO: no AUGMENTS clause in v1 */
-			/* TODO: how to differ INDEX and AUGMENTS ? */
-			{
-			    $$.indexkind    = SMI_INDEX_AUGMENT;
-			    $$.implied      = 0;
-			    $$.listPtr      = NULL;
-			    $$.rowPtr       = $3;
-			}
-        |		/* empty */
+                        }
+        |               /* empty */
 			{
 			    $$.indexkind = SMI_INDEX_UNKNOWN;
 			}
-	;
-
+        ;
+        
 IndexTypes:		IndexType
 			{
 			    $$ = smiMalloc(sizeof(List));
@@ -4278,6 +5284,9 @@ ObjectsPart:		OBJECTS '{' Objects '}'
 			}
 	|		/* empty */
 			{
+                            /* must be present for PIBs */
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_OBJECTS_MISSING_IN_OBJECT_GROUP);
 			    $$ = NULL;
 			}
 	;
@@ -4747,6 +5756,8 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			NOTIFICATION_GROUP
 			{
 			    Import *importPtr;
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "NOTIFICATION-GROUP");
 			    
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;
@@ -5176,8 +6187,8 @@ ComplianceGroup:	GROUP objectIdentifier
 
 ComplianceObject:	OBJECT ObjectName
 			SyntaxPart
-			WriteSyntaxPart
-			AccessPart
+			WriteSyntaxPart                 /* modified for SPPI */
+			AccessPart                      /* modified for SPPI */
 			DESCRIPTION Text
 			{
 			    Import *importPtr;
@@ -5228,6 +6239,9 @@ SyntaxPart:		SYNTAX Syntax
 
 WriteSyntaxPart:	WRITE_SYNTAX WriteSyntax
 			{
+                            /* must not be present in PIBs */
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "WRITE-SYNTAX");
 			    if ($2->export.name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
 			    } else {
@@ -5248,8 +6262,18 @@ WriteSyntax:		Syntax
 
 AccessPart:		MIN_ACCESS Access
 			{
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "MIN-ACCESS");
 			    $$ = $2;
 			}
+        |               PIB_MIN_ACCESS Access
+                        {
+                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-MIN-ACCESS");
+                            if ($2 == SMI_ACCESS_REPORT_ONLY)
+                                smiPrintError(thisParserPtr, ERR_REPORT_ONLY_IN_PIB_MIN_ACCESS);
+                            $$ = $2;
+                        }
 	|		/* empty */
 			{
 			    $$ = SMI_ACCESS_UNKNOWN;
@@ -5268,6 +6292,8 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			AGENT_CAPABILITIES
 			{
 			    Import *importPtr;
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                                smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "AGENT-CAAPABILITIES");
 			    
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV2;

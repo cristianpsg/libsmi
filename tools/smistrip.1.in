@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smistrip.1.in,v 1.2 1999/12/14 12:00:21 strauss Exp $
+.\" $Id: smistrip.1.in,v 1.3 2000/08/24 12:09:18 strauss Exp $
 .\"
 .TH smistrip 1  "October 25, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -17,10 +17,10 @@ smistrip \- extract MIB modules from text files, like RFCs or I-Ds
 .I file(s)
 ]
 .SH DESCRIPTION
-The \fBsmistrip\fP program is used to extract MIB module files from
-ASCII documents like RFCs or Internet Drafts. Modules are identified
-by a starting ASN.1 DEFINITIONS clause and the matching END clause.
-The output is written to files named by the modules' names.
+The \fBsmistrip\fP program is used to extract MIB and PIB module
+files from ASCII documents like RFCs or Internet Drafts. Modules are
+identified by a starting ASN.1 DEFINITIONS clause and the matching
+END clause. The output is written to files named by the modules' names.
 .SH OPTIONS
 .TP
 .B "-V"

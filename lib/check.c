@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.37 2002/03/21 09:09:26 schoenw Exp $
+ * @(#) $Id: check.c,v 1.38 2002/04/03 17:55:49 schoenw Exp $
  */
 
 #include <config.h>
@@ -958,8 +958,19 @@ smiCheckAugment(Parser *parser, Object *object)
 	return;
     }
     
-    if (object->relatedPtr->export.indexkind != SMI_INDEX_INDEX) {
+    if (object->relatedPtr->export.indexkind == SMI_INDEX_INDEX)
+        return;
+    
+    if (object->export.indexkind == SMI_INDEX_AUGMENT)
+    {
 	smiPrintErrorAtLine(parser, ERR_AUGMENT_NESTED, object->line,
+			    object->export.name,
+			    object->relatedPtr->export.name);
+	return;
+    }
+    
+    if (object->relatedPtr->export.indexkind != SMI_INDEX_EXTEND) {
+	smiPrintErrorAtLine(parser, ERR_EXTENDS_WRONG_ROW_TYPE, object->line,
 			    object->export.name,
 			    object->relatedPtr->export.name);
 	return;
@@ -1800,6 +1811,59 @@ smiCheckNotificationMembers(Parser *parser, Object *object)
 	    }
 	}
 #endif
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckUniqueness --
+ *
+ *      Check whether all entries for an UNIQUENESS clause are in fact
+ *      columns.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void smiCheckUniqueness(Parser *parser, Object *object)
+{
+    List *p;
+
+    for (p = object->uniquenessPtr; p; p = p->nextPtr) {
+        Object *uniq = (Object *)p->ptr;
+        int found = 0;
+        List *pp;
+
+        if (uniq && object->typePtr) {
+            for (pp = object->typePtr->listPtr; pp; pp = pp->nextPtr)
+                if (pp->ptr &&
+                    !strcmp(uniq->export.name, ((Object *)pp->ptr)->export.name)) {
+                    found = 1;
+                    break;
+                }
+            if (!found) {
+                if (((object->export.indexkind == SMI_INDEX_AUGMENT) ||
+                    (object->export.indexkind == SMI_INDEX_EXTEND)) &&
+                    (object->relatedPtr && object->relatedPtr->typePtr)) {
+                    for (pp = object->relatedPtr->typePtr->listPtr; pp;
+                         pp = pp->nextPtr)
+                        if (pp->ptr &&
+                            !strcmp(uniq->export.name, ((Object *)pp->ptr)->export.name)) {
+                            found = 1;
+                            break;
+                        }
+                }
+            }
+            if (!found)
+                smiPrintErrorAtLine(parser, ERR_NOT_A_COLUMN,
+                                    object->line, uniq->export.name);
+        }
     }
 }
 
