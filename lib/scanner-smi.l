@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.36 2002/05/16 23:21:55 bunkus Exp $
+ * @(#) $Id: scanner-smi.l,v 1.37 2002/07/17 10:32:14 bunkus Exp $
  */
 
 %option noyywrap
@@ -40,8 +40,11 @@
 
 
 /* we need a reentrant parser, so yylex gets arguments */
+#if 0
 #define YY_DECL int yylex YY_PROTO((YYSTYPE *lvalp, void *parser))
-    
+#else
+#define YY_DECL int yylex(YYSTYPE *lvalp, void *parser)
+#endif
 
 
 #define thisParser (*(Parser *) parser)
