@@ -1,5 +1,10 @@
 2000-10-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/data.c: Changed all function header to ANSI style.
+
+	* configure.in: changed compiler flags in case of Sun WorkShop
+	compiler. Thanks to Bert Helthuis.
+
 	* mibs/ietf/RDBMS-MIB: Fixed an unknown imported identifier.
 	Thanks to Pat Knight.
 

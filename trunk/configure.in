@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.73 2000/07/17 09:34:36 strauss Exp $
+# @(#) $Id: configure.in,v 1.74 2000/08/18 12:11:29 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -50,7 +50,7 @@ AC_TRY_RUN([#include <stdio.h>
         exit(1);
   #endif
   }
-], ADDCFLAGS="-Xc", ADDCFLAGS="", ADDCFLAGS="")
+], ADDCFLAGS="-Xa -D__STDC__=1", ADDCFLAGS="", ADDCFLAGS="")
 echo $ADDCFLAGS
 CFLAGS="$CFLAGS $ADDCFLAGS"
 
