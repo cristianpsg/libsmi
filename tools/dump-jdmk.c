@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jdmk.c,v 1.2 2000/01/27 10:46:18 strauss Exp $
+ * @(#) $Id: dump-jdmk.c,v 1.3 2000/03/02 09:22:34 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -216,8 +216,8 @@ static void printSubtype(SmiType *smiType)
 	    } else {
 		printf(" (");
 	    }	    
-	    if (bcmp(range->minValuePtr, range->maxValuePtr,
-		     sizeof(SmiValue))) {
+	    if (memcmp(range->minValuePtr, range->maxValuePtr,
+		       sizeof(SmiValue))) {
 		printf("%s", getValueString(range->minValuePtr));
 		printf("..%s",  getValueString(range->maxValuePtr));
 	    } else {
