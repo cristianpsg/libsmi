@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.80 2004/03/04 16:52:12 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.81 2004/03/13 22:35:14 schoenw Exp $
  */
 
 #include <config.h>
@@ -2012,6 +2012,36 @@ static void fprintImports( FILE *f, SmiModule *smiModule )
 }
 
 
+/*
+ * Check if given table io a sub table of another table.
+ * If so, its parent table is returned (NULL otherwise).
+ */
+static SmiNode *isASubTable( SmiNode *smiNode, SmiModule *smiModule )
+{
+    SmiNode *iterNode;
+    int numIdxDiff = -1;
+    SmiNode *retNode = NULL;
+    
+    for( iterNode = smiGetFirstNode( smiModule,
+				     SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode,
+				    SMI_NODEKIND_ROW ) ) {
+	
+	if( isSubTable( iterNode, smiNode ) ) {
+
+	    if( (numIdxDiff == -1) ||
+		((numIndex( smiNode ) - numIndex( iterNode )) < numIdxDiff) ) {
+		retNode = iterNode;
+		numIdxDiff = numIndex( smiNode ) - numIndex( iterNode );
+	    }
+	    
+	}
+    }
+    return retNode;
+}
+
+
 static void fprintGroupTypes( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode, *iterNode2;
@@ -2041,35 +2071,20 @@ static void fprintGroupTypes( FILE *f, SmiModule *smiModule )
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
 	if( hasChildren( iterNode,
-			 SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
+			 SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){	   
 
-	    int st = 0;
-	    
+	    /* skip nested subtables here */
 	    if( nestSubtables ){
-		SmiNode *iterNode2;
-		
-		for( iterNode2 = smiGetFirstNode( smiModule,
-						  SMI_NODEKIND_ROW );
-		     iterNode2;
-		     iterNode2 = smiGetNextNode( iterNode2,
-						 SMI_NODEKIND_ROW ) ) {
-		    
-		    /* stop, if current node is subtable of another table */
-		    if( isSubTable( iterNode2, iterNode ) ) {
-			st = 1;
-			break;
-		    }
+		if( isASubTable( iterNode, smiModule ) != NULL ) {
+		    continue;
 		}
 	    }
-	    
+
+	    /* skip table augmentations here */
 	    if( nestAugmentedTables ) {
 		if( iterNode->indexkind == SMI_INDEX_AUGMENT ) {
-		    st=1;
+		    continue;
 		}
-	    }
-	    
-	    if( st ) {
-		continue;
 	    }
 	    
 	    fprintComplexType( f, iterNode, iterNode->name, NULL );
@@ -2103,7 +2118,7 @@ static void fprintModuleHead(FILE *f, SmiModule *smiModule)
     
 }
 
-#if 0
+
 static void fprintKey( FILE *f, SmiNode *smiNode )
 {
     SmiNode *relNode;
@@ -2114,7 +2129,7 @@ static void fprintKey( FILE *f, SmiNode *smiNode )
     case SMI_INDEX_INDEX:
 	
 	/* print key */
-	fprintSegment( f, 1, "<xsd:key " );
+/*	fprintSegment( f, 1, "<xsd:key " );
 	fprintf( f, "name=\"%sKey\">\n", smiNode->name );
 	fprintSegment( f, 0, "<xsd:selector ");
 	fprintf( f, "xpath=\"%s\"/>\n", smiNode->name );
@@ -2125,7 +2140,7 @@ static void fprintKey( FILE *f, SmiNode *smiNode )
 	    fprintSegment( f, 0, "<xsd:field ");
 	    fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
 	}
-	fprintSegment( f, -1, "</xsd:key>\n\n");
+	fprintSegment( f, -1, "</xsd:key>\n\n");*/
 	break;
 	
     case SMI_INDEX_AUGMENT:
@@ -2172,7 +2187,7 @@ static void fprintKey( FILE *f, SmiNode *smiNode )
 	break;
     }   
 }
-#endif /* #if 0 */
+
 
 static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 {
@@ -2204,33 +2219,18 @@ static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
 	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
-	    	    int st = 0;
-	    
+	    /* skip nested subtables here */
 	    if( nestSubtables ){
-		SmiNode *iterNode2;
-		
-		for( iterNode2 = smiGetFirstNode( smiModule,
-						  SMI_NODEKIND_ROW );
-		     iterNode2;
-		     iterNode2 = smiGetNextNode( iterNode2,
-						 SMI_NODEKIND_ROW ) ) {
-
-		    /* stop, if current node is subtable of another table */
-		    if( isSubTable( iterNode2, iterNode ) ) {
-			st = 1;
-			break;
-		    }
+		if( isASubTable( iterNode, smiModule ) != NULL ) {
+		    continue;
 		}
 	    }
 
+	    /* skip table augmentations here */
 	    if( nestAugmentedTables ) {
 		if( iterNode->indexkind == SMI_INDEX_AUGMENT ) {
-		    st=1;
+		    continue;
 		}
-	    }
-
-	    if( st ) {
-		continue;
 	    }
 
 	    if (container) {
@@ -2239,17 +2239,71 @@ static void fprintGroupElements(FILE *f, SmiModule *smiModule)
 			      "maxOccurs=\"unbounded\">\n",
 			      iterNode->name,
 			      smiModule->name, iterNode->name);
+		fprintKey( f, iterNode );
 	    } else {
 		fprintSegment(f, 1, "<xsd:element name=\"%s\" "
 			      "type=\"%sType\" minOccurs=\"0\" "
 			      "maxOccurs=\"unbounded\">\n",
 			      iterNode->name, iterNode->name);
 	    }
-/*	    fprintKey( f, iterNode );*/
 	    fprintAnnotationElem( f, iterNode );
 	    fprintSegment( f, -1, "</xsd:element>\n" );
 	}
     }   
+}
+
+
+static char *getSubTableXPath( SmiNode *smiNode, SmiModule *smiModule )
+{
+    char *ret;
+    SmiNode *parentTable = isASubTable( smiNode, smiModule );
+
+    if( parentTable ) {
+	smiAsprintf( &ret, "%s/%s",
+		     getSubTableXPath( parentTable, smiModule ),
+		     smiNode->name );
+    }
+    else {
+	smiAsprintf( &ret, "%s", smiNode->name );
+    }
+    return ret;   
+}
+
+
+static void fprintKeys( FILE *f, SmiModule *smiModule )
+{
+
+    SmiNode *iterNode;
+
+    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
+
+	SmiElement *iterElem;
+
+	/* print only keys for base tables */
+	if( iterNode->indexkind != SMI_INDEX_INDEX ) {
+	    continue;
+	}
+	
+	/* print key */
+	fprintSegment( f, 1, "<xsd:key name=\"%sKey\">\n", iterNode->name );
+	fprintSegment( f, 0, "<xsd:selector ");
+	fprintf( f, "xpath=\"%s\"/>\n",
+		 nestSubtables ?
+		 getSubTableXPath( iterNode, smiModule ) : iterNode->name );
+	    
+	for( iterElem = smiGetFirstElement( iterNode );
+	     iterElem;
+	     iterElem = smiGetNextElement( iterElem ) ) {
+	    SmiNode *indexNode = smiGetElementNode( iterElem );
+	    fprintSegment( f, 0, "<xsd:field ");
+	    fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
+	}
+	fprintSegment( f, -1, "</xsd:key>\n\n");
+    }
+    
+
 }
 
 
@@ -2265,8 +2319,10 @@ static void fprintContextHead(FILE *f)
 }
 
 
-static void fprintContextFoot(FILE *f)
+static void fprintContextFoot(FILE *f, SmiModule **modv, int modc)
 {
+    int i;
+    
     fprintSegment( f, -1, "</xsd:sequence>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"ipaddr\" type=\"xsd:NMTOKEN\" use=\"required\"/>\n");
     fprintSegment( f, 0, "<xsd:attribute name=\"hostname\" type=\"xsd:NMTOKEN\"/>\n");
@@ -2278,6 +2334,10 @@ static void fprintContextFoot(FILE *f)
     fprintSegment( f, -1, "</xsd:element>\n");
     fprintSegment( f, -1, "</xsd:sequence>\n");
     fprintSegment( f, -1, "</xsd:complexType>\n");
+
+    for( i=0; i < modc; i++ ) {
+	fprintKeys( f, modv[ i ] );
+    }
     fprintSegment( f, -1, "</xsd:element>\n\n");
 }
 
@@ -2376,7 +2436,7 @@ static void dumpXsdModules(int modc, SmiModule **modv, int flags, char *output)
 	fprintImports(f, modv[i]);
 	fprintContextHead(f);
 	fprintGroupElements(f, modv[i]);
-	fprintContextFoot(f);
+	fprintContextFoot(f, modv, 0);
 	fprintGroupTypes(f, modv[i]);
 	fprintImplicitTypes(f, modv[i]);
 	fprintTypedefs(f, modv[i]);
@@ -2446,7 +2506,7 @@ static void dumpXsdContainer(int modc, SmiModule **modv, int flags,
 	/* per module elements */
 	fprintGroupElements(f, modv[i]);
     }
-    fprintContextFoot(f);
+    fprintContextFoot(f, modv, modc);
 
     fprintSegment(f, -1, "</xsd:schema>\n");
 
@@ -2472,9 +2532,7 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 
     /* make sure url ends with '/' */
     if( schemaLocation[ strlen( schemaLocation ) - 1 ] != '/' ) {
-	schemaLocation =
-	    realloc(schemaLocation, strlen(schemaLocation)+2);
-	strcat( schemaLocation, "/" );
+	smiAsprintf( &schemaLocation, "%s%c", schemaLocation, '/');
     }
 	
     if (container) {
