@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.71 2003/02/04 15:20:50 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.72 2003/02/06 15:16:06 tklie Exp $
  */
 
 #include <config.h>
@@ -1410,7 +1410,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 			   smiNode->name,
 			   smiNode->name,
 			   getStringBasetype( smiType->basetype ) );
-/*	    fprintAnnotationElem( f, smiNode );*/
+	    fprintAnnotationElem( f, smiNode );
     }
 
     else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {	    
@@ -1421,7 +1421,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	    fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
 			   "use=\"required\">\n", smiNode->name );
 	    if( ! hint ) {
-/*		fprintAnnotationElem( f, smiNode );*/
+		fprintAnnotationElem( f, smiNode );
 		fprintTypedef( f, smiType, NULL );
 	    }
 	    else {
@@ -1440,7 +1440,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 			       "type=\"%s\" use=\"required\">\n",
 			       smiNode->name, typeName );
 	    }
-/*	    fprintAnnotationElem( f, smiNode );*/
+	    fprintAnnotationElem( f, smiNode );
 	}
     }
     
@@ -1449,7 +1449,7 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
 		       "use=\"required\">\n",
 		       smiNode->name );
-/*	fprintAnnotationElem( f, smiNode );*/
+	fprintAnnotationElem( f, smiNode );
 	fprintTypedef( f, smiType, NULL );
     }
     
@@ -1472,9 +1472,9 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	    fprintSegment( f, -1, "</xsd:appinfo>\n");
 	    fprintSegment( f, -1, "</xsd:annotation>\n");
 	}
-/*	else {
+	else {
 	    fprintAnnotationElem( f, smiNode );
-	    }*/
+	    }
     }
     fprintSegment( f, -1, "</xsd:attribute>\n"); 
 }
