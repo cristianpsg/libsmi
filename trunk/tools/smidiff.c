@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.29 2001/11/13 17:34:31 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.30 2001/11/13 18:38:39 tklie Exp $ 
  */
 
 #include <config.h>
@@ -121,6 +121,10 @@ typedef struct Error {
 #define ERR_PREVIOUS_IMPLICIT_DEFINITION 74
 #define ERR_ILLEGAL_STATUS_CHANGE_IMPLICIT 75
 #define ERR_STATUS_CHANGED_IMPLICIT     76
+#define ERR_LENGTH_REMOVED              77
+#define ERR_LENGTH_ADDED                78
+#define ERR_LENGTH_OF_TYPE_REMOVED      79
+#define ERR_LENGTH_OF_TYPE_ADDED        80
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -275,6 +279,14 @@ static Error errors[] = {
       "illegal status change from `%s' to `%s' for implicit type" },
     { 5, ERR_STATUS_CHANGED_IMPLICIT, "status-changed",
       "legal status change from `%s' to `%s' for implicit type" },
+    { 3, ERR_LENGTH_REMOVED, "range-removed",
+      "string length(s) `%s' removed from type used in `%s'" },
+    { 3, ERR_LENGTH_ADDED, "range-added",
+      "string length(s) `%s' added to type used in `%s'" },
+    { 3, ERR_LENGTH_OF_TYPE_REMOVED, "range-removed",
+      "string length(s) `%s' removed from type `%s'" },
+    { 3, ERR_LENGTH_OF_TYPE_ADDED, "range-added",
+      "string length(s) `%s' added to type `%s'" },
     { 0, 0, NULL, NULL }
 };
 
@@ -918,66 +930,80 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     return s;
 }
 
+static char*
+getStringSubrange( SmiRange *range, SmiType *smiType )
+{
+    char *minStr, *maxStr, *str;
+    minStr = strdup( getValueString(&range->minValue, smiType) );
+    maxStr = strdup( getValueString(&range->maxValue, smiType) );
+    if (memcmp(&range->minValue, &range->maxValue,
+	       sizeof(SmiValue))) {
+	str = malloc( strlen( minStr ) + strlen( maxStr ) + 3 );
+	if( !str ) {
+	    return NULL;
+	}
+	sprintf(str, "%s..%s", minStr, maxStr);
+    } else {
+	str = strdup( minStr );
+    }
+    
+    return str;
+}
+
 
 static char*
 getStringRange( SmiType *smiType )
 {
     SmiRange *range;
     int i;
-    char *str = malloc(2);
-    if(!str) {
-	return NULL;
-    }
-    sprintf( str, "(" );  
+    char *str, *subRange;
+
+    str = NULL;
     for(i = 0, range = smiGetFirstRange(smiType);
 	range; i++, range = smiGetNextRange(range)) {
-	char *minStr, *maxStr;
+	
 	if (i) {
-	    str = realloc( str, strlen( str ) + 2 );
-	    sprintf(str, "%s|",str);
-	}
-	minStr = strdup( getValueString(&range->minValue, smiType) );
-	maxStr = strdup( getValueString(&range->maxValue, smiType) );
-	if( strcmp( minStr, maxStr ) ) {
-	    str = realloc(str,
-			  strlen(str) + strlen(minStr) + strlen(maxStr) + 3);
-	    if( str ) {
-		sprintf(str, "%s%s..%s", str, minStr, maxStr);
+	    if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
+		str = realloc( str, strlen( str ) + 3 );
+		if( str ) {
+		    sprintf(str, "%s|(", str);
+		}
+	    }
+	    else {
+		str = realloc( str, strlen( str ) +2 );
+		if( str ) {
+		    sprintf(str, "%s|", str);
+		}
+	    }
+	} else {
+	    if (smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
+		str = strdup("(SIZE(");
+	    } else {
+		str = strdup("(");
 	    }
 	}
-	else {
-	    str = realloc( str, strlen( str ) + strlen( minStr ) + 1 );
+	
+	subRange = getStringSubrange( range, smiType );
+	if( !subRange ) {
+	    return NULL;
+	}
+	str = realloc( str, strlen( str ) + strlen( subRange ) + 1 );
+	if( !str ) {
+	    return NULL;
+	}
+	sprintf( str, "%s%s", str, subRange );
+	
+	if ( smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
+	    
+	    str = realloc( str, strlen( str ) + 2 );
 	    if( str ) {
-		sprintf( str, "%s%s", str, minStr );
+		sprintf(str, "%s)", str);
 	    }
 	}
     }
     str = realloc( str, strlen( str ) + 2 );
     if( str ) {
-	sprintf(str, "%s)",str);
-    }
-    return str;
-}
-
-static char*
-getStringSubrange( SmiRange *range, SmiType *smiType )
-{
-    char *str;
-    char *minStr, *maxStr;
-    
-    minStr = strdup( getValueString(&range->minValue, smiType) );
-    maxStr = strdup( getValueString(&range->maxValue, smiType) );
-    
-    str = malloc( strlen( minStr ) + strlen( maxStr ) + 5 );
-    if(!str) {
-	return NULL;
-    }
-
-    if( strcmp( minStr, maxStr ) ) {
-	sprintf( str, "(%s..%s)", minStr, maxStr );
-    }
-    else {
-	sprintf( str, "(%s)", minStr );
+	sprintf(str, "%s)", str);
     }
     return str;
 }
@@ -1005,15 +1031,14 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	    printErrorAtLine( newModule, ERR_RANGE_OF_TYPE_ADDED,
 			      newLine, strRange, newTwR->name );
 	}
+	
 	free( strRange );
-/*	printTypeImportChain( oldType, oldTwR, newType, newTwR, 
-	oldModule, newModule ); */
 	return;
-
     }
     
     if (oldTwR && !newTwR) {
 	char *strRange;
+	
 	strRange = getStringRange( oldTwR );
 	if( name ) {
 	    printErrorAtLine( newModule, ERR_RANGE_REMOVED,
@@ -1024,11 +1049,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 			      newLine, strRange, oldTwR->name );
 	}
 	free( strRange );
-/*	printTypeImportChain( oldType, oldTwR, newType, newTwR,
-			      oldModule, newModule  );
-*/
-	
-	
+
 	if( oldTwR == oldType ) {
 	    
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
@@ -1037,7 +1058,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	else {
 	    SmiModule *modTwR;
 	    int line;
-
+	    
 	    modTwR = smiGetTypeModule( oldTwR );
 	    line = smiGetTypeLine( oldTwR );
 	    
@@ -1047,7 +1068,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	}
 	return;
     }
-
+    
     if (oldTwR && newTwR) {
 	
 	SmiRange *oldRange, *newRange;
@@ -1057,7 +1078,6 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	while( oldRange || newRange ) {
 
 	    if( oldRange && newRange ) {
-		
 		
 		if(cmpSmiValues(oldRange->minValue, newRange->minValue) ||
 		   cmpSmiValues(oldRange->maxValue, newRange->maxValue)) {
@@ -1070,7 +1090,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
 			printErrorAtLine(newModule,
 					 ERR_RANGE_CHANGED,
 					 smiGetTypeLine( newType ),
-					 name, oldStrRange, newStrRange);
+					 name, oldStrRange, newStrRange);  
 		    }
 		    else {
 			printErrorAtLine(newModule,
@@ -1081,46 +1101,60 @@ checkRanges(SmiModule *oldModule, int oldLine,
 		    }
 		    free( oldStrRange );
 		    free( newStrRange );
-
-		    /*
-		    printTypeImportChain( oldType, oldTwR, newType, newTwR,
-					  oldModule, newModule );
-		    */
-
+		    
 		    return;
 		}
 	    }
 	    
 	    else if (oldRange){
-		char *strRange = getStringSubrange( oldRange, oldTwR );
+		char *strRange;
+		int error, errorOT;
+		if( newTwR->basetype == SMI_BASETYPE_OCTETSTRING ) {
+		    error =  ERR_LENGTH_REMOVED;
+		    errorOT = ERR_LENGTH_OF_TYPE_REMOVED;
+		}
+		else {
+		    error = ERR_SUBRANGE_REMOVED;
+		    errorOT = ERR_SUBRANGE_OF_TYPE_REMOVED;
+		}
+		strRange = getStringSubrange( oldRange, oldTwR );
 		if( name ) {
 		    printErrorAtLine(newModule,
-				     ERR_SUBRANGE_REMOVED,
+				     error,
 				     smiGetTypeLine( newTwR ),
 				     strRange, name);
 		}
 		else {
 		    printErrorAtLine(newModule,
-				     ERR_SUBRANGE_OF_TYPE_REMOVED,
+				     errorOT,
 				     smiGetTypeLine( newTwR ),
 				     strRange, oldTwR->name);
 		}
 		free( strRange );
-/*		printTypeImportChain( oldType, oldTwR, newType, newTwR,
-		oldModule, newModule ); */
 	    }
-
+	    
 	    else if( newRange ) {
-		char *strRange = getStringSubrange( newRange, newTwR );
+		char *strRange;
+		int error, errorOT;
+		
+		if( newTwR->basetype == SMI_BASETYPE_OCTETSTRING ) {
+		    error =  ERR_LENGTH_ADDED;
+		    errorOT = ERR_LENGTH_OF_TYPE_ADDED;
+		}
+		else {
+		    error = ERR_SUBRANGE_ADDED;
+		    errorOT = ERR_SUBRANGE_OF_TYPE_ADDED;
+		}
+		strRange = getStringSubrange( newRange, newTwR );
 		if( name ) {
 		    printErrorAtLine(newModule,
-				     ERR_SUBRANGE_ADDED,
+				     error,
 				     smiGetTypeLine( newType ),
 				     strRange, name);
 		}
 		else {
 		    printErrorAtLine(newModule,
-				     ERR_SUBRANGE_OF_TYPE_ADDED,
+				     errorOT,
 				     smiGetTypeLine( newType ),
 				     strRange, newType->name);
 		}
