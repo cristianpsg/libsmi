@@ -1,4 +1,8 @@
-2000-28-24  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2000-09-26  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/iana/IANA-RTPROTO-MIB: added IANA maintained MIB module.
+
+2000-08-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/UPS-MIB: fixed two illegal integer range restrictions.
 
