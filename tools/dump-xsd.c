@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.81 2004/03/13 22:35:14 schoenw Exp $
+ * @(#) $Id: dump-xsd.c,v 1.82 2004/03/29 13:35:03 tklie Exp $
  */
 
 #include <config.h>
@@ -1994,7 +1994,7 @@ static void fprintImports( FILE *f, SmiModule *smiModule )
     SmiImport *iterImp;
     char *lastModName = "";
     
-    fprintSegment( f, 0, "<xsd:import namespace=\"http://www.ibr.cs.tu-bs.de/projects/libsmi/xsd/smi\" schemaLocation=\"http://www.ibr.cs.tu-bs.de/projects/libsmi/xsd/smi.xsd\"/>\n");
+    fprintSegment( f, 0, "<xsd:import namespace=\"%ssmi\" schemaLocation=\"%ssmi.xsd\"/>\n", schemaLocation, schemaLocation );
     for( iterImp = smiGetFirstImport( smiModule );
 	 iterImp;
 	 iterImp = smiGetNextImport( iterImp ) ) {
