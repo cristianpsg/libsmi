@@ -2203,34 +2203,34 @@ static void printSVGDependency(GraphEdge *tEdge)
 	|| alpha > 2*PI-beta) {
 	//intersection at left or right border
 	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
-	    endPointX = tEdge->endNode->dia.x
-			+ tEdge->endNode->dia.w*STARTSCALE/2;
+	    endPointX = tEdge->endNode->dia.x +
+			tEdge->endNode->dia.w*STARTSCALE/2;
 	} else {
-	    endPointX = tEdge->endNode->dia.x
-			- tEdge->endNode->dia.w*STARTSCALE/2;
+	    endPointX = tEdge->endNode->dia.x -
+			tEdge->endNode->dia.w*STARTSCALE/2;
 	}
 	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
-	    endPointY = tEdge->endNode->dia.y
-			+ abs(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
+	    endPointY = tEdge->endNode->dia.y +
+			fabsf(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
 	} else {
-	    endPointY = tEdge->endNode->dia.y
-			- abs(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
+	    endPointY = tEdge->endNode->dia.y -
+			fabsf(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
 	}
     } else {
 	//intersection at top or bottom border
 	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
-	    endPointY = tEdge->endNode->dia.y
-			+ tEdge->endNode->dia.h*STARTSCALE/2;
+	    endPointY = tEdge->endNode->dia.y +
+			tEdge->endNode->dia.h*STARTSCALE/2;
 	} else {
-	    endPointY = tEdge->endNode->dia.y
-			- tEdge->endNode->dia.h*STARTSCALE/2;
+	    endPointY = tEdge->endNode->dia.y -
+			tEdge->endNode->dia.h*STARTSCALE/2;
 	}
 	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
-	    endPointX = tEdge->endNode->dia.x
-			+ abs(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
+	    endPointX = tEdge->endNode->dia.x +
+			fabsf(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
 	} else {
-	    endPointX = tEdge->endNode->dia.x
-			- abs(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
+	    endPointX = tEdge->endNode->dia.x -
+			fabsf(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
 	}
     }
 
@@ -2680,6 +2680,71 @@ static float fa(float d, float k)
     return (float) (d*d/k);
 }
 
+static int overlap(GraphNode *vNode, GraphNode *uNode)
+{
+    if (vNode->dia.x+vNode->dia.w/2>=uNode->dia.x-uNode->dia.w/2 &&
+	vNode->dia.x-vNode->dia.w/2<=uNode->dia.x+uNode->dia.w/2 &&
+	vNode->dia.y+vNode->dia.h/2>=uNode->dia.y-uNode->dia.h/2 &&
+	vNode->dia.y-vNode->dia.h/2<=uNode->dia.y+uNode->dia.h/2) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+/*
+ * test if node and edge intersect
+ */
+static float intersect(GraphNode *node, GraphEdge *edge)
+{
+    float a, b, intersect = 0;
+
+    //handle case in which edge is parallel to y-axis
+    if (edge->endNode->dia.x == edge->startNode->dia.x) {
+	if ((node->dia.x-node->dia.w/2*STARTSCALE < edge->endNode->dia.x &&
+	    node->dia.x+node->dia.w/2*STARTSCALE < edge->endNode->dia.x) ||
+	    (node->dia.x-node->dia.w/2*STARTSCALE > edge->endNode->dia.x &&
+	    node->dia.x+node->dia.w/2*STARTSCALE > edge->endNode->dia.x))
+	    return intersect;
+	intersect = node->dia.x - edge->startNode->dia.x;
+    } else {
+	//calculate a and b for y=ax+b
+	a = (edge->endNode->dia.y - edge->startNode->dia.y) /
+	    (edge->endNode->dia.x - edge->startNode->dia.x);
+	b = edge->startNode->dia.y - (a * edge->startNode->dia.x);
+	//test if entire node is above or under edge
+	if ((node->dia.y-node->dia.h/2*STARTSCALE -
+			(a * node->dia.x-node->dia.w/2*STARTSCALE) > b &&
+	    node->dia.y+node->dia.h/2*STARTSCALE -
+			(a * node->dia.x-node->dia.w/2*STARTSCALE) > b &&
+	    node->dia.y-node->dia.h/2*STARTSCALE -
+			(a * node->dia.x+node->dia.w/2*STARTSCALE) > b &&
+	    node->dia.y+node->dia.h/2*STARTSCALE -
+			(a * node->dia.x+node->dia.w/2*STARTSCALE) > b) ||
+	    (node->dia.y-node->dia.h/2*STARTSCALE -
+			(a * node->dia.x-node->dia.w/2*STARTSCALE) < b &&
+	    node->dia.y+node->dia.h/2*STARTSCALE -
+			(a * node->dia.x-node->dia.w/2*STARTSCALE) < b &&
+	    node->dia.y-node->dia.h/2*STARTSCALE -
+			(a * node->dia.x+node->dia.w/2*STARTSCALE) < b &&
+	    node->dia.y+node->dia.h/2*STARTSCALE -
+			(a * node->dia.x+node->dia.w/2*STARTSCALE) < b))
+	    return intersect;
+	intersect = (a * node->dia.x - node->dia.y + b) /
+		    (float)(sqrt(a*a+1));
+    }
+    //test if node is over upper end of edge or under lower end of edge
+    if (node->dia.y+node->dia.h/2*STARTSCALE <
+		min(edge->startNode->dia.y,edge->endNode->dia.y) ||
+	node->dia.y-node->dia.h/2*STARTSCALE >
+		max(edge->startNode->dia.y,edge->endNode->dia.y)) {
+	intersect = 0;
+	return intersect;
+    }
+    //node and edge intersect
+    return intersect;
+}
+
 /*
  * Implements the springembedder. Look at LNCS 2025, pp. 71-86.
  * and: http://citeseer.ist.psu.edu/fruchterman91graph.html
@@ -2694,10 +2759,11 @@ static float fa(float d, float k)
  * FIXME * nodecount counts all nodes. we need something like clusternodecount!
  */
 static void layoutCluster(int nodecount, GraphCluster *cluster,
-			int overlap, int limit_frame)
+			int nodeoverlap, int edgeoverlap, int limit_frame)
 {
     int i;
     float area, aspectratio, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
+    float x2, y2 = 1, dist;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
@@ -2709,7 +2775,6 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
     aspectratio = (float)CANVASWIDTH/(float)CANVASHEIGHT;
     aspectratio = 1;
 
-    //TODO add another repulsive force if any node and edge overlap
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
 	for (vNode = cluster->firstClusterNode; vNode;
@@ -2727,21 +2792,58 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 					(xDelta/absDelta)*fr(absDelta, k);
 		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
 		//add another repulsive force if the nodes overlap
-		if (overlap &&
-		    vNode->dia.x+vNode->dia.w/2>=uNode->dia.x-uNode->dia.w/2 &&
-		    vNode->dia.x-vNode->dia.w/2<=uNode->dia.x+uNode->dia.w/2 &&
-		    vNode->dia.y+vNode->dia.h/2>=uNode->dia.y-uNode->dia.h/2 &&
-		    vNode->dia.y-vNode->dia.h/2<=uNode->dia.y+uNode->dia.h/2) {
+		if (nodeoverlap && overlap(vNode, uNode)) {
 		    vNode->dia.xDisp += aspectratio*
-					4*(xDelta/absDelta)*fr(absDelta, k);
-		    vNode->dia.yDisp += 4*(yDelta/absDelta)*fr(absDelta, k);
+					4*(xDelta/absDelta)*fr(1/absDelta, k);
+		    vNode->dia.yDisp += 4*(yDelta/absDelta)*fr(1/absDelta, k);
 		}
 	    }
 	}
-	//calculate attractive forces
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
 	    if (!eEdge->use || eEdge->startNode->cluster != cluster)
 		continue;
+	    //add another repulsive force if edge and any node overlap
+	    if (edgeoverlap) {
+		for (vNode = cluster->firstClusterNode; vNode;
+					vNode = vNode->nextClusterNode) {
+		    if (eEdge->startNode == vNode ||
+			eEdge->endNode == vNode ||
+			overlap(eEdge->startNode, vNode) ||
+			overlap(eEdge->endNode, vNode))
+			continue;
+		    if (dist = intersect(vNode, eEdge)) {
+			if (eEdge->startNode->dia.x == eEdge->endNode->dia.x) {
+			    eEdge->startNode->dia.xDisp -=
+				8*(dist/fabsf(dist))*fr(1/dist, k);
+			    eEdge->endNode->dia.xDisp -=
+				8*(dist/fabsf(dist))*fr(1/dist, k);
+			    vNode->dia.xDisp +=
+				8*(dist/fabsf(dist))*fr(1/dist, k);
+			} else {
+			    xDelta = -1*(eEdge->endNode->dia.y
+					 -eEdge->startNode->dia.y)
+				       /(eEdge->endNode->dia.x
+					 -eEdge->startNode->dia.x);
+			    yDelta = 1;
+			    absDelta = (float) (sqrt(xDelta*xDelta
+						     + yDelta*yDelta));
+			    eEdge->startNode->dia.xDisp +=
+				8*(xDelta/absDelta)*fr(1/dist, k);
+			    eEdge->startNode->dia.yDisp +=
+				8*(yDelta/absDelta)*fr(1/dist, k);
+			    eEdge->endNode->dia.xDisp +=
+				8*(xDelta/absDelta)*fr(1/dist, k);
+			    eEdge->endNode->dia.yDisp +=
+				8*(yDelta/absDelta)*fr(1/dist, k);
+			    vNode->dia.xDisp -=
+				8*(xDelta/absDelta)*fr(1/dist, k);
+			    vNode->dia.yDisp -=
+				8*(yDelta/absDelta)*fr(1/dist, k);
+			}
+		    }
+		}
+	    }
+	    //calculate attractive forces
 	    xDelta = eEdge->startNode->dia.x - eEdge->endNode->dia.x;
 	    yDelta = eEdge->startNode->dia.y - eEdge->endNode->dia.y;
 	    absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
@@ -2879,9 +2981,11 @@ static void diaPrintXML(int modc, SmiModule **modv)
     x = 10;
     for (tCluster = graph->clusters->nextPtr; tCluster;
 						tCluster = tCluster->nextPtr) {
-	layoutCluster(nodecount, tCluster, 0, 0);
-	layoutCluster(nodecount, tCluster, 1, 0);
-	//layoutCluster(nodecount, tCluster, 1, 1);
+	layoutCluster(nodecount, tCluster, 0, 0, 0);
+	//FIXME do we need a stage with nodeoverlap and without edgeoverlap?
+	layoutCluster(nodecount, tCluster, 1, 0, 0);
+	layoutCluster(nodecount, tCluster, 1, 1, 0);
+	//layoutCluster(nodecount, tCluster, 1, 1, 1);
 
 	for (tNode = tCluster->firstClusterNode; tNode;
 					tNode = tNode->nextClusterNode) {
