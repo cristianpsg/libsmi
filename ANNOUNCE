@@ -1,64 +1,63 @@
 From: Frank Strauss <strauss@ibr.cs.tu-bs.de>
 Newsgroups: comp.protocols.snmp,comp.dcom.net-management
-To: mibs@ops.ietf.org, snmpv3@lists.tislabs.com
-To: csmall@debian.org, gregm@comstar.net, saper@system.pl
-Date: 15 Jan 2000 11:30:00 +0100
-Subject: libsmi-0.2 announcement
-Message-ID: <libsmi-0.2-ANNOUNCE@ibr.cs.tu-bs.de>
+To: mibs@ops.ietf.org, snmpv3@lists.tislabs.com, libsmi@ibr.cs.tu-bs.de
+Date: 23 Nov 2001 16:30:00 +0100
+Subject: libsmi-0.3 announcement
+Message-ID: <libsmi-0.3-ANNOUNCE@ibr.cs.tu-bs.de>
 
-Libsmi 0.2 is available for download.
+Libsmi 0.3 is available for download.
 
-Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
+Copyright (c) 1999-2001 Frank Strauss, Technical University of Braunschweig.
 
-Libsmi is a C library that allows network management applications to
-access SMI MIB module information through a well defined API that
-hides the nasty details of locating and parsing SMIv1/v2 MIB modules.
-Libsmi supports exact and iterative retrieval functions for all major
-SMIv1 and SMIv2 constructs.
+Libsmi is a C library that allows network management applications and
+MIB authoring tools to access SMI MIB module information through a
+well defined API that hides the nasty details of locating and parsing
+SMIv1/v2 MIB modules.  Libsmi supports exact and iterative retrieval
+functions for all major SMIv1 and SMIv2 constructs.
 
-The layered concept of libsmi allows to add further methods to
-retrieve MIB information from persistent repositories. In fact,
-besides the SMIv1/v2 MIB file parser an additional parser for `SMIng',
-a new structure of management information elaborated by the Network
-Management Research Group of the IRTF, is included. Both parsers are
-built on flex/bison grammar specifications.
+There are four tools on top of the library and a sh/awk-script:
 
-There are three tools on top of the library and a sh/awk-script:
-Smiquery allows simple queries for single MIB module items.  Smilint
-allows to increase the verbosity of the parser(s), so that MIB module
-files can be checked for syntax and semantic errors. Smidump can be
-used to dump MIB modules in various formats. The current output
-backends allow to dump trees of OIDs, type definitions and recursive
-imports, to convert modules between SMIv1, SMIv2 and SMIng, to produce
-JIDM compliant CORBA-IDL files, UCD-SNMP code stubs and MOSY style
-output. Finally, smistrip allows to strip SMIv1/v2 modules from
-documents like RFCs and Internet-Drafts.
+  - Smiquery allows simple queries for single MIB module items.
+    Smilint allows to increase the verbosity of the parser(s), so that
+    MIB module files can be checked for syntax and semantic errors.
+
+  - Smidump can be used to dump MIB modules in various formats. The
+    current output backends allow to dump trees of OIDs, type
+    definitions and recursive imports, to convert modules between
+    SMIv1 and SMIv2, to produce JIDM compliant CORBA-IDL files,
+    UCD-SNMP code stubs, MOSY style output, JAX Java AgentX sub-agent
+    templates, XML and XML-Schema MIB representations, Perl and Python
+    representations, graphical conceptual MIB models, and SCLI code
+    stubs.
+
+  - Smidiff allows MIB authors, MIB reviewers and implementors to
+    compare two revisions of the same MIB for legal and illegal
+    changes.
+
+  - Finally, smistrip allows to strip SMIv1/v2 modules from documents
+    like RFCs and Internet-Drafts.
 
 Enclosed with the libsmi package, there are all (bug fixed) current
-IETF standard MIB modules, as well as some other modules, man pages
-for all library functions and tools, the current SMIng specification
-and a libsmi test suite.
+IETF standard MIB modules as of 2001-11-23, as well as some other
+modules, man pages for all library functions and tools, and a small
+libsmi test suite.
 
 The software comes with automake/autoconf and libtool support. Hence
 it should compile and build with or without shared libraries on most
 UNIX style platforms, as well as on W32/cygwin, though it's just
-developed on Sun Solaris 2.5.x and Linux.
+developed on Sun Solaris 2.5.x and Linux. However, questions about all
+platforms can be discussed on the libsmi mailinglist.
 
-For those familiar with recent libsmi development: The API has changed
-significantly to allow much more efficient lookups during runtime.
-This means you have to adjust your applications when you skip from
-libsmi 0.1.x to 0.2.
+For those familiar with recent libsmi development: The most significant
+change since the previous 0.2.x releases is the addition of the smidiff
+tool for MIB revision comparison. It has been developed during the past
+three months primarily by Torsten Klie.
 
 Online information on libsmi together with download and CVS access
-information, the (free) license terms, manual pages, and a mailing
+information, the (free) license terms, manual pages, and the mailing
 list is available at:
 
 	http://www.ibr.cs.tu-bs.de/projects/libsmi/
-
-Information on the SMIng project is available at:
-
-	http://www.ibr.cs.tu-bs.de/projects/sming/
-
 
 
 Enjoy!
