@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.106 2003/02/26 15:33:04 schoenw Exp $
+ * @(#) $Id: error.c,v 1.107 2003/02/27 12:10:15 schoenw Exp $
  */
 
 #include <config.h>
@@ -336,8 +336,10 @@ static Error errors[] = {
       "named bit `%s(%u)' exceeds maximum bit position", NULL},
     { 4, ERR_BITS_NUMBER_LARGE, "bits-number-large", 
       "named bit `%s(%u)' may cause interoperability or implementation problems", NULL},
-    { 5, ERR_BITS_ZERO_NOT_NAMED, "bits-zero-not-used",
-      "first bit (bit zero) has no name assigned", NULL },
+    { 4, ERR_BITS_ZERO_NOT_NAMED, "bits-zero-not-used",
+      "first bit (bit zero) has no name assigned",
+      "RFC 2578 section 7.1.4 requires that named bits start at bit\n"
+      "position zero." },
     { 2, ERR_RANGE_OUT_OF_BASETYPE, "range-bounds",
       "range limit exceeds underlying basetype", NULL},
     { 2, ERR_RANGE_OVERLAP, "range-overlap",
