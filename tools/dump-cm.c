@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.40 2003/12/12 10:20:12 strauss Exp $
+ * @(#) $Id$
  */
 
 
@@ -2196,22 +2196,22 @@ static void diaPrintXMLGroup(int group, float x, float y)
 
 static float getRectSX(GraphNode *tNode)
 {
-    return (float) tNode->dia.w / 2.0 + tNode->dia.x - RECTCORRECTION;
+    return (float) (tNode->dia.w / 2.0 + tNode->dia.x - RECTCORRECTION);
 }
 
 static float getRectEX(GraphNode *tNode)
 {
-    return (float) tNode->dia.w / 2.0 + tNode->dia.x + RECTCORRECTION;
+    return (float) (tNode->dia.w / 2.0 + tNode->dia.x + RECTCORRECTION);
 }
 
 static float getRectSY(GraphNode *tNode)
 {
-    return (float) tNode->dia.y - 2.0 - RECTCORRECTION;
+    return (float) (tNode->dia.y - 2.0 - RECTCORRECTION);
 }
 
 static float getRectEY(GraphNode *tNode)
 {
-    return (float) tNode->dia.y - 2.0 + RECTCORRECTION;
+    return (float) (tNode->dia.y - 2.0 + RECTCORRECTION);
 }
 
 
@@ -2244,7 +2244,7 @@ static float getObjX(GraphNode *node, int con)
 	return node->dia.x;
 	break;
     case 1 :
-	return node->dia.w / 2.0 + node->dia.x;
+	return (float) (node->dia.w / 2.0 + node->dia.x);
 	break;
     case 2 :
 	return node->dia.x + node->dia.w;
@@ -2259,7 +2259,7 @@ static float getObjX(GraphNode *node, int con)
 	return node->dia.x;
 	break;	
     case 6 :
-	return node->dia.w / 2.0 + node->dia.x;
+	return (float) (node->dia.w / 2.0 + node->dia.x);
 	break;
     case 7 :
 	return node->dia.x + node->dia.w;
@@ -2281,10 +2281,10 @@ static float getObjY(GraphNode *node, int con)
 	return node->dia.y;
 	break;
     case 3 :
-	return node->dia.y + TABLEHEIGHT / 2.0;
+	return (float) (node->dia.y + TABLEHEIGHT / 2.0);
 	break;	
     case 4 :
-	return node->dia.y + TABLEHEIGHT / 2.0;
+	return (float) (node->dia.y + TABLEHEIGHT / 2.0);
 	break;
     case 5 :
 	return node->dia.y + node->dia.h;
@@ -2323,10 +2323,10 @@ static float getObjYRel(GraphEdge *edge, int con)
 	return node->dia.y - dist;
 	break;
     case 3 :
-	return node->dia.y + TABLEHEIGHT / 2.0;
+	return (float) (node->dia.y + TABLEHEIGHT / 2.0);
 	break;	
     case 4 :
-	return node->dia.y + TABLEHEIGHT / 2.0;
+	return (float) (node->dia.y + TABLEHEIGHT / 2.0);
 	break;
     case 5 :
 	return node->dia.y + node->dia.h + dist;

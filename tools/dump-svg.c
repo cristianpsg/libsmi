@@ -2545,7 +2545,6 @@ static void printSVGConnection(GraphEdge *tEdge)
 static void printSVGTitle(int modc, SmiModule **modv)
 {
     size_t  length;
-    float   width;
     char   *note;
     int	    i;
 

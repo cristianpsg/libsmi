@@ -8,19 +8,26 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sizes.c,v 1.3 2003/12/09 14:24:43 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
 
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
 
 #include "smi.h"
 #include "smidump.h"
 
 static int silent = 0;
 
+/*
+ * help functions
+ */
+#define m_abs(a)	((a) < 0 ? -(a) : (a))
 
 static SmiInteger32
 getAbsMinEnum(SmiType *smiType)
@@ -155,7 +162,7 @@ getAbsMinInteger64(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiInteger64 min = 9223372036854775808ULL;
+     SmiInteger64 min = LIBSMI_INT64_MAX;
 
      range = smiGetFirstRange(smiType);
      if (! range) {
@@ -164,8 +171,8 @@ getAbsMinInteger64(SmiType *smiType)
      }
 
      for (; range; range = smiGetNextRange(range)) {
-	  if (abs(range->minValue.value.integer64) < min) {
-	       min = abs(range->minValue.value.integer64);
+	  if (m_abs(range->minValue.value.integer64) < min) {
+	       min = m_abs(range->minValue.value.integer64);
 	  }
      }
      return min;
@@ -187,8 +194,8 @@ getAbsMaxInteger64(SmiType *smiType)
      }
 
      for (; range; range = smiGetNextRange(range)) {
-	  if (abs(range->maxValue.value.integer64) > max) {
-	       max = abs(range->maxValue.value.integer64);
+	  if (m_abs(range->maxValue.value.integer64) > max) {
+	       max = m_abs(range->maxValue.value.integer64);
 	  }
      }
      return max;

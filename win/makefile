@@ -12,7 +12,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.17 2003/01/18 21:23:52 strauss Exp $
+# @(#) $Id$
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -105,7 +105,8 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-scli.obj			\
 	$(TMPDIR)\dump-xsd.obj			\
 	$(TMPDIR)\dump-sppi.obj			\
-	$(TMPDIR)\dump-sizes.obj
+	$(TMPDIR)\dump-sizes.obj		\
+	$(TMPDIR)\dump-svg.obj
 
 SMIDIFFOBJS =					\
 	$(TMPDIR)\smidiff.obj

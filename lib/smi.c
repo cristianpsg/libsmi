@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.119 2003/04/24 13:11:50 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -1040,7 +1040,7 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
 	    nodePtr = nodePtr->nextPtr;
 	    /* did we move outside the common oid prefix of this module? */
 	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++)
-		if ((!nodePtr) ||
+		if ((!nodePtr) || (!nodePtr->oid) ||
 		    (nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]))
 		    return NULL;
 	}
@@ -1763,12 +1763,12 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    /* XXX UTF-8 not implemented, fall through to ASCII (a) */
 		case 'a':
 		    n = (pfx < (smiValuePtr->len - i)) ?
-			       pfx : smiValuePtr->len - i;
+			pfx : smiValuePtr->len - i;
 		    for (k = 0; k < n; k++) {
 			if (! isascii((int) smiValuePtr->value.ptr[i+k])) {
 			    smiFree(s);
 			    if (flags & SMI_RENDER_UNKNOWN) {
-				smiAsprintf(&s, SMI_LANGUAGE_UNKNOWN);
+				smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 			    } else {
 				s = NULL;
 			    }
@@ -1832,7 +1832,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		default:
 		    smiFree(s);
 		    if (flags & SMI_RENDER_UNKNOWN) {
-			smiAsprintf(&s, SMI_LANGUAGE_UNKNOWN);
+			smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 		    } else {
 			s = NULL;
 		    }
@@ -1913,7 +1913,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
     case SMI_BASETYPE_UNKNOWN:
     default:
 	if (flags & SMI_RENDER_UNKNOWN) {
-	    smiAsprintf(&s, SMI_LANGUAGE_UNKNOWN);
+	    smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 	} else {
 	    s = NULL;
 	}
