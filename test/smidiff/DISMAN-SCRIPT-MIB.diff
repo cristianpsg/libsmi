@@ -9,7 +9,7 @@
 ./DISMAN-SCRIPT-MIB.old:226 previous definition of `smExtsnVendor'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:353 implicit type for `smScriptName' replaces type `SnmpAdminString'
 ./DISMAN-SCRIPT-MIB.old:311 previous definition of `smScriptName'
-../../mibs/ietf/DISMAN-SCRIPT-MIB:354 range of type used in `smScriptName' changed from `(SIZE(0..255))' to `(SIZE(1..32))'
+../../mibs/ietf/DISMAN-SCRIPT-MIB:354 size of type used in `smScriptName' changed from `(0..255)' to `(1..32)'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:381 description of `smScriptLanguage' changed
 ./DISMAN-SCRIPT-MIB.old:338 previous definition of `smScriptLanguage'
 ../../mibs/ietf/DISMAN-SCRIPT-MIB:400 description of `smScriptSource' changed
