@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.108 2002/07/23 11:48:12 strauss Exp $
+# @(#) $Id: configure.in,v 1.109 2002/07/23 18:11:38 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -239,6 +239,7 @@ mibs/tubs/Makefile
 mibs/site/Makefile
 test/Makefile
 test/mibs/Makefile
+test/smidiff/Makefile
 test/dumps/Makefile
 test/dumps/corba/Makefile
 test/dumps/imports/Makefile
@@ -266,6 +267,7 @@ lib/smi_module.3
 lib/smi_node.3
 lib/smi_type.3
 lib/smi_config.3
+lib/smi_render.3
 tools/smistrip
 tools/smicache
 tools/smiquery.1
