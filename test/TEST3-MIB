@@ -44,7 +44,7 @@ a4 OBJECT IDENTIFIER ::= { iso(1) gaga 1 1 }
        ::= { dod 11 }
 
    x2 OBJECT-TYPE
-       SYNTAX      Counter32
+       SYNTAX      Gauge32
        MAX-ACCESS  read-only
        STATUS      current
        DESCRIPTION "xx"

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.9 1998/10/28 15:18:56 strauss Exp $
+ * @(#) $Id: parser.y,v 1.10 1998/10/29 13:59:24 strauss Exp $
  */
 
 %{
@@ -862,20 +862,26 @@ typeSMI:		INTEGER32   { $$ = strdup($1); }
 
 typeDeclarationRHS:	Syntax
 			{
-			    if ($1->flags & FLAG_PERMANENT) {
-				/*
-				 * If we found a base type, we have
-				 * to inherit a new type structure.
-				 */
-				$$ = addType($1, SYNTAX_UNKNOWN,
-					     thisModule,
-					     (thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0,
-					     thisParser);
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				if ($1->descriptor) {
+				    /*
+				     * If we found an already defined type,
+				     * we have to inherit a new type structure.
+				     * (Otherwise the `Syntax' rule created
+				     * a new type for us.)
+				     */
+				    $$ = addType($1, SYNTAX_UNKNOWN,
+						 thisModule,
+						 (thisParser->flags &
+						  (FLAG_WHOLEMOD |
+						   FLAG_WHOLEFILE))
+						 ? FLAG_MODULE : 0,
+						 thisParser);
+				} else {
+				    $$ = $1;
+				}
 			    } else {
-				$$ = $1;
+				$$ = NULL;
 			    }
 			}
 	|		TEXTUAL_CONVENTION
@@ -886,7 +892,7 @@ typeDeclarationRHS:	Syntax
 			SYNTAX Syntax
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
-				if (($9) && !($9->flags & FLAG_PERMANENT)) {
+				if (($9) && !($9->descriptor)) {
 				    /*
 				     * If the Type we found has just been
 				     * defined, we don't have to allocate
@@ -947,38 +953,42 @@ conceptualTable:	SEQUENCE OF row
 row:			UPPERCASE_IDENTIFIER
 			/* in this case, we do NOT allow `Module.Type' */
 			{
-			    $$ = findTypeByName($1);
-			    if (! $$) {
-				/* 
-				 * forward referenced type. create it,
-				 * marked with FLAG_INCOMPLETE.
-				 */
-				$$ = addType(NULL,
-					     SYNTAX_SEQUENCE,
-					     thisModule,
-					     ((thisParser->flags &
-					      (FLAG_WHOLEMOD |
-					       FLAG_WHOLEFILE))
-					     ? FLAG_MODULE : 0) |
-					     FLAG_INCOMPLETE,
-					     thisParser);
-				addDescriptor($1, thisModule, KIND_TYPE,
-					      $$,
-					      ((thisParser->flags &
-						(FLAG_WHOLEMOD |
-						 FLAG_WHOLEFILE))
-					       ? FLAG_MODULE : 0) |
-					      FLAG_INCOMPLETE,
-					      thisParser);
+			    if (thisParser->flags & FLAG_ACTIVE) {
+				$$ = findTypeByName($1);
+				if (! $$) {
+				    /* 
+				     * forward referenced type. create it,
+				     * marked with FLAG_INCOMPLETE.
+				     */
+				    $$ = addType(NULL,
+						 SYNTAX_SEQUENCE,
+						 thisModule,
+						 ((thisParser->flags &
+						   (FLAG_WHOLEMOD |
+						    FLAG_WHOLEFILE))
+						  ? FLAG_MODULE : 0) |
+						 FLAG_INCOMPLETE,
+						 thisParser);
+				    addDescriptor($1, thisModule, KIND_TYPE,
+						  $$,
+						  ((thisParser->flags &
+						    (FLAG_WHOLEMOD |
+						     FLAG_WHOLEFILE))
+						   ? FLAG_MODULE : 0) |
+						  FLAG_INCOMPLETE,
+						  thisParser);
+				}
+			    } else {
+				$$ = NULL;
 			    }
-                        }
-                        /* TODO: this must be an entryType */
+			}
+		        /* TODO: this must be an entryType */
 	;
 
 /* REF:RFC1902,7.1.12. */
 entryType:		SEQUENCE '{' sequenceItems '}'
 			{
-			    if ($3 || 1 /* TODO */ ) {
+			    if ($3 || 1 /* TODO $$ must be != NULL */ ) {
 				if (thisParser->flags & FLAG_ACTIVE) {
 				    $$ = addType($3,
 						 SYNTAX_SEQUENCE,
@@ -1792,24 +1802,39 @@ sequenceSimpleSyntax:	INTEGER			/* (-2147483648..2147483647) */
 
 ApplicationSyntax:	IPADDRESS
 			{
-			    /* TODO: Lookup type descriptor */
-			    $$ = typeIpAddress;
+			    $$ = findTypeByName("IpAddress");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "IpAddress");
+			    }
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
-			    /* TODO: Lookup type descriptor */
-			    $$ = typeCounter32;
+			    $$ = findTypeByName("Counter32");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Counter32");
+			    }
 			}
 	|		GAUGE32			/* (0..4294967295)	     */
 			{
-			    /* TODO: Lookup type descriptor */
-			    $$ = typeGauge32;
+			    $$ = findTypeByName("Gauge32");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Gauge32");
+			    }
 			}
 	|		GAUGE32 integerSubType
 			{
-			    /* TODO: Lookup type descriptor */
+			    Type *parent;
+			    
+			    parent = findTypeByName("Gauge32");
+			    if (! parent) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Gauge32");
+			    }
 			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(typeGauge32,
+				$$ = addType(parent,
 					     SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
@@ -1823,14 +1848,23 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
-			    /* TODO: Lookup type descriptor */
-			    $$ = typeUnsigned32;
+			    $$ = findTypeByName("Unsigned32");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Unsigned32");
+			    }
 			}
 	|		UNSIGNED32 integerSubType
 			{
-			    /* TODO: Lookup type descriptor */
+			    Type *parent;
+			    
+			    parent = findTypeByName("Unsigned32");
+			    if (! parent) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Unsigned32");
+			    }
 			    if (thisParser->flags & FLAG_ACTIVE) {
-				$$ = addType(typeUnsigned32,
+				$$ = addType(parent,
 					     SYNTAX_UNKNOWN, thisModule,
 					     (thisParser->flags &
 					      (FLAG_WHOLEMOD |
@@ -1844,18 +1878,27 @@ ApplicationSyntax:	IPADDRESS
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
-			    /* TODO: Lookup type descriptor */
-			    $$ = typeTimeTicks;
+			    $$ = findTypeByName("TimeTicks");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "TimeTicks");
+			    }
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
-			    /* TODO: Lookup type descriptor */
-			    $$ = typeOpaque;
+			    $$ = findTypeByName("Opaque");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Opaque");
+			    }
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
-			    /* TODO: Lookup type descriptor */
-			    $$ = typeCounter64;
+			    $$ = findTypeByName("Counter64");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Counter64");
+			    }
 			}
 	;
 
@@ -1865,31 +1908,59 @@ ApplicationSyntax:	IPADDRESS
  */
 sequenceApplicationSyntax: IPADDRESS
 			{
-			    $$ = typeIpAddress;
+			    $$ = findTypeByName("IpAddress");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "IpAddress");
+			    }
 			}
 	|		COUNTER32		/* (0..4294967295)	     */
 			{
-			    $$ = typeCounter32;
+			    $$ = findTypeByName("Counter32");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Counter32");
+			    }
 			}
 	|		GAUGE32			/* (0..4294967295)	     */
 			{
-			    $$ = typeGauge32;
+			    $$ = findTypeByName("Gauge32");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Gauge32");
+			    }
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
-			    $$ = typeUnsigned32;
+			    $$ = findTypeByName("Unsigned32");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Unsigned32");
+			    }
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
-			    $$ = typeTimeTicks;
+			    $$ = findTypeByName("TimeTicks");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "TimeTicks");
+			    }
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
-			    $$ = typeOpaque;
+			    $$ = findTypeByName("Opaque");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Opaque");
+			    }
 			}
 	|		COUNTER64	        /* (0..18446744073709551615) */
 			{
-			    $$ = typeCounter64;
+			    $$ = findTypeByName("Counter64");
+			    if (! $$) {
+				printError(parser, ERR_UNKNOWN_TYPE,
+					   "Counter64");
+			    }
 			}
 	;
 
@@ -1966,6 +2037,18 @@ Status:			LOWERCASE_IDENTIFIER
 				    $$ = STATUS_CURRENT;
 				} else if (!strcmp($1, "deprecated")) {
 				    $$ = STATUS_DEPRECATED;
+				} else if (!strcmp($1, "obsolete")) {
+				    $$ = STATUS_OBSOLETE;
+				} else {
+				    printError(parser,
+					       ERR_INVALID_SMIV2_STATUS, $1);
+				    $$ = STATUS_UNKNOWN;
+				}
+			    } else {
+				if (!strcmp($1, "mandatory")) {
+				    $$ = STATUS_MANDATORY;
+				} else if (!strcmp($1, "optional")) {
+				    $$ = STATUS_OPTIONAL;
 				} else if (!strcmp($1, "obsolete")) {
 				    $$ = STATUS_OBSOLETE;
 				} else {
