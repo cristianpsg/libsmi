@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.54 1999/12/14 12:00:09 strauss Exp $
+ * @(#) $Id: smi.c,v 1.55 1999/12/17 10:44:21 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -915,7 +915,13 @@ SmiModule *smiGetModule(char *module)
 
 SmiModule *smiGetFirstModule()
 {
-    return createSmiModule(firstModulePtr);
+    SmiModule *m;
+    
+    m = createSmiModule(firstModulePtr);
+    if (m && !strlen(m->name)) {
+	m = smiGetNextModule(m);
+    }
+    return m;
 }
 
 
@@ -923,7 +929,8 @@ SmiModule *smiGetFirstModule()
 SmiModule *smiGetNextModule(SmiModule *smiModulePtr)
 {
     Module	      *modulePtr;
-
+    SmiModule         *m;
+    
     if (!smiModulePtr) {
 	return NULL;
     }
@@ -936,7 +943,11 @@ SmiModule *smiGetNextModule(SmiModule *smiModulePtr)
 	return NULL;
     }
     
-    return createSmiModule(modulePtr->nextPtr);
+    m = createSmiModule(modulePtr->nextPtr);
+    if (m && !strlen(m->name)) {
+	m = smiGetNextModule(m);
+    }
+    return m;
 }
 
 

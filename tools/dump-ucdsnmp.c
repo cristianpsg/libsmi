@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.2 1999/11/24 19:02:40 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.3 1999/12/13 16:16:01 strauss Exp $
  */
 
 /*
@@ -35,23 +35,10 @@
 #include "smi.h"
 
 
-
 #define  INDENT		4    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
 #define  INDENTTEXTS	13   /* column to start multiline texts */
 #define  INDENTMAX	72   /* max column to fill, break lines otherwise */
-
-
-
-static char *safeStrdup(const char *s)
-{
-    char *m = strdup(s);
-    if (! m) {
-	fprintf(stderr, "smidump: strdup failed - running out of memory\n");
-	exit(1);
-    }
-    return m;
-}
 
 
 
@@ -102,7 +89,7 @@ static char* translate(char *m)
     char *s;
     int i;
 
-    s = safeStrdup(m);
+    s = xstrdup(m);
     for (i = 0; s[i]; i++) {
 	if (s[i] == '-') s[i] = '_';
     }
@@ -117,7 +104,7 @@ static char* translateUpper(char *m)
     char *s;
     int i;
 
-    s = safeStrdup(m);
+    s = xstrdup(m);
     for (i = 0; s[i]; i++) {
 	if (s[i] == '-') s[i] = '_';
 	if (islower((int) s[i])) {
@@ -135,7 +122,7 @@ static char* translateLower(char *m)
     char *s;
     int i;
 
-    s = safeStrdup(m);
+    s = xstrdup(m);
     for (i = 0; s[i]; i++) {
 	if (s[i] == '-') s[i] = '_';
 	if (isupper((int) s[i])) {
@@ -676,7 +663,7 @@ int dumpUcdC(char *modulename)
     printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
     printf(" *\n");
     printf(" * This C file is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.2 1999/11/24 19:02:40 strauss Exp $\n");
+    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.3 1999/12/13 16:16:01 strauss Exp $\n");
     printf(" */\n\n");
 
     printf("#define UCD_SNMP\n/* #define CMU_LINUX_SNMP */\n\n");

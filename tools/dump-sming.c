@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.47 1999/10/05 06:31:01 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.48 1999/11/24 19:02:40 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -288,7 +288,7 @@ static void print(char *fmt, ...)
     current_column += vsprintf(s, fmt, ap);
     va_end(ap);
 
-    printf("%s", s);
+    fputs(s, stdout);
 
     if ((p = strrchr(s, '\n'))) {
 	current_column = strlen(p) - 1;
@@ -321,6 +321,26 @@ static void printWrapped(int column, char *string)
 	printSegment(column, "", 0);
     }
     print("%s", string);
+}
+
+
+
+static void printMultilineString(const char *s)
+{
+    int i;
+    
+    printSegment(INDENTTEXTS - 1, "\"", 0);
+    if (s) {
+	for (i=0; i < strlen(s); i++) {
+	    if (s[i] != '\n') {
+		print("%c", s[i]);
+	    } else {
+		print("\n");
+		printSegment(INDENTTEXTS, "", 0);
+	    }
+	}
+    }
+    print("\"");
 }
 
 
@@ -433,26 +453,6 @@ static void printSubtype(SmiType *smiType)
 	    print(")");
 	}
     }
-}
-
-
-
-static void printMultilineString(const char *s)
-{
-    int i;
-    
-    printSegment(INDENTTEXTS - 1, "\"", 0);
-    if (s) {
-	for (i=0; i < strlen(s); i++) {
-	    if (s[i] != '\n') {
-		print("%c", s[i]);
-	    } else {
-		print("\n");
-		printSegment(INDENTTEXTS, "", 0);
-	    }
-	}
-    }
-    print("\"");
 }
 
 
