@@ -35,10 +35,10 @@ libsmiTest013Mib MODULE-IDENTITY
 	     complain about ranges not being in ascending order.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-013-MIB:60: ranges not in ascending order
-LIBSMI-TEST-013-MIB:60: ranges not in ascending order
-LIBSMI-TEST-013-MIB:74: ranges not in ascending order
-LIBSMI-TEST-013-MIB:81: ranges not in ascending order
+LIBSMI-TEST-013-MIB:60: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:60: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:74: warning: ranges not in ascending order
+LIBSMI-TEST-013-MIB:81: warning: ranges not in ascending order
 	    "
     REVISION        "200109270000Z"
     DESCRIPTION     
