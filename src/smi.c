@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.15 1998/11/25 02:50:57 strauss Exp $
+ * @(#) $Id: smi.c,v 1.16 1998/11/25 14:36:34 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -136,8 +136,13 @@ splitNameAndModule(name, module, name2, module2)
 	/*
 	 * name in `Module!name' or `Module.name' form.
 	 */
-	strncpy(module2, strtok(name, "!."), SMI_MAX_DESCRIPTOR);
-	strncpy(name2, strtok(NULL, " "), SMI_MAX_OID);
+	if ((name[0] == '.') || (name[0] == '!')) {
+	    strncpy(name2, strtok(name, "!."), SMI_MAX_OID);
+	    module2[0] = 0;
+	} else {
+	    strncpy(module2, strtok(name, "!."), SMI_MAX_DESCRIPTOR);
+	    strncpy(name2, strtok(NULL, " "), SMI_MAX_OID);
+	}
     } else if (module && strlen(module)) {
 	/*
 	 * name in simple `name' form and module not empty.
@@ -315,7 +320,7 @@ smiAddLocation(name)
 
 int
 smiLoadMibModule(modulename)
-    const char *modulename;
+    smi_descriptor modulename;
 {
     Location *location;
 #ifdef PARSER
@@ -1201,5 +1206,105 @@ smiGetParent(name, module)
     smi_fullname name;
     smi_descriptor module;
 {
-    return NULL;
+    static smi_fullname res;
+    Object		*o = NULL;
+    Node		*n;
+    Module		*m;
+    Location		*l;
+    char		name2[SMI_MAX_OID+1];
+    char		module2[SMI_MAX_DESCRIPTOR+1];
+    char		s[SMI_MAX_FULLNAME+1];
+#ifdef PARSER
+    struct stat		buf;
+    char		*path;
+#endif
+    
+    printDebug(4, "smiGetParent(\"%s\", \"%s\")\n",
+	       name, module ? module : "NULL");
+
+    splitNameAndModule(name, module, name2, module2);
+
+    for (l = firstLocation; l; l = l->next) {
+
+	if (l->type == LOCATION_RPC) {
+
+	    /* TODO */
+
+#ifdef PARSER
+	} else if (l->type == LOCATION_DIR) {
+
+	    if (strlen(module2)) {
+		if (!(m = findModuleByName(module2))) {
+
+		    path = malloc(strlen(l->name)+strlen(module2)+6);
+		    sprintf(path, "%s/%s", l->name, module2);
+		    if (!stat(path, &buf)) {
+			readMibFile(path, module2,
+				    flags | FLAG_WHOLEMOD);
+			m = findModuleByName(module2);
+		    }
+
+		    if (!m) {
+			sprintf(path, "%s/%s.my", l->name, module2);
+			if (!stat(path, &buf)) {
+			    readMibFile(path, module2,
+					flags | FLAG_WHOLEMOD);
+			    m = findModuleByName(module2);
+			}
+			free(path);
+		    }
+		}
+		
+		if (m) {
+		    o = getObject(name2, module2);
+		    if (o) break;
+		}
+	    }
+	    
+	} else if (l->type == LOCATION_FILE) {
+
+	    if (strlen(module2)) {
+		o = getObject(name2, module2);
+		if (o) break;
+	    }
+#endif
+	} else {
+
+	    printError(NULL, ERR_UNKNOWN_LOCATION_TYPE, l->name);
+	    
+	}
+    }
+
+    if (o && (o->node) && (o->node->parent)) {
+	n = o->node->parent;
+	/*    fprintf(stderr, "XXX 2 %p \n", o);
+
+	 * If the parent node has a declaration in
+	 * the same module as the child, we assume
+	 * this is want the user wants to get.
+	 * Otherwise we return the first declaration we know.
+	 * Last resort: the numerical OID.
+	 */
+	for (o = n->firstObject; o; o = o->next) {
+	    if ((o->module == m) && (!(o->flags & FLAG_IMPORTED))) {
+		break;
+	    }
+	}
+	if (!o) {
+	    o = n->firstObject;
+	}
+	if (o && (o->descriptor)) {
+	    sprintf(s, "%s.%s",
+		    o->module->descriptor->name,
+		    o->descriptor->name);
+	    res = s;
+	} else {
+	    res = getOid(n);
+	}
+	fprintf(stderr, "XXX   %s \n", res);
+	printDebug(5, " ... = %s\n", res);
+	return &res;
+    } else {
+	return NULL;
+    }
 }

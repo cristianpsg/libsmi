@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi_svc_proc.c,v 1.5 1998/11/23 12:57:00 strauss Exp $
+ * @(#) $Id: smi_svc_proc.c,v 1.7 1998/11/25 02:50:58 strauss Exp $
  */
 
 #include <stdio.h>
@@ -125,7 +125,7 @@ smiproc_macro_1(fullname)
     static smi_macro dummy = { "", "" };
     smi_macro *m;
     
-    printDebug(4, "smiproc_macro_1(%s)\n", fullname);
+    printDebug(4, "smiproc_macro_1(%s)\n", *fullname);
 
     m = smiGetMacro(*fullname, NULL);
 
@@ -151,7 +151,7 @@ smiproc_names_1(fullname)
     static smi_namelist dummy = { "" };
     smi_namelist *n;
     
-    printDebug(4, "smiproc_names_1(%s)\n", fullname);
+    printDebug(4, "smiproc_names_1(%s)\n", *fullname);
 
     n = smiGetNames(*fullname, NULL);
 
@@ -177,7 +177,7 @@ smiproc_children_1(fullname)
     static smi_namelist dummy = { "" };
     smi_namelist *n;
     
-    printDebug(4, "smiproc_children_1(%s)\n", fullname);
+    printDebug(4, "smiproc_children_1(%s)\n", *fullname);
 
     n = smiGetChildren(*fullname, NULL);
 
@@ -203,7 +203,7 @@ smiproc_members_1(fullname)
     static smi_namelist dummy = { "" };
     smi_namelist *n;
     
-    printDebug(4, "smiproc_members_1(%s)\n", fullname);
+    printDebug(4, "smiproc_members_1(%s)\n", *fullname);
 
     n = smiGetMembers(*fullname, NULL);
 
@@ -226,5 +226,16 @@ smiproc_parent_1(fullname)
     smi_fullname *fullname;
 #endif
 {
-    return smiGetParent(*fullname, NULL);
+    static smi_fullname dummy = "";
+    smi_fullname *n;
+    
+    printDebug(4, "smiproc_parent_1(%s)\n", *fullname);
+
+    n = smiGetParent(*fullname, NULL);
+
+    if (n) {
+	return n;
+    } else {
+	return &dummy;
+    }	    
 }

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.2 1998/11/19 19:44:02 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.3 1998/11/20 17:10:15 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -87,7 +87,7 @@ extern int smiReadConfig(const char *file);
 
 extern int smiAddLocation(const char *location);
 
-extern int smiLoadMibModule(const char *modulename);
+extern int smiLoadMibModule(smi_descriptor modulename);
 
 /*
  * Functions similar to those in smi.x.
