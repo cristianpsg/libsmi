@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.10 1999/04/09 20:28:37 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.11 1999/04/10 19:37:24 strauss Exp $
  */
 
 %{
@@ -85,18 +85,23 @@ findType(spec, parserPtr)
 {
     Type *typePtr;
     Import *importPtr;
+    char *module, *type;
     
     if (!strstr(spec, SMI_NAMESPACE_OPERATOR)) {
 	typePtr = findTypeByModuleAndName(thisModulePtr, spec);
 	if (!typePtr) {
 	    importPtr = findImportByName(spec, thisModulePtr);
 	    if (importPtr) {
-		typePtr = findTypeByModulenameAndName(importPtr->module, spec);
+		typePtr = findTypeByModulenameAndName(importPtr->importmodule,
+						      spec);
 	    }
 	}
     } else {
-	typePtr = findTypeByModulenameAndName(smiModule(spec),
-					      smiDescriptor(spec));
+	module = smiModule(spec);
+	type   = smiDescriptor(spec);
+	typePtr = findTypeByModulenameAndName(module, type);
+	util_free(module);
+	util_free(type);
     }
     return typePtr;
 }
@@ -110,19 +115,23 @@ findObject(spec, parserPtr)
 {
     Object *objectPtr;
     Import *importPtr;
+    char *module, *object;
     
     if (!strstr(spec, SMI_NAMESPACE_OPERATOR)) {
 	objectPtr = findObjectByModuleAndName(thisModulePtr, spec);
 	if (!objectPtr) {
 	    importPtr = findImportByName(spec, thisModulePtr);
 	    if (importPtr) {
-		objectPtr = findObjectByModulenameAndName(importPtr->module,
+	     objectPtr = findObjectByModulenameAndName(importPtr->importmodule,
 							  spec);
 	    }
 	}
     } else {
-	objectPtr = findObjectByModulenameAndName(smiModule(spec),
-						  smiDescriptor(spec));
+	module = smiModule(spec);
+	object = smiDescriptor(spec);
+	objectPtr = findObjectByModulenameAndName(module, object);
+	util_free(module);
+	util_free(object);
     }
     return objectPtr;
 }
@@ -162,8 +171,8 @@ findObject(spec, parserPtr)
     Refinement	   *refinementPtr;
     SmiStatus	   status;
     SmiAccess	   access;
-    SmiNamedNumber *namedNumberPtr;
-    SmiRange	   *rangePtr;
+    NamedNumber    *namedNumberPtr;
+    Range	   *rangePtr;
     SmiValue	   *valuePtr;
     List	   *listPtr;
     Revision	   *revisionPtr;
@@ -475,7 +484,6 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 				thisParserPtr->modulePtr =
 				    addModule($3,
 					      thisParserPtr->path,
-					      thisParserPtr->locationPtr,
 					      thisParserPtr->character,
 					      0,
 					      thisParserPtr);
@@ -2324,7 +2332,7 @@ furtherNumberElement:	optsep '|' optsep numberElement
 
 numberElement:		signedNumber numberUpperLimit_01
 			{
-			    $$ = util_malloc(sizeof(SmiRange));
+			    $$ = util_malloc(sizeof(Range));
 			    $$->minValuePtr = $1;
 			    if ($2) {
 				$$->maxValuePtr = $2;
@@ -2406,7 +2414,7 @@ furtherFloatElement:	optsep '|' optsep floatElement
 
 floatElement:		floatValue floatUpperLimit_01
 			{
-			    $$ = util_malloc(sizeof(SmiRange));
+			    $$ = util_malloc(sizeof(Range));
 			    $$->minValuePtr = util_malloc(sizeof(SmiValue));
 			    $$->minValuePtr->basetype = SMI_BASETYPE_FLOAT64;
 			    $$->minValuePtr->value.float64 = strtod($1, NULL);
@@ -2493,7 +2501,7 @@ furtherBitsOrEnumerationItem: optsep ',' optsep bitsOrEnumerationItem
 
 bitsOrEnumerationItem:	lcIdentifier optsep '(' optsep number optsep ')'
 			{
-			    $$ = util_malloc(sizeof(SmiNamedNumber));
+			    $$ = util_malloc(sizeof(NamedNumber));
 			    $$->name = $1;
 			    $$->valuePtr = $5;
 			}
@@ -3025,7 +3033,8 @@ qlcIdentifier_subid:	qlcIdentifier
 					findImportByName($1, thisModulePtr);
 				    if (importPtr) {
 					smiNodePtr =
-					    smiGetNode($1, importPtr->module);
+					    smiGetNode($1,
+						      importPtr->importmodule);
 				    }
 				}
 			    }

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.22 1999/05/20 08:51:16 strauss Exp $
+ * @(#) $Id: data.h,v 1.23 1999/05/20 17:01:42 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -76,35 +76,6 @@ typedef unsigned short MacroFlags;
 				       /* current view.             */
 
 
-typedef enum LocationType {
-#ifdef BACKEND_SMI
-    LOCATION_SMIFILE	     = 1,
-    LOCATION_SMIDIR	     = 2,
-#endif
-#ifdef BACKEND_SMING
-    LOCATION_SMINGFILE	     = 3,
-    LOCATION_SMINGDIR	     = 4,
-#endif
-#ifdef BACKEND_DBM
-    LOCATION_DBM	     = 5,
-#endif
-#ifdef BACKEND_RPC
-    LOCATION_RPC	     = 6,
-#endif
-    LOCATION_UNKNOWN         = 0
-} LocationType;
-
-typedef struct Location {
-    char	    *name;
-    LocationType    type;
-#ifdef BACKEND_RPC
-    CLIENT	    *cl;
-#endif
-    struct Location *nextPtr;
-    struct Location *prevPtr;
-} Location;
-
-
 typedef struct View {
     char	    *name;
     struct View	    *nextPtr;
@@ -116,7 +87,6 @@ typedef struct View {
 typedef struct Module {
     char            *name;
     char	    *path;
-    Location	    *locationPtr;
     off_t	    fileoffset;
     struct Object   *firstObjectPtr;
     struct Object   *lastObjectPtr;
@@ -154,11 +124,26 @@ typedef struct Import {
 
 
 typedef struct Revision {
+    Module          *modulePtr;
     time_t          date;
     char	    *description;
     struct Revision *nextPtr;
     struct Revision *prevPtr;
 } Revision;
+
+
+
+typedef struct NamedNumber {
+    SmiIdentifier       name;
+    SmiValue            *valuePtr;
+} NamedNumber;
+
+
+
+typedef struct Range {
+    SmiValue            *minValuePtr;
+    SmiValue            *maxValuePtr;
+} Range;
 
 
 
@@ -269,7 +254,6 @@ typedef struct Macro {
 
 typedef struct Parser {
     char	   *path;
-    Location	   *locationPtr;
     FILE	   *file;
     int		   line;
     int		   column;
@@ -296,8 +280,6 @@ extern Type	*typeSmingOctetStringPtr, *typeSmingObjectIdentifierPtr,
 		*typeSmingFloat128Ptr,
 		*typeSmingEnumPtr, *typeSmingBitsPtr;
 
-extern Location	*firstLocationPtr, *lastLocationPtr;
-
 extern Module	*firstModulePtr, *lastModulePtr;
 
 extern View	*firstViewPtr, *lastViewPtr;
@@ -310,14 +292,8 @@ extern int isInView(const char *modulename);
 
 
 
-extern Location *addLocation(const char *location,
-			     ModuleFlags flags);
-
-
-
 extern Module *addModule(const char *modulename,
 			 const char *path,
-			 Location *locationPtr,
 			 off_t fileoffset,
 			 ModuleFlags flags,
 			 Parser *parserPtr);
