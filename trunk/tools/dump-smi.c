@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.71 2001/09/21 15:14:55 schoenw Exp $
+ * @(#) $Id: dump-smi.c,v 1.72 2001/09/27 16:13:12 strauss Exp $
  */
 
 #include <config.h>
@@ -188,6 +188,7 @@ static char *getAccessString(SmiAccess access, int create)
 	    (access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
 	    (access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
 						    "<unknown>";
+
     } else {
 	if (create && (access == SMI_ACCESS_READ_WRITE)) {
 	    return "read-create";
@@ -680,23 +681,33 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	}
 	break;
     case SMI_BASETYPE_BITS:
-	sprintf(s, "{");
-	for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
-	    if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
-		for (nn = smiGetFirstNamedNumber(typePtr); nn;
-		     nn = smiGetNextNamedNumber(nn)) {
-		    if (nn->value.value.unsigned32 == i)
-			break;
-		}
-		if (nn) {
-		    if (n)
-			sprintf(&s[strlen(s)], ", ");
-		    n++;
-		    sprintf(&s[strlen(s)], "%s", nn->name);
+	if (smiv1) {
+	    for (i = 0, nn = smiGetFirstNamedNumber(typePtr); nn;
+		 nn = smiGetNextNamedNumber(nn)) {
+		if (nn->value.value.unsigned32 > i) {
+		    i = nn->value.value.unsigned32;
 		}
 	    }
+	    sprintf(&s[strlen(s)], "'%0*d'H", (i/8+1)*2, 0);
+	} else {
+	    sprintf(s, "{");
+	    for (i = 0, n = 0; i < valuePtr->len * 8; i++) {
+		if (valuePtr->value.ptr[i/8] & (1 << i%8)) {
+		    for (nn = smiGetFirstNamedNumber(typePtr); nn;
+			 nn = smiGetNextNamedNumber(nn)) {
+			if (nn->value.value.unsigned32 == i)
+			    break;
+		    }
+		    if (nn) {
+			if (n)
+			    sprintf(&s[strlen(s)], ", ");
+			n++;
+			sprintf(&s[strlen(s)], "%s", nn->name);
+		    }
+		}
+	    }
+	    sprintf(&s[strlen(s)], "}");
 	}
-	sprintf(&s[strlen(s)], "}");
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	break;
