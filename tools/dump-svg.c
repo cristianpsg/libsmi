@@ -3300,12 +3300,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		done = xstrdup("+");
 		for (module = modv[i]->name; module; ) {
 		    printf(" <text x=\"%.2f\" y=\"%.2f\">", *x, *y);
-		    if (strlen(module) && strcmp(modv[i]->name, module)) {
-			printf("%s", module);
-		    } else {
-			printf("this module");
-		    }
-		    printf("</text>\n");
+		    printf("%s</text>\n", module);
 		    *y += TABLEELEMHEIGHT;
 
 		    //mandatory groups
