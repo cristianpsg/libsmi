@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.17 1999/04/06 16:23:21 strauss Exp $
+ * @(#) $Id: data.h,v 1.18 1999/04/07 18:21:30 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -59,6 +59,8 @@ typedef unsigned short MacroFlags;
 #define	FLAG_SMIV2	        0x0010 /* On a Module: This is an SMIv2 MIB. */
 #define	FLAG_SMING	        0x0020 /* On a Module: This is an SMIng MIB. */
 #define	FLAG_CREATABLE	        0x0040 /* On a Row: New rows can be created. */
+#define FLAG_INDEXLABELS	0x0080 /* On a Row: index and create lists   */
+				       /* contain labels, not yet (Object *) */
 
 #define	FLAG_ERRORS	SMI_ERRORS     /* Otherwise be quiet,       */
 				       /* useful when IMPORTing.    */
@@ -351,7 +353,7 @@ extern Import *findImportByModulenameAndName(const char *modulename,
 					     const char *importname,
 					     Module *modulePtr);
 
-extern Object *addObject(const char *objectname,
+extern Object *addObject(char *objectname,
 			 Node *parentNodePtr,
 			 SmiSubid subid,
 			 ObjectFlags flags,

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.16 1999/03/31 17:24:30 strauss Exp $
+ * @(#) $Id: smi.c,v 1.17 1999/04/06 16:23:23 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -480,14 +480,31 @@ createSmiNode(objectPtr)
 	if (objectPtr->indexPtr) {
 	    smiNodePtr->indexkind  = objectPtr->indexPtr->indexkind;
 	    smiNodePtr->implied    = objectPtr->indexPtr->implied;
-	    for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
-		 listPtr = listPtr->nextPtr) {
-		addName(&smiNodePtr->index,
-			((Object *)listPtr->ptr)->modulePtr->name,
-			((Object *)listPtr->ptr)->name);
-	    }
-	    if (objectPtr->indexPtr->rowPtr) {
-		smiNodePtr->relatedrow = objectPtr->indexPtr->rowPtr->name;
+	    if (objectPtr->flags & FLAG_INDEXLABELS) {
+		/*
+		 * This object's index ptrs contain unchecked identifier
+		 * strings instead of Object pointers, because it was read
+		 * from an SMIng module with potential forward references
+		 * in index clauses.
+		 */
+		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
+		     listPtr = listPtr->nextPtr) {
+		    addPtr(&smiNodePtr->index, listPtr->ptr);
+		}
+		if (objectPtr->indexPtr->rowPtr) {
+		    smiNodePtr->relatedrow =
+			(char *)objectPtr->indexPtr->rowPtr;
+		}
+	    } else {
+		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
+		     listPtr = listPtr->nextPtr) {
+		    addName(&smiNodePtr->index,
+			    ((Object *)listPtr->ptr)->modulePtr->name,
+			    ((Object *)listPtr->ptr)->name);
+		}
+		if (objectPtr->indexPtr->rowPtr) {
+		    smiNodePtr->relatedrow = objectPtr->indexPtr->rowPtr->name;
+		}
 	    }
 	}
 	
@@ -1523,12 +1540,6 @@ smiGetParent(spec, mod)
 	}
     }
 
-    /*
-     * If the parent node has a declaration in the same module as
-     * the child, we assume this is what the user wants to get.
-     * Otherwise we return the first declaration we find in our
-     * view of modules.  Last resort: the numerical OID.
-     */
     objectPtr = getObject(name, modulename);
     if (!objectPtr) objectPtr = getObject(name, "");
 
@@ -1550,6 +1561,26 @@ smiGetParent(spec, mod)
 
 	/*
 	 * If it's not found in the current module, try to find it in
+	 * a module imported by the current module.
+	 */
+	if (!objectPtr) {
+	    for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
+		 objectPtr = objectPtr->nextSameNodePtr) {
+		for (importPtr = modulePtr->firstImportPtr;
+		     importPtr; importPtr = importPtr->nextPtr) {
+		    if (!strcmp(objectPtr->modulePtr->name,
+				importPtr->module)) {
+			break;
+		    }
+		}
+		if (importPtr) {
+		    break;
+		}
+	    }
+	}
+
+	/*
+	 * If it's not yet found, try to find it in
 	 * any module in the current view.
 	 */
 	if (!objectPtr) {
@@ -1567,6 +1598,7 @@ smiGetParent(spec, mod)
 		}
 	    }
 	}
+
 	/*
 	 * Now, if we have found the parent object, create the appropriate
 	 * OID string. Otherwise, call getParent() recursively.
@@ -1672,8 +1704,27 @@ smiMkTime(s)
 	tm.tm_mday = atoi(strncpy(tmp, &s[6], 2));
 	tm.tm_hour = atoi(strncpy(tmp, &s[8], 2));
 	tm.tm_min = atoi(strncpy(tmp, &s[10], 2));
+    } else if (strlen(s) == 10) {
+	/* seems to be SMIng 10-char format yyyy-mm-dd */
+	tmp[4] = 0;
+	tm.tm_year = atoi(strncpy(tmp, &s[0], 4)) - 1900;
+	tmp[2] = 0;
+	tm.tm_mon = atoi(strncpy(tmp, &s[5], 2)) - 1;
+	tm.tm_mday = atoi(strncpy(tmp, &s[8], 2));
+	tm.tm_hour = 0;
+	tm.tm_min = 0;
+    } else if (strlen(s) == 16) {
+	/* seems to be SMIng 16-char format yyyy-mm-dd hh:mm */
+	tmp[4] = 0;
+	tm.tm_year = atoi(strncpy(tmp, &s[0], 4)) - 1900;
+	tmp[2] = 0;
+	tm.tm_mon = atoi(strncpy(tmp, &s[5], 2)) - 1;
+	tm.tm_mday = atoi(strncpy(tmp, &s[8], 2));
+	tm.tm_hour = atoi(strncpy(tmp, &s[11], 2));
+	tm.tm_min = atoi(strncpy(tmp, &s[14], 2));
+    } else {
+	return 0;
     }
-    /* TODO: SMIng format */
 
     putenv("TZ=UTC"); tzset();
     /* TODO: a better way to make mktime() use UTC !? */

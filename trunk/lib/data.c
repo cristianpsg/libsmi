@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.15 1999/03/31 17:24:22 strauss Exp $
+ * @(#) $Id: data.c,v 1.16 1999/04/07 18:21:29 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -823,7 +823,7 @@ findImportByModulenameAndName(modulename, importname, modulePtr)
 
 Object *
 addObject(objectname, parentNodePtr, subid, flags, parserPtr)
-    const char	     *objectname;
+    char	     *objectname;
     Node             *parentNodePtr;
     SmiSubid	     subid;
     ObjectFlags	     flags;
@@ -1199,10 +1199,11 @@ getLastSubid(oid)
  *
  * setObjectName --
  *
- *      Set the name of a given Object.
+ *      Set the name of a given Object. Combine two Objects if the name
+ *	already exists.
  *
  * Results:
- *	None.
+ *	(Object *) of the potentially combined object.
  *
  * Side effects:
  *      None.

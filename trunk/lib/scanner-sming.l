@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.3 1999/04/01 14:02:37 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.4 1999/04/05 15:47:35 strauss Exp $
  */
 
 %option noyywrap
@@ -23,6 +23,7 @@
 
 #include "defs.h"    
 #include "error.h"
+#include "util.h"
 #include "parser-sming.h"
 #include "parser-sming.tab.h"
 #include "scanner.h"
@@ -517,7 +518,7 @@ SP		" "
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.text = yytext;
+    yylval.text = util_strdup(yytext);
     return ucIdentifier;
 }
 
@@ -527,7 +528,7 @@ SP		" "
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.text = yytext;
+    yylval.text = util_strdup(yytext);
     return lcIdentifier;
 }
 
@@ -601,7 +602,7 @@ SP		" "
   * spaces, and
   * line terminator characters (\n or \r\n)
   */
-<String>{textVChar}|{HTAB}|{SP} {
+<String>{textVChar} {
     smingTrackInput(0, parser);
     if (currentStringMaxLength <= (currentStringLength+1)) {
         currentStringMaxLength += 4096;
@@ -611,6 +612,20 @@ SP		" "
     currentString[currentStringLength+1] = '\0';
     currentStringLength++;
     currentStringFetchLine = 1;
+}
+
+<String>{HTAB}|{SP} {
+    smingTrackInput(0, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
+    if (currentStringFetchLine || (thisParser.column >= currentStringColumn)) {
+	currentString[currentStringLength] = yytext[0];
+	currentString[currentStringLength+1] = '\0';
+	currentStringLength++;
+	currentStringFetchLine = 1;
+    }
 }
 
 <String>{lineBreak} {

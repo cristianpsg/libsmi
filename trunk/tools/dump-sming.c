@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.16 1999/04/05 15:47:35 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.17 1999/04/07 18:21:33 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -572,28 +572,31 @@ printObjects(modulename)
     for(i = 0, smiNode = smiGetFirstNode(modulename);
 	smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 
-	if (smiNode->decl == SMI_DECL_VALUEASSIGNMENT) {
+	if ((smiNode->decl == SMI_DECL_NODE) ||
+	    (smiNode->decl == SMI_DECL_VALUEASSIGNMENT)) {
 	    indent = 0;
 	    s = "node";
-	} else if (smiNode->decl == SMI_DECL_OBJECTTYPE) {
-	    if (smiNode->basetype ==SMI_BASETYPE_SEQUENCEOF) {
-		indent = 0;
-		s = "table";
-	    } else if (smiNode->basetype ==SMI_BASETYPE_SEQUENCE) {
-		indent = 1;
-		s = "row";
-		/*
-		 * Remember the row's oid to check for subsequent objects
-		 * being columns instead of scalars more efficiently.
-		 */
-		strcpy(rowoid, smiNode->oid);
-	    } else if (strstr(smiNode->oid, rowoid)) {
-		indent = 2;
-		s = "column";
-	    } else {
-		indent = 0;
-		s = "scalar";
-	    }
+	} else if ((smiNode->decl == SMI_DECL_TABLE) ||
+		   (smiNode->basetype == SMI_BASETYPE_SEQUENCEOF)) {
+	    indent = 0;
+	    s = "table";
+	} else if ((smiNode->decl == SMI_DECL_ROW) ||
+		   (smiNode->basetype == SMI_BASETYPE_SEQUENCE)) {
+	    indent = 1;
+	    s = "row";
+	    /*
+	     * Remember the row's oid to check for subsequent objects
+	     * being columns instead of scalars more efficiently.
+	     */
+	    strcpy(rowoid, smiNode->oid);
+	} else if ((smiNode->decl == SMI_DECL_COLUMN) ||
+		   (strstr(smiNode->oid, rowoid))) {
+	    indent = 2;
+	    s = "column";
+	} else if ((smiNode->decl == SMI_DECL_SCALAR) ||
+		   (smiNode->decl == SMI_DECL_OBJECTTYPE)) {
+	    indent = 0;
+	    s = "scalar";
 	} else {
 	    continue;
 	}
@@ -783,7 +786,8 @@ printNotifications(modulename)
     for(i = 0, smiNode = smiGetFirstNode(modulename);
 	smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 
-	if (smiNode->decl != SMI_DECL_NOTIFICATIONTYPE) {
+	if ((smiNode->decl != SMI_DECL_NOTIFICATIONTYPE) &&
+	    (smiNode->decl != SMI_DECL_NOTIFICATION)) {
 	    continue;
 	}
 
@@ -849,13 +853,14 @@ printGroups(modulename)
     SmiNode	 *smiNode;
     char	 **p;
     
-    for (i = 0, d = 0; d < 2; d++) {
+    for (i = 0, d = 0; d < 3; d++) {
 	
 	for (smiNode = smiGetFirstNode(modulename);
 	     smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 	    
 	    if (((d == 0) && (smiNode->decl != SMI_DECL_OBJECTGROUP)) ||
-		((d == 1) && (smiNode->decl != SMI_DECL_NOTIFICATIONGROUP))) {
+		((d == 1) && (smiNode->decl != SMI_DECL_NOTIFICATIONGROUP)) ||
+		((d == 2) && (smiNode->decl != SMI_DECL_GROUP))) {
 		continue;
 	    }
 	    
