@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.75 2003/05/13 09:48:11 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.76 2003/05/16 14:42:34 tklie Exp $
  */
 
 #include <config.h>
@@ -1299,7 +1299,35 @@ static void fprintDisplayHint( FILE *f, char *format )
     fprintSegment( f, 0, "<displayHint>%s</displayHint>\n", format );
 }
 
+static void fprintLengths( FILE *f, SmiType *smiType )
+{
+  SmiRange *smiRange = smiGetFirstRange( smiType );
+  unsigned int numSubRanges = getNumSubRanges( smiType ),
+    lp = 0;
+  SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
 
+  /* write subtype lengths to the array */
+  for( smiRange = smiGetFirstRange( smiType );
+       smiRange;
+       smiRange = smiGetNextRange( smiRange ) ) {
+    lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
+    lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+  }
+
+  if( numSubRanges ) {
+    fprintSegment( f, 1, "<lenghts>\n" );
+  }
+  
+  for( lp = 0; lp < numSubRanges * 2; lp = lp + 2 ) {
+    fprintSegment( f, 0, "<length min=\"%u\" max=\"%u\"/>\n", lengths[ lp ],
+		   lengths[ lp + 1 ] );
+  } 
+  
+  if( numSubRanges ) {
+    fprintSegment( f, -1, "</lengths>\n" );
+    xfree( lengths );
+  }
+}
 
 
 static void fprintTypedef(FILE *f, SmiType *smiType, const char *name)
@@ -1322,6 +1350,9 @@ static void fprintTypedef(FILE *f, SmiType *smiType, const char *name)
 	if( smiType->format ) {
 	    fprintSegment( f, 1, "<xsd:appinfo>\n");
 	    fprintDisplayHint( f, smiType->format );
+	    if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
+	      fprintLengths( f, smiType );
+	    }
 	    fprintSegment( f, -1, "</xsd:appinfo>\n");
 	}
 	fprintSegment( f, -1, "</xsd:annotation>\n");
