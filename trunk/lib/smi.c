@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.50 1999/11/24 19:02:35 strauss Exp $
+ * @(#) $Id: smi.c,v 1.51 1999/12/10 19:29:21 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -605,7 +605,7 @@ SmiRefinement *createSmiRefinement(Object *objectPtr,
  * Interface Functions.
  */
 
-int smiInit()
+int smiInit(const char *tag)
 {
     char *p;
 #ifdef HAVE_PWD_H
@@ -646,13 +646,13 @@ int smiInit()
     initialized = 1;
 
     /* read global and user configuration */
-    smiReadConfig(DEFAULT_GLOBALCONFIG);
+    smiReadConfig(DEFAULT_GLOBALCONFIG, tag);
 #ifdef HAVE_PWD_H
     pw = getpwuid(getuid());
     if (pw && pw->pw_dir) {
 	p = util_malloc(strlen(DEFAULT_USERCONFIG) + strlen(pw->pw_dir) + 2);
 	sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
-	smiReadConfig(p);
+	smiReadConfig(p, tag);
     }
 #endif
     
@@ -710,11 +710,13 @@ int smiSetPath(const char *s)
 
 
 
-int smiReadConfig(const char *filename)
+int smiReadConfig(const char *filename, const char *tag)
 {
     FILE *file;
-    char buf[201], cmd[201], arg[201];
+    char buf[201], cmd[201], arg[201], section[201];
     
+    strcpy(section, "*");
+
     file = fopen(filename, "r");
     if (file) {
 	while (!feof(file)) {
@@ -722,6 +724,13 @@ int smiReadConfig(const char *filename)
 	    sscanf(buf, "%s %s", cmd, arg);
 	    if ((!strlen(cmd)) || (cmd[0] == '#')) continue;
 	    if (!cmd || !arg) continue;
+	    if (!strcmp(cmd, "section")) {
+		strcpy(section, arg);
+		continue;
+	    }
+	    if (((!tag) || strcmp(section, tag)) && strcmp(section, "*")) {
+		continue;
+	    }
 	    if (!strcmp(cmd, "load")) {
 		smiLoadModule(arg);
 	    } else {
@@ -747,7 +756,7 @@ char *smiLoadModule(char *module)
 {
     Module *modulePtr;
     
-    if (!initialized) smiInit();
+    if (!initialized) smiInit(NULL);
 
     if (util_ispath(module)) {
 
@@ -785,7 +794,7 @@ char *smiLoadModule(char *module)
 
 void smiSetErrorLevel(int level)
 {
-    if (!initialized) smiInit();
+    if (!initialized) smiInit(NULL);
     
     errorLevel = level;
 }
@@ -794,7 +803,7 @@ void smiSetErrorLevel(int level)
 
 void smiSetFlags(int userflags)
 {
-    if (!initialized) smiInit();
+    if (!initialized) smiInit(NULL);
     
     smiFlags = (smiFlags & ~SMI_FLAG_MASK) | userflags;
 }
@@ -803,7 +812,7 @@ void smiSetFlags(int userflags)
 
 int smiGetFlags()
 {
-    if (!initialized) smiInit();
+    if (!initialized) smiInit(NULL);
     
     return smiFlags & SMI_FLAG_MASK;
 }

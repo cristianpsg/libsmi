@@ -58,7 +58,7 @@ AUTOCONF = autoconf
 AUTOMAKE = automake
 AUTOHEADER = autoheader
 
-INSTALL = /usr/local/bin/install -c
+INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL_PROGRAM}
@@ -70,24 +70,21 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-host_alias = sparc-sun-solaris2.5.1
-host_triplet = sparc-sun-solaris2.5.1
-AS = @AS@
-AWK = /usr/local/bin/awk
-BASH = /usr/local/bin/bash
-BISON = /usr/local/bin/bison
+host_alias = i686-pc-linux-gnu
+host_triplet = i686-pc-linux-gnu
+AWK = /usr/bin/awk
+BASH = /bin/sh
+BISON = /usr/bin/bison
 CC = gcc
-CFLAGS = -Wall -g
-DLLTOOL = @DLLTOOL@
+CFLAGS = -g -O2
 EXEEXT = 
-FLEX = /usr/local/bin/flex
-LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
+FLEX = /usr/bin/flex
+LD = /usr/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
+LIBTOOL_DEPS = 
 LN_S = ln -s
 MAKEINFO = makeinfo
-NM = /usr/local/bin/nm -B
-OBJDUMP = @OBJDUMP@
+NM = /usr/bin/nm -B
 PACKAGE = libsmi
 RANLIB = ranlib
 SH = /bin/sh
@@ -123,7 +120,7 @@ bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.8-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_PWD_H=1 -DDEFAULT_GLOBALCONFIG=\"/usr/local/etc/smi.conf\" -DDEFAULT_USERCONFIG=\".smirc\" -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\"  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.8-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_STRTOQ=1 -DHAVE_STRTOUQ=1 -DHAVE_GETOPT_H=1 -DHAVE_PWD_H=1 -DDEFAULT_GLOBALCONFIG=\"/usr/local/etc/smi.conf\" -DDEFAULT_USERCONFIG=\".smirc\" -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\"  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
@@ -153,7 +150,7 @@ smiquery.1.in smistrip.1.in smistrip.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-corba.P .deps/dump-imports.P .deps/dump-mosy.P \
 .deps/dump-smi.P .deps/dump-sming.P .deps/dump-tree.P \

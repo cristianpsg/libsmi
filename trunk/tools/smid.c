@@ -327,7 +327,7 @@ main(int argc, char *argv[])
     char buf[100];
     char *p;
 
-    smiInit();
+    smiInit("smid");
 
     for (i=1; i < argc; i++) {
 	smiLoadModule(argv[i]);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.18 1999/09/30 08:16:49 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.19 1999/10/01 12:46:59 strauss Exp $
  */
 
 #include <stdio.h>
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     char c;
     int flags;
 
-    smiInit();
+    smiInit("smilint");
 
     flags = smiGetFlags();
     

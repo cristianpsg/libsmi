@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.48 1999/10/05 06:30:59 strauss Exp $
+ * @(#) $Id: smi.h,v 1.49 1999/12/10 19:29:21 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -307,7 +307,7 @@ extern char *smiDescriptor(char *fullname);
 
 
 
-extern int smiInit();
+extern int smiInit(const char *tag);
 
 extern void smiExit();
 
@@ -321,7 +321,7 @@ extern char *smiGetPath();
 
 extern int smiSetPath(const char *path);
 
-extern int smiReadConfig(const char *filename);
+extern int smiReadConfig(const char *filename, const char *tag);
 
 extern char *smiLoadModule(char *module);
 
