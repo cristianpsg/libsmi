@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.42 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.43 2000/08/18 10:35:10 strauss Exp $
  */
 
 #include <config.h>
@@ -141,14 +141,19 @@ void xfree(void *ptr)
 
 static Module* addModule(SmiModule *smiModule, int flags)
 {
-    Module *mPtr;
+    Module *newModule, **mPtrPtr;
 
-    mPtr = xmalloc(sizeof(Module));
-    mPtr->smiModule = smiModule;
-    mPtr->flags = flags;
-    mPtr->nextPtr = moduleList;
-    moduleList = mPtr;
-    return mPtr;
+    newModule = xmalloc(sizeof(Module));
+    newModule->smiModule = smiModule;
+    newModule->flags = flags;
+    newModule->nextPtr = NULL;
+
+    for (mPtrPtr = &moduleList; *mPtrPtr; mPtrPtr = &((*mPtrPtr)->nextPtr)) {
+	/* skip elements */
+    }
+    *mPtrPtr = newModule;
+
+    return newModule;
 }
 
 
