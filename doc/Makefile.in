@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.3 1999/12/14 15:34:44 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.4 2000/02/15 10:41:05 strauss Exp $
 #
 
 
@@ -199,11 +199,11 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-SMI.gif: SMI.eps
-	epsffit -sc 0 0 600 600 SMI.eps SMI.eps.tmp
-	ps2gif SMI.eps.tmp SMI.gif.tmp
-	giftopnm SMI.gif.tmp | pnmcrop | ppmtogif > SMI.gif
-	rm SMI.eps.tmp SMI.gif.tmp
+smi.gif: smi.eps
+	epsffit -sc 0 0 600 600 smi.eps smi.eps.tmp
+	ps2gif smi.eps.tmp smi.gif.tmp
+	giftopnm smi.gif.tmp | pnmcrop | ppmtogif > smi.gif
+	rm smi.eps.tmp smi.gif.tmp
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
