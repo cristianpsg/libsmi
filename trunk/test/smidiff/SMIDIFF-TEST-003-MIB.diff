@@ -12,3 +12,13 @@
 ./SMIDIFF-TEST-003-MIB.new:101 named number `yellow' added
 ./SMIDIFF-TEST-003-MIB.new:109 named number `yellow' added
 ./SMIDIFF-TEST-003-MIB.new:117 named number `yellow' added
+./SMIDIFF-TEST-003-MIB.new:125 named number `yellow' added
+./SMIDIFF-TEST-003-MIB.new:133 named number `pink' added
+./SMIDIFF-TEST-003-MIB.old:140 named number `pink' removed
+./SMIDIFF-TEST-003-MIB.new:149 named number `yellow' added
+./SMIDIFF-TEST-003-MIB.new:149 named number `pink' added
+./SMIDIFF-TEST-003-MIB.old:148 named number `yellow' removed
+./SMIDIFF-TEST-003-MIB.old:148 named number `pink' removed
+./SMIDIFF-TEST-003-MIB.new:149 named number `green' added
+./SMIDIFF-TEST-003-MIB.new:149 named number `green' removed
+./SMIDIFF-TEST-003-MIB.old:148 previous definition of `green'

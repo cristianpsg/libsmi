@@ -119,4 +119,38 @@ scalar11 OBJECT-TYPE
     DESCRIPTION
 	"ENUM. Added a number." 
     ::= { libsmiTest003Mib 11 }
+
+scalar12 OBJECT-TYPE
+    SYNTAX     INTEGER { red(0), green(1), blue(2) } 
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"ENUM. Added a negative number." 
+    ::= { libsmiTest003Mib 12 }
+
+scalar13 OBJECT-TYPE
+    SYNTAX     INTEGER { yellow(-2), red(0), green(1), blue(2) } 
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"ENUM. Added a negative number in the middle." 
+    ::= { libsmiTest003Mib 13 }
+
+scalar14 OBJECT-TYPE
+    SYNTAX     INTEGER { yellow(-2), pink(-1), red(0), green(1), blue(2) } 
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"ENUM. Removed a negative number from the middle." 
+    ::= { libsmiTest003Mib 14 }
+
+scalar15 OBJECT-TYPE
+    SYNTAX     INTEGER { red(0), yellow(-2), pink(-1), blue(2), green(1)  } 
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+	"ENUM. Changed order of definition. Should not produce error msg." 
+    ::= { libsmiTest003Mib 15 }
+
+
 END
