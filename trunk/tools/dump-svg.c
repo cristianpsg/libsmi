@@ -31,7 +31,6 @@
 #include "smidump.h"
 
 //#define DOT
-//#define NODENAMES_ONLY
 
 
 #define ABS(a) ((float)((a > 0.0) ? (a) : (-(a))))
@@ -90,7 +89,6 @@ typedef struct GraphNode {
     SmiNode          *smiNode;
     int              group;		/* group number of this graph node */
     int              use;		/* use node in the layout-algorithm */
-    int              degree;
     DiaNode          dia;
 } GraphNode;
 
@@ -2855,11 +2853,10 @@ static float fa(float d, float k)
  * Output: Coordinates (x,y) for the nodes.
  * Only the nodes and edges with use==1 are considered.
  */
-static void layoutGraph(int nodecount)
+static void layoutGraph(int nodecount, int overlap, int limit_frame)
 {
     int i;
     float area, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
-    float gamma = 1, xBary = 0, yBary = 0;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
@@ -2868,15 +2865,6 @@ static void layoutGraph(int nodecount)
     t = CANVASWIDTH/10;
 
     for (i=0; i<ITERATIONS; i++) {
-	//calculate the barycenter
-	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
-	    if (!vNode->use)
-		continue;
-	    xBary += vNode->dia.x;
-	    yBary += vNode->dia.y;
-	}
-	xBary /= nodecount;
-	yBary /= nodecount;
 	//calculate repulsive forces
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
 	    if (!vNode->use)
@@ -2891,10 +2879,16 @@ static void layoutGraph(int nodecount)
 		absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
 		vNode->dia.xDisp += (xDelta/absDelta)*fr(absDelta, k);
 		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
+		//add another repulsive force if the nodes overlap
+		if (overlap &&
+		    vNode->dia.x+vNode->dia.w/2>=uNode->dia.x-uNode->dia.w/2 &&
+		    vNode->dia.x-vNode->dia.w/2<=uNode->dia.x+uNode->dia.w/2 &&
+		    vNode->dia.y+vNode->dia.h/2>=uNode->dia.y-uNode->dia.h/2 &&
+		    vNode->dia.y-vNode->dia.h/2<=uNode->dia.y+uNode->dia.h/2) {
+		    vNode->dia.xDisp += 4*(xDelta/absDelta)*fr(absDelta, k);
+		    vNode->dia.yDisp += 4*(yDelta/absDelta)*fr(absDelta, k);
+		}
 	    }
-	    //calculate gravitational force
-//	    vNode->dia.xDisp+=(1+vNode->degree/2)*gamma*(xBary - vNode->dia.x);
-//	    vNode->dia.yDisp+=(1+vNode->degree/2)*gamma*(yBary - vNode->dia.y);
 	}
 	//calculate attractive forces
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
@@ -2917,10 +2911,12 @@ static void layoutGraph(int nodecount)
 				    + vNode->dia.yDisp*vNode->dia.yDisp));
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
 	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
-	    vNode->dia.x = min(CANVASWIDTH - STARTSCALE*vNode->dia.w/2,
-			       max(STARTSCALE*vNode->dia.w/2, vNode->dia.x));
-	    vNode->dia.y = min(CANVASHEIGHT - STARTSCALE*vNode->dia.h/2,
-			       max(STARTSCALE*vNode->dia.h/2, vNode->dia.y));
+	    if (limit_frame) {
+		vNode->dia.x = min(CANVASWIDTH - STARTSCALE*vNode->dia.w/2,
+				  max(STARTSCALE*vNode->dia.w/2, vNode->dia.x));
+		vNode->dia.y = min(CANVASHEIGHT - STARTSCALE*vNode->dia.h/2,
+				  max(STARTSCALE*vNode->dia.h/2, vNode->dia.y));
+	    }
 	}
 	//reduce the temperature as the layout approaches a better configuration
 	t *= 0.9;
@@ -2937,7 +2933,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 {
     GraphNode *tNode;
     GraphEdge *tEdge;
-    int       group, nodecount = 0, classNr = 0, maxDegree = 0;
+    int       group, nodecount = 0, classNr = 0;
 
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (tEdge->connection != GRAPH_CON_UNKNOWN
@@ -2945,31 +2941,11 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    && tEdge->endNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
 	    && tEdge->startNode != tEdge->endNode) {
 	    tEdge->use = 1;
-	    (tEdge->startNode->degree)++;
-	    if (tEdge->startNode->degree > maxDegree) {
-		maxDegree = tEdge->startNode->degree;
-	    }
-	    (tEdge->endNode->degree)++;
-	    if (tEdge->endNode->degree > maxDegree) {
-		maxDegree = tEdge->endNode->degree;
-	    }
 	}
     }
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	tNode = diaCalcSize(tNode);
-	/*
-	//Place vertices with maximum degree near the center
-	if (tNode->degree == maxDegree) {
-	    tNode->dia.x = (float) rand();
-	    tNode->dia.y = (float) rand();
-	    tNode->dia.x /= (float) RAND_MAX;
-	    tNode->dia.y /= (float) RAND_MAX;
-	    tNode->dia.x += CANVASWIDTH/2;
-	    tNode->dia.y += CANVASHEIGHT/2;
-	    fprintf(stderr, "center: (%.2f,%.2f)\t%i\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group, tNode->degree);
-	}
-	*/
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
 	}
@@ -2980,13 +2956,14 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	nodecount++;
     }
 
-    layoutGraph(nodecount);
+    layoutGraph(nodecount, 0, 0);
+    layoutGraph(nodecount, 1, 1);
 
     //FIXME remove this
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	fprintf(stderr, "(%.2f,%.2f)\t%i\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group, tNode->degree);
+	fprintf(stderr, "(%.2f,%.2f)\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group);
     }
 
     printSVGHeaderAndTitle(modc, modv, nodecount);
@@ -2996,19 +2973,9 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	if (!tNode->use)
 	    continue;
 	if (tNode->group == 0) {
-#ifdef NODENAMES_ONLY
-	    printf(" <text x=\"%2.f\" y=\"%2.f\" style=\"text-anchor:middle\">\n", tNode->dia.x, tNode->dia.y);
-	    printf("      %s</text>\n", smiGetFirstChildNode(tNode->smiNode)->name);
-#else
 	    printSVGObject(tNode, &classNr);
-#endif
 	} else {
-#ifdef NODENAMES_ONLY
-	    printf(" <text x=\"%2.f\" y=\"%2.f\" style=\"text-anchor:middle\">\n", tNode->dia.x, tNode->dia.y);
-	    printf("      %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
-#else
 	    diaPrintXMLGroup(tNode->group, &classNr);
-#endif
 	}
     }
 
