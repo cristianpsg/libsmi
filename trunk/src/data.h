@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.8 1998/10/28 15:18:56 strauss Exp $
+ * @(#) $Id: data.h,v 1.9 1998/10/29 13:59:23 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -92,7 +92,9 @@ typedef enum Status {
     STATUS_UNKNOWN	 = 0 ,
     STATUS_CURRENT	 = 1 ,
     STATUS_DEPRECATED	 = 2 ,
-    STATUS_OBSOLETE	 = 3
+    STATUS_MANDATORY	 = 3 ,
+    STATUS_OPTIONAL	 = 4 ,    
+    STATUS_OBSOLETE	 = 5
 } Status;
 
 
@@ -310,10 +312,7 @@ extern Descriptor	*lastDescriptor[NUM_KINDS];
 extern MibNode		*rootMibNode;
 extern MibNode		*pendingRootMibNode;
 
-extern Type		*typeInteger, *typeInteger32, *typeCounter32,
-			*typeGauge32, *typeIpAddress, *typeTimeTicks,
-			*typeOpaque, *typeOctetString, *typeUnsigned32,
-			*typeObjectIdentifier, *typeCounter64;
+extern Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
 
 
 extern char *findFileByModulename(const char *module);

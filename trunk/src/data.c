@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.8 1998/10/28 15:18:55 strauss Exp $
+ * @(#) $Id: data.c,v 1.9 1998/10/29 13:59:23 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -36,6 +36,8 @@
 	(status == STATUS_CURRENT)     ? "current" : \
 	(status == STATUS_DEPRECATED)  ? "deprecated" : \
 	(status == STATUS_OBSOLETE)    ? "obsolete" : \
+	(status == STATUS_MANDATORY)   ? "mandatory" : \
+	(status == STATUS_OPTIONAL)    ? "optional" : \
 					 "unknown" )
 
 #define stringMacro(macro) ( \
@@ -92,10 +94,7 @@ MibNode		*rootMibNode;
 
 MibNode		*pendingRootMibNode;
 
-Type		*typeInteger, *typeInteger32, *typeCounter32,
-		*typeGauge32, *typeIpAddress, *typeTimeTicks,
-		*typeOpaque, *typeOctetString, *typeUnsigned32,
-		*typeObjectIdentifier, *typeCounter64;
+Type		*typeInteger, *typeOctetString, *typeObjectIdentifier;
 
 
 
@@ -479,8 +478,6 @@ addDescriptor(name, module, kind, ptr, flags, parser)
     if ((module) && (kind == KIND_TYPE)) {
 	t = findTypeByModuleAndName(module, name);
 	if (t && (t->flags & FLAG_INCOMPLETE) && !(flags & FLAG_INCOMPLETE)) {
-	    printf("XXX %s\n", name);
-	    /* t->flags &= ~FLAG_INCOMPLETE; */
 	    t->parent = ((Type *)ptr)->parent;
 	    t->syntax = ((Type *)ptr)->syntax;
 	    t->macro = ((Type *)ptr)->macro;
@@ -2167,41 +2164,28 @@ initData()
     addDescriptor("SEQUENCE_OF", NULL, KIND_TYPE, type, FLAG_PERMANENT, NULL);
 #endif
 
-#if 0 /* SNMPv2-SMI */
+#if 0
+    /* SNMPv2-SMI */
     typeIpAddress = addType(NULL, SYNTAX_IPADDRESS,
 			    NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("IpAddress", NULL, KIND_TYPE, typeIpAddress,
-		  FLAG_PERMANENT, NULL);
     
     typeCounter32 = addType(NULL, SYNTAX_COUNTER32,
 			    NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Counter32", NULL, KIND_TYPE, typeCounter32,
-		  FLAG_PERMANENT, NULL);
     
     typeGauge32 = addType(NULL, SYNTAX_GAUGE32,
 			  NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Gauge32", NULL, KIND_TYPE, typeGauge32,
-		  FLAG_PERMANENT, NULL);
     
     typeUnsigned32 = addType(NULL, SYNTAX_UNSIGNED32,
 			     NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Unsigned32", NULL, KIND_TYPE, typeUnsigned32,
-		  FLAG_PERMANENT, NULL);
-    
+
     typeTimeTicks = addType(NULL, SYNTAX_TIMETICKS,
 			    NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("TimeTicks", NULL, KIND_TYPE, typeTimeTicks,
-		  FLAG_PERMANENT, NULL);
     
     typeOpaque = addType(NULL, SYNTAX_OPAQUE,
 			 NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Opaque", NULL, KIND_TYPE, typeOpaque,
-		  FLAG_PERMANENT, NULL);
     
     typeCounter64 = addType(NULL, SYNTAX_COUNTER64,
 			    NULL, FLAG_PERMANENT, NULL);
-    addDescriptor("Counter64", NULL, KIND_TYPE, typeCounter64,
-		  FLAG_PERMANENT, NULL);
 #endif
     
     return (0);
