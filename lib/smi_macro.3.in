@@ -55,7 +55,7 @@ be released after use by calling \fBsmiFreeMacro()\fP which is a void
 function.
 .SH "FILES"
 .nf
-/usr/local/include/smi.h    SMI library header file
+@prefix@/include/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "
