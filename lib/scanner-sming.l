@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.11 1999/06/08 20:16:10 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.12 1999/07/02 14:03:55 strauss Exp $
  */
 
 %option noyywrap
@@ -25,11 +25,20 @@
 #include "util.h"
 #include "parser-sming.h"
 #include "parser-sming.tab.h"
-#include "scanner.h"
 #include "scanner-sming.h"
 
 
-    
+static char            *currentString;
+static int	       currentStringLength;
+static int	       currentStringMaxLength;
+static int	       currentStringColumn;
+static int	       currentStringFetchLine; 
+
+
+#define thisParser (*(Parser *) parser)
+
+
+
 #define MAX_NUMBER		"18446744073709551615" /* max Counter64 */
 #define MAX_QUOTED_STRING_LENGTH 65535
 
@@ -42,9 +51,11 @@
 #define yylval (*lvalp)
 
 
+#define MAX_LEX_DEPTH            20
+ 
+static YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
 
-YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
-
+static int lexDepth = 0; 
 
  
 int
@@ -73,32 +84,19 @@ smingLeaveLexRecursion()
 void
 smingTrackInput(nl, parser)
     int nl;
-    Module *parser;
+    Parser *parser;
 {
     if (nl) {
-	thisParser.line += 1;
-	thisParser.column = 1;
-	thisParser.character += yyleng;
-	thisParser.linebuf[0] = 0;
+	parser->line += 1;
+	parser->column = 1;
+	parser->character += yyleng;
     } else {
 	if ((yytext[0] != '\t') || (yyleng != 1)) {
-	    thisParser.column += yyleng;
-	    if (thisParser.column+1 >= thisParser.linebufsize) {
-		thisParser.linebufsize = thisParser.column+2;
-		thisParser.linebuf = util_realloc(thisParser.linebuf,
-						  thisParser.linebufsize);
-	    }
-	    strcat(thisParser.linebuf, yytext);
+	    parser->column += yyleng;
 	} else {
-	    thisParser.column += (8 - ((thisParser.column-1) % 8));
-	    if (thisParser.column+1 >= thisParser.linebufsize) {
-		thisParser.linebufsize = thisParser.column+2;
-		thisParser.linebuf = util_realloc(thisParser.linebuf,
-						  thisParser.linebufsize);
-	    }
-	    strcat(thisParser.linebuf, yytext);
+	    parser->column += (8 - ((parser->column-1) % 8));
 	}
-	thisParser.character += yyleng;
+	parser->character += yyleng;
     }
 }
 

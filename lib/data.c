@@ -8,12 +8,11 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.47 1999/12/18 13:35:43 strauss Exp $
+ * @(#) $Id: data.c,v 1.48 1999/12/21 09:16:23 strauss Exp $
  */
 
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
@@ -58,7 +57,7 @@ Type		*typeOctetStringPtr, *typeObjectIdentifierPtr,
 		*typeEnumPtr, *typeBitsPtr;
 int		smiFlags;
 char		*smiPath;
-
+int		smiDepth = 0;
 
 
 /*
@@ -3091,8 +3090,9 @@ loadModule(modulename)
     Parser	    parser;
     char	    s[200];
     char	    *path = NULL, *dir, *smipath;
-    struct stat	    buf;
     int		    sming = 0;
+    int             c;
+    FILE	    *file;
     
     if ((!modulename) || !strlen(modulename)) {
 	return NULL;
@@ -3110,23 +3110,19 @@ loadModule(modulename)
 	for (dir = strtok(smipath, ":"); dir; dir = strtok(NULL, ":")) {
 	    path = malloc(strlen(dir)+strlen(modulename)+8);
 	    sprintf(path, "%s/%s", dir, modulename);
-	    if (!stat(path, &buf)) {
-		sming = 0;
+	    if (! access(path, R_OK)) {
 		break;
 	    }
 	    sprintf(path, "%s/%s.my", dir, modulename);
-	    if (!stat(path, &buf)) {
-		sming = 0;
+	    if (! access(path, R_OK)) {
 		break;
 	    }
 	    sprintf(path, "%s/%s.smiv2", dir, modulename);
-	    if (!stat(path, &buf)) {
-		sming = 0;
+	    if (! access(path, R_OK)) {
 		break;
 	    }
 	    sprintf(path, "%s/%s.sming", dir, modulename);
-	    if (!stat(path, &buf)) {
-		sming = 1;
+	    if (! access(path, R_OK)) {
 		break;
 	    }
 	    util_free(path);
@@ -3138,47 +3134,63 @@ loadModule(modulename)
 	 * A full path. Take it.
 	 */
 	path = util_strdup(modulename);
-	if (strstr(modulename, ".sming")) {
-	    sming = 1;
-	}
     }
 
     if (!path) {
 	return NULL;
     }
 
+    /*
+     * Look into the file to determine whether it contains
+     * SMIv1/SMIv2 or SMIng definitions.
+     */
+
+    file = fopen(path, "r");
+    if (! file) {
+	printError(NULL, ERR_OPENING_INPUTFILE, path, strerror(errno));
+	util_free(path);
+	return NULL;
+    }
+    while ((c = fgetc(file))) {
+	if (c == '-' || isupper(c)) {
+	    sming = 0;
+	    break;
+	} else if (c == '/' || c == 'm') {
+	    sming = 1;
+	    break;
+	} else if (c == EOF || ! isspace(c)) {
+	    printError(NULL, ERR_ILLEGAL_INPUTFILE, path);
+	    util_free(path);
+	    return NULL;
+	}
+    }
+    rewind(file);
+
     if (sming == 0) {
 #ifdef BACKEND_SMI
-	parser.path			= util_strdup(path);
+	parser.path			= strdup(path);
 	parser.flags			= smiFlags;
 	parser.modulePtr		= NULL;
-	parser.file			= fopen(parser.path, "r");
-	if (!parser.file) {
-	    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
-		       strerror(errno));
-	} else {
-	    if (smiEnterLexRecursion(parser.file) < 0) {
-		printError(&parser, ERR_MAX_LEX_DEPTH);
-		fclose(parser.file);
-	    }
-	    parser.line			= 1;
-	    parser.column		= 1;
-	    parser.character		= 1;
-	    parser.linebufsize		= 200;
-	    parser.linebuf		= util_malloc(200);
-	    parser.linebuf[0]		= 0;
-	    smiparse((void *)&parser);
-	    if (parser.flags & SMI_FLAG_STATS) {
-		sprintf(s, " (%d lines)", parser.line-1);
-		printError(&parser, ERR_STATISTICS, s);
-	    }
-	    smiLeaveLexRecursion();
+	parser.file			= file;
+	if (smiEnterLexRecursion(parser.file) < 0) {
+	    printError(&parser, ERR_MAX_LEX_DEPTH);
 	    fclose(parser.file);
 	}
-	util_free(path);
+	smiDepth++;
+	parser.line			= 1;
+	parser.column			= 1;
+	parser.character		= 1;
+	smiparse((void *)&parser);
+	if (parser.flags & SMI_FLAG_STATS) {
+	    sprintf(s, " (%d lines)", parser.line-1);
+	    printError(&parser, ERR_STATISTICS, s);
+	}
+	smiLeaveLexRecursion();
+	smiDepth--;
+	fclose(parser.file);
 	return parser.modulePtr;
 #else
-	printError(NULL, ERR_SMI_NOT_SUPPORTED, parser.path);
+	printError(NULL, ERR_SMI_NOT_SUPPORTED, path);
 	util_free(path);
 	return NULL;
 #endif
@@ -3186,36 +3198,29 @@ loadModule(modulename)
 
     if (sming == 1) {
 #ifdef BACKEND_SMING
-	parser.path			= util_strdup(path);
+	parser.path			= strdup(path);
 	parser.flags			= smiFlags;
 	parser.modulePtr		= NULL;
-	parser.file			= fopen(parser.path, "r");
-	if (!parser.file) {
-	    printError(NULL, ERR_OPENING_INPUTFILE, parser.path,
-		       strerror(errno));
-	} else {
-	    if (smingEnterLexRecursion(parser.file) < 0) {
-		printError(&parser, ERR_MAX_LEX_DEPTH);
-		fclose(parser.file);
-	    }
-	    parser.line			= 1;
-	    parser.column		= 1;
-	    parser.character		= 1;
-	    parser.linebufsize		= 200;
-	    parser.linebuf		= util_malloc(200);
-	    parser.linebuf[0]		= 0;
-	    smingparse((void *)&parser);
-	    if (parser.flags & SMI_FLAG_STATS) {
-		sprintf(s, " (%d lines)", parser.line-1);
-		printError(&parser, ERR_STATISTICS, s);
-	    }
-	    smingLeaveLexRecursion();
+	parser.file			= file;
+	if (smingEnterLexRecursion(parser.file) < 0) {
+	    printError(&parser, ERR_MAX_LEX_DEPTH);
 	    fclose(parser.file);
 	}
-	util_free(path);
+	smiDepth++;
+	parser.line			= 1;
+	parser.column			= 1;
+	parser.character		= 1;
+	smingparse((void *)&parser);
+	if (parser.flags & SMI_FLAG_STATS) {
+	    sprintf(s, " (%d lines)", parser.line-1);
+	    printError(&parser, ERR_STATISTICS, s);
+	}
+	smingLeaveLexRecursion();
+	smiDepth--;
+	fclose(parser.file);
 	return parser.modulePtr;
 #else
-	printError(NULL, ERR_SMING_NOT_SUPPORTED, parser.path);
+	printError(NULL, ERR_SMING_NOT_SUPPORTED, path);
 	util_free(path);
 	return NULL;
 #endif

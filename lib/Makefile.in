@@ -97,14 +97,14 @@ VERSION = @VERSION@
 mibdir = @mibdir@
 smipath = @smipath@
 
-EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
+EXTRA_DIST = parser-sming.y parser-smi.y 			  scanner-sming.l scanner-smi.l 			  data.h error.h util.h scanner-sming.h 			  parser-smi.h parser-sming.h scanner-smi.h 			  parser-smi.tab.h parser-sming.tab.h 			  $(man_MANS)
 
 include_HEADERS = smi.h
 CLEANFILES = parser-smi.output parser-sming.output
 man_MANS = libsmi.3 smi_config.3 smi_module.3 smi_macro.3 			  smi_node.3 smi_type.3
 
 lib_LTLIBRARIES = libsmi.la
-libsmi_la_SOURCES = data.c error.c util.c smi.c scanner.c 		  	  parser-smi.tab.c scanner-smi.c 		  	  parser-sming.tab.c scanner-sming.c
+libsmi_la_SOURCES = data.c error.c util.c smi.c 		  	  parser-smi.tab.c scanner-smi.c 		  	  parser-sming.tab.c scanner-sming.c
 
 libsmi_la_LDFLAGS = -version-info @LIBTOOL_VERSIONING@
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -118,8 +118,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libsmi_la_LIBADD = 
-libsmi_la_OBJECTS =  data.lo error.lo util.lo smi.lo scanner.lo \
-parser-smi.tab.lo scanner-smi.lo parser-sming.tab.lo scanner-sming.lo
+libsmi_la_OBJECTS =  data.lo error.lo util.lo smi.lo parser-smi.tab.lo \
+scanner-smi.lo parser-sming.tab.lo scanner-sming.lo
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -140,7 +140,7 @@ TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/data.P .deps/error.P .deps/parser-smi.tab.P \
 .deps/parser-sming.tab.P .deps/scanner-smi.P .deps/scanner-sming.P \
-.deps/scanner.P .deps/smi.P .deps/util.P
+.deps/smi.P .deps/util.P
 SOURCES = $(libsmi_la_SOURCES)
 OBJECTS = $(libsmi_la_OBJECTS)
 

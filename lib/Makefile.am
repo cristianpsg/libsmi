@@ -8,13 +8,13 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.9 1999/06/08 21:09:42 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.10 1999/12/14 15:02:58 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
 			  scanner-sming.l scanner-smi.l \
 			  data.h error.h util.h scanner-sming.h \
-			  parser-smi.h parser-sming.h scanner-smi.h scanner.h \
+			  parser-smi.h parser-sming.h scanner-smi.h \
 			  parser-smi.tab.h parser-sming.tab.h \
 			  $(man_MANS)
 include_HEADERS		= smi.h
@@ -22,7 +22,7 @@ CLEANFILES		= parser-smi.output parser-sming.output
 man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
 			  smi_node.3 smi_type.3
 lib_LTLIBRARIES		= libsmi.la
-libsmi_la_SOURCES	= data.c error.c util.c smi.c scanner.c \
+libsmi_la_SOURCES	= data.c error.c util.c smi.c \
 		  	  parser-smi.tab.c scanner-smi.c \
 		  	  parser-sming.tab.c scanner-sming.c
 libsmi_la_LDFLAGS	= -version-info @LIBTOOL_VERSIONING@
