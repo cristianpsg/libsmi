@@ -1,3 +1,12 @@
+2002-12-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/{SNMP-FRAMEWORK-MIB,SNMP-MPD-MIB,SNMP-NOTIFICATION-MIB,
+	SNMP-PROXY-MIB,SNMP-TARGET-MIB,SNMP-USER-BASED-SM-MIB,
+	SNMP-VIEW-BASED-ACM-MIB,SNMPv2-MIB,SNMPv2-TM}: updated to
+	Full Standard (RFCs 3411-3418).
+
+	* mibs/ietf/TRANSPORT-ADDRESS-MIB: added (RFC 3419).
+
 2002-11-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/SFLOW-MIB: added (RFC 3176).
