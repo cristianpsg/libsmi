@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.81 2001/11/26 12:53:43 schoenw Exp $
+ * @(#) $Id: error.c,v 1.82 2001/12/14 10:09:51 strauss Exp $
  */
 
 #include <config.h>
@@ -107,7 +107,7 @@ static Error errors[] = {
     { 2, ERR_LCIDENTIFIER_64, "namelength-64-lc-identifier",
       "lowercase identifier `%s' must not be longer than 64 characters" },
     { 2, ERR_TRAP_TYPE, "trap",
-      "TRAP-TYPE macro is not allowed in SMIv2 style MIB" },
+      "TRAP-TYPE macro is not allowed in SMIv2" },
     { 2, ERR_TOO_MANY_MODULE_IDENTITIES, "module-identity-multiple",
       "more than one MODULE-IDENTITY clause in SMIv2 MIB" },
     { 2, ERR_NO_MODULE_IDENTITY, "module-identity-missing",
@@ -147,7 +147,7 @@ static Error errors[] = {
     { 2, ERR_INVALID_CAPABILITIES_STATUS, "status-invalid-capabilities", 
       "invalid STATUS `%s' in AGENT-CAPABILITIES macro" },
     { 5, ERR_OIDNAME_INCLUDES_HYPHEN, "hyphen-in-object",
-      "Object Identifier name `%s' may only include hyphens in SMIv1 converted SMIv2 MIBs" },
+      "object Identifier name `%s' should not include hyphens in SMIv2 MIB" },
     { 2, ERR_ILLEGAL_CHAR_IN_STRING, "char-illegal-string", 
       "illegal character `%c' (0x%2x) in quoted string" },
     { 2, ERR_BIN_STRING_MUL8, "", 
@@ -438,6 +438,8 @@ static Error errors[] = {
       "index element `%s' of row `%s' has a default value" },
     { 2, ERR_SEQUENCE_TYPE_MISMATCH, "sequence-type-mismatch",
       "type of `%s' in sequence and object type definition do not match" },
+    { 5, ERR_INDEX_ACCESSIBLE, "index-element-accessible",
+      "index element `%s' of row `%s' should be not-accessible in SMIv2 MIB" },
     { 0, 0, NULL, NULL }
 };
 

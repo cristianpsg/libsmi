@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.107 2001/10/08 17:51:26 schoenw Exp $
+ * @(#) $Id: data.c,v 1.108 2001/12/14 10:09:50 strauss Exp $
  */
 
 #include <config.h>
@@ -1154,7 +1154,7 @@ Node *getParentNode(Node *nodePtr)
  *----------------------------------------------------------------------
  */
 
-void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
+static void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
 {
     Node	      *nodePtr, *toChildPtr, *nextPtr;
     Object	      *objectPtr;
@@ -3340,7 +3340,7 @@ int smiInitData()
  *----------------------------------------------------------------------
  */
 
-void freeNodeTree(Node *rootPtr)
+static void freeNodeTree(Node *rootPtr)
 {
     Node       *nodePtr, *nextPtr;
     
