@@ -1,14 +1,14 @@
 /*
- * yacc2x.l --
+ * yacc2html.l --
  *
- *      Lex scanner for converting yacc sources.
+ *      Lex scanner for HTMLifying yacc sources.
  *
  * Copyright (c) 1998 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: yacc2html.l,v 1.1 1999/03/11 17:33:56 strauss Exp $
  */
 
 %{
@@ -18,10 +18,7 @@
 
 #define YY_NO_UNPUT
 
-#define printActions  0
-#define printPrefix   0
-#define printComments 0
-#define printHtml     0
+#define printActions 0
     
 int nest;
  
@@ -36,19 +33,16 @@ int nest;
 
 <Rules>"/*" {
     BEGIN(Comment);
-    if (printComments)
-	printf("%s", yytext);
+    printf("%s", yytext);
 }
 
 <Comment>"*/" {
     BEGIN(Rules);
-    if (printComments)
-	printf("%s", yytext);
+    printf("%s", yytext);
 }
 
 <Comment>. {
-    if (printComments)
-	printf("%s", yytext);
+    printf("%s", yytext);
 }
 
 <Rules>"'" {
@@ -92,41 +86,24 @@ int nest;
 
 <INITIAL>"%%" {
     BEGIN(Rules);
-    if (printPrefix)
-	printf("%s", yytext);
+    printf("%s", yytext);
 }
 
 <Rules>"%%" {
     BEGIN(INITIAL);
-    if (printPrefix)
-	printf("%s", yytext);
+    printf("%s", yytext);
 }
 
 <Rules>^[A-Za-z0-9_-]* {
-    if (printHtml)
-	printf("<A NAME=\"%s\">%s</A>", yytext, yytext);
-    else
-	printf("%s", yytext);
+    printf("<A NAME=\"%s\">%s</A>", yytext, yytext);
 }
 
  /* convention: non-terminals contain at least one lowercase character */
 <Rules>[A-Za-z0-9_-]*[a-z][A-Za-z0-9_-]* {
-    if (printHtml)
-	printf("<A HREF=\"#%s\">%s</A>", yytext, yytext);
-    else
-	printf("%s", yytext);
+    printf("<A HREF=\"#%s\">%s</A>", yytext, yytext);
 }
 
-<INITIAL>. {
-    if (printPrefix)
-	printf("%s", yytext);
-}
-
-<Rules>":" {
-    printf(" -> ");
-}
-
-<Rules>. {
+<INITIAL,Rules>. {
     printf("%s", yytext);
 }
 

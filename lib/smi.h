@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.1 1999/03/25 14:15:15 strauss Exp $
+ * @(#) $Id: smi.h,v 1.2 1999/03/25 21:57:47 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -167,7 +167,6 @@ typedef struct SmiModule {
     char 		*contactinfo;
     char		*description;
     char		*reference;
-    SmiRevision		**revisions;
 } SmiModule;
 
 typedef struct SmiNode {
@@ -228,6 +227,14 @@ typedef struct SmiMacro {
 	(status == SMI_STATUS_MANDATORY)   ? "mandatory" : \
 	(status == SMI_STATUS_OPTIONAL)    ? "optional" : \
 					     "<unknown>" )
+
+#define smingStringAccess(access) ( \
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" : \
+	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" : \
+	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" : \
+	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" : \
+	(access == SMI_ACCESS_READ_CREATE)    ? "readwrite" : \
+						"<unknown>" )
 
 #define smiStringAccess(access) ( \
 	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" : \
