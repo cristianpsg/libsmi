@@ -2011,6 +2011,43 @@ static void parseTooltip(char *input, char *output)
     output[j++] = '\0';
 }
 
+static int isObjectGroup(SmiNode *groupNode)
+{
+    SmiNode     *smiNode;
+    SmiElement  *smiElement;
+    
+    for (smiElement = smiGetFirstElement(groupNode); smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+
+	smiNode = smiGetElementNode(smiElement);
+	
+	if (smiNode->nodekind != SMI_NODEKIND_SCALAR
+	    && smiNode->nodekind != SMI_NODEKIND_COLUMN) {
+	    return 0;
+	}
+    }
+
+    return 1;
+}
+
+static int isNotificationGroup(SmiNode *groupNode)
+{
+    SmiNode     *smiNode;
+    SmiElement  *smiElement;
+    
+    for (smiElement = smiGetFirstElement(groupNode); smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+
+	smiNode = smiGetElementNode(smiElement);
+	
+	if (smiNode->nodekind != SMI_NODEKIND_NOTIFICATION) {
+	    return 0;
+	}
+    }
+
+    return 1;
+}
+
 static char *getStatusString(SmiStatus status)
 {
     return
@@ -2906,7 +2943,7 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
     x = 0;
     y = 10;
 
-    //ModuleIdentity
+    //MODULE-IDENTITY
     printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-IDENTITY</text>\n", x, y);
     y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
@@ -2961,8 +2998,7 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
     }
     y += TABLEELEMHEIGHT;
 
-    //Notifications
-    //FIXME: NOTIFICATION-TYPE or Notifications ???
+    //NOTIFICATION-TYPE
     printf(" <text x=\"%.2f\" y=\"%.2f\">NOTIFICATION-TYPE</text>\n", x, y);
     y += TABLEELEMHEIGHT;
     for (i = 0; i < modc; i++) {
@@ -2979,10 +3015,11 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
 	    //name, status and description of the notification
 	    //TODO print text in different grey colors for different statuses.
 	    x += 2*TABLEELEMHEIGHT;
-	    for(smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
-		printf(" <text x=\"%.2f\" y=\"%.2f\"><tspan", x, y);
+		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
+							smiNode->name, x, y);
 
 		smiElement = smiGetFirstElement(smiNode);
 		if (smiElement || smiNode->description) {
@@ -3038,6 +3075,209 @@ static void printModuleInformation(int modc, SmiModule **modv, float x, float y)
 	    x -= 2*TABLEELEMHEIGHT;
 	}
     }
+    y += TABLEELEMHEIGHT;
+
+    //OBJECT-GROUP
+    printf(" <text x=\"%.2f\" y=\"%.2f\">OBJECT-GROUP</text>\n", x, y);
+    y += TABLEELEMHEIGHT;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+
+	    //name of the module
+	    x += TABLEELEMHEIGHT;
+	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
+							x, y, smiNode->name);
+	    y += TABLEELEMHEIGHT;
+	    x -= TABLEELEMHEIGHT;
+
+	    //name, status and description of the group
+	    //TODO print text in different grey colors for different statuses.
+	    x += 2*TABLEELEMHEIGHT;
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
+		if (!isObjectGroup(smiNode))
+		    continue;
+		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
+							smiNode->name, x, y);
+
+		smiElement = smiGetFirstElement(smiNode);
+		if (smiElement || smiNode->description) {
+		    printf(" onmousemove=\"");
+		}
+		if (smiNode->description) {
+		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
+		    parseTooltip(smiNode->description, tooltip);
+		    printf("ShowTooltipMZ(evt,'%s')", tooltip);
+		    xfree(tooltip);
+		}
+		if (smiElement && smiNode->description) {
+		    printf(";");
+		}
+		for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s','red')",
+					smiGetElementNode(smiElement)->name);
+		}
+		if (smiElement || smiNode->description) {
+		    printf("\"");
+		}
+
+		smiElement = smiGetFirstElement(smiNode);
+		if (smiElement || smiNode->description) {
+		    printf(" onmouseout=\"");
+		}
+		if (smiNode->description) {
+		    printf("HideTooltip(evt)");
+		}
+		if (smiElement && smiNode->description) {
+		    printf(";");
+		}
+		for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s','black')",
+					smiGetElementNode(smiElement)->name);
+		}
+		if (smiElement || smiNode->description) {
+		    printf("\"");
+		}
+
+		printf(">%s</tspan>", smiNode->name);
+		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		y += TABLEELEMHEIGHT;
+	    }
+	    x -= 2*TABLEELEMHEIGHT;
+	}
+    }
+    y += TABLEELEMHEIGHT;
+
+    //NOTIFICATION-GROUP
+    printf(" <text x=\"%.2f\" y=\"%.2f\">NOTIFICATION-GROUP</text>\n", x, y);
+    y += TABLEELEMHEIGHT;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+
+	    //name of the module
+	    x += TABLEELEMHEIGHT;
+	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
+							x, y, smiNode->name);
+	    y += TABLEELEMHEIGHT;
+	    x -= TABLEELEMHEIGHT;
+
+	    //name, status and description of the group
+	    //TODO print text in different grey colors for different statuses.
+	    x += 2*TABLEELEMHEIGHT;
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
+		if (!isNotificationGroup(smiNode))
+		    continue;
+		printf(" <text id=\"%s\" x=\"%.2f\" y=\"%.2f\"><tspan",
+							smiNode->name, x, y);
+
+		smiElement = smiGetFirstElement(smiNode);
+		if (smiElement || smiNode->description) {
+		    printf(" onmousemove=\"");
+		}
+		if (smiNode->description) {
+		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
+		    parseTooltip(smiNode->description, tooltip);
+		    printf("ShowTooltipMZ(evt,'%s')", tooltip);
+		    xfree(tooltip);
+		}
+		if (smiElement && smiNode->description) {
+		    printf(";");
+		}
+		for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s','red')",
+					smiGetElementNode(smiElement)->name);
+		}
+		if (smiElement || smiNode->description) {
+		    printf("\"");
+		}
+
+		smiElement = smiGetFirstElement(smiNode);
+		if (smiElement || smiNode->description) {
+		    printf(" onmouseout=\"");
+		}
+		if (smiNode->description) {
+		    printf("HideTooltip(evt)");
+		}
+		if (smiElement && smiNode->description) {
+		    printf(";");
+		}
+		for (j = 0; smiElement;
+			j++, smiElement = smiGetNextElement(smiElement)) {
+		    if (j) {
+			printf(";");
+		    }
+		    printf("colorText('%s','black')",
+					smiGetElementNode(smiElement)->name);
+		}
+		if (smiElement || smiNode->description) {
+		    printf("\"");
+		}
+
+		printf(">%s</tspan>", smiNode->name);
+		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		y += TABLEELEMHEIGHT;
+	    }
+	    x -= 2*TABLEELEMHEIGHT;
+	}
+    }
+    y += TABLEELEMHEIGHT;
+
+    //MODULE-COMPLIANCE
+    printf(" <text x=\"%.2f\" y=\"%.2f\">MODULE-COMPLIANCE</text>\n", x, y);
+    y += TABLEELEMHEIGHT;
+    for (i = 0; i < modc; i++) {
+	smiNode = smiGetModuleIdentityNode(modv[i]);
+	if (smiNode) {
+
+	    //name of the module
+	    x += TABLEELEMHEIGHT;
+	    printf(" <text x=\"%.2f\" y=\"%.2f\">%s</text>\n",
+							x, y, smiNode->name);
+	    y += TABLEELEMHEIGHT;
+	    x -= TABLEELEMHEIGHT;
+
+	    //name, status and description of the compliance
+	    //TODO print text in different grey colors for different statuses.
+	    x += 2*TABLEELEMHEIGHT;
+	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_COMPLIANCE);
+		smiNode;
+		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
+		printf(" <text x=\"%.2f\" y=\"%.2f\"><tspan", x, y);
+
+		if (smiNode->description) {
+		    tooltip = (char *)xmalloc(2*strlen(smiNode->description));
+		    parseTooltip(smiNode->description, tooltip);
+		    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')", tooltip);
+		    xfree(tooltip);
+		    printf("\" onmouseout=\"HideTooltip(evt)\"");
+		}
+		printf(">%s</tspan>", smiNode->name);
+		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		y += TABLEELEMHEIGHT;
+
+		//next TODO!
+	    }
+	    x -= 2*TABLEELEMHEIGHT;
+	}
+    }
+    y += TABLEELEMHEIGHT;
     printf(" </g>\n");
 }
 
