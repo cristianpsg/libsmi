@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.64 2001/04/14 16:36:02 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.65 2001/09/05 11:01:11 schoenw Exp $
  */
 
 #include <config.h>
@@ -30,7 +30,7 @@
 
 
 
-char *smiStringStatus(SmiStatus status)
+static char *smiStringStatus(SmiStatus status)
 {
     return
 	(status == SMI_STATUS_CURRENT)     ? "current" :
@@ -41,7 +41,7 @@ char *smiStringStatus(SmiStatus status)
 					     "<UNDEFINED>";
 }
 
-char *smiStringAccess(SmiAccess access)
+static char *smiStringAccess(SmiAccess access)
 {
     return
 	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
@@ -51,7 +51,7 @@ char *smiStringAccess(SmiAccess access)
 						"<UNDEFINED>";
 }
 
-char *smiStringLanguage(SmiLanguage language)
+static char *smiStringLanguage(SmiLanguage language)
 {
     return
 	(language == SMI_LANGUAGE_UNKNOWN)    ? "<unknown>" :
@@ -61,7 +61,7 @@ char *smiStringLanguage(SmiLanguage language)
 						"<UNDEFINED>";
 }
 
-char *smiStringDecl(SmiDecl macro)
+static char *smiStringDecl(SmiDecl macro)
 {
     return
         (macro == SMI_DECL_UNKNOWN)           ? "<unknown>" :
@@ -92,7 +92,7 @@ char *smiStringDecl(SmiDecl macro)
                                                 "<UNDEFINED>";
 }
 
-char *smiStringNodekind(SmiNodekind nodekind)
+static char *smiStringNodekind(SmiNodekind nodekind)
 {
     return
         (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<unknown>" :
@@ -108,7 +108,7 @@ char *smiStringNodekind(SmiNodekind nodekind)
                                                   "<UNDEFINED>";
 }
 
-char *smiStringBasetype(SmiBasetype basetype)
+static char *smiStringBasetype(SmiBasetype basetype)
 {
     return
         (basetype == SMI_BASETYPE_UNKNOWN)           ? "<unknown>" :
@@ -128,7 +128,7 @@ char *smiStringBasetype(SmiBasetype basetype)
 
 
 
-char *format(const char *s)
+static char *format(const char *s)
 {
     static char ss[20000];
     int i, j;
@@ -149,7 +149,7 @@ char *format(const char *s)
 }
 
 
-char *formatoid(unsigned int oidlen, SmiSubid *oid)
+static char *formatoid(unsigned int oidlen, SmiSubid *oid)
 {
     static char  ss[20000];
     unsigned int i;
@@ -163,7 +163,7 @@ char *formatoid(unsigned int oidlen, SmiSubid *oid)
 }
 
 
-char *formatnode(SmiNode *node)
+static char *formatnode(SmiNode *node)
 {
     static char ss[200];
     SmiModule *module;
@@ -182,7 +182,7 @@ char *formatnode(SmiNode *node)
 }
 
 
-char *formattype(SmiType *type)
+static char *formattype(SmiType *type)
 {
     static char ss[200];
     SmiModule *module;
@@ -201,7 +201,7 @@ char *formattype(SmiType *type)
 }
 
 
-char *formatvalue(const SmiValue *value, SmiType *type)
+static char *formatvalue(const SmiValue *value, SmiType *type)
 {
     static char    s[100];
     char           ss[9];

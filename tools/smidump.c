@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.59 2001/08/22 14:46:55 schoenw Exp $
+ * @(#) $Id: smidump.c,v 1.60 2001/09/05 11:01:11 schoenw Exp $
  */
 
 #include <config.h>
@@ -30,14 +30,14 @@
 
 
 
-static void help();
-static void usage();
-static void version();
+static void help(void);
+static void usage(void);
+static void version(void);
 static void config(char *filename);
 static void level(int lev);
-static void silent();
+static void silent(void);
 static void preload(char *module);
-static void unified();
+static void unified(void);
 static void format(char *form);
 
 
@@ -249,6 +249,7 @@ int main(int argc, char *argv[])
     initTree();
     initTypes();
     initXml();
+    initXsd();
     
     for (i = 1; i < argc; i++)
 	if ((strstr(argv[i], "-c") == argv[i]) ||

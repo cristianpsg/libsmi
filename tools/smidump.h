@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.22 2001/01/30 16:33:43 schoenw Exp $
+ * @(#) $Id: smidump.h,v 1.23 2001/08/22 14:46:55 schoenw Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -86,25 +86,26 @@ typedef struct SmidumpDriver {
  * smidump.
  */
 
-extern void initSmi();
-extern void initSming();
-extern void initImports();
-extern void initTypes();
-extern void initTree();
-extern void initIdentifiers();
-extern void initMetrics();
-extern void initMosy();
-extern void initXml();
-extern void initCorba();
-extern void initCm();
-extern void initNetsnmp();
-extern void initJax();
-extern void initPython();
-extern void initPerl();
-extern void initScli();
+extern void initSmi(void);
+extern void initSming(void);
+extern void initImports(void);
+extern void initTypes(void);
+extern void initTree(void);
+extern void initIdentifiers(void);
+extern void initMetrics(void);
+extern void initMosy(void);
+extern void initXml(void);
+extern void initCorba(void);
+extern void initCm(void);
+extern void initNetsnmp(void);
+extern void initJax(void);
+extern void initPython(void);
+extern void initPerl(void);
+extern void initScli(void);
+extern void initXsd(void);
 
-extern void initSql();
-extern void initFig();
+extern void initSql(void);
+extern void initFig(void);
 
 
 /*
