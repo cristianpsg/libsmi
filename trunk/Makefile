@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.5 1998/11/25 14:36:33 strauss Exp $
+# @(#) $Id: Makefile,v 1.6 1998/11/27 10:55:25 strauss Exp $
 #
 
 MIBDIR	= ../scotty/tnm/mibs
@@ -30,7 +30,7 @@ libsmi.a:
 parser.y.html: src/parser.y
 	make -C src parser.y.html
 
-install-prg: miblint mibs.conf
+install-prg: miblint smiclient smiquery smid smi.h libsmi.a
 	cp smi.conf ${PREFIX}/etc/smi.conf
 	cp smid.conf ${PREFIX}/etc/smid.conf
 	cp smiquery.conf ${PREFIX}/etc/smiquery.conf
@@ -56,7 +56,7 @@ clean:
 	rm -f core
 
 clobber: clean
-	rm -f miblint libsmi.h libsmi.a parser.y.html smid smiclient
+	rm -f miblint libsmi.h libsmi.a parser.y.html smid smiclient smiquery
 
 dist:
 	rm -f mibs.tar.gz

@@ -1,7 +1,7 @@
 #
 # This is the libsmi/src Makefile.
 #
-# @(#) $Id: Makefile,v 1.15 1998/11/27 10:55:26 strauss Exp $
+# @(#) $Id: Makefile,v 1.16 1998/11/27 15:32:09 strauss Exp $
 #
 
 CC	= gcc
@@ -107,7 +107,7 @@ clean:
 	rm -f scanner-flex.c scanner-flex.o
 	rm -f parser-bison.c parser-bison-buggy.c parser-bison.h parser-bison.o
 	rm -f error.o lint.o data.o interface.o config.o smiclient.o
-	rm -f smi_clnt.o smiclient smi_svc_init.o smid.c
+	rm -f smi_clnt.o smiclient smi_svc_init.o smid.c smiquery smiquery.o
 	rm -f core miblint libsmi.a smid.o smid smi_svc.o smid.o smi_xdr.o
 	rm -f smi.h smi_svc_proc.o smi_xdr.c smi_svc.c smi_clnt.c smi.o
 	rm -f y.tab.c y.tab.h y.output yacc.debug yacc.acts yacc.tmp

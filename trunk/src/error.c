@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.6 1998/11/20 17:10:10 strauss Exp $
+ * @(#) $Id: error.c,v 1.7 1998/11/21 18:16:14 strauss Exp $
  */
 
 #include <string.h>
@@ -193,6 +193,8 @@ Error errors[] = {
       "Unknown MIB location type `%s'" },
     { 1, ERR_ALLOCATING_NODE,
       "Allocating MIB object node: %s" },
+    { 1, ERR_ALLOCATING_VIEW,
+      "Allocating MIB module view: %s" },
  
     { 0, 0, NULL }
 };
