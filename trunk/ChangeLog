@@ -1,6 +1,9 @@
 2000-03-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
-	* lib/data.h: changed //-comment to /* comment */
+	* lib/data.h: changed //-comment to /* comment */.
+
+	* tools/dump-sming.c: modified quoted string indentation from
+	absoulte to relative.
 
 2000-03-20  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
