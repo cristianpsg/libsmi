@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.32 2000/11/29 16:35:26 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.33 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -108,10 +108,12 @@ static FILE * createFile(char *name, char *suffix)
 static char *getJavaType(SmiType *smiType)
 {
     int i;
-    
-    for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
-        if (smiType->basetype == convertType[i].basetype)
-            return convertType[i].javatype;
+
+    if (smiType) {
+    	for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
+	    if (smiType->basetype == convertType[i].basetype)
+		return convertType[i].javatype;
+	}
     }
 
     return "<UNKNOWN>";
@@ -124,26 +126,28 @@ static char *getAgentXType(SmiType *smiType)
     int i;
     SmiType *parentType;
     SmiModule *smiModule;
-    
-    parentType = smiGetParentType(smiType);
-    if (parentType) {
-        smiModule = smiGetTypeModule(parentType);
-        if (smiModule && strlen(smiModule->name)) {
-            smiType = parentType;
-        }
-    }
-    
-    for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
-        if (smiType->basetype == convertType[i].basetype) {
-            if (!convertType[i].smitype) {
-                return convertType[i].agentxtype;
-            }
-            if ((smiType->name) &&
-                (!strcmp(convertType[i].smitype, smiType->name))) {
-                return convertType[i].agentxtype;
-            }
-        }
-        
+
+    if (smiType) {
+	
+	parentType = smiGetParentType(smiType);
+	if (parentType) {
+	    smiModule = smiGetTypeModule(parentType);
+	    if (smiModule && strlen(smiModule->name)) {
+		smiType = parentType;
+	    }
+	}
+	
+	for(i=0; convertType[i].basetype != SMI_BASETYPE_UNKNOWN; i++) {
+	    if (smiType->basetype == convertType[i].basetype) {
+		if (!convertType[i].smitype) {
+		    return convertType[i].agentxtype;
+		}
+		if ((smiType->name) &&
+		    (!strcmp(convertType[i].smitype, smiType->name))) {
+		    return convertType[i].agentxtype;
+		}
+	    }
+	}
     }
 
     return "<UNKNOWN>";
@@ -452,6 +456,7 @@ static void dumpEntry(SmiNode *smiNode)
          columnNode = smiGetNextChildNode(columnNode)) {
         
         smiType = smiGetNodeType(columnNode);
+	if (!smiType) continue;
         p = getJavaType(smiType);
         if (!strcmp(p, "long")) {
             strcpy(init, "0");
@@ -738,6 +743,7 @@ static void dumpEntryImpl(SmiNode *smiNode)
          columnNode;
          columnNode = smiGetNextChildNode(columnNode)) {
         smiType = smiGetNodeType(columnNode);
+	if (!smiType) continue;
         if (columnNode->access >= SMI_ACCESS_NOTIFY) {
             fprintf(f,
                     "    public %s get_%s()\n"
