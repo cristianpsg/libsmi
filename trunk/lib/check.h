@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.h,v 1.9 2001/10/09 10:58:45 strauss Exp $
+ * @(#) $Id: check.h,v 1.10 2002/01/31 18:19:45 schoenw Exp $
  */
 
 #ifndef _CHECK_H
@@ -56,6 +56,8 @@ extern void smiCheckNotificationOid(Parser *parser, Module *module,
 				    Object *object);
 
 extern void smiCheckNotificationMembers(Parser *parser, Object *object);
+
+extern void smiCheckUniqueness(Parser *parser, Object *object);
 
 extern void smiyyerror(char *msg, Parser *parserPtr);
 

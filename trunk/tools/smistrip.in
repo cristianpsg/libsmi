@@ -2,14 +2,14 @@
 #
 # smistrip --
 #
-#	Extract MIB modules from text files, like RFCs or I-Ds.
+#	Extract MIB and PIB modules from text files, like RFCs or I-Ds.
 #
 # Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 #
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# $Id: smistrip.in,v 1.4 2000/10/18 07:47:32 strauss Exp $
+# $Id: smistrip.in,v 1.5 2001/06/12 10:44:08 strauss Exp $
 #
 # NOTE, that this script relies on awk (tested with GNU awk) and getopts
 # (shell builtin like in bash or standalone).
@@ -44,7 +44,7 @@ do_strip () {
     $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
     # start of module
-    /^[ \t]*[A-Za-z0-9-]* *DEFINITIONS */ {
+    /^[ \t]*[A-Za-z0-9-]* *(PIB-)?DEFINITIONS */ {
 	module = $1
 	skip = 9
 	skipped = -1
@@ -57,8 +57,10 @@ do_strip () {
 	# at the end of a page we go back one line (which is expected to
 	# be a separator line), and start the counter skipped to skip the
 	# next few lines.
-	if ($0 ~ /\[Page [iv0-9]*\] */) {
-	    n--
+	if ($0 ~ /\[[pP]age [iv0-9]*\] */) {
+            # some drafts do not use that separator line. so keep it if
+            # there are non-blank characters.
+            if (!(line[n] ~ /^[ \t]*$/)) { print "WARNING: the line ::"line[n]":: should be a separator before a page break. It was kept. " ; n-- }
 	    skipped = 0
 	}
 
@@ -100,9 +102,12 @@ do_strip () {
 		strip = 99
 		for (i=0 ; i < n ; i++) {
 		    # find the minimum column that contains non-blank characters
-		    # in order to cut a blank prefix off.
-		    p = match(line[i], "[^ ]")
-		    if ((p < strip) && (length(line[i]) > p)) { strip = p }
+		    # in order to cut a blank prefix off. Ignore lines that only
+                    # contain white spaces.
+                    if (!(line[i] ~ /^[ \t]*$/)) {
+        	        p = match(line[i], "[^ ]")
+		        if ((p < strip) && (length(line[i]) > p)) { strip = p }
+                    }
 		}
     
 		if (test != "1") {

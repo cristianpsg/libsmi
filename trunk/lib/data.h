@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.76 2001/12/14 10:09:51 strauss Exp $
+ * @(#) $Id: data.h,v 1.77 2002/04/22 15:09:15 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -176,6 +176,11 @@ typedef struct Index {
 } Index;
 
 
+typedef struct SuubjectCategories {
+    struct List *categories;
+    int         allCategories;
+} SubjectCategories;
+
 
 typedef struct Object {
     SmiNode        export;
@@ -191,6 +196,11 @@ typedef struct Object {
     struct Object  *nextPtr;
     struct Object  *prevSameNodePtr;    /* chain of Objects for this Node  */
     struct Object  *nextSameNodePtr;
+    struct Object  *pibReferencesPtr;   /* PIB-REFERENCES */
+    struct Object  *pibTagPtr;          /* PIB-TAG */
+    int            allSubjectCategories;/* SUBJECT-CATEGORIES all, others are stored in listPtr */
+    struct List    *uniquenessPtr;      /* UNIQUENESS */
+    struct List    *installErrorsPtr;   /* INSTALL-ERRORS */
     int		   line;
 } Object;
 
@@ -388,8 +398,18 @@ extern void setObjectReference(Object *objectPtr,
 			       char *reference,
 			       Parser *parserPtr);
 
+extern void setObjectPibReferences(Object *objectPtr,
+			           Object *pibReferencesPtr);
+
+extern void setObjectPibTag(Object *objectPtr,
+			    Object *pibTagPtr);
+
 extern void setObjectDecl(Object *objectPtr,
 			   SmiDecl decl);
+
+extern void setObjectUniqueness(Object *objectPtr, List *listPtr);
+
+extern void setObjectInstallErrors(Object *objectPtr, List *listPtr);
 
 extern void setObjectLine(Object *objectPtr,
 			  int line,
@@ -432,6 +452,8 @@ extern void setObjectUnits(Object *objectPtr,
 
 extern void setObjectValue(Object *objectPtr,
 			   SmiValue *valuePtr);
+
+extern void setObjectSubjectCategories(Object *objectPtr, int allCategories);
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);
