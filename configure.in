@@ -8,16 +8,16 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.83 2000/11/14 13:27:55 strauss Exp $
+# @(#) $Id: configure.in,v 1.84 2000/11/16 14:58:03 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=2
-LIBSMI_PATCHLEVEL=8
+LIBSMI_PATCHLEVEL=9
 LIBTOOL_VERSION=2	# increment, when MAJOR and/or MINOR changes
-LIBTOOL_REVISION=8	# increment, when PATCHLEVEL changes
+LIBTOOL_REVISION=9	# increment, when PATCHLEVEL changes
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
@@ -107,7 +107,7 @@ if test "$dirseparator" = "" ; then
 	  exit(1);
     #endif
     }
-  ], dirseparator="\\", dirseparator="/", dirseparator="/")
+  ], dirseparator="\\\\", dirseparator="/", dirseparator="/")
 fi
 echo $dirseparator
 
@@ -144,9 +144,9 @@ AC_DEFINE_UNQUOTED(UINT64_TYPE, $uint64_type)
 AC_DEFINE_UNQUOTED(INT64_TYPE, $int64_type)
 AC_DEFINE_UNQUOTED(UINT64_FORMAT, "$uint64_format")
 AC_DEFINE_UNQUOTED(INT64_FORMAT, "$int64_format")
-AC_DEFINE_UNQUOTED(UINT64_MAX, $uint64_max)
-AC_DEFINE_UNQUOTED(INT64_MIN, $int64_min)
-AC_DEFINE_UNQUOTED(INT64_MAX, $int64_max)
+AC_DEFINE_UNQUOTED(LIBSMI_UINT64_MAX, $uint64_max)
+AC_DEFINE_UNQUOTED(LIBSMI_INT64_MIN, $int64_min)
+AC_DEFINE_UNQUOTED(LIBSMI_INT64_MAX, $int64_max)
 
 
 AC_ARG_ENABLE(dmalloc,
