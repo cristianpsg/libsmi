@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.41 2002/05/31 17:22:13 bunkus Exp $
+ * @(#) $Id: check.c,v 1.42 2002/07/23 09:33:00 strauss Exp $
  */
 
 #include <config.h>
@@ -1405,7 +1405,6 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 }
 
 
-
 static char *status[] = { "Unknown", "current", "deprecated",
 			  "mandatory", "optional", "obsolete" };
 
@@ -1638,7 +1637,7 @@ smiCheckGroupMembership(Parser *parser, Object *objectPtr)
 	found = (objectPtr->flags & FLAG_INCOMPLIANCE);
 
 	if (!found && objectPtr->export.status != SMI_STATUS_OBSOLETE) {
-	    smiPrintErrorAtLine(parser, ERR_GROUP_OPTIONAL,
+	    smiPrintErrorAtLine(parser, ERR_GROUP_UNREF,
 				objectPtr->line,
 				status[objectPtr->export.status],
 				objectPtr->export.name);
