@@ -1,3 +1,8 @@
+2000-05-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-jax.c (dumpEntry): changed *EntryImpl classes to
+	use the super() method.
+
 2000-05-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/smidump.c: Patch from Juergen: flags can now be passed
