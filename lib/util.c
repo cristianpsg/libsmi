@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.8 1999/05/25 17:00:35 strauss Exp $
+ * @(#) $Id: util.c,v 1.9 1999/05/31 11:58:38 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -18,34 +18,26 @@
 #include <time.h>
 
 #include "smi.h"
-#include "defs.h"
 #include "error.h"
 #include "parser-smi.h"
 
 
 
-void *
-util_malloc(size)
-    size_t  size;
+void *util_malloc(size_t size)
 {
     return calloc(size, 1);
 }
 
 
 
-void *
-util_realloc(ptr, size)
-    void    *ptr;
-    size_t  size;
+void *util_realloc(void *ptr, size_t size)
 {
     return realloc(ptr, size);
 }
 
 
 
-char *
-util_strdup(s1)
-    const char *s1;
+char *util_strdup(const char *s1)
 {
     if (s1) {
 	return strdup(s1);
@@ -56,10 +48,7 @@ util_strdup(s1)
 
 
 
-char *
-util_strndup(s1, n)
-    const char *s1;
-    size_t     n;
+char *util_strndup(const char *s1, size_t n)
 {
     char *p;
     
@@ -71,10 +60,7 @@ util_strndup(s1, n)
 
 
 
-int
-util_strcmp(s1, s2)
-    const char *s1;
-    const char *s2;
+int util_strcmp(const char *s1, const char *s2)
 {
     if ((!s1) || (!s2))
 	return -1;
@@ -84,9 +70,7 @@ util_strcmp(s1, s2)
 
 
 
-void
-util_free(ptr)
-    void *ptr;
+void util_free(void *ptr)
 {
     if (ptr) {
 	free(ptr);
@@ -94,9 +78,15 @@ util_free(ptr)
 }
 
 
-time_t
-smiMkTime(s)
-    const char *s;
+
+int util_ispath(char *s)
+{
+    return (strchr(s, '.') || strchr(s, '/'));
+}
+
+
+
+time_t smiMkTime(const char *s)
 {
     struct tm  tm;
     char       tmp[3];

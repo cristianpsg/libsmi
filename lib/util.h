@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.6 1999/05/25 17:00:35 strauss Exp $
+ * @(#) $Id: util.h,v 1.7 1999/05/31 11:58:39 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -20,7 +20,6 @@
 #include <time.h>
 
 #include "smi.h"
-#include "defs.h"
 #include "error.h"
 #include "parser-smi.h"
 
@@ -37,6 +36,8 @@ extern char *util_strndup(const char *s1, size_t n);
 extern int util_strcmp(const char *s1, const char *s2);
 
 extern void util_free(void *ptr);
+
+extern int util_ispath(const char *s);
 
 extern time_t smiMkTime(const char *s);
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.15 1999/05/31 11:58:34 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.16 1999/06/02 16:52:34 strauss Exp $
  */
 
 %{
@@ -22,7 +22,6 @@
 #include <ctype.h>
 #include <limits.h>
     
-#include "defs.h"
 #include "smi.h"
 #include "error.h"
 #include "parser-sming.h"

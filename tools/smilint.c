@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.11 1999/05/28 14:10:31 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.12 1999/05/31 11:58:42 strauss Exp $
  */
 
 #include <stdio.h>
@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "defs.h"
 #include "smi.h"
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.8 1999/05/25 17:00:28 strauss Exp $
+ * @(#) $Id: error.h,v 1.9 1999/05/31 11:58:32 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -106,7 +106,6 @@
 extern int line;			 /* Current line in source file.     */
 extern int column;			 /* Current column in current line.  */
 extern int character;			 /* Current absolute byte position.  */
-extern char linebuf[MAX_LINEBUF_LENGTH]; /* Current line up to current pos.  */
 
 extern int errorLevel;                   /* Higher level for more warnings   */
 
