@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.35 2000/02/07 16:10:41 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.36 2000/02/08 14:46:03 strauss Exp $
  */
 
 #include <stdio.h>
@@ -158,16 +158,20 @@ char *formatoid(unsigned int oidlen, SmiSubid *oid)
 }
 
 
-char *formattype(const char *module, const char *name)
+char *formattype(SmiType *type)
 {
     static char ss[200];
-
-    if (!name) {
+    SmiModule *module;
+    
+    if (!type) {
 	strcpy(ss, "<unknown>");
-    } else if (!module) {
-	strcpy(ss, name);
     } else {
-	sprintf(ss, "%s::%s", module, name);
+	module = smiGetTypeModule(type);
+	if (!module || !strlen(module->name)) {
+	    strcpy(ss, type->name);
+	} else {
+	    sprintf(ss, "%s::%s", module->name, type->name);
+	}
     }
     return ss;
 }
@@ -368,15 +372,14 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "node")) {
-	node = smiGetNode(name, NULL);
+	node = smiGetNode(NULL, name);
 	if (node) {
+	    module = smiGetNodeModule(node);
 	    type = smiGetNodeType(node);
-	    
-	    printf("     MibNode: %s\n", format(node->name));
-	    printf("      Module: %s\n", format(node->module));
+	    printf("     MibNode: %s", format(module->name));
+	    printf("::%s\n", format(node->name));
 	    printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
-	    printf("        Type: %s\n",
-		         formattype(smiGetTypeModule(type)->name, type->name));
+	    printf("        Type: %s\n", formattype(type));
 	    printf("    Basetype: %s\n", smiStringBasetype(node->basetype));
 	    printf("     Default: %s\n", formatvalue(&node->value));
 	    printf(" Declaration: %s\n", smiStringDecl(node->decl));
@@ -393,12 +396,13 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "parent")) {
-	child = smiGetNode(name, NULL);
+	child = smiGetNode(NULL, name);
 	if (child) {
 	    node = smiGetParentNode(child);
+	    module = smiGetNodeModule(node);
 	    if (node) {
-		printf("     MibNode: %s\n", format(node->name));
-		printf("      Module: %s\n", format(node->module));
+		printf("     MibNode: %s", format(module->name));
+		printf("::%s\n", format(node->name));
 		printf("         OID: %s\n", formatoid(node->oidlen, node->oid));
 		smiFreeNode(node);
 	    }
@@ -407,7 +411,7 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "compliance")) {
-	node = smiGetNode(name, NULL);
+	node = smiGetNode(NULL, name);
 	if (node) {
 	    printf("   Mandatory:");
 	    for(listitem = smiGetFirstListItem(node);
@@ -418,7 +422,8 @@ int main(int argc, char *argv[])
 	    for(option = smiGetFirstOption(node);
 		option ; option = smiGetNextOption(option)) {
 		node = smiGetOptionNode(option);
-		printf("      Option: %s::%s\n", node->module, node->name);
+		module = smiGetNodeModule(node);
+		printf("      Option: %s::%s\n", module->name, node->name);
 		printf(" Description: %s\n\n", format(option->description));
 	    }
 	    printf("\n");
@@ -450,7 +455,7 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "index")) {
-	node = smiGetNode(name, NULL);
+	node = smiGetNode(NULL, name);
 	if (node) {
 	    printf("       Index:");
 	    for(listitem = smiGetFirstListItem(node);
@@ -463,7 +468,7 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "members")) {
-	node = smiGetNode(name, NULL);
+	node = smiGetNode(NULL, name);
 	if (node) {
 	    printf("     Members:");
 	    for(listitem = smiGetFirstListItem(node);
@@ -476,12 +481,13 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(command, "children")) {
-	node = smiGetNode(name, NULL);
+	node = smiGetNode(NULL, name);
 	if (node) {
 	    printf("    Children:");
 	    for(child = smiGetFirstChildNode(node);
 		child ; child = smiGetNextChildNode(child)) {
-		printf(" %s::%s", child->module, child->name);
+		module = smiGetNodeModule(child);
+		printf(" %s::%s", module->name, child->name);
 	    }
 	    printf("\n");
 	    smiFreeNode(node);
@@ -492,10 +498,9 @@ int main(int argc, char *argv[])
 	type = smiGetType(NULL, name);
 	if (type) {
 	    parenttype = smiGetParentType(type);
-	    printf("        Type: %s\n", format(type->name));
+	    printf("        Type: %s\n", formattype(type));
 	    printf("    Basetype: %s\n", smiStringBasetype(type->basetype));
-	    printf(" Parent Type: %s\n", parenttype ?
-                         		   format(parenttype->name) : "-");
+	    printf(" Parent Type: %s\n", formattype(parenttype));
 	    printf("     Default: %s\n", formatvalue(&type->value));
 	    printf("Restrictions:");
 	    if ((type->basetype == SMI_BASETYPE_ENUM) ||

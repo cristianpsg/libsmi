@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.30 2000/02/06 23:30:59 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.31 2000/02/08 14:46:03 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -278,7 +278,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     append[0] = 0;
 
     parentNode = smiNode;
-    smiModule = smiGetModule(smiNode->module);
+    smiModule = smiGetNodeModule(smiNode);
     
     do {
 	
@@ -304,9 +304,9 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiModule, parentNode->module, parentNode->name) ||
+	    (smiIsImported(smiModule, parentNode) ||
 	     (!importedParent &&
-	      !strcmp(parentNode->module, smiNode->module)))) {
+	      (smiGetNodeModule(parentNode) == smiModule)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    smiFreeNode(parentNode);
 	    return s;
@@ -344,7 +344,8 @@ static int isObjectGroup(SmiNode *groupNode)
     for (smiListItem = smiGetFirstListItem(groupNode); smiListItem;
 	 smiListItem = smiGetNextListItem(smiListItem)) {
 
-	smiNode = smiGetNode(smiListItem->module, smiListItem->name);
+	smiNode = smiGetNode(smiGetModule(smiListItem->module),
+			     smiListItem->name);
 	
 	if (smiNode->nodekind != SMI_NODEKIND_SCALAR
 	    && smiNode->nodekind != SMI_NODEKIND_COLUMN) {
@@ -367,7 +368,8 @@ static int isNotificationGroup(SmiNode *groupNode)
     for (smiListItem = smiGetFirstListItem(groupNode); smiListItem;
 	 smiListItem = smiGetNextListItem(smiListItem)) {
 
-	smiNode = smiGetNode(smiListItem->module, smiListItem->name);
+	smiNode = smiGetNode(smiGetModule(smiListItem->module),
+			     smiListItem->name);
 	
 	if (smiNode->nodekind != SMI_NODEKIND_NOTIFICATION) {
 	    return 0;
@@ -439,10 +441,9 @@ static void createImportList(SmiModule *smiModule)
     SmiImport   *smiImport;
     SmiModule	*smiModule2;
     
-    for(smiNode = smiGetFirstNode(smiModule->name, kind); smiNode;
+    for(smiNode = smiGetFirstNode(smiModule, kind); smiNode;
 	smiNode = smiGetNextNode(smiNode, kind)) {
-	smiType = smiGetType(smiGetModule(smiNode->typemodule),
-			     smiNode->typename);
+	smiType = smiGetNodeType(smiNode);
 	if (smiType) {
 	    smiModule2 = smiGetTypeModule(smiType);
 	    if (smiModule2 && (smiModule2 != smiModule)) {
@@ -463,7 +464,7 @@ static void createImportList(SmiModule *smiModule)
 	}
     }
 
-    smiNode = smiGetFirstNode(smiModule->name,
+    smiNode = smiGetFirstNode(smiModule,
 			      SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN
 			      | SMI_NODEKIND_TABLE | SMI_NODEKIND_ROW);
     if (smiNode) {
@@ -471,7 +472,7 @@ static void createImportList(SmiModule *smiModule)
 	smiFreeNode(smiNode);
     }
 
-    smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_NOTIFICATION);
+    smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
     if (smiNode) {
 	addImport(smiv1 ? "RFC-1215" : "SNMPv2-SMI",
 		  smiv1 ? "TRAP-TYPE" : "NOTIFICATION-TYPE");
@@ -479,7 +480,7 @@ static void createImportList(SmiModule *smiModule)
     }
 
     if (! smiv1) {
-	smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_MODULE);
+	smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_MODULE);
 	if (smiNode) {
 	    addImport("SNMPv2-SMI", "MODULE-IDENTITY");
 	    smiFreeNode(smiNode);
@@ -487,7 +488,7 @@ static void createImportList(SmiModule *smiModule)
     }
     
     if (! smiv1) {
-	for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_NODE);
+	for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
 	    smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 	    if (smiNode->description) {
 		addImport("SNMPv2-SMI", "OBJECT-IDENTITY");
@@ -498,7 +499,7 @@ static void createImportList(SmiModule *smiModule)
     }
 
     if (! smiv1) {
-	smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_COMPLIANCE);
+	smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_COMPLIANCE);
 	if (smiNode) {
 	    addImport("SNMPv2-CONF", "MODULE-COMPLIANCE");
 	    smiFreeNode(smiNode);
@@ -506,7 +507,7 @@ static void createImportList(SmiModule *smiModule)
     }
 
     if (! smiv1) {
-	for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_GROUP);
+	for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_GROUP);
 	    smiNode;
 	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 	    if (isObjectGroup(smiNode)) {
@@ -998,9 +999,9 @@ static void printTextualConventions(SmiModule *smiModule)
 
 
 
-static void printObjects(char *modulename)
+static void printObjects(SmiModule *smiModule)
 {
-    SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode;
+    SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode, *relatedNode;
     SmiType	 *smiType;
     SmiNodekind  nodekinds;
     int		 i, invalid, create, assignement;
@@ -1008,7 +1009,7 @@ static void printObjects(char *modulename)
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
 	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
     
-    for(smiNode = smiGetFirstNode(modulename, nodekinds);
+    for(smiNode = smiGetFirstNode(smiModule, nodekinds);
 	smiNode; smiNode = smiGetNextNode(smiNode, nodekinds)) {
 
 	smiParentNode = smiGetParentNode(smiNode);
@@ -1045,15 +1046,17 @@ static void printObjects(char *modulename)
 	    }
 	}
 
+	smiType = smiGetNodeType(smiNode);
 	if ((smiNode->nodekind == SMI_NODEKIND_TABLE) ||
 	    (smiNode->nodekind == SMI_NODEKIND_ROW) ||
-	    (smiNode->typename)) {
+	    (smiType)) {
 	    printSegment(INDENT, "SYNTAX", INDENTVALUE, invalid);
 	    if (smiNode->nodekind == SMI_NODEKIND_TABLE) {
 		print("SEQUENCE OF ");
 		rowNode = smiGetFirstChildNode(smiNode);
-		if (rowNode->typename) {
-		    print("%s\n", rowNode->typename);
+		smiType = smiGetNodeType(rowNode);
+		if (smiType) {
+		    print("%s\n", smiType->name);
 		} else {
 		    /* guess typename is uppercase row name */
 		    char *s = getUppercaseString(rowNode->name);
@@ -1063,8 +1066,8 @@ static void printObjects(char *modulename)
 		smiFreeNode(rowNode);
 		/* TODO: print non-local name qualified */
 	    } else if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-		if (smiNode->typename) {
-		    print("%s\n", smiNode->typename);
+		if (smiType) {
+		    print("%s\n", smiType->name);
 		} else {
 		    char *s = getUppercaseString(smiNode->name);
 		    /* guess typename is uppercase row name */
@@ -1072,24 +1075,20 @@ static void printObjects(char *modulename)
 		    xfree(s);
 		}
 		/* TODO: print non-local name qualified */
-	    } else if (smiNode->typename) {
-		if (islower((int)smiNode->typename[0])) {
+	    } else if (smiType) {
+		if (islower((int)smiType->name[0])) {
 		    /*
 		     * an implicitly restricted type.
 		     */
-		    smiType = smiGetType(smiGetModule(smiNode->typemodule),
-					 smiNode->typename);
-		    print("%s", getTypeString(modulename,
+		    print("%s", getTypeString(smiModule->name,
 					      smiType->basetype,
 					      smiGetParentType(smiType)));
 		    printSubtype(smiType);
 		    print("\n");
 		} else {
 		    print("%s\n",
-			  getTypeString(modulename,
-					smiNode->basetype,
-				 smiGetType(smiGetModule(smiNode->typemodule),
-					    smiNode->typename)));
+			  getTypeString(smiModule->name,
+					smiNode->basetype, smiType));
 		}
 	    }
 	}
@@ -1127,7 +1126,8 @@ static void printObjects(char *modulename)
 	    printMultilineString(smiNode->reference, smiv1 || invalid);
 	    print("\n");
 	}
-	    
+
+	relatedNode = smiGetRelatedNode(smiNode);
 	switch (smiNode->indexkind) {
 	case SMI_INDEX_INDEX:
 	case SMI_INDEX_REORDER:
@@ -1138,27 +1138,19 @@ static void printObjects(char *modulename)
 	    break;
 	case SMI_INDEX_AUGMENT:
 	    if (smiv1 && ! invalid) {
-		SmiNode *indexNode;
-		indexNode = smiGetNode(smiNode->relatedmodule,
-				       smiNode->relatedname);
-		if (indexNode) {
-		    printIndex(indexNode, invalid);
-		    smiFreeNode(indexNode);
+		if (relatedNode) {
+		    printIndex(relatedNode, invalid);
 		}
 	    }
-	    if (! smiv1 || ! silent) {
+	    if ((! smiv1 || ! silent) && relatedNode) {
 		printSegment(INDENT, "AUGMENTS", INDENTVALUE, smiv1 || invalid);
-		print("{ %s }\n", smiNode->relatedname);
+		print("{ %s }\n", relatedNode->name);
 	    }
 	    break;
 	case SMI_INDEX_SPARSE:
 	    if (! invalid) {
-		SmiNode *indexNode;
-		indexNode = smiGetNode(smiNode->relatedmodule,
-				       smiNode->relatedname);
-		if (indexNode) {
-		    printIndex(indexNode, invalid);
-		    smiFreeNode(indexNode);
+		if (relatedNode) {
+		    printIndex(relatedNode, invalid);
 		}
 	    }
 	    /* TODO: non-local name if non-local */
@@ -1166,6 +1158,7 @@ static void printObjects(char *modulename)
 	case SMI_INDEX_UNKNOWN:
 	    break;
 	}
+	smiFreeNode(relatedNode);
 	
 	if (smiNode->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    printSegment(INDENT, "DEFVAL", INDENTVALUE, invalid);
@@ -1176,9 +1169,10 @@ static void printObjects(char *modulename)
 	printSegment(INDENT, "::= ", 0, invalid);
 	print("{ %s }\n\n", getOidString(smiNode, 0));
 
+	smiType = smiGetNodeType(smiNode);
 	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-	    if (smiNode->typename) {
-		print("%s ::=\n", smiNode->typename);
+	    if (smiType) {
+		print("%s ::=\n", smiType->name);
 	    } else {
 		/* guess typename is uppercase row name */
 		char *s = getUppercaseString(smiNode->name);
@@ -1197,23 +1191,21 @@ static void printObjects(char *modulename)
 		    print("\n");
 		}
 		
-		smiType = smiGetType(smiGetModule(colNode->typemodule),
-				     colNode->typename);
+		smiType = smiGetNodeType(colNode);
 		invalid = invalidType(colNode->basetype);
 
 		if (! invalid || ! silent) {
 		    printSegment(2 * INDENT, colNode->name, INDENTSEQUENCE,
 				 invalid);
 		    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-			print("%s", getTypeString(modulename,
+			print("%s", getTypeString(smiModule->name,
 						  smiType->basetype,
 						  smiGetParentType(smiType)));
 		    } else {
 			print("%s",
-			      getTypeString(modulename,
+			      getTypeString(smiModule->name,
 					    colNode->basetype,
-				 smiGetType(smiGetModule(colNode->typemodule),
-					    colNode->typename)));
+				 smiGetNodeType(colNode)));
 		    }
 		}
 		if (smiType) {
@@ -1230,13 +1222,13 @@ static void printObjects(char *modulename)
 
 
 
-static void printNotifications(char *modulename)
+static void printNotifications(SmiModule *smiModule)
 {
     SmiNode	 *smiNode, *parentNode;
     SmiListItem  *listitem;
     int          j;
     
-    for(smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
@@ -1298,13 +1290,13 @@ static void printNotifications(char *modulename)
 
 
 
-static void printGroups(char *modulename)
+static void printGroups(SmiModule *smiModule)
 {
     SmiNode	 *smiNode;
     SmiListItem  *listitem;
     int          j, objectGroup = 0, notificationGroup = 0;
     
-    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_GROUP);
 	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 
 	objectGroup = isObjectGroup(smiNode);
@@ -1374,7 +1366,7 @@ static void printGroups(char *modulename)
 
 
 
-static void printModuleCompliances(char *modulename)
+static void printModuleCompliances(SmiModule *smiModule)
 {
     SmiNode	  *smiNode, *smiNode2;
     SmiModule     *smiModule2;
@@ -1387,7 +1379,7 @@ static void printModuleCompliances(char *modulename)
     char	  s[100];
     int		  j;
 
-    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_COMPLIANCE);
 	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
 	
 	if (smiv1) {
@@ -1423,11 +1415,11 @@ static void printModuleCompliances(char *modulename)
 	    
 	    /* `this module' always first */
 	    done = xstrdup("+");
-	    for (module = smiNode->module; module; ) {
+	    for (module = smiModule->name; module; ) {
 		
 		print("\n");
 		printSegment(INDENT, "MODULE", INDENTVALUE, smiv1);
-		if (strlen(module) && strcmp(modulename, module)) {
+		if (strlen(module) && strcmp(smiModule->name, module)) {
 		    print("%s\n", module);
 		} else {
 		    if (smiv1) {
@@ -1579,10 +1571,10 @@ static int dumpSmi(char *modulename)
     printModuleIdentity(smiModule);
     printTypeDefinitions(smiModule);
     printTextualConventions(smiModule);
-    printObjects(modulename);
-    printNotifications(modulename);
-    printGroups(modulename);
-    printModuleCompliances(modulename);
+    printObjects(smiModule);
+    printNotifications(smiModule);
+    printGroups(smiModule);
+    printModuleCompliances(smiModule);
     
     print("END -- end of module %s.\n", modulename);
 

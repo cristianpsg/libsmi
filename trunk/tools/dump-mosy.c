@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.13 2000/02/06 23:30:59 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.14 2000/02/07 16:10:41 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -89,7 +89,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
     append[0] = 0;
 
     parentNode = smiNode;
-    smiModule = smiGetModule(smiNode->module);
+    smiModule = smiGetNodeModule(smiNode);
     
     do {
 
@@ -115,9 +115,9 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	
 	/* found an imported or a local parent node? */
 	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiModule, parentNode->module, parentNode->name) ||
+	    (smiIsImported(smiModule, parentNode) ||
 	     (!importedParent &&
-	      !strcmp(parentNode->module, smiNode->module)))) {
+	      (smiGetNodeModule(parentNode) == smiModule)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    smiFreeNode(parentNode);
 	    return s;
@@ -215,12 +215,12 @@ static void printIndex(SmiNode *smiNode)
 
 
 
-static void printAssignements(char *modulename)
+static void printAssignements(SmiModule *smiModule)
 {
     int		 cnt = 0;
     SmiNode	 *smiNode;
     
-    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NODE);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
 	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 
 	cnt++;
@@ -277,16 +277,16 @@ static void printTypedefs(SmiModule *smiModule)
 
 
 
-static void printObjects(char *modulename)
+static void printObjects(SmiModule *smiModule)
 {
     int		   i, j, ignore, cnt = 0, aggregate, create;
     char	   *typename;
-    SmiNode	   *smiNode, *indexNode;
+    SmiNode	   *smiNode, *relatedNode;
     SmiType	   *smiType;
     SmiNamedNumber *smiNamedNumber;
     SmiRange       *smiRange;
     
-    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_ANY);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
 	if (smiNode->nodekind != SMI_NODEKIND_NODE
@@ -311,7 +311,7 @@ static void printObjects(char *modulename)
 	    || smiNode->nodekind == SMI_NODEKIND_ROW;
 
 	smiType = NULL;
-	if (!aggregate && smiNode->typemodule && smiNode->typename) {
+	if (!aggregate) {
 	    smiType = smiGetNodeType(smiNode);
 	}
 	typename = getBasetypeString(smiNode->basetype);
@@ -345,6 +345,7 @@ static void printObjects(char *modulename)
 	       getAccessString(smiNode->access, create),
 	       getStatusString(smiNode->status));
 
+	relatedNode = smiGetRelatedNode(smiNode);
 	switch (smiNode->indexkind) {
 	case SMI_INDEX_INDEX:
 	case SMI_INDEX_REORDER:
@@ -353,16 +354,14 @@ static void printObjects(char *modulename)
 	case SMI_INDEX_EXPAND:	/* TODO: we have to do more work here! */
 	    break;
 	case SMI_INDEX_AUGMENT:
-	    if (smiNode->relatedname) {
+	    if (relatedNode) {
 		printf("%%%-19s %-16s %s\n", "ea",
-		       smiNode->name, smiNode->relatedname);
+		       smiNode->name, relatedNode->name);
 	    }
 	    break;
 	case SMI_INDEX_SPARSE:
-	    indexNode = smiGetNode(smiNode->relatedmodule,
-				   smiNode->relatedname);
-	    if (indexNode) {
-		printIndex(indexNode);
+	    if (relatedNode) {
+		printIndex(relatedNode);
 	    }
 	    break;
 	case SMI_INDEX_UNKNOWN:
@@ -411,12 +410,12 @@ static void printObjects(char *modulename)
 
 
 
-static void printNotifications(char *modulename)
+static void printNotifications(SmiModule *smiModule)
 {
     int		 cnt = 0;
     SmiNode	 *smiNode;
     
-    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_NOTIFICATION);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NOTIFICATION);
 	 smiNode; 
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
 
@@ -433,13 +432,13 @@ static void printNotifications(char *modulename)
 
 
 
-static void printGroups(char *modulename)
+static void printGroups(SmiModule *smiModule)
 {
     SmiNode	*smiNode, *smiNodeMember;
     SmiListItem *smiListItem;
     int		cnt = 0, objects, notifications;
     
-    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_GROUP);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_GROUP);
 	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
 
 	cnt ++;
@@ -449,7 +448,8 @@ static void printGroups(char *modulename)
 	     smiListItem;
 	     smiListItem = smiGetNextListItem(smiListItem)) {
 
-	    smiNodeMember = smiGetNode(smiListItem->module, smiListItem->name);
+	    smiNodeMember = smiGetNode(smiGetModule(smiListItem->module),
+				       smiListItem->name);
 	    
 	    objects += 
 		(smiNodeMember->nodekind == SMI_NODEKIND_SCALAR)
@@ -472,12 +472,12 @@ static void printGroups(char *modulename)
 
 
 
-static void printCompliances(char *modulename)
+static void printCompliances(SmiModule *smiModule)
 {
     int		  cnt = 0;
     SmiNode	  *smiNode;
     
-    for (smiNode = smiGetFirstNode(modulename, SMI_NODEKIND_COMPLIANCE);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_COMPLIANCE);
 	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
 	
 	cnt++;
@@ -516,12 +516,12 @@ int dumpMosy(char *modulename, int flags)
 	smiFreeNode(smiNode);
     }
     
-    printAssignements(modulename);
+    printAssignements(smiModule);
     printTypedefs(smiModule);
-    printObjects(modulename);
-    printNotifications(modulename);
-    printGroups(modulename);
-    printCompliances(modulename);
+    printObjects(smiModule);
+    printNotifications(smiModule);
+    printGroups(smiModule);
+    printCompliances(smiModule);
 
     smiFreeModule(smiModule);
 

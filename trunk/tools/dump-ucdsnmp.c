@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.5 1999/12/21 09:16:36 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.6 2000/01/14 09:11:34 strauss Exp $
  */
 
 /*
@@ -184,7 +184,7 @@ static void printReadMethodDecls(SmiModule *smiModule)
     SmiNode   *smiNode;
     int       cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
@@ -212,7 +212,7 @@ static void printWriteMethodDecls(SmiModule *smiModule)
     SmiNode     *smiNode;
     int         cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (smiNode->access == SMI_ACCESS_READ_WRITE) {
@@ -299,7 +299,7 @@ static void printDefines(SmiModule *smiModule)
     SmiNode   *smiNode;
     int       cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
@@ -369,7 +369,7 @@ static void printInit(SmiModule *smiModule)
 	    
     printf("void init_%s()\n{\n", cModuleName);
 
-    for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
@@ -478,7 +478,7 @@ static void printReadMethods(SmiModule *smiModule)
     SmiNode   *smiNode;
     int       cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
@@ -504,7 +504,7 @@ static void printWriteMethods(SmiModule *smiModule)
     SmiNode     *smiNode;
     int         cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (smiNode->access == SMI_ACCESS_READ_WRITE) {
@@ -587,7 +587,7 @@ static void printTypedefs(SmiModule *smiModule)
     SmiNode   *smiNode;
     int       cnt = 0;
     
-    for(smiNode = smiGetFirstNode(smiModule->name, SMI_NODEKIND_ANY);
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode) && isAccessible(smiNode)) {
@@ -669,7 +669,7 @@ int dumpUcdC(char *modulename, int flags)
     printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
     printf(" *\n");
     printf(" * This C file is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.5 1999/12/21 09:16:36 strauss Exp $\n");
+    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.6 2000/01/14 09:11:34 strauss Exp $\n");
     printf(" */\n\n");
 
     printf("#define UCD_SNMP\n/* #define CMU_LINUX_SNMP */\n\n");

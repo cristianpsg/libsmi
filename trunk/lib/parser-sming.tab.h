@@ -8,7 +8,7 @@ typedef union {
     Object	   *objectPtr;
     Macro	   *macroPtr;
     Type	   *typePtr;
-    Index	   *indexPtr;
+    Index	   index;
     Option	   *optionPtr;
     Refinement	   *refinementPtr;
     SmiStatus	   status;

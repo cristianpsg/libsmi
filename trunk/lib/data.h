@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.47 2000/02/06 23:30:57 strauss Exp $
+ * @(#) $Id: data.h,v 1.48 2000/02/08 14:46:01 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -115,27 +115,6 @@ typedef struct Import {
 
 
 
-/* TODO: remove me?! 
-typedef struct Value {
-    SmiBasetype             basetype;
-    SmiValueformat	    format;
-    unsigned int	    len;
-    union {
-        SmiUnsigned64       unsigned64;
-        SmiInteger64        integer64;
-        SmiUnsigned32       unsigned32;
-        SmiInteger32        integer32;
-        SmiFloat32          float32;
-        SmiFloat64          float64;
-        SmiFloat128         float128;
-        SmiSubid	    *oid;
-        char                *ptr;
-        char                **bits;
-    } value;
-} Value;
-*/
-
-
 typedef struct NamedNumber {
     SmiNamedNumber export;
     struct Type    *typePtr;
@@ -151,25 +130,9 @@ typedef struct Range {
 
 
 typedef struct Type {
-    SmiType        export;      /* this MUST be the first element */
-    Module         *modulePtr;  /* this MUST be the second element */
-/*
-    char	   *name;
-    SmiBasetype	   basetype;
-    SmiDecl	   decl;
-    char	   *format;
-    char	   *units;
-    SmiStatus	   status;
-    char	   *description;
-    char	   *reference;
-
-    SmiValue	   *valuePtr;
-
-    char	   *parentmodule;
-    char	   *parentname;
-*/
+    SmiType        export;
+    Module         *modulePtr;
     struct Type    *parentPtr;
-    
     struct List    *listPtr;
     off_t          fileoffset;
     TypeFlags	   flags;
@@ -214,24 +177,15 @@ typedef struct Index {
 } Index;
 
 typedef struct Object {
+    SmiNode        export;
     Module         *modulePtr;
-    char	   *name;
     off_t	   fileoffset;
-    SmiDecl	   decl;
-    SmiNodekind	   nodekind;
     ObjectFlags	   flags;
     Type	   *typePtr;
-    SmiAccess	   access;
-    SmiStatus	   status;
-    struct Index   *indexPtr;
+    struct Object  *relatedPtr;         /* a related Object (augmented row) */
     struct List    *listPtr;	        /* OG, NT, NG, MC */
     struct List    *optionlistPtr;
     struct List    *refinementlistPtr;
-    char	   *description;
-    char	   *reference;
-    char	   *format;
-    char	   *units;
-    SmiValue	   *valuePtr;
     struct Node	   *nodePtr;
     struct Object  *prevPtr;		/* chain of Objects in this Module */
     struct Object  *nextPtr;
@@ -245,6 +199,8 @@ typedef struct Object {
 typedef struct Node {
     SmiSubid	   subid;
     NodeFlags	   flags;
+    int            oidlen;
+    SmiSubid       *oid;
     struct Node	   *parentPtr;
     struct Node	   *nextPtr;
     struct Node	   *prevPtr;
@@ -257,8 +213,8 @@ typedef struct Node {
 
 
 typedef struct Macro {
-    SmiMacro	   export;      /* this MUST be the first element */
-    Module	   *modulePtr;  /* this MUST be the second element */
+    SmiMacro	   export;
+    Module	   *modulePtr;
     off_t	   fileoffset;
     MacroFlags	   flags;
     struct Macro   *nextPtr;
@@ -413,6 +369,18 @@ extern void deleteObjectFlags(Object *objectPtr,
 
 extern void setObjectList(Object *objectPtr,
 			  struct List *listPtr);
+
+extern void setObjectRelated(Object *objectPtr,
+			     Object *relatedPtr);
+
+extern void setObjectImplied(Object *objectPtr,
+			     int implied);
+
+extern void setObjectCreate(Object *objectPtr,
+			    int create);
+
+extern void setObjectIndexkind(Object *objectPtr,
+			       SmiIndexkind indexkind);
 
 extern void setObjectIndex(Object *objectPtr,
 			   Index *indexPtr);
