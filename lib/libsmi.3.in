@@ -1,7 +1,7 @@
 .\"
-.\" $Id: libsmi.3.in,v 1.1 1999/06/01 20:47:16 strauss Exp $
+.\" $Id: libsmi.3.in,v 1.2 2000/02/10 22:35:04 strauss Exp $
 .\"
-.TH libsmi 3  "February 10, 2000" "IBR" "SMI Management Information Library"
+.TH libsmi 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
 libsmi \- library to access SMI management information
 .SH DESCRIPTION

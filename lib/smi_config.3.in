@@ -1,10 +1,20 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.9 1999/12/14 12:00:09 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.10 2000/02/11 10:44:11 strauss Exp $
 .\"
 .TH smi_config 3  "February 11, 2000" "IBR" "SMI Management Information Library"
 .SH NAME
-smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
-smiLoadModule, smiGetPath, smiSetPath \- SMI library
+.\" START OF MAN PAGE COPIES
+smiInit,
+smiExit,
+smiSetErrorLevel,
+smiGetFlags,
+smiSetFlags,
+smiLoadModule,
+smiGetPath,
+smiSetPath,
+smiReadConfig
+.\" END OF MAN PAGE COPIES
+\- SMI library
 configuration routines
 .SH SYNOPSIS
 .nf
@@ -86,6 +96,9 @@ module is made known through this function, iterating retrieval
 functions and retrieval functions without fully qualified identifiers
 will return results from this module. \fBsmiLoadModule()\fP returns the
 name of the loaded module, of NULL if it could not be loaded.
+.PP
+The \fBsmiLoadModule()\fP function returns a positive value if the
+module named \fImodule\fP is already loaded, or zero otherwise.
 .PP
 The \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions allow to
 fetch, modify, and set the path that is used to search MIB modules.

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.43 2000/02/10 14:29:28 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.44 2000/02/10 14:42:50 strauss Exp $
  */
 
 #include <stdio.h>
@@ -374,7 +374,7 @@ int main(int argc, char *argv[])
 	    if (module->reference)
 		printf("   Reference: %s\n", format(module->reference));
 	    printf("    Language: %s\n", smiStringLanguage(module->language));
-	    printf("      Loaded: %s\n", smiModuleLoaded(name) ? "yes" : "no");
+	    printf("      Loaded: %s\n", smiIsLoaded(name) ? "yes" : "no");
 	}
     }
 
