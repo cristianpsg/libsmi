@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.36 2001/03/15 17:38:38 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.37 2001/06/11 13:34:34 strauss Exp $
  */
 
 #include <config.h>
@@ -1218,7 +1218,7 @@ static void dumpNotifications(SmiNode *smiNode)
         }
         fprintf(f, 
                 "};\n"
-                "    private final static AgentXOID %s_OID = "
+                "    private final AgentXOID %s_OID = "
                 "new AgentXOID(OID%d",
                 elementNode->name, cnt);
         fprintf(f,");\n");
