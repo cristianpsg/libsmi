@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.93 2000/06/19 13:44:08 strauss Exp $
+ * @(#) $Id: smi.c,v 1.94 2000/06/28 16:01:29 strauss Exp $
  */
 
 #include <config.h>
@@ -216,7 +216,7 @@ static Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
 
 int smiInit(const char *tag)
 {
-    char *p;
+    char *p, *pp;
 #ifdef HAVE_PWD_H
     struct passwd *pw;
 #endif
@@ -232,35 +232,27 @@ int smiInit(const char *tag)
 	return -1;
     }
 
-    /* setup the smi MIB module search path */
-    p = getenv("SMIPATH");
-    if (p) {
-	if (p[0] == PATH_SEPARATOR) {
-	    smiPath = smiMalloc(strlen(p) + strlen(DEFAULT_SMIPATH));
-	    sprintf(smiPath, "%s%s", DEFAULT_SMIPATH, p);
-	} else if (p[strlen(p)-1] == PATH_SEPARATOR) {
-	    smiPath = smiMalloc(strlen(p) + strlen(DEFAULT_SMIPATH));
-	    sprintf(smiPath, "%s%s", p, DEFAULT_SMIPATH);
-	} else {
-	    smiPath = smiStrdup(p);
-	}
-    } else {
-	smiPath = smiStrdup(DEFAULT_SMIPATH);
-    }
-
-    if (!smiPath) {
-	return -1;
-    }
-
     /* need this here, otherwise smiReadConfig would call smiInit in loop */
     initialized = 1;
 
+    /*
+     * Setup the SMI MIB module search path:
+     *  1. set to builtin DEFAULT_SMIPATH
+     *  2. read global config file if present (append/prepend/replace)
+     *  3. read user config file if present (append/prepend/replace)
+     *  4. evaluate SMIPATH env-var if set (append/prepend/replace)
+     */
+
+    /* 1. set to builtin DEFAULT_SMIPATH */
+    smiPath = smiStrdup(DEFAULT_SMIPATH);
+
     if (tag) {
-	/* read global and user configuration */
+	/* 2. read global config file if present (append/prepend/replace) */
 	smiReadConfig(DEFAULT_GLOBALCONFIG, tag);
 #ifdef HAVE_PWD_H
 	pw = getpwuid(getuid());
 	if (pw && pw->pw_dir) {
+	    /* 3. read user config file if present (append/prepend/replace) */
 	    p = smiMalloc(strlen(DEFAULT_USERCONFIG) +
 			    strlen(pw->pw_dir) + 2);
 	    sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
@@ -269,7 +261,29 @@ int smiInit(const char *tag)
 	}
 #endif
     }
-    
+
+    /* 4. evaluate SMIPATH env-var if set (append/prepend/replace) */
+    p = getenv("SMIPATH");
+    if (p) {
+	if (p[0] == PATH_SEPARATOR) {
+	    pp = smiMalloc(strlen(p) + strlen(smiPath) + 1);
+	    sprintf(pp, "%s%s", smiPath, p);
+	    smiFree(smiPath);
+	    smiPath = pp;
+	} else if (p[strlen(p)-1] == PATH_SEPARATOR) {
+	    pp = smiMalloc(strlen(p) + strlen(smiPath) + 1);
+	    sprintf(pp, "%s%s", p, smiPath);
+	    smiFree(smiPath);
+	    smiPath = pp;
+	} else {
+	    smiPath = smiStrdup(p);
+	}
+    }
+
+    if (!smiPath) {
+	return -1;
+    }
+
     return 0;
 }
 
@@ -355,10 +369,22 @@ int smiReadConfig(const char *filename, const char *tag)
 	    if (!strcmp(cmd, "load")) {
 		smiLoadModule(arg);
 	    } else if (!strcmp(cmd, "path")) {
-		s = smiMalloc(strlen(smiPath) + strlen(arg) + 2);
-		sprintf(s, "%s%c%s", smiPath, PATH_SEPARATOR, arg);
-		smiFree(smiPath);
-		smiPath = s;
+		if (arg) {
+		    if (arg[0] == PATH_SEPARATOR) {
+			s = smiMalloc(strlen(arg) + strlen(smiPath) + 1);
+			sprintf(s, "%s%s", smiPath, arg);
+			smiFree(smiPath);
+			smiPath = s;
+		    } else if (arg[strlen(arg)-1] == PATH_SEPARATOR) {
+			s = smiMalloc(strlen(arg) + strlen(smiPath) + 1);
+			sprintf(s, "%s%s", arg, smiPath);
+			smiFree(smiPath);
+			smiPath = s;
+		    } else {
+			smiPath = smiStrdup(arg);
+		    }
+		}
+
 	    } else if (!strcmp(cmd, "level")) {
 		smiSetErrorLevel(atoi(arg));
 	    } else if (!strcmp(cmd, "hide")) {

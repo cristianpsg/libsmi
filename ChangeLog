@@ -1,3 +1,11 @@
+2000-11-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/smi.c: Reworked the smiPath initialization upon a hint
+	from Bill Fenner. Note that the order of evaluation of the SMIPATH
+	environment variable and configuration files has changed and that
+	the syntax of `path' commands in configuration files has changed.
+	See smi_config(3), section MODULE LOCATIONS for details.
+
 2000-10-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/check.c: Juergen fixed index checks for Bits/fixed-length

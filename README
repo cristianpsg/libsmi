@@ -7,7 +7,7 @@ Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.20 2000/04/11 09:00:15 strauss Exp $
+@(#) $Id: README,v 1.21 2000/10/12 15:57:32 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -68,20 +68,10 @@ and the man pages, run
 	make install
 
 To use libsmi applications you might want to configure its behaviour.
-You can set the SMIPATH environment variable to find more MIB modules
-than those ones installed to places that libsmi knows. E.g., if you
-have Scotty installed along with its MIB modules, you might want to
-add this line to your (bash style) shell startup script:
-
-	export SMIPATH=/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
-
-Or this one, to extend the libsmi search path (note the leading colon):
-
-	export SMIPATH=":/usr/local/lib/tnm3.0.0/mibs"
-
-More detailed library options, including per-application options, can
-be configured through a global and a user level configuration file. See
-the smi_config(3) man page.
+Detailed library options, including per-application options, can
+be configured through a global and a user level configuration file.
+Additionally the SMIPATH environment variable can be used to configure
+paths of module locations. See the smi_config(3) man page.
 
 
 DEBUGGING
