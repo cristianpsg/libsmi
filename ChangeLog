@@ -1,5 +1,9 @@
 2002-05-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/ietf/HDSL2-SHDSL-LINE-MIB: added (RFC 3276).
+
+2002-05-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
 	* win/*: Patches from Erik to ease W32 support.
 
 2002-05-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
