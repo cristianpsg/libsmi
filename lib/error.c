@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.90 2002/05/16 23:21:55 bunkus Exp $
+ * @(#) $Id: error.c,v 1.91 2002/05/17 12:23:17 strauss Exp $
  */
 
 #include <config.h>
@@ -449,7 +449,7 @@ static Error errors[] = {
     { 3, ERR_REFINEMENT_NOT_LISTED, "refinement-not-listed",
       "refined object `%s' not listed in a mandatory or optional group" },
     { 5, ERR_NOTIFICATION_NOT_REVERSIBLE, "notification-not-reversible",
-      "notification `%s' is not reversible" },
+      "notification `%s' is not reverse mappable" },
     { 5, ERR_NOTIFICATION_ID_TOO_LARGE, "notification-id-too-large",
       "last sub-identifier of notification `%s' too large" },
     { 2, ERR_NODE_PARENT_TYPE, "parent-node",
