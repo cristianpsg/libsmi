@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.27 2001/11/13 15:51:19 tklie Exp $ 
+ * @(#) $Id: smidiff.c,v 1.28 2001/11/13 16:23:01 tklie Exp $ 
  */
 
 #include <config.h>
@@ -982,9 +982,7 @@ checkRanges(SmiModule *oldModule, int oldLine,
     newTwR = findTypeWithRange(newType);
     
     if (!oldTwR && newTwR) {
-	SmiRange *newRange;
 	char *strRange;
-	char *typeName = getTypeName( newTwR, newModule );
 
 	strRange = getStringRange( newTwR );
 	if( name ) {
@@ -1408,8 +1406,6 @@ static void
 checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
 	   SmiModule *newModule, SmiNode *newNode, SmiType *newType)
 {
-    char * name;
-
     checkName(oldModule, smiGetTypeLine(oldType),
 	      newModule, smiGetTypeLine(newType),
 	      oldType->name, newType->name);
@@ -1428,11 +1424,9 @@ checkTypes(SmiModule *oldModule, SmiNode *oldNode, SmiType *oldType,
 	      oldType->decl, newType->decl);
 
     if (newType->name) {
-	name = getTypeName( newType, newModule );
 	checkStatus(oldModule, smiGetTypeLine(oldType),
 		    newModule, smiGetTypeLine(newType),
 		    newType->name, oldType->status, newType->status);
-	free( name );
     }
 
     checkFormat(oldModule, smiGetTypeLine(oldType),
@@ -1550,7 +1544,7 @@ getStringIndexList( SmiNode *smiNode )
 	strIdxLst = (char *)realloc( strIdxLst,
 				     strlen( strIdxLst ) +
 				     strlen( indexNode->name ) + 4 );
-	sprintf( strIdxLst, "%s, `%s'", indexNode->name );
+	sprintf( strIdxLst, "%s, `%s'", strIdxLst, indexNode->name );
 	smiElement = smiGetNextElement( smiElement );
     }
     return strIdxLst;
@@ -1597,7 +1591,8 @@ checkIndex(SmiModule *oldModule, SmiNode *oldNode,
 		oldIdxLst = getStringIndexList( oldNode );
 		newIdxLst = getStringIndexList( newNode );
 		printErrorAtLine( newModule, ERR_INDEX_CHANGED,
-				  smiGetNodeLine( newNode ), oldNode->name );
+				  smiGetNodeLine( newNode ), oldNode->name,
+				  oldIdxLst, newIdxLst);
 		free( oldIdxLst );
 		free( newIdxLst );
 		printErrorAtLine( oldModule, ERR_PREVIOUS_DEFINITION,
@@ -1673,7 +1668,6 @@ checkObject(SmiModule *oldModule, SmiNode *oldNode,
 	    SmiModule *newModule, SmiNode *newNode)
 {
     SmiType *oldType, *newType;
-    char *name;
 
     const int oldLine = smiGetNodeLine(oldNode);
     const int newLine = smiGetNodeLine(newNode);
@@ -1861,8 +1855,6 @@ checkNotification(SmiModule *oldModule, const char *oldTag,
 		  SmiModule *newModule, const char *newTag,
 		  SmiNode *oldNode, SmiNode *newNode)
 {
-    char * name;
-    
     checkDecl(oldModule, smiGetNodeLine(oldNode),
 	      newModule, smiGetNodeLine(newNode),
 	      newNode->name, oldNode->decl, newNode->decl);
@@ -2144,7 +2136,6 @@ checkGroup(SmiModule *oldModule, const char *oldTag,
 	   SmiModule *newModule, const char *newTag,
 	   SmiNode *oldNode, SmiNode *newNode)
 {
-    char *name;
     checkName(oldModule, smiGetNodeLine(oldNode),
 	      newModule, smiGetNodeLine(newNode),
 	      oldNode->name, newNode->name);
