@@ -10,7 +10,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile.vc,v 1.1 2000/05/17 10:17:11 strauss Exp $
+# @(#) $Id: makefile.vc,v 1.2 2000/06/19 13:44:10 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -42,10 +42,10 @@ BINDIR = $(INSTROOT)\bin
 PATH=$(TOOLS32)\bin;$(PATH)
 
 CC32	= $(TOOLS32)\bin\cl -I$(TOOLS32)\include
+IMPLIB  = $(TOOLS32)\bin\lib
 CP      = copy
 RM      = del
 MKDIR	= md
-IMPLIB  = lib
 
 ##
 ## Definitions:
