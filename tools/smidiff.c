@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.24 2001/11/09 14:05:48 schoenw Exp $ 
+ * @(#) $Id: smidiff.c,v 1.25 2001/11/09 17:48:22 tklie Exp $ 
  */
 
 #include <config.h>
@@ -104,18 +104,16 @@ typedef struct Error {
 #define ERR_NODEKIND_CHANGED		60
 #define ERR_INDEXKIND_CHANGED           61
 #define ERR_INDEX_CHANGED               62
-#define ERR_PREVIOUS_DEFINITION_TEXT    63
-#define ERR_TYPE_IS_AND_WAS             64
-#define ERR_RANGE_OF_TYPE_CHANGED       65
-#define ERR_RANGE_OF_TYPE_ADDED         66
-#define ERR_RANGE_OF_TYPE_REMOVED       67
-#define ERR_TYPE_BASED_ON               68
-#define ERR_PREVIOUS_DEFINITION_NQ      69
-#define ERR_INDEX_AUGMENT_CHANGED       70
-#define ERR_NAMED_NUMBER_OF_TYPE_REMOVED 71
-#define ERR_NAMED_NUMBER_TO_TYPE_ADDED  72
-#define ERR_NAMED_NUMBER_OF_TYPE_CHANGED 73
-#define ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE 74
+#define ERR_TYPE_IS_AND_WAS             63
+#define ERR_RANGE_OF_TYPE_CHANGED       64
+#define ERR_RANGE_OF_TYPE_ADDED         65
+#define ERR_RANGE_OF_TYPE_REMOVED       66
+#define ERR_TYPE_BASED_ON               67
+#define ERR_INDEX_AUGMENT_CHANGED       68
+#define ERR_NAMED_NUMBER_OF_TYPE_REMOVED 69
+#define ERR_NAMED_NUMBER_TO_TYPE_ADDED  70
+#define ERR_NAMED_NUMBER_OF_TYPE_CHANGED 71
+#define ERR_NAMED_BIT_OF_TYPE_ADDED_OLD_BYTE 72
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -236,8 +234,6 @@ static Error errors[] = {
       "changed kind of index from `%s' to `%s' in node `%s'" },
     { 2, ERR_INDEX_CHANGED, "index-changed",
       "index of `%s' changed from %s to %s" },
-    { 6, ERR_PREVIOUS_DEFINITION_TEXT, "previous-defininition",
-      "previous definition of %s `%s'" },
     { 6, ERR_TYPE_IS_AND_WAS, "type-is-and-was",
       "type changed from %s to %s" },
     { 6, ERR_RANGE_OF_TYPE_CHANGED, "range-changed",
@@ -248,8 +244,6 @@ static Error errors[] = {
       "range `%s' removed from type `%s'" },
     { 6, ERR_TYPE_BASED_ON, "type-based-on",
       "type %s based on %s" },
-    { 6, ERR_PREVIOUS_DEFINITION_NQ, "previous-definition",
-      "previous definition of %s" },
     { 2, ERR_INDEX_AUGMENT_CHANGED, "index-changed",
       "index of `%s' changed from augmenting `%s' to augmenting `%s'" },
     { 2, ERR_NAMED_NUMBER_OF_TYPE_REMOVED, "named-number-removed",
@@ -495,7 +489,7 @@ checkStatus(SmiModule *oldModule, int oldLine,
 			 getStringStatus( oldStatus ),
 			 getStringStatus( newStatus ),
 			 qname);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION_NQ,
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			 oldLine, qname);
 	free( qname );
 	return;
@@ -504,7 +498,7 @@ checkStatus(SmiModule *oldModule, int oldLine,
     printErrorAtLine(newModule, ERR_STATUS_CHANGED, newLine,
 		     getStringStatus(oldStatus), getStringStatus(newStatus),
 		     qname);
-    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION_NQ,
+    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 		     oldLine, qname);
     free( qname );
 }
@@ -564,15 +558,15 @@ checkDescription(SmiModule *oldModule, int oldLine,
     if (oldDescr && !newDescr) {
 	printErrorAtLine(newModule, ERR_DESCR_REMOVED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION_TEXT,
-			 oldLine, "description of", name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 oldLine, name);
     }
 
     if (oldDescr && newDescr && diffStrings(oldDescr, newDescr)) {
 	printErrorAtLine(newModule, ERR_DESCR_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION_TEXT,
-			 oldLine, "description of", name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 oldLine, name);
     }
 }
 
@@ -1959,8 +1953,8 @@ checkContact(SmiModule *oldModule, int oldLine,
     if (oldContact && newContact && diffStrings(oldContact, newContact)) {
 	printErrorAtLine(newModule, ERR_CONTACT_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION_TEXT,
-			 oldLine, "contact of module", name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
+			 oldLine, name);
     }
 }
 
