@@ -72,11 +72,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
-DLLTOOL = @DLLTOOL@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -84,7 +82,6 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
@@ -143,7 +140,7 @@ smiquery.1.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-data.P .deps/dump-imports.P .deps/dump-mosy.P \
 .deps/dump-smi.P .deps/dump-sming.P .deps/smidump.P .deps/smilint.P \
