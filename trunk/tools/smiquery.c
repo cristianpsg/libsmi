@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.61 2000/12/05 10:04:56 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.62 2001/03/05 17:57:55 strauss Exp $
  */
 
 #include <config.h>
@@ -20,9 +20,6 @@
 #include <time.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
 #endif
 #ifdef HAVE_WIN_H
 #include "win.h"
