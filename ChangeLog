@@ -1,3 +1,7 @@
+2003-09-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/IPV6-FLOW-LABEL-MIB: added (RFC 3595).
+
 2003-09-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/OPT-IF-MIB: added (RFC 3591).
