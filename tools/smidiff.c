@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.7 2001/09/21 13:30:35 schoenw Exp $
+ * @(#) $Id: smidiff.c,v 1.8 2001/09/25 07:35:25 schoenw Exp $
  */
 
 #include <stdlib.h>
@@ -993,50 +993,50 @@ diffNotifications(SmiModule *oldModule, const char *oldTag,
 
 
 static void
-checkOrganization(SmiModule *oldModule, SmiModule *newModule,
-		  char *name,
-		  char *oldOrga, char *newOrga)
+checkOrganization(SmiModule *oldModule, int oldLine,
+		  SmiModule *newModule, int newLine,
+		  char *name, char *oldOrga, char *newOrga)
 {
     if (! oldOrga && newOrga) {
 	printErrorAtLine(newModule, ERR_ORGA_ADDED,
-			 -1, name);
+			 newLine, name);
     }
 
     if (oldOrga && !newOrga) {
 	printErrorAtLine(oldModule, ERR_ORGA_REMOVED,
-			 -1, name);
+			 oldLine, name);
     }
 
-    if (oldOrga && newOrga) {
+    if (oldOrga && newOrga && diffStrings(oldOrga, newOrga)) {
 	printErrorAtLine(newModule, ERR_ORGA_CHANGED,
-			 -1, name);
+			 newLine, name);
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 -1, name);
+			 oldLine, name);
     }
 }
 
 
 
 static void
-checkContact(SmiModule *oldModule, SmiModule *newModule,
-	     char *name,
-	     char *oldContact, char *newContact)
+checkContact(SmiModule *oldModule, int oldLine,
+	     SmiModule *newModule, int newLine,
+	     char *name, char *oldContact, char *newContact)
 {
     if (! oldContact && newContact) {
 	printErrorAtLine(newModule, ERR_CONTACT_ADDED,
-			 -1, name);
+			 newLine, name);
     }
 
     if (oldContact && !newContact) {
 	printErrorAtLine(oldModule, ERR_CONTACT_REMOVED,
-			 -1, name);
+			 oldLine, name);
     }
 
-    if (oldContact && newContact) {
+    if (oldContact && newContact && diffStrings(oldContact, newContact)) {
 	printErrorAtLine(newModule, ERR_CONTACT_CHANGED,
-			 -1, name);
+			 newLine, name);
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 -1, name);
+			 oldLine, name);
     }
 }
 
@@ -1060,24 +1060,34 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 {
     SmiNode *oldIdentityNode, *newIdentityNode;
     SmiRevision *oldRev, *newRev;
+    int oldLine = -1, newLine = -1;
     
     if (oldModule->language != newModule->language) {
 	printErrorAtLine(newModule, ERR_SMIVERSION_CHANGED, -1);
     }
 
     oldIdentityNode = smiGetModuleIdentityNode(oldModule);
+    if (oldIdentityNode) {
+	oldLine = smiGetNodeLine(oldIdentityNode);
+    }
     newIdentityNode = smiGetModuleIdentityNode(newModule);
+    if (newIdentityNode) {
+	newLine = smiGetNodeLine(newIdentityNode);
+    }
 
-    checkOrganization(oldModule, newModule, newModule->name,
+    checkOrganization(oldModule, oldLine,
+		      newModule, newLine,
+		      newModule->name,
 		      oldModule->organization, newModule->organization);
 
-    checkContact(oldModule, newModule, newModule->name,
+    checkContact(oldModule, oldLine, newModule, newLine,
+		 newModule->name,
 		 oldModule->contactinfo, newModule->contactinfo);
 
-    checkDescription(oldModule, -1, newModule, -1, newModule->name,
+    checkDescription(oldModule, oldLine, newModule, newLine, newModule->name,
 		     oldModule->description, newModule->description);
 
-    checkReference(oldModule, -1, newModule, -1, newModule->name,
+    checkReference(oldModule, oldLine, newModule, newLine, newModule->name,
 		   oldModule->reference, newModule->reference);
 
     /*
@@ -1099,7 +1109,7 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 	    checkRevision(oldModule, oldTag, newModule, newTag,
 			  newModule->name, oldRev, newRev);
 	} else {
-	    printErrorAtLine(oldModule, ERR_REVISION_REMOVED, -1,
+	    printErrorAtLine(oldModule, ERR_REVISION_REMOVED, oldLine,
 			     getStringTime(oldRev->date));
 	}
 	smiInit(oldTag);
@@ -1120,7 +1130,7 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 	    }
 	}
 	if (!oldRev) {
-	    printErrorAtLine(newModule, ERR_REVISION_ADDED, -1,
+	    printErrorAtLine(newModule, ERR_REVISION_ADDED, newLine,
 			     getStringTime(newRev->date));
 	}
 	smiInit(newTag);
