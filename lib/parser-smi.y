@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.28 1999/06/04 20:39:05 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.29 1999/06/08 20:16:02 strauss Exp $
  */
 
 %{
@@ -3062,7 +3062,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			     */
 			    if ($9.refinementlistPtr) {
 				for (listPtr = $9.refinementlistPtr;
-				     listPtr->nextPtr;
+				     listPtr;
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
 					((Refinement *)(listPtr->ptr));
@@ -3213,7 +3213,17 @@ MandatoryGroups:	MandatoryGroup
 
 MandatoryGroup:		objectIdentifier
 			{
+			    /*
+			     * The object found may be an implicitly
+			     * created object with flags & FLAG_IMPORTED.
+			     * We want to get the original definition:
+			     */
 			    $$ = $1;
+			    if (complianceModulePtr) {
+				$$ = findObjectByModuleAndName(
+				                           complianceModulePtr,
+							   $1->name);
+			    }
 			}
 	;
 

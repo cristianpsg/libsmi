@@ -58,7 +58,7 @@ AUTOCONF = autoconf
 AUTOMAKE = automake
 AUTOHEADER = autoheader
 
-INSTALL = /usr/bin/install -c
+INSTALL = /usr/local/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL_PROGRAM}
@@ -70,24 +70,24 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-host_alias = i686-pc-linux-gnu
-host_triplet = i686-pc-linux-gnu
-BISON = /usr/bin/bison
+host_alias = sparc-sun-solaris2.5.1
+host_triplet = sparc-sun-solaris2.5.1
+BISON = /usr/local/bin/bison
 CC = gcc
 CFLAGS = -Wall -g
-FLEX = /usr/bin/flex
-LD = /usr/bin/ld
+FLEX = /usr/local/bin/flex
+LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_DEPS = 
+LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
 LN_S = ln -s
 MAKEINFO = makeinfo
-NM = /usr/bin/nm -B
+NM = /usr/local/bin/nm -B
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.3
+VERSION = 0.1.4-pre1
 mibdir = /usr/local/share/mibs
-smipath = /usr/local/share/mibs:/usr/lib/tnm3.0.0/mibs
+smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
 INCLUDES = -I../lib
 
@@ -112,7 +112,7 @@ CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.4-pre1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
@@ -140,7 +140,7 @@ smiquery.1.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-data.P .deps/dump-imports.P .deps/dump-mosy.P \
 .deps/dump-smi.P .deps/dump-sming.P .deps/smidump.P .deps/smilint.P \

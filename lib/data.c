@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.29 1999/06/07 15:43:58 strauss Exp $
+ * @(#) $Id: data.c,v 1.30 1999/06/08 20:15:54 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2729,6 +2729,11 @@ loadModule(modulename)
 		break;
 	    }
 	    sprintf(path, "%s/%s.my", dir, modulename);
+	    if (!stat(path, &buf)) {
+		sming = 0;
+		break;
+	    }
+	    sprintf(path, "%s/%s.smiv2", dir, modulename);
 	    if (!stat(path, &buf)) {
 		sming = 0;
 		break;

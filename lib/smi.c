@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.39 1999/06/08 16:08:08 strauss Exp $
+ * @(#) $Id: smi.c,v 1.40 1999/06/08 20:39:28 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -434,7 +434,7 @@ SmiType *createSmiType(Type *typePtr)
 	    smiTypePtr->parentname   = smiDescriptor(typePtr->parentType);
 	} else {
 	    smiTypePtr->parentmodule = NULL;
-	    smiTypePtr->parentname   = typePtr->parentType;
+	    smiTypePtr->parentname   = util_strdup(typePtr->parentType);
 	}
 	smiTypePtr->decl	 = typePtr->decl;
 	smiTypePtr->format	 = typePtr->format;
@@ -1224,7 +1224,7 @@ SmiRange *smiGetFirstRange(char *module, char *type)
     if ((!module) && (!type)) {
 	return NULL;
     }
-    
+
     getModulenameAndName(module, type, &module2, &type2);
 
     if (module2) {
@@ -1249,7 +1249,7 @@ SmiRange *smiGetFirstRange(char *module, char *type)
 	(typePtr->basetype == SMI_BASETYPE_BITS)) {
 	return NULL;
     }
-    
+
     return createSmiRange(typePtr, typePtr->listPtr->ptr);
 }
 
@@ -1928,16 +1928,98 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 
 SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr)
 {
-    /* TODO */
-    return NULL;
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    Node	      *nodePtr;
+    
+    if (!smiNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr, smiNodePtr->name);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    nodePtr = objectPtr->nodePtr;
+    
+    if (!nodePtr) {
+	return NULL;
+    }
+
+    nodePtr = nodePtr->firstChildPtr;
+
+    if (!nodePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndNode(modulePtr, nodePtr);
+
+    if (!objectPtr) {
+	objectPtr = findObjectByNode(nodePtr);
+    }
+    
+    return createSmiNode(objectPtr);
 }
 
 
 
 SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
 {
-    /* TODO */
-    return NULL;
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    Node	      *nodePtr;
+    
+    if (!smiNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr, smiNodePtr->name);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    nodePtr = objectPtr->nodePtr;
+    
+    if (!nodePtr) {
+	return NULL;
+    }
+
+    nodePtr = nodePtr->nextPtr;
+
+    if (!nodePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndNode(modulePtr, nodePtr);
+
+    if (!objectPtr) {
+	objectPtr = findObjectByNode(nodePtr);
+    }
+    
+    return createSmiNode(objectPtr);
 }
 
 
