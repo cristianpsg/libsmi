@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.6 2000/11/27 12:06:54 strauss Exp $
+# @(#) $Id: makefile,v 1.7 2000/12/15 13:52:35 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -96,7 +96,7 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-metrics.obj		\
 	$(TMPDIR)\dump-identifiers.obj		\
 	$(TMPDIR)\dump-python.obj		\
-	$(TMPDIR)\dump-lines.obj
+	$(TMPDIR)\dump-perl.obj
 
 SMILIB = smi.lib
 

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.6 2000/12/09 16:34:05 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.7 2001/01/24 16:38:47 strauss Exp $
  */
 
 /*
@@ -1035,7 +1035,7 @@ static void printMgrOidDefinitions(FILE *f, SmiModule *smiModule)
 		fprintf(f, "%s%u", i ? ", " : "", smiNode->oid[i]);
 	    }
 	    fprintf(f, "};\n");
-	    cfree(cName);
+	    xfree(cName);
 	}
     }
     fprintf(f, "\n");
