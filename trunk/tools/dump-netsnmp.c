@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.7 2001/01/24 16:38:47 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.8 2001/01/25 14:33:05 strauss Exp $
  */
 
 /*
@@ -392,7 +392,7 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 		break;
 	    default:
 		fprintf(f,
-			"    /* ?? */  __%s; \n", cName);
+			"    /* ?? */  _%s; \n", cName);
 		break;
 	    }
 	    xfree(cName);
@@ -428,34 +428,34 @@ static void printHeaderTypedef(FILE *f, SmiModule *smiModule,
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
 		maxSize = getMaxSize(smiType);
 		fprintf(f,
-			"    uint32_t  __%s[%u];\n", cName, maxSize);
+			"    uint32_t  _%s[%u];\n", cName, maxSize);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
 		maxSize = getMaxSize(smiType);
 		fprintf(f,
-			"    u_char    __%s[%u];\n", cName, maxSize);
+			"    u_char    _%s[%u];\n", cName, maxSize);
 		break;
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
 		fprintf(f,
-			"    int32_t   __%s;\n", cName);
+			"    int32_t   _%s;\n", cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED32:
 		fprintf(f,
-			"    uint32_t  __%s;\n", cName);
+			"    uint32_t  _%s;\n", cName);
 		break;
 	    case SMI_BASETYPE_INTEGER64:
 		fprintf(f,
-			"    int64_t   __%s; \n", cName);
+			"    int64_t   _%s; \n", cName);
 		break;
 	    case SMI_BASETYPE_UNSIGNED64:
 		fprintf(f,
-			"    uint64_t  __%s; \n", cName);
+			"    uint64_t  _%s; \n", cName);
 		break;
 	    default:
 		fprintf(f,
-			"    /* ?? */  __%s; \n", cName);
+			"    /* ?? */  _%s; \n", cName);
 		break;
 	    }
 	    xfree(cName);
@@ -1074,8 +1074,8 @@ static void printMgrGetScalarAssignement(FILE *f, SmiNode *groupNode)
 	    case SMI_BASETYPE_UNSIGNED32:
 	    case SMI_BASETYPE_ENUM:
 		fprintf(f,
-			"            (*%s)->__%s = *vars->val.integer;\n"
-			"            (*%s)->%s = &((*%s)->__%s);\n",
+			"            (*%s)->_%s = *vars->val.integer;\n"
+			"            (*%s)->%s = &((*%s)->_%s);\n",
 			cGroupName, cName,
 			cGroupName, cName, cGroupName, cName);
 		break;
@@ -1084,7 +1084,7 @@ static void printMgrGetScalarAssignement(FILE *f, SmiNode *groupNode)
 		maxSize = getMaxSize(smiType);
 		minSize = getMinSize(smiType);
 		fprintf(f,
-			"            memcpy((*%s)->__%s, vars->val.string, vars->val_len);\n",
+			"            memcpy((*%s)->_%s, vars->val.string, vars->val_len);\n",
 			cGroupName, cName);
 		if (minSize != maxSize) {
 		    fprintf(f,
@@ -1092,10 +1092,19 @@ static void printMgrGetScalarAssignement(FILE *f, SmiNode *groupNode)
 			    cGroupName, cName);
 		}
 		fprintf(f,
-			"            (*%s)->%s = (*%s)->__%s;\n",
+			"            (*%s)->%s = (*%s)->_%s;\n",
 			cGroupName, cName, cGroupName, cName);
 		break;
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
+		fprintf(f,
+			"            memcpy((*%s)->_%s, vars->val.string, vars->val_len);\n",
+			cGroupName, cName);
+		fprintf(f,
+			"            (*%s)->_%sLength = vars->val_len / sizeof(oid);\n",
+			cGroupName, cName);
+		fprintf(f,
+			"            (*%s)->%s = (*%s)->_%s;\n",
+			cGroupName, cName, cGroupName, cName);
 		break;
 	    default:
 		break;
@@ -1123,7 +1132,6 @@ static void printMgrGetMethod(FILE *f, SmiModule *smiModule,
     fprintf(f,
 	    "int %s_mgr_get_%s(struct snmp_session *s, %s_t **%s)\n"
 	    "{\n"
-	    "    struct snmp_session *peer;\n"
 	    "    struct snmp_pdu *request, *response;\n"
 	    "    struct variable_list *vars;\n"
 	    "    int status;\n"
@@ -1146,13 +1154,15 @@ static void printMgrGetMethod(FILE *f, SmiModule *smiModule,
     }
 
     fprintf(f,
+#if 0
 	    "\n"
 	    "    peer = snmp_open(s);\n"
 	    "    if (!peer) {\n"
 	    "        return -1;\n"
 	    "    }\n"
+#endif
 	    "\n"
-	    "    status = snmp_synch_response(peer, request, &response);\n"
+	    "    status = snmp_synch_response(s, request, &response);\n"
 	    "    if (status != STAT_SUCCESS) {\n"
 	    "        return -2;\n"
 	    "    }\n"
@@ -1161,7 +1171,7 @@ static void printMgrGetMethod(FILE *f, SmiModule *smiModule,
     /* generate code for error checking and handling */
 
     fprintf(f,
-	    "    *%s = (%s_t *) malloc(sizeof(%s_t));\n"
+	    "    *%s = (%s_t *) calloc(1, sizeof(%s_t));\n"
 	    "    if (! *%s) {\n"
 	    "        return -4;\n"
 	    "    }\n"
@@ -1169,7 +1179,12 @@ static void printMgrGetMethod(FILE *f, SmiModule *smiModule,
 	    cGroupName, cGroupName, cGroupName, cGroupName);
 
     fprintf(f,
-	    "    for (vars = response->variables; vars; vars = vars->next_variable) {\n");
+	    "    for (vars = response->variables; vars; vars = vars->next_variable) {\n"
+	    "        if (vars->type == SNMP_ENDOFMIBVIEW\n"
+            "            || (vars->type == SNMP_NOSUCHOBJECT)\n"
+            "            || (vars->type == SNMP_NOSUCHINSTANCE)) {\n"
+            "            continue;\n"
+	    "        }\n");
     printMgrGetScalarAssignement(f, groupNode);
     fprintf(f,
 	    "    }\n"
@@ -1190,10 +1205,12 @@ static void printMgrGetMethod(FILE *f, SmiModule *smiModule,
     fprintf(f,
 	    "    if (response) snmp_free_pdu(response);\n"
 	    "\n"
+#if 0
 	    "    if (snmp_close(peer) == 0) {\n"
 	    "        return -5;\n"
 	    "    }\n"
 	    "\n"
+#endif
 	    "    return 0;\n"
 	    "}\n\n");
 
@@ -1251,6 +1268,10 @@ static void dumpMgrStub(SmiModule *smiModule, char *baseName)
 	    " */\n\n", smiModule->name );
 	
     fprintf(f,
+	    "#ifdef HAVE_CONFIG_H\n"
+	    "#include \"config.h\"\n"
+	    "#endif\n"
+	    "\n"
 	    "#include <stdlib.h>\n"
 	    "\n"
 	    "#include <ucd-snmp/asn1.h>\n"
