@@ -146,6 +146,11 @@ static const float TABLEHEIGHT         = (float)35; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
+//TODO make these values configurable by options passed to the driver
+static const int CANVASHEIGHT		=700;
+static const int CANVASWIDTH		=1100;
+static const float STARTSCALE		=(float)0.7;
+
 /*
  * global svg graph layout
  */
@@ -1870,7 +1875,8 @@ static void algCreateNodes(SmiModule *module)
  */
 static void printSVGClose()
 {
-    printf(" <rect x=\"0\" y=\"0\" width=\"1100\" height=\"700\"\n");
+    printf(" <rect x=\"0\" y=\"0\" width=\"%i\" height=\"%i\"\n",
+           CANVASWIDTH, CANVASHEIGHT);
     printf("       fill=\"none\" stroke=\"blue\" stroke-width=\"1\"/>\n");
     printf("</svg>\n");
 
@@ -2008,9 +2014,14 @@ static void printSVGObject(GraphNode *node, float x, float y)
     textYOffset = yOrigin + TABLEHEIGHT + TABLEELEMHEIGHT;
     textXOffset = xOrigin;
     
+#ifdef DOT
+    fprintf(stderr, "Node: %s\n",
+		    smiGetFirstChildNode(node->smiNode)->name);
+#endif
+
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            x + node->dia.w/2, y + node->dia.h/2);
-    printf("  <g id=\"%i\">\n", classNr);
+    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", classNr, STARTSCALE);
     printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
@@ -2078,72 +2089,70 @@ static void printSVGObject(GraphNode *node, float x, float y)
 static void diaPrintXMLGroup(int group, float x, float y)
 {
     GraphNode *tNode;
+    float textXOffset, textYOffset, xOrigin, yOrigin;
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) break;
     }
 
     if (!tNode) return;
-    
-//TODO
-#if 0
-    printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
-	   smiGetParentNode(tNode->smiNode)->name);
-    printf("      <attribute name=\"obj_pos\">\n");
-    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
-    printf("      </attribute>\n");
-    printf("     <attribute name=\"obj_bb\">\n");
-    printf("       <rectangle val=\"0.0,0.0;0.0,0.0\"/>\n");
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"elem_corner\">\n");
-    printf("       <point val=\"%.2f,%.2f\"/>\n",x,y);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"elem_width\">\n");
-    printf("       <real val=\"%.2f\"/>\n",0.0);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"elem_height\">\n");
-    printf("       <real val=\"%.2f\"/>\n",0.0);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"name\">\n");
-    printf("       <string>#%s#</string>\n",
-	   smiGetParentNode(tNode->smiNode)->name);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"stereotype\">\n");
-    printf("         <string>#%s#</string>\n", STEREOTYPE);
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"abstract\">\n");
-    printf("       <boolean val=\"false\"/>\n");
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"suppress_attributes\">\n");
-    printf("        <boolean val=\"false\"/>\n");    
-    printf("      </attribute>\n");   
-    printf("      <attribute name=\"suppress_operations\">\n");
-    printf("        <boolean val=\"true\"/>\n");
-    printf("      </attribute>\n");
-    printf("     <attribute name=\"visible_attributes\">\n");
-    printf("       <boolean val=\"true\"/>\n");
-    printf("     </attribute>\n");
-    printf("     <attribute name=\"visible_operations\">\n");
-    printf("        <boolean val=\"false\"/>\n");
-    printf("      </attribute>\n");
 
-    printf("     <attribute name=\"attributes\">\n");
+#ifdef DOT
+    fprintf(stderr, "Group: %s\n",
+		    smiGetParentNode(tNode->smiNode)->name);
+#endif
+
+    xOrigin = tNode->dia.w/-2;
+    yOrigin = tNode->dia.h/-2;
+    textYOffset = yOrigin + TABLEHEIGHT + TABLEELEMHEIGHT;
+    textXOffset = xOrigin;
+
+    printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
+           x + tNode->dia.w/2, y + tNode->dia.h/2);
+    printf("  <g id=\"%i\" transform=\"scale(%.1f)\">\n", classNr, STARTSCALE);
+    printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
+           xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
+    printf("          fill=\"none\" stroke=\"black\"/>\n");
+    printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
+           xOrigin, yOrigin + TABLEHEIGHT,
+           xOrigin + tNode->dia.w, yOrigin + TABLEHEIGHT);
+    printf("          fill=\"none\" stroke=\"black\"/>\n");
+    printf("    <text x=\"0\" y=\"%.2f\" style=\"text-anchor:middle\">\n",
+           yOrigin + 15);
+    printf("         &lt;&lt;%s&gt;&gt;</text>\n", STEREOTYPE);
+    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 30);
+    printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
+    printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
+    //the "+"-button
+    printf("    <g onclick=\"enlarge(%i)\"\n", classNr);
+    printf("       transform=\"translate(%.2f,%.2f)\">\n",
+           xOrigin + tNode->dia.w - 26, yOrigin + 3);
+    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
+    printf("            style=\"stroke: black; fill: none\"/>\n");
+    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+    printf("          +</text>\n");
+    printf("    </g>\n");
+    //the "-"-button
+    printf("    <g onclick=\"scaledown(%i)\"\n", classNr);
+    printf("       transform=\"translate(%.2f,%.2f)\">\n",
+           xOrigin + tNode->dia.w - 13, yOrigin + 3);
+    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
+    printf("            style=\"stroke: black; fill: none\"/>\n");
+    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+    printf("          -</text>\n");
+    printf("    </g>\n");
+
+    classNr++;
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) {
-	    printSVGAttribute(tNode->smiNode,0);
+	    printSVGAttribute(tNode->smiNode,
+			    0, &textYOffset, &textXOffset);
 	}
     }
     
-    printf("      </attribute>\n");
-    
-    printf("     <attribute name=\"operations\"/>\n");
-    printf("    <attribute name=\"template\">\n");
-    printf("      <boolean val=\"false\"/>\n");
-    printf("    </attribute>\n");
-    printf("     <attribute name=\"templates\"/>\n");
-    printf("   </object>\n");
-#endif
+    printf("  </g>\n");
+    printf(" </g>\n");
 }
 
 static float getRectSX(GraphNode *tNode)
@@ -2628,7 +2637,8 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
     printf("<?xml version=\"1.0\"?>\n");
     printf("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n");
     printf("  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
-    printf("<svg width=\"1100\" height=\"700\" version=\"1.1\"\n");
+    printf("<svg width=\"%i\" height=\"%i\" version=\"1.1\"\n",
+           CANVASWIDTH, CANVASHEIGHT);
     printf("     xmlns=\"http://www.w3.org/2000/svg\"\n");
     printf("     onload=\"init(evt)\">\n");
 
@@ -2637,11 +2647,12 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
     printf("var scalFac = new Array(%i);\n\n",nodecount);
     printf("function init(evt) {\n");
     printf("    for (i=0; i<%i; i++) {\n",nodecount);
-    printf("        scalFac[i] = 1;\n");
+    printf("        scalFac[i] = %.1f;\n", STARTSCALE);
     printf("    }\n");
     printf("}\n\n");
     printf("function enlarge(classNr) {\n");
     printf("    var obj = svgDocument.getElementById(classNr);\n");
+    //FIXME +0.1 or *1.1 ??? *1.1 seems to work better.
     printf("    scalFac[classNr] = scalFac[classNr] * 1.1;\n");
     printf("    obj.setAttribute(\"transform\",");
     printf("\"scale(\"+scalFac[classNr]+\")\");\n");
@@ -2678,7 +2689,17 @@ static GraphNode *diaCalcSize(GraphNode *node)
     SmiElement *smiElement;
     SmiModule  *module;
 
+#ifdef DOT
+    fprintf(stderr, "node->smiNode->name: %s\n",
+		    node->smiNode->name);
+#endif
+
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) return node;
+
+#ifdef DOT
+    fprintf(stderr, "TableName: %s\n",
+		    smiGetFirstChildNode(node->smiNode)->name);
+#endif
 
     node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
@@ -2768,6 +2789,36 @@ static GraphNode *diaCalcSize(GraphNode *node)
     return node;
 }
 
+/*
+ * Calculates the size of a group-node for the UML representation.
+ */
+static void calcGroupSize(int group)
+{
+    GraphNode *node;
+    SmiNode   *tNode;
+
+    for (node = graph->nodes; node; node = node->nextPtr) {
+	if (node->group == group) break;
+    }
+
+    if (!node) return;
+
+    node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
+	+ HEADSPACESIZETABLE;
+    node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
+
+    for (node = graph->nodes; node; node = node->nextPtr) {
+	if (node->group == group) {
+	    tNode = node->smiNode;
+	    node->dia.w = max(node->dia.w, (strlen(tNode->name) +
+				    strlen(algGetTypeName(tNode)) + 2)
+			    * ATTRFONTSIZE
+			    + ATTRSPACESIZE);
+	    node->dia.h += TABLEELEMHEIGHT;
+	}
+    }
+}
+
 static float diaPrintNode(GraphNode *node, float x, float y)
 {
     GraphEdge *tEdge;
@@ -2800,9 +2851,14 @@ static void diaPrintXML(int modc, SmiModule **modv)
     float     x,y,ydiff;
     int       group, nodecount = 0;
 
+    //FIXME: improve the nodecount-stuff
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
 	tNode = diaCalcSize(tNode);
 	nodecount++;
+    }
+
+    for (group = 1; group <= algGetNumberOfGroups(); group++) {
+	calcGroupSize(group);
     }
 
     printSVGHeaderAndTitle(modc, modv, nodecount);
@@ -2850,14 +2906,13 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     /* printing scalar groups */
-    x = XOFFSET;
-    y += ydiff + YSPACING;
+    x = XOFFSET + (CANVASWIDTH/2);
+    y = YOFFSET;
     for (group = 1;
 	 group <= algGetNumberOfGroups();
 	 group++) {
 	diaPrintXMLGroup(group,x,y);
-	x += 2.0;
-	y += 2.0;
+	y += 200;
     }
 
     printSVGClose();
