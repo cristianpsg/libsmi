@@ -1,5 +1,8 @@
 2002-05-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/data.c: Fixed nodekind for iso, ccitt, and joint-iso-ccitt.
+	Thanks to Mark Kaplun.
+
 	* mibs/ietf/INET-ADDRESS-MIB: updated to the new version
 	which is expected to be published as RFC rsn.
 

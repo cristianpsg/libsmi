@@ -29,8 +29,6 @@ o warning detection: enumerations SHOULD NOT contain signedNumber's.
   SHOULD start at 1. SHOULD be numbered contiguously.
   e.g. DISMAN-SCHEDULE-MIB.SnmpPduErrorStatus
 
-o warning detection: max-access for a counter must be readonly
-
 o warning detection: subtyping not allowed for counter or timeticks
 
 o warning detection: defvals not allowed for counter
