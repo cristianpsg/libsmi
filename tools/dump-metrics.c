@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.5 2000/11/29 16:35:26 strauss Exp $
+ * @(#) $Id: dump-metrics.c,v 1.6 2000/11/30 11:04:07 strauss Exp $
  */
 
 /*
@@ -102,7 +102,7 @@ static void addMetrics(Metrics *metrics, SmiModule *smiModule)
 
 
 
-static void printStatusCounter(FILE *f, StatusCounter *cnt, char *s)
+static void fprintStatusCounter(FILE *f, StatusCounter *cnt, char *s)
 {
     fprintf(f, "%-14s %3d (%3d current, %3d deprecated, %3d obsolete)\n", s,
 	    cnt->total, cnt->current, cnt->deprecated, cnt->obsolete);
@@ -110,16 +110,16 @@ static void printStatusCounter(FILE *f, StatusCounter *cnt, char *s)
 
 
 
-static void printMetrics(FILE *f, Metrics *metrics)
+static void fprintMetrics(FILE *f, Metrics *metrics)
 {
     unsigned int objects;
 
     objects = metrics->columns.total + metrics->scalars.total;
     
-    printStatusCounter(f, &metrics->tables, "Tables:");
-    printStatusCounter(f, &metrics->columns, "Columns:");
-    printStatusCounter(f, &metrics->scalars, "Scalars:");
-    printStatusCounter(f, &metrics->notifications, "Notifications:");
+    fprintStatusCounter(f, &metrics->tables, "Tables:");
+    fprintStatusCounter(f, &metrics->columns, "Columns:");
+    fprintStatusCounter(f, &metrics->scalars, "Scalars:");
+    fprintStatusCounter(f, &metrics->notifications, "Notifications:");
 
     fprintf(f, "%-14s %3d (%d%%)\n", "Writable:", metrics->writable,
 	    objects ? (metrics->writable * 100 / objects) : 0);
@@ -151,7 +151,7 @@ static void dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 	    memset(&metrics, 0, sizeof(Metrics));
 	}
 	addMetrics(&metrics, modv[i]);
-	printMetrics(f, &metrics);
+	fprintMetrics(f, &metrics);
     } else {
 	for (i = 0; i < modc; i++) {
 	    if (! (flags & SMIDUMP_FLAG_SILENT)) {
@@ -160,7 +160,7 @@ static void dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 	    }
 	    memset(&metrics, 0, sizeof(Metrics));
 	    addMetrics(&metrics, modv[i]);
-	    printMetrics(f, &metrics);
+	    fprintMetrics(f, &metrics);
 	}
     }
 
@@ -177,7 +177,7 @@ void initMetrics()
     static SmidumpDriver driver = {
 	"metrics",
 	dumpMetrics,
-	0,
+	SMI_FLAG_NODESCR,
 	0,
 	"metrics characterizing MIB modules",
 	NULL,

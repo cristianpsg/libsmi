@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.10 2000/08/24 12:09:18 strauss Exp $
+.\" $Id: smilint.1.in,v 1.11 2000/10/21 09:42:41 strauss Exp $
 .\"
 .TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -9,7 +9,7 @@ smilint \- syntax and semantic checks of SMIv1/v2/ng modules
 [
 .B "-Vhersm"
 ] [
-.BI "-c " configfile
+.BI "-c " file
 ] [
 .BI "-p " module
 ] [
@@ -29,36 +29,36 @@ specification of SMIng that is work in progress within the Network Management
 Research Group of the IRTF.
 .SH OPTIONS
 .TP
-.B "-V"
+\fB-V, --verbose\fP
 Show the smilint version and exit.
 .TP
-.B "-h"
+\fB-h, --help\fP
 Show a help text and exit.
 .TP
-.B "-e"
+\fB-e, --error-list\fP
 Show a list of all known error messages and exit. Error messages can
 have associated tags, shown in braces at the end of each line. The
 tags can be used with the -i option to ignore certain error messages.
 .TP
-.B "-r"
+\fB-r, --recursive\fP
 Report errors and warnings also for recursively imported modules. 
 .TP
-.B "-s"
+\fB-s, --severity\fP
 Show the error severity in brackets before error messages.
 .TP
-.B "-m"
+\fB-m, --error-names\fP
 Show the error names in braces before error messages.
 .TP
-.BI "-c " configfile
-Read \fIconfigfile\fP instead of any other (global and user)
+\fB-c \fIfile\fB, --config=\fIfile\fP
+Read \fIfile\fP instead of any other (global and user)
 configuration file.
 .TP
-.BI "-p " module
+\fB-p \fImodule\fB, --preload=\fImodule\fP
 Preload the module \fImodule\fP before reading the main
 module(s). This may be helpful if an incomplete main module misses to
 import some definitions.
 .TP
-.BI "-l " level
+\fB-l \fIlevel\fB, --level=\fIlevel\fP
 Report errors and warnings up to the given severity \fIlevel\fP.
 A higher level shows more warnings. The actual severity levels are:
 .sp
@@ -80,8 +80,8 @@ level 6 does. Note that errors up to level 3 are errors violating the
 specifications and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP
-.BI "-i " tag-prefix
-Ignore all errors that have a tag which matches \fItag-prefix\fP.
+\fB-i \fIprefix\fB, --ignore=\fIprefix\fP
+Ignore all errors that have a tag which matches \fIprefix\fP.
 A list of error tags can be retrieved by calling smilint with the
 -e option.
 .TP

@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smiquery.1.in,v 1.4 2000/02/12 14:31:55 strauss Exp $
+.\" $Id: smiquery.1.in,v 1.5 2000/08/24 12:09:18 strauss Exp $
 .\"
 .TH smiquery 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -18,13 +18,13 @@ item from an MIB module, e.g. module meta information or a single type
 definition.
 .SH OPTIONS
 .TP
-.B "-V"
+\fB-V, --verbose\fP
 Show the smiquery version and exit.
 .TP
-.B "-h"
+\fB-h, --help\fP
 Show a help text and exit. The help text lists all available \fBcommand\fPs.
 .TP
-.BI "-p " module
+\fB-p \fImodule\fB, --preload \fImodule\fP
 Preload the module \fImodule\fP before reading the main module. This may
 be helpful if an incomplete main module misses to import some definitions.
 .TP

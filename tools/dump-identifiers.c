@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.9 2000/11/29 16:35:26 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.10 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -65,7 +65,7 @@ static int pruneSubTree(SmiNode *smiNode)
 
 
 
-static void dumpNodeIdentifiers(FILE *f, SmiNode *smiNode)
+static void fprintNodeIdentifiers(FILE *f, SmiNode *smiNode)
 {
     SmiModule    *smiModule;
     SmiNode      *childNode;
@@ -97,7 +97,7 @@ static void dumpNodeIdentifiers(FILE *f, SmiNode *smiNode)
 	     childNode = smiGetNextChildNode(childNode)) {
 	    
 	    if (! pruneSubTree(childNode)) {
-		dumpNodeIdentifiers(f, childNode);
+		fprintNodeIdentifiers(f, childNode);
 	    }
 	}
     }
@@ -105,7 +105,7 @@ static void dumpNodeIdentifiers(FILE *f, SmiNode *smiNode)
 
 
 
-static void dumpTypeIdentifiers(FILE *f, int modc, SmiModule **modv)
+static void fprintTypeIdentifiers(FILE *f, int modc, SmiModule **modv)
 {
     SmiType   *smiType;
     int	      i;
@@ -165,13 +165,13 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
 	}
 
 	if (!ignoretypes) {
-	    dumpTypeIdentifiers(f, modc, modv);
+	    fprintTypeIdentifiers(f, modc, modv);
 	}
 	
 	if (!ignorenodes) {
 	    smiNode = smiGetNode(NULL, "iso");
 	    if (smiNode) {
-		dumpNodeIdentifiers(f, smiNode);
+		fprintNodeIdentifiers(f, smiNode);
 	    }
 	}
 
@@ -189,13 +189,13 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
 	    }
 
 	    if (!ignoretypes) {
-		dumpTypeIdentifiers(f, 1, &(modv[i]));
+		fprintTypeIdentifiers(f, 1, &(modv[i]));
 	    }
 
 	    if (!ignorenodes) {
 		smiNode = smiGetNode(NULL, "iso");
 		if (smiNode) {
-		    dumpNodeIdentifiers(f, smiNode);
+		    fprintNodeIdentifiers(f, smiNode);
 		}
 	    }
 	}
@@ -223,7 +223,7 @@ void initIdentifiers()
 	"identifiers",
 	dumpIdentifiers,
 	SMI_FLAG_NODESCR,
-	0, /** output ? **/
+	0,
 	"list of all identifiers",
 	opt,
 	NULL

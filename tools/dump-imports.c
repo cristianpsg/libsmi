@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.16 2000/11/29 16:35:26 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.17 2000/11/30 11:04:07 strauss Exp $
  */
 
 #include <config.h>
@@ -81,7 +81,7 @@ static void freeImports(Imports *imports, int n)
 
 
 
-static int printImports(FILE *f, SmiModule *smiModule, char *prefix)
+static int fprintImports(FILE *f, SmiModule *smiModule, char *prefix)
 {
     SmiModule *smiModule2;
     Imports *imports;
@@ -91,11 +91,9 @@ static int printImports(FILE *f, SmiModule *smiModule, char *prefix)
 
     for (i = 0; i < n; i++) {
 	char *newprefix;
-	SmiImport *firstImport;
 
 	smiModule2 = smiGetModule(imports[i].module);
-	firstImport = smiGetFirstImport(smiModule2);
-	recurse = (firstImport == NULL);
+	recurse = (NULL == smiGetFirstImport(smiModule2));
 	if (recurse) {
 	    fprintf(f, "%s  |\n", prefix);
 	}
@@ -108,7 +106,7 @@ static int printImports(FILE *f, SmiModule *smiModule, char *prefix)
 	} else {
 	    strcat(newprefix, "  |");
 	}
-	done = printImports(f, smiModule2, newprefix);
+	done = fprintImports(f, smiModule2, newprefix);
 	if (! recurse && done) {
 	    if (i == n-1) {
 		fprintf(f, "%s   \n", prefix);
@@ -147,7 +145,7 @@ static void dumpImports(int modc, SmiModule **modv, int flags, char *output)
 	}
 
 	fprintf(f, "%s\n", modv[i]->name);
-	printImports(f, modv[i], "");
+	fprintImports(f, modv[i], "");
     }
 
     if (output) {
@@ -164,7 +162,7 @@ void initImports()
 	"imports",
 	dumpImports,
 	SMI_FLAG_NODESCR,
-	SMIDUMP_DRIVER_CANT_UNITE, /** output ? **/
+	SMIDUMP_DRIVER_CANT_UNITE,
 	"recursive list of all imports",
 	NULL,
 	NULL
