@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.18 1999/04/08 16:38:24 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.20 1999/04/09 20:28:36 strauss Exp $
  */
 
 %{
@@ -58,10 +58,10 @@ extern int yylex(void *lvalp, Parser *parserPtr);
 
 
 
-Node   *parentNodePtr;
-int    impliedFlag;
+static Node	   *parentNodePtr;
+static int	   impliedFlag;
 static SmiBasetype defaultBasetype;
- 
+static Module      *complianceModulePtr = NULL; 
 
 
 %}
@@ -1561,8 +1561,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						        thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s.%s",
+				    sprintf(s, "%s%s%s",
 					    thisParserPtr->modulePtr->name,
+					    SMI_NAMESPACE_OPERATOR,
 					    parentPtr->name);
 				    setTypeParent($$, s);
 				} else {
@@ -1573,14 +1574,16 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							  importPtr->module);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s.%s", importPtr->module,
+				    sprintf(s, "%s%s%s", importPtr->module,
+					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->name);
 				    setTypeParent($$, s);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s.%s",
-				        thisParserPtr->modulePtr->name, $1);
+				sprintf(s, "%s%s%s",
+				        thisParserPtr->modulePtr->name,
+					SMI_NAMESPACE_OPERATOR, $1);
 				setTypeParent($$, s);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
@@ -1610,13 +1613,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s.%s", importPtr->module,
+				    sprintf(s, "%s%s%s", importPtr->module,
+					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->name);
 				    setTypeParent($$, s);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s.%s", $1, $3);
+				sprintf(s, "%s%s%s",
+					$1, SMI_NAMESPACE_OPERATOR, $3);
 				setTypeParent($$, s);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
@@ -1645,8 +1650,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s.%s",
+				    sprintf(s, "%s%s%s",
 					    thisParserPtr->modulePtr->name,
+					    SMI_NAMESPACE_OPERATOR, 
 					    parentPtr->name);
 				    setTypeParent($$, s);
 				} else {
@@ -1657,15 +1663,17 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							  importPtr->module);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s.%s", importPtr->module,
+				    sprintf(s, "%s%s%s", importPtr->module,
+					    SMI_NAMESPACE_OPERATOR, 
 					    importPtr->name);
 				    setTypeParent($$, s);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s.%s",
-				        thisParserPtr->modulePtr->name, $1);
+				sprintf(s, "%s%s%s",
+				        thisParserPtr->modulePtr->name,
+					SMI_NAMESPACE_OPERATOR, $1);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $2);
@@ -1694,14 +1702,16 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s.%s", importPtr->module,
+				    sprintf(s, "%s%s%s", importPtr->module,
+					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->name);
 				    setTypeParent($$, s);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s.%s", $1, $3);
+				sprintf(s, "%s%s%s",
+					$1, SMI_NAMESPACE_OPERATOR, $3);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $4);
@@ -1740,8 +1750,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 						     thisParserPtr);
 				    $$ = duplicateType(parentPtr, 0,
 						       thisParserPtr);
-				    sprintf(s, "%s.%s",
+				    sprintf(s, "%s%s%s",
 					    thisParserPtr->modulePtr->name,
+					    SMI_NAMESPACE_OPERATOR,
 					    parentPtr->name);
 				    setTypeParent($$, s);
 				} else {
@@ -1752,15 +1763,17 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 							  importPtr->module);
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s.%s", importPtr->module,
+				    sprintf(s, "%s%s%s", importPtr->module,
+					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->name);
 				    setTypeParent($$, s);
 				}
 			    } else {
 				$$ = duplicateType(parentPtr, 0,
 						   thisParserPtr);
-				sprintf(s, "%s.%s",
-				        thisParserPtr->modulePtr->name, $1);
+				sprintf(s, "%s%s%s",
+				        thisParserPtr->modulePtr->name,
+					SMI_NAMESPACE_OPERATOR, $1);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $2);
@@ -1789,13 +1802,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				    /* TODO: success? */
 				    $$ = addType(NULL, stypePtr->basetype, 0,
 						 thisParserPtr);
-				    sprintf(s, "%s.%s", importPtr->module,
+				    sprintf(s, "%s%s%s", importPtr->module,
+					    SMI_NAMESPACE_OPERATOR,
 					    importPtr->name);
 				    setTypeParent($$, s);
 				}
 			    } else {
 			        $$ = duplicateType(parentPtr, 0, thisParserPtr);
-				sprintf(s, "%s.%s", $1, $3);
+				sprintf(s, "%s%s%s", $1,
+					SMI_NAMESPACE_OPERATOR, $3);
 				setTypeParent($$, s);
 			    }
 			    setTypeList($$, $4);
@@ -2706,17 +2721,31 @@ subidentifier:
 				    importPtr = findImportByName($1,
 							       thisModulePtr);
 				    if (!importPtr) {
-					/* 
-					 * forward referenced node. create it,
-					 * marked with FLAG_INCOMPLETE.
+					/*
+					 * If we are in a MODULE-COMPLIANCE
+					 * statement with a given MODULE...
 					 */
-					objectPtr = addObject($1,
+					if (complianceModulePtr) {
+					    objectPtr =
+						findObjectByModuleAndName(
+						    complianceModulePtr, $1);
+					    if (objectPtr) {
+						addImport($1, thisParserPtr);
+					    }
+					} else {
+					    /* 
+					     * forward referenced node.
+					     * create it,
+					     * marked with FLAG_INCOMPLETE.
+					     */
+					    objectPtr = addObject($1,
 							      pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
-					setObjectFileOffset(objectPtr,
+					    setObjectFileOffset(objectPtr,
 						     thisParserPtr->character);
+					}
 					$$ = objectPtr;
 				    } else {
 					/*
@@ -2749,7 +2778,8 @@ subidentifier:
 			    char s[2*MAX_IDENTIFIER_LENGTH+2];
 			    Import *importPtr;
 			    
-			    sprintf(s, "%s.%s", $1, $3);
+			    sprintf(s, "%s%s%s",
+				    $1, SMI_NAMESPACE_OPERATOR, $3);
 
 			    if (parentNodePtr != rootNodePtr) {
 				printError(thisParserPtr,
@@ -2764,17 +2794,31 @@ subidentifier:
 					$1, $3, thisModulePtr);
 				    if (!importPtr) {
 					/* TODO: check: $1 == thisModule ? */
-					/* 
-					 * forward referenced node. create it,
-					 * marked with FLAG_INCOMPLETE.
+					/*
+					 * If we are in a MODULE-COMPLIANCE
+					 * statement with a given MODULE...
 					 */
-					objectPtr = addObject($1,
+					if (complianceModulePtr) {
+					    objectPtr =
+						findObjectByModuleAndName(
+						    complianceModulePtr, $1);
+					    if (objectPtr) {
+						addImport($1, thisParserPtr);
+					    }
+					} else {
+					    /* 
+					     * forward referenced node.
+					     * create it,
+					     * marked with FLAG_INCOMPLETE.
+					     */
+					    objectPtr = addObject($1,
 							    pendingNodePtr,
 							      0,
 							      FLAG_INCOMPLETE,
 							      thisParserPtr);
-					setObjectFileOffset(objectPtr,
+					    setObjectFileOffset(objectPtr,
 						     thisParserPtr->character);
+					}
 					$$ = objectPtr;
 				    } else {
 					/*
@@ -2853,7 +2897,8 @@ subidentifier:
 			    Object *objectPtr;
 			    char md[2*MAX_IDENTIFIER_LENGTH+2];
 			    
-			    sprintf(md, "%s.%s", $1, $3);
+			    sprintf(md, "%s%s%s",
+				    $1, SMI_NAMESPACE_OPERATOR, $3);
 			    objectPtr = findObjectByModulenameAndName($1, $3);
 			    if (objectPtr) {
 				printError(thisParserPtr, ERR_EXISTENT_OBJECT,
@@ -3094,16 +3139,31 @@ ComplianceModules:	ComplianceModule
 	;
 
 ComplianceModule:	MODULE ComplianceModuleName
-			/*
-			 * TODO: Use this Module $2 for identifier
-			 * lookups in MandatoryPart and CompliancePart
-			 */
+			{
+			    /*
+			     * Remember the module. SMIv2 is broken by
+			     * design to allow subsequent clauses to
+			     * refer identifiers that are not
+			     * imported.  Although, SMIv2 does not
+			     * require, we will fake it by inserting
+			     * appropriate imports.
+			     */
+			    if ($2 == thisModulePtr)
+				complianceModulePtr = NULL;
+			    else
+				complianceModulePtr = $2;
+			}
 			MandatoryPart
 			CompliancePart
 			{
-			    $$.mandatorylistPtr = $3;
-			    $$.optionlistPtr = $4.optionlistPtr;
-			    $$.refinementlistPtr = $4.refinementlistPtr;
+			    $$.mandatorylistPtr = $4;
+			    $$.optionlistPtr = $5.optionlistPtr;
+			    $$.refinementlistPtr = $5.refinementlistPtr;
+			    if (complianceModulePtr) {
+				checkImports(complianceModulePtr->name,
+					     thisParserPtr);
+				complianceModulePtr = NULL;
+			    }
 			}
 	;
 
@@ -3111,10 +3171,18 @@ ComplianceModuleName:	UPPERCASE_IDENTIFIER objectIdentifier
 			{
 			    $$ = findModuleByName($1);
 			    /* TODO: handle objectIdentifier */
+			    if (!$$) {
+				smiLoadModule($1);
+				$$ = findModuleByName($1);
+			    }
 			}
 	|		UPPERCASE_IDENTIFIER
 			{
 			    $$ = findModuleByName($1);
+			    if (!$$) {
+				smiLoadModule($1);
+				$$ = findModuleByName($1);
+			    }
 			}
 	|		/* empty, only if contained in MIB module */
 			/* TODO: RFC 1904 looks a bit different, is this ok? */
