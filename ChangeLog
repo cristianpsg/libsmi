@@ -1,3 +1,11 @@
+2000-01-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Juergen added special handling for the
+	NetworkAddress SMIv1 type.
+
+	* tools/smiquery.c: Juergen fixed crash on unknown node and
+	introduces SMIng notation for fully quallified identifiers.
+
 2000-01-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Andrew Hood pointed out wrong typed constants.
