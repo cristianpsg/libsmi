@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.123 2004/07/22 11:52:39 strauss Exp $
+ * @(#) $Id: error.c,v 1.124 2004/07/27 12:23:27 strauss Exp $
  */
 
 #include <config.h>
@@ -50,6 +50,7 @@ typedef struct Error {
 				/* 5: warning, but might totally correct     */
 				/*    under some circumstances               */
 				/* 6: just a notice                          */
+                                /* 128+: flag to signal an ignored error msg */
     int id;			/* error id, used in error() invocation	     */
     char *tag;			/* tag for error identification on cmd line  */
     char *fmt;			/* the complete error format string	     */
@@ -71,15 +72,15 @@ static Error errors[] = {
       "module or any unexpected circumstances of your system environment.\n"
       "Please submit a detailed bug report to the libsmi maintainer or the\n"
       "libsmi mailing list at <libsmi@ibr.cs.tu-bs.de>."},
-    { 0, ERR_MAX_LEX_DEPTH, "", 
+    { 0, ERR_MAX_LEX_DEPTH, "import-depth", 
       "maximum IMPORTS nesting, probably a loop?",
       "A new parser instance is created whenever a module imports from\n"
       "another module that has not yet been parsed. This might lead to\n"
-      "recursive creation of parser instancesin case of recursive imports.\n"
+      "recursive creation of parser instances in case of recursive imports.\n"
       "The maximum depth of these recursive imports is limited (30).\n"
       "Usually this limit should never be reached. However, this error\n"
       "might occur when modules illegally import definitions in a loop."},
-    { 0, ERR_OUT_OF_MEMORY, "memory", 
+    { 0, ERR_OUT_OF_MEMORY, "internal-memory", 
       "out of memory (internal error!)",
       "Libsmi needs to allocate memory dynamically during runtime, but\n"
       "the system did run out of memory."},
@@ -87,8 +88,10 @@ static Error errors[] = {
       "lexically unexpected character, skipping to end of line", 
       "While parsing a MIB/PIB file a lexically unexpected character has\n"
       "been read, so that subsequent input is dropped up to the end of\n"
-      "line."},
-    { 1, ERR_OTHER_ERROR, "other", 
+      "line. Note that MIBs and PIBs only allow 7-bit ASCII characters and\n"
+      "no international characters at any place in the file (RFC 2578,\n"
+      "Section 3.1.1)."},
+    { 1, ERR_OTHER_ERROR, "internal-other", 
       "%s", 
       "An unspecified error occured. Please submit a detailed bug report\n"
       "to the libsmi maintainer or the libsmi mailing list at\n"
@@ -97,34 +100,36 @@ static Error errors[] = {
       "illegal keyword `%s'", 
       "ASN.1 has some language keywords that are explicitly forbidden in\n"
       "MIB and PIB files. Such a keyword has been read from the current\n"
-      "file."},
+      "file (RFC 2578, Section 3.7)."},
     { 2, ERR_ID_ENDS_IN_HYPHEN, "hyphen-end",
       "identifier `%s' illegally ends in a hyphen", NULL},
     { 3, ERR_LEADING_ZEROS, "number-leading-zero",
-      "leading zero(s) on a number", NULL},
+      "leading zero(s) on a number",
+      "A decimal number other than 0 must not start with a 0 digit. The\n"
+      "value 0 must be represented as a single 0 digit."},
     { 2, ERR_NUMBER_TOO_LARGE, "number-range",
-      "number `%s' too large", NULL},
-    { 2, ERR_HEX_ENDS_IN_B, "string-delimiter",
-      "hexadecimal string terminated by binary string delimiter, assume hex value", NULL},
+      "number `%s' too large",
+      "The range of numerical values is restricted depending on the\n"
+      "underlying base type and possibly further type refinements."},
     { 2, ERR_MODULENAME_64, "namelength-64-module",
       "module name `%s' must not be longer that 64 characters", NULL},
-    { 4, ERR_MODULENAME_32, "namelength-32-module",
+    { 128 + 4, ERR_MODULENAME_32, "namelength-32-module",
       "module name `%s' longer than 32 characters", NULL},
     { 2, ERR_TYPENAME_64, "namelength-64-type",
       "type name `%s' must not be longer that 64 characters", NULL},
-    { 4, ERR_TYPENAME_32, "namelength-32-type",
+    { 128 + 4, ERR_TYPENAME_32, "namelength-32-type",
       "type name `%s' longer than 32 characters", NULL},
     { 2, ERR_OIDNAME_64, "namelength-64-object",
       "object identifier name `%s' must not be longer that 64 characters", NULL},
-    { 4, ERR_OIDNAME_32, "namelength-32-object",
+    { 128 + 4, ERR_OIDNAME_32, "namelength-32-object",
       "object identifier name `%s' longer than 32 characters", NULL},
     { 2, ERR_ENUMNAME_64, "namelength-64-enumeration",
       "enumeration name `%s' must not be longer that 64 characters", NULL},
-    { 4, ERR_ENUMNAME_32, "namelength-32-enumeration",
+    { 128 + 4, ERR_ENUMNAME_32, "namelength-32-enumeration",
       "enumeration name `%s' longer than 32 characters", NULL},
     { 2, ERR_BITNAME_64, "namelength-64-bit",
       "bit name `%s' must not be longer than 64 characters", NULL},
-    { 4, ERR_BITNAME_32, "namelength-32-bit",
+    { 128 + 4, ERR_BITNAME_32, "namelength-32-bit",
       "bit name `%s' longer than 32 characters", NULL},
     { 2, ERR_UCIDENTIFIER_64, "namelength-64-uc-identifier",
       "uppercase identifier `%s' must not be longer than 64 characters", NULL},
@@ -150,8 +155,6 @@ static Error errors[] = {
       "access `write-only' is not a good idea", NULL},
     { 2, ERR_INVALID_NOTIFICATION_VARIATION_ACCESS, "variation-access-notification", 
       "invalid access `%s' in a notification variation", NULL},
-    { 2, ERR_INVALID_OBJECT_VARIATION_ACCESS, "variation-access-object", 
-      "invalid access `%s' in an object variation", NULL},
     { 2, ERR_INVALID_VARIATION_ACCESS, "variation-access", 
       "invalid access `%s' in a variation", NULL},
     { 2, ERR_NOTIFICATION_VARIATION_SYNTAX, "variation-syntax", 
@@ -176,60 +179,48 @@ static Error errors[] = {
       "object identifier name `%s' should not include hyphens in SMIv2 MIB", NULL},
     { 2, ERR_ILLEGAL_CHAR_IN_STRING, "char-illegal-string", 
       "illegal character `%c' (0x%2x) in quoted string", NULL},
-    { 2, ERR_BIN_STRING_MUL8, "", 
+    { 2, ERR_BIN_STRING_MUL8, "stringlength-binary", 
       "length of binary string `%s' is not a multiple of 8", NULL},
-    { 2, ERR_HEX_STRING_MUL2, "", 
+    { 2, ERR_HEX_STRING_MUL2, "stringlength-hexadecimal", 
       "length of hexadecimal string `%s' is not a multiple of 2", NULL},
-    { 5, ERR_FLUSH_DECLARATION, "", 
+    { 5, ERR_FLUSH_DECLARATION, "internal-flushing", 
       "flushing recent incorrect declaration, see previous error(s)", NULL},
-    { 2, ERR_MAX_ACCESS_IN_SMIV1, "", 
+    { 2, ERR_MAX_ACCESS_IN_SMIV1, "maxaccess-in-smiv1", 
       "MAX-ACCESS is SMIv2 style, use ACCESS in SMIv1 MIBs instead", NULL},
-    { 2, ERR_ACCESS_IN_SMIV2, "", 
+    { 2, ERR_ACCESS_IN_SMIV2, "access-in-smiv2", 
       "ACCESS is SMIv1 style, use MAX-ACCESS in SMIv2 MIBs instead", NULL},
-    { 5, ERR_UNWANTED_MODULE, "", 
-      "ignoring unwanted module `%s'", NULL},
-    { 1, ERR_MODULE_NOT_FOUND, "", 
+    { 1, ERR_MODULE_NOT_FOUND, "module-not-found", 
       "failed to locate MIB module `%s'", NULL},
-    { 2, ERR_OBJECT_IDENTIFIER_REGISTERED, "", 
-      "Object identifier label `%s.%s' already registered at `%s'", NULL},
-    { 1, ERR_OPENING_INPUTFILE, "", 
+    { 1, ERR_OPENING_INPUTFILE, "module-not-readable", 
       "%s: %s", NULL},
-    { 1, ERR_ILLEGAL_INPUTFILE, "", 
+    { 1, ERR_ILLEGAL_INPUTFILE, "module-unknown-format", 
       "%s: unable to determine SMI version", NULL},
-    { 1, ERR_UNKNOWN_OIDLABEL, "", 
+    { 1, ERR_UNKNOWN_OIDLABEL, "object-identifier-unknown", 
       "unknown object identifier label `%s'", NULL},
-    { 2, ERR_SINGLE_SUBIDENTIFIER, "", 
-      "single number `%s' is not a valid object identifier", NULL},
-    { 2, ERR_SUBIDENTIFIER_VS_OIDLABEL, "", 
+    { 2, ERR_SUBIDENTIFIER_VS_OIDLABEL, "object-identifier-not-matching", 
       "subidentifier `%s' does not match object identifier label `%s'", NULL},
-    { 2, ERR_EXISTENT_OBJECT, "", 
+    { 2, ERR_EXISTENT_OBJECT, "object-identifier-redefined", 
       "an object named `%s' already exists", NULL},
-    { 2, ERR_IDENTIFIER_NOT_IN_MODULE, "", 
+    { 2, ERR_IDENTIFIER_NOT_IN_MODULE, "import-failed", 
       "identifier `%s' cannot be imported from module `%s'", NULL},
-    { 1, ERR_MACRO, "", 
+    { 1, ERR_MACRO, "macro-not-allowed", 
       "MACRO definitions are only allowed in SMI base modules", NULL},
-    { 1, ERR_CHOICE, "", 
+    { 1, ERR_CHOICE, "choice-not-allowed", 
       "CHOICE type definitions are only allowed in SMI base modules", NULL},
-    { 1, ERR_TYPE_SMI, "", 
+    { 1, ERR_TYPE_SMI, "type-not-allowed", 
       "type `%s' may only be defined in SMI/SPPI base modules", NULL},
-    { 1, ERR_TYPE_TAG, "", 
+    { 1, ERR_TYPE_TAG, "tagged-type-not-allowed", 
       "tagged or IMPLICIT types may only be defined in SMI base modules", NULL},
-    { 1, ERR_MACRO_ALREADY_EXISTS, "", 
-      "module `%s' already declared a macro `%s'", NULL},
-    { 1, ERR_EXPORTS, "", 
+    { 1, ERR_EXPORTS, "export-not-allowed", 
       "EXPORTS are only allowed in SMIv1 base modules", NULL},
-    { 1, ERR_ILLEGALLY_QUALIFIED, "", 
+    { 1, ERR_ILLEGALLY_QUALIFIED, "object-identifier-qualified", 
       "illegally qualified object identifier label `%s'", NULL},
-    { 2, ERR_MISSING_DESCRIPTION, "missing-description", 
+    { 2, ERR_MISSING_DESCRIPTION, "description-missing", 
       "description missing in object definition", NULL},
-    { 2, ERR_OIDLABEL_NOT_FIRST, "", 
+    { 2, ERR_OIDLABEL_NOT_FIRST, "object-identifier-not-prefix", 
       "Object identifier element `%s' name only allowed as first element", NULL},
-    { 2, ERR_UNKNOWN_TYPE, "", 
+    { 2, ERR_UNKNOWN_TYPE, "type-unknown", 
       "unknown type `%s'", NULL},
-    { 1, ERR_LOCATION, "", 
-      "opening MIB directory or file `%s': %s", NULL},
-    { 1, ERR_UNKNOWN_LOCATION_TYPE, "", 
-      "unknown MIB location type `%s'", NULL},
     { 2, ERR_ILLEGAL_RANGE_FOR_COUNTER, "counter-range-illegal", 
       "illegal range restriction for counter type `%s'", NULL},
     { 2, ERR_ILLEGAL_RANGE_FOR_PARENT_TYPE, "range-illegal", 
@@ -238,56 +229,54 @@ static Error errors[] = {
       "illegal size restriction for non-octet-string parent type `%s'", NULL},
     { 2, ERR_ILLEGAL_ENUM_FOR_PARENT_TYPE, "enum-illegal", 
       "illegal enumeration or bits restriction for non-enumeration-or-bits parent type `%s'", NULL},
-    { 1, ERR_SMIV2_SIGNED_NUMBER_RANGE, "", 
+    { 1, ERR_SMIV2_SIGNED_NUMBER_RANGE, "out-of-range-signed", 
       "number `%s' is out of SMIv1/SMIv2 signed number range", NULL},
-    { 1, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, "", 
+    { 1, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, "out-of-range-unsigned", 
       "number `%s' is out of SMIv1/SMIv2 unsigned number range", NULL},
-    { 1, ERR_INTEGER32_TOO_LARGE, "", 
+    { 1, ERR_INTEGER32_TOO_LARGE, "out-of-range-integer32", 
       "Integer32 value `%u' is too large", NULL},
-    { 1, ERR_UNEXPECTED_VALUETYPE, "", 
+    { 1, ERR_UNEXPECTED_VALUETYPE, "type-not-matching", 
       "type of value does not match declaration", NULL},
-    { 1, ERR_SMI_NOT_SUPPORTED, "", 
+    { 1, ERR_SMI_NOT_SUPPORTED, "smi-not-supported", 
       "file `%s' seems to be SMIv1 or SMIv2 which is not supported", NULL},
-    { 1, ERR_SMING_NOT_SUPPORTED, "", 
+    { 1, ERR_SMING_NOT_SUPPORTED, "sming-not-supported", 
       "file `%s' seems to be SMIng which is not supported", NULL},
     { 5, ERR_UNUSED_IMPORT, "import-unused", 
       "identifier `%s' imported from module `%s' is never used", NULL},
-    { 2, ERR_MACRO_NOT_IMPORTED, "", 
+    { 2, ERR_MACRO_NOT_IMPORTED, "macro-not-imported", 
       "macro `%s' has not been imported from module `%s'", NULL},
-    { 5, ERR_IMPLICIT_NODE, "", 
+    { 5, ERR_IMPLICIT_NODE, "node-implicit", 
       "implicit node definition", NULL},
-    { 3, ERR_SCALAR_READCREATE, "", 
+    { 3, ERR_SCALAR_READCREATE, "scalar-not-creatable", 
       "scalar object must not have a `read-create' access value", NULL},
     { 4, ERR_NAMEDNUMBER_INCLUDES_HYPHEN, "hyphen-in-label", 
       "named number `%s' must not include a hyphen in SMIv2", NULL},
     { 4, ERR_NAMEDBIT_INCLUDES_HYPHEN, "hyphen-in-label", 
       "named bit `%s' must not include a hyphen in SMIv2", NULL},
-    { 2, ERR_REDEFINITION, "", 
+    { 2, ERR_REDEFINITION, "identifier-redefined", 
       "redefinition of identifier `%s'", NULL},
-    { 5, ERR_EXT_REDEFINITION, "", 
+    { 5, ERR_EXT_REDEFINITION, "identifier-external-redifined", 
       "redefinition of identifier `%s::%s'", NULL},
-    { 5, ERR_CASE_REDEFINITION, "", 
+    { 5, ERR_CASE_REDEFINITION, "identifier-case-match", 
       "identifier `%s' differs from `%s' only in case", NULL},
-    { 5, ERR_EXT_CASE_REDEFINITION, "", 
+    { 5, ERR_EXT_CASE_REDEFINITION, "identifier-external-case-match", 
       "identifier `%s' differs from `%s::%s' only in case", NULL},
-    { 6, ERR_PREVIOUS_DEFINITION, "",
+    { 6, ERR_PREVIOUS_DEFINITION, "previous-definition",
       "previous definition of `%s'", NULL},
     { 2, ERR_INVALID_FORMAT, "invalid-format", 
       "invalid format specification `%s'", NULL},
-    { 3, ERR_REFINEMENT_ALREADY_EXISTS, "", 
+    { 3, ERR_REFINEMENT_ALREADY_EXISTS, "refinement-exists", 
       "refinement for `%s' already exists in this compliance statement", NULL},
-    { 3, ERR_OPTIONALGROUP_ALREADY_EXISTS, "", 
+    { 3, ERR_OPTIONALGROUP_ALREADY_EXISTS, "optional-group-exists", 
       "optional group definition for `%s' already exists in this compliance statement", NULL},
-    { 2, ERR_ILLEGAL_OID_DEFVAL, "", 
-      "cannot handle other default values than 0.0 for `%s'", NULL},
     { 2, ERR_UNEXPECTED_TYPE_RESTRICTION, "subtype-illegal", 
       "subtyping not allowed",
       "The types OBJECT IDENTIFIER, IpAddress, Counter32, Counter64,\n"
       "and TimeTicks, and any types in a SEQUENCE clause must not be\n"
       "sub-typed (RFC 2578, Sections 7.1.12 and 9)."},
-    { 1, ERR_UNKNOWN_CONFIG_CMD, "", 
+    { 1, ERR_UNKNOWN_CONFIG_CMD, "config-command-unknown", 
       "unknown configuration command `%s' in file `%s'", NULL},
-    { 6, ERR_CACHE_CONFIG_NOT_SUPPORTED, "", 
+    { 6, ERR_CACHE_CONFIG_NOT_SUPPORTED, "config-caching-not-supported", 
       "module caching is not supported though configured in file `%s'", NULL},
     { 4, ERR_SMIV2_OPAQUE_OBSOLETE, "opaque-smiv2", 
       "SMIv2 provides Opaque solely for backward-compatibility", NULL},
@@ -323,7 +312,7 @@ static Error errors[] = {
       "revision date after last update", NULL},
     { 5, ERR_INTEGER_IN_SMIV2, "integer-misuse", 
       "use Integer32 instead of INTEGER in SMIv2", NULL},
-    { 5, ERR_MODULE_ALREADY_LOADED, "", 
+    { 5, ERR_MODULE_ALREADY_LOADED, "module-already-loaded", 
       "module `%s' is already loaded, aborting parser on this file", NULL},
     { 2, ERR_SMIV2_BASETYPE_NOT_IMPORTED, "basetype-not-imported", 
       "SMIv2 base type `%s' must be imported from SNMPv2-SMI", NULL},
@@ -553,30 +542,22 @@ static Error errors[] = {
       "compliance's parent node must be a simple node", NULL},
     { 2, ERR_CAPABILITIES_PARENT_TYPE, "parent-capabilities",
       "capabilities' parent node must be a simple node", NULL},
-    { 1, ERR_SPPI_SIGNED64_NUMBER_RANGE, "", 
+    { 1, ERR_SPPI_SIGNED64_NUMBER_RANGE, "out-of-range-signed64", 
       "number `%s' is out of range for SPPI 64bit signed numbers", NULL},
-    { 1, ERR_SPPI_UNSIGNED64_NUMBER_RANGE, "", 
+    { 1, ERR_SPPI_UNSIGNED64_NUMBER_RANGE, "out-of-range-unsigned64", 
       "number `%s' is out of range for SPPI 64bit unsigned numbers", NULL},
-    { 0, ERR_SMI_CONSTRUCT_IN_PIB, "", 
+    { 0, ERR_SMI_CONSTRUCT_IN_PIB, "keyword-illegal-in-pib", 
       "the SMI construct/keyword `%s' may not be used in a PIB", NULL},
-    { 0, ERR_SPPI_CONSTRUCT_IN_MIB, "", 
+    { 0, ERR_SPPI_CONSTRUCT_IN_MIB, "keyword-illegal-in-mib", 
       "the SPPI construct/keyword `%s' may not be used in a MIB", NULL},
-    { 2, ERR_POLICY_ACCESS_IN_PIB, "",
+    { 2, ERR_POLICY_ACCESS_IN_PIB, "policy-access",
       "the PIB uses POLICY-ACCESS where PIB-ACCESS is required", NULL},
     { 2, ERR_INVALID_SPPI_ACCESS, "access-invalid-sppi", 
       "invalid access `%s' in SPPI PIB", NULL},
     { 2, ERR_INVALID_SPPI_STATUS, "status-invalid-sppi", 
       "invalid status `%s' in SPPI PIB", NULL},
-    { 2, ERR_INDEX_SHOULD_BE_PIB_INDEX, "",
-      "the PIB uses ACCESS where PIB-INDEX is required", NULL},
-    { 0, ERR_INDEX_USED_TWICE, "",
-      "INDEX was used twice inside an OBJECT-TYPE declaration", NULL},
     { 1, ERR_SUBJECT_CATEGORIES_MISSING, "subject-categories-missing",
       "a MODULE-IDENTITY clause lacks SUBJECT-CATEGORIES", NULL},
-    { 1, ERR_UNKNOWN_SUBJECT_CATEGORY, "unknown-subject-category",
-      "the subject category `%s' is invalid", NULL},
-    { 1, ERR_OBJECTS_MISSING_IN_OBJECT_GROUP, "objects-missing-in-group",
-      "an OBJECT-GROUP is missing the OBJECTS part", NULL},
     { 2, ERR_NOT_ACCESSIBLE_IN_PIB_ACCESS, "not-accessible-in-pib-access",
       "PIB-ACCESS must not be set to `not-accessible'", NULL},
     { 2, ERR_REPORT_ONLY_IN_PIB_MIN_ACCESS, "report-only-in-pib-min-access",
@@ -587,8 +568,6 @@ static Error errors[] = {
       "INDEX may not be used without PIB-INDEX", NULL},
     { 3, ERR_ERROR_NUMBER_RANGE, "install-error-range",
       "the named-number for an INSTALL-ERROR is out of range: allowed 1..65535, current %d", NULL},
-    { 3, ERR_CATEGORY_ID_RANGE, "subject-categories-range",
-      "the named-number for a SUBJECT-CATEGORIES entry must be greater than 0, current: %d", NULL},
     { 2, ERR_SPPI_BASETYPE_NOT_IMPORTED, "sppi-basetype-not-imported",
       "SPPI basetype `%s' must be imported from COPS-PR-SPPI", NULL},
     { 2, ERR_ROW_LACKS_PIB_INDEX, "row-lacks-pib-index",
@@ -635,7 +614,7 @@ static Error errors[] = {
       "attribute `%s' must be contained in at least one conformance group", NULL},
     { 0, ERR_OBJECTPTR_ELEMENT_IN_USE, "objectptr-element-in-use",
       "objectPtr->%s is already in use (%s)", NULL},
-    { 1, ERR_OID_ADMIN_ZERO, "",
+    { 1, ERR_OID_ADMIN_ZERO, "last-subid-zero",
       "last subidentifier assigned to `%s' may not be zero", NULL},
     { 5, ERR_TYPE_STATUS_DEPRECATED, "type-status-deprecated",
       "type `%s' used by `%s' is deprecated", NULL},
@@ -673,6 +652,9 @@ static Error errors[] = {
  * smiSetErrorSeverity --
  *
  *      Sets the severity of errors with tags matching pattern.
+ *      0 <= severity <= 15 : sets severity to this value.
+ *      severity == 128     : makes the parser to ignore the error.
+ *      severity == -1      : makes the parser to allow the error.
  *
  * Results:
  *      None.
@@ -690,7 +672,13 @@ smiSetErrorSeverity(char *pattern, int severity)
     
     for (i = 0; errors[i].fmt; i++) {
 	if (strstr(errors[i].tag, pattern) == errors[i].tag) {
-	    errors[i].level = severity;
+	    if (severity == 128) {
+		errors[i].level |= 128;
+	    } else if (severity == -1) {
+		errors[i].level &= 127;
+	    } else {
+		errors[i].level = severity;
+	    }
 	}
     }
 }

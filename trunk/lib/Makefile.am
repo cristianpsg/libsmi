@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.21 2002/07/23 11:48:14 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.22 2002/07/24 11:54:18 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -83,4 +83,4 @@ error.h data.lo: errormacros.h
 errormacros.h: error.c
 	cat error.c | grep ERR_ | \
 	sed -e 's/^.*\(ERR_[a-zA-Z0-9_]*\).*$$/\1/' | \
-	awk '{printf "#define %-40s %d\n", $$1, NR-1}' > errormacros.h
+	awk '{printf "#define %-50s %d\n", $$1, NR-1}' > errormacros.h
