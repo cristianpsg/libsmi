@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.43 2002/09/25 15:07:19 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.44 2002/09/27 16:47:27 tklie Exp $
  */
 
 #include <config.h>
@@ -603,7 +603,7 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 
     case SMI_BASETYPE_INTEGER32:
     {
-	SmiInteger32 min = -2147483647, max = -2147483647;
+	SmiInteger32 min = -2147483647, max = 214748364;
 	int offset, useDecPoint = 0;
 
 	if( smiType->format ) {
@@ -713,7 +713,7 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    fprintSegment( f, indent + 2 * INDENT, "<xsd:pattern ", 0 );
 	    fprintf( f, "value=\"%s\"/>\n", getStrDHType( smiType->format,
 							  lengths, numSubRanges ) );
-	    fprintSegment( f, indent, "<xsd:restriction>\n", 0 );
+	    fprintSegment( f, indent, "</xsd:restriction>\n", 0 );
 	    
 	    xfree( lengths );
 	}
@@ -1117,10 +1117,10 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 	    fprintf(f, " name=\"%sBit\"", name);
 	    fprintf(f, ">\n");
 	}
-	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
+/*	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
 	    fprintf( f, " name=\"%sType\">\n", name );
-	}
+	    }*/
 	else {
 	    fprintSegment(f, indent, "<xsd:simpleType", 0);
 	    fprintf(f, " name=\"%s\"", name);
@@ -1146,6 +1146,7 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     
     if( smiType->format && smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	fprintRestriction( f, indent + INDENT, smiType );
+	fprintSegment(f, indent, "</xsd:simpleType>\n", 0);
     }
     
     else if( ( numSubRanges > 1 ) &&
@@ -1473,7 +1474,7 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 	    fprintTypedef( f, indent + INDENT, smiType, NULL );
 	}
 
-	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
+	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {	    
 	    
 	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
 
@@ -1481,6 +1482,7 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 
 		fprintf( f, " minOccurs=\"0\">\n" );
 		if( ! hint ) {
+		    fprintAnnotationElem( f, indent + INDENT, smiNode );
 		    fprintTypedef( f, indent + INDENT, smiType, NULL );
 		}
 		else {
@@ -1488,6 +1490,8 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 			lp = 0;
 		    SmiRange *smiRange;
 		    SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
+
+		    fprintAnnotationElem( f, indent + INDENT, smiNode );
 		    
 		    /* write subtype lengths to the array */
 		    for( smiRange = smiGetFirstRange( smiType );
@@ -1495,7 +1499,7 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 			 smiRange = smiGetNextRange( smiRange ) ) {
 			lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
 			lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
-		    }
+		    }		    
 		    fprintSegment( f, indent + INDENT,
 				   "<xsd:simpleType>\n", 0 );
 		    fprintSegment( f, indent + 2 * INDENT,
@@ -1521,9 +1525,8 @@ static void fprintElement( FILE *f, int indent, SmiNode *smiNode )
 		    fprintf( f, " type=\"%s\" minOccurs=\"0\">\n",
 			     typeName );
 		}
+		fprintAnnotationElem( f, indent + INDENT, smiNode );
 	    }	   	   
-
-	    fprintAnnotationElem( f, indent + INDENT, smiNode );
 #if 0
 	    fprintSegment( f, indent + INDENT, "<xsd:complexType>\n", 0 );
 	    fprintSegment( f, indent + 2 * INDENT,
@@ -1635,7 +1638,7 @@ static void fprintBitsAndStrings( FILE *f, SmiModule *smiModule )
 }
 
 
-static void fprintKeys( FILE *f, SmiModule *smiModule )
+static void fprintKeys( FILE *f, int indent, SmiModule *smiModule )
 {
     SmiNode *iterNode, *relNode;
     SmiElement *iterElem;
@@ -1650,28 +1653,28 @@ static void fprintKeys( FILE *f, SmiModule *smiModule )
 	case SMI_INDEX_INDEX:
 
 	    /* print key */
-	    fprintSegment( f, INDENT, "<xsd:key " , 0 );
+	    fprintSegment( f, indent, "<xsd:key " , 0 );
 	    fprintf( f, "name=\"%sKey\">\n", iterNode->name );
-	    fprintSegment( f, 2 * INDENT, "<xsd:selector ", 0 );
+	    fprintSegment( f, 2 * indent, "<xsd:selector ", 0 );
 	    fprintf( f, "xpath=\"%s\"/>\n", iterNode->name );
 	    for( iterElem = smiGetFirstElement( iterNode );
 		 iterElem;
 		 iterElem = smiGetNextElement( iterElem ) ) {
 		SmiNode *indexNode = smiGetElementNode( iterElem );
-		fprintSegment( f, 2 * INDENT, "<xsd:field ", 0 );
+		fprintSegment( f, 2 * indent, "<xsd:field ", 0 );
 		fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
 	    }
-	    fprintSegment( f, INDENT, "</xsd:key>\n\n", 0 );
+	    fprintSegment( f, indent, "</xsd:key>\n\n", 0 );
 	    break;
 
 	case SMI_INDEX_AUGMENT:
 
 	    /* print keyref */
-	    fprintSegment( f, INDENT, "<xsd:keyref " , 0 );
+	    fprintSegment( f, indent, "<xsd:keyref " , 0 );
 	    relNode = smiGetRelatedNode( iterNode );
 	    fprintf( f, "name=\"%sKeyRef\" ", iterNode->name );
 	    fprintf( f, "refer=\"%sKey\">\n", relNode->name );
-	    fprintSegment( f, 2 * INDENT, "<xsd:selector ", 0 );
+	    fprintSegment( f, 2 * indent, "<xsd:selector ", 0 );
 	    fprintf( f, "xpath=\"%s\"/>\n", iterNode->name );
 	    for( iterElem = smiGetFirstElement( relNode );
 		 iterElem;
@@ -1680,21 +1683,21 @@ static void fprintKeys( FILE *f, SmiModule *smiModule )
 		fprintSegment( f, 2 * INDENT, "<xsd:field ", 0 );
 		fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
 	    }
-	    fprintSegment( f, INDENT, "</xsd:keyref>\n", 0 );
+	    fprintSegment( f, indent, "</xsd:keyref>\n", 0 );
 
 	    /* print unique clause */
-	    fprintSegment( f, INDENT, "<xsd:unique " , 0 );
+	    fprintSegment( f, indent, "<xsd:unique " , 0 );
 	    fprintf( f, "name=\"%sKeyRefUnique\">\n", iterNode->name );
-	    fprintSegment( f, 2 * INDENT, "<xsd:selector ", 0 );
+	    fprintSegment( f, 2 * indent, "<xsd:selector ", 0 );
 	    fprintf( f, "xpath=\"%s\"/>\n", iterNode->name );
 	    for( iterElem = smiGetFirstElement( relNode );
 		 iterElem;
 		 iterElem = smiGetNextElement( iterElem ) ) {
 		SmiNode *indexNode = smiGetElementNode( iterElem );
-		fprintSegment( f, 2 * INDENT, "<xsd:field ", 0 );
+		fprintSegment( f, 2 * indent, "<xsd:field ", 0 );
 		fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
 	    }
-	    fprintSegment( f, INDENT, "</xsd:unique>\n\n", 0 );
+	    fprintSegment( f, indent, "</xsd:unique>\n\n", 0 );
 	    break;
 	}
     }
@@ -1783,10 +1786,12 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
 		   "<xsd:attribute name=\"time\" "
 		   "type=\"xsd:dateTime\" use=\"required\"/>\n", 0 );
     fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
+
+    fprintKeys( f, 2 * INDENT, smiModule );
+    
     fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
 
     fprintBitsAndStrings( f, smiModule );
-    fprintKeys( f, smiModule );
 }
 
 
