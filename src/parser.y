@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.20 1998/11/21 21:25:19 strauss Exp $
+ * @(#) $Id: parser.y,v 1.21 1998/11/22 22:58:22 strauss Exp $
  */
 
 %{
@@ -335,11 +335,16 @@ Node *parent;
  * One mibFile may contain multiple MIB modules.
  * It's also possible that there's no module in a file.
  */
-mibFile:		modules
-			{ $$ = 0; }
-	|		/* empty */
-			{ $$ = 0; }
-        ;
+mibFile:
+    modules
+    {
+	$$ = 0;
+    }
+| /* empty */
+    {
+	$$ = 0;
+    }
+;
 
 modules:		module
 			{ $$ = 0; }
