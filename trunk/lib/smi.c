@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.113 2002/07/23 18:12:54 strauss Exp $
+ * @(#) $Id: smi.c,v 1.114 2002/07/23 23:12:20 strauss Exp $
  */
 
 #include <config.h>
@@ -1447,6 +1447,15 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
     unsigned int i = 0;
     char *ss, *s = NULL;
 
+    if (!oid) {
+	if (flags & SMI_RENDER_UNKNOWN) {
+	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	} else {
+	    s = NULL;
+	}
+	return s;
+    }
+    
     if (flags & (SMI_RENDER_NAME | SMI_RENDER_QUALIFIED)) {
 	nodePtr = smiGetNodeByOID(oidlen, oid);
 	if (nodePtr) {
@@ -1469,6 +1478,10 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
 	smiFree(ss);
     }
 
+    if ((!s) && (flags & SMI_RENDER_UNKNOWN)) {
+	asprintf(&s, SMI_UNKNOWN_LABEL);
+    }
+    
     return s;
 }
 
@@ -1483,6 +1496,15 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
     char f[8];
     SmiUnsigned32 v32;
     SmiUnsigned64 v64;
+    
+    if (!smiValuePtr) {
+	if (flags & SMI_RENDER_UNKNOWN) {
+	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	} else {
+	    s = NULL;
+	}
+	return s;
+    }
     
     switch (smiValuePtr->basetype) {
     case SMI_BASETYPE_UNSIGNED32:
@@ -1722,7 +1744,12 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    for (k = 0; k < n; k++) {
 			if (! isascii((int) smiValuePtr->value.ptr[i+k])) {
 			    smiFree(s);
-			    return NULL;
+			    if (flags & SMI_RENDER_UNKNOWN) {
+				asprintf(&s, SMI_LANGUAGE_UNKNOWN);
+			    } else {
+				s = NULL;
+			    }
+			    return s;
 			}
 			ss = s;
 			asprintf(&s, "%s%c", ss, smiValuePtr->value.ptr[i+k]);
@@ -1781,7 +1808,12 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 		    break;
 		default:
 		    smiFree(s);
-		    return NULL;
+		    if (flags & SMI_RENDER_UNKNOWN) {
+			asprintf(&s, SMI_LANGUAGE_UNKNOWN);
+		    } else {
+			s = NULL;
+		    }
+		    return s;
 		}
 		fmt++;
 
@@ -1805,7 +1837,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	}
 	break;
     case SMI_BASETYPE_ENUM:
-	if (flags & SMI_RENDER_NAME) {
+	if ((flags & SMI_RENDER_NAME) && (smiTypePtr)) {
 	    for (nn = smiGetFirstNamedNumber(smiTypePtr); nn;
 		 nn = smiGetNextNamedNumber(nn)) {
 		if (nn->value.value.integer32 == smiValuePtr->value.integer32)
@@ -1829,7 +1861,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	asprintf(&s, "");
 	for (i = 0, nn = NULL; i < smiValuePtr->len * 8; i++) {
 	    if (smiValuePtr->value.ptr[i/8] & (1 << (7-(i%8)))) {
-		if (flags & SMI_RENDER_NAME) {
+		if ((flags & SMI_RENDER_NAME) && (smiTypePtr)) {
 		    for (nn = smiGetFirstNamedNumber(smiTypePtr); nn;
 			 nn = smiGetNextNamedNumber(nn)) {
 			if (nn->value.value.unsigned32 == i)
@@ -1855,15 +1887,63 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
     case SMI_BASETYPE_FLOAT32:
     case SMI_BASETYPE_FLOAT64:
     case SMI_BASETYPE_FLOAT128:
-	s = NULL;
-	break;
     case SMI_BASETYPE_UNKNOWN:
-	s = NULL;
-	break;
     default:
-	s = NULL;
+	if (flags & SMI_RENDER_UNKNOWN) {
+	    asprintf(&s, SMI_LANGUAGE_UNKNOWN);
+	} else {
+	    s = NULL;
+	}
 	break;
     }
 
+    return s;
+}
+
+char *smiRenderNode(SmiNode *smiNodePtr, int flags)
+{
+    char *s;
+    SmiModule *modulePtr;
+    
+    if ((!smiNodePtr) || (smiNodePtr->name == NULL)) {
+	if (flags & SMI_RENDER_UNKNOWN) {
+	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	} else {
+	    s = NULL;
+	}
+    } else {
+	modulePtr = smiGetNodeModule(smiNodePtr);
+	if ((!(flags & SMI_RENDER_QUALIFIED)) ||
+	    (!modulePtr) ||
+	    (!strlen(modulePtr->name))) {
+	    asprintf(&s, "%s", smiNodePtr->name);
+	} else {
+	    asprintf(&s, "%s::%s", modulePtr->name, smiNodePtr->name);
+	}
+    }
+    return s;
+}
+
+char *smiRenderType(SmiType *smiTypePtr, int flags)
+{
+    char *s;
+    SmiModule *modulePtr;
+    
+    if ((!smiTypePtr) || (smiTypePtr->name == NULL)) {
+	if (flags & SMI_RENDER_UNKNOWN) {
+	    asprintf(&s, SMI_UNKNOWN_LABEL);
+	} else {
+	    s = NULL;
+	}
+    } else {
+	modulePtr = smiGetTypeModule(smiTypePtr);
+	if ((!(flags & SMI_RENDER_QUALIFIED)) ||
+	    (!modulePtr) ||
+	    (!strlen(modulePtr->name))) {
+	    asprintf(&s, "%s", smiTypePtr->name);
+	} else {
+	    asprintf(&s, "%s::%s", modulePtr->name, smiTypePtr->name);
+	}
+    }
     return s;
 }

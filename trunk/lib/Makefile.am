@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.20 2001/05/04 08:10:40 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.21 2002/07/23 11:48:14 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -21,7 +21,7 @@ EXTRA_DIST		= parser-sming.y parser-smi.y \
 include_HEADERS		= smi.h
 CLEANFILES		= parser-smi.output parser-sming.output
 man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
-			  smi_node.3 smi_type.3
+			  smi_node.3 smi_type.3 smi_render.3
 lib_LTLIBRARIES		= libsmi.la
 libsmi_la_SOURCES	= data.c check.c error.c util.c snprintf.c smi.c \
 		  	  parser-smi.c scanner-smi.c \
