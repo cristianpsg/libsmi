@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.35 2002/07/05 15:38:29 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.36 2002/07/09 15:12:54 tklie Exp $
  */
 
 #include <config.h>
@@ -713,7 +713,7 @@ static char* getStrDHType( char *hint,
     unsigned int i = 0;
     char *ret = NULL;
 
-    while( i < numSubranges * 2 ) {
+    do {
 	unsigned int pos = 0, intNum = 0;
 	int repeat = 0; /* xxx not yet implemented */
 	unsigned int octetsUsed = 0, lastRegexpUses = 0;
@@ -929,16 +929,23 @@ static char* getStrDHType( char *hint,
 	}
 	/* add closure to last regexp part */
 	ret = xrealloc( ret, strlen( ret ) + 15 );
-	
-	sprintf( ret, "%s){%u,%u}", ret,
-		 /* minLength */
-		 ( lengths[ i ] - ( octetsUsed - lastRegexpUses ) /
-		   lastRegexpUses ),
-		 /* maxLength */
-		 ( lengths[ i+1 ] - ( octetsUsed - lastRegexpUses )
-		   / lastRegexpUses ) );
-	i++;i++;
-    }
+
+	if( numSubranges ) {
+	    sprintf( ret, "%s){%u,%u}", ret,
+		     /* minLength */
+		     ( lengths[ i ] - ( octetsUsed - lastRegexpUses ) /
+		       lastRegexpUses ),
+		     /* maxLength */
+		     ( lengths[ i+1 ] - ( octetsUsed - lastRegexpUses )
+		       / lastRegexpUses ) );
+	}
+	else {
+	    /* we don't have subranges specifying range restrictions,
+	       so let's use no restriction for the pattern here */
+	    sprintf( ret, "%s)*", ret );
+	}
+	    i++;i++;
+    } while( i < numSubranges * 2 );
     return ret;
 }
 
