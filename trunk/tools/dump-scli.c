@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.14 2002/03/26 16:15:46 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.15 2002/03/27 13:39:38 schoenw Exp $
  */
 
 /*
@@ -35,8 +35,16 @@
 
 
 #include <sys/types.h>
-#include <regex.h>
 
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#else
+#define regex_t int
+#define regcomp(a, b, c)	1
+#define regexec(a, b, c, d, e)	0
+#define regerror(a,b,c,d)	strncpy(c, "regex not supported", d)
+#define regfree(a)
+#endif
 
 static char *pattern = NULL;
 static regex_t _regex, *match_regex = NULL;
