@@ -1,16 +1,74 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.6 1998/11/27 10:55:25 strauss Exp $
+# @(#) $Id: Makefile,v 1.7 1998/11/30 16:42:33 strauss Exp $
 #
 
-MIBDIR	= ../scotty/tnm/mibs
-PREFIX	= /usr/local
+MIBDIR		= ../scotty/tnm/mibs
+PREFIX		= /usr/local
 
-all: subdirs
+DEFINES		= -DTEXTS_IN_MEMORY=200 -DPARSER -DRPC_SVC_FG -DDEBUG
+CC		= gcc
+CFLAGS		= -I. -Ilib -Wall -g $(DEFINES)
+LD		= gcc
+LDFLAGS		=
+RANLIB		= ranlib
+AR		= ar
+RPCGEN		= rpcgen
+BISON		= bison
+FLEX		= flex
 
-subdirs:
-	make -C src
+LIBSMI_OBJS	= lib/config.o lib/data.o lib/error.o lib/util.o lib/smi.o \
+		  lib/parser-smi.tab.o lib/scanner-smi.o \
+		  lib/smi_clnt.o lib/smi_xdr.o
+
+LIBSMI_STATIC	= lib/libsmi.a
+
+all: tools/smilint
+
+
+tools/smid.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c: lib/smi.h-add lib/smi.x
+	$(RPCGEN) lib/smi.x
+#	# add some definitions to smi.h
+	cat lib/smi.h-add >> lib/smi.h
+#	# patch the main function created by rpcgen so that it calls
+#	# smi_svc_init() and write the patched file to tools/smid.c
+	cat lib/smi_svc.c | awk '{if ($$0 ~ "^main") { x=1 } ; if (x && ($$0 == "")) { printf "\n        smi_svc_init(argc, argv);\n\n" ; x=0 } else { print } }' | sed -e 's/main(.*)/main(int argc, char *argv[])/' > tools/smid.c
+
+lib/parser-smi.tab.c lib/parser-smi.tab.h: lib/parser-smi.y lib/scanner-smi.h lib/parser-smi.h
+	$(BISON) -v -t -d lib/parser-smi.y
+
+lib/scanner-smi.c: lib/scanner-smi.l lib/scanner-smi.h lib/parser-smi.tab.h
+	$(FLEX) -t lib/scanner-smi.l > lib/scanner-smi.c
+
+$(LIBSMI_STATIC): lib/smi.h $(LIBSMI_OBJS)
+	$(AR) ruv $@ $(LIBSMI_OBJS)
+	$(RANLIB) $@
+	
+tools: tools/smilint tools/smiquery tools/smiclient tools/smid
+
+tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
+	$(LD) $(LD_FLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -ll -lnsl
+
+clean:
+	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/scanner-smi.c lib/smi.h lib/smi_xdr.c lib/smi_clnt.c lib/smi_svc.c lib/*.output tools/*.o tools/smid.c
+
+
+
+
+
+
+
+parser.y.html: src/parser.y
+	make -C src parser.y.html
+
+clobber: clean
+	rm -f miblint libsmi.h libsmi.a parser.y.html smid smiclient smiquery
+
+dist:
+	rm -f mibs.tar.gz
+	cd .. ; tar cvf mibs/mibs.tar libsmi
+	gzip mibs.tar
 
 test: test-miblint
 
@@ -20,15 +78,6 @@ test-miblint: miblint
 	for f in ${MIBDIR}/* ; do \
 	    if [ -f $$f ] ; then ./miblint -l9 $$f ; fi ; \
 	done
-
-miblint:
-	make -C src miblint
-
-libsmi.a:
-	make -C src libsmi.a
-
-parser.y.html: src/parser.y
-	make -C src parser.y.html
 
 install-prg: miblint smiclient smiquery smid smi.h libsmi.a
 	cp smi.conf ${PREFIX}/etc/smi.conf
@@ -50,16 +99,4 @@ install-html: parser.y.html
 	if [ -d /usr/home/strauss/WWW/sming ] ; then \
 		cp parser.y.html /usr/home/strauss/WWW/sming ; \
 	fi
-
-clean:
-	make -C src clean
-	rm -f core
-
-clobber: clean
-	rm -f miblint libsmi.h libsmi.a parser.y.html smid smiclient smiquery
-
-dist:
-	rm -f mibs.tar.gz
-	cd .. ; tar cvf mibs/mibs.tar libsmi
-	gzip mibs.tar
 
