@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.27 2002/11/12 10:10:23 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.28 2002/11/12 18:26:58 schoenw Exp $
  */
 
 /*
@@ -65,6 +65,23 @@ static char *keywords_c99[] = {
     "else",        "register",    "union",
     NULL
 };
+
+
+
+static int
+isKeyword(char *m)
+{
+    int i;
+    
+    for (i = 0; keywords_c99[i]; i++) {
+	if (strcmp(m, keywords_c99[i]) == 0) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+
 
 static char *
 getStringTime(time_t t)
@@ -153,23 +170,16 @@ translate(char *m)
     char *s;
     int i;
 
-    for (i = 0; keywords_c99[i]; i++) {
-	if (strcmp(m, keywords_c99[i]) == 0) {
-	    break;
-	}
-    }
-
-    if (keywords_c99[i]) {
-	s = xmalloc(strlen(keywords_c99[i]) + 2);
-	strcpy(s, keywords_c99[i]);
-	strcat(s, "_");
-    } else {
-	s = xstrdup(m);
-    }
+    s = xstrdup(m);
     for (i = 0; s[i]; i++) {
 	if (s[i] == '-') s[i] = '_';
     }
   
+    while (isKeyword(s)) {
+	s = xrealloc(s, strlen(s) + 2);
+	strcat(s, "_");
+    }
+    
     return s;
 }
 
@@ -189,6 +199,11 @@ translateUpper(char *m)
 	}
     }
   
+    while (isKeyword(s)) {
+	s = xrealloc(s, strlen(s) + 2);
+	strcat(s, "_");
+    }
+    
     return s;
 }
 
@@ -208,6 +223,11 @@ translateLower(char *m)
 	}
     }
   
+    while (isKeyword(s)) {
+	s = xrealloc(s, strlen(s) + 2);
+	strcat(s, "_");
+    }
+    
     return s;
 }
 
@@ -1026,6 +1046,7 @@ printHeaderTypedefMemberComment(FILE *f, SmiNode *smiNode, SmiType *smiType)
 	s = "no";
 	break;
     default:
+	break;
     }
     if (s) fprintf(f, "%s", s);
     s = smiRenderType(smiType, SMI_RENDER_NAME);
