@@ -13,7 +13,6 @@ o have seen cases like `default ;'. where?
 o BIN and HEX DEFVALs in SMIv1/v2 Parser.
 
 o READ_CREATE should *never* occur in data.c / smi.c
-o test cases
 o simple documented example
 
 o redesign of data structures: make SmiXXX structures the heads of the
@@ -42,6 +41,6 @@ o smiv1 allows `deprecated'!
 
 o eliminate length restrictions (grep MAX_ *.[chly])
 
-o smiXXXPath() !!!
+o test cases
 
-o problem mentioned by Jochen on the mailing list.
+o dump-smi.c

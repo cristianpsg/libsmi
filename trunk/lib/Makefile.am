@@ -8,12 +8,12 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.4 1999/05/31 11:58:29 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.5 1999/06/01 23:20:06 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
 			  scanner-sming.l scanner-smi.l \
-			  defs.h data.h error.h util.h scanner-sming.h \
+			  data.h error.h util.h scanner-sming.h \
 			  parser-smi.h parser-sming.h scanner-smi.h scanner.h \
 			  parser-smi.tab.h parser-sming.tab.h \
 			  $(man_MANS)

@@ -1,5 +1,7 @@
 1999-06-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.1.2.tar.gz: released version 0.1.2.
+	
 	* lib/smi.c: added smiGetPath() and smiSetPath() functions.
 	
 	* lib/smi.c (smiLoadModule): fixed bug when module is
