@@ -89,7 +89,7 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.5
+VERSION = 0.1.6-pre1
 mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs
 
@@ -116,7 +116,7 @@ CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.5\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.6-pre1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

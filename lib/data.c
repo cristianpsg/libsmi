@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.33 1999/06/15 14:09:34 strauss Exp $
+ * @(#) $Id: data.c,v 1.34 1999/06/16 15:04:07 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -382,6 +382,7 @@ addRevision(date, description, parserPtr)
     revisionPtr->modulePtr		 = modulePtr;
     revisionPtr->date		       	 = date;
     revisionPtr->description	       	 = util_strdup(description);
+    revisionPtr->line			 = parserPtr ? parserPtr->line : -1;
     
     revisionPtr->nextPtr		 = NULL;
     revisionPtr->prevPtr		 = modulePtr->lastRevisionPtr;
@@ -434,6 +435,8 @@ addImport(name, parserPtr)
     importPtr->importname	       	 = util_strdup(name);
     importPtr->importmodule		 = NULL; /* not yet known */
     importPtr->kind			 = KIND_UNKNOWN; /* not yet known */
+    importPtr->use			 = 0;
+    importPtr->line			 = parserPtr ? parserPtr->line : -1;
     
     importPtr->nextPtr			 = NULL;
     importPtr->prevPtr			 = modulePtr->lastImportPtr;
@@ -636,6 +639,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     objectPtr->units				= NULL;
     objectPtr->format				= NULL;
     objectPtr->valuePtr				= NULL;
+    objectPtr->line				= parserPtr ? parserPtr->line : -1;
     
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -733,6 +737,7 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->units				      = NULL;
     objectPtr->format				      = NULL;
     objectPtr->valuePtr				      = NULL;
+    objectPtr->line				      = parserPtr ? parserPtr->line : -1;
 
     objectPtr->nextPtr				= NULL;
     if (modulePtr) {
@@ -1869,7 +1874,8 @@ addType(typename, basetype, flags, parserPtr)
     typePtr->format			= NULL;
     typePtr->units			= NULL;
     typePtr->valuePtr			= NULL;
-
+    typePtr->line			= parserPtr ? parserPtr->line : -1;
+    
     typePtr->nextPtr			= NULL;
     if (modulePtr) {
 	typePtr->prevPtr		= modulePtr->lastTypePtr;
@@ -1944,6 +1950,7 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->format			= NULL;
     typePtr->units			= NULL;
     typePtr->valuePtr			= NULL;
+    typePtr->line			= parserPtr ? parserPtr->line : -1;
 
     typePtr->nextPtr			= NULL;
     typePtr->prevPtr			= modulePtr->lastTypePtr;
@@ -2538,7 +2545,8 @@ addMacro(macroname, fileoffset, flags, parserPtr)
     macroPtr->name	 = util_strdup(macroname);
     macroPtr->fileoffset = fileoffset;
     macroPtr->flags      = flags;
-	    
+    macroPtr->line	 = parserPtr ? parserPtr->line : -1;
+    
     macroPtr->nextPtr				= NULL;
     macroPtr->prevPtr				= modulePtr->lastMacroPtr;
     if (!modulePtr->firstMacroPtr)

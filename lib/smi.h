@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.39 1999/06/16 15:04:41 strauss Exp $
+ * @(#) $Id: smi.h,v 1.40 1999/06/16 15:52:18 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -63,6 +63,7 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_FLOAT128               = 9,  /* only SMIng                  */
     SMI_BASETYPE_ENUM                   = 10,
     SMI_BASETYPE_BITS                   = 11, /* only SMIv2 and SMIng        */
+
     SMI_BASETYPE_HEXSTRING              = 12, /* only for values             */
     SMI_BASETYPE_BINSTRING              = 13, /* only for values, SMIv1/v2   */
     SMI_BASETYPE_LABEL                  = 14, /* labels as values            */

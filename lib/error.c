@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.11 1999/06/06 07:40:38 strauss Exp $
+ * @(#) $Id: error.c,v 1.12 1999/06/08 20:39:27 strauss Exp $
  */
 
 #include <string.h>
@@ -50,35 +50,37 @@ typedef struct Error {
 Error errors[] = {
     { 0, ERR_INTERNAL,
       "Internal error!!!" },
+    { 1, ERR_OTHER_ERROR,
+      "%s" },
     { 1, ERR_ILLEGAL_KEYWORD,
       "Illegal keyword `%s'" },
     { 2, ERR_ID_ENDS_IN_HYPHEN,
       "Identifier `%s' illegally ends in a hyphen" },
     { 3, ERR_LEADING_ZEROS,
       "Leading zero(s) on a number" },
-    { 1, ERR_NUMBER_TO_LARGE,
+    { 2, ERR_NUMBER_TO_LARGE,
       "Number `%s' too large" },
-    { 1, ERR_HEX_ENDS_IN_B,
+    { 2, ERR_HEX_ENDS_IN_B,
       "Hexadecimal string terminated by binary string delimiter, assume hex value" },
     { 1, ERR_LEX_UNEXPECTED_CHAR,
       "Lexically unexpected character (internal error!)" },
-    { 1, ERR_MODULENAME_64,
+    { 2, ERR_MODULENAME_64,
       "Module name `%s' must not be longer that 64 characters" },
     { 4, ERR_MODULENAME_32,
       "Module name `%s' longer than 32 characters, which is not recommended" },
-    { 1, ERR_TYPENAME_64,
+    { 2, ERR_TYPENAME_64,
       "Type name `%s' must not be longer that 64 characters" },
     { 4, ERR_TYPENAME_32,
       "Type name `%s' longer than 32 characters, which is not recommended" },
-    { 1, ERR_OIDNAME_64,
+    { 2, ERR_OIDNAME_64,
       "Object Identifier name `%s' must not be longer that 64 characters" },
     { 4, ERR_OIDNAME_32,
       "Object Identifier name `%s' longer than 32 characters, which is not recommended" },
-    { 1, ERR_ENUMNAME_64,
+    { 2, ERR_ENUMNAME_64,
       "Enumeration item name `%s' must not be longer that 64 characters" },
     { 4, ERR_ENUMNAME_32,
       "Enumeration item name `%s' longer than 32 characters, which is not recommended" },
-    { 1, ERR_BITNAME_64,
+    { 2, ERR_BITNAME_64,
       "Bit name `%s' must not be longer than 64 characters" },
     { 4, ERR_BITNAME_32,
       "Bit name `%s' longer than 32 characters, which is not recommended" },
@@ -114,8 +116,6 @@ Error errors[] = {
       "Haxadecimal string `%s' length is not a multiple of 2" },
     { 5, ERR_FLUSH_DECLARATION,
       "Flushing recent incorrect declaration, see previous error(s)" },
-    { 1, ERR_OTHER_ERROR,
-      "%s" },
     { 2, ERR_MAX_ACCESS_IN_SMIV1,
       "MAX-ACCESS is SMIv2 style, use ACCESS in SMIv1 style MIBs instead" },
     { 2, ERR_ACCESS_IN_SMIV2,
@@ -128,45 +128,37 @@ Error errors[] = {
       "Don't know where to find module `%s'" },
     { 9, ERR_INCLUDE,
       "including module `%s' from `%s'..." },
-    { 9, ERR_STATISTICS,
+    { 8, ERR_STATISTICS,
       "completed%s" },
-    { 1, ERR_OBJECT_IDENTIFIER_REGISTERED,
+    { 2, ERR_OBJECT_IDENTIFIER_REGISTERED,
       "Object identifier label `%s.%s' already registered at `%s'" },
     { 1, ERR_ALLOCATING_OBJECT,
       "Allocating MIB object: %s" },
-    { 1, ERR_OPENING_CONFIGFILE,
-      "Opening configuration file `%s': %s" },
-    { 1, ERR_ALLOCATING_LOCATION,
-      "Allocating location list entry: %s" },
     { 1, ERR_ALLOCATING_DESCRIPTOR,
       "Allocating descriptor: %s" },
     { 1, ERR_OPENING_INPUTFILE,
       "Opening input file `%s': %s" },
-    { 1, ERR_OPENING_IMPORTFILE,
-      "Opening imported file `%s': %s" },
     { 1, ERR_ALLOCATING_MIBMODULE,
       "Allocating MIB module: %s" },
     { 1, ERR_UNKNOWN_OIDLABEL,
       "Unknown object identifier label `%s'" },
-    { 1, ERR_SINGLE_SUBIDENTIFIER,
+    { 2, ERR_SINGLE_SUBIDENTIFIER,
       "A single number `%s' is no valid object identifier" },
-    { 1, ERR_SUBIDENTIFIER_VS_OIDLABEL,
+    { 2, ERR_SUBIDENTIFIER_VS_OIDLABEL,
       "Subidentifier `%s' doesn't match object identifier label `%s'" },
-    { 1, ERR_OIDLABEL_DOESNOT_EXTEND,
+    { 2, ERR_OIDLABEL_DOESNOT_EXTEND,
       "Object identifier label `%s' (%s) doesn't extend `%s'" },
-    { 1, ERR_OIDLABEL_DOESNOT_EXTEND_1,
+    { 2, ERR_OIDLABEL_DOESNOT_EXTEND_1,
       "Object identifier label `%s' (%s) doesn't extend `%s' by one subidentifier" },
-    { 1, ERR_EXISTENT_OBJECT,
+    { 2, ERR_EXISTENT_OBJECT,
       "An object named `%s' already exists" },
-    { 1, ERR_UNKNOWN_CONFIG_DIRECTIVE,
-      "%s: Unknown directive `%s'" },
     { 1, ERR_ALLOCATING_PENDING_MIBNODE,
       "Allocating pending MIB node: %s" },
     { 1, ERR_ALLOCATING_IMPORT,
       "Allocating import identifier: %s" },
-    { 1, ERR_IDENTIFIER_NOT_IN_MODULE,
+    { 2, ERR_IDENTIFIER_NOT_IN_MODULE,
       "Identifier `%s' cannot be imported from module `%s'" },
-    { 1, ERR_TYPE_ALREADY_EXISTS,
+    { 2, ERR_TYPE_ALREADY_EXISTS,
       "Module `%s' already declared a type `%s'" },
     { 1, ERR_ALLOCATING_TYPE,
       "Allocating Type: %s" },
@@ -210,6 +202,10 @@ Error errors[] = {
       "File `%s' seems to be SMIv1/v2 which is not supported" },
     { 1, ERR_SMING_NOT_SUPPORTED,
       "File `%s' seems to be SMIng which is not supported" },
+    { 4, ERR_UNUSED_IMPORT,
+      "Identifier `%s' imported from module `%s' is never used in the local module" },
+    { 2, ERR_MACRO_NOT_IMPORTED,
+      "Macro `%s' has not been imported from module `%s'" },
  
     { 0, 0, NULL }
 };
@@ -237,19 +233,11 @@ printError(Parser *parser, int id, ...)
 {
     va_list ap;
     char *fmt;
-
+	
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
 	    (thisParser->flags & FLAG_ERRORS)) {
-#if 0
-	    /*
-	     * TODO: This would indent output for imported files, but
-	     * inhibits Emacs compilation-next-error from working. :-)
-	     */
-	    { int i; for (i=1 ; i < lexDepth ; i++) fprintf(stderr, ">"); }
-#endif
 	    fprintf(stderr, "%s:%d: ", thisParser->path, thisParser->line);
-	    
 	    fmt = errors[id].fmt;
 	    va_start(ap, id);
 	    vfprintf(stderr, fmt, ap);
@@ -260,6 +248,56 @@ printError(Parser *parser, int id, ...)
 	if (errors[id].level <= errorLevel) {
 	    fmt = errors[id].fmt;
 	    va_start(ap, id);
+	    vfprintf(stderr, fmt, ap);
+	    fprintf(stderr, "\n");
+	    va_end(ap);
+	}
+    }
+
+    if (errors[id].level <= 0) {
+	exit(-1);
+	/* severe error, no way to continue :-( */
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * printErrorAtLine --
+ *
+ *      Like printError() but shows a specfic line no.
+ *
+ * Results:
+ *      TODO.
+ *
+ * Side effects:
+ *      TODO.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+printErrorAtLine(Parser *parser, int id, int line, ...)
+{
+    va_list ap;
+    char *fmt;
+	
+    if (parser) {
+	if ((errors[id].level <= errorLevel) &&
+	    (thisParser->flags & FLAG_ERRORS)) {
+	    fprintf(stderr, "%s:%d: ", thisParser->path, line);
+	    fmt = errors[id].fmt;
+	    va_start(ap, line);
+	    vfprintf(stderr, fmt, ap);
+	    fprintf(stderr, "\n");
+	    va_end(ap);
+	}
+    } else {
+	if (errors[id].level <= errorLevel) {
+	    fmt = errors[id].fmt;
+	    va_start(ap, line);
 	    vfprintf(stderr, fmt, ap);
 	    fprintf(stderr, "\n");
 	    va_end(ap);
