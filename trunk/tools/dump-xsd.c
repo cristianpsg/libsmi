@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.23 2002/05/24 17:33:17 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.24 2002/05/25 12:19:21 strauss Exp $
  */
 
 #include <config.h>
@@ -1195,6 +1195,8 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 	registerType( "Integer32","smi" );
 	registerType( "ObjectIdentifier", "smi" );
 	registerType( "OctetString", "smi" );
+	registerType( "Unsigned32", "smi" );
+	registerType( "Unsigned64", "smi" );
 
 	/* make sure url ends with '/' */
 	if( schemaLocation[ strlen( schemaLocation ) - 1 ] != '/' ) {
