@@ -1,0 +1,35 @@
+#!/bin/sh
+
+FORMAT=smiv2
+
+rm -rf smidump-orig-${FORMAT}.out
+mkdir smidump-orig-${FORMAT}.out
+
+RC=0
+
+for mib in ${TESTMIBS} ; do
+    echo "comparing \`smidump -f ${FORMAT} $mib' output with dumps/$mib.${FORMAT}."
+    ../tools/smidump -f ${FORMAT} $mib > smidump-orig-${FORMAT}.out/$mib.${FORMAT}
+
+    ./filter < ../mibs/$mib > smidump-orig-${FORMAT}.out/$mib.orig.filtered
+    ./filter < smidump-orig-${FORMAT}.out/$mib.${FORMAT} > smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered
+
+    WC=`diff smidump-orig-${FORMAT}.out/$mib.orig.filtered smidump-orig-${FORMAT}.out/$mib.${FORMAT}.filtered | wc -l`
+    if [ $WC -ne 0 ] ; then
+	echo "*** smidump -f ${FORMAT} $mib output differs from dumps/$mib.${FORMAT}."
+	RC=1
+    fi
+done
+
+exit ${RC}
+
+
+
+    # ugly checks ;-/ anyway, this is what we expect...
+    if [ $mib = "RMON2-MIB" -a $WC -ne 53 -o \
+	 $mib = "IF-MIB" -a $WC -ne 26 -o \
+	 $mib = "MAU-MIB" -a $WC -ne 25 -o \
+	 $mib = "SNMPv2-MIB" -a $WC -ne 35 ] ; then
+	echo "do not see directory smidump-3.out for results on $mib."
+        RC=1
+    fi
