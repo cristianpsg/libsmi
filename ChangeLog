@@ -1,3 +1,7 @@
+2001-08-24  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/smi.c: Fixed a bug with `-f/dev/null'.
+
 2001-08-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c,smi.c,...: Added support for multiple MIB data sets.
