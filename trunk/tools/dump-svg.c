@@ -1934,6 +1934,44 @@ static void algCreateNodes(SmiModule *module)
 
 
 
+/*
+ * parseTooltip: Parse any input to output to make the text safe for the
+ * ShowTooltipMZ-functin in the ecma-script.
+ * FIXME: Linebreaks in the input are not necessarily linebreaks in the
+ *        tooltip, but they should be :-/
+ *        This will need changes in the ecma-script.
+ */
+static void parseTooltip(char *input, char *output)
+{
+    int i, j;
+
+    for (i = j = 0; input[i]; i++) {
+	switch (input[i]) {
+	case '\n':
+	case ' ':
+	    if (input[i+1] != '\n' && input[i+1] != ' ')
+		output[j++] = ' ';
+	    break;
+	case '\'':
+	    output[j++] = '\\';
+	    output[j++] = '\'';
+	    break;
+	case '\\':
+	    output[j++] = '\\';
+	    output[j++] = '\\';
+	    break;
+	case '\"':
+	    output[j++] = '\\';
+	    output[j++] = '\'';
+	    output[j++] = '\\';
+	    output[j++] = '\'';
+	    break;
+	default:
+	    output[j++] = input[i];
+	}
+    }
+    output[j++] = '\0';
+}
 
 /*
  * Prints the footer of the SVG output file.
@@ -1941,6 +1979,8 @@ static void algCreateNodes(SmiModule *module)
 static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 {
     float scale;
+    int i;
+
     scale = max((xMax-xMin)/CANVASWIDTH,(yMax-yMin)/CANVASHEIGHT);
     printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xMin, yMin, xMax-xMin-1, yMax-yMin-1);
@@ -1952,21 +1992,10 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 				    printf(" width=\"100\" height=\"16\"/>\n");
     printf("   <text id=\"ttt\" x=\"0\" y=\"0\" style=\"visibility: hidden\">");
 						printf("dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
+    //FIXME: calculate number of lines dynamically.
+    for (i = 0; i < 40; i++) {
+	printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
+    }
     printf(" </g>\n");
     printf(" </g>\n");
     printf("</svg>\n");
@@ -1980,8 +2009,21 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 static void printSVGAttribute(SmiNode *node, int index,
 			      float *textYOffset, float *textXOffset)
 {
-    printf("    <text x=\"%.2f\" y=\"%.2f\"",
-           *textXOffset + ATTRSPACESIZE, *textYOffset);
+    char        *tooltip;
+
+    if (node->description) {
+	tooltip = (char *)xmalloc(2*strlen(node->description));
+	parseTooltip(node->description, tooltip);
+	printf("    <text x=\"%.2f\" y=\"%.2f\"",
+				*textXOffset + ATTRSPACESIZE, *textYOffset);
+	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	printf(" onmouseout=\"HideTooltip(evt)\"");
+	xfree(tooltip);
+    } else {
+	printf("    <text x=\"%.2f\" y=\"%.2f\"",
+				*textXOffset + ATTRSPACESIZE, *textYOffset);
+    }
+
     *textYOffset += TABLEELEMHEIGHT;
 
     //FIXME
@@ -2535,8 +2577,9 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
     printf("    tttelem=svgdoc.getElementById(\"ttt\");\n");
     printf("    posx=mousemove_event.clientX;\n");
     printf("    posy=mousemove_event.clientY;\n");
-    printf("    for(i=1;i<=15;i++)texte.item(i).firstChild.data=\"\";\n");
-    printf("    sollbreite=150;\n");
+    //FIXME: calculate number of lines dynamically.
+    printf("    for(i=1;i<=40;i++)texte.item(i).firstChild.data=\"\";\n");
+    printf("    sollbreite=200;\n");
     printf("    tttelem.childNodes.item(0).data=txt;\n");
     printf("    ges=tttelem.getComputedTextLength();\n");
     printf("    tttelem.childNodes.item(0).data=\"\";\n");
@@ -2782,44 +2825,6 @@ static GraphNode *calcGroupSize(int group)
     return calcNode;
 }
 
-/*
- * parseTooltip: Parse any input to output to make the text safe for the
- * ShowTooltipMZ-functin in the ecma-script.
- * FIXME: Linebreaks in the input are not necessarily linebreaks in the
- *        tooltip, but they should be :-/
- *        This will need changes in the ecma-script.
- */
-static void parseTooltip(char *input, char *output)
-{
-    int i, j;
-
-    for (i = j = 0; input[i]; i++) {
-	switch (input[i]) {
-	case '\n':
-	case ' ':
-	    if (input[i+1] != '\n' && input[i+1] != ' ')
-		output[j++] = ' ';
-	    break;
-	case '\'':
-	    output[j++] = '\\';
-	    output[j++] = '\'';
-	    break;
-	case '\\':
-	    output[j++] = '\\';
-	    output[j++] = '\\';
-	    break;
-	case '\"':
-	    output[j++] = '\\';
-	    output[j++] = '\'';
-	    output[j++] = '\\';
-	    output[j++] = '\'';
-	    break;
-	default:
-	    output[j++] = input[i];
-	}
-    }
-    output[j++] = '\0';
-}
 
 static void printModuleIdentity(int modc, SmiModule **modv)
 {
