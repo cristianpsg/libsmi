@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.8 2001/01/25 14:33:07 strauss Exp $
+# @(#) $Id: makefile,v 1.9 2001/03/06 16:59:48 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -69,9 +69,9 @@ LIBSMIOBJS =					\
 	$(TMPDIR)\error.obj			\
 	$(TMPDIR)\util.obj			\
 	$(TMPDIR)\smi.obj			\
-	$(TMPDIR)\parser-smi.tab.obj		\
+	$(TMPDIR)\parser-smi.obj		\
 	$(TMPDIR)\scanner-smi.obj		\
-	$(TMPDIR)\parser-sming.tab.obj		\
+	$(TMPDIR)\parser-sming.obj		\
 	$(TMPDIR)\scanner-sming.obj
 
 SMIQUERYOBJS =					\

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.100 2001/08/16 10:53:32 strauss Exp $
+ * @(#) $Id: data.c,v 1.101 2001/08/22 17:51:42 strauss Exp $
  */
 
 #include <config.h>
@@ -3535,6 +3535,7 @@ Module *loadModule(const char *modulename)
 	path = smiStrdup(modulename);
     }
 
+#if !defined(_MSC_VER)
     if (!path && smiHandle->cache && smiHandle->cacheProg) {
 	/* Not found in the path; now try to fetch & cache the module. */
 	path = smiMalloc(strlen(smiHandle->cache) + strlen(modulename) + 2);
@@ -3558,6 +3559,7 @@ Module *loadModule(const char *modulename)
 	    }
 	}
     }
+#endif
     
     if (!path) {
 	smiPrintError(NULL, ERR_MODULE_NOT_FOUND, modulename);

@@ -1,3 +1,10 @@
+2001-08-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* win/makefile: Added a fix from Yigal.
+
+	* lib/smi.c,data.c: #ifdef'ed caching, so that MSC systems
+	don't have problems.
+
 2001-08-24  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.2.17.tar.gz: released version 0.2.17.
