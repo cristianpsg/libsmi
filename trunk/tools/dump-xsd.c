@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.63 2003/01/16 17:15:44 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.64 2003/01/22 17:28:52 tklie Exp $
  */
 
 #include <config.h>
@@ -403,7 +403,7 @@ static char* getStrDHType( char *hint,
 	    case 'a':
 	    case 't':
 		/* ascii character */
-		baseRegexp = "(\\#x00-\\#x7f)";
+		baseRegexp = "(\\p{Basic Latin})";
 		break;
 
 	    case 'b':
