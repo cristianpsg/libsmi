@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.62 2003/01/15 17:33:38 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.63 2003/01/16 17:15:44 tklie Exp $
  */
 
 #include <config.h>
@@ -38,6 +38,8 @@ static int ind = 0;
 static char *schemaLocation = "http://www.ibr.cs.tu-bs.de/projects/libsmi/xsd/";
 static int container = 0;
 static char *containerBasename = "container";
+static int *nestAugmentedTables = 0;
+static int *nestSubtables = 0;
 
 typedef struct XmlEscape {
     char character;
@@ -789,11 +791,12 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 		    }
 
 		    /* print length restriction */
-		    fprintSegment( f, 0, "<xsd:minLength value=\"%d\"/>\n",
-				   (int)minLength );
-		    fprintSegment( f, 0, "<xsd:maxLength value=\"%d\"/>\n",
-				   (int)maxLength );
-		    
+		    if( minLength > 0 )
+			fprintSegment( f, 0, "<xsd:minLength value=\"%d\"/>\n",
+				       (int)minLength );
+		    if( maxLength > -1 )
+			fprintSegment( f, 0, "<xsd:maxLength value=\"%d\"/>\n",
+				       (int)maxLength );		    
 		    fprintSegment( f, -1, "</xsd:restriction>\n");
 		} else {
 		    SmiUnsigned32 *lengths =
@@ -1411,9 +1414,23 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
     fprintSegment( f, -1, "</xsd:attribute>\n"); 
 }
 
+static int containsIndex( SmiNode *parentNode, SmiNode *idxNode )
+{
+    SmiElement *iterElement;
 
 
-static void fprintIndex( FILE *f, SmiNode *smiNode, SmiNode *augments )
+    for( iterElement = smiGetFirstElement( parentNode );
+	 iterElement;
+	 iterElement = smiGetNextElement( iterElement ) ) {
+	SmiNode *iterNode = smiGetElementNode( iterElement );	
+	if( iterNode == idxNode )
+	    return 1;
+    }
+    return 0;
+}
+
+static void fprintIndex( FILE *f,
+			 SmiNode *smiNode, SmiNode *augments, SmiNode *parent )
 {
     SmiNode *iterNode;
     SmiElement *iterElem;
@@ -1423,18 +1440,66 @@ static void fprintIndex( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	 iterElem;
 	 iterElem = smiGetNextElement( iterElem ) ) {
 	iterNode = smiGetElementNode( iterElem );
-	fprintIndexAttr( f, iterNode, augments );
+	if( ! parent || (parent && !containsIndex( parent, iterNode ) ) ) {
+	    fprintIndexAttr( f, iterNode, augments );
+	}
     }
 
     /* print AUGMENTS-clause */
     iterNode = smiGetRelatedNode( smiNode );
     if( iterNode ) {
-	fprintIndex( f, iterNode, iterNode );
+	fprintIndex( f, iterNode, iterNode, NULL );
     }
 }
 
 
-static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name )
+static int numIndex( SmiNode *smiNode )
+{
+    SmiElement *iterElem;
+    int ret = 0;
+
+    for( iterElem = smiGetFirstElement( smiNode );
+	 iterElem;
+	 iterElem = smiGetNextElement( iterElem ) ) {
+	ret++;
+    }
+    return ret;
+}
+
+
+static int
+isSubTable( SmiNode *smiNode, SmiNode *subNode )
+{
+    SmiElement *iterElement;
+    unsigned int numIdx = numIndex( smiNode ), numSubIdx = numIndex( subNode );
+
+    if( numSubIdx <= numIdx ) {
+	return 0;
+    }
+
+    for( iterElement = smiGetFirstElement( smiNode );
+	 iterElement;
+	 iterElement = smiGetNextElement( iterElement ) ) {
+	SmiElement *iterSubElement = smiGetFirstElement( subNode );
+	SmiNode *iterSubNode;
+	SmiNode *idxNode = smiGetElementNode( iterElement );
+	
+	for( iterSubElement = smiGetFirstElement( subNode );
+	     iterSubElement;
+	     iterSubElement = smiGetNextElement( iterSubElement ) ) {
+	    
+	    iterSubNode = smiGetElementNode( iterSubElement );
+	    if( idxNode == iterSubNode ){
+		return 1;
+	    }
+	}
+    }
+    return 0;
+}
+
+
+static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
+			       SmiNode *parent )
 {
     SmiNode *iterNode;
     int numChildren;
@@ -1461,9 +1526,41 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name )
 	
     }
 
+    /* print augmentations */
+    if( nestAugmentedTables ) {
+	for( iterNode = smiGetFirstNode( smiGetNodeModule( smiNode ),
+					 SMI_NODEKIND_ROW );
+	     iterNode;
+	     iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
+	    SmiNode *augmNode = smiGetRelatedNode( iterNode );
+	    if( augmNode == smiNode ) {
+		SmiNode *augIterNode;
+		for( augIterNode = smiGetFirstChildNode( iterNode );
+		     augIterNode;
+		     augIterNode = smiGetNextChildNode( augIterNode ) ) {
+		    
+		    fprintElement( f, augIterNode );
+		}
+	    }
+	}
+    }
 
+    /* print subtables */
+    for( iterNode = smiGetFirstNode( smiGetNodeModule( smiNode ),
+				     SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
+	if( isSubTable( smiNode, iterNode ) ) {
+/*	    fputs( "<!-- Here BEGIN subtable entry -->\n", f );*/
+	    fprintComplexType( f, iterNode, NULL, smiNode );
+/*	    fputs( "<!-- Here END subtable entry -->\n", f );*/
+	}
+    }
+
+
+    
     fprintSegment( f, -1, "</xsd:sequence>\n");
-    fprintIndex( f, smiNode, NULL );
+    fprintIndex( f, smiNode, NULL, parent );
     
     fprintSegment( f, -1, "</xsd:complexType>\n");
     if( name ) {
@@ -1476,7 +1573,7 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name )
 	 iterNode;
 	 iterNode = smiGetNextChildNode( iterNode ) ) {
 	if( iterNode->nodekind == SMI_NODEKIND_NODE ) {
-	    fprintComplexType( f, iterNode, iterNode->name );
+	    fprintComplexType( f, iterNode, iterNode->name, NULL );
 	}
     }
 }    
@@ -1527,7 +1624,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode )
 
 	fprintAnnotationElem( f, smiNode );
 
-	fprintComplexType( f, smiNode, NULL );
+	fprintComplexType( f, smiNode, NULL, NULL );
 	fprintSegment( f, -1, "</xsd:element>\n");
 	break;
 	
@@ -1841,8 +1938,9 @@ static void fprintGroupTypes( FILE *f, SmiModule *smiModule )
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
-	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
-	    fprintComplexType( f, iterNode, iterNode->name );
+	if( hasChildren( iterNode,
+			 SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){ 
+	    fprintComplexType( f, iterNode, iterNode->name, NULL );
 	    
 	}
     }   
@@ -2158,6 +2256,10 @@ void initXsd()
 	  "URI prefix for schema definitions and namespaces" },
 	{ "container", OPT_FLAG, &container, 0,
 	  "generate a container schema" },
+	{ "nest-augments", OPT_FLAG, &nestAugmentedTables, 0,
+	  "Nest rows of augmented tables in the base tables" },
+	{ "nest-subtables", OPT_FLAG, &nestSubtables, 0,
+	  "Nest subtables in the base tables" },
 	{ 0, OPT_END, 0, 0 }
     };
     
