@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.19 2001/09/18 11:04:39 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.20 2001/09/20 15:29:25 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -28,3 +28,9 @@ anoncvs:
 	rsync -a --delete $(HOME)/.cvs-repository/libsmi /.amd/anoncvs
 	chgrp -R anoncvs /.amd/anoncvs/libsmi
 	chmod -R g+w /.amd/anoncvs/libsmi
+
+	mkdir /tmp/libsmi-diff
+	tar xzCf /tmp/libsmi-diff /ftp/local/libsmi/libsmi-current.tar.gz
+	cd /tmp/libsmi-diff ; cvs -Q co libsmi
+	-cd /tmp/libsmi-diff ; diff -r -u -N libsmi-* libsmi > /ftp/local/libsmi/libsmi-current-cvs.diff
+	rm -rf /tmp/libsmi-diff
