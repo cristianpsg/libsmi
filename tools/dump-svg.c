@@ -1577,7 +1577,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    }
 		    printf("\"");
 		}
-		printf(">GROUP %s</text>\n", smiNode2->name);
+		printf(">Group %s</text>\n", smiNode2->name);
 		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
 		(*miNr)++;
@@ -1617,7 +1617,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			printf("colorText('%s','black')", smiNode2->name);
 		    printf("\"");
 		}
-		printf(">OBJECT %s</text>\n", smiNode2->name);
+		printf(">Object %s</text>\n", smiNode2->name);
 		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
 		(*miNr)++;
