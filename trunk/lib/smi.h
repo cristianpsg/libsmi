@@ -1,14 +1,19 @@
+
+
+/* XXXXXXXXXXXX update zu hause einchecken !!!! XXXXXXXXXXXXXX */
+
+
 /*
  * smi.h --
  *
  *      Interface Implementation of libsmi.
  *
- * Copyright (c) 1998 Technical University of Braunschweig.
+ * Copyright (c) 1999 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.7 1999/04/06 16:23:24 strauss Exp $
+ * @(#) $Id: smi.h,v 1.8 1999/04/09 18:47:02 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -335,9 +340,18 @@ extern int smiAddLocation(const char *location);
 
 extern int smiLoadModule(char *modulename);
 
+
+
 extern SmiModule *smiGetModule(char *spec);
 
 extern void smiFreeModule(SmiModule *smiModulePtr);
+
+
+
+extern char **smiGetImports(char *spec,
+			    char *mod);
+
+
 
 extern SmiRevision *smiGetFirstRevision(char *modulename);
 
@@ -346,18 +360,7 @@ extern SmiRevision *smiGetNextRevision(char *modulename,
 
 extern void smiFreeRevision(SmiRevision *smiRevisionPtr);
 
-extern SmiNode *smiGetNode(char *spec,
-			   char *mod);
 
-extern SmiNode *smiGetFirstNode(char *modulename);
-
-extern SmiNode *smiGetNextNode(char *modulename,
-			       char *name);
-
-extern void smiFreeNode(SmiNode *smiNodePtr);
-
-extern char **smiGetMandatoryGroups(char *spec,
-				    char *mod);
 
 extern SmiType *smiGetType(char *spec,
 			   char *mod);
@@ -369,22 +372,38 @@ extern SmiType *smiGetNextType(char *modulename,
 
 extern void smiFreeType(SmiType *smiTypePtr);
 
+
+
 extern SmiMacro *smiGetMacro(char *spec,
 			     char *mod);
 
 extern void smiFreeMacro(SmiMacro *smiMacroPtr);
 
+
+
+extern SmiNode *smiGetNode(char *spec,
+			   char *mod);
+
+extern SmiNode *smiGetFirstNode(char *modulename);
+
+extern SmiNode *smiGetNextNode(char *modulename,
+			       char *name);
+
+extern void smiFreeNode(SmiNode *smiNodePtr);
+
+
+
+extern char **smiGetMandatoryGroups(char *spec,
+				    char *mod);
+
 extern char **smiGetNames(char *spec,
+			  char *mod);
+
+extern char *smiGetParent(char *spec,
 			  char *mod);
 
 extern char **smiGetChildren(char *spec,
 			     char *mod);
-
-extern char **smiGetMembers(char *spec,
-			    char *mod);
-
-extern char *smiGetParent(char *spec,
-			  char *mod);
 
 
 

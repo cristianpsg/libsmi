@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.23 1999/04/13 18:31:07 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.24 1999/04/16 16:06:42 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -27,10 +27,10 @@
 
 
 
-#define  INDENT		2    /* indent factor */
+#define  INDENT		4    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
-#define  INDENTTEXTS	13   /* column to start multiline texts */
-#define  INDENTMAX	72   /* max column to fill, break lines otherwise */
+#define  INDENTTEXTS	9   /* column to start multiline texts */
+#define  INDENTMAX	64   /* max column to fill, break lines otherwise */
 
 #define  STYLE_IMPORTS  2
 
@@ -370,7 +370,7 @@ printImports(modulename)
     char	  types[200];
     char	  *t;
     
-    list = smiGetMembers(modulename, "");
+    list = smiGetImports(modulename, "");
 
     types[0] = 0;
     

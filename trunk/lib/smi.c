@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.19 1999/04/08 15:25:05 strauss Exp $
+ * @(#) $Id: smi.c,v 1.20 1999/04/09 18:47:00 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1417,18 +1417,17 @@ smiGetChildren(spec, mod)
 
 
 char **
-smiGetMembers(spec, mod)
+smiGetImports(spec, mod)
     char	        *spec;
     char		*mod;
 {
     Module		*modulePtr = NULL;
-    Object		*objectPtr;
     Import		*importPtr;
     char	        name[SMI_MAX_OID+1];
     char	        modulename[SMI_MAX_DESCRIPTOR+1];
     char		**list = NULL;
     
-    printDebug(4, "smiGetMembers(\"%s\", \"%s\")\n",
+    printDebug(4, "smiGetImports(\"%s\", \"%s\")\n",
 	       spec, mod ? mod : "NULL");
 
     /*
@@ -1472,12 +1471,7 @@ smiGetMembers(spec, mod)
 	    addName(&list, importPtr->module, importPtr->name);
 	}
 
-    } else if (!isupper((int)name[0])) {
-
-	/*
-	 * a type
-	 */
-
+#if 0
     } else if (!isupper((int)name[0])) {
 
 	/*
@@ -1504,8 +1498,9 @@ smiGetMembers(spec, mod)
 	     * a notification group, to retrieve all of its notification types
 	     */
 	}
+#endif
     }
-
+    
     return list;
 }
 
