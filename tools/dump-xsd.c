@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.19 2002/03/13 15:26:40 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.20 2002/03/18 16:50:00 tklie Exp $
  */
 
 #include <config.h>
@@ -699,7 +699,8 @@ static char* getTypePrefix( char *typeName )
 
 
 static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
-      
+    int i;
+    
     fprintSegment( f, indent, "<xsd:annotation>\n", 0 );
     fprintSegment( f, indent + INDENT, "<xsd:appinfo>\n", 0 );
 
@@ -708,6 +709,12 @@ static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
 
     fprintSegment( f, indent + 2 * INDENT, "<status>", 0 );
     fprint( f, "%s</status>\n",  getStringStatus( smiNode->status ) );
+
+    fprintSegment( f, indent + 2 * INDENT, "<oid>", 0 );
+    for (i = 0; i < smiNode->oidlen; i++) {
+	fprint(f, i ? ".%u" : "%u", smiNode->oid[i]);
+    }
+    fprint( f, "</oid>\n" );
 
     if( smiNode->format ) {
 	fprintDisplayHint( f, indent + 2 * INDENT, smiNode->format );
@@ -952,6 +959,11 @@ static void fprintElement( FILE *f, int indent,
 	break;
     }
 
+    case SMI_NODEKIND_NOTIFICATION:
+	fprintSegment( f, indent, "<xsd:element ", 0 );
+	fprint( f, "name=\"%s\"/>\n", smiNode->name );
+	break;
+
     default:
 	fprint( f, "<!-- Warning! Unhandled Element! No details available!\n" );
 	fprint( f, "      Nodekind: %#4x -->\n\n" );
@@ -1114,6 +1126,7 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintSegment( f, 4 * INDENT, "</xsd:sequence>\n", 0 );
     fprintSegment( f, 4 * INDENT, "<xsd:sequence>\n", 0 );
     fprintNotifications( f, smiModule );
+    fprintSegment( f, 4 * INDENT, "</xsd:sequence>\n", 0 );
     fprintSegment( f, 3 * INDENT, "</xsd:choice>\n", 0 );
     fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
     fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
