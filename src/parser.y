@@ -1006,7 +1006,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				    $$ = addObject($1,
 					getParentNode(createNodes(snode->oid)),
 					getLastSubid(snode->oid),
-					FLAG_IMPORTED,thisParserPtr);
+					FLAG_IMPORTED, thisParserPtr);
 				}
 			    }
 			}
@@ -2372,26 +2372,7 @@ subidentifier:
 					snode = smiGetNode($1,
 							   importPtr->module,
 							   0);
-					$$ = addObject($1, snode->syntax, 0,
-						     thisParserPtr);
-					sprintf(s, "%s.%s", importPtr->module,
-						importPtr->name);
-					setTypeParent($$, s);
-				    }
-				} else {
-				    $$ = duplicateType(parentPtr, 0,
-						       thisParserPtr);
-				    sprintf(s, "%s.%s",
-					    thisParserPtr->modulePtr->name, $1);
-				    setTypeParent($$, s);
-				    XXX
-
-					/*
-					 * imported object.
-					 */
-					snode = smiGetNode($1,
-					 ((Descriptor *)descriptor->ptr)->name,
-							   0);
+XXX
 					$$ = addObject(
 					  getParent(createNodes(snode->oid)),
 					  getLastSubid(snode->oid),
@@ -2400,7 +2381,7 @@ subidentifier:
 					  thisParser);
 				    }
 				}
-				parent = $$->node;
+				parentNodePtr = $$->nodePtr;
 			    }
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER
