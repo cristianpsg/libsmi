@@ -1,3 +1,9 @@
+2000-12-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/RTP-MIB: added (RFC 2959).
+
+	* mibs/ietf/COPS-CLIENT-MIB: added (RFC 2940).
+
 2000-10-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/IPMROUTE-STD-MIB: added (RFC 2932).
