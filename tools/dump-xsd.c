@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.48 2002/10/30 09:17:38 schoenw Exp $
+ * @(#) $Id: dump-xsd.c,v 1.49 2002/11/07 13:46:36 tklie Exp $
  */
 
 #include <config.h>
@@ -132,22 +132,23 @@ getStringAccess( SmiAccess smiAccess )
     }
 }
 
-static int pow( int base, int exponent )
+static int pow( int base, unsigned int exponent )
 {
-  int i;
+  unsigned int i;
+  int ret = 1;
   
   if( exponent == 0 ) {
     return 1;
   }
 
-  for( i = 1; i < exponent; i++ ) {
-    base *= base;
+  for( i = 0; i < exponent; i++ ) {
+    ret *= base;
   }
-  return base;
+  return ret;
 }
 
-static int
-numDigits( int val )
+static unsigned int
+numDigits( unsigned int val )
 {
     int ret  = 1;
 
@@ -446,11 +447,7 @@ static struct DH
 }
 
 
-
-/*
- * build a regexp from this display hint
- * NOTE: very experimental stuff
- */
+/* build a regexp from this display hint */
 static char* getStrDHType( char *hint,
 			   SmiInteger32 *lengths, unsigned int numSubranges  )
 {
@@ -502,7 +499,7 @@ static char* getStrDHType( char *hint,
 		    /* decimal number needs to be treated differently */
 		    asprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
 			      ret,
-			      numDigits( pow( 255, iterDH->number ) ) );
+			      numDigits( pow( 255, iterDH->number ) ) - 1);
 
 		    octetsUsed += iterDH->number;		    
 		    if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -710,7 +707,7 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 
     case SMI_BASETYPE_INTEGER32:
     {
-	SmiInteger32 min = -2147483647, max = 214748364;
+	SmiInteger32 min = -2147483647, max = 2147483646;
 	int offset, useDecPoint = 0;
 
 	if( smiType->format ) {
@@ -1403,7 +1400,7 @@ static void fprintIndexAttr( FILE *f, int indent, SmiNode *smiNode,
 	fprintSegment( f, indent + 2 * INDENT, "<xsd:appinfo>\n", 0 );
 	fprintSegment( f, indent + 3 * INDENT, "<augments>", 0 );
 	fprintf( f, "%s</augments>\n", augments->name );
-	fprintSegment( f, indent + 2 * INDENT, "</xsd:appinfo>", 0 );
+	fprintSegment( f, indent + 2 * INDENT, "</xsd:appinfo>\n", 0 );
 	fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
     }
     else {
