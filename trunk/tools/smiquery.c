@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.28 1999/12/17 10:44:24 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.29 2000/01/28 14:16:23 strauss Exp $
  */
 
 #include <stdio.h>
@@ -249,21 +249,21 @@ char *formatvalue(const SmiValue *value)
 void usage()
 {
     fprintf(stderr,
-	    "Usage: smiquery [-Vh] [-p <module>] <command> <name>\n"
+    "Usage: smiquery [-Vh] [-p <module>] <command> <name>\n"
 	    "-V                        show version and license information\n"
 	    "-h                        show usage information\n"
 	    "-p <module>               preload <module>\n"
 	    "module <module>           show information on module <module>\n"
 	    "imports <module>          show import list of module <module>\n"
 	    "revisions <module>        show revision list of module <module>\n"
-	    "node <module.name>        show information on node <module.name>\n"
-	    "parent <module.name>      show parent of node <module.name>\n"
-	    "compliance <module.name>  show information on compliance node <module.name>\n"
-	    "index <module.name>       show index information on table row <module.name>\n"
-	    "members <module.name>     show member list of group node <module.name>\n"
-	    "children <module.name>    show children list of node <module.name>\n"
-	    "type <module.name>        show information on type <module.name>\n"
-	    "macro <module.name>       show information on macro <module.name>\n");
+	    "node <module::name>       show information on node <module::name>\n"
+	    "parent <module::name>     show parent of node <module::name>\n"
+	    "compliance <module::name> show information on compliance node <module::name>\n"
+	    "index <module::name>      show index information on table row <module::name>\n"
+	    "members <module::name>    show member list of group node <module::name>\n"
+	    "children <module::name>   show children list of node <module::name>\n"
+	    "type <module::name>       show information on type <module::name>\n"
+	    "macro <module::name>      show information on macro <module::name>\n");
 }
 
 
