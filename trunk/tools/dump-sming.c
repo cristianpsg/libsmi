@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.34 1999/06/07 15:44:17 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.36 1999/06/08 20:16:18 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -1244,3 +1244,4 @@ int dumpSming(char *modulename)
 
     return errors;
 }
+

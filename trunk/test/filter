@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# filter SMIv1/v2 to get a comparable (but unreadable) format
+#
+# 1. strip off comments
+# 2. condens white space
+# 3. remove ambigious white space
+# 4. strip off texts enclosed in double qoutes
+# 5. convert blanks back to nl, and finally
+# 6. sort
+
+sed -e 's/\"[a-z]*\"//g' | \
+sed -e 's/--[^\"-]*--//g' -e 's/--[^\"]*$//' | \
+tr '\t\n' '  ' | \
+sed -e 's/  */ /g' | \
+sed -e 's/SIZE (/SIZE(/g' -e 's/ }/}/g' | \
+sed -e 's/\"[^\"]*\"/\"\"/g' | \
+tr ' ' '\n' | \
+sort
