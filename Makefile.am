@@ -8,11 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.8 1999/06/07 15:43:49 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.9 1999/10/06 16:04:58 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
 
-EXTRA_DIST		= ANNOUNCE doc/SMI.ps doc/draft-irtf-nmrg-sming-00.txt
+EXTRA_DIST		= ANNOUNCE
 
 SUBDIRS			= lib tools mibs test doc
