@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.1 1999/03/11 17:33:54 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.2 1999/03/12 12:49:13 strauss Exp $
  */
 
 #include <stdio.h>
@@ -149,10 +149,10 @@ main(argc, argv)
 	if (dumpMosyFlag) {
 	    dumpMosy();
 	}
-#endif
 	if (dumpSmingFlag) {
 	    dumpSming();
 	}
+#endif
 	optind++;
     }
     

@@ -85,6 +85,7 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     modulePtr->path			        = util_strdup(path);
     modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
+    modulePtr->objectPtr			= NULL;
     
     modulePtr->firstObjectPtr			= NULL;
     modulePtr->lastObjectPtr			= NULL;
@@ -122,6 +123,39 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     lastModulePtr				= modulePtr;
     
     return (modulePtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleIdentityObject --
+ *
+ *      Set the objectPtr of a given Module to the OBJECT-IDENTITY object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setModuleIdentityObject(modulePtr, objectPtr)
+    Module	*modulePtr;
+    Object	*objectPtr;
+{
+#ifdef DEBUG
+    printDebug(5, "setModuleIdentityObject(0x%x(%s), 0x%x(%s))\n",
+	       modulePtr, modulePtr && modulePtr->name ? modulePtr->name : "",
+	       objectPtr,
+	       objectPtr->name ? objectPtr->name : "\"\"");
+#endif
+
+    modulePtr->objectPtr = objectPtr;
 }
 
 
@@ -2124,61 +2158,6 @@ dumpMosy(root)
     }
 }
 #endif
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * dumpSming --
- *
- *      Dump one module in SMIng format.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-dumpSming(modulename)
-    char *modulename;
-{
-#if 0    
-    Node *c;
-    char s[200];
-
-    if (root) {
-	if (root != rootNode) {
-	    if ((root->flags & FLAG_MODULE) &&
-		(root->firstObject->descriptor &&
-		 root->parent->firstObject->descriptor)) {
-		sprintf(s, "%s.%d",
-			root->parent->firstObject->descriptor->name,
-			root->subid);
-		if (root->firstObject->decl == SMI_DECL_OBJECTTYPE) {
-		    printf("%-19s %-19s %-15s %-15s %s\n",
-			   root->firstObject->descriptor->name,
-			   s,
-			   "<type>",
-			   smiStringAccess(root->firstObject->access),
-			   smiStringStatus(root->firstObject->status));
-		} else {
-		    printf("%-19s %s\n",
-			   root->firstObject->descriptor->name,
-			   s);
-		}
-	    }
-	}
-	for (c = root->firstChild; c; c = c->next) {
-	    dumpMosy(c);
-	}
-    }
-#endif
-}
 
 
 
