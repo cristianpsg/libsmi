@@ -1,6 +1,6 @@
 TUBS-SMI DEFINITIONS ::= BEGIN
 
--- @(#) $Id: TUBS-SMI,v 1.2 2000/02/12 08:43:09 schoenw Exp $
+-- @(#) $Id: TUBS-SMI,v 1.2 2000/02/12 11:52:35 strauss Exp $
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-IDENTITY, enterprises
@@ -22,6 +22,11 @@ tubs MODULE-IDENTITY
     DESCRIPTION
 	"The toplevel OID registration for the Technical University
 	 of Braunschweig, Germany."
+    REVISION    "200205161500Z"
+    DESCRIPTION
+        "Added ibrpib for all PIBs that are temporarily assigned
+         to the ibr tree until they get official assignments
+         from IANA."
     REVISION	"200002090000Z"
     DESCRIPTION
 	"Changed the module name from TUBS-REGISTRATION to TUBS-SMI."
@@ -38,6 +43,16 @@ ibr OBJECT-IDENTITY
 	 Rechnerverbund)."
     ::= { tubs 1 }
 
+ibrpib OBJECT-IDENTITY
+    STATUS      current
+    DESCRIPTION
+        "The subtree delegated to the Department of Operating
+        Systems and Computer Networks (Institut fuer
+        Betriebssysteme und Rechnerverbund). Only for PIBs
+        that are temporarily assigned to the ibr tree until
+        they get official assignments from IANA."
+    ::= { ibr 10 }
+
 -- Allocations below TUBS-SMI::ibr:
 --
 --   1  TUBS-IBR-TNM-MIB::tnmMIB
@@ -49,5 +64,6 @@ ibr OBJECT-IDENTITY
 --   7  TUBS-IBR-TEST-MIB::testMIB
 --   8	<obsolete>
 --   9  LIBSMI-TEST-MIB::testMib
+--  10  TUBS-SMI::ibrpib
 
 END
