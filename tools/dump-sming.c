@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.69 2000/02/25 16:48:20 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.70 2000/02/28 12:24:24 strauss Exp $
  */
 
 #include <config.h>
@@ -192,22 +192,22 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 			   SmiType *smiType)
 {
     int         i;
-    char        *typemodule, *typename;
+    char        *typemodule, *type_name;
 
-    typename = smiType ? smiType->name : NULL;
+    type_name = smiType ? smiType->name : NULL;
     typemodule = smiType ? smiGetTypeModule(smiType)->name : NULL;
     
-    if ((!typemodule) && (typename) &&
+    if ((!typemodule) && (type_name) &&
 	(basetype != SMI_BASETYPE_ENUM) &&
 	(basetype != SMI_BASETYPE_BITS)) {
 	for(i=0; convertType[i]; i += 2) {
-	    if (!strcmp(typename, convertType[i])) {
+	    if (!strcmp(type_name, convertType[i])) {
 		return convertType[i+1];
 	    }
 	}
     }
 
-    if ((!typemodule) || (!strlen(typemodule)) || (!typename)) {
+    if ((!typemodule) || (!strlen(typemodule)) || (!type_name)) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "Enumeration";
 	}
@@ -216,13 +216,13 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 	
-    if (!typename) {
+    if (!type_name) {
 	return smingStringBasetype(basetype);
     }
     
     /* TODO: fully qualified if unambigous */
 
-    return typename;
+    return type_name;
 }
 
 

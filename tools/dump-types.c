@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.13 2000/02/22 17:11:14 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.14 2000/02/28 12:24:24 strauss Exp $
  */
 
 #include <config.h>
@@ -52,7 +52,7 @@ static BaseTypeCount basetypes[] = {
 
 typedef struct TypeNode {
     char        *typemodule;
-    char        *typename;
+    char        *type_name;
     SmiBasetype basetype;
     struct TypeNode *nextNodePtr;
     struct TypeNode *childNodePtr;
@@ -300,7 +300,7 @@ static TypeNode *createTypeNode(SmiType *smiType)
     
     newType = xmalloc(sizeof(TypeNode));
     newType->typemodule = smiGetTypeModule(smiType)->name;
-    newType->typename = smiType->name;
+    newType->type_name = smiType->name;
     newType->basetype = smiType->basetype;
     newType->childNodePtr = NULL;
     newType->nextNodePtr = NULL;
@@ -325,7 +325,7 @@ static void addToTypeTree(TypeNode *root, SmiType *smiType)
 	 || !smiParentType
 	 || strcmp(smiGetTypeModule(smiParentType)->name,
 		   root->typemodule) == 0) &&
-	(!smiParentType || strcmp(smiParentType->name, root->typename) == 0)) {
+	(!smiParentType || strcmp(smiParentType->name, root->type_name) == 0)) {
 	newType = createTypeNode(smiType);
 	newType->typemodule = smiGetTypeModule(smiType)->name;
 
@@ -379,7 +379,7 @@ static TypeNode *findInTypeTree(TypeNode *root, SmiType *smiType)
     if (root->typemodule
  	&& strcmp(root->typemodule, smiGetTypeModule(smiType)->name) == 0
 	&& smiType->name
- 	&& strcmp(root->typename, smiType->name) == 0) {
+ 	&& strcmp(root->type_name, smiType->name) == 0) {
 	result = root;
     }
     
@@ -436,7 +436,7 @@ static void printTypeTree(TypeNode *root, char *prefix)
     }
 
     for (typeNode = root; typeNode; typeNode = typeNode->nextNodePtr) {
-	int len = strlen(typeNode->typename);
+	int len = strlen(typeNode->type_name);
 	if (len > namelen) namelen = len;
     }
     
@@ -445,17 +445,17 @@ static void printTypeTree(TypeNode *root, char *prefix)
 	    SmiType *smiType;
 	    char c = '+', *flags;
 	    smiModule = smiGetModule(typeNode->typemodule);
-	    smiType = smiGetType(smiModule, typeNode->typename);
+	    smiType = smiGetType(smiModule, typeNode->type_name);
 	    if (smiType) {
 		c = getStatusChar(smiType->status);
 		if (getBaseTypeCount(typeNode->basetype)) {
 		    flags = getFlags(smiType);
 		    if (flags && *flags) {
 			printf("%s  %c-- %s %-*s", prefix, c, flags,
-			       namelen, typeNode->typename);
+			       namelen, typeNode->type_name);
 		    } else {
 			printf("%s  %c--%-*s", prefix, c,
-			       namelen, typeNode->typename);
+			       namelen, typeNode->type_name);
 		    }
 		    printRestrictions(smiType);
 		    if (smiType->format) {

@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.22 2000/02/24 16:56:26 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.23 2000/02/28 12:24:24 strauss Exp $
  */
 
 #include <config.h>
@@ -231,18 +231,18 @@ static char *getIdlNodeName(char *module, char *name)
 
 static char* getIdlTypeName(char *module, char *name)
 {
-    char *s, *typename;
+    char *s, *type_name;
 
-    typename = xmalloc(strlen(name) + 10);
-    sprintf(typename, "%sType", name);
-    typename[0] = toupper((int) typename[0]);
+    type_name = xmalloc(strlen(name) + 10);
+    sprintf(type_name, "%sType", name);
+    type_name[0] = toupper((int) type_name[0]);
 
-    s = dictFindName(idlTypeNameList, module, typename);
+    s = dictFindName(idlTypeNameList, module, type_name);
     if (! s) {
-	s = dictAddName(&idlTypeNameList, module, typename);
+	s = dictAddName(&idlTypeNameList, module, type_name);
     }
 
-    xfree(typename);
+    xfree(type_name);
     return s;
 }
 

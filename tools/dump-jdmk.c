@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jdmk.c,v 1.1 1999/10/05 15:52:21 strauss Exp $
+ * @(#) $Id: dump-jdmk.c,v 1.2 2000/01/27 10:46:18 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -267,8 +267,8 @@ static void printObjects(char *modulename)
 	for(smiColumn = smiGetFirstChildNode(smiRow); smiColumn;
 	    smiColumn = smiGetNextChildNode(smiColumn)) {
 
-	    if (smiColumn->typename) {
-		type = smiColumn->typename;
+	    if (smiColumn->type_name) {
+		type = smiColumn->type_name;
 	    } else {
 		switch (smiColumn->basetype) {
 		case SMI_BASETYPE_INTEGER32:

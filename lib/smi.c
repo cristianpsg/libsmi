@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.82 2000/02/22 17:11:12 strauss Exp $
+ * @(#) $Id: smi.c,v 1.83 2000/02/28 16:36:12 strauss Exp $
  */
 
 #include <config.h>
@@ -93,7 +93,7 @@ static int allowsRanges(SmiBasetype basetype)
 #endif
 
 
-static void getModulenameAndName(char *arg1, char *arg2,
+static void getModulenameAndName(const char *arg1, const char *arg2,
 				 char **module, char **name)
 {
     char	    *p;
@@ -262,6 +262,7 @@ int smiInit(const char *tag)
 			    strlen(pw->pw_dir) + 2);
 	    sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
 	    smiReadConfig(p, tag);
+	    util_free(p);
 	}
 #endif
     }
@@ -371,7 +372,7 @@ int smiReadConfig(const char *filename, const char *tag)
 
 
 
-int smiIsLoaded(char *module)
+int smiIsLoaded(const char *module)
 {
     if (!module)
 	return 0;
@@ -381,7 +382,7 @@ int smiIsLoaded(char *module)
 
 
 
-char *smiLoadModule(char *module)
+char *smiLoadModule(const char *module)
 {
     Module *modulePtr;
     
@@ -506,7 +507,7 @@ char *smiDescriptor(char *fullname)
 
 
 
-SmiModule *smiGetModule(char *module)
+SmiModule *smiGetModule(const char *module)
 {
     Module	      *modulePtr;
     
@@ -909,7 +910,7 @@ SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr)
 
 
 
-SmiNode *smiGetNode(SmiModule *smiModulePtr, char *node)
+SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *node)
 {
     Object	    *objectPtr = NULL;
     Module	    *modulePtr = NULL;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.55 2000/02/24 10:35:38 strauss Exp $
+ * @(#) $Id: data.h,v 1.56 2000/02/28 16:36:10 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -293,7 +293,7 @@ extern Revision *addRevision(time_t date,
 
 
 
-extern Import *addImport(const char *name,
+extern Import *addImport(char *name,
 			 Parser *parserPtr);
 
 extern void setImportModulename(Import *importPtr,
@@ -422,7 +422,7 @@ extern Object *findObjectByModulenameAndName(const char *modulename,
 
 
 
-extern Type *addType(const char *typename,
+extern Type *addType(char *type_name,
 		     SmiBasetype basetype,
 		     TypeFlags flags,
 		     Parser *parserPtr);
@@ -474,16 +474,16 @@ extern void setTypeValue(Type *typePtr,
 
 
 
-extern Type *findTypeByName(const char *typename);
+extern Type *findTypeByName(const char *type_name);
 
-extern Type *findNextTypeByName(const char *typename,
+extern Type *findNextTypeByName(const char *type_name,
 				Type *prevTypePtr);
 
 extern Type *findTypeByModuleAndName(Module *modulePtr,
-				     const char *typename);
+				     const char *type_name);
 
 extern Type *findTypeByModulenameAndName(const char *modulename,
-					 const char *typename);
+					 const char *type_name);
 
 
 
@@ -519,7 +519,7 @@ extern int initData();
 
 extern void freeData();
 
-extern Module *loadModule(char *modulename);
+extern Module *loadModule(const char *modulename);
 
 
 extern int checkFormat(SmiBasetype basetype, char *format);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-java.c,v 1.8 1999/10/01 12:46:58 strauss Exp $
+ * @(#) $Id: dump-java.c,v 1.9 2000/01/27 10:46:18 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -145,9 +145,9 @@ static void printObjects(char *modulename)
 	smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 
 	if ((smiNode->basetype == SMI_BASETYPE_ENUM) &&
-	    smiNode->typename &&
-	    islower((int)smiNode->typename[0]) &&
-	    (smiType = smiGetType(smiNode->typemodule, smiNode->typename))) {
+	    smiNode->type_name &&
+	    islower((int)smiNode->type_name[0]) &&
+	    (smiType = smiGetType(smiNode->typemodule, smiNode->type_name))) {
 
 	    printf("\n/**\n");
 	    printf(" * Derived from type of MIB node %s.%s.\n",
