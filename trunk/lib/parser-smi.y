@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.17 1999/04/07 18:21:32 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.18 1999/04/08 16:38:24 strauss Exp $
  */
 
 %{
@@ -2839,6 +2839,8 @@ subidentifier:
 				objectPtr = addObject($1, parentNodePtr,
 						      $3, 0,
 						      thisParserPtr);
+				setObjectDecl(objectPtr,
+					      SMI_DECL_VALUEASSIGNMENT);
 				setObjectFileOffset(objectPtr,
 						    thisParserPtr->character);
 				$$ = objectPtr;

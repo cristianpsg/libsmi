@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.6 1999/04/07 18:21:33 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.8 1999/04/08 15:25:04 strauss Exp $
  */
 
 %{
@@ -572,8 +572,10 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			     * Walk through rows of this module with
 			     * flag & FLAG_INDEXLABELS and convert their
 			     * labelstrings to (Object *). This is the
-			     * case for index column lists and index
-			     * related rows.
+			     * case for index column lists
+			     * (indexPtr->listPtr[]->ptr), index related
+			     * rows (indexPtr->rowPtr) and create lists
+			     * (listPtr[]->ptr).
 			     */
 			    while (firstIndexlabelPtr) {
 				for (listPtr =
@@ -591,6 +593,13 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 					thisParserPtr);
 				    ((Object *)(firstIndexlabelPtr->ptr))->
 				    indexPtr->rowPtr = objectPtr;
+				}
+				for (listPtr =
+		                ((Object *)(firstIndexlabelPtr->ptr))->listPtr;
+				     listPtr; listPtr = listPtr->nextPtr) {
+				    objectPtr = findObject(listPtr->ptr,
+							   thisParserPtr);
+				    listPtr->ptr = objectPtr;
 				}
 				deleteObjectFlags(
 				    (Object *)(firstIndexlabelPtr->ptr),
@@ -786,6 +795,8 @@ nodeStatement:		nodeKeyword sep lcIdentifier
 							  $8->subid,
 							  0, thisParserPtr);
 				setObjectDecl(nodeObjectPtr, SMI_DECL_NODE);
+				setObjectAccess(nodeObjectPtr,
+						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
 			}
 			statusStatement_stmtsep_01
@@ -915,6 +926,8 @@ tableStatement:		tableKeyword sep lcIdentifier
 							   0, thisParserPtr);
 				setObjectDecl(tableObjectPtr,
 					      SMI_DECL_TABLE);
+				setObjectAccess(tableObjectPtr,
+						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
 			}
 			statusStatement_stmtsep_01
@@ -958,6 +971,8 @@ rowStatement:		rowKeyword sep lcIdentifier
 							 0, thisParserPtr);
 				setObjectDecl(rowObjectPtr,
 					      SMI_DECL_ROW);
+				setObjectAccess(rowObjectPtr,
+						SMI_ACCESS_NOT_ACCESSIBLE);
 			    }
 			}
 			anyIndexStatement stmtsep
@@ -982,7 +997,9 @@ rowStatement:		rowKeyword sep lcIdentifier
 			}
 			createStatement_stmtsep_01
 			{
-			    ;
+			    if (rowObjectPtr) {
+				setObjectList(rowObjectPtr, $14);
+			    }
 			}
 			statusStatement_stmtsep_01
 			{
@@ -1521,7 +1538,7 @@ importStatement_stmtsep: importStatement stmtsep
 
 importStatement:	importKeyword sep ucIdentifier
 			{
-			    importModulename = $3;
+			    importModulename = util_strdup($3);
 			}
 			optsep '(' optsep
 			identifierList
@@ -1538,11 +1555,13 @@ importStatement:	importKeyword sep ucIdentifier
 			}
 			optsep ')' optsep ';'
 			{
-			    if (!findModuleByName(importModulename)) {
-				smiLoadModule(importModulename);
+			    char *s = importModulename;
+			    
+			    if (!findModuleByName(s)) {
+				smiLoadModule(s);
 			    }
-			    checkImports(importModulename, thisParserPtr);
-			    free(importModulename);
+			    checkImports(s, thisParserPtr);
+			    free(s);
 			    $$ = NULL;
 			}
         ;
@@ -1599,7 +1618,9 @@ revisionStatement:	revisionKeyword optsep '{' stmtsep
 			}
         ;
 
-typedefTypeStatement:	typeKeyword sep refinedBaseType optsep ';'
+typedefTypeStatement:	typeKeyword sep refinedBaseType_refinedType optsep ';'
+			/* TODO: originally, this was based on
+			 * refinedBaseType. */
 			{
 			    $$ = $3;
 			}
@@ -2962,7 +2983,7 @@ objectIdentifier:	qlcIdentifier_subid dot_subid_0127
 				strcpy(oid, $1);
 				free($1);
 			    }
-			    
+
 			    if (oid) {
 				nodePtr = findNodeByOidString(oid);
 				if (!nodePtr) {

@@ -1,11 +1,11 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.20 1999/04/01 14:02:36 strauss Exp $
+# @(#) $Id: Makefile,v 1.21 1999/04/05 15:47:33 strauss Exp $
 #
 
 MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
-TESTMIBS	= `cd $(MIBDIR) ; ls -1 *`
+TESTMIBS	= `cd $(MIBDIR) ; ls -1 ATM*`
 PREFIX		= /usr/local
 
 DEFINES_RPC	= -DRPC_SVC_FG -DBACKEND_RPC
@@ -128,19 +128,52 @@ doc/yacc2html.c: doc/yacc2html.l
 
 doc/yacc2html: doc/yacc2html.o
 
-test: test-smilint test-smidump-sming
+test: test-smilint test-smidump-smi-sming test-smidump-sming-sming test-diffs
 
 test-smilint: tools/smilint
 	rm -f test/smilint.log
 	for mib in $(TESTMIBS) ; do \
 	    echo "### Testing: smilint $$mib" ; \
 	    echo "### Testing: smilint $$mib" >> test/smilint.log ; \
-	    tools/smilint -l9 -v -Lsmi:$(MIBDIR) $$mib \
+	    tools/smilint -l9 -v -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:$(MIBDIR) $$mib \
 						   >> test/smilint.log 2>&1 ; \
 	done | egrep -v '(^$$|^/)'
 	@echo ""
 	@echo "### See test/smilint.log for smilint test protocol."
 	@echo ""
+
+test-smidump-smi-sming: tools/smidump
+	rm -rf test/smidump-smi-sming
+	mkdir test/smidump-smi-sming
+	for mib in $(TESTMIBS) ; do \
+	    echo "### Testing: smidump -Dsming $$mib" ; \
+	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:$(MIBDIR) -Dsming $$mib \
+					    >> test/smidump-smi-sming/$$mib ; \
+	done
+	@echo ""
+	@echo "### See files in test/smidump-smi-sming/ for smidump output."
+	@echo ""
+
+test-smidump-sming-sming: tools/smidump
+	rm -rf test/smidump-sming-sming
+	mkdir test/smidump-sming-sming
+	for mib in $(TESTMIBS) ; do \
+	    echo "### Testing: smidump -Dsming $$mib" ; \
+	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsming:test/smidump-smi-sming -Dsming $$mib \
+					  >> test/smidump-sming-sming/$$mib ; \
+	done
+	@echo ""
+	@echo "### See files in test/smidump-sming-sming/ for smidump output."
+	@echo ""
+
+test-diffs: test-smidump-smi-sming test-smidump-sming-sming
+	for mib in $(TESTMIBS) ; do \
+	    echo "### Testing: smi-sming/sming-sming diffs of $$mib" ; \
+	    diff test/smidump-smi-sming/$$mib \
+		 test/smidump-sming-sming/$$mib ; \
+	done
+
+
 
 test-smidump-sming: tools/smidump
 	rm -f test/smidump-sming.log

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.17 1999/04/07 18:21:33 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.19 1999/04/08 15:25:06 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -23,6 +23,7 @@
 #include <stdarg.h>
 
 #include "smi.h"
+#include "util.h"
 
 
 
@@ -35,27 +36,43 @@
 
 
 
-static char *excludeDescriptors[] = {
-    "ObjectName", "NotificationName", "ObjectSyntax", "SimpleSyntax",
-    "Integer32", "ApplicationSyntax", "Unsigned32",
-    "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
-    NULL };
-
-static char *typeDescriptors[] = {
-    "IpAddress", "Counter32", "Gauge32", "TimeTicks", "Opaque", "Counter64",
-    NULL };
-
-static char *excludeTypes[] = {
-    "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
+static char *excludeType[] = {
+    "ObjectSyntax",
+    "SimpleSyntax",
+    "ApplicationSyntax",
     NULL };
     
-static char *smi2smingTypes[] = {
-    "INTEGER", "Integer32",
-    "OCTET STRING", "OctetString",
-    "OBJECT IDENTIFIER", "ObjectIdentifier",
+static char *convertType[] = {
+    "INTEGER",		   "Integer32",
+    "OCTET STRING",	   "OctetString",
+    "OBJECT IDENTIFIER",   "ObjectIdentifier",
     NULL, NULL };
 
-
+static char *convertImport[] = {
+    "SNMPv2-SMI",  "MODULE-IDENTITY",    NULL, NULL,
+    "SNMPv2-SMI",  "OBJECT-IDENTITY",    NULL, NULL,
+    "SNMPv2-SMI",  "OBJECT-TYPE",        NULL, NULL,
+    "SNMPv2-SMI",  "NOTIFICATION-TYPE",  NULL, NULL,
+    "SNMPv2-SMI",  "ObjectName",         NULL, NULL,
+    "SNMPv2-SMI",  "NotificationName",   NULL, NULL,
+    "SNMPv2-SMI",  "ObjectSyntax",       NULL, NULL,
+    "SNMPv2-SMI",  "SimpleSyntax",       NULL, NULL,
+    "SNMPv2-SMI",  "Integer32",	         NULL, NULL,
+    "SNMPv2-SMI",  "ApplicationSyntax",  NULL, NULL,
+    "SNMPv2-SMI",  "IpAddress",	         "IRTF-NMRG-SMING-TYPES", "IpAddress",
+    "SNMPv2-SMI",  "Counter32",	         "IRTF-NMRG-SMING-TYPES", "Counter32",
+    "SNMPv2-SMI",  "Gauge32",	         "IRTF-NMRG-SMING-TYPES", "Gauge32",
+    "SNMPv2-SMI",  "TimeTicks",		 "IRTF-NMRG-SMING-TYPES", "TimeTicks",
+    "SNMPv2-SMI",  "Opaque",		 "IRTF-NMRG-SMING-TYPES", "Opaque",
+    "SNMPv2-SMI",  "Counter64",		 "IRTF-NMRG-SMING-TYPES", "Counter64",
+    "SNMPv2-SMI",  NULL,		 "IRTF-NMRG-SMING", NULL,
+    "SNMPv2-TC",   "TEXTUAL-CONVENTION", NULL, NULL,
+    "SNMPv2-CONF", "OBJECT-GROUP",	 NULL, NULL,
+    "SNMPv2-CONF", "NOTIFICATION-GROUP", NULL, NULL,
+    "SNMPv2-CONF", "MODULE-COMPLIANCE",	 NULL, NULL,
+    "SNMPv2-CONF", "AGENT-CAPABILITIES", NULL, NULL,
+    /* TODO: how to convert SMIv1 information? */
+    NULL, NULL, NULL, NULL };
 
 static int current_column = 0;
 
@@ -79,9 +96,9 @@ getTypeString(name, syntax)
 	return "<unknown>";
     }
     
-    for(i=0; smi2smingTypes[i]; i += 2) {
-	if (!strcmp(name, smi2smingTypes[i])) {
-	    return smi2smingTypes[i+1];
+    for(i=0; convertType[i]; i += 2) {
+	if (!strcmp(name, convertType[i])) {
+	    return convertType[i+1];
 	}
     }
     return name;
@@ -322,7 +339,7 @@ printImports(modulename)
     char	  *lastModulename = NULL;
     char	  *importedModulename, *importedDescriptor;
     char	  **p;
-    int		  convert, i;
+    int		  i;
     char	  types[200];
     char	  *t;
     
@@ -339,7 +356,6 @@ printImports(modulename)
 	importedDescriptor[0] = 0;
 	importedDescriptor =
 	    &importedDescriptor[strlen(SMI_NAMESPACE_OPERATOR)];
-
 	/*
 	 * imported SMI modules have to be handled more carefully:
 	 * The module name is mapped to an SMIng module and some definitions
@@ -347,44 +363,22 @@ printImports(modulename)
 	 * lead to an empty list of imported descriptors from that SMIv1/v2
 	 * module.
 	 */
-	convert = 0;
-	if (!strcmp(importedModulename, "SNMPv2-SMI")) {
-	    convert = 1;
-	    importedModulename = "IRTF-NMRG-SMING";
-	}
-	if (!strcmp(importedModulename, "SNMPv2-CONF")) {
-	    convert = 1;
-	    importedModulename = "";
-	}
-	if (convert) {
-	    /*
-	     * Exclude all-uppercase descriptors, assuming they are macros.
-	     */
-	    if (!strpbrk(importedDescriptor,
-			 "abcdefghijklmnopqrstuvwxyz")) {
-		importedDescriptor = "";
-	    }
-	    /*
-	     * Exclude descriptors from a list of well known SMIv1/v2 types,
-	     * which need not to be imported im SMIng.
-	     */
-	    for(i=0; excludeDescriptors[i]; i++) {
-		if (!strcmp(importedDescriptor, excludeDescriptors[i])) {
-		    importedDescriptor = "";
-		    break;
-		}
-	    }
-	    for(i=0; typeDescriptors[i]; i++) {
-		if (!strcmp(importedDescriptor, typeDescriptors[i])) {
-		    strcat(types, importedDescriptor);
-		    strcat(types, " ");
-		    importedDescriptor = "";
-		    break;
-		}
+	
+	for(i = 0; convertImport[i]; i += 4) {
+	    if ((!util_strcmp(importedModulename, convertImport[i])) &&
+		(!util_strcmp(importedDescriptor, convertImport[i+1]))) {
+		importedModulename = convertImport[i+2];
+		importedDescriptor = convertImport[i+3];
+		break;
+	    } else if ((!util_strcmp(importedModulename, convertImport[i])) &&
+		       (!convertImport[i+1])) {
+		importedModulename = convertImport[i+2];
+		break;
 	    }
 	}
 
-	if (strlen(importedDescriptor)) {
+	if (importedModulename && importedDescriptor &&
+	    strlen(importedDescriptor)) {
 	    if ((!lastModulename) ||
 		strcmp(importedModulename, lastModulename)) {
 		if (lastModulename) {
@@ -472,7 +466,7 @@ printRevisions(modulename)
 					 smiRevision->date)) {
 	printSegment(INDENT, "revision {\n", 0);
 	printSegment(2 * INDENT, "date", INDENTVALUE);
-	print("\"%s\";\n", smiCTime(smiRevision->date));
+	print("\"%s\";\n", smingCTime(smiRevision->date));
 	printSegment(2 * INDENT, "description", INDENTVALUE);
 	print("\n");
 	printMultilineString(smiRevision->description);
@@ -499,10 +493,10 @@ printTypedefs(modulename)
 
 	if ((!(strcmp(modulename, "SNMPv2-SMI"))) ||
 	    (!(strcmp(modulename, "RFC1155-SMI")))) {
-	    for(j=0; excludeTypes[j]; j++) {
-		if (!strcmp(smiType->name, excludeTypes[j])) break;
+	    for(j=0; excludeType[j]; j++) {
+		if (!strcmp(smiType->name, excludeType[j])) break;
 	    }
-	    if (excludeTypes[j]) break;
+	    if (excludeType[j]) break;
 	}
 	    
 	if (!i) {
@@ -648,7 +642,10 @@ printObjects(modulename)
 	    }
 	}
 
-	if ((smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
+	if ((smiNode->decl != SMI_DECL_TABLE) &&
+	    (smiNode->decl != SMI_DECL_ROW) &&
+	    (smiNode->decl != SMI_DECL_NODE) &&
+	    (smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
 	    (smiNode->basetype != SMI_BASETYPE_SEQUENCEOF)) {
 	    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
 		printSegment((2 + indent) * INDENT, "access", INDENTVALUE);
@@ -665,12 +662,14 @@ printObjects(modulename)
 		printSegment((2 + indent) * INDENT, "index", INDENTVALUE);
 	    }
 	    print("(");
-	    for(p = smiNode->index; *p; p++) {
-		if (p != smiNode->index) {
-		    print(", ");
-		}
-		printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
-	    } /* TODO: empty? -> print error */
+	    if (smiNode->index) {
+		for(p = smiNode->index; *p; p++) {
+		    if (p != smiNode->index) {
+			print(", ");
+		    }
+		    printWrapped(INDENTVALUE + 1, smiDescriptor(*p));
+		} /* TODO: empty? -> print error */
+	    }
 	    print(");\n");
 	    break;
 	case SMI_INDEX_AUGMENT:

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.2 1999/03/29 22:34:06 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.3 1999/04/05 15:47:36 strauss Exp $
  */
 
 #include <stdio.h>
@@ -43,21 +43,20 @@ main(argc, argv)
     char c;
     int dumpFormat;
     int flags;
+    int config;
     
     dumpFormat = 1;
+    config = 0;
 
     smiInit();
 
-#ifdef SMIDUMP_CONFIG_FILE
-    smiReadConfig(SMIDUMP_CONFIG_FILE);
-#endif
-        
     flags = smiGetFlags();
     
     while ((c = getopt(argc, argv, "rRsSvVd:l:c:L:D:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg);
+	    config++;
 	    break;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
@@ -107,6 +106,11 @@ main(argc, argv)
 	}
     }
 
+#ifdef SMIDUMP_CONFIG_FILE
+    if (!config)
+	smiReadConfig(SMIDUMP_CONFIG_FILE);
+#endif
+        
     while (optind < argc) {
 	smiLoadModule(argv[optind]);
 	switch (dumpFormat) {

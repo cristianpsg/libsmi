@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.17 1999/04/06 16:23:23 strauss Exp $
+ * @(#) $Id: smi.c,v 1.19 1999/04/08 15:25:05 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -488,7 +488,9 @@ createSmiNode(objectPtr)
 		 */
 		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
 		     listPtr = listPtr->nextPtr) {
-		    addPtr(&smiNodePtr->index, listPtr->ptr);
+		    if (listPtr->ptr) {
+			addPtr(&smiNodePtr->index, listPtr->ptr);
+		    }
 		}
 		if (objectPtr->indexPtr->rowPtr) {
 		    smiNodePtr->relatedrow =
@@ -497,9 +499,11 @@ createSmiNode(objectPtr)
 	    } else {
 		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
 		     listPtr = listPtr->nextPtr) {
-		    addName(&smiNodePtr->index,
-			    ((Object *)listPtr->ptr)->modulePtr->name,
-			    ((Object *)listPtr->ptr)->name);
+		    if (listPtr->ptr) {
+			addName(&smiNodePtr->index,
+				((Object *)listPtr->ptr)->modulePtr->name,
+				((Object *)listPtr->ptr)->name);
+		    }
 		}
 		if (objectPtr->indexPtr->rowPtr) {
 		    smiNodePtr->relatedrow = objectPtr->indexPtr->rowPtr->name;
@@ -1641,7 +1645,7 @@ smiGetParent(spec, mod)
 	     */
 	    strncpy(child, getOid(nodePtr), SMI_MAX_FULLNAME);
 	    p = smiGetParent(child, "");
-	    strcpy(parent, p);
+	    if (p) strcpy(parent, p);
 	    sprintf(&parent[strlen(parent)], ".%d", nodePtr->subid);
 	}
 
@@ -1736,7 +1740,7 @@ smiMkTime(s)
 
 /* NOTE: not reentrent. returning a static pointer. */
 char *
-smiCTime(t)
+smingCTime(t)
     time_t t;
 {
     static char   s[27];
@@ -1753,6 +1757,23 @@ smiCTime(t)
 
 /* NOTE: not reentrent. returning a static pointer. */
 char *
+smiCTime(t)
+    time_t t;
+{
+    static char   s[27];
+    struct tm	  *tm;
+
+    tm = gmtime(&t);
+    sprintf(s, "%04d%02d%02d%02d%02dZ",
+	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	    tm->tm_hour, tm->tm_min);
+    return s;
+}
+
+
+
+/* NOTE: not reentrent. returning a static pointer. */
+char *
 smiModule(fullname)
     char            *fullname;
 {
@@ -1760,6 +1781,9 @@ smiModule(fullname)
     int		    len;
 
     if (!fullname) return NULL;
+
+    if (islower((int)fullname[0]))
+	return "";
     
     len = strcspn(fullname, "!.");
     len = MIN(len, strcspn(fullname, SMI_NAMESPACE_OPERATOR));

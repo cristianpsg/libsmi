@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.5 1999/03/16 17:24:14 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.6 1999/03/29 22:34:07 strauss Exp $
  */
 
 #include <stdio.h>
@@ -31,19 +31,15 @@ main(argc, argv)
     char *argv[];
 {
     char c;
-    int dumpFormat;
     int flags;
+    int config;
     
-    dumpFormat = 1;
+    config = 0;
 
     smiInit();
 
-#ifdef SMILINT_CONFIG_FILE
-    smiReadConfig(SMILINT_CONFIG_FILE);
-#endif
-        
     flags = smiGetFlags();
-
+    
     flags |= SMI_ERRORS;
     smiSetFlags(flags);
     
@@ -51,6 +47,7 @@ main(argc, argv)
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg);
+	    config++;
 	    break;
 	case 'l':
 	    smiSetErrorLevel(atoi(optarg));
@@ -85,6 +82,11 @@ main(argc, argv)
 	}
     }
 
+#ifdef SMILINT_CONFIG_FILE
+    if (!config)
+	smiReadConfig(SMILINT_CONFIG_FILE);
+#endif
+        
     while (optind < argc) {
 	smiLoadModule(argv[optind]);
 	optind++;

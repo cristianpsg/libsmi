@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.6 1999/03/30 18:37:23 strauss Exp $
+ * @(#) $Id: smi.h,v 1.7 1999/04/06 16:23:24 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -309,6 +309,8 @@ typedef struct SmiMacro {
 extern time_t smiMkTime(const char *s);
 
 extern char *smiCTime(time_t t);
+
+extern char *smingCTime(time_t t);
 
 extern char *smiModule(char *fullname);
 
