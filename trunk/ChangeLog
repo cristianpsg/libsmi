@@ -1,7 +1,14 @@
+2000-01-13  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/scanner-smi.l: Bert Helthuis pointed out an incorrect warning
+	when SNMPv2-SMI is parsed. Fixed.
+
+	* Juergen Schoenwaelder applied a lot of memory leak fixes.
+	
 2000-01-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/MIP-MIB: Bert Helthuis gave a hint on a slight bug
-	in MIP-MIB.
+	in MIP-MIB. Fixed.
 
 2000-01-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 

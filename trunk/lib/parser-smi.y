@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.59 2000/01/06 15:30:56 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.60 2000/01/10 10:34:19 strauss Exp $
  */
 
 %{
@@ -1978,7 +1978,9 @@ valueofObjectSyntax:	valueofSimpleSyntax
 
 SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
-			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				&&
+				(strcmp(thisModulePtr->name, "SNMPv2-SMI")))
 				printError(thisParserPtr,
 					   ERR_INTEGER_IN_SMIV2);
 
@@ -1987,7 +1989,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			}
 	|		INTEGER integerSubType
 			{
-			    if (thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
+				&&
+				(strcmp(thisModulePtr->name, "SNMPv2-SMI")))
 				printError(thisParserPtr,ERR_INTEGER_IN_SMIV2);
 
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;

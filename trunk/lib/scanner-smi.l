@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.12 1999/12/22 14:44:03 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.13 2000/01/03 17:07:40 strauss Exp $
  */
 
 %option noyywrap
@@ -714,7 +714,10 @@ eol             ("\n"|"\n\015"|"\015\n")
     errno = 0;
     yylval.unsigned32 = strtoul(yytext, NULL, 10);
     if (errno == ERANGE) {
-	printError(parser, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, yytext);
+	/* We don't want to see this error for the SNMPv2-SMI module. */
+	if (!strcmp(thisParser.modulePtr->name, "SNMPv2-SMI")) {
+	    printError(parser, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, yytext);
+	}
     }
     return NUMBER;
 }
