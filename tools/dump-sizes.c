@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sizes.c,v 1.1 2003/09/17 12:37:58 schoenw Exp $
+ * @(#) $Id: dump-sizes.c,v 1.2 2003/11/18 12:52:40 schoenw Exp $
  */
 
 #include <config.h>
@@ -201,7 +201,7 @@ getMinUnsigned64(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiInteger64 min = 0xffffffffffffffffLL;
+     SmiInteger64 min = LIBSMI_UINT64_MAX;
 
      range = smiGetFirstRange(smiType);
      if (! range) {
