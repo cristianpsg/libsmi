@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.185 2003/04/03 15:31:45 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.186 2003/04/24 13:11:50 strauss Exp $
  */
 
 %{
@@ -6750,7 +6750,13 @@ ComplianceObject:	OBJECT
 				firstStatementLine;
 			    ((Refinement *)($$->ptr))->objectPtr = $3;
 			    ((Refinement *)($$->ptr))->typePtr = $4;
+			    if ($4) {
+				$4->parentPtr = $3->typePtr;
+			    }
 			    ((Refinement *)($$->ptr))->writetypePtr = $5;
+			    if ($5) {
+				$5->parentPtr = $3->typePtr;
+			    }
 			    ((Refinement *)($$->ptr))->export.access = $6;
 			    if (! (thisParserPtr->flags & SMI_FLAG_NODESCR)) {
 				((Refinement *)($$->ptr))->export.description = $8;
