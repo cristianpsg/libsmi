@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.57 2000/02/09 18:26:09 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.58 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -205,8 +205,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 
-    if ((!typemodule) || (!strlen(typemodule)) ||
-	(!typename) || islower((int)typename[0])) {
+    if ((!typemodule) || (!strlen(typemodule)) || (!typename)) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "Enumeration";
 	}
@@ -730,7 +729,7 @@ static void printObjects(SmiModule *smiModule)
 	smiType = smiGetNodeType(smiNode);
 	if (smiType && (smiType->basetype != SMI_BASETYPE_UNKNOWN)) {
 	    printSegment((2 + indent) * INDENT, "type", INDENTVALUE);
-	    if (islower((int)smiType->name[0])) {
+	    if (!smiType->name) {
 		/*
 		 * an implicitly restricted type.
 		 */

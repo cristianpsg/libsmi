@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.34 2000/02/09 18:26:09 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.35 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -246,8 +246,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 
-    if ((!typemodule) || (!strlen(typemodule)) ||
-	(!typename) || islower((int)typename[0])) {
+    if ((!typemodule) || (!strlen(typemodule)) || (!typename)) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "INTEGER";
 	}
@@ -438,7 +437,7 @@ static void createImportList(SmiModule *smiModule)
 	if (smiType) {
 	    smiModule2 = smiGetTypeModule(smiType);
 	    if (smiModule2 && (smiModule2 != smiModule)) {
-		if (strlen(smiModule2->name)) {
+		if (strlen(smiModule2->name) && smiType->name) {
 		    addImport(smiModule2->name, smiType->name);
 		}
 	    }
@@ -1059,7 +1058,7 @@ static void printObjects(SmiModule *smiModule)
 		}
 		/* TODO: print non-local name qualified */
 	    } else if (smiType) {
-		if (islower((int)smiType->name[0])) {
+		if (!smiType->name) {
 		    /*
 		     * an implicitly restricted type.
 		     */

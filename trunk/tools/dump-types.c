@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-types.c,v 1.8 2000/02/09 18:26:09 strauss Exp $
+ * @(#) $Id: dump-types.c,v 1.9 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -331,6 +331,7 @@ static TypeNode *findInTypeTree(TypeNode *root, SmiType *smiType)
     
     if (root->typemodule
  	&& strcmp(root->typemodule, smiGetTypeModule(smiType)->name) == 0
+	&& smiType->name
  	&& strcmp(root->typename, smiType->name) == 0) {
 	result = root;
     }
@@ -454,7 +455,11 @@ static void printTypeTree(TypeNode *root, char *prefix)
 static void addType(SmiType *smiType)
 {
     SmiType *smiParentType;
-    
+
+    if (!smiType->name) {
+	return;
+    }
+	    
     if (strlen(smiGetTypeModule(smiType)->name) == 0) {
 	return;
     }
@@ -471,6 +476,7 @@ static void addType(SmiType *smiType)
     }
 
     addToTypeTree(&typeRoot, smiType);
+    incrBaseTypeCount(smiType->basetype);
 }
 
 
@@ -496,9 +502,9 @@ int dumpTypes(char *modulename, int flags)
  	 smiType;
  	 smiType = smiGetNextType(smiType)) {
  	addType(smiType);
-	incrBaseTypeCount(smiType->basetype);
     }
     
+#if 0
     for (smiNode = smiGetFirstNode(smiModule, nodekind);
  	 smiNode;
  	 smiNode = smiGetNextNode(smiNode, nodekind)) {
@@ -510,6 +516,7 @@ int dumpTypes(char *modulename, int flags)
 	    incrBaseTypeCount(smiType->basetype);
  	}
     }
+#endif
     
     printTypeTree(&typeRoot, "");
     

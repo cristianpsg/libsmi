@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.17 2000/02/09 18:26:09 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.18 2000/02/10 10:09:45 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -305,31 +305,27 @@ static void printObjects(SmiModule *smiModule)
 	aggregate = smiNode->nodekind == SMI_NODEKIND_TABLE
 	    || smiNode->nodekind == SMI_NODEKIND_ROW;
 
-	smiType = NULL;
 	typename = NULL;
+	smiType = smiGetNodeType(smiNode);
 	if (!aggregate) {
-	    smiType = smiGetNodeType(smiNode);
 	    typename = getBasetypeString(smiType->basetype);
-	}
-	if (smiType && (smiType->decl != SMI_DECL_IMPLICIT_TYPE)) {
-	    typename = smiType->name;
-	    if (!strcmp(typename, "ObjectIdentifier")) {
-		typename = "ObjectID";
+	    if (smiType && (smiType->decl != SMI_DECL_IMPLICIT_TYPE)) {
+		typename = smiType->name;
+		if (!strcmp(typename, "ObjectIdentifier")) {
+		    typename = "ObjectID";
+		}
 	    }
-	}
 	
-	if (smiType && smiType->name
-	    && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
-	    typename = smiGetParentType(smiType)->name;
-	    if (smiType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
-		typename = "ObjectID";
+	    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+		typename = smiGetParentType(smiType)->name;
+		if (smiType->basetype == SMI_BASETYPE_OBJECTIDENTIFIER) {
+		    typename = "ObjectID";
+		}
+		if (smiType->basetype == SMI_BASETYPE_ENUM) {
+		    typename = "INTEGER";
+		}
 	    }
-	    if (smiType->basetype == SMI_BASETYPE_ENUM) {
-		typename = "INTEGER";
-	    }
-	}
-
-	if (aggregate) {
+	} else {
 	    typename = "Aggregate";
 	}
 
@@ -372,12 +368,12 @@ static void printObjects(SmiModule *smiModule)
 		smiNamedNumber;
 		i++, smiNamedNumber = smiGetNextNamedNumber(smiNamedNumber)) {
 		printf("%%%-19s %-16s %-15s %s\n", "ev",
-		       smiType->name, smiNamedNumber->name,
+		       smiNode->name, smiNamedNumber->name,
 		       getValueString(&smiNamedNumber->value));
 	    }
 
 	    for (ignore = 0, j = 0; ignoreTypeRanges[j]; j++) {
-		if (strcmp(smiType->name, ignoreTypeRanges[j]) == 0) {
+		if (strcmp(typename, ignoreTypeRanges[j]) == 0) {
 		    ignore++;
 		    break;
 		}
@@ -388,7 +384,7 @@ static void printObjects(SmiModule *smiModule)
 		     smiRange;
 		     smiRange = smiGetNextRange(smiRange)) {
 		    printf("%%%-19s %-16s %-15s ", "er",
-			   smiType->name,
+			   smiNode->name,
 			   getValueString(&smiRange->minValue));
 		    printf("%s\n", getValueString(&smiRange->maxValue));
 		}
