@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smisubtree.c,v 1.1 1999/04/12 17:21:28 strauss Exp $
+ * @(#) $Id: smisubtree.c,v 1.2 1999/05/04 09:00:55 strauss Exp $
  */
 
 #include <stdio.h>
@@ -33,8 +33,6 @@ main(argc, argv)
     modulename = smiModule(fullname);
     
     smiInit();
-
-    smiReadConfig("/usr/local/etc/smidump.conf");
 
     smiLoadModule(modulename);
 
