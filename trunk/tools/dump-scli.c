@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.39 2004/07/11 22:46:07 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.40 2004/07/12 08:04:31 schoenw Exp $
  */
 
 /*
@@ -2667,11 +2667,11 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    "\n"
 	    "    out = gnet_snmp_sync_get(s, in);\n"
-	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
 	    "        if (s->error_status != GNET_SNMP_ERR_NOERROR) {\n"
-	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "            g_list_free(out);\n"
 	    "            return;\n"
 	    "        }\n"
@@ -2737,10 +2737,10 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    "\n"
 	    "    out = gnet_snmp_sync_set(s, in);\n"
-	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "        g_list_foreach(out, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "        g_list_free(out);\n"
 	    "    }\n"
 	    "}\n"
@@ -3002,11 +3002,11 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,
 	    "\n"
 	    "    out = gnet_snmp_sync_getnext(s, in);\n"
-	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
 	    "        if (s->error_status != GNET_SNMP_ERR_NOERROR) {\n"
-	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "            g_list_free(out);\n"
 	    "            return;\n"
 	    "        }\n"
@@ -3050,10 +3050,10 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     fprintf(f,
 	    "\n"
 	    "    out = gnet_snmp_sync_set(s, in);\n"
-	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        g_list_foreach(out, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "        g_list_foreach(out, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "        g_list_free(out);\n"
 	    "    }\n"
 	    "}\n"
@@ -3161,7 +3161,7 @@ printFreeMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    if (%s) {\n"
 	    "        p = (char *) %s + sizeof(%s_%s_t);\n"
 	    "        vbl = * (GList **) p;\n"
-	    "        g_list_foreach(vbl, (GFunc) gnet_snmp_varbind_free, NULL);\n"
+	    "        g_list_foreach(vbl, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "        g_list_free(vbl);\n"
 	    "        g_free(%s);\n"
 	    "    }\n"
