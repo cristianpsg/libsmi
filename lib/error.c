@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.124 2004/07/27 12:23:27 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -197,8 +197,10 @@ static Error errors[] = {
       "%s: unable to determine SMI version", NULL},
     { 1, ERR_UNKNOWN_OIDLABEL, "object-identifier-unknown", 
       "unknown object identifier label `%s'", NULL},
-    { 2, ERR_SUBIDENTIFIER_VS_OIDLABEL, "object-identifier-not-matching", 
-      "subidentifier `%s' does not match object identifier label `%s'", NULL},
+    { 5, ERR_OIDLABEL_CHANGED, "object-identifier-label-not-matching", 
+      "label `%s' does not match previous label `%s' for same object identifier", NULL},
+    { 5, ERR_IDENTIFIER_OID_CHANGED, "object-identifier-oid-not-matching", 
+      "object identifier for label `%s' does not match previous label usage", NULL},
     { 2, ERR_EXISTENT_OBJECT, "object-identifier-redefined", 
       "an object named `%s' already exists", NULL},
     { 2, ERR_IDENTIFIER_NOT_IN_MODULE, "import-failed", 

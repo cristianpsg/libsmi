@@ -1,3 +1,16 @@
+2004-11-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y, lib/data.c, lib/error.c: improved handling
+	of identifiers in the "NameAndNumberForm", incl. improved
+	warnings if OIDs or identifiers change. Thanks to Mike, David
+	Perkins, and Randy Presuhn for clarifications.
+	
+2004-11-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y, lib/data.c: fixed handling of "pending"
+	nodes when modules are imported right in the middle of another
+	module (i.e., in MODULE-COMPLIANCE statements).
+	
 2004-09-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/ARC-MIB: added (RFC 3878).

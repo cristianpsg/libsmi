@@ -6167,73 +6167,129 @@ subidentifier:
 			}
 	|		LOWERCASE_IDENTIFIER '(' NUMBER ')'
 			{
-			    Object *objectPtr;
+			    Object *objectPtr = NULL;
+			    Object *oldObjectPtr = NULL;
+			    Node *oldNodePtr = NULL;
 			    
 			    /* TODO: search in local module and
 			     *       in imported modules
 			     */
-			    objectPtr = findObjectByModuleAndName(
-				thisParserPtr->modulePtr, $1);
-			    if (objectPtr) {
-#if 0 /* this is not an error */
+
+			    oldNodePtr = findNodeByParentAndSubid(
+				thisParserPtr->parentNodePtr, $3);
+			    oldObjectPtr = findObjectByModuleAndName(
+                                thisParserPtr->modulePtr, $1);
+
+			    if (oldObjectPtr &&
+				((oldObjectPtr->nodePtr->subid != $3) ||
+				 (oldObjectPtr->nodePtr->parentPtr != thisParserPtr->parentNodePtr))) {
 				smiPrintError(thisParserPtr,
-					      ERR_EXISTENT_OBJECT, $1);
-#endif
+					      ERR_IDENTIFIER_OID_CHANGED,
+					      $1);
+				smiPrintErrorAtLine(thisParserPtr,
+						    ERR_PREVIOUS_DEFINITION,
+						    oldObjectPtr->line,
+						    oldObjectPtr->export.name);
+				objectPtr = addObject($1,
+						      thisParserPtr->parentNodePtr,
+						      $3, 0, thisParserPtr);
+				setObjectDecl(objectPtr,
+					      SMI_DECL_IMPL_OBJECT);
 				$$ = objectPtr;
-				if ($$->nodePtr->subid != $3) {
-				    smiPrintError(thisParserPtr,
-					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
-						  $3, $1);
-				}
-				smiFree($1);
+				thisParserPtr->parentNodePtr = $$->nodePtr;
+			    } else if (oldNodePtr &&
+				       oldNodePtr->lastObjectPtr &&
+				       strcmp(oldNodePtr->lastObjectPtr->export.name, $1)) {
+				smiPrintError(thisParserPtr,
+					      ERR_OIDLABEL_CHANGED,
+					      $1, oldNodePtr->lastObjectPtr->export.name);
+				smiPrintErrorAtLine(thisParserPtr,
+						    ERR_PREVIOUS_DEFINITION,
+						    oldNodePtr->lastObjectPtr->line,
+						    oldNodePtr->lastObjectPtr->export.name);
+				objectPtr = addObject($1,
+						      thisParserPtr->parentNodePtr,
+						      $3, 0, thisParserPtr);
+				setObjectDecl(objectPtr,
+					      SMI_DECL_IMPL_OBJECT);
+				$$ = objectPtr;
+				thisParserPtr->parentNodePtr = $$->nodePtr;
 			    } else {
 				objectPtr = addObject($1, thisParserPtr->parentNodePtr,
 						      $3, 0,
 						      thisParserPtr);
-#if 0 /* this construct is NOT defining a new object */
-				setObjectDecl(objectPtr,
-					      SMI_DECL_VALUEASSIGNMENT);
-#else
 				setObjectDecl(objectPtr,
 					      SMI_DECL_IMPL_OBJECT);
-#endif
 				$$ = objectPtr;
-			    }
-			    if ($$) 
 				thisParserPtr->parentNodePtr = $$->nodePtr;
+			    }
 			}
 	|		moduleName '.' LOWERCASE_IDENTIFIER '(' NUMBER ')'
 			{
-			    Object *objectPtr;
+			    Object *objectPtr = NULL;
+			    Object *oldObjectPtr = NULL;
+			    Node *oldNodePtr = NULL;
 			    char *md;
 
 			    md = smiMalloc(sizeof(char) *
 					   (strlen($1) + strlen($3) + 2));
 			    sprintf(md, "%s.%s", $1, $3);
-			    objectPtr = findObjectByModulenameAndName($1, $3);
-			    if (objectPtr) {
+
+			    oldNodePtr = findNodeByParentAndSubid(
+				thisParserPtr->parentNodePtr, $5);
+			    oldObjectPtr = findObjectByModulenameAndName(
+                                $1, $3);
+
+			    if (oldObjectPtr &&
+				((oldObjectPtr->nodePtr->subid != $5) ||
+				 (oldObjectPtr->nodePtr->parentPtr != thisParserPtr->parentNodePtr))) {
 				smiPrintError(thisParserPtr,
-					      ERR_EXISTENT_OBJECT, $1);
+					      ERR_ILLEGALLY_QUALIFIED, md);
+				smiPrintError(thisParserPtr,
+					      ERR_IDENTIFIER_OID_CHANGED,
+					      $3);
+				smiPrintErrorAtLine(thisParserPtr,
+						    ERR_PREVIOUS_DEFINITION,
+						    oldObjectPtr->line,
+						    oldObjectPtr->export.name);
+				objectPtr = addObject($3,
+						      thisParserPtr->parentNodePtr,
+						      $5, 0, thisParserPtr);
+				setObjectDecl(objectPtr,
+					      SMI_DECL_IMPL_OBJECT);
 				$$ = objectPtr;
-				if ($$->nodePtr->subid != $5) {
-				    smiPrintError(thisParserPtr,
-					  ERR_SUBIDENTIFIER_VS_OIDLABEL,
-						  $5, md);
-				}
-				smiFree($1);
-				smiFree($3);
+				thisParserPtr->parentNodePtr = $$->nodePtr;
+			    } else if (oldNodePtr &&
+				       oldNodePtr->lastObjectPtr &&
+				       strcmp(oldNodePtr->lastObjectPtr->export.name, $3)) {
+				smiPrintError(thisParserPtr,
+					      ERR_ILLEGALLY_QUALIFIED, md);
+				smiPrintError(thisParserPtr,
+					      ERR_OIDLABEL_CHANGED,
+					      $3, oldNodePtr->lastObjectPtr->export.name);
+				smiPrintErrorAtLine(thisParserPtr,
+						    ERR_PREVIOUS_DEFINITION,
+						    oldNodePtr->lastObjectPtr->line,
+						    oldNodePtr->lastObjectPtr->export.name);
+				objectPtr = addObject($3,
+						      thisParserPtr->parentNodePtr,
+						      $5, 0, thisParserPtr);
+				setObjectDecl(objectPtr,
+					      SMI_DECL_IMPL_OBJECT);
+				$$ = objectPtr;
+				thisParserPtr->parentNodePtr = $$->nodePtr;
 			    } else {
 				smiPrintError(thisParserPtr,
 					      ERR_ILLEGALLY_QUALIFIED, md);
 				objectPtr = addObject($3, thisParserPtr->parentNodePtr,
-						   $5, 0,
-						   thisParserPtr);
+						      $5, 0,
+						      thisParserPtr);
+				setObjectDecl(objectPtr,
+					      SMI_DECL_IMPL_OBJECT);
 				$$ = objectPtr;
-				smiFree($1);
+				thisParserPtr->parentNodePtr = $$->nodePtr;
 			    }
 			    smiFree(md);
-			    if ($$)
-				thisParserPtr->parentNodePtr = $$->nodePtr;
 			}
 	;
 
