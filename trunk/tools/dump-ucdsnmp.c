@@ -9,11 +9,12 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-ucdsnmp.c,v 1.6 2000/01/14 09:11:34 strauss Exp $
+ * @(#) $Id: dump-ucdsnmp.c,v 1.7 2000/02/08 21:39:23 strauss Exp $
  */
 
 /*
  * TODO:
+ *	  - assume that we build a dynamic loadable module
  *	  - update to 4.X version of the UCD API
  *	  - generate #defines for deprecated and obsolete objects
  *	  - generate stub codes for the various functions
@@ -179,6 +180,47 @@ static int isAccessible(SmiNode *groupNode)
 
 
 
+static int getMaxSize(SmiType *smiType)
+{
+    SmiRange *smiRange;
+    SmiType  *parentType;
+    int max = 0, size;
+    
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_OCTETSTRING:
+	size = 65535;
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	size = 128;
+	break;
+    default:
+	return -1;
+    }
+
+    for(smiRange = smiGetFirstRange(smiType);
+	smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	if (smiRange->maxValue.value.unsigned32 > max) {
+	    max = smiRange->maxValue.value.unsigned32;
+	}
+    }
+    if (max > 0 && max < size) {
+	size = max;
+    }
+
+    parentType = smiGetParentType(smiType);
+    if (parentType) {
+	int psize = getMaxSize(parentType);
+	if (psize < size) {
+	    size = psize;
+	}
+	smiFreeType(parentType);
+    }
+
+    return size;
+}
+
+
+
 static void printReadMethodDecls(SmiModule *smiModule)
 {
     SmiNode   *smiNode;
@@ -260,7 +302,7 @@ static void printDefinesGroup(SmiNode *groupNode, int cnt)
 	    cName = translateUpper(smiNode->name);
 	    printf("#define %-32s %d\n", cName,
 		   smiNode->oid[smiNode->oidlen-1]);
-	    free(cName);
+	    xfree(cName);
 	}
     }
     printf("\n");
@@ -283,13 +325,13 @@ static void printDefinesGroup(SmiNode *groupNode, int cnt)
 		       cName, getBaseTypeString(smiNode->basetype),
 		       getAccessString(smiNode->access),
 		       cGroupName, 1, smiNode->oid[smiNode->oidlen-1]);
-		free(cName);
+		xfree(cName);
 	    }
 	}
 	printf("};\n\n");
     }
 
-    free(cGroupName);
+    xfree(cGroupName);
 }
 
 
@@ -332,29 +374,24 @@ static void printRegister(SmiNode *groupNode, int cnt)
     printf("\n");
 
     if (cnt == 1) {
-	printf("    /*\n"
-	       "     * Register scalars groups and rows with the agent.\n"
-	       "     */\n\n");
+	printf("/*\n"
+	       " * Registration functions for the various MIB groups.\n"
+	       " */\n\n");
     }
     
     cGroupName = translate(groupNode->name);
 
-    printf("#ifdef UCD_SNMP\n");
-    printf("    REGISTER_MIB(\"%s\", %s_variables, variable, %s_base);\n",
-	   cGroupName, cGroupName, cGroupName);
-    printf("#endif\n");
-    printf("#ifdef CMU_LINUX_SNMP\n");
-    printf("    mib_register(%s_base,\n",
-	   cGroupName);
-    printf("                sizeof(%s_base)/sizeof(oid),\n",
-	   cGroupName);
-    printf("                %s_variables,\n", cGroupName);
-    printf("                sizeof(%s_variables)/sizeof(*%s_variables),\n",
-	   cGroupName, cGroupName);
-    printf("                sizeof(*%s_variables));\n", cGroupName);
-    printf("#endif\n");
+    printf("int register_%s()\n{\n", cGroupName);
+    printf("    return register_mib(\"%s\",\n"
+	   "         %s_variables,\n"
+	   "         sizeof(struct variable),\n"
+	   "         sizeof(%s_variables)/sizeof(struct variable),\n"
+	   "         %s_base,\n"
+	   "         sizeof(%s_base)/sizeof(oid));\n",
+	   cGroupName, cGroupName, cGroupName, cGroupName, cGroupName);
+    printf("};\n\n");
 
-    free(cGroupName);
+    xfree(cGroupName);
 }
 
 
@@ -362,12 +399,7 @@ static void printRegister(SmiNode *groupNode, int cnt)
 static void printInit(SmiModule *smiModule)
 {
     SmiNode   *smiNode;
-    char      *cModuleName;
     int       cnt = 0;
-
-    cModuleName = translate(smiModule->name);
-	    
-    printf("void init_%s()\n{\n", cModuleName);
 
     for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
@@ -380,13 +412,6 @@ static void printInit(SmiModule *smiModule)
     if (cnt) {
 	printf("\n");
     }
-
-    printf("    /*\n"
-	   "     * Place any other initialization code you need here.\n"
-	   "     */\n\n");
-    printf("};\n\n");
-
-    free(cModuleName);
 }
 
 
@@ -399,11 +424,11 @@ static void printReadMethod(SmiNode *groupNode)
     sName = translate(groupNode->name);
 
     printf("static unsigned char *\nread_%s_stub(struct variable *vp,\n"
-	   "         oid     *name,\n"
-	   "         size_t  *length,\n"
-	   "         int     exact,\n"
-	   "         size_t  *var_len,\n"
-	   "         WriteMethod **write_method)\n"
+	   "    oid     *name,\n"
+	   "    size_t  *length,\n"
+	   "    int     exact,\n"
+	   "    size_t  *var_len,\n"
+	   "    WriteMethod **write_method)\n"
 	   "{\n", sName);
 
     printf("    static %s_t %s;\n\n", sName, sName);
@@ -437,12 +462,13 @@ static void printReadMethod(SmiNode *groupNode)
 	    printf("    case %s:\n", cName);
 	    switch (smiNode->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		printf("        *var_len = 0;\n"
-		       "        return (unsigned char *) NULL;\n");
+		printf("        *var_len = %s._%sLength;\n"
+		       "        return (unsigned char *) %s.%s;\n",
+		       sName, lName, sName, lName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
-		printf("        *var_len = strlen(%s.%s);\n"
+		printf("        *var_len = %s._%sLength;\n"
 		       "        return (unsigned char *) %s.%s;\n",
 		       sName, lName, sName, lName);
 		break;
@@ -456,8 +482,8 @@ static void printReadMethod(SmiNode *groupNode)
 		printf("        /* add code to return the value here */\n");
 	    }
 	    printf("\n");
-	    free(cName);
-	    free(lName);
+	    xfree(cName);
+	    xfree(lName);
 	}
     }
 
@@ -468,7 +494,7 @@ static void printReadMethod(SmiNode *groupNode)
     printf("    return NULL;\n"
 	   "}\n\n");
 
-    free(sName);
+    xfree(sName);
 }
 
 
@@ -515,12 +541,12 @@ static void printWriteMethods(SmiModule *smiModule)
 		       " */\n\n");
 	    }
 	    printf("static int\nwrite_%s_stub(int action,\n"
-		   "        u_char   *var_val,\n"
-		   "        u_char   var_val_type,\n"
-		   "        int      var_val_len,\n"
-		   "        u_char   *statP,\n"
-		   "        oid      *name,\n"
-		   "        int      name_len)\n"
+		   "    u_char   *var_val,\n"
+		   "    u_char   var_val_type,\n"
+		   "    int      var_val_len,\n"
+		   "    u_char   *statP,\n"
+		   "    oid      *name,\n"
+		   "    int      name_len)\n"
 		   "{\n", smiNode->name);
 	    printf("    return SNMP_ERR_NOERROR;\n"
 		   "}\n\n");
@@ -537,6 +563,7 @@ static void printWriteMethods(SmiModule *smiModule)
 static void printTypedef(SmiNode *groupNode)
 {
     SmiNode *smiNode;
+    SmiType *smiType;
     char    *cGroupName, *cName;
     
     cGroupName = translate(groupNode->name);
@@ -551,14 +578,17 @@ static void printTypedef(SmiNode *groupNode)
 		|| smiNode->access == SMI_ACCESS_READ_WRITE)
 #endif
 	    ) {
+	    smiType = smiGetNodeType(smiNode);
 	    cName = translate(smiNode->name);
 	    switch (smiNode->basetype) {
 	    case SMI_BASETYPE_OBJECTIDENTIFIER:
-		printf("    oid       %s[%s];\n", cName, "128");
+		printf("    u_int32_t %s[%u];\n", cName, getMaxSize(smiType));
+		printf("    size_t    _%sLength;\n", cName);
 		break;
 	    case SMI_BASETYPE_OCTETSTRING:
 	    case SMI_BASETYPE_BITS:
-		printf("    u_char    %s[%s];\n", cName, "65535");
+		printf("    u_char    %s[%u];\n", cName, getMaxSize(smiType));
+		printf("    size_t    _%sLength;\n", cName);
 		break;
 	    case SMI_BASETYPE_ENUM:
 	    case SMI_BASETYPE_INTEGER32:
@@ -570,14 +600,24 @@ static void printTypedef(SmiNode *groupNode)
 	    default:
 		printf("    /* add code to return the value here */\n");
 	    }
-	    free(cName);
+	    xfree(cName);
+	    smiFreeType(smiType);
 	}
+    }
+
+    printf("    void      *_clientData;\t\t/* pointer to client data structure */\n");
+    if (groupNode->nodekind == SMI_NODEKIND_ROW) {
+	printf("    struct %s *_nextPtr;\t/* pointer to next table entry */\n", cGroupName);
     }
     
     printf("} %s_t;\n\n", cGroupName);
-    printf("extern int read_%s(%s_t *%s);\n\n",
+    printf("extern int\n"
+	   "read_%s(%s_t *%s);\n\n",
 	   cGroupName, cGroupName, cGroupName);
-    free(cGroupName);
+    printf("extern int\n"
+	   "register_%s();\n\n",
+	   cGroupName);
+    xfree(cGroupName);
 }
 
 
@@ -586,6 +626,8 @@ static void printTypedefs(SmiModule *smiModule)
 {
     SmiNode   *smiNode;
     int       cnt = 0;
+    char      *cModuleName;
+    char      *cSmiNodeName;
     
     for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
@@ -604,6 +646,26 @@ static void printTypedefs(SmiModule *smiModule)
     if (cnt) {
 	printf("\n");
     }
+
+    if (cnt) {
+	cModuleName = translateLower(smiModule->name);
+	printf("typedef struct %s {\n", cModuleName);
+	for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	    smiNode;
+	    smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	    if (isGroup(smiNode) && isAccessible(smiNode)) {
+		cSmiNodeName = translate(smiNode->name);
+		if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+		    printf("    %s_t\t*%s;\n", cSmiNodeName, cSmiNodeName);
+		} else {
+		    printf("    %s_t\t%s;\n", cSmiNodeName, cSmiNodeName);
+		}
+		xfree(cSmiNodeName);
+	    }
+	}
+	printf("} %s_t;\n\n", cModuleName);
+	xfree(cModuleName);
+    }
 }
 
 
@@ -612,6 +674,7 @@ int dumpUcdH(char *modulename, int flags)
 {
     SmiModule    *smiModule;
     char	 *cModuleName;
+    char	 *cInitName;
 
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
@@ -621,7 +684,7 @@ int dumpUcdH(char *modulename, int flags)
 
     printf("/*\n"
 	   " * This C header file has been generated by smidump " VERSION ".\n"
-	   " * It is intended to be used with the UCD/CMU SNMP agent.\n"
+	   " * It is intended to be used with the UCD SNMP agent.\n"
 	   " *\n"
 	   " * This header is derived from the %s module.\n"
 	   " *\n * $I" "d$\n"
@@ -632,18 +695,19 @@ int dumpUcdH(char *modulename, int flags)
     printf("#ifndef _%s_H_\n", cModuleName);
     printf("#define _%s_H_\n\n", cModuleName);
 
-    printf("config_require(util_funcs)\n\n");
+    printf("#include <stdlib.h>\n\n");
 
-    printf("#include <config.h>\n"
-	   "#include <stdlib.h>\n\n");
-
-    printf("/* Initialization function: */\n\n");
-    printf("void init_%s(void);\n\n", cModuleName);
+    printf("/*\n"
+	   " * Initialization function:\n"
+	   " */\n\n");
+    cInitName = translateLower(smiModule->name);
+    printf("void init_%s(void);\n\n", cInitName);
+    xfree(cInitName);
 
     printTypedefs(smiModule);
 
     printf("#endif /* _%s_H_ */\n", cModuleName);
-    free(cModuleName);
+    xfree(cModuleName);
 
     smiFreeModule(smiModule);
     
@@ -663,37 +727,30 @@ int dumpUcdC(char *modulename, int flags)
 	exit(1);
     }
 
-    printf("/*\n");
-    printf(" * This C file has been generated by smidump "
-	   VERSION ".\n");
-    printf(" * It is intended to be used with the UCD/CMU SNMP agent.\n");
-    printf(" *\n");
-    printf(" * This C file is derived from the %s module.\n", smiModule->name);
-    printf(" *\n * $Id: dump-ucdsnmp.c,v 1.6 2000/01/14 09:11:34 strauss Exp $\n");
-    printf(" */\n\n");
-
-    printf("#define UCD_SNMP\n/* #define CMU_LINUX_SNMP */\n\n");
-
-    printf("#ifdef CMU_LINUX_SNMP\n");
-    printf("#include \"mib_module.h\"\n");
-    printf("#endif\n\n");
-
-    printf("#ifdef UCD_SNMP\n");
-    printf("#include <config.h>\n");
-    printf("#include \"mibincl.h\"\n");
-    printf("#include \"util_funcs.h\"\n");
-    printf("#include \"system.h\"\n");
-    printf("#endif\n\n");
-    
-    printf("#include <stdio.h>\n");
-    printf("#include <string.h>\n");
-    printf("#include <malloc.h>\n");
-    printf("\n");
+    printf("/*\n"
+	   " * This C file has been generated by smidump " VERSION ".\n"
+	   " * It is intended to be used with the UCD SNMP agent.\n"
+	   " *\n"
+	   " * This C file is derived from the %s module.\n"
+	   " *\n * $I" "d$\n"
+	   " */\n\n", smiModule->name );
+	
+    printf("#include <stdio.h>\n"
+	   "#include <string.h>\n"
+	   "#include <malloc.h>\n"
+	   "\n");
 
     cModuleName = translateLower(smiModule->name);
     printf("#include \"%s.h\"\n", cModuleName);
     printf("\n");
-    free(cModuleName);
+    xfree(cModuleName);
+
+    printf("#include <asn1.h>\n"
+	   "#include <snmp.h>\n"
+	   "#include <snmp_api.h>\n"
+	   "#include <snmp_impl.h>\n"
+	   "#include <snmp_vars.h>\n"
+	   "\n");
 
     printReadMethodDecls(smiModule);
     printWriteMethodDecls(smiModule);
@@ -702,10 +759,6 @@ int dumpUcdC(char *modulename, int flags)
 
     printReadMethods(smiModule);
     printWriteMethods(smiModule);
-
-    cModuleName = translate(smiModule->name);
-
-    free(cModuleName);
 
     smiFreeModule(smiModule);
 
