@@ -182,8 +182,6 @@ static int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
  */
 static Graph     *graph  = NULL;            /* the graph */
 static float     tableOffset = 20;
-static float     textYOffset = 0;               /* vertical offset for the
-					       attributes in the classes */
 
 /*
  * help functions
@@ -1894,10 +1892,10 @@ static void printSVGClose()
  * index = 0 -> no index element
  * index = 1 -> index element -> printed with "+"
  */
-static void printSVGAttribute(SmiNode *node, int index)
+static void printSVGAttribute(SmiNode *node, int index, float *textYOffset)
 {
-    printf("    <text x=\"%.2f\" y=\"%.2f\"", ATTRSPACESIZE, textYOffset);
-    textYOffset += TABLEELEMHEIGHT;
+    printf("    <text x=\"%.2f\" y=\"%.2f\"", ATTRSPACESIZE, *textYOffset);
+    *textYOffset += TABLEELEMHEIGHT;
 
     if (node->nodekind == SMI_NODEKIND_SCALAR) {
 	printf(" style=\"text-decoration:underline\">\n");
@@ -1924,7 +1922,7 @@ static void printSVGAttribute(SmiNode *node, int index)
 /*
  * prints the related scalars for a given table
  */
-static void printSVGRelatedScalars(GraphNode *node)
+static void printSVGRelatedScalars(GraphNode *node, float *textYOffset)
 {
     GraphEdge *tEdge;
     
@@ -1936,7 +1934,7 @@ static void printSVGRelatedScalars(GraphNode *node)
 	    tEdge->dia.flags |= DIA_PRINT_FLAG;
 	    tEdge->endNode->dia.flags |= DIA_PRINT_FLAG;
 
-	    printSVGAttribute(tEdge->endNode->smiNode,0);
+	    printSVGAttribute(tEdge->endNode->smiNode,0, textYOffset);
 	}
     }
 }
@@ -1944,7 +1942,7 @@ static void printSVGRelatedScalars(GraphNode *node)
 /*
  * prints all columns objects of the given node
  */
-static void printSVGAllColumns(GraphNode *node)
+static void printSVGAllColumns(GraphNode *node, float *textYOffset)
 {
     SmiModule *module  = NULL;
     SmiNode   *smiNode = NULL;
@@ -1960,14 +1958,14 @@ static void printSVGAllColumns(GraphNode *node)
 	
 	if (!algIsIndexElement(node->smiNode, smiNode) &&
 	    cmpSmiNodes(node->smiNode, ppNode))
-	    printSVGAttribute(smiNode, 0);
+	    printSVGAttribute(smiNode, 0, textYOffset);
     }
 }
 
 /*
  * adds the index to an augmenting table (row-element)
  */
-static void printSVGAugmentIndex(GraphNode *tNode)
+static void printSVGAugmentIndex(GraphNode *tNode, float *textYOffset)
 {
     GraphEdge  *tEdge;
     SmiElement *smiElement;
@@ -1981,7 +1979,8 @@ static void printSVGAugmentIndex(GraphNode *tNode)
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
 		if (!cmpSmiNodes(tNode->smiNode, tEdge->startNode->smiNode)) {
-		    printSVGAttribute(smiGetElementNode(smiElement),1);
+		    printSVGAttribute(smiGetElementNode(smiElement),
+				    1, textYOffset);
 		}
 	    }
 	}
@@ -1999,6 +1998,7 @@ static void printSVGAugmentIndex(GraphNode *tNode)
 static void printSVGObject(GraphNode *node, float x, float y)
 {
     SmiElement *smiElement;
+    float textYOffset = TABLEHEIGHT + TABLEELEMHEIGHT;
     
     if (!node) return;
     if (node->dia.flags & DIA_PRINT_FLAG) return;
@@ -2022,27 +2022,26 @@ static void printSVGObject(GraphNode *node, float x, float y)
            node->dia.w/2);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
-    textYOffset = TABLEHEIGHT + TABLEELEMHEIGHT;
 
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
 	//A
-	printSVGRelatedScalars(node);
+	printSVGRelatedScalars(node, &textYOffset);
 
 	//B
-	printSVGAugmentIndex(node);
+	printSVGAugmentIndex(node, &textYOffset);
 	
 	//C
 	for (smiElement = smiGetFirstElement(
 	    smiGetFirstChildNode(node->smiNode));
 	     smiElement;
 	     smiElement = smiGetNextElement(smiElement)) {
-	    printSVGAttribute(smiGetElementNode(smiElement),1);
+	    printSVGAttribute(smiGetElementNode(smiElement), 1, &textYOffset);
 	}
 
 	//D
 	if (PRINT_DETAILED_ATTR) {
-	    printSVGAllColumns(node);
+	    printSVGAllColumns(node, &textYOffset);
 	}
     }
 
@@ -2062,6 +2061,8 @@ static void diaPrintXMLGroup(int group, float x, float y)
 
     if (!tNode) return;
     
+//TODO
+#if 0
     printf("    <object type=\"UML - Class\" version=\"0\" id=\"%s\">\n",
 	   smiGetParentNode(tNode->smiNode)->name);
     printf("      <attribute name=\"obj_pos\">\n");
@@ -2118,6 +2119,7 @@ static void diaPrintXMLGroup(int group, float x, float y)
     printf("    </attribute>\n");
     printf("     <attribute name=\"templates\"/>\n");
     printf("   </object>\n");
+#endif
 }
 
 static float getRectSX(GraphNode *tNode)
@@ -2767,7 +2769,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (group = 1;
 	 group <= algGetNumberOfGroups();
 	 group++) {
-	//diaPrintXMLGroup(group,x,y);
+	diaPrintXMLGroup(group,x,y);
 	x += 2.0;
 	y += 2.0;
     }
