@@ -235,13 +235,17 @@ getValueString(valuePtr)
 	break;
     case SMI_BASETYPE_UNKNOWN:
     case SMI_BASETYPE_CHOICE:
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
     case SMI_BASETYPE_SEQUENCE:
     case SMI_BASETYPE_SEQUENCEOF:
 	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	/* TODO */
+	break;
     case SMI_BASETYPE_BINSTRING:
+	/* TODO */
 	break;
     case SMI_BASETYPE_HEXSTRING:
+	sprintf(s, "0x%s", valuePtr->value.ptr);
 	break;
     }
 
@@ -876,11 +880,7 @@ printGroups(modulename)
 		print("%s;\n", getOidString(modulename, smiNode->oid, 0));
 	    }
 	    
-	    if (smiNode->decl == SMI_DECL_OBJECTGROUP) {
-		printSegment(2 * INDENT, "objects", INDENTVALUE);
-	    } else {
-		printSegment(2 * INDENT, "notifications", INDENTVALUE);
-	    }
+	    printSegment(2 * INDENT, "objects", INDENTVALUE);
 	    print("(");
 	    for(p = smiNode->list; *p; p++) {
 		if (p != smiNode->list) {
@@ -935,7 +935,8 @@ printCompliances(modulename)
     for (i = 0, smiNode = smiGetFirstNode(modulename);
 	 smiNode; smiNode = smiGetNextNode(modulename, smiNode->name)) {
 	
-	if (smiNode->decl != SMI_DECL_MODULECOMPLIANCE) {
+	if ((smiNode->decl != SMI_DECL_MODULECOMPLIANCE) &&
+	    (smiNode->decl != SMI_DECL_COMPLIANCE)) {
 	    continue;
 	}
 	    

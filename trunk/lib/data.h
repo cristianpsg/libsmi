@@ -203,7 +203,7 @@ typedef struct Compl {
     List  *mandatorylistPtr;
     List  *optionlistPtr;
     List  *refinementlistPtr;
-} Comp;
+} Compl;
 
  
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.4 1999/04/05 15:47:35 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.5 1999/04/08 11:52:55 strauss Exp $
  */
 
 %option noyywrap
@@ -374,12 +374,6 @@ SP		" "
     smingTrackInput(0, parser);
     yylval.id = yytext;
     return objectsKeyword;
-}
-
-<INITIAL>notifications/{delim} {
-    smingTrackInput(0, parser);
-    yylval.id = yytext;
-    return notificationsKeyword;
 }
 
 <INITIAL>mandatory/{delim} {

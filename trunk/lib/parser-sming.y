@@ -74,7 +74,8 @@ static Object *groupObjectPtr = NULL;
 static Object *complianceObjectPtr = NULL;
 static Type *typePtr = NULL;
 static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
-
+static List *firstIndexlabelPtr = NULL;
+ 
  
 
 Type *
@@ -217,7 +218,6 @@ findObject(spec, parserPtr)
 %token <rc>expandsKeyword
 %token <rc>createKeyword
 %token <rc>objectsKeyword
-%token <rc>notificationsKeyword
 %token <rc>mandatoryKeyword
 %token <rc>optionalKeyword
 %token <rc>refineKeyword
@@ -319,10 +319,8 @@ findObject(spec, parserPtr)
 %type <text>descriptionStatement
 %type <text>referenceStatement_stmtsep_01
 %type <text>referenceStatement
-%type <listPtr>objectsStatement_notificationsStatement
 %type <listPtr>objectsStatement_stmtsep_01
 %type <listPtr>objectsStatement
-%type <listPtr>notificationsStatement
 %type <listPtr>mandatoryStatement_stmtsep_01
 %type <listPtr>mandatoryStatement
 %type <listPtr>optionalStatement_stmtsep_0n
@@ -489,6 +487,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    thisParserPtr->modulePtr->numStatements = 0;
 			    thisParserPtr->modulePtr->numModuleIdentities = 0;
 			    free($3);
+			    firstIndexlabelPtr = NULL;
 			}
 			sep lcIdentifier
 			{
@@ -567,12 +566,39 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			complianceStatement_stmtsep_0n
 			'}' optsep ';'
 			{
+			    List *listPtr;
+			    Object *objectPtr;
 			    /*
-			     * TODO: walk through rows of this modules with
+			     * Walk through rows of this module with
 			     * flag & FLAG_INDEXLABELS and convert their
-			     * labelstring lists to (Object *) lists.
-			     * Also: create lists.
+			     * labelstrings to (Object *). This is the
+			     * case for index column lists and index
+			     * related rows.
 			     */
+			    while (firstIndexlabelPtr) {
+				for (listPtr =
+		      ((Object *)(firstIndexlabelPtr->ptr))->indexPtr->listPtr;
+				     listPtr; listPtr = listPtr->nextPtr) {
+				    objectPtr = findObject(listPtr->ptr,
+							   thisParserPtr);
+				    listPtr->ptr = objectPtr;
+				}
+				if (((Object *)(firstIndexlabelPtr->ptr))->
+				    indexPtr->rowPtr) {
+				    objectPtr = findObject(
+					((Object *)(firstIndexlabelPtr->ptr))->
+					indexPtr->rowPtr,
+					thisParserPtr);
+				    ((Object *)(firstIndexlabelPtr->ptr))->
+				    indexPtr->rowPtr = objectPtr;
+				}
+				deleteObjectFlags(
+				    (Object *)(firstIndexlabelPtr->ptr),
+				    FLAG_INDEXLABELS);
+				listPtr = firstIndexlabelPtr->nextPtr;
+				free(firstIndexlabelPtr);
+				firstIndexlabelPtr = listPtr;
+			    }
 			    $$ = thisModulePtr;
 			    moduleObjectPtr = NULL;
 			}
@@ -936,12 +962,22 @@ rowStatement:		rowKeyword sep lcIdentifier
 			}
 			anyIndexStatement stmtsep
 			{
+			    List *listPtr;
+			    
 			    if (rowObjectPtr && $11) {
 				setObjectIndex(rowObjectPtr, $11);
 				addObjectFlags(rowObjectPtr, FLAG_INDEXLABELS);
-				/* TODO: add this object to a list of rows
+
+				/*
+				 * Add this row object to the list of rows
 				 * that have to be converted when the whole
-				 * module has been parsed */
+				 * module has been parsed. See the end of
+				 * the moduleStatement rule above.
+				 */
+				listPtr = util_malloc(sizeof(List));
+				listPtr->ptr = rowObjectPtr;
+				listPtr->nextPtr = firstIndexlabelPtr;
+				firstIndexlabelPtr = listPtr;
 			    }
 			}
 			createStatement_stmtsep_01
@@ -1261,7 +1297,7 @@ groupStatement:		groupKeyword sep lcIdentifier
 				setObjectDecl(groupObjectPtr, SMI_DECL_GROUP);
 			    }
 			}
-			objectsStatement_notificationsStatement stmtsep
+			objectsStatement stmtsep
 			{
 			    List *listPtr;
 			    Object *objectPtr;
@@ -1351,17 +1387,92 @@ complianceStatement_stmtsep: complianceStatement stmtsep
         ;
 
 complianceStatement:	complianceKeyword sep lcIdentifier
+			{
+			    complianceIdentifier = $3;
+			}
 			optsep '{' stmtsep
 			oidStatement stmtsep
+			{
+			    if ($8) {
+				complianceObjectPtr =
+				    addObject(complianceIdentifier,
+					      $8->parentPtr,
+					      $8->subid,
+					      0, thisParserPtr);
+				setObjectDecl(complianceObjectPtr,
+					      SMI_DECL_COMPLIANCE);
+			    }
+			}
 			statusStatement_stmtsep_01
+			{
+			    if (complianceObjectPtr) {
+				setObjectStatus(complianceObjectPtr, $11);
+			    }
+			}
 			descriptionStatement stmtsep
+			{
+			    if (complianceObjectPtr && $13) {
+				setObjectDescription(complianceObjectPtr, $13);
+			    }
+			}
 			referenceStatement_stmtsep_01
+			{
+			    if (complianceObjectPtr && $16) {
+				setObjectReference(complianceObjectPtr, $16);
+			    }
+			}
 			mandatoryStatement_stmtsep_01
+			{
+			    List *listPtr;
+			    Object *objectPtr;
+			    
+			    if (complianceObjectPtr && $18) {
+				for (listPtr = $18; listPtr;
+				     listPtr = listPtr->nextPtr) {
+				    objectPtr = findObject(listPtr->ptr,
+							   thisParserPtr);
+				    listPtr->ptr = objectPtr;
+				}
+				setObjectList(complianceObjectPtr, $18);
+			    }
+			}
 			optionalStatement_stmtsep_0n
+			{
+			    complianceObjectPtr->optionlistPtr = $20;
+			}
 			refineStatement_stmtsep_0n
+			{
+			    Refinement *refinementPtr;
+			    List *listPtr;
+			    char s[SMI_MAX_DESCRIPTOR * 2 + 15];
+			    
+			    complianceObjectPtr->refinementlistPtr = $22;
+			    if ($22) {
+				for (listPtr = $22;
+				     listPtr->nextPtr;
+				     listPtr = listPtr->nextPtr) {
+				    refinementPtr =
+					((Refinement *)(listPtr->ptr));
+				    if (refinementPtr->typePtr) {
+					sprintf(s, "%s+%s+type",
+						complianceIdentifier,
+					       refinementPtr->objectPtr->name);
+					setTypeName(refinementPtr->typePtr, s);
+				    }
+				    if (refinementPtr->writetypePtr) {
+					sprintf(s, "%s+%s+writetype",
+						complianceIdentifier,
+					       refinementPtr->objectPtr->name);
+				   setTypeName(refinementPtr->writetypePtr, s);
+				    }
+				}
+			    }
+			}
 			'}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = complianceObjectPtr;
+			    complianceObjectPtr = NULL;
+			    free(complianceIdentifier);
 			}
         ;
 
@@ -1401,8 +1512,6 @@ importStatement_stmtsep: importStatement stmtsep
 			     * otherwise parsing failed (rc == -1).
 			     */
 			    if ($1) {
-				/* TODO: append list $1 to import list. */
-				/* TODO: return count instead of 1. */
 				$$ = 1;
 			    } else {
 				$$ = -1;
@@ -1817,16 +1926,6 @@ referenceStatement:	referenceKeyword sep text optsep ';'
 			}
         ;
 
-objectsStatement_notificationsStatement: objectsStatement
-			{
-			    $$ = $1;
-			}
-        |		notificationsStatement
-			{
-			    $$ = $1;
-			}
-	;
-
 objectsStatement_stmtsep_01: /* empty */
 			{
 			    $$ = NULL;
@@ -1838,13 +1937,6 @@ objectsStatement_stmtsep_01: /* empty */
 	;
 
 objectsStatement:	objectsKeyword optsep '(' optsep
-			qlcIdentifierList optsep ')' optsep ';'
-			{
-			    $$ = $5;
-			}
-        ;
-
-notificationsStatement:	notificationsKeyword optsep '(' optsep
 			qlcIdentifierList optsep ')' optsep ';'
 			{
 			    $$ = $5;
@@ -1890,7 +1982,7 @@ optionalStatement_stmtsep_1n: optionalStatement_stmtsep
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -1904,10 +1996,14 @@ optionalStatement_stmtsep: optionalStatement stmtsep
 			   }
         ;
 
-optionalStatement:	optionalKeyword sep qlcIdentifier optsep '{'
-			descriptionStatement stmtsep '}' optsep ';'
+optionalStatement:	optionalKeyword sep qlcIdentifier
+			optsep '{'
+			descriptionStatement
+			stmtsep '}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = util_malloc(sizeof(Option));
+			    $$->objectPtr = findObject($3, thisParserPtr);
+			    $$->description = util_strdup($6);
 			}
         ;
 
@@ -1946,13 +2042,19 @@ refineStatement_stmtsep: refineStatement stmtsep
 			}
         ;
 
-refineStatement:	refineKeyword sep qlcIdentifier optsep '{'
+refineStatement:	refineKeyword sep qlcIdentifier
+			optsep '{'
 			typeStatement_stmtsep_01
 			writetypeStatement_stmtsep_01
 			accessStatement_stmtsep_01
 			descriptionStatement stmtsep '}' optsep ';'
 			{
-			    $$ = NULL;
+			    $$ = util_malloc(sizeof(Refinement));
+			    $$->objectPtr = findObject($3, thisParserPtr);
+			    $$->typePtr = $6;
+			    $$->writetypePtr = $7;
+			    $$->access = $8;
+			    $$->description = util_strdup($9);
 			}
         ;
 
@@ -2667,11 +2769,11 @@ units:			textSegment
         ;
 
 /*
- * The type of `anyValue' must be determined from the context. `anyValue'
- * appears only in default value clauses. Hence, we set a global variable
- * XXX in the object type declaring clause to remember the expected type.
- * Here, we use this variable to build an SmiValue with the appropriate
- * base type.
+ * The type of `anyValue' must be determined from the
+ * context. `anyValue' appears only in default value clauses. Hence,
+ * we set a global variable defaultBasetype in the object type
+ * declaring clause to remember the expected type.  Here, we use this
+ * variable to build an SmiValue with the appropriate base type.
  */
 anyValue:		bitsValue
 			{
@@ -2757,6 +2859,7 @@ anyValue:		bitsValue
 	|		hexadecimalNumber
 			{
 			    /* TODO */
+			    /* Note: might also be an octet string */
 			    $$ = NULL;
 			}
 	|		floatValue
