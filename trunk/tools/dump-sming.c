@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.22 1999/04/10 19:37:26 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.23 1999/04/13 18:31:07 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -268,10 +268,12 @@ getValueString(valuePtr)
 	break;
     case SMI_BASETYPE_BITS:
 	sprintf(s, "(");
-	for(p = valuePtr->value.bits; *p; p++) {
-	    if (p != valuePtr->value.bits)
-		sprintf(&s[strlen(s)], ", ");
-	    sprintf(&s[strlen(s)], "%s", *p);
+	if (valuePtr->value.bits) {
+	    for(p = valuePtr->value.bits; *p; p++) {
+		if (p != valuePtr->value.bits)
+		    sprintf(&s[strlen(s)], ", ");
+		sprintf(&s[strlen(s)], "%s", *p);
+	    }
 	}
 	sprintf(&s[strlen(s)], ")");
 	break;
