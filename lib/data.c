@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.86 2000/06/16 13:53:57 strauss Exp $
+ * @(#) $Id: data.c,v 1.87 2000/07/04 13:01:24 strauss Exp $
  */
 
 #include <config.h>
@@ -94,9 +94,7 @@ int		smiDepth = 0;
  *----------------------------------------------------------------------
  */
 
-View *
-addView(modulename)
-    const char	      *modulename;
+View *addView(const char *modulename)
 {
     View	      *viewPtr;
 
@@ -130,9 +128,7 @@ addView(modulename)
  *----------------------------------------------------------------------
  */
 
-int
-isInView(modulename)
-    const char	      *modulename;
+int isInView(const char *modulename)
 {
     View	      *viewPtr;
 
@@ -166,12 +162,8 @@ isInView(modulename)
  *----------------------------------------------------------------------
  */
 
-Module *
-addModule(modulename, path, flags, parserPtr)
-    char	      *modulename;
-    char	      *path;
-    ModuleFlags	      flags;
-    Parser	      *parserPtr;
+Module *addModule(char *modulename, char *path, ModuleFlags flags,
+		  Parser *parserPtr)
 {
     Module	      *modulePtr;
 
@@ -232,10 +224,7 @@ addModule(modulename, path, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setModuleIdentityObject(modulePtr, objectPtr)
-    Module	*modulePtr;
-    Object	*objectPtr;
+void setModuleIdentityObject(Module *modulePtr, Object *objectPtr)
 {
     modulePtr->objectPtr = objectPtr;
 }
@@ -258,10 +247,7 @@ setModuleIdentityObject(modulePtr, objectPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setModuleLastUpdated(modulePtr, lastUpdated)
-    Module	*modulePtr;
-    time_t	lastUpdated;
+void setModuleLastUpdated(Module *modulePtr, time_t lastUpdated)
 {
     modulePtr->lastUpdated = lastUpdated;
 }
@@ -284,10 +270,7 @@ setModuleLastUpdated(modulePtr, lastUpdated)
  *----------------------------------------------------------------------
  */
 
-void
-setModuleOrganization(modulePtr, organization)
-    Module *modulePtr;
-    char *organization;
+void setModuleOrganization(Module *modulePtr, char *organization)
 {
     modulePtr->export.organization = organization;
 }
@@ -310,10 +293,7 @@ setModuleOrganization(modulePtr, organization)
  *----------------------------------------------------------------------
  */
 
-void
-setModuleContactInfo(modulePtr, contactinfo)
-    Module	  *modulePtr;
-    char	  *contactinfo;
+void setModuleContactInfo(Module *modulePtr, char *contactinfo)
 {
     modulePtr->export.contactinfo = contactinfo;
 }
@@ -336,11 +316,8 @@ setModuleContactInfo(modulePtr, contactinfo)
  *----------------------------------------------------------------------
  */
 
-void
-setModuleDescription(modulePtr, description, parserPtr)
-    Module *modulePtr;
-    char *description;
-    Parser *parserPtr;
+void setModuleDescription(Module *modulePtr, char *description,
+			  Parser *parserPtr)
 {
     if (modulePtr->export.description)
 	smiFree(modulePtr->export.description);
@@ -370,11 +347,7 @@ setModuleDescription(modulePtr, description, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setModuleReference(modulePtr, reference, parserPtr)
-    Module *modulePtr;
-    char *reference;
-    Parser *parserPtr;
+void setModuleReference(Module *modulePtr, char *reference, Parser *parserPtr)
 {
     if (modulePtr->export.reference)
 	smiFree(modulePtr->export.reference);
@@ -405,9 +378,7 @@ setModuleReference(modulePtr, reference, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Module *
-findModuleByName(modulename)
-    const char  *modulename;
+Module *findModuleByName(const char *modulename)
 {
     Module	*modulePtr;
 
@@ -440,11 +411,7 @@ findModuleByName(modulename)
  *----------------------------------------------------------------------
  */
 
-Revision *
-addRevision(date, description, parserPtr)
-    time_t	  date;
-    char	  *description;
-    Parser	  *parserPtr;
+Revision *addRevision(time_t date, char *description, Parser *parserPtr)
 {
     Revision	  *revisionPtr;
     Module	  *modulePtr;
@@ -496,10 +463,7 @@ addRevision(date, description, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Import *
-addImport(name, parserPtr)
-    char          *name;
-    Parser	  *parserPtr;
+Import *addImport(char *name, Parser *parserPtr)
 {
     Import        *importPtr;
     Module	  *modulePtr;
@@ -544,10 +508,7 @@ addImport(name, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setImportModulename(importPtr, modulename)
-    Import    *importPtr;
-    char      *modulename;
+void setImportModulename(Import *importPtr, char *modulename)
 {
     if (importPtr->export.module) {
 	smiFree(importPtr->export.module);
@@ -575,10 +536,7 @@ setImportModulename(importPtr, modulename)
  *----------------------------------------------------------------------
  */
 
-int
-checkImports(modulePtr, parserPtr)
-    Module      *modulePtr;
-    Parser	*parserPtr;
+int checkImports(Module *modulePtr, Parser *parserPtr)
 {
     int         n = 0;
     Import      *importPtr;
@@ -645,10 +603,7 @@ checkImports(modulePtr, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Import *
-findImportByName(name, modulePtr)
-    const char     *name;
-    Module	   *modulePtr;
+Import *findImportByName(const char *name, Module *modulePtr)
 {
     Import           *importPtr;
 
@@ -686,11 +641,8 @@ findImportByName(name, modulePtr)
  *----------------------------------------------------------------------
  */
 
-Import *
-findImportByModulenameAndName(modulename, name, modulePtr)
-    const char     *modulename;
-    const char     *name;
-    Module	   *modulePtr;
+Import *findImportByModulenameAndName(const char *modulename,
+				      const char *name, Module *modulePtr)
 {
     Import           *importPtr;
 
@@ -726,13 +678,8 @@ findImportByModulenameAndName(modulename, name, modulePtr)
  *----------------------------------------------------------------------
  */
 
-Object *
-addObject(objectname, parentNodePtr, subid, flags, parserPtr)
-    char	     *objectname;
-    Node             *parentNodePtr;
-    SmiSubid	     subid;
-    ObjectFlags	     flags;
-    Parser	     *parserPtr;
+Object *addObject(char *objectname, Node *parentNodePtr, SmiSubid subid,
+		  ObjectFlags flags, Parser *parserPtr)
 {
     Object	     *objectPtr;
     Node	     *nodePtr;
@@ -826,11 +773,8 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Object *
-duplicateObject(templatePtr, flags, parserPtr)
-    Object		  *templatePtr;
-    ObjectFlags		  flags;
-    Parser		  *parserPtr;
+Object *duplicateObject(Object *templatePtr, ObjectFlags flags,
+			Parser *parserPtr)
 {
     Object		  *objectPtr;
     Node		  *nodePtr;
@@ -909,12 +853,8 @@ duplicateObject(templatePtr, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Node *
-addNode (parentNodePtr, subid, flags, parserPtr)
-    Node	    *parentNodePtr;
-    SmiSubid	    subid;
-    NodeFlags	    flags;
-    Parser	    *parserPtr;
+Node *addNode (Node *parentNodePtr, SmiSubid subid, NodeFlags flags,
+	       Parser *parserPtr)
 {
     Node	    *nodePtr;
     Node	    *c;
@@ -1027,9 +967,7 @@ Node *createNodes(unsigned int oidlen, SmiSubid *oid)
  *----------------------------------------------------------------------
  */
 
-Node *
-createNodesByOidString(oid)
-    const char		*oid;
+Node *createNodesByOidString(const char *oid)
 {
     char		*p, *elements;
     Node		*parentNodePtr, *nodePtr;
@@ -1071,9 +1009,7 @@ createNodesByOidString(oid)
  *----------------------------------------------------------------------
  */
 
-Node *
-getParentNode(nodePtr)
-    Node *nodePtr;
+Node *getParentNode(Node *nodePtr)
 {
     return nodePtr->parentPtr;
 }
@@ -1196,10 +1132,7 @@ void mergeNodeTrees(Node *toNodePtr, Node *fromNodePtr)
  *----------------------------------------------------------------------
  */
 
-Object *
-setObjectName(objectPtr, name)
-    Object	      *objectPtr;
-    char	      *name;
+Object *setObjectName(Object *objectPtr, char *name)
 {
     Node	      *nodePtr, *nextPtr;
     Module	      *modulePtr;
@@ -1297,10 +1230,7 @@ setObjectName(objectPtr, name)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectType(objectPtr, typePtr)
-    Object		   *objectPtr;
-    Type		   *typePtr;
+void setObjectType(Object *objectPtr, Type *typePtr)
 {
     objectPtr->typePtr = typePtr;
 }
@@ -1323,10 +1253,7 @@ setObjectType(objectPtr, typePtr)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectAccess(objectPtr, access)
-    Object		   *objectPtr;
-    SmiAccess		   access;
+void setObjectAccess(Object *objectPtr, SmiAccess access)
 {
     objectPtr->export.access = access;
 }
@@ -1349,10 +1276,7 @@ setObjectAccess(objectPtr, access)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectStatus(objectPtr, status)
-    Object		   *objectPtr;
-    SmiStatus		   status;
+void setObjectStatus(Object *objectPtr, SmiStatus status)
 {
     objectPtr->export.status = status;
 }
@@ -1375,11 +1299,8 @@ setObjectStatus(objectPtr, status)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectDescription(objectPtr, description, parserPtr)
-    Object    *objectPtr;
-    char      *description;
-    Parser    *parserPtr;
+void setObjectDescription(Object *objectPtr, char *description,
+			  Parser *parserPtr)
 {
     if (objectPtr->export.description)
 	smiFree(objectPtr->export.description);
@@ -1409,11 +1330,7 @@ setObjectDescription(objectPtr, description, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectReference(objectPtr, reference, parserPtr)
-    Object    *objectPtr;
-    char      *reference;
-    Parser    *parserPtr;
+void setObjectReference(Object *objectPtr, char *reference, Parser *parserPtr)
 {
     if (objectPtr->export.reference)
 	smiFree(objectPtr->export.reference);
@@ -1443,10 +1360,7 @@ setObjectReference(objectPtr, reference, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectFormat(objectPtr, format)
-    Object    *objectPtr;
-    char      *format;
+void setObjectFormat(Object *objectPtr, char *format)
 {
     if (objectPtr->export.format) smiFree(objectPtr->export.format);
     objectPtr->export.format = format;
@@ -1470,10 +1384,7 @@ setObjectFormat(objectPtr, format)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectUnits(objectPtr, units)
-    Object    *objectPtr;
-    char      *units;
+void setObjectUnits(Object *objectPtr, char *units)
 {
     if (objectPtr->export.units) smiFree(objectPtr->export.units);
     objectPtr->export.units = units;
@@ -1497,10 +1408,7 @@ setObjectUnits(objectPtr, units)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectDecl(objectPtr, decl)
-    Object	*objectPtr;
-    SmiDecl     decl;
+void setObjectDecl(Object *objectPtr, SmiDecl decl)
 {
     objectPtr->export.decl = decl;
 }
@@ -1523,11 +1431,7 @@ setObjectDecl(objectPtr, decl)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectLine(objectPtr, line, parserPtr)
-    Object	*objectPtr;
-    int		line;
-    Parser	*parserPtr;
+void setObjectLine(Object *objectPtr, int line, Parser *parserPtr)
 {
     if (line) {
 	objectPtr->line = line;
@@ -1554,10 +1458,7 @@ setObjectLine(objectPtr, line, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectNodekind(objectPtr, nodekind)
-    Object	*objectPtr;
-    SmiNodekind nodekind;
+void setObjectNodekind(Object *objectPtr, SmiNodekind nodekind)
 {
     objectPtr->export.nodekind = nodekind;
 }
@@ -1580,10 +1481,7 @@ setObjectNodekind(objectPtr, nodekind)
  *----------------------------------------------------------------------
  */
 
-void
-addObjectFlags(objectPtr, flags)
-    Object	   *objectPtr;
-    ObjectFlags    flags;
+void addObjectFlags(Object *objectPtr, ObjectFlags flags)
 {
     objectPtr->flags |= flags;
 }
@@ -1606,10 +1504,7 @@ addObjectFlags(objectPtr, flags)
  *----------------------------------------------------------------------
  */
 
-void
-deleteObjectFlags(objectPtr, flags)
-    Object	   *objectPtr;
-    ObjectFlags    flags;
+void deleteObjectFlags(Object *objectPtr, ObjectFlags flags)
 {
     objectPtr->flags &= ~flags;
 }
@@ -1633,8 +1528,7 @@ deleteObjectFlags(objectPtr, flags)
  */
 
 /* TODO remove me
-void
-setObjectIndex(objectPtr, indexPtr)
+void setObjectIndex(Object *objectPtr, Index *indexPtr)
     Object	 *objectPtr;
     Index	 *indexPtr;
 {
@@ -1660,10 +1554,7 @@ setObjectIndex(objectPtr, indexPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectList(objectPtr, listPtr)
-    Object	 *objectPtr;
-    List	 *listPtr;
+void setObjectList(Object *objectPtr, List *listPtr)
 {
     objectPtr->listPtr = listPtr;
 }
@@ -1686,10 +1577,7 @@ setObjectList(objectPtr, listPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectRelated(objectPtr, relatedPtr)
-    Object	 *objectPtr;
-    Object	 *relatedPtr;
+void setObjectRelated(Object *objectPtr, Object *relatedPtr)
 {
     objectPtr->relatedPtr = relatedPtr;
 }
@@ -1712,10 +1600,7 @@ setObjectRelated(objectPtr, relatedPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectImplied(objectPtr, implied)
-    Object	 *objectPtr;
-    int		 implied;
+void setObjectImplied(Object *objectPtr, int implied)
 {
     objectPtr->export.implied = implied;
 }
@@ -1738,10 +1623,7 @@ setObjectImplied(objectPtr, implied)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectCreate(objectPtr, create)
-    Object	 *objectPtr;
-    int		 create;
+void setObjectCreate(Object *objectPtr, int create)
 {
     objectPtr->export.create = create;
 }
@@ -1764,10 +1646,7 @@ setObjectCreate(objectPtr, create)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectIndexkind(objectPtr, indexkind)
-    Object	 *objectPtr;
-    SmiIndexkind indexkind;
+void setObjectIndexkind(Object *objectPtr, SmiIndexkind indexkind)
 {
     objectPtr->export.indexkind = indexkind;
 }
@@ -1790,10 +1669,7 @@ setObjectIndexkind(objectPtr, indexkind)
  *----------------------------------------------------------------------
  */
 
-void
-setObjectValue(objectPtr, valuePtr)
-    Object	 *objectPtr;
-    SmiValue	 *valuePtr;
+void setObjectValue(Object *objectPtr, SmiValue *valuePtr)
 {
     objectPtr->export.value = *valuePtr;
 }
@@ -1817,10 +1693,7 @@ setObjectValue(objectPtr, valuePtr)
  *----------------------------------------------------------------------
  */
 
-Node *
-findNodeByParentAndSubid(parentNodePtr, subid)
-    Node            *parentNodePtr;
-    unsigned int    subid;
+Node *findNodeByParentAndSubid(Node *parentNodePtr, SmiSubid subid)
 {
     Node *nodePtr;
     
@@ -1855,10 +1728,7 @@ findNodeByParentAndSubid(parentNodePtr, subid)
  *----------------------------------------------------------------------
  */
 
-Node *
-findNodeByOid(oidlen, oid)
-    unsigned int    oidlen;
-    SmiSubid        *oid;
+Node *findNodeByOid(unsigned int oidlen, SmiSubid *oid)
 {
     Node *nodePtr;
     int  i;
@@ -1890,9 +1760,7 @@ findNodeByOid(oidlen, oid)
  *----------------------------------------------------------------------
  */
 
-Node *
-findNodeByOidString(oid)
-    char            *oid;
+Node *findNodeByOidString(char *oid)
 {
     Node *nodePtr;
     char *s;
@@ -1929,9 +1797,7 @@ findNodeByOidString(oid)
  *----------------------------------------------------------------------
  */
 
-Object *
-findObjectByNode(nodePtr)
-    Node      *nodePtr;
+Object *findObjectByNode(Node *nodePtr)
 {
     Object    *objectPtr;
     Object    *goodObjectPtr = NULL;
@@ -1973,10 +1839,7 @@ findObjectByNode(nodePtr)
  *----------------------------------------------------------------------
  */
 
-Object *
-findObjectByModuleAndNode(modulePtr, nodePtr)
-    Module    *modulePtr;
-    Node      *nodePtr;
+Object *findObjectByModuleAndNode(Module *modulePtr, Node *nodePtr)
 {
     Object    *objectPtr;
 
@@ -2011,10 +1874,7 @@ findObjectByModuleAndNode(modulePtr, nodePtr)
  *----------------------------------------------------------------------
  */
 
-Object *
-findObjectByModulenameAndNode(modulename, nodePtr)
-    const char *modulename;
-    Node       *nodePtr;
+Object *findObjectByModulenameAndNode(const char *modulename, Node *nodePtr)
 {
     Object     *objectPtr;
 
@@ -2049,9 +1909,7 @@ findObjectByModulenameAndNode(modulename, nodePtr)
  *----------------------------------------------------------------------
  */
 
-Object *
-findObjectByName(objectname)
-    const char       *objectname;
+Object *findObjectByName(const char *objectname)
 {
     Module	     *modulePtr;
     Object           *objectPtr;
@@ -2095,10 +1953,7 @@ findObjectByName(objectname)
  *----------------------------------------------------------------------
  */
 
-Object *
-findNextObjectByName(objectname, prevObjectPtr)
-    const char       *objectname;
-    Object	     *prevObjectPtr;
+Object *findNextObjectByName(const char *objectname, Object *prevObjectPtr)
 {
     Module	     *modulePtr;
     Object           *objectPtr;
@@ -2141,10 +1996,8 @@ findNextObjectByName(objectname, prevObjectPtr)
  *----------------------------------------------------------------------
  */
 
-Object *
-findObjectByModulenameAndName(modulename, objectname)
-    const char       *modulename;
-    const char	     *objectname;
+Object *findObjectByModulenameAndName(const char *modulename,
+				      const char *objectname)
 {
     Module	     *modulePtr;
     Object	     *objectPtr;
@@ -2192,10 +2045,7 @@ findObjectByModulenameAndName(modulename, objectname)
  *----------------------------------------------------------------------
  */
 
-Object *
-findObjectByModuleAndName(modulePtr, objectname)
-    Module        *modulePtr;
-    const char    *objectname;
+Object *findObjectByModuleAndName(Module *modulePtr, const char *objectname)
 {
     Object	  *objectPtr;
     
@@ -2240,12 +2090,8 @@ findObjectByModuleAndName(modulePtr, objectname)
  *----------------------------------------------------------------------
  */
 
-Type *
-addType(type_name, basetype, flags, parserPtr)
-    char           *type_name;
-    SmiBasetype	   basetype;
-    TypeFlags      flags;
-    Parser	   *parserPtr;
+Type *addType(char *type_name, SmiBasetype basetype, TypeFlags flags,
+	      Parser *parserPtr)
 {
     Type	   *typePtr;
     Module	   *modulePtr;
@@ -2305,11 +2151,7 @@ addType(type_name, basetype, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Type *
-duplicateType(templatePtr, flags, parserPtr)
-    Type		  *templatePtr;
-    TypeFlags		  flags;
-    Parser		  *parserPtr;
+Type *duplicateType(Type *templatePtr, TypeFlags flags, Parser *parserPtr)
 {
     Type		  *typePtr;
     Module		  *modulePtr;
@@ -2365,10 +2207,7 @@ duplicateType(templatePtr, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Type *
-setTypeName(typePtr, name)
-    Type	      *typePtr;
-    char	      *name;
+Type *setTypeName(Type *typePtr, char *name)
 {
     Type              *type2Ptr;
 
@@ -2447,8 +2286,7 @@ setTypeName(typePtr, name)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeParent(Type *typePtr, Type *parentPtr)
+void setTypeParent(Type *typePtr, Type *parentPtr)
 {
     typePtr->parentPtr = parentPtr;
 }
@@ -2471,10 +2309,7 @@ setTypeParent(Type *typePtr, Type *parentPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeStatus(typePtr, status)
-    Type       *typePtr;
-    SmiStatus  status;
+void setTypeStatus(Type *typePtr, SmiStatus status)
 {
     typePtr->export.status = status;
 }
@@ -2497,10 +2332,7 @@ setTypeStatus(typePtr, status)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeBasetype(typePtr, basetype)
-    Type       *typePtr;
-    SmiBasetype  basetype;
+void setTypeBasetype(Type *typePtr, SmiBasetype basetype)
 {
     typePtr->export.basetype = basetype;
 }
@@ -2523,11 +2355,7 @@ setTypeBasetype(typePtr, basetype)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeDescription(typePtr, description, parserPtr)
-    Type	   *typePtr;
-    char	   *description;
-    Parser         *parserPtr;
+void setTypeDescription(Type *typePtr, char *description, Parser *parserPtr)
 {
     if (typePtr->export.description)
 	smiFree(typePtr->export.description);
@@ -2557,11 +2385,7 @@ setTypeDescription(typePtr, description, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeReference(typePtr, reference, parserPtr)
-    Type	   *typePtr;
-    char	   *reference;
-    Parser         *parserPtr;
+void setTypeReference(Type *typePtr, char *reference, Parser *parserPtr)
 {
     if (typePtr->export.reference)
 	smiFree(typePtr->export.reference);
@@ -2595,10 +2419,7 @@ setTypeReference(typePtr, reference, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeList(typePtr, listPtr)
-    Type	   *typePtr;
-    struct List	   *listPtr;
+void setTypeList(Type *typePtr, List *listPtr)
 {
     if (!typePtr->listPtr) {
 	typePtr->listPtr  = listPtr;
@@ -2623,10 +2444,7 @@ setTypeList(typePtr, listPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeFormat(typePtr, format)
-    Type           *typePtr;
-    char	   *format;
+void setTypeFormat(Type *typePtr, char *format)
 {
     if (typePtr->export.format) smiFree(typePtr->export.format);
     typePtr->export.format = format;
@@ -2651,10 +2469,7 @@ setTypeFormat(typePtr, format)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeUnits(typePtr, units)
-    Type           *typePtr;
-    char	   *units;
+void setTypeUnits(Type *typePtr, char *units)
 {
     if (typePtr->export.units) smiFree(typePtr->export.units);
     typePtr->export.units = units;
@@ -2678,10 +2493,7 @@ setTypeUnits(typePtr, units)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeDecl(typePtr, decl)
-    Type     *typePtr;
-    SmiDecl  decl;
+void setTypeDecl(Type *typePtr, SmiDecl decl)
 {
     typePtr->export.decl = decl;
 }
@@ -2704,11 +2516,7 @@ setTypeDecl(typePtr, decl)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeLine(typePtr, line, parserPtr)
-    Type	*typePtr;
-    int		line;
-    Parser	*parserPtr;
+void setTypeLine(Type *typePtr, int line, Parser *parserPtr)
 {
     if (line) {
 	typePtr->line = line;
@@ -2735,10 +2543,7 @@ setTypeLine(typePtr, line, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setTypeValue(typePtr, valuePtr)
-    Type	 *typePtr;
-    SmiValue	 *valuePtr;
+void setTypeValue(Type *typePtr, SmiValue *valuePtr)
 {
     typePtr->export.value = *valuePtr;
 }
@@ -2761,10 +2566,7 @@ setTypeValue(typePtr, valuePtr)
  *----------------------------------------------------------------------
  */
 
-void
-addTypeFlags(typePtr, flags)
-    Type        *typePtr;
-    TypeFlags   flags;
+void addTypeFlags(Type *typePtr, TypeFlags flags)
 {
     typePtr->flags |= flags;
 }
@@ -2787,10 +2589,7 @@ addTypeFlags(typePtr, flags)
  *----------------------------------------------------------------------
  */
 
-void
-deleteTypeFlags(typePtr, flags)
-    Type        *typePtr;
-    TypeFlags   flags;
+void deleteTypeFlags(Type *typePtr, TypeFlags flags)
 {
     typePtr->flags &= ~flags;
 }
@@ -2814,9 +2613,7 @@ deleteTypeFlags(typePtr, flags)
  *----------------------------------------------------------------------
  */
 
-Type *
-findTypeByName(type_name)
-    const char *type_name;
+Type * findTypeByName(const char *type_name)
 {
     Module *modulePtr;
     Type   *typePtr;
@@ -2854,10 +2651,7 @@ findTypeByName(type_name)
  *----------------------------------------------------------------------
  */
 
-Type *
-findNextTypeByName(type_name, prevTypePtr)
-    const char *type_name;
-    Type       *prevTypePtr;
+Type *findNextTypeByName(const char *type_name, Type *prevTypePtr)
 {
     Module *modulePtr;
     Type   *typePtr;
@@ -2895,10 +2689,8 @@ findNextTypeByName(type_name, prevTypePtr)
  *----------------------------------------------------------------------
  */
 
-Type *
-findTypeByModulenameAndName(modulename, type_name)
-    const char *modulename;
-    const char *type_name;
+Type *findTypeByModulenameAndName(const char *modulename,
+				  const char *type_name)
 {
     Type       *typePtr;
     Module     *modulePtr;
@@ -2936,10 +2728,7 @@ findTypeByModulenameAndName(modulename, type_name)
  *----------------------------------------------------------------------
  */
 
-Type *
-findTypeByModuleAndName(modulePtr, type_name)
-    Module      *modulePtr;
-    const char  *type_name;
+Type *findTypeByModuleAndName(Module *modulePtr, const char *type_name)
 {
     Type        *typePtr;
 
@@ -2974,12 +2763,7 @@ findTypeByModuleAndName(modulePtr, type_name)
  *
  *---------------------------------------------------------------------- */
 
-Macro *
-addMacro(macroname, flags, parserPtr)
-    const char    *macroname;
-    MacroFlags	  flags;
-    Parser	  *parserPtr;
-    
+Macro *addMacro(const char *macroname, MacroFlags flags, Parser *parserPtr)
 {
     Macro	  *macroPtr;
     Module	  *modulePtr;
@@ -3028,10 +2812,7 @@ addMacro(macroname, flags, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setMacroStatus(macroPtr, status)
-    Macro      *macroPtr;
-    SmiStatus  status;
+void setMacroStatus(Macro *macroPtr, SmiStatus status)
 {
     macroPtr->export.status = status;
 }
@@ -3054,11 +2835,7 @@ setMacroStatus(macroPtr, status)
  *----------------------------------------------------------------------
  */
 
-void
-setMacroDescription(macroPtr, description, parserPtr)
-    Macro	   *macroPtr;
-    char	   *description;
-    Parser	   *parserPtr;
+void setMacroDescription(Macro *macroPtr, char *description, Parser *parserPtr)
 {
     if (macroPtr->export.description) smiFree(macroPtr->export.description);
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
@@ -3087,11 +2864,7 @@ setMacroDescription(macroPtr, description, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setMacroReference(macroPtr, reference, parserPtr)
-    Macro	   *macroPtr;
-    char	   *reference;
-    Parser         *parserPtr;
+void setMacroReference(Macro *macroPtr, char *reference, Parser *parserPtr)
 {
     if (macroPtr->export.reference)
 	smiFree(macroPtr->export.reference);
@@ -3121,10 +2894,7 @@ setMacroReference(macroPtr, reference, parserPtr)
  *----------------------------------------------------------------------
  */
 
-void
-setMacroDecl(macroPtr, decl)
-    Macro    *macroPtr;
-    SmiDecl  decl;
+void setMacroDecl(Macro *macroPtr, SmiDecl decl)
 {
     macroPtr->export.decl = decl;
 }
@@ -3147,11 +2917,7 @@ setMacroDecl(macroPtr, decl)
  *----------------------------------------------------------------------
  */
 
-void
-setMacroLine(macroPtr, line, parserPtr)
-    Macro	*macroPtr;
-    int		line;
-    Parser	*parserPtr;
+void setMacroLine(Macro *macroPtr, int line, Parser *parserPtr)
 {
     if (line) {
 	macroPtr->line = line;
@@ -3179,9 +2945,7 @@ setMacroLine(macroPtr, line, parserPtr)
  *----------------------------------------------------------------------
  */
 
-Macro *
-findMacroByName(macroname)
-    const char *macroname;
+Macro *findMacroByName(const char *macroname)
 {
     Module *modulePtr;
     Macro   *macroPtr;
@@ -3219,10 +2983,7 @@ findMacroByName(macroname)
  *----------------------------------------------------------------------
  */
 
-Macro *
-findMacroByModuleAndName(modulePtr, macroname)
-    Module     *modulePtr;
-    const char *macroname;
+Macro *findMacroByModuleAndName(Module *modulePtr, const char *macroname)
 {
     Macro      *macroPtr;
     
@@ -3257,10 +3018,8 @@ findMacroByModuleAndName(modulePtr, macroname)
  *----------------------------------------------------------------------
  */
 
-Macro *
-findMacroByModulenameAndName(modulename, macroname)
-    const char *modulename;
-    const char *macroname;
+Macro *findMacroByModulenameAndName(const char *modulename,
+				    const char *macroname)
 {
     Module     *modulePtr;
     Macro      *macroPtr;
@@ -3297,8 +3056,7 @@ findMacroByModulenameAndName(modulename, macroname)
  *----------------------------------------------------------------------
  */
 
-int
-smiInitData()
+int smiInitData()
 {
     Object	    *objectPtr;
     Parser	    parser;
@@ -3405,8 +3163,7 @@ smiInitData()
  *----------------------------------------------------------------------
  */
 
-void
-freeNodeTree(Node *rootPtr)
+void freeNodeTree(Node *rootPtr)
 {
     Node *nodePtr, *nextPtr;
     
@@ -3436,8 +3193,7 @@ freeNodeTree(Node *rootPtr)
  *----------------------------------------------------------------------
  */
 
-void
-smiFreeData()
+void smiFreeData()
 {
     View       *viewPtr, *nextViewPtr;
     Macro      *macroPtr, *nextMacroPtr;
@@ -3572,9 +3328,7 @@ smiFreeData()
  *----------------------------------------------------------------------
  */
 
-Module *
-loadModule(modulename)
-    const char	    *modulename;
+Module *loadModule(const char *modulename)
 {
     Parser	    parser;
     char	    *path = NULL, *dir, *smipath;
