@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.38 1999/10/07 13:33:53 strauss Exp $
+# @(#) $Id: configure.in,v 1.39 1999/11/24 19:02:31 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -33,6 +33,10 @@ AC_CHECK_FUNC(strtoq, AC_DEFINE(HAVE_STRTOQ))
 AC_CHECK_FUNC(strtouq, AC_DEFINE(HAVE_STRTOUQ))
 
 AC_CHECK_HEADER(getopt.h, AC_DEFINE(HAVE_GETOPT_H))
+AC_CHECK_HEADER(pwd.h, AC_DEFINE(HAVE_PWD_H))
+
+AC_DEFINE(DEFAULT_GLOBALCONFIG, "/usr/local/etc/smi.conf")
+AC_DEFINE(DEFAULT_USERCONFIG, ".smirc")
 
 AC_ARG_WITH(mibdir,
 [  --with-mibdir=DIR       use DIR to install libsmi MIB modules [DATADIR/mibs]],

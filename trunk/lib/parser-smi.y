@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.45 1999/10/07 13:33:54 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.46 1999/11/24 19:02:33 strauss Exp $
  */
 
 %{
@@ -3218,7 +3218,6 @@ subidentifier:
 				printError(thisParserPtr,
 					   ERR_OIDLABEL_NOT_FIRST, $1);
 			    } else {
-/* if (!strcmp($1, "applIndex")) printf("[XXX find(%s)]\n", $1); */
 				objectPtr = findObjectByModuleAndName(
 				    thisParserPtr->modulePtr, $1);
 				if (objectPtr) {
