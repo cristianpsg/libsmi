@@ -8,44 +8,36 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smisubtree.c,v 1.7 1999/12/12 12:51:08 strauss Exp $
+ * @(#) $Id: smisubtree.c,v 1.8 1999/12/17 10:44:24 strauss Exp $
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <smi.h>
-
+ 
 int main(int argc, char *argv[])
 {
-    char *modulename, *fullname, *oid;
     SmiNode *smiNode;
+    int oidlen, first = 1;
     
     if (argc != 2) {
         fprintf(stderr, "Usage: smisubtree oid\n");
         exit(1);
     }
  
-    fullname   = argv[1];
-    modulename = smiModule(fullname);
-    
-    smiInit("smisubtree");
+    smiInit(NULL);
  
-    smiLoadModule(modulename);
+    for((smiNode = smiGetNode(NULL, argv[1])) &&
+	    (oidlen = smiNode->oidlen);
+	smiNode && (first || smiNode->oidlen > oidlen);
+        smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY),
+	    first = 0) {
  
-    smiNode = smiGetNode(NULL, fullname);
-    if (smiNode) oid = smiNode->oid;
- 
-    for(; smiNode && (strstr(smiNode->oid, oid) == smiNode->oid);
-        smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
- 
-        printf("%s.%-26s [%s]\n",
-               smiNode->module, smiNode->name, smiNode->oid);
+        printf("%*s%-32s\n",
+	       (smiNode->oidlen - oidlen + 1) * 2, " ",
+	       smiNode->name);
         
     };
     
-    smiFreeNode(smiNode);
-    smiExit();
-    free(modulename);
     exit(0);
 }
-
