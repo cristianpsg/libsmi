@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.27 2000/08/25 10:08:34 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.28 2000/11/09 22:29:54 strauss Exp $
  */
 
 #include <config.h>
@@ -55,9 +55,14 @@ static struct {
 
 static char* translate1Upper(char *m)
 {
-    static char *s = NULL;
+    static char *sarray[5];
+    static int spos = 0;
+    char *s;
     int i;
 
+    s = sarray[spos];
+    spos++;
+    if (spos == 5) spos = 0;
     if (s) xfree(s);
     s = xstrdup(m);
     for (i = 0; s[i]; i++) {
