@@ -2059,9 +2059,11 @@ static void printSVGObject(GraphNode *node, int *classNr)
     float textXOffset, textYOffset, xOrigin, yOrigin;
     
     if (!node) return;
-    if (node->dia.flags & DIA_PRINT_FLAG) return;
-
-    node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
+    if (node->dia.flags & DIA_PRINT_FLAG) {
+	fprintf(stderr, "MÖÖP\n");
+	return;
+    }
+    node->dia.flags |= DIA_PRINT_FLAG;
 
     xOrigin = node->dia.w/-2;
     yOrigin = node->dia.h/-2;
@@ -2410,15 +2412,61 @@ static void diaPrintXMLConPoints(GraphEdge *tEdge)
 
 static void printSVGDependency(GraphEdge *tEdge)
 {
-    if (tEdge->dia.flags & DIA_PRINT_FLAG) return;
+    float alpha, beta, endPointX, endPointY;
+    const float PI = acos(-1);
+    if (tEdge->dia.flags & DIA_PRINT_FLAG) {
+	fprintf(stderr, "MÖÖP\n");
+	return;
+    }
     tEdge->dia.flags |= DIA_PRINT_FLAG;
 
-    //FIXME Arrow should point to the border of the node, not the center
+    //calculate intersection of edge and endNode for end-point of arrow
+    alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
+		  tEdge->startNode->dia.x-tEdge->endNode->dia.x);
+    beta = atan2(tEdge->endNode->dia.h, tEdge->endNode->dia.w);
+    if (alpha < 0)
+	alpha += PI;
+    if (alpha < beta
+	|| (alpha > PI-beta && alpha < PI+beta)
+	|| alpha > 2*PI-beta) {
+	//intersection at left or right border
+	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
+	    endPointX = tEdge->endNode->dia.x
+			+ tEdge->endNode->dia.w*STARTSCALE/2;
+	} else {
+	    endPointX = tEdge->endNode->dia.x
+			- tEdge->endNode->dia.w*STARTSCALE/2;
+	}
+	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
+	    endPointY = tEdge->endNode->dia.y
+			+ abs(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
+	} else {
+	    endPointY = tEdge->endNode->dia.y
+			- abs(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
+	}
+    } else {
+	//intersection at top or bottom border
+	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
+	    endPointY = tEdge->endNode->dia.y
+			+ tEdge->endNode->dia.h*STARTSCALE/2;
+	} else {
+	    endPointY = tEdge->endNode->dia.y
+			- tEdge->endNode->dia.h*STARTSCALE/2;
+	}
+	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
+	    endPointX = tEdge->endNode->dia.x
+			+ abs(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
+	} else {
+	    endPointX = tEdge->endNode->dia.x
+			- abs(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
+	}
+    }
+
     printf(" <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\"\n",
 	tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
 	tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
-	tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
-	tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
+	endPointX + tEdge->endNode->cluster->xOffset,
+	endPointY + tEdge->endNode->cluster->yOffset);
     printf("       stroke-dasharray=\"10, 10\" stroke=\"black\"");
     printf(" marker-end=\"url(#arrowhead)\"/>\n");
 }
@@ -2429,27 +2477,71 @@ static void printSVGDependency(GraphEdge *tEdge)
  */
 static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 {
-    if (tEdge->dia.flags & DIA_PRINT_FLAG) return;
+    int revert = 0;
+    float alpha, beta, offset;
+    const float PI = acos(-1);
+
+    if (tEdge->dia.flags & DIA_PRINT_FLAG) {
+	fprintf(stderr, "MÖÖP\n");
+	return;
+    }
     tEdge->dia.flags |= DIA_PRINT_FLAG;
     if (aggregate > 1) aggregate = 1;
     if (aggregate < 0) aggregate = 0;
 
-    //FIXME text is upside down, if angle ist between 180° and 360°
+    //print text upside down, if angle is between 180° and 360°
+    if (tEdge->startNode->dia.x > tEdge->endNode->dia.x)
+	revert = 1;
+
     printf(" <path id=\"%s%s\"\n",
 	tEdge->startNode->smiNode->name,
 	tEdge->endNode->smiNode->name);
-    printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
-	tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
-	tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
-	tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
+    if (!revert) {
+	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
+	    tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
+	    tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset,
+	    tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
+	    tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset);
+    } else {
+	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
+	    tEdge->endNode->dia.x + tEdge->endNode->cluster->xOffset,
+	    tEdge->endNode->dia.y + tEdge->endNode->cluster->yOffset,
+	    tEdge->startNode->dia.x + tEdge->startNode->cluster->xOffset,
+	    tEdge->startNode->dia.y + tEdge->startNode->cluster->yOffset);
+    }
     printf("       stroke=\"black\"/>\n");
 
-    printf(" <text text-anchor=\"middle\">\n");
-    //TODO calculate offset
-    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"30%\">\n",
-	tEdge->startNode->smiNode->name,
-	tEdge->endNode->smiNode->name);
+    if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
+	alpha = atan2(tEdge->endNode->dia.y-tEdge->startNode->dia.y,
+		      tEdge->endNode->dia.x-tEdge->startNode->dia.x);
+	beta = atan2(tEdge->startNode->dia.h, tEdge->startNode->dia.w);
+	if (alpha < 0)
+	    alpha += PI;
+	if (alpha < beta
+	    || (alpha > PI-beta && alpha < PI+beta)
+	    || alpha > 2*PI-beta) {
+	    //intersection at left or right border
+	    offset = 50*tEdge->startNode->dia.w*STARTSCALE
+		     / (abs(tEdge->endNode->dia.x-tEdge->startNode->dia.x));
+	} else {
+	    //intersection at top or bottom border
+	    offset = 50*tEdge->startNode->dia.h*STARTSCALE
+		     / (abs(tEdge->endNode->dia.y-tEdge->startNode->dia.y));
+	}
+	printf(" <text text-anchor=\"middle\">\n");
+	if (!revert) {
+	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
+		tEdge->startNode->smiNode->name,
+		tEdge->endNode->smiNode->name,
+		//5% more gap than calculated for tilted text
+		5+offset);
+	} else {
+	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
+		tEdge->startNode->smiNode->name,
+		tEdge->endNode->smiNode->name,
+		95-offset);
+	}
+    }
     switch (tEdge->cardinality) {
     case GRAPH_CARD_ZERO_TO_ONE:
     case GRAPH_CARD_ZERO_TO_MANY:
@@ -2462,13 +2554,20 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	break;
     case GRAPH_CARD_UNKNOWN:
     }
-    printf("    </textPath>\n");
-    printf(" </text>\n");
+	if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
+	printf("    </textPath>\n");
+	printf(" </text>\n");
+    }
 
-    printf(" <text text-anchor=\"middle\">\n");
-    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%\">\n",
-	tEdge->startNode->smiNode->name,
-	tEdge->endNode->smiNode->name);
+    if (tEdge->indexkind==SMI_INDEX_AUGMENT ||
+	tEdge->indexkind==SMI_INDEX_SPARSE ||
+	tEdge->indexkind==SMI_INDEX_REORDER ||
+	tEdge->indexkind==SMI_INDEX_EXPAND) {
+	printf(" <text text-anchor=\"middle\">\n");
+	printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%\">\n",
+	    tEdge->startNode->smiNode->name,
+	    tEdge->endNode->smiNode->name);
+    }
     switch(tEdge->indexkind) {
     case SMI_INDEX_AUGMENT:
 	printf("       augments\n");
@@ -2485,14 +2584,44 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     case SMI_INDEX_UNKNOWN:
     case SMI_INDEX_INDEX:
     }
-    printf("    </textPath>\n");
-    printf(" </text>\n");
+    if (tEdge->indexkind==SMI_INDEX_AUGMENT ||
+	tEdge->indexkind==SMI_INDEX_SPARSE ||
+	tEdge->indexkind==SMI_INDEX_REORDER ||
+	tEdge->indexkind==SMI_INDEX_EXPAND) {
+	printf("    </textPath>\n");
+	printf(" </text>\n");
+    }
 
-    printf(" <text text-anchor=\"middle\">\n");
-    //TODO calculate offset
-    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"70%\">\n",
-	tEdge->startNode->smiNode->name,
-	tEdge->endNode->smiNode->name);
+    if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
+	alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
+		      tEdge->startNode->dia.x-tEdge->endNode->dia.x);
+	beta = atan2(tEdge->endNode->dia.h, tEdge->endNode->dia.w);
+	if (alpha < 0)
+	    alpha += PI;
+	if (alpha < beta
+	    || (alpha > PI-beta && alpha < PI+beta)
+	    || alpha > 2*PI-beta) {
+	    //intersection at left or right border
+	    offset = 50*tEdge->endNode->dia.w*STARTSCALE
+		     / (abs(tEdge->startNode->dia.x-tEdge->endNode->dia.x));
+	} else {
+	    //intersection at top or bottom border
+	    offset = 50*tEdge->endNode->dia.h*STARTSCALE
+		     / (abs(tEdge->startNode->dia.y-tEdge->endNode->dia.y));
+	}
+	printf(" <text text-anchor=\"middle\">\n");
+	if (!revert) {
+	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
+		tEdge->startNode->smiNode->name,
+		tEdge->endNode->smiNode->name,
+		95-offset);
+	} else {
+	    printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"%f%\">\n",
+		tEdge->startNode->smiNode->name,
+		tEdge->endNode->smiNode->name,
+		5+offset);
+	}
+    }
     switch (tEdge->cardinality) {
     case GRAPH_CARD_ONE_TO_ONE:
     case GRAPH_CARD_ZERO_TO_ONE:
@@ -2507,8 +2636,10 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	break;
     case GRAPH_CARD_UNKNOWN:
     }
-    printf("    </textPath>\n");
-    printf(" </text>\n");
+    if (!tEdge->cardinality==GRAPH_CARD_UNKNOWN) {
+	printf("    </textPath>\n");
+	printf(" </text>\n");
+    }
 }
 
 static void printSVGConnection(GraphEdge *tEdge)
@@ -2900,7 +3031,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphNode    *tNode, *lastNode;
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
-    int          group, nodecount = 0, classNr = 0;
+    int          group, nodecount = 0, classNr = 0, singleNodes = 1;
     float        x = 10, xMin = 0, yMin = 0, xMax = 0, yMax = 0, maxHeight = 0;
 
     //find edges which are supposed to be drawn
@@ -2957,6 +3088,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    maxHeight = tNode->dia.h*STARTSCALE;
     }
     xMax = x;
+    if (tCluster->firstClusterNode == NULL)
+	singleNodes = 0;
 
     //cluster the graph
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
@@ -3004,7 +3137,8 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //adjust values for the first cluster (cluster of single nodes)
     graph->clusters->yOffset = yMax + maxHeight/2;
-    yMax += maxHeight + 10;
+    if (singleNodes)
+	yMax += maxHeight + 10;
 
     //write some debug-information to stderr
     fprintf(stderr, "xMin\tyMin\txMax\tyMax\txOffset\tyOffset\n");
