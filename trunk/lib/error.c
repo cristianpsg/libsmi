@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.121 2004/02/18 16:49:41 schoenw Exp $
+ * @(#) $Id: error.c,v 1.122 2004/03/13 22:21:32 schoenw Exp $
  */
 
 #include <config.h>
@@ -315,6 +315,12 @@ static Error errors[] = {
       "date specification `%s' is in the future", NULL},
     { 4, ERR_DATE_IN_PAST, "date-in-past", 
       "date specification `%s' predates the SMI standard", NULL},
+    { 3, ERR_REVISION_NOT_DESCENDING, "revision-not-descending", 
+      "revision not in reverse chronological order", NULL},
+    { 3, ERR_REVISION_MISSING, "revision-missing", 
+      "revision for last update is missing", NULL},
+    { 3, ERR_REVISION_AFTER_LAST_UPDATE, "revision-after-update", 
+      "revision date after last update", NULL},
     { 5, ERR_INTEGER_IN_SMIV2, "integer-misuse", 
       "use Integer32 instead of INTEGER in SMIv2", NULL},
     { 5, ERR_MODULE_ALREADY_LOADED, "", 
