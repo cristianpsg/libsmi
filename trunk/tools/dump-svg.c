@@ -1271,7 +1271,15 @@ static void printNotificationType(int modc, SmiModule **modv,
 		}
 
 		printf(">%s", smiNode->name);
-		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		case SMI_STATUS_OBSOLETE:
+		    printf(" (%s)", getStatusString(smiNode->status));
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		case SMI_STATUS_OPTIONAL:
+		}
+		printf("</text>\n");
 		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
 		(*miNr)++;
@@ -1393,7 +1401,15 @@ static void printObjectGroup(int modc, SmiModule **modv,
 		}
 
 		printf(">%s", smiNode->name);
-		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		case SMI_STATUS_OBSOLETE:
+		    printf(" (%s)", getStatusString(smiNode->status));
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		case SMI_STATUS_OPTIONAL:
+		}
+		printf("</text>\n");
 		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
 		(*miNr)++;
@@ -1515,7 +1531,15 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		}
 
 		printf(">%s", smiNode->name);
-		printf(" (%s)</text>\n", getStatusString(smiNode->status));
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		case SMI_STATUS_OBSOLETE:
+		    printf(" (%s)", getStatusString(smiNode->status));
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		case SMI_STATUS_OPTIONAL:
+		}
+		printf("</text>\n");
 		printf(" </g>\n");
 		*y += TABLEELEMHEIGHT;
 		(*miNr)++;
@@ -1602,7 +1626,15 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    printf("\" onmouseout=\"HideTooltip(evt)\"");
 		}
 		printf(">%s", smiNode->name);
-		printf(" (%s)</tspan>\n", getStatusString(smiNode->status));
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		case SMI_STATUS_OBSOLETE:
+		    printf(" (%s)", getStatusString(smiNode->status));
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		case SMI_STATUS_OPTIONAL:
+		}
+		printf("</tspan>\n");
 		printf("  </text>\n");
 		printf(" </g>\n");
 		(*miNr)++;
