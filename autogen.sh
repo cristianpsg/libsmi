@@ -2,10 +2,38 @@
 #
 # Run this to generate all the initial makefiles.
 #
-# $Id$
+# $Id: autogen.sh,v 1.1 2001/08/16 10:53:22 strauss Exp $
 
 DIE=true
 PROJECT="libsmi"
+
+
+VER=`bison --version | sed 's/^[a-zA-Z ]*//'`
+case "$VER" in
+0* | 1\.[0-9] | 1\.1[0-9] | 1\.2[0-4] )
+  cat >&2 <<_EOF_
+
+	You must have bison 1.25 or later installed to compile $PROJECT.
+	Download the appropriate package for your distribution/OS,
+	or get the source tarball at ftp://ftp.gnu.org/pub/gnu/bison/
+_EOF_
+  DIE="exit 1"
+  ;;
+esac
+
+
+VER=`flex --version | sed 's/^[a-zA-Z ]*//'`
+case "$VER" in
+[0-1]* | 2\.[0-4]\.* | 2\.5\.[0-3] )
+  cat >&2 <<_EOF_
+
+	You must have flex 2.5.4 or later installed to compile $PROJECT.
+	Download the appropriate package for your distribution/OS,
+	or get the source tarball at ftp://ftp.gnu.org/pub/gnu/flex/
+_EOF_
+  DIE="exit 1"
+  ;;
+esac
 
 
 VER=`autoconf --version | grep '^autoconf' | sed 's/.*)//'`
