@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.26 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.27 2002/11/12 10:10:23 schoenw Exp $
  */
 
 /*
@@ -52,7 +52,19 @@ static char *exclude = NULL;
 static regex_t _incl_regex, *incl_regex = NULL;
 static regex_t _excl_regex, *excl_regex = NULL;
 
-
+static char *keywords_c99[] = {
+    "auto",        "enum",        "restrict",    "unsigned",
+    "break",       "extern",      "return",      "void",
+    "case",        "float",       "short",       "volatile",
+    "char",        "for",         "signed",      "while",
+    "const",       "goto",        "sizeof",      "_Bool",
+    "continue",    "if",          "static",      "_Complex",
+    "default",     "inline",      "struct",      "_Imaginary",
+    "do",          "int",         "switch",
+    "double",      "long",        "typedef",
+    "else",        "register",    "union",
+    NULL
+};
 
 static char *
 getStringTime(time_t t)
@@ -141,7 +153,19 @@ translate(char *m)
     char *s;
     int i;
 
-    s = xstrdup(m);
+    for (i = 0; keywords_c99[i]; i++) {
+	if (strcmp(m, keywords_c99[i]) == 0) {
+	    break;
+	}
+    }
+
+    if (keywords_c99[i]) {
+	s = xmalloc(strlen(keywords_c99[i]) + 2);
+	strcpy(s, keywords_c99[i]);
+	strcat(s, "_");
+    } else {
+	s = xstrdup(m);
+    }
     for (i = 0; s[i]; i++) {
 	if (s[i] == '-') s[i] = '_';
     }
@@ -1596,8 +1620,8 @@ printConstraints(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 	return 0;
     }
 
-    if (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE) {
-	fprintf(stderr, "*** skipping %s\n", smiNode->name);
+    if (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE
+	|| smiNode->access == SMI_ACCESS_NOTIFY) {
 	return 0;
     }
 
@@ -1716,8 +1740,8 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 	return;
     }
 
-    if (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE) {
-	fprintf(stderr, "*** skipping %s\n", smiNode->name);
+    if (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE
+	|| smiNode->access == SMI_ACCESS_NOTIFY) {
 	return;
     }
 
@@ -3212,7 +3236,7 @@ void initScli()
 	dumpScli,
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE,
-	"ANSI C manager stubs for the scli package",
+	"ANSI C gsnmp manager stubs for the scli package",
 	opt,
 	NULL
     };
