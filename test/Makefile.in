@@ -78,6 +78,7 @@ BASH = @BASH@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
+DIFF = @DIFF@
 DLLTOOL = @DLLTOOL@
 EXEEXT = @EXEEXT@
 FLEX = @FLEX@
@@ -97,19 +98,30 @@ VERSION = @VERSION@
 mibdir = @mibdir@
 smipath = @smipath@
 
+TESTMIBTOPDIR = ../mibs
+TESTMIBDIR = $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site
 TESTMIBS = SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
 TESTS = smilint-smiv2.test 			  smidump-orig-smiv2.test 			  smidump-smiv1.test 			  smidump-smiv2.test 			  smidump-smiv2-smiv2.test 			  smidump-sming.test 			  smidump-mosy.test 			  smidump-tree.test 			  smidump-types.test 			  smidump-imports.test 			  smidump-corba-idl.test 			  smidump-corba-oid.test 			  parser.test
 
 
-TESTS_ENVIRONMENT = SMIPATH="@smipath@:" TESTMIBS="$(TESTMIBS)"
+TESTS_ENVIRONMENT = SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
 
 EXTRA_DIST = $(TESTS) filter
 
 SUBDIRS = mibs dumps
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  parser.test
-DIST_COMMON =  Makefile.am Makefile.in parser.test.in
+CONFIG_CLEAN_FILES =  parser.test smidump-corba-idl.test \
+smidump-corba-oid.test smidump-imports.test smidump-mosy.test \
+smidump-orig-smiv2.test smidump-sming.test smidump-smiv1.test \
+smidump-smiv2-smiv2.test smidump-smiv2.test smidump-tree.test \
+smidump-types.test smilint-smiv2.test
+DIST_COMMON =  Makefile.am Makefile.in parser.test.in \
+smidump-corba-idl.test.in smidump-corba-oid.test.in \
+smidump-imports.test.in smidump-mosy.test.in smidump-orig-smiv2.test.in \
+smidump-sming.test.in smidump-smiv1.test.in smidump-smiv2-smiv2.test.in \
+smidump-smiv2.test.in smidump-tree.test.in smidump-types.test.in \
+smilint-smiv2.test.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -119,13 +131,37 @@ GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu test/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps test/Makefile
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 parser.test: $(top_builddir)/config.status parser.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-corba-idl.test: $(top_builddir)/config.status smidump-corba-idl.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-corba-oid.test: $(top_builddir)/config.status smidump-corba-oid.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-imports.test: $(top_builddir)/config.status smidump-imports.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-mosy.test: $(top_builddir)/config.status smidump-mosy.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-orig-smiv2.test: $(top_builddir)/config.status smidump-orig-smiv2.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-sming.test: $(top_builddir)/config.status smidump-sming.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-smiv1.test: $(top_builddir)/config.status smidump-smiv1.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-smiv2-smiv2.test: $(top_builddir)/config.status smidump-smiv2-smiv2.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-smiv2.test: $(top_builddir)/config.status smidump-smiv2.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-tree.test: $(top_builddir)/config.status smidump-tree.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smidump-types.test: $(top_builddir)/config.status smidump-types.test.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+smilint-smiv2.test: $(top_builddir)/config.status smilint-smiv2.test.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -222,11 +258,6 @@ distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 subdir = test
 
 distdir: $(DISTFILES)
-	here=`cd $(top_builddir) && pwd`; \
-	top_distdir=`cd $(top_distdir) && pwd`; \
-	distdir=`cd $(distdir) && pwd`; \
-	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu test/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

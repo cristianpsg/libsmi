@@ -10,7 +10,7 @@ RC=0
 for mib in ${TESTMIBS} ; do
     echo "comparing \`smidump -f ${FORMAT} $mib' output with dumps/$mib.${FORMAT}."
     ../tools/smidump -f ${FORMAT} $mib > smidump-${FORMAT}.out/$mib.${FORMAT}
-    WC=`diff -I smidump --ignore-blank-lines smidump-${FORMAT}.out/$mib.${FORMAT} dumps/$mib.${FORMAT} | wc -l`
+    WC=`@DIFF@ -I smidump --ignore-blank-lines smidump-${FORMAT}.out/$mib.${FORMAT} dumps/$mib.${FORMAT} | wc -l`
     if [ $WC -ne 0 ] ; then
 	echo "*** smidump -f ${FORMAT} output for $mib differs from dumps/$mib.${FORMAT}."
 	RC=1
