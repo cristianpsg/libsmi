@@ -131,3 +131,6 @@ o Check the code for OID allocations of a constant length (128). Avoid
 
 o Check, whether all necessary occurences of &amp;, &lt;, &gt;, &apos;, and
   &qout; are handled correctly in dump-xml and dump-xsd.
+
+o smidiff does not yet support the -i option, like smilint does.
+
