@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.42 2002/09/18 13:06:52 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.43 2002/09/25 15:07:19 tklie Exp $
  */
 
 #include <config.h>
@@ -1635,6 +1635,72 @@ static void fprintBitsAndStrings( FILE *f, SmiModule *smiModule )
 }
 
 
+static void fprintKeys( FILE *f, SmiModule *smiModule )
+{
+    SmiNode *iterNode, *relNode;
+    SmiElement *iterElem;
+    char *parentName ="where the parents have no name";
+    
+    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
+
+	switch( iterNode->indexkind ) {
+
+	case SMI_INDEX_INDEX:
+
+	    /* print key */
+	    fprintSegment( f, INDENT, "<xsd:key " , 0 );
+	    fprintf( f, "name=\"%sKey\">\n", iterNode->name );
+	    fprintSegment( f, 2 * INDENT, "<xsd:selector ", 0 );
+	    fprintf( f, "xpath=\"%s\"/>\n", iterNode->name );
+	    for( iterElem = smiGetFirstElement( iterNode );
+		 iterElem;
+		 iterElem = smiGetNextElement( iterElem ) ) {
+		SmiNode *indexNode = smiGetElementNode( iterElem );
+		fprintSegment( f, 2 * INDENT, "<xsd:field ", 0 );
+		fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
+	    }
+	    fprintSegment( f, INDENT, "</xsd:key>\n\n", 0 );
+	    break;
+
+	case SMI_INDEX_AUGMENT:
+
+	    /* print keyref */
+	    fprintSegment( f, INDENT, "<xsd:keyref " , 0 );
+	    relNode = smiGetRelatedNode( iterNode );
+	    fprintf( f, "name=\"%sKeyRef\" ", iterNode->name );
+	    fprintf( f, "refer=\"%sKey\">\n", relNode->name );
+	    fprintSegment( f, 2 * INDENT, "<xsd:selector ", 0 );
+	    fprintf( f, "xpath=\"%s\"/>\n", iterNode->name );
+	    for( iterElem = smiGetFirstElement( relNode );
+		 iterElem;
+		 iterElem = smiGetNextElement( iterElem ) ) {
+		SmiNode *indexNode = smiGetElementNode( iterElem );
+		fprintSegment( f, 2 * INDENT, "<xsd:field ", 0 );
+		fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
+	    }
+	    fprintSegment( f, INDENT, "</xsd:keyref>\n", 0 );
+
+	    /* print unique clause */
+	    fprintSegment( f, INDENT, "<xsd:unique " , 0 );
+	    fprintf( f, "name=\"%sKeyRefUnique\">\n", iterNode->name );
+	    fprintSegment( f, 2 * INDENT, "<xsd:selector ", 0 );
+	    fprintf( f, "xpath=\"%s\"/>\n", iterNode->name );
+	    for( iterElem = smiGetFirstElement( relNode );
+		 iterElem;
+		 iterElem = smiGetNextElement( iterElem ) ) {
+		SmiNode *indexNode = smiGetElementNode( iterElem );
+		fprintSegment( f, 2 * INDENT, "<xsd:field ", 0 );
+		fprintf( f, "xpath=\"@%s\"/>\n", indexNode->name );
+	    }
+	    fprintSegment( f, INDENT, "</xsd:unique>\n\n", 0 );
+	    break;
+	}
+    }
+}
+
+
 static void fprintImports( FILE *f, int indent, SmiModule *smiModule )
 {
     SmiImport *iterImp;
@@ -1719,7 +1785,8 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintSegment( f, 2 * INDENT, "</xsd:complexType>\n", 0 );
     fprintSegment( f, INDENT, "</xsd:element>\n\n", 0 );
 
-    fprintBitsAndStrings(f, smiModule);
+    fprintBitsAndStrings( f, smiModule );
+    fprintKeys( f, smiModule );
 }
 
 
