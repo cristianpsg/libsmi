@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.2 1999/04/01 13:05:43 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.3 1999/04/01 14:02:37 strauss Exp $
  */
 
 %option noyywrap
@@ -508,7 +508,7 @@ SP		" "
 }
 
  /*
-  * Lex rules for descriptors.
+  * Lex rules for identifiers.
   */
 
  /* e.g. module names: REF: draft,p.12-13 */
@@ -517,7 +517,7 @@ SP		" "
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = strdup(yytext);
+    yylval.text = yytext;
     return ucIdentifier;
 }
 
@@ -527,7 +527,7 @@ SP		" "
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = strdup(yytext);
+    yylval.text = yytext;
     return lcIdentifier;
 }
 
@@ -549,30 +549,27 @@ SP		" "
 	 (strcmp(yytext, MAX_NUMBER) > 0))) {
 	printError(parser, ERR_NUMBER_TO_LARGE, yytext);
     }
-    yylval.id = strdup(yytext);
+    yylval.text = yytext;
     return decimalNumber;
 }
 
+<INITIAL>0x[0-9a-fA-F]+/[^0-9a-fA-F] {
+    smingTrackInput(0, parser);
+    if (strlen(yytext) % 2) {
+	printError(parser, ERR_HEX_STRING_MUL2, yytext);
+    }
+    yylval.text = yytext;
+    return hexadecimalNumber;
+}
  /*
-  *
+  * Lex rules for floating point values.
   */
 
 <INITIAL>0.00/{delim} {
+    /* TODO */
     smingTrackInput(0, parser);
-    yylval.id = yytext;
+    yylval.text = yytext;
     return floatValue;
-}
-
-<INITIAL>"\"\""/{delim} {
-    smingTrackInput(0, parser);
-    yylval.id = yytext;
-    return textSegment;
-}
-
-<INITIAL>0x42/{delim} {
-    smingTrackInput(0, parser);
-    yylval.id = yytext;
-    return hexadecimalNumber;
 }
 
  /*

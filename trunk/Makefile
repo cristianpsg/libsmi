@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.19 1999/03/31 17:24:21 strauss Exp $
+# @(#) $Id: Makefile,v 1.20 1999/04/01 14:02:36 strauss Exp $
 #
 
 MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
@@ -72,7 +72,7 @@ tools: tools/smilint tools/smidump tools/smiquery tools/smiclient tools/smid
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
 	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC) -lnsl
 
-tools/smidump: tools/smidump.o tools/dump-sming.o tools/dump-data.o $(LIBSMI_STATIC)
+tools/smidump: tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o $(LIBSMI_STATIC)
 	$(LD) $(LDFLAGS) -o tools/smidump $^ -lnsl
 
 tools/smiquery: $(LIBSMI_STATIC) tools/smiquery.o

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.1 1999/03/31 17:24:26 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.2 1999/04/01 13:05:43 strauss Exp $
  */
 
 %{
@@ -80,7 +80,7 @@ extern int yylex(void *lvalp, Parser *parserPtr);
  */
 %union {
     char           *id;				/* identifier name           */
-    int            err;				/* actually just a dummy     */
+    int            rc;				/* >=0: ok, <0: error        */
     char	   *text;
 }
 
@@ -92,82 +92,234 @@ extern int yylex(void *lvalp, Parser *parserPtr);
 %token DOT_DOT
 %token COLON_COLON
 
-%token ucIdentifier
-%token lcIdentifier
+%token <text>ucIdentifier
+%token <text>lcIdentifier
 
-%token floatValue
-%token textSegment
-%token decimalNumber
-%token hexadecimalNumber
+%token <text>floatValue
+%token <text>textSegment
+%token <text>decimalNumber
+%token <text>hexadecimalNumber
 
-%token moduleKeyword
-%token importKeyword
-%token revisionKeyword
-%token oidKeyword
-%token dateKeyword
-%token organizationKeyword
-%token contactKeyword
-%token descriptionKeyword
-%token referenceKeyword
-%token typedefKeyword
-%token typeKeyword
-%token writetypeKeyword
-%token nodeKeyword
-%token scalarKeyword
-%token tableKeyword
-%token columnKeyword
-%token rowKeyword
-%token notificationKeyword
-%token groupKeyword
-%token complianceKeyword
-%token formatKeyword
-%token unitsKeyword
-%token statusKeyword
-%token accessKeyword
-%token defaultKeyword
-%token impliedKeyword
-%token indexKeyword
-%token augmentsKeyword
-%token reordersKeyword
-%token sparseKeyword
-%token expandsKeyword
-%token createKeyword
-%token objectsKeyword
-%token notificationsKeyword
-%token mandatoryKeyword
-%token optionalKeyword
-%token refineKeyword
-%token OctetStringKeyword
-%token ObjectIdentifierKeyword
-%token Integer32Keyword
-%token Unsigned32Keyword
-%token Integer64Keyword
-%token Unsigned64Keyword
-%token Float32Keyword
-%token Float64Keyword
-%token Float128Keyword
-%token BitsKeyword
-%token EnumerationKeyword
-%token currentKeyword
-%token deprecatedKeyword
-%token obsoleteKeyword
-%token noaccessKeyword
-%token notifyonlyKeyword
-%token readonlyKeyword
-%token readwriteKeyword
+%token <id>moduleKeyword
+%token <id>importKeyword
+%token <id>revisionKeyword
+%token <id>oidKeyword
+%token <id>dateKeyword
+%token <id>organizationKeyword
+%token <id>contactKeyword
+%token <id>descriptionKeyword
+%token <id>referenceKeyword
+%token <id>typedefKeyword
+%token <id>typeKeyword
+%token <id>writetypeKeyword
+%token <id>nodeKeyword
+%token <id>scalarKeyword
+%token <id>tableKeyword
+%token <id>columnKeyword
+%token <id>rowKeyword
+%token <id>notificationKeyword
+%token <id>groupKeyword
+%token <id>complianceKeyword
+%token <id>formatKeyword
+%token <id>unitsKeyword
+%token <id>statusKeyword
+%token <id>accessKeyword
+%token <id>defaultKeyword
+%token <id>impliedKeyword
+%token <id>indexKeyword
+%token <id>augmentsKeyword
+%token <id>reordersKeyword
+%token <id>sparseKeyword
+%token <id>expandsKeyword
+%token <id>createKeyword
+%token <id>objectsKeyword
+%token <id>notificationsKeyword
+%token <id>mandatoryKeyword
+%token <id>optionalKeyword
+%token <id>refineKeyword
+%token <id>OctetStringKeyword
+%token <id>ObjectIdentifierKeyword
+%token <id>Integer32Keyword
+%token <id>Unsigned32Keyword
+%token <id>Integer64Keyword
+%token <id>Unsigned64Keyword
+%token <id>Float32Keyword
+%token <id>Float64Keyword
+%token <id>Float128Keyword
+%token <id>BitsKeyword
+%token <id>EnumerationKeyword
+%token <id>currentKeyword
+%token <id>deprecatedKeyword
+%token <id>obsoleteKeyword
+%token <id>noaccessKeyword
+%token <id>notifyonlyKeyword
+%token <id>readonlyKeyword
+%token <id>readwriteKeyword
 
 
 /*
  * Types of non-terminal symbols.
  */
 
-/*
-%type <err> smingFile
-%type <err>moduleStatement_optsep_0n
-%type <err>moduleStatement_optsep_1n
-%type <err>moduleStatement_optsep
-%type <err>moduleStatement
-*/
+%type <rc>smingFile
+%type <rc>moduleStatement_optsep_0n
+%type <rc>moduleStatement_optsep_1n
+%type <rc>moduleStatement_optsep
+%type <rc>moduleStatement
+%type <rc>typedefStatement_stmtsep_0n
+%type <rc>typedefStatement_stmtsep_1n
+%type <rc>typedefStatement_stmtsep
+%type <rc>typedefStatement
+%type <rc>anyObjectStatement_stmtsep_0n
+%type <rc>anyObjectStatement_stmtsep_1n
+%type <rc>anyObjectStatement_stmtsep
+%type <rc>anyObjectStatement
+%type <rc>nodeStatement
+%type <rc>scalarStatement
+%type <rc>tableStatement
+%type <rc>rowStatement
+%type <rc>columnStatement_stmtsep_1n
+%type <rc>columnStatement_stmtsep
+%type <rc>columnStatement
+%type <rc>notificationStatement_stmtsep_0n
+%type <rc>notificationStatement_stmtsep_1n
+%type <rc>notificationStatement_stmtsep
+%type <rc>notificationStatement
+%type <rc>groupStatement_stmtsep_0n
+%type <rc>groupStatement_stmtsep_1n
+%type <rc>groupStatement_stmtsep
+%type <rc>groupStatement
+%type <rc>complianceStatement_stmtsep_0n
+%type <rc>complianceStatement_stmtsep_1n
+%type <rc>complianceStatement_stmtsep
+%type <rc>complianceStatement
+%type <rc>importStatement_stmtsep_0n
+%type <rc>importStatement_stmtsep_1n
+%type <rc>importStatement_stmtsep
+%type <rc>importStatement
+%type <rc>revisionStatement_stmtsep_0n
+%type <rc>revisionStatement_stmtsep_1n
+%type <rc>revisionStatement_stmtsep
+%type <rc>revisionStatement
+%type <rc>typedefTypeStatement
+%type <rc>typeStatement_stmtsep_01
+%type <rc>typeStatement
+%type <rc>writetypeStatement_stmtsep_01
+%type <rc>writetypeStatement
+%type <rc>anyIndexStatement
+%type <rc>indexStatement
+%type <rc>augmentsStatement
+%type <rc>reordersStatement
+%type <rc>sparseStatement
+%type <rc>expandsStatement
+%type <rc>sep_impliedKeyword_01
+%type <rc>createStatement_stmtsep_01
+%type <rc>createStatement
+%type <rc>optsep_createColumns_01
+%type <rc>createColumns
+%type <rc>oidStatement
+%type <rc>dateStatement
+%type <rc>organizationStatement
+%type <rc>contactStatement
+%type <rc>formatStatement_stmtsep_01
+%type <rc>formatStatement
+%type <rc>unitsStatement_stmtsep_01
+%type <rc>unitsStatement
+%type <rc>statusStatement_stmtsep_01
+%type <rc>statusStatement
+%type <rc>accessStatement_stmtsep_01
+%type <rc>accessStatement
+%type <rc>defaultStatement_stmtsep_01
+%type <rc>defaultStatement
+%type <rc>descriptionStatement_stmtsep_01
+%type <rc>descriptionStatement
+%type <rc>referenceStatement_stmtsep_01
+%type <rc>referenceStatement
+%type <rc>objectsStatement_notificationsStatement
+%type <rc>objectsStatement_stmtsep_01
+%type <rc>objectsStatement
+%type <rc>notificationsStatement
+%type <rc>mandatoryStatement_stmtsep_01
+%type <rc>mandatoryStatement
+%type <rc>optionalStatement_stmtsep_0n
+%type <rc>optionalStatement_stmtsep_1n
+%type <rc>optionalStatement_stmtsep
+%type <rc>optionalStatement
+%type <rc>refineStatement_stmtsep_0n
+%type <rc>refineStatement_stmtsep_1n
+%type <rc>refineStatement_stmtsep
+%type <rc>refineStatement
+%type <rc>refinedBaseType_refinedType
+%type <rc>refinedBaseType
+%type <rc>refinedType
+%type <rc>optsep_anySpec_01
+%type <rc>anySpec
+%type <rc>optsep_numberSpec_01
+%type <rc>numberSpec
+%type <rc>furtherNumberElement_0n
+%type <rc>furtherNumberElement_1n
+%type <rc>furtherNumberElement
+%type <rc>numberElement
+%type <rc>numberUpperLimit_01
+%type <rc>numberUpperLimit
+%type <rc>optsep_floatSpec_01
+%type <rc>floatSpec
+%type <rc>furtherFloatElement_0n
+%type <rc>furtherFloatElement_1n
+%type <rc>furtherFloatElement
+%type <rc>floatElement
+%type <rc>floatUpperLimit_01
+%type <rc>floatUpperLimit
+%type <rc>bitsOrEnumerationSpec
+%type <rc>bitsOrEnumerationList
+%type <rc>furtherBitsOrEnumerationItem_0n
+%type <rc>furtherBitsOrEnumerationItem_1n
+%type <rc>furtherBitsOrEnumerationItem
+%type <rc>bitsOrEnumerationItem
+%type <rc>identifierList
+%type <rc>furtherIdentifier_0n
+%type <rc>furtherIdentifier_1n
+%type <rc>furtherIdentifier
+%type <rc>qIdentifierList
+%type <rc>furtherQIdentifier_0n
+%type <rc>furtherQIdentifier_1n
+%type <rc>furtherQIdentifier
+%type <rc>qlcIdentifierList
+%type <rc>furtherQlcIdentifier_0n
+%type <rc>furtherQlcIdentifier_1n
+%type <rc>furtherQlcIdentifier
+%type <rc>bitsValue
+%type <rc>bitsList
+%type <rc>furtherLcIdentifier_0n
+%type <rc>furtherLcIdentifier_1n
+%type <rc>furtherLcIdentifier
+%type <rc>identifier
+%type <rc>qIdentifier
+%type <rc>qucIdentifier
+%type <rc>qlcIdentifier
+%type <rc>text
+%type <rc>optsep_textSegment_0n
+%type <rc>optsep_textSegment_1n
+%type <rc>optsep_textSegment
+%type <rc>date
+%type <rc>format
+%type <rc>units
+%type <rc>anyValue
+%type <rc>status
+%type <rc>access
+%type <rc>objectIdentifier
+%type <rc>qlcIdentifier_subid
+%type <rc>dot_subid_0127
+%type <rc>dot_subid_1n
+%type <rc>dot_subid
+%type <rc>subid
+%type <rc>number
+%type <rc>negativeNumber
+%type <rc>signedNumber
+%type <rc>optsep_comma_01
+%type <rc>sep
+%type <rc>optsep
+%type <rc>stmtsep
 
 %%
 
@@ -182,21 +334,82 @@ extern int yylex(void *lvalp, Parser *parserPtr);
  * It's also possible that there's no module in a file.
  */
 smingFile:		optsep moduleStatement_optsep_0n
+			{
+			    /*
+			     * Return the number of successfully
+			     * parsed modules.
+			     */
+			    $$ = $2;
+			}
 	;
 
 moduleStatement_optsep_0n:	/* empty */
+			{
+			    $$ = 0;
+			}
 	|		moduleStatement_optsep_1n
+			{
+			    $$ = $1;
+			}
 	;
 
 moduleStatement_optsep_1n:	moduleStatement_optsep
+			{
+			    $$ = $1;
+			}
 	|		moduleStatement_optsep_1n moduleStatement_optsep
+			{
+			    /*
+			     * Sum up the number of successfully parsed
+			     * modules or return -1, if at least one
+			     * module failed.
+			     */
+			    if (($1 >= 0) && ($2 >= 0)) {
+				$$ = $1 + $2;
+			    } else {
+				$$ = -1;
+			    }
+			}
         ;
 
 moduleStatement_optsep:	moduleStatement optsep
+			{
+			    /*
+			     * If we got a (Module *) return rc == 1,
+			     * otherwise parsing failed (rc == -1).
+			     */
+			    if ($1) {
+				$$ = 1;
+			    } else {
+				$$ = -1;
+			    }
+			}
         ;
 
 moduleStatement:	moduleKeyword sep ucIdentifier
-			sep lcIdentifier optsep '{' stmtsep
+			{
+			    thisParserPtr->modulePtr = findModuleByName($3);
+			    if (!thisParserPtr->modulePtr) {
+				thisParserPtr->modulePtr =
+				    addModule($3,
+					      thisParserPtr->path,
+					      thisParserPtr->locationPtr,
+					      thisParserPtr->character,
+					      0,
+					      thisParserPtr);
+			    }
+			    thisParserPtr->modulePtr->flags &= ~FLAG_SMIV2;
+			    thisParserPtr->modulePtr->flags |= FLAG_SMING;
+			    thisParserPtr->modulePtr->numImportedIdentifiers
+				                                           = 0;
+			    thisParserPtr->modulePtr->numStatements = 0;
+			    thisParserPtr->modulePtr->numModuleIdentities = 0;
+			}
+			sep lcIdentifier
+			{
+			    ;
+			}
+			optsep '{' stmtsep
 			importStatement_stmtsep_0n
 			oidStatement stmtsep
 			organizationStatement stmtsep
@@ -211,11 +424,17 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			complianceStatement_stmtsep_0n
 			'}' optsep ';'
 			{
-			    printf("XXX sming module\n");
+			    Module *modulePtr = NULL;
+			    
+			    printf("XXX sming module %s\n", $3);
+			    return modulePtr;
 			}
 	;
 
 typedefStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |		typedefStatement_stmtsep_1n
 	;
 
@@ -236,8 +455,14 @@ typedefStatement:	typedefKeyword sep ucIdentifier optsep '{' stmtsep
 			descriptionStatement_stmtsep_01
 			referenceStatement_stmtsep_01
 			'}' optsep ';'
+			{
+			    $$ = 0;
+			}
 
 anyObjectStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |		anyObjectStatement_stmtsep_1n
 	;
 
@@ -315,6 +540,9 @@ columnStatement:	columnKeyword sep lcIdentifier optsep '{' stmtsep
         ;
 
 notificationStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |		notificationStatement_stmtsep_1n
 	;
 
@@ -336,6 +564,9 @@ notificationStatement:	notificationKeyword sep lcIdentifier optsep '{' stmtsep
         ;
 
 groupStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
                         groupStatement_stmtsep_1n
         ;
 
@@ -356,6 +587,9 @@ groupStatement:		groupKeyword sep lcIdentifier optsep '{' stmtsep
         ;
 
 complianceStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |               complianceStatement_stmtsep_1n
 	;
 
@@ -379,6 +613,9 @@ complianceStatement:	complianceKeyword sep lcIdentifier optsep '{' stmtsep
         ;
 
 importStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
 			importStatement_stmtsep_1n
         ;
 
@@ -394,6 +631,9 @@ importStatement:	importKeyword sep ucIdentifier optsep '(' optsep
         ;
 
 revisionStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |		revisionStatement_stmtsep_1n
         ;
 
@@ -414,6 +654,9 @@ typedefTypeStatement:	typeKeyword sep refinedBaseType optsep ';'
 	;
 
 typeStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |		typeStatement stmtsep
 	;
 
@@ -422,6 +665,9 @@ typeStatement:		typeKeyword sep refinedBaseType_refinedType
         ;
 
 writetypeStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |	        writetypeStatement stmtsep
 	;
 
@@ -457,10 +703,16 @@ expandsStatement:	expandsKeyword sep qlcIdentifier
         ;
 
 sep_impliedKeyword_01:	/* empty */
+			{
+			    $$ = 0;
+			}
 	|		sep impliedKeyword
 	;
 
 createStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |               createStatement stmtsep
 	;
 
@@ -468,6 +720,9 @@ createStatement:	createKeyword optsep_createColumns_01 optsep ';'
         ;
 
 optsep_createColumns_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |		optsep createColumns
         ;
 
@@ -487,6 +742,9 @@ contactStatement:	contactKeyword sep text optsep ';'
         ;
 
 formatStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
 	|		formatStatement stmtsep
 	;
 
@@ -494,6 +752,9 @@ formatStatement:	formatKeyword sep text optsep ';'
         ;
 
 unitsStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |		unitsStatement stmtsep
 	;
 
@@ -501,6 +762,9 @@ unitsStatement:		unitsKeyword sep text optsep ';'
         ;
 
 statusStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |               statusStatement stmtsep
 	;
 
@@ -508,6 +772,9 @@ statusStatement:	statusKeyword sep status optsep ';'
         ;
 
 accessStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |		accessStatement stmtsep
 	;
 
@@ -515,6 +782,9 @@ accessStatement:	accessKeyword sep access optsep ';'
         ;
 
 defaultStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |		defaultStatement stmtsep
 	;
 
@@ -522,6 +792,9 @@ defaultStatement:	defaultKeyword sep anyValue optsep ';'
         ;
 
 descriptionStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |               descriptionStatement stmtsep
 	;
 
@@ -529,6 +802,9 @@ descriptionStatement:	descriptionKeyword sep text optsep ';'
         ;
 
 referenceStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |		referenceStatement stmtsep
 	;
 
@@ -540,6 +816,9 @@ objectsStatement_notificationsStatement: objectsStatement
 	;
 
 objectsStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |		objectsStatement stmtsep
 	;
 
@@ -552,6 +831,9 @@ notificationsStatement:	notificationsKeyword optsep '(' optsep
         ;
 
 mandatoryStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
         |               mandatoryStatement stmtsep
 	;
 
@@ -560,6 +842,9 @@ mandatoryStatement:	mandatoryKeyword optsep '(' optsep
         ;
 
 optionalStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |               optionalStatement_stmtsep_1n
 	;
 
@@ -576,6 +861,9 @@ optionalStatement:	optionalKeyword sep qlcIdentifier optsep '{'
         ;
 
 refineStatement_stmtsep_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |               refineStatement_stmtsep_1n
 	;
 
@@ -614,6 +902,9 @@ refinedType:		qucIdentifier optsep_anySpec_01
 	;
 
 optsep_anySpec_01:	/* empty */
+			{
+			    $$ = 0;
+			}
 	|		optsep anySpec
 	;
 
@@ -622,6 +913,9 @@ anySpec:		numberSpec
 	;
 
 optsep_numberSpec_01:	/* empty */
+			{
+			    $$ = 0;
+			}
 	|		optsep numberSpec
 	;
 
@@ -629,6 +923,9 @@ numberSpec:		'(' optsep numberElement furtherNumberElement_0n
 			optsep ')'
 
 furtherNumberElement_0n:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		furtherNumberElement_1n
         ;
 
@@ -643,6 +940,9 @@ numberElement:		number numberUpperLimit_01
 	;
 
 numberUpperLimit_01:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		numberUpperLimit
 	;
 
@@ -650,6 +950,9 @@ numberUpperLimit:		optsep DOT_DOT optsep number
         ;
 
 optsep_floatSpec_01:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		optsep floatSpec
 	;
 
@@ -657,6 +960,9 @@ floatSpec:		'(' optsep floatElement furtherFloatElement_0n
 			optsep ')'
 
 furtherFloatElement_0n:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		furtherFloatElement_1n
         ;
 
@@ -671,6 +977,9 @@ floatElement:		floatValue floatUpperLimit_01
 	;
 
 floatUpperLimit_01:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		floatUpperLimit
 	;
 
@@ -685,6 +994,9 @@ bitsOrEnumerationList:	bitsOrEnumerationItem furtherBitsOrEnumerationItem_0n
         ;
 
 furtherBitsOrEnumerationItem_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |		 furtherBitsOrEnumerationItem_1n
         ;
 
@@ -704,6 +1016,9 @@ identifierList:		identifier furtherIdentifier_0n optsep_comma_01
         ;
 
 furtherIdentifier_0n:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		 furtherIdentifier_1n
         ;
 
@@ -718,6 +1033,9 @@ qIdentifierList:	qIdentifier furtherQIdentifier_0n optsep_comma_01
         ;
 
 furtherQIdentifier_0n:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		 furtherQIdentifier_1n
         ;
 
@@ -732,6 +1050,9 @@ qlcIdentifierList:	qlcIdentifier furtherQlcIdentifier_0n optsep_comma_01
         ;
 
 furtherQlcIdentifier_0n: /* empty */
+			{
+			    $$ = 0;
+			}
         |		 furtherQlcIdentifier_1n
         ;
 
@@ -750,6 +1071,9 @@ bitsList:		optsep_comma_01
 	;
 
 furtherLcIdentifier_0n:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		furtherLcIdentifier_1n
 	;
 
@@ -780,6 +1104,9 @@ text:			textSegment optsep_textSegment_0n
         ;
 
 optsep_textSegment_0n:	/* empty */
+			{
+			    $$ = 0;
+			}
         |		optsep_textSegment_1n
 	;
 
@@ -829,6 +1156,9 @@ qlcIdentifier_subid:	qlcIdentifier
 	;
 
 dot_subid_0127:		/* empty */
+			{
+			    $$ = 0;
+			}
         |		dot_subid_1n
 	;
 
@@ -858,16 +1188,28 @@ signedNumber:		decimalNumber
 /* unknown... */
 
 optsep_comma_01:	/* empty */
+			{
+			    $$ = 0;
+			}
 /*	|		optsep ',' */
 	;
 
 sep:			/* empty, skipped by lexer */
+			{
+			    $$ = 0;
+			}
         ;			
 
 optsep:			/* empty, skipped by lexer */
+			{
+			    $$ = 0;
+			}
         ;			
 
 stmtsep:		/* empty, skipped by lexer */
+			{
+			    $$ = 0;
+			}
         ;			
 
 %%

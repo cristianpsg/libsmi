@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.3 1999/03/16 17:24:10 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.4 1999/03/31 17:24:27 strauss Exp $
  */
 
 %option noyywrap
@@ -742,7 +742,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     printError(parser, ERR_HEX_ENDS_IN_B);
     yylval.text = currentString;
     if (strlen(yylval.text) % 2) {
-	printError(parser, ERR_HEX_STRING_MUL8, currentString);
+	printError(parser, ERR_HEX_STRING_MUL2, currentString);
     }
     BEGIN(INITIAL);
     return HEX_STRING;
@@ -752,7 +752,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     smiTrackInput(0, parser);
     yylval.text = currentString;
     if (strlen(yylval.text) % 2) {
-	printError(parser, ERR_HEX_STRING_MUL8, currentString);
+	printError(parser, ERR_HEX_STRING_MUL2, currentString);
     }
     BEGIN(INITIAL);
     return HEX_STRING;

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.14 1999/03/30 23:18:23 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.15 1999/03/31 17:24:31 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -35,21 +35,21 @@
 
 
 
-char *excludeDescriptors[] = {
+static char *excludeDescriptors[] = {
     "ObjectName", "NotificationName", "ObjectSyntax", "SimpleSyntax",
     "Integer32", "ApplicationSyntax", "Unsigned32",
     "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
     NULL };
 
-char *typeDescriptors[] = {
+static char *typeDescriptors[] = {
     "IpAddress", "Counter32", "Gauge32", "TimeTicks", "Opaque", "Counter64",
     NULL };
 
-char *excludeTypes[] = {
+static char *excludeTypes[] = {
     "ObjectSyntax", "SimpleSyntax", "ApplicationSyntax",
     NULL };
     
-char *smi2smingTypes[] = {
+static char *smi2smingTypes[] = {
     "INTEGER", "Integer32",
     "OCTET STRING", "OctetString",
     "OBJECT IDENTIFIER", "ObjectIdentifier",
@@ -134,7 +134,7 @@ getOidString(modulename, object, importedParent)
 
 
 
-void
+static void
 print(char *fmt, ...)
 {
     va_list ap;

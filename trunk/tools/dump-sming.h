@@ -1,5 +1,5 @@
 /*
- * dump=sming.h --
+ * dump-sming.h --
  *
  *      Operations to dump SMIng module information.
  *
@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-sming.h,v 1.1 1999/03/12 18:43:45 strauss Exp $
  */
 
 #ifndef _DUMP_SMING_H
