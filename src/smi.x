@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.13 1998/11/25 02:50:57 strauss Exp $
+% * @(#) $Id: smi.x,v 1.14 1998/11/27 10:55:28 strauss Exp $
 % */
 %
 
@@ -147,7 +147,7 @@ program SMIPROG {
 	/*
 	 * SMIPROC_NODE returns the node information. The input's
 	 * smi_getspec.smi_fullname might also be an object instance
-	 * identifiers to retrieve the corresponding object type node.
+	 * identifier to retrieve the corresponding object type node.
 	 */
 	smi_node	SMIPROC_NODE(smi_getspec)	= 2;
 	/*

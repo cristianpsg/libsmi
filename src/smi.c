@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.23 1998/12/01 16:59:36 strauss Exp $
+ * @(#) $Id: smi.c,v 1.24 1998/12/04 14:36:46 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -123,8 +123,8 @@ getOid(n)
     int i, l;
 
     for (i = 0;
-	 n && (n != rootNode);
-	 a[i++] = n->subid, n = n->parent);
+	 n && (n != rootNodePtr);
+	 a[i++] = n->subid, n = n->parentPtr);
     for (strcpy(o, n ? "" : "<incomplete>."), l = strlen(o);
 	 i > 0;
 	 l += sprintf(&o[l], "%d.", a[--i]));
@@ -246,7 +246,7 @@ getObject(name, module)
 	elements = strdup(name);
 	/* TODO: success? */
 	element = strtok(elements, ".");
-	n = rootNode;
+	n = rootNodePtr;
 	while (element) {
 	    subid = (unsigned int)strtoul(element, NULL, 0);
 	    n = findNodeByParentAndSubid(n, subid);
@@ -255,7 +255,7 @@ getObject(name, module)
 	}
 	free(elements);
 	if (n)
-	    o = findObjectByNodeAndModulename(n, module);
+	    o = findObjectByModulenameAndNode(module, n);
     } else {
 	o = findObjectByModulenameAndName(module, name);
     }
@@ -627,7 +627,7 @@ smiGetModule(name, wantdescr)
     }
 
     if (m) {
-	res.name = strdup(m->descriptor->name);
+	res.name = strdup(m->name);
 	res.oid = "TODO";
 	if (wantdescr) {
 	    res.lastupdated = getString(&m->lastUpdated, m);
@@ -731,28 +731,12 @@ smiGetNode(spec, mod, wantdescr)
     }
 
     if (o) {
-	res.name = strdup(o->descriptor->name);
-	res.module = strdup(o->module->descriptor->name);
-	res.oid = getOid(o->node);
-	if (o->type) {
-	    if (o->type->flags & FLAG_PARENTIMPORTED) {
-		sprintf(type, "%s.%s",
-                ((Descriptor *)(((Descriptor *)(o->type->parent))->ptr))->name,
-			((Descriptor *)(o->type->parent))->name);
-	    } else if (o->type->flags & FLAG_IMPORTED) {
-		sprintf(type, "%s.%s",
-                ((Descriptor *)(((Descriptor *)(o->type->parent))->ptr))->name,
-			((Descriptor *)(o->type->parent))->name);
-	    } else {
-		if (o->type->module && o->type->descriptor) {
-		    sprintf(type, "%s.%s", o->type->module->descriptor->name,
-			    o->type->descriptor->name);
-		} else if (o->type->descriptor) {
-		    sprintf(type, "%s", o->type->descriptor->name);
-		} else {
-		    sprintf(type, "%s", smiStringSyntax(o->type->syntax));
-		}
-	    }
+	res.name = strdup(o->name);
+	res.module = strdup(o->modulePtr->name);
+	res.oid = getOid(o->nodePtr);
+	if (o->typePtr) {
+	    sprintf(type, "%s.%s", o->typePtr->modulePtr->name,
+		    o->typePtr->name);
 	} else {
 	    type[0] = 0;
 	}
@@ -760,10 +744,10 @@ smiGetNode(spec, mod, wantdescr)
 	res.decl = o->decl;
 	res.access = o->access;
 	res.status = o->status;
-	res.syntax = o->type ? o->type->syntax : SMI_SYNTAX_UNKNOWN;
+	res.syntax = o->typePtr ? o->typePtr->syntax : SMI_SYNTAX_UNKNOWN;
 	if (wantdescr) {
 	    res.description = getString(&o->description,
-					o->module);
+					o->modulePtr);
 	} else {
 	    res.description = "";
 	}
@@ -861,14 +845,14 @@ smiGetType(spec, mod, wantdescr)
     }
 
     if (t) {
-	res.name = strdup(t->descriptor->name);
-	res.module = strdup(t->module->descriptor->name);
+	res.name = strdup(t->name);
+	res.module = strdup(t->modulePtr->name);
 	res.syntax = t->syntax;
 	res.decl = t->decl;
-	res.display = getString(&t->displayHint, t->module);
+	res.display = getString(&t->displayHint, t->modulePtr);
 	res.status = t->status;
 	if (wantdescr) {
-	    res.description = getString(&t->description, t->module);
+	    res.description = getString(&t->description, t->modulePtr);
 	} else {
 	    res.description = "";
 	}
@@ -962,8 +946,8 @@ smiGetMacro(spec, mod)
     }
 
     if (ma) {
-	res.name = strdup(ma->descriptor->name);
-	res.module = strdup(ma->module->descriptor->name);
+	res.name = strdup(ma->name);
+	res.module = strdup(ma->modulePtr->name);
 	return &res;
     } else {
 	return NULL;
@@ -981,7 +965,6 @@ smiGetNames(spec, mod)
     Location		*l;
     Module		*m = NULL;
     Object		*o;
-    Descriptor		*d;
     Node		*n, *n2, *nn = NULL;
     smi_namelist	*smilist;
     char		*elements, *element;
@@ -1012,7 +995,6 @@ smiGetNames(spec, mod)
     }
 #endif
     
-    d = NULL;
     if (!p) {
 	p = malloc(200);
     }
@@ -1069,7 +1051,7 @@ smiGetNames(spec, mod)
 			elements = strdup(name);
 			/* TODO: success? */
 			element = strtok(elements, ".");
-			n = rootNode;
+			n = rootNodePtr;
 			nn = NULL;
 			while (element) {
 			    subid = (unsigned int)strtoul(element, NULL, 0);
@@ -1084,7 +1066,7 @@ smiGetNames(spec, mod)
 			element = strtok(elements, ".");
 			o = findObjectByName(element);
 			if (o) {
-			    n = o->node;
+			    n = o->nodePtr;
 			    nn = n;
 			    element = strtok(NULL, ".");
 			    while (element) {
@@ -1095,12 +1077,11 @@ smiGetNames(spec, mod)
 				    /* if (!n) break; */
 				    nn = n;
 				} else {
-				    for (n2 = n->firstChild; n2;
-					 n2 = n2->next) {
-					for (o = n2->firstObject; o;
-					     o = o->next) {
-					    if (!strcmp(o->descriptor->name,
-							element)) {
+				    for (n2 = n->firstChildPtr; n2;
+					 n2 = n2->nextPtr) {
+					for (o = n2->firstObjectPtr; o;
+					     o = o->nextPtr) {
+					    if (!strcmp(o->name, element)) {
 						nn = n2;
 						break;
 					    }
@@ -1115,16 +1096,15 @@ smiGetNames(spec, mod)
 		
 		if (nn) {
 
-		    for (o = nn->firstObject; o; o = o->next) {
-			if ((o->descriptor) &&
-			    ((!strlen(module)) || (o->module == m))) {
+		    for (o = nn->firstObjectPtr; o; o = o->nextPtr) {
+			if (((!strlen(module)) || (o->modulePtr == m))) {
 			    if (((l->type == LOCATION_FILE) &&
-				 (!strcmp(l->name, o->module->path))) ||
+				 (!strcmp(l->name, o->modulePtr->path))) ||
 				((l->type == LOCATION_DIR) &&
-			       (!strcmp(l->name, dirname(o->module->path))))) {
+			       (!strcmp(l->name,
+					dirname(o->modulePtr->path))))) {
 				sprintf(ss, "%s.%s",
-					o->module->descriptor->name,
-					o->descriptor->name);
+					o->modulePtr->name, o->name);
 				if (strlen(p)+strlen(ss)+2 > plen) {
 				    p = realloc(p, strlen(p)+strlen(ss)+2);
 				}
@@ -1134,9 +1114,9 @@ smiGetNames(spec, mod)
 			}
 		    }
 		    
+#if 0 /* TODO */
 		} else {
 
-		    d = NULL;
 		    do {
 			d = findNextDescriptor(name, m, KIND_ANY, d);
 			if (d &&
@@ -1159,6 +1139,7 @@ smiGetNames(spec, mod)
 			}
 
 		    } while (d);
+#endif		    
 		}
 	    }
 	    
@@ -1187,7 +1168,6 @@ smiGetChildren(spec, mod)
     Location		*l;
     Module		*m;
     Object		*o = NULL;
-    Descriptor		*d;
     Node		*n = NULL;
     smi_namelist	*smilist;
     smi_fullname	sminame;
@@ -1209,7 +1189,6 @@ smiGetChildren(spec, mod)
     createFullname(spec, mod, fullname);
     createModuleAndName(fullname, module, name);
 
-    d = NULL;
     if (!p) {
 	p = malloc(200);
     }
@@ -1280,7 +1259,7 @@ smiGetChildren(spec, mod)
 	}
 
 	if (o) {
-	    for (n = o->node->firstChild; n; n = n->next) {
+	    for (n = o->nodePtr->firstChildPtr; n; n = n->nextPtr) {
 		/*
 		 * For child nodes that have a declaration in
 		 * the same module as the parent, we assume
@@ -1288,18 +1267,18 @@ smiGetChildren(spec, mod)
 		 * Otherwise we return the first declaration we know.
 		 * Last resort: the numerical OID.
 		 */
-		for (o = n->firstObject; o; o = o->next) {
-		    if (o->module == m) {
+		for (o = n->firstObjectPtr; o; o = o->nextPtr) {
+		    if (o->modulePtr == m) {
 			break;
 		    }
 		}
 		if (!o) {
-		    o = n->firstObject;
+		    o = n->firstObjectPtr;
 		}
 		if (o) {
 		    sprintf(ss, "%s.%s",
-			    o->module->descriptor->name,
-			    o->descriptor->name);
+			    o->modulePtr->name,
+			    o->name);
 		    s = ss;
 		} else {
 		    s = getOid(n);
@@ -1331,9 +1310,7 @@ smiGetMembers(spec, mod)
     Location		*l;
     Module		*m;
     Object		*o = NULL;
-    Descriptor		*d;
     Type		*t;
-    smi_fullname	sminame;
     char		name[SMI_MAX_OID+1];
     char		module[SMI_MAX_DESCRIPTOR+1];
     char		fullname[SMI_MAX_FULLNAME+1];
@@ -1353,7 +1330,6 @@ smiGetMembers(spec, mod)
     createFullname(spec, mod, fullname);
     createModuleAndName(fullname, module, name);
 
-    d = NULL;
     if (!p) {
 	p = malloc(200);
     }
@@ -1395,12 +1371,12 @@ smiGetMembers(spec, mod)
 			t = findTypeByModulenameAndName(module, name);
 			if (t) {
 			    if (t->syntax == SMI_SYNTAX_SEQUENCE) {
-				for (e = (void *)t->parent; e; e = e->next) {
+				/* It is a SEQUENCE -> return all columns. */
+				for (e = (void *)t->sequencePtr; e;
+				     e = e->nextPtr) {
 				    sprintf(ss, "%s.%s",
-					    ((Object *)(e->ptr))->module->
-					          descriptor->name,
-					    ((Object *)(e->ptr))->
-					          descriptor->name);
+					 ((Object *)(e->ptr))->modulePtr->name,
+					    ((Object *)(e->ptr))->name);
 				    s = ss;
 				    if (!strstr(p, s)) {
 					if (strlen(p)+strlen(s)+2 > plen) {
@@ -1416,13 +1392,12 @@ smiGetMembers(spec, mod)
 		    } else if (islower(name[0])) {
 			o = findObjectByModulenameAndName(module, name);
 			if (o) {
-			    if (o->index) {
-				for (e = (void *)o->index; e; e = e->next) {
+			    if (o->indexPtr) {
+				for (e = (void *)o->indexPtr; e;
+				     e = e->nextPtr) {
 				    sprintf(ss, "%s.%s",
-					    ((Object *)(e->ptr))->module->
-					          descriptor->name,
-					    ((Object *)(e->ptr))->
-					          descriptor->name);
+					 ((Object *)(e->ptr))->modulePtr->name,
+					    ((Object *)(e->ptr))->name);
 				    s = ss;
 				    if (!strstr(p, s)) {
 					if (strlen(p)+strlen(s)+2 > plen) {
@@ -1544,8 +1519,8 @@ smiGetParent(spec, mod)
 	}
     }
 
-    if (o && (o->node) && (o->node->parent)) {
-	n = o->node->parent;
+    if (o && (o->nodePtr) && (o->nodePtr->parentPtr)) {
+	n = o->nodePtr->parentPtr;
 	/*
 	 * If the parent node has a declaration in
 	 * the same module as the child, we assume
@@ -1554,26 +1529,25 @@ smiGetParent(spec, mod)
 	 * view of modules.
 	 * Last resort: the numerical OID.
 	 */
-	for (o = n->firstObject; o; o = o->next) {
-	    if ((o->module == m) && (!(o->flags & FLAG_IMPORTED))) {
+	for (o = n->firstObjectPtr; o; o = o->nextPtr) {
+	    if ((o->modulePtr == m) && (!(o->flags & FLAG_IMPORTED))) {
 		break;
 	    }
 	}
 	if (!o) {
-	    for (o = n->firstObject; o; o = o->next) {
+	    for (o = n->firstObjectPtr; o; o = o->nextPtr) {
 		for (view = firstView; view; view = view->next) 
-		    if (!strcmp(o->module->descriptor->name, view->name))
+		    if (!strcmp(o->modulePtr->name, view->name))
 			break;
 		if (view && (!(o->flags & FLAG_IMPORTED))) {
 		    break;
 		}
 	    }
-	    if (!o) o = n->firstObject;
+	    if (!o) o = n->firstObjectPtr;
 	}
-	if (o && (o->descriptor)) {
+	if (o) {
 	    sprintf(s, "%s.%s",
-		    o->module->descriptor->name,
-		    o->descriptor->name);
+		    o->modulePtr->name, o->name);
 	    res = s;
 	} else {
 	    res = getOid(n);

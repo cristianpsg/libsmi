@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.25 1998/12/22 17:09:13 strauss Exp $
+ * @(#) $Id: data.h,v 1.26 1999/02/17 16:39:08 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -160,6 +160,7 @@ typedef struct Type {
     smi_decl	   decl;
     String	   displayHint;
     smi_status	   status;
+    struct List	   *sequencePtr;
     String	   description;
 #if 0
     Restriction	   *firstRestriction;
@@ -196,7 +197,7 @@ typedef struct Object {
 typedef struct Node {
     smi_subid	   subid;
     NodeFlags	   flags;
-    struct Node	   *parentNodePtr;
+    struct Node	   *parentPtr;
     struct Node	   *nextPtr;
     struct Node	   *prevPtr;
     struct Node	   *firstChildPtr;
@@ -266,10 +267,12 @@ extern Import *addImport(const char *name,
 extern int checkImports(char *modulename,
 			Parser *parserPtr);
 
-extern Import *findImportByName(const char *importname);
+extern Import *findImportByName(const char *importname,
+				Module *modulePtr);
 
 extern Import *findImportByModulenameAndName(const char *modulename,
-					     const char *importname);
+					     const char *importname,
+					     Module *modulePtr);
 
 /*
 extern Descriptor *addDescriptor(const char *name,
@@ -385,8 +388,8 @@ extern void setTypeStatus(Type *typePtr,
 extern void setTypeParent(Type *typePtr,
 			  const char *parent);
 
-extern void setTypePointer(Type *typePtr,
-			   void *pointer);
+extern void setTypeSequencePtr(Type *typePtr,
+			       struct List *sequencePtr);
 
 extern void setTypeDescription(Type *typePtr,
 			       String *descriptionPtr);

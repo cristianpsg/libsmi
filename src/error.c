@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.8 1998/11/30 16:42:35 strauss Exp $
+ * @(#) $Id: error.c,v 1.9 1998/12/22 17:09:14 strauss Exp $
  */
 
 #include <string.h>
@@ -151,8 +151,8 @@ Error errors[] = {
       "Object identifier label `%s' (%s) doesn't extend `%s'" },
     { 1, ERR_OIDLABEL_DOESNOT_EXTEND_1,
       "Object identifier label `%s' (%s) doesn't extend `%s' by one subidentifier" },
-    { 1, ERR_EXISTENT_DESCRIPTOR,
-      "Descriptor `%s' already exists" },
+    { 1, ERR_EXISTENT_OBJECT,
+      "An object named `%s' already exists" },
     { 1, ERR_UNKNOWN_CONFIG_DIRECTIVE,
       "%s: Unknown directive `%s'" },
     { 1, ERR_ALLOCATING_PENDING_MIBNODE,

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.9 1998/12/22 17:09:14 strauss Exp $
+ * @(#) $Id: error.h,v 1.10 1999/02/17 16:39:08 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -71,7 +71,7 @@
 #define ERR_SUBIDENTIFIER_VS_OIDLABEL		 51
 #define ERR_OIDLABEL_DOESNOT_EXTEND		 52
 #define ERR_OIDLABEL_DOESNOT_EXTEND_1		 53
-#define ERR_EXISTENT_DESCRIPTOR			 54
+#define ERR_EXISTENT_OBJECT			 54
 #define ERR_UNKNOWN_CONFIG_DIRECTIVE		 55
 #define ERR_ALLOCATING_PENDING_MIBNODE		 56
 #define ERR_ALLOCATING_IMPORT   		 57
