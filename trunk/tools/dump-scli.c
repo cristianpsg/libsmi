@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.16 2002/05/17 12:57:52 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.17 2002/05/24 09:21:36 schoenw Exp $
  */
 
 /*
@@ -46,8 +46,10 @@
 #define regfree(a)
 #endif
 
-static char *pattern = NULL;
-static regex_t _regex, *match_regex = NULL;
+static char *include = NULL;
+static char *exclude = NULL;
+static regex_t _incl_regex, *incl_regex = NULL;
+static regex_t _excl_regex, *excl_regex = NULL;
 
 
 
@@ -226,18 +228,28 @@ static int
 isGroup(SmiNode *smiNode, SmiNodekind memberkind)
 {
     SmiNode *childNode;
+    int status;
 
-    if (match_regex) {
-	int status;
+    if (incl_regex) {
 	if (! smiNode->name) {
 	    return 0;
 	}
-	status = regexec(match_regex, smiNode->name, (size_t) 0, NULL, 0);
+	status = regexec(incl_regex, smiNode->name, (size_t) 0, NULL, 0);
 	if (status != 0) {
 	    return 0;
 	}
     }
 
+    if (excl_regex) {
+	if (! smiNode->name) {
+	    return 0;
+	}
+	status = regexec(excl_regex, smiNode->name, (size_t) 0, NULL, 0);
+	if (status == 0) {
+	    return 0;
+	}
+    }
+    
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
@@ -1553,7 +1565,7 @@ printUnpackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     }
 
     fprintf(f,
-	    "static int\n"
+	    "static inline int\n"
 	    "unpack_%s(GSnmpVarBind *vb, %s_%s_t *%s)\n"
 	    "{\n"
 	    "    guint8 idx = %u;\n"
@@ -1745,7 +1757,7 @@ printPackMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     }
 
     fprintf(f,
-	    "static int\n"
+	    "static inline int\n"
 	    "pack_%s(guint32 *base",
 	    cGroupName);
     printIndexParams(f, indexNode);
@@ -1994,7 +2006,7 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     }
     
     fprintf(f,
-	    "static %s_%s_t *\n"
+	    "static inline %s_%s_t *\n"
 	    "assign_%s(GSList *vbl)\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
@@ -2624,13 +2636,27 @@ dumpScli(int modc, SmiModule **modv, int flags, char *output)
     char	*baseName;
     int		i, code;
 
-    if (pattern) {
-	match_regex = &_regex;
-	code = regcomp(match_regex, pattern, REG_EXTENDED|REG_NOSUB);
+    if (include) {
+	incl_regex = &_incl_regex;
+	code = regcomp(incl_regex, include, REG_EXTENDED|REG_NOSUB);
 	if (code != 0) {
 	    char buffer[256];
-	    regerror(code, match_regex, buffer, sizeof(buffer));
+	    regerror(code, incl_regex, buffer, sizeof(buffer));
 	    fprintf(stderr, "smidump: regular expression error: %s\n", buffer);
+	    exit(1);
+	}
+    }
+
+    if (exclude) {
+	excl_regex = &_excl_regex;
+	code = regcomp(excl_regex, exclude, REG_EXTENDED|REG_NOSUB);
+	if (code != 0) {
+	    char buffer[256];
+	    regerror(code, excl_regex, buffer, sizeof(buffer));
+	    fprintf(stderr, "smidump: regular expression error: %s\n", buffer);
+	    if (incl_regex) {
+		regfree(incl_regex);
+	    }
 	    exit(1);
 	}
     }
@@ -2646,9 +2672,13 @@ dumpScli(int modc, SmiModule **modv, int flags, char *output)
 	}
     }
 
-    if (match_regex) {
-	regfree(match_regex);
-	match_regex = NULL;
+    if (incl_regex) {
+	regfree(incl_regex);
+	incl_regex = NULL;
+    }
+    if (excl_regex) {
+	regfree(excl_regex);
+	excl_regex = NULL;
     }
 }
 
@@ -2657,8 +2687,10 @@ dumpScli(int modc, SmiModule **modv, int flags, char *output)
 void initScli()
 {
     static SmidumpDriverOption opt[] = {
-	{ "match", OPT_STRING, &pattern, 0,
-	  "produce stubs for groups matching a regular expression"},
+	{ "include", OPT_STRING, &include, 0,
+	  "include stubs for groups matching a regular expression"},
+	{ "exclude", OPT_STRING, &exclude, 0,
+	  "exclude stubs for groups matching a regular expression"},
         { 0, OPT_END, 0, 0 }
     };
 
