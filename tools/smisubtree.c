@@ -3,12 +3,12 @@
  *
  *      A simple SMI example program, printing an OID's subtree.
  *
- * Copyright (c) 1998 Technical University of Braunschweig.
+ * Copyright (c) 1999 Technical University of Braunschweig.
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smisubtree.c,v 1.1 1999/04/12 17:21:28 strauss Exp $
  */
 
 #include <stdio.h>
@@ -42,7 +42,7 @@ main(argc, argv)
 	smiNode && strstr(smiNode->oid, smiStartNode->oid) == smiNode->oid;
 	smiNode = smiGetNextNode(modulename, smiNode->name)) {
 
-	printf("%s::%s   [%s]\n",
+	printf("%s::%-16s   [%s]\n",
 	       smiNode->module, smiNode->name,
 	       smiStringBasetype(smiNode->basetype));
 	

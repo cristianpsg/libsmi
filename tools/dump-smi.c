@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.1 1999/04/06 17:49:25 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.2 1999/04/09 18:47:05 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -336,7 +336,7 @@ printImports(modulename)
     int		  i;
     char	  types[200];
     
-    list = smiGetMembers(modulename, "");
+    list = smiGetImports(modulename, "");
 
     types[0] = 0;
 

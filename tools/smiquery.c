@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.5 1999/03/28 19:26:27 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.6 1999/03/29 14:02:30 strauss Exp $
  */
 
 #include <stdio.h>
@@ -229,10 +229,10 @@ main(argc, argv)
 	}
     }
     
-    if (!strcmp(command, "members")) {
-	list = smiGetMembers(name, "");
+    if (!strcmp(command, "imports")) {
+	list = smiGetImports(name, "");
 	if (list) {
-	    printf("     Members:");
+	    printf("     Imports:");
 	    for (p = list; *p; p++) {
 		printf(" %s", *p);
 	    }
