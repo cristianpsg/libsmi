@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-stools.c,v 1.4 2001/02/07 13:20:21 schoenw Exp $
+ * @(#) $Id: dump-stools.c,v 1.5 2001/02/12 15:44:56 schoenw Exp $
  */
 
 /*
@@ -752,7 +752,7 @@ static void printAssignMethod(FILE *f, SmiModule *smiModule,
 
     fprintf(f,
 	    "    for (elem = vbl; elem; elem = g_slist_next(elem)) {\n"
-	    "        SNMP_OBJECT *vb = (SNMP_OBJECT *) elem->data;\n"
+	    "        GSnmpVarBind *vb = (GSnmpVarBind *) elem->data;\n"
 	    "        if (vb->type == G_SNMP_ENDOFMIBVIEW\n"
             "            || (vb->type == G_SNMP_NOSUCHOBJECT)\n"
             "            || (vb->type == G_SNMP_NOSUCHINSTANCE)) {\n"
@@ -801,7 +801,7 @@ static void printAddVarBind(FILE *f, SmiNode *smiNode, SmiNode *groupNode)
     cName = translate(smiNode->name);
     smiType = smiGetNodeType(smiNode);
     if (smiType && smiType->basetype == SMI_BASETYPE_UNSIGNED64) {
-	fprintf(f, "    if (s->version > SNMP_V1) {\n");
+	fprintf(f, "    if (s->version > G_SNMP_V1) {\n");
 	fprintf(f,
 		"        stls_vbl_add_null(&in, %s, _%sLength);\n",
 		cName, cName);
