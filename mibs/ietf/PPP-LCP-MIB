@@ -191,7 +191,7 @@ pppLinkStatusBadFCSs   OBJECT-TYPE
 
 
 pppLinkStatusLocalMRU   OBJECT-TYPE
-     SYNTAX    INTEGER(1..2147483648)
+     SYNTAX    INTEGER(1..2147483647)
      ACCESS    read-only
      STATUS    mandatory
      DESCRIPTION
@@ -205,7 +205,7 @@ pppLinkStatusLocalMRU   OBJECT-TYPE
 
 
 pppLinkStatusRemoteMRU   OBJECT-TYPE
-     SYNTAX    INTEGER(1..2147483648)
+     SYNTAX    INTEGER(1..2147483647)
      ACCESS    read-only
      STATUS    mandatory
      DESCRIPTION
@@ -561,7 +561,7 @@ pppLqrInGoodOctets   OBJECT-TYPE
 
 
 pppLqrLocalPeriod   OBJECT-TYPE
-     SYNTAX    INTEGER(1..2147483648)
+     SYNTAX    INTEGER(1..2147483647)
      ACCESS    read-only
      STATUS    mandatory
      DESCRIPTION
@@ -575,7 +575,7 @@ pppLqrLocalPeriod   OBJECT-TYPE
 
 
 pppLqrRemotePeriod   OBJECT-TYPE
-     SYNTAX    INTEGER(1..2147483648)
+     SYNTAX    INTEGER(1..2147483647)
      ACCESS    read-only
      STATUS    mandatory
      DESCRIPTION
