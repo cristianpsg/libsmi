@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.13 2002/02/26 16:22:12 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.14 2002/02/27 16:34:35 tklie Exp $
  */
 
 #include <config.h>
@@ -420,7 +420,9 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	/* should not occur */
+	break;
     }
+
 }
 
 
@@ -756,6 +758,26 @@ static void fprintBits( FILE *f, SmiModule *smiModule )
     
 }
 
+static void fprintImports( FILE *f, int indent, SmiModule *smiModule )
+{
+    SmiImport *iterImp;
+    char *lastModName = "lastModName";
+    
+    for( iterImp = smiGetFirstImport( smiModule );
+	 iterImp;
+	 iterImp = smiGetNextImport( iterImp ) ) {
+	/* assume imports to be ordered by module names */
+	if( strcmp( iterImp->module, lastModName ) ) {
+	    fprintSegment( f, indent, "<xsd:import ", 0 );
+	    fprint( f, "namespace=\"%s%s\" schemaLocation=\"%s%s.xsd\"/>\n",
+		    DXSD_SCHEMALOCATION, iterImp->module,
+		    DXSD_SCHEMALOCATION, iterImp->module );
+	}
+	lastModName = iterImp->module;
+    }
+   
+}
+
     
 static void fprintModule(FILE *f, SmiModule *smiModule)
 {
@@ -763,7 +785,7 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
     fprintDocumentation(f, 2 * INDENT, smiModule->description);
     fprintSegment(f, INDENT, "</xsd:annotation>\n\n", 0);
     
-    /*fprintImportedTypes( f, smiModule );*/
+    fprintImports(f, INDENT, smiModule);
     fprintNodes(f, smiModule);
     fprintRows(f, smiModule);
     fprintBits(f, smiModule);
@@ -823,7 +845,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
 	registerType( iterImp->name, iterImp->module );
 	/* assume imports to be ordered by module names */
 	if( strcmp( iterImp->module, lastModName ) ) {
-	    fprint( f, "            xmlns:%s=\"%s%s.xsd\"\n",
+	    fprint( f, "            xmlns:%s=\"%s%s\"\n",
 		    iterImp->module, DXSD_SCHEMALOCATION, iterImp->module );
 	}
 	lastModName = iterImp->module;
