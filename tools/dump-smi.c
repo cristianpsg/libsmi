@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.42 2000/02/22 17:11:14 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.43 2000/02/24 10:35:43 strauss Exp $
  */
 
 #include <config.h>
@@ -564,17 +564,10 @@ static void print(char *fmt, ...)
 
 static void printSegment(int column, char *string, int length, int comment)
 {
-    char     s[200];
-
+    print(comment ? "--- %*c%s" : "%*c%s", column, ' ', string);
     if (length) {
-	sprintf(s, comment ? "--- %*c%s%*c" : "%*c%s%*c",
-		1 + column, ' ', string,
-		length - strlen(string) - column, ' ');
-    } else {
-	sprintf(s, comment ? "--- %*c%s" : "%*c%s",
-		1 + column, ' ', string);
+	print("%*c", length - strlen(string) - column);
     }
-    print(&s[1]);
 }
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.90 2000/02/22 18:27:00 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.91 2000/02/24 10:35:39 strauss Exp $
  */
 
 %{
@@ -296,7 +296,8 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 {
     Object *objectPtr, *object2Ptr;
     Import *importPtr;
-
+    char *s;
+    
     /*
      * Check unknown identifiers in OID DEFVALs.
      */
@@ -313,47 +314,57 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 	    valuePtr->basetype = objectPtr->typePtr->export.basetype;
 	}
 #endif
-	if (objectPtr->export.value.basetype == SMI_BASETYPE_UNKNOWN) continue;
+	if (objectPtr->export.value.basetype == SMI_BASETYPE_UNKNOWN)
+	    continue;
 	
-	if ((objectPtr->export.value.basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
-	    && (objectPtr->export.value.format == SMI_VALUEFORMAT_NAME)) {
-	    object2Ptr = findObjectByModuleAndName(parserPtr->modulePtr,
-					   (char *)objectPtr->export.value.value.ptr);
-	    if (!object2Ptr) {
-		importPtr = findImportByName(
-		                (char *)objectPtr->export.value.value.ptr, modulePtr);
-		if (importPtr) {		/* imported object */
-		    importPtr->use++;
-		    object2Ptr = findObjectByModulenameAndName(
-			importPtr->export.module,
-			importPtr->export.name);
+	if (objectPtr->export.value.basetype ==
+	    SMI_BASETYPE_OBJECTIDENTIFIER) {
+	    if (objectPtr->export.value.format == SMI_VALUEFORMAT_NAME) {
+		object2Ptr = findObjectByModuleAndName(
+		    parserPtr->modulePtr,
+		    (char *)objectPtr->export.value.value.ptr);
+		if (!object2Ptr) {
+		    importPtr = findImportByName(
+			(char *)objectPtr->export.value.value.ptr, modulePtr);
+		    if (importPtr) {		/* imported object */
+			importPtr->use++;
+			object2Ptr = findObjectByModulenameAndName(
+			    importPtr->export.module,
+			    importPtr->export.name);
+		    }
 		}
+		if (!object2Ptr) {
+		    printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
+				     objectPtr->line,
+				    (char *)objectPtr->export.value.value.ptr);
+		    objectPtr->export.value.value.ptr = NULL;
+		    objectPtr->export.value.basetype = SMI_BASETYPE_UNKNOWN;
+		} else {
+		    s = util_malloc(strlen(object2Ptr->modulePtr->export.name)
+				    + strlen(object2Ptr->export.name) + 3);
+		    sprintf(s, "%s::%s", object2Ptr->modulePtr->export.name,
+			    object2Ptr->export.name);
+		    util_free(objectPtr->export.value.value.ptr);
+		    objectPtr->export.value.value.ptr = (void *)s;
+		}
+		objectPtr->export.value.format = SMI_VALUEFORMAT_OID;
+	    } else if (objectPtr->export.value.format == SMI_VALUEFORMAT_OID) {
+		printf("XXX %s %s\n", objectPtr->export.name,
+		       (char *)objectPtr->export.value.value.ptr);
+		   
+		if ((objectPtr->export.value.len != 2) ||
+		    (objectPtr->export.value.value.oid[0] != 0) ||
+		    (objectPtr->export.value.value.oid[1] != 0)) {
+		    printErrorAtLine(parserPtr, ERR_ILLEGAL_OID_DEFVAL,
+				     objectPtr->line, objectPtr->export.name);
+		}
+		if (!findModuleByName("SNMPv2-SMI")) {
+		    loadModule("SNMPv2-SMI");
+		}
+		s = util_strdup("SNMPv2-SMI::zeroDotZero");
+		objectPtr->export.value.format = SMI_VALUEFORMAT_NAME;
+		objectPtr->export.value.value.ptr = (void *)s;
 	    }
-	    if (!object2Ptr) {
-		printErrorAtLine(parserPtr, ERR_UNKNOWN_OIDLABEL,
-				 objectPtr->line,
-				 (char *)objectPtr->export.value.value.ptr);
-		objectPtr->export.value.value.ptr = NULL;
-		objectPtr->export.value.basetype = SMI_BASETYPE_UNKNOWN;
-	    } else {
-		objectPtr->export.value.value.ptr = (void *)object2Ptr;
-	    }
-	    objectPtr->export.value.format = SMI_VALUEFORMAT_OID;
-	} else if ((objectPtr->export.value.basetype == SMI_BASETYPE_OBJECTIDENTIFIER)
-		   && (objectPtr->export.value.format == SMI_VALUEFORMAT_OID)) {
-	    if ((objectPtr->export.value.len != 2) ||
-		(objectPtr->export.value.value.oid[0] != 0) ||
-		(objectPtr->export.value.value.oid[1] != 0)) {
-		printErrorAtLine(parserPtr, ERR_ILLEGAL_OID_DEFVAL,
-				 objectPtr->line, objectPtr->export.name);
-	    }
-	    if (!findModuleByName("SNMPv2-SMI")) {
-		loadModule("SNMPv2-SMI");
-	    }
-	    object2Ptr = findObjectByModulenameAndName("SNMPv2-SMI",
-						       "zeroDotZero");
-	    objectPtr->export.value.format = SMI_VALUEFORMAT_OID;
-	    objectPtr->export.value.value.ptr = (void *)object2Ptr;
 	}
     }
 }
