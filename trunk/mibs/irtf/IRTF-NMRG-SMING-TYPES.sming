@@ -2,9 +2,9 @@ module IRTF-NMRG-SMING-TYPES irtfNmrgSmingTypes {
 
 //
 // $RCSfile: IRTF-NMRG-SMING-TYPES.sming,v $
-// $Revision: 1.2 $
+// $Revision: 1.1 $
 // $Author: strauss $
-// $Date: 1999/06/04 20:39:10 $
+// $Date: 1999/10/06 16:05:25 $
 //
 
     oid             1.3.6.1.3.1575.1.9;
@@ -918,14 +918,6 @@ value         |              |      see 1|          ->C|          ->D
          Cosult 'Transport Mappings for Version 2 of the Simple
          Network Management Protocol (SNMPv2)' for further
          information on snmpUDPDomain.";
-    };
-
-    typedef IpAddr {
-        type        OctetString (4 | 16);
-        description
-        "The IpAddr type represents a 32-bit internet IPv4 address
-         if it is 4 octets long, or a 128-bit internet IPv6 address
-         if it is 16 octets long, both in network byte-order.";
     };
 
 };

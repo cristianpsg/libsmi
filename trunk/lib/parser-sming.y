@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.31 1999/12/16 18:10:38 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.32 1999/12/21 12:32:08 strauss Exp $
  */
 
 %{
@@ -2101,7 +2101,7 @@ refineStatement_stmtsep_1n: refineStatement_stmtsep
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2326,7 +2326,7 @@ numberSpec:		'(' optsep numberElement furtherNumberElement_0n
 			optsep ')'
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$3;
+			    $$->ptr = $3;
 			    $$->nextPtr = $4;
 			}
         ;
@@ -2344,7 +2344,7 @@ furtherNumberElement_0n:	/* empty */
 furtherNumberElement_1n:	furtherNumberElement
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
         |		furtherNumberElement_1n furtherNumberElement
@@ -2352,7 +2352,7 @@ furtherNumberElement_1n:	furtherNumberElement
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2408,7 +2408,7 @@ floatSpec:		'(' optsep floatElement furtherFloatElement_0n
 			optsep ')'
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$3;
+			    $$->ptr = $3;
 			    $$->nextPtr = $4;
 			}
         ;
@@ -2426,7 +2426,7 @@ furtherFloatElement_0n:	/* empty */
 furtherFloatElement_1n:	furtherFloatElement
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
         |		furtherFloatElement_1n furtherFloatElement
@@ -2434,7 +2434,7 @@ furtherFloatElement_1n:	furtherFloatElement
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2497,7 +2497,7 @@ bitsOrEnumerationList:	bitsOrEnumerationItem furtherBitsOrEnumerationItem_0n
 			optsep_comma_01
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
         ;
@@ -2515,7 +2515,7 @@ furtherBitsOrEnumerationItem_0n: /* empty */
 furtherBitsOrEnumerationItem_1n: furtherBitsOrEnumerationItem
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
         |		furtherBitsOrEnumerationItem_1n
@@ -2524,7 +2524,7 @@ furtherBitsOrEnumerationItem_1n: furtherBitsOrEnumerationItem
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2550,7 +2550,7 @@ bitsOrEnumerationItem:	lcIdentifier optsep '(' optsep number optsep ')'
 identifierList:		identifier furtherIdentifier_0n optsep_comma_01
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
         ;
@@ -2568,7 +2568,7 @@ furtherIdentifier_0n:	/* empty */
 furtherIdentifier_1n:	furtherIdentifier
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
         |		furtherIdentifier_1n furtherIdentifier
@@ -2576,7 +2576,7 @@ furtherIdentifier_1n:	furtherIdentifier
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2593,7 +2593,7 @@ furtherIdentifier:	optsep ',' optsep identifier
 qIdentifierList:	qIdentifier furtherQIdentifier_0n optsep_comma_01
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
         ;
@@ -2611,7 +2611,7 @@ furtherQIdentifier_0n:	/* empty */
 furtherQIdentifier_1n:	furtherQIdentifier
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
         |		furtherQIdentifier_1n furtherQIdentifier
@@ -2619,7 +2619,7 @@ furtherQIdentifier_1n:	furtherQIdentifier
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2636,7 +2636,7 @@ furtherQIdentifier:	optsep ',' optsep qIdentifier
 qlcIdentifierList:	qlcIdentifier furtherQlcIdentifier_0n optsep_comma_01
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = $2;
 			}
         ;
@@ -2654,7 +2654,7 @@ furtherQlcIdentifier_0n: /* empty */
 furtherQlcIdentifier_1n:	furtherQlcIdentifier
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
         |		furtherQlcIdentifier_1n furtherQlcIdentifier
@@ -2662,7 +2662,7 @@ furtherQlcIdentifier_1n:	furtherQlcIdentifier
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2707,7 +2707,7 @@ furtherLcIdentifier_0n:	/* empty */
 furtherLcIdentifier_1n:	furtherLcIdentifier
 			{
 			    $$ = util_malloc(sizeof(List));
-			    $$->ptr = (void *)$1;
+			    $$->ptr = $1;
 			    $$->nextPtr = NULL;
 			}
         |		furtherLcIdentifier_1n furtherLcIdentifier
@@ -2715,7 +2715,7 @@ furtherLcIdentifier_1n:	furtherLcIdentifier
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)$2;
+			    p->ptr = $2;
 			    p->nextPtr = NULL;
 			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -2792,7 +2792,7 @@ text:			textSegment optsep_textSegment_0n
 				free($1);
 				free($2);
 			    } else {
-				$$ = $1;
+				$$ = util_strdup($1);
 			    }
 			}
         ;
