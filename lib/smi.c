@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.34 1999/06/03 20:37:24 strauss Exp $
+ * @(#) $Id: smi.c,v 1.35 1999/06/03 21:07:11 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -343,11 +343,17 @@ SmiNode *createSmiNode(Object *objectPtr)
 	smiNodePtr     = util_malloc(sizeof(SmiNode));
 	
 	smiNodePtr->name   = objectPtr->name;
-	smiNodePtr->module = objectPtr->modulePtr->name;
+	if (objectPtr->modulePtr && objectPtr->modulePtr->name) {
+	    smiNodePtr->module = objectPtr->modulePtr->name;
+	} else {
+	    smiNodePtr->module = NULL;
+	}
 	smiNodePtr->oid    = getOid(objectPtr->nodePtr);
 	if (objectPtr->typePtr) {
 	    if (objectPtr->typePtr->name) {
-		if (strlen(objectPtr->typePtr->modulePtr->name)) {
+		if (objectPtr->typePtr->modulePtr &&
+		    objectPtr->typePtr->modulePtr->name &&
+		    strlen(objectPtr->typePtr->modulePtr->name)) {
 		  smiNodePtr->typemodule = objectPtr->typePtr->modulePtr->name;
 		} else {
 		    smiNodePtr->typemodule = NULL;
@@ -473,6 +479,25 @@ SmiType *createSmiType(Type *typePtr)
 	smiTypePtr->description  = typePtr->description;
 	smiTypePtr->reference    = typePtr->reference;
 	return smiTypePtr;
+    } else {
+	return NULL;
+    }
+}
+
+
+
+SmiIndex *createSmiIndex(Object *rowObjectPtr, Object *objectPtr, int number)
+{
+    SmiIndex *smiIndexPtr;
+
+    if (objectPtr) {
+	smiIndexPtr = util_malloc(sizeof(SmiIndex));
+	smiIndexPtr->rowmodule = rowObjectPtr->modulePtr->name;
+	smiIndexPtr->rowname   = rowObjectPtr->name;
+	smiIndexPtr->module    = objectPtr->modulePtr->name;
+	smiIndexPtr->name      = objectPtr->name;
+	smiIndexPtr->number    = number;
+	return smiIndexPtr;
     } else {
 	return NULL;
     }
@@ -658,7 +683,7 @@ int smiSetPath(const char *s)
 
 
 
-int smiLoadModule(char *module)
+char *smiLoadModule(char *module)
 {
     Module *modulePtr;
     
@@ -672,9 +697,9 @@ int smiLoadModule(char *module)
 	    if (!isInView(modulePtr->name)) {
 		addView(modulePtr->name);
 	    }
-	    return 0;
+	    return modulePtr->name;
 	} else {
-	    return -1;
+	    return NULL;
 	}
 
     } else {
@@ -683,14 +708,14 @@ int smiLoadModule(char *module)
 	    addView(module);
 	}
 	
-	if (findModuleByName(module)) {
+	if ((modulePtr = findModuleByName(module))) {
 	    /* already loaded. */
-	    return 0;
+	    return modulePtr->name;
 	} else {
-	    if (loadModule(module)) {
-		return 0;
+	    if ((modulePtr = loadModule(module))) {
+		return modulePtr->name;
 	    } else {
-		return -1;
+		return NULL;
 	    }
 	}
     }
@@ -1536,10 +1561,10 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiDecl decl)
 
 
 
-SmiNode *smiGetFirstIndexNode(SmiNode *smiRowNodePtr)
+SmiIndex *smiGetFirstIndex(SmiNode *smiRowNodePtr)
 {
     Module	      *modulePtr;
-    Object	      *objectPtr;
+    Object	      *rowObjectPtr;
     
     if (!smiRowNodePtr) {
 	return NULL;
@@ -1555,67 +1580,64 @@ SmiNode *smiGetFirstIndexNode(SmiNode *smiRowNodePtr)
 	return NULL;
     }
 
-    objectPtr = findObjectByModuleAndName(modulePtr, smiRowNodePtr->name);
+    rowObjectPtr = findObjectByModuleAndName(modulePtr, smiRowNodePtr->name);
 
-    if (!objectPtr) {
+    if (!rowObjectPtr) {
 	return NULL;
     }
 
-    if ((!objectPtr->indexPtr) || (!objectPtr->indexPtr->listPtr)) {
+    if ((!rowObjectPtr->indexPtr) || (!rowObjectPtr->indexPtr->listPtr)) {
 	return NULL;
     }
 
-    return createSmiNode(objectPtr->indexPtr->listPtr->ptr);
+    return createSmiIndex(rowObjectPtr,
+			  rowObjectPtr->indexPtr->listPtr->ptr, 1);
 }
 
 
 
-SmiNode *smiGetNextIndexNode(SmiNode *smiRowNodePtr, SmiNode *smiIndexNodePtr)
+SmiIndex *smiGetNextIndex(SmiIndex *smiIndexPtr)
 {
     Module	      *modulePtr;
-    Object	      *objectPtr;
+    Object	      *rowObjectPtr;
     List	      *listPtr;
-    SmiIdentifier     module, node;
+    SmiIdentifier     rowname;
+    int		      number, i;
     
-    if ((!smiRowNodePtr) || (!smiIndexNodePtr)) {
+    if (!smiIndexPtr) {
 	return NULL;
     }
 
-    modulePtr = findModuleByName(smiRowNodePtr->module);
+    modulePtr = findModuleByName(smiIndexPtr->rowmodule);
 
     if (!modulePtr) {
-	modulePtr = loadModule(smiRowNodePtr->module);
+	modulePtr = loadModule(smiIndexPtr->rowmodule);
     }
 
-    module = smiIndexNodePtr->module;
-    node = smiIndexNodePtr->name;
-        
-    smiFreeNode(smiIndexNodePtr);
+    rowname = smiIndexPtr->rowname;
+    number = smiIndexPtr->number;
+    
+    smiFreeNode(smiIndexPtr);
     
     if (!modulePtr) {
 	return NULL;
     }
 
-    objectPtr = findObjectByModuleAndName(modulePtr, smiRowNodePtr->name);
+    rowObjectPtr = findObjectByModuleAndName(modulePtr, rowname);
 
-    if (!objectPtr) {
+    if (!rowObjectPtr) {
 	return NULL;
     }
 
-    if ((!objectPtr->indexPtr) || (!objectPtr->indexPtr->listPtr)) {
+    if ((!rowObjectPtr->indexPtr) || (!rowObjectPtr->indexPtr->listPtr)) {
 	return NULL;
     }
 
-    for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
-	 listPtr = listPtr->nextPtr) {
-	if ((listPtr->ptr) &&
-	    !strcmp(((Object *)(listPtr->ptr))->modulePtr->name, module) &&
-	    !strcmp(((Object *)(listPtr->ptr))->name, node)) {
-	    if (listPtr->nextPtr) {
-		return createSmiNode(listPtr->nextPtr->ptr);
-	    } else {
-		return NULL;
-	    }
+    for (i = 1, listPtr = rowObjectPtr->indexPtr->listPtr;
+	 (i <= (number+1)) && listPtr;
+	 i++, listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) && (i == (number+1))) {
+	    return createSmiIndex(rowObjectPtr, listPtr->ptr, i);
 	}
     }
     

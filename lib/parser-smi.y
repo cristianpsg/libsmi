@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.26 1999/06/02 16:52:33 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.27 1999/06/03 20:37:13 strauss Exp $
  */
 
 %{
@@ -2293,6 +2293,8 @@ Status:			LOWERCASE_IDENTIFIER
 				} else if (!strcmp($1, "optional")) {
 				    $$ = SMI_STATUS_OPTIONAL;
 				} else if (!strcmp($1, "obsolete")) {
+				    $$ = SMI_STATUS_OBSOLETE;
+				} else if (!strcmp($1, "deprecated")) {
 				    $$ = SMI_STATUS_OBSOLETE;
 				} else {
 				    printError(thisParserPtr,

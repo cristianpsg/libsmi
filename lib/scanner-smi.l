@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.7 1999/05/31 11:58:35 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.8 1999/06/03 20:37:20 strauss Exp $
  */
 
 %option noyywrap
@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "error.h"
+#include "util.h"
 #include "parser-smi.h"
 #include "parser-smi.tab.h"
 #include "scanner.h"

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.31 1999/06/03 20:37:26 strauss Exp $
+ * @(#) $Id: smi.h,v 1.32 1999/06/03 21:07:12 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -244,6 +244,15 @@ typedef struct SmiNode {
     char                *reference;
 } SmiNode;
 
+/* SmiIndex -- a table row index column				             */
+typedef struct SmiIndex {
+    SmiIdentifier       module;
+    SmiIdentifier       name;
+    SmiIdentifier       rowmodule;
+    SmiIdentifier       rowname;
+    int			number;
+} SmiIndex;
+
 /* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
     SmiIdentifier       module;
@@ -286,7 +295,7 @@ extern char *smiGetPath();
 
 extern int smiSetPath(const char *path);
 
-extern int smiLoadModule(char *module);
+extern char *smiLoadModule(char *module);
 
 
 
@@ -358,11 +367,6 @@ extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
 
-extern SmiNode *smiGetFirstIndexNode(SmiNode *smiRowNodePtr);
-
-extern SmiNode *smiGetNextIndexNode(SmiNode *smiRowNodePtr,
-				    SmiNode *smiIndexNodePtr);
-
 extern SmiNode *smiGetFirstMemberNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
@@ -379,6 +383,15 @@ extern SmiNode *smiGetNextMandatoryNode(SmiNode *smiComplianceNodePtr,
 					SmiNode *smiMandatoryNodePtr);
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
+
+
+
+
+extern SmiIndex *smiGetFirstIndex(SmiNode *smiRowNodePtr);
+
+extern SmiIndex *smiGetNextIndex(SmiIndex *smiIndexPtr);
+
+extern void smiFreeIndex(SmiIndex *smiIndexPtr);
 
 
 

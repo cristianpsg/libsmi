@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smidump.1,v 1.1 1999/05/28 14:52:11 strauss Exp $
+.\" $Id: smidump.1.in,v 1.1 1999/06/01 20:47:20 strauss Exp $
 .\"
-.TH smidump 1  "June 1, 1999" "IBR" "SMI Tools"
+.TH smidump 1  "June 4, 1999" "IBR" "SMI Tools"
 .SH NAME
 smidump \- dump and convert SMIv1/v2/ng modules
 .SH SYNOPSIS
@@ -31,10 +31,8 @@ Show a help text and exit.
 .BI "-f " format
 Use \fIformat\fP when dumping a module. Supported formats are
 \fBsming\fP for fully compliant SMIng, \fBsmiv2\fP for fully compliant
-SMIv2, \fBobjects\fP for a simple list of nodes in the object
-identifer tree known to libsmi (only for libsmi debugging) and
-\fBtypes\fP for a simple list of all types known to libsmi (also
-for libsmi debugging only). The default is to dump in SMIng format.
+SMIv2, and \fBimports\fP for the import hierarchy of a module.
+The default is to dump in SMIng format.
 .TP
 .BI "-p " module
 Preload the module \fImodule\fP before reading the main module. This may
