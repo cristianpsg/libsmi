@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.21 2001/11/27 16:31:49 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.22 2001/11/28 16:39:07 strauss Exp $
 #
 
 AUTOMAKE_OPTIONS	= no-dependencies foreign
@@ -25,9 +25,9 @@ m4datadir		= $(datadir)/aclocal
 m4data_DATA		= libsmi.m4
 
 anoncvs:
-	rsync -a --delete $(HOME)/.cvs-repository/libsmi /.amd/anoncvs
+	rsync -rlt --delete $(HOME)/.cvs-repository/libsmi /.amd/anoncvs
 	chgrp -R anoncvs /.amd/anoncvs/libsmi
-	chmod -R g+w /.amd/anoncvs/libsmi
+	chmod -R ug+rw /.amd/anoncvs/libsmi
 #
 #	mkdir /tmp/libsmi-diff
 #	tar xzCf /tmp/libsmi-diff /ftp/local/libsmi/libsmi-current.tar.gz
