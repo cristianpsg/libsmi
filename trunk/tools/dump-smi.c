@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.52 2000/04/04 10:28:02 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.53 2000/04/06 13:39:28 strauss Exp $
  */
 
 #include <config.h>
@@ -671,10 +671,10 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	if (i == valuePtr->len) {
 	    sprintf(s, "\"%s\"", valuePtr->value.ptr);
 	} else {
-            sprintf(s, "'%*s'H", 2 * valuePtr->len, "");
+            sprintf(s, "'%*s'H", 2 * valuePtr->len, " ");
             for (i=0; i < valuePtr->len; i++) {
                 sprintf(ss, "%02x", valuePtr->value.ptr[i]);
-                strncpy(&s[2+2*i], ss, 2);
+                strncpy(&s[1+2*i], ss, 2);
             }
 	}
 	break;
