@@ -121,7 +121,7 @@ should be released after use by calling \fBsmiFreeModule()\fP,
 value. Other functions are void.
 .SH "FILES"
 .nf
-/usr/local/include/smi.h    SMI library header file
+@prefix@/include/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "

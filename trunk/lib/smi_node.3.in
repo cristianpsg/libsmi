@@ -197,7 +197,7 @@ by calling \fBsmiFreeNode()\fP, \fBsmiFreeOption()\fP,
 or \fBsmiFreeRefinement()\fP, respectively, which are a void functions.
 .SH "FILES"
 .nf
-/usr/local/include/smi.h    SMI library header file
+@prefix@/include/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "
