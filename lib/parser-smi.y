@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.14 1999/03/30 22:27:31 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.15 1999/03/31 17:24:25 strauss Exp $
  */
 
 %{
@@ -1014,7 +1014,7 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				     * imported object.
 				     */
 				    snodePtr = smiGetNode($1,
-							  importPtr->name);
+							  importPtr->module);
 				    $$ = addObject($1,
 					getParentNode(
 					    createNodes(snodePtr->oid)),
@@ -1233,6 +1233,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				} else {
 				    parentPtr->listPtr = newlistPtr;
 				}
+				addObjectFlags(parentPtr, FLAG_CREATABLE);
 			    }
 			    setObjectStatus(objectPtr, $9);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);

@@ -1,0 +1,2 @@
+dummy:
+	make -C ..

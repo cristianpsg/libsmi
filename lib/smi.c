@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.15 1999/03/30 23:18:22 strauss Exp $
+ * @(#) $Id: smi.c,v 1.16 1999/03/31 17:24:30 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -492,6 +492,13 @@ createSmiNode(objectPtr)
 	}
 	
 	smiNodePtr->list	= NULL;
+	if (objectPtr->flags & FLAG_CREATABLE) {
+	    /*
+	     * If new rows can be created, create at least an empty list,
+	     * instead of returning NULL as the list.
+	     */
+	    addPtr(&smiNodePtr->list, NULL);
+	}
 	for (listPtr = objectPtr->listPtr; listPtr;
 	     listPtr = listPtr->nextPtr) {
 	    addPtr(&smiNodePtr->list, ((Object *)listPtr->ptr)->name);
@@ -775,6 +782,15 @@ smiGetModule(name)
 
 
 
+void
+smiFreeModule(smiModulePtr)
+    SmiModule     *smiModulePtr;
+{
+    ;
+}
+
+
+
 SmiRevision *
 smiGetFirstRevision(modulename)
     char		*modulename;
@@ -844,6 +860,15 @@ smiGetNextRevision(modulename, date)
     }
 
     return NULL;
+}
+
+
+
+void
+smiFreeRevision(smiRevisionPtr)
+    SmiRevision     *smiRevisionPtr;
+{
+    ;
 }
 
 
@@ -937,6 +962,15 @@ smiGetNextNode(modulename, name)
     }
     
     return createSmiNode(objectPtr);
+}
+
+
+
+void
+smiFreeNode(smiNodePtr)
+    SmiNode         *smiNodePtr;
+{
+    ;
 }
 
 
@@ -1085,6 +1119,15 @@ smiGetNextType(modulename, name)
 
 
 
+void
+smiFreeType(smiTypePtr)
+    SmiType     *smiTypePtr;
+{
+    ;
+}
+
+
+
 SmiMacro *
 smiGetMacro(spec, mod)
     char            *spec;
@@ -1119,6 +1162,15 @@ smiGetMacro(spec, mod)
     } else {
 	return NULL;
     }
+}
+
+
+
+void
+smiFreeMacro(smiMacroPtr)
+    SmiMacro     *smiMacroPtr;
+{
+    ;
 }
 
 
