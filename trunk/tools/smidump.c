@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.67 2003/09/17 12:45:28 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -242,8 +242,6 @@ static void format(char *form)
 static void
 errorHandler(char *path, int line, int severity, char *msg, char *tag)
 {
-    int i;
-    
     if (path) {
 	fprintf(stderr, "%s:%d: ", path, line);
     }
