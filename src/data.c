@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.5 1998/10/22 12:59:54 strauss Exp $
+ * @(#) $Id: data.c,v 1.6 1998/10/22 15:18:00 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1663,6 +1663,46 @@ setTypeFlags(type, flags)
     Flags flags;
 {
     type->flags |= flags;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findTypeByName --
+ *
+ *      Lookup a Type by a given Descriptor name.
+ *
+ * Results:
+ *      A pointer to the Type structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Type *
+findTypeByName(name)
+    const char *name;
+{
+    Descriptor *descriptor;
+    Module *module;
+    
+    printDebug(4, "findTypeByName(\"%s\")", name);
+
+    for (descriptor = firstDescriptor[KIND_TYPE];
+	 descriptor; descriptor = descriptor->nextSameKind) {
+	if (!strcmp(descriptor->name, name)) {
+	    printDebug(4, " = %s\n", descriptor->name);
+	    return (descriptor->ptr);
+	}
+    }
+	
+    printDebug(4, " = NULL\n");
+    return (NULL);
 }
 
 
