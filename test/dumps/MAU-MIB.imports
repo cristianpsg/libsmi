@@ -1,0 +1,11 @@
+MAU-MIB
+  |
+  +--SNMPv2-SMI [7 identifiers]
+  +--SNMPv2-TC [2 identifiers]
+  |  |
+  |  +--SNMPv2-SMI [1 identifier]
+  |
+  +--SNMPv2-CONF [3 identifiers]
+     |
+     +--SNMPv2-SMI [3 identifiers]
+   

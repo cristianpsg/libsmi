@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.38 1999/06/18 15:04:34 strauss Exp $
+ * @(#) $Id: data.h,v 1.39 1999/09/30 08:16:43 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -455,8 +455,8 @@ extern Type *duplicateType(Type *templatePtr,
 			   TypeFlags flags,
 			   Parser *parserPtr);
 
-extern void setTypeName(Type *typePtr,
-			char *name);
+extern Type *setTypeName(Type *typePtr,
+			 char *name);
 
 extern void setTypeStatus(Type *typePtr,
 			  SmiStatus status);

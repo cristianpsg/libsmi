@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.42 1999/10/01 12:46:55 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.43 1999/10/05 06:30:57 strauss Exp $
  */
 
 %{
@@ -518,7 +518,6 @@ module:			moduleName
 			    for(typePtr = thisModulePtr->firstTypePtr;
 				typePtr;
 				typePtr = typePtr->nextPtr) {
-				
 				if ((typePtr->flags & FLAG_INCOMPLETE) &&
 				    typePtr->name &&
 				    (typePtr->decl == SMI_DECL_UNKNOWN)) {

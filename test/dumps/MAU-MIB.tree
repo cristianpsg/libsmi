@@ -1,0 +1,171 @@
+--iso(1)
+  |
+  +--org(3)
+     |
+     +--dod(6)
+        |
+        +--internet(1)
+           |
+           +--mgmt(2)
+              |
+              +--mib-2(1)
+                 |
+                 +--snmpDot3MauMgt(26)
+                    |
+                    +--(0)
+                    |  |
+                    |  +--rpMauJabberTrap(1) [rpMauJabberState]
+                    |  |
+                    |  +--ifMauJabberTrap(2) [ifMauJabberState]
+                    |
+                    +--dot3RpMauBasicGroup(1)
+                    |  |
+                    |  +--rpMauTable(1)
+                    |  |  |
+                    |  |  +--rpMauEntry(1) [rpMauGroupIndex,rpMauPortIndex,rpMauIndex]
+                    |  |     |
+                    |  |     +-- r-n Integer32        rpMauGroupIndex(1)
+                    |  |     +-- r-n Integer32        rpMauPortIndex(2)
+                    |  |     +-- r-n Integer32        rpMauIndex(3)
+                    |  |     +-- r-n ObjectIdentifier rpMauType(4)
+                    |  |     +-- rwn Enumeration      rpMauStatus(5)
+                    |  |     +-- r-n Enumeration      rpMauMediaAvailable(6)
+                    |  |     +-- r-n Counter32        rpMauMediaAvailableStateExits(7)
+                    |  |     +-- r-n Enumeration      rpMauJabberState(8)
+                    |  |     +-- r-n Counter32        rpMauJabberingStateEnters(9)
+                    |  |     +-- r-n Counter32        rpMauFalseCarriers(10)
+                    |  |
+                    |  +--rpJackTable(2)
+                    |     |
+                    |     +--rpJackEntry(1) [rpMauGroupIndex,rpMauPortIndex,rpMauIndex,rpJackIndex]
+                    |        |
+                    |        +-- --- Integer32 rpJackIndex(1)
+                    |        +-- r-n JackType  rpJackType(2)
+                    |
+                    +--dot3IfMauBasicGroup(2)
+                    |  |
+                    |  +--ifMauTable(1)
+                    |  |  |
+                    |  |  +--ifMauEntry(1) [ifMauIfIndex,ifMauIndex]
+                    |  |     |
+                    |  |     +-- r-n Integer32        ifMauIfIndex(1)
+                    |  |     +-- r-n Integer32        ifMauIndex(2)
+                    |  |     +-- r-n ObjectIdentifier ifMauType(3)
+                    |  |     +-- rwn Enumeration      ifMauStatus(4)
+                    |  |     +-- r-n Enumeration      ifMauMediaAvailable(5)
+                    |  |     +-- r-n Counter32        ifMauMediaAvailableStateExits(6)
+                    |  |     +-- r-n Enumeration      ifMauJabberState(7)
+                    |  |     +-- r-n Counter32        ifMauJabberingStateEnters(8)
+                    |  |     +-- r-n Counter32        ifMauFalseCarriers(9)
+                    |  |     +-- r-n Integer32        ifMauTypeList(10)
+                    |  |     +-- rwn ObjectIdentifier ifMauDefaultType(11)
+                    |  |     +-- r-n TruthValue       ifMauAutoNegSupported(12)
+                    |  |
+                    |  +--ifJackTable(2)
+                    |     |
+                    |     +--ifJackEntry(1) [ifMauIfIndex,ifMauIndex,ifJackIndex]
+                    |        |
+                    |        +-- --- Integer32 ifJackIndex(1)
+                    |        +-- r-n JackType  ifJackType(2)
+                    |
+                    +--dot3BroadMauBasicGroup(3)
+                    |  |
+                    |  +--broadMauBasicTable(1)
+                    |     |
+                    |     +--broadMauBasicEntry(1) [broadMauIfIndex,broadMauIndex]
+                    |        |
+                    |        +-- r-n Integer32   broadMauIfIndex(1)
+                    |        +-- r-n Integer32   broadMauIndex(2)
+                    |        +-- r-n Enumeration broadMauXmtRcvSplitType(3)
+                    |        +-- r-n Integer32   broadMauXmtCarrierFreq(4)
+                    |        +-- r-n Integer32   broadMauTranslationFreq(5)
+                    |
+                    +--dot3MauType(4)
+                    |  |
+                    |  +--dot3MauTypeAUI(1)
+                    |  |
+                    |  +--dot3MauType10Base5(2)
+                    |  |
+                    |  +--dot3MauTypeFoirl(3)
+                    |  |
+                    |  +--dot3MauType10Base2(4)
+                    |  |
+                    |  +--dot3MauType10BaseT(5)
+                    |  |
+                    |  +--dot3MauType10BaseFP(6)
+                    |  |
+                    |  +--dot3MauType10BaseFB(7)
+                    |  |
+                    |  +--dot3MauType10BaseFL(8)
+                    |  |
+                    |  +--dot3MauType10Broad36(9)
+                    |  |
+                    |  +--dot3MauType10BaseTHD(10)
+                    |  |
+                    |  +--dot3MauType10BaseTFD(11)
+                    |  |
+                    |  +--dot3MauType10BaseFLHD(12)
+                    |  |
+                    |  +--dot3MauType10BaseFLFD(13)
+                    |  |
+                    |  +--dot3MauType100BaseT4(14)
+                    |  |
+                    |  +--dot3MauType100BaseTXHD(15)
+                    |  |
+                    |  +--dot3MauType100BaseTXFD(16)
+                    |  |
+                    |  +--dot3MauType100BaseFXHD(17)
+                    |  |
+                    |  +--dot3MauType100BaseFXFD(18)
+                    |  |
+                    |  +--dot3MauType100BaseT2HD(19)
+                    |  |
+                    |  +--dot3MauType100BaseT2FD(20)
+                    |
+                    +--dot3IfMauAutoNegGroup(5)
+                    |  |
+                    |  +--ifMauAutoNegTable(1)
+                    |     |
+                    |     +--ifMauAutoNegEntry(1) [ifMauIfIndex,ifMauIndex]
+                    |        |
+                    |        +-- rwn Enumeration ifMauAutoNegAdminStatus(1)
+                    |        +-- r-n Enumeration ifMauAutoNegRemoteSignaling(2)
+                    |        +-- r-n Enumeration ifMauAutoNegConfig(4)
+                    |        +-- r-n Integer32   ifMauAutoNegCapability(5)
+                    |        +-- rwn Integer32   ifMauAutoNegCapAdvertised(6)
+                    |        +-- r-n Integer32   ifMauAutoNegCapReceived(7)
+                    |        +-- rwn Enumeration ifMauAutoNegRestart(8)
+                    |
+                    +--mauMod(6)
+                       |
+                       +--mauModConf(1)
+                          |
+                          +--mauModCompls(1)
+                          |  |
+                          |  +--mauModRpCompl(1)
+                          |  |
+                          |  +--mauModIfCompl(2)
+                          |
+                          +--mauModObjGrps(2)
+                          |  |
+                          |  +--mauRpGrpBasic(1)
+                          |  |
+                          |  +--mauRpGrp100Mbs(2)
+                          |  |
+                          |  +--mauRpGrpJack(3)
+                          |  |
+                          |  +--mauIfGrpBasic(4)
+                          |  |
+                          |  +--mauIfGrp100Mbs(5)
+                          |  |
+                          |  +--mauIfGrpJack(6)
+                          |  |
+                          |  +--mauIfGrpAutoNeg(7)
+                          |  |
+                          |  +--mauBroadBasic(8)
+                          |
+                          +--mauModNotGrps(3)
+                             |
+                             +--rpMauNotifications(1)
+                             |
+                             +--ifMauNotifications(2)

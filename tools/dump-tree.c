@@ -1,14 +1,15 @@
 /*
- * dump-data.c --
+ * dump-tree.c --
  *
- *      Operations to dump libsmi internal data structures.
+ *      Operations to dump the OID tree in a human readable format.
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+ * Copyright (c) 1999 J. Schoenwaelder, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-data.c,v 1.10 1999/07/02 14:04:04 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <sys/types.h>
@@ -16,33 +17,25 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
-#include <ctype.h>
 #include <stdio.h>
 
 #include "smi.h"
+#include "smidump.h"
 
 
 static char *currentModule;
 
 
-typedef struct TypeNode {
-    char *typename;
-    struct TypeNode *nextNodePtr;
-    struct TypeNode *childNodePtr;
-} TypeNode;
+static void *safeMalloc(size_t size)
+{
+    char *m = malloc(size);
+    if (! m) {
+	fprintf(stderr, "smidump: malloc failed - running out of memory\n");
+	exit(1);
+    }
+    return m;
+}
 
-static TypeNode _Bits = { "Bits", NULL, NULL };
-static TypeNode _Enumeration = { "Enumeration", &_Bits, NULL };
-static TypeNode _Float128 = { "Float128", &_Enumeration, NULL };
-static TypeNode _Float64 = { "Float64", &_Float128, NULL };
-static TypeNode _Float32 = { "Float32", &_Float64, NULL };
-static TypeNode _Unsigned64 = { "Unsigned64", &_Float32, NULL };
-static TypeNode _Unsigned32 = { "Unsigned32", &_Unsigned64, NULL };
-static TypeNode _Integer64 = { "Integer64", &_Unsigned32, NULL };
-static TypeNode _Integer32 = { "Integer32", &_Integer64, NULL };
-static TypeNode _ObjectIdentifier = { "ObjectIdentifier", &_Integer32, NULL };
-static TypeNode _OctetString = { "OctetString", &_ObjectIdentifier, NULL };
-static TypeNode typeRoot = { "", NULL, &_OctetString };
 
 
 static char *getFlags(SmiNode *smiNode)
@@ -91,25 +84,29 @@ static char getStatusChar(SmiStatus status)
 static char *getTypeName(SmiNode *smiNode)
 {
     SmiType *smiType, *parentType;
+    char *type = NULL;
 
     smiType = smiGetType(smiNode->typemodule, smiNode->typename);
     if (! smiType) {
-	return smiNode->typename;
+	return xstrdup(smiNode->typename);
     }
 
     if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 	parentType = smiGetType(smiType->parentmodule, smiType->parentname);
 	if (! parentType) {
-	    return smiType->parentname;
+	    return xstrdup(smiType->parentname);
 	}
+	smiFreeType(smiType);
 	smiType = parentType;
     }
 
     if (smiType) {
-	return smiType->name;
+	char *type = xstrdup(smiType->name);
+	smiFreeType(smiType);
+	return type;
     }
 
-    return smiNode->typename;
+    return xstrdup(smiNode->typename);
 }
 
 
@@ -178,19 +175,16 @@ static int pruneSubTree(SmiNode *smiNode)
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
 	if (! pruneSubTree(childNode)) {
+	    smiFreeNode(childNode);
 	    return 0;
 	}
     }
-#ifdef DEBUG
-    fprintf(stderr, "** pruning %s (%s)\n",
-	    smiNode->name, smiNode->module);
-#endif
     return 1;
 }
 
 
 
-static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
+static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 {
     SmiNode     *childNode, *indexNode;
     SmiNodekind lastNodeKind = SMI_NODEKIND_UNKNOWN;
@@ -213,6 +207,7 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		   typename,
 		   smiNode->name,
 		   smiNode->oid[smiNode->oidlen-1]);
+	    xfree(typename);
 	    if (c) {
 		prefix[prefixlen-1] = c;
 	    }
@@ -238,6 +233,7 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 				       smiNode->relatedname);
 		if (indexNode) {
 		    printIndex(indexNode);
+		    smiFreeNode(indexNode);
 		}
 		break;
 	    case SMI_INDEX_UNKNOWN:
@@ -283,6 +279,7 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		    if (strlen(typename) > newtypefieldlen) {
 			newtypefieldlen = strlen(typename);
 		    }
+		    xfree(typename);
 		}
 		cnt++;
 	    }
@@ -298,15 +295,15 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 		|| (lastNodeKind != childNode->nodekind)) {
 		printf("%s  |\n", prefix);
 	    }
-	    newprefix = malloc(strlen(prefix)+10);
+	    newprefix = xmalloc(strlen(prefix)+10);
 	    strcpy(newprefix, prefix);
 	    if (cnt == 1 || cnt == i) {
 		strcat(newprefix, "   ");
 	    } else {
 		strcat(newprefix, "  |");
 	    }
-	    dumpOidSubTree(childNode, newprefix, newtypefieldlen);
-	    free(newprefix);
+	    dumpSubTree(childNode, newprefix, newtypefieldlen);
+	    xfree(newprefix);
 	    lastNodeKind = childNode->nodekind;
 	}
     }
@@ -314,45 +311,20 @@ static void dumpOidSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
 
 
 
-int dumpOidTree(char *modulename)
+int dumpTree(char *modulename)
 {
+    SmiNode *smiNode;
+
     currentModule = modulename;
-    dumpOidSubTree(smiGetNode(NULL, "iso"), "", 0);
-    return 0;
-}
 
+    printf("# %s registration tree (generated by smidump "
+	   VERSION ")\n\n", modulename);
 
-
-static void printType(SmiType *smiType, int level)
-{
-    SmiType *parentType;
-
-    if (smiType->parentmodule && smiType->parentname) {
-	parentType = smiGetType(smiType->parentmodule, smiType->parentname);
-	if (parentType) {
-	    printType(parentType, level+1);
-	}
-	printf("%*c%s\n", 2 * level, ' ', smiType->name);
-	return;
-    } else if (! smiType->parentmodule && smiType->parentname) {
-	printf("%*c%s\n", 2 * level, ' ', smiType->parentname);
-	printf("%*c%s\n", 2 * (level + 1), ' ', smiType->name);
-	return;
-    } else {
-	printf("%*c%s\n", 2 * level, ' ', smiType->name);
+    smiNode = smiGetNode(NULL, "iso");
+    if (smiNode) {
+	dumpSubTree(smiNode, "", 0);
+	smiFreeNode(smiNode);
     }
-    return;
-}
-
-
-
-int dumpTypes(char *modulename)
-{
-    SmiType *smiType;
     
-    for (smiType = smiGetFirstType(modulename);
-	 smiType; smiType = smiGetNextType(smiType)) {
-	printType(smiType, 1);
-    }
     return 0;
 }
