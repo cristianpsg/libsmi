@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.25 2000/07/17 09:34:48 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.26 2000/10/02 12:51:12 strauss Exp $
  */
 
 %option noyywrap
@@ -199,7 +199,9 @@ eol             ("\n"|"\n\015"|"\015\n")
     BEGIN(INITIAL);
 }
 
-<Comment>.* {
+<Comment>[^-\n]* {
+}
+<Comment>"-" {
 }
 
  /*
