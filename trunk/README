@@ -2,15 +2,20 @@
 LIBSMI -- A LIBRARY FOR SMI MANAGEMENT INFORMATION
 ==================================================
 
-Copyright (c) 1999-2002 Frank Strauss, Technical University of Braunschweig.
+Copyright (c) 1999-2004 Frank Strauss, Technical University of Braunschweig.
 
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.28 2002/06/21 14:30:59 strauss Exp $
+@(#) $Id: README,v 1.29 2002/12/22 16:12:23 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
-thesis at the Technical University of Braunschweig, Germany.
+thesis at the Technical University of Braunschweig, Germany in 1999.
+Since then numerous people applied very major improvements, fixes, and
+new features, namely Juergen Schoenwaelder who also initiated the
+whole project and supervised my thesis work, as well as Torsten Klie,
+Andreas Mueller, Moritz Bunkus, and Jens Mueller. Many others
+contributed lots of patches, improvements, and feature requests.
 
 This software comprises 
 
@@ -30,6 +35,7 @@ README					this file
 COPYING					the libsmi lincense terms
 ChangeLog				a rough history of changes
 TODO					incomplete list of things to be done
+THANKS					a list of people who contributed
 configure				configure script
 lib/					library source code
 tools/					tools source code
@@ -112,10 +118,11 @@ FURTHER READING
 ===============
 
 Read the man pages for library concepts and usage and for the tools.
-Please note that SMIng is currently in a quite inconsistent and outdated
-state. It does not reflect what is being discussed in the IETF SMING WG
-after spring 2001. See the old specs in doc/draft-irtf-nmrg-sming-02.txt
-for details on SMIng as it is implemented so far. 
+Please note that SMIng is currently in a quite inconsistent and
+outdated state. It does *not* reflect what is being specified in RFCs
+3780/3781.  Therefore, SMIng is not enabled by default. See the old
+specs in doc/draft-irtf-nmrg-sming-02.txt for details on SMIng as it
+is implemented so far. But it is probably not worth reading. :-)
 
 You may find further information online, along with the subscription
 information on the libsmi mailing list at
