@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.105 2001/08/31 07:33:49 strauss Exp $
+ * @(#) $Id: data.c,v 1.106 2001/08/31 07:41:09 strauss Exp $
  */
 
 #include <config.h>
@@ -535,6 +535,33 @@ Revision *addRevision(time_t date, char *description, Parser *parserPtr)
     modulePtr->lastRevisionPtr		 = revisionPtr;
     
     return (revisionPtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setRevisionLine --
+ *
+ *      Set the line of definition of a given Revision.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void setRevisionLine(Revision *revisionPtr, int line, Parser *parserPtr)
+{
+    if (line) {
+	revisionPtr->line = line;
+    } else {
+	revisionPtr->line = parserPtr ? parserPtr->line : -1;
+    }
 }
 
 

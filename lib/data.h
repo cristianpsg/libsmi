@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.73 2001/08/22 17:51:42 strauss Exp $
+ * @(#) $Id: data.h,v 1.74 2001/09/18 11:04:40 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -318,6 +318,10 @@ extern Module *findModuleByName(const char *modulename);
 extern Revision *addRevision(time_t date,
 			     char *description,
 			     Parser *parserPtr);
+
+extern void setRevisionLine(Revision *revisionPtr,
+			    int line,
+			    Parser *parserPtr);
 
 
 
