@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.24 1999/04/10 19:37:20 strauss Exp $
+# @(#) $Id: Makefile,v 1.25 1999/04/12 17:21:26 strauss Exp $
 #
 
 #MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
@@ -88,10 +88,10 @@ clean:
 
 install: install-prg install-conf install-dev install-lib install-html
 
-#install-prg: tools/smilint tools/smidump tools/smiclient tools/smiquery tools/smid doc/smilint.1
-install-prg: tools/smilint tools/smidump tools/smiquery doc/smilint.1
-	cp tools/smilint tools/smidump tools/smiclient tools/smiquery tools/smid ${PREFIX}/bin
+install-prg: tools/smilint tools/smidump tools/smiquery doc/smilint.1 doc/smidump.1
+	cp tools/smilint tools/smidump tools/smiquery ${PREFIX}/bin
 	cp doc/smilint.1 ${PREFIX}/man/man1
+	cp doc/smidump.1 ${PREFIX}/man/man1
 
 install-conf:
 	cp etc/smi*.conf ${PREFIX}/etc
@@ -99,6 +99,7 @@ install-conf:
 install-dev: lib/smi.h lib/libsmi.a
 	cp lib/smi.h ${PREFIX}/include
 	cp lib/libsmi.a ${PREFIX}/lib
+	cp doc/*.3 ${PREFIX}/man/man3
 
 install-lib:
 	if [ ! -d ${PREFIX}/lib/smi ] ; then mkdir ${PREFIX}/lib/smi ; fi
