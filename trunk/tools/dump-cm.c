@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.10 2000/05/04 10:23:34 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.11 2000/05/04 21:13:38 strauss Exp $
  */
 
 
@@ -2788,7 +2788,8 @@ static void printXML(Graph *graph)
 	 tNode;
 	 tNode = graphGetNextNode(graph, tNode)) {
 
-	if (!graphGetFirstEdgeByNode(graph,tNode)) {
+	if (!graphGetFirstEdgeByNode(graph,tNode) &&
+	    tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    printXMLObject(graph,tNode,x,y);
 	    
 	    x += tNode->w;
