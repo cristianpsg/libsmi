@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.35 1999/06/12 13:40:08 strauss Exp $
+ * @(#) $Id: smi.h,v 1.36 1999/06/15 14:09:41 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -90,8 +90,8 @@ typedef enum SmiStatus {
 /* SmiAccess -- values of access levels                                      */
 typedef enum SmiAccess {
     SMI_ACCESS_UNKNOWN          = 0, /* should not occur                     */
-    SMI_ACCESS_NOT_ACCESSIBLE   = 1,
-    SMI_ACCESS_NOTIFY           = 2,
+    SMI_ACCESS_NOT_ACCESSIBLE   = 1, /* the values 1 to 5 are allow to be    */
+    SMI_ACCESS_NOTIFY           = 2, /* compared by relational operators.    */
     SMI_ACCESS_READ_ONLY        = 3,
     SMI_ACCESS_READ_WRITE       = 4,
     SMI_ACCESS_READ_CREATE      = 5,
