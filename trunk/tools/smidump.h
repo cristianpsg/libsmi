@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.3 2000/02/16 15:45:24 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.4 2000/02/17 09:00:54 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
@@ -50,6 +50,8 @@ extern int dumpJava(char *modulename, int flags);
 extern int dumpJdmk(char *modulename, int flags);
 
 extern int dumpDia(char *modulename, int flags);
+
+extern int dumpJax(char *modulename, int flags);
 
 extern int dumpFigTree(char *modulename, int flags);
 extern int dumpFigUml(char *modulename, int flags);
