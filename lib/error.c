@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.33 2000/01/14 09:11:27 strauss Exp $
+ * @(#) $Id: error.c,v 1.34 2000/02/02 17:30:30 strauss Exp $
  */
 
 #include <string.h>
@@ -103,8 +103,14 @@ Error errors[] = {
       "Invalid access `%s' in SMIV1 style MIB" },
     { 2, ERR_INVALID_SMIV2_ACCESS, "access-invalid-smiv2",
       "Invalid access `%s' in SMIV2 style MIB" },
-    { 3, ERR_WRITE_ONLY_ACCESS, "access-write-only", 
-      "ACCESS `write-only' is only allowed for backward compatibility in SMIv2" },
+    { 2, ERR_SMIV2_WRITE_ONLY, "access-write-only-smiv2", 
+      "Access `write-only' is no longer allowed in SMIv2" },
+    { 4, ERR_SMIV1_WRITE_ONLY, "access-write-only-smiv1", 
+      "Access `write-only' is not a good idea" },
+    { 2, ERR_INVALID_NOTIFICATION_VARIATION_ACCESS, "variation-notification-access", 
+      "Invalid access `%s' in a notification variation" },
+    { 2, ERR_INVALID_OBJECT_VARIATION_ACCESS, "variation-object-access", 
+      "Invalid access `%s' in an object variation" },
     { 3, ERR_MODULE_IDENTITY_NOT_FIRST, "module-identity-not-first", 
       "The MODULE-IDENTITY clause must be the first declaration in a module" },
     { 2, ERR_INVALID_SMIV1_STATUS, "status-invalid-smiv1", 

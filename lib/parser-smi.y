@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.76 2000/02/09 19:56:49 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.77 2000/02/10 14:29:27 strauss Exp $
  */
 
 %{
@@ -57,6 +57,7 @@ static Node	   *parentNodePtr;
 static int	   impliedFlag;
 static SmiBasetype defaultBasetype;
 static Module      *complianceModulePtr = NULL;
+static Module      *capabilitiesModulePtr = NULL;
 
 
 #define MAX_UNSIGNED32		4294967295
@@ -690,12 +691,16 @@ checkDate(Parser *parserPtr, char *date)
 %type  <err>ModulePart_Capabilities
 %type  <err>Modules_Capabilities
 %type  <err>Module_Capabilities
-%type  <err>ModuleName_Capabilities
+%type  <modulePtr>ModuleName_Capabilities
 %type  <listPtr>CapabilitiesGroups
 %type  <listPtr>CapabilitiesGroup
 %type  <err>VariationPart
 %type  <err>Variations
 %type  <err>Variation
+%type  <access>NotificationVariationAccessPart
+%type  <access>ObjectVariationAccessPart
+%type  <access>NotificationVariationAccess
+%type  <access>ObjectVariationAccess
 %type  <err>NotificationVariation
 %type  <err>ObjectVariation
 %type  <err>CreationPart
@@ -1032,7 +1037,6 @@ declaration:		typeDeclaration
 			    thisParserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
-			/* TODO: check it's first and once */
 	|		moduleComplianceClause
 			{ 
 			    thisParserPtr->modulePtr->numStatements++;
@@ -1045,6 +1049,11 @@ declaration:		typeDeclaration
 			}
 	|		notificationGroupClause
 			{
+			    thisParserPtr->modulePtr->numStatements++;
+			    $$ = 0;
+			}
+	|		agentCapabilitiesClause
+			{ 
 			    thisParserPtr->modulePtr->numStatements++;
 			    $$ = 0;
 			}
@@ -1404,25 +1413,9 @@ row:			UPPERCASE_IDENTIFIER
 				     * TODO: is this allowed in a SEQUENCE? 
 				     */
 				    importPtr->use++;
-#if 0
-				    XXX
-				    stypePtr = smiGetType(
-						  importPtr->export.module, $1);
-				    if (stypePtr) {
-					$$ = addType($1, stypePtr->basetype,
-						     FLAG_IMPORTED,
-						     thisParserPtr);
-				    } else {
-					$$ = addType($1, SMI_BASETYPE_UNKNOWN,
-					       FLAG_INCOMPLETE | FLAG_IMPORTED,
-						     thisParserPtr);
-				    }
-				    smiFreeType(stypePtr);
-#else
 				    $$ = findTypeByModulenameAndName(
 					importPtr->export.module,
 					importPtr->export.name);
-#endif
 				}
 			    }
 			}
@@ -1490,20 +1483,8 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 				     * imported object.
 				     */
 				    importPtr->use++;
-#if 0
-				    snodePtr = smiGetNode(
-						  importPtr->export.module, $1);
-				    objectPtr = addObject($1,
-					getParentNode(
-				             createNodes(snodePtr->oidlen,
-							 snodePtr->oid)),
-					snodePtr->oid[snodePtr->oidlen-1],
-					FLAG_IMPORTED, thisParserPtr);
-				    smiFreeNode(snodePtr);
-#else
 				    objectPtr = findObjectByModulenameAndName(
 					importPtr->export.module, $1);
-#endif
 				}
 			    }
 
@@ -3237,6 +3218,10 @@ Access:			LOWERCASE_IDENTIFIER
 				    $$ = SMI_ACCESS_READ_WRITE;
 				    thisParserPtr->flags |= FLAG_CREATABLE;
 				    /* TODO:remember it's really read-create */
+				} else if (!strcmp($1, "write-only")) {
+				    printError(thisParserPtr,
+					       ERR_SMIV2_WRITE_ONLY);
+				    $$ = SMI_ACCESS_READ_WRITE;
 				} else {
 				    printError(thisParserPtr,
 					       ERR_INVALID_SMIV2_ACCESS,
@@ -3251,8 +3236,9 @@ Access:			LOWERCASE_IDENTIFIER
 				} else if (!strcmp($1, "read-write")) {
 				    $$ = SMI_ACCESS_READ_WRITE;
 				} else if (!strcmp($1, "write-only")) {
+				    printError(thisParserPtr,
+					       ERR_SMIV1_WRITE_ONLY);
 				    $$ = SMI_ACCESS_READ_WRITE;
-				    /* TODO: remember it's really write-only */
 				} else {
 				    printError(thisParserPtr,
 					       ERR_INVALID_SMIV1_ACCESS, $1);
@@ -3595,6 +3581,19 @@ subidentifier:
 								thisParserPtr);
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
+						importPtr->use++;
+					    }
+					} else if (capabilitiesModulePtr) {
+					    objectPtr =
+						findObjectByModuleAndName(
+						    capabilitiesModulePtr, $1);
+					    if (objectPtr) {
+						importPtr = addImport($1,
+								thisParserPtr);
+						setImportModulename(importPtr,
+					                capabilitiesModulePtr->
+								  export.name);
+						importPtr->use++;
 					    }
 					} else {
 					    /* 
@@ -3616,28 +3615,8 @@ subidentifier:
 					 * imported object.
 					 */
 					importPtr->use++;
-#if 0
-					snodePtr = smiGetNode(
-						  importPtr->export.module, $1);
-					if (snodePtr) {
-					    $$ = addObject($1, 
-							   getParentNode(
-					          createNodes(snodePtr->oidlen,
-						 	      snodePtr->oid)),
-					    snodePtr->oid[snodePtr->oidlen-1],
-							   FLAG_IMPORTED,
-							   thisParserPtr);
-					    smiFreeNode(snodePtr);
-					} else {
-					    $$ = addObject($1, pendingNodePtr,
-							   0,
-					       FLAG_IMPORTED | FLAG_INCOMPLETE,
-							   thisParserPtr);
-					}
-#else
 					$$ = findObjectByModulenameAndName(
 					    importPtr->export.module, $1);
-#endif
 				    }
 				}
 				if ($$)
@@ -3681,6 +3660,19 @@ subidentifier:
 								thisParserPtr);
 						setImportModulename(importPtr,
 						    complianceModulePtr->export.name);
+						importPtr->use++;
+					    }
+					} else if (capabilitiesModulePtr) {
+					    objectPtr =
+						findObjectByModuleAndName(
+						    capabilitiesModulePtr, $1);
+					    if (objectPtr) {
+						importPtr = addImport($1,
+								thisParserPtr);
+						setImportModulename(importPtr,
+						        capabilitiesModulePtr->
+								  export.name);
+						importPtr->use++;
 					    }
 					} else {
 					    /* 
@@ -3702,20 +3694,8 @@ subidentifier:
 					 * imported object.
 					 */
 					importPtr->use++;
-#if 0
-					snodePtr = smiGetNode($1, $3);
-					$$ = addObject($3, 
-					  getParentNode(
-					      createNodes(snodePtr->oidlen,
-						          snodePtr->oid)),
-					  snodePtr->oid[snodePtr->oidlen-1],
-					  FLAG_IMPORTED,
-					  thisParserPtr);
-					smiFreeNode(snodePtr);
-#else
 					$$ = findObjectByModulenameAndName(
 					    importPtr->export.module, $1);
-#endif
 				    }
 				}
 				if ($$)
@@ -4422,6 +4402,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 				objectPtr = duplicateObject(objectPtr, 0,
 							    thisParserPtr);
 			    }
+			    setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
@@ -4431,6 +4412,8 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    if ($11) {
 				setObjectReference(objectPtr, $11);
 			    }
+			    setObjectAccess(objectPtr,
+					    SMI_ACCESS_NOT_ACCESSIBLE);
 				/*
 				 * TODO: PRODUCT_RELEASE Text
 				 * TODO: ModulePart_Capabilities
@@ -4452,11 +4435,30 @@ Modules_Capabilities:	Module_Capabilities
 	;
 
 Module_Capabilities:	SUPPORTS ModuleName_Capabilities
-			/* TODO: example in the SimpleBook names the module
-			 * while the given syntax provides oids ?! */
+			{
+			    /*
+			     * Remember the module. SMIv2 is broken by
+			     * design to allow subsequent clauses to
+			     * refer identifiers that are not
+			     * imported.  Although, SMIv2 does not
+			     * require, we will fake it by inserting
+			     * appropriate imports.
+			     */
+			    if ($2 == thisModulePtr)
+				capabilitiesModulePtr = NULL;
+			    else
+				capabilitiesModulePtr = $2;
+			}
 			INCLUDES '{' CapabilitiesGroups '}'
 			VariationPart
-			{ $$ = 0; }
+			{
+			    if (capabilitiesModulePtr) {
+				checkImports(capabilitiesModulePtr,
+					     thisParserPtr);
+				capabilitiesModulePtr = NULL;
+			    }
+			    $$ = 0;
+			}
 	;
 
 CapabilitiesGroups:	CapabilitiesGroup
@@ -4486,14 +4488,21 @@ CapabilitiesGroup:	objectIdentifier
 			}
 	;
 
-ModuleName_Capabilities: objectIdentifier
-			{ $$ = 0; }
+ModuleName_Capabilities: UPPERCASE_IDENTIFIER objectIdentifier
+			{
+			    $$ = findModuleByName($1);
+			    /* TODO: handle objectIdentifier */
+			    if (!$$) {
+				$$ = loadModule($1);
+			    }
+			}
 	|		UPPERCASE_IDENTIFIER
-			{ $$ = 0; }
-	|		/* empty */
-			/* empty, only if contained in MIB module */
-			/* TODO: ?? */
-			{ $$ = 0; }
+			{
+			    $$ = findModuleByName($1);
+			    if (!$$) {
+				$$ = loadModule($1);
+			    }
+			}
 	;
 
 VariationPart:		Variations
@@ -4515,7 +4524,7 @@ Variation:		ObjectVariation
 	;
 
 NotificationVariation:	VARIATION ObjectName
-			AccessPart
+			NotificationVariationAccessPart
 			DESCRIPTION Text
 			{
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
@@ -4526,7 +4535,7 @@ NotificationVariation:	VARIATION ObjectName
 ObjectVariation:	VARIATION ObjectName
 			SyntaxPart
 			WriteSyntaxPart
-			AccessPart
+			ObjectVariationAccessPart
 			CreationPart
 			DefValPart
 			DESCRIPTION Text
@@ -4535,6 +4544,64 @@ ObjectVariation:	VARIATION ObjectName
 			    $$ = 0;
 			}
 	;
+
+NotificationVariationAccessPart: ACCESS NotificationVariationAccess
+			{ $$ = $2; }
+	|		/* empty */
+			{ $$ = 0; }
+	;
+
+ObjectVariationAccessPart: ACCESS ObjectVariationAccess
+			{ $$ = $2; }
+	|		/* empty */
+			{ $$ = 0; }
+	;
+
+NotificationVariationAccess: LOWERCASE_IDENTIFIER
+			{
+			    if (!strcmp($1, "not-implemented")) {
+				$$ = SMI_ACCESS_NOT_IMPLEMENTED;
+			    } else if (!strcmp($1, "accessible-for-notify")) {
+				$$ = SMI_ACCESS_NOTIFY;
+			    } else if (!strcmp($1, "read-only")) {
+				$$ = SMI_ACCESS_READ_ONLY;
+			    } else if (!strcmp($1, "read-write")) {
+				$$ = SMI_ACCESS_READ_WRITE;
+			    } else if (!strcmp($1, "read-create")) {
+				$$ = SMI_ACCESS_READ_WRITE;
+			    } else {
+				printError(thisParserPtr,
+				     ERR_INVALID_NOTIFICATION_VARIATION_ACCESS,
+					   $1);
+				$$ = SMI_ACCESS_UNKNOWN;
+			    }
+			    util_free($1);
+			}
+        ;
+
+ObjectVariationAccess:  LOWERCASE_IDENTIFIER
+			{
+			    if (!strcmp($1, "accessible-for-notify")) {
+				$$ = SMI_ACCESS_NOTIFY;
+			    } else if (!strcmp($1, "read-only")) {
+				$$ = SMI_ACCESS_READ_ONLY;
+			    } else if (!strcmp($1, "read-write")) {
+				$$ = SMI_ACCESS_READ_WRITE;
+			    } else if (!strcmp($1, "read-create")) {
+				$$ = SMI_ACCESS_READ_WRITE;
+			    } else if (!strcmp($1, "write-only")) {
+				$$ = SMI_ACCESS_READ_WRITE; /* TODO */
+				printError(thisParserPtr,
+					   ERR_SMIV2_WRITE_ONLY);
+			    } else {
+				printError(thisParserPtr,
+				           ERR_INVALID_OBJECT_VARIATION_ACCESS,
+					   $1);
+				$$ = SMI_ACCESS_UNKNOWN;
+			    }
+			    util_free($1);
+			}
+        ;
 
 CreationPart:		CREATION_REQUIRES '{' Cells '}'
 			{ $$ = 0; }
@@ -4554,4 +4621,4 @@ Cell:			ObjectName
 
 %%
 
-#endif /*  */
+#endif

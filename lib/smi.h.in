@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.5 2000/02/10 10:09:43 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.6 2000/02/10 11:35:37 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -84,10 +84,11 @@ typedef enum SmiStatus {
 /* SmiAccess -- values of access levels                                      */
 typedef enum SmiAccess {
     SMI_ACCESS_UNKNOWN          = 0, /* should not occur                     */
-    SMI_ACCESS_NOT_ACCESSIBLE   = 1, /* the values 1 to 4 are allowed to be  */
-    SMI_ACCESS_NOTIFY           = 2, /* compared by relational operators.    */
-    SMI_ACCESS_READ_ONLY        = 3,
-    SMI_ACCESS_READ_WRITE       = 4
+    SMI_ACCESS_NOT_IMPLEMENTED  = 1, /* only for agent capability variations */
+    SMI_ACCESS_NOT_ACCESSIBLE   = 2, /* the values 2 to 5 are allowed to be  */
+    SMI_ACCESS_NOTIFY           = 3, /* compared by relational operators.    */
+    SMI_ACCESS_READ_ONLY        = 4,
+    SMI_ACCESS_READ_WRITE       = 5
 } SmiAccess;
 
 /* SmiNodekind -- type or statement that leads to a definition               */
