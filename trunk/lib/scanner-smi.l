@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.23 2000/06/14 13:15:18 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.24 2000/06/21 12:40:58 strauss Exp $
  */
 
 %option noyywrap
@@ -33,11 +33,10 @@
 #include "scanner-smi.h"
 
  
-#if defined(_WIN32)
-# undef YY_DECL
-/* vc++ misses this; reason unclear */
-# define YY_DECL int smilex   (YYSTYPE *lvalp, void *parser)   
-#endif
+/* we need a reentrant parser, so yylex gets an argument */
+#define YY_USE_PROTOS
+#define YY_DECL int yylex YY_PROTO((YYSTYPE *lvalp, void *parser))
+    
 
 
 #define thisParser (*(Parser *) parser)

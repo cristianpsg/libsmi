@@ -8,16 +8,16 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.71 2000/06/20 15:17:03 strauss Exp $
+# @(#) $Id: configure.in,v 1.72 2000/06/28 16:01:23 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
 
 LIBSMI_MAJOR=0
 LIBSMI_MINOR=2
-LIBSMI_PATCHLEVEL=4
+LIBSMI_PATCHLEVEL=5
 LIBTOOL_VERSION=2	# increment, when MAJOR and/or MINOR changes
-LIBTOOL_REVISION=4	# increment, when PATCHLEVEL changes
+LIBTOOL_REVISION=5	# increment, when PATCHLEVEL changes
 LIBTOOL_AGE=0
 
 VERSION_STRING="$LIBSMI_MAJOR.$LIBSMI_MINOR.$LIBSMI_PATCHLEVEL"
@@ -40,6 +40,19 @@ AC_PROG_CC
 AC_ARG_WITH(cc,
 [  --with-cc=CC            use CC as the C compiler],
 CC="$withval")
+
+AC_MSG_CHECKING([for additional required compiler flags])
+AC_TRY_RUN([#include <stdio.h>
+  main() {
+  #ifdef __SUNPRO_C
+        exit(0);
+  #else
+        exit(1);
+  #endif
+  }
+], ADDCFLAGS="-Xc", ADDCFLAGS="", ADDCFLAGS="")
+echo $ADDCFLAGS
+CFLAGS="$CFLAGS $ADDCFLAGS"
 
 AC_CHECK_FUNCS(strtoll strtoull strtoq strtouq)
 

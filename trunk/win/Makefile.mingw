@@ -6,7 +6,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id$
+# @(#) $Id: Makefile.mingw,v 1.1 2000/05/17 10:17:11 strauss Exp $
 #
 
 ##
@@ -41,6 +41,7 @@ INCLUDES = -I. -I../lib
 LIBSMIOBJS = \
 	win.o \
 	data.o \
+	check.o \
 	error.o \
 	util.o \
 	smi.o \
@@ -63,7 +64,8 @@ TOOLSOBJS = \
 	dump-cm.o \
 	dump-jax.o \
 	dump-ucdsnmp.o \
-	dump-xml.o
+	dump-xml.o \
+	dump-metrics.o
 
 SMILIB = libsmi.a
 
@@ -98,6 +100,7 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 		-o smidump.exe smidump.o dump-sming.o dump-smi.o \
 		dump-imports.o dump-types.o dump-tree.o dump-mosy.o \
 		dump-corba.o dump-ucdsnmp.o dump-cm.o dump-jax.o dump-xml.o \
+		dump-metrics.o \
 		$(SMILIB)
 clean:
 	$(RM) *.o

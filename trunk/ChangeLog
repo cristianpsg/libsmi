@@ -1,3 +1,18 @@
+2000-07-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* configure.in (LIBTOOL_VERSION): added checks for additional
+	Sun compiler flag (others may follow) to make the flex generated
+	scanner happy about prototypes.
+
+	* lib/smi.h.in: many compilers are unhappy with empty structures
+	(not only MS VC++).
+
+	* lib/scanner-smi.h: moved YY_DECLs from scanner-*.h to scanner-*.l.
+	
+2000-07-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* win/Makefile.mingw: Updated to reflect check.c and dump-metrics.c.
+
 2000-07-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-jax.c: simplified output by moving some code to

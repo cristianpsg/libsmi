@@ -99,3 +99,5 @@ o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
 o import loops cause endless `smidump -f imports' loops.
 
 o rename test modules: TUBS-IBR prefix.
+
+o make libsmi aware of annotations (when SMIng supports annotations).
