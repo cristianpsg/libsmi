@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.21 2000/11/09 00:05:50 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.22 2000/11/09 22:29:54 strauss Exp $
  */
 
 #include <config.h>
@@ -170,12 +170,13 @@ static int pruneSubTree(SmiNode *smiNode)
 
 
 
-static void dumpSubTree(SmiNode *smiNode, char *prefix, int typefieldlen)
+static void dumpSubTree(SmiNode *smiNode, char *prefix, size_t typefieldlen)
 {
     SmiNode     *childNode, *indexNode;
     SmiNodekind lastNodeKind = SMI_NODEKIND_UNKNOWN;
     SmiType     *type;
-    int         i = 0, cnt, prefixlen, newtypefieldlen = 9;
+    int         i = 0, cnt, prefixlen;
+    size_t      newtypefieldlen = 9;
     char        c = 0;
     char	*type_name;
 

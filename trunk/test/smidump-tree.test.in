@@ -60,7 +60,7 @@ for mib in ${TESTMIBS} ; do
     fi
     echo "comparing \`smidump -f ${OUTFORMAT} $input' output with ${NOMINALDIR}/*."
     cd ${ACTUALDIR}
-    ../../tools/smidump -f ${OUTFORMAT} $input > $mib 2>/dev/null
+    ../../tools/smidump -c/dev/null -f ${OUTFORMAT} $input > $mib 2>/dev/null
     if [ ! -s $mib ] ; then
 	rm $mib
 	FILES=""

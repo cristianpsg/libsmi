@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.32 2000/11/12 17:46:31 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.33 2000/11/13 09:06:00 strauss Exp $
  */
 
 #include <config.h>
@@ -405,7 +405,8 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
     static char    s[100];
     char           ss[9];
-    int		   i, n;
+    int		   n;
+    unsigned int   i;
     SmiNamedNumber *nn;
     SmiNode        *nodePtr;
     

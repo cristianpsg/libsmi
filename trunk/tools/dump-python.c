@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.2 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: dump-python.c,v 1.3 2000/11/12 17:46:31 strauss Exp $
  */
 
 /*
@@ -198,7 +198,8 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
     static char    s[100];
     char           ss[9];
-    int		   i, n;
+    int		   n;
+    unsigned int   i;
     SmiNamedNumber *nn;
     
     s[0] = 0;

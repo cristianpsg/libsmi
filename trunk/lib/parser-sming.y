@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.62 2000/07/06 14:40:42 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.63 2000/11/13 11:32:27 strauss Exp $
  */
 
 %{
@@ -3289,12 +3289,12 @@ anyValue:		bitsValue
 			    case SMI_BASETYPE_INTEGER32:
 				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER32;
-				$$->value.integer32 = - strtoul($2, NULL, 10);
+				$$->value.integer32 = - strtol($2, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				$$ = smiMalloc(sizeof(SmiValue));
 				$$->basetype = SMI_BASETYPE_INTEGER64;
-				$$->value.integer64 = - strtoull($2, NULL, 10);
+				$$->value.integer64 = - strtoll($2, NULL, 10);
 				break;
 			    default:
 				smiPrintError(thisParserPtr,
@@ -3527,7 +3527,7 @@ negativeNumber:		'-' decimalNumber
 			{
 			    $$ = smiMalloc(sizeof(SmiValue));
 			    $$->basetype = SMI_BASETYPE_INTEGER64;
-			    $$->value.integer64 = - strtoull($2, NULL, 10);
+			    $$->value.integer64 = - strtoll($2, NULL, 10);
 			}
         ;
 

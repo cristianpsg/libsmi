@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.33 2000/07/05 11:58:42 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.34 2000/10/21 09:35:03 strauss Exp $
  */
 
 #include <config.h>
@@ -86,7 +86,7 @@ static void errors()
 	exit(1);
     }
     memset(errors, 0, cnt * sizeof(Error));
-    for (i = 0; i < cnt; i++) {
+    for (i = 0; i < (int)cnt; i++) {
 	errors[i].id = i;
 	errors[i].severity = smiGetErrorSeverity(i);
 	errors[i].tag = smiGetErrorTag(i);
@@ -95,7 +95,7 @@ static void errors()
 
     qsort(errors, cnt, sizeof(Error), compare);
     
-    for (i = 0; i < cnt; i++) {
+    for (i = 0; i < (int)cnt; i++) {
 	if (sFlag) {
 	    printf("[%d] %s (%s)\n",
 		   errors[i].severity, errors[i].msg, errors[i].tag);

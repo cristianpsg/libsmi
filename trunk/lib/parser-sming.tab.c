@@ -4752,12 +4752,12 @@ case 310:
 			    case SMI_BASETYPE_INTEGER32:
 				yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 				yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
-				yyval.valuePtr->value.integer32 = - strtoul(yyvsp[0].text, NULL, 10);
+				yyval.valuePtr->value.integer32 = - strtol(yyvsp[0].text, NULL, 10);
 				break;
 			    case SMI_BASETYPE_INTEGER64:
 				yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 				yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER64;
-				yyval.valuePtr->value.integer64 = - strtoull(yyvsp[0].text, NULL, 10);
+				yyval.valuePtr->value.integer64 = - strtoll(yyvsp[0].text, NULL, 10);
 				break;
 			    default:
 				smiPrintError(thisParserPtr,
@@ -5020,7 +5020,7 @@ case 335:
 {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER64;
-			    yyval.valuePtr->value.integer64 = - strtoull(yyvsp[0].text, NULL, 10);
+			    yyval.valuePtr->value.integer64 = - strtoll(yyvsp[0].text, NULL, 10);
 			;
     break;}
 case 336:
