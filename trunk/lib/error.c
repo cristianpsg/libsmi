@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.1 1999/03/11 17:32:59 strauss Exp $
+ * @(#) $Id: error.c,v 1.2 1999/03/23 22:55:39 strauss Exp $
  */
 
 #include <string.h>
@@ -197,6 +197,8 @@ Error errors[] = {
       "Allocating MIB module view: %s" },
     { 1, ERR_ALLOCATING_REVISION,
       "Allocating MIB module revision: %s" },
+    { 1, ERR_OUT_OF_NUMBER_RANGE,
+      "number `%s' is out of SMIv2 value range" },
  
     { 0, 0, NULL }
 };

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.5 1999/03/17 19:09:09 strauss Exp $
+ * @(#) $Id: smi.c,v 1.6 1999/03/23 22:55:41 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -893,6 +893,7 @@ smiGetType(spec, mod)
 	res.name = t->name;
 	res.module = t->modulePtr->name;
 	res.syntax = t->syntax;
+	res.parent = t->parentType;
 	res.decl = t->decl;
 	res.format = t->format;
 	res.units = t->units;
@@ -911,32 +912,8 @@ smi_type *
 smiGetFirstType(modulename)
     smi_descriptor    modulename;
 {
-    static smi_type   smiType;
-    Module	      *modulePtr;
-    
     printDebug(4, "smiGetFirstType(\"%s\")\n", modulename);
-
-    modulePtr = findModuleByName(modulename);
-    
-    if (!modulePtr) {
-	modulePtr = loadModule(modulename);
-    }
-
-    /* TODO: Ensure having all types of this module loaded. */
-
-    if (modulePtr && (modulePtr->firstTypePtr)) {
-	smiType.name        = modulePtr->firstTypePtr->name;
-	smiType.module	    = modulePtr->firstTypePtr->modulePtr->name;
-	smiType.syntax	    = modulePtr->firstTypePtr->syntax;
-	smiType.decl	    = modulePtr->firstTypePtr->decl;
-	smiType.format	    = modulePtr->firstTypePtr->format;
-	smiType.units	    = modulePtr->firstTypePtr->units;
-	smiType.status      = modulePtr->firstTypePtr->status;
-	smiType.description = modulePtr->firstTypePtr->description;
-	return &smiType;
-    }
-
-    return NULL;
+    return smiGetNextType(modulename, "");
 }
 
 
@@ -960,19 +937,26 @@ smiGetNextType(modulename, name)
     }
     
     if (modulePtr && (modulePtr->firstTypePtr)) {
-#if 0
-	for (typePtr = modulePtr->firstTypePtr;
-	     typePtr; typePtr = typePtr->nextPtr) {
-	    printf("%s\n", typePtr->name ? typePtr->name : "-");
-	}
-	printf("XX\n");
-#endif
 	for (hit = 0, typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
+	    /*
+	     * If the name argument is an empty string, we will
+	     * return the first type.
+	     */
+	    if (!strlen(name)) {
+		hit = 1;
+	    }
+	    /*
+	     * If we have found the type named name, we will return
+	     * the next one.
+	     */
 	    if (typePtr->name && !strcmp(typePtr->name, name)) {
 		hit = 1;
 		typePtr = typePtr->nextPtr;
 	    }
+	    /*
+	     * If hit, continue loop, until we have found a real type.
+	     */
 	    if (hit && typePtr && typePtr->name &&
 		(!(typePtr->flags & FLAG_IMPORTED)) &&
 		(typePtr->syntax != SMI_SYNTAX_UNKNOWN) &&
@@ -986,6 +970,19 @@ smiGetNextType(modulename, name)
 	    smiType.name        = typePtr->name;
 	    smiType.module	= typePtr->modulePtr->name;
 	    smiType.syntax	= typePtr->syntax;
+	    smiType.parent	= typePtr->parentType;
+	    if (typePtr->itemlist) {
+		for (n=0, itemlistPtr = typePtr->itemlist; itemlistPtr;
+		     itemlistPtr = itemlistPtr->nextPtr) {
+		    n++;
+		}
+		smiType.itemlist = malloc(n * sizeof(Itemlist *));
+		for (i=0; i < n; i++) {
+		    smiType.itemlist[i]
+		}
+	    } else {
+		smiType.itemlist = NULL;
+	    }
 	    smiType.decl	= typePtr->decl;
 	    smiType.format	= typePtr->format;
 	    smiType.units	= typePtr->units;
@@ -1452,7 +1449,7 @@ smiGetMembers(spec, mod)
 			if (typePtr) {
 			    if (typePtr->syntax == SMI_SYNTAX_SEQUENCE) {
 				/* It is a SEQUENCE -> return all columns. */
-				for (e = (void *)typePtr->sequencePtr; e;
+				for (e = (void *)typePtr->itemlistPtr; e;
 				     e = e->nextPtr) {
 				    sprintf(ss, "%s.%s",
 					 ((Object *)(e->ptr))->modulePtr->name,

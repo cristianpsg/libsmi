@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.7 1999/03/17 19:09:06 strauss Exp $
+ * @(#) $Id: data.c,v 1.8 1999/03/23 22:55:38 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2124,7 +2124,7 @@ addType(typename, syntax, flags, parserPtr)
     typePtr->decl			= SMI_DECL_UNKNOWN;
     typePtr->status			= SMI_STATUS_UNKNOWN;
     typePtr->flags			= flags;
-    typePtr->sequencePtr		= NULL;
+    typePtr->itemlistPtr		= NULL;
     typePtr->parentType			= NULL;
     typePtr->description		= NULL;
     typePtr->reference			= NULL;
@@ -2196,7 +2196,7 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->syntax			= templatePtr->syntax;
     typePtr->decl			= templatePtr->decl;
     typePtr->status			= templatePtr->syntax;
-    typePtr->sequencePtr		= NULL;
+    typePtr->itemlistPtr		= NULL;
     typePtr->flags			= templatePtr->flags;
     typePtr->parentType			= util_strdup(templatePtr->name);
     typePtr->description		= NULL;
@@ -2355,9 +2355,13 @@ setTypeParent(typePtr, parent)
 /*
  *----------------------------------------------------------------------
  *
- * setTypeSequence --
+ * setTypeItemlistPtr --
  *
- *      Set the pointer to a struct list in case of a SEQUENCE type.
+ *      Set the pointer to a struct list. This used for
+ *	- columns of a SEQUENCE type,
+ *	- enumeration items of an enumeration integer type,
+ *	- min-max pair items of a range restricted type,
+ *	- min-max pars items of a size restricted type.
  *
  * Results:
  *	None.
@@ -2369,17 +2373,17 @@ setTypeParent(typePtr, parent)
  */
 
 void
-setTypeSequencePtr(typePtr, sequencePtr)
+setTypeItemlistPtr(typePtr, itemlistPtr)
     Type	   *typePtr;
-    struct List	   *sequencePtr;
+    struct List	   *itemlistPtr;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeSequencePtr(0x%x(%s), 0x%x)\n",
-	       typePtr, typePtr->name ? typePtr->name : "\"\"", sequencePtr);
+    printDebug(5, "setTypeitemlistPtr(0x%x(%s), 0x%x)\n",
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", itemlistPtr);
 #endif
     
-    if (!typePtr->sequencePtr) {
-	typePtr->sequencePtr  = sequencePtr;
+    if (!typePtr->itemlistPtr) {
+	typePtr->itemlistPtr  = itemlistPtr;
     }
 }
 

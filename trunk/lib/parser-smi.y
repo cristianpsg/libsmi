@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.5 1999/03/17 19:09:08 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.6 1999/03/23 22:55:40 strauss Exp $
  */
 
 %{
@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
     
 #ifdef linux
 #include <getopt.h>
@@ -88,6 +89,9 @@ Node   *parentNodePtr;
     smi_access  access;				/* an ACCESS value           */
     Type        *typePtr;
     List        *listPtr;			/* SEQUENCE and INDEX lists  */
+    long	number;				/* value, e.g. in DEFVAL     */
+    NamedNumber *namedNumberPtr;		/* BITS or enum item         */
+    Range       *rangePtr;			/* type restricting range    */
 }
 
 
@@ -208,8 +212,8 @@ Node   *parentNodePtr;
 %type  <objectPtr>sequenceItem
 %type  <typePtr>Syntax
 %type  <typePtr>sequenceSyntax
-%type  <typePtr>NamedBits
-%type  <typePtr>NamedBit
+%type  <listPtr>NamedBits
+%type  <namedNumberPtr>NamedBit
 %type  <id>identifier
 %type  <err>objectIdentityClause
 %type  <err>objectTypeClause
@@ -232,16 +236,16 @@ Node   *parentNodePtr;
 %type  <typePtr>sequenceSimpleSyntax
 %type  <typePtr>ApplicationSyntax
 %type  <typePtr>sequenceApplicationSyntax
-%type  <err>anySubType
-%type  <err>integerSubType
-%type  <err>octetStringSubType
-%type  <err>ranges
-%type  <err>range
-%type  <err>value
-%type  <err>enumSpec
-%type  <err>enumItems
-%type  <err>enumItem
-%type  <err>enumNumber
+%type  <listPtr>anySubType
+%type  <listPtr>integerSubType
+%type  <listPtr>octetStringSubType
+%type  <listPtr>ranges
+%type  <rangePtr>range
+%type  <number>value
+%type  <listPtr>enumSpec
+%type  <listPtr>enumItems
+%type  <namedNumberPtr>enumItem
+%type  <number>enumNumber
 %type  <status>Status
 %type  <status>Status_Capabilities
 %type  <text>DisplayPart
@@ -309,7 +313,7 @@ Node   *parentNodePtr;
 %type  <err>CreationPart
 %type  <err>Cells
 %type  <err>Cell
-%type  <id>number
+%type  <number>number
 
 %%
 
@@ -944,7 +948,7 @@ entryType:		SEQUENCE '{' sequenceItems '}'
 			{
 			    $$ = addType(NULL, SMI_SYNTAX_SEQUENCE, 0,
 					 thisParserPtr);
-			    setTypeSequencePtr($$, $3);
+			    setTypeItemlistPtr($$, $3);
 			}
 ;
 
@@ -1022,8 +1026,13 @@ Syntax:			ObjectSyntax
 			/* TODO: standalone `BITS' ok? seen in RMON2-MIB */
 			/* -> no, it's only allowed in a SEQUENCE {...} */
 			{
-			    /* TODO: ?? */
-			    $$ = $3;
+			    Type *typePtr;
+			    
+			    typePtr = addType(NULL, SMI_SYNTAX_BITS,
+					      FLAG_INCOMPLETE,
+					      thisParserPtr);
+			    setTypeItemlistPtr(typePtr, $3);
+			    $$ = typePtr;
 			}
 	;
 
@@ -1034,8 +1043,7 @@ sequenceSyntax:		/* ObjectSyntax */
 			}
 	|		BITS
 			{
-			    /* TODO: $$ = $1; */
-			    $$ = NULL;
+			    /* TODO: */
 			    $$ = typeOctetStringPtr;
 			}
 	|		UPPERCASE_IDENTIFIER anySubType
@@ -1072,11 +1080,21 @@ sequenceSyntax:		/* ObjectSyntax */
 
 NamedBits:		NamedBit
 			{
-			    $$ = $1;
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
 			}
 	|		NamedBits ',' NamedBit
 			{
-			    /* TODO: append $3 to $1 */
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = (void *)$3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
 			    $$ = $1;
 			}
 	;
@@ -1091,9 +1109,10 @@ NamedBit:		identifier
 			}
 			'(' number ')'
 			{
-			    /* TODO */
-			    $$ = NULL;
-			    $$ = typeOctetStringPtr;
+			    $$ = util_malloc(sizeof(NamedNumber));
+			    /* TODO: success? */
+			    $$->name = util_strdup($1);
+			    $$->number = $4;
 			}
 	;
 
@@ -1436,13 +1455,13 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		INTEGER enumSpec
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-				/* TODO: add enum restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
 			{
@@ -1453,7 +1472,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			{
 			    $$ = duplicateType(typeIntegerPtr, 0, thisParserPtr);
 			    setTypeParent($$, typeIntegerPtr->name);
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		UPPERCASE_IDENTIFIER enumSpec
 			{
@@ -1499,7 +1518,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-				/* TODO: add enum restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
 			/* TODO: UPPERCASE_IDENTIFIER must be an INTEGER */
@@ -1534,7 +1553,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-				/* TODO: add enum restriction */
+			    setTypeItemlistPtr($$, $4);
 			}
 	|		UPPERCASE_IDENTIFIER integerSubType
 			{
@@ -1582,7 +1601,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER integerSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an INT/Int32. */
@@ -1618,7 +1637,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $4);
 			}
 	|		OCTET STRING		/* (SIZE (0..65535))	     */
 			{
@@ -1629,7 +1648,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeParent($$, typeOctetStringPtr->name);
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $3);
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType
 			{
@@ -1677,7 +1696,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				        thisParserPtr->modulePtr->name, $1);
 				setTypeParent($$, s);
 			    }
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER octetStringSubType
 			/* TODO: UPPERCASE_IDENTIFIER must be an OCTET STR. */
@@ -1712,7 +1731,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				sprintf(s, "%s.%s", $1, $3);
 				setTypeParent($$, s);
 			    }
-				/* TODO: add enum restriction */
+			    setTypeItemlistPtr($$, $4);
 			}
 	|		OBJECT IDENTIFIER
 			{
@@ -1812,7 +1831,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeParent($$, parentPtr->name);
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		UNSIGNED32		/* (0..4294967295)	     */
 			{
@@ -1833,7 +1852,7 @@ ApplicationSyntax:	IPADDRESS
 			    }
 			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
 			    setTypeParent($$, parentPtr->name);
-				/* TODO: add subtype restriction */
+			    setTypeItemlistPtr($$, $2);
 			}
 	|		TIMETICKS		/* (0..4294967295)	     */
 			{
@@ -1930,7 +1949,7 @@ anySubType:		integerSubType
 	|		enumSpec
 			/* TODO: warning: ignoring SubType */
 	|		/* empty */
-			{ $$ = 0; }
+			{ $$ = NULL; }
         ;		      
 
 
@@ -1942,7 +1961,7 @@ integerSubType:		'(' ranges ')'		/* at least one range        */
 			 * conflicts. instead, we differentiate the parent
 			 * rule(s) (SimpleSyntax).
 			 */
-			{ $$ = 0; }
+			{ $$ = $2; }
 	;
 
 octetStringSubType:	'(' SIZE '(' ranges ')' ')'
@@ -1952,39 +1971,87 @@ octetStringSubType:	'(' SIZE '(' ranges ')' ')'
 			 * conflicts. instead, we differentiate the parent
 			 * rule(s) (SimpleSyntax).
 			 */
-			{ $$ = 0; }
+			{ $$ = $4; }
 	;
 
 ranges:			range
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
 	|		ranges '|' range
-			{ $$ = 0; }
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = (void *)$3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
 	;
 
 range:			value
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(Range));
+			    /* TODO: success? */
+			    $$->min = $1;
+			    $$->max = $1;
+			}
 	|		value DOT_DOT value
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(Range));
+			    /* TODO: success? */
+			    $$->min = $1;
+			    $$->max = $3;
+			}
 	;
 
 value:			'-' number
-			{ $$ = 0; }
+			{
+			    $$ = - $2;
+			}
 	|		number
-			{ $$ = 0; }
+			{
+			    $$ = $1;
+			}
 	|		HEX_STRING
-			{ $$ = 0; }
+			{
+			    $$ = 42; /* TODO */
+			}
 	|		BIN_STRING
-			{ $$ = 0; }
+			{
+			    $$ = 42; /* TODO */
+			}
 	;
 
 enumSpec:		'{' enumItems '}'
-			{ $$ = 0; }
+			{ $$ = $2; }
 	;
 
 enumItems:		enumItem
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    $$->ptr = $1;
+			    $$->nextPtr = NULL;
+			}
 	|		enumItems ',' enumItem
-			{ $$ = 0; }
+			{
+			    List *p, *pp;
+			    
+			    p = util_malloc(sizeof(List));
+			    /* TODO: success? */
+			    p->ptr = (void *)$3;
+			    p->nextPtr = NULL;
+			    for (pp = $1; pp->nextPtr; pp = pp->nextPtr);
+			    pp->nextPtr = p;
+			    $$ = $1;
+			}
 	;
 
 enumItem:		LOWERCASE_IDENTIFIER
@@ -1996,17 +2063,23 @@ enumItem:		LOWERCASE_IDENTIFIER
 			    }
 			}
 			'(' enumNumber ')'
-			{ $$ = 0; }
+			{
+			    $$ = util_malloc(sizeof(NamedNumber));
+			    /* TODO: success? */
+			    $$->name = util_strdup($1);
+			    $$->number = $4;
+			}
 	;
 
 enumNumber:		number
 			{
-			    $$ = 0;
+			    /* XXX */
+			    $$ = $1;
 			}
 	|		'-' number
 			{
 			    /* TODO: non-negative is suggested */
-			    $$ = 0;
+			    $$ = - $2;
 			}
 	;
 
@@ -2442,7 +2515,7 @@ subidentifier:
 			    Object *objectPtr;
 
 			    nodePtr = findNodeByParentAndSubid(parentNodePtr,
-							       atoi($1));
+							       $1);
 			    if (nodePtr) {
 				/*
 				 * hopefully, the last defined Object for
@@ -2452,7 +2525,7 @@ subidentifier:
 			    } else {
 				objectPtr = addObject("",
 						      parentNodePtr,
-						      atoi($1),
+						      $1,
 						      FLAG_INCOMPLETE,
 						      thisParserPtr);
 				$$ = objectPtr;
@@ -2474,14 +2547,14 @@ subidentifier:
 				printError(thisParserPtr,
 					   ERR_EXISTENT_OBJECT, $1);
 				$$ = objectPtr;
-				if ($$->nodePtr->subid != atoi($3)) {
+				if ($$->nodePtr->subid != $3) {
 				    printError(thisParserPtr,
 					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
 					       $3, $1);
 				}
 			    } else {
 				objectPtr = addObject($1, parentNodePtr,
-						      atoi($3), 0,
+						      $3, 0,
 						      thisParserPtr);
 				setObjectFileOffset(objectPtr,
 						    thisParserPtr->character);
@@ -2501,7 +2574,7 @@ subidentifier:
 				printError(thisParserPtr, ERR_EXISTENT_OBJECT,
 					   $1);
 				$$ = objectPtr;
-				if ($$->nodePtr->subid != atoi($5)) {
+				if ($$->nodePtr->subid != $5) {
 				    printError(thisParserPtr,
 					       ERR_SUBIDENTIFIER_VS_OIDLABEL,
 					       $5, md);
@@ -2510,7 +2583,7 @@ subidentifier:
 				printError(thisParserPtr,
 					   ERR_ILLEGALLY_QUALIFIED, md);
 				objectPtr = addObject($3, parentNodePtr,
-						   atoi($5), 0,
+						   $5, 0,
 						   thisParserPtr);
 				setObjectFileOffset(objectPtr,
 						    thisParserPtr->character);
@@ -2878,9 +2951,20 @@ Cell:			ObjectName
 
 number:			NUMBER
 			{
-			    $$ = util_strdup($1);
+			    unsigned long long ull;
+			    
+			    ull = strtoull($1, NULL, 10);
+			    /* TODO: success? */
+			    if (ull > (unsigned long long)ULONG_MAX) {
+				printError(thisParserPtr,
+					   ERR_OUT_OF_NUMBER_RANGE, $1);
+				ull = ULONG_MAX;
+			    }
+			    $$ = (unsigned long) ull;
+			    
 			    /* TODO */
 			}
 	;
 
-%%			    /*  */
+%%
+
