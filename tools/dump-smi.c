@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.54 2000/04/10 07:34:49 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.55 2000/04/10 14:20:27 strauss Exp $
  */
 
 #include <config.h>
@@ -1221,13 +1221,24 @@ static void printObjects(SmiModule *smiModule)
 		print("%s ::=\n", s);
 		xfree(s);
 	    }
+	    /* Find the last valid node in this sequence. Wen need it
+	     * to suppress its trailing camma. */
+	    for(i = 0, invalid = 0, colNode = smiGetFirstChildNode(smiNode);
+		colNode;
+		colNode = smiGetNextChildNode(colNode)) {
+		smiType = smiGetNodeType(colNode);
+		if (!invalidType(smiType->basetype)) {
+		    relatedNode = colNode;
+		}
+	    }
+	    if (relatedNode) relatedNode = smiGetNextChildNode(relatedNode);
 	    /* TODO: non-local name? */
 	    printSegment(INDENT, "SEQUENCE {", 0, 0);
 	    for(i = 0, invalid = 0, colNode = smiGetFirstChildNode(smiNode);
 		colNode;
 		colNode = smiGetNextChildNode(colNode)) {
 		if (! invalid || ! silent) {
-		    if (i) {
+		    if (i && (relatedNode != colNode)) {
 			print(",");
 		    }
 		    print("\n");
