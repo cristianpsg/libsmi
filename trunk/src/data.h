@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+ * @(#) $Id: data.h,v 1.2 1998/10/12 15:11:06 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -34,7 +34,9 @@ typedef unsigned int SubId;
  * Quoted String.
  */
 typedef struct String {
-    char content[201];			/*   first 200 chars		    */
+#ifdef TEXTS_IN_MEMORY
+    char *ptr;	      			/*   the value			    */
+#endif
     int fileoffset;			/*   offset in this file	    */
     int length;				/*   full length		    */
 } String;
@@ -154,15 +156,6 @@ typedef unsigned short Flags;
 #define FLAG_REPOSITORY		0x0004 /*				     */
 #define FLAG_MODULE		0x0008 /* Declared in the current module.    */
 #define FLAG_REGISTERED		0x0010 /* On a MibNode: this is registered.  */
-#if 0
-#define FLAG_PENDING		0x0020 /* Not yet linked into the main tree. */
-#endif
-#if 0
-#define FLAG_INPROGRESS		0x0040 /* On a (pending) MibNode: This marks */
-				       /* that the integration into the main */
-				       /* tree is in progress to supress     */
-				       /* recursion problems.                */
-#endif
 
 #define	FLAG_TC                 0x0100 /* On a Type: This type is declared   */
 				       /* by a TC instead of a simple ASN.1  */
@@ -307,48 +300,10 @@ typedef struct Parser {
 
 
 
-/*
- *
- */
-typedef struct PendingMibNode {
-    Descriptor		  *descriptor;
-    MibNode		  *node;
-    struct PendingMibNode *next;
-} PendingMibNode;
-
-
-
-
-
-
-
-/*
- *
- */
-typedef struct Node {
-    MibNode *parent;
-    MibNode *mibnode;
-} Node;
-
-
-
-/*
- * Object Identifier in numerical string format (e.g. "1 3 6 1").
- */
-typedef struct Oid {
-    char content[768];			/*   128 * (1blank + 5digits)	    */
-} Oid;
-
-
-
-
-
 extern Directory	*firstDirectory;
 extern Directory	*lastDirectory;
 extern Descriptor	*firstDescriptor[NUM_KINDS];
 extern Descriptor	*lastDescriptor[NUM_KINDS];
-
-extern PendingMibNode	*firstPendingMibNode;
 
 extern MibNode		*rootMibNode;
 extern MibNode		*pendingRootMibNode;
@@ -439,6 +394,8 @@ extern MibNode *findMibNodeByModulenameAndName(const char *modulename,
 extern void deleteMibTree(MibNode *root);
 
 extern void dumpMibTree(MibNode *root, const char *prefix);
+
+extern void dumpMosy(MibNode *root);
 
 
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+ * @(#) $Id: data.c,v 1.2 1998/10/12 15:11:04 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -31,14 +31,14 @@ Descriptor	*lastDescriptor[NUM_KINDS];
 					/* List of known Descriptors (OID    */
 					/* labels, TCs Types, Modules).      */
 
-PendingMibNode	*firstPendingMibNode;	/* List of MIB nodes to be updated   */
-					/* if a MIB node with a certain name */
-					/* is registered. This is used for   */
-					/* forward references.		     */
+MibNode		*rootMibNode;
 
-MibNode *rootMibNode;
+MibNode		*pendingRootMibNode;
 
-MibNode *pendingRootMibNode;
+Type		*typeInteger, *typeInteger32, *typeCounter32,
+		*typeGauge32, *typeIpAddress, *typeTimeTicks,
+		*typeOpaque, *typeOctetString, *typeUnsigned32,
+		*typeObjectIdentifier, *typeCounter64;
 
 
 
@@ -424,22 +424,28 @@ addDescriptor(name, module, kind, ptr, flags, parser)
     descriptor->kind = kind;
     descriptor->flags = flags;
 
-    switch (kind) {
-    case KIND_MODULE:
-	((Module *)(descriptor->ptr))->descriptor = descriptor;
-	break;
-    case KIND_MACRO:
-	((Macro *)(descriptor->ptr))->descriptor = descriptor;
-	break;
-    case KIND_TYPE:
-	((Type *)(descriptor->ptr))->descriptor = descriptor;
-	break;
-    case KIND_MIBNODE:
-	((MibNode *)(descriptor->ptr))->descriptor = descriptor;
-	break;
-    case KIND_ANY:
-    case KIND_IMPORT:
-	;
+    /*
+     * TODO: during development, there might be descriptors defined
+     * with ptr == NULL.
+     */
+    if (ptr) {
+	switch (kind) {
+	case KIND_MODULE:
+	    ((Module *)(descriptor->ptr))->descriptor = descriptor;
+	    break;
+	case KIND_MACRO:
+	    ((Macro *)(descriptor->ptr))->descriptor = descriptor;
+	    break;
+	case KIND_TYPE:
+	    ((Type *)(descriptor->ptr))->descriptor = descriptor;
+	    break;
+	case KIND_MIBNODE:
+	    ((MibNode *)(descriptor->ptr))->descriptor = descriptor;
+	    break;
+	case KIND_ANY:
+	case KIND_IMPORT:
+	    ;
+	}
     }
 
     /*
@@ -761,7 +767,9 @@ addMibNode(parent, subid, module, flags, parser)
     node->descriptor = NULL;
     node->description.fileoffset = 0;
     node->description.length = 0;
-    strcpy(node->description.content, "");
+#ifdef TEXTS_IN_MEMORY
+    node->description.ptr = NULL;
+#endif
     
     /*
      * Link it into the tree.
@@ -879,8 +887,9 @@ setMibNodeDescription(node, description)
 {
     node->description.fileoffset = description->fileoffset;
     node->description.length = description->length;
-    strncpy(node->description.content, description->content,
-	    sizeof(node->description.content)-1);
+#ifdef TEXTS_IN_MEMORY
+    node->description.ptr = strdup(description->ptr);
+#endif
 }
 
 
@@ -1299,8 +1308,8 @@ deleteMibTree(root)
  *
  * dumpMibTree --
  *
- *      dump MIB subtree with a certain root to stderr.
- *	for debugging purpose.
+ *      Dump MIB subtree with a certain root to stderr.
+ *	For debugging purpose.
  *
  * Results:
  *      None.
@@ -1342,6 +1351,46 @@ dumpMibTree(root, prefix)
 	}
 	for (c = root->firstChild; c; c = c->next) {
 	    dumpMibTree(c, s);
+	}
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * dumpMosy --
+ *
+ *      Dump in Mosy format.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+dumpMosy(root)
+    MibNode *root;
+{
+    MibNode *c;
+    
+    if (root) {
+	if (root != rootMibNode) {
+	    if ((root->flags & FLAG_MODULE) &&
+		(root->descriptor && root->parent->descriptor)) {
+		printf("%-32s %s.%d\n",
+		       root->descriptor->name,
+		       root->parent->descriptor->name,
+		       root->subid);
+	    }
+	}
+	for (c = root->firstChild; c; c = c->next) {
+	    dumpMosy(c);
 	}
     }
 }
@@ -1689,9 +1738,9 @@ int
 initData()
 {
     int i;
-
+    MibNode *node;
+    
     firstDirectory = NULL;
-    firstPendingMibNode = NULL;
     for (i = 0; i < NUM_KINDS; i++) {
 	firstDescriptor[i] = NULL;
 	lastDescriptor[i] = NULL;
@@ -1708,8 +1757,11 @@ initData()
 		  FLAG_PERMANENT, NULL);
 
     pendingRootMibNode = addMibNode(NULL, 0, NULL, FLAG_ROOT, NULL);
-    
-    addType("INTEGER", 
+
+#if TODO
+    addType("INTEGER", ...
+#endif
+	    
     return (0);
 }
 

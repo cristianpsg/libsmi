@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner.l,v 1.26 1998/08/29 11:23:03 strauss Exp $
+ * @(#) $Id: scanner.l,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
  */
 
 %{
@@ -35,8 +35,9 @@
  */
 #define yylval (*lvalp)
 
-char currentString[201];
-int currentStringLength;
+char *currentString = NULL;
+int currentStringLength = 0;
+int currentStringMaxLength = 0;
 int lexDepth = 0;
 YY_BUFFER_STATE yybuffer[MAX_LEX_DEPTH];
  
@@ -146,7 +147,6 @@ eol             ("\n"|"\n\015"|"\015\n")
 <INITIAL>MACRO {
     trackInput(0, parser);
     BEGIN(Macro);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return MACRO;
 }
 
@@ -161,14 +161,12 @@ eol             ("\n"|"\n\015"|"\015\n")
 <Macro>END {
     trackInput(0, parser);
     BEGIN(INITIAL);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return END;
 }
 
 <INITIAL>EXPORTS {
     trackInput(0, parser);
     BEGIN(Exports);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return EXPORTS;
 }
 
@@ -183,14 +181,12 @@ eol             ("\n"|"\n\015"|"\015\n")
 <Exports>\; {
     trackInput(0, parser);
     BEGIN(INITIAL);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return yytext[0];
 }
 
 <INITIAL>CHOICE {
     trackInput(0, parser);
     BEGIN(Choice);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return CHOICE;
 }
 
@@ -238,13 +234,11 @@ eol             ("\n"|"\n\015"|"\015\n")
     
 <INITIAL>".." {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return DOT_DOT;
 }
 
 <INITIAL>"::=" {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return COLON_COLON_EQUAL;
 }
 
@@ -266,391 +260,326 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <INITIAL>ACCESS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return ACCESS;
 }
 
 <INITIAL>AGENT-CAPABILITIES/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return AGENT_CAPABILITIES;
 }
 
 <INITIAL>APPLICATION/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return APPLICATION;
 }
 
 <INITIAL>AUGMENTS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return AUGMENTS;
 }
 
 <INITIAL>BEGIN/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return BEGIN_;
 }
 
 <INITIAL>BITS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return BITS;
 }
 
 <INITIAL>CONTACT-INFO/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return CONTACT_INFO;
 }
 
 <INITIAL>CREATION-REQUIRES/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return CREATION_REQUIRES;
 }
 
 <INITIAL>Counter32/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return COUNTER32;
 }
 
 <INITIAL>Counter64/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return COUNTER64;
 }
 
 <INITIAL>DEFINITIONS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return DEFINITIONS;
 }
 
 <INITIAL>DEFVAL/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return DEFVAL;
 }
 
 <INITIAL>DESCRIPTION/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return DESCRIPTION;
 }
 
 <INITIAL>DISPLAY-HINT/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return DISPLAY_HINT;
 }
 
 <INITIAL>END/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return END;
 }
 
 <INITIAL>ENTERPRISE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return ENTERPRISE;
 }
 
 <INITIAL>FROM/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return FROM;
 }
 
 <INITIAL>GROUP/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return GROUP;
 }
 
 <INITIAL>Gauge32/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return GAUGE32;
 }
 
 <INITIAL>IDENTIFIER/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return IDENTIFIER;
 }
 
 <INITIAL>IMPLICIT/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return IMPLICIT;
 }
 
 <INITIAL>IMPLIED/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return IMPLIED;
 }
 
 <INITIAL>IMPORTS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return IMPORTS;
 }
 
 <INITIAL>INCLUDES/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return INCLUDES;
 }
 
 <INITIAL>INDEX/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return INDEX;
 }
 
 <INITIAL>INTEGER/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return INTEGER;
 }
 
 <INITIAL>Integer32/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return INTEGER32;
 }
 
 <INITIAL>IpAddress/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return IPADDRESS;
 }
 
 <INITIAL>LAST-UPDATED/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return LAST_UPDATED;
 }
 
 <INITIAL>MANDATORY-GROUPS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return MANDATORY_GROUPS;
 }
 
 <INITIAL>MAX-ACCESS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return MAX_ACCESS;
 }
 
 <INITIAL>MIN-ACCESS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return MIN_ACCESS;
 }
 
 <INITIAL>MODULE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return MODULE;
 }
 
 <INITIAL>MODULE-COMPLIANCE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return MODULE_COMPLIANCE;
 }
 
 <INITIAL>MODULE-IDENTITY/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return MODULE_IDENTITY;
 }
 
 <INITIAL>NOTIFICATION-GROUP/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return NOTIFICATION_GROUP;
 }
 
 <INITIAL>NOTIFICATION-TYPE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return NOTIFICATION_TYPE;
 }
 
 <INITIAL>NOTIFICATIONS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return NOTIFICATIONS;
 }
 
 <INITIAL>OBJECT/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OBJECT;
 }
 
 <INITIAL>OBJECT-GROUP/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OBJECT_GROUP;
 }
 
 <INITIAL>OBJECT-IDENTITY/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OBJECT_IDENTITY;
 }
 
 <INITIAL>OBJECT-TYPE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OBJECT_TYPE;
 }
 
 <INITIAL>OBJECTS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OBJECTS;
 }
 
 <INITIAL>OCTET/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OCTET;
 }
 
 <INITIAL>OF/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OF;
 }
 
 <INITIAL>ORGANIZATION/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return ORGANIZATION;
 }
 
 <INITIAL>Opaque/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return OPAQUE;
 }
 
 <INITIAL>PRODUCT-RELEASE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return PRODUCT_RELEASE;
 }
 
 <INITIAL>REFERENCE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return REFERENCE;
 }
 
 <INITIAL>REVISION/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return REVISION;
 }
 
 <INITIAL>SEQUENCE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return SEQUENCE;
 }
 
 <INITIAL>SIZE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return SIZE;
 }
 
 <INITIAL>STATUS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return STATUS;
 }
 
 <INITIAL>STRING/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return STRING;
 }
 
 <INITIAL>SUPPORTS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return SUPPORTS;
 }
 
 <INITIAL>SYNTAX/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return SYNTAX;
 }
 
 <INITIAL>TEXTUAL-CONVENTION/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return TEXTUAL_CONVENTION;
 }
 
 <INITIAL>TimeTicks/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return TIMETICKS;
 }
 
 <INITIAL>TRAP-TYPE/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return TRAP_TYPE;
 }
 
 <INITIAL>UNITS/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return UNITS;
 }
 
 <INITIAL>UNIVERSAL/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return UNIVERSAL;
 }
 
 <INITIAL>Unsigned32/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return UNSIGNED32;
 }
 
 <INITIAL>VARIABLES/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return VARIABLES;
 }
 
 <INITIAL>VARIATION/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return VARIATION;
 }
 
 <INITIAL>WRITE-SYNTAX/{delim} {
     trackInput(0, parser);
-    strncpy(yylval.id, yytext, sizeof(yylval.id)-1);
     return WRITE_SYNTAX;
 }
 
@@ -673,8 +602,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    strncpy(yylval.text.content, yytext, sizeof(yylval.text.content)-1);
-    /* TODO: make length unlimited?! */
+    yylval.id = strdup(yytext);
     return UPPERCASE_IDENTIFIER;
 }
 
@@ -684,8 +612,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     if (yytext[yyleng-1] == '-') {
 	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    strncpy(yylval.text.content, yytext, sizeof(yylval.text.content)-1);
-    /* TODO: make length unlimited?! */
+    yylval.id = strdup(yytext);
     return LOWERCASE_IDENTIFIER;
 }
 
@@ -707,7 +634,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 	 (strcmp(yytext, MAX_NUMBER) > 0))) {
 	printError(parser, ERR_NUMBER_TO_LARGE, yytext);
     }
-    strncpy(yylval.text.content, yytext, sizeof(yylval.text.content)-1);
+    yylval.id = strdup(yytext);
     return NUMBER;
 }
 
@@ -717,6 +644,10 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <INITIAL>\' {
     trackInput(0, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
     currentStringLength = 0;
     currentString[0] = '\0';
     BEGIN(BinOrHex);
@@ -725,11 +656,13 @@ eol             ("\n"|"\n\015"|"\015\n")
 <BinOrHex>\'[bB] {
     trackInput(0, parser);
     BEGIN(INITIAL);
-    strncpy(yylval.text.content, currentString, sizeof(yylval.text.content)-1);
+#ifdef TEXTS_IN_MEMORY
+    yylval.text.ptr = currentString;
+#endif
     yylval.text.fileoffset = thisParser.character - currentStringLength - 3;
     yylval.text.length = currentStringLength;
     if (yylval.text.length % 8) {
-	printError(parser, ERR_BIN_STRING_MUL8, yylval.text.content);
+	printError(parser, ERR_BIN_STRING_MUL8, currentString);
     }
     return BIN_STRING;
 }
@@ -737,11 +670,13 @@ eol             ("\n"|"\n\015"|"\015\n")
 <Hex>\'[bB] {
     trackInput(0, parser);
     printError(parser, ERR_HEX_ENDS_IN_B);
-    strncpy(yylval.text.content, currentString, sizeof(yylval.text.content)-1);
+#ifdef TEXTS_IN_MEMORY
+    yylval.text.ptr = currentString;
+#endif
     yylval.text.fileoffset = thisParser.character - currentStringLength - 3;
     yylval.text.length = currentStringLength;
     if (yylval.text.length % 2) {
-	printError(parser, ERR_HEX_STRING_MUL8, yylval.text.content);
+	printError(parser, ERR_HEX_STRING_MUL8, currentString);
     }
     BEGIN(INITIAL);
     return HEX_STRING;
@@ -749,11 +684,13 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <BinOrHex,Hex>\'[hH] {
     trackInput(0, parser);
-    strncpy(yylval.text.content, currentString, sizeof(yylval.text.content)-1);
+#ifdef TEXTS_IN_MEMORY
+    yylval.text.ptr = currentString;
+#endif
     yylval.text.fileoffset = thisParser.character - currentStringLength - 3;
     yylval.text.length = currentStringLength;
     if (yylval.text.length % 2) {
-	printError(parser, ERR_HEX_STRING_MUL8, yylval.text.content);
+	printError(parser, ERR_HEX_STRING_MUL8, currentString);
     }
     BEGIN(INITIAL);
     return HEX_STRING;
@@ -761,25 +698,33 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <BinOrHex,Hex>[2-9A-Fa-f] {
     trackInput(0, parser);
-    if (currentStringLength < sizeof(currentString)-1) {
-	currentString[currentStringLength] = yytext[0];
-	currentString[currentStringLength+1] = '\0';
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
     }
+    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength+1] = '\0';
     currentStringLength++;
     BEGIN(Hex);
 }
 
 <BinOrHex,Hex>[01] {
     trackInput(0, parser);
-    if (currentStringLength < sizeof(currentString)-1) {
-	currentString[currentStringLength] = yytext[0];
-	currentString[currentStringLength+1] = '\0';
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
     }
+    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength+1] = '\0';
     currentStringLength++;
 }
 
 <INITIAL>\" {
     trackInput(0, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
     currentStringLength = 0;
     currentString[0] = '\0';
     BEGIN(String);
@@ -787,7 +732,9 @@ eol             ("\n"|"\n\015"|"\015\n")
 
 <String>\" {
     trackInput(0, parser);
-    strncpy(yylval.text.content, currentString, sizeof(yylval.text.content)-1);
+#ifdef TEXTS_IN_MEMORY
+    yylval.text.ptr = currentString;
+#endif
     yylval.text.fileoffset = thisParser.character - currentStringLength - 2;
     yylval.text.length = currentStringLength;
     BEGIN(INITIAL);
@@ -802,33 +749,39 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 <String>[ !#-\176\t] {
     trackInput(0, parser);
-    if (currentStringLength < sizeof(currentString)-1) {
-	currentString[currentStringLength] = yytext[0];
-	currentString[currentStringLength+1] = '\0';
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
     }
+    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength+1] = '\0';
     currentStringLength++;
 }
 
 <String>{eol} {
     trackInput(1, parser);
-    if (currentStringLength < sizeof(currentString)-1) {
-	currentString[currentStringLength] = yytext[0];
-	currentString[currentStringLength+1] = '\0';
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
     }
+    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength+1] = '\0';
     currentStringLength++;
 }
 
 <String>. {
     char a[20];
+
     trackInput(0, parser);
+    if (currentStringMaxLength <= (currentStringLength+1)) {
+        currentStringMaxLength += 4096;
+        currentString = realloc(currentString, currentStringMaxLength);
+    }
+    currentString[currentStringLength] = yytext[0];
+    currentString[currentStringLength+1] = '\0';
+    currentStringLength++;
     sprintf(a, "code %u, column %d", (unsigned char)yytext[0],
 	    thisParser.column-1);
-    if (currentStringLength < sizeof(currentString)-1) {
-	currentString[currentStringLength] = yytext[0];
-	currentString[currentStringLength+1] = '\0';
-    }
-    currentStringLength++;
-    /* TODO: or should we skip it? */ 
     printError(parser, ERR_ILLEGAL_CHAR_IN_STRING, a);
 }
 
