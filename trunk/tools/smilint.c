@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: smilint.c,v 1.1 1999/03/11 17:33:54 strauss Exp $
  */
 
 #include <stdio.h>
@@ -55,12 +55,13 @@ main(argc, argv)
     char *argv[];
 {
     char c;
-    int dumpMibFlag, dumpTypesFlag, dumpMosyFlag;
+    int dumpObjectsFlag, dumpTypesFlag, dumpMosyFlag, dumpSmingFlag;
     int flags;
     
-    dumpMibFlag = 0;
+    dumpObjectsFlag = 0;
     dumpTypesFlag = 0;
     dumpMosyFlag = 0;
+    dumpSmingFlag = 0;
 
     strcpy(module, "");
 
@@ -117,15 +118,14 @@ main(argc, argv)
 	    flags &= ~SMI_STATS;
 	    break;
 	case 'D':
-	    dumpMibFlag = 1;
-	    dumpTypesFlag = 1;
-	    break;
-	case 'M':
-	    dumpMosyFlag = 1;
+	    if (!strstr(optarg, "mosy")) dumpMosyFlag = 1;
+	    if (!strstr(optarg, "sming")) dumpSmingFlag = 1;
+	    if (!strstr(optarg, "objects")) dumpObjectsFlag = 1;
+	    if (!strstr(optarg, "types")) dumpTypesFlag = 1;
 	    break;
 	default:
 	    fprintf(stderr, "Usage: %s [-yYvVrRsS] [-d level] [-l level] [-c configfile]"
-		    " [-m module] \n", argv[0]);
+		    " [-m module] [-D mosy|sming|objects|types]\n", argv[0]);
 	    exit(1);
 	}
     }
@@ -140,16 +140,19 @@ main(argc, argv)
 	    smiAddLocation(argv[optind]);
 	}
 #if 0
-	if (dumpMibFlag) {
+	if (dumpObjectsFlag) {
 	    dumpMibTree(rootNodePtr, "");
 	}
 	if (dumpTypesFlag) {
 	    dumpTypes();
 	}
 	if (dumpMosyFlag) {
-	    dumpMosy(rootNodePtr);
+	    dumpMosy();
 	}
 #endif
+	if (dumpSmingFlag) {
+	    dumpSming();
+	}
 	optind++;
     }
     
