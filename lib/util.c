@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.26 2001/08/15 17:07:04 strauss Exp $
+ * @(#) $Id: util.c,v 1.27 2001/11/26 16:45:41 strauss Exp $
  */
 
 #include <config.h>
@@ -176,8 +176,8 @@ int smiTypeDerivedFrom(Type *typePtr, Type *parentTypePtr)
 {
     Type *t;
     
-    for (t = parentTypePtr; t != NULL; t = t->parentPtr) {
-	if (typePtr == t) {
+    for (t = typePtr; t != NULL; t = t->parentPtr) {
+	if (parentTypePtr == t) {
 	    return 1;
 	}
     }
