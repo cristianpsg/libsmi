@@ -10,7 +10,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.44 2003/07/17 08:49:17 strauss Exp $ 
+ * @(#) $Id: smidiff.c,v 1.45 2003/09/08 15:35:39 schoenw Exp $ 
+ */
+
+/*
+ * TODO:
+ *
+ * - replacing an implicit type with a named type should cause a real
+ *   error if the new type is formally not identical (Mike Heard)
  */
 
 #include <config.h>
@@ -607,15 +614,15 @@ checkStatus(SmiModule *oldModule, int oldLine,
     } else {
 	if (name) {
 	    printErrorAtLine(newModule, ERR_STATUS_CHANGED, newLine,
-			     getStringStatus( oldStatus ),
-			     getStringStatus( newStatus ),
+			     getStringStatus(oldStatus),
+			     getStringStatus(newStatus),
 			     name);
 	    code |= CODE_SHOW_PREVIOUS;
 	} else {
 	    printErrorAtLine(newModule, ERR_STATUS_CHANGED_IMPLICIT,
 			     newLine,
-			     getStringStatus( oldStatus ),
-			     getStringStatus( newStatus ));
+			     getStringStatus(oldStatus),
+			     getStringStatus(newStatus));
 	    code |= CODE_SHOW_PREVIOUS_IMPLICIT;
 	}
     }
@@ -2058,7 +2065,7 @@ diffNotifications(SmiModule *oldModule, const char *oldTag,
 	    && newNode->oidlen == oldNode->oidlen
 	    && smiGetNodeModule(newNode) == newModule) {
 	    checkNotification(oldModule, oldTag, newModule, newTag,
-			      newNode, oldNode);
+			      oldNode, newNode);
 	} else {
 	    printErrorAtLine(oldModule, ERR_NODE_REMOVED,
 			     smiGetNodeLine(oldNode),
