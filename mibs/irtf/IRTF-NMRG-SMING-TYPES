@@ -2,9 +2,9 @@ module IRTF-NMRG-SMING-TYPES {
 
 //
 // $RCSfile: IRTF-NMRG-SMING-TYPES.sming,v $
-// $Revision: 1.2 $
+// $Revision: 1.3 $
 // $Author: strauss $
-// $Date: 1999/12/22 15:36:26 $
+// $Date: 2000/02/13 21:34:21 $
 //
 
     organization    "IRTF Network Management Research Group (NMRG),
@@ -17,9 +17,8 @@ module IRTF-NMRG-SMING-TYPES {
                              38106 Braunschweig
                              Germany
 
-                      Phone: +49 531 391-3283
-                      EMail: strauss@ibr.cs.tu-bs.de
-                       http://www.ibr.cs.tu-bs.de/~strauss/sming/";
+                      Phone: +49 531 391-3266
+                      EMail: strauss@ibr.cs.tu-bs.de";
 
     description     "Core type definitions for SMIng.";
 
@@ -32,7 +31,6 @@ module IRTF-NMRG-SMING-TYPES {
         date        "1999-05-07";
         description "Initial Revision.";
     };
-
 
     typedef Gauge32 {
         type        Unsigned32;

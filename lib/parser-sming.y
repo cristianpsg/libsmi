@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.48 2000/02/12 16:23:11 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.49 2000/02/13 13:20:53 strauss Exp $
  */
 
 %{
@@ -312,6 +312,7 @@ checkDate(Parser *parserPtr, char *date)
 %token <rc>mandatoryKeyword
 %token <rc>optionalKeyword
 %token <rc>refineKeyword
+%token <rc>abnfKeyword
 %token <rc>OctetStringKeyword
 %token <rc>ObjectIdentifierKeyword
 %token <rc>Integer32Keyword
@@ -415,6 +416,8 @@ checkDate(Parser *parserPtr, char *date)
 %type <text>descriptionStatement
 %type <text>referenceStatement_stmtsep_01
 %type <text>referenceStatement
+%type <text>abnfStatement_stmtsep_01
+%type <text>abnfStatement
 %type <listPtr>membersStatement
 %type <listPtr>objectsStatement_stmtsep_01
 %type <listPtr>objectsStatement
@@ -756,6 +759,9 @@ extensionStatement:	extensionKeyword sep lcIdentifier
 			    if (macroPtr && $12) {
 				setMacroReference(macroPtr, $12);
 			    }
+			}
+			abnfStatement_stmtsep_01
+			{
 			}
 			'}' optsep ';'
 			{
@@ -2171,6 +2177,22 @@ referenceStatement_stmtsep_01: /* empty */
 	;
 
 referenceStatement:	referenceKeyword sep text optsep ';'
+			{
+			    $$ = $3;
+			}
+        ;
+
+abnfStatement_stmtsep_01: /* empty */
+			{
+			    $$ = NULL;
+			}
+        |		abnfStatement stmtsep
+			{
+			    $$ = $1;
+			}
+	;
+
+abnfStatement:		abnfKeyword sep text optsep ';'
 			{
 			    $$ = $3;
 			}
