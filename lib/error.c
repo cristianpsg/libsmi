@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.17 1999/09/30 08:16:43 strauss Exp $
+ * @(#) $Id: error.c,v 1.18 1999/10/05 06:30:56 strauss Exp $
  */
 
 #include <string.h>
@@ -229,6 +229,8 @@ Error errors[] = {
       "An optional group definition for `%s' already exists in this compliance statement" },
     { 2, ERR_ILLEGAL_OID_DEFVAL,
       "Cannot handle other default values than 0.0 for `%s'" },
+    { 2, ERR_UNEXPECTED_TYPE_RESTRICTION,
+      "Unexpected type restriction" },
  
     { 0, 0, NULL }
 };
