@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.55 2000/10/27 14:03:13 strauss Exp $
+ * @(#) $Id: error.c,v 1.56 2000/11/06 14:27:56 strauss Exp $
  */
 
 #include <config.h>
@@ -76,8 +76,8 @@ static Error errors[] = {
       "internal error!!!" },
     { 0, ERR_MAX_LEX_DEPTH, "", 
       "maximum IMPORTS nesting, probably a loop?" },
-    { 0, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
-      "lexically unexpected character (internal error!)" },
+    { 1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
+      "lexically unexpected character, skipping to end of line" },
     { 0, ERR_OUT_OF_MEMORY, "memory", 
       "out of memory (internal error!)" },
     { 1, ERR_OTHER_ERROR, "other", 

@@ -1,3 +1,9 @@
+2000-11-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/scanner-smi.l,scanner-sming.l: Bill Fenner contributed
+	a patch to continue scanning after unexpected characters have
+	been read.
+
 2000-11-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.2.7.tar.gz: released version 0.2.7.

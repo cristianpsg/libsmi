@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.27 2000/10/25 08:56:40 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.28 2000/10/27 14:03:13 strauss Exp $
  */
 
 %option noyywrap
@@ -96,6 +96,10 @@ HTAB		"\t"
 SP		" "
 
 
+/*
+ * Lex state definitions.
+ */
+%s		Skipline
 
 %%
 
@@ -569,11 +573,20 @@ SP		" "
 }
 
  /*
+  * Skip the remainder of the line
+  */
+<Skipline>.*{lineBreak} {
+    thisParser.line++;
+    BEGIN(INITIAL);
+}
+
+ /*
   * Everything else...
   */
 
 . {
     smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
+    BEGIN(Skipline);
 }
 
 %%
