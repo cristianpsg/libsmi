@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.87 2000/04/11 09:00:25 strauss Exp $
+ * @(#) $Id: smi.c,v 1.88 2000/05/16 15:09:31 strauss Exp $
  */
 
 #include <config.h>
@@ -1060,7 +1060,8 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
 	    nodePtr = nodePtr->nextPtr;
 	    /* did we move outside the common oid prefix of this module? */
 	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++)
-		if (nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]) 
+		if ((!nodePtr) ||
+		    (nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]))
 		    return NULL;
 	}
 
