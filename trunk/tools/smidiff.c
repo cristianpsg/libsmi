@@ -1,20 +1,28 @@
 /*
  * smidiff.c --
  *
- *      ...
+ *      Compute and check differences between MIB modules.
  *
- * Copyright (c) 2001 ...
+ * Copyright (c) 2001 T. Klie, Technical University of Braunschweig.
+ * Copyright (c) 2001 Frank Strauss, Technical University of Braunschweig.
+ * Copyright (c) 2001 J. Schoenwaelder, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.1 2001/08/22 17:51:46 strauss Exp $
+ * @(#) $Id: smidiff.c,v 1.2 2001/08/31 10:08:20 tklie Exp $
  */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <smi.h>
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
+
+#include "smi.h"
+#include "shhopt.h"
+
 
 #ifdef _DEBUG
 #define SMI_DIFF_DBG_MSG( a, b ) smiDiffDbgMsg( ( a ), ( b ) )
@@ -29,28 +37,31 @@ static int tagsize = 0;
 
 static int active( const char *tag )
 {
-  int i;
-  for( i = 0; i < tagsize; i++ ) {
-    if( !strcmp( tag, tags[i] ) ) 
-      return SMI_DIFF_DBG_TAG_ACTIVE;
-  }
-  return SMI_DIFF_DBG_TAG_INACTIVE;
+    int i;
+    for (i = 0; i < tagsize; i++) {
+	if (!strcmp( tag, tags[i])) {
+	    return SMI_DIFF_DBG_TAG_ACTIVE;
+	}
+    }
+    return SMI_DIFF_DBG_TAG_INACTIVE;
 }
 
 static void smiDiffEnableTag( const char *tag )
 {
-  if( ! tag )
-    return;
-  
-  if( tagsize < SMI_DIFF_MAXTAGS ) {
-    tags[tagsize++] = strdup( tag );
-  }
-} 
+    if (! tag) {
+	return;
+    }
+    
+    if (tagsize < SMI_DIFF_MAXTAGS) {
+	tags[tagsize++] = strdup(tag);
+    }
+}
 
 static void smiDiffDbgMsg( const char *tag, const char *msg )
 {
-  if( active( tag ) == SMI_DIFF_DBG_TAG_ACTIVE )
-    printf( "%s: %s\n", tag, msg );
+    if (active( tag ) == SMI_DIFF_DBG_TAG_ACTIVE) {
+	printf( "%s: %s\n", tag, msg );
+    }
 }
 #else if /* No debugging, please */
 #define SMI_DIFF_DBG_MSG
@@ -199,19 +210,51 @@ Staus changed from deprecated to obsolete in %s",
   return SMI_NO_DIFF;
 }
 
+
+
+static void usage()
+{
+    fprintf(stderr,
+	    "Usage: smidiff [options] oldmodule newmodule\n"
+	    "  -V, --version        show version and license information\n"
+	    "  -h, --help           show usage information\n"
+	    "  -c, --config=file    load a specific configuration file\n"
+	    "  -p, --preload=module preload <module>\n");
+}
+
+
+
+static void help() { usage(); exit(0); }
+static void version() { printf("smidiff " SMI_VERSION_STRING "\n"); exit(0); }
+static void config(char *filename) { smiReadConfig(filename, "smidiff"); }
+static void preload(char *module) { smiLoadModule(module); }
+
+
+
 int main(int argc, char *argv[])
 {
     SmiModule *oldModule, *newModule;
     SmiNode *node;
     int oldCount, newCount;
 
+    static optStruct opt[] = {
+	/* short long              type        var/func       special       */
+	{ 'h', "help",           OPT_FLAG,   help,          OPT_CALLFUNC },
+	{ 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
+	{ 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
+	{ 'p', "preload",        OPT_STRING, preload,       OPT_CALLFUNC },
+	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
+    };
+    
     oldCount = newCount = 0;
 
-    if (argc != 3) {
-        fprintf(stderr, "Usage: smidiff oldmodule newmodule\n");
-        exit(1);
-    }
+    optParseOptions(&argc, argv, opt, 0);
 
+    if (argc != 3) {
+	usage();
+	return 1;
+    }
+	
     /* enable some debugging tags */
     /*SMI_DIFF_DBG_ENABLE_TAG( "nodes" );*/
       SMI_DIFF_DBG_ENABLE_TAG( "cmp" ); 
@@ -236,7 +279,6 @@ int main(int argc, char *argv[])
       char dbgstr[100] ;
       
       /* try to find node with same name in the new module */
-
  
       sprintf( dbgstr, "Searching for node number %d (%s)...", 
 	       oldCount, node->name );

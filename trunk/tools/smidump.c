@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.58 2001/08/15 17:07:40 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.59 2001/08/22 14:46:55 schoenw Exp $
  */
 
 #include <config.h>
@@ -30,6 +30,7 @@
 
 
 
+static void help();
 static void usage();
 static void version();
 static void config(char *filename);
@@ -51,7 +52,7 @@ static int opts;
 static optStruct *opt;
 static optStruct genericOpt[] = {
     /* short long              type        var/func       special       */
-    { 'h', "help",           OPT_FLAG,   usage,         OPT_CALLFUNC },
+    { 'h', "help",           OPT_FLAG,   help,          OPT_CALLFUNC },
     { 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
     { 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
     { 'l', "level",          OPT_INT,    level,         OPT_CALLFUNC },
@@ -186,7 +187,8 @@ static void usage()
 
 
 
-static void version() { printf("smidump " SMI_VERSION_STRING "\n"); }
+static void help() { usage(); exit(0); }
+static void version() { printf("smidump " SMI_VERSION_STRING "\n"); exit(0); }
 static void config(char *filename) { smiReadConfig(filename, "smidump"); }
 static void level(int lev) { smiSetErrorLevel(lev); }
 static void silent() { flags |= SMIDUMP_FLAG_SILENT; }

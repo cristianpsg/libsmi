@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.39 2001/04/14 16:36:02 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.40 2001/08/15 17:07:40 strauss Exp $
  */
 
 #include <config.h>
@@ -127,7 +127,8 @@ static void usage()
 
 
 
-static void version() { printf("smilint " SMI_VERSION_STRING "\n"); }
+static void help() { usage(); exit(0); }
+static void version() { printf("smilint " SMI_VERSION_STRING "\n"); exit(0); }
 static void config(char *filename) { smiReadConfig(filename, "smilint"); }
 static void preload(char *module) { smiLoadModule(module); }
 static void recursive() { flags |= SMI_FLAG_RECURSIVE; smiSetFlags(flags); }
@@ -159,7 +160,7 @@ int main(int argc, char *argv[])
 
     static optStruct opt[] = {
 	/* short long              type        var/func       special       */
-	{ 'h', "help",           OPT_FLAG,   usage,         OPT_CALLFUNC },
+	{ 'h', "help",           OPT_FLAG,   help,          OPT_CALLFUNC },
 	{ 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
 	{ 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
 	{ 'p', "preload",        OPT_STRING, preload,       OPT_CALLFUNC },
