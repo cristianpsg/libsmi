@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.74 2003/05/12 12:56:14 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.75 2003/05/13 09:48:11 tklie Exp $
  */
 
 #include <config.h>
@@ -1408,7 +1408,7 @@ static void fprintAnnotationElem( FILE *f, SmiNode *smiNode ) {
     if( smiNode->value.basetype != SMI_BASETYPE_UNKNOWN ) {
 	char *defval = smiRenderValue( &smiNode->value,
 				       smiGetNodeType( smiNode ),
-				       SMI_RENDER_FORMAT );
+				       SMI_RENDER_FORMAT | SMI_RENDER_NAME );
 	fprintSegment( f, 0, "<default>%s</default>\n", defval );
 
     }
