@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.77 2003/07/04 15:10:20 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.78 2003/07/11 06:13:03 tklie Exp $
  */
 
 #include <config.h>
@@ -1938,20 +1938,6 @@ static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 }
 
 
-static void fprintRows( FILE *f, SmiModule *smiModule )
-{
-    SmiNode *iterNode;
-
-    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
-	 iterNode;
-	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
-	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
-	    fprintElement( f, iterNode, NULL );
-	}
-    }
-}
-
-
 static void fprintImplicitTypes( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode;
@@ -1982,6 +1968,21 @@ static void fprintImplicitTypes( FILE *f, SmiModule *smiModule )
 		default:
 		    break;
 		}
+	}
+    }
+}
+
+
+#if 0
+static void fprintRows( FILE *f, SmiModule *smiModule )
+{
+    SmiNode *iterNode;
+
+    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode,  SMI_NODEKIND_ROW ) ) {
+	if( hasChildren( iterNode, SMI_NODEKIND_COLUMN | SMI_NODEKIND_TABLE ) ){
+	    fprintElement( f, iterNode, NULL );
 	}
     }
 }
@@ -2060,6 +2061,7 @@ static void fprintKeys( FILE *f, SmiModule *smiModule )
 	}
     }
 }
+#endif
 
 
 static void fprintImports( FILE *f, SmiModule *smiModule )
@@ -2121,6 +2123,8 @@ static void fprintGroupTypes( FILE *f, SmiModule *smiModule )
     }   
 }
 
+
+#if 0
 static void fprintNotifications( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode;
@@ -2131,6 +2135,7 @@ static void fprintNotifications( FILE *f, SmiModule *smiModule )
 	fprintElement( f, iterNode, NULL );
     }
 }
+#endif
 
 
 static void fprintModuleHead(FILE *f, SmiModule *smiModule)
