@@ -1,0 +1,36 @@
+#!/bin/sh
+
+FORMAT=`echo $0 | sed -e 's/^.*smidump-\(.*\).test/\1/'`
+ACTUALDIR=smidump-${FORMAT}.out
+NOMINALDIR=dumps/${FORMAT}
+
+rm -rf ${ACTUALDIR}
+mkdir ${ACTUALDIR}
+
+RC=0
+FAILED=""
+for mib in ${TESTMIBS} ; do
+    echo "comparing \`smidump -f ${FORMAT} $mib' output with ${NOMINALDIR}/*."
+    cd ${ACTUALDIR}
+    ../../tools/smidump -f ${FORMAT} $mib > $mib 2>/dev/null
+    if [ ! -s $mib ] ; then
+	rm $mib
+    fi
+    FILES=`echo *`
+    cd ..
+    for file in $FILES ; do
+        @DIFF@ ${ACTUALDIR}/$file ${NOMINALDIR}/$file >> ${ACTUALDIR}/$file.diff
+	if [ ! -s ${ACTUALDIR}/$file.diff ] ; then
+	    rm ${ACTUALDIR}/$file.diff
+	else
+	    FAILED=1
+	fi
+    done
+done
+
+if [ "$FAILED" ] ; then
+    echo "*** smidump -f ${FORMAT} output differs, see ${ACTUALDIR}/*.diff"
+    RC=1
+fi
+
+exit ${RC}
