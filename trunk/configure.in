@@ -8,11 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.32 1999/09/30 08:16:41 strauss Exp $
+# @(#) $Id: configure.in,v 1.33 1999/09/30 16:34:36 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
-AM_INIT_AUTOMAKE(libsmi,0.1.7-pre10)
+AM_INIT_AUTOMAKE(libsmi,0.1.7-pre12)
 # Note: also change shlib version version lib/Makefile.am:libsmi_la_LDFLAGS ?
 
 AC_DEFINE(BACKEND_SMI)
@@ -31,6 +31,8 @@ AC_CHECK_FUNC(strtoll, AC_DEFINE(HAVE_STRTOLL))
 AC_CHECK_FUNC(strtoull, AC_DEFINE(HAVE_STRTOULL))
 AC_CHECK_FUNC(strtoq, AC_DEFINE(HAVE_STRTOQ))
 AC_CHECK_FUNC(strtouq, AC_DEFINE(HAVE_STRTOUQ))
+
+AC_CHECK_HEADER(getopt.h, AC_DEFINE(HAVE_GETOPT_H))
 
 AC_ARG_WITH(mibdir,
 [  --with-mibdir=DIR       use DIR to install libsmi MIB modules [DATADIR/mibs]],
@@ -62,6 +64,7 @@ fi
 
 AC_PATH_PROG(BASH, "bash")
 
+AC_EXEEXT
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
@@ -74,6 +77,7 @@ else
 fi
 AC_SUBST(STATIC)
 
+AC_SUBST(EXEEXT)
 AC_SUBST(BASH)
 AC_SUBST(CC)
 AC_SUBST(CFLAGS)

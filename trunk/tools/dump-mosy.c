@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.6 1999/07/02 14:04:07 strauss Exp $
+ * @(#) $Id: dump-mosy.c,v 1.7 1999/09/30 08:16:48 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -20,10 +20,11 @@
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
-#include <ctype.h>
 #include <stdarg.h>
 
 #include "smi.h"
+#include "smidump.h"
+
 
 static char *ignoreTypeRanges[] = {
     "TimeTicks",
@@ -298,7 +299,8 @@ static void printObjects(char *modulename)
 	}
 
 	typename = getBasetypeString(smiNode->basetype);
-	if (smiType && smiType->name && isupper((int) smiType->name[0])) {
+	if (smiType && smiType->name
+	    && smiType->decl != SMI_DECL_IMPLICIT_TYPE) {
 	    typename = smiType->name;
 	    if (smiType->parentmodule && smiType->parentname) {
 		typename = smiType->parentname;
@@ -306,7 +308,7 @@ static void printObjects(char *modulename)
 	}
 
 	if (smiType && smiType->name
-	    && islower((int) smiType->name[0])
+	    && smiType->decl == SMI_DECL_IMPLICIT_TYPE
 	    && smiType->parentname) {
 	    typename = smiType->parentname;
 	    if (strcmp(typename, "OCTET STRING") == 0) {
@@ -350,7 +352,7 @@ static void printObjects(char *modulename)
 	    break;	    
 	}
 
-	if (smiType && islower((int)(smiType->name[0]))) {
+	if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 	    for(i = 0, smiNamedNumber = smiGetFirstNamedNumber(smiType->module,
 							       smiType->name);
 		smiNamedNumber;

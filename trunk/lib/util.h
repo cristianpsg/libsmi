@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.9 1999/06/04 20:50:46 strauss Exp $
+ * @(#) $Id: util.h,v 1.10 1999/06/09 19:43:33 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -23,6 +23,25 @@
 #include "error.h"
 #include "parser-smi.h"
 
+/*
+ * Make sure we have strtoull() and strtoll() on this system.
+ */
+
+#ifndef HAVE_STRTOULL
+#ifdef HAVE_STRTOUQ
+#define strtoull strtouq
+#else
+#define strtoull strtoul	/* TODO */
+#endif
+#endif
+
+#ifndef HAVE_STRTOLL
+#ifdef HAVE_STRTOQ
+#define strtoll strtoq
+#else
+#define strtoll strtol
+#endif
+#endif
 
 
 extern void *util_malloc(size_t size);

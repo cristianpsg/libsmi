@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.44 1999/07/02 14:04:08 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.45 1999/09/30 08:16:49 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include "smi.h"
+#include "smidump.h"
 
 
 

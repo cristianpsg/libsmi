@@ -1,3 +1,11 @@
+1999-09-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: fixed some more decl settings.
+
+	* tools/smidump.c: applied a huge patch by Juergen Schoenwaelder
+	that reorganizes the smidump format modules and adds a (not
+	yet compiled) new format for xfig figures.
+
 1999-09-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.h: new struct Value. Now all smi.h structs are

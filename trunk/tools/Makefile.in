@@ -78,6 +78,7 @@ BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
 DLLTOOL = @DLLTOOL@
+EXEEXT = @EXEEXT@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -95,7 +96,7 @@ smipath = @smipath@
 
 INCLUDES = -I../lib
 
-EXTRA_DIST = dump-smi.h dump-sming.h dump-data.h dump-imports.h 			  dump-mosy.h dump-corba.h 			  dump-ucdsnmp.h 			  $(man_MANS) 			  dump-java.h dump-jdmk.h 			  dump-java.c dump-jdmk.c
+EXTRA_DIST = smidump.h 			  $(man_MANS) 			  dump-java.c dump-jdmk.c dump-fig.c
 
 
 bin_PROGRAMS = smiquery smilint smidump
@@ -108,12 +109,13 @@ smiquery_LDADD = ../lib/libsmi.la
 smilint_SOURCES = smilint.c
 smilint_LDADD = ../lib/libsmi.la
 
-smidump_SOURCES = smidump.c dump-sming.c dump-smi.c 			  dump-data.c dump-imports.c dump-mosy.c 			  dump-corba.c dump-ucdsnmp.c
+smidump_SOURCES = smidump.c smidump.h dump-sming.c dump-smi.c 			  dump-imports.c dump-types.c dump-tree.c 			  dump-mosy.c dump-corba.c dump-ucdsnmp.c
 
-#			  dump-java.c dump-jdmk.c
+#			  dump-java.c dump-jdmk.c dump-fig.c
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
+bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
@@ -127,8 +129,8 @@ smiquery_LDFLAGS =
 smilint_OBJECTS =  smilint.o
 smilint_DEPENDENCIES =  ../lib/libsmi.la
 smilint_LDFLAGS = 
-smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-data.o \
-dump-imports.o dump-mosy.o dump-corba.o dump-ucdsnmp.o
+smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-imports.o \
+dump-types.o dump-tree.o dump-mosy.o dump-corba.o dump-ucdsnmp.o
 smidump_DEPENDENCIES =  ../lib/libsmi.la
 smidump_LDFLAGS = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -147,9 +149,10 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/dump-corba.P .deps/dump-data.P .deps/dump-imports.P \
-.deps/dump-mosy.P .deps/dump-smi.P .deps/dump-sming.P \
-.deps/dump-ucdsnmp.P .deps/smidump.P .deps/smilint.P .deps/smiquery.P
+DEP_FILES =  .deps/dump-corba.P .deps/dump-imports.P .deps/dump-mosy.P \
+.deps/dump-smi.P .deps/dump-sming.P .deps/dump-tree.P \
+.deps/dump-types.P .deps/dump-ucdsnmp.P .deps/smidump.P .deps/smilint.P \
+.deps/smiquery.P
 SOURCES = $(smiquery_SOURCES) $(smilint_SOURCES) $(smidump_SOURCES)
 OBJECTS = $(smiquery_OBJECTS) $(smilint_OBJECTS) $(smidump_OBJECTS)
 
@@ -227,16 +230,16 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-smiquery: $(smiquery_OBJECTS) $(smiquery_DEPENDENCIES)
-	@rm -f smiquery
+smiquery$(EXEEXT): $(smiquery_OBJECTS) $(smiquery_DEPENDENCIES)
+	@rm -f smiquery$(EXEEXT)
 	$(LINK) $(smiquery_LDFLAGS) $(smiquery_OBJECTS) $(smiquery_LDADD) $(LIBS)
 
-smilint: $(smilint_OBJECTS) $(smilint_DEPENDENCIES)
-	@rm -f smilint
+smilint$(EXEEXT): $(smilint_OBJECTS) $(smilint_DEPENDENCIES)
+	@rm -f smilint$(EXEEXT)
 	$(LINK) $(smilint_LDFLAGS) $(smilint_OBJECTS) $(smilint_LDADD) $(LIBS)
 
-smidump: $(smidump_OBJECTS) $(smidump_DEPENDENCIES)
-	@rm -f smidump
+smidump$(EXEEXT): $(smidump_OBJECTS) $(smidump_DEPENDENCIES)
+	@rm -f smidump$(EXEEXT)
 	$(LINK) $(smidump_LDFLAGS) $(smidump_OBJECTS) $(smidump_LDADD) $(LIBS)
 
 install-man1:

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.20 1999/07/02 14:04:07 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.21 1999/09/30 08:16:48 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -138,6 +138,30 @@ typedef struct Import {
 } Import;
 
 static Import *importList = NULL;
+
+
+
+static void *safeMalloc(size_t size)
+{
+    char *m = malloc(size);
+    if (! m) {
+	fprintf(stderr, "smidump: malloc failed - running out of memory\n");
+	exit(1);
+    }
+    return m;
+}
+
+
+
+static char *safeStrdup(const char *s)
+{
+    char *m = strdup(s);
+    if (! m) {
+	fprintf(stderr, "smidump: strdup failed - running out of memory\n");
+	exit(1);
+    }
+    return m;
+}
 
 
 
@@ -408,7 +432,7 @@ static Import* addImport(char *module, char *name)
 	if (c > 0) break;
     }
 
-    newImport = malloc(sizeof(Import));
+    newImport = safeMalloc(sizeof(Import));
     if (! newImport) {
 	return NULL;
     }
@@ -1354,7 +1378,7 @@ static void printModuleCompliances(char *modulename)
 	}
 
 	/* `this module' always first */
-	done = strdup("+");
+	done = safeStrdup("+");
 	for (module = smiNode->module; module; ) {
 
 	    print("\n");
