@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.22 2000/06/21 10:33:41 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.23 2000/07/04 10:07:10 strauss Exp $
  */
 
 
@@ -194,9 +194,12 @@ static Graph     *graph  = NULL;            /* the graph */
 /*
  * help functions
  */
+#ifndef max
 #define max(a, b) ((a < b) ? b : a)
+#endif
+#ifndef min
 #define min(a, b) ((a < b) ? a : b)
-
+#endif
 
 
 
@@ -1745,7 +1748,6 @@ static SmiNode *algFindTable(SmiNode *node)
     SmiNode    *smiNode;
     SmiElement *smiElement;
     char       *toFind;
-    int        i,j;
     
     if (!node) return NULL;
 
@@ -2591,7 +2593,7 @@ static void diaPrintXMLConnection(GraphEdge *tEdge)
  */
 static void diaPrintXMLInfoNote(Module *module)
 {
-    int     length;
+    size_t  length;
     float   width;
     Module *mPtr;
     char   *note;

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.31 2000/06/16 13:53:36 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.32 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -71,7 +71,8 @@ static int compare(const void *v1, const void *v2)
 
 static void errors()
 {
-    int i, cnt;
+    int i;
+    size_t cnt;
     Error *errors;
     
     for (cnt = 0, i = 0; smiGetErrorSeverity(i) >= 0; i++) {
