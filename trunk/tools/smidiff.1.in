@@ -1,0 +1,60 @@
+.\"
+.\" $Id$
+.\"
+.TH smidiff 1  "September 5, 2001" "IBR" "SMI Tools"
+.SH NAME
+smidiff \- check differences between a pair of SMI MIB modules
+.SH SYNOPSIS
+.B smidiff
+[
+.B "-Vh"
+] [
+.BI "-c " file
+] [
+.BI "-p " module
+] [
+.I "oldmodule newmodule"
+.SH DESCRIPTION
+The \fBsmidiff\fP program is used to check differences between a pair
+of SMI MIB modules. It can be used to detect changes in updated MIB
+modules that can cause interoperability problems with existing
+implementations. Both, SMIv1/v2 and SMIng style MIB modules are
+supported.
+.PP
+The rules that \fBsmidiff\fP is based on are taken from RFCs 2578-2580.
+.SH OPTIONS
+.TP
+\fB-V, --verbose\fP
+Show the smilint version and exit.
+.TP
+\fB-h, --help\fP
+Show a help text and exit.
+.TP
+\fB-c \fIfile\fB, --config=\fIfile\fP
+Read \fIfile\fP instead of any other (global and user)
+configuration file.
+.TP
+\fB-p \fImodule\fB, --preload=\fImodule\fP
+Preload the module \fImodule\fP before reading the main
+module(s). This may be helpful if an incomplete main module misses to
+import some definitions.
+.TP
+.I oldmodule
+The original MIB module.
+.TP
+.I newmodule
+The updated MIB module. 
+.PP
+If a module argument represents a path name (identified by containing
+at least one dot or slash character), this is assumed to be the exact
+file to read. Otherwise, if a module is identified by its plain module
+name, it is searched according to libsmi internal rules. See
+\fBsmi_config(3)\fP for more details.
+.SH "SEE ALSO"
+The 
+.BR libsmi (3)
+project is documented at
+.BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
+.SH "AUTHOR"
+(C) 2001 T. Klie, TU Braunschweig, Germany <tklie@ibr.cs.tu-bs.de>
+.br
