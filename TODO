@@ -85,3 +85,6 @@ o how to handle SMIv2 agent caps?
 o smidump -f tree RMON2-MIB:
   dumps some definitions from IF-MIB and RMON-MIB that are external
 
+o smidump -f tree ATM-ACCOUNTING-INFORMATION-MIB: endless loop
+
+

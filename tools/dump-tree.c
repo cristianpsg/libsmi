@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.2 1999/11/24 19:02:40 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.3 2000/02/06 23:30:59 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -125,7 +125,7 @@ static void printObjects(SmiNode *smiNode)
     char *objectname;
     int  i;
     SmiListItem *listitem;
-    
+
     objectname = NULL;
     for (i = -1, listitem = smiGetFirstListItem(smiNode);
 	 listitem;
@@ -146,7 +146,7 @@ static void printObjects(SmiNode *smiNode)
 static int pruneSubTree(SmiNode *smiNode)
 {
     SmiNode *childNode;
-    
+
     if (! smiNode) {
 	return 1;
     }
@@ -155,7 +155,7 @@ static int pruneSubTree(SmiNode *smiNode)
 	return 0;
     }
 
-    for (childNode = smiGetFirstChildNode(smiNode); 
+    for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
 	if (! pruneSubTree(childNode)) {
