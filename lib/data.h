@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.27 1999/02/18 17:12:59 strauss Exp $
+ * @(#) $Id: data.h,v 1.1 1999/03/11 17:32:57 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -246,6 +246,9 @@ extern Module *addModule(const char *modulename,
 			 ModuleFlags flags,
 			 Parser *parserPtr);
 
+extern void setModuleIdentityObject(Module *modulePtr,
+				    Object *objectPtr);
+
 extern void setModuleLastUpdated(Module *modulePtr,
 				 String *lastUpdatedPtr);
 
@@ -408,5 +411,11 @@ extern int initData();
 extern int readMibFile(const char *path,
 		       const char *modulename,
 		       ParserFlags flags);
+
+
+
+extern void dumpSming(const char *modulename);
+
+
 
 #endif /* _DATA_H */
