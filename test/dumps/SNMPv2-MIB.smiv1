@@ -22,27 +22,27 @@ snmpMIB OBJECT IDENTIFIER
     ::= { snmpModules 1 }
 
 -- snmpMIB MODULE-IDENTITY
---      LAST-UPDATED    "199511090000Z"
---      ORGANIZATION    
---              "IETF SNMPv2 Working Group"
---      CONTACT-INFO    
---              "        Marshall T. Rose
---               
---               Postal: Dover Beach Consulting, Inc.
---                       420 Whisman Court
---                       Mountain View, CA  94043-2186
---                       US
---               
---                  Tel: +1 415 968 1052
---               
---               E-mail: mrose@dbc.mtview.ca.us"
---      DESCRIPTION     
---              "The MIB module for SNMPv2 entities."
---      REVISION        "199304010000Z"
---      DESCRIPTION     
---              "The initial revision of this MIB module was published as
---               RFC 1450."
---      ::= { snmpModules 1 }
+--     LAST-UPDATED    "199511090000Z"
+--     ORGANIZATION    
+--             "IETF SNMPv2 Working Group"
+--     CONTACT-INFO    
+--             "        Marshall T. Rose
+--              
+--              Postal: Dover Beach Consulting, Inc.
+--                      420 Whisman Court
+--                      Mountain View, CA  94043-2186
+--                      US
+--              
+--                 Tel: +1 415 968 1052
+--              
+--              E-mail: mrose@dbc.mtview.ca.us"
+--     DESCRIPTION     
+--             "The MIB module for SNMPv2 entities."
+--     REVISION        "199304010000Z"
+--     DESCRIPTION     
+--             "The initial revision of this MIB module was published as
+--              RFC 1450."
+--     ::= { snmpModules 1 }
 
 
 system OBJECT IDENTIFIER
@@ -600,7 +600,7 @@ snmpMIBGroups OBJECT IDENTIFIER
 
 coldStart TRAP-TYPE
     ENTERPRISE      snmpTraps
---      STATUS          mandatory
+--     STATUS          mandatory
     DESCRIPTION     
             "A coldStart trap signifies that the SNMPv2 entity, acting
              in an agent role, is reinitializing itself and that its
@@ -609,7 +609,7 @@ coldStart TRAP-TYPE
 
 warmStart TRAP-TYPE
     ENTERPRISE      snmpTraps
---      STATUS          mandatory
+--     STATUS          mandatory
     DESCRIPTION     
             "A warmStart trap signifies that the SNMPv2 entity, acting
              in an agent role, is reinitializing itself such that its
@@ -618,7 +618,7 @@ warmStart TRAP-TYPE
 
 authenticationFailure TRAP-TYPE
     ENTERPRISE      snmpTraps
---      STATUS          mandatory
+--     STATUS          mandatory
     DESCRIPTION     
             "An authenticationFailure trap signifies that the SNMPv2
              entity, acting in an agent role, has received a protocol
@@ -632,105 +632,103 @@ snmpSetGroup OBJECT IDENTIFIER
     ::= { snmpMIBGroups 5 }
 
 -- snmpSetGroup OBJECT-GROUP
---      OBJECTS         { snmpSetSerialNo }
---      STATUS          mandatory
---      DESCRIPTION     
---              "A collection of objects which allow several cooperating
---               SNMPv2 entities, all acting in a manager role, to coordinate
---               their use of the SNMPv2 set operation."
---      ::= { snmpMIBGroups 5 }
+--     OBJECTS         { snmpSetSerialNo }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "A collection of objects which allow several cooperating
+--              SNMPv2 entities, all acting in a manager role, to coordinate
+--              their use of the SNMPv2 set operation."
+--     ::= { snmpMIBGroups 5 }
 
 systemGroup OBJECT IDENTIFIER
     ::= { snmpMIBGroups 6 }
 
 -- systemGroup OBJECT-GROUP
---      OBJECTS         { sysDescr, sysObjectID, sysUpTime, sysContact, 
---                        sysName, sysLocation, sysServices, 
---                        sysORLastChange, sysORID, sysORUpTime, 
---                        sysORDescr }
---      STATUS          mandatory
---      DESCRIPTION     
---              "The system group defines objects which are common to all
---               managed systems."
---      ::= { snmpMIBGroups 6 }
+--     OBJECTS         { sysDescr, sysObjectID, sysUpTime, sysContact, 
+--                       sysName, sysLocation, sysServices, 
+--                       sysORLastChange, sysORID, sysORUpTime, 
+--                       sysORDescr }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "The system group defines objects which are common to all
+--              managed systems."
+--     ::= { snmpMIBGroups 6 }
 
 snmpBasicNotificationsGroup OBJECT IDENTIFIER
     ::= { snmpMIBGroups 7 }
 
 -- snmpBasicNotificationsGroup NOTIFICATION-GROUP
---      NOTIFICATIONS   { coldStart, authenticationFailure }
---      STATUS          mandatory
---      DESCRIPTION     
---              "The two notifications which an SNMPv2 entity is required to
---               implement."
---      ::= { snmpMIBGroups 7 }
+--     NOTIFICATIONS   { coldStart, authenticationFailure }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "The two notifications which an SNMPv2 entity is required to
+--              implement."
+--     ::= { snmpMIBGroups 7 }
 
 snmpGroup OBJECT IDENTIFIER
     ::= { snmpMIBGroups 8 }
 
 -- snmpGroup OBJECT-GROUP
---      OBJECTS         { snmpInPkts, snmpInBadVersions, 
---                        snmpInASNParseErrs, snmpSilentDrops, 
---                        snmpProxyDrops, snmpEnableAuthenTraps }
---      STATUS          mandatory
---      DESCRIPTION     
---              "A collection of objects providing basic instrumentation and
---               control of an SNMPv2 entity."
---      ::= { snmpMIBGroups 8 }
+--     OBJECTS         { snmpInPkts, snmpInBadVersions, 
+--                       snmpInASNParseErrs, snmpSilentDrops, 
+--                       snmpProxyDrops, snmpEnableAuthenTraps }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "A collection of objects providing basic instrumentation and
+--              control of an SNMPv2 entity."
+--     ::= { snmpMIBGroups 8 }
 
 snmpCommunityGroup OBJECT IDENTIFIER
     ::= { snmpMIBGroups 9 }
 
 -- snmpCommunityGroup OBJECT-GROUP
---      OBJECTS         { snmpInBadCommunityNames, 
---                        snmpInBadCommunityUses }
---      STATUS          mandatory
---      DESCRIPTION     
---              "A collection of objects providing basic instrumentation of
---               a SNMPv2 entity which supports community-based
---               authentication."
---      ::= { snmpMIBGroups 9 }
+--     OBJECTS         { snmpInBadCommunityNames, snmpInBadCommunityUses }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "A collection of objects providing basic instrumentation of
+--              a SNMPv2 entity which supports community-based
+--              authentication."
+--     ::= { snmpMIBGroups 9 }
 
 snmpObsoleteGroup OBJECT IDENTIFIER
     ::= { snmpMIBGroups 10 }
 
 -- snmpObsoleteGroup OBJECT-GROUP
---      OBJECTS         { snmpOutPkts, snmpInTooBigs, snmpInNoSuchNames, 
---                        snmpInBadValues, snmpInReadOnlys, 
---                        snmpInGenErrs, snmpInTotalReqVars, 
---                        snmpInTotalSetVars, snmpInGetRequests, 
---                        snmpInGetNexts, snmpInSetRequests, 
---                        snmpInGetResponses, snmpInTraps, 
---                        snmpOutTooBigs, snmpOutNoSuchNames, 
---                        snmpOutBadValues, snmpOutGenErrs, 
---                        snmpOutGetRequests, snmpOutGetNexts, 
---                        snmpOutSetRequests, snmpOutGetResponses, 
---                        snmpOutTraps }
---      STATUS          obsolete
---      DESCRIPTION     
---              "A collection of objects from RFC 1213 made obsolete by this
---               MIB."
---      ::= { snmpMIBGroups 10 }
+--     OBJECTS         { snmpOutPkts, snmpInTooBigs, snmpInNoSuchNames, 
+--                       snmpInBadValues, snmpInReadOnlys, snmpInGenErrs, 
+--                       snmpInTotalReqVars, snmpInTotalSetVars, 
+--                       snmpInGetRequests, snmpInGetNexts, 
+--                       snmpInSetRequests, snmpInGetResponses, 
+--                       snmpInTraps, snmpOutTooBigs, snmpOutNoSuchNames, 
+--                       snmpOutBadValues, snmpOutGenErrs, 
+--                       snmpOutGetRequests, snmpOutGetNexts, 
+--                       snmpOutSetRequests, snmpOutGetResponses, 
+--                       snmpOutTraps }
+--     STATUS          obsolete
+--     DESCRIPTION     
+--             "A collection of objects from RFC 1213 made obsolete by this
+--              MIB."
+--     ::= { snmpMIBGroups 10 }
 
 snmpBasicCompliance OBJECT IDENTIFIER
     ::= { snmpMIBCompliances 2 }
 
 -- snmpBasicCompliance MODULE-COMPLIANCE
---      STATUS          mandatory
---      DESCRIPTION     
---              "The compliance statement for SNMPv2 entities which
---               implement the SNMPv2 MIB."
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "The compliance statement for SNMPv2 entities which
+--              implement the SNMPv2 MIB."
 
---      MODULE          -- -- this module
+--     MODULE          -- -- this module
 
---          MANDATORY-GROUPS    { snmpGroup, snmpSetGroup, systemGroup, 
---                        snmpBasicNotificationsGroup }
+--         MANDATORY-GROUPS    { snmpGroup, snmpSetGroup, systemGroup, 
+--                       snmpBasicNotificationsGroup }
 
---          GROUP       snmpCommunityGroup
---          DESCRIPTION 
---              "This group is mandatory for SNMPv2 entities which
---               support community-based authentication."
+--         GROUP       snmpCommunityGroup
+--         DESCRIPTION 
+--             "This group is mandatory for SNMPv2 entities which
+--              support community-based authentication."
 
---      ::= { snmpMIBCompliances 2 }
+--     ::= { snmpMIBCompliances 2 }
 
 END -- end of module SNMPv2-MIB.

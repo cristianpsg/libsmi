@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.66 2000/02/24 14:33:53 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.67 2000/02/24 15:30:01 strauss Exp $
  */
 
 #include <config.h>
@@ -303,7 +303,7 @@ static void printSegment(int column, char *string, int length)
 {
     print("%*c%s", column, ' ', string);
     if (length) {
-	print("%*c", length - strlen(string) - column);
+	print("%*c", length - strlen(string) - column, ' ');
     }
 }
 

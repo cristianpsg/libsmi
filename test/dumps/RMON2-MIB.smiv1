@@ -25,216 +25,216 @@ rmon OBJECT IDENTIFIER
     ::= { mib-2 16 }
 
 -- rmon MODULE-IDENTITY
---      LAST-UPDATED    "199605270000Z"
---      ORGANIZATION    
---              "IETF RMON MIB Working Group"
---      CONTACT-INFO    
---              "Steve Waldbusser   (WG Editor)
---               Postal: International Network Services
---               650 Castro Street, Suite 260
---               Mountain View, CA 94041
---               Phone:  +1 415 254 4251
---               Email:  waldbusser@ins.com
---               
---               
---               Andy Bierman   (WG Chair)
---               Phone:  +1 805 648 2028
---               Email:  abierman@west.net"
---      DESCRIPTION     
---              "The MIB module for managing remote monitoring
---               device implementations. This MIB module
---               augments the original RMON MIB as specified in
---               RFC 1757."
---      ::= { mib-2 16 }
+--     LAST-UPDATED    "199605270000Z"
+--     ORGANIZATION    
+--             "IETF RMON MIB Working Group"
+--     CONTACT-INFO    
+--             "Steve Waldbusser   (WG Editor)
+--              Postal: International Network Services
+--              650 Castro Street, Suite 260
+--              Mountain View, CA 94041
+--              Phone:  +1 415 254 4251
+--              Email:  waldbusser@ins.com
+--              
+--              
+--              Andy Bierman   (WG Chair)
+--              Phone:  +1 805 648 2028
+--              Email:  abierman@west.net"
+--     DESCRIPTION     
+--             "The MIB module for managing remote monitoring
+--              device implementations. This MIB module
+--              augments the original RMON MIB as specified in
+--              RFC 1757."
+--     ::= { mib-2 16 }
 
 
 ZeroBasedCounter32 ::=
     Gauge
 
 -- ZeroBasedCounter32 ::= TEXTUAL-CONVENTION
---      STATUS          mandatory
---      DESCRIPTION     
---              "This TC describes an object which counts events with the
---               following semantics: objects of this type will be set to
---               zero(0) on creation and will thereafter count appropriate
---               events, wrapping back to zero(0) when the value 2^32 is
---               reached.
---               
---               Provided that an application discovers the new object within
---               the minimum time to wrap it can use the initial value as a
---               delta since it last polled the table of which this object is
---               part.  It is important for a management station to be aware of
---               this minimum time and the actual time between polls, and to
---               discard data if the actual time is too long or there is no
---               defined minimum time.
---               
---               Typically this TC is used in tables where the INDEX space is
---               constantly changing and/or the TimeFilter mechanism is in use."
---      SYNTAX          Gauge
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This TC describes an object which counts events with the
+--              following semantics: objects of this type will be set to
+--              zero(0) on creation and will thereafter count appropriate
+--              events, wrapping back to zero(0) when the value 2^32 is
+--              reached.
+--              
+--              Provided that an application discovers the new object within
+--              the minimum time to wrap it can use the initial value as a
+--              delta since it last polled the table of which this object is
+--              part.  It is important for a management station to be aware of
+--              this minimum time and the actual time between polls, and to
+--              discard data if the actual time is too long or there is no
+--              defined minimum time.
+--              
+--              Typically this TC is used in tables where the INDEX space is
+--              constantly changing and/or the TimeFilter mechanism is in use."
+--     SYNTAX          Gauge
 
 LastCreateTime ::=
     TimeStamp
 
 -- LastCreateTime ::= TEXTUAL-CONVENTION
---      STATUS          mandatory
---      DESCRIPTION     
---              "This TC describes an object that stores the last time its
---               entry was created.
---               
---               This can be used for polling applications to determine that an
---               entry has been deleted and re-created between polls, causing
---               an otherwise undetectable discontinuity in the data."
---      SYNTAX          TimeStamp
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This TC describes an object that stores the last time its
+--              entry was created.
+--              
+--              This can be used for polling applications to determine that an
+--              entry has been deleted and re-created between polls, causing
+--              an otherwise undetectable discontinuity in the data."
+--     SYNTAX          TimeStamp
 
 TimeFilter ::=
     TimeTicks
 
 -- TimeFilter ::= TEXTUAL-CONVENTION
---      STATUS          mandatory
---      DESCRIPTION     
---              "To be used for the index to a table.  Allows an application
---               to download only those rows changed since a particular time.
---               A row is considered changed if the value of any object in the
---               row changes or if the row is created or deleted.
---               
---               When sysUpTime is equal to zero, this table shall be empty.
---               
---               One entry exists for each past value of sysUpTime, except that
---               the whole table is purged should sysUpTime wrap.
---               
---               As this basic row is updated new conceptual rows are created
---               (which still share the now updated object values with all
---               other instances).  The number of instances which are created
---               is determined by the value of sysUpTime at which the basic row
---               was last updated.  One instance will exist for each value of
---               sysUpTime at the last update time for the row.  A new
---               timeMark instance is created for each new sysUpTime value.
---               Each new conceptual row will be associated with the timeMark
---               instance which was created at the value of sysUpTime with
---               which the conceptual row is to be associated.
---               
---               By definition all conceptual rows were updated at or after
---               time zero and so at least one conceptual row (associated with
---               timeMark.0) must exist for each underlying (basic) row.
---               
---               See the appendix for further discussion of this variable.
---               
---               Consider the following fooTable:
---               
---               fooTable ...
---               INDEX { fooTimeMark, fooIndex }
---               
---               FooEntry {
---                  fooTimeMark  TimeFilter
---                  fooIndex     INTEGER,
---                  fooCounts    Counter
---               }
---               
---               Should there be two basic rows in this table (fooIndex == 1,
---               fooIndex == 2) and row 1 was updated most recently at time 6,
---               while row 2 was updated most recently at time 8, and both rows
---               had been updated on several earlier occasions such that the
---               current values were 5 and 9 respectively then the following
---               fooCounts instances would exist.
---               
---               fooCounts.0.1  5
---               fooCounts.0.2  9
---               fooCounts.1.1  5
---               fooCounts.1.2  9
---               fooCounts.2.1  5
---               fooCounts.2.2  9
---               fooCounts.3.1  5
---               fooCounts.3.2  9
---               fooCounts.4.1  5
---               fooCounts.4.2  9
---               fooCounts.5.1  5
---               fooCounts.5.2  9
---               fooCounts.6.1  5
---               fooCounts.6.2  9
---               fooCounts.7.2  9    -- note that row 1 doesn't exist for
---               fooCounts.8.2  9    -- times 7 and 8"
---      SYNTAX          TimeTicks
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "To be used for the index to a table.  Allows an application
+--              to download only those rows changed since a particular time.
+--              A row is considered changed if the value of any object in the
+--              row changes or if the row is created or deleted.
+--              
+--              When sysUpTime is equal to zero, this table shall be empty.
+--              
+--              One entry exists for each past value of sysUpTime, except that
+--              the whole table is purged should sysUpTime wrap.
+--              
+--              As this basic row is updated new conceptual rows are created
+--              (which still share the now updated object values with all
+--              other instances).  The number of instances which are created
+--              is determined by the value of sysUpTime at which the basic row
+--              was last updated.  One instance will exist for each value of
+--              sysUpTime at the last update time for the row.  A new
+--              timeMark instance is created for each new sysUpTime value.
+--              Each new conceptual row will be associated with the timeMark
+--              instance which was created at the value of sysUpTime with
+--              which the conceptual row is to be associated.
+--              
+--              By definition all conceptual rows were updated at or after
+--              time zero and so at least one conceptual row (associated with
+--              timeMark.0) must exist for each underlying (basic) row.
+--              
+--              See the appendix for further discussion of this variable.
+--              
+--              Consider the following fooTable:
+--              
+--              fooTable ...
+--              INDEX { fooTimeMark, fooIndex }
+--              
+--              FooEntry {
+--                 fooTimeMark  TimeFilter
+--                 fooIndex     INTEGER,
+--                 fooCounts    Counter
+--              }
+--              
+--              Should there be two basic rows in this table (fooIndex == 1,
+--              fooIndex == 2) and row 1 was updated most recently at time 6,
+--              while row 2 was updated most recently at time 8, and both rows
+--              had been updated on several earlier occasions such that the
+--              current values were 5 and 9 respectively then the following
+--              fooCounts instances would exist.
+--              
+--              fooCounts.0.1  5
+--              fooCounts.0.2  9
+--              fooCounts.1.1  5
+--              fooCounts.1.2  9
+--              fooCounts.2.1  5
+--              fooCounts.2.2  9
+--              fooCounts.3.1  5
+--              fooCounts.3.2  9
+--              fooCounts.4.1  5
+--              fooCounts.4.2  9
+--              fooCounts.5.1  5
+--              fooCounts.5.2  9
+--              fooCounts.6.1  5
+--              fooCounts.6.2  9
+--              fooCounts.7.2  9    -- note that row 1 doesn't exist for
+--              fooCounts.8.2  9    -- times 7 and 8"
+--     SYNTAX          TimeTicks
 
 DataSource ::=
     OBJECT IDENTIFIER
 
 -- DataSource ::= TEXTUAL-CONVENTION
---      STATUS          mandatory
---      DESCRIPTION     
---              "Identifies the source of the data that the associated
---               function is configured to analyze. This source can be any
---               interface on this device.
---               
---               In order to identify a particular interface, this
---               object shall identify the instance of the ifIndex
---               object, defined in [3,5], for the desired interface.
---               
---               For example, if an entry were to receive data from
---               interface #1, this object would be set to ifIndex.1."
---      SYNTAX          OBJECT IDENTIFIER
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Identifies the source of the data that the associated
+--              function is configured to analyze. This source can be any
+--              interface on this device.
+--              
+--              In order to identify a particular interface, this
+--              object shall identify the instance of the ifIndex
+--              object, defined in [3,5], for the desired interface.
+--              
+--              For example, if an entry were to receive data from
+--              interface #1, this object would be set to ifIndex.1."
+--     SYNTAX          OBJECT IDENTIFIER
 
 ControlString ::=
     DisplayString
 
 -- ControlString ::= TEXTUAL-CONVENTION
---      STATUS          mandatory
---      DESCRIPTION     
---              "This data type is used to communicate with a modem or a
---               serial data switch.  A ControlString contains embedded
---               commands to control how the device will interact with the
---               remote device through the serial interface.  Commands are
---               represented as two character sequences beginning with
---               the `^' character.
---               
---               The following commands are recognized by the device (note
---               that command characters are case sensitive):
---               
---                  ^s  Send string that follows which is terminated by the
---                      next command or the end of string.
---                  ^c  Delay for the number of seconds that follows.  Toss
---                      out any data received rather than storing it in a
---                      buffer for parsing.
---                  ^t  Set timeout to the value represented by the decimal
---                      digits that follow.  The default timeout is 20
---                      seconds. Note that this timeout may be overridden
---                      by a smaller serialTimeout configured for the
---                      associated serial interface (see serialConfigTable).
---                  ^w  Wait for the reply string that follows which is
---                      terminated by the next command or the end of string.
---                      Partial and case insensitive matching is applied, ie.
---                      if the reply string (any case combination) is found
---                      anywhere in the received string, then the a match is
---                      found.  If the current timeout elapses without a match,
---                      then the remaining control string is ignored.
---                  ^!  The ^ character.
---                  ^d  Delay the number of seconds specified by the decimal
---                      digits that follow.
---                  ^b  Send break for the number of milliseconds specified by
---                      the decimal digits that follow.  If no digits follow,
---                      break will be enforced for 250 milliseconds by default.
---               
---               The following ASCII control characters may be inserted into
---               the `^s' send string or the `^w' reply string:
---               
---                  ^@    0x00
---                  ^A    0x01
---                   ..
---                  ^M    0x0D
---                   ..
---                  ^Z    0x1A
---                  ^[    0x1B
---                  ^    0x1C
---                  ^]    0x1D
---                  ^^    0x1E
---                  ^_    0x1F
---               
---               Binary data may also be inserted into the data stream.  The
---               control sequence for each byte of binary data is ^0x##, where
---               ## is the hexadecimal representation of the data byte.  Two
---               ASCII characters (0-9, a-f, A-F) must follow the `^0x'
---               control prefix.  For example, `^0x0D^0x0A' is interpreted as a
---               carriage return followed by a line feed."
---      SYNTAX          DisplayString
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This data type is used to communicate with a modem or a
+--              serial data switch.  A ControlString contains embedded
+--              commands to control how the device will interact with the
+--              remote device through the serial interface.  Commands are
+--              represented as two character sequences beginning with
+--              the `^' character.
+--              
+--              The following commands are recognized by the device (note
+--              that command characters are case sensitive):
+--              
+--                 ^s  Send string that follows which is terminated by the
+--                     next command or the end of string.
+--                 ^c  Delay for the number of seconds that follows.  Toss
+--                     out any data received rather than storing it in a
+--                     buffer for parsing.
+--                 ^t  Set timeout to the value represented by the decimal
+--                     digits that follow.  The default timeout is 20
+--                     seconds. Note that this timeout may be overridden
+--                     by a smaller serialTimeout configured for the
+--                     associated serial interface (see serialConfigTable).
+--                 ^w  Wait for the reply string that follows which is
+--                     terminated by the next command or the end of string.
+--                     Partial and case insensitive matching is applied, ie.
+--                     if the reply string (any case combination) is found
+--                     anywhere in the received string, then the a match is
+--                     found.  If the current timeout elapses without a match,
+--                     then the remaining control string is ignored.
+--                 ^!  The ^ character.
+--                 ^d  Delay the number of seconds specified by the decimal
+--                     digits that follow.
+--                 ^b  Send break for the number of milliseconds specified by
+--                     the decimal digits that follow.  If no digits follow,
+--                     break will be enforced for 250 milliseconds by default.
+--              
+--              The following ASCII control characters may be inserted into
+--              the `^s' send string or the `^w' reply string:
+--              
+--                 ^@    0x00
+--                 ^A    0x01
+--                  ..
+--                 ^M    0x0D
+--                  ..
+--                 ^Z    0x1A
+--                 ^[    0x1B
+--                 ^    0x1C
+--                 ^]    0x1D
+--                 ^^    0x1E
+--                 ^_    0x1F
+--              
+--              Binary data may also be inserted into the data stream.  The
+--              control sequence for each byte of binary data is ^0x##, where
+--              ## is the hexadecimal representation of the data byte.  Two
+--              ASCII characters (0-9, a-f, A-F) must follow the `^0x'
+--              control prefix.  For example, `^0x0D^0x0A' is interpreted as a
+--              carriage return followed by a line feed."
+--     SYNTAX          DisplayString
 
 etherStats2Table OBJECT-TYPE
     SYNTAX          SEQUENCE OF EtherStats2Entry
@@ -251,7 +251,7 @@ etherStats2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { etherStatsIndex }
---      AUGMENTS        { etherStatsEntry }
+--     AUGMENTS        { etherStatsEntry }
     ::= { etherStats2Table 1 }
 
 EtherStats2Entry ::=
@@ -305,7 +305,7 @@ tokenRingMLStats2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { tokenRingMLStatsIndex }
---      AUGMENTS        { tokenRingMLStatsEntry }
+--     AUGMENTS        { tokenRingMLStatsEntry }
     ::= { tokenRingMLStats2Table 1 }
 
 TokenRingMLStats2Entry ::=
@@ -358,7 +358,7 @@ tokenRingPStats2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { tokenRingPStatsIndex }
---      AUGMENTS        { tokenRingPStatsEntry }
+--     AUGMENTS        { tokenRingPStatsEntry }
     ::= { tokenRingPStats2Table 1 }
 
 TokenRingPStats2Entry ::=
@@ -411,7 +411,7 @@ historyControl2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { historyControlIndex }
---      AUGMENTS        { historyControlEntry }
+--     AUGMENTS        { historyControlEntry }
     ::= { historyControl2Table 1 }
 
 HistoryControl2Entry ::=
@@ -453,7 +453,7 @@ hostControl2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { hostControlIndex }
---      AUGMENTS        { hostControlEntry }
+--     AUGMENTS        { hostControlEntry }
     ::= { hostControl2Table 1 }
 
 HostControl2Entry ::=
@@ -507,7 +507,7 @@ matrixControl2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { matrixControlIndex }
---      AUGMENTS        { matrixControlEntry }
+--     AUGMENTS        { matrixControlEntry }
     ::= { matrixControl2Table 1 }
 
 MatrixControl2Entry ::=
@@ -561,7 +561,7 @@ channel2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { channelIndex }
---      AUGMENTS        { channelEntry }
+--     AUGMENTS        { channelEntry }
     ::= { channel2Table 1 }
 
 Channel2Entry ::=
@@ -617,7 +617,7 @@ filter2Entry OBJECT-TYPE
             "Provides a variable-length packet filter feature to the
              RMON-1 filter table."
     INDEX           { filterIndex }
---      AUGMENTS        { filterEntry }
+--     AUGMENTS        { filterEntry }
     ::= { filter2Table 1 }
 
 Filter2Entry ::=
@@ -676,7 +676,7 @@ ringStationControl2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { ringStationControlIfIndex }
---      AUGMENTS        { ringStationControlEntry }
+--     AUGMENTS        { ringStationControlEntry }
     ::= { ringStationControl2Table 1 }
 
 RingStationControl2Entry ::=
@@ -729,7 +729,7 @@ sourceRoutingStats2Entry OBJECT-TYPE
     DESCRIPTION     
             "Contains the RMON-2 augmentations to RMON-1."
     INDEX           { sourceRoutingStatsIfIndex }
---      AUGMENTS        { sourceRoutingStatsEntry }
+--     AUGMENTS        { sourceRoutingStatsEntry }
     ::= { sourceRoutingStats2Table 1 }
 
 SourceRoutingStats2Entry ::=
@@ -916,7 +916,7 @@ protocolDirDescr OBJECT-TYPE
 
 protocolDirType OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { extensible(0), addressRecognitionCapable(1) }
+--                       { extensible(0), addressRecognitionCapable(1) }
     ACCESS          read-only
     STATUS          mandatory
     DESCRIPTION     
@@ -4153,18 +4153,17 @@ probeConfig OBJECT IDENTIFIER
 
 probeCapabilities OBJECT-TYPE
     SYNTAX          OCTET STRING
---                        { etherStats(0), historyControl(1), 
---                          etherHistory(2), alarm(3), hosts(4), 
---                          hostTopN(5), matrix(6), filter(7), 
---                          capture(8), event(9), tokenRingMLStats(10), 
---                          tokenRingPStats(11), tokenRingMLHistory(12), 
---                          tokenRingPHistory(13), ringStation(14), 
---                          ringStationOrder(15), ringStationConfig(16), 
---                          sourceRouting(17), protocolDirectory(18), 
---                          protocolDistribution(19), addressMapping(20), 
---                          nlHost(21), nlMatrix(22), alHost(23), 
---                          alMatrix(24), usrHistory(25), 
---                          probeConfig(26) }
+--                       { etherStats(0), historyControl(1), 
+--                         etherHistory(2), alarm(3), hosts(4), 
+--                         hostTopN(5), matrix(6), filter(7), capture(8), 
+--                         event(9), tokenRingMLStats(10), 
+--                         tokenRingPStats(11), tokenRingMLHistory(12), 
+--                         tokenRingPHistory(13), ringStation(14), 
+--                         ringStationOrder(15), ringStationConfig(16), 
+--                         sourceRouting(17), protocolDirectory(18), 
+--                         protocolDistribution(19), addressMapping(20), 
+--                         nlHost(21), nlMatrix(22), alHost(23), 
+--                         alMatrix(24), usrHistory(25), probeConfig(26) }
     ACCESS          read-only
     STATUS          mandatory
     DESCRIPTION     
@@ -4830,317 +4829,311 @@ protocolDirectoryGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 1 }
 
 -- protocolDirectoryGroup OBJECT-GROUP
---      OBJECTS         { protocolDirLastChange, protocolDirLocalIndex, 
---                        protocolDirDescr, protocolDirType, 
---                        protocolDirAddressMapConfig, 
---                        protocolDirHostConfig, protocolDirMatrixConfig, 
---                        protocolDirOwner, protocolDirStatus }
---      STATUS          mandatory
---      DESCRIPTION     
---              "Lists the inventory of protocols the probe has the capability
---               of monitoring and allows the addition, deletion, and
---               configuration of entries in this list."
---      ::= { rmon2MIBGroups 1 }
+--     OBJECTS         { protocolDirLastChange, protocolDirLocalIndex, 
+--                       protocolDirDescr, protocolDirType, 
+--                       protocolDirAddressMapConfig, 
+--                       protocolDirHostConfig, protocolDirMatrixConfig, 
+--                       protocolDirOwner, protocolDirStatus }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Lists the inventory of protocols the probe has the capability
+--              of monitoring and allows the addition, deletion, and
+--              configuration of entries in this list."
+--     ::= { rmon2MIBGroups 1 }
 
 protocolDistributionGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 2 }
 
 -- protocolDistributionGroup OBJECT-GROUP
---      OBJECTS         { protocolDistControlDataSource, 
---                        protocolDistControlDroppedFrames, 
---                        protocolDistControlCreateTime, 
---                        protocolDistControlOwner, 
---                        protocolDistControlStatus, 
---                        protocolDistStatsPkts, protocolDistStatsOctets }
---      STATUS          mandatory
---      DESCRIPTION     
---              "Collects the relative amounts of octets and packets for the
---               different protocols detected on a network segment."
---      ::= { rmon2MIBGroups 2 }
+--     OBJECTS         { protocolDistControlDataSource, 
+--                       protocolDistControlDroppedFrames, 
+--                       protocolDistControlCreateTime, 
+--                       protocolDistControlOwner, 
+--                       protocolDistControlStatus, 
+--                       protocolDistStatsPkts, protocolDistStatsOctets }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Collects the relative amounts of octets and packets for the
+--              different protocols detected on a network segment."
+--     ::= { rmon2MIBGroups 2 }
 
 addressMapGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 3 }
 
 -- addressMapGroup OBJECT-GROUP
---      OBJECTS         { addressMapInserts, addressMapDeletes, 
---                        addressMapMaxDesiredEntries, 
---                        addressMapControlDataSource, 
---                        addressMapControlDroppedFrames, 
---                        addressMapControlOwner, 
---                        addressMapControlStatus, 
---                        addressMapPhysicalAddress, 
---                        addressMapLastChange }
---      STATUS          mandatory
---      DESCRIPTION     
---              "Lists MAC address to network address bindings discovered by
---               the probe and what interface they were last seen on."
---      ::= { rmon2MIBGroups 3 }
+--     OBJECTS         { addressMapInserts, addressMapDeletes, 
+--                       addressMapMaxDesiredEntries, 
+--                       addressMapControlDataSource, 
+--                       addressMapControlDroppedFrames, 
+--                       addressMapControlOwner, addressMapControlStatus, 
+--                       addressMapPhysicalAddress, addressMapLastChange }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Lists MAC address to network address bindings discovered by
+--              the probe and what interface they were last seen on."
+--     ::= { rmon2MIBGroups 3 }
 
 nlHostGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 4 }
 
 -- nlHostGroup OBJECT-GROUP
---      OBJECTS         { hlHostControlDataSource, 
---                        hlHostControlNlDroppedFrames, 
---                        hlHostControlNlInserts, hlHostControlNlDeletes, 
---                        hlHostControlNlMaxDesiredEntries, 
---                        hlHostControlAlDroppedFrames, 
---                        hlHostControlAlInserts, hlHostControlAlDeletes, 
---                        hlHostControlAlMaxDesiredEntries, 
---                        hlHostControlOwner, hlHostControlStatus, 
---                        nlHostInPkts, nlHostOutPkts, nlHostInOctets, 
---                        nlHostOutOctets, nlHostOutMacNonUnicastPkts, 
---                        nlHostCreateTime }
---      STATUS          mandatory
---      DESCRIPTION     
---              "Counts the amount of traffic sent from and to each network
---               address discovered by the probe. Note that while the
---               hlHostControlTable also has objects that control an optional
---               alHostTable, implementation of the alHostTable is not required
---               to fully implement this group."
---      ::= { rmon2MIBGroups 4 }
+--     OBJECTS         { hlHostControlDataSource, 
+--                       hlHostControlNlDroppedFrames, 
+--                       hlHostControlNlInserts, hlHostControlNlDeletes, 
+--                       hlHostControlNlMaxDesiredEntries, 
+--                       hlHostControlAlDroppedFrames, 
+--                       hlHostControlAlInserts, hlHostControlAlDeletes, 
+--                       hlHostControlAlMaxDesiredEntries, 
+--                       hlHostControlOwner, hlHostControlStatus, 
+--                       nlHostInPkts, nlHostOutPkts, nlHostInOctets, 
+--                       nlHostOutOctets, nlHostOutMacNonUnicastPkts, 
+--                       nlHostCreateTime }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Counts the amount of traffic sent from and to each network
+--              address discovered by the probe. Note that while the
+--              hlHostControlTable also has objects that control an optional
+--              alHostTable, implementation of the alHostTable is not required
+--              to fully implement this group."
+--     ::= { rmon2MIBGroups 4 }
 
 nlMatrixGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 5 }
 
 -- nlMatrixGroup OBJECT-GROUP
---      OBJECTS         { hlMatrixControlDataSource, 
---                        hlMatrixControlNlDroppedFrames, 
---                        hlMatrixControlNlInserts, 
---                        hlMatrixControlNlDeletes, 
---                        hlMatrixControlNlMaxDesiredEntries, 
---                        hlMatrixControlAlDroppedFrames, 
---                        hlMatrixControlAlInserts, 
---                        hlMatrixControlAlDeletes, 
---                        hlMatrixControlAlMaxDesiredEntries, 
---                        hlMatrixControlOwner, hlMatrixControlStatus, 
---                        nlMatrixSDPkts, nlMatrixSDOctets, 
---                        nlMatrixSDCreateTime, nlMatrixDSPkts, 
---                        nlMatrixDSOctets, nlMatrixDSCreateTime, 
---                        nlMatrixTopNControlMatrixIndex, 
---                        nlMatrixTopNControlRateBase, 
---                        nlMatrixTopNControlTimeRemaining, 
---                        nlMatrixTopNControlGeneratedReports, 
---                        nlMatrixTopNControlDuration, 
---                        nlMatrixTopNControlRequestedSize, 
---                        nlMatrixTopNControlGrantedSize, 
---                        nlMatrixTopNControlStartTime, 
---                        nlMatrixTopNControlOwner, 
---                        nlMatrixTopNControlStatus, 
---                        nlMatrixTopNProtocolDirLocalIndex, 
---                        nlMatrixTopNSourceAddress, 
---                        nlMatrixTopNDestAddress, nlMatrixTopNPktRate, 
---                        nlMatrixTopNReversePktRate, 
---                        nlMatrixTopNOctetRate, 
---                        nlMatrixTopNReverseOctetRate }
---      STATUS          mandatory
---      DESCRIPTION     
---              "Counts the amount of traffic sent between each pair of
---               network addresses discovered by the probe. Note that while the
---               hlMatrixControlTable also has objects that control optional
---               alMatrixTables, implementation of the alMatrixTables is not
---               required to fully implement this group."
---      ::= { rmon2MIBGroups 5 }
+--     OBJECTS         { hlMatrixControlDataSource, 
+--                       hlMatrixControlNlDroppedFrames, 
+--                       hlMatrixControlNlInserts, 
+--                       hlMatrixControlNlDeletes, 
+--                       hlMatrixControlNlMaxDesiredEntries, 
+--                       hlMatrixControlAlDroppedFrames, 
+--                       hlMatrixControlAlInserts, 
+--                       hlMatrixControlAlDeletes, 
+--                       hlMatrixControlAlMaxDesiredEntries, 
+--                       hlMatrixControlOwner, hlMatrixControlStatus, 
+--                       nlMatrixSDPkts, nlMatrixSDOctets, 
+--                       nlMatrixSDCreateTime, nlMatrixDSPkts, 
+--                       nlMatrixDSOctets, nlMatrixDSCreateTime, 
+--                       nlMatrixTopNControlMatrixIndex, 
+--                       nlMatrixTopNControlRateBase, 
+--                       nlMatrixTopNControlTimeRemaining, 
+--                       nlMatrixTopNControlGeneratedReports, 
+--                       nlMatrixTopNControlDuration, 
+--                       nlMatrixTopNControlRequestedSize, 
+--                       nlMatrixTopNControlGrantedSize, 
+--                       nlMatrixTopNControlStartTime, 
+--                       nlMatrixTopNControlOwner, 
+--                       nlMatrixTopNControlStatus, 
+--                       nlMatrixTopNProtocolDirLocalIndex, 
+--                       nlMatrixTopNSourceAddress, 
+--                       nlMatrixTopNDestAddress, nlMatrixTopNPktRate, 
+--                       nlMatrixTopNReversePktRate, 
+--                       nlMatrixTopNOctetRate, 
+--                       nlMatrixTopNReverseOctetRate }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Counts the amount of traffic sent between each pair of
+--              network addresses discovered by the probe. Note that while the
+--              hlMatrixControlTable also has objects that control optional
+--              alMatrixTables, implementation of the alMatrixTables is not
+--              required to fully implement this group."
+--     ::= { rmon2MIBGroups 5 }
 
 alHostGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 6 }
 
 -- alHostGroup OBJECT-GROUP
---      OBJECTS         { alHostInPkts, alHostOutPkts, alHostInOctets, 
---                        alHostOutOctets, alHostCreateTime }
---      STATUS          mandatory
---      DESCRIPTION     
---              "Counts the amount of traffic, by protocol, sent from and to
---               each network address discovered by the probe. Implementation
---               of this group requires implementation of the Network Layer
---               Host Group."
---      ::= { rmon2MIBGroups 6 }
+--     OBJECTS         { alHostInPkts, alHostOutPkts, alHostInOctets, 
+--                       alHostOutOctets, alHostCreateTime }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Counts the amount of traffic, by protocol, sent from and to
+--              each network address discovered by the probe. Implementation
+--              of this group requires implementation of the Network Layer
+--              Host Group."
+--     ::= { rmon2MIBGroups 6 }
 
 alMatrixGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 7 }
 
 -- alMatrixGroup OBJECT-GROUP
---      OBJECTS         { alMatrixSDPkts, alMatrixSDOctets, 
---                        alMatrixSDCreateTime, alMatrixDSPkts, 
---                        alMatrixDSOctets, alMatrixDSCreateTime, 
---                        alMatrixTopNControlMatrixIndex, 
---                        alMatrixTopNControlRateBase, 
---                        alMatrixTopNControlTimeRemaining, 
---                        alMatrixTopNControlGeneratedReports, 
---                        alMatrixTopNControlDuration, 
---                        alMatrixTopNControlRequestedSize, 
---                        alMatrixTopNControlGrantedSize, 
---                        alMatrixTopNControlStartTime, 
---                        alMatrixTopNControlOwner, 
---                        alMatrixTopNControlStatus, 
---                        alMatrixTopNProtocolDirLocalIndex, 
---                        alMatrixTopNSourceAddress, 
---                        alMatrixTopNDestAddress, 
---                        alMatrixTopNAppProtocolDirLocalIndex, 
---                        alMatrixTopNPktRate, 
---                        alMatrixTopNReversePktRate, 
---                        alMatrixTopNOctetRate, 
---                        alMatrixTopNReverseOctetRate }
---      STATUS          mandatory
---      DESCRIPTION     
---              "Counts the amount of traffic, by protocol, sent between each
---               pair of network addresses discovered by the
---               probe. Implementation of this group requires implementation of
---               the Network Layer Matrix Group."
---      ::= { rmon2MIBGroups 7 }
+--     OBJECTS         { alMatrixSDPkts, alMatrixSDOctets, 
+--                       alMatrixSDCreateTime, alMatrixDSPkts, 
+--                       alMatrixDSOctets, alMatrixDSCreateTime, 
+--                       alMatrixTopNControlMatrixIndex, 
+--                       alMatrixTopNControlRateBase, 
+--                       alMatrixTopNControlTimeRemaining, 
+--                       alMatrixTopNControlGeneratedReports, 
+--                       alMatrixTopNControlDuration, 
+--                       alMatrixTopNControlRequestedSize, 
+--                       alMatrixTopNControlGrantedSize, 
+--                       alMatrixTopNControlStartTime, 
+--                       alMatrixTopNControlOwner, 
+--                       alMatrixTopNControlStatus, 
+--                       alMatrixTopNProtocolDirLocalIndex, 
+--                       alMatrixTopNSourceAddress, 
+--                       alMatrixTopNDestAddress, 
+--                       alMatrixTopNAppProtocolDirLocalIndex, 
+--                       alMatrixTopNPktRate, alMatrixTopNReversePktRate, 
+--                       alMatrixTopNOctetRate, 
+--                       alMatrixTopNReverseOctetRate }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Counts the amount of traffic, by protocol, sent between each
+--              pair of network addresses discovered by the
+--              probe. Implementation of this group requires implementation of
+--              the Network Layer Matrix Group."
+--     ::= { rmon2MIBGroups 7 }
 
 usrHistoryGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 8 }
 
 -- usrHistoryGroup OBJECT-GROUP
---      OBJECTS         { usrHistoryControlObjects, 
---                        usrHistoryControlBucketsRequested, 
---                        usrHistoryControlBucketsGranted, 
---                        usrHistoryControlInterval, 
---                        usrHistoryControlOwner, 
---                        usrHistoryControlStatus, 
---                        usrHistoryObjectVariable, 
---                        usrHistoryObjectSampleType, 
---                        usrHistoryIntervalStart, usrHistoryIntervalEnd, 
---                        usrHistoryAbsValue, usrHistoryValStatus }
---      STATUS          mandatory
---      DESCRIPTION     
---              "The usrHistoryGroup provides user-defined collection of
---               historical information from MIB objects on the probe."
---      ::= { rmon2MIBGroups 8 }
+--     OBJECTS         { usrHistoryControlObjects, 
+--                       usrHistoryControlBucketsRequested, 
+--                       usrHistoryControlBucketsGranted, 
+--                       usrHistoryControlInterval, 
+--                       usrHistoryControlOwner, usrHistoryControlStatus, 
+--                       usrHistoryObjectVariable, 
+--                       usrHistoryObjectSampleType, 
+--                       usrHistoryIntervalStart, usrHistoryIntervalEnd, 
+--                       usrHistoryAbsValue, usrHistoryValStatus }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "The usrHistoryGroup provides user-defined collection of
+--              historical information from MIB objects on the probe."
+--     ::= { rmon2MIBGroups 8 }
 
 probeInformationGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 9 }
 
 -- probeInformationGroup OBJECT-GROUP
---      OBJECTS         { probeCapabilities, probeSoftwareRev, 
---                        probeHardwareRev, probeDateTime }
---      STATUS          mandatory
---      DESCRIPTION     
---              "This group describes various operating parameters of the
---               probe as well as controlling the local time of the probe."
---      ::= { rmon2MIBGroups 9 }
+--     OBJECTS         { probeCapabilities, probeSoftwareRev, 
+--                       probeHardwareRev, probeDateTime }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This group describes various operating parameters of the
+--              probe as well as controlling the local time of the probe."
+--     ::= { rmon2MIBGroups 9 }
 
 probeConfigurationGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 10 }
 
 -- probeConfigurationGroup OBJECT-GROUP
---      OBJECTS         { probeResetControl, probeDownloadFile, 
---                        probeDownloadTFTPServer, probeDownloadAction, 
---                        probeDownloadStatus, serialMode, 
---                        serialProtocol, serialTimeout, 
---                        serialModemInitString, serialModemHangUpString, 
---                        serialModemConnectResp, 
---                        serialModemNoConnectResp, serialDialoutTimeout, 
---                        serialStatus, netConfigIPAddress, 
---                        netConfigSubnetMask, netConfigStatus, 
---                        netDefaultGateway, trapDestCommunity, 
---                        trapDestProtocol, trapDestAddress, 
---                        trapDestOwner, trapDestStatus, 
---                        serialConnectDestIpAddress, serialConnectType, 
---                        serialConnectDialString, 
---                        serialConnectSwitchConnectSeq, 
---                        serialConnectSwitchDisconnectSeq, 
---                        serialConnectSwitchResetSeq, 
---                        serialConnectOwner, serialConnectStatus }
---      STATUS          mandatory
---      DESCRIPTION     
---              "This group controls the configuration of various operating
---               parameters of the probe."
---      ::= { rmon2MIBGroups 10 }
+--     OBJECTS         { probeResetControl, probeDownloadFile, 
+--                       probeDownloadTFTPServer, probeDownloadAction, 
+--                       probeDownloadStatus, serialMode, serialProtocol, 
+--                       serialTimeout, serialModemInitString, 
+--                       serialModemHangUpString, serialModemConnectResp, 
+--                       serialModemNoConnectResp, serialDialoutTimeout, 
+--                       serialStatus, netConfigIPAddress, 
+--                       netConfigSubnetMask, netConfigStatus, 
+--                       netDefaultGateway, trapDestCommunity, 
+--                       trapDestProtocol, trapDestAddress, 
+--                       trapDestOwner, trapDestStatus, 
+--                       serialConnectDestIpAddress, serialConnectType, 
+--                       serialConnectDialString, 
+--                       serialConnectSwitchConnectSeq, 
+--                       serialConnectSwitchDisconnectSeq, 
+--                       serialConnectSwitchResetSeq, serialConnectOwner, 
+--                       serialConnectStatus }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This group controls the configuration of various operating
+--              parameters of the probe."
+--     ::= { rmon2MIBGroups 10 }
 
 rmon1EnhancementGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 11 }
 
 -- rmon1EnhancementGroup OBJECT-GROUP
---      OBJECTS         { historyControlDroppedFrames, 
---                        hostControlDroppedFrames, 
---                        hostControlCreateTime, 
---                        matrixControlDroppedFrames, 
---                        matrixControlCreateTime, channelDroppedFrames, 
---                        channelCreateTime, 
---                        filterProtocolDirDataLocalIndex, 
---                        filterProtocolDirLocalIndex }
---      STATUS          mandatory
---      DESCRIPTION     
---              "This group adds some enhancements to RMON-1 that help
---               management stations."
---      ::= { rmon2MIBGroups 11 }
+--     OBJECTS         { historyControlDroppedFrames, 
+--                       hostControlDroppedFrames, hostControlCreateTime, 
+--                       matrixControlDroppedFrames, 
+--                       matrixControlCreateTime, channelDroppedFrames, 
+--                       channelCreateTime, 
+--                       filterProtocolDirDataLocalIndex, 
+--                       filterProtocolDirLocalIndex }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This group adds some enhancements to RMON-1 that help
+--              management stations."
+--     ::= { rmon2MIBGroups 11 }
 
 rmon1EthernetEnhancementGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 12 }
 
 -- rmon1EthernetEnhancementGroup OBJECT-GROUP
---      OBJECTS         { etherStatsDroppedFrames, etherStatsCreateTime }
---      STATUS          mandatory
---      DESCRIPTION     
---              "This group adds some enhancements to RMON-1 that help
---               management stations."
---      ::= { rmon2MIBGroups 12 }
+--     OBJECTS         { etherStatsDroppedFrames, etherStatsCreateTime }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This group adds some enhancements to RMON-1 that help
+--              management stations."
+--     ::= { rmon2MIBGroups 12 }
 
 rmon1TokenRingEnhancementGroup OBJECT IDENTIFIER
     ::= { rmon2MIBGroups 13 }
 
 -- rmon1TokenRingEnhancementGroup OBJECT-GROUP
---      OBJECTS         { tokenRingMLStatsDroppedFrames, 
---                        tokenRingMLStatsCreateTime, 
---                        tokenRingPStatsDroppedFrames, 
---                        tokenRingPStatsCreateTime, 
---                        ringStationControlDroppedFrames, 
---                        ringStationControlCreateTime, 
---                        sourceRoutingStatsDroppedFrames, 
---                        sourceRoutingStatsCreateTime }
---      STATUS          mandatory
---      DESCRIPTION     
---              "This group adds some enhancements to RMON-1 that help
---               management stations."
---      ::= { rmon2MIBGroups 13 }
+--     OBJECTS         { tokenRingMLStatsDroppedFrames, 
+--                       tokenRingMLStatsCreateTime, 
+--                       tokenRingPStatsDroppedFrames, 
+--                       tokenRingPStatsCreateTime, 
+--                       ringStationControlDroppedFrames, 
+--                       ringStationControlCreateTime, 
+--                       sourceRoutingStatsDroppedFrames, 
+--                       sourceRoutingStatsCreateTime }
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "This group adds some enhancements to RMON-1 that help
+--              management stations."
+--     ::= { rmon2MIBGroups 13 }
 
 rmon2MIBCompliance OBJECT IDENTIFIER
     ::= { rmon2MIBCompliances 1 }
 
 -- rmon2MIBCompliance MODULE-COMPLIANCE
---      STATUS          mandatory
---      DESCRIPTION     
---              "Describes the requirements for conformance to
---               the RMON2 MIB"
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Describes the requirements for conformance to
+--              the RMON2 MIB"
 
---      MODULE          -- -- this module
+--     MODULE          -- -- this module
 
---          MANDATORY-GROUPS    { protocolDirectoryGroup, 
---                        protocolDistributionGroup, addressMapGroup, 
---                        nlHostGroup, nlMatrixGroup, usrHistoryGroup, 
---                        probeInformationGroup }
+--         MANDATORY-GROUPS    { protocolDirectoryGroup, 
+--                       protocolDistributionGroup, addressMapGroup, 
+--                       nlHostGroup, nlMatrixGroup, usrHistoryGroup, 
+--                       probeInformationGroup }
 
---          GROUP       rmon1EnhancementGroup
---          DESCRIPTION 
---              "The rmon1EnhancementGroup is mandatory for systems which
---               implement RMON [RFC1757]"
+--         GROUP       rmon1EnhancementGroup
+--         DESCRIPTION 
+--             "The rmon1EnhancementGroup is mandatory for systems which
+--              implement RMON [RFC1757]"
 
---      ::= { rmon2MIBCompliances 1 }
+--     ::= { rmon2MIBCompliances 1 }
 
 rmon2MIBApplicationLayerCompliance OBJECT IDENTIFIER
     ::= { rmon2MIBCompliances 2 }
 
 -- rmon2MIBApplicationLayerCompliance MODULE-COMPLIANCE
---      STATUS          mandatory
---      DESCRIPTION     
---              "Describes the requirements for conformance to
---               the RMON2 MIB with Application Layer Enhancements."
+--     STATUS          mandatory
+--     DESCRIPTION     
+--             "Describes the requirements for conformance to
+--              the RMON2 MIB with Application Layer Enhancements."
 
---      MODULE          -- -- this module
+--     MODULE          -- -- this module
 
---          MANDATORY-GROUPS    { protocolDirectoryGroup, 
---                        protocolDistributionGroup, addressMapGroup, 
---                        nlHostGroup, nlMatrixGroup, alHostGroup, 
---                        alMatrixGroup, usrHistoryGroup, 
---                        probeInformationGroup }
+--         MANDATORY-GROUPS    { protocolDirectoryGroup, 
+--                       protocolDistributionGroup, addressMapGroup, 
+--                       nlHostGroup, nlMatrixGroup, alHostGroup, 
+--                       alMatrixGroup, usrHistoryGroup, 
+--                       probeInformationGroup }
 
---          GROUP       rmon1EnhancementGroup
---          DESCRIPTION 
---              "The rmon1EnhancementGroup is mandatory for systems which
---               implement RMON [RFC1757]"
+--         GROUP       rmon1EnhancementGroup
+--         DESCRIPTION 
+--             "The rmon1EnhancementGroup is mandatory for systems which
+--              implement RMON [RFC1757]"
 
---      ::= { rmon2MIBCompliances 2 }
+--     ::= { rmon2MIBCompliances 2 }
 
 END -- end of module RMON2-MIB.
