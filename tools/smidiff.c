@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.31 2001/11/14 15:16:03 tklie Exp $ 
+ * @(#) $Id: smidiff.c,v 1.32 2001/11/15 10:22:02 tklie Exp $ 
  */
 
 #include <config.h>
@@ -793,41 +793,6 @@ iterateTypeImports(char *typeName,
 	oldIterTypeName = iterTypeName;
 	oldIterType = iterType;
     }
-}
-
-static void
-printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
-		     SmiType *newType, SmiType *newTwR,
-		     SmiModule *oldModule, SmiModule *newModule)
-{
-    char *oldTypeName, *newTypeName;
-    int oldLine, newLine;
-
-    smiInit( oldTag );
-    oldTypeName = getTypeName( oldType, oldModule );
-    oldLine = smiGetTypeLine( oldType );
-    smiInit( newTag );
-    newTypeName = getTypeName( newType, newModule );
-    newLine = smiGetTypeLine( newType );
-   
-    if( (oldType == oldTwR) && (newType == newTwR) &&
-	(diffStrings( oldTypeName, newTypeName )) ) {
-	printErrorAtLine(smiGetTypeModule( newType ), ERR_TYPE_IS_AND_WAS,
-			 smiGetTypeLine( newType ),
-			 oldTypeName, newTypeName);
-    } else {
-	if( oldTwR ) {
-	    iterateTypeImports( oldTypeName, oldType, oldTwR, oldLine,
-				oldModule );
-	}
-	if( newTwR ) {
-	    iterateTypeImports( newTypeName, newType, newTwR, newLine,
-				newModule );
-	}
-    }
-    
-    free(oldTypeName);
-    free(newTypeName);
 }
 
 static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
@@ -2331,4 +2296,3 @@ main(int argc, char *argv[])
 
     return 0;
 }
-
