@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.16 1998/11/25 14:36:34 strauss Exp $
+ * @(#) $Id: smi.c,v 1.17 1998/11/26 00:50:07 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -596,6 +596,8 @@ smiGetNode(name, module, wantdescr)
 		sprintf(type, "%s.%s",
 		   ((Descriptor *)(o->type->parent))->module->descriptor->name,
 			((Descriptor *)(o->type->parent))->name);
+	    } else if (o->type->flags & FLAG_IMPORTED) {
+		sprintf(type, "gaga");
 	    } else {
 		if (o->type->module && o->type->descriptor) {
 		    sprintf(type, "%s.%s", o->type->module->descriptor->name,

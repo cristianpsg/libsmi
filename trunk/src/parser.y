@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.23 1998/11/23 16:41:37 strauss Exp $
+ * @(#) $Id: parser.y,v 1.25 1998/11/25 03:47:44 strauss Exp $
  */
 
 %{
@@ -982,33 +982,57 @@ row:			UPPERCASE_IDENTIFIER
 			 */
 			{
 			    Type *type;
-			    
+			    Descriptor *descriptor;
+			    smi_type *stype;
+
 			    if (thisParser->flags & FLAG_ACTIVE) {
 				$$ = findTypeByModulenameAndName(
 				    thisModule->descriptor->name, $1);
 				if (! $$) {
-				    /* 
-				     * forward referenced type. create it,
-				     * marked with FLAG_INCOMPLETE.
-				     */
-				    type = addType(NULL,
-						 SMI_SYNTAX_SEQUENCE,
-						 thisModule,
-						 ((thisParser->flags &
-						   (FLAG_WHOLEMOD |
-						    FLAG_WHOLEFILE))
-						  ? FLAG_MODULE : 0) |
-						 FLAG_INCOMPLETE,
-						 thisParser);
-				    addDescriptor($1, thisModule, KIND_TYPE,
-						  &type,
-						  ((thisParser->flags &
-						    (FLAG_WHOLEMOD |
-						     FLAG_WHOLEFILE))
-						   ? FLAG_MODULE : 0) |
-						  FLAG_INCOMPLETE,
-						  thisParser);
-				    $$ = type;
+				    descriptor = findDescriptor($1,
+								thisModule,
+								KIND_TYPE);
+				    if (!descriptor) {
+					/* 
+					 * forward referenced type. create it,
+					 * marked with FLAG_INCOMPLETE.
+					 */
+					type = addType(NULL,
+						       SMI_SYNTAX_SEQUENCE,
+						       thisModule,
+						       ((thisParser->flags &
+							 (FLAG_WHOLEMOD |
+							  FLAG_WHOLEFILE))
+							? FLAG_MODULE : 0) |
+						       FLAG_INCOMPLETE,
+						       thisParser);
+					addDescriptor($1, thisModule,
+						      KIND_TYPE,
+						      &type,
+						      ((thisParser->flags &
+							(FLAG_WHOLEMOD |
+							 FLAG_WHOLEFILE))
+						       ? FLAG_MODULE : 0) |
+						      FLAG_INCOMPLETE,
+						      thisParser);
+					$$ = type;
+				    } else {
+					/*
+					 * imported type.
+					 */
+					stype = smiGetType($1,
+					 ((Descriptor *)descriptor->ptr)->name,
+							   0);
+					$$ = addType((void *)descriptor,
+						     stype->syntax,
+						     thisModule,
+						     ((thisParser->flags &
+						       (FLAG_WHOLEMOD |
+							FLAG_WHOLEFILE))
+						      ? FLAG_MODULE : 0) |
+						     FLAG_IMPORTED,
+						     thisParser);
+				    }
 				}
 			    } else {
 				$$ = NULL;
@@ -1169,19 +1193,11 @@ sequenceSyntax:		/* ObjectSyntax */
 				    } else {
 					/*
 					 * imported type.
+					 *
+					 * We are in a SEQUENCE clause,
+					 * where we do not have to create
+					 * a new Type struct.
 					 */
-					stype = smiGetType($1,
-					 ((Descriptor *)descriptor->ptr)->name,
-							   0);
-					$$ = addType((void *)descriptor,
-						     stype->syntax,
-						     thisModule,
-						     ((thisParser->flags &
-						       (FLAG_WHOLEMOD |
-							FLAG_WHOLEFILE))
-						      ? FLAG_MODULE : 0) |
-						     FLAG_PARENTIMPORTED,
-						     thisParser);
 				    }
 				}
 			    } else {
