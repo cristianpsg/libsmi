@@ -616,6 +616,10 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     if (aggregate > 1) aggregate = 1;
     if (aggregate < 0) aggregate = 0;
 
+    //expands should have cardinalities 1 *
+    if (tEdge->indexkind==SMI_INDEX_EXPAND)
+	tEdge->cardinality = GRAPH_CARD_ONE_TO_MANY;
+
     //print text upside down, if angle is between 180° and 360°
     if (tEdge->startNode->dia.x > tEdge->endNode->dia.x)
 	revert = 1;
@@ -700,7 +704,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	printf("       augments\n");
 	break;
     case SMI_INDEX_SPARSE:
-	printf("       sparses\n");
+	printf("       sparsly augments\n");
 	break;
     case SMI_INDEX_REORDER:
 	printf("       reorders\n");
