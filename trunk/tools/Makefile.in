@@ -107,7 +107,7 @@ smipath = @smipath@
 
 INCLUDES = -I../lib
 
-EXTRA_DIST = smidump.h 			  $(man_MANS) 			  dump-fig.c
+EXTRA_DIST = smidump.h shhopt.h 			  $(man_MANS) 			  dump-fig.c
 
 
 bin_PROGRAMS = smiquery smilint smidump
@@ -116,13 +116,13 @@ bin_SCRIPTS = smistrip
 
 man_MANS = smiquery.1 smilint.1 smidump.1 smistrip.1
 
-smiquery_SOURCES = smiquery.c
+smiquery_SOURCES = smiquery.c shhopt.c
 smiquery_LDADD = ../lib/libsmi.la
 
-smilint_SOURCES = smilint.c
+smilint_SOURCES = smilint.c shhopt.c
 smilint_LDADD = ../lib/libsmi.la
 
-smidump_SOURCES = smidump.c smidump.h dump-sming.c dump-smi.c 			  dump-imports.c dump-types.c dump-tree.c 			  dump-mosy.c dump-corba.c dump-netsnmp.c 			  dump-jax.c dump-xml.c dump-identifiers.c 			  dump-metrics.c dump-cm.c dump-python.c
+smidump_SOURCES = smidump.c smidump.h shhopt.c 			  dump-sming.c dump-smi.c 			  dump-imports.c dump-types.c dump-tree.c 			  dump-mosy.c dump-corba.c dump-netsnmp.c 			  dump-jax.c dump-xml.c dump-identifiers.c 			  dump-metrics.c dump-cm.c dump-python.c
 
 #			  dump-fig.c
 smidump_LDADD = ../lib/libsmi.la
@@ -137,16 +137,16 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-smiquery_OBJECTS =  smiquery.o
+smiquery_OBJECTS =  smiquery.o shhopt.o
 smiquery_DEPENDENCIES =  ../lib/libsmi.la
 smiquery_LDFLAGS = 
-smilint_OBJECTS =  smilint.o
+smilint_OBJECTS =  smilint.o shhopt.o
 smilint_DEPENDENCIES =  ../lib/libsmi.la
 smilint_LDFLAGS = 
-smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-imports.o \
-dump-types.o dump-tree.o dump-mosy.o dump-corba.o dump-netsnmp.o \
-dump-jax.o dump-xml.o dump-identifiers.o dump-metrics.o dump-cm.o \
-dump-python.o
+smidump_OBJECTS =  smidump.o shhopt.o dump-sming.o dump-smi.o \
+dump-imports.o dump-types.o dump-tree.o dump-mosy.o dump-corba.o \
+dump-netsnmp.o dump-jax.o dump-xml.o dump-identifiers.o dump-metrics.o \
+dump-cm.o dump-python.o
 smidump_DEPENDENCIES =  ../lib/libsmi.la
 smidump_LDFLAGS = 
 SCRIPTS =  $(bin_SCRIPTS)
@@ -171,8 +171,8 @@ DEP_FILES =  .deps/dump-cm.P .deps/dump-corba.P .deps/dump-identifiers.P \
 .deps/dump-imports.P .deps/dump-jax.P .deps/dump-metrics.P \
 .deps/dump-mosy.P .deps/dump-netsnmp.P .deps/dump-python.P \
 .deps/dump-smi.P .deps/dump-sming.P .deps/dump-tree.P \
-.deps/dump-types.P .deps/dump-xml.P .deps/smidump.P .deps/smilint.P \
-.deps/smiquery.P
+.deps/dump-types.P .deps/dump-xml.P .deps/shhopt.P .deps/smidump.P \
+.deps/smilint.P .deps/smiquery.P
 SOURCES = $(smiquery_SOURCES) $(smilint_SOURCES) $(smidump_SOURCES)
 OBJECTS = $(smiquery_OBJECTS) $(smilint_OBJECTS) $(smidump_OBJECTS)
 

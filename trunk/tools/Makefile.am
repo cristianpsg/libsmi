@@ -8,12 +8,12 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.20 2000/10/19 16:15:26 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.21 2000/11/13 00:13:49 strauss Exp $
 #
 
 INCLUDES		= -I../lib
 
-EXTRA_DIST		= smidump.h \
+EXTRA_DIST		= smidump.h shhopt.h \
 			  $(man_MANS) \
 			  dump-fig.c
 
@@ -23,13 +23,14 @@ bin_SCRIPTS		= smistrip
 
 man_MANS		= smiquery.1 smilint.1 smidump.1 smistrip.1
 
-smiquery_SOURCES	= smiquery.c
+smiquery_SOURCES	= smiquery.c shhopt.c
 smiquery_LDADD		= ../lib/libsmi.la
 
-smilint_SOURCES		= smilint.c
+smilint_SOURCES		= smilint.c shhopt.c
 smilint_LDADD		= ../lib/libsmi.la
 
-smidump_SOURCES		= smidump.c smidump.h dump-sming.c dump-smi.c \
+smidump_SOURCES		= smidump.c smidump.h shhopt.c \
+			  dump-sming.c dump-smi.c \
 			  dump-imports.c dump-types.c dump-tree.c \
 			  dump-mosy.c dump-corba.c dump-netsnmp.c \
 			  dump-jax.c dump-xml.c dump-identifiers.c \

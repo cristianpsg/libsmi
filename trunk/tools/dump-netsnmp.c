@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.2 2000/11/20 15:45:10 strauss Exp $
+ * @(#) $Id: dump-netsnmp.c,v 1.3 2000/11/28 09:19:36 strauss Exp $
  */
 
 /*
@@ -971,4 +971,21 @@ void dumpNetSnmp(int modc, SmiModule **modv, int flags, char *output)
 	}
     }
 
+}
+
+
+
+void init_netsnmp()
+{
+    static SmidumpDriver driver = {
+	"netsnmp",
+	dumpNetSnmp,
+	SMI_FLAG_NODESCR,
+	SMIDUMP_DRIVER_CANT_UNITE,
+	"ANSI C code for the NET SNMP package",
+	NULL,
+	NULL
+    };
+
+    smidumpRegisterDriver(&driver);
 }

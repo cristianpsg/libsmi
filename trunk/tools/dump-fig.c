@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-fig.c,v 1.9 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: dump-fig.c,v 1.10 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -190,4 +190,31 @@ void dumpFigUml(Module *module)
 
     x = X_OFFSET, y = Y_OFFSET;
     printClasses(&x, &y, smiModule);
+}
+
+
+
+void init_fig()
+{
+    static SmidumpDriver driverTree = {
+	"fig-tree",
+	dumpFigTree,
+	SMI_FLAG_NODESCR,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	"tree graphics in xfig fig format",
+	NULL,
+	NULL
+    };
+    static SmidumpDriver driverUml = {
+	"fig-uml",
+	dumpFigUml,
+	SMI_FLAG_NODESCR,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	"UML graphics in xfig fig format",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driverTree);
+    smidumpRegisterDriver(&driverUml);
 }

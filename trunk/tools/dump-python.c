@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-python.c,v 1.4 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-python.c,v 1.5 2000/11/28 09:19:36 strauss Exp $
  */
 
 /*
@@ -1027,8 +1027,20 @@ void dumpPython(int modc, SmiModule **modv, int flags, char *output)
 	fclose(f);
     } 
 }
-/*
- * Local Variables:
- * c-basic-offset: 4
- * End:
- */
+
+
+
+void init_python()
+{
+    static SmidumpDriver driver = {
+	"python",
+	dumpPython,
+	0,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	"Python MIB dictionaries",
+	NULL,
+	NULL
+    };
+
+    smidumpRegisterDriver(&driver);
+}

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.7 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: dump-identifiers.c,v 1.8 2000/11/28 09:19:36 strauss Exp $
  */
 
 #include <config.h>
@@ -30,6 +30,9 @@ static SmiModule **pmodv = NULL;
 
 static int moduleLen = 0;
 static int identifierLen = 0;
+
+static int ignoretypes = 0;
+static int ignorenodes = 0;
 
 
 
@@ -160,10 +163,15 @@ void dumpIdentifiers(int modc, SmiModule **modv, int flags, char *output)
 		    SMI_VERSION_STRING ")\n\n");
 	}
 
-	dumpTypeIdentifiers(f, modc, modv);
-	smiNode = smiGetNode(NULL, "iso");
-	if (smiNode) {
-	    dumpNodeIdentifiers(f, smiNode);
+	if (!ignoretypes) {
+	    dumpTypeIdentifiers(f, modc, modv);
+	}
+	
+	if (!ignorenodes) {
+	    smiNode = smiGetNode(NULL, "iso");
+	    if (smiNode) {
+		dumpNodeIdentifiers(f, smiNode);
+	    }
 	}
 
     } else {
@@ -179,10 +187,15 @@ void dumpIdentifiers(int modc, SmiModule **modv, int flags, char *output)
 			modv[i]->name);
 	    }
 
-	    dumpTypeIdentifiers(f, 1, &(modv[i]));
-	    smiNode = smiGetNode(NULL, "iso");
-	    if (smiNode) {
-		dumpNodeIdentifiers(f, smiNode);
+	    if (!ignoretypes) {
+		dumpTypeIdentifiers(f, 1, &(modv[i]));
+	    }
+
+	    if (!ignorenodes) {
+		smiNode = smiGetNode(NULL, "iso");
+		if (smiNode) {
+		    dumpNodeIdentifiers(f, smiNode);
+		}
 	    }
 	}
     }
@@ -190,4 +203,30 @@ void dumpIdentifiers(int modc, SmiModule **modv, int flags, char *output)
     if (output) {
 	fclose(f);
     }
+}
+
+
+
+void init_identifiers()
+{
+    
+    static SmidumpDriverOption opt[] = {
+	{ "ignore-types", OPT_FLAG, &ignoretypes, 0,
+	  "do not dump types"},
+	{ "ignore-nodes", OPT_FLAG, &ignorenodes, 0,
+	  "do not dump nodes"},
+        { 0, OPT_END, 0, 0 }
+    };
+
+    static SmidumpDriver driver = {
+	"identifiers",
+	dumpIdentifiers,
+	SMI_FLAG_NODESCR,
+	0, /** output ? **/
+	"list of all identifiers",
+	opt,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

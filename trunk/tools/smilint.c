@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.34 2000/10/21 09:35:03 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.35 2000/11/15 10:50:34 strauss Exp $
  */
 
 #include <config.h>
@@ -27,6 +27,9 @@
 #endif
 
 #include "smi.h"
+#include "shhopt.h"
+
+
 
 /*
  * These are functions that are not officially exported by the libsmi.
@@ -42,7 +45,7 @@ extern char* smiGetErrorMsg(int id);
 static int mFlag = 0;	/* show the name for error messages */
 static int sFlag = 0;	/* show the severity for error messages */
 static int eFlag = 0;	/* print the list of possible error messages */
-
+static int flags;
 
 
 typedef struct Error {
@@ -112,27 +115,27 @@ static void errors()
 static void usage()
 {
     fprintf(stderr,
-	    "Usage: smilint [-Vehrs] [-c <configfile>] [-p <module>] [-l <level>]\n"
-	    "               [-i <error-pattern>] <module_or_path>\n"
-	    "-V                    show version and license information\n"
-	    "-e                    print list of known error messages\n"
-	    "-h                    show usage information\n"
-	    "-m                    print the name of errors in braces\n"
-	    "-r                    print errors also for imported modules\n"
-	    "-s                    print the severity of errors in brackets\n"
-	    "-c <configfile>       load a specific configuration file\n"
-	    "-p <module>           preload <module>\n"
-	    "-l <level>            set maximum level of errors and warnings\n"
-	    "-i <error-pattern>    ignore errors matching prefix pattern\n"
-	    "<module_or_path>      plain name of MIB module or file path\n");
+	    "Usage: smilint [options] [module or path ...]\n"
+	    "  -V, --version        show version and license information\n"
+	    "  -h, --help           show usage information\n"
+	    "  -c, --config=file    load a specific configuration file\n"
+	    "  -p, --preload=module preload <module>\n"
+	    "  -e, --error-list     print list of known error messages\n"
+	    "  -m, --error-names    print the name of errors in braces\n"
+	    "  -s, --severity       print the severity of errors in brackets\n"
+	    "  -r, --recursive      print errors also for imported modules\n"
+	    "  -l, --level=level    set maximum level of errors and warnings\n"
+	    "  -i, --ignore=prefix  ignore errors matching prefix pattern\n");
 }
 
 
 
-static void version()
-{
-    printf("smilint " SMI_VERSION_STRING "\n");
-}
+static void version() { printf("smilint " SMI_VERSION_STRING "\n"); }
+static void config(char *filename) { smiReadConfig(filename, "smilint"); }
+static void preload(char *module) { smiLoadModule(module); }
+static void recursive() { flags |= SMI_FLAG_RECURSIVE; smiSetFlags(flags); }
+static void level(int lev) { smiSetErrorLevel(lev); }
+static void ignore(char *ign) { smiSetSeverity(ign, 9); }
 
 
 
@@ -156,9 +159,26 @@ errorHandler(char *path, int line, int severity, char *msg, char *tag)
 int main(int argc, char *argv[])
 {
     char c;
-    int flags, i;
+    int i;
 
-    for (i = 1; i < argc; i++) if (strstr(argv[i], "-c") == argv[i]) break;
+    static optStruct opt[] = {
+	/* short long              type        var/func       special       */
+	{ 'h', "help",           OPT_FLAG,   usage,         OPT_CALLFUNC },
+	{ 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
+	{ 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
+	{ 'p', "preload",        OPT_STRING, preload,       OPT_CALLFUNC },
+	{ 'e', "error-list",     OPT_FLAG,   &eFlag,        0 },
+	{ 'm', "error-names",    OPT_FLAG,   &mFlag,        0 },
+	{ 's', "severity",       OPT_FLAG,   &sFlag,        0 },
+	{ 'r', "recursive",      OPT_FLAG,   recursive,     OPT_CALLFUNC },
+	{ 'l', "level",          OPT_INT,    level,         OPT_CALLFUNC },
+	{ 'i', "ignore",         OPT_STRING, ignore,        OPT_CALLFUNC },
+	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
+    };
+    
+    for (i = 1; i < argc; i++)
+	if ((strstr(argv[i], "-c") == argv[i]) ||
+	    (strstr(argv[i], "--config") == argv[i])) break;
     if (i == argc) 
 	smiInit("smilint");
     else
@@ -169,44 +189,7 @@ int main(int argc, char *argv[])
     flags |= SMI_FLAG_NODESCR;
     smiSetFlags(flags);
 
-    while ((c = getopt(argc, argv, "Vehmrsp:l:i:c:")) != -1) {
-	switch (c) {
-	case 'c':
-	    smiReadConfig(optarg, "smiquery");
-	    break;
-	case 'V':
-	    version();
-	    return 0;
-	case 'e':
-	    eFlag++;
-	    break;
-	case 'h':
-	    usage();
-	    return 0;
-	case 'm':
-	    mFlag++;
-	    break;
-	case 'r':
-	    flags |= SMI_FLAG_RECURSIVE;
-	    smiSetFlags(flags);
-	    break;
-	case 's':
-	    sFlag++;
-	    break;
-	case 'p':
-	    smiLoadModule(optarg);
-	    break;
-	case 'i':
-	    smiSetSeverity(optarg, 9);
-	    break;
-	case 'l':
-	    smiSetErrorLevel(atoi(optarg));
-	    break;
-	default:
-	    usage();
-	    exit(1);
-	}
-    }
+    optParseOptions(&argc, argv, opt, 0);
 
     if (sFlag || mFlag) {
 	smiSetErrorHandler(errorHandler);

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.22 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.23 2000/11/15 10:50:34 strauss Exp $
  */
 
 #include <config.h>
@@ -340,4 +340,22 @@ void dumpTree(int modc, SmiModule **modv, int flags, char *output)
 	    }
 	}
     }
+}
+
+
+
+void init_tree()
+{
+    
+    static SmidumpDriver driver = {
+	"tree",
+	dumpTree,
+	SMI_FLAG_NODESCR,
+	0, /** output ? **/
+	"structure of the OID tree",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.14 2000/07/05 11:58:42 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.15 2000/11/09 22:29:54 strauss Exp $
  */
 
 #include <config.h>
@@ -153,4 +153,22 @@ void dumpImports(int modc, SmiModule **modv, int flags, char *output)
     if (output) {
 	fclose(f);
     }
+}
+
+
+
+void init_imports()
+{
+    
+    static SmidumpDriver driver = {
+	"imports",
+	dumpImports,
+	SMI_FLAG_NODESCR,
+	SMIDUMP_DRIVER_CANT_UNITE, /** output ? **/
+	"recursive list of all imports",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

@@ -10,11 +10,14 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.h,v 1.15 2000/11/08 18:11:09 strauss Exp $
+ * @(#) $Id: smidump.h,v 1.16 2000/11/09 22:29:54 strauss Exp $
  */
 
 #ifndef _SMIDUMP_H
 #define _SMIDUMP_H
+
+#include "shhopt.h"
+
 
 
 /*
@@ -29,6 +32,53 @@
 #define SMIDUMP_FLAG_DEPRECATED	0x08	/* not yet used */
 #define SMIDUMP_FLAG_OBSOLETE	0x08	/* not yet used */
 #define SMIDUMP_FLAG_COMPACT	0x10	/* not yet used */
+
+
+
+/*
+ * Driver capability flags which are used to warn about options not
+ * understood by a particular output driver.
+ */
+
+#define SMIDUMP_DRIVER_CANT_UNITE	0x02
+#define SMIDUMP_DRIVER_CANT_OUTPUT	0x04
+
+
+
+/*
+ * The data structure which represents a driver specific option.
+ * A static array of these options (with the last option's type
+ * being OPT_END) is used in SmidumpDriver.
+ * The SmidumpDriverOption structure is based on shhopt.h:optStruct.
+ */
+
+typedef struct SmidumpDriverOption {
+    char *name;
+    optArgType type;
+    void *arg;
+    int flags;
+    char *descr;
+} SmidumpDriverOption;
+
+
+
+/*
+ * The data structure which represents the entry point for an output
+ * driver. The ignflags contain the driver capabilities as described
+ * above.
+ */
+
+typedef struct SmidumpDriver {
+    char *name;				/* Name of the output driver. */
+    void (*func) (int, SmiModule **,	/* Output generating function. */
+		  int, char *);
+    int smiflags;			/* Flags for the SMI parser. */
+    int ignflags;			/* Output driver flags ignored. */
+    char *descr;			/* Short description. */
+    SmidumpDriverOption *opt;           /* Driver specific options. */
+    struct SmidumpDriver *next;
+} SmidumpDriver;
+
 
 
 /*
@@ -68,5 +118,6 @@ extern void *xrealloc(void *ptr, size_t size);
 extern char *xstrdup(const char *s);
 extern void xfree(void *ptr);
 
+extern void smidumpRegisterDriver(SmidumpDriver *driver);
 
 #endif /* _SMIDUMP_H */

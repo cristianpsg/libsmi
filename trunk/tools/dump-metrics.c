@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.3 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: dump-metrics.c,v 1.4 2000/11/09 22:29:54 strauss Exp $
  */
 
 /*
@@ -167,4 +167,22 @@ void dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
     if (output) {
 	fclose(f);
     }
+}
+
+
+
+void init_metrics()
+{
+    
+    static SmidumpDriver driver = {
+	"metrics",
+	dumpMetrics,
+	0,
+	0,
+	"metrics characterizing MIB modules",
+	NULL,
+	NULL
+    };
+    
+    smidumpRegisterDriver(&driver);
 }

@@ -1,5 +1,14 @@
 2000-11-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-*.c: Now all smidump driver modules register their
+	format drivers with smidump with an init_<format>() function.
+	Additionally, we allow a driver to register format specific
+	options. See dump-identifiers.c for a first small example.
+
+	* tools/shhopt.[ch]: Added support for long options. Thanks
+	to Sverre H. Huseby for his small and beatiful shhopt library.
+	See http://shh.thathost.com/pub-unix/.
+	
 	* tools/dump-*.c: Fixed some minor compiler warnings.
 
 	* ltconfig: Updated to libtool 1.3.5.

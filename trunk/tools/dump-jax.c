@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.30 2000/11/15 10:50:34 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.31 2000/11/28 09:19:36 strauss Exp $
  */
 
 #include <config.h>
@@ -1403,3 +1403,19 @@ void dumpJax(int modc, SmiModule **modv, int flags, char *output)
     }
 }
 
+
+
+void init_jax()
+{
+    static SmidumpDriver driver = {
+	"jax",
+	dumpJax,
+	SMI_FLAG_NODESCR,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	"Java AgentX sub-agent classes in separate files",
+	NULL,
+	NULL
+    };
+
+    smidumpRegisterDriver(&driver);
+}
