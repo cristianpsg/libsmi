@@ -6,18 +6,18 @@
  * Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 2000 J. Schoenwaelder, Technical University of Braunschweig.
  * Copyright (c) 2002 J. Schoenwaelder, University of Osnabrueck.
+ * Copyright (c) 2004 J. Schoenwaelder, International University Bremen.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-metrics.c,v 1.12 2003/08/14 11:29:30 schoenw Exp $
+ * @(#) $Id: dump-metrics.c,v 1.13 2003/12/10 12:17:40 schoenw Exp $
  */
 
 /*
   # revisions
   # imports
   # row creations:
-  # <basetype usage distribution>
   # count node references in notification definitions
  */
 
@@ -33,6 +33,23 @@
 static int raw = 0;
 
 static int silent = 0;
+
+
+typedef struct BasetypeCounter {
+    unsigned long total;
+    unsigned long unknown;
+    unsigned long integer32;
+    unsigned long octetstring;
+    unsigned long objectidentifier;
+    unsigned long unsigned32;
+    unsigned long integer64;
+    unsigned long unsigned64;
+    unsigned long float32;
+    unsigned long float64;
+    unsigned long float128;
+    unsigned long enums;
+    unsigned long bits;
+} BasetypeCounter;
 
 
 typedef struct StatusCounter {
@@ -93,29 +110,39 @@ typedef struct LengthCounter {
 
 
 
-typedef struct Metrics {
-    StatusCounter statusTypes;
+typedef struct RowStatusCounter {
+    unsigned long basetables;
+    unsigned long rowstatus;
+    unsigned long storagetype;
+} RowStatusCounter;
 
-    StatusCounter statusTables;
-    StatusCounter statusColumns;
-    StatusCounter statusScalars;
-    StatusCounter statusNotifications;
-    StatusCounter statusGroups;
-    StatusCounter statusCompliances;
-    StatusCounter statusAll;
-    AccessCounter accessColumns;
-    AccessCounter accessScalars;
-    AccessCounter accessAll;
-    IndexCounter  indexTables;
+
+
+typedef struct Metrics {
+    BasetypeCounter basetypesColumns;
+    BasetypeCounter basetypesScalars;
+    BasetypeCounter basetypesAll;
+    StatusCounter   statusTypes;
+    StatusCounter   statusTables;
+    StatusCounter   statusColumns;
+    StatusCounter   statusScalars;
+    StatusCounter   statusNotifications;
+    StatusCounter   statusGroups;
+    StatusCounter   statusCompliances;
+    StatusCounter   statusAll;
+    AccessCounter   accessColumns;
+    AccessCounter   accessScalars;
+    AccessCounter   accessAll;
+    IndexCounter    indexTables;
     IndexLenCounter indexLenTables;
     IndexComplexityCounter indexComplexity;
-    LengthCounter lengthTypes;
-    LengthCounter lengthTables;
-    LengthCounter lengthRows;
-    LengthCounter lengthColumns;
-    LengthCounter lengthScalars;
-    LengthCounter lengthNotifications;
-    LengthCounter lengthAll;
+    LengthCounter   lengthTypes;
+    LengthCounter   lengthTables;
+    LengthCounter   lengthRows;
+    LengthCounter   lengthColumns;
+    LengthCounter   lengthScalars;
+    LengthCounter   lengthNotifications;
+    LengthCounter   lengthAll;
 } Metrics;
 
 
@@ -135,6 +162,35 @@ static UsageCounter *indexComplexityList = NULL;
 
 #define INCR_NODE 0x01
 #define INCR_TYPE 0x02
+
+
+static char*
+getDateString(time_t t)
+{
+    static char   *s = NULL;
+    struct tm	  *tm;
+
+    if (s) xfree(s);
+    
+    tm = gmtime(&t);
+    smiAsprintf(&s, "%04d-%02d-%02d",
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+    return s;
+}
+
+
+
+static char*
+language(SmiLanguage language)
+{
+    return
+	(language == SMI_LANGUAGE_UNKNOWN)    ? "-" :
+	(language == SMI_LANGUAGE_SMIV1)      ? "SMIv1" :
+	(language == SMI_LANGUAGE_SMIV2)      ? "SMIv2" :
+	(language == SMI_LANGUAGE_SMING)      ? "SMIng" :
+						"-";
+}
+
 
 
 static unsigned long
@@ -225,6 +281,41 @@ getMaxSize(SmiType *smiType)
 	unsigned int psize = getMaxSize(parentType);
 	if (psize < size) {
 	    size = psize;
+	}
+    }
+
+    return size;
+}
+
+
+
+static int
+calcSize(SmiModule *smiModule)
+{
+    SmiNode *smiNode;
+    SmiType *smiType;
+    int size = 0;
+    
+    for (smiType = smiGetFirstType(smiModule);
+	 smiType;
+	 smiType = smiGetNextType(smiType)) {
+	if (smiType->name) {
+	    size++;
+	}
+    }
+    
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+
+	switch (smiNode->nodekind) {
+	case SMI_NODEKIND_SCALAR:
+	case SMI_NODEKIND_COLUMN:
+	case SMI_NODEKIND_NOTIFICATION:
+	    size++;
+	    break;
+	default:
+	    break;
 	}
     }
 
@@ -372,6 +463,63 @@ cmp(const void *va, const void *vb)
 
     return 0;
 }
+
+
+
+static int
+fprintRevisions(FILE *f, int modLen, SmiRevision *smiRevision,
+		SmiModule *smiModule, int size)
+{
+    int n = 0;
+    
+    if (smiRevision) {
+	n = fprintRevisions(f, modLen,
+			    smiGetNextRevision(smiRevision), smiModule, -1);
+	fprintf(f, "%-*s %7s  ", modLen, smiModule->name,
+		(size >= 0) ? language(smiModule->language) : "-");
+ 	if (size >= 0) {
+	    fprintf(f, "%4d", size);
+	} else {
+	    fprintf(f, "   -");
+	}
+	fprintf(f, "   %3d    %s\n", n, getDateString(smiRevision->date));
+	n++;
+    }
+
+    if (!smiRevision && size >= 0) {
+	fprintf(f, "%-*s %7s  ", modLen, smiModule->name,
+		language(smiModule->language));
+	fprintf(f, "%4d", size);
+	fprintf(f, "     -    ----------\n");
+    }
+    
+    return n;
+}
+
+
+
+static void
+fprintRevision(FILE *f, int modc, SmiModule **modv)
+{
+    int i;
+    int modLen = 8;
+
+    for (i = 0; i < modc; i++) {
+	if (modLen < strlen(modv[i]->name)) {
+	    modLen = strlen(modv[i]->name);
+	}
+    }
+
+    fprintf(f, "%-*s LANGUAGE SIZE REVISION DATE\n", modLen, "MODULE");
+
+    for (i = 0; i < modc; i++) {
+	fprintRevisions(f, modLen, smiGetFirstRevision(modv[i]),
+			modv[i], calcSize(modv[i]));
+    }
+    fprintf(f, "\n");
+ 
+}
+
 
 
 static void
@@ -613,6 +761,58 @@ freeUsageCounter(UsageCounter *usageCounterList)
 }
 
 
+
+static void
+incrBasetypeCounter(BasetypeCounter *basetypeCounter, SmiNode *smiNode)
+{
+    SmiType *smiType;
+
+    smiType = smiGetNodeType(smiNode);
+    if (smiType) {
+	basetypeCounter->total++;
+	switch (smiType->basetype) {
+	case SMI_BASETYPE_UNKNOWN:
+	    basetypeCounter->unknown++;
+	    break;
+	case SMI_BASETYPE_INTEGER32:
+	    basetypeCounter->integer32++;
+	    break;
+	case SMI_BASETYPE_OCTETSTRING:
+	    basetypeCounter->octetstring++;
+	    break;
+	case SMI_BASETYPE_OBJECTIDENTIFIER:
+	    basetypeCounter->objectidentifier++;
+	    break;
+	case SMI_BASETYPE_UNSIGNED32:
+	    basetypeCounter->unsigned32++;
+	    break;
+	case SMI_BASETYPE_INTEGER64:
+	    basetypeCounter->integer64++;
+	    break;
+	case SMI_BASETYPE_UNSIGNED64:
+	    basetypeCounter->unsigned64++;
+	    break;
+	case SMI_BASETYPE_FLOAT32:
+	    basetypeCounter->float32++;
+	    break;
+	case SMI_BASETYPE_FLOAT64:
+	    basetypeCounter->float64++;
+	    break;
+	case SMI_BASETYPE_FLOAT128:
+	    basetypeCounter->float128++;
+	    break;
+	case SMI_BASETYPE_ENUM:
+	    basetypeCounter->enums++;
+	    break;
+	case SMI_BASETYPE_BITS:
+	    basetypeCounter->bits++;
+	    break;
+	}
+    }
+}
+
+
+
 static void
 incrStatusCounter(StatusCounter *cnt, SmiStatus smiStatus)
 {
@@ -744,6 +944,38 @@ incrLengthCounter(LengthCounter *cnt, char *description, char *reference,
 
 
 static void
+incrRowStatusCounter(SmiModule *smiModule, SmiNode *rowNode)
+{
+    SmiNode *smiNode;
+    SmiType *smiType;
+    SmiModule *smiModule;
+
+    for (smiNode = smiGetFirstChildNode(rowNode);
+	 smiNode;
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	smiType = smiGetNodeType(smiNode);
+	if (smiType && smiType->name) {
+	    smiModule = smiGetTypeModule(smiType);
+	    if (smiModule && smiModule->name
+		&& strcmp(smiType->name, "RowStatus") == 0
+		&& strcmp(smiModule->name, "SNMPv2-TC") == 0) {
+		break;
+	    }
+	}
+    }
+
+    if (smiNode) {
+#if 0
+	fprintf(stderr, "** %s\t%s\t%s\n", rowNode->name,
+		smiNode->name, smiType->name);
+	/* xxx count rows indexed by ifIndex, InterfaceIndex, InterfaceIndexOrZero, ... */
+#endif
+    }
+}
+
+
+
+static void
 count(FILE *f, SmiNode *row, SmiNode *col, void *data)
 {
     int *cnt = (int *) data;
@@ -761,6 +993,10 @@ complexity(FILE *f, SmiNode *row, SmiNode *col, void *data)
     unsigned long min, max;
 
     smiType = smiGetNodeType(col);
+    if (! smiType) {
+	return;
+    }
+
     switch (smiType->basetype) {
     case SMI_BASETYPE_INTEGER32:
     case SMI_BASETYPE_UNSIGNED32:
@@ -830,6 +1066,7 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 	    incrLengthCounter(&metrics->lengthAll,
 			      smiNode->description, smiNode->reference,
 			      smiNode->units, smiNode->format);
+	    incrRowStatusCounter(smiModule, smiNode);
 	    {
 		int cnt = 0;
 		foreachIndexDo(NULL, smiNode, count, &cnt);
@@ -844,6 +1081,8 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 	    }
 	    break;
 	case SMI_NODEKIND_COLUMN:
+	    incrBasetypeCounter(&metrics->basetypesColumns, smiNode);
+	    incrBasetypeCounter(&metrics->basetypesAll, smiNode);
 	    incrStatusCounter(&metrics->statusColumns, smiNode->status);
 	    incrStatusCounter(&metrics->statusAll, smiNode->status);
 	    incrAccessCounter(&metrics->accessColumns, smiNode->access);
@@ -857,6 +1096,8 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 	    incrTypeAndNodeUsageCounter(smiModule, smiNode, INCR_TYPE);
 	    break;
 	case SMI_NODEKIND_SCALAR:
+	    incrBasetypeCounter(&metrics->basetypesScalars, smiNode);
+	    incrBasetypeCounter(&metrics->basetypesAll, smiNode);
 	    incrStatusCounter(&metrics->statusScalars, smiNode->status);
 	    incrStatusCounter(&metrics->statusAll, smiNode->status);
 	    incrAccessCounter(&metrics->accessScalars, smiNode->access);
@@ -917,6 +1158,47 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 			  smiType->units, smiType->format);
     }
 }
+
+
+
+static void
+fprintBasetypeCounter(FILE *f, BasetypeCounter *cnt, const char *s)
+{
+    if (!s && ! cnt) {
+	if (! silent) {
+	    fputs(
+"# The following table shows the basetype usage distribution in the\n"
+"# set of loaded MIB modules.\n"
+"\n", f);
+	}
+	fprintf(f, "%-10s Int32 Uns32 Int64 Uns64 OctSt ObjId Enums  Bits Flo32 Flo64 Flo128\n",
+		"CATEGORY");
+	return;
+    }
+
+    if (raw) {
+	fprintf(f, "%-10s %5lu %5lu %5lu %5lu %5lu %5lu %5lu %5lu %5lu %5lu %5lu\n", s,
+		cnt->integer32, cnt->unsigned32,
+		cnt->integer64, cnt->unsigned64,
+		cnt->octetstring, cnt->objectidentifier,
+		cnt->enums, cnt->bits,
+		cnt->float32, cnt->float64, cnt->float128);
+    } else {
+	fprintf(f, "%-10s %4.1f%% %4.1f%% %4.1f%% %4.1f%% %4.1f%% %4.1f%% %4.1f%% %4.1f%% %4.1f%% %4.1f%% %4.1f%%\n", s,
+		cnt->total ? (double) cnt->integer32 * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->unsigned32 * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->integer64 * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->unsigned64 * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->octetstring * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->objectidentifier * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->enums * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->bits * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->float32 * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->float64 * 100 / cnt->total : 0,
+		cnt->total ? (double) cnt->float128 * 100 / cnt->total : 0);
+    }
+}
+
 
 
 
@@ -1016,6 +1298,8 @@ static void
 fprintIndexLenCounter(FILE *f, IndexLenCounter *cnt, char *s)
 {
     int i;
+    int n = sizeof(cnt->length)/sizeof(cnt->length[0]);
+    char buf[42];
     
     if (! s || ! cnt) {
 	if (! silent) {
@@ -1024,19 +1308,22 @@ fprintIndexLenCounter(FILE *f, IndexLenCounter *cnt, char *s)
 "# table definitions contained in the set of loaded MIB modules.\n"
 "\n", f);
 	}
-	fprintf(f, "%-14s %6s %5s %5s %5s %5s %5s %5s %5s %5s\n",
-		"CATEGORY", "TOTAL",
-		"[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]");
+	fprintf(f, "%-10s %6s ", "CATEGORY", "TOTAL");
+	for (i = 1; i < n; i++) {
+	    sprintf(buf, "[%d]", i);
+	    fprintf(f, " %5s", buf);
+	}
+	fprintf(f, "\n");
 	return;
     }
 
-    fprintf(f, "%-14s %6lu", s, cnt->total);
+    fprintf(f, "%-10s %6lu ", s, cnt->total);
     if (raw) {
-	for (i = 1; i < 9; i++) {
+	for (i = 1; i < n; i++) {
 	    fprintf(f, " %5lu", cnt->length[i]);
 	}
     } else {
-	for (i = 1; i < 9; i++) {
+	for (i = 1; i < n; i++) {
 	    fprintf(f, " %4.1f%%", (double) cnt->length[i] * 100 / cnt->total);
 	}
     }
@@ -1205,6 +1492,11 @@ fprintMetrics(FILE *f, Metrics *metrics)
     fprintLengthCounter2(f, &metrics->lengthNotifications, "Notifications:");
     fprintLengthCounter2(f, &metrics->lengthAll, "Summary:");
     fprintf(f, "\n");
+    fprintBasetypeCounter(f, NULL, NULL);
+    fprintBasetypeCounter(f, &metrics->basetypesColumns, "Columns:");
+    fprintBasetypeCounter(f, &metrics->basetypesScalars, "Scalars:");
+    fprintBasetypeCounter(f, &metrics->basetypesAll, "Summary:");
+    fprintf(f, "\n");
     fprintfComplexity(f, metrics);
     fprintf(f, "\n");
     fprintTypeUsage(f, extTypeList);
@@ -1218,6 +1510,7 @@ fprintMetrics(FILE *f, Metrics *metrics)
     fprintf(f, "\n");
     fprintIndexComplexity(f, indexComplexityList);
     freeUsageCounter(indexComplexityList), indexComplexityList = NULL;
+    fprintf(f, "\n");
 }
 
 
@@ -1243,8 +1536,8 @@ dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
     if (flags & SMIDUMP_FLAG_UNITE) {
 	if (! silent) {
 	    int pos = 8888;
-	    fprintf(f, "# united module metrics (generated by smidump "
-		    SMI_VERSION_STRING ")\n");
+	    fprintf(f, "# united module metrics [%d modules] "
+		    "(generated by smidump " SMI_VERSION_STRING ")\n", modc);
 	    fprintf(f, "#\n# smidump -u -f metrics");
 	    if (raw) fprintf(f, " --metrics-raw");
 	    for (i = 0; i < modc; i++) {
@@ -1257,6 +1550,9 @@ dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 	    }
 	    fprintf(f, "%s\n", (pos == 8) ? "" : "\n");
 	}
+
+	fprintRevision(f, modc, modv);
+	    
 	for (i = 0; i < modc; i++) {
 	    memset(&metrics, 0, sizeof(Metrics));
 	}
@@ -1270,6 +1566,9 @@ dumpMetrics(int modc, SmiModule **modv, int flags, char *output)
 		fprintf(f, "# %s module metrics (generated by smidump "
 			SMI_VERSION_STRING ")\n\n", modv[i]->name);
 	    }
+
+	    fprintRevision(f, 1, modv+i);
+    
 	    memset(&metrics, 0, sizeof(Metrics));
 	    addMetrics(&metrics, modv[i]);
 	    fprintMetrics(f, &metrics);
