@@ -1,5 +1,9 @@
 2000-11-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* tools/dump-ucdsnmp.c: Juergen changed the UCD-SNMP driver
+	so that it now creates three file (header, stubs & implementation)
+	with a single smidump format option (netsnmp).
+
 	* lib/parser-smi.y: Added checks for illegal subtyping; adjusted
 	test suite, so that is runs successfully for all current tests.
 

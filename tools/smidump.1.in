@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidump.1.in,v 1.14 2000/10/19 16:15:26 strauss Exp $
+.\" $Id: smidump.1.in,v 1.15 2000/10/25 08:56:52 strauss Exp $
 .\"
 .TH smidump 1  "October 18, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -123,11 +123,8 @@ corba-oid
 CORBA OID definitions following the JIDM specification translation
 rules.
 .TP
-ucd-h
-C source code header file for usage within the UCD SNMP agent (experimental).
-.TP
-ucd-c
-C source code file for usage within the UCD SNMP agent (experimental).
+netsnmp
+C source code files for usage within the NET SNMP package (experimental).
 .TP
 cm-dia
 Reverse engineered conceptual model in DIA XML file format (experimental).
