@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.34 2001/01/04 13:27:48 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.35 2001/02/15 17:08:16 strauss Exp $
  */
 
 #include <config.h>
@@ -636,14 +636,22 @@ static void dumpEntry(SmiNode *smiNode)
          columnNode = smiGetNextChildNode(columnNode)) {
         smiType = smiGetNodeType(columnNode);
         if (columnNode->access >= SMI_ACCESS_NOTIFY) {
-            fprintf(f,
-                    "    public %s get_%s()\n"
-                    "    {\n"
-                    "        return %s;\n"
-                    "    }\n"
-                    "\n",
-                    getJavaType(smiType),
-                    columnNode->name, columnNode->name);
+	    for (element = smiGetFirstElement(smiNode);
+		 element;
+		 element = smiGetNextElement(element)) {
+		indexNode = smiGetElementNode(element);
+		if (indexNode == columnNode) break;
+	    }
+	    if (!element) {
+		fprintf(f,
+			"    public %s get_%s()\n"
+			"    {\n"
+			"        return %s;\n"
+			"    }\n"
+			"\n",
+			getJavaType(smiType),
+			columnNode->name, columnNode->name);
+	    }
         }
         if (columnNode->access == SMI_ACCESS_READ_WRITE) {
             fprintf(f,
