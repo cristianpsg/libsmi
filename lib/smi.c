@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.33 1999/06/02 16:52:34 strauss Exp $
+ * @(#) $Id: smi.c,v 1.34 1999/06/03 20:37:24 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -594,11 +594,17 @@ SmiRefinement *createSmiRefinement(Object *objectPtr,
  * Interface Functions.
  */
 
-void smiInit()
+int smiInit()
 {
     char *p;
+
+    if (initialized) {
+	return 0;
+    }
     
-    initData();
+    if (initData()) {
+	return -1;
+    }
 
     p = getenv("SMIPATH");
     if (p) {
@@ -606,8 +612,14 @@ void smiInit()
     } else {
 	smiPath = util_strdup(DEFAULT_SMIPATH);
     }
+
+    if (!smiPath) {
+	return -1;
+    }
     
-    initialized   = 1;
+    initialized = 1;
+
+    return 0;
 }
 
 

@@ -1,10 +1,10 @@
 .\"
-.\" $Id: smi_config.3,v 1.1 1999/05/28 14:52:06 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.1 1999/06/01 20:47:16 strauss Exp $
 .\"
-.TH smi_config 3  "June 1, 1999" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "June 3, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
-smiLoadModule \- SMI library
+smiLoadModule, smiGetPath, smiSetPath \- SMI library
 configuration routines
 .SH SYNOPSIS
 .nf
@@ -12,7 +12,7 @@ configuration routines
 .RS
 .RE
 .sp
-.BI "void smiInit();"
+.BI "int smiInit();"
 .RE
 .sp
 .BI "void smiSetErrorLevel(int " level );
@@ -26,13 +26,20 @@ configuration routines
 .sp
 .BI "int smiLoadModule(char *" module );
 .RE
+.sp
+.BI "char *smiGetPath();"
+.RE
+.sp
+.BI "int smiSetPath(char *" path );
+.RE
 .fi
 .SH DESCRIPTION
 These functions provide some initialization and adjustment operations
 for the SMI library.
 .PP
 The \fBsmiInit()\fP function should be the first SMI function called
-in an application. It initializes its internal structures.
+in an application. It initializes its internal structures. It returns
+zero on succes, or otherwise a negative value.
 .PP
 The \fBsmiSetErrorLevel()\fP function sets the pedantic level (0-9) of
 the SMI parsers of the SMI library, currently SMIv1/v2 and SMIng
@@ -60,10 +67,20 @@ The \fBsmiLoadModule()\fP function specifies an additional MIB module by
 module is made known through this function, iterating retrieval
 functions and retrieval functions without fully qualified identifiers
 will return results from this module.
+.PP
+The \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions allow to
+fetch, modify, and set the path that is used to search MIB modules.
+\fBsmiGetPath()\fP returns a copy of the current search path in the
+form "DIR1:DIR2:...", if NULL if no path is set.
+The application should free this string if it is
+no longer needed. \fBsmiSetPath()\fP sets the search path to
+\fIpath\fP.
 .SH "RETURN VALUES"
-The function \fBsmiLoadModule()\fP returns 0 on success, or negative values on
-error. \fBsmiGetFlags()\fP returns the current set of flags. The
-other functions are void.
+The functions \fBsmiLoadModule()\fP and \fBsmiSetPath()\fP
+returns 0 on success, or a negative value on
+error. \fBsmiGetFlags()\fP returns the current set of flags.
+\fBsmiGetPath()\fP returns a copy of the MIB module search path or NULL
+if no path is set. Other functions are void.
 .SH "MODULE LOCATIONS"
 The SMI library may retrieve MIB modules from different kinds of
 resources. Currently, SMIv1/v2 and SMIng module files are supported.
@@ -74,13 +91,16 @@ is assumed to be the exact file to read. Otherwise, if a module is identified
 by its plain module name, the correspondant file (either SMIv1/2 or
 SMIng) is searched along a path, which is initialized by the \fBSMIPATH\fP
 environment variable or by
-@mibdir@ if \fBSMIPATH\fP is not set. Files with a \fB.sming\fP
+@mibdir@ if \fBSMIPATH\fP is not set. This path can also be controlled
+my the \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions (see above).
+.PP
+Files with a \fB.sming\fP
 extension are expected to be SMIng module files. Files with a \fB.my\fP or
 without any extension are expected to be SMIv1/v2 module files.
 .SH "FILES"
 .nf
-@prefix@/include/smi.h    SMI library header file
-@prefix@/share/smi/	  SMI module repository directory
+@prefix@/include/smi.h   SMI library header file
+@prefix@/share/smi/      SMI module repository directory
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "
