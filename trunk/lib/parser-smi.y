@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.37 1999/06/18 21:08:53 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.38 1999/06/22 10:16:50 strauss Exp $
  */
 
 %{
@@ -392,7 +392,7 @@ module:			moduleName
 			END
 			{
 			    Object *objectPtr;
-			    SmiBasetype parentBasetype;
+			    SmiDecl parentDecl;
 			    Import *importPtr;
 
 			    if ((thisModulePtr->language == SMI_LANGUAGE_SMIV2)
@@ -415,11 +415,11 @@ module:			moduleName
 				    lastObjectPtr &&
 				    objectPtr->nodePtr->parentPtr->
 				    lastObjectPtr->typePtr) {
-				    parentBasetype =
+				    parentDecl =
 					objectPtr->nodePtr->parentPtr->
-					lastObjectPtr->typePtr->basetype;
+					lastObjectPtr->typePtr->decl;
 				} else {
-				    parentBasetype = SMI_BASETYPE_UNKNOWN;
+				    parentDecl = SMI_DECL_UNKNOWN;
 				}
 				if (objectPtr->decl ==
 				    SMI_DECL_MODULEIDENTITY) {
@@ -431,14 +431,14 @@ module:			moduleName
 				    objectPtr->nodekind = SMI_NODEKIND_NODE;
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
-					   (objectPtr->typePtr->basetype ==
-					    SMI_BASETYPE_SEQUENCEOF)) {
+					   (objectPtr->typePtr->decl ==
+					    SMI_DECL_IMPL_SEQUENCEOF)) {
 				    objectPtr->nodekind = SMI_NODEKIND_TABLE;
 				    /* XXX */
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
-					   (objectPtr->typePtr->basetype ==
-					    SMI_BASETYPE_SEQUENCE)) {
+					   (objectPtr->typePtr->decl ==
+					    SMI_DECL_IMPL_SEQUENCE)) {
 				    objectPtr->nodekind = SMI_NODEKIND_ROW;
 				} else if (objectPtr->decl ==
 					   SMI_DECL_NOTIFICATIONTYPE) {
@@ -455,13 +455,13 @@ module:			moduleName
 					SMI_NODEKIND_COMPLIANCE;
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
-					   (parentBasetype ==
-					    SMI_BASETYPE_SEQUENCE)) {
+					   (parentDecl ==
+					    SMI_DECL_IMPL_SEQUENCE)) {
 				    objectPtr->nodekind = SMI_NODEKIND_COLUMN;
 				} else if ((objectPtr->decl ==
 					    SMI_DECL_OBJECTTYPE) &&
-					   (parentBasetype !=
-					    SMI_BASETYPE_SEQUENCE)) {
+					   (parentDecl !=
+					    SMI_DECL_IMPL_SEQUENCE)) {
 				    objectPtr->nodekind = SMI_NODEKIND_SCALAR;
 				}
 			    }
@@ -1059,8 +1059,9 @@ conceptualTable:	SEQUENCE OF row
 			{
 			    if ($3) {
 				$$ = addType(NULL,
-					     SMI_BASETYPE_SEQUENCEOF, 0,
+					     SMI_BASETYPE_UNKNOWN, 0,
 					     thisParserPtr);
+				setTypeDecl($$, SMI_DECL_IMPL_SEQUENCEOF);
 				setTypeParent($$,
 					      $3->modulePtr->name,
 					      $3->name);
@@ -1092,9 +1093,11 @@ row:			UPPERCASE_IDENTIFIER
 				     * marked with FLAG_INCOMPLETE.
 				     */
 				    typePtr = addType($1,
-						      SMI_BASETYPE_SEQUENCE,
+						      SMI_BASETYPE_UNKNOWN,
 						      FLAG_INCOMPLETE,
 						      thisParserPtr);
+				    setTypeDecl(typePtr,
+						SMI_DECL_IMPL_SEQUENCE);
 				    $$ = typePtr;
 				} else {
 				    /*
@@ -1122,8 +1125,9 @@ row:			UPPERCASE_IDENTIFIER
 /* REF:RFC1902,7.1.12. */
 entryType:		SEQUENCE '{' sequenceItems '}'
 			{
-			    $$ = addType(NULL, SMI_BASETYPE_SEQUENCE, 0,
+			    $$ = addType(NULL, SMI_BASETYPE_UNKNOWN, 0,
 					 thisParserPtr);
+			    setTypeDecl($$, SMI_DECL_IMPL_SEQUENCE);
 			    setTypeList($$, $3);
 			}
 ;
@@ -1426,8 +1430,8 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				parentPtr =
 				  objectPtr->nodePtr->parentPtr->lastObjectPtr;
 				if (parentPtr && parentPtr->typePtr &&
-				    (parentPtr->typePtr->basetype ==
-				       SMI_BASETYPE_SEQUENCEOF)) {
+				    (parentPtr->typePtr->decl ==
+				       SMI_DECL_IMPL_SEQUENCEOF)) {
 				    /*
 				     * add objectPtr to the parent object's
 				     * listPtr, which is the list of columns

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.13 1999/06/15 14:09:48 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.14 1999/06/22 11:18:17 strauss Exp $
  */
 
 #include <stdio.h>
@@ -24,6 +24,7 @@
 #include "dump-imports.h"
 #include "dump-mosy.h"
 #include "dump-java.h"
+#include "dump-jdmk.h"
 
 
 
@@ -41,6 +42,7 @@ static Driver driverTable[] = {
     { "MOSY",	 dumpMosy },
     { "Imports", dumpImports },
     { "Java",    dumpJava },
+    { "JDMK",    dumpJdmk },
 #if 0
     { "Objects", dumpMibTree },
     { "Types",	 dumpTypes },

@@ -1,4 +1,9 @@
-Mon Jun 21 17:43:27 1999  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+1999-06-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* Juergen Schoenwaelder contributed another smidump patch: now
+	smidump supports SMIv1 output format.
+
+1999-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: fixed a bug with merging two subtrees of nodes
 	defined in two separate MIB files (reported by Jochen Friedrich).
