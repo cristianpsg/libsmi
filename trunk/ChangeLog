@@ -1,3 +1,9 @@
+2000-04-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: fixed seg-faults on various imported but
+	not found definitions. Based on a patch contributed by
+	Bill Fenner.
+
 2000-04-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-smi.c: fixed trailing comma in SMIv1 SEQUENCEs.

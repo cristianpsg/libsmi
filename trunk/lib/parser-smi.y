@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.101 2000/04/10 15:55:18 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.102 2000/04/11 09:00:25 strauss Exp $
  */
 
 %{
@@ -156,7 +156,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		|| objectPtr->export.nodekind == SMI_NODEKIND_SCALAR)
 	    && objectPtr->typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
 	    printErrorAtLine(parserPtr, ERR_BASETYPE_UNKNOWN, objectPtr->line,
-			     objectPtr->typePtr->export.name, objectPtr->export.name);
+			     objectPtr->typePtr->export.name ?
+			     objectPtr->typePtr->export.name : "[unknown]",
+			     objectPtr->export.name);
 	    if (objectPtr->nodePtr->parentPtr->firstObjectPtr->export.nodekind
 		== SMI_NODEKIND_TABLE) {
 		/* the parent node is a table node, so assume this is
@@ -1434,7 +1436,8 @@ row:			UPPERCASE_IDENTIFIER
 			    if (! $$) {
 				importPtr = findImportByName($1,
 							     thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    /* 
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
@@ -1507,7 +1510,8 @@ sequenceItem:		LOWERCASE_IDENTIFIER sequenceSyntax
 			    if (!objectPtr) {
 				importPtr = findImportByName($1,
 							     thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    objectPtr = addObject($1, pendingNodePtr,
 					                  0,
 					                  FLAG_INCOMPLETE,
@@ -1571,7 +1575,8 @@ sequenceSyntax:		/* ObjectSyntax */
 			    if (! $$) {
 				importPtr = findImportByName($1,
 							     thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    /* 
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
@@ -2287,7 +2292,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (!parentPtr) {
 			        importPtr = findImportByName($1,
 							     thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    /* 
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
@@ -2335,7 +2341,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (!parentPtr) {
 				importPtr = findImportByModulenameAndName($1,
 							  $3, thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    printError(thisParserPtr,
 					       ERR_UNKNOWN_TYPE, $3);
 				    $$ = NULL;
@@ -2374,7 +2381,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (!parentPtr) {
 				importPtr = findImportByName($1,
 							     thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    /* 
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
@@ -2424,7 +2432,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (!parentPtr) {
 				importPtr = findImportByModulenameAndName($1,
 							  $3, thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 				    printError(thisParserPtr,
 					       ERR_UNKNOWN_TYPE, $3);
@@ -2488,7 +2497,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (!parentPtr) {
 				importPtr = findImportByName($1,
 							     thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    /* 
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
@@ -2536,7 +2546,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    if (!parentPtr) {
 				importPtr = findImportByModulenameAndName($1,
 							  $3, thisModulePtr);
-				if (!importPtr) {
+				if (!importPtr ||
+				    (importPtr->kind == KIND_NOTFOUND)) {
 				    printError(thisParserPtr,
 					       ERR_UNKNOWN_TYPE, $3);
 				    $$ = NULL;
@@ -3602,7 +3613,8 @@ subidentifier:
 				} else {
 				    importPtr = findImportByName($1,
 							       thisModulePtr);
-				    if (!importPtr) {
+				    if (!importPtr ||
+					(importPtr->kind == KIND_NOTFOUND)) {
 					/*
 					 * If we are in a MODULE-COMPLIANCE
 					 * statement with a given MODULE...
@@ -3695,7 +3707,8 @@ subidentifier:
 				} else {
 				    importPtr = findImportByModulenameAndName(
 					$1, $3, thisModulePtr);
-				    if (!importPtr) {
+				    if (!importPtr ||
+					(importPtr->kind == KIND_NOTFOUND)) {
 					/* TODO: check: $1 == thisModule ? */
 					/*
 					 * If we are in a MODULE-COMPLIANCE
