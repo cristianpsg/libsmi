@@ -89,6 +89,8 @@ PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
 VERSION = 0.1
+mibdir = /usr/local/share/mibs
+prefix = /usr/local
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 

@@ -89,6 +89,8 @@ PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
 VERSION = @VERSION@
+mibdir = @mibdir@
+prefix = @prefix@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 

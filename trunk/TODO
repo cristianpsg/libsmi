@@ -36,3 +36,6 @@ o grouping of error and warning messages
 o problem if SMIPATH is not set?
 o smiAddPath()
 
+o write ANNOUNCE
+
+o segflt `smilint IF-MIB' if module is not found
