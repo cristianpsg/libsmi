@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.73 2000/02/10 14:42:50 strauss Exp $
+ * @(#) $Id: smi.c,v 1.74 2000/02/10 14:50:18 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -189,7 +189,6 @@ Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
 	for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	     objectPtr = objectPtr->nextSameNodePtr) {
 	    if (((!modulePtr) || (objectPtr->modulePtr == modulePtr)) &&
-		(!(objectPtr->flags & FLAG_IMPORTED)) &&
 		((nodekind == SMI_NODEKIND_ANY) ||
 		 (nodekind & objectPtr->export.nodekind))) {
 		break;
@@ -659,7 +658,13 @@ SmiType *smiGetType(SmiModule *smiModulePtr, char *type)
     
     util_free(module2);
     util_free(type2);
-    return typePtr ? &typePtr->export : NULL;
+
+    if (!typePtr ||
+	typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
+	return NULL;
+    }
+    
+    return &typePtr->export;
 }
 
 
@@ -675,10 +680,8 @@ SmiType *smiGetFirstType(SmiModule *smiModulePtr)
     for (typePtr = ((Module *)smiModulePtr)->firstTypePtr; typePtr;
 	 typePtr = typePtr->nextPtr) {
 	/* loop until we found a `real' type */
-	if (typePtr && typePtr->export.name && strlen(typePtr->export.name) &&
-	    isupper((int)typePtr->export.name[0]) &&
-	    (!(typePtr->flags & FLAG_IMPORTED)) &&
-	    (typePtr->export.basetype != SMI_BASETYPE_UNKNOWN)) {
+	if (typePtr->export.name &&
+	    typePtr->export.basetype != SMI_BASETYPE_UNKNOWN) {
 	    break;
 	}
     }
@@ -699,10 +702,8 @@ SmiType *smiGetNextType(SmiType *smiTypePtr)
     for (typePtr = ((Type *)smiTypePtr)->nextPtr; typePtr;
 	 typePtr = typePtr->nextPtr) {
 	/* loop until we found a `real' type */
-	if (typePtr && typePtr->export.name && strlen(typePtr->export.name) &&
-	    isupper((int)typePtr->export.name[0]) &&
-	    (!(typePtr->flags & FLAG_IMPORTED)) &&
-	    (typePtr->export.basetype != SMI_BASETYPE_UNKNOWN)) {
+	if (typePtr->export.name &&
+	    typePtr->export.basetype != SMI_BASETYPE_UNKNOWN) {
 	    break;
 	}
     }
@@ -720,6 +721,11 @@ SmiType *smiGetParentType(SmiType *smiTypePtr)
     }
 
     typePtr = ((Type *)smiTypePtr)->parentPtr;
+    
+    if (!typePtr ||
+	typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
+	return NULL;
+    }
     
     return &typePtr->export;
 }
@@ -1090,7 +1096,7 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
     /*
      * If found, check if it's imported. In case, get the original definition.
      */
-    if (objectPtr && (objectPtr->flags & FLAG_IMPORTED)) {
+    if (objectPtr) {
 	importPtr = findImportByName(objectPtr->export.name,
 				     objectPtr->modulePtr);
 	if (importPtr) {
@@ -1239,7 +1245,16 @@ SmiModule *smiGetNodeModule(SmiNode *smiNodePtr)
 
 SmiType *smiGetNodeType(SmiNode *smiNodePtr)
 {
-    return &((Object *)smiNodePtr)->typePtr->export;
+    Type *typePtr;
+
+    typePtr = ((Object *)smiNodePtr)->typePtr;
+    
+    if (!typePtr ||
+	typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
+	return NULL;
+    }
+    
+    return &typePtr->export;
 }
 
 
@@ -1412,12 +1427,30 @@ SmiNode *smiGetRefinementNode(SmiRefinement *smiRefinementPtr)
 
 SmiType *smiGetRefinementType(SmiRefinement *smiRefinementPtr)
 {
-    return &((Refinement *)smiRefinementPtr)->typePtr->export;
+    Type *typePtr;
+
+    typePtr = ((Refinement *)smiRefinementPtr)->typePtr;
+    
+    if (!typePtr ||
+	typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
+	return NULL;
+    }
+    
+    return &typePtr->export;
 }
 
 
 
 SmiType *smiGetRefinementWriteType(SmiRefinement *smiRefinementPtr)
 {
-    return &((Refinement *)smiRefinementPtr)->writetypePtr->export;
+    Type *typePtr;
+
+    typePtr = ((Refinement *)smiRefinementPtr)->writetypePtr;
+    
+    if (!typePtr ||
+	typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
+	return NULL;
+    }
+    
+    return &typePtr->export;
 }

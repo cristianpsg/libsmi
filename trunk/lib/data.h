@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.50 2000/02/10 10:09:42 strauss Exp $
+ * @(#) $Id: data.h,v 1.51 2000/02/10 11:35:37 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -52,7 +52,6 @@ typedef unsigned short MacroFlags;
 
 #define NODE_FLAG_ROOT		0x0001 /* mark node tree's root */
 
-#define FLAG_IMPORTED		0x0002 /*				     */
 #define FLAG_REGISTERED		0x0004 /* On an Object: this is registered.  */
 #define FLAG_INCOMPLETE		0x0008 /* Just defined by a forward          */
 				       /* referenced type or object.         */

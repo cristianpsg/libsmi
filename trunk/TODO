@@ -72,14 +72,8 @@ o make check: parse every mib once, and don't crash
 
 o special handling for well-known traps (reversibility?)
 
-o ERR_DATE_YEAR_2DIGITS for years < 90 ?!
-
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
-
-o support parsing (but ignore) SMIv2 AGENT-CAPABILITIES.
-
-o don't export names of implicit types.
 
 o man pages!
 
