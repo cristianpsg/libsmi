@@ -1,3 +1,10 @@
+2000-12-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Some well-known SMI identifiers imported
+	from RFC* modules are now suggested to be imported from SMIv2
+	modules, where appropriate. This modifies an earlier patch
+	from Bill.
+
 2000-12-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-identifers.c: Juergen made dump-lines.c obsolete

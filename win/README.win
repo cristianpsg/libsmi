@@ -2,12 +2,15 @@
 LIBSMI NOTES FOR NATIVE WIN32 SUPPORT
 =====================================
 
-@(#) $Id: README.win,v 1.3 2000/06/21 10:33:43 strauss Exp $
+@(#) $Id: README.win,v 1.4 2000/11/16 14:58:40 strauss Exp $
 
 This directory contains some help to compile the libsmi and associated
 tools on a Win32 platform (Windows 95, 98, 2000, NT) with the native
 Microsoft Visual C++ compiler. The makefile has been tested with VC++
 6.0, but later versions should work very well too.
+
+An alternative GNUmakefile can be used with GNU make program.  You will need
+the GNU make "gmake.exe" for w32 platform.
 
 
 INSTALLATION
@@ -29,6 +32,19 @@ the MIB-files and c:\smi\bin for the tools (smidump.exe, ...). The
 global configuration file is expected to be in c:\smi\smi.conf.
 
 
+Alternative build with GNU make
+===============================
+
+GNU make uses GNUmakefile provided in this directory.
+
+(1) Make sure the compiler (cl.exe) is in PATH
+  
+(2) To build simply run:
+
+    gmake
+
+
+
 COMMENTS:
 =========
 
@@ -38,9 +54,7 @@ COMMENTS:
 
 - The compiler path in ./makefile is hardwired (TOOLS32)
 
-- The version number is hardwired in config.h.
-
-- The installation directories are hardwired in config.h.
+- The installation directories are hardwired in config.h.in
 
 - scanner, parser and the smi.h source have to be created within the
   Unix environment. On windows environment you can use cygwin to run

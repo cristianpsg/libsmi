@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.60 2000/11/16 14:58:06 strauss Exp $
+ * @(#) $Id: error.c,v 1.61 2000/12/15 13:52:29 strauss Exp $
  */
 
 #include <config.h>
@@ -387,7 +387,7 @@ static Error errors[] = {
     { 6, ERR_COMMENT_TERMINATES, "comment-terminates",
       "note, -- terminates a comment" },
     { 6, ERR_OBSOLETE_IMPORT, "obsolete-import",
-      "why not import identifier `%s' from module `%s' instead?" },
+      "identifier `%s' should be imported from `%s' instead of `%s'" },
     { 0, 0, NULL, NULL }
 };
 

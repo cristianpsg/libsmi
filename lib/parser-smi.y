@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.136 2000/12/05 10:04:26 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.137 2000/12/15 13:52:30 strauss Exp $
  */
 
 %{
@@ -82,6 +82,25 @@ static int         firstStatementLine = 0;
 
  
 
+static char *convertImportv2[] = {
+    "RFC1155-SMI", "internet",	    "SNMPv2-SMI", "internet",
+    "RFC1155-SMI", "directory",	    "SNMPv2-SMI", "directory",
+    "RFC1155-SMI", "mgmt",	    "SNMPv2-SMI", "mgmt",
+    "RFC1155-SMI", "experimental",  "SNMPv2-SMI", "experimental",
+    "RFC1155-SMI", "private",	    "SNMPv2-SMI", "private",
+    "RFC1155-SMI", "enterprises",   "SNMPv2-SMI", "enterprises",
+    "RFC1155-SMI", "IpAddress",     "SNMPv2-SMI", "IpAddress",
+    "RFC1155-SMI", "Counter",       "SNMPv2-SMI", "Counter32",
+    "RFC1155-SMI", "Gauge",         "SNMPv2-SMI", "Gauge32",
+    "RFC1155-SMI", "TimeTicks",     "SNMPv2-SMI", "TimeTicks",
+    "RFC1155-SMI", "Opaque",        "SNMPv2-SMI", "Opaque",
+    "RFC1213-MIB", "mib-2",         "SNMPv2-SMI", "mib-2",    
+    "RFC1213-MIB", "DisplayString", "SNMPv2-TC",  "DisplayString",    
+    NULL, NULL, NULL, NULL
+};
+ 
+
+ 
 static void
 checkNameLen(Parser *parser, char *name, int error_32, int error_64)
 {
@@ -595,26 +614,20 @@ checkImportsUsage(Parser *parserPtr, Module *modulePtr)
 				    importPtr->export.name,
 				    importPtr->export.module);
 	    }
-	    /* list of SMIv1 MIBs?  Just use ^RFC*? */
-	    if (! strncmp(importPtr->export.module, "RFC", 3)) {
-		Module *modPtr;
-		for (modPtr = firstModulePtr;
-		     modPtr; modPtr = modPtr->nextPtr) {
-		    Object *objectPtr;
-		    if (modPtr == modulePtr)
-			continue;
-		    if (! strncmp(modPtr->export.name, "RFC", 3)) /*XXX*/
-			continue;
-		    for (objectPtr = modPtr->firstObjectPtr;
-			 objectPtr; objectPtr = objectPtr->nextPtr) {
-			if (objectPtr->export.name &&
-			    ! strcmp(importPtr->export.name,
-			    	     objectPtr->export.name))
-			    smiPrintErrorAtLine(parserPtr,
-						ERR_OBSOLETE_IMPORT,
-						importPtr->line,
-						importPtr->export.name,
-						modPtr->export.name);
+
+	    if (modulePtr->export.language == SMI_LANGUAGE_SMIV2) {
+		int j;
+		for (j = 0; convertImportv2[j]; j += 4) {
+		    if ((strcmp(convertImportv2[j],
+				importPtr->export.module) == 0)
+			&& (strcmp(convertImportv2[j+1],
+				   importPtr->export.name) == 0)) {
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_OBSOLETE_IMPORT,
+					    importPtr->line,
+					    importPtr->export.name,
+					    convertImportv2[j+2],
+					    importPtr->export.module);
 		    }
 		}
 	    }
