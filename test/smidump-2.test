@@ -5,6 +5,8 @@ mkdir smidump-2.out
 
 RC=0
 
+echo "Dumping SMIng modules again in SMIng format and comparing with previous run..."
+
 for mib in ${TESTMIBS} ; do
     echo $mib
     ../tools/smidump -fsming smidump-1.out/$mib.sming > smidump-2.out/$mib.sming
