@@ -1,3 +1,7 @@
+2002-07-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Fixed a NULL pointer dereference. Thanks to Bill.
+	
 2002-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/: Updated man pages.
