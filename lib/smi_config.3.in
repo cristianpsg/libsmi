@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.4 1999/06/08 20:16:12 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.5 1999/12/10 19:29:21 strauss Exp $
 .\"
-.TH smi_config 3  "December 10, 1999" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "December 12, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
 smiLoadModule, smiGetPath, smiSetPath \- SMI library
@@ -12,7 +12,7 @@ configuration routines
 .RS
 .RE
 .sp
-.BI "int smiInit();"
+.BI "int smiInit(const char *" tag );
 .RE
 .sp
 .BI "void smiSetErrorLevel(int " level );
@@ -33,7 +33,7 @@ configuration routines
 .BI "int smiSetPath(char *" path );
 .RE
 .sp
-.BI "int smiReadConfig(char *" filename );
+.BI "int smiReadConfig(char *" filename ", const char *" tag );
 .RE
 .fi
 .SH DESCRIPTION
@@ -41,8 +41,11 @@ These functions provide some initialization and adjustment operations
 for the SMI library.
 .PP
 The \fBsmiInit()\fP function should be the first SMI function called
-in an application. It initializes its internal structures. It returns
-zero on succes, or otherwise a negative value.
+in an application. It initializes its internal structures. The string
+\fItag\fP is used as an identifier to choose a set of configuration
+options from the configuration files that are read at initialization
+(see also \fBsmiReadConfig()\fP below).
+\fBsmiInit()\fP returns zero on success, or otherwise a negative value.
 .PP
 The \fBsmiSetErrorLevel()\fP function sets the pedantic level (0-9) of
 the SMI parsers of the SMI library, currently SMIv1/v2 and SMIng
@@ -82,7 +85,9 @@ no longer needed. \fBsmiSetPath()\fP sets the search path to
 .PP
 The \fBsmiReadConfig()\fP function reads the configuration file \fIfilename\fP.
 By default, on startup the global configuration file and a user configuration
-file are read implicitly.
+file are read implicitly, if present. Only the configuration file contents
+matching the \fBtag\fP are recognized. If \fBtag\fP is NULL, only the general
+configuration items of the `*' sections are read.
 .SH "RETURN VALUES"
 The functions \fBsmiLoadModule()\fP returns the
 name of the loaded module, of NULL if it could not be loaded.
@@ -109,6 +114,8 @@ extension are expected to be SMIng module files. Files with a \fB.my\fP or
 without any extension are expected to be SMIv1/v2 module files.
 .SH "FILES"
 .nf
+@prefix@/etc/smi.conf    global configuration file
+$HOME/.smirc               user configuration file
 @prefix@/include/smi.h   SMI library header file
 @mibdir@/     SMI module repository directory
 .fi

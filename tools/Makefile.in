@@ -72,13 +72,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 AWK = @AWK@
 BASH = @BASH@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
-DLLTOOL = @DLLTOOL@
 EXEEXT = @EXEEXT@
 FLEX = @FLEX@
 LD = @LD@
@@ -87,7 +85,6 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SH = @SH@
@@ -153,7 +150,7 @@ smiquery.1.in smistrip.1.in smistrip.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dump-corba.P .deps/dump-imports.P .deps/dump-mosy.P \
 .deps/dump-smi.P .deps/dump-sming.P .deps/dump-tree.P \

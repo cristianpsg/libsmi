@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.25 1999/10/01 12:46:59 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.26 1999/10/05 06:31:01 strauss Exp $
  */
 
 #include <stdio.h>
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
     char c;
     char s1[40], s2[40];
     
-    smiInit();
+    smiInit("smiquery");
 
     flags = smiGetFlags();
 

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.19 1999/10/05 06:31:01 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.20 1999/11/24 19:02:41 strauss Exp $
  */
 
 #include <stdio.h>
@@ -148,7 +148,7 @@ main(argc, argv)
     int errors = 0;
     Driver *driver = driverTable;
 
-    smiInit();
+    smiInit("smidump");
 
     flags = smiGetFlags();
     flags |= SMI_FLAG_ERRORS;
