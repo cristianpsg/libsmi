@@ -338,3 +338,7 @@ o test make, keeping BACKEND_SMING off
 o all files: (C) 1999, LICENSE, indentation?, #if 0 ?, XXX?, TODO?
 o grep SMI_NAMESPACE_OPERATOR
 o READ_CREATE should *never* occur in data.c / smi.c
+o test cases
+o simple documented example
+o smiquery supporting *all* data structures
+o testing on some major platforms

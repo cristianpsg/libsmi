@@ -1,16 +1,10 @@
 #
 # This is the libsmi Makefile.in.
 #
-# @(#) $Id: Makefile.in,v 1.1 1999/05/21 22:33:55 strauss Exp $
+# @(#) $Id: Makefile.in,v 1.2 1999/05/21 22:46:26 strauss Exp $
 #
 
 LIBSMI_VERSION	= @LIBSMI_VERSION@
-
-#MIBDIR		= /usr/local/lib/tnm3.0.0/mibs
-#TESTMIBS	= `cd $(MIBDIR) ; ls -1 IAN* IF-MIB ATM-* SNMPv2-MIB SNMPv2-TC`
-MIBDIR		= mibs/smiv2
-#TESTMIBS	= `cd $(MIBDIR) ; ls -1 *`
-TESTMIBS	= ""
 
 PREFIX			= @prefix@
 LIB_RUNTIME_DIR		= @prefix@/lib
@@ -79,8 +73,8 @@ tools: tools/smiquery
 tools/smilint: $(LIBSMI_STATIC) tools/smilint.o
 	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o $(LIBSMI_STATIC)
 
-tools/smisubtree: tools/smisubtree.o $(LIBSMI_STATIC)
-	$(LD) $(LDFLAGS) -o tools/smisubtree $^
+#tools/smisubtree: tools/smisubtree.o $(LIBSMI_STATIC)
+#	$(LD) $(LDFLAGS) -o tools/smisubtree $^
 
 tools/smidump: tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o $(LIBSMI_STATIC)
 	$(LD) $(LDFLAGS) -o tools/smidump $^
@@ -99,15 +93,15 @@ install: lib/smi.h $(LIBSMI_SO)
 	$(INSTALL) lib/smi.h $(INCLUDE_INSTALL_DIR)/smi.h
 	$(INSTALL) $(LIBSMI_SO) $(LIB_INSTALL_DIR)/libsmi.so.$(LIBSMI_VERSION)
 	ln $(LIB_INSTALL_DIR)/libsmi.so.$(LIBSMI_VERSION) $(LIB_INSTALL_DIR)/libsmi.so
-	$(INSTALL) tools/smilint $(BIN_INSTALL_DIR)/smilint
-	$(INSTALL) tools/smidump $(BIN_INSTALL_DIR)/smidump
+#	$(INSTALL) tools/smilint $(BIN_INSTALL_DIR)/smilint
+#	$(INSTALL) tools/smidump $(BIN_INSTALL_DIR)/smidump
 	$(INSTALL) tools/smiquery $(BIN_INSTALL_DIR)/smiquery
-	$(INSTALL) doc/smilint.1 $(MAN1_INSTALL_DIR)/smilint.1
-	$(INSTALL) doc/smidump.1 $(MAN1_INSTALL_DIR)/smidump.1
+#	$(INSTALL) doc/smilint.1 $(MAN1_INSTALL_DIR)/smilint.1
+#	$(INSTALL) doc/smidump.1 $(MAN1_INSTALL_DIR)/smidump.1
 #	$(INSTALL) doc/smiquery.1 $(MAN1_INSTALL_DIR)/smiquery.1
-	for f in doc/*.3 ; do \
-		$(INSTALL) $f $(MAN3_INSTALL_DIR) ; \
-	done
+#	for f in doc/*.3 ; do \
+#		$(INSTALL) $f $(MAN3_INSTALL_DIR) ; \
+#	done
 #	if [ ! -d ${PREFIX}/lib/smi ] ; then mkdir ${PREFIX}/lib/smi ; fi
 #	if [ ! -d ${PREFIX}/lib/smi/mibs-smi ] ; then mkdir ${PREFIX}/lib/smi/mibs-smi ; fi
 #	if [ ! -d ${PREFIX}/lib/smi/mibs-sming ] ; then mkdir ${PREFIX}/lib/smi/mibs-sming ; fi
@@ -115,56 +109,6 @@ install: lib/smi.h $(LIBSMI_SO)
 #	-cp mibs/sming/* ${PREFIX}/lib/smi/mibs-sming
 
 
-
-test: test-smilint test-smidump-smi-sming test-smidump-sming-sming test-diffs
-
-test-smilint: test-dir tools/smilint
-	rm -f test/smilint.log
-	for mib in $(TESTMIBS) ; do \
-	    echo "### Testing: smilint $$mib" ; \
-	    echo "### Testing: smilint $$mib" >> test/smilint.log ; \
-	    tools/smilint -l9 -v -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:mibs/smiv2 -Lsmi:mibs/smiv1 $$mib \
-						   >> test/smilint.log 2>&1 ; \
-	done | egrep -v '(^$$|^/)'
-	@echo ""
-	@echo "### See test/smilint.log for smilint test protocol."
-	@echo ""
-
-test-smidump-smi-sming: test-dir tools/smidump
-	rm -rf test/smidump-smi-sming
-	mkdir test/smidump-smi-sming
-	for mib in $(TESTMIBS) ; do \
-	    echo "### Testing: smidump -Dsming $$mib" ; \
-	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsmi:mibs/smiv2 -Lsmi:mibs/smiv1 -Dsming $$mib \
-					    >> test/smidump-smi-sming/$$mib ; \
-	done
-	@echo ""
-	@echo "### See files in test/smidump-smi-sming/ for smidump output."
-	@echo ""
-
-test-smidump-sming-sming: test-dir tools/smidump
-	rm -rf test/smidump-sming-sming
-	mkdir test/smidump-sming-sming
-	for mib in $(TESTMIBS) ; do \
-	    echo "### Testing: smidump -Dsming $$mib" ; \
-	    tools/smidump -l0 -Lsming:mibs/sming -Lsmi:mibs/smi -Lsming:test/smidump-smi-sming -Lsmi:mibs/smiv1 -Dsming $$mib \
-					  >> test/smidump-sming-sming/$$mib ; \
-	done
-	@echo ""
-	@echo "### See files in test/smidump-sming-sming/ for smidump output."
-	@echo ""
-
-test-diffs: test-smidump-smi-sming test-smidump-sming-sming
-	rm -rf test/smidump-diffs
-	mkdir test/smidump-diffs
-	for mib in $(TESTMIBS) ; do \
-	    echo "### Testing: smi-sming/sming-sming diffs of $$mib" ; \
-	    diff test/smidump-smi-sming/$$mib \
-		 test/smidump-sming-sming/$$mib > test/smidump-diffs/$$mib ; \
-	done
-
-test-dir:
-	if [ ! -d test ] ; then mkdir test ; fi
 
 dist:
 	cd .. ; tar cvzf libsmi/libsmi-$(LIBSMI_VERSION).tar.gz `cat libsmi/MANIFEST | sed -e 's!^!libsmi/!'`

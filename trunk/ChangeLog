@@ -1,10 +1,12 @@
 1999-05-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
-	* ChangeLog: started ChangeLog.
+	* configure.in: LIBSMI_VERSION=0.1
 
 	* Makefile: now building shared library. This heavily depends
 	on the platform and bin-utils. Just tested for Solaris 2.5.1
 	and Linux with GNU gcc and bin-utils.
 	
 	* configure.in: started GNU configure support.
+
+	* ChangeLog: started ChangeLog.
 
