@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smi.h,v 1.21 1999/05/25 17:00:34 strauss Exp $
+ * @(#) $Id: smi.h,v 1.22 1999/05/25 17:36:31 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -386,7 +386,31 @@ extern SmiNode *smiGetFirstMemberNode(SmiNode *smiNodePtr);
 extern SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
 				     SmiNode *smiMemberNodePtr);
 
+extern SmiNode *smiGetFirstMandatoryNode(SmiNode *smiNodePtr);
+
+extern SmiNode *smiGetNextMandatoryNode(SmiNode *smiComplianceNodePtr,
+					SmiNode *smiMandatoryNodePtr);
+
 extern void smiFreeNode(SmiNode *smiNodePtr);
+
+
+
+
+extern SmiOption *smiGetFirstOption(SmiNode *smiComplianceNodePtr);
+
+extern SmiOption *smiGetNextOption(SmiOption *smiOptionPtr);
+
+extern void smiFreeOption(SmiOption *smiOptionPtr);
+
+
+
+extern SmiRefinement *smiGetFirstRefinement(SmiNode *smiComplianceNodePtr);
+
+extern SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr);
+
+extern void smiFreeRefinement(SmiRefinement *smiRefinementPtr);
+
+
 
 /* TODO: compl-mand/option/refine row-creatable?, */
 

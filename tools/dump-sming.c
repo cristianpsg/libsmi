@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: dump-sming.c,v 1.27 1999/05/20 08:51:18 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.28 1999/05/25 17:00:37 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -48,51 +48,7 @@
 
 
 
-char *
-smingStringStatus(status)
-    SmiStatus status;
-{
-    return
-	(status == SMI_STATUS_CURRENT)     ? "current" :
-	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
-	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
-	(status == SMI_STATUS_MANDATORY)   ? "current" :
-	(status == SMI_STATUS_OPTIONAL)    ? "current" :
-					     "<unknown>";
-}
-
-
-
-char *
-smingStringAccess(access)
-    SmiAccess access;
-{
-    return
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
-	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
-	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
-	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
-	(access == SMI_ACCESS_READ_CREATE)    ? "readwrite" :
-						"<unknown>";
-}
-
-
-
-char *
-smingCTime(t)
-    time_t t;
-{
-    static char   s[27];
-    struct tm	  *tm;
-
-    tm = gmtime(&t);
-    sprintf(s, "%04d-%02d-%02d %02d:%02d",
-	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-	    tm->tm_hour, tm->tm_min);
-    return s;
-}
-
-
+static int errors;
 
 static char *excludeType[] = {
     "ObjectSyntax",
@@ -161,24 +117,70 @@ static int current_column = 0;
 
 
 
-static char *
-getTypeString(name, syntax)
-    char *name;
+char *smingStringStatus(SmiStatus status)
+{
+    return
+	(status == SMI_STATUS_CURRENT)     ? "current" :
+	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
+	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
+	(status == SMI_STATUS_MANDATORY)   ? "current" :
+	(status == SMI_STATUS_OPTIONAL)    ? "current" :
+					     "<unknown>";
+}
+
+
+
+char *smingStringAccess(SmiAccess access)
+{
+    return
+	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
+	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
+	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
+	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
+	(access == SMI_ACCESS_READ_CREATE)    ? "readwrite" :
+						"<unknown>";
+}
+
+
+
+char *smingStringBasetype(SmiBasetype basetype)
+{
+    return
+        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
+        (basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
+        (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
+        (basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :
+        (basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" :
+        (basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" :
+        (basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" :
+        (basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" :
+        (basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" :
+        (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
+        (basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
+        (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
+                                                   "<unknown>";
+}
+
+
+
+char *smingCTime(time_t t)
+{
+    static char   s[27];
+    struct tm	  *tm;
+
+    tm = gmtime(&t);
+    sprintf(s, "%04d-%02d-%02d %02d:%02d",
+	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	    tm->tm_hour, tm->tm_min);
+    return s;
+}
+
+
+
+static char *getTypeString(char *name)
 {
     int i;
 
-    if (syntax == SMI_BASETYPE_ENUM) {
-	return "Enumeration";
-    }
-    
-    if (syntax == SMI_BASETYPE_BITS) {
-	return "Bits";
-    }
-
-    if (!name) {
-	return "<unknown>";
-    }
-    
     for(i=0; convertType[i]; i += 2) {
 	if (!strcmp(name, convertType[i])) {
 	    return convertType[i+1];
@@ -189,21 +191,27 @@ getTypeString(name, syntax)
 
 
 
-static char *
-getOidString(modulename, object, importedParent)
-    char	 *modulename;
-    char	 *object;
-    int		 importedParent;  /* force use of imported oid label (MI) */
+static char *getOidString(SmiNode *smiNode, int importedParent)
 {
-    SmiNode      *smiNode;
+    SmiNode	 *parent;
     static char	 s[SMI_MAX_OID+1];
     char	 child[SMI_MAX_OID+1];
     char	 append[SMI_MAX_OID+1];
     char         *fullname;
     char	 *p;
     
-    s[0] = 0;
+    append[0] = 0;
 
+    strcpy(s, append);
+    if ((p = strrchr(smiNode->oid, '.'))) {
+	sprintf(append, "%s%s", p, s);
+    }
+    parent = smiGetParentNode(smiNode);
+    
+    
+    
+#if 0
+    XXX
     strcpy(child, object);
     append[0] = 0;
     do {
@@ -223,6 +231,7 @@ getOidString(modulename, object, importedParent)
 	    }
 	    strcpy(child, smiDescriptor(fullname));
 	} else {
+	    errors++;
 	    strcpy(child, "<unknown>");
 	    fullname = child;
 	    break;
@@ -230,14 +239,14 @@ getOidString(modulename, object, importedParent)
     } while ((strchr(smiDescriptor(fullname), '.')) ||
 	     (importedParent && !smiIsImported(modulename, fullname)));
     sprintf(s, "%s%s", smiDescriptor(fullname), append);
-
+#endif
+    
     return s;
 }
 
 
 
-static void
-print(char *fmt, ...)
+static void print(char *fmt, ...)
 {
     va_list ap;
     char    s[200];
@@ -256,11 +265,7 @@ print(char *fmt, ...)
 
 
 
-static void
-printSegment(column, string, length)
-    int      column;
-    char     *string;
-    int	     length;
+static void printSegment(int column, char *string, int length)
 {
     char     s[200];
 
@@ -277,10 +282,7 @@ printSegment(column, string, length)
 
 
 
-static void
-printWrapped(column, string)
-    int  column;
-    char *string;
+static void printWrapped(int column, char *string)
 {
     if ((current_column + strlen(string)) > INDENTMAX) {
 	print("\n");
@@ -291,9 +293,7 @@ printWrapped(column, string)
 
 
 
-static char *
-getValueString(valuePtr)
-    SmiValue  *valuePtr;
+static char *getValueString(SmiValue *valuePtr)
 {
     static char s[100];
     char        **p;
@@ -356,35 +356,37 @@ getValueString(valuePtr)
 
 
 
-static void
-printSubtype(smiType)
-    SmiType *smiType;
+static void printSubtype(SmiType *smiType)
 {
-    void    **listPtr;
-    char    s[100];
+    SmiRange       *range;
+    SmiNamedNumber *nn;
+    char	   s[100];
+    int		   i;
     
-    print("(");
-    for (listPtr = smiType->list; *listPtr; listPtr++) {
-	if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
-	    (smiType->basetype == SMI_BASETYPE_BITS)) {
-	    if (listPtr != smiType->list)
+    print(" (");
+    if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
+	(smiType->basetype == SMI_BASETYPE_BITS)) {
+	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	    nn ; i++, nn = smiGetNextNamedNumber(nn)) {
+	    if (i) {
 		print(", ");
-	    sprintf(s, "%s(%s)", ((SmiNamedNumber *)*listPtr)->name,
-		   getValueString(((SmiNamedNumber *)*listPtr)->valuePtr));
+	    }
+	    sprintf(s, "%s(%s)", nn->name, getValueString(nn->valuePtr));
 	    printWrapped(INDENTVALUE + INDENT, s);
-	} else {
-	    if (listPtr != smiType->list)
+	}
+    } else {
+	for(i = 0, range = smiGetFirstRange(smiType->module, smiType->name);
+	    range ; i++, range = smiGetNextRange(range)) {
+	    if (i) {
 		print(" | ");
-	    if (bcmp(((SmiRange *)*listPtr)->minValuePtr,
-		     ((SmiRange *)*listPtr)->maxValuePtr,
+	    }	    
+	    if (bcmp(range->minValuePtr, range->maxValuePtr,
 		     sizeof(SmiValue))) {
-		sprintf(s, "%s", 
-			getValueString(((SmiRange *)*listPtr)->minValuePtr));
+		sprintf(s, "%s", getValueString(range->minValuePtr));
 		sprintf(&s[strlen(s)], "..%s", 
-			getValueString(((SmiRange *)*listPtr)->maxValuePtr));
+			getValueString(range->maxValuePtr));
 	    } else {
-		sprintf(s, "%s",
-			getValueString(((SmiRange *)*listPtr)->minValuePtr));
+		sprintf(s, "%s", getValueString(range->minValuePtr));
 	    }
 	    printWrapped(INDENTVALUE + INDENT, s);
 	}
@@ -394,9 +396,7 @@ printSubtype(smiType)
 
 
 
-static void
-printMultilineString(s)
-    const char *s;
+static void printMultilineString(const char *s)
 {
     int i;
     
@@ -416,25 +416,17 @@ printMultilineString(s)
 
 
 
-static void
-printImports(modulename)
-    char	  *modulename;
+static void printImports(char *modulename)
 {
-    char	  **list;
+    SmiImport     *smiImport;
     char	  *lastModulename = NULL;
     char	  *importedModulename, *importedDescriptor;
-    char	  **p;
     int		  i;
     char	  types[200];
     char	  *t;
     
-    list = smiGetImports(modulename);
-
     types[0] = 0;
     
-    if (!list)
-	return;
-
     /*
      * TODO:
      * - add imports for
@@ -443,12 +435,11 @@ printImports(modulename)
      *   - external refined objects ...
      */
     
-    for(p = list; *p; p++) {
-	importedModulename = *p;
-	importedDescriptor = strstr(*p, SMI_NAMESPACE_OPERATOR);
-	importedDescriptor[0] = 0;
-	importedDescriptor =
-	    &importedDescriptor[strlen(SMI_NAMESPACE_OPERATOR)];
+    for(smiImport = smiGetFirstImport(modulename); smiImport;
+	smiImport = smiGetNextImport(smiImport)) {
+	importedModulename = smiImport->importmodule;
+	importedDescriptor = smiImport->importname;
+
 	/*
 	 * imported SMI modules have to be handled more carefully:
 	 * The module name is mapped to an SMIng module and some definitions
@@ -456,7 +447,6 @@ printImports(modulename)
 	 * lead to an empty list of imported descriptors from that SMIv1/v2
 	 * module.
 	 */
-	
 	for(i = 0; convertImport[i]; i += 4) {
 	    if ((!util_strcmp(importedModulename, convertImport[i])) &&
 		(!util_strcmp(importedDescriptor, convertImport[i+1]))) {
@@ -548,17 +538,13 @@ printImports(modulename)
 
 
 
-static void
-printRevisions(modulename)
-    char	 *modulename;
+static void printRevisions(char *modulename)
 {
     int i;
     SmiRevision *smiRevision;
     
     for(i = 0, smiRevision = smiGetFirstRevision(modulename);
-	smiRevision;
-	smiRevision = smiGetNextRevision(modulename,
-					 smiRevision->date)) {
+	smiRevision; smiRevision = smiGetNextRevision(smiRevision)) {
 	printSegment(INDENT, "revision {\n", 0);
 	printSegment(2 * INDENT, "date", INDENTVALUE);
 	print("\"%s\";\n", smingCTime(smiRevision->date));
@@ -576,15 +562,13 @@ printRevisions(modulename)
 
 
 
-static void
-printTypedefs(modulename)
-    char	 *modulename;
+static void printTypedefs(char *modulename)
 {
     int		 i, j;
     SmiType	 *smiType;
     
     for(i = 0, smiType = smiGetFirstType(modulename);
-	smiType; smiType = smiGetNextType(modulename, smiType->name)) {
+	smiType; smiType = smiGetNextType(smiType)) {
 
 	if ((!(strcmp(modulename, "SNMPv2-SMI"))) ||
 	    (!(strcmp(modulename, "RFC1155-SMI")))) {
@@ -601,16 +585,20 @@ printTypedefs(modulename)
 	print("typedef %s {\n", smiType->name);
 
 	printSegment(2 * INDENT, "type", INDENTVALUE);
-	print("%s", getTypeString(smiType->parent, smiType->basetype));
-	if (smiType->list) {
-	    print(" ");
-	    printSubtype(smiType);
+	if (smiType->parentname) {
+	    if (smiType->parentmodule && strlen(smiType->parentmodule)) {
+		print("%s::%s", smiType->parentmodule, smiType->parentname);
+	    }
+	    print("%s", smiType->parentname);
+	} else {
+	    print("%s", smingStringBasetype(smiType->basetype));
 	}
+	printSubtype(smiType);
 	print(";\n");
 
-	if (smiType->value) {
+	if (smiType->valuePtr) {
 	    printSegment(2 * INDENT, "default", INDENTVALUE);
-	    print("%s", getValueString(smiType->value));
+	    print("%s", getValueString(smiType->valuePtr));
 	    print(";\n");
 	}
 	
@@ -646,9 +634,8 @@ printTypedefs(modulename)
 
 
 
-static void
-printObjects(modulename)
-    char	 *modulename;
+#if 0
+static void printObjects(char *modulename)
 {
     int		 i, j;
     SmiNode	 *smiNode;
@@ -710,7 +697,7 @@ printObjects(modulename)
 	
 	if (smiNode->oid) {
 	    printSegment((2 + indent) * INDENT, "oid", INDENTVALUE);
-	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
+	    print("%s;\n", getOidString(smiNode, 0));
 	}
 
 	if ((smiNode->basetype != SMI_BASETYPE_SEQUENCE) &&
@@ -876,9 +863,7 @@ printObjects(modulename)
 
 
 
-static void
-printNotifications(modulename)
-    char	 *modulename;
+static void printNotifications(char *modulename)
 {
     int		 i;
     SmiNode	 *smiNode;
@@ -901,7 +886,7 @@ printNotifications(modulename)
 
 	if (smiNode->oid) {
 	    printSegment(2 * INDENT, "oid", INDENTVALUE);
-	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
+	    print("%s;\n", getOidString(smiNode, 0));
 	}
 
 	if (smiNode->list) {
@@ -946,9 +931,7 @@ printNotifications(modulename)
 
 
 
-static void
-printGroups(modulename)
-    char	 *modulename;
+static void printGroups(char *modulename)
 {
     int		 i, d;
     SmiNode	 *smiNode;
@@ -974,7 +957,7 @@ printGroups(modulename)
 	    
 	    if (smiNode->oid) {
 		printSegment(2 * INDENT, "oid", INDENTVALUE);
-		print("%s;\n", getOidString(modulename, smiNode->oid, 0));
+		print("%s;\n", getOidString(smiNode, 0));
 	    }
 	    
 	    printSegment(2 * INDENT, "objects", INDENTVALUE);
@@ -1018,9 +1001,7 @@ printGroups(modulename)
 
 
 
-static void
-printCompliances(modulename)
-    char	  *modulename;
+static void printCompliances(char *modulename)
 {
     int		  i;
     SmiNode	  *smiNode;
@@ -1046,7 +1027,7 @@ printCompliances(modulename)
 	    
 	if (smiNode->oid) {
 	    printSegment(2 * INDENT, "oid", INDENTVALUE);
-	    print("%s;\n", getOidString(modulename, smiNode->oid, 0));
+	    print("%s;\n", getOidString(smiNode, 0));
 	}
 	    
 	if ((smiNode->status != SMI_STATUS_CURRENT) &&
@@ -1153,14 +1134,16 @@ printCompliances(modulename)
 	i++;
     }
 }
+#endif
 
 
 
-void
-dumpSming(modulename)
-    char	 *modulename;
+int dumpSming(char *modulename)
 {
     SmiModule	 *smiModule;
+    SmiNode	 *smiNode;
+    
+    errors = 0;
     
     smiModule = smiGetModule(modulename);
     if (!smiModule) {
@@ -1168,7 +1151,8 @@ dumpSming(modulename)
 	exit(1);
     } else {
 	print("//\n");
-	print("// This module has been generated by smidump. Do not edit.\n");
+	print("// This module has been generated by smidump "
+	      LIBSMI_VERSION ". Do not edit.\n");
 	print("//\n");
 	print("module %s ", smiModule->name);
 	if (smiModule->object) {
@@ -1185,8 +1169,8 @@ dumpSming(modulename)
 	if (smiModule->object) {
 	    print("//\n// MODULE META INFORMATION\n//\n\n");
 	    printSegment(INDENT, "oid", INDENTVALUE);
-	    print("%s;\n\n",
-			 getOidString(modulename, smiModule->object, 1));
+	    smiNode = smiGetNode(smiModule->name, smiModule->object);
+	    print("%s;\n\n", getOidString(smiNode, 1));
 	    printSegment(INDENT, "organization", INDENTVALUE);
 	    print("\n");
 	    printMultilineString(smiModule->organization);
@@ -1211,7 +1195,8 @@ dumpSming(modulename)
 	}
 	
 	printTypedefs(modulename);
-	
+
+#if 0
 	printObjects(modulename);
 	
 	printNotifications(modulename);
@@ -1219,9 +1204,11 @@ dumpSming(modulename)
 	printGroups(modulename);
 	
 	printCompliances(modulename);
+#endif
 	
 	print("}; // end of module %s.\n", modulename);
 
     }
-}
 
+    return errors;
+}

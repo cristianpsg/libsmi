@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smiquery.c,v 1.11 1999/05/21 19:55:20 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.12 1999/05/25 17:00:39 strauss Exp $
  */
 
 #include <stdio.h>
@@ -27,13 +27,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifdef linux
-#include <getopt.h>
-#endif
 
+#include "defs.h"
 #include "smi.h"
-
-#define SMIQUERY_CONFIG_FILE "/usr/local/etc/smiquery.conf"
 
 
 
@@ -152,8 +148,29 @@ void
 usage()
 {
     fprintf(stderr,
-	    "Usage: smiquery [-vrs] [-l level] [-p module] command name\n"
-	    "known commands: module, node, type, macro, names, children, members, parent\n");
+	    "Usage: smiquery [-Vh] [-p <module>] <command> <name>\n"
+	    "-V                        show version and license information\n"
+	    "-h                        show usage information\n"
+	    "-p <module>               preload <module>\n"
+	    "module <module>           show information on module <module>\n"
+	    "imports <module>          show import list of module <module>\n"
+	    "revisions <module>        show revision list of module <module>\n"
+	    "node <module.name>        show information on node <module.name>\n"
+	    "parent <module.name>      show parent of node <module.name>\n"
+	    "compliance <module.name>  show information on compliance node <module.name>\n"
+	    "index <module.name>       show index information on table row <module.name>\n"
+	    "members <module.name>     show member list of group node <module.name>\n"
+	    "children <module.name>    show children list of node <module.name>\n"
+	    "type <module.name>        show information on type <module.name>\n"
+	    "macro <module.name>       show information on macro <module.name>\n");
+}
+
+
+
+void
+version()
+{
+    printf("smiquery " LIBSMI_VERSION "\n" COPYLEFT);
 }
 
 
@@ -171,6 +188,8 @@ main(argc, argv)
     SmiRange *range;
     SmiImport *import;
     SmiRevision *revision;
+    SmiOption *option;
+    SmiRefinement *refinement;
     char *command, *name;
     int flags;
     char c;
@@ -179,26 +198,17 @@ main(argc, argv)
 
     flags = smiGetFlags();
     
-    while ((c = getopt(argc, argv, "rsvl:p:")) != -1) {
+    while ((c = getopt(argc, argv, "Vhp:")) != -1) {
 	switch (c) {
-	case 'l':
-	    smiSetErrorLevel(atoi(optarg));
-	    break;
-	case 'v':
-	    flags |= SMI_ERRORLINES;
-	    smiSetFlags(flags);
-	    break;
-	case 'r':
-	    flags |= SMI_RECURSIVE;
-	    smiSetFlags(flags);
-	    break;
-	case 's':
-	    flags |= SMI_STATS;
-	    smiSetFlags(flags);
-	    break;
 	case 'p':
 	    smiLoadModule(optarg);
 	    break;
+	case 'V':
+	    version();
+	    exit(0);
+	case 'h':
+	    usage();
+	    exit(0);
 	default:
 	    usage();
 	    exit(1);
@@ -279,6 +289,42 @@ main(argc, argv)
 	    printf("   Reference: %s\n", format(node->reference));
 	}
 	smiFreeNode(child);
+	smiFreeNode(node);
+    }
+
+    if (!strcmp(command, "compliance")) {
+	node = smiGetNode(name, NULL);
+	printf("   Mandatory:");
+	for(child = smiGetFirstMandatoryNode(node);
+	    child ; child = smiGetNextMandatoryNode(node, child)) {
+	    printf(" %s.%s", child->module, child->name);
+	}
+	printf("\n\n");
+	for(option = smiGetFirstOption(node);
+	    option ; option = smiGetNextOption(option)) {
+	    printf("      Option: %s.%s\n", option->module, option->name);
+	    printf(" Description: %s\n\n", format(option->description));
+	}
+	printf("\n");
+	for(refinement = smiGetFirstRefinement(node);
+	    refinement ; refinement = smiGetNextRefinement(refinement)) {
+	    printf("  Refinement: %s.%s\n",
+		   refinement->module, refinement->name);
+	    if (refinement->typename) {
+		printf("        Type: %s.%s\n",
+		       refinement->typemodule, refinement->typename);
+	    }
+	    if (refinement->writetypename) {
+		printf("  Write-Type: %s.%s\n",
+		       refinement->writetypemodule, refinement->writetypename);
+	    }
+	    if (refinement->access != SMI_ACCESS_UNKNOWN) {
+		printf("      Access: %s\n",
+		       smiStringAccess(refinement->access));
+	    }
+	    printf(" Description: %s\n\n", format(refinement->description));
+	}
+	printf("\n");
 	smiFreeNode(node);
     }
 

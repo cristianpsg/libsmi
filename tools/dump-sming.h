@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: dump-sming.h,v 1.2 1999/04/05 15:47:35 strauss Exp $
+ * @(#) $Id: dump-sming.h,v 1.3 1999/05/25 17:00:38 strauss Exp $
  */
 
 #ifndef _DUMP_SMING_H
@@ -27,7 +27,7 @@
 
 
 
-extern void dumpSming(const char *modulename);
+extern int dumpSming(const char *modulename);
 
 
 
