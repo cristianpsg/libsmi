@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.15 2001/03/06 09:18:29 strauss Exp $
+ * @(#) $Id: check.c,v 1.16 2001/03/06 09:38:11 strauss Exp $
  */
 
 #include <config.h>
@@ -514,6 +514,7 @@ smiCheckNamedNumberSubtyping(Parser *parser, Type *type)
 		smiPrintErrorAtLine(parser, ERR_ENUM_SUBTYPE,
 				    type->line,
 				    nn1Ptr->export.name,
+				    nn1Ptr->export.value.value.integer32,
 				    type->parentPtr->export.name);
 	    }
 	    if (type->export.basetype == SMI_BASETYPE_BITS) {
@@ -1038,6 +1039,11 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
     Type *storageTypePtr = NULL;
     Type *taddressPtr = NULL;
     Type *tdomainPtr = NULL;
+    Type *inetAddressTypePtr = NULL;
+    Type *inetAddressPtr = NULL;
+    Type *inetAddressIPv4Ptr = NULL;
+    Type *inetAddressIPv6Ptr = NULL;
+    Type *inetAddressDNSPtr = NULL;
     NamedNumber *nnPtr;
     Node *nodePtr;
     
@@ -1049,7 +1055,19 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 	tdomainPtr = findTypeByModuleAndName(tcModulePtr, "TDomain");
     }
     inetModulePtr = findModuleByName("INET-ADDRESS-MIB");
-
+    if (inetModulePtr) {
+	inetAddressTypePtr = findTypeByModuleAndName(inetModulePtr,
+						     "InetAddressType");
+	inetAddressPtr = findTypeByModuleAndName(inetModulePtr,
+						 "InetAddress");
+	inetAddressIPv4Ptr = findTypeByModuleAndName(inetModulePtr,
+						     "InetAddressIPv4");
+	inetAddressIPv6Ptr = findTypeByModuleAndName(inetModulePtr,
+						     "InetAddressIPv6");
+	inetAddressDNSPtr = findTypeByModuleAndName(inetModulePtr,
+						    "InetAddressDNS");
+    }
+    
     if (!tcModulePtr && !inetModulePtr) return;
     
     for (objectPtr = modulePtr->firstObjectPtr;
@@ -1098,15 +1116,40 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 		}
 		
 	    }
-#if 0
 	    if (inetModulePtr) {
-		
-		if (objectPtr->typePtr == inetXXX) {
-		    XXX
+
+		/* check InetAddressType/InetAddress pair */
+		if (objectPtr->typePtr == inetAddressPtr) {
+		    nodePtr =
+			findNodeByParentAndSubid(objectPtr->nodePtr->parentPtr,
+						 objectPtr->nodePtr->subid-1);
+		    if (nodePtr->lastObjectPtr->typePtr !=
+			inetAddressTypePtr) {
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_INETADDRESS_WITHOUT_TYPE,
+					    objectPtr->line);
+		    }
+		}
+
+		/* check InetAddressType subtyping */
+		if (objectPtr->typePtr->parentPtr == inetAddressTypePtr) {
+		    smiPrintErrorAtLine(parserPtr,
+					ERR_INETADDRESSTYPE_SUBTYPED,
+					objectPtr->line);
+		}
+
+		/* check InetAddressXXX usage  */
+		if (objectPtr->typePtr == inetAddressIPv4Ptr ||
+		    objectPtr->typePtr == inetAddressIPv6Ptr ||
+		    objectPtr->typePtr == inetAddressDNSPtr) {
+		    smiPrintErrorAtLine(parserPtr,
+					ERR_INETADDRESS_SPECIFIC,
+					objectPtr->line,
+					objectPtr->typePtr->export.name);
 		}
 
 	    }
-#endif
+	    
 	}
     }
 }

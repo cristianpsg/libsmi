@@ -1,5 +1,11 @@
 2001-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.2.14.tar.gz: released version 0.2.14.
+
+	* lib/check.c: Added more type usage checks.
+
+2001-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
 	* lib/parser-smi.y: Added some defval and type usage checks.
 
 2001-03-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>

@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smidump.1.in,v 1.21 2001/01/04 10:10:20 strauss Exp $
+.\" $Id: smidump.1.in,v 1.22 2001/01/30 16:33:43 schoenw Exp $
 .\"
-.TH smidump 1  "October 18, 2000" "IBR" "SMI Tools"
+.TH smidump 1  "March 6, 2001" "IBR" "SMI Tools"
 .SH NAME
 smidump \- dump SMI modules in various formats
 .SH SYNOPSIS
@@ -166,5 +166,5 @@ project is documented at
 .PP
 .BR smilint "(1)"
 .SH "AUTHOR"
-(C) 1999, 2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2001 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

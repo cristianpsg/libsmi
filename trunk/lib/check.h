@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.h,v 1.5 2000/11/27 12:06:40 strauss Exp $
+ * @(#) $Id: check.h,v 1.6 2000/12/15 13:52:29 strauss Exp $
  */
 
 #ifndef _CHECK_H
@@ -19,8 +19,7 @@
 #include "smi.h"
 
 
-extern void smiCheckObjectName(Parser *parser,
-			       Module *module, char *name);
+extern void smiCheckObjectName(Parser *parser, Module *module, char *name);
 
 extern void smiCheckTypeName(Parser *parser,
 			     Module *module, char *name, int line);
@@ -28,8 +27,13 @@ extern void smiCheckTypeName(Parser *parser,
 extern void smiCheckFormat(Parser *parser,
 			   SmiBasetype basetype, char *format, int line);
 
-extern void smiCheckTypeRanges(Parser *parser,
-			       Type *type);
+extern void smiCheckTypeRanges(Parser *parser, Type *type);
+
+extern void smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr);
+
+extern void smiCheckDefault(Parser *parser, Object *object);
+
+extern void smiCheckComplianceStatus(Parser *parser, Object *compliance);
 
 extern void smiCheckNamedNumberRedefinition(Parser *parser, Type *type);
 
@@ -43,7 +47,8 @@ extern void smiCheckGroupMembership(Parser *parser, Object *object);
 
 extern void smiCheckGroupMembers(Parser *parser, Object *group);
 
-extern void smiCheckObjectReuse(Parser *parser, char *name, Object **objectPtr);
+extern void smiCheckObjectReuse(Parser *parser,
+				char *name, Object **objectPtr);
 
 extern void smiyyerror(char *msg, Parser *parserPtr);
 

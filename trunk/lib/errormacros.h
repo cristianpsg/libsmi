@@ -166,3 +166,6 @@
 #define ERR_DEFVAL_OUT_OF_RANGE                  165
 #define ERR_DEFVAL_OUT_OF_ENUM                   166
 #define ERR_TADDRESS_WITHOUT_TDOMAIN             167
+#define ERR_INETADDRESS_WITHOUT_TYPE             168
+#define ERR_INETADDRESSTYPE_SUBTYPED             169
+#define ERR_INETADDRESS_SPECIFIC                 170

@@ -38,9 +38,9 @@ libsmiTest008Mib MODULE-IDENTITY
 
 	     The libsmi parser is expected to report:
 LIBSMI-TEST-008-MIB:64: textual convention `Red' can not be derived from the textual convention `Color'
-LIBSMI-TEST-008-MIB:89: named number `yellow' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:97: named number `red' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:105: named number `rot' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:89: named number `yellow(4)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:97: named number `red(2)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:105: named number `rot(1)' illegal in sub-type of `Color'
 LIBSMI-TEST-008-MIB:122: textual convention `FileAccess' can not be derived from the textual convention `Access'
 LIBSMI-TEST-008-MIB:147: named number `create' illegal in sub-type of `Access'
 LIBSMI-TEST-008-MIB:155: named number `read' illegal in sub-type of `Access'
