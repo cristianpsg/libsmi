@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: dump-xml.c,v 1.1 2000/03/21 10:30:40 strauss Exp $
  */
 
 /*
@@ -389,7 +389,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	if (nn) {
 	    sprintf(s, "%s", nn->name);
 	} else {
-	    sprintf(s, "%d", valuePtr->value.unsigned32);
+	    sprintf(s, "%ld", valuePtr->value.integer32);
 	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
