@@ -1,3 +1,10 @@
+2001-06-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Added special treatment of RFC1065-SMI.
+
+	* lib/parser-smi.y: Added optional OID between modulename and
+	`DEFINITIONS' (which is legal in ASN.1).
+
 2001-06-11  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-jax.c: Fixed a bug in the generated code for

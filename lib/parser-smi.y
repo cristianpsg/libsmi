@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.145 2001/06/06 12:08:38 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.146 2001/06/11 09:59:18 strauss Exp $
  */
 
 %{
@@ -94,6 +94,17 @@ static char *convertImportv2[] = {
     "RFC1155-SMI", "Gauge",         "SNMPv2-SMI", "Gauge32",
     "RFC1155-SMI", "TimeTicks",     "SNMPv2-SMI", "TimeTicks",
     "RFC1155-SMI", "Opaque",        "SNMPv2-SMI", "Opaque",
+    "RFC1065-SMI", "internet",	    "SNMPv2-SMI", "internet",
+    "RFC1065-SMI", "directory",	    "SNMPv2-SMI", "directory",
+    "RFC1065-SMI", "mgmt",	    "SNMPv2-SMI", "mgmt",
+    "RFC1065-SMI", "experimental",  "SNMPv2-SMI", "experimental",
+    "RFC1065-SMI", "private",	    "SNMPv2-SMI", "private",
+    "RFC1065-SMI", "enterprises",   "SNMPv2-SMI", "enterprises",
+    "RFC1065-SMI", "IpAddress",     "SNMPv2-SMI", "IpAddress",
+    "RFC1065-SMI", "Counter",       "SNMPv2-SMI", "Counter32",
+    "RFC1065-SMI", "Gauge",         "SNMPv2-SMI", "Gauge32",
+    "RFC1065-SMI", "TimeTicks",     "SNMPv2-SMI", "TimeTicks",
+    "RFC1065-SMI", "Opaque",        "SNMPv2-SMI", "Opaque",
     "RFC1213-MIB", "mib-2",         "SNMPv2-SMI", "mib-2",    
     "RFC1213-MIB", "DisplayString", "SNMPv2-TC",  "DisplayString",    
     NULL, NULL, NULL, NULL
@@ -971,6 +982,7 @@ checkDate(Parser *parserPtr, char *date)
 %type  <err>mibFile
 %type  <err>modules
 %type  <err>module
+%type  <err>moduleOid
 %type  <id>moduleName
 %type  <id>importIdentifier
 %type  <err>importIdentifiers
@@ -1170,6 +1182,7 @@ module:			moduleName
 				YYABORT;
 			    }
 			}
+			moduleOid
 			DEFINITIONS COLON_COLON_EQUAL BEGIN_
 			exportsClause
 			linkagePart
@@ -1189,6 +1202,12 @@ module:			moduleName
 
                             $$ = 0;
 			}
+	;
+
+moduleOid:		'{' objectIdentifier '}'
+			{ $$ = 0; }
+	|		/* empty */
+			{ $$ = 0; }
 	;
 
 /*
@@ -1219,7 +1238,9 @@ exportsClause:		/* empty */
 			    firstStatementLine = thisParserPtr->line;
 
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
-				       "RFC1155-SMI")) {
+				       "RFC1155-SMI") &&
+				strcmp(thisParserPtr->modulePtr->export.name,
+				       "RFC1065-SMI")) {
 			        smiPrintError(thisParserPtr, ERR_EXPORTS);
 			    }
 			}
@@ -1461,6 +1482,8 @@ macroClause:		macroName
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC-1215") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
+				       "RFC1065-SMI") &&
+				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
 			        smiPrintError(thisParserPtr, ERR_MACRO);
 			    }
@@ -1500,6 +1523,8 @@ choiceClause:		CHOICE
 				       "SNMPv2-CONF") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC-1212") &&
+				strcmp(thisParserPtr->modulePtr->export.name,
+				       "RFC1065-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
 			        smiPrintError(thisParserPtr, ERR_CHOICE);
@@ -1655,7 +1680,8 @@ typeDeclaration:	typeName
 				}
 			    }
 			    if (thisModulePtr &&
-				!strcmp(thisModulePtr->export.name, "RFC1155-SMI")) {
+				(!strcmp(thisModulePtr->export.name, "RFC1155-SMI") ||
+				 !strcmp(thisModulePtr->export.name, "RFC1065-SMI"))) {
 				if (!strcmp($1, "Counter")) {
 				    $4->export.basetype = SMI_BASETYPE_UNSIGNED32;
 				    setTypeParent($4, typeUnsigned32Ptr);
@@ -1718,6 +1744,8 @@ typeName:		UPPERCASE_IDENTIFIER
 				       "SNMPv2-CONF") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC-1212") &&
+				strcmp(thisParserPtr->modulePtr->export.name,
+				       "RFC1065-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
 			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, $1);
@@ -2536,6 +2564,8 @@ ObjectSyntax:		SimpleSyntax
 				       "SNMPv2-CONF") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC-1212") &&
+				strcmp(thisParserPtr->modulePtr->export.name,
+				       "RFC1065-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "RFC1155-SMI")) {
 			        smiPrintError(thisParserPtr, ERR_TYPE_TAG, $1);
