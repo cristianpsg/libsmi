@@ -1,6 +1,7 @@
 2000-03-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/*.c: added dump-xml from Juergen. replaced bcmp by memcmp.
+	fixed multiple printing of groups in dump-sming.c.
 
 	* mibs/ietf/: added HOST-RESOURCES-MIB and HOST-RESOURCES-TYPES.
 
