@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.74 2001/08/22 17:51:42 strauss Exp $
+ * @(#) $Id: error.c,v 1.75 2001/08/27 11:51:42 strauss Exp $
  */
 
 #include <config.h>
@@ -336,9 +336,9 @@ static Error errors[] = {
       "illegal base type `%s' in index element `%s' of row %s" },
     { 5, ERR_INDEX_TOO_LARGE, "index-exceeds-too-large", 
       "index of row `%s' can exceed OID size limit" },
-    { 1, ERR_INDEX_NO_RANGE, "index-element-no-range",
+    { 2, ERR_INDEX_NO_RANGE, "index-element-no-range",
       "index element `%s' of row `%s' must have a range restriction" },
-    { 1, ERR_INDEX_NO_RANGE_MOD, "index-element-no-range",
+    { 2, ERR_INDEX_NO_RANGE_MOD, "index-element-no-range",
       "index element `%s::%s' of row `%s' must have a range restriction" },
     { 1, ERR_INDEX_NO_SIZE, "index-element-no-size",
       "index element `%s' of row `%s' must have a size restriction" },
