@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.11 1998/11/22 22:58:23 strauss Exp $
+% * @(#) $Id: smi.x,v 1.12 1998/11/23 12:56:59 strauss Exp $
 % */
 %
 
@@ -102,6 +102,7 @@ struct smi_node {
     smi_index		index;
 #endif
     smi_decl		decl;
+    smi_syntax		syntax;
     smi_access		access;
     smi_status		status;
     smi_string		description;
@@ -177,17 +178,16 @@ program SMIPROG {
 	 * SMIPROC_MEMBERS returns a blank-separated list of fully
 	 * qualified smi_fullnames representing
 	 * - all members of the given input node if it represents an
-	 *   object group, or
+	 *   object group, or (TODO)
 	 * - all members of the given input node if it represents a
-	 *   notification group, or
+	 *   notification group, or (TODO)
 	 * - all variables that must be present in a notification
-	 *   if it represents a notification node, or
+	 *   if it represents a notification node, or (TODO)
 	 * - all columns if it represents a row type (SEQUENCE), or
 	 * - all index elements of a table if it represents a table
 	 *   object type (SEQUENCE OF ...).
 	 * - [??? all augmentation elements if it represents a table
 	 *   augmentation object type. ???]
-	 * TODO: Probably this list can get quite large.
 	 */
 	smi_namelist	SMIPROC_MEMBERS(smi_fullname) 	= 7;
 	/*
