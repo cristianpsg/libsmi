@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smiquery.1.in,v 1.6 2000/12/11 08:41:22 strauss Exp $
+.\" $Id: smiquery.1.in,v 1.7 2002/11/12 10:03:42 schoenw Exp $
 .\"
-.TH smiquery 1  "February 11, 2000" "IBR" "SMI Tools"
+.TH smiquery 1  "August 10, 2004" "IBR" "SMI Tools"
 .SH NAME
 smiquery \- query single information from SMI MIB modules
 .SH SYNOPSIS
@@ -36,7 +36,8 @@ macro) and the item to retrieve.
 The module in question is searched along a path, which is initialized by
 the \fBSMIPATH\fP environment variable or by @mibdir@ if
 \fBSMIPATH\fP is not set. Files with a \fB.sming\fP extension are
-expected to be SMIng module files. Files with a \fB.my\fP or without
+expected to be (old-style!) SMIng module files. Files
+with a \fB.my\fP or without
 any extension are expected to be SMIv1/v2 module files.
 .SH "EXAMPLE"
 This example queries for information on the node ifNumber defined
@@ -61,5 +62,5 @@ The
 project is documented at
 .BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
 .SH "AUTHOR"
-(C) 1999, 2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2004 F. Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

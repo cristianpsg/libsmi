@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.44 2003/02/23 21:49:06 schoenw Exp $
+ * @(#) $Id: smilint.c,v 1.45 2003/02/26 15:31:34 schoenw Exp $
  */
 
 #include <config.h>
@@ -133,12 +133,15 @@ static void display_one(FILE *f, Error *error)
     type = (error->severity <= 3) ? "Error:" : "Warning:";
     tag = (error->tag && strlen(error->tag))
 	? error->tag : "<xxx-missing-xxx>";
-    fprintf(f, "%-*s %s (level %d)\n",
-	    indent, type, tag, error->severity);
+    fprintf(f, "%-*s %s (level %d%s)\n",
+	    indent, type, tag, error->severity & 127,
+	    error->severity & 128 ? ", ignored" : "");
     fprintf(f, "%-*s %s\n", indent, "Message:",
 	    error->msg ? error->msg : "");
-    fprintf(f, "%-*s ", indent, "Description:");
-    fold(f, indent + 1, error->description);
+    if (error->description) {
+	fprintf(f, "%-*s ", indent, "Description:");
+	fold(f, indent + 1, error->description);
+    }
 }
 
 
@@ -181,16 +184,17 @@ static void usage()
 {
     fprintf(stderr,
 	    "Usage: smilint [options] [module or path ...]\n"
-	    "  -V, --version        show version and license information\n"
-	    "  -h, --help           show usage information\n"
-	    "  -c, --config=file    load a specific configuration file\n"
-	    "  -p, --preload=module preload <module>\n"
-	    "  -e, --error-list     print list of known error messages\n"
-	    "  -m, --error-names    print the name of errors in braces\n"
-	    "  -s, --severity       print the severity of errors in brackets\n"
-	    "  -r, --recursive      print errors also for imported modules\n"
-	    "  -l, --level=level    set maximum level of errors and warnings\n"
-	    "  -i, --ignore=prefix  ignore errors matching prefix pattern\n");
+	    "  -V, --version         show version and license information\n"
+	    "  -h, --help            show usage information\n"
+	    "  -c, --config=file     load a specific configuration file\n"
+	    "  -p, --preload=module  preload <module>\n"
+	    "  -e, --error-list      print list of known error messages\n"
+	    "  -m, --error-names     print the name of errors in braces\n"
+	    "  -s, --severity        print the severity of errors in brackets\n"
+	    "  -r, --recursive       print errors also for imported modules\n"
+	    "  -l, --level=level     set maximum level of errors and warnings\n"
+	    "  -i, --ignore=prefix   ignore errors matching prefix pattern\n"
+	    "  -I, --noignore=prefix do not ignore errors matching prefix pattern\n");
 }
 
 
@@ -201,7 +205,8 @@ static void config(char *filename) { smiReadConfig(filename, "smilint"); }
 static void preload(char *module) { smiLoadModule(module); }
 static void recursive() { flags |= SMI_FLAG_RECURSIVE; smiSetFlags(flags); }
 static void level(int lev) { smiSetErrorLevel(lev); }
-static void ignore(char *ign) { smiSetSeverity(ign, 9999); }
+static void ignore(char *ign) { smiSetSeverity(ign, 128); }
+static void noignore(char *ign) { smiSetSeverity(ign, -1); }
 
 
 
@@ -267,6 +272,7 @@ int main(int argc, char *argv[])
 	{ 'r', "recursive",      OPT_FLAG,   recursive,     OPT_CALLFUNC },
 	{ 'l', "level",          OPT_INT,    level,         OPT_CALLFUNC },
 	{ 'i', "ignore",         OPT_STRING, ignore,        OPT_CALLFUNC },
+	{ 'I', "noignore",       OPT_STRING, noignore,      OPT_CALLFUNC },
 	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
     };
     

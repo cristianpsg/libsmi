@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.66 2002/06/08 12:58:26 schoenw Exp $
+ * @(#) $Id: smidump.c,v 1.67 2003/09/17 12:45:28 schoenw Exp $
  */
 
 #include <config.h>
@@ -35,13 +35,15 @@ static void usage(void);
 static void version(void);
 static void config(char *filename);
 static void level(int lev);
-static void silent(void);
+static void quiet(void);
 static void preload(char *module);
 static void unified(void);
 static void format(char *form);
 
 
 static int flags;
+static int mFlag = 0;	/* show the name for error messages */
+static int sFlag = 0;	/* show the severity for error messages */
 static SmidumpDriver *driver;
 static SmidumpDriver *firstDriver;
 static SmidumpDriver *lastDriver;
@@ -56,9 +58,11 @@ static optStruct genericOpt[] = {
     { 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
     { 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
     { 'l', "level",          OPT_INT,    level,         OPT_CALLFUNC },
-    { 's', "silent",         OPT_FLAG,   silent,        OPT_CALLFUNC },
     { 'p', "preload",        OPT_STRING, preload,       OPT_CALLFUNC },
     { 'l', "level",          OPT_INT,    level,         OPT_CALLFUNC },
+    { 'q', "quiet",          OPT_FLAG,   quiet,         OPT_CALLFUNC },
+    { 'm', "error-names",    OPT_FLAG,   &mFlag,        0 },
+    { 's', "severity",       OPT_FLAG,   &sFlag,        0 },
     { 'u', "unified",        OPT_FLAG,   unified,       OPT_CALLFUNC },
     { 'f', "format",         OPT_STRING, format,        OPT_CALLFUNC },
     { 'o', "output",         OPT_STRING, &output,       0            },
@@ -161,10 +165,12 @@ static void usage()
 	    "Usage: smidump [options] [module or path ...]\n"
 	    "  -V, --version        show version and license information\n"
 	    "  -h, --help           show usage information\n"
-	    "  -s, --silent         do not generate any comments\n"
+	    "  -q, --quiet          do not generate any comments\n"
 	    "  -c, --config=file    load a specific configuration file\n"
 	    "  -p, --preload=module preload <module>\n"
 	    "  -l, --level=level    set maximum level of errors and warnings\n"
+	    "  -m, --error-names    print the name of errors in braces\n"
+	    "  -s, --severity       print the severity of errors in brackets\n"
 	    "  -f, --format=format  use <format> when dumping (default %s)\n"
 	    "  -o, --output=name    use <name> when creating names for output files\n"
 	    "  -u, --unified        print a single unified output of all modules\n\n",
@@ -212,7 +218,7 @@ static void help() { usage(); exit(0); }
 static void version() { printf("smidump " SMI_VERSION_STRING "\n"); exit(0); }
 static void config(char *filename) { smiReadConfig(filename, "smidump"); }
 static void level(int lev) { smiSetErrorLevel(lev); }
-static void silent() { flags |= SMIDUMP_FLAG_SILENT; }
+static void quiet() { flags |= SMIDUMP_FLAG_SILENT; }
 static void preload(char *module) { smiLoadModule(module); }
 static void unified() { flags |= SMIDUMP_FLAG_UNITE; }
 
@@ -227,6 +233,38 @@ static void format(char *form)
 	fprintf(stderr, "smidump: invalid dump format `%s'"
 		" - supported formats are:\n", form);
 	formats();
+	exit(1);
+    }
+}
+
+
+
+static void
+errorHandler(char *path, int line, int severity, char *msg, char *tag)
+{
+    int i;
+    
+    if (path) {
+	fprintf(stderr, "%s:%d: ", path, line);
+    }
+    if (sFlag) {
+	fprintf(stderr, "[%d] ", severity);
+    }
+    if (mFlag) {
+	fprintf(stderr, "{%s} ", tag);
+    }
+    switch (severity) {
+    case 4:
+    case 5:
+	fprintf(stderr, "warning: ");
+	break;
+    case 6:	
+	fprintf(stderr, "info: ");
+	break;
+    }
+    fprintf(stderr, "%s\n", msg);
+
+    if (severity <= 0) {
 	exit(1);
     }
 }
@@ -261,8 +299,8 @@ int main(int argc, char *argv[])
     initNetsnmp();
     initPerl();
     initPython();
-    initSming();                defaultDriver = lastDriver;
-    initSmi();
+    initSming();
+    initSmi();                defaultDriver = lastDriver;
 #if 0
     initSmiv3();
 #endif
@@ -296,6 +334,10 @@ int main(int argc, char *argv[])
 	exit(1);
     }
     
+    if (sFlag || mFlag) {
+	smiSetErrorHandler(errorHandler);
+    }
+
     smiflags = smiGetFlags();
     smiflags |= SMI_FLAG_ERRORS;
     smiflags |= driver->smiflags;

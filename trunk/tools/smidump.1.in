@@ -1,13 +1,13 @@
 .\"
-.\" $Id: smidump.1.in,v 1.28 2003/02/21 10:35:56 schoenw Exp $
+.\" $Id: smidump.1.in,v 1.29 2003/11/18 12:52:40 schoenw Exp $
 .\"
-.TH smidump 1  "June 21, 2002" "IBR" "SMI Tools"
+.TH smidump 1  "August 10, 2004" "IBR" "SMI Tools"
 .SH NAME
 smidump \- dump SMI or SPPI modules in various formats
 .SH SYNOPSIS
 .B smidump
 [
-.B "-Vhsu"
+.B "-Vhqusm"
 ] [
 .BI "-c " file
 ] [
@@ -52,6 +52,12 @@ Report errors and warnings up to the given severity \fIlevel\fP. See
 the smilint(1) manual page for a description of the error levels. The
 default error level is 3.
 .TP
+\fB-s, --severity\fP
+Show the error severity in brackets before error messages.
+.TP
+\fB-m, --error-names\fP
+Show the error names in braces before error messages.
+.TP
 \fB-o \fIname\fB, --output=\fIname\fB
 Write the output in one or multiple files instead of stdout. The file
 name(s) are derived from the \fIname\fP argument.  Not all format
@@ -61,7 +67,7 @@ support this option.
 Preload the module \fImodule\fP before reading the main module(s). This may
 be helpful if an incomplete main module misses to import some definitions.
 .TP
-\fB-s, --silent\fP
+\fB-q, --quiet\fP
 Suppress comments from dumped modules. What kind of information
 gets suppressed depends on the output format.
 .TP
@@ -159,10 +165,14 @@ project is documented at
 .BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
 .PP
 .BR smilint "(1)"
-.SH "AUTHOR"
-(C) 1999-2002 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+.SH "AUTHORS"
+(C) 1999-2004 F. Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br
 (C) 1999-2002 J. Schoenwaelder, TU Braunschweig, Germany <schoenw@ibr.cs.tu-bs.de>
+.br
+(C) 2002-2003 J. Schoenwaelder, University of Osnabrueck, Germany
+.br
+(C) 2003-2004 J. Schoenwaelder, International University Bremen, Germany
 .br
 (C) 2001-2002 T. Klie, TU Braunschweig, Germany <tklie@ibr.cs.tu-bs.de>
 .br
