@@ -20,8 +20,8 @@
   +--Enumeration     
      |
      +--ifRcvAddressType       {other(1), volatile(2), nonVolatile(3)}
-     +--ifTestResult           {none(1), success(2), inProgress(3), notSupported(4), unAbleToRun(5), aborted(6), failed(7)}
-     +--ifTestStatus           {notInUse(1), inUse(2)}
+     x--ifTestResult           {none(1), success(2), inProgress(3), notSupported(4), unAbleToRun(5), aborted(6), failed(7)}
+     x--ifTestStatus           {notInUse(1), inUse(2)}
      +--ifLinkUpDownTrapEnable {enabled(1), disabled(2)}
      +--ifOperStatus           {up(1), down(2), testing(3), unknown(4), dormant(5), notPresent(6), lowerLayerDown(7)}
      +--ifAdminStatus          {up(1), down(2), testing(3)}

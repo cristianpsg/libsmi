@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.9 1999/10/05 06:31:00 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.10 1999/10/05 17:10:25 strauss Exp $
 #
 
 
@@ -72,12 +72,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
 BASH = @BASH@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
-DLLTOOL = @DLLTOOL@
 EXEEXT = @EXEEXT@
 FLEX = @FLEX@
 LD = @LD@
@@ -86,7 +84,6 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
@@ -96,7 +93,7 @@ smipath = @smipath@
 
 TESTMIBS = SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
-TESTS = smilint.test 			  smidump-3.test 			  parser.test 			  smidump-smiv1.test 			  smidump-smiv2.test 			  smidump-smiv2-smiv2.test 			  smidump-sming.test 			  smidump-mosy.test 			  smidump-tree.test 			  smidump-types.test 			  smidump-imports.test 			  smidump-corba-idl.test 			  smidump-corba-oid.test
+TESTS = smilint-smiv2.test 			  smidump-orig-smiv2.test 			  smidump-smiv1.test 			  smidump-smiv2.test 			  smidump-smiv2-smiv2.test 			  smidump-sming.test 			  smidump-mosy.test 			  smidump-tree.test 			  smidump-types.test 			  smidump-imports.test 			  smidump-corba-idl.test 			  smidump-corba-oid.test 			  parser.test
 
 
 TESTS_ENVIRONMENT = SMIPATH="@smipath@:" TESTMIBS="$(TESTMIBS)"
@@ -111,7 +108,7 @@ DIST_COMMON =  Makefile.am Makefile.in parser.test.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
@@ -310,7 +307,7 @@ mostlyclean-am:  mostlyclean-tags mostlyclean-generic
 
 mostlyclean: mostlyclean-recursive
 
-clean-am:  clean-tags clean-generic mostlyclean-am
+clean-am:  clean-tags clean-generic mostlyclean-am clean-local
 
 clean: clean-recursive
 
@@ -339,6 +336,9 @@ install uninstall-am uninstall all-redirect all-am all installdirs-am \
 installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
+
+clean-local:
+	rm -rf *.out
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
