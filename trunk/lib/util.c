@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.15 2000/02/07 23:23:29 strauss Exp $
+ * @(#) $Id: util.c,v 1.16 2000/02/09 15:33:16 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -90,18 +90,22 @@ int util_ispath(const char *s)
 time_t timegm(struct tm *tm)
 {
     char *tz;
+    static *s = NULL;
     time_t t;
     
     /* ensure to call mktime() for UTC */
     tz = getenv("TZ");
-    if (tz) tz = strdup(tz);
-    setenv("TZ", "NULL", 1);
+    if (tz) {
+	if (s) util_free(s);
+	s = util_malloc(strlen(tz)+4);
+	sprintf(s, "TZ=%s", tz);
+    }
+    putenv("TZ=NULL");
     t = mktime(&tm);
     if (tz) {
-	setenv("TZ", tz, 1);
-	free(tz);
+	putenv(s);
     } else {
-	unsetenv("TZ");
+	putenv("TZ");
     }
 
     return t;

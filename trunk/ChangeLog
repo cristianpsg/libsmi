@@ -1,5 +1,18 @@
 2000-02-09  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* ATTENTION: most of the (internal and API) data structures are
+	changed for significantly improved performance. This means that
+	applications must be adapted to recompile, but it's worth!
+	
+	* tools/smilint.c: added `-c configfile' option to the three
+	tools. It allows to explicitly specifiy a configuration file.
+	If at least one configfile is specified no default files are
+	read.
+
+	* mibs/TUBS-SMI: some changes to the TUBS-* MIBS from Juergen.
+	
+	* configure.in: fixed misused $prefix
+	
 	* tools/dump-corba.c: fixed module names of augmented entries.
 
 	* tools/dump-tree.c: nodes that are not defined in the local
@@ -29,7 +42,7 @@
 	* lib/smi.h: removed lastupdated from SmiModule. This information has
 	to be retrieved from the associated SmiRevisions, if present.
 
-	* lib/data.c: first steps towards a reorganisation of internal
+	* ATTENTION: first steps towards a reorganisation of internal
         data structures. This also leads to major changes in the API.
 
 2000-02-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>

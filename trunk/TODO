@@ -81,8 +81,6 @@ o util.c:timegm(): use POSIX putenv instead of BSD setenv/unsetenv
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
 
-o add -c cfg options to all tools (reading ONLY cfg)
-
 o think about `SmiListItem's
 
 o support parsing (but ignore) SMIv2 AGENT-CAPABILITIES.
