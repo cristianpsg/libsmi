@@ -1,3 +1,13 @@
+2000-18-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/FRNETSERV-MIB: updated (RFC 2954).
+
+	* mibs/ietf/FR-ATM-PVC-SERVICE-IWF-MIB: added (RFC 2955).
+
+2000-17-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-ucdsnmp.c: Juergen fixed BITS handling.
+
 2000-12-07  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/RTP-MIB: added (RFC 2959).
