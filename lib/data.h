@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.77 2002/04/22 15:09:15 strauss Exp $
+ * @(#) $Id: data.h,v 1.78 2002/05/16 23:21:55 bunkus Exp $
  */
 
 #ifndef _DATA_H
@@ -176,7 +176,7 @@ typedef struct Index {
 } Index;
 
 
-typedef struct SuubjectCategories {
+typedef struct SubjectCategories {
     struct List *categories;
     int         allCategories;
 } SubjectCategories;
