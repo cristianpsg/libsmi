@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h-add,v 1.6 1998/11/29 11:47:07 strauss Exp $
+ * @(#) $Id: smi.h-add,v 1.7 1998/12/01 16:59:37 strauss Exp $
  */
 
 #ifndef _SMI_H_ADD
@@ -61,11 +61,11 @@
 
 #define smiStringSyntax(syntax) ( \
 	(syntax == SMI_SYNTAX_UNKNOWN)           ? "<UNKNOWN>" : \
-	(syntax == SMI_SYNTAX_INTEGER)           ? "INTEGER" : \
-	(syntax == SMI_SYNTAX_OCTET_STRING)      ? "OCTET STRING" : \
-	(syntax == SMI_SYNTAX_OBJECT_IDENTIFIER) ? "OBJECT IDENTIFIER" : \
+	(syntax == SMI_SYNTAX_INTEGER32)         ? "INTEGER" : \
+	(syntax == SMI_SYNTAX_OCTETSTRING)       ? "OCTET STRING" : \
+	(syntax == SMI_SYNTAX_OBJECTIDENTIFIER)  ? "OBJECT IDENTIFIER" : \
 	(syntax == SMI_SYNTAX_SEQUENCE)          ? "SEQUENCE" : \
-	(syntax == SMI_SYNTAX_SEQUENCE_OF)       ? "SEQUENCE OF" : \
+	(syntax == SMI_SYNTAX_SEQUENCEOF)        ? "SEQUENCE OF" : \
 	(syntax == SMI_SYNTAX_IPADDRESS)         ? "IpAddress" : \
 	(syntax == SMI_SYNTAX_COUNTER32)         ? "Counter32" : \
 	(syntax == SMI_SYNTAX_GAUGE32)           ? "Gauge32" : \
@@ -103,7 +103,7 @@ extern int smiLoadMibModule(smi_descriptor modulename);
  */
 
 extern smi_module *smiGetModule(smi_descriptor spec,
-			       int wantdescr);
+			        int wantdescr);
 
 extern smi_node *smiGetNode(smi_fullname spec,
 			    smi_descriptor mod,

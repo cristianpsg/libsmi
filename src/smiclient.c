@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiclient.c,v 1.7 1998/11/26 00:50:09 strauss Exp $
+ * @(#) $Id: smiclient.c,v 1.8 1998/11/26 12:35:56 strauss Exp $
  */
 
 #include <stdio.h>
@@ -39,7 +39,7 @@ main(argc, argv)
     CLIENT *cl;
     
     if (argc != 4) {
-	fprintf(stderr, "smiclient $Revision$\n");
+	fprintf(stderr, "smiclient $Revision: 1.8 $\n");
 	fprintf(stderr, "Usage: smiclient <server> <command> <name>\n");
 	fprintf(stderr, "known commands: module, node, type, macro, names, children, members, parent\n");
 	exit(1);
@@ -98,7 +98,7 @@ main(argc, argv)
 	    printf("      Module: %s\n", type->module);
 	    printf("      Syntax: %s\n", smiStringSyntax(type->syntax));
 	    printf(" Declaration: %s\n", smiStringDecl(type->decl));
-	    printf(" DisplayHint: %s\n", type->display);
+	    printf(" DisplayHint: %s\n", type->format);
 	    printf("      Status: %s\n", smiStringStatus(type->status));
 	    printf(" Description: %s\n", type->description);
 	} else {

@@ -9,7 +9,7 @@
 % * See the file "license.terms" for information on usage and redistribution
 % * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 % *
-% * @(#) $Id: smi.x,v 1.14 1998/11/27 10:55:28 strauss Exp $
+% * @(#) $Id: smi.x,v 1.15 1999/02/18 17:13:02 strauss Exp $
 % */
 %
 
@@ -27,11 +27,11 @@ typedef unsigned int smi_subid;
 
 enum smi_syntax {
     SMI_SYNTAX_UNKNOWN		= 0,
-    SMI_SYNTAX_INTEGER          = 1, /* equal to INTEGER32 */
-    SMI_SYNTAX_OCTET_STRING	= 2,
-    SMI_SYNTAX_OBJECT_IDENTIFIER = 3,
+    SMI_SYNTAX_INTEGER32        = 1, /* equal to INTEGER */
+    SMI_SYNTAX_OCTETSTRING	= 2,
+    SMI_SYNTAX_OBJECTIDENTIFIER = 3,
     SMI_SYNTAX_SEQUENCE	     	= 4,
-    SMI_SYNTAX_SEQUENCE_OF	= 5,
+    SMI_SYNTAX_SEQUENCEOF	= 5,
     SMI_SYNTAX_IPADDRESS	= 6,
     SMI_SYNTAX_COUNTER32	= 7,
     SMI_SYNTAX_GAUGE32	     	= 8,
@@ -39,8 +39,16 @@ enum smi_syntax {
     SMI_SYNTAX_TIMETICKS	= 10,
     SMI_SYNTAX_OPAQUE	     	= 11,
     SMI_SYNTAX_COUNTER64	= 12,
-    SMI_SYNTAX_CHOICE	     	= 13 /* only for internal use */
-    /* TODO: BITS ? */
+    SMI_SYNTAX_CHOICE	     	= 13, /* only for internal use */
+    SMI_SYNTAX_BITS             = 14, /* XXX */ 
+
+    SMI_SYNTAX_INTEGER64	= 33,
+    SMI_SYNTAX_UNSIGNED64       = 34,
+    SMI_SYNTAX_GAUGE64          = 35,
+    SMI_SYNTAX_FLOAT32          = 36,
+    SMI_SYNTAX_FLOAT64          = 37,
+    SMI_SYNTAX_FLOAT128         = 38,
+    SMI_SYNTAX_ENUM             = 39
 };
 
 enum smi_status {
@@ -75,7 +83,18 @@ enum smi_decl {
     SMI_DECL_NOTIFICATIONGROUP  = 9,
     SMI_DECL_MODULECOMPLIANCE   = 10,
     SMI_DECL_AGENTCAPABILITIES  = 11,
-    SMI_DECL_TEXTUALCONVENTION	= 12
+    SMI_DECL_TEXTUALCONVENTION	= 12,
+
+    SMI_DECL_MODULE		= 33,
+    SMI_DECL_TYPEDEF		= 34,
+    SMI_DECL_NODE		= 35,
+    SMI_DECL_SCALAR		= 36,
+    SMI_DECL_TABLE		= 37,
+    SMI_DECL_ROW		= 38,
+    SMI_DECL_COLUMN		= 39,
+    SMI_DECL_NOTIFICATION	= 40,
+    SMI_DECL_GROUP		= 41,
+    SMI_DECL_COMPLIANCE		= 42
 };
 
 struct smi_getspec {
@@ -90,6 +109,7 @@ struct smi_module {
     smi_string		organization;
     smi_string		contactinfo;
     smi_string		description;
+    smi_string		reference;
     /* TODO: revisions */
 };
 
@@ -106,7 +126,9 @@ struct smi_node {
     smi_syntax		syntax;
     smi_access		access;
     smi_status		status;
+    smi_string		format;
     smi_string		description;
+    smi_string		reference;
 };
 
 struct smi_type {
@@ -114,9 +136,10 @@ struct smi_type {
     smi_descriptor	module;
     smi_syntax		syntax;
     smi_decl		decl;
-    smi_string		display;
+    smi_string		format;
     smi_status		status;
     smi_string		description;
+    smi_string		reference;
     /* TODO: parent ? */
     /* TODO: restrictions */
 };

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.35 1999/02/17 16:39:07 strauss Exp $
+ * @(#) $Id: data.c,v 1.36 1999/02/18 17:12:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -108,13 +108,10 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     modulePtr->organization.length		= 0;
     modulePtr->contactInfo.fileoffset		= -1;
     modulePtr->contactInfo.length		= 0;
-    modulePtr->description.fileoffset		= -1;
-    modulePtr->description.length		= 0;
 #ifdef TEXTS_IN_MEMORY
     modulePtr->lastUpdated.ptr			= NULL;
     modulePtr->organization.ptr			= NULL;
     modulePtr->contactInfo.ptr			= NULL;
-    modulePtr->description.ptr			= NULL;
 #endif
 
     modulePtr->nextPtr				= NULL;
@@ -242,44 +239,6 @@ setModuleContactInfo(modulePtr, contactInfoPtr)
 	modulePtr->contactInfo.length     = contactInfoPtr->length;
 #ifdef TEXTS_IN_MEMORY
 	modulePtr->contactInfo.ptr        = contactInfoPtr->ptr;
-#endif
-    }
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * setModuleDescription --
- *
- *      Set the description of a given Module.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-setModuleDescription(modulePtr, descriptionPtr)
-    Module *modulePtr;
-    String *descriptionPtr;
-{
-#ifdef DEBUG
-    printDebug(5, "setModuleDescription(0x%x(%s), 0x%x(%s))\n",
-	       modulePtr, modulePtr->name, descriptionPtr,
-	       descriptionPtr->ptr ? descriptionPtr->ptr : "[FILE]");
-#endif
-    
-    if (modulePtr->description.fileoffset < 0) {
-	modulePtr->description.fileoffset = descriptionPtr->fileoffset;
-	modulePtr->description.length     = descriptionPtr->length;
-#ifdef TEXTS_IN_MEMORY
-	modulePtr->description.ptr        = descriptionPtr->ptr;
 #endif
     }
 }
@@ -595,7 +554,7 @@ addDescriptor(name, module, kind, ptr, flags, parser)
 	    t->status      = (*(Type **)ptr)->status;
 	    t->fileoffset  = (*(Type **)ptr)->fileoffset;
 	    t->flags       = (*(Type **)ptr)->flags;
-	    t->displayHint = (*(Type **)ptr)->displayHint;
+	    t->format      = (*(Type **)ptr)->format;
 	    t->description = (*(Type **)ptr)->description;
 #ifdef TEXTS_IN_MEMORY
 	    free((*(Type **)ptr)->description.ptr);
@@ -1037,6 +996,11 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
 #ifdef TEXTS_IN_MEMORY
     objectPtr->description.ptr			= NULL;
 #endif
+    objectPtr->reference.fileoffset		= -1;
+    objectPtr->reference.length		= 0;
+#ifdef TEXTS_IN_MEMORY
+    objectPtr->reference.ptr			= NULL;
+#endif
     
     objectPtr->nextPtr				= NULL;
     objectPtr->prevPtr				= modulePtr->lastObjectPtr;
@@ -1138,6 +1102,11 @@ duplicateObject(templatePtr, flags, parserPtr)
     objectPtr->description.length		      = 0;
 #ifdef TEXTS_IN_MEMORY
     objectPtr->description.ptr			      = NULL;
+#endif
+    objectPtr->reference.fileoffset		      = -1;
+    objectPtr->reference.length		      = 0;
+#ifdef TEXTS_IN_MEMORY
+    objectPtr->reference.ptr			      = NULL;
 #endif
 
     objectPtr->nextPtr				= NULL;
@@ -1524,6 +1493,46 @@ setObjectDescription(objectPtr, descriptionPtr)
 	objectPtr->description.length = descriptionPtr->length;
 #ifdef TEXTS_IN_MEMORY
 	objectPtr->description.ptr = descriptionPtr->ptr;
+#endif
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setObjectReference --
+ *
+ *      Set the reference of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setObjectReference(objectPtr, referencePtr)
+    Object    *objectPtr;
+    String    *referencePtr;
+{
+#ifdef DEBUG
+    printDebug(5, "setObjectReference(0x%x(%s), \"%s\"(%d,%d))\n",
+	       objectPtr, objectPtr->name,
+	       referencePtr->ptr ? referencePtr->ptr : "[FILE]",
+	       referencePtr->fileoffset, referencePtr->length);
+#endif
+
+    /* TODO: why this check? */
+    if (objectPtr->reference.fileoffset < 0) {
+	objectPtr->reference.fileoffset = referencePtr->fileoffset;
+	objectPtr->reference.length = referencePtr->length;
+#ifdef TEXTS_IN_MEMORY
+	objectPtr->reference.ptr = referencePtr->ptr;
 #endif
     }
 }
@@ -2158,11 +2167,18 @@ addType(typename, syntax, flags, parserPtr)
     typePtr->parentType			= NULL;
     typePtr->description.fileoffset	= -1;
     typePtr->description.length		= 0;
-    typePtr->displayHint.fileoffset	= -1;
-    typePtr->displayHint.length		= 0;
 #ifdef TEXTS_IN_MEMORY
     typePtr->description.ptr		= NULL;
-    typePtr->displayHint.ptr		= NULL;
+#endif
+    typePtr->reference.fileoffset	= -1;
+    typePtr->reference.length		= 0;
+#ifdef TEXTS_IN_MEMORY
+    typePtr->reference.ptr		= NULL;
+#endif
+    typePtr->format.fileoffset		= -1;
+    typePtr->format.length		= 0;
+#ifdef TEXTS_IN_MEMORY
+    typePtr->format.ptr			= NULL;
 #endif
 
     typePtr->nextPtr			= NULL;
@@ -2231,11 +2247,18 @@ duplicateType(templatePtr, flags, parserPtr)
     typePtr->parentType			= util_strdup(templatePtr->name);
     typePtr->description.fileoffset	= -1;
     typePtr->description.length		= 0;
-    typePtr->displayHint.fileoffset	= -1;
-    typePtr->displayHint.length		= 0;
 #ifdef TEXTS_IN_MEMORY
     typePtr->description.ptr		= NULL;
-    typePtr->displayHint.ptr		= NULL;
+#endif
+    typePtr->reference.fileoffset	= -1;
+    typePtr->reference.length		= 0;
+#ifdef TEXTS_IN_MEMORY
+    typePtr->reference.ptr		= NULL;
+#endif
+    typePtr->format.fileoffset		= -1;
+    typePtr->format.length		= 0;
+#ifdef TEXTS_IN_MEMORY
+    typePtr->format.ptr			= NULL;
 #endif
 
     typePtr->nextPtr			= NULL;
@@ -2428,9 +2451,9 @@ setTypeSequencePtr(typePtr, sequencePtr)
 /*
  *----------------------------------------------------------------------
  *
- * setTypeDisplayHint --
+ * setTypeFormat --
  *
- *      Set the displayHint of a given Type.
+ *      Set the format (displayHint) of a given Type.
  *
  * Results:
  *	None.
@@ -2442,22 +2465,22 @@ setTypeSequencePtr(typePtr, sequencePtr)
  */
 
 void
-setTypeDisplayHint(typePtr, displayHintPtr)
+setTypeFormat(typePtr, formatPtr)
     Type           *typePtr;
-    String	   *displayHintPtr;
+    String	   *formatPtr;
 {
 #ifdef DEBUG
-    printDebug(5, "setTypeDisplayHint(0x%x(%s), \"%s\")\n",
+    printDebug(5, "setTypeFormat(0x%x(%s), \"%s\")\n",
 	       typePtr, typePtr->name,
-	       displayHintPtr->ptr ? displayHintPtr->ptr : "[FILE]",
-	       displayHintPtr->fileoffset, displayHintPtr->length);
+	       formatPtr->ptr ? formatPtr->ptr : "[FILE]",
+	       formatPtr->fileoffset, formatPtr->length);
 #endif
     
-    if (typePtr->displayHint.fileoffset < 0) {
-	typePtr->displayHint.fileoffset = displayHintPtr->fileoffset;
-	typePtr->displayHint.length = displayHintPtr->length;
+    if (typePtr->format.fileoffset < 0) {
+	typePtr->format.fileoffset = formatPtr->fileoffset;
+	typePtr->format.length = formatPtr->length;
 #ifdef TEXTS_IN_MEMORY
-	typePtr->displayHint.ptr = displayHintPtr->ptr;
+	typePtr->format.ptr = formatPtr->ptr;
 #endif
     }
 }
@@ -2951,7 +2974,8 @@ initData()
     
     /*
      * Initialize the top level well-known nodes, ccitt, iso, joint-iso-ccitt
-     * belonging to a dummy module "".
+     * belonging to a dummy module "". This is needed for SMIv1/v2. SMIng
+     * defines it in a special SMIng module.
      */
     modulePtr = addModule("", "", -1, 0, NULL);
     objectPtr = addObject("ccitt", rootNodePtr, 0, 0, NULL);
@@ -2959,14 +2983,34 @@ initData()
     objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, NULL);
 
     /*
-     * Initialize the well-known ASN.1 Types.
+     * Initialize the well-known ASN.1 Types for SMIv1/v2 and
+     * the well-known SMIng Types.
      */
     typeIntegerPtr          = addType("INTEGER",
-				      SMI_SYNTAX_INTEGER, 0, NULL);
+				      SMI_SYNTAX_INTEGER32, 0, NULL);
     typeOctetStringPtr      = addType("OCTET STRING",
-				      SMI_SYNTAX_OCTET_STRING, 0, NULL);
+				      SMI_SYNTAX_OCTETSTRING, 0, NULL);
     typeObjectIdentifierPtr = addType("OBJECT IDENTIFIER",
-				      SMI_SYNTAX_OBJECT_IDENTIFIER, 0, NULL);
+				      SMI_SYNTAX_OBJECTIDENTIFIER, 0, NULL);
+
+    addType("OctetString", SMI_SYNTAX_OCTETSTRING, 0, NULL);
+    addType("ObjectIdentifier", SMI_SYNTAX_OBJECTIDENTIFIER, 0, NULL);
+    addType("TimeTicks", SMI_SYNTAX_TIMETICKS, 0, NULL);
+    addType("Opaque", SMI_SYNTAX_OPAQUE, 0, NULL);
+    addType("IpAddress", SMI_SYNTAX_IPADDRESS, 0, NULL);
+    addType("Integer32", SMI_SYNTAX_INTEGER32, 0, NULL);
+    addType("Unsigned32", SMI_SYNTAX_UNSIGNED32, 0, NULL);
+    addType("Counter32", SMI_SYNTAX_COUNTER32, 0, NULL);
+    addType("Gauge32", SMI_SYNTAX_GAUGE32, 0, NULL);
+    addType("Integer64", SMI_SYNTAX_INTEGER64, 0, NULL);
+    addType("Unsigned64", SMI_SYNTAX_UNSIGNED64, 0, NULL);
+    addType("Counter64", SMI_SYNTAX_COUNTER64, 0, NULL);
+    addType("Gauge64", SMI_SYNTAX_GAUGE64, 0, NULL);
+    addType("Float32", SMI_SYNTAX_FLOAT32, 0, NULL);
+    addType("Float64", SMI_SYNTAX_FLOAT64, 0, NULL);
+    addType("Float128", SMI_SYNTAX_FLOAT128, 0, NULL);
+    addType("Enum", SMI_SYNTAX_ENUM, 0, NULL);
+    addType("Bits", SMI_SYNTAX_BITS, 0, NULL);
 
     return (0);
 }
