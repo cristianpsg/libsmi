@@ -3472,7 +3472,7 @@ case 202:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].refinementPtr;
+			    p->ptr = yyvsp[0].refinementPtr;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -3719,7 +3719,7 @@ case 225:
 #line 2327 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[-3].rangePtr;
+			    yyval.listPtr->ptr = yyvsp[-3].rangePtr;
 			    yyval.listPtr->nextPtr = yyvsp[-2].listPtr;
 			;
     break;}
@@ -3739,7 +3739,7 @@ case 228:
 #line 2345 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[0].rangePtr;
+			    yyval.listPtr->ptr = yyvsp[0].rangePtr;
 			    yyval.listPtr->nextPtr = NULL;
 			;
     break;}
@@ -3749,7 +3749,7 @@ case 229:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].rangePtr;
+			    p->ptr = yyvsp[0].rangePtr;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -3808,7 +3808,7 @@ case 237:
 #line 2409 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[-3].rangePtr;
+			    yyval.listPtr->ptr = yyvsp[-3].rangePtr;
 			    yyval.listPtr->nextPtr = yyvsp[-2].listPtr;
 			;
     break;}
@@ -3828,7 +3828,7 @@ case 240:
 #line 2427 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[0].rangePtr;
+			    yyval.listPtr->ptr = yyvsp[0].rangePtr;
 			    yyval.listPtr->nextPtr = NULL;
 			;
     break;}
@@ -3838,7 +3838,7 @@ case 241:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].rangePtr;
+			    p->ptr = yyvsp[0].rangePtr;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -3902,7 +3902,7 @@ case 248:
 #line 2498 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[-2].namedNumberPtr;
+			    yyval.listPtr->ptr = yyvsp[-2].namedNumberPtr;
 			    yyval.listPtr->nextPtr = yyvsp[-1].listPtr;
 			;
     break;}
@@ -3922,7 +3922,7 @@ case 251:
 #line 2516 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[0].namedNumberPtr;
+			    yyval.listPtr->ptr = yyvsp[0].namedNumberPtr;
 			    yyval.listPtr->nextPtr = NULL;
 			;
     break;}
@@ -3932,7 +3932,7 @@ case 252:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].namedNumberPtr;
+			    p->ptr = yyvsp[0].namedNumberPtr;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -3957,7 +3957,7 @@ case 255:
 #line 2551 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[-2].text;
+			    yyval.listPtr->ptr = yyvsp[-2].text;
 			    yyval.listPtr->nextPtr = yyvsp[-1].listPtr;
 			;
     break;}
@@ -3977,7 +3977,7 @@ case 258:
 #line 2569 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
+			    yyval.listPtr->ptr = yyvsp[0].text;
 			    yyval.listPtr->nextPtr = NULL;
 			;
     break;}
@@ -3987,7 +3987,7 @@ case 259:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].text;
+			    p->ptr = yyvsp[0].text;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -4004,7 +4004,7 @@ case 261:
 #line 2594 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[-2].text;
+			    yyval.listPtr->ptr = yyvsp[-2].text;
 			    yyval.listPtr->nextPtr = yyvsp[-1].listPtr;
 			;
     break;}
@@ -4024,7 +4024,7 @@ case 264:
 #line 2612 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
+			    yyval.listPtr->ptr = yyvsp[0].text;
 			    yyval.listPtr->nextPtr = NULL;
 			;
     break;}
@@ -4034,7 +4034,7 @@ case 265:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].text;
+			    p->ptr = yyvsp[0].text;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -4051,7 +4051,7 @@ case 267:
 #line 2637 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[-2].text;
+			    yyval.listPtr->ptr = yyvsp[-2].text;
 			    yyval.listPtr->nextPtr = yyvsp[-1].listPtr;
 			;
     break;}
@@ -4071,7 +4071,7 @@ case 270:
 #line 2655 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
+			    yyval.listPtr->ptr = yyvsp[0].text;
 			    yyval.listPtr->nextPtr = NULL;
 			;
     break;}
@@ -4081,7 +4081,7 @@ case 271:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].text;
+			    p->ptr = yyvsp[0].text;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -4130,7 +4130,7 @@ case 278:
 #line 2708 "parser-sming.y"
 {
 			    yyval.listPtr = util_malloc(sizeof(List));
-			    yyval.listPtr->ptr = (void *)yyvsp[0].text;
+			    yyval.listPtr->ptr = yyvsp[0].text;
 			    yyval.listPtr->nextPtr = NULL;
 			;
     break;}
@@ -4140,7 +4140,7 @@ case 279:
 			    List *p, *pp;
 			    
 			    p = util_malloc(sizeof(List));
-			    p->ptr = (void *)yyvsp[0].text;
+			    p->ptr = yyvsp[0].text;
 			    p->nextPtr = NULL;
 			    for (pp = yyvsp[-1].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
@@ -4225,7 +4225,7 @@ case 289:
 				free(yyvsp[-1].text);
 				free(yyvsp[0].text);
 			    } else {
-				yyval.text = yyvsp[-1].text;
+				yyval.text = util_strdup(yyvsp[-1].text);
 			    }
 			;
     break;}

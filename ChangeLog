@@ -1,3 +1,9 @@
+1999-12-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* Juergen contributed a lot of patches: some error cleanups,
+	some scanner/parser cleanups, automatic SMI language recognition,
+	and some more.
+
 1999-12-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* added two IETF MIB modules.
