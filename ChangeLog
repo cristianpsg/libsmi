@@ -1,5 +1,12 @@
 2000-06-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.2.4.tar.gz: released version 0.2.4.
+
+	* lib/smi.h.in: added more library version information.
+
+	* tools/dump-jax.c (dumpEntry): added entry get methods for
+	index elements. Thanks to Sven.
+
 	* mibs/ietf/IF-MIB: updated (RFC 2863).
 
 	* mibs/ietf/IF-INVERTED-STACK-MIB: added (RFC 2864).

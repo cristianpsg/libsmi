@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.19 2000/06/14 13:15:19 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.20 2000/06/15 09:55:01 strauss Exp $
  */
 
 #include <config.h>
@@ -561,7 +561,7 @@ static void dumpEntry(SmiNode *smiNode)
 			indexNode->name);
 	    }
 	} else {
-	    fprintf(f, "        XXX // [smidump: type of %s not supported]\n",
+	    fprintf(f, "        // [smidump: type of %s not supported]\n",
 		    indexNode->name);
 	}
     }
@@ -569,6 +569,21 @@ static void dumpEntry(SmiNode *smiNode)
     fprintf(f,
 	    "    }\n"
 	    "\n");
+
+    for (element = smiGetFirstElement(smiNode);
+	 element;
+	 element = smiGetNextElement(element)) {
+	indexNode = smiGetElementNode(element);
+	
+	fprintf(f,
+		"    public %s get_%s()\n"
+		"    {\n"
+		"        return %s;\n"
+		"    }\n"
+		"\n",
+		getJavaType(smiGetNodeType(indexNode)),
+		indexNode->name, indexNode->name);
+    }
 
     for (columnNode = smiGetFirstChildNode(smiNode);
 	 columnNode;

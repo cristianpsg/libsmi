@@ -1,14 +1,14 @@
 /*
  * smi.h --
  *
- *      Interface Definition of libsmi (version @LIBTOOL_VERSIONING@).
+ *      Interface Definition of libsmi (version @VERSION_LIBTOOL@).
  *
  * Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.17 2000/05/17 10:20:22 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.18 2000/06/15 09:55:01 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -18,8 +18,14 @@
 #include <time.h>
 
 
-#define SMI_LIBRARY_VERSION "@LIBTOOL_VERSIONING@"
+#define SMI_LIBRARY_VERSION "@VERSION_LIBTOOL@"
 extern const char *smi_library_version;
+
+#define SMI_VERSION_MAJOR @LIBSMI_MAJOR@
+#define SMI_VERSION_MINOR @LIBSMI_MINOR@
+#define SMI_VERSION_PATCHLEVEL @LIBSMI_PATCHLEVEL@
+#define SMI_VERSION_STRING "@VERSION_STRING@"
+extern const char *smi_version_string;
 
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.92 2000/06/16 13:53:57 strauss Exp $
+ * @(#) $Id: smi.c,v 1.93 2000/06/19 13:44:08 strauss Exp $
  */
 
 #include <config.h>
@@ -57,6 +57,7 @@
 
 
 const char *smi_library_version = SMI_LIBRARY_VERSION;
+const char *smi_version_string = SMI_VERSION_STRING;
 static int initialized = 0;
 
 
