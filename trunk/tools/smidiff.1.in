@@ -1,17 +1,19 @@
 .\"
-.\" $Id: smidiff.1.in,v 1.1 2001/09/05 11:24:37 schoenw Exp $
+.\" $Id: smidiff.1.in,v 1.2 2001/09/11 08:57:44 schoenw Exp $
 .\"
-.TH smidiff 1  "September 5, 2001" "IBR" "SMI Tools"
+.TH smidiff 1  "September 21, 2001" "IBR" "SMI Tools"
 .SH NAME
 smidiff \- check differences between a pair of SMI MIB modules
 .SH SYNOPSIS
 .B smidiff
 [
-.B "-Vh"
+.B "-Vhsm"
 ] [
 .BI "-c " file
 ] [
 .BI "-l " level
+] [
+.BI "-i " error-pattern
 ] [
 .BI "-p " module
 ] [
@@ -31,6 +33,12 @@ Show the smilint version and exit.
 .TP
 \fB-h, --help\fP
 Show a help text and exit.
+.TP
+\fB-s, --severity\fP
+Show the error severity in brackets before error messages.
+.TP
+\fB-m, --error-names\fP
+Show the error names in braces before error messages.
 .TP
 \fB-c \fIfile\fB, --config=\fIfile\fP
 Read \fIfile\fP instead of any other (global and user)
@@ -57,6 +65,9 @@ A higher level shows more warnings. The actual severity levels are:
      recommended under some circumstances,
  6   just a notice.
 .TP
+\fB-i \fIprefix\fB, --ignore=\fIprefix\fP
+Ignore all errors that have a tag which matches \fIprefix\fP.
+.TP
 .I oldmodule
 The original MIB module.
 .TP
@@ -75,4 +86,6 @@ project is documented at
 .BR "http://www.ibr.cs.tu-bs.de/projects/libsmi/" "."
 .SH "AUTHOR"
 (C) 2001 T. Klie, TU Braunschweig, Germany <tklie@ibr.cs.tu-bs.de>
+.br
+(C) 2001 J. Schoenwaelder, TU Braunschweig, Germany <schoenw@ibr.cs.tu-bs.de>
 .br
