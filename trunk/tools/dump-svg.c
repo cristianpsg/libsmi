@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #ifdef HAVE_WIN_H
 #include "win.h"
 #endif
@@ -71,6 +72,7 @@ typedef enum GraphEnhIndex {
 typedef struct DiaNode {
     int   flags;		/* flags for the dia xml output driver */
     float x,y;			/* coordinates (left upper corner) */
+    float xDisp,yDisp;		/* displacement vector for springembedder */
     float w,h;			/* width and height of the dia node */
 } DiaNode;
 
@@ -86,6 +88,7 @@ typedef struct GraphNode {
     struct GraphNode *nextPtr;
     SmiNode          *smiNode;
     int              group;		/* group number of this graph node */
+    int              use;		/* use node in the layout-algorithm */
     DiaNode          dia;
 } GraphNode;
 
@@ -97,6 +100,7 @@ typedef struct GraphEdge {
     GraphConnection  connection;
     GraphCardinality cardinality;
     GraphEnhIndex    enhancedindex;
+    int              use;		/* use edge in the layout-algorithm */
     DiaEdge	     dia;
 } GraphEdge;
 
@@ -147,9 +151,12 @@ static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
 //TODO make these values configurable by options passed to the driver
-static const int CANVASHEIGHT		=700;
-static const int CANVASWIDTH		=1100;
-static const float STARTSCALE		=(float)0.7;
+static const int CANVASHEIGHT          =700;
+static const int CANVASWIDTH           =1100;
+static const float STARTSCALE          =(float)0.7;
+
+//used by the springembedder
+static const int ITERATIONS            =10;
 
 /*
  * global svg graph layout
@@ -2685,6 +2692,18 @@ static GraphNode *diaCalcSize(GraphNode *node)
 
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) return node;
 
+    node->use = 1;
+    /*
+    node->dia.x = (float) (rand()/RAND_MAX*CANVASWIDTH);
+    node->dia.y = (float) (rand()/RAND_MAX*CANVASHEIGHT);
+    */
+    node->dia.x = (float) rand();
+    node->dia.y = (float) rand();
+    node->dia.x /= (float) RAND_MAX;
+    node->dia.y /= (float) RAND_MAX;
+    node->dia.x *= (float) CANVASWIDTH;
+    node->dia.y *= (float) CANVASHEIGHT;
+    //fprintf(stderr, "(%.2f,%.2f)\n", node->dia.x, node->dia.y);
     node->dia.w = strlen(node->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
     node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
@@ -2787,6 +2806,18 @@ static void calcGroupSize(int group)
 
     if (!calcNode) return;
 
+    calcNode->use = 1;
+    /*
+    calcNode->dia.x = (float) (rand()/RAND_MAX*CANVASWIDTH);
+    calcNode->dia.y = (float) (rand()/RAND_MAX*CANVASHEIGHT);
+    */
+    calcNode->dia.x = (float) rand();
+    calcNode->dia.y = (float) rand();
+    calcNode->dia.x /= (float) RAND_MAX;
+    calcNode->dia.y /= (float) RAND_MAX;
+    calcNode->dia.x *= (float) CANVASWIDTH;
+    calcNode->dia.y *= (float) CANVASHEIGHT;
+    //fprintf(stderr, "(%.2f,%.2f)\n", calcNode->dia.x, calcNode->dia.y);
     calcNode->dia.w = strlen(calcNode->smiNode->name) * HEADFONTSIZETABLE
 	+ HEADSPACESIZETABLE;
     calcNode->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
@@ -2802,6 +2833,87 @@ static void calcGroupSize(int group)
 	}
     }
 }
+
+
+/* ------------------------------------------------------------------------- */
+
+
+static float fr(float d, float k)
+{
+    return (float) (-k*k/d);
+}
+
+static float fa(float d, float k)
+{
+    return (float) (d*d/k);
+}
+
+/*
+ * Implements the springembedder. Look at LNCS 2025, pp. 71-86.
+ * and: http://citeseer.ist.psu.edu/fruchterman91graph.html
+ * Input: Graph with known width and height of nodes.
+ * Output: Coordinates (x,y) for the nodes.
+ * Only the nodes and edges with use==1 are considered.
+ */
+static void layoutGraph(int nodecount)
+{
+    int i;
+    float area, k, c = 3, xDelta, yDelta, absDelta, absDisp, t;
+    GraphNode *vNode, *uNode;
+    GraphEdge *eEdge;
+
+    area = CANVASHEIGHT * CANVASWIDTH;
+    k = (float) (c*sqrt(area/nodecount));
+    t = CANVASWIDTH/10;
+
+    for (i=0; i<ITERATIONS; i++) {
+	//calculate repulsive forces
+	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
+	    if (!vNode->use)
+		continue;
+	    vNode->dia.xDisp = 0;
+	    vNode->dia.yDisp = 0;
+	    for (uNode = graph->nodes; uNode; uNode = uNode->nextPtr) {
+		if (!uNode->use || vNode==uNode)
+		    continue;
+		xDelta = vNode->dia.x -uNode->dia.x;
+		yDelta = vNode->dia.y -uNode->dia.y;
+		absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
+		vNode->dia.xDisp += (xDelta/absDelta)*fr(absDelta, k);
+		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
+	    }
+	}
+	//calculate attractive forces
+	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
+	    xDelta = eEdge->startNode->dia.x - eEdge->endNode->dia.x;
+	    yDelta = eEdge->startNode->dia.y - eEdge->endNode->dia.y;
+	    absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
+	    eEdge->startNode->dia.xDisp -= (xDelta/absDelta)*fa(absDelta, k);
+	    eEdge->startNode->dia.yDisp -= (yDelta/absDelta)*fa(absDelta, k);
+	    eEdge->endNode->dia.xDisp += (xDelta/absDelta)*fa(absDelta, k);
+	    eEdge->endNode->dia.yDisp += (yDelta/absDelta)*fa(absDelta, k);
+	}
+	//limit the maximum displacement to the temperature t
+	//and prevent from being displaced outside the frame
+	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
+	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
+				    + vNode->dia.yDisp*vNode->dia.yDisp));
+	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
+	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
+	    vNode->dia.x = min(CANVASWIDTH/2,
+			    max(CANVASWIDTH/-2, vNode->dia.x));
+	    vNode->dia.y = min(CANVASHEIGHT/2,
+			    max(CANVASHEIGHT/-2, vNode->dia.y));
+	}
+	//reduce the temperature as the layout approaches a better configuration
+	t /= 2;
+    }
+}
+
+
+/* ------------------------------------------------------------------------- */
+
+
 
 static float diaPrintNode(GraphNode *node, float x, float y, int *classNr)
 {
@@ -2845,6 +2957,23 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
 	calcGroupSize(group);
 	nodecount++;
+    }
+    
+    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+	if (tEdge->connection != GRAPH_CON_UNKNOWN
+	    && tEdge->startNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
+	    && tEdge->endNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
+	    tEdge->use = 1;
+	}
+    }
+
+    layoutGraph(nodecount);
+
+    //FIXME remove this
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+	if (!tNode->use)
+	    continue;
+	fprintf(stderr, "(%.2f,%.2f)\n", tNode->dia.x, tNode->dia.y);
     }
 
     printSVGHeaderAndTitle(modc, modv, nodecount);
