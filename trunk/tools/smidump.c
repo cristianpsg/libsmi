@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.38 2000/05/02 12:57:17 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.39 2000/05/20 12:51:11 strauss Exp $
  */
 
 #include <config.h>
@@ -61,9 +61,9 @@ static Driver driverTable[] = {
       "corba IDL interface definitions (JIDM)" },
     { "corba-oid", dumpCorbaOid, SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
       "corba OID definitions (JIDM)" },
-    { "cm-dia",	   dumpCMDia,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
+    { "cm-dia",	   dumpCMDia,	SMI_FLAG_NODESCR,	0,
       "reverse engineered conceptual model dia format" },
-    { "cm-xplain", dumpCMXplain,SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
+    { "cm-xplain", dumpCMXplain,SMI_FLAG_NODESCR,	0,
       "reverse engineered conceptual model ASCII output"},
 #if 0
     { "sql",       dumpSql,	SMI_FLAG_NODESCR,	SMIDUMP_FLAG_UNITE,
