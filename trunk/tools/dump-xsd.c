@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.2 2002/01/16 12:54:53 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.3 2002/01/18 15:23:50 tklie Exp $
  */
 
 #include <config.h>
@@ -184,7 +184,7 @@ static void fprintDocumentation(FILE *f, int indent, const char *description)
 	fprintSegment(f, indent, "<xsd:documentation xml:lang=\"en\">\n", 0);
 	fprintMultilineString(f, indent, description);
 	fprint(f, "\n");
-	fprintSegment(f, indent, "</documentation>\n", 0);
+	fprintSegment(f, indent, "</xsd:documentation>\n", 0);
     }
 }
 
@@ -230,6 +230,7 @@ static void fprintElement( FILE *f, int indent,
 	char * buf;
 	SmiNode *iterNode;
 	SmiType *smiType;
+	SmiElement *iterElem;
 
     case SMI_NODEKIND_NODE :
 	buf = malloc( 37 + 2 * strlen( smiNode->name ) +
@@ -266,6 +267,16 @@ static void fprintElement( FILE *f, int indent,
 	break;
 	
     case SMI_NODEKIND_SCALAR :
+    case SMI_NODEKIND_COLUMN:
+	/* check if we are index column */
+	for( iterElem = smiGetFirstElement( smiGetParentNode( smiNode ) ) ;
+	     iterElem;
+	     iterElem = smiGetNextElement( iterElem ) ) {
+	    if( smiNode == smiGetElementNode( iterElem ) ) {
+		/* we are index coulumn ==> do not print element */
+		return;
+	    }
+	}
 	smiType = smiGetNodeType( smiNode );
 	buf = malloc( 47 + strlen( smiNode->name ) + strlen( prefix ) +
 		      strlen( getStringBasetype( smiType->basetype ) ) );
@@ -278,9 +289,42 @@ static void fprintElement( FILE *f, int indent,
 	    free( buf );
 	}
 	fprintAnnotationElem( f, indent + INDENT, smiNode );
-	fprintSegment( f, indent, "</xsd:element>\n", 0 );
+	fprintSegment( f, indent, "</xsd:element>\n", 0 ); 
+	break;
+	
+    }
+}
+
+
+static void fprintIndex( FILE *f, int indent,
+			 SmiNode *smiNode, const char *prefix )
+{
+    SmiNode *iterNode;
+    SmiElement *iterElem;
+    char *buf;
+    SmiType *smiType;
+
+    for( iterElem = smiGetFirstElement( smiNode );
+	 iterElem;
+	 iterElem = smiGetNextElement( iterElem ) ) {
+	iterNode = smiGetElementNode( iterElem );
+	smiType = smiGetNodeType( iterNode );
+	buf = malloc( 47 + strlen( iterNode->name ) + strlen( prefix ) +
+		      strlen( getStringBasetype( smiType->basetype ) ) );
+	if( buf ) {
+	    sprintf( buf,
+		     "<xsd:attribute  name=\"%s\" type=\"%s:%s\">\n",
+		     iterNode->name, prefix,
+		     getStringBasetype( smiType->basetype ) );
+	    fprintSegment( f, indent, buf, 0 );
+	    free( buf );
+	}
+	fprintAnnotationElem( f, indent + INDENT, smiNode );
+	fprintSegment( f, indent, "</xsd:attribute>\n", 0 ); 
 	break;
     }
+
+    
 }
 
 static void fprintComplexType( FILE *f, int indent,
@@ -290,23 +334,26 @@ static void fprintComplexType( FILE *f, int indent,
 
     if( buf ) {
 	SmiNode *iterNode;
-	
+		
 	sprintf( buf, "<xsd:complexType name=\"%sType\">\n", smiNode->name );
 	fprintSegment( f, indent, buf, 0 );
 	free( buf );
 	
 	
 	fprintSegment( f, indent + INDENT, "<xsd:sequence>\n", 0 );
-
+	
 	/* print child elements */
 	for( iterNode = smiGetFirstChildNode( smiNode );
 	     iterNode;
 	     iterNode = smiGetNextChildNode( iterNode ) ) {
 
-	    fprintElement( f, indent + 2 * INDENT, iterNode, DXSD_MIBPREFIX );
+	    fprintElement( f, indent + 2 * INDENT, iterNode, prefix );
 	    
 	}
 	fprintSegment( f, indent + INDENT, "</xsd:sequence>\n", 0 );
+	fprintIndex( f, indent + INDENT, smiNode, prefix );
+	
+	
 	fprintSegment( f, indent, "</xsd:complexType>\n\n", 0 );
 	
     }
@@ -331,20 +378,29 @@ static void fprintNodes(FILE *f, SmiModule *smiModule)
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_NODE );
 	 iterNode;
 	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_NODE ) ) {
-
-	/*
-	  fprint( f, iterNode->name );
-	  fprint( f, "  : %d\n", iterNode->nodekind );
-	*/
-	
 	fprintNode( f, iterNode );
-	    
     }
     
 }
+
+
+static void fprintRows( FILE *f, SmiModule *smiModule )
+{
+    SmiNode *iterNode;
+    fprint( f, "\nAAA\n" );
+
+    for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
+	 iterNode;
+	 iterNode = smiGetNextNode( iterNode, SMI_NODEKIND_ROW ) ) {
+	fprintComplexType( f, INDENT, iterNode, DXSD_MIBPREFIX );
+    }
+}
+
+    
 static void fprintModule(FILE *f, SmiModule *smiModule)
 {
     fprintNodes(f, smiModule);
+    fprintRows(f, smiModule);
     fprintSegment(f, INDENT, "<xsd:annotation>\n", 0);
     fprintDocumentation(f, 2 * INDENT, smiModule->description);
     fprintSegment(f, INDENT, "</xsd:annotation>\n", 0);
