@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.30 2002/11/18 07:51:03 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.31 2002/11/26 18:22:34 schoenw Exp $
  */
 
 /*
@@ -131,8 +131,11 @@ printTopComment(FILE *f, SmiModule *smiModule)
 	    " * version " SMI_VERSION_STRING " for the scli package.\n"
 	    " *\n");
 
-    if (include || exclude) {
+    if (include || exclude || prefix) {
 	fprintf(f, " * Options:\n");
+	if (prefix) {
+	    fprintf(f, " *   --scli-prefix='%s'\n", prefix);
+	}
 	if (include) {
 	    fprintf(f, " *   --scli-include='%s'\n", include);
 	}
@@ -1101,7 +1104,7 @@ printMethodPrototypes(FILE *f, SmiNode *groupNode)
 static void
 printHeaderTypedefMemberComment(FILE *f, SmiNode *smiNode, SmiType *smiType)
 {
-    const char *s = NULL;
+    char *s = NULL;
 
     switch (smiNode->access) {
     case SMI_ACCESS_READ_WRITE:
@@ -1120,9 +1123,10 @@ printHeaderTypedefMemberComment(FILE *f, SmiNode *smiNode, SmiType *smiType)
 	break;
     }
     if (s) fprintf(f, "%s", s);
-    s = smiRenderType(smiType, SMI_RENDER_NAME);
+    s = smiRenderType(smiType, SMI_RENDER_NAME | SMI_RENDER_QUALIFIED);
     if (s) {
 	fprintf(f, " %s", s);
+	free(s);
     }
 }
 
@@ -1265,8 +1269,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 {
     SmiNode *smiNode;
     SmiType *smiType;
-    char    *cPrefix, *dModuleName, *cGroupName,
-	    *dGroupName, *dNodeName;
+    char    *cPrefix, *dModuleName, *cGroupName, *dGroupName, *dNodeName;
     int     writable = 0, count = 0, len = 0;
 
     cPrefix = prefix ? xstrdup(prefix) : translateLower(smiModule->name);
@@ -1637,7 +1640,7 @@ printSizeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
 		if (cnt) {
 		    fprintf(f, ", %u, %u", minSize, maxSize);
 		} else {
-		    fprintf(f, "static guint16 %s_constraints[] = {%u, %u",
+		    fprintf(f, "static guint16 %s_constraints[] = {%uU, %uU",
 			    cName, minSize, maxSize);
 		}
 	    }
@@ -1672,7 +1675,7 @@ printInteger32RangeConstraints(FILE *f, SmiNode *smiNode, SmiType *smiType)
 		if (cnt) {
 		    fprintf(f, ", %ldL, %ldL", minSize, maxSize);
 		} else {
-		    fprintf(f, "static guint32 %s_constraints[] = {%ldL, %ldL",
+		    fprintf(f, "static gint32 %s_constraints[] = {%ldL, %ldL",
 			    cName, minSize, maxSize);
 		}
 	    }
@@ -2526,16 +2529,11 @@ printAssignMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "    %s = %s_new_%s();\n"
-	    "    if (! %s) {\n"
-	    "        return NULL;\n"
-	    "    }\n"
-	    "\n",
-	    cGroupName, cPrefix, cGroupName, cGroupName);
-
-    fprintf(f,
 	    "    p = (char *) %s + sizeof(%s_%s_t);\n"
 	    "    * (GSList **) p = vbl;\n"
-	    "\n", cGroupName, cPrefix, cGroupName);
+	    "\n",
+	    cGroupName, cPrefix, cGroupName,
+	    cGroupName, cPrefix, cGroupName);
 
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	fprintf(f,
@@ -2614,11 +2612,6 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
     fprintf(f,
 	    "    if (out) {\n"
 	    "        *%s = (%s_%s_t **) g_malloc0((g_slist_length(out) + 1) * sizeof(%s_%s_t *));\n"
-	    "        if (! *%s) {\n"
-            "            s->error_status = G_SNMP_ERR_INTERNAL;\n"
-	    "            g_snmp_vbl_free(out);\n"
-	    "            return;\n"
-	    "        }\n"
 	    "        for (row = out, i = 0; row; row = g_slist_next(row), i++) {\n"
 	    "            (*%s)[i] = assign_%s(row->data);\n"
 	    "        }\n"
@@ -2626,7 +2619,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "}\n"
 	    "\n",
 	    cRowName, cPrefix, cRowName,
-	    cPrefix, cRowName, cRowName,
+	    cPrefix, cRowName,
 	    cRowName, cRowName);
     
     xfree(cTableName);
@@ -2659,7 +2652,6 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    guint32 base[128];\n"
 	    "    gint8 len;\n"
 	    "\n"
-	    "    memset(base, 0, sizeof(base));\n"
 	    "    memcpy(base, %s_oid, sizeof(%s_oid));\n",
 	    cRowName, cRowName);
 
@@ -2734,7 +2726,6 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    guint32 base[128];\n"
 	    "    gint8 len;\n"
 	    "\n"
-	    "    memset(base, 0, sizeof(base));\n"
 	    "    memcpy(base, %s_oid, sizeof(%s_oid));\n",
 	    cRowName, cRowName);
 
