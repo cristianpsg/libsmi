@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.3 1999/04/05 15:47:34 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.4 1999/04/06 16:23:23 strauss Exp $
  */
 
 %{
@@ -221,9 +221,9 @@ static Object *objectPtr;
 %type <rc>revisionStatement_stmtsep
 %type <revisionPtr>revisionStatement
 %type <typePtr>typedefTypeStatement
-%type <rc>typeStatement_stmtsep_01
+%type <typePtr>typeStatement_stmtsep_01
 %type <typePtr>typeStatement
-%type <rc>writetypeStatement_stmtsep_01
+%type <typePtr>writetypeStatement_stmtsep_01
 %type <typePtr>writetypeStatement
 %type <indexPtr>anyIndexStatement
 %type <indexPtr>indexStatement
