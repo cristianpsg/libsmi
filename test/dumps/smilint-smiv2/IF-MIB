@@ -1,2 +1,2 @@
 ../dumps/smiv2/IF-MIB:1237: index element `ifRcvAddressAddress' of row `ifRcvAddressEntry' must have a size restriction
-../dumps/smiv2/IF-MIB:1451: warning: group `ifOldObjectsGroup' is unconditionally optional
+../dumps/smiv2/IF-MIB:1451: warning: deprecated group `ifOldObjectsGroup' is unconditionally optional

@@ -29,8 +29,8 @@
 ../dumps/smiv2/RMON2-MIB:2482: index element `nlMatrixDSSourceAddress' of row `alMatrixDSEntry' must have a size restriction
 ../dumps/smiv2/RMON2-MIB:4249: index element `RFC1213-MIB::ifIndex' of row `serialConfigEntry' must have a range restriction
 ../dumps/smiv2/RMON2-MIB:4416: index element `RFC1213-MIB::ifIndex' of row `netConfigEntry' must have a range restriction
-../dumps/smiv2/RMON2-MIB:4913: warning: group `probeConfigurationGroup' is unconditionally optional
-../dumps/smiv2/RMON2-MIB:4947: warning: group `rmon1EthernetEnhancementGroup' is unconditionally optional
-../dumps/smiv2/RMON2-MIB:4955: warning: group `rmon1TokenRingEnhancementGroup' is unconditionally optional
+../dumps/smiv2/RMON2-MIB:4913: warning: current group `probeConfigurationGroup' is unconditionally optional
+../dumps/smiv2/RMON2-MIB:4947: warning: current group `rmon1EthernetEnhancementGroup' is unconditionally optional
+../dumps/smiv2/RMON2-MIB:4955: warning: current group `rmon1TokenRingEnhancementGroup' is unconditionally optional
 ../dumps/smiv2/RMON2-MIB:70: warning: textual convention `LastCreateTime' can not be derived from the textual convention `TimeStamp'
 ../dumps/smiv2/RMON2-MIB:162: warning: textual convention `ControlString' can not be derived from the textual convention `DisplayString'
