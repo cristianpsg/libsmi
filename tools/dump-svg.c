@@ -90,6 +90,7 @@ typedef struct GraphNode {
     SmiNode          *smiNode;
     int              group;		/* group number of this graph node */
     int              use;		/* use node in the layout-algorithm */
+    int              degree;
     DiaNode          dia;
 } GraphNode;
 
@@ -2858,6 +2859,7 @@ static void layoutGraph(int nodecount)
 {
     int i;
     float area, k, c = 1, xDelta, yDelta, absDelta, absDisp, t;
+    float gamma = 1, xBary = 0, yBary = 0;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
@@ -2866,6 +2868,13 @@ static void layoutGraph(int nodecount)
     t = CANVASWIDTH/10;
 
     for (i=0; i<ITERATIONS; i++) {
+	//calculate the barycenter
+	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
+	    xBary += vNode->dia.x;
+	    yBary += vNode->dia.y;
+	}
+	xBary /= nodecount;
+	yBary /= nodecount;
 	//calculate repulsive forces
 	for (vNode = graph->nodes; vNode; vNode = vNode->nextPtr) {
 	    if (!vNode->use)
@@ -2881,6 +2890,9 @@ static void layoutGraph(int nodecount)
 		vNode->dia.xDisp += (xDelta/absDelta)*fr(absDelta, k);
 		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
 	    }
+	    //calculate gravitational force
+//	    vNode->dia.xDisp+=(1+vNode->degree/2)*gamma*(xBary - vNode->dia.x);
+//	    vNode->dia.yDisp+=(1+vNode->degree/2)*gamma*(yBary - vNode->dia.y);
 	}
 	//calculate attractive forces
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
@@ -2905,7 +2917,7 @@ static void layoutGraph(int nodecount)
 			       max(STARTSCALE*vNode->dia.h/2, vNode->dia.y));
 	}
 	//reduce the temperature as the layout approaches a better configuration
-	t *= 0.5;
+	t *= 0.9;
     }
 }
 
@@ -2921,7 +2933,18 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphEdge *tEdge;
     int       group, nodecount = 0, classNr = 0;
 
-    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
+    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+	if (tEdge->connection != GRAPH_CON_UNKNOWN
+	    && tEdge->startNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
+	    && tEdge->endNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
+	    && tEdge->startNode != tEdge->endNode) {
+	    tEdge->use = 1;
+	    (tEdge->startNode->degree)++;
+	    (tEdge->endNode->degree)++;
+	}
+    }
+
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	tNode = diaCalcSize(tNode);
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
@@ -2932,14 +2955,6 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	calcGroupSize(group);
 	nodecount++;
     }
-    
-    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	if (tEdge->connection != GRAPH_CON_UNKNOWN
-	    && tEdge->startNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
-	    && tEdge->endNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
-	    tEdge->use = 1;
-	}
-    }
 
     layoutGraph(nodecount);
 
@@ -2947,7 +2962,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	fprintf(stderr, "(%.2f,%.2f)\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group);
+	fprintf(stderr, "(%.2f,%.2f)\t%i\t%i\n", tNode->dia.x, tNode->dia.y, tNode->group, tNode->degree);
     }
 
     printSVGHeaderAndTitle(modc, modv, nodecount);
