@@ -2,7 +2,7 @@
    IANAifType-MIB DEFINITIONS ::= BEGIN
 
    IMPORTS
-       MODULE-IDENTITY                     
+       MODULE-IDENTITY,
        mib-2				   FROM SNMPv2-SMI
        TEXTUAL-CONVENTION                  FROM SNMPv2-TC;
 

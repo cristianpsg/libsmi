@@ -8,11 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.35 1999/10/05 06:30:55 strauss Exp $
+# @(#) $Id: configure.in,v 1.36 1999/10/06 16:05:00 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
-AM_INIT_AUTOMAKE(libsmi,0.1.7-pre14)
+AM_INIT_AUTOMAKE(libsmi,0.1.7-pre15)
 # Note: also change shlib version version lib/Makefile.am:libsmi_la_LDFLAGS ?
 
 AC_DEFINE(BACKEND_SMI)
@@ -84,4 +84,4 @@ AC_SUBST(CFLAGS)
 AC_SUBST(mibdir)
 AC_SUBST(smipath)
 
-AC_OUTPUT(Makefile lib/Makefile tools/Makefile mibs/Makefile mibs/ietf/Makefile mibs/iana/Makefile mibs/irtf/Makefile mibs/site/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test, chmod a+x test/parser.test)
+AC_OUTPUT(Makefile lib/Makefile tools/Makefile mibs/Makefile test/Makefile test/mibs/Makefile test/dumps/Makefile doc/Makefile lib/libsmi.3 lib/smi_macro.3 lib/smi_module.3 lib/smi_node.3 lib/smi_type.3 lib/smi_config.3 tools/smiquery.1 tools/smilint.1 tools/smidump.1 test/parser.test, chmod a+x test/parser.test)

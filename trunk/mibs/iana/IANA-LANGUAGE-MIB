@@ -6,7 +6,7 @@
            FROM SNMPv2-SMI;
 
    ianaLanguages MODULE-IDENTITY
-       LAST-UPDATED "9909090900Z"  -- September 9, 1999
+       LAST-UPDATED "9909011000Z"  -- September 1, 1999
        ORGANIZATION "IANA"
        CONTACT-INFO
            "Internet Assigned Numbers Authority (IANA)
@@ -40,7 +40,7 @@
             references are only provided as `a pointer into the right
             direction'."
 
-       ::= { mib-2 73 }
+       ::= { mib-2 64 }
 
    ianaLangJavaByteCode OBJECT-IDENTITY
        STATUS  current

@@ -1,3 +1,4 @@
+
   IANATn3270eTC-MIB DEFINITIONS ::= BEGIN
 
   IMPORTS
@@ -294,3 +295,4 @@ convention.
       SYNTAX OCTET STRING (SIZE (0 | 6..2048))
 
   END
+

@@ -90,7 +90,7 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.7-pre14
+VERSION = 0.1.7-pre15
 mibdir = /usr/local/share/mibs
 smipath = /usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site
 
@@ -119,7 +119,7 @@ bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre14\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.7-pre15\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
