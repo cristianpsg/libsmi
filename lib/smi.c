@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.106 2001/10/08 14:16:57 schoenw Exp $
+ * @(#) $Id: smi.c,v 1.107 2002/04/22 15:09:15 strauss Exp $
  */
 
 #include <config.h>
@@ -428,15 +428,17 @@ char *smiLoadModule(const char *module)
 
     } else {
 	
-	if (!isInView(module)) {
-	    addView(module);
-	}
-	
 	if ((modulePtr = findModuleByName(module))) {
 	    /* already loaded. */
+	    if (!isInView(module)) {
+		addView(module);
+	    }
 	    return modulePtr->export.name;
 	} else {
 	    if ((modulePtr = loadModule(module, NULL))) {
+		if (!isInView(module)) {
+		    addView(module);
+		}
 		return modulePtr->export.name;
 	    } else {
 		return NULL;
