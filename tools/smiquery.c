@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * @(#) $Id: smiquery.c,v 1.12 1999/05/25 17:00:39 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.13 1999/05/27 20:06:03 strauss Exp $
  */
 
 #include <stdio.h>
@@ -170,7 +170,7 @@ usage()
 void
 version()
 {
-    printf("smiquery " LIBSMI_VERSION "\n" COPYLEFT);
+    printf("smiquery " VERSION "\n" COPYLEFT);
 }
 
 

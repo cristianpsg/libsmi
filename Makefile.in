@@ -1,7 +1,19 @@
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
 #
-# Makefile.in --
+# Makefile.am --
 #
-#      Makefile template to generate the toplevel Makefile using ./configure.
+#      Template to generate the toplevel Makefile.in using automake.
 #
 # Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 #
@@ -19,119 +31,328 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# @(#) $Id: Makefile.in,v 1.5 1999/05/25 17:00:24 strauss Exp $
+# @(#) $Id: Makefile.in,v 1.6 1999/05/27 20:05:56 strauss Exp $
 #
 
-LIBSMI_VERSION	= @LIBSMI_VERSION@
 
-PREFIX			= @prefix@
-LIB_RUNTIME_DIR		= @prefix@/lib
-BIN_INSTALL_DIR		= $(PREFIX)/bin
-LIB_INSTALL_DIR		= $(PREFIX)/lib
-INCLUDE_INSTALL_DIR	= $(PREFIX)/include
-MAN1_INSTALL_DIR	= $(PREFIX)/man/man1
-MAN3_INSTALL_DIR	= $(PREFIX)/man/man3
+SHELL = @SHELL@
 
-CC		= @CC@
-LD		= @CC@
-LD_FLAGS	= @LD_FLAGS@
-RANLIB		= @RANLIB@
-INSTALL		= @INSTALL@
-AR		= ar
-YACC		= bison
-LEX		= flex
-DEFS		= @DEFS@ -DLIBSMI_VERSION=\"$(LIBSMI_VERSION)\"
-SHLIB_CFLAGS	= @SHLIB_CFLAGS@
-CFLAGS		= -Ilib @CFLAGS@ @SHLIB_CFLAGS@ $(DEFS)
-SHLIB_LD	= @SHLIB_LD@
-SHLIB_SUFFIX	= @SHLIB_SUFFIX@
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
 
-LIBSMI_OBJS	= lib/data.o lib/error.o lib/util.o lib/smi.o lib/scanner.o \
-		  lib/parser-smi.tab.o lib/scanner-smi.o \
-		  lib/parser-sming.tab.o lib/scanner-sming.o
-LIBSMI_STATIC	= lib/libsmi.a
-LIBSMI_SO	= lib/libsmi$(SHLIB_SUFFIX)
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
 
+DESTDIR =
 
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
 
-all: $(LIBSMI_STATIC) $(LIBSMI_SO) tools
+top_builddir = .
 
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
 
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
 
-$(LIBSMI_STATIC): $(LIBSMI_OBJS)
-	$(AR) ruv $@ $(LIBSMI_OBJS)
-	$(RANLIB) $@
-	
-$(LIBSMI_SO): $(LIBSMI_OBJS)
-	$(SHLIB_LD) $(LIBSMI_OBJS) -o $(LIBSMI_SO)
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+AS = @AS@
+BISON = @BISON@
+CC = @CC@
+CFLAGS = @CFLAGS@
+DLLTOOL = @DLLTOOL@
+EXEEXT = @EXEEXT@
+FLEX = @FLEX@
+LD = @LD@
+LIBTOOL = @LIBTOOL@
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+LN_S = @LN_S@
+MAKEINFO = @MAKEINFO@
+NM = @NM@
+OBJDUMP = @OBJDUMP@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+STATIC = @STATIC@
+VERSION = @VERSION@
 
-lib/parser-smi.tab.c: lib/parser-smi.y lib/scanner-smi.h lib/parser-smi.h
-	$(YACC) -v -t -d -psmi lib/parser-smi.y
-#	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-#	# bison-1.27 is ok and would not the lines below.
-	sed -e 's/int yyparse (void);/int yyparse ();/' \
-	    lib/parser-smi.tab.c > lib/parser-smi.tab.c.tmp && \
-	mv lib/parser-smi.tab.c.tmp lib/parser-smi.tab.c
+AUTOMAKE_OPTIONS = no-dependencies foreign
 
-lib/parser-sming.tab.c: lib/parser-sming.y lib/scanner-sming.h lib/parser-sming.h
-	$(YACC) -v -t -d -psming lib/parser-sming.y
-#	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-#	# bison-1.27 is ok and would not the lines below.
-	sed -e 's/int yyparse (void);/int yyparse ();/' \
-	    lib/parser-sming.tab.c > lib/parser-sming.tab.c.tmp && \
-	mv lib/parser-sming.tab.c.tmp lib/parser-sming.tab.c
-
-lib/scanner-smi.c: lib/scanner-smi.l lib/scanner-smi.h lib/parser-smi.tab.h
-	$(LEX) -Psmi -t lib/scanner-smi.l > lib/scanner-smi.c
-
-lib/scanner-sming.c: lib/scanner-sming.l lib/scanner-sming.h lib/parser-sming.tab.h
-	$(LEX) -Psming -t lib/scanner-sming.l > lib/scanner-sming.c
-
-
-
-tools: tools/smiquery tools/smilint tools/smidump
-
-tools/smilint: $(LIBSMI_SO) tools/smilint.o
-	$(LD) $(LDFLAGS) -o tools/smilint tools/smilint.o -Llib -lsmi
-
-#tools/smisubtree: $(LIBSMI_SO) tools/smisubtree.o
-#	$(LD) $(LDFLAGS) -o tools/smisubtree tools/smisubtree.o -Llib -lsmi
-
-tools/smidump: $(LIBSMI_SO) tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o
-	$(LD) $(LDFLAGS) -o tools/smidump tools/smidump.o tools/dump-sming.o tools/dump-smi.o tools/dump-data.o -Llib -lsmi
-
-tools/smiquery: $(LIBSMI_SO) tools/smiquery.o
-	$(LD) $(LDFLAGS) -o tools/smiquery tools/smiquery.o -Llib -lsmi
+SUBDIRS = lib tools
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES = 
+DIST_COMMON =  README COPYING ChangeLog Makefile.am Makefile.in TODO \
+aclocal.m4 config.guess config.sub configure configure.in install-sh \
+ltconfig ltmain.sh missing mkinstalldirs
 
 
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-clean:
-	rm -f lib/*.o lib/*.a lib/*.tab.[hc] lib/*.tab.c.tmp lib/scanner-smi.c lib/scanner-sming.c lib/*.output tools/*.o core */core doc/parser-smi.y.html test/*.log doc/yacc2html.o doc/yacc2html.c doc/scanner-sming.l.html
+TAR = gtar
+GZIP_ENV = --best
+all: all-redirect
+.SUFFIXES:
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+$(ACLOCAL_M4):  configure.in 
+	cd $(srcdir) && $(ACLOCAL)
+
+config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+	$(SHELL) ./config.status --recheck
+$(srcdir)/configure: $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && $(AUTOCONF)
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
+	  rev="$$subdir $$rev"; \
+	  test "$$subdir" = "." && dot_seen=yes; \
+	done; \
+	test "$$dot_seen" = "no" && rev=". $$rev"; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+   if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+   fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(PACKAGE)-$(VERSION)
+top_distdir = $(distdir)
+
+# This target untars the dist file and tries a VPATH configuration.  Then
+# it guarantees that the distribution is self-contained by making another
+# tarfile.
+distcheck: dist
+	-rm -rf $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) zxf $(distdir).tar.gz
+	mkdir $(distdir)/=build
+	mkdir $(distdir)/=inst
+	dc_install_base=`cd $(distdir)/=inst && pwd`; \
+	cd $(distdir)/=build \
+	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
+	  && $(MAKE) $(AM_MAKEFLAGS) \
+	  && $(MAKE) $(AM_MAKEFLAGS) dvi \
+	  && $(MAKE) $(AM_MAKEFLAGS) check \
+	  && $(MAKE) $(AM_MAKEFLAGS) install \
+	  && $(MAKE) $(AM_MAKEFLAGS) installcheck \
+	  && $(MAKE) $(AM_MAKEFLAGS) dist
+	-rm -rf $(distdir)
+	@banner="$(distdir).tar.gz is ready for distribution"; \
+	dashes=`echo "$$banner" | sed s/./=/g`; \
+	echo "$$dashes"; \
+	echo "$$banner"; \
+	echo "$$dashes"
+dist: distdir
+	-chmod -R a+r $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
+	-rm -rf $(distdir)
+dist-all: distdir
+	-chmod -R a+r $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
+	-rm -rf $(distdir)
+distdir: $(DISTFILES)
+	-rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 777 $(distdir)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+	for subdir in $(SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    chmod 777 $(distdir)/$$subdir; \
+	    (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir=../$(distdir) distdir=../$(distdir)/$$subdir distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+info-am:
+info: info-recursive
+dvi-am:
+dvi: dvi-recursive
+check-am: all-am
+check: check-recursive
+installcheck-am:
+installcheck: installcheck-recursive
+install-exec-am:
+install-exec: install-exec-recursive
+
+install-data-am:
+install-data: install-data-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-recursive
+uninstall-am:
+uninstall: uninstall-recursive
+all-am: Makefile
+all-redirect: all-recursive
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs: installdirs-recursive
+installdirs-am:
 
 
+mostlyclean-generic:
 
-install: lib/smi.h $(LIBSMI_SO)
-	$(INSTALL) lib/smi.h $(INCLUDE_INSTALL_DIR)/smi.h
-	$(INSTALL) $(LIBSMI_SO) $(LIB_INSTALL_DIR)/libsmi.so.$(LIBSMI_VERSION)
-	-rm -f $(LIB_INSTALL_DIR)/libsmi.so
-	ln -s libsmi.so.$(LIBSMI_VERSION) $(LIB_INSTALL_DIR)/libsmi.so
-#	$(INSTALL) tools/smilint $(BIN_INSTALL_DIR)/smilint
-#	$(INSTALL) tools/smidump $(BIN_INSTALL_DIR)/smidump
-	$(INSTALL) tools/smiquery $(BIN_INSTALL_DIR)/smiquery
-#	$(INSTALL) doc/smilint.1 $(MAN1_INSTALL_DIR)/smilint.1
-#	$(INSTALL) doc/smidump.1 $(MAN1_INSTALL_DIR)/smidump.1
-#	$(INSTALL) doc/smiquery.1 $(MAN1_INSTALL_DIR)/smiquery.1
-#	for f in doc/*.3 ; do \
-#		$(INSTALL) $f $(MAN3_INSTALL_DIR) ; \
-#	done
-#	if [ ! -d ${PREFIX}/lib/smi ] ; then mkdir ${PREFIX}/lib/smi ; fi
-#	if [ ! -d ${PREFIX}/lib/smi/mibs-smi ] ; then mkdir ${PREFIX}/lib/smi/mibs-smi ; fi
-#	if [ ! -d ${PREFIX}/lib/smi/mibs-sming ] ; then mkdir ${PREFIX}/lib/smi/mibs-sming ; fi
-#	-cp mibs/smi/* ${PREFIX}/lib/smi/mibs-smi
-#	-cp mibs/sming/* ${PREFIX}/lib/smi/mibs-sming
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-tags mostlyclean-generic
+
+mostlyclean: mostlyclean-recursive
+
+clean-am:  clean-tags clean-generic mostlyclean-am
+
+clean: clean-recursive
+
+distclean-am:  distclean-tags distclean-generic clean-am
+	-rm -f libtool
+
+distclean: distclean-recursive
+	-rm -f config.status
+
+maintainer-clean-am:  maintainer-clean-tags maintainer-clean-generic \
+		distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-recursive
+	-rm -f config.status
+
+.PHONY: install-data-recursive uninstall-data-recursive \
+install-exec-recursive uninstall-exec-recursive installdirs-recursive \
+uninstalldirs-recursive all-recursive check-recursive \
+installcheck-recursive info-recursive dvi-recursive \
+mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs-am \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
-
-dist:
-	cd .. ; tar cvzf libsmi/libsmi-$(LIBSMI_VERSION).tar.gz `cat libsmi/MANIFEST | sed -e 's!^!libsmi/!'`
-
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
