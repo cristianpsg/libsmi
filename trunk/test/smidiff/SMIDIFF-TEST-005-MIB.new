@@ -206,7 +206,7 @@ t4c1 OBJECT-TYPE
     ::= { table4Entry 1 }
 
 t4c2 OBJECT-TYPE
-    SYNTAX Integer32
+    SYNTAX Integer32 (0..27)
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
