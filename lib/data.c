@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.106 2001/08/31 07:41:09 strauss Exp $
+ * @(#) $Id: data.c,v 1.107 2001/10/08 17:51:26 schoenw Exp $
  */
 
 #include <config.h>
@@ -1630,6 +1630,29 @@ void addObjectFlags(Object *objectPtr, ObjectFlags flags)
 void deleteObjectFlags(Object *objectPtr, ObjectFlags flags)
 {
     objectPtr->flags &= ~flags;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * checkObjectFlag --
+ *
+ *      Check whether a given set of flags of a given Object are all set.
+ *
+ * Results:
+ *	true if all named flags are set.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int checkObjectFlags(Object *objectPtr, ObjectFlags flags)
+{
+    return ((objectPtr->flags & flags) == flags);
 }
 
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.80 2001/11/23 15:44:21 strauss Exp $
+ * @(#) $Id: error.c,v 1.81 2001/11/26 12:53:43 schoenw Exp $
  */
 
 #include <config.h>
@@ -436,6 +436,8 @@ static Error errors[] = {
       "zero-length units string" },
     { 6, ERR_INDEX_DEFVAL, "index-element-has-default",
       "index element `%s' of row `%s' has a default value" },
+    { 2, ERR_SEQUENCE_TYPE_MISMATCH, "sequence-type-mismatch",
+      "type of `%s' in sequence and object type definition do not match" },
     { 0, 0, NULL, NULL }
 };
 
