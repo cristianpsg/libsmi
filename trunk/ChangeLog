@@ -1,3 +1,7 @@
+2001-09-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* lib/parser-smi.y: Fixed warning on numerical OID DEFVALs.
+
 2001-08-31  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/data.c: Fixed some missing fclose() calls. Thanks to
