@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.36 2002/10/24 10:41:07 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.37 2002/10/30 09:17:37 schoenw Exp $
  */
 
 
@@ -2639,7 +2639,7 @@ static void diaPrintXMLInfoNote(int modc, SmiModule **modv)
     }
     strcat(note, s2);
 
-    width = strlen(note) * (float)0.76;	/* don't ask */
+    width = (float)strlen(note) * (float)0.76;	/* don't ask */
 
     printf("<object type=\"UML - Note\" version=\"0\" id=\"O0\">\n");
     printf("  <attribute name=\"obj_pos\">\n");

@@ -1,3 +1,12 @@
+2003-12-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-python.c, tools/dump-xml.c: Fixed segfaults upon
+	unresolvable parent type names.
+
+	* tools/dump-cm.c: Added an explicit float-cast in one place
+	to ensure execatly equal values on different platforms so that
+	the test suite is happy again.
+
 2003-12-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.4.2.tar.gz: released version 0.4.2. Time for a new
