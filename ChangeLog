@@ -2,6 +2,8 @@
 
 	* lib/parser-smi.y: Fixed a NULL pointer dereference. Thanks to Bill.
 	
+	* mibs/ietf/DSMON-MIB: added (RFC 3287).
+
 2002-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/: Updated man pages.
