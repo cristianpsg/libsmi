@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.43 2002/09/13 17:49:27 schoenw Exp $
+ * @(#) $Id: check.c,v 1.44 2002/11/19 13:35:43 schoenw Exp $
  */
 
 #include <config.h>
@@ -1305,7 +1305,7 @@ checkInetAddressType(Parser *parserPtr, Module *modulePtr, Object *objectPtr)
     /* check InetAddressType/InetAddress pair */
     if (smiTypeDerivedFrom(objectPtr->typePtr, inetAddressPtr)) {
 	Object *indexObject = NULL;
-	Object *entryObject = objectPtr->nodePtr->parentPtr->firstObjectPtr;
+	Object *entryObject = objectPtr->nodePtr->parentPtr->lastObjectPtr;
 	if (entryObject) {
 	    switch (entryObject->export.indexkind) {
 	    case SMI_INDEX_INDEX:
@@ -1406,7 +1406,7 @@ checkTransportAddressType(Parser *parserPtr, Module *modulePtr, Object *objectPt
     /* check TransportAddressType/TransportAddress pair */
     if (smiTypeDerivedFrom(objectPtr->typePtr, transportAddressPtr)) {
 	Object *indexObject = NULL;
-	Object *entryObject = objectPtr->nodePtr->parentPtr->firstObjectPtr;
+	Object *entryObject = objectPtr->nodePtr->parentPtr->lastObjectPtr;
 	if (entryObject) {
 	    switch (entryObject->export.indexkind) {
 	    case SMI_INDEX_INDEX:
