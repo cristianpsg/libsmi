@@ -104,6 +104,3 @@ o Bert Helthuis: Don't send errors to stderr, instead support something like
   
 o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
   smidump -f tree -u SNA-SDLC-MIB IF-MIB : e.g. ifEntry differences.
-
-o SNMPv2-MIB::snmpCommunityGroup: line of definition is forward reference,
-  but should be the real definition.
