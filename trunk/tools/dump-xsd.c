@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.66 2003/01/24 15:25:19 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.67 2003/01/27 17:24:26 tklie Exp $
  */
 
 #include <config.h>
@@ -963,20 +963,20 @@ static unsigned int getNamedNumberCount( SmiType *smiType )
 }
 
 
-static void fprintBitList( FILE *f, SmiType *smiType, const char *name )
+static void fprintBitList( FILE *f, SmiType *smiType )
 {
-    fprintSegment( f, 1, "<xsd:simpleType name=\"%sBitList\">\n", name );
-    fprintSegment( f, 0, "<xsd:list itemType=\"%sBit\"/>\n", name );
-    fprintSegment( f, -1, "</xsd:simpleType>\n\n");
-    
-    fprintSegment( f, 1, "<xsd:simpleType name=\"%sBits\">\n", name );
-    fprintSegment( f, 1, "<xsd:restriction base=\"%sBitList\">\n", name );
+    fprintSegment( f, 1, "<xsd:restriction>\n" );
+    fprintSegment( f, 1, "<xsd:simpleType>\n" );
+    fprintSegment( f, 1, "<xsd:list>\n" );  
+    fprintSegment( f, 1, "<xsd:simpleType>\n" );
+    fprintRestriction( f, smiType );
+    fprintSegment( f, -1, "</xsd:simpleType>\n" );
+    fprintSegment( f, -1, "</xsd:list>\n" );
+    fprintSegment( f, -1, "</xsd:simpleType>\n");
     fprintSegment( f, 0, "<xsd:maxLength value=\"%d\"/>\n",
 		   getNamedNumberCount( smiType ) );
     fprintSegment( f, -1, "</xsd:restriction>\n");
-    fprintSegment( f, -1, "</xsd:simpleType>\n\n");
 }
-
 static int getNumSubRanges( SmiType *smiType )
 {
     SmiRange *smiRange;
@@ -1150,16 +1150,7 @@ static void fprintTypedef(FILE *f, SmiType *smiType, const char *name)
     unsigned int numSubRanges = getNumSubRanges( smiType );
     
     if ( name ) {
-	if( smiType->basetype == SMI_BASETYPE_BITS ) {
-	    fprintSegment(f, 1, "<xsd:simpleType name=\"%sBit\">\n", name);
-	}
-/*	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
-	    fprintSegment(f, indent, "<xsd:simpleType");
-	    fprintf( f, " name=\"%sType\">\n", name );
-	    }*/
-	else {
-	    fprintSegment(f, 1, "<xsd:simpleType name=\"%s\">\n", name);
-	}
+	fprintSegment(f, 1, "<xsd:simpleType name=\"%s\">\n", name);
     }
 
     else {
@@ -1180,7 +1171,6 @@ static void fprintTypedef(FILE *f, SmiType *smiType, const char *name)
     
     if( smiType->format && smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	fprintRestriction( f, smiType );
-	fprintSegment(f, -1, "</xsd:simpleType>\n");
     }
     
     else if( ( numSubRanges > 1 ) &&
@@ -1195,23 +1185,19 @@ static void fprintTypedef(FILE *f, SmiType *smiType, const char *name)
 	}
 	
 	fprintSegment( f, -1, "</xsd:union>\n");
-	fprintSegment(f, -1, "</xsd:simpleType>\n");
+    }
+    else if( smiType->basetype == SMI_BASETYPE_BITS ) {
+	fprintBitList( f, smiType );
     }
     else {
 	fprintRestriction(f, smiType );
-	fprintSegment(f, -1, "</xsd:simpleType>\n");
     }
+    fprintSegment(f, -1, "</xsd:simpleType>\n");
 
     /* print an empty line after global types */
     if( smiType->decl != SMI_DECL_IMPLICIT_TYPE && name ) {
 	fprintf( f, "\n" );
-    }
-  
-
-    if( smiType->basetype == SMI_BASETYPE_BITS ) {
-	/* if basetype is BITS we have to do something more */
-	fprintBitList( f, smiType, name );
-    }
+    } 
 }
 
 
@@ -1660,6 +1646,7 @@ static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 	}
 	prefix = getTypePrefix( typeName );
 
+#if 0
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
 	    fprintSegment( f, 1, "<xsd:element name=\"%s\" type=\"%s%s\" "
 			   "minOccurs=\"0\">\n",
@@ -1669,8 +1656,10 @@ static void fprintElement( FILE *f, SmiNode *smiNode, SmiNode *parentNode )
 	    fprintAnnotationElem( f, smiNode );
 	}
 	
-	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {	    
-	    
+//	else if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
+#endif /* 0 */
+
+	if( smiType->basetype == SMI_BASETYPE_OCTETSTRING ) {
 	    if( smiType->decl == SMI_DECL_IMPLICIT_TYPE ) {
 
 		char *hint = getParentDisplayHint( smiType );
