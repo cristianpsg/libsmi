@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.98 2001/06/25 13:26:58 strauss Exp $
+ * @(#) $Id: data.c,v 1.99 2001/08/15 17:07:03 strauss Exp $
  */
 
 #include <config.h>
@@ -3268,33 +3268,6 @@ void smiFreeData()
 	    smiFree(macroPtr);
 	}
 
-	for (typePtr = modulePtr->firstTypePtr; typePtr;
-	     typePtr = nextTypePtr) {
-	    nextTypePtr = typePtr->nextPtr;
-	    for (listPtr = typePtr->listPtr; listPtr;
-		 listPtr = nextListPtr) {
-		nextListPtr = listPtr->nextPtr;
-		if ((typePtr->export.basetype == SMI_BASETYPE_BITS) ||
-		    (typePtr->export.basetype == SMI_BASETYPE_ENUM)) {
-		    smiFree(((NamedNumber *)(listPtr->ptr))->export.name);
-		    smiFree((NamedNumber *)(listPtr->ptr));
-		} else if ((typePtr->export.basetype == SMI_BASETYPE_INTEGER32) ||
-			   (typePtr->export.basetype == SMI_BASETYPE_INTEGER64) ||
-			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED32) ||
-			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED64) ||
-			   (typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING)) {
-		    smiFree((Range *)(listPtr->ptr));
-		}
-		smiFree(listPtr);
-	    }
-	    smiFree(typePtr->export.name);
-	    smiFree(typePtr->export.format);
-	    smiFree(typePtr->export.units);
-	    smiFree(typePtr->export.description);
-	    smiFree(typePtr->export.reference);
-	    smiFree(typePtr);
-	}
-
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
 	     objectPtr = nextObjectPtr) {
 	    nextObjectPtr = objectPtr->nextPtr;
@@ -3322,9 +3295,50 @@ void smiFreeData()
 		smiFree((Refinement *)(listPtr->ptr));
 		smiFree(listPtr);
 	    }
+	    if (objectPtr->typePtr) {
+		if ((objectPtr->typePtr->export.basetype ==
+		     SMI_BASETYPE_OCTETSTRING ||
+		     objectPtr->typePtr->export.basetype ==
+		     SMI_BASETYPE_BITS)) {
+		    smiFree(objectPtr->export.value.value.ptr);
+		} else if ((objectPtr->typePtr->export.basetype ==
+			    SMI_BASETYPE_OBJECTIDENTIFIER) &&
+			   (objectPtr->export.value.basetype ==
+			    objectPtr->typePtr->export.basetype)) {
+		    smiFree(objectPtr->export.value.value.oid);
+		} 
+		
+	    }
 	    smiFree(objectPtr);
 	}
 	
+	for (typePtr = modulePtr->firstTypePtr; typePtr;
+	     typePtr = nextTypePtr) {
+	    nextTypePtr = typePtr->nextPtr;
+	    for (listPtr = typePtr->listPtr; listPtr;
+		 listPtr = nextListPtr) {
+		nextListPtr = listPtr->nextPtr;
+		if ((typePtr->export.basetype == SMI_BASETYPE_BITS) ||
+		    (typePtr->export.basetype == SMI_BASETYPE_ENUM)) {
+		    smiFree(((NamedNumber *)(listPtr->ptr))->export.name);
+		    smiFree((NamedNumber *)(listPtr->ptr));
+		} else if ((typePtr->export.basetype == SMI_BASETYPE_INTEGER32) ||
+			   (typePtr->export.basetype == SMI_BASETYPE_INTEGER64) ||
+			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED32) ||
+			   (typePtr->export.basetype == SMI_BASETYPE_UNSIGNED64) ||
+			   (typePtr->export.basetype == SMI_BASETYPE_OCTETSTRING)) {
+		    smiFree((Range *)(listPtr->ptr));
+		}
+		smiFree(listPtr);
+	    }
+	    smiFree(typePtr->export.name);
+	    smiFree(typePtr->export.format);
+	    smiFree(typePtr->export.units);
+	    smiFree(typePtr->export.description);
+	    smiFree(typePtr->export.reference);
+	    smiFree(typePtr);
+	}
+
 	smiFree(modulePtr->export.name);
 	smiFree(modulePtr->export.path);
 	smiFree(modulePtr->export.organization);

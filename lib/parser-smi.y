@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.149 2001/06/25 13:26:58 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.150 2001/08/15 17:07:04 strauss Exp $
  */
 
 %{
@@ -3479,23 +3479,54 @@ sequenceApplicationSyntax: IPADDRESS
 
 anySubType:		integerSubType
 			{
+			    List *listPtr, *nextListPtr;
+
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				smiPrintError(thisParserPtr,
 					      ERR_UNEXPECTED_TYPE_RESTRICTION);
+
+			    for (listPtr = $1; listPtr;
+				 listPtr = nextListPtr) {
+				nextListPtr = listPtr->nextPtr;
+				smiFree((Range *)(listPtr->ptr));
+				smiFree(listPtr);
+			    }
+
 			    $$ = NULL;
 			}
 	|	        octetStringSubType
 			{
+			    List *listPtr, *nextListPtr;
+
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				smiPrintError(thisParserPtr,
 					      ERR_UNEXPECTED_TYPE_RESTRICTION);
+
+			    for (listPtr = $1; listPtr;
+				 listPtr = nextListPtr) {
+				nextListPtr = listPtr->nextPtr;
+				smiFree((Range *)(listPtr->ptr));
+				smiFree(listPtr);
+			    }
+
 			    $$ = NULL;
 			}
 	|		enumSpec
 			{
+			    List *listPtr, *nextListPtr;
+
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				smiPrintError(thisParserPtr,
 					      ERR_UNEXPECTED_TYPE_RESTRICTION);
+
+			    for (listPtr = $1; listPtr;
+				 listPtr = nextListPtr) {
+				nextListPtr = listPtr->nextPtr;
+				smiFree(((NamedNumber *)(listPtr->ptr))->export.name);
+				smiFree((NamedNumber *)(listPtr->ptr));
+				smiFree(listPtr);
+			    }
+
 			    $$ = NULL;
 			}
 	|		/* empty */
