@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.133 2000/11/27 12:06:42 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.134 2000/12/04 12:47:28 strauss Exp $
  */
 
 %{
@@ -1023,6 +1023,8 @@ module:			moduleName
 			    checkTypes(thisParserPtr, thisModulePtr);
 			    checkDefvals(thisParserPtr, thisModulePtr);
 			    checkImportsUsage(thisParserPtr, thisModulePtr);
+
+			    capabilitiesModulePtr = NULL;
 
                             $$ = 0;
 			}
@@ -3099,7 +3101,7 @@ ApplicationSyntax:	IPADDRESS
 			    $$ = duplicateType(typeUnsigned32Ptr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, parentPtr);
+			    setTypeParent($$, typeUnsigned32Ptr);
 			    setTypeList($$, $2);
 			    smiCheckTypeRanges(thisParserPtr, $$);
 			    importPtr = findImportByName("Unsigned32",
@@ -3140,13 +3142,15 @@ ApplicationSyntax:	IPADDRESS
 			    if (! parentPtr) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Opaque");
+				$$ = NULL;
+			    } else {
+				    smiPrintError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
+				    $$ = duplicateType(parentPtr, 0, thisParserPtr);
+				    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
+				    setTypeParent($$, parentPtr);
+				    setTypeList($$, $2);
+				    smiCheckTypeRanges(thisParserPtr, $$);
 			    }
-			    smiPrintError(thisParserPtr, ERR_OPAQUE_OBSOLETE);
-			    $$ = duplicateType(parentPtr, 0, thisParserPtr);
-			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeParent($$, parentPtr);
-			    setTypeList($$, $2);
-			    smiCheckTypeRanges(thisParserPtr, $$);
 			    importPtr = findImportByName("Opaque",
 							 thisModulePtr);
 			    if (importPtr) {
