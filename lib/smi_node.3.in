@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_node.3.in,v 1.6 2001/06/11 09:59:19 strauss Exp $
+.\" $Id: smi_node.3.in,v 1.7 2001/08/16 10:53:32 strauss Exp $
 .\"
-.TH smi_node 3  "August 16, 2001" "IBR" "SMI Management Information Library"
+.TH smi_node 3  "March 30, 2004" "IBR" "SMI Management Information Library"
 .SH NAME
 .\" START OF MAN PAGE COPIES
 smiGetNode,
@@ -192,7 +192,7 @@ elements of index clauses or notification object lists, groups of object
 types or notification types, and mandatory groups of module compliance
 statements. The node to which the list belongs has to be specified
 by \fIsmiNodePtr\fP. To retrieve the node that is represented by
-a \fBstruct SmiElement\fP, the \fBsmiGetOptionNode()\fP function has
+a \fBstruct SmiElement\fP, the \fBsmiGetElementNode()\fP function has
 to be called.
 .PP
 The \fBsmiGetFirstOption()\fP and \fBsmiGetNextOption()\fP functions are
@@ -225,5 +225,5 @@ module where the node specified by \fIsmiNodePtr\fP is defined.
 .BR smi_module "(3), "
 .BR smi.h
 .SH "AUTHOR"
-(C) 1999-2001 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999-2004 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br
