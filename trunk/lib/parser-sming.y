@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.49 2000/02/13 13:20:53 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.50 2000/02/13 22:16:25 strauss Exp $
  */
 
 %{
@@ -277,6 +277,7 @@ checkDate(Parser *parserPtr, char *date)
 %token <rc>moduleKeyword
 %token <rc>importKeyword
 %token <rc>revisionKeyword
+%token <rc>identityKeyword
 %token <rc>oidKeyword
 %token <rc>dateKeyword
 %token <rc>organizationKeyword
@@ -382,6 +383,8 @@ checkDate(Parser *parserPtr, char *date)
 %type <rc>revisionStatement_stmtsep_1n
 %type <rc>revisionStatement_stmtsep
 %type <revisionPtr>revisionStatement
+%type <rc>identityStatement_stmtsep_01
+%type <rc>identityStatement
 %type <typePtr>typedefTypeStatement
 %type <typePtr>typeStatement_stmtsep_01
 %type <typePtr>typeStatement
@@ -394,10 +397,8 @@ checkDate(Parser *parserPtr, char *date)
 %type <index>sparseStatement
 %type <index>expandsStatement
 %type <rc>sep_impliedKeyword_01
-%type <listPtr>createStatement_stmtsep_01
-%type <listPtr>createStatement
-%type <listPtr>optsep_createColumns_01
-%type <listPtr>createColumns
+%type <rc>createStatement_stmtsep_01
+%type <rc>createStatement
 %type <nodePtr>oidStatement
 %type <date>dateStatement
 %type <text>organizationStatement
@@ -579,7 +580,15 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 					      0,
 					      thisParserPtr);
 			    } else {
+			        printError(thisParserPtr,
+					   ERR_MODULE_ALREADY_LOADED,
+					   $3);
 				free($3);
+				/*
+				 * this aborts parsing the whole file,
+				 * not only the current module.
+				 */
+				YYABORT;
 			    }
 			    thisModulePtr->export.language = SMI_LANGUAGE_SMING;
 			    thisParserPtr->modulePtr->numImportedIdentifiers
@@ -626,6 +635,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    }
 			}
 			revisionStatement_stmtsep_0n
+			identityStatement_stmtsep_01
 			extensionStatement_stmtsep_0n
 			typedefStatement_stmtsep_0n
 			anyObjectStatement_stmtsep_0n
@@ -636,6 +646,9 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			{
 			    List *listPtr;
 			    Object *objectPtr;
+			    Node *nodePtr;
+			    int i;
+			    
 			    /*
 			     * Walk through the index structs of all table
 			     * rows of this module and convert their
@@ -648,7 +661,9 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    while (thisParserPtr->firstIndexlabelPtr) {
 				/* adjust indexPtr->listPtr elements */
 				for (listPtr =
-       ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->listPtr;
+					 ((Object *)(thisParserPtr->
+						     firstIndexlabelPtr->
+						     ptr))->listPtr;
 				     listPtr; listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
 							   thisParserPtr,
@@ -656,29 +671,61 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 				    listPtr->ptr = objectPtr;
 				}
 				/* adjust relatedPtr */
-		     if (((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
+				if (((Object *)
+				    (thisParserPtr->firstIndexlabelPtr->ptr))->
 				    relatedPtr) {
 				    objectPtr = findObject(
-  		        ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
+					((Object *)(thisParserPtr->
+						    firstIndexlabelPtr->ptr))->
 					relatedPtr,
 					thisParserPtr,
 			                thisModulePtr);
-			 ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
-				    relatedPtr = objectPtr;
+				    ((Object *)(thisParserPtr->
+						firstIndexlabelPtr->ptr))->
+					relatedPtr = objectPtr;
 				}
-				/* adjust create list */
-				for (listPtr =
-		 ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->listPtr;
-				     listPtr; listPtr = listPtr->nextPtr) {
-				    objectPtr = findObject(listPtr->ptr,
-							   thisParserPtr,
-							   thisModulePtr);
-				    listPtr->ptr = objectPtr;
-				}
-			  listPtr = thisParserPtr->firstIndexlabelPtr->nextPtr;
+				listPtr =
+				    thisParserPtr->firstIndexlabelPtr->nextPtr;
 				free(thisParserPtr->firstIndexlabelPtr);
 				thisParserPtr->firstIndexlabelPtr = listPtr;
 			    }
+
+			    /*
+			     * Is there a node that matches the `identity'
+			     * statement?
+			     */
+
+			    
+			    /*
+			     * Set the oidlen/oid values that are not
+			     * yet correct.
+			     */
+			    for (objectPtr = thisModulePtr->firstObjectPtr;
+				 objectPtr; objectPtr = objectPtr->nextPtr) {
+				if (objectPtr->export.oidlen == 0) {
+				    if (objectPtr->nodePtr->oidlen == 0) {
+					for (nodePtr = objectPtr->nodePtr,
+						 i = 1;
+					     nodePtr->parentPtr != rootNodePtr;
+					     nodePtr = nodePtr->parentPtr,
+						 i++);
+					objectPtr->nodePtr->oid =
+					    calloc(i, sizeof(unsigned int));
+					objectPtr->nodePtr->oidlen = i;
+					for (nodePtr = objectPtr->nodePtr;
+					     i > 0; i--) {
+					    objectPtr->nodePtr->oid[i-1] =
+						nodePtr->subid;
+					    nodePtr = nodePtr->parentPtr;
+					}
+				    }
+				    objectPtr->export.oidlen =
+					objectPtr->nodePtr->oidlen;
+				    objectPtr->export.oid =
+					objectPtr->nodePtr->oid;
+				}
+			    }
+			    
 			    $$ = thisModulePtr;
 			    moduleObjectPtr = NULL;
 			}
@@ -989,13 +1036,12 @@ nodeStatement:		nodeKeyword sep lcIdentifier
 			}
 			'}' optsep ';'
 			{
-			    /*
-			     * The first node definition is registered
-			     * as the module identity node.
-			     */
-			    if (!thisParserPtr->modulePtr->objectPtr) {
+			    if (thisParserPtr->identityObjectName &&
+				!strcmp(thisParserPtr->identityObjectName,
+					nodeIdentifier)) {
 				setModuleIdentityObject(
 				    thisParserPtr->modulePtr, nodeObjectPtr);
+				thisParserPtr->identityObjectName = NULL;
 			    }
 			    
 			    $$ = nodeObjectPtr;
@@ -1186,7 +1232,6 @@ rowStatement:		rowKeyword sep lcIdentifier
 			createStatement_stmtsep_01
 			{
 			    if (rowObjectPtr) {
-				setObjectList(rowObjectPtr, $14);
 				if ($14) {
 				    addObjectFlags(rowObjectPtr,
 						   FLAG_CREATABLE);
@@ -1854,6 +1899,23 @@ revisionStatement:	revisionKeyword optsep '{' stmtsep
 			}
         ;
 
+identityStatement_stmtsep_01: /* empty */
+			{
+			    $$ = 0;
+			}
+        |		identityStatement stmtsep
+			{
+			    $$ = 1;
+			}
+	;
+
+identityStatement:	identityKeyword sep lcIdentifier optsep ';'
+			{
+			    thisParserPtr->identityObjectName = $3;
+			    $$ = 1;
+			}
+        ;
+
 typedefTypeStatement:	typeKeyword sep refinedBaseType_refinedType optsep ';'
 			/* TODO: originally, this was based on
 			 * refinedBaseType. */
@@ -2012,37 +2074,17 @@ sep_impliedKeyword_01:	/* empty */
 
 createStatement_stmtsep_01: /* empty */
 			{
-			    $$ = NULL;
+			    $$ = 0;
 			}
         |               createStatement stmtsep
 			{
-			    $$ = $1;
+			    $$ = 1;
 			}
 	;
 
-createStatement:	createKeyword optsep_createColumns_01 optsep ';'
+createStatement:	createKeyword optsep ';'
 			{
-			    if (rowObjectPtr) {
-				addObjectFlags(rowObjectPtr, FLAG_CREATABLE);
-				setObjectCreate(rowObjectPtr, 1);
-			    }
-			    $$ = $2;
-			}
-        ;
-
-optsep_createColumns_01: /* empty */
-			{
-			    $$ = NULL;
-			}
-        |		optsep createColumns
-			{
-			    $$ = $2;
-			}
-        ;
-
-createColumns:		'(' optsep qlcIdentifierList optsep ')'
-			{
-			    $$ = $3;
+			    $$ = 0;
 			}
         ;
 

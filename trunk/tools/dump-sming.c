@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.62 2000/02/12 14:31:54 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.63 2000/02/13 13:20:53 strauss Exp $
  */
 
 #include <config.h>
@@ -1211,6 +1211,12 @@ int dumpSming(char *modulename, int flags)
     }
 	
     printRevisions(smiModule);
+
+    smiNode = smiGetModuleIdentityNode(smiModule);
+    if (smiNode) {
+	printSegment(INDENT, "identity", INDENTVALUE);
+	print("%s;\n\n", smiNode->name);
+    }
     
     printTypedefs(smiModule);
     
