@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.29 1999/06/08 20:16:02 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.30 1999/06/09 19:43:30 strauss Exp $
  */
 
 %{
@@ -387,13 +387,15 @@ module:			moduleName
 			declarationPart
 			END
 			{
-			    /* TODO
-			    PendingNode *p;
-			    
-			    if ((thisParserPtr->modulePtr->flags & FLAG_SMIV2) &&
-				(thisParserPtr->modulePtr->numModuleIdentities < 1)) {
-			        printError(parser, ERR_NO_MODULE_IDENTITY);
+			    if ((thisModulePtr->flags & FLAG_SMIV2) &&
+				(thisModulePtr->numModuleIdentities < 1) &&
+				strcmp(thisModulePtr->name, "SNMPv2-SMI") &&
+				strcmp(thisModulePtr->name, "SNMPv2-CONF") &&
+				strcmp(thisModulePtr->name, "SNMPv2-TC")) {
+			        printError(thisParserPtr,
+					   ERR_NO_MODULE_IDENTITY);
 			    }
+			    /* TODO
 			    for (p = firstPendingNode; p; p = p->next) {
 				printError(parser, ERR_UNKNOWN_OIDLABEL,
 					   p->descriptor->name);
@@ -735,7 +737,9 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			        printError(thisParserPtr, ERR_OIDNAME_32, $1);
 			    }
 			    if (thisParserPtr->modulePtr->flags & FLAG_SMIV2) {
-			        if (strchr($1, '-')) {
+			        if (strchr($1, '-') &&
+				    (strcmp($1, "mib-2") ||
+				  strcmp(thisModulePtr->name, "SNMPv2-SMI"))) {
 				    printError(thisParserPtr,
 					       ERR_OIDNAME_INCLUDES_HYPHEN,
 					       $1);
