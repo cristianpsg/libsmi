@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.12 2002/05/17 12:55:55 schoenw Exp $
+# @(#) $Id: makefile,v 1.13 2002/05/25 12:19:22 strauss Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -98,7 +98,9 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-python.obj		\
 	$(TMPDIR)\dump-perl.obj			\
 	$(TMPDIR)\dump-scli.obj			\
-	$(TMPDIR)\dump-xsd.obj
+	$(TMPDIR)\dump-xsd.obj			\
+	$(TMPDIR)\dump-sppi.obj			\
+	$(TMPDIR)\dump-smiv3.obj
 
 SMIDIFFOBJS =					\
 	$(TMPDIR)\smidiff.obj
