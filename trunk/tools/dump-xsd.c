@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.41 2002/07/25 18:17:38 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.42 2002/09/18 13:06:52 tklie Exp $
  */
 
 #include <config.h>
@@ -119,6 +119,19 @@ getStringAccess( SmiAccess smiAccess )
     }
 }
 
+static int pow( int base, int exponent )
+{
+  int i;
+  
+  if( exponent == 0 ) {
+    return 1;
+  }
+
+  for( i = 1; i < exponent; i++ ) {
+    base *= base;
+  }
+  return base;
+}
 
 
 
@@ -546,6 +559,39 @@ dhInParent( SmiType *smiType ) {
    
 }
 
+#define MD_DH_INT_NORMAL   1
+#define MD_DH_INT_DECIMAL  2
+#define MD_DH_INT_BIN      3
+#define MD_DH_INT_OCT      4
+#define MD_DH_INT_HEX      5
+
+/* parse a (integer) displaty hint and specify the offset, if used */
+static int getIntDHType( char *hint, int *offset )
+{
+    switch( hint[ 0 ] ) {
+
+    case 'd':
+	if( hint[1] ) {
+	    *offset = 0;
+	    *offset = atoi( &hint[2] );
+	    return MD_DH_INT_DECIMAL;
+	}
+	return MD_DH_INT_NORMAL;
+
+    case 'b':
+	/* binary value */
+	return MD_DH_INT_BIN;
+    case 'o':
+	/* octet value */
+	return MD_DH_INT_OCT;
+    case 'x':
+	/* hex value */
+	return MD_DH_INT_HEX;
+    default:
+	/* should not occur */
+	return 0;
+    }
+}
 
 
 static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
@@ -558,9 +604,26 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
     case SMI_BASETYPE_INTEGER32:
     {
 	SmiInteger32 min = -2147483647, max = -2147483647;
-	
-	fprintStdRestHead( f, indent, smiType );
-	
+	int offset, useDecPoint = 0;
+
+	if( smiType->format ) {
+	  /* we have a display hint here, so check if we have to use
+	     a decimal point */
+	  useDecPoint =  
+	    getIntDHType( smiType->format, &offset ) == MD_DH_INT_DECIMAL; 
+	  /* xxx: other display hint types (binary, oct, hex) */
+	}
+
+	if( useDecPoint ) {
+	  fprintSegment( f, indent,
+			 "<xsd:restriction base=\"xsd:decimal\">\n", 0 );
+	  fprintSegment( f, indent + INDENT, "<xsd:fractionDigits", 0 );
+	  fprintf( f, "=\"%d\"/>\n", offset );
+	}
+	else {
+	  fprintStdRestHead( f, indent, smiType );
+	}
+
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
 	    if( min == -2147483647 ||
@@ -574,11 +637,27 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    smiRange = smiGetNextRange( smiRange );
 	}
 	
-	fprintSegment( f, indent + INDENT, "<xsd:minInclusive", 0 );
-	fprintf( f, " value=\"%d\"/>\n", (int)min );
+	/* print minimu value */
+	fprintSegment( f, indent + INDENT, "<xsd:minInclusive", 0 );	
+	if( useDecPoint ) {
+	  fprintf( f, " value=\"%d.%d\"/>\n", 
+		   (int)min / pow( 10, offset ), 
+		   abs( (int)min % pow( 10, offset ) ) );
+	}
+	else {
+	  fprintf( f, " value=\"%d\"/>\n", (int)min );
+	}
 
+	/* print maximum value */
 	fprintSegment( f, indent + INDENT, "<xsd:maxInclusive", 0 );
-	fprintf( f, " value=\"%d\"/>\n", (int)max );
+	if( useDecPoint ) {
+	  fprintf( f, " value=\"%d.%d\"/>\n", 
+		   (int)max / pow( 10, offset ), 
+		   abs( (int)max % pow( 10, offset ) ) );
+	}
+	else {
+	  fprintf( f, " value=\"%d\"/>\n", (int)max );
+	}
 	
 	fprintSegment(f, indent, "</xsd:restriction>\n", 0);
 	break;
@@ -1275,40 +1354,6 @@ static void fprintComplexType( FILE *f, int indent,
 	if( iterNode->nodekind == SMI_NODEKIND_NODE ) {
 	    fprintComplexType( f, indent, iterNode, iterNode->name );
 	}
-    }
-}
-
-#define MD_DH_INT_NORMAL   1
-#define MD_DH_INT_DECIMAL  2
-#define MD_DH_INT_BIN      3
-#define MD_DH_INT_OCT      4
-#define MD_DH_INT_HEX      5
-
-/* parse a (integer) displaty hint and specify the offset, if used */
-static int getIntDHType( char *hint, int *offset )
-{
-    switch( hint[ 0 ] ) {
-
-    case 'd':
-	if( hint[1] ) {
-	    *offset = 0;
-	    *offset = atoi( &hint[2] );
-	    return MD_DH_INT_DECIMAL;
-	}
-	return MD_DH_INT_NORMAL;
-
-    case 'b':
-	/* binary value */
-	return MD_DH_INT_BIN;
-    case 'o':
-	/* octet value */
-	return MD_DH_INT_OCT;
-    case 'x':
-	/* hex value */
-	return MD_DH_INT_HEX;
-    default:
-	/* should not occur */
-	return 0;
     }
 }
 
