@@ -7,7 +7,7 @@ Copyright (c) 1999-2004 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.29 2002/12/22 16:12:23 strauss Exp $
+@(#) $Id$
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany in 1999.
@@ -23,6 +23,9 @@ This software comprises
 
  - a set of tools based on the library to check, convert, and compare
    MIB and PIB modules.
+
+ - a collection of all published IETF and IANA Standards Track MIB
+   and PIB modules and some more.
 
 Please read the manual pages and the project's web pages for further
 information.
@@ -122,7 +125,7 @@ Please note that SMIng is currently in a quite inconsistent and
 outdated state. It does *not* reflect what is being specified in RFCs
 3780/3781.  Therefore, SMIng is not enabled by default. See the old
 specs in doc/draft-irtf-nmrg-sming-02.txt for details on SMIng as it
-is implemented so far. But it is probably not worth reading. :-)
+is implemented.
 
 You may find further information online, along with the subscription
 information on the libsmi mailing list at
