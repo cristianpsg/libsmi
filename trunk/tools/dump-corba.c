@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.9 2000/02/07 16:10:41 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.10 2000/02/08 21:39:22 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -874,7 +874,7 @@ static void printAttribute(SmiNode *smiNode)
 
     smiType = smiGetNodeType(smiNode);
     smiModule = smiGetTypeModule(smiType);
-    if (smiModule) {
+    if (smiModule && strlen(smiModule->name)) {
 	idlTypeName = getIdlTypeName(smiModule->name, smiType->name);
     } else {
 	idlTypeName = getBaseTypeString(smiNode->basetype);
@@ -1014,7 +1014,7 @@ static void printConstructor(SmiNode *smiNode)
 			       childNode->name);
 	    smiType = smiGetNodeType(childNode);
 	    smiModule = smiGetTypeModule(smiType);
-	    if (smiModule) {
+	    if (smiModule && strlen(smiModule->name)) {
 		idlChildTypeName = getIdlTypeName(smiModule->name,
 						  smiType->name);
 	    } else {
@@ -1093,7 +1093,7 @@ static void printNotificationVBTypes(SmiModule *smiModule)
 		printSegment(2*INDENT, "", 0);
 		smiType = smiGetNodeType(listSmiNode);
 		smiModule2 = smiGetTypeModule(smiType);
-		if (smiModule2) {
+		if (smiModule2 && strlen(smiModule2->name)) {
 		    idlTypeName = getIdlTypeName(smiModule2->name,
 						 smiType->name);
 		} else {
@@ -1279,7 +1279,7 @@ static void printDefVals(SmiModule *smiModule)
 	    printSegment(2*INDENT, "", 0);
 	    smiType = smiGetNodeType(smiNode);
 	    smiModule2 = smiGetTypeModule(smiType);
-	    if (smiModule2) {
+	    if (smiModule2 && strlen(smiModule2->name)) {
 		idlTypeName = getIdlTypeName(smiModule2->name, smiType->name);
 	    } else {
 		idlTypeName = getBaseTypeString(smiNode->basetype);

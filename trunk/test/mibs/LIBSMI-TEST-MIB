@@ -4,10 +4,10 @@ IMPORTS
     MODULE-IDENTITY
         FROM SNMPv2-SMI
     ibr
-        FROM TUBS-REGISTRATION;
+        FROM TUBS-SMI;
 
 testMib MODULE-IDENTITY
-    LAST-UPDATED    "199906101500Z"
+    LAST-UPDATED    "200002090000Z"
     ORGANIZATION    
             "TU Braunschweig"
     CONTACT-INFO    
@@ -30,9 +30,12 @@ testMib MODULE-IDENTITY
 	     is the test number. Each module's MODULE-IDENTITY
 	     DESCRIPTION describes the expected or suggested behaviour
 	     of MIB parsers when reading that module."
+    REVISION        "200002090000Z"
+    DESCRIPTION
+            "Changed the module registration to resolve a conflict."
     REVISION        "199906101500Z"
     DESCRIPTION     
             "Initial Revision."
-    ::= { ibr 1 }
+    ::= { ibr 9 }
 
 END

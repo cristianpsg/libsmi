@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.58 2000/02/08 14:46:03 strauss Exp $
+ * @(#) $Id: smi.h,v 1.59 2000/02/08 21:39:22 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -207,6 +207,7 @@ typedef struct SmiImport {
 /* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
 typedef struct SmiMacro {
     SmiIdentifier       name;
+    SmiIdentifier       module;
     SmiDecl             decl;
     SmiStatus           status;
     char                *description;
@@ -216,6 +217,7 @@ typedef struct SmiMacro {
 /* SmiType -- the main structure of a type definition (also base types)      */
 typedef struct SmiType {
     SmiIdentifier       name;
+    SmiIdentifier       module;
     SmiBasetype         basetype;
     SmiDecl             decl;
     char                *format;
@@ -229,6 +231,7 @@ typedef struct SmiType {
 /* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
     SmiIdentifier       name;
+    SmiIdentifier       module;
     int			oidlen;
     SmiSubid		*oid;         /* array of length oidlen */
     SmiDecl             decl;
@@ -312,7 +315,8 @@ extern SmiImport *smiGetNextImport(SmiImport *smiImportPtr);
 
 extern void smiFreeImport(SmiImport *smiImportPtr);
 
-extern int smiIsImported(SmiModule *smiModulePtr, SmiNode *smiNodePtr);
+extern int smiIsImported(SmiModule *smiModulePtr,
+			 SmiModule *importedModulePtr, char *importedName);
 
 extern SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr);
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.h,v 1.13 1999/12/21 09:16:23 strauss Exp $
+ * @(#) $Id: util.h,v 1.14 1999/12/21 12:32:09 strauss Exp $
  */
 
 #ifndef _UTIL_H
@@ -42,6 +42,8 @@
 #define strtoll strtol
 #endif
 #endif
+
+extern void *util_calloc(size_t n, size_t size);
 
 extern void *util_malloc(size_t size);
 
