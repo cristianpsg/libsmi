@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.115 2002/05/29 16:20:56 strauss Exp $
+ * @(#) $Id: data.c,v 1.116 2002/05/31 17:22:13 bunkus Exp $
  */
 
 #include <config.h>
@@ -3452,7 +3452,12 @@ void smiFreeData()
 	smiFree(viewPtr);
     }
 
-    for (modulePtr = smiHandle->firstModulePtr; modulePtr; modulePtr = nextModulePtr) {
+    /*
+     * In this first module loop we remove each module's imports,
+     * revisions, macros, and objects.
+     */
+    for (modulePtr = smiHandle->firstModulePtr; modulePtr;
+	 modulePtr = nextModulePtr) {
 	nextModulePtr = modulePtr->nextPtr;
 
 	for (importPtr = modulePtr->firstImportPtr; importPtr;
@@ -3520,7 +3525,17 @@ void smiFreeData()
 	    }
 	    smiFree(objectPtr);
 	}
-	
+    }
+
+    /*
+     * In this second module loop we remove each module's types
+     * and the modules themselves. This separation is required, because
+     * we reference some types of foreign modules in the first loop.
+     */
+    for (modulePtr = smiHandle->firstModulePtr; modulePtr;
+	 modulePtr = nextModulePtr) {
+	nextModulePtr = modulePtr->nextPtr;
+
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = nextTypePtr) {
 	    nextTypePtr = typePtr->nextPtr;
