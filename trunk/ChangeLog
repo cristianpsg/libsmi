@@ -1,3 +1,8 @@
+2001-04-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-xml.c: Fixed DOCTYPE root identifier to contain
+	no namespace prefix. Thanks to Andreas Goll.
+
 2001-04-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.2.16.tar.gz: released version 0.2.16.
