@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.71 2002/12/06 18:37:46 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.72 2003/06/16 15:17:42 schoenw Exp $
  */
 
 %{
@@ -1480,7 +1480,7 @@ columnStatement:	columnKeyword sep lcIdentifier
 			    if (columnObjectPtr && $19
                                 && smiCheckFormat(thisParserPtr,
 						  $11->export.basetype,
-						  $19, 0) {
+						  $19, 0)) {
 				setObjectFormat(columnObjectPtr, $19);
 			    }
 			}
