@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.42 2001/09/18 11:04:42 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.43 2002/03/05 16:19:59 strauss Exp $
  */
 
 #include <config.h>
@@ -36,7 +36,7 @@
 extern int smiGetErrorSeverity(int id);
 extern char* smiGetErrorTag(int id);
 extern char* smiGetErrorMsg(int id);
-
+extern char* smiGetErrorDescription(int id);
 
 
 static int mFlag = 0;	/* show the name for error messages */
@@ -50,7 +50,34 @@ typedef struct Error {
     int severity;
     char *tag;
     char *msg;
+    char *description;
+    int used;
 } Error;
+
+
+static Error *errors = NULL;
+
+
+static void fold(FILE *f, int indent, const char *msg)
+{
+    const char *p, *s;
+
+    if (! msg) {
+	fprintf(f, "\n");
+	return;
+    }
+
+    for (s = msg; *s; s++) {
+	for (p = s; *p && *p != '\n'; p++) ;
+	if (*p) {
+	    fprintf(f, "%.*s\n%*s", p - s, s, indent, "");
+	    s = p;
+	} else {
+	    fprintf(f, "%.*s\n", p - s, s);
+	    break;
+	}
+    }
+}
 
 
 
@@ -70,41 +97,82 @@ static int compare(const void *v1, const void *v2)
 
 
 
-static void errors()
+static Error* errors_new()
 {
-    int i;
-    size_t cnt;
+    int i, cnt;
     Error *errors;
     
-    for (cnt = 0, i = 0; smiGetErrorSeverity(i) >= 0; i++) {
-	cnt++;
-    }
+    for (cnt = 0; smiGetErrorSeverity(cnt) >= 0; cnt++) ;
     
-    errors = malloc(cnt * sizeof(Error));
+    errors = malloc((cnt + 1) * sizeof(Error));
     if (! errors) {
 	fprintf(stderr, "smilint: malloc failed - running out of memory\n");
 	exit(1);
     }
     memset(errors, 0, cnt * sizeof(Error));
-    for (i = 0; i < (int)cnt; i++) {
+
+    for (i = 0; i < cnt; i++) {
 	errors[i].id = i;
 	errors[i].severity = smiGetErrorSeverity(i);
 	errors[i].tag = smiGetErrorTag(i);
 	errors[i].msg = smiGetErrorMsg(i);
+	errors[i].description = smiGetErrorDescription(i);
     }
 
     qsort(errors, cnt, sizeof(Error), compare);
+
+    return errors;
+}
+
+
+static void display_one(FILE *f, Error *error)
+{
+    const int indent = 12;
+    char *type, *tag;
+
+    type = (error->severity <= 3) ? "Error:" : "Warning:";
+    tag = (error->tag && strlen(error->tag))
+	? error->tag : "<xxx-missing-xxx>";
+    fprintf(f, "%-*s %s (level %d)\n",
+	    indent, type, tag, error->severity);
+    fprintf(f, "%-*s %s\n", indent, "Message:",
+	    error->msg ? error->msg : "");
+    fprintf(f, "%-*s ", indent, "Description:");
+    fold(f, indent + 1, error->description);
+}
+
+
+static void display_all(Error *errors)
+{
+    int i;
     
-    for (i = 0; i < (int)cnt; i++) {
-	if (sFlag) {
-	    printf("[%d] %s (%s)\n",
-		   errors[i].severity, errors[i].msg, errors[i].tag);
-	} else {
-	    printf("%s (%s)\n", errors[i].msg, errors[i].tag);
-	}
+    for (i = 0; errors[i].msg; i++) {
+	if (i) printf("\n");
+	display_one(stdout, errors + i);
     }
-    
-    free(errors);
+}
+
+
+
+static void display_used(Error *errors)
+{
+    int i, n;
+
+    for (i = 0, n = 0; errors[i].msg; i++) {
+	if (errors[i].used) n++;
+    }
+
+    if (! n) {
+	return;
+    }
+
+    fprintf(stderr, "\nDescription of error/warning messages:\n"); 
+
+    for (i = 0; errors[i].msg; i++) {
+	if (! errors[i].used) continue;
+	if (i) fprintf(stderr, "\n");
+	display_one(stderr, errors + i);
+    }
 }
 
 
@@ -140,6 +208,8 @@ static void ignore(char *ign) { smiSetSeverity(ign, 9999); }
 static void
 errorHandler(char *path, int line, int severity, char *msg, char *tag)
 {
+    int i;
+    
     if (path) {
 	fprintf(stderr, "%s:%d: ", path, line);
     }
@@ -153,6 +223,20 @@ errorHandler(char *path, int line, int severity, char *msg, char *tag)
 
     if (severity <= 0) {
 	exit(1);
+    }
+
+    /* If we are supposed to generate error descriptions, locate this
+     * error in our error list and increment its usage counter. Note
+     * that we assume that error tags are unique (and we should better
+     * check for this somewhere). */
+
+    if (errors) {
+	for (i = 0; errors[i].msg; i++) {
+	    if (strcmp(errors[i].tag, tag) == 0) {
+		errors[i].used++;
+		break;
+	    }
+	}
     }
 }
 
@@ -192,12 +276,21 @@ int main(int argc, char *argv[])
 
     optParseOptions(&argc, argv, opt, 0);
 
+    if (eFlag) {
+	mFlag = 1;
+	errors = errors_new();
+    }
+
     if (sFlag || mFlag) {
 	smiSetErrorHandler(errorHandler);
     }
 
-    if (eFlag) {
-	errors();
+    if (eFlag && argc == 1) {
+	if (errors) {
+	    display_all(errors);
+	    free(errors);
+	}
+	smiExit();
 	return 0;
     }
     
@@ -207,6 +300,13 @@ int main(int argc, char *argv[])
 		    argv[i]);
 	    smiExit();
 	    exit(1);
+	}
+    }
+
+    if (eFlag) {
+	if (errors) {
+	    display_used(errors);
+	    free(errors);
 	}
     }
 
