@@ -20,7 +20,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.5 1999/06/08 20:24:23 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.6 1999/06/09 19:43:34 strauss Exp $
 #
 
 
@@ -72,9 +72,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 BISON = @BISON@
 CC = @CC@
 CFLAGS = @CFLAGS@
+DLLTOOL = @DLLTOOL@
 FLEX = @FLEX@
 LD = @LD@
 LIBTOOL = @LIBTOOL@
@@ -82,6 +84,7 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NM = @NM@
+OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STATIC = @STATIC@
@@ -91,10 +94,13 @@ smipath = @smipath@
 
 TESTMIBS = SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
 
-TESTS = smilint.test smidump-1.test smidump-2.test
+TESTS = smilint.test smidump-1.test smidump-2.test 			  smidump-3.test
+
+
 TESTS_ENVIRONMENT = SMIPATH=@smipath@ TESTMIBS="$(TESTMIBS)"
 
-EXTRA_DIST = smilint.test smidump-1.test smidump-2.test
+EXTRA_DIST = smilint.test smidump-1.test smidump-2.test 			  smidump-3.test 			  filter
+
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
@@ -224,8 +230,6 @@ all-redirect all-am all installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
-
-#CLEANFILES		= smilint.out smidump-1.out smidump-2.out
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

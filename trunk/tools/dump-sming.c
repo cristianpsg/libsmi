@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.36 1999/06/08 20:16:18 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.37 1999/06/09 20:14:59 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -683,7 +683,8 @@ static void printObjects(char *modulename)
 	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
 
 	if ((smiNode->decl == SMI_DECL_NODE) ||
-	    (smiNode->decl == SMI_DECL_VALUEASSIGNMENT)) {
+	    (smiNode->decl == SMI_DECL_VALUEASSIGNMENT) ||
+	    (smiNode->decl == SMI_DECL_OBJECTIDENTITY)) {
 	    indent = 0;
 	    s = "node";
 	} else if ((smiNode->decl == SMI_DECL_TABLE) ||

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.10 1999/06/02 16:52:38 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.11 1999/06/09 19:43:37 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -568,9 +568,12 @@ static void printObjects(char *modulename)
     for(smiNode = smiGetFirstNode(modulename, SMI_DECL_UNKNOWN);
 	smiNode; smiNode = smiGetNextNode(smiNode, SMI_DECL_UNKNOWN)) {
 
-	if ((smiNode->decl == SMI_DECL_NODE) ||
+	if (((smiNode->decl == SMI_DECL_NODE) && (!smiNode->description)) ||
 	    (smiNode->decl == SMI_DECL_VALUEASSIGNMENT)) {
 	    print("%s OBJECT IDENTIFIER\n", smiNode->name);
+	} else if ((smiNode->decl == SMI_DECL_NODE) ||
+		   (smiNode->decl == SMI_DECL_OBJECTIDENTITY)) {
+	    print("%s OBJECT-IDENTITY\n", smiNode->name);
 	} else if ((smiNode->decl == SMI_DECL_TABLE) ||
 		   (smiNode->basetype == SMI_BASETYPE_SEQUENCEOF)) {
 	    print("%s OBJECT-TYPE\n", smiNode->name);
@@ -595,33 +598,38 @@ static void printObjects(char *modulename)
 	if ((smiNode->decl != SMI_DECL_NODE) &&
 	    (smiNode->decl != SMI_DECL_VALUEASSIGNMENT)) {
 	    
-	    printSegment(INDENT, "SYNTAX", INDENTVALUE);
-	    if ((smiNode->decl == SMI_DECL_TABLE) ||
-		   (smiNode->basetype == SMI_BASETYPE_SEQUENCEOF)) {
-		print("SEQUENCE OF ");
-		rowNode = smiGetFirstChildNode(smiNode);
-		print("%s\n", rowNode->typename);
-		/* TODO: print non-local name qualified */
-	    } else if ((smiNode->decl == SMI_DECL_ROW) ||
-		   (smiNode->basetype == SMI_BASETYPE_SEQUENCE)) {
-		print("%s\n", smiNode->typename);
-		/* TODO: print non-local name qualified */
-	    } else if (smiNode->typename) {
-		if (islower((int)smiNode->typename[0])) {
-		    /*
-		     * an implicitly restricted type.
-		     */
-		    smiType = smiGetType(smiNode->typemodule,
-					 smiNode->typename);
-		    print("%s", getTypeString(modulename, smiType->basetype,
-					      smiType->parentmodule,
-					      smiType->parentname));
-		    printSubtype(smiType);
-		    print("\n");
-		} else {
-		    print("%s\n", getTypeString(modulename, smiNode->basetype,
-						smiNode->typemodule,
-						smiNode->typename));
+	    if ((smiNode->basetype != SMI_BASETYPE_UNKNOWN) ||
+		(smiNode->typename)) {
+		printSegment(INDENT, "SYNTAX", INDENTVALUE);
+		if ((smiNode->decl == SMI_DECL_TABLE) ||
+		    (smiNode->basetype == SMI_BASETYPE_SEQUENCEOF)) {
+		    print("SEQUENCE OF ");
+		    rowNode = smiGetFirstChildNode(smiNode);
+		    print("%s\n", rowNode->typename);
+		    /* TODO: print non-local name qualified */
+		} else if ((smiNode->decl == SMI_DECL_ROW) ||
+			   (smiNode->basetype == SMI_BASETYPE_SEQUENCE)) {
+		    print("%s\n", smiNode->typename);
+		    /* TODO: print non-local name qualified */
+		} else if (smiNode->typename) {
+		    if (islower((int)smiNode->typename[0])) {
+			/*
+			 * an implicitly restricted type.
+			 */
+			smiType = smiGetType(smiNode->typemodule,
+					     smiNode->typename);
+			print("%s", getTypeString(modulename,
+						  smiType->basetype,
+						  smiType->parentmodule,
+						  smiType->parentname));
+			printSubtype(smiType);
+			print("\n");
+		    } else {
+			print("%s\n", getTypeString(modulename,
+						    smiNode->basetype,
+						    smiNode->typemodule,
+						    smiNode->typename));
+		    }
 		}
 	    }
 	    
@@ -629,10 +637,12 @@ static void printObjects(char *modulename)
 		printSegment(INDENT, "UNITS", INDENTVALUE);
 		print("\"%s\"\n", smiNode->units);
 	    }
-	    
-	    printSegment(INDENT, "MAX-ACCESS", INDENTVALUE);
-	    print("%s\n", smiStringAccess(smiNode->access));
-	    /* TODO: read-create */
+
+	    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
+		printSegment(INDENT, "MAX-ACCESS", INDENTVALUE);
+		print("%s\n", smiStringAccess(smiNode->access));
+		/* TODO: read-create */
+	    }
 		
 	    printSegment(INDENT, "STATUS", INDENTVALUE);
 	    print("%s\n", smiStringStatus(smiNode->status));

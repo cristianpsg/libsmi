@@ -5,10 +5,8 @@ mkdir smidump-1.out
 
 RC=0
 
-echo "Dumping SMIv2 modules in SMIng format..."
-
 for mib in ${TESTMIBS} ; do
-    echo $mib
+    echo "$mib: dumping SMIv2 module in SMIng format."
     ../tools/smidump -fsming $mib > smidump-1.out/$mib.sming
     if [ $? -ne 0 ] ; then
 	echo "see directory smidump-1.out for results on $mib."
