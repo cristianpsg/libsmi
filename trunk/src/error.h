@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.1.1.1 1998/10/09 10:16:33 strauss Exp $
+ * @(#) $Id: error.h,v 1.2 1998/10/27 13:32:43 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -89,6 +89,7 @@
 #define ERR_MISSING_DESCRIPTION			 69
 #define ERR_OIDLABEL_NOT_FIRST			 70
 #define ERR_UNKNOWN_TYPE			 71
+#define ERR_LOCATION				 72
 
 
 #define yyerror(msg) printError(parser, ERR_OTHER_ERROR, msg)
@@ -99,7 +100,6 @@ extern int column;			 /* Current column in current line.  */
 extern int character;			 /* Current absolute byte position.  */
 extern char linebuf[MAX_LINEBUF_LENGTH]; /* Current line up to current pos.  */
 
-extern int printErrorLines;		 /* Verbose error lines		     */
 extern int errorLevel;                   /* Higher level for more warnings   */
 extern int debugLevel;                   /* Higher level for more messages   */
 

@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id$
+ * @(#) $Id: config.c,v 1.1 1998/11/04 02:14:51 strauss Exp $
  */
 
 #include <stdio.h>
@@ -66,7 +66,10 @@ readConfig(filename, flags)
 		else
 		    *flags &= ~FLAG_RECURSIVE;
 	    } else if (!strcmp(cmd, "errorlines")) {
-		printErrorLines = atoi(arg1);
+		if (atoi(arg1))
+		    *flags |= FLAG_ERRORLINES;
+		else
+		    *flags &= ~FLAG_ERRORLINES;
 	    } else {
 		printError(NULL, ERR_UNKNOWN_CONFIG_DIRECTIVE,
 			   filename, cmd);

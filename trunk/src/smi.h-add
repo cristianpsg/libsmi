@@ -1,0 +1,73 @@
+/*
+ * smi.h-add --
+ *
+ *      Additions to smi.h which are not RPC but libsmi API specific.
+ *
+ * Copyright (c) 1998 Technical University of Braunschweig.
+ *
+ * See the file "license.terms" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ * @(#) $Id$
+ */
+
+#ifndef _SMI_H_ADD
+#define _SMI_H_ADD
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#define SMI_ERRORS      0x1000
+#define SMI_ERRORLINES  0x2000
+#define SMI_STATS       0x4000
+#define SMI_RECURSIVE   0x8000
+#define SMI_FLAGMASK    (SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
+
+/*
+ * Set the blank separated list of locations to look for MIB information.
+ * Elements may be of these forms:
+ *   file or /abs/path/to/file - a local file, which may be a plain
+ *			         ascii file containing one or more modules
+ *			         or a dbm file or a directory. files are
+ *			         are loaded immediately. directories are
+ *			         just remembered for following lookups.
+ *   smirpc://server/	       - a remote RPC server serving smi requests.
+ */
+extern int smiSetSmiSearchList(const char *searchlist);
+
+/*
+ * Add a MIB module to the set of known modules. It is searched along
+ * the previously set search list.
+ */
+extern int smiLoadMibModule(const char *modulename);
+
+/*
+ * TODO: functions similar to those in smi.x
+ */
+
+/*
+ * TODO: status and (cache-)config functions ?
+ */
+
+extern void smiSetDebugLevel(int level);
+
+extern void smiSetErrorLevel(int level);
+
+extern void smiSetFlags(int flags);
+
+extern int smiReadConfig(const char *file);
+
+extern int smiAddLocation(const char *location);
+
+extern int smiLoadMibModule(const char *modulename);
+
+extern void smiSetDebugLevel(int level);
+
+extern void smiSetErrorLevel(int level);
+
+extern void smiSetFlags(int userflags);
+
+extern int smiReadConfig(const char *file);
+
+#endif /* _SMI_H_ADD */
