@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.2 1998/11/10 21:42:12 strauss Exp $
+ * @(#) $Id: smi.c,v 1.3 1998/11/16 09:00:10 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -34,15 +34,6 @@ static int flags;
 static int initialized = 0;
 
 
-int
-isSmiRpc(name)
-    const char *name;
-{
-    return strstr(name, "smirpc://") == name ? 1 : 0;
-}
-
-
-
 void
 smiInit()
 {
@@ -56,23 +47,9 @@ int
 smiAddLocation (location)
     const char *location;
 {
-    struct stat st;
-
     if (!initialized) smiInit();
     
-    if (isSmiRpc(location)) {
-	
-    } else {
-	if (stat(location, &st)) {
-	    printError(NULL, ERR_LOCATION, location, strerror(errno));
-	} else {
-	    if (S_ISDIR(st.st_mode)) {
-		addDirectory(location);
-	    } else {
-		readMibFile(location, "", flags | FLAG_WHOLEFILE);
-	    }
-	}
-    }
+    addLocation(location, flags);
  
     return 0;
 }
@@ -85,6 +62,7 @@ smiLoadMibModule(modulename)
     if (!initialized) smiInit();
     
     /* TODO */
+    
     readMibFile(modulename, modulename, flags | FLAG_WHOLEMOD);
 
     return 0;

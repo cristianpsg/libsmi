@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.12 1998/11/02 19:29:03 strauss Exp $
+ * @(#) $Id: parser.y,v 1.13 1998/11/04 02:14:59 strauss Exp $
  */
 
 %{
@@ -452,9 +452,10 @@ import:			importIdentifiers FROM moduleName
 			/* TODO: multiple clauses with same moduleName
 			 * allowed? I guess so. refer ASN.1! */
 			{
-			    char *path;
+			    Location *loc;
 			    int flags;
-			    
+			    char path[MAX_PATH_LENGTH*2+2];
+				
 			    if (!strcmp($3, "SNMPv2-SMI")) {
 			        /*
 				 * A module that imports from SNMPv2-SMI
@@ -474,17 +475,17 @@ import:			importIdentifiers FROM moduleName
 				if (!(flags & FLAG_RECURSIVE)) {
 				    flags &= ~(FLAG_ERRORS | FLAG_STATS);
 				}
-				path = findFileByModulename($3);
-				if (!path) {
+				loc = findLocationByModulename($3);
+				if (!loc) {
 				    printError(parser, ERR_MODULE_NOT_FOUND,
 					       $3);
 				} else {
-				    printError(parser, ERR_INCLUDE, $3, path);
-				    readMibFile(path, $3, flags);
+				    printError(parser, ERR_INCLUDE, $3,
+					       loc->name);
+				    smiLoadMibModule($3);
 				}
 			    }
-			    checkImportDescriptors(findModuleByName($3),
-						   parser);
+			    checkImportDescriptors($3, parser);
 			}
 	;
 
@@ -855,7 +856,6 @@ typeName:		UPPERCASE_IDENTIFIER
 			     * rule will not add a new Descriptor for this
 			     * already known type.
 			     */
-			    /* strcpy($$, ""); */
 			}
 	;
 
@@ -963,6 +963,15 @@ row:			UPPERCASE_IDENTIFIER
 			/* in this case, we do NOT allow `Module.Type' */
 			{
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				/* TODO: smiType() ? */
+				/* TODO: search in local module and
+				 *       in imported modules
+				 */
+				$$ = findTypeByModulenameAndName(
+				    thisModule->descriptor->name, $1);
+				if (! $$) {
+				    
+				
 				$$ = findTypeByName($1);
 				if (! $$) {
 				    /* 
@@ -1499,6 +1508,7 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 			        /* TODO: scope, subtype */
+				/* TODO: smiFindType() ?? */
 				parent = findTypeByName($1);
 				if (!parent) {
 				    /* 
@@ -1545,6 +1555,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				     * forward referenced type. create it,
 				     * marked with FLAG_INCOMPLETE.
 				     */
+				    /* TODO: addModule() if not present and
+				     *       addDescriptor()
+				     */
 				    parent = addType(NULL,
 						     SYNTAX_UNKNOWN,
 						     thisModule,
@@ -1579,6 +1592,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 			        /* TODO: scope */
+				/* TODO: search in local module and
+				 *       in imported modules
+				 */
 				parent = findTypeByName($1);
 				if (!parent) {
 				    /* 
@@ -1678,6 +1694,9 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
 			        /* TODO: scope */
+				/* TODO: search in local module and
+				 *       in imported modules
+				 */
 				parent = findTypeByName($1);
 				if (!parent) {
 				    /* 
@@ -2353,6 +2372,9 @@ subidentifier:
 			    } else {
 
 				/* TODO: replace by ...ByModuleAndName !! */
+				/* TODO: search in local module and
+				 *       in imported modules
+				 */
 				node = findMibNodeByName($1);
 				if (node) {
 				    $$ = node;
@@ -2432,6 +2454,9 @@ subidentifier:
 			{
 			    MibNode *node;
 			    
+			    /* TODO: search in local module and
+			     *       in imported modules
+			     */
 			    node = findMibNodeByName($1); /* TODO AndModule */
 			    if (node) {
 				printError(parser, ERR_EXISTENT_DESCRIPTOR,

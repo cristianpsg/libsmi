@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.2 1998/10/27 13:32:43 strauss Exp $
+ * @(#) $Id: error.h,v 1.3 1998/11/10 20:25:45 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -61,7 +61,7 @@
 #define ERR_OBJECT_IDENTIFIER_REGISTERED	 41
 #define ERR_ALLOCATING_MIBNODE			 42
 #define ERR_OPENING_CONFIGFILE			 43
-#define ERR_ALLOCATING_DIRECTORY		 44
+#define ERR_ALLOCATING_LOCATION			 44
 #define ERR_ALLOCATING_DESCRIPTOR		 45
 #define ERR_OPENING_INPUTFILE			 46
 #define ERR_OPENING_IMPORTFILE			 47

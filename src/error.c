@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.2 1998/10/27 13:32:43 strauss Exp $
+ * @(#) $Id: error.c,v 1.3 1998/11/10 20:25:45 strauss Exp $
  */
 
 #include <string.h>
@@ -131,8 +131,8 @@ Error errors[] = {
       "Allocating MIB node: %s" },
     { 1, ERR_OPENING_CONFIGFILE,
       "Opening configuration file `%s': %s" },
-    { 1, ERR_ALLOCATING_DIRECTORY,
-      "Allocating directory list entry: %s" },
+    { 1, ERR_ALLOCATING_LOCATION,
+      "Allocating location list entry: %s" },
     { 1, ERR_ALLOCATING_DESCRIPTOR,
       "Allocating descriptor: %s" },
     { 1, ERR_OPENING_INPUTFILE,
