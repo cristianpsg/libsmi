@@ -182,6 +182,7 @@ static int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
  * global variables
  */
 static Graph     *graph  = NULL;            /* the graph */
+static int       classNr = 0;
 
 /*
  * help functions
@@ -1888,6 +1889,9 @@ static void printSVGAttribute(SmiNode *node, int index, float *textYOffset)
     printf("    <text x=\"%.2f\" y=\"%.2f\"", ATTRSPACESIZE, *textYOffset);
     *textYOffset += TABLEELEMHEIGHT;
 
+    //FIXME
+    //printf(" textLength=\"100\" lengthAdjust=\"spacingAndGlyphs\"");
+
     if (node->nodekind == SMI_NODEKIND_SCALAR) {
 	printf(" style=\"text-decoration:underline\">\n");
     } else {
@@ -1993,7 +1997,8 @@ static void printSVGObject(GraphNode *node, float x, float y)
     node->dia.y = y;
     node->dia.flags |= DIA_PRINT_FLAG; /* object is now printed */
     
-    printf("  <g transform=\"translate(%.2f,%.2f), scale(1)\">\n", x, y);
+    printf(" <g transform=\"translate(%.2f,%.2f), scale(1)\">\n", x, y);
+    printf("  <g id=\"%i\">\n", classNr);
     printf("    <rect x=\"0\" y=\"0\" width=\"%.2f\" height=\"%.2f\"\n",
            node->dia.w,node->dia.h);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
@@ -2006,6 +2011,24 @@ static void printSVGObject(GraphNode *node, float x, float y)
     printf("    <text x=\"%.2f\" y=\"30\"\n", node->dia.w/2);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
+    //the "+"-button
+    printf("    <g onclick=\"enlarge(%i)\"\n", classNr);
+    printf("       transform=\"translate(%.2f,3)\">\n", node->dia.w - 26);
+    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
+    printf("            style=\"stroke: black; fill: none\"/>\n");
+    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+    printf("          +</text>\n");
+    printf("    </g>\n");
+    //the "-"-button
+    printf("    <g onclick=\"scaledown(%i)\"\n", classNr);
+    printf("       transform=\"translate(%.2f,3)\">\n", node->dia.w - 13);
+    printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" rx=\"2\"\n");
+    printf("            style=\"stroke: black; fill: none\"/>\n");
+    printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
+    printf("          -</text>\n");
+    printf("    </g>\n");
+
+    classNr++;
 
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
@@ -2030,6 +2053,7 @@ static void printSVGObject(GraphNode *node, float x, float y)
     }
 
     printf("  </g>\n");
+    printf(" </g>\n");
 }
 
 /*
@@ -2537,7 +2561,7 @@ static void printSVGConnection(GraphEdge *tEdge)
  * Print title somewhere into the SVG.
  * Make size of SVG configurable.
  */
-static void printSVGHeaderAndTitle(int modc, SmiModule **modv)
+static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount)
 {
     size_t  length1;
     char   *note1;
@@ -2589,7 +2613,31 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv)
     printf("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n");
     printf("  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n");
     printf("<svg width=\"1100\" height=\"600\" version=\"1.1\"\n");
-    printf("     xmlns=\"http://www.w3.org/2000/svg\">\n");
+    printf("     xmlns=\"http://www.w3.org/2000/svg\"\n");
+    printf("     onload=\"init(evt)\">\n");
+
+    //the ecma-script for handling the "+"- and "-"-buttons
+    printf("\n<script type=\"text/ecmascript\">\n<![CDATA[\n\n");
+    printf("var scalFac = new Array(%i);\n\n",nodecount);
+    printf("function init(evt) {\n");
+    printf("    for (i=0; i<%i; i++) {\n",nodecount);
+    printf("        scalFac[i] = 1;\n");
+    printf("    }\n");
+    printf("}\n\n");
+    printf("function enlarge(classNr) {\n");
+    printf("    var obj = svgDocument.getElementById(classNr);\n");
+    printf("    scalFac[classNr] = scalFac[classNr] * 1.1;\n");
+    printf("    obj.setAttribute(\"transform\",");
+    printf("\"scale(\"+scalFac[classNr]+\")\");\n");
+    printf("}\n\n");
+    printf("function scaledown(classNr) {\n");
+    printf("    var obj = svgDocument.getElementById(classNr);\n");
+    printf("    scalFac[classNr] = scalFac[classNr] / 1.1;\n");
+    printf("    obj.setAttribute(\"transform\",");
+    printf("\"scale(\"+scalFac[classNr]+\")\");\n");
+    printf("}\n\n");
+    printf("// ]]>\n</script>\n\n");
+
     printf("  <title>%s</title>\n", note1);
 
 #ifdef DOT
@@ -2734,13 +2782,14 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphNode *tNode;
     GraphEdge *tEdge;
     float     x,y,ydiff;
-    int       group;
+    int       group, nodecount = 0;
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {	
 	tNode = diaCalcSize(tNode);
+	nodecount++;
     }
 
-    printSVGHeaderAndTitle(modc, modv);
+    printSVGHeaderAndTitle(modc, modv, nodecount);
     
     x = XOFFSET;
     y = YOFFSET;
