@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.37 2000/12/05 10:04:56 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.38 2001/03/08 14:49:46 schoenw Exp $
  */
 
 #include <config.h>
@@ -196,13 +196,12 @@ int main(int argc, char *argv[])
 	return 0;
     }
     
-    while (optind < argc) {
-	if (smiLoadModule(argv[optind]) == NULL) {
+    for (i = 1; i < argc; i++) {
+	if (smiLoadModule(argv[i]) == NULL) {
 	    fprintf(stderr, "smilint: cannot locate module `%s'\n",
-		    argv[optind]);
+		    argv[i]);
 	    exit(1);
 	}
-	optind++;
     }
 
     smiExit();

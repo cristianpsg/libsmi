@@ -1,5 +1,10 @@
 2001-04-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* libsmi-0.2.16.tar.gz: released version 0.2.16.
+
+	* tools/smilint.c, smiquery.c: fixed obsolete use of the
+	optind variable.
+
 	* libsmi-0.2.15.tar.gz: released version 0.2.15.
 
 	* tools/dump-stools.c: Update for stools >= 0.1.16.
