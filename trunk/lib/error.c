@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.76 2001/09/21 11:16:06 strauss Exp $
+ * @(#) $Id: error.c,v 1.77 2001/09/25 07:17:15 schoenw Exp $
  */
 
 #include <config.h>
@@ -330,6 +330,8 @@ static Error errors[] = {
       "overlapping range limits" },
     { 6, ERR_RANGES_NOT_ASCENDING, "range-ascending",
       "ranges not in ascending order" },
+    { 6, ERR_NAMED_NUMBERS_NOT_ASCENDING, "named-numbers-ascending",
+      "named numbers not in ascending order" },
     { 2, ERR_EXCHANGED_RANGE_LIMITS, "range-exchanged",
       "range limits must be `lower-bound .. upper-bound'" },
     { 1, ERR_INDEX_BASETYPE, "index-illegal-basetype", 

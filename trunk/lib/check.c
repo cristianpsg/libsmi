@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.25 2001/09/16 20:39:29 schoenw Exp $
+ * @(#) $Id: check.c,v 1.26 2001/09/27 16:13:38 strauss Exp $
  */
 
 #include <config.h>
@@ -589,6 +589,112 @@ smiCheckNamedNumberSubtyping(Parser *parser, Type *type)
 				    type->parentPtr->export.name);
 	    }
 	}
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckBits --
+ *
+ *      Check and normalize the order of named numbers in a bits
+ *	or enumeration type.
+  *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckNamedNumbersOrder(Parser *parser, Type *type)
+{
+    List *listPtr, *lastPtr, *nextPtr, *ptr;
+    NamedNumber *nnPtr;
+    int shutup = 0;
+    
+    if (! type || ! type->parentPtr
+	|| (type->export.basetype != SMI_BASETYPE_ENUM
+	    && type->export.basetype != SMI_BASETYPE_BITS)) {
+	return;
+    }
+
+    lastPtr = NULL;
+    for (listPtr = type->listPtr; listPtr; listPtr = nextPtr) {
+
+	nextPtr = listPtr->nextPtr;
+
+	nnPtr = (NamedNumber *)(listPtr->ptr);
+
+	if (lastPtr) {
+	    
+	    if ((type->export.basetype == SMI_BASETYPE_ENUM) &&
+		(((NamedNumber *)(listPtr->ptr))->export.value.value.integer32 <=
+		 ((NamedNumber *)(lastPtr->ptr))->export.value.value.integer32)) {
+		if (!shutup) {
+		    smiPrintErrorAtLine(parser, ERR_NAMED_NUMBERS_NOT_ASCENDING,
+					type->line,
+					type->export.name);
+		    shutup = 1;
+		}
+		/* remove listPtr from the list */
+		lastPtr->nextPtr = listPtr->nextPtr;
+		/* re-insert listPtr at the right position */
+		if (((NamedNumber *)(type->listPtr->ptr))->export.value.value.integer32 > ((NamedNumber *)(listPtr->ptr))->export.value.value.integer32) {
+		    listPtr->nextPtr = type->listPtr;
+		    type->listPtr = listPtr;
+		} else {
+		    for (ptr = type->listPtr; ptr; ptr = ptr->nextPtr) {
+			if ((!ptr->nextPtr) ||
+			    (((NamedNumber *)(ptr->nextPtr->ptr))->export.value.value.integer32 > ((NamedNumber *)(listPtr->ptr))->export.value.value.integer32)) {
+			    listPtr->nextPtr = ptr->nextPtr;
+			    ptr->nextPtr = listPtr;
+			    break;
+			}
+		    }
+		}
+		/* set lastPtr to the last processed item */
+		for (lastPtr = listPtr; lastPtr->nextPtr != nextPtr;
+		     lastPtr = lastPtr->nextPtr);
+		continue;
+	    }
+	    if ((type->export.basetype == SMI_BASETYPE_BITS) &&
+		(((NamedNumber *)(listPtr->ptr))->export.value.value.unsigned32 <=
+		 ((NamedNumber *)(lastPtr->ptr))->export.value.value.unsigned32)) {
+		if (!shutup) {
+		    smiPrintErrorAtLine(parser, ERR_NAMED_NUMBERS_NOT_ASCENDING,
+					type->line,
+					type->export.name);
+		    shutup = 1;
+		}
+		/* remove listPtr from the list */
+		lastPtr->nextPtr = listPtr->nextPtr;
+		/* re-insert listPtr at the right position */
+		if (((NamedNumber *)(type->listPtr->ptr))->export.value.value.unsigned32 > ((NamedNumber *)(listPtr->ptr))->export.value.value.unsigned32) {
+		    listPtr->nextPtr = type->listPtr;
+		    type->listPtr = listPtr;
+		} else {
+		    for (ptr = type->listPtr; ptr; ptr = ptr->nextPtr) {
+			if ((!ptr->nextPtr) ||
+			    (((NamedNumber *)(ptr->nextPtr->ptr))->export.value.value.unsigned32 > ((NamedNumber *)(listPtr->ptr))->export.value.value.unsigned32)) {
+			    listPtr->nextPtr = ptr->nextPtr;
+			    ptr->nextPtr = listPtr;
+			    break;
+			}
+		    }
+		}
+		/* set lastPtr to the last processed item */
+		for (lastPtr = listPtr; lastPtr->nextPtr != nextPtr;
+		     lastPtr = lastPtr->nextPtr);
+		continue;
+	    }
+	}
+	lastPtr = listPtr;
     }
 }
 
