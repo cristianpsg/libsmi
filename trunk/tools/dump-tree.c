@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.32 2002/07/23 23:12:30 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.33 2002/10/30 09:17:37 schoenw Exp $
  */
 
 #include <config.h>
@@ -284,7 +284,7 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		    fprintf(f, ")\n");
 		}
 	    else
-		fprintf(f, "%s--%s(??)\n", prefix,
+		fprintf(f, "%s--%s(?)\n", prefix,
 			smiNode->name ? smiNode->name : " ");
 	    if (c) {
 		prefix[prefixlen-1] = c;
