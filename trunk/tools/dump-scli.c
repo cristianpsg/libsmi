@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.2 2001/08/30 10:08:16 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.3 2001/09/25 07:24:38 schoenw Exp $
  */
 
 /*
@@ -32,6 +32,14 @@
 
 #include "smi.h"
 #include "smidump.h"
+
+
+#include <sys/types.h>
+#include <regex.h>
+
+
+static char *pattern = NULL;
+static regex_t _regex, *regex = NULL;
 
 
 
@@ -210,6 +218,14 @@ static int
 isGroup(SmiNode *smiNode)
 {
     SmiNode *childNode;
+
+    if (regex) {
+	int status;
+	status = regexec(regex, smiNode->name, (size_t) 0, NULL, 0);
+	if (status != 0) {
+	    return 0;
+	}
+    }
 
     if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 	return 1;
@@ -502,7 +518,7 @@ printIndexParams(FILE *f, SmiNode *smiNode)
 static void
 printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 {
-    SmiNode  *smiNode;
+    SmiNode  *smiNode, *parentNode;
     SmiType  *smiType;
     SmiNamedNumber *nn;
     int      cnt = 0;
@@ -517,6 +533,10 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode,
 				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
+	parentNode = smiGetParentNode(smiNode);
+	if (! parentNode || ! isGroup(parentNode)) {
+	    continue;
+	}
 	smiType = smiGetNodeType(smiNode);
 	if (smiType && smiType->basetype == SMI_BASETYPE_ENUM) {
 	    if (! cnt) {
@@ -557,7 +577,7 @@ printHeaderEnumerations(FILE *f, SmiModule *smiModule)
 static void
 printHeaderIdentities(FILE *f, SmiModule *smiModule)
 {
-    SmiNode      *smiNode, *moduleIdentityNode;
+    SmiNode      *smiNode, *moduleIdentityNode, *parentNode;
     int          cnt = 0;
     unsigned int i;
     char         *dName, *dModuleName;
@@ -570,6 +590,10 @@ printHeaderIdentities(FILE *f, SmiModule *smiModule)
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
+	parentNode = smiGetParentNode(smiNode);
+	if (! parentNode || ! isGroup(parentNode)) {
+	    continue;
+	}
 	if (smiNode->status == SMI_STATUS_UNKNOWN) {
 	    continue;
 	}
@@ -911,7 +935,7 @@ dumpHeader(SmiModule *smiModule, char *baseName)
 static void
 printStubEnumerations(FILE *f, SmiModule *smiModule)
 {
-    SmiNode   *smiNode;
+    SmiNode   *smiNode, *parentNode;
     SmiType   *smiType;
     SmiNamedNumber *nn;
     char      *cName, *cModuleName;
@@ -926,6 +950,10 @@ printStubEnumerations(FILE *f, SmiModule *smiModule)
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode,
 				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
+	parentNode = smiGetParentNode(smiNode);
+	if (! parentNode || ! isGroup(parentNode)) {
+	    continue;
+	}
 	smiType = smiGetNodeType(smiNode);
 	if (smiType && smiType->basetype == SMI_BASETYPE_ENUM) {
 	    cnt++;
@@ -962,7 +990,7 @@ printStubEnumerations(FILE *f, SmiModule *smiModule)
 static void
 printStubIdentities(FILE *f, SmiModule *smiModule)
 {
-    SmiNode   *smiNode, *moduleIdentityNode;
+    SmiNode   *smiNode, *moduleIdentityNode, *parentNode;
     char      *cName, *cModuleName;
     char      *dName, *dModuleName;
     int       cnt = 0;
@@ -975,6 +1003,10 @@ printStubIdentities(FILE *f, SmiModule *smiModule)
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
+	parentNode = smiGetParentNode(smiNode);
+	if (! parentNode || ! isGroup(parentNode)) {
+	    continue;
+	}
 	if (smiNode->status == SMI_STATUS_UNKNOWN) {
 	    continue;
 	}
@@ -2362,7 +2394,18 @@ static void
 dumpScli(int modc, SmiModule **modv, int flags, char *output)
 {
     char	*baseName;
-    int		i;
+    int		i, code;
+
+    if (pattern) {
+	regex = &_regex;
+	code = regcomp(regex, pattern, REG_EXTENDED|REG_NOSUB);
+	if (code != 0) {
+	    char buffer[256];
+	    regerror(code, regex, buffer, sizeof(buffer));
+	    fprintf(stderr, "smidump: regular expression error: %s\n", buffer);
+	    exit(1);
+	}
+    }
 
     if (flags & SMIDUMP_FLAG_UNITE) {
 	/* not implemented yet */
@@ -2375,19 +2418,29 @@ dumpScli(int modc, SmiModule **modv, int flags, char *output)
 	}
     }
 
+    if (regex) {
+	regfree(regex);
+	regex = NULL;
+    }
 }
 
 
 
 void initScli()
 {
+    static SmidumpDriverOption opt[] = {
+	{ "match", OPT_STRING, &pattern, 0,
+	  "produce stubs for groups matching a pattern"},
+        { 0, OPT_END, 0, 0 }
+    };
+
     static SmidumpDriver driver = {
 	"scli",
 	dumpScli,
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE,
 	"ANSI C manager stubs for the scli package",
-	NULL,
+	opt,
 	NULL
     };
 
