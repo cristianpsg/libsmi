@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.92 2000/02/24 14:33:51 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.93 2000/02/24 15:30:00 strauss Exp $
  */
 
 %{
@@ -349,9 +349,6 @@ checkDefvals(Parser *parserPtr, Module *modulePtr)
 		}
 		objectPtr->export.value.format = SMI_VALUEFORMAT_OID;
 	    } else if (objectPtr->export.value.format == SMI_VALUEFORMAT_OID) {
-		printf("XXX %s %s\n", objectPtr->export.name,
-		       (char *)objectPtr->export.value.value.ptr);
-		   
 		if ((objectPtr->export.value.len != 2) ||
 		    (objectPtr->export.value.value.oid[0] != 0) ||
 		    (objectPtr->export.value.value.oid[1] != 0)) {
