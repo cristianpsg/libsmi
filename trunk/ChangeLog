@@ -1,3 +1,9 @@
+1999-05-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smiquery.c: adapted to current API.
+
+	* lib/smi.h: added IndexNode and MemberNode functions.
+
 1999-05-22  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* configure.in: LIBSMI_VERSION=0.1

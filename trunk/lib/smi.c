@@ -3,12 +3,23 @@
  *
  *      Interface Implementation of libsmi.
  *
- * Copyright (c) 1999 Technical University of Braunschweig.
+ * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
- * See the file "license.terms" for information on usage and redistribution
- * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * @(#) $Id: smi.c,v 1.26 1999/05/21 19:55:17 strauss Exp $
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * @(#) $Id: smi.c,v 1.27 1999/05/21 22:33:58 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -366,31 +377,34 @@ SmiNode *createSmiNode(Object *objectPtr)
 	    smiNodePtr->typemodule = NULL;
 	    smiNodePtr->typename   = NULL;
 	}
-	smiNodePtr->value      = objectPtr->valuePtr;
-	smiNodePtr->decl       = objectPtr->decl;
-	smiNodePtr->access     = objectPtr->access;
-	smiNodePtr->status     = objectPtr->status;
-	smiNodePtr->basetype     = objectPtr->typePtr ?
+	smiNodePtr->valuePtr    = objectPtr->valuePtr;
+	smiNodePtr->decl        = objectPtr->decl;
+	smiNodePtr->access      = objectPtr->access;
+	smiNodePtr->status      = objectPtr->status;
+	smiNodePtr->basetype    = objectPtr->typePtr ?
 	                   objectPtr->typePtr->basetype : SMI_BASETYPE_UNKNOWN;
-	if (objectPtr->description) {
-	    smiNodePtr->description = objectPtr->description;
+	smiNodePtr->description = objectPtr->description;
+	smiNodePtr->reference   = objectPtr->reference;
+
+	if (objectPtr->indexPtr) {
+	    smiNodePtr->indexkind         = objectPtr->indexPtr->indexkind;
+	    smiNodePtr->implied           = objectPtr->indexPtr->implied;
+	    if (objectPtr->indexPtr->rowPtr) {
+		smiNodePtr->relatedmodule = objectPtr->indexPtr->rowPtr->
+							      modulePtr->name;
+		smiNodePtr->relatedname   = objectPtr->indexPtr->rowPtr->name;
+	    } else {
+	        smiNodePtr->relatedmodule = NULL;
+	        smiNodePtr->relatedname   = NULL;
+	    }
 	} else {
-	    smiNodePtr->description = NULL;
-	}
-	if (objectPtr->reference) {
-	    smiNodePtr->reference = objectPtr->reference;
-	} else {
-	    smiNodePtr->reference = NULL;
+	    smiNodePtr->indexkind         = SMI_INDEX_UNKNOWN;
+	    smiNodePtr->implied           = 0;
+	    smiNodePtr->relatedmodule     = NULL;
+	    smiNodePtr->relatedname       = NULL;
 	}
 
 #if 0
-	smiNodePtr->indexkind  = SMI_INDEX_UNKNOWN;
-	smiNodePtr->implied    = 0;
-	smiNodePtr->index      = NULL;
-	smiNodePtr->relatedrow = NULL;
-	if (objectPtr->indexPtr) {
-	    smiNodePtr->indexkind  = objectPtr->indexPtr->indexkind;
-	    smiNodePtr->implied    = objectPtr->indexPtr->implied;
 	    if (objectPtr->flags & FLAG_INDEXLABELS) {
 		/*
 		 * This object's index ptrs contain unchecked identifier
@@ -404,10 +418,6 @@ SmiNode *createSmiNode(Object *objectPtr)
 			addPtr(&smiNodePtr->index, listPtr->ptr);
 		    }
 		}
-		if (objectPtr->indexPtr->rowPtr) {
-		    smiNodePtr->relatedrow =
-			(char *)objectPtr->indexPtr->rowPtr;
-		}
 	    } else {
 		for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
 		     listPtr = listPtr->nextPtr) {
@@ -417,11 +427,7 @@ SmiNode *createSmiNode(Object *objectPtr)
 				((Object *)listPtr->ptr)->name);
 		    }
 		}
-		if (objectPtr->indexPtr->rowPtr) {
-		    smiNodePtr->relatedrow = objectPtr->indexPtr->rowPtr->name;
-		}
 	    }
-	}
 	
 	smiNodePtr->list	= NULL;
 	if (objectPtr->flags & FLAG_CREATABLE) {
@@ -435,7 +441,9 @@ SmiNode *createSmiNode(Object *objectPtr)
 	     listPtr = listPtr->nextPtr) {
 	    addPtr(&smiNodePtr->list, ((Object *)listPtr->ptr)->name);
 	}
-
+#endif
+	
+#if 0
 	smiNodePtr->option	= NULL;
 	for (listPtr = objectPtr->optionlistPtr; listPtr;
 	     listPtr = listPtr->nextPtr) {
@@ -495,7 +503,7 @@ SmiType *createSmiType(Type *typePtr)
 	}
 	smiTypePtr->decl	 = typePtr->decl;
 	smiTypePtr->format	 = typePtr->format;
-	smiTypePtr->value	 = typePtr->valuePtr;
+	smiTypePtr->valuePtr	 = typePtr->valuePtr;
 	smiTypePtr->units	 = typePtr->units;
 	smiTypePtr->status	 = typePtr->status;
 	smiTypePtr->description  = typePtr->description;
@@ -1443,6 +1451,195 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiDecl decl)
 
 
 
+SmiNode *smiGetFirstIndexNode(SmiNode *smiRowNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    Node	      *nodePtr;
+    
+    if (!smiRowNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiRowNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiRowNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr, smiRowNodePtr->name);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    if ((!objectPtr->indexPtr) || (!objectPtr->indexPtr->listPtr)) {
+	return NULL;
+    }
+
+    return createSmiNode(objectPtr->indexPtr->listPtr->ptr);
+}
+
+
+
+SmiNode *smiGetNextIndexNode(SmiNode *smiRowNodePtr, SmiNode *smiIndexNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    Node	      *nodePtr;
+    List	      *listPtr;
+    SmiIdentifier     module, node;
+    
+    if ((!smiRowNodePtr) || (!smiIndexNodePtr)) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiRowNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiRowNodePtr->module);
+    }
+
+    module = smiIndexNodePtr->module;
+    node = smiIndexNodePtr->name;
+        
+    smiFreeNode(smiIndexNodePtr);
+    
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr, smiRowNodePtr->name);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    if ((!objectPtr->indexPtr) || (!objectPtr->indexPtr->listPtr)) {
+	return NULL;
+    }
+
+    for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
+	 listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) &&
+	    !strcmp(((Object *)(listPtr->ptr))->modulePtr->name, module) &&
+	    !strcmp(((Object *)(listPtr->ptr))->name, node)) {
+	    if (listPtr->nextPtr) {
+		return createSmiNode(listPtr->nextPtr->ptr);
+	    } else {
+		return NULL;
+	    }
+	}
+    }
+    
+    return NULL;
+}
+
+
+
+SmiNode *smiGetFirstMemberNode(SmiNode *smiGroupNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    Node	      *nodePtr;
+    
+    if (!smiGroupNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiGroupNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiGroupNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr, smiGroupNodePtr->name);
+
+    if ((!objectPtr) || (!objectPtr->listPtr)) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_OBJECTGROUP) &&
+	(objectPtr->decl != SMI_DECL_NOTIFICATIONGROUP) &&
+	(objectPtr->decl != SMI_DECL_GROUP)) {
+	return NULL;
+    }
+						     
+    return createSmiNode(objectPtr->listPtr->ptr);
+}
+
+
+
+SmiNode *smiGetNextMemberNode(SmiNode *smiGroupNodePtr,
+			      SmiNode *smiMemberNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *objectPtr;
+    Node	      *nodePtr;
+    List	      *listPtr;
+    SmiIdentifier     module, node;
+    
+    if ((!smiGroupNodePtr) || (!smiMemberNodePtr)) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiGroupNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiGroupNodePtr->module);
+    }
+
+    module = smiMemberNodePtr->module;
+    node = smiMemberNodePtr->name;
+        
+    smiFreeNode(smiMemberNodePtr);
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    objectPtr = findObjectByModuleAndName(modulePtr, smiGroupNodePtr->name);
+
+    if (!objectPtr) {
+	return NULL;
+    }
+
+    if (!objectPtr->listPtr) {
+	return NULL;
+    }
+
+    if ((objectPtr->decl != SMI_DECL_OBJECTGROUP) &&
+	(objectPtr->decl != SMI_DECL_NOTIFICATIONGROUP) &&
+	(objectPtr->decl != SMI_DECL_GROUP)) {
+	return NULL;
+    }
+
+    for (listPtr = objectPtr->listPtr; listPtr;
+	 listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) &&
+	    !strcmp(((Object *)(listPtr->ptr))->modulePtr->name, module) &&
+	    !strcmp(((Object *)(listPtr->ptr))->name, node)) {
+	    if (listPtr->nextPtr) {
+		return createSmiNode(listPtr->nextPtr->ptr);
+	    } else {
+		return NULL;
+	    }
+	}
+    }
+    
+    return NULL;
+}
+
+
+
 SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 {
     Module	      *modulePtr;
@@ -1505,6 +1702,7 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
 
 SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr)
 {
+    /* TODO */
     return NULL;
 }
 
@@ -1512,6 +1710,7 @@ SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr)
 
 SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
 {
+    /* TODO */
     return NULL;
 }
 
