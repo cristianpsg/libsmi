@@ -3,12 +3,12 @@
  *
  *      Operations on the main data structures.
  *
- * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+ * Copyright (c) 1999-2002 Frank Strauss, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.116 2002/05/31 17:22:13 bunkus Exp $
+ * @(#) $Id: data.c,v 1.117 2002/06/19 15:04:39 strauss Exp $
  */
 
 #include <config.h>
@@ -3625,28 +3625,32 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	sep[0] = PATH_SEPARATOR; sep[1] = 0;
 	for (dir = strtok(smipath, sep);
 	     dir; dir = strtok(NULL, sep)) {
-	    path = smiMalloc(strlen(dir)+strlen(modulename)+8);
-	    sprintf(path, "%s%c%s", dir, DIR_SEPARATOR, modulename);
+	    smiAsprintf(&path, "%s%c%s", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s%c%s.my", dir, DIR_SEPARATOR, modulename);
+	    smiFree(path);
+	    smiAsprintf(&path, "%s%c%s.my", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s%c%s.smiv2", dir, DIR_SEPARATOR, modulename);
+	    smiFree(path);
+	    smiAsprintf(&path, "%s%c%s.smiv2", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s%c%s.sming", dir, DIR_SEPARATOR, modulename);
+	    smiFree(path);
+	    smiAsprintf(&path, "%s%c%s.sming", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s%c%s.mib", dir, DIR_SEPARATOR, modulename);
+	    smiFree(path);
+	    smiAsprintf(&path, "%s%c%s.mib", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
-	    sprintf(path, "%s%c%s.txt", dir, DIR_SEPARATOR, modulename);
+	    smiFree(path);
+	    smiAsprintf(&path, "%s%c%s.txt", dir, DIR_SEPARATOR, modulename);
 	    if (! access(path, R_OK)) {
 		break;
 	    }
@@ -3668,12 +3672,10 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	char *argv[4];
 	char *cmd;
 	int  status;
-	path = smiMalloc(strlen(smiHandle->cache) + strlen(modulename) + 2);
-	sprintf(path, "%s%c%s", smiHandle->cache, DIR_SEPARATOR, modulename);
+	smiAsprintf(&path, "%s%c%s",
+		    smiHandle->cache, DIR_SEPARATOR, modulename);
 	if (access(path, R_OK)) {
-	    cmd = smiMalloc(strlen(smiHandle->cacheProg) +
-			    strlen(modulename) + 2);
-	    sprintf(cmd, "%s %s", smiHandle->cacheProg, modulename);
+	    smiAsprintf(&cmd, "%s %s", smiHandle->cacheProg, modulename);
 	    pid = fork();
 	    if (pid != -1) {
 		if (!pid) {

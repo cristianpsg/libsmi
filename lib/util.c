@@ -8,16 +8,18 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: util.c,v 1.29 2002/03/20 08:05:46 schoenw Exp $
+ * @(#) $Id: util.c,v 1.30 2002/05/17 12:23:17 strauss Exp $
  */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <time.h>
 
 #include "util.h"
+#include "snprintf.h"
 
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
@@ -133,6 +135,31 @@ void smiFree(void *ptr)
 
 #endif
 
+int smiAsprintf(char **strp, const char *format, ...)
+{
+    int rc;
+    va_list ap;
+
+    va_start(ap, format);
+    rc = vasprintf(strp, format, ap);
+    va_end(ap);
+    if (! strp) {
+	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    return rc;
+}
+
+int smiVasprintf(char **strp, const char *format, va_list ap)
+{
+    int rc;
+
+    rc = vasprintf(strp, format, ap);
+    if (! strp) {
+	smiPrintError(NULL, ERR_OUT_OF_MEMORY);
+    }
+    return rc;
+}
+
 
 
 int smiIsPath(const char *s)
@@ -154,8 +181,7 @@ time_t timegm(struct tm *tm)
     tz = getenv("TZ");
     if (tz) {
 	tofree = s;
-	s = smiMalloc(strlen(tz)+4);
-	sprintf(s, "TZ=%s", tz);
+	smiAsprintf(&s, "TZ=%s", tz);
     }
     putenv("TZ=NULL");
     t = mktime(tm);

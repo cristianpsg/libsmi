@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.106 2002/06/08 20:08:08 strauss Exp $
+# @(#) $Id: configure.in,v 1.107 2002/06/21 14:30:59 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
@@ -58,7 +58,7 @@ AC_CHECK_FUNCS(strtoll strtoull strtoq strtouq)
 
 AC_CHECK_FUNCS(timegm)
 
-AC_CHECK_FUNCS(vsnprintf snprintf)
+AC_CHECK_FUNCS(vsnprintf snprintf asprintf asnprintf vasprintf vasnprintf)
 
 AC_CHECK_HEADERS(pwd.h unistd.h regex.h)
 
