@@ -7,7 +7,7 @@ Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.17 2000/01/25 10:07:30 strauss Exp $
+@(#) $Id: README,v 1.18 2000/02/11 23:19:08 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -23,7 +23,7 @@ TODO					incomplete list of things to be done
 configure				configure script
 lib/					library source code
 tools/					tools source code
-doc/draft-irtf-nmrg-sming-01.txt	SMIng specification
+doc/draft-irtf-nmrg-sming-02.txt	SMIng specification
 mibs/					MIB modules to be installed
 test/					some test patterns
 
@@ -51,15 +51,14 @@ This should build the library libsmi in lib/ and the tools, namely
 tools/smilint, tools/smidump, tools/smiquery, and the shell script
 tools/smistrip.
 
-If you wish to install the library, some basic MIB modules, the tools
+Now, you may run some checks by
+
+	make check
+
+If you wish to install the library, the MIB modules, the tools
 and the man pages, run
 
 	make install
-
-If you have run make install (sorry, not beforehand), you may run some
-checks:
-
-	make check
 
 To use libsmi applications you might want to configure its behaviour.
 You can set the SMIPATH environment variable to find more MIB modules
@@ -73,7 +72,7 @@ Or this one, to extend the libsmi search path (note the leading colon):
 
 	export SMIPATH=":/usr/local/lib/tnm3.0.0/mibs"
 
-More detailed library options, including per-application optionsm, can
+More detailed library options, including per-application options, can
 be configured through a global and a user level configuration file. See
 the smi_config(3) man page.
 
@@ -81,7 +80,7 @@ the smi_config(3) man page.
 DEBUGGING
 =========
 
-If you encounter any crashes or feel the need for any other reasons to
+If you encounter any crashes or feel for any other reasons the need to
 debug the libsmi tools, you should link the tools statically. This is
 the easiest way to get around the problems when your debugger claims to
 be unable to read the libsmi binary files, since they are built using
@@ -96,11 +95,11 @@ FURTHER READING
 ===============
 
 Read the man pages for library concepts and usage and for the tools.
-Read the SMIng specification (doc/draft-irtf-nmrg-sming-01.txt) for
+Read the SMIng specification (doc/draft-irtf-nmrg-sming-02.txt) for
 details on SMIng. You may find further information online, along with
 the subscription information on the libsmi mailing list at
 
-	http://www.ibr.cs.tu-bs.de/projects/sming/.
+	http://www.ibr.cs.tu-bs.de/projects/libsmi/.
 
 
 

@@ -8,10 +8,10 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.2 1999/09/30 08:16:42 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.3 1999/12/14 15:34:44 strauss Exp $
 #
 
-EXTRA_DIST		= SMI.ps draft-irtf-nmrg-sming-01.txt
+EXTRA_DIST		= draft-irtf-nmrg-sming-02.txt
 
 SMI.gif: SMI.eps
 	epsffit -sc 0 0 600 600 SMI.eps SMI.eps.tmp

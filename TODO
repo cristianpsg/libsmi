@@ -37,17 +37,10 @@ o dump-sming.c: ensure an order without forward references in typedef's.
 
 o dump-sming.c: support all(!) kinds of index clauses
 
-o redesign of data structures: make SmiXXX structures the heads of the
-  according data.h structures. This would obsolete the Free() functions
-  and enable fast getNext() functions by accessing the underlying lists.
-
 o smi.c: smiGetNames() is not yet implemented. do we really need it?
 
 o thread safety (global vars? static vars? strtok() and other funcs?)
   different views
-
-o if `parse error' occurs, the database is left in an inconsistent state,
-  e.g. index labels of sming modules are not adjusted.
 
 o need a handle to distinguish different views.
 
@@ -64,19 +57,8 @@ o various dump modules don't print identifiers fully qualified where
 
 o Web online conversion to SMIng?
 
-o make check: parse every mib once, and don't crash
-
 o special handling for well-known traps (reversibility?)
 
 o smidump -f smiv1 now prints read AUGMENTS clauses as index lists correctly
   but these index objects might not be imported.
 
-o SMIng: module identity object (grammar, I-D and parser)
-
-o think about smiModule(), smiDescriptor(), smiOidString(smiNode), ...
-  memory allocation?
-
-
-
-o MessageSize                [0.."ÿÿÿ"]
-  in smidump -f types -u /usr/local/share/mibs/ietf/* output
