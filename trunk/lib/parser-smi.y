@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.125 2000/11/08 14:18:49 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.126 2000/11/08 23:12:04 strauss Exp $
  */
 
 %{
@@ -385,15 +385,17 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	}
     }
 
-    for (objectPtr = modulePtr->firstObjectPtr;
-	 objectPtr; objectPtr = objectPtr->nextPtr) {
-
-	/*
-	 * Check whether all objects and notifications arecontained in at
-	 * least one conformance group (RFC 2580 3.3 and 4.1).
-	 */
-
-	smiCheckGroupMembership(parserPtr, objectPtr);
+    if (modulePtr->export.language == SMI_LANGUAGE_SMIV2) {
+	for (objectPtr = modulePtr->firstObjectPtr;
+	     objectPtr; objectPtr = objectPtr->nextPtr) {
+	    
+	    /*
+	     * Check whether all objects and notifications are contained in at
+	     * least one conformance group (RFC 2580 3.3 and 4.1).
+	     */
+	    
+	    smiCheckGroupMembership(parserPtr, objectPtr);
+	}
     }
 }
 
