@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.21 2001/09/26 22:03:24 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.22 2002/07/24 11:54:24 strauss Exp $
 #
 
 TESTMIBTOPDIR		= ../../mibs
@@ -43,7 +43,6 @@ TESTS_ENVIRONMENT	= SMIPATH="$(TESTMIBDIR)" TESTMIBS="$(TESTMIBS)"
 EXTRA_DIST		= $(TESTS)
 
 SMIDIFFTESTS            = $(shell ls -1d smidiff/* | egrep -v 'CVS|Makefile')
-mib_DATA                = $(SMIDIFFTESTS)
 
 SUBDIRS                 = mibs dumps smidiff
 
