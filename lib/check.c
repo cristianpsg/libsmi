@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.5 2000/07/06 14:40:42 strauss Exp $
+ * @(#) $Id: check.c,v 1.6 2000/10/20 09:23:58 strauss Exp $
  */
 
 #include <config.h>
@@ -598,7 +598,7 @@ smiCheckIndex(Parser *parser, Object *object)
 					object->export.name);
 		}
 	    } else {
-	        for (list2Ptr = rtypePtr->listPtr;
+	        for (list2Ptr = rTypePtr->listPtr;
 		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
 		    rangePtr = (Range *) list2Ptr->ptr;
 		    if (rangePtr->export.maxValue.value.integer32 > maxSize) {
@@ -612,7 +612,8 @@ smiCheckIndex(Parser *parser, Object *object)
 	    len += maxSize;
 	    /* IpAddress is special; it never requires a length */
 	    if (!indexPtr->export.implied &&
-		!(rTypePtr && !strcmp(rTypePtr->export.name, "IpAddress"))) {
+		!(rTypePtr && rTypePtr->export.name &&
+		  !strcmp(rTypePtr->export.name, "IpAddress"))) {
 		len++;
 	    }
 	    break;

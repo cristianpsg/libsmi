@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.32 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.33 2000/07/05 11:58:42 strauss Exp $
  */
 
 #include <config.h>
@@ -39,6 +39,7 @@ extern char* smiGetErrorMsg(int id);
 
 
 
+static int mFlag = 0;	/* show the name for error messages */
 static int sFlag = 0;	/* show the severity for error messages */
 static int eFlag = 0;	/* print the list of possible error messages */
 
@@ -116,6 +117,7 @@ static void usage()
 	    "-V                    show version and license information\n"
 	    "-e                    print list of known error messages\n"
 	    "-h                    show usage information\n"
+	    "-m                    print the name of errors in braces\n"
 	    "-r                    print errors also for imported modules\n"
 	    "-s                    print the severity of errors in brackets\n"
 	    "-c <configfile>       load a specific configuration file\n"
@@ -135,16 +137,18 @@ static void version()
 
 
 static void
-errorHandler(char *path, int line, int severity, char *msg)
+errorHandler(char *path, int line, int severity, char *msg, char *tag)
 {
     if (path) {
 	fprintf(stderr, "%s:%d: ", path, line);
     }
     if (sFlag) {
-	fprintf(stderr, "[%d] %s\n", severity, msg);
-    } else {
-	fprintf(stderr, "%s\n", msg);
+	fprintf(stderr, "[%d] ", severity);
     }
+    if (mFlag) {
+	fprintf(stderr, "{%s} ", tag);
+    }
+    fprintf(stderr, "%s\n", msg);
 }
 
 
@@ -165,7 +169,7 @@ int main(int argc, char *argv[])
     flags |= SMI_FLAG_NODESCR;
     smiSetFlags(flags);
 
-    while ((c = getopt(argc, argv, "Vehrsp:l:i:c:")) != -1) {
+    while ((c = getopt(argc, argv, "Vehmrsp:l:i:c:")) != -1) {
 	switch (c) {
 	case 'c':
 	    smiReadConfig(optarg, "smiquery");
@@ -179,6 +183,9 @@ int main(int argc, char *argv[])
 	case 'h':
 	    usage();
 	    return 0;
+	case 'm':
+	    mFlag++;
+	    break;
 	case 'r':
 	    flags |= SMI_FLAG_RECURSIVE;
 	    smiSetFlags(flags);
@@ -201,7 +208,7 @@ int main(int argc, char *argv[])
 	}
     }
 
-    if (sFlag) {
+    if (sFlag || mFlag) {
 	smiSetErrorHandler(errorHandler);
     }
 
