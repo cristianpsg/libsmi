@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.3 2002/01/18 15:23:50 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.4 2002/01/24 16:24:18 tklie Exp $
  */
 
 #include <config.h>
@@ -387,7 +387,6 @@ static void fprintNodes(FILE *f, SmiModule *smiModule)
 static void fprintRows( FILE *f, SmiModule *smiModule )
 {
     SmiNode *iterNode;
-    fprint( f, "\nAAA\n" );
 
     for( iterNode = smiGetFirstNode( smiModule, SMI_NODEKIND_ROW );
 	 iterNode;
@@ -407,16 +406,93 @@ static void fprintModule(FILE *f, SmiModule *smiModule)
 }
 
 
-
 static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 {
+    SmiRange *smiRange;
+    SmiValue *minRange, *maxRange;
+    char *buf, *val;
+    
     fprintSegment(f, indent, "<xsd:restriction", 0);
     fprint(f, " base=\"%s%s\">\n", DXSD_MIBPREFIX,
 	   getStringBasetype(smiType->basetype));
 
-    /* xxx ranges etc. */
-    
-    fprintSegment(f, indent, "</xsd:restriction>\n", 0);
+    /* print ranges etc. */
+    switch( smiType->basetype ) {
+
+    case SMI_BASETYPE_INTEGER32:
+    {
+	int min, max;
+
+	min = -2147483648;
+	max = 2147483647;
+	
+	smiRange = smiGetFirstRange( smiType );
+	while( smiRange ) {
+	    if( min == -2147483648 ||
+		smiRange->minValue.value.integer32 < min ) {
+		min = smiRange->minValue.value.integer32;
+	    }
+	    if( max == 2147483647 ||
+		smiRange->maxValue.value.integer32 > max ) {
+		max = smiRange->maxValue.value.integer32;
+	    }
+	    smiRange = smiGetNextRange( smiRange );
+	}
+	
+	buf = malloc( 42 );
+	if( buf ) {
+	    sprintf( buf, "<xsd:minInclusive value=\"%d\"/>\n", min );
+	    fprintSegment( f, indent + INDENT, buf, 0 );
+	    free( buf );
+	}
+	buf = malloc( 42 );
+	if( buf ) {
+	    sprintf( buf, "<xsd:maxInclusive value=\"%d\"/>\n",	max );
+	    fprintSegment( f, indent + INDENT, buf, 0 );
+	    free( buf );
+	}
+	
+	fprintSegment(f, indent, "</xsd:restriction>\n", 0);
+	break;
+    }
+
+    case SMI_BASETYPE_OCTETSTRING:
+    {
+	int minLength, maxLength;
+
+	minLength = 0;
+	maxLength = -1;
+
+	smiRange = smiGetFirstRange( smiType );
+	while( smiRange ) {
+	    if( minLength == 0 || smiRange->minValue.len < minLength ) {
+		minLength = smiRange->minValue.len;	     
+	    }
+	    if( smiRange->maxValue.len > maxLength ) {
+		maxLength = smiRange->maxValue.len;
+		fprintf( f, "MAX: %d\n", maxLength );
+	    }
+	    smiRange = smiGetNextRange( smiRange );
+	}
+
+	if( minLength > 0 ) {
+	    buf = malloc( 40 );
+	    if( buf ) {
+		sprintf( buf, "<xsd:minLength value=\"%d\"/>\n>", minLength );
+		fprintSegment( f, indent + INDENT, buf, 0 );
+		free( buf );
+	    }
+	}
+	if( maxLength > -1 ) {
+	    buf = malloc( 40 );
+	    if( buf ) {
+		sprintf( buf, "<xsd:maxLength value=\"%d\"/>\n>", maxLength );
+		fprintSegment( f, indent + INDENT, buf, 0 );
+		free( buf );
+	    }
+	}
+    }
+    }
 }
 
 
