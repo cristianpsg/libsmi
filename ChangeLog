@@ -1,3 +1,8 @@
+2004-01-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/smidiff.c: Fixed potential segfault in
+	checkTypeCompatibility(). Thanks to Mike.
+
 2003-12-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/POWER-ETHERNET-MIB: added (RFC 3621).
