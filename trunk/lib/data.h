@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.34 1999/06/12 13:40:03 strauss Exp $
+ * @(#) $Id: data.h,v 1.35 1999/06/15 14:09:35 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -144,7 +144,8 @@ typedef struct Range {
 typedef struct Type {
     Module         *modulePtr;
     char	   *name;
-    char	   *parentType;
+    char	   *parentmodule;
+    char	   *parentname;
     SmiBasetype	   basetype;
     SmiDecl	   decl;
     char	   *format;
@@ -269,14 +270,12 @@ extern char     *smiPath;
 extern Node	*rootNodePtr;
 extern Node	*pendingNodePtr;
 
-extern Type	*typeSmiIntegerPtr, *typeSmiOctetStringPtr,
-		*typeSmiObjectIdentifierPtr;
-extern Type	*typeSmingOctetStringPtr, *typeSmingObjectIdentifierPtr,
-		*typeSmingInteger32Ptr, *typeSmingUnsigned32Ptr,
-		*typeSmingInteger64Ptr, *typeSmingUnsigned64Ptr,
-		*typeSmingFloat32Ptr, *typeSmingFloat64Ptr,
-		*typeSmingFloat128Ptr,
-		*typeSmingEnumPtr, *typeSmingBitsPtr;
+extern Type	*typeOctetStringPtr, *typeObjectIdentifierPtr,
+		*typeInteger32Ptr, *typeUnsigned32Ptr,
+		*typeInteger64Ptr, *typeUnsigned64Ptr,
+		*typeFloat32Ptr, *typeFloat64Ptr,
+		*typeFloat128Ptr,
+		*typeEnumPtr, *typeBitsPtr;
 
 extern Module	*firstModulePtr, *lastModulePtr;
 
@@ -450,7 +449,8 @@ extern void setTypeBasetype(Type *typePtr,
 			  SmiBasetype basetype);
 
 extern void setTypeParent(Type *typePtr,
-			  const char *parent);
+			  const char *parentmodule,
+			  const char *parentname);
 
 extern void setTypeList(Type *typePtr,
 			struct List *listPtr);

@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_node.3.in,v 1.1 1999/06/01 20:47:18 strauss Exp $
+.\" $Id: smi_node.3.in,v 1.2 1999/06/08 16:08:09 strauss Exp $
 .\"
-.TH smi_node 3  "June 8, 1999" "IBR" "SMI Management Information Library"
+.TH smi_node 3  "June 16, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiGetNode, smiGetFirstNode, smiGetNextNode, smiFreeNode \- SMI type
 information routines
@@ -14,10 +14,13 @@ information routines
 .BI "SmiNode *smiGetNode(char *" module ", char *" name );
 .RE
 .sp
-.BI "SmiNode *smiGetFirstNode(char *" module ", SmiDecl " decl );
+.BI "SmiNode *smiGetNodeByOID(unsigned int" oidlen ", Subid" oid[] );
 .RE
 .sp
-.BI "SmiNode *smiGetNextNode(SmiNode *" smiNodePtr ", SmiDecl " decl );
+.BI "SmiNode *smiGetFirstNode(char *" module ", SmiNodekind " kinds );
+.RE
+.sp
+.BI "SmiNode *smiGetNextNode(SmiNode *" smiNodePtr ", SmiNodekind " kinds );
 .RE
 .sp
 .BI "SmiNode *smiGetParentNode(SmiNode *" smiNodePtr );
@@ -131,18 +134,26 @@ The \fBsmiGetNode()\fP function retrieves a \fBstruct SmiNode\fP that
 represents a node of any kind. Either \fIname\fP must be the fully
 qualified identifier leaving \fImodule\fP NULL, or the name is split into
 the module \fImodule\fP and identifier \fIname\fP. The identifier part
-may also be given as a numerical OID value. Elements not
+may also be given as a numerical OID value. In this case the \fBSmiNode\fP
+that matches the longest \fIname\fP prefix will be returned. Elements not
 available or not present in the definition contain NULL. See
+\fBsmi.h\fP for the structure of contained elements.
+.PP
+The \fBsmiGetNodeByOID()\fP function retrieves a \fBstruct SmiNode\fP that
+matches the longest prefix of the node that is specified by the
+object identifier \fIoid[]\fP with the length \fIoidlen\fP.
+Elements not available or not present in the definition contain NULL. See
 \fBsmi.h\fP for the structure of contained elements.
 .PP
 The \fBsmiGetFirstNode()\fP and \fBsmiGetNextNode()\fP functions are
 used to iteratively retrieve \fBstruct SmiNode\fPs.
-\fBsmiGetFirstNode()\fP returns the first node of kind \fIdecl\fP
-defined in module
-\fImodule\fP with respect to an object identifier tree in
+\fBsmiGetFirstNode()\fP returns the first node
+defined in module \fImodule\fP
+that is of any kind specified in the \fIkinds\fP bitset
+with respect to an object identifier tree in
 pre-order (thus not necessarily the first defined in the MIB module).
 Subsequent calls to \fBsmiGetNextNode()\fP release \fIsmiNodePtr\fP and
-return the next node of kind \fIdecl\fP. If there are no
+return the next node of an appropriate kind out of \fIkinds\fP. If there are no
 more node definitions in the module NULL is returned.
 .PP
 Similarly, the \fBsmiGetFirstChildNode()\fP and \fBsmiGetNextChildNode()\fP
