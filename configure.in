@@ -3,12 +3,12 @@
 #
 #      Process this file with autoconf to produce a configure script.
 #
-# Copyright (c) 1999-2003 Frank Strauss, Technical University of Braunschweig.
+# Copyright (c) 1999-2004 Frank Strauss, Technical University of Braunschweig.
 #
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.121 2004/08/09 14:09:57 strauss Exp $
+# @(#) $Id: configure.in,v 1.122 2004/08/09 14:58:30 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
