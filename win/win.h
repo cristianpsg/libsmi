@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: win.h,v 1.5 2000/11/15 14:15:07 strauss Exp $
+ * @(#) $Id: win.h,v 1.6 2000/11/16 14:58:41 strauss Exp $
  */
 
 #ifndef _WIN_H
@@ -40,16 +40,6 @@
 #ifndef R_OK
 #define R_OK	04
 #endif
-
-/*
- * The Win32 API does not have getopt (or something equivalent).
- * So we provide our own implementation with its own interface.
- */
-
-extern int optind;
-extern int opterr;
-extern char *optarg;
-extern int getopt(int argc, char **argv, char *opts);
 
 /*
  * other function prototypes 
