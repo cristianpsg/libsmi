@@ -1,3 +1,7 @@
+2000-08-24  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-identifiers.c: update from Juergen.
+
 2000-08-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-identifiers.c: added simple list of all identifiers.

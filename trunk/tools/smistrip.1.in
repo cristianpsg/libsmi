@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smistrip.1.in,v 1.1 1999/12/12 11:46:04 strauss Exp $
+.\" $Id: smistrip.1.in,v 1.2 1999/12/14 12:00:21 strauss Exp $
 .\"
 .TH smistrip 1  "October 25, 1999" "IBR" "SMI Tools"
 .SH NAME
@@ -65,5 +65,5 @@ project is documented at
 .PP
 .BR smilint "(1)"
 .SH "AUTHOR"
-(C) 1999 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999, 2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

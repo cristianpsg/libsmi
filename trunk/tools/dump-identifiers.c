@@ -1,7 +1,7 @@
 /*
  * dump-identifiers.c --
  *
- *      Operations to dump flat lists of SMI module information.
+ *      Operations to dump flat identifier lists for SMI modules.
  *
  * Copyright (c) 2000 Frank Strauss, Technical University of Braunschweig.
  * Copyright (c) 2000 J. Schoenwaelder, Technical University of Braunschweig.
@@ -9,14 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.4 2000/08/18 13:15:03 strauss Exp $
- */
-
-/*
- * TODO: - always generate node output in OID order
- *       - smarter layout in columns
- *	 - add a type column which contains the type
- *	   for nodes or the parent type for typedefs
+ * @(#) $Id: dump-identifiers.c,v 1.5 2000/08/18 13:20:16 strauss Exp $
  */
 
 #include <config.h>
@@ -32,60 +25,99 @@
 #include "smidump.h"
 
 
+static Module *moduleList = NULL;
+static int moduleLen = 0;
+static int identifierLen = 0;
 
-static char *getNodekindString(SmiNodekind nodekind)
+
+
+static int pruneSubTree(SmiNode *smiNode)
 {
-    return
-	(nodekind == SMI_NODEKIND_NODE)         ? "node" :
-	(nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
-	(nodekind == SMI_NODEKIND_TABLE)        ? "table" :
-	(nodekind == SMI_NODEKIND_ROW)	        ? "row" :
-	(nodekind == SMI_NODEKIND_COLUMN)	? "column" :
-	(nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
-	(nodekind == SMI_NODEKIND_GROUP)        ? "group" :
-	(nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
-	(nodekind == SMI_NODEKIND_CAPABILITIES) ? "capabilities" :
-					          "-";
+    SmiModule *smiModule;
+    SmiNode   *childNode;
+    Module    *mPtr;
+
+    if (! smiNode) {
+	return 1;
+    }
+
+    smiModule = smiGetNodeModule(smiNode);
+    for (mPtr = moduleList; mPtr; mPtr = mPtr->nextPtr) {
+	if (strcmp(mPtr->smiModule->name, smiModule->name) == 0) {
+	    return 0;
+	}
+    }
+
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if (! pruneSubTree(childNode)) {
+	    return 0;
+	}
+    }
+    return 1;
 }
 
 
 
-static char *getOidString(SmiSubid *o, int l)
+static void dumpNodeIdentifiers(SmiNode *smiNode)
 {
-    static char s[200];
-    int i;
-    
-    for (i = 0, s[0] = 0; i < l; i++) {
-	sprintf(&s[strlen(s)], "%d.", o[i]);
+    SmiModule *smiModule;
+    SmiNode   *childNode;
+    Module    *mPtr;
+    int       i;
+
+    if (smiNode) {
+
+	smiModule = smiGetNodeModule(smiNode);
+
+	if (smiNode->name && smiModule->name) {
+	    for (mPtr = moduleList; mPtr; mPtr = mPtr->nextPtr) {
+		if (strcmp(mPtr->smiModule->name, smiModule->name) == 0) {
+		    break;
+		}
+	    }
+	    if (mPtr) {
+		printf("%*s %*s ",
+		       -moduleLen, smiModule->name,
+		       -identifierLen, smiNode->name);
+		for (i = 0; i < smiNode->oidlen; i++) {
+		    printf(i ? ".%u" : "%u", smiNode->oid[i]);
+		}
+		printf("\n");
+	    }
+	}
+	    
+	for (childNode = smiGetFirstChildNode(smiNode);
+	     childNode;
+	     childNode = smiGetNextChildNode(childNode)) {
+	    
+	    if (! pruneSubTree(childNode)) {
+		dumpNodeIdentifiers(childNode);
+	    }
+	}
     }
-    s[strlen(s)-1] = 0;
-    return s;
 }
 
 
 
-static void printIdentifiers(SmiModule *module)
+static void dumpTypeIdentifiers()
 {
-    SmiNode *smiNode;
-    SmiType *smiType;
+    SmiModule *smiModule;
+    SmiType   *smiType;
+    Module    *mPtr;
 
-    for (smiType = smiGetFirstType(module);
-	 smiType;
-	 smiType = smiGetNextType(smiType)) {
-	printf("%-15s %-20s %-12s %-30s\n",
-	       module->name, smiType->name,
-	       "typedef",
-	       "-");
-    }
-    
-    for (smiNode = smiGetFirstNode(module, SMI_NODEKIND_ANY);
-	 smiNode;
-	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (smiNode->oidlen == 1) continue;
-	printf("%-15s %-20s %-12s %-30s\n",
-	       module->name, smiNode->name,
-	       getNodekindString(smiNode->nodekind),
-	       getOidString(smiNode->oid, smiNode->oidlen));
+    for (mPtr = moduleList; mPtr; mPtr = mPtr->nextPtr) {
+	smiModule = mPtr->smiModule;
+	for (smiType = smiGetFirstType(smiModule);
+	     smiType;
+	     smiType = smiGetNextType(smiType)) {
+	    if (smiType->name) {
+		printf("%*s %*s\n",
+		       -moduleLen, smiModule->name,
+		       -identifierLen, smiType->name);
+	    }
+	}
     }
 }
 
@@ -94,11 +126,14 @@ static void printIdentifiers(SmiModule *module)
 void dumpIdentifiers(Module *module)
 {
     SmiModule *smiModule;
-    Module    *mPtr;
-    int	      unite;
+    SmiNode   *smiNode;
+    Module    *mPtr, *nextModule = NULL;
+    int	      unite, len;
 
     smiModule = module->smiModule;
     unite = module->flags & SMIDUMP_FLAG_UNITE;
+
+    moduleList = smiModule ? module : module->nextPtr;
 
     if ((smiModule && !unite) || (!smiModule && unite)) {
 	if (! (module->flags & SMIDUMP_FLAG_SILENT)) {
@@ -106,15 +141,35 @@ void dumpIdentifiers(Module *module)
 		   SMI_VERSION_STRING ")\n\n",
 		   unite ? "united" : smiModule->name);
 	}
-    }
 
-    if (smiModule && !unite) {
-	printIdentifiers(smiModule);
-    }
+	if (! unite) {
+	    nextModule = moduleList->nextPtr;
+	    moduleList->nextPtr = NULL;
+	}
 
-    if (!smiModule && unite) {
-	for (mPtr = module; mPtr; mPtr = mPtr->nextPtr) {
-	    printIdentifiers(mPtr->smiModule);
+	for (moduleLen = 0, identifierLen = 0, mPtr = moduleList;
+	     mPtr;
+	     mPtr = mPtr->nextPtr) {
+	    len = strlen(mPtr->smiModule->name);
+	    if (len > moduleLen) moduleLen = len;
+	    for (smiNode = smiGetFirstNode(mPtr->smiModule, SMI_NODEKIND_ANY);
+		 smiNode;
+		 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+		if (smiNode->name) {
+		    len = strlen(smiNode->name);
+		    if (len > identifierLen) identifierLen = len;
+		}
+	    }
+	}
+
+	dumpTypeIdentifiers();
+	smiNode = smiGetNode(NULL, "iso");
+	if (smiNode) {
+	    dumpNodeIdentifiers(smiNode);
+	}
+
+	if (! unite) {
+	    moduleList->nextPtr = nextModule;
 	}
     }
-} /*  */
+}

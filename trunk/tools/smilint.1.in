@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.8 2000/06/15 09:55:01 strauss Exp $
+.\" $Id: smilint.1.in,v 1.9 2000/06/16 13:53:36 strauss Exp $
 .\"
 .TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -114,5 +114,5 @@ Other commonly used MIB checkers are
 .BR mosy "(1) and "
 .BR smicng "(1)."
 .SH "AUTHOR"
-(C) 1999,2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
+(C) 1999, 2000 Frank Strauss, TU Braunschweig, Germany <strauss@ibr.cs.tu-bs.de>
 .br

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.17 2000/06/06 12:59:07 strauss Exp $
+ * @(#) $Id: dump-tree.c,v 1.18 2000/07/04 10:07:10 strauss Exp $
  */
 
 #include <config.h>
@@ -300,6 +300,7 @@ void dumpTree(Module *module)
 {
     SmiModule *smiModule;
     SmiNode   *smiNode;
+    Module    *nextModule = NULL;
     int	      unite;
 
     smiModule = module->smiModule;
@@ -314,9 +315,18 @@ void dumpTree(Module *module)
 		   unite ? "united" : smiModule->name);
 	}
 	
+	if (! unite) {
+	    nextModule = moduleList->nextPtr;
+	    moduleList->nextPtr = NULL;
+	}
+
 	smiNode = smiGetNode(NULL, "iso");
 	if (smiNode) {
 	    dumpSubTree(smiNode, "", 0);
+	}
+
+	if (! unite) {
+	    moduleList->nextPtr = nextModule;
 	}
     }
 }
