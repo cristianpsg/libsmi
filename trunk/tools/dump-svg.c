@@ -157,6 +157,8 @@ static const float TABLEHEIGHT         = (float)35; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
+//The description of RowStatus is quite long... :-/
+static const int DYN_TEXT              =550;
 //TODO make these values configurable by options passed to the driver
 static const int CANVASHEIGHT          =700;
 static const int CANVASWIDTH           =1100;
@@ -820,6 +822,28 @@ static void algPrintGroup(int group)
 	    printf("%2d - %35s\n", group, tNode->smiNode->name);
 	}
     }
+}
+
+/*
+ * algGetTypeDescription
+ *
+ * Returns the description of the data type used in smiNode.
+ */
+static char *algGetTypeDescription(SmiNode *smiNode)
+{
+    SmiType *smiType, *parentType;
+  
+    smiType = smiGetNodeType(smiNode);
+  
+    if (!smiType || smiNode->nodekind == SMI_NODEKIND_TABLE)
+	return NULL;
+  
+    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+	parentType = smiGetParentType(smiType);
+	smiType = parentType;
+    }
+  
+    return smiType->description;
 }
 
 /*
@@ -1966,6 +1990,13 @@ static void parseTooltip(char *input, char *output)
 	    output[j++] = '\\';
 	    output[j++] = '\'';
 	    break;
+	// '<' and '>' should not appear in a tag in a xml-document...
+	case '<':
+	    output[j++] = '(';
+	    break;
+	case '>':
+	    output[j++] = ')';
+	    break;
 	default:
 	    output[j++] = input[i];
 	}
@@ -1993,7 +2024,7 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
     printf("   <text id=\"ttt\" x=\"0\" y=\"0\" style=\"visibility: hidden\">");
 						printf("dyn. Text</text>\n");
     //FIXME: calculate number of lines dynamically.
-    for (i = 0; i < 40; i++) {
+    for (i = 0; i < DYN_TEXT; i++) {
 	printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
     }
     printf(" </g>\n");
@@ -2010,6 +2041,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 			      float *textYOffset, float *textXOffset)
 {
     char        *tooltip;
+    char        *typeDescription;
 
     printf("    <text x=\"%.2f\" y=\"%.2f\"",
 				*textXOffset + ATTRSPACESIZE, *textYOffset);
@@ -2035,19 +2067,26 @@ static void printSVGAttribute(SmiNode *node, int index,
 	tooltip = (char *)xmalloc(2*strlen(node->description));
 	parseTooltip(node->description, tooltip);
 	printf("<tspan onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-	printf(" onmouseout=\"HideTooltip(evt)\">%s:</tspan> ",node->name);
+	printf(" onmouseout=\"HideTooltip(evt)\">%s:</tspan> \n",node->name);
 	xfree(tooltip);
     } else {
-	printf("<tspan>%s:</tspan> ",node->name);
+	printf("<tspan>%s:</tspan> \n",node->name);
+    }
+
+    if (typeDescription = algGetTypeDescription(node)) {
+	tooltip = (char *)xmalloc(2*strlen(typeDescription));
+	parseTooltip(typeDescription, tooltip);
+	printf("<tspan onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	printf(" onmouseout=\"HideTooltip(evt)\">");
+    } else {
+	printf("<tspan>");
     }
 
     if (index) {
-	printf("<tspan>%s%s</tspan></text>\n",
-					algGetTypeName(node), INDEXPROPERTY);
+	printf("%s%s</tspan></text>\n", algGetTypeName(node), INDEXPROPERTY);
     } else {
-	printf("<tspan>%s</tspan></text>\n", algGetTypeName(node));
+	printf("%s</tspan></text>\n", algGetTypeName(node));
     }
-
 }
 
 /*
@@ -2577,7 +2616,8 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv, int nodecount,
     printf("    posx=mousemove_event.clientX;\n");
     printf("    posy=mousemove_event.clientY;\n");
     //FIXME: calculate number of lines dynamically.
-    printf("    for(i=1;i<=40;i++)texte.item(i).firstChild.data=\"\";\n");
+    printf("    for(i=1;i<=%i;i++)", DYN_TEXT);
+				printf("texte.item(i).firstChild.data=\"\";\n");
     printf("    sollbreite=200;\n");
     printf("    tttelem.childNodes.item(0).data=txt;\n");
     printf("    ges=tttelem.getComputedTextLength();\n");
@@ -2840,7 +2880,6 @@ static void printModuleIdentity(int modc, SmiModule **modv)
 		tooltip = (char *)xmalloc(2*strlen(modv[i]->description));
 		parseTooltip(modv[i]->description, tooltip);
 		printf(" <text x=\"100\" y=\"%.2f\" onmousemove=\"ShowTooltipMZ(evt,'%s')\" onmouseout=\"HideTooltip(evt)\">%s MODULE-IDENTITY</text>\n", y, tooltip, smiNode->name);
-		fprintf(stderr, "%s\n", tooltip);
 		xfree(tooltip);
 	    } else {
 		printf(" <text x=\"100\" y=\"%.2f\" onmousemove=\"ShowTooltipMZ(evt,'...')\" onmouseout=\"HideTooltip(evt)\">%s MODULE-IDENTITY</text>\n", y, smiNode->name);
@@ -3217,6 +3256,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	yMax += maxHeight + 10;
 
     //write some debug-information to stderr
+    /*
     fprintf(stderr, "xMin\tyMin\txMax\tyMax\txOffset\tyOffset\n");
     for (tCluster = graph->clusters->nextPtr; tCluster;
 						tCluster = tCluster->nextPtr) {
@@ -3230,6 +3270,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    continue;
 	fprintf(stderr, "%i\t%i\t(%.2f,%.2f)\n", tNode->group, tNode->degree, tNode->dia.x, tNode->dia.y);
     }
+    */
 
     //output of svg to stdout begins here
     printSVGHeaderAndTitle(modc, modv, nodecount, xMin, yMin, xMax, yMax);
