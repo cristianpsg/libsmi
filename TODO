@@ -27,8 +27,6 @@ o thread safety (global vars? static vars? strtok() and other funcs?)
 
 o SmiDecl is language dependant.
 
-o *.[13].in: construct correct autoconf @mibdir@ contents
-
 o add much more checks to the smiv1/v2 and sming parsers
 o smi_errno ?!
 o set up a catalogue of errors detected by the smiv1/v2 parser?
@@ -48,5 +46,10 @@ o reading RMON2-MIB.sming gets a segfault.
 
 o `::' instead of `.' as separator in tools' output? (Juergen)
 
+o *.[13].in: construct correct autoconf @mibdir@ contents
+
 o tcpdump (Juergen)
 
+o SNMPv2-MIB.sming: snmpBasicNotificationsGroup is NOT sorted by OID !!!
+
+o need handle to distinguish different views.
