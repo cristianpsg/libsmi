@@ -1219,6 +1219,21 @@ static void printNotificationType(int modc, SmiModule **modv,
 		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 		printf("(%.2f,%.2f)\">\n", *x, *y);
 		printf("  <text id=\"%s\"", smiNode->name);
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		    printf(" fill=\"rgb(40%,40%,40%)\"");
+		    break;
+		case SMI_STATUS_OBSOLETE:
+		    printf(" fill=\"rgb(60%,60%,60%)\"");
+		    break;
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		    printf(" fill=\"rgb(0%,0%,0%)\"");
+		    break;
+		case SMI_STATUS_OPTIONAL:
+		    printf(" fill=\"rgb(20%,20%,20%)\"");
+		    break;
+		}
 
 		if (!STATIC_OUTPUT) {
 		    smiElement = smiGetFirstElement(smiNode);
@@ -1349,6 +1364,21 @@ static void printObjectGroup(int modc, SmiModule **modv,
 		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 		printf("(%.2f,%.2f)\">\n", *x, *y);
 		printf("  <text id=\"%s\"", smiNode->name);
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		    printf(" fill=\"rgb(40%,40%,40%)\"");
+		    break;
+		case SMI_STATUS_OBSOLETE:
+		    printf(" fill=\"rgb(60%,60%,60%)\"");
+		    break;
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		    printf(" fill=\"rgb(0%,0%,0%)\"");
+		    break;
+		case SMI_STATUS_OPTIONAL:
+		    printf(" fill=\"rgb(20%,20%,20%)\"");
+		    break;
+		}
 
 		if (!STATIC_OUTPUT) {
 		    smiElement = smiGetFirstElement(smiNode);
@@ -1479,6 +1509,21 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 		printf("(%.2f,%.2f)\">\n", *x, *y);
 		printf("  <text id=\"%s\"", smiNode->name);
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		    printf(" fill=\"rgb(40%,40%,40%)\"");
+		    break;
+		case SMI_STATUS_OBSOLETE:
+		    printf(" fill=\"rgb(60%,60%,60%)\"");
+		    break;
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		    printf(" fill=\"rgb(0%,0%,0%)\"");
+		    break;
+		case SMI_STATUS_OPTIONAL:
+		    printf(" fill=\"rgb(20%,20%,20%)\"");
+		    break;
+		}
 
 		if (!STATIC_OUTPUT) {
 		    smiElement = smiGetFirstElement(smiNode);
@@ -1554,7 +1599,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 static void printModuleCompliance(int modc, SmiModule **modv,
 				  float *x, float *y, int *miNr)
 {
-    int           i, j, foreign_exists;
+    int           i, j, foreign_exists, textColor;
     char          *tooltip;
     char          *done = NULL;
     char          s[100];
@@ -1611,7 +1656,28 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    continue;
 		printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 		printf("(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text>\n");
+		printf("  <text");
+		switch (smiNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		    printf(" fill=\"rgb(40%,40%,40%)\"");
+		    textColor = 40;
+		    break;
+		case SMI_STATUS_OBSOLETE:
+		    printf(" fill=\"rgb(60%,60%,60%)\"");
+		    textColor = 60;
+		    break;
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_MANDATORY:
+		    printf(" fill=\"rgb(0%,0%,0%)\"");
+		    textColor = 0;
+		    break;
+		case SMI_STATUS_OPTIONAL:
+		    printf(" fill=\"rgb(20%,20%,20%)\"");
+		    textColor = 20;
+		    break;
+		}
+		printf(">\n");
+
 		if (!STATIC_OUTPUT) {
 		    printf("   <tspan style=\"text-anchor:middle\"");
 		    printf(" onclick=\"collapse(evt)\">--</tspan>\n");
@@ -1657,7 +1723,8 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    }
 		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 		    printf("(%.2f,%.2f)\">\n", *x, *y);
-		    printf("  <text>\n");
+		    printf("  <text fill=\"rgb(%i%,%i%,%i%)\">\n",
+					textColor, textColor, textColor);
 		    if (!STATIC_OUTPUT) {
 			printf("   <tspan style=\"text-anchor:middle\"");
 			printf(" onclick=\"collapse(evt)\">--</tspan>\n");
@@ -1673,8 +1740,8 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		    *x += TABLEBOTTOMHEIGHT;
 		    printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 		    printf("(%.2f,%.2f)\">\n", *x, *y);
-		    printf("  <text");
-		    //printf(" <text x=\"%.2f\" y=\"%.2f\"", *x, *y);
+		    printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+					textColor, textColor, textColor);
 		    if (!STATIC_OUTPUT && foreign_exists) {
 			smiElement = smiGetFirstElement(smiNode);
 			if (smiElement) {
@@ -1705,8 +1772,23 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 				if (j) {
 				    printf(";");
 				}
-				printf("colorText('%s','black')",
+				printf("colorText('%s',",
 					smiGetElementNode(smiElement)->name);
+				switch (smiGetElementNode(smiElement)->status) {
+				case SMI_STATUS_DEPRECATED:
+				    printf("'rgb(40%,40%,40%)')");
+				    break;
+				case SMI_STATUS_OBSOLETE:
+				    printf("'rgb(60%,60%,60%)')");
+				    break;
+				case SMI_STATUS_CURRENT:
+				case SMI_STATUS_MANDATORY:
+				    printf("'rgb(0%,0%,0%)')");
+				    break;
+				case SMI_STATUS_OPTIONAL:
+				    printf("'rgb(20%,20%,20%)')");
+				    break;
+				}
 			    }
 			}
 			if (j) {
@@ -1726,7 +1808,8 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 			if (!strcmp(smiModule2->name, module)) {
 			    printf(" <g id=\"MI%i\" transform=", *miNr);
 			    printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-			    printf("  <text");
+			    printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+					textColor, textColor, textColor);
 			    if (!STATIC_OUTPUT) {
 				printf(" onmousemove=\"");
 				if (smiOption->description) {
@@ -1748,9 +1831,24 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 				}
 				if (smiOption->description && foreign_exists)
 				    printf(";");
-				if (foreign_exists)
-				    printf("colorText('%s','black')",
-								smiNode2->name);
+				if (foreign_exists) {
+				    printf("colorText('%s',", smiNode2->name);
+				    switch (smiNode2->status) {
+				    case SMI_STATUS_DEPRECATED:
+					printf("'rgb(40%,40%,40%)')");
+					break;
+				    case SMI_STATUS_OBSOLETE:
+					printf("'rgb(60%,60%,60%)')");
+					break;
+				    case SMI_STATUS_CURRENT:
+				    case SMI_STATUS_MANDATORY:
+					printf("'rgb(0%,0%,0%)')");
+					break;
+				    case SMI_STATUS_OPTIONAL:
+					printf("'rgb(20%,20%,20%)')");
+					break;
+				    }
+				}
 				printf("\"");
 			    }
 			    printf(">GROUP %s</text>\n", smiNode2->name);
@@ -1769,7 +1867,8 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 			if (!strcmp(smiModule2->name, module)) {
 			    printf(" <g id=\"MI%i\" transform=", *miNr);
 			    printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-			    printf("  <text");
+			    printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+					textColor, textColor, textColor);
 			    if (!STATIC_OUTPUT) {
 				printf(" onmousemove=\"");
 				if (smiRefinement->description) {
