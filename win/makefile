@@ -11,7 +11,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: makefile,v 1.14 2002/07/21 19:49:56 schoenw Exp $
+# @(#) $Id: makefile,v 1.15 2002/11/13 12:35:23 schoenw Exp $
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -30,12 +30,15 @@ TOOLS32	= C:\PROGRA~1\MICROS~2\VC98
 ##
 ## MIBROOT  -- definition for default search path (unix-style)
 ## MIBDIR   -- same in windows style
+## PIBDIR   -- same in windows style
 ## BINDIR   -- destination for the binaries (smidump.exe, ...)
 ## LIBDIR   -- destination for the library (smi.lib)
 ##
 MIBROOT = c:/smi/mibs
+PIBROOT = c:/smi/pibs
 INSTROOT = c:\smi
 MIBDIR = $(INSTROOT)\mibs
+PIBDIR = $(INSTROOT)\pibs
 BINDIR = $(INSTROOT)\bin
 LIBDIR = $(INSTROOT)\lib
 
@@ -168,7 +171,7 @@ clean:
 	del *.pdb
 	del *.mdp
 
-install:	all install-doc install-bin install-lib install-mibs
+install:	all install-doc install-bin install-lib install-mibs install-pibs
 
 install-doc:
 	$(MKDIR) $(INSTROOT)
@@ -198,6 +201,15 @@ install-mibs:
 	$(MKDIR) $(MIBDIR)\tubs
 	$(CP) ..\mibs\tubs\*.* $(MIBDIR)\tubs
 	$(MKDIR) $(MIBDIR)\site
+
+
+install-pibs:
+	$(MKDIR) $(PIBDIR)
+	$(MKDIR) $(PIBDIR)\ietf
+	$(CP) ..\pibs\ietf\*.* $(PIBDIR)\ietf
+	$(MKDIR) $(PIBDIR)\tubs
+	$(CP) ..\pibs\tubs\*.* $(PIBDIR)\tubs
+	$(MKDIR) $(PIBDIR)\site
 
 
 # EOF: makefile

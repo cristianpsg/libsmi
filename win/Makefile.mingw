@@ -6,19 +6,22 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.mingw,v 1.4 2002/05/17 12:55:55 schoenw Exp $
+# @(#) $Id: Makefile.mingw,v 1.5 2002/11/13 12:35:23 schoenw Exp $
 #
 
 ##
 ## Installation paths: 
 ##
 ## MIBDIR   -- MIB destination (let it end with /mibs; check againt config.h)
+## PIBDIR   -- MIB destination (let it end with /pibs; check againt config.h)
 ## BINDIR   -- destination for the binaries (smidump.exe, ...)
 ##
 INSTROOT = c:\smi
-MIBDIR = $(INSTROOT)\mibs
-BINDIR = $(INSTROOT)\bin
-LIBDIR = $(INSTROOT)\lib
+INSTROOT = c/smi
+MIBDIR = $(INSTROOT)/mibs
+PIBDIR = $(INSTROOT)/pibs
+BINDIR = $(INSTROOT)/bin
+LIBDIR = $(INSTROOT)/lib
 
 ##
 ## Commands:
@@ -31,12 +34,12 @@ AR	= ar
 ##
 ## Debian Linux mingw cross-compiler version:
 ##
-# MKDIR	= -mkdir
-# CC	= i586-mingw32msvc-gcc
-# CP	= cp
-# RM    = rm
-# AR	= i586-mingw32msvc-ar
-# MKDIR	= -mkdir
+MKDIR	= -mkdir
+CC	= i586-mingw32msvc-gcc
+CP	= cp
+RM	= rm -f
+AR	= i586-mingw32msvc-ar
+MKDIR	= -mkdir
 
 ##
 ## Definitions:
@@ -131,16 +134,17 @@ clean:
 	$(RM) *.a
 	$(RM) *.exe
 
-install:	all install-doc install-bin install-mibs
+install:	all install-doc install-bin install-mibs install-pibs
 
 install-doc:
 	$(MKDIR) $(INSTROOT)
-	$(CP) ..\README $(INSTROOT)
-	$(CP) ..\COPYING $(INSTROOT)
+	$(CP) ../README $(INSTROOT)
+	$(CP) ../COPYING $(INSTROOT)
 	$(CP) README.mingw $(INSTROOT)
-	$(MKDIR) $(INSTROOT)\doc
-	$(CP) ..\doc\*.txt $(INSTROOT)\doc
-	$(CP) ..\doc\*.ps $(INSTROOT)\doc
+	$(MKDIR) $(INSTROOT)/doc
+	-$(CP) ../doc/*.txt $(INSTROOT)/doc
+	-$(CP) ../doc/*.ps $(INSTROOT)/doc
+	-$(CP) ../doc/smi* $(INSTROOT)/doc
 
 install-bin:
 	$(MKDIR) $(BINDIR)
@@ -150,15 +154,24 @@ install-bin:
 
 install-mibs:
 	$(MKDIR) $(MIBDIR)
-	$(MKDIR) $(MIBDIR)\iana
-	$(CP) ..\mibs\iana\*.* $(MIBDIR)\iana
-	$(MKDIR) $(MIBDIR)\ietf
-	$(CP) ..\mibs\ietf\*.* $(MIBDIR)\ietf
-	$(MKDIR) $(MIBDIR)\irtf
-	$(CP) ..\mibs\irtf\*.* $(MIBDIR)\irtf
-	$(MKDIR) $(MIBDIR)\tubs
-	$(CP) ..\mibs\tubs\*.* $(MIBDIR)\tubs
-	$(MKDIR) $(MIBDIR)\site
-	$(CP) ..\mibs\site\*.* $(MIBDIR)\site
+	$(MKDIR) $(MIBDIR)/iana
+	-$(CP) ../mibs/iana/* $(MIBDIR)/iana
+	$(MKDIR) $(MIBDIR)/ietf
+	-$(CP) ../mibs/ietf/* $(MIBDIR)/ietf
+	$(MKDIR) $(MIBDIR)/irtf
+	-$(CP) ../mibs/irtf/* $(MIBDIR)/irtf
+	$(MKDIR) $(MIBDIR)/tubs
+	-$(CP) ../mibs/tubs/* $(MIBDIR)/tubs
+	$(MKDIR) $(MIBDIR)/site
+	-$(CP) ../mibs/site/* $(MIBDIR)/site
+
+install-pibs:
+	$(MKDIR) $(PIBDIR)
+	$(MKDIR) $(PIBDIR)/ietf
+	-$(CP) ../pibs/ietf/* $(PIBDIR)/ietf
+	$(MKDIR) $(PIBDIR)/tubs
+	-$(CP) ../pibs/tubs/* $(PIBDIR)/tubs
+	$(MKDIR) $(PIBDIR)/site
+	-$(CP) ../pibs/site/* $(PIBDIR)/site
 
 ##
