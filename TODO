@@ -95,3 +95,5 @@ o configuration of preloaded modules per application/tag
   - extensible configuration ?!
   - separate api function or implied by smiInit() ?
 
+o add size restrictions for OPAQUE
+

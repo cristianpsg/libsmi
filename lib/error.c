@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.18 1999/10/05 06:30:56 strauss Exp $
+ * @(#) $Id: error.c,v 1.19 1999/10/07 13:33:54 strauss Exp $
  */
 
 #include <string.h>
@@ -231,6 +231,8 @@ Error errors[] = {
       "Cannot handle other default values than 0.0 for `%s'" },
     { 2, ERR_UNEXPECTED_TYPE_RESTRICTION,
       "Unexpected type restriction" },
+    { 1, ERR_UNKNOWN_CONFIG_CMD,
+      "Unknown configuration command `%s' in file `%s'" },
  
     { 0, 0, NULL }
 };

@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.11 1999/10/01 12:46:58 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.12 1999/11/24 19:02:38 strauss Exp $
 #
 
 
@@ -123,7 +123,7 @@ bin_PROGRAMS =  smiquery$(EXEEXT) smilint$(EXEEXT) smidump$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.8-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\"  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.8-pre2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_PWD_H=1 -DDEFAULT_GLOBALCONFIG=\"/usr/local/etc/smi.conf\" -DDEFAULT_USERCONFIG=\".smirc\" -DDEFAULT_SMIPATH=\"/usr/local/share/mibs/ietf:/usr/local/share/mibs/iana:/usr/local/share/mibs/irtf:/usr/local/share/mibs/site\"  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

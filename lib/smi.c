@@ -8,11 +8,12 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.49 1999/10/05 06:30:58 strauss Exp $
+ * @(#) $Id: smi.c,v 1.50 1999/11/24 19:02:35 strauss Exp $
  */
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
@@ -24,6 +25,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
 
 #include "smi.h"
 #include "error.h"
@@ -603,7 +608,10 @@ SmiRefinement *createSmiRefinement(Object *objectPtr,
 int smiInit()
 {
     char *p;
-
+#ifdef HAVE_PWD_H
+    struct passwd *pw;
+#endif
+    
     if (initialized) {
 	return 0;
     }
@@ -614,6 +622,7 @@ int smiInit()
 	return -1;
     }
 
+    /* setup the smi MIB module searach path */
     p = getenv("SMIPATH");
     if (p) {
 	if (p[0] == ':') {
@@ -632,9 +641,21 @@ int smiInit()
     if (!smiPath) {
 	return -1;
     }
-    
+
+    /* need this here, otherwise smiReadConfig would call smiInit in loop */
     initialized = 1;
 
+    /* read global and user configuration */
+    smiReadConfig(DEFAULT_GLOBALCONFIG);
+#ifdef HAVE_PWD_H
+    pw = getpwuid(getuid());
+    if (pw && pw->pw_dir) {
+	p = util_malloc(strlen(DEFAULT_USERCONFIG) + strlen(pw->pw_dir) + 2);
+	sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
+	smiReadConfig(p);
+    }
+#endif
+    
     return 0;
 }
 
@@ -685,6 +706,32 @@ int smiSetPath(const char *s)
 	return -1;
     }
     
+}
+
+
+
+int smiReadConfig(const char *filename)
+{
+    FILE *file;
+    char buf[201], cmd[201], arg[201];
+    
+    file = fopen(filename, "r");
+    if (file) {
+	while (!feof(file)) {
+	    fgets(buf, 200, file);
+	    sscanf(buf, "%s %s", cmd, arg);
+	    if ((!strlen(cmd)) || (cmd[0] == '#')) continue;
+	    if (!cmd || !arg) continue;
+	    if (!strcmp(cmd, "load")) {
+		smiLoadModule(arg);
+	    } else {
+		printError(NULL, ERR_UNKNOWN_CONFIG_CMD, cmd, filename);
+	    }
+	}
+	fclose(file);
+	return 0;
+    }
+    return -1;
 }
 
 
