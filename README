@@ -7,7 +7,7 @@ Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
 See the file "COPYING" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
-@(#) $Id: README,v 1.19 2000/02/15 10:41:02 strauss Exp $
+@(#) $Id: README,v 1.20 2000/04/11 09:00:15 strauss Exp $
 
 This project has been started as part of Frank Strauss' master's
 thesis at the Technical University of Braunschweig, Germany.
@@ -39,10 +39,16 @@ To configure libsmi, first check
 
 	./configure --help
 
-output to see, what options are available. Then run ./configure with
-the options of your choice. Choose mibdir and smipath values
+output to see, what options are available. Then run
+
+	./configure [options]
+
+with the options of your choice. Choose mibdir and smipath values
 appripriate for your environment so that users can live without an
 SMIPATH environment variable and without configuration files.
+
+On HP-UX platforms the build process is reported to require gcc
+and the --disable-shared configure option.
 
 To build libsmi and the tools, run
 
