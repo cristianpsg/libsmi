@@ -1,6 +1,6 @@
 TUBS-IBR-AGENT-CAPABILITIES DEFINITIONS ::= BEGIN
 
--- @(#) $Id: TUBS-IBR-AGENT-CAPABILITIES,v 1.2 2000/02/12 08:43:08 schoenw Exp $
+-- @(#) $Id: TUBS-IBR-AGENT-CAPABILITIES,v 1.3 2000/02/14 08:24:15 schoenw Exp $
 
 IMPORTS
     MODULE-IDENTITY
@@ -171,9 +171,6 @@ wwwSubagent1dot0 AGENT-CAPABILITIES
 			  wwwRequestInGroup, wwwResponseOutGroup,
 			  wwwDocumentGroup }
 
-        VARIATION	wwwServiceStartTime
-        DESCRIPTION	"Always zero. The sub-agent toolkit does not allow
-			 to return noSuchObject exceptions."
         VARIATION	wwwServiceOperStatus
 	SYNTAX		INTEGER { running(2) }
  	DESCRIPTION	"The sub-agent toolkit does not allow to return
