@@ -1016,22 +1016,6 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	+ HEADSPACESIZETABLE;
     node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
 
-    //C
-    for (smiElement = smiGetFirstElement(
-	smiGetFirstChildNode(node->smiNode));
-	 smiElement;
-	 smiElement = smiGetNextElement(smiElement)) {
-	
-	tNode = smiGetElementNode(smiElement);
-	
-	node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-					strlen(algGetTypeName(tNode)) +
-					strlen(INDEXPROPERTY) + 3)
-		      * ATTRFONTSIZE
-		      + ATTRSPACESIZE);
-	node->dia.h += TABLEELEMHEIGHT;
-    }
-    
     //A
     for (tEdge = graphGetFirstEdgeByNode(graph,node);
 	 tEdge;
@@ -1071,6 +1055,22 @@ static GraphNode *diaCalcSize(GraphNode *node)
 		}
 	    }
 	}
+    }
+
+    //C
+    for (smiElement = smiGetFirstElement(
+	smiGetFirstChildNode(node->smiNode));
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	
+	tNode = smiGetElementNode(smiElement);
+	
+	node->dia.w = max(node->dia.w, (strlen(tNode->name) +
+					strlen(algGetTypeName(tNode)) +
+					strlen(INDEXPROPERTY) + 3)
+		      * ATTRFONTSIZE
+		      + ATTRSPACESIZE);
+	node->dia.h += TABLEELEMHEIGHT;
     }
 
     //D
