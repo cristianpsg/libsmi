@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.70 2000/12/12 22:37:53 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.71 2001/09/21 15:14:55 schoenw Exp $
  */
 
 #include <config.h>
@@ -1154,7 +1154,9 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 	    fprint(f, "\"%s\"\n", smiNode->units);
 	}
 	
-	if (! assignement && smiNode->nodekind != SMI_NODEKIND_CAPABILITIES) {
+	if (! assignement &&
+	    smiNode->nodekind != SMI_NODEKIND_CAPABILITIES &&
+	    smiNode->nodekind != SMI_NODEKIND_NODE) {
 	    if (smiv1) {
 		fprintSegment(f, INDENT, "ACCESS", INDENTVALUE, invalid);
 	    } else {
