@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.14 2002/06/21 14:46:46 strauss Exp $
+.\" $Id: smilint.1.in,v 1.15 2002/11/12 10:03:42 schoenw Exp $
 .\"
 .TH smilint 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
@@ -60,25 +60,8 @@ import some definitions.
 .TP
 \fB-l \fIlevel\fB, --level=\fIlevel\fP
 Report errors and warnings up to the given severity \fIlevel\fP.
-A higher level shows more warnings. The actual severity levels are:
-.sp
-.nf
- 0   internal error, no recovery possible,
- 1   major SMI/SPPI error, recovery somehow possible but
-     may lead to severe problems,
- 2   SMI/SPPI error, probably tolerated by some
-     implementations,
- 3   SMI/SPPI error, tolerated by many implementations,
- 4   something which is recommended to be changed,
- 5   something that might be ok, but might not be
-     recommended under some circumstances,
- 6   just a notice.
-.fi
-.sp
-Higher levels are currently not used and lead to the same effects as
-level 6 does. Note that errors up to level 3 are errors violating the
-specifications and must be fixed by the responsible author. Level 3 is
-the default level.
+See below for a description of the error levels. The default error
+level is 3.
 .TP
 \fB-i \fIprefix\fB, --ignore=\fIprefix\fP
 Ignore all errors that have a tag which matches \fIprefix\fP.
@@ -91,6 +74,43 @@ path name (identified by containing at least one dot or slash character),
 this is assumed to be the exact file to read. Otherwise, if a module is
 identified by its plain module name, it is searched according to libsmi
 internal rules. See \fBsmi_config(3)\fP for more details.
+.SH "ERROR AND WARNING LEVELS"
+All generated error and warning messages have an associated severity level.
+The actual severity levels are:
+.IP 0 3
+Internal error, no recovery possible. Examples are memory allocation
+failures. Errors of this level usually cause the application to abort.
+.IP 1 3
+Major SMI/SPPI error, recovery somehow possible but may lead to severe
+problems. Examples are lexically unexpected characters or unknown
+keywords. Errors of this kind usually lead to follow-on errors.
+.IP 2 3
+SMI/SPPI error which is probably tolerated by some
+implementations. Examples are MIB/PIB modules which mix constructs
+from different SMI/SPPI versions.
+.IP 3 3 
+SMI/SPPI error which is likely tolerated by many
+implementations. Examples are misplaced SMIv2 MODULE-IDENTITY
+invocations or SMIv2 textual conventions derived from other textual
+conventions.
+.IP 4 3
+Something which is not strictly an error but which is recommended to
+be changed. Warnings of this level are usually considered during MIB
+reviews.
+.IP 5 3
+Something that is basically correct but might be problematic in
+certain environments or usage scenarios. Examples are warnings that
+identifiers only differ in case or that type definitions are not used
+within the defining module.
+.IP 6 3
+Messages of this level are auxiliary notices. Examples are messages
+that point to a previous definition in case of a redefinition.
+.PP
+Higher levels are currently not used and lead to the same effects as
+level 6 does. Note that errors up to level 3 are errors violating the
+specifications and must be fixed by the responsible author. The
+warnings generated with level 4 should be considered during normal
+MIB/PIB reviews.
 .SH "EXAMPLE"
 This example checks the file RMON2-MIB in the current directory (note
 that the `./' prefix ensures this). The error level is raised to 6

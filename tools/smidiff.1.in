@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smidiff.1.in,v 1.7 2002/07/25 18:17:38 tklie Exp $
+.\" $Id: smidiff.1.in,v 1.8 2002/11/12 10:03:42 schoenw Exp $
 .\"
 .TH smidiff 1  "June 21, 2002" "IBR" "SMI Tools"
 .SH NAME
@@ -55,20 +55,9 @@ module(s). This may be helpful if an incomplete main module misses to
 import some definitions.
 .TP
 \fB-l \fIlevel\fB, --level=\fIlevel\fP
-Report errors and warnings up to the given severity \fIlevel\fP.
-A higher level shows more warnings. The actual severity levels are:
-.sp
-.nf
- 0   internal error, no recovery possible,
- 1   major SMI/SPPI error, recovery somehow possible but
-     may lead to severe problems,
- 2   SMI error, probably tolerated by some
-     implementations,
- 3   SMI/SPPI error, tolerated by many implementations,
- 4   something which is recommended to be changed,
- 5   something that might be ok, but might not be
-     recommended under some circumstances,
- 6   just a notice.
+Report errors and warnings up to the given severity \fIlevel\fP. See
+the smilint(1) manual page for a description of the error levels. The
+default error level is 3.
 .TP
 \fB-i \fIprefix\fB, --ignore=\fIprefix\fP
 Ignore all errors that have a tag which matches \fIprefix\fP.
