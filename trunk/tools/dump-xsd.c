@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.17 2002/03/11 08:52:44 strauss Exp $
+ * @(#) $Id: dump-xsd.c,v 1.18 2002/03/11 15:04:16 tklie Exp $
  */
 
 #include <config.h>
@@ -349,7 +349,7 @@ static void fprintRestriction(FILE *f, int indent, SmiType *smiType)
 	    if( smiRange->minValue.value.unsigned64 < min ) {
 		min = smiRange->minValue.value.unsigned64;
 	    }
-	    if( smiRange->maxValue.value.unsigned32 > max ) {
+	    if( smiRange->maxValue.value.unsigned64 > max ) {
 		max = smiRange->maxValue.value.unsigned64;
 	    }
 	    smiRange = smiGetNextRange( smiRange );
@@ -609,6 +609,12 @@ static void fprintSubRangeType( FILE *f, int indent,
     fprintSegment(f, indent, "</xsd:simpleType>\n\n", 0 );
 }
 
+static void fprintDisplayHint( FILE *f, int indent, char *format )
+{
+    fprintSegment( f, indent, "<displayHint>", 0 );
+    fprint( f, "%s</displayHint>\n", format );
+}
+
 static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
 			  const char *name)
 {
@@ -640,6 +646,11 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     if( smiType->description ) {
 	fprintSegment( f, indent + INDENT, "<xsd:annotation>\n", 0 );
 	fprintDocumentation(f, indent + 2 * INDENT, smiType->description);
+	if( smiType->format ) {
+	    fprintSegment( f, indent + 2 * INDENT, "<xsd:appinfo>\n", 0 );
+	    fprintDisplayHint( f, indent + 3 * INDENT, smiType->format );
+	    fprintSegment( f, indent + 2 * INDENT, "</xsd:appinfo>\n", 0 );
+	}
 	fprintSegment( f, indent + INDENT, "</xsd:annotation>\n", 0 );
     }
 
@@ -666,21 +677,22 @@ static void fprintTypedef(FILE *f, int indent, SmiType *smiType,
     }
 }
 
-static char* getTypePrefix( SmiType *smiType )
+static char* getTypePrefix( char *typeName )
 {
     int i;
 
-    if( !smiType->name ) {
+    if( !typeName ) {
 	return NULL;
     }
 
     for( i = 0; i < numTypes; i++ ) {
-	if( !strcmp( typePrefixes[ i ].type, smiType->name ) ) {
+	if( !strcmp( typePrefixes[ i ].type, typeName ) ) {
 	    return typePrefixes[ i ].prefix;
 	}
     }
     return NULL;
 }
+
 
 static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
       
@@ -692,6 +704,10 @@ static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
 
     fprintSegment( f, indent + 2 * INDENT, "<status>", 0 );
     fprint( f, "%s</status>\n",  getStringStatus( smiNode->status ) );
+
+    if( smiNode->format ) {
+	fprintDisplayHint( f, indent + 2 * INDENT, smiNode->format );
+    }
   
     fprintSegment( f, indent +  INDENT, "</xsd:appinfo>\n", 0 );
     fprintDocumentation( f, indent + INDENT, smiNode->description );
@@ -752,7 +768,7 @@ static void fprintElement( FILE *f, int indent,
 	    }
 	}
 	smiType = smiGetNodeType( smiNode );
-	prefix = getTypePrefix( smiType );
+
 	
 	fprintSegment( f, indent, "<xsd:element", 0 );
 	fprint( f, " name=\"%s\"", smiNode->name );
@@ -763,9 +779,10 @@ static void fprintElement( FILE *f, int indent,
 	else {
 	    typeName = getStringBasetype( smiType->basetype );
 	}
+	prefix = getTypePrefix( typeName );
 
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
-	    fprint( f, " type=\"%%s%s\"",
+	    fprint( f, " type=\"%s%s\"",
 		    smiNode->name,
 		    getStringBasetype( smiType->basetype ) );
 	    fprint( f, " minOccurs=\"0\">\n" );
@@ -802,23 +819,32 @@ static void fprintElement( FILE *f, int indent,
 }
 
 
-static void fprintIndex( FILE *f, int indent,
-			 SmiNode *smiNode, const char *prefix )
+static void fprintIndex( FILE *f, int indent, SmiNode *smiNode )
 {
     SmiNode *iterNode;
     SmiElement *iterElem;
     SmiType *smiType;
+    char *typeName, *prefix;
 
     for( iterElem = smiGetFirstElement( smiNode );
 	 iterElem;
 	 iterElem = smiGetNextElement( iterElem ) ) {
 	iterNode = smiGetElementNode( iterElem );
 	smiType = smiGetNodeType( iterNode );
+	typeName = smiType->name ?
+	    smiType->name :
+	    getStringBasetype( smiType->basetype );
+	prefix = getTypePrefix( typeName );
 
 	fprintSegment( f, indent, "<xsd:attribute", 0 );
 	fprint( f, " name=\"%s\"", iterNode->name );
-	fprint( f, " type=\"%s\">\n",
-		getStringBasetype( smiType->basetype ) );
+	if( prefix ) {
+	    fprint( f, " type=\"%s:%s\">\n", prefix, typeName );
+	}
+	else {
+	    fprint( f, " type=\"%s\">\n", typeName );
+	}
+		
 	
 	fprintAnnotationElem( f, indent + INDENT, smiNode );
 	fprintSegment( f, indent, "</xsd:attribute>\n", 0 ); 
@@ -868,7 +894,7 @@ static void fprintComplexType( FILE *f, int indent,
     if( numChildren ) {
 	fprintSegment( f, indent + INDENT, "</xsd:sequence>\n", 0 );
     }
-    fprintIndex( f, indent + INDENT, smiNode, prefix );
+    fprintIndex( f, indent + INDENT, smiNode );
     
     fprintSegment( f, indent, "</xsd:complexType>\n\n", 0 );
 }
@@ -940,7 +966,7 @@ static void fprintBits( FILE *f, SmiModule *smiModule )
 	smiType = smiGetNodeType( iterNode );
 	if( smiType ) {
 	    if( ( smiType->basetype == SMI_BASETYPE_BITS ) &&
-		( ! getTypePrefix( smiType ) ) ) {
+		( ! getTypePrefix( smiType->name ) ) ) {
 		fprintTypedef( f, INDENT, smiType, iterNode->name );
 	    }
 	}
@@ -965,7 +991,7 @@ static void fprintImports( FILE *f, int indent, SmiModule *smiModule )
 	}
 	lastModName = iterImp->module;
     }
-    fprintSegment( f, indent, "<xsd:import namespace=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"/>\n", 0 );
+    fprintSegment( f, indent, "<xsd:import namespace=\"http://www.ibr.cs.tu-bs.de/~tklie/smi.xsd\"/>\n\n", 0 );
 }
 
     
@@ -1066,6 +1092,12 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
     }
 
     for (i = 0; i < modc; i++) {
+
+	/* register smi basetypes */
+	registerType( "Integer32","smi" );
+	registerType( "ObjectIdentifier", "smi" );
+	registerType( "OctetString", "smi" );
+	
 	fprint(f, "<?xml version=\"1.0\"?>\n"); 
 	fprint(f, "<!-- This module has been generated by smidump "
 	       SMI_VERSION_STRING ". Do not edit. -->\n");
@@ -1077,6 +1109,9 @@ static void dumpXsd(int modc, SmiModule **modv, int flags, char *output)
 	fprintTypedefs(f, modv[i]);
 	
 	fprint(f, "\n</xsd:schema>\n");
+
+	/* delete type-prefix-mapping */
+	free( typePrefixes );
     }
 
     if (output) {
