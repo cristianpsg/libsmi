@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.36 1999/02/18 17:12:58 strauss Exp $
+ * @(#) $Id: data.c,v 1.1 1999/03/11 17:32:57 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -80,10 +80,11 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
 	printError(parserPtr, ERR_ALLOCATING_MIBMODULE, strerror(errno));
 	return (NULL);
     }
-    
-    modulePtr->path			         = util_strdup(path);
-    modulePtr->fileoffset			 = fileoffset;
-    modulePtr->flags				 = flags;
+
+    modulePtr->name				= util_strdup(modulename);
+    modulePtr->path			        = util_strdup(path);
+    modulePtr->fileoffset			= fileoffset;
+    modulePtr->flags				= flags;
     
     modulePtr->firstObjectPtr			= NULL;
     modulePtr->lastObjectPtr			= NULL;
@@ -965,7 +966,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
     Module	     *modulePtr;
 
 #ifdef DEBUG
-    printDebug(5, "addObject(0x%x%s, %d, %s, %d, 0x%x)\n",
+    printDebug(5, "addObject(0x%x%s, %d, %d, 0x%x)\n",
 	       parentNodePtr,
 	       parentNodePtr == pendingNodePtr ? "(pending)" : "",
 	       subid, flags, parserPtr);
@@ -977,7 +978,7 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
 	return (NULL);
     }
 
-    modulePtr = parserPtr->modulePtr;
+    modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
     objectPtr->modulePtr		        = modulePtr;
     objectPtr->name				= util_strdup(objectname);
@@ -1003,12 +1004,16 @@ addObject(objectname, parentNodePtr, subid, flags, parserPtr)
 #endif
     
     objectPtr->nextPtr				= NULL;
-    objectPtr->prevPtr				= modulePtr->lastObjectPtr;
-    if (!modulePtr->firstObjectPtr)
-	modulePtr->firstObjectPtr		= objectPtr;
-    if (modulePtr->lastObjectPtr)
-	modulePtr->lastObjectPtr->nextPtr	= objectPtr;
-    modulePtr->lastObjectPtr			= objectPtr;
+    if (modulePtr) {
+        objectPtr->prevPtr			= modulePtr->lastObjectPtr;
+	if (!modulePtr->firstObjectPtr)
+	    modulePtr->firstObjectPtr		= objectPtr;
+	if (modulePtr->lastObjectPtr)
+	    modulePtr->lastObjectPtr->nextPtr	= objectPtr;
+	modulePtr->lastObjectPtr		= objectPtr;
+    } else {
+	objectPtr->prevPtr			= NULL;
+    }
     
     /*
      * Link it into the tree.
@@ -1380,7 +1385,8 @@ setObjectType(objectPtr, typePtr)
 {
 #ifdef DEBUG
     printDebug(5, "setObjectType(0x%x(%s), 0x%x(%s))\n",
-	       objectPtr, objectPtr->name, typePtr, typePtr->name);
+	       objectPtr, objectPtr->name, typePtr,
+	       typePtr->name ? typePtr->name : "\"\"");
 #endif
 
     /* TODO: why this check? */
@@ -1980,6 +1986,9 @@ findObjectByModuleAndName(modulePtr, objectname)
     if ((!strcmp(objectname, "iso")) ||
 	(!strcmp(objectname, "ccitt")) ||
 	(!strcmp(objectname, "joint-iso-ccitt"))) {
+#ifdef DEBUG
+	printDebug(4, "...\n");
+#endif
 	return findObjectByName(objectname);
     }
     
@@ -2121,6 +2130,61 @@ dumpMosy(root)
 /*
  *----------------------------------------------------------------------
  *
+ * dumpSming --
+ *
+ *      Dump one module in SMIng format.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+dumpSming(modulename)
+    char *modulename;
+{
+#if 0    
+    Node *c;
+    char s[200];
+
+    if (root) {
+	if (root != rootNode) {
+	    if ((root->flags & FLAG_MODULE) &&
+		(root->firstObject->descriptor &&
+		 root->parent->firstObject->descriptor)) {
+		sprintf(s, "%s.%d",
+			root->parent->firstObject->descriptor->name,
+			root->subid);
+		if (root->firstObject->decl == SMI_DECL_OBJECTTYPE) {
+		    printf("%-19s %-19s %-15s %-15s %s\n",
+			   root->firstObject->descriptor->name,
+			   s,
+			   "<type>",
+			   smiStringAccess(root->firstObject->access),
+			   smiStringStatus(root->firstObject->status));
+		} else {
+		    printf("%-19s %s\n",
+			   root->firstObject->descriptor->name,
+			   s);
+		}
+	    }
+	}
+	for (c = root->firstChild; c; c = c->next) {
+	    dumpMosy(c);
+	}
+    }
+#endif
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * addType --
  *
  *      Create a new Type structure.
@@ -2146,10 +2210,11 @@ addType(typename, syntax, flags, parserPtr)
     
 #ifdef DEBUG
     printDebug(4, "addType(%s, %s, %d, 0x%x)",
-	       typename, smiStringSyntax(syntax), flags, parserPtr);
+	       typename ? typename : "\"\"", smiStringSyntax(syntax),
+	       flags, parserPtr);
 #endif
 
-    modulePtr = parserPtr->modulePtr;
+    modulePtr = parserPtr ? parserPtr->modulePtr : NULL;
     
     typePtr = util_malloc(sizeof(Type));
     if (!typePtr) {
@@ -2157,8 +2222,12 @@ addType(typename, syntax, flags, parserPtr)
 	return (NULL);
     }
 
-    typePtr->name	                = util_strdup(typename);
-    typePtr->modulePtr			= parserPtr->modulePtr;
+    if (typename) {
+	typePtr->name	                = util_strdup(typename);
+    } else {
+	typePtr->name			= NULL;
+    }
+    typePtr->modulePtr			= modulePtr;
     typePtr->syntax			= syntax;
     typePtr->decl			= SMI_DECL_UNKNOWN;
     typePtr->status			= SMI_STATUS_UNKNOWN;
@@ -2182,13 +2251,17 @@ addType(typename, syntax, flags, parserPtr)
 #endif
 
     typePtr->nextPtr			= NULL;
-    typePtr->prevPtr			= modulePtr->lastTypePtr;
-    if (!modulePtr->firstTypePtr)
-	modulePtr->firstTypePtr		= typePtr;
-    if (modulePtr->lastTypePtr)
-	modulePtr->lastTypePtr->nextPtr	= typePtr;
-    modulePtr->lastTypePtr		= typePtr;
-    
+    if (modulePtr) {
+	typePtr->prevPtr		= modulePtr->lastTypePtr;
+	if (!modulePtr->firstTypePtr)
+	    modulePtr->firstTypePtr	= typePtr;
+	if (modulePtr->lastTypePtr)
+	    modulePtr->lastTypePtr->nextPtr = typePtr;
+	modulePtr->lastTypePtr		= typePtr;
+    } else {
+	typePtr->prevPtr		= NULL;
+    }
+	
 #ifdef DEBUG
     printDebug(4, " = 0x%x\n", typePtr);
 #endif
@@ -2225,7 +2298,7 @@ duplicateType(templatePtr, flags, parserPtr)
     Module		  *modulePtr;
     
 #ifdef DEBUG
-    printDebug(5, "duplicateType(0x%x, %d, 0x%x)",
+    printDebug(5, "duplicateType(0x%x, %d, 0x%x)...\n",
 	       templatePtr, flags, parserPtr);
 #endif
     
@@ -2332,7 +2405,8 @@ setTypeStatus(typePtr, status)
 {
 #ifdef DEBUG
     printDebug(5, "setTypeStatus(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name, smiStringStatus(status));
+	       typePtr, typePtr->name ? typePtr->name : "\"\"",
+	       smiStringStatus(status));
 #endif
 
     /* TODO: why this check? */
@@ -2366,7 +2440,7 @@ setTypeDescription(typePtr, descriptionPtr)
 {
 #ifdef DEBUG
     printDebug(5, "setTypeDescription(0x%x(%s), \"%s\"(%d,%d))\n",
-	       typePtr, typePtr->name,
+	       typePtr, typePtr->name ? typePtr->name : "\"\"",
 	       descriptionPtr->ptr ? descriptionPtr->ptr : "[FILE]",
 	       descriptionPtr->fileoffset, descriptionPtr->length);
 #endif
@@ -2405,7 +2479,7 @@ setTypeParent(typePtr, parent)
 {
 #ifdef DEBUG
     printDebug(5, "setTypeParent(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name, parent);
+	       typePtr, typePtr->name ? typePtr->name : "", parent);
 #endif
     
     if (!typePtr->parentType) {
@@ -2438,7 +2512,7 @@ setTypeSequencePtr(typePtr, sequencePtr)
 {
 #ifdef DEBUG
     printDebug(5, "setTypeSequencePtr(0x%x(%s), 0x%x)\n",
-	       typePtr, typePtr->name, sequencePtr);
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", sequencePtr);
 #endif
     
     if (!typePtr->sequencePtr) {
@@ -2471,7 +2545,7 @@ setTypeFormat(typePtr, formatPtr)
 {
 #ifdef DEBUG
     printDebug(5, "setTypeFormat(0x%x(%s), \"%s\")\n",
-	       typePtr, typePtr->name,
+	       typePtr, typePtr->name ? typePtr->name : "\"\"",
 	       formatPtr->ptr ? formatPtr->ptr : "[FILE]",
 	       formatPtr->fileoffset, formatPtr->length);
 #endif
@@ -2510,7 +2584,7 @@ setTypeFileOffset(typePtr, fileoffset)
 {
 #ifdef DEBUG
     printDebug(5, "setTypeFileOffset(0x%x(%s), %d)\n",
-	       typePtr, typePtr->name, fileoffset);
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", fileoffset);
 #endif
 
     /* TODO: why this check? */
@@ -2544,7 +2618,8 @@ setTypeDecl(typePtr, decl)
 {
 #ifdef DEBUG
     printDebug(5, "setTypeDecl(0x%x(%s), %s)\n",
-	       typePtr, typePtr->name, smiStringDecl(decl));
+	       typePtr, typePtr->name ? typePtr->name : "\"\"",
+	       smiStringDecl(decl));
 #endif
     
     /* TODO: which this check? */
@@ -2578,7 +2653,7 @@ addTypeFlags(typePtr, flags)
 {
 #ifdef DEBUG
     printDebug(5, "addTypeFlags(0x%x(%s), %d)\n",
-	       typePtr, typePtr->name, flags);
+	       typePtr, typePtr->name ? typePtr->name : "\"\"", flags);
 #endif
     
     typePtr->flags |= flags;
@@ -2618,7 +2693,7 @@ findTypeByName(typename)
 	 modulePtr = modulePtr->nextPtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
-	    if (!strcmp(typePtr->name, typename)) {
+	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
 #ifdef DEBUG
 		printDebug(4, " = 0x%x(%s)\n", typePtr, typePtr->name);
 #endif
@@ -2670,7 +2745,7 @@ findTypeByModulenameAndName(modulename, typename)
     if (modulePtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
-	    if (!strcmp(typePtr->name, typename)) {
+	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
 #ifdef DEBUG
 		printDebug(6, "... = 0x%x(%s)\n", typePtr, typePtr->name);
 #endif
@@ -2719,7 +2794,7 @@ findTypeByModuleAndName(modulePtr, typename)
     if (modulePtr) {
 	for (typePtr = modulePtr->firstTypePtr; typePtr;
 	     typePtr = typePtr->nextPtr) {
-	    if (!strcmp(typePtr->name, typename)) {
+	    if ((typePtr->name) && !strcmp(typePtr->name, typename)) {
 #ifdef DEBUG
 		printDebug(6, "... = 0x%x(%s)\n", typePtr, typePtr->name);
 #endif
@@ -2960,7 +3035,6 @@ int
 initData()
 {
     Object	    *objectPtr;
-    Module	    *modulePtr;
     
     /*
      * Initialize a root Node for the main MIB tree.
@@ -2977,7 +3051,6 @@ initData()
      * belonging to a dummy module "". This is needed for SMIv1/v2. SMIng
      * defines it in a special SMIng module.
      */
-    modulePtr = addModule("", "", -1, 0, NULL);
     objectPtr = addObject("ccitt", rootNodePtr, 0, 0, NULL);
     objectPtr = addObject("iso", rootNodePtr, 1, 0, NULL);
     objectPtr = addObject("joint-iso-ccitt", rootNodePtr, 2, 0, NULL);
