@@ -1,3 +1,8 @@
+2000-10-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/DISMAN-NSLOOKUP-MIB,DISMAN-PING-MIB,DISMAN-TRACEROUTE-MIB:
+	added (RFC 2925).
+
 2000-10-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/scanner-smi.l: Fixed lex'ing of comments. Thanks to
