@@ -1,3 +1,25 @@
+1999-06-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/dump-imports.c: added `imports' format do smidump to
+	display the import hirarchy of a module.
+
+	* lib/parser-smi.y: bugfix: allow status `deprecated' in SMIv1
+	modules.
+
+	* tools/smiquery.c: adapted index command.
+
+	* lib/smi.h: had to add struct SmiIndex and smiGetFirstIndex()
+	and smiGetNextIndex(), since otherwise we have no chance to
+	distinguish objects that apear more than once in a single
+	index clause, like in RMON2-MIB::alHostEntry.
+
+	* mibs/RFC1271-MIB: MIB file added.
+	
+	* tools/dump-sming.c: some bugfixes.
+
+	* lib/parser-sming.y: bugfix for adjustments of forward references
+	in index structs.
+
 1999-06-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.1.2.tar.gz: released version 0.1.2.

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.31 1999/05/30 21:50:48 strauss Exp $
+ * @(#) $Id: dump-sming.c,v 1.32 1999/05/31 11:58:41 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -46,54 +46,74 @@ static char *excludeType[] = {
     NULL };
     
 static char *convertType[] = {
-    "INTEGER",		   "Integer32",
-    "OCTET STRING",	   "OctetString",
+    "INTEGER",             "Integer32",
+    "OCTET STRING",        "OctetString",
     "OBJECT IDENTIFIER",   "ObjectIdentifier",
     
-    "Gauge",		   "Gauge32",
-    "Counter",		   "Counter32",
-    "NetworkAddress",	   "IpAddress", /* ??? */
+    "Gauge",               "Gauge32",
+    "Counter",             "Counter32",
+    "NetworkAddress",      "IpAddress", /* ??? */
     
     NULL, NULL };
 
 static char *convertImport[] = {
-    "SNMPv2-SMI",  "MODULE-IDENTITY",    NULL, NULL,
-    "SNMPv2-SMI",  "OBJECT-IDENTITY",    NULL, NULL,
-    "SNMPv2-SMI",  "OBJECT-TYPE",        NULL, NULL,
-    "SNMPv2-SMI",  "NOTIFICATION-TYPE",  NULL, NULL,
-    "SNMPv2-SMI",  "ObjectName",         NULL, NULL,
-    "SNMPv2-SMI",  "NotificationName",   NULL, NULL,
-    "SNMPv2-SMI",  "ObjectSyntax",       NULL, NULL,
-    "SNMPv2-SMI",  "SimpleSyntax",       NULL, NULL,
-    "SNMPv2-SMI",  "Integer32",	         NULL, NULL,
-    "SNMPv2-SMI",  "ApplicationSyntax",  NULL, NULL,
-    "SNMPv2-SMI",  "IpAddress",	         "IRTF-NMRG-SMING-TYPES", "IpAddress",
-    "SNMPv2-SMI",  "Counter32",	         "IRTF-NMRG-SMING-TYPES", "Counter32",
-    "SNMPv2-SMI",  "Gauge32",	         "IRTF-NMRG-SMING-TYPES", "Gauge32",
-    "SNMPv2-SMI",  "TimeTicks",		 "IRTF-NMRG-SMING-TYPES", "TimeTicks",
-    "SNMPv2-SMI",  "Opaque",		 "IRTF-NMRG-SMING-TYPES", "Opaque",
-    "SNMPv2-SMI",  "Counter64",		 "IRTF-NMRG-SMING-TYPES", "Counter64",
-    "SNMPv2-SMI",  NULL,		 "IRTF-NMRG-SMING", NULL,
-    "SNMPv2-TC",   "TEXTUAL-CONVENTION", NULL, NULL,
-    "SNMPv2-CONF", "OBJECT-GROUP",	 NULL, NULL,
-    "SNMPv2-CONF", "NOTIFICATION-GROUP", NULL, NULL,
-    "SNMPv2-CONF", "MODULE-COMPLIANCE",	 NULL, NULL,
-    "SNMPv2-CONF", "AGENT-CAPABILITIES", NULL, NULL,
-
-    "RFC1155-SMI", "OBJECT-TYPE",        NULL, NULL,
-    "RFC1155-SMI", "ObjectName",         NULL, NULL,
-    "RFC1155-SMI", "ObjectSyntax",       NULL, NULL,
-    "RFC1155-SMI", "SimpleSyntax",       NULL, NULL,
-    "RFC1155-SMI", "ApplicationSyntax",  NULL, NULL,
-    "RFC1155-SMI", "Gauge",		 "IRTF-NMRG-SMING-TYPES", "Gauge32",
-    "RFC1155-SMI", "Counter",		 "IRTF-NMRG-SMING-TYPES", "Counter32",
-    "RFC1155-SMI", "TimeTicks",		 "IRTF-NMRG-SMING-TYPES", "TimeTicks",
-    "RFC1155-SMI", "IpAddress",		 "IRTF-NMRG-SMING-TYPES", "IpAddress",
-    "RFC1155-SMI", "NetworkAddress",	 NULL, NULL, /* ??? */
-    "RFC1155-SMI", "Opaque",		 "IRTF-NMRG-SMING-TYPES", "Opaque",
-    "RFC1155-SMI", NULL,		 "IRTF-NMRG-SMING", NULL,
-    "RFC-1212",	   "OBJECT-TYPE",	 NULL, NULL,
-    "RFC-1215",	   "TRAP-TYPE",		 NULL, NULL,
+    "SNMPv2-SMI",   "MODULE-IDENTITY",    NULL, NULL,
+    "SNMPv2-SMI",   "OBJECT-IDENTITY",    NULL, NULL,
+    "SNMPv2-SMI",   "OBJECT-TYPE",        NULL, NULL,
+    "SNMPv2-SMI",   "NOTIFICATION-TYPE",  NULL, NULL,
+    "SNMPv2-SMI",   "ObjectName",         NULL, NULL,
+    "SNMPv2-SMI",   "NotificationName",   NULL, NULL,
+    "SNMPv2-SMI",   "ObjectSyntax",       NULL, NULL,
+    "SNMPv2-SMI",   "SimpleSyntax",       NULL, NULL,
+    "SNMPv2-SMI",   "Integer32",          NULL, NULL,
+    "SNMPv2-SMI",   "ApplicationSyntax",  NULL, NULL,
+    "SNMPv2-SMI",   "IpAddress",          "IRTF-NMRG-SMING-TYPES", "IpAddress",
+    "SNMPv2-SMI",   "Counter32",          "IRTF-NMRG-SMING-TYPES", "Counter32",
+    "SNMPv2-SMI",   "Gauge32",            "IRTF-NMRG-SMING-TYPES", "Gauge32",
+    "SNMPv2-SMI",   "TimeTicks",          "IRTF-NMRG-SMING-TYPES", "TimeTicks",
+    "SNMPv2-SMI",   "Opaque",             "IRTF-NMRG-SMING-TYPES", "Opaque",
+    "SNMPv2-SMI",   "Counter64",          "IRTF-NMRG-SMING-TYPES", "Counter64",
+    "SNMPv2-SMI",   NULL,                 "IRTF-NMRG-SMING", NULL,
+    "SNMPv2-TC",    "TEXTUAL-CONVENTION", NULL, NULL,
+    "SNMPv2-TC",    NULL,                 "IRTF-NMRG-SMING-TYPES", NULL,
+    "SNMPv2-CONF",  "OBJECT-GROUP",       NULL, NULL,
+    "SNMPv2-CONF",  "NOTIFICATION-GROUP", NULL, NULL,
+    "SNMPv2-CONF",  "MODULE-COMPLIANCE",  NULL, NULL,
+    "SNMPv2-CONF",  "AGENT-CAPABILITIES", NULL, NULL,
+ 
+    "RFC1155-SMI",  "OBJECT-TYPE",        NULL, NULL,
+    "RFC1155-SMI",  "ObjectName",         NULL, NULL,
+    "RFC1155-SMI",  "ObjectSyntax",       NULL, NULL,
+    "RFC1155-SMI",  "SimpleSyntax",       NULL, NULL,
+    "RFC1155-SMI",  "ApplicationSyntax",  NULL, NULL,
+    "RFC1155-SMI",  "Gauge",              "IRTF-NMRG-SMING-TYPES", "Gauge32",
+    "RFC1155-SMI",  "Counter",            "IRTF-NMRG-SMING-TYPES", "Counter32",
+    "RFC1155-SMI",  "TimeTicks",          "IRTF-NMRG-SMING-TYPES", "TimeTicks",
+    "RFC1155-SMI",  "IpAddress",          "IRTF-NMRG-SMING-TYPES", "IpAddress",
+    "RFC1155-SMI",  "NetworkAddress",     NULL, NULL, /* ??? */
+    "RFC1155-SMI",  "Opaque",             "IRTF-NMRG-SMING-TYPES", "Opaque",
+    "RFC1155-SMI",  NULL,                 "IRTF-NMRG-SMING", NULL,
+    "RFC1158-MIB",  "DisplayString",  "IRTF-NMRG-SMING-TYPES", "DisplayString",
+    "RFC-1212",     "OBJECT-TYPE",        NULL, NULL,
+    "RFC1213-MIB",  "mib-2",              "IRTF-NMRG-SMING", "mib-2",
+    "RFC1213-MIB",  "system",             "SNMPv2-MIB", "system",
+    "RFC1213-MIB",  "interfaces",         "IF-MIB", "interfaces",
+/*  "RFC1213-MIB",  "at",                 "RFC1213-MIB", "at", */
+    "RFC1213-MIB",  "ip",                 "IP-MIB", "",
+    "RFC1213-MIB",  "icmp",               "IP-MIB", "icmp",
+    "RFC1213-MIB",  "tcp",                "TCP-MIB", "tcp",
+    "RFC1213-MIB",  "udp",                "UDP-MIB", "udp",
+/*  "RFC1213-MIB",  "egp",                "RFC1213-MIB", "egp", */
+    "RFC1213-MIB",  "transmission",       "SNMPv2-SMI", "transmission",
+    "RFC1213-MIB",  "snmp",               "SNMPv2-MIB", "snmp",
+    "RFC1213-MIB",  "sysDescr",           "SNMPv2-MIB", "sysDescr",
+    "RFC1213-MIB",  "sysObjectID",        "SNMPv2-MIB", "sysObjectID",
+    "RFC1213-MIB",  "sysUpTime",          "SNMPv2-MIB", "sysUpTime",
+    "RFC1213-MIB",  "ifIndex",            "IF-MIB", "ifIndex",
+/* TODO ...many more objects from RFC1213-MIB.. */    
+    "RFC1213-MIB",  "DisplayString",  "IRTF-NMRG-SMING-TYPES", "DisplayString",
+    "RFC1213-MIB",  "PhysAddress",    "IRTF-NMRG-SMING-TYPES", "PhysAddress",
+    "RFC-1215",     "TRAP-TYPE",          NULL, NULL,                          
 
 
 
@@ -182,7 +202,7 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 
-    if ((!typemodule) || strcmp(module, typemodule)) {
+    if ((!typemodule) || islower((int)typename[0])) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "Enumeration";
 	}
@@ -220,6 +240,10 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	strcpy(s, append);
 	if ((p = strrchr(parentNode->oid, '.'))) {
 	    sprintf(append, "%s%s", p, s);
+	} else {
+	    sprintf(s, "%s%s", parentNode->oid, append);
+	    smiFreeNode(parentNode);
+	    return s;
 	}
 
 	/* retrieve the parent SmiNode */
@@ -229,6 +253,11 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	    smiFreeNode(node);
 	}
 
+	if (!parentNode) {
+	    sprintf(s, "%s", append);
+	    return s;
+	}
+	
 	/* found an imported or a local parent node? */
 	if (smiIsImported(smiNode->module,
 			  parentNode->module, parentNode->name) ||
@@ -362,23 +391,27 @@ static void printSubtype(SmiType *smiType)
     SmiNamedNumber *nn;
     char	   s[100];
     int		   i;
-    
-    print(" (");
+
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
 	(smiType->basetype == SMI_BASETYPE_BITS)) {
 	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
 	    nn ; i++, nn = smiGetNextNamedNumber(nn)) {
 	    if (i) {
 		print(", ");
+	    } else {
+		print(" (");
 	    }
 	    sprintf(s, "%s(%s)", nn->name, getValueString(nn->valuePtr));
 	    printWrapped(INDENTVALUE + INDENT, s);
+	    print(")");
 	}
     } else {
 	for(i = 0, range = smiGetFirstRange(smiType->module, smiType->name);
 	    range ; i++, range = smiGetNextRange(range)) {
 	    if (i) {
 		print(" | ");
+	    } else {
+		print(" (");
 	    }	    
 	    if (bcmp(range->minValuePtr, range->maxValuePtr,
 		     sizeof(SmiValue))) {
@@ -389,9 +422,9 @@ static void printSubtype(SmiType *smiType)
 		sprintf(s, "%s", getValueString(range->minValuePtr));
 	    }
 	    printWrapped(INDENTVALUE + INDENT, s);
+	    print(")");
 	}
     }
-    print(")");
 }
 
 
@@ -631,7 +664,8 @@ static void printTypedefs(char *modulename)
 static void printObjects(char *modulename)
 {
     int		 i, j;
-    SmiNode	 *smiNode, *index;
+    SmiNode	 *smiNode;
+    SmiIndex     *smiIndex;
     SmiType	 *smiType;
     char	 rowoid[SMI_MAX_OID+1];
     int		 indent = 0;
@@ -734,12 +768,12 @@ static void printObjects(char *modulename)
 		printSegment((2 + indent) * INDENT, "index", INDENTVALUE);
 	    }
 	    print("(");
-	    for (j = 0, index = smiGetFirstIndexNode(smiNode); index;
-		 j++, index = smiGetNextIndexNode(smiNode, index)) {
+	    for (j = 0, smiIndex = smiGetFirstIndex(smiNode); smiIndex;
+		 j++, smiIndex = smiGetNextIndex(smiIndex)) {
 		if (j) {
 		    print(", ");
 		}
-		printWrapped(INDENTVALUE + 1, index->name);
+		printWrapped(INDENTVALUE + 1, smiIndex->name);
 		/* TODO: non-local name if non-local */
 	    } /* TODO: empty? -> print error */
 	    print(");\n");
@@ -761,12 +795,12 @@ static void printObjects(char *modulename)
 		    print(" implied");
 		}
 		print(" (");
-		for (j = 0, index = smiGetFirstIndexNode(smiNode); index;
-		     j++, index = smiGetNextIndexNode(smiNode, index)) {
+		for (j = 0, smiIndex = smiGetFirstIndex(smiNode); smiIndex;
+		     j++, smiIndex = smiGetNextIndex(smiIndex)) {
 		    if (j) {
 			print(", ");
 		    }
-		    printWrapped(INDENTVALUE + 1, index->name);
+		    printWrapped(INDENTVALUE + 1, smiIndex->name);
 		    /* TODO: non-local name if non-local */
 		} /* TODO: empty? -> print error */
 		print(");\n");
@@ -788,12 +822,12 @@ static void printObjects(char *modulename)
 		    print(" implied");
 		}
 		print(" (");
-		for (j = 0, index = smiGetFirstIndexNode(smiNode); index;
-		     j++, index = smiGetNextIndexNode(smiNode, index)) {
+		for (j = 0, smiIndex = smiGetFirstIndex(smiNode); smiIndex;
+		     j++, smiIndex = smiGetNextIndex(smiIndex)) {
 		    if (j) {
 			print(", ");
 		    }
-		    printWrapped(INDENTVALUE + 1, index->name);
+		    printWrapped(INDENTVALUE + 1, smiIndex->name);
 		    /* TODO: non-local name if non-local */
 		} /* TODO: empty? -> print error */
 		print(");\n");

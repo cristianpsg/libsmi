@@ -44,3 +44,5 @@ o eliminate length restrictions (grep MAX_ *.[chly])
 o test cases
 
 o dump-smi.c
+
+o FLAG_INDEXLABELS obsolete?

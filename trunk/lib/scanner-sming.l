@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-sming.l,v 1.8 1999/05/31 11:58:36 strauss Exp $
+ * @(#) $Id: scanner-sming.l,v 1.9 1999/06/03 20:37:21 strauss Exp $
  */
 
 %option noyywrap
@@ -373,6 +373,12 @@ SP		" "
     smingTrackInput(0, parser);
     yylval.id = yytext;
     return createKeyword;
+}
+
+<INITIAL>members/{delim} {
+    smingTrackInput(0, parser);
+    yylval.id = yytext;
+    return membersKeyword;
 }
 
 <INITIAL>objects/{delim} {

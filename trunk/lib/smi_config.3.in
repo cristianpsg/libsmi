@@ -1,7 +1,7 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.1 1999/06/01 20:47:16 strauss Exp $
+.\" $Id: smi_config.3.in,v 1.2 1999/06/03 21:07:13 strauss Exp $
 .\"
-.TH smi_config 3  "June 3, 1999" "IBR" "SMI Management Information Library"
+.TH smi_config 3  "June 4, 1999" "IBR" "SMI Management Information Library"
 .SH NAME
 smiInit, smiSetErrorLevel, smiGetFlags, smiSetFlags,
 smiLoadModule, smiGetPath, smiSetPath \- SMI library
@@ -24,7 +24,7 @@ configuration routines
 .BI "void smiSetFlags(int " userflags );
 .RE
 .sp
-.BI "int smiLoadModule(char *" module );
+.BI "char *smiLoadModule(char *" module );
 .RE
 .sp
 .BI "char *smiGetPath();"
@@ -66,7 +66,8 @@ The \fBsmiLoadModule()\fP function specifies an additional MIB module by
 \fImodule\fP that the application claims to know. Only after a
 module is made known through this function, iterating retrieval
 functions and retrieval functions without fully qualified identifiers
-will return results from this module.
+will return results from this module. \fBsmiLoadModule()\fP returns the
+name of the loaded module, of NULL if it could not be loaded.
 .PP
 The \fBsmiGetPath()\fP and \fBsmiSetPath()\fP functions allow to
 fetch, modify, and set the path that is used to search MIB modules.
@@ -76,8 +77,9 @@ The application should free this string if it is
 no longer needed. \fBsmiSetPath()\fP sets the search path to
 \fIpath\fP.
 .SH "RETURN VALUES"
-The functions \fBsmiLoadModule()\fP and \fBsmiSetPath()\fP
-returns 0 on success, or a negative value on
+The functions \fBsmiLoadModule()\fP returns the
+name of the loaded module, of NULL if it could not be loaded.
+\fBsmiSetPath()\fP returns 0 on success, or a negative value on
 error. \fBsmiGetFlags()\fP returns the current set of flags.
 \fBsmiGetPath()\fP returns a copy of the MIB module search path or NULL
 if no path is set. Other functions are void.

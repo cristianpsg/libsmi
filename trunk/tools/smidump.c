@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidump.c,v 1.9 1999/05/31 11:58:42 strauss Exp $
+ * @(#) $Id: smidump.c,v 1.10 1999/06/03 20:37:34 strauss Exp $
  */
 
 #include <stdio.h>
@@ -60,6 +60,7 @@ main(argc, argv)
 {
     char c;
     char *dumpFormat = NULL;
+    char *modulename;
     int flags;
     int errors = 0;
     
@@ -88,23 +89,30 @@ main(argc, argv)
     }
 
     while (optind < argc) {
-	smiLoadModule(argv[optind]);
-	if ((!dumpFormat) || (!strcasecmp(dumpFormat, "SMIng"))) {
-	    errors += dumpSming(argv[optind]);
-	} else if (!strcasecmp(dumpFormat, "SMIv1")) {
-	    errors += dumpSmiV1(argv[optind]);
-	} else if (!strcasecmp(dumpFormat, "SMIv2")) {
-	    errors += dumpSmiV2(argv[optind]);
+	modulename = smiLoadModule(argv[optind]);
+	if (modulename) {
+	    if ((!dumpFormat) || (!strcasecmp(dumpFormat, "SMIng"))) {
+		errors += dumpSming(modulename);
+	    } else if (!strcasecmp(dumpFormat, "SMIv1")) {
+		errors += dumpSmiV1(modulename);
+	    } else if (!strcasecmp(dumpFormat, "SMIv2")) {
+		errors += dumpSmiV2(modulename);
+	    } else if (!strcasecmp(dumpFormat, "imports")) {
+		errors += dumpImports(modulename);
 #if 0
-	} else if (!strcasecmp(dumpFormat, "MOSY")) {
-	    errors += dumpMosy();
-	} else if (!strcasecmp(dumpFormat, "Objects")) {
-	    errors += dumpMibTree();
-	} else if (!strcasecmp(dumpFormat, "Types")) {
-	    errors += dumpTypes();
+	    } else if (!strcasecmp(dumpFormat, "MOSY")) {
+		errors += dumpMosy();
+	    } else if (!strcasecmp(dumpFormat, "Objects")) {
+		errors += dumpMibTree();
+	    } else if (!strcasecmp(dumpFormat, "Types")) {
+		errors += dumpTypes();
 #endif
+	    } else {
+		fprintf(stderr, "Unsupported dump format `%s'\n", dumpFormat);
+		exit(1);
+	    }
 	} else {
-	    fprintf(stderr, "Unsupported dump format `%s'\n", dumpFormat);
+	    fprintf(stderr, "Cannot locate module `%s'\n", argv[optind]);
 	    exit(1);
 	}
 	optind++;

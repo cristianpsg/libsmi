@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.16 1999/06/02 16:52:34 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.17 1999/06/03 20:37:19 strauss Exp $
  */
 
 %{
@@ -69,7 +69,6 @@ static Object *groupObjectPtr = NULL;
 static Object *complianceObjectPtr = NULL;
 static Type *typePtr = NULL;
 static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
-static List *firstIndexlabelPtr = NULL;
  
  
 
@@ -221,6 +220,7 @@ findObject(spec, parserPtr)
 %token <rc>sparseKeyword
 %token <rc>expandsKeyword
 %token <rc>createKeyword
+%token <rc>membersKeyword
 %token <rc>objectsKeyword
 %token <rc>mandatoryKeyword
 %token <rc>optionalKeyword
@@ -323,6 +323,8 @@ findObject(spec, parserPtr)
 %type <text>descriptionStatement
 %type <text>referenceStatement_stmtsep_01
 %type <text>referenceStatement
+%type <listPtr>membersStatement_stmtsep_01
+%type <listPtr>membersStatement
 %type <listPtr>objectsStatement_stmtsep_01
 %type <listPtr>objectsStatement
 %type <listPtr>mandatoryStatement_stmtsep_01
@@ -490,7 +492,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    thisParserPtr->modulePtr->numStatements = 0;
 			    thisParserPtr->modulePtr->numModuleIdentities = 0;
 			    free($3);
-			    firstIndexlabelPtr = NULL;
+			    thisParserPtr->firstIndexlabelPtr = NULL;
 			}
 			sep lcIdentifier
 			{
@@ -572,7 +574,8 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			    List *listPtr;
 			    Object *objectPtr;
 			    /*
-			     * Walk through rows of this module with
+			     * Walk through the index structs of all table
+			     * rows of this module with
 			     * flag & FLAG_INDEXLABELS and convert their
 			     * labelstrings to (Object *). This is the
 			     * case for index column lists
@@ -580,36 +583,39 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			     * rows (indexPtr->rowPtr) and create lists
 			     * (listPtr[]->ptr).
 			     */
-			    while (firstIndexlabelPtr) {
+			    while (thisParserPtr->firstIndexlabelPtr) {
+				/* adjust indexPtr->listPtr elements */
 				for (listPtr =
-		      ((Object *)(firstIndexlabelPtr->ptr))->indexPtr->listPtr;
+       ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->indexPtr->listPtr;
 				     listPtr; listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
 							   thisParserPtr);
 				    listPtr->ptr = objectPtr;
 				}
-				if (((Object *)(firstIndexlabelPtr->ptr))->
+				/* adjust indexPtr->rowPtr */
+		     if (((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
 				    indexPtr->rowPtr) {
 				    objectPtr = findObject(
-					((Object *)(firstIndexlabelPtr->ptr))->
+  		        ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
 					indexPtr->rowPtr,
 					thisParserPtr);
-				    ((Object *)(firstIndexlabelPtr->ptr))->
+			 ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->
 				    indexPtr->rowPtr = objectPtr;
 				}
+				/* adjust create list */
 				for (listPtr =
-		                ((Object *)(firstIndexlabelPtr->ptr))->listPtr;
+		 ((Object *)(thisParserPtr->firstIndexlabelPtr->ptr))->listPtr;
 				     listPtr; listPtr = listPtr->nextPtr) {
 				    objectPtr = findObject(listPtr->ptr,
 							   thisParserPtr);
 				    listPtr->ptr = objectPtr;
 				}
 				deleteObjectFlags(
-				    (Object *)(firstIndexlabelPtr->ptr),
+			    (Object *)(thisParserPtr->firstIndexlabelPtr->ptr),
 				    FLAG_INDEXLABELS);
-				listPtr = firstIndexlabelPtr->nextPtr;
-				free(firstIndexlabelPtr);
-				firstIndexlabelPtr = listPtr;
+			  listPtr = thisParserPtr->firstIndexlabelPtr->nextPtr;
+				free(thisParserPtr->firstIndexlabelPtr);
+				thisParserPtr->firstIndexlabelPtr = listPtr;
 			    }
 			    $$ = thisModulePtr;
 			    moduleObjectPtr = NULL;
@@ -994,8 +1000,8 @@ rowStatement:		rowKeyword sep lcIdentifier
 				 */
 				listPtr = util_malloc(sizeof(List));
 				listPtr->ptr = rowObjectPtr;
-				listPtr->nextPtr = firstIndexlabelPtr;
-				firstIndexlabelPtr = listPtr;
+			  listPtr->nextPtr = thisParserPtr->firstIndexlabelPtr;
+				thisParserPtr->firstIndexlabelPtr = listPtr;
 			    }
 			}
 			createStatement_stmtsep_01
@@ -1317,7 +1323,7 @@ groupStatement:		groupKeyword sep lcIdentifier
 				setObjectDecl(groupObjectPtr, SMI_DECL_GROUP);
 			    }
 			}
-			objectsStatement stmtsep
+			membersStatement stmtsep
 			{
 			    List *listPtr;
 			    Object *objectPtr;
@@ -1948,6 +1954,23 @@ referenceStatement_stmtsep_01: /* empty */
 referenceStatement:	referenceKeyword sep text optsep ';'
 			{
 			    $$ = $3;
+			}
+        ;
+
+membersStatement_stmtsep_01: /* empty */
+			{
+			    $$ = NULL;
+			}
+        |		membersStatement stmtsep
+			{
+			    $$ = $1;
+			}
+	;
+
+membersStatement:	membersKeyword optsep '(' optsep
+			qlcIdentifierList optsep ')' optsep ';'
+			{
+			    $$ = $5;
 			}
         ;
 
@@ -2994,7 +3017,7 @@ objectIdentifier:	qlcIdentifier_subid dot_subid_0127
 				strcpy(oid, $1);
 				free($1);
 			    }
-
+			    
 			    if (oid) {
 				nodePtr = findNodeByOidString(oid);
 				if (!nodePtr) {
@@ -3009,28 +3032,25 @@ objectIdentifier:	qlcIdentifier_subid dot_subid_0127
 
 qlcIdentifier_subid:	qlcIdentifier
 			{
-			    SmiNode *smiNodePtr;
-			    Import *importPtr;
+			    Object *objectPtr;
+			    Node *nodePtr;
+			    char s1[SMI_MAX_OID+1], s2[SMI_MAX_OID+1];
+			    
+			    /* TODO XXX: $1 might be numeric !? */
+			    
+			    objectPtr = findObject($1, thisParserPtr);
 
-			    /* TODO: findObject(), then createOid */
-			    if (strstr($1, "::")) {
-				smiNodePtr = smiGetNode($1, "");
-			    } else {
-				smiNodePtr = smiGetNode($1,
-							thisModulePtr->name);
-				if (!smiNodePtr) {
-				    importPtr =
-					findImportByName($1, thisModulePtr);
-				    if (importPtr) {
-					smiNodePtr =
-					    smiGetNode($1,
-						      importPtr->importmodule);
-				    }
+			    if (objectPtr) {
+				/* create OID string */
+				nodePtr = objectPtr->nodePtr;
+				sprintf(s1, "%u", nodePtr->subid);
+				while ((nodePtr->parentPtr) &&
+				       (nodePtr->parentPtr != rootNodePtr)) {
+				    nodePtr = nodePtr->parentPtr;
+				    sprintf(s2, "%u.%s", nodePtr->subid, s1);
+				    strcpy(s1, s2);
 				}
-			    }
-			    if (smiNodePtr) {
-				$$ = util_strdup(smiNodePtr->oid);
-				smiFreeNode(smiNodePtr);
+				$$ = util_strdup(s1);
 			    } else {
 				printError(thisParserPtr,
 					   ERR_UNKNOWN_OIDLABEL, $1);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.15 1999/05/31 11:58:43 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.16 1999/06/03 20:37:36 strauss Exp $
  */
 
 #include <stdio.h>
@@ -178,6 +178,7 @@ main(argc, argv)
     SmiRevision *revision;
     SmiOption *option;
     SmiRefinement *refinement;
+    SmiIndex *index;
     char *command, *name;
     int flags;
     char c;
@@ -319,9 +320,9 @@ main(argc, argv)
     if (!strcmp(command, "index")) {
 	node = smiGetNode(name, NULL);
 	printf("       Index:");
-	for(child = smiGetFirstIndexNode(node);
-	    child ; child = smiGetNextIndexNode(node, child)) {
-	    printf(" %s.%s", child->module, child->name);
+	for(index = smiGetFirstIndex(node);
+	    index ; index = smiGetNextIndex(index)) {
+	    printf(" %s.%s", index->module, index->name);
 	}
 	printf("\n");
 	smiFreeNode(node);

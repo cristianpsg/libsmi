@@ -88,12 +88,13 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1.2
+VERSION = 0.1.3-pre1
 mibdir = ${prefix}/share/mibs
 
 INCLUDES = -I../lib
 
-EXTRA_DIST = dump-smi.h dump-sming.h dump-data.h $(man_MANS)
+EXTRA_DIST = dump-smi.h dump-sming.h dump-data.h dump-imports.h 			  $(man_MANS)
+
 
 bin_PROGRAMS = smiquery smilint smidump
 
@@ -105,14 +106,15 @@ smiquery_LDADD = ../lib/libsmi.la
 smilint_SOURCES = smilint.c
 smilint_LDADD = ../lib/libsmi.la
 
-smidump_SOURCES = smidump.c dump-sming.c dump-smi.c dump-data.c
+smidump_SOURCES = smidump.c dump-sming.c dump-smi.c 			  dump-data.c dump-imports.c
+
 smidump_LDADD = ../lib/libsmi.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.2\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.3-pre1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
@@ -122,7 +124,8 @@ smiquery_LDFLAGS =
 smilint_OBJECTS =  smilint.o
 smilint_DEPENDENCIES =  ../lib/libsmi.la
 smilint_LDFLAGS = 
-smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-data.o
+smidump_OBJECTS =  smidump.o dump-sming.o dump-smi.o dump-data.o \
+dump-imports.o
 smidump_DEPENDENCIES =  ../lib/libsmi.la
 smidump_LDFLAGS = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -141,8 +144,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/dump-data.P .deps/dump-smi.P .deps/dump-sming.P \
-.deps/smidump.P .deps/smilint.P .deps/smiquery.P
+DEP_FILES =  .deps/dump-data.P .deps/dump-imports.P .deps/dump-smi.P \
+.deps/dump-sming.P .deps/smidump.P .deps/smilint.P .deps/smiquery.P
 SOURCES = $(smiquery_SOURCES) $(smilint_SOURCES) $(smidump_SOURCES)
 OBJECTS = $(smiquery_OBJECTS) $(smilint_OBJECTS) $(smidump_OBJECTS)
 

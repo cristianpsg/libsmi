@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.25 1999/06/02 16:52:32 strauss Exp $
+ * @(#) $Id: data.c,v 1.26 1999/06/03 20:37:05 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -2758,7 +2758,7 @@ loadModule(modulename)
 	    }
 	}
 	free(path);
-	return findModuleByName(modulename);
+	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMI_NOT_SUPPORTED, parser.path);
 	return NULL;
@@ -2794,7 +2794,7 @@ loadModule(modulename)
 	    }
 	}
 	free(path);
-	return findModuleByName(modulename);
+	return parser.modulePtr;
 #else
 	printError(NULL, ERR_SMING_NOT_SUPPORTED, parser.path);
 	return NULL;
