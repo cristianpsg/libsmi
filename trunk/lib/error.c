@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.85 2002/01/31 18:19:45 schoenw Exp $
+ * @(#) $Id: error.c,v 1.86 2002/02/28 09:18:42 strauss Exp $
  */
 
 #include <config.h>
@@ -632,6 +632,13 @@ smiErrorHandler(char *path, int line, int severity, char *msg, char *tag)
 	fprintf(stderr, "warning: ");
     }
     fprintf(stderr, "%s\n", msg);
+
+    /*
+     * A severe error, no way to continue :-(
+     */
+    if (severity <= 0) {
+	exit(1);
+    }
 }
 
 
@@ -706,17 +713,6 @@ printError(Parser *parser, int id, int line, va_list ap)
 #endif
 	    (smiHandle->errorHandler) (NULL, 0, errors[i].level, buffer, errors[i].tag);
 	}
-    }
-
-    /*
-     * A severe error, no way to continue :-(
-     *
-     * TODO: Give the application a chance to overwrite the exit()
-     * call so that it can at least do some cleanup.
-     */
-
-    if (errors[i].level <= 0) {
-	exit(-1);
     }
 }
 
