@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-scli.c,v 1.11 2002/02/21 08:50:12 schoenw Exp $
+ * @(#) $Id: dump-scli.c,v 1.12 2002/03/05 12:01:40 schoenw Exp $
  */
 
 /*
@@ -1230,9 +1230,10 @@ printStubUtilities(FILE *f, SmiModule *smiModule)
 static void
 printStubAttributes(FILE *f, SmiModule *smiModule)
 {
-    SmiNode *smiNode;
-    char    *cName;
-    int     i, cnt = 0;
+    SmiNode      *smiNode;
+    char         *cName;
+    int          cnt = 0;
+    unsigned int i;
     const int groupkind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
         
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);

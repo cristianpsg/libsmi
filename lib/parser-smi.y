@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.165 2002/02/28 09:18:42 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.166 2002/03/08 08:23:48 strauss Exp $
  */
 
 %{
@@ -369,8 +369,8 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		 * fooEntry.
 		 */
 		if (parentPtr &&
-		    !((strlen(parentPtr->export.name) == len ||
-		       strlen(parentPtr->export.name) == len - 5) &&
+		    !(((int)strlen(parentPtr->export.name) == len ||
+		       (int)strlen(parentPtr->export.name) == len - 5) &&
 		      !strncmp(objectPtr->export.name, parentPtr->export.name,
 			len - 5))) {
 		    smiPrintErrorAtLine(parserPtr, ERR_ROWNAME_TABLENAME,

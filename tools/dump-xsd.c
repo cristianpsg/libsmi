@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.15 2002/03/05 12:55:23 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.16 2002/03/08 15:33:53 tklie Exp $
  */
 
 #include <config.h>
@@ -876,7 +876,7 @@ static void fprintComplexType( FILE *f, int indent,
 static void fprintNodes(FILE *f, SmiModule *smiModule)
 {
     SmiNode *iterNode;
-    int oidlen = 99999999;
+    unsigned int oidlen = 99999999;
 
     /* print root node */
     fprintSegment( f, INDENT, "<xsd:element ", 0 );
