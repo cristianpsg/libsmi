@@ -1,4 +1,12 @@
+2000-06-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.2.3.tar.gz: released version 0.2.3.
+
+	* Makefile.am: added the win/ directory to the distribution.
+
 2000-06-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.2.2.tar.gz: released version 0.2.2.
 
 	* Juergen sent a huge patch: moved parser checks to a separate
         C file, aligned error messages, aligned identifier prefixes,

@@ -100,7 +100,8 @@ smipath = @smipath@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
-EXTRA_DIST = ANNOUNCE
+EXTRA_DIST = ANNOUNCE 			  win/Makefile.mingw win/README.mingw win/README.win 			  win/config.h win/makefile.vc win/win.c win/win.h
+
 
 SUBDIRS = lib tools mibs test doc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -289,6 +290,7 @@ distdir: $(DISTFILES)
 	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
+	$(mkinstalldirs) $(distdir)/win
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
