@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.97 2000/11/16 14:58:10 strauss Exp $
+ * @(#) $Id: smi.c,v 1.98 2000/12/15 13:52:31 strauss Exp $
  */
 
 #include <config.h>
@@ -937,11 +937,6 @@ SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr)
     return &((Macro *)smiMacroPtr)->modulePtr->export;
 }
 
-
-char *smiGetModulePath(SmiModule *smiModulePtr)
-{
-    return ((Module *)smiModulePtr)->export.path;
-}
 
 SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *node)
 {
