@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.45 2000/02/05 18:05:57 strauss Exp $
+ * @(#) $Id: data.h,v 1.46 2000/02/06 13:57:06 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -115,6 +115,7 @@ typedef struct Import {
 
 
 
+/* TODO: remove me?! 
 typedef struct Value {
     SmiBasetype             basetype;
     SmiValueformat	    format;
@@ -132,37 +133,44 @@ typedef struct Value {
         char                **bits;
     } value;
 } Value;
-
+*/
 
 
 typedef struct NamedNumber {
-    SmiIdentifier   name;
-    Value           *valuePtr;
+    SmiIdentifier  name;
+    SmiValue       *valuePtr;
 } NamedNumber;
 
 
 
 typedef struct Range {
-    Value           *minValuePtr;
-    Value           *maxValuePtr;
+    SmiValue       *minValuePtr;
+    SmiValue       *maxValuePtr;
 } Range;
 
 
 
 typedef struct Type {
-    Module         *modulePtr;
+    SmiType        export;      /* this MUST be the first element */
+    Module         *modulePtr;  /* this MUST be the second element */
+/*
     char	   *name;
-    char	   *parentmodule;
-    char	   *parentname;
     SmiBasetype	   basetype;
     SmiDecl	   decl;
     char	   *format;
-    Value	   *valuePtr;
     char	   *units;
     SmiStatus	   status;
-    struct List    *listPtr;
     char	   *description;
     char	   *reference;
+
+    SmiValue	   *valuePtr;
+
+    char	   *parentmodule;
+    char	   *parentname;
+*/
+    struct Type    *parentPtr;
+    
+    struct List    *listPtr;
     off_t          fileoffset;
     TypeFlags	   flags;
     struct Type    *nextPtr;
@@ -180,11 +188,11 @@ typedef struct Option {
 
 
 typedef struct Refinement {
-    struct Object  *objectPtr;
-    Type	   *typePtr;
-    Type	   *writetypePtr;
-    SmiAccess	   access;
-    char	   *description;
+    SmiRefinement  export;
+    struct Object  *compliancePtr; // the compliance Object this Ref belongs to
+    struct Object  *objectPtr;     // the Object refined by this Refinement
+    Type	   *typePtr;       // the refined Type (or NULL)
+    Type	   *writetypePtr;  // the refined WriteType (or NULL)
 } Refinement;
 
 
@@ -222,7 +230,7 @@ typedef struct Object {
     char	   *reference;
     char	   *format;
     char	   *units;
-    Value	   *valuePtr;
+    SmiValue	   *valuePtr;
     struct Node	   *nodePtr;
     struct Object  *prevPtr;		/* chain of Objects in this Module */
     struct Object  *nextPtr;
@@ -248,8 +256,8 @@ typedef struct Node {
 
 
 typedef struct Macro {
-    SmiMacro	   export;
-    Module	   *modulePtr;
+    SmiMacro	   export;      /* this MUST be the first element */
+    Module	   *modulePtr;  /* this MUST be the second element */
     off_t	   fileoffset;
     MacroFlags	   flags;
     struct Macro   *nextPtr;
@@ -336,11 +344,11 @@ extern void setImportModulename(Import *importPtr,
 extern int checkImports(Module *modulePtr,
 			Parser *parserPtr);
 
-extern Import *findImportByName(const char *importname,
+extern Import *findImportByName(const char *name,
 				Module *modulePtr);
 
 extern Import *findImportByModulenameAndName(const char *modulename,
-					     const char *importname,
+					     const char *name,
 					     Module *modulePtr);
 
 extern Object *addObject(char *objectname,
@@ -415,7 +423,7 @@ extern void setObjectUnits(Object *objectPtr,
 			   char *units);
 
 extern void setObjectValue(Object *objectPtr,
-			   Value *valuePtr);
+			   SmiValue *valuePtr);
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);
@@ -462,8 +470,7 @@ extern void setTypeBasetype(Type *typePtr,
 			  SmiBasetype basetype);
 
 extern void setTypeParent(Type *typePtr,
-			  const char *parentmodule,
-			  const char *parentname);
+			  Type *parentPtr);
 
 extern void setTypeList(Type *typePtr,
 			struct List *listPtr);
@@ -493,7 +500,7 @@ extern void setTypeUnits(Type *typePtr,
 			 char *units);
 
 extern void setTypeValue(Type *typePtr,
-			 Value *valuePtr);
+			 SmiValue *valuePtr);
 
 
 

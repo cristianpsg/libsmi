@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.37 2000/01/14 09:11:28 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.39 2000/02/06 13:57:07 strauss Exp $
  */
 
 %{
@@ -90,7 +90,7 @@ findType(spec, parserPtr, modulePtr)
 	if (!typePtr) {
 	    importPtr = findImportByName(spec, modulePtr);
 	    if (importPtr) {
-		typePtr = findTypeByModulenameAndName(importPtr->export.importmodule,
+		typePtr = findTypeByModulenameAndName(importPtr->export.module,
 						      spec);
 	    }
 	}
@@ -121,7 +121,7 @@ findObject(spec, parserPtr, modulePtr)
 	if (!objectPtr) {
 	    importPtr = findImportByName(spec, modulePtr);
 	    if (importPtr) {
-	     objectPtr = findObjectByModulenameAndName(importPtr->export.importmodule,
+	     objectPtr = findObjectByModulenameAndName(importPtr->export.module,
 							  spec);
 	    }
 	}
@@ -263,7 +263,7 @@ checkDate(Parser *parserPtr, char *date)
     SmiAccess	   access;
     NamedNumber    *namedNumberPtr;
     Range	   *rangePtr;
-    Value	   *valuePtr;
+    SmiValue	   *valuePtr;
     List	   *listPtr;
     Revision	   *revisionPtr;
 }
@@ -862,7 +862,7 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			typedefTypeStatement stmtsep
 			{
 			    if ($8) {
-				if ($8->name) {
+				if ($8->export.name) {
 				    /*
 				     * If the exact type has been found
 				     * and no new Type structure has been
@@ -887,7 +887,7 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (typePtr && $13) {
-                                if (!checkFormat(typePtr->basetype, $13)) {
+                                if (!checkFormat(typePtr->export.basetype, $13)) {
 				    printError(thisParserPtr,
 					       ERR_INVALID_FORMAT, $13);
 				}
@@ -1053,8 +1053,8 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			{
 			    if (scalarObjectPtr && $11) {
 				setObjectType(scalarObjectPtr, $11);
-				defaultBasetype = $11->basetype;
-				if (!($11->name)) {
+				defaultBasetype = $11->export.basetype;
+				if (!($11->export.name)) {
 				    /*
 				     * An inlined type.
 				     */
@@ -1077,7 +1077,7 @@ scalarStatement:	scalarKeyword sep lcIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (scalarObjectPtr && $19) {
-				if (!checkFormat($11->basetype, $19)) {
+				if (!checkFormat($11->export.basetype, $19)) {
 				    printError(thisParserPtr,
 					       ERR_INVALID_FORMAT, $19);
 				}
@@ -1299,8 +1299,8 @@ columnStatement:	columnKeyword sep lcIdentifier
 			{
 			    if (columnObjectPtr && $11) {
 				setObjectType(columnObjectPtr, $11);
-				defaultBasetype = $11->basetype;
-				if (!($11->name)) {
+				defaultBasetype = $11->export.basetype;
+				if (!($11->export.name)) {
 				    /*
 				     * An inlined type.
 				     */
@@ -1323,7 +1323,7 @@ columnStatement:	columnKeyword sep lcIdentifier
 			formatStatement_stmtsep_01
 			{
 			    if (columnObjectPtr && $19) {
-                                if (!checkFormat($11->basetype, $19)) {
+                                if (!checkFormat($11->export.basetype, $19)) {
 				    printError(thisParserPtr,
 					       ERR_INVALID_FORMAT, $19);
 				}
@@ -1697,6 +1697,8 @@ complianceStatement:	complianceKeyword sep lcIdentifier
 				     listPtr = listPtr->nextPtr) {
 				    refinementPtr =
 					((Refinement *)(listPtr->ptr));
+				    refinementPtr->compliancePtr =
+					complianceObjectPtr;
 		    s = util_malloc(strlen(refinementPtr->objectPtr->name) +
 				    strlen(complianceIdentifier) + 13);
 				    if (refinementPtr->typePtr) {
@@ -2343,8 +2345,8 @@ refineStatement:	refineKeyword sep qlcIdentifier
 			    } else {
 				$$->writetypePtr = NULL;
 			    }
-			    $$->access = $8;
-			    $$->description = util_strdup($9);
+			    $$->export.access = $8;
+			    $$->export.description = util_strdup($9);
 			}
         ;
 
@@ -2365,8 +2367,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeOctetStringPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeOctetStringPtr->name);
+				setTypeParent($$, typeOctetStringPtr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2381,8 +2382,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeInteger32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeInteger32Ptr->name);
+				setTypeParent($$, typeInteger32Ptr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2393,8 +2393,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeUnsigned32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeUnsigned32Ptr->name);
+				setTypeParent($$, typeUnsigned32Ptr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2405,8 +2404,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeInteger64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeInteger64Ptr->name);
+				setTypeParent($$, typeInteger64Ptr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2417,8 +2415,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeUnsigned64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeUnsigned64Ptr->name);
+				setTypeParent($$, typeUnsigned64Ptr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2429,8 +2426,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeFloat32Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeFloat32Ptr->name);
+				setTypeParent($$, typeFloat32Ptr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2441,8 +2437,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeFloat64Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeFloat64Ptr->name);
+				setTypeParent($$, typeFloat64Ptr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2453,8 +2448,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeFloat128Ptr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeFloat128Ptr->name);
+				setTypeParent($$, typeFloat128Ptr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2465,8 +2459,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeEnumPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeEnumPtr->name);
+				setTypeParent($$, typeEnumPtr);
 				setTypeList($$, $2);
 			    }
 			}
@@ -2477,8 +2470,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    } else {
 				$$ = duplicateType(typeBitsPtr, 0,
 						   thisParserPtr);
-				setTypeParent($$, NULL,
-					      typeBitsPtr->name);
+				setTypeParent($$, typeBitsPtr);
 				setTypeList($$, $2);
 			    }
 			}

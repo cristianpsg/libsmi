@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.28 2000/01/13 12:24:38 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.29 2000/02/05 18:05:58 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -223,10 +223,14 @@ static char *getTimeString(time_t t)
 
 
 static char *getTypeString(char *module, SmiBasetype basetype,
-			   char *typemodule, char *typename)
+			   SmiType *smiType)
 {
     int         i;
     char	**convertType;
+    char        *typemodule, *typename;
+
+    typename = smiType ? smiType->name : NULL;
+    typemodule = smiType ? smiGetTypeModule(smiType)->name : NULL;
 
     convertType = smiv1 ? convertTypev1 : convertTypev2;
 
@@ -242,7 +246,8 @@ static char *getTypeString(char *module, SmiBasetype basetype,
 	}
     }
 
-    if ((!typemodule) || (!typename) || islower((int)typename[0])) {
+    if ((!typemodule) || (!strlen(typemodule)) ||
+	(!typename) || islower((int)typename[0])) {
 	if (basetype == SMI_BASETYPE_ENUM) {
 	    return "INTEGER";
 	}
@@ -432,13 +437,18 @@ static void createImportList(SmiModule *smiModule)
     SmiType     *smiType;
     SmiNodekind kind = SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN;
     SmiImport   *smiImport;
+    SmiModule	*smiModule2;
     
     for(smiNode = smiGetFirstNode(smiModule->name, kind); smiNode;
 	smiNode = smiGetNextNode(smiNode, kind)) {
-	smiType = smiGetType(smiNode->typemodule, smiNode->typename);
-	if (smiType && strcmp(smiType->module, smiModule->name)) {
-	    if (strlen(smiType->module)) {
-		addImport(smiType->module, smiType->name);
+	smiType = smiGetType(smiGetModule(smiNode->typemodule),
+			     smiNode->typename);
+	if (smiType) {
+	    smiModule2 = smiGetTypeModule(smiType);
+	    if (smiModule2 && (smiModule2 != smiModule)) {
+		if (strlen(smiModule2->name)) {
+		    addImport(smiModule2->name, smiType->name);
+		}
 	    }
 	}
 
@@ -508,7 +518,7 @@ static void createImportList(SmiModule *smiModule)
     }
 
     if (! smiv1) {
-	for(smiType = smiGetFirstType(smiModule->name);
+	for(smiType = smiGetFirstType(smiModule);
 	    smiType; smiType = smiGetNextType(smiType)) {
 	    if (smiType->description) {
 		addImport("SNMPv2-TC", "TEXTUAL-CONVENTION");
@@ -520,10 +530,10 @@ static void createImportList(SmiModule *smiModule)
 
     for(smiImport = smiGetFirstImport(smiModule); smiImport;
 	smiImport = smiGetNextImport(smiImport)) {
-	if (islower((int) smiImport->importname[0]) ||
-	    (!strcmp(smiImport->importmodule, "SNMPv2-SMI")) ||
-	    (!smiv1 && !strcmp(smiImport->importmodule, "SNMPv2-TC"))) {
-	    addImport(smiImport->importmodule, smiImport->importname);
+	if (islower((int) smiImport->name[0]) ||
+	    (!strcmp(smiImport->module, "SNMPv2-SMI")) ||
+	    (!smiv1 && !strcmp(smiImport->module, "SNMPv2-TC"))) {
+	    addImport(smiImport->module, smiImport->name);
 	}
     }
 }
@@ -698,7 +708,7 @@ static void printSubtype(SmiType *smiType)
     
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
 	(smiType->basetype == SMI_BASETYPE_BITS)) {
-	for(i = 0, nn = smiGetFirstNamedNumber(smiType->module, smiType->name);
+	for(i = 0, nn = smiGetFirstNamedNumber(smiType);
 	    nn; i++, nn = smiGetNextNamedNumber(nn)) {
 	    if (i) {
 		print(", ");
@@ -718,7 +728,7 @@ static void printSubtype(SmiType *smiType)
 	    print(" }");
 	}
     } else {
-	for(i = 0, range = smiGetFirstRange(smiType->module, smiType->name);
+	for(i = 0, range = smiGetFirstRange(smiType);
 	    range; i++, range = smiGetNextRange(range)) {
 	    if (i) {
 		print(" | ");
@@ -903,12 +913,12 @@ static void printModuleIdentity(SmiModule *smiModule)
 
 
 
-static void printTypeDefinitions(char *modulename)
+static void printTypeDefinitions(SmiModule *smiModule)
 {
     SmiType	 *smiType;
     int		 invalid;
 
-    for(smiType = smiGetFirstType(modulename);
+    for(smiType = smiGetFirstType(smiModule);
 	smiType; smiType = smiGetNextType(smiType)) {
 	if (!smiType->description) {
 	    invalid = invalidType(smiType->basetype);
@@ -918,9 +928,8 @@ static void printTypeDefinitions(char *modulename)
 		print("%s ::=\n", smiType->name);
 	    }
 	    printSegment(INDENT, "", 0, invalid);
-	    print("%s", getTypeString(modulename, smiType->basetype,
-				      smiType->parentmodule,
-				      smiType->parentname));
+	    print("%s", getTypeString(smiModule->name, smiType->basetype,
+				      smiGetParentType(smiType)));
 	    printSubtype(smiType);
 	    print("\n\n");
 	}
@@ -929,21 +938,20 @@ static void printTypeDefinitions(char *modulename)
 
 
 
-static void printTextualConventions(char *modulename)
+static void printTextualConventions(SmiModule *smiModule)
 {
     SmiType	 *smiType;
     int		 invalid;
     
-    for(smiType = smiGetFirstType(modulename);
+    for(smiType = smiGetFirstType(smiModule);
 	smiType; smiType = smiGetNextType(smiType)) {
 	if (smiType->description) {
 	    invalid = invalidType(smiType->basetype);
 	    if (smiv1 && !invalid) {
 		print("%s ::=\n", smiType->name);
 		printSegment(INDENT, "", 0, invalid);
-		print("%s", getTypeString(modulename, smiType->basetype,
-					  smiType->parentmodule,
-					  smiType->parentname));
+		print("%s", getTypeString(smiModule->name, smiType->basetype,
+					  smiGetParentType(smiType)));
 		printSubtype(smiType);
 		print("\n\n");
 	    }
@@ -978,9 +986,9 @@ static void printTextualConventions(char *modulename)
 		    print("\n");
 		}
 		printSegment(INDENT, "SYNTAX", INDENTVALUE, smiv1 || invalid);
-		print("%s", getTypeString(modulename, smiType->basetype,
-					  smiType->parentmodule,
-					  smiType->parentname));
+		print("%s",
+		      getTypeString(smiModule->name, smiType->basetype,
+				    smiGetParentType(smiType)));
 		printSubtype(smiType);
 		print("\n\n");
 	    }
@@ -1069,19 +1077,19 @@ static void printObjects(char *modulename)
 		    /*
 		     * an implicitly restricted type.
 		     */
-		    smiType = smiGetType(smiNode->typemodule,
+		    smiType = smiGetType(smiGetModule(smiNode->typemodule),
 					 smiNode->typename);
 		    print("%s", getTypeString(modulename,
 					      smiType->basetype,
-					      smiType->parentmodule,
-					      smiType->parentname));
+					      smiGetParentType(smiType)));
 		    printSubtype(smiType);
 		    print("\n");
 		} else {
-		    print("%s\n", getTypeString(modulename,
-						smiNode->basetype,
-						smiNode->typemodule,
-						smiNode->typename));
+		    print("%s\n",
+			  getTypeString(modulename,
+					smiNode->basetype,
+				 smiGetType(smiGetModule(smiNode->typemodule),
+					    smiNode->typename)));
 		}
 	    }
 	}
@@ -1189,7 +1197,8 @@ static void printObjects(char *modulename)
 		    print("\n");
 		}
 		
-		smiType = smiGetType(colNode->typemodule, colNode->typename);
+		smiType = smiGetType(smiGetModule(colNode->typemodule),
+				     colNode->typename);
 		invalid = invalidType(colNode->basetype);
 
 		if (! invalid || ! silent) {
@@ -1198,13 +1207,13 @@ static void printObjects(char *modulename)
 		    if (smiType && smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
 			print("%s", getTypeString(modulename,
 						  smiType->basetype,
-						  smiType->parentmodule,
-						  smiType->parentname));
+						  smiGetParentType(smiType)));
 		    } else {
-			print("%s", getTypeString(modulename,
-						  colNode->basetype,
-						  colNode->typemodule,
-						  colNode->typename));
+			print("%s",
+			      getTypeString(modulename,
+					    colNode->basetype,
+				 smiGetType(smiGetModule(colNode->typemodule),
+					    colNode->typename)));
 		    }
 		}
 		if (smiType) {
@@ -1463,39 +1472,33 @@ static void printModuleCompliances(char *modulename)
 		for(smiRefinement = smiGetFirstRefinement(smiNode);
 		    smiRefinement;
 		    smiRefinement = smiGetNextRefinement(smiRefinement)) {
-		    if (!strcmp(smiRefinement->module, module)) {
+		    if (!strcmp(smiGetRefinementModule(smiRefinement)->name,
+				module)) {
 			print("\n");
 			printSegment(2 * INDENT, "OBJECT", INDENTVALUE, smiv1);
-			print("%s\n", smiRefinement->name);
-			
-			if (smiRefinement->typename) {
-			    smiType = smiGetType(smiRefinement->typemodule,
-						 smiRefinement->typename);
-			    if (smiType) {
-				printSegment(2 * INDENT, "SYNTAX", INDENTVALUE,
-					     smiv1);
-				print("%s",
-				      getTypeString(module, smiType->basetype,
-						    smiType->parentmodule,
-						    smiType->parentname));
-				printSubtype(smiType);
-				print("\n");
-			    }
+			print("%s\n",
+			      smiGetRefinementNode(smiRefinement)->name);
+
+			smiType = smiGetRefinementType(smiRefinement);
+			if (smiType) {
+			    printSegment(2 * INDENT, "SYNTAX", INDENTVALUE,
+					 smiv1);
+			    print("%s",
+				  getTypeString(module, smiType->basetype,
+						smiGetParentType(smiType)));
+			    printSubtype(smiType);
+			    print("\n");
 			}
 			
-			if (smiRefinement->writetypename) {
-			    smiType = smiGetType(smiRefinement->writetypemodule,
-						 smiRefinement->writetypename);
-			    if (smiType) {
-				printSegment(2 * INDENT, "WRITE-SYNTAX",
-					     INDENTVALUE, smiv1);
-				print("%s",
-				      getTypeString(module, smiType->basetype,
-						    smiType->parentmodule,
-						    smiType->parentname));
-				printSubtype(smiType);
-				print("\n");
-			    }
+			smiType = smiGetRefinementWriteType(smiRefinement);
+			if (smiType) {
+			    printSegment(2 * INDENT, "WRITE-SYNTAX",
+					 INDENTVALUE, smiv1);
+			    print("%s",
+				  getTypeString(module, smiType->basetype,
+						smiGetParentType(smiType)));
+			    printSubtype(smiType);
+			    print("\n");
 			}
 			
 			if (smiRefinement->access != SMI_ACCESS_UNKNOWN) {
@@ -1571,8 +1574,8 @@ static int dumpSmi(char *modulename)
 	
     printImports(modulename);
     printModuleIdentity(smiModule);
-    printTypeDefinitions(modulename);
-    printTextualConventions(modulename);
+    printTypeDefinitions(smiModule);
+    printTextualConventions(smiModule);
     printObjects(modulename);
     printNotifications(modulename);
     printGroups(modulename);
