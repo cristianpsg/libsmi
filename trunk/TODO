@@ -158,3 +158,33 @@ x shift/reduce conflict at
 . type concept?
 
   Syntax / TCs / Type struct ???
+
+
+. Protokoll (schlank? effizient?)
+
+  <- GET NODE HANDLE name
+  -> handle
+  <- GET NODE DESCRIPTION handle|name
+  -> description
+
+  <- GET TYPE HANDLE name
+  -> handle
+  <- GET TYPE DESCRIPTION handle|name
+  -> description
+
+  <- GET NODE CHILD name|handle
+  -> handle
+
+  <- GET NODE CHILDREN name|handle
+  -> handles
+
+
+  . handles koennen durch loeschen von mibs ungueltig werden.
+  . lookups und nexts muessen view des client beruecksichtigen.
+  . wenn protokoll und api sich aehneln, koennen koponenten leichter
+    ausgetauscht werden und sowohl client (scotty) als auch server
+    (smid) auf libsmi aufsetzen.
+
+. API
+
+
