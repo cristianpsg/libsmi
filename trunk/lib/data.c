@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.9 1999/03/24 16:25:24 strauss Exp $
+ * @(#) $Id: data.c,v 1.10 1999/03/25 21:57:44 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -1562,6 +1562,37 @@ addObjectFlags(objectPtr, flags)
 /*
  *----------------------------------------------------------------------
  *
+ * deleteObjectFlags --
+ *
+ *      Delete flags from the flags of a given Object.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+deleteObjectFlags(objectPtr, flags)
+    Object	   *objectPtr;
+    ObjectFlags    flags;
+{
+#ifdef DEBUG
+    printDebug(5, "deleteObjectFlags(0x%x(%s), %d)\n",
+	       objectPtr, objectPtr->name, flags);
+#endif
+
+    objectPtr->flags &= ~flags;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * setObjectIndex --
  *
  *      Set the list of INDEX elements of a given Object.
@@ -1576,16 +1607,16 @@ addObjectFlags(objectPtr, flags)
  */
 
 void
-setObjectIndex(objectPtr, listPtr)
+setObjectIndex(objectPtr, indexPtr)
     Object	 *objectPtr;
-    List	 *listPtr;
+    Index	 *indexPtr;
 {
 #ifdef DEBUG
     printDebug(5, "setObjectIndex(0x%x(%s), 0x%x)\n",
-	       objectPtr, objectPtr->name, listPtr);
+	       objectPtr, objectPtr->name, indexPtr);
 #endif
     
-    objectPtr->indexPtr = listPtr;
+    objectPtr->indexPtr = indexPtr;
 }
 
 

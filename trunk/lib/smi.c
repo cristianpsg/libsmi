@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.8 1999/03/25 14:18:08 strauss Exp $
+ * @(#) $Id: smi.c,v 1.9 1999/03/25 21:57:46 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -414,17 +414,29 @@ createSmiNode(objectPtr)
 	smiNodePtr->name   = objectPtr->name;
 	smiNodePtr->module = objectPtr->modulePtr->name;
 	smiNodePtr->oid    = getOid(objectPtr->nodePtr);
-	if (objectPtr->typePtr && objectPtr->typePtr->name) {
-	    if (objectPtr->typePtr->modulePtr) {
-		sprintf(typename, "%s%s%s",
-			objectPtr->typePtr->modulePtr->name,
-			SMI_NAMESPACE_OPERATOR,
-			objectPtr->typePtr->name);
+	if (objectPtr->typePtr) {
+	    if (objectPtr->typePtr->name) {
+		if (objectPtr->typePtr->modulePtr) {
+		    sprintf(typename, "%s%s%s",
+			    objectPtr->typePtr->modulePtr->name,
+			    SMI_NAMESPACE_OPERATOR,
+			    objectPtr->typePtr->name);
+		} else {
+		    sprintf(typename, "%s",
+			    objectPtr->typePtr->name);
+		}
+		smiNodePtr->type   = util_strdup(typename);
 	    } else {
-		sprintf(typename, "%s",
-			objectPtr->typePtr->name);
+		/*
+		 * This is an inlined type restriction. It is accessible
+		 * by the same (lowercase!) name as the object.
+		 */
+		sprintf(typename, "%s%s%s",
+			objectPtr->modulePtr->name,
+			SMI_NAMESPACE_OPERATOR,
+			objectPtr->name);
+		smiNodePtr->type   = util_strdup(typename);
 	    }
-	    smiNodePtr->type   = util_strdup(typename);
 	} else {
 	    smiNodePtr->type   = NULL;
 	}
@@ -679,7 +691,6 @@ smiGetModule(name)
 	    smiModulePtr->description = NULL;
 	    smiModulePtr->reference = NULL;
 	}
-	/* XXX TODO: Revisions */
 	return smiModulePtr;
     } else {
 	return NULL;
@@ -845,7 +856,7 @@ smiGetNextNode(modulename, name)
     
     objectPtr = getNextChildObject(nodePtr, modulePtr);
 
-    if (!objectPtr) {
+    if ((!objectPtr) && nodePtr) {
 	goto again;
     }
     
@@ -961,6 +972,7 @@ smiGetNextType(modulename, name)
 	     * If hit, continue loop, until we have found a real type.
 	     */
 	    if (hit && typePtr && typePtr->name &&
+		isupper((int)typePtr->name[0]) &&
 		(!(typePtr->flags & FLAG_IMPORTED)) &&
 		(typePtr->syntax != SMI_SYNTAX_UNKNOWN) &&
 		(typePtr->syntax != SMI_SYNTAX_SEQUENCE) &&
@@ -1641,16 +1653,16 @@ smiDescriptor(fullname)
     static char	    name[SMI_MAX_DESCRIPTOR+1];
     char	    *p;
 
-    if (!isupper((int)fullname[0])) {
-	strcpy(name, fullname);
+    p = strstr(fullname, SMI_NAMESPACE_OPERATOR);
+    if (p) {
+	strcpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)]);
     } else {
-	p = strstr(fullname, SMI_NAMESPACE_OPERATOR);
+	p = strchr(fullname, '!');
 	if (p) {
-	    strcpy(name, &p[strlen(SMI_NAMESPACE_OPERATOR)]);
+	    strcpy(name, &p[1]);
 	} else {
-	    p = strchr(fullname, '!');
-	    if (p) {
-		strcpy(name, &p[1]);
+	    if (!isupper((int)fullname[0])) {
+		strcpy(name, fullname);
 	    } else {
 		p = strchr(fullname, '.');
 		if (p) {

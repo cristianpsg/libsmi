@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.7 1999/03/24 16:25:29 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.8 1999/03/25 21:57:45 strauss Exp $
  */
 
 %{
@@ -88,6 +88,7 @@ Node   *parentNodePtr;
     SmiStatus   status;				/* a STATUS value            */
     SmiAccess   access;				/* an ACCESS value           */
     Type        *typePtr;
+    Index       *indexPtr;
     List        *listPtr;			/* SEQUENCE and INDEX lists  */
     SmiNamedNumber *namedNumberPtr;		/* BITS or enum item         */
     SmiRange       *rangePtr;			/* type restricting range    */
@@ -253,11 +254,11 @@ Node   *parentNodePtr;
 %type  <text>DisplayPart
 %type  <text>UnitsPart
 %type  <access>Access
-%type  <listPtr>IndexPart
+%type  <indexPtr>IndexPart
 %type  <listPtr>IndexTypes
 %type  <objectPtr>IndexType
 %type  <objectPtr>Index
-%type  <listPtr>Entry
+%type  <objectPtr>Entry
 %type  <err>DefValPart
 %type  <valuePtr>Value
 %type  <listPtr>BitsValue
@@ -761,6 +762,7 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 						    0, thisParserPtr);
 			    }
 			    objectPtr = setObjectName(objectPtr, $1);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
 			    $$ = 0;
@@ -1155,6 +1157,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 #if 0
 			    setObjectReferences(objectPtr, $8);
 #endif
@@ -1192,9 +1195,16 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTTYPE);
 			    setObjectType(objectPtr, $5);
+			    if (!($5->name)) {
+				/*
+				 * An inlined type.
+				 */
+				setTypeName($5, $1);
+			    }
 			    setObjectAccess(objectPtr, $7);
 			    setObjectStatus(objectPtr, $9);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    if ($10) {
 				setObjectDescription(objectPtr, $10);
 			    }
@@ -1317,6 +1327,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONTYPE);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
 			    $$ = 0;
@@ -1368,6 +1379,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_MODULEIDENTITY);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setModuleIdentityObject(thisParserPtr->modulePtr,
 						    objectPtr);
 			    setModuleOrganization(thisParserPtr->modulePtr,
@@ -2261,11 +2273,30 @@ Access:			LOWERCASE_IDENTIFIER
         ;
 
 IndexPart:		INDEX '{' IndexTypes '}'
-			{ $$ = $3; }
+			{
+			    Index *p;
+			    
+			    p = util_malloc(sizeof(Index));
+			    /* TODO: success? */
+			    p->implied = 0;
+			    /* TODO: handle IMPLIED ! */
+			    p->listPtr = $3;
+			    p->rowPtr  = NULL;
+			    $$ = p;
+			}
         |		AUGMENTS '{' Entry '}'
 			/* TODO: no AUGMENTS clause in v1 */
 			/* TODO: how to differ INDEX and AUGMENTS ? */
-			{ $$ = $3; }
+			{
+			    Index *p;
+			    
+			    p = util_malloc(sizeof(Index));
+			    /* TODO: success? */
+			    p->implied = 0;
+			    p->listPtr = NULL;
+			    p->rowPtr  = $3;
+			    $$ = p;
+			}
         |		/* empty */
 			{ $$ = NULL; }
 	;
@@ -2312,14 +2343,8 @@ Index:			ObjectName
         ;
 
 Entry:			ObjectName
-			/* TODO: use the SYNTAX value of the correspondent
-			 *       OBJECT-TYPE invocation
-			 */
 			{
-			    $$ = util_malloc(sizeof(List));
-			    /* TODO: success? */
-			    $$->ptr = $1;
-			    $$->nextPtr = NULL;
+			    $$ = $1;
 			}
         ;
 
@@ -2418,7 +2443,7 @@ Revision:		REVISION ExtUTCTime
 			    if ((!thisModulePtr->firstRevisionPtr) &&
 				(date != thisModulePtr->lastUpdated)) {
 				addRevision(thisModulePtr->lastUpdated,
-	     "[Revision added by libsmi due to an SMIv2 LAST-UPDATED clause.]",
+	            "[Revision added by libsmi due to a LAST-UPDATED clause.]",
 					    thisParserPtr);
 			    }
 			    
@@ -2732,6 +2757,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			    objectPtr = setObjectName(objectPtr, $1);
 			    setObjectDecl(objectPtr, SMI_DECL_OBJECTGROUP);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
 			    setObjectAccess(objectPtr,
@@ -2775,6 +2801,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_NOTIFICATIONGROUP);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $6);
 			    setObjectDescription(objectPtr, $8);
 			    setObjectAccess(objectPtr,
@@ -2816,6 +2843,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_MODULECOMPLIANCE);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $5);
 			    setObjectDescription(objectPtr, $7);
 				/*
@@ -2949,6 +2977,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_AGENTCAPABILITIES);
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
+			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    setObjectStatus(objectPtr, $7);
 			    setObjectDescription(objectPtr, $9);
 				/*

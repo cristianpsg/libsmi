@@ -1,13 +1,14 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.15 1999/03/24 16:25:23 strauss Exp $
+# @(#) $Id: Makefile,v 1.16 1999/03/25 21:57:43 strauss Exp $
 #
 
 MIBDIR		= ../scotty/tnm/mibs
 PREFIX		= /usr/local
 
-DEFINES		= -DRPC_SVC_FG -DDEBUG -DBACKEND_SMI -DBACKEND_SMING
+DEFINES_RPC	= -DRPC_SVC_FG -DBACKEND_RPC
+DEFINES		= -DDEBUG -DBACKEND_SMI -DBACKEND_SMING
 CC		= gcc
 CFLAGS		= -I. -Ilib -Wall -g $(DEFINES)
 LD		= gcc

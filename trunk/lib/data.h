@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.9 1999/03/24 16:25:25 strauss Exp $
+ * @(#) $Id: data.h,v 1.10 1999/03/25 21:57:45 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -180,6 +180,14 @@ typedef struct Type {
 
 
 
+typedef struct Index {
+    int	           implied;
+    struct List    *listPtr;
+    struct Object  *rowPtr;
+} Index;
+
+
+
 typedef struct Object {
     Module         *modulePtr;
     char	   *name;
@@ -189,7 +197,7 @@ typedef struct Object {
     Type	   *typePtr;
     SmiAccess	   access;
     SmiStatus	   status;
-    struct List    *indexPtr;
+    struct Index   *indexPtr;
     char	   *description;
     char	   *reference;
     char	   *units;
@@ -361,8 +369,11 @@ extern void setObjectDecl(Object *objectPtr,
 extern void addObjectFlags(Object *objectPtr,
 			   ObjectFlags flags);
 
+extern void deleteObjectFlags(Object *objectPtr,
+			      ObjectFlags flags);
+
 extern void setObjectIndex(Object *objectPtr,
-			   List *listPtr);
+			   Index *indexPtr);
 
 extern Node *findNodeByParentAndSubid(Node *parentNodePtr,
 				      SmiSubid subid);
@@ -421,7 +432,7 @@ extern void setTypeFileOffset(Type *typePtr,
 extern void setTypeDecl(Type *typePtr,
 			SmiDecl decl);
 
-extern void setTypeFlags(Type *typePtr,
+extern void addTypeFlags(Type *typePtr,
 			 TypeFlags flags);
 
 extern void setTypeFormat(Type *typePtr,
