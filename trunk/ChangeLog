@@ -1,5 +1,7 @@
 2000-06-21  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/ietf/HCNUM-TC: added (RFC 2856).
+
 	* tools/dump-xmp.c: Juergen updated the XML dump format.
 
 	* lib/scanner-smi.l: Fixed scanning of module files ending
