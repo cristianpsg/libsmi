@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.11 1999/03/29 14:02:27 strauss Exp $
+ * @(#) $Id: smi.c,v 1.12 1999/03/29 22:34:05 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -403,11 +403,13 @@ getMacro(name, module)
 
 SmiNode *
 createSmiNode(objectPtr)
-    Object  *objectPtr;
+    Object        *objectPtr;
 {
-    SmiNode *smiNodePtr;
-    char    typename[SMI_MAX_FULLNAME+1];
-    List    *listPtr;
+    SmiNode       *smiNodePtr;
+    SmiOption	  *smiOption;
+    SmiRefinement *smiRefinement;
+    char          typename[SMI_MAX_FULLNAME+1];
+    List          *listPtr;
     
     if (objectPtr) {
 	smiNodePtr     = util_malloc(sizeof(SmiNode));
@@ -457,13 +459,58 @@ createSmiNode(objectPtr)
 	} else {
 	    smiNodePtr->reference = NULL;
 	}
-	smiNodePtr->list	= NULL;
-	if (smiNodePtr->decl != SMI_DECL_MODULECOMPLIANCE) {
-	    /* MCs use this list for struct Compliance pointers */
-	    for (listPtr = objectPtr->listPtr; listPtr;
+
+	smiNodePtr->indexkind  = SMI_INDEX_UNKNOWN;
+	smiNodePtr->implied    = 0;
+	smiNodePtr->index      = NULL;
+	smiNodePtr->relatedrow = NULL;
+	if (objectPtr->indexPtr) {
+	    smiNodePtr->indexkind  = objectPtr->indexPtr->indexkind;
+	    smiNodePtr->implied    = objectPtr->indexPtr->implied;
+	    for (listPtr = objectPtr->indexPtr->listPtr; listPtr;
 		 listPtr = listPtr->nextPtr) {
-		addPtr(&smiNodePtr->list, ((Object *)listPtr->ptr)->name);
+		addName(&smiNodePtr->index, ((Object *)listPtr->ptr)->name);
 	    }
+	    if (objectPtr->indexPtr->rowPtr) {
+		smiNodePtr->relatedrow = objectPtr->indexPtr->rowPtr->name;
+	    }
+	}
+	
+	smiNodePtr->list	= NULL;
+	for (listPtr = objectPtr->listPtr; listPtr;
+	     listPtr = listPtr->nextPtr) {
+	    addPtr(&smiNodePtr->list, ((Object *)listPtr->ptr)->name);
+	}
+
+	smiNodePtr->option	= NULL;
+	for (listPtr = objectPtr->optionlistPtr; listPtr;
+	     listPtr = listPtr->nextPtr) {
+	    smiOption = util_malloc(sizeof(SmiOption));
+	    smiOption->name        = ((Option *)listPtr->ptr)->objectPtr->name;
+	    smiOption->module      =
+		          ((Option *)listPtr->ptr)->objectPtr->modulePtr->name;
+	    smiOption->description = ((Option *)listPtr->ptr)->description;
+	    addPtr(&smiNodePtr->option, smiOption);
+	}
+
+	smiNodePtr->refinement  = NULL;
+	for (listPtr = objectPtr->refinementlistPtr; listPtr;
+	     listPtr = listPtr->nextPtr) {
+	    smiRefinement = util_malloc(sizeof(SmiRefinement));
+	    smiRefinement->name    =
+		                 ((Refinement *)listPtr->ptr)->objectPtr->name;
+	    smiRefinement->module  =
+		      ((Refinement *)listPtr->ptr)->objectPtr->modulePtr->name;
+	    smiRefinement->type    =
+		            ((Refinement *)listPtr->ptr)->typePtr ?
+		            ((Refinement *)listPtr->ptr)->typePtr->name : NULL;
+	    smiRefinement->writetype =
+		       ((Refinement *)listPtr->ptr)->writetypePtr ?
+		       ((Refinement *)listPtr->ptr)->writetypePtr->name : NULL;
+	    smiRefinement->access  = ((Refinement *)listPtr->ptr)->access;
+	    smiRefinement->description =
+		                     ((Refinement *)listPtr->ptr)->description;
+	    addPtr(&smiNodePtr->refinement, smiRefinement);
 	}
 	return smiNodePtr;
     } else {
@@ -870,79 +917,6 @@ smiGetNextNode(modulename, name)
     }
     
     return createSmiNode(objectPtr);
-}
-
-
-
-XXX SmiCompliance *
-smiGetFirstCompliance(modulename, name)
-    char		*modulename;
-{
-    SmiRevision		*smiRevisionPtr;
-    Module	        *modulePtr;
-    
-    printDebug(4, "smiGetFirstCompliance(\"%s\")\n", modulename);
-
-    modulePtr = findModuleByName(modulename);
-    
-    if (!modulePtr) {
-	modulePtr = loadModule(modulename);
-    }
-    
-    if (modulePtr && (modulePtr->firstRevisionPtr)) {
-	smiRevisionPtr = util_malloc(sizeof(SmiRevision));
-	
-	smiRevisionPtr->date = modulePtr->firstRevisionPtr->date;
-	if (modulePtr->firstRevisionPtr->description) {
-	    smiRevisionPtr->description =
-		modulePtr->firstRevisionPtr->description;
-	} else {
-	    smiRevisionPtr->description = NULL;
-	}
-	return smiRevisionPtr;
-    }
-
-    return NULL;
-}
-
-
-
-XXX SmiCompliance *
-smiGetNextCompliance(modulename, date)
-    char	      *modulename;
-    time_t	      date;
-{
-    SmiRevision		*smiRevisionPtr;
-    Module	        *modulePtr;
-    Revision	        *revisionPtr;
-    
-    printDebug(4, "smiGetNextCompliance(\"%s\", %ld)\n", modulename, date);
-
-    modulePtr = findModuleByName(modulename);
-    
-    if (!modulePtr) {
-	modulePtr = loadModule(modulename);
-    }
-    
-    if (modulePtr && (modulePtr->firstRevisionPtr)) {
-	for (revisionPtr = modulePtr->firstRevisionPtr;
-	     revisionPtr && (revisionPtr->date != date);
-	     revisionPtr = revisionPtr->nextPtr);
-	revisionPtr = revisionPtr->nextPtr;
-	if (revisionPtr) {
-	    smiRevisionPtr = util_malloc(sizeof(SmiRevision));
-
-	    smiRevisionPtr->date = revisionPtr->date;
-	    if (revisionPtr->description) {
-	    smiRevisionPtr->description = revisionPtr->description;
-	    } else {
-		smiRevisionPtr->description = NULL;
-	    }
-	    return smiRevisionPtr;
-	}
-    }
-
-    return NULL;
 }
 
 

@@ -269,4 +269,8 @@ x shift/reduce conflict at
 
 . ensure order without forward references in typedef sming dump.
 
+. dump-sming.c: all(!) kinds of index clauses
 
+. SMIng parser
+
+. SMIv2 output

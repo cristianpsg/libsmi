@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.4 1999/03/29 14:02:28 strauss Exp $
+ * @(#) $Id: smi.h,v 1.5 1999/03/29 22:34:05 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -120,14 +120,14 @@ typedef enum SmiDecl {
     SMI_DECL_COMPLIANCE		= 42
 } SmiDecl;
 
-typedef enum SmiCompl {
-    SMI_COMPL_UNKNOWN		= 0,
-    SMI_COMPL_MANDATORY		= 1,
-    SMI_COMPL_OPTIONAL		= 2,
-    SMI_COMPL_REFINED		= 3
-} SmiCompl;
-
-
+typedef enum SmiIndexkind {
+    SMI_INDEX_UNKNOWN		= 0,
+    SMI_INDEX_INDEX		= 1,
+    SMI_INDEX_AUGMENT		= 2,
+    SMI_INDEX_REORDER		= 3,
+    SMI_INDEX_SPARSE		= 4,
+    SMI_INDEX_EXPAND		= 5
+} SmiIndexkind;
 
 typedef struct SmiRevision {
     long	        date;
@@ -158,14 +158,20 @@ typedef struct SmiRange {
     SmiValue	        *maxValuePtr;
 } SmiRange;
 
-typedef struct SmiCompliance {
-    SmiCompl		compl; /* mandator, optional, refined */
-    char		*name; /* mandatory/optional: group, refined: object */
+typedef struct SmiOption {
+    char		*name;
+    char		*module;
     char		*description;
-    char		*type;      /* `compliance+refinedObject+type' */
-    char		*writetype; /* `compliance+refinedObject+writetype' */
+} SmiOption;
+    
+typedef struct SmiRefinement {
+    char		*name;
+    char		*module;
+    char		*description;
+    char		*type;
+    char		*writetype;
     SmiAccess		access;
-} SmiCompliance;
+} SmiRefinement;
     
 typedef struct SmiModule {
     char		*name;
@@ -183,7 +189,12 @@ typedef struct SmiNode {
     char		*oid;
     char		*type;
     char		**list;
+    SmiIndexkind	indexkind;
+    int			implied;
     char		**index;
+    char		*relatedrow;
+    SmiOption		**option;
+    SmiRefinement	**refinement;
     SmiDecl		decl;
     SmiBasetype		basetype;
     SmiAccess		access;
@@ -336,10 +347,16 @@ extern SmiNode *smiGetFirstNode(char *modulename);
 extern SmiNode *smiGetNextNode(char *modulename,
 			       char *name);
 
-XXX extern SmiNode *smiGetFirstCompliance(char *spec, *mod);
+extern char **smiGetMandatoryGroups(char *spec,
+				    char *mod);
 
-XXX extern SmiNode *smiGetNextCompliance(char *spec,
-				     char *name);
+#if 0
+extern SmiOptionalGroups *smiGetFirstOptionalGroup(char *spec,
+						   char *name);
+
+extern SmiOptionalGroups *smiGetNextOptionalGroup(char *spec,
+						  char *name);
+#endif
 
 extern SmiType *smiGetType(char *spec,
 			   char *mod);
