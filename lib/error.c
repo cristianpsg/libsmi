@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.87 2002/03/05 16:19:51 strauss Exp $
+ * @(#) $Id: error.c,v 1.88 2002/03/20 16:49:48 strauss Exp $
  */
 
 #include <config.h>
@@ -442,6 +442,8 @@ static Error errors[] = {
       "type of `%s' in sequence and object type definition do not match" },
     { 5, ERR_INDEX_ACCESSIBLE, "index-element-accessible",
       "index element `%s' of row `%s' should be not-accessible in SMIv2 MIB" },
+    { 5, ERR_INDEX_NON_ACCESSIBLE, "index-element-not-accessible",
+      "exactly one index element of row `%s' must be accessible in SMIv2 MIB" },
     { 3, ERR_REFINEMENT_NOT_LISTED, "refinement-not-listed",
       "refined object `%s' not listed in a mandatory or optional group" },
     { 5, ERR_NOTIFICATION_NOT_REVERSIBLE, "notification-not-reversible",

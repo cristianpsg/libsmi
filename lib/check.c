@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.36 2002/03/05 14:27:07 strauss Exp $
+ * @(#) $Id: check.c,v 1.37 2002/03/21 09:09:26 schoenw Exp $
  */
 
 #include <config.h>
@@ -706,7 +706,14 @@ smiCheckIndex(Parser *parser, Object *object)
     Type *typePtr, *rTypePtr;
     Range *rangePtr;
     NamedNumber *nnPtr;
+    Node *nodePtr;
     int minSize, maxSize, len = 0;
+    int aux = 0, cols = 0, acc = 0;
+
+    for (nodePtr = object->nodePtr->firstChildPtr, cols = 0;
+	 nodePtr; nodePtr = nodePtr->nextPtr) {
+	cols++;
+    }
 
     for (listPtr = object->listPtr; listPtr; listPtr = listPtr->nextPtr) {
 	
@@ -868,20 +875,11 @@ smiCheckIndex(Parser *parser, Object *object)
 				object->export.name);
 	}
 
-	/*
-	 * TODO: The test below should not be performed if the table
-	 * only contains INDEX objects. In this case, one of the objects
-	 * has to be accessible (see 7.7 in RFC 2578).
-	 */
-
-	/* A good test case is the SNMP-VIEW-BASED-ACM-MIB. */
-
-	if ((parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2)
-	    && (indexPtr->nodePtr->parentPtr == object->nodePtr)) {
-	    if (indexPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
-		smiPrintErrorAtLine(parser, ERR_INDEX_ACCESSIBLE,
-				    object->line,
-				    indexPtr->export.name, object->export.name);
+    	for (nodePtr = object->nodePtr->firstChildPtr, aux = 0;
+	     nodePtr; nodePtr = nodePtr->nextPtr) {
+	    if (indexPtr == nodePtr->lastObjectPtr) {
+		aux++;
+		break;
 	    }
 	}
     }
@@ -890,6 +888,40 @@ smiCheckIndex(Parser *parser, Object *object)
 	smiPrintErrorAtLine(parser, ERR_INDEX_TOO_LARGE, object->line,
 			    object->export.name,
 			    (object->export.oidlen + 1 + len) - 128);
+    }
+
+    /* RFC 2578 section 7.7: Auxiliary objects must be not-accessible except
+       in some interesting corner cases. */
+
+    for (listPtr = object->listPtr; listPtr; listPtr = listPtr->nextPtr) {
+	
+	indexPtr = (Object *) listPtr->ptr;
+	typePtr = indexPtr->typePtr;
+	
+	if (aux < cols) {
+	    if ((parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2)
+		&& (indexPtr->nodePtr->parentPtr == object->nodePtr)) {
+		if (indexPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+		    smiPrintErrorAtLine(parser, ERR_INDEX_ACCESSIBLE,
+					object->line,
+					indexPtr->export.name, object->export.name);
+		}
+	    }
+	}
+	
+	for (nodePtr = object->nodePtr->firstChildPtr, acc = 0;
+	     nodePtr; nodePtr = nodePtr->nextPtr) {
+	    if (indexPtr == nodePtr->lastObjectPtr
+		&& indexPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
+		acc++;
+	    }
+	}
+    }
+
+    if ((parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2)
+	&& aux == cols && acc != 1) {
+	smiPrintErrorAtLine(parser, ERR_INDEX_NON_ACCESSIBLE,
+			    object->line, object->export.name);
     }
 }
 
