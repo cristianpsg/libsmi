@@ -37,14 +37,18 @@ libsmiTest008Mib MODULE-IDENTITY
 	     that are not specified in the SMIv2.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-008-MIB:64: warning: textual convention `Red' can not be derived from the textual convention `Color'
-LIBSMI-TEST-008-MIB:89: named number `yellow(4)' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:97: named number `red(2)' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:105: named number `rot(1)' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:122: warning: textual convention `FileAccess' can not be derived from the textual convention `Access'
-LIBSMI-TEST-008-MIB:147: named number `create' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:155: named number `read' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:163: named number `lesen' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:77: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:85: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:135: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:143: warning: named numbers not in ascending order
+LIBSMI-TEST-008-MIB:68: warning: textual convention `Red' can not be derived from the textual convention `Color'
+LIBSMI-TEST-008-MIB:93: named number `yellow(4)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:101: named number `red(2)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:109: named number `rot(1)' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:126: warning: textual convention `FileAccess' can not be derived from the textual convention `Access'
+LIBSMI-TEST-008-MIB:151: named number `create' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:159: named number `read' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:167: named number `lesen' illegal in sub-type of `Access'
             "
     REVISION        "200005291500Z"
     DESCRIPTION     

@@ -34,12 +34,14 @@ libsmiTest009Mib MODULE-IDENTITY
 	     bits enumerations.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-009-MIB:109: warning: named bit `yellow(128)' may cause interoperability or implementation problems
-LIBSMI-TEST-009-MIB:115: named bit `yellow(524280)' exceeds maximum bit position
-LIBSMI-TEST-009-MIB:65: redefinition of name `red' in number enumeration
-LIBSMI-TEST-009-MIB:71: redefinition of number `3' in number enumeration
-LIBSMI-TEST-009-MIB:93: redefinition of name `red' in named bits list
-LIBSMI-TEST-009-MIB:99: redefinition of number `3' in named bits list
+LIBSMI-TEST-009-MIB:77: warning: named numbers not in ascending order
+LIBSMI-TEST-009-MIB:105: warning: named numbers not in ascending order
+LIBSMI-TEST-009-MIB:111: warning: named bit `yellow(128)' may cause interoperability or implementation problems
+LIBSMI-TEST-009-MIB:117: named bit `yellow(524280)' exceeds maximum bit position
+LIBSMI-TEST-009-MIB:67: redefinition of name `red' in number enumeration
+LIBSMI-TEST-009-MIB:73: redefinition of number `3' in number enumeration
+LIBSMI-TEST-009-MIB:95: redefinition of name `red' in named bits list
+LIBSMI-TEST-009-MIB:101: redefinition of number `3' in named bits list
 	    "
     REVISION        "200005300900Z"
     DESCRIPTION     
