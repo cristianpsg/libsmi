@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.28 2000/11/09 22:29:54 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.29 2000/11/13 09:30:33 strauss Exp $
  */
 
 #include <config.h>
@@ -193,11 +193,11 @@ static int isAccessible(SmiNode *groupNode)
 
 
 
-static int getMaxSize(SmiType *smiType)
+static unsigned int getMaxSize(SmiType *smiType)
 {
     SmiRange *smiRange;
     SmiType  *parentType;
-    int max = 0, size;
+    unsigned int max = 0, size;
     
     switch (smiType->basetype) {
     case SMI_BASETYPE_OCTETSTRING:
@@ -222,7 +222,7 @@ static int getMaxSize(SmiType *smiType)
 
     parentType = smiGetParentType(smiType);
     if (parentType) {
-        int psize = getMaxSize(parentType);
+        unsigned int psize = getMaxSize(parentType);
         if (psize < size) {
             size = psize;
         }

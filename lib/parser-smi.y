@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.129 2000/11/13 11:32:26 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.130 2000/11/14 13:27:59 strauss Exp $
  */
 
 %{
@@ -2926,7 +2926,8 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 					if (!s[j]) s[j] = '0';
 				    }
 				    s[8] = 0;
-				    $$->value.ptr[i/8] = strtol(s, 0, 2);
+				    $$->value.ptr[i/8] =
+					(unsigned char)strtol(s, 0, 2);
 				}
 				$$->len = (len+7)/8;
 			    } else {
@@ -2948,7 +2949,8 @@ valueofSimpleSyntax:	NUMBER			/* 0..2147483647 */
 				    strncpy(s, &$1[i], 2);
 				    if (!s[1]) s[1] = '0';
 				    s[2] = 0;
-				    $$->value.ptr[i/2] = strtol(s, 0, 16);
+				    $$->value.ptr[i/2] =
+					(unsigned char)strtol(s, 0, 16);
 				}
 				$$->len = (len+1)/2;
 			    } else {
@@ -3389,7 +3391,8 @@ value:			NEGATIVENUMBER
 				    strncpy(s, &$1[i], 2);
 				    if (!s[1]) s[1] = '0';
 				    s[2] = 0;
-				    $$->value.ptr[i/2] = strtol(s, 0, 16);
+				    $$->value.ptr[i/2] =
+					(unsigned char)strtol(s, 0, 16);
 				}
 				$$->len = (len+1)/2;
 			    } else {
@@ -3413,7 +3416,8 @@ value:			NEGATIVENUMBER
 					if (!s[j]) s[j] = '0';
 				    }
 				    s[8] = 0;
-				    $$->value.ptr[i/8] = strtol(s, 0, 2);
+				    $$->value.ptr[i/8] =
+					(unsigned char)strtol(s, 0, 2);
 				}
 				$$->len = (len+7)/8;
 			    } else {

@@ -165,7 +165,7 @@ typedef struct SmiValue {
         SmiFloat64          float64;
         SmiFloat128         float128;
         SmiSubid	    *oid;
-        char                *ptr;	 /* OctetString, Bits                */
+        unsigned char       *ptr;	 /* OctetString, Bits                */
     } value;
 } SmiValue;
 
@@ -230,7 +230,7 @@ typedef struct SmiType {
 /* SmiNode -- the main structure of any clause that defines a node           */
 typedef struct SmiNode {
     SmiIdentifier       name;
-    int			oidlen;
+    unsigned int	oidlen;
     SmiSubid		*oid;         /* array of length oidlen */
     SmiDecl             decl;
     SmiAccess           access;

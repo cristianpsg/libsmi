@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: win.h,v 1.1 2000/04/11 09:00:46 strauss Exp $
+ * @(#) $Id: win.h,v 1.3 2000/06/21 10:33:43 strauss Exp $
  */
 
 #ifndef _WIN_H
@@ -47,5 +47,13 @@ extern int optind;
 extern int opterr;
 extern char *optarg;
 extern int getopt(int argc, char **argv, char *opts);
+
+/*
+ * isascii() is a BSD extension not present in the Win32 API.
+ */
+
+#ifndef isascii
+#define isascii(c) !((c) & ~0177))
+#endif
 
 #endif _WIN_H

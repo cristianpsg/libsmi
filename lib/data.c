@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.92 2000/11/06 14:27:56 strauss Exp $
+ * @(#) $Id: data.c,v 1.93 2000/11/12 17:46:41 strauss Exp $
  */
 
 #include <config.h>
@@ -1723,8 +1723,8 @@ Node *findNodeByParentAndSubid(Node *parentNodePtr, SmiSubid subid)
 
 Node *findNodeByOid(unsigned int oidlen, SmiSubid *oid)
 {
-    Node *nodePtr;
-    int  i;
+    Node          *nodePtr;
+    unsigned int  i;
     
     nodePtr = rootNodePtr;
     for(i = 0; i < oidlen && nodePtr; i++) {

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiquery.c,v 1.57 2000/11/06 14:28:00 strauss Exp $
+ * @(#) $Id: smiquery.c,v 1.58 2000/11/12 17:46:31 strauss Exp $
  */
 
 #include <config.h>
@@ -153,8 +153,8 @@ char *format(const char *s)
 
 char *formatoid(unsigned int oidlen, SmiSubid *oid)
 {
-    static char ss[20000];
-    int         i;
+    static char  ss[20000];
+    unsigned int i;
     
     ss[0] = 0;
     for (i=0; i < oidlen; i++) {
@@ -207,7 +207,8 @@ char *formatvalue(const SmiValue *value, SmiType *type)
 {
     static char    s[100];
     char           ss[9];
-    int		   i, n;
+    unsigned int   i;
+    int		   n;
     SmiNamedNumber *nn;
     SmiNode        *nodePtr;
     

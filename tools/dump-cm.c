@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.27 2000/11/09 22:29:52 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.28 2000/11/13 11:32:53 strauss Exp $
  */
 
 
@@ -37,6 +37,8 @@
 #include "smidump.h"
 
 
+
+#define ABS(a) ((a > 0.0) ? (a) : (-(a)))
 
 
 
@@ -139,29 +141,29 @@ static char *baseTypes[] = {
  * Definitions used by the dia output driver (node layout).
  */
 
-static const float HEADFONTSIZETABLE   = 0.51;
-static const float HEADSPACESIZETABLE  = 0.6;
-static const float ATTRFONTSIZE        = 0.48;
-static const float ATTRSPACESIZE       = 2.4;
-static const float RECTCORRECTION      = 0.85;
-static const float EDGEYSPACING        = 2.0;
-static const float TABLEHEIGHT         = 2.6;   /* headline of the table */
-static const float TABLEELEMHEIGHT     = 0.675; /* height of one attribute */
+static const float HEADFONTSIZETABLE   = (float)0.51;
+static const float HEADSPACESIZETABLE  = (float)0.6;
+static const float ATTRFONTSIZE        = (float)0.48;
+static const float ATTRSPACESIZE       = (float)2.4;
+static const float RECTCORRECTION      = (float)0.85;
+static const float EDGEYSPACING        = (float)2.0;
+static const float TABLEHEIGHT         = (float)2.6;   /* headline of the table */
+static const float TABLEELEMHEIGHT     = (float)0.675; /* height of one attribute */
 
 /*
  * global dia graph layout
  */
-static const float YSPACING            = 3.0;  /* y space between nodes */
-static const float XSPACING            = 4.0;  /* x space between nodes */ 
-static const float NEWLINEDISTANCE     = 40.0; /* length of one line */
-static const float XOFFSET             = 2.0;  /* left upper start of graph */
-static const float YOFFSET             = 5.0;  /* left upper start of graph */
+static const float YSPACING            = (float)3.0;  /* y space between nodes */
+static const float XSPACING            = (float)4.0;  /* x space between nodes */ 
+static const float NEWLINEDISTANCE     = (float)40.0; /* length of one line */
+static const float XOFFSET             = (float)2.0;  /* left upper start of graph */
+static const float YOFFSET             = (float)5.0;  /* left upper start of graph */
 
 /*
  * position of the dia info note 
  */
-static const float XNOTE               = 1.0;  /* left upper corner of note */
-static const float YNOTE               = 1.0;  /* left upper corner of note */
+static const float XNOTE               = (float)1.0;  /* left upper corner of note */
+static const float YNOTE               = (float)1.0;  /* left upper corner of note */
 
 /*
  * Stereotype Name
@@ -2289,9 +2291,9 @@ static float getObjYRel(GraphEdge *edge, int con)
     node = edge->startNode;
     node2 = edge->endNode;
     if (node->dia.y < node2->dia.y) {
-	dist = abs(((node->dia.y + node->dia.h) - node2->dia.y ) / 2);
+	dist = ABS(((node->dia.y + node->dia.h) - node2->dia.y ) / 2);
     } else {
-	dist = abs((node->dia.y - (node2->dia.y + node2->dia.h)) / 2);
+	dist = ABS((node->dia.y - (node2->dia.y + node2->dia.h)) / 2);
     }
     
     switch (con) {
