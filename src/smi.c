@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.1 1998/11/10 20:26:28 strauss Exp $
+ * @(#) $Id: smi.c,v 1.2 1998/11/10 21:42:12 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -47,6 +47,7 @@ void
 smiInit()
 {
     initData();
+    initialized = 1;
 }
 
 
