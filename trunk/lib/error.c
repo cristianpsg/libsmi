@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.115 2003/06/16 15:17:42 schoenw Exp $
+ * @(#) $Id: error.c,v 1.116 2003/07/17 08:26:42 strauss Exp $
  */
 
 #include <config.h>
@@ -220,8 +220,8 @@ static Error errors[] = {
       "EXPORTS are only allowed in SMIv1 base modules", NULL},
     { 1, ERR_ILLEGALLY_QUALIFIED, "", 
       "illegally qualified object identifier label `%s'", NULL},
-    { 2, ERR_MISSING_DESCRIPTION, "", 
-      "missing DESCRIPTION on SMIv2 OBJECT-TYPE", NULL},
+    { 2, ERR_MISSING_DESCRIPTION, "missing-description", 
+      "description missing in object definition", NULL},
     { 2, ERR_OIDLABEL_NOT_FIRST, "", 
       "Object identifier element `%s' name only allowed as first element", NULL},
     { 2, ERR_UNKNOWN_TYPE, "", 
