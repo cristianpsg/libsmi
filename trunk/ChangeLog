@@ -1,5 +1,8 @@
 2000-11-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* win/GNUmakefile: Added this GNU makefile using the MSVC compiler
+	contributed by Yigal Hochberg.
+
 	* lib/check.c: Bill Fenner fixed wrong line numbers reported
 	on TCs.
 
