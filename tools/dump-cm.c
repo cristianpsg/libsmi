@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.15 2000/05/28 14:39:04 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.16 2000/05/29 09:20:56 strauss Exp $
  */
 
 
@@ -19,10 +19,6 @@
  *
  * Berechnungen der UML Diagramme debuggen
  *
- * bei expand/aufgment die Index-Objekte mit in die erweiterte Tabelle
- * uebernehmen
- *
- * Table und Scalar-Verbindungen durch Namen ueberpruefen
  */
 
 
@@ -65,7 +61,8 @@ typedef enum GraphEnhIndex {
     GRAPH_ENHINDEX_TYPES        = 2,
     GRAPH_ENHINDEX_NAMES        = 3,
     GRAPH_ENHINDEX_INDEX        = 4,
-    GRAPH_ENHINDEX_REROUTE      = 5
+    GRAPH_ENHINDEX_REROUTE      = 5,
+    GRAPH_ENHINDEX_POINTER      = 6
 } GraphEnhIndex;
 
 /*
@@ -555,6 +552,10 @@ static void graphShowEdges(Graph *graph)
 	    printf(" [INDEX]  ");
 	    break;
 	case GRAPH_ENHINDEX_REROUTE :
+	    printf(" [REROUTE]");
+	    break;
+	case GRAPH_ENHINDEX_POINTER :
+	    printf(" [POINTER]");
 	    break;	    
 	    }*/
 	
@@ -613,7 +614,7 @@ static void graphShowEdges(Graph *graph)
 	    printf("REORDER ");
 	    break;
 	}
-	printf("%32s - ",tEdge->startNode->smiNode->name);
+	printf("%29s - ",tEdge->startNode->smiNode->name);
 	printf("%s\n",tEdge->endNode->smiNode->name);
     }
 }
@@ -845,47 +846,6 @@ static int algGetNumberOfRows(SmiNode *smiNode)
 }
 
 /*
- * algFindEqualType
- *
- * Looks in all tables indices for an equal type to the type used in typeNode.
- * It returns the first table found which is different to startTable.
- *
- * Subroutine for algCheckForDependency. 
- */
-static SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
-{
-    SmiElement *smiElement;
-    SmiNode    *tSmiNode;
-    char       *typeName;
-    GraphNode  *tNode;
-    
-    typeName = algGetTypeName(typeNode);
-
-    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
-	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
-
-	    tSmiNode = tNode->smiNode;
-	    if (cmpSmiNodes(tSmiNode, startTable) == 1) break;
-	    
-	    for (smiElement = smiGetFirstElement(
-		smiGetFirstChildNode(tSmiNode));
-		 smiElement;
-		 smiElement = smiGetNextElement(smiElement)) {
-		/* found type matching ? */
-		if (strcasecmp(typeName,
-			       algGetTypeName(smiGetElementNode
-					      (smiElement))) == 0) {
-		    return tSmiNode;
-		}
-	    }
-	    
-	}
-    }
-    
-    return NULL;
-}
-
-/*
  * isBaseType
  *
  * returns 1 if smiElement is a basetype used in SMIv2/SMIng. Otherwise
@@ -902,6 +862,48 @@ static int isBaseType(SmiNode *node)
     }
 
     return 0;
+}
+
+/*
+ * algFindEqualType
+ *
+ * Looks in all tables indices for an equal type to the type used in typeNode.
+ * It returns the first table found which is different to startTable.
+ *
+ * Subroutine for algCheckForDependency. 
+ */
+static SmiNode *algFindEqualType(SmiNode *startTable, SmiNode *typeNode)
+{
+    SmiElement *smiElement;
+    SmiNode    *tSmiNode;
+    char       *typeName;
+    GraphNode  *tNode;
+    
+    typeName = algGetTypeName(typeNode);
+    /* if (isBaseType(typeNode)) return NULL; */
+
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+	if (tNode->smiNode->nodekind == SMI_NODEKIND_TABLE) {
+
+	    tSmiNode = tNode->smiNode;
+	    if (cmpSmiNodes(tSmiNode, startTable) == 1) break;
+	    
+	    for (smiElement = smiGetFirstElement(
+		smiGetFirstChildNode(tSmiNode));
+		 smiElement;
+		 smiElement = smiGetNextElement(smiElement)) {
+		/* found type matching ? */
+		if (strcmp(typeName,
+			       algGetTypeName(smiGetElementNode
+					      (smiElement))) == 0) {
+		    return tSmiNode;
+		}
+	    }
+	    
+	}
+    }
+    
+    return NULL;
 }
 
 /*
@@ -1377,29 +1379,37 @@ static void algLinkObjectsByNames()
     GraphNode *tNode, *tNode2, *newNode;
     int       overlap,minoverlap,new;
 
-    /* getting the min. overlap for all nodes */
+    /* getting the minimum overlap for all nodes */
     minoverlap = 10000;
     tNode2 = graph->nodes;
     for (tNode = tNode2->nextPtr; tNode; tNode = tNode->nextPtr) {	
 	minoverlap = min(minoverlap, strpfxlen(tNode->smiNode->name,
 					       tNode2->smiNode->name));
     }
-
+    
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {    
 	if (!graphGetFirstEdgeByNode(graph, tNode)) {
-	    overlap = minoverlap + 1;
-	    
+	    overlap = minoverlap;
+
 	    for (tNode2 = graph->nodes; tNode2; tNode2 = tNode2->nextPtr) {
 		if (cmpSmiNodes(tNode->smiNode, tNode2->smiNode)) continue;
 		
 		new = strpfxlen(tNode->smiNode->name, tNode2->smiNode->name);
 		
-		if (new > overlap) {
+		if (new >= overlap) {
+
+		    /*
+		     * no scalar - scalar edges
+		     */
 		    if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR &&
 			tNode2->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 			continue;
 		    }
 
+		    /*
+		     * is it a legal prefix
+		     * (if the next char is NULL || uppercase)
+		     */
 		    if (tNode->smiNode->name[new] &&
 			tNode2->smiNode->name[new]) {
 			if (!isupper(tNode->smiNode->name[new]) ||
@@ -1407,7 +1417,35 @@ static void algLinkObjectsByNames()
 		    }
 		    
 		    overlap = new;
+		}
+	    }
 
+	    if (overlap == minoverlap) continue;
+	    
+	    new = 0;
+	    for (tNode2 = graph->nodes; tNode2; tNode2 = tNode2->nextPtr) {
+		if (cmpSmiNodes(tNode->smiNode, tNode2->smiNode)) continue;
+
+		new = strpfxlen(tNode->smiNode->name, tNode2->smiNode->name);
+		
+		if (new == overlap && new > minoverlap) {
+
+		    /*
+		     * a scalar should only be adjacent to one node
+		     */
+		    if (tNode2->smiNode->nodekind == SMI_NODEKIND_SCALAR &&
+			graphGetFirstEdgeByNode(graph,tNode2)) continue;
+		    if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR &&
+			graphGetFirstEdgeByNode(graph,tNode)) continue;    
+
+		    /*
+		     * adding only table -> scalar edges
+		     */
+		    if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR &&
+			tNode2->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
+			continue;
+		    }
+		    
 		    if (tNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 			algInsertEdge(tNode2->smiNode, tNode->smiNode,
 				      SMI_INDEX_UNKNOWN,
@@ -1596,13 +1634,33 @@ static void createDependencies()
 }
 
 /*
+ * returns 1 if a new rerouting edge creates a loop and 0 otherwise
+ */
+static int isloop(GraphEdge *tEdge, SmiNode *depTable)
+{
+    GraphEdge *loopEdge;
+
+    for (loopEdge = graphGetFirstEdgeByNode(graph, tEdge->endNode);
+	 loopEdge;
+	 loopEdge = graphGetNextEdgeByNode(graph,loopEdge,tEdge->endNode)) {
+
+	if (cmpSmiNodes(loopEdge->startNode->smiNode, depTable) ||
+	    cmpSmiNodes(loopEdge->endNode->smiNode, depTable) &&
+	    loopEdge != tEdge) {
+	    return 1;
+	}
+    }
+
+    return 0;
+}
+
+/*
  * subfunction of algCheckForDependency
  */
 static void rerouteDependencyEdge(GraphEdge *tEdge)
 {
     SmiNode    *startTable, *endTable, *depTable;
     SmiElement *smiElement;
-    
     
     startTable = tEdge->startNode->smiNode;
     endTable = tEdge->endNode->smiNode;
@@ -1619,8 +1677,10 @@ static void rerouteDependencyEdge(GraphEdge *tEdge)
 					smiGetElementNode(smiElement));
 	    
 	    /* depTable different to endTable? */
-	    if (depTable && (strcmp(depTable->name, endTable->name)
-			     != 0)) {
+	    if (depTable && !cmpSmiNodes(depTable, endTable)) {
+
+		/* prevent loops */
+		if (isloop(tEdge, depTable)) continue;
 		
 		algInsertEdge(depTable,
 			      startTable, SMI_INDEX_UNKNOWN,
@@ -1743,7 +1803,7 @@ static void algCheckForPointerRels()
 			    if (table) {
 				algInsertEdge(table, tNode->smiNode,
 					      SMI_INDEX_UNKNOWN,
-					      GRAPH_ENHINDEX_INDEX);
+					      GRAPH_ENHINDEX_POINTER);
 			    }
 			}
 		    }
@@ -1936,6 +1996,25 @@ static void diaPrintXMLAllColumns(GraphNode *node)
     }
 }
 
+static void diaPrintAugmentIndex(GraphNode *tNode)
+{
+    GraphEdge  *tEdge;
+    SmiElement *smiElement;
+
+    for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+	if (tEdge->indexkind == SMI_INDEX_AUGMENT) {
+	    for (smiElement = smiGetFirstElement(
+		smiGetFirstChildNode(tEdge->startNode->smiNode));
+		 smiElement;
+		 smiElement = smiGetNextElement(smiElement)) {
+		if (!cmpSmiNodes(tNode->smiNode, tEdge->startNode->smiNode)) {
+		    diaPrintXMLAttribute(smiGetElementNode(smiElement),1);
+		}
+	    }
+	}
+    }
+}
+
 static void diaPrintXMLObject(GraphNode *node, float x, float y)
 {
     SmiElement *smiElement;
@@ -1992,6 +2071,8 @@ static void diaPrintXMLObject(GraphNode *node, float x, float y)
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
 	diaPrintXMLRelatedScalars(node);
+
+	diaPrintAugmentIndex(node);
 	
 	for (smiElement = smiGetFirstElement(
 	    smiGetFirstChildNode(node->smiNode));
@@ -2365,7 +2446,9 @@ static void diaPrintXMLAssociation(GraphEdge *tEdge, int aggregate)
 	    printf("       <string>#%s#</string>\n","");
 	    break;
 	case GRAPH_ENHINDEX_REROUTE :
-	    /* should not occur - is handled below */
+	    printf("       <string>#%s#</string>\n","");
+	    break;
+	case GRAPH_ENHINDEX_POINTER :
 	    printf("       <string>#%s#</string>\n","");
 	    break;	    
 	}
@@ -2388,7 +2471,7 @@ static void diaPrintXMLAssociation(GraphEdge *tEdge, int aggregate)
     }
     
     printf("      </attribute>\n");
-    printf("      <attribute name=\"direction\">\n"); 
+    printf("      <attribute name=\"direction\">\n");
     printf("        <enum val=\"0\"/>\n");
     printf("      </attribute>\n");
     printf("      <attribute name=\"ends\">\n");
