@@ -129,7 +129,7 @@ smi_macro.3.in smi_module.3.in smi_node.3.in smi_type.3.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/data.P .deps/error.P .deps/parser-smi.tab.P \
 .deps/parser-sming.tab.P .deps/scanner-smi.P .deps/scanner-sming.P \
