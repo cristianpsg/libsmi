@@ -2,7 +2,7 @@
 LIBSMI NOTES FOR NATIVE WIN32 SUPPORT
 =====================================
 
-@(#) $Id: README.win,v 1.5 2000/12/21 09:16:20 strauss Exp $
+@(#) $Id: README.win,v 1.6 2001/08/28 09:20:35 strauss Exp $
 
 This directory contains some help to compile the libsmi and associated
 tools on a Win32 platform (Windows 95, 98, 2000, NT) with the native
@@ -42,6 +42,20 @@ GNU make uses GNUmakefile provided in this directory.
 (2) To build simply run:
 
     gmake
+
+
+
+If you grabbed the CVS version and some files seems to be missing:
+==================================================================
+
+You may generate these files on another platform (Linux seems to work
+fine) by running:
+
+    cd libsmi                   ## the sources from the CVS archive
+    ./autogen.sh                ## generates configure script an runs it
+    cd lib
+    make errormacros.h parser-smi.c parser-sming.c \
+                scanner-smi.c scanner-sming.c smi.h
 
 
 
