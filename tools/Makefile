@@ -21,7 +21,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.3 1999/05/31 11:58:39 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.4 1999/06/01 23:20:07 strauss Exp $
 #
 
 
@@ -70,24 +70,26 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-host_alias = sparc-sun-solaris2.5.1
-host_triplet = sparc-sun-solaris2.5.1
+host_alias = i586-pc-linux-gnu
+host_triplet = i586-pc-linux-gnu
+AS = @AS@
 BISON = bison
 CC = gcc
-CFLAGS = -g -O2
+CFLAGS = -Wall -g
+DLLTOOL = @DLLTOOL@
 FLEX = flex
 LD = /usr/local/sparc-sun-solaris2.5.1/bin/ld
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_DEPS = 
+LIBTOOL_DEPS = ./ltconfig ./ltmain.sh
 LN_S = ln -s
 MAKEINFO = makeinfo
 NM = /usr/local/bin/nm -B
+OBJDUMP = @OBJDUMP@
 PACKAGE = libsmi
 RANLIB = ranlib
 STATIC = -static
-VERSION = 0.1
-mibdir = /usr/local/share/mibs
-prefix = /usr/local
+VERSION = 0.1.1
+mibdir = ${prefix}/share/mibs
 
 INCLUDES = -I../lib
 
@@ -110,7 +112,7 @@ CONFIG_CLEAN_FILES =  smiquery.1 smilint.1 smidump.1
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1  -I. -I$(srcdir) 
+DEFS =  -DPACKAGE=\"libsmi\" -DVERSION=\"0.1.1\" -DBACKEND_SMI=1 -DBACKEND_SMING=1 -DDEFAULT_SMIPATH=\"/usr/local/share/mibs:/usr/local/lib/tnm3.0.0/mibs\" -DBACKEND_SMING=1  -I. -I$(srcdir) 
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 

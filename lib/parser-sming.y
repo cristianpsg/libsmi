@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.14 1999/05/25 17:00:31 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.15 1999/05/31 11:58:34 strauss Exp $
  */
 
 %{
@@ -83,7 +83,7 @@ findType(spec, parserPtr)
     Import *importPtr;
     char *module, *type;
     
-    if (!strstr(spec, SMI_NAMESPACE_OPERATOR)) {
+    if (!strstr(spec, "::")) {
 	typePtr = findTypeByModuleAndName(thisModulePtr, spec);
 	if (!typePtr) {
 	    importPtr = findImportByName(spec, thisModulePtr);
@@ -113,7 +113,7 @@ findObject(spec, parserPtr)
     Import *importPtr;
     char *module, *object;
     
-    if (!strstr(spec, SMI_NAMESPACE_OPERATOR)) {
+    if (!strstr(spec, "::")) {
 	objectPtr = findObjectByModuleAndName(thisModulePtr, spec);
 	if (!objectPtr) {
 	    importPtr = findImportByName(spec, thisModulePtr);
@@ -2238,9 +2238,8 @@ refinedType:		qucIdentifier optsep_anySpec_01
 
 			    typePtr = findType($1, thisParserPtr);
 			    if (typePtr && $2) {
-				sprintf(s, "%s%s%s",
+				sprintf(s, "%s::%s",
 					typePtr->modulePtr->name,
-					SMI_NAMESPACE_OPERATOR,
 					typePtr->name);
 				typePtr = duplicateType(typePtr, 0,
 							thisParserPtr);
@@ -2710,10 +2709,8 @@ qucIdentifier:		ucIdentifier COLON_COLON ucIdentifier
 			    char *s;
 
 			    s = util_malloc(strlen($1) +
-					    strlen(SMI_NAMESPACE_OPERATOR) +
-					    strlen($3) + 1);
-			    sprintf(s, "%s%s%s",
-				    $1, SMI_NAMESPACE_OPERATOR, $3);
+					    strlen($3) + 3);
+			    sprintf(s, "%s::%s", $1, $3);
 			    $$ = s;
 			    free($1);
 			    free($3);
@@ -2729,10 +2726,8 @@ qlcIdentifier:		ucIdentifier COLON_COLON lcIdentifier
 			    char *s;
 
 			    s = util_malloc(strlen($1) +
-					    strlen(SMI_NAMESPACE_OPERATOR) +
-					    strlen($3) + 1);
-			    sprintf(s, "%s%s%s",
-				    $1, SMI_NAMESPACE_OPERATOR, $3);
+					    strlen($3) + 3);
+			    sprintf(s, "%s::%s", $1, $3);
 			    $$ = s;
 			    free($1);
 			    free($3);
@@ -3019,7 +3014,7 @@ qlcIdentifier_subid:	qlcIdentifier
 			    Import *importPtr;
 
 			    /* TODO: findObject(), then createOid */
-			    if (strstr($1, SMI_NAMESPACE_OPERATOR)) {
+			    if (strstr($1, "::")) {
 				smiNodePtr = smiGetNode($1, "");
 			    } else {
 				smiNodePtr = smiGetNode($1,

@@ -1,5 +1,5 @@
 /*
- * smi.h -- @configure_input@
+ * smi.h -- Generated automatically from smi.h.in by configure.
  *
  *      Interface Implementation of libsmi.
  *
@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h.in,v 1.1 1999/06/01 17:59:48 strauss Exp $
+ * @(#) $Id: smi.h.in,v 1.2 1999/06/01 19:43:48 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -19,10 +19,6 @@
 #include <stdlib.h>
 
 
-
-#define SMI_PATH                "@mibdir@"
-
-#define SMI_NAMESPACE_OPERATOR  "::"
 
 #define SMI_VIEWALL     0x0800  /* all modules are `known', need no views.   */
 #define SMI_ERRORS      0x1000  /* print parser errors.                      */

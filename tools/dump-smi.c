@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smi.c,v 1.8 1999/05/27 20:05:59 strauss Exp $
+ * @(#) $Id: dump-smi.c,v 1.9 1999/05/31 11:58:40 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -397,10 +397,10 @@ printImports(modulename)
 
     for(p = list; *p; p++) {
 	importedModulename = *p;
-	importedDescriptor = strstr(*p, SMI_NAMESPACE_OPERATOR);
+	importedDescriptor = strstr(*p, "::");
 	importedDescriptor[0] = 0;
 	importedDescriptor =
-	    &importedDescriptor[strlen(SMI_NAMESPACE_OPERATOR)];
+	    &importedDescriptor[2];
 
 	for(i = 0; convertImport[i]; i += 4) {
 	    if ((!util_strcmp(importedModulename, convertImport[i])) &&

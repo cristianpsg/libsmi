@@ -1,3 +1,12 @@
+1999-06-02  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* libsmi-0.1.1.tar.gz: released version 0.1.1.
+	
+	* configure.in: added default smipath support. bugfix for
+	missing SMIPATH environment variable.
+
+	* libsmi-0.1.tar.gz: released version 0.1.
+	
 1999-06-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/*.3.in, tools/*.1.in: updated manual pages.
