@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.121 2004/03/13 22:21:32 schoenw Exp $
+ * @(#) $Id: data.c,v 1.122 2004/07/21 10:38:06 schoenw Exp $
  */
 
 #include <config.h>
@@ -3667,7 +3667,6 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	    for (i = 0; ext[i]; i++) {
 		smiAsprintf(&path, "%s%c%s%s", dir, DIR_SEPARATOR,
 			    modulename, ext[i]);
-		fprintf(stderr, "** trying <%s>\n", path);
 		if (! access(path, R_OK)) {
 		    break;
 		}
@@ -3682,7 +3681,6 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 		for (i = 0; ext[i]; i++) {
 		    smiAsprintf(&path, "%s%c%s%s", dir, DIR_SEPARATOR,
 				newmodulename, ext[i]);
-		    fprintf(stderr, "** trying <%s>\n", path);
 		    if (! access(path, R_OK)) {
 			break;
 		    }
