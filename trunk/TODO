@@ -1,11 +1,34 @@
 
-o check all `TODO' marks in all source files for open questions.
+o error detection: detect IMPORTs of SMIv1 specific and SMIv2 specific
+  items in the same module, e.g. old OBJECT-TYPE macro and (new)
+  NOTIFICATION-TYPE macro.
+
+o error detection: does table node have exactly one row sub node
+  with oid == 1? (2578.7.10)
+
+o warning detection: non continious sub oids in column node list?
+
+o warning detection: warning on NotificationName/ObjectName/ExtUTCTime
+  definitions.
+
+o warning detection: integer(signed) in index
+
+o error detection: parser-smi.y: remember SEQUENCE contents and check them
+
+o warning detection: check, wheather OIDs of indexed columns might be
+  longer than 128 subids.
+
+o warning detection: enumerations SHOULD NOT contain signedNumber's.
+  SHOULD start at 1. SHOULD be numbered contiguously.
+  e.g. DISMAN-SCHEDULE-MIB.SnmpPduErrorStatus
+
+o warning detection: zeroDotZero defined locally instead of
+  imported from SMI.
+
+
 
 o parser-smi.y: handle forbidden WS at some places
   ( - number, Module . label, ...)
-
-o detect IMPORTs of SMIv1 specific and SMIv2 specific items in the
-  same module, e.g. old OBJECT-TYPE macro and (new) NOTIFICATION-TYPE macro.
 
 o dump-sming.c: ensure an order without forward references in typedef's.
 
@@ -15,24 +38,10 @@ o redesign of data structures: make SmiXXX structures the heads of the
   according data.h structures. This would obsolete the Free() functions
   and enable fast getNext() functions by accessing the underlying lists.
 
-o Web online conversion to SMIng?
-
-o smiGetNames() is not yet implemented
+o smi.c: smiGetNames() is not yet implemented
 
 o thread safety (global vars? static vars? strtok() and other funcs?)
   different views
-
-o set up a catalogue of errors detected by the smiv1/v2 parser?
-
-o grouping of error and warning messages
-
-o error detection: does table node have exactly one row sub node
-  with oid == 1? (2578.7.10)
-
-o warning detection: non continious sub oids in column node list?
-
-o warning detection: warning on NotificationName/ObjectName/ExtUTCTime
-  definitions.
 
 o if `parse error' occurs, the database is left in an incosistent state,
   e.g. index labels of sming modules are not adjusted.
@@ -44,27 +53,10 @@ o clearly separate language dependant information at the API: SMI_STATUS_*
 
 o OID/Name Lookup Service (continue work on smid?)
 
-o error detection: parser-smi.y: remember SEQUENCE contents and check them
-
-o cleanup putenv(TZ) hack
-
-o implcitly imported identifiers (MC MODULE sections) lead to
-  `imported but never used' warnings, e.g. SNMP-NOTIFICATION-MIB
-
-o smistrip + man page + extract mibs/*
-
-o warnings: integer(signed) in index
-
-o check, wheather OIDs of indexed columns might be longer than 128 subids.
-
 o how to convert SMIng types derived from other defined types correctly
   to SMIv2?
 
-o purify: data.c:freeData() is broken
-
-o warning detection: enumerations SHOULD NOT contain signedNumber's.
-  SHOULD start at 1. SHOULD be numbered contiguously.
-  e.g. DISMAN-SCHEDULE-MIB.SnmpPduErrorStatus
+o use purify: data.c:freeData() is broken
 
 o various dump modules don't print identifiers fully qualified where
   appropriate
@@ -72,28 +64,19 @@ o various dump modules don't print identifiers fully qualified where
 o status of implicit types is unknown, but should be the same as the
   object's status where it is implicitly defined
 
-o smidump -f types MIOX25-MIB
-
 o collapsing of type forward references in smiv2 parser. e.g.
   smiquery type CHARACTER-MIB.CharSessEntry
   should display the definition by a SEQUENCE statement, not `unknown'.
 
 o smilint on orig (RFC 1567) DSA-MIB crashes.
 
-o feature: passing options to dump modules to allow some format
+o new feature: passing options to dump modules to allow some format
   dependant adjustments like
   - removing comments
   - imports: showing imported modules just once
   - ...
 
-o make check passes only after make install
+o currently, make check passes only after make install
 
-o warning, if zeroDotZero is defined locally instead of imported from SMI.
-
-o configuration of preloaded modules per application/tag
-  - config files / env variables ?
-  - extensible configuration ?!
-  - separate api function or implied by smiInit() ?
-
-o add size restrictions for OPAQUE
+o Web online conversion to SMIng?
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.41 1999/11/24 19:02:31 strauss Exp $
+ * @(#) $Id: data.c,v 1.42 1999/12/10 19:29:20 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -447,6 +447,32 @@ addImport(name, parserPtr)
     modulePtr->lastImportPtr		 = importPtr;
     
     return (importPtr);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setImportModulename --
+ *
+ *      Set the modulename part of a given Import struct.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setImportModulename(importPtr, modulename)
+    Import    *importPtr;
+    char      *modulename;
+{
+    importPtr->importmodule = util_strdup(modulename);
 }
 
 
