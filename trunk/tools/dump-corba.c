@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.5 2000/01/13 12:24:38 strauss Exp $
+ * @(#) $Id: dump-corba.c,v 1.6 2000/01/18 11:16:49 strauss Exp $
  */
 
 #include <stdlib.h>
@@ -703,64 +703,58 @@ static void printImportedTypedefs(char *modulename)
 
 
 
-static void printModule(char *modulename)
+static void printModule(SmiModule *smiModule)
 {
     SmiRevision  *smiRevision;
-    SmiModule    *smiModule;
     SmiNode      *smiNode;
     char         *idlModuleName;
 
-    smiModule = smiGetModule(modulename);
-    
-    if (smiModule->object) {
+    smiNode = smiGetModuleIdentityNode(smiModule);
 
-	smiNode = smiGetNode(modulename, smiModule->object);
+    if (smiNode) {
 
-	if (smiNode) {
-	    idlModuleName = getIdlModuleName(modulename);
-	    printSegment(INDENT, "const ", 0);
-	    print("string moduleIdentity = \"%s\";\n", smiNode->name);
-	    printSegment(INDENT, "const ", 0);
-	    print("ASN1_ObjectIdentifier %s = \"::%s::%s\";\n\n",
-		  getIdlModuleName(smiNode->name),
-		  idlModuleName, smiNode->name);
-	    if (! silent) {
-		printSegment(INDENT, "/*\n", 0);
-		printMultiline(smiModule->description);
-		print("\n");
-		smiRevision = smiGetFirstRevision(modulename);
-		printSegment(INDENT, "LAST-UPDATED:", INDENTVALUE);
-		print(smiRevision
-		      ? getTimeString(smiRevision->date) : "197001010000Z");
-		print("\n\n");
-		printSegment(INDENT, "ORGANIZATION:", 0);
-		print("\n");
-		printMultilineString(smiModule->organization);
-		print("\n\n");
-		printSegment(INDENT, "CONTACT-INFO:", 0);
-		print("\n");
-		printMultilineString(smiModule->contactinfo);
-		print("\n\n");
-		for (; smiRevision;
-		     smiRevision = smiGetNextRevision(smiRevision)) {
-		    if (strcmp(smiRevision->description,
-	       "[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
-			printSegment(INDENT, "REVISION:", INDENTVALUE);
-			print("\"%s\"\n", getTimeString(smiRevision->date));
-			printSegment(INDENT, "REVISION-DESCRIPTION:", 0);
-			print("\n");
-			printMultilineString(smiRevision->description);
-			print("\n\n");
-		    }
+	idlModuleName = getIdlModuleName(smiModule->name);
+	printSegment(INDENT, "const ", 0);
+	print("string moduleIdentity = \"%s\";\n", smiNode->name);
+	printSegment(INDENT, "const ", 0);
+	print("ASN1_ObjectIdentifier %s = \"::%s::%s\";\n\n",
+	      getIdlModuleName(smiNode->name),
+	      idlModuleName, smiNode->name);
+	if (! silent) {
+	    printSegment(INDENT, "/*\n", 0);
+	    printMultiline(smiModule->description);
+	    print("\n");
+	    smiRevision = smiGetFirstRevision(smiModule);
+	    printSegment(INDENT, "LAST-UPDATED:", INDENTVALUE);
+	    print(smiRevision
+		  ? getTimeString(smiRevision->date) : "197001010000Z");
+	    print("\n\n");
+	    printSegment(INDENT, "ORGANIZATION:", 0);
+	    print("\n");
+	    printMultilineString(smiModule->organization);
+	    print("\n\n");
+	    printSegment(INDENT, "CONTACT-INFO:", 0);
+	    print("\n");
+	    printMultilineString(smiModule->contactinfo);
+	    print("\n\n");
+	    for (; smiRevision;
+		 smiRevision = smiGetNextRevision(smiRevision)) {
+		if (strcmp(smiRevision->description,
+			   "[Revision added by libsmi due to a LAST-UPDATED clause.]")) {
+		    printSegment(INDENT, "REVISION:", INDENTVALUE);
+		    print("\"%s\"\n", getTimeString(smiRevision->date));
+		    printSegment(INDENT, "REVISION-DESCRIPTION:", 0);
+		    print("\n");
+		    printMultilineString(smiRevision->description);
+		    print("\n\n");
 		}
-		printSegment(INDENT, "*/", 0);
-		print("\n\n");
 	    }
-	    smiFreeNode(smiNode);
+	    printSegment(INDENT, "*/", 0);
+	    print("\n\n");
 	}
+	smiFreeNode(smiNode);
     }
 
-    smiFreeModule(smiModule);
 }
 
 
@@ -1345,7 +1339,7 @@ int dumpCorbaIdl(char *modulename, int flags)
     printf("module %s {\n\n", idlModuleName);
 
     printImportedTypedefs(modulename);
-    printModule(modulename);
+    printModule(smiModule);
     printTypedefs(modulename);
     printInterfaces(modulename);
     printNotificationVBTypes(modulename);

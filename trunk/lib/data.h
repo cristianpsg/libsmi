@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.43 1999/12/22 14:44:03 strauss Exp $
+ * @(#) $Id: data.h,v 1.44 2000/01/14 09:11:27 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -68,9 +68,11 @@ typedef struct View {
 
 
 typedef struct Module {
-    char            *name;
+    SmiModule	    export;
+    time_t	    lastUpdated; /* only for SMIv2 modules */
     char	    *path;
     off_t	    fileoffset;
+    struct Object   *objectPtr;
     struct Object   *firstObjectPtr;
     struct Object   *lastObjectPtr;
     struct Type	    *firstTypePtr;
@@ -79,14 +81,9 @@ typedef struct Module {
     struct Macro    *lastMacroPtr;
     struct Import   *firstImportPtr;
     struct Import   *lastImportPtr;
-    time_t	    lastUpdated;
-    char	    *organization;
-    char	    *contactInfo;
-    struct Object   *objectPtr;
     struct Revision *firstRevisionPtr;
     struct Revision *lastRevisionPtr;
     ModuleFlags	    flags;
-    SmiLanguage	    language;
     int		    numImportedIdentifiers;
     int		    numStatements;
     int		    numModuleIdentities;
@@ -96,27 +93,25 @@ typedef struct Module {
 
 
 
+typedef struct Revision {
+    SmiRevision	    export;
+    Module          *modulePtr;
+    struct Revision *nextPtr;
+    struct Revision *prevPtr;
+    int		    line;
+} Revision;
+
+
+
 typedef struct Import {
+    SmiImport      export;
     Module         *modulePtr;
-    char           *importmodule;
-    char	   *importname;
     struct Import  *nextPtr;
     struct Import  *prevPtr;
     Kind	   kind;
     int		   use;
     int		   line;
 } Import;
-
-
-
-typedef struct Revision {
-    Module          *modulePtr;
-    time_t          date;
-    char	    *description;
-    struct Revision *nextPtr;
-    struct Revision *prevPtr;
-    int		    line;
-} Revision;
 
 
 
@@ -320,7 +315,7 @@ extern void setModuleOrganization(Module *modulePtr,
 				  char *organization);
 
 extern void setModuleContactInfo(Module *modulePtr,
-				 char *contactInfo);
+				 char *contactinfo);
 
 extern Module *findModuleByName(const char *modulename);
 

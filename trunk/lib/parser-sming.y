@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.36 2000/01/10 10:34:19 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.37 2000/01/14 09:11:28 strauss Exp $
  */
 
 %{
@@ -89,7 +89,7 @@ findType(spec, parserPtr, modulePtr)
 	if (!typePtr) {
 	    importPtr = findImportByName(spec, modulePtr);
 	    if (importPtr) {
-		typePtr = findTypeByModulenameAndName(importPtr->importmodule,
+		typePtr = findTypeByModulenameAndName(importPtr->export.importmodule,
 						      spec);
 	    }
 	}
@@ -120,7 +120,7 @@ findObject(spec, parserPtr, modulePtr)
 	if (!objectPtr) {
 	    importPtr = findImportByName(spec, modulePtr);
 	    if (importPtr) {
-	     objectPtr = findObjectByModulenameAndName(importPtr->importmodule,
+	     objectPtr = findObjectByModulenameAndName(importPtr->export.importmodule,
 							  spec);
 	    }
 	}
@@ -570,7 +570,7 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 					      0,
 					      thisParserPtr);
 			    }
-			    thisModulePtr->language = SMI_LANGUAGE_SMING;
+			    thisModulePtr->export.language = SMI_LANGUAGE_SMING;
 			    thisParserPtr->modulePtr->numImportedIdentifiers
 				                                           = 0;
 			    thisParserPtr->modulePtr->numStatements = 0;
@@ -628,14 +628,22 @@ moduleStatement:	moduleKeyword sep ucIdentifier
 			}
 			descriptionStatement stmtsep
 			{
-			    if (moduleObjectPtr && $21) {
-				setObjectDescription(moduleObjectPtr, $21);
+			    if ($21) {
+				setModuleDescription(thisParserPtr->modulePtr,
+						     $21);
+				if (moduleObjectPtr) {
+				    setObjectDescription(moduleObjectPtr, $21);
+				}
 			    }
 			}
 			referenceStatement_stmtsep_01
 			{
-			    if (moduleObjectPtr && $24) {
-				setObjectReference(moduleObjectPtr, $24);
+			    if ($24) {
+				setModuleReference(thisParserPtr->modulePtr,
+						   $24);
+				if (moduleObjectPtr) {
+				    setObjectReference(moduleObjectPtr, $24);
+				}
 			    }
 			}
 			revisionStatement_stmtsep_0n

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.60 2000/01/13 12:15:40 strauss Exp $
+ * @(#) $Id: smi.c,v 1.61 2000/01/14 09:11:28 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -241,92 +241,6 @@ Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
 
 
 
-SmiModule *createSmiModule(Module *modulePtr)
-{
-    SmiModule     *smiModulePtr;
-    
-    if (modulePtr) {
-	smiModulePtr = util_malloc(sizeof(SmiModule));
-
-	smiModulePtr->language = modulePtr->language;
-	smiModulePtr->name = modulePtr->name;
-	if (modulePtr->objectPtr) {
-	    smiModulePtr->object = modulePtr->objectPtr->name;
-	} else {
-	    smiModulePtr->object = NULL;
-	}
-	smiModulePtr->lastupdated = modulePtr->lastUpdated;
-	if (modulePtr->organization) {
-	    smiModulePtr->organization = modulePtr->organization;
-	} else {
-	    smiModulePtr->organization = NULL;
-	}
-	if (modulePtr->contactInfo) {
-	    smiModulePtr->contactinfo = modulePtr->contactInfo;
-	} else {
-	    smiModulePtr->contactinfo = NULL;
-	}
-	if (modulePtr->objectPtr) {
-	    if (modulePtr->objectPtr->description) {
-		smiModulePtr->description = modulePtr->objectPtr->description;
-	    } else {
-		smiModulePtr->description = NULL;
-	    }
-	    if (modulePtr->objectPtr->reference) {
-		smiModulePtr->reference = modulePtr->objectPtr->reference;
-	    } else {
-		smiModulePtr->reference = NULL;
-	    }
-	} else {
-	    smiModulePtr->description = NULL;
-	    smiModulePtr->reference = NULL;
-	}
-	return smiModulePtr;
-    } else {
-	return NULL;
-    }
-}
-
-
-
-SmiImport *createSmiImport(Import *importPtr)
-{
-    SmiImport *smiImportPtr;
-    
-    if (importPtr) {
-	smiImportPtr = util_malloc(sizeof(SmiImport));
-	smiImportPtr->module       = importPtr->modulePtr->name;
-	smiImportPtr->importmodule = importPtr->importmodule;
-	smiImportPtr->importname   = importPtr->importname;
-	return smiImportPtr;
-    } else {
-	return NULL;
-    }
-}
-
-
-
-SmiRevision *createSmiRevision(Revision *revisionPtr)
-{
-    SmiRevision *smiRevisionPtr;
-    
-    if (revisionPtr) {
-        smiRevisionPtr = util_malloc(sizeof(SmiRevision));
-	smiRevisionPtr->module = revisionPtr->modulePtr->name;
-	smiRevisionPtr->date   = revisionPtr->date;
-	if (revisionPtr->description) {
-	    smiRevisionPtr->description = revisionPtr->description;
-	} else {
-	    smiRevisionPtr->description = NULL;
-	}
-	return smiRevisionPtr;
-    } else {
-	return NULL;
-    }
-}
-
-
-
 SmiNode *createSmiNode(Object *objectPtr)
 {
     SmiNode       *smiNodePtr;
@@ -338,8 +252,8 @@ SmiNode *createSmiNode(Object *objectPtr)
 	smiNodePtr     = util_malloc(sizeof(SmiNode));
 	
 	smiNodePtr->name   = objectPtr->name;
-	if (objectPtr->modulePtr && objectPtr->modulePtr->name) {
-	    smiNodePtr->module = objectPtr->modulePtr->name;
+	if (objectPtr->modulePtr && objectPtr->modulePtr->export.name) {
+	    smiNodePtr->module = objectPtr->modulePtr->export.name;
 	} else {
 	    smiNodePtr->module = NULL;
 	}
@@ -359,9 +273,9 @@ SmiNode *createSmiNode(Object *objectPtr)
 	if (objectPtr->typePtr) {
 	    if (objectPtr->typePtr->name) {
 		if (objectPtr->typePtr->modulePtr &&
-		    objectPtr->typePtr->modulePtr->name &&
-		    strlen(objectPtr->typePtr->modulePtr->name)) {
-		  smiNodePtr->typemodule = objectPtr->typePtr->modulePtr->name;
+		    objectPtr->typePtr->modulePtr->export.name &&
+		    strlen(objectPtr->typePtr->modulePtr->export.name)) {
+		  smiNodePtr->typemodule = objectPtr->typePtr->modulePtr->export.name;
 		} else {
 		    smiNodePtr->typemodule = NULL;
 		}
@@ -371,7 +285,7 @@ SmiNode *createSmiNode(Object *objectPtr)
 		 * This is an inlined type restriction. It is accessible
 		 * by the same (lowercase!) name as the object.
 		 */
-		smiNodePtr->typemodule = objectPtr->modulePtr->name;
+		smiNodePtr->typemodule = objectPtr->modulePtr->export.name;
 		smiNodePtr->typename   = objectPtr->name;
 	    }
 	} else {
@@ -403,7 +317,7 @@ SmiNode *createSmiNode(Object *objectPtr)
 	    smiNodePtr->implied           = objectPtr->indexPtr->implied;
 	    if (objectPtr->indexPtr->rowPtr) {
 		smiNodePtr->relatedmodule = objectPtr->indexPtr->rowPtr->
-							      modulePtr->name;
+							      modulePtr->export.name;
 		smiNodePtr->relatedname   = objectPtr->indexPtr->rowPtr->name;
 	    } else {
 	        smiNodePtr->relatedmodule = NULL;
@@ -439,7 +353,7 @@ SmiType *createSmiType(Type *typePtr)
     if (typePtr) {
 	smiTypePtr = util_malloc(sizeof(SmiType));
 	smiTypePtr->name         = typePtr->name;
-	smiTypePtr->module       = typePtr->modulePtr->name;
+	smiTypePtr->module       = typePtr->modulePtr->export.name;
 	smiTypePtr->basetype	 = typePtr->basetype;
 	smiTypePtr->parentmodule = typePtr->parentmodule;
 	smiTypePtr->parentname   = typePtr->parentname;
@@ -475,9 +389,9 @@ SmiListItem *createSmiListItem(Object *listObjectPtr, Object *objectPtr, int num
 
     if (objectPtr) {
 	smiListItemPtr = util_malloc(sizeof(SmiListItem));
-	smiListItemPtr->listmodule = listObjectPtr->modulePtr->name;
+	smiListItemPtr->listmodule = listObjectPtr->modulePtr->export.name;
 	smiListItemPtr->listname   = listObjectPtr->name;
-	smiListItemPtr->module     = objectPtr->modulePtr->name;
+	smiListItemPtr->module     = objectPtr->modulePtr->export.name;
 	smiListItemPtr->name       = objectPtr->name;
 	smiListItemPtr->number     = number;
 	return smiListItemPtr;
@@ -494,7 +408,7 @@ SmiNamedNumber *createSmiNamedNumber(Type *typePtr, NamedNumber *nnPtr)
 
     if (typePtr && nnPtr) {
 	smiNamedNumberPtr = util_malloc(sizeof(SmiNamedNumber));
-	smiNamedNumberPtr->typemodule = typePtr->modulePtr->name;
+	smiNamedNumberPtr->typemodule = typePtr->modulePtr->export.name;
 	smiNamedNumberPtr->typename   = typePtr->name;
 	smiNamedNumberPtr->name       = nnPtr->name;
 	memcpy(&smiNamedNumberPtr->value, nnPtr->valuePtr,
@@ -513,7 +427,7 @@ SmiRange *createSmiRange(Type *typePtr, Range *rangePtr)
 
     if (typePtr && rangePtr) {
 	smiRangePtr = util_malloc(sizeof(SmiRange));
-	smiRangePtr->typemodule  = typePtr->modulePtr->name;
+	smiRangePtr->typemodule  = typePtr->modulePtr->export.name;
 	smiRangePtr->typename    = typePtr->name;
 	memcpy(&smiRangePtr->minValue, rangePtr->minValuePtr,
 	       sizeof(struct SmiValue));
@@ -534,7 +448,7 @@ SmiMacro *createSmiMacro(Macro *macroPtr)
     if (macroPtr) {
 	smiMacroPtr = util_malloc(sizeof(SmiMacro));
 	smiMacroPtr->name   = macroPtr->name;
-	smiMacroPtr->module = macroPtr->modulePtr->name;
+	smiMacroPtr->module = macroPtr->modulePtr->export.name;
 	return smiMacroPtr;
     } else {
 	return NULL;
@@ -549,9 +463,9 @@ SmiOption *createSmiOption(Object *objectPtr, Option *optionPtr)
     
     if (optionPtr) {
         smiOptionPtr = util_malloc(sizeof(SmiOption));
-	smiOptionPtr->compliancemodule = objectPtr->modulePtr->name;
+	smiOptionPtr->compliancemodule = objectPtr->modulePtr->export.name;
 	smiOptionPtr->compliancename   = objectPtr->name;
-	smiOptionPtr->module           = optionPtr->objectPtr->modulePtr->name;
+	smiOptionPtr->module           = optionPtr->objectPtr->modulePtr->export.name;
 	smiOptionPtr->name             = optionPtr->objectPtr->name;
 	smiOptionPtr->description      = optionPtr->description;
 	return smiOptionPtr;
@@ -569,14 +483,14 @@ SmiRefinement *createSmiRefinement(Object *objectPtr,
     
     if (refinementPtr) {
         smiRefinementPtr = util_malloc(sizeof(SmiRefinement));
-	smiRefinementPtr->compliancemodule = objectPtr->modulePtr->name;
+	smiRefinementPtr->compliancemodule = objectPtr->modulePtr->export.name;
 	smiRefinementPtr->compliancename   = objectPtr->name;
 	smiRefinementPtr->module           = refinementPtr->objectPtr->
-							       modulePtr->name;
+							       modulePtr->export.name;
 	smiRefinementPtr->name             = refinementPtr->objectPtr->name;
 	if (refinementPtr->typePtr) {
 	    smiRefinementPtr->typemodule   = refinementPtr->typePtr->
-							       modulePtr->name;
+							       modulePtr->export.name;
 	    smiRefinementPtr->typename     = refinementPtr->typePtr->name;
 	} else {
 	    smiRefinementPtr->typemodule   = NULL;
@@ -584,7 +498,7 @@ SmiRefinement *createSmiRefinement(Object *objectPtr,
 	}
 	if (refinementPtr->writetypePtr) {
 	    smiRefinementPtr->writetypemodule  = refinementPtr->writetypePtr->
-							       modulePtr->name;
+							       modulePtr->export.name;
 	    smiRefinementPtr->writetypename    = refinementPtr->writetypePtr->
 									  name;
 	} else {
@@ -783,10 +697,10 @@ char *smiLoadModule(char *module)
 	modulePtr = loadModule(module);
 
 	if (modulePtr) {
-	    if (!isInView(modulePtr->name)) {
-		addView(modulePtr->name);
+	    if (!isInView(modulePtr->export.name)) {
+		addView(modulePtr->export.name);
 	    }
-	    return modulePtr->name;
+	    return modulePtr->export.name;
 	} else {
 	    return NULL;
 	}
@@ -799,10 +713,10 @@ char *smiLoadModule(char *module)
 	
 	if ((modulePtr = findModuleByName(module))) {
 	    /* already loaded. */
-	    return modulePtr->name;
+	    return modulePtr->export.name;
 	} else {
 	    if ((modulePtr = loadModule(module))) {
-		return modulePtr->name;
+		return modulePtr->export.name;
 	    } else {
 		return NULL;
 	    }
@@ -909,20 +823,22 @@ SmiModule *smiGetModule(char *module)
 	modulePtr = loadModule(module);
     }
     
-    return createSmiModule(modulePtr);
+    return (SmiModule *)modulePtr;
 }
 
 
 
 SmiModule *smiGetFirstModule()
 {
-    SmiModule *m;
-    
-    m = createSmiModule(firstModulePtr);
-    if (m && !strlen(m->name)) {
-	m = smiGetNextModule(m);
-    }
-    return m;
+    Module	      *modulePtr;
+
+    for (modulePtr = firstModulePtr;
+	 modulePtr->export.name &&
+	     (strlen(modulePtr->export.name) == 0) &&
+	     modulePtr;
+	 modulePtr = modulePtr->nextPtr);
+
+    return (SmiModule *)modulePtr;
 }
 
 
@@ -930,130 +846,80 @@ SmiModule *smiGetFirstModule()
 SmiModule *smiGetNextModule(SmiModule *smiModulePtr)
 {
     Module	      *modulePtr;
-    SmiModule         *m;
     
     if (!smiModulePtr) {
 	return NULL;
     }
 
-    modulePtr = findModuleByName(smiModulePtr->name);
+    
+    for (modulePtr = ((Module *)smiModulePtr)->nextPtr;
+	 modulePtr->export.name &&
+	     (strlen(modulePtr->export.name) == 0) &&
+	     modulePtr;
+	 modulePtr = modulePtr->nextPtr);
 
-    smiFreeModule(smiModulePtr);
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-    
-    m = createSmiModule(modulePtr->nextPtr);
-    if (m && !strlen(m->name)) {
-	m = smiGetNextModule(m);
-    }
-    return m;
+    return (SmiModule *)modulePtr;
 }
 
 
 
 void smiFreeModule(SmiModule *smiModulePtr)
 {
-    util_free(smiModulePtr);
 }
 
 
 
-SmiImport *smiGetFirstImport(char *module)
+SmiImport *smiGetFirstImport(SmiModule *smiModulePtr)
 {
-    Module *modulePtr;
-    
-    if (!module) {
+    if (!smiModulePtr) {
 	return NULL;
     }
-
-    modulePtr = findModuleByName(module);
     
-    if (!modulePtr) {
-	modulePtr = loadModule(module);
-    }
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    return createSmiImport(modulePtr->firstImportPtr);
+    return (SmiImport *)(((Module *)smiModulePtr)->firstImportPtr);
 }
 
 
 
 SmiImport *smiGetNextImport(SmiImport *smiImportPtr)
 {
-    Module	      *modulePtr;
-    Import	      *importPtr;
-    char	      *importmodule, *importname;
-
+    Module	        *modulePtr;
+    Import	        *importPtr;
+    
     if (!smiImportPtr) {
 	return NULL;
     }
 
-    modulePtr    = findModuleByName(smiImportPtr->module);
-    if (!modulePtr) {
-	modulePtr = loadModule(smiImportPtr->module);
-    }
-
-    importmodule = smiImportPtr->importmodule;
-    importname   = smiImportPtr->importname;
-        
-    smiFreeImport(smiImportPtr);
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-    
-    for (importPtr = modulePtr->firstImportPtr; importPtr;
-	 importPtr = importPtr->nextPtr) {
-	if (!strcmp(importPtr->importname, importname) &&
-	    !strcmp(importPtr->importmodule, importmodule)) {
-	    return createSmiImport(importPtr->nextPtr);
-	}
-    }
-
-    return NULL;
+    return (SmiImport *)(((Import *)smiImportPtr)->nextPtr);
 }
 
 
 
 void smiFreeImport(SmiImport *smiImportPtr)
 {
-    util_free(smiImportPtr);
 }
 
 
 
-int smiIsImported(char *module, char *importmodule, char *importname)
+int smiIsImported(SmiModule *smiModulePtr,
+		  char *importmodule, char *importname)
 {
     Import	   *importPtr;
     Module	   *modulePtr;
     char	   *importmodule2, *importname2;
     
-    if ((!module) || (!importmodule) || (!importname)) {
+    if ((!smiModulePtr) || (!importmodule) || (!importname)) {
 	return 0;
     }
     
-    modulePtr = findModuleByName(module);
-    
-    if (!modulePtr) {
-	modulePtr = loadModule(module);
-    }
-
-    if (!modulePtr) {
-	return 0;
-    }
+    modulePtr = (Module *)smiModulePtr;
     
     getModulenameAndName(importmodule, importname,
 			 &importmodule2, &importname2);
 
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
-	if ((!strcmp(importmodule2, importPtr->importmodule)) &&
-	    (!strcmp(importname2, importPtr->importname))) {
+	if ((!strcmp(importmodule2, importPtr->export.importmodule)) &&
+	    (!strcmp(importname2, importPtr->export.importname))) {
 	    util_free(importmodule2);
 	    util_free(importname2);
 	    return 1;
@@ -1067,25 +933,13 @@ int smiIsImported(char *module, char *importmodule, char *importname)
 
 
 
-SmiRevision *smiGetFirstRevision(char *module)
+SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr)
 {
-    Module	        *modulePtr;
-
-    if (!module) {
+    if (!smiModulePtr) {
 	return NULL;
     }
     
-    modulePtr = findModuleByName(module);
-    
-    if (!modulePtr) {
-	modulePtr = loadModule(module);
-    }
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    return createSmiRevision(modulePtr->firstRevisionPtr);
+    return (SmiRevision *)(((Module *)smiModulePtr)->firstRevisionPtr);
 }
 
 
@@ -1094,40 +948,18 @@ SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr)
 {
     Module	        *modulePtr;
     Revision	        *revisionPtr;
-    time_t		date;
     
     if (!smiRevisionPtr) {
 	return NULL;
     }
 
-    modulePtr    = findModuleByName(smiRevisionPtr->module);
-    if (!modulePtr) {
-	modulePtr = loadModule(smiRevisionPtr->module);
-    }
-
-    date = smiRevisionPtr->date;
-        
-    smiFreeRevision(smiRevisionPtr);
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-    
-    for (revisionPtr = modulePtr->firstRevisionPtr; revisionPtr;
-	 revisionPtr = revisionPtr->nextPtr) {
-	if (revisionPtr->date == date) {
-	    return createSmiRevision(revisionPtr->nextPtr);
-	}
-    }
-
-    return NULL;
+    return (SmiRevision *)(((Revision *)smiRevisionPtr)->nextPtr);
 }
 
 
 
 void smiFreeRevision(SmiRevision *smiRevisionPtr)
 {
-    util_free(smiRevisionPtr);
 }
 
 
@@ -1745,7 +1577,7 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
     if (objectPtr && (objectPtr->flags & FLAG_IMPORTED)) {
 	importPtr = findImportByName(objectPtr->name, objectPtr->modulePtr);
 	if (importPtr) {
-	    objectPtr = findObjectByModulenameAndNode(importPtr->importmodule,
+	    objectPtr = findObjectByModulenameAndNode(importPtr->export.importmodule,
 						      nodePtr);
 	} else {
 	    objectPtr = NULL;
@@ -1895,6 +1727,20 @@ SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
 #endif
     
     return createSmiNode(objectPtr);
+}
+
+
+
+SmiNode *smiGetModuleIdentityNode(SmiModule *smiModulePtr)
+{
+    Module	      *modulePtr;
+    
+    if (!smiModulePtr) {
+	return NULL;
+    }
+
+    return createSmiNode(((Module *)smiModulePtr)->objectPtr);
+    /* finally: return (SmiNode *)(((Module *)smiModulePtr)->objectPtr); */
 }
 
 
@@ -2095,7 +1941,7 @@ SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
     for (listPtr = objectPtr->optionlistPtr; listPtr;
 	 listPtr = listPtr->nextPtr) {
 	if ((listPtr->ptr) &&
-	    !strcmp(((Option *)(listPtr->ptr))->objectPtr->modulePtr->name,
+	    !strcmp(((Option *)(listPtr->ptr))->objectPtr->modulePtr->export.name,
 		    module) &&
 	    !strcmp(((Option *)(listPtr->ptr))->objectPtr->name, node)) {
 	    if (listPtr->nextPtr) {
@@ -2197,7 +2043,7 @@ SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr)
     for (listPtr = objectPtr->refinementlistPtr; listPtr;
 	 listPtr = listPtr->nextPtr) {
 	if ((listPtr->ptr) &&
-	    !strcmp(((Refinement *)(listPtr->ptr))->objectPtr->modulePtr->name,
+	    !strcmp(((Refinement *)(listPtr->ptr))->objectPtr->modulePtr->export.name,
 		    module) &&
 	    !strcmp(((Refinement *)(listPtr->ptr))->objectPtr->name, node)) {
 	    if (listPtr->nextPtr) {

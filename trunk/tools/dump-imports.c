@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-imports.c,v 1.4 1999/10/05 06:31:01 strauss Exp $
+ * @(#) $Id: dump-imports.c,v 1.5 1999/11/24 19:02:39 strauss Exp $
  */
 
 #include <stdio.h>
@@ -26,13 +26,13 @@ typedef struct Imports {
 
 
 
-static Imports *getImports(char *modulename, int *n)
+static Imports *getImports(SmiModule *smiModule, int *n)
 {
     SmiImport *smiImport;
     Imports   *imports;
     int       i, size;
     
-    for(smiImport = smiGetFirstImport(modulename), *n = 0;
+    for(smiImport = smiGetFirstImport(smiModule), *n = 0;
 	smiImport; smiImport = smiGetNextImport(smiImport)) {
 	(*n)++;
     }
@@ -41,7 +41,7 @@ static Imports *getImports(char *modulename, int *n)
     imports = xmalloc(size);
     memset(imports, 0, size);
 
-    for(smiImport = smiGetFirstImport(modulename), *n = 0;
+    for(smiImport = smiGetFirstImport(smiModule), *n = 0;
 	smiImport; smiImport = smiGetNextImport(smiImport)) {
 	
 	for (i = 0; i < *n; i++) {
@@ -78,18 +78,20 @@ static void freeImports(Imports *imports, int n)
 
 
 
-static int printImports(char *modulename, char *prefix)
+static int printImports(SmiModule *smiModule, char *prefix)
 {
+    SmiModule *smiModule2;
     Imports *imports;
     int     i, n, recurse = 0, done = 0;
 
-    imports = getImports(modulename, &n);
+    imports = getImports(smiModule, &n);
 
     for (i = 0; i < n; i++) {
 	char *newprefix;
 	SmiImport *firstImport;
 
-	firstImport = smiGetFirstImport(imports[i].module);
+	smiModule2 = smiGetModule(imports[i].module);
+	firstImport = smiGetFirstImport(smiModule2);
 	recurse = (firstImport == NULL);
 	smiFreeImport(firstImport);
 	if (recurse) {
@@ -104,7 +106,7 @@ static int printImports(char *modulename, char *prefix)
 	} else {
 	    strcat(newprefix, "  |");
 	}
-	done = printImports(imports[i].module, newprefix);
+	done = printImports(smiModule2, newprefix);
 	if (! recurse && done) {
 	    if (i == n-1) {
 		printf("%s   \n", prefix);
@@ -138,7 +140,7 @@ int dumpImports(char *modulename, int flags)
     }
 
     printf("%s\n", smiModule->name);
-    printImports(smiModule->name, "");
+    printImports(smiModule, "");
 
     smiFreeModule(smiModule);
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.53 2000/01/10 10:34:20 strauss Exp $
+ * @(#) $Id: smi.h,v 1.54 2000/02/02 17:30:30 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -188,8 +188,6 @@ typedef struct SmiRange {
 /* SmiModule -- the main structure of a module                               */
 typedef struct SmiModule {
     SmiIdentifier       name;
-    SmiIdentifier       object;
-    time_t              lastupdated;   /* for apps with SMIv2 semantics */
     char                *organization;
     char                *contactinfo;
     char                *description;
@@ -199,14 +197,12 @@ typedef struct SmiModule {
 
 /* SmiRevision -- content of a single module's revision clause               */
 typedef struct SmiRevision {
-    SmiIdentifier       module;
     time_t              date;
     char                *description;
 } SmiRevision;
 
 /* SmiImport -- an imported descriptor                                       */
 typedef struct SmiImport {
-    SmiIdentifier       module;
     SmiIdentifier       importmodule;
     SmiIdentifier       importname;
 } SmiImport;
@@ -338,15 +334,17 @@ extern SmiModule *smiGetNextModule(SmiModule *smiModulePtr);
       
 extern void smiFreeModule(SmiModule *smiModulePtr);
 
-extern SmiImport *smiGetFirstImport(char *module);
+extern SmiImport *smiGetFirstImport(SmiModule *smiModulePtr);
 
 extern SmiImport *smiGetNextImport(SmiImport *smiImportPtr);
 
 extern void smiFreeImport(SmiImport *smiImportPtr);
 
-extern int smiIsImported(char *module, char *importmodule, char *importname);
+/* TODO: replace importmodule/importname by smiNode */
+extern int smiIsImported(SmiModule *smiModulePtr,
+			 char *importmodule, char *importname);
 
-extern SmiRevision *smiGetFirstRevision(char *module);
+extern SmiRevision *smiGetFirstRevision(SmiModule *smiModulePtr);
 
 extern SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr);
 
@@ -399,6 +397,8 @@ extern SmiNode *smiGetParentNode(SmiNode *smiNodePtr);
 extern SmiNode *smiGetFirstChildNode(SmiNode *smiNodePtr);
 
 extern SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr);
+
+extern SmiNode *smiGetModuleIdentityNode(SmiModule *smiModulePtr);
 
 extern void smiFreeNode(SmiNode *smiNodePtr);
 

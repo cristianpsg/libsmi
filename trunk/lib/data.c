@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.53 2000/01/14 09:11:27 strauss Exp $
+ * @(#) $Id: data.c,v 1.54 2000/02/02 17:30:30 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -161,11 +161,17 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
 
     modulePtr = (Module *)util_malloc(sizeof(Module));
 
-    modulePtr->name				= modulename;
+    modulePtr->export.name			= modulename;
+    modulePtr->export.language			= SMI_LANGUAGE_UNKNOWN;
+    modulePtr->export.organization		= NULL;
+    modulePtr->export.contactinfo		= NULL;
+    modulePtr->export.description		= NULL;
+    modulePtr->export.reference			= NULL;
+
+    modulePtr->lastUpdated			= 0;
     modulePtr->path			        = path;
     modulePtr->fileoffset			= fileoffset;
     modulePtr->flags				= flags;
-    modulePtr->language				= SMI_LANGUAGE_UNKNOWN;
     modulePtr->objectPtr			= NULL;
     
     modulePtr->firstObjectPtr			= NULL;
@@ -183,10 +189,6 @@ addModule(modulename, path, fileoffset, flags, parserPtr)
     modulePtr->numStatements			= 0;
     modulePtr->numModuleIdentities		= 0;
     
-    modulePtr->lastUpdated			= 0;
-    modulePtr->organization			= NULL;
-    modulePtr->contactInfo			= NULL;
-
     modulePtr->nextPtr				= NULL;
     modulePtr->prevPtr				= lastModulePtr;
     if (!firstModulePtr) firstModulePtr		= modulePtr;
@@ -271,7 +273,7 @@ setModuleOrganization(modulePtr, organization)
     Module *modulePtr;
     char *organization;
 {
-    modulePtr->organization = organization;
+    modulePtr->export.organization = organization;
 }
 
 
@@ -293,11 +295,63 @@ setModuleOrganization(modulePtr, organization)
  */
 
 void
-setModuleContactInfo(modulePtr, contactInfo)
+setModuleContactInfo(modulePtr, contactinfo)
     Module	  *modulePtr;
-    char	  *contactInfo;
+    char	  *contactinfo;
 {
-    modulePtr->contactInfo = contactInfo;
+    modulePtr->export.contactinfo = contactinfo;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleDescription --
+ *
+ *      Set the description string of a given Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setModuleDescription(modulePtr, description)
+    Module *modulePtr;
+    char *description;
+{
+    modulePtr->export.description = description;
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleReference --
+ *
+ *      Set the reference string of a given Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+setModuleReference(modulePtr, reference)
+    Module *modulePtr;
+    char *reference;
+{
+    modulePtr->export.reference = reference;
 }
 
 
@@ -327,7 +381,8 @@ findModuleByName(modulename)
 
     for (modulePtr = firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
-	if ((modulePtr->name) && !strcmp(modulePtr->name, modulename)) {
+	if ((modulePtr->export.name) &&
+	    !strcmp(modulePtr->export.name, modulename)) {
 	    return (modulePtr);
 	}
     }
@@ -367,10 +422,12 @@ addRevision(date, description, parserPtr)
     modulePtr = parserPtr->modulePtr;
 
     revisionPtr->modulePtr		 = modulePtr;
-    revisionPtr->date		       	 = date;
-    revisionPtr->description	       	 = description;
+    revisionPtr->export.date	       	 = date;
+    revisionPtr->export.description    	 = description;
     revisionPtr->line			 = parserPtr ? parserPtr->line : -1;
-    
+
+    /* TODO: probably, we should sort revisions by date by inserting
+       new ones at the right position!? */
     revisionPtr->nextPtr		 = NULL;
     revisionPtr->prevPtr		 = modulePtr->lastRevisionPtr;
     if (!modulePtr->firstRevisionPtr)
@@ -415,8 +472,8 @@ addImport(name, parserPtr)
     modulePtr = parserPtr->modulePtr;
 
     importPtr->modulePtr		 = modulePtr;
-    importPtr->importname	       	 = util_strdup(name);
-    importPtr->importmodule		 = NULL; /* not yet known */
+    importPtr->export.importname       	 = util_strdup(name);
+    importPtr->export.importmodule	 = NULL; /* not yet known */
     importPtr->kind			 = KIND_UNKNOWN; /* not yet known */
     importPtr->use			 = 0;
     importPtr->line			 = parserPtr ? parserPtr->line : -1;
@@ -455,7 +512,7 @@ setImportModulename(importPtr, modulename)
     Import    *importPtr;
     char      *modulename;
 {
-    importPtr->importmodule = modulename;
+    importPtr->export.importmodule = modulename;
 }
 
 
@@ -493,25 +550,26 @@ checkImports(modulename, parserPtr)
 	 importPtr; importPtr = importPtr->nextPtr) {
 
 	if (importPtr->kind == KIND_UNKNOWN) {
-	    if ((smiNode = smiGetNode(modulename, importPtr->importname))) {
-		importPtr->importmodule = util_strdup(modulename);
-		importPtr->kind		= KIND_OBJECT;
+	    if ((smiNode = smiGetNode(modulename,
+				      importPtr->export.importname))) {
+		importPtr->export.importmodule = util_strdup(modulename);
+		importPtr->kind	= KIND_OBJECT;
 		smiFreeNode(smiNode);
 	    } else if ((smiType = smiGetType(modulename,
-					     importPtr->importname))) {
-		importPtr->importmodule = util_strdup(modulename);
-		importPtr->kind		= KIND_TYPE;
+					     importPtr->export.importname))) {
+		importPtr->export.importmodule = util_strdup(modulename);
+		importPtr->kind	= KIND_TYPE;
 		smiFreeType(smiType);
 	    } else if ((smiMacro = smiGetMacro(modulename,
-					       importPtr->importname))) {
-		importPtr->importmodule = util_strdup(modulename);
-		importPtr->kind         = KIND_MACRO;
+					      importPtr->export.importname))) {
+		importPtr->export.importmodule = util_strdup(modulename);
+		importPtr->kind = KIND_MACRO;
 		smiFreeMacro(smiMacro);
 	    } else {
 		n++;
-		importPtr->importmodule = util_strdup(modulename);
+		importPtr->export.importmodule = util_strdup(modulename);
 		printError(parserPtr, ERR_IDENTIFIER_NOT_IN_MODULE,
-			   importPtr->importname, modulename);
+			   importPtr->export.importname, modulename);
 		importPtr->kind   = KIND_NOTFOUND;
 	    }
 	}
@@ -548,7 +606,7 @@ findImportByName(importname, modulePtr)
 
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
-	if (!strcmp(importPtr->importname, importname)) {
+	if (!strcmp(importPtr->export.importname, importname)) {
 		return (importPtr);
 	}
     }
@@ -587,8 +645,8 @@ findImportByModulenameAndName(modulename, importname, modulePtr)
 
     for (importPtr = modulePtr->firstImportPtr; importPtr;
 	 importPtr = importPtr->nextPtr) {
-	if ((!strcmp(importPtr->importname, importname)) &&
-	    (!strcmp(importPtr->importmodule, modulename))) {
+	if ((!strcmp(importPtr->export.importname, importname)) &&
+	    (!strcmp(importPtr->export.importmodule, modulename))) {
 	    return (importPtr);
 	}
     }
@@ -1635,10 +1693,10 @@ findObjectByNode(nodePtr)
 {
     Object    *objectPtr;
 
-    /* first, try ti find an object in the current view. */
+    /* first, try to find an object in the current view. */
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
-	if (isInView(objectPtr->modulePtr->name)) {
+	if (isInView(objectPtr->modulePtr->export.name)) {
 	    return (objectPtr);
 	}
     }
@@ -1714,7 +1772,7 @@ findObjectByModulenameAndNode(modulename, nodePtr)
 
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
-	if (!strcmp(objectPtr->modulePtr->name, modulename)) {
+	if (!strcmp(objectPtr->modulePtr->export.name, modulename)) {
 	    return (objectPtr);
 	}
     }
@@ -2025,7 +2083,7 @@ duplicateType(templatePtr, flags, parserPtr)
 	typePtr->parentname		= NULL;
     }
     if (templatePtr->modulePtr) {
-	typePtr->parentmodule		= util_strdup(templatePtr->modulePtr->name);
+	typePtr->parentmodule		= util_strdup(templatePtr->modulePtr->export.name);
     } else {
 	typePtr->parentmodule		= NULL;
     }
@@ -2930,15 +2988,15 @@ freeData()
 	for (importPtr = modulePtr->firstImportPtr; importPtr;
 	     importPtr = nextImportPtr) {
 	    nextImportPtr = importPtr->nextPtr;
-	    util_free(importPtr->importmodule);
-	    util_free(importPtr->importname);
+	    util_free(importPtr->export.importmodule);
+	    util_free(importPtr->export.importname);
 	    util_free(importPtr);
 	}
 
 	for (revisionPtr = modulePtr->firstRevisionPtr; revisionPtr;
 	     revisionPtr = nextRevisionPtr) {
 	    nextRevisionPtr = revisionPtr->nextPtr;
-	    util_free(revisionPtr->description);
+	    util_free(revisionPtr->export.description);
 	    util_free(revisionPtr);
 	}
 
@@ -3026,10 +3084,10 @@ freeData()
 	    util_free(objectPtr);
 	}
 
-	util_free(modulePtr->name);
+	util_free(modulePtr->export.name);
 	util_free(modulePtr->path);
-	util_free(modulePtr->organization);
-	util_free(modulePtr->contactInfo);
+	util_free(modulePtr->export.organization);
+	util_free(modulePtr->export.contactinfo);
 	util_free(modulePtr);
     }
 
