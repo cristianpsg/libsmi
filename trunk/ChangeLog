@@ -1,3 +1,8 @@
+2002-06-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+	
+	* lib/smi.c: call smiInit() in smiSetPath() if not yet initialized.
+	Thanks to Yogeshwara.
+
 2002-06-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DIFFSERV-MIB,DIFFSERV-DSCP-TC: added (RFC 3289).

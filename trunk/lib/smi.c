@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.108 2002/05/16 19:18:04 strauss Exp $
+ * @(#) $Id: smi.c,v 1.109 2002/05/31 17:22:13 bunkus Exp $
  */
 
 #include <config.h>
@@ -300,6 +300,8 @@ char *smiGetPath()
 int smiSetPath(const char *s)
 {
     char *s2;
+
+    if (!smiHandle) smiInit(NULL);
 
     if (!s) {
 	smiFree(smiHandle->path);
