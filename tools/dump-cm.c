@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c,v 1.3 2000/04/10 10:41:08 strauss Exp $
+ * @(#) $Id: dump-cm.c,v 1.4 2000/04/10 15:55:31 strauss Exp $
  */
 
 
@@ -18,6 +18,9 @@
  * RMON2-MIB ifTable hat 0 Elements???? (sollte 1 sein)
  *  ---> statt SPARSE liegt eine EXPAND Beziehung vor
  *
+ * Rangeueberpruefung noch einfuegen (linkLonelyTables)
+ *
+ * Kardinalitaeten
  */
 
 
@@ -302,18 +305,18 @@ GraphEdge *graphGetNextEdge(Graph *graph, GraphEdge *edge)
 	return NULL;
     }
     
-    for (tEdge = graphGetFirstEdge(graph); tEdge; tEdge = tEdge->nextPtr) {
+/*    for (tEdge = graphGetFirstEdge(graph); tEdge; tEdge = tEdge->nextPtr) {
 	if (tEdge->startNode->smiNode->name ==
 	    edge->startNode->smiNode->name &&
 	    tEdge->endNode->smiNode->name ==
 	    edge->endNode->smiNode->name) break;
-    }
+	    } */
   
-    if (!tEdge->nextPtr) {
+    if (!edge->nextPtr) {
 	return NULL;
     }
     
-    return tEdge->nextPtr;
+    return edge->nextPtr;
 }
 
 /*
@@ -2522,9 +2525,10 @@ static void printXML(Graph *graph)
 		if (x > NEWLINEDISTANCE) {
 		    x = XOFFSET;
 		    y += ydiff + YSPACING;
+		    ydiff = 0;
 		}
 	    }
-
+	    
 	    conCounter = 1;
 	    for (tEdge = graphGetFirstEdgeByNode(graph, tNode);
 		 tEdge;
@@ -2532,29 +2536,27 @@ static void printXML(Graph *graph)
 		if (tEdge->startNode == tNode) {
 		    if (tEdge->endNode->print == 0) {
 			printXMLObject(tEdge->endNode,x,
-				       y+tEdge->endNode->connections
-				       -conCounter);
-			x += XSPACING + tNode->w;
+				       y+tEdge->endNode->connections);
+			x += XSPACING + tEdge->endNode->w;
 			ydiff = max(ydiff,
-				    tNode->h+tEdge->endNode->connections
-				    -conCounter);
+				    tNode->h+tEdge->endNode->connections);
 			if (x > NEWLINEDISTANCE) {
 			    x = XOFFSET;
 			    y += ydiff + YSPACING;
+			    ydiff = 0;
 			}
 		    }
 		} else {
 		    if (tEdge->startNode->print == 0) {
 			printXMLObject(tEdge->startNode,x,
-				       y+tEdge->startNode->connections
-				       -conCounter);
-			x += XSPACING + tNode->w;
+				       y+tEdge->startNode->connections);
+			x += XSPACING + tEdge->startNode->w;
 			ydiff = max(ydiff,
-				    tNode->h+tEdge->startNode->connections
-				    -conCounter);
+				    tNode->h+tEdge->startNode->connections);
 			if (x > NEWLINEDISTANCE) {
 			    x = XOFFSET;
 			    y += ydiff + YSPACING;
+			    ydiff = 0;
 			}
 		    }	
 		}
