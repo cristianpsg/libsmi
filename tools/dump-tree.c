@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-tree.c,v 1.35 2002/11/29 15:27:15 schoenw Exp $
+ * @(#) $Id: dump-tree.c,v 1.36 2002/11/30 23:48:11 schoenw Exp $
  */
 
 #include <config.h>
@@ -280,8 +280,10 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 	switch (smiNode->nodekind) {
 	case SMI_NODEKIND_SCALAR:
 	case SMI_NODEKIND_COLUMN:
-	    c = prefix[prefixlen-1];
-	    prefix[prefixlen-1] = getStatusChar(smiNode->status);
+	    if (prefixlen > 0) {
+	        c = prefix[prefixlen-1];
+		prefix[prefixlen-1] = getStatusChar(smiNode->status);
+	    }
 	    type_name = getTypeName(smiNode);
 	    if (type_name) {
 		fprintf(f, "%s-- %s %-*s %s(%u)\n",
@@ -293,12 +295,12 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 			smiNode->oid[smiNode->oidlen-1]);
 		xfree(type_name);
 	    }
-	    if (c) {
+	    if (prefixlen > 0 && c) {
 		prefix[prefixlen-1] = c;
 	    }
 	    break;
 	case SMI_NODEKIND_ROW:
-	    if (prefixlen) {
+	    if (prefixlen > 0) {
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
@@ -323,12 +325,12 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		break;	    
 	    }
 	    fprintf(f, "]\n");
-	    if (c) {
+	    if (prefixlen > 0 && c) {
 		prefix[prefixlen-1] = c;
 	    }
 	    break;
 	case SMI_NODEKIND_NOTIFICATION:
-	    if (prefixlen) {
+	    if (prefixlen > 0) {
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
@@ -337,17 +339,17 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		    smiNode->oid[smiNode->oidlen-1]);
 	    fprintObjects(f, smiNode);
 	    fprintf(f, "]\n");
-	    if (c) {
+	    if (prefixlen > 0 && c) {
 		prefix[prefixlen-1] = c;
 	    }
 	    break;
 	default:
-	    if (prefixlen) {
+	    if (prefixlen > 0) {
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getStatusChar(smiNode->status);
 	    }
 	    if (smiNode->oid)
-		if (prefixlen) {
+		if (prefixlen > 0) {
 		    fprintf(f, "%s--%s(%u)\n", prefix,
 			    smiNode->name ? smiNode->name : " ",
 			    smiNode->oid[smiNode->oidlen-1]);
@@ -363,7 +365,7 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 	    else
 		fprintf(f, "%s--%s(?)\n", prefix,
 			smiNode->name ? smiNode->name : " ");
-	    if (c) {
+	    if (prefixlen > 0 && c) {
 		prefix[prefixlen-1] = c;
 	    }
 	}
