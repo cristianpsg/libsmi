@@ -13,7 +13,7 @@ for mib in ${TESTMIBS} ; do
     WC=`@DIFF@ smidump-${FORMAT}-${FORMAT}.out/$mib.${FORMAT} dumps/$mib.${FORMAT} | wc -l`
     if [ $WC -ne 0 ] ; then
 	echo "*** smidump -f ${FORMAT} output differs, for details take a look at"
-	echo "*** diff -u dumps/$mib.${FORMAT} smidump-${FORMAT}.out/$mib.${FORMAT}"
+	echo "*** diff dumps/$mib.${FORMAT} smidump-${FORMAT}.out/$mib.${FORMAT}"
 	RC=1
     fi
 done
