@@ -49,3 +49,5 @@ o DISPLAY_HINT interpreter function
 o Java OID/Name Lookup Service
 
 o clean up SMI_BASETYPE_XXX / struct SmiValue
+
+o cleanup putenv(TZ) hack

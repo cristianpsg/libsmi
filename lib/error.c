@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.12 1999/06/08 20:39:27 strauss Exp $
+ * @(#) $Id: error.c,v 1.13 1999/06/17 16:56:55 strauss Exp $
  */
 
 #include <string.h>
@@ -26,6 +26,10 @@
 
 
 int errorLevel;                          /* Higher level for more warnings   */
+
+extern int lexDepth;
+
+
 
 typedef struct Error {
     int level;			/* 0: fatal, no way to continie		     */
@@ -126,9 +130,7 @@ Error errors[] = {
       "Maximum IMPORTS nesting, probably a loop?" },
     { 1, ERR_MODULE_NOT_FOUND,
       "Don't know where to find module `%s'" },
-    { 9, ERR_INCLUDE,
-      "including module `%s' from `%s'..." },
-    { 8, ERR_STATISTICS,
+    { 9, ERR_STATISTICS,
       "completed%s" },
     { 2, ERR_OBJECT_IDENTIFIER_REGISTERED,
       "Object identifier label `%s.%s' already registered at `%s'" },
@@ -236,7 +238,8 @@ printError(Parser *parser, int id, ...)
 	
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
-	    (thisParser->flags & FLAG_ERRORS)) {
+	    (thisParser->flags & SMI_FLAG_ERRORS) &&
+	    ((lexDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 	    fprintf(stderr, "%s:%d: ", thisParser->path, thisParser->line);
 	    fmt = errors[id].fmt;
 	    va_start(ap, id);
@@ -286,7 +289,8 @@ printErrorAtLine(Parser *parser, int id, int line, ...)
 	
     if (parser) {
 	if ((errors[id].level <= errorLevel) &&
-	    (thisParser->flags & FLAG_ERRORS)) {
+	    (thisParser->flags & SMI_FLAG_ERRORS) &&
+	    ((lexDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 	    fprintf(stderr, "%s:%d: ", thisParser->path, line);
 	    fmt = errors[id].fmt;
 	    va_start(ap, line);

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.44 1999/06/16 15:04:13 strauss Exp $
+ * @(#) $Id: smi.c,v 1.45 1999/06/17 16:56:59 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -704,7 +704,7 @@ void smiSetFlags(int userflags)
 {
     if (!initialized) smiInit();
     
-    smiFlags = (smiFlags & ~SMI_FLAGMASK) | userflags;
+    smiFlags = (smiFlags & ~SMI_FLAG_MASK) | userflags;
 }
 
 
@@ -713,7 +713,7 @@ int smiGetFlags()
 {
     if (!initialized) smiInit();
     
-    return smiFlags & SMI_FLAGMASK;
+    return smiFlags & SMI_FLAG_MASK;
 }
 
 
