@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.107 2003/02/27 12:10:15 schoenw Exp $
+ * @(#) $Id: error.c,v 1.108 2003/02/28 10:18:26 schoenw Exp $
  */
 
 #include <config.h>
@@ -586,6 +586,8 @@ static Error errors[] = {
       "`current' uses a type whose status has been changed to `obsolete'.\n"
       "Note that the status of imported types can change without the\n"
       "control of the modules using these types." },
+    { 2, ERR_TIMETICKS_SUBTYPED, "timeticks-subtyped", 
+      "`TimeTicks' must not be subtyped", NULL},
     { 0, 0, NULL, NULL, NULL }
 };
 

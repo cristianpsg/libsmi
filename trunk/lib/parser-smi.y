@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.183 2002/09/13 17:49:27 schoenw Exp $
+ * @(#) $Id: parser-smi.y,v 1.184 2002/10/24 10:40:10 strauss Exp $
  */
 
 %{
@@ -4534,6 +4534,37 @@ ApplicationSyntax:	IPADDRESS
 				}
 			    }
 			}
+	|		TIMETICKS integerSubType /* (0..4294967295)	     */
+			{
+			    Import *importPtr;
+			    
+			    $$ = findTypeByName("TimeTicks");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "TimeTicks");
+			    }
+			    
+			    importPtr = findImportByName("TimeTicks",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				}
+			    }
+			    
+			    smiPrintError(thisParserPtr,
+					  ERR_TIMETICKS_SUBTYPED);
+			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
 			    Import *importPtr;
@@ -4932,6 +4963,37 @@ sequenceApplicationSyntax: IPADDRESS
 						  "TimeTicks");
 				}
 			    }
+			}
+	|		TIMETICKS anySubType	/* (0..4294967295)	     */
+			{
+			    Import *importPtr;
+			    
+			    $$ = findTypeByName("TimeTicks");
+			    if (! $$) {
+				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
+					      "TimeTicks");
+			    }
+
+			    importPtr = findImportByName("TimeTicks",
+							 thisModulePtr);
+			    if (importPtr) {
+				importPtr->use++;
+			    } else {
+				if (thisModulePtr->export.language ==
+				    SMI_LANGUAGE_SMIV2) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SMIV2_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				} else if (thisModulePtr->export.language ==
+					   SMI_LANGUAGE_SPPI) {
+				    smiPrintError(thisParserPtr,
+						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						  "TimeTicks");
+				}
+			    }
+			    
+			    smiPrintError(thisParserPtr,
+					  ERR_TIMETICKS_SUBTYPED);
 			}
 	|		OPAQUE			/* IMPLICIT OCTET STRING     */
 			{
