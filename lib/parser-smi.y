@@ -3263,7 +3263,7 @@ MaxOrPIBAccessPart:     MaxAccessPart
                         {
                             $$ = $1;
                         }
-        |               PibAccessPart
+        |               PibAccessParty
                         {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "MAX-ACCESS");
