@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.47 2000/06/16 13:53:57 strauss Exp $
+ * @(#) $Id: error.c,v 1.48 2000/06/20 15:17:06 strauss Exp $
  */
 
 #include <config.h>
@@ -186,8 +186,6 @@ static Error errors[] = {
       "single number `%s' is not a valid object identifier" },
     { 2, ERR_SUBIDENTIFIER_VS_OIDLABEL, "", 
       "subidentifier `%s' does not match object identifier label `%s'" },
-    { 2, ERR_OIDLABEL_DOESNOT_EXTEND, "", 
-      "Object identifier label `%s' (%s) doesn't extend `%s'" },
     { 2, ERR_EXISTENT_OBJECT, "", 
       "an object named `%s' already exists" },
     { 2, ERR_IDENTIFIER_NOT_IN_MODULE, "", 
@@ -245,11 +243,11 @@ static Error errors[] = {
     { 2, ERR_REDEFINITION, "", 
       "redefinition of identifier `%s'" },
     { 6, ERR_EXT_REDEFINITION, "", 
-      "redefinition of identifier `%s' (%s)" },
+      "redefinition of identifier `%s::%s'" },
     { 5, ERR_CASE_REDEFINITION, "", 
       "identifier `%s' differs from `%s' only in case" },
     { 6, ERR_EXT_CASE_REDEFINITION, "", 
-      "identifier `%s' differs from `%s' only in case (%s)" },
+      "identifier `%s' differs from `%s::%s' only in case" },
     { 6, ERR_PREVIOUS_DEFINITION, "",
       "previous definition of `%s'" },
     { 2, ERR_INVALID_FORMAT, "", 
@@ -342,8 +340,12 @@ static Error errors[] = {
       "index of row `%s' can exceed OID size limit" },
     { 1, ERR_INDEX_NO_RANGE, "index-element-no-range",
       "index element `%s' of row `%s' must have a range restriction" },
+    { 1, ERR_INDEX_NO_RANGE_MOD, "index-element-no-range",
+      "index element `%s::%s' of row `%s' must have a range restriction" },
     { 1, ERR_INDEX_NO_SIZE, "index-element-no-size",
       "index element `%s' of row `%s' must have a size restriction" },
+    { 1, ERR_INDEX_NO_SIZE_MOD, "index-element-no-size",
+      "index element `%s::%s' of row `%s' must have a size restriction" },
     { 1, ERR_INDEX_NEGATIVE, "index-element-negative",
       "range restriction of index element `%s' of row `%s' must be non-negative" },
     { 6, ERR_EMPTY_DESCRIPTION, "empty-description",

@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.1 2000/06/18 11:23:13 strauss Exp $
+ * @(#) $Id: check.c,v 1.2 2000/06/20 15:17:06 strauss Exp $
  */
 
 #include <config.h>
@@ -107,10 +107,10 @@ redefinition(Parser *parser, char *name1, Module *module,
     } else {
 	if (equal) {
 	    smiPrintError(parser, ERR_EXT_REDEFINITION,
-			  name1, module->export.name);
+			  module->export.name, name1);
 	} else {
 	    smiPrintError(parser, ERR_EXT_CASE_REDEFINITION,
-			  name1, name2, module->export.name);
+			  name1, module->export.name, name2);
 	}
 	parser->path = module->export.path;
     }
@@ -542,16 +542,28 @@ smiCheckIndex(Parser *parser, Object *object)
 				object->export.name);
 	}
 
+	if (!typePtr)
+	    continue;
+	
 	switch (typePtr->export.basetype) {
 	case SMI_BASETYPE_INTEGER32:
 	    for (rTypePtr = typePtr; rTypePtr && ! rTypePtr->listPtr;
  		 rTypePtr = rTypePtr->parentPtr) {
 	    }
 	    if (! rTypePtr) {
-		smiPrintErrorAtLine(parser, ERR_INDEX_NO_RANGE,
-				    indexPtr->line,
-				    indexPtr->export.name,
-				    object->export.name);
+		if (object->modulePtr != indexPtr->modulePtr) {
+		    smiPrintErrorAtLine(parser, ERR_INDEX_NO_RANGE_MOD,
+					object->line,
+					indexPtr->modulePtr->export.name,
+					indexPtr->export.name,
+					object->export.name);
+
+		} else {
+		    smiPrintErrorAtLine(parser, ERR_INDEX_NO_RANGE,
+					indexPtr->line,
+					indexPtr->export.name,
+					object->export.name);
+		}
 	    } else {
 		for (list2Ptr = rTypePtr->listPtr;
 		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
@@ -573,10 +585,18 @@ smiCheckIndex(Parser *parser, Object *object)
 	    }
 	    maxSize = -1;
 	    if (! rTypePtr) {
-		smiPrintErrorAtLine(parser, ERR_INDEX_NO_SIZE,
-				    indexPtr->line,
-				    indexPtr->export.name,
-				    object->export.name);
+		if (object->modulePtr != indexPtr->modulePtr) {
+		    smiPrintErrorAtLine(parser, ERR_INDEX_NO_SIZE_MOD,
+					object->line,
+					indexPtr->modulePtr->export.name,
+					indexPtr->export.name,
+					object->export.name);
+		} else {
+		    smiPrintErrorAtLine(parser, ERR_INDEX_NO_SIZE,
+					indexPtr->line,
+					indexPtr->export.name,
+					object->export.name);
+		}
 	    } else {
 	        for (list2Ptr = typePtr->listPtr;
 		     list2Ptr; list2Ptr = list2Ptr->nextPtr) {
@@ -610,8 +630,9 @@ smiCheckIndex(Parser *parser, Object *object)
 	case SMI_BASETYPE_FLOAT128:
 	case SMI_BASETYPE_UNKNOWN:
 	    smiPrintErrorAtLine(parser, ERR_INDEX_BASETYPE, object->line,
-				typePtr->export.name, indexPtr->export.name,
-				object->export.name);
+				typePtr->export.name ? typePtr->export.name
+				                     : "[unknown]",
+				indexPtr->export.name, object->export.name);
 	    break;
 	case SMI_BASETYPE_BITS:
 	    /* TODO: BITS are somehow treates as octet strings - but
