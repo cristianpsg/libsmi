@@ -2,7 +2,7 @@
 LIBSMI NOTES FOR NATIVE WIN32 SUPPORT
 =====================================
 
-@(#) $Id: README.win,v 1.4 2000/11/16 14:58:40 strauss Exp $
+@(#) $Id: README.win,v 1.5 2000/12/21 09:16:20 strauss Exp $
 
 This directory contains some help to compile the libsmi and associated
 tools on a Win32 platform (Windows 95, 98, 2000, NT) with the native
@@ -56,9 +56,9 @@ COMMENTS:
 
 - The installation directories are hardwired in config.h.in
 
-- scanner, parser and the smi.h source have to be created within the
-  Unix environment. On windows environment you can use cygwin to run
-  ./configure.
+- Scanner and parser C files, errormacros.h and smi.h have been created
+  within a Unix environment and integrated with the distribution. If
+  you want to re-build them on a windows system you can use cygwin.
 
 - The default SMIPATH separator character is the Windows style `;' and
   not the Unix style `:'. It can be changed using the
