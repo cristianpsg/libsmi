@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.44 2002/11/19 13:35:43 schoenw Exp $
+ * @(#) $Id: check.c,v 1.45 2002/11/20 13:58:23 schoenw Exp $
  */
 
 #include <config.h>
@@ -579,7 +579,7 @@ smiCheckNamedNumberSubtyping(Parser *parser, Type *type)
 /*
  *----------------------------------------------------------------------
  *
- * smiCheckBits --
+ * smiCheckNamedNumbersOrder --
  *
  *      Check and normalize the order of named numbers in a bits
  *	or enumeration type.
@@ -604,6 +604,18 @@ smiCheckNamedNumbersOrder(Parser *parser, Type *type)
 	|| (type->export.basetype != SMI_BASETYPE_ENUM
 	    && type->export.basetype != SMI_BASETYPE_BITS)) {
 	return;
+    }
+
+    /* Check whether the first bit has been given a name. */
+
+    if (type->export.basetype == SMI_BASETYPE_BITS) {
+	for (listPtr = type->listPtr; listPtr; listPtr = listPtr->nextPtr) {
+	    nnPtr = (NamedNumber *)(listPtr->ptr);
+	    if (nnPtr->export.value.value.unsigned32 == 0) break;
+	}
+	if (! listPtr) {
+	    smiPrintErrorAtLine(parser, ERR_BITS_ZERO_NOT_NAMED, type->line);
+	}
     }
 
     lastPtr = NULL;
