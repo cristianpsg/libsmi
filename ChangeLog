@@ -1,3 +1,7 @@
+2002-11-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/SFLOW-MIB: added (RFC 3176).
+
 2002-11-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* tools/dump-{smi,sming,smiv3}.c: Fixed list of imports in case
