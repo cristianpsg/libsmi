@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smiclient.c,v 1.6 1998/11/25 02:50:58 strauss Exp $
+ * @(#) $Id: smiclient.c,v 1.7 1998/11/26 00:50:09 strauss Exp $
  */
 
 #include <stdio.h>
@@ -39,11 +39,9 @@ main(argc, argv)
     CLIENT *cl;
     
     if (argc != 4) {
-	fprintf(stderr, "Usage: smiclient <server> module <name>\n");
-	fprintf(stderr, "                          node <name>\n");
-	fprintf(stderr, "                          type <name>\n");
-	fprintf(stderr, "                          macro <name>\n");
-	fprintf(stderr, "                          names <name>\n");
+	fprintf(stderr, "smiclient $Revision$\n");
+	fprintf(stderr, "Usage: smiclient <server> <command> <name>\n");
+	fprintf(stderr, "known commands: module, node, type, macro, names, children, members, parent\n");
 	exit(1);
     }
 
