@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-xsd.c,v 1.10 2002/02/13 15:41:57 tklie Exp $
+ * @(#) $Id: dump-xsd.c,v 1.11 2002/02/25 15:42:27 tklie Exp $
  */
 
 #include <config.h>
@@ -49,7 +49,13 @@ static XmlEscape xmlEscapes [] = {
 
 static int current_column = 0;
 
+typedef struct TypePrefix {
+    char *type;
+    char *prefix;
+} TypePrefix;
 
+static TypePrefix *typePrefixes;
+static int numTypes;
 
 static char *getStringBasetype(SmiBasetype basetype)
 {
@@ -503,6 +509,22 @@ static void fprintImportedTypes( FILE *f, SmiModule *smiModule )
 }
 #endif /* 0 */
 
+static char* getTypePrefix( SmiType *smiType )
+{
+    int i;
+
+    if( !smiType->name ) {
+	return NULL;
+    }
+
+    for( i = 0; i < numTypes; i++ ) {
+	if( !strcmp( typePrefixes[ i ].type, smiType->name ) ) {
+	    return typePrefixes[ i ].prefix;
+	}
+    }
+    return NULL;
+}
+
 static void fprintAnnotationElem( FILE *f, int indent, SmiNode *smiNode ) {
       
     fprintSegment( f, indent, "<xsd:annotation>\n", 0 );
@@ -560,6 +582,7 @@ static void fprintElement( FILE *f, int indent,
     case SMI_NODEKIND_COLUMN:
     {
 	SmiElement *iterElem;
+	char *prefix;
 	
 	/* check if we are index column */
 	for( iterElem = smiGetFirstElement( smiGetParentNode( smiNode ) ) ;
@@ -571,17 +594,27 @@ static void fprintElement( FILE *f, int indent,
 	    }
 	}
 	smiType = smiGetNodeType( smiNode );
-
+	prefix = getTypePrefix( smiType );
+	
 	fprintSegment( f, indent, "<xsd:element", 0 );
 	fprint( f, " name=\"%s\"", smiNode->name );
+       
 	if( smiType->basetype == SMI_BASETYPE_BITS ) {
 	    fprint( f, " type=\"%%s%s\"",
 		    smiNode->name,
 		    getStringBasetype( smiType->basetype ) );
 	}
 	else {
-	    fprint( f, " type=\"%s\"",
-		    getStringBasetype( smiType->basetype ) );
+	    SmiModule *typeModule = smiGetTypeModule( smiType );
+	    if( prefix ) {
+		fprint( f, " type=\"%s:%s\"",
+			prefix,
+			getStringBasetype( smiType->basetype ) );
+	    }
+	    else {
+		fprint( f, " type=\"%s\"",
+			getStringBasetype( smiType->basetype ) );
+	    }
 	}
 	fprint( f, " minOccurs=\"0\">\n" );
 	
@@ -691,7 +724,7 @@ static void fprintNodes(FILE *f, SmiModule *smiModule)
 	if( oidlen >= iterNode->oidlen ) {
 	    /* skip child nodes here */
 	    oidlen = iterNode->oidlen;
-	    fprintComplexType( f, 2 * INDENT, iterNode, DXSD_MIBPREFIX );
+	    fprintComplexType( f, INDENT, iterNode, DXSD_MIBPREFIX );
 	}
     }
 }
@@ -779,6 +812,25 @@ static void fprintImports( FILE *f, smiModule *smiModule )
     
 }
 #endif 0
+
+static void registerType( char *type, char *module )
+{
+    if( typePrefixes ) {
+	typePrefixes = realloc( typePrefixes,
+				++numTypes * sizeof( TypePrefix ) );
+    }
+    else {
+	/* typelist empty -->  create it */
+	typePrefixes = malloc( sizeof( TypePrefix ) );
+	numTypes = 1;
+    }
+    if( typePrefixes ) {
+	typePrefixes[ numTypes - 1 ].type = type;
+	typePrefixes[ numTypes - 1 ].prefix = module;
+    }
+}
+
+
 static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
 {
     SmiImport *iterImp;
@@ -798,7 +850,7 @@ static void fprintSchemaDef( FILE *f, SmiModule *smiModule )
     for( iterImp = smiGetFirstImport( smiModule );
 	 iterImp;
 	 iterImp = smiGetNextImport( iterImp ) ) {
-
+	registerType( iterImp->name, iterImp->module );
 	/* assume imports to be ordered by module names */
 	if( strcmp( iterImp->module, lastModName ) ) {
 	    fprint( f, "            xmlns:%s=\"%s%s.xsd\"\n",
