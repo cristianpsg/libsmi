@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.31 2001/11/09 15:29:23 schoenw Exp $
+# @(#) $Id: Makefile.am,v 1.32 2002/05/31 17:22:13 bunkus Exp $
 #
 
 INCLUDES		= -I../lib
@@ -31,7 +31,7 @@ smilint_SOURCES		= smilint.c shhopt.c
 smilint_LDADD		= ../lib/libsmi.la
 
 smidump_SOURCES		= smidump.c smidump.h shhopt.c \
-			  dump-sming.c dump-smi.c \
+			  dump-sming.c dump-smi.c dump-smiv3.c \
 			  dump-imports.c dump-types.c dump-tree.c \
 			  dump-mosy.c dump-corba.c dump-netsnmp.c \
 			  dump-jax.c dump-xml.c dump-identifiers.c \
