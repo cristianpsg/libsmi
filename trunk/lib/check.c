@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.49 2003/04/30 10:39:32 strauss Exp $
+ * @(#) $Id: check.c,v 1.50 2003/06/16 15:17:42 schoenw Exp $
  */
 
 #include <config.h>
@@ -1655,7 +1655,7 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 	addObjectFlags(memberPtr, FLAG_INCOMPLIANCE);
 	if (memberPtr->export.status > compliance->export.status) {
 	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_GROUP_STATUS,
-				compliance->line,
+				((Option *) listPtr->ptr)->line,
 				status[compliance->export.status],
 				compliance->export.name,
 				status[memberPtr->export.status],
@@ -1689,14 +1689,14 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 
 	if (! groupListPtr) {
 	    smiPrintErrorAtLine(parser, ERR_REFINEMENT_NOT_LISTED,
-				compliance->line,
+				((Refinement *) listPtr->ptr)->line,
 				memberPtr->export.name);
 	}
 		
 	addObjectFlags(memberPtr, FLAG_INCOMPLIANCE);
 	if (memberPtr->export.status > compliance->export.status) {
 	    smiPrintErrorAtLine(parser, ERR_COMPLIANCE_OBJECT_STATUS,
-				compliance->line,
+				((Refinement *) listPtr->ptr)->line,
 				status[compliance->export.status],
 				compliance->export.name,
 				status[memberPtr->export.status],
