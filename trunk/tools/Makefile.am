@@ -39,7 +39,7 @@ smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  dump-perl.c dump-scli.c dump-xsd.c dump-sppi.c \
 			  dump-sizes.c dump-svg.c
 #			  dump-fig.c dump-smiv3.c 
-smidump_LDADD		= ../lib/libsmi.la
+smidump_LDADD		= ../lib/libsmi.la -lm
 
 smidiff_SOURCES		= smidiff.c shhopt.c
 smidiff_LDADD		= ../lib/libsmi.la
