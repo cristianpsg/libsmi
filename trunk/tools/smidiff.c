@@ -10,7 +10,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.18 2001/10/17 11:47:00 tklie Exp $	 
+ * @(#) $Id: smidiff.c,v 1.19 2001/10/18 09:15:09 tklie Exp $	 
  */
 
 #include <stdlib.h>
@@ -102,6 +102,11 @@ typedef struct Error {
 #define ERR_NODEKIND_CHANGED		60
 #define ERR_INDEXKIND_CHANGED           61
 #define ERR_INDEX_CHANGED               62
+#define ERR_PREVIOUS_DEFINITION_TEXT    63
+#define ERR_TYPE_IS_AND_WAS             64
+#define ERR_RANGE_IS_AND_WAS            65
+#define ERR_RANGE_IS                    66
+#define ERR_RANGE_WAS                   67
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -119,11 +124,11 @@ static Error errors[] = {
     { 5, ERR_DECL_CHANGED, "decl-changed",
       "declaration changed for `%s'" },
     { 5, ERR_STATUS_CHANGED, "status-changed",
-      "status changed for `%s'" },
+      "legal status change from `%s' to `%s' for `%s'" },
     { 6, ERR_PREVIOUS_DEFINITION, "previous-definition",
       "previous definition of `%s'" },
     { 2, ERR_ILLEGAL_STATUS_CHANGE, "status-change-error",
-      "illegal status change for `%s'" },
+      "illegal status change from `%s' to `%s' for `%s'" },
     { 5, ERR_DESCR_ADDED, "description-added",
       "description added to `%s'" },
     { 2, ERR_DESCR_REMOVED, "description-removed",
@@ -165,11 +170,11 @@ static Error errors[] = {
     { 3, ERR_FROM_IMPLICIT, "from-implicit",
       "type `%s' replaces implicit type for `%s'" },
     { 3, ERR_RANGE_ADDED, "range-added",
-      "range added to `%s'" },
+      "range added to type used in `%s'" },
     { 3, ERR_RANGE_REMOVED, "range-removed",
-      "range removed from `%s'" },
+      "range removed from type used in `%s'" },
     { 3, ERR_RANGE_CHANGED, "range-changed",
-      "range of `%s' changed from `%d..%d' to `%d..%d'" },
+      "range of type used in `%s' changed" }, 
     { 3, ERR_DEFVAL_ADDED, "defval-added",
       "default value added to `%s'" },
     { 3, ERR_DEFVAL_REMOVED, "defval-removed",
@@ -190,7 +195,7 @@ static Error errors[] = {
       "contact of `%s' changed" },
     { 3, ERR_SMIVERSION_CHANGED, "smi-version-changed",
       "SMI version changed" },
-    { 3, ERR_REVISION_ADDED, "revision-added",
+    { 5, ERR_REVISION_ADDED, "revision-added",
       "revision `%s' added" },
     { 3, ERR_REVISION_REMOVED, "revision-removed",
       "revision `%s' removed" },
@@ -222,6 +227,16 @@ static Error errors[] = {
       "changed kind of index in node `%s'" },
     { 2, ERR_INDEX_CHANGED, "index-changed",
       "index of node `%s' changed" },
+    { 6, ERR_PREVIOUS_DEFINITION_TEXT, "previous-defininition",
+      "previous definition of %s `%s'" },
+    { 6, ERR_TYPE_IS_AND_WAS, "type-is-and-was",
+      "type changed from %s to %s" },
+    { 6, ERR_RANGE_IS_AND_WAS, "range-is-and-was",
+      "range changed from `%d..%d' to `%d..%d'" },
+    { 6, ERR_RANGE_IS, "range-is",
+      "range `%d..%d' added" },
+    { 6, ERR_RANGE_WAS, "range-was",
+      "range `%d..%d' removed" },
     { 0, 0, NULL, NULL }
 };
 
@@ -388,6 +403,35 @@ checkDecl(SmiModule *oldModule, int oldLine,
 }
 
 
+static char*
+getStatusStr(SmiStatus status)
+{
+    char *statStr;
+    
+    switch( status ) {
+    case SMI_STATUS_CURRENT:
+	statStr = "current";
+	break;
+    case SMI_STATUS_DEPRECATED:
+	statStr = "deprecated";
+	break;
+    case SMI_STATUS_OBSOLETE:
+	statStr = "obsolete";
+	break;
+    case SMI_STATUS_MANDATORY:
+	statStr = "mandatoy";
+	break;
+    case SMI_STATUS_OPTIONAL:
+	statStr = "optional";
+	break;
+    case SMI_STATUS_UNKNOWN:
+    default:
+	statStr = "unknown";
+	break;
+    }
+    return statStr;
+}
+
 
 static void
 checkStatus(SmiModule *oldModule, int oldLine,
@@ -403,15 +447,16 @@ checkStatus(SmiModule *oldModule, int oldLine,
 		 || newStatus == SMI_STATUS_OBSOLETE)))
 	   || ((oldStatus == SMI_STATUS_DEPRECATED
 		&& newStatus == SMI_STATUS_OBSOLETE)))) {
-	printErrorAtLine(newModule, ERR_ILLEGAL_STATUS_CHANGE,
-			 newLine, name);
+	printErrorAtLine(newModule, ERR_ILLEGAL_STATUS_CHANGE, newLine,
+			 getStatusStr( oldStatus ), getStatusStr( newStatus ),
+			 name);
 	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			 oldLine, name);
 	return;
     }
 
-    printErrorAtLine(newModule, ERR_STATUS_CHANGED,
-		     newLine, name);
+    printErrorAtLine(newModule, ERR_STATUS_CHANGED, newLine,
+		     getStatusStr(oldStatus), getStatusStr(newStatus), name);
     printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 		     oldLine, name);
 }
@@ -461,8 +506,8 @@ checkDescription(SmiModule *oldModule, int oldLine,
     if (oldDescr && newDescr && diffStrings(oldDescr, newDescr)) {
 	printErrorAtLine(newModule, ERR_DESCR_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION_TEXT,
+			 oldLine, "description of module", name);
     }
 }
 
@@ -608,39 +653,98 @@ cmpSmiValues( SmiValue a, SmiValue b )
     return changed;
 }
 
-  
+
+static char*
+getTypeName(SmiType *smiType)
+{
+    char* name;
+    
+    if( smiType->name ) {
+	if( name ) {
+	    SmiModule *smiModule = smiGetTypeModule( smiType );
+	    if( smiModule ) {
+		if( smiModule->path ) {
+		    name = (char *)malloc( strlen( smiType->name ) +
+					   strlen( smiModule->path ) + 4 );
+		    sprintf( name, "`%s:%s'",
+			     smiModule->path, smiType->name );
+		}
+		else {
+		    name = (char *)malloc( strlen( smiType->name ) + 3 );
+		    sprintf( name, "`%s'", smiType->name );
+		}
+	    }
+	    else {
+		name = (char *)malloc( strlen( smiType->name ) + 3 );
+		sprintf( name, "`%s'", smiType->name );
+	    }
+	}
+    }
+    else {
+	name = strdup( "implicit" );
+    }
+    return name;
+}
 
 static void
-checkRanges(SmiModule *oldModule, int oldLine,
+printTypeImportChain(SmiType *oldType, SmiType *oldTwR,
+		     SmiType *newType, SmiType *newTwR)
+{
+    char *oldTypeName, *newTypeName;
+
+    smiInit( oldTag );
+    oldTypeName = getTypeName( oldType );
+    smiInit( newTag );
+    newTypeName = getTypeName( newType );
+    
+    if( (oldType == oldTwR) && (newType == newTwR) &&
+	(diffStrings( oldTypeName, newTypeName )) ) {
+	printErrorAtLine(smiGetTypeModule( newType ), ERR_TYPE_IS_AND_WAS,
+			 smiGetTypeLine( newType ),
+			 oldTypeName, newTypeName);
+    }
+    else {
+	/* xxx: iterate type import chain */
+    }
+    
+    free( oldTypeName );
+    free( newTypeName );
+}
+
+
+static void
+checkRanges(SmiModule *oldModule, int oldLine, 
 	    SmiModule *newModule, int newLine,
-	    char *name, 
+	    char *name,
 	    SmiType *oldType, SmiType *newType)
 {
     SmiType *oldTwR, *newTwR; /* parent types with ranges */
-
-    if( ! name ) {
-	name = "implicit type";
-    }
-
-
-    
+  
     oldTwR = findTypeWithRange(oldType);
     newTwR = findTypeWithRange(newType);
     
-    /*  The oldModule/newModule, oldLine/newLine are generally not
-	correct for oldTwR and newTwR. This can lead to strange
-	"previous" output. Therfor it is left out here. */
-
     if (!oldTwR && newTwR) {
-	printErrorAtLine(newModule, ERR_RANGE_ADDED, newLine, name);
-    }
-  
-    if (oldTwR && !newTwR) {
-	printErrorAtLine(newModule, ERR_RANGE_REMOVED, newLine, name);
+	char *typeName = getTypeName( newTwR );
+	printErrorAtLine(newModule, ERR_RANGE_ADDED,
+			 newLine, name);
+	printTypeImportChain( oldType, oldTwR, newType, newTwR );
 
+/*
+	printErrorAtLine(newModule, ERR_RANGE_IS,
+			 smiGetTypeLine( newType ),
+			 newRange->minValue.value.integer32,
+			 newRange->maxValue.value.integer32);
+*/
+    }
+    
+    if (oldTwR && !newTwR) {
+	printErrorAtLine( newModule, ERR_RANGE_REMOVED,
+			  newLine, name);
+	printTypeImportChain( oldType, oldTwR, newType, newTwR );
+	
 	
 	if( oldTwR == oldType ) {
-	   
+
 	    printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
 			     oldLine, name);
 	}
@@ -672,16 +776,21 @@ checkRanges(SmiModule *oldModule, int oldLine,
 		    newRange->minValue.value.integer32 ) ||
 		   (oldRange->maxValue.value.integer32 !=
 		    newRange->maxValue.value.integer32)) {
+
 		    
 		    printErrorAtLine(newModule,
 				     ERR_RANGE_CHANGED,
-				     newLine,
-				     name,
-				     oldRange->minValue.value.integer32,
-				     oldRange->maxValue.value.integer32,
-				     newRange->minValue.value.integer32,
-				     newRange->maxValue.value.integer32);
-
+				     smiGetTypeLine( newType ),
+				     name);		  
+		    printErrorAtLine( newModule,
+				      ERR_RANGE_IS_AND_WAS,
+				      smiGetTypeLine( newType ),
+				      oldRange->minValue.value.integer32,
+				      oldRange->maxValue.value.integer32,
+				      newRange->minValue.value.integer32,
+				      newRange->maxValue.value.integer32);
+		    printTypeImportChain( oldType, oldTwR, newType, newTwR );
+		    
 		    /* If the range has been enlarged,
 		       continue comparison after the enlarged range. */
 		    while( oldRange ) {
@@ -699,15 +808,27 @@ checkRanges(SmiModule *oldModule, int oldLine,
 	    else if (oldRange){
 		printErrorAtLine(newModule,
 				 ERR_RANGE_REMOVED,
-				 newLine,
+				 smiGetTypeLine( newTwR ),
 				 name);
+		printErrorAtLine(newModule,
+				 ERR_RANGE_WAS,
+				 smiGetTypeLine( newType ),
+				 oldRange->minValue.value.integer32,
+				 oldRange->maxValue.value.integer32);
+		printTypeImportChain( oldType, oldTwR, newType, newTwR );
 	    }
 
 	    else if( newRange ) {
 		printErrorAtLine(newModule,
 				 ERR_RANGE_ADDED,
-				 newLine,
+				 smiGetTypeLine( newType ),
 				 name);
+		/* we assume that ranges always are specified thru integer32 */
+		printErrorAtLine(newModule,
+				 ERR_RANGE_IS,
+				 smiGetTypeLine( newType ),
+				 newRange->minValue.value.integer32,
+				 newRange->maxValue.value.integer32);
 	    }
 	    
 	    oldRange = smiGetNextRange( oldRange );
@@ -886,6 +1007,7 @@ checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
 		       SmiType *newType)
 {
     int oldLine, newLine;
+    char *oldName;
     
     if (oldType->basetype != newType->basetype) {
 	if( newType->name ) {
@@ -914,12 +1036,13 @@ checkTypeCompatibility(SmiModule *oldModule, SmiNode *oldNode,
 
     oldLine = oldNode ? smiGetNodeLine( oldNode ) : smiGetTypeLine( oldType );
     newLine = newNode ? smiGetNodeLine( newNode ) : smiGetTypeLine( newType );
+    oldName = oldNode ? oldNode->name : "<unnamed>";
     /* Assumption: If xxxNode is null, xxxModule is the module where
        xxxType is defined. Otherwise it is the module where the node
        resides. */
     checkRanges(oldModule, oldLine,
 		newModule, newLine,
-		oldType->name,
+		oldName,
 		oldType,
 		newType);
 }
@@ -1443,8 +1566,8 @@ checkContact(SmiModule *oldModule, int oldLine,
     if (oldContact && newContact && diffStrings(oldContact, newContact)) {
 	printErrorAtLine(newModule, ERR_CONTACT_CHANGED,
 			 newLine, name);
-	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION,
-			 oldLine, name);
+	printErrorAtLine(oldModule, ERR_PREVIOUS_DEFINITION_TEXT,
+			 oldLine, "contact of module", name);
     }
 }
 
@@ -1502,7 +1625,10 @@ diffModules(SmiModule *oldModule, const char *oldTag,
 	    }
 	}
 	if (newRev) {
-	    if (diffStrings(oldRev->description, newRev->description)) {
+	    if ((diffStrings(oldRev->description, newRev->description)) &&
+		diffStrings(
+		    "[Revision added by libsmi due to a LAST-UPDATED clause.]",
+		    oldRev->description)) {
 		printErrorAtLine(newModule, ERR_REVISION_CHANGED,
 				 smiGetRevisionLine(newRev),
 				 getStringTime(newRev->date));
