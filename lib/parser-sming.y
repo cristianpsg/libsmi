@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.y,v 1.69 2001/08/22 17:51:43 strauss Exp $
+ * @(#) $Id: parser-sming.y,v 1.70 2002/04/22 15:09:15 strauss Exp $
  */
 
 %{
@@ -934,6 +934,7 @@ extensionStatement:	extensionKeyword sep lcIdentifier
 			    macroPtr = NULL;
 			    free(macroIdentifier);
 			}
+	;
 
 typedefStatement_stmtsep_0n: /* empty */
 			{
@@ -1053,6 +1054,7 @@ typedefStatement:	typedefKeyword sep ucIdentifier
 			    free(typeIdentifier);
 			    defaultBasetype = SMI_BASETYPE_UNKNOWN;
 			}
+	;
 
 anyObjectStatement_stmtsep_0n: /* empty */
 			{
