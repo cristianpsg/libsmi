@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.86 2000/02/14 17:18:27 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.87 2000/02/14 22:29:04 strauss Exp $
  */
 
 %{
@@ -2164,7 +2164,11 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = typeInteger32Ptr;
 			}
-	|		INTEGER integerSubType
+	|		INTEGER
+			{
+			    defaultBasetype = SMI_BASETYPE_INTEGER32;
+			}
+			integerSubType
 			{
 			    List *p;
 			    
@@ -2174,26 +2178,28 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				 strcmp(thisModulePtr->export.name, "SNMPv2-TC")))
 				printError(thisParserPtr,ERR_INTEGER_IN_SMIV2);
 
-			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    $$ = duplicateType(typeInteger32Ptr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
+			    setTypeList($$, $3);
+			    for (p = $3; p; p = p->nextPtr)
 				((Range *)p->ptr)->typePtr = $$;
 			}
-	|		INTEGER enumSpec
+	|		INTEGER
+			{
+			    defaultBasetype = SMI_BASETYPE_ENUM;
+			}
+			enumSpec
 			{
 			    List *p;
 			    
-			    defaultBasetype = SMI_BASETYPE_ENUM;
 			    $$ = duplicateType(typeEnumPtr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, typeEnumPtr);
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
-			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
+			    setTypeList($$, $3);
+			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
 			}
 	|		INTEGER32		/* (-2147483648..2147483647) */
@@ -2214,12 +2220,15 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    /* TODO: any need to distinguish from INTEGER? */
 			    $$ = typeInteger32Ptr;
 			}
-        |		INTEGER32 integerSubType
+        |		INTEGER32
+			{
+			    defaultBasetype = SMI_BASETYPE_INTEGER32;
+			}
+			integerSubType
 			{
 			    Import *importPtr;
 			    List *p;
 			    
-			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    importPtr = findImportByName("Integer32",
 							 thisModulePtr);
 			    if (importPtr) {
@@ -2232,17 +2241,20 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 
 			    $$ = duplicateType(typeInteger32Ptr, 0, thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
-			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
+			    setTypeList($$, $3);
+			    for (p = $3; p; p = p->nextPtr)
 				((Range *)p->ptr)->typePtr = $$;
 			}
-	|		UPPERCASE_IDENTIFIER enumSpec
+	|		UPPERCASE_IDENTIFIER
+			{
+			    defaultBasetype = SMI_BASETYPE_ENUM;
+			}
+			enumSpec
 			{
 			    Type *parentPtr;
 			    Import *importPtr;
 			    List *p;
 			    
-			    defaultBasetype = SMI_BASETYPE_ENUM;
 			    parentPtr = findTypeByModuleAndName(
 			        thisParserPtr->modulePtr, $1);
 			    if (!parentPtr) {
@@ -2280,8 +2292,8 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 				setTypeParent($$, parentPtr);
 			    }
 			    setTypeBasetype($$, SMI_BASETYPE_ENUM);
-			    setTypeList($$, $2);
-			    for (p = $2; p; p = p->nextPtr)
+			    setTypeList($$, $3);
+			    for (p = $3; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = $$;
 			}
 	|		moduleName '.' UPPERCASE_IDENTIFIER enumSpec
@@ -2421,17 +2433,20 @@ SimpleSyntax:		INTEGER			/* (-2147483648..2147483647) */
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    $$ = typeOctetStringPtr;
 			}
-	|		OCTET STRING octetStringSubType
+	|		OCTET STRING
+			{
+			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
+			}
+			octetStringSubType
 			{
 			    List *p;
 			    
-			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    $$ = duplicateType(typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeDecl($$, SMI_DECL_IMPLICIT_TYPE);
 			    setTypeParent($$, typeOctetStringPtr);
-			    setTypeList($$, $3);
-			    for (p = $3; p; p = p->nextPtr)
+			    setTypeList($$, $4);
+			    for (p = $4; p; p = p->nextPtr)
 				((Range *)p->ptr)->typePtr = $$;
 			}
 	|		UPPERCASE_IDENTIFIER octetStringSubType

@@ -2,11 +2,11 @@
 
 Network Working Group                                         F. Strauss
 Internet-Draft                                           TU Braunschweig
-Expires: March 31, 2000                                     October 1999
+Expires: August 15, 2000                               February 15, 2000
 
 
            SMIng - A new Structure of Management Information
-                        draft-irtf-nmrg-sming-01
+                        draft-irtf-nmrg-sming-02
 
 Status of this Memo
 
@@ -26,7 +26,7 @@ Status of this Memo
    To view the entire list of Internet-Draft Shadow Directories, see
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 31, 2000.
+   This Internet-Draft will expire on August 15, 2000.
 
 Abstract
 
@@ -39,7 +39,7 @@ Abstract
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (1999). All Rights Reserved.
+   Copyright (C) The Internet Society (2000). All Rights Reserved.
 
 
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Strauss                  Expires March 31, 2000                 [Page 1]
+Strauss                 Expires August 15, 2000                 [Page 1]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 Table of Contents
@@ -67,162 +67,162 @@ Table of Contents
    2.2      Object Identifier Hierarchy  . . . . . . . . . . . . . .  10
    2.3      Kinds of Nodes . . . . . . . . . . . . . . . . . . . . .  11
    2.4      Scalar and Columnar Objects' Instances . . . . . . . . .  12
-   3.       Base Types and Derived Types . . . . . . . . . . . . . .  14
-   3.1      OctetString  . . . . . . . . . . . . . . . . . . . . . .  14
-   3.2      ObjectIdentifier . . . . . . . . . . . . . . . . . . . .  15
-   3.3      Integer32  . . . . . . . . . . . . . . . . . . . . . . .  16
-   3.4      Integer64  . . . . . . . . . . . . . . . . . . . . . . .  17
-   3.5      Unsigned32 . . . . . . . . . . . . . . . . . . . . . . .  17
-   3.6      Unsigned64 . . . . . . . . . . . . . . . . . . . . . . .  18
-   3.7      Float32  . . . . . . . . . . . . . . . . . . . . . . . .  19
-   3.8      Float64  . . . . . . . . . . . . . . . . . . . . . . . .  20
-   3.9      Float128 . . . . . . . . . . . . . . . . . . . . . . . .  21
-   3.10     Enumeration  . . . . . . . . . . . . . . . . . . . . . .  22
-   3.11     Bits . . . . . . . . . . . . . . . . . . . . . . . . . .  22
-   3.12     Display Formats  . . . . . . . . . . . . . . . . . . . .  23
-   4.       The SMIng File Structure . . . . . . . . . . . . . . . .  26
-   4.1      Comments . . . . . . . . . . . . . . . . . . . . . . . .  26
-   4.2      Statements and Arguments . . . . . . . . . . . . . . . .  26
-   5.       The module Statement . . . . . . . . . . . . . . . . . .  27
-   5.1      The module's import Statement  . . . . . . . . . . . . .  27
-   5.2      The module's oid Statement . . . . . . . . . . . . . . .  28
-   5.3      The module's organization Statement  . . . . . . . . . .  28
-   5.4      The module's contact Statement . . . . . . . . . . . . .  28
-   5.5      The module's description Statement . . . . . . . . . . .  28
-   5.6      The module's reference Statement . . . . . . . . . . . .  28
-   5.7      The module's revision Statement  . . . . . . . . . . . .  29
-   5.7.1    The revision's date Statement  . . . . . . . . . . . . .  29
-   5.7.2    The revision's description Statement . . . . . . . . . .  29
-   5.8      Usage Example  . . . . . . . . . . . . . . . . . . . . .  29
-   6.       The extension Statement  . . . . . . . . . . . . . . . .  31
-   6.1      The extension's status Statement . . . . . . . . . . . .  31
-   6.2      The extension's description Statement  . . . . . . . . .  31
-   6.3      The extension's abnf Statement . . . . . . . . . . . . .  31
-   6.4      The extension's reference Statement  . . . . . . . . . .  32
-   7.       The typedef Statement  . . . . . . . . . . . . . . . . .  33
-   7.1      The typedef's type Statement . . . . . . . . . . . . . .  33
-   7.2      The typedef's default Statement  . . . . . . . . . . . .  33
-   7.3      The typedef's format Statement . . . . . . . . . . . . .  33
-   7.4      The typedef's units Statement  . . . . . . . . . . . . .  34
-   7.5      The typedef's status Statement . . . . . . . . . . . . .  34
-   7.6      The typedef's description Statement  . . . . . . . . . .  35
+   3.       Base Types and Derived Types . . . . . . . . . . . . . .  15
+   3.1      OctetString  . . . . . . . . . . . . . . . . . . . . . .  15
+   3.2      ObjectIdentifier . . . . . . . . . . . . . . . . . . . .  16
+   3.3      Integer32  . . . . . . . . . . . . . . . . . . . . . . .  17
+   3.4      Integer64  . . . . . . . . . . . . . . . . . . . . . . .  18
+   3.5      Unsigned32 . . . . . . . . . . . . . . . . . . . . . . .  18
+   3.6      Unsigned64 . . . . . . . . . . . . . . . . . . . . . . .  19
+   3.7      Float32  . . . . . . . . . . . . . . . . . . . . . . . .  20
+   3.8      Float64  . . . . . . . . . . . . . . . . . . . . . . . .  21
+   3.9      Float128 . . . . . . . . . . . . . . . . . . . . . . . .  22
+   3.10     Enumeration  . . . . . . . . . . . . . . . . . . . . . .  23
+   3.11     Bits . . . . . . . . . . . . . . . . . . . . . . . . . .  23
+   3.12     Display Formats  . . . . . . . . . . . . . . . . . . . .  24
+   4.       The SMIng File Structure . . . . . . . . . . . . . . . .  27
+   4.1      Comments . . . . . . . . . . . . . . . . . . . . . . . .  27
+   4.2      Statements and Arguments . . . . . . . . . . . . . . . .  27
+   5.       The module Statement . . . . . . . . . . . . . . . . . .  28
+   5.1      The module's import Statement  . . . . . . . . . . . . .  28
+   5.2      The module's organization Statement  . . . . . . . . . .  29
+   5.3      The module's contact Statement . . . . . . . . . . . . .  29
+   5.4      The module's description Statement . . . . . . . . . . .  29
+   5.5      The module's reference Statement . . . . . . . . . . . .  29
+   5.6      The module's revision Statement  . . . . . . . . . . . .  29
+   5.6.1    The revision's date Statement  . . . . . . . . . . . . .  30
+   5.6.2    The revision's description Statement . . . . . . . . . .  30
+   5.7      The module's identity Statement  . . . . . . . . . . . .  30
+   5.8      Usage Example  . . . . . . . . . . . . . . . . . . . . .  30
+   6.       The extension Statement  . . . . . . . . . . . . . . . .  32
+   6.1      The extension's status Statement . . . . . . . . . . . .  32
+   6.2      The extension's description Statement  . . . . . . . . .  32
+   6.3      The extension's reference Statement  . . . . . . . . . .  32
+   6.4      The extension's abnf Statement . . . . . . . . . . . . .  33
+   7.       The typedef Statement  . . . . . . . . . . . . . . . . .  34
+   7.1      The typedef's type Statement . . . . . . . . . . . . . .  34
+   7.2      The typedef's default Statement  . . . . . . . . . . . .  34
+   7.3      The typedef's format Statement . . . . . . . . . . . . .  34
+   7.4      The typedef's units Statement  . . . . . . . . . . . . .  35
+   7.5      The typedef's status Statement . . . . . . . . . . . . .  35
+   7.6      The typedef's description Statement  . . . . . . . . . .  36
 
 
-Strauss                  Expires March 31, 2000                 [Page 2]
+Strauss                 Expires August 15, 2000                 [Page 2]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
-   7.7      The typedef's reference Statement  . . . . . . . . . . .  35
-   7.8      Usage Examples . . . . . . . . . . . . . . . . . . . . .  35
-   8.       The node Statement . . . . . . . . . . . . . . . . . . .  37
-   8.1      The node's oid Statement . . . . . . . . . . . . . . . .  37
-   8.2      The node's status Statement  . . . . . . . . . . . . . .  37
-   8.3      The node's description Statement . . . . . . . . . . . .  37
-   8.4      The node's reference Statement . . . . . . . . . . . . .  37
-   8.5      Usage Examples . . . . . . . . . . . . . . . . . . . . .  38
-   9.       The scalar Statement . . . . . . . . . . . . . . . . . .  39
-   9.1      The scalar's oid Statement . . . . . . . . . . . . . . .  39
-   9.2      The scalar's type Statement  . . . . . . . . . . . . . .  39
-   9.3      The scalar's access Statement  . . . . . . . . . . . . .  39
-   9.4      The scalar's default Statement . . . . . . . . . . . . .  39
-   9.5      The scalar's format Statement  . . . . . . . . . . . . .  40
-   9.6      The scalar's units Statement . . . . . . . . . . . . . .  40
-   9.7      The scalar's status Statement  . . . . . . . . . . . . .  40
-   9.8      The scalar's description Statement . . . . . . . . . . .  41
-   9.9      The scalar's reference Statement . . . . . . . . . . . .  41
-   9.10     Usage Examples . . . . . . . . . . . . . . . . . . . . .  41
-   10.      The table Statement  . . . . . . . . . . . . . . . . . .  42
-   10.1     The table's oid Statement  . . . . . . . . . . . . . . .  42
-   10.2     The table's status Statement . . . . . . . . . . . . . .  42
-   10.3     The table's description Statement  . . . . . . . . . . .  42
-   10.4     The table's reference Statement  . . . . . . . . . . . .  42
-   10.5     The table's row Statement  . . . . . . . . . . . . . . .  43
-   10.5.1   The row's oid Statement  . . . . . . . . . . . . . . . .  43
-   10.5.2   Table Indexing Statements  . . . . . . . . . . . . . . .  43
-   10.5.2.1 The row's index Statement for Table Indexing . . . . . .  43
-   10.5.2.2 The row's augments Statement for Table Indexing  . . . .  43
-   10.5.2.3 The row's sparse Statement for Table Indexing  . . . . .  44
-   10.5.2.4 The row's reorders Statement for Table Indexing  . . . .  44
-   10.5.2.5 The row's expands Statement for Table Indexing . . . . .  45
-   10.5.3   The row's create Statement . . . . . . . . . . . . . . .  45
-   10.5.4   The row's status Statement . . . . . . . . . . . . . . .  45
-   10.5.5   The row's description Statement  . . . . . . . . . . . .  45
-   10.5.6   The row's reference Statement  . . . . . . . . . . . . .  46
-   10.6     The table row's column Statement . . . . . . . . . . . .  46
-   10.6.1   The column's oid Statement . . . . . . . . . . . . . . .  46
-   10.6.2   The column's type Statement  . . . . . . . . . . . . . .  46
-   10.6.3   The column's access Statement  . . . . . . . . . . . . .  46
-   10.6.4   The column's default Statement . . . . . . . . . . . . .  47
-   10.6.5   The column's format Statement  . . . . . . . . . . . . .  47
-   10.6.6   The column's units Statement . . . . . . . . . . . . . .  47
-   10.6.7   The column's status Statement  . . . . . . . . . . . . .  48
-   10.6.8   The column's description Statement . . . . . . . . . . .  48
-   10.6.9   The column's reference Statement . . . . . . . . . . . .  48
-   10.7     Usage Example  . . . . . . . . . . . . . . . . . . . . .  48
-   11.      The notification Statement . . . . . . . . . . . . . . .  51
-   11.1     The notification's oid Statement . . . . . . . . . . . .  51
+   7.7      The typedef's reference Statement  . . . . . . . . . . .  36
+   7.8      Usage Examples . . . . . . . . . . . . . . . . . . . . .  36
+   8.       The node Statement . . . . . . . . . . . . . . . . . . .  38
+   8.1      The node's oid Statement . . . . . . . . . . . . . . . .  38
+   8.2      The node's status Statement  . . . . . . . . . . . . . .  38
+   8.3      The node's description Statement . . . . . . . . . . . .  38
+   8.4      The node's reference Statement . . . . . . . . . . . . .  38
+   8.5      Usage Examples . . . . . . . . . . . . . . . . . . . . .  39
+   9.       The scalar Statement . . . . . . . . . . . . . . . . . .  40
+   9.1      The scalar's oid Statement . . . . . . . . . . . . . . .  40
+   9.2      The scalar's type Statement  . . . . . . . . . . . . . .  40
+   9.3      The scalar's access Statement  . . . . . . . . . . . . .  40
+   9.4      The scalar's default Statement . . . . . . . . . . . . .  40
+   9.5      The scalar's format Statement  . . . . . . . . . . . . .  41
+   9.6      The scalar's units Statement . . . . . . . . . . . . . .  41
+   9.7      The scalar's status Statement  . . . . . . . . . . . . .  41
+   9.8      The scalar's description Statement . . . . . . . . . . .  42
+   9.9      The scalar's reference Statement . . . . . . . . . . . .  42
+   9.10     Usage Examples . . . . . . . . . . . . . . . . . . . . .  42
+   10.      The table Statement  . . . . . . . . . . . . . . . . . .  43
+   10.1     The table's oid Statement  . . . . . . . . . . . . . . .  43
+   10.2     The table's status Statement . . . . . . . . . . . . . .  43
+   10.3     The table's description Statement  . . . . . . . . . . .  43
+   10.4     The table's reference Statement  . . . . . . . . . . . .  43
+   10.5     The table's row Statement  . . . . . . . . . . . . . . .  44
+   10.5.1   The row's oid Statement  . . . . . . . . . . . . . . . .  44
+   10.5.2   Table Indexing Statements  . . . . . . . . . . . . . . .  44
+   10.5.2.1 The row's index Statement for Table Indexing . . . . . .  44
+   10.5.2.2 The row's augments Statement for Table Indexing  . . . .  44
+   10.5.2.3 The row's sparse Statement for Table Indexing  . . . . .  45
+   10.5.2.4 The row's reorders Statement for Table Indexing  . . . .  45
+   10.5.2.5 The row's expands Statement for Table Indexing . . . . .  46
+   10.5.3   The row's create Statement . . . . . . . . . . . . . . .  46
+   10.5.4   The row's status Statement . . . . . . . . . . . . . . .  46
+   10.5.5   The row's description Statement  . . . . . . . . . . . .  46
+   10.5.6   The row's reference Statement  . . . . . . . . . . . . .  47
+   10.6     The table row's column Statement . . . . . . . . . . . .  47
+   10.6.1   The column's oid Statement . . . . . . . . . . . . . . .  47
+   10.6.2   The column's type Statement  . . . . . . . . . . . . . .  47
+   10.6.3   The column's access Statement  . . . . . . . . . . . . .  47
+   10.6.4   The column's default Statement . . . . . . . . . . . . .  48
+   10.6.5   The column's format Statement  . . . . . . . . . . . . .  48
+   10.6.6   The column's units Statement . . . . . . . . . . . . . .  48
+   10.6.7   The column's status Statement  . . . . . . . . . . . . .  49
+   10.6.8   The column's description Statement . . . . . . . . . . .  49
+   10.6.9   The column's reference Statement . . . . . . . . . . . .  49
+   10.7     Usage Example  . . . . . . . . . . . . . . . . . . . . .  49
+   11.      The notification Statement . . . . . . . . . . . . . . .  52
+   11.1     The notification's oid Statement . . . . . . . . . . . .  52
 
 
-Strauss                  Expires March 31, 2000                 [Page 3]
+Strauss                 Expires August 15, 2000                 [Page 3]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
-   11.2     The notification's objects Statement . . . . . . . . . .  51
-   11.3     The notification's status Statement  . . . . . . . . . .  51
-   11.4     The notification's description Statement . . . . . . . .  52
-   11.5     The notification's reference Statement . . . . . . . . .  52
-   11.6     Usage Example  . . . . . . . . . . . . . . . . . . . . .  52
-   12.      The group Statement  . . . . . . . . . . . . . . . . . .  53
-   12.1     The group's oid Statement  . . . . . . . . . . . . . . .  53
-   12.2     The group's members Statement  . . . . . . . . . . . . .  53
-   12.3     The group's status Statement . . . . . . . . . . . . . .  53
-   12.4     The group's description Statement  . . . . . . . . . . .  53
-   12.5     The group's reference Statement  . . . . . . . . . . . .  54
-   12.6     Usage Example  . . . . . . . . . . . . . . . . . . . . .  54
-   13.      The compliance Statement . . . . . . . . . . . . . . . .  55
-   13.1     The compliance's oid Statement . . . . . . . . . . . . .  55
-   13.2     The compliance's status Statement  . . . . . . . . . . .  55
-   13.3     The compliance's description Statement . . . . . . . . .  55
-   13.4     The compliance's reference Statement . . . . . . . . . .  55
-   13.5     The compliance's mandatory Statement . . . . . . . . . .  55
-   13.6     The compliance's optional Statement  . . . . . . . . . .  56
-   13.6.1   The optional's description Statement . . . . . . . . . .  56
-   13.7     The compliance's refine Statement  . . . . . . . . . . .  56
-   13.7.1   The refine's type Statement  . . . . . . . . . . . . . .  57
-   13.7.2   The refine's writetype Statement . . . . . . . . . . . .  57
-   13.7.3   The refine's access Statement  . . . . . . . . . . . . .  57
-   13.7.4   The refine's description Statement . . . . . . . . . . .  57
-   13.8     Usage Example  . . . . . . . . . . . . . . . . . . . . .  57
-   14.      SMIng Core Modules . . . . . . . . . . . . . . . . . . .  59
-   14.1     IRTF-NMRG-SMING  . . . . . . . . . . . . . . . . . . . .  59
-   14.2     IRTF-NMRG-SMING-TYPES  . . . . . . . . . . . . . . . . .  60
-   14.3     IRTF-NMRG-SMING-EXTENSIONS . . . . . . . . . . . . . . .  79
-   15.      Extending a Module . . . . . . . . . . . . . . . . . . .  82
-   16.      SMIng Language Extensibility . . . . . . . . . . . . . .  84
-   17.      Module Conversions . . . . . . . . . . . . . . . . . . .  86
-   17.1     Converting SMIv2 to SMIng  . . . . . . . . . . . . . . .  86
-   17.2     Converting SMIng to SMIv2  . . . . . . . . . . . . . . .  86
-   17.3     SMIv1  . . . . . . . . . . . . . . . . . . . . . . . . .  86
-   18.      Security Considerations  . . . . . . . . . . . . . . . .  87
-   19.      Acknowledgements . . . . . . . . . . . . . . . . . . . .  88
-            References . . . . . . . . . . . . . . . . . . . . . . .  89
-            Author's Address . . . . . . . . . . . . . . . . . . . .  90
-   A.       The SMIng ABNF grammar . . . . . . . . . . . . . . . . .  91
-   B.       Glossary . . . . . . . . . . . . . . . . . . . . . . . . 103
-
-
-
+   11.2     The notification's objects Statement . . . . . . . . . .  52
+   11.3     The notification's status Statement  . . . . . . . . . .  52
+   11.4     The notification's description Statement . . . . . . . .  53
+   11.5     The notification's reference Statement . . . . . . . . .  53
+   11.6     Usage Example  . . . . . . . . . . . . . . . . . . . . .  53
+   12.      The group Statement  . . . . . . . . . . . . . . . . . .  54
+   12.1     The group's oid Statement  . . . . . . . . . . . . . . .  54
+   12.2     The group's members Statement  . . . . . . . . . . . . .  54
+   12.3     The group's status Statement . . . . . . . . . . . . . .  54
+   12.4     The group's description Statement  . . . . . . . . . . .  54
+   12.5     The group's reference Statement  . . . . . . . . . . . .  55
+   12.6     Usage Example  . . . . . . . . . . . . . . . . . . . . .  55
+   13.      The compliance Statement . . . . . . . . . . . . . . . .  56
+   13.1     The compliance's oid Statement . . . . . . . . . . . . .  56
+   13.2     The compliance's status Statement  . . . . . . . . . . .  56
+   13.3     The compliance's description Statement . . . . . . . . .  56
+   13.4     The compliance's reference Statement . . . . . . . . . .  56
+   13.5     The compliance's mandatory Statement . . . . . . . . . .  56
+   13.6     The compliance's optional Statement  . . . . . . . . . .  57
+   13.6.1   The optional's description Statement . . . . . . . . . .  57
+   13.7     The compliance's refine Statement  . . . . . . . . . . .  57
+   13.7.1   The refine's type Statement  . . . . . . . . . . . . . .  58
+   13.7.2   The refine's writetype Statement . . . . . . . . . . . .  58
+   13.7.3   The refine's access Statement  . . . . . . . . . . . . .  58
+   13.7.4   The refine's description Statement . . . . . . . . . . .  58
+   13.8     Usage Example  . . . . . . . . . . . . . . . . . . . . .  58
+   14.      SMIng Core Modules . . . . . . . . . . . . . . . . . . .  60
+   14.1     IRTF-NMRG-SMING  . . . . . . . . . . . . . . . . . . . .  60
+   14.2     IRTF-NMRG-SMING-TYPES  . . . . . . . . . . . . . . . . .  61
+   14.3     IRTF-NMRG-SMING-EXTENSIONS . . . . . . . . . . . . . . .  80
+   15.      Extending a Module . . . . . . . . . . . . . . . . . . .  83
+   16.      SMIng Language Extensibility . . . . . . . . . . . . . .  85
+   17.      Module Conversions . . . . . . . . . . . . . . . . . . .  87
+   17.1     Converting SMIv2 to SMIng  . . . . . . . . . . . . . . .  87
+   17.2     Converting SMIng to SMIv2  . . . . . . . . . . . . . . .  87
+   17.3     SMIv1  . . . . . . . . . . . . . . . . . . . . . . . . .  87
+   18.      Security Considerations  . . . . . . . . . . . . . . . .  88
+   19.      Acknowledgements . . . . . . . . . . . . . . . . . . . .  89
+            References . . . . . . . . . . . . . . . . . . . . . . .  90
+            Author's Address . . . . . . . . . . . . . . . . . . . .  91
+   A.       The SMIng ABNF grammar . . . . . . . . . . . . . . . . .  92
+   B.       Glossary . . . . . . . . . . . . . . . . . . . . . . . . 104
 
 
 
 
 
 
-Strauss                  Expires March 31, 2000                 [Page 4]
+
+
+
+Strauss                 Expires August 15, 2000                 [Page 4]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 1. Introduction
@@ -276,9 +276,9 @@ Internet-Draft                   SMIng                      October 1999
       This has to be expressed by the SMIng `implied' keyword. See
 
 
-Strauss                  Expires March 31, 2000                 [Page 5]
+Strauss                 Expires August 15, 2000                 [Page 5]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
       Section 10.5 for details. 
@@ -332,9 +332,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                 [Page 6]
+Strauss                 Expires August 15, 2000                 [Page 6]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 2. The Information Model
@@ -388,9 +388,9 @@ Internet-Draft                   SMIng                      October 1999
    managed objects and a compliance statement. Similarly, an
 
 
-Strauss                  Expires March 31, 2000                 [Page 7]
+Strauss                 Expires August 15, 2000                 [Page 7]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    "enterprise-specific" module might include definitions of managed
@@ -444,16 +444,21 @@ Internet-Draft                   SMIng                      October 1999
    definition MUST sequentially precede the reference. Thus, there MUST
 
 
-Strauss                  Expires March 31, 2000                 [Page 8]
+Strauss                 Expires August 15, 2000                 [Page 8]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
-   NOT be any forward references, except in one case: The specification
-   of table indexing objects in a table row may include objects that
-   cannot be defined without the definition of the current table row.
-   Hence table indexing statements are allowed to include forward
-   references. 
+   NOT be any forward references, except in two cases: 
+
+   1.  The optional module's `identity' statement, which is located
+       near the head of a module, specifies an identity node, which is
+       defined in a subsequent section of the local module. 
+
+   2.  The specification of table indexing objects in a table row may
+       include objects that cannot be defined without the definition of
+       the current table row. Hence table indexing statements are
+       allowed to include forward references. 
 
    To reference an item, that is defined in an external module it MUST
    be imported into the local module's namespace (Section 5.1).
@@ -493,18 +498,18 @@ Internet-Draft                   SMIng                      October 1999
       2: joint-iso-ccitt
 
    Note that the renaming of the Commite Consultatif International de
+
+
+Strauss                 Expires August 15, 2000                 [Page 9]
+
+Internet-Draft                   SMIng                     February 2000
+
+
    Telegraphique et Telephonique (CCITT) to International
    Telecommunications Union (ITU) had no consequence on the names used
    in the object identifier tree. 
 
    The root of the subtree administered by the Internet Assigned
-
-
-Strauss                  Expires March 31, 2000                 [Page 9]
-
-Internet-Draft                   SMIng                      October 1999
-
-
    Numbers Authority (IANA) for the Internet is `1.3.6.1' which is
    assigned with the identifier `internet'. That is, the Internet
    subtree of object identifiers starts with the prefix `1.3.6.1.'. 
@@ -549,17 +554,17 @@ Internet-Draft                   SMIng                      October 1999
 
    o  rows, which belong to a table (that is, the table's full object
       identifier is a prefix of the row's object identifier) and
+
+
+Strauss                 Expires August 15, 2000                [Page 10]
+
+Internet-Draft                   SMIng                     February 2000
+
+
       represent a sequence of one or more columnar objects. Those
       columnar objects MUST be the only child nodes of a table row. A
       row's object identifier MUST be constructed by appending a `1'
       sub-identifier to the table's object identifier, 
-
-
-
-Strauss                  Expires March 31, 2000                [Page 10]
-
-Internet-Draft                   SMIng                      October 1999
-
 
    o  columnar objects, which belong to a row (that is, the row's full
       object identifier is a prefix of the columnar objects' object
@@ -605,18 +610,18 @@ Internet-Draft                   SMIng                      October 1999
    form the instance-identifier: 
 
    o  integer-valued or enumeration-valued: a single sub-identifier
+
+
+Strauss                 Expires August 15, 2000                [Page 11]
+
+Internet-Draft                   SMIng                     February 2000
+
+
       taking the integer value (this works only for non-negative
-      integers), 
+      integers and integers of a size of up to 32 bits), 
 
    o  string-valued, fixed-length strings (or variable-length with
       compact encoding): `n' sub-identifiers, where `n' is the length
-
-
-Strauss                  Expires March 31, 2000                [Page 11]
-
-Internet-Draft                   SMIng                      October 1999
-
-
       of the string (each octet of the string is encoded in a separate
       sub-identifier), 
 
@@ -640,13 +645,15 @@ Internet-Draft                   SMIng                      October 1999
    variable-length syntax (e.g., variable-length strings, bits objects
    or object identifier-valued objects). Further, compact encoding can
    only be associated with the last object in a list of indexing
-   objects. Finally, compact encoding may not be used on a
+   objects. Finally, compact encoding MUST NOT be used on a
    variable-length string object if that string might have a value of
    zero-length. 
 
    Instances identified by use of integer-valued or enumeration-valued
    objects are RECOMMENDED to be numbered starting from one (i.e., not
-   from zero). 
+   from zero). Integer objects that allow negative values, Unsigned64
+   objects, Integer64 objects and floating point objects MUST NOT be
+   used for table indexing. 
 
    Objects which are both specified for indexing in a row and also
    columnar objects of the same row are termed auxiliary objects.
@@ -659,6 +666,13 @@ Internet-Draft                   SMIng                      October 1999
       auxiliary object.  In the event that all of a row's columnar
       objects are also specified to be indexing objects then one of
       them MUST be accessible. (Note that this situation does not arise
+
+
+Strauss                 Expires August 15, 2000                [Page 12]
+
+Internet-Draft                   SMIng                     February 2000
+
+
       for a row allowing create access, since such a row will have a
       status column which will not be an auxiliary object.) 
 
@@ -668,9 +682,51 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 12]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Strauss                 Expires August 15, 2000                [Page 13]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 3. Base Types and Derived Types
@@ -724,9 +780,9 @@ Internet-Draft                   SMIng                      October 1999
    size range consists of a lower bound, two consecutive dots `..' and
 
 
-Strauss                  Expires March 31, 2000                [Page 13]
+Strauss                 Expires August 15, 2000                [Page 14]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    an upper bound. Each value can be given in decimal or `0x'-prefixed
@@ -780,9 +836,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 14]
+Strauss                 Expires August 15, 2000                [Page 15]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
      0                           // legal single subid
@@ -836,9 +892,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 15]
+Strauss                 Expires August 15, 2000                [Page 16]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 3.4 Integer64
@@ -892,9 +948,9 @@ Internet-Draft                   SMIng                      October 1999
    but lower-case characters are RECOMMENDED. 
 
 
-Strauss                  Expires March 31, 2000                [Page 16]
+Strauss                 Expires August 15, 2000                [Page 17]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    When defining a type derived (directly or indirectly) from the
@@ -948,9 +1004,9 @@ Internet-Draft                   SMIng                      October 1999
    splitting ranges into multiple ranges with intermediate gaps. 
 
 
-Strauss                  Expires March 31, 2000                [Page 17]
+Strauss                 Expires August 15, 2000                [Page 18]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    Value Examples: 
@@ -1004,9 +1060,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 18]
+Strauss                 Expires August 15, 2000                [Page 19]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
      00.1                       // illegal leading zero
@@ -1060,9 +1116,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 19]
+Strauss                 Expires August 15, 2000                [Page 20]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
      00.1                       // illegal leading zero
@@ -1116,9 +1172,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 20]
+Strauss                 Expires August 15, 2000                [Page 21]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
      00.1                       // illegal leading zero
@@ -1172,9 +1228,9 @@ Internet-Draft                   SMIng                      October 1999
    denoted as a decimal or `0x'-prefixed hexadecimal number, enclosed
 
 
-Strauss                  Expires March 31, 2000                [Page 21]
+Strauss                 Expires August 15, 2000                [Page 22]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    in parenthesis. Every name and every number in a bits type MUST be
@@ -1228,9 +1284,9 @@ Internet-Draft                   SMIng                      October 1999
    the format consists of one or more octet-format specifications. 
 
 
-Strauss                  Expires March 31, 2000                [Page 22]
+Strauss                 Expires August 15, 2000                [Page 23]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    Each specification consists of five parts, with each part using and
@@ -1284,9 +1340,9 @@ Internet-Draft                   SMIng                      October 1999
    Output of a display separator character or a repeat terminator
 
 
-Strauss                  Expires March 31, 2000                [Page 23]
+Strauss                 Expires August 15, 2000                [Page 24]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    character is suppressed if it would occur as the last character of
@@ -1340,9 +1396,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 24]
+Strauss                 Expires August 15, 2000                [Page 25]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 4. The SMIng File Structure
@@ -1396,29 +1452,28 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 25]
+Strauss                 Expires August 15, 2000                [Page 26]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 5. The module Statement
 
    The `module' statement is used as a container of all definitions of
-   a single SMIng MIB module. It gets three arguments: an upper-case
-   module name, a lower-case module identifier associated with the
-   module's object identifier and a statement block that contains
-   mandatory and optional statements and sections of statements in an
-   obligatory order: 
+   a single SMIng MIB module. It gets two arguments: an upper-case
+   module name and a statement block that contains mandatory and
+   optional statements and sections of statements in an obligatory
+   order: 
 
-           module <MODULE-NAME> <moduleIdentifier> {
+           module <MODULE-NAME> {
 
                <optional import statements>
-               <oid statement>
                <organization statement>
                <contact statement>
                <description statement>
                <optional reference statement>
                <at least one revision statement>
+               <optional identity statement>
 
                <optional extension statements>
 
@@ -1435,10 +1490,10 @@ Internet-Draft                   SMIng                      October 1999
            };
 
    The optional `import' statements are followed by the mandatory
-   `oid', `organization', `contact', and `description' statements and
-   the optional `reference' statement, which in turn are followed by
-   the mandatory `revision' statements. This part defines the module's
-   meta information while the following sections contain its main
+   `organization', `contact', and `description' statements and the
+   optional `reference' statement, which in turn are followed by the
+   mandatory `revision' statements. This part defines the module's meta
+   information while the following sections contain its main
    definitions. 
 
    See the `moduleStatement' rule of the SMIng grammar (Appendix A) for
@@ -1450,14 +1505,13 @@ Internet-Draft                   SMIng                      October 1999
    descriptors from external modules into the local module's namespace.
    It gets two arguments: the name of the external module and a
    comma-separated list of one or more identifiers to be imported
-
-
-Strauss                  Expires March 31, 2000                [Page 26]
-
-Internet-Draft                   SMIng                      October 1999
-
-
    enclosed in parenthesis. 
+
+
+Strauss                 Expires August 15, 2000                [Page 27]
+
+Internet-Draft                   SMIng                     February 2000
+
 
    Multiple `import' statements for the same module but with disjunct
    lists of identifiers are allowed, though NOT RECOMMENDED. Anyhow,
@@ -1471,19 +1525,13 @@ Internet-Draft                   SMIng                      October 1999
    See the `importStatement' rule of the SMIng grammar (Appendix A) for
    the formal syntax of the `import' statement. 
 
-5.2 The module's oid Statement
-
-   The module's `oid' statement, which must be present, gets one
-   argument which specifies the object identifier value that is
-   assigned to the local module. 
-
-5.3 The module's organization Statement
+5.2 The module's organization Statement
 
    The module's `organization' statement, which must be present, gets
    one argument which is used to specify a textual description of the
    organization(s) under whose auspices this module was developed. 
 
-5.4 The module's contact Statement
+5.3 The module's contact Statement
 
    The module's `contact' statement, which must be present, gets one
    argument which is used to specify the name, postal address,
@@ -1491,13 +1539,13 @@ Internet-Draft                   SMIng                      October 1999
    technical queries concerning this revision of this module should be
    sent. 
 
-5.5 The module's description Statement
+5.4 The module's description Statement
 
    The module's `description' statement, which must be present, gets
    one argument which is used to specify a high-level textual
    description of the contents of this module. 
 
-5.6 The module's reference Statement
+5.5 The module's reference Statement
 
    The module's `reference' statement, which need not be present, gets
    one argument which is used to specify a textual cross-reference to
@@ -1505,15 +1553,7 @@ Internet-Draft                   SMIng                      October 1999
    management information, or some other document which provides
    additional information relevant to this module. 
 
-
-
-
-Strauss                  Expires March 31, 2000                [Page 27]
-
-Internet-Draft                   SMIng                      October 1999
-
-
-5.7 The module's revision Statement
+5.6 The module's revision Statement
 
    The module's `revision' statement is repeatedly used to specify the
    editorial revisions of the module, including the initial revision.
@@ -1523,10 +1563,16 @@ Internet-Draft                   SMIng                      October 1999
    MUST be added in front of the revisions sequence, so that all
    revisions are in reverse chronological order. 
 
+
+Strauss                 Expires August 15, 2000                [Page 28]
+
+Internet-Draft                   SMIng                     February 2000
+
+
    See the `revisionStatement' rule of the SMIng grammar (Appendix A)
    for the formal syntax of the `revision' statement. 
 
-5.7.1 The revision's date Statement
+5.6.1 The revision's date Statement
 
    The revision's `date' statement, which must be present, gets one
    argument which is used to specify the date and time of the revision
@@ -1536,22 +1582,26 @@ Internet-Draft                   SMIng                      October 1999
    See the `date' rule of the SMIng grammar (Appendix A) for the formal
    syntax of the revision's `date' statement. 
 
-5.7.2 The revision's description Statement
+5.6.2 The revision's description Statement
 
    The revision's `description' statement, which must be present, gets
    one argument which is used to specify a high-level textual
    description of the revision. 
 
+5.7 The module's identity Statement
+
+   The module's `identity' statement, which need not be present, gets
+   one argument which specifies a node identifier within the local
+   module, so that the object identifier of this node can be used to
+   identify the module. 
+
 5.8 Usage Example
 
    Consider how a skeletal MIB module might be constructed: e.g., 
 
-   module FIZBIN-MIB fizbin {
+   module FIZBIN-MIB {
 
      import IRTF-NMRG-SMING (experimental);
-
-     oid               experimental.xx;
-                       // contact IANA for actual number
 
      organization
                "IETF SNMPv2 Working Group,
@@ -1562,18 +1612,18 @@ Internet-Draft                   SMIng                      October 1999
 
                 Postal: TU Braunschweig
                         Bueltenweg 74/75
-
-
-Strauss                  Expires March 31, 2000                [Page 28]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                         38106 Braunschweig
                         DE
 
                  Phone: +49 531 391-3266
                  EMail: strauss@ibr.cs.tu-bs.de";
+
+
+
+Strauss                 Expires August 15, 2000                [Page 29]
+
+Internet-Draft                   SMIng                     February 2000
+
 
      description
                "The MIB module for entities implementing
@@ -1599,6 +1649,8 @@ Internet-Draft                   SMIng                      October 1999
                 published in RFC 1442.";
      };
 
+     identity fizbin;
+
      // ... further definitions ...
 
    }; // end of module FIZBIN-MIB.
@@ -1620,9 +1672,13 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 29]
+
+
+
+
+Strauss                 Expires August 15, 2000                [Page 30]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 6. The extension Statement
@@ -1671,16 +1727,24 @@ Internet-Draft                   SMIng                      October 1999
    It is RECOMMENDED to include information on the extension's context,
    its semantics, and implementation conditions. See also Section 16. 
 
-6.3 The extension's abnf Statement
+6.3 The extension's reference Statement
+
+   The extension's `reference' statement, which need not be present,
+
+
+Strauss                 Expires August 15, 2000                [Page 31]
+
+Internet-Draft                   SMIng                     February 2000
+
+
+   gets one argument which is used to specify a textual cross-reference
+   to some other document, either another module which defines related
+   extension definitions, or some other document which provides
+   additional information relevant to this extension. 
+
+6.4 The extension's abnf Statement
 
    The extension's `abnf' statement, which need not be present, gets
-
-
-Strauss                  Expires March 31, 2000                [Page 30]
-
-Internet-Draft                   SMIng                      October 1999
-
-
    one argument which is used to specify a formal ABNF [8] grammar
    definition of the extension. 
 
@@ -1691,13 +1755,6 @@ Internet-Draft                   SMIng                      October 1999
    are itself enclosed in double quotes. So they have to be replaced by
    single quotes. 
 
-6.4 The extension's reference Statement
-
-   The extension's `reference' statement, which need not be present,
-   gets one argument which is used to specify a textual cross-reference
-   to some other document, either another module which defines related
-   extension definitions, or some other document which provides
-   additional information relevant to this extension. 
 
 
 
@@ -1731,10 +1788,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-
-Strauss                  Expires March 31, 2000                [Page 31]
+Strauss                 Expires August 15, 2000                [Page 32]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 7. The typedef Statement
@@ -1788,9 +1844,9 @@ Internet-Draft                   SMIng                      October 1999
    the `type' statement.  On the other hand, the format specification
 
 
-Strauss                  Expires March 31, 2000                [Page 32]
+Strauss                 Expires August 15, 2000                [Page 33]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    of a type may be overwritten by a format specification of an object
@@ -1844,9 +1900,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 33]
+Strauss                 Expires August 15, 2000                [Page 34]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 7.6 The typedef's description Statement
@@ -1900,9 +1956,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 34]
+Strauss                 Expires August 15, 2000                [Page 35]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
      typedef RptrOperStatus {
@@ -1956,9 +2012,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 35]
+Strauss                 Expires August 15, 2000                [Page 36]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 8. The node Statement
@@ -2012,9 +2068,9 @@ Internet-Draft                   SMIng                      October 1999
    some other document, either another module which defines related
 
 
-Strauss                  Expires March 31, 2000                [Page 36]
+Strauss                 Expires August 15, 2000                [Page 37]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    nodes, or some other document which provides additional information
@@ -2068,9 +2124,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 37]
+Strauss                 Expires August 15, 2000                [Page 38]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 9. The scalar Statement
@@ -2124,9 +2180,9 @@ Internet-Draft                   SMIng                      October 1999
    the value is a "hint" to implementors. 
 
 
-Strauss                  Expires March 31, 2000                [Page 38]
+Strauss                 Expires August 15, 2000                [Page 39]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    The value of the `default' statement must, of course, correspond to
@@ -2180,9 +2236,9 @@ Internet-Draft                   SMIng                      October 1999
    also indicates an obsolete definition, it permits new/continued
 
 
-Strauss                  Expires March 31, 2000                [Page 39]
+Strauss                 Expires August 15, 2000                [Page 40]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    implementation in order to foster interoperability with
@@ -2236,9 +2292,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 40]
+Strauss                 Expires August 15, 2000                [Page 41]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 10. The table Statement
@@ -2292,9 +2348,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 41]
+Strauss                 Expires August 15, 2000                [Page 42]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 10.5 The table's row Statement
@@ -2348,9 +2404,9 @@ Internet-Draft                   SMIng                      October 1999
    Further, instances of subordinate columnar objects of a row
 
 
-Strauss                  Expires March 31, 2000                [Page 42]
+Strauss                 Expires August 15, 2000                [Page 43]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    augmentation exist according to the same semantics as instances of
@@ -2404,9 +2460,9 @@ Internet-Draft                   SMIng                      October 1999
    deletion operations. 
 
 
-Strauss                  Expires March 31, 2000                [Page 43]
+Strauss                 Expires August 15, 2000                [Page 44]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 10.5.2.5 The row's expands Statement for Table Indexing
@@ -2460,9 +2516,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 44]
+Strauss                 Expires August 15, 2000                [Page 45]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 10.5.6 The row's reference Statement
@@ -2516,9 +2572,9 @@ Internet-Draft                   SMIng                      October 1999
    These values are ordered, from least to greatest access level:
 
 
-Strauss                  Expires March 31, 2000                [Page 45]
+Strauss                 Expires August 15, 2000                [Page 46]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    `noaccess', `notifyonly', `readonly', `readwrite'. 
@@ -2572,9 +2628,9 @@ Internet-Draft                   SMIng                      October 1999
    specifications without implementing format specifications. 
 
 
-Strauss                  Expires March 31, 2000                [Page 46]
+Strauss                 Expires August 15, 2000                [Page 47]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 10.6.7 The column's status Statement
@@ -2628,9 +2684,9 @@ Internet-Draft                   SMIng                      October 1999
                "The index number of the first unassigned entry in the
 
 
-Strauss                  Expires March 31, 2000                [Page 47]
+Strauss                 Expires August 15, 2000                [Page 48]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
                 evaluation table, or the value of zero indicating that
@@ -2684,9 +2740,9 @@ Internet-Draft                   SMIng                      October 1999
            oid         evalEntry.3;
 
 
-Strauss                  Expires March 31, 2000                [Page 48]
+Strauss                 Expires August 15, 2000                [Page 49]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
            type        Integer32;
@@ -2740,9 +2796,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 49]
+Strauss                 Expires August 15, 2000                [Page 50]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 11. The notification Statement
@@ -2796,9 +2852,9 @@ Internet-Draft                   SMIng                      October 1999
    implied. 
 
 
-Strauss                  Expires March 31, 2000                [Page 50]
+Strauss                 Expires August 15, 2000                [Page 51]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 11.4 The notification's description Statement
@@ -2852,9 +2908,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 51]
+Strauss                 Expires August 15, 2000                [Page 52]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 12. The group Statement
@@ -2908,9 +2964,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 52]
+Strauss                 Expires August 15, 2000                [Page 53]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 12.5 The group's reference Statement
@@ -2964,9 +3020,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 53]
+Strauss                 Expires August 15, 2000                [Page 54]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 13. The compliance Statement
@@ -3020,9 +3076,9 @@ Internet-Draft                   SMIng                      October 1999
    one or more groups (Section 12) of objects and/or notifications
 
 
-Strauss                  Expires March 31, 2000                [Page 54]
+Strauss                 Expires August 15, 2000                [Page 55]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    enclosed in parenthesis. These groups are unconditionally mandatory
@@ -3076,9 +3132,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 55]
+Strauss                 Expires August 15, 2000                [Page 56]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    See the `refineStatement' rule of the SMIng grammar (Appendix A) for
@@ -3132,9 +3188,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 56]
+Strauss                 Expires August 15, 2000                [Page 57]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
      compliance snmpBasicCompliance {
@@ -3188,9 +3244,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 57]
+Strauss                 Expires August 15, 2000                [Page 58]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 14. SMIng Core Modules
@@ -3221,17 +3277,14 @@ Internet-Draft                   SMIng                      October 1999
 
 14.1 IRTF-NMRG-SMING
 
-   module IRTF-NMRG-SMING irtfNmrgSming {
+   module IRTF-NMRG-SMING {
 
    //
    // $RCSfile: IRTF-NMRG-SMING,v $
-   // $Revision: 1.1.1.1 $
+   // $Revision: 1.2 $
    // $Author: strauss $
-   // $Date: 1999/10/20 10:47:15 $
+   // $Date: 2000/02/13 22:11:43 $
    //
-
-       oid             1.3.6.1.3.1575.1.8;
-                       // experimental.1575.1.8
 
        organization    "IRTF Network Management Research Group (NMRG),
                         Network Management Group, TU Braunschweig";
@@ -3243,22 +3296,26 @@ Internet-Draft                   SMIng                      October 1999
                                 38106 Braunschweig
                                 Germany
 
-
-Strauss                  Expires March 31, 2000                [Page 58]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                          Phone: +49 531 391-3266
                          EMail: strauss@ibr.cs.tu-bs.de";
 
+
+Strauss                 Expires August 15, 2000                [Page 59]
+
+Internet-Draft                   SMIng                     February 2000
+
+
        description     "Core node definitions for SMIng.";
+
+       revision {
+           date        "2000-02-13";
+           description "SMIng grammar dropped module identity objects.";
+       };
 
        revision {
            date        "1999-05-07";
            description "Initial Revision.";
        };
-
 
        node ccitt                          { oid 0;                };
 
@@ -3290,23 +3347,21 @@ Internet-Draft                   SMIng                      October 1999
 
 14.2 IRTF-NMRG-SMING-TYPES
 
-   module IRTF-NMRG-SMING-TYPES irtfNmrgSmingTypes {
+   module IRTF-NMRG-SMING-TYPES {
 
    //
    // $RCSfile: IRTF-NMRG-SMING-TYPES,v $
-   // $Revision: 1.1.1.1 $
+   // $Revision: 1.3 $
    // $Author: strauss $
-   // $Date: 1999/10/20 10:47:15 $
-   //
+   // $Date: 2000/02/13 22:11:43 $
 
 
-Strauss                  Expires March 31, 2000                [Page 59]
+Strauss                 Expires August 15, 2000                [Page 60]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
-       oid             1.3.6.1.3.1575.1.9;
-                       // experimental.1575.1.9
+   //
 
        organization    "IRTF Network Management Research Group (NMRG),
                         Network Management Group, TU Braunschweig";
@@ -3324,10 +3379,14 @@ Internet-Draft                   SMIng                      October 1999
        description     "Core type definitions for SMIng.";
 
        revision {
+           date        "2000-02-13";
+           description "SMIng grammar dropped module identity objects.";
+       };
+
+       revision {
            date        "1999-05-07";
            description "Initial Revision.";
        };
-
 
        typedef Gauge32 {
            type        Unsigned32;
@@ -3351,16 +3410,16 @@ Internet-Draft                   SMIng                      October 1999
                become `stuck' at its maximum or minimum value.)";
            reference
               "RFC 2578, Sections 2. and 7.1.7.";
+
+
+Strauss                 Expires August 15, 2000                [Page 61]
+
+Internet-Draft                   SMIng                     February 2000
+
+
        };
 
        typedef Counter32 {
-
-
-Strauss                  Expires March 31, 2000                [Page 60]
-
-Internet-Draft                   SMIng                      October 1999
-
-
            type        Unsigned32;
            description
               "The Counter32 type represents a non-negative integer
@@ -3407,16 +3466,16 @@ Internet-Draft                   SMIng                      October 1999
                maximum value, and has its minimum value whenever
                the information being modeled is smaller than or
                equal to its minimum value.  If the information
+
+
+Strauss                 Expires August 15, 2000                [Page 62]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                being modeled subsequently decreases below
                (increases above) the maximum (minimum) value, the
                Gauge64 also decreases (increases).  (Note that
-
-
-Strauss                  Expires March 31, 2000                [Page 61]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                despite of the use of the term `latched' in the
                original definition of this type, it does not
                become `stuck' at its maximum or minimum value.)";
@@ -3463,16 +3522,16 @@ Internet-Draft                   SMIng                      October 1999
                newly-defined object types.
 
                The Opaque type supports the capability to pass
+
+
+Strauss                 Expires August 15, 2000                [Page 63]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                arbitrary ASN.1 syntax.  A value is encoded using
                the ASN.1 Basic Encoding Rules into a string of
                octets.  This, in turn, is encoded as an
-
-
-Strauss                  Expires March 31, 2000                [Page 62]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                OctetString, in effect `double-wrapping' the
                original ASN.1 value.
 
@@ -3520,15 +3579,14 @@ Internet-Draft                   SMIng                      October 1999
                For example, the TimeStamp type (defined in this
                module) is based on the TimeTicks type.
 
+
+Strauss                 Expires August 15, 2000                [Page 64]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                With a TimeStamp, the first reference epoch is
                defined as the time when SNMPv2-MIB::sysUpTime was
-
-
-Strauss                  Expires March 31, 2000                [Page 63]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                zero, and the second reference epoch is defined as
                the current value of sysUpTime.
 
@@ -3577,14 +3635,13 @@ Internet-Draft                   SMIng                      October 1999
             characters in length.";
        };
 
-       typedef PhysAddress {
 
-
-Strauss                  Expires March 31, 2000                [Page 64]
+Strauss                 Expires August 15, 2000                [Page 65]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
+       typedef PhysAddress {
            type        OctetString;
            format      "1x:";
            description
@@ -3633,14 +3690,14 @@ Internet-Draft                   SMIng                      October 1999
             When the network management portion of the system is re-
             initialized, the value of every object instance having this
             syntax must either be incremented from its value prior to
-            the re-initialization, or (if the value prior to the re-
 
 
-Strauss                  Expires March 31, 2000                [Page 65]
+Strauss                 Expires August 15, 2000                [Page 66]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
+            the re-initialization, or (if the value prior to the re-
             initialization is unknown) be set to a pseudo-randomly
             generated value.";
        };
@@ -3689,14 +3746,14 @@ Internet-Draft                   SMIng                      October 1999
 
        typedef RowStatus {
            type        Enumeration (active(1), notInService(2),
-                           notReady(3), createAndGo(4),
 
 
-Strauss                  Expires March 31, 2000                [Page 66]
+Strauss                 Expires August 15, 2000                [Page 67]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
+                           notReady(3), createAndGo(4),
                            createAndWait(5), destroy(6));
            description
            "The RowStatus textual convention is used to manage the
@@ -3745,14 +3802,14 @@ Internet-Draft                   SMIng                      October 1999
 
             agent has sufficient information to make it so (the status
             column has value `notInService'); or, it is not available
-            for use by the managed device, and an attempt to make it so
 
 
-Strauss                  Expires March 31, 2000                [Page 67]
+Strauss                 Expires August 15, 2000                [Page 68]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
+            for use by the managed device, and an attempt to make it so
             would fail because the agent has insufficient information
             (the state column has value `notReady').
 
@@ -3801,14 +3858,14 @@ Internet-Draft                   SMIng                      October 1999
    column to     |       or     |   entValue|        Value|        Value
    createAndWait |wrongValue    |           |             |
    --------------+--------------+-----------+-------------+-------------
-   set status    |inconsistent- |inconsist- |noError      |noError
 
 
-Strauss                  Expires March 31, 2000                [Page 68]
+Strauss                 Expires August 15, 2000                [Page 69]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
+   set status    |inconsistent- |inconsist- |noError      |noError
    column to     |         Value|   entValue|             |
    active        |              |           |             |
                  |              |     or    |             |
@@ -3859,10 +3916,9 @@ Internet-Draft                   SMIng                      October 1999
                 instance.
 
 
-
-Strauss                  Expires March 31, 2000                [Page 69]
+Strauss                 Expires August 15, 2000                [Page 70]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             If noError is returned, then the instance of the status
@@ -3916,9 +3972,9 @@ Internet-Draft                   SMIng                      October 1999
             distinguish conceptual rows, and a management station
 
 
-Strauss                  Expires March 31, 2000                [Page 70]
+Strauss                 Expires August 15, 2000                [Page 71]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             without specific knowledge of the conceptual row might
@@ -3972,9 +4028,9 @@ Internet-Draft                   SMIng                      October 1999
             knowledge of the agent's capabilities, this determination
 
 
-Strauss                  Expires March 31, 2000                [Page 71]
+Strauss                 Expires August 15, 2000                [Page 72]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             can be made locally by the management station.  Alternately,
@@ -4028,9 +4084,9 @@ Internet-Draft                   SMIng                      October 1999
             information, then the conceptual row is not created, and the
 
 
-Strauss                  Expires March 31, 2000                [Page 72]
+Strauss                 Expires August 15, 2000                [Page 73]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             set operation fails with an error of `inconsistentValue'.
@@ -4084,9 +4140,9 @@ Internet-Draft                   SMIng                      October 1999
             information available, then the status column is set to
 
 
-Strauss                  Expires March 31, 2000                [Page 73]
+Strauss                 Expires August 15, 2000                [Page 74]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             `notInService'; otherwise, if there is insufficient
@@ -4140,9 +4196,9 @@ Internet-Draft                   SMIng                      October 1999
             all `noSuchInstance' columns, if any.  Having done so, the
 
 
-Strauss                  Expires March 31, 2000                [Page 74]
+Strauss                 Expires August 15, 2000                [Page 75]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             value of the status column becomes `notInService', and we
@@ -4196,9 +4252,9 @@ Internet-Draft                   SMIng                      October 1999
             period exceeding that which is considered normal for such a
 
 
-Strauss                  Expires March 31, 2000                [Page 75]
+Strauss                 Expires August 15, 2000                [Page 76]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             conceptual row.
@@ -4252,9 +4308,9 @@ Internet-Draft                   SMIng                      October 1999
        typedef DateAndTime {
 
 
-Strauss                  Expires March 31, 2000                [Page 76]
+Strauss                 Expires August 15, 2000                [Page 77]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
            type        OctetString (8 | 11);
@@ -4308,9 +4364,9 @@ Internet-Draft                   SMIng                      October 1999
             readOnly(5).  (All illegal modifications result in a
 
 
-Strauss                  Expires March 31, 2000                [Page 77]
+Strauss                 Expires August 15, 2000                [Page 78]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
             'wrongValue' error.)
@@ -4343,36 +4399,18 @@ Internet-Draft                   SMIng                      October 1999
             information on snmpUDPDomain.";
        };
 
-       typedef IpAddr {
-           type        OctetString (4 | 16);
-           description
-           "The IpAddr type represents a 32-bit internet IPv4 address
-            if it is 4 octets long, or a 128-bit internet IPv6 address
-            if it is 16 octets long, both in network byte-order."
-       };
-
    };
 
 14.3 IRTF-NMRG-SMING-EXTENSIONS
 
-   module IRTF-NMRG-SMING-EXTENSIONS irtfNmrgSmingExtensions {
+   module IRTF-NMRG-SMING-EXTENSIONS {
 
    //
    // $RCSfile: IRTF-NMRG-SMING-EXTENSIONS,v $
-   // $Revision: 1.2 $
+   // $Revision: 1.3 $
    // $Author: strauss $
-   // $Date: 1999/10/20 10:53:56 $
-
-
-Strauss                  Expires March 31, 2000                [Page 78]
-
-Internet-Draft                   SMIng                      October 1999
-
-
+   // $Date: 2000/02/13 22:11:43 $
    //
-
-       oid             1.3.6.1.3.1575.1.10;
-                       // experimental.1575.1.10
 
        organization    "IRTF Network Management Research Group (NMRG),
                         Network Management Group, TU Braunschweig";
@@ -4380,6 +4418,13 @@ Internet-Draft                   SMIng                      October 1999
        contact         "        Frank Strauss
 
                         Postal: TU Braunschweig
+
+
+Strauss                 Expires August 15, 2000                [Page 79]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                                 Bueltenweg 74/75
                                 38106 Braunschweig
                                 Germany
@@ -4390,7 +4435,12 @@ Internet-Draft                   SMIng                      October 1999
        description     "Core extension definitions for SMIng.";
 
        revision {
-           date        "1999-10-10";
+           date        "2000-02-13";
+           description "SMIng grammar dropped module identity objects.";
+       };
+
+       revision {
+           date        "1999-05-07";
            description "Initial Revision.";
        };
 
@@ -4406,7 +4456,9 @@ Internet-Draft                   SMIng                      October 1999
                   in the statement body of a module that does not
                   contain any other type or node definitions that do not
                   correspond to an agent implementation.";
-
+           reference
+                 "RFC 2580, Section 6 describes the SMIv2
+                  compatible AGENT-CAPABILITIES macro.";
            abnf
                  "agentcapsStatement = 'agentcaps' sep lcIdentifier
                                        optsep '{' stmtsep
@@ -4418,17 +4470,16 @@ Internet-Draft                   SMIng                      October 1999
                                          *(includesStatement stmtsep)
                                        '}' optsep ';'
 
-
-
-Strauss                  Expires March 31, 2000                [Page 79]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                   includesStatement  = 'includes' sep qlcIdentifier
                                        optsep '{' stmtsep
                                          *(variationStatement stmtsep)
                                        '}' optsep ';'
+
+
+Strauss                 Expires August 15, 2000                [Page 80]
+
+Internet-Draft                   SMIng                     February 2000
+
 
                   variationStatement = 'variation' sep qlcIdentifier
                                        optsep '{' stmtsep
@@ -4438,11 +4489,8 @@ Internet-Draft                   SMIng                      October 1999
                                          createStatement stmtsep
                                        '}' optsep ';'
                   ";
-
-           reference
-                 "RFC 2580, Section 6 describes the SMIv2
-                  compatible AGENT-CAPABILITIES macro.";
        };
+
    };
 
 
@@ -4476,9 +4524,17 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 80]
+
+
+
+
+
+
+
+
+Strauss                 Expires August 15, 2000                [Page 81]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 15. Extending a Module
@@ -4491,10 +4547,10 @@ Internet-Draft                   SMIng                      October 1999
 
    For any change, some statements near the top of the module MUST be
    updated to include information about the revision: specifically, a
-   new `revision' statement (Section 5.7) must be included in front of
+   new `revision' statement (Section 5.6) must be included in front of
    the `revision' statements. Furthermore, any necessary changes MUST
    be applied to other statements, including the `organization' and
-   `contact' statements (Section 5.3, Section 5.4). 
+   `contact' statements (Section 5.2, Section 5.3). 
 
    Note that any definition contained in a module is available to be
    imported by any other module, and is referenced in an `import'
@@ -4532,9 +4588,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 81]
+Strauss                 Expires August 15, 2000                [Page 82]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    o  In any statement block, a `reference' statement may be added or
@@ -4588,9 +4644,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 82]
+Strauss                 Expires August 15, 2000                [Page 83]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 16. SMIng Language Extensibility
@@ -4644,9 +4700,9 @@ Internet-Draft                   SMIng                      October 1999
       be prescribed. 
 
 
-Strauss                  Expires March 31, 2000                [Page 83]
+Strauss                 Expires August 15, 2000                [Page 84]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    o  The circumstances that make the new statement mandatory or
@@ -4700,9 +4756,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 84]
+Strauss                 Expires August 15, 2000                [Page 85]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 17. Module Conversions
@@ -4756,9 +4812,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 85]
+Strauss                 Expires August 15, 2000                [Page 86]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 18. Security Considerations
@@ -4812,9 +4868,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 86]
+Strauss                 Expires August 15, 2000                [Page 87]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 19. Acknowledgements
@@ -4868,9 +4924,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000                [Page 87]
+Strauss                 Expires August 15, 2000                [Page 88]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 References
@@ -4924,9 +4980,9 @@ References
    [14]  Wijnen, B., Levi, D., "V2ToV1 - Mapping SNMPv2 onto SNMPv1
 
 
-Strauss                  Expires March 31, 2000                [Page 88]
+Strauss                 Expires August 15, 2000                [Page 89]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
          within a bi-lingual SNMP agent", RFC 2089, January 1997.
@@ -4980,9 +5036,9 @@ Author's Address
 
 
 
-Strauss                  Expires March 31, 2000                [Page 89]
+Strauss                 Expires August 15, 2000                [Page 90]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 Appendix A. The SMIng ABNF grammar
@@ -4996,7 +5052,7 @@ Appendix A. The SMIng ABNF grammar
    ;;
    ;; sming.abnf -- SMIng grammar in ABNF notation (RFC 2234).
    ;;
-   ;; @(#) $Id: sming.abnf,v 1.2 1999/10/20 10:53:57 strauss Exp $
+   ;; @(#) $Id: sming.abnf,v 1.5 2000/02/13 22:17:56 strauss Exp $
    ;;
    ;; Copyright (C) The Internet Society (1999). All Rights Reserved.
    ;;
@@ -5007,15 +5063,14 @@ Appendix A. The SMIng ABNF grammar
    ;; Statement rules.
    ;;
 
-   moduleStatement         = moduleKeyword sep ucIdentifier sep
-                                 lcIdentifier optsep "{" stmtsep
+   moduleStatement         = moduleKeyword sep ucIdentifier optsep "{" stmtsep
                                  *(importStatement stmtsep)
-                                 oidStatement stmtsep
                                  organizationStatement stmtsep
                                  contactStatement stmtsep
                                  descriptionStatement stmtsep
                                  *1(referenceStatement stmtsep)
                                  1*(revisionStatement stmtsep)
+                                 *1(identityStatement stmtsep)
                                  *(extensionStatement stmtsep)
                                  *(typedefStatement stmtsep)
                                  *(anyObjectStatement stmtsep)
@@ -5028,20 +5083,20 @@ Appendix A. The SMIng ABNF grammar
                                  "{" stmtsep
                                  *1(statusStatement stmtsep)
                                  descriptionStatement stmtsep
-                                 *1(abnfStatement stmtsep)
                                  *1(referenceStatement stmtsep)
+                                 *1(abnfStatement stmtsep)
                              "}" optsep ";"
 
    typedefStatement        = typedefKeyword sep ucIdentifier optsep
                                  "{" stmtsep
-
-
-Strauss                  Expires March 31, 2000                [Page 90]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                                  typedefTypeStatement stmtsep
+
+
+Strauss                 Expires August 15, 2000                [Page 91]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                                  *1(defaultStatement stmtsep)
                                  *1(formatStatement stmtsep)
                                  *1(unitsStatement stmtsep)
@@ -5090,14 +5145,14 @@ Internet-Draft                   SMIng                      October 1999
                                  anyIndexStatement stmtsep
                                  *1(createStatement stmtsep)
                                  *1(statusStatement stmtsep)
-
-
-Strauss                  Expires March 31, 2000                [Page 91]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                                  descriptionStatement stmtsep
+
+
+Strauss                 Expires August 15, 2000                [Page 92]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                                  *1(referenceStatement stmtsep)
                                  1*(columnStatement stmtsep)
                              "}" optsep ";"
@@ -5146,20 +5201,22 @@ Internet-Draft                   SMIng                      October 1999
 
    importStatement         = importKeyword sep ucIdentifier optsep
                                  "(" optsep
-
-
-Strauss                  Expires March 31, 2000                [Page 92]
-
-Internet-Draft                   SMIng                      October 1999
-
-
                                  identifierList optsep
+
+
+Strauss                 Expires August 15, 2000                [Page 93]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                              ")" optsep ";"
 
    revisionStatement       = revisionKeyword optsep "{" stmtsep
                                  dateStatement stmtsep
                                  descriptionStatement stmtsep
                              "}" optsep ";"
+
+   identityStatement       = identityKeyword sep lcIdentifier optsep ";"
 
    typedefTypeStatement    = typeKeyword sep refinedBaseType optsep ";"
 
@@ -5198,18 +5255,15 @@ Internet-Draft                   SMIng                      October 1999
                                  qlcIdentifierList optsep ")"
                                  optsep ";"
 
-   createStatement         = createKeyword *1(optsep createColumns)
-                                 optsep ";"
-
-   createColumns           = "(" optsep qlcIdentifierList optsep ")"
-
-
-Strauss                  Expires March 31, 2000                [Page 93]
-
-Internet-Draft                   SMIng                      October 1999
-
+   createStatement         = createKeyword optsep ";"
 
    oidStatement            = oidKeyword sep objectIdentifier optsep ";"
+
+
+Strauss                 Expires August 15, 2000                [Page 94]
+
+Internet-Draft                   SMIng                     February 2000
+
 
    dateStatement           = dateKeyword sep date optsep ";"
 
@@ -5258,14 +5312,14 @@ Internet-Draft                   SMIng                      October 1999
 
    ;;
    ;;
-
-
-Strauss                  Expires March 31, 2000                [Page 94]
-
-Internet-Draft                   SMIng                      October 1999
-
-
    ;;
+
+
+
+Strauss                 Expires August 15, 2000                [Page 95]
+
+Internet-Draft                   SMIng                     February 2000
+
 
    refinedBaseType         = OctetStringKeyword *1(optsep numberSpec) /
                              ObjectIdentifierKeyword /
@@ -5314,15 +5368,15 @@ Internet-Draft                   SMIng                      October 1999
    namedNumberItem         = lcIdentifier optsep "(" optsep number
                                  optsep ")"
 
-
-
-Strauss                  Expires March 31, 2000                [Page 95]
-
-Internet-Draft                   SMIng                      October 1999
-
-
    identifierList          = identifier
                                  *(optsep "," optsep identifier)
+
+
+Strauss                 Expires August 15, 2000                [Page 96]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                                  *1(optsep ",")
 
    qIdentifierList         = qIdentifier
@@ -5370,15 +5424,15 @@ Internet-Draft                   SMIng                      October 1999
 
    units                   = textSegment
 
-
-
-Strauss                  Expires March 31, 2000                [Page 96]
-
-Internet-Draft                   SMIng                      October 1999
-
-
    anyValue                = bitsValue /
                              negativeNumber /
+
+
+Strauss                 Expires August 15, 2000                [Page 97]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                              hexadecimalNumber /
                              floatValue /
                              text /
@@ -5427,13 +5481,14 @@ Internet-Draft                   SMIng                      October 1999
    ;; with arbitrary arguments and blocks.
    ;;
 
-
-Strauss                  Expires March 31, 2000                [Page 97]
-
-Internet-Draft                   SMIng                      October 1999
-
-
    unknownStatement        = unknownKeyword optsep *unknownArgument
+
+
+Strauss                 Expires August 15, 2000                [Page 98]
+
+Internet-Draft                   SMIng                     February 2000
+
+
                                  optsep ";"
 
    unknownArgument         = ("(" optsep unknownList optsep ")") /
@@ -5472,6 +5527,7 @@ Internet-Draft                   SMIng                      October 1999
    contactKeyword          = "contact"
    descriptionKeyword      = "description"
    referenceKeyword        = "reference"
+   identityKeyword         = "identity"
    extensionKeyword        = "extension"
    typedefKeyword          = "typedef"
    typeKeyword             = "type"
@@ -5484,9 +5540,9 @@ Internet-Draft                   SMIng                      October 1999
    notificationKeyword     = "notification"
 
 
-Strauss                  Expires March 31, 2000                [Page 98]
+Strauss                 Expires August 15, 2000                [Page 99]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    groupKeyword            = "group"
@@ -5508,6 +5564,7 @@ Internet-Draft                   SMIng                      October 1999
    mandatoryKeyword        = "mandatory"
    optionalKeyword         = "optional"
    refineKeyword           = "refine"
+   abnfKeyword             = "abnf"
 
    ;; Base type keywords.
 
@@ -5539,10 +5596,9 @@ Internet-Draft                   SMIng                      October 1999
    ;; Special floating point values' keywords.
 
 
-
-Strauss                  Expires March 31, 2000                [Page 99]
+Strauss                 Expires August 15, 2000               [Page 100]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    neginfKeyword           = "neginf"
@@ -5596,9 +5652,9 @@ Internet-Draft                   SMIng                      October 1999
                           ; Internet standard newline
 
 
-Strauss                  Expires March 31, 2000               [Page 100]
+Strauss                 Expires August 15, 2000               [Page 101]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    DIGIT          =  %x30-39
@@ -5652,9 +5708,9 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000               [Page 101]
+Strauss                 Expires August 15, 2000               [Page 102]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 Appendix B. Glossary
@@ -5708,9 +5764,9 @@ Appendix B. Glossary
       definitions declared by the SMIng keywords `scalar' or `column'. 
 
 
-Strauss                  Expires March 31, 2000               [Page 102]
+Strauss                 Expires August 15, 2000               [Page 103]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
    object identifier: Management information is organized in a tree of
@@ -5764,14 +5820,14 @@ Internet-Draft                   SMIng                      October 1999
 
 
 
-Strauss                  Expires March 31, 2000               [Page 103]
+Strauss                 Expires August 15, 2000               [Page 104]
 
-Internet-Draft                   SMIng                      October 1999
+Internet-Draft                   SMIng                     February 2000
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (1999).  All Rights Reserved.
+   Copyright (C) The Internet Society (2000).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -5820,5 +5876,5 @@ Full Copyright Statement
 
 
 
-Strauss                  Expires March 31, 2000               [Page 104]
+Strauss                 Expires August 15, 2000               [Page 105]
 

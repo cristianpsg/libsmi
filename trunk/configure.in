@@ -8,11 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.59 2000/02/11 11:08:24 strauss Exp $
+# @(#) $Id: configure.in,v 1.60 2000/02/12 10:56:19 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
-AM_INIT_AUTOMAKE(libsmi,0.1.9-cvs)
+AM_INIT_AUTOMAKE(libsmi,0.2)
 AM_CONFIG_HEADER(config.h)
 
 LIBTOOL_VERSIONING="2:1:0"

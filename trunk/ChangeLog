@@ -1,4 +1,10 @@
-2000-02-12  Frank Strauss  <strauss@escape.de>
+2000-02-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* ANNOUNCE: Finalized things for release 0.2. Many bugs
+	have been fixed and things have changed against the latest
+	0.1.x release. Only some of them are listed below.
+
+2000-02-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* lib/parser-smi.y: Rudimentary AGENT-CAPABILITIES support.
 	They can be parsed to nodes and dumped as nodes or object
@@ -37,7 +43,7 @@
 	If at least one configfile is specified no default files are
 	read.
 
-	* mibs/TUBS-SMI: some changes to the TUBS-* MIBS from Juergen.
+	* mibs/tubs/TUBS-SMI: some changes to the TUBS-* MIBS from Juergen.
 	
 	* configure.in: fixed misused $prefix
 	
