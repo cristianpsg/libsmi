@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.28 2000/10/19 16:14:43 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.29 2000/10/25 08:56:40 strauss Exp $
  */
 
 %option noyywrap
@@ -104,6 +104,7 @@ eol             ("\n"|"\n\015"|"\015\n")
 %s		Choice
 %s		Exports
 %s		Comment
+%s		Skipline
 
 
 
@@ -710,11 +711,20 @@ eol             ("\n"|"\n\015"|"\015\n")
 }
 
  /*
+  * Skip the remainder of the line
+  */
+<Skipline>.*{eol} {
+    thisParser.line++;
+    BEGIN(INITIAL);
+}
+
+ /*
   * Everything else...
   */
 
 . {
     smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
+    BEGIN(Skipline);
 }
 
 %%
