@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.22 1999/12/13 16:15:58 strauss Exp $
+ * @(#) $Id: error.c,v 1.23 1999/12/14 12:00:09 strauss Exp $
  */
 
 #include <string.h>
@@ -32,7 +32,7 @@ extern int lexDepth;
 
 
 typedef struct Error {
-    int level;			/* -1: fatal, no way to continie	     */
+    int level;			/* -1: fatal, no way to continue	     */
                  		/* 0: other output (e.g. statistics)	     */
                  		/* 1: severe, changing semantics to continue */
 				/*    must be corrected                      */
@@ -237,6 +237,22 @@ Error errors[] = {
       "Unknown configuration command `%s' in file `%s'" },
     { 4, ERR_OPAQUE_OBSOLETE, "opaque", 
       "SMIv2 provides Opaque solely for backward-compatibility" },
+    { 2, ERR_DATE_CHARACTER, "date-character", 
+      "Date specification `%s' contains an illegal character" },
+    { 2, ERR_DATE_LENGTH, "date-length", 
+      "Date specification `%s' has an illegal length" },
+    { 2, ERR_DATE_VALUE, "date-value", 
+      "Date specification `%s' contains an illegal value" },
+    { 2, ERR_DATE_YEAR, "date-year", 
+      "Date specification `%s' contains an illegal year" },
+    { 2, ERR_DATE_MONTH, "date-month", 
+      "Date specification `%s' contains an illegal month" },
+    { 2, ERR_DATE_DAY, "date-day", 
+      "Date specification `%s' contains an illegal day" },
+    { 2, ERR_DATE_HOUR, "date-hour", 
+      "Date specification `%s' contains an illegal hour" },
+    { 2, ERR_DATE_MINUTES, "date-minutes", 
+      "Date specification `%s' contains illegal minutes" },
  
     { 0, 0, NULL, NULL }
 };

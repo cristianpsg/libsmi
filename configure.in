@@ -8,11 +8,11 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: configure.in,v 1.43 1999/12/14 14:48:12 strauss Exp $
+# @(#) $Id: configure.in,v 1.44 1999/12/14 15:02:57 strauss Exp $
 #
 
 AC_INIT(tools/smilint.c)
-AM_INIT_AUTOMAKE(libsmi,0.1.8)
+AM_INIT_AUTOMAKE(libsmi,0.1.9-pre1)
 LIBTOOL_VERSIONING="1:2:0"
 # NOTE: Though minor interface changes may take place between libsmi patch
 # levels (last number in AM_INIT_AUTOMAKE), we increment the libtool

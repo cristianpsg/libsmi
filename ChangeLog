@@ -1,3 +1,9 @@
+1999-12-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* added two IETF MIB modules.
+
+	* fixed a recent bug on MODULE-COMPLIANCE statement parsing.
+
 1999-12-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.1.8.tar.gz: released version 0.1.8.
