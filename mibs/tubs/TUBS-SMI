@@ -1,6 +1,6 @@
 TUBS-SMI DEFINITIONS ::= BEGIN
 
--- @(#) $Id: TUBS-SMI,v 1.4 2002/05/16 23:04:46 bunkus Exp $
+-- @(#) $Id: TUBS-SMI,v 1.5 2002/07/17 10:34:03 bunkus Exp $
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-IDENTITY, enterprises
@@ -95,5 +95,6 @@ IBRInteger64 ::= TEXTUAL-CONVENTION
 --  10  TUBS-SMI::ibrpib
 --  11  TUBS-SMI::ibrpibtomib
 --  12  TUBS-SMI::ibrmibtopib
+--  13  TUBS-IBR-LINUX-NETFILTER-MIB::lnfMIB
 
 END
