@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.26 1999/06/03 20:37:05 strauss Exp $
+ * @(#) $Id: data.c,v 1.27 1999/06/04 20:39:04 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -125,6 +125,10 @@ isInView(modulename)
     const char	      *modulename;
 {
     View	      *viewPtr;
+
+    if (smiFlags & SMI_VIEWALL) {
+	return 1;
+    }
     
     for (viewPtr = firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
 	if (!strcmp(modulename, viewPtr->name)) {
@@ -1507,10 +1511,8 @@ findObjectByNode(nodePtr)
     
     for (objectPtr = nodePtr->firstObjectPtr; objectPtr;
 	 objectPtr = objectPtr->nextSameNodePtr) {
-	for (viewPtr = firstViewPtr; viewPtr; viewPtr = viewPtr->nextPtr) {
-	    if (!strcmp(objectPtr->modulePtr->name, viewPtr->name)) {
-		return (objectPtr);
-	    }
+	if (isInView(objectPtr->modulePtr->name) {
+	    return (objectPtr);
 	}
     }
 

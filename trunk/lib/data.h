@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.28 1999/06/03 20:37:06 strauss Exp $
+ * @(#) $Id: data.h,v 1.29 1999/06/04 20:39:04 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -67,8 +67,6 @@ typedef unsigned short MacroFlags;
 #define FLAG_RECURSIVE	SMI_RECURSIVE  /* Errors and stats also for */
 				       /* imported modules.         */
 				       /* useful when IMPORTing.    */
-#define	FLAG_ERRORLINES	SMI_ERRORLINES /* When printing errors:     */
-				       /* print also the wrong line */
 #define	FLAG_VIEWALL	SMI_VIEWALL    /* smiFunctions return all   */
 				       /* labels they know, not     */
 				       /* only the ones in the      */

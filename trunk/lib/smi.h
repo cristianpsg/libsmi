@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.h,v 1.32 1999/06/03 21:07:12 strauss Exp $
+ * @(#) $Id: smi.h,v 1.33 1999/06/04 20:39:09 strauss Exp $
  */
 
 #ifndef _SMI_H
@@ -22,11 +22,9 @@
 
 #define SMI_VIEWALL     0x0800  /* all modules are `known', need no views.   */
 #define SMI_ERRORS      0x1000  /* print parser errors.                      */
-#define SMI_ERRORLINES  0x2000  /* print error line contents of modules.     */
 #define SMI_STATS       0x4000  /* print statistics after parsing a module.  */
 #define SMI_RECURSIVE   0x8000  /* recursively parse imported modules.       */
-#define SMI_FLAGMASK \
-                (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS|SMI_ERRORLINES)
+#define SMI_FLAGMASK    (SMI_VIEWALL|SMI_STATS|SMI_RECURSIVE|SMI_ERRORS)
 
 /* limits of string lengths                                                  */
 #define SMI_MAX_DESCRIPTOR      64             /*                            */

@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.5 1999/06/01 23:20:06 strauss Exp $
+# @(#) $Id: Makefile.am,v 1.6 1999/06/03 21:13:11 strauss Exp $
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -49,3 +49,7 @@ scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
 scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
 	$(FLEX) -Psming -t scanner-sming.l > scanner-sming.c
 
+error.i: error.c
+	cat error.c | grep ERR_ | \
+	sed -e 's/^.*\(ERR_[a-zA-Z0-9_]*\).*$$/\1/' | \
+	awk '{printf "#define %-40s %d\n", $$1, NR-1}' > error.i

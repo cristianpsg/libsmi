@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.35 1999/06/03 21:07:11 strauss Exp $
+ * @(#) $Id: smi.c,v 1.36 1999/06/04 20:39:09 strauss Exp $
  */
 
 #include <sys/types.h>
@@ -18,7 +18,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-#include <strings.h> /* bcopy */
+#include <strings.h>
 #include <errno.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -40,21 +40,14 @@
 #include "parser-sming.h"
 #endif
 
-#ifdef BACKEND_SMI
-extern int smidebug;
-#endif
-
-#ifdef BACKEND_SMING
-extern int smingdebug;
-#endif
-
 #ifndef MIN
 #define MIN(a, b)       ((a) < (b) ? (a) : (b))
 #define MAX(a, b)       ((a) < (b) ? (b) : (a))
 #endif
 
 
-static int		initialized = 0;
+
+static int initialized = 0;
 
 
 
@@ -1414,9 +1407,7 @@ SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr)
 
 
 
-void
-smiFreeMacro(smiMacroPtr)
-    SmiMacro     *smiMacroPtr;
+void smiFreeMacro(SmiMacro *smiMacroPtr)
 {
     util_free(smiMacroPtr);
 }
@@ -1557,91 +1548,6 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiDecl decl)
     }
     
     return createSmiNode(objectPtr);
-}
-
-
-
-SmiIndex *smiGetFirstIndex(SmiNode *smiRowNodePtr)
-{
-    Module	      *modulePtr;
-    Object	      *rowObjectPtr;
-    
-    if (!smiRowNodePtr) {
-	return NULL;
-    }
-
-    modulePtr = findModuleByName(smiRowNodePtr->module);
-
-    if (!modulePtr) {
-	modulePtr = loadModule(smiRowNodePtr->module);
-    }
-
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    rowObjectPtr = findObjectByModuleAndName(modulePtr, smiRowNodePtr->name);
-
-    if (!rowObjectPtr) {
-	return NULL;
-    }
-
-    if ((!rowObjectPtr->indexPtr) || (!rowObjectPtr->indexPtr->listPtr)) {
-	return NULL;
-    }
-
-    return createSmiIndex(rowObjectPtr,
-			  rowObjectPtr->indexPtr->listPtr->ptr, 1);
-}
-
-
-
-SmiIndex *smiGetNextIndex(SmiIndex *smiIndexPtr)
-{
-    Module	      *modulePtr;
-    Object	      *rowObjectPtr;
-    List	      *listPtr;
-    SmiIdentifier     rowname;
-    int		      number, i;
-    
-    if (!smiIndexPtr) {
-	return NULL;
-    }
-
-    modulePtr = findModuleByName(smiIndexPtr->rowmodule);
-
-    if (!modulePtr) {
-	modulePtr = loadModule(smiIndexPtr->rowmodule);
-    }
-
-    rowname = smiIndexPtr->rowname;
-    number = smiIndexPtr->number;
-    
-    smiFreeNode(smiIndexPtr);
-    
-    if (!modulePtr) {
-	return NULL;
-    }
-
-    rowObjectPtr = findObjectByModuleAndName(modulePtr, rowname);
-
-    if (!rowObjectPtr) {
-	return NULL;
-    }
-
-    if ((!rowObjectPtr->indexPtr) || (!rowObjectPtr->indexPtr->listPtr)) {
-	return NULL;
-    }
-
-    for (i = 1, listPtr = rowObjectPtr->indexPtr->listPtr;
-	 (i <= (number+1)) && listPtr;
-	 i++, listPtr = listPtr->nextPtr) {
-	if ((listPtr->ptr) && (i == (number+1))) {
-	    return createSmiIndex(rowObjectPtr, listPtr->ptr, i);
-	}
-    }
-    
-    return NULL;
 }
 
 
@@ -2021,11 +1927,101 @@ SmiNode *smiGetNextChildNode(SmiNode *smiNodePtr)
 
 
 
-void
-smiFreeNode(smiNodePtr)
-    SmiNode     *smiNodePtr;
+void smiFreeNode(SmiNode *smiNodePtr)
 {
     util_free(smiNodePtr);
+}
+
+
+
+SmiIndex *smiGetFirstIndex(SmiNode *smiRowNodePtr)
+{
+    Module	      *modulePtr;
+    Object	      *rowObjectPtr;
+    
+    if (!smiRowNodePtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiRowNodePtr->module);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiRowNodePtr->module);
+    }
+
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    rowObjectPtr = findObjectByModuleAndName(modulePtr, smiRowNodePtr->name);
+
+    if (!rowObjectPtr) {
+	return NULL;
+    }
+
+    if ((!rowObjectPtr->indexPtr) || (!rowObjectPtr->indexPtr->listPtr)) {
+	return NULL;
+    }
+
+    return createSmiIndex(rowObjectPtr,
+			  rowObjectPtr->indexPtr->listPtr->ptr, 1);
+}
+
+
+
+SmiIndex *smiGetNextIndex(SmiIndex *smiIndexPtr)
+{
+    Module	      *modulePtr;
+    Object	      *rowObjectPtr;
+    List	      *listPtr;
+    SmiIdentifier     rowname;
+    int		      number, i;
+    
+    if (!smiIndexPtr) {
+	return NULL;
+    }
+
+    modulePtr = findModuleByName(smiIndexPtr->rowmodule);
+
+    if (!modulePtr) {
+	modulePtr = loadModule(smiIndexPtr->rowmodule);
+    }
+
+    rowname = smiIndexPtr->rowname;
+    number = smiIndexPtr->number;
+    
+    smiFreeIndex(smiIndexPtr);
+    
+    if (!modulePtr) {
+	return NULL;
+    }
+
+    rowObjectPtr = findObjectByModuleAndName(modulePtr, rowname);
+
+    if (!rowObjectPtr) {
+	return NULL;
+    }
+
+    if ((!rowObjectPtr->indexPtr) || (!rowObjectPtr->indexPtr->listPtr)) {
+	return NULL;
+    }
+
+    for (i = 1, listPtr = rowObjectPtr->indexPtr->listPtr;
+	 (i <= (number+1)) && listPtr;
+	 i++, listPtr = listPtr->nextPtr) {
+	if ((listPtr->ptr) && (i == (number+1))) {
+	    return createSmiIndex(rowObjectPtr, listPtr->ptr, i);
+	}
+    }
+    
+    return NULL;
+}
+
+
+
+void smiFreeIndex(SmiIndex *smiIndexPtr)
+{
+    util_free(smiIndexPtr);
 }
 
 
@@ -2127,9 +2123,7 @@ SmiOption *smiGetNextOption(SmiOption *smiOptionPtr)
 
 
 
-void
-smiFreeOption(smiOptionPtr)
-    SmiOption *smiOptionPtr;
+void smiFreeOption(SmiOption *smiOptionPtr)
 {
     util_free(smiOptionPtr);
 }
@@ -2233,12 +2227,7 @@ SmiRefinement *smiGetNextRefinement(SmiRefinement *smiRefinementPtr)
 
 
 
-void
-smiFreeRefinement(smiRefinementPtr)
-    SmiRefinement *smiRefinementPtr;
+void smiFreeRefinement(SmiRefinement *smiRefinementPtr)
 {
     util_free(smiRefinementPtr);
 }
-
-
-
