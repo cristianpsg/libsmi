@@ -1,7 +1,7 @@
 #
 # This is the libsmi Makefile.
 #
-# @(#) $Id: Makefile,v 1.2 1998/10/13 14:55:47 strauss Exp $
+# @(#) $Id: Makefile,v 1.3 1998/11/04 02:14:48 strauss Exp $
 #
 
 MIBDIR	= ../scotty/tnm/mibs
@@ -48,7 +48,7 @@ clean:
 	rm -f core
 
 clobber: clean
-	rm -f miblint libsmi.h libsmi.a parser.y.html
+	rm -f miblint libsmi.h libsmi.a parser.y.html smid smiclient
 
 dist:
 	rm -f mibs.tar.gz

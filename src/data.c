@@ -911,6 +911,71 @@ addObject(parent, subid, module, flags, parser)
 
 
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * duplicateObject --
+ *
+ *      Create a new Object as a duplicate of a given one but with
+ *      an affiliation to another module with new flags and with
+ *	uninitialzied values.
+ *
+ * Results:
+ *      A pointer to the new Object structure or
+ *	NULL if terminated due to an error.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Object *
+duplicateObject(template, module, flags, parser)
+    Object *template;
+    Module *module;
+    Flags flags;
+    Parser *parser;
+{
+    Object *object;
+    
+    printDebug(5, "duplicateObject(%p, %s, %d, parser)\n",
+	       template,
+	       module &&
+	         module->descriptor ? module->descriptor->name : "NULL",
+	       flags);
+
+    object = (Object *)malloc(sizeof(Object));
+    if (!object) {
+	printError(parser, ERR_ALLOCATING_OBJECT, strerror(errno));
+	return (NULL);
+    }
+
+    object->node = template->node;
+    object->prev = template->node->lastObject;
+    object->next = NULL;
+    object->node->lastObject->next = object;
+    object->node->lastObject = object;
+    
+    object->module = module;
+    object->type = NULL;
+    object->fileoffset = -1;
+    object->decl = SMI_DECL_UNKNOWN;
+    object->access = SMI_ACCESS_UNKNOWN;
+    object->status = SMI_STATUS_UNKNOWN;
+    object->flags = flags;
+    object->descriptor = NULL;
+    object->description.fileoffset = -1;
+    object->description.length = 0;
+#ifdef TEXTS_IN_MEMORY
+    object->description.ptr = NULL;
+#endif
+    
+    return (object);
+}
+
+
+
 Node *
 addNode (parent, subid, flags, parser)
     Node *parent;
@@ -1300,6 +1365,92 @@ findNodeByParentAndSubid(parent, subid)
 /*
  *----------------------------------------------------------------------
  *
+ * findObjectByNodeAndModule --
+ *
+ *      Lookup an Object by a given Node and Module. This is necessary
+ *	since there might be different declarations in different modules
+ *	for the same OID.
+ *
+ * Results:
+ *      A pointer to the Object structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Object *
+findObjectByNodeAndModule(node, module)
+    Node *node;
+    Module *module;
+{
+    Object *object;
+
+    printDebug(4, "findObjectByNodeAndModule(0x%p, %s)", node,
+	       module ? module->descriptor->name : "NULL");
+
+    for (object = node->firstObject; object; object = object->next) {
+	if (object->module == module) {
+	    printDebug(4, " = %s\n", object->descriptor->name);
+	    return (object);
+	}
+    }
+
+    printDebug(4, " = NULL\n");
+
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * findObjectByNodeAndModulename --
+ *
+ *      Lookup an Object by a given Node and Modulename. This is necessary
+ *	since there might be different declarations in different modules
+ *	for the same OID.
+ *
+ * Results:
+ *      A pointer to the Object structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Object *
+findObjectByNodeAndModulename(node, modulename)
+    Node *node;
+    const char *modulename;
+{
+    Object *object;
+
+    printDebug(4, "findObjectByNodeAndModulename(0x%p, \"%s\")", node,
+	       modulename);
+
+    for (object = node->firstObject; object; object = object->next) {
+	if (!strcmp(object->module->descriptor->name, modulename)) {
+	    printDebug(4, " = %s\n", object->descriptor->name);
+	    return (object);
+	}
+    }
+
+    printDebug(4, " = NULL\n");
+
+    return (NULL);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * findObjectByName --
  *
  *      Lookup a Object by a given Descriptor name. Note, that
@@ -1380,10 +1531,7 @@ findObjectByModulenameAndName(modulename, name)
 	    if ((!strcmp(descriptor->name, name)) &&
 		(!(descriptor->flags & FLAG_IMPORTED))) {
 		printDebug(4, "... = %s.%s\n",
-			   descriptor->module->descriptor->name,
-			   descriptor->name);
-		printDebug(4, "... = %s.%s\n",
-			   ((Object *)(descriptor->ptr))->module->descriptor->name,
+		       ((Object *)(descriptor->ptr))->module->descriptor->name,
 			   descriptor->name);
 		return (descriptor->ptr);
 	    }
@@ -1651,8 +1799,11 @@ addType(parent, syntax, module, flags, parser)
     type->descriptor = NULL;
     type->description.fileoffset = -1;
     type->description.length = 0;
+    type->displayHint.fileoffset = -1;
+    type->displayHint.length = 0;
 #ifdef TEXTS_IN_MEMORY
     type->description.ptr = NULL;
+    type->displayHint.ptr = NULL;
 #endif
 
     return (type);

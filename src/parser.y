@@ -8,7 +8,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser.y,v 1.18 1998/11/20 19:33:22 strauss Exp $
+ * @(#) $Id: parser.y,v 1.19 1998/11/21 18:16:15 strauss Exp $
  */
 
 %{
@@ -770,11 +770,23 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
+			    
+			    object = $7;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $7,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
@@ -782,7 +794,7 @@ valueDeclaration:	LOWERCASE_IDENTIFIER
 					      thisParser);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags($7, FLAG_MODULE);
+				    setObjectFlags(object, FLAG_MODULE);
 				}
 				$$ = 0;
 			    } else {
@@ -1105,27 +1117,39 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			'{' objectIdentifier '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
+			    
+			    object = $11;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $11,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($11, SMI_DECL_OBJECTIDENTITY);
-				setObjectFlags($11,
+				setObjectDecl(object, SMI_DECL_OBJECTIDENTITY);
+				setObjectFlags(object,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
 						  FLAG_WHOLEFILE))
 						? (FLAG_MODULE|FLAG_REGISTERED)
 						: 0);
-				setObjectStatus($11, $5);
-				setObjectDescription($11, $7);
+				setObjectStatus(object, $5);
+				setObjectDescription(object, $7);
 #if 0
-				setObjectReferences($11, $8);
+				setObjectReferences(object, $8);
 #endif
 				$$ = 0;
 			    } else {
@@ -1154,28 +1178,40 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' ObjectName '}'
 			{
 			    Descriptor *descriptor;
-			    
+			    Object *object;
+
+			    object = $16;
+			     
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $16,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($16, SMI_DECL_OBJECTTYPE);
-				setObjectFlags($16,
+				setObjectDecl(object, SMI_DECL_OBJECTTYPE);
+				setObjectFlags(object,
 						(thisParser->flags &
 						 (FLAG_WHOLEMOD |
 						  FLAG_WHOLEFILE))
 						? (FLAG_MODULE|FLAG_REGISTERED)
 						: 0);
-				setObjectSyntax($16, $5);
-				setObjectAccess($16, $7);
-				setObjectStatus($16, $9);
+				setObjectSyntax(object, $5);
+				setObjectAccess(object, $7);
+				setObjectStatus(object, $9);
 				if ($10) {
-				    setObjectDescription($16, $10);
+				    setObjectDescription(object, $10);
 				}
 				/*
 				 * TODO: ReferPart ($11)
@@ -1284,26 +1320,38 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			'{' NotificationName '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
 			    
+			    object = $12;
+				
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $12,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($12,
-						SMI_DECL_NOTIFICATIONTYPE);
+				setObjectDecl(object,
+					      SMI_DECL_NOTIFICATIONTYPE);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags($12,
-						    FLAG_MODULE |
-						    FLAG_REGISTERED);
+				    setObjectFlags(object,
+						   FLAG_MODULE |
+						   FLAG_REGISTERED);
 				}
-				setObjectStatus($12, $6);
-				setObjectDescription($12, $8);
+				setObjectStatus(object, $6);
+				setObjectDescription(object, $8);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -1339,29 +1387,41 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			'{' objectIdentifier '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
+			    
+			    object = $16;
 			    
 			    thisModule->numModuleIdentities++;
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $16,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($16, SMI_DECL_MODULEIDENTITY);
+				setObjectDecl(object, SMI_DECL_MODULEIDENTITY);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags($16,
+				    setObjectFlags(object,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setObjectDescription($16, $12);
 				setModuleLastUpdated(thisModule, $6);
 				setModuleOrganization(thisModule, $8);
 				setModuleContactInfo(thisModule, $10);
 				setModuleDescription(thisModule, $12);
+				setObjectDescription(object, $12);
 				$$ = 0;
 			    } else {
 				$$ = 0;
@@ -2748,25 +2808,37 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
+			    
+			    object = $12;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $12,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($12, SMI_DECL_OBJECTGROUP);
+				setObjectDecl(object, SMI_DECL_OBJECTGROUP);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags($12,
+				    setObjectFlags(object,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setObjectStatus($12, $6);
-				setObjectDescription($12, $8);
+				setObjectStatus(object, $6);
+				setObjectDescription(object, $8);
 #if 0
 				/*
 				 * TODO: ObjectsPart ($4)
@@ -2797,26 +2869,38 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			'{' objectIdentifier '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
+			    
+			    object = $12;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $12,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($12,
+				setObjectDecl(object,
 						SMI_DECL_NOTIFICATIONGROUP);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags($12,
+				    setObjectFlags(object,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setObjectStatus($12, $6);
-				setObjectDescription($12, $8);
+				setObjectStatus(object, $6);
+				setObjectDescription(object, $8);
 #if 0
 				/*
 				 * TODO: NotificationsPart ($4)
@@ -2846,26 +2930,38 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
+			    
+			    object = $12;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $12,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($12,
+				setObjectDecl(object,
 						SMI_DECL_MODULECOMPLIANCE);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags($12,
+				    setObjectFlags(object,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setObjectStatus($12, $5);
-				setObjectDescription($12, $7);
+				setObjectStatus(object, $5);
+				setObjectDescription(object, $7);
 #if 0
 				/*
 				 * TODO: ReferPart ($8)
@@ -2993,26 +3089,38 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
 			{
 			    Descriptor *descriptor;
+			    Object *object;
+			    
+			    object = $14;
 			    
 			    if (thisParser->flags & FLAG_ACTIVE) {
+				if (object->module != thisModule) {
+				    object = duplicateObject(object,
+							     thisModule,
+							 (thisParser->flags &
+							  (FLAG_WHOLEMOD |
+							   FLAG_WHOLEFILE))
+							     ? FLAG_MODULE : 0,
+							     thisParser);
+				}
 				descriptor = addDescriptor($1, thisModule,
 					      KIND_OBJECT,
-					      $14,
+					      object,
 					      (thisParser->flags &
 					       (FLAG_WHOLEMOD |
 						FLAG_WHOLEFILE))
 					      ? FLAG_MODULE : 0,
 					      thisParser);
-				setObjectDecl($14,
+				setObjectDecl(object,
 						SMI_DECL_AGENTCAPABILITIES);
 				if (thisParser->flags &
 				    (FLAG_WHOLEMOD | FLAG_WHOLEFILE)) {
-				    setObjectFlags($14,
+				    setObjectFlags(object,
 						    FLAG_MODULE |
 						    FLAG_REGISTERED);
 				}
-				setObjectStatus($14, $7);
-				setObjectDescription($14, $9);
+				setObjectStatus(object, $7);
+				setObjectDescription(object, $9);
 #if 0
 				/*
 				 * TODO: PRODUCT_RELEASE Text ($5)
