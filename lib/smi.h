@@ -1,7 +1,7 @@
 /*
  * smi.h --
  *
- *      Interface Definition of libsmi (version 2:1:0).
+ *      Interface Definition of libsmi (version 2:2:0).
  *
  * Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
  *
@@ -18,7 +18,7 @@
 #include <time.h>
 
 
-#define SMI_LIBRARY_VERSION "2:1:0"
+#define SMI_LIBRARY_VERSION "2:2:0"
 extern const char *smi_library_version;
 
 
