@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.l,v 1.21 2000/05/17 10:16:45 strauss Exp $
+ * @(#) $Id: scanner-smi.l,v 1.22 2000/06/08 09:36:15 strauss Exp $
  */
 
 %option noyywrap
@@ -566,11 +566,11 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>ABSENT|ANY|BIT|BOOLEAN|BY|COMPONENT|COMPONENTS|DEFAULT|DEFINED|ENUMERATED|EXPLICIT|EXTERNAL|FALSE|MAX|MIN|MINUS-INFINITY|NULL|OPTIONAL|PLUS-INFINITY|PRESENT|PRIVATE|REAL|SET|TAGS|TRUE|WITH/[^a-zA-Z0-9-] {
-    printError(parser, ERR_ILLEGAL_KEYWORD, yytext);
+    smiPrintError(parser, ERR_ILLEGAL_KEYWORD, yytext);
 }
 
 <INITIAL>ABSENT|ANY|BIT|BOOLEAN|BY|COMPONENT|COMPONENTS|DEFAULT|DEFINED|ENUMERATED|EXPLICIT|EXTERNAL|FALSE|MAX|MIN|MINUS-INFINITY|NULL|OPTIONAL|PLUS-INFINITY|PRESENT|PRIVATE|REAL|SET|TAGS|TRUE|WITH/-- {
-    printError(parser, ERR_ILLEGAL_KEYWORD, yytext);
+    smiPrintError(parser, ERR_ILLEGAL_KEYWORD, yytext);
 }
 
  /*
@@ -580,18 +580,18 @@ eol             ("\n"|"\n\015"|"\015\n")
  /* e.g. module names: REF: draft,p.12-13 */
 <INITIAL>[A-Z](-?[a-zA-Z0-9]+)*-? {
     if (yytext[yyleng-1] == '-') {
-	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
+	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = util_strdup(yytext);
+    yylval.id = smiStrdup(yytext);
     return UPPERCASE_IDENTIFIER;
 }
 
  /* same for lowercase names */
 <INITIAL>[a-z](-?[a-zA-Z0-9]+)*-? {
     if (yytext[yyleng-1] == '-') {
-	printError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
+	smiPrintError(parser, ERR_ID_ENDS_IN_HYPHEN, yytext);
     }
-    yylval.id = util_strdup(yytext);
+    yylval.id = smiStrdup(yytext);
     return LOWERCASE_IDENTIFIER;
 }
 
@@ -600,7 +600,7 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 <INITIAL>0+/[0-9] {
-    printError(parser, ERR_LEADING_ZEROS);
+    smiPrintError(parser, ERR_LEADING_ZEROS);
 }
 
 <INITIAL>([1-9][0-9]*|0)/[^0-9] {
@@ -609,7 +609,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     if (errno == ERANGE) {
 	/* We don't want to see this error for the SNMPv2-SMI module. */
 	if (strcmp(thisParser.modulePtr->export.name, "SNMPv2-SMI")) {
-	    printError(parser, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, yytext);
+	    smiPrintError(parser, ERR_SMIV2_UNSIGNED_NUMBER_RANGE, yytext);
 	}
     }
     return NUMBER;
@@ -619,7 +619,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     errno = 0;
     yylval.integer32 = strtol(yytext, NULL, 10);
     if (errno == ERANGE) {
-	printError(parser, ERR_SMIV2_SIGNED_NUMBER_RANGE, yytext);
+	smiPrintError(parser, ERR_SMIV2_SIGNED_NUMBER_RANGE, yytext);
     }
     return NEGATIVENUMBER;
 }
@@ -632,7 +632,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     yylval.text = yytext + 1;
     yytext[yyleng-2] = '\0';
     if ((yyleng-3) % 8) {
-	printError(parser, ERR_BIN_STRING_MUL8, yylval.text);
+	smiPrintError(parser, ERR_BIN_STRING_MUL8, yylval.text);
     }
     return BIN_STRING;
 }
@@ -641,7 +641,7 @@ eol             ("\n"|"\n\015"|"\015\n")
     yylval.text = yytext + 1;
     yytext[yyleng-2] = '\0';
     if ((yyleng-3) % 2) {
-	printError(parser, ERR_HEX_STRING_MUL2, yylval.text);
+	smiPrintError(parser, ERR_HEX_STRING_MUL2, yylval.text);
     }
     return HEX_STRING;
 }
@@ -685,8 +685,8 @@ eol             ("\n"|"\n\015"|"\015\n")
 		}
 	    } else {				/* everything else */
 		if (! isascii(s[0])) {
-		    printError(parser, ERR_ILLEGAL_CHAR_IN_STRING,
-			       s[0], (unsigned char) s[0]);
+		    smiPrintError(parser, ERR_ILLEGAL_CHAR_IN_STRING,
+				  s[0], (unsigned char) s[0]);
 		}
 		d[0] = s[0];
 		newlineflag = 0;
@@ -707,7 +707,7 @@ eol             ("\n"|"\n\015"|"\015\n")
   */
 
 . {
-    printError(parser, ERR_LEX_UNEXPECTED_CHAR);
+    smiPrintError(parser, ERR_LEX_UNEXPECTED_CHAR);
 }
 
 %%

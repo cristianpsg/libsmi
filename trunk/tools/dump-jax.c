@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.17 2000/05/26 16:17:49 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.18 2000/06/07 07:41:18 strauss Exp $
  */
 
 #include <config.h>
@@ -53,41 +53,6 @@ static struct {
 
 
 
-static char* translate(char *m)
-{
-    static char *s = NULL;
-    int i;
-
-    if (s) xfree(s);
-    s = xstrdup(m);
-    for (i = 0; s[i]; i++) {
-	if (s[i] == '-') s[i] = '_';
-    }
-  
-    return s;
-}
-
-
-
-static char* translateUpper(char *m)
-{
-    static char *s = NULL;
-    int i;
-
-    if (s) xfree(s);
-    s = xstrdup(m);
-    for (i = 0; s[i]; i++) {
-	if (s[i] == '-') s[i] = '_';
-	if (islower((int) s[i])) {
-	    s[i] = toupper(s[i]);
-	}
-    }
-  
-    return s;
-}
-
-
-
 static char* translate1Upper(char *m)
 {
     static char *s = NULL;
@@ -105,24 +70,6 @@ static char* translate1Upper(char *m)
     return s;
 }
 
-
-
-static char* translateLower(char *m)
-{
-    static char *s = NULL;
-    int i;
-
-    if (s) xfree(s);
-    s = xstrdup(m);
-    for (i = 0; s[i]; i++) {
-	if (s[i] == '-') s[i] = '_';
-	if (isupper((int) s[i])) {
-	    s[i] = tolower(s[i]);
-	}
-    }
-  
-    return s;
-}
 
 
 static FILE * createFile(char *name, char *suffix)
@@ -350,7 +297,7 @@ static void dumpTable(SmiNode *smiNode)
 	 columnNode = smiGetNextChildNode(columnNode)) {
 	if (columnNode->access >= SMI_ACCESS_READ_ONLY) {
 	    fprintf(f,
-		    "        columns.addElement(new Long(%ld));\n",
+		    "        columns.addElement(new Long(%d));\n",
 		    columnNode->oid[columnNode->oidlen-1]);
 	}
     }
@@ -371,7 +318,7 @@ static void dumpTable(SmiNode *smiNode)
 	 columnNode = smiGetNextChildNode(columnNode)) {
 	if (columnNode->access >= SMI_ACCESS_NOTIFY) {
 	    fprintf(f,
-		    "        case %ld: // %s\n",
+		    "        case %d: // %s\n",
 		    columnNode->oid[columnNode->oidlen-1],
 		    columnNode->name);
 	    fprintf(f,
@@ -412,7 +359,7 @@ static void dumpTable(SmiNode *smiNode)
 	 columnNode = smiGetNextChildNode(columnNode)) {
 	if (columnNode->access >= SMI_ACCESS_READ_WRITE) {
 	    fprintf(f,
-		    "        case %ld: // %s\n",
+		    "        case %d: // %s\n",
 		    columnNode->oid[columnNode->oidlen-1],
 		    columnNode->name);
 	    fprintf(f,
@@ -510,7 +457,7 @@ static void dumpEntry(SmiNode *smiNode)
 	    if ((smiRange && (!smiGetNextRange(smiRange)) &&
 		 (!memcmp(&smiRange->minValue, &smiRange->maxValue,
 			  sizeof(SmiValue))))) {
-		sprintf(init, "new byte[%d]",
+		sprintf(init, "new byte[%ld]",
 			smiRange->maxValue.value.integer32);
 	    } else {
 		sprintf(init, "new byte[0]");
@@ -920,7 +867,7 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 	    if ((smiRange && (!smiGetNextRange(smiRange)) &&
 		 (!memcmp(&smiRange->minValue, &smiRange->maxValue,
 			  sizeof(SmiValue))))) {
-		sprintf(init, "new byte[%d]",
+		sprintf(init, "new byte[%ld]",
 			smiRange->maxValue.value.integer32);
 	    } else {
 		sprintf(init, "new byte[0]");

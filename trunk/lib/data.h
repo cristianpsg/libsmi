@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.h,v 1.60 2000/04/10 15:55:18 strauss Exp $
+ * @(#) $Id: data.h,v 1.61 2000/06/14 08:49:38 strauss Exp $
  */
 
 #ifndef _DATA_H
@@ -526,6 +526,8 @@ extern Module *loadModule(const char *modulename);
 
 extern int checkFormat(SmiBasetype basetype, char *format);
 
-extern int checkObjectName(Module *modulePtr, char *name, Parser *parserPtr);
+extern void checkObjectName(Module *modulePtr, char *name, Parser *parserPtr);
+
+extern void checkTypeName(Module *modulePtr, char *name, Parser *parserPtr);
 
 #endif /* _DATA_H */

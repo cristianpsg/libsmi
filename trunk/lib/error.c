@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.c,v 1.43 2000/06/07 10:19:49 strauss Exp $
+ * @(#) $Id: error.c,v 1.44 2000/06/08 09:36:12 strauss Exp $
  */
 
 #include <config.h>
@@ -27,13 +27,12 @@
 #include "error.h"
 
 
-int errorLevel;                          /* Higher level for more warnings   */
+int smiErrorLevel;		/* Higher levels produce more warnings */
 
 
 
 typedef struct Error {
-    int level;			/* -1: fatal, no way to continue	     */
-                 		/* 0: other output (e.g. statistics)	     */
+    int level;			/* 0: fatal, no way to continue		     */
                  		/* 1: severe, changing semantics to continue */
 				/*    must be corrected                      */
 				/* 2: error, but able to continue,           */
@@ -54,17 +53,15 @@ typedef struct Error {
  * pattern in this file (error.c). This list is written to errormacros.h.
  */
 
-Error errors[] = {
-    { -1, ERR_INTERNAL, "internal", 
+static Error errors[] = {
+    { 0, ERR_INTERNAL, "internal", 
       "Internal error!!!" },
-    { -1, ERR_MAX_LEX_DEPTH, "", 
+    { 0, ERR_MAX_LEX_DEPTH, "", 
       "Maximum IMPORTS nesting, probably a loop?" },
-    { -1, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
+    { 0, ERR_LEX_UNEXPECTED_CHAR, "lexical", 
       "Lexically unexpected character (internal error!)" },
-    { -1, ERR_OUT_OF_MEMORY, "memory", 
+    { 0, ERR_OUT_OF_MEMORY, "memory", 
       "Out of memory (internal error!)" },
-    { 0, ERR_STATISTICS, "", 
-      "completed %s" },
     { 1, ERR_OTHER_ERROR, "other", 
       "%s" },
     { 1, ERR_ILLEGAL_KEYWORD, "keyword-illegal", 
@@ -102,7 +99,7 @@ Error errors[] = {
     { 2, ERR_LCIDENTIFIER_64, "namelength-64-lc-identifier",
       "Lowercase identifier `%s' must not be longer than 64 characters" },
     { 2, ERR_TRAP_TYPE, "trap",
-      "The TRAP-TYPE macro is not allowed in SMIv2 style MIB" },
+      "TRAP-TYPE macro is not allowed in SMIv2 style MIB" },
     { 2, ERR_TOO_MANY_MODULE_IDENTITIES, "module-identity-multiple",
       "There must be no more than exactly one MODULE-IDENTITY clause" },
     { 2, ERR_NO_MODULE_IDENTITY, "module-identity-missing",
@@ -134,7 +131,7 @@ Error errors[] = {
     { 2, ERR_NOTIFICATION_VARIATION_CREATION, "variation-creation", 
       "CREATION-REQUIRES is not allowed in a notification variation" },
     { 3, ERR_MODULE_IDENTITY_NOT_FIRST, "module-identity-not-first", 
-      "The MODULE-IDENTITY clause must be the first declaration in a module" },
+      "MODULE-IDENTITY clause must be the first declaration in a module" },
     { 2, ERR_INVALID_SMIV1_STATUS, "status-invalid-smiv1", 
       "Invalid STATUS `%s' in SMIv1 style MIB" },
     { 2, ERR_INVALID_SMIV2_STATUS, "status-invalid-smiv2", 
@@ -173,16 +170,12 @@ Error errors[] = {
       "Subidentifier `%s' doesn't match object identifier label `%s'" },
     { 2, ERR_OIDLABEL_DOESNOT_EXTEND, "", 
       "Object identifier label `%s' (%s) doesn't extend `%s'" },
-    { 2, ERR_OIDLABEL_DOESNOT_EXTEND_1, "", 
-      "Object identifier label `%s' (%s) doesn't extend `%s' by one subidentifier" },
     { 2, ERR_EXISTENT_OBJECT, "", 
       "An object named `%s' already exists" },
     { 2, ERR_IDENTIFIER_NOT_IN_MODULE, "", 
       "Identifier `%s' cannot be imported from module `%s'" },
-    { 2, ERR_TYPE_ALREADY_EXISTS, "", 
-      "Module `%s' already declared a type `%s'" },
     { 1, ERR_MACRO, "", 
-      "MACRO definitions are just allowed in SMI base modules" },
+      "MACRO definitions are only allowed in SMI base modules" },
     { 1, ERR_CHOICE, "", 
       "CHOICE type definitions are just allowed in SMI base modules" },
     { 1, ERR_TYPE_SMI, "", 
@@ -194,7 +187,7 @@ Error errors[] = {
     { 1, ERR_EXPORTS, "", 
       "EXPORTS are just allowed in SMIv1 base modules" },
     { 1, ERR_ILLEGALLY_QUALIFIED, "", 
-      "Illeagally qualified object identifier label `%s'" },
+      "Illegally qualified object identifier label `%s'" },
     { 2, ERR_MISSING_DESCRIPTION, "", 
       "Missing DESCRIPTION on SMIv2 OBJECT-TYPE" },
     { 2, ERR_OIDLABEL_NOT_FIRST, "", 
@@ -233,8 +226,14 @@ Error errors[] = {
       "Named bit `%s' must not include a hyphen in SMIv2" },
     { 2, ERR_REDEFINITION, "", 
       "Redefinition of identifier `%s'" },
+    { 6, ERR_EXT_REDEFINITION, "", 
+      "Redefinition of identifier `%s' (%s)" },
     { 5, ERR_CASE_REDEFINITION, "", 
       "Identifier `%s' differs from `%s' only in case" },
+    { 6, ERR_EXT_CASE_REDEFINITION, "", 
+      "Identifier `%s' differs from `%s' only in case (%s)" },
+    { 6, ERR_PREVIOUS_DEFINITION, "",
+      "Previous definition of `%s'" },
     { 2, ERR_INVALID_FORMAT, "", 
       "Invalid format specification `%s'" },
     { 3, ERR_REFINEMENT_ALREADY_EXISTS, "", 
@@ -274,17 +273,17 @@ Error errors[] = {
     { 6, ERR_INTEGER_IN_SMIV2, "integer-misuse", 
       "Use Integer32 instead of INTEGER in SMIv2" },
     { 5, ERR_MODULE_ALREADY_LOADED, "", 
-      "The module `%s' is already loaded, aborting parser on this file" },
+      "Module `%s' is already loaded, aborting parser on this file" },
     { 2, ERR_BASETYPE_NOT_IMPORTED, "basetype-not-imported", 
-      "The SMIv2 base type `%s' must be imported from SNMPv2-SMI" },
+      "SMIv2 base type `%s' must be imported from SNMPv2-SMI" },
     { 2, ERR_BASETYPE_UNKNOWN, "basetype-unknown", 
-      "The type `%s' of node `%s' does not resolve to a known base type" },
+      "Type `%s' of node `%s' does not resolve to a known base type" },
     { 2, ERR_ROW_SUBID_ONE, "row-node-subidentifier-one", 
-      "The subidentifier of row node `%s' must be 1" },
+      "Subidentifier of row node `%s' must be 1" },
     { 6, ERR_ROWNAME_ENTRY, "row-name-entry", 
-      "The identifier of the row `%s' should match `*Entry'" },
+      "Identifier of the row `%s' should match `*Entry'" },
     { 6, ERR_TABLENAME_TABLE, "table-name-table", 
-      "The identifier of the table `%s' should match `*Table'" },
+      "Identifier of the table `%s' should match `*Table'" },
     { 6, ERR_SMIV2_TYPE_ASSIGNEMENT, "type-assignement-smiv2", 
       "Type assignement `%s' should be a textual convention in SMIv2" },
     { 6, ERR_ILLEGAL_IMPORT, "import-illegal", 
@@ -320,21 +319,21 @@ Error errors[] = {
 /*
  *----------------------------------------------------------------------
  *
- * errorSeverity --
+ * smiSetErrorSeverity --
  *
  *      Sets the severity of errors with tags matching pattern.
  *
  * Results:
- *      TODO.
+ *      None.
  *
  * Side effects:
- *      TODO.
+ *      Changes the severity in the module internal error table.
  *
  *----------------------------------------------------------------------
  */
 
 void
-errorSeverity(char *pattern, int severity)
+smiSetErrorSeverity(char *pattern, int severity)
 {
     int i;
     
@@ -350,7 +349,90 @@ errorSeverity(char *pattern, int severity)
 /*
  *----------------------------------------------------------------------
  *
- * printError --
+ * smiGetErrorSeverity --
+ *
+ *      Return the severity of the error identified by id.
+ *
+ * Results:
+ *      The error severity.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+smiGetErrorSeverity(int id)
+{
+
+    if (id < 0 || id >= (sizeof(errors) / sizeof(Error)) - 1) {
+	return -1;
+    }
+    return errors[id].level;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiGetErrorTag --
+ *
+ *      Return the tag of the error identified by id.
+ *
+ * Results:
+ *      The error tag or NULL.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+char*
+smiGetErrorTag(int id)
+{
+
+    if (id < 0 || id >= sizeof(errors) / sizeof(Error)) {
+	return NULL;
+    }
+    return errors[id].tag ? errors[id].tag : "";
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiGetErrorMsg --
+ *
+ *      Return the message of the error identified by id.
+ *
+ * Results:
+ *      The error message or NULL.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+char*
+smiGetErrorMsg(int id)
+{
+
+    if (id < 0 || id >= sizeof(errors) / sizeof(Error)) {
+	return NULL;
+    }
+    return errors[id].fmt ? errors[id].fmt : "";
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiPrintError --
  *
  *      A more verbose wrapper for the yyerror() function.
  *
@@ -364,13 +446,13 @@ errorSeverity(char *pattern, int severity)
  */
 
 void
-printError(Parser *parser, int id, ...)
+smiPrintError(Parser *parser, int id, ...)
 {
     va_list ap;
     char *fmt;
 	
     if (parser) {
-	if ((errors[id].level <= errorLevel) &&
+	if ((errors[id].level <= smiErrorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 	    fprintf(stderr, "%s:%d: ", parser->path, parser->line);
@@ -381,7 +463,7 @@ printError(Parser *parser, int id, ...)
 	    va_end(ap);
 	}
     } else {
-	if (errors[id].level <= errorLevel) {
+	if (errors[id].level <= smiErrorLevel) {
 	    fmt = errors[id].fmt;
 	    va_start(ap, id);
 	    vfprintf(stderr, fmt, ap);
@@ -401,7 +483,7 @@ printError(Parser *parser, int id, ...)
 /*
  *----------------------------------------------------------------------
  *
- * printErrorAtLine --
+ * smiPrintErrorAtLine --
  *
  *      Like printError() but shows a specfic line no.
  *
@@ -415,13 +497,13 @@ printError(Parser *parser, int id, ...)
  */
 
 void
-printErrorAtLine(Parser *parser, int id, int line, ...)
+smiPrintErrorAtLine(Parser *parser, int id, int line, ...)
 {
     va_list ap;
     char *fmt;
 	
     if (parser) {
-	if ((errors[id].level <= errorLevel) &&
+	if ((errors[id].level <= smiErrorLevel) &&
 	    (parser->flags & SMI_FLAG_ERRORS) &&
 	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
 	    fprintf(stderr, "%s:%d: ", parser->path, line);
@@ -432,7 +514,7 @@ printErrorAtLine(Parser *parser, int id, int line, ...)
 	    va_end(ap);
 	}
     } else {
-	if (errors[id].level <= errorLevel) {
+	if (errors[id].level <= smiErrorLevel) {
 	    fmt = errors[id].fmt;
 	    va_start(ap, line);
 	    vfprintf(stderr, fmt, ap);
@@ -441,9 +523,8 @@ printErrorAtLine(Parser *parser, int id, int line, ...)
 	}
     }
 
-    if (errors[id].level < 0) {
+    if (errors[id].level == 0) {
 	exit(-1);
 	/* severe error, no way to continue :-( */
     }
 }
-

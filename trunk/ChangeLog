@@ -1,5 +1,12 @@
 2000-06-14  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* lib/util.c: introduced a unique identifer prefix for util
+	functions.
+
+	* tools/dump-jax.c: fixed some compiler warnings.
+
+	* lib/parser-smi.y: fixed some compiler warnings.
+	
 	* lib/parser-smi.y: adjusted lines of definition in cases of
 	forward references.
 

@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smi.c,v 1.89 2000/06/07 07:57:53 strauss Exp $
+ * @(#) $Id: smi.c,v 1.90 2000/06/08 09:36:15 strauss Exp $
  */
 
 #include <config.h>
@@ -108,55 +108,55 @@ static void getModulenameAndName(const char *arg1, const char *arg2,
 	if (isupper((int)arg1[0])) {
 	    if ((p = strstr(arg1, "::"))) {
 		/* SMIng style module/label separator */
-		*name = util_strdup(&p[2]);
+		*name = smiStrdup(&p[2]);
 		l = strcspn(arg1, "::");
-		*module = util_strndup(arg1, l);
+		*module = smiStrndup(arg1, l);
 	    } else if ((p = strchr(arg1, '!'))) {
 		/* old scotty style module/label separator */
-		*name = util_strdup(&p[1]);
+		*name = smiStrdup(&p[1]);
 		l = strcspn(arg1, "!");
-		*module = util_strndup(arg1, l);
+		*module = smiStrndup(arg1, l);
 	    } else if ((p = strchr(arg1, '.'))) {
 		/* SMIv1/v2 style module/label separator */
-		*name = util_strdup(&p[1]);
+		*name = smiStrdup(&p[1]);
 		l = strcspn(arg1, ".");
-		*module = util_strndup(arg1, l);
+		*module = smiStrndup(arg1, l);
 	    } else {
-		*name = util_strdup(arg1);
-		*module = util_strdup("");
+		*name = smiStrdup(arg1);
+		*module = smiStrdup("");
 	    }
 	} else {
-	    *name = util_strdup(arg1);
-	    *module = util_strdup("");
+	    *name = smiStrdup(arg1);
+	    *module = smiStrdup("");
 	}
     } else if (!arg1) {
 	if (isupper((int)arg2[0])) {
 	    if ((p = strstr(arg2, "::"))) {
 		/* SMIng style module/label separator */
-		*name = util_strdup(&p[2]);
+		*name = smiStrdup(&p[2]);
 		l = strcspn(arg2, "::");
-		*module = util_strndup(arg2, l);
+		*module = smiStrndup(arg2, l);
 	    } else if ((p = strchr(arg2, '!'))) {
 		/* old scotty style module/label separator */
-		*name = util_strdup(&p[1]);
+		*name = smiStrdup(&p[1]);
 		l = strcspn(arg2, "!");
-		*module = util_strndup(arg2, l);
+		*module = smiStrndup(arg2, l);
 	    } else if ((p = strchr(arg2, '.'))) {
 		/* SMIv1/v2 style module/label separator */
-		*name = util_strdup(&p[1]);
+		*name = smiStrdup(&p[1]);
 		l = strcspn(arg2, ".");
-		*module = util_strndup(arg2, l);
+		*module = smiStrndup(arg2, l);
 	    } else {
-		*name = util_strdup(arg2);
-		*module = util_strdup("");
+		*name = smiStrdup(arg2);
+		*module = smiStrdup("");
 	    }
 	} else {
-	    *name = util_strdup(arg2);
-	    *module = util_strdup("");
+	    *name = smiStrdup(arg2);
+	    *module = smiStrdup("");
 	}
     } else {
-	*module = util_strdup(arg1);
-	*name = util_strdup(arg2);
+	*module = smiStrdup(arg1);
+	*name = smiStrdup(arg2);
     }
 }
 
@@ -224,7 +224,7 @@ int smiInit(const char *tag)
 	return 0;
     }
 
-    errorLevel = DEFAULT_ERRORLEVEL;
+    smiErrorLevel = DEFAULT_ERRORLEVEL;
     smiDepth = 0;
     
     if (initData()) {
@@ -235,16 +235,16 @@ int smiInit(const char *tag)
     p = getenv("SMIPATH");
     if (p) {
 	if (p[0] == PATH_SEPARATOR) {
-	    smiPath = util_malloc(strlen(p) + strlen(DEFAULT_SMIPATH));
+	    smiPath = smiMalloc(strlen(p) + strlen(DEFAULT_SMIPATH));
 	    sprintf(smiPath, "%s%s", DEFAULT_SMIPATH, p);
 	} else if (p[strlen(p)-1] == PATH_SEPARATOR) {
-	    smiPath = util_malloc(strlen(p) + strlen(DEFAULT_SMIPATH));
+	    smiPath = smiMalloc(strlen(p) + strlen(DEFAULT_SMIPATH));
 	    sprintf(smiPath, "%s%s", p, DEFAULT_SMIPATH);
 	} else {
-	    smiPath = util_strdup(p);
+	    smiPath = smiStrdup(p);
 	}
     } else {
-	smiPath = util_strdup(DEFAULT_SMIPATH);
+	smiPath = smiStrdup(DEFAULT_SMIPATH);
     }
 
     if (!smiPath) {
@@ -260,11 +260,11 @@ int smiInit(const char *tag)
 #ifdef HAVE_PWD_H
 	pw = getpwuid(getuid());
 	if (pw && pw->pw_dir) {
-	    p = util_malloc(strlen(DEFAULT_USERCONFIG) +
+	    p = smiMalloc(strlen(DEFAULT_USERCONFIG) +
 			    strlen(pw->pw_dir) + 2);
 	    sprintf(p, "%s/%s", pw->pw_dir, DEFAULT_USERCONFIG);
 	    smiReadConfig(p, tag);
-	    util_free(p);
+	    smiFree(p);
 	}
 #endif
     }
@@ -281,7 +281,7 @@ void smiExit()
 
     freeData();
 
-    util_free(smiPath);
+    smiFree(smiPath);
     
     initialized = 0;
     return;
@@ -292,7 +292,7 @@ void smiExit()
 char *smiGetPath()
 {
     if (smiPath) {
-	return util_strdup(smiPath);
+	return smiStrdup(smiPath);
     } else {
 	return NULL;
     }
@@ -305,14 +305,14 @@ int smiSetPath(const char *s)
     char *s2;
 
     if (!s) {
-	util_free(smiPath);
+	smiFree(smiPath);
 	smiPath = NULL;
 	return 0;
     }
     
-    s2 = util_strdup(s);
+    s2 = smiStrdup(s);
     if (s2) {
-	util_free(smiPath);
+	smiFree(smiPath);
 	smiPath = s2;
 	return 0;
     } else {
@@ -325,7 +325,7 @@ int smiSetPath(const char *s)
 
 void smiSetSeverity(char *pattern, int severity)
 {
-    errorSeverity(pattern, severity);
+    smiSetErrorSeverity(pattern, severity);
 }
 
 
@@ -354,16 +354,16 @@ int smiReadConfig(const char *filename, const char *tag)
 	    if (!strcmp(cmd, "load")) {
 		smiLoadModule(arg);
 	    } else if (!strcmp(cmd, "path")) {
-		s = util_malloc(strlen(smiPath) + strlen(arg) + 2);
+		s = smiMalloc(strlen(smiPath) + strlen(arg) + 2);
 		sprintf(s, "%s:%s", smiPath, arg);
-		util_free(smiPath);
+		smiFree(smiPath);
 		smiPath = s;
 	    } else if (!strcmp(cmd, "level")) {
 		smiSetErrorLevel(atoi(arg));
 	    } else if (!strcmp(cmd, "hide")) {
 		smiSetSeverity(arg, 9);
 	    } else {
-		printError(NULL, ERR_UNKNOWN_CONFIG_CMD, cmd, filename);
+		smiPrintError(NULL, ERR_UNKNOWN_CONFIG_CMD, cmd, filename);
 	    }
 	}
 	fclose(file);
@@ -390,7 +390,7 @@ char *smiLoadModule(const char *module)
     
     if (!initialized) smiInit(NULL);
 
-    if (util_ispath(module)) {
+    if (smiIsPath(module)) {
 
 	modulePtr = loadModule(module);
 
@@ -428,7 +428,7 @@ void smiSetErrorLevel(int level)
 {
     if (!initialized) smiInit(NULL);
     
-    errorLevel = level;
+    smiErrorLevel = level;
 }
 
 
@@ -467,7 +467,7 @@ char *smiModule(char *fullname)
     
     len = strcspn(fullname, "!.");
     len = MIN(len, strcspn(fullname, "::"));
-    module = util_strndup(fullname, len);
+    module = smiStrndup(fullname, len);
 
     return module;
 }
@@ -666,8 +666,8 @@ SmiType *smiGetType(SmiModule *smiModulePtr, char *type)
 	typePtr = findTypeByName(type2);
     }
     
-    util_free(module2);
-    util_free(type2);
+    smiFree(module2);
+    smiFree(type2);
 
     if (!typePtr ||
 	typePtr->export.basetype == SMI_BASETYPE_UNKNOWN) {
@@ -875,8 +875,8 @@ SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro)
 	macroPtr = findMacroByName(macro2);
     }
     
-    util_free(module2);
-    util_free(macro2);
+    smiFree(module2);
+    smiFree(macro2);
     return macroPtr ? &macroPtr->export : NULL;
 }
 
@@ -958,8 +958,8 @@ SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *node)
 	}
     }
     
-    util_free(module2);
-    util_free(node2);
+    smiFree(module2);
+    smiFree(node2);
     return objectPtr ? &objectPtr->export : NULL;
 }
 
