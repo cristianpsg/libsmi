@@ -30,7 +30,7 @@ libsmiTest006Mib MODULE-IDENTITY
              MODULE-IDENTITY macro is not imported though it's used.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-006-MIB:7: Macro `MODULE-IDENTITY' has not been imported from module `SNMPv2-SMI'
+LIBSMI-TEST-006-MIB:7: macro `MODULE-IDENTITY' has not been imported from module `SNMPv2-SMI'
 	     "
     REVISION        "199906171500Z"
     DESCRIPTION     

@@ -33,7 +33,7 @@ libsmiTest007Mib MODULE-IDENTITY
 	     known (neither imported, nor defined).
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-007-MIB:44: Unknown object identifier label `mib-2'
+LIBSMI-TEST-007-MIB:44: unknown object identifier label `mib-2'
 	     "
     REVISION        "199906221500Z"
     DESCRIPTION     

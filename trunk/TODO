@@ -12,6 +12,8 @@ o warning detection: non continuous sub oids in column node list?
 
 o warning detection: integer(signed) in index
 
+o warning detection: not reversible DISPLAY-HINT definitions
+
 o error detection: parser-smi.y: remember SEQUENCE contents and check them
 
 o remove SMI_DECL_IMPL_SEQUENCEOF from smi.h: the smiv1/smiv2 parser 
@@ -97,10 +99,5 @@ o RFC 1158 is not even SMIv1. It contains tables without INDEX constructs
   module or fix other modules' imports? (Frank prefers the first, Juergen
   the latter?)
 
-o Bert Helthuis: add error level to error messages.
-
-o Bert Helthuis: Don't send errors to stderr, instead support something like
-  smi_errno and smi_errorstring. But: How to handle multiple errors?
-  
 o smidump -f tree -u IF-MIB SNA-SDLC-MIB vs.
   smidump -f tree -u SNA-SDLC-MIB IF-MIB : e.g. ifEntry differences.

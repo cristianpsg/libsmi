@@ -1,11 +1,17 @@
-dumps/RMON2-MIB.smiv2:2151: Object Identifier name `hlMatrixControlNlMaxDesiredEntries' longer than 32 characters
-dumps/RMON2-MIB.smiv2:2247: Object Identifier name `hlMatrixControlAlMaxDesiredEntries' longer than 32 characters
-dumps/RMON2-MIB.smiv2:2684: Object Identifier name `nlMatrixTopNControlGeneratedReports' longer than 32 characters
-dumps/RMON2-MIB.smiv2:2855: Object Identifier name `nlMatrixTopNProtocolDirLocalIndex' longer than 32 characters
-dumps/RMON2-MIB.smiv2:3443: Object Identifier name `alMatrixTopNControlGeneratedReports' longer than 32 characters
-dumps/RMON2-MIB.smiv2:3618: Object Identifier name `alMatrixTopNProtocolDirLocalIndex' longer than 32 characters
-dumps/RMON2-MIB.smiv2:3662: Object Identifier name `alMatrixTopNAppProtocolDirLocalIndex' longer than 32 characters
-dumps/RMON2-MIB.smiv2:3798: Object Identifier name `usrHistoryControlBucketsRequested' longer than 32 characters
-dumps/RMON2-MIB.smiv2:5037: Object Identifier name `rmon2MIBApplicationLayerCompliance' longer than 32 characters
-dumps/RMON2-MIB.smiv2:81: Textual convention `LastCreateTime' can not be derived from the textual convention `TimeStamp'
-dumps/RMON2-MIB.smiv2:222: Textual convention `ControlString' can not be derived from the textual convention `DisplayString'
+dumps/RMON2-MIB.smiv2:25: redefinition of identifier `rmon' (RMON-MIB)
+../mibs/ietf/RMON-MIB:88: previous definition of `rmon'
+dumps/RMON2-MIB.smiv2:25: redefinition of identifier `rmon' (RFC1271-MIB)
+../mibs/ietf/RFC1271-MIB:15: previous definition of `rmon'
+dumps/RMON2-MIB.smiv2:2151: object identifier name `hlMatrixControlNlMaxDesiredEntries' longer than 32 characters
+dumps/RMON2-MIB.smiv2:2247: object identifier name `hlMatrixControlAlMaxDesiredEntries' longer than 32 characters
+dumps/RMON2-MIB.smiv2:2684: object identifier name `nlMatrixTopNControlGeneratedReports' longer than 32 characters
+dumps/RMON2-MIB.smiv2:2855: object identifier name `nlMatrixTopNProtocolDirLocalIndex' longer than 32 characters
+dumps/RMON2-MIB.smiv2:3443: object identifier name `alMatrixTopNControlGeneratedReports' longer than 32 characters
+dumps/RMON2-MIB.smiv2:3618: object identifier name `alMatrixTopNProtocolDirLocalIndex' longer than 32 characters
+dumps/RMON2-MIB.smiv2:3662: object identifier name `alMatrixTopNAppProtocolDirLocalIndex' longer than 32 characters
+dumps/RMON2-MIB.smiv2:3798: object identifier name `usrHistoryControlBucketsRequested' longer than 32 characters
+dumps/RMON2-MIB.smiv2:4790: redefinition of identifier `rmonConformance' (RMON-MIB)
+../mibs/ietf/RMON-MIB:211: previous definition of `rmonConformance'
+dumps/RMON2-MIB.smiv2:5037: object identifier name `rmon2MIBApplicationLayerCompliance' longer than 32 characters
+dumps/RMON2-MIB.smiv2:81: textual convention `LastCreateTime' can not be derived from the textual convention `TimeStamp'
+dumps/RMON2-MIB.smiv2:222: textual convention `ControlString' can not be derived from the textual convention `DisplayString'

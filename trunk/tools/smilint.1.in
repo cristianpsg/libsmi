@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smilint.1.in,v 1.7 2000/05/02 12:57:17 strauss Exp $
+.\" $Id: smilint.1.in,v 1.8 2000/06/15 09:55:01 strauss Exp $
 .\"
 .TH smilint 1  "February 11, 2000" "IBR" "SMI Tools"
 .SH NAME
@@ -36,10 +36,12 @@ Show the smilint version and exit.
 Show a help text and exit.
 .TP
 .B "-e"
-Show a list of all known error messages and exit.
+Show a list of all known error messages and exit. Error messages can
+have associated tags, shown in braces at the end of each line. The
+tags can be used with the -i option to ignore certain error messages.
 .TP
 .B "-r"
-Report errors and warnings also for recursively imported modules.
+Report errors and warnings also for recursively imported modules. 
 .TP
 .B "-s"
 Show the error severity in brackets before error messages.
@@ -54,8 +56,8 @@ module(s). This may be helpful if an incomplete main module misses to
 import some definitions.
 .TP
 .BI "-l " level
-Report errors and warnings up to the given severity \fIlevel\fP,
-i.e. a higher level shows more warnings. The actual severities are:
+Report errors and warnings up to the given severity \fIlevel\fP.
+A higher level shows more warnings. The actual severity levels are:
 .sp
 .nf
  0   internal error, no recovery possible,
@@ -75,9 +77,10 @@ level 6 does. Note that errors up to level 3 are errors violating the
 specifications and must be fixed by the responsible author. Level 3 is
 the default level.
 .TP
-.BI "-i " error-pattern
-ignore all errors that have a prefix that matches \fIerror-pattern\fP.
-[Currently, there is no way to list the error names. RTFS: error.c.]
+.BI "-i " tag-prefix
+Ignore all errors that have a tag which matches \fItag-prefix\fP.
+A list of error tags can be retrieved by calling smilint with the
+-e option.
 .TP
 .I module(s)
 These are the modules to be checked. If a module argument represents a
@@ -93,13 +96,13 @@ of 32 characters are suppressed.
 .nf
 
   $ smilint -l 6 -i namelength-32 ./RMON2-MIB
-  ./RMON2-MIB:3935: Unexpected type restriction
-  ./RMON2-MIB:3936: Unexpected type restriction
-  ./RMON2-MIB:3937: Unexpected type restriction
-  ./RMON2-MIB:3938: Unexpected type restriction
-  ./RMON2-MIB:3939: Unexpected type restriction
-  ./RMON2-MIB:3940: Unexpected type restriction
-  ./RMON2-MIB:4164: Scalar object must not have a `read-create' access value
+  ./RMON2-MIB:3935: unexpected type restriction
+  ./RMON2-MIB:3936: unexpected type restriction
+  ./RMON2-MIB:3937: unexpected type restriction
+  ./RMON2-MIB:3938: unexpected type restriction
+  ./RMON2-MIB:3939: unexpected type restriction
+  ./RMON2-MIB:3940: unexpected type restriction
+  ./RMON2-MIB:4164: scalar object must not have a `read-create' access value
 
 .fi
 .SH "SEE ALSO"

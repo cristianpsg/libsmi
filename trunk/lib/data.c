@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: data.c,v 1.84 2000/06/14 13:15:16 strauss Exp $
+ * @(#) $Id: data.c,v 1.85 2000/06/14 13:57:33 strauss Exp $
  */
 
 #include <config.h>
@@ -3222,7 +3222,7 @@ findMacroByModulenameAndName(modulename, macroname)
 /*
  *----------------------------------------------------------------------
  *
- * initData --
+ * smiInitData --
  *
  *      Initialize all need data structures at program start.
  *
@@ -3236,7 +3236,7 @@ findMacroByModulenameAndName(modulename, macroname)
  */
 
 int
-initData()
+smiInitData()
 {
     Object	    *objectPtr;
     Parser	    parser;
@@ -3361,7 +3361,7 @@ freeNodeTree(Node *rootPtr)
 /*
  *----------------------------------------------------------------------
  *
- * freeData --
+ * smiFreeData --
  *
  *      Free all data structures.
  *
@@ -3375,7 +3375,7 @@ freeNodeTree(Node *rootPtr)
  */
 
 void
-freeData()
+smiFreeData()
 {
     View       *viewPtr, *nextViewPtr;
     Macro      *macroPtr, *nextMacroPtr;
@@ -3646,287 +3646,4 @@ loadModule(modulename)
 
     smiFree(path);
     return NULL;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * redefinition --
- *
- *	Print out error messages about a (case) redefinition.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	None.
- *
- *----------------------------------------------------------------------
- */
-
-static void
-redefinition(parserPtr, name1, modulePtr, line, name2)
-    Parser *parserPtr;
-    char *name1;
-    Module *modulePtr;
-    int line;
-    char *name2;
-{
-    char *tmp = parserPtr->path;
-    int equal = (strcmp(name1, name2) == 0);
-
-#if 0
-    fprintf(stderr, "name1 = %s, name2 = %s, equal = %d, errorlevel = %d\n",
-	name1, name2, equal, errorLevel);
-#endif
-
-    if (! modulePtr) {
-	if (equal) {
-	    smiPrintError(parserPtr, ERR_REDEFINITION, name1);
-	} else {
-	    smiPrintError(parserPtr, ERR_CASE_REDEFINITION, name1, name2);
-	}
-    } else {
-	if (equal) {
-	    smiPrintError(parserPtr, ERR_EXT_REDEFINITION,
-			  name1, modulePtr->export.name);
-	} else {
-	    smiPrintError(parserPtr, ERR_EXT_CASE_REDEFINITION,
-			  name1, name2, modulePtr->export.name);
-	}
-	parserPtr->path = modulePtr->export.path;
-    }
-    smiPrintErrorAtLine(parserPtr, ERR_PREVIOUS_DEFINITION, line, name2);
-    if (modulePtr) {
-	parserPtr->path = tmp;
-    }
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * checkObjectName --
- *
- *      Check whether a given object name already exists
- *	in a given module.
- *
- * Results:
- *      1 on success or 0 if the name already exists.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-checkObjectName(modulePtr, name, parserPtr)
-    Module	*modulePtr;
-    char        *name;
-    Parser	*parserPtr;
-{
-    Object	*objectPtr;
-    Type        *typePtr;
-    Module	*modPtr;
-
-    int errRedef = smiGetErrorSeverity(ERR_REDEFINITION);
-    int errExtRedef = smiGetErrorSeverity(ERR_EXT_REDEFINITION);
-    int errCaseRedef = smiGetErrorSeverity(ERR_CASE_REDEFINITION);
-    int errExtCaseRedef = smiGetErrorSeverity(ERR_EXT_CASE_REDEFINITION);
-
-    if (! (parserPtr->flags & SMI_FLAG_ERRORS)
-	|| (errRedef > smiErrorLevel
-	    && errExtRedef > smiErrorLevel
-	    && errCaseRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel)) {
-	return;
-    }
-
-    /*
-     * This would really benefit from having a hash table...
-     */
-
-    for (modPtr = firstModulePtr;
-	 modPtr; modPtr = modPtr->nextPtr) {
-
-	/*
-	 * Skip all external modules if we are not interested in
-	 * generating warning on extern redefinitions.
-	 */
-
-	if (errExtRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel
-	    && modPtr != modulePtr) {
-	    continue;
-	}
-
-        for (objectPtr = modPtr->firstObjectPtr;
-	     objectPtr; objectPtr = objectPtr->nextPtr) {
-	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
-		&& ! strcasecmp(name, objectPtr->export.name)) {
-		redefinition(parserPtr, name,
-			     modPtr == modulePtr ? NULL : objectPtr->modulePtr,
-			     objectPtr->line, objectPtr->export.name);
-	    }
-	}
-	for (typePtr = modPtr->firstTypePtr;
-	     typePtr; typePtr = typePtr->nextPtr) {
-	    /* TODO: must ignore SEQUENCE types here ... */
-	    if (! (typePtr->flags & FLAG_INCOMPLETE)
-		&& typePtr->export.name
-		&& !strcasecmp(name, typePtr->export.name)) {
-		redefinition(parserPtr, name,
-			     modPtr == modulePtr ? NULL : typePtr->modulePtr,
-			     typePtr->line, typePtr->export.name);
-	    }
-	}
-    }
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * checkTypeName --
- *
- *      Check whether a given type name already exists
- *	in a given module.
- *
- * Results:
- *      1 on success or 0 if the type already exists.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-void
-checkTypeName(modulePtr, name, parserPtr)
-    Module	*modulePtr;
-    char        *name;
-    Parser	*parserPtr;
-{
-    Object	*objectPtr;
-    Type        *typePtr;
-    Module	*modPtr;
-
-    int errRedef = smiGetErrorSeverity(ERR_REDEFINITION);
-    int errExtRedef = smiGetErrorSeverity(ERR_EXT_REDEFINITION);
-    int errCaseRedef = smiGetErrorSeverity(ERR_CASE_REDEFINITION);
-    int errExtCaseRedef = smiGetErrorSeverity(ERR_EXT_CASE_REDEFINITION);
-
-    if (! (parserPtr->flags & SMI_FLAG_ERRORS)
-	|| (errRedef > smiErrorLevel
-	    && errExtRedef > smiErrorLevel
-	    && errCaseRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel)) {
-	return;
-    }
-
-    /*
-     * This would really benefit from having a hash table...
-     */
-
-    for (modPtr = firstModulePtr;
-	 modPtr; modPtr = modPtr->nextPtr) {
-
-	/*
-	 * Skip all external modules if we are not interested in
-	 * generating warning on extern redefinitions.
-	 */
-
-	if (errExtRedef > smiErrorLevel
-	    && errExtCaseRedef > smiErrorLevel
-	    && modPtr != modulePtr) {
-	    continue;
-	}
-
-	for (typePtr = modPtr->firstTypePtr;
-	     typePtr; typePtr = typePtr->nextPtr) {
-	    /* TODO: must ignore SEQUENCE types here ... */
-	    if (! (typePtr->flags & FLAG_INCOMPLETE)
-		&& typePtr->export.name
-		&& !strcasecmp(name, typePtr->export.name)) {
-		redefinition(parserPtr, name,
-			     modPtr == modulePtr ? NULL : typePtr->modulePtr,
-			     typePtr->line, typePtr->export.name);
-	    }
-	}
-
-        for (objectPtr = modPtr->firstObjectPtr;
-	     objectPtr; objectPtr = objectPtr->nextPtr) {
-	    if (! (objectPtr->flags & FLAG_INCOMPLETE)
-		&& ! strcasecmp(name, objectPtr->export.name)) {
-		redefinition(parserPtr, name,
-			     modPtr == modulePtr ? NULL : objectPtr->modulePtr,
-			     objectPtr->line, objectPtr->export.name);
-	    }
-	}
-    }
-}
-
-
-
-/*
- *----------------------------------------------------------------------
- *
- * checkFormat --
- *
- *      Check whether a format specification is valid.
- *
- * Results:
- *      1 on success or 0 if the format is invalid.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-
-int
-checkFormat(basetype, p)
-    SmiBasetype basetype;
-    char *p;
-{
-    int n, repeat;
-
-    switch (basetype) {
-    case SMI_BASETYPE_INTEGER32:
-    case SMI_BASETYPE_INTEGER64:
-    case SMI_BASETYPE_UNSIGNED32:
-    case SMI_BASETYPE_UNSIGNED64:
-	if (*p == 'x' || *p == 'o' || *p == 'b') {
-	    p++;
-	    return (*p == 0);
-	} else if (*p == 'd') {
-	    p++;
-	    if (! *p) return 1;
-	    if (*p != '-') return 0;
-	    for (n = 0, p++; *p && isdigit((int) *p); p++, n++) ;
-	    return (*p == 0 && n > 0);
-	}
-	return 0;
-    case SMI_BASETYPE_OCTETSTRING:
-	while (*p) {
-	    if ((repeat = (*p == '*'))) p++;                /* part 1 */
-	    
-	    for (n = 0; *p && isdigit((int) *p); p++, n++) ;/* part 2 */
-	    if (! *p || n == 0) return 0;
-	    
-	    if (*p != 'x' && *p != 'd' && *p != 'o'         /* part 3 */
-		&& *p != 'a' && *p != 't') return 0;
-	    p++;
-	    
-	    if (*p                                          /* part 4 */
-		&& ! isdigit((int) *p) && *p != '*') p++;
-	    
-	    if (repeat && *p                                /* part 5 */
-		&& ! isdigit((int) *p) && *p != '*') p++;
-	}
-	return 1;
-    default:
-	return 0;
-    }
 }

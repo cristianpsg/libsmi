@@ -35,14 +35,14 @@ libsmiTest008Mib MODULE-IDENTITY
 	     that are not specified in the SMIv2.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-008-MIB:66: Textual convention `Red' can not be derived from the textual convention `Color'
-LIBSMI-TEST-008-MIB:87: Named number `yellow' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:95: Named number `red' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:103: Named number `rot' illegal in sub-type of `Color'
-LIBSMI-TEST-008-MIB:124: Textual convention `FileAccess' can not be derived from the textual convention `Access'
-LIBSMI-TEST-008-MIB:145: Named number `create' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:153: Named number `read' illegal in sub-type of `Access'
-LIBSMI-TEST-008-MIB:161: Named number `lesen' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:66: textual convention `Red' can not be derived from the textual convention `Color'
+LIBSMI-TEST-008-MIB:87: named number `yellow' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:95: named number `red' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:103: named number `rot' illegal in sub-type of `Color'
+LIBSMI-TEST-008-MIB:124: textual convention `FileAccess' can not be derived from the textual convention `Access'
+LIBSMI-TEST-008-MIB:145: named number `create' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:153: named number `read' illegal in sub-type of `Access'
+LIBSMI-TEST-008-MIB:161: named number `lesen' illegal in sub-type of `Access'
             "
     REVISION        "200005291500Z"
     DESCRIPTION     

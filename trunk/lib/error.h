@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.16 1999/12/22 14:44:03 strauss Exp $
+ * @(#) $Id: error.h,v 1.17 2000/06/14 13:15:16 strauss Exp $
  */
 
 #ifndef _ERROR_H
@@ -35,8 +35,8 @@ extern char* smiGetErrorTag(int id);
 
 extern char* smiGetErrorMsg(int id);
 
-extern void smiPrintError(Parser *parserPtr, int id, ...);
+extern void smiPrintError(Parser *parser, int id, ...);
 
-extern void smiPrintErrorAtLine(Parser *parserPtr, int id, int line, ...);
+extern void smiPrintErrorAtLine(Parser *parser, int id, int line, ...);
 
 #endif /* _ERROR_H */

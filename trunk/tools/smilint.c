@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smilint.c,v 1.28 2000/06/14 13:15:19 strauss Exp $
+ * @(#) $Id: smilint.c,v 1.29 2000/06/15 09:55:01 strauss Exp $
  */
 
 #include <config.h>
@@ -36,6 +36,11 @@
 extern int smiGetErrorSeverity(int id);
 extern char* smiGetErrorTag(int id);
 extern char* smiGetErrorMsg(int id);
+
+
+
+static int sFlag = 0;	/* show the severity for error messages */
+static int eFlag = 0;	/* print the list of possible error messages */
 
 
 
@@ -89,8 +94,12 @@ static void errors()
     qsort(errors, cnt, sizeof(Error), compare);
     
     for (i = 0; i < cnt; i++) {
-	printf("[%d] %s (%s)\n",
-	       errors[i].severity, errors[i].msg, errors[i].tag);
+	if (sFlag) {
+	    printf("[%d] %s (%s)\n",
+		   errors[i].severity, errors[i].msg, errors[i].tag);
+	} else {
+	    printf("%s (%s)\n", errors[i].msg, errors[i].tag);
+	}
     }
     
     free(errors);
@@ -130,8 +139,11 @@ errorHandler(char *path, int line, int severity, char *msg)
     if (path) {
 	fprintf(stderr, "%s:%d: ", path, line);
     }
-    fprintf(stderr, "[%d] %s\n", severity, msg);
-
+    if (sFlag) {
+	fprintf(stderr, "[%d] %s\n", severity, msg);
+    } else {
+	fprintf(stderr, "%s\n", msg);
+    }
 }
 
 
@@ -161,8 +173,8 @@ int main(int argc, char *argv[])
 	    version();
 	    return 0;
 	case 'e':
-	    errors();
-	    return 0;
+	    eFlag++;
+	    break;
 	case 'h':
 	    usage();
 	    return 0;
@@ -171,7 +183,7 @@ int main(int argc, char *argv[])
 	    smiSetFlags(flags);
 	    break;
 	case 's':
-	    smiSetErrorHandler(errorHandler);
+	    sFlag++;
 	    break;
 	case 'p':
 	    smiLoadModule(optarg);
@@ -188,6 +200,15 @@ int main(int argc, char *argv[])
 	}
     }
 
+    if (sFlag) {
+	smiSetErrorHandler(errorHandler);
+    }
+
+    if (eFlag) {
+	errors();
+	return 0;
+    }
+    
     while (optind < argc) {
 	if (smiLoadModule(argv[optind]) == NULL) {
 	    fprintf(stderr, "smilint: cannot locate module `%s'\n",
