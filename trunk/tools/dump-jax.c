@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.12 2000/05/15 13:57:29 strauss Exp $
+ * @(#) $Id: dump-jax.c,v 1.13 2000/05/15 14:23:55 strauss Exp $
  */
 
 #include <config.h>
@@ -122,6 +122,33 @@ static char* translateLower(char *m)
     }
   
     return s;
+}
+
+
+static FILE * createFile(char *name, char *suffix)
+{
+    char *fullname;
+    FILE *f;
+
+    fullname = xmalloc(strlen(name) + (suffix ? strlen(suffix) : 0) + 2);
+    strcpy(fullname, name);
+    if (suffix) {
+	strcat(fullname, suffix);
+    }
+    if (!access(fullname, R_OK)) {
+	fprintf(stderr, "smidump: %s already exists\n", fullname);
+	xfree(fullname);
+	return NULL;
+    }
+    f = fopen(fullname, "w");
+    if (!f) {
+	fprintf(stderr, "smidump: cannot open %s for writing: ", fullname);
+	perror(NULL);
+	xfree(fullname);
+	exit(1);
+    }
+    xfree(fullname);
+    return f;
 }
 
 
@@ -255,19 +282,15 @@ static int getMaxSize(SmiType *smiType)
 static void dumpTable(SmiNode *smiNode)
 {
     FILE *f;
-    char s[100];
     SmiNode *parentNode, *columnNode;
     int i;
     char *vb_type;
 
     parentNode = smiGetParentNode(smiNode);
-    
-    sprintf(s, "%s.java", translate1Upper(parentNode->name));
-    f = fopen(s, "w");
-    if (!f) {
-	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
-	perror(NULL);
-	exit(1);
+
+    f = createFile(translate1Upper(parentNode->name), ".java");
+    if (! f) {
+	return;
     }
 
     fprintf(f,
@@ -427,7 +450,6 @@ static void dumpTable(SmiNode *smiNode)
 static void dumpEntry(SmiNode *smiNode)
 {
     FILE *f;
-    char s[100];
     SmiNode *columnNode, *indexNode;
     SmiType *smiType;
     SmiRange *smiRange;
@@ -435,13 +457,10 @@ static void dumpEntry(SmiNode *smiNode)
     int cnt;
     char *p;
     char init[20];
-    
-    sprintf(s, "%s.java", translate1Upper(smiNode->name));
-    f = fopen(s, "w");
-    if (!f) {
-	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
-	perror(NULL);
-	exit(1);
+
+    f = createFile(translate1Upper(smiNode->name), ".java");
+    if (! f) {
+	return;
     }
 
     fprintf(f,
@@ -676,25 +695,14 @@ static void dumpEntry(SmiNode *smiNode)
 static void dumpEntryImpl(SmiNode *smiNode)
 {
     FILE *f;
-    char s[100];
     SmiNode *columnNode, *indexNode;
     SmiType *smiType;
-    SmiRange *smiRange;
     SmiElement *element;
-    int i, cnt;
-    char *p;
-    char init[20];
-    
-    sprintf(s, "%sImpl.java", translate1Upper(smiNode->name));
-    if (!access(s, R_OK)) {
-	fprintf(stderr, "smidump: %s already exists\n", s);
+    int cnt;
+
+    f = createFile(translate1Upper(smiNode->name), "Impl.java");
+    if (! f) {
 	return;
-    }
-    f = fopen(s, "w");
-    if (!f) {
-	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
-	perror(NULL);
-	exit(1);
     }
 
     fprintf(f,
@@ -832,7 +840,6 @@ static void dumpEntryImpl(SmiNode *smiNode)
 static SmiNode *dumpScalars(SmiNode *smiNode)
 {
     FILE *f;
-    char s[100];
     char *vb_type;
     SmiNode *parentNode, *currNode;
     SmiType *smiType;
@@ -842,12 +849,10 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
     char init[20];
 
     parentNode = smiGetParentNode(smiNode);
-    sprintf(s, "%s.java", translate1Upper(parentNode->name));
-    f = fopen(s, "w");
-    if (!f) {
-	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
-	perror(NULL);
-	exit(1);
+
+    f = createFile(translate1Upper(parentNode->name), ".java");
+    if (! f) {
+	return NULL;
     }
 
     fprintf(f,
@@ -951,7 +956,6 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 	fprintf(f,
 		"        %sOID = new AgentXOID(%sName);\n"
 	        "        data.addElement(%sOID);\n",
-		translate1Upper(currNode->name),
 		translate1Upper(currNode->name),
 		translate1Upper(currNode->name),
 		translate1Upper(currNode->name));
@@ -1118,20 +1122,16 @@ static SmiNode *dumpScalars(SmiNode *smiNode)
 static void dumpNotif(SmiNode *smiNode)
 {
     FILE *f;
-    char s[100];
-    char *vb_type;
     int cnt,i;
     SmiElement *element;
     SmiNode *elementNode;
 
     SmiType *snt;
     snt = smiGetNodeType(smiNode);
-    sprintf(s, "%s.java", translate1Upper(smiNode->name));
-    f = fopen(s, "w");
-    if (!f) {
-	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
-	perror(NULL);
-	exit(1);
+
+    f = createFile(translate1Upper(smiNode->name), ".java");
+    if (! f) {
+	return;
     }
 
     fprintf(f,
@@ -1255,26 +1255,14 @@ static void dumpNotif(SmiNode *smiNode)
 static void dumpScalarImpl(SmiNode *smiNode)
 {
     FILE *f;
-    char s[100];
-    char *vb_type;
     SmiNode *parentNode, *currNode;
     SmiType *smiType;
-    SmiRange *smiRange;
-    int i, cnt;
-    char *p;
-    char init[20];
 
     parentNode = smiGetParentNode(smiNode);
-    sprintf(s, "%sImpl.java", translate1Upper(parentNode->name));
-    if (!access(s, R_OK)) {
-	fprintf(stderr, "smidump: %s already exists\n", s);
+
+    f = createFile(translate1Upper(parentNode->name), "Impl.java");
+    if (! f) {
 	return;
-    }
-    f = fopen(s, "w");
-    if (!f) {
-	fprintf(stderr, "smidump: cannot open %s for writing: ", s);
-	perror(NULL);
-	exit(1);
     }
 
     fprintf(f,
@@ -1365,7 +1353,8 @@ static void dumpScalarImpl(SmiNode *smiNode)
 		    "            return AgentXResponsePDU.PROCESSING_ERROR;\n"
 		    "        }\n"
                     "        return AgentXResponsePDU.NO_ERROR;\n"
-                    "    }\n");
+                    "    }\n"
+		    "\n");
 	}
     }
     fprintf(f,
