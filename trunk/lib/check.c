@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: check.c,v 1.27 2001/10/09 10:58:45 strauss Exp $
+ * @(#) $Id: check.c,v 1.28 2001/11/23 15:44:21 strauss Exp $
  */
 
 #include <config.h>
@@ -1054,7 +1054,7 @@ smiCheckTypeRanges(Parser *parser, Type *type)
     }
 
     /* range normalization */
-    for (p = type->listPtr; p; p = nextPtr) {
+    for (p = type->listPtr, pp = p; p; p = nextPtr) {
 	nextPtr = p->nextPtr;
 	if (nextPtr &&
 	    compareValues(&((Range *)p->ptr)->export.maxValue,
