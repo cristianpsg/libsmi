@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-smi.y,v 1.171 2002/04/22 15:09:15 strauss Exp $
+ * @(#) $Id: parser-smi.y,v 1.172 2002/05/16 23:21:55 bunkus Exp $
  */
 
 %{
@@ -157,6 +157,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
     Object *objectPtr;
     Node *nodePtr;
     int i;
+    Type *counterTypePtr, *counter32TypePtr, *counter64TypePtr;
+    
+    counterTypePtr = findTypeByName("Counter");
+    counter32TypePtr = findTypeByModulenameAndName("SNMPv2-SMI", "Counter32");
+    counter64TypePtr = findTypeByModulenameAndName("SNMPv2-SMI", "Counter64");
     
     for (objectPtr = modulePtr->firstObjectPtr;
 	 objectPtr; objectPtr = objectPtr->nextPtr) {
@@ -362,6 +367,21 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    if (objectPtr->export.nodekind == SMI_NODEKIND_ROW
 	        && objectPtr->export.access != SMI_ACCESS_NOT_ACCESSIBLE) {
 	        smiPrintErrorAtLine(parserPtr, ERR_ROW_ACCESS,
+				    objectPtr->line, objectPtr->export.name);
+	    }
+
+	    /*
+	     * Check whether counter objects are read-only or
+	     * accessible-for-notify (RFC 2578, 7.1.6).
+	     */
+	    if (((objectPtr->export.nodekind == SMI_NODEKIND_SCALAR) ||
+		 (objectPtr->export.nodekind == SMI_NODEKIND_COLUMN)) &&
+	        (objectPtr->export.access != SMI_ACCESS_NOTIFY) &&
+		(objectPtr->export.access != SMI_ACCESS_READ_ONLY) &&
+		(smiTypeDerivedFrom(objectPtr->typePtr, counterTypePtr) ||
+		 smiTypeDerivedFrom(objectPtr->typePtr, counter32TypePtr) ||
+		 smiTypeDerivedFrom(objectPtr->typePtr, counter64TypePtr))) {
+	        smiPrintErrorAtLine(parserPtr, ERR_COUNTER_ACCESS,
 				    objectPtr->line, objectPtr->export.name);
 	    }
         }
