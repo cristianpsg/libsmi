@@ -2697,7 +2697,7 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 			int overlap, int limit_frame)
 {
     int i;
-    float area, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
+    float area, aspectratio, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
@@ -2706,7 +2706,10 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
     //t = CANVASWIDTH/10;
     k = 200;
     t = 100;
+    aspectratio = (float)CANVASWIDTH/(float)CANVASHEIGHT;
+    aspectratio = 1;
 
+    //TODO add another repulsive force if any node and edge overlap
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
 	for (vNode = cluster->firstClusterNode; vNode;
@@ -2720,7 +2723,8 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 		xDelta = vNode->dia.x - uNode->dia.x;
 		yDelta = vNode->dia.y - uNode->dia.y;
 		absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
-		vNode->dia.xDisp += (xDelta/absDelta)*fr(absDelta, k);
+		vNode->dia.xDisp += aspectratio*
+					(xDelta/absDelta)*fr(absDelta, k);
 		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
 		//add another repulsive force if the nodes overlap
 		if (overlap &&
@@ -2728,7 +2732,8 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 		    vNode->dia.x-vNode->dia.w/2<=uNode->dia.x+uNode->dia.w/2 &&
 		    vNode->dia.y+vNode->dia.h/2>=uNode->dia.y-uNode->dia.h/2 &&
 		    vNode->dia.y-vNode->dia.h/2<=uNode->dia.y+uNode->dia.h/2) {
-		    vNode->dia.xDisp += 4*(xDelta/absDelta)*fr(absDelta, k);
+		    vNode->dia.xDisp += aspectratio*
+					4*(xDelta/absDelta)*fr(absDelta, k);
 		    vNode->dia.yDisp += 4*(yDelta/absDelta)*fr(absDelta, k);
 		}
 	    }
@@ -2740,6 +2745,7 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 	    xDelta = eEdge->startNode->dia.x - eEdge->endNode->dia.x;
 	    yDelta = eEdge->startNode->dia.y - eEdge->endNode->dia.y;
 	    absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
+	    //FIXME aspectratio? divide xDisps by ar?
 	    eEdge->startNode->dia.xDisp -= (xDelta/absDelta)*fa(absDelta, k);
 	    eEdge->startNode->dia.yDisp -= (yDelta/absDelta)*fa(absDelta, k);
 	    eEdge->endNode->dia.xDisp += (xDelta/absDelta)*fa(absDelta, k);
