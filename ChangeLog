@@ -1,5 +1,9 @@
 2001-08-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/ietf/DISMAN-SCRIPT-MIB: updated (RFC 3165).
+
+2001-08-28  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
 	* mibs/ietf/DOCS-BPI-MIB: added (RFC 3083).
 
 	* mibs/ietf/INTERFACETOPN-MIB: added (RFC 3144).
