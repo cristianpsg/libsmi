@@ -11,7 +11,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-perl.c,v 1.4 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id$
  */
 
 /*
@@ -47,6 +47,7 @@ typedef struct PerlEscape {
 
 static PerlEscape perlEscapes [] = {
     { '\'',     "\\'" },
+    { '\\',     "\\\\" },
     { 0,        NULL }
 };
 
