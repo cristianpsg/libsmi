@@ -994,9 +994,9 @@ SmiNode *smiGetFirstNode(SmiModule *smiModulePtr, SmiNodekind nodekind)
 	    nodePtr = nodePtr->nextPtr;
 	} else {
 	    for (nodePtr = nodePtr->parentPtr;
-		 (nodePtr->parentPtr) && (!nodePtr->nextPtr);
+		 nodePtr && (nodePtr->parentPtr) && (!nodePtr->nextPtr);
 		 nodePtr = nodePtr->parentPtr);
-	    nodePtr = nodePtr->nextPtr;
+	    if (nodePtr) nodePtr = nodePtr->nextPtr;
 	}
     } while (nodePtr);
 
@@ -1081,6 +1081,9 @@ SmiNode *smiGetParentNode(SmiNode *smiNodePtr)
     }
 
     nodePtr = nodePtr->parentPtr;
+    if (! nodePtr) {
+        return NULL;
+    }
 
     /*
      * First, try to find a definition in the same module.
