@@ -302,7 +302,7 @@ static void printSVGAttribute(SmiNode *node, int index,
     printf(">%s:</tspan>\n", node->name);
 
     printf("         <tspan");
-    if (typeDescription = algGetTypeDescription(node)) {
+    if ((typeDescription = algGetTypeDescription(node))) {
 	if (!STATIC_OUTPUT) {
 	    tooltip = (char *)xmalloc(2*strlen(typeDescription));
 	    parseTooltip(typeDescription, tooltip);
@@ -724,9 +724,9 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     printf("    <textPath xlink:href=\"#%s%s\"",
 		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
     if (!revert) {
-	printf(" startOffset=\"10%\">\n");
+	printf(" startOffset=\"10%%\">\n");
     } else {
-	printf(" startOffset=\"90%\">\n");
+	printf(" startOffset=\"90%%\">\n");
     }
     switch (tEdge->cardinality) {
     case GRAPH_CARD_ZERO_TO_ONE:
@@ -748,7 +748,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	tEdge->indexkind==SMI_INDEX_REORDER ||
 	tEdge->indexkind==SMI_INDEX_EXPAND) {
 	printf(" <text text-anchor=\"middle\">\n");
-	printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%\">\n",
+	printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%%\">\n",
 		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
     }
     switch(tEdge->indexkind) {
@@ -779,9 +779,9 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     printf("    <textPath xlink:href=\"#%s%s\"",
 		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
     if (!revert) {
-	printf(" startOffset=\"90%\">\n");
+	printf(" startOffset=\"90%%\">\n");
     } else {
-	printf(" startOffset=\"10%\">\n");
+	printf(" startOffset=\"10%%\">\n");
     }
     switch (tEdge->cardinality) {
     case GRAPH_CARD_ONE_TO_ONE:
@@ -1289,18 +1289,19 @@ static void printInformationNode(SmiNode *smiNode,
     printf("  <text id=\"%s\"", smiNode->name);
     switch (smiNode->status) {
     case SMI_STATUS_DEPRECATED:
-	printf(" fill=\"rgb(40%,40%,40%)\"");
+	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
 	break;
     case SMI_STATUS_OBSOLETE:
-	printf(" fill=\"rgb(60%,60%,60%)\"");
+	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
 	break;
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_MANDATORY:
-	printf(" fill=\"rgb(0%,0%,0%)\"");
+	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
 	break;
     case SMI_STATUS_OPTIONAL:
-	printf(" fill=\"rgb(20%,20%,20%)\"");
+	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
 	break;
+    case SMI_STATUS_UNKNOWN:
     }
 
     if (!STATIC_OUTPUT) {
@@ -1360,6 +1361,7 @@ static void printInformationNode(SmiNode *smiNode,
     case SMI_STATUS_OPTIONAL:
 	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_CURRENT:
+    case SMI_STATUS_UNKNOWN:
     }
     printf("</text>\n");
     printf(" </g>\n");
@@ -1370,7 +1372,7 @@ static void printInformationNode(SmiNode *smiNode,
 static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 				 float *x, float *y, int *miNr, int i)
 {
-    int           j, foreign_exists, textColor;
+    int           j, foreign_exists, textColor = 0;
     char          *tooltip;
     char          *done = NULL;
     char          s[100];
@@ -1378,7 +1380,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     SmiNode       *smiNode2;
     SmiModule     *smiModule2;
     SmiElement    *smiElement;
-    SmiRevision   *smiRevision;
+    //SmiRevision   *smiRevision;
     SmiOption     *smiOption;
     SmiRefinement *smiRefinement;
 
@@ -1387,22 +1389,23 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     printf("  <text");
     switch (smiNode->status) {
     case SMI_STATUS_DEPRECATED:
-	printf(" fill=\"rgb(40%,40%,40%)\"");
+	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
 	textColor = 40;
 	break;
     case SMI_STATUS_OBSOLETE:
-	printf(" fill=\"rgb(60%,60%,60%)\"");
+	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
 	textColor = 60;
 	break;
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_MANDATORY:
-	printf(" fill=\"rgb(0%,0%,0%)\"");
+	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
 	textColor = 0;
 	break;
     case SMI_STATUS_OPTIONAL:
-	printf(" fill=\"rgb(20%,20%,20%)\"");
+	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
 	textColor = 20;
 	break;
+    case SMI_STATUS_UNKNOWN:
     }
     printf(">\n");
 
@@ -1427,6 +1430,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     case SMI_STATUS_OPTIONAL:
 	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_CURRENT:
+    case SMI_STATUS_UNKNOWN:
     }
     printf("</tspan>\n");
     printf("  </text>\n");
@@ -1451,7 +1455,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	}
 	printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 	printf("(%.2f,%.2f)\">\n", *x, *y);
-	printf("  <text fill=\"rgb(%i%,%i%,%i%)\">\n",
+	printf("  <text fill=\"rgb(%i%%,%i%%,%i%%)\">\n",
 					    textColor, textColor, textColor);
 	if (!STATIC_OUTPUT) {
 	    printf("   <tspan style=\"text-anchor:middle\"");
@@ -1468,7 +1472,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	*x += TABLEBOTTOMHEIGHT;
 	printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 	printf("(%.2f,%.2f)\">\n", *x, *y);
-	printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+	printf("  <text fill=\"rgb(%i%%,%i%%,%i%%)\"",
 					    textColor, textColor, textColor);
 	if (!STATIC_OUTPUT && foreign_exists) {
 	    smiElement = smiGetFirstElement(smiNode);
@@ -1504,18 +1508,19 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 					smiGetElementNode(smiElement)->name);
 		    switch (smiGetElementNode(smiElement)->status) {
 		    case SMI_STATUS_DEPRECATED:
-			printf("'rgb(40%,40%,40%)')");
+			printf("'rgb(40%%,40%%,40%%)')");
 			break;
 		    case SMI_STATUS_OBSOLETE:
-			printf("'rgb(60%,60%,60%)')");
+			printf("'rgb(60%%,60%%,60%%)')");
 			break;
 		    case SMI_STATUS_CURRENT:
 		    case SMI_STATUS_MANDATORY:
-			printf("'rgb(0%,0%,0%)')");
+			printf("'rgb(0%%,0%%,0%%)')");
 			break;
 		    case SMI_STATUS_OPTIONAL:
-			printf("'rgb(20%,20%,20%)')");
+			printf("'rgb(20%%,20%%,20%%)')");
 			break;
+		    case SMI_STATUS_UNKNOWN:
 		    }
 		}
 	    }
@@ -1536,7 +1541,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    if (!strcmp(smiModule2->name, module)) {
 		printf(" <g id=\"MI%i\" transform=", *miNr);
 		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+		printf("  <text fill=\"rgb(%i%%,%i%%,%i%%)\"",
 					    textColor, textColor, textColor);
 		if (!STATIC_OUTPUT) {
 		    printf(" onmousemove=\"");
@@ -1561,18 +1566,19 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			printf("colorText('%s',", smiNode2->name);
 			switch (smiNode2->status) {
 			case SMI_STATUS_DEPRECATED:
-			    printf("'rgb(40%,40%,40%)')");
+			    printf("'rgb(40%%,40%%,40%%)')");
 			    break;
 			case SMI_STATUS_OBSOLETE:
-			    printf("'rgb(60%,60%,60%)')");
+			    printf("'rgb(60%%,60%%,60%%)')");
 			    break;
 			case SMI_STATUS_CURRENT:
 			case SMI_STATUS_MANDATORY:
-			    printf("'rgb(0%,0%,0%)')");
+			    printf("'rgb(0%%,0%%,0%%)')");
 			    break;
 			case SMI_STATUS_OPTIONAL:
-			    printf("'rgb(20%,20%,20%)')");
+			    printf("'rgb(20%%,20%%,20%%)')");
 			    break;
+			case SMI_STATUS_UNKNOWN:
 			}
 		    }
 		    printf("\"");
@@ -1592,7 +1598,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    if (!strcmp(smiModule2->name, module)) {
 		printf(" <g id=\"MI%i\" transform=", *miNr);
 		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text fill=\"rgb(%i%,%i%,%i%)\"",
+		printf("  <text fill=\"rgb(%i%%,%i%%,%i%%)\"",
 					    textColor, textColor, textColor);
 		if (!STATIC_OUTPUT) {
 		    printf(" onmousemove=\"");
@@ -1647,10 +1653,11 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 static void printModuleIdentity(int modc, SmiModule **modv,
 				float *x, float *y, int *miNr)
 {
-    int         i, j;
+    int         i;
+    //int         i, j;
     char        *tooltip;
     SmiNode     *smiNode;
-    SmiElement  *smiElement;
+    //SmiElement  *smiElement;
     SmiRevision *smiRevision;
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
@@ -2155,8 +2162,9 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 			int nodeoverlap, int edgeoverlap, int limit_frame)
 {
     int i;
-    float area, aspectratio, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
-    float x2, y2 = 1, dist;
+    //float area, aspectratio, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
+    //float x2, y2 = 1, dist;
+    float aspectratio, k, xDelta, yDelta, absDelta, absDisp, t, dist;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
@@ -2204,7 +2212,7 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 			overlap(eEdge->startNode, vNode) ||
 			overlap(eEdge->endNode, vNode))
 			continue;
-		    if (dist = intersect(vNode, eEdge)) {
+		    if ((dist = intersect(vNode, eEdge))) {
 			if (eEdge->startNode->dia.x == eEdge->endNode->dia.x) {
 			    eEdge->startNode->dia.xDisp -=
 				8*(dist/fabsf(dist))*fr(1/dist, k);
@@ -2296,7 +2304,7 @@ static void addNodeToCluster(GraphNode *tNode, GraphCluster *tCluster)
 //TODO calculate maximal x- and y-sizes and print them into the header
 static void diaPrintXML(int modc, SmiModule **modv)
 {
-    GraphNode    *tNode, *lastNode;
+    GraphNode    *tNode, *lastNode = NULL;
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
     int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
