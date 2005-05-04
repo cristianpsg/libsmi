@@ -1,3 +1,7 @@
+2005-05-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/DOCS-IETF-SUBMGT-MIB: added (RFC 4036).
+
 2005-04-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/NAT-MIB: added (RFC 4008).
