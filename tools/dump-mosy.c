@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c,v 1.38 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -196,12 +196,12 @@ static void printAssignements(FILE *f, SmiModule *smiModule)
 {
     int		 cnt = 0;
     SmiNode	 *smiNode;
-    
+
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
 	 smiNode; smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
 
 	cnt++;
-	
+
 	if (smiNode->status == SMI_STATUS_UNKNOWN &&
 	    smiNode != smiGetModuleIdentityNode(smiModule)) {
 	    fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
@@ -496,7 +496,8 @@ static void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
 	
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
-	    fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, 0));
+	    SmiNode *parent = smiGetParentNode(smiNode);
+	    fprintf(f, "%-20s %s\n", smiNode->name, getOidString(smiNode, !parent || parent->nodekind == SMI_NODEKIND_UNKNOWN ));
 	    fprintf(f, "%%n0 %-16s module-identity\n", smiNode->name);
 	    fprintf(f, "\n");
 	}
