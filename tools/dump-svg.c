@@ -30,7 +30,7 @@
 #include "smi.h"
 #include "smidump.h"
 #include "rea.h"
-#include "dump-svg-script.h"
+// #include "dump-svg-script.h"
 
 
 
@@ -877,8 +877,8 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 	//print the script from the included file
 	//FIXME calculate things dynamically:
 	//      * maximal number of lines for the tooltip.
-	printf(code, nodecount, DYN_TEXT, nodecount, STARTSCALE,
-						    miCount, miCount, miCount);
+	//printf(code, nodecount, DYN_TEXT, nodecount, STARTSCALE,
+	//					    miCount, miCount, miCount);
 	printf("// ]]>\n</script>\n\n");
     }
 
