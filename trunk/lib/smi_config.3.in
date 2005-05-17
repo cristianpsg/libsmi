@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_config.3.in,v 1.18 2001/08/22 20:10:31 strauss Exp $
+.\" $Id$
 .\"
 .TH smi_config 3  "August 22, 2001" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -227,7 +227,7 @@ Example configuration:
 .fi
 .SH "FILES"
 .nf
-@prefix@/etc/smi.conf    global configuration file
+@sysconfdir@/smi.conf    global configuration file
 $HOME/.smirc               user configuration file
 @prefix@/include/smi.h   SMI library header file
 @mibdir@/     SMI module repository directory

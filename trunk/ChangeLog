@@ -1,3 +1,7 @@
+2005-05-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/FC-MGMT-MIB: added (RFC 4044).
+
 2005-05-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/VDSL-LINE-EXT-SCM-MIB: added (RFC 4069).
