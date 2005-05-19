@@ -739,6 +739,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	printf("       1");
 	break;
     case GRAPH_CARD_UNKNOWN:
+	;
     }
     printf("</textPath>\n");
     printf(" </text>\n");
@@ -766,6 +767,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	break;
     case SMI_INDEX_UNKNOWN:
     case SMI_INDEX_INDEX:
+	;
     }
     if (tEdge->indexkind==SMI_INDEX_AUGMENT ||
 	tEdge->indexkind==SMI_INDEX_SPARSE ||
@@ -796,6 +798,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	printf("       0..1");
 	break;
     case GRAPH_CARD_UNKNOWN:
+	;
     }
     printf("</textPath>\n");
     printf(" </text>\n");
@@ -1302,6 +1305,7 @@ static void printInformationNode(SmiNode *smiNode,
 	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
 	break;
     case SMI_STATUS_UNKNOWN:
+	;
     }
 
     if (!STATIC_OUTPUT) {
@@ -1362,6 +1366,7 @@ static void printInformationNode(SmiNode *smiNode,
 	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_UNKNOWN:
+	;
     }
     printf("</text>\n");
     printf(" </g>\n");
@@ -1406,6 +1411,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	textColor = 20;
 	break;
     case SMI_STATUS_UNKNOWN:
+	;
     }
     printf(">\n");
 
@@ -1431,6 +1437,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_UNKNOWN:
+	;
     }
     printf("</tspan>\n");
     printf("  </text>\n");
@@ -1521,6 +1528,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			printf("'rgb(20%%,20%%,20%%)')");
 			break;
 		    case SMI_STATUS_UNKNOWN:
+			;
 		    }
 		}
 	    }
@@ -1579,6 +1587,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			    printf("'rgb(20%%,20%%,20%%)')");
 			    break;
 			case SMI_STATUS_UNKNOWN:
+			    ;
 			}
 		    }
 		    printf("\"");
