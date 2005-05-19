@@ -31,7 +31,7 @@ smilint_SOURCES		= smilint.c shhopt.c
 smilint_LDADD		= ../lib/libsmi.la
 
 dump-svg-script.h: dump-svg-script.js
-	(echo -n "const char *code=\"";cat dump-svg-script.js | sed -e 's/"/\\"/g'; echo "\";") > dump-svg-script.h
+	(echo -n "const char *code=\"";cat dump-svg-script.js | sed -e 's/"/\\"/g;s/$$/\\n\\/'; echo "\";") > dump-svg-script.h
 
 dump-svg.o: dump-svg-script.h
 
