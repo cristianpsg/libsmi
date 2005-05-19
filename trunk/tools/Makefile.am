@@ -30,8 +30,8 @@ smiquery_LDADD		= ../lib/libsmi.la
 smilint_SOURCES		= smilint.c shhopt.c
 smilint_LDADD		= ../lib/libsmi.la
 
-#dump-svg-script.h: dump-svg-script.js
-#	(echo -n "const char *code=\"";cat dump-svg-script.js | sed -e 's/"/\\"/g'; echo "\";") > dump-svg-script.h
+dump-svg-script.h: dump-svg-script.js
+	(echo -n "const char *code=\"";cat dump-svg-script.js | sed -e 's/"/\\"/g'; echo "\";") > dump-svg-script.h
 
 smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  dump-sming.c dump-smi.c \
@@ -40,10 +40,9 @@ smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  dump-jax.c dump-xml.c dump-identifiers.c \
 			  dump-metrics.c dump-cm.c dump-python.c \
 			  dump-perl.c dump-scli.c dump-xsd.c dump-sppi.c \
-			  dump-sizes.c rea.h rea.c
-#			  dump-svg-script.h dump-svg.c
-#			  dump-fig.c dump-smiv3.c 
+			  dump-sizes.c dump-svg-script.h dump-svg.c rea.h rea.c
 smidump_LDADD		= ../lib/libsmi.la -lm
+smidump_DEPENDENCIES	= dump-svg-script.h
 
 smidiff_SOURCES		= smidiff.c shhopt.c
 smidiff_LDADD		= ../lib/libsmi.la
