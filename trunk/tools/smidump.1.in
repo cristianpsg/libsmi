@@ -130,7 +130,7 @@ cm
 Reverse engineered conceptual model in DIA XML file format (experimental).
 .TP
 svg
-SVG diagram of MIB modules (work in progress --- don't use). This driver is temporarily not available due to compilation problems.
+SVG diagram of MIB modules (work in progress --- don't use).
 .TP
 jax
 Java AgentX sub-agent classes in separate files (experimental).
