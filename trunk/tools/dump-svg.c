@@ -129,9 +129,6 @@ static void algCreateNodes(SmiModule *module)
 /*
  * parseTooltip: Parse any input to output to make the text safe for the
  * ShowTooltipMZ-functin in the ecma-script.
- * FIXME: Linebreaks in the input are not necessarily linebreaks in the
- *        tooltip, but they should be :-/
- *        This will need changes in the ecma-script.
  */
 static void parseTooltip(char *input, char *output)
 {
@@ -143,33 +140,37 @@ static void parseTooltip(char *input, char *output)
 	    output[j++] = '\\';
 	    output[j++] = 'n';
 	    break;
-	case '\'':
-	    output[j++] = '\\';
-	    output[j++] = '\'';
-	    break;
 	case '\\':
 	    output[j++] = '\\';
 	    output[j++] = '\\';
 	    break;
-	//FIXME &quot;
 	case '\"':
-	    output[j++] = '\\';
-	    output[j++] = '\'';
-	    output[j++] = '\\';
-	    output[j++] = '\'';
+	    //quotes are not allowed in strings.
+	    //See chapter 3.4.5 in "Understanding SNMP MIBs"
 	    break;
-	// '&' should not appear in a tag in a xml-document...
-	//FIXME
 	case '&':
-	    output[j++] = '+';
+	    output[j++] = '&';
+	    output[j++] = 'a';
+	    output[j++] = 'm';
+	    output[j++] = 'p';
+	    output[j++] = ';';
 	    break;
-	// '<' and '>' should not appear in a tag in a xml-document...
-	//FIXME
 	case '<':
-	    output[j++] = '(';
+	    output[j++] = '&';
+	    output[j++] = 'l';
+	    output[j++] = 't';
+	    output[j++] = ';';
 	    break;
 	case '>':
-	    output[j++] = ')';
+	    output[j++] = '&';
+	    output[j++] = 'g';
+	    output[j++] = 't';
+	    output[j++] = ';';
+	    break;
+	case '\'':
+	    //It seems, &apos; doesn't work...
+	    output[j++] = '\\';
+	    output[j++] = '\'';
 	    break;
 	default:
 	    output[j++] = input[i];
