@@ -53,7 +53,7 @@ static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
 static const int MODULE_INFO_WIDTH     =150;
 //The description of RowStatus is quite long... :-/
-static const int DYN_TEXT              =550;
+static const int DYN_TEXT              =470;
 static const float STARTSCALE          =(float)0.5;
 
 //used by the springembedder
@@ -140,9 +140,8 @@ static void parseTooltip(char *input, char *output)
     for (i = j = 0; input[i]; i++) {
 	switch (input[i]) {
 	case '\n':
-	case ' ':
-	    if (i != 0 && input[i+1] != '\n' && input[i+1] != ' ')
-		output[j++] = ' ';
+	    output[j++] = '\\';
+	    output[j++] = 'n';
 	    break;
 	case '\'':
 	    output[j++] = '\\';
@@ -177,8 +176,6 @@ static void parseTooltip(char *input, char *output)
 	}
     }
     output[j] = '\0';
-    if (output[--j] == ' ')
-	output[j] = '\0';
 }
 
 static int isObjectGroup(SmiNode *groupNode)
