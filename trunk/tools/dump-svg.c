@@ -389,6 +389,11 @@ static void printSVGObject(GraphNode *node, int *classNr)
 {
     SmiElement *smiElement;
     float textXOffset, textYOffset, xOrigin, yOrigin;
+    size_t length;
+    char *tooltip, *tooltipTable, *tooltipEntry;
+    const char *tableHeading = "Table-Description:\\n";
+    const char *entryHeading = "Entry-Description:\\n";
+    const char *blankLine = "\\n\\n";
     
     if (!node) return;
 
@@ -410,7 +415,53 @@ static void printSVGObject(GraphNode *node, int *classNr)
            xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
     printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
-    printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
+    printf("          style=\"text-anchor:middle; font-weight:bold\"");
+
+    //descriptions for the table and the entries
+    if (!STATIC_OUTPUT) {
+	if (node->smiNode->description) {
+	    tooltipTable=(char *)xmalloc(2*strlen(node->smiNode->description));
+	    parseTooltip(node->smiNode->description, tooltipTable);
+	}
+	if (smiGetFirstChildNode(node->smiNode)->description) {
+	    tooltipEntry=(char *)xmalloc(2*strlen(smiGetFirstChildNode(
+						node->smiNode)->description));
+	    parseTooltip(smiGetFirstChildNode(node->smiNode)->description,
+								tooltipEntry);
+	}
+
+	length = strlen(tableHeading) + strlen(entryHeading)
+		 + strlen(blankLine) + 1
+		 + strlen(tooltipTable) + strlen(tooltipEntry);
+	tooltip = (char *)xmalloc(length);
+
+	strcpy(tooltip, "\0");
+	if (node->smiNode->description) {
+	    strcat(tooltip, tableHeading);
+	    strcat(tooltip, tooltipTable);
+	}
+	if (node->smiNode->description
+		&& smiGetFirstChildNode(node->smiNode)->description) {
+	    strcat(tooltip, blankLine);
+	}
+	if (smiGetFirstChildNode(node->smiNode)->description) {
+	    strcat(tooltip, entryHeading);
+	    strcat(tooltip, tooltipEntry);
+	}
+
+	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	printf(" onmouseout=\"HideTooltip(evt)\"");
+
+	if (node->smiNode->description) {
+	    xfree(tooltipTable);
+	}
+	if (smiGetFirstChildNode(node->smiNode)->description) {
+	    xfree(tooltipEntry);
+	}
+	xfree(tooltip);
+    }
+
+    printf(">\n");
     printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
     if (!STATIC_OUTPUT) {
 	//the "+"-button
