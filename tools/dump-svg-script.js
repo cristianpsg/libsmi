@@ -13,52 +13,37 @@ function getSVGDoc(load_evt) {
 //Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
 function ShowTooltipMZ(mousemove_event,txt) {
     var ttrelem,tttelem,posx,posy,curtrans,ctx,cty,txt;
-    var sollbreite,maxbreite,ges,anz,tmp,txl,neu,i,k,l
+    var maxbreite,tmp,i;
     ttrelem=svgdoc.getElementById("ttr");
     tttelem=svgdoc.getElementById("ttt");
     posx=mousemove_event.clientX;
     posy=mousemove_event.clientY;
-    for(i=1;i<=%i;i++)texte.item(i).firstChild.data="";
-    sollbreite=200;
-    tttelem.childNodes.item(0).data=txt;
-    ges=tttelem.getComputedTextLength();
+    for (i=1;i<=%i;i++)
+	texte.item(i).firstChild.data="";
     tttelem.childNodes.item(0).data="";
-    anz=Math.ceil(ges/sollbreite);
-    tmp=txt.split(" ");
-    txl=new Array(tmp.length);
-    neu=new Array(anz);
-    for(i=0;i<tmp.length;i++) {
-        tttelem.childNodes.item(0).data=tmp[i];
-        txl[i]=tttelem.getComputedTextLength();
-    }
-    k=0;
+    tmp=txt.split("\n");
     maxbreite=0;
-    for(i=0;i<anz;i++) {
-        l=0,neu[i]="";
-        while(l+txl[k]<1.1*sollbreite && k<tmp.length) {
-            l+=txl[k];
-            neu[i]+=tmp[k]+" ";
-            k++;
-            if(maxbreite<l)maxbreite=l;
-        }
+    for (i=0;i<tmp.length;i++) {
+	if (tmp[i]=="")
+	    continue;
+	tttelem.childNodes.item(0).data=tmp[i];
+	if (maxbreite<tttelem.getComputedTextLength())
+	    maxbreite=tttelem.getComputedTextLength();
     }
     curtrans=svgroot.currentTranslate;
     ctx=curtrans.x;
     cty=curtrans.y;
     ttrelem.setAttribute("x",posx-ctx+10);
     ttrelem.setAttribute("y",posy-cty-20+10);
-    if(maxbreite>sollbreite) {
-        ttrelem.setAttribute("width",maxbreite+2*(maxbreite-sollbreite)+3);
-    } else {
-        ttrelem.setAttribute("width",maxbreite+2*(sollbreite-maxbreite)+3);
-    }
-    ttrelem.setAttribute("height",anz*15+3);
-    ttrelem.setAttribute("style","fill: #FFC; stroke: #000; stroke-width: 0.5px");
-    for(i=1;i<=anz;i++) {
-        texte.item(i).firstChild.data=neu[i-1];
-        texte.item(i).setAttribute("x",posx-ctx+15);
-        texte.item(i).setAttribute("y",parseInt(i-1)*15+posy-cty+3);
-        texte.item(i).setAttribute("style","fill: #00C; font-size: 11px");
+    ttrelem.setAttribute("width",maxbreite+3);
+    ttrelem.setAttribute("height",tmp.length*15+3);
+    ttrelem.setAttribute("style",
+			    "fill: #FFC; stroke: #000; stroke-width: 0.5px");
+    for (i=1; i<=tmp.length; i++) {
+	texte.item(i).firstChild.data=tmp[i-1];
+	texte.item(i).setAttribute("x",posx-ctx+15);
+	texte.item(i).setAttribute("y",parseInt(i-1)*15+posy-cty+3);
+	texte.item(i).setAttribute("style","fill: #00C; font-size: 11px");
     }
     svgdoc.getElementById("tooltip").style.setProperty("visibility","visible");
 }
