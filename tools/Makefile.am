@@ -48,3 +48,4 @@ smidump_LDADD		= ../lib/libsmi.la -lm
 smidiff_SOURCES		= smidiff.c shhopt.c
 smidiff_LDADD		= ../lib/libsmi.la
 
+MOSTLYCLEANFILES	= dump-svg-script.h
