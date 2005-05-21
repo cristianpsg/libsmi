@@ -267,8 +267,10 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 static void printSVGAttribute(SmiNode *node, int index,
 			      float *textYOffset, float *textXOffset)
 {
+    size_t      length;
     char        *tooltip;
     char        *typeDescription;
+    const char  *baseTypeTooltipText = "This is a basetype.";
 
     printf("    <text ");
     if (!index) {
@@ -301,10 +303,17 @@ static void printSVGAttribute(SmiNode *node, int index,
     printf(">%s:</tspan>\n", node->name);
 
     printf("         <tspan");
-    if ((typeDescription = algGetTypeDescription(node))) {
-	if (!STATIC_OUTPUT) {
+    if (!STATIC_OUTPUT) {
+	if ((typeDescription = algGetTypeDescription(node))) {
 	    tooltip = (char *)xmalloc(2*strlen(typeDescription));
 	    parseTooltip(typeDescription, tooltip);
+	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	    printf(" onmouseout=\"HideTooltip(evt)\"");
+	    xfree(tooltip);
+	} else if (isBaseType(node)) {
+	    length = strlen(baseTypeTooltipText) + 1;
+	    tooltip = (char *)xmalloc(length);
+	    strcpy(tooltip, baseTypeTooltipText);
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
