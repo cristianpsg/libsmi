@@ -245,12 +245,13 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 	printf(" <g id=\"tooltip\" style=\"visibility: hidden\">\n");
 	printf("   <rect id=\"ttr\" x=\"0\" y=\"0\" rx=\"5\" ry=\"5\"");
 	printf(" width=\"100\" height=\"16\"/>\n");
-	printf("   <text id=\"ttt\" x=\"0\" y=\"0\"");
-	printf(" style=\"visibility: hidden\">");
+	printf("   <text class=\"tooltip\" xml:space=\"preserve\"");
+	printf(" id=\"ttt\" x=\"0\" y=\"0\" style=\"visibility: hidden\">");
 	printf("dyn. Text</text>\n");
 	//FIXME: calculate number of lines dynamically.
 	for (i = 0; i < DYN_TEXT; i++) {
-	    printf("   <text x=\"-10\" y=\"-10\">dyn. Text</text>\n");
+	    printf("   <text class=\"tooltip\" xml:space=\"preserve\"");
+	    printf(" x=\"-10\" y=\"-10\">dyn. Text</text>\n");
 	}
 	printf(" </g>\n");
 	printf(" </g>\n");
@@ -570,6 +571,7 @@ static void printSVGGroup(int group, int *classNr)
     printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
     printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
+    //TODO
     if (!STATIC_OUTPUT) {
 	//the "+"-button
 	printf("    <g onclick=\"enlarge('%s',%i)\"\n",
@@ -921,6 +923,11 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
     printf(">\n\n");
 
     if (!STATIC_OUTPUT) {
+	//css-stylesheet for the tooltip-text
+	printf("<style type=\"text/css\">\n<![CDATA[\ntext.tooltip {\n");
+	printf("    font-family: \"Courier New\", Courier, monospace;\n}\n");
+	printf("]]>\n</style>\n\n");
+
 	//the ecma-script for handling the "+"- and "-"-buttons
 	//and the tooltip
 	//and the folding of the module information

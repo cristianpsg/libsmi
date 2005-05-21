@@ -35,7 +35,7 @@ function ShowTooltipMZ(mousemove_event,txt) {
     cty=curtrans.y;
     ttrelem.setAttribute("x",posx-ctx+10);
     ttrelem.setAttribute("y",posy-cty-20+10);
-    ttrelem.setAttribute("width",maxbreite+3);
+    ttrelem.setAttribute("width",maxbreite*0.94+2);
     ttrelem.setAttribute("height",tmp.length*15+3);
     ttrelem.setAttribute("style",
 			    "fill: #FFC; stroke: #000; stroke-width: 0.5px");
@@ -43,7 +43,7 @@ function ShowTooltipMZ(mousemove_event,txt) {
 	texte.item(i).firstChild.data=tmp[i-1];
 	texte.item(i).setAttribute("x",posx-ctx+15);
 	texte.item(i).setAttribute("y",parseInt(i-1)*15+posy-cty+3);
-	texte.item(i).setAttribute("style","fill: #00C; font-size: 11px");
+	texte.item(i).setAttribute("style","fill: #00E; font-size: 11px");
     }
     svgdoc.getElementById("tooltip").style.setProperty("visibility","visible");
 }
