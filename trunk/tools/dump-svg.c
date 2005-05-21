@@ -570,8 +570,9 @@ static void printSVGGroup(int group, int *classNr)
     printf("          fill=\"none\" stroke=\"black\"/>\n");
     printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
     printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
+    //groups don't seem to have a description.
     printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
-    //TODO
+
     if (!STATIC_OUTPUT) {
 	//the "+"-button
 	printf("    <g onclick=\"enlarge('%s',%i)\"\n",
