@@ -729,6 +729,31 @@ char *algGetTypeName(SmiNode *smiNode)
 }
 
 /*
+ * algGetTypeModule
+ *
+ * Returns the module which defines the data type used in smiNode.
+ */
+char *algGetTypeModule(SmiNode *smiNode)
+{
+    SmiType *smiType, *parentType;
+    SmiModule *smiModule;
+  
+    smiType = smiGetNodeType(smiNode);
+  
+    if (!smiType || smiNode->nodekind == SMI_NODEKIND_TABLE)
+	return NULL;
+  
+    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+	parentType = smiGetParentType(smiType);
+	smiType = parentType;
+    }
+  
+    smiModule = smiGetTypeModule(smiType);
+
+    return smiModule->name;
+}
+
+/*
  * algCountElementsFromOtherTables
  *
  * Returns the number of index objects derived from other tables than
