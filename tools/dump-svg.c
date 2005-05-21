@@ -268,9 +268,9 @@ static void printSVGAttribute(SmiNode *node, int index,
 			      float *textYOffset, float *textXOffset)
 {
     size_t      length;
-    char        *tooltip;
-    char        *typeDescription;
+    char        *tooltip, *tooltipDescription, *typeDescription;
     const char  *baseTypeTooltipText = "This is a basetype.";
+    const char  *isDefined = " is defined in module ";
 
     printf("    <text ");
     if (!index) {
@@ -305,8 +305,22 @@ static void printSVGAttribute(SmiNode *node, int index,
     printf("         <tspan");
     if (!STATIC_OUTPUT) {
 	if ((typeDescription = algGetTypeDescription(node))) {
-	    tooltip = (char *)xmalloc(2*strlen(typeDescription));
-	    parseTooltip(typeDescription, tooltip);
+	    tooltipDescription = (char *)xmalloc(2*strlen(typeDescription));
+	    parseTooltip(typeDescription, tooltipDescription);
+	    if (algGetTypeModule(node)) {
+		length = strlen(tooltipDescription) + 150;
+		tooltip = (char *)xmalloc(length);
+		strcpy(tooltip, algGetTypeName(node));
+		strcat(tooltip, isDefined);
+		strcat(tooltip, algGetTypeModule(node));
+		strcat(tooltip, ":\\n\\n");
+		strcat(tooltip, tooltipDescription);
+	    } else {
+		length = strlen(tooltipDescription);
+		tooltip = (char *)xmalloc(length);
+		strcpy(tooltip, tooltipDescription);
+	    }
+	    xfree(tooltipDescription);
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
