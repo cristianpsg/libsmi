@@ -808,7 +808,7 @@ static int algGetNumberOfRows(SmiNode *smiNode)
  * returns 1 if smiElement is a basetype used in SMIv2/SMIng. Otherwise
  * the result is 0.
  */
-static int isBaseType(SmiNode *node)
+int isBaseType(SmiNode *node)
 {
     int i;
 
