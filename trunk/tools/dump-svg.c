@@ -32,6 +32,8 @@
 #include "rea.h"
 #include "dump-svg-script.h"
 
+#define URL "http://libsmi.dyndns.org/cgi-bin/mib2svg.cgi?mibs="
+
 
 
 extern int smiAsprintf(char **strp, const char *format, ...);
@@ -58,6 +60,8 @@ static const float STARTSCALE          =(float)0.5;
 
 //used by the springembedder
 static const int ITERATIONS            =100;
+
+static char *link;
 
 
 
@@ -1548,7 +1552,14 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    printf("   <tspan style=\"text-anchor:middle\"");
 	    printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	}
-	printf("   <tspan x=\"5\">%s</tspan>\n", module);
+	if (!foreign_exists && !STATIC_OUTPUT) {
+	    printf("   <a xlink:href=\"%s&amp;mibs=%s\">\n", link, module);
+	    printf("    <tspan fill=\"rgb(0%%,0%%,100%%)\"");
+	    printf(" x=\"5\">%s</tspan>\n", module);
+	    printf("   </a>\n", link);
+	} else {
+	    printf("    <tspan x=\"5\">%s</tspan>\n", module);
+	}
 	printf("  </text>\n");
 	printf(" </g>\n");
 	(*miNr)++;
@@ -2558,6 +2569,54 @@ static void diaPrintXML(int modc, SmiModule **modv)
 }
 
 
+
+static void buildLink(int modc, SmiModule **modv)
+{
+    int i;
+    size_t length;
+    const char *url = URL;
+    const char *mibstr = "&amp;mibs=";
+    const char *deprstr = "&amp;deprobs=deprecated";
+    const char *deprobsstr = "&amp;deprobs=obsolete";
+    const char *widthstr = "&amp;width=";
+    const char *heightstr = "&amp;height=";
+    char width[15];
+    char height[15];
+
+    length = strlen(url) + strlen(modv[0]->name);
+    for (i=1; i<modc; i++) {
+	length += strlen(mibstr) + strlen(modv[i]->name);
+    }
+    sprintf(width, "%i", CANVASWIDTH);
+    sprintf(height, "%i", CANVASHEIGHT);
+    length += strlen(widthstr) + strlen(width);
+    length += strlen(heightstr) + strlen(height);
+    if (SHOW_DEPRECATED) {
+	length += strlen(deprstr);
+    }
+    if (SHOW_DEPR_OBSOLETE) {
+	length += strlen(deprobsstr);
+    }
+    link = xmalloc(length);
+    strcpy(link, url);
+    strcat(link, modv[0]->name);
+    for (i=1; i<modc; i++) {
+	strcat(link, mibstr);
+	strcat(link, modv[i]->name);
+    }
+    strcat(link, widthstr);
+    strcat(link, width);
+    strcat(link, heightstr);
+    strcat(link, height);
+    if (SHOW_DEPRECATED) {
+	strcat(link, deprstr);
+    }
+    if (SHOW_DEPR_OBSOLETE) {
+	strcat(link, deprobsstr);
+    }
+}
+
+
 /* ------------------------------------------------------------------------- */
 
 
@@ -2579,6 +2638,8 @@ static void printModuleNames(int modc, SmiModule **modv)
 static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 {
     int       i;
+
+    buildLink(modc, modv);
 
     if (flags & SMIDUMP_FLAG_UNITE) {
 	if (! graph) {
@@ -2647,6 +2708,8 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	perror("smidump: write error");
 	exit(1);
     }
+
+    xfree(link);
 }
 
 
