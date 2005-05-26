@@ -32,7 +32,7 @@
 #include "rea.h"
 #include "dump-svg-script.h"
 
-#define URL "http://libsmi.dyndns.org/cgi-bin/mib2svg.cgi?mibs="
+#define URL "http://libsmi.dyndns.org/cgi-bin/mib2svg.cgi?"
 
 
 
@@ -1461,7 +1461,7 @@ static void printInformationNode(SmiNode *smiNode,
 static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 				 float *x, float *y, int *miNr, int i)
 {
-    int           j, foreign_exists, textColor = 0;
+    int           j, k, foreign_exists, textColor = 0;
     char          *tooltip;
     char          *done = NULL;
     char          s[100];
@@ -1553,10 +1553,14 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	}
 	if (!foreign_exists && !STATIC_OUTPUT) {
-	    printf("   <a xlink:href=\"%s&amp;mibs=%s\">\n", link, module);
+	    printf("   <a xlink:href=\"%s", link);
+	    for (k=0; k<modc; k++) {
+		printf("&amp;mibs=%s", modv[k]->name);
+	    }
+	    printf("&amp;mibs=%s\">\n", module);
 	    printf("    <tspan fill=\"rgb(0%%,0%%,100%%)\"");
 	    printf(" x=\"5\">%s</tspan>\n", module);
-	    printf("   </a>\n", link);
+	    printf("   </a>\n");
 	} else {
 	    printf("    <tspan x=\"5\">%s</tspan>\n", module);
 	}
@@ -2572,21 +2576,17 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
 static void buildLink(int modc, SmiModule **modv)
 {
-    int i;
     size_t length;
     const char *url = URL;
-    const char *mibstr = "&amp;mibs=";
+    //note: no &, because first string
+    const char *widthstr = "amp;width=";
+    const char *heightstr = "&amp;height=";
     const char *deprstr = "&amp;deprobs=deprecated";
     const char *deprobsstr = "&amp;deprobs=obsolete";
-    const char *widthstr = "&amp;width=";
-    const char *heightstr = "&amp;height=";
     char width[15];
     char height[15];
 
-    length = strlen(url) + strlen(modv[0]->name);
-    for (i=1; i<modc; i++) {
-	length += strlen(mibstr) + strlen(modv[i]->name);
-    }
+    length = strlen(url);
     sprintf(width, "%i", CANVASWIDTH);
     sprintf(height, "%i", CANVASHEIGHT);
     length += strlen(widthstr) + strlen(width);
@@ -2599,11 +2599,6 @@ static void buildLink(int modc, SmiModule **modv)
     }
     link = xmalloc(length);
     strcpy(link, url);
-    strcat(link, modv[0]->name);
-    for (i=1; i<modc; i++) {
-	strcat(link, mibstr);
-	strcat(link, modv[i]->name);
-    }
     strcat(link, widthstr);
     strcat(link, width);
     strcat(link, heightstr);
