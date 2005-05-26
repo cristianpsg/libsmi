@@ -2579,7 +2579,7 @@ static void buildLink(int modc, SmiModule **modv)
     size_t length;
     const char *url = URL;
     //note: no &, because first string
-    const char *widthstr = "amp;width=";
+    const char *widthstr = "width=";
     const char *heightstr = "&amp;height=";
     const char *deprstr = "&amp;deprobs=deprecated";
     const char *deprobsstr = "&amp;deprobs=obsolete";
