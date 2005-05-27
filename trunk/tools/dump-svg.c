@@ -270,8 +270,10 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
  * index = 1 -> index element -> printed with "+"
  */
 static void printSVGAttribute(SmiNode *node, int index,
+			      int modc, SmiModule **modv,
 			      float *textYOffset, float *textXOffset)
 {
+    int         i;
     size_t      length;
     char        *tooltip, *tooltipDescription, *typeDescription;
     const char  *baseTypeTooltipText = "This is a basetype.";
@@ -362,6 +364,7 @@ static void printSVGAttribute(SmiNode *node, int index,
  * prints the related scalars for a given table
  */
 static void printSVGRelatedScalars(GraphNode *node,
+				   int modc, SmiModule **modv,
 				   float *textYOffset, float *textXOffset)
 {
     GraphEdge *tEdge;
@@ -372,8 +375,9 @@ static void printSVGRelatedScalars(GraphNode *node,
 	if (tEdge->startNode == node  &&
 	    tEdge->endNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 
-	    printSVGAttribute(tEdge->endNode->smiNode,
-			      0, textYOffset, textXOffset);
+	    printSVGAttribute(tEdge->endNode->smiNode, 0,
+			      modc, modv,
+			      textYOffset, textXOffset);
 	}
     }
 }
@@ -382,6 +386,7 @@ static void printSVGRelatedScalars(GraphNode *node,
  * prints all columns objects of the given node
  */
 static void printSVGAllColumns(GraphNode *node,
+			       int modc, SmiModule **modv,
 			       float *textYOffset, float *textXOffset)
 {
     SmiModule *module  = NULL;
@@ -398,7 +403,9 @@ static void printSVGAllColumns(GraphNode *node,
 	
 	if (!algIsIndexElement(node->smiNode, smiNode) &&
 	    cmpSmiNodes(node->smiNode, ppNode))
-	    printSVGAttribute(smiNode, 0, textYOffset, textXOffset);
+	    printSVGAttribute(smiNode, 0,
+			      modc, modv,
+			      textYOffset, textXOffset);
     }
 }
 
@@ -406,6 +413,7 @@ static void printSVGAllColumns(GraphNode *node,
  * adds the index to an augmenting table (row-element)
  */
 static void printSVGAugmentIndex(GraphNode *tNode,
+				 int modc, SmiModule **modv,
 				 float *textYOffset, float *textXOffset)
 {
     GraphEdge  *tEdge;
@@ -420,8 +428,9 @@ static void printSVGAugmentIndex(GraphNode *tNode,
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
 		if (!cmpSmiNodes(tNode->smiNode, tEdge->startNode->smiNode)) {
-		    printSVGAttribute(smiGetElementNode(smiElement),
-				    1, textYOffset, textXOffset);
+		    printSVGAttribute(smiGetElementNode(smiElement), 1,
+				      modc, modv,
+				      textYOffset, textXOffset);
 		}
 	    }
 	}
@@ -431,7 +440,8 @@ static void printSVGAugmentIndex(GraphNode *tNode,
 /*
  * create svg-output for the given node
  */
-static void printSVGObject(GraphNode *node, int *classNr)
+static void printSVGObject(GraphNode *node, int *classNr,
+			   int modc, SmiModule **modv)
 {
     SmiElement *smiElement;
     float textXOffset, textYOffset, xOrigin, yOrigin;
@@ -540,7 +550,9 @@ static void printSVGObject(GraphNode *node, int *classNr)
 
 	if (node->dia.relatedScalars) {
 	    //A
-	    printSVGRelatedScalars(node, &textYOffset, &textXOffset);
+	    printSVGRelatedScalars(node,
+				   modc, modv,
+				   &textYOffset, &textXOffset);
 
 	    printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
 			    xOrigin,
@@ -553,14 +565,17 @@ static void printSVGObject(GraphNode *node, int *classNr)
 
 	if (node->dia.indexObjects) {
 	    //B
-	    printSVGAugmentIndex(node, &textYOffset, &textXOffset);
+	    printSVGAugmentIndex(node,
+				 modc, modv,
+				 &textYOffset, &textXOffset);
 	    //C
 	    for (smiElement = smiGetFirstElement(
 		smiGetFirstChildNode(node->smiNode));
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
-		printSVGAttribute(smiGetElementNode(smiElement),
-						1, &textYOffset, &textXOffset);
+		printSVGAttribute(smiGetElementNode(smiElement), 1,
+				  modc, modv,
+				  &textYOffset, &textXOffset);
 	    }
 
 	    printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
@@ -574,7 +589,9 @@ static void printSVGObject(GraphNode *node, int *classNr)
 
 	//D
 	if (PRINT_DETAILED_ATTR) {
-	    printSVGAllColumns(node, &textYOffset, &textXOffset);
+	    printSVGAllColumns(node,
+			       modc, modv,
+			       &textYOffset, &textXOffset);
 	}
     }
 
@@ -585,7 +602,8 @@ static void printSVGObject(GraphNode *node, int *classNr)
 /*
  * prints a group of scalars denoted by group
  */
-static void printSVGGroup(int group, int *classNr)
+static void printSVGGroup(int group, int *classNr,
+			  int modc, SmiModule **modv)
 {
     GraphNode *tNode;
     float textXOffset, textYOffset, xOrigin, yOrigin;
@@ -647,8 +665,9 @@ static void printSVGGroup(int group, int *classNr)
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) {
-	    printSVGAttribute(tNode->smiNode,
-			    0, &textYOffset, &textXOffset);
+	    printSVGAttribute(tNode->smiNode, 0,
+			      modc, modv,
+			      &textYOffset, &textXOffset);
 	}
     }
     
@@ -2561,7 +2580,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	}
 	for (tNode = tCluster->firstClusterNode; tNode;
 					tNode = tNode->nextClusterNode) {
-	    printSVGObject(tNode, &classNr);
+	    printSVGObject(tNode, &classNr, modc, modv);
 	}
 	//enclose cluster in its bounding box
 	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
@@ -2576,9 +2595,9 @@ static void diaPrintXML(int modc, SmiModule **modv)
     for (tNode = graph->clusters->firstClusterNode; tNode;
 		    			tNode = tNode->nextClusterNode) {
 	if (tNode->group == 0) {
-	    printSVGObject(tNode, &classNr);
+	    printSVGObject(tNode, &classNr, modc, modv);
 	} else {
-	    printSVGGroup(tNode->group, &classNr);
+	    printSVGGroup(tNode->group, &classNr, modc, modv);
 	}
     }
 
