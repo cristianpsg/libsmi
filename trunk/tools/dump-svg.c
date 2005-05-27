@@ -347,6 +347,8 @@ static void printSVGAttribute(SmiNode *node, int index,
 		    printf("           </tspan>\n");
 		    printf("          </a>", link);
 		    printf("\n");
+		} else {
+		    printf("%s", algGetTypeName(node));
 		}
 	    } else {
 		printf("%s", algGetTypeName(node));
