@@ -273,7 +273,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 			      int modc, SmiModule **modv,
 			      float *textYOffset, float *textXOffset)
 {
-    int         i;
+    int         i, target_exists = 0;
     size_t      length;
     char        *tooltip, *tooltipDescription, *typeDescription;
     const char  *baseTypeTooltipText = "This is a basetype.";
@@ -332,16 +332,22 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
 	    printf(">");
-	    //FIXME we should check for links to mib itself here.
 	    if (algGetTypeModule(node)) {
-		printf("\n");
-		printf("          <a xlink:href=\"%s", link);
-		printf("&amp;mibs=%s\">\n", algGetTypeModule(node)->name);
-		printf("           <tspan fill=\"%s\">\n", linkcolor);
-		printf("%s", algGetTypeName(node));
-		printf("           </tspan>\n");
-		printf("          </a>", link);
-		printf("\n");
+		for (i=0; i<modc; i++) {
+		    if (modv[i] == algGetTypeModule(node)) {
+			target_exists = 1;
+		    }
+		}
+		if (!target_exists) {
+		    printf("\n");
+		    printf("          <a xlink:href=\"%s", link);
+		    printf("&amp;mibs=%s\">\n", algGetTypeModule(node)->name);
+		    printf("           <tspan fill=\"%s\">\n", linkcolor);
+		    printf("%s", algGetTypeName(node));
+		    printf("           </tspan>\n");
+		    printf("          </a>", link);
+		    printf("\n");
+		}
 	    } else {
 		printf("%s", algGetTypeName(node));
 	    }
