@@ -62,6 +62,7 @@ static const float STARTSCALE          =(float)0.5;
 static const int ITERATIONS            =100;
 
 static char *link;
+static const char *linkcolor = "rgb(0%,0%,50%)";
 
 
 
@@ -334,7 +335,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 		printf("\n");
 		printf("          <a xlink:href=\"%s", link);
 		printf("&amp;mibs=%s\">\n", algGetTypeModule(node));
-		printf("           <tspan fill=\"rgb(0%%,0%%,100%%)\">\n");
+		printf("           <tspan fill=\"%s\">\n", linkcolor);
 		printf("%s", algGetTypeName(node));
 		printf("           </tspan>\n");
 		printf("          </a>", link);
@@ -1575,7 +1576,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		printf("&amp;mibs=%s", modv[k]->name);
 	    }
 	    printf("&amp;mibs=%s\">\n", module);
-	    printf("    <tspan fill=\"rgb(0%%,0%%,100%%)\"");
+	    printf("    <tspan fill=\"%s\"", linkcolor);
 	    printf(" x=\"5\">%s</tspan>\n", module);
 	    printf("   </a>\n");
 	} else {
