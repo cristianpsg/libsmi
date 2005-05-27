@@ -190,7 +190,7 @@ extern char *algGetTypeDescription(SmiNode *smiNode);
 
 extern char *algGetTypeName(SmiNode *smiNode);
 
-extern char *algGetTypeModule(SmiNode *smiNode);
+extern SmiModule *algGetTypeModule(SmiNode *smiNode);
 
 extern int isBaseType(SmiNode *node);
 

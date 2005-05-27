@@ -319,7 +319,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 		tooltip = (char *)xmalloc(length);
 		strcpy(tooltip, algGetTypeName(node));
 		strcat(tooltip, isDefined);
-		strcat(tooltip, algGetTypeModule(node));
+		strcat(tooltip, algGetTypeModule(node)->name);
 		strcat(tooltip, ":\\n\\n");
 		strcat(tooltip, tooltipDescription);
 	    } else {
@@ -336,7 +336,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    if (algGetTypeModule(node)) {
 		printf("\n");
 		printf("          <a xlink:href=\"%s", link);
-		printf("&amp;mibs=%s\">\n", algGetTypeModule(node));
+		printf("&amp;mibs=%s\">\n", algGetTypeModule(node)->name);
 		printf("           <tspan fill=\"%s\">\n", linkcolor);
 		printf("%s", algGetTypeName(node));
 		printf("           </tspan>\n");
