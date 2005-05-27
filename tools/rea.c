@@ -1376,9 +1376,11 @@ static void algLinkObjectsByNames()
     /* getting the minimum overlap for all nodes */
     minoverlap = 10000;
     tNode2 = graph->nodes;
-    for (tNode = tNode2->nextPtr; tNode; tNode = tNode->nextPtr) {	
-	minoverlap = min(minoverlap, strpfxlen(tNode->smiNode->name,
-					       tNode2->smiNode->name));
+    if (tNode2) {
+	for (tNode = tNode2->nextPtr; tNode; tNode = tNode->nextPtr) {	
+	    minoverlap = min(minoverlap, strpfxlen(tNode->smiNode->name,
+						   tNode2->smiNode->name));
+	}
     }
 
     /*
