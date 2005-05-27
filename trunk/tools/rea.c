@@ -733,7 +733,7 @@ char *algGetTypeName(SmiNode *smiNode)
  *
  * Returns the module which defines the data type used in smiNode.
  */
-char *algGetTypeModule(SmiNode *smiNode)
+SmiModule *algGetTypeModule(SmiNode *smiNode)
 {
     SmiType *smiType, *parentType;
     SmiModule *smiModule;
@@ -750,7 +750,7 @@ char *algGetTypeModule(SmiNode *smiNode)
   
     smiModule = smiGetTypeModule(smiType);
 
-    return smiModule->name;
+    return smiModule;
 }
 
 /*
