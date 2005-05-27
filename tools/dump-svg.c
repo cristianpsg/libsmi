@@ -328,6 +328,21 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
+	    printf(">");
+	    //FIXME we should check for links to mib itself here.
+	    if (algGetTypeModule(node)) {
+		printf("\n");
+		printf("          <a xlink:href=\"%s", link);
+		printf("&amp;mibs=%s\">\n", algGetTypeModule(node));
+		printf("           <tspan fill=\"rgb(0%%,0%%,100%%)\">\n");
+		printf("%s", algGetTypeName(node));
+		printf("           </tspan>\n");
+		printf("          </a>", link);
+		printf("\n");
+	    } else {
+		printf("%s", algGetTypeName(node));
+	    }
+	    printf("</tspan></text>\n");
 	} else if (isBaseType(node)) {
 	    length = strlen(baseTypeTooltipText) + 1;
 	    tooltip = (char *)xmalloc(length);
@@ -335,9 +350,11 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
+	    printf(">%s</tspan></text>\n", algGetTypeName(node));
 	}
+    } else {
+	printf(">%s</tspan></text>\n", algGetTypeName(node));
     }
-    printf(">%s</tspan></text>\n", algGetTypeName(node));
 }
 
 /*
