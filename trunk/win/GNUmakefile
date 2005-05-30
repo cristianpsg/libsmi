@@ -3,14 +3,14 @@
 #
 #	GNU Makefile for w32 VC++ environment.
 # 
-# Copyright (c) 2000 Yigal Hochberg, DMH Software.
+# Copyright (c) 2000-2005 Yigal Hochberg, DMH Software.
 # Copyright (c) 2000 E. Schoenfelder, Gaertner Datensysteme Braunschweig.
 # Copyright (c) 2000 J. Schoenwaelder, Technical University of Braunschweig.
 #
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: GNUmakefile,v 1.1 2000/11/27 15:07:05 strauss Exp $
+# @(#) $Id$
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -50,7 +50,7 @@ PATH := $(TOOLS32)\bin;$(PATH)
 cc32	= cl
 implib	= lib
 CC      = $(cc32)
-CFLAGS  = -nologo -W3
+CFLAGS  = -nologo -W3 -DYY_NO_UNISTD_H
 CC_INCL = #-I$(TOOLS32)/include
 AR      = $(implib)
 ARFLAGS = -nologo
