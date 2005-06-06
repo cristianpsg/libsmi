@@ -100,7 +100,8 @@ static char *getTimeString(time_t t)
  */
 static void algCreateNodes(SmiModule *module)
 {
-    SmiNode *node;
+    SmiNode   *node;
+    GraphNode *newNode;
     
     /* get tables and scalars from the MIB module */
     for (node = smiGetFirstNode(module, SMI_NODEKIND_TABLE);
@@ -111,7 +112,8 @@ static void algCreateNodes(SmiModule *module)
 	    || (node->status == SMI_STATUS_OBSOLETE
 	    && !SHOW_DEPR_OBSOLETE))
 	    continue;
-	graphInsertNode(graph, node);
+	newNode = graphInsertNode(graph, node);
+	newNode->smiModule = module;
     }
     for (node = smiGetFirstNode(module, SMI_NODEKIND_SCALAR);
 	 node;
@@ -121,7 +123,8 @@ static void algCreateNodes(SmiModule *module)
 	    || (node->status == SMI_STATUS_OBSOLETE
 	    && !SHOW_DEPR_OBSOLETE))
 	    continue;
-	graphInsertNode(graph, node);
+	newNode = graphInsertNode(graph, node);
+	newNode->smiModule = module;
     }
 }
 
@@ -471,7 +474,9 @@ static void printSVGObject(GraphNode *node, int *classNr,
            node->dia.y + node->cluster->yOffset);
     printf("  <g id=\"%s\" transform=\"scale(%.1f)\">\n",
            smiGetFirstChildNode(node->smiNode)->name, STARTSCALE);
-    printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
+    printf("    <rect id=\"%sRect\"",
+           smiGetFirstChildNode(node->smiNode)->name);
+    printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
     printf("          fill=\"white\" stroke=\"black\"/>\n");
     printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
@@ -632,7 +637,9 @@ static void printSVGGroup(int group, int *classNr,
            tNode->dia.y + tNode->cluster->yOffset);
     printf("  <g id=\"%s\" transform=\"scale(%.1f)\">\n",
            smiGetParentNode(tNode->smiNode)->name, STARTSCALE);
-    printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
+    printf("    <rect id=\"%sRect\"",
+           smiGetParentNode(tNode->smiNode)->name);
+    printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
     printf("          fill=\"white\" stroke=\"black\"/>\n");
     printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
@@ -1802,12 +1809,12 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 static void printModuleIdentity(int modc, SmiModule **modv,
 				float *x, float *y, int *miNr)
 {
-    int         i;
-    //int         i, j;
+    int         i, j;
     char        *tooltip;
     SmiNode     *smiNode;
     //SmiElement  *smiElement;
     SmiRevision *smiRevision;
+    GraphNode   *tNode;
 
     printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -1835,12 +1842,67 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	    }
 	    printf("   <tspan x=\"5\"");
-	    if (!STATIC_OUTPUT && modv[i]->description) {
-		tooltip = (char *)xmalloc(2*strlen(modv[i]->description));
-		parseTooltip(modv[i]->description, tooltip);
-		printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-		printf(" onmouseout=\"HideTooltip(evt)\"");
-		xfree(tooltip);
+	    if (!STATIC_OUTPUT) {
+		if (modv[i]->description || modc > 1) {
+		    printf(" onmousemove=\"");
+		}
+		if (modv[i]->description) {
+		    tooltip = (char *)xmalloc(2*strlen(modv[i]->description));
+		    parseTooltip(modv[i]->description, tooltip);
+		    printf("ShowTooltipMZ(evt,'%s')", tooltip);
+		    xfree(tooltip);
+		}
+		if (modv[i]->description && modc > 1) {
+		    printf(";");
+		}
+		if (modc > 1) {
+		    j = 0;
+		    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+			if (tNode->smiModule == modv[i] && tNode->use) {
+			    if (j) {
+				printf(";");
+			    }
+			    if (tNode->group == 0) {
+				printf("colorText('%sRect','navajowhite')",
+				    smiGetFirstChildNode(tNode->smiNode)->name);
+			    } else {
+				printf("colorText('%sRect','navajowhite')",
+				    smiGetParentNode(tNode->smiNode)->name);
+			    }
+			    j++;
+			}
+		    }
+		}
+		if (modv[i]->description || modc > 1) {
+		    printf("\" onmouseout=\"");
+		}
+		if (modv[i]->description) {
+		    printf("HideTooltip(evt)");
+		}
+		if (modv[i]->description && modc > 1) {
+		    printf(";");
+		}
+		if (modc > 1) {
+		    j = 0;
+		    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+			if (tNode->smiModule == modv[i] && tNode->use) {
+			    if (j) {
+				printf(";");
+			    }
+			    if (tNode->group == 0) {
+				printf("colorText('%sRect','white')",
+				    smiGetFirstChildNode(tNode->smiNode)->name);
+			    } else {
+				printf("colorText('%sRect','white')",
+				    smiGetParentNode(tNode->smiNode)->name);
+			    }
+			    j++;
+			}
+		    }
+		}
+		if (modv[i]->description || modc > 1) {
+		    printf("\"");
+		}
 	    }
 	    printf(">%s</tspan>\n", smiNode->name);
 	    printf("  </text>\n");
@@ -2623,7 +2685,7 @@ static void buildLink(int modc, SmiModule **modv)
 {
     size_t length;
     const char *url = URL;
-    //note: no &, because first string
+    //note: first string, so no &amp; required
     const char *widthstr = "width=";
     const char *heightstr = "&amp;height=";
     const char *deprstr = "&amp;deprobs=deprecated";
