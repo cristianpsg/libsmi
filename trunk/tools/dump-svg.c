@@ -302,7 +302,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 	}
     }
 
-    printf("<tspan");
+    printf("         <tspan");
     if (!STATIC_OUTPUT && node->description) {
 	tooltip = (char *)xmalloc(2*strlen(node->description));
 	parseTooltip(node->description, tooltip);
@@ -314,6 +314,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 
     printf("         <tspan");
     if (!STATIC_OUTPUT) {
+	//FIXME <tspan><tspan>test</tspan></tspan> isn't allowed :-(
 	if ((typeDescription = algGetTypeDescription(node))) {
 	    tooltipDescription = (char *)xmalloc(2*strlen(typeDescription));
 	    parseTooltip(typeDescription, tooltipDescription);
@@ -345,10 +346,9 @@ static void printSVGAttribute(SmiNode *node, int index,
 		    printf("\n");
 		    printf("          <a xlink:href=\"%s", link);
 		    printf("&amp;mibs=%s\">\n", algGetTypeModule(node)->name);
-		    printf("           <tspan fill=\"%s\">\n", linkcolor);
-		    printf("%s", algGetTypeName(node));
-		    printf("           </tspan>\n");
-		    printf("          </a>", link);
+		    printf("           <tspan fill=\"%s\">", linkcolor);
+		    printf("%s</tspan>\n", algGetTypeName(node));
+		    printf("          </a>");
 		    printf("\n");
 		} else {
 		    printf("%s", algGetTypeName(node));
@@ -356,7 +356,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    } else {
 		printf("%s", algGetTypeName(node));
 	    }
-	    printf("</tspan></text>\n");
+	    printf("        </tspan></text>\n");
 	} else if (isBaseType(node)) {
 	    length = strlen(baseTypeTooltipText) + 1;
 	    tooltip = (char *)xmalloc(length);
