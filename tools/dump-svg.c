@@ -1863,10 +1863,10 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 				printf(";");
 			    }
 			    if (tNode->group == 0) {
-				printf("colorText('%sRect','navajowhite')",
+				printf("colorText('%sRect','blanchedalmond')",
 				    smiGetFirstChildNode(tNode->smiNode)->name);
 			    } else {
-				printf("colorText('%sRect','navajowhite')",
+				printf("colorText('%sRect','blanchedalmond')",
 				    smiGetParentNode(tNode->smiNode)->name);
 			    }
 			    j++;
