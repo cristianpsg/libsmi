@@ -282,7 +282,7 @@ static void printSVGAttribute(SmiNode *node, int index,
     const char  *baseTypeTooltipText = "This is a basetype.";
     const char  *isDefined = " is defined in module ";
 
-    printf("    <text ");
+    printf("  <text ");
     if (!index) {
 	printf("id=\"%s\" ", node->name);
     }
@@ -296,13 +296,13 @@ static void printSVGAttribute(SmiNode *node, int index,
 
     if (!index) {
 	if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
-	    printf("         -");
+	    printf("    -");
 	} else {
-	    printf("         +");
+	    printf("    +");
 	}
     }
 
-    printf("         <tspan");
+    printf("<tspan");
     if (!STATIC_OUTPUT && node->description) {
 	tooltip = (char *)xmalloc(2*strlen(node->description));
 	parseTooltip(node->description, tooltip);
@@ -312,9 +312,8 @@ static void printSVGAttribute(SmiNode *node, int index,
     }
     printf(">%s:</tspan>\n", node->name);
 
-    printf("         <tspan");
+    printf("    <tspan");
     if (!STATIC_OUTPUT) {
-	//FIXME <tspan><tspan>test</tspan></tspan> isn't allowed :-(
 	if ((typeDescription = algGetTypeDescription(node))) {
 	    tooltipDescription = (char *)xmalloc(2*strlen(typeDescription));
 	    parseTooltip(typeDescription, tooltipDescription);
@@ -335,7 +334,6 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
-	    printf(">");
 	    if (algGetTypeModule(node)) {
 		for (i=0; i<modc; i++) {
 		    if (modv[i] == algGetTypeModule(node)) {
@@ -343,20 +341,18 @@ static void printSVGAttribute(SmiNode *node, int index,
 		    }
 		}
 		if (!target_exists) {
-		    printf("\n");
-		    printf("          <a xlink:href=\"%s", link);
+		    printf(" fill=\"%s\">\n", linkcolor);
+		    printf("      <a xlink:href=\"%s", link);
 		    printf("&amp;mibs=%s\">\n", algGetTypeModule(node)->name);
-		    printf("           <tspan fill=\"%s\">", linkcolor);
-		    printf("%s</tspan>\n", algGetTypeName(node));
-		    printf("          </a>");
-		    printf("\n");
+		    printf("        %s\n", algGetTypeName(node));
+		    printf("      </a>\n");
 		} else {
-		    printf("%s", algGetTypeName(node));
+		    printf(">%s\n", algGetTypeName(node));
 		}
 	    } else {
-		printf("%s", algGetTypeName(node));
+		printf(">%s\n", algGetTypeName(node));
 	    }
-	    printf("        </tspan></text>\n");
+	    printf("    </tspan></text>\n");
 	} else if (isBaseType(node)) {
 	    length = strlen(baseTypeTooltipText) + 1;
 	    tooltip = (char *)xmalloc(length);
