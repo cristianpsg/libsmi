@@ -1710,7 +1710,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    if (smiOption->description && foreign_exists)
 			printf(";");
 		    if (foreign_exists)
-			printf("colorText('%s','red')", smiNode2->name);
+			printf("colorText('%s','salmon')", smiNode2->name);
 		    printf("\" onmouseout=\"");
 		    if (smiOption->description) {
 			printf("HideTooltip(evt)");
@@ -1768,7 +1768,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    if (smiRefinement->description && foreign_exists)
 			printf(";");
 		    if (foreign_exists)
-			printf("colorText('%s','red')", smiNode2->name);
+			printf("colorText('%s','salmon')", smiNode2->name);
 		    printf("\" onmouseout=\"");
 		    if (smiRefinement->description) {
 			printf("HideTooltip(evt)");
