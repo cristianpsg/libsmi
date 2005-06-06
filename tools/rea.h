@@ -98,6 +98,7 @@ typedef struct GraphCluster {
 typedef struct GraphNode {
     struct GraphNode *nextPtr;
     SmiNode          *smiNode;
+    SmiModule        *smiModule;
     int              group;		/* group number of this graph node */
     int              use;		/* use node in the layout-algorithm */
     int              degree;		/* quantity of adjacent nodes */
