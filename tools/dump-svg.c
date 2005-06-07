@@ -282,11 +282,34 @@ static void printSVGAttribute(SmiNode *node, int index,
     const char  *baseTypeTooltipText = "This is a basetype.";
     const char  *isDefined = " is defined in module ";
 
-    printf("  <text ");
+    if ((node->status == SMI_STATUS_DEPRECATED
+	&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+	|| (node->status == SMI_STATUS_OBSOLETE
+	&& !SHOW_DEPR_OBSOLETE))
+	return;
+
+    printf("  <text");
     if (!index) {
-	printf("id=\"%s\" ", node->name);
+	printf(" id=\"%s\"", node->name);
     }
-    printf("x=\"%.2f\" y=\"%.2f\">\n",
+    switch (node->status) {
+    case SMI_STATUS_DEPRECATED:
+	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
+	break;
+    case SMI_STATUS_OBSOLETE:
+	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
+	break;
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_MANDATORY:
+	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
+	break;
+    case SMI_STATUS_OPTIONAL:
+	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
+	break;
+    case SMI_STATUS_UNKNOWN:
+	;
+    }
+    printf(" x=\"%.2f\" y=\"%.2f\">\n",
 				*textXOffset + ATTRSPACESIZE, *textYOffset);
 
     *textYOffset += TABLEELEMHEIGHT;
@@ -352,7 +375,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    } else {
 		printf(">%s\n", algGetTypeName(node));
 	    }
-	    printf("    </tspan></text>\n");
+	    printf("    </tspan>");
 	} else if (isBaseType(node)) {
 	    length = strlen(baseTypeTooltipText) + 1;
 	    tooltip = (char *)xmalloc(length);
@@ -360,11 +383,22 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
-	    printf(">%s</tspan></text>\n", algGetTypeName(node));
+	    printf(">%s</tspan>", algGetTypeName(node));
 	}
     } else {
-	printf(">%s</tspan></text>\n", algGetTypeName(node));
+	printf(">%s</tspan>", algGetTypeName(node));
     }
+    switch (node->status) {
+    case SMI_STATUS_DEPRECATED:
+    case SMI_STATUS_OBSOLETE:
+    case SMI_STATUS_MANDATORY:
+    case SMI_STATUS_OPTIONAL:
+	printf(" (%s)", getStatusString(node->status));
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_UNKNOWN:
+	;
+    }
+    printf("</text>\n");
 }
 
 /*
@@ -479,8 +513,25 @@ static void printSVGObject(GraphNode *node, int *classNr,
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
-    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
-    printf("          style=\"text-anchor:middle; font-weight:bold\"");
+    printf("    <text x=\"0\" y=\"%.2f\"", yOrigin + 15);
+    switch (node->smiNode->status) {
+    case SMI_STATUS_DEPRECATED:
+	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
+	break;
+    case SMI_STATUS_OBSOLETE:
+	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
+	break;
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_MANDATORY:
+	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
+	break;
+    case SMI_STATUS_OPTIONAL:
+	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
+	break;
+    case SMI_STATUS_UNKNOWN:
+	;
+    }
+    printf(" style=\"text-anchor:middle; font-weight:bold\"");
 
     //descriptions for the table and the entries
     if (!STATIC_OUTPUT) {
@@ -527,7 +578,18 @@ static void printSVGObject(GraphNode *node, int *classNr,
     }
 
     printf(">\n");
-    printf("         %s</text>\n",smiGetFirstChildNode(node->smiNode)->name);
+    printf("         %s",smiGetFirstChildNode(node->smiNode)->name);
+    switch (node->smiNode->status) {
+    case SMI_STATUS_DEPRECATED:
+    case SMI_STATUS_OBSOLETE:
+    case SMI_STATUS_MANDATORY:
+    case SMI_STATUS_OPTIONAL:
+	printf(" (%s)", getStatusString(node->smiNode->status));
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_UNKNOWN:
+	;
+    }
+    printf("</text>\n");
     if (!STATIC_OUTPUT) {
 	//the "+"-button
 	printf("    <g onclick=\"enlarge('%s',%i)\"\n",
@@ -642,10 +704,39 @@ static void printSVGGroup(int group, int *classNr,
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + tNode->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
-    printf("    <text x=\"0\" y=\"%.2f\"\n", yOrigin + 15);
-    printf("          style=\"text-anchor:middle; font-weight:bold\">\n");
+    printf("    <text x=\"0\" y=\"%.2f\"", yOrigin + 15);
+    switch (smiGetParentNode(tNode->smiNode)->status) {
+    case SMI_STATUS_DEPRECATED:
+	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
+	break;
+    case SMI_STATUS_OBSOLETE:
+	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
+	break;
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_MANDATORY:
+	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
+	break;
+    case SMI_STATUS_OPTIONAL:
+	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
+	break;
+    case SMI_STATUS_UNKNOWN:
+	;
+    }
+    printf(" style=\"text-anchor:middle; font-weight:bold\">\n");
     //groups don't seem to have a description.
-    printf("         %s</text>\n", smiGetParentNode(tNode->smiNode)->name);
+    printf("         %s", smiGetParentNode(tNode->smiNode)->name);
+    switch (smiGetParentNode(tNode->smiNode)->status) {
+    case SMI_STATUS_DEPRECATED:
+    case SMI_STATUS_OBSOLETE:
+    case SMI_STATUS_MANDATORY:
+    case SMI_STATUS_OPTIONAL:
+	printf(" (%s)",
+		    getStatusString(smiGetParentNode(tNode->smiNode)->status));
+    case SMI_STATUS_CURRENT:
+    case SMI_STATUS_UNKNOWN:
+	;
+    }
+    printf("</text>\n");
 
     if (!STATIC_OUTPUT) {
 	//the "+"-button
@@ -1049,6 +1140,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
     SmiElement *smiElement;
     SmiModule  *module;
     float      lastHeight;
+    int        stringlen;
 
     if (node->smiNode->nodekind == SMI_NODEKIND_SCALAR) return node;
 
@@ -1070,9 +1162,25 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	    tEdge->endNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 
 	    tNode = tEdge->endNode->smiNode;
-	    
-	    node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-				    strlen(algGetTypeName(tNode)) + 2)
+
+	    if ((tNode->status == SMI_STATUS_DEPRECATED
+		&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		|| (tNode->status == SMI_STATUS_OBSOLETE
+		&& !SHOW_DEPR_OBSOLETE))
+		continue;
+
+	    stringlen = strlen(tNode->name) + strlen(algGetTypeName(tNode)) +2;
+	    switch (tNode->status) {
+	    case SMI_STATUS_DEPRECATED:
+	    case SMI_STATUS_OBSOLETE:
+	    case SMI_STATUS_MANDATORY:
+	    case SMI_STATUS_OPTIONAL:
+		stringlen += strlen(getStatusString(tNode->status)) +3;
+	    case SMI_STATUS_CURRENT:
+	    case SMI_STATUS_UNKNOWN:
+		;
+	    }
+	    node->dia.w = max(node->dia.w, stringlen
 			  * ATTRFONTSIZE
 			  + ATTRSPACESIZE);		
 	    node->dia.h += TABLEELEMHEIGHT;
@@ -1097,8 +1205,25 @@ static GraphNode *diaCalcSize(GraphNode *node)
 
 		    tNode = smiGetElementNode(smiElement);
 
-		    node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-					    strlen(algGetTypeName(tNode)) + 3)
+		    if ((tNode->status == SMI_STATUS_DEPRECATED
+			&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+			|| (tNode->status == SMI_STATUS_OBSOLETE
+			&& !SHOW_DEPR_OBSOLETE))
+			continue;
+
+		    stringlen = strlen(tNode->name)
+					    + strlen(algGetTypeName(tNode)) +3;
+		    switch (tNode->status) {
+		    case SMI_STATUS_DEPRECATED:
+		    case SMI_STATUS_OBSOLETE:
+		    case SMI_STATUS_MANDATORY:
+		    case SMI_STATUS_OPTIONAL:
+			stringlen += strlen(getStatusString(tNode->status)) +3;
+		    case SMI_STATUS_CURRENT:
+		    case SMI_STATUS_UNKNOWN:
+			;
+		    }
+		    node->dia.w = max(node->dia.w, stringlen
 						    * ATTRFONTSIZE
 						    + ATTRSPACESIZE);
 		    node->dia.h += TABLEELEMHEIGHT;
@@ -1114,9 +1239,25 @@ static GraphNode *diaCalcSize(GraphNode *node)
 	 smiElement = smiGetNextElement(smiElement)) {
 	
 	tNode = smiGetElementNode(smiElement);
-	
-	node->dia.w = max(node->dia.w, (strlen(tNode->name) +
-					strlen(algGetTypeName(tNode)) + 3)
+
+	if ((tNode->status == SMI_STATUS_DEPRECATED
+	    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+	    || (tNode->status == SMI_STATUS_OBSOLETE
+	    && !SHOW_DEPR_OBSOLETE))
+	    continue;
+
+	stringlen = strlen(tNode->name) + strlen(algGetTypeName(tNode)) +3;
+	switch (tNode->status) {
+	case SMI_STATUS_DEPRECATED:
+	case SMI_STATUS_OBSOLETE:
+	case SMI_STATUS_MANDATORY:
+	case SMI_STATUS_OPTIONAL:
+	    stringlen += strlen(getStatusString(tNode->status)) +3;
+	case SMI_STATUS_CURRENT:
+	case SMI_STATUS_UNKNOWN:
+	    ;
+	}
+	node->dia.w = max(node->dia.w, stringlen
 		      * ATTRFONTSIZE
 		      + ATTRSPACESIZE);
 	node->dia.h += TABLEELEMHEIGHT;
@@ -1140,8 +1281,24 @@ static GraphNode *diaCalcSize(GraphNode *node)
 		int len;
 		char *typeName;
 
+		if ((tNode->status == SMI_STATUS_DEPRECATED
+		    && !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		    || (tNode->status == SMI_STATUS_OBSOLETE
+		    && !SHOW_DEPR_OBSOLETE))
+		    continue;
+
 		typeName = algGetTypeName(tNode);
 		len = strlen(tNode->name) + (typeName ? strlen(typeName)+2 : 1);
+		switch (tNode->status) {
+		case SMI_STATUS_DEPRECATED:
+		case SMI_STATUS_OBSOLETE:
+		case SMI_STATUS_MANDATORY:
+		case SMI_STATUS_OPTIONAL:
+		    len += strlen(getStatusString(tNode->status)) +3;
+		case SMI_STATUS_CURRENT:
+		case SMI_STATUS_UNKNOWN:
+		    ;
+		}
 		node->dia.w = max(node->dia.w, len
 		    * ATTRFONTSIZE
 		    + ATTRSPACESIZE);
@@ -1160,6 +1317,7 @@ static GraphNode *calcGroupSize(int group)
 {
     GraphNode *calcNode, *node;
     SmiNode   *tNode;
+    int       stringlen;
 
     for (calcNode = graph->nodes; calcNode; calcNode = calcNode->nextPtr) {
 	if (calcNode->group == group) break;
@@ -1175,8 +1333,25 @@ static GraphNode *calcGroupSize(int group)
     for (node = graph->nodes; node; node = node->nextPtr) {
 	if (node->group == group) {
 	    tNode = node->smiNode;
-	    calcNode->dia.w = max(calcNode->dia.w, (strlen(tNode->name) +
-				    strlen(algGetTypeName(tNode)) + 2)
+
+	    if ((tNode->status == SMI_STATUS_DEPRECATED
+		&& !SHOW_DEPRECATED && !SHOW_DEPR_OBSOLETE)
+		|| (tNode->status == SMI_STATUS_OBSOLETE
+		&& !SHOW_DEPR_OBSOLETE))
+		continue;
+
+	    stringlen = strlen(tNode->name) + strlen(algGetTypeName(tNode)) +2;
+	    switch (tNode->status) {
+	    case SMI_STATUS_DEPRECATED:
+	    case SMI_STATUS_OBSOLETE:
+	    case SMI_STATUS_MANDATORY:
+	    case SMI_STATUS_OPTIONAL:
+		stringlen += strlen(getStatusString(tNode->status)) +3;
+	    case SMI_STATUS_CURRENT:
+	    case SMI_STATUS_UNKNOWN:
+		;
+	    }
+	    calcNode->dia.w = max(calcNode->dia.w, stringlen
 			    * ATTRFONTSIZE
 			    + ATTRSPACESIZE);
 	    calcNode->dia.h += TABLEELEMHEIGHT;
