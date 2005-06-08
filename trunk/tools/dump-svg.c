@@ -1656,8 +1656,24 @@ static void printInformationNode(SmiNode *smiNode,
 	    if (j) {
 		printf(";");
 	    }
-	    printf("colorText('%s','black')",
-					smiGetElementNode(smiElement)->name);
+	    printf("colorText('%s',", smiGetElementNode(smiElement)->name);
+	    switch (smiGetElementNode(smiElement)->status) {
+	    case SMI_STATUS_DEPRECATED:
+		printf("'rgb(40%%,40%%,40%%)')");
+		break;
+	    case SMI_STATUS_OBSOLETE:
+		printf("'rgb(60%%,60%%,60%%)')");
+		break;
+	    case SMI_STATUS_CURRENT:
+	    case SMI_STATUS_MANDATORY:
+		printf("'rgb(0%%,0%%,0%%)')");
+		break;
+	    case SMI_STATUS_OPTIONAL:
+		printf("'rgb(20%%,20%%,20%%)')");
+		break;
+	    case SMI_STATUS_UNKNOWN:
+		;
+	    }
 	}
 	if (j || smiNode->description) {
 	    printf("\"");
@@ -1946,8 +1962,26 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    }
 		    if (smiRefinement->description && foreign_exists)
 			printf(";");
-		    if (foreign_exists)
-			printf("colorText('%s','black')", smiNode2->name);
+		    if (foreign_exists) {
+			printf("colorText('%s',", smiNode2->name);
+			switch (smiNode2->status) {
+			case SMI_STATUS_DEPRECATED:
+			    printf("'rgb(40%%,40%%,40%%)')");
+			    break;
+			case SMI_STATUS_OBSOLETE:
+			    printf("'rgb(60%%,60%%,60%%)')");
+			    break;
+			case SMI_STATUS_CURRENT:
+			case SMI_STATUS_MANDATORY:
+			    printf("'rgb(0%%,0%%,0%%)')");
+			    break;
+			case SMI_STATUS_OPTIONAL:
+			    printf("'rgb(20%%,20%%,20%%)')");
+			    break;
+			case SMI_STATUS_UNKNOWN:
+			    ;
+			}
+		    }
 		    printf("\"");
 		}
 		printf(">Object %s</text>\n", smiNode2->name);
