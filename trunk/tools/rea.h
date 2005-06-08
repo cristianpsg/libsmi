@@ -81,6 +81,16 @@ typedef struct DiaEdge {
 } DiaEdge;
 
 /*
+ * Generic structure for moduleInformation string-lists.
+ */
+
+typedef struct StringListElem {
+    struct StringListElem *nextPtr;
+    SmiStatus             status;
+    char                  *miElem;
+} StringListElem;
+
+/*
  * Generic structures for the internal graph representation.
  */
 
