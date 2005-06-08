@@ -224,6 +224,17 @@ static int isNotificationGroup(SmiNode *groupNode)
     return 1;
 }
 
+static char *printFillColor(SmiStatus status)
+{
+    return
+	(status == SMI_STATUS_CURRENT)     ? "rgb(0%,0%,0%)" :
+	(status == SMI_STATUS_DEPRECATED)  ? "rgb(40%,40%,40%)" :
+	(status == SMI_STATUS_OBSOLETE)    ? "rgb(60%,60%,60%)" :
+	(status == SMI_STATUS_MANDATORY)   ? "rgb(0%,0%,0%)" :
+	(status == SMI_STATUS_OPTIONAL)    ? "rgb(20%,20%,20%)" :
+					     "";
+}
+
 static char *getStatusString(SmiStatus status)
 {
     return
@@ -292,23 +303,7 @@ static void printSVGAttribute(SmiNode *node, int index,
     if (!index) {
 	printf(" id=\"%s\"", node->name);
     }
-    switch (node->status) {
-    case SMI_STATUS_DEPRECATED:
-	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
-	break;
-    case SMI_STATUS_OBSOLETE:
-	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
-	break;
-    case SMI_STATUS_CURRENT:
-    case SMI_STATUS_MANDATORY:
-	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
-	break;
-    case SMI_STATUS_OPTIONAL:
-	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
-	break;
-    case SMI_STATUS_UNKNOWN:
-	;
-    }
+    printf(" fill=\"%s\"", printFillColor(node->status));
     printf(" x=\"%.2f\" y=\"%.2f\">\n",
 				*textXOffset + ATTRSPACESIZE, *textYOffset);
 
@@ -514,23 +509,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
            xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
     printf("    <text x=\"0\" y=\"%.2f\"", yOrigin + 15);
-    switch (node->smiNode->status) {
-    case SMI_STATUS_DEPRECATED:
-	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
-	break;
-    case SMI_STATUS_OBSOLETE:
-	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
-	break;
-    case SMI_STATUS_CURRENT:
-    case SMI_STATUS_MANDATORY:
-	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
-	break;
-    case SMI_STATUS_OPTIONAL:
-	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
-	break;
-    case SMI_STATUS_UNKNOWN:
-	;
-    }
+    printf(" fill=\"%s\"", printFillColor(node->smiNode->status));
     printf(" style=\"text-anchor:middle; font-weight:bold\"");
 
     //descriptions for the table and the entries
@@ -705,23 +684,8 @@ static void printSVGGroup(int group, int *classNr,
            xOrigin + tNode->dia.w, yOrigin + TABLEHEIGHT);
     printf("          fill=\"none\" stroke=\"black\"/>\n");
     printf("    <text x=\"0\" y=\"%.2f\"", yOrigin + 15);
-    switch (smiGetParentNode(tNode->smiNode)->status) {
-    case SMI_STATUS_DEPRECATED:
-	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
-	break;
-    case SMI_STATUS_OBSOLETE:
-	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
-	break;
-    case SMI_STATUS_CURRENT:
-    case SMI_STATUS_MANDATORY:
-	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
-	break;
-    case SMI_STATUS_OPTIONAL:
-	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
-	break;
-    case SMI_STATUS_UNKNOWN:
-	;
-    }
+    printf(" fill=\"%s\"",
+		    printFillColor(smiGetParentNode(tNode->smiNode)->status));
     printf(" style=\"text-anchor:middle; font-weight:bold\">\n");
     //groups don't seem to have a description.
     printf("         %s", smiGetParentNode(tNode->smiNode)->name);
@@ -1644,23 +1608,7 @@ static void printInformationNode(SmiNode *smiNode,
     printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
     printf("(%.2f,%.2f)\">\n", *x, *y);
     printf("  <text id=\"%s\"", smiNode->name);
-    switch (smiNode->status) {
-    case SMI_STATUS_DEPRECATED:
-	printf(" fill=\"rgb(40%%,40%%,40%%)\"");
-	break;
-    case SMI_STATUS_OBSOLETE:
-	printf(" fill=\"rgb(60%%,60%%,60%%)\"");
-	break;
-    case SMI_STATUS_CURRENT:
-    case SMI_STATUS_MANDATORY:
-	printf(" fill=\"rgb(0%%,0%%,0%%)\"");
-	break;
-    case SMI_STATUS_OPTIONAL:
-	printf(" fill=\"rgb(20%%,20%%,20%%)\"");
-	break;
-    case SMI_STATUS_UNKNOWN:
-	;
-    }
+    printf(" fill=\"%s\"", printFillColor(smiNode->status));
 
     if (!STATIC_OUTPUT) {
 	smiElement = smiGetFirstElement(smiNode);
@@ -1718,23 +1666,8 @@ static void printInformationNode(SmiNode *smiNode,
 		printf(";");
 	    }
 	    printf("colorText('%s',", smiGetElementNode(smiElement)->name);
-	    switch (smiGetElementNode(smiElement)->status) {
-	    case SMI_STATUS_DEPRECATED:
-		printf("'rgb(40%%,40%%,40%%)')");
-		break;
-	    case SMI_STATUS_OBSOLETE:
-		printf("'rgb(60%%,60%%,60%%)')");
-		break;
-	    case SMI_STATUS_CURRENT:
-	    case SMI_STATUS_MANDATORY:
-		printf("'rgb(0%%,0%%,0%%)')");
-		break;
-	    case SMI_STATUS_OPTIONAL:
-		printf("'rgb(20%%,20%%,20%%)')");
-		break;
-	    case SMI_STATUS_UNKNOWN:
-		;
-	    }
+	    printf("'%s')",
+			printFillColor(smiGetElementNode(smiElement)->status));
 	    if (isNotificationGroup(smiNode)) {
 		//parse markupList
 		for (k=0; k<miCount; k++) {
@@ -1746,23 +1679,7 @@ static void printInformationNode(SmiNode *smiNode,
 		    for (tElem = markupList[k].nextPtr;
 			tElem; tElem = tElem->nextPtr) {
 			printf(";colorText('%s',", tElem->miElem);
-			switch (tElem->status) {
-			case SMI_STATUS_DEPRECATED:
-			    printf("'rgb(40%%,40%%,40%%)')");
-			    break;
-			case SMI_STATUS_OBSOLETE:
-			    printf("'rgb(60%%,60%%,60%%)')");
-			    break;
-			case SMI_STATUS_CURRENT:
-			case SMI_STATUS_MANDATORY:
-			    printf("'rgb(0%%,0%%,0%%)')");
-			    break;
-			case SMI_STATUS_OPTIONAL:
-			    printf("'rgb(20%%,20%%,20%%)')");
-			    break;
-			case SMI_STATUS_UNKNOWN:
-			    ;
-			}
+			printf("'%s')", printFillColor(tElem->status));
 		    }
 		}
 	    }
@@ -1954,23 +1871,8 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    }
 		    printf("colorText('%s',",
 					smiGetElementNode(smiElement)->name);
-		    switch (smiGetElementNode(smiElement)->status) {
-		    case SMI_STATUS_DEPRECATED:
-			printf("'rgb(40%%,40%%,40%%)')");
-			break;
-		    case SMI_STATUS_OBSOLETE:
-			printf("'rgb(60%%,60%%,60%%)')");
-			break;
-		    case SMI_STATUS_CURRENT:
-		    case SMI_STATUS_MANDATORY:
-			printf("'rgb(0%%,0%%,0%%)')");
-			break;
-		    case SMI_STATUS_OPTIONAL:
-			printf("'rgb(20%%,20%%,20%%)')");
-			break;
-		    case SMI_STATUS_UNKNOWN:
-			;
-		    }
+		    printf("'%s')",
+			printFillColor(smiGetElementNode(smiElement)->status));
 		    //parse markupList
 		    for (k=0; k<miCount; k++) {
 			if (markupList[k].miElem == NULL)
@@ -1981,23 +1883,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			for (tElem = markupList[k].nextPtr;
 			    tElem; tElem = tElem->nextPtr) {
 			    printf(";colorText('%s',", tElem->miElem);
-			    switch (tElem->status) {
-			    case SMI_STATUS_DEPRECATED:
-				printf("'rgb(40%%,40%%,40%%)')");
-				break;
-			    case SMI_STATUS_OBSOLETE:
-				printf("'rgb(60%%,60%%,60%%)')");
-				break;
-			    case SMI_STATUS_CURRENT:
-			    case SMI_STATUS_MANDATORY:
-				printf("'rgb(0%%,0%%,0%%)')");
-				break;
-			    case SMI_STATUS_OPTIONAL:
-				printf("'rgb(20%%,20%%,20%%)')");
-				break;
-			    case SMI_STATUS_UNKNOWN:
-				;
-			    }
+			    printf("'%s')", printFillColor(tElem->status));
 			}
 		    }
 		}
@@ -2055,23 +1941,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			printf(";");
 		    if (foreign_exists) {
 			printf("colorText('%s',", smiNode2->name);
-			switch (smiNode2->status) {
-			case SMI_STATUS_DEPRECATED:
-			    printf("'rgb(40%%,40%%,40%%)')");
-			    break;
-			case SMI_STATUS_OBSOLETE:
-			    printf("'rgb(60%%,60%%,60%%)')");
-			    break;
-			case SMI_STATUS_CURRENT:
-			case SMI_STATUS_MANDATORY:
-			    printf("'rgb(0%%,0%%,0%%)')");
-			    break;
-			case SMI_STATUS_OPTIONAL:
-			    printf("'rgb(20%%,20%%,20%%)')");
-			    break;
-			case SMI_STATUS_UNKNOWN:
-			    ;
-			}
+			printf("'%s')", printFillColor(smiNode2->status));
 			//parse markupList
 			for (j=0; j<miCount; j++) {
 			    if (markupList[j].miElem == NULL)
@@ -2081,23 +1951,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			    for (tElem = markupList[j].nextPtr;
 				tElem; tElem = tElem->nextPtr) {
 				printf(";colorText('%s',", tElem->miElem);
-				switch (tElem->status) {
-				case SMI_STATUS_DEPRECATED:
-				    printf("'rgb(40%%,40%%,40%%)')");
-				    break;
-				case SMI_STATUS_OBSOLETE:
-				    printf("'rgb(60%%,60%%,60%%)')");
-				    break;
-				case SMI_STATUS_CURRENT:
-				case SMI_STATUS_MANDATORY:
-				    printf("'rgb(0%%,0%%,0%%)')");
-				    break;
-				case SMI_STATUS_OPTIONAL:
-				    printf("'rgb(20%%,20%%,20%%)')");
-				    break;
-				case SMI_STATUS_UNKNOWN:
-				    ;
-				}
+				printf("'%s')", printFillColor(tElem->status));
 			    }
 			}
 		    }
@@ -2141,23 +1995,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			printf(";");
 		    if (foreign_exists) {
 			printf("colorText('%s',", smiNode2->name);
-			switch (smiNode2->status) {
-			case SMI_STATUS_DEPRECATED:
-			    printf("'rgb(40%%,40%%,40%%)')");
-			    break;
-			case SMI_STATUS_OBSOLETE:
-			    printf("'rgb(60%%,60%%,60%%)')");
-			    break;
-			case SMI_STATUS_CURRENT:
-			case SMI_STATUS_MANDATORY:
-			    printf("'rgb(0%%,0%%,0%%)')");
-			    break;
-			case SMI_STATUS_OPTIONAL:
-			    printf("'rgb(20%%,20%%,20%%)')");
-			    break;
-			case SMI_STATUS_UNKNOWN:
-			    ;
-			}
+			printf("'%s')", printFillColor(smiNode2->status));
 		    }
 		    printf("\"");
 		}
