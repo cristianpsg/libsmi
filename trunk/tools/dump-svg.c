@@ -1886,14 +1886,15 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	}
 	if (!foreign_exists && !STATIC_OUTPUT) {
-	    printf("   <a xlink:href=\"%s", link);
+	    printf("   <tspan fill=\"%s\" x=\"5\">\n", linkcolor);
+	    printf("    <a xlink:href=\"%s", link);
 	    for (k=0; k<modc; k++) {
 		printf("&amp;mibs=%s", modv[k]->name);
 	    }
-	    printf("&amp;mibs=%s\">\n", module);
-	    printf("    <tspan fill=\"%s\"", linkcolor);
-	    printf(" x=\"5\">%s</tspan>\n", module);
-	    printf("   </a>\n");
+	    printf("&amp;mibs=%s\">", module);
+	    printf("%s", module);
+	    printf("</a>\n");
+	    printf("   </tspan>\n", module);
 	} else {
 	    printf("    <tspan x=\"5\">%s</tspan>\n", module);
 	}
