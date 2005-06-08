@@ -1586,13 +1586,60 @@ static void calcMiCount(int modc, SmiModule **modv, int *miCount,
 
 /* ------------------------------------------------------------------------- */
 
+static void populateMarkupList(SmiNode *smiNode, int *miNr,
+			       StringListElem markupList[], int miCount)
+{
+    int            i;
+    SmiElement     *smiElement;
+    StringListElem *lastElem;
+    StringListElem *tElem;
+    StringListElem *newElem;
+
+    markupList[*miNr].miElem = smiNode->name;
+    markupList[*miNr].status = smiNode->status;
+    markupList[*miNr].nextPtr = NULL;
+
+    for (smiElement = smiGetFirstElement(smiNode); smiElement;
+	smiElement = smiGetNextElement(smiElement)) {
+
+	newElem = xmalloc(sizeof(StringListElem));
+	memset(newElem, 0, sizeof(StringListElem));
+	newElem->miElem = smiGetElementNode(smiElement)->name;
+	newElem->status = smiGetElementNode(smiElement)->status;
+
+	if (markupList[*miNr].nextPtr == NULL) {
+	    markupList[*miNr].nextPtr = newElem;
+	} else {
+	    for (tElem = markupList[*miNr].nextPtr;
+		tElem; tElem = tElem->nextPtr) {
+		lastElem = tElem;
+	    }
+	    lastElem->nextPtr = newElem;
+	}
+	if (isNotificationGroup(smiNode)) {
+	    for (i=0; i<miCount; i++) {
+		if (markupList[i].miElem == NULL)
+		    continue;
+		if (markupList[i].miElem != newElem->miElem)
+		    continue;
+		for (tElem = markupList[i].nextPtr;
+		    tElem; tElem = tElem->nextPtr) {
+		    newElem->nextPtr = tElem;
+		    newElem = newElem->nextPtr;
+		}
+	    }
+	}
+    }
+}
 
 static void printInformationNode(SmiNode *smiNode,
-				 float *x, float *y, int *miNr)
+				 float *x, float *y, int *miNr,
+				 StringListElem markupList[], int miCount)
 {
-    int         j;
-    char        *tooltip;
-    SmiElement  *smiElement;
+    int            j, k;
+    char           *tooltip;
+    SmiElement     *smiElement;
+    StringListElem *tElem, *lastElem;
 
     printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
     printf("(%.2f,%.2f)\">\n", *x, *y);
@@ -1636,6 +1683,20 @@ static void printInformationNode(SmiNode *smiNode,
 	    }
 	    printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
+	    if (isNotificationGroup(smiNode)) {
+		//parse markupList
+		for (k=0; k<miCount; k++) {
+		    if (markupList[k].miElem == NULL)
+			continue;
+		    if (markupList[k].miElem !=
+					smiGetElementNode(smiElement)->name)
+			continue;
+		    for (tElem = markupList[k].nextPtr;
+			tElem; tElem = tElem->nextPtr) {
+			printf(";colorText('%s','red')", tElem->miElem);
+		    }
+		}
+	    }
 	}
 	if (j || smiNode->description) {
 	    printf("\"");
@@ -1674,6 +1735,37 @@ static void printInformationNode(SmiNode *smiNode,
 	    case SMI_STATUS_UNKNOWN:
 		;
 	    }
+	    if (isNotificationGroup(smiNode)) {
+		//parse markupList
+		for (k=0; k<miCount; k++) {
+		    if (markupList[k].miElem == NULL)
+			continue;
+		    if (markupList[k].miElem !=
+				    smiGetElementNode(smiElement)->name)
+			continue;
+		    for (tElem = markupList[k].nextPtr;
+			tElem; tElem = tElem->nextPtr) {
+			printf(";colorText('%s',", tElem->miElem);
+			switch (tElem->status) {
+			case SMI_STATUS_DEPRECATED:
+			    printf("'rgb(40%%,40%%,40%%)')");
+			    break;
+			case SMI_STATUS_OBSOLETE:
+			    printf("'rgb(60%%,60%%,60%%)')");
+			    break;
+			case SMI_STATUS_CURRENT:
+			case SMI_STATUS_MANDATORY:
+			    printf("'rgb(0%%,0%%,0%%)')");
+			    break;
+			case SMI_STATUS_OPTIONAL:
+			    printf("'rgb(20%%,20%%,20%%)')");
+			    break;
+			case SMI_STATUS_UNKNOWN:
+			    ;
+			}
+		    }
+		}
+	    }
 	}
 	if (j || smiNode->description) {
 	    printf("\"");
@@ -1698,19 +1790,21 @@ static void printInformationNode(SmiNode *smiNode,
 }
 
 static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
-				 float *x, float *y, int *miNr, int i)
+				float *x, float *y, int *miNr, int i,
+				StringListElem markupList[], int miCount)
 {
-    int           j, k, foreign_exists, textColor = 0;
-    char          *tooltip;
-    char          *done = NULL;
-    char          s[100];
-    char          *module;
-    SmiNode       *smiNode2;
-    SmiModule     *smiModule2;
-    SmiElement    *smiElement;
-    //SmiRevision   *smiRevision;
-    SmiOption     *smiOption;
-    SmiRefinement *smiRefinement;
+    int            j, k, foreign_exists, textColor = 0;
+    char           *tooltip;
+    char           *done = NULL;
+    char           s[100];
+    char           *module;
+    SmiNode        *smiNode2;
+    SmiModule      *smiModule2;
+    SmiElement     *smiElement;
+    //SmiRevision    *smiRevision;
+    SmiOption      *smiOption;
+    SmiRefinement  *smiRefinement;
+    StringListElem *tElem, *lastElem;
 
     printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
     printf("(%.2f,%.2f)\">\n", *x, *y);
@@ -1829,6 +1923,18 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    }
 		    printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
+		    //parse markupList
+		    for (k=0; k<miCount; k++) {
+			if (markupList[k].miElem == NULL)
+			    continue;
+			if (markupList[k].miElem !=
+					smiGetElementNode(smiElement)->name)
+			    continue;
+			for (tElem = markupList[k].nextPtr;
+			    tElem; tElem = tElem->nextPtr) {
+			    printf(";colorText('%s','red')", tElem->miElem);
+			}
+		    }
 		}
 	    }
 	    if (j) {
@@ -1864,6 +1970,35 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    case SMI_STATUS_UNKNOWN:
 			;
 		    }
+		    //parse markupList
+		    for (k=0; k<miCount; k++) {
+			if (markupList[k].miElem == NULL)
+			    continue;
+			if (markupList[k].miElem !=
+					smiGetElementNode(smiElement)->name)
+			    continue;
+			for (tElem = markupList[k].nextPtr;
+			    tElem; tElem = tElem->nextPtr) {
+			    printf(";colorText('%s',", tElem->miElem);
+			    switch (tElem->status) {
+			    case SMI_STATUS_DEPRECATED:
+				printf("'rgb(40%%,40%%,40%%)')");
+				break;
+			    case SMI_STATUS_OBSOLETE:
+				printf("'rgb(60%%,60%%,60%%)')");
+				break;
+			    case SMI_STATUS_CURRENT:
+			    case SMI_STATUS_MANDATORY:
+				printf("'rgb(0%%,0%%,0%%)')");
+				break;
+			    case SMI_STATUS_OPTIONAL:
+				printf("'rgb(20%%,20%%,20%%)')");
+				break;
+			    case SMI_STATUS_UNKNOWN:
+				;
+			    }
+			}
+		    }
 		}
 	    }
 	    if (j) {
@@ -1896,8 +2031,21 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    }
 		    if (smiOption->description && foreign_exists)
 			printf(";");
-		    if (foreign_exists)
+		    if (foreign_exists) {
 			printf("colorText('%s','salmon')", smiNode2->name);
+			//parse markupList
+			for (j=0; j<miCount; j++) {
+			    if (markupList[j].miElem == NULL)
+				continue;
+			    if (markupList[j].miElem != smiNode2->name)
+				continue;
+			    for (tElem = markupList[j].nextPtr;
+				tElem; tElem = tElem->nextPtr) {
+				printf(";colorText('%s','salmon')",
+								tElem->miElem);
+			    }
+			}
+		    }
 		    printf("\" onmouseout=\"");
 		    if (smiOption->description) {
 			printf("HideTooltip(evt)");
@@ -1922,6 +2070,34 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			    break;
 			case SMI_STATUS_UNKNOWN:
 			    ;
+			}
+			//parse markupList
+			for (j=0; j<miCount; j++) {
+			    if (markupList[j].miElem == NULL)
+				continue;
+			    if (markupList[j].miElem != smiNode2->name)
+				continue;
+			    for (tElem = markupList[j].nextPtr;
+				tElem; tElem = tElem->nextPtr) {
+				printf(";colorText('%s',", tElem->miElem);
+				switch (tElem->status) {
+				case SMI_STATUS_DEPRECATED:
+				    printf("'rgb(40%%,40%%,40%%)')");
+				    break;
+				case SMI_STATUS_OBSOLETE:
+				    printf("'rgb(60%%,60%%,60%%)')");
+				    break;
+				case SMI_STATUS_CURRENT:
+				case SMI_STATUS_MANDATORY:
+				    printf("'rgb(0%%,0%%,0%%)')");
+				    break;
+				case SMI_STATUS_OPTIONAL:
+				    printf("'rgb(20%%,20%%,20%%)')");
+				    break;
+				case SMI_STATUS_UNKNOWN:
+				    ;
+				}
+			    }
 			}
 		    }
 		    printf("\"");
@@ -2158,7 +2334,8 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 }
 
 static void printNotificationType(int modc, SmiModule **modv,
-				  float *x, float *y, int *miNr, int nType[])
+				  float *x, float *y, int *miNr, int nType[],
+				  StringListElem markupList[], int miCount)
 {
     int         i, j;
     SmiNode     *smiNode;
@@ -2220,7 +2397,9 @@ static void printNotificationType(int modc, SmiModule **modv,
 			|| (smiNode->status == SMI_STATUS_OBSOLETE
 			&& !SHOW_DEPR_OBSOLETE))
 			continue;
-		    printInformationNode(smiNode, x, y, miNr);
+		    populateMarkupList(smiNode, miNr, markupList, miCount);
+		    printInformationNode(smiNode, x, y, miNr,
+							markupList, miCount);
 		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
@@ -2231,7 +2410,8 @@ static void printNotificationType(int modc, SmiModule **modv,
 }
 
 static void printObjectGroup(int modc, SmiModule **modv,
-			     float *x, float *y, int *miNr, int oGroup[])
+			     float *x, float *y, int *miNr, int oGroup[],
+			     StringListElem markupList[], int miCount)
 {
     int         i, j;
     SmiNode     *smiNode;
@@ -2293,7 +2473,9 @@ static void printObjectGroup(int modc, SmiModule **modv,
 			|| (smiNode->status == SMI_STATUS_OBSOLETE
 			&& !SHOW_DEPR_OBSOLETE))
 			continue;
-		    printInformationNode(smiNode, x, y, miNr);
+		    populateMarkupList(smiNode, miNr, markupList, miCount);
+		    printInformationNode(smiNode, x, y, miNr,
+							markupList, miCount);
 		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
@@ -2304,7 +2486,8 @@ static void printObjectGroup(int modc, SmiModule **modv,
 }
 
 static void printNotificationGroup(int modc, SmiModule **modv,
-				   float *x, float *y, int *miNr, int nGroup[])
+				   float *x, float *y, int *miNr, int nGroup[],
+				   StringListElem markupList[], int miCount)
 {
     int         i, j;
     SmiNode     *smiNode;
@@ -2366,7 +2549,9 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 			|| (smiNode->status == SMI_STATUS_OBSOLETE
 			&& !SHOW_DEPR_OBSOLETE))
 			continue;
-		    printInformationNode(smiNode, x, y, miNr);
+		    populateMarkupList(smiNode, miNr, markupList, miCount);
+		    printInformationNode(smiNode, x, y, miNr,
+							markupList, miCount);
 		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
@@ -2377,7 +2562,8 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 }
 
 static void printModuleCompliance(int modc, SmiModule **modv,
-				  float *x, float *y, int *miNr, int mCompl[])
+				  float *x, float *y, int *miNr, int mCompl[],
+				  StringListElem markupList[], int miCount)
 {
     int         i, j;
     SmiNode     *smiNode;
@@ -2438,7 +2624,8 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 			|| (smiNode->status == SMI_STATUS_OBSOLETE
 			&& !SHOW_DEPR_OBSOLETE))
 			continue;
-		    printComplianceNode(smiNode, modc, modv, x, y, miNr, i);
+		    printComplianceNode(smiNode, modc, modv, x, y, miNr, i,
+							markupList, miCount);
 		}
 	    }
 	    *x -= 2*TABLEELEMHEIGHT;
@@ -2450,10 +2637,12 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 static void printModuleInformation(int modc, SmiModule **modv,
 				   float x, float y,
 				   int nType[], int oGroup[],
-				   int nGroup[], int mCompl[])
+				   int nGroup[], int mCompl[],
+				   int miCount)
 {
     int i, miNr = 0;
     int nTypePrint = 0, oGroupPrint = 0, nGroupPrint = 0, mComplPrint = 0;
+    StringListElem markupList[miCount];
 
     printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
 							x, y, STARTSCALE);
@@ -2471,13 +2660,17 @@ static void printModuleInformation(int modc, SmiModule **modv,
 
     printModuleIdentity(modc, modv, &x, &y, &miNr);
     if (nTypePrint)
-	printNotificationType(modc, modv, &x, &y, &miNr, nType);
+	printNotificationType(modc, modv, &x, &y, &miNr, nType, markupList,
+								    miCount);
     if (oGroupPrint)
-	printObjectGroup(modc, modv, &x, &y, &miNr, oGroup);
+	printObjectGroup(modc, modv, &x, &y, &miNr, oGroup, markupList,
+								    miCount);
     if (nGroupPrint)
-	printNotificationGroup(modc, modv, &x, &y, &miNr, nGroup);
+	printNotificationGroup(modc, modv, &x, &y, &miNr, nGroup, markupList,
+								    miCount);
     if (mComplPrint)
-	printModuleCompliance(modc, modv, &x, &y, &miNr, mCompl);
+	printModuleCompliance(modc, modv, &x, &y, &miNr, mCompl, markupList,
+								    miCount);
 
     printf(" </g>\n");
 }
@@ -2878,7 +3071,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //print MODULE-IDENTITY
     printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
-						nType, oGroup, nGroup, mCompl);
+					nType, oGroup, nGroup, mCompl, miCount);
 
     //output of svg to stdout ends here
     printSVGClose(xMin, yMin, xMax, yMax);
