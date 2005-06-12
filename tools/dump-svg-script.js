@@ -6,7 +6,8 @@ var clickStatus = new Array(%i);
 var redCount = new Array(%i);
 var salmonCount = new Array(%i);
 
-function getSVGDoc(load_evt) {
+function getSVGDoc(load_evt)
+{
     svgdoc=load_evt.target.ownerDocument;
     svgroot=svgdoc.documentElement;
     texte=svgdoc.getElementById("tooltip").getElementsByTagName("text");
@@ -15,7 +16,8 @@ function getSVGDoc(load_evt) {
 //The script for the tooltip was copied from:
 //SVG - Learning By Coding - http://www.datenverdrahten.de/svglbc/
 //Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
-function ShowTooltipMZ(mousemove_event,txt) {
+function ShowTooltipMZ(mousemove_event,txt)
+{
     var ttrelem,tttelem,posx,posy,curtrans,ctx,cty,txt;
     var maxbreite,tmp,i;
     ttrelem=svgdoc.getElementById("ttr");
@@ -52,18 +54,21 @@ function ShowTooltipMZ(mousemove_event,txt) {
     svgdoc.getElementById("tooltip").style.setProperty("visibility","visible");
 }
 
-function HideTooltip() {
+function HideTooltip()
+{
     svgdoc.getElementById("tooltip").style.setProperty("visibility","hidden");
 }
 
-function ZoomControl() {
+function ZoomControl()
+{
     var curzoom;
     curzoom=svgroot.currentScale;
     svgdoc.getElementById("tooltip").setAttribute("transform",
 							"scale("+1/curzoom+")");
 }
 
-function collapse(evt) {
+function collapse(evt)
+{
     var i, k, l, m, svgdoc, obj, targetID, targetX, targetY, attr;
     obj = evt.getTarget();
     svgdoc = obj.ownerDocument;
@@ -91,7 +96,8 @@ function collapse(evt) {
     }
 }
 
-function showHiddenInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr) {
+function showHiddenInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr)
+{
     var i, k, l, m, nextObj, nextX, nextY, gapY=0, clickedID;
     //change clicked text
     obj.firstChild.data="--";
@@ -147,7 +153,8 @@ function showHiddenInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr) {
     }
 }
 
-function hideInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr) {
+function hideInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr)
+{
     var i, k, l, m, nextObj, nextX, nextY, gapY=0;
     clickedID = targetID;
     //change clicked text
@@ -206,7 +213,8 @@ function hideInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr) {
     }
 }
 
-function init(evt) {
+function init(evt)
+{
     for (i=0; i<%i; i++) {
         scalFac[i] = %.1f;
     }
@@ -225,7 +233,8 @@ function init(evt) {
     getSVGDoc(evt);
 }
 
-function setStatus(evt, color1, color2) {
+function setStatus(evt, color1, color2)
+{
     var clickObj = evt.getTarget();
     var clickObjName = clickObj.getAttribute('id');
 
@@ -266,8 +275,8 @@ function setStatus(evt, color1, color2) {
     }
 }
 
-//FIXME rename function?
-function changeColor(evt, targetObjName, color1, color2) {
+function changeColor(evt, targetObjName, color1, color2)
+{
     var clickObj = evt.getTarget();
     var clickObjName = clickObj.getAttribute('id');
     var targetObj = svgDocument.getElementById(targetObjName);
@@ -307,7 +316,8 @@ function changeColor(evt, targetObjName, color1, color2) {
     }
 }
 
-function colorText(targetObjName, color) {
+function colorText(targetObjName, color)
+{
     var targetObj = svgDocument.getElementById(targetObjName);
 
     //find i corresponding to the target object
@@ -327,13 +337,15 @@ function colorText(targetObjName, color) {
     }
 }
 
-function enlarge(name, number) {
+function enlarge(name, number)
+{
     var obj = svgDocument.getElementById(name);
     scalFac[number] = scalFac[number] * 1.1;
     obj.setAttribute("transform","scale("+scalFac[number]+")");
 }
 
-function scaledown(name, number) {
+function scaledown(name, number)
+{
     var obj = svgDocument.getElementById(name);
     scalFac[number] = scalFac[number] / 1.1;
     obj.setAttribute("transform","scale("+scalFac[number]+")");
