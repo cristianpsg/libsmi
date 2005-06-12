@@ -1,6 +1,10 @@
 var svgdoc,svgroot;
 var collapsed = new Array(2);
 var scalFac = new Array(%i);
+var name = new Array(%i);
+var clickStatus = new Array(%i);
+var redCount = new Array(%i);
+var salmonCount = new Array(%i);
 
 function getSVGDoc(load_evt) {
     svgdoc=load_evt.target.ownerDocument;
@@ -55,7 +59,8 @@ function HideTooltip() {
 function ZoomControl() {
     var curzoom;
     curzoom=svgroot.currentScale;
-    svgdoc.getElementById("tooltip").setAttribute("transform","scale("+1/curzoom+")");
+    svgdoc.getElementById("tooltip").setAttribute("transform",
+							"scale("+1/curzoom+")");
 }
 
 function collapse(evt) {
@@ -211,12 +216,115 @@ function init(evt) {
         collapsed[0][i] = 0;
         collapsed[1][i] = 0;
     }
+    for (i=0; i<%i; i++) {
+	name[i] = "";
+	clickStatus[i] = 0;
+	redCount[i] = 0;
+	salmonCount[i] = 0;
+    }
     getSVGDoc(evt);
 }
 
-function colorText(object, color) {
-    var obj = svgDocument.getElementById(object);
-    obj.setAttribute("style","fill: "+color);
+function setStatus(evt, color1, color2) {
+    var clickObj = evt.getTarget();
+    var clickObjName = clickObj.getAttribute('id');
+
+    //find i corresponding to the clicked object
+    for (i=0; i<%i; i++) {
+	if (name[i] == "") {
+	    name[i] = clickObjName;
+	    break;
+	}
+	if (name[i] != clickObjName)
+	    continue;
+	break;
+    }
+
+    //toggle click status, color clicked object
+    if (clickStatus[i] == 0) {
+	clickStatus[i] = 1;
+	clickObj.setAttribute("style","fill: "+color1);
+    } else {
+	clickStatus[i] = 0;
+	clickObj.setAttribute("style","fill: "+color2);
+    }
+
+    //adjust color-counter
+    if (color1 == 'red') {
+	if (clickStatus[i] == 1) {
+	    redCount[i]++;
+	} else {
+	    redCount[i]--;
+	}
+    }
+    if (color1 == 'salmon') {
+	if (clickStatus[i] == 1) {
+	    salmonCount[i]++;
+	} else {
+	    salmonCount[i]--;
+	}
+    }
+}
+
+//FIXME rename function?
+function changeColor(evt, targetObjName, color1, color2) {
+    var clickObj = evt.getTarget();
+    var clickObjName = clickObj.getAttribute('id');
+    var targetObj = svgDocument.getElementById(targetObjName);
+
+    //find i corresponding to the clicked object
+    for (i=0; i<%i; i++) {
+	if (name[i] != clickObjName)
+	    continue;
+	break;
+    }
+
+    //find j corresponding to the target object
+    for (j=0; j<%i; j++) {
+	if (name[j] == "") {
+	    name[j] = targetObjName;
+	    break;
+	}
+	if (name[j] != targetObjName)
+	    continue;
+	break;
+    }
+
+    //adjust color-counter
+    if (color1 == 'red') {
+	if (clickStatus[i] == 1) {
+	    redCount[j]++;
+	} else {
+	    redCount[j]--;
+	}
+    }
+    if (color1 == 'salmon') {
+	if (clickStatus[i] == 1) {
+	    salmonCount[j]++;
+	} else {
+	    salmonCount[j]--;
+	}
+    }
+}
+
+function colorText(targetObjName, color) {
+    var targetObj = svgDocument.getElementById(targetObjName);
+
+    //find i corresponding to the target object
+    for (i=0; i<%i; i++) {
+	if (name[i] != targetObjName)
+	    continue;
+	break;
+    }
+
+    //color text
+    if (i == %i) {
+	targetObj.setAttribute("style","fill: "+color);
+	return;
+    }
+    if (redCount[i] == 0 && salmonCount[i] == 0) {
+	targetObj.setAttribute("style","fill: "+color);
+    }
 }
 
 function enlarge(name, number) {

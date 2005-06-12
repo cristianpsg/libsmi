@@ -1010,7 +1010,7 @@ static void printSVGConnection(GraphEdge *tEdge)
  * Make size of SVG configurable.
  */
 static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
-				   int nodecount, int miCount,
+				   int nodecount, int miCount, int idCount,
 				   float xMin, float yMin,
 				   float xMax, float yMax)
 {
@@ -1067,8 +1067,9 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 	//print the script from the included file
 	//FIXME calculate things dynamically:
 	//      * maximal number of lines for the tooltip.
-	printf(code, nodecount, DYN_TEXT, nodecount, STARTSCALE,
-						    miCount, miCount, miCount);
+	printf(code, nodecount, idCount, idCount, idCount, idCount, DYN_TEXT,
+		nodecount, STARTSCALE, miCount, miCount, miCount, idCount,
+		idCount, idCount, idCount, idCount, idCount);
 	printf("// ]]>\n</script>\n\n");
     }
 
@@ -1097,7 +1098,7 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
  * FIXME this algorithm may work good for a monospace-font. we have some
  * problems with the proportional-font. :-(
  */
-static GraphNode *diaCalcSize(GraphNode *node)
+static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 {
     GraphEdge  *tEdge;
     SmiNode    *tNode,*ppNode;
@@ -1148,6 +1149,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 			  * ATTRFONTSIZE
 			  + ATTRSPACESIZE);		
 	    node->dia.h += TABLEELEMHEIGHT;
+	    (*idCount)++;
 	}
     }
     if (node->dia.h > lastHeight) {
@@ -1267,6 +1269,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 		    * ATTRFONTSIZE
 		    + ATTRSPACESIZE);
 		node->dia.h += TABLEELEMHEIGHT;
+		(*idCount)++;
 	    }
 	}
     }
@@ -1277,7 +1280,7 @@ static GraphNode *diaCalcSize(GraphNode *node)
 /*
  * Calculates the size of a group-node for the UML representation.
  */
-static GraphNode *calcGroupSize(int group)
+static GraphNode *calcGroupSize(int group, int *idCount)
 {
     GraphNode *calcNode, *node;
     SmiNode   *tNode;
@@ -1319,6 +1322,7 @@ static GraphNode *calcGroupSize(int group)
 			    * ATTRFONTSIZE
 			    + ATTRSPACESIZE);
 	    calcNode->dia.h += TABLEELEMHEIGHT;
+	    (*idCount)++;
 	}
     }
 
@@ -1651,6 +1655,36 @@ static void printInformationNode(SmiNode *smiNode,
 	}
 
 	smiElement = smiGetFirstElement(smiNode);
+	if (smiElement) {
+	    printf(" onclick=\"setStatus(evt,'red','%s')",
+					    printFillColor(smiNode->status));
+	}
+	for (j = 0; smiElement;
+	    j++, smiElement = smiGetNextElement(smiElement)) {
+	    printf(";changeColor(evt,'%s','red','%s')",
+			smiGetElementNode(smiElement)->name,
+			printFillColor(smiGetElementNode(smiElement)->status));
+	    if (isNotificationGroup(smiNode)) {
+		//parse markupList
+		for (k=0; k<miCount; k++) {
+		    if (markupList[k].miElem == NULL)
+			continue;
+		    if (markupList[k].miElem !=
+					smiGetElementNode(smiElement)->name)
+			continue;
+		    for (tElem = markupList[k].nextPtr;
+			tElem; tElem = tElem->nextPtr) {
+			printf(";changeColor(evt,'%s','red','%s')",
+				tElem->miElem, printFillColor(tElem->status));
+		    }
+		}
+	    }
+	}
+	if (j) {
+	    printf("\"");
+	}
+
+	smiElement = smiGetFirstElement(smiNode);
 	if (smiElement || smiNode->description) {
 	    printf(" onmouseout=\"");
 	}
@@ -1825,7 +1859,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	*x += TABLEBOTTOMHEIGHT;
 	printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 	printf("(%.2f,%.2f)\">\n", *x, *y);
-	printf("  <text fill=\"rgb(%i%%,%i%%,%i%%)\"",
+	printf("  <text id=\"mandatory groups\" fill=\"rgb(%i%%,%i%%,%i%%)\"",
 					    textColor, textColor, textColor);
 	if (!STATIC_OUTPUT && foreign_exists) {
 	    smiElement = smiGetFirstElement(smiNode);
@@ -1858,6 +1892,38 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    if (j) {
 		printf("\"");
 	    }
+
+	    smiElement = smiGetFirstElement(smiNode);
+	    if (smiElement) {
+		printf(" onclick=\"setStatus(evt,'red','%s')",
+					    printFillColor(smiNode->status));
+	    }
+	    for (j = 0; smiElement;
+		j++, smiElement = smiGetNextElement(smiElement)) {
+		if (!strcmp(smiGetNodeModule(smiGetElementNode(
+						smiElement))->name, module)) {
+		    printf(";changeColor(evt,'%s','red','%s')",
+			smiGetElementNode(smiElement)->name,
+			printFillColor(smiGetElementNode(smiElement)->status));
+		    //parse markupList
+		    for (k=0; k<miCount; k++) {
+			if (markupList[k].miElem == NULL)
+			    continue;
+			if (markupList[k].miElem !=
+					    smiGetElementNode(smiElement)->name)
+			    continue;
+			for (tElem = markupList[k].nextPtr;
+			    tElem; tElem = tElem->nextPtr) {
+			    printf(";changeColor(evt,'%s','red','%s')",
+				tElem->miElem, printFillColor(tElem->status));
+			}
+		    }
+		}
+	    }
+	    if (j) {
+		printf("\"");
+	    }
+
 	    smiElement = smiGetFirstElement(smiNode);
 	    if (smiElement) {
 		printf(" onmouseout=\"");
@@ -1905,8 +1971,8 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    if (!strcmp(smiModule2->name, module)) {
 		printf(" <g id=\"MI%i\" transform=", *miNr);
 		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text fill=\"rgb(%i%%,%i%%,%i%%)\"",
-					    textColor, textColor, textColor);
+		printf("  <text id=\"compl%s\" fill=\"rgb(%i%%,%i%%,%i%%)\"",
+			    smiNode2->name, textColor, textColor, textColor);
 		if (!STATIC_OUTPUT) {
 		    printf(" onmousemove=\"");
 		    if (smiOption->description) {
@@ -1933,6 +1999,27 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			    }
 			}
 		    }
+
+		    if (foreign_exists) {
+			printf("\" onclick=\"setStatus(evt,'salmon','%s')",
+					    printFillColor(smiNode2->status));
+			printf(";changeColor(evt,'%s','salmon','%s')",
+			    smiNode2->name, printFillColor(smiNode2->status));
+			//parse markupList
+			for (j=0; j<miCount; j++) {
+			    if (markupList[j].miElem == NULL)
+				continue;
+			    if (markupList[j].miElem != smiNode2->name)
+				continue;
+			    for (tElem = markupList[j].nextPtr;
+				tElem; tElem = tElem->nextPtr) {
+				printf(";changeColor(evt,'%s','salmon','%s')",
+						tElem->miElem,
+						printFillColor(tElem->status));
+			    }
+			}
+		    }
+
 		    printf("\" onmouseout=\"");
 		    if (smiOption->description) {
 			printf("HideTooltip(evt)");
@@ -1972,8 +2059,8 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    if (!strcmp(smiModule2->name, module)) {
 		printf(" <g id=\"MI%i\" transform=", *miNr);
 		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text fill=\"rgb(%i%%,%i%%,%i%%)\"",
-					    textColor, textColor, textColor);
+		printf("  <text id=\"compl%s\" fill=\"rgb(%i%%,%i%%,%i%%)\"",
+			    smiNode2->name, textColor, textColor, textColor);
 		if (!STATIC_OUTPUT) {
 		    printf(" onmousemove=\"");
 		    if (smiRefinement->description) {
@@ -1987,6 +2074,14 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			printf(";");
 		    if (foreign_exists)
 			printf("colorText('%s','salmon')", smiNode2->name);
+
+		    if (foreign_exists) {
+			printf("\" onclick=\"setStatus(evt,'salmon','%s')",
+					    printFillColor(smiNode2->status));
+			printf(";changeColor(evt,'%s','salmon','%s')",
+			    smiNode2->name, printFillColor(smiNode2->status));
+		    }
+
 		    printf("\" onmouseout=\"");
 		    if (smiRefinement->description) {
 			printf("HideTooltip(evt)");
@@ -2756,6 +2851,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
     int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
+    int          idCount=0;
     float        x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
     int          nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
 
@@ -2775,7 +2871,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //prepare nodes which are supposed to be drawn
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
-	tNode = diaCalcSize(tNode);
+	tNode = diaCalcSize(tNode, &idCount);
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
 	    if (tNode->degree == 0) {
@@ -2796,7 +2892,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	}
     }
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
-	tNode = calcGroupSize(group);
+	tNode = calcGroupSize(group, &idCount);
 	nodecount++;
 	//groupnodes are members of the first cluster.
 	if (tCluster->firstClusterNode == NULL) {
@@ -2872,9 +2968,10 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //count entries in the ModuleInformation-Section
     calcMiCount(modc, modv, &miCount, nType, oGroup, nGroup, mCompl);
+    idCount += miCount;
 
     //output of svg to stdout begins here
-    printSVGHeaderAndTitle(modc, modv, nodecount, miCount,
+    printSVGHeaderAndTitle(modc, modv, nodecount, miCount, idCount,
 							xMin, yMin, xMax, yMax);
 
     //loop through cluster (except first) to print edges and nodes
