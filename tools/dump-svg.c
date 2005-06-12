@@ -1859,7 +1859,8 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	*x += TABLEBOTTOMHEIGHT;
 	printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
 	printf("(%.2f,%.2f)\">\n", *x, *y);
-	printf("  <text id=\"mandatory groups\" fill=\"rgb(%i%%,%i%%,%i%%)\"",
+	printf("  <text id=\"mandatorygroups%s%s\"", smiNode->name, module);
+	printf(" fill=\"rgb(%i%%,%i%%,%i%%)\"",
 					    textColor, textColor, textColor);
 	if (!STATIC_OUTPUT && foreign_exists) {
 	    smiElement = smiGetFirstElement(smiNode);
@@ -1971,8 +1972,10 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    if (!strcmp(smiModule2->name, module)) {
 		printf(" <g id=\"MI%i\" transform=", *miNr);
 		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text id=\"compl%s\" fill=\"rgb(%i%%,%i%%,%i%%)\"",
-			    smiNode2->name, textColor, textColor, textColor);
+		printf("  <text id=\"group%s%s%s\"",
+					smiNode->name, smiNode2->name, module);
+		printf(" fill=\"rgb(%i%%,%i%%,%i%%)\"",
+					    textColor, textColor, textColor);
 		if (!STATIC_OUTPUT) {
 		    printf(" onmousemove=\"");
 		    if (smiOption->description) {
@@ -2059,8 +2062,10 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    if (!strcmp(smiModule2->name, module)) {
 		printf(" <g id=\"MI%i\" transform=", *miNr);
 		printf("\"translate(%.2f,%.2f)\">\n", *x, *y);
-		printf("  <text id=\"compl%s\" fill=\"rgb(%i%%,%i%%,%i%%)\"",
-			    smiNode2->name, textColor, textColor, textColor);
+		printf("  <text id=\"object%s%s%s\"",
+					smiNode->name, smiNode2->name, module);
+		printf(" fill=\"rgb(%i%%,%i%%,%i%%)\"",
+					    textColor, textColor, textColor);
 		if (!STATIC_OUTPUT) {
 		    printf(" onmousemove=\"");
 		    if (smiRefinement->description) {
