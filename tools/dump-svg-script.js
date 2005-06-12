@@ -273,6 +273,10 @@ function setStatus(evt, color1, color2)
 	    salmonCount[i]--;
 	}
     }
+
+    if (clickStatus[i] == 0 && salmonCount[i] > 0) {
+	clickObj.setAttribute("style","fill: salmon");
+    }
 }
 
 function changeColor(evt, targetObjName, color1, color2)
@@ -334,6 +338,17 @@ function colorText(targetObjName, color)
     }
     if (redCount[i] == 0 && salmonCount[i] == 0) {
 	targetObj.setAttribute("style","fill: "+color);
+    }
+    if (salmonCount[i] > 0) {
+	if (color == 'red') {
+	    targetObj.setAttribute("style","fill: red");
+	} else {
+	    if (redCount[i] > 0) {
+		targetObj.setAttribute("style","fill: red");
+	    } else {
+		targetObj.setAttribute("style","fill: salmon");
+	    }
+	}
     }
 }
 
