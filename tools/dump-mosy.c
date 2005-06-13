@@ -106,11 +106,12 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 	}
 	
 	/* found an imported or a local parent node? */
-	if ((parentNode->name && strlen(parentNode->name)) &&
-	    (smiIsImported(smiModule, NULL, parentNode->name) ||
-	     (!importedParent &&
-	      (smiGetNodeModule(parentNode) == smiModule)) ||
-	     (parentNode->oidlen == 1))) {
+	if ((parentNode->decl != SMI_DECL_IMPL_OBJECT) 
+	    && ((parentNode->name && strlen(parentNode->name)) 
+		&& (smiIsImported(smiModule, NULL, parentNode->name) 
+		    || (!importedParent 
+			&& (smiGetNodeModule(parentNode) == smiModule)) 
+		    || (parentNode->oidlen == 1)))) {
 	    sprintf(s, "%s%s", parentNode->name, append);
 	    return s;
 	}
