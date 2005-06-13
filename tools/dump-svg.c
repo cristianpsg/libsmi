@@ -3,10 +3,9 @@
  *
  *      Operations to extract a SVG diagram from MIB modules.
  *      This driver is based on the cm-driver by A. Mueller.
- *      This is work in progress.
  *      Mail comments and suggestions to sperner@ibr.cs.tu-bs.de
  *
- * Copyright (c) 2004 K. Sperner, Technical University of Braunschweig.
+ * Copyright (c) 2004-2005 K. Sperner, Technical University of Braunschweig.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -255,9 +254,12 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
     int i;
 
     scale = max((xMax-xMin)/CANVASWIDTH,(yMax-yMin)/CANVASHEIGHT);
+    //enclose whole canvas in its bounding box
+    /*
     printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xMin, yMin, xMax-xMin-1, yMax-yMin-1);
     printf("       fill=\"none\" stroke=\"blue\" stroke-width=\"1\"/>\n");
+    */
     if (!STATIC_OUTPUT) {
 	printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
 							xMin, yMin, scale);
@@ -2992,12 +2994,14 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	    printSVGObject(tNode, &classNr, modc, modv);
 	}
 	//enclose cluster in its bounding box
+	/*
 	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
 		tCluster->xMin + tCluster->xOffset,
 		tCluster->yMin + tCluster->yOffset,
 		tCluster->xMax - tCluster->xMin,
 		tCluster->yMax - tCluster->yMin);
 	printf("       fill=\"none\" stroke=\"green\" stroke-width=\"1\"/>\n");
+	*/
     }
 
     //print single nodes
@@ -3180,7 +3184,7 @@ void initSvg()
 	dumpSvg,
 	0,
 	SMIDUMP_DRIVER_CANT_OUTPUT,
-	"svg diagram (work in progress --- don't use)",
+	"SVG diagram",
 	opt,
 	NULL
     };
