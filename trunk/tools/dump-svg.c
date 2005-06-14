@@ -2227,7 +2227,7 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 		    printf("\"");
 		}
 	    }
-	    printf(">%s</tspan>\n", smiNode->name);
+	    printf(">%s</tspan>\n", modv[i]->name);
 	    printf("  </text>\n");
 	    printf(" </g>\n");
 	    (*miNr)++;
@@ -2316,7 +2316,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 		printf("   <tspan style=\"text-anchor:middle\"");
 		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	    }
-	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("   <tspan x=\"5\">%s</tspan>\n", modv[i]->name);
 	    printf("  </text>\n");
 	    printf(" </g>\n");
 	    (*miNr)++;
@@ -2392,7 +2392,7 @@ static void printObjectGroup(int modc, SmiModule **modv,
 		printf("   <tspan style=\"text-anchor:middle\"");
 		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	    }
-	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("   <tspan x=\"5\">%s</tspan>\n", modv[i]->name);
 	    printf("  </text>\n");
 	    printf(" </g>\n");
 	    (*miNr)++;
@@ -2468,7 +2468,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 		printf("   <tspan style=\"text-anchor:middle\"");
 		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	    }
-	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("   <tspan x=\"5\">%s</tspan>\n", modv[i]->name);
 	    printf("  </text>\n");
 	    printf(" </g>\n");
 	    (*miNr)++;
@@ -2544,7 +2544,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 		printf("   <tspan style=\"text-anchor:middle\"");
 		printf(" onclick=\"collapse(evt)\">--</tspan>\n");
 	    }
-	    printf("   <tspan x=\"5\">%s</tspan>\n", smiNode->name);
+	    printf("   <tspan x=\"5\">%s</tspan>\n", modv[i]->name);
 	    printf("  </text>\n");
 	    printf(" </g>\n");
 	    (*miNr)++;
