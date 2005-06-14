@@ -485,8 +485,8 @@ static void printSVGObject(GraphNode *node, int *classNr,
     float textXOffset, textYOffset, xOrigin, yOrigin;
     size_t length;
     char *tooltip, *tooltipTable, *tooltipEntry;
-    const char *tableHeading = "Table-Description:\\n";
-    const char *entryHeading = "Entry-Description:\\n";
+    const char *tableHeading = "table description:\\n";
+    const char *entryHeading = "entry description:\\n";
     const char *blankLine = "\\n\\n";
     
     if (!node) return;
