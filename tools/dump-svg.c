@@ -571,30 +571,6 @@ static void printSVGObject(GraphNode *node, int *classNr,
 	;
     }
     printf("</text>\n");
-    if (!STATIC_OUTPUT) {
-	//the "+"-button
-	printf("    <g onclick=\"enlarge('%s',%i)\"\n",
-			smiGetFirstChildNode(node->smiNode)->name, *classNr);
-	printf("       transform=\"translate(%.2f,%.2f)\">\n",
-				xOrigin + node->dia.w - 26, yOrigin + 3);
-	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
-	printf(" rx=\"2\"\n");
-	printf("            style=\"stroke: black; fill: none\"/>\n");
-	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-	printf("          +</text>\n");
-	printf("    </g>\n");
-	//the "-"-button
-	printf("    <g onclick=\"scaledown('%s',%i)\"\n",
-			smiGetFirstChildNode(node->smiNode)->name, *classNr);
-	printf("       transform=\"translate(%.2f,%.2f)\">\n",
-				xOrigin + node->dia.w - 13, yOrigin + 3);
-	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
-	printf(" rx=\"2\"\n");
-	printf("            style=\"stroke: black; fill: none\"/>\n");
-	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-	printf("          -</text>\n");
-	printf("    </g>\n");
-    }
 
     (*classNr)++;
 
@@ -703,31 +679,6 @@ static void printSVGGroup(int group, int *classNr,
 	;
     }
     printf("</text>\n");
-
-    if (!STATIC_OUTPUT) {
-	//the "+"-button
-	printf("    <g onclick=\"enlarge('%s',%i)\"\n",
-			smiGetParentNode(tNode->smiNode)->name, *classNr);
-	printf("       transform=\"translate(%.2f,%.2f)\">\n",
-				xOrigin + tNode->dia.w - 26, yOrigin + 3);
-	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
-	printf(" rx=\"2\"\n");
-	printf("            style=\"stroke: black; fill: none\"/>\n");
-	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-	printf("          +</text>\n");
-	printf("    </g>\n");
-	//the "-"-button
-	printf("    <g onclick=\"scaledown('%s',%i)\"\n",
-			smiGetParentNode(tNode->smiNode)->name, *classNr);
-	printf("       transform=\"translate(%.2f,%.2f)\">\n",
-				xOrigin + tNode->dia.w - 13, yOrigin + 3);
-	printf("      <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\"");
-	printf(" rx=\"2\"\n");
-	printf("            style=\"stroke: black; fill: none\"/>\n");
-	printf("      <text x=\"5\" y=\"9\" style=\"text-anchor:middle\">\n");
-	printf("          -</text>\n");
-	printf("    </g>\n");
-    }
 
     (*classNr)++;
 
@@ -1012,7 +963,7 @@ static void printSVGConnection(GraphEdge *tEdge)
  * Make size of SVG configurable.
  */
 static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
-				   int nodecount, int miCount, int idCount,
+				   int miCount, int idCount,
 				   float xMin, float yMin,
 				   float xMax, float yMax)
 {
@@ -1062,17 +1013,16 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 	printf("    font-family: \"Courier New\", Courier, monospace;\n}\n");
 	printf("]]>\n</style>\n\n");
 
-	//the ecma-script for handling the "+"- and "-"-buttons
-	//and the tooltip
+	//the ecma-script for the tooltip
 	//and the folding of the module information
 	//and the colorizing of the text
 	printf("<script type=\"text/ecmascript\">\n<![CDATA[\n");
 	//print the script from the included file
 	//FIXME calculate things dynamically:
 	//      * maximal number of lines for the tooltip.
-	printf(code, nodecount, idCount, idCount, idCount, idCount, DYN_TEXT,
-		nodecount, STARTSCALE, miCount, miCount, miCount, idCount,
-		idCount, idCount, idCount, idCount, idCount);
+	printf(code, idCount, idCount, idCount, idCount, DYN_TEXT, miCount,
+					    miCount, miCount, idCount, idCount,
+					    idCount, idCount, idCount, idCount);
 	printf("// ]]>\n</script>\n\n");
     }
 
@@ -2979,7 +2929,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     idCount += miCount;
 
     //output of svg to stdout begins here
-    printSVGHeaderAndTitle(modc, modv, nodecount, miCount, idCount,
+    printSVGHeaderAndTitle(modc, modv, miCount, idCount,
 							xMin, yMin, xMax, yMax);
 
     //loop through cluster (except first) to print edges and nodes
