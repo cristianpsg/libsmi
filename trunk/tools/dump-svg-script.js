@@ -1,6 +1,5 @@
 var svgdoc,svgroot;
 var collapsed = new Array(2);
-var scalFac = new Array(%i);
 var name = new Array(%i);
 var clickStatus = new Array(%i);
 var redCount = new Array(%i);
@@ -215,9 +214,6 @@ function hideInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr)
 
 function init(evt)
 {
-    for (i=0; i<%i; i++) {
-        scalFac[i] = %.1f;
-    }
     collapsed[0] = new Array(%i);
     collapsed[1] = new Array(%i);
     for (i=0; i<%i; i++) {
@@ -350,18 +346,4 @@ function colorText(targetObjName, color)
 	    }
 	}
     }
-}
-
-function enlarge(name, number)
-{
-    var obj = svgDocument.getElementById(name);
-    scalFac[number] = scalFac[number] * 1.1;
-    obj.setAttribute("transform","scale("+scalFac[number]+")");
-}
-
-function scaledown(name, number)
-{
-    var obj = svgDocument.getElementById(name);
-    scalFac[number] = scalFac[number] / 1.1;
-    obj.setAttribute("transform","scale("+scalFac[number]+")");
 }
