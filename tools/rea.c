@@ -62,6 +62,8 @@ static char *baseTypes[] = {
  * driver output control
  */
 //variables for svg-output
+//CANVASHEIGHT, CANVASWIDTH: When you change these values here, you should
+//                           also change them in initSvg() and the cgi-script.
 int       CANVASHEIGHT          = 700; /* height of the svg */
 int       CANVASWIDTH           = 1100; /* width of the svg */
 int       SHOW_DEPRECATED       = 0; /* false, show deprecated objects */
