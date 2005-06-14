@@ -1050,7 +1050,8 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
     printf("     width=\"%i\" height=\"%i\" viewBox=\"%.2f %.2f %.2f %.2f\"\n",
            CANVASWIDTH, CANVASHEIGHT, xMin, yMin, xMax-xMin, yMax-yMin);
     printf("     version=\"1.1\"\n");
-    printf("     xmlns=\"http://www.w3.org/2000/svg\"");
+    printf("     xmlns=\"http://www.w3.org/2000/svg\"\n");
+    printf("     xmlns:xlink=\"http://www.w3.org/1999/xlink\"");
     if (!STATIC_OUTPUT)
 	printf("\n     onload=\"init(evt)\" onzoom=\"ZoomControl()\"");
     printf(">\n\n");
