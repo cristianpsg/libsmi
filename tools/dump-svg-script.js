@@ -10,6 +10,11 @@ function getSVGDoc(load_evt)
     svgdoc=load_evt.target.ownerDocument;
     svgroot=svgdoc.documentElement;
     texte=svgdoc.getElementById("tooltip").getElementsByTagName("text");
+    for (i=1; i<%i; i++) {
+	textNode=texte.item(1).cloneNode("true");
+	svgdoc.getElementById("tooltip").appendChild(textNode);
+    }
+    texte=svgdoc.getElementById("tooltip").getElementsByTagName("text");
 }
 
 //The script for the tooltip was copied from:

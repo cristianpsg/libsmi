@@ -269,11 +269,8 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 	printf("   <text class=\"tooltip\" xml:space=\"preserve\"");
 	printf(" id=\"ttt\" x=\"0\" y=\"0\" style=\"visibility: hidden\">");
 	printf("dyn. Text</text>\n");
-	//FIXME: calculate number of lines dynamically.
-	for (i = 0; i < DYN_TEXT; i++) {
-	    printf("   <text class=\"tooltip\" xml:space=\"preserve\"");
-	    printf(" x=\"-10\" y=\"-10\">dyn. Text</text>\n");
-	}
+	printf("   <text class=\"tooltip\" xml:space=\"preserve\"");
+	printf(" x=\"-10\" y=\"-10\">dyn. Text</text>\n");
 	printf(" </g>\n");
 	printf(" </g>\n");
     }
@@ -1018,9 +1015,9 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 	//print the script from the included file
 	//FIXME calculate things dynamically:
 	//      * maximal number of lines for the tooltip.
-	printf(code, idCount, idCount, idCount, idCount, DYN_TEXT, miCount,
-					    miCount, miCount, idCount, idCount,
-					    idCount, idCount, idCount, idCount);
+	printf(code, idCount, idCount, idCount, idCount, DYN_TEXT, DYN_TEXT,
+			miCount, miCount, miCount,
+			idCount, idCount, idCount, idCount, idCount, idCount);
 	printf("// ]]>\n</script>\n\n");
     }
 
