@@ -335,13 +335,19 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    tooltipDescription = (char *)xmalloc(2*strlen(typeDescription));
 	    parseTooltip(typeDescription, tooltipDescription);
 	    if (algGetTypeModule(node)) {
-		length = strlen(tooltipDescription) + 150;
-		tooltip = (char *)xmalloc(length);
-		strcpy(tooltip, algGetTypeName(node));
-		strcat(tooltip, isDefined);
-		strcat(tooltip, algGetTypeModule(node)->name);
-		strcat(tooltip, ":\\n\\n");
-		strcat(tooltip, tooltipDescription);
+		if (smiGetNodeModule(node) != algGetTypeModule(node)) {
+		    length = strlen(tooltipDescription) + 150;
+		    tooltip = (char *)xmalloc(length);
+		    strcpy(tooltip, algGetTypeName(node));
+		    strcat(tooltip, isDefined);
+		    strcat(tooltip, algGetTypeModule(node)->name);
+		    strcat(tooltip, ":\\n\\n");
+		    strcat(tooltip, tooltipDescription);
+		} else {
+		    length = strlen(tooltipDescription) + 150;
+		    tooltip = (char *)xmalloc(length);
+		    strcpy(tooltip, tooltipDescription);
+		}
 	    } else {
 		length = strlen(tooltipDescription);
 		tooltip = (char *)xmalloc(length);
