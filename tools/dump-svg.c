@@ -499,9 +499,8 @@ static void printSVGObject(GraphNode *node, int *classNr,
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            node->dia.x + node->cluster->xOffset,
            node->dia.y + node->cluster->yOffset);
-    printf("  <g id=\"%s\" transform=\"scale(%.1f)\">\n",
-           smiGetFirstChildNode(node->smiNode)->name, STARTSCALE);
-    printf("    <rect id=\"%sRect\"",
+    printf("  <g transform=\"scale(%.1f)\">\n", STARTSCALE);
+    printf("    <rect id=\"%s\"",
            smiGetFirstChildNode(node->smiNode)->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
@@ -650,9 +649,8 @@ static void printSVGGroup(int group, int *classNr,
     printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
            tNode->dia.x + tNode->cluster->xOffset,
            tNode->dia.y + tNode->cluster->yOffset);
-    printf("  <g id=\"%s\" transform=\"scale(%.1f)\">\n",
-           smiGetParentNode(tNode->smiNode)->name, STARTSCALE);
-    printf("    <rect id=\"%sRect\"",
+    printf("  <g transform=\"scale(%.1f)\">\n", STARTSCALE);
+    printf("    <rect id=\"%s\"",
            smiGetParentNode(tNode->smiNode)->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
@@ -2136,10 +2134,10 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 				printf(";");
 			    }
 			    if (tNode->group == 0) {
-				printf("colorText('%sRect','blanchedalmond')",
+				printf("colorText('%s','blanchedalmond')",
 				    smiGetFirstChildNode(tNode->smiNode)->name);
 			    } else {
-				printf("colorText('%sRect','blanchedalmond')",
+				printf("colorText('%s','blanchedalmond')",
 				    smiGetParentNode(tNode->smiNode)->name);
 			    }
 			    j++;
