@@ -320,14 +320,38 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
     }
 
     printf("<tspan");
-    if (!STATIC_OUTPUT && node->description) {
-	tooltip = (char *)xmalloc(2*strlen(node->description));
-	parseTooltip(node->description, tooltip);
-	printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
-	printf(" onmouseout=\"HideTooltip(evt)\"");
-	xfree(tooltip);
+    if (!STATIC_OUTPUT) {
+	if (node->description) {
+	    tooltip = (char *)xmalloc(2*strlen(node->description));
+	    parseTooltip(node->description, tooltip);
+	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
+	    printf(" onmouseout=\"HideTooltip(evt)\"");
+	    xfree(tooltip);
+	}
+	if (index) {
+	    for (i=0; i<modc; i++) {
+		if (modv[i] == smiGetNodeModule(node)) {
+		    target_exists = 1;
+		}
+	    }
+	    if (!target_exists) {
+		printf(" fill=\"%s\">\n", linkcolor);
+		printf("      <a xlink:href=\"%s", link);
+		for (i=0; i<modc; i++) {
+		    printf("&amp;mibs=%s", modv[i]->name);
+		}
+		printf("&amp;mibs=%s\">\n", smiGetNodeModule(node)->name);
+		printf("        %s\n", node->name);
+		printf("      </a></tspan>\n");
+	    } else {
+		printf(">%s:</tspan>\n", node->name);
+	    }
+	} else {
+	    printf(">%s:</tspan>\n", node->name);
+	}
+    } else {
+	printf(">%s:</tspan>\n", node->name);
     }
-    printf(">%s:</tspan>\n", node->name);
 
     printf("    <tspan");
     if (!STATIC_OUTPUT) {
