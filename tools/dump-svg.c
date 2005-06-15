@@ -282,7 +282,7 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
  * index = 0 -> no index element
  * index = 1 -> index element -> printed with "+"
  */
-static void printSVGAttribute(SmiNode *node, int index,
+static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
 			      int modc, SmiModule **modv,
 			      float *textYOffset, float *textXOffset)
 {
@@ -335,7 +335,8 @@ static void printSVGAttribute(SmiNode *node, int index,
 	    tooltipDescription = (char *)xmalloc(2*strlen(typeDescription));
 	    parseTooltip(typeDescription, tooltipDescription);
 	    if (algGetTypeModule(node)) {
-		if (smiGetNodeModule(node) != algGetTypeModule(node)) {
+		if ((smiGetNodeModule(node) != smiGetNodeModule(tableNode)) ||
+		    (smiGetNodeModule(node) != algGetTypeModule(node))) {
 		    length = strlen(tooltipDescription) + 150;
 		    tooltip = (char *)xmalloc(length);
 		    strcpy(tooltip, algGetTypeName(node));
@@ -404,7 +405,7 @@ static void printSVGAttribute(SmiNode *node, int index,
 /*
  * prints the related scalars for a given table
  */
-static void printSVGRelatedScalars(GraphNode *node,
+static void printSVGRelatedScalars(GraphNode *node, SmiNode *tableNode,
 				   int modc, SmiModule **modv,
 				   float *textYOffset, float *textXOffset)
 {
@@ -416,7 +417,7 @@ static void printSVGRelatedScalars(GraphNode *node,
 	if (tEdge->startNode == node  &&
 	    tEdge->endNode->smiNode->nodekind == SMI_NODEKIND_SCALAR) {
 
-	    printSVGAttribute(tEdge->endNode->smiNode, 0,
+	    printSVGAttribute(tEdge->endNode->smiNode, tableNode, 0,
 			      modc, modv,
 			      textYOffset, textXOffset);
 	}
@@ -426,7 +427,7 @@ static void printSVGRelatedScalars(GraphNode *node,
 /*
  * prints all columns objects of the given node
  */
-static void printSVGAllColumns(GraphNode *node,
+static void printSVGAllColumns(GraphNode *node, SmiNode *tableNode,
 			       int modc, SmiModule **modv,
 			       float *textYOffset, float *textXOffset)
 {
@@ -444,7 +445,7 @@ static void printSVGAllColumns(GraphNode *node,
 	
 	if (!algIsIndexElement(node->smiNode, smiNode) &&
 	    cmpSmiNodes(node->smiNode, ppNode))
-	    printSVGAttribute(smiNode, 0,
+	    printSVGAttribute(smiNode, tableNode, 0,
 			      modc, modv,
 			      textYOffset, textXOffset);
     }
@@ -453,7 +454,7 @@ static void printSVGAllColumns(GraphNode *node,
 /*
  * adds the index to an augmenting table (row-element)
  */
-static void printSVGAugmentIndex(GraphNode *tNode,
+static void printSVGAugmentIndex(GraphNode *tNode, SmiNode *tableNode,
 				 int modc, SmiModule **modv,
 				 float *textYOffset, float *textXOffset)
 {
@@ -469,8 +470,8 @@ static void printSVGAugmentIndex(GraphNode *tNode,
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
 		if (!cmpSmiNodes(tNode->smiNode, tEdge->startNode->smiNode)) {
-		    printSVGAttribute(smiGetElementNode(smiElement), 1,
-				      modc, modv,
+		    printSVGAttribute(smiGetElementNode(smiElement), tableNode,
+				      1, modc, modv,
 				      textYOffset, textXOffset);
 		}
 	    }
@@ -580,7 +581,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
 
 	if (node->dia.relatedScalars) {
 	    //A
-	    printSVGRelatedScalars(node,
+	    printSVGRelatedScalars(node, node->smiNode,
 				   modc, modv,
 				   &textYOffset, &textXOffset);
 
@@ -595,7 +596,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
 
 	if (node->dia.indexObjects) {
 	    //B
-	    printSVGAugmentIndex(node,
+	    printSVGAugmentIndex(node, node->smiNode,
 				 modc, modv,
 				 &textYOffset, &textXOffset);
 	    //C
@@ -603,8 +604,8 @@ static void printSVGObject(GraphNode *node, int *classNr,
 		smiGetFirstChildNode(node->smiNode));
 		 smiElement;
 		 smiElement = smiGetNextElement(smiElement)) {
-		printSVGAttribute(smiGetElementNode(smiElement), 1,
-				  modc, modv,
+		printSVGAttribute(smiGetElementNode(smiElement), node->smiNode,
+				  1, modc, modv,
 				  &textYOffset, &textXOffset);
 	    }
 
@@ -619,7 +620,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
 
 	//D
 	if (PRINT_DETAILED_ATTR) {
-	    printSVGAllColumns(node,
+	    printSVGAllColumns(node, node->smiNode,
 			       modc, modv,
 			       &textYOffset, &textXOffset);
 	}
@@ -685,7 +686,7 @@ static void printSVGGroup(int group, int *classNr,
 
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (tNode->group == group) {
-	    printSVGAttribute(tNode->smiNode, 0,
+	    printSVGAttribute(tNode->smiNode, tNode->smiNode, 0,
 			      modc, modv,
 			      &textYOffset, &textXOffset);
 	}
