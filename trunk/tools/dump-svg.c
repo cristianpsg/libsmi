@@ -382,24 +382,7 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
-	    if (algGetTypeModule(node)) {
-		for (i=0; i<modc; i++) {
-		    if (modv[i] == algGetTypeModule(node)) {
-			target_exists = 1;
-		    }
-		}
-		if (!target_exists) {
-		    printf(" fill=\"%s\">\n", linkcolor);
-		    printf("      <a xlink:href=\"%s", link);
-		    printf("&amp;mibs=%s\">\n", algGetTypeModule(node)->name);
-		    printf("        %s\n", algGetTypeName(node));
-		    printf("      </a>\n");
-		} else {
-		    printf(">%s\n", algGetTypeName(node));
-		}
-	    } else {
-		printf(">%s\n", algGetTypeName(node));
-	    }
+	    printf(">%s\n", algGetTypeName(node));
 	    printf("    </tspan>");
 	} else if (isBaseType(node)) {
 	    length = strlen(baseTypeTooltipText) + 1;
