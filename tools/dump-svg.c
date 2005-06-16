@@ -502,7 +502,7 @@ static void printNoObjects()
 }
 
 /*
- * print "This module only contains TEXTUAL-CONVENTIONs"
+ * print "This module only contains textual conventions"
  */
 static void printOnlyTCs()
 {
