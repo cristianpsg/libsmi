@@ -487,6 +487,21 @@ static void printSVGAugmentIndex(GraphNode *tNode, SmiNode *tableNode,
 }
 
 /*
+ * print "This module doesn't contain any objects"
+ */
+static int printNoObjects()
+{
+    printf(" <rect x=\"10\" y=\"10\" width=\"120\" height=\"40\"");
+    printf(" fill=\"white\" stroke=\"black\"/>\n");
+    printf("  <text x=\"15\" y=\"25\" fill=\"black\">\n");
+    printf("   This module doesn't\n");
+    printf("  </text>\n");
+    printf("  <text x=\"15\" y=\"40\" fill=\"black\">\n");
+    printf("   contain any objects.\n");
+    printf("  </text>\n");
+}
+
+/*
  * create svg-output for the given node
  */
 static void printSVGObject(GraphNode *node, int *classNr,
@@ -2932,6 +2947,9 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	yMax += maxHeight + 10;
     //enlarge canvas for ModuleInformation
     xMax += MODULE_INFO_WIDTH;
+    //module doesn't contain any objects.
+    if (nodecount == 0)
+	xMax += 130;
 
     //count entries in the ModuleInformation-Section
     calcMiCount(modc, modv, &miCount, nType, oGroup, nGroup, mCompl);
@@ -2940,6 +2958,10 @@ static void diaPrintXML(int modc, SmiModule **modv)
     //output of svg to stdout begins here
     printSVGHeaderAndTitle(modc, modv, miCount, idCount,
 							xMin, yMin, xMax, yMax);
+
+    //module doesn't contain any objects.
+    if (nodecount == 0)
+	printNoObjects();
 
     //loop through cluster (except first) to print edges and nodes
     for (tCluster = graph->clusters->nextPtr; tCluster;
