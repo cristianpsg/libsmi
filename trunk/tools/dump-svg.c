@@ -489,7 +489,7 @@ static void printSVGAugmentIndex(GraphNode *tNode, SmiNode *tableNode,
 /*
  * print "This module doesn't contain any objects"
  */
-static int printNoObjects()
+static void printNoObjects()
 {
     printf(" <rect x=\"10\" y=\"10\" width=\"120\" height=\"40\"");
     printf(" fill=\"white\" stroke=\"black\"/>\n");
