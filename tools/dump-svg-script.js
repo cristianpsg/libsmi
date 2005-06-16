@@ -22,10 +22,11 @@ function getSVGDoc(load_evt)
 //Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
 function ShowTooltipMZ(mousemove_event,txt)
 {
-    var ttrelem,tttelem,posx,posy,curtrans,ctx,cty,txt;
+    var ttrelem,tttelem,ttline,posx,posy,curtrans,ctx,cty,txt;
     var maxbreite,tmp,i;
     ttrelem=svgdoc.getElementById("ttr");
     tttelem=svgdoc.getElementById("ttt");
+    ttline=svgdoc.getElementById("ttl");
     posx=mousemove_event.clientX;
     posy=mousemove_event.clientY;
     for (i=1;i<=%i;i++)
@@ -50,16 +51,25 @@ function ShowTooltipMZ(mousemove_event,txt)
     ttrelem.setAttribute("style",
 			    "fill: #FFC; stroke: #000; stroke-width: 0.5px");
     for (i=1; i<=tmp.length; i++) {
-	texte.item(i).firstChild.data=tmp[i-1];
-	texte.item(i).setAttribute("x",posx-ctx+15);
-	texte.item(i).setAttribute("y",parseInt(i-1)*15+posy-cty+3);
-	texte.item(i).setAttribute("style","fill: #00E; font-size: 11px");
+	if (tmp[i-1]=="-- -- --") {
+	    ttline.setAttribute("x1", posx-ctx+10);
+	    ttline.setAttribute("y1", parseInt(i-1)*15+posy-cty);
+	    ttline.setAttribute("x2", posx-ctx+10+maxbreite*0.92+10);
+	    ttline.setAttribute("y2", parseInt(i-1)*15+posy-cty);
+	    ttline.setAttribute("style", "stroke: #000; stroke-width: 0.5px");
+	} else {
+	    texte.item(i).firstChild.data=tmp[i-1];
+	    texte.item(i).setAttribute("x",posx-ctx+15);
+	    texte.item(i).setAttribute("y",parseInt(i-1)*15+posy-cty+3);
+	    texte.item(i).setAttribute("style","fill: #00E; font-size: 11px");
+	}
     }
     svgdoc.getElementById("tooltip").style.setProperty("visibility","visible");
 }
 
 function HideTooltip()
 {
+    svgdoc.getElementById("ttl").style.setProperty("visibility","hidden");
     svgdoc.getElementById("tooltip").style.setProperty("visibility","hidden");
 }
 
