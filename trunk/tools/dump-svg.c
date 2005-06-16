@@ -266,6 +266,7 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 	printf(" <g id=\"tooltip\" style=\"visibility: hidden\">\n");
 	printf("   <rect id=\"ttr\" x=\"0\" y=\"0\" rx=\"5\" ry=\"5\"");
 	printf(" width=\"100\" height=\"16\"/>\n");
+	printf("   <line id=\"ttl\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"0\"/>\n");
 	printf("   <text class=\"tooltip\" xml:space=\"preserve\"");
 	printf(" id=\"ttt\" x=\"0\" y=\"0\" style=\"visibility: hidden\">");
 	printf("dyn. Text</text>\n");
@@ -524,11 +525,9 @@ static void printSVGObject(GraphNode *node, int *classNr,
 {
     SmiElement *smiElement;
     float textXOffset, textYOffset, xOrigin, yOrigin;
-    size_t length;
+    size_t length = 1;
     char *tooltip, *tooltipTable, *tooltipEntry;
-    const char *tableHeading = "table description:\\n";
-    const char *entryHeading = "entry description:\\n";
-    const char *blankLine = "\\n\\n";
+    const char *blankLine = "\\n-- -- --\\n";
     
     if (!node) return;
 
@@ -567,14 +566,20 @@ static void printSVGObject(GraphNode *node, int *classNr,
 								tooltipEntry);
 	}
 
-	length = strlen(tableHeading) + strlen(entryHeading)
-		 + strlen(blankLine) + 1
-		 + strlen(tooltipTable) + strlen(tooltipEntry);
+	if (node->smiNode->description) {
+	    length += strlen(tooltipTable);
+	}
+	if (node->smiNode->description
+		&& smiGetFirstChildNode(node->smiNode)->description) {
+	    length += strlen(blankLine);
+	}
+	if (smiGetFirstChildNode(node->smiNode)->description) {
+	    length += strlen(tooltipEntry);
+	}
 	tooltip = (char *)xmalloc(length);
 
 	strcpy(tooltip, "\0");
 	if (node->smiNode->description) {
-	    strcat(tooltip, tableHeading);
 	    strcat(tooltip, tooltipTable);
 	}
 	if (node->smiNode->description
@@ -582,7 +587,6 @@ static void printSVGObject(GraphNode *node, int *classNr,
 	    strcat(tooltip, blankLine);
 	}
 	if (smiGetFirstChildNode(node->smiNode)->description) {
-	    strcat(tooltip, entryHeading);
 	    strcat(tooltip, tooltipEntry);
 	}
 
