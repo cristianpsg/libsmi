@@ -502,6 +502,21 @@ static void printNoObjects()
 }
 
 /*
+ * print "This module only contains TEXTUAL-CONVENTIONs"
+ */
+static void printOnlyTCs()
+{
+    printf(" <rect x=\"10\" y=\"10\" width=\"150\" height=\"40\"");
+    printf(" fill=\"white\" stroke=\"black\"/>\n");
+    printf("  <text x=\"15\" y=\"25\" fill=\"black\">\n");
+    printf("   This module only contains\n");
+    printf("  </text>\n");
+    printf("  <text x=\"15\" y=\"40\" fill=\"black\">\n");
+    printf("   textual conventions.\n");
+    printf("  </text>\n");
+}
+
+/*
  * create svg-output for the given node
  */
 static void printSVGObject(GraphNode *node, int *classNr,
@@ -1308,6 +1323,35 @@ static GraphNode *calcGroupSize(int group, int *idCount)
 
 
 /* ------------------------------------------------------------------------- */
+
+
+
+static int invalidType(SmiBasetype basetype)
+{
+    return (basetype == SMI_BASETYPE_FLOAT32)
+	|| (basetype == SMI_BASETYPE_FLOAT64)
+	|| (basetype == SMI_BASETYPE_FLOAT128);
+}
+
+static int countTCs(int modc, SmiModule **modv)
+{
+    SmiType *smiType;
+    int     i, invalid, j = 0;
+
+    for (i=0; i<modc; i++) {
+	for(smiType = smiGetFirstType(modv[i]);
+	    smiType; smiType = smiGetNextType(smiType)) {
+	    if (smiType->status != SMI_STATUS_UNKNOWN) {
+		invalid = invalidType(smiType->basetype);
+		if (!invalid) {
+		    j++;
+		}
+	    }
+	}
+    }
+
+    return j;
+}
 
 
 static void calcModuleIdentityCount(int modc, SmiModule **modv, int *miCount)
@@ -2833,7 +2877,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
     int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
-    int          idCount=0;
+    int          idCount=0, TCcount=0;
     float        x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
     int          nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
 
@@ -2948,8 +2992,14 @@ static void diaPrintXML(int modc, SmiModule **modv)
     //enlarge canvas for ModuleInformation
     xMax += MODULE_INFO_WIDTH;
     //module doesn't contain any objects.
-    if (nodecount == 0)
-	xMax += 130;
+    if (nodecount == 0) {
+	TCcount = countTCs(modc, modv);
+	if (TCcount > 0) {
+	    xMax += 160;
+	} else {
+	    xMax += 130;
+	}
+    }
 
     //count entries in the ModuleInformation-Section
     calcMiCount(modc, modv, &miCount, nType, oGroup, nGroup, mCompl);
@@ -2960,8 +3010,13 @@ static void diaPrintXML(int modc, SmiModule **modv)
 							xMin, yMin, xMax, yMax);
 
     //module doesn't contain any objects.
-    if (nodecount == 0)
-	printNoObjects();
+    if (nodecount == 0) {
+	if (TCcount > 0) {
+	    printOnlyTCs();
+	} else {
+	    printNoObjects();
+	}
+    }
 
     //loop through cluster (except first) to print edges and nodes
     for (tCluster = graph->clusters->nextPtr; tCluster;
