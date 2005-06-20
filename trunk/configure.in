@@ -300,6 +300,7 @@ tools/smidump.1
 tools/smidiff.1
 tools/smistrip.1
 tools/smicache.1
+tools/mib2svg.cgi
 test/parser.test
 test/smidump-corba.test
 test/smidump-jax.test
