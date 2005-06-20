@@ -383,8 +383,6 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
-	    printf(">%s\n", algGetTypeName(node));
-	    printf("    </tspan>");
 	} else if (isBaseType(node)) {
 	    length = strlen(baseTypeTooltipText) + 1;
 	    tooltip = (char *)xmalloc(length);
@@ -392,11 +390,9 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
 	    printf(" onmousemove=\"ShowTooltipMZ(evt,'%s')\"", tooltip);
 	    printf(" onmouseout=\"HideTooltip(evt)\"");
 	    xfree(tooltip);
-	    printf(">%s</tspan>", algGetTypeName(node));
 	}
-    } else {
-	printf(">%s</tspan>", algGetTypeName(node));
     }
+    printf(">%s</tspan>", algGetTypeName(node));
     switch (node->status) {
     case SMI_STATUS_DEPRECATED:
     case SMI_STATUS_OBSOLETE:
