@@ -31,7 +31,7 @@
 #include "rea.h"
 #include "dump-svg-script.h"
 
-#define URL "http://libsmi.dyndns.org/cgi-bin/mib2svg.cgi?"
+#define URL "http://www.ibr.cs.tu-bs.de/projects/libsmi/svg/mib2svg.cgi?"
 
 
 
