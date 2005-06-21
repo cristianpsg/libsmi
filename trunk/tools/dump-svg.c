@@ -61,7 +61,7 @@ static const float STARTSCALE          =(float)0.5;
 static const int ITERATIONS            =100;
 
 static char *link;
-static const char *linkcolor = "rgb(0%,0%,50%)";
+static const char *linkcolor = "blue";
 
 
 
