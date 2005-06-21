@@ -3,10 +3,10 @@ use strict;
 use CGI qw(:standard);
 #set this for testing purposes only
 #use CGI::Carp qw(fatalsToBrowser);
+use File::Temp;
 
 #some security-settings
 $CGI::POST_MAX = 1024 * 100;
-$CGI::DISABLE_UPLOADS = 1;
 $ENV{'PATH'} = '/bin:/usr/bin:/usr/local/bin';
 
 #gather all mibs in smipath into @mibnames
@@ -23,6 +23,8 @@ foreach my $dir (@smidirs) {
 if (param()) {
     #params present.
     my @options;
+    my $localfh;
+    my $localfn;
     my @mibs = param('mibs');
     my $width = param('width');
     my $height = param('height');
@@ -51,6 +53,7 @@ if (param()) {
 	}
     }
 
+    #parse selected MIBs
     foreach my $mibname (@mibnames) {
 	foreach my $mib (@mibs) {
 	    if ($mibname eq $mib) {
@@ -60,6 +63,19 @@ if (param()) {
 	}
     }
 
+    #handle file upload
+    if (param('uploadmib')) {
+	my $remotefh = upload('uploadmib');
+	($localfh, $localfn) = File::Temp->tempfile('tempXXXX', DIR => '/tmp')
+	    or die "Error opening outfile\n";
+	while (<$remotefh>) {
+	    print $localfh $_;
+	}
+	close $remotefh;
+	close $localfh;
+	@options = (@options, $localfn);
+    }
+
     #call smidump
     my $res = open (SMIDUMP, "-|");
     die "Couldn't open pipe to subprocess" unless defined($res);
@@ -67,6 +83,11 @@ if (param()) {
 	or die "Couldn't exec smidump" if $res == 0;
     my @svg = <SMIDUMP>;
     close (SMIDUMP);
+
+    #delete uploaded file
+    if (param('uploadmib')) {
+	system "/bin/rm",$localfn;
+    }
 
     #serve svg
     my $svglength = @svg;
@@ -87,13 +108,17 @@ if (param()) {
     print header;
     print start_html("MIB to SVG");
     print h2("Generate a SVG Diagram from MIB Modules");
-    print start_form();
+    print start_multipart_form();
 
-    print p("select at least one MIB: ", scrolling_list(
+    print p("select one or more MIBs: ", scrolling_list(
 	-NAME => "mibs",
 	-VALUES => [@mibnames],
 	-SIZE => 10,
 	-MULTIPLE => 1,
+    ));
+
+    print p("or upload a MIB: ", filefield(
+	-NAME => "uploadmib"
     ));
 
     print p("diagram width: ", textfield(
