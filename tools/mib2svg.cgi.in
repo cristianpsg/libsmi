@@ -66,8 +66,9 @@ if (param()) {
     #handle file upload
     if (param('uploadmib')) {
 	my $remotefh = upload('uploadmib');
-	($localfh, $localfn) = File::Temp->tempfile('tempXXXX', DIR => '/tmp')
-	    or die "Error opening outfile\n";
+	($localfh, $localfn)
+	    = File::Temp->tempfile('tempMIBXXXX', DIR => '/tmp', UNLINK => 1)
+		or die "Error opening outfile\n";
 	while (<$remotefh>) {
 	    print $localfh $_;
 	}
@@ -83,11 +84,6 @@ if (param()) {
 	or die "Couldn't exec smidump" if $res == 0;
     my @svg = <SMIDUMP>;
     close (SMIDUMP);
-
-    #delete uploaded file
-    if (param('uploadmib')) {
-	system "/bin/rm",$localfn;
-    }
 
     #serve svg
     my $svglength = @svg;
