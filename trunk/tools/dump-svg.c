@@ -46,7 +46,7 @@ extern int smiAsprintf(char **strp, const char *format, ...);
 //FIXME int or float?
 static const float HEADFONTSIZETABLE   = (float)7;
 static const float HEADSPACESIZETABLE  = (float)4;
-static const float ATTRFONTSIZE        = (float)6;
+static const float ATTRFONTSIZE        = (float)7;
 static const float ATTRSPACESIZE       = (float)2;
 static const float TABLEHEIGHT         = (float)20; /*headline of the table*/
 static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
