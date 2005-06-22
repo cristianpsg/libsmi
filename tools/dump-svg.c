@@ -3084,7 +3084,7 @@ static void buildLink(int modc, SmiModule **modv)
     if (SHOW_DEPR_OBSOLETE) {
 	length += strlen(deprobsstr);
     }
-    link = xmalloc(length);
+    link = xmalloc(length + 1);
     strcpy(link, url);
     strcat(link, widthstr);
     strcat(link, width);
