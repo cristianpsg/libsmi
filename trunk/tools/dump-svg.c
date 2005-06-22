@@ -2884,7 +2884,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     GraphEdge    *tEdge;
     GraphCluster *tCluster;
     int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
-    int          idCount=0, TCcount=0;
+    int          i, idCount=0, TCcount=0, miPrint=0;
     float        x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
     int          modId[modc];
     int          nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
@@ -2997,8 +2997,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     graph->clusters->yOffset = yMax + maxHeight/2;
     if (singleNodes)
 	yMax += maxHeight + 10;
-    //enlarge canvas for ModuleInformation
-    xMax += MODULE_INFO_WIDTH;
+
     //module doesn't contain any objects.
     if (nodecount == 0) {
 	TCcount = countTCs(modc, modv);
@@ -3012,6 +3011,17 @@ static void diaPrintXML(int modc, SmiModule **modv)
     //count entries in the ModuleInformation-Section
     calcMiCount(modc, modv, &miCount, modId, nType, oGroup, nGroup, mCompl);
     idCount += miCount;
+
+    //enlarge canvas for ModuleInformation if it is supposed to be printed
+    for (i = 0; i < modc; i++) {
+	miPrint |= modId[i];
+	miPrint |= nType[i];
+	miPrint |= oGroup[i];
+	miPrint |= nGroup[i];
+	miPrint |= mCompl[i];
+    }
+    if (miPrint)
+	xMax += MODULE_INFO_WIDTH;
 
     //output of svg to stdout begins here
     printSVGHeaderAndTitle(modc, modv, miCount, idCount,
