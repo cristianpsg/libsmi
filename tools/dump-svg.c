@@ -1551,6 +1551,7 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
 			}
 		    }
 		}
+		xfree(done);
 	    }
 	}
     }
@@ -2144,6 +2145,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    }
 	}
     }
+    xfree(done);
     *x -= TABLEELEMHEIGHT;
 }
 
