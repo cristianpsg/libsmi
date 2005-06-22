@@ -1354,7 +1354,8 @@ static int countTCs(int modc, SmiModule **modv)
 }
 
 
-static void calcModuleIdentityCount(int modc, SmiModule **modv, int *miCount)
+static void calcModuleIdentityCount(int modc, SmiModule **modv,
+				    int *miCount, int modId[])
 {
     int         i;
     SmiNode     *smiNode;
@@ -1363,10 +1364,12 @@ static void calcModuleIdentityCount(int modc, SmiModule **modv, int *miCount)
     //MODULE-IDENTITY
     (*miCount)++;
     for (i = 0; i < modc; i++) {
+	modId[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 	    //name of the module
 	    (*miCount)++;
+	    modId[i] = 1;
 	    //revision history of the module
 	    smiRevision = smiGetFirstRevision(modv[i]);
 	    if (!smiRevision) {
@@ -1563,10 +1566,10 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
  * in the svg, so the calculated number is an upper bound. the maximal
  * size of this gap is 4*(modc+1). this may be considered as a bug.
  */
-static void calcMiCount(int modc, SmiModule **modv, int *miCount,
+static void calcMiCount(int modc, SmiModule **modv, int *miCount, int modId[],
 			int nType[], int oGroup[], int nGroup[], int mCompl[])
 {
-    calcModuleIdentityCount(modc, modv, miCount);
+    calcModuleIdentityCount(modc, modv, miCount, modId);
     calcNotificationTypeCount(modc, modv, miCount, nType);
     calcObjectGroupCount(modc, modv, miCount, oGroup);
     calcNotificationGroupCount(modc, modv, miCount, nGroup);
@@ -2598,11 +2601,11 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 
 static void printModuleInformation(int modc, SmiModule **modv,
 				   float x, float y,
-				   int nType[], int oGroup[],
-				   int nGroup[], int mCompl[],
-				   int miCount)
+				   int modId[], int nType[], int oGroup[],
+				   int nGroup[], int mCompl[], int miCount)
 {
     int i, miNr = 0;
+    int modIdPrint = 0;
     int nTypePrint = 0, oGroupPrint = 0, nGroupPrint = 0, mComplPrint = 0;
     StringListElem markupList[miCount];
 
@@ -2614,13 +2617,15 @@ static void printModuleInformation(int modc, SmiModule **modv,
 
     //only print sections containig information
     for (i = 0; i < modc; i++) {
+	modIdPrint |= modId[i];
 	nTypePrint |= nType[i];
 	oGroupPrint |= oGroup[i];
 	nGroupPrint |= nGroup[i];
 	mComplPrint |= mCompl[i];
     }
 
-    printModuleIdentity(modc, modv, &x, &y, &miNr);
+    if (modIdPrint)
+	printModuleIdentity(modc, modv, &x, &y, &miNr);
     if (nTypePrint)
 	printNotificationType(modc, modv, &x, &y, &miNr, nType, markupList,
 								    miCount);
@@ -2881,6 +2886,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
     int          idCount=0, TCcount=0;
     float        x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
+    int          modId[modc];
     int          nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
 
     //find edges which are supposed to be drawn
@@ -3004,7 +3010,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
     }
 
     //count entries in the ModuleInformation-Section
-    calcMiCount(modc, modv, &miCount, nType, oGroup, nGroup, mCompl);
+    calcMiCount(modc, modv, &miCount, modId, nType, oGroup, nGroup, mCompl);
     idCount += miCount;
 
     //output of svg to stdout begins here
@@ -3055,7 +3061,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //print MODULE-IDENTITY
     printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
-					nType, oGroup, nGroup, mCompl, miCount);
+				modId, nType, oGroup, nGroup, mCompl, miCount);
 
     //output of svg to stdout ends here
     printSVGClose(xMin, yMin, xMax, yMax);
