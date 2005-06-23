@@ -2623,20 +2623,15 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 }
 
 static void printModuleInformation(int modc, SmiModule **modv,
-				   float x, float y,
+				   float x, float y, float maxHeight,
 				   int modId[], int nType[], int oGroup[],
 				   int nGroup[], int mCompl[], int miCount)
 {
-    int i, miNr = 0;
+    int i, miNr = 0, miHeight;
+    float scale = STARTSCALE;
     int modIdPrint = 0;
     int nTypePrint = 0, oGroupPrint = 0, nGroupPrint = 0, mComplPrint = 0;
     StringListElem markupList[miCount];
-
-    printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
-							x, y, STARTSCALE);
-    //now use x and y as relative coordinates.
-    x = 0;
-    y = 10;
 
     //only print sections containig information
     for (i = 0; i < modc; i++) {
@@ -2646,6 +2641,33 @@ static void printModuleInformation(int modc, SmiModule **modv,
 	nGroupPrint |= nGroup[i];
 	mComplPrint |= mCompl[i];
     }
+
+    //count blank lines
+    i = 0;
+    if (modIdPrint)
+	i++;
+    if (nTypePrint)
+	i++;
+    if (oGroupPrint)
+	i++;
+    if (nGroupPrint)
+	i++;
+    if (mComplPrint)
+	i++;
+    if (i>1)
+	i--;
+
+    //test if we must shrink moduleInformation to fit it into canvas
+    miHeight = ((miCount + i) * 15 + 10) * STARTSCALE;
+    if (miHeight > maxHeight)
+	scale *= maxHeight/miHeight;
+
+    printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
+								x, y, scale);
+
+    //now use x and y as relative coordinates.
+    x = 0;
+    y = 10;
 
     if (modIdPrint)
 	printModuleIdentity(modc, modv, &x, &y, &miNr);
@@ -3094,6 +3116,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 
     //print MODULE-IDENTITY
     printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
+				yMax-yMin,
 				modId, nType, oGroup, nGroup, mCompl, miCount);
 
     //output of svg to stdout ends here
