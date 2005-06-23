@@ -397,9 +397,9 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
     switch (node->status) {
     case SMI_STATUS_DEPRECATED:
     case SMI_STATUS_OBSOLETE:
+	printf(" (%s)", getStatusString(node->status));
     case SMI_STATUS_MANDATORY:
     case SMI_STATUS_OPTIONAL:
-	printf(" (%s)", getStatusString(node->status));
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_UNKNOWN:
 	;
@@ -613,9 +613,9 @@ static void printSVGObject(GraphNode *node, int *classNr,
     switch (node->smiNode->status) {
     case SMI_STATUS_DEPRECATED:
     case SMI_STATUS_OBSOLETE:
+	printf(" (%s)", getStatusString(node->smiNode->status));
     case SMI_STATUS_MANDATORY:
     case SMI_STATUS_OPTIONAL:
-	printf(" (%s)", getStatusString(node->smiNode->status));
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_UNKNOWN:
 	;
@@ -728,10 +728,10 @@ static void printSVGGroup(int group, int *classNr,
     switch (smiGetParentNode(tNode->smiNode)->status) {
     case SMI_STATUS_DEPRECATED:
     case SMI_STATUS_OBSOLETE:
-    case SMI_STATUS_MANDATORY:
-    case SMI_STATUS_OPTIONAL:
 	printf(" (%s)",
 		    getStatusString(smiGetParentNode(tNode->smiNode)->status));
+    case SMI_STATUS_MANDATORY:
+    case SMI_STATUS_OPTIONAL:
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_UNKNOWN:
 	;
@@ -1153,9 +1153,9 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 	    switch (tNode->status) {
 	    case SMI_STATUS_DEPRECATED:
 	    case SMI_STATUS_OBSOLETE:
+		stringlen += strlen(getStatusString(tNode->status)) +3;
 	    case SMI_STATUS_MANDATORY:
 	    case SMI_STATUS_OPTIONAL:
-		stringlen += strlen(getStatusString(tNode->status)) +3;
 	    case SMI_STATUS_CURRENT:
 	    case SMI_STATUS_UNKNOWN:
 		;
@@ -1197,9 +1197,9 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 		    switch (tNode->status) {
 		    case SMI_STATUS_DEPRECATED:
 		    case SMI_STATUS_OBSOLETE:
+			stringlen += strlen(getStatusString(tNode->status)) +3;
 		    case SMI_STATUS_MANDATORY:
 		    case SMI_STATUS_OPTIONAL:
-			stringlen += strlen(getStatusString(tNode->status)) +3;
 		    case SMI_STATUS_CURRENT:
 		    case SMI_STATUS_UNKNOWN:
 			;
@@ -1231,9 +1231,9 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 	switch (tNode->status) {
 	case SMI_STATUS_DEPRECATED:
 	case SMI_STATUS_OBSOLETE:
+	    stringlen += strlen(getStatusString(tNode->status)) +3;
 	case SMI_STATUS_MANDATORY:
 	case SMI_STATUS_OPTIONAL:
-	    stringlen += strlen(getStatusString(tNode->status)) +3;
 	case SMI_STATUS_CURRENT:
 	case SMI_STATUS_UNKNOWN:
 	    ;
@@ -1273,9 +1273,9 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 		switch (tNode->status) {
 		case SMI_STATUS_DEPRECATED:
 		case SMI_STATUS_OBSOLETE:
+		    len += strlen(getStatusString(tNode->status)) +3;
 		case SMI_STATUS_MANDATORY:
 		case SMI_STATUS_OPTIONAL:
-		    len += strlen(getStatusString(tNode->status)) +3;
 		case SMI_STATUS_CURRENT:
 		case SMI_STATUS_UNKNOWN:
 		    ;
@@ -1326,9 +1326,9 @@ static GraphNode *calcGroupSize(int group, int *idCount)
 	    switch (tNode->status) {
 	    case SMI_STATUS_DEPRECATED:
 	    case SMI_STATUS_OBSOLETE:
+		stringlen += strlen(getStatusString(tNode->status)) +3;
 	    case SMI_STATUS_MANDATORY:
 	    case SMI_STATUS_OPTIONAL:
-		stringlen += strlen(getStatusString(tNode->status)) +3;
 	    case SMI_STATUS_CURRENT:
 	    case SMI_STATUS_UNKNOWN:
 		;
@@ -1775,9 +1775,9 @@ static void printInformationNode(SmiNode *smiNode,
     switch (smiNode->status) {
     case SMI_STATUS_DEPRECATED:
     case SMI_STATUS_OBSOLETE:
+	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_MANDATORY:
     case SMI_STATUS_OPTIONAL:
-	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_UNKNOWN:
 	;
@@ -1848,9 +1848,9 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     switch (smiNode->status) {
     case SMI_STATUS_DEPRECATED:
     case SMI_STATUS_OBSOLETE:
+	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_MANDATORY:
     case SMI_STATUS_OPTIONAL:
-	printf(" (%s)", getStatusString(smiNode->status));
     case SMI_STATUS_CURRENT:
     case SMI_STATUS_UNKNOWN:
 	;
