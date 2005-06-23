@@ -20,7 +20,7 @@ function MoveObj(evt)
 	x=evt.clientX()
 	y=evt.clientY()
 
-	wert1=(x-ctx)*zoom*%.2f+%.2f+attr1-6;
+	wert1=(x-ctx)*zoom*%.2f+%.2f+attr1-5;
 	wert2=(y-cty)*zoom*%.2f+%.2f+attr2-5;
 
 	moveObj.setAttribute("transform","translate("+wert1+","+wert2+")");
