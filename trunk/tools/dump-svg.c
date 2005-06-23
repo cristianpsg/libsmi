@@ -541,16 +541,18 @@ static void printSVGObject(GraphNode *node, int *classNr,
            smiGetFirstChildNode(node->smiNode)->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
+    printf("          fill=\"white\" stroke=\"black\"/>\n");
 #ifdef DRAGANDDROP
     if (!STATIC_OUTPUT) {
-	printf("          onmousedown=\"ClickObj(evt)\"");
+	printf("    <circle cx=\"%.2f\" cy=\"%.2f\" r=\"7\" fill=\"gold\"\n",
+	       xOrigin + 10, yOrigin + 10);
+	printf("            onmousedown=\"ClickObj(evt)\"");
 	printf(" onclick=\"ClickObj(evt)\"");
 	printf(" onmousemove=\"MoveObj(evt)\"");
 	printf(" onmouseup=\"OutOfObj(evt)\"");
-	printf(" onmouseout=\"OutOfObj(evt)\"\n");
+	printf(" onmouseout=\"OutOfObj(evt)\"/>\n");
     }
 #endif
-    printf("          fill=\"white\" stroke=\"black\"/>\n");
     printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
