@@ -846,7 +846,10 @@ static void printSVGDependency(GraphEdge *tEdge)
 {
     calculateIntersectionPoints(tEdge);
 
-    printf(" <path d=\"M %.2f %.2f %.2f %.2f\"\n",
+    printf(" <path id=\"%s-%s\"\n",
+	tEdge->startNode->smiNode->name,
+	tEdge->endNode->smiNode->name);
+    printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
 	tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
 	tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
 	tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
@@ -877,7 +880,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	revert = 1;
 
     //print edge
-    printf(" <path id=\"%s%s\"\n",
+    printf(" <path id=\"%s-%s\"\n",
 	tEdge->startNode->smiNode->name,
 	tEdge->endNode->smiNode->name);
     if (!revert) {
@@ -914,7 +917,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 
     //print labels
     printf(" <text text-anchor=\"middle\">\n");
-    printf("    <textPath xlink:href=\"#%s%s\"",
+    printf("    <textPath xlink:href=\"#%s-%s\"",
 		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
     if (!revert) {
 	printf(" startOffset=\"10%%\">\n");
@@ -942,7 +945,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	tEdge->indexkind==SMI_INDEX_REORDER ||
 	tEdge->indexkind==SMI_INDEX_EXPAND) {
 	printf(" <text text-anchor=\"middle\">\n");
-	printf("    <textPath xlink:href=\"#%s%s\" startOffset=\"50%%\">\n",
+	printf("    <textPath xlink:href=\"#%s-%s\" startOffset=\"50%%\">\n",
 		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
     }
     switch(tEdge->indexkind) {
@@ -971,7 +974,7 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     }
 
     printf(" <text text-anchor=\"middle\">\n");
-    printf("    <textPath xlink:href=\"#%s%s\"",
+    printf("    <textPath xlink:href=\"#%s-%s\"",
 		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
     if (!revert) {
 	printf(" startOffset=\"90%%\">\n");
