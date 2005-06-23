@@ -1,3 +1,9 @@
+2005-06-23  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/TUNNEL-MIB: updated (RFC 4087).
+
+	* mibs/ietf/UDP-MIB: updated (RFC 4113).
+
 2005-05-17  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/FC-MGMT-MIB: added (RFC 4044).
