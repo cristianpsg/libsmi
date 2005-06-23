@@ -846,7 +846,7 @@ static void printSVGDependency(GraphEdge *tEdge)
 {
     calculateIntersectionPoints(tEdge);
 
-    printf(" <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\"\n",
+    printf(" <path d=\"M %.2f %.2f %.2f %.2f\"\n",
 	tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
 	tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
 	tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
