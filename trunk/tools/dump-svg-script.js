@@ -1,9 +1,44 @@
+//The scripts for the tooltip and moveobj are based on work from
+//SVG - Learning By Coding - http://www.datenverdrahten.de/svglbc/
+//Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
 var svgdoc,svgroot;
 var collapsed = new Array(2);
 var name = new Array(%i);
 var clickStatus = new Array(%i);
 var redCount = new Array(%i);
 var salmonCount = new Array(%i);
+var moveObj,x,y,attr1,attr2,wert1,wert2,zoom=1,active=false;
+
+function MoveObj(evt)
+{
+    if(active)
+    {
+	var curtrans=svgroot.currentTranslate;
+	var ctx=curtrans.x;
+	var cty=curtrans.y;
+
+	x=evt.clientX()
+	y=evt.clientY()
+
+	wert1=(x-ctx)*zoom*%.2f+%.2f+attr1-5;
+	wert2=(y-cty)*zoom*%.2f+%.2f+attr2-5;
+
+	moveObj.setAttribute("transform","translate("+wert1+","+wert2+")");
+    }
+}
+
+function ClickObj(evt)
+{
+    moveObj=evt.target.parentNode.parentNode;
+    attr1=evt.target.getAttribute("width")*%.2f/2;
+    attr2=evt.target.getAttribute("height")*%.2f/2;
+    active=true;
+}
+
+function OutOfObj(evt)
+{
+    active=false;
+}
 
 function getSVGDoc(load_evt)
 {
@@ -17,9 +52,6 @@ function getSVGDoc(load_evt)
     texte=svgdoc.getElementById("tooltip").getElementsByTagName("text");
 }
 
-//The script for the tooltip was copied from:
-//SVG - Learning By Coding - http://www.datenverdrahten.de/svglbc/
-//Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
 function ShowTooltipMZ(mousemove_event,txt)
 {
     var ttrelem,tttelem,ttline,posx,posy,curtrans,ctx,cty,txt;
@@ -79,6 +111,7 @@ function ZoomControl()
     curzoom=svgroot.currentScale;
     svgdoc.getElementById("tooltip").setAttribute("transform",
 							"scale("+1/curzoom+")");
+    zoom=1/curzoom;
 }
 
 function collapse(evt)
