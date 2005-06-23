@@ -20,7 +20,7 @@ function MoveObj(evt)
 	x=evt.clientX()
 	y=evt.clientY()
 
-	wert1=(x-ctx)*zoom*%.2f+%.2f+attr1-5;
+	wert1=(x-ctx)*zoom*%.2f+%.2f+attr1-6;
 	wert2=(y-cty)*zoom*%.2f+%.2f+attr2-5;
 
 	moveObj.setAttribute("transform","translate("+wert1+","+wert2+")");
@@ -29,9 +29,10 @@ function MoveObj(evt)
 
 function ClickObj(evt)
 {
+    var rect=evt.target.parentNode.getElementsByTagName("rect").item(0);
     moveObj=evt.target.parentNode.parentNode;
-    attr1=evt.target.getAttribute("width")*%.2f/2;
-    attr2=evt.target.getAttribute("height")*%.2f/2;
+    attr1=rect.getAttribute("width")*%.2f/2;
+    attr2=rect.getAttribute("height")*%.2f/2;
     active=true;
 }
 
