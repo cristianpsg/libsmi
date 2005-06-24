@@ -537,8 +537,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
            node->dia.x + node->cluster->xOffset,
            node->dia.y + node->cluster->yOffset);
     printf("  <g transform=\"scale(%.1f)\">\n", STARTSCALE);
-    printf("    <rect id=\"%s\"",
-           smiGetFirstChildNode(node->smiNode)->name);
+    printf("    <rect id=\"%s\"", node->smiNode->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
     printf("          fill=\"white\" stroke=\"black\"/>\n");
@@ -1101,12 +1100,16 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
     printf(" <defs>\n");
     printf("   <marker id=\"arrowstart\" markerWidth=\"12\"");
     printf(" markerHeight=\"8\" refX=\"0\" refY=\"4\" orient=\"auto\">\n");
-    printf("     <path d=\"M 12 0 0 4 12 8\"");
+    printf("     <line x1=\"12\" y1=\"0\" x2=\"0\" y2=\"4\"");
+    printf(" fill=\"none\" stroke=\"black\"/>\n");
+    printf("     <line x1=\"0\" y1=\"4\" x2=\"12\" y2=\"8\"");
     printf(" fill=\"none\" stroke=\"black\"/>\n");
     printf("   </marker>\n");
     printf("   <marker id=\"arrowend\" markerWidth=\"12\"");
     printf(" markerHeight=\"8\" refX=\"12\" refY=\"4\" orient=\"auto\">\n");
-    printf("     <path d=\"M 0 0 12 4 0 8\"");
+    printf("     <line x1=\"0\" y1=\"0\" x2=\"12\" y2=\"4\"");
+    printf(" fill=\"none\" stroke=\"black\"/>\n");
+    printf("     <line x1=\"12\" y1=\"4\" x2=\"0\" y2=\"8\"");
     printf(" fill=\"none\" stroke=\"black\"/>\n");
     printf("   </marker>\n");
     printf(" </defs>\n\n");
@@ -2240,7 +2243,7 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 			    }
 			    if (tNode->group == 0) {
 				printf("colorText('%s','blanchedalmond')",
-				    smiGetFirstChildNode(tNode->smiNode)->name);
+				    tNode->smiNode->name);
 			    } else {
 				printf("colorText('%s','blanchedalmond')",
 				    smiGetParentNode(tNode->smiNode)->name);
@@ -2266,10 +2269,10 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 				printf(";");
 			    }
 			    if (tNode->group == 0) {
-				printf("colorText('%sRect','white')",
-				    smiGetFirstChildNode(tNode->smiNode)->name);
+				printf("colorText('%s','white')",
+				    tNode->smiNode->name);
 			    } else {
-				printf("colorText('%sRect','white')",
+				printf("colorText('%s','white')",
 				    smiGetParentNode(tNode->smiNode)->name);
 			    }
 			    j++;

@@ -7,12 +7,11 @@ var name = new Array(%i);
 var clickStatus = new Array(%i);
 var redCount = new Array(%i);
 var salmonCount = new Array(%i);
-var moveObj,x,y,attr1,attr2,wert1,wert2,zoom=1,active=false;
+var moveObj,rect,x,y,attr1,attr2,wert1,wert2,zoom=1,active=false;
 
 function MoveObj(evt)
 {
-    if(active)
-    {
+    if (active) {
 	var curtrans=svgroot.currentTranslate;
 	var ctx=curtrans.x;
 	var cty=curtrans.y;
@@ -29,7 +28,7 @@ function MoveObj(evt)
 
 function ClickObj(evt)
 {
-    var rect=evt.target.parentNode.getElementsByTagName("rect").item(0);
+    rect=evt.target.parentNode.getElementsByTagName("rect").item(0);
     moveObj=evt.target.parentNode.parentNode;
     attr1=rect.getAttribute("width")*%.2f/2;
     attr2=rect.getAttribute("height")*%.2f/2;
@@ -38,7 +37,29 @@ function ClickObj(evt)
 
 function OutOfObj(evt)
 {
-    active=false;
+    if (active) {
+	active=false;
+	findAdjacentEdges();
+    }
+}
+
+function findAdjacentEdges()
+{
+    var rectl, rectlid, paths, i, nodenames;
+    rectl = rect;
+    rectlid = rectl.getAttribute("id");
+    paths = svgdoc.getElementsByTagName("path");
+    for (i=0; i<paths.length; i++) {
+	nodenames = paths.item(i).getAttribute("id").split("-");
+	if (nodenames[0] == rectlid || nodenames[1] == rectlid) {
+	    repaintEdge(paths.item(i));
+	}
+    }
+}
+
+function repaintEdge(edge)
+{
+    alert(edge.getAttribute("id"));
 }
 
 function getSVGDoc(load_evt)
