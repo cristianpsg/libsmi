@@ -12,17 +12,19 @@ var moveObj,rect,x,y,attr1,attr2,wert1,wert2,zoom=1,active=false;
 function MoveObj(evt)
 {
     if (active) {
+	var roundx, roundy;
 	var curtrans=svgroot.currentTranslate;
 	var ctx=curtrans.x;
 	var cty=curtrans.y;
 
 	x=evt.clientX()
 	y=evt.clientY()
-
 	wert1=(x-ctx)*zoom*%.2f+%.2f+attr1-5;
 	wert2=(y-cty)*zoom*%.2f+%.2f+attr2-5;
+	roundx=Math.round(wert1*100)/100;
+	roundy=Math.round(wert2*100)/100;
 
-	moveObj.setAttribute("transform","translate("+wert1+","+wert2+")");
+	moveObj.setAttribute("transform","translate("+roundx+","+roundy+")");
     }
 }
 
@@ -52,14 +54,38 @@ function findAdjacentEdges()
     for (i=0; i<paths.length; i++) {
 	nodenames = paths.item(i).getAttribute("id").split("-");
 	if (nodenames[0] == rectlid || nodenames[1] == rectlid) {
-	    repaintEdge(paths.item(i));
+	    repaintEdge(paths.item(i), nodenames);
 	}
     }
 }
 
-function repaintEdge(edge)
+function repaintEdge(edge, nodenames)
 {
-    alert(edge.getAttribute("id"));
+    var startnode, endnode, attr, i, k, l, m, oldsx, oldsy, oldex, oldey;
+    //extract old nodeCoords
+    startnode = svgdoc.getElementById(nodenames[0]);
+    attr = startnode.parentNode.parentNode.attributes;
+    for (i=0;i<attr.length;i++) {
+        if (attr.item(i).nodeName == "transform") {
+	    k = attr.item(i).nodeValue.indexOf("(");
+	    l = attr.item(i).nodeValue.indexOf(",");
+	    m = attr.item(i).nodeValue.indexOf(")");
+	    oldsx = attr.item(i).nodeValue.substring(k+1,l);
+	    oldsy = attr.item(i).nodeValue.substring(l+1,m);
+	}
+    }
+    endnode = svgdoc.getElementById(nodenames[1]);
+    attr = endnode.parentNode.parentNode.attributes;
+    for (i=0;i<attr.length;i++) {
+        if (attr.item(i).nodeName == "transform") {
+	    k = attr.item(i).nodeValue.indexOf("(");
+	    l = attr.item(i).nodeValue.indexOf(",");
+	    m = attr.item(i).nodeValue.indexOf(")");
+	    oldex = attr.item(i).nodeValue.substring(k+1,l);
+	    oldey = attr.item(i).nodeValue.substring(l+1,m);
+	}
+    }
+    alert(edge.getAttribute("id") + '\n(' + oldsx + ',' + oldsy + ') -> (' + oldex + ',' + oldey + ')');
 }
 
 function getSVGDoc(load_evt)
