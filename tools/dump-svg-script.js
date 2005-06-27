@@ -63,7 +63,7 @@ function repaintEdge(edge, nodenames)
 {
     var startnode, endnode, attr, i, k, l, m, alpha, beta;
     var nodesx, nodesy, nodeex, nodeey, nodesw, nodesh, nodeew, nodeeh;
-    var edgesx, edgesy, edgeex, edgeey;
+    var edgesx, edgesy, edgeex, edgeey, sx, sy, ex, ey;
 
     //extract node coordinates and dimensions
     startnode = svgdoc.getElementById(nodenames[0]);
@@ -75,8 +75,8 @@ function repaintEdge(edge, nodenames)
 	    k = attr.item(i).nodeValue.indexOf("(");
 	    l = attr.item(i).nodeValue.indexOf(",");
 	    m = attr.item(i).nodeValue.indexOf(")");
-	    nodesx = attr.item(i).nodeValue.substring(k+1,l);
-	    nodesy = attr.item(i).nodeValue.substring(l+1,m);
+	    nodesx = parseFloat(attr.item(i).nodeValue.substring(k+1,l));
+	    nodesy = parseFloat(attr.item(i).nodeValue.substring(l+1,m));
 	}
     }
     endnode = svgdoc.getElementById(nodenames[1]);
@@ -88,11 +88,10 @@ function repaintEdge(edge, nodenames)
 	    k = attr.item(i).nodeValue.indexOf("(");
 	    l = attr.item(i).nodeValue.indexOf(",");
 	    m = attr.item(i).nodeValue.indexOf(")");
-	    nodeex = attr.item(i).nodeValue.substring(k+1,l);
-	    nodeey = attr.item(i).nodeValue.substring(l+1,m);
+	    nodeex = parseFloat(attr.item(i).nodeValue.substring(k+1,l));
+	    nodeey = parseFloat(attr.item(i).nodeValue.substring(l+1,m));
 	}
     }
-    //alert(edge.getAttribute("id") + '\n(' + nodesx + ',' + nodesy + ') -> (' + nodeex + ',' + nodeey + ')\nnodesw=' + nodesw + ' nodesh=' + nodesh + ' nodeew=' + nodeew + ' nodeeh=' + nodeeh);
 
     alpha = Math.atan((nodesy-nodeey)/(nodesx-nodeex));
     if (alpha < 0)
@@ -105,26 +104,26 @@ function repaintEdge(edge, nodenames)
 	|| alpha > 2*Math.PI-beta) {
 	//intersection at left or right border
 	if (nodesx < nodeex) {
-	    edgesx = nodesx + nodesw*startscale/2;
+	    edgesx = nodesx - 0 + nodesw/2;
 	} else {
-	    edgesx = nodesx - nodesw*startscale/2;
+	    edgesx = nodesx - nodesw/2;
 	}
 	if (nodesy < nodeey) {
-	    edgesy = nodesy + Math.abs(nodesw*startscale*Math.tan(alpha)/2);
+	    edgesy = nodesy - 0 + Math.abs(nodesw*Math.tan(alpha)/2);
 	} else {
-	    edgesy = nodesy - Math.abs(nodesw*startscale*Math.tan(alpha)/2);
+	    edgesy = nodesy - Math.abs(nodesw*Math.tan(alpha)/2);
 	}
     } else {
 	//intersection at top or bottom border
 	if (nodesy < nodeey) {
-	    edgesy = nodesy + nodesh*startscale/2;
+	    edgesy = nodesy - 0 + nodesh/2;
 	} else {
-	    edgesy = nodesy - nodesh*startscale/2;
+	    edgesy = nodesy - nodesh/2;
 	}
 	if (nodesx < nodeex) {
-	    edgesx = nodesx + Math.abs(nodesh*startscale/(2*Math.tan(alpha)));
+	    edgesx = nodesx - 0 + Math.abs(nodesh/(2*Math.tan(alpha)));
 	} else {
-	    edgesx = nodesx - Math.abs(nodesh*startscale/(2*Math.tan(alpha)));
+	    edgesx = nodesx - Math.abs(nodesh/(2*Math.tan(alpha)));
 	}
     }
 
@@ -135,32 +134,39 @@ function repaintEdge(edge, nodenames)
 	|| alpha > 2*Math.PI-beta) {
 	//intersection at left or right border
 	if (nodesx > nodeex) {
-	    edgeex = nodeex + nodeew*startscale/2;
+	    edgeex = nodeex - 0 + nodeew/2;
 	} else {
-	    edgeex = nodeex - nodeew*startscale/2;
+	    edgeex = nodeex - nodeew/2;
 	}
 	if (nodesy > nodeey) {
-	    edgeey = nodeey + Math.abs(nodeew*startscale*Math.tan(alpha)/2);
+	    edgeey = nodeey - 0 + Math.abs(nodeew*Math.tan(alpha)/2);
 	} else {
-	    edgeey = nodeey - Math.abs(nodeew*startscale*Math.tan(alpha)/2);
+	    edgeey = nodeey - Math.abs(nodeew*Math.tan(alpha)/2);
 	}
     } else {
 	//intersection at top or bottom border
 	if (nodesy > nodeey) {
-	    edgeey = nodeey + nodeeh*startscale/2;
+	    edgeey = nodeey - 0 + nodeeh/2;
 	} else {
-	    edgeey = nodeey - nodeeh*startscale/2;
+	    edgeey = nodeey - nodeeh/2;
 	}
 	if (nodesx > nodeex) {
-	    edgeex = nodeex + Math.abs(nodeeh*startscale/(2*Math.tan(alpha)));
+	    edgeex = nodeex - 0 + Math.abs(nodeeh/(2*Math.tan(alpha)));
 	} else {
-	    edgeex = nodeex - Math.abs(nodeeh*startscale/(2*Math.tan(alpha)));
+	    edgeex = nodeex - Math.abs(nodeeh/(2*Math.tan(alpha)));
 	}
     }
 
-    alert(edgesx+" "+edgesy+" "+edgeex+" "+edgeey);
     //set new edge coordinates
-    //edge.setAttribute("d","M "+edgesx+" "+edgesy+" "+edgeex+" "+edgeey);
+    sx=Math.round(edgesx*100)/100;
+    ex=Math.round(edgeex*100)/100;
+    sy=Math.round(edgesy*100)/100;
+    ey=Math.round(edgeey*100)/100;
+    if (sx < ex) {
+	edge.setAttribute("d","M "+sx+" "+sy+" "+ex+" "+ey);
+    } else {
+	edge.setAttribute("d","M "+ex+" "+ey+" "+sx+" "+sy);
+    }
 }
 
 function getSVGDoc(load_evt)
