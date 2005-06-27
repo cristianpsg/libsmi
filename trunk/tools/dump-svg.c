@@ -33,7 +33,6 @@
 
 #define URL "http://www.ibr.cs.tu-bs.de/projects/libsmi/svg/mib2svg.cgi?"
 
-//#define DRAGANDDROP
 
 
 extern int smiAsprintf(char **strp, const char *format, ...);
@@ -541,17 +540,17 @@ static void printSVGObject(GraphNode *node, int *classNr,
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
     printf("          fill=\"white\" stroke=\"black\"/>\n");
-#ifdef DRAGANDDROP
     if (!STATIC_OUTPUT) {
-	printf("    <circle cx=\"%.2f\" cy=\"%.2f\" r=\"7\" fill=\"gold\"\n",
-	       xOrigin + 10, yOrigin + 10);
-	printf("            onmousedown=\"ClickObj(evt)\"");
+	printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"16\" height=\"16\"",
+	       xOrigin + 2, yOrigin + 2);
+	printf(" rx=\"4\" ry=\"4\"");
+	printf(" stroke-width=\"3\" stroke=\"gray\" fill=\"white\"\n");
+	printf("          onmousedown=\"ClickObj(evt)\"");
 	printf(" onclick=\"ClickObj(evt)\"");
 	printf(" onmousemove=\"MoveObj(evt)\"");
 	printf(" onmouseup=\"OutOfObj(evt)\"");
 	printf(" onmouseout=\"OutOfObj(evt)\"/>\n");
     }
-#endif
     printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + node->dia.w, yOrigin + TABLEHEIGHT);
@@ -707,17 +706,17 @@ static void printSVGGroup(int group, int *classNr,
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, tNode->dia.w, tNode->dia.h);
     printf("          fill=\"white\" stroke=\"black\"/>\n");
-#ifdef DRAGANDDROP
     if (!STATIC_OUTPUT) {
-	printf("    <circle cx=\"%.2f\" cy=\"%.2f\" r=\"7\" fill=\"gold\"\n",
-	       xOrigin + 10, yOrigin + 10);
-	printf("            onmousedown=\"ClickObj(evt)\"");
+	printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"16\" height=\"16\"",
+	       xOrigin + 2, yOrigin + 2);
+	printf(" rx=\"4\" ry=\"4\"");
+	printf(" stroke-width=\"3\" stroke=\"gray\" fill=\"white\"\n");
+	printf("          onmousedown=\"ClickObj(evt)\"");
 	printf(" onclick=\"ClickObj(evt)\"");
 	printf(" onmousemove=\"MoveObj(evt)\"");
 	printf(" onmouseup=\"OutOfObj(evt)\"");
 	printf(" onmouseout=\"OutOfObj(evt)\"/>\n");
     }
-#endif
     printf("    <polygon points=\"%.2f %.2f %.2f %.2f\"\n",
            xOrigin, yOrigin + TABLEHEIGHT,
            xOrigin + tNode->dia.w, yOrigin + TABLEHEIGHT);
