@@ -847,18 +847,36 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
 
 static void printSVGDependency(GraphEdge *tEdge)
 {
+    int revert = 0;
+
     calculateIntersectionPoints(tEdge);
+
+    //print text upside down, if angle is between 180° and 360°
+    if (tEdge->startNode->dia.x > tEdge->endNode->dia.x)
+	revert = 1;
 
     printf(" <path id=\"%s-%s\"\n",
 	tEdge->startNode->smiNode->name,
 	tEdge->endNode->smiNode->name);
-    printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
-	tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
-	tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
-	tEdge->dia.endY + tEdge->endNode->cluster->yOffset);
+    if (!revert) {
+	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
+	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
+	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset);
+    } else {
+	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
+	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset,
+	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset);
+    }
     printf("       stroke-dasharray=\"10, 10\" stroke=\"black\"");
-    printf(" marker-end=\"url(#arrowend)\"/>\n");
+    if (!revert) {
+	printf(" marker-end=\"url(#arrowend)\"/>\n");
+    } else {
+	printf(" marker-start=\"url(#arrowstart)\"/>\n");
+    }
 }
 
 /*
