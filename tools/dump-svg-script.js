@@ -1,7 +1,7 @@
 //The scripts for the tooltip and moveobj are based on work from
 //SVG - Learning By Coding - http://www.datenverdrahten.de/svglbc/
 //Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
-var svgdoc,svgroot;
+var svgdoc,svgroot,startscale;
 var collapsed = new Array(2);
 var name = new Array(%i);
 var clickStatus = new Array(%i);
@@ -32,8 +32,8 @@ function ClickObj(evt)
 {
     rect=evt.target.parentNode.getElementsByTagName("rect").item(0);
     moveObj=evt.target.parentNode.parentNode;
-    attr1=rect.getAttribute("width")*%.2f/2;
-    attr2=rect.getAttribute("height")*%.2f/2;
+    attr1=rect.getAttribute("width")*startscale/2;
+    attr2=rect.getAttribute("height")*startscale/2;
     active=true;
 }
 
@@ -61,31 +61,106 @@ function findAdjacentEdges()
 
 function repaintEdge(edge, nodenames)
 {
-    var startnode, endnode, attr, i, k, l, m, oldsx, oldsy, oldex, oldey;
-    //extract old nodeCoords
+    var startnode, endnode, attr, i, k, l, m, alpha, beta;
+    var nodesx, nodesy, nodeex, nodeey, nodesw, nodesh, nodeew, nodeeh;
+    var edgesx, edgesy, edgeex, edgeey;
+
+    //extract node coordinates and dimensions
     startnode = svgdoc.getElementById(nodenames[0]);
+    nodesw=startnode.getAttribute("width")*startscale;
+    nodesh=startnode.getAttribute("height")*startscale;
     attr = startnode.parentNode.parentNode.attributes;
     for (i=0;i<attr.length;i++) {
         if (attr.item(i).nodeName == "transform") {
 	    k = attr.item(i).nodeValue.indexOf("(");
 	    l = attr.item(i).nodeValue.indexOf(",");
 	    m = attr.item(i).nodeValue.indexOf(")");
-	    oldsx = attr.item(i).nodeValue.substring(k+1,l);
-	    oldsy = attr.item(i).nodeValue.substring(l+1,m);
+	    nodesx = attr.item(i).nodeValue.substring(k+1,l);
+	    nodesy = attr.item(i).nodeValue.substring(l+1,m);
 	}
     }
     endnode = svgdoc.getElementById(nodenames[1]);
+    nodeew=endnode.getAttribute("width")*startscale;
+    nodeeh=endnode.getAttribute("height")*startscale;
     attr = endnode.parentNode.parentNode.attributes;
     for (i=0;i<attr.length;i++) {
         if (attr.item(i).nodeName == "transform") {
 	    k = attr.item(i).nodeValue.indexOf("(");
 	    l = attr.item(i).nodeValue.indexOf(",");
 	    m = attr.item(i).nodeValue.indexOf(")");
-	    oldex = attr.item(i).nodeValue.substring(k+1,l);
-	    oldey = attr.item(i).nodeValue.substring(l+1,m);
+	    nodeex = attr.item(i).nodeValue.substring(k+1,l);
+	    nodeey = attr.item(i).nodeValue.substring(l+1,m);
 	}
     }
-    alert(edge.getAttribute("id") + '\n(' + oldsx + ',' + oldsy + ') -> (' + oldex + ',' + oldey + ')');
+    //alert(edge.getAttribute("id") + '\n(' + nodesx + ',' + nodesy + ') -> (' + nodeex + ',' + nodeey + ')\nnodesw=' + nodesw + ' nodesh=' + nodesh + ' nodeew=' + nodeew + ' nodeeh=' + nodeeh);
+
+    alpha = Math.atan((nodesy-nodeey)/(nodesx-nodeex));
+    if (alpha < 0)
+	alpha += Math.PI;
+
+    //calculate intersection of edge and startNode
+    beta = Math.atan(nodesh/nodesw);
+    if (alpha < beta
+	|| (alpha > Math.PI-beta && alpha < Math.PI+beta)
+	|| alpha > 2*Math.PI-beta) {
+	//intersection at left or right border
+	if (nodesx < nodeex) {
+	    edgesx = nodesx + nodesw*startscale/2;
+	} else {
+	    edgesx = nodesx - nodesw*startscale/2;
+	}
+	if (nodesy < nodeey) {
+	    edgesy = nodesy + Math.abs(nodesw*startscale*Math.tan(alpha)/2);
+	} else {
+	    edgesy = nodesy - Math.abs(nodesw*startscale*Math.tan(alpha)/2);
+	}
+    } else {
+	//intersection at top or bottom border
+	if (nodesy < nodeey) {
+	    edgesy = nodesy + nodesh*startscale/2;
+	} else {
+	    edgesy = nodesy - nodesh*startscale/2;
+	}
+	if (nodesx < nodeex) {
+	    edgesx = nodesx + Math.abs(nodesh*startscale/(2*Math.tan(alpha)));
+	} else {
+	    edgesx = nodesx - Math.abs(nodesh*startscale/(2*Math.tan(alpha)));
+	}
+    }
+
+    //calculate intersection of edge and endNode
+    beta = Math.atan(nodeeh/nodeew);
+    if (alpha < beta
+	|| (alpha > Math.PI-beta && alpha < Math.PI+beta)
+	|| alpha > 2*Math.PI-beta) {
+	//intersection at left or right border
+	if (nodesx > nodeex) {
+	    edgeex = nodeex + nodeew*startscale/2;
+	} else {
+	    edgeex = nodeex - nodeew*startscale/2;
+	}
+	if (nodesy > nodeey) {
+	    edgeey = nodeey + Math.abs(nodeew*startscale*Math.tan(alpha)/2);
+	} else {
+	    edgeey = nodeey - Math.abs(nodeew*startscale*Math.tan(alpha)/2);
+	}
+    } else {
+	//intersection at top or bottom border
+	if (nodesy > nodeey) {
+	    edgeey = nodeey + nodeeh*startscale/2;
+	} else {
+	    edgeey = nodeey - nodeeh*startscale/2;
+	}
+	if (nodesx > nodeex) {
+	    edgeex = nodeex + Math.abs(nodeeh*startscale/(2*Math.tan(alpha)));
+	} else {
+	    edgeex = nodeex - Math.abs(nodeeh*startscale/(2*Math.tan(alpha)));
+	}
+    }
+
+    alert(edgesx+" "+edgesy+" "+edgeex+" "+edgeey);
+    //set new edge coordinates
+    //edge.setAttribute("d","M "+edgesx+" "+edgesy+" "+edgeex+" "+edgeey);
 }
 
 function getSVGDoc(load_evt)
@@ -310,6 +385,7 @@ function hideInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr)
 
 function init(evt)
 {
+    startscale=%.2f;
     collapsed[0] = new Array(%i);
     collapsed[1] = new Array(%i);
     for (i=0; i<%i; i++) {
