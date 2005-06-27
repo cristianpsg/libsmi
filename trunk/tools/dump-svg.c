@@ -1088,8 +1088,8 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 	//FIXME calculate things dynamically:
 	//      * maximal number of lines for the tooltip.
 	printf(code, idCount, idCount, idCount, idCount,
-			scale, xMin, scale, yMin, STARTSCALE, STARTSCALE,
-			DYN_TEXT, DYN_TEXT, miCount, miCount, miCount,
+			scale, xMin, scale, yMin, DYN_TEXT, DYN_TEXT,
+			STARTSCALE, miCount, miCount, miCount,
 			idCount, idCount, idCount, idCount, idCount, idCount);
 	printf("// ]]>\n</script>\n\n");
     }
