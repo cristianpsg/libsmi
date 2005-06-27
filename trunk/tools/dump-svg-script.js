@@ -1,7 +1,7 @@
 //The scripts for the tooltip and moveobj are based on work from
 //SVG - Learning By Coding - http://www.datenverdrahten.de/svglbc/
 //Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
-var svgdoc,svgroot,startscale;
+var svgdoc,svgroot,startscale,paths,revert;
 var collapsed = new Array(2);
 var name = new Array(%i);
 var clickStatus = new Array(%i);
@@ -47,19 +47,18 @@ function OutOfObj(evt)
 
 function findAdjacentEdges()
 {
-    var rectl, rectlid, paths, i, nodenames;
+    var rectl, rectlid, i, nodenames;
     rectl = rect;
     rectlid = rectl.getAttribute("id");
-    paths = svgdoc.getElementsByTagName("path");
     for (i=0; i<paths.length; i++) {
 	nodenames = paths.item(i).getAttribute("id").split("-");
 	if (nodenames[0] == rectlid || nodenames[1] == rectlid) {
-	    repaintEdge(paths.item(i), nodenames);
+	    repaintEdge(paths.item(i), nodenames, i);
 	}
     }
 }
 
-function repaintEdge(edge, nodenames)
+function repaintEdge(edge, nodenames, j)
 {
     var startnode, endnode, attr, i, k, l, m, alpha, beta;
     var nodesx, nodesy, nodeex, nodeey, nodesw, nodesh, nodeew, nodeeh;
@@ -163,9 +162,64 @@ function repaintEdge(edge, nodenames)
     sy=Math.round(edgesy*100)/100;
     ey=Math.round(edgeey*100)/100;
     if (sx < ex) {
+	if (revert[j] == 1) {
+	    revert[j] = 0;
+	    flipEdgeMarks(edge);
+	}
 	edge.setAttribute("d","M "+sx+" "+sy+" "+ex+" "+ey);
     } else {
+	if (revert[j] == 0) {
+	    revert[j] = 1;
+	    flipEdgeMarks(edge);
+	}
 	edge.setAttribute("d","M "+ex+" "+ey+" "+sx+" "+sy);
+    }
+}
+
+function flipEdgeMarks(edge)
+{
+    var attr, i, j, done, textpaths, pathnamei, offset;
+
+    //revert start- and end-markers
+    attr = edge.attributes;
+    done = 0;
+    for (i=0;i<attr.length;i++) {
+        if (attr.item(i).nodeName == "marker-start") {
+	    for (j=i;j<attr.length;j++) {
+		if (attr.item(j).nodeName == "marker-end") {
+		    done = 1;
+		}
+	    }
+	    if (done == 0) {
+		//start->end
+		edge.removeAttribute("marker-start");
+		edge.setAttribute("marker-end","url(#arrowend)");
+		break;
+	    }
+	}
+        if (attr.item(i).nodeName == "marker-end") {
+	    for (j=i;j<attr.length;j++) {
+		if (attr.item(j).nodeName == "marker-start") {
+		    done = 1;
+		}
+	    }
+	    if (done == 0) {
+		//end->start
+		edge.removeAttribute("marker-end");
+		edge.setAttribute("marker-start","url(#arrowstart)");
+		break;
+	    }
+	}
+    }
+
+    //revert cardinalities
+    textpaths = svgdoc.getElementsByTagName("textPath");
+    for (i=0;i<textpaths.length;i++) {
+	pathname = textpaths.item(i).getAttribute("xlink:href").replace(/#/,"");
+	if (pathname == edge.getAttribute("id")) {
+	    offset = textpaths.item(i).getAttribute("startOffset").substr(0,2);
+	    textpaths.item(i).setAttribute("startOffset",100 - offset + "%")
+	}
     }
 }
 
@@ -391,6 +445,7 @@ function hideInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr)
 
 function init(evt)
 {
+    var nodenames, startnode, endnode, attr, i, j, k, l, m, nodesx, nodeex;
     startscale=%.2f;
     collapsed[0] = new Array(%i);
     collapsed[1] = new Array(%i);
@@ -405,6 +460,38 @@ function init(evt)
 	salmonCount[i] = 0;
     }
     getSVGDoc(evt);
+
+    //check which edges are printed from right to left
+    paths = svgdoc.getElementsByTagName("path");
+    revert = new Array(paths.length);
+    for (j=0; j<paths.length; j++) {
+	nodenames = paths.item(j).getAttribute("id").split("-");
+	startnode = svgdoc.getElementById(nodenames[0]);
+	attr = startnode.parentNode.parentNode.attributes;
+	for (i=0;i<attr.length;i++) {
+	    if (attr.item(i).nodeName == "transform") {
+		k = attr.item(i).nodeValue.indexOf("(");
+		l = attr.item(i).nodeValue.indexOf(",");
+		m = attr.item(i).nodeValue.indexOf(")");
+		nodesx = parseFloat(attr.item(i).nodeValue.substring(k+1,l));
+	    }
+	}
+	endnode = svgdoc.getElementById(nodenames[1]);
+	attr = endnode.parentNode.parentNode.attributes;
+	for (i=0;i<attr.length;i++) {
+	    if (attr.item(i).nodeName == "transform") {
+		k = attr.item(i).nodeValue.indexOf("(");
+		l = attr.item(i).nodeValue.indexOf(",");
+		m = attr.item(i).nodeValue.indexOf(")");
+		nodeex = parseFloat(attr.item(i).nodeValue.substring(k+1,l));
+	    }
+	}
+	if (nodesx > nodeex) {
+	    revert[j] = 1;
+	} else {
+	    revert[j] = 0;
+	}
+    }
 }
 
 function setStatus(evt, color1, color2)
