@@ -2654,8 +2654,8 @@ static void printModuleInformation(int modc, SmiModule **modv,
 				   int modId[], int nType[], int oGroup[],
 				   int nGroup[], int mCompl[], int miCount)
 {
-    int i, miNr = 0, miHeight;
-    float scale = STARTSCALE;
+    int i, j, miNr = 0;
+    float scale = STARTSCALE, miHeight;
     int modIdPrint = 0;
     int nTypePrint = 0, oGroupPrint = 0, nGroupPrint = 0, mComplPrint = 0;
     StringListElem markupList[miCount];
@@ -2671,21 +2671,37 @@ static void printModuleInformation(int modc, SmiModule **modv,
 
     //count blank lines
     i = 0;
-    if (modIdPrint)
+    j = 0;
+    if (modIdPrint) {
 	i++;
-    if (nTypePrint)
+    } else {
+	j++;
+    }
+    if (nTypePrint) {
 	i++;
-    if (oGroupPrint)
+    } else {
+	j++;
+    }
+    if (oGroupPrint) {
 	i++;
-    if (nGroupPrint)
+    } else {
+	j++;
+    }
+    if (nGroupPrint) {
 	i++;
-    if (mComplPrint)
+    } else {
+	j++;
+    }
+    if (mComplPrint) {
 	i++;
+    } else {
+	j++;
+    }
     if (i>1)
 	i--;
 
     //test if we must shrink moduleInformation to fit it into canvas
-    miHeight = ((miCount + i) * 15 + 10) * STARTSCALE;
+    miHeight = ((miCount + i - (2 * j)) * 15 + 10) * STARTSCALE;
     if (miHeight > maxHeight)
 	scale *= maxHeight/miHeight;
 
@@ -3078,6 +3094,7 @@ static void diaPrintXML(int modc, SmiModule **modv)
 	} else {
 	    xMax += 130;
 	}
+	yMax += 40;
     }
 
     //count entries in the ModuleInformation-Section
