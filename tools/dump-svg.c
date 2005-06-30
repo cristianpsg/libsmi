@@ -342,7 +342,7 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
 		    printf("&amp;mibs=%s", modv[i]->name);
 		}
 		printf("&amp;mibs=%s\">\n", smiGetNodeModule(node)->name);
-		printf("        %s\n", node->name);
+		printf("        %s:\n", node->name);
 		printf("      </a></tspan>\n");
 	    } else {
 		printf(">%s:</tspan>\n", node->name);
