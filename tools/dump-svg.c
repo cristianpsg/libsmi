@@ -305,7 +305,7 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
     }
     printf(" fill=\"%s\"", printFillColor(node->status));
     printf(" x=\"%.2f\" y=\"%.2f\">\n",
-				*textXOffset + ATTRSPACESIZE, *textYOffset);
+				*textXOffset + ATTRSPACESIZE + 4, *textYOffset);
 
     *textYOffset += TABLEELEMHEIGHT;
 
@@ -314,13 +314,13 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
 
     if (!index) {
 	if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
-	    printf("    -");
+	    printf("    <tspan style=\"text-anchor:middle\">-</tspan>");
 	} else {
-	    printf("    +");
+	    printf("    <tspan style=\"text-anchor:middle\">+</tspan>");
 	}
     }
 
-    printf("<tspan");
+    printf("<tspan x=\"%.2f\"", *textXOffset + ATTRSPACESIZE + 8);
     if (!STATIC_OUTPUT) {
 	if (node->description) {
 	    tooltip = (char *)xmalloc(2*strlen(node->description));
@@ -1189,7 +1189,7 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 	    }
 	    node->dia.w = max(node->dia.w, stringlen
 			  * ATTRFONTSIZE
-			  + ATTRSPACESIZE);		
+			  + ATTRSPACESIZE + 5);		
 	    node->dia.h += TABLEELEMHEIGHT;
 	    (*idCount)++;
 	}
@@ -1233,7 +1233,7 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 		    }
 		    node->dia.w = max(node->dia.w, stringlen
 						    * ATTRFONTSIZE
-						    + ATTRSPACESIZE);
+						    + ATTRSPACESIZE + 5);
 		    node->dia.h += TABLEELEMHEIGHT;
 		}
 	    }
@@ -1267,7 +1267,7 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 	}
 	node->dia.w = max(node->dia.w, stringlen
 		      * ATTRFONTSIZE
-		      + ATTRSPACESIZE);
+		      + ATTRSPACESIZE + 5);
 	node->dia.h += TABLEELEMHEIGHT;
     }
     if (node->dia.h > lastHeight) {
@@ -1309,7 +1309,7 @@ static GraphNode *diaCalcSize(GraphNode *node, int *idCount)
 		}
 		node->dia.w = max(node->dia.w, len
 		    * ATTRFONTSIZE
-		    + ATTRSPACESIZE);
+		    + ATTRSPACESIZE + 5);
 		node->dia.h += TABLEELEMHEIGHT;
 		(*idCount)++;
 	    }
@@ -1362,7 +1362,7 @@ static GraphNode *calcGroupSize(int group, int *idCount)
 	    }
 	    calcNode->dia.w = max(calcNode->dia.w, stringlen
 			    * ATTRFONTSIZE
-			    + ATTRSPACESIZE);
+			    + ATTRSPACESIZE + 5);
 	    calcNode->dia.h += TABLEELEMHEIGHT;
 	    (*idCount)++;
 	}
