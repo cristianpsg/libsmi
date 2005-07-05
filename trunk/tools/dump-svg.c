@@ -1637,6 +1637,7 @@ static void populateMarkupList(SmiNode *smiNode, int *miNr,
     StringListElem *lastElem;
     StringListElem *tElem;
     StringListElem *newElem;
+    StringListElem *cloneElem;
 
     markupList[*miNr].miElem = smiNode->name;
     markupList[*miNr].status = smiNode->status;
@@ -1667,7 +1668,9 @@ static void populateMarkupList(SmiNode *smiNode, int *miNr,
 		    continue;
 		for (tElem = markupList[i].nextPtr;
 		    tElem; tElem = tElem->nextPtr) {
-		    newElem->nextPtr = tElem;
+		    cloneElem = xmalloc(sizeof(StringListElem));
+		    memcpy(cloneElem, tElem, sizeof(StringListElem));
+		    newElem->nextPtr = cloneElem;
 		    newElem = newElem->nextPtr;
 		}
 	    }
@@ -2412,7 +2415,8 @@ static void printNotificationType(int modc, SmiModule **modv,
 			|| (smiNode->status == SMI_STATUS_OBSOLETE
 			&& !SHOW_DEPR_OBSOLETE))
 			continue;
-		    populateMarkupList(smiNode, miNr, markupList, miCount);
+		    if (!STATIC_OUTPUT)
+			populateMarkupList(smiNode, miNr, markupList, miCount);
 		    printInformationNode(smiNode, x, y, miNr,
 							markupList, miCount);
 		}
@@ -2488,7 +2492,8 @@ static void printObjectGroup(int modc, SmiModule **modv,
 			|| (smiNode->status == SMI_STATUS_OBSOLETE
 			&& !SHOW_DEPR_OBSOLETE))
 			continue;
-		    populateMarkupList(smiNode, miNr, markupList, miCount);
+		    if (!STATIC_OUTPUT)
+			populateMarkupList(smiNode, miNr, markupList, miCount);
 		    printInformationNode(smiNode, x, y, miNr,
 							markupList, miCount);
 		}
@@ -2564,7 +2569,8 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 			|| (smiNode->status == SMI_STATUS_OBSOLETE
 			&& !SHOW_DEPR_OBSOLETE))
 			continue;
-		    populateMarkupList(smiNode, miNr, markupList, miCount);
+		    if (!STATIC_OUTPUT)
+			populateMarkupList(smiNode, miNr, markupList, miCount);
 		    printInformationNode(smiNode, x, y, miNr,
 							markupList, miCount);
 		}
