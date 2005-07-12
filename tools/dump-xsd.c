@@ -617,7 +617,7 @@ static char* getStrDHType( char *hint,
 			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
 			}
 
-			smiAsprintf( &ret, "%s{%u,%u})%s",
+			smiAsprintf( &ret, "(%s){%u,%u})%s",
 				     ret, lengths[ i ] - 1, lengths[ i+1 ] - 1,
 				     baseRegexp );
 			
