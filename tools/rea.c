@@ -25,8 +25,6 @@
 #include "win.h"
 #endif
 
-#include "smi.h"
-#include "smidump.h"
 #include "rea.h"
 
 
