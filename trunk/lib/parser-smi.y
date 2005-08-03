@@ -114,6 +114,20 @@ static char *convertImportv2[] = {
     "RFC1213-MIB", "DisplayString", "SNMPv2-TC",  "DisplayString",    
     NULL, NULL, NULL, NULL
 };
+
+
+
+static void
+checkDescr(Parser *parser, char *descr)
+{
+    if (descr) {
+	if (descr[0] == 0) {
+	    smiPrintError(parser, ERR_EMPTY_DESCRIPTION);
+	}
+	/* we might want to add more checks since I have recently
+	   seen things like DESCRIPTION "." to cirumvent warnings */
+    }
+}
  
 
  
@@ -2384,10 +2398,7 @@ typeDeclarationRHS:	Syntax
 			STATUS Status
 			DESCRIPTION Text
 			{
-			    if ($7 && !strlen($7)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $7);
 			}
 			ReferPart
 			SYNTAX Syntax
@@ -2767,10 +2778,7 @@ objectIdentityClause:	LOWERCASE_IDENTIFIER
 			STATUS Status
 			DESCRIPTION Text
 			{
-			    if ($8 && !strlen($8)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $8);
 			}
 			ReferPart
 			COLON_COLON_EQUAL
@@ -3115,10 +3123,7 @@ descriptionClause:	/* empty */
 	|		DESCRIPTION Text
 			{
 			    $$ = $2;
-			    if ($2 && !strlen($2)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $2);
 			}
 	;
 
@@ -3256,10 +3261,7 @@ VarType:		ObjectName
 DescrPart:		DESCRIPTION Text
 			{
 			    $$ = $2;
-			    if ($2 && !strlen($2)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $2);
 			}
 	|		/* empty */
 			{ $$ = NULL; }
@@ -3465,10 +3467,7 @@ notificationTypeClause:	LOWERCASE_IDENTIFIER
 			STATUS Status
 			DESCRIPTION Text
 			{
-			    if ($9 && !strlen($9)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $9);
 			}
 			ReferPart
 			COLON_COLON_EQUAL
@@ -3556,10 +3555,7 @@ moduleIdentityClause:	LOWERCASE_IDENTIFIER
 			}
 			DESCRIPTION Text
 			{
-			    if ($17 && !strlen($17)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $17);
 			}
 			RevisionPart
                         {
@@ -5809,10 +5805,7 @@ Revision:		REVISION ExtUTCTime
 			{
 			    Revision *revisionPtr;
 
-			    if ($5 && !strlen($5)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $5);
 
 			    revisionPtr = addRevision($2, $5, thisParserPtr);
 			    if (revisionPtr) {
@@ -6349,10 +6342,7 @@ objectGroupClause:	LOWERCASE_IDENTIFIER
 			STATUS Status
 			DESCRIPTION Text
 			{
-			    if ($9 && !strlen($9)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $9);
 			}
 			ReferPart
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
@@ -6415,10 +6405,7 @@ notificationGroupClause: LOWERCASE_IDENTIFIER
 			STATUS Status
 			DESCRIPTION Text
 			{
-			    if ($9 && !strlen($9)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $9);
 			}
 			ReferPart
 			COLON_COLON_EQUAL '{' objectIdentifier '}'
@@ -6478,10 +6465,7 @@ moduleComplianceClause:	LOWERCASE_IDENTIFIER
 			STATUS Status
 			DESCRIPTION Text
 			{
-			    if ($8 && !strlen($8)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $8);
 			}
 			ReferPart
 			ComplianceModulePart
@@ -6810,11 +6794,8 @@ ComplianceGroup:	GROUP
 				if (importPtr)
 				    importPtr->use++;
 			    }
-			    
-			    if ($5 && !strlen($5)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+
+			    checkDescr(thisParserPtr, $5);
 			    
 			    $$ = smiMalloc(sizeof(List));
 			    $$->nextPtr = NULL;
@@ -6849,11 +6830,8 @@ ComplianceObject:	OBJECT
 				if (importPtr) 
 				    importPtr->use++;
 			    }
-			    
-			    if ($8 && !strlen($8)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+
+			    checkDescr(thisParserPtr, $8);
 			    
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
 			    $$ = smiMalloc(sizeof(List));
@@ -6970,10 +6948,7 @@ agentCapabilitiesClause: LOWERCASE_IDENTIFIER
 			STATUS Status_Capabilities
 			DESCRIPTION Text
 			{
-			    if ($10 && !strlen($10)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
+			    checkDescr(thisParserPtr, $10);
 			}
 			ReferPart
 			ModulePart_Capabilities
@@ -7160,11 +7135,7 @@ Variation:		VARIATION ObjectName
 			    $$ = 0;
 			    variationkind = SMI_NODEKIND_UNKNOWN;
 
-			    if ($14 && !strlen($14)) {
-				smiPrintError(thisParserPtr,
-					      ERR_EMPTY_DESCRIPTION);
-			    }
-			    
+			    checkDescr(thisParserPtr, $14);
 			}
 	;
 
