@@ -2819,30 +2819,17 @@ static float intersect(GraphNode *node, GraphEdge *edge)
  * Input: Graph with known width and height of nodes.
  * Output: Coordinates (x,y) for the nodes.
  * Only the nodes and edges with use==1 are considered.
- *
- * TODO erst Springembedder, dann Flaeche rausfinden
- * Kraefte in x- bzw. y-Richtung verschieden gewichten: aspect-ratio?
- * Zusammenhangskomponenten einzeln betrachten
- *
- * FIXME * nodecount counts all nodes. we need something like clusternodecount!
  */
-static void layoutCluster(int nodecount, GraphCluster *cluster,
-			int nodeoverlap, int edgeoverlap, int limit_frame)
+static void layoutCluster(GraphCluster *cluster,
+			int nodeoverlap, int edgeoverlap)
 {
     int i;
-    //float area, aspectratio, k, c = 0.8, xDelta, yDelta, absDelta, absDisp, t;
-    //float x2, y2 = 1, dist;
-    float aspectratio, k, xDelta, yDelta, absDelta, absDisp, t, dist;
+    float k, xDelta, yDelta, absDelta, absDisp, t, dist;
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
-    //area = CANVASHEIGHT * CANVASWIDTH;
-    //k = (float) (c*sqrt(area/nodecount));
-    //t = CANVASWIDTH/10;
     k = 200;
     t = 100;
-    aspectratio = (float)CANVASWIDTH/(float)CANVASHEIGHT;
-    aspectratio = 1;
 
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
@@ -2857,13 +2844,11 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 		xDelta = vNode->dia.x - uNode->dia.x;
 		yDelta = vNode->dia.y - uNode->dia.y;
 		absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
-		vNode->dia.xDisp += aspectratio*
-					(xDelta/absDelta)*fr(absDelta, k);
+		vNode->dia.xDisp += (xDelta/absDelta)*fr(absDelta, k);
 		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
 		//add another repulsive force if the nodes overlap
 		if (nodeoverlap && overlap(vNode, uNode)) {
-		    vNode->dia.xDisp += aspectratio*
-					4*(xDelta/absDelta)*fr(1/absDelta, k);
+		    vNode->dia.xDisp += 4*(xDelta/absDelta)*fr(1/absDelta, k);
 		    vNode->dia.yDisp += 4*(yDelta/absDelta)*fr(1/absDelta, k);
 		}
 	    }
@@ -2916,28 +2901,18 @@ static void layoutCluster(int nodecount, GraphCluster *cluster,
 	    xDelta = eEdge->startNode->dia.x - eEdge->endNode->dia.x;
 	    yDelta = eEdge->startNode->dia.y - eEdge->endNode->dia.y;
 	    absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
-	    //FIXME aspectratio? divide xDisps by ar?
 	    eEdge->startNode->dia.xDisp -= (xDelta/absDelta)*fa(absDelta, k);
 	    eEdge->startNode->dia.yDisp -= (yDelta/absDelta)*fa(absDelta, k);
 	    eEdge->endNode->dia.xDisp += (xDelta/absDelta)*fa(absDelta, k);
 	    eEdge->endNode->dia.yDisp += (yDelta/absDelta)*fa(absDelta, k);
 	}
 	//limit the maximum displacement to the temperature t
-	//and prevent from being displaced outside the frame
 	for (vNode = cluster->firstClusterNode; vNode;
 					vNode = vNode->nextClusterNode) {
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
 					+ vNode->dia.yDisp*vNode->dia.yDisp));
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
 	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
-	    /*
-	    if (limit_frame) {
-		vNode->dia.x = min(CANVASWIDTH - STARTSCALE*vNode->dia.w/2,
-				  max(STARTSCALE*vNode->dia.w/2, vNode->dia.x));
-		vNode->dia.y = min(CANVASHEIGHT - STARTSCALE*vNode->dia.h/2,
-				  max(STARTSCALE*vNode->dia.h/2, vNode->dia.y));
-	    }
-	    */
 	}
 	//reduce the temperature as the layout approaches a better configuration
 	t *= 0.9;
@@ -3053,11 +3028,10 @@ static void diaPrintXML(int modc, SmiModule **modv)
     x = 10;
     for (tCluster = graph->clusters->nextPtr; tCluster;
 						tCluster = tCluster->nextPtr) {
-	layoutCluster(nodecount, tCluster, 0, 0, 0);
+	layoutCluster(tCluster, 0, 0);
 	//FIXME do we need a stage with nodeoverlap and without edgeoverlap?
-	layoutCluster(nodecount, tCluster, 1, 0, 0);
-	layoutCluster(nodecount, tCluster, 1, 1, 0);
-	//layoutCluster(nodecount, tCluster, 1, 1, 1);
+	layoutCluster(tCluster, 1, 0);
+	layoutCluster(tCluster, 1, 1);
 
 	for (tNode = tCluster->firstClusterNode; tNode;
 					tNode = tNode->nextClusterNode) {
