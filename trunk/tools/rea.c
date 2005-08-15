@@ -1618,8 +1618,7 @@ static void createDependencies()
     
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	
-	if (tEdge->indexkind == SMI_INDEX_EXPAND ||
-	    tEdge->indexkind == SMI_INDEX_UNKNOWN) {
+	if (tEdge->indexkind == SMI_INDEX_UNKNOWN) {
 
 	    if (tEdge->startNode->smiNode->nodekind == SMI_NODEKIND_TABLE &&
 		tEdge->endNode->smiNode->nodekind   == SMI_NODEKIND_TABLE) {
