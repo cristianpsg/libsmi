@@ -542,7 +542,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
 	printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"16\" height=\"16\"",
 	       xOrigin + 2, yOrigin + 2);
 	printf(" rx=\"4\" ry=\"4\"");
-	printf(" stroke-width=\"3\" stroke=\"gray\" fill=\"none\"\n");
+	printf(" stroke-width=\"3\" stroke=\"gray\" fill=\"white\"\n");
 	printf("          onmousedown=\"ClickObj(evt)\"");
 	printf(" onclick=\"ClickObj(evt)\"");
 	printf(" onmousemove=\"MoveObj(evt)\"");
@@ -708,7 +708,7 @@ static void printSVGGroup(int group, int *classNr,
 	printf("    <rect x=\"%.2f\" y=\"%.2f\" width=\"16\" height=\"16\"",
 	       xOrigin + 2, yOrigin + 2);
 	printf(" rx=\"4\" ry=\"4\"");
-	printf(" stroke-width=\"3\" stroke=\"gray\" fill=\"none\"\n");
+	printf(" stroke-width=\"3\" stroke=\"gray\" fill=\"white\"\n");
 	printf("          onmousedown=\"ClickObj(evt)\"");
 	printf(" onclick=\"ClickObj(evt)\"");
 	printf(" onmousemove=\"MoveObj(evt)\"");
