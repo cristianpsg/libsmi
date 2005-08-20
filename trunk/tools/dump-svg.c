@@ -2738,14 +2738,14 @@ static void printModuleInformation(int modc, SmiModule **modv,
 /* ------------------------------------------------------------------------- */
 
 
-static float fr(float d, float k)
+static float fa(float z, float k)
 {
-    return (float) (k*k/d);
+    return (float) (z*z/k);
 }
 
-static float fa(float d, float k)
+static float fr(float z, float k)
 {
-    return (float) (d*d/k);
+    return (float) (k*k/z);
 }
 
 static int overlap(GraphNode *vNode, GraphNode *uNode)
