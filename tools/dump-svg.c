@@ -2944,7 +2944,17 @@ static void addNodeToCluster(GraphNode *tNode, GraphCluster *tCluster)
     }
 }
 
-//TODO calculate maximal x- and y-sizes and print them into the header
+/*
+ * generate SVG diagram and print it to stdout:
+ * - identify and prepare nodes and egdes
+ * - split graph into its components
+ * - layout components
+ * - prepare module information
+ * - print header
+ * - print components
+ * - print module information
+ * - print footer
+ */
 static void printSVG(int modc, SmiModule **modv)
 {
     GraphNode    *tNode, *lastNode = NULL;
