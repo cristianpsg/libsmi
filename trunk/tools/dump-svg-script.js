@@ -1,7 +1,7 @@
 //The scripts for the tooltip and moveobj are based on work from
 //SVG - Learning By Coding - http://www.datenverdrahten.de/svglbc/
 //Author: Dr. Thomas Meinike 11/03 - thomas@handmadecode.de
-var svgdoc,svgroot,startscale,paths,revert;
+var svgdoc,svgroot,paths,revert;
 var collapsed = new Array(2);
 var name = new Array(%i);
 var clickStatus = new Array(%i);
@@ -31,9 +31,9 @@ function MoveObj(evt)
 function ClickObj(evt)
 {
     rect=evt.target.parentNode.getElementsByTagName("rect").item(0);
-    moveObj=evt.target.parentNode.parentNode;
-    attr1=rect.getAttribute("width")*startscale/2;
-    attr2=rect.getAttribute("height")*startscale/2;
+    moveObj=evt.target.parentNode;
+    attr1=rect.getAttribute("width")/2;
+    attr2=rect.getAttribute("height")/2;
     active=true;
 }
 
@@ -66,9 +66,9 @@ function repaintEdge(edge, nodenames, j)
 
     //extract node coordinates and dimensions
     startnode = svgdoc.getElementById(nodenames[0]);
-    nodesw=startnode.getAttribute("width")*startscale;
-    nodesh=startnode.getAttribute("height")*startscale;
-    attr = startnode.parentNode.parentNode.attributes;
+    nodesw=startnode.getAttribute("width");
+    nodesh=startnode.getAttribute("height");
+    attr = startnode.parentNode.attributes;
     for (i=0;i<attr.length;i++) {
         if (attr.item(i).nodeName == "transform") {
 	    k = attr.item(i).nodeValue.indexOf("(");
@@ -79,9 +79,9 @@ function repaintEdge(edge, nodenames, j)
 	}
     }
     endnode = svgdoc.getElementById(nodenames[1]);
-    nodeew=endnode.getAttribute("width")*startscale;
-    nodeeh=endnode.getAttribute("height")*startscale;
-    attr = endnode.parentNode.parentNode.attributes;
+    nodeew=endnode.getAttribute("width");
+    nodeeh=endnode.getAttribute("height");
+    attr = endnode.parentNode.attributes;
     for (i=0;i<attr.length;i++) {
         if (attr.item(i).nodeName == "transform") {
 	    k = attr.item(i).nodeValue.indexOf("(");
@@ -161,6 +161,7 @@ function repaintEdge(edge, nodenames, j)
     ex=Math.round(edgeex*100)/100;
     sy=Math.round(edgesy*100)/100;
     ey=Math.round(edgeey*100)/100;
+
     if (sx < ex) {
 	if (revert[j] == 1) {
 	    revert[j] = 0;
@@ -446,7 +447,6 @@ function hideInfos(evt, obj, svgdoc, targetX, targetY, targetID, attr)
 function init(evt)
 {
     var nodenames, startnode, endnode, attr, i, j, k, l, m, nodesx, nodeex;
-    startscale=%.2f;
     collapsed[0] = new Array(%i);
     collapsed[1] = new Array(%i);
     for (i=0; i<%i; i++) {
@@ -467,7 +467,7 @@ function init(evt)
     for (j=0; j<paths.length; j++) {
 	nodenames = paths.item(j).getAttribute("id").split("-");
 	startnode = svgdoc.getElementById(nodenames[0]);
-	attr = startnode.parentNode.parentNode.attributes;
+	attr = startnode.parentNode.attributes;
 	for (i=0;i<attr.length;i++) {
 	    if (attr.item(i).nodeName == "transform") {
 		k = attr.item(i).nodeValue.indexOf("(");
@@ -477,7 +477,7 @@ function init(evt)
 	    }
 	}
 	endnode = svgdoc.getElementById(nodenames[1]);
-	attr = endnode.parentNode.parentNode.attributes;
+	attr = endnode.parentNode.attributes;
 	for (i=0;i<attr.length;i++) {
 	    if (attr.item(i).nodeName == "transform") {
 		k = attr.item(i).nodeValue.indexOf("(");
