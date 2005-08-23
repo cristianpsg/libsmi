@@ -53,7 +53,6 @@ static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 static const int MODULE_INFO_WIDTH     =150;
 //The description of RowStatus is quite long... :-/
 static const int DYN_TEXT              =470;
-static const float STARTSCALE          =(float)0.5;
 
 //used by the springembedder
 static const int ITERATIONS            =100;
@@ -530,10 +529,9 @@ static void printSVGObject(GraphNode *node, int *classNr,
     textYOffset = yOrigin + TABLEHEIGHT + TABLEELEMHEIGHT;
     textXOffset = xOrigin;
 
-    printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
+    printf("  <g transform=\"translate(%.2f,%.2f)\">\n",
            node->dia.x + node->cluster->xOffset,
            node->dia.y + node->cluster->yOffset);
-    printf("  <g transform=\"scale(%.1f)\">\n", STARTSCALE);
     printf("    <rect id=\"%s\"", node->smiNode->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
@@ -672,7 +670,6 @@ static void printSVGObject(GraphNode *node, int *classNr,
     }
 
     printf("  </g>\n");
-    printf(" </g>\n");
 }
 
 /*
@@ -695,10 +692,9 @@ static void printSVGGroup(int group, int *classNr,
     textYOffset = yOrigin + TABLEHEIGHT + TABLEELEMHEIGHT;
     textXOffset = xOrigin;
 
-    printf(" <g transform=\"translate(%.2f,%.2f)\">\n",
+    printf("  <g transform=\"translate(%.2f,%.2f)\">\n",
            tNode->dia.x + tNode->cluster->xOffset,
            tNode->dia.y + tNode->cluster->yOffset);
-    printf("  <g transform=\"scale(%.1f)\">\n", STARTSCALE);
     printf("    <rect id=\"%s\"",
            smiGetParentNode(tNode->smiNode)->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
@@ -749,7 +745,6 @@ static void printSVGGroup(int group, int *classNr,
     }
     
     printf("  </g>\n");
-    printf(" </g>\n");
 }
 
 static void calculateIntersectionPoints(GraphEdge *tEdge)
@@ -769,33 +764,33 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
 	//intersection at left or right border
 	if (tEdge->startNode->dia.x < tEdge->endNode->dia.x) {
 	    tEdge->dia.startX = tEdge->startNode->dia.x +
-			tEdge->startNode->dia.w*STARTSCALE/2;
+						    tEdge->startNode->dia.w/2;
 	} else {
 	    tEdge->dia.startX = tEdge->startNode->dia.x -
-			tEdge->startNode->dia.w*STARTSCALE/2;
+						    tEdge->startNode->dia.w/2;
 	}
 	if (tEdge->startNode->dia.y < tEdge->endNode->dia.y) {
 	    tEdge->dia.startY = tEdge->startNode->dia.y +
-			fabsf(tEdge->startNode->dia.w*STARTSCALE*tan(alpha)/2);
+				fabsf(tEdge->startNode->dia.w*tan(alpha)/2);
 	} else {
 	    tEdge->dia.startY = tEdge->startNode->dia.y -
-			fabsf(tEdge->startNode->dia.w*STARTSCALE*tan(alpha)/2);
+				fabsf(tEdge->startNode->dia.w*tan(alpha)/2);
 	}
     } else {
 	//intersection at top or bottom border
 	if (tEdge->startNode->dia.y < tEdge->endNode->dia.y) {
 	    tEdge->dia.startY = tEdge->startNode->dia.y +
-			tEdge->startNode->dia.h*STARTSCALE/2;
+						    tEdge->startNode->dia.h/2;
 	} else {
 	    tEdge->dia.startY = tEdge->startNode->dia.y -
-			tEdge->startNode->dia.h*STARTSCALE/2;
+						    tEdge->startNode->dia.h/2;
 	}
 	if (tEdge->startNode->dia.x < tEdge->endNode->dia.x) {
 	    tEdge->dia.startX = tEdge->startNode->dia.x +
-		fabsf(tEdge->startNode->dia.h*STARTSCALE/(2*tan(alpha)));
+				fabsf(tEdge->startNode->dia.h/(2*tan(alpha)));
 	} else {
 	    tEdge->dia.startX = tEdge->startNode->dia.x -
-		fabsf(tEdge->startNode->dia.h*STARTSCALE/(2*tan(alpha)));
+				fabsf(tEdge->startNode->dia.h/(2*tan(alpha)));
 	}
     }
 
@@ -810,34 +805,30 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
 	|| alpha > 2*PI-beta) {
 	//intersection at left or right border
 	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
-	    tEdge->dia.endX = tEdge->endNode->dia.x +
-			tEdge->endNode->dia.w*STARTSCALE/2;
+	    tEdge->dia.endX = tEdge->endNode->dia.x + tEdge->endNode->dia.w/2;
 	} else {
-	    tEdge->dia.endX = tEdge->endNode->dia.x -
-			tEdge->endNode->dia.w*STARTSCALE/2;
+	    tEdge->dia.endX = tEdge->endNode->dia.x - tEdge->endNode->dia.w/2;
 	}
 	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
 	    tEdge->dia.endY = tEdge->endNode->dia.y +
-			fabsf(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
+				    fabsf(tEdge->endNode->dia.w*tan(alpha)/2);
 	} else {
 	    tEdge->dia.endY = tEdge->endNode->dia.y -
-			fabsf(tEdge->endNode->dia.w*STARTSCALE*tan(alpha)/2);
+				    fabsf(tEdge->endNode->dia.w*tan(alpha)/2);
 	}
     } else {
 	//intersection at top or bottom border
 	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
-	    tEdge->dia.endY = tEdge->endNode->dia.y +
-			tEdge->endNode->dia.h*STARTSCALE/2;
+	    tEdge->dia.endY = tEdge->endNode->dia.y + tEdge->endNode->dia.h/2;
 	} else {
-	    tEdge->dia.endY = tEdge->endNode->dia.y -
-			tEdge->endNode->dia.h*STARTSCALE/2;
+	    tEdge->dia.endY = tEdge->endNode->dia.y - tEdge->endNode->dia.h/2;
 	}
 	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
 	    tEdge->dia.endX = tEdge->endNode->dia.x +
-			fabsf(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
+				fabsf(tEdge->endNode->dia.h/(2*tan(alpha)));
 	} else {
 	    tEdge->dia.endX = tEdge->endNode->dia.x -
-			fabsf(tEdge->endNode->dia.h*STARTSCALE/(2*tan(alpha)));
+				fabsf(tEdge->endNode->dia.h/(2*tan(alpha)));
 	}
     }
 }
@@ -1104,7 +1095,7 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 	//      * maximal number of lines for the tooltip.
 	printf(code, idCount, idCount, idCount, idCount,
 			scale, xMin, scale, yMin, DYN_TEXT, DYN_TEXT,
-			STARTSCALE, miCount, miCount, miCount,
+			miCount, miCount, miCount,
 			idCount, idCount, idCount, idCount, idCount, idCount);
 	printf("// ]]>\n</script>\n\n");
     }
@@ -2659,7 +2650,7 @@ static void printModuleInformation(int modc, SmiModule **modv,
 				   int nGroup[], int mCompl[], int miCount)
 {
     int i, j, miNr = 0;
-    float scale = STARTSCALE, miHeight;
+    float scale = 1, miHeight;
     int modIdPrint = 0;
     int nTypePrint = 0, oGroupPrint = 0, nGroupPrint = 0, mComplPrint = 0;
     StringListElem markupList[miCount];
@@ -2705,7 +2696,7 @@ static void printModuleInformation(int modc, SmiModule **modv,
 	i--;
 
     //test if we must shrink moduleInformation to fit it into canvas
-    miHeight = ((miCount + i - (2 * j)) * 15 + 10) * STARTSCALE;
+    miHeight = ((miCount + i - (2 * j)) * 15 + 10);
     if (miHeight > maxHeight)
 	scale *= maxHeight/miHeight;
 
@@ -2769,10 +2760,10 @@ static float intersect(GraphNode *node, GraphEdge *edge)
 
     //handle case in which edge is parallel to y-axis
     if (edge->endNode->dia.x == edge->startNode->dia.x) {
-	if ((node->dia.x-node->dia.w/2*STARTSCALE < edge->endNode->dia.x &&
-	    node->dia.x+node->dia.w/2*STARTSCALE < edge->endNode->dia.x) ||
-	    (node->dia.x-node->dia.w/2*STARTSCALE > edge->endNode->dia.x &&
-	    node->dia.x+node->dia.w/2*STARTSCALE > edge->endNode->dia.x))
+	if ((node->dia.x-node->dia.w/2 < edge->endNode->dia.x &&
+	    node->dia.x+node->dia.w/2 < edge->endNode->dia.x) ||
+	    (node->dia.x-node->dia.w/2 > edge->endNode->dia.x &&
+	    node->dia.x+node->dia.w/2 > edge->endNode->dia.x))
 	    return intersect;
 	intersect = node->dia.x - edge->startNode->dia.x;
     } else {
@@ -2781,30 +2772,22 @@ static float intersect(GraphNode *node, GraphEdge *edge)
 	    (edge->endNode->dia.x - edge->startNode->dia.x);
 	b = edge->startNode->dia.y - (a * edge->startNode->dia.x);
 	//test if entire node is above or under edge
-	if ((node->dia.y-node->dia.h/2*STARTSCALE -
-			(a * node->dia.x-node->dia.w/2*STARTSCALE) > b &&
-	    node->dia.y+node->dia.h/2*STARTSCALE -
-			(a * node->dia.x-node->dia.w/2*STARTSCALE) > b &&
-	    node->dia.y-node->dia.h/2*STARTSCALE -
-			(a * node->dia.x+node->dia.w/2*STARTSCALE) > b &&
-	    node->dia.y+node->dia.h/2*STARTSCALE -
-			(a * node->dia.x+node->dia.w/2*STARTSCALE) > b) ||
-	    (node->dia.y-node->dia.h/2*STARTSCALE -
-			(a * node->dia.x-node->dia.w/2*STARTSCALE) < b &&
-	    node->dia.y+node->dia.h/2*STARTSCALE -
-			(a * node->dia.x-node->dia.w/2*STARTSCALE) < b &&
-	    node->dia.y-node->dia.h/2*STARTSCALE -
-			(a * node->dia.x+node->dia.w/2*STARTSCALE) < b &&
-	    node->dia.y+node->dia.h/2*STARTSCALE -
-			(a * node->dia.x+node->dia.w/2*STARTSCALE) < b))
+	if ((node->dia.y-node->dia.h/2 - (a * node->dia.x-node->dia.w/2) > b &&
+	    node->dia.y+node->dia.h/2 - (a * node->dia.x-node->dia.w/2) > b &&
+	    node->dia.y-node->dia.h/2 - (a * node->dia.x+node->dia.w/2) > b &&
+	    node->dia.y+node->dia.h/2 - (a * node->dia.x+node->dia.w/2) > b) ||
+	    (node->dia.y-node->dia.h/2 - (a * node->dia.x-node->dia.w/2) < b &&
+	    node->dia.y+node->dia.h/2 - (a * node->dia.x-node->dia.w/2) < b &&
+	    node->dia.y-node->dia.h/2 - (a * node->dia.x+node->dia.w/2) < b &&
+	    node->dia.y+node->dia.h/2 - (a * node->dia.x+node->dia.w/2) < b))
 	    return intersect;
 	intersect = (a * node->dia.x - node->dia.y + b) /
 		    (float)(sqrt(a*a+1));
     }
     //test if node is over upper end of edge or under lower end of edge
-    if (node->dia.y+node->dia.h/2*STARTSCALE <
+    if (node->dia.y+node->dia.h/2 <
 		min(edge->startNode->dia.y,edge->endNode->dia.y) ||
-	node->dia.y-node->dia.h/2*STARTSCALE >
+	node->dia.y-node->dia.h/2 >
 		max(edge->startNode->dia.y,edge->endNode->dia.y)) {
 	intersect = 0;
 	return intersect;
@@ -2828,8 +2811,8 @@ static void layoutCluster(GraphCluster *cluster,
     GraphNode *vNode, *uNode;
     GraphEdge *eEdge;
 
-    k = 200;
-    t = 100;
+    k = 400;
+    t = 200;
 
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
@@ -2994,11 +2977,11 @@ static void printSVG(int modc, SmiModule **modv)
 		}
 		lastNode = tNode;
 		tNode->cluster = tCluster;
-		tNode->dia.x = x + tNode->dia.w/2*STARTSCALE;
-		x += 10 + tNode->dia.w*STARTSCALE;
+		tNode->dia.x = x + tNode->dia.w/2;
+		x += 10 + tNode->dia.w;
 		tNode->dia.y = 0;
-		if (tNode->dia.h*STARTSCALE > maxHeight)
-		    maxHeight = tNode->dia.h*STARTSCALE;
+		if (tNode->dia.h > maxHeight)
+		    maxHeight = tNode->dia.h;
 	    }
 	}
     }
@@ -3013,11 +2996,11 @@ static void printSVG(int modc, SmiModule **modv)
 	}
 	lastNode = tNode;
 	tNode->cluster = tCluster;
-	tNode->dia.x = x + tNode->dia.w/2*STARTSCALE;
-	x += 10 + tNode->dia.w*STARTSCALE;
+	tNode->dia.x = x + tNode->dia.w/2;
+	x += 10 + tNode->dia.w;
 	tNode->dia.y = 0;
-	if (tNode->dia.h*STARTSCALE > maxHeight)
-	    maxHeight = tNode->dia.h*STARTSCALE;
+	if (tNode->dia.h > maxHeight)
+	    maxHeight = tNode->dia.h;
     }
     xMax = x;
     if (tCluster->firstClusterNode == NULL)
@@ -3045,14 +3028,14 @@ static void printSVG(int modc, SmiModule **modv)
 
 	for (tNode = tCluster->firstClusterNode; tNode;
 					tNode = tNode->nextClusterNode) {
-	    if (tNode->dia.x - STARTSCALE*tNode->dia.w/2 < tCluster->xMin)
-		tCluster->xMin = tNode->dia.x - STARTSCALE*tNode->dia.w/2;
-	    if (tNode->dia.x + STARTSCALE*tNode->dia.w/2 > tCluster->xMax)
-		tCluster->xMax = tNode->dia.x + STARTSCALE*tNode->dia.w/2;
-	    if (tNode->dia.y - STARTSCALE*tNode->dia.h/2 < tCluster->yMin)
-		tCluster->yMin = tNode->dia.y - STARTSCALE*tNode->dia.h/2;
-	    if (tNode->dia.y + STARTSCALE*tNode->dia.h/2 > tCluster->yMax)
-		tCluster->yMax = tNode->dia.y + STARTSCALE*tNode->dia.h/2;
+	    if (tNode->dia.x - tNode->dia.w/2 < tCluster->xMin)
+		tCluster->xMin = tNode->dia.x - tNode->dia.w/2;
+	    if (tNode->dia.x + tNode->dia.w/2 > tCluster->xMax)
+		tCluster->xMax = tNode->dia.x + tNode->dia.w/2;
+	    if (tNode->dia.y - tNode->dia.h/2 < tCluster->yMin)
+		tCluster->yMin = tNode->dia.y - tNode->dia.h/2;
+	    if (tNode->dia.y + tNode->dia.h/2 > tCluster->yMax)
+		tCluster->yMax = tNode->dia.y + tNode->dia.h/2;
 	}
 
 	tCluster->xOffset = x - tCluster->xMin;
