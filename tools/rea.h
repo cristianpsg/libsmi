@@ -94,16 +94,16 @@ typedef struct StringListElem {
  * Generic structures for the internal graph representation.
  */
 
-typedef struct GraphCluster {
-    struct GraphCluster *nextPtr;
-    struct GraphNode    *firstClusterNode;
-    float               xMin;
-    float               xMax;
-    float               yMin;
-    float               yMax;
-    float               xOffset;
-    float               yOffset;
-} GraphCluster;
+typedef struct GraphComponent {
+    struct GraphComponent *nextPtr;
+    struct GraphNode      *firstComponentNode;
+    float                 xMin;
+    float                 xMax;
+    float                 yMin;
+    float                 yMax;
+    float                 xOffset;
+    float                 yOffset;
+} GraphComponent;
 
 typedef struct GraphNode {
     struct GraphNode *nextPtr;
@@ -112,8 +112,8 @@ typedef struct GraphNode {
     int              group;		/* group number of this graph node */
     int              use;		/* use node in the layout-algorithm */
     int              degree;		/* quantity of adjacent nodes */
-    GraphCluster     *cluster;		/* cluster the node belongs to */
-    struct GraphNode *nextClusterNode;
+    GraphComponent   *component;	/* component the node belongs to */
+    struct GraphNode *nextComponentNode;
     DiaNode          dia;
 } GraphNode;
 
@@ -130,9 +130,9 @@ typedef struct GraphEdge {
 } GraphEdge;
 
 typedef struct Graph {
-    GraphNode    *nodes;
-    GraphEdge    *edges;
-    GraphCluster *clusters;
+    GraphNode      *nodes;
+    GraphEdge      *edges;
+    GraphComponent *components;
 } Graph;
 
 
@@ -179,7 +179,7 @@ extern int cmpSmiNodes(SmiNode *node1, SmiNode *node2);
 
 extern GraphNode *graphInsertNode(Graph *graph, SmiNode *smiNode);
 
-extern GraphCluster *graphInsertCluster(Graph *graph);
+extern GraphComponent *graphInsertComponent(Graph *graph);
 
 extern void graphExit(Graph *graph);
 
