@@ -176,34 +176,35 @@ GraphNode *graphInsertNode(Graph *graph, SmiNode *smiNode)
 }
 
 /*
- * graphInsertCluster
+ * graphInsertComponent
  *
- *          Inserts a new cluster into an existing graph.
+ *          Inserts a new component into an existing graph.
  *
- * Result : pointer to the new cluster
+ * Result : pointer to the new component
  */
-GraphCluster *graphInsertCluster(Graph *graph)
+GraphComponent *graphInsertComponent(Graph *graph)
 {
-    GraphCluster *newCluster;
-    GraphCluster *tCluster;
-    GraphCluster *lastCluster;
+    GraphComponent *newComponent;
+    GraphComponent *tComponent;
+    GraphComponent *lastComponent;
 
-    newCluster = xmalloc(sizeof(GraphCluster));
-    memset(newCluster, 0, sizeof(GraphCluster));
+    newComponent = xmalloc(sizeof(GraphComponent));
+    memset(newComponent, 0, sizeof(GraphComponent));
 
-    if (graph->clusters == NULL) {
-	graph->clusters = newCluster;
-	return newCluster;
+    if (graph->components == NULL) {
+	graph->components = newComponent;
+	return newComponent;
     }
 
-    lastCluster = NULL;
-    for (tCluster = graph->clusters; tCluster; tCluster = tCluster->nextPtr) {
-	lastCluster = tCluster;
+    lastComponent = NULL;
+    for (tComponent = graph->components; tComponent;
+					    tComponent = tComponent->nextPtr) {
+	lastComponent = tComponent;
     }
 
-    lastCluster->nextPtr = newCluster;
+    lastComponent->nextPtr = newComponent;
 
-    return newCluster;
+    return newComponent;
 }
 
 /*
@@ -280,7 +281,7 @@ void graphExit(Graph *graph)
 {
     GraphEdge *tEdge, *dummyEdge;
     GraphNode *tNode, *dummyNode;
-    GraphCluster *tCluster, *dummyCluster;
+    GraphComponent *tComponent, *dummyComponent;
 
     if (graph) {
 
@@ -302,13 +303,13 @@ void graphExit(Graph *graph)
 	    xfree(dummyEdge);
 	}
     
-	dummyCluster = NULL;
-	tCluster = graph->clusters;
-	while (tCluster != NULL) {
-	    dummyCluster = tCluster;
-	    tCluster = tCluster->nextPtr;
+	dummyComponent = NULL;
+	tComponent = graph->components;
+	while (tComponent != NULL) {
+	    dummyComponent = tComponent;
+	    tComponent = tComponent->nextPtr;
       
-	    xfree(dummyCluster);
+	    xfree(dummyComponent);
 	}
     
 	xfree(graph);

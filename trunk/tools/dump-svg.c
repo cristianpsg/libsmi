@@ -532,8 +532,8 @@ static void printSVGObject(GraphNode *node, int *classNr,
     textXOffset = xOrigin;
 
     printf("  <g transform=\"translate(%.2f,%.2f)\">\n",
-           node->dia.x + node->cluster->xOffset,
-           node->dia.y + node->cluster->yOffset);
+           node->dia.x + node->component->xOffset,
+           node->dia.y + node->component->yOffset);
     printf("    <rect id=\"%s\"", node->smiNode->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xOrigin, yOrigin, node->dia.w, node->dia.h);
@@ -695,8 +695,8 @@ static void printSVGGroup(int group, int *classNr,
     textXOffset = xOrigin;
 
     printf("  <g transform=\"translate(%.2f,%.2f)\">\n",
-           tNode->dia.x + tNode->cluster->xOffset,
-           tNode->dia.y + tNode->cluster->yOffset);
+           tNode->dia.x + tNode->component->xOffset,
+           tNode->dia.y + tNode->component->yOffset);
     printf("    <rect id=\"%s\"",
            smiGetParentNode(tNode->smiNode)->name);
     printf(" x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
@@ -850,16 +850,16 @@ static void printSVGDependency(GraphEdge *tEdge)
 	tEdge->endNode->smiNode->name);
     if (!revert) {
 	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
-	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
-	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
-	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset);
+	    tEdge->dia.startX + tEdge->startNode->component->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->component->yOffset,
+	    tEdge->dia.endX + tEdge->endNode->component->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->component->yOffset);
     } else {
 	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
-	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset,
-	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
-	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset);
+	    tEdge->dia.endX + tEdge->endNode->component->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->component->yOffset,
+	    tEdge->dia.startX + tEdge->startNode->component->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->component->yOffset);
     }
     printf("       stroke-dasharray=\"10, 10\" stroke=\"black\"");
     if (!revert) {
@@ -896,16 +896,16 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 	tEdge->endNode->smiNode->name);
     if (!revert) {
 	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
-	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset,
-	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
-	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset);
+	    tEdge->dia.startX + tEdge->startNode->component->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->component->yOffset,
+	    tEdge->dia.endX + tEdge->endNode->component->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->component->yOffset);
     } else {
 	printf("       d=\"M %.2f %.2f %.2f %.2f\"\n",
-	    tEdge->dia.endX + tEdge->endNode->cluster->xOffset,
-	    tEdge->dia.endY + tEdge->endNode->cluster->yOffset,
-	    tEdge->dia.startX + tEdge->startNode->cluster->xOffset,
-	    tEdge->dia.startY + tEdge->startNode->cluster->yOffset);
+	    tEdge->dia.endX + tEdge->endNode->component->xOffset,
+	    tEdge->dia.endY + tEdge->endNode->component->yOffset,
+	    tEdge->dia.startX + tEdge->startNode->component->xOffset,
+	    tEdge->dia.startY + tEdge->startNode->component->yOffset);
     }
     printf("       stroke=\"black\"");
     if (tEdge->indexkind==SMI_INDEX_AUGMENT ||
@@ -2805,7 +2805,7 @@ static float intersect(GraphNode *node, GraphEdge *edge)
  * Output: Coordinates (x,y) for the nodes.
  * Only the nodes and edges with use==1 are considered.
  */
-static void layoutCluster(GraphCluster *cluster,
+static void layoutComponent(GraphComponent *component,
 			int nodeoverlap, int edgeoverlap)
 {
     int i;
@@ -2818,12 +2818,12 @@ static void layoutCluster(GraphCluster *cluster,
 
     for (i=0; i<ITERATIONS; i++) {
 	//calculate repulsive forces
-	for (vNode = cluster->firstClusterNode; vNode;
-					vNode = vNode->nextClusterNode) {
+	for (vNode = component->firstComponentNode; vNode;
+					vNode = vNode->nextComponentNode) {
 	    vNode->dia.xDisp = 0;
 	    vNode->dia.yDisp = 0;
-	    for (uNode = cluster->firstClusterNode; uNode;
-					uNode = uNode->nextClusterNode) {
+	    for (uNode = component->firstComponentNode; uNode;
+					uNode = uNode->nextComponentNode) {
 		if (vNode==uNode)
 		    continue;
 		xDelta = vNode->dia.x - uNode->dia.x;
@@ -2839,12 +2839,12 @@ static void layoutCluster(GraphCluster *cluster,
 	    }
 	}
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
-	    if (!eEdge->use || eEdge->startNode->cluster != cluster)
+	    if (!eEdge->use || eEdge->startNode->component != component)
 		continue;
 	    //add another repulsive force if edge and any node overlap
 	    if (edgeoverlap) {
-		for (vNode = cluster->firstClusterNode; vNode;
-					vNode = vNode->nextClusterNode) {
+		for (vNode = component->firstComponentNode; vNode;
+					vNode = vNode->nextComponentNode) {
 		    if (eEdge->startNode == vNode ||
 			eEdge->endNode == vNode ||
 			overlap(eEdge->startNode, vNode) ||
@@ -2892,8 +2892,8 @@ static void layoutCluster(GraphCluster *cluster,
 	    eEdge->endNode->dia.yDisp += (yDelta/absDelta)*fa(absDelta, k);
 	}
 	//limit the maximum displacement to the temperature t
-	for (vNode = cluster->firstClusterNode; vNode;
-					vNode = vNode->nextClusterNode) {
+	for (vNode = component->firstComponentNode; vNode;
+					vNode = vNode->nextComponentNode) {
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
 					+ vNode->dia.yDisp*vNode->dia.yDisp));
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
@@ -2908,23 +2908,23 @@ static void layoutCluster(GraphCluster *cluster,
 /* ------------------------------------------------------------------------- */
 
 
-static void addNodeToCluster(GraphNode *tNode, GraphCluster *tCluster)
+static void addNodeToComponent(GraphNode *tNode, GraphComponent *tComponent)
 {
     GraphEdge *tEdge;
 
-    tNode->cluster = tCluster;
+    tNode->component = tComponent;
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (!tEdge->use)
 	    continue;
-	if (tEdge->startNode == tNode && tEdge->endNode->cluster == NULL) {
-	    tEdge->endNode->nextClusterNode = tNode->nextClusterNode;
-	    tNode->nextClusterNode = tEdge->endNode;
-	    addNodeToCluster(tEdge->endNode, tCluster);
+	if (tEdge->startNode == tNode && tEdge->endNode->component == NULL) {
+	    tEdge->endNode->nextComponentNode = tNode->nextComponentNode;
+	    tNode->nextComponentNode = tEdge->endNode;
+	    addNodeToComponent(tEdge->endNode, tComponent);
 	}
-	if (tEdge->endNode == tNode && tEdge->startNode->cluster == NULL) {
-	    tEdge->startNode->nextClusterNode = tNode->nextClusterNode;
-	    tNode->nextClusterNode = tEdge->startNode;
-	    addNodeToCluster(tEdge->startNode, tCluster);
+	if (tEdge->endNode == tNode && tEdge->startNode->component == NULL) {
+	    tEdge->startNode->nextComponentNode = tNode->nextComponentNode;
+	    tNode->nextComponentNode = tEdge->startNode;
+	    addNodeToComponent(tEdge->startNode, tComponent);
 	}
     }
 }
@@ -2944,7 +2944,7 @@ static void printSVG(int modc, SmiModule **modv)
 {
     GraphNode    *tNode, *lastNode = NULL;
     GraphEdge    *tEdge;
-    GraphCluster *tCluster;
+    GraphComponent *tComponent;
     int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
     int          i, idCount=0, TCcount=0, miPrint=0;
     float        x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
@@ -2963,7 +2963,7 @@ static void printSVG(int modc, SmiModule **modv)
 	}
     }
 
-    tCluster = graphInsertCluster(graph);
+    tComponent = graphInsertComponent(graph);
 
     //prepare nodes which are supposed to be drawn
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
@@ -2971,14 +2971,14 @@ static void printSVG(int modc, SmiModule **modv)
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    nodecount++;
 	    if (tNode->degree == 0) {
-		//single nodes are members of the first cluster.
-		if (tCluster->firstClusterNode == NULL) {
-		    tCluster->firstClusterNode = tNode;
+		//single nodes are members of the first component.
+		if (tComponent->firstComponentNode == NULL) {
+		    tComponent->firstComponentNode = tNode;
 		} else {
-		    lastNode->nextClusterNode = tNode;
+		    lastNode->nextComponentNode = tNode;
 		}
 		lastNode = tNode;
-		tNode->cluster = tCluster;
+		tNode->component = tComponent;
 		tNode->dia.x = x + tNode->dia.w/2;
 		x += 10 + tNode->dia.w;
 		tNode->dia.y = 0;
@@ -2990,14 +2990,14 @@ static void printSVG(int modc, SmiModule **modv)
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
 	tNode = calcGroupSize(group, &idCount);
 	nodecount++;
-	//groupnodes are members of the first cluster.
-	if (tCluster->firstClusterNode == NULL) {
-	    tCluster->firstClusterNode = tNode;
+	//groupnodes are members of the first component.
+	if (tComponent->firstComponentNode == NULL) {
+	    tComponent->firstComponentNode = tNode;
 	} else {
-	    lastNode->nextClusterNode = tNode;
+	    lastNode->nextComponentNode = tNode;
 	}
 	lastNode = tNode;
-	tNode->cluster = tCluster;
+	tNode->component = tComponent;
 	tNode->dia.x = x + tNode->dia.w/2;
 	x += 10 + tNode->dia.w;
 	tNode->dia.y = 0;
@@ -3005,57 +3005,57 @@ static void printSVG(int modc, SmiModule **modv)
 	    maxHeight = tNode->dia.h;
     }
     xMax = x;
-    if (tCluster->firstClusterNode == NULL)
+    if (tComponent->firstComponentNode == NULL)
 	singleNodes = 0;
 
-    //cluster the graph
+    //component the graph
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
-	if (tNode->cluster == NULL) {
-	    tCluster = graphInsertCluster(graph);
-	    tCluster->firstClusterNode = tNode;
-	    addNodeToCluster(tNode, tCluster);
+	if (tNode->component == NULL) {
+	    tComponent = graphInsertComponent(graph);
+	    tComponent->firstComponentNode = tNode;
+	    addNodeToComponent(tNode, tComponent);
 	}
     }
 
-    //layout cluster (except first) and calculate bounding boxes and offsets
+    //layout component (except first) and calculate bounding boxes and offsets
     x = 10;
-    for (tCluster = graph->clusters->nextPtr; tCluster;
-						tCluster = tCluster->nextPtr) {
-	layoutCluster(tCluster, 0, 0);
+    for (tComponent = graph->components->nextPtr; tComponent;
+					    tComponent = tComponent->nextPtr) {
+	layoutComponent(tComponent, 0, 0);
 	//FIXME do we need a stage with nodeoverlap and without edgeoverlap?
-	layoutCluster(tCluster, 1, 0);
-	layoutCluster(tCluster, 1, 1);
+	layoutComponent(tComponent, 1, 0);
+	layoutComponent(tComponent, 1, 1);
 
-	for (tNode = tCluster->firstClusterNode; tNode;
-					tNode = tNode->nextClusterNode) {
-	    if (tNode->dia.x - tNode->dia.w/2 < tCluster->xMin)
-		tCluster->xMin = tNode->dia.x - tNode->dia.w/2;
-	    if (tNode->dia.x + tNode->dia.w/2 > tCluster->xMax)
-		tCluster->xMax = tNode->dia.x + tNode->dia.w/2;
-	    if (tNode->dia.y - tNode->dia.h/2 < tCluster->yMin)
-		tCluster->yMin = tNode->dia.y - tNode->dia.h/2;
-	    if (tNode->dia.y + tNode->dia.h/2 > tCluster->yMax)
-		tCluster->yMax = tNode->dia.y + tNode->dia.h/2;
+	for (tNode = tComponent->firstComponentNode; tNode;
+					tNode = tNode->nextComponentNode) {
+	    if (tNode->dia.x - tNode->dia.w/2 < tComponent->xMin)
+		tComponent->xMin = tNode->dia.x - tNode->dia.w/2;
+	    if (tNode->dia.x + tNode->dia.w/2 > tComponent->xMax)
+		tComponent->xMax = tNode->dia.x + tNode->dia.w/2;
+	    if (tNode->dia.y - tNode->dia.h/2 < tComponent->yMin)
+		tComponent->yMin = tNode->dia.y - tNode->dia.h/2;
+	    if (tNode->dia.y + tNode->dia.h/2 > tComponent->yMax)
+		tComponent->yMax = tNode->dia.y + tNode->dia.h/2;
 	}
 
-	tCluster->xOffset = x - tCluster->xMin;
-	x += 10 + tCluster->xMax - tCluster->xMin;
-	tCluster->yOffset = -0.5*(tCluster->yMin+tCluster->yMax);
-	if (tCluster->yMin + tCluster->yOffset < yMin)
-	    yMin = tCluster->yMin + tCluster->yOffset;
-	if (tCluster->yMax + tCluster->yOffset > yMax)
-	    yMax = tCluster->yMax + tCluster->yOffset;
+	tComponent->xOffset = x - tComponent->xMin;
+	x += 10 + tComponent->xMax - tComponent->xMin;
+	tComponent->yOffset = -0.5*(tComponent->yMin+tComponent->yMax);
+	if (tComponent->yMin + tComponent->yOffset < yMin)
+	    yMin = tComponent->yMin + tComponent->yOffset;
+	if (tComponent->yMax + tComponent->yOffset > yMax)
+	    yMax = tComponent->yMax + tComponent->yOffset;
     }
-    if (graph->clusters->nextPtr)
+    if (graph->components->nextPtr)
 	yMin -= 10;
     yMax += 10;
     if (x > xMax)
 	xMax = x;
 
-    //adjust values for the first cluster (cluster of single nodes)
-    graph->clusters->yOffset = yMax + maxHeight/2;
+    //adjust values for the first component (component of single nodes)
+    graph->components->yOffset = yMax + maxHeight/2;
     if (singleNodes)
 	yMax += maxHeight + 10;
 
@@ -3098,32 +3098,32 @@ static void printSVG(int modc, SmiModule **modv)
 	}
     }
 
-    //loop through cluster (except first) to print edges and nodes
-    for (tCluster = graph->clusters->nextPtr; tCluster;
-						tCluster = tCluster->nextPtr) {
+    //loop through component (except first) to print edges and nodes
+    for (tComponent = graph->components->nextPtr; tComponent;
+					    tComponent = tComponent->nextPtr) {
 	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	    if (!tEdge->use || tEdge->startNode->cluster != tCluster)
+	    if (!tEdge->use || tEdge->startNode->component != tComponent)
 		continue;
 	    printSVGConnection(tEdge);
 	}
-	for (tNode = tCluster->firstClusterNode; tNode;
-					tNode = tNode->nextClusterNode) {
+	for (tNode = tComponent->firstComponentNode; tNode;
+					tNode = tNode->nextComponentNode) {
 	    printSVGObject(tNode, &classNr, modc, modv);
 	}
-	//enclose cluster in its bounding box
+	//enclose component in its bounding box
 	/*
 	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
-		tCluster->xMin + tCluster->xOffset,
-		tCluster->yMin + tCluster->yOffset,
-		tCluster->xMax - tCluster->xMin,
-		tCluster->yMax - tCluster->yMin);
+		tComponent->xMin + tComponent->xOffset,
+		tComponent->yMin + tComponent->yOffset,
+		tComponent->xMax - tComponent->xMin,
+		tComponent->yMax - tComponent->yMin);
 	printf("       fill=\"none\" stroke=\"green\" stroke-width=\"1\"/>\n");
 	*/
     }
 
     //print single nodes
-    for (tNode = graph->clusters->firstClusterNode; tNode;
-		    			tNode = tNode->nextClusterNode) {
+    for (tNode = graph->components->firstComponentNode; tNode;
+		    			tNode = tNode->nextComponentNode) {
 	if (tNode->group == 0) {
 	    printSVGObject(tNode, &classNr, modc, modv);
 	} else {
@@ -3195,7 +3195,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	    graph = xmalloc(sizeof(Graph));
 	    graph->nodes = NULL;
 	    graph->edges = NULL;
-	    graph->clusters = NULL;
+	    graph->components = NULL;
 	}
 	
 	for (i = 0; i < modc; i++) {
@@ -3218,7 +3218,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 		graph = xmalloc(sizeof(Graph));
 		graph->nodes = NULL;
 		graph->edges = NULL;
-		graph->clusters = NULL;
+		graph->components = NULL;
 	    }
 	    
 	    algCreateNodes(modv[i]);
