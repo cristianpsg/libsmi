@@ -3008,7 +3008,7 @@ static void printSVG(int modc, SmiModule **modv)
     if (tComponent->firstComponentNode == NULL)
 	singleNodes = 0;
 
-    //component the graph
+    //split the graph into components
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	if (!tNode->use)
 	    continue;
@@ -3098,7 +3098,7 @@ static void printSVG(int modc, SmiModule **modv)
 	}
     }
 
-    //loop through component (except first) to print edges and nodes
+    //loop through components (except first) to print edges and nodes
     for (tComponent = graph->components->nextPtr; tComponent;
 					    tComponent = tComponent->nextPtr) {
 	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
@@ -3131,7 +3131,7 @@ static void printSVG(int modc, SmiModule **modv)
 	}
     }
 
-    //print MODULE-IDENTITY
+    //print Module-Information
     printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
 				yMax-yMin,
 				modId, nType, oGroup, nGroup, mCompl, miCount);
