@@ -3254,7 +3254,7 @@ void initSvg()
 	{ "height", OPT_INT, &CANVASHEIGHT, 0,
 	  "height of the svg output (default=700)"},
 	{ "show-deprecated", OPT_FLAG, &SHOW_DEPRECATED, 0,
-	  "show deprecated objects"},
+	  "show deprecated items"},
 	{ "show-depr-obsolete", OPT_FLAG, &SHOW_DEPR_OBSOLETE, 0,
 	  "show deprecated and obsolete items"},
 	{ "static-output", OPT_FLAG, &STATIC_OUTPUT, 0,
