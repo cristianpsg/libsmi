@@ -3256,7 +3256,7 @@ void initSvg()
 	{ "show-deprecated", OPT_FLAG, &SHOW_DEPRECATED, 0,
 	  "show deprecated objects"},
 	{ "show-depr-obsolete", OPT_FLAG, &SHOW_DEPR_OBSOLETE, 0,
-	  "show deprecated and obsolete objects"},
+	  "show deprecated and obsolete items"},
 	{ "static-output", OPT_FLAG, &STATIC_OUTPUT, 0,
 	  "disable all interactivity (e.g. for printing)"},
         { 0, OPT_END, 0, 0 }
