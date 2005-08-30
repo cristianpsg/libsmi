@@ -1607,8 +1607,8 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
  * in the svg, so the calculated number is an upper bound. the maximal
  * size of this gap is 4*(modc+1). this may be considered as a bug.
  */
-static void calcMiCount(int modc, SmiModule **modv, int *miCount, int modId[],
-			int nType[], int oGroup[], int nGroup[], int mCompl[])
+static void prepareModInfo(int modc, SmiModule **modv, int *miCount,
+	    int modId[], int nType[], int oGroup[], int nGroup[], int mCompl[])
 {
     calcModuleIdentityCount(modc, modv, miCount, modId);
     calcNotificationTypeCount(modc, modv, miCount, nType);
@@ -3176,7 +3176,7 @@ static void generateSVG(int modc, SmiModule **modv)
     }
 
     //count entries in the ModuleInformation-Section
-    calcMiCount(modc, modv, &miCount, modId, nType, oGroup, nGroup, mCompl);
+    prepareModInfo(modc, modv, &miCount, modId, nType, oGroup, nGroup, mCompl);
     idCount += miCount;
 
     //enlarge canvas for ModuleInformation if it is supposed to be printed
