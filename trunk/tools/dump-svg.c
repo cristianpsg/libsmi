@@ -2945,6 +2945,43 @@ static void splitGraphIntoComponents()
     }
 }
 
+//layout components
+static void layoutComponents(float *yMin, float *yMax, float *x)
+{
+    GraphNode      *tNode;
+    GraphComponent *tComponent;
+
+    //layout components (except first) and calculate bounding boxes and offsets
+    *x=10;
+    for (tComponent = graph->components->nextPtr; tComponent;
+					    tComponent = tComponent->nextPtr) {
+	layoutComponent(tComponent, 0, 0);
+	//FIXME do we need a stage with nodeoverlap and without edgeoverlap?
+	layoutComponent(tComponent, 1, 0);
+	layoutComponent(tComponent, 1, 1);
+
+	for (tNode = tComponent->firstComponentNode; tNode;
+					tNode = tNode->nextComponentNode) {
+	    if (tNode->dia.x - tNode->dia.w/2 < tComponent->xMin)
+		tComponent->xMin = tNode->dia.x - tNode->dia.w/2;
+	    if (tNode->dia.x + tNode->dia.w/2 > tComponent->xMax)
+		tComponent->xMax = tNode->dia.x + tNode->dia.w/2;
+	    if (tNode->dia.y - tNode->dia.h/2 < tComponent->yMin)
+		tComponent->yMin = tNode->dia.y - tNode->dia.h/2;
+	    if (tNode->dia.y + tNode->dia.h/2 > tComponent->yMax)
+		tComponent->yMax = tNode->dia.y + tNode->dia.h/2;
+	}
+
+	tComponent->xOffset = *x - tComponent->xMin;
+	*x += 10 + tComponent->xMax - tComponent->xMin;
+	tComponent->yOffset = -0.5*(tComponent->yMin+tComponent->yMax);
+	if (tComponent->yMin + tComponent->yOffset < *yMin)
+	    *yMin = tComponent->yMin + tComponent->yOffset;
+	if (tComponent->yMax + tComponent->yOffset > *yMax)
+	    *yMax = tComponent->yMax + tComponent->yOffset;
+    }
+}
+
 /*
  * generate SVG diagram and print it to stdout:
  * - identify and prepare nodes and egdes
@@ -2958,14 +2995,14 @@ static void splitGraphIntoComponents()
  */
 static void printSVG(int modc, SmiModule **modv)
 {
-    GraphNode    *tNode, *lastNode = NULL;
-    GraphEdge    *tEdge;
+    GraphNode      *tNode, *lastNode = NULL;
+    GraphEdge      *tEdge;
     GraphComponent *tComponent;
-    int          group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
-    int          i, idCount=0, TCcount=0, miPrint=0;
-    float        x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
-    int          modId[modc];
-    int          nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
+    int            group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
+    int            i, idCount=0, TCcount=0, miPrint=0;
+    float          x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
+    int            modId[modc];
+    int            nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
 
     //find edges which are supposed to be drawn
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
@@ -3026,35 +3063,8 @@ static void printSVG(int modc, SmiModule **modv)
 
     splitGraphIntoComponents();
 
-    //layout component (except first) and calculate bounding boxes and offsets
-    x = 10;
-    for (tComponent = graph->components->nextPtr; tComponent;
-					    tComponent = tComponent->nextPtr) {
-	layoutComponent(tComponent, 0, 0);
-	//FIXME do we need a stage with nodeoverlap and without edgeoverlap?
-	layoutComponent(tComponent, 1, 0);
-	layoutComponent(tComponent, 1, 1);
+    layoutComponents(&yMin, &yMax, &x);
 
-	for (tNode = tComponent->firstComponentNode; tNode;
-					tNode = tNode->nextComponentNode) {
-	    if (tNode->dia.x - tNode->dia.w/2 < tComponent->xMin)
-		tComponent->xMin = tNode->dia.x - tNode->dia.w/2;
-	    if (tNode->dia.x + tNode->dia.w/2 > tComponent->xMax)
-		tComponent->xMax = tNode->dia.x + tNode->dia.w/2;
-	    if (tNode->dia.y - tNode->dia.h/2 < tComponent->yMin)
-		tComponent->yMin = tNode->dia.y - tNode->dia.h/2;
-	    if (tNode->dia.y + tNode->dia.h/2 > tComponent->yMax)
-		tComponent->yMax = tNode->dia.y + tNode->dia.h/2;
-	}
-
-	tComponent->xOffset = x - tComponent->xMin;
-	x += 10 + tComponent->xMax - tComponent->xMin;
-	tComponent->yOffset = -0.5*(tComponent->yMin+tComponent->yMax);
-	if (tComponent->yMin + tComponent->yOffset < yMin)
-	    yMin = tComponent->yMin + tComponent->yOffset;
-	if (tComponent->yMax + tComponent->yOffset > yMax)
-	    yMax = tComponent->yMax + tComponent->yOffset;
-    }
     if (graph->components->nextPtr)
 	yMin -= 10;
     yMax += 10;
