@@ -2947,13 +2947,12 @@ static void splitGraphIntoComponents()
 }
 
 
-//layout components
+//layout components (except first) and calculate bounding boxes and offsets
 static void layoutComponents(float *yMin, float *yMax, float *x)
 {
     GraphNode      *tNode;
     GraphComponent *tComponent;
 
-    //layout components (except first) and calculate bounding boxes and offsets
     *x=10;
     for (tComponent = graph->components->nextPtr; tComponent;
 					    tComponent = tComponent->nextPtr) {
@@ -3053,28 +3052,15 @@ static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
 }
 
 
-
-/*
- * generate SVG diagram and print it to stdout:
- * - identify and prepare nodes and egdes
- * - split graph into its components
- * - layout components
- * - prepare module information
- * - print header
- * - print components
- * - print module information
- * - print footer
- */
-static void generateSVG(int modc, SmiModule **modv)
+//prepare nodes and edges for drawing
+static void prepareNodesAndEdges(int *idCount, float *xMax, int *nodecount,
+				 int *singleNodes, float *maxHeight)
 {
     GraphNode      *tNode, *lastNode = NULL;
     GraphEdge      *tEdge;
     GraphComponent *tComponent;
-    int            group, nodecount=0, classNr=0, singleNodes=1, miCount=0;
-    int            i, idCount=0, TCcount=0, miPrint=0;
-    float          x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
-    int            modId[modc];
-    int            nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
+    float          x=10;
+    int            group;
 
     //find edges which are supposed to be drawn
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
@@ -3092,9 +3078,9 @@ static void generateSVG(int modc, SmiModule **modv)
 
     //prepare nodes which are supposed to be drawn
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
-	tNode = calcNodeSize(tNode, &idCount);
+	tNode = calcNodeSize(tNode, idCount);
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
-	    nodecount++;
+	    (*nodecount)++;
 	    if (tNode->degree == 0) {
 		//single nodes are members of the first component.
 		if (tComponent->firstComponentNode == NULL) {
@@ -3107,14 +3093,14 @@ static void generateSVG(int modc, SmiModule **modv)
 		tNode->dia.x = x + tNode->dia.w/2;
 		x += 10 + tNode->dia.w;
 		tNode->dia.y = 0;
-		if (tNode->dia.h > maxHeight)
-		    maxHeight = tNode->dia.h;
+		if (tNode->dia.h > *maxHeight)
+		    *maxHeight = tNode->dia.h;
 	    }
 	}
     }
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
-	tNode = calcGroupSize(group, &idCount);
-	nodecount++;
+	tNode = calcGroupSize(group, idCount);
+	(*nodecount)++;
 	//groupnodes are members of the first component.
 	if (tComponent->firstComponentNode == NULL) {
 	    tComponent->firstComponentNode = tNode;
@@ -3126,15 +3112,45 @@ static void generateSVG(int modc, SmiModule **modv)
 	tNode->dia.x = x + tNode->dia.w/2;
 	x += 10 + tNode->dia.w;
 	tNode->dia.y = 0;
-	if (tNode->dia.h > maxHeight)
-	    maxHeight = tNode->dia.h;
+	if (tNode->dia.h > *maxHeight)
+	    *maxHeight = tNode->dia.h;
     }
-    xMax = x;
+    *xMax = x;
     if (tComponent->firstComponentNode == NULL)
-	singleNodes = 0;
+	*singleNodes = 0;
+}
 
+
+
+/*
+ * generate SVG diagram and print it to stdout:
+ * - identify and prepare nodes and egdes
+ * - split graph into its components
+ * - layout components
+ * - prepare module information
+ * - print header
+ * - print components
+ * - print module information
+ * - print footer
+ */
+static void generateSVG(int modc, SmiModule **modv)
+{
+    GraphNode      *tNode, *lastNode = NULL;
+    GraphEdge      *tEdge;
+    GraphComponent *tComponent;
+    int            group, nodecount=0, singleNodes=1, miCount=0;
+    int            i, idCount=0, TCcount=0, miPrint=0;
+    float          x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
+    int            modId[modc];
+    int            nType[modc], oGroup[modc], nGroup[modc], mCompl[modc];
+
+    //prepare nodes and edges for drawing
+    prepareNodesAndEdges(&idCount, &xMax, &nodecount, &singleNodes, &maxHeight);
+
+    //split the graph into components
     splitGraphIntoComponents();
 
+    //layout components (except first) and calculate bounding boxes and offsets
     layoutComponents(&yMin, &yMax, &x);
 
     if (graph->components->nextPtr)
