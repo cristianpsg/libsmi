@@ -2929,6 +2929,7 @@ static void addNodeToComponent(GraphNode *tNode, GraphComponent *tComponent)
     }
 }
 
+
 //split the graph into components
 static void splitGraphIntoComponents()
 {
@@ -2944,6 +2945,7 @@ static void splitGraphIntoComponents()
 	}
     }
 }
+
 
 //layout components
 static void layoutComponents(float *yMin, float *yMax, float *x)
@@ -2982,6 +2984,76 @@ static void layoutComponents(float *yMin, float *yMax, float *x)
     }
 }
 
+
+//Print SVG to stdout
+static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
+		     float xMin, float yMin, float xMax, float yMax,
+		     int nodecount, int TCcount,
+		     int modId[], int nType[], int oGroup[],
+		     int nGroup[], int mCompl[])
+{
+    GraphComponent *tComponent;
+    GraphNode      *tNode;
+    GraphEdge      *tEdge;
+    int            classNr=0;
+
+    //output of svg to stdout begins here
+    printSVGHeaderAndTitle(modc, modv, miCount, idCount,
+							xMin, yMin, xMax, yMax);
+
+    //module doesn't contain any objects.
+    if (nodecount == 0) {
+	if (TCcount > 0) {
+	    printOnlyTCs();
+	} else {
+	    printNoObjects();
+	}
+    }
+
+    //loop through components (except first) to print edges and nodes
+    for (tComponent = graph->components->nextPtr; tComponent;
+					    tComponent = tComponent->nextPtr) {
+	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
+	    if (!tEdge->use || tEdge->startNode->component != tComponent)
+		continue;
+	    printSVGConnection(tEdge);
+	}
+	for (tNode = tComponent->firstComponentNode; tNode;
+					tNode = tNode->nextComponentNode) {
+	    printSVGObject(tNode, &classNr, modc, modv);
+	}
+	//enclose component in its bounding box
+	/*
+	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
+		tComponent->xMin + tComponent->xOffset,
+		tComponent->yMin + tComponent->yOffset,
+		tComponent->xMax - tComponent->xMin,
+		tComponent->yMax - tComponent->yMin);
+	printf("       fill=\"none\" stroke=\"green\" stroke-width=\"1\"/>\n");
+	*/
+    }
+
+    //print single nodes
+    for (tNode = graph->components->firstComponentNode; tNode;
+		    			tNode = tNode->nextComponentNode) {
+	if (tNode->group == 0) {
+	    printSVGObject(tNode, &classNr, modc, modv);
+	} else {
+	    printSVGGroup(tNode->group, &classNr, modc, modv);
+	}
+    }
+
+    //print Module-Information
+    printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
+				yMax-yMin,
+				modId, nType, oGroup, nGroup, mCompl, miCount);
+
+    //output of svg to stdout ends here
+    printSVGClose(xMin, yMin, xMax, yMax);
+}
+
+
+
 /*
  * generate SVG diagram and print it to stdout:
  * - identify and prepare nodes and egdes
@@ -2993,7 +3065,7 @@ static void layoutComponents(float *yMin, float *yMax, float *x)
  * - print module information
  * - print footer
  */
-static void printSVG(int modc, SmiModule **modv)
+static void generateSVG(int modc, SmiModule **modv)
 {
     GraphNode      *tNode, *lastNode = NULL;
     GraphEdge      *tEdge;
@@ -3102,59 +3174,9 @@ static void printSVG(int modc, SmiModule **modv)
     if (miPrint)
 	xMax += MODULE_INFO_WIDTH;
 
-    //output of svg to stdout begins here
-    printSVGHeaderAndTitle(modc, modv, miCount, idCount,
-							xMin, yMin, xMax, yMax);
-
-    //module doesn't contain any objects.
-    if (nodecount == 0) {
-	if (TCcount > 0) {
-	    printOnlyTCs();
-	} else {
-	    printNoObjects();
-	}
-    }
-
-    //loop through components (except first) to print edges and nodes
-    for (tComponent = graph->components->nextPtr; tComponent;
-					    tComponent = tComponent->nextPtr) {
-	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
-	    if (!tEdge->use || tEdge->startNode->component != tComponent)
-		continue;
-	    printSVGConnection(tEdge);
-	}
-	for (tNode = tComponent->firstComponentNode; tNode;
-					tNode = tNode->nextComponentNode) {
-	    printSVGObject(tNode, &classNr, modc, modv);
-	}
-	//enclose component in its bounding box
-	/*
-	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
-		tComponent->xMin + tComponent->xOffset,
-		tComponent->yMin + tComponent->yOffset,
-		tComponent->xMax - tComponent->xMin,
-		tComponent->yMax - tComponent->yMin);
-	printf("       fill=\"none\" stroke=\"green\" stroke-width=\"1\"/>\n");
-	*/
-    }
-
-    //print single nodes
-    for (tNode = graph->components->firstComponentNode; tNode;
-		    			tNode = tNode->nextComponentNode) {
-	if (tNode->group == 0) {
-	    printSVGObject(tNode, &classNr, modc, modv);
-	} else {
-	    printSVGGroup(tNode->group, &classNr, modc, modv);
-	}
-    }
-
-    //print Module-Information
-    printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
-				yMax-yMin,
-				modId, nType, oGroup, nGroup, mCompl, miCount);
-
-    //output of svg to stdout ends here
-    printSVGClose(xMin, yMin, xMax, yMax);
+    //Print SVG to stdout
+    printSVG(modc, modv, miCount, idCount, xMin, yMin, xMax, yMax, nodecount,
+				TCcount, modId, nType, oGroup, nGroup, mCompl);
 }
 
 
@@ -3231,7 +3253,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	
 	calcConceptualModel();
 	
-	printSVG(modc, modv);
+	generateSVG(modc, modv);
 	
 	graphExit(graph);
 	graph = NULL;
@@ -3248,7 +3270,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	
 	    calcConceptualModel();
 	    
-	    printSVG(1, &(modv[i]));
+	    generateSVG(1, &(modv[i]));
 	
 	    graphExit(graph);
 	    graph = NULL;
