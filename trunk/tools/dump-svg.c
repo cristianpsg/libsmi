@@ -2929,6 +2929,22 @@ static void addNodeToComponent(GraphNode *tNode, GraphComponent *tComponent)
     }
 }
 
+//split the graph into components
+static void splitGraphIntoComponents()
+{
+    GraphNode      *tNode;
+    GraphComponent *tComponent;
+    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
+	if (!tNode->use)
+	    continue;
+	if (tNode->component == NULL) {
+	    tComponent = graphInsertComponent(graph);
+	    tComponent->firstComponentNode = tNode;
+	    addNodeToComponent(tNode, tComponent);
+	}
+    }
+}
+
 /*
  * generate SVG diagram and print it to stdout:
  * - identify and prepare nodes and egdes
@@ -3008,16 +3024,7 @@ static void printSVG(int modc, SmiModule **modv)
     if (tComponent->firstComponentNode == NULL)
 	singleNodes = 0;
 
-    //split the graph into components
-    for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
-	if (!tNode->use)
-	    continue;
-	if (tNode->component == NULL) {
-	    tComponent = graphInsertComponent(graph);
-	    tComponent->firstComponentNode = tNode;
-	    addNodeToComponent(tNode, tComponent);
-	}
-    }
+    splitGraphIntoComponents();
 
     //layout component (except first) and calculate bounding boxes and offsets
     x = 10;
@@ -3180,6 +3187,16 @@ static void buildLink(int modc, SmiModule **modv)
 }
 
 
+static void calcConceptualModel()
+{
+    algLinkTables();
+    algCheckLinksByName();
+    algConnectLonelyNodes();
+    algCheckForDependency();
+    algCheckForPointerRels();
+}
+
+
 /* ------------------------------------------------------------------------- */
 
 
@@ -3202,11 +3219,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	    algCreateNodes(modv[i]);
 	}
 	
-	algLinkTables();
-	algCheckLinksByName();
-	algConnectLonelyNodes();
-	algCheckForDependency();
-	algCheckForPointerRels();
+	calcConceptualModel();
 	
 	printSVG(modc, modv);
 	
@@ -3223,11 +3236,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	    
 	    algCreateNodes(modv[i]);
 	
-	    algLinkTables();
-	    algCheckLinksByName();
-	    algConnectLonelyNodes();
-	    algCheckForDependency();
-	    algCheckForPointerRels();
+	    calcConceptualModel();
 	    
 	    printSVG(1, &(modv[i]));
 	
