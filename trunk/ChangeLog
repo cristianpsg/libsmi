@@ -1,5 +1,13 @@
 2005-10-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/ietf/DOCS-IETF-BPI2-MIB: added (RFC 4131).
+
+	* mibs/ietf/ENTITY-MIB: updated (RFC 4133).
+
+	* mibs/ietf/BRIDGE-MIB: updated (RFC 4188).
+
+2005-10-10  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
 	* mibs/ietf/SSPM-MIB: added (RFC 4149).
 
 2005-06-23  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
