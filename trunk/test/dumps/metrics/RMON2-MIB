@@ -36,6 +36,12 @@ Tables:              34    70.6%    29.4%     0.0%     0.0%     0.0%
 CATEGORY    TOTAL    [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]   [9]  [10]
 Tables:        34  61.8% 14.7%  2.9%  5.9%  8.8%  5.9%  0.0%  0.0%  0.0%  0.0%
 
+# The following table shows the table length distribution of
+# table definitions contained in the set of loaded MIB modules.
+
+CATEGORY    TOTAL    [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]   [9]  [10]  [11]  [12]  [13]  [14]  [15]  [16]  [17]  [18]  [19]  [20]  [21]  [22]  [23]  [24]  [25]  [26]  [27]  [28]  [29]  [30]  [31]  [32]  [33]  [34]  [35]  [36]  [37]  [38]  [39]  [40]  [41]  [42]  [43]  [44]  [45]  [46]  [47]  [48]  [49]  [50]  [51]  [52]  [53]  [54]  [55]  [56]  [57]  [58]  [59]  [60]  [61]  [62]  [63]  [64]  [65]  [66]  [67]  [68]  [69]  [70]  [71]  [72]  [73]  [74]  [75]  [76]  [77]  [78]  [79]  [80]
+Tables:        34   2.9% 29.4%  5.9%  5.9%  8.8% 14.7%  2.9%  5.9%  8.8%  2.9%  5.9%  5.9%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%  0.0%
+
 # The following table shows the text clause usage distribution of all
 # definitions contained in the set of loaded MIB modules.
 
@@ -78,18 +84,39 @@ Indexes:             34      291
 Summary:            171      403
 
 # The following table shows the distribution of the number of references
-# to externally defined types in the set of loaded MIB modules.
+# to defined types (including base types) in the set of loaded MIB
+# modules.
 
-MODULE     TYPE             EXT-USAGE
-           OctetString        26.7%
-SNMPv2-SMI Counter32          26.7%
-SNMPv2-TC  RowStatus          11.9%
-RMON-MIB   OwnerString         9.9%
-SNMPv2-SMI Gauge32             8.9%
-SNMPv2-TC  TimeStamp           5.9%
-SNMPv2-SMI IpAddress           5.0%
-           ObjectIdentifier    3.0%
-           Integer32           2.0%
+MODULE     TYPE                 USAGE
+           Integer32            29.6%
+           OctetString          11.3%
+SNMPv2-SMI Counter32            10.5%
+RMON2-MIB  ZeroBasedCounter32    7.4%
+RMON2-MIB  LastCreateTime        5.8%
+           Enumeration           5.4%
+RMON2-MIB  TimeFilter            5.4%
+SNMPv2-TC  RowStatus             4.7%
+RMON-MIB   OwnerString           3.9%
+SNMPv2-SMI Gauge32               3.5%
+RMON2-MIB  ControlString         2.3%
+SNMPv2-TC  DisplayString         2.3%
+SNMPv2-TC  TimeStamp             2.3%
+SNMPv2-SMI IpAddress             1.9%
+RMON2-MIB  DataSource            1.6%
+           ObjectIdentifier      1.2%
+           Bits                  0.8%
+
+# The following table shows the distribution of the number of references
+# to externally defined types (excluding base types) in the set of loaded
+# MIB modules.
+
+MODULE     TYPE        EXT-USAGE
+SNMPv2-SMI Counter32     39.1%
+SNMPv2-TC  RowStatus     17.4%
+RMON-MIB   OwnerString   14.5%
+SNMPv2-SMI Gauge32       13.0%
+SNMPv2-TC  TimeStamp      8.7%
+SNMPv2-SMI IpAddress      7.2%
 
 # The following table shows the distribution of the number of references
 # to externally defined nodes in the set of loaded MIB modules.
@@ -112,12 +139,11 @@ TOKEN-RING-RMON-MIB tokenRingPStatsIndex         8.3%
 # the defining MIB module in the set of loaded MIB modules.
 
 MODULE              EXT-USAGE
-SNMPv2-SMI            36.3%
-                      28.3%
-SNMPv2-TC             15.9%
-RMON-MIB              14.2%
-TOKEN-RING-RMON-MIB    3.5%
-RFC1213-MIB            1.8%
+SNMPv2-SMI            50.6%
+SNMPv2-TC             22.2%
+RMON-MIB              19.8%
+TOKEN-RING-RMON-MIB    4.9%
+RFC1213-MIB            2.5%
 
 # The following table shows the distribution of the index complexity
 # in the set of loaded MIB modules.

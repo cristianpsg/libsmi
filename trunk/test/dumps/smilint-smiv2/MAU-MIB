@@ -1,3 +1,4 @@
+../dumps/smiv2/MAU-MIB:18: warning: uncontrolled MODULE-IDENTITY registration
 ../dumps/smiv2/MAU-MIB:137: warning: index element `rpMauGroupIndex' of row `rpMauEntry' should be not-accessible in SMIv2 MIB
 ../dumps/smiv2/MAU-MIB:137: warning: index element `rpMauPortIndex' of row `rpMauEntry' should be not-accessible in SMIv2 MIB
 ../dumps/smiv2/MAU-MIB:137: warning: index element `rpMauIndex' of row `rpMauEntry' should be not-accessible in SMIv2 MIB
