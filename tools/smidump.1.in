@@ -116,6 +116,9 @@ Metrics derived from a module (experimental).
 identifiers
 List of identifiers defined in a module.
 .TP
+compliances
+Compliance definitions with all included objects and notifications.
+.TP
 corba
 CORBA IDL and OID definitions following the JIDM specification translation
 rules.
