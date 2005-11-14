@@ -313,6 +313,7 @@ int main(int argc, char *argv[])
     initSizes();
     initXml();
     initXsd();
+    initCompliances();
     
     for (i = 1; i < argc; i++)
 	if ((strstr(argv[i], "-c") == argv[i]) ||
