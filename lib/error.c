@@ -517,7 +517,7 @@ static Error errors[] = {
     { 5, ERR_INDEX_ACCESSIBLE, "index-element-accessible",
       "index element `%s' of row `%s' should be not-accessible in SMIv2 MIB", NULL},
     { 5, ERR_INDEX_NON_ACCESSIBLE, "index-element-not-accessible",
-      "exactly one index element of row `%s' must be accessible in SMIv2 MIB", NULL},
+      "exactly one index element of row `%s' must be accessible", NULL},
     { 3, ERR_REFINEMENT_NOT_LISTED, "refinement-not-listed",
       "refined object `%s' not listed in a mandatory or optional group", NULL},
     { 5, ERR_NOTIFICATION_NOT_REVERSIBLE, "notification-not-reversible",
@@ -648,6 +648,8 @@ static Error errors[] = {
       "The identities of IETF MIB modules should be registered below\n"
       "mib-2, transmission, or snmpModules so that the registration\n"
       "space can be controlled by IANA."},
+    { 2, ERR_TABLE_NON_ACCESSIBLE, "table-not-accessible",
+      "at least one column of row `%s' must be accessible", NULL},
     { 0, 0, NULL, NULL, NULL }
 };
 
