@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.22 2002/07/24 11:54:18 strauss Exp $
+# @(#) $Id$
 #
 
 EXTRA_DIST		= parser-sming.y parser-smi.y \
@@ -30,8 +30,8 @@ libsmi_la_LDFLAGS	= -version-info @VERSION_LIBTOOL@
 
 parser-smi.c: parser-smi.y scanner-smi.h parser-smi.h
 	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" -v -t -d -psmi parser-smi.y ; \
-	    "$(BISON)" -v -t -d -psmi parser-smi.y ; \
+	    echo "$(BISON)" -v -t -psmi parser-smi.y ; \
+	    "$(BISON)" -v -t  -psmi parser-smi.y ; \
 	else \
 	    echo "" ; \
 	    echo "NOTE: we cannot build the new parser-smi.c from parser-smi.y" ; \
@@ -75,6 +75,26 @@ scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
 	else \
 	    echo "" ; \
 	    echo "NOTE: we cannot build the new scanner-sming.c from scanner-sming.l" ; \
+	    echo "" ; \
+	fi
+
+parser-smi.tab.h: parser-smi.y
+	@if [ "$(BISON)" ] ; then \
+	    echo "$(BISON)" -d -o parser-smi.tab.h parser-smi.y ; \
+	    "$(BISON)" -d -o parser-smi.tab.h parser-smi.y ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new parser-smi.tab.h from parser-smi.y" ; \
+	    echo "" ; \
+	fi
+
+parser-sming.tab.h: parser-sming.y
+	@if [ "$(BISON)" ] ; then \
+	    echo "$(BISON)" -d -o parser-sming.tab.h parser-sming.y ; \
+	    "$(BISON)" -d -o parser-sming.tab.h parser-sming.y ; \
+	else \
+	    echo "" ; \
+	    echo "NOTE: we cannot build the new parser-sming.tab.h from parser-sming.y" ; \
 	    echo "" ; \
 	fi
 
