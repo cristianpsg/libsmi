@@ -45,8 +45,8 @@ parser-smi.c: parser-smi.y scanner-smi.h parser-smi.h
 
 parser-sming.c: parser-sming.y scanner-sming.h parser-sming.h
 	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" -v -t -d -psming parser-sming.y ; \
-	    "$(BISON)" -v -t -d -psming parser-sming.y ; \
+	    echo "$(BISON)" -v -t -psming parser-sming.y ; \
+	    "$(BISON)" -v -t -psming parser-sming.y ; \
 	else \
 	    echo "" ; \
 	    echo "NOTE: we cannot build the new parser-sming.c from parser-sming.y" ; \
@@ -80,8 +80,8 @@ scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
 
 parser-smi.tab.h: parser-smi.y
 	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" -d -o parser-smi.tab.h parser-smi.y ; \
-	    "$(BISON)" -d -o parser-smi.tab.h parser-smi.y ; \
+	    echo "$(BISON)" --defines=parser-smi.tab.h parser-smi.y ; \
+	    "$(BISON)" --defines=parser-smi.tab.h parser-smi.y ; \
 	else \
 	    echo "" ; \
 	    echo "NOTE: we cannot build the new parser-smi.tab.h from parser-smi.y" ; \
@@ -90,8 +90,8 @@ parser-smi.tab.h: parser-smi.y
 
 parser-sming.tab.h: parser-sming.y
 	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" -d -o parser-sming.tab.h parser-sming.y ; \
-	    "$(BISON)" -d -o parser-sming.tab.h parser-sming.y ; \
+	    echo "$(BISON)" --defines=parser-sming.tab.h parser-sming.y ; \
+	    "$(BISON)" --defines=parser-sming.tab.h parser-sming.y ; \
 	else \
 	    echo "" ; \
 	    echo "NOTE: we cannot build the new parser-sming.tab.h from parser-sming.y" ; \
