@@ -1,3 +1,8 @@
+2005-12-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/{ENTITY-STATE-MIB,ENTITY-STATE-TC-MIB}:
+	  added (RFC 4268).
+
 2005-11-25  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/TE-LINK-STD-MIB: added (RFC 4220).
