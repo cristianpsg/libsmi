@@ -1,3 +1,7 @@
+2005-12-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/HDSL2-SHDSL-LINE-MIB: updated (RFC 4319).
+
 2005-12-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/{ENTITY-STATE-MIB,ENTITY-STATE-TC-MIB}:
