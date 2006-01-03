@@ -5,7 +5,7 @@ dnl Test for libsmi and defines the symbol LIBSMI if the test is
 dnl successful. Also defines HAVE_LIBSMI_H and adds -llibsmi to the 
 dnl LIBS variable.
 dnl 
-AC_DEFUN(AM_PATH_LIBSMI,
+AC_DEFUN([AM_PATH_LIBSMI],
 [
   AC_CHECK_HEADERS(smi.h)
   AC_CHECK_LIB(smi, smiInit)
