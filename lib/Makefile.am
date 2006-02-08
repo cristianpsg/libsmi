@@ -20,6 +20,10 @@ EXTRA_DIST		= parser-sming.y parser-smi.y \
 			  $(man_MANS)
 include_HEADERS		= smi.h
 CLEANFILES		= parser-smi.output parser-sming.output
+MAINTAINERCLEANFILES	= parser-smi.c parser-sming.c \
+			  scanner-smi.c scanner-sming.c \
+			  parser-smi.tab.h parser-sming.tab.h \
+			  errormacros.h
 man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
 			  smi_node.3 smi_type.3 smi_render.3
 lib_LTLIBRARIES		= libsmi.la
@@ -28,75 +32,17 @@ libsmi_la_SOURCES	= data.c check.c error.c util.c snprintf.c smi.c \
 		  	  parser-sming.c scanner-sming.c
 libsmi_la_LDFLAGS	= -version-info @VERSION_LIBTOOL@
 
-parser-smi.c: parser-smi.y scanner-smi.h parser-smi.h
-	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" -v -t -psmi parser-smi.y ; \
-	    "$(BISON)" -v -t  -psmi parser-smi.y ; \
-	else \
-	    echo "" ; \
-	    echo "NOTE: we cannot build the new parser-smi.c from parser-smi.y" ; \
-	    echo "" ; \
-	fi
-#	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-	sed -e 's/int yyparse (void);/int yyparse ();/' \
-	    parser-smi.tab.c > parser-smi.tmp && \
-	mv parser-smi.tmp parser-smi.c
-	rm parser-smi.tab.c
+parser-smi.c parser-smi.tab.h: parser-smi.y scanner-smi.h parser-smi.h
+	$(BISON) --defines=parser-smi.tab.h -t -psmi -o parser-smi.c parser-smi.y
 
 parser-sming.c: parser-sming.y scanner-sming.h parser-sming.h
-	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" -v -t -psming parser-sming.y ; \
-	    "$(BISON)" -v -t -psming parser-sming.y ; \
-	else \
-	    echo "" ; \
-	    echo "NOTE: we cannot build the new parser-sming.c from parser-sming.y" ; \
-	    echo "" ; \
-	fi
-#	# bison-1.25 has a wrong yyparse() definition for pure reentrant code.
-	sed -e 's/int yyparse (void);/int yyparse ();/' \
-	    parser-sming.tab.c > parser-sming.tmp && \
-	mv parser-sming.tmp parser-sming.c
-	rm parser-sming.tab.c
+	$(BISON) --defines=parser-sming.tab.h -t -psming -o parser-sming.c parser-sming.y
 
 scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h
-	@if [ "$(FLEX)" ] ; then \
-	    echo "$(FLEX) -Cfe -Psmi -t scanner-smi.l > scanner-smi.c" ; \
-	    "$(FLEX)" -Cfe -Psmi -t scanner-smi.l > scanner-smi.c ; \
-	else \
-	    echo "" ; \
-	    echo "NOTE: we cannot build the new scanner-smi.c from scanner-smi.l" ; \
-	    echo "" ; \
-	fi
+	$(FLEX) -Cfe -Psmi -t scanner-smi.l > scanner-smi.c
 
 scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
-	@if [ "$(FLEX)" ] ; then \
-	    echo "$(FLEX) -Cfe -Psming -t scanner-sming.l > scanner-sming.c" ; \
-	    "$(FLEX)" -Cfe -Psming -t scanner-sming.l > scanner-sming.c ; \
-	else \
-	    echo "" ; \
-	    echo "NOTE: we cannot build the new scanner-sming.c from scanner-sming.l" ; \
-	    echo "" ; \
-	fi
-
-parser-smi.tab.h: parser-smi.y
-	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" --defines=parser-smi.tab.h parser-smi.y ; \
-	    "$(BISON)" --defines=parser-smi.tab.h parser-smi.y ; \
-	else \
-	    echo "" ; \
-	    echo "NOTE: we cannot build the new parser-smi.tab.h from parser-smi.y" ; \
-	    echo "" ; \
-	fi
-
-parser-sming.tab.h: parser-sming.y
-	@if [ "$(BISON)" ] ; then \
-	    echo "$(BISON)" --defines=parser-sming.tab.h parser-sming.y ; \
-	    "$(BISON)" --defines=parser-sming.tab.h parser-sming.y ; \
-	else \
-	    echo "" ; \
-	    echo "NOTE: we cannot build the new parser-sming.tab.h from parser-sming.y" ; \
-	    echo "" ; \
-	fi
+	$(FLEX) -Cfe -Psming -t scanner-sming.l > scanner-sming.c
 
 error.h data.lo: errormacros.h
 
