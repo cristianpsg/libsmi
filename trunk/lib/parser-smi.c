@@ -1,110 +1,262 @@
-/* A Bison parser, made from parser-smi.y
-   by GNU bison 1.35.  */
+/* A Bison parser, made by GNU Bison 1.875d.  */
 
-#define YYBISON 1  /* Identify Bison output.  */
+/* Skeleton parser for Yacc-like parsing with Bison,
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.  */
+
+/* As a special exception, when this file is copied by Bison into a
+   Bison output file, you may use that output file without restriction.
+   This special exception was added by the Free Software Foundation
+   in version 1.24 of Bison.  */
+
+/* Written by Richard Stallman by simplifying the original so called
+   ``semantic'' parser.  */
+
+/* All symbols defined below should begin with yy or YY, to avoid
+   infringing on user name space.  This should be done even for local
+   variables, as they might otherwise be expanded by user macros.
+   There are some unavoidable exceptions within include files to
+   define necessary library symbols; they are noted "INFRINGES ON
+   USER NAME SPACE" below.  */
+
+/* Identify Bison output.  */
+#define YYBISON 1
+
+/* Skeleton name.  */
+#define YYSKELETON_NAME "yacc.c"
+
+/* Pure parsers.  */
+#define YYPURE 1
+
+/* Using locations.  */
+#define YYLSP_NEEDED 0
+
+/* If NAME_PREFIX is specified substitute the variables and functions
+   names.  */
 #define yyparse smiparse
-#define yylex smilex
+#define yylex   smilex
 #define yyerror smierror
-#define yylval smilval
-#define yychar smichar
+#define yylval  smilval
+#define yychar  smichar
 #define yydebug smidebug
 #define yynerrs sminerrs
-# define	DOT_DOT	257
-# define	COLON_COLON_EQUAL	258
-# define	UPPERCASE_IDENTIFIER	259
-# define	LOWERCASE_IDENTIFIER	260
-# define	NUMBER	261
-# define	NEGATIVENUMBER	262
-# define	NUMBER64	263
-# define	NEGATIVENUMBER64	264
-# define	BIN_STRING	265
-# define	HEX_STRING	266
-# define	QUOTED_STRING	267
-# define	ACCESS	268
-# define	AGENT_CAPABILITIES	269
-# define	APPLICATION	270
-# define	AUGMENTS	271
-# define	BEGIN_	272
-# define	BITS	273
-# define	CHOICE	274
-# define	CONTACT_INFO	275
-# define	CREATION_REQUIRES	276
-# define	COUNTER32	277
-# define	COUNTER64	278
-# define	DEFINITIONS	279
-# define	DEFVAL	280
-# define	DESCRIPTION	281
-# define	DISPLAY_HINT	282
-# define	END	283
-# define	ENTERPRISE	284
-# define	EXPORTS	285
-# define	EXTENDS	286
-# define	FROM	287
-# define	GROUP	288
-# define	GAUGE32	289
-# define	IDENTIFIER	290
-# define	IMPLICIT	291
-# define	IMPLIED	292
-# define	IMPORTS	293
-# define	INCLUDES	294
-# define	INDEX	295
-# define	INSTALL_ERRORS	296
-# define	INTEGER	297
-# define	INTEGER32	298
-# define	INTEGER64	299
-# define	IPADDRESS	300
-# define	LAST_UPDATED	301
-# define	MACRO	302
-# define	MANDATORY_GROUPS	303
-# define	MAX_ACCESS	304
-# define	MIN_ACCESS	305
-# define	MODULE	306
-# define	MODULE_COMPLIANCE	307
-# define	MODULE_IDENTITY	308
-# define	NOT_ACCESSIBLE	309
-# define	NOTIFICATIONS	310
-# define	NOTIFICATION_GROUP	311
-# define	NOTIFICATION_TYPE	312
-# define	OBJECT	313
-# define	OBJECT_GROUP	314
-# define	OBJECT_IDENTITY	315
-# define	OBJECT_TYPE	316
-# define	OBJECTS	317
-# define	OCTET	318
-# define	OF	319
-# define	ORGANIZATION	320
-# define	OPAQUE	321
-# define	PIB_ACCESS	322
-# define	PIB_DEFINITIONS	323
-# define	PIB_INDEX	324
-# define	PIB_MIN_ACCESS	325
-# define	PIB_REFERENCES	326
-# define	PIB_TAG	327
-# define	POLICY_ACCESS	328
-# define	PRODUCT_RELEASE	329
-# define	REFERENCE	330
-# define	REVISION	331
-# define	SEQUENCE	332
-# define	SIZE	333
-# define	STATUS	334
-# define	STRING	335
-# define	SUBJECT_CATEGORIES	336
-# define	SUPPORTS	337
-# define	SYNTAX	338
-# define	TEXTUAL_CONVENTION	339
-# define	TIMETICKS	340
-# define	TRAP_TYPE	341
-# define	UNIQUENESS	342
-# define	UNITS	343
-# define	UNIVERSAL	344
-# define	UNSIGNED32	345
-# define	UNSIGNED64	346
-# define	VALUE	347
-# define	VARIABLES	348
-# define	VARIATION	349
-# define	WRITE_SYNTAX	350
 
+
+/* Tokens.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     DOT_DOT = 258,
+     COLON_COLON_EQUAL = 259,
+     UPPERCASE_IDENTIFIER = 260,
+     LOWERCASE_IDENTIFIER = 261,
+     NUMBER = 262,
+     NEGATIVENUMBER = 263,
+     NUMBER64 = 264,
+     NEGATIVENUMBER64 = 265,
+     BIN_STRING = 266,
+     HEX_STRING = 267,
+     QUOTED_STRING = 268,
+     ACCESS = 269,
+     AGENT_CAPABILITIES = 270,
+     APPLICATION = 271,
+     AUGMENTS = 272,
+     BEGIN_ = 273,
+     BITS = 274,
+     CHOICE = 275,
+     CONTACT_INFO = 276,
+     CREATION_REQUIRES = 277,
+     COUNTER32 = 278,
+     COUNTER64 = 279,
+     DEFINITIONS = 280,
+     DEFVAL = 281,
+     DESCRIPTION = 282,
+     DISPLAY_HINT = 283,
+     END = 284,
+     ENTERPRISE = 285,
+     EXPORTS = 286,
+     EXTENDS = 287,
+     FROM = 288,
+     GROUP = 289,
+     GAUGE32 = 290,
+     IDENTIFIER = 291,
+     IMPLICIT = 292,
+     IMPLIED = 293,
+     IMPORTS = 294,
+     INCLUDES = 295,
+     INDEX = 296,
+     INSTALL_ERRORS = 297,
+     INTEGER = 298,
+     INTEGER32 = 299,
+     INTEGER64 = 300,
+     IPADDRESS = 301,
+     LAST_UPDATED = 302,
+     MACRO = 303,
+     MANDATORY_GROUPS = 304,
+     MAX_ACCESS = 305,
+     MIN_ACCESS = 306,
+     MODULE = 307,
+     MODULE_COMPLIANCE = 308,
+     MODULE_IDENTITY = 309,
+     NOT_ACCESSIBLE = 310,
+     NOTIFICATIONS = 311,
+     NOTIFICATION_GROUP = 312,
+     NOTIFICATION_TYPE = 313,
+     OBJECT = 314,
+     OBJECT_GROUP = 315,
+     OBJECT_IDENTITY = 316,
+     OBJECT_TYPE = 317,
+     OBJECTS = 318,
+     OCTET = 319,
+     OF = 320,
+     ORGANIZATION = 321,
+     OPAQUE = 322,
+     PIB_ACCESS = 323,
+     PIB_DEFINITIONS = 324,
+     PIB_INDEX = 325,
+     PIB_MIN_ACCESS = 326,
+     PIB_REFERENCES = 327,
+     PIB_TAG = 328,
+     POLICY_ACCESS = 329,
+     PRODUCT_RELEASE = 330,
+     REFERENCE = 331,
+     REVISION = 332,
+     SEQUENCE = 333,
+     SIZE = 334,
+     STATUS = 335,
+     STRING = 336,
+     SUBJECT_CATEGORIES = 337,
+     SUPPORTS = 338,
+     SYNTAX = 339,
+     TEXTUAL_CONVENTION = 340,
+     TIMETICKS = 341,
+     TRAP_TYPE = 342,
+     UNIQUENESS = 343,
+     UNITS = 344,
+     UNIVERSAL = 345,
+     UNSIGNED32 = 346,
+     UNSIGNED64 = 347,
+     VALUE = 348,
+     VARIABLES = 349,
+     VARIATION = 350,
+     WRITE_SYNTAX = 351
+   };
+#endif
+#define DOT_DOT 258
+#define COLON_COLON_EQUAL 259
+#define UPPERCASE_IDENTIFIER 260
+#define LOWERCASE_IDENTIFIER 261
+#define NUMBER 262
+#define NEGATIVENUMBER 263
+#define NUMBER64 264
+#define NEGATIVENUMBER64 265
+#define BIN_STRING 266
+#define HEX_STRING 267
+#define QUOTED_STRING 268
+#define ACCESS 269
+#define AGENT_CAPABILITIES 270
+#define APPLICATION 271
+#define AUGMENTS 272
+#define BEGIN_ 273
+#define BITS 274
+#define CHOICE 275
+#define CONTACT_INFO 276
+#define CREATION_REQUIRES 277
+#define COUNTER32 278
+#define COUNTER64 279
+#define DEFINITIONS 280
+#define DEFVAL 281
+#define DESCRIPTION 282
+#define DISPLAY_HINT 283
+#define END 284
+#define ENTERPRISE 285
+#define EXPORTS 286
+#define EXTENDS 287
+#define FROM 288
+#define GROUP 289
+#define GAUGE32 290
+#define IDENTIFIER 291
+#define IMPLICIT 292
+#define IMPLIED 293
+#define IMPORTS 294
+#define INCLUDES 295
+#define INDEX 296
+#define INSTALL_ERRORS 297
+#define INTEGER 298
+#define INTEGER32 299
+#define INTEGER64 300
+#define IPADDRESS 301
+#define LAST_UPDATED 302
+#define MACRO 303
+#define MANDATORY_GROUPS 304
+#define MAX_ACCESS 305
+#define MIN_ACCESS 306
+#define MODULE 307
+#define MODULE_COMPLIANCE 308
+#define MODULE_IDENTITY 309
+#define NOT_ACCESSIBLE 310
+#define NOTIFICATIONS 311
+#define NOTIFICATION_GROUP 312
+#define NOTIFICATION_TYPE 313
+#define OBJECT 314
+#define OBJECT_GROUP 315
+#define OBJECT_IDENTITY 316
+#define OBJECT_TYPE 317
+#define OBJECTS 318
+#define OCTET 319
+#define OF 320
+#define ORGANIZATION 321
+#define OPAQUE 322
+#define PIB_ACCESS 323
+#define PIB_DEFINITIONS 324
+#define PIB_INDEX 325
+#define PIB_MIN_ACCESS 326
+#define PIB_REFERENCES 327
+#define PIB_TAG 328
+#define POLICY_ACCESS 329
+#define PRODUCT_RELEASE 330
+#define REFERENCE 331
+#define REVISION 332
+#define SEQUENCE 333
+#define SIZE 334
+#define STATUS 335
+#define STRING 336
+#define SUBJECT_CATEGORIES 337
+#define SUPPORTS 338
+#define SYNTAX 339
+#define TEXTUAL_CONVENTION 340
+#define TIMETICKS 341
+#define TRAP_TYPE 342
+#define UNIQUENESS 343
+#define UNITS 344
+#define UNIVERSAL 345
+#define UNSIGNED32 346
+#define UNSIGNED64 347
+#define VALUE 348
+#define VARIABLES 349
+#define VARIATION 350
+#define WRITE_SYNTAX 351
+
+
+
+
+/* Copy the first part of user declarations.  */
 #line 14 "parser-smi.y"
 
 
@@ -1365,9 +1517,23 @@ checkDate(Parser *parserPtr, char *date)
 }
 
 
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
+
+/* Enabling verbose error messages.  */
+#ifdef YYERROR_VERBOSE
+# undef YYERROR_VERBOSE
+# define YYERROR_VERBOSE 1
+#else
+# define YYERROR_VERBOSE 0
+#endif
+
+#if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
 #line 1292 "parser-smi.y"
-#ifndef YYSTYPE
-typedef union {
+typedef union YYSTYPE {
     char           *text;	  		/* scanned quoted text       */
     char           *id;				/* identifier name           */
     int            err;				/* actually just a dummy     */
@@ -1388,25 +1554,146 @@ typedef union {
     struct Index   index;
     Module	   *modulePtr;
     SubjectCategories *subjectCategoriesPtr;
-} yystype;
-# define YYSTYPE yystype
+} YYSTYPE;
+/* Line 191 of yacc.c.  */
+#line 1560 "parser-smi.c"
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
-#ifndef YYDEBUG
-# define YYDEBUG 1
+
+
+
+/* Copy the second part of user declarations.  */
+
+
+/* Line 214 of yacc.c.  */
+#line 1572 "parser-smi.c"
+
+#if ! defined (yyoverflow) || YYERROR_VERBOSE
+
+# ifndef YYFREE
+#  define YYFREE free
+# endif
+# ifndef YYMALLOC
+#  define YYMALLOC malloc
+# endif
+
+/* The parser invokes alloca or malloc; define the necessary symbols.  */
+
+# ifdef YYSTACK_USE_ALLOCA
+#  if YYSTACK_USE_ALLOCA
+#   define YYSTACK_ALLOC alloca
+#  endif
+# else
+#  if defined (alloca) || defined (_ALLOCA_H)
+#   define YYSTACK_ALLOC alloca
+#  else
+#   ifdef __GNUC__
+#    define YYSTACK_ALLOC __builtin_alloca
+#   endif
+#  endif
+# endif
+
+# ifdef YYSTACK_ALLOC
+   /* Pacify GCC's `empty if-body' warning. */
+#  define YYSTACK_FREE(Ptr) do { /* empty */; } while (0)
+# else
+#  if defined (__STDC__) || defined (__cplusplus)
+#   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
+#   define YYSIZE_T size_t
+#  endif
+#  define YYSTACK_ALLOC YYMALLOC
+#  define YYSTACK_FREE YYFREE
+# endif
+#endif /* ! defined (yyoverflow) || YYERROR_VERBOSE */
+
+
+#if (! defined (yyoverflow) \
+     && (! defined (__cplusplus) \
+	 || (defined (YYSTYPE_IS_TRIVIAL) && YYSTYPE_IS_TRIVIAL)))
+
+/* A type that is properly aligned for any stack member.  */
+union yyalloc
+{
+  short int yyss;
+  YYSTYPE yyvs;
+  };
+
+/* The size of the maximum gap between one aligned stack and the next.  */
+# define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
+
+/* The size of an array large to enough to hold all stacks, each with
+   N elements.  */
+# define YYSTACK_BYTES(N) \
+     ((N) * (sizeof (short int) + sizeof (YYSTYPE))			\
+      + YYSTACK_GAP_MAXIMUM)
+
+/* Copy COUNT objects from FROM to TO.  The source and destination do
+   not overlap.  */
+# ifndef YYCOPY
+#  if defined (__GNUC__) && 1 < __GNUC__
+#   define YYCOPY(To, From, Count) \
+      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
+#  else
+#   define YYCOPY(To, From, Count)		\
+      do					\
+	{					\
+	  register YYSIZE_T yyi;		\
+	  for (yyi = 0; yyi < (Count); yyi++)	\
+	    (To)[yyi] = (From)[yyi];		\
+	}					\
+      while (0)
+#  endif
+# endif
+
+/* Relocate STACK from its old location to the new one.  The
+   local variables YYSIZE and YYSTACKSIZE give the old and new number of
+   elements in the stack, and YYPTR gives the new location of the
+   stack.  Advance YYPTR to a properly aligned location for the next
+   stack.  */
+# define YYSTACK_RELOCATE(Stack)					\
+    do									\
+      {									\
+	YYSIZE_T yynewbytes;						\
+	YYCOPY (&yyptr->Stack, Stack, yysize);				\
+	Stack = &yyptr->Stack;						\
+	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
+	yyptr += yynewbytes / sizeof (*yyptr);				\
+      }									\
+    while (0)
+
 #endif
 
+#if defined (__STDC__) || defined (__cplusplus)
+   typedef signed char yysigned_char;
+#else
+   typedef short int yysigned_char;
+#endif
 
+/* YYFINAL -- State number of the termination state. */
+#define YYFINAL  6
+/* YYLAST -- Last index in YYTABLE.  */
+#define YYLAST   664
 
-#define	YYFINAL		712
-#define	YYFLAG		-32768
-#define	YYNTBASE	107
+/* YYNTOKENS -- Number of terminals. */
+#define YYNTOKENS  107
+/* YYNNTS -- Number of nonterminals. */
+#define YYNNTS  224
+/* YYNRULES -- Number of rules. */
+#define YYNRULES  427
+/* YYNRULES -- Number of states. */
+#define YYNSTATES  712
 
-/* YYTRANSLATE(YYLEX) -- Bison token number corresponding to YYLEX. */
-#define YYTRANSLATE(x) ((unsigned)(x) <= 350 ? yytranslate[x] : 330)
+/* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
+#define YYUNDEFTOK  2
+#define YYMAXUTOK   351
 
-/* YYTRANSLATE[YYLEX] -- Bison token number corresponding to YYLEX. */
-static const char yytranslate[] =
+#define YYTRANSLATE(YYX) 						\
+  ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
+
+/* YYTRANSLATE[YYLEX] -- Bison symbol number corresponding to YYLEX.  */
+static const unsigned char yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -1433,910 +1720,874 @@ static const char yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     1,     3,     4,     5,
-       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-      16,    17,    18,    19,    20,    21,    22,    23,    24,    25,
-      26,    27,    28,    29,    30,    31,    32,    33,    34,    35,
-      36,    37,    38,    39,    40,    41,    42,    43,    44,    45,
-      46,    47,    48,    49,    50,    51,    52,    53,    54,    55,
-      56,    57,    58,    59,    60,    61,    62,    63,    64,    65,
-      66,    67,    68,    69,    70,    71,    72,    73,    74,    75,
-      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
-      86,    87,    88,    89,    90,    91,    92,    93,    94,    95,
-      96
+       2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
+      55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
+      65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
+      75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,    94,
+      95,    96
 };
 
 #if YYDEBUG
-static const short yyprhs[] =
+/* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
+   YYRHS.  */
+static const unsigned short int yyprhs[] =
 {
-       0,     0,     2,     3,     5,     8,     9,    20,    24,    25,
-      27,    29,    31,    32,    36,    37,    38,    42,    44,    45,
-      47,    50,    54,    56,    60,    62,    64,    66,    68,    70,
-      72,    74,    76,    78,    80,    82,    84,    86,    88,    90,
-      92,    94,    96,    98,   100,   102,   104,   106,   108,   110,
-     112,   114,   116,   118,   119,   121,   124,   126,   128,   130,
-     132,   134,   136,   138,   140,   142,   144,   146,   148,   151,
-     152,   153,   159,   161,   163,   165,   167,   169,   171,   173,
-     175,   177,   179,   180,   184,   186,   188,   189,   198,   199,
-     204,   206,   208,   210,   212,   214,   216,   218,   220,   222,
-     224,   226,   228,   230,   232,   234,   236,   237,   238,   250,
-     252,   256,   258,   263,   265,   269,   272,   274,   279,   281,
-     283,   286,   288,   292,   293,   299,   300,   301,   302,   317,
-     318,   319,   343,   344,   347,   348,   349,   361,   366,   367,
-     369,   373,   375,   378,   379,   381,   383,   384,   387,   389,
-     391,   392,   398,   399,   400,   406,   407,   408,   414,   415,
-     417,   418,   420,   424,   426,   427,   433,   434,   436,   440,
-     445,   446,   450,   451,   455,   456,   457,   458,   474,   475,
-     476,   477,   478,   479,   480,   481,   482,   507,   512,   513,
-     515,   517,   521,   523,   528,   530,   533,   535,   537,   539,
-     541,   547,   553,   555,   557,   559,   561,   562,   566,   567,
-     571,   573,   574,   578,   579,   583,   588,   591,   596,   599,
-     600,   605,   608,   613,   617,   619,   621,   623,   625,   627,
-     629,   631,   633,   637,   640,   643,   647,   651,   654,   657,
-     660,   662,   665,   667,   670,   673,   675,   678,   681,   684,
-     686,   689,   691,   694,   697,   700,   703,   706,   709,   711,
-     714,   716,   718,   720,   722,   724,   725,   729,   736,   738,
-     742,   744,   748,   750,   752,   754,   756,   758,   760,   764,
-     766,   770,   771,   777,   779,   781,   783,   785,   788,   789,
-     792,   793,   795,   796,   802,   807,   808,   814,   815,   816,
-     822,   823,   825,   829,   832,   834,   836,   838,   843,   844,
-     846,   850,   852,   853,   855,   859,   861,   863,   866,   867,
-     869,   870,   872,   875,   876,   882,   887,   888,   893,   895,
-     899,   901,   906,   908,   912,   914,   916,   918,   919,   922,
-     924,   927,   929,   933,   935,   940,   947,   949,   951,   954,
-     959,   961,   962,   963,   964,   980,   981,   982,   983,   999,
-    1000,  1001,  1002,  1018,  1020,  1022,  1025,  1026,  1032,  1035,
-    1037,  1038,  1043,  1044,  1046,  1050,  1052,  1054,  1055,  1057,
-    1060,  1062,  1064,  1065,  1071,  1072,  1081,  1084,  1085,  1088,
-    1089,  1091,  1094,  1097,  1098,  1099,  1100,  1101,  1119,  1121,
-    1122,  1124,  1127,  1128,  1137,  1139,  1143,  1145,  1148,  1150,
-    1152,  1153,  1155,  1158,  1159,  1160,  1161,  1162,  1163,  1178,
-    1181,  1182,  1184,  1189,  1190,  1192,  1196
-};
-static const short yyrhs[] =
-{
-     108,     0,     0,   109,     0,   108,   109,     0,     0,   125,
-     110,   111,   112,     4,    18,   115,   113,   126,    29,     0,
-      97,   268,    98,     0,     0,    25,     0,    69,     0,   114,
-       0,     0,    39,   117,    99,     0,     0,     0,    31,   116,
-      99,     0,   118,     0,     0,   119,     0,   118,   119,     0,
-     120,    33,   125,     0,   121,     0,   120,   100,   121,     0,
-       6,     0,     5,     0,   122,     0,   123,     0,   124,     0,
-      19,     0,    44,     0,    46,     0,    49,     0,    53,     0,
-      54,     0,    60,     0,    61,     0,    62,     0,    67,     0,
-      85,     0,    86,     0,    91,     0,    15,     0,    23,     0,
-      24,     0,    35,     0,    57,     0,    58,     0,    87,     0,
-      45,     0,    92,     0,     5,     0,   127,     0,     0,   128,
-       0,   127,   128,     0,   138,     0,   136,     0,   158,     0,
-     162,     0,   166,     0,   192,     0,   196,     0,   283,     0,
-     275,     0,   279,     0,   306,     0,   129,     0,     1,    98,
-       0,     0,     0,   132,   130,    48,   131,    29,     0,    54,
-       0,    62,     0,    87,     0,    58,     0,    61,     0,    85,
-       0,    60,     0,    57,     0,    53,     0,    15,     0,     0,
-      20,   134,    98,     0,     6,     0,     5,     0,     0,   135,
-     137,    59,    36,     4,    97,   268,    98,     0,     0,   140,
-     139,     4,   145,     0,     5,     0,   141,     0,   144,     0,
-     142,     0,   143,     0,    46,     0,    86,     0,    67,     0,
-      44,     0,    91,     0,    23,     0,    35,     0,    24,     0,
-      45,     0,    92,     0,   153,     0,     0,     0,    85,   146,
-     236,    80,   234,    27,   266,   147,   254,    84,   153,     0,
-     133,     0,    78,    65,   149,     0,     5,     0,    78,    97,
-     151,    98,     0,   152,     0,   151,   100,   152,     0,     6,
-     154,     0,   209,     0,    19,    97,   155,    98,     0,   211,
-       0,    19,     0,     5,   223,     0,   156,     0,   155,   100,
-     156,     0,     0,     6,   157,   101,     7,   102,     0,     0,
-       0,     0,     6,   159,    61,   160,    80,   234,    27,   266,
-     161,   254,     4,    97,   268,    98,     0,     0,     0,     6,
-     163,    62,   164,    84,   153,   237,   173,   176,   178,    80,
-     234,   165,   185,   254,   239,   242,   180,   248,     4,    97,
-     252,    98,     0,     0,    27,   266,     0,     0,     0,   135,
-     167,    87,   168,    30,   268,   169,   172,   254,     4,     7,
-       0,    94,    97,   170,    98,     0,     0,   171,     0,   170,
-     100,   171,     0,   252,     0,    27,   266,     0,     0,   189,
-       0,   174,     0,     0,   175,   238,     0,    74,     0,    68,
-       0,     0,    72,   177,    97,   247,    98,     0,     0,     0,
-      73,   179,    97,   252,    98,     0,     0,     0,    88,   181,
-      97,   182,    98,     0,     0,   183,     0,     0,   184,     0,
-     183,   100,   184,     0,   252,     0,     0,    42,   186,    97,
-     187,    98,     0,     0,   188,     0,   187,   100,   188,     0,
-       6,   101,     7,   102,     0,     0,    50,   190,   238,     0,
-       0,    14,   191,   238,     0,     0,     0,     0,     6,   193,
-      58,   194,   259,    80,   234,    27,   266,   195,   254,     4,
-      97,   253,    98,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     6,   197,    54,   198,   205,   199,    47,   267,
-     200,    66,   266,   201,    21,   266,   202,    27,   266,   203,
-     255,   204,     4,    97,   268,    98,     0,    82,    97,   206,
-      98,     0,     0,   207,     0,   208,     0,   207,   100,   208,
-       0,     6,     0,     6,   101,     7,   102,     0,   213,     0,
-     210,   213,     0,   148,     0,   149,     0,   150,     0,   221,
-       0,   103,    16,     7,   104,    37,     0,   103,    90,     7,
-     104,    37,     0,   220,     0,   222,     0,   219,     0,    43,
-       0,     0,    43,   214,   224,     0,     0,    43,   215,   229,
-       0,    44,     0,     0,    44,   216,   224,     0,     0,     5,
-     217,   229,     0,   125,   105,     5,   229,     0,     5,   224,
-       0,   125,   105,     5,   224,     0,    64,    81,     0,     0,
-      64,    81,   218,   225,     0,     5,   225,     0,   125,   105,
-       5,   225,     0,    59,    36,   223,     0,     7,     0,     8,
-       0,     9,     0,    10,     0,    11,     0,    12,     0,     6,
-       0,    13,     0,    97,   272,    98,     0,    43,   223,     0,
-      44,   223,     0,    64,    81,   223,     0,    59,    36,   223,
-       0,    46,   223,     0,    23,   223,     0,    23,   224,     0,
-      35,     0,    35,   224,     0,    91,     0,    91,   224,     0,
-      86,   223,     0,    67,     0,    67,   225,     0,    24,   223,
-       0,    24,   224,     0,    45,     0,    45,   224,     0,    92,
-       0,    92,   224,     0,    46,   223,     0,    23,   223,     0,
-      35,   223,     0,    91,   223,     0,    86,   223,     0,    67,
-       0,    24,   223,     0,    45,     0,    92,     0,   224,     0,
-     225,     0,   229,     0,     0,   101,   226,   102,     0,   101,
-      79,   101,   226,   102,   102,     0,   227,     0,   226,   106,
-     227,     0,   228,     0,   228,     3,   228,     0,     8,     0,
-       7,     0,    10,     0,     9,     0,    12,     0,    11,     0,
-      97,   230,    98,     0,   231,     0,   230,   100,   231,     0,
-       0,     6,   232,   101,   233,   102,     0,     7,     0,     8,
-       0,     6,     0,     6,     0,    28,   266,     0,     0,    89,
-     266,     0,     0,     6,     0,     0,    70,   240,    97,   247,
-      98,     0,    17,    97,   247,    98,     0,     0,    32,   241,
-      97,   247,    98,     0,     0,     0,    41,   243,    97,   244,
-      98,     0,     0,   245,     0,   244,   100,   245,     0,    38,
-     246,     0,   246,     0,   252,     0,   252,     0,    26,    97,
-     249,    98,     0,     0,   212,     0,    97,   250,    98,     0,
-     251,     0,     0,     6,     0,   251,   100,     6,     0,   268,
-       0,   268,     0,    76,   266,     0,     0,   256,     0,     0,
-     257,     0,   256,   257,     0,     0,    77,   267,   258,    27,
-     266,     0,    63,    97,   261,    98,     0,     0,    63,    97,
-     261,    98,     0,   262,     0,   261,   100,   262,     0,   252,
-       0,    56,    97,   264,    98,     0,   265,     0,   264,   100,
-     265,     0,   253,     0,    13,     0,    13,     0,     0,   269,
-     270,     0,   271,     0,   270,   271,     0,   135,     0,   125,
-     105,     6,     0,     7,     0,     6,   101,     7,   102,     0,
-     125,   105,     6,   101,     7,   102,     0,   273,     0,   274,
-       0,   273,   274,     0,     6,   101,     7,   102,     0,     7,
-       0,     0,     0,     0,     6,   276,    60,   277,   260,    80,
-     234,    27,   266,   278,   254,     4,    97,   268,    98,     0,
-       0,     0,     0,     6,   280,    57,   281,   263,    80,   234,
-      27,   266,   282,   254,     4,    97,   268,    98,     0,     0,
-       0,     0,     6,   284,    53,   285,    80,   234,    27,   266,
-     286,   254,   287,     4,    97,   268,    98,     0,   288,     0,
-     289,     0,   288,   289,     0,     0,    52,   291,   290,   292,
-     295,     0,     5,   268,     0,     5,     0,     0,    49,    97,
-     293,    98,     0,     0,   294,     0,   293,   100,   294,     0,
-     268,     0,   296,     0,     0,   297,     0,   296,   297,     0,
-     298,     0,   300,     0,     0,    34,   299,   268,    27,   266,
-       0,     0,    59,   301,   252,   302,   303,   305,    27,   266,
-       0,    84,   153,     0,     0,    96,   304,     0,     0,   153,
-       0,    51,   238,     0,    71,   238,     0,     0,     0,     0,
-       0,     6,   307,    15,   308,    75,   266,    80,   235,    27,
-     266,   309,   254,   310,     4,    97,   268,    98,     0,   311,
-       0,     0,   312,     0,   311,   312,     0,     0,    83,   316,
-     313,    40,    97,   314,    98,   317,     0,   315,     0,   314,
-     100,   315,     0,   268,     0,     5,   268,     0,     5,     0,
-     318,     0,     0,   319,     0,   318,   319,     0,     0,     0,
-       0,     0,     0,    95,   252,   320,   302,   321,   303,   322,
-     325,   327,   323,   248,   324,    27,   266,     0,    14,   326,
-       0,     0,     6,     0,    22,    97,   328,    98,     0,     0,
-     329,     0,   328,   100,   329,     0,   252,     0
+       0,     0,     3,     5,     6,     8,    11,    12,    23,    27,
+      28,    30,    32,    34,    35,    39,    40,    41,    45,    47,
+      48,    50,    53,    57,    59,    63,    65,    67,    69,    71,
+      73,    75,    77,    79,    81,    83,    85,    87,    89,    91,
+      93,    95,    97,    99,   101,   103,   105,   107,   109,   111,
+     113,   115,   117,   119,   121,   122,   124,   127,   129,   131,
+     133,   135,   137,   139,   141,   143,   145,   147,   149,   151,
+     154,   155,   156,   162,   164,   166,   168,   170,   172,   174,
+     176,   178,   180,   182,   183,   187,   189,   191,   192,   201,
+     202,   207,   209,   211,   213,   215,   217,   219,   221,   223,
+     225,   227,   229,   231,   233,   235,   237,   239,   240,   241,
+     253,   255,   259,   261,   266,   268,   272,   275,   277,   282,
+     284,   286,   289,   291,   295,   296,   302,   303,   304,   305,
+     320,   321,   322,   346,   347,   350,   351,   352,   364,   369,
+     370,   372,   376,   378,   381,   382,   384,   386,   387,   390,
+     392,   394,   395,   401,   402,   403,   409,   410,   411,   417,
+     418,   420,   421,   423,   427,   429,   430,   436,   437,   439,
+     443,   448,   449,   453,   454,   458,   459,   460,   461,   477,
+     478,   479,   480,   481,   482,   483,   484,   485,   510,   515,
+     516,   518,   520,   524,   526,   531,   533,   536,   538,   540,
+     542,   544,   550,   556,   558,   560,   562,   564,   565,   569,
+     570,   574,   576,   577,   581,   582,   586,   591,   594,   599,
+     602,   603,   608,   611,   616,   620,   622,   624,   626,   628,
+     630,   632,   634,   636,   640,   643,   646,   650,   654,   657,
+     660,   663,   665,   668,   670,   673,   676,   678,   681,   684,
+     687,   689,   692,   694,   697,   700,   703,   706,   709,   712,
+     714,   717,   719,   721,   723,   725,   727,   728,   732,   739,
+     741,   745,   747,   751,   753,   755,   757,   759,   761,   763,
+     767,   769,   773,   774,   780,   782,   784,   786,   788,   791,
+     792,   795,   796,   798,   799,   805,   810,   811,   817,   818,
+     819,   825,   826,   828,   832,   835,   837,   839,   841,   846,
+     847,   849,   853,   855,   856,   858,   862,   864,   866,   869,
+     870,   872,   873,   875,   878,   879,   885,   890,   891,   896,
+     898,   902,   904,   909,   911,   915,   917,   919,   921,   922,
+     925,   927,   930,   932,   936,   938,   943,   950,   952,   954,
+     957,   962,   964,   965,   966,   967,   983,   984,   985,   986,
+    1002,  1003,  1004,  1005,  1021,  1023,  1025,  1028,  1029,  1035,
+    1038,  1040,  1041,  1046,  1047,  1049,  1053,  1055,  1057,  1058,
+    1060,  1063,  1065,  1067,  1068,  1074,  1075,  1084,  1087,  1088,
+    1091,  1092,  1094,  1097,  1100,  1101,  1102,  1103,  1104,  1122,
+    1124,  1125,  1127,  1130,  1131,  1140,  1142,  1146,  1148,  1151,
+    1153,  1155,  1156,  1158,  1161,  1162,  1163,  1164,  1165,  1166,
+    1181,  1184,  1185,  1187,  1192,  1193,  1195,  1199
 };
 
+/* YYRHS -- A `-1'-separated list of the rules' RHS. */
+static const short int yyrhs[] =
+{
+     108,     0,    -1,   109,    -1,    -1,   110,    -1,   109,   110,
+      -1,    -1,   126,   111,   112,   113,     4,    18,   116,   114,
+     127,    29,    -1,    97,   269,    98,    -1,    -1,    25,    -1,
+      69,    -1,   115,    -1,    -1,    39,   118,    99,    -1,    -1,
+      -1,    31,   117,    99,    -1,   119,    -1,    -1,   120,    -1,
+     119,   120,    -1,   121,    33,   126,    -1,   122,    -1,   121,
+     100,   122,    -1,     6,    -1,     5,    -1,   123,    -1,   124,
+      -1,   125,    -1,    19,    -1,    44,    -1,    46,    -1,    49,
+      -1,    53,    -1,    54,    -1,    60,    -1,    61,    -1,    62,
+      -1,    67,    -1,    85,    -1,    86,    -1,    91,    -1,    15,
+      -1,    23,    -1,    24,    -1,    35,    -1,    57,    -1,    58,
+      -1,    87,    -1,    45,    -1,    92,    -1,     5,    -1,   128,
+      -1,    -1,   129,    -1,   128,   129,    -1,   139,    -1,   137,
+      -1,   159,    -1,   163,    -1,   167,    -1,   193,    -1,   197,
+      -1,   284,    -1,   276,    -1,   280,    -1,   307,    -1,   130,
+      -1,     1,    98,    -1,    -1,    -1,   133,   131,    48,   132,
+      29,    -1,    54,    -1,    62,    -1,    87,    -1,    58,    -1,
+      61,    -1,    85,    -1,    60,    -1,    57,    -1,    53,    -1,
+      15,    -1,    -1,    20,   135,    98,    -1,     6,    -1,     5,
+      -1,    -1,   136,   138,    59,    36,     4,    97,   269,    98,
+      -1,    -1,   141,   140,     4,   146,    -1,     5,    -1,   142,
+      -1,   145,    -1,   143,    -1,   144,    -1,    46,    -1,    86,
+      -1,    67,    -1,    44,    -1,    91,    -1,    23,    -1,    35,
+      -1,    24,    -1,    45,    -1,    92,    -1,   154,    -1,    -1,
+      -1,    85,   147,   237,    80,   235,    27,   267,   148,   255,
+      84,   154,    -1,   134,    -1,    78,    65,   150,    -1,     5,
+      -1,    78,    97,   152,    98,    -1,   153,    -1,   152,   100,
+     153,    -1,     6,   155,    -1,   210,    -1,    19,    97,   156,
+      98,    -1,   212,    -1,    19,    -1,     5,   224,    -1,   157,
+      -1,   156,   100,   157,    -1,    -1,     6,   158,   101,     7,
+     102,    -1,    -1,    -1,    -1,     6,   160,    61,   161,    80,
+     235,    27,   267,   162,   255,     4,    97,   269,    98,    -1,
+      -1,    -1,     6,   164,    62,   165,    84,   154,   238,   174,
+     177,   179,    80,   235,   166,   186,   255,   240,   243,   181,
+     249,     4,    97,   253,    98,    -1,    -1,    27,   267,    -1,
+      -1,    -1,   136,   168,    87,   169,    30,   269,   170,   173,
+     255,     4,     7,    -1,    94,    97,   171,    98,    -1,    -1,
+     172,    -1,   171,   100,   172,    -1,   253,    -1,    27,   267,
+      -1,    -1,   190,    -1,   175,    -1,    -1,   176,   239,    -1,
+      74,    -1,    68,    -1,    -1,    72,   178,    97,   248,    98,
+      -1,    -1,    -1,    73,   180,    97,   253,    98,    -1,    -1,
+      -1,    88,   182,    97,   183,    98,    -1,    -1,   184,    -1,
+      -1,   185,    -1,   184,   100,   185,    -1,   253,    -1,    -1,
+      42,   187,    97,   188,    98,    -1,    -1,   189,    -1,   188,
+     100,   189,    -1,     6,   101,     7,   102,    -1,    -1,    50,
+     191,   239,    -1,    -1,    14,   192,   239,    -1,    -1,    -1,
+      -1,     6,   194,    58,   195,   260,    80,   235,    27,   267,
+     196,   255,     4,    97,   254,    98,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,     6,   198,    54,   199,   206,
+     200,    47,   268,   201,    66,   267,   202,    21,   267,   203,
+      27,   267,   204,   256,   205,     4,    97,   269,    98,    -1,
+      82,    97,   207,    98,    -1,    -1,   208,    -1,   209,    -1,
+     208,   100,   209,    -1,     6,    -1,     6,   101,     7,   102,
+      -1,   214,    -1,   211,   214,    -1,   149,    -1,   150,    -1,
+     151,    -1,   222,    -1,   103,    16,     7,   104,    37,    -1,
+     103,    90,     7,   104,    37,    -1,   221,    -1,   223,    -1,
+     220,    -1,    43,    -1,    -1,    43,   215,   225,    -1,    -1,
+      43,   216,   230,    -1,    44,    -1,    -1,    44,   217,   225,
+      -1,    -1,     5,   218,   230,    -1,   126,   105,     5,   230,
+      -1,     5,   225,    -1,   126,   105,     5,   225,    -1,    64,
+      81,    -1,    -1,    64,    81,   219,   226,    -1,     5,   226,
+      -1,   126,   105,     5,   226,    -1,    59,    36,   224,    -1,
+       7,    -1,     8,    -1,     9,    -1,    10,    -1,    11,    -1,
+      12,    -1,     6,    -1,    13,    -1,    97,   273,    98,    -1,
+      43,   224,    -1,    44,   224,    -1,    64,    81,   224,    -1,
+      59,    36,   224,    -1,    46,   224,    -1,    23,   224,    -1,
+      23,   225,    -1,    35,    -1,    35,   225,    -1,    91,    -1,
+      91,   225,    -1,    86,   224,    -1,    67,    -1,    67,   226,
+      -1,    24,   224,    -1,    24,   225,    -1,    45,    -1,    45,
+     225,    -1,    92,    -1,    92,   225,    -1,    46,   224,    -1,
+      23,   224,    -1,    35,   224,    -1,    91,   224,    -1,    86,
+     224,    -1,    67,    -1,    24,   224,    -1,    45,    -1,    92,
+      -1,   225,    -1,   226,    -1,   230,    -1,    -1,   101,   227,
+     102,    -1,   101,    79,   101,   227,   102,   102,    -1,   228,
+      -1,   227,   106,   228,    -1,   229,    -1,   229,     3,   229,
+      -1,     8,    -1,     7,    -1,    10,    -1,     9,    -1,    12,
+      -1,    11,    -1,    97,   231,    98,    -1,   232,    -1,   231,
+     100,   232,    -1,    -1,     6,   233,   101,   234,   102,    -1,
+       7,    -1,     8,    -1,     6,    -1,     6,    -1,    28,   267,
+      -1,    -1,    89,   267,    -1,    -1,     6,    -1,    -1,    70,
+     241,    97,   248,    98,    -1,    17,    97,   248,    98,    -1,
+      -1,    32,   242,    97,   248,    98,    -1,    -1,    -1,    41,
+     244,    97,   245,    98,    -1,    -1,   246,    -1,   245,   100,
+     246,    -1,    38,   247,    -1,   247,    -1,   253,    -1,   253,
+      -1,    26,    97,   250,    98,    -1,    -1,   213,    -1,    97,
+     251,    98,    -1,   252,    -1,    -1,     6,    -1,   252,   100,
+       6,    -1,   269,    -1,   269,    -1,    76,   267,    -1,    -1,
+     257,    -1,    -1,   258,    -1,   257,   258,    -1,    -1,    77,
+     268,   259,    27,   267,    -1,    63,    97,   262,    98,    -1,
+      -1,    63,    97,   262,    98,    -1,   263,    -1,   262,   100,
+     263,    -1,   253,    -1,    56,    97,   265,    98,    -1,   266,
+      -1,   265,   100,   266,    -1,   254,    -1,    13,    -1,    13,
+      -1,    -1,   270,   271,    -1,   272,    -1,   271,   272,    -1,
+     136,    -1,   126,   105,     6,    -1,     7,    -1,     6,   101,
+       7,   102,    -1,   126,   105,     6,   101,     7,   102,    -1,
+     274,    -1,   275,    -1,   274,   275,    -1,     6,   101,     7,
+     102,    -1,     7,    -1,    -1,    -1,    -1,     6,   277,    60,
+     278,   261,    80,   235,    27,   267,   279,   255,     4,    97,
+     269,    98,    -1,    -1,    -1,    -1,     6,   281,    57,   282,
+     264,    80,   235,    27,   267,   283,   255,     4,    97,   269,
+      98,    -1,    -1,    -1,    -1,     6,   285,    53,   286,    80,
+     235,    27,   267,   287,   255,   288,     4,    97,   269,    98,
+      -1,   289,    -1,   290,    -1,   289,   290,    -1,    -1,    52,
+     292,   291,   293,   296,    -1,     5,   269,    -1,     5,    -1,
+      -1,    49,    97,   294,    98,    -1,    -1,   295,    -1,   294,
+     100,   295,    -1,   269,    -1,   297,    -1,    -1,   298,    -1,
+     297,   298,    -1,   299,    -1,   301,    -1,    -1,    34,   300,
+     269,    27,   267,    -1,    -1,    59,   302,   253,   303,   304,
+     306,    27,   267,    -1,    84,   154,    -1,    -1,    96,   305,
+      -1,    -1,   154,    -1,    51,   239,    -1,    71,   239,    -1,
+      -1,    -1,    -1,    -1,     6,   308,    15,   309,    75,   267,
+      80,   236,    27,   267,   310,   255,   311,     4,    97,   269,
+      98,    -1,   312,    -1,    -1,   313,    -1,   312,   313,    -1,
+      -1,    83,   317,   314,    40,    97,   315,    98,   318,    -1,
+     316,    -1,   315,   100,   316,    -1,   269,    -1,     5,   269,
+      -1,     5,    -1,   319,    -1,    -1,   320,    -1,   319,   320,
+      -1,    -1,    -1,    -1,    -1,    -1,    95,   253,   321,   303,
+     322,   304,   323,   326,   328,   324,   249,   325,    27,   267,
+      -1,    14,   327,    -1,    -1,     6,    -1,    22,    97,   329,
+      98,    -1,    -1,   330,    -1,   329,   100,   330,    -1,   253,
+      -1
+};
+
+/* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
+static const unsigned short int yyrline[] =
+{
+       0,  1590,  1590,  1595,  1600,  1602,  1611,  1610,  1672,  1675,
+    1678,  1680,  1689,  1692,  1695,  1710,  1712,  1711,  1732,  1735,
+    1739,  1741,  1745,  1790,  1792,  1800,  1806,  1812,  1828,  1838,
+    1844,  1845,  1846,  1847,  1848,  1849,  1850,  1851,  1852,  1853,
+    1854,  1855,  1856,  1859,  1860,  1861,  1862,  1863,  1864,  1865,
+    1868,  1869,  1872,  1884,  1887,  1891,  1893,  1897,  1902,  1907,
+    1912,  1917,  1922,  1927,  1932,  1937,  1942,  1947,  1952,  1957,
+    1972,  1984,  1971,  2017,  2018,  2019,  2020,  2021,  2022,  2023,
+    2024,  2025,  2026,  2030,  2029,  2059,  2064,  2080,  2079,  2120,
+    2119,  2285,  2289,  2313,  2326,  2327,  2336,  2337,  2338,  2339,
+    2340,  2343,  2344,  2345,  2348,  2349,  2352,  2369,  2400,  2368,
+    2436,  2444,  2458,  2503,  2511,  2517,  2537,  2620,  2626,  2648,
+    2652,  2657,  2690,  2696,  2710,  2709,  2745,  2755,  2780,  2744,
+    2808,  2818,  2807,  3114,  3123,  3131,  3141,  3130,  3213,  3218,
+    3223,  3233,  3255,  3261,  3267,  3270,  3274,  3283,  3286,  3290,
+    3294,  3299,  3298,  3306,  3310,  3309,  3317,  3322,  3321,  3329,
+    3332,  3335,  3338,  3344,  3358,  3363,  3362,  3370,  3373,  3379,
+    3393,  3415,  3414,  3426,  3425,  3439,  3449,  3469,  3438,  3500,
+    3510,  3535,  3539,  3543,  3550,  3557,  3561,  3499,  3607,  3614,
+    3621,  3628,  3634,  3649,  3670,  3693,  3697,  3717,  3722,  3727,
+    3732,  3749,  3751,  3759,  3764,  3781,  3790,  3804,  3803,  3823,
+    3822,  3837,  3864,  3863,  3895,  3894,  3948,  3995,  4050,  4100,
+    4106,  4105,  4117,  4163,  4204,  4211,  4218,  4224,  4231,  4238,
+    4264,  4287,  4307,  4324,  4357,  4361,  4386,  4390,  4396,  4424,
+    4450,  4487,  4513,  4546,  4570,  4597,  4625,  4663,  4709,  4735,
+    4772,  4797,  4829,  4854,  4892,  4920,  4946,  4972,  4996,  5024,
+    5064,  5090,  5115,  5142,  5159,  5176,  5195,  5202,  5212,  5224,
+    5230,  5244,  5251,  5261,  5267,  5273,  5279,  5285,  5308,  5335,
+    5341,  5347,  5361,  5360,  5382,  5397,  5406,  5465,  5481,  5491,
+    5496,  5506,  5511,  5578,  5577,  5595,  5606,  5605,  5619,  5625,
+    5624,  5658,  5663,  5669,  5683,  5688,  5694,  5704,  5710,  5713,
+    5717,  5719,  5727,  5730,  5733,  5739,  5752,  5758,  5764,  5774,
+    5777,  5780,  5783,  5785,  5790,  5789,  5820,  5825,  5830,  5836,
+    5842,  5855,  5867,  5873,  5879,  5892,  5903,  5914,  5920,  5920,
+    5935,  5939,  5948,  6042,  6146,  6170,  6229,  6298,  6302,  6304,
+    6308,  6310,  6315,  6325,  6344,  6314,  6375,  6385,  6407,  6374,
+    6439,  6449,  6467,  6438,  6531,  6537,  6541,  6577,  6576,  6605,
+    6614,  6624,  6629,  6634,  6639,  6645,  6658,  6681,  6688,  6695,
+    6699,  6766,  6772,  6781,  6780,  6814,  6813,  6860,  6869,  6874,
+    6886,  6891,  6897,  6903,  6912,  6918,  6928,  6950,  6917,  6985,
+    6988,  6991,  6993,  6998,  6997,  7024,  7034,  7051,  7057,  7066,
+    7076,  7079,  7082,  7084,  7089,  7097,  7104,  7112,  7119,  7088,
+    7142,  7145,  7148,  7213,  7216,  7219,  7221,  7225
+};
 #endif
 
-#if YYDEBUG
-/* YYRLINE[YYN] -- source line where rule number YYN was defined. */
-static const short yyrline[] =
-{
-       0,  1589,  1594,  1600,  1602,  1610,  1610,  1672,  1674,  1678,
-    1680,  1689,  1691,  1695,  1709,  1711,  1711,  1732,  1734,  1739,
-    1741,  1745,  1790,  1792,  1800,  1806,  1812,  1828,  1838,  1844,
-    1845,  1846,  1847,  1848,  1849,  1850,  1851,  1852,  1853,  1854,
-    1855,  1856,  1859,  1860,  1861,  1862,  1863,  1864,  1865,  1868,
-    1869,  1872,  1884,  1886,  1891,  1893,  1897,  1902,  1907,  1912,
-    1917,  1922,  1927,  1932,  1937,  1942,  1947,  1952,  1957,  1971,
-    1971,  1971,  2017,  2018,  2019,  2020,  2021,  2022,  2023,  2024,
-    2025,  2026,  2029,  2029,  2059,  2063,  2079,  2079,  2119,  2119,
-    2285,  2289,  2313,  2326,  2327,  2336,  2337,  2338,  2339,  2340,
-    2343,  2344,  2345,  2348,  2349,  2352,  2368,  2368,  2368,  2436,
-    2444,  2458,  2503,  2511,  2517,  2537,  2620,  2626,  2647,  2652,
-    2657,  2690,  2696,  2709,  2709,  2744,  2744,  2744,  2744,  2807,
-    2807,  2807,  3113,  3123,  3130,  3130,  3130,  3213,  3217,  3223,
-    3233,  3255,  3261,  3266,  3270,  3274,  3282,  3286,  3290,  3294,
-    3298,  3298,  3305,  3309,  3309,  3316,  3321,  3321,  3328,  3332,
-    3334,  3338,  3344,  3358,  3362,  3362,  3369,  3373,  3379,  3393,
-    3414,  3414,  3425,  3425,  3438,  3438,  3438,  3438,  3499,  3499,
-    3499,  3499,  3499,  3499,  3499,  3499,  3499,  3607,  3613,  3621,
-    3628,  3634,  3649,  3670,  3693,  3697,  3717,  3722,  3727,  3732,
-    3749,  3751,  3759,  3764,  3781,  3790,  3803,  3803,  3822,  3822,
-    3837,  3863,  3863,  3894,  3894,  3948,  3995,  4050,  4100,  4105,
-    4105,  4117,  4163,  4204,  4211,  4218,  4224,  4231,  4238,  4264,
-    4287,  4307,  4324,  4357,  4361,  4386,  4390,  4396,  4424,  4450,
-    4487,  4513,  4546,  4570,  4597,  4625,  4663,  4709,  4735,  4772,
-    4797,  4829,  4854,  4892,  4920,  4946,  4972,  4996,  5024,  5064,
-    5090,  5115,  5142,  5159,  5176,  5194,  5202,  5212,  5224,  5230,
-    5244,  5251,  5261,  5267,  5273,  5279,  5285,  5308,  5335,  5341,
-    5347,  5360,  5360,  5382,  5397,  5406,  5465,  5481,  5490,  5496,
-    5505,  5511,  5577,  5577,  5595,  5605,  5605,  5618,  5624,  5624,
-    5657,  5663,  5669,  5683,  5688,  5694,  5704,  5710,  5712,  5717,
-    5719,  5727,  5729,  5733,  5739,  5752,  5758,  5764,  5773,  5777,
-    5779,  5783,  5785,  5789,  5789,  5820,  5824,  5830,  5836,  5842,
-    5855,  5867,  5873,  5879,  5892,  5903,  5914,  5920,  5920,  5934,
-    5939,  5946,  6042,  6146,  6170,  6229,  6298,  6302,  6304,  6308,
-    6310,  6314,  6314,  6314,  6314,  6374,  6374,  6374,  6374,  6438,
-    6438,  6438,  6438,  6531,  6537,  6541,  6576,  6576,  6605,  6614,
-    6622,  6629,  6633,  6639,  6645,  6658,  6681,  6687,  6695,  6699,
-    6766,  6772,  6780,  6780,  6813,  6813,  6860,  6868,  6874,  6885,
-    6891,  6897,  6903,  6911,  6917,  6917,  6917,  6917,  6985,  6987,
-    6991,  6993,  6997,  6997,  7024,  7034,  7051,  7057,  7066,  7076,
-    7078,  7082,  7084,  7088,  7088,  7088,  7088,  7088,  7088,  7142,
-    7144,  7148,  7213,  7215,  7219,  7221,  7225
-};
-#endif
-
-
-#if (YYDEBUG) || defined YYERROR_VERBOSE
-
-/* YYTNAME[TOKEN_NUM] -- String name of the token TOKEN_NUM. */
+#if YYDEBUG || YYERROR_VERBOSE
+/* YYTNME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
+   First, the terminals, then, starting at YYNTOKENS, nonterminals. */
 static const char *const yytname[] =
 {
-  "$", "error", "$undefined.", "DOT_DOT", "COLON_COLON_EQUAL", 
-  "UPPERCASE_IDENTIFIER", "LOWERCASE_IDENTIFIER", "NUMBER", 
-  "NEGATIVENUMBER", "NUMBER64", "NEGATIVENUMBER64", "BIN_STRING", 
-  "HEX_STRING", "QUOTED_STRING", "ACCESS", "AGENT_CAPABILITIES", 
-  "APPLICATION", "AUGMENTS", "BEGIN_", "BITS", "CHOICE", "CONTACT_INFO", 
-  "CREATION_REQUIRES", "COUNTER32", "COUNTER64", "DEFINITIONS", "DEFVAL", 
-  "DESCRIPTION", "DISPLAY_HINT", "END", "ENTERPRISE", "EXPORTS", 
-  "EXTENDS", "FROM", "GROUP", "GAUGE32", "IDENTIFIER", "IMPLICIT", 
-  "IMPLIED", "IMPORTS", "INCLUDES", "INDEX", "INSTALL_ERRORS", "INTEGER", 
-  "INTEGER32", "INTEGER64", "IPADDRESS", "LAST_UPDATED", "MACRO", 
-  "MANDATORY_GROUPS", "MAX_ACCESS", "MIN_ACCESS", "MODULE", 
-  "MODULE_COMPLIANCE", "MODULE_IDENTITY", "NOT_ACCESSIBLE", 
-  "NOTIFICATIONS", "NOTIFICATION_GROUP", "NOTIFICATION_TYPE", "OBJECT", 
-  "OBJECT_GROUP", "OBJECT_IDENTITY", "OBJECT_TYPE", "OBJECTS", "OCTET", 
-  "OF", "ORGANIZATION", "OPAQUE", "PIB_ACCESS", "PIB_DEFINITIONS", 
-  "PIB_INDEX", "PIB_MIN_ACCESS", "PIB_REFERENCES", "PIB_TAG", 
-  "POLICY_ACCESS", "PRODUCT_RELEASE", "REFERENCE", "REVISION", "SEQUENCE", 
-  "SIZE", "STATUS", "STRING", "SUBJECT_CATEGORIES", "SUPPORTS", "SYNTAX", 
-  "TEXTUAL_CONVENTION", "TIMETICKS", "TRAP_TYPE", "UNIQUENESS", "UNITS", 
-  "UNIVERSAL", "UNSIGNED32", "UNSIGNED64", "VALUE", "VARIABLES", 
-  "VARIATION", "WRITE_SYNTAX", "'{'", "'}'", "';'", "','", "'('", "')'", 
-  "'['", "']'", "'.'", "'|'", "mibFile", "modules", "module", "@1", 
-  "moduleOid", "definitions", "linkagePart", "linkageClause", 
-  "exportsClause", "@2", "importPart", "imports", "import", 
-  "importIdentifiers", "importIdentifier", "importedKeyword", 
-  "importedSMIKeyword", "importedSPPIKeyword", "moduleName", 
-  "declarationPart", "declarations", "declaration", "macroClause", "@3", 
-  "@4", "macroName", "choiceClause", "@5", "fuzzy_lowercase_identifier", 
-  "valueDeclaration", "@6", "typeDeclaration", "@7", "typeName", 
-  "typeSMI", "typeSMIandSPPI", "typeSMIonly", "typeSPPIonly", 
-  "typeDeclarationRHS", "@8", "@9", "conceptualTable", "row", "entryType", 
-  "sequenceItems", "sequenceItem", "Syntax", "sequenceSyntax", 
-  "NamedBits", "NamedBit", "@10", "objectIdentityClause", "@11", "@12", 
-  "@13", "objectTypeClause", "@14", "@15", "descriptionClause", 
-  "trapTypeClause", "@16", "@17", "VarPart", "VarTypes", "VarType", 
-  "DescrPart", "MaxOrPIBAccessPart", "PibAccessPart", "PibAccess", 
-  "SPPIPibReferencesPart", "@18", "SPPIPibTagPart", "@19", 
-  "SPPIUniquePart", "@20", "UniqueTypesPart", "UniqueTypes", "UniqueType", 
-  "SPPIErrorsPart", "@21", "Errors", "Error", "MaxAccessPart", "@22", 
-  "@23", "notificationTypeClause", "@24", "@25", "@26", 
-  "moduleIdentityClause", "@27", "@28", "@29", "@30", "@31", "@32", "@33", 
-  "@34", "SubjectCategoriesPart", "SubjectCategories", "CategoryIDs", 
-  "CategoryID", "ObjectSyntax", "typeTag", "sequenceObjectSyntax", 
-  "valueofObjectSyntax", "SimpleSyntax", "@35", "@36", "@37", "@38", 
-  "@39", "valueofSimpleSyntax", "sequenceSimpleSyntax", 
-  "ApplicationSyntax", "sequenceApplicationSyntax", "anySubType", 
-  "integerSubType", "octetStringSubType", "ranges", "range", "value", 
-  "enumSpec", "enumItems", "enumItem", "@40", "enumNumber", "Status", 
-  "Status_Capabilities", "DisplayPart", "UnitsPart", "Access", 
-  "IndexPart", "@41", "@42", "MibIndex", "@43", "IndexTypes", "IndexType", 
-  "Index", "Entry", "DefValPart", "Value", "BitsValue", "BitNames", 
-  "ObjectName", "NotificationName", "ReferPart", "RevisionPart", 
-  "Revisions", "Revision", "@44", "NotificationObjectsPart", 
-  "ObjectGroupObjectsPart", "Objects", "Object", "NotificationsPart", 
-  "Notifications", "Notification", "Text", "ExtUTCTime", 
-  "objectIdentifier", "@45", "subidentifiers", "subidentifier", 
-  "objectIdentifier_defval", "subidentifiers_defval", 
-  "subidentifier_defval", "objectGroupClause", "@46", "@47", "@48", 
-  "notificationGroupClause", "@49", "@50", "@51", 
-  "moduleComplianceClause", "@52", "@53", "@54", "ComplianceModulePart", 
-  "ComplianceModules", "ComplianceModule", "@55", "ComplianceModuleName", 
-  "MandatoryPart", "MandatoryGroups", "MandatoryGroup", "CompliancePart", 
-  "Compliances", "Compliance", "ComplianceGroup", "@56", 
-  "ComplianceObject", "@57", "SyntaxPart", "WriteSyntaxPart", 
-  "WriteSyntax", "AccessPart", "agentCapabilitiesClause", "@58", "@59", 
-  "@60", "ModulePart_Capabilities", "Modules_Capabilities", 
-  "Module_Capabilities", "@61", "CapabilitiesGroups", "CapabilitiesGroup", 
-  "ModuleName_Capabilities", "VariationPart", "Variations", "Variation", 
-  "@62", "@63", "@64", "@65", "@66", "VariationAccessPart", 
+  "$end", "error", "$undefined", "DOT_DOT", "COLON_COLON_EQUAL",
+  "UPPERCASE_IDENTIFIER", "LOWERCASE_IDENTIFIER", "NUMBER",
+  "NEGATIVENUMBER", "NUMBER64", "NEGATIVENUMBER64", "BIN_STRING",
+  "HEX_STRING", "QUOTED_STRING", "ACCESS", "AGENT_CAPABILITIES",
+  "APPLICATION", "AUGMENTS", "BEGIN_", "BITS", "CHOICE", "CONTACT_INFO",
+  "CREATION_REQUIRES", "COUNTER32", "COUNTER64", "DEFINITIONS", "DEFVAL",
+  "DESCRIPTION", "DISPLAY_HINT", "END", "ENTERPRISE", "EXPORTS", "EXTENDS",
+  "FROM", "GROUP", "GAUGE32", "IDENTIFIER", "IMPLICIT", "IMPLIED",
+  "IMPORTS", "INCLUDES", "INDEX", "INSTALL_ERRORS", "INTEGER", "INTEGER32",
+  "INTEGER64", "IPADDRESS", "LAST_UPDATED", "MACRO", "MANDATORY_GROUPS",
+  "MAX_ACCESS", "MIN_ACCESS", "MODULE", "MODULE_COMPLIANCE",
+  "MODULE_IDENTITY", "NOT_ACCESSIBLE", "NOTIFICATIONS",
+  "NOTIFICATION_GROUP", "NOTIFICATION_TYPE", "OBJECT", "OBJECT_GROUP",
+  "OBJECT_IDENTITY", "OBJECT_TYPE", "OBJECTS", "OCTET", "OF",
+  "ORGANIZATION", "OPAQUE", "PIB_ACCESS", "PIB_DEFINITIONS", "PIB_INDEX",
+  "PIB_MIN_ACCESS", "PIB_REFERENCES", "PIB_TAG", "POLICY_ACCESS",
+  "PRODUCT_RELEASE", "REFERENCE", "REVISION", "SEQUENCE", "SIZE", "STATUS",
+  "STRING", "SUBJECT_CATEGORIES", "SUPPORTS", "SYNTAX",
+  "TEXTUAL_CONVENTION", "TIMETICKS", "TRAP_TYPE", "UNIQUENESS", "UNITS",
+  "UNIVERSAL", "UNSIGNED32", "UNSIGNED64", "VALUE", "VARIABLES",
+  "VARIATION", "WRITE_SYNTAX", "'{'", "'}'", "';'", "','", "'('", "')'",
+  "'['", "']'", "'.'", "'|'", "$accept", "mibFile", "modules", "module",
+  "@1", "moduleOid", "definitions", "linkagePart", "linkageClause",
+  "exportsClause", "@2", "importPart", "imports", "import",
+  "importIdentifiers", "importIdentifier", "importedKeyword",
+  "importedSMIKeyword", "importedSPPIKeyword", "moduleName",
+  "declarationPart", "declarations", "declaration", "macroClause", "@3",
+  "@4", "macroName", "choiceClause", "@5", "fuzzy_lowercase_identifier",
+  "valueDeclaration", "@6", "typeDeclaration", "@7", "typeName", "typeSMI",
+  "typeSMIandSPPI", "typeSMIonly", "typeSPPIonly", "typeDeclarationRHS",
+  "@8", "@9", "conceptualTable", "row", "entryType", "sequenceItems",
+  "sequenceItem", "Syntax", "sequenceSyntax", "NamedBits", "NamedBit",
+  "@10", "objectIdentityClause", "@11", "@12", "@13", "objectTypeClause",
+  "@14", "@15", "descriptionClause", "trapTypeClause", "@16", "@17",
+  "VarPart", "VarTypes", "VarType", "DescrPart", "MaxOrPIBAccessPart",
+  "PibAccessPart", "PibAccess", "SPPIPibReferencesPart", "@18",
+  "SPPIPibTagPart", "@19", "SPPIUniquePart", "@20", "UniqueTypesPart",
+  "UniqueTypes", "UniqueType", "SPPIErrorsPart", "@21", "Errors", "Error",
+  "MaxAccessPart", "@22", "@23", "notificationTypeClause", "@24", "@25",
+  "@26", "moduleIdentityClause", "@27", "@28", "@29", "@30", "@31", "@32",
+  "@33", "@34", "SubjectCategoriesPart", "SubjectCategories",
+  "CategoryIDs", "CategoryID", "ObjectSyntax", "typeTag",
+  "sequenceObjectSyntax", "valueofObjectSyntax", "SimpleSyntax", "@35",
+  "@36", "@37", "@38", "@39", "valueofSimpleSyntax",
+  "sequenceSimpleSyntax", "ApplicationSyntax", "sequenceApplicationSyntax",
+  "anySubType", "integerSubType", "octetStringSubType", "ranges", "range",
+  "value", "enumSpec", "enumItems", "enumItem", "@40", "enumNumber",
+  "Status", "Status_Capabilities", "DisplayPart", "UnitsPart", "Access",
+  "IndexPart", "@41", "@42", "MibIndex", "@43", "IndexTypes", "IndexType",
+  "Index", "Entry", "DefValPart", "Value", "BitsValue", "BitNames",
+  "ObjectName", "NotificationName", "ReferPart", "RevisionPart",
+  "Revisions", "Revision", "@44", "NotificationObjectsPart",
+  "ObjectGroupObjectsPart", "Objects", "Object", "NotificationsPart",
+  "Notifications", "Notification", "Text", "ExtUTCTime",
+  "objectIdentifier", "@45", "subidentifiers", "subidentifier",
+  "objectIdentifier_defval", "subidentifiers_defval",
+  "subidentifier_defval", "objectGroupClause", "@46", "@47", "@48",
+  "notificationGroupClause", "@49", "@50", "@51", "moduleComplianceClause",
+  "@52", "@53", "@54", "ComplianceModulePart", "ComplianceModules",
+  "ComplianceModule", "@55", "ComplianceModuleName", "MandatoryPart",
+  "MandatoryGroups", "MandatoryGroup", "CompliancePart", "Compliances",
+  "Compliance", "ComplianceGroup", "@56", "ComplianceObject", "@57",
+  "SyntaxPart", "WriteSyntaxPart", "WriteSyntax", "AccessPart",
+  "agentCapabilitiesClause", "@58", "@59", "@60",
+  "ModulePart_Capabilities", "Modules_Capabilities", "Module_Capabilities",
+  "@61", "CapabilitiesGroups", "CapabilitiesGroup",
+  "ModuleName_Capabilities", "VariationPart", "Variations", "Variation",
+  "@62", "@63", "@64", "@65", "@66", "VariationAccessPart",
   "VariationAccess", "CreationPart", "Cells", "Cell", 0
 };
 #endif
 
-/* YYR1[YYN] -- Symbol number of symbol that rule YYN derives. */
-static const short yyr1[] =
+# ifdef YYPRINT
+/* YYTOKNUM[YYLEX-NUM] -- Internal token number corresponding to
+   token YYLEX-NUM.  */
+static const unsigned short int yytoknum[] =
 {
-       0,   107,   107,   108,   108,   110,   109,   111,   111,   112,
-     112,   113,   113,   114,   115,   116,   115,   117,   117,   118,
-     118,   119,   120,   120,   121,   121,   121,   122,   122,   122,
-     122,   122,   122,   122,   122,   122,   122,   122,   122,   122,
-     122,   122,   123,   123,   123,   123,   123,   123,   123,   124,
-     124,   125,   126,   126,   127,   127,   128,   128,   128,   128,
-     128,   128,   128,   128,   128,   128,   128,   128,   128,   130,
-     131,   129,   132,   132,   132,   132,   132,   132,   132,   132,
-     132,   132,   134,   133,   135,   135,   137,   136,   139,   138,
-     140,   140,   140,   141,   141,   142,   142,   142,   142,   142,
-     143,   143,   143,   144,   144,   145,   146,   147,   145,   145,
-     148,   149,   150,   151,   151,   152,   153,   153,   154,   154,
-     154,   155,   155,   157,   156,   159,   160,   161,   158,   163,
-     164,   162,   165,   165,   167,   168,   166,   169,   169,   170,
-     170,   171,   172,   172,   173,   173,   173,   174,   175,   175,
-     177,   176,   176,   179,   178,   178,   181,   180,   180,   182,
-     182,   183,   183,   184,   186,   185,   185,   187,   187,   188,
-     190,   189,   191,   189,   193,   194,   195,   192,   197,   198,
-     199,   200,   201,   202,   203,   204,   196,   205,   205,   206,
-     207,   207,   208,   208,   209,   209,   209,   209,   209,   209,
-     210,   210,   211,   211,   212,   213,   214,   213,   215,   213,
-     213,   216,   213,   217,   213,   213,   213,   213,   213,   218,
-     213,   213,   213,   213,   219,   219,   219,   219,   219,   219,
-     219,   219,   219,   220,   220,   220,   220,   221,   221,   221,
-     221,   221,   221,   221,   221,   221,   221,   221,   221,   221,
-     221,   221,   221,   222,   222,   222,   222,   222,   222,   222,
-     222,   222,   223,   223,   223,   223,   224,   225,   226,   226,
-     227,   227,   228,   228,   228,   228,   228,   228,   229,   230,
-     230,   232,   231,   233,   233,   234,   235,   236,   236,   237,
-     237,   238,   240,   239,   239,   241,   239,   239,   243,   242,
-     242,   244,   244,   245,   245,   246,   247,   248,   248,   249,
-     249,   250,   250,   251,   251,   252,   253,   254,   254,   255,
-     255,   256,   256,   258,   257,   259,   259,   260,   261,   261,
-     262,   263,   264,   264,   265,   266,   267,   269,   268,   270,
-     270,   271,   271,   271,   271,   271,   272,   273,   273,   274,
-     274,   276,   277,   278,   275,   280,   281,   282,   279,   284,
-     285,   286,   283,   287,   288,   288,   290,   289,   291,   291,
-     291,   292,   292,   293,   293,   294,   295,   295,   296,   296,
-     297,   297,   299,   298,   301,   300,   302,   302,   303,   303,
-     304,   305,   305,   305,   307,   308,   309,   306,   310,   310,
-     311,   311,   313,   312,   314,   314,   315,   316,   316,   317,
-     317,   318,   318,   320,   321,   322,   323,   324,   319,   325,
-     325,   326,   327,   327,   328,   328,   329
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
+     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
+     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
+     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
+     295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
+     305,   306,   307,   308,   309,   310,   311,   312,   313,   314,
+     315,   316,   317,   318,   319,   320,   321,   322,   323,   324,
+     325,   326,   327,   328,   329,   330,   331,   332,   333,   334,
+     335,   336,   337,   338,   339,   340,   341,   342,   343,   344,
+     345,   346,   347,   348,   349,   350,   351,   123,   125,    59,
+      44,    40,    41,    91,    93,    46,   124
+};
+# endif
+
+/* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+static const unsigned short int yyr1[] =
+{
+       0,   107,   108,   108,   109,   109,   111,   110,   112,   112,
+     113,   113,   114,   114,   115,   116,   117,   116,   118,   118,
+     119,   119,   120,   121,   121,   122,   122,   122,   123,   123,
+     123,   123,   123,   123,   123,   123,   123,   123,   123,   123,
+     123,   123,   123,   124,   124,   124,   124,   124,   124,   124,
+     125,   125,   126,   127,   127,   128,   128,   129,   129,   129,
+     129,   129,   129,   129,   129,   129,   129,   129,   129,   129,
+     131,   132,   130,   133,   133,   133,   133,   133,   133,   133,
+     133,   133,   133,   135,   134,   136,   136,   138,   137,   140,
+     139,   141,   141,   141,   142,   142,   143,   143,   143,   143,
+     143,   144,   144,   144,   145,   145,   146,   147,   148,   146,
+     146,   149,   150,   151,   152,   152,   153,   154,   154,   155,
+     155,   155,   156,   156,   158,   157,   160,   161,   162,   159,
+     164,   165,   163,   166,   166,   168,   169,   167,   170,   170,
+     171,   171,   172,   173,   173,   174,   174,   174,   175,   176,
+     176,   178,   177,   177,   180,   179,   179,   182,   181,   181,
+     183,   183,   184,   184,   185,   187,   186,   186,   188,   188,
+     189,   191,   190,   192,   190,   194,   195,   196,   193,   198,
+     199,   200,   201,   202,   203,   204,   205,   197,   206,   206,
+     207,   208,   208,   209,   209,   210,   210,   210,   210,   210,
+     210,   211,   211,   212,   212,   213,   214,   215,   214,   216,
+     214,   214,   217,   214,   218,   214,   214,   214,   214,   214,
+     219,   214,   214,   214,   214,   220,   220,   220,   220,   220,
+     220,   220,   220,   220,   221,   221,   221,   221,   222,   222,
+     222,   222,   222,   222,   222,   222,   222,   222,   222,   222,
+     222,   222,   222,   222,   223,   223,   223,   223,   223,   223,
+     223,   223,   223,   224,   224,   224,   224,   225,   226,   227,
+     227,   228,   228,   229,   229,   229,   229,   229,   229,   230,
+     231,   231,   233,   232,   234,   234,   235,   236,   237,   237,
+     238,   238,   239,   241,   240,   240,   242,   240,   240,   244,
+     243,   243,   245,   245,   246,   246,   247,   248,   249,   249,
+     250,   250,   251,   251,   252,   252,   253,   254,   255,   255,
+     256,   256,   257,   257,   259,   258,   260,   260,   261,   262,
+     262,   263,   264,   265,   265,   266,   267,   268,   270,   269,
+     271,   271,   272,   272,   272,   272,   272,   273,   274,   274,
+     275,   275,   277,   278,   279,   276,   281,   282,   283,   280,
+     285,   286,   287,   284,   288,   289,   289,   291,   290,   292,
+     292,   292,   293,   293,   294,   294,   295,   296,   296,   297,
+     297,   298,   298,   300,   299,   302,   301,   303,   303,   304,
+     304,   305,   306,   306,   306,   308,   309,   310,   307,   311,
+     311,   312,   312,   314,   313,   315,   315,   316,   317,   317,
+     318,   318,   319,   319,   321,   322,   323,   324,   325,   320,
+     326,   326,   327,   328,   328,   329,   329,   330
 };
 
-/* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN. */
-static const short yyr2[] =
+/* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
+static const unsigned char yyr2[] =
 {
-       0,     1,     0,     1,     2,     0,    10,     3,     0,     1,
-       1,     1,     0,     3,     0,     0,     3,     1,     0,     1,
-       2,     3,     1,     3,     1,     1,     1,     1,     1,     1,
+       0,     2,     1,     0,     1,     2,     0,    10,     3,     0,
+       1,     1,     1,     0,     3,     0,     0,     3,     1,     0,
+       1,     2,     3,     1,     3,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     0,     1,     2,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     1,     1,     2,     0,
-       0,     5,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     0,     3,     1,     1,     0,     8,     0,     4,
-       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     0,     0,    11,     1,
-       3,     1,     4,     1,     3,     2,     1,     4,     1,     1,
-       2,     1,     3,     0,     5,     0,     0,     0,    14,     0,
-       0,    23,     0,     2,     0,     0,    11,     4,     0,     1,
-       3,     1,     2,     0,     1,     1,     0,     2,     1,     1,
-       0,     5,     0,     0,     5,     0,     0,     5,     0,     1,
-       0,     1,     3,     1,     0,     5,     0,     1,     3,     4,
-       0,     3,     0,     3,     0,     0,     0,    15,     0,     0,
-       0,     0,     0,     0,     0,     0,    24,     4,     0,     1,
-       1,     3,     1,     4,     1,     2,     1,     1,     1,     1,
-       5,     5,     1,     1,     1,     1,     0,     3,     0,     3,
-       1,     0,     3,     0,     3,     4,     2,     4,     2,     0,
-       4,     2,     4,     3,     1,     1,     1,     1,     1,     1,
-       1,     1,     3,     2,     2,     3,     3,     2,     2,     2,
-       1,     2,     1,     2,     2,     1,     2,     2,     2,     1,
-       2,     1,     2,     2,     2,     2,     2,     2,     1,     2,
-       1,     1,     1,     1,     1,     0,     3,     6,     1,     3,
-       1,     3,     1,     1,     1,     1,     1,     1,     3,     1,
-       3,     0,     5,     1,     1,     1,     1,     2,     0,     2,
-       0,     1,     0,     5,     4,     0,     5,     0,     0,     5,
-       0,     1,     3,     2,     1,     1,     1,     4,     0,     1,
-       3,     1,     0,     1,     3,     1,     1,     2,     0,     1,
-       0,     1,     2,     0,     5,     4,     0,     4,     1,     3,
-       1,     4,     1,     3,     1,     1,     1,     0,     2,     1,
-       2,     1,     3,     1,     4,     6,     1,     1,     2,     4,
-       1,     0,     0,     0,    15,     0,     0,     0,    15,     0,
-       0,     0,    15,     1,     1,     2,     0,     5,     2,     1,
-       0,     4,     0,     1,     3,     1,     1,     0,     1,     2,
-       1,     1,     0,     5,     0,     8,     2,     0,     2,     0,
-       1,     2,     2,     0,     0,     0,     0,    17,     1,     0,
-       1,     2,     0,     8,     1,     3,     1,     2,     1,     1,
-       0,     1,     2,     0,     0,     0,     0,     0,    14,     2,
-       0,     1,     4,     0,     1,     3,     1
+       1,     1,     1,     1,     0,     1,     2,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     2,
+       0,     0,     5,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     0,     3,     1,     1,     0,     8,     0,
+       4,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     0,     0,    11,
+       1,     3,     1,     4,     1,     3,     2,     1,     4,     1,
+       1,     2,     1,     3,     0,     5,     0,     0,     0,    14,
+       0,     0,    23,     0,     2,     0,     0,    11,     4,     0,
+       1,     3,     1,     2,     0,     1,     1,     0,     2,     1,
+       1,     0,     5,     0,     0,     5,     0,     0,     5,     0,
+       1,     0,     1,     3,     1,     0,     5,     0,     1,     3,
+       4,     0,     3,     0,     3,     0,     0,     0,    15,     0,
+       0,     0,     0,     0,     0,     0,     0,    24,     4,     0,
+       1,     1,     3,     1,     4,     1,     2,     1,     1,     1,
+       1,     5,     5,     1,     1,     1,     1,     0,     3,     0,
+       3,     1,     0,     3,     0,     3,     4,     2,     4,     2,
+       0,     4,     2,     4,     3,     1,     1,     1,     1,     1,
+       1,     1,     1,     3,     2,     2,     3,     3,     2,     2,
+       2,     1,     2,     1,     2,     2,     1,     2,     2,     2,
+       1,     2,     1,     2,     2,     2,     2,     2,     2,     1,
+       2,     1,     1,     1,     1,     1,     0,     3,     6,     1,
+       3,     1,     3,     1,     1,     1,     1,     1,     1,     3,
+       1,     3,     0,     5,     1,     1,     1,     1,     2,     0,
+       2,     0,     1,     0,     5,     4,     0,     5,     0,     0,
+       5,     0,     1,     3,     2,     1,     1,     1,     4,     0,
+       1,     3,     1,     0,     1,     3,     1,     1,     2,     0,
+       1,     0,     1,     2,     0,     5,     4,     0,     4,     1,
+       3,     1,     4,     1,     3,     1,     1,     1,     0,     2,
+       1,     2,     1,     3,     1,     4,     6,     1,     1,     2,
+       4,     1,     0,     0,     0,    15,     0,     0,     0,    15,
+       0,     0,     0,    15,     1,     1,     2,     0,     5,     2,
+       1,     0,     4,     0,     1,     3,     1,     1,     0,     1,
+       2,     1,     1,     0,     5,     0,     8,     2,     0,     2,
+       0,     1,     2,     2,     0,     0,     0,     0,    17,     1,
+       0,     1,     2,     0,     8,     1,     3,     1,     2,     1,
+       1,     0,     1,     2,     0,     0,     0,     0,     0,    14,
+       2,     0,     1,     4,     0,     1,     3,     1
 };
 
-/* YYDEFACT[S] -- default rule to reduce with in state S when YYTABLE
-   doesn't specify something else to do.  Zero means the default is an
-   error. */
-static const short yydefact[] =
+/* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
+   STATE-NUM when YYTABLE doesn't specify something else to do.  Zero
+   means the default is an error.  */
+static const unsigned short int yydefact[] =
 {
-       2,    51,     1,     3,     5,     4,     8,   337,     0,     0,
-       0,     9,    10,     0,     7,    85,    84,   343,     0,   341,
-     338,   339,     0,     0,     0,   340,    14,     0,   342,    15,
-      12,   344,     0,     0,    18,     0,    11,     0,    16,    25,
-      24,    42,    29,    43,    44,    45,    30,    49,    31,    32,
-      33,    34,    46,    47,    35,    36,    37,    38,    39,    40,
-      48,    41,    50,     0,    17,    19,     0,    22,    26,    27,
-      28,     0,    85,    84,    81,   100,   102,   101,    98,   103,
-      95,    80,    72,    79,    75,    78,    76,    73,    97,    77,
-      96,    74,    99,   104,     0,     0,    54,    67,    69,    86,
-      57,    56,    88,    91,    93,    94,    92,    58,    59,    60,
-      61,    62,    64,    65,    63,    66,   345,    13,    20,     0,
-       0,    68,     0,     0,     0,     0,     0,     0,     0,     0,
-       6,    55,     0,     0,     0,     0,    21,    23,   126,   130,
-     175,   179,   352,   356,   360,   395,    70,     0,   135,     0,
-       0,     0,   326,   188,     0,     0,     0,     0,     0,     0,
-       0,   111,     0,    82,   265,   265,   240,   205,   210,   249,
-     265,     0,     0,   245,     0,   106,   265,   242,   251,     0,
-       0,   109,    89,   196,   197,   198,   105,   116,     0,   194,
-     199,     0,     0,     0,     0,     0,   180,     0,     0,     0,
-       0,     0,     0,    71,     0,   337,     0,     0,   216,   221,
-       0,     0,     0,   238,   239,   263,   264,   247,   248,     0,
-     241,     0,     0,     0,   250,   237,   262,   265,   218,     0,
-     246,     0,     0,   288,   244,   243,   252,     0,     0,     0,
-      51,   195,   285,     0,   290,   337,     0,     0,     0,   337,
-       0,   337,     0,     0,   335,     0,   337,   138,   273,   272,
-     275,   274,   277,   276,     0,     0,   268,   270,   214,   123,
-       0,   121,    83,   281,     0,   279,   207,   209,   212,   223,
-       0,   111,   110,     0,     0,   113,     0,     0,     0,     0,
-       0,     0,     0,   146,   330,     0,   328,   315,     0,   192,
-       0,   189,   190,     0,     0,     0,   334,     0,   332,   316,
-       0,     0,     0,     0,     0,   143,     0,   266,     0,     0,
-       0,   117,     0,     0,   278,     0,   220,   265,   119,   265,
-     265,   265,   265,   265,   260,   265,     0,     0,   258,   265,
-     265,   261,   115,   118,   202,   203,   112,     0,   287,     0,
-       0,     0,   217,   222,   215,   127,   289,   172,   170,   149,
-     148,   152,   145,     0,   144,   325,   337,     0,     0,   187,
-       0,   336,   181,   327,     0,   331,   337,     0,   361,   286,
-       0,    87,   337,     0,   318,     0,   269,   271,     0,   122,
-       0,   280,   120,   254,   259,   255,   233,   234,   253,   265,
-     265,   257,   256,   114,     0,   200,   201,   318,     0,     0,
-     150,   155,   291,   147,   329,   176,     0,   191,     0,   353,
-     333,   357,   318,     0,     0,   139,   141,   142,     0,     0,
-       0,     0,   283,   284,     0,   236,   235,     0,     0,   173,
-     171,     0,   153,     0,   318,   193,     0,   318,   318,     0,
-     396,   137,   337,   317,     0,   267,   124,   282,   107,     0,
-     337,     0,     0,     0,   182,     0,     0,   370,     0,   363,
-     364,   318,   140,   136,   318,   337,     0,   306,   337,   132,
-       0,     0,     0,     0,   369,   366,     0,   365,   399,     0,
-       0,   151,     0,     0,   166,   337,     0,   337,   337,   368,
-     372,   337,     0,     0,   398,   400,     0,   128,   154,   133,
-     164,   318,     0,   183,     0,     0,     0,   377,     0,   337,
-     402,     0,   401,   108,     0,   297,   177,     0,   354,   358,
-     337,   382,   384,   367,   376,   378,   380,   381,   362,   407,
-       0,   337,     0,     0,   295,   292,   300,     0,   375,     0,
-     373,   337,   337,   379,     0,     0,     0,     0,   167,   337,
-       0,     0,   298,   158,   184,   371,   337,     0,   387,   337,
-     397,     0,   165,     0,     0,   337,   337,     0,   156,   308,
-     320,   374,     0,     0,   389,   406,     0,   404,     0,   168,
-     294,     0,     0,   337,     0,     0,     0,     0,   185,   319,
-     321,   383,   386,     0,   393,   410,   337,   169,   296,   293,
-     337,     0,   301,   304,   305,   337,     0,     0,   323,     0,
-     322,   390,   388,     0,     0,     0,   337,   403,   409,   411,
-     405,   303,   299,   337,     0,   159,   161,   163,   230,   224,
-     225,   226,   227,   228,   229,   231,   312,   309,   204,     0,
-     337,     0,     0,   391,   392,     0,   413,   412,   302,   157,
-     337,   313,   350,     0,   311,     0,   346,   347,   307,     0,
-       0,   337,   385,   387,   162,     0,   310,     0,   232,     0,
-     348,   131,   324,     0,   414,     0,   314,   186,   389,   349,
-     415,   420,     0,   423,   421,   419,     0,   416,   337,   308,
-     426,     0,   424,   417,   422,   337,     0,   425,     0,   418,
-       0,     0,     0
+       3,    52,     0,     2,     4,     6,     1,     5,     9,   338,
+       0,     0,     0,    10,    11,     0,     8,    86,    85,   344,
+       0,   342,   339,   340,     0,     0,     0,   341,    15,     0,
+     343,    16,    13,   345,     0,     0,    19,     0,    12,     0,
+      17,    26,    25,    43,    30,    44,    45,    46,    31,    50,
+      32,    33,    34,    35,    47,    48,    36,    37,    38,    39,
+      40,    41,    49,    42,    51,     0,    18,    20,     0,    23,
+      27,    28,    29,     0,    86,    85,    82,   101,   103,   102,
+      99,   104,    96,    81,    73,    80,    76,    79,    77,    74,
+      98,    78,    97,    75,   100,   105,     0,     0,    55,    68,
+      70,    87,    58,    57,    89,    92,    94,    95,    93,    59,
+      60,    61,    62,    63,    65,    66,    64,    67,   346,    14,
+      21,     0,     0,    69,     0,     0,     0,     0,     0,     0,
+       0,     0,     7,    56,     0,     0,     0,     0,    22,    24,
+     127,   131,   176,   180,   353,   357,   361,   396,    71,     0,
+     136,     0,     0,     0,   327,   189,     0,     0,     0,     0,
+       0,     0,     0,   112,     0,    83,   266,   266,   241,   206,
+     211,   250,   266,     0,     0,   246,     0,   107,   266,   243,
+     252,     0,     0,   110,    90,   197,   198,   199,   106,   117,
+       0,   195,   200,     0,     0,     0,     0,     0,   181,     0,
+       0,     0,     0,     0,     0,    72,     0,   338,     0,     0,
+     217,   222,     0,     0,     0,   239,   240,   264,   265,   248,
+     249,     0,   242,     0,     0,     0,   251,   238,   263,   266,
+     219,     0,   247,     0,     0,   289,   245,   244,   253,     0,
+       0,     0,    52,   196,   286,     0,   291,   338,     0,     0,
+       0,   338,     0,   338,     0,     0,   336,     0,   338,   139,
+     274,   273,   276,   275,   278,   277,     0,     0,   269,   271,
+     215,   124,     0,   122,    84,   282,     0,   280,   208,   210,
+     213,   224,     0,   112,   111,     0,     0,   114,     0,     0,
+       0,     0,     0,     0,     0,   147,   331,     0,   329,   316,
+       0,   193,     0,   190,   191,     0,     0,     0,   335,     0,
+     333,   317,     0,     0,     0,     0,     0,   144,     0,   267,
+       0,     0,     0,   118,     0,     0,   279,     0,   221,   266,
+     120,   266,   266,   266,   266,   266,   261,   266,     0,     0,
+     259,   266,   266,   262,   116,   119,   203,   204,   113,     0,
+     288,     0,     0,     0,   218,   223,   216,   128,   290,   173,
+     171,   150,   149,   153,   146,     0,   145,   326,   338,     0,
+       0,   188,     0,   337,   182,   328,     0,   332,   338,     0,
+     362,   287,     0,    88,   338,     0,   319,     0,   270,   272,
+       0,   123,     0,   281,   121,   255,   260,   256,   234,   235,
+     254,   266,   266,   258,   257,   115,     0,   201,   202,   319,
+       0,     0,   151,   156,   292,   148,   330,   177,     0,   192,
+       0,   354,   334,   358,   319,     0,     0,   140,   142,   143,
+       0,     0,     0,     0,   284,   285,     0,   237,   236,     0,
+       0,   174,   172,     0,   154,     0,   319,   194,     0,   319,
+     319,     0,   397,   138,   338,   318,     0,   268,   125,   283,
+     108,     0,   338,     0,     0,     0,   183,     0,     0,   371,
+       0,   364,   365,   319,   141,   137,   319,   338,     0,   307,
+     338,   133,     0,     0,     0,     0,   370,   367,     0,   366,
+     400,     0,     0,   152,     0,     0,   167,   338,     0,   338,
+     338,   369,   373,   338,     0,     0,   399,   401,     0,   129,
+     155,   134,   165,   319,     0,   184,     0,     0,     0,   378,
+       0,   338,   403,     0,   402,   109,     0,   298,   178,     0,
+     355,   359,   338,   383,   385,   368,   377,   379,   381,   382,
+     363,   408,     0,   338,     0,     0,   296,   293,   301,     0,
+     376,     0,   374,   338,   338,   380,     0,     0,     0,     0,
+     168,   338,     0,     0,   299,   159,   185,   372,   338,     0,
+     388,   338,   398,     0,   166,     0,     0,   338,   338,     0,
+     157,   309,   321,   375,     0,     0,   390,   407,     0,   405,
+       0,   169,   295,     0,     0,   338,     0,     0,     0,     0,
+     186,   320,   322,   384,   387,     0,   394,   411,   338,   170,
+     297,   294,   338,     0,   302,   305,   306,   338,     0,     0,
+     324,     0,   323,   391,   389,     0,     0,     0,   338,   404,
+     410,   412,   406,   304,   300,   338,     0,   160,   162,   164,
+     231,   225,   226,   227,   228,   229,   230,   232,   313,   310,
+     205,     0,   338,     0,     0,   392,   393,     0,   414,   413,
+     303,   158,   338,   314,   351,     0,   312,     0,   347,   348,
+     308,     0,     0,   338,   386,   388,   163,     0,   311,     0,
+     233,     0,   349,   132,   325,     0,   415,     0,   315,   187,
+     390,   350,   416,   421,     0,   424,   422,   420,     0,   417,
+     338,   309,   427,     0,   425,   418,   423,   338,     0,   426,
+       0,   419
 };
 
-static const short yydefgoto[] =
+/* YYDEFGOTO[NTERM-NUM]. */
+static const short int yydefgoto[] =
 {
-     710,     2,     3,     6,     8,    13,    35,    36,    30,    33,
-      63,    64,    65,    66,    67,    68,    69,    70,   180,    94,
-      95,    96,    97,   132,   158,    98,   181,   211,    19,   100,
-     133,   101,   135,   102,   103,   104,   105,   106,   182,   233,
-     474,   183,   184,   185,   284,   285,   186,   342,   270,   271,
-     320,   107,   122,   150,   407,   108,   123,   151,   494,   109,
-     134,   160,   315,   424,   425,   384,   361,   362,   363,   411,
-     441,   443,   461,   579,   594,   634,   635,   636,   511,   524,
-     557,   558,   364,   409,   408,   110,   124,   152,   444,   111,
-     125,   153,   248,   418,   481,   527,   580,   619,   196,   300,
-     301,   302,   187,   188,   343,   647,   189,   221,   222,   223,
-     207,   280,   648,   344,   190,   345,   213,   226,   215,   265,
-     266,   267,   216,   274,   275,   323,   434,   243,   380,   287,
-     293,   413,   546,   561,   560,   563,   577,   611,   612,   613,
-     476,   596,   649,   663,   664,   477,   306,   429,   598,   599,
-     600,   651,   194,   198,   295,   296,   200,   307,   308,   255,
-     372,   297,    10,    20,    21,   665,   666,   667,   112,   126,
-     154,   447,   113,   127,   155,   448,   114,   128,   156,   422,
-     468,   469,   470,   500,   485,   517,   549,   550,   533,   534,
-     535,   536,   551,   537,   552,   584,   604,   622,   625,   115,
-     129,   157,   471,   503,   504,   505,   540,   586,   587,   520,
-     627,   628,   629,   673,   688,   691,   699,   706,   693,   695,
-     697,   701,   702
+      -1,     2,     3,     4,     8,    10,    15,    37,    38,    32,
+      35,    65,    66,    67,    68,    69,    70,    71,    72,   182,
+      96,    97,    98,    99,   134,   160,   100,   183,   213,    21,
+     102,   135,   103,   137,   104,   105,   106,   107,   108,   184,
+     235,   476,   185,   186,   187,   286,   287,   188,   344,   272,
+     273,   322,   109,   124,   152,   409,   110,   125,   153,   496,
+     111,   136,   162,   317,   426,   427,   386,   363,   364,   365,
+     413,   443,   445,   463,   581,   596,   636,   637,   638,   513,
+     526,   559,   560,   366,   411,   410,   112,   126,   154,   446,
+     113,   127,   155,   250,   420,   483,   529,   582,   621,   198,
+     302,   303,   304,   189,   190,   345,   649,   191,   223,   224,
+     225,   209,   282,   650,   346,   192,   347,   215,   228,   217,
+     267,   268,   269,   218,   276,   277,   325,   436,   245,   382,
+     289,   295,   415,   548,   563,   562,   565,   579,   613,   614,
+     615,   478,   598,   651,   665,   666,   479,   308,   431,   600,
+     601,   602,   653,   196,   200,   297,   298,   202,   309,   310,
+     257,   374,   299,    12,    22,    23,   667,   668,   669,   114,
+     128,   156,   449,   115,   129,   157,   450,   116,   130,   158,
+     424,   470,   471,   472,   502,   487,   519,   551,   552,   535,
+     536,   537,   538,   553,   539,   554,   586,   606,   624,   627,
+     117,   131,   159,   473,   505,   506,   507,   542,   588,   589,
+     522,   629,   630,   631,   675,   690,   693,   701,   708,   695,
+     697,   699,   703,   704
 };
 
-static const short yypact[] =
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
+#define YYPACT_NINF -461
+static const short int yypact[] =
 {
-      34,-32768,    34,-32768,-32768,-32768,   -49,-32768,    13,   -37,
-     127,-32768,-32768,    47,-32768,   -26,   -30,-32768,   -20,-32768,
-     127,-32768,    78,   112,   121,-32768,   117,    28,    42,-32768,
-     114,-32768,   158,    70,   494,   266,-32768,   101,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,    95,   494,-32768,   -19,-32768,-32768,-32768,
-  -32768,   106,   201,   197,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,   177,   373,-32768,-32768,-32768,   122,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,    34,
-     494,-32768,   156,   157,   160,   161,   163,   167,   176,   199,
-  -32768,-32768,   182,   173,   133,   227,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,   200,-32768,   202,
-     155,   149,   175,   170,   179,   183,   180,   168,   224,   252,
-     232,   -47,   166,-32768,   -65,   -65,   169,   -56,   174,   169,
-     -65,   237,   187,   178,   -45,-32768,   -65,   169,   169,     0,
-     171,-32768,-32768,-32768,-32768,-32768,-32768,-32768,   152,-32768,
-  -32768,   268,    64,   181,   203,   185,-32768,   188,   204,   189,
-     211,   268,   264,-32768,   195,-32768,    65,   205,-32768,-32768,
-     290,   206,   291,-32768,-32768,-32768,-32768,-32768,-32768,    94,
-  -32768,   169,   205,   169,-32768,-32768,-32768,   -65,   208,   219,
-  -32768,   295,   297,   278,-32768,-32768,-32768,   300,   306,   309,
-     -34,-32768,-32768,   288,   228,-32768,   268,   312,   274,-32768,
-     268,-32768,   268,   298,-32768,   242,-32768,   235,-32768,-32768,
-  -32768,-32768,-32768,-32768,   229,    18,-32768,   328,-32768,-32768,
-      37,-32768,-32768,-32768,    41,-32768,-32768,-32768,-32768,-32768,
-     178,-32768,-32768,   548,    51,-32768,   264,   254,   231,   233,
-     -65,   264,   264,    -4,-32768,    66,-32768,-32768,   305,   238,
-     240,   236,-32768,   327,    77,   314,-32768,    84,-32768,-32768,
-     315,   264,   337,   246,   248,   319,    94,-32768,    94,    94,
-     247,-32768,   290,   249,-32768,   291,-32768,   -65,-32768,   -65,
-     -65,   -65,   -65,   -65,-32768,   -65,   311,   273,-32768,   -65,
-     -65,-32768,-32768,-32768,-32768,-32768,-32768,   297,-32768,   268,
-     318,   322,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,   284,-32768,   354,-32768,-32768,-32768,   264,   355,-32768,
-     312,-32768,-32768,-32768,   264,-32768,-32768,   264,-32768,-32768,
-     334,-32768,-32768,   264,   287,    19,-32768,-32768,   357,-32768,
-     154,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,   -65,
-     -65,-32768,-32768,-32768,   338,-32768,-32768,   287,   354,   354,
-  -32768,   294,-32768,-32768,-32768,-32768,   271,-32768,   302,-32768,
-  -32768,-32768,   287,   264,    85,-32768,-32768,-32768,   264,   366,
-     275,   279,-32768,-32768,   281,-32768,-32768,   264,   371,-32768,
-  -32768,   283,-32768,   296,   287,-32768,   264,   287,   287,   332,
-  -32768,-32768,-32768,-32768,   378,-32768,-32768,-32768,-32768,   289,
-  -32768,   293,   268,   387,-32768,   388,   390,   393,   391,   332,
-  -32768,   287,-32768,-32768,   287,-32768,   301,-32768,-32768,   374,
-     303,   382,   307,   308,   153,-32768,   310,-32768,   326,   330,
-     313,-32768,   317,   264,   368,-32768,   264,-32768,-32768,-32768,
-     363,-32768,   415,   417,   326,-32768,    64,-32768,-32768,-32768,
-  -32768,   287,   324,-32768,   325,   331,   335,    -3,   339,   384,
-  -32768,   341,-32768,-32768,   342,    25,-32768,   401,-32768,-32768,
-  -32768,-32768,-32768,-32768,    -3,-32768,-32768,-32768,-32768,-32768,
-     396,-32768,   435,   345,-32768,-32768,   402,   264,-32768,    88,
-  -32768,-32768,-32768,-32768,   347,   348,   344,    89,-32768,-32768,
-     350,   351,-32768,   361,-32768,-32768,-32768,   423,   367,-32768,
-  -32768,   445,-32768,   435,   358,-32768,-32768,   356,-32768,   429,
-     380,-32768,   264,    64,   370,-32768,    92,-32768,   360,-32768,
-  -32768,   365,   369,   431,   375,   376,   466,   327,-32768,   380,
-  -32768,-32768,-32768,    64,   -27,   379,-32768,-32768,-32768,-32768,
-  -32768,    93,-32768,-32768,-32768,   377,   105,   381,-32768,   467,
-  -32768,-32768,-32768,   354,   354,   449,-32768,-32768,   379,-32768,
-  -32768,-32768,-32768,   431,   383,   385,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,   172,-32768,-32768,   386,
-  -32768,   452,   389,-32768,-32768,   264,-32768,-32768,-32768,-32768,
-  -32768,   392,-32768,   394,   395,   398,   194,-32768,-32768,   399,
-     264,-32768,-32768,   367,-32768,   473,-32768,   476,-32768,   392,
-  -32768,-32768,-32768,   400,-32768,   403,-32768,-32768,   370,-32768,
-  -32768,   469,   481,   479,-32768,-32768,   405,-32768,-32768,   429,
-  -32768,    99,-32768,-32768,-32768,-32768,   462,-32768,   264,-32768,
-     503,   504,-32768
+      19,  -461,    36,    19,  -461,  -461,  -461,  -461,   -58,  -461,
+      -5,   -31,    54,  -461,  -461,    78,  -461,    -1,     9,  -461,
+      38,  -461,    54,  -461,   107,   154,   160,  -461,   138,    88,
+      90,  -461,   153,  -461,   186,    95,   561,   350,  -461,    93,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,    97,   561,  -461,   -23,  -461,
+    -461,  -461,  -461,    99,   195,    70,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,   171,   496,  -461,  -461,
+    -461,   115,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,    19,   561,  -461,   140,   141,   146,   151,   149,   155,
+     158,   191,  -461,  -461,   166,   156,   129,   213,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,   183,
+    -461,   202,   143,   134,   157,   142,   167,   173,   152,   161,
+     204,   227,   205,     2,   145,  -461,   -47,   -47,   150,   -18,
+     159,   150,   -47,   203,   162,   169,   -49,  -461,   -47,   150,
+     150,    -2,   148,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+      52,  -461,  -461,   244,   233,   165,   174,   170,  -461,   176,
+     178,   177,   179,   244,   242,  -461,   184,  -461,    35,   185,
+    -461,  -461,   257,   187,   265,  -461,  -461,  -461,  -461,  -461,
+    -461,   175,  -461,   150,   185,   150,  -461,  -461,  -461,   -47,
+     188,   193,  -461,   270,   277,   256,  -461,  -461,  -461,   279,
+     283,   286,     5,  -461,  -461,   268,   207,  -461,   244,   292,
+     254,  -461,   244,  -461,   244,   275,  -461,   223,  -461,   210,
+    -461,  -461,  -461,  -461,  -461,  -461,   206,     3,  -461,   303,
+    -461,  -461,    15,  -461,  -461,  -461,    37,  -461,  -461,  -461,
+    -461,  -461,   169,  -461,  -461,   441,    41,  -461,   242,   229,
+     208,   209,   -47,   242,   242,    13,  -461,    44,  -461,  -461,
+     287,   214,   212,   217,  -461,   305,    48,   293,  -461,    51,
+    -461,  -461,   294,   242,   316,   225,   230,   299,   175,  -461,
+     175,   175,   228,  -461,   257,   231,  -461,   265,  -461,   -47,
+    -461,   -47,   -47,   -47,   -47,   -47,  -461,   -47,   295,   247,
+    -461,   -47,   -47,  -461,  -461,  -461,  -461,  -461,  -461,   277,
+    -461,   244,   296,   297,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,   258,  -461,   329,  -461,  -461,  -461,   242,
+     330,  -461,   292,  -461,  -461,  -461,   242,  -461,  -461,   242,
+    -461,  -461,   311,  -461,  -461,   242,   263,     6,  -461,  -461,
+     333,  -461,   126,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,   -47,   -47,  -461,  -461,  -461,   314,  -461,  -461,   263,
+     329,   329,  -461,   269,  -461,  -461,  -461,  -461,   241,  -461,
+     278,  -461,  -461,  -461,   263,   242,    55,  -461,  -461,  -461,
+     242,   341,   245,   246,  -461,  -461,   248,  -461,  -461,   242,
+     342,  -461,  -461,   255,  -461,   273,   263,  -461,   242,   263,
+     263,   302,  -461,  -461,  -461,  -461,   351,  -461,  -461,  -461,
+    -461,   260,  -461,   262,   244,   356,  -461,   357,   358,   359,
+     363,   302,  -461,   263,  -461,  -461,   263,  -461,   272,  -461,
+    -461,   336,   271,   354,   280,   281,   114,  -461,   284,  -461,
+     300,   304,   282,  -461,   288,   242,   334,  -461,   242,  -461,
+    -461,  -461,   335,  -461,   385,   387,   300,  -461,   233,  -461,
+    -461,  -461,  -461,   263,   301,  -461,   307,   317,   312,    -3,
+     320,   352,  -461,   322,  -461,  -461,   323,    20,  -461,   370,
+    -461,  -461,  -461,  -461,  -461,  -461,    -3,  -461,  -461,  -461,
+    -461,  -461,   360,  -461,   392,   324,  -461,  -461,   361,   242,
+    -461,    58,  -461,  -461,  -461,  -461,   325,   326,   313,    59,
+    -461,  -461,   331,   332,  -461,   338,  -461,  -461,  -461,   374,
+     339,  -461,  -461,   420,  -461,   392,   340,  -461,  -461,   337,
+    -461,   404,   355,  -461,   242,   233,   343,  -461,    64,  -461,
+     345,  -461,  -461,   346,   347,   393,   353,   362,   429,   305,
+    -461,   355,  -461,  -461,  -461,   233,   -13,   348,  -461,  -461,
+    -461,  -461,  -461,    67,  -461,  -461,  -461,   364,    63,   366,
+    -461,   436,  -461,  -461,  -461,   329,   329,   421,  -461,  -461,
+     348,  -461,  -461,  -461,  -461,   393,   368,   349,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,   172,  -461,
+    -461,   369,  -461,   424,   372,  -461,  -461,   242,  -461,  -461,
+    -461,  -461,  -461,   371,  -461,   373,   375,   376,   182,  -461,
+    -461,   380,   242,  -461,  -461,   339,  -461,   445,  -461,   447,
+    -461,   371,  -461,  -461,  -461,   381,  -461,   378,  -461,  -461,
+     343,  -461,  -461,   442,   449,   435,  -461,  -461,   384,  -461,
+    -461,   404,  -461,    77,  -461,  -461,  -461,  -461,   431,  -461,
+     242,  -461
 };
 
-static const short yypgoto[] =
+/* YYPGOTO[NTERM-NUM].  */
+static const short int yypgoto[] =
 {
-  -32768,-32768,   505,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,   442,-32768,   404,-32768,-32768,-32768,    27,-32768,
-  -32768,   413,-32768,-32768,-32768,-32768,-32768,-32768,    -2,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,   280,-32768,-32768,   184,  -190,-32768,-32768,   192,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,    58,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,  -145,-32768,-32768,
-  -32768,   -57,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,   150,-32768,-32768,-32768,-32768,   333,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,  -159,  -143,  -154,   209,
-     210,   207,  -192,-32768,   212,-32768,-32768,  -197,-32768,-32768,
-  -32768,  -396,-32768,-32768,-32768,-32768,-32768,-32768,  -114,   -88,
-    -516,  -172,-32768,-32768,-32768,  -244,    35,  -382,-32768,-32768,
-     -67,-32768,-32768,-32768,   286,   191,-32768,-32768,   165,  -283,
-     -64,    -7,-32768,-32768,   516,-32768,-32768,  -124,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,    76,-32768,-32768,-32768,-32768,   -17,-32768,-32768,
-      12,-32768,-32768,-32768,-32768,  -123,  -130,-32768,-32768,-32768,
-  -32768,-32768,-32768,-32768,-32768,    56,-32768,-32768,   -43,-32768,
-  -32768,-32768,   -63,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-  -32768,-32768,  -141
+    -461,  -461,  -461,   467,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,   407,  -461,   367,  -461,  -461,  -461,    29,
+    -461,  -461,   386,  -461,  -461,  -461,  -461,  -461,  -461,    -4,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,   249,  -461,  -461,   144,  -192,  -461,  -461,
+     168,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,    42,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -167,  -461,
+    -461,  -461,   -77,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,   127,  -461,  -461,  -461,  -461,   319,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -161,  -145,  -156,
+     189,   190,   192,  -194,  -461,   194,  -461,  -461,  -199,  -461,
+    -461,  -461,  -398,  -461,  -461,  -461,  -461,  -461,  -461,  -132,
+    -108,  -460,  -195,  -461,  -461,  -461,  -246,    17,  -384,  -461,
+    -461,   -86,  -461,  -461,  -461,   266,   180,  -461,  -461,   196,
+    -285,   -83,    -9,  -461,  -461,   500,  -461,  -461,  -150,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,    53,  -461,  -461,  -461,  -461,   -42,  -461,
+    -461,    -8,  -461,  -461,  -461,  -461,  -146,  -160,  -461,  -461,
+    -461,  -461,  -461,  -461,  -461,  -461,    30,  -461,  -461,   -73,
+    -461,  -461,  -461,   -93,  -461,  -461,  -461,  -461,  -461,  -461,
+    -461,  -461,  -461,  -169
 };
 
-
-#define	YYLAST		664
-
-
-static const short yytable[] =
+/* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule which
+   number is the opposite.  If zero, do what YYDEFACT says.
+   If YYTABLE_NINF, syntax error.  */
+#define YYTABLE_NINF -410
+static const short int yytable[] =
 {
-       9,   294,   244,   348,   253,   294,   217,   209,   355,   356,
-     357,   225,   439,   440,   119,   268,   237,   234,   208,   230,
-     231,   214,   218,   220,   623,   438,   224,     4,   378,     4,
-     277,   531,   212,    99,   235,   236,   206,    18,    11,     1,
-     449,  -208,   543,   574,   624,  -206,   358,    18,     7,   298,
-    -213,    22,   232,   305,   206,   310,   532,   544,   -51,   591,
-     592,    14,   463,  -213,   359,   465,   466,   206,   279,   161,
-     360,    23,   258,   259,   260,   261,   262,   263,   276,   -51,
-     278,   120,    12,   162,   415,    24,   209,   164,   165,   488,
-     238,   419,   489,    99,   421,   545,    26,   208,   354,   166,
-     427,   258,   259,   260,   261,   262,   263,   167,   168,   169,
-     170,   638,   639,   640,   641,   642,   643,   644,   645,    27,
-     317,   430,   294,   171,   318,   318,   326,    28,   172,   525,
-      31,   173,    15,    16,    17,   321,   353,   322,   426,   324,
-     450,   325,   174,    32,   264,   453,   136,   352,    29,   346,
-     176,   347,   404,    34,   458,   177,   178,   240,  -337,  -337,
-    -337,   432,   433,   464,   365,    37,   366,   179,   392,    38,
-     393,   394,   395,   396,   397,   373,   398,   366,   661,   662,
-     401,   402,   375,   451,   376,   452,   565,   572,   566,   573,
-     605,   632,   606,   633,   117,   167,   168,   704,   257,   705,
-     679,   662,   646,   116,   121,   -90,   130,   161,   426,  -134,
-     509,   171,  -394,   513,   145,   141,   172,   138,   140,   139,
-     148,   162,   163,   142,   143,   164,   165,   653,   654,   144,
-     146,   149,   147,   192,   492,   191,   159,   166,   193,   199,
-     435,   436,   197,   202,   309,   167,   168,   169,   170,   313,
-    -359,  -178,   195,   203,  -355,  -174,   204,  -351,  -125,  -129,
-     201,   171,   205,   210,   564,   479,   172,    71,   228,   173,
-     219,    72,    73,   227,   242,  -211,   239,   254,   245,   229,
-     174,    74,   247,   246,   250,   249,   251,   175,   176,    75,
-      76,   252,   256,   177,   178,   -53,   269,   273,   264,   601,
-     281,    77,   212,   283,   272,   179,   286,   288,   568,  -219,
-      78,    79,    80,   289,   290,   291,   523,   292,   299,    81,
-      82,   303,   312,    83,    84,   311,    85,    86,    87,   314,
-     316,   319,   367,    88,   349,   350,   370,   351,   369,   368,
-     371,   374,   377,   379,   381,   382,   383,   399,   388,   614,
-     390,    89,    90,    91,   400,   405,   410,    92,    93,   406,
-     412,   423,   416,   428,   431,   437,   614,   442,   446,   309,
-     454,   637,   672,   445,    71,   459,   462,   455,    72,    73,
-     460,   456,   656,   457,   467,   473,   475,   682,    74,   614,
-     478,   480,   482,   602,   483,   486,    75,    76,   484,   491,
-     495,   493,   -52,   496,   497,   498,   669,   501,    77,   502,
-     510,   507,   516,   621,   506,   508,   637,    78,    79,    80,
-     519,   521,   526,   528,  -408,   709,    81,    82,   547,   529,
-      83,    84,   530,    85,    86,    87,   554,   538,   541,   542,
-      88,   556,   559,   562,   569,   571,   570,   575,   576,   578,
-     582,   583,   588,   593,   700,   595,   590,   597,    89,    90,
-      91,   700,   607,   608,    92,    93,   603,   609,   490,   610,
-     617,   652,   615,   616,   626,  -160,   655,   499,   650,   670,
-     685,   659,   686,   692,   668,   660,   671,   694,   309,   708,
-     514,   515,   676,   675,   518,   677,   678,   681,   687,    39,
-      40,   696,   698,   711,   712,   689,   118,     5,   131,    41,
-     472,   282,   539,    42,   389,   674,   589,    43,    44,   658,
-     417,   241,   631,   548,   137,   385,   387,   703,   386,    45,
-     512,   403,   620,   618,   555,   304,    25,   391,    46,    47,
-      48,   420,   680,    49,   567,   487,   553,    50,    51,   581,
-     684,    52,    53,   327,    54,    55,    56,   414,   690,   548,
-     522,    57,   585,   630,   707,   657,     0,   328,     0,     0,
-       0,   329,   330,     0,     0,     0,     0,     0,     0,    58,
-      59,    60,     0,   331,     0,    61,    62,     0,     0,     0,
-       0,   332,   333,   334,   335,     0,     0,     0,     0,   585,
-       0,     0,     0,     0,     0,     0,     0,   336,     0,     0,
-       0,     0,   337,     0,     0,   338,     0,     0,     0,     0,
+      11,   296,   246,   350,   255,   296,   219,   211,   357,   358,
+     121,   227,   441,   442,   239,   270,   233,   236,   210,   232,
+      13,   216,   220,   222,     1,   440,   226,   359,   380,     5,
+     279,   533,     5,   101,   237,   238,     6,   545,   625,     9,
+     451,    20,   260,   261,   262,   263,   264,   265,   234,   300,
+     214,    20,   546,   307,   208,   312,   534,   242,   626,    17,
+      18,    19,   465,   360,    14,   467,   468,    16,   281,   640,
+     641,   642,   643,   644,   645,   646,   647,   122,   278,  -209,
+     280,   361,    24,  -207,   417,  -395,   211,   362,   240,   490,
+     547,   421,   491,   101,   423,   169,   170,   210,   356,  -214,
+     429,   576,  -214,   208,   -52,   319,   208,   -52,   432,   320,
+      25,   173,   320,   323,   266,   324,   174,   593,   594,  -338,
+    -338,  -338,   296,  -360,  -179,    28,   328,  -356,  -175,   527,
+    -352,  -126,  -130,   434,   435,   326,   355,   327,   428,   348,
+     452,   349,   367,    26,   368,   455,   375,   354,   368,   377,
+     138,   378,   406,   453,   460,   454,   567,   574,   568,   575,
+     648,    29,   607,   466,   608,   634,    30,   635,   394,    31,
+     395,   396,   397,   398,   399,   706,   400,   707,   663,   664,
+     403,   404,   260,   261,   262,   263,   264,   265,   681,   664,
+      33,    34,    36,    39,    40,   118,   119,   123,   259,   -91,
+     132,   140,  -135,   141,   142,   143,   147,   163,   428,   144,
+     511,   146,   145,   515,   148,   149,   150,   151,   194,   161,
+     195,   164,   165,   193,   197,   166,   167,   655,   656,   201,
+     199,   206,   203,   205,   494,   207,   204,   168,   163,   229,
+     437,   438,   212,   230,   311,   169,   170,   171,   172,   315,
+     244,   221,   164,   241,   248,   256,   166,   167,   252,   254,
+    -212,   173,   247,   271,   566,   481,   174,   249,   168,   175,
+     231,   275,   266,   251,   253,   283,   169,   170,   171,   172,
+     176,   258,   214,   285,   288,   274,   290,   177,   178,  -220,
+     291,   292,   173,   179,   180,   293,   294,   174,   301,   603,
+     175,   305,   313,   314,   316,   181,   321,   318,   570,   351,
+     371,   176,   352,   353,   369,   370,   525,   372,   373,   178,
+     376,   379,   381,   383,   179,   180,   385,   384,   402,   390,
+     412,   401,   392,   407,   408,   414,   181,   418,   425,   430,
+     433,   439,   444,   447,   448,   456,   461,   457,   458,   616,
+     459,    73,   462,   464,   469,    74,    75,   477,   475,   480,
+     482,   484,   485,   495,   486,    76,   616,   488,   497,   311,
+     493,   639,   674,    77,    78,   498,   512,   499,   500,   -54,
+     509,   503,   658,   504,   518,    79,   510,   684,   508,   616,
+     521,   523,  -409,   604,    80,    81,    82,   549,   558,   528,
+     556,   584,   564,    83,    84,   530,   671,    85,    86,   532,
+      87,    88,    89,   623,   573,   531,   639,    90,   540,   543,
+     544,   561,   571,   585,   572,   711,   580,   590,   577,   578,
+     597,   612,   599,   619,   595,    91,    92,    93,   592,   605,
+     654,    94,    95,   628,   610,   611,   329,   609,   657,   662,
+     617,   672,   687,   688,   702,   696,   694,   698,   710,   618,
+     330,   702,  -161,   652,   331,   332,   661,   670,   492,   673,
+       7,   678,   677,   120,   680,   679,   333,   501,   683,   689,
+     691,   700,   284,   133,   334,   335,   336,   337,   311,   139,
+     516,   517,   391,   405,   520,   676,   474,    73,   591,   419,
+     338,    74,    75,   660,   633,   339,   705,   387,   340,   243,
+     388,    76,   541,   389,   514,   622,   620,   306,   682,    77,
+      78,   393,    27,   550,   489,   -53,   583,   341,   555,   686,
+     692,    79,   342,   343,   557,   632,   524,   659,   709,     0,
+      80,    81,    82,     0,   569,     0,     0,     0,   416,    83,
+      84,     0,     0,    85,    86,     0,    87,    88,    89,   550,
+       0,     0,   587,    90,     0,     0,    41,    42,     0,     0,
+       0,     0,     0,     0,   422,     0,    43,     0,     0,     0,
+      44,    91,    92,    93,    45,    46,     0,    94,    95,     0,
+       0,     0,     0,     0,     0,     0,    47,     0,     0,   587,
+       0,     0,     0,     0,     0,    48,    49,    50,     0,     0,
+      51,     0,     0,     0,    52,    53,     0,     0,    54,    55,
+       0,    56,    57,    58,     0,     0,     0,     0,    59,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,   339,     0,     0,     0,     0,   340,
-     341,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,   683
+       0,     0,     0,     0,     0,     0,    60,    61,    62,     0,
+       0,     0,    63,    64,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,   685
 };
 
-static const short yycheck[] =
+static const short int yycheck[] =
 {
-       7,   245,   192,   286,   201,   249,   165,   161,   291,   292,
-      14,   170,   408,   409,    33,   207,    16,   176,   161,   173,
-      65,   164,   165,   166,    51,   407,   169,     0,   311,     2,
-     222,    34,    97,    35,   177,   178,   101,    10,    25,     5,
-     422,    97,    17,   559,    71,   101,    50,    20,    97,   246,
-      97,     4,    97,   250,   101,   252,    59,    32,   105,   575,
-     576,    98,   444,    97,    68,   447,   448,   101,   227,     5,
-      74,   101,     7,     8,     9,    10,    11,    12,   221,   105,
-     223,   100,    69,    19,   367,   105,   240,    23,    24,   471,
-      90,   374,   474,    95,   377,    70,    18,   240,   290,    35,
-     383,     7,     8,     9,    10,    11,    12,    43,    44,    45,
-      46,     6,     7,     8,     9,    10,    11,    12,    13,     7,
-     102,   102,   366,    59,   106,   106,   280,     6,    64,   511,
-     102,    67,     5,     6,     7,    98,   290,   100,   382,    98,
-     423,   100,    78,   101,    79,   428,   119,   290,    31,    98,
-      86,   100,   349,    39,   437,    91,    92,     5,     5,     6,
-       7,     7,     8,   446,    98,     7,   100,   103,   327,    99,
-     329,   330,   331,   332,   333,    98,   335,   100,     6,     7,
-     339,   340,    98,    98,   100,   100,    98,    98,   100,   100,
-      98,    98,   100,   100,    99,    43,    44,    98,   205,   100,
-       6,     7,    97,   102,    98,     4,    29,     5,   452,    87,
-     493,    59,    15,   496,    15,    54,    64,    61,    58,    62,
-      87,    19,    20,    60,    57,    23,    24,   623,   624,    53,
-      48,     4,    59,    84,   478,    80,    36,    35,    63,    56,
-     399,   400,    63,    75,   251,    43,    44,    45,    46,   256,
-      53,    54,    82,    29,    57,    58,     4,    60,    61,    62,
-      80,    59,    30,    97,   547,   462,    64,     1,    81,    67,
-     101,     5,     6,    36,     6,   101,   105,    13,    97,   101,
-      78,    15,    97,    80,    80,    97,    97,    85,    86,    23,
-      24,    80,    97,    91,    92,    29,     6,     6,    79,   582,
-       5,    35,    97,     6,    98,   103,    28,     7,   552,   101,
-      44,    45,    46,     7,     5,    27,   506,    89,     6,    53,
-      54,    47,    80,    57,    58,    27,    60,    61,    62,    94,
-     101,     3,    27,    67,    80,   104,   100,   104,    98,   101,
-      13,    27,    27,     6,    98,    97,    27,    36,   101,   593,
-     101,    85,    86,    87,    81,    37,    72,    91,    92,    37,
-       6,    27,     7,    76,     7,    27,   610,    73,    66,   376,
-       4,   615,   655,   102,     1,     4,    80,   102,     5,     6,
-      97,   102,   626,   102,    52,     7,    97,   670,    15,   633,
-      97,     4,     4,   583,     4,     4,    23,    24,     5,    98,
-      97,    27,    29,    21,    97,    97,   650,    97,    35,    83,
-      42,    98,    49,   603,    84,    98,   660,    44,    45,    46,
-       5,     4,    98,    98,    40,   708,    53,    54,    27,    98,
-      57,    58,    97,    60,    61,    62,    40,    98,    97,    97,
-      67,     6,    97,    41,    97,   101,    98,    97,    97,    88,
-      27,    84,     7,    97,   698,    26,    98,    77,    85,    86,
-      87,   705,   102,    98,    91,    92,    96,    98,   475,    38,
-       4,     4,    97,    97,    95,    98,    27,   484,    97,    27,
-       7,    98,     6,    14,    98,   100,    97,     6,   495,    27,
-     497,   498,    98,   101,   501,   100,    98,    98,    98,     5,
-       6,    22,    97,     0,     0,   102,    64,     2,    95,    15,
-     452,   231,   519,    19,   322,   660,   573,    23,    24,   633,
-     370,   188,   610,   530,   120,   316,   319,   699,   318,    35,
-     495,   347,   599,   597,   541,   249,    20,   325,    44,    45,
-      46,   376,   666,    49,   551,   469,   534,    53,    54,   566,
-     673,    57,    58,     5,    60,    61,    62,   366,   688,   566,
-     504,    67,   569,   606,   705,   628,    -1,    19,    -1,    -1,
-      -1,    23,    24,    -1,    -1,    -1,    -1,    -1,    -1,    85,
-      86,    87,    -1,    35,    -1,    91,    92,    -1,    -1,    -1,
-      -1,    43,    44,    45,    46,    -1,    -1,    -1,    -1,   606,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    59,    -1,    -1,
-      -1,    -1,    64,    -1,    -1,    67,    -1,    -1,    -1,    -1,
+       9,   247,   194,   288,   203,   251,   167,   163,   293,   294,
+      33,   172,   410,   411,    16,   209,    65,   178,   163,   175,
+      25,   166,   167,   168,     5,   409,   171,    14,   313,     0,
+     224,    34,     3,    37,   179,   180,     0,    17,    51,    97,
+     424,    12,     7,     8,     9,    10,    11,    12,    97,   248,
+      97,    22,    32,   252,   101,   254,    59,     5,    71,     5,
+       6,     7,   446,    50,    69,   449,   450,    98,   229,     6,
+       7,     8,     9,    10,    11,    12,    13,   100,   223,    97,
+     225,    68,     4,   101,   369,    15,   242,    74,    90,   473,
+      70,   376,   476,    97,   379,    43,    44,   242,   292,    97,
+     385,   561,    97,   101,   105,   102,   101,   105,   102,   106,
+     101,    59,   106,    98,    79,   100,    64,   577,   578,     5,
+       6,     7,   368,    53,    54,    18,   282,    57,    58,   513,
+      60,    61,    62,     7,     8,    98,   292,   100,   384,    98,
+     425,   100,    98,   105,   100,   430,    98,   292,   100,    98,
+     121,   100,   351,    98,   439,   100,    98,    98,   100,   100,
+      97,     7,    98,   448,   100,    98,     6,   100,   329,    31,
+     331,   332,   333,   334,   335,    98,   337,   100,     6,     7,
+     341,   342,     7,     8,     9,    10,    11,    12,     6,     7,
+     102,   101,    39,     7,    99,   102,    99,    98,   207,     4,
+      29,    61,    87,    62,    58,    54,    15,     5,   454,    60,
+     495,    53,    57,   498,    48,    59,    87,     4,    84,    36,
+      63,    19,    20,    80,    82,    23,    24,   625,   626,    56,
+      63,     4,    80,    29,   480,    30,    75,    35,     5,    36,
+     401,   402,    97,    81,   253,    43,    44,    45,    46,   258,
+       6,   101,    19,   105,    80,    13,    23,    24,    80,    80,
+     101,    59,    97,     6,   549,   464,    64,    97,    35,    67,
+     101,     6,    79,    97,    97,     5,    43,    44,    45,    46,
+      78,    97,    97,     6,    28,    98,     7,    85,    86,   101,
+       7,     5,    59,    91,    92,    27,    89,    64,     6,   584,
+      67,    47,    27,    80,    94,   103,     3,   101,   554,    80,
+      98,    78,   104,   104,    27,   101,   508,   100,    13,    86,
+      27,    27,     6,    98,    91,    92,    27,    97,    81,   101,
+      72,    36,   101,    37,    37,     6,   103,     7,    27,    76,
+       7,    27,    73,   102,    66,     4,     4,   102,   102,   595,
+     102,     1,    97,    80,    52,     5,     6,    97,     7,    97,
+       4,     4,     4,    27,     5,    15,   612,     4,    97,   378,
+      98,   617,   657,    23,    24,    21,    42,    97,    97,    29,
+      98,    97,   628,    83,    49,    35,    98,   672,    84,   635,
+       5,     4,    40,   585,    44,    45,    46,    27,     6,    98,
+      40,    27,    41,    53,    54,    98,   652,    57,    58,    97,
+      60,    61,    62,   605,   101,    98,   662,    67,    98,    97,
+      97,    97,    97,    84,    98,   710,    88,     7,    97,    97,
+      26,    38,    77,     4,    97,    85,    86,    87,    98,    96,
+       4,    91,    92,    95,    98,    98,     5,   102,    27,   100,
+      97,    27,     7,     6,   700,     6,    14,    22,    27,    97,
+      19,   707,    98,    97,    23,    24,    98,    98,   477,    97,
+       3,    98,   101,    66,    98,   100,    35,   486,    98,    98,
+     102,    97,   233,    97,    43,    44,    45,    46,   497,   122,
+     499,   500,   324,   349,   503,   662,   454,     1,   575,   372,
+      59,     5,     6,   635,   612,    64,   701,   318,    67,   190,
+     320,    15,   521,   321,   497,   601,   599,   251,   668,    23,
+      24,   327,    22,   532,   471,    29,   568,    86,   536,   675,
+     690,    35,    91,    92,   543,   608,   506,   630,   707,    -1,
+      44,    45,    46,    -1,   553,    -1,    -1,    -1,   368,    53,
+      54,    -1,    -1,    57,    58,    -1,    60,    61,    62,   568,
+      -1,    -1,   571,    67,    -1,    -1,     5,     6,    -1,    -1,
+      -1,    -1,    -1,    -1,   378,    -1,    15,    -1,    -1,    -1,
+      19,    85,    86,    87,    23,    24,    -1,    91,    92,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    35,    -1,    -1,   608,
+      -1,    -1,    -1,    -1,    -1,    44,    45,    46,    -1,    -1,
+      49,    -1,    -1,    -1,    53,    54,    -1,    -1,    57,    58,
+      -1,    60,    61,    62,    -1,    -1,    -1,    -1,    67,    -1,
       -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    86,    -1,    -1,    -1,    -1,    91,
-      92,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,   671
+      -1,    -1,    -1,    -1,    -1,    -1,    85,    86,    87,    -1,
+      -1,    -1,    91,    92,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,   673
 };
-#define YYPURE 1
 
-/* -*-C-*-  Note some compilers choke on comments on `#line' lines.  */
-#line 3 "/usr/share/bison/bison.simple"
-
-/* Skeleton output parser for bison,
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software
-   Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
-
-/* As a special exception, when this file is copied by Bison into a
-   Bison output file, you may use that output file without restriction.
-   This special exception was added by the Free Software Foundation
-   in version 1.24 of Bison.  */
-
-/* This is the parser code that is written into each bison parser when
-   the %semantic_parser declaration is not specified in the grammar.
-   It was written by Richard Stallman by simplifying the hairy parser
-   used when %semantic_parser is specified.  */
-
-/* All symbols defined below should begin with yy or YY, to avoid
-   infringing on user name space.  This should be done even for local
-   variables, as they might otherwise be expanded by user macros.
-   There are some unavoidable exceptions within include files to
-   define necessary library symbols; they are noted "INFRINGES ON
-   USER NAME SPACE" below.  */
-
-#if ! defined (yyoverflow) || defined (YYERROR_VERBOSE)
-
-/* The parser invokes alloca or malloc; define the necessary symbols.  */
-
-# if YYSTACK_USE_ALLOCA
-#  define YYSTACK_ALLOC alloca
-# else
-#  ifndef YYSTACK_USE_ALLOCA
-#   if defined (alloca) || defined (_ALLOCA_H)
-#    define YYSTACK_ALLOC alloca
-#   else
-#    ifdef __GNUC__
-#     define YYSTACK_ALLOC __builtin_alloca
-#    endif
-#   endif
-#  endif
-# endif
-
-# ifdef YYSTACK_ALLOC
-   /* Pacify GCC's `empty if-body' warning. */
-#  define YYSTACK_FREE(Ptr) do { /* empty */; } while (0)
-# else
-#  if defined (__STDC__) || defined (__cplusplus)
-#   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-#   define YYSIZE_T size_t
-#  endif
-#  define YYSTACK_ALLOC malloc
-#  define YYSTACK_FREE free
-# endif
-#endif /* ! defined (yyoverflow) || defined (YYERROR_VERBOSE) */
-
-
-#if (! defined (yyoverflow) \
-     && (! defined (__cplusplus) \
-	 || (YYLTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
-
-/* A type that is properly aligned for any stack member.  */
-union yyalloc
+/* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
+   symbol of state STATE-NUM.  */
+static const unsigned short int yystos[] =
 {
-  short yyss;
-  YYSTYPE yyvs;
-# if YYLSP_NEEDED
-  YYLTYPE yyls;
-# endif
+       0,     5,   108,   109,   110,   126,     0,   110,   111,    97,
+     112,   269,   270,    25,    69,   113,    98,     5,     6,     7,
+     126,   136,   271,   272,     4,   101,   105,   272,    18,     7,
+       6,    31,   116,   102,   101,   117,    39,   114,   115,     7,
+      99,     5,     6,    15,    19,    23,    24,    35,    44,    45,
+      46,    49,    53,    54,    57,    58,    60,    61,    62,    67,
+      85,    86,    87,    91,    92,   118,   119,   120,   121,   122,
+     123,   124,   125,     1,     5,     6,    15,    23,    24,    35,
+      44,    45,    46,    53,    54,    57,    58,    60,    61,    62,
+      67,    85,    86,    87,    91,    92,   127,   128,   129,   130,
+     133,   136,   137,   139,   141,   142,   143,   144,   145,   159,
+     163,   167,   193,   197,   276,   280,   284,   307,   102,    99,
+     120,    33,   100,    98,   160,   164,   194,   198,   277,   281,
+     285,   308,    29,   129,   131,   138,   168,   140,   126,   122,
+      61,    62,    58,    54,    60,    57,    53,    15,    48,    59,
+      87,     4,   161,   165,   195,   199,   278,   282,   286,   309,
+     132,    36,   169,     5,    19,    20,    23,    24,    35,    43,
+      44,    45,    46,    59,    64,    67,    78,    85,    86,    91,
+      92,   103,   126,   134,   146,   149,   150,   151,   154,   210,
+     211,   214,   222,    80,    84,    63,   260,    82,   206,    63,
+     261,    56,   264,    80,    75,    29,     4,    30,   101,   218,
+     225,   226,    97,   135,    97,   224,   225,   226,   230,   224,
+     225,   101,   225,   215,   216,   217,   225,   224,   225,    36,
+      81,   101,   226,    65,    97,   147,   224,   225,   225,    16,
+      90,   105,     5,   214,     6,   235,   154,    97,    80,    97,
+     200,    97,    80,    97,    80,   235,    13,   267,    97,   269,
+       7,     8,     9,    10,    11,    12,    79,   227,   228,   229,
+     230,     6,   156,   157,    98,     6,   231,   232,   225,   230,
+     225,   224,   219,     5,   150,     6,   152,   153,    28,   237,
+       7,     7,     5,    27,    89,   238,   253,   262,   263,   269,
+     235,     6,   207,   208,   209,    47,   262,   235,   254,   265,
+     266,   269,   235,    27,    80,   269,    94,   170,   101,   102,
+     106,     3,   158,    98,   100,   233,    98,   100,   226,     5,
+      19,    23,    24,    35,    43,    44,    45,    46,    59,    64,
+      67,    86,    91,    92,   155,   212,   221,   223,    98,   100,
+     267,    80,   104,   104,   225,   226,   230,   267,   267,    14,
+      50,    68,    74,   174,   175,   176,   190,    98,   100,    27,
+     101,    98,   100,    13,   268,    98,    27,    98,   100,    27,
+     267,     6,   236,    98,    97,    27,   173,   227,   228,   229,
+     101,   157,   101,   232,   224,   224,   224,   224,   224,   224,
+     224,    36,    81,   224,   224,   153,   235,    37,    37,   162,
+     192,   191,    72,   177,     6,   239,   263,   267,     7,   209,
+     201,   267,   266,   267,   287,    27,   171,   172,   253,   267,
+      76,   255,   102,     7,     7,     8,   234,   224,   224,    27,
+     255,   239,   239,   178,    73,   179,   196,   102,    66,   279,
+     283,   255,   267,    98,   100,   267,     4,   102,   102,   102,
+     267,     4,    97,   180,    80,   255,   267,   255,   255,    52,
+     288,   289,   290,   310,   172,     7,   148,    97,   248,   253,
+      97,   235,     4,   202,     4,     4,     5,   292,     4,   290,
+     255,   255,   269,    98,   253,    27,   166,    97,    21,    97,
+      97,   269,   291,    97,    83,   311,   312,   313,    84,    98,
+      98,   267,    42,   186,   254,   267,   269,   269,    49,   293,
+     269,     5,   317,     4,   313,   154,   187,   255,    98,   203,
+      98,    98,    97,    34,    59,   296,   297,   298,   299,   301,
+      98,   269,   314,    97,    97,    17,    32,    70,   240,    27,
+     269,   294,   295,   300,   302,   298,    40,   269,     6,   188,
+     189,    97,   242,   241,    41,   243,   267,    98,   100,   269,
+     253,    97,    98,   101,    98,   100,   248,    97,    97,   244,
+      88,   181,   204,   295,    27,    84,   303,   269,   315,   316,
+       7,   189,    98,   248,   248,    97,   182,    26,   249,    77,
+     256,   257,   258,   267,   154,    96,   304,    98,   100,   102,
+      98,    98,    38,   245,   246,   247,   253,    97,    97,     4,
+     268,   205,   258,   154,   305,    51,    71,   306,    95,   318,
+     319,   320,   316,   247,    98,   100,   183,   184,   185,   253,
+       6,     7,     8,     9,    10,    11,    12,    13,    97,   213,
+     220,   250,    97,   259,     4,   239,   239,    27,   253,   320,
+     246,    98,   100,     6,     7,   251,   252,   273,   274,   275,
+      98,   253,    27,    97,   267,   321,   185,   101,    98,   100,
+      98,     6,   275,    98,   267,   269,   303,     7,     6,    98,
+     322,   102,   304,   323,    14,   326,     6,   327,    22,   328,
+      97,   324,   253,   329,   330,   249,    98,   100,   325,   330,
+      27,   267
 };
-
-/* The size of the maximum gap between one aligned stack and the next.  */
-# define YYSTACK_GAP_MAX (sizeof (union yyalloc) - 1)
-
-/* The size of an array large to enough to hold all stacks, each with
-   N elements.  */
-# if YYLSP_NEEDED
-#  define YYSTACK_BYTES(N) \
-     ((N) * (sizeof (short) + sizeof (YYSTYPE) + sizeof (YYLTYPE))	\
-      + 2 * YYSTACK_GAP_MAX)
-# else
-#  define YYSTACK_BYTES(N) \
-     ((N) * (sizeof (short) + sizeof (YYSTYPE))				\
-      + YYSTACK_GAP_MAX)
-# endif
-
-/* Copy COUNT objects from FROM to TO.  The source and destination do
-   not overlap.  */
-# ifndef YYCOPY
-#  if 1 < __GNUC__
-#   define YYCOPY(To, From, Count) \
-      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
-#  else
-#   define YYCOPY(To, From, Count)		\
-      do					\
-	{					\
-	  register YYSIZE_T yyi;		\
-	  for (yyi = 0; yyi < (Count); yyi++)	\
-	    (To)[yyi] = (From)[yyi];		\
-	}					\
-      while (0)
-#  endif
-# endif
-
-/* Relocate STACK from its old location to the new one.  The
-   local variables YYSIZE and YYSTACKSIZE give the old and new number of
-   elements in the stack, and YYPTR gives the new location of the
-   stack.  Advance YYPTR to a properly aligned location for the next
-   stack.  */
-# define YYSTACK_RELOCATE(Stack)					\
-    do									\
-      {									\
-	YYSIZE_T yynewbytes;						\
-	YYCOPY (&yyptr->Stack, Stack, yysize);				\
-	Stack = &yyptr->Stack;						\
-	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAX;	\
-	yyptr += yynewbytes / sizeof (*yyptr);				\
-      }									\
-    while (0)
-
-#endif
-
 
 #if ! defined (YYSIZE_T) && defined (__SIZE_TYPE__)
 # define YYSIZE_T __SIZE_TYPE__
@@ -2356,29 +2607,35 @@ union yyalloc
 
 #define yyerrok		(yyerrstatus = 0)
 #define yyclearin	(yychar = YYEMPTY)
-#define YYEMPTY		-2
+#define YYEMPTY		(-2)
 #define YYEOF		0
+
 #define YYACCEPT	goto yyacceptlab
-#define YYABORT 	goto yyabortlab
-#define YYERROR		goto yyerrlab1
+#define YYABORT		goto yyabortlab
+#define YYERROR		goto yyerrorlab
+
+
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
    Once GCC version 2 has supplanted version 1, this can go.  */
+
 #define YYFAIL		goto yyerrlab
+
 #define YYRECOVERING()  (!!yyerrstatus)
+
 #define YYBACKUP(Token, Value)					\
 do								\
   if (yychar == YYEMPTY && yylen == 1)				\
     {								\
       yychar = (Token);						\
       yylval = (Value);						\
-      yychar1 = YYTRANSLATE (yychar);				\
+      yytoken = YYTRANSLATE (yychar);				\
       YYPOPSTACK;						\
       goto yybackup;						\
     }								\
   else								\
     { 								\
-      yyerror ("syntax error: cannot back up");			\
+      yyerror ("syntax error: cannot back up");\
       YYERROR;							\
     }								\
 while (0)
@@ -2386,41 +2643,24 @@ while (0)
 #define YYTERROR	1
 #define YYERRCODE	256
 
-
 /* YYLLOC_DEFAULT -- Compute the default location (before the actions
-   are run).
-
-   When YYLLOC_DEFAULT is run, CURRENT is set the location of the
-   first token.  By default, to implement support for ranges, extend
-   its range to the last symbol.  */
+   are run).  */
 
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)       	\
-   Current.last_line   = Rhs[N].last_line;	\
-   Current.last_column = Rhs[N].last_column;
+# define YYLLOC_DEFAULT(Current, Rhs, N)		\
+   ((Current).first_line   = (Rhs)[1].first_line,	\
+    (Current).first_column = (Rhs)[1].first_column,	\
+    (Current).last_line    = (Rhs)[N].last_line,	\
+    (Current).last_column  = (Rhs)[N].last_column)
 #endif
-
 
 /* YYLEX -- calling `yylex' with the right arguments.  */
 
-#if YYPURE
-# if YYLSP_NEEDED
-#  ifdef YYLEX_PARAM
-#   define YYLEX		yylex (&yylval, &yylloc, YYLEX_PARAM)
-#  else
-#   define YYLEX		yylex (&yylval, &yylloc)
-#  endif
-# else /* !YYLSP_NEEDED */
-#  ifdef YYLEX_PARAM
-#   define YYLEX		yylex (&yylval, YYLEX_PARAM)
-#  else
-#   define YYLEX		yylex (&yylval)
-#  endif
-# endif /* !YYLSP_NEEDED */
-#else /* !YYPURE */
-# define YYLEX			yylex ()
-#endif /* !YYPURE */
-
+#ifdef YYLEX_PARAM
+# define YYLEX yylex (&yylval, YYLEX_PARAM)
+#else
+# define YYLEX yylex (&yylval)
+#endif
 
 /* Enable debugging if requested.  */
 #if YYDEBUG
@@ -2435,12 +2675,92 @@ do {						\
   if (yydebug)					\
     YYFPRINTF Args;				\
 } while (0)
+
+# define YYDSYMPRINT(Args)			\
+do {						\
+  if (yydebug)					\
+    yysymprint Args;				\
+} while (0)
+
+# define YYDSYMPRINTF(Title, Token, Value, Location)		\
+do {								\
+  if (yydebug)							\
+    {								\
+      YYFPRINTF (stderr, "%s ", Title);				\
+      yysymprint (stderr, 					\
+                  Token, Value);	\
+      YYFPRINTF (stderr, "\n");					\
+    }								\
+} while (0)
+
+/*------------------------------------------------------------------.
+| yy_stack_print -- Print the state stack from its BOTTOM up to its |
+| TOP (included).                                                   |
+`------------------------------------------------------------------*/
+
+#if defined (__STDC__) || defined (__cplusplus)
+static void
+yy_stack_print (short int *bottom, short int *top)
+#else
+static void
+yy_stack_print (bottom, top)
+    short int *bottom;
+    short int *top;
+#endif
+{
+  YYFPRINTF (stderr, "Stack now");
+  for (/* Nothing. */; bottom <= top; ++bottom)
+    YYFPRINTF (stderr, " %d", *bottom);
+  YYFPRINTF (stderr, "\n");
+}
+
+# define YY_STACK_PRINT(Bottom, Top)				\
+do {								\
+  if (yydebug)							\
+    yy_stack_print ((Bottom), (Top));				\
+} while (0)
+
+
+/*------------------------------------------------.
+| Report that the YYRULE is going to be reduced.  |
+`------------------------------------------------*/
+
+#if defined (__STDC__) || defined (__cplusplus)
+static void
+yy_reduce_print (int yyrule)
+#else
+static void
+yy_reduce_print (yyrule)
+    int yyrule;
+#endif
+{
+  int yyi;
+  unsigned int yylno = yyrline[yyrule];
+  YYFPRINTF (stderr, "Reducing stack by rule %d (line %u), ",
+             yyrule - 1, yylno);
+  /* Print the symbols being reduced, and their result.  */
+  for (yyi = yyprhs[yyrule]; 0 <= yyrhs[yyi]; yyi++)
+    YYFPRINTF (stderr, "%s ", yytname [yyrhs[yyi]]);
+  YYFPRINTF (stderr, "-> %s\n", yytname [yyr1[yyrule]]);
+}
+
+# define YY_REDUCE_PRINT(Rule)		\
+do {					\
+  if (yydebug)				\
+    yy_reduce_print (Rule);		\
+} while (0)
+
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
 int yydebug;
 #else /* !YYDEBUG */
 # define YYDPRINTF(Args)
+# define YYDSYMPRINT(Args)
+# define YYDSYMPRINTF(Title, Token, Value, Location)
+# define YY_STACK_PRINT(Bottom, Top)
+# define YY_REDUCE_PRINT(Rule)
 #endif /* !YYDEBUG */
+
 
 /* YYINITDEPTH -- initial size of the parser's stacks.  */
 #ifndef	YYINITDEPTH
@@ -2454,15 +2774,17 @@ int yydebug;
    SIZE_MAX < YYSTACK_BYTES (YYMAXDEPTH)
    evaluated with infinite-precision integer arithmetic.  */
 
-#if YYMAXDEPTH == 0
+#if defined (YYMAXDEPTH) && YYMAXDEPTH == 0
 # undef YYMAXDEPTH
 #endif
 
 #ifndef YYMAXDEPTH
 # define YYMAXDEPTH 10000
 #endif
+
 
-#ifdef YYERROR_VERBOSE
+
+#if YYERROR_VERBOSE
 
 # ifndef yystrlen
 #  if defined (__GLIBC__) && defined (_STRING_H)
@@ -2512,78 +2834,126 @@ yystpcpy (yydest, yysrc)
 }
 #  endif
 # endif
-#endif
+
+#endif /* !YYERROR_VERBOSE */
+
 
-#line 315 "/usr/share/bison/bison.simple"
 
+#if YYDEBUG
+/*--------------------------------.
+| Print this symbol on YYOUTPUT.  |
+`--------------------------------*/
 
-/* The user can define YYPARSE_PARAM as the name of an argument to be passed
-   into yyparse.  The argument should have type void *.
-   It should actually point to an object.
-   Grammar actions can access the variable by casting it
-   to the proper pointer type.  */
+#if defined (__STDC__) || defined (__cplusplus)
+static void
+yysymprint (FILE *yyoutput, int yytype, YYSTYPE *yyvaluep)
+#else
+static void
+yysymprint (yyoutput, yytype, yyvaluep)
+    FILE *yyoutput;
+    int yytype;
+    YYSTYPE *yyvaluep;
+#endif
+{
+  /* Pacify ``unused variable'' warnings.  */
+  (void) yyvaluep;
+
+  if (yytype < YYNTOKENS)
+    {
+      YYFPRINTF (yyoutput, "token %s (", yytname[yytype]);
+# ifdef YYPRINT
+      YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
+# endif
+    }
+  else
+    YYFPRINTF (yyoutput, "nterm %s (", yytname[yytype]);
+
+  switch (yytype)
+    {
+      default:
+        break;
+    }
+  YYFPRINTF (yyoutput, ")");
+}
+
+#endif /* ! YYDEBUG */
+/*-----------------------------------------------.
+| Release the memory associated to this symbol.  |
+`-----------------------------------------------*/
+
+#if defined (__STDC__) || defined (__cplusplus)
+static void
+yydestruct (int yytype, YYSTYPE *yyvaluep)
+#else
+static void
+yydestruct (yytype, yyvaluep)
+    int yytype;
+    YYSTYPE *yyvaluep;
+#endif
+{
+  /* Pacify ``unused variable'' warnings.  */
+  (void) yyvaluep;
+
+  switch (yytype)
+    {
+
+      default:
+        break;
+    }
+}
+
+
+/* Prevent warnings from -Wmissing-prototypes.  */
 
 #ifdef YYPARSE_PARAM
 # if defined (__STDC__) || defined (__cplusplus)
-#  define YYPARSE_PARAM_ARG void *YYPARSE_PARAM
-#  define YYPARSE_PARAM_DECL
-# else
-#  define YYPARSE_PARAM_ARG YYPARSE_PARAM
-#  define YYPARSE_PARAM_DECL void *YYPARSE_PARAM;
-# endif
-#else /* !YYPARSE_PARAM */
-# define YYPARSE_PARAM_ARG
-# define YYPARSE_PARAM_DECL
-#endif /* !YYPARSE_PARAM */
-
-/* Prevent warning if -Wstrict-prototypes.  */
-#ifdef __GNUC__
-# ifdef YYPARSE_PARAM
-int yyparse (void *);
+int yyparse (void *YYPARSE_PARAM);
 # else
 int yyparse ();
 # endif
-#endif
-
-/* YY_DECL_VARIABLES -- depending whether we use a pure parser,
-   variables are global, or local to YYPARSE.  */
-
-#define YY_DECL_NON_LSP_VARIABLES			\
-/* The lookahead symbol.  */				\
-int yychar;						\
-							\
-/* The semantic value of the lookahead symbol. */	\
-YYSTYPE yylval;						\
-							\
-/* Number of parse errors so far.  */			\
-int yynerrs;
-
-#if YYLSP_NEEDED
-# define YY_DECL_VARIABLES			\
-YY_DECL_NON_LSP_VARIABLES			\
-						\
-/* Location data for the lookahead symbol.  */	\
-YYLTYPE yylloc;
+#else /* ! YYPARSE_PARAM */
+#if defined (__STDC__) || defined (__cplusplus)
+int yyparse (void);
 #else
-# define YY_DECL_VARIABLES			\
-YY_DECL_NON_LSP_VARIABLES
+int yyparse ();
 #endif
+#endif /* ! YYPARSE_PARAM */
 
 
-/* If nonreentrant, generate the variables here. */
 
-#if !YYPURE
-YY_DECL_VARIABLES
-#endif  /* !YYPURE */
 
+
+
+/*----------.
+| yyparse.  |
+`----------*/
+
+#ifdef YYPARSE_PARAM
+# if defined (__STDC__) || defined (__cplusplus)
+int yyparse (void *YYPARSE_PARAM)
+# else
+int yyparse (YYPARSE_PARAM)
+  void *YYPARSE_PARAM;
+# endif
+#else /* ! YYPARSE_PARAM */
+#if defined (__STDC__) || defined (__cplusplus)
 int
-yyparse (YYPARSE_PARAM_ARG)
-     YYPARSE_PARAM_DECL
+yyparse (void)
+#else
+int
+yyparse ()
+
+#endif
+#endif
 {
-  /* If reentrant, generate the variables here. */
-#if YYPURE
-  YY_DECL_VARIABLES
-#endif  /* !YYPURE */
+  /* The lookahead symbol.  */
+int yychar;
+
+/* The semantic value of the lookahead symbol.  */
+YYSTYPE yylval;
+
+/* Number of syntax errors so far.  */
+int yynerrs;
 
   register int yystate;
   register int yyn;
@@ -2591,7 +2961,7 @@ yyparse (YYPARSE_PARAM_ARG)
   /* Number of tokens to shift before error messages enabled.  */
   int yyerrstatus;
   /* Lookahead token as an internal (translated) token number.  */
-  int yychar1 = 0;
+  int yytoken = 0;
 
   /* Three stacks and their tools:
      `yyss': related to states,
@@ -2601,41 +2971,29 @@ yyparse (YYPARSE_PARAM_ARG)
      Refer to the stacks thru separate pointers, to allow yyoverflow
      to reallocate them elsewhere.  */
 
-  /* The state stack. */
-  short	yyssa[YYINITDEPTH];
-  short *yyss = yyssa;
-  register short *yyssp;
+  /* The state stack.  */
+  short int yyssa[YYINITDEPTH];
+  short int *yyss = yyssa;
+  register short int *yyssp;
 
   /* The semantic value stack.  */
   YYSTYPE yyvsa[YYINITDEPTH];
   YYSTYPE *yyvs = yyvsa;
   register YYSTYPE *yyvsp;
 
-#if YYLSP_NEEDED
-  /* The location stack.  */
-  YYLTYPE yylsa[YYINITDEPTH];
-  YYLTYPE *yyls = yylsa;
-  YYLTYPE *yylsp;
-#endif
 
-#if YYLSP_NEEDED
-# define YYPOPSTACK   (yyvsp--, yyssp--, yylsp--)
-#else
-# define YYPOPSTACK   (yyvsp--, yyssp--)
-#endif
+
+#define YYPOPSTACK   (yyvsp--, yyssp--)
 
   YYSIZE_T yystacksize = YYINITDEPTH;
-
 
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;
-#if YYLSP_NEEDED
-  YYLTYPE yyloc;
-#endif
+
 
   /* When reducing, the number of symbols on the RHS of the reduced
-     rule. */
+     rule.  */
   int yylen;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
@@ -2652,9 +3010,8 @@ yyparse (YYPARSE_PARAM_ARG)
 
   yyssp = yyss;
   yyvsp = yyvs;
-#if YYLSP_NEEDED
-  yylsp = yyls;
-#endif
+
+
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -2669,7 +3026,7 @@ yyparse (YYPARSE_PARAM_ARG)
  yysetstate:
   *yyssp = yystate;
 
-  if (yyssp >= yyss + yystacksize - 1)
+  if (yyss + yystacksize - 1 <= yyssp)
     {
       /* Get the current used size of the three stacks, in elements.  */
       YYSIZE_T yysize = yyssp - yyss + 1;
@@ -2680,26 +3037,19 @@ yyparse (YYPARSE_PARAM_ARG)
 	   these so that the &'s don't force the real ones into
 	   memory.  */
 	YYSTYPE *yyvs1 = yyvs;
-	short *yyss1 = yyss;
+	short int *yyss1 = yyss;
+
 
 	/* Each stack pointer address is followed by the size of the
-	   data in use in that stack, in bytes.  */
-# if YYLSP_NEEDED
-	YYLTYPE *yyls1 = yyls;
-	/* This used to be a conditional around just the two extra args,
-	   but that might be undefined if yyoverflow is a macro.  */
+	   data in use in that stack, in bytes.  This used to be a
+	   conditional around just the two extra args, but that might
+	   be undefined if yyoverflow is a macro.  */
 	yyoverflow ("parser stack overflow",
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
-		    &yyls1, yysize * sizeof (*yylsp),
+
 		    &yystacksize);
-	yyls = yyls1;
-# else
-	yyoverflow ("parser stack overflow",
-		    &yyss1, yysize * sizeof (*yyssp),
-		    &yyvs1, yysize * sizeof (*yyvsp),
-		    &yystacksize);
-# endif
+
 	yyss = yyss1;
 	yyvs = yyvs1;
       }
@@ -2708,24 +3058,22 @@ yyparse (YYPARSE_PARAM_ARG)
       goto yyoverflowlab;
 # else
       /* Extend the stack our own way.  */
-      if (yystacksize >= YYMAXDEPTH)
+      if (YYMAXDEPTH <= yystacksize)
 	goto yyoverflowlab;
       yystacksize *= 2;
-      if (yystacksize > YYMAXDEPTH)
+      if (YYMAXDEPTH < yystacksize)
 	yystacksize = YYMAXDEPTH;
 
       {
-	short *yyss1 = yyss;
+	short int *yyss1 = yyss;
 	union yyalloc *yyptr =
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
 	  goto yyoverflowlab;
 	YYSTACK_RELOCATE (yyss);
 	YYSTACK_RELOCATE (yyvs);
-# if YYLSP_NEEDED
-	YYSTACK_RELOCATE (yyls);
-# endif
-# undef YYSTACK_RELOCATE
+
+#  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
       }
@@ -2734,21 +3082,18 @@ yyparse (YYPARSE_PARAM_ARG)
 
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
-#if YYLSP_NEEDED
-      yylsp = yyls + yysize - 1;
-#endif
+
 
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
-      if (yyssp >= yyss + yystacksize - 1)
+      if (yyss + yystacksize - 1 <= yyssp)
 	YYABORT;
     }
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
   goto yybackup;
-
 
 /*-----------.
 | yybackup.  |
@@ -2762,88 +3107,55 @@ yybackup:
   /* First try to decide what to do without reference to lookahead token.  */
 
   yyn = yypact[yystate];
-  if (yyn == YYFLAG)
+  if (yyn == YYPACT_NINF)
     goto yydefault;
 
   /* Not known => get a lookahead token if don't already have one.  */
 
-  /* yychar is either YYEMPTY or YYEOF
-     or a valid token in external form.  */
-
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
       yychar = YYLEX;
     }
 
-  /* Convert token to internal form (in yychar1) for indexing tables with */
-
-  if (yychar <= 0)		/* This means end of input. */
+  if (yychar <= YYEOF)
     {
-      yychar1 = 0;
-      yychar = YYEOF;		/* Don't call YYLEX any more */
-
+      yychar = yytoken = YYEOF;
       YYDPRINTF ((stderr, "Now at end of input.\n"));
     }
   else
     {
-      yychar1 = YYTRANSLATE (yychar);
-
-#if YYDEBUG
-     /* We have to keep this `#if YYDEBUG', since we use variables
-	which are defined only if `YYDEBUG' is set.  */
-      if (yydebug)
-	{
-	  YYFPRINTF (stderr, "Next token is %d (%s",
-		     yychar, yytname[yychar1]);
-	  /* Give the individual parser a way to print the precise
-	     meaning of a token, for further debugging info.  */
-# ifdef YYPRINT
-	  YYPRINT (stderr, yychar, yylval);
-# endif
-	  YYFPRINTF (stderr, ")\n");
-	}
-#endif
+      yytoken = YYTRANSLATE (yychar);
+      YYDSYMPRINTF ("Next token is", yytoken, &yylval, &yylloc);
     }
 
-  yyn += yychar1;
-  if (yyn < 0 || yyn > YYLAST || yycheck[yyn] != yychar1)
+  /* If the proper action on seeing token YYTOKEN is to reduce or to
+     detect an error, take that action.  */
+  yyn += yytoken;
+  if (yyn < 0 || YYLAST < yyn || yycheck[yyn] != yytoken)
     goto yydefault;
-
   yyn = yytable[yyn];
-
-  /* yyn is what to do for this token type in this state.
-     Negative => reduce, -yyn is rule number.
-     Positive => shift, yyn is new state.
-       New state is final state => don't bother to shift,
-       just return success.
-     0, or most negative number => error.  */
-
-  if (yyn < 0)
+  if (yyn <= 0)
     {
-      if (yyn == YYFLAG)
+      if (yyn == 0 || yyn == YYTABLE_NINF)
 	goto yyerrlab;
       yyn = -yyn;
       goto yyreduce;
     }
-  else if (yyn == 0)
-    goto yyerrlab;
 
   if (yyn == YYFINAL)
     YYACCEPT;
 
   /* Shift the lookahead token.  */
-  YYDPRINTF ((stderr, "Shifting token %d (%s), ",
-	      yychar, yytname[yychar1]));
+  YYDPRINTF ((stderr, "Shifting token %s, ", yytname[yytoken]));
 
   /* Discard the token being shifted unless it is eof.  */
   if (yychar != YYEOF)
     yychar = YYEMPTY;
 
   *++yyvsp = yylval;
-#if YYLSP_NEEDED
-  *++yylsp = yylloc;
-#endif
+
 
   /* Count tokens shifted since error; after three, turn off error
      status.  */
@@ -2874,62 +3186,44 @@ yyreduce:
   /* If YYLEN is nonzero, implement the default value of the action:
      `$$ = $1'.
 
-     Otherwise, the following line sets YYVAL to the semantic value of
-     the lookahead token.  This behavior is undocumented and Bison
+     Otherwise, the following line sets YYVAL to garbage.
+     This behavior is undocumented and Bison
      users should not rely upon it.  Assigning to YYVAL
      unconditionally makes the parser a bit smaller, and it avoids a
      GCC warning that YYVAL may be used uninitialized.  */
   yyval = yyvsp[1-yylen];
 
-#if YYLSP_NEEDED
-  /* Similarly for the default location.  Let the user run additional
-     commands if for instance locations are ranges.  */
-  yyloc = yylsp[1-yylen];
-  YYLLOC_DEFAULT (yyloc, (yylsp - yylen), yylen);
-#endif
 
-#if YYDEBUG
-  /* We have to keep this `#if YYDEBUG', since we use variables which
-     are defined only if `YYDEBUG' is set.  */
-  if (yydebug)
+  YY_REDUCE_PRINT (yyn);
+  switch (yyn)
     {
-      int yyi;
-
-      YYFPRINTF (stderr, "Reducing via rule %d (line %d), ",
-		 yyn, yyrline[yyn]);
-
-      /* Print the symbols being reduced, and their result.  */
-      for (yyi = yyprhs[yyn]; yyrhs[yyi] > 0; yyi++)
-	YYFPRINTF (stderr, "%s ", yytname[yyrhs[yyi]]);
-      YYFPRINTF (stderr, " -> %s\n", yytname[yyr1[yyn]]);
-    }
-#endif
-
-  switch (yyn) {
-
-case 1:
+        case 2:
 #line 1591 "parser-smi.y"
-{
+    {
         yyval.err = 0;
-    ;
-    break;}
-case 2:
+    ;}
+    break;
+
+  case 3:
 #line 1595 "parser-smi.y"
-{
+    {
 	yyval.err = 0;
-    ;
-    break;}
-case 3:
+    ;}
+    break;
+
+  case 4:
 #line 1601 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 4:
+    { yyval.err = 0; ;}
+    break;
+
+  case 5:
 #line 1603 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 5:
+    { yyval.err = 0; ;}
+    break;
+
+  case 6:
 #line 1611 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_MODULE;
 			    
@@ -2965,11 +3259,12 @@ case 5:
 				 */
 				YYABORT;
 			    }
-			;
-    break;}
-case 6:
+			;}
+    break;
+
+  case 7:
 #line 1655 "parser-smi.y"
-{
+    {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV1;
 			    checkModuleName(thisParserPtr, thisModulePtr);
@@ -2983,37 +3278,44 @@ case 6:
 			    thisParserPtr->capabilitiesModulePtr = NULL;
 
                             yyval.err = 0;
-			;
-    break;}
-case 7:
+			;}
+    break;
+
+  case 8:
 #line 1673 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 8:
+    { yyval.err = 0; ;}
+    break;
+
+  case 9:
 #line 1675 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 9:
+    { yyval.err = 0; ;}
+    break;
+
+  case 10:
 #line 1679 "parser-smi.y"
-{ ;
-    break;}
-case 10:
+    { ;}
+    break;
+
+  case 11:
 #line 1681 "parser-smi.y"
-{
+    {
                             thisModulePtr->export.language = SMI_LANGUAGE_SPPI;
-                        ;
-    break;}
-case 11:
+                        ;}
+    break;
+
+  case 12:
 #line 1690 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 12:
+    { yyval.err = 0; ;}
+    break;
+
+  case 13:
 #line 1692 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 13:
+    { yyval.err = 0; ;}
+    break;
+
+  case 14:
 #line 1696 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_MODULE;
 
@@ -3022,15 +3324,17 @@ case 13:
 				thisModulePtr->export.language = SMI_LANGUAGE_SMIV1;
 			    
 			    yyval.err = 0;
-			;
-    break;}
-case 14:
+			;}
+    break;
+
+  case 15:
 #line 1710 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 15:
+    { yyval.err = 0; ;}
+    break;
+
+  case 16:
 #line 1712 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language ==
                                  SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "EXPORTS");
@@ -3044,31 +3348,37 @@ case 15:
 				       "RFC1065-SMI")) {
 			        smiPrintError(thisParserPtr, ERR_EXPORTS);
 			    }
-			;
-    break;}
-case 16:
+			;}
+    break;
+
+  case 17:
 #line 1729 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 17:
+    { yyval.err = 0; ;}
+    break;
+
+  case 18:
 #line 1733 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 18:
+    { yyval.err = 0; ;}
+    break;
+
+  case 19:
 #line 1735 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 19:
+    { yyval.err = 0; ;}
+    break;
+
+  case 20:
 #line 1740 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 20:
+    { yyval.err = 0; ;}
+    break;
+
+  case 21:
 #line 1742 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 21:
+    { yyval.err = 0; ;}
+    break;
+
+  case 22:
 #line 1748 "parser-smi.y"
-{
+    {
 			    Import      *importPtr;
 			    Module      *modulePtr;
                             
@@ -3107,43 +3417,49 @@ case 21:
 			    }
 
 			    smiFree(yyvsp[0].id);
-			;
-    break;}
-case 22:
+			;}
+    break;
+
+  case 23:
 #line 1791 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 23:
+    { yyval.err = 0; ;}
+    break;
+
+  case 24:
 #line 1794 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 24:
+    { yyval.err = 0; ;}
+    break;
+
+  case 25:
 #line 1801 "parser-smi.y"
-{
+    {
 			    addImport(yyvsp[0].id, thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
 			    yyval.id = 0;
-			;
-    break;}
-case 25:
+			;}
+    break;
+
+  case 26:
 #line 1807 "parser-smi.y"
-{
+    {
 			    addImport(yyvsp[0].id, thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
 			    yyval.id = 0;
-			;
-    break;}
-case 26:
+			;}
+    break;
+
+  case 27:
 #line 1813 "parser-smi.y"
-{
+    {
 			    addImport(smiStrdup(yyvsp[0].id), thisParserPtr);
 			    thisParserPtr->modulePtr->numImportedIdentifiers++;
 			    yyval.id = 0;
-			;
-    break;}
-case 27:
+			;}
+    break;
+
+  case 28:
 #line 1829 "parser-smi.y"
-{
+    {
                             /*
                              * There are PIBs that import e.g. Counter64 - so
                              * don't complain here about SMI keywords.
@@ -3151,136 +3467,156 @@ case 27:
                            /* if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                               smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, $1);*/
                             yyval.id = yyvsp[0].id;
-                        ;
-    break;}
-case 28:
+                        ;}
+    break;
+
+  case 29:
 #line 1839 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                               smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, yyvsp[0].id);
                             yyval.id = yyvsp[0].id;
-                        ;
-    break;}
-case 51:
+                        ;}
+    break;
+
+  case 52:
 #line 1873 "parser-smi.y"
-{
+    {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_MODULENAME_32, ERR_MODULENAME_64);
 			    yyval.id = yyvsp[0].id;
-			;
-    break;}
-case 52:
+			;}
+    break;
+
+  case 53:
 #line 1885 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 53:
+    { yyval.err = 0; ;}
+    break;
+
+  case 54:
 #line 1887 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 54:
+    { yyval.err = 0; ;}
+    break;
+
+  case 55:
 #line 1892 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 55:
+    { yyval.err = 0; ;}
+    break;
+
+  case 56:
 #line 1894 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 56:
+    { yyval.err = 0; ;}
+    break;
+
+  case 57:
 #line 1898 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 57:
+			;}
+    break;
+
+  case 58:
 #line 1903 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 58:
+			;}
+    break;
+
+  case 59:
 #line 1908 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 59:
+			;}
+    break;
+
+  case 60:
 #line 1913 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 60:
+			;}
+    break;
+
+  case 61:
 #line 1918 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 61:
+			;}
+    break;
+
+  case 62:
 #line 1923 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 62:
+			;}
+    break;
+
+  case 63:
 #line 1928 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 63:
+			;}
+    break;
+
+  case 64:
 #line 1933 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 64:
+			;}
+    break;
+
+  case 65:
 #line 1938 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 65:
+			;}
+    break;
+
+  case 66:
 #line 1943 "parser-smi.y"
-{
+    {
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 66:
+			;}
+    break;
+
+  case 67:
 #line 1948 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 67:
+			;}
+    break;
+
+  case 68:
 #line 1953 "parser-smi.y"
-{ 
+    { 
 			    thisParserPtr->modulePtr->numStatements++;
 			    yyval.err = 0;
-			;
-    break;}
-case 68:
+			;}
+    break;
+
+  case 69:
 #line 1958 "parser-smi.y"
-{
+    {
 			    smiPrintError(thisParserPtr,
 					  ERR_FLUSH_DECLARATION);
 			    yyerrok;
 			    yyval.err = 1;
-			;
-    break;}
-case 69:
+			;}
+    break;
+
+  case 70:
 #line 1972 "parser-smi.y"
-{
+    {
 			    Macro *macroPtr;
 
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
@@ -3290,11 +3626,12 @@ case 69:
 						0, thisParserPtr);
 			    setMacroLine(macroPtr, thisParserPtr->firstStatementLine,
 					 thisParserPtr);
-			;
-    break;}
-case 70:
+			;}
+    break;
+
+  case 71:
 #line 1984 "parser-smi.y"
-{
+    {
 			    /*
 			     * ASN.1 macros are known to be in these
 			     * modules.
@@ -3319,57 +3656,69 @@ case 70:
                                        "COPS-PR-SPPI-TC")) {
 			        smiPrintError(thisParserPtr, ERR_MACRO);
 			    }
-			;
-    break;}
-case 71:
+			;}
+    break;
+
+  case 72:
 #line 2012 "parser-smi.y"
-{
+    {
 			    yyval.err = 0;
-                        ;
-    break;}
-case 72:
+                        ;}
+    break;
+
+  case 73:
 #line 2017 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 73:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 74:
 #line 2018 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 74:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 75:
 #line 2019 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 75:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 76:
 #line 2020 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 76:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 77:
 #line 2021 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 77:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 78:
 #line 2022 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 78:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 79:
 #line 2023 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 79:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 80:
 #line 2024 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 80:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 81:
 #line 2025 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 81:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 82:
 #line 2026 "parser-smi.y"
-{ yyval.id = yyvsp[0].id; ;
-    break;}
-case 82:
+    { yyval.id = yyvsp[0].id; ;}
+    break;
+
+  case 83:
 #line 2030 "parser-smi.y"
-{
+    {
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
 				       "SNMPv2-SMI") &&
 			        strcmp(thisParserPtr->modulePtr->export.name,
@@ -3386,24 +3735,27 @@ case 82:
                                        "COPS-PR-SPPI")) {
 			        smiPrintError(thisParserPtr, ERR_CHOICE);
 			    }
-			;
-    break;}
-case 83:
+			;}
+    break;
+
+  case 84:
 #line 2050 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = addType(NULL, SMI_BASETYPE_UNKNOWN, 0,
 					 thisParserPtr);
-			;
-    break;}
-case 84:
+			;}
+    break;
+
+  case 85:
 #line 2060 "parser-smi.y"
-{
+    {
 			  yyval.id = yyvsp[0].id;
-			;
-    break;}
-case 85:
+			;}
+    break;
+
+  case 86:
 #line 2065 "parser-smi.y"
-{
+    {
 			    smiPrintError (thisParserPtr,
 					   ERR_BAD_LOWER_IDENTIFIER_CASE,
 					   yyvsp[0].id);
@@ -3413,11 +3765,12 @@ case 85:
 			    }
 			    */
 			  yyval.id = yyvsp[0].id;
-			;
-    break;}
-case 86:
+			;}
+    break;
+
+  case 87:
 #line 2080 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_VALUEASSIGNMENT;
 
@@ -3435,11 +3788,12 @@ case 86:
 						  yyvsp[0].id);
 				}
 			    }
-			;
-    break;}
-case 87:
+			;}
+    break;
+
+  case 88:
 #line 2101 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
@@ -3451,21 +3805,23 @@ case 87:
 			    setObjectDecl(objectPtr,
 					  SMI_DECL_VALUEASSIGNMENT);
 			    yyval.err = 0;
-			;
-    break;}
-case 88:
+			;}
+    break;
+
+  case 89:
 #line 2120 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_TYPEASSIGNMENT;
 
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_TYPENAME_32, ERR_TYPENAME_64);
-			;
-    break;}
-case 89:
+			;}
+    break;
+
+  case 90:
 #line 2128 "parser-smi.y"
-{
+    {
 			    Type *typePtr;
 			    
 			    if (strlen(yyvsp[-3].id)) {
@@ -3619,17 +3975,19 @@ case 89:
 				    setTypeParent(yyvsp[0].typePtr, smiHandle->typeInteger64Ptr);
 				}
 			    }
-			;
-    break;}
-case 90:
+			;}
+    break;
+
+  case 91:
 #line 2286 "parser-smi.y"
-{
+    {
 			    yyval.id = yyvsp[0].id;
-			;
-    break;}
-case 91:
+			;}
+    break;
+
+  case 92:
 #line 2290 "parser-smi.y"
-{
+    {
 			    yyval.id = smiStrdup(yyvsp[0].id);
 			    /*
 			     * well known types (keywords in this grammar)
@@ -3651,11 +4009,12 @@ case 91:
 				       "COPS-PR-SPPI")) {
 			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, yyvsp[0].id);
 			    }
-			;
-    break;}
-case 92:
+			;}
+    break;
+
+  case 93:
 #line 2314 "parser-smi.y"
-{
+    {
 			    yyval.id = smiStrdup(yyvsp[0].id);
 			    /*
 			     * well known types (keywords in this grammar)
@@ -3664,20 +4023,22 @@ case 92:
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
 				       "COPS-PR-SPPI"))
 			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, yyvsp[0].id);
-                        ;
-    break;}
-case 94:
+                        ;}
+    break;
+
+  case 95:
 #line 2328 "parser-smi.y"
-{
+    {
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
                                 !findImportByName(yyvsp[0].id, thisParserPtr->modulePtr))
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, yyvsp[0].id);
                             yyval.id = yyvsp[0].id;
-                        ;
-    break;}
-case 105:
+                        ;}
+    break;
+
+  case 106:
 #line 2353 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].typePtr->export.name) {
 				/*
 				 * If we found an already defined type,
@@ -3691,11 +4052,12 @@ case 105:
 				yyval.typePtr = yyvsp[0].typePtr;
 				setTypeDecl(yyval.typePtr, SMI_DECL_TYPEASSIGNMENT);
 			    }
-			;
-    break;}
-case 106:
+			;}
+    break;
+
+  case 107:
 #line 2369 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
 			    thisParserPtr->currentDecl = SMI_DECL_TEXTUALCONVENTION;
@@ -3722,17 +4084,19 @@ case 106:
 						      "COPS-PR-SPPI");
 				}
 			    }
-			;
-    break;}
-case 107:
+			;}
+    break;
+
+  case 108:
 #line 2400 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 108:
+			;}
+    break;
+
+  case 109:
 #line 2405 "parser-smi.y"
-{
+    {
 			    if ((yyvsp[0].typePtr) && !(yyvsp[0].typePtr->export.name)) {
 				/*
 				 * If the Type we found has just been
@@ -3762,18 +4126,20 @@ case 108:
 				}
 			    }
 			    setTypeDecl(yyval.typePtr, SMI_DECL_TEXTUALCONVENTION);
-			;
-    break;}
-case 109:
+			;}
+    break;
+
+  case 110:
 #line 2437 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			    setTypeDecl(yyval.typePtr, SMI_DECL_TYPEASSIGNMENT);
-			;
-    break;}
-case 110:
+			;}
+    break;
+
+  case 111:
 #line 2445 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].typePtr) {
 				yyval.typePtr = addType(NULL,
 					     SMI_BASETYPE_UNKNOWN, 0,
@@ -3783,11 +4149,12 @@ case 110:
 			    } else {
 				yyval.typePtr = NULL;
 			    }
-			;
-    break;}
-case 111:
+			;}
+    break;
+
+  case 112:
 #line 2464 "parser-smi.y"
-{
+    {
 			    Type *typePtr;
 			    Import *importPtr;
 
@@ -3821,27 +4188,30 @@ case 111:
 			    } else {
 				smiFree(yyvsp[0].id);
 			    }
-			;
-    break;}
-case 112:
+			;}
+    break;
+
+  case 113:
 #line 2504 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = addType(NULL, SMI_BASETYPE_UNKNOWN, 0,
 					 thisParserPtr);
 			    setTypeList(yyval.typePtr, yyvsp[-1].listPtr);
-			;
-    break;}
-case 113:
+			;}
+    break;
+
+  case 114:
 #line 2512 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 114:
+			;}
+    break;
+
+  case 115:
 #line 2519 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -3850,11 +4220,12 @@ case 114:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 115:
+			;}
+    break;
+
+  case 116:
 #line 2538 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    Import *importPtr;
 			    Type *typePtr;
@@ -3933,19 +4304,21 @@ case 115:
 			    }
 
 			    yyval.objectPtr = objectPtr;
-			;
-    break;}
-case 116:
+			;}
+    break;
+
+  case 117:
 #line 2621 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = yyvsp[0].typePtr;
 			    if (yyval.typePtr)
 				defaultBasetype = yyval.typePtr->export.basetype;
-			;
-    break;}
-case 117:
+			;}
+    break;
+
+  case 118:
 #line 2629 "parser-smi.y"
-{
+    {
 			    Type *typePtr;
 			    List *p;
 			    
@@ -3960,24 +4333,27 @@ case 117:
 				((NamedNumber *)p->ptr)->typePtr = typePtr;
 			    smiCheckNamedNumbersOrder(parserPtr, typePtr);
 			    yyval.typePtr = typePtr;
-			;
-    break;}
-case 118:
+			;}
+    break;
+
+  case 119:
 #line 2649 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 119:
+			;}
+    break;
+
+  case 120:
 #line 2653 "parser-smi.y"
-{
+    {
 			    /* TODO: */
 			    yyval.typePtr = smiHandle->typeOctetStringPtr;
-			;
-    break;}
-case 120:
+			;}
+    break;
+
+  case 121:
 #line 2658 "parser-smi.y"
-{
+    {
 			    Type *typePtr;
 			    Import *importPtr;
 			    
@@ -4006,19 +4382,21 @@ case 120:
 			    } else {
 				smiFree(yyvsp[-1].id);
 			    }
-			;
-    break;}
-case 121:
+			;}
+    break;
+
+  case 122:
 #line 2691 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].namedNumberPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 122:
+			;}
+    break;
+
+  case 123:
 #line 2697 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -4027,11 +4405,12 @@ case 122:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 123:
+			;}
+    break;
+
+  case 124:
 #line 2710 "parser-smi.y"
-{
+    {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_BITNAME_32, ERR_BITNAME_64);
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
@@ -4042,11 +4421,12 @@ case 123:
 						  yyvsp[0].id);
 				}
 			    }
-			;
-    break;}
-case 124:
+			;}
+    break;
+
+  case 125:
 #line 2723 "parser-smi.y"
-{
+    {
 			    yyval.namedNumberPtr = smiMalloc(sizeof(NamedNumber));
 			    yyval.namedNumberPtr->export.name = yyvsp[-4].id;
 			    yyval.namedNumberPtr->export.value.basetype =
@@ -4064,11 +4444,12 @@ case 124:
 						  yyvsp[-4].id, yyvsp[-1].unsigned32);
 				}
 			    }
-			;
-    break;}
-case 125:
+			;}
+    break;
+
+  case 126:
 #line 2745 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_OBJECTIDENTITY;
 
@@ -4076,11 +4457,12 @@ case 125:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 126:
+			;}
+    break;
+
+  case 127:
 #line 2755 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
 			    if (strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
@@ -4102,17 +4484,19 @@ case 126:
 						      "COPS-PR-SPPI");
 				}
 			    }
-			;
-    break;}
-case 127:
+			;}
+    break;
+
+  case 128:
 #line 2780 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 128:
+			;}
+    break;
+
+  case 129:
 #line 2786 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
@@ -4130,11 +4514,12 @@ case 128:
 			    addObjectFlags(objectPtr, FLAG_REGISTERED);
 			    deleteObjectFlags(objectPtr, FLAG_INCOMPLETE);
 			    yyval.err = 0;
-			;
-    break;}
-case 129:
+			;}
+    break;
+
+  case 130:
 #line 2808 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_OBJECTTYPE;
 			    
@@ -4142,11 +4527,12 @@ case 129:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 130:
+			;}
+    break;
+
+  case 131:
 #line 2818 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    importPtr = findImportByName("OBJECT-TYPE",
@@ -4171,11 +4557,12 @@ case 130:
 				}
 			    }
                             indexFlag = 0;
-			;
-    break;}
-case 131:
+			;}
+    break;
+
+  case 132:
 #line 2858 "parser-smi.y"
-{
+    {
 			    Object *objectPtr, *parentPtr;
 			    Type *typePtr = NULL;
 			    
@@ -4427,11 +4814,12 @@ case 131:
                                     setObjectList(objectPtr, yyvsp[-9].listPtr);
                             }
 			    yyval.err = 0;
-			;
-    break;}
-case 132:
+			;}
+    break;
+
+  case 133:
 #line 3114 "parser-smi.y"
-{
+    {
 			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2) ||
                                 (thisModulePtr->export.language == SMI_LANGUAGE_SPPI))
 			    {
@@ -4439,18 +4827,20 @@ case 132:
 					      ERR_MISSING_DESCRIPTION);
 			    }
 			    yyval.text = NULL;
-			;
-    break;}
-case 133:
+			;}
+    break;
+
+  case 134:
 #line 3124 "parser-smi.y"
-{
+    {
 			    yyval.text = yyvsp[0].text;
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 134:
+			;}
+    break;
+
+  case 135:
 #line 3131 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_TRAPTYPE;
 			    
@@ -4458,11 +4848,12 @@ case 134:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 135:
+			;}
+    break;
+
+  case 136:
 #line 3141 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
                             if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "TRAP-TYPE");
@@ -4481,11 +4872,12 @@ case 135:
 					      ERR_MACRO_NOT_IMPORTED,
 					      "TRAP-TYPE", "RFC-1215");
 			    }
-			;
-    break;}
-case 136:
+			;}
+    break;
+
+  case 137:
 #line 3167 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    Node *nodePtr;
 			    
@@ -4528,23 +4920,26 @@ case 136:
 				setObjectReference(objectPtr, yyvsp[-2].text, thisParserPtr);
 			    }
 			    yyval.err = 0;
-			;
-    break;}
-case 137:
+			;}
+    break;
+
+  case 138:
 #line 3214 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = yyvsp[-1].listPtr;
-			;
-    break;}
-case 138:
+			;}
+    break;
+
+  case 139:
 #line 3218 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 139:
+			;}
+    break;
+
+  case 140:
 #line 3224 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].objectPtr) {
 				yyval.listPtr = smiMalloc(sizeof(List));
 				yyval.listPtr->ptr = yyvsp[0].objectPtr;
@@ -4552,11 +4947,12 @@ case 139:
 			    } else {
 				yyval.listPtr = NULL;
 			    }
-			;
-    break;}
-case 140:
+			;}
+    break;
+
+  case 141:
 #line 3234 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 
 			    if (yyvsp[0].objectPtr) {
@@ -4574,123 +4970,145 @@ case 140:
 			    } else {
 				yyval.listPtr = yyvsp[-2].listPtr;
 			    }
-			;
-    break;}
-case 141:
+			;}
+    break;
+
+  case 142:
 #line 3256 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 142:
+			;}
+    break;
+
+  case 143:
 #line 3262 "parser-smi.y"
-{
+    {
 			    yyval.text = yyvsp[0].text;
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 143:
+			;}
+    break;
+
+  case 144:
 #line 3267 "parser-smi.y"
-{ yyval.text = NULL; ;
-    break;}
-case 144:
+    { yyval.text = NULL; ;}
+    break;
+
+  case 145:
 #line 3271 "parser-smi.y"
-{
+    {
                             yyval.access = yyvsp[0].access;
-                        ;
-    break;}
-case 145:
+                        ;}
+    break;
+
+  case 146:
 #line 3275 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "MAX-ACCESS");
                             if (yyvsp[0].access == SMI_ACCESS_NOT_ACCESSIBLE)
                                 smiPrintError(thisParserPtr, ERR_NOT_ACCESSIBLE_IN_PIB_ACCESS);
                             yyval.access = yyvsp[0].access;
-                        ;
-    break;}
-case 146:
+                        ;}
+    break;
+
+  case 147:
 #line 3283 "parser-smi.y"
-{ yyval.access = 0;  ;
-    break;}
-case 147:
+    { yyval.access = 0;  ;}
+    break;
+
+  case 148:
 #line 3287 "parser-smi.y"
-{ yyval.access = yyvsp[0].access; ;
-    break;}
-case 148:
+    { yyval.access = yyvsp[0].access; ;}
+    break;
+
+  case 149:
 #line 3291 "parser-smi.y"
-{ 
+    { 
                             smiPrintError(thisParserPtr, ERR_POLICY_ACCESS_IN_PIB);
-                        ;
-    break;}
-case 149:
+                        ;}
+    break;
+
+  case 150:
 #line 3295 "parser-smi.y"
-{ ;
-    break;}
-case 150:
+    { ;}
+    break;
+
+  case 151:
 #line 3299 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-REFERENCES");
-                        ;
-    break;}
-case 151:
+                        ;}
+    break;
+
+  case 152:
 #line 3304 "parser-smi.y"
-{ yyval.objectPtr = yyvsp[-1].objectPtr; ;
-    break;}
-case 152:
+    { yyval.objectPtr = yyvsp[-1].objectPtr; ;}
+    break;
+
+  case 153:
 #line 3306 "parser-smi.y"
-{ yyval.objectPtr = 0; ;
-    break;}
-case 153:
+    { yyval.objectPtr = 0; ;}
+    break;
+
+  case 154:
 #line 3310 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-TAG");
-                        ;
-    break;}
-case 154:
+                        ;}
+    break;
+
+  case 155:
 #line 3315 "parser-smi.y"
-{ yyval.objectPtr = yyvsp[-1].objectPtr; ;
-    break;}
-case 155:
+    { yyval.objectPtr = yyvsp[-1].objectPtr; ;}
+    break;
+
+  case 156:
 #line 3317 "parser-smi.y"
-{ yyval.objectPtr = 0; ;
-    break;}
-case 156:
+    { yyval.objectPtr = 0; ;}
+    break;
+
+  case 157:
 #line 3322 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "UNIQUENESS");
-                        ;
-    break;}
-case 157:
+                        ;}
+    break;
+
+  case 158:
 #line 3327 "parser-smi.y"
-{ yyval.listPtr = yyvsp[-1].listPtr; ;
-    break;}
-case 158:
+    { yyval.listPtr = yyvsp[-1].listPtr; ;}
+    break;
+
+  case 159:
 #line 3329 "parser-smi.y"
-{ yyval.listPtr = NULL; ;
-    break;}
-case 159:
+    { yyval.listPtr = NULL; ;}
+    break;
+
+  case 160:
 #line 3333 "parser-smi.y"
-{ yyval.listPtr = yyvsp[0].listPtr; ;
-    break;}
-case 160:
+    { yyval.listPtr = yyvsp[0].listPtr; ;}
+    break;
+
+  case 161:
 #line 3335 "parser-smi.y"
-{ yyval.listPtr = NULL; ;
-    break;}
-case 161:
+    { yyval.listPtr = NULL; ;}
+    break;
+
+  case 162:
 #line 3339 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 162:
+			;}
+    break;
+
+  case 163:
 #line 3346 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -4699,38 +5117,44 @@ case 162:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-                        ;
-    break;}
-case 163:
+                        ;}
+    break;
+
+  case 164:
 #line 3359 "parser-smi.y"
-{ yyval.objectPtr = yyvsp[0].objectPtr; ;
-    break;}
-case 164:
+    { yyval.objectPtr = yyvsp[0].objectPtr; ;}
+    break;
+
+  case 165:
 #line 3363 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "INSTALL-ERRORS");
-                        ;
-    break;}
-case 165:
+                        ;}
+    break;
+
+  case 166:
 #line 3368 "parser-smi.y"
-{ yyval.listPtr = yyvsp[-1].listPtr; ;
-    break;}
-case 166:
+    { yyval.listPtr = yyvsp[-1].listPtr; ;}
+    break;
+
+  case 167:
 #line 3370 "parser-smi.y"
-{ yyval.listPtr = NULL; ;
-    break;}
-case 167:
+    { yyval.listPtr = NULL; ;}
+    break;
+
+  case 168:
 #line 3374 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 168:
+			;}
+    break;
+
+  case 169:
 #line 3381 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -4739,11 +5163,12 @@ case 168:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-                        ;
-    break;}
-case 169:
+                        ;}
+    break;
+
+  case 170:
 #line 3394 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
                             if ((yyvsp[-1].unsigned32 < 1) || (yyvsp[-1].unsigned32 > 65536))
@@ -4759,40 +5184,45 @@ case 169:
                             objectPtr->export.oidlen = 1;
                             objectPtr->export.oid = (void *)yyvsp[-1].unsigned32;
 			    yyval.objectPtr = objectPtr;
-			;
-    break;}
-case 170:
+			;}
+    break;
+
+  case 171:
 #line 3415 "parser-smi.y"
-{
+    {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV1)
 			    {
 			        smiPrintError(thisParserPtr,
 					      ERR_MAX_ACCESS_IN_SMIV1);
 			    } else if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "MAX-ACCESS");
-			;
-    break;}
-case 171:
+			;}
+    break;
+
+  case 172:
 #line 3424 "parser-smi.y"
-{ yyval.access = yyvsp[0].access; ;
-    break;}
-case 172:
+    { yyval.access = yyvsp[0].access; ;}
+    break;
+
+  case 173:
 #line 3426 "parser-smi.y"
-{
+    {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
 			        smiPrintError(thisParserPtr, ERR_ACCESS_IN_SMIV2);
 			    } else if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "ACCESS");
-			;
-    break;}
-case 173:
+			;}
+    break;
+
+  case 174:
 #line 3435 "parser-smi.y"
-{ yyval.access = yyvsp[0].access; ;
-    break;}
-case 174:
+    { yyval.access = yyvsp[0].access; ;}
+    break;
+
+  case 175:
 #line 3439 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_NOTIFICATIONTYPE;
 
@@ -4800,11 +5230,12 @@ case 174:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 175:
+			;}
+    break;
+
+  case 176:
 #line 3449 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
@@ -4820,17 +5251,19 @@ case 175:
 					      "NOTIFICATION-TYPE",
 					      "SNMPv2-SMI");
 			    }
-			;
-    break;}
-case 176:
+			;}
+    break;
+
+  case 177:
 #line 3469 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 177:
+			;}
+    break;
+
+  case 178:
 #line 3475 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
@@ -4851,11 +5284,12 @@ case 177:
 				setObjectReference(objectPtr, yyvsp[-4].text, thisParserPtr);
 			    }
 			    yyval.err = 0;
-			;
-    break;}
-case 178:
+			;}
+    break;
+
+  case 179:
 #line 3500 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_MODULEIDENTITY;
 			    
@@ -4863,11 +5297,12 @@ case 178:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 179:
+			;}
+    break;
+
+  case 180:
 #line 3510 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    importPtr = findImportByName("MODULE-IDENTITY",
@@ -4890,47 +5325,53 @@ case 179:
 			        smiPrintError(thisParserPtr,
 					      ERR_MODULE_IDENTITY_NOT_FIRST);
 			    }
-			;
-    break;}
-case 180:
+			;}
+    break;
+
+  case 181:
 #line 3535 "parser-smi.y"
-{
+    {
                           /* do nothing at the moment */
-                        ;
-    break;}
-case 181:
+                        ;}
+    break;
+
+  case 182:
 #line 3539 "parser-smi.y"
-{
+    {
 			    setModuleLastUpdated(thisParserPtr->modulePtr, yyvsp[0].date);
-			;
-    break;}
-case 182:
+			;}
+    break;
+
+  case 183:
 #line 3543 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].text && !strlen(yyvsp[0].text)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_ORGANIZATION);
 			    }
-			;
-    break;}
-case 183:
+			;}
+    break;
+
+  case 184:
 #line 3550 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].text && !strlen(yyvsp[0].text)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_CONTACT);
 			    }
-			;
-    break;}
-case 184:
+			;}
+    break;
+
+  case 185:
 #line 3557 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 185:
+			;}
+    break;
+
+  case 186:
 #line 3561 "parser-smi.y"
-{
+    {
 			    if ((!thisModulePtr->firstRevisionPtr) ||
 				(thisModulePtr->firstRevisionPtr->export.date !=
 				 thisModulePtr->lastUpdated)) {
@@ -4941,11 +5382,12 @@ case 185:
 						"[Revision added by libsmi due to a LAST-UPDATED clause.]"),
 					    thisParserPtr);
 			    }
-			;
-    break;}
-case 186:
+			;}
+    break;
+
+  case 187:
 #line 3575 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
@@ -4974,42 +5416,47 @@ case 186:
                             }
 			    /* setObjectDescription(objectPtr, $15); */
 			    yyval.err = 0;
-			;
-    break;}
-case 187:
+			;}
+    break;
+
+  case 188:
 #line 3608 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "SUBJECT-CATEGORIES");
                             yyval.subjectCategoriesPtr = yyvsp[-1].subjectCategoriesPtr;
-                        ;
-    break;}
-case 188:
+                        ;}
+    break;
+
+  case 189:
 #line 3614 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SUBJECT_CATEGORIES_MISSING);
                             yyval.subjectCategoriesPtr = NULL;
-                        ;
-    break;}
-case 189:
+                        ;}
+    break;
+
+  case 190:
 #line 3622 "parser-smi.y"
-{
+    {
                             yyval.subjectCategoriesPtr = smiMalloc(sizeof(SubjectCategories));
                             yyval.subjectCategoriesPtr->categories    = yyvsp[0].listPtr;
-                        ;
-    break;}
-case 190:
+                        ;}
+    break;
+
+  case 191:
 #line 3629 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 191:
+			;}
+    break;
+
+  case 192:
 #line 3635 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
                             if (yyvsp[-2].listPtr->ptr == NULL)
@@ -5020,11 +5467,12 @@ case 191:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 192:
+			;}
+    break;
+
+  case 193:
 #line 3650 "parser-smi.y"
-{
+    {
                             Object *objectPtr;
                             
                             if (strcmp(yyvsp[0].id, "all"))
@@ -5043,11 +5491,12 @@ case 192:
                                 yyval.objectPtr = objectPtr;
                             }
                             smiFree(yyvsp[0].id);
-                        ;
-    break;}
-case 193:
+                        ;}
+    break;
+
+  case 194:
 #line 3671 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
                             if (!strcmp(yyvsp[-3].id, "all")) {
@@ -5066,17 +5515,19 @@ case 193:
                                 objectPtr->export.oid = (void *)yyvsp[-1].unsigned32;
                                 yyval.objectPtr = objectPtr;
                             }
-			;
-    break;}
-case 194:
+			;}
+    break;
+
+  case 195:
 #line 3694 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 195:
+			;}
+    break;
+
+  case 196:
 #line 3698 "parser-smi.y"
-{
+    {
 			    if (strcmp(thisParserPtr->modulePtr->export.name,
 				       "SNMPv2-SMI") &&
 			        strcmp(thisParserPtr->modulePtr->export.name,
@@ -5094,32 +5545,36 @@ case 195:
 			        smiPrintError(thisParserPtr, ERR_TYPE_TAG, yyvsp[-1].err);
 			    }
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 196:
+			;}
+    break;
+
+  case 197:
 #line 3718 "parser-smi.y"
-{
+    {
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 197:
+			;}
+    break;
+
+  case 198:
 #line 3723 "parser-smi.y"
-{
+    {
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 198:
+			;}
+    break;
+
+  case 199:
 #line 3728 "parser-smi.y"
-{
+    {
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 199:
+			;}
+    break;
+
+  case 200:
 #line 3733 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
 			    if (yyvsp[0].typePtr && yyvsp[0].typePtr->export.name) {
@@ -5132,23 +5587,27 @@ case 199:
 
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 200:
+			;}
+    break;
+
+  case 201:
 #line 3750 "parser-smi.y"
-{ yyval.err = 0; /* TODO: check range */ ;
-    break;}
-case 201:
+    { yyval.err = 0; /* TODO: check range */ ;}
+    break;
+
+  case 202:
 #line 3752 "parser-smi.y"
-{ yyval.err = 0; /* TODO: check range */ ;
-    break;}
-case 202:
+    { yyval.err = 0; /* TODO: check range */ ;}
+    break;
+
+  case 203:
 #line 3760 "parser-smi.y"
-{ yyval.typePtr = yyvsp[0].typePtr; ;
-    break;}
-case 203:
+    { yyval.typePtr = yyvsp[0].typePtr; ;}
+    break;
+
+  case 204:
 #line 3765 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
 			    if (yyvsp[0].typePtr && yyvsp[0].typePtr->export.name) {
@@ -5161,15 +5620,17 @@ case 203:
 
 			    /* TODO */
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 204:
+			;}
+    break;
+
+  case 205:
 #line 3782 "parser-smi.y"
-{ yyval.valuePtr = yyvsp[0].valuePtr; ;
-    break;}
-case 205:
+    { yyval.valuePtr = yyvsp[0].valuePtr; ;}
+    break;
+
+  case 206:
 #line 3791 "parser-smi.y"
-{
+    {
 			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				&&
 				(strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
@@ -5180,17 +5641,19 @@ case 205:
 
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
 			    yyval.typePtr = smiHandle->typeInteger32Ptr;
-			;
-    break;}
-case 206:
+			;}
+    break;
+
+  case 207:
 #line 3804 "parser-smi.y"
-{
+    {
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
-			;
-    break;}
-case 207:
+			;}
+    break;
+
+  case 208:
 #line 3808 "parser-smi.y"
-{
+    {
 			    if ((thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 				&&
 				(strcmp(thisModulePtr->export.name, "SNMPv2-SMI") &&
@@ -5203,17 +5666,19 @@ case 207:
 					       thisParserPtr);
 			    setTypeList(yyval.typePtr, yyvsp[0].listPtr);
 			    smiCheckTypeRanges(thisParserPtr, yyval.typePtr);
-			;
-    break;}
-case 208:
+			;}
+    break;
+
+  case 209:
 #line 3823 "parser-smi.y"
-{
+    {
 			    defaultBasetype = SMI_BASETYPE_ENUM;
-			;
-    break;}
-case 209:
+			;}
+    break;
+
+  case 210:
 #line 3827 "parser-smi.y"
-{
+    {
 			    List *p;
 			    
 			    yyval.typePtr = duplicateType(smiHandle->typeEnumPtr, 0,
@@ -5222,11 +5687,12 @@ case 209:
 			    for (p = yyvsp[0].listPtr; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = yyval.typePtr;
 			    smiCheckNamedNumbersOrder(parserPtr, yyval.typePtr);
-			;
-    break;}
-case 210:
+			;}
+    break;
+
+  case 211:
 #line 3838 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
@@ -5250,17 +5716,19 @@ case 210:
 
 			    /* TODO: any need to distinguish from INTEGER? */
 			    yyval.typePtr = smiHandle->typeInteger32Ptr;
-			;
-    break;}
-case 211:
+			;}
+    break;
+
+  case 212:
 #line 3864 "parser-smi.y"
-{
+    {
 			    defaultBasetype = SMI_BASETYPE_INTEGER32;
-			;
-    break;}
-case 212:
+			;}
+    break;
+
+  case 213:
 #line 3868 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    importPtr = findImportByName("Integer32",
@@ -5285,17 +5753,19 @@ case 212:
 					       thisParserPtr);
 			    setTypeList(yyval.typePtr, yyvsp[0].listPtr);
 			    smiCheckTypeRanges(thisParserPtr, yyval.typePtr);
-			;
-    break;}
-case 213:
+			;}
+    break;
+
+  case 214:
 #line 3895 "parser-smi.y"
-{
+    {
 			    defaultBasetype = SMI_BASETYPE_ENUM;
-			;
-    break;}
-case 214:
+			;}
+    break;
+
+  case 215:
 #line 3899 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    List *p;
@@ -5343,11 +5813,12 @@ case 214:
 			    for (p = yyvsp[0].listPtr; p; p = p->nextPtr)
 				((NamedNumber *)p->ptr)->typePtr = yyval.typePtr;
 			    smiCheckNamedNumbersOrder(parserPtr, yyval.typePtr);
-			;
-    break;}
-case 215:
+			;}
+    break;
+
+  case 216:
 #line 3950 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    List *p;
@@ -5391,11 +5862,12 @@ case 215:
 			    smiCheckNamedNumbersOrder(parserPtr, yyval.typePtr);
 			    smiFree(yyvsp[-3].id);
 			    smiFree(yyvsp[-1].id);
-			;
-    break;}
-case 216:
+			;}
+    break;
+
+  case 217:
 #line 3996 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -5448,11 +5920,12 @@ case 216:
 			    }
 			    setTypeList(yyval.typePtr, yyvsp[0].listPtr);
 			    smiCheckTypeRanges(thisParserPtr, yyval.typePtr);
-			;
-    break;}
-case 217:
+			;}
+    break;
+
+  case 218:
 #line 4052 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -5499,34 +5972,38 @@ case 217:
 			    smiCheckTypeRanges(thisParserPtr, yyval.typePtr);
 			    smiFree(yyvsp[-3].id);
 			    smiFree(yyvsp[-1].id);
-			;
-    break;}
-case 218:
+			;}
+    break;
+
+  case 219:
 #line 4101 "parser-smi.y"
-{
+    {
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
 			    yyval.typePtr = smiHandle->typeOctetStringPtr;
-			;
-    break;}
-case 219:
+			;}
+    break;
+
+  case 220:
 #line 4106 "parser-smi.y"
-{
+    {
 			    defaultBasetype = SMI_BASETYPE_OCTETSTRING;
-			;
-    break;}
-case 220:
+			;}
+    break;
+
+  case 221:
 #line 4110 "parser-smi.y"
-{
+    {
 			    
 			    yyval.typePtr = duplicateType(smiHandle->typeOctetStringPtr, 0,
 					       thisParserPtr);
 			    setTypeList(yyval.typePtr, yyvsp[0].listPtr);
 			    smiCheckTypeRanges(thisParserPtr, yyval.typePtr);
-			;
-    break;}
-case 221:
+			;}
+    break;
+
+  case 222:
 #line 4118 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -5570,11 +6047,12 @@ case 221:
 			    }
 			    setTypeList(yyval.typePtr, yyvsp[0].listPtr);
 			    smiCheckTypeRanges(thisParserPtr, yyval.typePtr);
-			;
-    break;}
-case 222:
+			;}
+    break;
+
+  case 223:
 #line 4165 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -5612,52 +6090,58 @@ case 222:
 			    smiCheckTypeRanges(thisParserPtr, yyval.typePtr);
 			    smiFree(yyvsp[-3].id);
 			    smiFree(yyvsp[-1].id);
-			;
-    break;}
-case 223:
+			;}
+    break;
+
+  case 224:
 #line 4205 "parser-smi.y"
-{
+    {
 			    defaultBasetype = SMI_BASETYPE_OBJECTIDENTIFIER;
 			    yyval.typePtr = smiHandle->typeObjectIdentifierPtr;
-			;
-    break;}
-case 224:
+			;}
+    break;
+
+  case 225:
 #line 4213 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 			    yyval.valuePtr->value.unsigned32 = yyvsp[0].unsigned32;
-			;
-    break;}
-case 225:
+			;}
+    break;
+
+  case 226:
 #line 4219 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
 			    yyval.valuePtr->value.integer32 = yyvsp[0].integer32;
-			;
-    break;}
-case 226:
+			;}
+    break;
+
+  case 227:
 #line 4225 "parser-smi.y"
-{   
+    {   
                             /* The scanner already checks for the language */
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
 			    yyval.valuePtr->value.unsigned64 = yyvsp[0].unsigned64;
-			;
-    break;}
-case 227:
+			;}
+    break;
+
+  case 228:
 #line 4232 "parser-smi.y"
-{
+    {
                             /* The scanner already checks for the language */
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER64;
 			    yyval.valuePtr->value.integer64 = yyvsp[0].integer64;
-			;
-    break;}
-case 228:
+			;}
+    break;
+
+  case 229:
 #line 4239 "parser-smi.y"
-{
+    {
 			    char s[9];
 			    int i, len, j;
 			    
@@ -5681,11 +6165,12 @@ case 228:
 				yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 				yyval.valuePtr->value.unsigned32 = strtoul(yyvsp[0].text, NULL, 2);
 			    }
-			;
-    break;}
-case 229:
+			;}
+    break;
+
+  case 230:
 #line 4265 "parser-smi.y"
-{
+    {
 			    char s[3];
 			    int i, len;
 			    
@@ -5706,11 +6191,12 @@ case 229:
 				yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 				yyval.valuePtr->value.unsigned32 = strtoul(yyvsp[0].text, NULL, 16);
 			    }
-			;
-    break;}
-case 230:
+			;}
+    break;
+
+  case 231:
 #line 4288 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    if ((defaultBasetype != SMI_BASETYPE_ENUM) &&
 				(defaultBasetype != SMI_BASETYPE_OBJECTIDENTIFIER)) {
@@ -5728,20 +6214,22 @@ case 230:
 				yyval.valuePtr->len = -1;  /* indicates unresolved ptr */
 				yyval.valuePtr->value.ptr = (unsigned char *)yyvsp[0].id; /* JS: needs strdup? */
 			    }
-			;
-    break;}
-case 231:
+			;}
+    break;
+
+  case 232:
 #line 4308 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_OCTETSTRING;
 			    yyval.valuePtr->value.ptr = (unsigned char *)smiStrdup(yyvsp[0].text);
 			    yyval.valuePtr->len = strlen(yyvsp[0].text);
-			;
-    break;}
-case 232:
+			;}
+    break;
+
+  case 233:
 #line 4331 "parser-smi.y"
-{
+    {
 			    /*
 			     * SMIv1 allows something like { 0 0 } !
 			     * SMIv2 does not!
@@ -5760,17 +6248,19 @@ case 232:
 			    yyval.valuePtr->value.oid = smiMalloc(2 * sizeof(SmiSubid));
 			    yyval.valuePtr->value.oid[0] = 0;
 			    yyval.valuePtr->value.oid[1] = 0;
-			;
-    break;}
-case 233:
+			;}
+    break;
+
+  case 234:
 #line 4358 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = smiHandle->typeInteger32Ptr;
-			;
-    break;}
-case 234:
+			;}
+    break;
+
+  case 235:
 #line 4362 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    /* TODO: any need to distinguish from INTEGER? */
@@ -5793,23 +6283,26 @@ case 234:
 						  "Integer32");
 				}
 			    }
-			;
-    break;}
-case 235:
+			;}
+    break;
+
+  case 236:
 #line 4387 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = smiHandle->typeOctetStringPtr;
-			;
-    break;}
-case 236:
+			;}
+    break;
+
+  case 237:
 #line 4391 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = smiHandle->typeObjectIdentifierPtr;
-			;
-    break;}
-case 237:
+			;}
+    break;
+
+  case 238:
 #line 4397 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = findTypeByName("IpAddress");
@@ -5835,11 +6328,12 @@ case 237:
 						  "IpAddress");
 				}
 			    }
-			;
-    break;}
-case 238:
+			;}
+    break;
+
+  case 239:
 #line 4425 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
@@ -5863,11 +6357,12 @@ case 238:
 						  "Counter32");
 				}
 			    }
-			;
-    break;}
-case 239:
+			;}
+    break;
+
+  case 240:
 #line 4451 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    List *listPtr, *nextListPtr;
 			    
@@ -5902,11 +6397,12 @@ case 239:
 						  "Counter32");
 				}
 			    }
-			;
-    break;}
-case 240:
+			;}
+    break;
+
+  case 241:
 #line 4488 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
@@ -5930,11 +6426,12 @@ case 240:
 						  "Gauge32");
 				}
 			    }
-			;
-    break;}
-case 241:
+			;}
+    break;
+
+  case 242:
 #line 4514 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -5965,11 +6462,12 @@ case 241:
 						  "Gauge32");
 				}
 			    }
-			;
-    break;}
-case 242:
+			;}
+    break;
+
+  case 243:
 #line 4547 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
 			    yyval.typePtr = smiHandle->typeUnsigned32Ptr;
@@ -5991,11 +6489,12 @@ case 242:
 						  "Unsigned32");
 				}
 			    }
-			;
-    break;}
-case 243:
+			;}
+    break;
+
+  case 244:
 #line 4571 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = duplicateType(smiHandle->typeUnsigned32Ptr, 0,
@@ -6020,11 +6519,12 @@ case 243:
 						  "Unsigned32");
 				}
 			    }
-			;
-    break;}
-case 244:
+			;}
+    break;
+
+  case 245:
 #line 4598 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = findTypeByName("TimeTicks");
@@ -6050,11 +6550,12 @@ case 244:
 						  "TimeTicks");
 				}
 			    }
-			;
-    break;}
-case 245:
+			;}
+    break;
+
+  case 246:
 #line 4626 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = findTypeByName("Opaque");
@@ -6090,11 +6591,12 @@ case 245:
 						  "Opaque");
 				}
 			    }
-			;
-    break;}
-case 246:
+			;}
+    break;
+
+  case 247:
 #line 4664 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -6138,11 +6640,12 @@ case 246:
 						  "Opaque");
 				}
 			    }
-			;
-    break;}
-case 247:
+			;}
+    break;
+
+  case 248:
 #line 4710 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
@@ -6166,11 +6669,12 @@ case 247:
 						  "Counter64");
 				}
 			    }
-			;
-    break;}
-case 248:
+			;}
+    break;
+
+  case 249:
 #line 4736 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    List *listPtr, *nextListPtr;
 			    
@@ -6205,11 +6709,12 @@ case 248:
 						  "Counter64");
 				}
 			    }
-			;
-    break;}
-case 249:
+			;}
+    break;
+
+  case 250:
 #line 4773 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
@@ -6232,11 +6737,12 @@ case 249:
 						  "Integer64");
 				}
 			    }
-			;
-    break;}
-case 250:
+			;}
+    break;
+
+  case 251:
 #line 4798 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -6266,11 +6772,12 @@ case 250:
 						  "Integer64");
 				}
 			    }
-			;
-    break;}
-case 251:
+			;}
+    break;
+
+  case 252:
 #line 4830 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
@@ -6293,11 +6800,12 @@ case 251:
 						  "Unsigned64");
 				}
 			    }
-			;
-    break;}
-case 252:
+			;}
+    break;
+
+  case 253:
 #line 4855 "parser-smi.y"
-{
+    {
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
@@ -6327,11 +6835,12 @@ case 252:
 						  "Unsigned64");
 				}
 			    }
-			;
-    break;}
-case 253:
+			;}
+    break;
+
+  case 254:
 #line 4893 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = findTypeByName("IpAddress");
@@ -6357,11 +6866,12 @@ case 253:
 						  "IpAddress");
 				}
 			    }
-			;
-    break;}
-case 254:
+			;}
+    break;
+
+  case 255:
 #line 4921 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
@@ -6385,11 +6895,12 @@ case 254:
 						  "Counter32");
 				}
 			    }
-			;
-    break;}
-case 255:
+			;}
+    break;
+
+  case 256:
 #line 4947 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
@@ -6413,11 +6924,12 @@ case 255:
 						  "Gauge32");
 				}
 			    }
-			;
-    break;}
-case 256:
+			;}
+    break;
+
+  case 257:
 #line 4973 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = smiHandle->typeUnsigned32Ptr;
@@ -6439,11 +6951,12 @@ case 256:
 						  "Unsigned32");
 				}
 			    }
-			;
-    break;}
-case 257:
+			;}
+    break;
+
+  case 258:
 #line 4997 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = findTypeByName("TimeTicks");
@@ -6469,11 +6982,12 @@ case 257:
 						  "TimeTicks");
 				}
 			    }
-			;
-    break;}
-case 258:
+			;}
+    break;
+
+  case 259:
 #line 5025 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    yyval.typePtr = findTypeByName("Opaque");
@@ -6511,11 +7025,12 @@ case 258:
 						  "Opaque");
 				}
 			    }
-			;
-    break;}
-case 259:
+			;}
+    break;
+
+  case 260:
 #line 5065 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if ((thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) &&
@@ -6539,11 +7054,12 @@ case 259:
 						  "Counter64");
 				}
 			    }
-			;
-    break;}
-case 260:
+			;}
+    break;
+
+  case 261:
 #line 5091 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
@@ -6566,11 +7082,12 @@ case 260:
 						  "Integer64");
 				}
 			    }
-			;
-    break;}
-case 261:
+			;}
+    break;
+
+  case 262:
 #line 5116 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
@@ -6593,11 +7110,12 @@ case 261:
 						  "Unsigned64");
 				}
 			    }
-			;
-    break;}
-case 262:
+			;}
+    break;
+
+  case 263:
 #line 5143 "parser-smi.y"
-{
+    {
 			    List *listPtr, *nextListPtr;
 
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
@@ -6612,11 +7130,12 @@ case 262:
 			    }
 
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 263:
+			;}
+    break;
+
+  case 264:
 #line 5160 "parser-smi.y"
-{
+    {
 			    List *listPtr, *nextListPtr;
 
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
@@ -6631,11 +7150,12 @@ case 263:
 			    }
 
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 264:
+			;}
+    break;
+
+  case 265:
 #line 5177 "parser-smi.y"
-{
+    {
 			    List *listPtr, *nextListPtr;
 
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
@@ -6651,35 +7171,40 @@ case 264:
 			    }
 
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 265:
+			;}
+    break;
+
+  case 266:
 #line 5195 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 266:
+			;}
+    break;
+
+  case 267:
 #line 5209 "parser-smi.y"
-{ yyval.listPtr = yyvsp[-1].listPtr; ;
-    break;}
-case 267:
+    { yyval.listPtr = yyvsp[-1].listPtr; ;}
+    break;
+
+  case 268:
 #line 5219 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 268:
+			;}
+    break;
+
+  case 269:
 #line 5225 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].rangePtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 269:
+			;}
+    break;
+
+  case 270:
 #line 5231 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -6689,62 +7214,69 @@ case 269:
 			    pp->nextPtr = p;
 			    
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 270:
+			;}
+    break;
+
+  case 271:
 #line 5245 "parser-smi.y"
-{
+    {
 			    yyval.rangePtr = smiMalloc(sizeof(Range));
 			    yyval.rangePtr->export.minValue = *yyvsp[0].valuePtr;
 			    yyval.rangePtr->export.maxValue = *yyvsp[0].valuePtr;
 			    smiFree(yyvsp[0].valuePtr);
-			;
-    break;}
-case 271:
+			;}
+    break;
+
+  case 272:
 #line 5252 "parser-smi.y"
-{
+    {
 			    yyval.rangePtr = smiMalloc(sizeof(Range));
 			    yyval.rangePtr->export.minValue = *yyvsp[-2].valuePtr;
 			    yyval.rangePtr->export.maxValue = *yyvsp[0].valuePtr;
 			    smiFree(yyvsp[-2].valuePtr);
 			    smiFree(yyvsp[0].valuePtr);
-			;
-    break;}
-case 272:
+			;}
+    break;
+
+  case 273:
 #line 5262 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
 			    yyval.valuePtr->value.integer32 = yyvsp[0].integer32;
-			;
-    break;}
-case 273:
+			;}
+    break;
+
+  case 274:
 #line 5268 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 			    yyval.valuePtr->value.unsigned32 = yyvsp[0].unsigned32;
-			;
-    break;}
-case 274:
+			;}
+    break;
+
+  case 275:
 #line 5274 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER64;
 			    yyval.valuePtr->value.integer64 = yyvsp[0].integer64;
-			;
-    break;}
-case 275:
+			;}
+    break;
+
+  case 276:
 #line 5280 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED64;
 			    yyval.valuePtr->value.unsigned64 = yyvsp[0].unsigned64;
-			;
-    break;}
-case 276:
+			;}
+    break;
+
+  case 277:
 #line 5286 "parser-smi.y"
-{
+    {
 			    char s[3];
 			    int i, len;
 			    
@@ -6765,11 +7297,12 @@ case 276:
 				yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 				yyval.valuePtr->value.unsigned32 = strtoul(yyvsp[0].text, NULL, 16);
 			    }
-			;
-    break;}
-case 277:
+			;}
+    break;
+
+  case 278:
 #line 5309 "parser-smi.y"
-{
+    {
 			    char s[9];
 			    int i, len, j;
 			    
@@ -6792,25 +7325,28 @@ case 277:
 				yyval.valuePtr->basetype = SMI_BASETYPE_UNSIGNED32;
 				yyval.valuePtr->value.unsigned32 = strtoul(yyvsp[0].text, NULL, 2);
 			    }
-			;
-    break;}
-case 278:
+			;}
+    break;
+
+  case 279:
 #line 5336 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = yyvsp[-1].listPtr;
-			;
-    break;}
-case 279:
+			;}
+    break;
+
+  case 280:
 #line 5342 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].namedNumberPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 280:
+			;}
+    break;
+
+  case 281:
 #line 5348 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -6819,11 +7355,12 @@ case 280:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 281:
+			;}
+    break;
+
+  case 282:
 #line 5361 "parser-smi.y"
-{
+    {
 			    checkNameLen(thisParserPtr, yyvsp[0].id,
 					 ERR_ENUMNAME_32, ERR_ENUMNAME_64);
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
@@ -6834,20 +7371,22 @@ case 281:
 						  yyvsp[0].id);
 				}
 			    }
-			;
-    break;}
-case 282:
+			;}
+    break;
+
+  case 283:
 #line 5374 "parser-smi.y"
-{
+    {
 			    yyval.namedNumberPtr = smiMalloc(sizeof(NamedNumber));
 			    yyval.namedNumberPtr->export.name = yyvsp[-4].id;
 			    yyval.namedNumberPtr->export.value = *yyvsp[-1].valuePtr;
 			    smiFree(yyvsp[-1].valuePtr);
-			;
-    break;}
-case 283:
+			;}
+    break;
+
+  case 284:
 #line 5383 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].unsigned32 > MAX_INTEGER32) {
 				smiPrintError(thisParserPtr,
 					      ERR_INTEGER32_TOO_LARGE, yyvsp[0].unsigned32);
@@ -6860,20 +7399,22 @@ case 283:
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
 			    yyval.valuePtr->value.integer32 = yyvsp[0].unsigned32;
-			;
-    break;}
-case 284:
+			;}
+    break;
+
+  case 285:
 #line 5398 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_INTEGER32;
 			    yyval.valuePtr->value.integer32 = yyvsp[0].integer32;
 			    /* TODO: non-negative is suggested */
-			;
-    break;}
-case 285:
+			;}
+    break;
+
+  case 286:
 #line 5407 "parser-smi.y"
-{
+    {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
 			        if (!strcmp(yyvsp[0].id, "current")) {
@@ -6928,11 +7469,12 @@ case 285:
                                 }
                             }
 			    smiFree(yyvsp[0].id);
-			;
-    break;}
-case 286:
+			;}
+    break;
+
+  case 287:
 #line 5466 "parser-smi.y"
-{
+    {
 			    if (!strcmp(yyvsp[0].id, "current")) {
 				yyval.status = SMI_STATUS_CURRENT;
 			    } else if (!strcmp(yyvsp[0].id, "obsolete")) {
@@ -6944,45 +7486,50 @@ case 286:
 				yyval.status = SMI_STATUS_UNKNOWN;
 			    }
 			    smiFree(yyvsp[0].id);
-			;
-    break;}
-case 287:
+			;}
+    break;
+
+  case 288:
 #line 5482 "parser-smi.y"
-{
+    {
 			    yyval.text = yyvsp[0].text;
 			    
 			    if (yyvsp[0].text && !strlen(yyvsp[0].text)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_FORMAT);
 			    }
-			;
-    break;}
-case 288:
+			;}
+    break;
+
+  case 289:
 #line 5491 "parser-smi.y"
-{
+    {
 			    yyval.text = NULL;
-			;
-    break;}
-case 289:
+			;}
+    break;
+
+  case 290:
 #line 5497 "parser-smi.y"
-{
+    {
 			    yyval.text = yyvsp[0].text;
 			    
 			    if (yyvsp[0].text && !strlen(yyvsp[0].text)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_UNITS);
 			    }
-			;
-    break;}
-case 290:
+			;}
+    break;
+
+  case 291:
 #line 5506 "parser-smi.y"
-{
+    {
 			    yyval.text = NULL;
-			;
-    break;}
-case 291:
+			;}
+    break;
+
+  case 292:
 #line 5512 "parser-smi.y"
-{
+    {
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_SMIV2)
 			    {
 				if (!strcmp(yyvsp[0].id, "not-accessible")) {
@@ -7044,18 +7591,20 @@ case 291:
 			        }
                             }
 			    smiFree(yyvsp[0].id);
-			;
-    break;}
-case 292:
+			;}
+    break;
+
+  case 293:
 #line 5578 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-INDEX");
-                        ;
-    break;}
-case 293:
+                        ;}
+    break;
+
+  case 294:
 #line 5583 "parser-smi.y"
-{
+    {
                             List *p = smiMalloc(sizeof(List));
                             
                             p->ptr       = yyvsp[-1].objectPtr;
@@ -7066,44 +7615,49 @@ case 293:
 			    yyval.index.listPtr   = p;
 			    yyval.index.rowPtr    = NULL;
                             indexFlag    = INDEXFLAG_PIBINDEX;
-			;
-    break;}
-case 294:
+			;}
+    break;
+
+  case 295:
 #line 5598 "parser-smi.y"
-{
+    {
 			    yyval.index.indexkind    = SMI_INDEX_AUGMENT;
 			    yyval.index.implied      = 0;
 			    yyval.index.listPtr      = NULL;
 			    yyval.index.rowPtr       = yyvsp[-1].objectPtr;
                             indexFlag       = INDEXFLAG_AUGMENTS;
-			;
-    break;}
-case 295:
+			;}
+    break;
+
+  case 296:
 #line 5606 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "EXTENDS");
-                        ;
-    break;}
-case 296:
+                        ;}
+    break;
+
+  case 297:
 #line 5611 "parser-smi.y"
-{
+    {
 			    yyval.index.indexkind    = SMI_INDEX_SPARSE;
 			    yyval.index.implied      = 0;
 			    yyval.index.listPtr      = NULL;
 			    yyval.index.rowPtr       = yyvsp[-1].objectPtr;
                             indexFlag       = INDEXFLAG_EXTENDS;
-			;
-    break;}
-case 297:
+			;}
+    break;
+
+  case 298:
 #line 5619 "parser-smi.y"
-{
+    {
 			    yyval.index.indexkind = SMI_INDEX_UNKNOWN;
-			;
-    break;}
-case 298:
+			;}
+    break;
+
+  case 299:
 #line 5625 "parser-smi.y"
-{
+    {
                             /* 
                              * To avoid ambiguity caused by merging
                              * the SMI and SPPI parser we use a flag.
@@ -7127,34 +7681,38 @@ case 298:
 			     * whether we have seen an IMPLIED keyword.
 			     */
 			    impliedFlag = 0;
-			;
-    break;}
-case 299:
+			;}
+    break;
+
+  case 300:
 #line 5651 "parser-smi.y"
-{
+    {
 			    yyval.index.indexkind = SMI_INDEX_INDEX;
 			    yyval.index.implied   = impliedFlag;
 			    yyval.index.listPtr   = yyvsp[-1].listPtr;
 			    yyval.index.rowPtr    = NULL;
-                        ;
-    break;}
-case 300:
+                        ;}
+    break;
+
+  case 301:
 #line 5658 "parser-smi.y"
-{
+    {
 			    yyval.index.indexkind = SMI_INDEX_UNKNOWN;
-			;
-    break;}
-case 301:
+			;}
+    break;
+
+  case 302:
 #line 5664 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 302:
+			;}
+    break;
+
+  case 303:
 #line 5671 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -7163,72 +7721,84 @@ case 302:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 303:
+			;}
+    break;
+
+  case 304:
 #line 5684 "parser-smi.y"
-{
+    {
 			    impliedFlag = 1;
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 304:
+			;}
+    break;
+
+  case 305:
 #line 5689 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 305:
+			;}
+    break;
+
+  case 306:
 #line 5699 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 306:
+			;}
+    break;
+
+  case 307:
 #line 5705 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 307:
+			;}
+    break;
+
+  case 308:
 #line 5711 "parser-smi.y"
-{ yyval.valuePtr = yyvsp[-1].valuePtr; ;
-    break;}
-case 308:
+    { yyval.valuePtr = yyvsp[-1].valuePtr; ;}
+    break;
+
+  case 309:
 #line 5713 "parser-smi.y"
-{ yyval.valuePtr = NULL; ;
-    break;}
-case 309:
+    { yyval.valuePtr = NULL; ;}
+    break;
+
+  case 310:
 #line 5718 "parser-smi.y"
-{ yyval.valuePtr = yyvsp[0].valuePtr; ;
-    break;}
-case 310:
+    { yyval.valuePtr = yyvsp[0].valuePtr; ;}
+    break;
+
+  case 311:
 #line 5720 "parser-smi.y"
-{
+    {
 			    yyval.valuePtr = smiMalloc(sizeof(SmiValue));
 			    yyval.valuePtr->basetype = SMI_BASETYPE_BITS;
 			    yyval.valuePtr->value.ptr = (void *)yyvsp[-1].listPtr;
-			;
-    break;}
-case 311:
+			;}
+    break;
+
+  case 312:
 #line 5728 "parser-smi.y"
-{ yyval.listPtr = yyvsp[0].listPtr; ;
-    break;}
-case 312:
+    { yyval.listPtr = yyvsp[0].listPtr; ;}
+    break;
+
+  case 313:
 #line 5730 "parser-smi.y"
-{ yyval.listPtr = NULL; ;
-    break;}
-case 313:
+    { yyval.listPtr = NULL; ;}
+    break;
+
+  case 314:
 #line 5734 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].id;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 314:
+			;}
+    break;
+
+  case 315:
 #line 5740 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -7237,54 +7807,63 @@ case 314:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 315:
+			;}
+    break;
+
+  case 316:
 #line 5753 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 316:
+			;}
+    break;
+
+  case 317:
 #line 5759 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 317:
+			;}
+    break;
+
+  case 318:
 #line 5765 "parser-smi.y"
-{
+    {
 			    yyval.text = yyvsp[0].text;
 
 			    if (yyvsp[0].text && !strlen(yyvsp[0].text)) {
 				smiPrintError(thisParserPtr,
 					      ERR_EMPTY_REFERENCE);
 			    }
-			;
-    break;}
-case 318:
+			;}
+    break;
+
+  case 319:
 #line 5774 "parser-smi.y"
-{ yyval.text = NULL; ;
-    break;}
-case 319:
+    { yyval.text = NULL; ;}
+    break;
+
+  case 320:
 #line 5778 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 320:
+    { yyval.err = 0; ;}
+    break;
+
+  case 321:
 #line 5780 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 321:
+    { yyval.err = 0; ;}
+    break;
+
+  case 322:
 #line 5784 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 322:
+    { yyval.err = 0; ;}
+    break;
+
+  case 323:
 #line 5786 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 323:
+    { yyval.err = 0; ;}
+    break;
+
+  case 324:
 #line 5790 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstRevisionLine = thisParserPtr->line;
 
 			    if (thisParserPtr->modulePtr->lastRevisionPtr &&
@@ -7297,11 +7876,12 @@ case 323:
 				smiPrintError(thisParserPtr,
 					      ERR_REVISION_AFTER_LAST_UPDATE);
 			    }
-			;
-    break;}
-case 324:
+			;}
+    break;
+
+  case 325:
 #line 5805 "parser-smi.y"
-{
+    {
 			    Revision *revisionPtr;
 
 			    checkDescr(thisParserPtr, yyvsp[0].text);
@@ -7313,37 +7893,42 @@ case 324:
 						thisParserPtr);
 			    }
 			    yyval.err = revisionPtr ? 0 : -1;
-			;
-    break;}
-case 325:
+			;}
+    break;
+
+  case 326:
 #line 5821 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = yyvsp[-1].listPtr;
-			;
-    break;}
-case 326:
+			;}
+    break;
+
+  case 327:
 #line 5825 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 327:
+			;}
+    break;
+
+  case 328:
 #line 5831 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = yyvsp[-1].listPtr;
-			;
-    break;}
-case 328:
+			;}
+    break;
+
+  case 329:
 #line 5837 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 329:
+			;}
+    break;
+
+  case 330:
 #line 5843 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -7352,11 +7937,12 @@ case 329:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 330:
+			;}
+    break;
+
+  case 331:
 #line 5856 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			    if ((thisParserPtr->currentDecl == SMI_DECL_OBJECTGROUP) &&
 				yyval.objectPtr->modulePtr != thisParserPtr->modulePtr) {
@@ -7364,25 +7950,28 @@ case 330:
 					      ERR_COMPLIANCE_MEMBER_NOT_LOCAL,
 					      yyval.objectPtr->export.name);
 			    }
-			;
-    break;}
-case 331:
+			;}
+    break;
+
+  case 332:
 #line 5868 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = yyvsp[-1].listPtr;
-			;
-    break;}
-case 332:
+			;}
+    break;
+
+  case 333:
 #line 5874 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 333:
+			;}
+    break;
+
+  case 334:
 #line 5880 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -7391,68 +7980,76 @@ case 333:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 334:
+			;}
+    break;
+
+  case 335:
 #line 5893 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			    if (yyval.objectPtr->modulePtr != thisParserPtr->modulePtr) {
                                 smiPrintError(thisParserPtr,
 					      ERR_COMPLIANCE_MEMBER_NOT_LOCAL,
 					      yyval.objectPtr->export.name);
 			    }
-			;
-    break;}
-case 335:
+			;}
+    break;
+
+  case 336:
 #line 5904 "parser-smi.y"
-{
+    {
 			    int len;
 			    yyval.text = smiStrdup(yyvsp[0].text);
 			    len = strlen(yyval.text);
 			    while (len > 0 && yyval.text[len-1] == '\n') {
 				yyval.text[--len] = 0;
 			    }
-			;
-    break;}
-case 336:
+			;}
+    break;
+
+  case 337:
 #line 5915 "parser-smi.y"
-{
+    {
 			    yyval.date = checkDate(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 337:
+			;}
+    break;
+
+  case 338:
 #line 5920 "parser-smi.y"
-{
+    {
 			    thisParserPtr->parentNodePtr = smiHandle->rootNodePtr;
-			;
-    break;}
-case 338:
+			;}
+    break;
+
+  case 339:
 #line 5924 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
 			    if (yyval.objectPtr) {
 				thisParserPtr->parentNodePtr = yyvsp[0].objectPtr->nodePtr;
 			    } else {
 				thisParserPtr->parentNodePtr = NULL;
 			    }
-			;
-    break;}
-case 339:
+			;}
+    break;
+
+  case 340:
 #line 5936 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 340:
+			;}
+    break;
+
+  case 341:
 #line 5941 "parser-smi.y"
-{
+    {
 			    yyval.objectPtr = yyvsp[0].objectPtr;
-			;
-    break;}
-case 341:
+			;}
+    break;
+
+  case 342:
 #line 5949 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    Import *importPtr;
 			    
@@ -7544,11 +8141,12 @@ case 341:
 			    }
 			    if (yyval.objectPtr)
 				thisParserPtr->parentNodePtr = yyval.objectPtr->nodePtr;
-			;
-    break;}
-case 342:
+			;}
+    break;
+
+  case 343:
 #line 6043 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    Import *importPtr;
 			    char *md;
@@ -7650,11 +8248,12 @@ case 342:
 				if (yyval.objectPtr)
 				    thisParserPtr->parentNodePtr = yyval.objectPtr->nodePtr;
 			    }
-			;
-    break;}
-case 343:
+			;}
+    break;
+
+  case 344:
 #line 6147 "parser-smi.y"
-{
+    {
 			    Node *nodePtr;
 			    Object *objectPtr;
 
@@ -7676,11 +8275,12 @@ case 343:
 				yyval.objectPtr = objectPtr;
 			    }
 			    thisParserPtr->parentNodePtr = yyval.objectPtr->nodePtr;
-			;
-    break;}
-case 344:
+			;}
+    break;
+
+  case 345:
 #line 6171 "parser-smi.y"
-{
+    {
 			    Object *objectPtr = NULL;
 			    Object *oldObjectPtr = NULL;
 			    Node *oldNodePtr = NULL;
@@ -7737,11 +8337,12 @@ case 344:
 				yyval.objectPtr = objectPtr;
 				thisParserPtr->parentNodePtr = yyval.objectPtr->nodePtr;
 			    }
-			;
-    break;}
-case 345:
+			;}
+    break;
+
+  case 346:
 #line 6230 "parser-smi.y"
-{
+    {
 			    Object *objectPtr = NULL;
 			    Object *oldObjectPtr = NULL;
 			    Node *oldNodePtr = NULL;
@@ -7806,31 +8407,37 @@ case 345:
 				thisParserPtr->parentNodePtr = yyval.objectPtr->nodePtr;
 			    }
 			    smiFree(md);
-			;
-    break;}
-case 346:
+			;}
+    break;
+
+  case 347:
 #line 6299 "parser-smi.y"
-{ yyval.text = NULL; ;
-    break;}
-case 347:
+    { yyval.text = NULL; ;}
+    break;
+
+  case 348:
 #line 6303 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 348:
+    { yyval.err = 0; ;}
+    break;
+
+  case 349:
 #line 6305 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 349:
+    { yyval.err = 0; ;}
+    break;
+
+  case 350:
 #line 6309 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 350:
+    { yyval.err = 0; ;}
+    break;
+
+  case 351:
 #line 6311 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 351:
+    { yyval.err = 0; ;}
+    break;
+
+  case 352:
 #line 6315 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_OBJECTGROUP;
 			    
@@ -7838,11 +8445,12 @@ case 351:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 352:
+			;}
+    break;
+
+  case 353:
 #line 6325 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
@@ -7857,17 +8465,19 @@ case 352:
 					      ERR_MACRO_NOT_IMPORTED,
 					      "OBJECT-GROUP", "SNMPv2-CONF");
 			    }
-			;
-    break;}
-case 353:
+			;}
+    break;
+
+  case 354:
 #line 6344 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 354:
+			;}
+    break;
+
+  case 355:
 #line 6349 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
@@ -7889,11 +8499,12 @@ case 354:
 					    SMI_ACCESS_NOT_ACCESSIBLE);
 			    setObjectList(objectPtr, yyvsp[-10].listPtr);
 			    yyval.err = 0;
-			;
-    break;}
-case 355:
+			;}
+    break;
+
+  case 356:
 #line 6375 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_NOTIFICATIONGROUP;
 			    
@@ -7901,11 +8512,12 @@ case 355:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 356:
+			;}
+    break;
+
+  case 357:
 #line 6385 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
                             if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "NOTIFICATION-GROUP");
@@ -7923,17 +8535,19 @@ case 356:
 					      "NOTIFICATION-GROUP",
 					      "SNMPv2-CONF");
 			    }
-			;
-    break;}
-case 357:
+			;}
+    break;
+
+  case 358:
 #line 6407 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 358:
+			;}
+    break;
+
+  case 359:
 #line 6412 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
@@ -7956,11 +8570,12 @@ case 358:
 					    SMI_ACCESS_NOT_ACCESSIBLE);
 			    setObjectList(objectPtr, yyvsp[-10].listPtr);
 			    yyval.err = 0;
-			;
-    break;}
-case 359:
+			;}
+    break;
+
+  case 360:
 #line 6439 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_MODULECOMPLIANCE;
 			    
@@ -7968,11 +8583,12 @@ case 359:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 360:
+			;}
+    break;
+
+  case 361:
 #line 6449 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    if (thisModulePtr->export.language == SMI_LANGUAGE_UNKNOWN)
@@ -7987,17 +8603,19 @@ case 360:
 					      "MODULE-COMPLIANCE",
 					      "SNMPv2-CONF");
 			    }
-			;
-    break;}
-case 361:
+			;}
+    break;
+
+  case 362:
 #line 6467 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 362:
+			;}
+    break;
+
+  case 363:
 #line 6473 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    Option *optionPtr;
 			    Refinement *refinementPtr;
@@ -8052,23 +8670,26 @@ case 362:
 			    }
 
 			    yyval.err = 0;
-			;
-    break;}
-case 363:
+			;}
+    break;
+
+  case 364:
 #line 6532 "parser-smi.y"
-{
+    {
 			    yyval.compl = yyvsp[0].compl;
-			;
-    break;}
-case 364:
+			;}
+    break;
+
+  case 365:
 #line 6538 "parser-smi.y"
-{
+    {
 			    yyval.compl = yyvsp[0].compl;
-			;
-    break;}
-case 365:
+			;}
+    break;
+
+  case 366:
 #line 6542 "parser-smi.y"
-{
+    {
 			    List *listPtr;
 			    
 			    /* concatenate lists in $1 and $2 */
@@ -8099,11 +8720,12 @@ case 365:
 			    } else {
 				yyval.compl.refinementlistPtr = yyvsp[0].compl.refinementlistPtr;
 			    }
-			;
-    break;}
-case 366:
+			;}
+    break;
+
+  case 367:
 #line 6577 "parser-smi.y"
-{
+    {
 			    /*
 			     * Remember the module. SMIv2 is broken by
 			     * design to allow subsequent clauses to
@@ -8116,11 +8738,12 @@ case 366:
 				thisParserPtr->complianceModulePtr = NULL;
 			    else
 				thisParserPtr->complianceModulePtr = yyvsp[0].modulePtr;
-			;
-    break;}
-case 367:
+			;}
+    break;
+
+  case 368:
 #line 6593 "parser-smi.y"
-{
+    {
 			    yyval.compl.mandatorylistPtr = yyvsp[-1].listPtr;
 			    yyval.compl.optionlistPtr = yyvsp[0].compl.optionlistPtr;
 			    yyval.compl.refinementlistPtr = yyvsp[0].compl.refinementlistPtr;
@@ -8129,58 +8752,65 @@ case 367:
 					     thisParserPtr);
 				thisParserPtr->complianceModulePtr = NULL;
 			    }
-			;
-    break;}
-case 368:
+			;}
+    break;
+
+  case 369:
 #line 6606 "parser-smi.y"
-{
+    {
 			    yyval.modulePtr = findModuleByName(yyvsp[-1].id);
 			    /* TODO: handle objectIdentifier */
 			    if (!yyval.modulePtr) {
 				yyval.modulePtr = loadModule(yyvsp[-1].id, thisParserPtr);
 			    }
 			    smiFree(yyvsp[-1].id);
-			;
-    break;}
-case 369:
+			;}
+    break;
+
+  case 370:
 #line 6615 "parser-smi.y"
-{
+    {
 			    yyval.modulePtr = findModuleByName(yyvsp[0].id);
 			    if (!yyval.modulePtr) {
 				yyval.modulePtr = loadModule(yyvsp[0].id, thisParserPtr);
 			    }
 			    smiFree(yyvsp[0].id);
-			;
-    break;}
-case 370:
+			;}
+    break;
+
+  case 371:
 #line 6624 "parser-smi.y"
-{
+    {
 			    yyval.modulePtr = thisModulePtr;
-			;
-    break;}
-case 371:
+			;}
+    break;
+
+  case 372:
 #line 6630 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = yyvsp[-1].listPtr;
-			;
-    break;}
-case 372:
+			;}
+    break;
+
+  case 373:
 #line 6634 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 373:
+			;}
+    break;
+
+  case 374:
 #line 6640 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].objectPtr;
 			    yyval.listPtr->nextPtr = NULL;
-			;
-    break;}
-case 374:
+			;}
+    break;
+
+  case 375:
 #line 6646 "parser-smi.y"
-{
+    {
 			    List *p, *pp;
 			    
 			    p = smiMalloc(sizeof(List));
@@ -8189,11 +8819,12 @@ case 374:
 			    for (pp = yyvsp[-2].listPtr; pp->nextPtr; pp = pp->nextPtr);
 			    pp->nextPtr = p;
 			    yyval.listPtr = yyvsp[-2].listPtr;
-			;
-    break;}
-case 375:
+			;}
+    break;
+
+  case 376:
 #line 6659 "parser-smi.y"
-{
+    {
 			    /* TODO: check that objectIdentifier is
 			       found, is defined in thisParserPtr->complianceModulePtr,
 			       and is a group node. */
@@ -8212,33 +8843,37 @@ case 375:
 				if (importPtr)
 				    importPtr->use++;
 			    }
-			;
-    break;}
-case 376:
+			;}
+    break;
+
+  case 377:
 #line 6682 "parser-smi.y"
-{
+    {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = yyvsp[0].compl.optionlistPtr;
 			    yyval.compl.refinementlistPtr = yyvsp[0].compl.refinementlistPtr;
-			;
-    break;}
-case 377:
+			;}
+    break;
+
+  case 378:
 #line 6688 "parser-smi.y"
-{
+    {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = NULL;
 			    yyval.compl.refinementlistPtr = NULL;
-			;
-    break;}
-case 378:
+			;}
+    break;
+
+  case 379:
 #line 6696 "parser-smi.y"
-{
+    {
 			    yyval.compl = yyvsp[0].compl;
-			;
-    break;}
-case 379:
+			;}
+    break;
+
+  case 380:
 #line 6700 "parser-smi.y"
-{
+    {
 			    List *listPtr;
 			    int stop;
 			    
@@ -8301,33 +8936,37 @@ case 379:
 			    } else {
 				yyval.compl.refinementlistPtr = yyvsp[0].compl.refinementlistPtr;
 			    }
-			;
-    break;}
-case 380:
+			;}
+    break;
+
+  case 381:
 #line 6767 "parser-smi.y"
-{
+    {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = yyvsp[0].listPtr;
 			    yyval.compl.refinementlistPtr = NULL;
-			;
-    break;}
-case 381:
+			;}
+    break;
+
+  case 382:
 #line 6773 "parser-smi.y"
-{
+    {
 			    yyval.compl.mandatorylistPtr = NULL;
 			    yyval.compl.optionlistPtr = NULL;
 			    yyval.compl.refinementlistPtr = yyvsp[0].listPtr;
-			;
-    break;}
-case 382:
+			;}
+    break;
+
+  case 383:
 #line 6781 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstNestedStatementLine = thisParserPtr->line;
-			;
-    break;}
-case 383:
+			;}
+    break;
+
+  case 384:
 #line 6786 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 			    
 			    if (thisParserPtr->complianceModulePtr && yyvsp[-2].objectPtr->export.name) {
@@ -8351,17 +8990,19 @@ case 383:
 			    } else {
 				smiFree(yyvsp[0].text);
 			    }
-			;
-    break;}
-case 384:
+			;}
+    break;
+
+  case 385:
 #line 6814 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstNestedStatementLine = thisParserPtr->line;
-			;
-    break;}
-case 385:
+			;}
+    break;
+
+  case 386:
 #line 6822 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
 
 			    if (thisParserPtr->complianceModulePtr && yyvsp[-5].objectPtr->export.name) {
@@ -8396,27 +9037,30 @@ case 385:
 			    } else {
 				smiFree(yyvsp[0].text);
 			    }
-			;
-    break;}
-case 386:
+			;}
+    break;
+
+  case 387:
 #line 6861 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].typePtr->export.name) {
 				yyval.typePtr = duplicateType(yyvsp[0].typePtr, 0, thisParserPtr);
 			    } else {
 				yyval.typePtr = yyvsp[0].typePtr;
 			    }
-			;
-    break;}
-case 387:
+			;}
+    break;
+
+  case 388:
 #line 6869 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = NULL;
-			;
-    break;}
-case 388:
+			;}
+    break;
+
+  case 389:
 #line 6875 "parser-smi.y"
-{
+    {
                             /* must not be present in PIBs */
                             if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "WRITE-SYNTAX");
@@ -8425,47 +9069,53 @@ case 388:
 			    } else {
 				yyval.typePtr = yyvsp[0].typePtr;
 			    }
-			;
-    break;}
-case 389:
+			;}
+    break;
+
+  case 390:
 #line 6886 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = NULL;
-			;
-    break;}
-case 390:
+			;}
+    break;
+
+  case 391:
 #line 6892 "parser-smi.y"
-{
+    {
 			    yyval.typePtr = yyvsp[0].typePtr;
-			;
-    break;}
-case 391:
+			;}
+    break;
+
+  case 392:
 #line 6898 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "MIN-ACCESS");
 			    yyval.access = yyvsp[0].access;
-			;
-    break;}
-case 392:
+			;}
+    break;
+
+  case 393:
 #line 6904 "parser-smi.y"
-{
+    {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "PIB-MIN-ACCESS");
                             if (yyvsp[0].access == SMI_ACCESS_REPORT_ONLY)
                                 smiPrintError(thisParserPtr, ERR_REPORT_ONLY_IN_PIB_MIN_ACCESS);
                             yyval.access = yyvsp[0].access;
-                        ;
-    break;}
-case 393:
+                        ;}
+    break;
+
+  case 394:
 #line 6912 "parser-smi.y"
-{
+    {
 			    yyval.access = SMI_ACCESS_UNKNOWN;
-			;
-    break;}
-case 394:
+			;}
+    break;
+
+  case 395:
 #line 6918 "parser-smi.y"
-{
+    {
 			    thisParserPtr->firstStatementLine = thisParserPtr->line;
 			    thisParserPtr->currentDecl = SMI_DECL_AGENTCAPABILITIES;
 			    
@@ -8473,11 +9123,12 @@ case 394:
 					 ERR_OIDNAME_32, ERR_OIDNAME_64);
 			    smiCheckObjectName(thisParserPtr,
 					       thisModulePtr, yyvsp[0].id);
-			;
-    break;}
-case 395:
+			;}
+    break;
+
+  case 396:
 #line 6928 "parser-smi.y"
-{
+    {
 			    Import *importPtr;
                             if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "AGENT-CAAPABILITIES");
@@ -8495,17 +9146,19 @@ case 395:
 					      "AGENT-CAPABILITIES",
 					      "SNMPv2-CONF");
 			    }
-			;
-    break;}
-case 396:
+			;}
+    break;
+
+  case 397:
 #line 6950 "parser-smi.y"
-{
+    {
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 397:
+			;}
+    break;
+
+  case 398:
 #line 6956 "parser-smi.y"
-{
+    {
 			    Object *objectPtr;
 			    
 			    objectPtr = yyvsp[-1].objectPtr;
@@ -8531,27 +9184,32 @@ case 397:
 				 * TODO: ModulePart_Capabilities
 				 */
 			    yyval.err = 0;
-			;
-    break;}
-case 398:
+			;}
+    break;
+
+  case 399:
 #line 6986 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 399:
+    { yyval.err = 0; ;}
+    break;
+
+  case 400:
 #line 6988 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 400:
+    { yyval.err = 0; ;}
+    break;
+
+  case 401:
 #line 6992 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 401:
+    { yyval.err = 0; ;}
+    break;
+
+  case 402:
 #line 6994 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 402:
+    { yyval.err = 0; ;}
+    break;
+
+  case 403:
 #line 6998 "parser-smi.y"
-{
+    {
 			    /*
 			     * Remember the module. SMIv2 is broken by
 			     * design to allow subsequent clauses to
@@ -8564,22 +9222,24 @@ case 402:
 				thisParserPtr->capabilitiesModulePtr = NULL;
 			    else
 				thisParserPtr->capabilitiesModulePtr = yyvsp[0].modulePtr;
-			;
-    break;}
-case 403:
+			;}
+    break;
+
+  case 404:
 #line 7014 "parser-smi.y"
-{
+    {
 			    if (thisParserPtr->capabilitiesModulePtr) {
 				checkImports(thisParserPtr->capabilitiesModulePtr,
 					     thisParserPtr);
 				thisParserPtr->capabilitiesModulePtr = NULL;
 			    }
 			    yyval.err = 0;
-			;
-    break;}
-case 404:
+			;}
+    break;
+
+  case 405:
 #line 7025 "parser-smi.y"
-{
+    {
 #if 0
 			    yyval.listPtr = smiMalloc(sizeof(List));
 			    yyval.listPtr->ptr = yyvsp[0].listPtr;
@@ -8587,11 +9247,12 @@ case 404:
 #else
 			    yyval.listPtr = NULL;
 #endif
-			;
-    break;}
-case 405:
+			;}
+    break;
+
+  case 406:
 #line 7035 "parser-smi.y"
-{
+    {
 #if 0
 			    List *p, *pp;
 			    
@@ -8604,91 +9265,103 @@ case 405:
 #else
 			    yyval.listPtr = NULL;
 #endif
-			;
-    break;}
-case 406:
+			;}
+    break;
+
+  case 407:
 #line 7052 "parser-smi.y"
-{
+    {
 			    yyval.listPtr = NULL;
-			;
-    break;}
-case 407:
+			;}
+    break;
+
+  case 408:
 #line 7058 "parser-smi.y"
-{
+    {
 			    yyval.modulePtr = findModuleByName(yyvsp[-1].id);
 			    /* TODO: handle objectIdentifier */
 			    if (!yyval.modulePtr) {
 				yyval.modulePtr = loadModule(yyvsp[-1].id, thisParserPtr);
 			    }
 			    smiFree(yyvsp[-1].id);
-			;
-    break;}
-case 408:
+			;}
+    break;
+
+  case 409:
 #line 7067 "parser-smi.y"
-{
+    {
 			    yyval.modulePtr = findModuleByName(yyvsp[0].id);
 			    if (!yyval.modulePtr) {
 				yyval.modulePtr = loadModule(yyvsp[0].id, thisParserPtr);
 			    }
 			    smiFree(yyvsp[0].id);
-			;
-    break;}
-case 409:
+			;}
+    break;
+
+  case 410:
 #line 7077 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 410:
+    { yyval.err = 0; ;}
+    break;
+
+  case 411:
 #line 7079 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 411:
+    { yyval.err = 0; ;}
+    break;
+
+  case 412:
 #line 7083 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 412:
+    { yyval.err = 0; ;}
+    break;
+
+  case 413:
 #line 7085 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 413:
+    { yyval.err = 0; ;}
+    break;
+
+  case 414:
 #line 7089 "parser-smi.y"
-{
+    {
 			    if (yyvsp[0].objectPtr) {
 				variationkind = yyvsp[0].objectPtr->export.nodekind;
 			    } else {
 				variationkind = SMI_NODEKIND_UNKNOWN;
 			    }
-			;
-    break;}
-case 414:
+			;}
+    break;
+
+  case 415:
 #line 7097 "parser-smi.y"
-{
+    {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				smiPrintError(thisParserPtr,
 				      ERR_NOTIFICATION_VARIATION_SYNTAX);
 			    }
-			;
-    break;}
-case 415:
+			;}
+    break;
+
+  case 416:
 #line 7104 "parser-smi.y"
-{
+    {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				smiPrintError(thisParserPtr,
 				      ERR_NOTIFICATION_VARIATION_WRITESYNTAX);
 			    }
-			;
-    break;}
-case 416:
+			;}
+    break;
+
+  case 417:
 #line 7112 "parser-smi.y"
-{
+    {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				smiPrintError(thisParserPtr,
 				      ERR_NOTIFICATION_VARIATION_CREATION);
 			    }
-			;
-    break;}
-case 417:
+			;}
+    break;
+
+  case 418:
 #line 7119 "parser-smi.y"
-{
+    {
 			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
 				smiPrintError(thisParserPtr,
 				      ERR_NOTIFICATION_VARIATION_DEFVAL);
@@ -8700,29 +9373,33 @@ case 417:
 						  yyvsp[0].valuePtr, yyvsp[-9].objectPtr->typePtr,
 						  thisParserPtr->line);
 			    }
-			;
-    break;}
-case 418:
+			;}
+    break;
+
+  case 419:
 #line 7133 "parser-smi.y"
-{
+    {
 			    thisParserPtr->flags &= ~FLAG_CREATABLE;
 			    yyval.err = 0;
 			    variationkind = SMI_NODEKIND_UNKNOWN;
 
 			    checkDescr(thisParserPtr, yyvsp[0].text);
-			;
-    break;}
-case 419:
+			;}
+    break;
+
+  case 420:
 #line 7143 "parser-smi.y"
-{ yyval.access = yyvsp[0].access; ;
-    break;}
-case 420:
+    { yyval.access = yyvsp[0].access; ;}
+    break;
+
+  case 421:
 #line 7145 "parser-smi.y"
-{ yyval.access = 0; ;
-    break;}
-case 421:
+    { yyval.access = 0; ;}
+    break;
+
+  case 422:
 #line 7149 "parser-smi.y"
-{
+    {
 			    if (!strcmp(yyvsp[0].id, "not-implemented")) {
 				yyval.access = SMI_ACCESS_NOT_IMPLEMENTED;
 			    } else if (!strcmp(yyvsp[0].id, "accessible-for-notify")) {
@@ -8783,54 +9460,48 @@ case 421:
 					      yyvsp[0].id);
 				yyval.access = SMI_ACCESS_UNKNOWN;
 			    }
-			;
-    break;}
-case 422:
+			;}
+    break;
+
+  case 423:
 #line 7214 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 423:
+    { yyval.err = 0; ;}
+    break;
+
+  case 424:
 #line 7216 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 424:
+    { yyval.err = 0; ;}
+    break;
+
+  case 425:
 #line 7220 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 425:
+    { yyval.err = 0; ;}
+    break;
+
+  case 426:
 #line 7222 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-case 426:
+    { yyval.err = 0; ;}
+    break;
+
+  case 427:
 #line 7226 "parser-smi.y"
-{ yyval.err = 0; ;
-    break;}
-}
+    { yyval.err = 0; ;}
+    break;
 
-#line 705 "/usr/share/bison/bison.simple"
 
+    }
+
+/* Line 1010 of yacc.c.  */
+#line 9496 "parser-smi.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
-#if YYLSP_NEEDED
-  yylsp -= yylen;
-#endif
 
-#if YYDEBUG
-  if (yydebug)
-    {
-      short *yyssp1 = yyss - 1;
-      YYFPRINTF (stderr, "state stack now");
-      while (yyssp1 != yyssp)
-	YYFPRINTF (stderr, " %d", *++yyssp1);
-      YYFPRINTF (stderr, "\n");
-    }
-#endif
+
+  YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
-#if YYLSP_NEEDED
-  *++yylsp = yyloc;
-#endif
+
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -8838,11 +9509,11 @@ case 426:
 
   yyn = yyr1[yyn];
 
-  yystate = yypgoto[yyn - YYNTBASE] + *yyssp;
-  if (yystate >= 0 && yystate <= YYLAST && yycheck[yystate] == *yyssp)
+  yystate = yypgoto[yyn - YYNTOKENS] + *yyssp;
+  if (0 <= yystate && yystate <= YYLAST && yycheck[yystate] == *yyssp)
     yystate = yytable[yystate];
   else
-    yystate = yydefgoto[yyn - YYNTBASE];
+    yystate = yydefgoto[yyn - YYNTOKENS];
 
   goto yynewstate;
 
@@ -8855,145 +9526,151 @@ yyerrlab:
   if (!yyerrstatus)
     {
       ++yynerrs;
-
-#ifdef YYERROR_VERBOSE
+#if YYERROR_VERBOSE
       yyn = yypact[yystate];
 
-      if (yyn > YYFLAG && yyn < YYLAST)
+      if (YYPACT_NINF < yyn && yyn < YYLAST)
 	{
 	  YYSIZE_T yysize = 0;
+	  int yytype = YYTRANSLATE (yychar);
+	  const char* yyprefix;
 	  char *yymsg;
-	  int yyx, yycount;
+	  int yyx;
 
-	  yycount = 0;
 	  /* Start YYX at -YYN if negative to avoid negative indexes in
 	     YYCHECK.  */
-	  for (yyx = yyn < 0 ? -yyn : 0;
-	       yyx < (int) (sizeof (yytname) / sizeof (char *)); yyx++)
-	    if (yycheck[yyx + yyn] == yyx)
-	      yysize += yystrlen (yytname[yyx]) + 15, yycount++;
-	  yysize += yystrlen ("parse error, unexpected ") + 1;
-	  yysize += yystrlen (yytname[YYTRANSLATE (yychar)]);
+	  int yyxbegin = yyn < 0 ? -yyn : 0;
+
+	  /* Stay within bounds of both yycheck and yytname.  */
+	  int yychecklim = YYLAST - yyn;
+	  int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
+	  int yycount = 0;
+
+	  yyprefix = ", expecting ";
+	  for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+	    if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
+	      {
+		yysize += yystrlen (yyprefix) + yystrlen (yytname [yyx]);
+		yycount += 1;
+		if (yycount == 5)
+		  {
+		    yysize = 0;
+		    break;
+		  }
+	      }
+	  yysize += (sizeof ("syntax error, unexpected ")
+		     + yystrlen (yytname[yytype]));
 	  yymsg = (char *) YYSTACK_ALLOC (yysize);
 	  if (yymsg != 0)
 	    {
-	      char *yyp = yystpcpy (yymsg, "parse error, unexpected ");
-	      yyp = yystpcpy (yyp, yytname[YYTRANSLATE (yychar)]);
+	      char *yyp = yystpcpy (yymsg, "syntax error, unexpected ");
+	      yyp = yystpcpy (yyp, yytname[yytype]);
 
 	      if (yycount < 5)
 		{
-		  yycount = 0;
-		  for (yyx = yyn < 0 ? -yyn : 0;
-		       yyx < (int) (sizeof (yytname) / sizeof (char *));
-		       yyx++)
-		    if (yycheck[yyx + yyn] == yyx)
+		  yyprefix = ", expecting ";
+		  for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+		    if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
 		      {
-			const char *yyq = ! yycount ? ", expecting " : " or ";
-			yyp = yystpcpy (yyp, yyq);
+			yyp = yystpcpy (yyp, yyprefix);
 			yyp = yystpcpy (yyp, yytname[yyx]);
-			yycount++;
+			yyprefix = " or ";
 		      }
 		}
 	      yyerror (yymsg);
 	      YYSTACK_FREE (yymsg);
 	    }
 	  else
-	    yyerror ("parse error; also virtual memory exhausted");
+	    yyerror ("syntax error; also virtual memory exhausted");
 	}
       else
-#endif /* defined (YYERROR_VERBOSE) */
-	yyerror ("parse error");
+#endif /* YYERROR_VERBOSE */
+	yyerror ("syntax error");
     }
-  goto yyerrlab1;
 
 
-/*--------------------------------------------------.
-| yyerrlab1 -- error raised explicitly by an action |
-`--------------------------------------------------*/
-yyerrlab1:
+
   if (yyerrstatus == 3)
     {
       /* If just tried and failed to reuse lookahead token after an
 	 error, discard it.  */
 
-      /* return failure if at end of input */
-      if (yychar == YYEOF)
-	YYABORT;
-      YYDPRINTF ((stderr, "Discarding token %d (%s).\n",
-		  yychar, yytname[yychar1]));
-      yychar = YYEMPTY;
+      if (yychar <= YYEOF)
+        {
+          /* If at end of input, pop the error token,
+	     then the rest of the stack, then return failure.  */
+	  if (yychar == YYEOF)
+	     for (;;)
+	       {
+		 YYPOPSTACK;
+		 if (yyssp == yyss)
+		   YYABORT;
+		 YYDSYMPRINTF ("Error: popping", yystos[*yyssp], yyvsp, yylsp);
+		 yydestruct (yystos[*yyssp], yyvsp);
+	       }
+        }
+      else
+	{
+	  YYDSYMPRINTF ("Error: discarding", yytoken, &yylval, &yylloc);
+	  yydestruct (yytoken, &yylval);
+	  yychar = YYEMPTY;
+
+	}
     }
 
   /* Else will try to reuse lookahead token after shifting the error
      token.  */
-
-  yyerrstatus = 3;		/* Each real token shifted decrements this */
-
-  goto yyerrhandle;
+  goto yyerrlab1;
 
 
-/*-------------------------------------------------------------------.
-| yyerrdefault -- current state does not do anything special for the |
-| error token.                                                       |
-`-------------------------------------------------------------------*/
-yyerrdefault:
-#if 0
-  /* This is wrong; only states that explicitly want error tokens
-     should shift them.  */
+/*---------------------------------------------------.
+| yyerrorlab -- error raised explicitly by YYERROR.  |
+`---------------------------------------------------*/
+yyerrorlab:
 
-  /* If its default is to accept any token, ok.  Otherwise pop it.  */
-  yyn = yydefact[yystate];
-  if (yyn)
-    goto yydefault;
+#ifdef __GNUC__
+  /* Pacify GCC when the user code never invokes YYERROR and the label
+     yyerrorlab therefore never appears in user code.  */
+  if (0)
+     goto yyerrorlab;
 #endif
 
+  yyvsp -= yylen;
+  yyssp -= yylen;
+  yystate = *yyssp;
+  goto yyerrlab1;
 
-/*---------------------------------------------------------------.
-| yyerrpop -- pop the current state because it cannot handle the |
-| error token                                                    |
-`---------------------------------------------------------------*/
-yyerrpop:
-  if (yyssp == yyss)
-    YYABORT;
-  yyvsp--;
-  yystate = *--yyssp;
-#if YYLSP_NEEDED
-  yylsp--;
-#endif
 
-#if YYDEBUG
-  if (yydebug)
+/*-------------------------------------------------------------.
+| yyerrlab1 -- common code for both syntax error and YYERROR.  |
+`-------------------------------------------------------------*/
+yyerrlab1:
+  yyerrstatus = 3;	/* Each real token shifted decrements this.  */
+
+  for (;;)
     {
-      short *yyssp1 = yyss - 1;
-      YYFPRINTF (stderr, "Error: state stack now");
-      while (yyssp1 != yyssp)
-	YYFPRINTF (stderr, " %d", *++yyssp1);
-      YYFPRINTF (stderr, "\n");
+      yyn = yypact[yystate];
+      if (yyn != YYPACT_NINF)
+	{
+	  yyn += YYTERROR;
+	  if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == YYTERROR)
+	    {
+	      yyn = yytable[yyn];
+	      if (0 < yyn)
+		break;
+	    }
+	}
+
+      /* Pop the current state because it cannot handle the error token.  */
+      if (yyssp == yyss)
+	YYABORT;
+
+      YYDSYMPRINTF ("Error: popping", yystos[*yyssp], yyvsp, yylsp);
+      yydestruct (yystos[yystate], yyvsp);
+      YYPOPSTACK;
+      yystate = *yyssp;
+      YY_STACK_PRINT (yyss, yyssp);
     }
-#endif
-
-/*--------------.
-| yyerrhandle.  |
-`--------------*/
-yyerrhandle:
-  yyn = yypact[yystate];
-  if (yyn == YYFLAG)
-    goto yyerrdefault;
-
-  yyn += YYTERROR;
-  if (yyn < 0 || yyn > YYLAST || yycheck[yyn] != YYTERROR)
-    goto yyerrdefault;
-
-  yyn = yytable[yyn];
-  if (yyn < 0)
-    {
-      if (yyn == YYFLAG)
-	goto yyerrpop;
-      yyn = -yyn;
-      goto yyreduce;
-    }
-  else if (yyn == 0)
-    goto yyerrpop;
 
   if (yyn == YYFINAL)
     YYACCEPT;
@@ -9001,9 +9678,7 @@ yyerrhandle:
   YYDPRINTF ((stderr, "Shifting error token, "));
 
   *++yyvsp = yylval;
-#if YYLSP_NEEDED
-  *++yylsp = yylloc;
-#endif
+
 
   yystate = yyn;
   goto yynewstate;
@@ -9023,13 +9698,15 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-/*---------------------------------------------.
-| yyoverflowab -- parser overflow comes here.  |
-`---------------------------------------------*/
+#ifndef yyoverflow
+/*----------------------------------------------.
+| yyoverflowlab -- parser overflow comes here.  |
+`----------------------------------------------*/
 yyoverflowlab:
   yyerror ("parser stack overflow");
   yyresult = 2;
   /* Fall through.  */
+#endif
 
 yyreturn:
 #ifndef yyoverflow
@@ -9038,7 +9715,10 @@ yyreturn:
 #endif
   return yyresult;
 }
+
+
 #line 7229 "parser-smi.y"
 
 
 #endif
+
