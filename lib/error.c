@@ -648,8 +648,6 @@ static Error errors[] = {
       "The identities of IETF MIB modules should be registered below\n"
       "mib-2, transmission, or snmpModules so that the registration\n"
       "space can be controlled by IANA."},
-    { 2, ERR_TABLE_NON_ACCESSIBLE, "table-not-accessible",
-      "at least one column of row `%s' must be accessible", NULL},
     { 0, 0, NULL, NULL, NULL }
 };
 
