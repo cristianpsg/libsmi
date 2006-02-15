@@ -2765,7 +2765,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    ");\n"
 	    "    if (len < 0) {\n"
 	    "        g_warning(\"%%s: invalid index values\", \"%s\");\n"
-	    "        s->error_status = GNET_SNMP_ERR_INTERNAL;\n"
+	    "        s->error_status = GNET_SNMP_PDU_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n",
 	    cRowName);
@@ -2786,7 +2786,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        if (s->error_status != GNET_SNMP_ERR_NOERROR) {\n"
+	    "        if (s->error_status != GNET_SNMP_PDU_ERR_NOERROR) {\n"
 	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "            g_list_free(out);\n"
 	    "            return;\n"
@@ -2840,7 +2840,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    ");\n"
 	    "    if (len < 0) {\n"
 	    "        g_warning(\"%%s: invalid index values\", \"%s\");\n"
-	    "        s->error_status = GNET_SNMP_ERR_INTERNAL;\n"
+	    "        s->error_status = GNET_SNMP_PDU_ERR_INTERNAL;\n"
 	    "        return;\n"
 	    "    }\n"
 	    "\n",
@@ -3121,7 +3121,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        if (s->error_status != GNET_SNMP_ERR_NOERROR) {\n"
+	    "        if (s->error_status != GNET_SNMP_PDU_ERR_NOERROR) {\n"
 	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "            g_list_free(out);\n"
 	    "            return;\n"
