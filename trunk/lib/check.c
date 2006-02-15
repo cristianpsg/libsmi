@@ -946,12 +946,6 @@ smiCheckIndex(Parser *parser, Object *object)
     }
 
     if ((parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2)
-	&& aux < cols && acc == 0) {
-	smiPrintErrorAtLine(parser, ERR_TABLE_NON_ACCESSIBLE,
-			    object->line, object->export.name);
-    }
-
-    if ((parser->modulePtr->export.language == SMI_LANGUAGE_SMIV2)
 	&& aux == cols && acc != 1) {
 	smiPrintErrorAtLine(parser, ERR_INDEX_NON_ACCESSIBLE,
 			    object->line, object->export.name);
