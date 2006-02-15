@@ -94,13 +94,14 @@ static char *getTypeName(SmiNode *smiNode)
 
 
 
-static int fprintGroup(FILE *f, SmiNode *smiNode, char c, int typelen)
+static void fprintGroup(FILE *f, SmiNode *smiNode, char c,
+			int *typelen, int *namelen, int pass)
 {
     SmiElement *smiElement;
     SmiNode *smiObject;
     SmiModule *smiModule;
     char *type_name;
-    int len = 9;
+    int tlen = 9, nlen = 9;
 
     switch (smiNode->nodekind) {
     case SMI_NODEKIND_GROUP:
@@ -110,17 +111,21 @@ static int fprintGroup(FILE *f, SmiNode *smiNode, char c, int typelen)
 	    smiObject = smiGetElementNode(smiElement);
 	    smiModule = smiGetNodeModule(smiNode);
 	    type_name = getTypeName(smiObject);
-	    if (typelen) {
-		fprintf(f, "  %c%c%s %-*s %s\n",
-			getStatusChar(smiObject->status), c,
-			getFlags(smiObject),
-			typelen, type_name ? type_name : "-",
-			smiObject->name);
-	    } else {
+	    if (pass == 1) {
 		if (type_name) {
 		    int newlen = strlen(type_name);
-		    len = (len < newlen) ? newlen : len;
+		    tlen = (tlen < newlen) ? newlen : tlen;
 		}
+		if (smiObject->name) {
+		    int newlen = strlen(smiObject->name);
+		    nlen = (nlen < newlen) ? newlen : nlen;
+		}
+	    } else if (pass == 2) {
+		fprintf(f, "  %c%c%s %-*s %-*s (%s)\n",
+			getStatusChar(smiObject->status), c,
+			getFlags(smiObject),
+			*typelen, type_name ? type_name : "-",
+			*namelen, smiObject->name, smiNode->name);
 	    }
 	    xfree(type_name);
 	}
@@ -129,17 +134,21 @@ static int fprintGroup(FILE *f, SmiNode *smiNode, char c, int typelen)
     case SMI_NODEKIND_COLUMN:
 	smiObject = smiNode;
 	type_name = getTypeName(smiObject);
-	if (typelen) {
+	if (pass == 1) {
+	    if (type_name) {
+		int newlen = strlen(type_name);
+		tlen = tlen < newlen ? newlen : tlen;
+	    }
+	    if (smiObject->name) {
+		int newlen = strlen(smiObject->name);
+		nlen = (nlen < newlen) ? newlen : nlen;
+	    }
+	} else if (pass == 2) {
 	    fprintf(f, "  %c%c%s %-*s %s\n",
 		    getStatusChar(smiObject->status), 'r',
 		    getFlags(smiObject),
-		    typelen, type_name ? type_name : "-",
+		    *typelen, type_name ? type_name : "-",
 		    smiObject->name);
-	} else {
-	    if (type_name) {
-		int newlen = strlen(type_name);
-		len = len < newlen ? newlen : len;
-	    }
 	}
 	xfree(type_name);
 	break;
@@ -147,39 +156,68 @@ static int fprintGroup(FILE *f, SmiNode *smiNode, char c, int typelen)
 	break;
     }
 
-    return len;
+    if (pass == 1) {
+	if (typelen) *typelen = tlen;
+	if (namelen) *namelen = nlen;
+    }
 }
 
 
 
-static int fprintCompliance(FILE *f, SmiNode *smiNode, int typelen)
+static void fprintCompliance(FILE *f, SmiNode *smiNode,
+			     int *typelen, int *namelen, int pass)
 {
     SmiElement *smiElement;
     SmiOption *smiOption;
     SmiRefinement *smiRefinement;
-    int len = 0, newlen;
+    int tlen = 0, nlen = 0;
 
     for (smiElement = smiGetFirstElement(smiNode);
 	 smiElement;
 	 smiElement = smiGetNextElement(smiElement)) {
-	newlen = fprintGroup(f, smiGetElementNode(smiElement), 'm', typelen);
-	len = len < newlen ? newlen : len;
+	fprintGroup(f, smiGetElementNode(smiElement), 'm',
+		    (pass == 1) ? &tlen : typelen,
+		    (pass == 1) ? &nlen : namelen, pass);
+	if (pass == 1) {
+	    if (typelen) {
+		*typelen = *typelen < tlen ? tlen : *typelen;
+	    }
+	    if (namelen) {
+		*namelen = *namelen < nlen ? nlen : *namelen;
+	    }
+	}
     }
 
     for(smiOption = smiGetFirstOption(smiNode); smiOption;
 	smiOption = smiGetNextOption(smiOption)) {
-	newlen = fprintGroup(f, smiGetOptionNode(smiOption), 'c', typelen);
-	len = len < newlen ? newlen : len;
+	fprintGroup(f, smiGetOptionNode(smiOption), 'c',
+		    (pass == 1) ? &tlen : typelen,
+		    (pass == 1) ? &nlen : namelen, pass);
+	if (pass == 1) {
+	    if (typelen) {
+		*typelen = *typelen < tlen ? tlen : *typelen;
+	    }
+	    if (namelen) {
+		*namelen = *namelen < nlen ? nlen : *namelen;
+	    }
+	}
     }
 
     for (smiRefinement = smiGetFirstRefinement(smiNode);
 	 smiRefinement;
 	 smiRefinement = smiGetNextRefinement(smiRefinement)) {
-	newlen = fprintGroup(f, smiGetRefinementNode(smiRefinement), 'r', typelen);
-	len = len < newlen ? newlen : len;
+	fprintGroup(f, smiGetRefinementNode(smiRefinement), 'r',
+		    (pass == 1) ? &tlen : typelen,
+		    (pass == 1) ? &nlen : namelen, pass);
+	if (pass == 1) {
+	    if (typelen) {
+		*typelen = *typelen < tlen ? tlen : *typelen;
+	    }
+	    if (namelen) {
+		*namelen = *namelen < nlen ? nlen : *namelen;
+	    }
+	}
     }
-
-    return len;
 }
 
 
@@ -187,14 +225,14 @@ static int fprintCompliance(FILE *f, SmiNode *smiNode, int typelen)
 static void fprintCompliances(FILE *f, SmiModule *smiModule)
 {
     SmiNode *smiNode;
-    int i, len;
+    int i, typelen = 0, namelen = 0;
 
     for (i = 0, smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_COMPLIANCE);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE), i++) {
 	fprintf(f, "%s%s:\n", i ? "\n" : "", smiNode->name);
-	len = fprintCompliance(f, smiNode, 0);
-	(void) fprintCompliance(f, smiNode, len);
+	fprintCompliance(f, smiNode, &typelen, &namelen, 1);
+	fprintCompliance(f, smiNode, &typelen, &namelen, 2);
     }
 }
 
