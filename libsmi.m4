@@ -29,7 +29,6 @@ main()
 }
 ],
   [ AC_MSG_RESULT(yes)
-    AC_DEFINE(LIBSMI)
     libsmi=yes],
   [ AC_MSG_RESULT(no)
     libsmi=no],
