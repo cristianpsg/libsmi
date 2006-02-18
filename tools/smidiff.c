@@ -6,11 +6,12 @@
  * Copyright (c) 2001 T. Klie, Technical University of Braunschweig.
  * Copyright (c) 2001 J. Schoenwaelder, Technical University of Braunschweig.
  * Copyright (c) 2001 F. Strauss, Technical University of Braunschweig.
+ * Copyright (c) 2006 J. Schoenwaelder, International University Bremen.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: smidiff.c,v 1.50 2004/01/12 14:22:20 strauss Exp $ 
+ * @(#) $Id$ 
  */
 
 /*
@@ -38,6 +39,8 @@
 static int errorLevel = 6;	/* smidiff/libsmi error level (inclusive) */
 static int mFlag = 0;		/* show the name for error messages */
 static int sFlag = 0;		/* show the severity for error messages */
+static char *oldCompl = NULL;	/* name of old compliance statement */
+static char *newCompl = NULL;	/* name of new compliance statement */
 
 /* the `:' separates the view identifier */
 static const char *oldTag = "smidiff:old";
@@ -57,74 +60,74 @@ typedef struct Error {
 } Error;
 
 
-#define ERR_INTERNAL			0
-#define ERR_TYPE_REMOVED		1
-#define ERR_TYPE_ADDED			2
-#define ERR_NODE_REMOVED		3
-#define ERR_NODE_ADDED			4
-#define ERR_BASETYPE_CHANGED		5
-#define ERR_DECL_CHANGED		6
-#define ERR_LEGAL_STATUS_CHANGED	8
-#define ERR_PREVIOUS_DEFINITION		9
-#define ERR_STATUS_CHANGED		10
-#define ERR_DESCR_ADDED			11
-#define ERR_DESCR_REMOVED		12
-#define ERR_DESCR_CHANGED		13
-#define ERR_REF_ADDED			14
-#define ERR_REF_REMOVED			15
-#define ERR_REF_CHANGED			16
-#define ERR_FORMAT_ADDED		17
-#define ERR_FORMAT_REMOVED		18
-#define ERR_FORMAT_CHANGED		19
-#define ERR_UNITS_ADDED			20
-#define ERR_UNITS_REMOVED		21
-#define ERR_UNITS_CHANGED		22
-#define ERR_ACCESS_ADDED		23
-#define ERR_ACCESS_REMOVED		24
-#define ERR_ACCESS_CHANGED		25
-#define ERR_NAME_ADDED			26
-#define ERR_NAME_REMOVED		27
-#define ERR_NAME_CHANGED		28
-#define ERR_TO_IMPLICIT			29
-#define ERR_FROM_IMPLICIT		30
-#define ERR_RANGE_ADDED                 31
-#define ERR_RANGE_REMOVED               32
-#define ERR_RANGE_CHANGED               33
-#define ERR_DEFVAL_ADDED		34
-#define ERR_DEFVAL_REMOVED		35
-#define ERR_DEFVAL_CHANGED		36
-#define ERR_ORGA_ADDED			37
-#define ERR_ORGA_REMOVED		38
-#define ERR_ORGA_CHANGED		39
-#define ERR_CONTACT_ADDED		40
-#define ERR_CONTACT_REMOVED		41
-#define ERR_CONTACT_CHANGED		42
-#define ERR_SMIVERSION_CHANGED		43
-#define ERR_REVISION_ADDED		44
-#define ERR_REVISION_REMOVED		45
-#define ERR_REVISION_CHANGED		46
-#define ERR_LENGTH_CHANGED              47
-#define ERR_LENGTH_OF_TYPE_CHANGED      48
-#define ERR_LENGTH_ADDED                49
-#define ERR_MEMBER_ADDED		50
-#define ERR_MEMBER_REMOVED		51
-#define ERR_MEMBER_CHANGED		52
-#define ERR_OBJECT_ADDED		53
-#define ERR_OBJECT_REMOVED		54
-#define ERR_OBJECT_CHANGED		55
-#define ERR_NAMED_NUMBER_ADDED          56
-#define ERR_NAMED_NUMBER_REMOVED        57
-#define ERR_NAMED_NUMBER_CHANGED        58
-#define ERR_NAMED_BIT_ADDED_OLD_BYTE    59
-#define ERR_NODEKIND_CHANGED		60
-#define ERR_INDEXKIND_CHANGED           61
-#define ERR_INDEX_CHANGED               62
-#define ERR_TYPE_IS_AND_WAS             63
-#define ERR_RANGE_OF_TYPE_CHANGED       64
-#define ERR_RANGE_OF_TYPE_ADDED         65
-#define ERR_RANGE_OF_TYPE_REMOVED       66
-#define ERR_TYPE_BASED_ON               67
-#define ERR_INDEX_AUGMENT_CHANGED       68
+#define ERR_INTERNAL				0
+#define ERR_TYPE_REMOVED			1
+#define ERR_TYPE_ADDED				2
+#define ERR_NODE_REMOVED			3
+#define ERR_NODE_ADDED				4
+#define ERR_BASETYPE_CHANGED			5
+#define ERR_DECL_CHANGED			6
+#define ERR_LEGAL_STATUS_CHANGED		8
+#define ERR_PREVIOUS_DEFINITION			9
+#define ERR_STATUS_CHANGED			10
+#define ERR_DESCR_ADDED				11
+#define ERR_DESCR_REMOVED			12
+#define ERR_DESCR_CHANGED			13
+#define ERR_REF_ADDED				14
+#define ERR_REF_REMOVED				15
+#define ERR_REF_CHANGED				16
+#define ERR_FORMAT_ADDED			17
+#define ERR_FORMAT_REMOVED			18
+#define ERR_FORMAT_CHANGED			19
+#define ERR_UNITS_ADDED				20
+#define ERR_UNITS_REMOVED			21
+#define ERR_UNITS_CHANGED			22
+#define ERR_ACCESS_ADDED			23
+#define ERR_ACCESS_REMOVED			24
+#define ERR_ACCESS_CHANGED			25
+#define ERR_NAME_ADDED				26
+#define ERR_NAME_REMOVED			27
+#define ERR_NAME_CHANGED			28
+#define ERR_TO_IMPLICIT				29
+#define ERR_FROM_IMPLICIT			30
+#define ERR_RANGE_ADDED				31
+#define ERR_RANGE_REMOVED			32
+#define ERR_RANGE_CHANGED			33
+#define ERR_DEFVAL_ADDED			34
+#define ERR_DEFVAL_REMOVED			35
+#define ERR_DEFVAL_CHANGED			36
+#define ERR_ORGA_ADDED				37
+#define ERR_ORGA_REMOVED			38
+#define ERR_ORGA_CHANGED			39
+#define ERR_CONTACT_ADDED			40
+#define ERR_CONTACT_REMOVED			41
+#define ERR_CONTACT_CHANGED			42
+#define ERR_SMIVERSION_CHANGED			43
+#define ERR_REVISION_ADDED			44
+#define ERR_REVISION_REMOVED			45
+#define ERR_REVISION_CHANGED			46
+#define ERR_LENGTH_CHANGED			47
+#define ERR_LENGTH_OF_TYPE_CHANGED		48
+#define ERR_LENGTH_ADDED			49
+#define ERR_MEMBER_ADDED			50
+#define ERR_MEMBER_REMOVED			51
+#define ERR_MEMBER_CHANGED			52
+#define ERR_OBJECT_ADDED			53
+#define ERR_OBJECT_REMOVED			54
+#define ERR_OBJECT_CHANGED			55
+#define ERR_NAMED_NUMBER_ADDED			56
+#define ERR_NAMED_NUMBER_REMOVED		57
+#define ERR_NAMED_NUMBER_CHANGED		58
+#define ERR_NAMED_BIT_ADDED_OLD_BYTE		59
+#define ERR_NODEKIND_CHANGED			60
+#define ERR_INDEXKIND_CHANGED			61
+#define ERR_INDEX_CHANGED			62
+#define ERR_TYPE_IS_AND_WAS			63
+#define ERR_RANGE_OF_TYPE_CHANGED		64
+#define ERR_RANGE_OF_TYPE_ADDED			65
+#define ERR_RANGE_OF_TYPE_REMOVED		66
+#define ERR_TYPE_BASED_ON			67
+#define ERR_INDEX_AUGMENT_CHANGED		68
 #define ERR_NAMED_NUMBER_OF_TYPE_REMOVED	69
 #define ERR_NAMED_NUMBER_TO_TYPE_ADDED		70
 #define ERR_NAMED_NUMBER_OF_TYPE_CHANGED	71
@@ -149,6 +152,14 @@ typedef struct Error {
 #define ERR_REFINEMENT_REMOVED			90
 #define ERR_EXT_REFINEMENT_ADDED		91
 #define ERR_EXT_REFINEMENT_REMOVED		92
+#define ERR_MANDATORY_REMOVED			93
+#define ERR_MANDATORY_ADDED			94
+#define ERR_OPTIONAL_REMOVED			95
+#define ERR_OPTIONAL_ADDED			96
+#define ERR_MANDATORY_EXT_REMOVED		97
+#define ERR_MANDATORY_EXT_ADDED			98
+#define ERR_OPTIONAL_EXT_REMOVED		99
+#define ERR_OPTIONAL_EXT_ADDED			100
 
 static Error errors[] = {
     { 0, ERR_INTERNAL, "internal", 
@@ -335,6 +346,22 @@ static Error errors[] = {
       "object refinement for `%s::%s' added to `%s'", NULL },
     { 2, ERR_EXT_REFINEMENT_REMOVED, "refinement-removed",
       "object refinement for `%s::%s' removed from `%s'", NULL },
+    { 3, ERR_MANDATORY_REMOVED, "mandatory-removed",
+      "%s `%s' is mandatory under `%s' but not mandatory under `%s'", NULL },
+    { 3, ERR_MANDATORY_ADDED, "mandatory-added",
+      "%s `%s' is not mandatory under `%s' but mandatory under `%s'", NULL },
+    { 3, ERR_OPTIONAL_REMOVED, "optional-removed",
+      "%s `%s' is conditionally optional under `%s' but not under `%s'", NULL },
+    { 3, ERR_OPTIONAL_ADDED, "optional-added",
+      "%s `%s' is not conditionally optional under `%s' but under `%s'", NULL },
+    { 3, ERR_MANDATORY_EXT_REMOVED, "mandatory-removed",
+      "%s `%s::%s' is mandatory under `%s' but not mandatory under `%s'", NULL },
+    { 3, ERR_MANDATORY_EXT_ADDED, "mandatory-added",
+      "%s `%s::%s' is not mandatory under `%s' but mandatory under `%s'", NULL },
+    { 3, ERR_OPTIONAL_EXT_REMOVED, "optional-removed",
+      "%s `%s::%s' is conditionally optional under `%s' but not under `%s'", NULL },
+    { 3, ERR_OPTIONAL_EXT_ADDED, "optional-added",
+      "%s `%s::%s' is not conditionally optional under `%s' but under `%s'", NULL },
     { 0, 0, NULL, NULL }
 };
 
@@ -2743,9 +2770,11 @@ checkCompliance(SmiModule *oldModule, const char *oldTag,
     checkComplMandatory(oldModule, oldTag, newModule, newTag,
 			oldNode, newNode);
 
-    checkComplOptions(oldModule, oldTag, newModule, newTag, oldNode, newNode);
+    checkComplOptions(oldModule, oldTag, newModule, newTag,
+		      oldNode, newNode);
 
-    checkComplRefinements(oldModule, oldTag, newModule, newTag, oldNode, newNode);
+    checkComplRefinements(oldModule, oldTag, newModule, newTag,
+			  oldNode, newNode);
 }
 
 
@@ -2806,19 +2835,260 @@ diffCompliances(SmiModule *oldModule, const char *oldTag,
 
 
 
+static SmiNode*
+findGroupElement(SmiNode *groupNode, const char *name)
+{
+    SmiElement *smiElement = NULL;
+    SmiNode *smiNode = NULL;
+    
+    for (smiElement = smiGetFirstElement(groupNode);
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	smiNode = smiGetElementNode(smiElement);
+	if (strcmp(smiNode->name, name) == 0) {
+	    return smiNode;
+	}
+    }
+    return NULL;
+}
+
+
+static SmiNode*
+findGroupsElement(SmiNode *groupNode, const char *name)
+{
+    SmiElement *smiElement = NULL;
+    SmiNode *smiNode = NULL, *foundNode;
+    
+    for (smiElement = smiGetFirstElement(groupNode);
+	 smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	smiNode = smiGetElementNode(smiElement);
+	foundNode = findGroupElement(smiNode, name);
+	if (foundNode) {
+	    return foundNode;
+	}
+    }
+    return NULL;
+}
+
+
+
+static void
+diffOldNewComplianceMandatory(SmiModule *oldModule, const char *oldTag,
+			      SmiModule *newModule, const char *newTag,
+			      SmiNode *oldComplNode, SmiNode *newComplNode)
+{
+    SmiElement *oldGroupElement, *newGroupElement, *oldElement, *newElement;
+    SmiNode *oldGroupNode, *newGroupNode, *oldNode, *newNode;
+
+    smiInit(oldTag);
+    for (oldGroupElement = smiGetFirstElement(oldComplNode);
+	 oldGroupElement;
+	 oldGroupElement = smiGetNextElement(oldGroupElement)) {
+	oldGroupNode = smiGetElementNode(oldGroupElement);
+	for (oldElement = smiGetFirstElement(oldGroupNode);
+	     oldElement;
+	     oldElement = smiGetNextElement(oldElement)) {
+	    oldNode = smiGetElementNode(oldElement);
+	    smiInit(newTag);
+	    newNode = findGroupsElement(newComplNode, oldNode->name);
+	    if (! newNode) {
+		if (strcmp(smiGetNodeModule(oldNode)->name, oldModule->name)) {
+		    printErrorAtLine(oldModule, ERR_MANDATORY_EXT_REMOVED,
+				     smiGetNodeLine(oldNode),
+				     getStringNodekind(oldNode->nodekind),
+				     oldModule->name, oldNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		} else {
+		    printErrorAtLine(oldModule, ERR_MANDATORY_REMOVED,
+				     smiGetNodeLine(oldNode),
+				     getStringNodekind(oldNode->nodekind),
+				     oldNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		}
+	    }
+	    smiInit(oldTag);
+	}
+    }
+
+    smiInit(newTag);
+    for (newGroupElement = smiGetFirstElement(newComplNode);
+	 newGroupElement;
+	 newGroupElement = smiGetNextElement(newGroupElement)) {
+	newGroupNode = smiGetElementNode(newGroupElement);
+	for (newElement = smiGetFirstElement(newGroupNode);
+	     newElement;
+	     newElement = smiGetNextElement(newElement)) {
+	    newNode = smiGetElementNode(newElement);
+	    smiInit(oldTag);
+	    oldNode = findGroupsElement(oldComplNode, newNode->name);
+	    if (! oldNode) {
+		if (strcmp(smiGetNodeModule(newNode)->name, newModule->name)) {
+		    printErrorAtLine(newModule, ERR_MANDATORY_EXT_ADDED,
+				     smiGetNodeLine(newNode),
+				     getStringNodekind(newNode->nodekind),
+				     newModule->name, newNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		} else {
+		    printErrorAtLine(newModule, ERR_MANDATORY_ADDED,
+				     smiGetNodeLine(newNode),
+				     getStringNodekind(newNode->nodekind),
+				     newNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		}
+	    }
+	    smiInit(newTag);
+	}
+    }
+}
+
+
+
+static void
+diffOldNewComplianceOptional(SmiModule *oldModule, const char *oldTag,
+			     SmiModule *newModule, const char *newTag,
+			     SmiNode *oldComplNode, SmiNode *newComplNode)
+{
+    SmiElement *oldElement, *newElement;
+    SmiOption *oldOption, *newOption;
+    SmiNode *oldGroupNode, *newGroupNode, *oldNode, *newNode;
+
+    smiInit(oldTag);
+    for (oldOption = smiGetFirstOption(oldComplNode);
+	 oldOption;
+	 oldOption = smiGetNextOption(oldOption)) {
+	oldGroupNode = smiGetOptionNode(oldOption);
+	for (oldElement = smiGetFirstElement(oldGroupNode);
+	     oldElement;
+	     oldElement = smiGetNextElement(oldElement)) {
+	    oldNode = smiGetElementNode(oldElement);
+	    smiInit(newTag);
+	    newNode = findGroupsElement(newComplNode, oldNode->name);
+	    if (! newNode) {
+		if (strcmp(smiGetNodeModule(oldNode)->name, oldModule->name)) {
+		    printErrorAtLine(oldModule, ERR_OPTIONAL_EXT_REMOVED,
+				     smiGetNodeLine(oldNode),
+				     getStringNodekind(oldNode->nodekind),
+				     oldModule->name, oldNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		} else {
+		    printErrorAtLine(oldModule, ERR_OPTIONAL_REMOVED,
+				     smiGetNodeLine(oldNode),
+				     getStringNodekind(oldNode->nodekind),
+				     oldNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		}
+	    } else {
+		/* xxx compare group condition description here? xxx */
+	    }
+	    smiInit(oldTag);
+	}
+    }
+
+    smiInit(newTag);
+    for (newOption = smiGetFirstOption(newComplNode);
+	 newOption;
+	 newOption = smiGetNextOption(newOption)) {
+	newGroupNode = smiGetOptionNode(newOption);
+	for (newElement = smiGetFirstElement(newGroupNode);
+	     newElement;
+	     newElement = smiGetNextElement(newElement)) {
+	    newNode = smiGetElementNode(newElement);
+	    smiInit(oldTag);
+	    oldNode = findGroupsElement(oldComplNode, newNode->name);
+	    if (! oldNode) {
+		if (strcmp(smiGetNodeModule(newNode)->name, newModule->name)) {
+		    printErrorAtLine(newModule, ERR_OPTIONAL_EXT_ADDED,
+				     smiGetNodeLine(newNode),
+				     getStringNodekind(newNode->nodekind),
+				     newModule->name, newNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		} else {
+		    printErrorAtLine(newModule, ERR_OPTIONAL_ADDED,
+				     smiGetNodeLine(newNode),
+				     getStringNodekind(newNode->nodekind),
+				     newNode->name,
+				     oldComplNode->name,
+				     newComplNode->name);
+		}
+	    }
+	    smiInit(newTag);
+	}
+    }
+}
+
+
+
+static void
+diffOldNewCompliance(SmiModule *oldModule, const char *oldTag,
+		     SmiModule *newModule, const char *newTag,
+		     const char *oldCompl, const char *newCompl)
+{
+    SmiNode *smiNode;
+    SmiNode *oldComplNode = NULL, *newComplNode = NULL;
+
+    for (smiNode = smiGetFirstNode(oldModule, SMI_NODEKIND_COMPLIANCE);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
+	if (strcmp(smiNode->name, oldCompl) == 0) {
+	    oldComplNode = smiNode;
+	}
+    }
+
+    if (! oldComplNode) {
+	    fprintf(stderr, "smidiff: unable to find old compliance `%s'\n",
+		oldCompl);
+    }
+
+    for (smiNode = smiGetFirstNode(newModule, SMI_NODEKIND_COMPLIANCE);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
+	if (strcmp(smiNode->name, newCompl) == 0) {
+	    newComplNode = smiNode;
+	}
+    }
+
+    if (! newComplNode) {
+	fprintf(stderr, "smidiff: unable to find new compliance `%s'\n",
+		newCompl);
+    }
+
+    if (!oldComplNode || !newComplNode) {
+	return;
+    }
+
+    diffOldNewComplianceMandatory(oldModule, oldTag,
+				  newModule, newTag,
+				  oldComplNode, newComplNode);
+    diffOldNewComplianceOptional(oldModule, oldTag,
+				 newModule, newTag,
+				 oldComplNode, newComplNode);
+}
+
+
+
 static void
 usage()
 {
     fprintf(stderr,
 	    "Usage: smidiff [options] oldmodule newmodule\n"
-	    "  -V, --version        show version and license information\n"
-	    "  -c, --config=file    load a specific configuration file\n"
-	    "  -h, --help           show usage information\n"
-	    "  -i, --ignore=prefix  ignore errors matching prefix pattern\n"
-	    "  -l, --level=level    set maximum level of errors and warnings\n"
-	    "  -m, --error-names    print the name of errors in braces\n"
-	    "  -p, --preload=module preload <module>\n"
-	    "  -s, --severity       print the severity of errors in brackets\n");
+	    "  -V, --version             show version and license information\n"
+	    "  -c, --config=file         load a specific configuration file\n"
+	    "  -h, --help                show usage information\n"
+	    "  -i, --ignore=prefix       ignore errors matching prefix pattern\n"
+	    "  -l, --level=level         set maximum level of errors and warnings\n"
+	    "  -m, --error-names         print the name of errors in braces\n"
+	    "  -p, --preload=module      preload <module>\n"
+	    "  -s, --severity            print the severity of errors in brackets\n"
+	    "      --old-compliance=name name of the old compliance statement\n"
+	    "      --new-compliance=name name of the new compliance statement\n");
 }
 
 
@@ -2857,6 +3127,8 @@ main(int argc, char *argv[])
 	{ 'm', "error-names",    OPT_FLAG,   &mFlag,        0 },
 	{ 's', "severity",       OPT_FLAG,   &sFlag,        0 },
 	{ 'i', "ignore",	 OPT_STRING, ignore,	    OPT_CALLFUNC },
+	{   0, "old-compliance", OPT_STRING, &oldCompl,	    0 },
+	{   0, "new-compliance", OPT_STRING, &newCompl,	    0 },
 	{ 0, 0, OPT_END, 0, 0 }  /* no more options */
     };
     
@@ -2876,6 +3148,16 @@ main(int argc, char *argv[])
 
     if (argc != 3) {
 	usage();
+	return 1;
+    }
+
+    if (oldCompl && !newCompl) {
+	fprintf(stderr, "smidiff: missing new compliance statement name\n");
+	return 1;
+    }
+
+    if (!oldCompl && newCompl) {
+	fprintf(stderr, "smidiff: missing old compliance statement name\n");
 	return 1;
     }
 
@@ -2899,12 +3181,17 @@ main(int argc, char *argv[])
         exit(2);
     }
 
-    diffModules(oldModule, oldTag, newModule, newTag);
-    diffTypes(oldModule, oldTag, newModule, newTag);
-    diffObjects(oldModule, oldTag, newModule, newTag);
-    diffNotifications(oldModule, oldTag, newModule, newTag);
-    diffGroups(oldModule, oldTag, newModule, newTag);
-    diffCompliances(oldModule, oldTag, newModule, newTag);
+    if (oldCompl && newCompl) {
+	diffOldNewCompliance(oldModule, oldTag, newModule, newTag,
+			     oldCompl, newCompl);
+    } else {
+	diffModules(oldModule, oldTag, newModule, newTag);
+	diffTypes(oldModule, oldTag, newModule, newTag);
+	diffObjects(oldModule, oldTag, newModule, newTag);
+	diffNotifications(oldModule, oldTag, newModule, newTag);
+	diffGroups(oldModule, oldTag, newModule, newTag);
+	diffCompliances(oldModule, oldTag, newModule, newTag);
+    }
 
     smiInit(oldTag);
     smiExit();
@@ -2913,7 +3200,7 @@ main(int argc, char *argv[])
     smiExit();
 
     if (fflush(stdout) || ferror(stdout)) {
-	perror("smidump: write error");
+	perror("smidiff: write error");
 	exit(1);
     }
 
