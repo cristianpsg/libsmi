@@ -188,7 +188,8 @@ static void fprintCompliance(FILE *f, SmiNode *smiNode,
 	}
     }
 
-    for(smiOption = smiGetFirstOption(smiNode); smiOption;
+    for(smiOption = smiGetFirstOption(smiNode);
+	smiOption;
 	smiOption = smiGetNextOption(smiOption)) {
 	fprintGroup(f, smiGetOptionNode(smiOption), 'c',
 		    (pass == 1) ? &tlen : typelen,
