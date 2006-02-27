@@ -106,7 +106,9 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-xsd.obj			\
 	$(TMPDIR)\dump-sppi.obj			\
 	$(TMPDIR)\dump-sizes.obj		\
-	$(TMPDIR)\dump-svg.obj
+	$(TMPDIR)\dump-svg.obj			\
+	$(TMPDIR)\dump-compliance.obj		\
+	$(TMPDIR)\rea.obj
 
 SMIDIFFOBJS =					\
 	$(TMPDIR)\smidiff.obj
