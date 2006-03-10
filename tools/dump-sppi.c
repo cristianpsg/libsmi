@@ -807,8 +807,8 @@ static void fprintInstallErrors(FILE *f, SmiNode *indexNode, const int comment)
          smiElement = smiGetNextElement(smiElement)) {
         smiNode = smiGetElementNode(smiElement);
         id = xmalloc(strlen(smiNode->name) + 10);
-        sprintf(id, "%s (%d)%s", smiNode->name,
-                smiNode->oidlen ? (int)smiNode->oid : 0,
+        sprintf(id, "%s (%ld)%s", smiNode->name,
+                smiNode->oidlen ? (long)smiNode->oid : 0,
                 smiGetNextElement(smiElement) ? ", " : "");
         fprintWrapped(f, 2+INDENTVALUE, id, 0);
         xfree(id);
@@ -897,7 +897,7 @@ static void fprintModuleIdentity(FILE *f, SmiModule *smiModule)
                 smiNode2 = smiGetElementNode(smiElement);
                 id = xmalloc(strlen(smiNode2->name) + 10);
                 if (smiNode2->oidlen)
-                    sprintf(id, "%s (%d)%s", smiNode2->name, (int)smiNode2->oid,
+                    sprintf(id, "%s (%ld)%s", smiNode2->name, (long)smiNode2->oid,
                             smiGetNextElement(smiElement) ? ", " : "");
                 else
                     sprintf(id, "%s%s", smiNode2->name,
