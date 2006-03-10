@@ -3,7 +3,7 @@ TUBS-IBR-XEN-MIB DEFINITIONS ::= BEGIN
 -- @(#) $Id$
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Unsigned32, Counter64
+    MODULE-IDENTITY, OBJECT-TYPE, Unsigned32, Counter32
         FROM SNMPv2-SMI
     TEXTUAL-CONVENTION
         FROM SNMPv2-TC
@@ -15,7 +15,7 @@ IMPORTS
         FROM TUBS-SMI;
 
 xenMIB MODULE-IDENTITY
-    LAST-UPDATED "200602180000Z"
+    LAST-UPDATED "200602200000Z"
     ORGANIZATION "TU Braunschweig"
     CONTACT-INFO
         "Frank Strauss, Oliver Wellnitz
@@ -29,7 +29,7 @@ xenMIB MODULE-IDENTITY
          E-mail: {strauss,wellnitz}@ibr.cs.tu-bs.de"
     DESCRIPTION
         "Experimental MIB module for Xen Virtual Hosting."
-    REVISION    "200602180000Z"
+    REVISION    "200602200000Z"
     DESCRIPTION
         "The initial revision of this module."
     ::= { ibr 14 }
@@ -183,7 +183,8 @@ xenDomainMaxMemKBytes OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "The total amount of memory in Kbytes assigned
-	 to the Xen domain."
+	 to the Xen domain. A value of zero denotes that
+	 there is no limit."
     ::= { xenDomainEntry 4 }
 
 --
@@ -210,7 +211,7 @@ xenVCPUEntry OBJECT-TYPE
 XenVCPUEntry ::=
     SEQUENCE {
         xenVCPUIndex		        Unsigned32,
-        xenVCPUSeconds		        Counter64
+        xenVCPUMilliseconds	        Counter32
     }
 
 xenVCPUIndex OBJECT-TYPE
@@ -221,12 +222,12 @@ xenVCPUIndex OBJECT-TYPE
         "The index of the VCPU."
     ::= { xenVCPUEntry 1 }
 
-xenVCPUSeconds OBJECT-TYPE
-    SYNTAX      Counter64
+xenVCPUMilliseconds OBJECT-TYPE
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-        "The number seconds consumed by the VCPU since
+        "The number milliseconds consumed by the VCPU since
 	 the Xen domain has been set up."
     ::= { xenVCPUEntry 2 }
 
@@ -254,14 +255,14 @@ xenNetworkEntry OBJECT-TYPE
 XenNetworkEntry ::=
     SEQUENCE {
         xenNetworkIndex		        Unsigned32,
-        xenNetworkInOctets		Counter64,
-        xenNetworkInPkts		Counter64,
-        xenNetworkInErrors		Counter64,
-        xenNetworkInDiscards		Counter64,
-        xenNetworkOutOctets		Counter64,
-        xenNetworkOutPkts		Counter64,
-        xenNetworkOutErrors		Counter64,
-        xenNetworkOutDiscards		Counter64
+        xenNetworkInKBytes		Counter32,
+        xenNetworkInPkts		Counter32,
+        xenNetworkInErrors		Counter32,
+        xenNetworkInDiscards		Counter32,
+        xenNetworkOutKBytes		Counter32,
+        xenNetworkOutPkts		Counter32,
+        xenNetworkOutErrors		Counter32,
+        xenNetworkOutDiscards		Counter32
     }
 
 xenNetworkIndex OBJECT-TYPE
@@ -272,17 +273,17 @@ xenNetworkIndex OBJECT-TYPE
         "The index of the network."
     ::= { xenNetworkEntry 1 }
 
-xenNetworkInOctets OBJECT-TYPE
-    SYNTAX      Counter64
+xenNetworkInKBytes OBJECT-TYPE
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-        "The number of octets received on the network
+        "The number of Kbytes received on the network
 	 interface since the Xen domain has been set up."
     ::= { xenNetworkEntry 2 }
 
 xenNetworkInPkts OBJECT-TYPE
-    SYNTAX      Counter64
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -291,7 +292,7 @@ xenNetworkInPkts OBJECT-TYPE
     ::= { xenNetworkEntry 3 }
 
 xenNetworkInErrors OBJECT-TYPE
-    SYNTAX      Counter64
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -300,7 +301,7 @@ xenNetworkInErrors OBJECT-TYPE
     ::= { xenNetworkEntry 4 }
 
 xenNetworkInDiscards OBJECT-TYPE
-    SYNTAX      Counter64
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -308,17 +309,17 @@ xenNetworkInDiscards OBJECT-TYPE
 	 interface since the Xen domain has been set up."
     ::= { xenNetworkEntry 5 }
 
-xenNetworkOutOctets OBJECT-TYPE
-    SYNTAX      Counter64
+xenNetworkOutKBytes OBJECT-TYPE
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-        "The number of octets sent on the network
+        "The number of Kbytes sent on the network
 	 interface since the Xen domain has been set up."
     ::= { xenNetworkEntry 6 }
 
 xenNetworkOutPkts OBJECT-TYPE
-    SYNTAX      Counter64
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -327,7 +328,7 @@ xenNetworkOutPkts OBJECT-TYPE
     ::= { xenNetworkEntry 7 }
 
 xenNetworkOutErrors OBJECT-TYPE
-    SYNTAX      Counter64
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -337,7 +338,7 @@ xenNetworkOutErrors OBJECT-TYPE
     ::= { xenNetworkEntry 8 }
 
 xenNetworkOutDiscards OBJECT-TYPE
-    SYNTAX      Counter64
+    SYNTAX      Counter32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -372,10 +373,10 @@ xenGeneralGroup OBJECT-GROUP
 
 	xenDomainState, xenDomainMemKBytes, xenDomainMaxMemKBytes,
 
-	xenVCPUSeconds,
+	xenVCPUMilliseconds,
 
-	xenNetworkInOctets, xenNetworkInPkts, xenNetworkInErrors,
-	xenNetworkInDiscards, xenNetworkOutOctets, xenNetworkOutPkts,
+	xenNetworkInKBytes, xenNetworkInPkts, xenNetworkInErrors,
+	xenNetworkInDiscards, xenNetworkOutKBytes, xenNetworkOutPkts,
 	xenNetworkOutErrors, xenNetworkOutDiscards
     }
     STATUS      current
