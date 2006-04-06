@@ -56,6 +56,7 @@ do_strip () {
     fi
 
     $CMD "$FILE" | \
+    tr -d '\015' | \
     grep -i -v '^[ ]*Internet Draft' | \
     $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
