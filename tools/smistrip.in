@@ -57,7 +57,7 @@ do_strip () {
 
     $CMD "$FILE" | \
     tr -d '\015' | \
-    grep -i -v '^[ ]*Internet Draft' | \
+    grep -i -v '^[ ]*Internet[ \-]Draft' | \
     $AWK -vtest="$test" -vdir="$dir" -vsingle="$single" '
 
     # start of module
