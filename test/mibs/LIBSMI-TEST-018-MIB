@@ -1,0 +1,48 @@
+LIBSMI-TEST-018-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Counter64  FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION			     FROM SNMPv2-TC
+    testMib				     FROM LIBSMI-TEST-MIB;
+
+libsmiTest018Mib MODULE-IDENTITY
+    LAST-UPDATED    "200605040000Z"
+    ORGANIZATION 
+            "International University Bremen"
+    CONTACT-INFO 
+            "      Juergen Schoenwaelder
+
+             Postal: International University Bremen
+                     Campus Ring 1
+                     28759 Bremen
+                     Germany
+
+              Phone: +49 421 200-3587
+              EMail: j.schoenwaelder@iu-bremen.de"
+    DESCRIPTION  
+            "This MIB module contains one or more intentional errors,
+             and/or unusual contents. Its only purpose is to check
+             the abilities of MIB parsers to detect these circumstances.
+
+             This MIB module is orginally written in SMIv2 format.
+
+             This module checks for rules concerning Unsigned64 which
+             is a base type in SPPI but not in SMIv2."
+    REVISION        "200605040000Z"
+    DESCRIPTION  
+            "Initial Revision"
+    ::= { testMib 18 }
+
+Unsigned64 ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION "A fake unsigned 64 bit integer."
+    SYNTAX Counter64
+
+t1 OBJECT-TYPE
+    SYNTAX	Unsigned64
+    MAX-ACCESS  read-only
+    STATUS	current
+    DESCRIPTION ""
+    ::= { libsmiTest018Mib 1 }
+
+END

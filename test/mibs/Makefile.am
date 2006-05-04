@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.4 2000/11/08 15:50:21 strauss Exp $
+# @(#) $Id$
 #
 
 EXTRA_DIST		= LIBSMI-TEST-MIB \
@@ -20,5 +20,5 @@ EXTRA_DIST		= LIBSMI-TEST-MIB \
 			  LIBSMI-TEST-011-MIB LIBSMI-TEST-012-MIB \
 			  LIBSMI-TEST-013-MIB LIBSMI-TEST-014-MIB \
 			  LIBSMI-TEST-015-MIB LIBSMI-TEST-016-MIB \
-			  LIBSMI-TEST-017-MIB 
+			  LIBSMI-TEST-017-MIB LIBSMI-TEST-018-MIB
 
