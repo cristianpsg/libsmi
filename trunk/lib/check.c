@@ -145,44 +145,61 @@ redefinition(Parser *parser, int line1, char *name1, Module *module,
     char *tmp = parser->path;
     int equal = (strcmp(name1, name2) == 0);
 
-    if (! module) {
-	if (equal) {
-	    if (line1) {
-		smiPrintErrorAtLine(parser, ERR_REDEFINITION, line1, name1);
-	    } else {
-		smiPrintError(parser, ERR_REDEFINITION, name1);
-	    }
+    if (!strcmp(name1, "IpAddress") ||
+	!strcmp(name1, "TimeTicks") ||
+	!strcmp(name1, "Opaque") ||
+	!strcmp(name1, "Integer32") ||
+	!strcmp(name1, "Unsigned32") ||
+	!strcmp(name1, "Counter32") ||
+	!strcmp(name1, "Gauge32") ||
+	!strcmp(name1, "Counter64") ||
+	!strcmp(name1, "Integer64") ||
+	!strcmp(name1, "Unsigned64")) {
+	if (line1) {
+	    smiPrintErrorAtLine(parser, ERR_BASETYPE_REDEFINITION, line1, name1);
 	} else {
-	    if (line1) {
-		smiPrintErrorAtLine(parser, ERR_CASE_REDEFINITION,
-						line1, name1, name2);
-	    } else {
-		smiPrintError(parser, ERR_CASE_REDEFINITION, name1, name2);
-	    }
+	    smiPrintError(parser, ERR_BASETYPE_REDEFINITION, name1);
 	}
     } else {
-	if (equal) {
-	    if (line1) {
-		smiPrintErrorAtLine(parser, ERR_EXT_REDEFINITION, line1,
-			      module->export.name, name1);
+	if (! module) {
+	    if (equal) {
+		if (line1) {
+		    smiPrintErrorAtLine(parser, ERR_REDEFINITION, line1, name1);
+		} else {
+		    smiPrintError(parser, ERR_REDEFINITION, name1);
+		}
 	    } else {
-		smiPrintError(parser, ERR_EXT_REDEFINITION,
-			      module->export.name, name1);
+		if (line1) {
+		    smiPrintErrorAtLine(parser, ERR_CASE_REDEFINITION,
+					line1, name1, name2);
+		} else {
+		    smiPrintError(parser, ERR_CASE_REDEFINITION, name1, name2);
+		}
 	    }
 	} else {
-	    if (line1) {
-		smiPrintErrorAtLine(parser, ERR_EXT_CASE_REDEFINITION, line1,
-			      name1, module->export.name, name2);
+	    if (equal) {
+		if (line1) {
+		    smiPrintErrorAtLine(parser, ERR_EXT_REDEFINITION, line1,
+					module->export.name, name1);
+		} else {
+		    smiPrintError(parser, ERR_EXT_REDEFINITION,
+				  module->export.name, name1);
+		}
 	    } else {
-		smiPrintError(parser, ERR_EXT_CASE_REDEFINITION,
-			      name1, module->export.name, name2);
+		if (line1) {
+		    smiPrintErrorAtLine(parser, ERR_EXT_CASE_REDEFINITION, line1,
+					name1, module->export.name, name2);
+		} else {
+		    smiPrintError(parser, ERR_EXT_CASE_REDEFINITION,
+				  name1, module->export.name, name2);
+		}
 	    }
+	    parser->path = module->export.path;
 	}
-	parser->path = module->export.path;
-    }
-    smiPrintErrorAtLine(parser, ERR_PREVIOUS_DEFINITION, line2, name2);
-    if (module) {
-	parser->path = tmp;
+	smiPrintErrorAtLine(parser, ERR_PREVIOUS_DEFINITION, line2, name2);
+	if (module) {
+	    parser->path = tmp;
+	}
     }
 }
 
