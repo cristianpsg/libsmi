@@ -36,7 +36,7 @@ libsmiTest011Mib MODULE-IDENTITY
              This module checks the proper handling of forward references.
 
 	     The libsmi parser is expected to report:
-LIBSMI-TEST-011-MIB:91: warning: exactly one index element of row `testEntry' must be accessible in SMIv2 MIB
+LIBSMI-TEST-011-MIB:91: warning: exactly one index element of row `testEntry' must be accessible
 LIBSMI-TEST-011-MIB:54: warning: current group `group1' is not referenced in this module
 LIBSMI-TEST-011-MIB:61: warning: current group `group2' is not referenced in this module
 	    "

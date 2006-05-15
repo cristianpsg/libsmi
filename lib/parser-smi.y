@@ -2307,7 +2307,7 @@ typeName:		UPPERCASE_IDENTIFIER
 				       "RFC1155-SMI") &&
 				strcmp(thisParserPtr->modulePtr->export.name,
 				       "COPS-PR-SPPI")) {
-			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, $1);
+			        smiPrintError(thisParserPtr, ERR_TYPE_SMI_OR_SPPI, $1);
 			    }
 			}
         |               typeSPPIonly
@@ -2317,9 +2317,10 @@ typeName:		UPPERCASE_IDENTIFIER
 			     * well known types (keywords in this grammar)
 			     * are known to be defined in these modules.
 			     */
-			    if (strcmp(thisParserPtr->modulePtr->export.name,
-				       "COPS-PR-SPPI"))
-			        smiPrintError(thisParserPtr, ERR_TYPE_SMI, $1);
+			    if ((strcmp(thisParserPtr->modulePtr->export.name,
+					"COPS-PR-SPPI")) &&
+				(thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI))
+			        smiPrintError(thisParserPtr, ERR_TYPE_SPPI, $1);
                         }
 	;
 
@@ -4773,24 +4774,25 @@ ApplicationSyntax:	IPADDRESS anySubType
 			{
 			    Import *importPtr;
 
-                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
-                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Integer64");
-			    $$ = findTypeByName("Integer64");
+			    $$ = findTypeByModulenameAndName(
+				thisParserPtr->modulePtr->export.name, "Integer64");
 			    if (! $$) {
-				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					      "Integer64");
-			    }
-
-			    importPtr = findImportByName("Integer64",
-							 thisModulePtr);
-			    if (importPtr) {
-				importPtr->use++;
-			    } else {
-				if (thisModulePtr->export.language ==
-					   SMI_LANGUAGE_SPPI) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
-						  "Integer64");
+				importPtr = findImportByName("Integer64",
+							     thisModulePtr);
+				if (!importPtr) {
+				    $$ = findTypeByName("Integer64");
+				    if ((thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)) {
+					smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Integer64");
+				    } else {
+					smiPrintError(thisParserPtr,
+						      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						      "Integer64");
+				    }
+				} else {
+				    importPtr->use++;
+				    $$ = findTypeByModulenameAndName(
+					importPtr->export.module,
+					importPtr->export.name);
 				}
 			    }
 			}
@@ -4799,9 +4801,27 @@ ApplicationSyntax:	IPADDRESS anySubType
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
-                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
-                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Integer64");
-			    parentPtr = findTypeByName("Integer64");
+			    parentPtr = findTypeByModulenameAndName(
+				thisParserPtr->modulePtr->export.name, "Integer64");
+			    if (! parentPtr) {
+				importPtr = findImportByName("Integer64",
+							     thisModulePtr);
+				if (!importPtr) {
+				    parentPtr = findTypeByName("Integer64");
+				    if ((thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)) {
+					smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Integer64");
+				    } else {
+					smiPrintError(thisParserPtr,
+						      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						      "Integer64");
+				    }
+				} else {
+				    importPtr->use++;
+				    parentPtr = findTypeByModulenameAndName(
+					importPtr->export.module,
+					importPtr->export.name);
+				}
+			    }
 			    if (! parentPtr) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Integer64");
@@ -4812,42 +4832,30 @@ ApplicationSyntax:	IPADDRESS anySubType
 				setTypeList($$, $2);
 				smiCheckTypeRanges(thisParserPtr, $$);
 			    }
-
-			    importPtr = findImportByName("Integer64",
-							 thisModulePtr);
-			    if (importPtr) {
-				importPtr->use++;
-			    } else {
-				if (thisModulePtr->export.language ==
-					   SMI_LANGUAGE_SPPI) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
-						  "Integer64");
-				}
-			    }
 			}
 	|		UNSIGNED64	        /* (0..18446744073709551615) */
 			{
 			    Import *importPtr;
 
-                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
-                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
-			    $$ = findTypeByName("Unsigned64");
+			    $$ = findTypeByModulenameAndName(
+				thisParserPtr->modulePtr->export.name, "Unsigned64");
 			    if (! $$) {
-				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
-					      "Unsigned64");
-			    }
-
-			    importPtr = findImportByName("Unsigned64",
-							 thisModulePtr);
-			    if (importPtr) {
-				importPtr->use++;
-			    } else {
-				if (thisModulePtr->export.language ==
-					   SMI_LANGUAGE_SPPI) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
-						  "Unsigned64");
+				importPtr = findImportByName("Unsigned64",
+							     thisModulePtr);
+				if (!importPtr) {
+				    $$ = findTypeByName("Unsigned64");
+				    if ((thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)) {
+					smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
+				    } else {
+					smiPrintError(thisParserPtr,
+						      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						      "Unsigned64");
+				    }
+				} else {
+				    importPtr->use++;
+				    $$ = findTypeByModulenameAndName(
+					importPtr->export.module,
+					importPtr->export.name);
 				}
 			    }
 			}
@@ -4856,9 +4864,27 @@ ApplicationSyntax:	IPADDRESS anySubType
 			    Type *parentPtr;
 			    Import *importPtr;
 			    
-                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
-                                smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
-			    parentPtr = findTypeByName("Unsigned64");
+			    parentPtr = findTypeByModulenameAndName(
+				thisParserPtr->modulePtr->export.name, "Unsigned64");
+			    if (! parentPtr) {
+				importPtr = findImportByName("Unsigned64",
+							     thisModulePtr);
+				if (!importPtr) {
+				    parentPtr = findTypeByName("Unsigned64");
+				    if ((thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)) {
+					smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
+				    } else {
+					smiPrintError(thisParserPtr,
+						      ERR_SPPI_BASETYPE_NOT_IMPORTED,
+						      "Unsigned64");
+				    }
+				} else {
+				    importPtr->use++;
+				    parentPtr = findTypeByModulenameAndName(
+					importPtr->export.module,
+					importPtr->export.name);
+				}
+			    }
 			    if (! parentPtr) {
 				smiPrintError(thisParserPtr, ERR_UNKNOWN_TYPE,
 					      "Unsigned64");
@@ -4868,19 +4894,6 @@ ApplicationSyntax:	IPADDRESS anySubType
 						   thisParserPtr);
 				setTypeList($$, $2);
 				smiCheckTypeRanges(thisParserPtr, $$);
-			    }
-
-			    importPtr = findImportByName("Unsigned64",
-							 thisModulePtr);
-			    if (importPtr) {
-				importPtr->use++;
-			    } else {
-				if (thisModulePtr->export.language ==
-					   SMI_LANGUAGE_SPPI) {
-				    smiPrintError(thisParserPtr,
-						  ERR_SPPI_BASETYPE_NOT_IMPORTED,
-						  "Unsigned64");
-				}
 			    }
 			}
 	;
@@ -5116,7 +5129,9 @@ sequenceApplicationSyntax: IPADDRESS anySubType
 			{
 			    Import *importPtr;
 
-                            if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
+			    importPtr = findImportByName("Unsigned64",
+							 thisModulePtr);
+                            if ((thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI) && (!importPtr))
                                 smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, "Unsigned64");
 			    $$ = findTypeByName("Unsigned64");
 			    if (! $$) {
@@ -5124,8 +5139,6 @@ sequenceApplicationSyntax: IPADDRESS anySubType
 					      "Unsigned64");
 			    }
 
-			    importPtr = findImportByName("Unsigned64",
-							 thisModulePtr);
 			    if (importPtr) {
 				importPtr->use++;
 			    } else {

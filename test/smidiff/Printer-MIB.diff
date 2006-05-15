@@ -73,6 +73,7 @@
 ../../mibs/ietf/Printer-MIB:955 info: previous definition of `prtCoverEntry'
 ./Printer-MIB.new:2010 warning: description of object definition `prtCoverIndex' changed
 ../../mibs/ietf/Printer-MIB:975 info: previous definition of `prtCoverIndex'
+./Printer-MIB.new:2031 named number `unknown' removed from type used in `prtCoverStatus'
 ./Printer-MIB.new:2060 warning: description of object definition `prtLocalizationEntry' changed
 ../../mibs/ietf/Printer-MIB:1042 info: previous definition of `prtLocalizationEntry'
 ./Printer-MIB.new:2078 warning: description of object definition `prtLocalizationIndex' changed
@@ -540,6 +541,7 @@
 ./Printer-MIB.new:3810 range of type used in `prtChannelIndex' changed from `(1..65535)' to `(1..2147483647)'
 ./Printer-MIB.new:3809 warning: description of object definition `prtChannelIndex' changed
 ../../mibs/ietf/Printer-MIB:3018 info: previous definition of `prtChannelIndex'
+./Printer-MIB.new:3821 named number `unknown' removed from type used in `prtChannelType'
 ./Printer-MIB.new:3821 warning: named number `chDPMF' changed to `chPSM' at type used in `prtChannelType'
 ./Printer-MIB.new:3821 named number `chSMTP' removed from type used in `prtChannelType'
 ./Printer-MIB.new:3842 warning: type `Integer32' replaces implicit type for `prtChannelCurrentJobCntlLangIndex'
@@ -1125,6 +1127,7 @@
 ../../mibs/ietf/Printer-MIB:3760 info: previous definition of `prtAlertIndex'
 ./Printer-MIB.new:4488 warning: description of object definition `prtAlertTrainingLevel' changed
 ../../mibs/ietf/Printer-MIB:3815 info: previous definition of `prtAlertTrainingLevel'
+./Printer-MIB.new:4497 named number `unknown' removed from type used in `prtAlertGroup'
 ./Printer-MIB.new:4497 warning: named number `finAttribute' changed to `finAttributeTable' at type used in `prtAlertGroup'
 ./Printer-MIB.new:4510 warning: type `Integer32' replaces implicit type for `prtAlertGroupIndex'
 ../../mibs/ietf/Printer-MIB:3845 info: previous definition of `prtAlertGroupIndex'
