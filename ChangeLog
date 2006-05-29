@@ -1,3 +1,30 @@
+2005-05-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/BGP4-MIB: updated (RFC 4273).
+	* mibs/ietf/IP-FORWARD-MIB: updated (RFC 4292).
+	* mibs/ietf/IP-MIB: updated (RFC 4293).
+	* mibs/ietf/MOBILEIPV6-MIB: added (RFC 4295).
+	* mibs/ietf/RSTP-MIB: added (RFC 4318).
+	* mibs/ietf/DOCS-IETF-QOS-MIB: added (RFC 4323).
+	* mibs/ietf/LMP-MIB: added (RFC 4327).
+	* mibs/ietf/{P-BRIDGE-MIB,Q-BRIDGE-MIB}: updated (RFC 4363).
+	* mibs/ietf/{MPLS-LC-ATM-STD-MIB,MPLS-LC-FR-STD-MIB):
+	  added (RFC 4368).
+	* mibs/ietf/IFCP-MGMT-MIB: added (RFC 4369).
+	* mibs/ietf/MPLS-L3VPN-STD-MIB: added (RFC 4382).
+	* mibs/ietf/FCIP-MGMT-MIB: added (RFC 4404).
+	* mibs/ietf/T11-FC-NAME-SERVER-MIB: added (RFC 4438).
+	* mibs/ietf/{T11-TC-MIB,T11-FC-FABRIC-ADDR-MGR-MIB}:
+	  added (RFC 4439).
+	* mibs/ietf/ISIS-MIB: added (RFC 4444).
+	* mibs/ietf/SCSI-MIB: added (RFC 4455).
+	* mibs/ietf/{AGGREGATE-MIB,TIME-AGGREGATE-MIB}: added (RFC 4498).
+	* mibs/ietf/RMON2-MIB: updated (RFC 4502).
+
+	* libsmi-0.4.5.tar.gz: released version 0.4.5.
+	There was a bug that breaks compliation of 0.4.4, so here
+	is a new release.
+
 2006-05-16  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* libsmi-0.4.4.tar.gz: released version 0.4.4.
