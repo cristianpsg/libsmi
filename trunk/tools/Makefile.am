@@ -15,7 +15,8 @@ INCLUDES		= -I../lib
 
 EXTRA_DIST		= smidump.h shhopt.h \
 			  $(man_MANS) \
-			  dump-fig.c
+			  dump-fig.c \
+			  dump-svg-script.js
 
 bin_PROGRAMS		= smiquery smilint smidump smidiff
 
