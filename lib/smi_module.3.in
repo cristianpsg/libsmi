@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_module.3.in,v 1.4 2000/11/06 15:10:21 strauss Exp $
+.\" $Id$
 .\"
 .TH smi_module 3  "August 16, 2001" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -115,7 +115,7 @@ return the revision after (timely before) that one. If there are no
 more revisions NULL is returned.
 .SH "FILES"
 .nf
-@prefix@/include/smi.h    SMI library header file
+@includedir@/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "

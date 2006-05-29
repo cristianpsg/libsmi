@@ -1,26 +1,18 @@
 0a1
 > 
-3102c3103
-< TimeTicks
----
-> TimeTicks,
-3406c3407
+3462c3463
 < channelEntry
 ---
 > channelEntry,
-3905c3906
-< mib-2,
----
-> mib-2
-4690c4691
+4756c4757
 < sourceRoutingStatsEntry
 ---
 > sourceRoutingStatsEntry,
-4695c4696
+4761c4762
 < statistics,
 ---
 > statistics
-4734c4735
+4800c4801
 < tokenRingPStatsEntry,
 ---
 > tokenRingPStatsEntry

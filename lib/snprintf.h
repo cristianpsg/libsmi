@@ -37,7 +37,13 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifndef HAVE_SNPRINTF
 extern int snprintf (char *str, size_t sz, const char *format, ...);
+#endif
+
+#ifndef HAVE_VSNPRINTF
+extern int vsnprintf (char *str, size_t sz, const char *format, va_list args);
+#endif
 
 extern int asprintf (char **ret, const char *format, ...);
 
@@ -48,4 +54,3 @@ extern int vasprintf (char **ret, const char *format, va_list args);
 extern int vasnprintf (char **ret, size_t max_sz, const char *format,
 		       va_list args);
 
-extern int vsnprintf (char *str, size_t sz, const char *format, va_list args);

@@ -1,5 +1,5 @@
 .\"
-.\" $Id: smi_node.3.in,v 1.7 2001/08/16 10:53:32 strauss Exp $
+.\" $Id$
 .\"
 .TH smi_node 3  "March 30, 2004" "IBR" "SMI Management Information Library"
 .SH NAME
@@ -216,7 +216,7 @@ The \fBsmiGetNodeLine()\fP function returns the line number within the
 module where the node specified by \fIsmiNodePtr\fP is defined.
 .SH "FILES"
 .nf
-@prefix@/include/smi.h    SMI library header file
+@includedir@/smi.h    SMI library header file
 .fi
 .SH "SEE ALSO"
 .BR libsmi "(3), "

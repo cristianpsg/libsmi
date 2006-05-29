@@ -229,7 +229,7 @@ Example configuration:
 .nf
 @sysconfdir@/smi.conf    global configuration file
 $HOME/.smirc               user configuration file
-@prefix@/include/smi.h   SMI library header file
+@includedir@/smi.h   SMI library header file
 @mibdir@/     SMI module repository directory
 .fi
 .SH "SEE ALSO"
