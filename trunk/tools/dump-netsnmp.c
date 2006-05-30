@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-netsnmp.c,v 1.14 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id$
  */
 
 /*
@@ -1149,6 +1149,7 @@ static void printMgrGetMethod(FILE *f, SmiModule *smiModule,
 	    "\n"
 	    "    peer = snmp_open(s);\n"
 	    "    if (!peer) {\n"
+	    "        snmp_free_pdu(request);\n"
 	    "        return -1;\n"
 	    "    }\n"
 	    "\n"
