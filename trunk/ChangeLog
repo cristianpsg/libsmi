@@ -1,3 +1,7 @@
+2005-05-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/SNMP-USM-AES-MIB: updated (RFC 3826).
+
 2005-05-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/BGP4-MIB: updated (RFC 4273).
