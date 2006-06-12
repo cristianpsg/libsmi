@@ -1,3 +1,8 @@
+2005-06-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/ISCSI-MIB: added (RFC 4544).
+	* mibs/ietf/IPS-AUTH-MIB: added (RFC 4545).
+
 2005-05-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/SNMP-USM-AES-MIB: updated (RFC 3826).
