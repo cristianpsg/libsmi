@@ -18,18 +18,21 @@ EXTRA_DIST		= smidump.h shhopt.h \
 			  dump-fig.c \
 			  dump-svg-script.js
 
-bin_PROGRAMS		= smiquery smilint smidump smidiff
+bin_PROGRAMS		= smiquery smilint smidump smidiff smixlate
 
 bin_SCRIPTS		= smistrip smicache
 
 man_MANS		= smiquery.1 smilint.1 smidump.1 smidiff.1 \
-			  smistrip.1 smicache.1
+			  smistrip.1 smicache.1 smixlate.1
 
 smiquery_SOURCES	= smiquery.c shhopt.c
 smiquery_LDADD		= ../lib/libsmi.la
 
 smilint_SOURCES		= smilint.c shhopt.c
 smilint_LDADD		= ../lib/libsmi.la
+
+smixlate_SOURCES	= smixlate.c shhopt.c
+smixlate_LDADD		= ../lib/libsmi.la
 
 dump-svg-script.h: dump-svg-script.js
 	(echo "const char *code =";cat dump-svg-script.js | sed -e 's/\\/&&/g;s/"/\\"/g;s/^/"/;s/$$/\\n"/'; echo ";") > dump-svg-script.h
