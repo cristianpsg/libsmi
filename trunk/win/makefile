@@ -85,6 +85,9 @@ SMIQUERYOBJS =					\
 SMILINTOBJS =					\
 	$(TMPDIR)\smilint.obj
 
+SMIXLATEOBJS =					\
+	$(TMPDIR)\smixlate.obj
+
 SMIDUMPOBJS =					\
 	$(TMPDIR)\smidump.obj			\
 	$(TMPDIR)\dump-sming.obj		\
@@ -152,7 +155,7 @@ $(TMPDIR)\scanner-sming.obj : $(ROOT)\lib\scanner-sming.c
 $(SMILIB):	$(LIBSMIOBJS)
 	$(implib) /out:smi.lib $(LIBSMIOBJS)
 
-tools:	smiquery.exe smilint.exe smidump.exe smidiff.exe
+tools:	smiquery.exe smilint.exe smixlate.exe smidump.exe smidiff.exe
 
 smiquery.exe:	$(SMIQUERYOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) /osmiquery.exe $(SMIQUERYOBJS) $(SMILIB)
