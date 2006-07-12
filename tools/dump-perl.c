@@ -327,17 +327,44 @@ static void fprintNodeEndTag(FILE *f, int indent, const char *tag,
 static void fprintRanges(FILE *f, int indent, SmiType *smiType)
 {
     SmiRange       *range;
+    SmiRange       *lastrange = NULL;
+    SmiValue	   min, max;
 
-    for(range = smiGetFirstRange(smiType);
-        range;
-        range = smiGetNextRange(range)) {
-        fprintSegment(f, indent, "\"range\" => {\n", 0);
+    min.basetype = SMI_BASETYPE_UNSIGNED32;
+    min.value.unsigned32 = 4294967295U;
+
+    max.basetype = SMI_BASETYPE_UNSIGNED32;
+    max.value.unsigned32 = 0;
+
+    fprintSegment(f, indent, "\"ranges\" => (\n", 0);
+    for (range = smiGetFirstRange(smiType);
+	 range;
+	 range = smiGetNextRange(range)) {
+        lastrange = range;
+	if (range->minValue.value.unsigned32 < min.value.unsigned32) {
+	    min.value.unsigned32 = range->minValue.value.unsigned32;
+	}
+	if (range->maxValue.value.unsigned32 > max.value.unsigned32) {
+	    max.value.unsigned32 = range->maxValue.value.unsigned32;
+	}
+        fprintSegment(f, indent, "{\n", 0);
         fprintSegment(f, indent + INDENT, "", 0);
         fprint(f, "\"min\" => \"%s\",\n",
 	       getValueString(&range->minValue, smiType));
         fprintSegment(f, indent + INDENT, "", 0);
         fprint(f, "\"max\" => \"%s\"\n",
 	       getValueString(&range->maxValue, smiType));
+        fprintSegment(f, indent, "},\n", 0);
+    }
+    fprintSegment(f, indent, "),\n", 0);
+    if (lastrange != NULL) {
+        fprintSegment(f, indent, "\"range\" => {\n", 0);
+        fprintSegment(f, indent + INDENT, "", 0);
+        fprint(f, "\"min\" => \"%s\",\n",
+	       getValueString(&min, smiType));
+        fprintSegment(f, indent + INDENT, "", 0);
+        fprint(f, "\"max\" => \"%s\"\n",
+	       getValueString(&max, smiType));
         fprintSegment(f, indent, "},\n", 0);
     }
 }
