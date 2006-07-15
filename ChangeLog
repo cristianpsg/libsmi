@@ -1,3 +1,10 @@
+2005-07-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/DOCS-IF-MIB: updated (RFC 4546).
+	* mibs/ietf/DOCS-IETF-CABLE-DEVICE-NOTIFICATION-MIB: added (RFC 4547).
+	* mibs/ietf/DISMAN-NSLOOKUP-MIB,DISMAN-PING-MIB,DISMAN-TRACEROUTE-MIB:
+	  updated (RFC 4560).
+
 2005-06-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/ISCSI-MIB: added (RFC 4544).
