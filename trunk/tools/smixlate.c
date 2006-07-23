@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -26,82 +27,87 @@
 
 #include "smi.h"
 #include "shhopt.h"
+#include "dstring.h"
 
 static int flags;
 
-
-static char buffer[256];
-static int buffer_index = 0;
-
-static inline void buffer_add(char c)
-{
-    if (buffer_index >= sizeof(buffer)-2) {
-	/* we should perhaps return an error and let the app flush
-	   the buffer */
-	exit(1);
-    }
-    buffer[buffer_index] = c;
-    buffer_index++;
-}
-
-
-static inline void buffer_zap()
-{
-    buffer_index = 0;
-}
-
-
-static inline void buffer_flush()
-{
-    if (buffer_index) {
-	buffer_add(0);
-	fputs(buffer, stdout);
-    }
-    buffer_zap();
-}
-
-
-static void translate()
+static void translate(dstring_t *token, dstring_t *subst)
 {
     SmiNode *smiNode;
+    SmiSubid oid[256];
+    unsigned int oidlen = 0;
+    int i;
+    char *p;
 
-    buffer_add(0);
-    smiNode = smiGetNode(NULL, buffer);
+    /* buffer_add(0); */
+
+    assert(token && subst);
+
+    dstring_truncate(subst, 0);
+
+    for (oidlen = 0, p = strtok(dstring_str(token), ". "); p;
+	 oidlen++, p = strtok(NULL, ". ")) {
+	oid[oidlen] = strtoul(p, NULL, 0);
+    }
+
+#if 0
+    {
+	printf("** : ");
+	for (i = 0; i < oidlen; i++) {
+	    printf(".%d", oid[i]);
+	}
+	printf("\n");
+    }
+#endif
+
+    smiNode = smiGetNodeByOID(oidlen, oid);
     if (smiNode) {
-	fputs(smiNode->name, stdout);
-	buffer_zap();
+	dstring_assign(subst, smiNode->name);
+	for (i = smiNode->oidlen; i < oidlen; i++) {
+	    dstring_append_printf(subst, ".%d", oid[i]);
+	}
+	if (dstring_len(subst) < dstring_len(token)) {
+	    dstring_expand(subst, dstring_len(token), ' ');
+	}
     } else {
-	buffer_flush();
+	dstring_assign(subst, dstring_str(token));
     }
 }
 
 
 static void process(FILE *stream)
 {
-    int c;
-    enum { TXT, NUM, NUMDOT, NUMDOTNUM, OID, OIDDOT } state = TXT;
+    int c, space = 0;
+    enum { TXT, NUM, NUMDOT, NUMDOTNUM, OID, OIDDOT, EATSPACE } state = TXT;
+    dstring_t *token, *subst;
+
+    token = dstring_new();
+    subst = dstring_new();
+    
+    if (! token || ! subst) {
+	return;
+    }
 
     /*
      * Shall we require iswhite() or ispunct() before and after the
      * OID?
      *
-     * TODO: - preserve and print the suffix
-     *       - optionally eat/generate white space to preserve layouts
-     *       - translate instance identifier to something meaningful
+     * TODO: - translate instance identifier to something meaningful
      *         (e.g. foobar["name",32]) where possible
+     *       - generate warnings if instance identifier are incomplete
+     *       - option to only translate leaf objects
      *       - provide a reverse translation service (-x) (but this is
      *         more complex since it is unclear how to identify names
-     *       - parse the number into an SmiSubid vector
-     *       - make sure the first sub-identifier of the OID is in the
-     *         range [0:2] to reduce false positives.
+     *	     - make the white space magic optional
      */
 
     while ((c = fgetc(stream)) != EOF) {
 	switch (state) {
 	case TXT:
-	    buffer_flush();
-	    if (isdigit(c)) {
-		buffer_add(c);
+	    fputs(dstring_str(token), stdout);
+	    dstring_truncate(token, 0);
+	    if (isdigit(c) && c >= '0' && c <= '2') {
+		dstring_append_char(token, c);
 		state = NUM;
 	    } else {
 		fputc(c, stdout);
@@ -110,54 +116,71 @@ static void process(FILE *stream)
 	    break;
 	case NUM:
 	    if (isdigit(c)) {
-		buffer_add(c);
+		dstring_append_char(token, c);
 	    } else if (c == '.') {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = NUMDOT;
 	    } else {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = TXT;
 	    }
 	    break;
 	case NUMDOT:
 	    if (isdigit(c)) {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = NUMDOTNUM;
 	    } else {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = TXT;
 	    }
 	    break;
 	case NUMDOTNUM:
 	    if (isdigit(c)) {
-		buffer_add(c);
+		dstring_append_char(token, c);
 	    } if (c == '.') {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = OID;
 	    } else {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = TXT;
 	    }
 	    break;
 	case OID:
 	    if (isdigit(c)) {
-		buffer_add(c);
+		dstring_append_char(token, c);
 	    } else if (c == '.') {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = OIDDOT;
 	    } else {
-		translate();
-		fputc(c, stdout);
-		state = TXT;
+		translate(token, subst);
+		fputs(dstring_str(subst), stdout);
+		space = dstring_len(subst) - dstring_len(token);
+		if (space && c == ' ') {
+		    state = EATSPACE;
+		} else {
+		    state = TXT;
+		    space--;
+		    fputc(c, stdout);
+		}
+		dstring_truncate(token, 0);
 	    }
 	    break;
 	case OIDDOT:
 	    if (isdigit(c)) {
-		buffer_add(c);
+		dstring_append_char(token, c);
 		state = OID;
 	    } else {
-		translate();
+		translate(token, subst);
+		fputs(dstring_str(subst), stdout);
 		fputc(c, stdout);
+		dstring_truncate(token, 0);
+		state = TXT;
+	    }
+	    break;
+	case EATSPACE:
+	    if (c == ' ' && space) {
+		space--;
+	    } else {
 		state = TXT;
 	    }
 	    break;
