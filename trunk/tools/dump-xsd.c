@@ -488,6 +488,7 @@ static struct DH *parseDH( const char *hint )
 	default:
 	    if( iterDH->separator ) {
 		/* iterDH->repTerm = hint[ pos++ ]; // repeat not supported */
+	      pos++;
 	    }
 	    else {
 	      if( hint[ pos++ ] == '.' ) {
@@ -495,7 +496,7 @@ static struct DH *parseDH( const char *hint )
 		iterDH->separator[1] = '.';
 	      }
 	      else
-		iterDH->separator[0] = hint[ pos++ ];
+		iterDH->separator[0] = hint[ pos ];
 	    }
 	    if( isdigit( hint[ pos ] ) || hint[ pos ] == '*' ) {
 		iterDH = iterDH->next;
