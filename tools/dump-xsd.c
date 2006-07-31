@@ -69,7 +69,7 @@ typedef struct DH {
     unsigned int number;
 /*    int repeat;    //  repeat not yet supported */
     char type;
-    char separator;
+    char separator[2];
 /*    char repTerm;  // repeat not yet supported */
     struct DH *next;
 } DH;
@@ -382,6 +382,27 @@ static void fprintHexOrAsciiType( FILE *f, SmiType *parent,
     fprintSegment( f, -1, "</xsd:simpleType>\n");
 }
 
+static int getBracketLevel( char *bracketString )
+{
+  int level = 0;
+  char *c = bracketString;
+  while( level >= 0 && *c != '\0' ) {
+    switch( *c ) {
+    case '(':
+      level++;
+      break;
+    case ')':
+      level--;
+      break;
+    default:
+      break;
+    }
+    c++;
+  }
+
+  return level;
+}
+
 
 static void initDH( struct DH *dh )
 {
@@ -389,7 +410,8 @@ static void initDH( struct DH *dh )
 	dh->number = 0;
 	/*dh->repeat = 0; repeat not yet supported */
 	dh->type = 0;
-	dh->separator = '\0';
+	dh->separator[0] = '\0';
+	dh->separator[1] = '\0';
 	/* dh->repTerm = '\0'; repeat not yet supported */
 	dh->next = NULL;
 }
@@ -468,7 +490,12 @@ static struct DH *parseDH( const char *hint )
 		/* iterDH->repTerm = hint[ pos++ ]; // repeat not supported */
 	    }
 	    else {
-		iterDH->separator = hint[ pos++ ];
+	      if( hint[ pos++ ] == '.' ) {
+		iterDH->separator[0] = '\\';
+		iterDH->separator[1] = '.';
+	      }
+	      else
+		iterDH->separator[0] = hint[ pos++ ];
 	    }
 	    if( isdigit( hint[ pos ] ) || hint[ pos ] == '*' ) {
 		iterDH = iterDH->next;
@@ -487,6 +514,7 @@ static char* getStrDHType( char *hint,
     unsigned int i = 0;
     char *ret = lengths[ i ] ? "(" : "((";
     DH *dh = parseDH( hint );
+    int bl = 0;
 
     if(! dh ) return NULL;
 
@@ -549,7 +577,7 @@ static char* getStrDHType( char *hint,
 			}
 
 			if( iterDH->separator ) {
-			    smiAsprintf( &ret, "%s%c",
+			    smiAsprintf( &ret, "%s%s",
 					 ret, iterDH->separator );
 			}
 		    }
@@ -560,16 +588,9 @@ static char* getStrDHType( char *hint,
 						     iterDH->number ) ) - 1 );
 			
 			if( iterDH->separator ) {
-			    switch( iterDH->separator ) {
-
-			    case '.': 
-				smiAsprintf( &ret, "%s\\.", ret );
-				break;
-			    default:
-				smiAsprintf( &ret, "%s%c",
+			  smiAsprintf( &ret, "%s%s",
 					 ret, iterDH->separator );
-				break;
-			    }
+			  
 			}
 
 			if( lengths[ i+1 ] - 1 - octetsUsed ) {
@@ -586,8 +607,8 @@ static char* getStrDHType( char *hint,
 			}
 			octetsUsed += iterDH->number;
 			if( octetsUsed >= lengths[ i + 1 ] ) {
-			    /* maximum number of octets used,
-			       we must exit the loop */			    
+			  /* maximum number of octets used,
+			     we must exit the loop */
 			    break;
 			}
 		    }
@@ -606,7 +627,7 @@ static char* getStrDHType( char *hint,
 			}
 
 			if( iterDH->separator ) {
-			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
 			}
 		    }
 		    else {			
@@ -614,7 +635,7 @@ static char* getStrDHType( char *hint,
 				  ret, baseRegexp );
 
 			if( iterDH->separator ) {
-			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
 			}
 
 			smiAsprintf( &ret, "(%s){%u,%u})%s",
@@ -648,7 +669,7 @@ static char* getStrDHType( char *hint,
 			}
 
 			if( iterDH->separator ) {
-			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
 			}						
 		    }
 		    else {
@@ -661,7 +682,7 @@ static char* getStrDHType( char *hint,
 		    smiAsprintf( &ret, "%s(%s",  ret, baseRegexp );
 		    if( iterDH->next ) {
 			if( iterDH->separator ) {
-			    smiAsprintf( &ret, "%s%c", ret, iterDH->separator );
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
 			}
 			if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
 			    smiAsprintf( &ret, "%s)*",ret );
@@ -684,11 +705,11 @@ static char* getStrDHType( char *hint,
 			    octetsUsed < lengths[ i + 1 ] ) {
 
 			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-				smiAsprintf( &ret, "%s%c)*%s",
+				smiAsprintf( &ret, "%s%s)*%s",
 					     ret, iterDH->separator, baseRegexp );
 			    }
 			    else {
-				smiAsprintf( &ret, "%s%c){%u,%u}%s",
+				smiAsprintf( &ret, "%s%s){%u,%u}%s",
 					     ret, iterDH->separator,
 					     lengths[ i ], lengths[ i + 1] - 1,
 					     baseRegexp );
@@ -696,11 +717,11 @@ static char* getStrDHType( char *hint,
 			}
 			else {
 			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-				smiAsprintf( &ret, "%s)*%c",
+				smiAsprintf( &ret, "%s)*%s",
 					     ret, iterDH->separator );
 			    }
 			    else {
-				smiAsprintf( &ret, "%s){%u,%u}%c",
+				smiAsprintf( &ret, "%s){%u,%u}%s",
 					     ret, lengths[ i ],
 					     lengths[ i + 1],
 					     iterDH->separator );
@@ -723,12 +744,28 @@ static char* getStrDHType( char *hint,
 	}
 	else {
 	    smiAsprintf( &ret, "%s)", ret );
+	    //	    if( ! lengths[ i - 2 ] ) {
 	    if( ! lengths[ i - 2 ] ) {
 		smiAsprintf( &ret, "%s){0,1}", ret );
 	    }
 	}
     } while( i < numSubranges * 2 );
+
     
+    /* check if all brackets have been closed */
+    if( getBracketLevel( ret ) ) {
+      bl = getBracketLevel( ret );
+      fprintf( stderr, "%d\n", bl );
+      if( bl > 0 ) {
+	// TODO: add a warning that brackets have been added
+	for( bl; bl; bl--) {
+	  smiAsprintf( &ret, "%s)", ret );
+	}
+      }
+      else {
+	// TODO: some error handling
+      }
+      }
     return ret;
 }
 
@@ -799,7 +836,7 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 
 	if( useDecPoint ) {
 	  fprintSegment( f, 1, "<xsd:restriction base=\"xsd:decimal\">\n");
-	  fprintSegment( f, 0, "<xsd:fractionDigits=\"%d\"/>\n", offset );
+	  fprintSegment( f, 0, "<xsd:fractionDigits value=\"%d\"/>\n", offset );
 	}
 	else {
 	  fprintStdRestHead( f, smiType );
