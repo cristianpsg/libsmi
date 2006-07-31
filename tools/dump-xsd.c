@@ -744,8 +744,7 @@ static char* getStrDHType( char *hint,
 	}
 	else {
 	    smiAsprintf( &ret, "%s)", ret );
-	    //	    if( ! lengths[ i - 2 ] ) {
-	    if( ! lengths[ i - 2 ] ) {
+	    if( ! lengths[ 0 ] ) {
 		smiAsprintf( &ret, "%s){0,1}", ret );
 	    }
 	}
