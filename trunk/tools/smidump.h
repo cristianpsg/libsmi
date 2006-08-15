@@ -27,12 +27,7 @@
 
 #define SMIDUMP_FLAG_SILENT	0x01	/* suppress comments */
 #define SMIDUMP_FLAG_UNITE	0x02	/* generated united output */
-
-#define SMIDUMP_FLAG_CURRENT	0x04	/* not yet used */
-#define SMIDUMP_FLAG_DEPRECATED	0x08	/* not yet used */
-#define SMIDUMP_FLAG_OBSOLETE	0x08	/* not yet used */
-#define SMIDUMP_FLAG_COMPACT	0x10	/* not yet used */
-
+#define SMIDUMP_FLAG_ERROR	0x04	/* parser hit serious parse errors */
 
 
 /*
