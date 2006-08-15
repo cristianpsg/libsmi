@@ -44,6 +44,7 @@ static void format(char *form);
 static int flags;
 static int mFlag = 0;	/* show the name for error messages */
 static int sFlag = 0;	/* show the severity for error messages */
+static int kFlag = 0;	/* keep going after severe errors */
 static SmidumpDriver *driver;
 static SmidumpDriver *firstDriver;
 static SmidumpDriver *lastDriver;
@@ -66,6 +67,7 @@ static optStruct genericOpt[] = {
     { 'u', "unified",        OPT_FLAG,   unified,       OPT_CALLFUNC },
     { 'f', "format",         OPT_STRING, format,        OPT_CALLFUNC },
     { 'o', "output",         OPT_STRING, &output,       0            },
+    { 'k', "keep-going",     OPT_FLAG,	 &kFlag,	0 },
     { 0, 0, OPT_END, 0, 0 }  /* no more options */
 };
 
@@ -173,7 +175,8 @@ static void usage()
 	    "  -s, --severity       print the severity of errors in brackets\n"
 	    "  -f, --format=format  use <format> when dumping (default %s)\n"
 	    "  -o, --output=name    use <name> when creating names for output files\n"
-	    "  -u, --unified        print a single unified output of all modules\n\n",
+	    "  -u, --unified        print a single unified output of all modules\n"
+	    "  -k, --keep-going     continue after serious parse errors\n\n",
 	    defaultDriver ? defaultDriver->name : "none");
 
     fprintf(stderr, "Supported formats are:\n");
@@ -363,6 +366,7 @@ int main(int argc, char *argv[])
 	smiModule = modulename ? smiGetModule(modulename) : NULL;
 	if (smiModule) {
 	    if ((smiModule->conformance) && (smiModule->conformance < 3)) {
+		flags |= SMIDUMP_FLAG_ERROR;
 		if (! (flags & SMIDUMP_FLAG_SILENT)) {
 		    fprintf(stderr,
 			    "smidump: module `%s' contains errors, "
@@ -377,7 +381,15 @@ int main(int argc, char *argv[])
 	}
     }
 
-    (driver->func)(modc, modv, flags, output);
+    if (! (flags & SMIDUMP_FLAG_ERROR) || kFlag) {
+	(driver->func)(modc, modv, flags, output);
+    } else {
+	if (! (flags & SMIDUMP_FLAG_SILENT)) {
+	    fprintf(stderr,
+		    "smidump: aborting due to severe parsing errors\n"
+		    "smidump: use the -k option to force continuation\n");
+	}
+    }
 
     smiExit();
 

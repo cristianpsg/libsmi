@@ -7,7 +7,7 @@ smidump \- dump SMI or SPPI modules in various formats
 .SH SYNOPSIS
 .B smidump
 [
-.B "-Vhqusm"
+.B "-Vhqusmk"
 ] [
 .BI "-c " file
 ] [
@@ -75,6 +75,11 @@ gets suppressed depends on the output format.
 Dump a unified output in case of multiple \fImodule(s)\fP instead of
 multiple concatenated output sections. This is not supported for all
 output formats.
+.TP
+\fB-k, --keep-going\fP
+Continue as much as possible after serious parse errors. Note that
+the output generated after serious parse errors may be incomplete
+and should be used with care.
 .TP
 .I module(s)
 These are the module(s) to be dumped. If a module argument represents a
