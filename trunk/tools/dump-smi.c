@@ -1867,7 +1867,7 @@ static void fprintModuleCompliances(FILE *f, SmiModule *smiModule)
 
 
 
-static void dumpSmi(FILE *f, SmiModule *smiModule)
+static void dumpSmi(FILE *f, SmiModule *smiModule, int flags)
 {
     if (smiModule->language == SMI_LANGUAGE_SPPI) /* PIB to MIB conversion */
         pibtomib = 1;
@@ -1886,6 +1886,10 @@ static void dumpSmi(FILE *f, SmiModule *smiModule)
           "supported.\n");
         fprint(f, "-- Expect flawed output.\n");
         fprint(f, "--\n\n");
+    }
+    if (! (flags & SMIDUMP_FLAG_SILENT) && (flags & SMIDUMP_FLAG_ERROR)) {
+	fprintf(f, "--\n-- WARNING: this output may be incorrect due to "
+		"significant parse errors\n--\n\n");
     }
     fprint(f, "%s%s DEFINITIONS ::= BEGIN\n\n", smiModule->name,
            (pibtomib ? "-MIB" : ""));
@@ -1924,7 +1928,7 @@ static void dumpSmiV1(int modc, SmiModule **modv, int flags, char *output)
     }
 
     for (i = 0; i < modc; i++) {
-	dumpSmi(f, modv[i]);
+	dumpSmi(f, modv[i], flags);
 	if (fflush(f) || ferror(f)) {
 	    perror("smidump: write error");
 	    exit(1);
@@ -1955,7 +1959,7 @@ static void dumpSmiV2(int modc, SmiModule **modv, int flags, char *output)
     }
 
     for (i = 0; i < modc; i++) {
-	dumpSmi(f, modv[i]);
+	dumpSmi(f, modv[i], flags);
     }
     
     if (fflush(f) || ferror(f)) {

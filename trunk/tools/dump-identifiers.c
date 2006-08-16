@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-identifiers.c,v 1.17 2003/09/30 11:57:30 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -159,6 +159,11 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
 		    SMI_VERSION_STRING ")\n\n");
 	}
 
+	if (! (flags & SMIDUMP_FLAG_SILENT) && (flags & SMIDUMP_FLAG_ERROR)) {
+	    fprintf(f, "# WARNING: this output may be incorrect due to "
+		    "significant parse errors\n\n");
+	}
+
 	fprintTypeIdentifiers(f, modc, modv);
 	fprintNodeIdentifiers(f, modc, modv);
 
@@ -172,6 +177,11 @@ static void dumpIdentifiers(int modc, SmiModule **modv, int flags,
 			modv[i]->name);
 	    }
 
+	    if (! (flags & SMIDUMP_FLAG_SILENT) && (flags & SMIDUMP_FLAG_ERROR)) {
+		fprintf(f, "# WARNING: this output may be incorrect due to "
+			"significant parse errors\n\n");
+	    }
+	    
 	    fprintTypeIdentifiers(f, 1, &(modv[i]));
 	    fprintNodeIdentifiers(f, 1, &(modv[i]));
 	}
