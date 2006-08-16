@@ -494,6 +494,11 @@ static void dumpMosy(int modc, SmiModule **modv, int flags, char *output)
 		    "\n-- object definitions compiled from %s\n\n",
 		    modv[i]->name);
 	}
+
+	if (! (flags & SMIDUMP_FLAG_SILENT) && (flags & SMIDUMP_FLAG_ERROR)) {
+	    fprintf(f, "-- WARNING: this output may be incorrect due to "
+		    "significant parse errors\n\n");
+	}
 	
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
