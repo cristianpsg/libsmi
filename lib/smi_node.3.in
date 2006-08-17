@@ -39,7 +39,7 @@ information routines
 .BI "SmiNode *smiGetNode(SmiModule *" smiModulePtr ", char *" node );
 .RE
 .sp
-.BI "SmiNode *smiGetNodeByOID(unsigned int " oidlen ", Subid " oid[] );
+.BI "SmiNode *smiGetNodeByOID(unsigned int " oidlen ", SmiSubid " oid[] );
 .RE
 .sp
 .BI "SmiNode *smiGetFirstNode(SmiModule *" smiModulePtr ", SmiNodekind " kinds );
