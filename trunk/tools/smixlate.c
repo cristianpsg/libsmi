@@ -30,6 +30,7 @@
 #include "dstring.h"
 
 static int flags;
+static int aFlag = 0;	/* translate all OIDs */
 
 static void translate(dstring_t *token, dstring_t *subst)
 {
@@ -39,29 +40,24 @@ static void translate(dstring_t *token, dstring_t *subst)
     int i;
     char *p;
 
-    /* buffer_add(0); */
-
     assert(token && subst);
 
     dstring_truncate(subst, 0);
+    dstring_assign(subst, dstring_str(token));
 
     for (oidlen = 0, p = strtok(dstring_str(token), ". "); p;
 	 oidlen++, p = strtok(NULL, ". ")) {
 	oid[oidlen] = strtoul(p, NULL, 0);
     }
 
-#if 0
-    {
-	printf("** : ");
-	for (i = 0; i < oidlen; i++) {
-	    printf(".%d", oid[i]);
-	}
-	printf("\n");
-    }
-#endif
-
     smiNode = smiGetNodeByOID(oidlen, oid);
-    if (smiNode) {
+    if (smiNode &&
+	(aFlag
+	 || smiNode->nodekind == SMI_NODEKIND_SCALAR
+	 || smiNode->nodekind == SMI_NODEKIND_COLUMN
+	 || smiNode->nodekind == SMI_NODEKIND_NOTIFICATION
+	 || smiNode->nodekind == SMI_NODEKIND_TABLE
+	 || smiNode->nodekind == SMI_NODEKIND_ROW)) {
 	dstring_assign(subst, smiNode->name);
 	for (i = smiNode->oidlen; i < oidlen; i++) {
 	    dstring_append_printf(subst, ".%d", oid[i]);
@@ -69,8 +65,6 @@ static void translate(dstring_t *token, dstring_t *subst)
 	if (dstring_len(subst) < dstring_len(token)) {
 	    dstring_expand(subst, dstring_len(token), ' ');
 	}
-    } else {
-	dstring_assign(subst, dstring_str(token));
     }
 }
 
@@ -95,7 +89,6 @@ static void process(FILE *stream)
      * TODO: - translate instance identifier to something meaningful
      *         (e.g. foobar["name",32]) where possible
      *       - generate warnings if instance identifier are incomplete
-     *       - option to only translate leaf objects
      *       - provide a reverse translation service (-x) (but this is
      *         more complex since it is unclear how to identify names
      *	     - make the white space magic optional
@@ -193,7 +186,7 @@ static void process(FILE *stream)
 static void usage()
 {
     fprintf(stderr,
-	    "Usage: smilint [options] [module or path ...]\n"
+	    "Usage: smixlate [options] [module or path ...]\n"
 	    "  -V, --version         show version and license information\n"
 	    "  -h, --help            show usage information\n"
 	    "  -c, --config=file     load a specific configuration file\n"
@@ -201,14 +194,15 @@ static void usage()
 	    "  -r, --recursive       print errors also for imported modules\n"
 	    "  -l, --level=level     set maximum level of errors and warnings\n"
 	    "  -i, --ignore=prefix   ignore errors matching prefix pattern\n"
-	    "  -I, --noignore=prefix do not ignore errors matching prefix pattern\n");
+	    "  -I, --noignore=prefix do not ignore errors matching prefix pattern\n"
+	    "  -a, --all             replace all OIDs (including partial OIDs)");
 }
 
 
 
 static void help() { usage(); exit(0); }
-static void version() { printf("smilint " SMI_VERSION_STRING "\n"); exit(0); }
-static void config(char *filename) { smiReadConfig(filename, "smilint"); }
+static void version() { printf("smixlate " SMI_VERSION_STRING "\n"); exit(0); }
+static void config(char *filename) { smiReadConfig(filename, "smixlate"); }
 static void preload(char *module) { smiLoadModule(module); }
 static void recursive() { flags |= SMI_FLAG_RECURSIVE; smiSetFlags(flags); }
 static void level(int lev) { smiSetErrorLevel(lev); }
@@ -223,6 +217,7 @@ int main(int argc, char *argv[])
 
     static optStruct opt[] = {
 	/* short long              type        var/func       special       */
+	{ 'a', "all",		 OPT_FLAG,   &aFlag,        0 },
 	{ 'h', "help",           OPT_FLAG,   help,          OPT_CALLFUNC },
 	{ 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
 	{ 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
@@ -251,7 +246,7 @@ int main(int argc, char *argv[])
 
     for (i = 1; i < argc; i++) {
 	if (smiLoadModule(argv[i]) == NULL) {
-	    fprintf(stderr, "smilint: cannot locate module `%s'\n",
+	    fprintf(stderr, "smixlate: cannot locate module `%s'\n",
 		    argv[i]);
 	    smiExit();
 	    exit(1);
