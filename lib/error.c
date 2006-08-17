@@ -388,7 +388,7 @@ static Error errors[] = {
       "index element `%s' of row `%s' must have a range restriction", NULL},
     { 2, ERR_INDEX_NO_RANGE_MOD, "index-element-no-range",
       "index element `%s::%s' of row `%s' must have a range restriction", NULL},
-    { 1, ERR_INDEX_STRING_NO_SIZE, "index-element-no-size",
+    { 3, ERR_INDEX_STRING_NO_SIZE, "index-element-no-size",
       "index element `%s' of row `%s' must have a size restriction",
       "Object identifiers are restricted in size to have at most 128\n"
       "sub-identifiers. This implies that index elements used to form\n"
@@ -396,7 +396,7 @@ static Error errors[] = {
       "that the 128 sub-identifier constraint is kept intact for any\n"
       "possible combination of the index elements' values (RFC 2578,\n"
       "Section 3.5)."},
-    { 1, ERR_INDEX_STRING_NO_SIZE_MOD, "index-element-no-size",
+    { 3, ERR_INDEX_STRING_NO_SIZE_MOD, "index-element-no-size",
       "index element `%s::%s' of row `%s' must have a size restriction",
       "Object identifiers are restricted in size to have at most 128\n"
       "sub-identifiers. This implies that index elements used to form\n"
@@ -404,7 +404,7 @@ static Error errors[] = {
       "that the 128 sub-identifier constraint is kept intact for any\n"
       "possible combination of the index elements' values (RFC 2578,\n"
       "Section 3.5)."},
-    { 6, ERR_INDEX_OID_NO_SIZE, "index-element-no-size",
+    { 3, ERR_INDEX_OID_NO_SIZE, "index-element-no-size",
       "index element `%s' of row `%s' should but cannot have a size restriction",
       "Object identifiers are restricted in size to have at most 128\n"
       "sub-identifiers. This implies that all index elements used to form\n"
