@@ -210,102 +210,6 @@ language(SmiLanguage language)
 
 
 
-static unsigned long
-getMinSize(SmiType *smiType)
-{
-    SmiRange *smiRange;
-    SmiType  *parentType;
-    unsigned int min = 65535, size;
-    
-    switch (smiType->basetype) {
-    case SMI_BASETYPE_BITS:
-	return 0;
-    case SMI_BASETYPE_OCTETSTRING:
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	size = 0;
-	break;
-    default:
-	return 0;
-    }
-
-    for (smiRange = smiGetFirstRange(smiType);
-	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
-	if (smiRange->minValue.value.unsigned32 < min) {
-	    min = smiRange->minValue.value.unsigned32;
-	}
-    }
-    if (min < 65535 && min > size) {
-	size = min;
-    }
-
-    parentType = smiGetParentType(smiType);
-    if (parentType) {
-	unsigned int psize = getMinSize(parentType);
-	if (psize > size) {
-	    size = psize;
-	}
-    }
-
-    return size;
-}
-
-
-
-static unsigned long
-getMaxSize(SmiType *smiType)
-{
-    SmiRange *smiRange;
-    SmiType  *parentType;
-    SmiNamedNumber *nn;
-    unsigned int max = 0, size;
-    
-    switch (smiType->basetype) {
-    case SMI_BASETYPE_BITS:
-    case SMI_BASETYPE_OCTETSTRING:
-	size = 65535;
-	break;
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	size = 128;
-	break;
-    default:
-	return 0xffffffff;
-    }
-
-    if (smiType->basetype == SMI_BASETYPE_BITS) {
-	for (nn = smiGetFirstNamedNumber(smiType);
-	     nn;
-	     nn = smiGetNextNamedNumber(nn)) {
-	    if (nn->value.value.unsigned32 > max) {
-		max = nn->value.value.unsigned32;
-	    }
-	}
-	size = (max / 8) + 1;
-	return size;
-    }
-
-    for (smiRange = smiGetFirstRange(smiType);
-	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
-	if (smiRange->maxValue.value.unsigned32 > max) {
-	    max = smiRange->maxValue.value.unsigned32;
-	}
-    }
-    if (max > 0 && max < size) {
-	size = max;
-    }
-
-    parentType = smiGetParentType(smiType);
-    if (parentType) {
-	unsigned int psize = getMaxSize(parentType);
-	if (psize < size) {
-	    size = psize;
-	}
-    }
-
-    return size;
-}
-
-
-
 static int
 calcSize(SmiModule *smiModule)
 {
@@ -1122,8 +1026,8 @@ complexity(FILE *f, SmiNode *row, SmiNode *col, void *data)
     case SMI_BASETYPE_OBJECTIDENTIFIER:
     case SMI_BASETYPE_BITS:
 	*cmplx += 2;
-	min = getMinSize(smiType);
-	max = getMaxSize(smiType);
+	min = smiGetMinSize(smiType);
+	max = smiGetMaxSize(smiType);
 	if (min != max) {
 	    *cmplx += 1;
 	}
