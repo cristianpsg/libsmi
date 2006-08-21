@@ -1978,6 +1978,177 @@ char *smiRenderType(SmiType *smiTypePtr, int flags)
 
 
 
+unsigned int smiGetMinSize(SmiType *smiType)
+{
+    SmiRange *smiRange;
+    SmiType  *parentType;
+    unsigned int min = 65535, size;
+    
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_BITS:
+	return 0;
+    case SMI_BASETYPE_OCTETSTRING:
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	size = 0;
+	break;
+    default:
+	return 0;
+    }
+
+    for (smiRange = smiGetFirstRange(smiType);
+	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	if (smiRange->minValue.value.unsigned32 < min) {
+	    min = smiRange->minValue.value.unsigned32;
+	}
+    }
+    if (min < 65535 && min > size) {
+	size = min;
+    }
+
+    parentType = smiGetParentType(smiType);
+    if (parentType) {
+	unsigned int psize = smiGetMinSize(parentType);
+	if (psize > size) {
+	    size = psize;
+	}
+    }
+
+    return size;
+}
+
+
+
+unsigned int smiGetMaxSize(SmiType *smiType)
+{
+    SmiRange *smiRange;
+    SmiType  *parentType;
+    SmiNamedNumber *nn;
+    unsigned int max = 0, size;
+    
+    switch (smiType->basetype) {
+    case SMI_BASETYPE_BITS:
+    case SMI_BASETYPE_OCTETSTRING:
+	size = 65535;
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	size = 128;
+	break;
+    default:
+	return 0xffffffff;
+    }
+
+    if (smiType->basetype == SMI_BASETYPE_BITS) {
+	for (nn = smiGetFirstNamedNumber(smiType);
+	     nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 > max) {
+		max = nn->value.value.unsigned32;
+	    }
+	}
+	size = (max / 8) + 1;
+	return size;
+    }
+
+    for (smiRange = smiGetFirstRange(smiType);
+	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
+	if (smiRange->maxValue.value.unsigned32 > max) {
+	    max = smiRange->maxValue.value.unsigned32;
+	}
+    }
+    if (max > 0 && max < size) {
+	size = max;
+    }
+
+    parentType = smiGetParentType(smiType);
+    if (parentType) {
+	unsigned int psize = smiGetMaxSize(parentType);
+	if (psize < size) {
+	    size = psize;
+	}
+    }
+
+    return size;
+}
+
+
+
+int smiUnpack(SmiNode *row, SmiSubid *oid, unsigned int oidlen,
+	      SmiValue **vals, int *valslen)
+{
+    SmiNode *indexNode = NULL;
+    SmiElement *smiElement;
+    SmiNode *iNode;
+    SmiType *iType; 
+    int i, j, last = 0;
+   
+    if (!vals || !valslen || !row || !oid) {
+	return 0;
+    }
+
+    switch (row->indexkind) {
+    case SMI_INDEX_INDEX:
+    case SMI_INDEX_REORDER:
+	indexNode = row;
+	break;
+    case SMI_INDEX_EXPAND:	/* TODO: we have to do more work here! */
+	indexNode = NULL;
+	break;
+    case SMI_INDEX_AUGMENT:
+    case SMI_INDEX_SPARSE:
+	indexNode = smiGetRelatedNode(row);
+	break;
+    case SMI_INDEX_UNKNOWN:
+	indexNode = NULL;
+	break;
+    }
+
+    *valslen = 0;
+    for (smiElement = smiGetFirstElement(indexNode);
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	iNode = smiGetElementNode(smiElement);
+	if (iNode) {
+	    iType = smiGetNodeType(iNode);
+	    if (! iType) break;
+	    (*valslen)++;
+	}
+    }
+    if (smiElement) {
+	return 0;
+    }
+
+    *vals = smiMalloc(*valslen * sizeof(SmiValue));
+
+    for (smiElement = smiGetFirstElement(indexNode), i = 0, j = 0;
+	 smiElement; smiElement = smiGetNextElement(smiElement), i++) {
+	iNode = smiGetElementNode(smiElement);
+	last = (smiGetNextElement(smiElement) == NULL);
+	iType = smiGetNodeType(iNode);
+	fprintf(stderr, "** %s (%s)\n", iNode->name, iType->name);
+	(*vals)[i].basetype = iType->basetype;
+	switch (iType->basetype) {
+	case SMI_BASETYPE_ENUM:
+	case SMI_BASETYPE_INTEGER32:
+	    (*vals)[i].value.integer32 = oid[j]; j++;
+	    break;
+	case SMI_BASETYPE_UNSIGNED32:
+	    (*vals)[i].value.unsigned32 = oid[j]; j++;
+	    break;
+	case SMI_BASETYPE_OCTETSTRING:
+	    /* need to know whether implied/fixed length or not */
+	    break;
+	case SMI_BASETYPE_OBJECTIDENTIFIER:
+	    /* need to know whether implied/fixed length or not */
+	    break;
+	default:
+	    return 0;
+	}
+    }
+
+    return *valslen;
+}
+
+
+
 int smiAsprintf(char **strp, const char *format, ...)
 {
     int rc;

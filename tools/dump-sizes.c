@@ -275,102 +275,6 @@ getMaxUnsigned64(SmiType *smiType)
 
 
 
-static unsigned int
-getMinSize(SmiType *smiType)
-{
-    SmiRange *smiRange;
-    SmiType  *parentType;
-    unsigned int min = 65535, size;
-    
-    switch (smiType->basetype) {
-    case SMI_BASETYPE_BITS:
-	return 0;
-    case SMI_BASETYPE_OCTETSTRING:
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	size = 0;
-	break;
-    default:
-	return 0;
-    }
-
-    for (smiRange = smiGetFirstRange(smiType);
-	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
-	if (smiRange->minValue.value.unsigned32 < min) {
-	    min = smiRange->minValue.value.unsigned32;
-	}
-    }
-    if (min < 65535 && min > size) {
-	size = min;
-    }
-
-    parentType = smiGetParentType(smiType);
-    if (parentType) {
-	unsigned int psize = getMinSize(parentType);
-	if (psize > size) {
-	    size = psize;
-	}
-    }
-
-    return size;
-}
-
-
-
-static unsigned int
-getMaxSize(SmiType *smiType)
-{
-    SmiRange *smiRange;
-    SmiType  *parentType;
-    SmiNamedNumber *nn;
-    unsigned int max = 0, size;
-    
-    switch (smiType->basetype) {
-    case SMI_BASETYPE_BITS:
-    case SMI_BASETYPE_OCTETSTRING:
-	size = 65535;
-	break;
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	size = 128;
-	break;
-    default:
-	return 0xffffffff;
-    }
-
-    if (smiType->basetype == SMI_BASETYPE_BITS) {
-	for (nn = smiGetFirstNamedNumber(smiType);
-	     nn;
-	     nn = smiGetNextNamedNumber(nn)) {
-	    if (nn->value.value.unsigned32 > max) {
-		max = nn->value.value.unsigned32;
-	    }
-	}
-	size = (max / 8) + 1;
-	return size;
-    }
-
-    for (smiRange = smiGetFirstRange(smiType);
-	 smiRange ; smiRange = smiGetNextRange(smiRange)) {
-	if (smiRange->maxValue.value.unsigned32 > max) {
-	    max = smiRange->maxValue.value.unsigned32;
-	}
-    }
-    if (max > 0 && max < size) {
-	size = max;
-    }
-
-    parentType = smiGetParentType(smiType);
-    if (parentType) {
-	unsigned int psize = getMaxSize(parentType);
-	if (psize < size) {
-	    size = psize;
-	}
-    }
-
-    return size;
-}
-
-
-
 static int
 ber_len_length(int length)
 {
@@ -578,13 +482,13 @@ ber_len_val_octs(SmiType *smiType, len_type flags)
 
     switch (flags) {
     case len_max:
-	len = getMaxSize(smiType);
+	len = smiGetMaxSize(smiType);
 	break;
     case len_mean:
-	len = (getMaxSize(smiType) + getMinSize(smiType)) / 2;
+	len = (smiGetMaxSize(smiType) + smiGetMinSize(smiType)) / 2;
 	break;
     case len_min:
-	len = getMinSize(smiType);
+	len = smiGetMinSize(smiType);
 	break;
     }
     return len;
@@ -599,13 +503,13 @@ ber_len_val_bits(SmiType *smiType, len_type flags)
 
     switch (flags) {
     case len_max:
-	len = getMaxSize(smiType);
+	len = smiGetMaxSize(smiType);
 	break;
     case len_mean:
-	len = (getMaxSize(smiType) + getMinSize(smiType)) / 2;
+	len = (smiGetMaxSize(smiType) + smiGetMinSize(smiType)) / 2;
 	break;
     case len_min:
-	len = getMinSize(smiType);
+	len = smiGetMinSize(smiType);
 	break;
     }
     return len;
@@ -815,13 +719,13 @@ append_index(SmiSubid *oid, unsigned int *oidlen,
      case SMI_BASETYPE_BITS:
 	 switch (flags) {
 	 case len_max:
-	     len = getMaxSize(indexType);
+	     len = smiGetMaxSize(indexType);
 	     break;
 	 case len_mean:
-	     len = (getMaxSize(indexType) + getMinSize(indexType) / 2);
+	     len = (smiGetMaxSize(indexType) + smiGetMinSize(indexType) / 2);
 	     break;
 	 case len_min:
-	     len = getMinSize(indexType);
+	     len = smiGetMinSize(indexType);
 	     break;
 	 }
 

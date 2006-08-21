@@ -450,6 +450,32 @@ extern char *smiRenderType(SmiType *smiTypePtr, int flags);
 #define SMI_UNKNOWN_LABEL "<unknown>"
 
    
+/*
+ * The functions smiGetMaxSize() and smiGetMinSize() compute the
+ * max size constraint on a given BITS, OCTET STRING or OBJECT
+ * IDENTIFIER type. The functions recurse towards the top of the
+ * type derivation tree.
+ */
+
+extern unsigned int smiGetMinSize(SmiType *smiType);
+extern unsigned int smiGetMaxSize(SmiType *smiType);
+
+/*
+ * Two utility functions to pack and unpack instance identifiers.
+ * The smiUnpack() function allocates the array of SmiValues and
+ * the smiPack() function allocates the array of SmiSubids.
+ */
+
+extern int smiUnpack(SmiNode *row, SmiSubid *oid, unsigned int oidlen,
+		     SmiValue **vals, int *valslen);
+
+extern int smiPack(SmiNode *row, SmiValue *vals, int valslen,
+		   SmiSubid **oid, unsigned int *oidlen);
+
+/*
+ * Two printf functions that allocate memory dynamically. The call has
+ * to free the allocated memory.
+ */
 
 extern int smiAsprintf(char **strp, const char *format, ...);
 
