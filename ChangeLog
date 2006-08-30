@@ -1,3 +1,10 @@
+2005-08-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/RADIUS-AUTH-CLIENT-MIB: updated (RFC 4668).
+	* mibs/ietf/RADIUS-AUTH-SERVER-MIB: updated (RFC 4669).
+	* mibs/ietf/RADIUS-ACC-CLIENT-MIB: updated (RFC 4670).
+	* mibs/ietf/RADIUS-ACC-SERVER-MIB: updated (RFC 4671).
+
 2005-07-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DOCS-IF-MIB: updated (RFC 4546).
