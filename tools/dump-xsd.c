@@ -235,7 +235,7 @@ static char
 }
 #endif /* 0 */
 
-static int pow( int base, unsigned int exponent )
+static int smiPow( int base, unsigned int exponent )
 {
   unsigned int i;
   int ret = 1;
@@ -568,7 +568,7 @@ static char* getStrDHType( char *hint,
 		
 		       smiAsprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
 				    ret,
-				    numDigits( pow( 255,
+				    numDigits( smiPow( 255,
 						    iterDH->number ) ) - 1 );
 			octetsUsed += iterDH->number;
 			if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -585,7 +585,7 @@ static char* getStrDHType( char *hint,
 		    else {		
 			smiAsprintf( &ret, "%s((0|[1-9](([0-9]){0,%d})",
 				     ret,
-				     numDigits( pow( 255,
+				     numDigits( smiPow( 255,
 						     iterDH->number ) ) - 1 );
 			
 			if( iterDH->separator ) {
@@ -600,7 +600,7 @@ static char* getStrDHType( char *hint,
 					 ret, lengths[ i ] - 1 - octetsUsed,
 					 lengths[ i+1 ] - 1 - octetsUsed,
 					 numDigits(
-					     pow( 255, iterDH->number )
+					     smiPow( 255, iterDH->number )
 					     ) - 1 );
 			}
 			else {
@@ -660,7 +660,7 @@ static char* getStrDHType( char *hint,
 		    if( iterDH->number < lengths[ i+1 ] ) {
 			smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d}))",
 				     ret,
-				     numDigits( pow( 255, iterDH->number ) ) );
+				     numDigits( smiPow( 255, iterDH->number ) ) );
 
 			octetsUsed += lengths[ i ];
 			if( octetsUsed >= lengths[ i + 1 ] ) {
@@ -676,7 +676,7 @@ static char* getStrDHType( char *hint,
 		    else {
 			smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d})",
 				     ret,
-				     numDigits( pow( 255, lengths[ i+1 ] ) ) );
+				     numDigits( smiPow( 255, lengths[ i+1 ] ) ) );
 		    }
 		}
 		else {
@@ -858,8 +858,8 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 	/* print minimu value */
 	if( useDecPoint ) {
 	    fprintSegment( f, 0, "<xsd:minInclusive value=\"%d.%d\"/>\n", 
-			   (int)min / pow( 10, offset ), 
-			   abs( (int)min % pow( 10, offset ) ) );
+			   (int)min / smiPow( 10, offset ), 
+			   abs( (int)min % smiPow( 10, offset ) ) );
 	} else {
 	    fprintSegment( f, 0, "<xsd:minInclusive value=\"%d\"/>\n",
 			   (int)min );
@@ -868,8 +868,8 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 	/* print maximum value */
 	if( useDecPoint ) {
 	    fprintSegment( f, 0, "<xsd:maxInclusive value=\"%d.%d\"/>\n", 
-			   (int)max / pow( 10, offset ), 
-			   abs( (int)max % pow( 10, offset ) ) );
+			   (int)max / smiPow( 10, offset ), 
+			   abs( (int)max % smiPow( 10, offset ) ) );
 	} else {
 	    fprintSegment( f, 0, "<xsd:maxInclusive value=\"%d\"/>\n",
 			   (int)max );
