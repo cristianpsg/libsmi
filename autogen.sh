@@ -2,11 +2,21 @@
 #
 # Run this to generate all the initial makefiles.
 #
-# $Id: autogen.sh,v 1.1 2001/08/16 10:53:22 strauss Exp $
+# $Id$
 
 DIE=true
 PROJECT="libsmi"
 
+case `uname -s` in
+    Darwin)
+	libtool=glibtool
+	libtoolize=glibtoolize
+	;;
+    *)
+	libtool=libtool
+	libtoolize=libtoolize
+	;;
+esac
 
 VER=`bison --version | sed 's/^[a-zA-Z ]*//'`
 case "$VER" in
@@ -66,7 +76,7 @@ _EOF_
 esac
 
 
-VER=`libtool --version | grep ' libtool)' | \
+VER=`${libtool} --version | grep ' libtool)' | \
 sed 's/.*) \([0-9][0-9.]*\) .*/\1/' `
 case "$VER" in
 0* | 1\.[0-2] | 1\.[0-2][a-z]* | \
@@ -84,7 +94,7 @@ esac
 
 $DIE
 
-libtoolize --copy --force || exit 1
+${libtoolize} --copy --force || exit 1
 
 if test -z "$*"; then
 	echo "Running ./configure with no arguments. If you wish to pass any,"
