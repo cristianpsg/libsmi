@@ -1,3 +1,8 @@
+2005-09-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* autogen.sh: Use glibtool instead of libtool on Darwin.
+	Thanks to Sebastian.
+
 2005-08-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/RADIUS-AUTH-CLIENT-MIB: updated (RFC 4668).
