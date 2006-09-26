@@ -69,7 +69,7 @@ typedef struct DH {
     unsigned int number;
 /*    int repeat;    //  repeat not yet supported */
     char type;
-    char separator[2];
+    char separator[3];
 /*    char repTerm;  // repeat not yet supported */
     struct DH *next;
 } DH;
@@ -412,6 +412,7 @@ static void initDH( struct DH *dh )
 	dh->type = 0;
 	dh->separator[0] = '\0';
 	dh->separator[1] = '\0';
+	dh->separator[2] = '\0';
 	/* dh->repTerm = '\0'; repeat not yet supported */
 	dh->next = NULL;
 }
