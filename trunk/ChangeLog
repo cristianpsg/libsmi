@@ -1,32 +1,40 @@
-2005-09-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2006-10-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/T11-FC-ROUTE-MIB: added (RFC 4625).
+	* mibs/ietf/T11-FC-FSPF-MIB: added (RFC 4626).
+	* mibs/ietf/LMP-MIB: updated (RFC 4631).
+	* mibs/ietf/RADIUS-DYNAUTH-CLIENT-MIB: added (RFC 4672).
+	* mibs/ietf/RADIUS-DYNAUTH-SERVER-MIB: added (RFC 4673).
+
+2006-09-06  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* autogen.sh: Use glibtool instead of libtool on Darwin.
 	Thanks to Sebastian.
 
-2005-08-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2006-08-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/RADIUS-AUTH-CLIENT-MIB: updated (RFC 4668).
 	* mibs/ietf/RADIUS-AUTH-SERVER-MIB: updated (RFC 4669).
 	* mibs/ietf/RADIUS-ACC-CLIENT-MIB: updated (RFC 4670).
 	* mibs/ietf/RADIUS-ACC-SERVER-MIB: updated (RFC 4671).
 
-2005-07-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2006-07-15  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DOCS-IF-MIB: updated (RFC 4546).
 	* mibs/ietf/DOCS-IETF-CABLE-DEVICE-NOTIFICATION-MIB: added (RFC 4547).
 	* mibs/ietf/DISMAN-NSLOOKUP-MIB,DISMAN-PING-MIB,DISMAN-TRACEROUTE-MIB:
 	  updated (RFC 4560).
 
-2005-06-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2006-06-12  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/ISCSI-MIB: added (RFC 4544).
 	* mibs/ietf/IPS-AUTH-MIB: added (RFC 4545).
 
-2005-05-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2006-05-30  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/SNMP-USM-AES-MIB: updated (RFC 3826).
 
-2005-05-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+2006-05-29  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/BGP4-MIB: updated (RFC 4273).
 	* mibs/ietf/IP-FORWARD-MIB: updated (RFC 4292).
