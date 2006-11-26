@@ -1089,24 +1089,105 @@ static void fprintModuleIdentity(FILE *f, SmiModule *smiModule)
 
 
 
+static void fprintTypeDefinition(FILE *f, SmiType *smiType)
+{
+    int		 invalid;
+
+    if (smiType->status == SMI_STATUS_UNKNOWN) {
+	invalid = invalidType(smiType->basetype);
+	if (invalid) {
+	    fprint(f, "-- %s ::=\n", smiType->name);
+	} else {
+	    fprint(f, "%s ::=\n", smiType->name);
+	}
+	fprintSegment(f, INDENT, "", 0, invalid);
+	fprint(f, "%s", getTypeString(smiType->basetype,
+				      smiGetParentType(smiType)));
+	fprintSubtype(f, smiType, invalid);
+	fprint(f, "\n\n");
+    }
+}
+
+
+
 static void fprintTypeDefinitions(FILE *f, SmiModule *smiModule)
 {
     SmiType	 *smiType;
-    int		 invalid;
 
     for(smiType = smiGetFirstType(smiModule);
 	smiType; smiType = smiGetNextType(smiType)) {
-	if (smiType->status == SMI_STATUS_UNKNOWN) {
-	    invalid = invalidType(smiType->basetype);
-	    if (invalid) {
-		fprint(f, "-- %s ::=\n", smiType->name);
-	    } else {
-		fprint(f, "%s ::=\n", smiType->name);
-	    }
+	fprintTypeDefinition(f, smiType);
+    }
+}
+
+
+
+static void fprintTextualConvention(FILE *f, SmiType *smiType)
+{
+    int		 invalid;
+    
+    if (smiType->status != SMI_STATUS_UNKNOWN) {
+	invalid = invalidType(smiType->basetype);
+	if (smiv1 && !invalid) {
+	    fprint(f, "%s ::=\n", smiType->name);
 	    fprintSegment(f, INDENT, "", 0, invalid);
 	    fprint(f, "%s", getTypeString(smiType->basetype,
 					  smiGetParentType(smiType)));
 	    fprintSubtype(f, smiType, invalid);
+	    fprint(f, "\n\n");
+	}
+	
+	if (! smiv1 || ! silent) {
+	    
+	    if (smiv1 || invalid) {
+		fprint(f, "-- %s ::= TEXTUAL-CONVENTION\n", smiType->name);
+	    } else {
+		fprint(f, "%s ::= TEXTUAL-CONVENTION\n", smiType->name);
+	    }
+	    
+	    if (smiType->format) {
+		fprintSegment(f, INDENT, "DISPLAY-HINT", INDENTVALUE,
+			      smiv1 || invalid);
+		fprint(f, "\"%s\"\n", smiType->format);
+	    }
+	    
+	    fprintSegment(f, INDENT, "STATUS", INDENTVALUE,
+			  smiv1 || invalid);
+	    fprint(f, "%s\n", getStatusString(smiType->status));
+	    
+	    fprintSegment(f, INDENT, "DESCRIPTION", INDENTVALUE,
+			  smiv1 || invalid);
+	    fprint(f, "\n");
+	    if (smiType->description) {
+		fprintMultilineString(f, smiType->description,
+				      smiv1 || invalid);
+	    } else {
+		fprintMultilineString(f, "...", smiv1 || invalid);
+	    }
+	    fprint(f, "\n");
+	    
+	    if (smiType->reference) {
+		fprintSegment(f, INDENT, "REFERENCE", INDENTVALUE,
+			      smiv1 || invalid);
+		fprint(f, "\n");
+		fprintMultilineString(f, smiType->reference,
+				      smiv1 || invalid);
+		fprint(f, "\n");
+	    }
+	    
+	    for (smiType = smiGetParentType(smiType);
+		 smiType;
+		 smiType = smiGetParentType(smiType)) {
+		SmiType *parent = smiGetParentType(smiType);
+		fprintSegment(f, INDENT, "SYNTAX", INDENTVALUE,
+			      smiv1 || invalid || parent);
+		fprint(f, "%s",
+		       getTypeString(smiType->basetype, smiType));
+		fprintSubtype(f, smiType, smiv1 || invalid || parent);
+		if (parent) {
+		    fprintf(f, "\n");
+		}
+	    }
 	    fprint(f, "\n\n");
 	}
     }
@@ -1117,67 +1198,10 @@ static void fprintTypeDefinitions(FILE *f, SmiModule *smiModule)
 static void fprintTextualConventions(FILE *f, SmiModule *smiModule)
 {
     SmiType	 *smiType;
-    int		 invalid;
     
     for(smiType = smiGetFirstType(smiModule);
 	smiType; smiType = smiGetNextType(smiType)) {
-	if (smiType->status != SMI_STATUS_UNKNOWN) {
-	    invalid = invalidType(smiType->basetype);
-	    if (smiv1 && !invalid) {
-		fprint(f, "%s ::=\n", smiType->name);
-		fprintSegment(f, INDENT, "", 0, invalid);
-		fprint(f, "%s", getTypeString(smiType->basetype,
-					      smiGetParentType(smiType)));
-		fprintSubtype(f, smiType, invalid);
-		fprint(f, "\n\n");
-	    }
-
-	    if (! smiv1 || ! silent) {
-
-		if (smiv1 || invalid) {
-		    fprint(f, "-- %s ::= TEXTUAL-CONVENTION\n", smiType->name);
-		} else {
-		    fprint(f, "%s ::= TEXTUAL-CONVENTION\n", smiType->name);
-		}
-
-		if (smiType->format) {
-		    fprintSegment(f, INDENT, "DISPLAY-HINT", INDENTVALUE,
-				  smiv1 || invalid);
-		    fprint(f, "\"%s\"\n", smiType->format);
-		}
-	    
-		fprintSegment(f, INDENT, "STATUS", INDENTVALUE,
-			      smiv1 || invalid);
-		fprint(f, "%s\n", getStatusString(smiType->status));
-		
-		fprintSegment(f, INDENT, "DESCRIPTION", INDENTVALUE,
-			      smiv1 || invalid);
-		fprint(f, "\n");
-		if (smiType->description) {
-		    fprintMultilineString(f, smiType->description,
-					  smiv1 || invalid);
-		} else {
-		    fprintMultilineString(f, "...", smiv1 || invalid);
-		}
-		fprint(f, "\n");
-		
-		if (smiType->reference) {
-		    fprintSegment(f, INDENT, "REFERENCE", INDENTVALUE,
-				  smiv1 || invalid);
-		    fprint(f, "\n");
-		    fprintMultilineString(f, smiType->reference,
-					  smiv1 || invalid);
-		    fprint(f, "\n");
-		}
-		fprintSegment(f, INDENT, "SYNTAX", INDENTVALUE,
-			      smiv1 || invalid);
-		fprint(f, "%s",
-		       getTypeString(smiType->basetype,
-				     smiGetParentType(smiType)));
-		fprintSubtype(f, smiType, smiv1 || invalid);
-		fprint(f, "\n\n");
-	    }
-	}
+	fprintTextualConvention(f, smiType);
     }
 }
 
