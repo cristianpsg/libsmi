@@ -31,6 +31,7 @@
 
 static int flags;
 static int aFlag = 0;	/* translate all OIDs */
+static int fFlag = 0;	/* preserve formatting */
 
 static void translate(dstring_t *token, dstring_t *subst)
 {
@@ -61,9 +62,6 @@ static void translate(dstring_t *token, dstring_t *subst)
 	dstring_assign(subst, smiNode->name);
 	for (i = smiNode->oidlen; i < oidlen; i++) {
 	    dstring_append_printf(subst, ".%d", oid[i]);
-	}
-	if (dstring_len(subst) < dstring_len(token)) {
-	    dstring_expand(subst, dstring_len(token), ' ');
 	}
     }
 }
@@ -146,9 +144,18 @@ static void process(FILE *stream)
 		state = OIDDOT;
 	    } else {
 		translate(token, subst);
+		if (fFlag) {
+		    if (dstring_len(subst) < dstring_len(token)) {
+			dstring_expand(subst, dstring_len(token), ' ');
+		    }
+		}
 		fputs(dstring_str(subst), stdout);
-		space = dstring_len(subst) - dstring_len(token);
-		if (space && c == ' ') {
+		if (dstring_len(subst) > dstring_len(token)) {
+		    space = dstring_len(subst) - dstring_len(token);
+		} else {
+		    space = 0;
+		}
+		if (fFlag && space && c == ' ') {
 		    state = EATSPACE;
 		} else {
 		    state = TXT;
@@ -195,7 +202,8 @@ static void usage()
 	    "  -l, --level=level     set maximum level of errors and warnings\n"
 	    "  -i, --ignore=prefix   ignore errors matching prefix pattern\n"
 	    "  -I, --noignore=prefix do not ignore errors matching prefix pattern\n"
-	    "  -a, --all             replace all OIDs (including partial OIDs)");
+	    "  -a, --all             replace all OIDs (including OID prefixes)\n"
+	    "  -f, --format          preserve formatting as much as possible\n");
 }
 
 
@@ -218,6 +226,7 @@ int main(int argc, char *argv[])
     static optStruct opt[] = {
 	/* short long              type        var/func       special       */
 	{ 'a', "all",		 OPT_FLAG,   &aFlag,        0 },
+	{ 'f', "format",         OPT_FLAG,   &fFlag,	    0 },
 	{ 'h', "help",           OPT_FLAG,   help,          OPT_CALLFUNC },
 	{ 'V', "version",        OPT_FLAG,   version,       OPT_CALLFUNC },
 	{ 'c', "config",         OPT_STRING, config,        OPT_CALLFUNC },
