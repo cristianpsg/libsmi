@@ -45,6 +45,15 @@ Report errors and warnings up to the given severity \fIlevel\fP. See
 the smilint(1) manual page for a description of the error levels. The
 default error level is 3.
 .TP
+\fB-a, --all\fP
+Replace all OIDs including OID prefixes. Without this option, smixlate
+will only translate OIDs with a corresponding notification, scalar,
+column, row, or table definition.
+.TP
+\fB-f, --format\fP
+Preserve the input format as much as possible by inserting/removing
+white space characters.
+.TP
 .I module(s)
 These are the modules to be loaded for the subsequent translation. If
 a module argument represents a path name (identified by containing at
