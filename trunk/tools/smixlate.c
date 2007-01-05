@@ -186,6 +186,61 @@ static void process(FILE *stream)
 	    break;
 	}
     }
+
+    if (dstring_len(token)) {
+	switch (state) {
+	case TXT:
+	case NUM:
+	case NUMDOT:
+	case NUMDOTNUM:
+	    fputs(dstring_str(token), stdout);
+	    dstring_truncate(token, 0);
+	    fputc(c, stdout);
+	    fflush(stdout);
+	    break;
+	case OID:
+	    if (isdigit(c)) {
+		dstring_append_char(token, c);
+	    } else {
+		translate(token, subst);
+		if (fFlag) {
+		    if (dstring_len(subst) < dstring_len(token)) {
+			dstring_expand(subst, dstring_len(token), ' ');
+		    }
+		}
+		fputs(dstring_str(subst), stdout);
+		if (dstring_len(subst) > dstring_len(token)) {
+		    space = dstring_len(subst) - dstring_len(token);
+		} else {
+		    space = 0;
+		}
+		if (fFlag && space && c == ' ') {
+		} else {
+		    space--;
+		    fputc(c, stdout);
+		}
+		dstring_truncate(token, 0);
+	    }
+	    break;
+	case OIDDOT:
+	    if (isdigit(c)) {
+		dstring_append_char(token, c);
+	    } else {
+		translate(token, subst);
+		fputs(dstring_str(subst), stdout);
+		fputc(c, stdout);
+		dstring_truncate(token, 0);
+	    }
+	    break;
+	case EATSPACE:
+	    if (c == ' ' && space) {
+		space--;
+	    } else {
+		fputc(c, stdout);
+	    }
+	    break;
+	}
+    }
 }
 
 
