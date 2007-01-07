@@ -151,15 +151,16 @@ static void process(FILE *stream)
 		}
 		fputs(dstring_str(subst), stdout);
 		if (dstring_len(subst) > dstring_len(token)) {
-		    space = dstring_len(subst) - dstring_len(token);
+		    space = dstring_len(subst) - dstring_len(token) - 1;
 		} else {
 		    space = 0;
 		}
-		if (fFlag && space && c == ' ') {
+		if (fFlag && space > 0 && c == ' ') {
 		    state = EATSPACE;
+		    space--;
 		} else {
 		    state = TXT;
-		    space--;
+		    space = 0;
 		    fputc(c, stdout);
 		}
 		dstring_truncate(token, 0);
@@ -178,7 +179,7 @@ static void process(FILE *stream)
 	    }
 	    break;
 	case EATSPACE:
-	    if (c == ' ' && space) {
+	    if (c == ' ' && space > 0) {
 		space--;
 	    } else {
 		state = TXT;
@@ -210,13 +211,14 @@ static void process(FILE *stream)
 		}
 		fputs(dstring_str(subst), stdout);
 		if (dstring_len(subst) > dstring_len(token)) {
-		    space = dstring_len(subst) - dstring_len(token);
+		    space = dstring_len(subst) - dstring_len(token) - 1;
 		} else {
 		    space = 0;
 		}
-		if (fFlag && space && c == ' ') {
-		} else {
+		if (fFlag && space > 0 && c == ' ') {
 		    space--;
+		} else {
+		    space = 0;
 		    fputc(c, stdout);
 		}
 		dstring_truncate(token, 0);
@@ -233,7 +235,7 @@ static void process(FILE *stream)
 	    }
 	    break;
 	case EATSPACE:
-	    if (c == ' ' && space) {
+	    if (c == ' ' && space > 0) {
 		space--;
 	    } else {
 		fputc(c, stdout);
