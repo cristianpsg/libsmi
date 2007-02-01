@@ -1,3 +1,14 @@
+2007-02-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/MSDP-MIB: added (RFC 4624).
+	* mibs/ietf/PKTC-IETF-MTA-MIB: added (RFC 4682).
+	* mibs/ietf/ADSL2-LINE-MIB,ADSL2-LINE-TC-MIB: added (RFC 4706).
+	* mibs/ietf/RAQMON-MIB: added (RFC 4711).
+	* mibs/ietf/T11-FC-VIRTUAL-FABRIC-MIB: added (RFC 4747).
+	* mibs/ietf/DOCS-CABLE-DEVICE-MIB: updated (RFC 4639).
+	* mibs/ietf/OSPF-MIB,OSPF-TRAP-MIB: updated (RFC 4750).
+	* lib/scanner-smi.l: accept also \r as end-of-line.
+
 2006-10-04  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/T11-FC-ROUTE-MIB: added (RFC 4625).
