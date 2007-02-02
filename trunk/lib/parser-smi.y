@@ -1838,7 +1838,7 @@ importedKeyword:	importedSMIKeyword
         |               importedSPPIKeyword
                         {
                             if (thisParserPtr->modulePtr->export.language != SMI_LANGUAGE_SPPI)
-                              smiPrintError(thisParserPtr, ERR_SPPI_CONSTRUCT_IN_MIB, $1);
+				smiPrintError(thisParserPtr, ERR_SPPI_TYPE_IN_MIB, $1);
                             $$ = $1;
                         }
         |               BITS
