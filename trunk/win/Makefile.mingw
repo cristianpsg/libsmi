@@ -76,6 +76,7 @@ TOOLSOBJS = \
 	smidiff.o \
 	shhopt.o \
 	rea.o \
+ 	dstring.o \
 	dump-sming.o \
 	dump-smi.o \
 	dump-imports.o \
@@ -120,7 +121,7 @@ libs:	$(SMILIB)
 $(SMILIB):	$(LIBSMIOBJS)
 	$(AR) -ruv $(SMILIB) $(LIBSMIOBJS)
 
-tools:	smiquery.exe smilint.exe smidump.exe smidiff.exe
+tools:	smiquery.exe smilint.exe smidump.exe smidiff.exe smixlate.exe
 
 smiquery.exe:	$(TOOLSOBJS) $(SMILIB)
 	$(CC) $(CFLAGS) -o smiquery.exe smiquery.o shhopt.o $(SMILIB)
@@ -139,6 +140,9 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 
 smidiff.exe:	$(TOOLSOBJS) $(SMILIB)
 	$(CC) $(CFLAGS) -o smidiff.exe smidiff.o shhopt.o $(SMILIB)
+
+smixlate.exe  $(TOOLSOBJS) $(SMILIB)
+	$(CC) $(CFLAGS) -o smixlate.exe smixlate.o shhopt.o $(SMILIB)
 
 clean:
 	$(RM) *.o
