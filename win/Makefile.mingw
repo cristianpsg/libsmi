@@ -51,7 +51,7 @@ MKDIR	= -mkdir
 ## Definitions:
 ##
 CFLAGS = -O2 -Wall
-INCLUDES = -I. -I../lib
+INCLUDES = -I. -I../lib -I../tools
 
 ## 
 ## Global Makefile settings
@@ -74,6 +74,7 @@ TOOLSOBJS = \
 	smilint.o \
 	smidump.o \
 	smidiff.o \
+	smixlate.o \
 	shhopt.o \
 	rea.o \
  	dstring.o \
@@ -141,8 +142,8 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 smidiff.exe:	$(TOOLSOBJS) $(SMILIB)
 	$(CC) $(CFLAGS) -o smidiff.exe smidiff.o shhopt.o $(SMILIB)
 
-smixlate.exe  $(TOOLSOBJS) $(SMILIB)
-	$(CC) $(CFLAGS) -o smixlate.exe smixlate.o shhopt.o $(SMILIB)
+smixlate.exe:	$(TOOLSOBJS) $(SMILIB)
+	$(CC) $(CFLAGS) -o smixlate.exe smixlate.o shhopt.o dstring.o $(SMILIB)
 
 clean:
 	$(RM) *.o
