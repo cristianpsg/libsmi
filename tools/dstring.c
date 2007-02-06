@@ -25,6 +25,7 @@
 # else
 #  define va_copy(lhs,rhs) (lhs) = (rhs)
 # endif
+#endif
 
 char*
 dstring_str(dstring_t *ds)
