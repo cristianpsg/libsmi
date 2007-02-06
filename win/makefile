@@ -58,7 +58,7 @@ MKDIR	= md
 ##
 # DEBUG = -W3 -Zi -Od /Yd
 INCLUDES = -I$(ROOT)\lib -I$(ROOT)\win -I$(TOOLS32)\include
-DEFINES = $(DEBUG)
+DEFINES = $(DEBUG) -D_CRT_SECURE_NO_DEPRECATE=1
 
 !include <win32.mak>
 
@@ -86,7 +86,8 @@ SMILINTOBJS =					\
 	$(TMPDIR)\smilint.obj
 
 SMIXLATEOBJS =					\
-	$(TMPDIR)\smixlate.obj
+	$(TMPDIR)\smixlate.obj			\
+	$(TMPDIR)\dstring.obj
 
 SMIDUMPOBJS =					\
 	$(TMPDIR)\smidump.obj			\
@@ -170,6 +171,10 @@ smidump.exe:	$(SMIDUMPOBJS) $(SMILIB)
 smidiff.exe:	$(SMIDIFFOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) \
 		/osmidiff.exe $(SMIDIFFOBJS) $(SMILIB)
+
+smixlate.exe:	$(SMIXLATEOBJS) $(SMILIB)
+	$(cc32) $(DEFINES) \
+		/osmixlate.exe $(SMIXLATEOBJS) $(SMILIB)
 
 clean:
 	del *.lib

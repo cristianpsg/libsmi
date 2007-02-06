@@ -11,15 +11,20 @@
  * @(#) $Id: smilint.c 1867 2004-10-06 13:45:31Z strauss $
  */
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include "dstring.h"
 
-#if !defined va_copy && defined __va_copy
-#define va_copy	__va_copy			/* C99 draft proposal */
-#endif
+#if !defined va_copy
+# if defined __va_copy
+#  define va_copy __va_copy			/* C99 draft proposal */
+# else
+#  define va_copy(lhs,rhs) (lhs) = (rhs)
+# endif
 
 char*
 dstring_str(dstring_t *ds)
@@ -33,7 +38,7 @@ dstring_len(dstring_t *ds)
     return ds ? ds->len : 0;
 }
 
-static inline dstring_t*
+static dstring_t*
 dstring_grow(dstring_t *ds, size_t len)
 {
     if (ds) {
