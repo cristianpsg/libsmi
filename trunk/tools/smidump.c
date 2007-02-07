@@ -80,6 +80,7 @@ void *xmalloc(size_t size)
 	fprintf(stderr, "smidump: malloc failed - running out of memory\n");
 	exit(1);
     }
+
     return m;
 }
 
@@ -90,6 +91,18 @@ void *xrealloc(void *ptr, size_t size)
     char *m = realloc(ptr, size);
     if (! m) {
 	fprintf(stderr, "smidump: realloc failed - running out of memory\n");
+	exit(1);
+    }
+    return m;
+}
+
+
+
+void *xcalloc(size_t nmemb, size_t size)
+{
+    char *m = calloc(nmemb, size);
+    if (! m) {
+	fprintf(stderr, "smidump: calloc failed - running out of memory\n");
 	exit(1);
     }
     return m;
