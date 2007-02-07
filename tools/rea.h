@@ -146,7 +146,7 @@ extern int SHOW_DEPRECATED;
 extern int SHOW_DEPR_OBSOLETE;
 extern int STATIC_OUTPUT;
 extern int XPLAIN;
-extern int DEBUG;
+extern int XPLAIN_DEBUG;
 extern int SUPPRESS_DEPRECATED;
 extern int PRINT_DETAILED_ATTR;
 extern int IGNORE_IMPORTED_NODES;
