@@ -39,7 +39,7 @@ dstring_len(dstring_t *ds)
     return ds ? ds->len : 0;
 }
 
-static dstring_t*
+static inline dstring_t*
 dstring_grow(dstring_t *ds, size_t len)
 {
     if (ds) {
