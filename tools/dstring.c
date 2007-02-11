@@ -27,6 +27,8 @@
 # endif
 #endif
 
+#if 0
+/* These functions should not be needed if inlining works properly. */
 char*
 dstring_str(dstring_t *ds)
 {
@@ -38,6 +40,7 @@ dstring_len(dstring_t *ds)
 {
     return ds ? ds->len : 0;
 }
+#endif
 
 static inline dstring_t*
 dstring_grow(dstring_t *ds, size_t len)
