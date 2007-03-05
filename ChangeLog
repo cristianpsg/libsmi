@@ -1,3 +1,13 @@
+2007-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/iana/IANA-GMPLS-TC-MIB,IANA-IPPM-METRICS-REGISTRY-MIB,
+	  IANA-ITU-ALARM-TC-MIB,IANA-MAU-MIB: added.
+	* mibs/iana/IANA-CHARSET-MIB,IANA-ADDRESS-FAMILY-NUMBERS-MIB,
+	  IANAifType-MIB: added.
+	* mibs/ietf/GMPLS-TC-STD-MIB (RFC 4801): added.
+	* mibs/ietf/GMPLS-TE-STD-MIB (RFC 4802): added.
+	* mibs/ietf/GMPLS-LSR-STD-MIB,GMPLS-LABEL-STD-MIB (RFC 4803): added.
+
 2007-02-01  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/MSDP-MIB: added (RFC 4624).
