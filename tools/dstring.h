@@ -20,12 +20,12 @@
 
 #include <stdarg.h>
 
+#ifdef __GNUC__
+# define inline extern inline
+#else 
 #ifdef HAVE_WIN_H
 # define inline __inline
-#else
-# ifdef __GNUC__
-#  define inline extern inline
-# endif
+#endif
 #endif
 
 struct dstring {
