@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sming.c,v 1.92 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -407,22 +407,17 @@ static void freeImportList(void)
 static void fprint(FILE *f, char *fmt, ...)
 {
     va_list ap;
-    char    s[200];
+    char    *s;
     char    *p;
     
     va_start(ap, fmt);
-#ifdef HAVE_VSNPRINTF
-    current_column += vsnprintf(s, sizeof(s), fmt, ap);
-#else
-    current_column += vsprintf(s, fmt, ap);	/* buffer overwrite */
-#endif
+    current_column += smiVasprintf(&s, fmt, ap);
     va_end(ap);
-
     fputs(s, f);
-
     if ((p = strrchr(s, '\n'))) {
-	current_column = strlen(p) - 1;
+        current_column = strlen(p) - 1;
     }
+    free(s);
 }
 
 
@@ -473,7 +468,7 @@ static void fprintMultilineString(FILE *f, int column, const char *s)
 
 static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
-    static char    s[100];
+    static char    s[1024];
     char           ss[9];
     int		   n;
     unsigned int   i;
@@ -571,7 +566,7 @@ static void fprintSubtype(FILE *f, SmiType *smiType)
 {
     SmiRange       *range;
     SmiNamedNumber *nn;
-    char	   s[100];
+    char	   s[1024];
     int		   i;
 
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||

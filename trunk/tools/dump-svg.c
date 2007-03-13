@@ -1524,7 +1524,7 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
 {
     int           i;
     char          *done = NULL;
-    char          s[100];
+    char          s[1024];
     char          *module;
     SmiNode       *smiNode, *smiNode2;
     SmiModule     *smiModule2;
@@ -1816,7 +1816,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     int            j, k, foreign_exists, textColor = 0;
     char           *tooltip;
     char           *done = NULL;
-    char           s[100];
+    char           s[1024];
     char           *module;
     SmiNode        *smiNode2;
     SmiModule      *smiModule2;

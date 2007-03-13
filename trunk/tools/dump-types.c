@@ -178,7 +178,7 @@ static int getBaseTypeCount(SmiBasetype basetype)
 
 static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
-    static char    s[100];
+    static char    s[1024];
     char           ss[9];
     int		   n;
     unsigned int   i;
