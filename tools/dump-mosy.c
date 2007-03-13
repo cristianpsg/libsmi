@@ -130,7 +130,7 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 
 static char *getValueString(SmiValue *valuePtr)
 {
-    static char    s[100];
+    static char    s[1024];
 
     s[0] = 0;
     

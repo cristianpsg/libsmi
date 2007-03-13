@@ -12,7 +12,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-corba.c,v 1.46 2004/03/13 22:27:57 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -405,7 +405,7 @@ static char *getIdlAnyTypeName(SmiNode *smiNode, SmiType *smiType)
 
 static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
-    static char    s[100];
+    static char    s[1024];
     char           ss[9];
     int		   n;
     unsigned int   i;
@@ -599,22 +599,17 @@ static void freeImportList(void)
 static void fprint(FILE *f, char *fmt, ...)
 {
     va_list ap;
-    char    s[200];
+    char    *s;
     char    *p;
     
     va_start(ap, fmt);
-#ifdef HAVE_VSNPRINTF
-    current_column += vsnprintf(s, sizeof(s), fmt, ap);
-#else
-    current_column += vsprintf(s, fmt, ap);	/* buffer overwrite */
-#endif
+    current_column += smiVasprintf(&s, fmt, ap);
     va_end(ap);
-
     fputs(s, f);
-
     if ((p = strrchr(s, '\n'))) {
-	current_column = strlen(p) - 1;
+        current_column = strlen(p) - 1;
     }
+    free(s);
 }
 
 

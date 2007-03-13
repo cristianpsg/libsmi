@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-smiv3.c,v 1.5 2002/10/30 09:17:37 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -522,7 +522,7 @@ fprintComment(FILE *f, int indent, char *comment)
 static char
 *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
-    static char    s[100];
+    static char    s[1024];
     char           ss[9];
     int		   n;
     unsigned int   i;
@@ -640,7 +640,7 @@ fprintSubtype(FILE *f, SmiType *smiType)
 {
     SmiRange       *range;
     SmiNamedNumber *nn;
-    char	   s[100];
+    char	   s[1024];
     int		   i;
 
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
