@@ -617,11 +617,12 @@ static void fprintImports(FILE *f, SmiModule *smiModule)
     for (i = 0, smiImport = smiGetFirstImport(smiModule);
          smiImport;
          i++,
-         lastModule = smiImport->module,
          smiImport = smiGetNextImport(smiImport)) {
         if (i == 0) {
             fprintSegment(f, INDENT, "\"imports\" => [\n", 0);
         }
+        if (smiImport->module == NULL)
+            continue;
         
         if ( lastModule == NULL || strcmp(lastModule, smiImport->module)) {
             if ( lastModule ) {
@@ -636,6 +637,7 @@ static void fprintImports(FILE *f, SmiModule *smiModule)
         }
         fprintSegment(f, 4 * INDENT, "", 0);
         fprint(f, "\"%s\",\n", smiImport->name);
+        lastModule = smiImport->module;
     }
     if (lastModule) {
         fprintSegment(f, 3 * INDENT, "],\n", 0);
