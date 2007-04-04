@@ -1,5 +1,10 @@
 2007-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
+	* mibs/ietf/DS1-MIB: updated (RFC 4805).
+	* mibs/ietf/IPSEC-SPD-MIB: added (RFC 4807).
+
+2007-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
 	* mibs/iana/IANA-GMPLS-TC-MIB,IANA-IPPM-METRICS-REGISTRY-MIB,
 	  IANA-ITU-ALARM-TC-MIB,IANA-MAU-MIB: added.
 	* mibs/iana/IANA-CHARSET-MIB,IANA-ADDRESS-FAMILY-NUMBERS-MIB,
