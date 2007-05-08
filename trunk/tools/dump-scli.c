@@ -2592,15 +2592,17 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    "    GList *row;\n"
 	    "    int i;\n");
 
-    fprintf(f, "    static guint32 base[] = {");
+    fprintf(f, "    static guint32 const _base[] = {");
     for (i = 0; i < rowNode->oidlen; i++) {
 	fprintf(f, "%u, ", rowNode->oid[i]);
     }
     fprintf(f, "0};\n");
+    fprintf(f, "    guint32 base[128];\n");
 
     fprintf(f,
 	    "\n"
 	    "    *%s = NULL;\n"
+	    "    memcpy(base, _base, sizeof(_base));\n"
 	    "\n",
 	    cRowName);
 
@@ -3003,15 +3005,17 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
 
-    fprintf(f, "    static guint32 base[] = {");
+    fprintf(f, "    static const guint32 _base[] = {");
     for (i = 0; i < groupNode->oidlen; i++) {
 	fprintf(f, "%u, ", groupNode->oid[i]);
     }
     fprintf(f, "0};\n");
+    fprintf(f, "    guint32 base[128];\n");
 
     fprintf(f,
 	    "\n"
 	    "    *%s = NULL;\n"
+	    "    memcpy(base, _base, sizeof(_base));\n"
 	    "\n",
 	    cGroupName);
 
