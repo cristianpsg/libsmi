@@ -1,3 +1,8 @@
+2007-05-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/SIP-{UA,TC,COMMON,SERVER}-MIB: added (RFC 4780).
+	* mibs/ietf/MAU-MIB: updated (RFC 4836).
+
 2007-03-05  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DS1-MIB: updated (RFC 4805).

@@ -5,7 +5,7 @@
        TEXTUAL-CONVENTION          FROM SNMPv2-TC;
 
    ianaifType MODULE-IDENTITY
-       LAST-UPDATED "200701230000Z"  -- January 23, 2007
+       LAST-UPDATED "200703080000Z"  -- March 08, 2007
        ORGANIZATION "IANA"
        CONTACT-INFO "        Internet Assigned Numbers Authority
 
@@ -14,11 +14,14 @@
                              Marina del Rey, CA 90292
 
                      Tel:    +1 310 823 9358
-                     E-Mail: iana@iana.org"
+                     E-Mail: iana&iana.org"
 
        DESCRIPTION  "This MIB module defines the IANAifType Textual
                      Convention, and thus the enumerated values of
                      the ifType object defined in MIB-II's ifTable."
+
+       REVISION     "200703080000Z"  -- March 08, 2007
+       DESCRIPTION  "Registration of new IANAifType 242."
 
        REVISION     "200701230000Z"  -- January 23, 2007
        DESCRIPTION  "Registration of new IANAifTypes 239, 240, and 241." 
@@ -231,7 +234,7 @@
                IANA.)
 
                Requests for new values should be made to IANA via
-               email (iana@iana.org).
+               email (iana&iana.org).
 
                The relationship between the assignment of ifType
                values and of OIDs to particular media-specific MIBs
@@ -500,7 +503,8 @@
                                    -- Version 2 Plus and all variants
                    dvbRcsMacLayer (239), -- DVB-RCS MAC Layer
                    dvbTdm (240), -- DVB Satellite TDM
-                   dvbRcsTdma (241) -- DVB-RCS TDMA
+                   dvbRcsTdma (241), -- DVB-RCS TDMA
+                   x86Laps (242) -- LAPS based on ITU-T X.86/Y.1323                 
                    }
 
 IANAtunnelType ::= TEXTUAL-CONVENTION
