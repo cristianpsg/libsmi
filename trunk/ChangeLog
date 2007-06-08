@@ -1,4 +1,8 @@
 
+2007-06-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/TCP-ESTATS-MIB: added (RFC 4898).
+
 2007-05-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/SIP-{UA,TC,COMMON,SERVER}-MIB: added (RFC 4780).
