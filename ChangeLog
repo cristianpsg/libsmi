@@ -1,4 +1,9 @@
 
+2007-07-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/DOT3-EPON-MIB: added (RFC 4837).
+	* mibs/ietf/DOT3-OAM-MIB: added (RFC 4878).
+
 2007-06-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/TCP-ESTATS-MIB: added (RFC 4898).
