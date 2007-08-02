@@ -1217,7 +1217,8 @@ smiCheckTypeFormat(Parser *parser, Type *type)
     if (type->export.basetype != SMI_BASETYPE_INTEGER32
 	&& type->export.basetype != SMI_BASETYPE_INTEGER64
 	&& type->export.basetype != SMI_BASETYPE_UNSIGNED32
-	&& type->export.basetype != SMI_BASETYPE_UNSIGNED64) {
+	&& type->export.basetype != SMI_BASETYPE_UNSIGNED64
+	&& type->export.basetype != SMI_BASETYPE_OCTETSTRING) {
 	return;
     }
 
