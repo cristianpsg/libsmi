@@ -1,4 +1,11 @@
 
+2007-08-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/T11-FC-FABRIC-CONFIG-SERVER-MIB: added (RFC 4935).
+	* mibs/ietf/T11-FC-FABRIC-LOCK-MIB,T11-FC-ZONE-SERVER-MIB: added
+	  (RFC 4936).
+	* mibs/ietf/ISNS-MIB: added (RFC 4939).
+
 2007-07-19  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/DOT3-EPON-MIB: added (RFC 4837).
