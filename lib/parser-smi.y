@@ -6214,6 +6214,7 @@ subidentifier:
 				thisParserPtr->parentNodePtr = $$->nodePtr;
 			    } else if (oldNodePtr &&
 				       oldNodePtr->lastObjectPtr &&
+				       oldNodePtr->lastObjectPtr->export.name &&
 				       strcmp(oldNodePtr->lastObjectPtr->export.name, $1)) {
 				smiPrintError(thisParserPtr,
 					      ERR_OIDLABEL_CHANGED,
