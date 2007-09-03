@@ -1,4 +1,8 @@
 
+2007-09-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/T11-FC-RSCN-MIB: added (RFC 4983).
+
 2007-08-08  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/T11-FC-FABRIC-CONFIG-SERVER-MIB: added (RFC 4935).
