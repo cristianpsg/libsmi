@@ -330,6 +330,7 @@ int main(int argc, char *argv[])
     initXml();
     initXsd();
     initCompliances();
+    initYang();
     
     for (i = 1; i < argc; i++)
 	if ((strstr(argv[i], "-c") == argv[i]) ||
