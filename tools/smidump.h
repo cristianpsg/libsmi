@@ -103,6 +103,7 @@ extern void initScli(void);
 extern void initXsd(void);
 extern void initSizes(void);
 extern void initCompliances(void);
+extern void initYang(void);
 
 extern void initSql(void);
 extern void initFig(void);
