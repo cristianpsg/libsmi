@@ -21,6 +21,9 @@
 #include "smidump.h"
 
 
+static int  sflag = 0;
+
+
 #define  INDENT		4    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
 #define  INDENTTEXTS	4    /* column to start multiline texts */
@@ -169,7 +172,6 @@ getModulePrefix(const char *moduleName)
 static char*
 getTypeString(SmiBasetype basetype, SmiType *smiType)
 {
-    int         i;
     char        *typeModule, *typeName;
 
     typeName = smiType ? smiType->name : NULL;
@@ -189,10 +191,10 @@ getTypeString(SmiBasetype basetype, SmiType *smiType)
 
     if ((!typeModule) || (!strlen(typeModule)) || (!typeName)) {
 	if (basetype == SMI_BASETYPE_ENUM) {
-	    return "Enumeration";
+	    return "enumeration";
 	}
 	if (basetype == SMI_BASETYPE_BITS) {
-	    return "Bits";
+	    return "binary";
 	}
     }
 	
@@ -496,11 +498,6 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
     char	   s[1024];
     int		   i = 0;
 
-    if (smiType->name) {
-	fprint(f, ";\n");
-	return;
-    }
-
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
 	(smiType->basetype == SMI_BASETYPE_BITS)) {
 	for(i = 0, nn = smiGetFirstNamedNumber(smiType);
@@ -508,9 +505,17 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 	    if (! i) {
 		fprint(f, " {\n");
 	    }
-	    sprintf(s, "enum %s { value %s; }\n", nn->name,
-		    getValueString(&nn->value, smiType));
+	    sprintf(s, "enum \"%s\"", nn->name);
 	    fprintSegment(f, indent + INDENT, s, 0);
+	    if (sflag) {
+		fprint(f, " {\n");
+		fprintSegment(f, indent + 2 * INDENT, "smi:value", 0);
+		fprint(f, " \"%s\";\n", getValueString(&nn->value, smiType));
+		fprintSegment(f, indent + INDENT, "}\n", 0);
+	    }
+	    else {
+		fprint(f, ";\n");
+	    }
 	}
 	if (i) {
 	    fprintSegment(f, indent, "}\n", 0);
@@ -569,7 +574,8 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
 
     if (parentType == NULL) {
 	fprint(f, " %s", getStringBasetype(smiType->basetype));
-	goto done;
+	fprint(f, ";\n");
+	return;
     }
 
     /* this type is an imported type - easy */
@@ -578,14 +584,16 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
 	fprint(f, " %s:%s",
 	       getModulePrefix(smiModule->name),
 	       smiType->name);
-	goto done;
+	fprint(f, ";\n");
+	return;
     }
 
     /* this is a locally defined named type - easy as well */
 
     if (smiModule == thisModule && smiType->name) {
 	fprint(f, " %s", smiType->name);
-	goto done;
+	fprintSubtype(f, indent, smiType);
+	return;
     }
 
     /* this is a locally defined unnamed type - easy as well? */
@@ -598,25 +606,11 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
 		   getModulePrefix(parentModule->name),
 		   parentType->name);
 	}
-	goto done;
+	fprintSubtype(f, indent, smiType);
+	return;
     }
 
     /* uops - still here ? */
-    
-#if 0
-    if (parentModule && parentModule != smiGetTypeModule(smiType)) {
-	fprint(f, " %s:%s;\n",
-	       getModulePrefix(parentModule->name),
-	       parentType->name);
-	return;
-    }
-    
-    fprint(f, " %s", getTypeString(smiType->basetype,
-				   smiGetParentType(smiType)));
-#endif
- done:
-
-    fprintSubtype(f, indent, smiType);
 }
 
 
@@ -646,9 +640,25 @@ fprintUnits(FILE *f, int indent, const char *units)
 static void
 fprintFormat(FILE *f, int indent, const char *format)
 {
-    if (format) {
+    if (sflag && format) {
 	fprintSegment(f, 2 * INDENT, "smi:format", 0);
 	fprint(f, " \"%s\";\n", format);
+    }
+}
+
+
+static void
+fprintObjectIdentifier(FILE *f, int indent, SmiSubid *oid, int oidlen)
+{
+    int i;
+
+    if (sflag && oid && oidlen) {
+	fprintSegment(f, indent, "smi:oid", 0);
+	fprint(f, " \"");
+	for (i=0; i < oidlen; i++) {
+	    fprint(f, "%s%d", i ? "." : "", oid[i]);
+	}
+	fprint(f, "\"\n");
     }
 }
 
@@ -688,7 +698,7 @@ fprintConfig(FILE *f, int indent, SmiAccess access)
 static void
 fprintTypedefs(FILE *f, SmiModule *smiModule)
 {
-    int		 i, j;
+    int		 i;
     SmiType	 *smiType;
     
     for (i = 0, smiType = smiGetFirstType(smiModule);
@@ -723,10 +733,10 @@ fprintTypedefs(FILE *f, SmiModule *smiModule)
 #endif
 	
 	fprintUnits(f, 2 * INDENT, smiType->units);
-	fprintFormat(f, 2 * INDENT, smiType->format);
 	fprintStatus(f, 2 * INDENT, smiType->status);
 	fprintDescription(f, 2 * INDENT, smiType->description);
 	fprintReference(f, 2 * INDENT, smiType->reference);
+	fprintFormat(f, 2 * INDENT, smiType->format);
 
 	fprintSegment(f, INDENT, "}\n\n", 0);
 	i++;
@@ -744,12 +754,41 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode)
     fprintSegment(f, indent, "leaf ", 0);
     fprint(f, "%s {\n", smiNode->name);
     fprintType(f, indent + INDENT, smiGetNodeModule(smiNode), smiType);
-    fprintUnits(f, indent, smiNode->units);
+    fprintUnits(f, indent + INDENT, smiNode->units);
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT, smiNode->description);
     fprintReference(f, indent + INDENT, smiNode->reference);
     fprintConfig(f, indent + INDENT, smiNode->access);
-    fprintSegment(f, indent, "}\n", 0);
+    fprintFormat(f, indent + INDENT, smiNode->format);
+    fprintObjectIdentifier(f, indent + INDENT, smiNode->oid, smiNode->oidlen);
+    fprintSegment(f, indent, "}\n\n", 0);
+}
+
+
+static void
+fprintList(FILE *f, int indent, SmiNode *smiNode)
+{
+    SmiNode *entryNode;
+    SmiNode *childNode;
+
+    entryNode = smiGetFirstChildNode(smiNode);
+
+    fprint(f, "\n");
+    fprintSegment(f, indent, "/* XXX table comments here XXX */\n", 0);
+    fprint(f, "\n");
+
+    fprintSegment(f, indent, "list", 0);
+    fprint(f, " %s {\n\n", entryNode->name);
+
+    for (childNode = smiGetFirstChildNode(entryNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if (childNode->nodekind == SMI_NODEKIND_COLUMN) {
+	    fprintLeaf(f, indent + INDENT, childNode);
+	}
+    }
+
+    fprintSegment(f, indent, "}\n\n", 0);
 }
 
 
@@ -757,19 +796,18 @@ static void
 fprintContainer(FILE *f, int indent, SmiNode *smiNode)
 {
     SmiNode *childNode;
-    char *type;
 
-    type = (smiNode->nodekind == SMI_NODEKIND_ROW) ? "list" : "container";
-    
-    fprintSegment(f, indent, type, 0);
-    fprint(f, " %s {\n", smiNode->name);
+    fprintSegment(f, indent, "container", 0);
+    fprint(f, " %s {\n\n", smiNode->name);
 
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
-	if (childNode->nodekind == SMI_NODEKIND_SCALAR
-	    || childNode->nodekind == SMI_NODEKIND_COLUMN) {
+	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
 	    fprintLeaf(f, indent + INDENT, childNode);
+	}
+	if (childNode->nodekind == SMI_NODEKIND_TABLE) {
+	    fprintList(f, indent + INDENT, childNode);
 	}
     }
     
@@ -786,9 +824,6 @@ fprintContainers(FILE *f, SmiModule *smiModule)
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
-	    fprintContainer(f, INDENT, smiNode);
-	}
-	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
 	    fprintContainer(f, INDENT, smiNode);
 	}
     }
@@ -822,7 +857,11 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 	fprint(f, " * This module has been generated by smidump "
 	       SMI_VERSION_STRING ":\n");
 	fprint(f, " *\n");
-	fprint(f, " *      smidump -f yang %s\n", smiModule->name);
+	fprint(f, " *      smidump -f yang");
+	if (sflag) {
+	    fprint(f, " --yang-smi");
+	}
+	fprint(f, " %s\n", smiModule->name);
 	fprint(f, " *\n");
 	fprint(f, " * Do not edit. Edit the source file instead!\n");
 	fprint(f, " */\n\n");
@@ -895,6 +934,11 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 
 void initYang()
 {
+    static SmidumpDriverOption opt[] = {
+	{ "smi", OPT_FLAG, &sflag, 0,
+	  "generate smi extensions"},
+        { 0, OPT_END, 0, 0 }
+    };
     
     static SmidumpDriver driver = {
 	"yang",
@@ -902,7 +946,7 @@ void initYang()
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE,
 	"YANG format",
-	NULL,
+	opt,
 	NULL
     };
     
