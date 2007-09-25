@@ -54,33 +54,21 @@ static char *getStringStatus(SmiStatus status)
 
 
 
-static char *getAccessString(SmiAccess access)
-{
-    return
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "noaccess" :
-	(access == SMI_ACCESS_NOTIFY)	      ? "notifyonly" :
-	(access == SMI_ACCESS_READ_ONLY)      ? "readonly" :
-	(access == SMI_ACCESS_READ_WRITE)     ? "readwrite" :
-						"<unknown>";
-}
-
-
-
 static char *getStringBasetype(SmiBasetype basetype)
 {
     return
         (basetype == SMI_BASETYPE_UNKNOWN)           ? "<unknown>" :
-        (basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
+        (basetype == SMI_BASETYPE_OCTETSTRING)       ? "binary" :
         (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
-        (basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :
-        (basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" :
-        (basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" :
-        (basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" :
-        (basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" :
-        (basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" :
-        (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
-        (basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
-        (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
+        (basetype == SMI_BASETYPE_UNSIGNED32)        ? "uint32" :
+        (basetype == SMI_BASETYPE_INTEGER32)         ? "int32" :
+        (basetype == SMI_BASETYPE_UNSIGNED64)        ? "uint64" :
+        (basetype == SMI_BASETYPE_INTEGER64)         ? "int64" :
+        (basetype == SMI_BASETYPE_FLOAT32)           ? "float32" :
+        (basetype == SMI_BASETYPE_FLOAT64)           ? "float64" :
+        (basetype == SMI_BASETYPE_FLOAT128)          ? "float128" :
+        (basetype == SMI_BASETYPE_ENUM)              ? "enumeration" :
+        (basetype == SMI_BASETYPE_BITS)              ? "binary" :
                                                    "<unknown>";
 }
 
@@ -113,7 +101,73 @@ static char *getStringDate(time_t t)
 
 
 
-static char *getTypeString(SmiBasetype basetype, SmiType *smiType)
+static char*
+getModuleUrn(const char *moduleName)
+{
+    static const char *prefix = "urn:ietf:";
+    static char *buf = NULL;
+    static size_t buflen = 0;
+    size_t prefix_len;
+    size_t name_len;
+
+    prefix_len = strlen(prefix);
+    name_len = strlen(moduleName);
+    
+    if (buflen < prefix_len + name_len + 1) {
+	if (buf) xfree(buf);
+	buflen = prefix_len + name_len + 1;
+	buf = xmalloc(buflen);
+    }
+
+    strcpy(buf, prefix);
+    strcat(buf, moduleName);
+
+    return buf;
+}
+
+
+
+static char*
+getModulePrefix(const char *moduleName)
+{
+    static char *buf = NULL;
+    static size_t buflen = 0;
+    size_t len;
+    int i;
+
+    static char *strip[] = {
+	"-MIB", "-SMI", "-TC", NULL
+    };
+
+    len = strlen(moduleName) + 1;
+
+    if (buflen < len) {
+	if (buf) xfree(buf);
+	buflen = len;
+	buf = xmalloc(buflen);
+    }
+
+    for (i = 0; moduleName[i]; i++) {
+	buf[i] = tolower(moduleName[i]);
+    }
+    buf[i] = 0;
+
+    for (i = 0; strip[i]; i++) {
+	len = strlen(strip[i]);
+	if (buflen <= len) continue;
+	if (strcasecmp(buf+buflen-len-1, strip[i]) == 0) {
+	    buf[buflen-len-1] = 0;
+	    break;
+	}
+    }
+
+    return buf;
+}
+
+
+
+static char*
+getTypeString(SmiBasetype basetype, SmiType *smiType)
 {
     int         i;
     char        *typeModule, *typeName;
@@ -302,6 +356,25 @@ freeImportList(void)
 
 
 
+static int
+isGroup(SmiNode *smiNode)
+{
+    SmiNode *childNode;
+    
+    for(childNode = smiGetFirstChildNode(smiNode);
+	childNode;
+	childNode = smiGetNextChildNode(childNode)) {
+	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
+	     || childNode->nodekind == SMI_NODEKIND_TABLE)
+	    && childNode->status == SMI_STATUS_CURRENT) {
+	    return 1;
+	}
+    }
+
+    return 0;
+}
+
+
 static void
 fprint(FILE *f, char *fmt, ...)
 {
@@ -402,9 +475,12 @@ fprintImports(FILE *f, SmiModule *smiModule)
 	fprintSegment(f, INDENT, "import", 0);
 	fprint(f, " %s {\n", import->module);
 	fprintSegment(f, 2*INDENT, "namespace", 0);
-	fprint(f, " \"http://www.ietf.org/smi/%s\";\n", import->module);
+	fprint(f, " \"urn:ietf:%s\";\n", import->module);
+	fprintSegment(f, 2*INDENT, "prefix   ", 0);
+	fprint(f, " \"%s\";\n", getModulePrefix(import->module));
 	fprintSegment(f, INDENT, "}\n", 0);
     }
+    fprint(f, "\n");
 
     freeImportList();
 }
@@ -413,12 +489,17 @@ fprintImports(FILE *f, SmiModule *smiModule)
 
 
 static void
-fprintSubtype(FILE *f, SmiType *smiType)
+fprintSubtype(FILE *f, int indent, SmiType *smiType)
 {
     SmiRange       *range;
     SmiNamedNumber *nn;
     char	   s[1024];
     int		   i = 0;
+
+    if (smiType->name) {
+	fprint(f, ";\n");
+	return;
+    }
 
     if ((smiType->basetype == SMI_BASETYPE_ENUM) ||
 	(smiType->basetype == SMI_BASETYPE_BITS)) {
@@ -429,10 +510,10 @@ fprintSubtype(FILE *f, SmiType *smiType)
 	    }
 	    sprintf(s, "enum %s { value %s; }\n", nn->name,
 		    getValueString(&nn->value, smiType));
-	    fprintSegment(f, 3*INDENT, s, 0);
+	    fprintSegment(f, indent + INDENT, s, 0);
 	}
 	if (i) {
-	    fprintSegment(f, 2*INDENT, "}\n", 0);
+	    fprintSegment(f, indent, "}\n", 0);
 	}
     } else {
 	for(i = 0, range = smiGetFirstRange(smiType);
@@ -442,9 +523,9 @@ fprintSubtype(FILE *f, SmiType *smiType)
 	    } else {
 		fprint(f, " {\n");
 		if (smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
-		    fprintSegment(f, 3 * INDENT, "length \"", 0);
+		    fprintSegment(f, indent + INDENT, "length \"", 0);
 		} else {
-		    fprintSegment(f, 3 * INDENT, "range \"", 0);
+		    fprintSegment(f, indent + INDENT, "range \"", 0);
 		}
 	    }	    
 	    if (memcmp(&range->minValue, &range->maxValue,
@@ -459,7 +540,7 @@ fprintSubtype(FILE *f, SmiType *smiType)
 	}
 	if (i) {
 	    fprint(f, "\";\n");
-	    fprintSegment(f, 2*INDENT, "}\n", 0);
+	    fprintSegment(f, indent, "}\n", 0);
 	}
     }
     if (! i) {
@@ -470,13 +551,148 @@ fprintSubtype(FILE *f, SmiType *smiType)
 
 
 static void
+fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
+{
+    SmiModule *smiModule = NULL;
+    SmiType *parentType = NULL;
+    SmiModule *parentModule = NULL;
+
+    fprintSegment(f, indent, "type", 0);
+
+    smiModule = smiGetTypeModule(smiType);
+    if (smiType) parentType = smiGetParentType(smiType);
+    if (parentType) {
+	parentModule = smiGetTypeModule(parentType);
+    }
+
+    /* this type is a base type - easy */
+
+    if (parentType == NULL) {
+	fprint(f, " %s", getStringBasetype(smiType->basetype));
+	goto done;
+    }
+
+    /* this type is an imported type - easy */
+
+    if (smiModule != thisModule) {
+	fprint(f, " %s:%s",
+	       getModulePrefix(smiModule->name),
+	       smiType->name);
+	goto done;
+    }
+
+    /* this is a locally defined named type - easy as well */
+
+    if (smiModule == thisModule && smiType->name) {
+	fprint(f, " %s", smiType->name);
+	goto done;
+    }
+
+    /* this is a locally defined unnamed type - easy as well? */
+
+    if (smiModule == thisModule && smiType->name == NULL) {
+	if (parentModule == thisModule) {
+	    fprint(f, " %s", parentType->name);
+	} else {
+	    fprint(f, " %s:%s",
+		   getModulePrefix(parentModule->name),
+		   parentType->name);
+	}
+	goto done;
+    }
+
+    /* uops - still here ? */
+    
+#if 0
+    if (parentModule && parentModule != smiGetTypeModule(smiType)) {
+	fprint(f, " %s:%s;\n",
+	       getModulePrefix(parentModule->name),
+	       parentType->name);
+	return;
+    }
+    
+    fprint(f, " %s", getTypeString(smiType->basetype,
+				   smiGetParentType(smiType)));
+#endif
+ done:
+
+    fprintSubtype(f, indent, smiType);
+}
+
+
+static void
+fprintStatus(FILE *f, int indent, SmiStatus status)
+{
+    if ((status != SMI_STATUS_CURRENT) &&
+	(status != SMI_STATUS_UNKNOWN) &&
+	(status != SMI_STATUS_MANDATORY) &&
+	(status != SMI_STATUS_OPTIONAL)) {
+	fprintSegment(f, indent, "status", 0);
+	fprint(f, " %s;\n", getStringStatus(status));
+    }
+}
+
+
+static void
+fprintUnits(FILE *f, int indent, const char *units)
+{
+    if (units) {
+	fprintSegment(f, indent, "units", 0);
+	fprint(f, " \"%s\";\n", units);
+    }
+}
+
+
+static void
+fprintFormat(FILE *f, int indent, const char *format)
+{
+    if (format) {
+	fprintSegment(f, 2 * INDENT, "smi:format", 0);
+	fprint(f, " \"%s\";\n", format);
+    }
+}
+
+
+static void
+fprintDescription(FILE *f, int indent, const char *description)
+{
+    fprintSegment(f, indent, "description", INDENTVALUE);
+    fprint(f, "\n");
+    fprintMultilineString(f, indent, description);
+    fprint(f, ";\n");
+}
+
+
+static void
+fprintReference(FILE *f, int indent, const char *reference)
+{
+    if (reference) {
+	fprintSegment(f, indent, "reference", INDENTVALUE);
+	fprint(f, "\n");
+	fprintMultilineString(f, indent, reference);
+	fprint(f, ";\n");
+    }
+}
+
+
+static void
+fprintConfig(FILE *f, int indent, SmiAccess access)
+{
+    if (access != SMI_ACCESS_READ_WRITE) {
+	fprintSegment(f, indent, "config", 0);
+	fprint(f, " false;\n");
+    }
+}
+
+
+static void
 fprintTypedefs(FILE *f, SmiModule *smiModule)
 {
     int		 i, j;
     SmiType	 *smiType;
     
-    for(i = 0, smiType = smiGetFirstType(smiModule);
-	smiType; smiType = smiGetNextType(smiType)) {
+    for (i = 0, smiType = smiGetFirstType(smiModule);
+	 smiType; smiType = smiGetNextType(smiType)) {
 
 #if 0
 	if ((!(strcmp(smiModule->name, "SNMPv2-SMI"))) ||
@@ -494,10 +710,10 @@ fprintTypedefs(FILE *f, SmiModule *smiModule)
 	fprintSegment(f, INDENT, "", 0);
 	fprint(f, "typedef %s {\n", smiType->name);
 
-	fprintSegment(f, 2 * INDENT, "type", 0);
-	fprint(f, " %s", getTypeString(smiType->basetype,
-				       smiGetParentType(smiType)));
-	fprintSubtype(f, smiType);
+	fprintType(f, 2 * INDENT,
+		   smiGetTypeModule(smiType),
+		   smiGetParentType(smiType));
+
 #if 0
 	if (smiType->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    fprintSegment(f, 2 * INDENT, "default", INDENTVALUE);
@@ -506,40 +722,78 @@ fprintTypedefs(FILE *f, SmiModule *smiModule)
 	}
 #endif
 	
-	if (smiType->format) {
-	    fprintSegment(f, 2 * INDENT, "smi:format", 0);
-	    fprint(f, " \"%s\";\n", smiType->format);
-	}
-	if (smiType->units) {
-	    fprintSegment(f, 2 * INDENT, "units", INDENTVALUE);
-	    fprint(f, "\"%s\";\n", smiType->units);
-	}
-#if 0
-	if ((smiType->status != SMI_STATUS_CURRENT) &&
-	    (smiType->status != SMI_STATUS_UNKNOWN) &&
-	    (smiType->status != SMI_STATUS_MANDATORY) &&
-	    (smiType->status != SMI_STATUS_OPTIONAL)) {
-	    fprintSegment(f, 2 * INDENT, "status", INDENTVALUE);
-	    fprint(f, "%s;\n", getStringStatus(smiType->status));
-	}
-#else
-	fprintSegment(f, 2 * INDENT, "status", 0);
-	fprint(f, " %s;\n", getStringStatus(smiType->status));
-#endif
-	fprintSegment(f, 2 * INDENT, "description", INDENTVALUE);
-	fprint(f, "\n");
-	fprintMultilineString(f, 2 * INDENT, smiType->description);
-	fprint(f, ";\n");
-	if (smiType->reference) {
-	    fprintSegment(f, 2 * INDENT, "reference", INDENTVALUE);
-	    fprint(f, "\n");
-	    fprintMultilineString(f, 2 * INDENT, smiType->reference);
-	    fprint(f, ";\n");
-	}
+	fprintUnits(f, 2 * INDENT, smiType->units);
+	fprintFormat(f, 2 * INDENT, smiType->format);
+	fprintStatus(f, 2 * INDENT, smiType->status);
+	fprintDescription(f, 2 * INDENT, smiType->description);
+	fprintReference(f, 2 * INDENT, smiType->reference);
+
 	fprintSegment(f, INDENT, "}\n\n", 0);
 	i++;
     }
 }
+
+
+static void
+fprintLeaf(FILE *f, int indent, SmiNode *smiNode)
+{
+    SmiType *smiType;
+    
+    smiType = smiGetNodeType(smiNode);
+
+    fprintSegment(f, indent, "leaf ", 0);
+    fprint(f, "%s {\n", smiNode->name);
+    fprintType(f, indent + INDENT, smiGetNodeModule(smiNode), smiType);
+    fprintUnits(f, indent, smiNode->units);
+    fprintStatus(f, indent + INDENT, smiNode->status);
+    fprintDescription(f, indent + INDENT, smiNode->description);
+    fprintReference(f, indent + INDENT, smiNode->reference);
+    fprintConfig(f, indent + INDENT, smiNode->access);
+    fprintSegment(f, indent, "}\n", 0);
+}
+
+
+static void
+fprintContainer(FILE *f, int indent, SmiNode *smiNode)
+{
+    SmiNode *childNode;
+    char *type;
+
+    type = (smiNode->nodekind == SMI_NODEKIND_ROW) ? "list" : "container";
+    
+    fprintSegment(f, indent, type, 0);
+    fprint(f, " %s {\n", smiNode->name);
+
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if (childNode->nodekind == SMI_NODEKIND_SCALAR
+	    || childNode->nodekind == SMI_NODEKIND_COLUMN) {
+	    fprintLeaf(f, indent + INDENT, childNode);
+	}
+    }
+    
+    fprintSegment(f, indent, "}\n\n", 0);
+}
+
+
+static void
+fprintContainers(FILE *f, SmiModule *smiModule)
+{
+    SmiNode *smiNode;
+    
+    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	smiNode;
+	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	if (isGroup(smiNode)) {
+	    fprintContainer(f, INDENT, smiNode);
+	}
+	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
+	    fprintContainer(f, INDENT, smiNode);
+	}
+    }
+}
+
 
 
 static void
@@ -600,16 +854,21 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 	fprintRevisions(f, smiModule);
 
 	if (! silent) {
-	    fprintSegment(f, INDENT, "/*** NAMESPACE INFORMATION ***/\n\n", 0);
+	    fprintSegment(f, INDENT, "/*** NAMESPACE / PREFIX DEFINITION ***/\n\n", 0);
 	}
+
+	fprintSegment(f, INDENT, "target-namespace ", 0);
+	fprint(f, "\"%s\";\n", getModuleUrn(smiModule->name));
+	fprintSegment(f, INDENT, "prefix ", 0);
+	fprint(f, "\"%s\";\n\n", getModulePrefix(smiModule->name));
+
+	if (! silent) {
+	    fprintSegment(f, INDENT, "/*** LINKAGE (IMPORTS / INCLUDES) ***/\n\n", 0);
+	}
+
 	fprintImports(f, modv[i]);
-	fprintSegment(f, INDENT, "target", 0);
-	fprint(f, " %s {\n", smiModule->name);
-	fprintSegment(f, 2 * INDENT, "\"", 0);
-        fprint(f, "http://www.ietf.org/smi/%s\";\n", smiModule->name);
-	fprintSegment(f, INDENT, "}\n\n", 0);
-	
 	fprintTypedefs(f, modv[i]);
+	fprintContainers(f, modv[i]);
 
 #if 0	
 	printAssignements(f, modv[i]);
