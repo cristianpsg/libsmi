@@ -315,9 +315,6 @@ int main(int argc, char *argv[])
     initPython();
     initSming();
     initSmi();                defaultDriver = lastDriver;
-#if 0
-    initSmiv3();
-#endif
     initSppi();
 #if 0
     initSql();
