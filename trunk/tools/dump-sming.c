@@ -22,13 +22,12 @@
 
 #include "smi.h"
 #include "smidump.h"
+#include "fprint.h"
 
 
 
 #define  INDENT		2    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
-#define  INDENTTEXTS	4    /* column to start multiline texts */
-#define  INDENTMAX	64   /* max column to fill, break lines otherwise */
 
 
 
@@ -126,14 +125,12 @@ static char *convertImport[] = {
     "RFC1213-MIB",  "PhysAddress",	  "IRTF-NMRG-SMING", "PhysAddress",
     "RFC-1215",     "TRAP-TYPE",          NULL, NULL,                          
 
-
-
     
     /* TODO: how to convert more SMIv1 information? */
 
     NULL, NULL, NULL, NULL };
 
-static int current_column = 0;
+
 static int silent = 0;
 
 
@@ -404,68 +401,6 @@ static void freeImportList(void)
 
 
 
-static void fprint(FILE *f, char *fmt, ...)
-{
-    va_list ap;
-    char    *s;
-    char    *p;
-    
-    va_start(ap, fmt);
-    current_column += smiVasprintf(&s, fmt, ap);
-    va_end(ap);
-    fputs(s, f);
-    if ((p = strrchr(s, '\n'))) {
-        current_column = strlen(p) - 1;
-    }
-    free(s);
-}
-
-
-
-static void fprintSegment(FILE *f, int column, char *string, int length)
-{
-    fprint(f, "%*c%s", column, ' ', string);
-    if (length) {
-	fprint(f, "%*c", length - strlen(string) - column, ' ');
-    }
-}
-
-
-
-static void fprintWrapped(FILE *f, int column, char *string)
-{
-    if ((current_column + strlen(string)) > INDENTMAX) {
-	putc('\n', f);
-	current_column = 0;
-	fprintSegment(f, column, "", 0);
-    }
-    fprint(f, "%s", string);
-}
-
-
-
-static void fprintMultilineString(FILE *f, int column, const char *s)
-{
-    int i, len;
-    
-    fprintSegment(f, column - 1 + INDENTTEXTS, "\"", 0);
-    if (s) {
-	len = strlen(s);
-	for (i=0; i < len; i++) {
-	    putc(s[i], f);
-	    current_column++;
-	    if (s[i] == '\n') {
-		current_column = 0;
-		fprintSegment(f, column + INDENTTEXTS, "", 0);
-	    }
-	}
-    }
-    putc('\"', f);
-    current_column++;
-}
-
-
-
 static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 {
     static char    s[1024];
@@ -637,7 +572,7 @@ static void fprintImports(FILE *f, SmiModule *smiModule)
 	    fprint(f, ", ");
 	}
 	len = strlen(import->name);
-	if (len + pos > INDENTMAX) {
+	if (len + pos > fprint_indent_max) {
 	    fprint(f, "\n");
 	    fprintSegment(f, INDENT, "", 0);
 	    fprintSegment(f, INDENT, "", 0);

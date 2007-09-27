@@ -83,7 +83,6 @@ typedef struct SmidumpDriver {
 
 extern void initSmi(void);
 extern void initSming(void);
-extern void initSmiv3(void);
 extern void initSppi(void);
 extern void initSvg(void);
 extern void initImports(void);
