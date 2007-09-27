@@ -22,9 +22,7 @@
 #include "fprint.h"
 
 /*
- * TODO: - fix the mapping of some smi basetypes (counters, oids, opaque)
- *       - reduce imports to what is really needed
- *       - reproduce the table comment text as a yang comment
+ * TODO: - reproduce the table comment text as a yang comment
  */
 
 

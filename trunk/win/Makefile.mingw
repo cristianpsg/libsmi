@@ -76,6 +76,7 @@ TOOLSOBJS = \
 	smidiff.o \
 	smixlate.o \
 	shhopt.o \
+	fprint.o \
 	rea.o \
  	dstring.o \
 	dump-sming.o \
@@ -137,7 +138,7 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 		dump-corba.o dump-netsnmp.o dump-cm.o dump-jax.o dump-xml.o \
 		dump-identifiers.o dump-metrics.o dump-python.o dump-perl.o \
 		dump-scli.o dump-xsd.o dump-sppi.o dump-sizes.o dump-svg.o \
-		dump-compliance.o shhopt.o rea.o $(SMILIB)
+		dump-compliance.o shhopt.o fprint.o rea.o $(SMILIB)
 
 smidiff.exe:	$(TOOLSOBJS) $(SMILIB)
 	$(CC) $(CFLAGS) -o smidiff.exe smidiff.o shhopt.o $(SMILIB)

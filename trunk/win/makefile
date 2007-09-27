@@ -112,6 +112,7 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-sizes.obj		\
 	$(TMPDIR)\dump-svg.obj			\
 	$(TMPDIR)\dump-compliance.obj		\
+	$(TMPDIR)\fprint.obj			\
 	$(TMPDIR)\rea.obj
 
 SMIDIFFOBJS =					\
