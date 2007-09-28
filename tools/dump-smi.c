@@ -1119,6 +1119,7 @@ static void fprintTypeDefinitions(FILE *f, SmiModule *smiModule)
 
 static void fprintTextualConvention(FILE *f, SmiType *smiType)
 {
+    SmiType      *baseType;
     int		 invalid;
     
     if (smiType->status != SMI_STATUS_UNKNOWN) {
@@ -1170,14 +1171,14 @@ static void fprintTextualConvention(FILE *f, SmiType *smiType)
 		fprint(f, "\n");
 	    }
 	    
-	    for (smiType = smiGetParentType(smiType);
-		 smiType;
-		 smiType = smiGetParentType(smiType)) {
-		SmiType *parent = smiGetParentType(smiType);
+	    for (baseType = smiGetParentType(smiType);
+		 baseType;
+		 baseType = smiGetParentType(baseType)) {
+		SmiType *parent = smiGetParentType(baseType);
 		fprintSegment(f, INDENT, "SYNTAX", INDENTVALUE,
 			      smiv1 || invalid || parent);
 		fprint(f, "%s",
-		       getTypeString(smiType->basetype, smiType));
+		       getTypeString(baseType->basetype, baseType));
 		fprintSubtype(f, smiType, smiv1 || invalid || parent);
 		if (parent) {
 		    fprintf(f, "\n");
