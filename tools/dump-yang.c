@@ -22,17 +22,21 @@
 #include "fprint.h"
 
 /*
- * TODO: - reproduce the table comment text as a yang comment
+ * TODO:
+ * - reproduce the table comment text as a yang comment
+ * - not-accessible index objects need to inherit config true:
+ *   config true iff any other leaf in the list entry has config true
+ * - move absolute augments to the top-level
+ * - peek into format strings to determine whether we use string or
+ *   binary as the base type
  */
 
+static int sflag = 0;		/* generate smi: extensions */
+static int INDENT = 2;		/* indent factor */
 
-static int  sflag = 0;
-
-
-#define  INDENT		4    /* indent factor */
 #define  INDENTVALUE	20   /* column to start values, except multiline */
-
 #define	 URNBASE	"urn:ietf:params:xml:ns:yang:smiv2:"
+
 
 /*
  * Structure used to build a list of imported types.
@@ -766,7 +770,7 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode)
     fprintConfig(f, indent + INDENT, smiNode->access);
     fprintFormat(f, indent + INDENT, smiNode->format);
     fprintObjectIdentifier(f, indent + INDENT, smiNode->oid, smiNode->oidlen);
-    fprintSegment(f, indent, "}\n\n", 0);
+    fprintSegment(f, indent, "}\n", 0);
 }
 
 
@@ -788,12 +792,12 @@ fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode)
 
 
 static void
-fprintKeys(FILE *f, int indent, SmiNode *smiNode)
+fprintKey(FILE *f, int indent, SmiNode *smiNode)
 {
     SmiElement *smiElement;
     int j;
 
-    fprintSegment(f, indent, "keys \"", 0);
+    fprintSegment(f, indent, "key \"", 0);
 
     for (j = 0, smiElement = smiGetFirstElement(smiNode); smiElement;
 	 j++, smiElement = smiGetNextElement(smiElement)) {
@@ -803,7 +807,27 @@ fprintKeys(FILE *f, int indent, SmiNode *smiNode)
 	fprintWrapped(f, INDENTVALUE + 1,
 		      smiGetElementNode(smiElement)->name);
     }
-    fprint(f, "\";\n");
+    fprint(f, "\";\n\n");
+}
+
+
+static void
+fprintLeafs(FILE *f, int indent, SmiNode *smiNode)
+{
+    SmiNode *childNode;
+    int c;
+    
+    for (c = 0, childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if (childNode->nodekind == SMI_NODEKIND_COLUMN) {
+	    if (c) {
+		fprint(f, "\n");
+	    }
+	    fprintLeaf(f, indent, childNode);
+	    c++;
+	}
+    }
 }
 
 
@@ -824,6 +848,8 @@ fprintList(FILE *f, int indent, SmiNode *smiNode)
     fprintSegment(f, indent, "list", 0);
     fprint(f, " %s {\n\n", entryNode->name);
 
+    fprintKey(f, indent + INDENT, entryNode);
+
     for (smiElement = smiGetFirstElement(entryNode); smiElement;
 	 smiElement = smiGetNextElement(smiElement)) {
 	childNode = smiGetElementNode(smiElement);
@@ -834,18 +860,11 @@ fprintList(FILE *f, int indent, SmiNode *smiNode)
 	}
     }
 
-    for (childNode = smiGetFirstChildNode(entryNode);
-	 childNode;
-	 childNode = smiGetNextChildNode(childNode)) {
-	if (childNode->nodekind == SMI_NODEKIND_COLUMN) {
-	    fprintLeaf(f, indent + INDENT, childNode);
-	}
-    }
+    fprintLeafs(f, indent + INDENT, entryNode);
 
-    fprintKeys(f, indent + INDENT, entryNode);
     fprintObjectIdentifier(f, indent + INDENT,
 			   entryNode->oid, entryNode->oidlen);
-    fprintSegment(f, indent, "}\n\n", 0);
+    fprintSegment(f, indent, "}\n", 0);
 }
 
 
@@ -873,17 +892,10 @@ fprintAugment(FILE *f, int indent, SmiNode *smiNode)
     fprintPath(f, baseEntryNode);
     fprint(f, "\" {\n\n");
 
-    for (childNode = smiGetFirstChildNode(entryNode);
-	 childNode;
-	 childNode = smiGetNextChildNode(childNode)) {
-	if (childNode->nodekind == SMI_NODEKIND_COLUMN) {
-	    fprintLeaf(f, indent + INDENT, childNode);
-	}
-    }
-
+    fprintLeafs(f, indent + INDENT, entryNode);
     fprintObjectIdentifier(f, indent + INDENT,
 			   smiNode->oid, smiNode->oidlen);
-    fprintSegment(f, indent, "}\n\n", 0);
+    fprintSegment(f, indent, "}\n", 0);
 }
 
 
@@ -891,15 +903,20 @@ static void
 fprintContainer(FILE *f, int indent, SmiNode *smiNode)
 {
     SmiNode *childNode;
+    int c;
 
     fprintSegment(f, indent, "container", 0);
     fprint(f, " %s {\n\n", smiNode->name);
 
-    for (childNode = smiGetFirstChildNode(smiNode);
+    for (c = 0, childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
+	if (c) {
+	    fprint(f, "\n");
+	}
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
 	    fprintLeaf(f, indent + INDENT, childNode);
+	    c++;
 	}
 	if (childNode->nodekind == SMI_NODEKIND_TABLE) {
 	    SmiNode *entryNode = smiGetFirstChildNode(childNode);
@@ -910,9 +927,11 @@ fprintContainer(FILE *f, int indent, SmiNode *smiNode)
 		case SMI_INDEX_SPARSE:
 		case SMI_INDEX_EXPAND:
 			fprintList(f, indent + INDENT, childNode);
+			c++;
 			break;
 		case SMI_INDEX_AUGMENT:
 			fprintAugment(f, indent + INDENT, childNode);
+			c++;
 			break;
 		default:
 			break;
@@ -1003,6 +1022,8 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 
     silent = (flags & SMIDUMP_FLAG_SILENT);
 
+    fprint_indent_texts = INDENT;
+    
     if (output) {
 	f = fopen(output, "w");
 	if (!f) {
@@ -1062,10 +1083,12 @@ void initYang()
 {
     static SmidumpDriverOption opt[] = {
 	{ "smi", OPT_FLAG, &sflag, 0,
-	  "generate smi extensions"},
+	  "generate smi extensions" },
+	{ "indent", OPT_INT, &INDENT, 0,
+	  "indentation (default 2)" },
         { 0, OPT_END, 0, 0 }
     };
-    
+
     static SmidumpDriver driver = {
 	"yang",
 	dumpYang,
