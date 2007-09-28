@@ -31,8 +31,6 @@
  * - peek into format strings to determine whether we use string or
  *   binary as the base type
  * - translate notifications
- * - restrictions are missing on typedefs (e.g. SNMPv2-TC:TruthValue)
- *   (dump-smi.c seems to have the same defect)
  */
 
 static int sflag = 0;		/* generate smi: extensions */
@@ -669,33 +667,19 @@ fprintTypedefs(FILE *f, SmiModule *smiModule)
     for (i = 0, smiType = smiGetFirstType(smiModule);
 	 smiType; smiType = smiGetNextType(smiType)) {
 
-#if 0
-	if ((!(strcmp(smiModule->name, "SNMPv2-SMI"))) ||
-	    (!(strcmp(smiModule->name, "RFC1155-SMI")))) {
-	    for(j=0; excludeType[j]; j++) {
-		if (!strcmp(smiType->name, excludeType[j])) break;
-	    }
-	    if (excludeType[j]) break;
-	}
-#endif
-	    
 	if (!i && !silent) {
 	    fprintSegment(f, INDENT, "/*** TYPE DEFINITIONS ***/\n\n", 0);
 	}
 	fprintSegment(f, INDENT, "", 0);
 	fprint(f, "typedef %s {\n", smiType->name);
 
-	fprintType(f, 2 * INDENT,
-		   smiGetTypeModule(smiType),
-		   smiGetParentType(smiType));
+	fprintType(f, 2 * INDENT, smiGetTypeModule(smiType), smiType);
 
-#if 0
 	if (smiType->value.basetype != SMI_BASETYPE_UNKNOWN) {
 	    fprintSegment(f, 2 * INDENT, "default", INDENTVALUE);
 	    fprint(f, "%s", getValueString(&smiType->value, smiType));
 	    fprint(f, ";\n");
 	}
-#endif
 	
 	fprintUnits(f, 2 * INDENT, smiType->units);
 	fprintStatus(f, 2 * INDENT, smiType->status);
