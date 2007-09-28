@@ -24,13 +24,10 @@
 /*
  * TODO:
  * - reproduce the table comment text as a yang comment
- * - not-accessible index objects need to inherit config true:
- *   config true iff any other leaf in the list entry has config true
- *   use read-create to determine whether keys should be config true
  * - move absolute augments to the top-level
  * - peek into format strings to determine whether we use string or
  *   binary as the base type
- * - translate notifications
+ * - translate notifications properly
  */
 
 static int sflag = 0;		/* generate smi: extensions */
@@ -651,9 +648,10 @@ fprintReference(FILE *f, int indent, const char *reference)
 static void
 fprintConfig(FILE *f, int indent, SmiAccess access)
 {
-    if (access != SMI_ACCESS_READ_WRITE) {
-	fprintSegment(f, indent, "config", 0);
-	fprint(f, " false;\n");
+    if (access == SMI_ACCESS_READ_WRITE) {
+	fprintSegment(f, indent, "config true;\n", 0);
+    } else {
+	fprintSegment(f, indent, "config false;\n", 0);
     }
 }
 
@@ -765,6 +763,9 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode)
 static void
 fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode)
 {
+    SmiNode *entryNode;
+
+    entryNode = smiGetParentNode(smiNode);
     fprintSegment(f, indent, "leaf ", 0);
     fprint(f, "%s {\n", smiNode->name);
     fprintSegment(f, indent + INDENT, "type keyref {\n", 0);
@@ -775,6 +776,8 @@ fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode)
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT,
 		      "Automagically generated keyref leaf.");
+    fprintConfig(f, indent + INDENT,
+	 entryNode->create ? SMI_ACCESS_READ_WRITE : SMI_ACCESS_READ_ONLY);
     fprintSegment(f, indent, "}\n\n", 0);
 }
 
@@ -792,10 +795,10 @@ fprintKey(FILE *f, int indent, SmiNode *smiNode)
         if (j) {
             fprint(f, ", ");
 	}
-	fprintWrapped(f, INDENTVALUE + 1,
+	fprintWrapped(f, indent + 5,
 		      smiGetElementNode(smiElement)->name);
     }
-    fprint(f, "\";\n\n");
+    fprint(f, "\";\n");
 }
 
 
@@ -837,6 +840,12 @@ fprintList(FILE *f, int indent, SmiNode *smiNode)
     fprint(f, " %s {\n\n", entryNode->name);
 
     fprintKey(f, indent + INDENT, entryNode);
+    fprintStatus(f, indent + INDENT, entryNode->status);
+    fprintDescription(f, indent + INDENT, entryNode->description);
+    fprintReference(f, indent + INDENT, entryNode->reference);
+    fprintObjectIdentifier(f, indent + INDENT,
+			   entryNode->oid, entryNode->oidlen);
+    fprint(f, "\n");
 
     for (smiElement = smiGetFirstElement(entryNode); smiElement;
 	 smiElement = smiGetNextElement(smiElement)) {
@@ -860,7 +869,6 @@ static void
 fprintAugment(FILE *f, int indent, SmiNode *smiNode)
 {
     SmiNode *entryNode = NULL;
-    SmiNode *childNode = NULL;
     SmiNode *baseEntryNode = NULL;
 
     entryNode = smiGetFirstChildNode(smiNode);
@@ -1002,6 +1010,48 @@ fprintMeta(FILE *f, int indent, SmiModule *smiModule)
 
 
 static void
+fprintNotification(FILE *f, SmiNode *smiNode)
+{
+    SmiElement *smiElement;
+    int c;
+    
+    fprintSegment(f, INDENT, "notification", 0);
+    fprint(f, " %s {\n", smiNode->name);
+    fprintStatus(f, INDENT + INDENT, smiNode->status);
+    fprintDescription(f, INDENT + INDENT, smiNode->description);
+    fprintReference(f, INDENT + INDENT, smiNode->reference);
+    fprintObjectIdentifier(f, INDENT + INDENT, smiNode->oid, smiNode->oidlen);
+    fprint(f, "\n");
+
+    for (c = 0, smiElement = smiGetFirstElement(smiNode); smiElement;
+	 c++, smiElement = smiGetNextElement(smiElement)) {
+	fprintKeyrefLeaf(f, INDENT + INDENT, smiGetElementNode(smiElement));
+    }
+
+    fprintSegment(f, INDENT, "}\n", 0);
+}
+
+
+static void
+fprintNotifications(FILE *f, SmiModule *smiModule)
+{
+    SmiNode *smiNode;
+    int c;
+
+    for (c = 0, smiNode = smiGetFirstNode(smiModule,
+					  SMI_NODEKIND_NOTIFICATION);
+	 smiNode;
+	 c++, smiNode = smiGetNextNode(smiNode,
+				       SMI_NODEKIND_NOTIFICATION)) {
+	if (c) {
+	    fprint(f, "\n");
+	}
+	fprintNotification(f, smiNode);
+    }
+}
+
+
+static void
 dumpYang(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiModule   *smiModule;
@@ -1049,6 +1099,8 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 
 	fprintTypedefs(f, modv[i]);
 	fprintContainers(f, modv[i]);
+
+	fprintNotifications(f, modv[i]);
 
     	fprint(f, "} /* end of module %s */\n", smiModule->name);
 
