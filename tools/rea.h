@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-cm.c 2078 2005-03-03 15:17:55Z sperner $
+ * @(#) $Id$
  */
 
 

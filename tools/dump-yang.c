@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-mosy.c 6635 2007-03-13 21:53:21Z schoenw $
+ * @(#) $Id$
  */
 
 #include <config.h>
