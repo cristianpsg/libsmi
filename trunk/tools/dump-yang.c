@@ -26,9 +26,13 @@
  * - reproduce the table comment text as a yang comment
  * - not-accessible index objects need to inherit config true:
  *   config true iff any other leaf in the list entry has config true
+ *   use read-create to determine whether keys should be config true
  * - move absolute augments to the top-level
  * - peek into format strings to determine whether we use string or
  *   binary as the base type
+ * - translate notifications
+ * - restrictions are missing on typedefs (e.g. SNMPv2-TC:TruthValue)
+ *   (dump-smi.c seems to have the same defect)
  */
 
 static int sflag = 0;		/* generate smi: extensions */
@@ -619,7 +623,7 @@ fprintObjectIdentifier(FILE *f, int indent, SmiSubid *oid, int oidlen)
 	for (i=0; i < oidlen; i++) {
 	    fprint(f, "%s%d", i ? "." : "", oid[i]);
 	}
-	fprint(f, "\"\n");
+	fprint(f, "\";\n");
     }
 }
 
