@@ -507,7 +507,7 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
 	    "SNMPv2-SMI", "Counter32", "yang:counter32",
 	    "SNMPv2-SMI", "Counter64", "yang:counter64",
 	    "SNMPv2-SMI", "Gauge32",   "yang:gauge32",
-	    "SNMPv2-SMI", "TimeTicks", "yang:time-ticks",
+	    "SNMPv2-SMI", "TimeTicks", "yang:timeticks",
 	    "SNMPv2-SMI", "IpAddress", "inet:ipv4-address",
 	    NULL, NULL, NULL
     };
@@ -1058,10 +1058,10 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 	fprint(f, "module %s {\n", smiModule->name);
 	fprint(f, "\n");
 
-	fprintLinkage(f, INDENT, smiModule);
-	fprintNamespace(f, INDENT, smiModule);
 	fprintMeta(f, INDENT, smiModule);
 	fprintRevisions(f, INDENT, smiModule);
+	fprintNamespace(f, INDENT, smiModule);
+	fprintLinkage(f, INDENT, smiModule);
 
 	fprintTypedefs(f, modv[i]);
 	fprintContainers(f, modv[i]);
