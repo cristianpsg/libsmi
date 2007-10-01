@@ -24,7 +24,6 @@
 /*
  * TODO:
  * - reproduce the table comment text as a yang comment
- * - move absolute augments to the top-level
  * - peek into format strings to determine whether we use string or
  *   binary as the base type
  * - translate notifications properly
@@ -626,10 +625,12 @@ fprintObjectIdentifier(FILE *f, int indent, SmiSubid *oid, int oidlen)
 static void
 fprintDescription(FILE *f, int indent, const char *description)
 {
-    fprintSegment(f, indent, "description", INDENTVALUE);
-    fprint(f, "\n");
-    fprintMultilineString(f, indent, description);
-    fprint(f, ";\n");
+    if (description) {
+	fprintSegment(f, indent, "description", INDENTVALUE);
+	fprint(f, "\n");
+	fprintMultilineString(f, indent, description);
+	fprint(f, ";\n");
+    }
 }
 
 
@@ -812,9 +813,7 @@ fprintLeafs(FILE *f, int indent, SmiNode *smiNode)
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
 	if (childNode->nodekind == SMI_NODEKIND_COLUMN) {
-	    if (c) {
-		fprint(f, "\n");
-	    }
+	    fprint(f, "\n");
 	    fprintLeaf(f, indent, childNode);
 	    c++;
 	}
@@ -870,8 +869,11 @@ fprintAugment(FILE *f, int indent, SmiNode *smiNode)
 {
     SmiNode *entryNode = NULL;
     SmiNode *baseEntryNode = NULL;
-
+#if 0
     entryNode = smiGetFirstChildNode(smiNode);
+#else
+    entryNode = smiNode;
+#endif
     if (entryNode) {
         baseEntryNode = smiGetRelatedNode(entryNode);
     }
@@ -886,12 +888,32 @@ fprintAugment(FILE *f, int indent, SmiNode *smiNode)
     fprintSegment(f, indent, "augment", 0);
     fprint(f, " \"");
     fprintPath(f, baseEntryNode);
-    fprint(f, "\" {\n\n");
+    fprint(f, "\" {\n");
+    fprintStatus(f, indent + INDENT, smiNode->status);
+    fprintDescription(f, indent + INDENT, smiNode->description);
+    fprintReference(f, indent + INDENT, smiNode->reference);
 
     fprintLeafs(f, indent + INDENT, entryNode);
     fprintObjectIdentifier(f, indent + INDENT,
 			   smiNode->oid, smiNode->oidlen);
-    fprintSegment(f, indent, "}\n", 0);
+    fprintSegment(f, indent, "}\n\n", 0);
+}
+
+
+static void
+fprintAugments(FILE *f, SmiModule *smiModule)
+{
+    SmiNode *smiNode;
+    
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	smiNode;
+	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	if (smiNode->nodekind == SMI_NODEKIND_ROW
+	    && smiNode->indexkind == SMI_INDEX_AUGMENT) {
+	    fprintAugment(f, INDENT, smiNode);
+	}
+    }
+
 }
 
 
@@ -925,10 +947,12 @@ fprintContainer(FILE *f, int indent, SmiNode *smiNode)
 			fprintList(f, indent + INDENT, childNode);
 			c++;
 			break;
+#if 0
 		case SMI_INDEX_AUGMENT:
 			fprintAugment(f, indent + INDENT, childNode);
 			c++;
 			break;
+#endif
 		default:
 			break;
 		}
@@ -948,7 +972,7 @@ fprintContainers(FILE *f, SmiModule *smiModule)
 {
     SmiNode *smiNode;
     
-    for(smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	smiNode;
 	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	if (isGroup(smiNode)) {
@@ -1099,6 +1123,7 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 
 	fprintTypedefs(f, modv[i]);
 	fprintContainers(f, modv[i]);
+	fprintAugments(f, modv[i]);
 
 	fprintNotifications(f, modv[i]);
 
