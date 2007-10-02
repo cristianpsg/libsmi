@@ -5721,7 +5721,19 @@ Entry:			ObjectName
         ;
 
 DefValPart:		DEFVAL '{' Value '}'
-			{ $$ = $3; }
+			{
+			    $$ = $3;
+			    if ((defaultBasetype == SMI_BASETYPE_BITS) &&
+				($$->basetype != SMI_BASETYPE_BITS)) {
+				smiPrintError(thisParserPtr,
+					      ERR_DEFVAL_SYNTAX);
+				if ($$->basetype == SMI_BASETYPE_OCTETSTRING) {
+				    smiFree($$->value.ptr);
+				}
+				smiFree($$);
+				$$ = NULL;
+			    }
+			}
 	|		/* empty */
 			{ $$ = NULL; }
 			/* TODO: different for DefValPart in AgentCaps ? */
