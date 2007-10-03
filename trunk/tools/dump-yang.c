@@ -25,11 +25,8 @@
  * TODO:
  * - reproduce the table comment text as a yang comment
  * - peek into format strings to determine whether we use string or
- *   binary as the base type
- * - need to fix the type printing; sometimes we pass the to be defined
- *   type to fprintType and sometimes the type we are going to use and
- *   these are two different pairs of shoes
- * - translate notifications properly
+ *   binary as the base type (needs a resolution on YANG encodings)
+ * - translate notifications properly (whatever that means ;-)
  * - make a first pass to see which imports are actually needed; right
  *   now we import a bit too much in some cases
  */
@@ -1215,7 +1212,10 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 	fprint(f, " *\n");
 	fprint(f, " *      smidump -f yang");
 	if (sflag) {
-	    fprint(f, " --yang-smi");
+	    fprint(f, " --yang-smi-extensions");
+	}
+	if (nflag) {
+	    fprint(f, " --yang-no-notifications");
 	}
 	fprint(f, " %s\n", smiModule->name);
 	fprint(f, " *\n");
