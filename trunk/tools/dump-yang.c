@@ -26,14 +26,62 @@
  * - reproduce the table comment text as a yang comment
  * - peek into format strings to determine whether we use string or
  *   binary as the base type
+ * - need to fix the type printing; sometimes we pass the to be defined
+ *   type to fprintType and sometimes the type we are going to use and
+ *   these are two different pairs of shoes
  * - translate notifications properly
+ * - make a first pass to see which imports are actually needed; right
+ *   now we import a bit too much in some cases
  */
 
 static int sflag = 0;		/* generate smi: extensions */
+static int nflag = 0;		/* generate notifications */
 static int INDENT = 2;		/* indent factor */
 
 #define  INDENTVALUE	20   /* column to start values, except multiline */
 #define	 URNBASE	"urn:ietf:params:xml:ns:yang:smiv2:"
+
+
+static const char *convertType[] = {
+
+    /*
+     * Translation of the SMIng built-in types to the YANG
+     * equivalents.
+     */
+    
+    "",		  "Integer32",   NULL,	     "int32",
+    "",		  "Integer64",   NULL,	     "int64",
+    "",		  "Unsigned32",  NULL,	     "uint32",
+    "",		  "Unsigned64",  NULL,	     "uint64",
+    "",		  "OctetString", NULL,	     "binary",
+    "",		  "Enumeration", NULL,	     "enumeration",
+    "",		  "Bits", NULL,		     "bits",
+    "",		  "ObjectIdentifier", "yang-types", "object-identifier",
+
+    /*
+     * We want to do these translations as well in order to retire the
+     * SNMPv2-SMI module which is not really an SMIv2 module but part
+     * of the definition of SNMPv2-SMI itself.
+     */
+       
+    "SNMPv2-SMI", "Counter32", "yang-types", "counter32",
+    "SNMPv2-SMI", "Counter64", "yang-types", "counter64",
+    "SNMPv2-SMI", "Gauge32",   "yang-types", "gauge32",
+    "SNMPv2-SMI", "TimeTicks", "yang-types", "timeticks",
+    "SNMPv2-SMI", "IpAddress", "inet-types", "ipv4-address",
+
+    /*
+     * We also translate frequently used SNMPv2-TCs that have a YANG
+     * equivalent. Note that DateAndTime is slightly different from
+     * the ISO profile used by date-and-time.
+     */
+
+    "SNMPv2-TC",  "PhysAddress", "yang-types", "phys-address",
+    "SNMPv2-TC",  "MacAddress",  "ieee-types", "mac-address",
+    "SNMPv2-TC",  "TimeStamp",   "yang-types", "timestamp",
+
+    NULL, NULL, NULL, NULL
+};
 
 
 /*
@@ -64,7 +112,7 @@ getStringStatus(SmiStatus status)
 }
 
 
-
+#if 0
 static char*
 getStringBasetype(SmiBasetype basetype)
 {
@@ -83,6 +131,7 @@ getStringBasetype(SmiBasetype basetype)
         (basetype == SMI_BASETYPE_BITS)              ? "bits" :
                                                    "<unknown>";
 }
+#endif
 
 
 
@@ -244,8 +293,6 @@ guessNicePrefix(const char *moduleName)
     int i;
 
     char *specials[] = {
-	    "SNMPv2-TC", "smi",
-	    "SNMPv2-MIB", "snmp",
 	    NULL, NULL
     };
 
@@ -332,10 +379,9 @@ createImportList(SmiModule *smiModule)
     
     for (smiImport = smiGetFirstImport(smiModule); smiImport;
 	 smiImport = smiGetNextImport(smiImport)) {
-	    if (strcmp(smiImport->module, "SNMPv2-CONF") != 0
-		    && strcmp(smiImport->module, "SNMPv2-SMI") != 0) {
-		    addImport(smiImport->module, smiImport->name);
-	    }
+	if (strcmp(smiImport->module, "SNMPv2-CONF") != 0) {
+	    addImport(smiImport->module, smiImport->name);
+	}
     }
 }
 
@@ -488,7 +534,7 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 }
 
 
-
+#if 0
 static void
 fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
 {
@@ -517,27 +563,20 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
     /* first lets handle some special cases */
 
     if (smiModule != thisModule) {
-	    for (i = 0; special[i]; i += 3) {
-		    if ((strcmp(special[i], smiModule->name) == 0)
-			&& (strcmp(special[i+1], smiType->name) == 0)) {
-			    fprint(f, " %s", special[i+2]);
-			    fprint(f, ";\n");
-			    return;
-		    }
+	for (i = 0; special[i]; i += 3) {
+	    if ((strcmp(special[i], smiModule->name) == 0)
+		&& (strcmp(special[i+1], smiType->name) == 0)) {
+		fprint(f, " %s", special[i+2]);
+		fprint(f, ";\n");
+		return;
 	    }
+	}
     }
 
-    /* this type is a base type - easy */
+    /* this type is a named imported type and not a built-in type - easy */
 
-    if (parentType == NULL) {
-	fprint(f, " %s", getStringBasetype(smiType->basetype));
-	fprint(f, ";\n");
-	return;
-    }
-
-    /* this type is an imported type - easy */
-
-    if (smiModule != thisModule) {
+    if (smiModule && smiModule != thisModule) {
+	fprint(f, "/**imported,derived**/");
 	fprint(f, " %s:%s",
 	       getModulePrefix(smiModule->name),
 	       smiType->name);
@@ -545,12 +584,26 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
 	return;
     }
 
+    /* this type is a built-in type - easy */
+
+    if (smiModule == NULL) {
+	fprint(f, "/**built-in**/");
+	fprint(f, " %s", getStringBasetype(smiType->basetype));
+	fprintSubtype(f, indent, smiType);
+	return;
+    }
+
     /* this is a locally defined named type - easy as well */
 
     if (smiModule == thisModule && smiType->name) {
-	fprint(f, " %s:%s",
-	       getModulePrefix(thisModule->name),
-	       smiType->name);
+	fprint(f, "/**local,named**/");
+        if (parentType == NULL || smiGetParentType(parentType) == NULL) {
+	    fprint(f, " %s", getStringBasetype(smiType->basetype));
+	} else {
+   	    fprint(f, " %s:%s",
+		   getModulePrefix(smiModule->name),
+		   smiType->name);
+	}
 	fprintSubtype(f, indent, smiType);
 	return;
     }
@@ -558,7 +611,8 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
     /* this is a locally defined unnamed type - easy as well? */
 
     if (smiModule == thisModule && smiType->name == NULL) {
-        if (smiGetParentType(parentType) == NULL) {
+	fprint(f, "/**local,unnamed**/");
+        if (parentModule == NULL || (parentType == NULL && smiGetParentType(parentType) == NULL)) {
 	    fprint(f, " %s", getStringBasetype(smiType->basetype));
 	} else {
    	    fprint(f, " %s:%s",
@@ -571,6 +625,7 @@ fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
 
     /* uops - still here ? */
 }
+#endif
 
 
 static void
@@ -658,13 +713,67 @@ fprintConfig(FILE *f, int indent, SmiAccess access)
 
 
 static void
+fprintDefault(FILE *f, int indent, SmiValue *value, SmiType *smiType)
+{
+    if (sflag && value->basetype != SMI_BASETYPE_UNKNOWN) {
+	fprintSegment(f, indent, "smi:default", 0);
+	fprint(f, " \"%s\";\n", getValueString(value, smiType));
+    }
+}
+
+
+static void
+fprintTypename(FILE *f, SmiType *smiType)
+{
+    const char *typeModule = NULL, *typeName = NULL;
+    SmiModule *smiModule;
+    int i;
+
+    if (! smiType) return;
+
+    smiModule = smiGetTypeModule(smiType);
+
+    if (smiType && ! smiType->name) {
+	fprintTypename(f, smiGetParentType(smiType));
+	return;
+    }
+
+    for (i = 0; convertType[i]; i += 4) {
+	if (strcmp(smiModule->name, convertType[i]) == 0
+	    && strcmp(smiType->name, convertType[i+1]) == 0) {
+	    typeModule = convertType[i+2];
+	    typeName = convertType[i+3];
+	    break;
+	}
+    }
+
+    if (! typeName) {
+	typeModule = smiModule->name;
+	typeName = smiType->name;
+    }
+
+    if (typeModule) {
+	typeModule = getModulePrefix(typeModule);
+    }
+    
+    if (typeModule && typeName) {
+	fprint(f, "%s:%s", typeModule, typeName);
+    } else {
+	fprint(f, "%s", typeName);
+    }
+}
+
+
+static void
 fprintTypedefs(FILE *f, SmiModule *smiModule)
 {
     int		 i;
-    SmiType	 *smiType;
+    SmiType	 *smiType, *baseType;
     
     for (i = 0, smiType = smiGetFirstType(smiModule);
 	 smiType; smiType = smiGetNextType(smiType)) {
+
+	baseType = smiGetParentType(smiType);
 
 	if (!i && !silent) {
 	    fprintSegment(f, INDENT, "/*** TYPE DEFINITIONS ***/\n\n", 0);
@@ -672,19 +781,16 @@ fprintTypedefs(FILE *f, SmiModule *smiModule)
 	fprintSegment(f, INDENT, "", 0);
 	fprint(f, "typedef %s {\n", smiType->name);
 
-	fprintType(f, 2 * INDENT, smiGetTypeModule(smiType), smiType);
-
-	if (smiType->value.basetype != SMI_BASETYPE_UNKNOWN) {
-	    fprintSegment(f, 2 * INDENT, "default", INDENTVALUE);
-	    fprint(f, "%s", getValueString(&smiType->value, smiType));
-	    fprint(f, ";\n");
-	}
+	fprintSegment(f, 2 * INDENT, "type ", 0);
+	fprintTypename(f, baseType);
+	fprintSubtype(f, 2 * INDENT, smiType);
 	
 	fprintUnits(f, 2 * INDENT, smiType->units);
 	fprintStatus(f, 2 * INDENT, smiType->status);
 	fprintDescription(f, 2 * INDENT, smiType->description);
 	fprintReference(f, 2 * INDENT, smiType->reference);
 	fprintFormat(f, 2 * INDENT, smiType->format);
+	fprintDefault(f, 2 * INDENT, &smiType->value, smiType);
 
 	fprintSegment(f, INDENT, "}\n\n", 0);
 	i++;
@@ -749,13 +855,22 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode)
 
     fprintSegment(f, indent, "leaf ", 0);
     fprint(f, "%s {\n", smiNode->name);
-    fprintType(f, indent + INDENT, smiGetNodeModule(smiNode), smiType);
+
+    fprintSegment(f, indent + INDENT, "type ", 0);
+    fprintTypename(f, smiType);
+    if (! smiType->name) {
+	fprintSubtype(f, indent + INDENT, smiType);
+    } else {
+	fprint(f, ";\n");
+    }
+    
     fprintUnits(f, indent + INDENT, smiNode->units);
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT, smiNode->description);
     fprintReference(f, indent + INDENT, smiNode->reference);
     fprintConfig(f, indent + INDENT, smiNode->access);
     fprintFormat(f, indent + INDENT, smiNode->format);
+    fprintDefault(f, indent + INDENT, &smiNode->value, smiType);
     fprintObjectIdentifier(f, indent + INDENT, smiNode->oid, smiNode->oidlen);
     fprintSegment(f, indent, "}\n", 0);
 }
@@ -858,8 +973,6 @@ fprintList(FILE *f, int indent, SmiNode *smiNode)
 
     fprintLeafs(f, indent + INDENT, entryNode);
 
-    fprintObjectIdentifier(f, indent + INDENT,
-			   entryNode->oid, entryNode->oidlen);
     fprintSegment(f, indent, "}\n", 0);
 }
 
@@ -867,17 +980,12 @@ fprintList(FILE *f, int indent, SmiNode *smiNode)
 static void
 fprintAugment(FILE *f, int indent, SmiNode *smiNode)
 {
-    SmiNode *entryNode = NULL;
     SmiNode *baseEntryNode = NULL;
-#if 0
-    entryNode = smiGetFirstChildNode(smiNode);
-#else
-    entryNode = smiNode;
-#endif
-    if (entryNode) {
-        baseEntryNode = smiGetRelatedNode(entryNode);
+
+    if (smiNode) {
+        baseEntryNode = smiGetRelatedNode(smiNode);
     }
-    if (! entryNode || ! baseEntryNode) {
+    if (! smiNode || ! baseEntryNode) {
         return;
     }
 
@@ -893,7 +1001,7 @@ fprintAugment(FILE *f, int indent, SmiNode *smiNode)
     fprintDescription(f, indent + INDENT, smiNode->description);
     fprintReference(f, indent + INDENT, smiNode->reference);
 
-    fprintLeafs(f, indent + INDENT, entryNode);
+    fprintLeafs(f, indent + INDENT, smiNode);
     fprintObjectIdentifier(f, indent + INDENT,
 			   smiNode->oid, smiNode->oidlen);
     fprintSegment(f, indent, "}\n\n", 0);
@@ -1125,7 +1233,9 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 	fprintContainers(f, modv[i]);
 	fprintAugments(f, modv[i]);
 
-	fprintNotifications(f, modv[i]);
+	if (! nflag) {
+	    fprintNotifications(f, modv[i]);
+	}
 
     	fprint(f, "} /* end of module %s */\n", smiModule->name);
 
@@ -1147,8 +1257,10 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 void initYang()
 {
     static SmidumpDriverOption opt[] = {
-	{ "smi", OPT_FLAG, &sflag, 0,
+	{ "smi-extensions", OPT_FLAG, &sflag, 0,
 	  "generate smi extensions" },
+	{ "no-notifications", OPT_FLAG, &nflag, 0,
+	  "do not generate notifications" },
 	{ "indent", OPT_INT, &INDENT, 0,
 	  "indentation (default 2)" },
         { 0, OPT_END, 0, 0 }
