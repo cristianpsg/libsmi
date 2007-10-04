@@ -27,8 +27,6 @@
  * - peek into format strings to determine whether we use string or
  *   binary as the base type (needs a resolution on YANG encodings)
  * - translate notifications properly (whatever that means ;-)
- * - make a first pass to see which imports are actually needed; right
- *   now we import a bit too much in some cases
  */
 
 static int sflag = 0;		/* generate smi: extensions */
@@ -60,7 +58,10 @@ static const char *convertType[] = {
      * SNMPv2-SMI module which is not really an SMIv2 module but part
      * of the definition of SNMPv2-SMI itself.
      */
-       
+
+    "SNMPv2-SMI", "Integer32",  NULL,        "int32",
+    "SNMPv2-SMI", "Integer64",  NULL,        "int64",
+    "SNMPv2-SMI", "Unsigned32", NULL,        "uint32",
     "SNMPv2-SMI", "Counter32", "yang-types", "counter32",
     "SNMPv2-SMI", "Counter64", "yang-types", "counter64",
     "SNMPv2-SMI", "Gauge32",   "yang-types", "gauge32",
@@ -76,6 +77,28 @@ static const char *convertType[] = {
     "SNMPv2-TC",  "PhysAddress", "yang-types", "phys-address",
     "SNMPv2-TC",  "MacAddress",  "ieee-types", "mac-address",
     "SNMPv2-TC",  "TimeStamp",   "yang-types", "timestamp",
+
+    NULL, NULL, NULL, NULL
+};
+
+
+static const char *convertImport[] = {
+
+    /*
+     * Things that are not types but removed from imports...
+     */
+
+    "SNMPv2-SMI",  "MODULE-IDENTITY",    NULL, NULL,
+    "SNMPv2-SMI",  "OBJECT-IDENTITY",    NULL, NULL,
+    "SNMPv2-SMI",  "OBJECT-TYPE",        NULL, NULL,
+    "SNMPv2-SMI",  "NOTIFICATION-TYPE",  NULL, NULL,
+    "SNMPv2-SMI",  "mib-2",              NULL, NULL,
+    "SNMPv2-TC",   "TEXTUAL-CONVENTION", NULL, NULL,
+    "SNMPv2-CONF", "OBJECT-GROUP",       NULL, NULL,
+    "SNMPv2-CONF", "NOTIFICATION-GROUP", NULL, NULL,
+    "SNMPv2-CONF", "MODULE-COMPLIANCE",  NULL, NULL,
+    "SNMPv2-CONF", "AGENT-CAPABILITIES", NULL, NULL,
+    "SNMPv2-MIB",  "snmpTraps",	         NULL, NULL,
 
     NULL, NULL, NULL, NULL
 };
@@ -142,32 +165,6 @@ getStringDate(time_t t)
     sprintf(s, "%04d-%02d-%02d",
 	    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
     return s;
-}
-
-
-
-static char*
-getModuleUrn(const char *moduleName)
-{
-    static const char *prefix = URNBASE;
-    static char *buf = NULL;
-    static size_t buflen = 0;
-    size_t prefix_len;
-    size_t name_len;
-
-    prefix_len = strlen(prefix);
-    name_len = strlen(moduleName);
-    
-    if (buflen < prefix_len + name_len + 1) {
-	if (buf) xfree(buf);
-	buflen = prefix_len + name_len + 1;
-	buf = xmalloc(buflen);
-    }
-
-    strcpy(buf, prefix);
-    strcat(buf, moduleName);
-
-    return buf;
 }
 
 
@@ -287,7 +284,7 @@ static char*
 guessNicePrefix(const char *moduleName)
 {
     char *prefix;
-    int i;
+    int i, d;
 
     char *specials[] = {
 	    NULL, NULL
@@ -306,13 +303,16 @@ guessNicePrefix(const char *moduleName)
         prefix[i] = tolower(prefix[i]);
     }
 
-    for (i = 0; prefix[i]; i++) {
+    for (i = 0, d = 0; prefix[i]; i++) {
         if (prefix[i] == '-') {
-            prefix[i] = 0;
-	    if (isPrefixUnique(prefix)) {
-                return prefix;
+	    d++;
+	    if (d > 1) {
+		prefix[i] = 0;
+		if (isPrefixUnique(prefix)) {
+		    return prefix;
+		}
+		prefix[i] = '-';
 	    }
-	    prefix[i] = '-';
 	}
     }
 
@@ -331,8 +331,8 @@ getModulePrefix(const char *moduleName)
             return import->prefix;
 	}
     }
-
-    if (prefix) xfree(prefix);
+ 
+   if (prefix) xfree(prefix);
     prefix = guessNicePrefix(moduleName);
     return prefix;
 }
@@ -370,15 +370,40 @@ static void
 createImportList(SmiModule *smiModule)
 {
     SmiImport   *smiImport;
+    SmiIdentifier impModule, impName;
+    int i;
 
-    addImport("yang-types", "");
-    addImport("inet-types", "");
-    
     for (smiImport = smiGetFirstImport(smiModule); smiImport;
 	 smiImport = smiGetNextImport(smiImport)) {
-	if (strcmp(smiImport->module, "SNMPv2-CONF") != 0) {
-	    addImport(smiImport->module, smiImport->name);
+
+	impModule = smiImport->module;
+	impName = smiImport->name;
+
+	for (i = 0; convertType[i]; i += 4) {
+	    if (strcmp(smiImport->module, convertType[i]) == 0
+		&& strcmp(smiImport->name, convertType[i+1]) == 0) {
+		impModule = (SmiIdentifier) convertType[i+2];
+		impName = (SmiIdentifier) convertType[i+3];
+		break;
+	    }
 	}
+
+	if (! impModule || ! impName) continue;
+	
+	for (i = 0; convertImport[i]; i += 4) {
+	    if (strcmp(smiImport->module, convertImport[i]) == 0
+		&& strcmp(smiImport->name, convertImport[i+1]) == 0) {
+		impModule = (SmiIdentifier) convertImport[i+2];
+		impName = (SmiIdentifier) convertImport[i+3];
+		break;
+	    }
+	}
+
+	if (! impModule || ! impName) continue;
+#if 0	
+	fprintf(stderr, "%s\t%s\n", impModule, impName);
+#endif
+	addImport(impModule, impName);
     }
 }
 
@@ -1095,7 +1120,7 @@ fprintNamespace(FILE *f, int indent, SmiModule *smiModule)
      }
 
      fprintSegment(f, indent, "namespace ", 0);
-     fprint(f, "\"%s\";\n", getModuleUrn(smiModule->name));
+     fprint(f, "\"%s%s\";\n", URNBASE, smiModule->name);
      fprintSegment(f, indent, "prefix ", 0);
      fprint(f, "\"%s\";\n\n", getModulePrefix(smiModule->name));
 }
@@ -1211,6 +1236,9 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 	       SMI_VERSION_STRING ":\n");
 	fprint(f, " *\n");
 	fprint(f, " *      smidump -f yang");
+	if (silent) {
+	    fprint(f, " -q");
+	}
 	if (sflag) {
 	    fprint(f, " --yang-smi-extensions");
 	}
@@ -1224,10 +1252,10 @@ dumpYang(int modc, SmiModule **modv, int flags, char *output)
 	fprint(f, "module %s {\n", smiModule->name);
 	fprint(f, "\n");
 
-	fprintMeta(f, INDENT, smiModule);
-	fprintRevisions(f, INDENT, smiModule);
 	fprintNamespace(f, INDENT, smiModule);
 	fprintLinkage(f, INDENT, smiModule);
+	fprintMeta(f, INDENT, smiModule);
+	fprintRevisions(f, INDENT, smiModule);
 
 	fprintTypedefs(f, modv[i]);
 	fprintContainers(f, modv[i]);
