@@ -744,20 +744,19 @@ fprintDefault(FILE *f, int indent, SmiValue *value, SmiType *smiType)
 }
 
 
-static void
-fprintTypename(FILE *f, SmiType *smiType)
+static int
+fprintTypename(FILE *f, SmiType *smiType, int format)
 {
     const char *typeModule = NULL, *typeName = NULL;
     SmiModule *smiModule;
     int i;
 
-    if (! smiType) return;
+    if (! smiType) return 0;
 
     smiModule = smiGetTypeModule(smiType);
 
     if (smiType && ! smiType->name) {
-	fprintTypename(f, smiGetParentType(smiType));
-	return;
+	return fprintTypename(f, smiGetParentType(smiType), format);
     }
 
     for (i = 0; convertType[i]; i += 4) {
@@ -777,12 +776,26 @@ fprintTypename(FILE *f, SmiType *smiType)
     if (typeModule) {
 	typeModule = getModulePrefix(typeModule);
     }
+
+    /*
+     * We handle a special case here. If we have a format string and
+     * the type is binary, we turn it into string.
+     */
     
+    if (! typeModule && typeName && strcmp(typeName, "binary") == 0) {
+	if (format) {
+	    fprint(f, " /* XXX */ ");
+	    typeName = "string";
+	}
+    }
+	
     if (typeModule && typeName) {
 	fprint(f, "%s:%s", typeModule, typeName);
     } else {
 	fprint(f, "%s", typeName);
     }
+
+    return 1;
 }
 
 
@@ -804,7 +817,7 @@ fprintTypedefs(FILE *f, SmiModule *smiModule)
 	fprint(f, "typedef %s {\n", smiType->name);
 
 	fprintSegment(f, 2 * INDENT, "type ", 0);
-	fprintTypename(f, baseType);
+	fprintTypename(f, baseType, smiType->format != NULL);
 	fprintSubtype(f, 2 * INDENT, smiType);
 	
 	fprintUnits(f, 2 * INDENT, smiType->units);
@@ -879,7 +892,7 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode)
     fprint(f, "%s {\n", smiNode->name);
 
     fprintSegment(f, indent + INDENT, "type ", 0);
-    fprintTypename(f, smiType);
+    fprintTypename(f, smiType, smiNode->format != NULL);
     if (! smiType->name) {
 	fprintSubtype(f, indent + INDENT, smiType);
     } else {
@@ -887,10 +900,10 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode)
     }
     
     fprintUnits(f, indent + INDENT, smiNode->units);
+    fprintConfig(f, indent + INDENT, smiNode->access);
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT, smiNode->description);
     fprintReference(f, indent + INDENT, smiNode->reference);
-    fprintConfig(f, indent + INDENT, smiNode->access);
     fprintFormat(f, indent + INDENT, smiNode->format);
     fprintDefault(f, indent + INDENT, &smiNode->value, smiType);
     fprintObjectIdentifier(f, indent + INDENT, smiNode->oid, smiNode->oidlen);
@@ -911,11 +924,11 @@ fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode)
     fprintPath(f, smiNode);
     fprint(f, "\";\n");
     fprintSegment(f, indent + INDENT, "}\n", 0);
+    fprintConfig(f, indent + INDENT,
+	 entryNode->create ? SMI_ACCESS_READ_WRITE : SMI_ACCESS_READ_ONLY);
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT,
 		      "Automagically generated keyref leaf.");
-    fprintConfig(f, indent + INDENT,
-	 entryNode->create ? SMI_ACCESS_READ_WRITE : SMI_ACCESS_READ_ONLY);
     fprintSegment(f, indent, "}\n\n", 0);
 }
 
