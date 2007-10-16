@@ -784,7 +784,6 @@ fprintTypename(FILE *f, SmiType *smiType, int format)
     
     if (! typeModule && typeName && strcmp(typeName, "binary") == 0) {
 	if (format) {
-	    fprint(f, " /* XXX */ ");
 	    typeName = "string";
 	}
     }
