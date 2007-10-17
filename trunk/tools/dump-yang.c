@@ -943,7 +943,7 @@ fprintKey(FILE *f, int indent, SmiNode *smiNode)
     for (j = 0, smiElement = smiGetFirstElement(smiNode); smiElement;
 	 j++, smiElement = smiGetNextElement(smiElement)) {
         if (j) {
-            fprint(f, ", ");
+            fprint(f, " ");
 	}
 	fprintWrapped(f, indent + 5,
 		      smiGetElementNode(smiElement)->name);
