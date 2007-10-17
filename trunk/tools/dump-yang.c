@@ -867,11 +867,13 @@ fprintPath(FILE *f, SmiNode *smiNode)
      }
      if (contNode == smiNode) return;
 
-     smiModule = smiGetNodeModule(entryNode);
-     if (smiModule) {
-         fprint(f, "/%s:%s", getModulePrefix(smiModule->name), entryNode->name);
+     if (entryNode) {
+	 smiModule = smiGetNodeModule(entryNode);
+	 if (smiModule) {
+	     fprint(f, "/%s:%s", getModulePrefix(smiModule->name), entryNode->name);
+	 }
+	 if (entryNode == smiNode) return;
      }
-     if (entryNode == smiNode) return;
 
      smiModule = smiGetNodeModule(smiNode);
      if (smiModule) {
