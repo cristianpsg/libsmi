@@ -283,6 +283,7 @@ test/dumps/metrics/Makefile
 test/dumps/xml/Makefile
 test/dumps/cm/Makefile
 test/dumps/python/Makefile
+test/dumps/yang/Makefile
 doc/Makefile
 lib/smi.h
 lib/libsmi.3
@@ -311,6 +312,7 @@ test/smidump-imports.test
 test/smidump-mosy.test
 test/smidump-orig-smiv2.test
 test/smidump-sming.test
+test/smidump-yang.test
 test/smidump-smiv1.test
 test/smidump-smiv2-smiv2.test
 test/smidump-smiv2.test
