@@ -12,7 +12,8 @@
  * @(#) $Id$
  */
 
-
+#ifndef _REA_H
+#define _REA_H
 
 #include <config.h>
 
@@ -220,3 +221,6 @@ extern void algConnectLonelyNodes();
 extern void algCheckForDependency();
 
 extern void algCheckForPointerRels();
+
+#endif
+

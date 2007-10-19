@@ -48,7 +48,7 @@ smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  dump-perl.c dump-scli.c dump-xsd.c dump-sppi.c \
 			  dump-sizes.c dump-svg-script.h dump-svg.c \
 			  rea.h rea.c dump-compliance.c dstring.c \
-			  fprint.c
+			  fortopat.h fortopat.c fprint.c
 smidump_LDADD		= ../lib/libsmi.la -lm
 
 smidiff_SOURCES		= smidiff.c shhopt.c
