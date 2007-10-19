@@ -20,6 +20,7 @@
 #include "smi.h"
 #include "smidump.h"
 #include "fprint.h"
+#include "fortopat.h"
 
 /*
  * TODO:
@@ -519,9 +520,6 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 		    vkw, getValueString(&nn->value, smiType));
 	    fprintSegment(f, indent + INDENT, s, 0);
 	}
-	if (i) {
-	    fprintSegment(f, indent, "}\n", 0);
-	}
     } else {
 	for(i = 0, range = smiGetFirstRange(smiType);
 	    range ; i++, range = smiGetNextRange(range)) {
@@ -547,107 +545,29 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 	}
 	if (i) {
 	    fprint(f, "\";\n");
-	    fprintSegment(f, indent, "}\n", 0);
 	}
     }
+
+    if (smiType->format
+	&& smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
+
+	char *pattern;
+	pattern = smiFormatToPattern(smiType->format,
+				     smiGetFirstRange(smiType));
+	if (pattern) {
+	    fprintSegment(f, indent + INDENT, "pattern \"", 0);
+	    fprint(f, "%s\";\n", pattern);
+	    xfree(pattern);
+	    i++;
+	}
+    }
+    
     if (! i) {
 	fprint(f, ";\n");
+    } else {
+	fprintSegment(f, indent, "}\n", 0);
     }
 }
-
-
-#if 0
-static void
-fprintType(FILE *f, int indent, SmiModule *thisModule, SmiType *smiType)
-{
-    SmiModule *smiModule = NULL;
-    SmiType *parentType = NULL;
-    SmiModule *parentModule = NULL;
-    int i;
-
-    const char *special[] = {
-	    "SNMPv2-SMI", "Counter32", "yang:counter32",
-	    "SNMPv2-SMI", "Counter64", "yang:counter64",
-	    "SNMPv2-SMI", "Gauge32",   "yang:gauge32",
-	    "SNMPv2-SMI", "TimeTicks", "yang:timeticks",
-	    "SNMPv2-SMI", "IpAddress", "inet:ipv4-address",
-	    NULL, NULL, NULL
-    };
-
-    fprintSegment(f, indent, "type", 0);
-
-    smiModule = smiGetTypeModule(smiType);
-    if (smiType) parentType = smiGetParentType(smiType);
-    if (parentType) {
-	parentModule = smiGetTypeModule(parentType);
-    }
-
-    /* first lets handle some special cases */
-
-    if (smiModule != thisModule) {
-	for (i = 0; special[i]; i += 3) {
-	    if ((strcmp(special[i], smiModule->name) == 0)
-		&& (strcmp(special[i+1], smiType->name) == 0)) {
-		fprint(f, " %s", special[i+2]);
-		fprint(f, ";\n");
-		return;
-	    }
-	}
-    }
-
-    /* this type is a named imported type and not a built-in type - easy */
-
-    if (smiModule && smiModule != thisModule) {
-	fprint(f, "/**imported,derived**/");
-	fprint(f, " %s:%s",
-	       getModulePrefix(smiModule->name),
-	       smiType->name);
-	fprint(f, ";\n");
-	return;
-    }
-
-    /* this type is a built-in type - easy */
-
-    if (smiModule == NULL) {
-	fprint(f, "/**built-in**/");
-	fprint(f, " %s", getStringBasetype(smiType->basetype));
-	fprintSubtype(f, indent, smiType);
-	return;
-    }
-
-    /* this is a locally defined named type - easy as well */
-
-    if (smiModule == thisModule && smiType->name) {
-	fprint(f, "/**local,named**/");
-        if (parentType == NULL || smiGetParentType(parentType) == NULL) {
-	    fprint(f, " %s", getStringBasetype(smiType->basetype));
-	} else {
-   	    fprint(f, " %s:%s",
-		   getModulePrefix(smiModule->name),
-		   smiType->name);
-	}
-	fprintSubtype(f, indent, smiType);
-	return;
-    }
-
-    /* this is a locally defined unnamed type - easy as well? */
-
-    if (smiModule == thisModule && smiType->name == NULL) {
-	fprint(f, "/**local,unnamed**/");
-        if (parentModule == NULL || (parentType == NULL && smiGetParentType(parentType) == NULL)) {
-	    fprint(f, " %s", getStringBasetype(smiType->basetype));
-	} else {
-   	    fprint(f, " %s:%s",
-		   getModulePrefix(parentModule->name),
-		   parentType->name);
-	}
-	fprintSubtype(f, indent, smiType);
-	return;
-    }
-
-    /* uops - still here ? */
-}
-#endif
 
 
 static void
