@@ -8,7 +8,7 @@
 # See the file "COPYING" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# @(#) $Id: Makefile.am,v 1.22 2002/07/24 11:54:24 strauss Exp $
+# @(#) $Id$
 #
 
 TESTMIBTOPDIR		= ../../mibs
@@ -21,6 +21,7 @@ TESTS			= smilint-smiv2.test \
 			  smidump-smiv1.test \
 			  smidump-smiv2.test \
 			  smidump-sming.test \
+			  smidump-yang.test \
 			  smidump-mosy.test \
 			  smidump-tree.test \
 			  smidump-types.test \

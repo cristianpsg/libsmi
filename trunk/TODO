@@ -33,7 +33,7 @@ o warning detection: subtyping not allowed for counter or timeticks
 
 o warning detection: defvals not allowed for counter
 
-
+o warning detection: missing display hints for OCTET STRING derived types
 
 o parser-smi.y: handle forbidden WS at some places
   ( Module . label, ...)
