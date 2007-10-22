@@ -106,6 +106,11 @@ static const char *convertImport[] = {
 };
 
 
+static const char *ignoreImports[] = {
+    "SNMPv2-SMI", "SNMPv2-CONF", NULL
+};
+
+
 /*
  * Structure used to build a list of imported types.
  */
@@ -473,16 +478,31 @@ static void
 fprintImports(FILE *f, SmiModule *smiModule)
 {
     Import *import;
-    int len = 4;
+    int i, len = 4;
+    char *ignore;
     
     for (import = importList; import; import = import->nextPtr) {
-	if (strlen(import->module) > len) len = strlen(import->module);
+	for (i = 0; ignoreImports[i]; i++) {
+	    if (strcmp(ignoreImports[i], import->module) == 0) {
+		break;
+	    }
+	}
+	if (ignoreImports[i] == NULL) {
+	    if (strlen(import->module) > len) len = strlen(import->module);
+	}
     }
     
     for (import = importList; import; import = import->nextPtr) {
-	fprintSegment(f, INDENT, "import", 0);
-	fprint(f, " %-*s { prefix \"%s\"; }\n", len,
-	       import->module, import->prefix);
+	for (i = 0; ignoreImports[i]; i++) {
+	    if (strcmp(ignoreImports[i], import->module) == 0) {
+		break;
+	    }
+	}
+	if (ignoreImports[i] == NULL) {
+	    fprintSegment(f, INDENT, "import", 0);
+	    fprint(f, " %-*s { prefix \"%s\"; }\n", len,
+		   import->module, import->prefix);
+	}
     }
     fprint(f, "\n");
 
