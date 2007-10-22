@@ -262,19 +262,19 @@ getKnownDisplayHint_XSD(const char *hint,
 	/* this is a simplyfied restriction. 
 	 * We could restrict more, 
 	 * but then, the pattern will be very hard to read / understand */
-	return xstrdup("(\\d{1,3}).){3}\\d{1,3})%\\d{1,10}:\\d{1,5}");
+	return xstrdup("(\\d{1,3}.){3}\\d{1,3})%\\d{1,10}:\\d{1,5}");
     
     if( ! strcmp( hint, LIBSMI_DH_UDP_IPV4 ) ) 
-	return xstrdup("(\\d{1,3}).){3}\\d{1,3})/\\d{1,5}");
+	return xstrdup("(\\d{1,3}.){3}\\d{1,3}/\\d{1,5}");
     
     if( ! strcmp( hint, LIBSMI_DH_IPV4Z_ADDR ) )
-	return xstrdup("(\\d{1,3}).){3}\\d{1,3})%\\d{1,10}");
+	return xstrdup("(\\d{1,3}.){3}\\d{1,3}%\\d{1,10}");
     
     if( ! strcmp( hint, LIBSMI_DH_IPV4_ADDR ) )
-	return xstrdup("(\\d{1,3}).){3}\\d{1,3})");
+	return xstrdup("(\\d{1,3}.){3}\\d{1,3}");
     
     if( ! strcmp( hint, LIBSMI_DH_LDP_ID ) )
-	return xstrdup("(\\d{1,3}).){3}\\d{1,3}):\\d{1,5}");
+	return xstrdup("(\\d{1,3}.){3}\\d{1,3}:\\d{1,5}");
     
     if( ! strcmp( hint, LIBSMI_DH_IPV6_ADDR ) )
 	return xstrdup("([\\dA-Fa-f]{2}:){7}[\\dA-Fa-f]{2}");
@@ -402,6 +402,8 @@ char* getStrDHType( const char *hint,
     unsigned int i = 0;
     char *ret = lengths[ i ] ? "(" : "((";
     char *r2 = getKnownDisplayHint_XSD( hint, lengths, numSubranges );
+    
+    r2 = NULL;
   
     if( r2 ) {
     /*	if( lengths[ i ] && lengths[i+1] < 65535 ) {    		
