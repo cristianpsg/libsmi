@@ -25,8 +25,9 @@
 /*
  * TODO:
  * - reproduce the table comment text as a yang comment
- * - peek into format strings to determine whether we use string or
- *   binary as the base type (needs a resolution on YANG encodings)
+ * - fix the format strings to xsd pattern algorithm so that it
+ *   produces more accurate results
+ * - compute proper boundaries for binary/string length restrictions
  * - translate notifications properly (whatever that means ;-)
  */
 
@@ -555,6 +556,9 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 	pattern = smiFormatToPattern(smiType->format,
 				     smiGetFirstRange(smiType));
 	if (pattern) {
+	    if (! i) {
+		fprint(f, "{\n");
+	    }
 	    fprintSegment(f, indent + INDENT, "pattern \"", 0);
 	    fprint(f, "%s\";\n", pattern);
 	    xfree(pattern);
