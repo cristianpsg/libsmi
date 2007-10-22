@@ -29,6 +29,7 @@
  *   produces more accurate results
  * - compute proper boundaries for binary/string length restrictions
  * - translate notifications properly (whatever that means ;-)
+ * - handle opaque in a reasonable way (test case AGGREGATE-MIB)
  */
 
 static int sflag = 0;		/* generate smi: extensions */
@@ -52,7 +53,7 @@ static const char *convertType[] = {
     "",		  "Unsigned64",  NULL,	     "uint64",
     "",		  "OctetString", NULL,	     "binary",
     "",		  "Enumeration", NULL,	     "enumeration",
-    "",		  "Bits", NULL,		     "bits",
+    "",		  "Bits",	 NULL,	     "bits",
     "",		  "ObjectIdentifier", "yang-types", "object-identifier",
 
     /*
@@ -69,6 +70,7 @@ static const char *convertType[] = {
     "SNMPv2-SMI", "Gauge32",   "yang-types", "gauge32",
     "SNMPv2-SMI", "TimeTicks", "yang-types", "timeticks",
     "SNMPv2-SMI", "IpAddress", "inet-types", "ipv4-address",
+    "SNMPv2-SMI", "Opaque",    "yang-types", "binary",
 
     /*
      * We also translate frequently used SNMPv2-TCs that have a YANG
@@ -105,9 +107,12 @@ static const char *convertImport[] = {
     NULL, NULL, NULL, NULL
 };
 
+/*
+ * SMIv2 modules we never like to import from...
+ */
 
 static const char *ignoreImports[] = {
-    "SNMPv2-SMI", "SNMPv2-CONF", NULL
+    "RFC1155-SMI", "SNMPv2-SMI", "SNMPv2-CONF", NULL
 };
 
 
@@ -137,29 +142,6 @@ getStringStatus(SmiStatus status)
 	(status == SMI_STATUS_OPTIONAL)    ? "current" :
 					     "<unknown>";
 }
-
-
-#if 0
-static char*
-getStringBasetype(SmiBasetype basetype)
-{
-    return
-        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<unknown>" :
-        (basetype == SMI_BASETYPE_OCTETSTRING)       ? "binary" :
-        (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "yang:object-identifier" :
-        (basetype == SMI_BASETYPE_UNSIGNED32)        ? "uint32" :
-        (basetype == SMI_BASETYPE_INTEGER32)         ? "int32" :
-        (basetype == SMI_BASETYPE_UNSIGNED64)        ? "uint64" :
-        (basetype == SMI_BASETYPE_INTEGER64)         ? "int64" :
-        (basetype == SMI_BASETYPE_FLOAT32)           ? "float32" :
-        (basetype == SMI_BASETYPE_FLOAT64)           ? "float64" :
-        (basetype == SMI_BASETYPE_FLOAT128)          ? "float128" :
-        (basetype == SMI_BASETYPE_ENUM)              ? "enumeration" :
-        (basetype == SMI_BASETYPE_BITS)              ? "bits" :
-                                                   "<unknown>";
-}
-#endif
-
 
 
 static char*
@@ -378,6 +360,8 @@ createImportList(SmiModule *smiModule)
 {
     SmiImport   *smiImport;
     SmiIdentifier impModule, impName;
+    SmiType	*smiType;
+    SmiNode	*smiNode;
     int i;
 
     for (smiImport = smiGetFirstImport(smiModule); smiImport;
@@ -396,7 +380,7 @@ createImportList(SmiModule *smiModule)
 	}
 
 	if (! impModule || ! impName) continue;
-	
+
 	for (i = 0; convertImport[i]; i += 4) {
 	    if (strcmp(smiImport->module, convertImport[i]) == 0
 		&& strcmp(smiImport->name, convertImport[i+1]) == 0) {
@@ -411,6 +395,33 @@ createImportList(SmiModule *smiModule)
 	fprintf(stderr, "%s\t%s\n", impModule, impName);
 #endif
 	addImport(impModule, impName);
+    }
+
+    /*
+     * Add import for yang-types that were originally ASN.1
+     * builtins...
+     */
+
+    for (smiType = smiGetFirstType(smiModule);
+	 smiType; smiType = smiGetNextType(smiType)) {
+	SmiType *parentType = smiGetParentType(smiType);
+	if (parentType && strcmp(parentType->name, "ObjectIdentifier") == 0) {
+	    addImport("yang-types", "object-identifier");
+	}
+    }
+    
+    for (smiNode = smiGetFirstNode(smiModule,
+				   SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode,
+				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
+	smiType = smiGetNodeType(smiNode);
+	if (! smiType->name) {
+	    smiType = smiGetParentType(smiType);
+	}
+	if (smiType && strcmp(smiType->name, "ObjectIdentifier") == 0) {
+	    addImport("yang-types", "object-identifier");
+	}
     }
 }
 
