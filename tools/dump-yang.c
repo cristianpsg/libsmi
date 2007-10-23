@@ -73,6 +73,16 @@ static const char *convertType[] = {
     "SNMPv2-SMI", "IpAddress", "inet-types", "ipv4-address",
 
     /*
+     * And we like to do the same for RFC1155-SMI definitions...
+     */
+
+    "RFC1155-SMI", "Opaque",    NULL,	     "binary",
+    "RFC1155-SMI", "Counter",   "yang-types", "counter32",
+    "RFC1155-SMI", "Gauge",     "yang-types", "gauge32",
+    "RFC1155-SMI", "TimeTicks", "yang-types", "timeticks",
+    "RFC1155-SMI", "IpAddress", "inet-types", "ipv4-address",
+    
+    /*
      * We also translate frequently used SNMPv2-TCs that have a YANG
      * equivalent. Note that DateAndTime is slightly different from
      * the ISO profile used by date-and-time.
