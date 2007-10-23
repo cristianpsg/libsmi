@@ -65,12 +65,12 @@ static const char *convertType[] = {
     "SNMPv2-SMI", "Integer32",  NULL,        "int32",
     "SNMPv2-SMI", "Integer64",  NULL,        "int64",
     "SNMPv2-SMI", "Unsigned32", NULL,        "uint32",
+    "SNMPv2-SMI", "Opaque",    NULL,	     "binary",
     "SNMPv2-SMI", "Counter32", "yang-types", "counter32",
     "SNMPv2-SMI", "Counter64", "yang-types", "counter64",
     "SNMPv2-SMI", "Gauge32",   "yang-types", "gauge32",
     "SNMPv2-SMI", "TimeTicks", "yang-types", "timeticks",
     "SNMPv2-SMI", "IpAddress", "inet-types", "ipv4-address",
-    "SNMPv2-SMI", "Opaque",    "yang-types", "binary",
 
     /*
      * We also translate frequently used SNMPv2-TCs that have a YANG
