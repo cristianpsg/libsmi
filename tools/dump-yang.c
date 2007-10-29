@@ -286,7 +286,11 @@ guessNicePrefix(const char *moduleName)
     int i, d;
 
     char *specials[] = {
-	    NULL, NULL
+	"yang-types", "yang",
+	"inet-types", "inet",
+	"ieee-types", "ieee",
+	"SNMPv2-TC", "smiv2",
+	NULL, NULL
     };
 
     for (i = 0; specials[i]; i +=2) {
@@ -331,7 +335,7 @@ getModulePrefix(const char *moduleName)
 	}
     }
  
-   if (prefix) xfree(prefix);
+    if (prefix) xfree(prefix);
     prefix = guessNicePrefix(moduleName);
     return prefix;
 }
