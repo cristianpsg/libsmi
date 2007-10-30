@@ -233,7 +233,7 @@ getSimpleCharFacet_XSD(char dhType, unsigned int number,
     /* determine base regular expression, depending on display hint type */
     switch( dhType ) {
     case 'a':
-	baseRegExp = "\\p{isBasicLatin}";
+	baseRegExp = "\\p{IsBasicLatin}";
 	break;
     case 't':
 	baseRegExp = ".";
