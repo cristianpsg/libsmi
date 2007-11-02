@@ -755,8 +755,8 @@ smiFormatToPattern(const char *format, SmiRange *smiRange)
     if (num) {
 	lengths = xmalloc(2 * num * sizeof(SmiUnsigned32));
 	for (range = smiRange, lp = 0; range; range = smiGetNextRange(range)) {
-	    lengths[lp++] = smiRange->minValue.value.unsigned32;
-	    lengths[lp++] = smiRange->maxValue.value.unsigned32;
+	    lengths[lp++] = range->minValue.value.unsigned32;
+	    lengths[lp++] = range->maxValue.value.unsigned32;
 	}
     } else {
 	lengths = xmalloc( 2 * sizeof(SmiUnsigned32));
