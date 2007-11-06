@@ -207,12 +207,11 @@ parseDH(const char *hint)
 	      pos++;
 	    }
 	    else {
-	      if( hint[ pos++ ] == '.' ) {
+              iterDH->separator[0] = hint[ pos++ ];
+	      if (iterDH->separator[0] == '.' ) {
 		iterDH->separator[0] = '\\';
 		iterDH->separator[1] = '.';
 	      }
-	      else
-		iterDH->separator[0] = hint[ pos ];
 	    }
 	    if( isdigit( hint[ pos ] ) || hint[ pos ] == '*' ) {
 		iterDH = iterDH->next;
