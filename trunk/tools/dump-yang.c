@@ -480,20 +480,22 @@ static int
 isIndex(SmiNode *groupNode, SmiNode *smiNode)
 {
     SmiElement *smiElement;
+    int cnt = 0;
     
     /*
-     * Perhaps this test needs to be more sophisticated if you have
-     * really creative cross-table indexing constructions...
+     * We return an indication whether smiNode is part of an index. In
+     * fact, we return number of times smiNode is part of an index
+     * since we sometimes have to disambiguate names...
      */
 
     for (smiElement = smiGetFirstElement(groupNode);
 	 smiElement; smiElement = smiGetNextElement(smiElement)) {
 	if (smiNode == smiGetElementNode(smiElement)) {
-	    return 1;
+	    cnt++;
 	}
     }
 
-    return 0;
+    return cnt;
 }
 
 
@@ -1185,12 +1187,42 @@ fprintNotificationIndex(FILE *f, int indent,
 }
 
 
+static int
+GetPosition(SmiElement *startElement, SmiElement *thisElement)
+{
+    SmiElement *smiElement;
+    SmiNode *smiNode;
+    SmiNode *thisNode = smiGetElementNode(thisElement);
+    int cnt = 0;
+    
+    for (smiElement = startElement, cnt = 0;
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	smiNode = smiGetElementNode(smiElement);
+	if (smiNode == thisNode) cnt++;
+    }
+
+    if (cnt <= 1) {
+	return 0;
+    }
+
+    for (smiElement = startElement, cnt = 0;
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	smiNode = smiGetElementNode(smiElement);
+	if (smiNode == thisNode) cnt++;
+	if (smiElement == thisElement) {
+	    break;
+	}
+    }
+    return cnt;
+}
+
+
 static void
 fprintNotification(FILE *f, SmiNode *smiNode)
 {
     SmiElement *smiElement;
     SmiNode *vbNode, *entryNode;
-    int c;
+    int c, cnt;
     
     fprintSegment(f, INDENT, "notification", 0);
     fprint(f, " %s {\n", smiNode->name);
@@ -1205,11 +1237,17 @@ fprintNotification(FILE *f, SmiNode *smiNode)
 	vbNode = smiGetElementNode(smiElement);
 	if (! vbNode) continue;
 
-	fprintSegment(f, INDENT + INDENT, "container ", 0);
-	fprintf(f, "%s-%s {\n", smiNode->name, vbNode->name);
+	cnt = GetPosition(smiGetFirstElement(smiNode), smiElement);
 
 	entryNode = (vbNode->nodekind == SMI_NODEKIND_COLUMN)
 	    ? smiGetParentNode(vbNode) : NULL;
+
+	fprintSegment(f, INDENT + INDENT, "container ", 0);
+	if (cnt) {
+	    fprintf(f, "%s-%s-%d {\n", smiNode->name, vbNode->name, cnt);
+	} else {
+	    fprintf(f, "%s-%s {\n", smiNode->name, vbNode->name);
+	}
 
 	if (entryNode) {
 	    switch (entryNode->indexkind) {
