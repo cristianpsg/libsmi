@@ -1167,7 +1167,8 @@ fprintMeta(FILE *f, int indent, SmiModule *smiModule)
 
 
 static void
-fprintNotificationIndex(FILE *f, int indent, SmiNode *entryNode, SmiNode *ignoreNode)
+fprintNotificationIndex(FILE *f, int indent,
+			SmiNode *entryNode, SmiNode *ignoreNode)
 {
     SmiElement *smiElement;
     SmiNode *childNode;
@@ -1207,10 +1208,22 @@ fprintNotification(FILE *f, SmiNode *smiNode)
 	fprintSegment(f, INDENT + INDENT, "container ", 0);
 	fprintf(f, "%s-%s {\n", smiNode->name, vbNode->name);
 
-	entryNode = (vbNode->nodekind == SMI_NODEKIND_COLUMN) ? smiGetParentNode(vbNode) : NULL;
+	entryNode = (vbNode->nodekind == SMI_NODEKIND_COLUMN)
+	    ? smiGetParentNode(vbNode) : NULL;
 
 	if (entryNode) {
-	    fprintNotificationIndex(f, INDENT + INDENT + INDENT, entryNode, vbNode);
+	    switch (entryNode->indexkind) {
+	    case SMI_INDEX_INDEX:
+		fprintNotificationIndex(f, INDENT + INDENT + INDENT,
+					entryNode, vbNode);
+		break;
+	    case SMI_INDEX_AUGMENT:
+		fprintNotificationIndex(f, INDENT + INDENT + INDENT,
+					smiGetRelatedNode(entryNode), vbNode);
+		break;
+	    default:
+		break;
+	    }
 	}
 	
 	if (entryNode && isIndex(entryNode, vbNode)) {
