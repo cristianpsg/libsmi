@@ -476,6 +476,27 @@ isGroup(SmiNode *smiNode)
 }
 
 
+static int
+isIndex(SmiNode *groupNode, SmiNode *smiNode)
+{
+    SmiElement *smiElement;
+    
+    /*
+     * Perhaps this test needs to be more sophisticated if you have
+     * really creative cross-table indexing constructions...
+     */
+
+    for (smiElement = smiGetFirstElement(groupNode);
+	 smiElement; smiElement = smiGetNextElement(smiElement)) {
+	if (smiNode == smiGetElementNode(smiElement)) {
+	    return 1;
+	}
+    }
+
+    return 0;
+}
+
+
 static void
 fprintRevisions(FILE *f, int indent, SmiModule *smiModule)
 {
@@ -504,7 +525,6 @@ fprintImports(FILE *f, SmiModule *smiModule)
 {
     Import *import;
     int i, len = 4;
-    char *ignore;
     
     for (import = importList; import; import = import->nextPtr) {
 	for (i = 0; ignoreImports[i]; i++) {
@@ -899,7 +919,7 @@ fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode)
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT,
 		      "Automagically generated keyref leaf.");
-    fprintSegment(f, indent, "}\n\n", 0);
+    fprintSegment(f, indent, "}\n", 0);
 }
 
 
@@ -1147,9 +1167,28 @@ fprintMeta(FILE *f, int indent, SmiModule *smiModule)
 
 
 static void
+fprintNotificationIndex(FILE *f, int indent, SmiNode *entryNode, SmiNode *ignoreNode)
+{
+    SmiElement *smiElement;
+    SmiNode *childNode;
+    SmiNode *parentNode;
+
+    for (smiElement = smiGetFirstElement(entryNode); smiElement;
+	 smiElement = smiGetNextElement(smiElement)) {
+	childNode = smiGetElementNode(smiElement);
+	parentNode = smiGetParentNode(childNode);
+	if (childNode != ignoreNode) {
+	    fprintKeyrefLeaf(f, indent, childNode);
+	}
+    }
+}
+
+
+static void
 fprintNotification(FILE *f, SmiNode *smiNode)
 {
     SmiElement *smiElement;
+    SmiNode *vbNode, *entryNode;
     int c;
     
     fprintSegment(f, INDENT, "notification", 0);
@@ -1162,7 +1201,24 @@ fprintNotification(FILE *f, SmiNode *smiNode)
 
     for (c = 0, smiElement = smiGetFirstElement(smiNode); smiElement;
 	 c++, smiElement = smiGetNextElement(smiElement)) {
-	fprintKeyrefLeaf(f, INDENT + INDENT, smiGetElementNode(smiElement));
+	vbNode = smiGetElementNode(smiElement);
+	if (! vbNode) continue;
+
+	fprintSegment(f, INDENT + INDENT, "container ", 0);
+	fprintf(f, "%s-%s {\n", smiNode->name, vbNode->name);
+
+	entryNode = (vbNode->nodekind == SMI_NODEKIND_COLUMN) ? smiGetParentNode(vbNode) : NULL;
+
+	if (entryNode) {
+	    fprintNotificationIndex(f, INDENT + INDENT + INDENT, entryNode, vbNode);
+	}
+	
+	if (entryNode && isIndex(entryNode, vbNode)) {
+	    fprintKeyrefLeaf(f, INDENT + INDENT + INDENT, vbNode);
+	} else {
+	    fprintLeaf(f, INDENT + INDENT + INDENT, vbNode);
+	}
+	fprintSegment(f, INDENT + INDENT, "}\n\n", 0);
     }
 
     fprintSegment(f, INDENT, "}\n", 0);
