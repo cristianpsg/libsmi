@@ -474,6 +474,8 @@ static Error errors[] = {
       "SEQUENCE of `%s' is missing columnar object `%s'", NULL},
     { 4, ERR_ILLEGAL_ROWSTATUS_DEFAULT, "rowstatus-default", 
       "illegal `RowStatus' default value `%s'", NULL},
+    { 4, ERR_ILLEGAL_ROWSTATUS_ACCESS, "rowstatus-access", 
+      "illegal `RowStatus' access value", NULL},
     { 4, ERR_ILLEGAL_STORAGETYPE_DEFAULT, "storagetype-default", 
       "illegal `StorageType' default value `%s'", NULL},
     { 2, ERR_DEFVAL_OUT_OF_BASETYPE, "defval-basetype", 
