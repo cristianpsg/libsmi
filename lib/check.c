@@ -1613,6 +1613,18 @@ smiCheckTypeUsage(Parser *parserPtr, Module *modulePtr)
 					    nnPtr->export.name);
 		    }
 		}
+
+		/* check RowStatus read-create status */
+		if (objectPtr->typePtr == rowStatusPtr) {
+		    Object *entryObject
+			= objectPtr->nodePtr->parentPtr->lastObjectPtr;
+		    if (objectPtr->export.access != SMI_ACCESS_READ_WRITE
+			|| !entryObject->export.create) {
+			smiPrintErrorAtLine(parserPtr,
+					    ERR_ILLEGAL_ROWSTATUS_ACCESS,
+					    objectPtr->line);
+		    }
+		}
 		
 		/* check StorageType DEFVAL */
 		if (objectPtr->typePtr == storageTypePtr) {
