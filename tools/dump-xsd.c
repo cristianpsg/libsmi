@@ -905,7 +905,7 @@ static void fprintLengths( FILE *f, SmiType *smiType )
     SmiRange *smiRange = smiGetFirstRange( smiType );
     unsigned int numSubRanges = getNumSubRanges( smiType ),
 	lp = 0;
-    SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * 4 );
+    SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * sizeof(SmiUnsigned32) );
     
     /* write lengths to the array */
     for( smiRange = smiGetFirstRange( smiType );
