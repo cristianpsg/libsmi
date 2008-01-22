@@ -1334,7 +1334,7 @@ initSizes()
 	dumpSizes,
 	SMI_FLAG_NODESCR,
 	0,
-	"SNMP PDU sizes (RFC 3416)",
+	"RFC 3416 PDU sizes excluding message / transport headers",
 	opt,
 	NULL
     };
