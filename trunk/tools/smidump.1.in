@@ -158,7 +158,8 @@ xsd
 SMI in XML schema format (experimental).
 .TP
 sizes
-SNMP best case / worst case PDU sizes for typical PDUs (experimental).
+SNMP best case / worst case RFC 3416 PDU sizes for typical PDUs
+excluding SNMP message and transport headers (experimental).
 
 .SH "EXAMPLE"
 This example converts the SMIv2 module IF-MIB in the current directory
