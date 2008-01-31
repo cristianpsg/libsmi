@@ -677,7 +677,7 @@ smiCheckNamedNumbersOrder(Parser *parser, Type *type)
 		} else {
 		    for (ptr = type->listPtr; ptr; ptr = ptr->nextPtr) {
 			if ((!ptr->nextPtr) ||
-			    (((NamedNumber *)(ptr->nextPtr->ptr))->export.value.value.integer32 > ((NamedNumber *)(listPtr->ptr))->export.value.value.integer32)) {
+			    (((NamedNumber *)(ptr->nextPtr->ptr))->export.value.value.integer32 >= ((NamedNumber *)(listPtr->ptr))->export.value.value.integer32)) {
 			    listPtr->nextPtr = ptr->nextPtr;
 			    ptr->nextPtr = listPtr;
 			    break;
