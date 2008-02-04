@@ -305,6 +305,10 @@ static void fprintNodeStartTag(FILE *f, int indent, const char *tag,
         fprintSegment(f, indent + INDENT, "", 0);
         fprint(f, "\"status\" => \"%s\"", getStringStatus(smiNode->status));
     }
+    if (smiNode->implied) {
+        fprint(f, ",\n");
+        fprintSegment(f, indent + INDENT, "\"implied\" => \"true\"", 0);
+    }
     fprint(f, ",\n");
 }
 
