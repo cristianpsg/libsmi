@@ -1120,7 +1120,17 @@ static void fprintTypeDefinitions(FILE *f, SmiModule *smiModule)
 static void fprintTextualConvention(FILE *f, SmiType *smiType)
 {
     SmiType      *baseType;
-    int		 invalid;
+    SmiModule    *baseModule;
+    int		 i, invalid;
+
+    char *smiv2basetypes[] = {
+	"SNMPv2-SMI", "IpAddress",
+	"SNMPv2-SMI", "Counter32",
+	"SNMPv2-SMI", "Gauge32",
+	"SNMPv2-SMI", "TimeTicks",    
+	"SNMPv2-SMI", "Counter64",
+	NULL, NULL
+    };
     
     if (smiType->status != SMI_STATUS_UNKNOWN) {
 	invalid = invalidType(smiType->basetype);
@@ -1175,6 +1185,17 @@ static void fprintTextualConvention(FILE *f, SmiType *smiType)
 		 baseType;
 		 baseType = smiGetParentType(baseType)) {
 		SmiType *parent = smiGetParentType(baseType);
+
+		baseModule = smiGetTypeModule(baseType);
+		if (baseModule && baseModule->name) {
+		    for (i = 0; smiv2basetypes[i]; i += 2) {
+			if (strcmp(smiv2basetypes[i+1], baseType->name) == 0
+			    && strcmp(smiv2basetypes[i], baseModule->name) == 0) {
+			    parent = NULL;
+			}
+		    }
+		}
+		
 		fprintSegment(f, INDENT, "SYNTAX", INDENTVALUE,
 			      smiv1 || invalid || parent);
 		fprint(f, "%s",
@@ -1183,6 +1204,7 @@ static void fprintTextualConvention(FILE *f, SmiType *smiType)
 		if (parent) {
 		    fprintf(f, "\n");
 		}
+		if (!parent) break;
 	    }
 	    fprint(f, "\n\n");
 	}
