@@ -78,10 +78,6 @@ static int	   indexFlag;
 #define INDEXFLAG_AUGMENTS 2
 #define INDEXFLAG_EXTENDS  3
  
-#define MAX_UNSIGNED32		4294967295
-#define MIN_UNSIGNED32		0
-#define MAX_INTEGER32		2147483647
-#define MIN_INTEGER32		-2147483648
 
 #define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
 
@@ -2191,7 +2187,7 @@ typeDeclaration:	typeName
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED64;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED64;
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = LIBSMI_UINT64_MAX;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = SMI_BASETYPE_UNSIGNED64_MAX;
 				    }
 				    setTypeParent($4, smiHandle->typeUnsigned64Ptr);
 				}
@@ -2265,16 +2261,16 @@ typeDeclaration:	typeName
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_UNSIGNED64;
 					((Range *)$4->listPtr->ptr)->export.minValue.value.unsigned64 = 0;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED64;
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = LIBSMI_UINT64_MAX;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.unsigned64 = SMI_BASETYPE_UNSIGNED64_MAX;
 				    }
 				    setTypeParent($4, smiHandle->typeUnsigned64Ptr);
 				} else if (!strcmp($1, "Integer64")) {
 				    $4->export.basetype = SMI_BASETYPE_INTEGER64;
 				    if ($4->listPtr) {
 					((Range *)$4->listPtr->ptr)->export.minValue.basetype = SMI_BASETYPE_INTEGER64;
-					((Range *)$4->listPtr->ptr)->export.minValue.value.integer64 = LIBSMI_INT64_MIN;
+					((Range *)$4->listPtr->ptr)->export.minValue.value.integer64 = SMI_BASETYPE_INTEGER64_MIN;
 					((Range *)$4->listPtr->ptr)->export.maxValue.basetype = SMI_BASETYPE_INTEGER64;
-					((Range *)$4->listPtr->ptr)->export.maxValue.value.integer64 = LIBSMI_INT64_MAX;
+					((Range *)$4->listPtr->ptr)->export.maxValue.value.integer64 = SMI_BASETYPE_INTEGER64_MAX;
 				    }
 				    setTypeParent($4, smiHandle->typeInteger64Ptr);
 				}
@@ -5394,7 +5390,7 @@ enumItem:		LOWERCASE_IDENTIFIER
 
 enumNumber:		NUMBER
 			{
-			    if ($1 > MAX_INTEGER32) {
+			    if ($1 > SMI_BASETYPE_INTEGER32_MAX) {
 				smiPrintError(thisParserPtr,
 					      ERR_INTEGER32_TOO_LARGE, $1);
 			    }

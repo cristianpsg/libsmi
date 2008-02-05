@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <time.h>
 
 
@@ -87,6 +88,15 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_ENUM                   = 10,
     SMI_BASETYPE_BITS                   = 11  /* SMIv2, SMIng and SPPI       */
 } SmiBasetype;
+
+#define SMI_BASETYPE_INTEGER32_MIN  INT32_MIN
+#define SMI_BASETYPE_INTEGER32_MAX  INT32_MAX
+#define SMI_BASETYPE_INTEGER64_MIN  LIBSMI_INT64_MIN
+#define SMI_BASETYPE_INTEGER64_MAX  LIBSMI_INT64_MAX
+#define SMI_BASETYPE_UNSIGNED32_MIN 0
+#define SMI_BASETYPE_UNSIGNED32_MAX UINT32_MAX
+#define SMI_BASETYPE_UNSIGNED64_MIN 0
+#define SMI_BASETYPE_UNSIGNED64_MAX LIBSMI_UINT64_MAX
 
 /* SmiStatus -- values of status levels                                      */
 typedef enum SmiStatus {

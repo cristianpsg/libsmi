@@ -59,7 +59,7 @@ static SmiInteger32
 getAbsMinEnum(SmiType *smiType)
 {
      SmiNamedNumber *nn;
-     SmiInteger32 min = 2147483647;
+     SmiInteger32 min = SMI_BASETYPE_INTEGER32_MAX;
 
      for (nn = smiGetFirstNamedNumber(smiType);
 	  nn;
@@ -96,7 +96,7 @@ getAbsMinInteger32(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiInteger32 min = 2147483647;
+     SmiInteger32 min = SMI_BASETYPE_INTEGER32_MAX;
 
      range = smiGetFirstRange(smiType);
      if (! range) {
@@ -119,12 +119,13 @@ getAbsMaxInteger32(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiInteger32 max = 0;
+     SmiInteger32 max = SMI_BASETYPE_INTEGER32_MIN;
 
      range = smiGetFirstRange(smiType);
      if (! range) {
 	  parent = smiGetParentType(smiType);
-	  return parent ? getAbsMaxInteger32(parent) : 2147483647;
+	  return parent
+	      ? getAbsMaxInteger32(parent) : SMI_BASETYPE_INTEGER32_MAX;
      }
 
      for (; range; range = smiGetNextRange(range)) {
@@ -188,7 +189,7 @@ getAbsMinInteger64(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiInteger64 min = LIBSMI_INT64_MAX;
+     SmiInteger64 min = SMI_BASETYPE_INTEGER64_MAX;
 
      range = smiGetFirstRange(smiType);
      if (! range) {
@@ -211,7 +212,7 @@ getAbsMaxInteger64(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiInteger64 max = 0;
+     SmiInteger64 max = SMI_BASETYPE_INTEGER64_MIN;
 
      range = smiGetFirstRange(smiType);
      if (! range) {
@@ -234,7 +235,7 @@ getMinUnsigned64(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiInteger64 min = LIBSMI_UINT64_MAX;
+     SmiInteger64 min = SMI_BASETYPE_UNSIGNED64_MAX;
 
      range = smiGetFirstRange(smiType);
      if (! range) {
@@ -257,7 +258,7 @@ getMaxUnsigned64(SmiType *smiType)
 {
      SmiType *parent;
      SmiRange *range;
-     SmiUnsigned64 max = 0;
+     SmiUnsigned64 max = SMI_BASETYPE_UNSIGNED64_MIN;
 
      range = smiGetFirstRange(smiType);
      if (! range) {

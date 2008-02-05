@@ -414,7 +414,8 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 
     case SMI_BASETYPE_INTEGER32:
     {
-	SmiInteger32 min = -2147483647, max = 2147483646;
+	SmiInteger32 min = SMI_BASETYPE_INTEGER32_MIN;
+	SmiInteger32 max = SMI_BASETYPE_INTEGER32_MAX;
 	int offset = 0, useDecPoint = 0;
 
 	if( smiType->format ) {
@@ -435,11 +436,11 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
-	    if( min == -2147483647 ||
+	    if( min == SMI_BASETYPE_INTEGER32_MIN ||
 		smiRange->minValue.value.integer32 < min ) {
 		min = smiRange->minValue.value.integer32;
 	    }
-	    if( max == 2147483646 ||
+	    if( max == SMI_BASETYPE_INTEGER32_MAX ||
 		smiRange->maxValue.value.integer32 > max ) {
 		max = smiRange->maxValue.value.integer32;
 	    }
@@ -624,8 +625,8 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
     {
 	SmiUnsigned64 min, max;
 
-	min = 0;
-	max = LIBSMI_UINT64_MAX;
+	min = SMI_BASETYPE_UNSIGNED64_MIN;
+	max = SMI_BASETYPE_UNSIGNED64_MAX;
 
 	fprintStdRestHead( f, smiType );
 	
@@ -787,14 +788,14 @@ static void fprintSubRangeType( FILE *f,
     case SMI_BASETYPE_INTEGER32: {
 	SmiInteger32 min, max;
 
-	min = -2147483647;
-	max = 2147483646;
+	min = SMI_BASETYPE_INTEGER32_MIN;
+	max = SMI_BASETYPE_INTEGER32_MAX;
 
-	if( min == -2147483647 ||
+	if( min == SMI_BASETYPE_INTEGER32_MIN ||
 	    smiRange->minValue.value.integer32 < min ) {
 	    min = smiRange->minValue.value.integer32;
 	}
-	if( max == 2147483646 ||
+	if( max == SMI_BASETYPE_INTEGER32_MAX ||
 	    smiRange->maxValue.value.integer32 > max ) {
 	    max = smiRange->maxValue.value.integer32;
 	}
@@ -861,8 +862,8 @@ static void fprintSubRangeType( FILE *f,
     {
 	SmiUnsigned64 min, max;
 
-	min = 0;
-	max = LIBSMI_UINT64_MAX;
+	min = SMI_BASETYPE_UNSIGNED64_MIN;
+	max = SMI_BASETYPE_UNSIGNED64_MAX;
 
 	if( smiRange->minValue.value.unsigned64 < min ) {
 	    min = smiRange->minValue.value.unsigned64;
