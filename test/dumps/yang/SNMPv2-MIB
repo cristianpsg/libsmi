@@ -15,9 +15,8 @@ module SNMPv2-MIB {
 
   /*** LINKAGE (IMPORTS / INCLUDES) ***/
 
-  import SNMPv2-SMI { prefix "snmpv2-smi"; }
-  import SNMPv2-TC  { prefix "snmpv2-tc"; }
-  import yang-types { prefix "yang-types"; }
+  import SNMPv2-TC  { prefix "smiv2"; }
+  import yang-types { prefix "yang"; }
 
   /*** META INFORMATION ***/
 
@@ -79,7 +78,7 @@ module SNMPv2-MIB {
   container system {
 
     leaf sysDescr {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..255";
       }
       config false;
@@ -91,7 +90,7 @@ module SNMPv2-MIB {
     }
 
     leaf sysObjectID {
-      type yang-types:object-identifier;
+      type yang:object-identifier;
       config false;
       description   
        "The vendor's authoritative identification of the
@@ -106,7 +105,7 @@ module SNMPv2-MIB {
     }
 
     leaf sysUpTime {
-      type yang-types:timeticks;
+      type yang:timeticks;
       config false;
       description   
        "The time (in hundredths of a second) since the
@@ -115,7 +114,7 @@ module SNMPv2-MIB {
     }
 
     leaf sysContact {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..255";
       }
       config true;
@@ -127,7 +126,7 @@ module SNMPv2-MIB {
     }
 
     leaf sysName {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..255";
       }
       config true;
@@ -139,7 +138,7 @@ module SNMPv2-MIB {
     }
 
     leaf sysLocation {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..255";
       }
       config true;
@@ -182,7 +181,7 @@ module SNMPv2-MIB {
     }
 
     leaf sysORLastChange {
-      type yang-types:timestamp;
+      type yang:timestamp;
       config false;
       description   
        "The value of sysUpTime at the time of the most recent
@@ -210,7 +209,7 @@ module SNMPv2-MIB {
       }
 
       leaf sysORID {
-        type yang-types:object-identifier;
+        type yang:object-identifier;
         config false;
         description 
          "An authoritative identification of a capabilities
@@ -220,7 +219,7 @@ module SNMPv2-MIB {
       }
 
       leaf sysORDescr {
-        type snmpv2-tc:DisplayString;
+        type smiv2:DisplayString;
         config false;
         description 
          "A textual description of the capabilities identified
@@ -228,7 +227,7 @@ module SNMPv2-MIB {
       }
 
       leaf sysORUpTime {
-        type yang-types:timestamp;
+        type yang:timestamp;
         config false;
         description 
          "The value of sysUpTime at the time this conceptual
@@ -240,7 +239,7 @@ module SNMPv2-MIB {
   container snmp {
 
     leaf snmpInPkts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of messages delivered to the SNMP
@@ -248,7 +247,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutPkts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -258,7 +257,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInBadVersions {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of SNMP messages which were delivered
@@ -267,7 +266,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInBadCommunityNames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of community-based SNMP messages (for
@@ -289,7 +288,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInBadCommunityUses {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of community-based SNMP messages (for
@@ -307,7 +306,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInASNParseErrs {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of ASN.1 or BER errors encountered by
@@ -315,7 +314,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInTooBigs {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -326,7 +325,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInNoSuchNames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -337,7 +336,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInBadValues {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -348,7 +347,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInReadOnlys {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -363,7 +362,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInGenErrs {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -373,7 +372,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInTotalReqVars {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -384,7 +383,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInTotalSetVars {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -394,7 +393,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInGetRequests {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -404,7 +403,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInGetNexts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -413,7 +412,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInSetRequests {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -423,7 +422,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInGetResponses {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -433,7 +432,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpInTraps {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -442,7 +441,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutTooBigs {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -452,7 +451,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutNoSuchNames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -462,7 +461,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutBadValues {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -472,7 +471,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutGenErrs {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -482,7 +481,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutGetRequests {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -491,7 +490,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutGetNexts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -500,7 +499,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutSetRequests {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -509,7 +508,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutGetResponses {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -518,7 +517,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpOutTraps {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status obsolete;
       description   
@@ -546,7 +545,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpSilentDrops {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of Confirmed Class PDUs (such as
@@ -562,7 +561,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpProxyDrops {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of Confirmed Class PDUs
@@ -580,7 +579,7 @@ module SNMPv2-MIB {
   container snmpTrap {
 
     leaf snmpTrapOID {
-      type yang-types:object-identifier;
+      type yang:object-identifier;
       config false;
       description   
        "The authoritative identification of the notification
@@ -590,7 +589,7 @@ module SNMPv2-MIB {
     }
 
     leaf snmpTrapEnterprise {
-      type yang-types:object-identifier;
+      type yang:object-identifier;
       config false;
       description   
        "The authoritative identification of the enterprise
@@ -604,7 +603,7 @@ module SNMPv2-MIB {
   container snmpSet {
 
     leaf snmpSetSerialNo {
-      type snmpv2-tc:TestAndIncr;
+      type smiv2:TestAndIncr;
       config true;
       description   
        "An advisory lock used to allow several cooperating

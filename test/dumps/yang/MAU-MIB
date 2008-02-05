@@ -17,8 +17,8 @@ module MAU-MIB {
 
   import IANA-MAU-MIB { prefix "iana-mau"; }
   import IF-MIB       { prefix "if-mib"; }
-  import SNMPv2-TC    { prefix "snmpv2-tc"; }
-  import yang-types   { prefix "yang-types"; }
+  import SNMPv2-TC    { prefix "smiv2"; }
+  import yang-types   { prefix "yang"; }
 
   /*** META INFORMATION ***/
 
@@ -213,7 +213,7 @@ module MAU-MIB {
       }
 
       leaf rpMauType {
-        type snmpv2-tc:AutonomousType;
+        type smiv2:AutonomousType;
         config false;
         description 
          "This object identifies the MAU type.  Values for
@@ -308,7 +308,7 @@ module MAU-MIB {
       }
 
       leaf rpMauMediaAvailableStateExits {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "A count of the number of times that
@@ -351,7 +351,7 @@ module MAU-MIB {
       }
 
       leaf rpMauJabberingStateEnters {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "A count of the number of times that
@@ -372,7 +372,7 @@ module MAU-MIB {
       }
 
       leaf rpMauFalseCarriers {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "A count of the number of false carrier events
@@ -420,7 +420,6 @@ module MAU-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf rpMauPortIndex {
         type keyref {
           path "/mau-mib:dot3RpMauBasicGroup/mau-mib:rpMauEntry/mau-mib:rpMauPortIndex";
@@ -429,7 +428,6 @@ module MAU-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf rpMauIndex {
         type keyref {
           path "/mau-mib:dot3RpMauBasicGroup/mau-mib:rpMauEntry/mau-mib:rpMauIndex";
@@ -438,7 +436,6 @@ module MAU-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf rpJackIndex {
         type int32 {
@@ -499,7 +496,7 @@ module MAU-MIB {
       }
 
       leaf ifMauType {
-        type snmpv2-tc:AutonomousType;
+        type smiv2:AutonomousType;
         config false;
         description 
          "This object identifies the MAU type.  Values for
@@ -601,7 +598,7 @@ module MAU-MIB {
       }
 
       leaf ifMauMediaAvailableStateExits {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "A count of the number of times that
@@ -647,7 +644,7 @@ module MAU-MIB {
       }
 
       leaf ifMauJabberingStateEnters {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "A count of the number of times that
@@ -666,7 +663,7 @@ module MAU-MIB {
       }
 
       leaf ifMauFalseCarriers {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "A count of the number of false carrier events
@@ -754,7 +751,7 @@ module MAU-MIB {
       }
 
       leaf ifMauDefaultType {
-        type snmpv2-tc:AutonomousType;
+        type smiv2:AutonomousType;
         config true;
         description 
          "This object identifies the default
@@ -797,7 +794,7 @@ module MAU-MIB {
       }
 
       leaf ifMauAutoNegSupported {
-        type snmpv2-tc:TruthValue;
+        type smiv2:TruthValue;
         config false;
         description 
          "This object indicates whether or not
@@ -822,7 +819,7 @@ module MAU-MIB {
       }
 
       leaf ifMauHCFalseCarriers {
-        type yang-types:counter64;
+        type yang:counter64;
         config false;
         description 
          "A count of the number of false carrier events
@@ -870,7 +867,6 @@ module MAU-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf ifMauIndex {
         type keyref {
           path "/mau-mib:dot3IfMauBasicGroup/mau-mib:ifMauEntry/mau-mib:ifMauIndex";
@@ -879,7 +875,6 @@ module MAU-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf ifJackIndex {
         type int32 {
@@ -923,7 +918,6 @@ module MAU-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf ifMauIndex {
         type keyref {
           path "/mau-mib:dot3IfMauBasicGroup/mau-mib:ifMauEntry/mau-mib:ifMauIndex";
@@ -932,7 +926,6 @@ module MAU-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf ifMauAutoNegAdminStatus {
         type enumeration {
@@ -1237,13 +1230,56 @@ module MAU-MIB {
     reference       
      "[IEEE802.3], 30.5.1.3.1, nJabber notification.";
 
-    leaf rpMauJabberState {
-      type keyref {
-        path "/mau-mib:dot3RpMauBasicGroup/mau-mib:rpMauEntry/mau-mib:rpMauJabberState";
+    container rpMauJabberTrap-rpMauJabberState {
+      leaf rpMauGroupIndex {
+        type keyref {
+          path "/mau-mib:dot3RpMauBasicGroup/mau-mib:rpMauEntry/mau-mib:rpMauGroupIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
+      leaf rpMauPortIndex {
+        type keyref {
+          path "/mau-mib:dot3RpMauBasicGroup/mau-mib:rpMauEntry/mau-mib:rpMauPortIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
+      }
+      leaf rpMauIndex {
+        type keyref {
+          path "/mau-mib:dot3RpMauBasicGroup/mau-mib:rpMauEntry/mau-mib:rpMauIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
+      }
+      leaf rpMauJabberState {
+        type enumeration {
+          enum other     { value 1; }
+          enum unknown   { value 2; }
+          enum noJabber  { value 3; }
+          enum jabbering { value 4; }
+        }
+        config false;
+        description 
+         "The value other(1) is returned if the jabber
+          state is not 2, 3, or 4.  The agent MUST always
+          return other(1) for MAU type dot3MauTypeAUI.
+          
+          The value unknown(2) is returned when the MAU's
+          true state is unknown; for example, when it is
+          being initialized.
+          
+          If the MAU is not jabbering the agent returns
+          noJabber(3).  This is the 'normal' state.
+          
+          If the MAU is in jabber state the agent returns
+          the jabbering(4) value.";
+        reference   
+         "[IEEE802.3], 30.5.1.1.6, aJabber.jabberFlag.";
+      }
     }
 
   }
@@ -1259,13 +1295,51 @@ module MAU-MIB {
     reference       
      "[IEEE802.3], 30.5.1.3.1, nJabber notification.";
 
-    leaf ifMauJabberState {
-      type keyref {
-        path "/mau-mib:dot3IfMauBasicGroup/mau-mib:ifMauEntry/mau-mib:ifMauJabberState";
+    container ifMauJabberTrap-ifMauJabberState {
+      leaf ifMauIfIndex {
+        type keyref {
+          path "/mau-mib:dot3IfMauBasicGroup/mau-mib:ifMauEntry/mau-mib:ifMauIfIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
+      leaf ifMauIndex {
+        type keyref {
+          path "/mau-mib:dot3IfMauBasicGroup/mau-mib:ifMauEntry/mau-mib:ifMauIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
+      }
+      leaf ifMauJabberState {
+        type enumeration {
+          enum other     { value 1; }
+          enum unknown   { value 2; }
+          enum noJabber  { value 3; }
+          enum jabbering { value 4; }
+        }
+        config false;
+        description 
+         "The value other(1) is returned if the jabber
+          state is not 2, 3, or 4.  The agent MUST always
+          return other(1) for MAU type dot3MauTypeAUI.
+          
+          The value unknown(2) is returned when the MAU's
+          true state is unknown; for example, when it is
+          being initialized.
+          
+          If the MAU is not jabbering the agent returns
+          noJabber(3).  This is the 'normal' state.
+          
+          If the MAU is in jabber state the agent returns
+          
+          
+          
+          the jabbering(4) value.";
+        reference   
+         "[IEEE802.3], 30.5.1.1.6, aJabber.jabberFlag.";
+      }
     }
 
   }

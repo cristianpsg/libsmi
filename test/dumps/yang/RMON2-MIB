@@ -17,10 +17,10 @@ module RMON2-MIB {
 
   import IF-MIB              { prefix "if-mib"; }
   import RMON-MIB            { prefix "rmon-mib"; }
-  import SNMPv2-TC           { prefix "snmpv2-tc"; }
+  import SNMPv2-TC           { prefix "smiv2"; }
   import TOKEN-RING-RMON-MIB { prefix "token-ring"; }
-  import inet-types          { prefix "inet-types"; }
-  import yang-types          { prefix "yang-types"; }
+  import inet-types          { prefix "inet"; }
+  import yang-types          { prefix "yang"; }
 
   /*** META INFORMATION ***/
 
@@ -160,7 +160,7 @@ module RMON2-MIB {
   /*** TYPE DEFINITIONS ***/
 
   typedef ZeroBasedCounter32 {
-    type yang-types:gauge32;
+    type yang:gauge32;
     description     
      "This TC describes an object that counts events with the
       following semantics: objects of this type will be set to
@@ -181,7 +181,7 @@ module RMON2-MIB {
   }
 
   typedef LastCreateTime {
-    type yang-types:timeticks;
+    type yang:timeticks;
     description     
      "This TC describes an object that stores the value of the
       sysUpTime object at the last time its entry was created.
@@ -201,7 +201,7 @@ module RMON2-MIB {
   }
 
   typedef TimeFilter {
-    type yang-types:timeticks;
+    type yang:timeticks;
     description     
      "To be used for the index to a table.  Allows an application
       to download only those rows changed since a particular time.
@@ -417,7 +417,7 @@ module RMON2-MIB {
   }
 
   typedef DataSource {
-    type yang-types:object-identifier;
+    type yang:object-identifier;
     description     
      "Identifies the source of the data that the associated
       function is configured to analyze.  This source can be any
@@ -502,7 +502,7 @@ module RMON2-MIB {
   container protocolDir {
 
     leaf protocolDirLastChange {
-      type yang-types:timestamp;
+      type yang:timestamp;
       config false;
       description   
        "The value of sysUpTime at the time the protocol directory
@@ -611,7 +611,7 @@ module RMON2-MIB {
       }
 
       leaf protocolDirDescr {
-        type snmpv2-tc:DisplayString {
+        type smiv2:DisplayString {
           length "1..64";
         }
         config true;
@@ -833,7 +833,7 @@ module RMON2-MIB {
       }
 
       leaf protocolDirStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this protocol directory entry.
@@ -891,7 +891,7 @@ module RMON2-MIB {
       }
 
       leaf protocolDistControlDroppedFrames {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of frames that were received by the probe
@@ -929,7 +929,7 @@ module RMON2-MIB {
       }
 
       leaf protocolDistControlStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this row.
@@ -969,7 +969,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -978,7 +977,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf protocolDistStatsPkts {
         type rmon2-mib:ZeroBasedCounter32;
@@ -1013,7 +1011,7 @@ module RMON2-MIB {
   container addressMap {
 
     leaf addressMapInserts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The number of times an address mapping entry has been
@@ -1026,7 +1024,7 @@ module RMON2-MIB {
     }
 
     leaf addressMapDeletes {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The number of times an address mapping entry has been
@@ -1092,7 +1090,7 @@ module RMON2-MIB {
       }
 
       leaf addressMapControlDroppedFrames {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of frames that were received by the probe
@@ -1118,7 +1116,7 @@ module RMON2-MIB {
       }
 
       leaf addressMapControlStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this addressMap control entry.
@@ -1164,7 +1162,6 @@ module RMON2-MIB {
          "Automagically generated keyref leaf.";
       }
 
-
       leaf addressMapTimeMark {
         type rmon2-mib:TimeFilter;
         config false;
@@ -1193,7 +1190,7 @@ module RMON2-MIB {
       }
 
       leaf addressMapSource {
-        type yang-types:object-identifier;
+        type yang:object-identifier;
         config false;
         description 
          "The interface or port on which the associated network
@@ -1233,7 +1230,7 @@ module RMON2-MIB {
       }
 
       leaf addressMapLastChange {
-        type yang-types:timestamp;
+        type yang:timestamp;
         config false;
         description 
          "The value of sysUpTime at the time this entry was last
@@ -1295,7 +1292,7 @@ module RMON2-MIB {
       }
 
       leaf hlHostControlNlDroppedFrames {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of frames that were received by the probe
@@ -1316,7 +1313,7 @@ module RMON2-MIB {
       }
 
       leaf hlHostControlNlInserts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an nlHost entry has been
@@ -1336,7 +1333,7 @@ module RMON2-MIB {
       }
 
       leaf hlHostControlNlDeletes {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an nlHost entry has been
@@ -1385,7 +1382,7 @@ module RMON2-MIB {
       }
 
       leaf hlHostControlAlDroppedFrames {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of frames that were received by the probe
@@ -1410,7 +1407,7 @@ module RMON2-MIB {
       }
 
       leaf hlHostControlAlInserts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an alHost entry has been
@@ -1430,7 +1427,7 @@ module RMON2-MIB {
       }
 
       leaf hlHostControlAlDeletes {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an alHost entry has been
@@ -1487,7 +1484,7 @@ module RMON2-MIB {
       }
 
       leaf hlHostControlStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this hlHostControlEntry.
@@ -1534,7 +1531,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -1543,7 +1539,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf nlHostTimeMark {
         type rmon2-mib:TimeFilter;
@@ -1696,7 +1691,7 @@ module RMON2-MIB {
       }
 
       leaf hlMatrixControlNlDroppedFrames {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of frames that were received by the probe
@@ -1718,7 +1713,7 @@ module RMON2-MIB {
       }
 
       leaf hlMatrixControlNlInserts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an nlMatrix entry has been
@@ -1745,7 +1740,7 @@ module RMON2-MIB {
       }
 
       leaf hlMatrixControlNlDeletes {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an nlMatrix entry has been
@@ -1795,7 +1790,7 @@ module RMON2-MIB {
       }
 
       leaf hlMatrixControlAlDroppedFrames {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of frames that were received by the probe
@@ -1817,7 +1812,7 @@ module RMON2-MIB {
       }
 
       leaf hlMatrixControlAlInserts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an alMatrix entry has been
@@ -1840,7 +1835,7 @@ module RMON2-MIB {
       }
 
       leaf hlMatrixControlAlDeletes {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of times an alMatrix entry has been
@@ -1897,7 +1892,7 @@ module RMON2-MIB {
       }
 
       leaf hlMatrixControlStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this hlMatrixControlEntry.
@@ -1945,7 +1940,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -1954,7 +1948,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf nlMatrixSDTimeMark {
         type rmon2-mib:TimeFilter;
@@ -2074,7 +2067,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -2083,7 +2075,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf nlMatrixDSTimeMark {
         type rmon2-mib:TimeFilter;
@@ -2274,7 +2265,7 @@ module RMON2-MIB {
       }
 
       leaf nlMatrixTopNControlGeneratedReports {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of reports that have been generated by this entry.";
@@ -2350,7 +2341,7 @@ module RMON2-MIB {
       }
 
       leaf nlMatrixTopNControlStartTime {
-        type yang-types:timestamp;
+        type yang:timestamp;
         config false;
         description 
          "The value of sysUpTime when this topN report was
@@ -2372,7 +2363,7 @@ module RMON2-MIB {
       }
 
       leaf nlMatrixTopNControlStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this nlMatrixTopNControlEntry.
@@ -2410,7 +2401,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf nlMatrixTopNIndex {
         type int32 {
@@ -2488,7 +2478,7 @@ module RMON2-MIB {
       }
 
       leaf nlMatrixTopNPktRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of packets seen from the source host
@@ -2500,7 +2490,7 @@ module RMON2-MIB {
       }
 
       leaf nlMatrixTopNReversePktRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of packets seen from the destination host to the
@@ -2518,7 +2508,7 @@ module RMON2-MIB {
       }
 
       leaf nlMatrixTopNOctetRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of octets seen from the source host
@@ -2530,7 +2520,7 @@ module RMON2-MIB {
       }
 
       leaf nlMatrixTopNReverseOctetRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of octets seen from the destination host to the
@@ -2587,7 +2577,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -2596,7 +2585,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf nlHostAddress {
         type keyref {
           path "/rmon2-mib:nlHost/rmon2-mib:nlHostEntry/rmon2-mib:nlHostAddress";
@@ -2605,7 +2593,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -2614,7 +2601,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf alHostTimeMark {
         type rmon2-mib:TimeFilter;
@@ -2731,7 +2717,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -2740,7 +2725,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf nlMatrixSDSourceAddress {
         type keyref {
           path "/rmon2-mib:nlMatrix/rmon2-mib:nlMatrixSDEntry/rmon2-mib:nlMatrixSDSourceAddress";
@@ -2749,7 +2733,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf nlMatrixSDDestAddress {
         type keyref {
           path "/rmon2-mib:nlMatrix/rmon2-mib:nlMatrixSDEntry/rmon2-mib:nlMatrixSDDestAddress";
@@ -2758,7 +2741,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -2767,7 +2749,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf alMatrixSDTimeMark {
         type rmon2-mib:TimeFilter;
@@ -2857,7 +2838,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -2866,7 +2846,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf nlMatrixDSDestAddress {
         type keyref {
           path "/rmon2-mib:nlMatrix/rmon2-mib:nlMatrixDSEntry/rmon2-mib:nlMatrixDSDestAddress";
@@ -2875,7 +2854,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf nlMatrixDSSourceAddress {
         type keyref {
           path "/rmon2-mib:nlMatrix/rmon2-mib:nlMatrixDSEntry/rmon2-mib:nlMatrixDSSourceAddress";
@@ -2884,7 +2862,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf protocolDirLocalIndex {
         type keyref {
           path "/rmon2-mib:protocolDir/rmon2-mib:protocolDirEntry/rmon2-mib:protocolDirLocalIndex";
@@ -2893,7 +2870,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf alMatrixDSTimeMark {
         type rmon2-mib:TimeFilter;
@@ -3052,7 +3028,7 @@ module RMON2-MIB {
       }
 
       leaf alMatrixTopNControlGeneratedReports {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of reports that have been generated by this entry.";
@@ -3125,7 +3101,7 @@ module RMON2-MIB {
       }
 
       leaf alMatrixTopNControlStartTime {
-        type yang-types:timestamp;
+        type yang:timestamp;
         config false;
         description 
          "The value of sysUpTime when this topN report was
@@ -3149,7 +3125,7 @@ module RMON2-MIB {
       }
 
       leaf alMatrixTopNControlStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this alMatrixTopNControlEntry.
@@ -3189,7 +3165,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf alMatrixTopNIndex {
         type int32 {
@@ -3274,7 +3249,7 @@ module RMON2-MIB {
       }
 
       leaf alMatrixTopNPktRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of packets seen of this protocol from the source
@@ -3288,7 +3263,7 @@ module RMON2-MIB {
       }
 
       leaf alMatrixTopNReversePktRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of packets seen of this protocol from the
@@ -3306,7 +3281,7 @@ module RMON2-MIB {
       }
 
       leaf alMatrixTopNOctetRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of octets seen of this protocol from the source
@@ -3320,7 +3295,7 @@ module RMON2-MIB {
       }
 
       leaf alMatrixTopNReverseOctetRate {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The number of octets seen of this protocol from the
@@ -3476,7 +3451,7 @@ module RMON2-MIB {
       }
 
       leaf usrHistoryControlStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of this variable history control entry.
@@ -3516,7 +3491,6 @@ module RMON2-MIB {
          "Automagically generated keyref leaf.";
       }
 
-
       leaf usrHistoryObjectIndex {
         type int32 {
           range "1..65535";
@@ -3529,7 +3503,7 @@ module RMON2-MIB {
       }
 
       leaf usrHistoryObjectVariable {
-        type yang-types:object-identifier;
+        type yang:object-identifier;
         config true;
         description 
          "The object identifier of the particular variable to be
@@ -3621,7 +3595,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
       leaf usrHistoryObjectIndex {
         type keyref {
           path "/rmon2-mib:usrHistory/rmon2-mib:usrHistoryObjectEntry/rmon2-mib:usrHistoryObjectIndex";
@@ -3630,7 +3603,6 @@ module RMON2-MIB {
         description 
          "Automagically generated keyref leaf.";
       }
-
 
       leaf usrHistorySampleIndex {
         type int32 {
@@ -3645,7 +3617,7 @@ module RMON2-MIB {
       }
 
       leaf usrHistoryIntervalStart {
-        type yang-types:timestamp;
+        type yang:timestamp;
         config false;
         description 
          "The value of sysUpTime at the start of the interval over
@@ -3662,7 +3634,7 @@ module RMON2-MIB {
       }
 
       leaf usrHistoryIntervalEnd {
-        type yang-types:timestamp;
+        type yang:timestamp;
         config false;
         description 
          "The value of sysUpTime at the end of the interval over which
@@ -3670,7 +3642,7 @@ module RMON2-MIB {
       }
 
       leaf usrHistoryAbsValue {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "The absolute value (i.e., unsigned value) of the
@@ -3763,7 +3735,7 @@ module RMON2-MIB {
     }
 
     leaf probeSoftwareRev {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..15";
       }
       config false;
@@ -3773,7 +3745,7 @@ module RMON2-MIB {
     }
 
     leaf probeHardwareRev {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..31";
       }
       config false;
@@ -3834,7 +3806,7 @@ module RMON2-MIB {
     }
 
     leaf probeDownloadFile {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..127";
       }
       config true;
@@ -3850,7 +3822,7 @@ module RMON2-MIB {
     }
 
     leaf probeDownloadTFTPServer {
-      type inet-types:ipv4-address;
+      type inet:ipv4-address;
       config true;
       status deprecated;
       description   
@@ -3943,7 +3915,6 @@ module RMON2-MIB {
          "Automagically generated keyref leaf.";
       }
 
-
       leaf serialMode {
         type enumeration {
           enum direct { value 1; }
@@ -4018,7 +3989,7 @@ module RMON2-MIB {
       }
 
       leaf serialModemConnectResp {
-        type snmpv2-tc:DisplayString {
+        type smiv2:DisplayString {
           length "0..255";
         }
         config true;
@@ -4051,7 +4022,7 @@ module RMON2-MIB {
       }
 
       leaf serialModemNoConnectResp {
-        type snmpv2-tc:DisplayString {
+        type smiv2:DisplayString {
           length "0..255";
         }
         config true;
@@ -4087,7 +4058,7 @@ module RMON2-MIB {
       }
 
       leaf serialStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         status deprecated;
         description 
@@ -4122,9 +4093,8 @@ module RMON2-MIB {
          "Automagically generated keyref leaf.";
       }
 
-
       leaf netConfigIPAddress {
-        type inet-types:ipv4-address;
+        type inet:ipv4-address;
         config true;
         status deprecated;
         description 
@@ -4141,7 +4111,7 @@ module RMON2-MIB {
       }
 
       leaf netConfigSubnetMask {
-        type inet-types:ipv4-address;
+        type inet:ipv4-address;
         config true;
         status deprecated;
         description 
@@ -4158,7 +4128,7 @@ module RMON2-MIB {
       }
 
       leaf netConfigStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         status deprecated;
         description 
@@ -4170,7 +4140,7 @@ module RMON2-MIB {
     }
 
     leaf netDefaultGateway {
-      type inet-types:ipv4-address;
+      type inet:ipv4-address;
       config true;
       status deprecated;
       description   
@@ -4279,7 +4249,7 @@ module RMON2-MIB {
       }
 
       leaf trapDestStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         status deprecated;
         description 
@@ -4313,7 +4283,7 @@ module RMON2-MIB {
       }
 
       leaf serialConnectDestIpAddress {
-        type inet-types:ipv4-address;
+        type inet:ipv4-address;
         config true;
         status deprecated;
         description 
@@ -4421,7 +4391,7 @@ module RMON2-MIB {
       }
 
       leaf serialConnectStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         status deprecated;
         description 
@@ -4458,7 +4428,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf etherStatsDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of frames that were received by the probe
@@ -4495,7 +4465,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf tokenRingMLStatsDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status deprecated;
       description   
@@ -4534,7 +4504,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf tokenRingPStatsDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status deprecated;
       description   
@@ -4572,7 +4542,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf historyControlDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of frames that were received by the probe
@@ -4598,7 +4568,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf hostControlDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of frames that were received by the probe
@@ -4637,7 +4607,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf matrixControlDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of frames that were received by the probe
@@ -4673,7 +4643,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf channelDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of frames that were received by the probe
@@ -4757,7 +4727,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf ringStationControlDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status deprecated;
       description   
@@ -4799,7 +4769,7 @@ module RMON2-MIB {
      "Contains the RMON-2 augmentations to RMON-1.";
 
     leaf sourceRoutingStatsDroppedFrames {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       status deprecated;
       description   
