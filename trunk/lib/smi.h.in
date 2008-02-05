@@ -362,7 +362,7 @@ extern SmiRange *smiGetFirstRange(SmiType *smiTypePtr);
 
 extern SmiRange *smiGetNextRange(SmiRange *smiRangePtr);
 
-extern int smiGetMinMaxRange(SmiType smiType, SmiValue *min, SmiValue *max);
+extern int smiGetMinMaxRange(SmiType *smiType, SmiValue *min, SmiValue *max);
 
 extern SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr);
 
