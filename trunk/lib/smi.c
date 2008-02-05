@@ -2176,3 +2176,86 @@ int smiVasprintf(char **strp, const char *format, va_list ap)
     return rc;
 }
 
+
+int smiGetMinMaxRange(SmiType *smiType, SmiValue *min, SmiValue *max)
+{
+    SmiBasetype    basetype = SMI_BASETYPE_UNKNOWN;
+    SmiRange       *range;
+
+    min->basetype = max->basetype = SMI_BASETYPE_UNKNOWN;
+    min->len = max->len = 0;
+
+    range = smiGetFirstRange(smiType);
+    if (!range) {
+	return 0;
+    }
+
+    basetype = range->minValue.basetype;
+    min->basetype = max->basetype = basetype;
+
+    switch (basetype) {
+    case SMI_BASETYPE_INTEGER32:
+	min->value.integer32 = SMI_BASETYPE_INTEGER32_MAX;
+	max->value.integer32 = SMI_BASETYPE_INTEGER32_MIN;
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	min->value.integer64 = SMI_BASETYPE_INTEGER64_MAX;
+	max->value.integer64 = SMI_BASETYPE_INTEGER64_MIN;
+	break;
+    case SMI_BASETYPE_UNSIGNED32:
+	min->value.unsigned32 = SMI_BASETYPE_UNSIGNED32_MAX;
+	max->value.unsigned32 = SMI_BASETYPE_UNSIGNED32_MIN;
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	min->value.unsigned64 = SMI_BASETYPE_UNSIGNED64_MAX;
+	max->value.unsigned64 = SMI_BASETYPE_UNSIGNED32_MIN;
+	break;
+    default:
+	fprintf(stderr, "smidump: unexpected basetype %d\n", basetype);
+	return -1;
+    }
+
+    for (range = smiGetFirstRange(smiType);
+	 range;
+	 range = smiGetNextRange(range)) {
+	switch (basetype) {
+	case SMI_BASETYPE_INTEGER32:
+	    if (range->minValue.value.integer32 < min->value.integer32) {
+		min->value.integer32 = range->minValue.value.integer32;
+	    }
+	    if (range->maxValue.value.integer32 > max->value.integer32) {
+		max->value.integer32 = range->maxValue.value.integer32;
+	    }
+	    break;
+	case SMI_BASETYPE_INTEGER64:
+	    if (range->minValue.value.integer64 < min->value.integer64) {
+		min->value.integer64 = range->minValue.value.integer64;
+	    }
+	    if (range->maxValue.value.integer64 > max->value.integer64) {
+		max->value.integer64 = range->maxValue.value.integer64;
+	    }
+	    break;
+	case SMI_BASETYPE_UNSIGNED32:
+	    if (range->minValue.value.unsigned32 < min->value.unsigned32) {
+		min->value.unsigned32 = range->minValue.value.unsigned32;
+	    }
+	    if (range->maxValue.value.unsigned32 > max->value.unsigned32) {
+		max->value.unsigned32 = range->maxValue.value.unsigned32;
+	    }
+	    break;
+	case SMI_BASETYPE_UNSIGNED64:
+	    if (range->minValue.value.unsigned64 < min->value.unsigned64) {
+		min->value.unsigned64 = range->minValue.value.unsigned64;
+	    }
+	    if (range->maxValue.value.unsigned64 > max->value.unsigned64) {
+		max->value.unsigned64 = range->maxValue.value.unsigned64;
+	    }
+	    break;
+	default:
+	    fprintf(stderr, "smidump: unexpected basetype %d\n", basetype);
+	    return -1;
+	}
+    }
+
+    return 0;
+}
