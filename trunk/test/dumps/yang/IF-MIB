@@ -16,8 +16,8 @@ module IF-MIB {
   /*** LINKAGE (IMPORTS / INCLUDES) ***/
 
   import IANAifType-MIB { prefix "ianaiftype-mib"; }
-  import SNMPv2-TC      { prefix "snmpv2-tc"; }
-  import yang-types     { prefix "yang-types"; }
+  import SNMPv2-TC      { prefix "smiv2"; }
+  import yang-types     { prefix "yang"; }
 
   /*** META INFORMATION ***/
 
@@ -60,6 +60,7 @@ module IF-MIB {
   typedef OwnerString {
     type string {
       length "0..255";
+      pattern "\p{IsBasicLatin}{0,255}";
     }
     status deprecated;
     description     
@@ -138,7 +139,7 @@ module IF-MIB {
       }
 
       leaf ifDescr {
-        type snmpv2-tc:DisplayString {
+        type smiv2:DisplayString {
           length "0..255";
         }
         config false;
@@ -171,7 +172,7 @@ module IF-MIB {
       }
 
       leaf ifSpeed {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         description 
          "An estimate of the interface's current bandwidth in bits
@@ -186,7 +187,7 @@ module IF-MIB {
       }
 
       leaf ifPhysAddress {
-        type yang-types:phys-address;
+        type yang:phys-address;
         config false;
         description 
          "The interface's address at its protocol sub-layer.  For
@@ -244,7 +245,7 @@ module IF-MIB {
       }
 
       leaf ifLastChange {
-        type yang-types:timeticks;
+        type yang:timeticks;
         config false;
         description 
          "The value of sysUpTime at the time the interface entered
@@ -255,7 +256,7 @@ module IF-MIB {
       }
 
       leaf ifInOctets {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of octets received on the interface,
@@ -270,7 +271,7 @@ module IF-MIB {
       }
 
       leaf ifInUcastPkts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of packets, delivered by this sub-layer to a
@@ -284,7 +285,7 @@ module IF-MIB {
       }
 
       leaf ifInNUcastPkts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         status deprecated;
         description 
@@ -302,7 +303,7 @@ module IF-MIB {
       }
 
       leaf ifInDiscards {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of inbound packets which were chosen to be
@@ -320,7 +321,7 @@ module IF-MIB {
       }
 
       leaf ifInErrors {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "For packet-oriented interfaces, the number of inbound
@@ -337,7 +338,7 @@ module IF-MIB {
       }
 
       leaf ifInUnknownProtos {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "For packet-oriented interfaces, the number of packets
@@ -357,7 +358,7 @@ module IF-MIB {
       }
 
       leaf ifOutOctets {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of octets transmitted out of the
@@ -370,7 +371,7 @@ module IF-MIB {
       }
 
       leaf ifOutUcastPkts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The total number of packets that higher-level protocols
@@ -385,7 +386,7 @@ module IF-MIB {
       }
 
       leaf ifOutNUcastPkts {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         status deprecated;
         description 
@@ -404,7 +405,7 @@ module IF-MIB {
       }
 
       leaf ifOutDiscards {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "The number of outbound packets which were chosen to be
@@ -419,7 +420,7 @@ module IF-MIB {
       }
 
       leaf ifOutErrors {
-        type yang-types:counter32;
+        type yang:counter32;
         config false;
         description 
          "For packet-oriented interfaces, the number of outbound
@@ -435,7 +436,7 @@ module IF-MIB {
       }
 
       leaf ifOutQLen {
-        type yang-types:gauge32;
+        type yang:gauge32;
         config false;
         status deprecated;
         description 
@@ -443,7 +444,7 @@ module IF-MIB {
       }
 
       leaf ifSpecific {
-        type yang-types:object-identifier;
+        type yang:object-identifier;
         config false;
         status deprecated;
         description 
@@ -501,7 +502,7 @@ module IF-MIB {
       }
 
       leaf ifStackStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "The status of the relationship between two sub-layers.
@@ -536,9 +537,8 @@ module IF-MIB {
          "Automagically generated keyref leaf.";
       }
 
-
       leaf ifRcvAddressAddress {
-        type yang-types:phys-address;
+        type yang:phys-address;
         config false;
         description 
          "An address for which the system will accept packets/frames
@@ -546,7 +546,7 @@ module IF-MIB {
       }
 
       leaf ifRcvAddressStatus {
-        type snmpv2-tc:RowStatus;
+        type smiv2:RowStatus;
         config true;
         description 
          "This object is used to create and delete rows in the
@@ -573,7 +573,7 @@ module IF-MIB {
     }
 
     leaf ifTableLastChange {
-      type yang-types:timeticks;
+      type yang:timeticks;
       config false;
       description   
        "The value of sysUpTime at the time of the last creation or
@@ -584,7 +584,7 @@ module IF-MIB {
     }
 
     leaf ifStackLastChange {
-      type yang-types:timeticks;
+      type yang:timeticks;
       config false;
       description   
        "The value of sysUpTime at the time of the last change of
@@ -606,7 +606,7 @@ module IF-MIB {
       applicable to a particular interface.";
 
     leaf ifName {
-      type snmpv2-tc:DisplayString;
+      type smiv2:DisplayString;
       config false;
       description   
        "The textual name of the interface.  The value of this
@@ -627,7 +627,7 @@ module IF-MIB {
     }
 
     leaf ifInMulticastPkts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The number of packets, delivered by this sub-layer to a
@@ -644,7 +644,7 @@ module IF-MIB {
     }
 
     leaf ifInBroadcastPkts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The number of packets, delivered by this sub-layer to a
@@ -658,7 +658,7 @@ module IF-MIB {
     }
 
     leaf ifOutMulticastPkts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of packets that higher-level protocols
@@ -674,7 +674,7 @@ module IF-MIB {
     }
 
     leaf ifOutBroadcastPkts {
-      type yang-types:counter32;
+      type yang:counter32;
       config false;
       description   
        "The total number of packets that higher-level protocols
@@ -691,7 +691,7 @@ module IF-MIB {
     }
 
     leaf ifHCInOctets {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The total number of octets received on the interface,
@@ -705,7 +705,7 @@ module IF-MIB {
     }
 
     leaf ifHCInUcastPkts {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The number of packets, delivered by this sub-layer to a
@@ -720,7 +720,7 @@ module IF-MIB {
     }
 
     leaf ifHCInMulticastPkts {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The number of packets, delivered by this sub-layer to a
@@ -736,7 +736,7 @@ module IF-MIB {
     }
 
     leaf ifHCInBroadcastPkts {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The number of packets, delivered by this sub-layer to a
@@ -751,7 +751,7 @@ module IF-MIB {
     }
 
     leaf ifHCOutOctets {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The total number of octets transmitted out of the
@@ -765,7 +765,7 @@ module IF-MIB {
     }
 
     leaf ifHCOutUcastPkts {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The total number of packets that higher-level protocols
@@ -781,7 +781,7 @@ module IF-MIB {
     }
 
     leaf ifHCOutMulticastPkts {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The total number of packets that higher-level protocols
@@ -798,7 +798,7 @@ module IF-MIB {
     }
 
     leaf ifHCOutBroadcastPkts {
-      type yang-types:counter64;
+      type yang:counter64;
       config false;
       description   
        "The total number of packets that higher-level protocols
@@ -830,7 +830,7 @@ module IF-MIB {
     }
 
     leaf ifHighSpeed {
-      type yang-types:gauge32;
+      type yang:gauge32;
       config false;
       description   
        "An estimate of the interface's current bandwidth in units
@@ -844,7 +844,7 @@ module IF-MIB {
     }
 
     leaf ifPromiscuousMode {
-      type snmpv2-tc:TruthValue;
+      type smiv2:TruthValue;
       config true;
       description   
        "This object has a value of false(2) if this interface only
@@ -860,7 +860,7 @@ module IF-MIB {
     }
 
     leaf ifConnectorPresent {
-      type snmpv2-tc:TruthValue;
+      type smiv2:TruthValue;
       config false;
       description   
        "This object has the value 'true(1)' if the interface
@@ -869,7 +869,7 @@ module IF-MIB {
     }
 
     leaf ifAlias {
-      type snmpv2-tc:DisplayString {
+      type smiv2:DisplayString {
         length "0..64";
       }
       config true;
@@ -902,7 +902,7 @@ module IF-MIB {
     }
 
     leaf ifCounterDiscontinuityTime {
-      type yang-types:timestamp;
+      type yang:timestamp;
       config false;
       description   
        "The value of sysUpTime on the most recent occasion at which
@@ -928,7 +928,7 @@ module IF-MIB {
       interface.";
 
     leaf ifTestId {
-      type snmpv2-tc:TestAndIncr;
+      type smiv2:TestAndIncr;
       config true;
       status deprecated;
       description   
@@ -953,7 +953,7 @@ module IF-MIB {
     }
 
     leaf ifTestType {
-      type snmpv2-tc:AutonomousType;
+      type smiv2:AutonomousType;
       config true;
       status deprecated;
       description   
@@ -1002,7 +1002,7 @@ module IF-MIB {
     }
 
     leaf ifTestCode {
-      type yang-types:object-identifier;
+      type yang:object-identifier;
       config false;
       status deprecated;
       description   
@@ -1039,31 +1039,80 @@ module IF-MIB {
       state).  This other state is indicated by the included value
       of ifOperStatus.";
 
-    leaf ifIndex {
-      type keyref {
-        path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+    container linkDown-ifIndex {
+      leaf ifIndex {
+        type keyref {
+          path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
     }
 
-    leaf ifAdminStatus {
-      type keyref {
-        path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifAdminStatus";
+    container linkDown-ifAdminStatus {
+      leaf ifIndex {
+        type keyref {
+          path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
+      leaf ifAdminStatus {
+        type enumeration {
+          enum up      { value 1; }
+          enum down    { value 2; }
+          enum testing { value 3; }
+        }
+        config true;
+        description 
+         "The desired state of the interface.  The testing(3) state
+          indicates that no operational packets can be passed.  When a
+          managed system initializes, all interfaces start with
+          ifAdminStatus in the down(2) state.  As a result of either
+          explicit management action or per configuration information
+          retained by the managed system, ifAdminStatus is then
+          changed to either the up(1) or testing(3) states (or remains
+          in the down(2) state).";
+      }
     }
 
-    leaf ifOperStatus {
-      type keyref {
-        path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifOperStatus";
+    container linkDown-ifOperStatus {
+      leaf ifIndex {
+        type keyref {
+          path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
+      leaf ifOperStatus {
+        type enumeration {
+          enum up             { value 1; }
+          enum down           { value 2; }
+          enum testing        { value 3; }
+          enum unknown        { value 4; }
+          enum dormant        { value 5; }
+          enum notPresent     { value 6; }
+          enum lowerLayerDown { value 7; }
+        }
+        config false;
+        description 
+         "The current operational state of the interface.  The
+          testing(3) state indicates that no operational packets can
+          be passed.  If ifAdminStatus is down(2) then ifOperStatus
+          should be down(2).  If ifAdminStatus is changed to up(1)
+          then ifOperStatus should change to up(1) if the interface is
+          ready to transmit and receive network traffic; it should
+          change to dormant(5) if the interface is waiting for
+          external actions (such as a serial line waiting for an
+          incoming connection); it should remain in the down(2) state
+          if and only if there is a fault that prevents it from going
+          to the up(1) state; it should remain in the notPresent(6)
+          state if the interface has missing (typically, hardware)
+          components.";
+      }
     }
 
   }
@@ -1077,31 +1126,80 @@ module IF-MIB {
       notPresent state).  This other state is indicated by the
       included value of ifOperStatus.";
 
-    leaf ifIndex {
-      type keyref {
-        path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+    container linkUp-ifIndex {
+      leaf ifIndex {
+        type keyref {
+          path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
     }
 
-    leaf ifAdminStatus {
-      type keyref {
-        path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifAdminStatus";
+    container linkUp-ifAdminStatus {
+      leaf ifIndex {
+        type keyref {
+          path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
+      leaf ifAdminStatus {
+        type enumeration {
+          enum up      { value 1; }
+          enum down    { value 2; }
+          enum testing { value 3; }
+        }
+        config true;
+        description 
+         "The desired state of the interface.  The testing(3) state
+          indicates that no operational packets can be passed.  When a
+          managed system initializes, all interfaces start with
+          ifAdminStatus in the down(2) state.  As a result of either
+          explicit management action or per configuration information
+          retained by the managed system, ifAdminStatus is then
+          changed to either the up(1) or testing(3) states (or remains
+          in the down(2) state).";
+      }
     }
 
-    leaf ifOperStatus {
-      type keyref {
-        path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifOperStatus";
+    container linkUp-ifOperStatus {
+      leaf ifIndex {
+        type keyref {
+          path "/if-mib:interfaces/if-mib:ifEntry/if-mib:ifIndex";
+        }
+        config false;
+        description 
+         "Automagically generated keyref leaf.";
       }
-      config false;
-      description   
-       "Automagically generated keyref leaf.";
+      leaf ifOperStatus {
+        type enumeration {
+          enum up             { value 1; }
+          enum down           { value 2; }
+          enum testing        { value 3; }
+          enum unknown        { value 4; }
+          enum dormant        { value 5; }
+          enum notPresent     { value 6; }
+          enum lowerLayerDown { value 7; }
+        }
+        config false;
+        description 
+         "The current operational state of the interface.  The
+          testing(3) state indicates that no operational packets can
+          be passed.  If ifAdminStatus is down(2) then ifOperStatus
+          should be down(2).  If ifAdminStatus is changed to up(1)
+          then ifOperStatus should change to up(1) if the interface is
+          ready to transmit and receive network traffic; it should
+          change to dormant(5) if the interface is waiting for
+          external actions (such as a serial line waiting for an
+          incoming connection); it should remain in the down(2) state
+          if and only if there is a fault that prevents it from going
+          to the up(1) state; it should remain in the notPresent(6)
+          state if the interface has missing (typically, hardware)
+          components.";
+      }
     }
 
   }

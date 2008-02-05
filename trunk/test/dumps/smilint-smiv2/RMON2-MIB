@@ -18,3 +18,4 @@
 ../dumps/smiv2/RMON2-MIB:156: warning: type `ZeroBasedCounter32' has no format specification
 ../dumps/smiv2/RMON2-MIB:177: warning: type `LastCreateTime' has no format specification
 ../dumps/smiv2/RMON2-MIB:197: warning: type `TimeFilter' has no format specification
+../dumps/smiv2/RMON2-MIB:428: warning: type `ControlString' has no format specification
