@@ -901,32 +901,22 @@ static void fprintDisplayHint( FILE *f, char *format )
     fprintSegment( f, 0, "<displayHint>%s</displayHint>\n", format );
 }
 
-static void fprintLengths( FILE *f, SmiType *smiType )
+static void fprintLengths(FILE *f, SmiType *smiType)
 {
-    SmiRange *smiRange = smiGetFirstRange( smiType );
-    unsigned int numSubRanges = getNumSubRanges( smiType ),
-	lp = 0;
-    SmiUnsigned32 *lengths = xmalloc(  2 * numSubRanges * sizeof(SmiUnsigned32) );
-    
-    /* write lengths to the array */
-    for( smiRange = smiGetFirstRange( smiType );
-	 smiRange;
-	 smiRange = smiGetNextRange( smiRange ) ) {
-	lengths[ lp++ ] = smiRange->minValue.value.unsigned32;
-	lengths[ lp++ ] = smiRange->maxValue.value.unsigned32;
+    SmiRange *smiRange = smiGetFirstRange(smiType);
+
+    if (! smiRange) {
+	return;
     }
     
-    if( numSubRanges ) {
-	fprintSegment( f, 1, "<lengths>\n" );
+    fprintSegment(f, 1, "<lengths>\n");
+    for (smiRange = smiGetFirstRange(smiType);
+	 smiRange; smiRange = smiGetNextRange(smiRange)) {
+	fprintSegment(f, 0, "<length min=\"%u\" max=\"%u\"/>\n",
+		      smiRange->minValue.value.unsigned32,
+		      smiRange->maxValue.value.unsigned32);
     }
-    for( lp = 0; lp < numSubRanges * 2; lp = lp + 2 ) {
-	fprintSegment( f, 0, "<length min=\"%u\" max=\"%u\"/>\n",
-		       lengths[ lp ], lengths[ lp + 1 ] );
-    } 
-    if( numSubRanges ) {
-	fprintSegment( f, -1, "</lengths>\n" );
-	xfree( lengths );
-    }
+    fprintSegment( f, -1, "</lengths>\n");
 }
 
 
