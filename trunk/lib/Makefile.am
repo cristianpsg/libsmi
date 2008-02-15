@@ -25,7 +25,9 @@ MAINTAINERCLEANFILES	= parser-smi.c parser-sming.c \
 			  parser-smi.tab.h parser-sming.tab.h \
 			  errormacros.h
 man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
-			  smi_node.3 smi_type.3 smi_render.3 smi_util.3
+			  smi_node.3 smi_type.3 smi_render.3 smi_util.3 \
+			  smi_class.3 smi_attribute.3 smi_identity.3 \
+			  smi_event.3
 lib_LTLIBRARIES		= libsmi.la
 libsmi_la_SOURCES	= data.c check.c error.c util.c snprintf.c smi.c \
 		  	  parser-smi.c scanner-smi.c \

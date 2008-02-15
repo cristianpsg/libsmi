@@ -294,6 +294,10 @@ lib/smi_type.3
 lib/smi_config.3
 lib/smi_render.3
 lib/smi_util.3
+lib/smi_class.3
+lib/smi_attribute.3
+lib/smi_event.3
+lib/smi_identity.3
 tools/smistrip
 tools/smicache
 tools/smiquery.1
