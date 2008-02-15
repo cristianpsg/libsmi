@@ -150,3 +150,6 @@ o API: several applications need a mechanism to iterate through the
 o API/Utility Functions: getMinSize()/getMaxSize() is needed by multiple
   smidump drivers. See dump-scli.c for a good implementation.
 
+o generate a warning if a module is listed multiple times in the
+  imports and if a symbol is imported twice (Dave Perkins)
+
