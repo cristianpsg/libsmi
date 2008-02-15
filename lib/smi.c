@@ -734,7 +734,8 @@ SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr)
     
     if ((!typePtr) || (!typePtr->listPtr) ||
 	((typePtr->export.basetype != SMI_BASETYPE_ENUM) &&
-	 (typePtr->export.basetype != SMI_BASETYPE_BITS))) {
+	 (typePtr->export.basetype != SMI_BASETYPE_BITS) && 
+	 (typePtr->export.basetype != SMI_BASETYPE_POINTER))) {
 	return NULL;
     }
     
@@ -774,7 +775,54 @@ SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
     return &((NamedNumber *)listPtr->nextPtr->ptr)->export;
 }
 
+SmiNamedNumber *smiGetAttributeFirstNamedNumber(SmiAttribute *smiAttributePtr)
+{
+    Attribute    *attributePtr;
 
+    attributePtr = (Attribute *)smiAttributePtr;
+    
+    if ((!attributePtr) || (!attributePtr->listPtr) ||
+	((attributePtr->export.basetype != SMI_BASETYPE_ENUM) &&
+	 (attributePtr->export.basetype != SMI_BASETYPE_BITS) && 
+	 (attributePtr->export.basetype != SMI_BASETYPE_POINTER))) {
+	return NULL;
+    }
+    
+    return &((NamedNumber *)attributePtr->listPtr->ptr)->export;
+}
+
+
+
+SmiNamedNumber *smiGetAttributeNextNamedNumber(SmiNamedNumber *smiNamedNumberPtr)
+{
+    Attribute  *attributePtr;
+    List  *listPtr;
+    
+    if (!smiNamedNumberPtr) {
+	return NULL;
+    }
+    
+    attributePtr = (Attribute*)(((NamedNumber *)smiNamedNumberPtr)->typePtr);
+
+    
+    if ((!attributePtr) || (!attributePtr->listPtr) ||
+	((attributePtr->export.basetype != SMI_BASETYPE_ENUM) &&
+	 (attributePtr->export.basetype != SMI_BASETYPE_BITS))) {
+	return NULL;
+    }
+
+    for (listPtr = attributePtr->listPtr; listPtr; listPtr = listPtr->nextPtr) {
+	if (((NamedNumber *)(listPtr->ptr))->export.name ==
+	                                               smiNamedNumberPtr->name)
+	    break;
+    }
+
+    if ((!listPtr) || (!listPtr->nextPtr)) {
+	return NULL;
+    }
+	
+    return &((NamedNumber *)listPtr->nextPtr->ptr)->export;
+}
 
 SmiRange *smiGetFirstRange(SmiType *smiTypePtr)
 {
@@ -823,7 +871,359 @@ SmiRange *smiGetNextRange(SmiRange *smiRangePtr)
     return &((Range *)listPtr->nextPtr->ptr)->export;
 }
 
+SmiRange *smiGetAttributeFirstRange(SmiAttribute *smiAttributePtr)
+{
+    Attribute    *attributePtr;
 
+    attributePtr = (Attribute *)smiAttributePtr;
+    
+    if ((!attributePtr) || (!attributePtr->listPtr) ||
+	(attributePtr->export.basetype == SMI_BASETYPE_ENUM) ||
+	(attributePtr->export.basetype == SMI_BASETYPE_BITS)) {
+	return NULL;
+    }
+
+    return &((Range *)attributePtr->listPtr->ptr)->export;
+}
+
+
+
+SmiRange *smiGetAttributeNextRange(SmiRange *smiRangePtr)
+{
+    Attribute  *attributePtr;
+    List  *listPtr;
+
+    if (!smiRangePtr) {
+	return NULL;
+    }
+    
+    attributePtr = (Attribute*)((Range *)smiRangePtr)->typePtr;
+
+    if ((!attributePtr) || (!attributePtr->listPtr) ||
+	(attributePtr->export.basetype == SMI_BASETYPE_ENUM) ||
+	(attributePtr->export.basetype == SMI_BASETYPE_BITS)) {
+	return NULL;
+    }
+ 
+    for (listPtr = attributePtr->listPtr; listPtr; listPtr = listPtr->nextPtr) {
+	if (!memcmp(&((Range *)listPtr->ptr)->export.minValue,
+		    &smiRangePtr->minValue, sizeof(struct SmiValue)))
+	    break;
+    }
+
+    if ((!listPtr) || (!listPtr->nextPtr)) {
+	return NULL;
+    }
+	
+    return &((Range *)listPtr->nextPtr->ptr)->export;
+}
+
+
+SmiIdentity *smiGetFirstIdentity(SmiModule *smiModulePtr)
+{
+	if (!smiModulePtr) {
+	return NULL;
+    }
+    
+    return ((Module *)smiModulePtr)->firstIdentityPtr ?
+	&((Module *)smiModulePtr)->firstIdentityPtr->export : NULL;
+    
+}
+
+SmiIdentity *smiGetNextIdentity(SmiIdentity *smiIdentityPtr)
+{
+    if (!smiIdentityPtr) {
+	return NULL;
+    }
+
+    return ((Identity *)smiIdentityPtr)->nextPtr ?
+	&((Identity *)smiIdentityPtr)->nextPtr->export : NULL;
+}
+
+SmiModule *smiGetIdentityModule(SmiIdentity *smiIdentityPtr)
+{
+    return &((Identity *)smiIdentityPtr)->modulePtr->export;
+}
+
+SmiIdentity *smiGetParentIdentity(SmiIdentity *smiIdentityPtr)
+{
+    return (SmiIdentity*)(((Identity *)smiIdentityPtr)->parentPtr);
+}
+
+SmiIdentity *smiGetIdentity(SmiModule *smiModulePtr, char *identity)
+{
+	
+	if (!smiModulePtr) {
+	return NULL;
+    }
+    else
+    {
+    	SmiIdentity *ide; 
+    	
+    	for(ide = smiGetFirstIdentity(smiModulePtr); 
+    		ide;
+    		ide = smiGetNextIdentity(ide))
+    			if(!strncmp(ide->name,identity,64))return ide;
+    		
+    	return NULL;
+    }
+    
+}
+
+int smiGetIdentityLine(SmiIdentity *smiIdentityPtr)
+{
+    return ((Identity *)smiIdentityPtr)->line;
+}
+
+	
+SmiClass *smiGetFirstClass(SmiModule *smiModulePtr)
+{
+	if (!smiModulePtr) {
+	return NULL;
+    }
+    
+    return ((Module *)smiModulePtr)->firstClassPtr ?
+	&((Module *)smiModulePtr)->firstClassPtr->export : NULL;
+    
+}
+
+SmiClass *smiGetNextClass(SmiClass *smiClassPtr)
+{
+    if (!smiClassPtr) {
+	return NULL;
+    }
+
+    return ((Class *)smiClassPtr)->nextPtr ?
+	&((Class *)smiClassPtr)->nextPtr->export : NULL;
+}
+
+SmiModule *smiGetClassModule(SmiClass *smiClassPtr)
+{
+    return &((Class *)smiClassPtr)->modulePtr->export;
+}
+
+SmiClass *smiGetParentClass(SmiClass *smiClassPtr)
+{
+    return (SmiClass*)(((Class *)smiClassPtr)->parentPtr);
+}
+
+SmiClass *smiGetClass(SmiModule *smiModulePtr, char *class)
+{
+	
+	if (!smiModulePtr) {
+	return NULL;
+    }
+    else
+    {
+    	SmiClass *cl; 
+    	
+    	for(cl = smiGetFirstClass(smiModulePtr); 
+    		cl;
+    		cl = smiGetNextClass(cl))
+    			if(!strncmp(cl->name,class,64))return cl;
+    		
+    	return NULL;
+    }
+    
+}
+
+int smiGetClassLine(SmiClass *smiClassPtr)
+{
+    return ((Class *)smiClassPtr)->line;
+}
+
+SmiAttribute *smiGetFirstAttribute(SmiClass *smiClassPtr)
+{
+    Attribute *attributePtr;
+    
+    if (!smiClassPtr) {
+	return NULL;
+    }
+    
+  	attributePtr = ((Class *)smiClassPtr)->firstAttributePtr;
+    
+    return &attributePtr->export;
+}
+
+ SmiAttribute *smiGetNextAttribute( SmiAttribute *smiTypePtr)
+{
+    Attribute *attributePtr;
+
+    if (!smiTypePtr) {
+	return NULL;
+    }
+
+    attributePtr = ((Attribute *)smiTypePtr)->nextPtr;
+    
+    return &attributePtr->export;
+}
+
+ SmiAttribute *smiGetAttribute(SmiClass *smiClassPtr, char *attribute)
+{
+	Attribute *attributePtr;
+    
+    if (!smiClassPtr) {
+	return NULL;
+    }
+    
+  	attributePtr = ((Class *)smiClassPtr)->firstAttributePtr;
+  	
+  	for(attributePtr = ((Class *)smiClassPtr)->firstAttributePtr; 
+  		attributePtr; attributePtr = attributePtr->nextPtr)
+  	{
+  		if(!strncmp(attributePtr->export.name,attribute,64)) 
+  									return &attributePtr->export;
+  	}
+  	
+//attribute might belong to the parent so check parent if attribute not found
+        smiClassPtr = smiGetParentClass(smiClassPtr);
+  	attributePtr = (Attribute*)smiGetAttribute(smiClassPtr , attribute);
+  		
+        return &attributePtr->export;
+}
+
+ SmiType *smiGetAttributeParentType(SmiAttribute *smiAttributePtr)
+{
+    
+
+    if (!smiAttributePtr) {
+	return NULL;
+    }
+
+    Type *parentTypePtr = ((Attribute*)smiAttributePtr)->parentTypePtr;
+
+    if(parentTypePtr)
+    	return &parentTypePtr->export;
+    else 
+    	return NULL;
+}
+
+SmiClass *smiGetAttributeParentClass( SmiAttribute *smiAttributePtr)
+{
+    if (!smiAttributePtr) {
+	return NULL;
+    }
+
+    Class *parentClassPtr=((Attribute*)smiAttributePtr)->parentClassPtr;
+
+    if(parentClassPtr)
+    	return &parentClassPtr->export;
+    else 
+    	return NULL;
+}
+
+ SmiAttribute *smiGetFirstUniqueAttribute(SmiClass *smiClassPtr)
+{
+	Class *classPtr;
+	
+	if(!smiClassPtr)
+		return NULL;
+	
+	classPtr = (Class*)smiClassPtr;
+	
+	if(classPtr->uniqueList)
+	{
+		if(classPtr->uniqueList->ptr == classPtr)
+		{
+			return NULL; //scalar class
+		}
+		else
+		{
+			return ( SmiAttribute*)(classPtr->uniqueList->ptr);
+		}
+	}
+	else
+		return NULL;
+}
+
+ SmiAttribute *smiGetNextUniqueAttribute( SmiAttribute *smiTypePtr)
+{
+	Class *classPtr;
+	List  *listPtr; 
+	
+	if(!smiTypePtr)
+		return NULL;
+	
+	classPtr = ((Attribute*)smiTypePtr)->classPtr;
+	
+	if(classPtr && classPtr->uniqueList)
+	{
+		for(listPtr=classPtr->uniqueList;listPtr; 
+									listPtr=listPtr->nextPtr)
+		{
+			if(&((Attribute*)(listPtr->ptr))->export ==  smiTypePtr)
+			{	
+				if(listPtr->nextPtr)
+					return &((Attribute*)(listPtr->nextPtr->ptr))->export;
+			}
+		}
+	}
+	return NULL;
+}
+
+int smiGetAttributeLine(SmiAttribute *smiAttributePtr)
+{
+    return ((Attribute *)smiAttributePtr)->line;
+}
+
+int smiIsClassScalar(SmiClass *smiClassPtr)
+{
+	Class *classPtr;
+	
+	if(!smiClassPtr)
+		return 0;
+	
+	classPtr = (Class*)smiClassPtr;
+	
+	if(classPtr->uniqueList)
+	{
+		if(classPtr->uniqueList->ptr == classPtr)
+		{
+			return 1; //scalar class
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+		return 0;
+}
+
+
+
+SmiEvent *smiGetFirstEvent(SmiClass *smiClassPtr)
+{
+    Event *eventPtr;
+    
+    if (!smiClassPtr) {
+	return NULL;
+    }
+    
+  	eventPtr = ((Class *)smiClassPtr)->firstEventPtr;
+    
+    return &(eventPtr->export);
+}
+
+SmiEvent *smiGetNextEvent(SmiEvent *smiEventPtr)
+{
+    Event *eventPtr;
+
+    if (!smiEventPtr) {
+	return NULL;
+    }
+
+    eventPtr = ((Event *)smiEventPtr)->nextPtr;
+    
+    return &eventPtr->export;
+}
+
+int smiGetEventLine(SmiEvent *smiEventPtr)
+{
+    return ((Event *)smiEventPtr)->line;
+}
+
+	
 
 SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro)
 {
@@ -885,6 +1285,12 @@ SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr)
 SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr)
 {
     return &((Macro *)smiMacroPtr)->modulePtr->export;
+}
+
+
+int smiGetMacroLine(SmiMacro *smiMacroPtr)
+{
+    return ((Macro *)smiMacroPtr)->line;
 }
 
 
