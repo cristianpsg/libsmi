@@ -86,7 +86,8 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_FLOAT64                = 8,  /* only SMIng                  */
     SMI_BASETYPE_FLOAT128               = 9,  /* only SMIng                  */
     SMI_BASETYPE_ENUM                   = 10,
-    SMI_BASETYPE_BITS                   = 11  /* SMIv2, SMIng and SPPI       */
+    SMI_BASETYPE_BITS                   = 11, /* SMIv2, SMIng and SPPI       */
+    SMI_BASETYPE_POINTER		= 12  /* only SMIng                  */
 } SmiBasetype;
 
 #define SMI_BASETYPE_INTEGER32_MIN  INT32_MIN
@@ -118,7 +119,8 @@ typedef enum SmiAccess {
     SMI_ACCESS_READ_WRITE       = 5,
     SMI_ACCESS_INSTALL          = 6, /* these three entries are only valid   */
     SMI_ACCESS_INSTALL_NOTIFY   = 7, /* for SPPI                             */
-    SMI_ACCESS_REPORT_ONLY      = 8
+    SMI_ACCESS_REPORT_ONLY      = 8,
+    SMI_ACCESS_EVENT_ONLY      	= 9	 /* this entry is valid only for SMIng	 */
 } SmiAccess;
 
 /* SmiNodekind -- type or statement that leads to a definition               */
@@ -168,7 +170,11 @@ typedef enum SmiDecl {
     SMI_DECL_COLUMN             = 40,
     SMI_DECL_NOTIFICATION       = 41,
     SMI_DECL_GROUP              = 42,
-    SMI_DECL_COMPLIANCE         = 43
+    SMI_DECL_COMPLIANCE         = 43,
+    SMI_DECL_IDENTITY	        = 44,
+    SMI_DECL_CLASS		= 45,
+    SMI_DECL_ATTRIBUTE		= 46,
+    SMI_DECL_EVENT		= 47
 } SmiDecl;
 
 /* SmiIndexkind -- actual kind of a table row's index method                 */
@@ -241,9 +247,21 @@ typedef struct SmiMacro {
     SmiStatus           status;
     char                *description;
     char                *reference;
+    char		*abnf; //only for SMIng
 } SmiMacro;
 
+/* SmiIdentity -- the main structure of a SMIng Identity.		     */
+/* NOTE: Not to be confused with SMIv2 MODULE-IDENTITY */
+typedef struct SmiIdentity {
+    SmiIdentifier       name;
+    SmiDecl             decl;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
+} SmiIdentity;
+
 /* SmiType -- the main structure of a type definition (also base types)      */
+/* also SMIng attributes      */
 typedef struct SmiType {
     SmiIdentifier       name;
     SmiBasetype         basetype;
@@ -293,6 +311,39 @@ typedef struct SmiRefinement {
     SmiAccess           access;
     char                *description;
 } SmiRefinement;
+
+/* SmiClass -- main structure for SMIng class statement               */
+typedef struct SmiClass {
+    SmiIdentifier       name;
+    SmiDecl             decl;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
+} SmiClass;
+
+/* SmiClass -- main structure for class attribute               */
+typedef struct SmiAttribute {
+    SmiIdentifier       name;
+    SmiBasetype         basetype;
+    SmiDecl             decl;
+    char                *format;
+    SmiValue            value;
+    char                *units;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
+    SmiAccess		access;
+} SmiAttribute;
+
+
+/* SmiEvent -- the main structure of a SMIng Event(part of class definition).*/
+typedef struct SmiEvent {
+    SmiIdentifier       name;
+    SmiDecl             decl;
+    SmiStatus           status;
+    char                *description;
+    char                *reference;
+} SmiEvent;
 
 
 
@@ -346,6 +397,21 @@ extern SmiRevision *smiGetNextRevision(SmiRevision *smiRevisionPtr);
 extern int smiGetRevisionLine(SmiRevision *smiRevisionPtr);
 
 
+
+extern SmiIdentity *smiGetFirstIdentity(SmiModule *smiModulePtr);
+
+extern SmiIdentity *smiGetNextIdentity(SmiIdentity *smiIdentityPtr);
+
+extern SmiIdentity *smiGetParentIdentity(SmiIdentity *smiIdentityPtr);
+
+extern int smiGetIdentityLine(SmiIdentity *smiIdentityPtr);
+
+extern SmiModule *smiGetIdentityModule(SmiIdentity *smiIdentityPtr);
+
+extern SmiIdentity *smiGetIdentity(SmiModule *smiModulePtr,char *identity);
+
+
+
 extern SmiType *smiGetType(SmiModule *smiModulePtr, char *type);
 
 extern SmiType *smiGetFirstType(SmiModule *smiModulePtr);
@@ -368,6 +434,56 @@ extern SmiNamedNumber *smiGetFirstNamedNumber(SmiType *smiTypePtr);
 
 extern SmiNamedNumber *smiGetNextNamedNumber(SmiNamedNumber
 					         *smiNamedNumberPtr);
+					         
+					         
+extern SmiClass *smiGetFirstClass(SmiModule *smiModulePtr);
+
+extern SmiClass *smiGetNextClass(SmiClass *smiClassPtr);
+
+extern SmiClass *smiGetParentClass(SmiClass *smiClassPtr);
+
+extern SmiModule *smiGetClassModule(SmiClass *smiClassPtr);
+
+extern SmiClass *smiGetClass(SmiModule *smiModulePtr,char *class);
+
+extern int smiGetClassLine(SmiClass *smiClassPtr);
+
+
+
+extern SmiAttribute *smiGetAttribute(SmiClass *smiClassPtr, char *attribute);
+
+extern SmiAttribute *smiGetFirstAttribute(SmiClass *smiClassPtr);
+
+extern SmiAttribute *smiGetNextAttribute(SmiAttribute *smiAtrributePtr);
+
+extern SmiType *smiGetAttributeParentType(SmiAttribute *smiAtrributePtr);
+
+extern SmiClass *smiGetAttributeParentClass(SmiAttribute *smiAtrributePtr);
+
+extern SmiAttribute *smiGetFirstUniqueAttribute(SmiClass *smiClassPtr);
+
+extern SmiAttribute *smiGetNextUniqueAttribute(SmiAttribute *smiTypePtr);
+
+extern int 		smiIsClassScalar(SmiClass *smiClassPtr);
+
+extern SmiNamedNumber *smiGetAttributeFirstNamedNumber(SmiAttribute *smiAttributePtr);
+
+extern SmiNamedNumber *smiGetAttributeNextNamedNumber(SmiNamedNumber
+					         *smiNamedNumberPtr);
+extern SmiRange *smiGetAttributeFirstRange(SmiAttribute *smiAttributePtr);
+
+extern SmiRange *smiGetAttributeNextRange(SmiRange *smiRangePtr);
+
+extern int smiGetAttributeLine(SmiAttribute *smiAttributePtr);
+
+
+extern SmiEvent *smiGetEvent(SmiClass *smiClassPtr, char *attribute);
+
+extern SmiEvent *smiGetFirstEvent(SmiClass *smiClassPtr);
+
+extern SmiEvent *smiGetNextEvent(SmiEvent *smiEventPtr);
+
+extern int smiGetEventLine(SmiEvent *smiEventPtr);
 
 
 extern SmiMacro *smiGetMacro(SmiModule *smiModulePtr, char *macro);
@@ -378,6 +494,7 @@ extern SmiMacro *smiGetNextMacro(SmiMacro *smiMacroPtr);
 
 extern SmiModule *smiGetMacroModule(SmiMacro *smiMacroPtr);
 
+extern int smiGetMacroLine(SmiMacro *smiMacroPtr);
 
 
 extern SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *name);
