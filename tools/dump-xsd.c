@@ -360,6 +360,7 @@ static void fprintHexOrAsciiType( FILE *f, SmiType *parent,
     fprintSegment( f, -1, "</xsd:simpleType>\n");
 }
 
+
 static int dhInParent( SmiType *smiType )
 {
     SmiType *parent = smiGetParentType( smiType );
@@ -1131,8 +1132,8 @@ static void fprintIndexAttr( FILE *f, SmiNode *smiNode, SmiNode *augments )
 	    
 	    fprintSegment( f, 1, "<xsd:attribute name=\"%s\" "
 			   "use=\"required\">\n", smiNode->name );
+	    fprintAnnotationElem( f, smiNode );
 	    if( ! hint ) {
-		fprintAnnotationElem( f, smiNode );
 		fprintTypedef( f, smiType, NULL );
 	    }
 	    else {
