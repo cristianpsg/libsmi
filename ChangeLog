@@ -1,4 +1,15 @@
 
+2008-02-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* mibs/ietf/URI-TC-MIB: added (RFC 5017).
+	* mibs/ietf/PIM-STD-MIB: added (RFC 5060).
+	* mibs/ietf/IF-CAP-STACK-MIB,EFM-CU-MIB: added (RFC 5066).
+	* mibs/ietf/UDPLITE-MIB: added (RFC 5097).
+	* mibs/ietf/LANGTAG-TC-MIB: added (RFC 5131).
+	* mibs/ietf/IPMCAST-MIB: added (RFC 5132).
+	* updated IANA MIBs.
+	* libsmi-0.4.6.tar.gz: released version 0.4.6.
+
 2007-09-03  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/T11-FC-RSCN-MIB: added (RFC 4983).
