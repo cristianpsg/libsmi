@@ -31,7 +31,7 @@ smiquery_LDADD		= ../lib/libsmi.la
 smilint_SOURCES		= smilint.c shhopt.c
 smilint_LDADD		= ../lib/libsmi.la
 
-smixlate_SOURCES	= smixlate.c shhopt.c dstring.c
+smixlate_SOURCES	= smixlate.c shhopt.c dstring.h dstring.c
 smixlate_LDADD		= ../lib/libsmi.la
 
 dump-svg-script.h: dump-svg-script.js
@@ -47,7 +47,7 @@ smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  dump-metrics.c dump-cm.c dump-python.c \
 			  dump-perl.c dump-scli.c dump-xsd.c dump-sppi.c \
 			  dump-sizes.c dump-svg-script.h dump-svg.c \
-			  rea.h rea.c dump-compliance.c dstring.c \
+			  rea.h rea.c dump-compliance.c dstring.h dstring.c \
 			  fortopat.h fortopat.c fprint.h fprint.c
 smidump_LDADD		= ../lib/libsmi.la -lm
 
