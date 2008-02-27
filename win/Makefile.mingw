@@ -197,4 +197,7 @@ install-pibs:
 	$(MKDIR) $(PIBDIR)/site
 	-$(CP) ../pibs/site/* $(PIBDIR)/site
 
+zip: install
+	(cd c; zip -r ../libsmi.zip .)
+
 ##
