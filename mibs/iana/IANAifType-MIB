@@ -5,7 +5,7 @@
        TEXTUAL-CONVENTION          FROM SNMPv2-TC;
 
    ianaifType MODULE-IDENTITY
-       LAST-UPDATED "200703080000Z"  -- March 08, 2007
+       LAST-UPDATED "200709130000Z"  -- September 13, 2007
        ORGANIZATION "IANA"
        CONTACT-INFO "        Internet Assigned Numbers Authority
 
@@ -19,6 +19,12 @@
        DESCRIPTION  "This MIB module defines the IANAifType Textual
                      Convention, and thus the enumerated values of
                      the ifType object defined in MIB-II's ifTable."
+
+       REVISION     "200709130000Z"  -- September 13, 2007
+       DESCRIPTION  "Registration of new IANAifTypes 243 and 244."
+
+       REVISION     "200705290000Z"  -- May 29, 2007
+       DESCRIPTION  "Changed the description for IANAifType 228."
 
        REVISION     "200703080000Z"  -- March 08, 2007
        DESCRIPTION  "Registration of new IANAifType 242."
@@ -487,7 +493,7 @@
                    rpr (225), -- Resilient Packet Ring Interface Type
                    qam (226), -- RF Qam Interface
                    lmp (227), -- Link Management Protocol
-                   cblVectaStar (228), -- Cambridge Broadband Limited VectaStar
+                   cblVectaStar (228), -- Cambridge Broadband Networks Limited VectaStar
                    docsCableMCmtsDownstream (229), -- CATV Modular CMTS Downstream Interface
                    adsl2 (230), -- Asymmetric Digital Subscriber Loop Version 2 
                                 -- (DEPRECATED/OBSOLETED - please use adsl2plus 238 instead)
@@ -504,7 +510,9 @@
                    dvbRcsMacLayer (239), -- DVB-RCS MAC Layer
                    dvbTdm (240), -- DVB Satellite TDM
                    dvbRcsTdma (241), -- DVB-RCS TDMA
-                   x86Laps (242) -- LAPS based on ITU-T X.86/Y.1323                 
+                   x86Laps (242), -- LAPS based on ITU-T X.86/Y.1323
+                   wwanPP (243), -- 3GPP WWAN
+                   wwanPP2 (244) -- 3GPP2 WWAN
                    }
 
 IANAtunnelType ::= TEXTUAL-CONVENTION
