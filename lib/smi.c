@@ -1075,7 +1075,11 @@ SmiAttribute *smiGetFirstAttribute(SmiClass *smiClassPtr)
   									return &attributePtr->export;
   	}
   	
-//attribute might belong to the parent so check parent if attribute not found
+	/*
+	 * attribute might belong to the parent so check parent if
+	 * attribute not found
+	 */
+	
         smiClassPtr = smiGetParentClass(smiClassPtr);
   	attributePtr = (Attribute*)smiGetAttribute(smiClassPtr , attribute);
   		
@@ -1125,7 +1129,7 @@ SmiClass *smiGetAttributeParentClass( SmiAttribute *smiAttributePtr)
 	{
 		if(classPtr->uniqueList->ptr == classPtr)
 		{
-			return NULL; //scalar class
+		        return NULL; /* scalar class */
 		}
 		else
 		{
@@ -1179,7 +1183,7 @@ int smiIsClassScalar(SmiClass *smiClassPtr)
 	{
 		if(classPtr->uniqueList->ptr == classPtr)
 		{
-			return 1; //scalar class
+		        return 1; /* scalar class */
 		}
 		else
 		{
