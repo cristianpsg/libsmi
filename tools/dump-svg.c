@@ -43,7 +43,7 @@ extern int smiAsprintf(char **strp, const char *format, ...);
  * Definitions used by the svg output driver (node layout).
  */
 
-//FIXME int or float?
+/* FIXME int or float? */
 static const float HEADFONTSIZETABLE   = (float)7;
 static const float HEADSPACESIZETABLE  = (float)4;
 static const float ATTRFONTSIZE        = (float)7;
@@ -53,10 +53,10 @@ static const float TABLEELEMHEIGHT     = (float)15; /*height of one attribute*/
 static const float TABLEBOTTOMHEIGHT   = (float)5;  /*bottom of the table*/
 
 static const int MODULE_INFO_WIDTH     =150;
-//The description of RowStatus is quite long... :-/
+/* The description of RowStatus is quite long... :-/ */
 static const int DYN_TEXT              =470;
 
-//used by the springembedder
+/* used by the springembedder */
 static const int ITERATIONS            =100;
 
 static char *link;
@@ -151,8 +151,8 @@ static void parseTooltip(char *input, char *output)
 	    output[j++] = '\\';
 	    break;
 	case '\"':
-	    //quotes are not allowed in strings.
-	    //See chapter 3.4.5 in "Understanding SNMP MIBs"
+	    /* quotes are not allowed in strings. */
+	    /* See chapter 3.4.5 in "Understanding SNMP MIBs" */
 	    break;
 	case '&':
 	    output[j++] = '&';
@@ -174,7 +174,7 @@ static void parseTooltip(char *input, char *output)
 	    output[j++] = ';';
 	    break;
 	case '\'':
-	    //It seems, &apos; doesn't work...
+	    /* It seems, &apos; doesn't work... */
 	    output[j++] = '\\';
 	    output[j++] = '\'';
 	    break;
@@ -253,7 +253,7 @@ static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
     int i;
 
     scale = max((xMax-xMin)/CANVASWIDTH,(yMax-yMin)/CANVASHEIGHT);
-    //enclose whole canvas in its bounding box
+    /* enclose whole canvas in its bounding box */
     /*
     printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
            xMin, yMin, xMax-xMin-1, yMax-yMin-1);
@@ -308,8 +308,8 @@ static void printSVGAttribute(SmiNode *node, SmiNode *tableNode, int index,
 
     *textYOffset += TABLEELEMHEIGHT;
 
-    //FIXME
-    //printf(" textLength=\"100\" lengthAdjust=\"spacingAndGlyphs\"");
+    /* FIXME
+       rintf(" textLength=\"100\" lengthAdjust=\"spacingAndGlyphs\""); */
 
     if (!index) {
 	if (node->access == SMI_ACCESS_NOT_ACCESSIBLE) {
@@ -557,7 +557,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
     printf(" fill=\"%s\"", printFillColor(node->smiNode->status));
     printf(" style=\"text-anchor:middle; font-weight:bold\"");
 
-    //descriptions for the table and the entries
+    /* descriptions for the table and the entries */
     if (!STATIC_OUTPUT) {
 	if (node->smiNode->description) {
 	    tooltipTable=(char *)xmalloc(2*strlen(node->smiNode->description));
@@ -625,7 +625,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
     if (node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 
 	if (node->dia.relatedScalars) {
-	    //A
+	    /* A */
 	    printSVGRelatedScalars(node, node->smiNode,
 				   modc, modv,
 				   &textYOffset, &textXOffset);
@@ -640,11 +640,11 @@ static void printSVGObject(GraphNode *node, int *classNr,
 	}
 
 	if (node->dia.indexObjects) {
-	    //B
+	    /* B */
 	    printSVGAugmentIndex(node, node->smiNode,
 				 modc, modv,
 				 &textYOffset, &textXOffset);
-	    //C
+	    /* C */
 	    for (smiElement = smiGetFirstElement(
 		smiGetFirstChildNode(node->smiNode));
 		 smiElement;
@@ -663,7 +663,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
 	    textYOffset += TABLEBOTTOMHEIGHT;
 	}
 
-	//D
+	/* D */
 	if (PRINT_DETAILED_ATTR) {
 	    printSVGAllColumns(node, node->smiNode,
 			       modc, modv,
@@ -721,7 +721,7 @@ static void printSVGGroup(int group, int *classNr,
     printf(" fill=\"%s\"",
 		    printFillColor(smiGetParentNode(tNode->smiNode)->status));
     printf(" style=\"text-anchor:middle; font-weight:bold\">\n");
-    //groups don't seem to have a description.
+    /* groups don't seem to have a description. */
     printf("         %s", smiGetParentNode(tNode->smiNode)->name);
     switch (smiGetParentNode(tNode->smiNode)->status) {
     case SMI_STATUS_DEPRECATED:
@@ -754,7 +754,7 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
     float alpha, beta;
     const float PI = acos(-1);
 
-    //calculate intersection of edge and startNode
+    /* calculate intersection of edge and startNode */
     alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
 		  tEdge->startNode->dia.x-tEdge->endNode->dia.x);
     beta = atan2(tEdge->startNode->dia.h, tEdge->startNode->dia.w);
@@ -763,7 +763,7 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
     if (alpha < beta
 	|| (alpha > PI-beta && alpha < PI+beta)
 	|| alpha > 2*PI-beta) {
-	//intersection at left or right border
+	/* intersection at left or right border */
 	if (tEdge->startNode->dia.x < tEdge->endNode->dia.x) {
 	    tEdge->dia.startX = tEdge->startNode->dia.x +
 						    tEdge->startNode->dia.w/2;
@@ -779,7 +779,7 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
 				fabsf(tEdge->startNode->dia.w*tan(alpha)/2);
 	}
     } else {
-	//intersection at top or bottom border
+	/* intersection at top or bottom border */
 	if (tEdge->startNode->dia.y < tEdge->endNode->dia.y) {
 	    tEdge->dia.startY = tEdge->startNode->dia.y +
 						    tEdge->startNode->dia.h/2;
@@ -796,7 +796,7 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
 	}
     }
 
-    //calculate intersection of edge and endNode
+    /* calculate intersection of edge and endNode */
     alpha = atan2(tEdge->startNode->dia.y-tEdge->endNode->dia.y,
 		  tEdge->startNode->dia.x-tEdge->endNode->dia.x);
     beta = atan2(tEdge->endNode->dia.h, tEdge->endNode->dia.w);
@@ -805,7 +805,7 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
     if (alpha < beta
 	|| (alpha > PI-beta && alpha < PI+beta)
 	|| alpha > 2*PI-beta) {
-	//intersection at left or right border
+	/* intersection at left or right border */
 	if (tEdge->startNode->dia.x > tEdge->endNode->dia.x) {
 	    tEdge->dia.endX = tEdge->endNode->dia.x + tEdge->endNode->dia.w/2;
 	} else {
@@ -819,7 +819,7 @@ static void calculateIntersectionPoints(GraphEdge *tEdge)
 				    fabsf(tEdge->endNode->dia.w*tan(alpha)/2);
 	}
     } else {
-	//intersection at top or bottom border
+	/* intersection at top or bottom border */
 	if (tEdge->startNode->dia.y > tEdge->endNode->dia.y) {
 	    tEdge->dia.endY = tEdge->endNode->dia.y + tEdge->endNode->dia.h/2;
 	} else {
@@ -841,7 +841,7 @@ static void printSVGDependency(GraphEdge *tEdge)
 
     calculateIntersectionPoints(tEdge);
 
-    //print text upside down, if angle is between 180° and 360°
+    /* print text upside down, if angle is between 180° and 360° */
     if (tEdge->startNode->dia.x > tEdge->endNode->dia.x)
 	revert = 1;
 
@@ -882,15 +882,15 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
 
     calculateIntersectionPoints(tEdge);
 
-    //expands should have cardinalities 1 *
+    /* expands should have cardinalities 1 * */
     if (tEdge->indexkind==SMI_INDEX_EXPAND)
 	tEdge->cardinality = GRAPH_CARD_ONE_TO_MANY;
 
-    //print text upside down, if angle is between 180° and 360°
+    /* print text upside down, if angle is between 180° and 360° */
     if (tEdge->startNode->dia.x > tEdge->endNode->dia.x)
 	revert = 1;
 
-    //print edge
+    /* print edge */
     printf(" <path id=\"%s-%s\"\n",
 	tEdge->startNode->smiNode->name,
 	tEdge->endNode->smiNode->name);
@@ -922,11 +922,11 @@ static void printSVGAssociation(GraphEdge *tEdge, int aggregate)
     }
     printf("/>\n");
 
-    //edges without labels are finished here
+    /* edges without labels are finished here */
     if (tEdge->cardinality==GRAPH_CARD_UNKNOWN)
 	return;
 
-    //print labels
+    /* print labels */
     printf(" <text text-anchor=\"middle\">\n");
     printf("    <textPath xlink:href=\"#%s-%s\"",
 		tEdge->startNode->smiNode->name, tEdge->endNode->smiNode->name);
@@ -1083,18 +1083,18 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
     printf(">\n\n");
 
     if (!STATIC_OUTPUT) {
-	//css-stylesheet for the tooltip-text
+	/* css-stylesheet for the tooltip-text */
 	printf("<style type=\"text/css\">\n<![CDATA[\ntext.tooltip {\n");
 	printf("    font-family: \"Courier New\", Courier, monospace;\n}\n");
 	printf("]]>\n</style>\n\n");
 
-	//the ecma-script for the tooltip
-	//and the folding of the module information
-	//and the colorizing of the text
+	/* the ecma-script for the tooltip */
+	/* and the folding of the module information */
+	/* and the colorizing of the text */
 	printf("<script type=\"text/ecmascript\">\n<![CDATA[\n");
-	//print the script from the included file
-	//FIXME calculate things dynamically:
-	//      * maximal number of lines for the tooltip.
+	/* print the script from the included file */
+	/* FIXME calculate things dynamically: */
+	/*       * maximal number of lines for the tooltip. */
 	printf(code, idCount, idCount, idCount, idCount,
 			scale, xMin, scale, yMin, DYN_TEXT, DYN_TEXT,
 			miCount, miCount, miCount,
@@ -1104,7 +1104,7 @@ static void printSVGHeaderAndTitle(int modc, SmiModule **modv,
 
     printf(" <title>%s</title>\n", note1);
 
-    //definitions for the arrowheads
+    /* definitions for the arrowheads */
     printf(" <defs>\n");
     printf("   <marker id=\"arrowstart\" markerWidth=\"12\"");
     printf(" markerHeight=\"8\" refX=\"0\" refY=\"4\" orient=\"auto\">\n");
@@ -1152,7 +1152,7 @@ static GraphNode *calcNodeSize(GraphNode *node, int *idCount)
     node->dia.h = TABLEHEIGHT + TABLEBOTTOMHEIGHT;
 
     lastHeight = node->dia.h;
-    //A
+    /* A */
     for (tEdge = graphGetFirstEdgeByNode(graph,node);
 	 tEdge;
 	 tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
@@ -1191,7 +1191,7 @@ static GraphNode *calcNodeSize(GraphNode *node, int *idCount)
     }
 
     lastHeight = node->dia.h;
-    //B
+    /* B */
     for (tEdge = graphGetFirstEdgeByNode(graph,node);
 	 tEdge;
 	 tEdge = graphGetNextEdgeByNode(graph, tEdge, node)) {
@@ -1231,7 +1231,7 @@ static GraphNode *calcNodeSize(GraphNode *node, int *idCount)
 	}
     }
 
-    //C
+    /* C */
     for (smiElement = smiGetFirstElement(
 	smiGetFirstChildNode(node->smiNode));
 	 smiElement;
@@ -1266,7 +1266,7 @@ static GraphNode *calcNodeSize(GraphNode *node, int *idCount)
 	node->dia.h += TABLEBOTTOMHEIGHT;
     }
 
-    //D
+    /* D */
     if (PRINT_DETAILED_ATTR && node->smiNode->nodekind == SMI_NODEKIND_TABLE) {
 	module  = smiGetNodeModule(node->smiNode);
 
@@ -1402,16 +1402,16 @@ static void calcModuleIdentityCount(int modc, SmiModule **modv,
     SmiNode     *smiNode;
     SmiRevision *smiRevision;
 
-    //MODULE-IDENTITY
+    /* MODULE-IDENTITY */
     (*miCount)++;
     for (i = 0; i < modc; i++) {
 	modId[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
-	    //name of the module
+	    /* name of the module */
 	    (*miCount)++;
 	    modId[i] = 1;
-	    //revision history of the module
+	    /* revision history of the module */
 	    smiRevision = smiGetFirstRevision(modv[i]);
 	    if (!smiRevision) {
 		(*miCount)++;
@@ -1431,15 +1431,15 @@ static void calcNotificationTypeCount(int modc, SmiModule **modv,
     int     i;
     SmiNode *smiNode;
 
-    //NOTIFICATION-TYPE
+    /* NOTIFICATION-TYPE */
     (*miCount)++;
     for (i = 0; i < modc; i++) {
 	nType[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
-	    //name of the module
+	    /* name of the module */
 	    (*miCount)++;
-	    //name of the notification
+	    /* name of the notification */
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_NOTIFICATION);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NOTIFICATION)) {
@@ -1461,15 +1461,15 @@ static void calcObjectGroupCount(int modc, SmiModule **modv,
     int     i;
     SmiNode *smiNode;
 
-    //OBJECT-GROUP
+    /* OBJECT-GROUP */
     (*miCount)++;
     for (i = 0; i < modc; i++) {
 	oGroup[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
-	    //name of the module
+	    /* name of the module */
 	    (*miCount)++;
-	    //name of the group
+	    /* name of the group */
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
@@ -1493,15 +1493,15 @@ static void calcNotificationGroupCount(int modc, SmiModule **modv,
     int     i;
     SmiNode *smiNode;
 
-    //NOTIFICATION-GROUP
+    /* NOTIFICATION-GROUP */
     (*miCount)++;
     for (i = 0; i < modc; i++) {
 	nGroup[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
-	    //name of the module
+	    /* name of the module */
 	    (*miCount)++;
-	    //name of the group
+	    /* name of the group */
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_GROUP);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_GROUP)) {
@@ -1532,15 +1532,15 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
     SmiOption     *smiOption;
     SmiRefinement *smiRefinement;
 
-    //MODULE-COMPLIANCE
+    /* MODULE-COMPLIANCE */
     (*miCount)++;
     for (i = 0; i < modc; i++) {
 	mCompl[i] = 0;
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
-	    //name of the module
+	    /* name of the module */
 	    (*miCount)++;
-	    //name of the compliance
+	    /* name of the compliance */
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_COMPLIANCE);
 		smiNode;
 		smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_COMPLIANCE)) {
@@ -1551,14 +1551,14 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
 		    continue;
 		(*miCount)++;
 		mCompl[i] = 1;
-		//modules for the compliance
+		/* modules for the compliance */
 		done = xstrdup("+");
 		for (module = modv[i]->name; module; ) {
-		    //name of the module
+		    /* name of the module */
 		    (*miCount)++;
-		    //mandatory groups
+		    /* mandatory groups */
 		    (*miCount)++;
-		    //groups
+		    /* groups */
 		    for (smiOption = smiGetFirstOption(smiNode); smiOption;
 				    smiOption = smiGetNextOption(smiOption)) {
 			smiNode2 = smiGetOptionNode(smiOption);
@@ -1567,7 +1567,7 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
 			    (*miCount)++;
 			}
 		    }
-		    //objects
+		    /* objects */
 		    for (smiRefinement = smiGetFirstRefinement(smiNode);
 			smiRefinement;
 			smiRefinement = smiGetNextRefinement(smiRefinement)) {
@@ -1577,7 +1577,7 @@ static void calcModuleComplianceCount(int modc, SmiModule **modv,
 			    (*miCount)++;
 			}
 		    }
-		    //find next module
+		    /* find next module */
 		    done = xrealloc(done,
 				strlen(done)+strlen(module)+2*sizeof(char));
 		    strcat(done, module);
@@ -1705,7 +1705,7 @@ static void printInformationNode(SmiNode *smiNode,
 	    printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
 	    if (isNotificationGroup(smiNode)) {
-		//parse markupList
+		/* parse markupList */
 		for (k=0; k<miCount; k++) {
 		    if (markupList[k].miElem == NULL)
 			continue;
@@ -1734,7 +1734,7 @@ static void printInformationNode(SmiNode *smiNode,
 			smiGetElementNode(smiElement)->name,
 			printFillColor(smiGetElementNode(smiElement)->status));
 	    if (isNotificationGroup(smiNode)) {
-		//parse markupList
+		/* parse markupList */
 		for (k=0; k<miCount; k++) {
 		    if (markupList[k].miElem == NULL)
 			continue;
@@ -1772,7 +1772,7 @@ static void printInformationNode(SmiNode *smiNode,
 	    printf("'%s')",
 			printFillColor(smiGetElementNode(smiElement)->status));
 	    if (isNotificationGroup(smiNode)) {
-		//parse markupList
+		/* parse markupList */
 		for (k=0; k<miCount; k++) {
 		    if (markupList[k].miElem == NULL)
 			continue;
@@ -1821,7 +1821,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     SmiNode        *smiNode2;
     SmiModule      *smiModule2;
     SmiElement     *smiElement;
-    //SmiRevision    *smiRevision;
+    /* SmiRevision    *smiRevision; */
     SmiOption      *smiOption;
     SmiRefinement  *smiRefinement;
     StringListElem *tElem, *lastElem;
@@ -1882,7 +1882,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     (*miNr)++;
     *y += TABLEELEMHEIGHT;
 
-    //modules for the compliance
+    /* modules for the compliance */
     *x += TABLEELEMHEIGHT;
     done = xstrdup("+");
     for (module = modv[i]->name; module; ) {
@@ -1923,7 +1923,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	(*miNr)++;
 	*y += TABLEELEMHEIGHT;
 
-	//mandatory groups
+	/* mandatory groups */
 	*x += TABLEELEMHEIGHT;
 	*x += TABLEBOTTOMHEIGHT;
 	printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
@@ -1945,7 +1945,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    }
 		    printf("colorText('%s','red')",
 					smiGetElementNode(smiElement)->name);
-		    //parse markupList
+		    /* parse markupList */
 		    for (k=0; k<miCount; k++) {
 			if (markupList[k].miElem == NULL)
 			    continue;
@@ -1975,7 +1975,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    printf(";changeColor(evt,'%s','red','%s')",
 			smiGetElementNode(smiElement)->name,
 			printFillColor(smiGetElementNode(smiElement)->status));
-		    //parse markupList
+		    /* parse markupList */
 		    for (k=0; k<miCount; k++) {
 			if (markupList[k].miElem == NULL)
 			    continue;
@@ -2009,7 +2009,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 					smiGetElementNode(smiElement)->name);
 		    printf("'%s')",
 			printFillColor(smiGetElementNode(smiElement)->status));
-		    //parse markupList
+		    /* parse markupList */
 		    for (k=0; k<miCount; k++) {
 			if (markupList[k].miElem == NULL)
 			    continue;
@@ -2033,7 +2033,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	*y += TABLEELEMHEIGHT;
 	(*miNr)++;
 
-	//groups
+	/* groups */
 	for (smiOption = smiGetFirstOption(smiNode); smiOption;
 				    smiOption = smiGetNextOption(smiOption)) {
 	    smiNode2 = smiGetOptionNode(smiOption);
@@ -2058,7 +2058,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 			printf(";");
 		    if (foreign_exists) {
 			printf("colorText('%s','salmon')", smiNode2->name);
-			//parse markupList
+			/* parse markupList */
 			for (j=0; j<miCount; j++) {
 			    if (markupList[j].miElem == NULL)
 				continue;
@@ -2077,7 +2077,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 					    printFillColor(smiNode2->status));
 			printf(";changeColor(evt,'%s','salmon','%s')",
 			    smiNode2->name, printFillColor(smiNode2->status));
-			//parse markupList
+			/* parse markupList */
 			for (j=0; j<miCount; j++) {
 			    if (markupList[j].miElem == NULL)
 				continue;
@@ -2101,7 +2101,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 		    if (foreign_exists) {
 			printf("colorText('%s',", smiNode2->name);
 			printf("'%s')", printFillColor(smiNode2->status));
-			//parse markupList
+			/* parse markupList */
 			for (j=0; j<miCount; j++) {
 			    if (markupList[j].miElem == NULL)
 				continue;
@@ -2123,7 +2123,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    }
 	}
 
-	//objects
+	/* objects */
 	for (smiRefinement = smiGetFirstRefinement(smiNode); smiRefinement;
 			smiRefinement = smiGetNextRefinement(smiRefinement)) {
 	    smiNode2 = smiGetRefinementNode(smiRefinement);
@@ -2177,7 +2177,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	*x -= TABLEELEMHEIGHT;
 	*x -= TABLEBOTTOMHEIGHT;
 
-	//find next module
+	/* find next module */
 	done = xrealloc(done, strlen(done)+strlen(module)+2*sizeof(char));
 	strcat(done, module);
 	strcat(done, "+");
@@ -2202,7 +2202,7 @@ static void printModuleIdentity(int modc, SmiModule **modv,
     int         i, j;
     char        *tooltip;
     SmiNode     *smiNode;
-    //SmiElement  *smiElement;
+    /* SmiElement  *smiElement; */
     SmiRevision *smiRevision;
     GraphNode   *tNode;
 
@@ -2222,7 +2222,7 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
-	    //name and description of the module.
+	    /* name and description of the module. */
 	    *x += TABLEELEMHEIGHT;
 	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -2301,7 +2301,7 @@ static void printModuleIdentity(int modc, SmiModule **modv,
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
-	    //revision history of the module.
+	    /* revision history of the module. */
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
 	    smiRevision = smiGetFirstRevision(modv[i]);
@@ -2374,7 +2374,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
-	    //name of the module
+	    /* name of the module */
 	    *x += TABLEELEMHEIGHT;
 	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -2390,7 +2390,7 @@ static void printNotificationType(int modc, SmiModule **modv,
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
-	    //name, status and description of the notification
+	    /* name, status and description of the notification */
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
 	    for (j=0; j<5; j++) {
@@ -2451,7 +2451,7 @@ static void printObjectGroup(int modc, SmiModule **modv,
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
-	    //name of the module
+	    /* name of the module */
 	    *x += TABLEELEMHEIGHT;
 	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -2467,7 +2467,7 @@ static void printObjectGroup(int modc, SmiModule **modv,
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
-	    //name, status and description of the group
+	    /* name, status and description of the group */
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
 	    for (j=0; j<5; j++) {
@@ -2528,7 +2528,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
-	    //name of the module
+	    /* name of the module */
 	    *x += TABLEELEMHEIGHT;
 	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -2544,7 +2544,7 @@ static void printNotificationGroup(int modc, SmiModule **modv,
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
-	    //name, status and description of the group
+	    /* name, status and description of the group */
 	    *x += 2*TABLEELEMHEIGHT;
 	    *x += TABLEBOTTOMHEIGHT;
 	    for (j=0; j<5; j++) {
@@ -2605,7 +2605,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 	smiNode = smiGetModuleIdentityNode(modv[i]);
 	if (smiNode) {
 
-	    //name of the module
+	    /* name of the module */
 	    *x += TABLEELEMHEIGHT;
 	    printf(" <g id=\"MI%i\" transform=\"translate(%.2f,%.2f)\">\n",
 								*miNr, *x, *y);
@@ -2621,7 +2621,7 @@ static void printModuleCompliance(int modc, SmiModule **modv,
 	    *y += TABLEELEMHEIGHT;
 	    *x -= TABLEELEMHEIGHT;
 
-	    //name, status and description of the compliance
+	    /* name, status and description of the compliance */
 	    *x += 2*TABLEELEMHEIGHT;
 	    for (j=0; j<5; j++) {
 		for (smiNode = smiGetFirstNode(modv[i],
@@ -2658,7 +2658,7 @@ static void printModuleInformation(int modc, SmiModule **modv,
 
     StringListElem *markupList = xcalloc(miCount,sizeof(StringListElem));
     
-    //only print sections containig information
+    /* only print sections containig information */
     for (i = 0; i < modc; i++) {
 	modIdPrint |= modId[i];
 	nTypePrint |= nType[i];
@@ -2667,7 +2667,7 @@ static void printModuleInformation(int modc, SmiModule **modv,
 	mComplPrint |= mCompl[i];
     }
 
-    //count blank lines
+    /* count blank lines */
     i = 0;
     j = 0;
     if (modIdPrint) {
@@ -2698,7 +2698,7 @@ static void printModuleInformation(int modc, SmiModule **modv,
     if (i>1)
 	i--;
 
-    //test if we must shrink moduleInformation to fit it into canvas
+    /* test if we must shrink moduleInformation to fit it into canvas */
     miHeight = ((miCount + i - (2 * j)) * 15 + 10);
     if (miHeight > maxHeight)
 	scale *= maxHeight/miHeight;
@@ -2706,7 +2706,7 @@ static void printModuleInformation(int modc, SmiModule **modv,
     printf(" <g transform=\"translate(%.2f,%.2f) scale(%.2f)\">\n",
 								x, y, scale);
 
-    //now use x and y as relative coordinates.
+    /* now use x and y as relative coordinates. */
     x = 0;
     y = 10;
 
@@ -2763,7 +2763,7 @@ static float intersect(GraphNode *node, GraphEdge *edge)
 {
     float a, b, intersect = 0;
 
-    //handle case in which edge is parallel to y-axis
+    /* handle case in which edge is parallel to y-axis */
     if (edge->endNode->dia.x == edge->startNode->dia.x) {
 	if ((node->dia.x-node->dia.w/2 < edge->endNode->dia.x &&
 	    node->dia.x+node->dia.w/2 < edge->endNode->dia.x) ||
@@ -2772,11 +2772,11 @@ static float intersect(GraphNode *node, GraphEdge *edge)
 	    return intersect;
 	intersect = node->dia.x - edge->startNode->dia.x;
     } else {
-	//calculate a and b for y=ax+b
+	/* calculate a and b for y=ax+b */
 	a = (edge->endNode->dia.y - edge->startNode->dia.y) /
 	    (edge->endNode->dia.x - edge->startNode->dia.x);
 	b = edge->startNode->dia.y - (a * edge->startNode->dia.x);
-	//test if entire node is above or under edge
+	/* test if entire node is above or under edge */
 	if ((node->dia.y-node->dia.h/2 - (a * node->dia.x-node->dia.w/2) > b &&
 	    node->dia.y+node->dia.h/2 - (a * node->dia.x-node->dia.w/2) > b &&
 	    node->dia.y-node->dia.h/2 - (a * node->dia.x+node->dia.w/2) > b &&
@@ -2789,7 +2789,7 @@ static float intersect(GraphNode *node, GraphEdge *edge)
 	intersect = (a * node->dia.x - node->dia.y + b) /
 		    (float)(sqrt(a*a+1));
     }
-    //test if node is over upper end of edge or under lower end of edge
+    /* test if node is over upper end of edge or under lower end of edge */
     if (node->dia.y+node->dia.h/2 <
 		min(edge->startNode->dia.y,edge->endNode->dia.y) ||
 	node->dia.y-node->dia.h/2 >
@@ -2797,7 +2797,7 @@ static float intersect(GraphNode *node, GraphEdge *edge)
 	intersect = 0;
 	return intersect;
     }
-    //node and edge intersect
+    /* node and edge intersect */
     return intersect;
 }
 
@@ -2820,7 +2820,7 @@ static void layoutComponent(GraphComponent *component,
     t = 200;
 
     for (i=0; i<ITERATIONS; i++) {
-	//calculate repulsive forces
+	/* calculate repulsive forces */
 	for (vNode = component->firstComponentNode; vNode;
 					vNode = vNode->nextComponentNode) {
 	    vNode->dia.xDisp = 0;
@@ -2834,7 +2834,7 @@ static void layoutComponent(GraphComponent *component,
 		absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
 		vNode->dia.xDisp += (xDelta/absDelta)*fr(absDelta, k);
 		vNode->dia.yDisp += (yDelta/absDelta)*fr(absDelta, k);
-		//add another repulsive force if the nodes overlap
+		/* add another repulsive force if the nodes overlap */
 		if (nodeoverlap && overlap(vNode, uNode)) {
 		    vNode->dia.xDisp += 4*(xDelta/absDelta)*fr(1/absDelta, k);
 		    vNode->dia.yDisp += 4*(yDelta/absDelta)*fr(1/absDelta, k);
@@ -2844,7 +2844,7 @@ static void layoutComponent(GraphComponent *component,
 	for (eEdge = graph->edges; eEdge; eEdge = eEdge->nextPtr) {
 	    if (!eEdge->use || eEdge->startNode->component != component)
 		continue;
-	    //add another repulsive force if edge and any node overlap
+	    /* add another repulsive force if edge and any node overlap */
 	    if (edgeoverlap) {
 		for (vNode = component->firstComponentNode; vNode;
 					vNode = vNode->nextComponentNode) {
@@ -2885,7 +2885,7 @@ static void layoutComponent(GraphComponent *component,
 		    }
 		}
 	    }
-	    //calculate attractive forces
+	    /* calculate attractive forces */
 	    xDelta = eEdge->startNode->dia.x - eEdge->endNode->dia.x;
 	    yDelta = eEdge->startNode->dia.y - eEdge->endNode->dia.y;
 	    absDelta = (float) (sqrt(xDelta*xDelta + yDelta*yDelta));
@@ -2894,7 +2894,7 @@ static void layoutComponent(GraphComponent *component,
 	    eEdge->endNode->dia.xDisp += (xDelta/absDelta)*fa(absDelta, k);
 	    eEdge->endNode->dia.yDisp += (yDelta/absDelta)*fa(absDelta, k);
 	}
-	//limit the maximum displacement to the temperature t
+	/* limit the maximum displacement to the temperature t */
 	for (vNode = component->firstComponentNode; vNode;
 					vNode = vNode->nextComponentNode) {
 	    absDisp = (float) (sqrt(vNode->dia.xDisp*vNode->dia.xDisp
@@ -2902,7 +2902,7 @@ static void layoutComponent(GraphComponent *component,
 	    vNode->dia.x += (vNode->dia.xDisp/absDisp)*min(absDisp, t);
 	    vNode->dia.y += (vNode->dia.yDisp/absDisp)*min(absDisp, t);
 	}
-	//reduce the temperature as the layout approaches a better configuration
+	/* reduce the temperature as the layout approaches a better configuration */
 	t *= 0.9;
     }
 }
@@ -2933,7 +2933,7 @@ static void addNodeToComponent(GraphNode *tNode, GraphComponent *tComponent)
 }
 
 
-//split the graph into components
+/* split the graph into components */
 static void splitGraphIntoComponents()
 {
     GraphNode      *tNode;
@@ -2950,7 +2950,7 @@ static void splitGraphIntoComponents()
 }
 
 
-//layout components (except first) and calculate bounding boxes and offsets
+/* layout components (except first) and calculate bounding boxes and offsets */
 static void layoutComponents(float *yMin, float *yMax, float *x)
 {
     GraphNode      *tNode;
@@ -2960,7 +2960,7 @@ static void layoutComponents(float *yMin, float *yMax, float *x)
     for (tComponent = graph->components->nextPtr; tComponent;
 					    tComponent = tComponent->nextPtr) {
 	layoutComponent(tComponent, 0, 0);
-	//FIXME do we need a stage with nodeoverlap and without edgeoverlap?
+	/* FIXME do we need a stage with nodeoverlap and without edgeoverlap? */
 	layoutComponent(tComponent, 1, 0);
 	layoutComponent(tComponent, 1, 1);
 
@@ -2987,7 +2987,7 @@ static void layoutComponents(float *yMin, float *yMax, float *x)
 }
 
 
-//Print SVG to stdout
+/* Print SVG to stdout */
 static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
 		     float xMin, float yMin, float xMax, float yMax,
 		     int nodecount, int TCcount,
@@ -2999,11 +2999,11 @@ static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
     GraphEdge      *tEdge;
     int            classNr=0;
 
-    //output of svg to stdout begins here
+    /* output of svg to stdout begins here */
     printSVGHeaderAndTitle(modc, modv, miCount, idCount,
 							xMin, yMin, xMax, yMax);
 
-    //module doesn't contain any objects.
+    /* module doesn't contain any objects. */
     if (nodecount == 0) {
 	if (TCcount > 0) {
 	    printOnlyTCs();
@@ -3012,7 +3012,7 @@ static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
 	}
     }
 
-    //loop through components (except first) to print edges and nodes
+    /* loop through components (except first) to print edges and nodes */
     for (tComponent = graph->components->nextPtr; tComponent;
 					    tComponent = tComponent->nextPtr) {
 	for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
@@ -3024,7 +3024,7 @@ static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
 					tNode = tNode->nextComponentNode) {
 	    printSVGObject(tNode, &classNr, modc, modv);
 	}
-	//enclose component in its bounding box
+	/* enclose component in its bounding box */
 	/*
 	printf(" <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\"\n",
 		tComponent->xMin + tComponent->xOffset,
@@ -3035,7 +3035,7 @@ static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
 	*/
     }
 
-    //print single nodes
+    /* print single nodes */
     for (tNode = graph->components->firstComponentNode; tNode;
 		    			tNode = tNode->nextComponentNode) {
 	if (tNode->group == 0) {
@@ -3045,17 +3045,17 @@ static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
 	}
     }
 
-    //print Module-Information
+    /* print Module-Information */
     printModuleInformation(modc, modv, xMax-MODULE_INFO_WIDTH, yMin+10,
 				yMax-yMin,
 				modId, nType, oGroup, nGroup, mCompl, miCount);
 
-    //output of svg to stdout ends here
+    /* output of svg to stdout ends here */
     printSVGClose(xMin, yMin, xMax, yMax);
 }
 
 
-//prepare nodes and edges for drawing
+/* prepare nodes and edges for drawing */
 static void prepareNodesAndEdges(int *idCount, float *xMax, int *nodecount,
 				 int *singleNodes, float *maxHeight)
 {
@@ -3065,7 +3065,7 @@ static void prepareNodesAndEdges(int *idCount, float *xMax, int *nodecount,
     float          x=10;
     int            group;
 
-    //find edges which are supposed to be drawn
+    /* find edges which are supposed to be drawn */
     for (tEdge = graph->edges; tEdge; tEdge = tEdge->nextPtr) {
 	if (tEdge->connection != GRAPH_CON_UNKNOWN
 	    && tEdge->startNode->smiNode->nodekind != SMI_NODEKIND_SCALAR
@@ -3079,13 +3079,13 @@ static void prepareNodesAndEdges(int *idCount, float *xMax, int *nodecount,
 
     tComponent = graphInsertComponent(graph);
 
-    //prepare nodes which are supposed to be drawn
+    /* prepare nodes which are supposed to be drawn */
     for (tNode = graph->nodes; tNode; tNode = tNode->nextPtr) {
 	tNode = calcNodeSize(tNode, idCount);
 	if (tNode->smiNode->nodekind != SMI_NODEKIND_SCALAR) {
 	    (*nodecount)++;
 	    if (tNode->degree == 0) {
-		//single nodes are members of the first component.
+		/* single nodes are members of the first component. */
 		if (tComponent->firstComponentNode == NULL) {
 		    tComponent->firstComponentNode = tNode;
 		} else {
@@ -3104,7 +3104,7 @@ static void prepareNodesAndEdges(int *idCount, float *xMax, int *nodecount,
     for (group = 1; group <= algGetNumberOfGroups(); group++) {
 	tNode = calcGroupSize(group, idCount);
 	(*nodecount)++;
-	//groupnodes are members of the first component.
+	/* groupnodes are members of the first component. */
 	if (tComponent->firstComponentNode == NULL) {
 	    tComponent->firstComponentNode = tNode;
 	} else {
@@ -3151,13 +3151,13 @@ static void generateSVG(int modc, SmiModule **modv)
     int            *nGroup = xcalloc(modc,sizeof(int));
     int            *mCompl = xcalloc(modc,sizeof(int));
 
-    //prepare nodes and edges for drawing
+    /* prepare nodes and edges for drawing */
     prepareNodesAndEdges(&idCount, &xMax, &nodecount, &singleNodes, &maxHeight);
 
-    //split the graph into components
+    /* split the graph into components */
     splitGraphIntoComponents();
 
-    //layout components (except first) and calculate bounding boxes and offsets
+    /* layout components (except first) and calculate bounding boxes and offsets */
     layoutComponents(&yMin, &yMax, &x);
 
     if (graph->components->nextPtr)
@@ -3166,12 +3166,12 @@ static void generateSVG(int modc, SmiModule **modv)
     if (x > xMax)
 	xMax = x;
 
-    //adjust values for the first component (component of single nodes)
+    /* adjust values for the first component (component of single nodes) */
     graph->components->yOffset = yMax + maxHeight/2;
     if (singleNodes)
 	yMax += maxHeight + 10;
 
-    //module doesn't contain any objects.
+    /* module doesn't contain any objects. */
     if (nodecount == 0) {
 	TCcount = countTCs(modc, modv);
 	if (TCcount > 0) {
@@ -3182,11 +3182,11 @@ static void generateSVG(int modc, SmiModule **modv)
 	yMax += 40;
     }
 
-    //count entries in the ModuleInformation-Section
+    /* count entries in the ModuleInformation-Section */
     prepareModInfo(modc, modv, &miCount, modId, nType, oGroup, nGroup, mCompl);
     idCount += miCount;
 
-    //enlarge canvas for ModuleInformation if it is supposed to be printed
+    /* enlarge canvas for ModuleInformation if it is supposed to be printed */
     for (i = 0; i < modc; i++) {
 	miPrint |= modId[i];
 	miPrint |= nType[i];
@@ -3214,7 +3214,7 @@ static void buildLink(int modc, SmiModule **modv)
 {
     size_t length;
     const char *url = URL;
-    //note: first string, so no &amp; required
+    /* note: first string, so no &amp; required */
     const char *widthstr = "width=";
     const char *heightstr = "&amp;height=";
     const char *deprstr = "&amp;deprobs=deprecated";
