@@ -2459,7 +2459,7 @@ Type *setTypeName(Type *typePtr, char *name)
     if (typePtr->export.name) {
 	smiFree(typePtr->export.name);
     }
-    typePtr->export.name = strdup(name);
+    typePtr->export.name = smiStrdup(name);
 
     if (! typePtr->export.name) {
 	return typePtr;
@@ -3772,7 +3772,7 @@ void setAttributeList(Attribute *attributePtr, List *listPtr)
 void setAttributeName(Attribute *attributePtr, char *name)
 {
     
-    attributePtr->export.name = strdup(name);
+    attributePtr->export.name = smiStrdup(name);
 }
 
 /*
