@@ -1098,13 +1098,13 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 		incrIndexComplexityCounter(smiModule, smiNode, cmplx);
 		incrIndexComplexityMetric(&metrics->indexComplexity, cmplx);
 	    }
-	    // count the childs ...
+	    /* count the childs ... */
 	    {
 		    SmiModule *smiModule = smiGetModule("SNMPv2-TC");
 		    SmiNode *childNode;
 		    SmiType *rowStatus = smiGetType(smiModule, "RowStatus");
 		    SmiType *storageType = smiGetType(smiModule, "StorageType");
-		    // include index elements not in table
+		    /* include index elements not in table */
 		    int n = 0;
 		    for (childNode = smiGetFirstChildNode(smiNode);
 			 childNode;

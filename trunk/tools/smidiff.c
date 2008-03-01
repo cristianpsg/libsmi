@@ -1040,7 +1040,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 }
 
 static char*
-getStringSubrange( SmiRange *range, SmiType *smiType )
+getStringSubrange(SmiRange *range, SmiType *smiType)
 {
     char *minStr, *maxStr, *str;
     minStr = strdup( getValueString(&range->minValue, smiType) );
@@ -1061,7 +1061,7 @@ getStringSubrange( SmiRange *range, SmiType *smiType )
 
 
 static char*
-getStringRange( SmiType *smiType )
+getStringRange(SmiType *smiType)
 {
     SmiRange *range;
     int i;

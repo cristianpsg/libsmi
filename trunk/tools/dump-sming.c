@@ -540,7 +540,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 		n++;
 		for (nn = smiGetFirstNamedNumber(typePtr); nn;
 		     nn = smiGetNextNamedNumber(nn)) {
-		    //if (nn->value.value.unsigned64 == ((i/8)*8 + (7-(i%8))))
+		    /* if (nn->value.value.unsigned64 == ((i/8)*8 + (7-(i%8)))) */
 		    if (nn->value.value.unsigned64 == i)
 			break;
 		}

@@ -305,18 +305,18 @@ getKnownDisplayHint_XSD(const char *hint,
 	default:
 	    ret = "("; 
 	    for( i=0; i < numSubranges * 2; i+=2 ) {
-		if( i ) smiAsprintf( &ret, "%s)|(", ret );
-		smiAsprintf( &ret, "%s%s", ret,
-			     getSimpleCharFacet_XSD( 'a', 255, 
-						     lengths[i], lengths[i+1]));
+		if( i ) smiAsprintf(&ret, "%s)|(", ret);
+		smiAsprintf(&ret, "%s%s", ret,
+			    getSimpleCharFacet_XSD('a', 255, 
+						   lengths[i], lengths[i+1]));
 		
 	    }
-	    smiAsprintf( &ret, "%s)", ret );
+	    smiAsprintf(&ret, "%s)", ret);
 	    return ret;
 	}
     }
     
-    if( ! strcmp( hint, LIBSMI_DH_UTF8 ) ) {
+    if( ! strcmp(hint, LIBSMI_DH_UTF8 )) {
 	switch( numSubranges ) { 		
 	case 0: 
 	    return getSimpleCharFacet_XSD( 't' , 255, 0, 255 );
@@ -326,10 +326,10 @@ getKnownDisplayHint_XSD(const char *hint,
 	    ret = "("; 
 	    for( i=0; i < numSubranges * 2; i+=2 ) {
 		if( i ) smiAsprintf( &ret, "%s)|(", ret );
-		smiAsprintf( &ret, "%s%s", 
-			     ret, getSimpleCharFacet_XSD( 't', 255,
-							  lengths[i], 
-							  lengths[i+1] ) ); 				
+		smiAsprintf(&ret, "%s%s", 
+			    ret, getSimpleCharFacet_XSD('t', 255,
+							lengths[i], 
+							lengths[i+1]));
 	    }
 	    smiAsprintf( &ret, "%s)", ret );
 	    return ret;
@@ -395,8 +395,9 @@ getKnownDisplayHint_XSD(const char *hint,
  * although I added some comments. The good news is, that all IETF MIBs 
  * (and all other MIBs coming with libsmi) can be converted "the easy way" 
  * (i.e. without the difficult conversion loop).*/
-char* getStrDHType( const char *hint,
-			   SmiUnsigned32 *lengths, unsigned int numSubranges  )
+
+char* getStrDHType(const char *hint,
+		   SmiUnsigned32 *lengths, unsigned int numSubranges)
 {
     unsigned int i = 0;
     char *ret = lengths[ i ] ? "(" : "((";
@@ -415,318 +416,318 @@ char* getStrDHType( const char *hint,
     }
     DH *dh = parseDH( hint );
     int bl = 0;
-
+    
     if(! dh ) return NULL;
     
     /* check if we have a "simple" display hint (e.g. "100a") */
     if( !dh->next && ( dh->type == 'a' || dh->type == 't' ) ) {
     	switch( numSubranges ) { 		
- 		case 0: 
- 			return getSimpleCharFacet_XSD( dh->type , dh->number, 0, dh->number );
- 		case 1: 			
- 			return getSimpleCharFacet_XSD( dh->type , dh->number, lengths[0], lengths[1]);
- 		default:
- 			ret = "("; 
- 			for( i=0; i < numSubranges * 2; i+=2 ) {
- 				if( i ) smiAsprintf( &ret, "%s)|(", ret );
- 				smiAsprintf( &ret, "%s%s", 
- 							 ret, getSimpleCharFacet_XSD( dh->type, dh->number,
- 														  lengths[i], 
- 														  lengths[i+1] ) ); 				
- 			}
- 			smiAsprintf( &ret, "%s)", ret );
- 			return ret;
- 		}   		
+	case 0: 
+	    return getSimpleCharFacet_XSD( dh->type , dh->number, 0, dh->number );
+	case 1: 			
+	    return getSimpleCharFacet_XSD( dh->type , dh->number, lengths[0], lengths[1]);
+	default:
+	    ret = "("; 
+	    for( i=0; i < numSubranges * 2; i+=2 ) {
+		if( i ) smiAsprintf( &ret, "%s)|(", ret );
+		smiAsprintf( &ret, "%s%s", 
+			     ret, getSimpleCharFacet_XSD(dh->type, dh->number,
+							 lengths[i], 
+							 lengths[i+1]));
+	    }
+	    smiAsprintf(&ret, "%s)", ret);
+	    return ret;
+	}   		
     }
 
-	/* no "easy match was possible, so start the "hard" loop */
+    /* no "easy match was possible, so start the "hard" loop */
     do {
-		unsigned int octetsUsed = 0;
-		DH *iterDH;
+	unsigned int octetsUsed = 0;
+	DH *iterDH;
 	
-		for( iterDH = dh; iterDH; iterDH = iterDH->next ) {
-	    	char *baseRegexp = NULL;
-
-	    	switch( iterDH->type ) {
-
-	    	case 'a':
-				/* ascii character */
-				baseRegexp = "(\\p{IsBasicLatin})";
-				break;
-				
-			case 't':
-				/* utf-8 character */
-				baseRegexp = ".";
-				break;
-				
-	    	case 'b':
-				/* binary number */
-				baseRegexp = "((0|1){8})";
-				break;
-
-	    	case 'd':
-				/* decimal number */
-				baseRegexp = "([0-9]{3})";
-			break;
-
-	    	case 'o':
-				/* octal number */
-				baseRegexp = "([0-7]{3})";
-				break;
-
-	    	case 'x':
-				/* hexadecimal number */
-				baseRegexp = "([0-9A-Fa-f]{2})";
-				break;
-
-	    	default:
-				fputs( "smidump: Warning: unknown type of display-hint",
-		       			stderr );
-	    	}	   
+	for( iterDH = dh; iterDH; iterDH = iterDH->next ) {
+	    char *baseRegexp = NULL;
 	    
-
-	    	if( iterDH->number < lengths[ i ] ) {
-				/* there are more octets to come */
-				if( iterDH->type == 'd' ) {
-		    		/* decimal number needs to be treated differently */
-		    		if( iterDH->next ){
-		    			/* we still have another diplay hint block coming */
-		   				smiAsprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
-					    			 ret,
-				    	 			 numDigits(smiPow(255,
-					    						      iterDH->number ))-1 );
-					    						      
-						/* adjust number of used digits */
-						octetsUsed += iterDH->number;
-						
-						if( octetsUsed >= lengths[ i + 1 ] ) {
-							/* maximum number of octets used,
-			   	   			   we must exit the loop */			    
-			    			break;
-						}
-						
-						/* add separator char */
-						if( iterDH->separator ) {
-			    			smiAsprintf( &ret, "%s%s",ret, iterDH->separator );
-						}
-		 			}
-		    		else {
-		    			/* no orther display hint coming up. 
-		    	 		 * we are at the last iteration */		
-						smiAsprintf( &ret, "%s((0|[1-9](([0-9]){0,%d})",
-					    			 ret,
-				    	 			 numDigits( smiPow( 255,
-					     						iterDH->number ) ) - 1 );			
-						/* add separator char */
-						if( iterDH->separator ) {
-			  				smiAsprintf( &ret, "%s%s",
-										 ret, iterDH->separator );
-						}
-						if( lengths[ i+1 ] - 1 - octetsUsed ) {
-							/* not all digits for maximum string length (length[i+1 ])
-				 			 * have been used, so we have to add some digits */
-		    				smiAsprintf(&ret,
-				 						"%s){%u,%u})(0|[1-9](([0-9]){0,%d}))",
-				 						ret, lengths[ i ] - 1 - octetsUsed,
-				 						lengths[ i+1 ] - 1 - octetsUsed,
-				 						numDigits(
-				     					smiPow( 255, iterDH->number ))- 1 );							
-						}
-						else {
-							/* maximum number of digets have been used,
-				 			 * so let's terminate the pattern for this round*/
-		    				smiAsprintf( &ret, "%s)", ret );
-						}
-			
-						/* adjust the used digit counter */
-						octetsUsed += iterDH->number;
-			
-						if( octetsUsed >= lengths[ i + 1 ] ) {
-		  					/* maximum number of octets used, we must exit the loop */
-		    				break;
-						}
-	    			}
-				}
-				else {
-					/* type other than decimal */
-	    			if( iterDH->next ){
-	    				/* there will be another display hint block */
-						smiAsprintf( &ret, "%s(%s{%d})",
-				     				 ret,
-				     				 baseRegexp, iterDH->number );
-
-						/* adjust number of used octets */
-						octetsUsed += iterDH->number;
-						if( octetsUsed >= lengths[ i + 1 ] ) {
-							/* maximum number of octets used,
-			   				   we must exit the loop */			    
-			    			break;
-						}
-
-						/* add separator char */
-						if( iterDH->separator ) {
-			    			smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
-						}
-		    		}
-		    		else {
-		    			/* we are the last display hint block */			
-						smiAsprintf( &ret, "%s(%s",
-				  					 ret, baseRegexp );
-
-						/* add separator char */
-						if( iterDH->separator ) {
-			    			smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
-						}
-
-						smiAsprintf( &ret, "(%s){%u,%u})%s",
-				     				 ret, lengths[ i ] - 1, lengths[ i+1 ] - 1,
-				     				 baseRegexp );
-			
-						/* adjust the number of used octets */
-						octetsUsed += iterDH->number;
-						if( octetsUsed >= lengths[ i + 1 ] ) {
-			    			/* maximum number of octets used,
-			       			   we must exit the loop */			    
-			    			break;
-						}
-		    		}
-				}
-	    	}
-	    	else {
-				/* might be the last one */
-
-				if( iterDH->type == 'd' ) {
-		    		/* decimal number needs to be treated differently */
-		    		if( iterDH->number < lengths[ i+1 ] ) {
-			    		/* we are not using the maximun number of octets */
-						smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d}))",
-				    			 	 ret,
-				     			 	 numDigits( smiPow( 255, iterDH->number ) ) );
-
-						/* adjust the number of used octets */
-						octetsUsed += lengths[ i ];
-						if( octetsUsed >= lengths[ i + 1 ] ) {
-				    		/* the maximum number of octets have been reached,
-			    	   	   	   we must exit the loop */
-			    			break;
-						}
-
-						/* add separator char */
-						if( iterDH->separator ) {
-					    	smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
-						}						
-					}
-					else {
-						/* we have used the maximum number of octets */
-						smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d})",
-								     ret,
-								     numDigits( smiPow( 255, lengths[ i+1 ] ) ) );
-					}
-				}
-				else {
-					/* type is not decimal */
-		    		smiAsprintf( &ret, "%s(%s",  ret, baseRegexp );
-		    		if( iterDH->next ) {
-			    		/* there will be another display hint block */
-						if( iterDH->separator ) {
-				    		smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
-						}
-						if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-							/* minLength = 0, maxLength = 65535, 
-							 * i.e. no restriction at all */
-			    			smiAsprintf( &ret, "%s)*",ret );
-						}
-						else{
-							/* we have a different length restriction */
-				    		smiAsprintf( &ret, "%s){%u,%u}",ret, lengths[ i ],
-						 				 MIN( iterDH->number,
-						      			 	  lengths[ i + 1] ) - 1 );
-						}
-					
-						/* adjust the number of used octets */
-						octetsUsed += lengths[ i ];
-						if( octetsUsed >= lengths[ i + 1 ] ) {
-			    			/* the maximum number of octets have been reached,
-			       			   we must exit the loop */
-			    			break;
-						}						
-		    		}
-		    		else {
-		    			/* we are the ast display hint block */
-						octetsUsed += lengths[ i ];
-						if( iterDH->separator &&
-			    			octetsUsed < lengths[ i + 1 ] ) {
-							/* we have a separator char and 
-						 	 * still not reached the maximum number of octets */
-			    			if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-			    				/* we have no length restriction */
-								smiAsprintf( &ret, "%s%s)*%s",
-					     					 ret, iterDH->separator, baseRegexp );
-			    			}
-			    			else {
-				    			/* we have a length restriction */
-								smiAsprintf( &ret, "%s%s){%u,%u}%s",
-					     				 	 ret, iterDH->separator,
-					     				 	 lengths[ i ], lengths[ i + 1] - 1,
-					     				 	 baseRegexp );
-			    			}
-						}
-						else {
-							/* we don't have a separator char or
-						 	 * have used the maximum number of octets */
-			    			if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
-			    				/* no lengths restriction */
-								smiAsprintf( &ret, "%s)*%s",
-					     				 	 ret, iterDH->separator ); 
-					     				 	// TBD: what, if there is no separator ???
-			    			}
-			    			else {
-			    				/* we have a length restriction */
-								smiAsprintf( &ret, "%s){%u,%u}%s",
-					     					 ret, lengths[ i ],
-					     					 lengths[ i + 1],
-					     				 	 iterDH->separator );
-					     				 	// TBD: what, if there is no separator ???
- 			    			}			    
-						}
-		    		}
-				}
+	    switch( iterDH->type ) {
 		
-				if( octetsUsed >= lengths[ i + 1 ] ) {
-		    		/* the maximum number of octets have been reached,
-		       		   we must exit the loop */
-		    		break;
-				}
-	 	   }
-		}
-		/* adjust the "pointer" for the lenghts array */
-		i += 2;
-
-		if( i < numSubranges  * 2 ) {
-			/* we are not the last subrange, so we have to extend the pattern */
-	    	smiAsprintf( &ret, "%s)|(", ret );
+	    case 'a':
+		/* ascii character */
+		baseRegexp = "(\\p{IsBasicLatin})";
+		break;
+		
+	    case 't':
+		/* utf-8 character */
+		baseRegexp = ".";
+		break;
+		
+	    case 'b':
+		/* binary number */
+		baseRegexp = "((0|1){8})";
+		break;
+		
+	    case 'd':
+		/* decimal number */
+		baseRegexp = "([0-9]{3})";
+		break;
+		
+	    case 'o':
+		/* octal number */
+		baseRegexp = "([0-7]{3})";
+		break;
+		
+	    case 'x':
+		/* hexadecimal number */
+		baseRegexp = "([0-9A-Fa-f]{2})";
+		break;
+		
+	    default:
+		fputs( "smidump: Warning: unknown type of display-hint",
+		       stderr );
+	    }	   
+	    
+	    
+	    if( iterDH->number < lengths[ i ] ) {
+		/* there are more octets to come */
+		if( iterDH->type == 'd' ) {
+		    /* decimal number needs to be treated differently */
+		    if( iterDH->next ){
+			/* we still have another diplay hint block coming */
+			smiAsprintf( &ret, "%s(0|[1-9](([0-9]){0,%d}))",
+				     ret,
+				     numDigits(smiPow(255,
+						      iterDH->number ))-1 );
+			
+			/* adjust number of used digits */
+			octetsUsed += iterDH->number;
+			
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* maximum number of octets used,
+			       we must exit the loop */			    
+			    break;
+			}
+			
+			/* add separator char */
+			if( iterDH->separator ) {
+			    smiAsprintf( &ret, "%s%s",ret, iterDH->separator );
+			}
+		    }
+		    else {
+			/* no orther display hint coming up. 
+			 * we are at the last iteration */		
+			smiAsprintf( &ret, "%s((0|[1-9](([0-9]){0,%d})",
+				     ret,
+				     numDigits( smiPow( 255,
+							iterDH->number ) ) - 1 );			
+			/* add separator char */
+			if( iterDH->separator ) {
+			    smiAsprintf( &ret, "%s%s",
+					 ret, iterDH->separator );
+			}
+			if( lengths[ i+1 ] - 1 - octetsUsed ) {
+			    /* not all digits for maximum string length (length[i+1 ])
+			     * have been used, so we have to add some digits */
+			    smiAsprintf(&ret,
+					"%s){%u,%u})(0|[1-9](([0-9]){0,%d}))",
+					ret, lengths[ i ] - 1 - octetsUsed,
+					lengths[ i+1 ] - 1 - octetsUsed,
+					numDigits(
+					    smiPow( 255, iterDH->number ))- 1 );							
+			}
+			else {
+			    /* maximum number of digets have been used,
+			     * so let's terminate the pattern for this round*/
+			    smiAsprintf( &ret, "%s)", ret );
+			}
+			
+			/* adjust the used digit counter */
+			octetsUsed += iterDH->number;
+			
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* maximum number of octets used, we must exit the loop */
+			    break;
+			}
+		    }
 		}
 		else {
-			/* we are the last subrange */
-	    	smiAsprintf( &ret, "%s)", ret );
-	    	if( ! lengths[ 0 ] ) {
-				smiAsprintf( &ret, "%s){0,1}", ret );
-	    	}
+		    /* type other than decimal */
+		    if( iterDH->next ){
+			/* there will be another display hint block */
+			smiAsprintf( &ret, "%s(%s{%d})",
+				     ret,
+				     baseRegexp, iterDH->number );
+			
+			/* adjust number of used octets */
+			octetsUsed += iterDH->number;
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* maximum number of octets used,
+			       we must exit the loop */			    
+			    break;
+			}
+			
+			/* add separator char */
+			if( iterDH->separator ) {
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
+			}
+		    }
+		    else {
+			/* we are the last display hint block */			
+			smiAsprintf( &ret, "%s(%s",
+				     ret, baseRegexp );
+			
+			/* add separator char */
+			if( iterDH->separator ) {
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
+			}
+			
+			smiAsprintf( &ret, "(%s){%u,%u})%s",
+				     ret, lengths[ i ] - 1, lengths[ i+1 ] - 1,
+				     baseRegexp );
+			
+			/* adjust the number of used octets */
+			octetsUsed += iterDH->number;
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* maximum number of octets used,
+			       we must exit the loop */			    
+			    break;
+			}
+		    }
 		}
-	} while( i < numSubranges * 2 );
+	    }
+	    else {
+		/* might be the last one */
+		
+		if( iterDH->type == 'd' ) {
+		    /* decimal number needs to be treated differently */
+		    if( iterDH->number < lengths[ i+1 ] ) {
+			/* we are not using the maximun number of octets */
+			smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d}))",
+				     ret,
+				     numDigits( smiPow( 255, iterDH->number ) ) );
+			
+			/* adjust the number of used octets */
+			octetsUsed += lengths[ i ];
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* the maximum number of octets have been reached,
+			       we must exit the loop */
+			    break;
+			}
+			
+			/* add separator char */
+			if( iterDH->separator ) {
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
+			}						
+		    }
+		    else {
+			/* we have used the maximum number of octets */
+			smiAsprintf( &ret, "%s(0|[1-9]([0-9]{0,%d})",
+				     ret,
+				     numDigits( smiPow( 255, lengths[ i+1 ] ) ) );
+		    }
+		}
+		else {
+		    /* type is not decimal */
+		    smiAsprintf( &ret, "%s(%s",  ret, baseRegexp );
+		    if( iterDH->next ) {
+			/* there will be another display hint block */
+			if( iterDH->separator ) {
+			    smiAsprintf( &ret, "%s%s", ret, iterDH->separator );
+			}
+			if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
+			    /* minLength = 0, maxLength = 65535, 
+			     * i.e. no restriction at all */
+			    smiAsprintf( &ret, "%s)*",ret );
+			}
+			else{
+			    /* we have a different length restriction */
+			    smiAsprintf( &ret, "%s){%u,%u}",ret, lengths[ i ],
+					 MIN( iterDH->number,
+					      lengths[ i + 1] ) - 1 );
+			}
+			
+			/* adjust the number of used octets */
+			octetsUsed += lengths[ i ];
+			if( octetsUsed >= lengths[ i + 1 ] ) {
+			    /* the maximum number of octets have been reached,
+			       we must exit the loop */
+			    break;
+			}						
+		    }
+		    else {
+			/* we are the ast display hint block */
+			octetsUsed += lengths[ i ];
+			if( iterDH->separator &&
+			    octetsUsed < lengths[ i + 1 ] ) {
+			    /* we have a separator char and 
+			     * still not reached the maximum number of octets */
+			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
+				/* we have no length restriction */
+				smiAsprintf( &ret, "%s%s)*%s",
+					     ret, iterDH->separator, baseRegexp );
+			    }
+			    else {
+				/* we have a length restriction */
+				smiAsprintf( &ret, "%s%s){%u,%u}%s",
+					     ret, iterDH->separator,
+					     lengths[ i ], lengths[ i + 1] - 1,
+					     baseRegexp );
+			    }
+			}
+			else {
+			    /* we don't have a separator char or
+			     * have used the maximum number of octets */
+			    if( ! lengths[ i ] && lengths[ i+1 ] == 65535 ) {
+				/* no lengths restriction */
+				smiAsprintf( &ret, "%s)*%s",
+					     ret, iterDH->separator ); 
+				/* TBD: what, if there is no separator ??? */
+			    }
+			    else {
+				/* we have a length restriction */
+				smiAsprintf( &ret, "%s){%u,%u}%s",
+					     ret, lengths[ i ],
+					     lengths[ i + 1],
+					     iterDH->separator );
+				/* TBD: what, if there is no separator ??? */
+			    }			    
+			}
+		    }
+		}
+		
+		if( octetsUsed >= lengths[ i + 1 ] ) {
+		    /* the maximum number of octets have been reached,
+		       we must exit the loop */
+		    break;
+		}
+	    }
+	}
+	/* adjust the "pointer" for the lenghts array */
+	i += 2;
+	
+	if( i < numSubranges  * 2 ) {
+	    /* we are not the last subrange, so we have to extend the pattern */
+	    smiAsprintf( &ret, "%s)|(", ret );
+	}
+	else {
+	    /* we are the last subrange */
+	    smiAsprintf( &ret, "%s)", ret );
+	    if( ! lengths[ 0 ] ) {
+		smiAsprintf( &ret, "%s){0,1}", ret );
+	    }
+	}
+    } while( i < numSubranges * 2 );
     
     /* check if all brackets have been closed */
     if( getBracketLevel( ret ) ) {
-  		bl = getBracketLevel( ret );
+	bl = getBracketLevel( ret );
       	fprintf( stderr, "%d\n", bl );
       	if( bl > 0 ) {
-			// TODO: add a warning that brackets have been added
-			for(; bl; bl--) {
-	  			smiAsprintf( &ret, "%s)", ret );
-			}
+	    /* TODO: add a warning that brackets have been added */
+	    for(; bl; bl--) {
+		smiAsprintf( &ret, "%s)", ret );
+	    }
       	}
       	else {
-			// TODO: some error handling
+	    /* TODO: some error handling */
       	}
     }
     return ret;
@@ -750,7 +751,7 @@ smiFormatToPattern(const char *format, SmiRange *smiRange)
     }
 
     /* copy ranges to array (no clue why this is being done) */
-
+    
     if (num) {
 	lengths = xmalloc(2 * num * sizeof(SmiUnsigned32));
 	for (range = smiRange, lp = 0; range; range = smiGetNextRange(range)) {

@@ -146,7 +146,6 @@ dstring_append_vprintf(dstring_t *ds, const char *format, va_list _ap)
     if (ds) {
 	o = ds->len;
         while (1) {
-	    // fprintf(stderr, "** trying ** (len %d)\n", ds->len);
             va_copy(ap, _ap);
             n = vsnprintf(ds->str + o, ds->len+1 - o, format, ap);
             va_end(ap);
@@ -157,10 +156,8 @@ dstring_append_vprintf(dstring_t *ds, const char *format, va_list _ap)
                 return ds;
             }
             if (n > 0) {
-		// fprintf(stderr, "** growing ** (len %d)\n", n+o);
                 ds = dstring_grow(ds, n + o);	                /* C99 */
             } else {
-		// fprintf(stderr, "** growing ** (len %d)\n", ds->len + ds->len);
                 ds = dstring_grow(ds, ds->len + ds->len);       /* GLIBC */
             }
         }

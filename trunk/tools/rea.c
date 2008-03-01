@@ -61,22 +61,27 @@ static char *baseTypes[] = {
 /*
  * driver output control
  */
-//variables for svg-output
-//CANVASHEIGHT, CANVASWIDTH: When you change these values here, you should
-//                           also change them in initSvg() and the cgi-script.
+
+/*
+ * variables for svg-output
+ *
+ * When you change CANVASHEIGHT, CANVASWIDTH values here, you should
+ * also change them in initSvg() and the cgi-script.
+ */
+
 int       CANVASHEIGHT          = 700; /* height of the svg */
 int       CANVASWIDTH           = 1100; /* width of the svg */
 int       SHOW_DEPRECATED       = 0; /* false, show deprecated objects */
 int       SHOW_DEPR_OBSOLETE    = 0; /* false, show deprecated and
 					obsolete objects */
 int       STATIC_OUTPUT         = 0; /* false, enable interactivity */
-//variables for cm-driver
+/* variables for cm-driver */
 int       XPLAIN                = 0; /* false, generates ASCII output */
 int       XPLAIN_DEBUG          = 0; /* false, generates additional
 					       output in xplain-mode */
 int       SUPPRESS_DEPRECATED   = 1; /* true, suppresses deprecated
 					       objects */
-//common variables
+/* common variables */
 int       PRINT_DETAILED_ATTR   = 1; /* true, prints all column
 					       objects */
 int       IGNORE_IMPORTED_NODES = 1; /* true, ignores nodes which are
