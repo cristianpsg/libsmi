@@ -75,12 +75,6 @@
 /* Define if the win.h header file is present. */
 #define HAVE_WIN_H 1
 
-/* Define to 1 if you have the <stdint.h> header file. */
-#undef HAVE_STDINT_H
-
-/* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_LIMITS_H 1
-
 /* Name of package */
 #define PACKAGE "libsmi"
 
