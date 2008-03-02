@@ -175,6 +175,18 @@ static void usage()
     int i;
     SmidumpDriver *driver;
     char *value = NULL;
+#ifdef _MSC_VER
+    #if _MSC_VER >= 1400
+/*
+   %n in printf is a security vulnerability. Ref:
+   http://en.wikipedia.org/wiki/Format_string_vulnerabilities
+   MS decided it was important enough to disble it by default. Ref:
+   "ms-help://MS.VSCC.v80/MS.MSDN.v80/MS.VisualStudio.v80.en/dv_vccrt/html/77a854ae-5b48-4865-89f4-f2dc5cf80f52.htm
+   Calling _set_printf_count_output() stops an invalid parameter crash.
+*/
+    int printf_state;
+    #endif
+#endif
     
     fprintf(stderr,
 	    "Usage: smidump [options] [module or path ...]\n"
@@ -216,11 +228,21 @@ static void usage()
 		value = "number";
 		break;
 	    }
+#ifdef _MSC_VER
+    #if _MSC_VER >= 1400
+	    printf_state=_set_printf_count_output(1);
+    #endif
+#endif
 	    fprintf(stderr, "  --%s-%s%s%s%n",
 		    driver->name, driver->opt[i].name,
 		    value ? "=" : "",
 		    value ? value : "",
 		    &n);
+#ifdef _MSC_VER
+    #if _MSC_VER >= 1400
+	    (void)_set_printf_count_output(printf_state);
+    #endif
+#endif
 	    fprintf(stderr, "%*s%s\n",
 		    30-n, "",
 		    driver->opt[i].descr ? driver->opt[i].descr : "...");
