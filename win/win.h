@@ -43,21 +43,33 @@
 #endif
 
 /*
- * other function prototypes 
+ * Other function prototypes...
  */
+
 #if ! defined(__GNUC__) && defined(__STDC__)
 int __cdecl fileno(FILE *); 
 #endif
-
 
 /*
  * isascii() is a non __STDC__ extension needed when __STDC__ is defined in
  * Win32 environment.
  */
+
 #if defined(__STDC__)
 #ifndef isascii
 #define isascii(_c)   ( (unsigned)(_c) < 0x80 )
 #endif
+#endif
+
+/*
+ * Windows seems to lacks C99 function fabsf(), strtold(). Well, this
+ * is only true for some compilers on Windows - gcc is fine since it
+ * comes with a C99 library.
+ */
+
+#if ! defined(__GNUC__)
+#define fabsf		fabs
+#define strtold		strtod
 #endif
 
 #endif /* _WIN_H */
