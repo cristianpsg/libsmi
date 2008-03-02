@@ -402,6 +402,8 @@ char* getStrDHType(const char *hint,
     unsigned int i = 0;
     char *ret = lengths[ i ] ? "(" : "((";
     char *r2 = getKnownDisplayHint_XSD( hint, lengths, numSubranges );
+    DH *dh;
+    int bl;
     
     r2 = NULL;
   
@@ -414,8 +416,8 @@ char* getStrDHType(const char *hint,
     	if( numSubranges >  1 ) fputs( "MORE_SUBRANGES\n", stdout );*/
     	return r2;	
     }
-    DH *dh = parseDH( hint );
-    int bl = 0;
+    dh = parseDH( hint );
+    bl = 0;
     
     if(! dh ) return NULL;
     
