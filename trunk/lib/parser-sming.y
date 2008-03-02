@@ -270,8 +270,8 @@ checkDate(Parser *parserPtr, char *date)
     return (anytime == (time_t) -1) ? 0 : anytime;
 }
 
-static char *hexToStr(char *hexStr, int len){
-   
+static char *hexToStr(char *hexStr, int len)
+{
    union{
    	char ch;
    	long l;
@@ -279,8 +279,9 @@ static char *hexToStr(char *hexStr, int len){
    
    char* res =(char*)malloc(sizeof(char)*len/2+1);
    char* tmp =(char*)malloc(sizeof(char)*3);
-   tmp[2]=0;
    int i,j = 0;
+
+   tmp[2]=0;
    for(i=2; i+1<len; i+=2)
    {
    	tmp[0]= hexStr[i];
