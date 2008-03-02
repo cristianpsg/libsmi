@@ -478,7 +478,6 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     int		   n;
     unsigned int   i;
     SmiNamedNumber *nn;
-    SmiNode        *nodePtr;
     
     s[0] = 0;
     
@@ -834,7 +833,7 @@ static void fprintTypedefs(FILE *f, SmiModule *smiModule)
 
 static void fprintIdentities(FILE *f, SmiModule *smiModule)
 {
-    int		 i, j;
+    int		 i;
     SmiIdentity	 *smiIdentity;
     SmiIdentity  *tmpIdentity;
     
@@ -846,11 +845,12 @@ static void fprintIdentities(FILE *f, SmiModule *smiModule)
 	}
 	fprintSegment(f, INDENT, "", 0);
 	fprint(f, "identity %s {\n", smiIdentity->name);
-	
-	if(tmpIdentity = smiGetParentIdentity(smiIdentity)) {
-	fprintSegment(f, 2 * INDENT, "parent", INDENTVALUE);
-	fprint(f, "%s", tmpIdentity->name);
-	fprint(f, ";\n");
+
+	tmpIdentity = smiGetParentIdentity(smiIdentity);
+	if (tmpIdentity) {
+	    fprintSegment(f, 2 * INDENT, "parent", INDENTVALUE);
+	    fprint(f, "%s", tmpIdentity->name);
+	    fprint(f, ";\n");
 	}
 
 	if ((smiIdentity->status != SMI_STATUS_UNKNOWN) &&
@@ -876,7 +876,7 @@ static void fprintIdentities(FILE *f, SmiModule *smiModule)
 
 static void fprintExtensions(FILE *f, SmiModule *smiModule)
 {
-    int		 i, j;
+    int		 i;
     SmiMacro	 *smiMacro;
     
     for(i = 0, smiMacro = smiGetFirstMacro(smiModule);
@@ -928,77 +928,76 @@ static void fprintUniqueStatement(FILE *f, SmiClass *smiClass)
 	}
     
     attributePtr = smiGetFirstUniqueAttribute(smiClass);
-    if(attributePtr)
-    {
-    fprintSegment(f, 2 * INDENT, "unique", INDENTVALUE);
-    fprint(f, "(");
-    for(attributePtr, i=0; attributePtr; 
-    		attributePtr = smiGetNextUniqueAttribute(attributePtr))
-    {
-    	if(i)fprint(f, ", %s",attributePtr->name);
-    	else fprint(f, "%s",attributePtr->name);
-    	i++;
-    }
-    fprint(f, ");\n\n");
+    if (attributePtr) {
+	fprintSegment(f, 2 * INDENT, "unique", INDENTVALUE);
+	fprint(f, "(");
+	for (i=0; attributePtr; 
+	     attributePtr = smiGetNextUniqueAttribute(attributePtr))
+	{
+	    if (i) {
+		fprint(f, ", %s",attributePtr->name);
+	    } else {
+		fprint(f, "%s",attributePtr->name);
+	    }
+	    i++;
+	}
+	fprint(f, ");\n\n");
     }
 }
 static void fprintAttributes(FILE *f, SmiClass *smiClass)
 {
-    int		 i, j;
+    int		 i;
     SmiAttribute *smiAttribute;
     SmiType	 *tmpType;
     SmiClass *tmpClass;
     
-    for(i = 0, smiAttribute = smiGetFirstAttribute(smiClass);
-	smiAttribute; smiAttribute = smiGetNextAttribute(smiAttribute)) {
-	/*    
-	if (!i && !silent) {
-		fprint(f,"\n");
-		fprintSegment(f, 2 * INDENT, "// ATTRIBUTE DEFINITIONS\n\n",0);
-	}*/
+    for (i = 0, smiAttribute = smiGetFirstAttribute(smiClass);
+	 smiAttribute; smiAttribute = smiGetNextAttribute(smiAttribute)) {
+
 	fprintSegment(f, 2*INDENT, "", 0);
 	fprint(f, "attribute %s {\n", smiAttribute->name);
 	
-	if(tmpType = smiGetAttributeParentType(smiAttribute)){
-		fprintSegment(f, 3 * INDENT, "type", INDENTVALUE);
-		fprint(f, "%s ", tmpType->name);
-		fprintAttributeSubtype(f, smiAttribute);
-		fprint(f, ";\n");
-		fprintSegment(f, 3 * INDENT, "access", INDENTVALUE);
-		switch (smiAttribute->access)
-		{
-			case SMI_ACCESS_READ_ONLY:
-				fprint(f, "readonly;\n");
-				break;
-			case SMI_ACCESS_READ_WRITE:
-				fprint(f, "readwrite;\n");
-				break;
-			case SMI_ACCESS_EVENT_ONLY:
-				fprint(f, "eventonly;\n");
-				break;
-			default:
-					fprint(f, ";\n");
-				break;	
-		}
-		
-		if (smiAttribute->value.basetype != SMI_BASETYPE_UNKNOWN) {
-	    fprintSegment(f, 3 * INDENT, "default", INDENTVALUE);
-	    fprint(f, "%s", getValueString(&smiAttribute->value, smiGetAttributeParentType(smiAttribute)));
+	tmpType = smiGetAttributeParentType(smiAttribute);
+	if (tmpType) {
+	    fprintSegment(f, 3 * INDENT, "type", INDENTVALUE);
+	    fprint(f, "%s ", tmpType->name);
+	    fprintAttributeSubtype(f, smiAttribute);
 	    fprint(f, ";\n");
-		}
-	
-		if (smiAttribute->format) {
-	    fprintSegment(f, 3 * INDENT, "format", INDENTVALUE);
-	    fprint(f, "\"%s\";\n", smiAttribute->format);
-		}
-		if (smiAttribute->units) {
-	    fprintSegment(f, 3 * INDENT, "units", INDENTVALUE);
-	    fprint(f, "\"%s\";\n", smiAttribute->units);
-		}		
+	    fprintSegment(f, 3 * INDENT, "access", INDENTVALUE);
+	    switch (smiAttribute->access) {
+	    case SMI_ACCESS_READ_ONLY:
+		fprint(f, "readonly;\n");
+		break;
+	    case SMI_ACCESS_READ_WRITE:
+		fprint(f, "readwrite;\n");
+		break;
+	    case SMI_ACCESS_EVENT_ONLY:
+		fprint(f, "eventonly;\n");
+		break;
+	    default:
+		fprint(f, ";\n");
+		break;	
+	    }
+	    
+	    if (smiAttribute->value.basetype != SMI_BASETYPE_UNKNOWN) {
+		fprintSegment(f, 3 * INDENT, "default", INDENTVALUE);
+		fprint(f, "%s", getValueString(&smiAttribute->value, smiGetAttributeParentType(smiAttribute)));
+		fprint(f, ";\n");
+	    }
+	    
+	    if (smiAttribute->format) {
+		fprintSegment(f, 3 * INDENT, "format", INDENTVALUE);
+		fprint(f, "\"%s\";\n", smiAttribute->format);
+	    }
+	    if (smiAttribute->units) {
+		fprintSegment(f, 3 * INDENT, "units", INDENTVALUE);
+		fprint(f, "\"%s\";\n", smiAttribute->units);
+	    }		
 	}
 	
-	if(tmpClass = smiGetAttributeParentClass(smiAttribute)){
-		fprintSegment(f, 3 * INDENT, "type", INDENTVALUE);
+	tmpClass = smiGetAttributeParentClass(smiAttribute);
+	if (tmpClass) {
+	    fprintSegment(f, 3 * INDENT, "type", INDENTVALUE);
 	    fprint(f, "%s;\n", tmpClass->name);
 	}
 	
@@ -1026,7 +1025,7 @@ static void fprintAttributes(FILE *f, SmiClass *smiClass)
 
 static void fprintEvents(FILE *f, SmiClass *smiClass)
 {
-    int		 i, j;
+    int		 i;
     SmiEvent *smiEvent;
     
     for(i = 0, smiEvent = smiGetFirstEvent(smiClass);
@@ -1063,21 +1062,22 @@ static void fprintEvents(FILE *f, SmiClass *smiClass)
 
 static void fprintClasses(FILE *f, SmiModule *smiModule)
 {
-    int		 i, j;
+    int		 i;
     SmiClass	 *smiClass;
     SmiClass	 *tmpClass;
     
-    for(i = 0, smiClass = smiGetFirstClass(smiModule);
-	smiClass; smiClass = smiGetNextClass(smiClass)) {
+    for (i = 0, smiClass = smiGetFirstClass(smiModule);
+	 smiClass; smiClass = smiGetNextClass(smiClass)) {
 	    
 	if (!i && !silent) {
 	    fprint(f, "//\n// CLASS DEFINITIONS\n//\n\n");
 	}
 	fprintSegment(f, INDENT, "", 0);
 	fprint(f, "class %s {\n", smiClass->name);
-	
-	if(tmpClass = smiGetParentClass(smiClass)) {
-	 fprintSegment(f, 2 * INDENT, "extends", INDENTVALUE);
+
+	tmpClass = smiGetParentClass(smiClass);
+	if (tmpClass) {
+	    fprintSegment(f, 2 * INDENT, "extends", INDENTVALUE);
 	    fprint(f, "%s;\n\n", tmpClass->name);
 	}
 	

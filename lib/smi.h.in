@@ -16,7 +16,12 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#include "limits.h"
+#endif
 #include <time.h>
 
 
@@ -90,8 +95,16 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_POINTER		= 12  /* only SMIng                  */
 } SmiBasetype;
 
+#ifdef INT32_MIN
 #define SMI_BASETYPE_INTEGER32_MIN  INT32_MIN
+#else
+#define SMI_BASETYPE_INTEGER32_MIN  INT_MIN
+#endif
+#ifdef INT32_MAX
 #define SMI_BASETYPE_INTEGER32_MAX  INT32_MAX
+#else
+#define SMI_BASETYPE_INTEGER32_MAX  INT_MAX
+#endif
 #define SMI_BASETYPE_INTEGER64_MIN  LIBSMI_INT64_MIN
 #define SMI_BASETYPE_INTEGER64_MAX  LIBSMI_INT64_MAX
 #define SMI_BASETYPE_UNSIGNED32_MIN 0
