@@ -247,7 +247,7 @@ typedef struct SmiMacro {
     SmiStatus           status;
     char                *description;
     char                *reference;
-    char		*abnf; //only for SMIng
+    char		*abnf; /* only for SMIng */
 } SmiMacro;
 
 /* SmiIdentity -- the main structure of a SMIng Identity.		     */
