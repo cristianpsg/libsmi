@@ -1086,16 +1086,16 @@ SmiAttribute *smiGetFirstAttribute(SmiClass *smiClassPtr)
         return &attributePtr->export;
 }
 
- SmiType *smiGetAttributeParentType(SmiAttribute *smiAttributePtr)
+SmiType *smiGetAttributeParentType(SmiAttribute *smiAttributePtr)
 {
-    
+    Type *parentTypePtr;
 
     if (!smiAttributePtr) {
 	return NULL;
     }
 
-    Type *parentTypePtr = ((Attribute*)smiAttributePtr)->parentTypePtr;
-
+    parentTypePtr = ((Attribute*)smiAttributePtr)->parentTypePtr;
+    
     if(parentTypePtr)
     	return &parentTypePtr->export;
     else 
@@ -1104,11 +1104,13 @@ SmiAttribute *smiGetFirstAttribute(SmiClass *smiClassPtr)
 
 SmiClass *smiGetAttributeParentClass( SmiAttribute *smiAttributePtr)
 {
+    Class *parentClassPtr;
+    
     if (!smiAttributePtr) {
 	return NULL;
     }
 
-    Class *parentClassPtr=((Attribute*)smiAttributePtr)->parentClassPtr;
+    parentClassPtr=((Attribute*)smiAttributePtr)->parentClassPtr;
 
     if(parentClassPtr)
     	return &parentClassPtr->export;
