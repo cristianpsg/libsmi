@@ -60,7 +60,7 @@ AC_CHECK_FUNCS(timegm)
 
 AC_CHECK_FUNCS(vsnprintf snprintf asprintf asnprintf vasprintf vasnprintf)
 
-AC_CHECK_HEADERS(pwd.h unistd.h regex.h)
+AC_CHECK_HEADERS(pwd.h unistd.h regex.h stdint.h limits.h)
 
 if test "x$prefix" = "xNONE" ; then
   prefix=/usr/local

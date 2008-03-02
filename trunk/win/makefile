@@ -5,7 +5,7 @@
 #       Makefile for VC++ (tested with version 6.0) for compiling
 #	libsmi and associated tools natively under Win32.
 #
-# Copyright (c) 2000-2003 Yigal Hochberg, DMH Software.
+# Copyright (c) 2000-2008 Yigal Hochberg, DMH Software.
 # Copyright (c) 2000 E. Schoenfelder, Gaertner Datensysteme Braunschweig.
 # Copyright (c) 2000 J. Schoenwaelder, Technical University of Braunschweig.
 #
@@ -65,6 +65,13 @@ DEFINES = $(DEBUG) -D_CRT_SECURE_NO_DEPRECATE=1
 ## 
 ## Global makefile settings
 ##
+W_MISSING =						\
+	$(TMPDIR)\strtof.obj				
+
+#	$(TMPDIR)\c-strtold.obj				\
+#	$(TMPDIR)\xstrdup.obj			
+
+
 LIBSMIOBJS =					\
 	$(TMPDIR)\win.obj			\
 	$(TMPDIR)\shhopt.obj			\
@@ -80,14 +87,17 @@ LIBSMIOBJS =					\
 	$(TMPDIR)\snprintf.obj
 
 SMIQUERYOBJS =					\
-	$(TMPDIR)\smiquery.obj
+	$(TMPDIR)\smiquery.obj \
+	$(W_MISSING)
 
 SMILINTOBJS =					\
-	$(TMPDIR)\smilint.obj
+	$(TMPDIR)\smilint.obj			\
+	$(W_MISSING)
 
 SMIXLATEOBJS =					\
 	$(TMPDIR)\smixlate.obj			\
-	$(TMPDIR)\dstring.obj
+	$(TMPDIR)\dstring.obj			\
+	$(W_MISSING)
 
 SMIDUMPOBJS =					\
 	$(TMPDIR)\smidump.obj			\
@@ -113,10 +123,13 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-svg.obj			\
 	$(TMPDIR)\dump-compliance.obj		\
 	$(TMPDIR)\fprint.obj			\
-	$(TMPDIR)\rea.obj
+	$(TMPDIR)\rea.obj			\
+	$(TMPDIR)\dump-yang.obj			\
+	$(TMPDIR)\fortopat.obj			
 
 SMIDIFFOBJS =					\
-	$(TMPDIR)\smidiff.obj
+	$(TMPDIR)\smidiff.obj			\
+	$(W_MISSING)
 
 SMILIB = smi.lib
 
@@ -134,6 +147,11 @@ SMILIB = smi.lib
 {$(ROOT)\tools}.c{$(TMPDIR)}.obj:
 	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
+
+{$(ROOT)\winmissing}.c.obj:
+	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+		$(DEFINES) -Fo$(TMPDIR)\ $<
+
 
 ##
 ## Targets
@@ -167,7 +185,7 @@ smilint.exe:	$(SMILINTOBJS) $(SMILIB)
 
 smidump.exe:	$(SMIDUMPOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) \
-		/osmidump.exe $(SMIDUMPOBJS) $(SMILIB)
+		/osmidump.exe $(SMIDUMPOBJS) $(SMILIB) strtof.obj
 
 smidiff.exe:	$(SMIDIFFOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) \
@@ -224,6 +242,16 @@ install-pibs:
 	$(MKDIR) $(PIBDIR)\tubs
 	$(CP) ..\pibs\tubs\*.* $(PIBDIR)\tubs
 	$(MKDIR) $(PIBDIR)\site
+
+
+#
+# Local Variables:
+# mode: makefile
+# make: "nmake"
+# eval: (set (make-local-variable 'this-file) (file-name-nondirectory buffer-file-name))
+# eval: (set (make-local-variable 'compile-command) (concat make " -k -f " this-file))
+# End:
+#
 
 
 # EOF: makefile

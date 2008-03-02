@@ -38,7 +38,7 @@ static void translate(dstring_t *token, dstring_t *subst)
     SmiNode *smiNode;
     SmiSubid oid[256];
     unsigned int oidlen = 0;
-    int i;
+    unsigned int i;
     char *p;
 
     assert(token && subst);

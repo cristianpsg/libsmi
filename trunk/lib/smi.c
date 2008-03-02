@@ -1058,142 +1058,129 @@ SmiAttribute *smiGetFirstAttribute(SmiClass *smiClassPtr)
     return &attributePtr->export;
 }
 
- SmiAttribute *smiGetAttribute(SmiClass *smiClassPtr, char *attribute)
+SmiAttribute *smiGetAttribute(SmiClass *smiClassPtr, char *attribute)
 {
-	Attribute *attributePtr;
+    Attribute *attributePtr;
     
-    if (!smiClassPtr) {
+    if (! smiClassPtr) {
 	return NULL;
     }
     
-  	attributePtr = ((Class *)smiClassPtr)->firstAttributePtr;
-  	
-  	for(attributePtr = ((Class *)smiClassPtr)->firstAttributePtr; 
-  		attributePtr; attributePtr = attributePtr->nextPtr)
-  	{
-  		if(!strncmp(attributePtr->export.name,attribute,64)) 
-  									return &attributePtr->export;
-  	}
-  	
-	/*
-	 * attribute might belong to the parent so check parent if
-	 * attribute not found
-	 */
-	
-        smiClassPtr = smiGetParentClass(smiClassPtr);
-  	attributePtr = (Attribute*)smiGetAttribute(smiClassPtr , attribute);
+    attributePtr = ((Class *)smiClassPtr)->firstAttributePtr;
+    
+    for (attributePtr = ((Class *)smiClassPtr)->firstAttributePtr; 
+	 attributePtr; attributePtr = attributePtr->nextPtr)
+    {
+	if (!strncmp(attributePtr->export.name, attribute,64)) {
+	    return &attributePtr->export;
+	}
+    }
+    
+    /*
+     * attribute might belong to the parent so check parent if
+     * attribute not found
+     */
+    
+    smiClassPtr = smiGetParentClass(smiClassPtr);
+    attributePtr = (Attribute*)smiGetAttribute(smiClassPtr , attribute);
   		
-        return &attributePtr->export;
+    return &attributePtr->export;
 }
 
 SmiType *smiGetAttributeParentType(SmiAttribute *smiAttributePtr)
 {
     Type *parentTypePtr;
-
-    if (!smiAttributePtr) {
+    
+    if (! smiAttributePtr) {
 	return NULL;
     }
-
+    
     parentTypePtr = ((Attribute*)smiAttributePtr)->parentTypePtr;
     
-    if(parentTypePtr)
-    	return &parentTypePtr->export;
-    else 
-    	return NULL;
+    return (parentTypePtr) ? &parentTypePtr->export : NULL;
 }
 
 SmiClass *smiGetAttributeParentClass( SmiAttribute *smiAttributePtr)
 {
     Class *parentClassPtr;
     
-    if (!smiAttributePtr) {
+    if (! smiAttributePtr) {
 	return NULL;
     }
+    
+    parentClassPtr = ((Attribute*)smiAttributePtr)->parentClassPtr;
 
-    parentClassPtr=((Attribute*)smiAttributePtr)->parentClassPtr;
-
-    if(parentClassPtr)
-    	return &parentClassPtr->export;
-    else 
-    	return NULL;
+    return parentClassPtr ? &parentClassPtr->export : NULL;
 }
 
- SmiAttribute *smiGetFirstUniqueAttribute(SmiClass *smiClassPtr)
+SmiAttribute *smiGetFirstUniqueAttribute(SmiClass *smiClassPtr)
 {
-	Class *classPtr;
-	
-	if(!smiClassPtr)
-		return NULL;
-	
-	classPtr = (Class*)smiClassPtr;
-	
-	if(classPtr->uniqueList)
-	{
-		if(classPtr->uniqueList->ptr == classPtr)
-		{
-		        return NULL; /* scalar class */
-		}
-		else
-		{
-			return ( SmiAttribute*)(classPtr->uniqueList->ptr);
-		}
-	}
-	else
-		return NULL;
-}
-
- SmiAttribute *smiGetNextUniqueAttribute( SmiAttribute *smiTypePtr)
-{
-	Class *classPtr;
-	List  *listPtr; 
-	
-	if(!smiTypePtr)
-		return NULL;
-	
-	classPtr = ((Attribute*)smiTypePtr)->classPtr;
-	
-	if(classPtr && classPtr->uniqueList)
-	{
-		for(listPtr=classPtr->uniqueList;listPtr; 
-									listPtr=listPtr->nextPtr)
-		{
-			if(&((Attribute*)(listPtr->ptr))->export ==  smiTypePtr)
-			{	
-				if(listPtr->nextPtr)
-					return &((Attribute*)(listPtr->nextPtr->ptr))->export;
-			}
-		}
-	}
+    Class *classPtr;
+    
+    if (! smiClassPtr) {
 	return NULL;
+    }
+	
+    classPtr = (Class*)smiClassPtr;
+	
+    if (! classPtr->uniqueList) {
+	return NULL;
+    }
+    
+    if (classPtr->uniqueList->ptr == classPtr) {
+	return NULL; /* scalar class */
+    }
+
+    return (SmiAttribute*)(classPtr->uniqueList->ptr);
 }
+
+SmiAttribute *smiGetNextUniqueAttribute( SmiAttribute *smiTypePtr)
+{
+    Class *classPtr;
+    List  *listPtr; 
+    
+    if (! smiTypePtr) {
+	return NULL;
+    }
+	
+    classPtr = ((Attribute*)smiTypePtr)->classPtr;
+    
+    if (classPtr && classPtr->uniqueList) {
+	for (listPtr=classPtr->uniqueList;listPtr; listPtr=listPtr->nextPtr) {
+	    if (&((Attribute*)(listPtr->ptr))->export ==  smiTypePtr) {	
+		if (listPtr->nextPtr) {
+		    return &((Attribute*)(listPtr->nextPtr->ptr))->export;
+		}
+	    }
+	}
+    }
+    return NULL;
+}
+
+
 
 int smiGetAttributeLine(SmiAttribute *smiAttributePtr)
 {
     return ((Attribute *)smiAttributePtr)->line;
 }
 
+
+
 int smiIsClassScalar(SmiClass *smiClassPtr)
 {
-	Class *classPtr;
+    Class *classPtr;
+    
+    if (! smiClassPtr) {
+	return 0;
+    }
 	
-	if(!smiClassPtr)
-		return 0;
-	
-	classPtr = (Class*)smiClassPtr;
-	
-	if(classPtr->uniqueList)
-	{
-		if(classPtr->uniqueList->ptr == classPtr)
-		{
-		        return 1; /* scalar class */
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-		return 0;
+    classPtr = (Class*)smiClassPtr;
+    
+    if (! classPtr->uniqueList) {
+	return 0;
+    }
+
+    return (classPtr->uniqueList->ptr == classPtr);
 }
 
 
@@ -1202,27 +1189,29 @@ SmiEvent *smiGetFirstEvent(SmiClass *smiClassPtr)
 {
     Event *eventPtr;
     
-    if (!smiClassPtr) {
+    if (! smiClassPtr) {
 	return NULL;
     }
     
-  	eventPtr = ((Class *)smiClassPtr)->firstEventPtr;
-    
+    eventPtr = ((Class *)smiClassPtr)->firstEventPtr;
     return &(eventPtr->export);
 }
+
+
 
 SmiEvent *smiGetNextEvent(SmiEvent *smiEventPtr)
 {
     Event *eventPtr;
 
-    if (!smiEventPtr) {
+    if (! smiEventPtr) {
 	return NULL;
     }
 
     eventPtr = ((Event *)smiEventPtr)->nextPtr;
-    
     return &eventPtr->export;
 }
+
+
 
 int smiGetEventLine(SmiEvent *smiEventPtr)
 {
@@ -1920,7 +1909,8 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
 
 char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 {
-    int i, j, k, n, pfx, have_pfx;
+    unsigned int i, pfx;
+    int j, k, n, have_pfx;
     char *last_fmt, *fmt;
     SmiUnsigned64 vv;
     int xlen;
