@@ -31,6 +31,10 @@
 #include <malloc.h>
 #endif
 
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
+
 #include "smi.h"
 #include "error.h"
 #include "parser-sming.h"
@@ -42,7 +46,6 @@
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
-
 
 
 /*
