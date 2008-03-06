@@ -72,4 +72,14 @@ int __cdecl fileno(FILE *);
 #define strtold		strtod
 #endif
 
+/*
+ * Some Windows compilers seem to lack strtof() so we fake it here.
+ */
+
+#if defined(_MSC_VER)
+#if _MSC_VER <= 1200
+#define strtof(f1,f2) ((float)strtod(f1,f2))
+#endif
+#endif
+
 #endif /* _WIN_H */
