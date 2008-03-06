@@ -65,12 +65,6 @@ DEFINES = $(DEBUG) -D_CRT_SECURE_NO_DEPRECATE=1
 ## 
 ## Global makefile settings
 ##
-W_MISSING =						\
-	$(TMPDIR)\strtof.obj				
-
-#	$(TMPDIR)\c-strtold.obj				\
-#	$(TMPDIR)\xstrdup.obj			
-
 
 LIBSMIOBJS =					\
 	$(TMPDIR)\win.obj			\
@@ -88,16 +82,13 @@ LIBSMIOBJS =					\
 
 SMIQUERYOBJS =					\
 	$(TMPDIR)\smiquery.obj \
-	$(W_MISSING)
 
 SMILINTOBJS =					\
 	$(TMPDIR)\smilint.obj			\
-	$(W_MISSING)
 
 SMIXLATEOBJS =					\
 	$(TMPDIR)\smixlate.obj			\
 	$(TMPDIR)\dstring.obj			\
-	$(W_MISSING)
 
 SMIDUMPOBJS =					\
 	$(TMPDIR)\smidump.obj			\
@@ -122,14 +113,13 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-sizes.obj		\
 	$(TMPDIR)\dump-svg.obj			\
 	$(TMPDIR)\dump-compliance.obj		\
+	$(TMPDIR)\dump-yang.obj			\
 	$(TMPDIR)\fprint.obj			\
 	$(TMPDIR)\rea.obj			\
-	$(TMPDIR)\dump-yang.obj			\
 	$(TMPDIR)\fortopat.obj			
 
 SMIDIFFOBJS =					\
 	$(TMPDIR)\smidiff.obj			\
-	$(W_MISSING)
 
 SMILIB = smi.lib
 
@@ -185,7 +175,7 @@ smilint.exe:	$(SMILINTOBJS) $(SMILIB)
 
 smidump.exe:	$(SMIDUMPOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) \
-		/osmidump.exe $(SMIDUMPOBJS) $(SMILIB) strtof.obj
+		/osmidump.exe $(SMIDUMPOBJS) $(SMILIB)
 
 smidiff.exe:	$(SMIDIFFOBJS) $(SMILIB)
 	$(cc32) $(DEFINES) \
