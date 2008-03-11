@@ -350,6 +350,7 @@ int main(int argc, char *argv[])
     initXsd();
     initCompliances();
     initYang();
+    initBoilerplate();
     
     for (i = 1; i < argc; i++)
 	if ((strstr(argv[i], "-c") == argv[i]) ||
