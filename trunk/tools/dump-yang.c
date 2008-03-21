@@ -286,6 +286,7 @@ guessNicePrefix(const char *moduleName)
     int i, d;
 
     char *specials[] = {
+	"yang-smi", "smi",
 	"yang-types", "yang",
 	"inet-types", "inet",
 	"ieee-types", "ieee",
@@ -412,6 +413,14 @@ createImportList(SmiModule *smiModule)
     }
 
     /*
+     * Add import for the smi:oid extension and friends.
+     */
+
+    if (sflag) {
+	addImport("yang-smi", "oid");
+    }
+    
+    /*
      * Add import for yang-types that were originally ASN.1
      * builtins...
      */
@@ -423,7 +432,7 @@ createImportList(SmiModule *smiModule)
 	    addImport("yang-types", "object-identifier");
 	}
     }
-    
+
     for (smiNode = smiGetFirstNode(smiModule,
 				   SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN);
 	 smiNode;
@@ -668,7 +677,7 @@ static void
 fprintFormat(FILE *f, int indent, const char *format)
 {
     if (sflag && format) {
-	fprintSegment(f, 2 * INDENT, "smi:format", 0);
+	fprintSegment(f, 2 * INDENT, "smi:display-hint", 0);
 	fprint(f, " \"%s\";\n", format);
     }
 }
