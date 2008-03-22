@@ -101,7 +101,8 @@ TOOLSOBJS = \
 	dump-sizes.o \
 	dump-svg.o \
 	dump-compliance.o \
-	dump-yang.o
+	dump-yang.o \
+	dump-boilerplate.o
 #	dump-smiv3.o
 #	dump-fig.o
 
@@ -140,7 +141,7 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 		dump-corba.o dump-netsnmp.o dump-cm.o dump-jax.o dump-xml.o \
 		dump-identifiers.o dump-metrics.o dump-python.o dump-perl.o \
 		dump-scli.o dump-xsd.o dump-sppi.o dump-sizes.o dump-svg.o \
-		dump-compliance.o dump-yang.o \
+		dump-compliance.o dump-yang.o dump-boilerplate.o \
 		shhopt.o fprint.o fortopat.o rea.o $(SMILIB)
 
 smidiff.exe:	$(TOOLSOBJS) $(SMILIB)

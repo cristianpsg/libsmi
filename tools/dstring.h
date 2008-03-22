@@ -21,7 +21,7 @@
 #include <stdarg.h>
 
 #ifdef __GNUC__
-# define inline extern inline
+# define inline /* extern */ static inline
 #else 
 #ifdef HAVE_WIN_H
 # define inline __inline
