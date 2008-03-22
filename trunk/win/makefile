@@ -1,4 +1,3 @@
-
 #
 # makefile --
 #
@@ -113,6 +112,7 @@ SMIDUMPOBJS =					\
 	$(TMPDIR)\dump-sizes.obj		\
 	$(TMPDIR)\dump-svg.obj			\
 	$(TMPDIR)\dump-compliance.obj		\
+	$(TMPDIR)\dump-boilerplate.obj		\
 	$(TMPDIR)\dump-yang.obj			\
 	$(TMPDIR)\fprint.obj			\
 	$(TMPDIR)\rea.obj			\
@@ -137,11 +137,6 @@ SMILIB = smi.lib
 {$(ROOT)\tools}.c{$(TMPDIR)}.obj:
 	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
-
-{$(ROOT)\winmissing}.c.obj:
-	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
-		$(DEFINES) -Fo$(TMPDIR)\ $<
-
 
 ##
 ## Targets
@@ -202,7 +197,7 @@ install-doc:
 	$(CP) README.win $(INSTROOT)
 	$(MKDIR) $(INSTROOT)\doc
 	$(CP) ..\doc\*.txt $(INSTROOT)\doc
-	$(CP) ..\doc\*.ps $(INSTROOT)\doc
+	-$(CP) ..\doc\*.ps $(INSTROOT)\doc
 
 install-bin:
 	$(MKDIR) $(BINDIR)

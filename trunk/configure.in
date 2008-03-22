@@ -62,6 +62,15 @@ AC_CHECK_FUNCS(vsnprintf snprintf asprintf asnprintf vasprintf vasnprintf)
 
 AC_CHECK_HEADERS(pwd.h unistd.h regex.h stdint.h limits.h)
 
+# In case regex is not in libc
+AC_CHECK_LIB(c,regexec,LDFLAGS="$LDFLAGS",
+[
+    AC_CHECK_LIB(rxspencer,regexec,LDFLAGS="$LDFLAGS -lrxspencer",
+    [
+        AC_CHECK_LIB(regex,regexec,LDFLAGS="$LDFLAGS -lregex")
+    ])
+])
+
 if test "x$prefix" = "xNONE" ; then
   prefix=/usr/local
 fi
