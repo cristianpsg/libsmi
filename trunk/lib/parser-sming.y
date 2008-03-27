@@ -1960,9 +1960,7 @@ refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			}
 	|		PointerKeyword optsep_pointerRestr_01
 			{
-				List *p;
-				
-				if (!$2) {
+			    if (!$2) {
 				$$ = smiHandle->typePointerPtr;
 			    } else {
 				$$ = duplicateType(smiHandle->typePointerPtr, 0,
@@ -2115,24 +2113,22 @@ attribute_refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			{
 			    List *p;
 			    
-				$$ = duplicateTypeToAttribute(smiHandle->typeFloat128Ptr,
-													classPtr, thisParserPtr);
-				setAttributeParentType($$, smiHandle->typeFloat128Ptr);
+			    $$ = duplicateTypeToAttribute(smiHandle->typeFloat128Ptr,
+							  classPtr, thisParserPtr);
+			    setAttributeParentType($$, smiHandle->typeFloat128Ptr);
 			    if ($2) {
-					setAttributeList($$, $2);
-					for (p = $2; p; p = p->nextPtr)
-				    	((Range *)p->ptr)->typePtr = (Type*)$$;
+				setAttributeList($$, $2);
+				for (p = $2; p; p = p->nextPtr)
+				    ((Range *)p->ptr)->typePtr = (Type*)$$;
 			    }
 			}
 	|		PointerKeyword optsep_pointerRestr_01
 			{
-				List *p;
-			    
-				$$ = duplicateTypeToAttribute(smiHandle->typePointerPtr,
-													classPtr, thisParserPtr);
-				setAttributeParentType($$, smiHandle->typePointerPtr);
+			    $$ = duplicateTypeToAttribute(smiHandle->typePointerPtr,
+							  classPtr, thisParserPtr);
+			    setAttributeParentType($$, smiHandle->typePointerPtr);
 			    if ($2) {
-					setAttributeList($$, $2);
+				setAttributeList($$, $2);
 			    }
 			}
 	|		EnumerationKeyword bitsOrEnumerationSpec
@@ -2162,15 +2158,15 @@ attribute_refinedBaseType:	OctetStringKeyword optsep_numberSpec_01
 			    List *p;
 			    
 			    $$ = duplicateTypeToAttribute(smiHandle->typeBitsPtr,
-													classPtr, thisParserPtr);
-				setAttributeParentType($$, smiHandle->typeBitsPtr);
+							  classPtr, thisParserPtr);
+			    setAttributeParentType($$, smiHandle->typeBitsPtr);
 			    if ($1) {
-					setAttributeList($$, $1);
-					for (p = $1; p; p = p->nextPtr)
-				    	((NamedNumber *)(p->ptr))->typePtr = (Type*)$$;
+				setAttributeList($$, $1);
+				for (p = $1; p; p = p->nextPtr)
+				    ((NamedNumber *)(p->ptr))->typePtr = (Type*)$$;
 			    }
 			    
-			    bitsFlag = 0;//reset flag
+			    bitsFlag = 0; /* reset flag */
 			}
 	;
 

@@ -619,42 +619,41 @@ extern NamedNumber *findTypeNamedNumber(Type *typePtr,
 					
 extern Identity *addIdentity(char *identityname,
 		             Parser *parserPtr);
-		          
+
 extern void setIdentityDecl(Identity *identityPtr,
 			    SmiDecl decl);
-			    
+
 extern void setIdentityStatus(Identity *identityPtr,
-			   SmiStatus status);
+			      SmiStatus status);
 
 extern void setIdentityDescription(Identity *identityPtr,
-				char *description,
-				Parser *parserPtr);
+				   char *description,
+				   Parser *parserPtr);
 
 extern void setIdentityReference(Identity *identityPtr,
-			      char *reference,
-			      Parser *parserPtr);
-			      
+				 char *reference,
+				 Parser *parserPtr);
+
 extern void setIdentityParent(Identity *identityPtr,
-						      Identity *parentPtr);
-			      
+			      Identity *parentPtr);
+
 extern Identity *findIdentityByName(const char *identityname);
 
 extern Identity *findIdentityByModuleAndName(Module *modulePtr,
-									const char *identityname);
-									
-extern Identity *findIdentityByModulenameAndName(const char *modulename,
-				  const char *identity_name);
+					     const char *identityname);
 
-			    
+extern Identity *findIdentityByModulenameAndName(const char *modulename,
+						 const char *identity_name);
+
 
 
 
 extern Class *addClass(char *classname,
-		             Parser *parserPtr);
-		          
+		       Parser *parserPtr);
+
 extern void setClassDecl(Class *classPtr,
-			    SmiDecl decl);
-			    
+			 SmiDecl decl);
+
 extern void setClassStatus(Class *classPtr,
 			   SmiStatus status);
 
@@ -669,41 +668,43 @@ extern void setClassReference(Class *classPtr,
 extern Class *findClassByModuleAndName(Module *modulePtr, char *name);
 
 extern Class *findClassByModulenameAndName(const char *modulename,
-				  const char *class_name);
+					   const char *class_name);
 			      
 
 		             
 extern Attribute *duplicateTypeToAttribute(Type *templatePtr, 
-								Class *classPtr, Parser *parserPtr);
+					   Class *classPtr, Parser *parserPtr);
 								
 extern Attribute *addAttribute(char *attribute_name,
-	     						 Class *classPtr, Parser *parserPtr);
+			       Class *classPtr, Parser *parserPtr);
 
 extern void setAttributeName(Attribute *attributePtr, char *name);
 
 extern void setAttributeDecl(Attribute *attributePtr,
-			    SmiDecl decl);
-			    
+			     SmiDecl decl);
+
 extern void setAttributeStatus(Attribute *attributePtr,
-			   SmiStatus status);
+			       SmiStatus status);
 
 extern void setAttributeDescription(Attribute *attributePtr,
-				char *description);
+				    char *description);
 
 extern void setAttributeReference(Attribute *attributePtr,
-			      char *reference);
+				  char *reference);
 			      
 extern void setAttributeAccess(Attribute *attributePtr,SmiAccess access);
-			      
+
 extern void setAttributeParentType(Attribute *attributePtr,
-						      Type *parentPtr);
-						      
+				   Type *parentPtr);
+
 extern void setAttributeParentClass(Attribute *attributePtr, 
-												Class *parentPtr);
-						      
+				    Class *parentPtr);
+
+extern void setAttributeList(Attribute *attributePtr, List *listPtr);
+
 
 extern Event *addEvent(char *eventname, Class *classPtr, 
-		             Parser *parserPtr);
+		       Parser *parserPtr);
 			    
 
 extern Macro *addMacro(char *macroname,
@@ -740,10 +741,9 @@ extern Macro *findMacroByModuleAndName(Module *modulePtr,
 extern Macro *findMacroByModulenameAndName(const char *modulename,
 					   const char *macroname);
 					   
-					   
+
 extern NamedNumber *findNamedNumberByName(Type *typePtr,
-											const char *name);
-			    
+					  const char *name);
 
 
 
