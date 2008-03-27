@@ -77,9 +77,7 @@ int __cdecl fileno(FILE *);
  */
 
 #if defined(_MSC_VER)
-#if _MSC_VER <= 1200
 #define strtof(f1,f2) ((float)strtod(f1,f2))
-#endif
 #endif
 
 #endif /* _WIN_H */
