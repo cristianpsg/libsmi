@@ -98,7 +98,7 @@ static void process(FILE *stream)
 	    fputs(dstring_str(token), stdout);
 	    dstring_truncate(token, 0);
 	    if (isdigit(c) && c >= '0' && c <= '2') {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = NUM;
 	    } else {
 		fputc(c, stdout);
@@ -107,40 +107,40 @@ static void process(FILE *stream)
 	    break;
 	case NUM:
 	    if (isdigit(c)) {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 	    } else if (c == '.') {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = NUMDOT;
 	    } else {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = TXT;
 	    }
 	    break;
 	case NUMDOT:
 	    if (isdigit(c)) {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = NUMDOTNUM;
 	    } else {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = TXT;
 	    }
 	    break;
 	case NUMDOTNUM:
 	    if (isdigit(c)) {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 	    } if (c == '.') {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = OID;
 	    } else {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = TXT;
 	    }
 	    break;
 	case OID:
 	    if (isdigit(c)) {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 	    } else if (c == '.') {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = OIDDOT;
 	    } else {
 		translate(token, subst);
@@ -168,7 +168,7 @@ static void process(FILE *stream)
 	    break;
 	case OIDDOT:
 	    if (isdigit(c)) {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 		state = OID;
 	    } else {
 		translate(token, subst);
@@ -201,7 +201,7 @@ static void process(FILE *stream)
 	    break;
 	case OID:
 	    if (isdigit(c)) {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 	    } else {
 		translate(token, subst);
 		if (fFlag) {
@@ -226,7 +226,7 @@ static void process(FILE *stream)
 	    break;
 	case OIDDOT:
 	    if (isdigit(c)) {
-		dstring_append_char(token, c);
+		dstring_append_char(token, (char) c);
 	    } else {
 		translate(token, subst);
 		fputs(dstring_str(subst), stdout);
