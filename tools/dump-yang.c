@@ -595,7 +595,7 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 	    tkw = (smiType->basetype == SMI_BASETYPE_BITS) ? "bits" : "enumeration";
 	    lkw = (smiType->basetype == SMI_BASETYPE_BITS) ? "bit" : "enum";
 	    vkw = (smiType->basetype == SMI_BASETYPE_BITS) ? "position" : "value";
-	    sprintf(s, "%s %-*s \{ %s %s; }\n",
+	    sprintf(s, "%s %-*s { %s %s; }\n",
 		    lkw, len, nn->name,
 		    vkw, getValueString(&nn->value, smiType));
 	    fprintSegment(f, indent + INDENT, s, 0);
