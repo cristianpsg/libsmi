@@ -839,7 +839,8 @@ findTypeWithRange(SmiType *smiType)
 static int 
 cmpSmiValues( SmiValue a, SmiValue b )
 {
-    int i, changed = 0;
+    unsigned int i;
+    int changed = 0;
 
     switch (a.basetype) {
     case SMI_BASETYPE_INTEGER32:
