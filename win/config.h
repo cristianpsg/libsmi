@@ -45,6 +45,9 @@
 /* Define if dmalloc.h is present and shall be used. */
 #undef HAVE_DMALLOC_H
 
+/* Define to 1 if you have the <limits.h> header file. */
+#define HAVE_LIMITS_H 1
+
 /* Define if getopt.h (argv[] option parser) is present. */
 #undef HAVE_GETOPT_H
 
