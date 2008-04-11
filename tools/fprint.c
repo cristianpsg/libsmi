@@ -25,6 +25,7 @@
 #include "win.h"
 #endif
 
+#include "smi.h"
 #include "fprint.h"
 
 /*

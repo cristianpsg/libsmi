@@ -17,6 +17,10 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
+
 #include "dstring.h"
 
 #if !defined va_copy
