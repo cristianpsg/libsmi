@@ -80,4 +80,11 @@ int __cdecl fileno(FILE *);
 #define strtof(f1,f2) ((float)strtod(f1,f2))
 #endif
 
+/*
+ * Windows compiler writers seem to rename standard functions...
+ * Perhaps this #define needs to be qualified someone...
+ */
+
+#define vsnprintf _vsnprintf
+
 #endif /* _WIN_H */
