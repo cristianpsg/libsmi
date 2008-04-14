@@ -1,4 +1,4 @@
-/* $Id: shhopt.h,v 1.5 2000/03/10 08:32:39 sverrehu Exp $ */
+/* $Id$ */
 #ifndef SHHOPT_H
 #define SHHOPT_H
 
@@ -30,9 +30,9 @@ typedef struct {
 } optStruct;
 
 
-void optSetFatalFunc(void (*f)(const char *, ...));
-void optParseOptions(int *argc, char *argv[],
-		     optStruct opt[], int allowNegNum);
+extern void optSetFatalFunc(void (*f)(const char *, ...));
+extern void optParseOptions(int *argc, char *argv[],
+			    optStruct opt[], int allowNegNum);
 
 #ifdef __cplusplus
 }
