@@ -132,6 +132,7 @@ SMILIB = smi.lib
 
 {$(ROOT)\lib}.c{$(TMPDIR)}.obj:
 	$(cc32) $(cdebug) $(cflags) $(INCLUDES) \
+		-DYYMALLOC=malloc -DYYFREE=free \
 		$(DEFINES) -Fo$(TMPDIR)\ $<
 
 {$(ROOT)\tools}.c{$(TMPDIR)}.obj:
