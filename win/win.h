@@ -20,14 +20,6 @@
 #include <io.h>
 
 /*
- * The Win32 API provides use with stricmp(), which is a string
- * lowercase compare function. This should be equivalent with
- * strcasecmp().
- */
-
-#define strcasecmp stricmp
-
-/*
  * The access() function exists in the Win32 API, but there are no
  * defines for the mode parameter. So we provided them here.
  */
@@ -78,13 +70,19 @@ int __cdecl fileno(FILE *);
 
 #if defined(_MSC_VER)
 #define strtof(f1,f2) ((float)strtod(f1,f2))
-#endif
 
 /*
- * Windows compiler writers seem to rename standard functions...
- * Perhaps this #define needs to be qualified someone...
+ * Windows compiler writers love to issue warnings for C functions
+ * whose names were changed by C++ standards.  Since access is used as
+ * the name of a structure member it has to be treated differently.
  */
 
-#define vsnprintf _vsnprintf
+#define access(f1,f2) _access(f1,f2)
+#define putenv        _putenv
+#define strdup        _strdup
+#define vsnprintf     _vsnprintf
+#define strcasecmp    _stricmp
+
+#endif /* _MSC_VER */
 
 #endif /* _WIN_H */
