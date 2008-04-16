@@ -628,6 +628,37 @@ extern int smiAsprintf(char **strp, const char *format, ...);
 extern int smiVasprintf(char **strp, const char *format, va_list ap);
 
 
+/*
+ * The functions smiMalloc() and friends are used within the library
+ * for all memory allocations and deallocations. These functions are
+ * simple wrappers around the standard malloc() and friends functions,
+ * sometimes with some additional checking. We export these functions
+ * because on some systems (e.g. Windows) it is necessary to allocate
+ * / deallocate memory with the 'right' version of malloc() and
+ * friends.
+ */
+
+#ifdef HAVE_DMALLOC_H
+
+extern void *_smiMalloc(char *, int, size_t);
+extern void *_smiRealloc(char *, int, void *ptr, size_t size);
+extern char *_smiStrdup(char *, int, const char *s1);
+extern char *_smiStrndup(char *, int, const char *s1, size_t n);
+extern void _smiFree(char *, int, void *ptr);
+
+#define	smiMalloc(s)	_smiMalloc(__FILE__, __LINE__, s)
+#define	smiRealloc(p,s)	_smiRealloc(__FILE__, __LINE__, p, s)
+#define	smiStrdup(s)	_smiStrdup(__FILE__, __LINE__, s)
+#define	smiStrndup(s,n)	_smiStrndup(__FILE__, __LINE__, s, n)
+#define	smiFree(p)	_smiFree(__FILE__, __LINE__, p)
+
+#else
+extern void *smiMalloc(size_t size);
+extern void *smiRealloc(void *ptr, size_t size);
+extern char *smiStrdup(const char *s1);
+extern char *smiStrndup(const char *s1, size_t n);
+extern void smiFree(void *ptr);
+#endif
 
 #ifdef __cplusplus
 }
