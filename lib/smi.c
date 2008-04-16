@@ -1878,7 +1878,7 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
     
     if (flags & (SMI_RENDER_NAME | SMI_RENDER_QUALIFIED)) {
 	nodePtr = smiGetNodeByOID(oidlen, oid);
-	if (nodePtr) {
+	if (nodePtr && nodePtr->name) {
 	    i = nodePtr->oidlen;
 	    if (flags & SMI_RENDER_QUALIFIED) {
 		modulePtr = smiGetNodeModule(nodePtr);
