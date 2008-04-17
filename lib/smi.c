@@ -1862,7 +1862,7 @@ SmiElement *smiGetFirstUniquenessElement(SmiNode *smiNodePtr)
 
 char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
 {
-    SmiNode *nodePtr;
+    SmiNode *nodePtr = NULL;
     SmiModule *modulePtr = NULL;
     unsigned int i = 0;
     char *ss, *s = NULL;
@@ -1877,7 +1877,11 @@ char *smiRenderOID(unsigned int oidlen, SmiSubid *oid, int flags)
     }
     
     if (flags & (SMI_RENDER_NAME | SMI_RENDER_QUALIFIED)) {
-	nodePtr = smiGetNodeByOID(oidlen, oid);
+	int len;
+	for (len = oidlen; len; len--) {
+	    nodePtr = smiGetNodeByOID(len, oid);
+	    if (! nodePtr || nodePtr->name) break;
+	}
 	if (nodePtr && nodePtr->name) {
 	    i = nodePtr->oidlen;
 	    if (flags & SMI_RENDER_QUALIFIED) {
