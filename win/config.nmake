@@ -1,7 +1,64 @@
-# $Id$
+# @(#) $Id$
 #
 #
 #
+
+##### Microsoft Visual C / Studio Variant #####
+# for the different Studios, see: 
+#      http://en.wikipedia.org/wiki/Microsoft_Visual_Studio
+# only one of the following MSVC_VARIANT settings should be used
+# BTW: The "Microsoft Visual C++ Toolkit 2003" DOESN'T WORK for 
+#      Wireshark!(untested for libsmi).
+
+# "Microsoft Visual Studio 6.0"
+# Visual C++ 6.0, _MSC_VER 1200, msvcrt.dll (version 6)
+MSVC_VARIANT=MSVC6
+
+# "Microsoft Visual Studio .NET (2002)"
+# Visual C++ 7.0, _MSC_VER 1300, msvcr70.dll
+#MSVC_VARIANT=MSVC2002
+
+# "Microsoft .Net Framework SDK Version 1.0"
+# needs additional Platform SDK installation
+# Visual C++ 7.0, _MSC_VER 1300, msvcr70.dll
+#MSVC_VARIANT=DOTNET10
+
+# "Microsoft Visual Studio .NET 2003"
+# Visual C++ 7.1, _MSC_VER 1310, msvcr71.dll
+#MSVC_VARIANT=MSVC2003
+
+# "Microsoft .Net Framework SDK Version 1.1"
+# needs additional Platform SDK installation
+# Visual C++ 7.1, _MSC_VER 1310, msvcr71.dll
+#MSVC_VARIANT=DOTNET11
+
+# "Microsoft Visual Studio 2005"
+# Visual C++ 8.0, _MSC_VER 1400, msvcr80.dll
+#MSVC_VARIANT=MSVC2005
+
+# "Microsoft Visual C++ 2005 Express Edition"
+# needs additional Platform SDK installation
+# Visual C++ 8.0, _MSC_VER 1400, msvcr80.dll
+#MSVC_VARIANT=MSVC2005EE
+
+# "Microsoft .Net Framework 2.0 SDK"
+# needs additional Platform SDK installation
+# Visual C++ 8.0, _MSC_VER 1400, msvcr80.dll
+#MSVC_VARIANT=DOTNET20
+
+# "Microsoft Visual C++ 2008 Express Edition"
+# needs additional Platform SDK installation?
+# Visual C++ 9.0, _MSC_VER 1500, msvcr90.dll
+#
+# THIS VARIANT CURRENTLY WON'T WORK - YOU HAVE BEEN WARNED!
+# This comment is for Wireshark don't know about libsmi
+#MSVC_VARIANT=MSVC2008EE
+
+
+!IFDEF ENABLE_LIBSMI_DLL
+CVARSDLL=-DWIN32 -DNULL=0 -D_MT -D_DLL /MD
+!ENDIF
+
 
 ##
 ## Project directories -- these may need to be customized for your site
@@ -13,8 +70,12 @@
 ROOT	= .\..
 TMPDIR	= .
 #TOOLS32	= C:\MSDEV
-#TOOLS32	= C:\PROGRA~1\MICROS~2\VC98
+!IF "$(MSVC_VARIANT)" == "MSVC6"
+TOOLS32        = C:\PROGRA~1\MICROS~2\VC98
+!ELSEIF "$(MSVC_VARIANT)" == "MSVC2005"
 TOOLS32	= "C:\Program Files\Microsoft Visual Studio 8\VC"
+!ERROR MSVC_VARIANT unknown
+!ENDIF
 
 ##
 ## Installation paths: 
@@ -47,7 +108,6 @@ LIBDIR = $(INSTROOT)\lib
 PATH=$(TOOLS32)\bin;$(PATH)
 
 cc32	= cl
-MSVC_VARIANT = MSVC2005
 CP      = copy
 RM      = del
 MKDIR	= md

@@ -1,4 +1,8 @@
-/* config.h.  Generated manually for windows / vc++ 6.0 */
+/*
+ * config.h.  Generated manually for windows / vc++ 6.0 */
+ *
+ *  @(#) $Id$
+ */
 
 /* Define if the SMIv1/v2 parser shall be active. */
 #define BACKEND_SMI
