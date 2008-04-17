@@ -1,0 +1,66 @@
+# $Id$
+#
+#
+#
+
+##
+## Project directories -- these may need to be customized for your site
+##
+## ROOT --	top of the source tree.
+## TMPDIR --	location for .obj files.
+## TOOLS32 --	location of VC++ compiler installation.
+##
+ROOT	= .\..
+TMPDIR	= .
+#TOOLS32	= C:\MSDEV
+#TOOLS32	= C:\PROGRA~1\MICROS~2\VC98
+TOOLS32	= "C:\Program Files\Microsoft Visual Studio 8\VC"
+
+##
+## Installation paths: 
+##
+## MIBROOT  -- definition for default search path (unix-style)
+## MIBDIR   -- same in windows style
+## PIBDIR   -- same in windows style
+## BINDIR   -- destination for the binaries (smidump.exe, ...)
+## LIBDIR   -- destination for the library (smi.lib)
+##
+#MIBROOT = c:/smi/mibs
+#PIBROOT = c:/smi/pibs
+#INSTROOT = c:\smi
+#MIBDIR = $(INSTROOT)\mibs
+#PIBDIR = $(INSTROOT)\pibs
+#BINDIR = $(INSTROOT)\bin
+#LIBDIR = $(INSTROOT)\lib
+MIBROOT = c:/usr/local/snmp/mibs
+PIBROOT = c:/usr/local/snmp/pibs
+INSTROOT = c:\usr\local
+MIBDIR = $(INSTROOT)\snmp\mibs
+PIBDIR = $(INSTROOT)\snmp\pibs
+BINDIR = $(INSTROOT)\wbin
+LIBDIR = $(INSTROOT)\wbin
+
+##
+## Visual C++ tools
+##
+PATH=$(TOOLS32)\bin;$(PATH)
+
+cc32	= cl
+MSVC_VARIANT = MSVC2005
+CP      = copy
+RM      = del
+MKDIR	= md
+
+##
+## Definitions:
+##
+# DEBUG = -W3 -Zi -Od /Yd
+# DEBUG = /W3 /Zi /Od /DEBUG /GS /Wp64 /Yd
+INCLUDES = -I$(ROOT)\lib -I$(ROOT)\win -I$(TOOLS32)\include
+DEFINES = $(DEBUG) -D_CRT_SECURE_NO_DEPRECATE=1
+
+
+#
+# If you want to build libsmi.dll, you should uncomment the
+# following line.
+ENABLE_LIBSMI_DLL=USE
