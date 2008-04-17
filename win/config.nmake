@@ -25,20 +25,21 @@ TOOLS32	= "C:\Program Files\Microsoft Visual Studio 8\VC"
 ## BINDIR   -- destination for the binaries (smidump.exe, ...)
 ## LIBDIR   -- destination for the library (smi.lib)
 ##
-#MIBROOT = c:/smi/mibs
-#PIBROOT = c:/smi/pibs
-#INSTROOT = c:\smi
-#MIBDIR = $(INSTROOT)\mibs
-#PIBDIR = $(INSTROOT)\pibs
-#BINDIR = $(INSTROOT)\bin
-#LIBDIR = $(INSTROOT)\lib
-MIBROOT = c:/usr/local/snmp/mibs
-PIBROOT = c:/usr/local/snmp/pibs
-INSTROOT = c:\usr\local
-MIBDIR = $(INSTROOT)\snmp\mibs
-PIBDIR = $(INSTROOT)\snmp\pibs
-BINDIR = $(INSTROOT)\wbin
-LIBDIR = $(INSTROOT)\wbin
+MIBROOT = c:/smi/mibs
+PIBROOT = c:/smi/pibs
+INSTROOT = c:\smi
+MIBDIR = $(INSTROOT)\mibs
+PIBDIR = $(INSTROOT)\pibs
+BINDIR = $(INSTROOT)\bin
+LIBDIR = $(INSTROOT)\lib
+
+#MIBROOT = c:/usr/local/snmp/mibs
+#PIBROOT = c:/usr/local/snmp/pibs
+#INSTROOT = c:\usr\local
+#MIBDIR = $(INSTROOT)\snmp\mibs
+#PIBDIR = $(INSTROOT)\snmp\pibs
+#BINDIR = $(INSTROOT)\wbin
+#LIBDIR = $(INSTROOT)\wbin
 
 ##
 ## Visual C++ tools
