@@ -20,8 +20,8 @@ of gcc.
 Installation
 ============
 
-(1) Change the compiler path macro TOOLS32 in ./makefile for the
-    specific msvc installation.
+(1) Set MSVC version used in ./config.nmake. Check the compiler path
+    macro TOOLS32 in ./config.nmake for the specific msvc installation.
   
 (2) To compile simply run
 
@@ -72,7 +72,7 @@ COMMENTS:
   by their 64bit _int64 msvc counterparts. They work ok.  see related
   definitions ./config.h
 
-- The compiler path in ./makefile is hardwired (TOOLS32)
+- The compiler path in ./config.nmake is hardwired (TOOLS32)
 
 - The installation directories are hardwired in config.h.in
 
