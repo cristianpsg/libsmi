@@ -59,6 +59,8 @@ static char *getBaseTypeString(SmiBasetype basetype)
     switch(basetype) {
     case SMI_BASETYPE_UNKNOWN:
 	return "ASN_NULL";
+    case SMI_BASETYPE_POINTER:
+	return "ASN_NULL";
     case SMI_BASETYPE_INTEGER32:
     case SMI_BASETYPE_ENUM:
 	return "ASN_INTEGER";

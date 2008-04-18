@@ -250,7 +250,6 @@ static char *getStatusString(SmiStatus status)
 static void printSVGClose(float xMin, float yMin, float xMax, float yMax)
 {
     float scale;
-    int i;
 
     scale = max((xMax-xMin)/CANVASWIDTH,(yMax-yMin)/CANVASHEIGHT);
     /* enclose whole canvas in its bounding box */
@@ -1676,7 +1675,7 @@ static void printInformationNode(SmiNode *smiNode,
     int            j, k;
     char           *tooltip;
     SmiElement     *smiElement;
-    StringListElem *tElem, *lastElem;
+    StringListElem *tElem;
 
     printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
     printf("(%.2f,%.2f)\">\n", *x, *y);
@@ -1824,7 +1823,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
     /* SmiRevision    *smiRevision; */
     SmiOption      *smiOption;
     SmiRefinement  *smiRefinement;
-    StringListElem *tElem, *lastElem;
+    StringListElem *tElem;
 
     printf(" <g id=\"MI%i\" transform=\"translate", *miNr);
     printf("(%.2f,%.2f)\">\n", *x, *y);
@@ -1914,7 +1913,7 @@ static void printComplianceNode(SmiNode *smiNode, int modc, SmiModule **modv,
 	    printf("&amp;mibs=%s\">", module);
 	    printf("%s", module);
 	    printf("</a>\n");
-	    printf("   </tspan>\n", module);
+	    printf("   </tspan>\n");
 	} else {
 	    printf("    <tspan x=\"5\">%s</tspan>\n", module);
 	}
@@ -3138,10 +3137,7 @@ static void prepareNodesAndEdges(int *idCount, float *xMax, int *nodecount,
  */
 static void generateSVG(int modc, SmiModule **modv)
 {
-    GraphNode      *tNode, *lastNode = NULL;
-    GraphEdge      *tEdge;
-    GraphComponent *tComponent;
-    int            group, nodecount=0, singleNodes=1, miCount=0;
+    int            nodecount=0, singleNodes=1, miCount=0;
     int            i, idCount=0, TCcount=0, miPrint=0;
     float          x=10, xMin=0, yMin=0, xMax=0, yMax=0, maxHeight=0;
 

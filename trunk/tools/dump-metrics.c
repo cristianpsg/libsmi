@@ -49,6 +49,7 @@ typedef struct BasetypeCounter {
     unsigned long float128;
     unsigned long enums;
     unsigned long bits;
+    unsigned long pointer;
 } BasetypeCounter;
 
 
@@ -800,6 +801,9 @@ incrBasetypeCounter(BasetypeCounter *basetypeCounter, SmiNode *smiNode)
 	case SMI_BASETYPE_BITS:
 	    basetypeCounter->bits++;
 	    break;
+	case SMI_BASETYPE_POINTER:
+	    basetypeCounter->pointer++;
+	    break;
 	}
     }
 }
@@ -851,6 +855,7 @@ incrAccessCounter(AccessCounter *cnt, SmiAccess smiAccess)
     case SMI_ACCESS_REPORT_ONLY:
     case SMI_ACCESS_UNKNOWN:
     case SMI_ACCESS_NOT_IMPLEMENTED:
+    case SMI_ACCESS_EVENT_ONLY:
 	break;
     }
 }
@@ -905,19 +910,6 @@ incrTableLenCounter(TableLenCounter *cnt, int len)
 	cnt->length[len]++;
     } else {
 	fprintf(stderr, "smidump: table len overflow: %d\n", len);
-    }
-}
-
-
-
-static void
-incrScalarLenCounter(ScalarLenCounter *cnt, int len)
-{
-    cnt->total++;
-    if (len < sizeof(cnt->length)/sizeof(cnt->length[0])) {
-	cnt->length[len]++;
-    } else {
-	fprintf(stderr, "smidump: scalar group len overflow: %d\n", len);
     }
 }
 

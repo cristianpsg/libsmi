@@ -253,6 +253,8 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	break;
+    case SMI_BASETYPE_POINTER:
+	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);
 	if (!nodePtr) {

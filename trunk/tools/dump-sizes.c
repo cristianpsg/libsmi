@@ -830,6 +830,7 @@ append_index(SmiSubid *oid, unsigned int *oidlen,
      case SMI_BASETYPE_FLOAT32:
      case SMI_BASETYPE_FLOAT64:
      case SMI_BASETYPE_FLOAT128:
+     case SMI_BASETYPE_POINTER:
 	 /* should never really get here */
 	 break;
      }

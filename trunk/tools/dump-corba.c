@@ -354,6 +354,8 @@ static char *getBaseTypeString(SmiBasetype basetype)
     switch(basetype) {
     case SMI_BASETYPE_UNKNOWN:
 	return "ASN1_Null";
+    case SMI_BASETYPE_POINTER:
+	return "ASN1_Null";
     case SMI_BASETYPE_INTEGER32:
     case SMI_BASETYPE_ENUM:
 	return "ASN1_Integer";
@@ -477,6 +479,8 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	sprintf(&s[strlen(s)], "}");
 	break;
     case SMI_BASETYPE_UNKNOWN:
+	break;
+    case SMI_BASETYPE_POINTER:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	/* TODO */

@@ -1,7 +1,7 @@
 /*
  * config.h.  Generated manually for windows / vc++ 6.0
  *
- *  @(#) $Id$
+ * @(#) $Id$
  */
 
 /* Define if the SMIv1/v2 parser shall be active. */
@@ -86,4 +86,4 @@
 #define PACKAGE "libsmi"
 
 /* Version number of package */
-#define VERSION "0.4.6"
+#define VERSION "0.4.8"

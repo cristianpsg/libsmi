@@ -498,7 +498,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     sprintf(s, "%G", valuePtr->value.float32);
     break;
     case SMI_BASETYPE_FLOAT64:
-    sprintf(s, "%LG", valuePtr->value.float64);
+    sprintf(s, "%lG", valuePtr->value.float64);
     break;
     case SMI_BASETYPE_FLOAT128:
     sprintf(s, "%LG", valuePtr->value.float128);
@@ -581,7 +581,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	sprintf(s, "%s", valuePtr->value.ptr);
 	break;
 	default:
-	sprintf(s, "");
+	sprintf(s, "%s", "");
 	break;
     }
 
