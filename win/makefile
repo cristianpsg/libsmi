@@ -221,7 +221,7 @@ install-pibs:
 	$(CP) ..\pibs\tubs\*.* $(PIBDIR)\tubs
 	$(MKDIR) $(PIBDIR)\site
 
-!include "local.nmake"
+# !include "local.nmake"
 
 #
 # Local Variables:
