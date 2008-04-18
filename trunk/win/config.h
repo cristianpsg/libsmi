@@ -1,5 +1,5 @@
 /*
- * config.h.  Generated manually for windows / vc++ 6.0 */
+ * config.h.  Generated manually for windows / vc++ 6.0
  *
  *  @(#) $Id$
  */
