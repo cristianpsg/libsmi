@@ -38,6 +38,8 @@ static char *getFlags(SmiNode *smiNode)
 	return "---";
     case SMI_ACCESS_NOT_ACCESSIBLE:
 	return "---";
+    case SMI_ACCESS_EVENT_ONLY:
+	return "---";
     case SMI_ACCESS_NOTIFY:
 	return "--n";
     case SMI_ACCESS_READ_ONLY:

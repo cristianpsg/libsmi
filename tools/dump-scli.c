@@ -456,6 +456,8 @@ getSnmpType(SmiType *smiType)
 	return NULL;
     case SMI_BASETYPE_UNKNOWN:
 	return NULL;
+    case SMI_BASETYPE_POINTER:
+	return NULL;
     }
     return NULL;
 }

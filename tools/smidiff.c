@@ -877,6 +877,7 @@ cmpSmiValues( SmiValue a, SmiValue b )
 	}
 	break;
     case SMI_BASETYPE_UNKNOWN:
+    case SMI_BASETYPE_POINTER:
 	/* this should not occur */
 	break;
     }
@@ -1021,6 +1022,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	sprintf(&s[strlen(s)], "}");
 	break;
     case SMI_BASETYPE_UNKNOWN:
+    case SMI_BASETYPE_POINTER:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);

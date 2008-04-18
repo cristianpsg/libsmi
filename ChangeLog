@@ -1,4 +1,17 @@
 
+2008-04-18  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* test/*: updated a couple of checks.
+	* tools/*: fixed a couple of minor compiler warnings.
+	* mibs/ietf/PKTC-IETF-SIG-MIB: added (RFC 5098).
+	* mibs/ietf/MIDCOM-MIB: added (RFC 5190).
+	* libsmi-0.4.8.tar.gz: released version 0.4.8.
+
+2008-02-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
+
+	* tools/Makefile.am: added missing files to the distribution.
+	* libsmi-0.4.7.tar.gz: released version 0.4.7.
+
 2008-02-27  Frank Strauss  <strauss@ibr.cs.tu-bs.de>
 
 	* mibs/ietf/URI-TC-MIB: added (RFC 5017).

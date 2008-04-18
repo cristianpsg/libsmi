@@ -6541,7 +6541,7 @@ yyreduce:
 			    } else {
 				(yyval.valuePtr)->basetype = defaultBasetype;
 				(yyval.valuePtr)->len = -1;  /* indicates unresolved ptr */
-				(yyval.valuePtr)->value.ptr = (unsigned char *)(yyvsp[(1) - (1)].id); /* JS: needs strdup? */
+				(yyval.valuePtr)->value.ptr = (yyvsp[(1) - (1)].id); /* JS: needs strdup? */
 			    }
 			;}
     break;
@@ -6551,7 +6551,7 @@ yyreduce:
     {
 			    (yyval.valuePtr) = smiMalloc(sizeof(SmiValue));
 			    (yyval.valuePtr)->basetype = SMI_BASETYPE_OCTETSTRING;
-			    (yyval.valuePtr)->value.ptr = (unsigned char *)smiStrdup((yyvsp[(1) - (1)].text));
+			    (yyval.valuePtr)->value.ptr = smiStrdup((yyvsp[(1) - (1)].text));
 			    (yyval.valuePtr)->len = strlen((yyvsp[(1) - (1)].text));
 			;}
     break;

@@ -30,6 +30,8 @@ static char *getFlags(SmiNode *smiNode)
 	return "---";
     case SMI_ACCESS_NOTIFY:
 	return "--n";
+    case SMI_ACCESS_EVENT_ONLY:
+	return "--n";
     case SMI_ACCESS_READ_ONLY:
 	return "r-n";
     case SMI_ACCESS_READ_WRITE:

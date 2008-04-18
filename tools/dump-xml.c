@@ -272,6 +272,8 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	break;
+    case SMI_BASETYPE_POINTER:
+	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	for (i = 0; i < valuePtr->len; i++) {
 	    sprintf(&s[strlen(s)], i ? ".%u" : "%u", valuePtr->value.oid[i]);

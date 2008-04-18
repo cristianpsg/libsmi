@@ -217,7 +217,7 @@ typedef struct SmiValue {
         SmiFloat64          float64;
         SmiFloat128         float128;
         SmiSubid	    *oid;
-        unsigned char       *ptr;	 /* OctetString, Bits                */
+        char                *ptr;	 /* OctetString, Bits                */
     } value;
 } SmiValue;
 

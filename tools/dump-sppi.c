@@ -601,6 +601,7 @@ static char *getValueString(SmiValue *valuePtr, SmiType *typePtr)
     case SMI_BASETYPE_FLOAT64:
     case SMI_BASETYPE_FLOAT128:
     case SMI_BASETYPE_UNKNOWN:
+    case SMI_BASETYPE_POINTER:
 	break;
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	nodePtr = smiGetNodeByOID(valuePtr->len, valuePtr->value.oid);

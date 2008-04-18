@@ -705,6 +705,9 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
     case SMI_BASETYPE_UNKNOWN:
 	/* should not occur */
 	break;
+    case SMI_BASETYPE_POINTER:
+	/* TODO */
+	break;
     }
 }
     
@@ -891,6 +894,7 @@ static void fprintSubRangeType( FILE *f,
     case SMI_BASETYPE_BITS:
     case SMI_BASETYPE_OBJECTIDENTIFIER:
     case SMI_BASETYPE_UNKNOWN:
+    case SMI_BASETYPE_POINTER:
 	/* should not occur */
 	break;
 	

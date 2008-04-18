@@ -50,6 +50,7 @@ smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  rea.h rea.c dump-compliance.c dump-boilerplate.c \
 			  dstring.h dstring.c \
 			  fortopat.h fortopat.c fprint.h fprint.c
+
 smidump_LDADD		= ../lib/libsmi.la -lm
 
 smidiff_SOURCES		= smidiff.c shhopt.c

@@ -159,6 +159,8 @@ static char *getValueString(SmiValue *valuePtr)
 	break;
     case SMI_BASETYPE_UNKNOWN:
 	break;
+    case SMI_BASETYPE_POINTER:
+	break;
     }
 
     return s;
