@@ -74,6 +74,7 @@ TMPDIR	= .
 TOOLS32        = C:\PROGRA~1\MICROS~2\VC98
 !ELSEIF "$(MSVC_VARIANT)" == "MSVC2005"
 TOOLS32	= "C:\Program Files\Microsoft Visual Studio 8\VC"
+!ELSE
 !ERROR MSVC_VARIANT unknown
 !ENDIF
 
