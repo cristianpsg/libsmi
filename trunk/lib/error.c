@@ -229,9 +229,9 @@ static Error errors[] = {
       "unknown class `%s'", NULL},
     { 2, ERR_UNKNOWN_TYPE_OR_CLASS, "type-or-class-unknown", 
       "unknown type or class `%s' in attribute statement", NULL},
-    { 2, ERR_ATTRIBUTE_CLASS_ACCESS, "class-refference-access-statement", 
+    { 2, ERR_ATTRIBUTE_CLASS_ACCESS, "class-reference-access-statement", 
       "attribute `%s' refferences class and must not have access statement", NULL},
-    { 2, ERR_ATTRIBUTE_MISSING_ACCESS, "type-refference-missing-access-statement", 
+    { 2, ERR_ATTRIBUTE_MISSING_ACCESS, "type-reference-missing-access-statement", 
       "attribute `%s' refferences type and must have access statement", NULL},
     { 2, ERR_ATTRIBUTE_CLASS_DEFAULT, "class-refference-default-statement", 
       "attribute `%s' refferences class and must not have default statement", NULL},
@@ -688,6 +688,8 @@ static Error errors[] = {
       "The identities of IETF MIB modules should be registered below\n"
       "mib-2, transmission, or snmpModules so that the registration\n"
       "space can be controlled by IANA."},
+    { 2, ERR_INDEX_MISSING, "row-index-missing",
+      "row `%s' lacks index definition", NULL },
     { 0, 0, NULL, NULL, NULL }
 };
 
