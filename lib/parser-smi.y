@@ -242,7 +242,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		   (objectPtr->typePtr->export.decl == SMI_DECL_IMPL_SEQUENCEOF)) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_TABLE;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
-		   (objectPtr->export.indexkind != SMI_INDEX_UNKNOWN)) {
+		   ((objectPtr->export.indexkind != SMI_INDEX_UNKNOWN)
+		    || (parentPtr
+			&& parentPtr->export.nodekind == SMI_NODEKIND_TABLE))) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_ROW;
 	} else if ((objectPtr->export.decl == SMI_DECL_NOTIFICATIONTYPE) ||
 		   (objectPtr->export.decl == SMI_DECL_TRAPTYPE)) {
@@ -256,7 +258,9 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    objectPtr->export.nodekind = SMI_NODEKIND_CAPABILITIES;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
 		   (parentPtr) &&
-		   (parentPtr->export.indexkind != SMI_INDEX_UNKNOWN)) {
+		   ((parentPtr->export.indexkind != SMI_INDEX_UNKNOWN)
+		    || (parentPtr
+			&& parentPtr->export.nodekind == SMI_NODEKIND_ROW))) {
 	    objectPtr->export.nodekind = SMI_NODEKIND_COLUMN;
 	} else if ((objectPtr->export.decl == SMI_DECL_OBJECTTYPE) &&
 		   (parentPtr) &&
@@ -290,13 +294,6 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 				objectPtr->typePtr->export.name ?
 				objectPtr->typePtr->export.name : "[unknown]",
 				objectPtr->export.name);
-	    if (objectPtr->nodePtr->parentPtr->firstObjectPtr->export.nodekind
-		== SMI_NODEKIND_TABLE) {
-		/* the parent node is a table node, so assume this is
-		 *  a row node. this adjusts missing INDEXs in RFC 1158.
-		 */
-		objectPtr->export.nodekind = SMI_NODEKIND_ROW;
-	    }
 	}
 
 	/*
@@ -744,6 +741,11 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 	    case SMI_INDEX_AUGMENT:
             case SMI_INDEX_SPARSE:
 		smiCheckAugment(parserPtr, objectPtr);
+		break;
+	    case SMI_INDEX_UNKNOWN:
+		smiPrintErrorAtLine(parserPtr, ERR_INDEX_MISSING,
+				    objectPtr->line,
+				    objectPtr->export.name);
 		break;
 	    default:
 		break;
