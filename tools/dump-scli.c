@@ -1854,6 +1854,7 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
     char *snmpType;
     char *dModuleName, *dNodeName;
     char *cPrefix, *cGroupName, *cNodeName;
+    char *writable_flag = NULL, *fixed_length_flag = NULL;
     unsigned maxSize = 0, minSize = 0;
     int cnt;
 
@@ -1938,13 +1939,29 @@ printAttribute(FILE *f, SmiNode *smiNode, SmiNode *groupNode, int flags)
 		cPrefix, cGroupName, cNodeName);
     } else {
 	fprintf(f,
-		"      0");
+		"      %d", minSize);
+    }
+
+    if (smiNode->access > SMI_ACCESS_READ_ONLY) {
+        writable_flag = "GSNMP_ATTR_FLAG_WRITABLE";
+    }
+    if (minSize == maxSize && minSize > 0) {
+        fixed_length_flag = "GSNMP_ATTR_FLAG_FIXED_LENGTH";
     }
 
     fprintf(f,
 	    ",\n"
-	    "      %s },\n",
-	    (smiNode->access > SMI_ACCESS_READ_ONLY) ? "GSNMP_ATTR_FLAG_WRITABLE" : "0");
+	    "      ");
+    if (! writable_flag && ! fixed_length_flag) {
+	fprintf(f, "0");
+    } else if (writable_flag && ! fixed_length_flag) {
+	fprintf(f, "%s", writable_flag);
+    } else if (!writable_flag && fixed_length_flag) {
+	fprintf(f, "%s", fixed_length_flag);
+    } else {
+	fprintf(f, "%s|%s", writable_flag, fixed_length_flag);
+    }
+    fprintf(f, " },\n");
 
     xfree(cPrefix);
     xfree(cGroupName);
