@@ -2134,6 +2134,7 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
 	break;
     case SMI_BASETYPE_OCTETSTRING:
 	if (!(flags & SMI_RENDER_FORMAT) ||
+	    (!smiTypePtr->format && !smiTypePtr->name) ||
 	    (!smiTypePtr->format &&
 	     (smiTypePtr->name && strcmp( smiTypePtr->name, "IpAddress")) ) ) {
 	    for (i = 0; i < smiValuePtr->len; i++) {
