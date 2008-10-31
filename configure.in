@@ -192,6 +192,10 @@ AC_ARG_ENABLE(sming,
 [  --enable-sming          enable SMIng parser support],
 AC_DEFINE(BACKEND_SMING, 0, ""))
 
+AC_ARG_ENABLE(yang,
+[  --enable-yang           enable Yang parser support],
+AC_DEFINE(BACKEND_YANG, 0, ""))
+
 AC_PATH_PROG(FLEX, "flex")
 if test -z "${FLEX}" ; then
   echo "NOTE: We will not be able to build scanner C code from flex sources."

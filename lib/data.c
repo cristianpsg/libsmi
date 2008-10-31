@@ -48,6 +48,11 @@ extern int smiparse();
 extern int smingparse();
 #endif
 
+#ifdef BACKEND_YANG
+#include "scanner-yang.h"
+extern int yangparse();
+#endif
+
 #define stringKind(kind) ( \
 	(kind == KIND_ANY)                 ? "ANY" : \
 	(kind == KIND_MODULE)              ? "MODULE" : \
@@ -271,6 +276,7 @@ Module *addModule(char *modulename, char *path, ModuleFlags flags,
     modulePtr->export.contactinfo		= NULL;
     modulePtr->export.description		= NULL;
     modulePtr->export.reference			= NULL;
+    modulePtr->export.prefix			= NULL;
     modulePtr->export.conformance               = 0;
     
     modulePtr->lastUpdated			= 0;
@@ -397,7 +403,26 @@ void setModuleContactInfo(Module *modulePtr, char *contactinfo)
     modulePtr->export.contactinfo = contactinfo;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModuleXMLNamespace --
+ *
+ *      Set the XML namespace  string of a given Yang Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 
+void setModuleXMLNamespace(Module *modulePtr, char *XMLNamespace)
+{
+    modulePtr->export.XMLNamespace = XMLNamespace;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -428,6 +453,34 @@ void setModuleDescription(Module *modulePtr, char *description,
     }
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * setModulePrefix --
+ *
+ *      Set the prefix string of a given Module.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void setModulePrefix(Module *modulePtr, char *prefix,
+			  Parser *parserPtr)
+{
+    if (modulePtr->export.prefix)
+	smiFree(modulePtr->export.prefix);
+    if (parserPtr->flags & SMI_FLAG_NODESCR) {
+	smiFree(prefix);
+	modulePtr->export.prefix = NULL;
+    } else {
+	modulePtr->export.prefix = prefix;
+    }
+}
 
 
 /*
@@ -680,6 +733,29 @@ void setImportModulename(Import *importPtr, char *modulename)
     importPtr->export.module = modulename;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * setImportPrefix --
+ *
+ *      Set the prefix part of a given Import struct.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void setImportPrefix(Import *importPtr, char *prefix)
+{
+    if (importPtr->export.prefix) {
+	smiFree(importPtr->export.prefix);
+    }
+    importPtr->export.prefix = prefix;
+}
 
 
 /*
@@ -822,6 +898,63 @@ Import *findImportByModulenameAndName(const char *modulename,
     return (NULL);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * findImportedModuleByPrefix --
+ *
+ *      Find imported module by searching for its prefix.
+ *      The function checks for the prefixes defined in the import
+ *      statement, or if not present for the prefix defined in the
+ *      module itself.
+ *
+ * Results:
+ *      A pointer to the Module structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Module *findImportedModuleByPrefix(Module *modulePtr, const char *prefix)
+{
+    Import           *importPtr;
+
+    
+    // Check whether the prefix refers to current module
+    if(!strcmp(modulePtr->export.prefix,prefix))
+    {
+	return modulePtr;
+    }
+
+    // check imports
+    for (importPtr = modulePtr->firstImportPtr; importPtr;
+	 importPtr = importPtr->nextPtr) 
+    {
+	if(importPtr->export.prefix)
+	{
+		// prefix redefined locally
+		if (!strcmp(importPtr->export.prefix, prefix))
+		{
+			return importPtr->modulePtr;
+		}	
+	}
+	else
+	{
+		//check for the module's suggested prefix
+		if(!strcmp(importPtr->modulePtr->export.prefix,prefix))
+		{
+			return importPtr->modulePtr;
+		}
+
+	}
+    }
+
+    return (NULL);
+
+}
 
 
 /*
@@ -2375,7 +2508,264 @@ Type *addType(char *type_name, SmiBasetype basetype, TypeFlags flags,
     return (typePtr);
 }
 
+/* createType
+ *
+ * 	Create a new blank Type without adding it to the module. Used for yang typedefs, 
+ * 	which are also nodes in the tree. The new type is usually attached to a YangNode.
+ */
+Type *createType(char *name)
+{
+    Type	   *typePtr;
 
+    typePtr = smiMalloc(sizeof(Type));
+
+    typePtr->export.name	        = smiStrdup(name);
+    typePtr->export.basetype		= SMI_BASETYPE_UNKNOWN;
+    typePtr->export.decl		= SMI_DECL_UNKNOWN;
+    typePtr->export.format		= NULL;
+    typePtr->export.value.basetype	= SMI_BASETYPE_UNKNOWN;
+    typePtr->export.units		= NULL;
+    typePtr->export.status		= SMI_STATUS_UNKNOWN;
+    typePtr->export.description		= NULL;
+    typePtr->export.reference		= NULL;
+
+    typePtr->modulePtr			= NULL;
+    typePtr->listPtr			= NULL;
+    typePtr->flags			= 0;
+    typePtr->parentPtr                  = NULL;
+	
+    return (typePtr);
+}
+
+/*addYangNode --
+	Create a new YangNode of the given kind with the given parent node. If no parent is given
+	(parent == NULL) then the node is added directly to the module.				
+*/
+
+YangNode *addYangNode(char *name, SmiDecl nodeKind, YangNode *parentPtr, Module *modulePtr)
+{
+	YangNode *node = (YangNode*) smiMalloc(sizeof(YangNode));
+	
+	node->export.name = smiStrdup(name);
+	node->export.nodeKind = nodeKind;
+	node->export.config  = SMI_CONFIG_TRUE;
+	node->export.mandatory  = SMI_MANDATORY_FALSE;
+	node->parentPtr = NULL;
+	node->nextSiblingPtr = NULL;
+	node->firstChildPtr = NULL;
+    	node->lastChildPtr = NULL;
+	node->minMaxElements = (Range*) smiMalloc(sizeof(Range));
+
+	node->minMaxElements->export.minValue.basetype = SMI_BASETYPE_UNSIGNED32;
+	node->minMaxElements->export.minValue.value.integer32 = 0;
+	node->minMaxElements->export.maxValue.basetype = SMI_BASETYPE_UNSIGNED32;
+	node->minMaxElements->export.maxValue.value.integer32 = 0; // zero signifies unbound
+
+	node->export.order = SMI_ORDER_SYSTEM;
+	
+	if(!modulePtr)
+	{
+		return NULL;
+	}
+	
+	if(parentPtr)
+	{
+		//inherit SmiConfig value. This is changed later, if there is config statement, for this node
+		node->export.config = parentPtr->export.config;
+		
+		if(parentPtr->lastChildPtr)
+		{
+			(parentPtr->lastChildPtr)->nextSiblingPtr = node;
+			parentPtr->lastChildPtr = node;
+		}
+		else //first child
+		{
+			parentPtr->firstChildPtr = node;
+			parentPtr->lastChildPtr = node;
+		}
+
+		node->parentPtr = parentPtr;
+	}
+	else //no parent add to module
+	{
+		if(modulePtr->lastYangNodePtr)
+		{
+			modulePtr->lastYangNodePtr->nextSiblingPtr = node;
+			modulePtr->lastYangNodePtr = node;
+		}
+		else //first node in module
+		{
+			modulePtr->firstYangNodePtr = node;
+			modulePtr->lastYangNodePtr = node;
+		}
+	}
+	node->modulePtr = modulePtr;
+	
+	return node;
+}
+
+/*
+	setYangNodeType -- sets the parent type of a leaf node.
+*/
+void setYangNodeType(YangNode *currentNode, Type *type)
+{
+	if(currentNode)
+	{
+		if(currentNode->type)
+			smiFree(currentNode->type);
+		
+		currentNode->type = type;
+	}	
+}
+
+/*
+	setYangNodeDescription -- sets the description field for a given node
+*/
+void setYangNodeDescription(YangNode *currentNode, char *description)
+{
+	if(currentNode)
+	{
+		if(currentNode->export.description)
+			smiFree(currentNode->export.description);
+		
+		(currentNode->export).description = smiStrdup(description);
+	}	
+}
+
+/*
+	setYangNodeReference -- sets the reference field for a given node
+*/
+void setYangNodeReference(YangNode *currentNode, char *reference)
+{
+	if(currentNode)
+	{
+		if((currentNode->export).reference)
+			smiFree((currentNode->export).reference);
+		(currentNode->export).reference = smiStrdup(reference);
+	}	
+}	
+
+/*
+	setYangNodeStatus -- sets the status field for a given node
+*/
+void setYangNodeStatus(YangNode *currentNode, SmiStatus status)
+{
+	if(currentNode)
+	{
+		(currentNode->export).status = status;
+	}	
+}
+
+/*
+	setYangNodeMinElements -- sets the min-elements field for a list or leaf-list
+*/
+extern void setYangNodeMinElements(YangNode *currentNode, SmiUnsigned32 value)
+{
+	if(currentNode)
+	{
+		currentNode->minMaxElements->export.minValue.value.unsigned32 = value;
+	}	
+}
+
+/*
+	setYangNodeMaxElements -- sets the max-elements field for a list or leaf-list
+*/
+extern void setYangNodeMaxElements(YangNode *currentNode, SmiUnsigned32 value)
+{
+	if(currentNode)
+	{
+		currentNode->minMaxElements->export.maxValue.value.unsigned32 = value;
+	}	
+}
+
+/*
+	setYangNodeOrder -- sets the ordered-by field for a list or leaf-list
+*/
+void setYangNodeOrder(YangNode *currentNode, SmiOrder order)
+{
+	if(currentNode)
+	{
+		currentNode->export.order = order;
+	}
+}
+
+/*
+	addMustStatement -- adds a must statement to a YangNode
+*/
+Must *addMustStatement(YangNode *currentNode, char *xpath)
+{
+	Must *must = (Must*)smiMalloc(sizeof(Must));
+	must->export.xpath = smiStrdup(xpath);
+	must->nextPtr = NULL;
+	
+	if(!currentNode)
+	{
+		return NULL;
+	}
+	
+	if(currentNode->lastMustPtr)
+	{
+		currentNode->lastMustPtr->nextPtr = must;
+		currentNode->lastMustPtr = must;
+	}
+	else
+	{
+		currentNode->lastMustPtr = must;
+		currentNode->firstMustPtr = must;
+	}
+	
+	return must;
+}
+
+/*
+	setMustReference -- set the reference field of a must statement
+*/
+void setMustReference(Must *must, char *reference)
+{
+	if(must)
+	{
+		if(must->export.reference)
+		{
+			smiFree(must->export.reference);
+		}
+			must->export.reference = smiStrdup(reference);
+	}
+}
+
+/*
+	setMustDescription -- set the reference field of a must statement
+*/
+void setMustDescription(Must *must, char *description)
+{
+	if(must)
+	{
+		if(must->export.description)
+		{
+			smiFree(must->export.description);
+		}
+			must->export.description = smiStrdup(description);
+	}
+}
+
+/*
+	setMustErrorMessage -- set the errorMessage field
+*/
+void setMustErrorMessage(Must *must, char* errorMessage)
+{
+    if(!must) return;
+    if (must->export.errorMessage) smiFree(must->export.errorMessage);
+	must->export.errorMessage = smiStrdup(errorMessage);
+}
+
+/*
+	setMustErrorMessage -- set the errorAppTag field
+*/
+void setMustErrorAppTag(Must *must, char* errorAppTag)
+{
+   if(!must) return; 
+   if (must->export.errorAppTag) smiFree(must->export.errorAppTag);
+    must->export.errorAppTag = smiStrdup(errorAppTag);
+}
 
 /*
  *----------------------------------------------------------------------
@@ -2805,7 +3195,51 @@ void setTypeValue(Type *typePtr, SmiValue *valuePtr)
     typePtr->export.value = *valuePtr;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeErrorMessage --
+ *
+ *      Set the error message for restriction violation.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 
+void setTypeErrorMessage(Type *typePtr, char* errorMessage)
+{
+    if(!typePtr) return;
+    if (typePtr->export.errorMessage) smiFree(typePtr->export.errorMessage);
+    typePtr->export.errorMessage = smiStrdup(errorMessage);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * setTypeErrorAppTag --
+ *
+ *      Set the error-app-tag for restriction violation.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void setTypeErrorAppTag(Type *typePtr, char* errorAppTag)
+{
+   if(!typePtr) return; 
+   if (typePtr->export.errorAppTag) smiFree(typePtr->export.errorAppTag);
+    typePtr->export.errorAppTag = smiStrdup(errorAppTag);
+}
 
 /*
  *----------------------------------------------------------------------
@@ -3032,6 +3466,63 @@ NamedNumber *findTypeNamedNumber(Type *typePtr,
     return (NamedNumber *)(listPtr->ptr);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * findYangNodeByScopeAndName --
+ *
+ *      Lookup a YangNode by a given node name and scope defined by
+ *      Module and a tree node.
+ *      The data tree is searched for nodes at the level or above the 
+ *      given YangNode* node.
+ *      If given node pointer is NULL only the top level of module is 
+ *      searched(base case for the recursive function).
+ *
+ * Results:
+ *      A pointer to the YangNode structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+YangNode *findYangNodeByScopeAndName(Module *modulePtr, const char *name, 
+							YangNode *node)
+{
+    YangNode *yangNodePtr;
+
+    if (modulePtr) 
+    {
+	if (node == NULL || node->parentPtr == NULL)
+	{
+		for (yangNodePtr = modulePtr->firstYangNodePtr; yangNodePtr;
+		     yangNodePtr = yangNodePtr->nextSiblingPtr) {
+		    if ((yangNodePtr->export.name) &&
+			!strcmp(yangNodePtr->export.name, name)) 
+		    {
+			return (yangNodePtr);
+		    }
+		}
+	}
+	else
+	{
+
+		for(yangNodePtr = node->parentPtr->firstChildPtr; yangNodePtr;
+			yangNodePtr = yangNodePtr->nextSiblingPtr)
+			if ((yangNodePtr->export.name) &&
+				!strcmp(yangNodePtr->export.name, name)) 
+			{
+				return (yangNodePtr);
+		    	}
+
+		return findYangNodeByScopeAndName(modulePtr, name, node->parentPtr);
+	}
+    }
+
+    return (NULL);
+}
 
 
 /*
@@ -4125,7 +4616,42 @@ Macro *findMacroByModuleAndName(Module *modulePtr, const char *macroname)
     return (NULL);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * findMacroByModulenameAndName --
+ *
+ *      Lookup a Macro by a given Module and name.
+ *
+ * Results:
+ *      A pointer to the Macro structure or
+ *	NULL if it is not found.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 
+Macro *findMacroByModulenameAndName(const char *modulename,
+				    const char *macroname)
+{
+    Module     *modulePtr;
+    Macro      *macroPtr;
+
+    modulePtr = findModuleByName(modulename);
+	
+    if (modulePtr) {
+	for (macroPtr = modulePtr->firstMacroPtr; macroPtr;
+	     macroPtr = macroPtr->nextPtr) {
+	    if (!strcmp(macroPtr->export.name, macroname)) {
+		return (macroPtr);
+	    }
+	}
+    }
+
+    return (NULL);
+}
 
 /*
  *----------------------------------------------------------------------
@@ -4243,6 +4769,18 @@ int smiInitData()
     smiHandle->typeObjectIdentifierPtr =
 	addType(smiStrdup("ObjectIdentifier"),
 		SMI_BASETYPE_OBJECTIDENTIFIER, 0, &parser);
+    smiHandle->typeInteger8Ptr =
+	addType(smiStrdup("Integer8"),
+		SMI_BASETYPE_INTEGER8, 0, &parser);
+    smiHandle->typeUnsigned8Ptr =
+	addType(smiStrdup("Unsigned8"),
+		SMI_BASETYPE_UNSIGNED8, 0, &parser);
+    smiHandle->typeInteger16Ptr =
+	addType(smiStrdup("Integer16"),
+		SMI_BASETYPE_INTEGER16, 0, &parser);
+    smiHandle->typeUnsigned16Ptr =
+	addType(smiStrdup("Unsigned16"),
+		SMI_BASETYPE_UNSIGNED16, 0, &parser);
     smiHandle->typeInteger32Ptr =
 	addType(smiStrdup("Integer32"),
 		SMI_BASETYPE_INTEGER32, 0, &parser);
@@ -4273,6 +4811,19 @@ int smiInitData()
 	smiHandle->typePointerPtr =
 	addType(smiStrdup("Pointer"),
 		SMI_BASETYPE_POINTER, 0, &parser);
+    smiHandle->typeBooleanPtr =
+	addType(smiStrdup("boolean"),
+		SMI_BASETYPE_BOOLEAN, 0, &parser);
+    smiHandle->typeAnyxmlPtr =
+	addType(smiStrdup("anyxml"),
+		SMI_BASETYPE_ANYXML, 0, &parser);
+    smiHandle->typeKeyrefPtr =
+	addType(smiStrdup("keyref"),
+		SMI_BASETYPE_KEYREF, 0, &parser);
+    smiHandle->typeBinaryPtr =
+	addType(smiStrdup("binary"),
+		SMI_BASETYPE_BINARY, 0, &parser);
+
 
     return (0);
 }
@@ -4591,7 +5142,7 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
     char	    sep[2];
 
     static const char *ext[] = {
-	"", ".my", ".smiv1", ".smiv2", ".sming", ".mib", ".txt", NULL
+	"", ".my", ".smiv1", ".smiv2", ".sming", ".mib", ".txt", ".yang", NULL
     };
     
     if ((!modulename) || !strlen(modulename)) {
@@ -4698,7 +5249,23 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	    sming = 0;
 	    break;
 	} else if (c == '/' || c == 'm') {
-	    sming = 1;
+		i = c;
+	    while(c = fgetc(file)) { 	   //check for statement termination
+		if(i == '}' && c == ';') { //"};" means sming "}" means yang
+			sming = 1;
+			break;
+		} else if(i == '}' && c != ';') {
+			sming = 2; //yang
+			break;
+		} else if (c == EOF) {
+	    	   smiPrintError(parserPtr, ERR_ILLEGAL_INPUTFILE, path);
+	           smiFree(path);
+	           fclose(file);
+	      	   return NULL;
+	        }
+		i = c;
+	    }
+	    
 	    break;
 	} else if (c == EOF || ! isspace(c)) {
 	    smiPrintError(parserPtr, ERR_ILLEGAL_INPUTFILE, path);
@@ -4790,6 +5357,48 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	return parser.modulePtr;
 #else
 	smiPrintError(parserPtr, ERR_SMING_NOT_SUPPORTED, path);
+	smiFree(path);
+        fclose(file);
+	return NULL;
+#endif
+    }
+if (sming == 2) {
+#ifdef BACKEND_YANG
+	parentParserPtr = smiHandle->parserPtr;
+	smiHandle->parserPtr = &parser;
+	parser.path			= path;
+	parser.flags			= smiHandle->flags;
+	parser.modulePtr		= NULL;
+	parser.complianceModulePtr	= NULL;
+	parser.capabilitiesModulePtr	= NULL;
+	parser.currentDecl              = SMI_DECL_UNKNOWN;
+	parser.firstStatementLine       = 0;
+	parser.firstNestedStatementLine = 0;
+	parser.firstRevisionLine        = 0;
+	parser.file			= file;
+
+	/*
+	 * Initialize a root Node for pending (forward referenced) nodes.
+	 */
+	parser.pendingNodePtr = addNode(NULL, 0, NODE_FLAG_ROOT, NULL);
+    
+	if (yangEnterLexRecursion(parser.file) < 0) {
+	    smiPrintError(&parser, ERR_MAX_LEX_DEPTH);
+	    fclose(parser.file);
+	}
+	smiDepth++;
+	parser.line			= 1;
+	yangparse((void *)&parser);
+	freeNodeTree(parser.pendingNodePtr);
+	smiFree(parser.pendingNodePtr);
+	yangLeaveLexRecursion();
+	smiDepth--;
+	fclose(parser.file);
+	smiFree(path);
+	smiHandle->parserPtr = parentParserPtr;
+	return parser.modulePtr;
+#else
+	smiPrintError(parserPtr, ERR_YANG_NOT_SUPPORTED, path);
 	smiFree(path);
         fclose(file);
 	return NULL;
