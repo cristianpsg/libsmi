@@ -41,6 +41,11 @@
 #include "parser-sming.h"
 #endif
 
+#ifdef BACKEND_YANG
+#include "scanner-yang.h"
+#include "parser-yang.h"
+#endif
+
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
@@ -1288,6 +1293,163 @@ int smiGetMacroLine(SmiMacro *smiMacroPtr)
     return ((Macro *)smiMacroPtr)->line;
 }
 
+SmiYangNode *smiGetFirstRootNode(SmiModule *module)
+{
+	YangNode *node = NULL;
+	
+	if(module)
+	{
+		node = ((Module*)module)->firstYangNodePtr;
+	}
+	
+	return &(node->export);
+}
+
+SmiYangNode *smiGetNextRootNode(SmiYangNode *node)
+{
+	if(!node) return;
+	
+	YangNode *tmp = ((YangNode*)node)->nextSiblingPtr; 
+	
+	return &(tmp->export);
+}
+
+SmiYangNode *smiGetFirstChildYangNode(SmiYangNode *node)
+{
+	if(!node) return;
+	
+	YangNode *tmp = ((YangNode*)node)->firstChildPtr;
+	
+	return &(tmp->export);
+}
+
+SmiYangNode *smiGetNextChildYangNode(SmiYangNode *node)
+{
+	if(!node) return;
+	YangNode *tmp = ((YangNode*)node)->nextSiblingPtr; 
+	return &(tmp->export);
+}
+
+SmiType *smiGetYangNodeType(SmiYangNode *node)
+{
+	if(!node) return;
+	SmiType *type = &(((YangNode*)node)->type->export); 
+	return type;
+}
+
+SmiRange *smiGetYangNodeMinMaxElements(SmiYangNode *node)
+{
+	if(!node) return;
+	SmiRange *range = &(((YangNode*)node)->minMaxElements->export); 
+	return range;
+}
+
+SmiYangNode *smiGetFirstUniqueYangNode(SmiYangNode *node)
+{
+	if(!node)return NULL;
+	if(node->nodeKind != SMI_DECL_LIST)
+	{
+		return NULL;
+	}
+	
+	YangNode *yn = (YangNode*)node;
+	if(!yn->uniqueList) return NULL;
+	SmiYangNode *result = &(yn->uniqueList->yangNode->export);
+	return result;
+}
+
+SmiYangNode *smiGetNextUniqueYangNode(SmiYangNode *node)
+{
+	if(!node) return NULL;
+	
+	YangNode *parent = ((YangNode*)node)->parentPtr;
+	
+	if(parent->export.nodeKind != SMI_DECL_LIST)
+	{
+		return NULL;
+	}
+	
+	YangNodeList *tmp;
+	for(tmp = parent->uniqueList; tmp; tmp = tmp->next) 
+	{
+		if(&(tmp->yangNode->export) == node) break;
+	}
+	
+	if(!tmp) 
+	{
+		return NULL;
+	}
+	else if(tmp->next)
+	{
+		SmiYangNode *result = &(tmp->next->yangNode->export);
+		return result;
+	}
+	else return NULL;
+	
+}
+
+SmiYangNode *smiGetFirstKeyYangNode(SmiYangNode *node)
+{
+	if(!node)return NULL;
+	if(node->nodeKind != SMI_DECL_LIST)
+	{
+		return NULL;
+	}
+	
+	YangNode *yn = (YangNode*)node;
+	if(!yn->keyList) return NULL;
+	SmiYangNode *result = &(yn->keyList->yangNode->export);
+	return result;
+}
+
+SmiYangNode *smiGetNextKeyYangNode(SmiYangNode *node)
+{
+	if(!node) return NULL;
+	
+	YangNode *parent = ((YangNode*)node)->parentPtr;
+	
+	if(parent->export.nodeKind != SMI_DECL_LIST)
+	{
+		return NULL;
+	}
+	
+	YangNodeList *tmp;
+	for(tmp = parent->keyList; tmp; tmp = tmp->next) 
+	{
+		if(&(tmp->yangNode->export) == node) break;
+	}
+	
+	if(!tmp) 
+	{
+		return NULL;
+	}
+	else if(tmp->next)
+	{
+		SmiYangNode *result = &(tmp->next->yangNode->export);
+		return result;
+	}
+	else return NULL;
+	
+}
+
+SmiMustStatement *smiGetFirstMustStatement(SmiYangNode *node)
+{
+	Must *must = NULL;
+	
+	if(node)
+	{
+		must = ((YangNode*)node)->firstMustPtr;
+	}
+	
+	return &(must->export);
+}
+
+SmiMustStatement *smiGetNextMustStatement(SmiMustStatement *must)
+{
+	if(!must) return;
+	Must *tmp = ((Must*)must)->nextPtr; 
+	return &(tmp->export);
+}
 
 SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *node)
 {
