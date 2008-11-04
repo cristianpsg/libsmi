@@ -89,7 +89,7 @@ static declStack *dStack = NULL;
 
 static void pushDecl(SmiDecl decl)
 {
-	declStack *top = (declStack*)malloc(sizeof(declStack));
+	declStack *top = (declStack*)smiMalloc(sizeof(declStack));
 	top->down = NULL;
 	top->decl = decl;
 	
@@ -1155,7 +1155,7 @@ includeStatement: includeKeyword identifier
 typedefStatement:	typedefKeyword identifier
 			{
 				pushDecl(SMI_DECL_TYPEDEF);
-				currentNode = addYangNode($2,SMI_DECL_TYPEDEF, currentNode, currentModule);			
+				currentNode = addYangNode($2,SMI_DECL_TYPEDEF, currentNode, currentModule);
 			}
 			'{'
 				typedefSubstatement_0n
