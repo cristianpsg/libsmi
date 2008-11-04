@@ -472,14 +472,10 @@ void setModuleDescription(Module *modulePtr, char *description,
 void setModulePrefix(Module *modulePtr, char *prefix,
 			  Parser *parserPtr)
 {
-    if (modulePtr->export.prefix)
+    if (modulePtr->export.prefix) {
 	smiFree(modulePtr->export.prefix);
-    if (parserPtr->flags & SMI_FLAG_NODESCR) {
-	smiFree(prefix);
-	modulePtr->export.prefix = NULL;
-    } else {
-	modulePtr->export.prefix = prefix;
     }
+    modulePtr->export.prefix = prefix;
 }
 
 
