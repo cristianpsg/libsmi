@@ -1027,6 +1027,42 @@ smiCheckAugment(Parser *parser, Object *object)
 }
 
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * smiCheckRowMembers --
+ *
+ *      Check whether the members of a row are columnar objects
+ *	and that their types match the row's type.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+smiCheckRowMembers(Parser *parser, Object *row)
+{
+    Object *object;
+    Node *nodePtr;
+    
+    for (nodePtr = row->nodePtr->firstChildPtr;
+	 nodePtr; nodePtr = nodePtr->nextPtr) {
+	object = nodePtr->firstObjectPtr;
+	if (object->export.nodekind != SMI_NODEKIND_COLUMN) {
+	    smiPrintErrorAtLine(parser, ERR_ROW_CHILD_TYPE, object->line,
+				object->export.name, row->export.name);
+	}
+    }
+
+    /* TODO - check the row type consistency */
+}
+
+
 
 /*
  *----------------------------------------------------------------------

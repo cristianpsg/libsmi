@@ -425,6 +425,16 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		break;
 	    }
 	}
+
+	/*
+	 * Check whether a row has only object-type children and
+	 * that their types are consistent with the type of the
+	 * row.
+	 */
+
+	if (objectPtr->export.nodekind == SMI_NODEKIND_ROW) {
+	    smiCheckRowMembers(parserPtr, objectPtr);
+	}
 	
 	/*
 	 * Check whether groups only contain scalars, columns and
