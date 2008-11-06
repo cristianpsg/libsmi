@@ -584,6 +584,8 @@ static Error errors[] = {
       "table's SEQUENCE OF type does not match row type", NULL},
     { 2, ERR_ROW_PARENT_TYPE, "parent-row",
       "row's parent node must be a table node", NULL},
+    { 2, ERR_ROW_CHILD_TYPE, "row-child",
+      "child node `%s' or row '%s' must be a column node", NULL},
     { 2, ERR_COLUMN_PARENT_TYPE, "parent-column",
       "columnar object's parent node must be a row", NULL},
     { 2, ERR_NOTIFICATION_PARENT_TYPE, "parent-notification",

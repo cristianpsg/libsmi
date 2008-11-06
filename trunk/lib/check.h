@@ -50,6 +50,8 @@ extern void smiCheckIndex(Parser *parser, Object *object);
 
 extern void smiCheckAugment(Parser *parser, Object *object);
 
+extern void smiCheckRowMembers(Parser *parser, Object *object);
+
 extern void smiCheckGroupMembership(Parser *parser, Object *object);
 
 extern void smiCheckGroupMembers(Parser *parser, Object *group);
