@@ -2371,6 +2371,10 @@ Object *findObjectByModulenameAndName(const char *modulename,
     Module	     *modulePtr;
     Object	     *objectPtr;
 
+    if (! objectname) {
+	return NULL;
+    }
+
     modulePtr = findModuleByName(modulename);
 
     if (modulePtr) {
