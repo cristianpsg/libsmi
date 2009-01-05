@@ -418,7 +418,7 @@ static void fprintDescription(FILE *f, int indent, const char *description)
 static void fprintReference(FILE *f, int indent, const char *reference)
 {
     if (reference) {
-	fprintSegment(f, indent, "\"reference>\" :\n", 0);
+	fprintSegment(f, indent, "\"reference\" :\n", 0);
 	fprintMultilineString(f, indent, reference);
 	fprint(f, ",\n");
     }
