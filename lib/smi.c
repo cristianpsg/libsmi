@@ -927,7 +927,7 @@ SmiRange *smiGetAttributeNextRange(SmiRange *smiRangePtr)
 
 SmiIdentity *smiGetFirstIdentity(SmiModule *smiModulePtr)
 {
-	if (!smiModulePtr) {
+    if (!smiModulePtr) {
 	return NULL;
     }
     
@@ -958,22 +958,17 @@ SmiIdentity *smiGetParentIdentity(SmiIdentity *smiIdentityPtr)
 
 SmiIdentity *smiGetIdentity(SmiModule *smiModulePtr, char *identity)
 {
-	
-	if (!smiModulePtr) {
+    SmiIdentity *ide; 
+    
+    if (!smiModulePtr) {
 	return NULL;
     }
-    else
-    {
-    	SmiIdentity *ide; 
     	
-    	for(ide = smiGetFirstIdentity(smiModulePtr); 
-    		ide;
-    		ide = smiGetNextIdentity(ide))
-    			if(!strncmp(ide->name,identity,64))return ide;
-    		
-    	return NULL;
+    for (ide = smiGetFirstIdentity(smiModulePtr); 
+	 ide; ide = smiGetNextIdentity(ide)) {
+	if (!strncmp(ide->name,identity,64)) break;
     }
-    
+    return ide;
 }
 
 int smiGetIdentityLine(SmiIdentity *smiIdentityPtr)
@@ -984,7 +979,7 @@ int smiGetIdentityLine(SmiIdentity *smiIdentityPtr)
 	
 SmiClass *smiGetFirstClass(SmiModule *smiModulePtr)
 {
-	if (!smiModulePtr) {
+    if (!smiModulePtr) {
 	return NULL;
     }
     
@@ -998,7 +993,7 @@ SmiClass *smiGetNextClass(SmiClass *smiClassPtr)
     if (!smiClassPtr) {
 	return NULL;
     }
-
+    
     return ((Class *)smiClassPtr)->nextPtr ?
 	&((Class *)smiClassPtr)->nextPtr->export : NULL;
 }
@@ -1013,24 +1008,19 @@ SmiClass *smiGetParentClass(SmiClass *smiClassPtr)
     return (SmiClass*)(((Class *)smiClassPtr)->parentPtr);
 }
 
-SmiClass *smiGetClass(SmiModule *smiModulePtr, char *class)
+SmiClass *smiGetClass(SmiModule *smiModulePtr, char *className)
 {
-	
-	if (!smiModulePtr) {
+    SmiClass *cl;
+    
+    if (!smiModulePtr) {
 	return NULL;
     }
-    else
-    {
-    	SmiClass *cl; 
-    	
-    	for(cl = smiGetFirstClass(smiModulePtr); 
-    		cl;
-    		cl = smiGetNextClass(cl))
-    			if(!strncmp(cl->name,class,64))return cl;
-    		
-    	return NULL;
-    }
     
+    for (cl = smiGetFirstClass(smiModulePtr); 
+	 cl; cl = smiGetNextClass(cl)) {
+	if (!strncmp(cl->name, className, 64)) break;
+    }
+    return cl;
 }
 
 int smiGetClassLine(SmiClass *smiClassPtr)
@@ -1046,8 +1036,7 @@ SmiAttribute *smiGetFirstAttribute(SmiClass *smiClassPtr)
 	return NULL;
     }
     
-  	attributePtr = ((Class *)smiClassPtr)->firstAttributePtr;
-    
+    attributePtr = ((Class *)smiClassPtr)->firstAttributePtr;
     return &attributePtr->export;
 }
 
@@ -1060,7 +1049,6 @@ SmiAttribute *smiGetNextAttribute(SmiAttribute *smiTypePtr)
     }
 
     attributePtr = ((Attribute *)smiTypePtr)->nextPtr;
-    
     return &attributePtr->export;
 }
 
@@ -1071,8 +1059,6 @@ SmiAttribute *smiGetAttribute(SmiClass *smiClassPtr, char *attribute)
     if (! smiClassPtr) {
 	return NULL;
     }
-    
-    attributePtr = ((Class *)smiClassPtr)->firstAttributePtr;
     
     for (attributePtr = ((Class *)smiClassPtr)->firstAttributePtr; 
 	 attributePtr; attributePtr = attributePtr->nextPtr)
