@@ -641,10 +641,10 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 	    }
 	    smiRange = smiGetNextRange( smiRange );
 	}
-	fprintSegment( f, 0, "<xsd:minInclusive value=\"%lu\"/>\n",
+	fprintSegment( f, 0, "<xsd:minInclusive value=" UINT64_FORMAT "\"/>\n",
 		       (unsigned long)min );
 
-	fprintSegment( f, 0, "<xsd:maxInclusive value=\"%lu\"/>\n",
+	fprintSegment( f, 0, "<xsd:maxInclusive value=" UINT64_FORMAT "\"/>\n",
 		       (unsigned long)max );
 	
 	fprintSegment(f, -1, "</xsd:restriction>\n");
