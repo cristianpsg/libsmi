@@ -924,7 +924,7 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode, int flags)
 
 
 static void
-fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode, int flags)
+fprintLeafrefLeaf(FILE *f, int indent, SmiNode *smiNode, int flags)
 {
     SmiNode *entryNode;
     SmiAccess config;
@@ -932,7 +932,7 @@ fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode, int flags)
     entryNode = smiGetParentNode(smiNode);
     fprintSegment(f, indent, "leaf ", 0);
     fprint(f, "%s {\n", smiNode->name);
-    fprintSegment(f, indent + INDENT, "type keyref {\n", 0);
+    fprintSegment(f, indent + INDENT, "type leafref {\n", 0);
     fprintSegment(f, indent + 2 * INDENT, "path \"", 0);
     fprintPath(f, smiNode);
     fprint(f, "\";\n");
@@ -946,7 +946,7 @@ fprintKeyrefLeaf(FILE *f, int indent, SmiNode *smiNode, int flags)
     fprintConfig(f, indent + INDENT, config);
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT,
-		      "Automagically generated keyref leaf.");
+		      "Automagically generated leafref leaf.");
     fprintSegment(f, indent, "}\n", 0);
 }
 
@@ -1020,7 +1020,7 @@ fprintList(FILE *f, int indent, SmiNode *smiNode)
 	parentNode = smiGetParentNode(childNode);
         if (childNode->nodekind == SMI_NODEKIND_COLUMN
             && parentNode != entryNode) {
-	    fprintKeyrefLeaf(f, indent + INDENT, childNode, 0);
+	    fprintLeafrefLeaf(f, indent + INDENT, childNode, 0);
 	}
     }
 
@@ -1207,7 +1207,7 @@ fprintNotificationIndex(FILE *f, int indent,
 	childNode = smiGetElementNode(smiElement);
 	parentNode = smiGetParentNode(childNode);
 	if (childNode != ignoreNode) {
-	    fprintKeyrefLeaf(f, indent, childNode, FLAG_CONFIG_FALSE);
+	    fprintLeafrefLeaf(f, indent, childNode, FLAG_CONFIG_FALSE);
 	}
     }
 }
@@ -1291,8 +1291,8 @@ fprintNotification(FILE *f, SmiNode *smiNode)
 	}
 	
 	if (entryNode && isIndex(entryNode, vbNode)) {
-	    fprintKeyrefLeaf(f, INDENT + INDENT + INDENT,
-			     vbNode, FLAG_CONFIG_FALSE);
+	    fprintLeafrefLeaf(f, INDENT + INDENT + INDENT,
+			      vbNode, FLAG_CONFIG_FALSE);
 	} else {
 	    fprintLeaf(f, INDENT + INDENT + INDENT,
 		       vbNode, FLAG_CONFIG_FALSE);
