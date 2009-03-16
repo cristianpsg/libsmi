@@ -41,6 +41,7 @@ static int INDENT = 2;		/* indent factor */
 
 
 #define FLAG_CONFIG_FALSE 0x01
+#define FLAG_CONFIG_NONE  0x02
 
 
 static const char *convertType[] = {
@@ -102,7 +103,7 @@ static const char *convertType[] = {
 static const char *convertImport[] = {
 
     /*
-     * Things that are not types but removed from imports...
+     * Things that are not types and removed from imports...
      */
 
     "SNMPv2-SMI",  "MODULE-IDENTITY",    NULL, NULL,
@@ -907,12 +908,14 @@ fprintLeaf(FILE *f, int indent, SmiNode *smiNode, int flags)
     }
     
     fprintUnits(f, indent + INDENT, smiNode->units);
-    if (flags & FLAG_CONFIG_FALSE) {
-	config = SMI_ACCESS_READ_ONLY;
-    } else {
-	config = smiNode->access;
+    if (! (flags & FLAG_CONFIG_NONE)) {
+	if (flags & FLAG_CONFIG_FALSE) {
+	    config = SMI_ACCESS_READ_ONLY;
+	} else {
+	    config = smiNode->access;
+	}
+	fprintConfig(f, indent + INDENT, config);
     }
-    fprintConfig(f, indent + INDENT, config);
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT, smiNode->description);
     fprintReference(f, indent + INDENT, smiNode->reference);
@@ -937,13 +940,15 @@ fprintLeafrefLeaf(FILE *f, int indent, SmiNode *smiNode, int flags)
     fprintPath(f, smiNode);
     fprint(f, "\";\n");
     fprintSegment(f, indent + INDENT, "}\n", 0);
-    if (flags & FLAG_CONFIG_FALSE) {
-	config = SMI_ACCESS_READ_ONLY;
-    } else {
-	config = entryNode->create
-	    ? SMI_ACCESS_READ_WRITE : SMI_ACCESS_READ_ONLY;
+    if (! (flags & FLAG_CONFIG_NONE)) {
+	if (flags & FLAG_CONFIG_FALSE) {
+	    config = SMI_ACCESS_READ_ONLY;
+	} else {
+	    config = entryNode->create
+		? SMI_ACCESS_READ_WRITE : SMI_ACCESS_READ_ONLY;
+	}
+	fprintConfig(f, indent + INDENT, config);
     }
-    fprintConfig(f, indent + INDENT, config);
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT,
 		      "Automagically generated leafref leaf.");
@@ -1207,7 +1212,7 @@ fprintNotificationIndex(FILE *f, int indent,
 	childNode = smiGetElementNode(smiElement);
 	parentNode = smiGetParentNode(childNode);
 	if (childNode != ignoreNode) {
-	    fprintLeafrefLeaf(f, indent, childNode, FLAG_CONFIG_FALSE);
+	    fprintLeafrefLeaf(f, indent, childNode, FLAG_CONFIG_NONE);
 	}
     }
 }
@@ -1292,10 +1297,10 @@ fprintNotification(FILE *f, SmiNode *smiNode)
 	
 	if (entryNode && isIndex(entryNode, vbNode)) {
 	    fprintLeafrefLeaf(f, INDENT + INDENT + INDENT,
-			      vbNode, FLAG_CONFIG_FALSE);
+			      vbNode, FLAG_CONFIG_NONE);
 	} else {
 	    fprintLeaf(f, INDENT + INDENT + INDENT,
-		       vbNode, FLAG_CONFIG_FALSE);
+		       vbNode, FLAG_CONFIG_NONE);
 	}
 	fprintSegment(f, INDENT + INDENT, "}\n\n", 0);
     }
