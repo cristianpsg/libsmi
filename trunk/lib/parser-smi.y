@@ -722,6 +722,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 
 	if ((objectPtr->export.decl != SMI_DECL_UNKNOWN)
 	    && (objectPtr->export.nodekind != SMI_NODEKIND_NODE)
+	    && (objectPtr->export.nodekind != SMI_NODEKIND_UNKNOWN)
 	    && objectPtr->export.name
 	    && objectPtr->export.oid[objectPtr->export.oidlen-1] == 0
 	    && objectPtr->export.oidlen != 2 && objectPtr->export.oid[0] != 0) {
