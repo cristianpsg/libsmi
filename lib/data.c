@@ -2283,6 +2283,10 @@ Object *findObjectByName(const char *objectname)
     Module	     *modulePtr;
     Object           *objectPtr;
 
+    if (! objectname) {
+	return (NULL);
+    }
+
     for (modulePtr = smiHandle->firstModulePtr; modulePtr;
 	 modulePtr = modulePtr->nextPtr) {
 	for (objectPtr = modulePtr->firstObjectPtr; objectPtr;
