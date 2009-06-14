@@ -1598,10 +1598,12 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
 		 nodePtr = nodePtr->parentPtr);
 	    nodePtr = nodePtr->nextPtr;
 	    /* did we move outside the common oid prefix of this module? */
-	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++)
-		if ((!nodePtr) || (!nodePtr->oid) ||
-		    (nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]))
-		    return NULL;
+	    if (modulePtr->prefixNodePtr) {
+		for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++)
+		    if ((!nodePtr) || (!nodePtr->oid) ||
+			(nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]))
+			return NULL;
+	    }
 	}
 
 	objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
