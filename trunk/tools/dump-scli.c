@@ -6,6 +6,7 @@
  * Copyright (c) 2001 J. Schoenwaelder, Technical University of Braunschweig.
  * Copyright (c) 2002 J. Schoenwaelder, University of Osnabrueck.
  * Copyright (c) 2004 J. Schoenwaelder, International University Bremen.
+ * Copyright (c) 2009 J. Schoenwaelder, Jacobs University Bremen.
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -959,7 +960,7 @@ printCreateMethodPrototype(FILE *f, SmiNode *groupNode)
 	    "extern void\n"
 	    "%s_create_%s(GNetSnmp *s", cPrefix, cNodeName);
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
-    fprintf(f, ");\n\n");
+    fprintf(f, ", GError **error);\n\n");
 
     xfree(cNodeName);
     xfree(cPrefix);
@@ -983,7 +984,7 @@ printDeleteMethodPrototype(FILE *f, SmiNode *groupNode)
     
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     
-    fprintf(f, ");\n\n");
+    fprintf(f, ", GError **error);\n\n");
 
     xfree(cNodeName);
     xfree(cPrefix);
@@ -1009,7 +1010,7 @@ printSetMethodPrototype(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     printParam(f, smiNode);
     
-    fprintf(f, ");\n\n");
+    fprintf(f, ", GError **error);\n\n");
 
     xfree(cNodeName);
     xfree(cPrefix);
@@ -1293,7 +1294,7 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 	if (tableNode) {
 	    cTableName = translate(tableNode->name);
 	    fprintf(f, "extern void\n"
-		    "%s_get_%s(GNetSnmp *s, %s_%s_t ***%s, gint64 mask);\n\n",
+		    "%s_get_%s(GNetSnmp *s, %s_%s_t ***%s, gint64 mask, GError **error);\n\n",
 		    cPrefix, cTableName,
 		    cPrefix, cGroupName, cGroupName);
 	    fprintf(f, "extern void\n"
@@ -1314,10 +1315,10 @@ printHeaderTypedef(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
     if (groupNode->nodekind == SMI_NODEKIND_ROW) {
 	foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     }
-    fprintf(f, ", gint64 mask);\n\n");
+    fprintf(f, ", gint64 mask, GError **error);\n\n");
     if (writable) {
 	fprintf(f, "extern void\n"
-		"%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask);\n\n",
+		"%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask, GError **error);\n\n",
 		cPrefix, cGroupName,
 		cPrefix, cGroupName, cGroupName);
     }
@@ -2602,7 +2603,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_get_%s(GNetSnmp *s, %s_%s_t ***%s, gint64 mask)\n"
+	    "%s_get_%s(GNetSnmp *s, %s_%s_t ***%s, gint64 mask, GError **error)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cTableName, cPrefix, cRowName, cRowName);
@@ -2631,7 +2632,7 @@ printGetTableMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = gnet_snmp_sync_table(s, in);\n"
+	    "    out = gnet_snmp_sync_table(s, in, error);\n"
 	    "    /* gnet_snmp_varbind_list_free(in); */\n"
 	    "\n");
     fprintf(f,
@@ -2669,7 +2670,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
     foreachIndexDo(f, rowNode, printIndexParamsFunc, 1, 0);
     fprintf(f,
-	    ", gint64 mask)\n"
+	    ", gint64 mask, GError **error)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n");
 
@@ -2707,7 +2708,7 @@ printGetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = gnet_snmp_sync_get(s, in);\n"
+	    "    out = gnet_snmp_sync_get(s, in, error);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
@@ -2744,7 +2745,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask)\n"
+	    "%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask, GError **error)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cRowName, cPrefix, cRowName, cRowName);
@@ -2777,7 +2778,7 @@ printSetRowMethod(FILE *f, SmiModule *smiModule, SmiNode *rowNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = gnet_snmp_sync_set(s, in);\n"
+	    "    out = gnet_snmp_sync_set(s, in, error);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
@@ -2817,7 +2818,7 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     
     fprintf(f,
-	    ")\n"
+	    ", GError **error)\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
 	    "    gint32 create = 4; /* SNMPv2-TC::RowStatus createAndGo */\n"
@@ -2834,7 +2835,7 @@ printCreateMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 	    cGroupName, cNodeName);
 
     fprintf(f,
-	    "    %s_set_%s(s, %s, %s_%s);\n"
+	    "    %s_set_%s(s, %s, %s_%s, error);\n"
 	    "    %s_free_%s(%s);\n",
 	    cPrefix, cGroupName, cGroupName,
 	    dModuleName, dNodeName,
@@ -2876,7 +2877,7 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 1, 0);
     
     fprintf(f,
-	    ")\n"
+	    ", GError **error)\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
 	    "    gint32 destroy = 6; /* SNMPv2-TC::RowStatus destroy */\n"
@@ -2890,7 +2891,8 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 0, 0);
     
     fprintf(f,
-	    ", %s_%s);\n"
+	    ", %s_%s, error);\n"
+	    "    if (error && *error) return;\n"
 	    "    if (s->error_status || !%s) return;\n",
 	    dModuleName, dNodeName,
 	    cGroupName);
@@ -2899,7 +2901,7 @@ printDeleteMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
 	    cGroupName, cNodeName);
 
     fprintf(f,
-	    "    %s_set_%s(s, %s, %s_%s);\n"
+	    "    %s_set_%s(s, %s, %s_%s, error);\n"
 	    "    %s_free_%s(%s);\n",
 	    cPrefix, cGroupName, cGroupName,
 	    dModuleName, dNodeName,
@@ -2948,7 +2950,7 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     printParam(f, smiNode);
     
     fprintf(f,
-	    ")\n"
+	    ", GError **error)\n"
 	    "{\n"
 	    "    %s_%s_t *%s;\n"
 	    "\n", cPrefix, cGroupName, cGroupName);
@@ -2960,7 +2962,8 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     foreachIndexDo(f, groupNode, printIndexParamsFunc, 0, 0);
     
     fprintf(f,
-	    ", %s_%s);\n"
+	    ", %s_%s, error);\n"
+	    "    if (error && *error) return;\n"
 	    "    if (s->error_status || !%s) return;\n",
 	    dModuleName, dNodeName,
 	    cGroupName);
@@ -2989,7 +2992,7 @@ printSetMethod(FILE *f, SmiNode *groupNode, SmiNode *smiNode)
     }
 
     fprintf(f,
-	    "    %s_set_%s(s, %s, %s_%s);\n"
+	    "    %s_set_%s(s, %s, %s_%s, error);\n"
 	    "    %s_free_%s(%s);\n",
 	    cPrefix, cGroupName, cGroupName,
 	    dModuleName, dNodeName,
@@ -3019,7 +3022,7 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_get_%s(GNetSnmp *s, %s_%s_t **%s, gint64 mask)\n"
+	    "%s_get_%s(GNetSnmp *s, %s_%s_t **%s, gint64 mask, GError **error)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
@@ -3044,11 +3047,11 @@ printGetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = gnet_snmp_sync_getnext(s, in);\n"
+	    "    out = gnet_snmp_sync_getnext(s, in, error);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
-	    "        if (s->error_status != GNET_SNMP_PDU_ERR_NOERROR) {\n"
+	    "        if ((error && *error) || s->error_status != GNET_SNMP_PDU_ERR_NOERROR) {\n"
 	    "            g_list_foreach(out, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "            g_list_free(out);\n"
 	    "            return;\n"
@@ -3075,7 +3078,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "void\n"
-	    "%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask)\n"
+	    "%s_set_%s(GNetSnmp *s, %s_%s_t *%s, gint64 mask, GError **error)\n"
 	    "{\n"
 	    "    GList *in = NULL, *out = NULL;\n",
 	    cPrefix, cGroupName, cPrefix, cGroupName, cGroupName);
@@ -3092,7 +3095,7 @@ printSetScalarsMethod(FILE *f, SmiModule *smiModule, SmiNode *groupNode)
 
     fprintf(f,
 	    "\n"
-	    "    out = gnet_snmp_sync_set(s, in);\n"
+	    "    out = gnet_snmp_sync_set(s, in, error);\n"
 	    "    g_list_foreach(in, (GFunc) gnet_snmp_varbind_delete, NULL);\n"
 	    "    g_list_free(in);\n"
 	    "    if (out) {\n"
