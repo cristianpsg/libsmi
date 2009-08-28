@@ -144,6 +144,13 @@ smidump.exe:	$(TOOLSOBJS) $(SMILIB)
 		dump-compliance.o dump-yang.o dump-boilerplate.o \
 		shhopt.o fprint.o fortopat.o rea.o $(SMILIB)
 
+dump-svg.o: ../tools/dump-svg.c ../tools/dump-svg-script.h
+
+../tools/dump-svg-script.h: ../tools/dump-svg-script.js
+	echo "const char *code =" > ../tools/dump-svg-script.h
+	cat ../tools/dump-svg-script.js | sed -e 's/\\\\/&&/g;s/"/\\"/g;s/^/"/;s/$$/\\\\n"/' >> ../tools/dump-svg-script.h
+	echo ";" >> ../tools/dump-svg-script.h
+
 smidiff.exe:	$(TOOLSOBJS) $(SMILIB)
 	$(CC) $(CFLAGS) -o smidiff.exe smidiff.o shhopt.o $(SMILIB)
 
