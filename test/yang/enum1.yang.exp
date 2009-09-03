@@ -1,0 +1,4 @@
+enum1.yang:9: The 'enum' statement takes as an argument a string which MUST NOT be empty and MUST NOT have any leading or trailing  whitespace characters.
+enum1.yang:12: The 'enum' statement takes as an argument a string which MUST NOT be empty and MUST NOT have any leading or trailing  whitespace characters.
+enum1.yang:16: The 'enum' statement takes as an argument a string which MUST NOT be empty and MUST NOT have any leading or trailing  whitespace characters.
+enum1.yang:20: enum name 'test' is duplicated within the enumeration

@@ -1,0 +1,30 @@
+ module cyclic-groupings {
+	namespace "urn:test";
+	prefix "cyclic-groupings";
+
+	grouping target {
+		container c {
+            uses test;
+        }
+       uses target;
+	}
+
+	grouping test {
+        container c {
+            uses target;
+        }
+	}
+
+    grouping test1 {
+        uses test2;
+    }
+
+    grouping test2 {
+        uses test3;
+    }
+
+    grouping test3 {
+        uses test1;
+    }
+}                                                                                                    
+

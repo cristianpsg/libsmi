@@ -1,0 +1,25 @@
+module enum1 {
+	namespace "http://yang.libsmi.org/enum1";
+	prefix enum1;
+
+    typedef type1 { 
+		type enumeration {
+			enum "iftested enabled";
+
+			enum " enabled" {
+			 value 1;
+			}
+			enum "disabled	" {
+			 value 2;
+			}
+
+			enum "" {
+			 value 2;
+			}
+			enum test;
+			enum test;
+
+		}
+    }
+
+}

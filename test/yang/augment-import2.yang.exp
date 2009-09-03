@@ -1,0 +1,2 @@
+augment-import2.yang:10: augment instantiotion causes duplication of identifier 'ifEntry'
+augment-import2.yang:19: augment instantiotion causes duplication of identifier 'test2'

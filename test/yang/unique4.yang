@@ -1,0 +1,49 @@
+submodule unique4 
+{
+	belongs-to unique1 {
+		prefix u2;
+	}
+
+    typedef instance-identifier {
+        type string;
+    }
+
+    typedef my-str2 {
+        type string;
+    }
+	
+	leaf how1 {
+		type int32;
+	} 
+
+	leaf how1 {
+		type int32;
+	} 
+
+    anyxml test;
+    anyxml test;
+    choice how {
+		container ethernet3 {
+		}
+        case interval {
+            anyxml test; 
+			leaf ethernet3 {
+ 				type uint16;
+	        }
+			leaf how1 {
+ 				type uint16;
+	        }
+            container ethernet4 {
+            }
+		}
+		case test {
+            anyxml test;
+		    container ethernet4 {
+		    }
+		}
+        anyxml test;
+	}
+
+    feature f1;
+    feature f1;
+}

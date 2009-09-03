@@ -1,0 +1,10 @@
+// wrong
+
+// Notes:
+// 1. according to the specification between a 'module' keyword and an identifier must be 'separotor'= WSP | LineBreak (pyang considers this example as correct
+
+module"test8" {
+	namespace "urn:smilib:params:test8";
+ 	prefix yang-test._8; 
+
+}

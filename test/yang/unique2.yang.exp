@@ -1,0 +1,5 @@
+unique3.yang:19: identifier 'how1' is already defined within the namespace
+unique3.yang:28: identifier 'ethernet3' is already defined within the namespace
+unique3.yang:38: identifier 'ethernet4' is already defined within the namespace
+unique2.yang:21: identifier 'my-str' is already defined within the namespace
+unique2.yang:43: identifier 'ifType' is already defined within the namespace

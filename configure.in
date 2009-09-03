@@ -322,6 +322,7 @@ tools/smicache.1
 tools/smixlate.1
 tools/mib2svg.cgi
 test/parser.test
+test/parser-yang.test
 test/smidump-corba.test
 test/smidump-jax.test
 test/smidump-netsnmp.test

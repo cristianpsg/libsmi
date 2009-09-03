@@ -1,0 +1,30 @@
+// wrong - the last revision date  is incorrect
+
+// Notes:
+// 1. This test is  intended to check the corectness of scanning of the 'date' tokens;
+//
+
+module test5 {
+	namespace "urn:smilib:params:test5";
+ 	prefix 'yang.te-_st'; 
+
+	revision 2009-02-27 {
+    		description "Revision 1." ;
+
+  	}
+
+	revision '2009-02-27';
+  	
+	revision "2009-02-27" {
+	}
+  	
+	revision 2009-02-3a {
+    		description "Revision 1." ;
+
+  	}
+
+}
+ 
+  
+
+

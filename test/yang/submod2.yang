@@ -1,0 +1,10 @@
+// correct
+// NOTE:
+// included by 'composite'
+submodule submod2 {
+
+    belongs-to notComposite {
+        prefix mod;
+    }
+
+}

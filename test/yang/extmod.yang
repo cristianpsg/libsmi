@@ -1,0 +1,6 @@
+module extmod {
+	namespace "urn:smilib:extmod";
+	prefix extmod;
+    extension subext1 {
+    }
+}

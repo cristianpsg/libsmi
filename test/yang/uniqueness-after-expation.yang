@@ -1,0 +1,20 @@
+module grouping 
+{
+    namespace "urn:test";
+    prefix grop;
+
+    container container1 {
+		typedef type1 {
+		    type string;
+		}
+    }
+	           
+    uses testGrouping;
+ 
+    grouping testGrouping {
+ 	    typedef type1 {
+		    type string;		
+        }
+        anyxml container1;
+    }
+}

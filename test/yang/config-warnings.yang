@@ -1,0 +1,36 @@
+module config-warnings {
+	namespace "http://example.com/config-warnings";
+	prefix "config-warnings";
+
+	rpc activate-software-image {
+		input {
+            container c1 {
+                config false;
+    			leaf image-name {
+                    config true;
+		    		type string;
+			    }
+            }
+		}
+		output {
+			leaf status1 {
+                config false;
+				type string;
+			}
+		}
+	}
+
+     notification link-failure {
+         description "A link failure has been detected";
+         leaf if-name {
+             type int32;
+         }
+         leaf if-admin-status {
+             type int32;
+         }
+     }
+
+}                                                                                                    
+
+
+

@@ -1,0 +1,10 @@
+ module identity1 {
+	namespace "http://example.com/identity1";
+	prefix "crypto";
+
+	identity crypto-alg {
+         description
+             "Base identity from which all crypto algorithms
+              are derived.";
+	}
+}                                                                                                    

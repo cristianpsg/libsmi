@@ -1,0 +1,34 @@
+// incorrect, contains cyclic import
+//
+// NOTE:
+// 1. just used to test the import statement in test 16
+
+module imported2 {
+
+  namespace "urn:test:imported2";
+  prefix imported2;
+
+  import imported2 {
+       prefix imported1;
+  }
+
+  grouping x {
+    leaf foo { type empty; mandatory true; }
+  }
+
+  typedef xc {
+    type int32;
+  }
+
+  extension x {
+    argument name;
+  }
+
+   leaf foo { type int16; }
+
+
+   extension foo {
+     argument bar {
+     }
+   }
+}

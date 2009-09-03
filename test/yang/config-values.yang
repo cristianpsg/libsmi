@@ -1,0 +1,45 @@
+module config {
+	namespace "urn:test:config";
+	prefix "config";
+
+
+    container c {
+   		config false;
+		list interface {
+
+		     container test {
+				 config true;
+		         leaf name1 {
+		             type string;
+		         }
+		     }
+
+		     leaf name {
+		         type string;
+		     }
+
+		     leaf observed-speed {
+		         type uint32;
+		         config false;
+		     }
+		 }
+    }
+
+ 
+ 	list interface-state {
+         config false;
+
+         leaf name {
+             type string;
+         }
+         
+         leaf observed-speed {
+             type uint32;
+             config false;
+         }
+     }
+    
+}                                                                                                    
+
+
+

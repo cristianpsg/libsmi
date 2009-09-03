@@ -1,0 +1,10 @@
+// incorrect
+
+// Notes:
+// 1. Module prefix is missing, but it is required.
+//
+
+module "test10"{
+	yang-version '1' {}
+	namespace "urn:smilib:params:test10"; 
+}

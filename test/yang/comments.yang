@@ -1,0 +1,20 @@
+// correct
+
+// NOTE:
+// * test comments within a concatenation of strings
+
+module testComments {
+  namespace "urn:test:comments";
+  prefix "comments";
+
+  revision 1999-02-23 {
+      description "Revision 1." /*test comment1*/ + "test2"  // ;test comment 2
+		//
+	/* test comment3 */
+	+ "test" /* test comment4 */
+	+ /* test comment5 */ "test" // test comment 6
+	;
+  }
+  
+}
+

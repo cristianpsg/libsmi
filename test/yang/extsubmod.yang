@@ -1,0 +1,9 @@
+submodule extsubmod {
+
+    belongs-to extension1 {
+        prefix ext1;
+    }
+
+    extension subext1 {
+    }
+}

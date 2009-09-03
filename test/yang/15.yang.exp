@@ -1,0 +1,5 @@
+15.yang:24: argument has been already defined
+15.yang:27: status has been already defined
+15.yang:31: description has been already defined
+15.yang:34: reference has been already defined
+15.yang:22: identifier 'ext1' is already defined within the namespace

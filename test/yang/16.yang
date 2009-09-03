@@ -1,0 +1,22 @@
+// correct
+//
+// NOTE:
+// 1. tests the import statement
+
+module test16 {
+
+  namespace "urn:test:test16";
+  prefix test16;
+
+  import imported2 {
+    prefix imported3;
+  }
+
+//  uses xt:x;
+
+  typedef xc {
+       type int32;
+  }
+
+
+}

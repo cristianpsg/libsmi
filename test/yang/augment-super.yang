@@ -1,0 +1,29 @@
+ module augment-super {
+	namespace "http://example.com/augmentsuper";
+	prefix "as";
+
+	include augment;
+
+	augment "/as:interfaces/ifEntry" {
+		leaf ifEntry {
+			type int8;
+		}
+	}
+
+	augment "/interfaces/ifEntry/ifIndex" {
+		leaf ifEntry {
+			type int8;
+		}
+	}
+
+	augment "/interfaces/ifEntry2" {
+		leaf ifEntry {
+			type int8;
+		}
+	}
+
+
+}                                                                                                    
+
+
+

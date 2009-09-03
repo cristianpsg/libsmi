@@ -1,0 +1,26 @@
+ module augment-import {
+	namespace "http://example.com/augmentimport";
+	prefix "im";
+
+	import augment-super {
+		prefix "as";
+	}
+
+	augment "/as:interfaces/as:ifEntry" {
+		when "au:ifType='ds0'";
+		leaf ifEntry {
+			type int8;
+		}
+	}
+
+	augment "/as:interfaces/as:test" {
+		when "au:ifType='ds0'";
+		leaf ifEntry {
+			type int8;
+		}
+	}
+
+}                                                                                                    
+
+
+

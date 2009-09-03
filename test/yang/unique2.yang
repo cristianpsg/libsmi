@@ -1,0 +1,55 @@
+submodule unique2 
+{
+	belongs-to unique1 {
+		prefix u1;
+	}
+
+	include unique3;
+
+	organization 4876764jhhk; 
+	contact 7823.1234123dssd;
+	description 7462,3432;
+	reference "Siarhei Kuryla";
+
+    typedef type1 {
+        type int32;
+        units "test-units";
+        default "123";
+        status "current";        
+    }
+
+    typedef my-str {
+        type string;
+    }
+
+    leaf host-name {
+        type type1;
+        description "Hostname for this system";
+    }
+
+    leaf my-leaf {
+        type leafref {
+            path "/host-name";
+        }
+    }
+
+	container interface {
+		leaf ifType {
+			type enumeration {
+				enum ethernet;
+				enum atm;
+			}
+		}
+		leaf-list ifType {
+		     type string;
+		     description "List of domain names to search";
+		}
+
+        typedef str1 {
+            type string;
+        }
+
+       
+	}
+ 
+}

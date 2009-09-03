@@ -1,0 +1,25 @@
+submodule augment2 {
+	belongs-to augment-super2 {
+		prefix "as";
+	}
+
+	container interfaces {
+		list ifEntry {
+			key "ifIndex";
+
+			leaf ifIndex {
+				type int32;
+			}
+		}
+
+        choice ch1 {
+            case test1{
+            }
+            case test2{
+            }
+        }
+	}
+}                                                                                                    
+
+
+

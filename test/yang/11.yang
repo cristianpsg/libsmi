@@ -1,0 +1,10 @@
+// incorrect
+
+// Notes:
+// 1. Module namespace is missing, but it is required.
+//
+
+module "test11"{
+	yang-version '1' {}
+	prefix yang-test._11;
+}

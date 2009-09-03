@@ -1,0 +1,19 @@
+ module identity2 {
+     namespace "http://example.com/des";
+     prefix "des";
+
+     import "identity1" {
+         prefix "crypto";
+     }
+
+     identity des {
+         base "crypto:crypto-alg";
+         description "DES crypto algorithm";
+     }
+
+     identity des3 {
+         base "crypto:crypto-alg";
+         description "Triple DES crypto algorithm";
+     }
+ }
+

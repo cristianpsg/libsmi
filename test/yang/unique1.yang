@@ -1,0 +1,41 @@
+module unique1 {
+	namespace "urn:test:unique1";
+	prefix "unique1";
+
+	include unique2;
+
+	typedef type1 {
+		type int32;
+	}
+
+	typedef type1 {
+		type string;
+	}
+
+	typedef type1 {
+		type string;
+	}
+
+    leaf host-name {
+        type type1;
+        description "Hostname for this system";
+    }
+
+	container interface {
+		leaf ifType {
+			type enumeration {
+				enum ethernet;
+				enum atm;
+			}
+		}
+		leaf-list ifType {
+		     type string;
+		     description "List of domain names to search";
+		}
+	}  
+
+    typedef my-str2 {
+        type string;
+    }
+}
+

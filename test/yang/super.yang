@@ -1,0 +1,13 @@
+module super {
+	namespace "urn:test:super";
+	prefix "s";
+
+	import base {
+		prefix b;
+		revision 2009-04-25;
+	}
+
+	revision 2009-04-01 {
+	}
+}
+

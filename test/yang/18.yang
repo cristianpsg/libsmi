@@ -1,0 +1,14 @@
+// wrong
+//
+// NOTE:
+// 1. namespace and prefix are not allowed here
+
+submodule submod {
+    namespace nm;
+    prefix pr;
+
+belongs-to modu {
+    prefix mod;
+}
+
+}

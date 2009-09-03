@@ -1,0 +1,25 @@
+ module augment-import2 {
+	namespace "urn:test:augment";
+	prefix "im";
+
+	import augment-super2 {
+		prefix "as";
+	}
+
+	augment "/as:interfaces" {
+		leaf ifEntry {
+            mandatory true;
+			type int8;
+		}
+	}
+
+    augment "/as:interfaces/as:ch1" {
+        case tes3 {
+        }
+        case test2 {
+        }
+    }
+}                                                                                                    
+
+
+

@@ -1,0 +1,22 @@
+// incorrect
+//
+// NOTE:
+// 1. test uniqueness of imports
+
+module prefix1 {
+
+	namespace "urn:test:prefix1";
+	prefix pr1;
+
+  	import imported1 {
+		prefix pr2;
+	}
+
+  	import imported1 {
+		prefix pr1;
+	}
+
+  	import imported1 {
+		prefix pr2;
+	}
+}

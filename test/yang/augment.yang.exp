@@ -1,0 +1,6 @@
+augment.yang:8: anyxml 'test' is not allowed as a child node of the target container 'interfaces'
+augment.yang:22: case 'test' is not allowed as a child node of the target container 'c'
+augment.yang:26: leaf 'test' is not allowed as a child node of the target choice 'test-choice'
+as:d' can not be resolved
+as:tets' can not be resolved
+augment.yang:51: augment instantiotion causes duplication of identifier 'ifIndex'

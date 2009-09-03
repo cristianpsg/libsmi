@@ -1,0 +1,3 @@
+list2.yang:11: a default value can not be given when 'mandotory' is true
+list2.yang:17: mandatory nodes are not allowed directly under the default case 'node' of the choice 'test'
+list2.yang:7: the key 'name' does not reference an existing leaf

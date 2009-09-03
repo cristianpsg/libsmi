@@ -1,0 +1,13 @@
+module composite {
+    namespace composite;
+    prefix c;
+
+    include submod1 {
+        revision 2008-01-01;
+    }    
+
+    include submod2 {
+        revision 2008-01-01;
+    }    
+   
+}

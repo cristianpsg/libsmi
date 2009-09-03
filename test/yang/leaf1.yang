@@ -1,0 +1,62 @@
+ module leaf1 {
+	namespace "http://example.com/leaf1";
+	prefix "leaf1";
+
+	leaf port {
+		type int16;
+		default 22;
+		description "The port which the SSH server listens to";
+    }
+
+	list server {
+		key "name";
+		unique "ip port";
+		leaf name {
+			type string;
+		}
+		leaf ip {
+			type int32;
+		}
+		leaf port {
+			type int16;
+		}
+	}
+
+	leaf-list domain-search {
+		type string;
+		description "List of domain names to search";
+	}
+
+	container system {
+		leaf host-name {
+			type string;
+			description "Hostname for this system";
+		}
+
+		leaf-list domain-search {
+			type string;
+			description "List of domain names to search";
+		}
+
+		container login {
+			leaf message {
+				type string;
+				description "Message given at start of login session";
+			}
+
+			list user {
+				key "name";
+				leaf name {
+					type string;
+				}
+				leaf full-name {
+					type string;
+				}
+				leaf class {
+					type string;
+				}
+			}
+		}
+	}
+}
+

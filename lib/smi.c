@@ -27,7 +27,9 @@
 #endif
 
 #include "smi.h"
+#include "common.h"
 #include "data.h"
+#include "yang-data.h"
 #include "error.h"
 #include "util.h"
 #include "snprintf.h"
@@ -40,11 +42,6 @@
 #ifdef BACKEND_SMING
 #include "scanner-sming.h"
 #include "parser-sming.h"
-#endif
-
-#ifdef BACKEND_YANG
-#include "scanner-yang.h"
-#include "parser-yang.h"
 #endif
 
 #ifdef HAVE_DMALLOC_H
@@ -198,7 +195,7 @@ int smiInit(const char *tag)
 
     smiHandle = findHandleByName(tag);
     if (smiHandle) {
-	return 0;
+        return 0;
     }
     smiHandle = addHandle(tag);
     
@@ -212,7 +209,7 @@ int smiInit(const char *tag)
 #endif
     
     if (smiInitData()) {
-	return -1;
+        return -1;
     }
 
     /*
@@ -275,6 +272,9 @@ void smiExit()
 	return;
 
     smiFreeData();
+#ifdef BACKEND_YANG
+    yangFreeData();
+#endif
 
     smiFree(smiHandle->path);
 #if !defined(_MSC_VER)
@@ -287,8 +287,6 @@ void smiExit()
     smiHandle = NULL;
     return;
 }
-
-
 
 char *smiGetPath()
 {
@@ -409,18 +407,32 @@ int smiIsLoaded(const char *module)
     return isInView(module);
 }
 
-
+extern _YangNode *loadYangModule(const char *modulename, const char *revision, Parser *parserPtr);
 
 char *smiLoadModule(const char *module)
 {
     Module *modulePtr;
+    SmiLanguage lang;
     
     if (!smiHandle) smiInit(NULL);
+    
+    lang = guessLanguage(module);
+
+#ifdef BACKEND_YANG
+    if (lang == SMI_LANGUAGE_YANG) {
+        _YangNode *yangModulePtr = loadYangModule(module, NULL, NULL);
+        if (yangModulePtr) {
+            return yangModulePtr->export.value;
+        } else {
+            return NULL;
+        }
+    }
+#endif
 
     if (smiIsPath(module)) {
-
+	
 	modulePtr = loadModule(module, NULL);
-
+	
 	if (modulePtr) {
 	    if (!isInView(modulePtr->export.name)) {
 		addView(modulePtr->export.name);
@@ -429,9 +441,7 @@ char *smiLoadModule(const char *module)
 	} else {
 	    return NULL;
 	}
-
-    } else {
-	
+    } else {	
 	if ((modulePtr = findModuleByName(module))) {
 	    /* already loaded. */
 	    if (!isInView(module)) {
@@ -450,8 +460,6 @@ char *smiLoadModule(const char *module)
 	}
     }
 }
- 
-
 
 void smiSetErrorLevel(int level)
 {
@@ -1280,172 +1288,6 @@ int smiGetMacroLine(SmiMacro *smiMacroPtr)
     return ((Macro *)smiMacroPtr)->line;
 }
 
-SmiYangNode *smiGetFirstRootNode(SmiModule *module)
-{
-    YangNode *node = NULL;
-    
-    if (! module) {
-	node = ((Module*)module)->firstYangNodePtr;
-    }
-    
-    return node ? &(node->export) : NULL;
-}
-
-SmiYangNode *smiGetNextRootNode(SmiYangNode *node)
-{
-    YangNode *next = NULL;
-    
-    if (node) {
-	next = ((YangNode*)node)->nextSiblingPtr;
-    }
-    
-    return next ? &(next->export) : NULL;
-}
-
-SmiYangNode *smiGetFirstChildYangNode(SmiYangNode *node)
-{
-    YangNode *first = NULL;
-    
-    if (node) {
-	first = ((YangNode*)node)->firstChildPtr;
-    }
-    
-    return first ? &(first->export) : NULL;
-}
-
-SmiYangNode *smiGetNextChildYangNode(SmiYangNode *node)
-{
-    YangNode *next = NULL;
-    
-    if (node) {
-	next = ((YangNode*)node)->nextSiblingPtr;
-    }
-    return next ? &(next->export) : NULL;
-}
-
-SmiType *smiGetYangNodeType(SmiYangNode *node)
-{
-    SmiType *type = NULL;
-    
-    if (node) {
-	type = &(((YangNode*)node)->type->export);
-    }
-    
-    return type;
-}
-
-SmiRange *smiGetYangNodeMinMaxElements(SmiYangNode *node)
-{
-    SmiRange *range = NULL;
-    
-    if (node) {
-	range = &(((YangNode*)node)->minMaxElements->export);
-    }
-    
-    return range;
-}
-
-SmiYangNode *smiGetFirstUniqueYangNode(SmiYangNode *node)
-{
-    YangNode *yn = NULL;
-    SmiYangNode *first = NULL;
-    
-    if (!node || node->nodeKind != SMI_DECL_LIST) {
-	return NULL;
-    }
-    
-    yn = (YangNode*) node;
-    if (yn->uniqueList || yn->uniqueList->yangNode) {
-	first = &(yn->uniqueList->yangNode->export);
-    }
-    
-    return first;
-}
-
-SmiYangNode *smiGetNextUniqueYangNode(SmiYangNode *node)
-{
-    YangNode *parent = NULL;
-    YangNodeList *tmp;
-    SmiYangNode *next = NULL;
-    
-    parent = node ? ((YangNode*)node)->parentPtr : NULL;
-    
-    if (! parent || parent->export.nodeKind != SMI_DECL_LIST) {
-	return NULL;
-    }
-    
-    for (tmp = parent->uniqueList; tmp; tmp = tmp->next) {
-	if (&(tmp->yangNode->export) == node) break;
-    }
-    
-    if (tmp && tmp->next && tmp->next->yangNode) {
-	next = &(tmp->next->yangNode->export);
-    }
-    
-    return next;
-}
-
-SmiYangNode *smiGetFirstKeyYangNode(SmiYangNode *node)
-{
-    YangNode *yn = NULL;
-    SmiYangNode *first = NULL;
-
-    if (!node || node->nodeKind != SMI_DECL_LIST) {
-	return NULL;
-    }
-	
-    yn = (YangNode*)node;
-    if (yn->keyList && yn->keyList->yangNode) {
-	first = &(yn->keyList->yangNode->export);
-    }
-
-    return first;
-}
-
-SmiYangNode *smiGetNextKeyYangNode(SmiYangNode *node)
-{
-    YangNode *parent = NULL;
-    YangNodeList *tmp;
-    SmiYangNode *next = NULL;
-
-    parent = node ? ((YangNode*)node)->parentPtr : NULL;
-	
-    if (!parent || parent->export.nodeKind != SMI_DECL_LIST) {
-	return NULL;
-    }
-	
-    for(tmp = parent->keyList; tmp; tmp = tmp->next) {
-	if(&(tmp->yangNode->export) == node) break;
-    }
-	
-    if (tmp && tmp->next && tmp->next->yangNode) {
-	next = &(tmp->next->yangNode->export);
-    }
-
-    return next;
-}
-
-SmiMustStatement *smiGetFirstMustStatement(SmiYangNode *node)
-{
-    Must *first = NULL;
-    
-    if (node) {
-	first = ((YangNode*)node)->firstMustPtr;
-    }
-    
-    return first ? &(first->export) : NULL;
-}
-
-SmiMustStatement *smiGetNextMustStatement(SmiMustStatement *must)
-{
-    Must *next = NULL;
-    
-    if (must) {
-	next = ((Must*)must)->nextPtr;
-    }
-
-    return next ? &(next->export) : NULL;
-}
 
 SmiNode *smiGetNode(SmiModule *smiModulePtr, const char *node)
 {
@@ -1598,12 +1440,10 @@ SmiNode *smiGetNextNode(SmiNode *smiNodePtr, SmiNodekind nodekind)
 		 nodePtr = nodePtr->parentPtr);
 	    nodePtr = nodePtr->nextPtr;
 	    /* did we move outside the common oid prefix of this module? */
-	    if (modulePtr->prefixNodePtr) {
-		for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++)
-		    if ((!nodePtr) || (!nodePtr->oid) ||
-			(nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]))
-			return NULL;
-	    }
+	    for (i = 0; i < modulePtr->prefixNodePtr->oidlen; i++)
+		if ((!nodePtr) || (!nodePtr->oid) ||
+		    (nodePtr->oid[i] != modulePtr->prefixNodePtr->oid[i]))
+		    return NULL;
 	}
 
 	objectPtr = getNextChildObject(nodePtr, modulePtr, nodekind);
