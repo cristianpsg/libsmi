@@ -1,0 +1,3 @@
+cyclic-groupings.yang:5: circular dependency for grouping identifier 'target'
+cyclic-groupings.yang:5: circular dependency for grouping identifier 'target'
+cyclic-groupings.yang:18: circular dependency for grouping identifier 'test1'

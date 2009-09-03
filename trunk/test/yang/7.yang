@@ -1,0 +1,14 @@
+// correct
+
+// Notes:
+// Tests a feature that does not work in our implementation as of today;
+// (we can not use "\\" at the end of the double quoted string)
+
+module "test6" {
+  namespace "urn:smilib:params:test6";
+  prefix test6;
+ 
+  revision 2009-02-27 {
+    description "\\";
+  }
+}

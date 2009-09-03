@@ -350,6 +350,9 @@ int main(int argc, char *argv[])
     initXsd();
     initCompliances();
     initYang();
+#ifdef BACKEND_YANG
+    initYangSK();
+#endif
     initBoilerplate();
     
     for (i = 1; i < argc; i++)

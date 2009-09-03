@@ -1,0 +1,13 @@
+// wrong: prefix is required
+
+// Notes:
+// 1. testing using comments as a separator;
+//
+
+module/*sdf*/test1 {
+  namespace "urn:smilib:params:test1";
+
+} 
+  
+
+

@@ -1,0 +1,173 @@
+// correct
+ 
+// Notes:
+// defines a number of extensions
+
+module types 
+{
+	namespace "urn:smilib:params:types";
+ 	prefix types; 
+
+    import typeset {
+        prefix ts;
+    }
+
+	organization 4876764jhhk; 
+	contact 7823.1234123dssd;
+	description 7462,3432;
+	reference "Siarhei Kuryla";
+
+    leaf host-name {
+        type type1;
+        description "Hostname for this system";
+    }
+
+    /*
+     * Integer and Float types
+     */
+    typedef type1 {
+        type int32;
+        units "test-units";
+        default "123";
+        status "current";        
+    }
+
+    typedef type2 {
+        type int32 {
+             range "112..333" {
+                 description TestDecimal;
+                 reference 'Siarhei Kuryla';
+                 error-message 'Err message';
+                 error-app-tag 'Err tag';
+             }
+        }    
+        status current;
+    }
+
+    /*
+     *  External types
+     */
+    typedef INF {
+        type ts:type1;
+        status 'obsolete';       
+    }
+
+    /*
+     *  String types
+     */
+    typedef my-str {
+        type string;
+    }
+
+    typedef my-improved-str {
+        type string {
+            length "1";
+            pattern "[pat]";
+            pattern "[pat]";
+
+        }
+    }
+
+    /*
+     *  Enum types
+     */
+    typedef my-enum {
+        type enumeration {
+            enum "option1" {
+                value "12";
+            }
+            enum "option2" {
+                value "14";
+            }
+//            enum "  option4   ";
+        }
+    }
+
+    /*
+     *  Leafref types
+     */
+    leaf my-leaf {
+        type leafref {
+            path "/host-name";
+        }
+    }
+
+     leaf my-leaf2 {
+        type leafref {            
+           path "/host-name";
+           require-instance true;
+        }
+    }
+
+    /*
+     * IdentityRef types
+     */   
+    leaf my-identityref {
+        type identityref {
+            base "testvalue";
+        }
+    }
+
+     leaf my-identityref2 {
+        type identityref2 {
+           require-instance true;
+           base "test-value2";
+        }
+    }
+
+    /*
+     *  Bit types
+     */
+    
+    typedef my-bit {
+        type bits {
+            bit disable-nagle {
+                position 0;
+            }
+            bit auto-sense-speed {
+                position 1;
+            }
+            bit Mb-only {
+                position 2;
+            }
+        }
+    }
+
+    /*
+     *  Union types
+     */
+     typedef my-union {
+        type union {
+           type union {
+                type int32;
+                type enumeration {
+                     enum "unbounded";
+                }
+            }
+        }
+     }
+    
+    /*
+     *  Binary types
+     */
+     typedef my-binary {
+        type binary {
+            length "1";
+        }
+     }
+
+    /*
+     *  Boolean types
+     */
+     typedef my-boolean {
+         type boolean;
+     }
+
+     /*
+      * Empty types
+      */
+     typedef my-empty {
+         type boolean;
+     }
+
+}

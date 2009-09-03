@@ -1,0 +1,7 @@
+unique4.yang:7: illegal type name 'instance-identifier', must be not one of the YANG built-in types.
+unique4.yang:19: identifier 'how1' is already defined within the namespace
+unique4.yang:24: identifier 'test' is already defined within the namespace
+unique4.yang:30: identifier 'ethernet3' is already defined within the namespace
+unique4.yang:40: identifier 'test' is already defined within the namespace
+unique4.yang:41: identifier 'ethernet4' is already defined within the namespace
+unique4.yang:48: identifier 'f1' is already defined within the namespace

@@ -1,0 +1,2 @@
+submodNo.yang: No such file or directory
+composite2.yang:9: failed to locate imported module `submodNo'

@@ -1,0 +1,15 @@
+// correct
+ 
+// Notes:
+// defines a number of extensions
+
+module typeset
+{
+	namespace "urn:smilib:params:mportedtypes";
+ 	prefix it; 
+
+    typedef type1 {
+        type int32;
+    }
+
+}

@@ -1,0 +1,38 @@
+// incorrect - duplicated elements inside the last extension
+ 
+// Notes:
+
+module "test15"
+{
+	namespace "urn:smilib:params:test15";
+ 	prefix test15; 
+
+	organization jub; 
+	contact jub;
+	description desc;
+	reference ref;
+
+	extension ext ;
+
+	extension ext1 {
+		argument test;
+		status deprecated;
+	}
+
+	extension ext1 {
+		argument test;
+		argument test;
+
+		status deprecated;
+		status deprecated;
+
+
+		description descr1;
+		description descr1;
+
+		reference ref1;
+		reference ref1;
+
+	}
+
+}

@@ -1,0 +1,30 @@
+module uses1 {
+	namespace "http://example.com/uses1";
+	prefix "uses1";
+
+	import grouping1 {
+		prefix grouping1;
+	}
+
+	container http-server {
+		leaf name {
+		 	type string;
+		}
+		uses grouping1:target;
+	}
+
+
+	container http-server2 {
+		leaf name {
+			 type string;
+		}
+		uses grouping1:target {
+			refine uses1:port {
+				default 80;
+			}
+		}
+	}
+
+
+}
+

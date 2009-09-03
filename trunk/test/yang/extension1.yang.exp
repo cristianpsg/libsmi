@@ -1,0 +1,2 @@
+extension1.yang:20: unexpected argument for extension 'extmod:subext1'
+extension1.yang:24: expected argument for extension 'ext:ext2' not found

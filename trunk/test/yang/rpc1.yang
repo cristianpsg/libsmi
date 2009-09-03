@@ -1,0 +1,75 @@
+module rpc1 {
+	namespace "http://example.com/rpc1";
+	prefix "rpc1";
+
+	rpc activate-software-image {
+		input {
+			leaf image-name {
+				type string;
+			}
+		}
+		output {
+			leaf status1 {
+				type string;
+			}
+		}
+	}
+
+     notification link-failure {
+         description "A link failure has been detected";
+         leaf if-name {
+             type int32;
+         }
+         leaf if-admin-status {
+             type int32;
+         }
+     }
+
+ 	container system {
+        must "daytime or time";
+
+		leaf daytime {
+			type string;
+		}         
+     }
+
+     deviation /rpc1:system/rpc1:daytime {
+         deviate not-supported;
+     }
+
+
+	list user {
+		key "name";
+		leaf name {
+			type string;
+		}
+		leaf full-name {
+			type string;
+		}
+		leaf class {
+			type string;
+		}
+	}
+
+     deviation /user/name {
+         deviate add {
+             default "admin";
+         }
+     }
+
+     deviation /user/name {
+         deviate replace {
+			type int32;
+         }
+     }
+
+     deviation "/rpc1:system" {
+         deviate delete {
+             must "daytime or time";
+         }
+     }
+
+}                                                                                                    
+
+
+

@@ -1,0 +1,17 @@
+module type-uniqueness
+{
+    namespace "urn:test";
+    prefix u1;
+
+    typedef str2 {
+        type str1;
+    }	  
+
+    typedef str1 {
+        type str2;
+    }
+ 
+	container interface2 {
+	}
+ 
+}

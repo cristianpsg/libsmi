@@ -1,0 +1,20 @@
+// correct
+
+// Notes:
+//  1. the order of the 'prefix' and 'namespace' does not matter;
+//  2. 'revision' is not required;
+//  3. testing of comments;
+//  4. quoted and unquoted identifiers (module name, prefix name);
+
+module test2 {
+  // test single line comment
+  prefix "smilib";
+  /* multiple line 
+
+		comment test */ 
+  namespace "urn:smilib:params:test2";
+
+} 
+  
+
+

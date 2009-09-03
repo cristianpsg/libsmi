@@ -1,0 +1,20 @@
+// incorrect
+ 
+// Notes:
+// 'meta-stmts' test
+
+module "test14"
+{
+	namespace "urn:smilib:params:test14";
+ 	prefix test14; 
+
+	organization jub; 
+	contact jub;
+	description desc;
+	reference ref;
+
+	organization jub; 
+	contact jub;
+	description desc2;
+	reference ref;
+}

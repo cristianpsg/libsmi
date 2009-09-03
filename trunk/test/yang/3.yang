@@ -1,0 +1,17 @@
+// correct
+
+// Notes:
+// 1. identifiers with all possible characters;
+// 2. single and double quoted identifiers;
+// 3. date;
+
+module 'test3' {
+  namespace "urn:smilib:params:test3";
+  prefix "_sm-il.ib34";
+
+  revision 2009-02-23 {
+    description "Revision 1." ;
+  }
+  
+}
+

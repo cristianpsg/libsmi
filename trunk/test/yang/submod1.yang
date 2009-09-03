@@ -1,0 +1,14 @@
+// correct
+//
+// NOTE:
+// included by 'composite'
+// 1. submodule test
+//  
+
+submodule submod1 {
+
+    belongs-to composite {
+        prefix mod1;
+    }
+
+}

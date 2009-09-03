@@ -704,8 +704,117 @@ static Error errors[] = {
       "The identities of IETF MIB modules should be registered below\n"
       "mib-2, transmission, or snmpModules so that the registration\n"
       "space can be controlled by IANA."},
+    { 2, ERR_NAMESPACE_MISSING, "namespace-missing",
+      "module namespace is missing", NULL },
+    { 2, ERR_PREFIX_MISSING, "prefix-missing",
+      "module prefix is missing", NULL },      
     { 2, ERR_INDEX_MISSING, "row-index-missing",
-      "row `%s' lacks index definition", NULL },
+      "row `%s' lacks index definition", NULL },      
+    { 2, ERR_REDEFINED_NAMESPACE, "namespace-redefined", 
+      "namespace has been already defined", NULL},
+    { 2, ERR_REDEFINED_YANGVERSION, "yang-version-redefined", 
+      "yang version has been already defined", NULL},
+    { 2, ERR_REDEFINED_ORGANIZATION, "organization-redefined", 
+      "organization has been already defined", NULL},
+    { 2, ERR_REDEFINED_CONTACT, "contact-redefined", 
+      "contact has been already defined", NULL},     
+    { 2, ERR_REDEFINED_ELEMENT, "element-redefined", 
+      "%s has been already defined", NULL},      
+    { 2, ERR_CYCLIC_IMPORTS, "cyclic-imports-value", 
+      "circular dependency between modules '%s' and '%s'", NULL},
+    { 2, ERR_SUBMODULE_BELONGS_TO_ANOTHER_MODULE, "invalid-belongs-to", 
+      "the submodule '%s' does not belong to module '%s'", NULL},
+    { 2, ERR_REQUIRED_ELEMENT, "required-element", 
+      "statement '%s' is mandatory", NULL},
+    { 2, ERR_WRONG_CARDINALITY, "wrong-cardinality", 
+      "cardinality of the element '%s' is wrong (must be %s)", NULL},
+    { 2, ERR_DUPLICATED_CASE_IDENTIFIER, "duplicated-case-identifier", 
+      "the case identifier '%s' is duplicated within the choice statement", NULL},
+    { 2, ERR_WRONG_ENUM, "duplicated-case-identifier", 
+      "The 'enum' statement takes as an argument a string which MUST NOT be empty and MUST NOT have any leading or trailing  whitespace characters.", NULL},
+    { 2, ERR_DUPLICATED_ENUM_NAME, "duplicated-case-identifier", 
+      "enum name '%s' is duplicated within the enumeration", NULL},
+    { 2, ERR_DUPLICATED_PREFIX, "duplicated-prefix", 
+      "prefix '%s' is duplicated within the module", NULL},
+    { 2, ERR_DUPLICATED_IDENTIFIER, "duplicated-identifier", 
+      "identifier '%s' is already defined within the namespace", NULL},
+    { 2, ERR_DUPLICATED_NODE_WHILE_GROUPING_INSTANTIATION, "duplicated-grouping", 
+      "grouping instantiotion causes duplication of identifier '%s'", NULL},
+    { 2, ERR_DUPLICATED_NODE_WHILE_AUGMENT_INSTANTIATION, "duplicated-augment", 
+      "augment instantiotion causes duplication of identifier '%s'", NULL},
+    { 2, ERR_SUBMODULE_DUPLICATED_IDENTIFIER, "submodule-duplicated-identifier", 
+      "identifier '%s' is already defined within submodule '%s'", NULL},
+    { 2, ERR_REFERENCE_NOT_RESOLVED, "reference-not-resolved", 
+      "reference to '%s:%s' can not be resolved", NULL},
+    { 2, ERR_EXPECTED_EXTENSION_ARGUMENT, "expected-argument", 
+      "expected argument for extension '%s' not found", NULL},
+    { 2, ERR_UNEXPECTED_EXTENSION_ARGUMENT, "unexpected-argument", 
+      "unexpected argument for extension '%s'", NULL},
+    { 2, ERR_ILLEGAL_TYPE_NAME, "illegal-type-name", 
+      "illegal type name '%s', must be not one of the YANG built-in types.", NULL},
+    { 2, ERR_CYCLIC_REFERENCE_CHAIN, "cyclic-reference-chain", 
+      "circular dependency for %s identifier '%s'", NULL},
+    { 2, ERR_DESCEDANT_FORM, "descedant-form", 
+      "schema node identifier '%s' must be in the descedant form", NULL},
+    { 2, ERR_ABSOLUTE_FORM, "absolute-form", 
+      "schema node identifier '%s' must be in the absolute form", NULL},
+    { 2, ERR_XPATH_NOT_RESOLVED, "xpath-not-resolved-form", 
+      "XPath '%s' can not be resolved", NULL},
+    { 2, ERR_WRONG_AUGMENT_TARGET_NODE, "wrong-target-node", 
+      "the target node of the augment '%s' must be either a  container, list, choice, case, input, output, or notification node.", NULL},  
+    { 2, ERR_DATADEF_NODE_REQUIRED, "data-def-node-required", 
+      "augment '%s' requires at least one data definition or case node", NULL},
+    { 2, ERR_NODE_KIND_NOT_ALLOWED, "node-kind-not-allowed", 
+      "%s '%s' is not allowed as a child node of the target %s '%s'", NULL},
+    { 2, ERR_INVALID_CONFIG, "invalid-config", 
+      "config true cannot be set for node '%s' when the parent node has config false", NULL},
+    { 2, ERR_KEY_REQUIRED, "key-required", 
+      "the list '%s' needs at least one key", NULL},
+    { 2, ERR_ARG_VALUE, "invalid-arg", 
+      "bad value '%s' (must be %s)", NULL},
+    { 2, ERR_DUPLICATED_KEY, "duplicated-key", 
+      "the key '%s' must not be listed more than once", NULL},
+    { 2, ERR_INVALID_KEY_REFERENCE, "invalid-key-reference", 
+      "the key '%s' does not reference an existing leaf", NULL},
+    { 2, ERR_EMPTY_KEY, "invalid-key-reference", 
+      "the type empty cannot be part of a key, used by leaf '%s'", NULL},
+    { 2, ERR_INVALID_KEY_LEAF_CONFIG_VALUE, "invalid-key-leaf-config-value", 
+      "the key leaf '%s' in list '%s' has not the same value for its 'config'  as the list itself.", NULL},
+    { 2, ERR_INVALID_UNIQUE_REFERENCE, "invalid-unique-reference", 
+      "the unique element '%s' does not reference an existing leaf", NULL},
+    { 2, ERR_DUPLICATED_LEAF_IN_UNIQUE, "duplicated-key", 
+      "the leaf '%s' occurs more than once in the unique expression", NULL},
+    { 2, ERR_MUST_BE_CONFIG, "must-be-config", 
+      "one of the referenced by the unique statement leafs represents configuration data, so all of the referenced leafs MUST represent configuration data.", NULL},
+    { 2, ERR_IVALIDE_ORDERED_BY_VALUE, "invalid-ordered-by-value", 
+      "bad value '%s' (should be ordered-by-arg)", NULL},
+    { 2, ERR_IVALIDE_DEFAULT, "invalid-defaule", 
+    "a default value can not be given when 'mandotory' is true", NULL},
+    { 2, ERR_IVALIDE_DEFAULT_CASE, "invalid-ordered-by-value", 
+    "the defaule case '%s' is not found", NULL},
+    { 2, ERR_MANDATORY_NODE_UNDER_DEFAULT_CASE, "invalid-ordered-by-value", 
+    "mandatory nodes are not allowed directly under the default case '%s' of the choice '%s'", NULL},    
+    { 2, ERR_DATA_DEF_REQUIRED, "data-def-required", 
+    "the %s requires at least one data definition statement as a child", NULL},
+    { 2, ERR_AUGMENTATION_BY_MANDATORY_NODE, "augmentation-by-mandatory-node", 
+    "the target node of the augmentation is in another module, the nodes added by the augmentation MUST NOT be mandatory nodes", NULL},    
+    { 2, ERR_INVALID_REFINE, "augmentation-by-mandatory-node", 
+    "'%s' node '%s' cannot be refined with '%s'", NULL},
+    { 2, ERR_IDENTIFIER_DEFINED_IN_OTHER_SUBMODLE, "duplicated-identifier", 
+      "identifier '%s' is already defined in the submodule '%s'", NULL},
+    { 2, ERR_IGNORED_CONFIG, "ignored-config",
+      "explicit config value is ignored", NULL},
+    { 2, ERR_RESTRICTION_NOT_ALLOWED, "restriction-not-allowed",
+      "restriction %s is not allowed for this base type", NULL},
+    { 2, ERR_CHILD_REQUIRED, "child-required",
+      "a type %s must have at least one %s statement", NULL},
+    { 2, ERR_DUPLICATED, "duplicated",
+      "duplicated %s `%s'", NULL},
+    { 2, ERR_DEFAULT_NOT_ALLOWED, "default-not-allowed",
+      "the type \"empty\" cannot have a default value", NULL},
+    { 2, ERR_INVALID_UNION_TYPE, "invalid_union_type",
+      "the type %s cannot be part of a union", NULL},
+
     { 0, 0, NULL, NULL, NULL }
 };
 
@@ -921,7 +1030,7 @@ smiErrorHandler(char *path, int line, int severity, char *msg, char *tag)
      * A severe error, no way to continue :-(
      */
     if (severity <= 0) {
-	exit(1);
+        exit(1);
     }
 }
 
@@ -952,48 +1061,48 @@ printError(Parser *parser, int id, int line, va_list ap)
 {
     char *buffer;
     int i;
-    
     if (! smiHandle->errorHandler) {
-	return;
+        return;
     }
 
     /*
      * Search for the tag instead of just using the id as an index so
      * that we do not run into trouble if the id is bogus.
      */
-
     for (i = 0; errors[i].fmt; i++) {
-	if (errors[i].id == id) break;
+        if (errors[i].id == id) break;
     }
+    
     if (! errors[i].fmt) {
-	i = 0;		/* assumes that 0 is the internal error */
+        i = 0;		/* assumes that 0 is the internal error */
     }
 
     if (parser) {
+        
+        if (parser->modulePtr) {
+            if ((parser->modulePtr->export.conformance > errors[i].level) ||
+            (parser->modulePtr->export.conformance == 0)) {
+                parser->modulePtr->export.conformance = errors[i].level;
+            }
+        } 
 
-	if (parser->modulePtr) {
-	    if ((parser->modulePtr->export.conformance > errors[i].level) ||
-		(parser->modulePtr->export.conformance == 0)) {
-		parser->modulePtr->export.conformance = errors[i].level;
-	    }
-	}
-	
-	if ((errors[i].level <= smiHandle->errorLevel) &&
-	    (parser->flags & SMI_FLAG_ERRORS) &&
-	    ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-	    smiVasprintf(&buffer, errors[i].fmt, ap);
-	    (smiHandle->errorHandler) (parser->path, line,
-				       errors[i].level, buffer, errors[i].tag);
-	}
+
+        if ((errors[i].level <= smiHandle->errorLevel) &&
+            (parser->flags & SMI_FLAG_ERRORS) &&
+            ((smiDepth != 0) || (parser->flags & SMI_FLAG_RECURSIVE))) {
+
+                        smiVasprintf(&buffer, errors[i].fmt, ap);
+                        (smiHandle->errorHandler) (parser->path, line,
+                        errors[i].level, buffer, errors[i].tag);
+        }
     } else {
-	if (errors[i].level <= smiHandle->errorLevel) {
-	    smiVasprintf(&buffer, errors[i].fmt, ap);
-	    (smiHandle->errorHandler) (NULL, 0, errors[i].level,
-				       buffer, errors[i].tag);
-	}
+            if (errors[i].level <= smiHandle->errorLevel) {
+                smiVasprintf(&buffer, errors[i].fmt, ap);
+                (smiHandle->errorHandler) (NULL, 0, errors[i].level,
+                               buffer, errors[i].tag);
+            }
     }
 }
-
 
 
 /*

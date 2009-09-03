@@ -1,0 +1,14 @@
+submodule submod3 {
+
+	belongs-to composite1 {
+		prefix composite1; // prefix of the module
+	}
+
+    extension ext1 {
+          argument test;
+          status current;
+    }
+
+	composite1:ext1 "test arg";
+
+}

@@ -1,0 +1,11 @@
+// incorrect
+//
+// NOTE:
+// there is no submodule
+module composite2 {
+    namespace "http://composite.com";
+    prefix c1;
+
+    include submodNo;    
+
+}

@@ -1,0 +1,39 @@
+// incorrect
+//
+// NOTE:
+// duplicated case identidier within a choice statement
+module choice2 {
+	namespace "http://example.com/choice2";
+	prefix "choice2";
+
+    container transfer {
+		choice how {
+			default interval;
+			case interval {
+                 leaf interval {
+                     type uint16;
+                     default 30;
+                     units minutes;
+                 }
+			}
+			case daily {
+				leaf daily {
+					 type empty;
+				}
+				leaf time-of-day {
+					 type string;
+					 units 24-hour-clock;
+					 default 1am;
+				}
+			}
+			case daily {
+				 leaf manual {
+					 type empty;
+				 }
+			}
+         }
+     }
+
+}
+
+

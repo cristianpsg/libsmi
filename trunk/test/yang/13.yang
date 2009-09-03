@@ -1,0 +1,13 @@
+// correct
+ 
+// Notes:
+// 1. This example test the correctness of the 'stmtsep' rule;
+//
+
+module "test13"{
+        
+	yang-version '1' {}
+	namespace "urn:smilib:params:test9" {  } 
+ 	prefix test13; 
+
+}

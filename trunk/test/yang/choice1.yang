@@ -1,0 +1,50 @@
+module choice1 {
+	namespace "http://example.com/choice1";
+	prefix "choice1";
+
+    container transfer {
+		choice interface-type {
+			container ethernet { 
+			}
+			container ethernet2 { 
+			}
+
+		}
+
+
+		choice how {
+			default interval;
+			container ethernet3 { 
+			}
+
+			case interval {
+                 leaf interval {
+                     type uint16;
+                     default 30;
+                     units minutes;
+                 }
+			}
+
+			container ethernet4 { 
+			}
+
+			case daily {
+				leaf daily {
+					 type empty;
+				}
+				leaf time-of-day {
+					 type string;
+					 units 24-hour-clock;
+					 default 1am;
+				}
+			}
+			case manual {
+				 leaf manual {
+					 type empty;
+				 }
+			}
+         }
+     }
+}
+
+

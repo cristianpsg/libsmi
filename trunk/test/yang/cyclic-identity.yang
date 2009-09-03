@@ -1,0 +1,19 @@
+ module identity2 {
+     namespace "http://example.com/des";
+     prefix "des";
+
+     identity des {
+         base "des:des3";
+         description "DES crypto algorithm";
+     }
+
+     identity des2 {
+		 base "des";
+     }
+
+     identity des3 {
+		 base "des2";
+         description "Triple DES crypto algorithm";
+     }
+ }
+

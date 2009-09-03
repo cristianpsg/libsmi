@@ -1,0 +1,73 @@
+submodule augment {
+	belongs-to augment-super {
+		prefix "as";
+	}
+
+    augment "/as:interfaces" {
+        when "test";
+        anyxml test;
+    }
+
+	container interfaces {
+		list ifEntry {
+			key "ifIndex";
+
+			leaf ifIndex {
+				type int32;
+			}
+		}
+
+        uses test {
+            augment "c" {
+                case test {
+                }
+            }
+            augment "as:test-choice" {
+                leaf test {
+                    type string;
+                }
+            }
+
+            augment "as:c/df/as:d" { 
+                leaf new {
+                    type string;
+                }
+            }
+
+        }
+	}
+
+    grouping test {
+        container c {
+        }
+		choice test-choice {
+			case case1 {
+			}
+		}
+    }
+
+
+	augment "/as:interfaces/as:ifEntry" {
+		leaf ifIndex {
+			type int8;
+		}
+	}
+
+	augment "/as:interfaces/as:ifEntry/t:tes/as:tets" {
+		leaf ifIndex {
+			type int8;
+		}
+	}
+
+	augment  /interfaces/as:ifEntry {
+		leaf uid {
+			type uint16 {
+				range "1000 .. 30000";
+			}
+		}
+	}
+
+}                                                                                                    
+
+
+

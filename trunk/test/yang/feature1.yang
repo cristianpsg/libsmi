@@ -1,0 +1,45 @@
+module feature1 {
+
+  namespace "urn:test:feature1";
+  prefix feature1;
+
+  feature local;
+
+  feature local-storage {
+	 if-feature local;
+     description
+         "This feature means the device supports local
+          storage (memory, flash or disk) that can be used to
+          store syslog messages.";
+	 reference "SK";
+	 
+  }
+
+  container syslog {
+	 leaf local-storage-limit {
+		 if-feature local-storage;
+		 type uint64;
+		 units "kilobyte";
+		 config false;
+		 description
+		     "The amount of local storage that can be
+		      used to hold syslog messages.";
+	 }
+  }
+
+  grouping x {
+    leaf foo { type empty; mandatory true; }
+  }
+
+  typedef my-int {
+    type int32;
+  }
+
+  extension x {
+    argument name;
+  }
+
+   leaf foo { 
+       type int16; 
+   }
+}

@@ -1,0 +1,9 @@
+list-unique.yang:8: the unique element 'c:name' does not reference an existing leaf
+list-unique.yang:12: bad value ' 10' (must be non-negative-integer)
+list-unique.yang:13: bad value '124 ' (must be non-negative-integer)
+list-unique.yang:13: min-elements has been already defined
+list-unique.yang:15: the leaf 'l:speed' occurs more than once in the unique expression
+list-unique.yang:7: the type empty cannot be part of a key, used by leaf 'name'
+l:test2' does not reference an existing leaf
+list-unique.yang:8: one of the referenced by the unique statement leafs represents configuration data, so all of the referenced leafs MUST represent configuration data.
+l:test1' does not reference an existing leaf

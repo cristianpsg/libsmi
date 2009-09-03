@@ -1,0 +1,30 @@
+// incorrect - duplicated description in the last revision
+
+// Notes:
+// 1. Tests different kinds of strings:
+//  a. unquoted;
+//  b. double quoted;
+//  c. single quoted;
+
+module "test6" {
+  namespace "urn:smilib:params:test6";
+  prefix test6;
+
+  revision 2009-02-27 {
+    description Revision1\\n.#\\!23qwreq\"wesd\"fs/++/\\\\//\\";
+;
+  }
+
+  revision "2009-02-27" {
+    description "Revision1\\n.#\\!23qwreq\"we
+		 sd\"fs/++/\\\\//\\a";
+  }
+
+  revision '2009-02-27'{
+   description
+      "dfsadfda
+       sdfa\"sdfsd";
+	description dupliacatedDescription;
+  }
+}
+

@@ -24,6 +24,7 @@
 #endif
 #include <time.h>
 
+#include "yang.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,12 +63,6 @@ typedef unsigned __int64        SmiUnsigned64;
 typedef @UINT64_TYPE@           SmiUnsigned64;
 typedef @INT64_TYPE@            SmiInteger64;
 #endif
-typedef short int 		SmiInteger16;
-typedef short int 		SmiInteger8;
-
-typedef unsigned short		SmiUnsigned16;
-typedef unsigned short		SmiUnsigned8;
-
 typedef unsigned int            SmiSubid;
 typedef float                   SmiFloat32;
 typedef double                  SmiFloat64;
@@ -99,15 +94,7 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_FLOAT128               = 9,  /* only SMIng                  */
     SMI_BASETYPE_ENUM                   = 10,
     SMI_BASETYPE_BITS                   = 11, /* SMIv2, SMIng and SPPI       */
-    SMI_BASETYPE_POINTER		= 12,  /* only SMIng                  */
-    SMI_BASETYPE_INTEGER16		= 14,
-    SMI_BASETYPE_INTEGER8		= 15,
-    SMI_BASETYPE_UNSIGNED16		= 16,
-    SMI_BASETYPE_UNSIGNED8		= 17,
-    SMI_BASETYPE_KEYREF			= 18,
-    SMI_BASETYPE_ANYXML			= 19,
-    SMI_BASETYPE_BOOLEAN		= 20,
-    SMI_BASETYPE_BINARY			= 21
+    SMI_BASETYPE_POINTER		= 12  /* only SMIng                  */
 } SmiBasetype;
 
 #ifdef INT32_MIN
@@ -206,50 +193,8 @@ typedef enum SmiDecl {
     SMI_DECL_IDENTITY	        = 44,
     SMI_DECL_CLASS		= 45,
     SMI_DECL_ATTRIBUTE		= 46,
-    SMI_DECL_EVENT		= 47,
-    /* YANG statements*/
-    SMI_DECL_YANG_MODULE	= 48,
-    SMI_DECL_YANG_SUBMODULE	= 49,
-    SMI_DECL_REVISION		= 50,
-    SMI_DECL_IMPORT		= 51,
-    SMI_DECL_RANGE		= 52,
-    SMI_DECL_PATTERN            = 53,
-    SMI_DECL_CONTAINER          = 54,
-    SMI_DECL_MUST_STATEMENT     = 55,
-    SMI_DECL_LEAF		= 56,
-    SMI_DECL_LEAF_LIST		= 57,
-    SMI_DECL_LIST		= 58,
-    SMI_DECL_CASE		= 59,
-    SMI_DECL_USES		= 60,
-    SMI_DECL_AUGMENT		= 61,
-    SMI_DECL_GROUPING		= 62,
-    SMI_DECL_CHOICE		= 63,
-    SMI_DECL_ARGUMENT		= 64,
-    SMI_DECL_RPC		= 65,
-    SMI_DECL_INPUT		= 66,
-    SMI_DECL_OUTPUT		= 67,
-    SMI_DECL_ANYXML		= 68
-
+    SMI_DECL_EVENT		= 47
 } SmiDecl;
-
-/* SmiConig -- the truth value of Yang config statement              */
-typedef enum SmiConfig {
-     SMI_CONFIG_FALSE         = 0, 
-     SMI_CONFIG_TRUE          = 1
-} SmiConfig;
-
-/* SmiMandatory -- the truth value of Yang mandatory statement             */
-typedef enum SmiMandatory {
-     SMI_MANDATORY_FALSE         = 0, 
-     SMI_MANDATORY_TRUE          = 1
-} SmiMandatory;
-
-/* SmiOrder -- the order of Yang list or leaf-list 				*/
-typedef enum SmiOrdered {
-     SMI_ORDER_SYSTEM         = 0, 
-     SMI_ORDER_USER	          = 1
-} SmiOrder;
-
 
 /* SmiIndexkind -- actual kind of a table row's index method                 */
 typedef enum SmiIndexkind {
@@ -274,7 +219,7 @@ typedef struct SmiValue {
         SmiFloat64          float64;
         SmiFloat128         float128;
         SmiSubid	    *oid;
-        unsigned char       *ptr;	 /* OctetString, Bits                */
+        char                *ptr;	 /* OctetString, Bits                */
     } value;
 } SmiValue;
 
@@ -300,8 +245,6 @@ typedef struct SmiModule {
     char                *reference;
     SmiLanguage		language;
     int                 conformance;
-    char		*prefix; //Yang module recommended prefix
-    char		*XMLNamespace;
 } SmiModule;
 
 /* SmiRevision -- content of a single module's revision clause               */
@@ -314,7 +257,6 @@ typedef struct SmiRevision {
 typedef struct SmiImport {
     SmiIdentifier       module;
     SmiIdentifier       name;
-    SmiIdentifier       prefix;
 } SmiImport;
 
 /* SmiMacro -- the main structure of a SMIv1/v2 macro or SMIng extension     */
@@ -349,10 +291,6 @@ typedef struct SmiType {
     SmiStatus           status;
     char                *description;
     char                *reference;
-    char                *errorMessage;
-    char		*errorAppTag;
-    char		*patternErrorMessage;
-    char		*patternErrorAppTag;
 } SmiType;
 
 /* SmiNode -- the main structure of any clause that defines a node           */
@@ -373,31 +311,6 @@ typedef struct SmiNode {
     int                 create;       /* only valid for rows */
     SmiNodekind         nodekind;
 } SmiNode;
-
-typedef struct SmiContainer {
-    SmiIdentifier       name;
-    char                *description;
-    char                *reference;
-} SmiContainer;
-
-typedef struct SmiYangNode {
-    SmiIdentifier		name;
-    SmiDecl		nodeKind;
-    SmiStatus		status;
-    SmiConfig		config;
-    SmiMandatory	mandatory;
-    SmiOrder		order;
-    char		*description;
-    char		*reference;   
-} SmiYangNode;
-
-typedef struct SmiMustStatement {
-    char	*xpath;
-    char	*description;
-    char	*errorMessage;
-    char	*errorAppTag;
-    char	*reference;
-} SmiMustStatement;
 
 /* SmiElement -- an item in a list (row index column, notification object)   */
 typedef struct SmiElement {
@@ -670,33 +583,6 @@ extern char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr,
 extern char *smiRenderNode(SmiNode *smiNodePtr, int flags);
 
 extern char *smiRenderType(SmiType *smiTypePtr, int flags);
-
-
-
-extern SmiYangNode *smiGetFirstRootNode(SmiModule *module);
-
-extern SmiYangNode *smiGetNextRootNode(SmiYangNode *node);
-
-extern SmiYangNode *smiGetFirstChildYangNode(SmiYangNode *node);
-
-extern SmiYangNode *smiGetNextChildYangNode(SmiYangNode *node);
-
-extern SmiYangNode *smiGetFirstUniqueYangNode(SmiYangNode *node);
-
-extern SmiYangNode *smiGetNextUniqueYangNode(SmiYangNode *node);
-
-extern SmiYangNode *smiGetFirstKeyYangNode(SmiYangNode *node);
-
-extern SmiYangNode *smiGetNextKeyYangNode(SmiYangNode *node);
-
-extern SmiType *smiGetYangNodeType(SmiYangNode *node);
-
-extern SmiRange *smiGetYangNodeMinMaxElements(SmiYangNode *node);
-
-extern SmiMustStatement *smiGetFirstMustStatement(SmiYangNode *node);
-
-extern SmiMustStatement *smiGetNextMustStatement(SmiMustStatement *must);
-
 
 #define SMI_RENDER_NUMERIC   0x01 /* render as numeric values */
 #define SMI_RENDER_NAME      0x02 /* render as names */

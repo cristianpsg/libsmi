@@ -1,0 +1,75 @@
+// Notes:
+
+module restrictions 
+{
+	namespace "urn:smilib:params:restrictions";
+ 	prefix restrictions; 
+
+    typedef type2 {
+        type type1 {
+			length "1..9";
+			pattern "3";
+        }
+    }
+
+    typedef type3 {
+        type int8 {
+			length "4";
+        }
+    }
+
+    typedef type1 {
+        type int8 {
+			enum enabled {
+				value 1;
+			}
+        }
+    }
+
+    typedef type4 {
+        type enumeration {
+        }
+    }
+
+    typedef type5 {
+        type bits {
+        }
+    }
+
+    typedef type6 {
+        type bits {
+			bit one {
+				position 1;
+			}
+			bit two {
+				position "1";
+			}
+        }
+    }
+
+	typedef type7 {
+		type empty {
+		}
+		default "";
+	}
+
+	leaf leaf1 {
+		type empty;
+		default "";
+	}
+
+	leaf leaf2 {
+		type identityref {
+			base "dfddf";
+		}
+	}
+
+	leaf leaf3 {
+		type union {
+			type empty;
+			type leafref {
+				path "";
+			}
+		}
+	}
+}

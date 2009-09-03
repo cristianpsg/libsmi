@@ -1,0 +1,11 @@
+// correct
+
+// Notes:
+// 1. This example test the correctness of the 'stmtend' and 'unknown-statement' rules;
+//
+
+module "test9"{
+	yang-version '1' {}
+	namespace "urn:smilib:params:test9" {  }
+ 	prefix yang-test._8; 
+}

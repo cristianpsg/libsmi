@@ -1,6 +1,14 @@
 /*
  * parser-yang.y --
  *
+ *      Syntax rules for parsing the YANG MIB module language.
+ *
+ * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
+ *
+ * See the file "COPYING" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ *  Authors: Kaloyan Kanev, Siarhei Kuryla
  */
 
 %{
@@ -23,18 +31,17 @@
 #include <malloc.h>
 #endif
 
-#include "smi.h"
-#include "error.h"
+#include "yang.h"
+#include "yang-data.h"
 #include "parser-yang.h"
 #include "scanner-yang.h"
-#include "data.h"
-#include "check.h"
 #include "util.h"
+#include "error.h"
+#include "errormacros.h"
     
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
-
 
 
 /*
@@ -42,12 +49,20 @@
  */
 #define YYPARSE_PARAM parserPtr
 #define YYLEX_PARAM   parserPtr
-
-    
+ 
     
 #define thisParserPtr      ((Parser *)parserPtr)
-#define thisModulePtr     (((Parser *)parserPtr)->modulePtr)
+#define thisModulePtr      (((Parser *)parserPtr)->yangModulePtr)
+#define thisModuleInfoPtr  ((_YangModuleInfo*)((Parser *)parserPtr)->yangModulePtr->info)
 
+
+#define DEBUG
+
+#ifdef DEBUG 
+#define debug(args...) fprintf (stderr, args);
+#else
+#define debug
+#endif
 
     
 /*
@@ -57,22 +72,6 @@
  */
 extern int yylex(void *lvalp, Parser *parserPtr);
 
-
-
-
-
-static time_t date;
-
-static char *importModulename = NULL;
-static Module *currentModule = NULL;
-static Parser *currentParser = NULL;
-static Import *currentImport = NULL;
-static Type *currentType = NULL;
-static YangNode *currentNode = NULL;
-static Must *currentMust = NULL;
-static Macro *macroPtr = NULL;
-static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
-
 /* The declaration stack is used to determine what is the parrent
  * statement of the current one. It helps to write generic
  * substatements like the description statement which calls the
@@ -81,13 +80,14 @@ static SmiBasetype defaultBasetype = SMI_BASETYPE_UNKNOWN;
  * current parent statement to set the description. 
  */
 typedef struct declStack {
-	SmiDecl decl;
+	YangDecl decl;
+    _YangNode* node;
 	struct declStack *down;
 } declStack;
 
 static declStack *dStack = NULL;
 
-static void pushDecl(SmiDecl decl)
+static void pushDecl(YangDecl decl)
 {
 	declStack *top = (declStack*)smiMalloc(sizeof(declStack));
 	top->down = NULL;
@@ -101,7 +101,24 @@ static void pushDecl(SmiDecl decl)
 	}
 }
 
-static void popDecl()
+static void pushNode(_YangNode* node)
+{
+	declStack *top = (declStack*)smiMalloc(sizeof(declStack));
+	top->down = NULL;
+	top->node = node;
+    if (node) {
+        top->decl = node->export.nodeKind;
+    }
+	
+	if(dStack == NULL) dStack = top;
+	else
+	{
+		top->down = dStack;
+		dStack = top;
+	}
+}
+
+static void pop()
 {
 	declStack *top;	
 	if(dStack != NULL)
@@ -112,11 +129,11 @@ static void popDecl()
 	}
 }
 
-static SmiDecl topDecl()
+static YangDecl topDecl()
 {
 	if (dStack == NULL)
 	{
-		return SMI_BASETYPE_UNKNOWN;
+		return YANG_DECL_UNKNOWN;
 	}
 	else
 	{
@@ -124,428 +141,40 @@ static SmiDecl topDecl()
 	}
 }
 
-
-#define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
- 
-
-static Type *findType(char* spec)
+static _YangNode* topNode()
 {
-	Type *typePtr = NULL;
-	Module *modulePtr;
-	char *prefix, *type;
-	YangNode* n = NULL;
-	
-	if(strstr(spec,":") != NULL)
+	if (dStack == NULL)
 	{
-		prefix = strtok(spec, ":");
-		type = strtok(NULL , ":");
-		modulePtr = findImportedModuleByPrefix(currentModule, prefix);
-		if(modulePtr == NULL)
-		{
-			//TODO print unknow prefix error
-			return NULL;
-		}
-		n = findYangNodeByScopeAndName(modulePtr, type, NULL);
+		return NULL;
 	}
 	else
 	{
-		n = findYangNodeByScopeAndName(currentModule, spec, currentNode);
-	}
-	
-	if(n == NULL) return NULL;
-	if(n->export.nodeKind == SMI_DECL_TYPEDEF)
-	{
-		typePtr = n->type;
-	}
-        return typePtr;
-}
-
-//static Type * findTypeNode(char *name)
-//{
-//	return NULL;	
-//}
-
-static void
-checkTypes(Parser *parserPtr, Module *modulePtr)
-{
-    Type *typePtr;
-    
-    for(typePtr = modulePtr->firstTypePtr;
-	typePtr; typePtr = typePtr->nextPtr) {
-
-	/*
-	 * Complain about empty description clauses.
-	 */
-
-	if (! parserPtr->flags & SMI_FLAG_NODESCR
-	    && (! typePtr->export.description
-		|| ! typePtr->export.description[0])) {
-	    smiPrintErrorAtLine(parserPtr, ERR_EMPTY_DESCRIPTION,
-				typePtr->line, typePtr->export.name);
-	}
-	
-	smiCheckNamedNumberRedefinition(parserPtr, typePtr);
-	smiCheckNamedNumberSubtyping(parserPtr, typePtr);
-    }
-}
-
-
-
-static time_t
-checkDate(Parser *parserPtr, char *date)
-{
-    struct tm	tm;
-    time_t	anytime;
-    int		i, len;
-    char	*p;
-
-    memset(&tm, 0, sizeof(tm));
-    anytime = 0;
-
-    len = strlen(date);
-    if (len == 10 || len == 16) {
-	for (i = 0; i < len; i++) {
-	    if (((i < 4 || i == 5 || i == 6 || i == 8 || i == 9 || i == 11
-		  || i == 12 || i == 14 || i == 15) && ! isdigit((int)date[i]))
-		|| ((i == 4 || i == 7) && date[i] != '-')
-		|| (i == 10 && date[i] != ' ')
-		|| (i == 13 && date[i] != ':')) {
-		smiPrintError(parserPtr, ERR_DATE_CHARACTER, date);
-		anytime = (time_t) -1;
-		break;
-	    }
-	}
-    } else {
-	smiPrintError(parserPtr, ERR_DATE_LENGTH, date);
-	anytime = (time_t) -1;
-    }
-    
-    if (anytime == 0) {
-	for (i = 0, p = date, tm.tm_year = 0; i < 4; i++, p++) {
-	    tm.tm_year = tm.tm_year * 10 + (*p - '0');
-	}
-	p++;
-	tm.tm_mon = (p[0]-'0') * 10 + (p[1]-'0');
-	p += 3;
-	tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
-	p += 2;
-	if (len == 16) {
-	    p++;
-	    tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
-	    p += 3;
-	    tm.tm_min = (p[0]-'0') * 10 + (p[1]-'0');
-	}
-	
-	if (tm.tm_mon < 1 || tm.tm_mon > 12) {
-	    smiPrintError(parserPtr, ERR_DATE_MONTH, date);
-	}
-	if (tm.tm_mday < 1 || tm.tm_mday > 31) {
-	    smiPrintError(parserPtr, ERR_DATE_DAY, date);
-	}
-	if (tm.tm_hour < 0 || tm.tm_hour > 23) {
-	    smiPrintError(parserPtr, ERR_DATE_HOUR, date);
-	}
-	if (tm.tm_min < 0 || tm.tm_min > 59) {
-	    smiPrintError(parserPtr, ERR_DATE_MINUTES, date);
-	}
-	
-	tm.tm_year -= 1900;
-	tm.tm_mon -= 1;
-	tm.tm_isdst = 0;
-
-	anytime = timegm(&tm);
-
-	if (anytime == (time_t) -1) {
-	    smiPrintError(parserPtr, ERR_DATE_VALUE, date);
-	} else {
-	    if (anytime < SMI_EPOCH) {
-		smiPrintError(parserPtr, ERR_DATE_IN_PAST, date);
-	    }
-	    if (anytime > time(NULL)) {
-		smiPrintError(parserPtr, ERR_DATE_IN_FUTURE, date);
-	    }
-	}
-    }
-    
-    return (anytime == (time_t) -1) ? 0 : anytime;
-}
-
-void checkUniqueAndKey()
-{
-	YangNode *node;
-	YangNodeList *list;
-	for(list = currentNode->uniqueList; list; list = list->next)
-	{
-		for(node = currentNode->firstChildPtr; node; node = node->nextSiblingPtr)
-		{
-			if(!strcmp(list->name,node->export.name))
-			{
-				list->yangNode = node;
-				smiFree(list->name);
-				break;
-			}
-		}
-		if(!list->yangNode)
-			smiPrintError(currentParser,ERR_NO_SUCH_UNIQUE_LEAF,
-					      			list->name,currentNode->export.name);		
-	}
-	
-	
-	
-	for(list = currentNode->keyList; list; list = list->next)
-	{
-		for(node = currentNode->firstChildPtr; node; node = node->nextSiblingPtr)
-		{
-			if(!strcmp(list->name,node->export.name))
-			{
-				list->yangNode = node;
-				smiFree(list->name);
-				break;
-			}
-		}
-		if(!list->yangNode)
-			smiPrintError(currentParser,ERR_NO_SUCH_KEY_LEAF,
-					      			list->name,currentNode->export.name);		
-	}
-	return;
-}
-
-void setDescription(char *description)
-{
-	switch( topDecl() )
-	{
-		case SMI_DECL_YANG_MODULE:
-			if(!currentModule->export.description)
-				setModuleDescription(currentModule, description, currentParser);
-			else
-				smiPrintError(currentParser,
-					      ERR_REDEFINED_DESCRIPTION,
-					      NULL);
-			break;
-		case SMI_DECL_REVISION:
-			addRevision(date, description, currentParser);
-			break;
-		case SMI_DECL_TYPEDEF:
-			setTypeDescription(currentType, description, currentParser);
-			break;
-		case SMI_DECL_LEAF:
-		case SMI_DECL_LEAF_LIST:
-		case SMI_DECL_LIST:
-		case SMI_DECL_CONTAINER:
-		case SMI_DECL_CHOICE:
-		case SMI_DECL_CASE:
-		case SMI_DECL_USES:
-		case SMI_DECL_AUGMENT: 
-		case SMI_DECL_GROUPING:
-			setYangNodeDescription(currentNode, description);
-			//printf("DEBUGGG %s\n",currentNode->export.description);
-			break;
-		case SMI_DECL_MUST_STATEMENT:
-			setMustDescription(currentMust, description);
-			break;
-		default:
-			//TODO print error
-			printf("DEBUGG: OOPS wrong description DECL %d, at line %d\n",topDecl(),currentParser->line);
-			break;
+		return dStack->node;
 	}
 }
 
-void setPrefix(char *prefix)
-{
-	switch( topDecl() )
-	{
-		case SMI_DECL_YANG_MODULE:
-			if(!currentModule->export.prefix)
-				setModulePrefix(currentModule, prefix, currentParser);
-			else
-				smiPrintError(currentParser,
-					      ERR_REDEFINED_PREFIX,
-					      NULL);
-			break;
-		case SMI_DECL_IMPORT:
-				setImportPrefix(currentImport, prefix);
-			break;
-		default:
-			//TODO print error
-			printf("DEBUGG: OOPS wrong prefix DECL %d, at line %d\n",topDecl(),currentParser->line);
-			break;
-			
-	}
+Parser *currentParser = NULL;
+
+static _YangNode *node = NULL;
+
+char* getPrefix(char* identifierRef) {
+    char* colonIndex = strchr(identifierRef, ':');
+    if (!colonIndex) return NULL;
+    return smiStrndup(identifierRef, colonIndex - identifierRef);
 }
 
-void setReference(char *reference)
-{
-	switch( topDecl() )
-	{
-		case SMI_DECL_YANG_MODULE:
-			if(!currentModule->export.reference)
-				setModuleReference(currentModule, reference, currentParser);
-			else
-				smiPrintError(currentParser,
-					      ERR_REDEFINED_REFERENCE,
-					      NULL);
-			break;
-		case SMI_DECL_TYPEDEF:
-			setTypeReference(currentType, reference, currentParser);
-			break;
-		case SMI_DECL_LEAF:
-		case SMI_DECL_LEAF_LIST:
-		case SMI_DECL_LIST:
-		case SMI_DECL_CONTAINER:
-		case SMI_DECL_CHOICE:
-		case SMI_DECL_CASE:
-		case SMI_DECL_USES:
-		case SMI_DECL_AUGMENT:  
-		case SMI_DECL_GROUPING:
-			setYangNodeReference(currentNode, reference);
-			break;
-		case SMI_DECL_MUST_STATEMENT:
-			setMustReference(currentMust, reference);
-			break;
-		default:
-			//TODO print error
-			printf("DEBUGG: OOPS wrong reference decl %d, at line %d\n",topDecl(),currentParser->line);
-			break;
-	}
+char* getIdentifier(char* identifierRef) {
+    char* colonIndex = strchr(identifierRef, ':');
+    if (!colonIndex) return smiStrdup(identifierRef);
+    return smiStrdup(colonIndex + 1);
 }
 
-void setStatus(SmiStatus status)
-{
-	switch( topDecl() )
-	{
-		case SMI_DECL_LEAF_LIST:
-		case SMI_DECL_LEAF:
-		case SMI_DECL_LIST:		
-		case SMI_DECL_CONTAINER:
-			setYangNodeStatus(currentNode, status);
-			break;
-		default:
-			//TODO print error
-			printf("DEBUGG: OOPS wrong status decl %d, at line %d\n",topDecl(),currentParser->line);
-			break;
-	}
-}
-
-void setType(SmiBasetype basetype, Type *parent, char *parentName)
-{
-	
-	switch( topDecl() )
-	{
-		case SMI_DECL_TYPEDEF:
-			if(basetype == SMI_BASETYPE_UNKNOWN) //type derived from non-base type
-			{
-				
-				if(parent) //known parent - put reference
-				{
-					//for typedefs type name is the same as node name
-					char *typeName = smiStrdup(currentNode->export.name);
-					currentType = createType(typeName); //add type with this name
-					setTypeDecl(currentType, SMI_DECL_TYPEDEF);
-					setTypeParent(currentType,parent);
-					setTypeBasetype(currentType,parent->export.basetype);
-				}
-				else //forward reference - put empty type with parent's name
-				{
-					char *typeName = smiStrdup(parentName);
-					currentType = createType(typeName); //add type with this name
-				//IMPORTANT: After parsing is finished the dummy types are changed with
-				// references to their parent. Dummies are distinguished by the fact that
-				// they have no parent (parentPtr = NULL)
-				}
-			}
-			else //New type derived from base type
-			{
-				
-				//for typedefs type name is the same as node name
-			        currentType = createType(currentNode->export.name);		
-
-				setTypeBasetype(currentType, basetype);
-				setTypeParent(currentType, parent);
-			}
-		        	
-			break;
-		case SMI_DECL_LEAF_LIST:
-		case SMI_DECL_LEAF:
-			if(basetype == SMI_BASETYPE_UNKNOWN) //type derived from non-base type
-			{
-				if(parent) //known parent - put reference
-				{
-					char *typeName = smiStrdup(parentName);
-					currentType = createType(typeName); //add type with this name
-					setTypeDecl(currentType, SMI_DECL_TYPEDEF);
-					setTypeParent(currentType,parent);
-					setTypeBasetype(currentType,parent->export.basetype);
-				}
-				else //forward reference - put empty type with parent's name
-				{
-					char *typeName = smiStrdup(parentName);
-					currentType = createType(typeName); //add type with this name
-				//IMPORTANT: After parsing is finished the dummy types are changed with
-				// references to their parent. Dummies are distinguished by the fact that
-				// they have no parent (parentPtr = NULL)
-				}
-			}
-			else //New type derived from base type
-			{
-		
-				currentType = createType(parentName);		
-
-				setTypeBasetype(currentType, basetype);
-				setTypeParent(currentType, parent);
-			}
-				
-			break;
-		default:
-			//TODO print error
-			printf("DEBUGG: OOPS wrong err decl %d, at line %d\n",topDecl(),currentParser->line);
-			break;
-	}
-}
-
-void setErrorMessage(char *err)
-{
-	switch( topDecl() )
-	{
-		case SMI_DECL_RANGE:
-			setTypeErrorMessage(currentType, err);
-			break;
-		case SMI_DECL_MUST_STATEMENT:
-			setMustErrorMessage(currentMust, err);
-			break;
-		default:
-			//TODO print error
-			printf("DEBUGG: OOPS wrong err decl %d, at line %d\n",topDecl(),currentParser->line);
-			break;
-	}
-}
-
-void setErrorAppTag(char *err)
-{
-	switch( topDecl() )
-	{
-		case SMI_DECL_RANGE:
-			setTypeErrorAppTag(currentType, err);
-			break;
-		case SMI_DECL_MUST_STATEMENT:
-			setMustErrorAppTag(currentMust, err);
-			break;
-		default:
-			//TODO print error
-			printf("DEBUGG: OOPS wrong errapp decl %d, at line %d\n",topDecl(),currentParser->line);
-			break;
-	}
-}
-			    
 %}
-
-
 
 /*
  * The grammars start symbol.
  */
 %start yangFile
-
-
 
 /*
  * We call the parser from within the parser when IMPORTing modules,
@@ -553,34 +182,14 @@ void setErrorAppTag(char *err)
  */
 %pure_parser
 
-
-
 /*
  * The attributes.
  */
 %union {
-    char           *id;				/* identifier name           */
-    int            rc;				/* >=0: ok, <0: error        */
-    time_t	   date;			/* a date value		     */
-    char	   *text;
-    Module	   *modulePtr;
-    Node	   *nodePtr;
-    Object	   *objectPtr;
-    Macro	   *macroPtr;
-    Type	   *typePtr;
-    Index	   index;
-    Option	   *optionPtr;
-    Refinement	   *refinementPtr;
-    SmiStatus	   status;
-    SmiAccess	   access;
-    NamedNumber    *namedNumberPtr;
-    Range	   *rangePtr;
-    SmiValue	   *valuePtr;
-    List	   *listPtr;
-    Revision	   *revisionPtr;
+    char            *id;				/* identifier name           */
+    int             rc;                 /* >=0: ok, <0: error    */
+    char            *text;
 }
-
-
 
 /*
  * Tokens and their attributes.
@@ -629,23 +238,6 @@ void setErrorAppTag(char *err)
 %token <rc>whenKeyword
 %token <rc>bitKeyword
 %token <rc>pathKeyword
-%token <rc>int8Keyword
-%token <rc>int16Keyword
-%token <rc>int32Keyword
-%token <rc>int64Keyword
-%token <rc>uint8Keyword
-%token <rc>uint16Keyword
-%token <rc>uint32Keyword
-%token <rc>uint64Keyword
-%token <rc>float32Keyword
-%token <rc>float64Keyword
-%token <rc>stringKeyword
-%token <rc>booleanKeyword
-%token <rc>enumerationKeyword
-%token <rc>bitsKeyword
-%token <rc>binaryKeyword
-%token <rc>keyrefKeyword
-%token <rc>emptyKeyword
 %token <rc>anyXMLKeyword
 %token <rc>deprecatedKeyword
 %token <rc>currentKeyword
@@ -658,10 +250,31 @@ void setErrorAppTag(char *err)
 %token <rc>rpcKeyword
 %token <rc>notificationKeyword
 %token <rc>argumentKeyword
+%token <rc>yangversionKeyword
+%token <rc>baseKeyword
+%token <rc>deviationKeyword
+%token <rc>deviateKeyword
+%token <rc>featureKeyword
+%token <rc>identityKeyword
+%token <rc>ifFeatureKeyword
+%token <rc>positionKeyword
+%token <rc>presenceKeyword
+%token <rc>refineKeyword
+%token <rc>requireInstanceKeyword
+%token <rc>yinElementKeyword
+%token <rc>notSupportedKeyword
+%token <rc>addKeyword
+%token <rc>deleteKeyword
+%token <rc>replaceKeyword
 
 %token <text>identifier
+%token <text>identifierRefArg
+%token <text>identifierRefArgStr
+%token <text>dateString
+%token <text>yangVersion
 %token <text>qString
 %token <text>uqString
+
 %token <text>decimalNumber
 %token <text>floatNumber
 %token <text>hexNumber
@@ -676,14 +289,20 @@ void setErrorAppTag(char *err)
 %type <rc>commonStatement
 %type <rc>dataDefStatement
 %type <rc>extensionStatement
+%type <rc>extensionStatementBody
 %type <rc>extensionSubstatement
 %type <rc>extensionSubstatement_0n
+%type <rc>argumentStatement
+%type <rc>argumentStatementBody
+%type <rc>yinElementOptional
 %type <rc>linkageStatement
 %type <rc>linkageStatement_0n
 %type <rc>moduleMetaStatement
 %type <rc>moduleMetaStatement_0n
 %type <rc>moduleHeaderStatement
 %type <rc>moduleHeaderStatement_0n
+%type <rc>submoduleHeaderStatement
+%type <rc>belongsToStatement
 %type <rc>bodyStatement
 %type <rc>bodyStatement_0n
 %type <rc>containerStatement
@@ -692,39 +311,73 @@ void setErrorAppTag(char *err)
 %type <rc>mustStatement
 %type <rc>mustSubstatement
 %type <rc>mustSubstatement_0n
+%type <rc>presenceStatement
 %type <rc>organizationStatement
 %type <rc>contactStatement
 %type <rc>referenceStatement
 %type <rc>descriptionStatement
 %type <rc>revisionStatement
+%type <rc>optionalRevision
 %type <rc>revisionStatement_0n
+%type <rc>revisionDescriptionStatement
 %type <rc>importStatement
+%type <rc>includeStatement
+%type <rc>includeStatementBody
 %type <rc>prefixStatement
 %type <rc>typedefStatement
 %type <rc>typedefSubstatement
 %type <rc>typedefSubstatement_0n
 %type <rc>typeStatement
-%type <rc>type
-%type <rc>refinedType
-%type <rc>refinedBasetype
+%type <rc>optionalTypeBodyStatements
+%type <rc>typeBodyStmts
+%type <rc>unitsStatement
+%type <rc>featureStatement
+%type <rc>featureSpec
+%type <rc>featureSubstatement_0n
+%type <rc>featureSubstatement
+%type <rc>ifFeatureStatement
+%type <rc>identityStatement
+%type <rc>identitySpec
+%type <rc>identitySubstatement_0n
+%type <rc>identitySubstatement
+%type <rc>booleanValue
+
 %type <text>numRestriction
 %type <rc>stringRestriction
-%type <rc>restriction
+%type <rc>stringRestriction_0n
+%type <rc>optionalRestrictionSpec
+%type <rc>restrictionSpec_0n
+%type <rc>restrictionSpec
 %type <rc>range
 %type <rc>length
-%type <date>date
+%type <text>date
 %type <text>string
+%type <text>prefix
+%type <text>identifierRef
+%type <text>identifierStr
 %type <rc>enumSpec
 %type <rc>enum
-%type <rc>enum_0n
-%type <rc>optExtension
-%type <rc>optExtensionSubstatement0_n
-%type <rc>optExtensionSubstatement
-%type <rc>error_app_tag
-%type <rc>error_message
-%type <rc>err
-%type <rc>optError
+%type <rc>enumSubstatementSpec
+%type <rc>enumSubstatement_0n
+%type <rc>enumSubstatement
+%type <rc>valueStatement
+%type <rc>leafrefSpec
+%type <rc>identityrefSpec
+%type <rc>baseStatement
+%type <rc>bitsSpec
+%type <rc>bitsStatement
+%type <rc>bitsSubstatementSpec
+%type <rc>bitsSubstatement_0n
+%type <rc>bitsSubstatement
+%type <rc>positionStatement
+%type <rc>unionSpec
+%type <rc>stmtEnd
+%type <rc>unknownStatement0_n
+%type <rc>unknownStatement
+%type <rc>errorAppTagStatement
+%type <rc>errorMessageStatement
 %type <rc>path
+%type <rc>requireInstanceStatement
 %type <rc>pattern
 %type <rc>status
 %type <rc>statusStatement
@@ -745,36 +398,60 @@ void setErrorAppTag(char *err)
 %type <rc>keyStatement
 %type <rc>uniqueStatement
 %type <rc>choiceStatement
+%type <rc>choiceSpec
 %type <rc>choiceSubstatement
 %type <rc>choiceSubstatement_0n
 %type <rc>caseStatement
+%type <rc>caseSpec
 %type <rc>caseSubstatement
 %type <rc>caseSubstatement_0n
+%type <rc>caseDataDef
 %type <rc>groupingStatement
 %type <rc>groupingSubstatement
 %type <rc>groupingSubstatement_0n
 %type <rc>usesStatement
 %type <rc>usesSubstatement
 %type <rc>usesSubstatement_0n
+%type <rc>refineStatement
+%type <rc>refineSpec
+%type <rc>refineSubstatement
+%type <rc>refine
+%type <rc>refine_0n
 %type <rc>augmentStatement
 %type <rc>augmentSubstatement
 %type <rc>augmentSubstatement_0n
 %type <rc>whenStatement
 %type <rc>rpcStatement
+%type <rc>rpcSpec
 %type <rc>rpcSubstatement
 %type <rc>rpcSubstatement_0n
 %type <rc>inputStatement
-%type <rc>inputSubstatement
-%type <rc>inputSubstatement_0n
-%type <rc>outputStatement
-%type <rc>outputSubstatement
-%type <rc>outputSubstatement_0n
+%type <rc>inputOutputSubstatement
+%type <rc>inputOutputSubstatement_0n
 %type <rc>notificationStatement
+%type <rc>notificationSpec
 %type <rc>notificationSubstatement
 %type <rc>notificationSubstatement_0n
 %type <rc>anyXMLStatement
+%type <rc>anyXMLSpec
 %type <rc>anyXMLSubstatement
 %type <rc>anyXMLSubstatement_0n
+%type <rc>deviationStatement
+%type <rc>deviationSubstatement_0n
+%type <rc>deviationSubstatement
+%type <rc>deviateNotSupported
+%type <rc>deviateAddStatement
+%type <rc>deviateAddSpec
+%type <rc>deviateAddSubstatement_0n
+%type <rc>deviateAddSubstatement
+%type <rc>deviateDeleteStatement
+%type <rc>deviateDeleteSpec
+%type <rc>deviateDeleteSubstatement_0n
+%type <rc>deviateDeleteSubstatement
+%type <rc>deviateReplaceStatement
+%type <rc>deviateReplaceSpec
+%type <rc>deviateReplaceSubstatement_0n
+%type <rc>deviateReplaceSubstatement
 
 %%
 
@@ -789,61 +466,36 @@ void setErrorAppTag(char *err)
  * It's also possible that there's no module in a file.
  */
 yangFile:		moduleStatement
-			{
-			    /*
-			     * Return the number of successfully
-			     * parsed modules.
-			     */
-			    $$ = $1;
-		printf("DEBUGGG finished parsing module\n");
-			}
-	|
-			submoduleStatement
-			{
-			    /*
-			     * Return the number of successfully
-			     * parsed modules.
-			     */
-			    $$ = $1;
-		printf("DEBUGGG finished parsing submodule\n");
-			}
-	;
+        |
+                submoduleStatement
+        ;
 
-moduleStatement:	moduleKeyword identifier
+moduleStatement:	moduleKeyword identifierStr
 			{
-				thisParserPtr->modulePtr = findModuleByName($2);
-			    if (!thisParserPtr->modulePtr) {
-				thisParserPtr->modulePtr =
-				    addModule($2,
-					      smiStrdup(thisParserPtr->path),
-					      0,
-					      thisParserPtr);
+                currentParser = thisParserPtr;
+                thisParserPtr->yangModulePtr = findYangModuleByName($2, NULL);
+			    if (!thisParserPtr->yangModulePtr) {
+                    thisParserPtr->yangModulePtr =  addYangNode($2, YANG_DECL_MODULE, NULL);
+                    
+                    if (smiHandle->firstYangModulePtr) {
+                        smiHandle->firstYangModulePtr->nextSiblingPtr = thisModulePtr;
+                    } else {
+                        smiHandle->firstYangModulePtr = thisModulePtr;
+                    }
 			    } else {
-			        smiPrintError(thisParserPtr,
-					      ERR_MODULE_ALREADY_LOADED,
-					      $2);
-				free($2);
-				/*
-				 * this aborts parsing the whole file,
-				 * not only the current module.
-				 */
-				YYABORT;
+			        smiPrintError(thisParserPtr, ERR_MODULE_ALREADY_LOADED, $2);
+                    free($2);
+                    /*
+                     * this aborts parsing the whole file,
+                     * not only the current module.
+                     */
+                    YYABORT;
 			    }
-			    thisModulePtr->export.language = SMI_LANGUAGE_YANG;
-			    thisParserPtr->modulePtr->numImportedIdentifiers
-				                                           = 0;
-			    thisParserPtr->modulePtr->numStatements = 0;
-			    thisParserPtr->modulePtr->numModuleIdentities = 0;
-			    thisParserPtr->firstIndexlabelPtr = NULL;
-			    thisParserPtr->identityObjectName = NULL;
-				$$ = 1;
-
-				currentParser = thisParserPtr;
-				currentModule = thisModulePtr;
-
-			   pushDecl(SMI_DECL_YANG_MODULE);
+                thisModulePtr->info = createModuleInfo(thisModulePtr);
+                pushNode(thisModulePtr);
 			}
 			'{'
+                stmtSep
 				moduleHeaderStatement_0n
 				linkageStatement_0n
 				moduleMetaStatement_0n
@@ -851,1417 +503,1810 @@ moduleStatement:	moduleKeyword identifier
 				bodyStatement_0n			
 			'}'
 			{
-			   popDecl();
+                thisModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
+                pop();
+                semanticAnalysis(thisModulePtr);
 			}
 	;
 
-submoduleStatement:	submoduleKeyword identifier
+submoduleStatement:	submoduleKeyword identifierStr
 			{
-				thisParserPtr->modulePtr = findModuleByName($2);
-			    if (!thisParserPtr->modulePtr) {
-				thisParserPtr->modulePtr =
-				    addModule($2,
-					      smiStrdup(thisParserPtr->path),
-					      0,
-					      thisParserPtr);
+                currentParser = thisParserPtr;
+                thisParserPtr->yangModulePtr = findYangModuleByName($2, NULL);
+			    if (!thisParserPtr->yangModulePtr) {
+                    thisParserPtr->yangModulePtr =  addYangNode($2, YANG_DECL_SUBMODULE, NULL);
+                    
+                    if (smiHandle->firstYangModulePtr) {
+                        smiHandle->firstYangModulePtr->nextSiblingPtr = thisModulePtr;
+                    } else {
+                        smiHandle->firstYangModulePtr = thisModulePtr;
+                    }
 			    } else {
-			        smiPrintError(thisParserPtr,
-					      ERR_MODULE_ALREADY_LOADED,
-					      $2);
-				free($2);
-				/*
-				 * this aborts parsing the whole file,
-				 * not only the current module.
-				 */
-				YYABORT;
+			        smiPrintError(thisParserPtr, ERR_MODULE_ALREADY_LOADED, $2);
+                    free($2);
+                    /*
+                     * this aborts parsing the whole file,
+                     * not only the current module.
+                     */
+                    YYABORT;
 			    }
-			    thisModulePtr->export.language = SMI_LANGUAGE_YANG;
-			    thisParserPtr->modulePtr->numImportedIdentifiers
-				                                           = 0;
-			    thisParserPtr->modulePtr->numStatements = 0;
-			    thisParserPtr->modulePtr->numModuleIdentities = 0;
-			    thisParserPtr->firstIndexlabelPtr = NULL;
-			    thisParserPtr->identityObjectName = NULL;
-				$$ = 1;
-
-				currentParser = thisParserPtr;
-				currentModule = thisModulePtr;
-
-			   pushDecl(SMI_DECL_YANG_MODULE);
+                currentParser = thisParserPtr;
+                thisModulePtr->info = createModuleInfo(thisModulePtr);
+                pushNode(thisModulePtr);
 			}
 			'{'
-				moduleHeaderStatement_0n
+                stmtSep
+				submoduleHeaderStatement
 				linkageStatement_0n
 				moduleMetaStatement_0n
 				revisionStatement_0n
 				bodyStatement_0n			
 			'}'
 			{
-			   popDecl();
+                thisModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
+                pop();
+                semanticAnalysis(thisModulePtr);
 			}
 	;
 
-moduleHeaderStatement_0n:	moduleHeaderStatement
-		     	{
-				$$ = 1;
-			}
-		|
-			moduleHeaderStatement moduleHeaderStatement_0n
-			{
-				$$ = 1 + $2;
+moduleHeaderStatement_0n:	moduleHeaderStatement0_n
+         	{
+                if (!thisModuleInfoPtr->namespace) {
+                    smiPrintError(parserPtr, ERR_NAMESPACE_MISSING, NULL);
+                }
+                if (!thisModuleInfoPtr->prefix) {
+                    smiPrintError(parserPtr, ERR_PREFIX_MISSING, NULL);
+                }
 			}
 		;
 
-moduleHeaderStatement:	namespaceStatement
-		|
-			prefixStatement
+moduleHeaderStatement0_n:
+                |
+                    moduleHeaderStatement moduleHeaderStatement0_n
+                ;
+
+moduleHeaderStatement:	yangVersionStatement stmtSep
+                |
+                        namespaceStatement stmtSep
+                |
+                        prefixStatement stmtSep
 		;
+
 moduleMetaStatement_0n:	
-		     	{
-				$$ = 1;
-			}
 		|
-			moduleMetaStatement_0n moduleMetaStatement 
-			{
-				$$ = 1 + $2;
-			}
+			moduleMetaStatement_0n moduleMetaStatement stmtSep
 		;
 
 moduleMetaStatement:	organizationStatement
 		|
-			descriptionStatement
+			contactStatement 
 		|
-			contactStatement
+			descriptionStatement
 		|
 			referenceStatement
 		;
-linkageStatement_0n:	{
-				$$ = 1;
-			}
+
+submoduleHeaderStatement:	belongsToStatement stmtSep
+                            yangVersionStatement stmtSep
+                |
+                            yangVersionStatement stmtSep
+                            belongsToStatement stmtSep
+                |
+                            belongsToStatement stmtSep
+                ;
+
+
+belongsToStatement: belongs_toKeyword identifierStr 
+                    {
+                        node = addYangNode($2, YANG_DECL_BELONGS_TO, topNode());
+                        pushNode(node);
+                    }
+                    '{'
+                        stmtSep prefixStatement stmtSep 
+                    '}'
+                    {
+                        pop();
+                    }
+                    ;
+
+linkageStatement_0n:
 		|
 			linkageStatement_0n linkageStatement
-			{
-				$$ = 1 + $2;
-			}
 		;
 
-linkageStatement:	includeStatement
-		|
-			importStatement
+linkageStatement:	includeStatement stmtSep
+            |
+                    importStatement stmtSep
 		;
 
-revisionStatement_0n:	revisionStatement
-		     	{
-				$$ = 1;
-			}
+revisionStatement_0n:
 		|
-			revisionStatement revisionStatement_0n
-			{
-				$$ = 1 + $2;
-			}
+			revisionStatement_0n revisionStatement stmtSep
 		;
 
 bodyStatement_0n:	
-		     	{
-				$$ = 1;
-			}
 		|
-			bodyStatement_0n bodyStatement
-			{
-				$$ = 1 + $2;
-			}
+			bodyStatement_0n bodyStatement stmtSep
 		;
 
 bodyStatement:		extensionStatement
-	     	|
-	     		dataDefStatement
-		|
-			rpcStatement
-		|
-			notificationStatement
-		|
-			groupingStatement
-		|
-			typedefStatement
-		;
+                |
+                    featureStatement
+                |
+                    identityStatement
+                |
+                    typedefStatement
+                |
+                    groupingStatement
+                |
+                    dataDefStatement
+                |
+                    augmentStatement
+                |
+                    rpcStatement
+                |
+                    notificationStatement
+                |
+                    deviationStatement
+                ;
 
 dataDefStatement:	containerStatement
-		|
-			leafStatement
-		|
-			leaf_listStatement
-		|
-			listStatement
-		|
-			choiceStatement
-		|
-			anyXMLStatement
-		|
-			usesStatement
-		|
-			augmentStatement
-		;
+                |
+                    leafStatement
+                |
+                    leaf_listStatement
+                |
+                    listStatement
+                |
+                    choiceStatement
+                |
+                    anyXMLStatement
+                |
+                    usesStatement
+                ;
 
-commonStatement:	descriptionStatement
-       		|
-			statusStatement
-		|
-			referenceStatement
-		|
-			configStatement
-		;	       
+commonStatement:	descriptionStatement 
+                |
+                    statusStatement
+                |
+                    referenceStatement
+                |
+                    configStatement
+                ;	       
 
-descriptionStatement:	descriptionKeyword string optExtension
+organizationStatement:	organizationKeyword string stmtEnd
 			{
-				setDescription($2);		 	
-				$$ = 1;
+                if (!thisModuleInfoPtr->organization) {
+                    node = addYangNode($2, YANG_DECL_ORGANIZATION, topNode());
+                    thisModuleInfoPtr->organization = node->export.value;
+                } else {
+                    smiPrintError(currentParser, ERR_REDEFINED_ORGANIZATION, NULL);
+                }				
 			}
 	;
 
-organizationStatement:	organizationKeyword string optExtension
+contactStatement:	contactKeyword string stmtEnd
 			{
-				setModuleOrganization(currentModule, $2);		 	
-				$$ = 1;
+                if (!thisModuleInfoPtr->contact) {
+                    node = addYangNode($2, YANG_DECL_CONTACT, topNode());
+                    thisModuleInfoPtr->contact = node->export.value;
+                } else {
+                    smiPrintError(currentParser, ERR_REDEFINED_CONTACT, NULL);
+                }
 			}
 	;
 
-contactStatement:	contactKeyword string optExtension
+descriptionStatement:	descriptionKeyword string stmtEnd
 			{
-				setModuleContactInfo(currentModule, $2);		 	
-				$$ = 1;
+                uniqueNodeKind(topNode(), YANG_DECL_DESCRIPTION);
+                setDescription(topNode(), $2);
+                node = addYangNode($2, YANG_DECL_DESCRIPTION, topNode());
 			}
 	;
 
-referenceStatement:	referenceKeyword string optExtension
+referenceStatement:	referenceKeyword string stmtEnd
 			{
-				setReference($2);		 	
-				$$ = 1;
+                uniqueNodeKind(topNode(), YANG_DECL_REFERENCE);
+                setReference(topNode(), $2);
+                node = addYangNode($2, YANG_DECL_REFERENCE, topNode());
 			}
 	;
 
-statusStatement:	statusKeyword status optExtension
+statusStatement:	statusKeyword status stmtEnd
 			{
-				setStatus($2);		 	
-				$$ = 1;
+                uniqueNodeKind(topNode(), YANG_DECL_STATUS);
+                setStatus(topNode(), $2);
+                node = addYangNode(statusKeywords[$2], YANG_DECL_STATUS, topNode());
 			}
 	;
 
-namespaceStatement:	namespaceKeyword string optExtension
+namespaceStatement:	namespaceKeyword string stmtEnd
 		  	{
-				setModuleXMLNamespace(currentModule, $2);
+                if (!thisModuleInfoPtr->namespace) {
+                    node = addYangNode($2, YANG_DECL_NAMESPACE, topNode());
+                    thisModuleInfoPtr->namespace = node->export.value;
+                } else {
+                    smiPrintError(currentParser, ERR_REDEFINED_NAMESPACE, NULL);
+                }
 			}
 	;
+
+yangVersionStatement:  yangversionKeyword yangVersion stmtEnd
+		  	{
+                if (!thisModuleInfoPtr->version) {
+                    node = addYangNode($2, YANG_DECL_YANGVERSION, topNode());
+                    thisModuleInfoPtr->version = node->export.value;
+                } else {
+                    smiPrintError(currentParser, ERR_REDEFINED_YANGVERSION, NULL);
+                }
+			}
+	;
+
 status:		deprecatedKeyword
 		{
-			$$ = SMI_STATUS_DEPRECATED;
+			$$ = YANG_STATUS_DEPRECATED;
 		}
 	|
 		currentKeyword
 		{
-			$$ = SMI_STATUS_CURRENT;
+			$$ = YANG_STATUS_CURRENT;
 		}
 	|
 		obsoleteKeyword
 		{
-			$$ = SMI_STATUS_OBSOLETE;
+			$$ = YANG_STATUS_OBSOLETE;
 		}
 	;
 
-prefixStatement:	prefixKeyword string optExtension
+prefixStatement:	prefixKeyword prefix stmtEnd
 			{
-				setPrefix($2);
+                node = addYangNode($2, YANG_DECL_PREFIX, topNode());
+                switch(topDecl())
+                {
+                    case YANG_DECL_MODULE:
+                        if(!thisModuleInfoPtr->prefix)
+                            thisModuleInfoPtr->prefix = node->export.value;
+                        else 
+                            smiPrintError(currentParser, ERR_REDEFINED_PREFIX, NULL);
+                        break;
+                    case YANG_DECL_BELONGS_TO:
+                        thisModuleInfoPtr->prefix = node->export.value;
+                    case YANG_DECL_IMPORT:
+                    
+                        break;
+                    default:
+                        //TODO print error
+                        debug("DEBUGG: OOPS wrong prefix DECL %d, at line %d\n", topDecl(), currentParser->line);
+                        break;			
+                }
 			}
 	;
 
-revisionStatement:	revisionKeyword date
+revisionStatement:	revisionKeyword date ';' 
 			{
-				date = $2;
-				pushDecl(SMI_DECL_REVISION)
+                node = addYangNode($2, YANG_DECL_REVISION, topNode());
+            }
+        |
+                revisionKeyword date
+			{
+                node = addYangNode($2, YANG_DECL_REVISION, topNode());
+				pushNode(node);
 			}
 			'{'
-				descriptionStatement
+                stmtSep
+				revisionDescriptionStatement
 			'}'
 			{
-				popDecl();
+				pop();
 			}
-	;
+    ;
 
-date: 	string
+
+revisionDescriptionStatement: 
+                    |
+                            descriptionStatement stmtSep 
+                    ;
+
+date: 	dateString
 	{
-		$$ = checkDate(currentParser, $1);
+        checkDate(currentParser, $1);
 	}
 	;
 
-importStatement: importKeyword identifier
+importStatement: importKeyword identifierStr
 		{
-			Module *m = findModuleByName($2);
-			
-			if(!m)
-			{
-				m = loadModule($2, currentParser);
-			}
-			if(m)
-			{		    
-					Import *im = addImport("",currentParser);
-					setImportModulename(im, m->export.name);
-					currentImport = im;
-			}
-			else
-			{
-				smiPrintError(thisParserPtr,
-					      ERR_IMPORT_NOT_FOUND,
-					      $2);
-			}
-			pushDecl(SMI_DECL_IMPORT);
+            node = addYangNode($2, YANG_DECL_IMPORT, topNode());
+			pushNode(node);
 		}
 		'{'
-			prefixStatement
+            stmtSep
+			prefixStatement stmtSep
+            optionalRevision
 		'}'
-		{
-			popDecl();
+		{            
+            externalModule(topNode());
+			pop();
 		}
         ;
 
-includeStatement: includeKeyword identifier
+optionalRevision:
+                    |
+                      revisionStatement stmtSep 
+                    ;
+
+includeStatement: includeKeyword identifierStr
 		{
-			Module *m = findModuleByName($2);
-			
-			if(!m)
-			{
-				m = loadModule($2, currentParser);
-			}
-			if(m)
-			{		    
-					Import *im = addImport("",currentParser);
-					setImportModulename(im, m->export.name);
-					currentImport = im;
-			}
-			else
-			{
-				smiPrintError(thisParserPtr,
-					      ERR_IMPORT_NOT_FOUND,
-					      $2);
-			}
-			pushDecl(SMI_DECL_IMPORT);
+            node = addYangNode($2, YANG_DECL_INCLUDE, topNode());
+			pushNode(node);
 		}
-		'{'
-			prefixStatement
-		'}'
+                includeStatementBody
 		{
-			popDecl();
+            _YangNode *includedModule = externalModule(topNode());
+            validateInclude(thisModulePtr, includedModule);
+			pop();
 		}
         ;
 
-typedefStatement:	typedefKeyword identifier
-			{
-				pushDecl(SMI_DECL_TYPEDEF);
-				currentNode = addYangNode($2,SMI_DECL_TYPEDEF, currentNode, currentModule);
-			}
-			'{'
-				typedefSubstatement_0n
-			'}'
-			{
-				popDecl();
-				//currentType = NULL;
-			}
-	;
+includeStatementBody:         ';'
+                |
+                    '{'
+                        stmtSep
+                        optionalRevision
+                    '}'
+                ;
 
-typedefSubstatement_0n:	typedefSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       typedefSubstatement typedefSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;				
+featureStatement: featureKeyword identifierStr
+                {
+                    node = addYangNode($2, YANG_DECL_FEATURE, topNode());
+                    pushNode(node);
+                }
+                  featureSpec
+                {
+                    pop();
+                }
+                ;
 
-typedefSubstatement:	typeStatement
-		|
-			descriptionStatement
-		|
-			referenceStatement
-		|
-			defaultStatement
-	;
+featureSpec:    ';'
+            |   
+                '{'
+                        stmtSep
+                        featureSubstatement_0n
+                '}'
+                ;
 
-typeStatement: typeKeyword type
+featureSubstatement_0n:
+                |
+                   featureSubstatement_0n featureSubstatement stmtSep
+                ;
+
+featureSubstatement:    ifFeatureStatement
+                    |
+                        statusStatement
+                    |
+                        descriptionStatement
+                    |   
+                        referenceStatement;
+
+ifFeatureStatement: ifFeatureKeyword identifierRef stmtEnd
+                    {
+                        node = addYangNode($2, YANG_DECL_IF_FEATURE, topNode());
+                        createIdentifierRef(node, getPrefix($2), getIdentifier($2));
+                    }
+                    ;
+
+identityStatement: identityKeyword identifierStr 
+                {
+                    node = addYangNode($2, YANG_DECL_IDENTITY, topNode());
+                    pushNode(node);
+                }
+                   identitySpec
+                {
+                    pop();
+                };
+
+identitySpec:    ';'
+            |   
+                '{'
+                        stmtSep
+                        identitySubstatement_0n
+                '}'
+                ;
+
+identitySubstatement_0n:
+                |
+                   identitySubstatement_0n identitySubstatement stmtSep
+                ;
+
+identitySubstatement:   baseStatement
+                    |
+                        statusStatement
+                    |
+                        descriptionStatement
+                    |   
+                        referenceStatement;
+
+typedefStatement:   typedefKeyword identifierStr
+                {
+                    if (getBuiltInType($2) != YANG_TYPE_NONE) {
+                        smiPrintError(thisParserPtr, ERR_ILLEGAL_TYPE_NAME, $2);
+                    }
+                    node = addYangNode($2, YANG_DECL_TYPEDEF, topNode());
+                    pushNode(node);
+                }
+                '{'
+                    stmtSep
+                    typedefSubstatement_0n
+                '}'
+                {                                
+                    if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
+                        smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+                    }
+                    pop();
+                }
+        ;
+
+typedefSubstatement_0n:	
+                |
+                       typedefSubstatement_0n typedefSubstatement stmtSep
+                ;				
+
+typedefSubstatement:
+                        typeStatement
+                    |
+                        unitsStatement
+                    |
+                        defaultStatement
+                    |
+                        statusStatement
+                    |
+                        referenceStatement
+                    |
+                        descriptionStatement
+                ;
+
+typeStatement: typeKeyword identifierRef 
+               {
+                    node = addYangNode($2, YANG_DECL_TYPE, topNode());
+                    createTypeInfo(node);
+                    if (getBuiltInType($2) == YANG_TYPE_NONE) {
+                        createIdentifierRef(node, getPrefix($2), getIdentifier($2));
+                    }
+                    pushNode(node);
+               }
+               optionalTypeBodyStatements
+               {
+                    pop();
+               }
+            ;
+
+optionalTypeBodyStatements: ';'
+                        |   
+                            '{'
+                                    stmtSep
+                                    typeBodyStmts
+                            '}'
+                        ;
+
+typeBodyStmts:  numRestriction
+            |
+                stringRestriction_0n
+            |
+                enumSpec
+            |
+                leafrefSpec
+            |
+                identityrefSpec
+            |
+                bitsSpec
+            |
+                unionSpec
+            ;
+
+numRestriction: range stmtSep;
+
+range:	rangeKeyword string
 		{
-				
+            node = addYangNode($2, YANG_DECL_RANGE, topNode());
+            pushNode(node);
 		}
-	;
-
-type:		refinedBasetype
-	|
-		refinedType
-	;
-
-refinedBasetype:	float32Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_FLOAT32, smiHandle->typeFloat32Ptr, NULL);
-			}
-		|	
-			float64Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_FLOAT64, smiHandle->typeFloat64Ptr, NULL);
-			}
-		|
-			int8Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_INTEGER8, smiHandle->typeInteger8Ptr, NULL);
-			}
-		|	
-			int16Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_INTEGER16, smiHandle->typeInteger16Ptr, NULL);
-			}
-		|	
-			int32Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_INTEGER32, smiHandle->typeInteger32Ptr, NULL);
-			}
-		|
-			int64Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_INTEGER64, smiHandle->typeInteger64Ptr, NULL);
-			}
-		|
-			uint8Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_UNSIGNED8, smiHandle->typeUnsigned8Ptr, NULL);
-			}
-		|	
-			uint16Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_UNSIGNED16, smiHandle->typeUnsigned16Ptr, NULL);
-			}
-		|	
-			uint32Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_UNSIGNED32, smiHandle->typeUnsigned32Ptr, NULL);
-			}
-		|	
-			uint64Keyword numRestriction
-			{
-				setType(SMI_BASETYPE_UNSIGNED64, smiHandle->typeUnsigned64Ptr, NULL);
-			}
-		|
-			stringKeyword stringRestriction
-			{
-				
-				setType(SMI_BASETYPE_OCTETSTRING, smiHandle->typeOctetStringPtr, NULL);
-			}
-		|
-			float32Keyword ';'
-			{
-				setType(SMI_BASETYPE_FLOAT32, smiHandle->typeFloat32Ptr, NULL);
-			}
-		|	
-			float64Keyword ';'
-			{
-				setType(SMI_BASETYPE_FLOAT64, smiHandle->typeFloat64Ptr, NULL);
-			}
-		|
-			int8Keyword ';'
-			{
-				setType(SMI_BASETYPE_INTEGER8, smiHandle->typeInteger8Ptr, NULL);
-			}
-		|	
-			int16Keyword ';'
-			{
-				setType(SMI_BASETYPE_INTEGER16, smiHandle->typeInteger16Ptr, NULL);
-			}
-		|	
-			int32Keyword ';'
-			{
-				setType(SMI_BASETYPE_INTEGER32, smiHandle->typeInteger32Ptr, NULL);
-			}
-		|
-			int64Keyword ';'
-			{
-				setType(SMI_BASETYPE_INTEGER64, smiHandle->typeInteger64Ptr, NULL);
-			}
-		|
-			uint8Keyword ';'
-			{
-				setType(SMI_BASETYPE_UNSIGNED8, smiHandle->typeUnsigned8Ptr, NULL);
-			}
-		|	
-			uint16Keyword ';'
-			{
-				setType(SMI_BASETYPE_UNSIGNED16, smiHandle->typeUnsigned16Ptr, NULL);
-			}
-		|	
-			uint32Keyword ';'
-			{
-				setType(SMI_BASETYPE_UNSIGNED32, smiHandle->typeUnsigned32Ptr, NULL);
-			}
-		|	
-			uint64Keyword ';'
-			{
-				setType(SMI_BASETYPE_UNSIGNED64, smiHandle->typeUnsigned64Ptr, NULL);
-			}
-		|
-			stringKeyword ';'
-			{
-				
-				setType(SMI_BASETYPE_OCTETSTRING, smiHandle->typeOctetStringPtr, NULL);
-			}
-		|
-			booleanKeyword ';'
-			{
-				setType(SMI_BASETYPE_BOOLEAN, smiHandle->typeBooleanPtr, NULL);
-			}
-		|
-			keyrefKeyword path
-			{
-				setType(SMI_BASETYPE_KEYREF, smiHandle->typeKeyrefPtr, NULL);
-			}
-		|
-			binaryKeyword ';'
-			{
-				setType(SMI_BASETYPE_BINARY, smiHandle->typeBinaryPtr, NULL);
-			}
-		|
-			enumerationKeyword enumSpec
-	;
-
-refinedType:	identifier restriction
+		optionalRestrictionSpec
 		{
-			Type *t = findType($1);			
-			if(t) //parent type already in types list
+			pop();
+		}
+	;
+
+
+stringRestriction_0n:
+                |
+                    stringRestriction_0n stringRestriction
+                ;
+
+stringRestriction: length
+                |
+                   pattern
+                ;
+
+length:	lengthKeyword string
+		{
+            uniqueNodeKind(topNode(), YANG_DECL_LENGTH);
+            node = addYangNode($2, YANG_DECL_LENGTH, topNode());
+            pushNode(node);
+        }
+        optionalRestrictionSpec
+        {
+			pop();
+		}
+	;
+
+
+pattern:	patternKeyword string 
+        {
+            node = addYangNode($2, YANG_DECL_PATTERN, topNode());
+            pushNode(node);
+        }
+        optionalRestrictionSpec
+        {
+			pop();
+		}
+	;
+
+enumSpec:   enum stmtSep
+        |
+            enumSpec enum stmtSep
+        ;
+
+enum:   enumKeyword string 
+        {
+            if (strlen($2) == 0 || isWSP($2[0]) || isWSP($2[strlen($2)-1])) {
+                smiPrintError(currentParser, ERR_WRONG_ENUM);
+            }
+            node = findChildNodeByTypeAndValue(topNode(), YANG_DECL_ENUM, $2);
+            if (node) {
+                smiPrintError(currentParser, ERR_DUPLICATED_ENUM_NAME, $2);
+            }
+            node = addYangNode($2, YANG_DECL_ENUM, topNode());
+            pushNode(node);
+        }
+        enumSubstatementSpec
+        {
+            pop();
+        }
+	;
+
+enumSubstatementSpec: ';'
+        |
+          '{'
+                stmtSep
+                enumSubstatement_0n
+          '}';
+
+enumSubstatement_0n: 
+                |
+                    enumSubstatement_0n enumSubstatement stmtSep
+                ;
+
+enumSubstatement:    valueStatement
+                |
+                     statusStatement
+                |
+                     descriptionStatement
+                |
+                     referenceStatement
+        ;
+
+valueStatement: valueKeyword string stmtEnd 
+            {                
+                node = addYangNode($2, YANG_DECL_VALUE, topNode());
+            }
+            ;
+
+optionalRestrictionSpec: ';' 
+            |
+                 '{'
+                        stmtSep
+                        restrictionSpec_0n
+                 '}'
+            ;
+
+restrictionSpec_0n: 
+                |
+                    restrictionSpec_0n restrictionSpec stmtSep
+                ;
+
+restrictionSpec: descriptionStatement
+            |
+                 referenceStatement
+            |
+                 errorMessageStatement
+            |
+                 errorAppTagStatement
+            ;
+
+errorMessageStatement: error_messageKeyword string stmtEnd
+            {
+                uniqueNodeKind(topNode(), YANG_DECL_ERROR_MESSAGE);
+                node = addYangNode($2, YANG_DECL_ERROR_MESSAGE, topNode());
+            }
+            ;
+
+errorAppTagStatement: error_app_tagKeyword string stmtEnd
+            {
+                uniqueNodeKind(topNode(), YANG_DECL_ERROR_APP_TAG);
+                node = addYangNode($2, YANG_DECL_ERROR_APP_TAG, topNode());
+            }
+        ;
+
+leafrefSpec: path stmtSep
+        |
+             path stmtSep
+             requireInstanceStatement stmtSep
+        |
+             requireInstanceStatement stmtSep
+             path stmtSep
+        ;
+
+path:	pathKeyword string stmtEnd
+		{
+            uniqueNodeKind(topNode(), YANG_DECL_PATH);
+            node = addYangNode($2, YANG_DECL_PATH, topNode());
+		}
+	;
+
+requireInstanceStatement: requireInstanceKeyword booleanValue stmtEnd
+        {
+            uniqueNodeKind(topNode(), YANG_DECL_REQUIRE_INSTANCE);
+            if ($2 == YANG_BOOLEAN_TRUE) {
+                node = addYangNode("true", YANG_DECL_REQUIRE_INSTANCE, topNode());
+            } else {
+                node = addYangNode("false", YANG_DECL_REQUIRE_INSTANCE, topNode());
+            }
+        }
+        ;
+
+identityrefSpec: baseStatement stmtSep
+            |
+                 baseStatement stmtSep
+                 requireInstanceStatement stmtSep
+            |
+                 requireInstanceStatement stmtSep
+                 baseStatement stmtSep
+            ;
+
+baseStatement: baseKeyword identifierRef stmtEnd 
+            {
+                uniqueNodeKind(topNode(), YANG_DECL_BASE);
+                node = addYangNode($2, YANG_DECL_BASE, topNode());
+                createIdentifierRef(node, getPrefix($2), getIdentifier($2));
+            }
+            ;
+
+bitsSpec:   bitsStatement stmtSep
+        |
+            bitsSpec bitsStatement stmtSep
+        ;
+
+bitsStatement: bitKeyword identifier 
+            {
+                node = findChildNodeByTypeAndValue(topNode(), YANG_DECL_BIT, $2);
+                if (node) {
+                    smiPrintError(currentParser, ERR_DUPLICATED, "bit", $2);
+                }
+
+                node = addYangNode($2, YANG_DECL_BIT, topNode());
+                pushNode(node);
+            }
+            bitsSubstatementSpec
+            {
+                pop();
+            }
+            ;
+
+bitsSubstatementSpec:   ';'
+            |
+               '{'
+                    stmtSep
+                    bitsSubstatement_0n
+               '}';
+
+bitsSubstatement_0n:
+        |
+           bitsSubstatement_0n bitsSubstatement stmtSep
+        ;
+
+bitsSubstatement:   positionStatement
+                |
+                    descriptionStatement
+                |
+                    referenceStatement
+                |
+                    statusStatement
+                ;
+
+positionStatement: positionKeyword string stmtEnd 
+                {
+                    if (!isNonNegativeInteger($2)) {                            
+                        smiPrintError(currentParser, ERR_ARG_VALUE, $2, "non-negative-integer");
+                    }                    
+                    uniqueNodeKind(topNode(), YANG_DECL_POSITION);
+
+                    /* position values must be unique within the type */
+                    _YangNode* typePtr = topNode()->parentPtr;
+                    _YangNode* childPtr = typePtr->firstChildPtr;
+                    while (childPtr) {
+                        if (childPtr->export.nodeKind == YANG_DECL_BIT) {
+                            _YangNode* positionPtr = findChildNodeByTypeAndValue(childPtr, YANG_DECL_POSITION, $2);
+                            if (positionPtr) {
+                                smiPrintError(currentParser, ERR_DUPLICATED, "position", $2);
+                            }
+                        }
+                        childPtr = childPtr->nextSiblingPtr;
+                    }
+
+                    node = addYangNode($2, YANG_DECL_POSITION, topNode());
+                }
+                ;
+
+unionSpec: typeStatement stmtSep
+        |
+           unionSpec typeStatement stmtSep
+        ;
+
+stmtEnd:    ';'
+         |
+            '{'
+                    unknownStatement0_n
+            '}'
+        ;
+
+stmtSep:
+	|
+        unknownStatement0_n
+	;
+
+unknownStatement0_n:
+	|
+        unknownStatement unknownStatement0_n;
+	;
+
+unknownStatement:   identifierRefArg 
+                    {
+                        node = addYangNode($1, YANG_DECL_UNKNOWN_STATEMENT, topNode());
+                        createIdentifierRef(node, getPrefix($1), getIdentifier($1));
+                        pushNode(node);
+                    }
+                    stmtEnd 
+                    {
+                        pop();
+                    }
+        |                    
+                    identifierRefArg string
+                    {
+                        node = addYangNode($1, YANG_DECL_UNKNOWN_STATEMENT, topNode());
+                        createIdentifierRef(node, getPrefix($1), getIdentifier($1));
+                        node->export.extra = smiStrdup($2);
+                        pushNode(node);
+                    }
+                    stmtEnd 
+                    {
+                        pop();
+                    }
+        ;
+
+containerStatement: containerKeyword identifierStr
 			{
-				setType(SMI_BASETYPE_UNKNOWN,t,$1);
-			}
-			else //forward reference
-			{
-				setType(SMI_BASETYPE_UNKNOWN,NULL,$1);
-			}
-		}
-	;
-
-restriction: 	numRestriction
-	|
-		stringRestriction
-	|
-		enumSpec
-	|
-		path
-	|
-		';'
-	;
-	
-numRestriction: '{'
-			range
-		'}'
-		{
-			$$=NULL;
-		}
-	;
-
-stringRestriction:	'{'
-			length
-			'}'
-	|
-		'{'
-			pattern
-		'}'
-	|
-		'{'
-			pattern
-			length
-		'}'
-	|
-		'{'
-			length
-			pattern
-		'}'
-	;
-
-enumSpec: 
-	'{'
-		enum_0n
-	'}'
-
-
-enum_0n:
-       |
-	enum_0n enum
-	;
-
-enum: enumKeyword string ';'
-    |
-	enumKeyword string
-	'{'
-		valueKeyword string optExtension
-	'}'
-	;
-
-range:		rangeKeyword string
-		{
-			$$=NULL;
-			pushDecl(SMI_DECL_RANGE);
-		}
-		 optError
-		{
-			popDecl();
-		}
-	;
-
-length:		lengthKeyword string
-		{
-			$$=NULL;
-			pushDecl(SMI_DECL_RANGE);
-		}
-		 optError
-		{
-			popDecl();
-		}
-	;
-
-
-path:		pathKeyword string optError
-		{
-			$$=NULL;
-		}
-	;
-
-pattern:	patternKeyword string{
-			$$=NULL;
-			pushDecl(SMI_DECL_PATTERN);
-		}
-		 optError
-		{
-			popDecl();
-		}
-	;
-
-optError:	';'
-	| 
-		'{'
-			err
-		'}'
-	;
-
-err: 		error_app_tag error_message
-	|
-		error_message error_app_tag
-	|
-		error_message
-	|
-		error_app_tag
-	;
-
-error_message: error_messageKeyword string optExtension
-		{
-			setErrorMessage($2);
-		}
-	;
-
-error_app_tag: error_app_tagKeyword string optExtension
-		{
-			setErrorAppTag($2);
-		}
-	;
-
-optExtension:   ';'
-	|
-		'{'
-			optExtensionSubstatement0_n
-		'}'
-	;
-
-optExtensionSubstatement0_n:
-		|
-			optExtensionSubstatement optExtensionSubstatement0_n;
-	;
-
-optExtensionSubstatement: identifier string optExtension;
-
-containerStatement: containerKeyword identifier
-			{
-				pushDecl(SMI_DECL_CONTAINER);
-				currentNode = addYangNode($2,SMI_DECL_CONTAINER, currentNode, currentModule);
+                node = addYangNode($2, YANG_DECL_CONTAINER, topNode());				
+                pushNode(node);
 			}
 			'{'
 				containerSubstatement_0n
 			'}'
 			{
-				popDecl();
-				currentNode = currentNode->parentPtr;
+				pop();
 			}
 	;
 
 
-containerSubstatement_0n:	containerSubstatement
-			{
-				$$ = 1;
-			}
+containerSubstatement_0n:	
 		|
 		       containerSubstatement containerSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
 	;
 
-containerSubstatement:	commonStatement
-		|
-			dataDefStatement
-		|
-			mustStatement
-		|
-			typedefStatement
-		;
+containerSubstatement:	ifFeatureStatement
+                    |
+                        commonStatement
+                    |
+                        dataDefStatement
+                    |
+                        mustStatement
+                    |
+                        whenStatement
+                    |
+                        presenceStatement
+                    |
+                        typedefStatement
+                    ;
 
 mustStatement: mustKeyword string
 		{
-			pushDecl(SMI_DECL_MUST_STATEMENT);
-			currentMust = addMustStatement(currentNode, $2);
+            node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
+            pushNode(node);
 		}
 		'{'
 			mustSubstatement_0n
 		'}'
 		{
-			popDecl();
-			currentMust = NULL;
+			pop();
 		}
 	|
 		mustKeyword string ';'
 		{
-		 	addMustStatement(currentNode, $2);
-			currentMust = NULL;
+            node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
 		}
 	;
 
-mustSubstatement_0n:	mustSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       mustSubstatement mustSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+mustSubstatement_0n:
+            |
+		       mustSubstatement_0n mustSubstatement stmtSep
+        ;
 
-mustSubstatement:	error_message
-		|
-			error_app_tag
-		|
-			descriptionStatement
-		|
-			referenceStatement
-		;
-			
-configStatement: 	configKeyword trueKeyword optExtension
-			{
-				if(currentNode->parentPtr &&   currentNode->parentPtr->export.config != SMI_CONFIG_FALSE)
-						currentNode->export.config = SMI_CONFIG_TRUE;
-				else
-				{
-					currentNode->export.config = SMI_CONFIG_FALSE;
-				}
-				//TODO print error
-					
-			
-			}
-	|
-			configKeyword falseKeyword optExtension
-			{
-				currentNode->export.config = SMI_CONFIG_FALSE;
-			}
-		;
+mustSubstatement:	errorMessageStatement
+                |
+                    errorAppTagStatement
+                |
+                    descriptionStatement
+                |
+                    referenceStatement
+                ;
 
-mandatoryStatement: mandatoryKeyword trueKeyword optExtension
+presenceStatement: presenceKeyword string stmtEnd
+                {
+                    uniqueNodeKind(topNode(), YANG_DECL_PRESENCE);
+                    node = addYangNode($2, YANG_DECL_PRESENCE, topNode());
+                }
+                ;
+			
+configStatement: 	configKeyword trueKeyword stmtEnd
+                {
+                    uniqueNodeKind(topNode(), YANG_CONFIG_TRUE);
+                    setConfig(topNode(), YANG_CONFIG_TRUE);
+                    node = addYangNode("true", YANG_DECL_CONFIG, topNode());
+                }
+            |
+                    configKeyword falseKeyword stmtEnd
+                {
+                    uniqueNodeKind(topNode(), YANG_CONFIG_TRUE);
+                    setConfig(topNode(), YANG_CONFIG_FALSE);
+                    node = addYangNode("false", YANG_DECL_CONFIG, topNode());
+                }
+            ;
+
+mandatoryStatement: mandatoryKeyword trueKeyword stmtEnd
 			{
-				currentNode->export.mandatory = SMI_MANDATORY_TRUE;
+                uniqueNodeKind(topNode(), YANG_DECL_MANDATORY);
+                node = addYangNode("true", YANG_DECL_MANDATORY, topNode());
 			}
 		|
-		    	mandatoryKeyword falseKeyword optExtension	
+		    	mandatoryKeyword falseKeyword stmtEnd	
 			{
-				currentNode->export.mandatory = SMI_MANDATORY_FALSE;
+                uniqueNodeKind(topNode(), YANG_DECL_MANDATORY);
+				node = addYangNode("false", YANG_DECL_MANDATORY, topNode());
 			}
 		;
 			
-leafStatement: leafKeyword identifier
+leafStatement: leafKeyword identifierStr
 			{
-				pushDecl(SMI_DECL_LEAF);
-				currentNode = addYangNode($2,SMI_DECL_LEAF, currentNode, currentModule);
+				node = addYangNode($2, YANG_DECL_LEAF, topNode());
+                pushNode(node);
 			}
 			'{'
+                stmtSep
 				leafSubstatement_0n
 			'}'
 			{
-				popDecl();
-				currentNode = currentNode->parentPtr;
+                if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
+                    smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+                }
+				pop();
 			}
 		;
 			
-leafSubstatement_0n:	leafSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       leafSubstatement leafSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+leafSubstatement_0n:
+            |
+                   leafSubstatement_0n leafSubstatement stmtSep
+        ;
 
-leafSubstatement:	mustStatement
-		|
-			commonStatement
-		|
-			mandatoryStatement
-		|
-			typeStatement
-		|
-			defaultStatement	
-		;
+leafSubstatement:	ifFeatureStatement
+                |
+                    unitsStatement
+                |
+                    mustStatement
+                |
+                    commonStatement
+                |
+                    mandatoryStatement
+                |
+                    typeStatement
+                |
+                    defaultStatement	
+                |
+                    whenStatement
+                ;
 
-leaf_listStatement: leaf_listKeyword identifier
+leaf_listStatement: leaf_listKeyword identifierStr
 			{
-				pushDecl(SMI_DECL_LEAF_LIST);
-				currentNode = addYangNode($2,SMI_DECL_LEAF_LIST, currentNode, currentModule);
+				node = addYangNode($2, YANG_DECL_LEAF_LIST, topNode());
+                pushNode(node);
 			}
 			'{'
+                stmtSep
 				leaf_listSubstatement_0n
 			'}'
 			{
-				popDecl();
-				currentNode = currentNode->parentPtr;
+                if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
+                    smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+                }
+				pop();
 			}
 		;
 			
-leaf_listSubstatement_0n:	leaf_listSubstatement
-			{
-				$$ = 1;
-			}
+leaf_listSubstatement_0n:
 		|
-		       leaf_listSubstatement leaf_listSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+		       leaf_listSubstatement_0n leaf_listSubstatement stmtSep
+        ;
 
 leaf_listSubstatement:	mustStatement
-		|
-			commonStatement
-		|
-			mandatoryStatement
-		|
-			typeStatement
-		|	
-			max_elementsStatement
-		|
-			min_elementsStatement
-		|
-			ordered_byStatement
-		;
+                    |
+                        commonStatement
+                    |
+                        typeStatement
+                    |
+                        ifFeatureStatement
+                    |
+                        unitsStatement
+                    |	
+                        whenStatement
+                    |	
+                        max_elementsStatement
+                    |
+                        min_elementsStatement
+                    |
+                        ordered_byStatement
+                    ;
 		
-listStatement: listKeyword identifier
+listStatement: listKeyword identifierStr
 			{
-				pushDecl(SMI_DECL_LIST);
-				currentNode = addYangNode($2,SMI_DECL_LIST, currentNode, currentModule);
+				node = addYangNode($2, YANG_DECL_LIST, topNode());
+                pushNode(node);
 			}
 			'{'
+                stmtSep
 				listSubstatement_0n
 			'}'
 			{
-				popDecl();
-				checkUniqueAndKey();
-				currentNode = currentNode->parentPtr;
+				pop();
 			}
 		;
 
-listSubstatement_0n:	listSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       listSubstatement listSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+listSubstatement_0n:
+            |
+		       listSubstatement_0n listSubstatement stmtSep
+        	;
 
 listSubstatement:	mustStatement
-		|
-			commonStatement
-		|
-			max_elementsStatement
-		|
-			min_elementsStatement
-		|
-			ordered_byStatement
-		|
-			keyStatement
-		|
-			uniqueStatement
-		|
-			dataDefStatement
-		|
-			typedefStatement
-		|
-			groupingStatement
-		;
+                |
+                    commonStatement
+                |
+                    max_elementsStatement
+                |
+                    min_elementsStatement
+                |
+                    ordered_byStatement
+                |
+                    keyStatement
+                |
+                    uniqueStatement
+                |
+                    dataDefStatement
+                |
+                    typedefStatement
+                |
+                    groupingStatement
+                |
+                    whenStatement
+                |
+                    ifFeatureStatement
+                ;
 
-max_elementsStatement: 	max_elementsKeyword string optExtension
-			{
-				if(strcmp($2,"unbounded")) //if true means string is different from "unbounded"
-				{
-					//TODO print error
-				}
-				//else do nothing because unbounded is default value anyway
-			}
-		|	max_elementsKeyword decimalNumber optExtension
-			{
-				SmiUnsigned32 value = strtoul($2, NULL, 10);
-				setYangNodeMaxElements(currentNode, value);
-			}
-		;
+max_elementsStatement: 	max_elementsKeyword string stmtEnd
+                    {
+                        if (!isNonNegativeInteger($2)) {                            
+                            smiPrintError(currentParser, ERR_ARG_VALUE, $2, "non-negative-integer");
+                        }
+                        uniqueNodeKind(topNode(), YANG_DECL_MAX_ELEMENTS);
+                        node = addYangNode($2, YANG_DECL_MAX_ELEMENTS, topNode());
+                    }
+                ;
 
-min_elementsStatement: 	min_elementsKeyword decimalNumber optExtension
-			{
-				SmiUnsigned32 value = strtoul($2, NULL, 10);
-				setYangNodeMinElements(currentNode, value);				
-			}
-		;
+min_elementsStatement: 	min_elementsKeyword string stmtEnd
+                    {
+                        if (!isNonNegativeInteger($2)) {
+                            smiPrintError(currentParser, ERR_ARG_VALUE, $2, "non-negative-integer");
+                        }
+                        uniqueNodeKind(topNode(), YANG_DECL_MIN_ELEMENTS);
+                        node = addYangNode($2, YANG_DECL_MIN_ELEMENTS, topNode());
+                    }
+        		;
 
-ordered_byStatement: 	ordered_byKeyword string optExtension
-			{
-				if(!strcmp($2,"system"))
-				{
-					setYangNodeOrder(currentNode, SMI_ORDER_SYSTEM);
-				}
-				else if(!strcmp($2,"user"))
-				{
-					setYangNodeOrder(currentNode, SMI_ORDER_USER);
-				}
-				else
-				{
-					//TODO print error
-				}
-			}
-		;
+ordered_byStatement: 	ordered_byKeyword string stmtEnd
+                    {
+                        if (!strcmp($2, "user") || !strcmp($2, "system")) {
+                        } else {
+                            smiPrintError(thisParserPtr, ERR_IVALIDE_ORDERED_BY_VALUE, $2);
+                        }
+                        uniqueNodeKind(topNode(), YANG_DECL_ORDERED_BY);
+                        node = addYangNode($2, YANG_DECL_ORDERED_BY, topNode());
+                    }
+                ;
 
-keyStatement: keyKeyword string optExtension
+keyStatement: keyKeyword string stmtEnd
 		{
-			currentNode->keyList = (YangNodeList*)smiMalloc(sizeof(YangNodeList));
-			YangNodeList *list  = currentNode->keyList;
-			
-			char *beginWord = $2; //beginning or current word
-			int i = 0;
-			for(i; beginWord[i]; i++) //substitude tabs with spaces
-			{
-				if(beginWord[i]=='\t') beginWord[i]=' ';
-			}
-			
-			char *nextWord = strstr(beginWord," "); //location of next space
- 
-			while(nextWord)
-			{
-				nextWord[0] = '\0'; //change space for null so that duplication is to this position
-				list->name = smiStrdup(beginWord);
-				list->next = (YangNodeList*)smiMalloc(sizeof(YangNodeList));
-				list = list->next;
-				nextWord++; //next iteration starts from char after space
-				beginWord = nextWord;
-				nextWord = strstr(beginWord," ");
-			}
-			list->name = smiStrdup(beginWord);
-			list->next = NULL;//terminate list
+            uniqueNodeKind(topNode(), YANG_DECL_KEY);
+            node = addYangNode($2, YANG_DECL_KEY, topNode());
+            node->info = getKeyList($2);
 		}
 	;
 	
-uniqueStatement: uniqueKeyword string optExtension
+uniqueStatement: uniqueKeyword string stmtEnd
 		{
-			currentNode->uniqueList = (YangNodeList*)smiMalloc(sizeof(YangNodeList));
-			YangNodeList *list  = currentNode->uniqueList;
-			
-			char *beginWord = $2; //beginning or current word
-			int i = 0;
-			for(i; beginWord[i]; i++) //substitute tabs with spaces
-			{
-				if(beginWord[i]=='\t') beginWord[i]=' ';
-			}
-			
-			char *nextWord = strstr(beginWord," "); //location of next space
- 
-			while(nextWord)
-			{
-				nextWord[0] = '\0'; //change space for null so that duplication is to this position
-				list->name = smiStrdup(beginWord);
-				list->next = (YangNodeList*)smiMalloc(sizeof(YangNodeList));
-				list = list->next;
-				nextWord++; //next iteration starts from char after space
-				beginWord = nextWord;
-				nextWord = strstr(beginWord," ");
-			}
-			list->name = smiStrdup(beginWord);
-			list->next = NULL;//terminate list
+            node = addYangNode($2, YANG_DECL_UNIQUE, topNode());
+            YangList *il = getUniqueList($2);
+            node->info = processUniqueList(node, il);
+            freeIdentiferList(il);
 		}
 	;
 
-choiceStatement: choiceKeyword identifier
+choiceStatement: choiceKeyword identifierStr
 		{
-			pushDecl(SMI_DECL_CHOICE);
-			currentNode = addYangNode($2,SMI_DECL_CHOICE, currentNode, currentModule);
+            node = addYangNode($2, YANG_DECL_CHOICE, topNode());
+            pushNode(node);
 		}
-		'{'
-			choiceSubstatement_0n			
-		'}'
+        choiceSpec
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+			pop();
 		}
 		;
  
-choiceSubstatement_0n:	choiceSubstatement
-			{
-				$$ = 1;
-			}
+choiceSpec: ';'
+        |
+            '{'
+                stmtSep
+                choiceSubstatement_0n			
+            '}'
+        ;
+
+choiceSubstatement_0n:
 		|
-		       choiceSubstatement choiceSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+		       choiceSubstatement_0n choiceSubstatement stmtSep
+        ;
 
 choiceSubstatement:	commonStatement
-		  |
-			caseStatement
-		  |
-			defaultStatement
-		;
+                  |
+                    defaultStatement
+                  |
+                    whenStatement
+                  |
+                    ifFeatureStatement
+                  |
+                    mandatoryStatement
+                  |
+                    caseStatement
+                ;
 
-caseStatement: 	caseKeyword identifier
+caseStatement: 	caseKeyword identifierStr
 		{
-			pushDecl(SMI_DECL_CASE);
-			currentNode = addYangNode($2,SMI_DECL_CASE, currentNode, currentModule);
+            node = findChildNodeByTypeAndValue(topNode(), YANG_DECL_CASE, $2);
+            if (node) {
+                smiPrintError(currentParser, ERR_DUPLICATED_CASE_IDENTIFIER, $2);
+            }
+            node = addYangNode($2, YANG_DECL_CASE, topNode());
+            pushNode(node);
 		}
-		'{'
-			caseSubstatement_0n
-		'}'
+        caseSpec
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+			pop();
 		}	
 	|
-		{
-			pushDecl(SMI_DECL_CASE);
-			currentNode = addYangNode("",SMI_DECL_CASE, currentNode, currentModule);	
-		}
-			dataDefStatement
-		{
-			//TODO fix name of che case node to be the same as caseSubstatement name
-			popDecl();
-			currentNode = currentNode->parentPtr;
-		}	
+        containerStatement
+    |
+        leafStatement
+    |
+        leaf_listStatement
+    |
+        listStatement
+    |
+        anyXMLStatement
 	;
 
-caseSubstatement_0n:	caseSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       caseSubstatement caseSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+caseSpec:   ';'
+        |
+            '{'
+                stmtSep
+                caseSubstatement_0n
+            '}'
+        ;
+
+caseSubstatement_0n:
+            |
+                caseSubstatement_0n caseSubstatement  stmtSep
+            ;
 
 caseSubstatement: 	descriptionStatement
-		|
-			statusStatement
-		|
-			referenceStatement
-		|
-			mandatoryStatement
-		|
-			dataDefStatement
-		;
+                |
+                    statusStatement
+                |
+                    referenceStatement
+                |
+                    whenStatement
+                |
+                    ifFeatureStatement
+                |
+                    caseDataDef
+                ;
 
-groupingStatement: groupingKeyword identifier
+
+caseDataDef:    containerStatement
+            |
+                leafStatement
+            |
+                leaf_listStatement
+            |
+                listStatement
+            |
+                anyXMLStatement
+            |
+                usesStatement
+            ;
+
+
+groupingStatement: groupingKeyword identifierStr
 		{
-			pushDecl(SMI_DECL_GROUPING);
-			currentNode = addYangNode($2,SMI_DECL_GROUPING, currentNode, currentModule);
+            node = addYangNode($2, YANG_DECL_GROUPING, topNode());
+            pushNode(node);
 		}
 		'{'
+            stmtSep
 			groupingSubstatement_0n
 		'}'
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+			pop();
 		}
 		;
 
-groupingSubstatement_0n:	groupingSubstatement
-			{
-				$$ = 1;
-			}
+groupingSubstatement_0n:	
 		|
-		       groupingSubstatement groupingSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+                groupingSubstatement_0n groupingSubstatement stmtSep
+        ;
 
 groupingSubstatement:	statusStatement
-		|
-			descriptionStatement
-		|
-			referenceStatement
-		|
-			dataDefStatement
-		|
-			groupingStatement
-		|
-			typedefStatement
-		;
+                    |
+                        descriptionStatement
+                    |
+                        referenceStatement
+                    |
+                        dataDefStatement
+                    |
+                        groupingStatement
+                    |
+                        typedefStatement
+                    ;
 
-usesStatement: usesKeyword identifier
-		{
-			pushDecl(SMI_DECL_USES);
-			currentNode = addYangNode($2,SMI_DECL_USES, currentNode, currentModule);
-		}
-	     	'{'
-			usesSubstatement_0n
-	     	'}'
-		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
-		}
-	|
-		usesKeyword identifier
-		{
-			pushDecl(SMI_DECL_USES);
-			currentNode = addYangNode($2,SMI_DECL_USES, currentNode, currentModule);
-		}
-		';'
-		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
-		}
-		;
+usesStatement:  usesKeyword identifierRef
+            {
+                node = addYangNode($2, YANG_DECL_USES, topNode());
+                createIdentifierRef(node, getPrefix($2), getIdentifier($2));
+                pushNode(node);
+            }
+            '{'
+            usesSubstatement_0n
+            '}'
+            {
+                pop();
+            }
+        |
+                usesKeyword identifierRef
+            {
+                node = addYangNode($2, YANG_DECL_USES, topNode());
+                createIdentifierRef(node, getPrefix($2), getIdentifier($2));
+            }
+            ';'
+            ;
 
-usesSubstatement_0n:	usesSubstatement
-			{
-				$$ = 1;
-			}
+usesSubstatement_0n:
 		|
-		       usesSubstatement usesSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+		       usesSubstatement_0n usesSubstatement stmtSep
+        ;
 
 usesSubstatement:	descriptionStatement
-		|
-			referenceStatement
-		|
-			statusStatement
-		|
-			containerStatement
-		|
-			leafStatement
-		|
-			leaf_listStatement
-		|
-			listStatement
-		|
-			choiceStatement
-		|
-			anyXMLStatement
-		|
-			usesStatement
+                |
+                    referenceStatement
+                |
+                    statusStatement
+                |
+                    whenStatement
+                |   
+                    ifFeatureStatement
+                | 
+                    refineStatement
+                |
+                    augmentStatement
+                    
 		;
+
+refineStatement:    refineKeyword string
+            {
+                if (!isDescendantSchemaNodeid($2)) {
+                    smiPrintError(thisParserPtr, ERR_DESCEDANT_FORM, $2);
+                }
+                node = addYangNode($2, YANG_DECL_REFINE, topNode());
+                pushNode(node);
+            }
+                    refineSpec
+            {
+                pop();
+            }
+            ;
+
+refineSpec: ';'
+        |   
+            '{'
+                stmtSep
+                refineSubstatement
+            '}'
+        ;
+
+refineSubstatement: refine_0n;
+
+refine_0n: 
+                |
+                    refine_0n refine stmtSep;
+
+refine: mustStatement
+    |
+        presenceStatement
+    |
+        configStatement
+    |
+        descriptionStatement
+    |
+        referenceStatement
+    |
+        defaultStatement
+    |
+        mandatoryStatement
+    |
+        min_elementsStatement
+    |
+        max_elementsStatement
+    |
+        defaultStatement
+    ;
 
 augmentStatement: augmentKeyword string 
 		{
-			pushDecl(SMI_DECL_AUGMENT);
-			currentNode = addYangNode($2,SMI_DECL_AUGMENT, currentNode, currentModule);
+            if (topDecl() == YANG_DECL_USES) {
+                if (!isDescendantSchemaNodeid($2)) {
+                    smiPrintError(thisParserPtr, ERR_DESCEDANT_FORM, $2);
+                }
+            } else {
+                if (!isAbsoluteSchemaNodeid($2)) {
+                    smiPrintError(thisParserPtr, ERR_ABSOLUTE_FORM, $2);
+                }
+            }
+            node = addYangNode($2, YANG_DECL_AUGMENT, topNode());
+            pushNode(node);
 		}
 		'{'
+            stmtSep
 			augmentSubstatement_0n
-	     	'}'
+    	'}'
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+            node = topNode()->firstChildPtr;
+            int count = 0;
+            while (node) {
+                if (node->export.nodeKind == YANG_DECL_CASE ||
+                    isDataDefNode(node)) {
+                        count++;
+                }
+                node = node->nextSiblingPtr;
+            }
+            if (count == 0) {
+                smiPrintError(thisParserPtr, ERR_DATADEF_NODE_REQUIRED, $2);
+            }
+
+			pop();
 		}
 		;
 
-augmentSubstatement_0n:	augmentSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       augmentSubstatement augmentSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+augmentSubstatement_0n:	augmentSubstatement stmtSep
+                |
+                        augmentSubstatement_0n augmentSubstatement stmtSep
+                ;
 
 augmentSubstatement:	whenStatement
-		|
-		   	descriptionStatement
-		|
-			referenceStatement
-		|
-			statusStatement
-		|
-			containerStatement
-		|
-			leafStatement
-		|
-			leaf_listStatement
-		|
-			listStatement
-		|
-			choiceStatement
-		|
-			anyXMLStatement
-		|
-			usesStatement
+                    |
+                        ifFeatureStatement
+                    |
+                        descriptionStatement
+                    |
+                        referenceStatement
+                    |
+                        statusStatement
+                    |
+                        dataDefStatement
+                    |
+                        caseStatement
+                    ;
+
+
+whenStatement:	whenKeyword string stmtEnd
+	    {
+            uniqueNodeKind(topNode(), YANG_DECL_WHEN);
+            node = addYangNode($2, YANG_DECL_WHEN, topNode());
+        }
 		;
 
-whenStatement:	whenKeyword string optExtension
-	        {
-			currentNode->when = smiStrdup($2)
-		}
-		;
-
-rpcStatement: rpcKeyword identifier
+rpcStatement: rpcKeyword identifierStr
 		{
-			pushDecl(SMI_DECL_RPC);
-			currentNode = addYangNode($2,SMI_DECL_RPC, currentNode, currentModule);
+            node = addYangNode($2, YANG_DECL_RPC, topNode());
+            pushNode(node);
 		}
-		'{'
-			rpcSubstatement_0n
-		'}'
+              rpcSpec
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+			pop();
 		}
 		;
 
-rpcSubstatement_0n:	rpcSubstatement
-			{
-				$$ = 1;
-			}
+rpcSpec:    ';'
+        |
+            '{'
+                stmtSep
+                rpcSubstatement_0n
+            '}'
+        ;
+
+rpcSubstatement_0n:	
 		|
-		       rpcSubstatement rpcSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
+		       rpcSubstatement_0n rpcSubstatement  stmtSep
 	;
 
-rpcSubstatement:	descriptionStatement
-		|
-			referenceStatement
-		|
-			statusStatement
-		|
-			inputStatement
-		|
-			outputStatement
-	;
+rpcSubstatement:	ifFeatureStatement
+                |
+                    descriptionStatement
+                |
+                    referenceStatement
+                |
+                    statusStatement
+                |
+                    typedefStatement
+                |
+                    groupingStatement
+                |
+                    inputStatement
+                |
+                    outputStatement
+            ;
 
 inputStatement: inputKeyword
 		{
-			pushDecl(SMI_DECL_INPUT);
-			currentNode = addYangNode("input",SMI_DECL_INPUT, currentNode, currentModule);
+            node = addYangNode(NULL, YANG_DECL_INPUT, topNode());
+            pushNode(node);
 		}
 		'{'
-			inputSubstatement_0n
+            stmtSep
+			inputOutputSubstatement_0n
 		'}'
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+            int numberDataDefStmts = 0;
+            _YangNode *childPtr = topNode()->firstChildPtr;
+            while (childPtr) {
+                if (!(childPtr->export.nodeKind == YANG_DECL_TYPEDEF ||
+                    childPtr->export.nodeKind == YANG_DECL_GROUPING)) {
+                        numberDataDefStmts++;
+                    }
+                childPtr = childPtr->nextSiblingPtr;
+            }
+            if (!numberDataDefStmts) {
+                smiPrintError(thisParserPtr, ERR_DATA_DEF_REQUIRED, "input");            
+            }
+			pop();
 		}
 		;
 
-inputSubstatement_0n:	inputSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       inputSubstatement inputSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+inputOutputSubstatement_0n:	inputOutputSubstatement stmtSep
+                |
+                        inputOutputSubstatement_0n inputOutputSubstatement stmtSep
+            	;
 
-inputSubstatement:	dataDefStatement
-	  	|
-			groupingStatement
-		|
-			typedefStatement
-		;
+inputOutputSubstatement:	dataDefStatement
+                        |
+                            groupingStatement
+                        |
+                            typedefStatement
+                        ;
 
 outputStatement: outputKeyword
 		{
-			pushDecl(SMI_DECL_OUTPUT);
-			currentNode = addYangNode("output",SMI_DECL_OUTPUT, currentNode, currentModule);
+            node = addYangNode(NULL, YANG_DECL_OUTPUT, topNode());
+            pushNode(node);
 		}
 		'{'
-			outputSubstatement_0n
+            stmtSep
+			inputOutputSubstatement_0n
 		'}'
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+            int numberDataDefStmts = 0;
+            _YangNode *childPtr = topNode()->firstChildPtr;
+            while (childPtr) {
+                if (!(childPtr->export.nodeKind == YANG_DECL_TYPEDEF ||
+                    childPtr->export.nodeKind == YANG_DECL_GROUPING)) {
+                        numberDataDefStmts++;
+                    }
+                childPtr = childPtr->nextSiblingPtr;
+            }
+            if (!numberDataDefStmts) {
+                smiPrintError(thisParserPtr, ERR_DATA_DEF_REQUIRED, "input");            
+            }
+			pop();
 		}
 		;
 
-outputSubstatement_0n:	outputSubstatement
-			{
-				$$ = 1;
-			}
+
+notificationStatement: notificationKeyword identifierStr
+                {
+                    node = addYangNode($2, YANG_DECL_NOTIFICATION, topNode());
+                    pushNode(node);
+                }
+                        notificationSpec
+                {
+                    pop();
+                }
+                ;
+
+notificationSpec:   ';'
+                |
+                    '{'
+                        stmtSep
+                        notificationSubstatement_0n
+                    '}'
+                    ;
+
+
+notificationSubstatement_0n:
 		|
-		       outputSubstatement outputSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
+		       notificationSubstatement_0n notificationSubstatement stmtSep
 	;
 
-outputSubstatement:	dataDefStatement
-	  	|
-			groupingStatement
-		|
-			typedefStatement
-		;
+notificationSubstatement:	ifFeatureStatement
+                        |
+                            descriptionStatement
+                        |
+                            referenceStatement
+                        |
+                            statusStatement
+                        |	
+                            dataDefStatement
+                        |
+                            groupingStatement
+                        |
+                            typedefStatement
+                        ;
 
-notificationStatement: notificationKeyword identifier
+deviationStatement: deviationKeyword string 
+                {
+                        node = addYangNode($2, YANG_DECL_DEVIATION, topNode());
+                        pushNode(node);
+                }
+                '{'
+                    stmtSep
+                    deviationSubstatement_0n
+                '}'
+                {
+                    pop();
+                }
+                ;
+
+deviationSubstatement_0n:   deviationSubstatement stmtSep
+                        |
+                            deviationSubstatement_0n deviationSubstatement stmtSep;
+
+deviationSubstatement:  descriptionStatement
+                    |
+                        referenceStatement
+                    |
+                        deviateNotSupported
+                    |
+                        deviateAddStatement
+                    |
+                        deviateDeleteStatement
+                    |
+                        deviateReplaceStatement
+                    ;
+
+deviateNotSupported: deviateKeyword notSupportedKeyword ';'
+                    {
+                        uniqueNodeKind(topNode(), YANG_DECL_DEVIATE);
+                        node = addYangNode("not-supported", YANG_DECL_DEVIATE, topNode());
+                    }
+                |
+                     deviateKeyword notSupportedKeyword '{' stmtSep '}'
+                    {
+                        uniqueNodeKind(topNode(), YANG_DECL_DEVIATE);
+                        node = addYangNode("not-supported", YANG_DECL_DEVIATE, topNode());
+                    }
+                ;
+
+deviateAddStatement:    deviateKeyword addKeyword 
+                    {
+                        node = addYangNode("add", YANG_DECL_DEVIATE, topNode());
+                        pushNode(node);
+                    }
+                        deviateAddSpec
+                    {
+                        pop();
+                    }
+                    ;
+
+deviateAddSpec: ';'
+            |
+                '{'
+                    stmtSep
+                    deviateAddSubstatement_0n
+                '}'
+            ;
+
+deviateAddSubstatement_0n:
+                    |
+                        deviateAddSubstatement_0n deviateAddSubstatement stmtSep;
+
+deviateAddSubstatement:     unitsStatement
+                    |
+                            mustStatement
+                    |
+                            uniqueStatement
+                    |
+                            defaultStatement
+                    |
+                            configStatement
+                    |
+                            mandatoryStatement
+                    |
+                            min_elementsStatement
+                    |
+                            max_elementsStatement
+                    ;
+
+deviateDeleteStatement:    deviateKeyword deleteKeyword 
+                    {
+                        node = addYangNode("delete", YANG_DECL_DEVIATE, topNode());
+                        pushNode(node);
+                    }
+                        deviateDeleteSpec
+                    {
+                        pop();
+                    }
+                    ;
+
+deviateDeleteSpec: ';'
+            |
+                '{'
+                    stmtSep
+                    deviateDeleteSubstatement_0n
+                '}'
+            ;
+
+deviateDeleteSubstatement_0n:
+                    |
+                        deviateDeleteSubstatement_0n deviateDeleteSubstatement stmtSep;
+
+deviateDeleteSubstatement:      unitsStatement
+                        |
+                                mustStatement
+                        |
+                                uniqueStatement
+                        |
+                                defaultStatement;
+
+deviateReplaceStatement: deviateKeyword replaceKeyword 
+                    {
+                        node = addYangNode("replace", YANG_DECL_DEVIATE, topNode());
+                        pushNode(node);
+                    }
+                        deviateReplaceSpec
+                    {
+                        pop();
+                    }
+                    ;
+
+deviateReplaceSpec: ';'
+            |
+                '{'
+                    stmtSep
+                    deviateReplaceSubstatement_0n
+                '}'
+            ;
+
+deviateReplaceSubstatement_0n:
+                    |
+                        deviateReplaceSubstatement_0n deviateReplaceSubstatement stmtSep;
+
+deviateReplaceSubstatement: typeStatement
+                        |
+                            unitsStatement
+                        |
+                            defaultStatement
+                        |
+                            configStatement
+                        |
+                            mandatoryStatement
+                        |
+                            min_elementsStatement
+                        |
+                            max_elementsStatement
+                        ;
+
+
+anyXMLStatement: anyXMLKeyword identifierStr
 		{
-			pushDecl(SMI_DECL_NOTIFICATION);
-			currentNode = addYangNode($2,SMI_DECL_NOTIFICATION, currentNode, currentModule);
+            node = addYangNode($2, YANG_DECL_ANYXML, topNode());
+            pushNode(node);
 		}
-		'{'
-			notificationSubstatement_0n
-		'}'
+        anyXMLSpec
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+			pop();
 		}
 		;
 
-notificationSubstatement_0n:	notificationSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       notificationSubstatement notificationSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+anyXMLSpec: ';'
+        |
+            '{'
+                stmtSep
+                anyXMLSubstatement_0n
+            '}'
+        ;
 
-notificationSubstatement:	descriptionStatement
-			|
-				referenceStatement
-			|
-				statusStatement
-			|	
-				dataDefStatement
-	  		|
-				groupingStatement
-			|
-				typedefStatement
-			;
+anyXMLSubstatement_0n:
+    		|
+		       anyXMLSubstatement_0n anyXMLSubstatement stmtSep
+            ;
 
-anyXMLStatement: anyXMLKeyword identifier
+anyXMLSubstatement:	commonStatement
+                |
+                    whenStatement
+                |
+                    ifFeatureStatement
+                |   
+                    mustStatement
+                |
+                    mandatoryStatement
+                ;
+
+extensionStatement: extensionKeyword identifierStr
 		{
-			pushDecl(SMI_DECL_ANYXML);
-			currentNode = addYangNode($2,SMI_DECL_ANYXML, currentNode, currentModule);
+			node = addYangNode($2, YANG_DECL_EXTENSION, topNode());
+            pushNode(node);
 		}
-		'{'
-			anyXMLSubstatement_0n
-		'}'
+                extensionStatementBody
 		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
+			pop();
 		}
+		
+extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}'
+                    |
+                         ';'
+                    ;                       
+
+extensionSubstatement_0n:	
+		|
+            extensionSubstatement_0n extensionSubstatement stmtSep
 		;
 
-anyXMLSubstatement_0n:	anyXMLSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       anyXMLSubstatement anyXMLSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-	;
+extensionSubstatement:	argumentStatement
+                |
+                        statusStatement
+                |
+                        descriptionStatement
+                |
+                        referenceStatement
+                ;
 
-anyXMLSubstatement:	descriptionStatement
-		|
-			referenceStatement
-		|
-			statusStatement
-		;
+argumentStatement:  argumentKeyword identifierStr
+                    {
+                        uniqueNodeKind(topNode(), YANG_DECL_ARGUMENT);
+                        node = addYangNode($2, YANG_DECL_ARGUMENT, topNode());
+                        pushNode(node);
+                    }
+                    argumentStatementBody
+                    {
+                        pop();
+                    }
+                ;
 
-extensionStatement: extensionKeyword identifier
-		{
-			pushDecl(SMI_DECL_EXTENSION);
-			currentNode = addYangNode($2,SMI_DECL_EXTENSION, currentNode, currentModule);
-		}
-		'{'
-			extensionSubstatement_0n
-		'}'
-		{
-			popDecl();
-			currentNode = currentNode->parentPtr;
-		}
-		;
+argumentStatementBody:  '{' stmtSep yinElementOptional '}'
+                    |
+                         ';'
+                    ;                       
 
-extensionSubstatement_0n:	extensionSubstatement
-			{
-				$$ = 1;
-			}
-		|
-		       extensionSubstatement extensionSubstatement_0n
-			{
-				$$ = 1 + $2;
-			}
-		;
+yinElementOptional: 
+                |
+                    yinElementKeyword trueKeyword stmtEnd stmtSep
+                    {
+                        addYangNode("true", YANG_DECL_YIN_ELEMENT, topNode());
+                    }
+                |
+                    yinElementKeyword falseKeyword stmtEnd stmtSep
+                    {
+                        addYangNode("false", YANG_DECL_YIN_ELEMENT, topNode());
+                    }
+                ;
 
-extensionSubstatement:	descriptionStatement
-		|
-			referenceStatement
-		|
-			statusStatement
-		|
-			argumentStatement
-		;
+unitsStatement: unitsKeyword string stmtEnd
+                {
+                    uniqueNodeKind(topNode(), YANG_DECL_UNITS);
+                    addYangNode($2, YANG_DECL_UNITS, topNode());
+                }
+                ;
 
-argumentStatement: argumentKeyword string
-		{
-			addYangNode($2,SMI_DECL_ARGUMENT, currentNode, currentModule);
-		}
-		;
+defaultStatement: defaultKeyword string stmtEnd
+                {
+                    uniqueNodeKind(topNode(), YANG_DECL_DEFAULT);
+                    addYangNode($2, YANG_DECL_DEFAULT, topNode());
+                }
+                ;
+
+prefix:		identifierStr
+        ;
+
+identifierRef:  identifierRefArg
+            |
+                identifierRefArgStr 
+            |
+                identifierStr 
+            ;
+identifierStr:    identifier
+                | augmentKeyword | belongs_toKeyword | choiceKeyword | configKeyword | contactKeyword | containerKeyword | defaultKeyword | descriptionKeyword
+                | enumKeyword | error_app_tagKeyword | error_messageKeyword | extensionKeyword | groupingKeyword | importKeyword | includeKeyword | keyKeyword
+                | leafKeyword | leaf_listKeyword | lengthKeyword | listKeyword | mandatoryKeyword | max_elementsKeyword | min_elementsKeyword | moduleKeyword
+                | submoduleKeyword | mustKeyword | namespaceKeyword | ordered_byKeyword | organizationKeyword | prefixKeyword | rangeKeyword | referenceKeyword
+                | patternKeyword | revisionKeyword | statusKeyword | typeKeyword | typedefKeyword | uniqueKeyword | unitsKeyword | usesKeyword | valueKeyword
+                | whenKeyword | bitKeyword | pathKeyword | anyXMLKeyword | deprecatedKeyword | currentKeyword | obsoleteKeyword | trueKeyword | falseKeyword
+                | caseKeyword | inputKeyword | outputKeyword | rpcKeyword | notificationKeyword | argumentKeyword | yangversionKeyword | baseKeyword
+                | deviationKeyword | deviateKeyword | featureKeyword | identityKeyword | ifFeatureKeyword | positionKeyword | presenceKeyword | refineKeyword
+                | requireInstanceKeyword | yinElementKeyword | notSupportedKeyword | addKeyword | deleteKeyword | replaceKeyword
+                ;
 
 
-defaultStatement: defaultKeyword string optExtension
-		;
+booleanValue:   trueKeyword
+                {
+                    $$ = YANG_BOOLEAN_TRUE;
+                }
+             |
+                falseKeyword
+                {
+                    $$ = YANG_BOOLEAN_FALSE;
+                }
+             ;
 
 string:		qString
-		{
-			$$ = $1;
-		}
 	|
-		uqString
-		{
-			$$ = $1;
-		}
+    		uqString
 	|
-		identifier
-		{
-			$$ = $1;
-		}
+            identifierRef
+    |
+            dateString
+    |
+            yangVersion
+
 	;
 %%
 
-#endif
-			
+#endif			

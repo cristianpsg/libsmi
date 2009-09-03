@@ -1,0 +1,3 @@
+config-warnings.yang:8: explicit config value is ignored
+config-warnings.yang:10: explicit config value is ignored
+config-warnings.yang:17: explicit config value is ignored

@@ -1,0 +1,45 @@
+// correct
+ 
+// Notes:
+// defines a number of extensions
+
+module "extension"
+{
+	namespace "urn:smilib:params:ext";
+ 	prefix ext; 
+
+	organization jub; 
+	contact jub;
+	description "Extension test";
+	reference "Siarhei Kuryla";
+
+	extension ext1;
+
+    ext:ext2 test2 {
+        ext:ext2 test1 {
+            ext:ext1;
+        }
+    }
+
+	extension ext2 {
+		argument test;
+		status current;
+	}
+
+    extension ext3 {
+		argument test {
+            yin-element true;
+        }
+		status current;
+	}
+
+    extension ext4 {
+		argument test {
+            yin-element false;
+        }
+		status current;
+        reference "Siarhei Kuryla";
+        description "a test extension module";
+	}
+
+}

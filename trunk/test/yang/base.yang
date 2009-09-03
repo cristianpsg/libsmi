@@ -1,0 +1,11 @@
+module base {
+	namespace "urn:test:base";
+	prefix "b";
+
+	revision 2009-04-01 {
+	}
+
+}
+
+
+

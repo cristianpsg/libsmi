@@ -1,0 +1,44 @@
+ module refine {
+	namespace "urn:refine";
+	prefix "refine";
+
+	grouping target {
+		leaf address {
+			type int8;
+			description "Target IP address";
+		}
+		leaf port {
+			type int16;
+			description "Target port number";
+		}
+        container container {
+            config false;
+        }
+
+        list new-list {
+            config false;
+            leaf test {
+                type empty;
+            }
+        }
+	}
+
+    uses target {
+        refine "container" {
+            must "test";
+            presence "refined";
+            description "desc";
+        }
+
+        refine new-list {
+ //           config true;
+            min-elements 3;
+        }
+
+        refine port {
+            mandatory true;
+            description "test";
+        }
+    }
+}                                                                                                    
+

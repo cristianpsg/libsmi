@@ -1,0 +1,16 @@
+ module grouping1 {
+	namespace "http://example.com/grouping1";
+	prefix "grouping1";
+
+	grouping target {
+		leaf address {
+			type int8;
+			description "Target IP address";
+		}
+		leaf port {
+			type int16;
+			description "Target port number";
+		}
+	}
+}                                                                                                    
+

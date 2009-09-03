@@ -1,0 +1,28 @@
+ module list2 {
+	namespace "urn:test:lists";
+	prefix "l";
+
+    container c {
+		list interface {
+             key name;
+			 leaf speed {
+                 type string;
+                 mandatory true;
+                 default 'test';
+             }
+        }
+    }
+
+    choice test {
+        default node;
+        case node {
+            leaf  mandatory {
+                type string;
+                mandatory true;
+            }
+        }
+    }
+    
+}                                                                                                    
+
+

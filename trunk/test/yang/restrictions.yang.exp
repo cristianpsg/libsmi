@@ -1,0 +1,12 @@
+restrictions.yang:45: duplicated position `1'
+restrictions.yang:63: reference to 'restrictions:dfddf' can not be resolved
+restrictions.yang:53: the type "empty" cannot have a default value
+restrictions.yang:58: the type "empty" cannot have a default value
+restrictions.yang:10: restriction length is not allowed for this base type
+restrictions.yang:11: restriction pattern is not allowed for this base type
+restrictions.yang:17: restriction length is not allowed for this base type
+restrictions.yang:23: restriction enum is not allowed for this base type
+restrictions.yang:30: a type enumeration must have at least one enum statement
+restrictions.yang:35: a type bits must have at least one bit statement
+restrictions.yang:69: the type empty cannot be part of a union
+restrictions.yang:70: the type leafref cannot be part of a union

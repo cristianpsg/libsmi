@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 #include "smi.h"
-
+#include "yang-data.h"
 
 
 typedef struct List {
@@ -92,10 +92,6 @@ typedef struct Module {
     struct Import   *lastImportPtr;
     struct Revision *firstRevisionPtr;
     struct Revision *lastRevisionPtr;
-    struct Container *firstContainerPtr;
-    struct Container *lastContainerPtr;
-    struct YangNode  *firstYangNodePtr;
-    struct YangNode  *lastYangNodePtr;
     ModuleFlags	    flags;
     int		    numImportedIdentifiers;
     int		    numStatements;
@@ -233,46 +229,6 @@ typedef struct Node {
     Object	   *lastObjectPtr;
 } Node;
 
-typedef struct YangNode {
-    SmiYangNode	     	export;
-    struct Type    	*type;
-    struct List		*listPtr;
-    Module 	     	*modulePtr;
-    struct YangNode  	*firstChildPtr;
-    struct YangNode  	*lastChildPtr;
-    struct YangNode  	*nextSiblingPtr;
-    struct YangNode  	*parentPtr;
-    struct Range	*minMaxElements;
-    struct Must		*firstMustPtr;
-    struct Must		*lastMustPtr;
-    char		*when;
-    struct YangNodeList *uniqueList;
-    struct YangNodeList *keyList;
-} YangNode;
-
-/*Used to store unique and key entries.
-each child points to a child that is in the unique 
-or key statement.
-*/
-typedef struct YangNodeList
-{
-    SmiIdentifier	name;
-    YangNode		*yangNode;
-    struct YangNodeList *next;
-} YangNodeList;
-
-typedef struct Must {
-    SmiMustStatement export;
-    struct Must *nextPtr;
-} Must;
-
-typedef struct Container {
-    SmiContainer   	export;
-    Module         	*modulePtr;
-    struct Container    *nextPtr;
-    struct Container    *prevPtr;
-    int		   	line;
-} Container;
 
 
 typedef struct Macro {
@@ -342,6 +298,7 @@ typedef struct Parser {
     int		   line;
     int		   lcline;		/* for SMI comment warning */
     Module	   *modulePtr;
+    _YangNode *yangModulePtr;
     ParserFlags	   flags;
     List	   *firstIndexlabelPtr; /* only for the SMIng parser */
     char	   *identityObjectName; /* only for the SMIng parser */
@@ -365,13 +322,10 @@ typedef struct Handle {
     View     	    *lastViewPtr;
     Module   	    *firstModulePtr;
     Module   	    *lastModulePtr;
+    _YangNode       *firstYangModulePtr; /* List of YANG modules*/
     Node     	    *rootNodePtr;
     Type     	    *typeOctetStringPtr;
     Type     	    *typeObjectIdentifierPtr;
-    Type     	    *typeInteger8Ptr;
-    Type     	    *typeUnsigned8Ptr;
-    Type     	    *typeInteger16Ptr;
-    Type     	    *typeUnsigned16Ptr;
     Type     	    *typeInteger32Ptr;
     Type     	    *typeUnsigned32Ptr;
     Type     	    *typeInteger64Ptr;
@@ -381,11 +335,7 @@ typedef struct Handle {
     Type     	    *typeFloat128Ptr;
     Type     	    *typeEnumPtr;
     Type     	    *typeBitsPtr;
-    Type	    *typePointerPtr;
-    Type     	    *typeBooleanPtr;
-    Type     	    *typeAnyxmlPtr;
-    Type     	    *typeKeyrefPtr;
-    Type	    *typeBinaryPtr;
+    Type			*typePointerPtr;
     int	     	    flags;
     char     	    *path;
     char     	    *cache;
@@ -434,9 +384,6 @@ extern void setModuleOrganization(Module *modulePtr,
 extern void setModuleContactInfo(Module *modulePtr,
 				 char *contactinfo);
 
-extern void setModuleXMLNamespace(Module *modulePtr,
-				 char *XMLNamespace);
-
 extern void setModuleDescription(Module *modulePtr,
 				 char *description,
 				 Parser *parserPtr);
@@ -445,15 +392,8 @@ extern void setModuleReference(Module *modulePtr,
 			       char *reference,
 			       Parser *parserPtr);
 
-extern void setModulePrefix(Module *modulePtr,
-			       char *prefix,
-			       Parser *parserPtr);
-
-
 extern Module *findModuleByName(const char *modulename);
 
-extern Module *findImportedModuleByPrefix(Module *modulePtr, 
-						const char *prefix);
 
 
 extern Revision *addRevision(time_t date,
@@ -473,8 +413,6 @@ extern void addImportFlags(Import *importPtr, ImportFlags flags);
 
 extern void setImportModulename(Import *importPtr,
 				char *modulename);
-
-void setImportPrefix(Import *importPtr, char *prefix);
 
 extern int checkImports(Module *modulePtr,
 			Parser *parserPtr);
@@ -663,12 +601,6 @@ extern void setTypeUnits(Type *typePtr,
 extern void setTypeValue(Type *typePtr,
 			 SmiValue *valuePtr);
 
-extern void setTypeErrorMessage(Type *typePtr,
-			 char* errorMessage);
-
-extern void setTypeErrorAppTag(Type *typePtr,
-			 char* errorAppTag);
-
 
 
 extern Type *findTypeByName(const char *type_name);
@@ -685,12 +617,7 @@ extern Type *findTypeByModulenameAndName(const char *modulename,
 extern NamedNumber *findTypeNamedNumber(Type *typePtr,
 					SmiInteger32 number);
 					
-extern Type *createType(char *name); 
-
-extern YangNode *findYangNodeByScopeAndName(Module *modulePtr, 
-					const char *name, YangNode *node);
-				
-
+					
 					
 extern Identity *addIdentity(char *identityname,
 		             Parser *parserPtr);
@@ -817,38 +744,16 @@ extern Macro *findMacroByModulenameAndName(const char *modulename,
 					   const char *macroname);
 					   
 
-extern YangNode *addYangNode(char *name, SmiDecl nodeKind, YangNode *parentPtr, Module *modulePtr);
-
 extern NamedNumber *findNamedNumberByName(Type *typePtr,
 					  const char *name);
 
-extern void setYangNodeType(YangNode *currentNode, Type *type);
 
-extern void setYangNodeDescription(YangNode *currentNode, char *description);
-
-extern void setYangNodeReference(YangNode *currentNode, char *reference);
-
-extern void setYangNodeStatus(YangNode *currentNode, SmiStatus status);
-
-extern void setYangNodeMinElements(YangNode *currentNode, SmiUnsigned32 value);
-
-extern void setYangNodeMaxElements(YangNode *currentNode, SmiUnsigned32 value);
-
-extern void setYangNodeOrder(YangNode *currentNode, SmiOrder order);
-
-extern Must *addMustStatement(YangNode *currentNode, char *xpath);
-
-extern void setMustDescription(Must *currentMust, char *description);
-
-extern void setMustReference(Must *must, char *reference);
-
-extern void setMustErrorMessage(Must *must, char *err);
-
-extern void setMustErrorAppTag(Must *must, char *err);
 
 extern int smiInitData(void);
 
 extern void smiFreeData(void);
+
+extern SmiLanguage guessLanguage(const char *modulename);
 
 extern Module *loadModule(const char *modulename, Parser *parserPtr);
 

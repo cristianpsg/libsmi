@@ -1,0 +1,7 @@
+lists.yang:7: the key 'name' must not be listed more than once
+lists.yang:35: bad value ' name' (must be key-arg)
+lists.yang:39: bad value 'name ' (must be key-arg)
+lists.yang:7: the type empty cannot be part of a key, used by leaf 'name'
+lists.yang:7: the key leaf 'name' in list 'interface' has not the same value for its 'config'  as the list itself.
+lists.yang:7: the key 'speed1' does not reference an existing leaf
+lists.yang:42: the list 'interface-state3' needs at least one key

@@ -1,0 +1,30 @@
+// correct
+//
+// NOTE:
+// 1. just used to test the import statement in test 17
+
+module imported1 {
+
+  namespace "urn:test:imported1";
+  prefix imported1;
+
+  grouping x {
+    leaf foo { type empty; mandatory true; }
+  }
+
+  typedef xc {
+    type int32;
+  }
+
+  extension x {
+    argument name;
+  }
+
+   leaf foo { type int16; }
+
+
+   extension foo {
+     argument bar {
+     }
+   }
+}

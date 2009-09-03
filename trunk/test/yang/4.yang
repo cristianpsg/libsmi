@@ -1,0 +1,14 @@
+// wrong: prefix does not satisfy to the 'idenfiter' rules
+
+// Notes:
+// 1. 'idenfitier' rules;
+//
+
+module _te.st4 {
+	namespace "urn:smilib:params:test4";
+ 	prefix ".yang.test4"; 
+}
+ 
+  
+
+

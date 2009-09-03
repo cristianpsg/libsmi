@@ -1,0 +1,45 @@
+module cyclic-features {
+
+  namespace "urn:test:cyclic-features";
+  prefix cyclic-features;
+
+  feature local {
+	 if-feature local;
+  }
+
+  feature local-storage {
+	 if-feature local;
+     description
+         "This feature means the device supports local
+          storage (memory, flash or disk) that can be used to
+          store syslog messages.";
+	 reference "SK";
+	 
+  }
+
+  feature f1 {
+	 if-feature f2;
+  }
+
+  feature f2 {
+	 if-feature f3;
+  }
+
+
+  feature f3 {
+	 if-feature f2;
+  }
+
+  container syslog {
+	 leaf local-storage-limit {
+		 if-feature local-storage;
+		 type uint64;
+		 units "kilobyte";
+		 config false;
+		 description
+		     "The amount of local storage that can be
+		      used to hold syslog messages.";
+	 }
+  }
+
+}
