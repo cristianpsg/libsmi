@@ -319,6 +319,7 @@ char* getIdentifier(char* identifierRef) {
 %type <rc>revisionStatement
 %type <rc>optionalRevision
 %type <rc>revisionStatement_0n
+%type <rc>revisionDescriptionStatement_0n
 %type <rc>revisionDescriptionStatement
 %type <rc>importStatement
 %type <rc>includeStatement
@@ -794,7 +795,7 @@ revisionStatement:	revisionKeyword date ';'
 			}
 			'{'
                 stmtSep
-				revisionDescriptionStatement
+				revisionDescriptionStatement_0n
 			'}'
 			{
 				pop();
@@ -802,9 +803,17 @@ revisionStatement:	revisionKeyword date ';'
     ;
 
 
+revisionDescriptionStatement_0n:
+                            |
+                                    revisionDescriptionStatement_0n revisionDescriptionStatement stmtSep
+                            ;
+
+
 revisionDescriptionStatement: 
                     |
-                            descriptionStatement stmtSep 
+                        referenceStatement
+                    |
+                        descriptionStatement
                     ;
 
 date: 	dateString
@@ -826,6 +835,9 @@ importStatement: importKeyword identifierStr
 		{            
             externalModule(topNode());
 			pop();
+            while (topNode() != thisModulePtr) {
+                pop();
+            }
 		}
         ;
 
@@ -844,6 +856,9 @@ includeStatement: includeKeyword identifierStr
             _YangNode *includedModule = externalModule(topNode());
             validateInclude(thisModulePtr, includedModule);
 			pop();
+            while (topNode() != thisModulePtr) {
+                pop();
+            }
 		}
         ;
 
@@ -1316,6 +1331,8 @@ containerSubstatement:	ifFeatureStatement
                         commonStatement
                     |
                         dataDefStatement
+                    |
+                        groupingStatement
                     |
                         mustStatement
                     |
