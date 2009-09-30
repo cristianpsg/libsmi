@@ -1,1 +1,1 @@
-6.yang:27: syntax error, unexpected descriptionKeyword, expecting '}'
+6.yang:27: description has been already defined
