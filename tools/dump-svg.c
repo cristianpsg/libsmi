@@ -3262,6 +3262,15 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 {
     int       i;
 
+    if (output) {
+	f = fopen(output, "w");
+	if (!f) {
+	    fprintf(stderr, "smidump: cannot open %s for writing: ", output);
+	    perror(NULL);
+	    exit(1);
+	}
+    }
+
     buildLink(modc, modv);
 
     if (flags & SMIDUMP_FLAG_UNITE) {
@@ -3307,6 +3316,10 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	exit(1);
     }
 
+    if (output) {
+	fclose(f);
+    }
+
     xfree(link);
 }
 
@@ -3332,7 +3345,7 @@ void initSvg()
 	"svg",
 	dumpSvg,
 	0,
-	SMIDUMP_DRIVER_CANT_OUTPUT,
+	0,
 	"SVG diagram",
 	opt,
 	NULL
