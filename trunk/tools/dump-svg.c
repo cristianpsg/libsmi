@@ -3000,7 +3000,7 @@ static void printSVG(int modc, SmiModule **modv, int miCount, int idCount,
 
     /* output of svg to stdout begins here */
     printSVGHeaderAndTitle(modc, modv, miCount, idCount,
-							xMin, yMin, xMax, yMax);
+			   xMin, yMin, xMax, yMax);
 
     /* module doesn't contain any objects. */
     if (nodecount == 0) {
@@ -3260,7 +3260,8 @@ static void calcConceptualModel()
 
 static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 {
-    int       i;
+    int i;
+    FILE *f = stdout;
 
     if (output) {
 	f = fopen(output, "w");
@@ -3311,7 +3312,7 @@ static void dumpSvg(int modc, SmiModule **modv, int flags, char *output)
 	}
     }
 
-    if (fflush(stdout) || ferror(stdout)) {
+    if (fflush(f) || ferror(f)) {
 	perror("smidump: write error");
 	exit(1);
     }
