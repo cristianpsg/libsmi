@@ -2196,28 +2196,45 @@ smiCheckModuleIdentityRegistration(Parser *parser, Object *object)
     static const SmiSubid transmission[] = { 1, 3, 6, 1, 2, 1, 10 };
     static const SmiSubid snmpModules[] = { 1, 3, 6, 1, 6, 3 };
 
-    if (object->export.oidlen < sizeof(mgmt)/sizeof(SmiSubid)
-	|| memcmp(object->export.oid, mgmt, sizeof(mgmt)) != 0) {
+    /*
+     * If the module OID has less than two sub-identifier, the OID and
+     * hence the registration is invalid.
+     */
+
+    if (object->export.oidlen < 2) {
+	smiPrintErrorAtLine(parser, ERR_MODULE_IDENTITY_REG_ILLEGAL,
+			    object->line);
 	return;
     }
 
-    if (object->export.oidlen == sizeof(mib2)/sizeof(SmiSubid) + 1
-	&& memcmp(object->export.oid, mib2, sizeof(mib2)) == 0) {
+    /*
+     * If the module OID begins with the IETF mgmt prefix, check
+     * whether the OID is directly below one of the well known
+     * registration points (mib2, transmission, snmpModules).
+     */
+
+    if (object->export.oidlen >= sizeof(mgmt)/sizeof(SmiSubid)
+	&& memcmp(object->export.oid, mgmt, sizeof(mgmt)) == 0) {
+
+	if (object->export.oidlen == sizeof(mib2)/sizeof(SmiSubid) + 1
+	    && memcmp(object->export.oid, mib2, sizeof(mib2)) == 0) {
+	    return;
+	}
+	
+	if (object->export.oidlen == sizeof(transmission)/sizeof(SmiSubid) + 1
+	    && memcmp(object->export.oid, transmission, sizeof(transmission)) == 0) {
+	    return;
+	}
+	
+	if (object->export.oidlen == sizeof(snmpModules)/sizeof(SmiSubid) + 1
+	    && memcmp(object->export.oid, snmpModules, sizeof(snmpModules)) == 0) {
+	    return;
+	}
+
+	smiPrintErrorAtLine(parser, ERR_MODULE_IDENTITY_REG_UNCONTROLLED,
+			    object->line);
 	return;
     }
-
-    if (object->export.oidlen == sizeof(transmission)/sizeof(SmiSubid) + 1
-	&& memcmp(object->export.oid, transmission, sizeof(transmission)) == 0) {
-	return;
-    }
-
-    if (object->export.oidlen == sizeof(snmpModules)/sizeof(SmiSubid) + 1
-	&& memcmp(object->export.oid, snmpModules, sizeof(snmpModules)) == 0) {
-	return;
-    }
-
-    smiPrintErrorAtLine(parser, ERR_MODULE_IDENTITY_REGISTRATION,
-			object->line);
 }
 
 /*
