@@ -699,11 +699,13 @@ static Error errors[] = {
       "notification group `%s' includes object `%s'", NULL},
     { 2, ERR_NOTIFICATION_IN_OBJECT_GROUP, "group-objects-notification",
       "object group `%s' includes notification `%s'", NULL},
-    { 4, ERR_MODULE_IDENTITY_REGISTRATION, "module-identity-registration",
-      "uncontrolled MODULE-IDENTITY registration",
+    { 4, ERR_MODULE_IDENTITY_REG_UNCONTROLLED, "module-identity-registration",
+      "uncontrolled IETF module identity registration",
       "The identities of IETF MIB modules should be registered below\n"
       "mib-2, transmission, or snmpModules so that the registration\n"
       "space can be controlled by IANA."},
+    { 2, ERR_MODULE_IDENTITY_REG_ILLEGAL, "module-identity-registration",
+      "illegal module identity registration", NULL },
     { 2, ERR_NAMESPACE_MISSING, "namespace-missing",
       "module namespace is missing", NULL },
     { 2, ERR_PREFIX_MISSING, "prefix-missing",
