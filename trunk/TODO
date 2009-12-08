@@ -153,3 +153,4 @@ o API/Utility Functions: getMinSize()/getMaxSize() is needed by multiple
 o generate a warning if a module is listed multiple times in the
   imports and if a symbol is imported twice (Dave Perkins)
 
+o error detection: read-write in a read-create row

@@ -14,9 +14,10 @@
 AUTOMAKE_OPTIONS	= no-dependencies foreign
 
 EXTRA_DIST		= ANNOUNCE \
-			  win/Makefile.mingw win/README.mingw win/README.win \
-			  win/config.h win/config.h.in \
-			  win/makefile win/GNUmakefile win/win.c win/win.h \
+			  win/README.win win/config.h win/config.h.in \
+			  win/GNUmakefile win/win.c win/win.h \
+			  win/makefile win/config.nmake win/smi.def \
+			  win/Makefile.mingw win/README.mingw \
 			  smi.conf-example libsmi.m4 libsmi.pc
 
 SUBDIRS			= lib tools mibs pibs test doc
