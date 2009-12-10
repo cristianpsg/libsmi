@@ -11,6 +11,7 @@ module 'test3' {
 
   revision 2009-02-23 {
     description "Revision 1." ;
+    reference "test";
   }
   
 }
