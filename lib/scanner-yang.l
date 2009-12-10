@@ -298,7 +298,7 @@ yangVersion     1
 date            {DIGIT}{4}"-"{DIGIT}{2}"-"{DIGIT}{2}
 identifier      ({ALPHA}|"_")({ALPHA}|{DIGIT}|"_"|"-"|".")*
 lineBreak       ({CRLF}|{LF})
-unquotedString  ([^ \n\t;{}/*]|(\*[^/])|(\/[^*/]))+
+unquotedString  ([^\015 \n\t;{}/*]|(\*[^/])|(\/[^*/]))+
 
 delim		([{; \n\t\015\012/])
 UTFCHAR 	([_a-zA-Z0-9\200-\377])
