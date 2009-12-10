@@ -194,78 +194,78 @@ char* getIdentifier(char* identifierRef) {
 /*
  * Tokens and their attributes.
  */
-%token <text>augmentKeyword
-%token <text>belongs_toKeyword
-%token <text>choiceKeyword
-%token <text>configKeyword
-%token <text>contactKeyword
-%token <text>containerKeyword
-%token <text>defaultKeyword
-%token <text>descriptionKeyword
-%token <text>enumKeyword
-%token <text>error_app_tagKeyword
-%token <text>error_messageKeyword
-%token <text>extensionKeyword
-%token <text>groupingKeyword
-%token <text>importKeyword
-%token <text>includeKeyword
-%token <text>keyKeyword
-%token <text>leafKeyword
-%token <text>leaf_listKeyword
-%token <text>lengthKeyword
-%token <text>listKeyword
-%token <text>mandatoryKeyword
-%token <text>max_elementsKeyword
-%token <text>min_elementsKeyword
-%token <text>moduleKeyword
-%token <text>submoduleKeyword
-%token <text>mustKeyword
-%token <text>namespaceKeyword
-%token <text>ordered_byKeyword
-%token <text>organizationKeyword
-%token <text>prefixKeyword
-%token <text>rangeKeyword
-%token <text>referenceKeyword
-%token <text>patternKeyword
-%token <text>revisionKeyword
-%token <text>statusKeyword
-%token <text>typeKeyword
-%token <text>typedefKeyword
-%token <text>uniqueKeyword
-%token <text>unitsKeyword
-%token <text>usesKeyword
-%token <text>valueKeyword
-%token <text>whenKeyword
-%token <text>bitKeyword
-%token <text>pathKeyword
-%token <text>anyXMLKeyword
-%token <text>deprecatedKeyword
-%token <text>currentKeyword
-%token <text>obsoleteKeyword
-%token <text>trueKeyword
-%token <text>falseKeyword
-%token <text>caseKeyword
-%token <text>inputKeyword
-%token <text>outputKeyword
-%token <text>rpcKeyword
-%token <text>notificationKeyword
-%token <text>argumentKeyword
-%token <text>yangversionKeyword
-%token <text>baseKeyword
-%token <text>deviationKeyword
-%token <text>deviateKeyword
-%token <text>featureKeyword
-%token <text>identityKeyword
-%token <text>ifFeatureKeyword
-%token <text>positionKeyword
-%token <text>presenceKeyword
-%token <text>refineKeyword
-%token <text>requireInstanceKeyword
-%token <text>yinElementKeyword
-%token <text>notSupportedKeyword
-%token <text>addKeyword
-%token <text>deleteKeyword
-%token <text>replaceKeyword
+%token <rc>augmentKeyword
+%token <rc>belongs_toKeyword
+%token <rc>choiceKeyword
+%token <rc>configKeyword
+%token <rc>contactKeyword
+%token <rc>containerKeyword
+%token <rc>defaultKeyword
+%token <rc>descriptionKeyword
+%token <rc>enumKeyword
+%token <rc>error_app_tagKeyword
+%token <rc>error_messageKeyword
+%token <rc>extensionKeyword
+%token <rc>groupingKeyword
+%token <rc>importKeyword
+%token <rc>includeKeyword
+%token <rc>keyKeyword
+%token <rc>leafKeyword
+%token <rc>leaf_listKeyword
+%token <rc>lengthKeyword
+%token <rc>listKeyword
+%token <rc>mandatoryKeyword
+%token <rc>max_elementsKeyword
+%token <rc>min_elementsKeyword
+%token <rc>moduleKeyword
+%token <rc>submoduleKeyword
+%token <rc>mustKeyword
+%token <rc>namespaceKeyword
+%token <rc>ordered_byKeyword
+%token <rc>organizationKeyword
+%token <rc>prefixKeyword
+%token <rc>rangeKeyword
+%token <rc>referenceKeyword
+%token <rc>patternKeyword
+%token <rc>revisionKeyword
+%token <rc>statusKeyword
+%token <rc>typeKeyword
+%token <rc>typedefKeyword
+%token <rc>uniqueKeyword
+%token <rc>unitsKeyword
+%token <rc>usesKeyword
+%token <rc>valueKeyword
+%token <rc>whenKeyword
+%token <rc>bitKeyword
+%token <rc>pathKeyword
+%token <rc>anyXMLKeyword
+%token <rc>deprecatedKeyword
+%token <rc>currentKeyword
+%token <rc>obsoleteKeyword
+%token <rc>trueKeyword
+%token <rc>falseKeyword
+%token <rc>caseKeyword
+%token <rc>inputKeyword
+%token <rc>outputKeyword
+%token <rc>rpcKeyword
+%token <rc>notificationKeyword
+%token <rc>argumentKeyword
+%token <rc>yangversionKeyword
+%token <rc>baseKeyword
+%token <rc>deviationKeyword
+%token <rc>deviateKeyword
+%token <rc>featureKeyword
+%token <rc>identityKeyword
+%token <rc>ifFeatureKeyword
+%token <rc>positionKeyword
+%token <rc>presenceKeyword
+%token <rc>refineKeyword
+%token <rc>requireInstanceKeyword
+%token <rc>yinElementKeyword
+%token <rc>notSupportedKeyword
+%token <rc>addKeyword
+%token <rc>deleteKeyword
+%token <rc>replaceKeyword
 
 %token <text>identifier
 %token <text>identifierRefArg
@@ -319,8 +319,8 @@ char* getIdentifier(char* identifierRef) {
 %type <rc>revisionStatement
 %type <rc>optionalRevision
 %type <rc>revisionStatement_0n
-%type <rc>revisionDescriptionStatement_0n
-%type <rc>revisionDescriptionStatement
+%type <rc>revisionSubstatement_On
+%type <rc>revisionSubstatement
 %type <rc>importStatement
 %type <rc>includeStatement
 %type <rc>includeStatementBody
@@ -342,10 +342,6 @@ char* getIdentifier(char* identifierRef) {
 %type <rc>identitySubstatement_0n
 %type <rc>identitySubstatement
 %type <rc>booleanValue
-%type <rc>yangVersionStatement
-%type <rc>namespaceStatement
-%type <rc>mandatoryStatement
-%type <rc>outputStatement
 
 %type <text>numRestriction
 %type <rc>stringRestriction
@@ -577,7 +573,7 @@ moduleHeaderStatement:	yangVersionStatement stmtSep
                         prefixStatement stmtSep
 		;
 
-moduleMetaStatement_0n:	{}
+moduleMetaStatement_0n:	
 		|
 			moduleMetaStatement_0n moduleMetaStatement stmtSep
 		;
@@ -614,7 +610,7 @@ belongsToStatement: belongs_toKeyword identifierStr
                     }
                     ;
 
-linkageStatement_0n: {}
+linkageStatement_0n:
 		|
 			linkageStatement_0n linkageStatement
 		;
@@ -624,12 +620,12 @@ linkageStatement:	includeStatement stmtSep
                     importStatement stmtSep
 		;
 
-revisionStatement_0n: {}
+revisionStatement_0n:
 		|
 			revisionStatement_0n revisionStatement stmtSep
 		;
 
-bodyStatement_0n: {}
+bodyStatement_0n:	
 		|
 			bodyStatement_0n bodyStatement stmtSep
 		;
@@ -789,36 +785,32 @@ prefixStatement:	prefixKeyword prefix stmtEnd
 
 revisionStatement:	revisionKeyword date ';' 
 			{
-                node = addYangNode($2, YANG_DECL_REVISION, topNode());
-            }
-        |
-                revisionKeyword date
+                            node = addYangNode($2, YANG_DECL_REVISION, topNode());
+                        }
+                |
+                        revisionKeyword date
 			{
-                node = addYangNode($2, YANG_DECL_REVISION, topNode());
-				pushNode(node);
+                            node = addYangNode($2, YANG_DECL_REVISION, topNode());
+                            pushNode(node);
 			}
 			'{'
-                stmtSep
-				revisionDescriptionStatement_0n
+                            stmtSep
+                            revisionSubstatement_On
 			'}'
 			{
-				pop();
+                            pop();
 			}
     ;
 
+revisionSubstatement_On:
+                |
+                   revisionSubstatement_On revisionSubstatement stmtSep
+                ;
 
-revisionDescriptionStatement_0n: {}
-                            |
-                                    revisionDescriptionStatement_0n revisionDescriptionStatement stmtSep
-                            ;
-
-
-revisionDescriptionStatement: {}
-                    |
-                        referenceStatement
-                    |
+revisionSubstatement:
                         descriptionStatement
-                    ;
+                    |
+                        referenceStatement;
 
 date: 	dateString
 	{
@@ -839,13 +831,13 @@ importStatement: importKeyword identifierStr
 		{            
             externalModule(topNode());
 			pop();
-            while (topNode() != thisModulePtr) {
+            if (topNode() != thisModulePtr) {
                 pop();
             }
 		}
         ;
 
-optionalRevision:       {}
+optionalRevision:
                     |
                       revisionStatement stmtSep 
                     ;
@@ -860,18 +852,18 @@ includeStatement: includeKeyword identifierStr
             _YangNode *includedModule = externalModule(topNode());
             validateInclude(thisModulePtr, includedModule);
 			pop();
-            while (topNode() != thisModulePtr) {
+            if (topNode() != thisModulePtr) {
                 pop();
             }
 		}
         ;
 
-includeStatementBody:         ';' {}
+includeStatementBody:         ';'
                 |
-                    '{' 
+                    '{'
                         stmtSep
                         optionalRevision
-                    '}' {}
+                    '}'
                 ;
 
 featureStatement: featureKeyword identifierStr
@@ -885,18 +877,18 @@ featureStatement: featureKeyword identifierStr
                 }
                 ;
 
-featureSpec:    ';' {}
+featureSpec:    ';'
             |   
                 '{'
                         stmtSep
                         featureSubstatement_0n
-                '}' {}
+                '}'
                 ;
 
-featureSubstatement_0n: {}
+featureSubstatement_0n:
                 |
                    featureSubstatement_0n featureSubstatement stmtSep
-                ; 
+                ;
 
 featureSubstatement:    ifFeatureStatement
                     |
@@ -923,15 +915,15 @@ identityStatement: identityKeyword identifierStr
                     pop();
                 };
 
-identitySpec:    ';' {}
+identitySpec:    ';'
             |   
                 '{'
                         stmtSep
                         identitySubstatement_0n
-                '}' {}
+                '}'
                 ;
 
-identitySubstatement_0n: {}
+identitySubstatement_0n:
                 |
                    identitySubstatement_0n identitySubstatement stmtSep
                 ;
@@ -964,7 +956,7 @@ typedefStatement:   typedefKeyword identifierStr
                 }
         ;
 
-typedefSubstatement_0n:	{}
+typedefSubstatement_0n:	
                 |
                        typedefSubstatement_0n typedefSubstatement stmtSep
                 ;				
@@ -998,15 +990,15 @@ typeStatement: typeKeyword identifierRef
                }
             ;
 
-optionalTypeBodyStatements: ';' {}
+optionalTypeBodyStatements: ';'
                         |   
                             '{'
                                     stmtSep
                                     typeBodyStmts
-                            '}' {}
+                            '}'
                         ;
 
-typeBodyStmts:  numRestriction {}
+typeBodyStmts:  numRestriction
             |
                 stringRestriction_0n
             |
@@ -1021,7 +1013,7 @@ typeBodyStmts:  numRestriction {}
                 unionSpec
             ;
 
-numRestriction: range stmtSep {};
+numRestriction: range stmtSep;
 
 range:	rangeKeyword string
 		{
@@ -1035,7 +1027,7 @@ range:	rangeKeyword string
 	;
 
 
-stringRestriction_0n: {}
+stringRestriction_0n:
                 |
                     stringRestriction_0n stringRestriction
                 ;
@@ -1092,14 +1084,14 @@ enum:   enumKeyword string
         }
 	;
 
-enumSubstatementSpec: ';' {}
+enumSubstatementSpec: ';'
         |
           '{'
                 stmtSep
                 enumSubstatement_0n
-          '}' {};
+          '}';
 
-enumSubstatement_0n: {}
+enumSubstatement_0n: 
                 |
                     enumSubstatement_0n enumSubstatement stmtSep
                 ;
@@ -1119,15 +1111,15 @@ valueStatement: valueKeyword string stmtEnd
             }
             ;
 
-optionalRestrictionSpec: ';' {}
+optionalRestrictionSpec: ';' 
             |
                  '{'
                         stmtSep
                         restrictionSpec_0n
-                 '}' {}
+                 '}'
             ;
 
-restrictionSpec_0n: {}
+restrictionSpec_0n: 
                 |
                     restrictionSpec_0n restrictionSpec stmtSep
                 ;
@@ -1220,14 +1212,14 @@ bitsStatement: bitKeyword identifier
             }
             ;
 
-bitsSubstatementSpec:   ';' {}
+bitsSubstatementSpec:   ';'
             |
                '{'
                     stmtSep
                     bitsSubstatement_0n
-               '}' {};
+               '}';
 
-bitsSubstatement_0n: {}
+bitsSubstatement_0n:
         |
            bitsSubstatement_0n bitsSubstatement stmtSep
         ;
@@ -1270,19 +1262,19 @@ unionSpec: typeStatement stmtSep
            unionSpec typeStatement stmtSep
         ;
 
-stmtEnd:    ';' {}
+stmtEnd:    ';'
          |
             '{'
                     unknownStatement0_n
-            '}' {}
+            '}'
         ;
 
-stmtSep: {}
+stmtSep:
 	|
         unknownStatement0_n
 	;
 
-unknownStatement0_n: {}
+unknownStatement0_n:
 	|
         unknownStatement unknownStatement0_n;
 	;
@@ -1325,7 +1317,7 @@ containerStatement: containerKeyword identifierStr
 	;
 
 
-containerSubstatement_0n: {}
+containerSubstatement_0n:	
 		|
 		       containerSubstatement containerSubstatement_0n
 	;
@@ -1365,7 +1357,7 @@ mustStatement: mustKeyword string
 		}
 	;
 
-mustSubstatement_0n: {}
+mustSubstatement_0n:
             |
 		       mustSubstatement_0n mustSubstatement stmtSep
         ;
@@ -1431,7 +1423,7 @@ leafStatement: leafKeyword identifierStr
 			}
 		;
 			
-leafSubstatement_0n: {}
+leafSubstatement_0n:
             |
                    leafSubstatement_0n leafSubstatement stmtSep
         ;
@@ -1470,7 +1462,7 @@ leaf_listStatement: leaf_listKeyword identifierStr
 			}
 		;
 			
-leaf_listSubstatement_0n: {}
+leaf_listSubstatement_0n:
 		|
 		       leaf_listSubstatement_0n leaf_listSubstatement stmtSep
         ;
@@ -1508,7 +1500,7 @@ listStatement: listKeyword identifierStr
 			}
 		;
 
-listSubstatement_0n: {}
+listSubstatement_0n:
             |
 		       listSubstatement_0n listSubstatement stmtSep
         	;
@@ -1597,15 +1589,15 @@ choiceStatement: choiceKeyword identifierStr
 		}
 		;
  
-choiceSpec: ';' {}
+choiceSpec: ';'
         |
             '{'
                 stmtSep
                 choiceSubstatement_0n			
-            '}' {}
+            '}'
         ;
 
-choiceSubstatement_0n: {}
+choiceSubstatement_0n:
 		|
 		       choiceSubstatement_0n choiceSubstatement stmtSep
         ;
@@ -1648,15 +1640,15 @@ caseStatement: 	caseKeyword identifierStr
         anyXMLStatement
 	;
 
-caseSpec:   ';' {}
+caseSpec:   ';'
         |
             '{'
                 stmtSep
                 caseSubstatement_0n
-            '}' {}
+            '}'
         ;
 
-caseSubstatement_0n: {}
+caseSubstatement_0n:
             |
                 caseSubstatement_0n caseSubstatement  stmtSep
             ;
@@ -1703,7 +1695,7 @@ groupingStatement: groupingKeyword identifierStr
 		}
 		;
 
-groupingSubstatement_0n: {}
+groupingSubstatement_0n:	
 		|
                 groupingSubstatement_0n groupingSubstatement stmtSep
         ;
@@ -1739,10 +1731,10 @@ usesStatement:  usesKeyword identifierRef
                 node = addYangNode($2, YANG_DECL_USES, topNode());
                 createIdentifierRef(node, getPrefix($2), getIdentifier($2));
             }
-            ';' {}
+            ';'
             ;
 
-usesSubstatement_0n: {}
+usesSubstatement_0n:
 		|
 		       usesSubstatement_0n usesSubstatement stmtSep
         ;
@@ -1777,17 +1769,17 @@ refineStatement:    refineKeyword string
             }
             ;
 
-refineSpec: ';' {}
+refineSpec: ';'
         |   
             '{'
                 stmtSep
                 refineSubstatement
-            '}' {}
+            '}'
         ;
 
 refineSubstatement: refine_0n;
 
-refine_0n:          {}
+refine_0n: 
                 |
                     refine_0n refine stmtSep;
 
@@ -1887,15 +1879,15 @@ rpcStatement: rpcKeyword identifierStr
 		}
 		;
 
-rpcSpec:    ';' {}
+rpcSpec:    ';'
         |
             '{'
                 stmtSep
                 rpcSubstatement_0n
-            '}' {}
+            '}'
         ;
 
-rpcSubstatement_0n:	{}
+rpcSubstatement_0n:	
 		|
 		       rpcSubstatement_0n rpcSubstatement  stmtSep
 	;
@@ -1925,7 +1917,7 @@ inputStatement: inputKeyword
 		'{'
             stmtSep
 			inputOutputSubstatement_0n
-		'}' 
+		'}'
 		{
             int numberDataDefStmts = 0;
             _YangNode *childPtr = topNode()->firstChildPtr;
@@ -1993,16 +1985,16 @@ notificationStatement: notificationKeyword identifierStr
                 }
                 ;
 
-notificationSpec:   ';' {}
+notificationSpec:   ';'
                 |
                     '{'
                         stmtSep
                         notificationSubstatement_0n
-                    '}' {}
+                    '}'
                     ;
 
 
-notificationSubstatement_0n: {}
+notificationSubstatement_0n:
 		|
 		       notificationSubstatement_0n notificationSubstatement stmtSep
 	;
@@ -2077,15 +2069,15 @@ deviateAddStatement:    deviateKeyword addKeyword
                     }
                     ;
 
-deviateAddSpec: ';' {}
+deviateAddSpec: ';'
             |
                 '{'
                     stmtSep
                     deviateAddSubstatement_0n
-                '}' {}
+                '}'
             ;
 
-deviateAddSubstatement_0n: {}
+deviateAddSubstatement_0n:
                     |
                         deviateAddSubstatement_0n deviateAddSubstatement stmtSep;
 
@@ -2117,15 +2109,15 @@ deviateDeleteStatement:    deviateKeyword deleteKeyword
                     }
                     ;
 
-deviateDeleteSpec: ';' {}
+deviateDeleteSpec: ';'
             |
                 '{'
                     stmtSep
                     deviateDeleteSubstatement_0n
-                '}' {}
+                '}'
             ;
 
-deviateDeleteSubstatement_0n: {}
+deviateDeleteSubstatement_0n:
                     |
                         deviateDeleteSubstatement_0n deviateDeleteSubstatement stmtSep;
 
@@ -2148,15 +2140,15 @@ deviateReplaceStatement: deviateKeyword replaceKeyword
                     }
                     ;
 
-deviateReplaceSpec: ';' {}
+deviateReplaceSpec: ';'
             |
                 '{'
                     stmtSep
                     deviateReplaceSubstatement_0n
-                '}' {}
+                '}'
             ;
 
-deviateReplaceSubstatement_0n: {}
+deviateReplaceSubstatement_0n:
                     |
                         deviateReplaceSubstatement_0n deviateReplaceSubstatement stmtSep;
 
@@ -2187,15 +2179,15 @@ anyXMLStatement: anyXMLKeyword identifierStr
 		}
 		;
 
-anyXMLSpec: ';' {}
+anyXMLSpec: ';'
         |
             '{'
                 stmtSep
                 anyXMLSubstatement_0n
-            '}' {}
+            '}'
         ;
 
-anyXMLSubstatement_0n: {}
+anyXMLSubstatement_0n:
     		|
 		       anyXMLSubstatement_0n anyXMLSubstatement stmtSep
             ;
@@ -2221,12 +2213,12 @@ extensionStatement: extensionKeyword identifierStr
 			pop();
 		}
 		
-extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}' {}
+extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}'
                     |
-                         ';' {}
+                         ';'
                     ;                       
 
-extensionSubstatement_0n:	{}
+extensionSubstatement_0n:	
 		|
             extensionSubstatement_0n extensionSubstatement stmtSep
 		;
@@ -2252,12 +2244,12 @@ argumentStatement:  argumentKeyword identifierStr
                     }
                 ;
 
-argumentStatementBody:  '{' stmtSep yinElementOptional '}' {}
+argumentStatementBody:  '{' stmtSep yinElementOptional '}'
                     |
-                         ';' {}
+                         ';'
                     ;                       
 
-yinElementOptional: {}
+yinElementOptional: 
                 |
                     yinElementKeyword trueKeyword stmtEnd stmtSep
                     {
