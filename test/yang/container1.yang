@@ -20,7 +20,14 @@
               "(ifType = 'atm' and ifMTU <= 17966 and ifMTU >= 64)" {
              error-message "An atm MTU must be  64 .. 17966";
          }
-     }
+
+	 grouping target {
+	    leaf address {
+            	type int8;
+	        description "Target IP address";
+	    }
+	 }
+      }
 
      container system {
          description "Contains various system parameters";
