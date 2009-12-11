@@ -80,77 +80,77 @@ extern int yylex(void *lvalp, Parser *parserPtr);
  * current parent statement to set the description. 
  */
 typedef struct declStack {
-	YangDecl decl;
+    YangDecl decl;
     _YangNode* node;
-	struct declStack *down;
+    struct declStack *down;
 } declStack;
 
 static declStack *dStack = NULL;
 
 static void pushDecl(YangDecl decl)
 {
-	declStack *top = (declStack*)smiMalloc(sizeof(declStack));
-	top->down = NULL;
-	top->decl = decl;
+    declStack *top = (declStack*)smiMalloc(sizeof(declStack));
+    top->down = NULL;
+    top->decl = decl;
 	
-	if(dStack == NULL) dStack = top;
-	else
-	{
-		top->down = dStack;
-		dStack = top;
-	}
+    if(dStack == NULL) {
+        dStack = top;
+    } else {
+        top->down = dStack;
+        dStack = top;
+    }
 }
 
 static void pushNode(_YangNode* node)
 {
-	declStack *top = (declStack*)smiMalloc(sizeof(declStack));
-	top->down = NULL;
-	top->node = node;
+    declStack *top = (declStack*)smiMalloc(sizeof(declStack));
+    top->down = NULL;
+    top->node = node;
     if (node) {
         top->decl = node->export.nodeKind;
     }
 	
-	if(dStack == NULL) dStack = top;
-	else
-	{
-		top->down = dStack;
-		dStack = top;
-	}
+    if(dStack == NULL) {
+        dStack = top;
+    } else {
+        top->down = dStack;
+        dStack = top;
+    }
 }
 
 static void pop()
 {
-	declStack *top;	
-	if(dStack != NULL)
-	{
-		top = dStack;
-		dStack = dStack->down;
-		free(top);
-	}
+    declStack *top;
+    if(dStack != NULL)
+    {
+        top = dStack;
+        dStack = dStack->down;
+        free(top);
+    }
 }
 
 static YangDecl topDecl()
 {
-	if (dStack == NULL)
-	{
-		return YANG_DECL_UNKNOWN;
-	}
-	else
-	{
-		return dStack->decl;
-	}
+    if (dStack == NULL)
+    {
+        return YANG_DECL_UNKNOWN;
+    }
+    else
+    {
+        return dStack->decl;
+    }
 }
 
 static _YangNode* topNode()
 {
-	if (dStack == NULL)
-	{
-		return NULL;
-	}
-	else
-	{
-		return dStack->node;
-	}
+    if (dStack == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        return dStack->node;
+    }
 }
 
 Parser *currentParser = NULL;
@@ -466,98 +466,98 @@ char* getIdentifier(char* identifierRef) {
  * One mibFile may contain multiple MIB modules.
  * It's also possible that there's no module in a file.
  */
-yangFile:		moduleStatement
+yangFile:   moduleStatement
         |
-                submoduleStatement
+            submoduleStatement
         ;
 
-moduleStatement:	moduleKeyword identifierStr
-			{
-                currentParser = thisParserPtr;
-                thisParserPtr->yangModulePtr = findYangModuleByName($2, NULL);
-			    if (!thisParserPtr->yangModulePtr) {
-                    thisParserPtr->yangModulePtr =  addYangNode($2, YANG_DECL_MODULE, NULL);
+moduleStatement:    moduleKeyword identifierStr
+		{
+                    currentParser = thisParserPtr;
+                    thisParserPtr->yangModulePtr = findYangModuleByName($2, NULL);
+                    if (!thisParserPtr->yangModulePtr) {
+                        thisParserPtr->yangModulePtr =  addYangNode($2, YANG_DECL_MODULE, NULL);
                     
-                    if (smiHandle->firstYangModulePtr) {
-                        smiHandle->firstYangModulePtr->nextSiblingPtr = thisModulePtr;
+                        if (smiHandle->firstYangModulePtr) {
+                            smiHandle->firstYangModulePtr->nextSiblingPtr = thisModulePtr;
+                        } else {
+                            smiHandle->firstYangModulePtr = thisModulePtr;
+                        }
                     } else {
-                        smiHandle->firstYangModulePtr = thisModulePtr;
+                        smiPrintError(thisParserPtr, ERR_MODULE_ALREADY_LOADED, $2);
+                        free($2);
+                        /*
+                         * this aborts parsing the whole file,
+                         * not only the current module.
+                         */
+                        YYABORT;
                     }
-			    } else {
-			        smiPrintError(thisParserPtr, ERR_MODULE_ALREADY_LOADED, $2);
-                    free($2);
-                    /*
-                     * this aborts parsing the whole file,
-                     * not only the current module.
-                     */
-                    YYABORT;
-			    }
-                thisModulePtr->info = createModuleInfo(thisModulePtr);
-                pushNode(thisModulePtr);
-			}
-			'{'
-                stmtSep
-				moduleHeaderStatement_0n
-				linkageStatement_0n
-				moduleMetaStatement_0n
-				revisionStatement_0n
-				bodyStatement_0n			
-			'}'
-			{
-                thisModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
-                pop();
-                semanticAnalysis(thisModulePtr);
-			}
+                    thisModulePtr->info = createModuleInfo(thisModulePtr);
+                    pushNode(thisModulePtr);
+                }
+               '{'
+                    stmtSep
+                    moduleHeaderStatement_0n
+                    linkageStatement_0n
+                    moduleMetaStatement_0n
+                    revisionStatement_0n
+                    bodyStatement_0n
+               '}'
+                {
+                    thisModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
+                    pop();
+                    semanticAnalysis(thisModulePtr);
+                }
 	;
 
 submoduleStatement:	submoduleKeyword identifierStr
-			{
-                currentParser = thisParserPtr;
-                thisParserPtr->yangModulePtr = findYangModuleByName($2, NULL);
-			    if (!thisParserPtr->yangModulePtr) {
-                    thisParserPtr->yangModulePtr =  addYangNode($2, YANG_DECL_SUBMODULE, NULL);
+                    {
+                        currentParser = thisParserPtr;
+                        thisParserPtr->yangModulePtr = findYangModuleByName($2, NULL);
+                        if (!thisParserPtr->yangModulePtr) {
+                            thisParserPtr->yangModulePtr =  addYangNode($2, YANG_DECL_SUBMODULE, NULL);
                     
-                    if (smiHandle->firstYangModulePtr) {
-                        smiHandle->firstYangModulePtr->nextSiblingPtr = thisModulePtr;
-                    } else {
-                        smiHandle->firstYangModulePtr = thisModulePtr;
+                            if (smiHandle->firstYangModulePtr) {
+                                smiHandle->firstYangModulePtr->nextSiblingPtr = thisModulePtr;
+                            } else {
+                                smiHandle->firstYangModulePtr = thisModulePtr;
+                            }
+                        } else {
+                            smiPrintError(thisParserPtr, ERR_MODULE_ALREADY_LOADED, $2);
+                            free($2);
+                            /*
+                             * this aborts parsing the whole file,
+                             * not only the current module.
+                             */
+                            YYABORT;
+                        }
+                        currentParser = thisParserPtr;
+                        thisModulePtr->info = createModuleInfo(thisModulePtr);
+                        pushNode(thisModulePtr);
                     }
-			    } else {
-			        smiPrintError(thisParserPtr, ERR_MODULE_ALREADY_LOADED, $2);
-                    free($2);
-                    /*
-                     * this aborts parsing the whole file,
-                     * not only the current module.
-                     */
-                    YYABORT;
-			    }
-                currentParser = thisParserPtr;
-                thisModulePtr->info = createModuleInfo(thisModulePtr);
-                pushNode(thisModulePtr);
-			}
-			'{'
-                stmtSep
-				submoduleHeaderStatement
-				linkageStatement_0n
-				moduleMetaStatement_0n
-				revisionStatement_0n
-				bodyStatement_0n			
-			'}'
-			{
-                thisModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
-                pop();
-                semanticAnalysis(thisModulePtr);
-			}
-	;
+                   '{'
+                        stmtSep
+                        submoduleHeaderStatement
+                        linkageStatement_0n
+                        moduleMetaStatement_0n
+                        revisionStatement_0n
+                        bodyStatement_0n
+                   '}'
+                    {
+                        thisModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
+                        pop();
+                        semanticAnalysis(thisModulePtr);
+                    }
+            ;
 
-moduleHeaderStatement_0n:	moduleHeaderStatement0_n
-         	{
-                if (!thisModuleInfoPtr->namespace) {
-                    smiPrintError(parserPtr, ERR_NAMESPACE_MISSING, NULL);
-                }
-                if (!thisModuleInfoPtr->prefix) {
-                    smiPrintError(parserPtr, ERR_PREFIX_MISSING, NULL);
-                }
+moduleHeaderStatement_0n:   moduleHeaderStatement0_n
+                 	{
+                            if (!thisModuleInfoPtr->namespace) {
+                                smiPrintError(parserPtr, ERR_NAMESPACE_MISSING, NULL);
+                            }
+                            if (!thisModuleInfoPtr->prefix) {
+                                smiPrintError(parserPtr, ERR_PREFIX_MISSING, NULL);
+                            }
 			}
 		;
 
@@ -587,7 +587,7 @@ moduleMetaStatement:	organizationStatement
 			referenceStatement
 		;
 
-submoduleHeaderStatement:	belongsToStatement stmtSep
+submoduleHeaderStatement:   belongsToStatement stmtSep
                             yangVersionStatement stmtSep
                 |
                             yangVersionStatement stmtSep
@@ -615,9 +615,9 @@ linkageStatement_0n:
 			linkageStatement_0n linkageStatement
 		;
 
-linkageStatement:	includeStatement stmtSep
+linkageStatement:       includeStatement stmtSep
             |
-                    importStatement stmtSep
+                        importStatement stmtSep
 		;
 
 revisionStatement_0n:
@@ -630,7 +630,7 @@ bodyStatement_0n:
 			bodyStatement_0n bodyStatement stmtSep
 		;
 
-bodyStatement:		extensionStatement
+bodyStatement:      extensionStatement
                 |
                     featureStatement
                 |
@@ -651,7 +651,7 @@ bodyStatement:		extensionStatement
                     deviationStatement
                 ;
 
-dataDefStatement:	containerStatement
+dataDefStatement:   containerStatement
                 |
                     leafStatement
                 |
@@ -666,7 +666,7 @@ dataDefStatement:	containerStatement
                     usesStatement
                 ;
 
-commonStatement:	descriptionStatement 
+commonStatement:    descriptionStatement
                 |
                     statusStatement
                 |
@@ -677,109 +677,109 @@ commonStatement:	descriptionStatement
 
 organizationStatement:	organizationKeyword string stmtEnd
 			{
-                if (!thisModuleInfoPtr->organization) {
-                    node = addYangNode($2, YANG_DECL_ORGANIZATION, topNode());
-                    thisModuleInfoPtr->organization = node->export.value;
-                } else {
-                    smiPrintError(currentParser, ERR_REDEFINED_ORGANIZATION, NULL);
-                }				
+                            if (!thisModuleInfoPtr->organization) {
+                                node = addYangNode($2, YANG_DECL_ORGANIZATION, topNode());
+                                thisModuleInfoPtr->organization = node->export.value;
+                            } else {
+                                smiPrintError(currentParser, ERR_REDEFINED_ORGANIZATION, NULL);
+                            }
 			}
-	;
+                ;
 
 contactStatement:	contactKeyword string stmtEnd
 			{
-                if (!thisModuleInfoPtr->contact) {
-                    node = addYangNode($2, YANG_DECL_CONTACT, topNode());
-                    thisModuleInfoPtr->contact = node->export.value;
-                } else {
-                    smiPrintError(currentParser, ERR_REDEFINED_CONTACT, NULL);
-                }
+                            if (!thisModuleInfoPtr->contact) {
+                                node = addYangNode($2, YANG_DECL_CONTACT, topNode());
+                                thisModuleInfoPtr->contact = node->export.value;
+                            } else {
+                                smiPrintError(currentParser, ERR_REDEFINED_CONTACT, NULL);
+                            }
 			}
-	;
+                ;
 
 descriptionStatement:	descriptionKeyword string stmtEnd
 			{
-                uniqueNodeKind(topNode(), YANG_DECL_DESCRIPTION);
-                setDescription(topNode(), $2);
-                node = addYangNode($2, YANG_DECL_DESCRIPTION, topNode());
+                            uniqueNodeKind(topNode(), YANG_DECL_DESCRIPTION);
+                            setDescription(topNode(), $2);
+                            node = addYangNode($2, YANG_DECL_DESCRIPTION, topNode());
 			}
-	;
+        	;
 
 referenceStatement:	referenceKeyword string stmtEnd
 			{
-                uniqueNodeKind(topNode(), YANG_DECL_REFERENCE);
-                setReference(topNode(), $2);
-                node = addYangNode($2, YANG_DECL_REFERENCE, topNode());
+                            uniqueNodeKind(topNode(), YANG_DECL_REFERENCE);
+                            setReference(topNode(), $2);
+                            node = addYangNode($2, YANG_DECL_REFERENCE, topNode());
 			}
-	;
+        	;
 
 statusStatement:	statusKeyword status stmtEnd
 			{
-                uniqueNodeKind(topNode(), YANG_DECL_STATUS);
-                setStatus(topNode(), $2);
-                node = addYangNode(statusKeywords[$2], YANG_DECL_STATUS, topNode());
+                            uniqueNodeKind(topNode(), YANG_DECL_STATUS);
+                            setStatus(topNode(), $2);
+                            node = addYangNode(statusKeywords[$2], YANG_DECL_STATUS, topNode());
 			}
-	;
+        	;
 
 namespaceStatement:	namespaceKeyword string stmtEnd
 		  	{
-                if (!thisModuleInfoPtr->namespace) {
-                    node = addYangNode($2, YANG_DECL_NAMESPACE, topNode());
-                    thisModuleInfoPtr->namespace = node->export.value;
-                } else {
-                    smiPrintError(currentParser, ERR_REDEFINED_NAMESPACE, NULL);
-                }
+                            if (!thisModuleInfoPtr->namespace) {
+                                node = addYangNode($2, YANG_DECL_NAMESPACE, topNode());
+                                thisModuleInfoPtr->namespace = node->export.value;
+                            } else {
+                                smiPrintError(currentParser, ERR_REDEFINED_NAMESPACE, NULL);
+                            }
 			}
-	;
+            ;
 
 yangVersionStatement:  yangversionKeyword yangVersion stmtEnd
 		  	{
-                if (!thisModuleInfoPtr->version) {
-                    node = addYangNode($2, YANG_DECL_YANGVERSION, topNode());
-                    thisModuleInfoPtr->version = node->export.value;
-                } else {
-                    smiPrintError(currentParser, ERR_REDEFINED_YANGVERSION, NULL);
-                }
+                            if (!thisModuleInfoPtr->version) {
+                                node = addYangNode($2, YANG_DECL_YANGVERSION, topNode());
+                                thisModuleInfoPtr->version = node->export.value;
+                            } else {
+                                smiPrintError(currentParser, ERR_REDEFINED_YANGVERSION, NULL);
+                            }
 			}
-	;
+            ;
 
 status:		deprecatedKeyword
 		{
-			$$ = YANG_STATUS_DEPRECATED;
+                    $$ = YANG_STATUS_DEPRECATED;
 		}
 	|
 		currentKeyword
 		{
-			$$ = YANG_STATUS_CURRENT;
+                    $$ = YANG_STATUS_CURRENT;
 		}
 	|
 		obsoleteKeyword
 		{
-			$$ = YANG_STATUS_OBSOLETE;
+                    $$ = YANG_STATUS_OBSOLETE;
 		}
 	;
 
 prefixStatement:	prefixKeyword prefix stmtEnd
 			{
-                node = addYangNode($2, YANG_DECL_PREFIX, topNode());
-                switch(topDecl())
-                {
-                    case YANG_DECL_MODULE:
-                        if(!thisModuleInfoPtr->prefix)
-                            thisModuleInfoPtr->prefix = node->export.value;
-                        else 
-                            smiPrintError(currentParser, ERR_REDEFINED_PREFIX, NULL);
-                        break;
-                    case YANG_DECL_BELONGS_TO:
-                        thisModuleInfoPtr->prefix = node->export.value;
-                    case YANG_DECL_IMPORT:
-                    
-                        break;
-                    default:
-                        //TODO print error
-                        debug("DEBUGG: OOPS wrong prefix DECL %d, at line %d\n", topDecl(), currentParser->line);
-                        break;			
-                }
+                            node = addYangNode($2, YANG_DECL_PREFIX, topNode());
+                            switch(topDecl())
+                            {
+                                case YANG_DECL_MODULE:
+                                    if(!thisModuleInfoPtr->prefix)
+                                        thisModuleInfoPtr->prefix = node->export.value;
+                                    else
+                                        smiPrintError(currentParser, ERR_REDEFINED_PREFIX, NULL);
+                                    break;
+                                case YANG_DECL_BELONGS_TO:
+                                    thisModuleInfoPtr->prefix = node->export.value;
+                                case YANG_DECL_IMPORT:
+
+                                    break;
+                                default:
+                                    //TODO print error
+                                    debug("DEBUGG: OOPS wrong prefix DECL %d, at line %d\n", topDecl(), currentParser->line);
+                                    break;
+                            }
 			}
 	;
 
@@ -803,9 +803,9 @@ revisionStatement:	revisionKeyword date ';'
     ;
 
 revisionSubstatement_On:
-                |
-                   revisionSubstatement_On revisionSubstatement stmtSep
-                ;
+                    |
+                       revisionSubstatement_On revisionSubstatement stmtSep
+                    ;
 
 revisionSubstatement:
                         descriptionStatement
@@ -814,26 +814,26 @@ revisionSubstatement:
 
 date: 	dateString
 	{
-        checkDate(currentParser, $1);
+            checkDate(currentParser, $1);
 	}
 	;
 
 importStatement: importKeyword identifierStr
 		{
-            node = addYangNode($2, YANG_DECL_IMPORT, topNode());
-			pushNode(node);
+                    node = addYangNode($2, YANG_DECL_IMPORT, topNode());
+                    pushNode(node);
 		}
 		'{'
-            stmtSep
-			prefixStatement stmtSep
-            optionalRevision
+                    stmtSep
+                    prefixStatement stmtSep
+                    optionalRevision
 		'}'
 		{            
-            externalModule(topNode());
-			pop();
-            if (topNode() != thisModulePtr) {
-                pop();
-            }
+                    externalModule(topNode());
+                    pop();
+                    if (topNode() != thisModulePtr) {
+                        pop();
+                    }
 		}
         ;
 
@@ -844,17 +844,17 @@ optionalRevision:
 
 includeStatement: includeKeyword identifierStr
 		{
-            node = addYangNode($2, YANG_DECL_INCLUDE, topNode());
-			pushNode(node);
+                    node = addYangNode($2, YANG_DECL_INCLUDE, topNode());
+                    pushNode(node);
 		}
                 includeStatementBody
 		{
-            _YangNode *includedModule = externalModule(topNode());
-            validateInclude(thisModulePtr, includedModule);
-			pop();
-            if (topNode() != thisModulePtr) {
-                pop();
-            }
+                    _YangNode *includedModule = externalModule(topNode());
+                    validateInclude(thisModulePtr, includedModule);
+                    pop();
+                    if (topNode() != thisModulePtr) {
+                        pop();
+                    }
 		}
         ;
 
@@ -880,8 +880,8 @@ featureStatement: featureKeyword identifierStr
 featureSpec:    ';'
             |   
                 '{'
-                        stmtSep
-                        featureSubstatement_0n
+                    stmtSep
+                    featureSubstatement_0n
                 '}'
                 ;
 
@@ -1017,8 +1017,8 @@ numRestriction: range stmtSep;
 
 range:	rangeKeyword string
 		{
-            node = addYangNode($2, YANG_DECL_RANGE, topNode());
-            pushNode(node);
+                    node = addYangNode($2, YANG_DECL_RANGE, topNode());
+                    pushNode(node);
 		}
 		optionalRestrictionSpec
 		{
@@ -1039,12 +1039,12 @@ stringRestriction: length
 
 length:	lengthKeyword string
 		{
-            uniqueNodeKind(topNode(), YANG_DECL_LENGTH);
-            node = addYangNode($2, YANG_DECL_LENGTH, topNode());
-            pushNode(node);
-        }
-        optionalRestrictionSpec
-        {
+                    uniqueNodeKind(topNode(), YANG_DECL_LENGTH);
+                    node = addYangNode($2, YANG_DECL_LENGTH, topNode());
+                    pushNode(node);
+                }
+                optionalRestrictionSpec
+                {
 			pop();
 		}
 	;
@@ -1057,8 +1057,8 @@ pattern:	patternKeyword string
         }
         optionalRestrictionSpec
         {
-			pop();
-		}
+            pop();
+        }
 	;
 
 enumSpec:   enum stmtSep
@@ -1305,8 +1305,8 @@ unknownStatement:   identifierRefArg
 
 containerStatement: containerKeyword identifierStr
 			{
-                node = addYangNode($2, YANG_DECL_CONTAINER, topNode());				
-                pushNode(node);
+                            node = addYangNode($2, YANG_DECL_CONTAINER, topNode());
+                            pushNode(node);
 			}
 			'{'
 				containerSubstatement_0n
@@ -1341,8 +1341,8 @@ containerSubstatement:	ifFeatureStatement
 
 mustStatement: mustKeyword string
 		{
-            node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
-            pushNode(node);
+                    node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
+                    pushNode(node);
 		}
 		'{'
 			mustSubstatement_0n
@@ -1353,7 +1353,7 @@ mustStatement: mustKeyword string
 	|
 		mustKeyword string ';'
 		{
-            node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
+                    node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
 		}
 	;
 
@@ -1362,7 +1362,7 @@ mustSubstatement_0n:
 		       mustSubstatement_0n mustSubstatement stmtSep
         ;
 
-mustSubstatement:	errorMessageStatement
+mustSubstatement:   errorMessageStatement
                 |
                     errorAppTagStatement
                 |
@@ -1395,31 +1395,31 @@ configStatement: 	configKeyword trueKeyword stmtEnd
 
 mandatoryStatement: mandatoryKeyword trueKeyword stmtEnd
 			{
-                uniqueNodeKind(topNode(), YANG_DECL_MANDATORY);
-                node = addYangNode("true", YANG_DECL_MANDATORY, topNode());
+                            uniqueNodeKind(topNode(), YANG_DECL_MANDATORY);
+                            node = addYangNode("true", YANG_DECL_MANDATORY, topNode());
 			}
-		|
+                    |
 		    	mandatoryKeyword falseKeyword stmtEnd	
 			{
-                uniqueNodeKind(topNode(), YANG_DECL_MANDATORY);
-				node = addYangNode("false", YANG_DECL_MANDATORY, topNode());
+                            uniqueNodeKind(topNode(), YANG_DECL_MANDATORY);
+                            node = addYangNode("false", YANG_DECL_MANDATORY, topNode());
 			}
 		;
 			
 leafStatement: leafKeyword identifierStr
 			{
-				node = addYangNode($2, YANG_DECL_LEAF, topNode());
-                pushNode(node);
+                            node = addYangNode($2, YANG_DECL_LEAF, topNode());
+                            pushNode(node);
 			}
 			'{'
-                stmtSep
-				leafSubstatement_0n
+                            stmtSep
+                            leafSubstatement_0n
 			'}'
 			{
-                if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
-                    smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
-                }
-				pop();
+                            if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
+                                smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+                            }
+                            pop();
 			}
 		;
 			
@@ -1428,7 +1428,7 @@ leafSubstatement_0n:
                    leafSubstatement_0n leafSubstatement stmtSep
         ;
 
-leafSubstatement:	ifFeatureStatement
+leafSubstatement:   ifFeatureStatement
                 |
                     unitsStatement
                 |
@@ -1447,18 +1447,18 @@ leafSubstatement:	ifFeatureStatement
 
 leaf_listStatement: leaf_listKeyword identifierStr
 			{
-				node = addYangNode($2, YANG_DECL_LEAF_LIST, topNode());
-                pushNode(node);
+                            node = addYangNode($2, YANG_DECL_LEAF_LIST, topNode());
+                            pushNode(node);
 			}
 			'{'
-                stmtSep
-				leaf_listSubstatement_0n
+                            stmtSep
+                            leaf_listSubstatement_0n
 			'}'
 			{
-                if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
-                    smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
-                }
-				pop();
+                            if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
+                                    smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+                            }
+                            pop();
 			}
 		;
 			
@@ -1488,24 +1488,24 @@ leaf_listSubstatement:	mustStatement
 		
 listStatement: listKeyword identifierStr
 			{
-				node = addYangNode($2, YANG_DECL_LIST, topNode());
-                pushNode(node);
+                            node = addYangNode($2, YANG_DECL_LIST, topNode());
+                            pushNode(node);
 			}
 			'{'
-                stmtSep
-				listSubstatement_0n
+                            stmtSep
+                            listSubstatement_0n
 			'}'
 			{
-				pop();
+                            pop();
 			}
 		;
 
 listSubstatement_0n:
-            |
+                |
 		       listSubstatement_0n listSubstatement stmtSep
         	;
 
-listSubstatement:	mustStatement
+listSubstatement:   mustStatement
                 |
                     commonStatement
                 |
@@ -1563,29 +1563,29 @@ ordered_byStatement: 	ordered_byKeyword string stmtEnd
 
 keyStatement: keyKeyword string stmtEnd
 		{
-            uniqueNodeKind(topNode(), YANG_DECL_KEY);
-            node = addYangNode($2, YANG_DECL_KEY, topNode());
-            node->info = getKeyList($2);
+                    uniqueNodeKind(topNode(), YANG_DECL_KEY);
+                    node = addYangNode($2, YANG_DECL_KEY, topNode());
+                    node->info = getKeyList($2);
 		}
 	;
 	
 uniqueStatement: uniqueKeyword string stmtEnd
 		{
-            node = addYangNode($2, YANG_DECL_UNIQUE, topNode());
-            YangList *il = getUniqueList($2);
-            node->info = processUniqueList(node, il);
-            freeIdentiferList(il);
+                    node = addYangNode($2, YANG_DECL_UNIQUE, topNode());
+                    YangList *il = getUniqueList($2);
+                    node->info = processUniqueList(node, il);
+                    freeIdentiferList(il);
 		}
 	;
 
 choiceStatement: choiceKeyword identifierStr
 		{
-            node = addYangNode($2, YANG_DECL_CHOICE, topNode());
-            pushNode(node);
+                    node = addYangNode($2, YANG_DECL_CHOICE, topNode());
+                    pushNode(node);
 		}
         choiceSpec
 		{
-			pop();
+                    pop();
 		}
 		;
  
@@ -1602,7 +1602,7 @@ choiceSubstatement_0n:
 		       choiceSubstatement_0n choiceSubstatement stmtSep
         ;
 
-choiceSubstatement:	commonStatement
+choiceSubstatement: commonStatement
                   |
                     defaultStatement
                   |
@@ -1617,28 +1617,28 @@ choiceSubstatement:	commonStatement
 
 caseStatement: 	caseKeyword identifierStr
 		{
-            node = findChildNodeByTypeAndValue(topNode(), YANG_DECL_CASE, $2);
-            if (node) {
-                smiPrintError(currentParser, ERR_DUPLICATED_CASE_IDENTIFIER, $2);
-            }
-            node = addYangNode($2, YANG_DECL_CASE, topNode());
-            pushNode(node);
+                    node = findChildNodeByTypeAndValue(topNode(), YANG_DECL_CASE, $2);
+                    if (node) {
+                        smiPrintError(currentParser, ERR_DUPLICATED_CASE_IDENTIFIER, $2);
+                    }
+                    node = addYangNode($2, YANG_DECL_CASE, topNode());
+                    pushNode(node);
 		}
-        caseSpec
+                caseSpec
 		{
-			pop();
+                    pop();
 		}	
-	|
-        containerStatement
-    |
-        leafStatement
-    |
-        leaf_listStatement
-    |
-        listStatement
-    |
-        anyXMLStatement
-	;
+            |
+                containerStatement
+            |
+                leafStatement
+            |
+                leaf_listStatement
+            |
+                listStatement
+            |
+                anyXMLStatement
+            ;
 
 caseSpec:   ';'
         |
@@ -1653,7 +1653,7 @@ caseSubstatement_0n:
                 caseSubstatement_0n caseSubstatement  stmtSep
             ;
 
-caseSubstatement: 	descriptionStatement
+caseSubstatement:   descriptionStatement
                 |
                     statusStatement
                 |
@@ -1683,22 +1683,22 @@ caseDataDef:    containerStatement
 
 groupingStatement: groupingKeyword identifierStr
 		{
-            node = addYangNode($2, YANG_DECL_GROUPING, topNode());
-            pushNode(node);
+                    node = addYangNode($2, YANG_DECL_GROUPING, topNode());
+                    pushNode(node);
 		}
 		'{'
-            stmtSep
-			groupingSubstatement_0n
+                    stmtSep
+                    groupingSubstatement_0n
 		'}'
 		{
-			pop();
+                    pop();
 		}
 		;
 
 groupingSubstatement_0n:	
 		|
-                groupingSubstatement_0n groupingSubstatement stmtSep
-        ;
+                    groupingSubstatement_0n groupingSubstatement stmtSep
+            ;
 
 groupingSubstatement:	statusStatement
                     |
@@ -1720,13 +1720,13 @@ usesStatement:  usesKeyword identifierRef
                 pushNode(node);
             }
             '{'
-            usesSubstatement_0n
+                usesSubstatement_0n
             '}'
             {
                 pop();
             }
         |
-                usesKeyword identifierRef
+            usesKeyword identifierRef
             {
                 node = addYangNode($2, YANG_DECL_USES, topNode());
                 createIdentifierRef(node, getPrefix($2), getIdentifier($2));
@@ -1739,7 +1739,7 @@ usesSubstatement_0n:
 		       usesSubstatement_0n usesSubstatement stmtSep
         ;
 
-usesSubstatement:	descriptionStatement
+usesSubstatement:   descriptionStatement
                 |
                     referenceStatement
                 |
@@ -1756,18 +1756,18 @@ usesSubstatement:	descriptionStatement
 		;
 
 refineStatement:    refineKeyword string
-            {
-                if (!isDescendantSchemaNodeid($2)) {
-                    smiPrintError(thisParserPtr, ERR_DESCEDANT_FORM, $2);
-                }
-                node = addYangNode($2, YANG_DECL_REFINE, topNode());
-                pushNode(node);
-            }
+                    {
+                        if (!isDescendantSchemaNodeid($2)) {
+                            smiPrintError(thisParserPtr, ERR_DESCEDANT_FORM, $2);
+                        }
+                        node = addYangNode($2, YANG_DECL_REFINE, topNode());
+                        pushNode(node);
+                    }
                     refineSpec
-            {
-                pop();
-            }
-            ;
+                    {
+                        pop();
+                    }
+                    ;
 
 refineSpec: ';'
         |   
@@ -1806,37 +1806,37 @@ refine: mustStatement
 
 augmentStatement: augmentKeyword string 
 		{
-            if (topDecl() == YANG_DECL_USES) {
-                if (!isDescendantSchemaNodeid($2)) {
-                    smiPrintError(thisParserPtr, ERR_DESCEDANT_FORM, $2);
-                }
-            } else {
-                if (!isAbsoluteSchemaNodeid($2)) {
-                    smiPrintError(thisParserPtr, ERR_ABSOLUTE_FORM, $2);
-                }
-            }
-            node = addYangNode($2, YANG_DECL_AUGMENT, topNode());
-            pushNode(node);
+                    if (topDecl() == YANG_DECL_USES) {
+                        if (!isDescendantSchemaNodeid($2)) {
+                            smiPrintError(thisParserPtr, ERR_DESCEDANT_FORM, $2);
+                        }
+                    } else {
+                        if (!isAbsoluteSchemaNodeid($2)) {
+                            smiPrintError(thisParserPtr, ERR_ABSOLUTE_FORM, $2);
+                        }
+                    }
+                    node = addYangNode($2, YANG_DECL_AUGMENT, topNode());
+                    pushNode(node);
 		}
 		'{'
-            stmtSep
-			augmentSubstatement_0n
-    	'}'
+                    stmtSep
+                    augmentSubstatement_0n
+                '}'
 		{
-            node = topNode()->firstChildPtr;
-            int count = 0;
-            while (node) {
-                if (node->export.nodeKind == YANG_DECL_CASE ||
-                    isDataDefNode(node)) {
-                        count++;
-                }
-                node = node->nextSiblingPtr;
-            }
-            if (count == 0) {
-                smiPrintError(thisParserPtr, ERR_DATADEF_NODE_REQUIRED, $2);
-            }
+                    node = topNode()->firstChildPtr;
+                    int count = 0;
+                    while (node) {
+                        if (node->export.nodeKind == YANG_DECL_CASE ||
+                            isDataDefNode(node)) {
+                                count++;
+                        }
+                        node = node->nextSiblingPtr;
+                    }
+                    if (count == 0) {
+                        smiPrintError(thisParserPtr, ERR_DATADEF_NODE_REQUIRED, $2);
+                    }
 
-			pop();
+                    pop();
 		}
 		;
 
@@ -1863,21 +1863,21 @@ augmentSubstatement:	whenStatement
 
 whenStatement:	whenKeyword string stmtEnd
 	    {
-            uniqueNodeKind(topNode(), YANG_DECL_WHEN);
-            node = addYangNode($2, YANG_DECL_WHEN, topNode());
-        }
-		;
+                uniqueNodeKind(topNode(), YANG_DECL_WHEN);
+                node = addYangNode($2, YANG_DECL_WHEN, topNode());
+            }
+        ;
 
 rpcStatement: rpcKeyword identifierStr
-		{
-            node = addYangNode($2, YANG_DECL_RPC, topNode());
-            pushNode(node);
-		}
-              rpcSpec
-		{
-			pop();
-		}
-		;
+            {
+                node = addYangNode($2, YANG_DECL_RPC, topNode());
+                pushNode(node);
+            }
+            rpcSpec
+            {
+                pop();
+            }
+            ;
 
 rpcSpec:    ';'
         |
@@ -1890,9 +1890,9 @@ rpcSpec:    ';'
 rpcSubstatement_0n:	
 		|
 		       rpcSubstatement_0n rpcSubstatement  stmtSep
-	;
+        	;
 
-rpcSubstatement:	ifFeatureStatement
+rpcSubstatement:    ifFeatureStatement
                 |
                     descriptionStatement
                 |
@@ -1911,36 +1911,36 @@ rpcSubstatement:	ifFeatureStatement
 
 inputStatement: inputKeyword
 		{
-            node = addYangNode(NULL, YANG_DECL_INPUT, topNode());
-            pushNode(node);
+                    node = addYangNode(NULL, YANG_DECL_INPUT, topNode());
+                    pushNode(node);
 		}
 		'{'
-            stmtSep
-			inputOutputSubstatement_0n
+                    stmtSep
+                    inputOutputSubstatement_0n
 		'}'
 		{
-            int numberDataDefStmts = 0;
-            _YangNode *childPtr = topNode()->firstChildPtr;
-            while (childPtr) {
-                if (!(childPtr->export.nodeKind == YANG_DECL_TYPEDEF ||
-                    childPtr->export.nodeKind == YANG_DECL_GROUPING)) {
-                        numberDataDefStmts++;
+                    int numberDataDefStmts = 0;
+                    _YangNode *childPtr = topNode()->firstChildPtr;
+                    while (childPtr) {
+                        if (!(childPtr->export.nodeKind == YANG_DECL_TYPEDEF ||
+                            childPtr->export.nodeKind == YANG_DECL_GROUPING)) {
+                                numberDataDefStmts++;
+                            }
+                        childPtr = childPtr->nextSiblingPtr;
                     }
-                childPtr = childPtr->nextSiblingPtr;
-            }
-            if (!numberDataDefStmts) {
-                smiPrintError(thisParserPtr, ERR_DATA_DEF_REQUIRED, "input");            
-            }
-			pop();
+                    if (!numberDataDefStmts) {
+                        smiPrintError(thisParserPtr, ERR_DATA_DEF_REQUIRED, "input");
+                    }
+                    pop();
 		}
 		;
 
 inputOutputSubstatement_0n:	inputOutputSubstatement stmtSep
-                |
-                        inputOutputSubstatement_0n inputOutputSubstatement stmtSep
-            	;
+                        |
+                                inputOutputSubstatement_0n inputOutputSubstatement stmtSep
+                        ;
 
-inputOutputSubstatement:	dataDefStatement
+inputOutputSubstatement:    dataDefStatement
                         |
                             groupingStatement
                         |
@@ -1949,27 +1949,27 @@ inputOutputSubstatement:	dataDefStatement
 
 outputStatement: outputKeyword
 		{
-            node = addYangNode(NULL, YANG_DECL_OUTPUT, topNode());
-            pushNode(node);
+                    node = addYangNode(NULL, YANG_DECL_OUTPUT, topNode());
+                    pushNode(node);
 		}
 		'{'
-            stmtSep
-			inputOutputSubstatement_0n
+                    stmtSep
+                    inputOutputSubstatement_0n
 		'}'
 		{
-            int numberDataDefStmts = 0;
-            _YangNode *childPtr = topNode()->firstChildPtr;
-            while (childPtr) {
-                if (!(childPtr->export.nodeKind == YANG_DECL_TYPEDEF ||
-                    childPtr->export.nodeKind == YANG_DECL_GROUPING)) {
-                        numberDataDefStmts++;
+                    int numberDataDefStmts = 0;
+                    _YangNode *childPtr = topNode()->firstChildPtr;
+                    while (childPtr) {
+                        if (!(childPtr->export.nodeKind == YANG_DECL_TYPEDEF ||
+                            childPtr->export.nodeKind == YANG_DECL_GROUPING)) {
+                                numberDataDefStmts++;
+                            }
+                        childPtr = childPtr->nextSiblingPtr;
                     }
-                childPtr = childPtr->nextSiblingPtr;
-            }
-            if (!numberDataDefStmts) {
-                smiPrintError(thisParserPtr, ERR_DATA_DEF_REQUIRED, "input");            
-            }
-			pop();
+                    if (!numberDataDefStmts) {
+                        smiPrintError(thisParserPtr, ERR_DATA_DEF_REQUIRED, "input");
+                    }
+                    pop();
 		}
 		;
 
@@ -1979,7 +1979,7 @@ notificationStatement: notificationKeyword identifierStr
                     node = addYangNode($2, YANG_DECL_NOTIFICATION, topNode());
                     pushNode(node);
                 }
-                        notificationSpec
+                notificationSpec
                 {
                     pop();
                 }
@@ -1997,9 +1997,9 @@ notificationSpec:   ';'
 notificationSubstatement_0n:
 		|
 		       notificationSubstatement_0n notificationSubstatement stmtSep
-	;
+                ;
 
-notificationSubstatement:	ifFeatureStatement
+notificationSubstatement:   ifFeatureStatement
                         |
                             descriptionStatement
                         |
@@ -2192,7 +2192,7 @@ anyXMLSubstatement_0n:
 		       anyXMLSubstatement_0n anyXMLSubstatement stmtSep
             ;
 
-anyXMLSubstatement:	commonStatement
+anyXMLSubstatement: commonStatement
                 |
                     whenStatement
                 |
@@ -2205,12 +2205,12 @@ anyXMLSubstatement:	commonStatement
 
 extensionStatement: extensionKeyword identifierStr
 		{
-			node = addYangNode($2, YANG_DECL_EXTENSION, topNode());
-            pushNode(node);
+                    node = addYangNode($2, YANG_DECL_EXTENSION, topNode());
+                    pushNode(node);
 		}
                 extensionStatementBody
 		{
-			pop();
+                    pop();
 		}
 		
 extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}'
@@ -2220,7 +2220,7 @@ extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}'
 
 extensionSubstatement_0n:	
 		|
-            extensionSubstatement_0n extensionSubstatement stmtSep
+                    extensionSubstatement_0n extensionSubstatement stmtSep
 		;
 
 extensionSubstatement:	argumentStatement
@@ -2309,14 +2309,14 @@ booleanValue:   trueKeyword
                 }
              ;
 
-string:		qString
+string:     qString
 	|
-    		uqString
+            uqString
 	|
             identifierRef
-    |
+        |
             dateString
-    |
+        |
             yangVersion
 
 	;
