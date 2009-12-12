@@ -1677,7 +1677,7 @@ initMetrics()
 	"metrics",
 	dumpMetrics,
 	0,
-	0,
+	SMIDUMP_DRIVER_CANT_YANG,
 	"metrics characterizing MIB modules",
 	opt,
 	NULL
