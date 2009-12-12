@@ -816,6 +816,8 @@ static Error errors[] = {
       "the type \"empty\" cannot have a default value", NULL},
     { 2, ERR_INVALID_UNION_TYPE, "invalid_union_type",
       "the type %s cannot be part of a union", NULL},
+    { 5, ERR_IMPORT_REQUIRES_REVISION, "revision-required",
+      "import statement should be used with a specified revision", NULL},
 
     { 0, 0, NULL, NULL, NULL }
 };

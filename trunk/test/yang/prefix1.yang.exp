@@ -1,2 +1,5 @@
+prefix1.yang:13: warning: import statement should be used with a specified revision
 prefix1.yang:17: prefix 'pr1' is duplicated within the module
+prefix1.yang:17: warning: import statement should be used with a specified revision
 prefix1.yang:21: prefix 'pr2' is duplicated within the module
+prefix1.yang:21: warning: import statement should be used with a specified revision

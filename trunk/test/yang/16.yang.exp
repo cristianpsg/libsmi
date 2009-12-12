@@ -1,1 +1,3 @@
 imported2.yang:13: circular dependency between modules 'imported2' and 'imported2'
+imported2.yang:13: warning: import statement should be used with a specified revision
+16.yang:13: warning: import statement should be used with a specified revision
