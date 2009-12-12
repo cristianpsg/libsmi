@@ -157,6 +157,25 @@ void smidumpRegisterDriver(SmidumpDriver *driver)
 }
 
 
+static char * getLanguageString(SmiLanguage lang)
+{
+    switch (lang) {
+    case SMI_LANGUAGE_SMIV1:
+	return "SMIv1";
+    case SMI_LANGUAGE_SMIV2:
+	return "SMIv2";
+    case SMI_LANGUAGE_SMING:
+	return "SMIng";
+    case SMI_LANGUAGE_SPPI:
+	return "SPPI";
+    case SMI_LANGUAGE_YANG:
+	return "YANG";
+    default:
+	return "unknown";
+    }
+}
+
+
 
 static void formats()
 {
@@ -314,7 +333,8 @@ int main(int argc, char *argv[])
     int smiflags, i;
     SmiModule **modv = NULL;
     int modc = 0;
-
+    int matching_driver = 1;
+ 
     output = NULL;
     firstDriver = lastDriver = defaultDriver = NULL;
 
@@ -411,7 +431,37 @@ int main(int argc, char *argv[])
 			    argv[i]);
 		}
 	    }
-	    modv[modc++] = smiModule;
+	    fprintf(stderr, "** %d **\n", smiModule->language);
+	    if (smiModule->language == SMI_LANGUAGE_YANG
+		&& (driver->ignflags & SMIDUMP_DRIVER_CANT_YANG)) {
+		matching_driver = 0;
+	    }
+	    if (smiModule->language == SMI_LANGUAGE_SPPI
+		&& (driver->ignflags & SMIDUMP_DRIVER_CANT_SPPI)) {
+		matching_driver = 0;
+	    }
+	    if (smiModule->language == SMI_LANGUAGE_SMING
+		&& (flags & SMIDUMP_DRIVER_CANT_SMING)) {
+		matching_driver = 0;
+	    }
+	    if ((smiModule->language == SMI_LANGUAGE_SMIV1
+		 ||smiModule->language == SMI_LANGUAGE_SMIV2)
+		&& (driver->ignflags & SMIDUMP_DRIVER_CANT_SMI)) {
+		matching_driver = 0;
+	    }
+	    if (! matching_driver) {
+		if (! (flags & SMIDUMP_FLAG_SILENT)) {
+		    fprintf(stderr,
+			    "smidump: driver %s cannot handle %s module `%s'\n",
+			    driver->name,
+			    getLanguageString(smiModule->language),
+			    argv[i]);
+		}
+		fprintf(stderr,
+			"smidump: skipping module `%s'\n", argv[i]);
+	    } else {
+		modv[modc++] = smiModule;
+	    }
 	} else {
 	    fprintf(stderr, "smidump: cannot locate module `%s'\n",
 		    argv[i]);
