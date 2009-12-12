@@ -830,9 +830,14 @@ importStatement: importKeyword identifierStr
 		'}'
 		{            
                     externalModule(topNode());
+                    _YangNode* importNode = topNode();
                     pop();
                     if (topNode() != thisModulePtr) {
+                        importNode = topNode();
                         pop();
+                    }
+                    if (!findChildNodeByType(importNode, YANG_DECL_REVISION)) {
+                        smiPrintError(currentParser, ERR_IMPORT_REQUIRES_REVISION);
                     }
 		}
         ;

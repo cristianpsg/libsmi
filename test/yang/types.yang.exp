@@ -1,3 +1,4 @@
+types.yang:13: warning: import statement should be used with a specified revision
 types.yang:107: reference to 'types:testvalue' can not be resolved
 types.yang:112: reference to 'types:identityref2' can not be resolved
 types.yang:114: reference to 'types:test-value2' can not be resolved

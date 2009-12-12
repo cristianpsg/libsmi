@@ -6,5 +6,6 @@ as:tets' can not be resolved
 augment.yang:51: augment instantiotion causes duplication of identifier 'ifIndex'
 ifIndex' must be either a  container, list, choice, case, input, output, or notification node.
 ifEntry2' can not be resolved
+augment-import.yang:7: warning: import statement should be used with a specified revision
 augment-import.yang:11: augment instantiotion causes duplication of identifier 'ifEntry'
 as:test' can not be resolved
