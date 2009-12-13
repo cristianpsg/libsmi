@@ -385,6 +385,7 @@ _YangModuleInfo *createModuleInfo(_YangNode *modulePtr)
     infoPtr->submodules    = NULL;
     // create a corresponding Module wrapper to maintain interface compatibility
     Module *module = addModule(smiStrdup(modulePtr->export.value), smiStrdup(currentParser->path), 0, currentParser);
+    module->export.language = SMI_LANGUAGE_YANG;
     currentParser->modulePtr = module;
     return (infoPtr);
 }
@@ -414,13 +415,13 @@ _YangTypeInfo createTypeInfo(_YangNode *node) {
 
 _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPtr)
 {
-	_YangNode *node = (_YangNode*) smiMalloc(sizeof(_YangNode));
+    _YangNode *node = (_YangNode*) smiMalloc(sizeof(_YangNode));
     node->nodeType              = YANG_NODE_ORIGINAL;
-	node->export.value          = smiStrdup(value);
-	node->export.nodeKind       = nodeKind;
+    node->export.value          = smiStrdup(value);
+    node->export.nodeKind       = nodeKind;
     node->export.description	= NULL;
-    node->export.reference		= NULL;
-    node->export.extra  		= NULL;
+    node->export.reference	= NULL;
+    node->export.extra  	= NULL;
     node->export.config         = YANG_CONFIG_DEFAULT_TRUE;
     node->export.status         = YANG_STATUS_DEFAULT_CURRENT;
     node->line                  = currentParser->line;
@@ -433,26 +434,26 @@ _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPt
     node->lastChildPtr          = NULL;
     node->parentPtr             = parentPtr;
 
-	if(parentPtr)
-	{
+    if (parentPtr)
+    {
         node->modulePtr         = parentPtr->modulePtr;
-		//inherit Config value. This is changed later, if there is config statement, for this node
+        //inherit Config value. This is changed later, if there is config statement, for this node
         if (yangIsTrueConf(parentPtr->export.config)) {
             node->export.config = YANG_CONFIG_DEFAULT_TRUE;
         } else {
             node->export.config = YANG_CONFIG_DEFAULT_FALSE;
         }
 		
-		if(parentPtr->lastChildPtr)
-		{
-			(parentPtr->lastChildPtr)->nextSiblingPtr = node;
-			parentPtr->lastChildPtr = node;
-		}
-		else //first child
-		{
-			parentPtr->firstChildPtr = node;
-			parentPtr->lastChildPtr = node;
-		}
+        if(parentPtr->lastChildPtr)
+        {
+                (parentPtr->lastChildPtr)->nextSiblingPtr = node;
+                parentPtr->lastChildPtr = node;
+        }
+        else //first child
+        {
+                parentPtr->firstChildPtr = node;
+                parentPtr->lastChildPtr = node;
+        }
     } else {
         // it's a module node
         node->modulePtr         = node;
@@ -477,11 +478,11 @@ _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPt
 
 _YangNode *loadYangModule(const char *modulename, const char * revision, Parser *parserPtr)
 {
-    Parser	    *parser = smiMalloc(sizeof(Parser));
+    Parser      *parser = smiMalloc(sizeof(Parser));
     Parser      *parentParserPtr;
-    char	    *path = NULL;
+    char	*path = NULL;
     SmiLanguage lang = 0;
-    FILE	    *file;
+    FILE	*file;
     char* name[2], *revisionPart = NULL;
     int index = 1;
 
@@ -570,7 +571,7 @@ _YangNode *loadYangModule(const char *modulename, const char * revision, Parser 
 	parser->firstStatementLine       = 0;
 	parser->firstNestedStatementLine = 0;
 	parser->firstRevisionLine        = 0;
-    parser->yangModulePtr            = NULL;
+        parser->yangModulePtr            = NULL;
 	parser->file			= file;
 
     
