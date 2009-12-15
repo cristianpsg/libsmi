@@ -24,8 +24,6 @@
 #include "fprint.h"
 #include "fortopat.h"
 
-static int sflag = 0;		/* generate smi: extensions */
-static int nflag = 0;		/* generate notifications */
 static int INDENT = 2;		/* indent factor */
 
 static void fprintYangNode(FILE *f, int indent, YangNode* nodePtr)
@@ -94,10 +92,6 @@ dumpYangSK(int modc, SmiModule **modv, int flags, char *output)
 void initYangSK()
 {
     static SmidumpDriverOption opt[] = {
-	{ "smi-extensions", OPT_FLAG, &sflag, 0,
-	  "generate smi extensions" },
-	{ "no-notifications", OPT_FLAG, &nflag, 0,
-	  "do not generate notifications" },
 	{ "indent", OPT_INT, &INDENT, 0,
 	  "indentation (default 2)" },
         { 0, OPT_END, 0, 0 }

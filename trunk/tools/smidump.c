@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
 	    if (! matching_driver) {
 		if (! (flags & SMIDUMP_FLAG_SILENT)) {
 		    fprintf(stderr,
-			    "smidump: driver %s cannot handle %s module `%s'\n",
+			    "smidump: driver `%s' cannot handle %s module `%s'\n",
 			    driver->name,
 			    getLanguageString(smiModule->language),
 			    argv[i]);
