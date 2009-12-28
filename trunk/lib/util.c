@@ -22,6 +22,10 @@
 #include "util.h"
 #include "snprintf.h"
 
+#ifdef HAVE_WIN_H
+#include "win.h"
+#endif
+
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
 #endif
