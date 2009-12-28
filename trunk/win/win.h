@@ -83,6 +83,13 @@ int __cdecl fileno(FILE *);
 #define vsnprintf     _vsnprintf
 #define strcasecmp    _stricmp
 
+/*
+ * More replacement definitions...
+ */
+
+#define isatty        _isatty
+#define fileno        _fileno
+
 #endif /* _MSC_VER */
 
 #endif /* _WIN_H */
