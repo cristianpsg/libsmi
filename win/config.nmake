@@ -94,6 +94,7 @@ MIBDIR = $(INSTROOT)\mibs
 PIBDIR = $(INSTROOT)\pibs
 BINDIR = $(INSTROOT)\bin
 LIBDIR = $(INSTROOT)\lib
+INCDIR = $(INSTROOT)\include
 
 #MIBROOT = c:/usr/local/snmp/mibs
 #PIBROOT = c:/usr/local/snmp/pibs
@@ -119,7 +120,7 @@ MKDIR	= md
 # DEBUG = -W3 -Zi -Od /Yd
 # DEBUG = /W3 /Zi /Od /DEBUG /GS /Wp64 /Yd
 INCLUDES = -I$(ROOT)\lib -I$(ROOT)\win -I$(TOOLS32)\include
-DEFINES = $(DEBUG) -D_CRT_SECURE_NO_DEPRECATE=1
+DEFINES = $(DEBUG) -D_CRT_SECURE_NO_DEPRECATE=1 -DYY_NO_UNISTD_H
 
 
 #

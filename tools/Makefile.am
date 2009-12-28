@@ -16,7 +16,8 @@ INCLUDES		= -I../lib
 EXTRA_DIST		= smidump.h shhopt.h \
 			  $(man_MANS) \
 			  dump-fig.c \
-			  dump-svg-script.js
+			  dump-svg-script.js \
+			  dump-svg-script.h
 
 bin_PROGRAMS		= smiquery smilint smidump smidiff smixlate
 
@@ -56,4 +57,4 @@ smidump_LDADD		= ../lib/libsmi.la -lm
 smidiff_SOURCES		= smidiff.c shhopt.c
 smidiff_LDADD		= ../lib/libsmi.la
 
-MOSTLYCLEANFILES	= dump-svg-script.h
+# MOSTLYCLEANFILES	= dump-svg-script.h
