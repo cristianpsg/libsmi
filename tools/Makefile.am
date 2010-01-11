@@ -11,7 +11,7 @@
 # @(#) $Id$
 #
 
-INCLUDES		= -I../lib
+INCLUDES		= -I$(top_srcdir)/lib
 
 EXTRA_DIST		= smidump.h shhopt.h \
 			  $(man_MANS) \
@@ -27,13 +27,13 @@ man_MANS		= smiquery.1 smilint.1 smidump.1 smidiff.1 \
 			  smistrip.1 smicache.1 smixlate.1
 
 smiquery_SOURCES	= smiquery.c shhopt.c
-smiquery_LDADD		= ../lib/libsmi.la
+smiquery_LDADD		= $(top_builddir)/lib/libsmi.la
 
 smilint_SOURCES		= smilint.c shhopt.c
-smilint_LDADD		= ../lib/libsmi.la
+smilint_LDADD		= $(top_builddir)/lib/libsmi.la
 
 smixlate_SOURCES	= smixlate.c shhopt.c dstring.h dstring.c
-smixlate_LDADD		= ../lib/libsmi.la
+smixlate_LDADD		= $(top_builddir)/lib/libsmi.la
 
 dump-svg-script.h: dump-svg-script.js
 	(echo "const char *code =";cat dump-svg-script.js | sed -e 's/\\/&&/g;s/"/\\"/g;s/^/"/;s/$$/\\n"/'; echo ";") > dump-svg-script.h
@@ -52,9 +52,9 @@ smidump_SOURCES		= smidump.c smidump.h shhopt.c \
 			  dstring.h dstring.c \
 			  fortopat.h fortopat.c fprint.h fprint.c
 
-smidump_LDADD		= ../lib/libsmi.la -lm
+smidump_LDADD		= $(top_builddir)/lib/libsmi.la -lm
 
 smidiff_SOURCES		= smidiff.c shhopt.c
-smidiff_LDADD		= ../lib/libsmi.la
+smidiff_LDADD		= $(top_builddir)/lib/libsmi.la
 
 # MOSTLYCLEANFILES	= dump-svg-script.h

@@ -180,6 +180,7 @@ clean:
 	$(RM) *.mdp
 	$(RM) *.dll
 	$(RM) *.exp
+	$(RM) *.manifest
 
 install:	all install-doc install-bin install-lib install-mibs install-pibs
 
@@ -191,16 +192,27 @@ install-doc:
 	-$(MKDIR) $(INSTROOT)\doc
 	$(CP) ..\doc\*.txt $(INSTROOT)\doc
 	-$(CP) ..\doc\*.ps $(INSTROOT)\doc
+	-$(MKDIR) $(INSTROOT)\etc\smi
+	$(CP) ..\smi.conf-example $(INSTROOT)\etc\smi
 
 install-bin:
 	-$(MKDIR) $(BINDIR)
 	$(CP) *.exe $(BINDIR)
+!IF "$(MSVC_VARIANT)" == "MSVC2005" || "$(MSVC_VARIANT)" == "MSVC2005EE" || "$(MSVC_VARIANT)" == "DOTNET20"
+	$(CP) *.manifest $(BINDIR)
+!ENDIF
+!IFDEF ENABLE_LIBSMI_DLL
+	$(CP) *.dll $(BINDIR)
+!ENDIF
 
 install-lib:
 	-$(MKDIR) $(INCDIR)
 	$(CP) ..\lib\smi.h $(INCDIR)
 	-$(MKDIR) $(LIBDIR)
 	$(CP) *.lib $(LIBDIR)
+!IFDEF ENABLE_LIBSMI_DLL
+	$(CP) *.dll $(LIBDIR)
+!ENDIF
 
 install-mibs:
 	-$(MKDIR) $(MIBDIR)
