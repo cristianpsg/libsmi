@@ -20,7 +20,7 @@ EXTRA_DIST		= parser-yang.y parser-sming.y parser-smi.y \
 			  scanner-sming.h parser-sming.h parser-sming.tab.h \
 			  scanner-yang.h parser-yang.h parser-yang.tab.h \
 			  $(man_MANS)
-include_HEADERS		= smi.h
+include_HEADERS		= smi.h yang.h
 CLEANFILES		= parser-smi.output parser-sming.output \
 			  parser-yang.output
 MAINTAINERCLEANFILES	= parser-smi.c parser-sming.c parser-yang.c \
