@@ -208,6 +208,7 @@ install-bin:
 install-lib:
 	-$(MKDIR) $(INCDIR)
 	$(CP) ..\lib\smi.h $(INCDIR)
+	$(CP) ..\lib\yang.h $(INCDIR)
 	-$(MKDIR) $(LIBDIR)
 	$(CP) *.lib $(LIBDIR)
 !IFDEF ENABLE_LIBSMI_DLL
