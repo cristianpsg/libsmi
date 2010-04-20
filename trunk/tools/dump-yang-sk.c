@@ -29,26 +29,50 @@ static int INDENT = 2;		/* indent factor */
 static void fprintYangNode(FILE *f, int indent, YangNode* nodePtr)
 {
     switch (nodePtr->nodeKind) {
+        case YANG_DECL_COMPLEX_TYPE:
+        case YANG_DECL_INSTANCE:
+        case YANG_DECL_INSTANCE_LIST:
+        case YANG_DECL_INSTANCE_TYPE:
+        case YANG_DECL_ABSTRACT:
+        case YANG_DECL_EXTENDS:       
+            fprintSegment(f, indent, nodePtr->extra, 0);
+            fprint(f, " \"%s\"", nodePtr->value);
+            break;
+   
         case YANG_DECL_UNKNOWN_STATEMENT:
             fprintSegment(f, indent, nodePtr->value, 0);
+            printf("%s", nodePtr->extra);
             if (nodePtr->extra) {
                 fprint(f, " \"%s\"", nodePtr->extra);
             }
             break;
         default: 
-            fprintSegment(f, indent, yandDeclKeyword[nodePtr->nodeKind], 0);
+            if (indent) {
+                fprintSegment(f, indent, yandDeclKeyword[nodePtr->nodeKind], 0);
+            } else {
+                fprint(f, "%s", yandDeclKeyword[nodePtr->nodeKind]);
+            }
             if (nodePtr->value) {
                 fprint(f, " \"%s\"", nodePtr->value);
             }
     }
     
     YangNode *childPtr = yangGetFirstChildNode(nodePtr);
+    int first = 1;
     if (childPtr) {
         fprint(f, " {\n");
         for (; childPtr; childPtr = yangGetNextSibling(childPtr)) {
+            if (!first) {
+                fprint(f, "\n");
+            }
+            first = 0;
             fprintYangNode(f, indent + INDENT, childPtr);
         }
-        fprintSegment(f, indent, "}\n", 0);
+        if (indent) {
+            fprintSegment(f, indent, "}\n", 0);
+        } else {
+            fprint(f, "}\n");
+        }
     } else {
         fprint(f, ";\n");
     }
