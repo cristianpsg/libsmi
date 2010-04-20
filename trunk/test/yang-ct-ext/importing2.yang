@@ -1,0 +1,67 @@
+module importing2 {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "im2";
+    
+    import complex-types { prefix "ct";} 
+
+    import imported { prefix im;}
+
+    ct:complex-type test {
+        ct:extends im:ct;
+        container c;
+    }
+  
+    ct:instance i {
+        ct:instance-type test;
+
+        container c1 {
+        }
+
+        augment "c" {
+            container c {
+                grouping g {
+                    container gr-c;
+                }
+                uses g {
+                    augment "gr-c"{
+                        container gr-c2;
+                    }
+                }
+            }
+
+            ct:instance i {
+                ct:instance-type test;
+            }
+
+        }
+
+        augment "im:c" {
+            container new;
+        }
+
+        container cc {}
+        augment "c/i" {
+            container c;
+            ct:instance i {
+                ct:instance-type im:ct;
+            }
+        }
+
+        ct:instance itest {
+            ct:instance-type test;
+        }
+
+        augment "itest/im:c" {
+            ct:instance itest {
+                ct:instance-type test;
+            }
+        }
+
+        augment "itest/im:c/itest/im:c" {
+            ct:instance itest {
+                ct:instance-type test;
+            }
+        }
+       
+    }
+}

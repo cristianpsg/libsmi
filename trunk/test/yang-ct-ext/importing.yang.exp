@@ -1,0 +1,3 @@
+importing.yang:5: warning: import statement should be used with a specified revision
+imported.yang:5: warning: import statement should be used with a specified revision
+importing.yang:7: warning: import statement should be used with a specified revision

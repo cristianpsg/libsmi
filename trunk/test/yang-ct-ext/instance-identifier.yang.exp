@@ -1,0 +1,5 @@
+instance-identifier.yang:8: warning: import statement should be used with a specified revision
+instance-identifier.yang:23: a "instance-type" node can not be defined within the node "type with the argument not instance-identifier"
+instance-identifier.yang:23: reference to 'u:aaa' can not be resolved
+instance-identifier.yang:30: reference to 'u:ct2' can not be resolved
+instance-identifier.yang:22: a type leafref must have at least one path statement

@@ -17,7 +17,7 @@ for n in $abssrcdir/yang/*.yang ; do
     cmp -s $WORKDIR/$mib.out yang/$mib.exp
     if [ $? -ne 0 ] ; then
         RC=1
-        echo "unexpected output. see parser.out directory."
+        echo "unexpected output. see yang-test.out directory."
     else
         WC=`cat $WORKDIR/$mib.out | wc -l`
 	echo $WC " errors/warnings, ok."

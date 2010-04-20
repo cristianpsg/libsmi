@@ -1,0 +1,13 @@
+module ct {
+
+       namespace "urn:ietf:params:xml:ns:yang:ct";
+       prefix "ct";
+
+        extension complex-type {
+            description "Defines a complex-type.";
+            reference "chapter 2.2., complex-type extension statement";
+            argument type-identifier {
+                yin-element true;
+            }
+        }
+}

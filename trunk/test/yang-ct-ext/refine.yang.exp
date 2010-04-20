@@ -1,0 +1,3 @@
+refine.yang:6: warning: import statement should be used with a specified revision
+c' does not specify a valid target node
+refine.yang:48: "refine" can not be applied to the non-inherited node "l"

@@ -41,8 +41,8 @@
 //#define DEBUG
 
 #ifdef DEBUG 
-#define debug(args...) fprintf (stderr, "[%s=%s]", args);
-#define _debug(args...) fprintf (stderr, "[%s=%s]", args, yylval.text);
+#define debug(args...) fprintf (stderr, "[%s=%s]\n", args);
+#define _debug(args...) fprintf (stderr, "[%s=%s]\n", args, yylval.text);
 #else
 #define debug
 #define _debug
@@ -358,7 +358,6 @@ replaceKeyword      replace
  /*
   * Lex rules for some special tokens.
   */
-
 <INITIAL>[\{\}\;] {
     return yytext[0];
 }
@@ -379,366 +378,395 @@ replaceKeyword      replace
   */
 
 <INITIAL>anyxml/{delim} {
-	yylval.id = yytext;
+	yylval.text = "anyxml";
 	return anyXMLKeyword;
 }
 
 <INITIAL>argument/{delim} {
-	yylval.id = yytext;
+	yylval.text = "argument";
 	return argumentKeyword;
 }
 
 <INITIAL>augment/{delim} {
-	yylval.id = yytext;
+	yylval.text = "augment";
 	return augmentKeyword;
 }
 
 <INITIAL>base/{delim} {
-	yylval.id = yytext;
+	yylval.text = "base";
 	return baseKeyword;
 }
 
 <INITIAL>belongs-to/{delim} {
-	yylval.id = yytext;
+	yylval.text = "belongs-to";
 	return belongs_toKeyword;
 }
 
 <INITIAL>bit/{delim} {
-	yylval.id = yytext;
+	yylval.text = "bit";
 	return bitKeyword;
 }
 
 <INITIAL>case/{delim} {
-	yylval.id = yytext;
+	yylval.text = "case";
 	return caseKeyword;
 }
 
 <INITIAL>choice/{delim} {
-	yylval.id = yytext;
+	yylval.text = "choice";
 	return choiceKeyword;
 }
 
 <INITIAL>config/{delim} {
-	yylval.id = yytext;
+	yylval.text = "config";
 	return configKeyword;
 }
 
 <INITIAL>contact/{delim} {
-	yylval.id = yytext;
+	yylval.text = "contact";
 	return contactKeyword;
 }
 
 <INITIAL>container/{delim} {
-	yylval.id = yytext;
+	yylval.text = "container";
 	return containerKeyword;
 }
 
 <INITIAL>default/{delim} {
-	yylval.id = yytext;
+	yylval.text = "default";
 	return defaultKeyword;
 }
 
 <INITIAL>description/{delim} {
-	yylval.id = yytext;
+	yylval.text = "description";
 	return descriptionKeyword;
 }
 
 <INITIAL>enum/{delim} {
-	yylval.id = yytext;
+	yylval.text = "enum";
 	return enumKeyword;
 }
 
 <INITIAL>error-app-tag/{delim} {
-	yylval.id = yytext;
+	yylval.text = "error-app-tag";
 	return error_app_tagKeyword;
 }
 
 <INITIAL>error-message/{delim} {
-	yylval.id = yytext;
+	yylval.text = "error-message";
 	return error_messageKeyword;
 }
 
 <INITIAL>extension/{delim} {
-	yylval.id = yytext;
+	yylval.text = "extension";
 	return extensionKeyword;
 }
 
 <INITIAL>deviation/{delim} {
-	yylval.id = yytext;
+	yylval.text = "deviation";
 	return deviationKeyword;
 }
 
 <INITIAL>deviate/{delim} {
-	yylval.id = yytext;
+	yylval.text = "deviate";
 	return deviateKeyword;
 }
 
 <INITIAL>feature/{delim} {
-	yylval.id = yytext;
+	yylval.text = "feature";
 	return featureKeyword;
 }
 
 <INITIAL>grouping/{delim} {
-	yylval.id = yytext;
+	yylval.text = "grouping";
 	return groupingKeyword;
 }
 
 <INITIAL>identity/{delim} {
-	yylval.id = yytext;
+	yylval.text = "identity";
 	return identityKeyword;
 }
 
 <INITIAL>if-feature/{delim} {
-	yylval.id = yytext;
+	yylval.text = "if-feature";
 	return ifFeatureKeyword;
 }
 
 <INITIAL>import/{delim} {
-	yylval.id = yytext;
+	yylval.text = "import";
 	return importKeyword;
 }
 
 <INITIAL>include/{delim} {
-	yylval.id = yytext;
+	yylval.text = "include";
 	return includeKeyword;
 }
 
 <INITIAL>input/{delim} {
-	yylval.id = yytext;
+	yylval.text = "input";
 	return inputKeyword;
 }
 
 <INITIAL>key/{delim} {
-	yylval.id = yytext;
+	yylval.text = "key";
 	return keyKeyword;
 }
 
 <INITIAL>leaf/{delim} {
-	yylval.id = yytext;
+	yylval.text = "leaf";
 	return leafKeyword;
 }
 
 <INITIAL>leaf-list/{delim} {
-	yylval.id = yytext;
+	yylval.text = "leaf-list";
 	return leaf_listKeyword;
 }
 
 <INITIAL>length/{delim} {
-	yylval.id = yytext;
+	yylval.text = "length";
 	return lengthKeyword;
 }
 
 <INITIAL>list/{delim} {
-	yylval.id = yytext;
+	yylval.text = "list";
 	return listKeyword;
 }
 
 <INITIAL>mandatory/{delim} {
-	yylval.id = yytext;
+	yylval.text = "mandatory";
 	return mandatoryKeyword;
 }
 
 <INITIAL>max-elements/{delim} {
-	yylval.id = yytext;
+	yylval.text = "max-elements";
 	return max_elementsKeyword;
 }
 
 <INITIAL>min-elements/{delim} {
-	yylval.id = yytext;
+	yylval.text = "min-elements";
 	return min_elementsKeyword;
 }
 
 <INITIAL>module/{delim} {
-	yylval.id = yytext;
+	yylval.text = "module";
 	return moduleKeyword;
 }
 
 <INITIAL>must/{delim} {
-	yylval.id = yytext;
+	yylval.text = "must";
 	return mustKeyword;
 }
 
 <INITIAL>namespace/{delim} {
-	yylval.id = yytext;
+	yylval.text = "namespace";
 	return namespaceKeyword;
 }
 
 <INITIAL>notification/{delim} {
-	yylval.id = yytext;
+	yylval.text = "notification";
 	return notificationKeyword;
 }
 
 <INITIAL>ordered-by/{delim} {
-	yylval.id = yytext;
+	yylval.text = "ordered-by";
 	return ordered_byKeyword;
 }
 
 <INITIAL>organization/{delim} {
-	yylval.id = yytext;
+	yylval.text = "organization";
 	return organizationKeyword;
 }
 
 <INITIAL>output/{delim} {
-	yylval.id = yytext;
+	yylval.text = "output";
 	return outputKeyword;
 }
 
 <INITIAL>path/{delim} {
-	yylval.id = yytext;
+	yylval.text = "path";
 	return pathKeyword;
 }
 
 <INITIAL>pattern/{delim} {
-	yylval.id = yytext;
+	yylval.text = "pattern";
 	return patternKeyword;
 }
 
 <INITIAL>position/{delim} {
-	yylval.id = yytext;
+	yylval.text = "position";
 	return positionKeyword;
 }
 
 <INITIAL>prefix/{delim} {
-	yylval.id = yytext;
+	yylval.text = "prefix";
 	return prefixKeyword;
 }
 
 <INITIAL>presence/{delim} {
-	yylval.id = yytext;
+	yylval.text = "presence";
 	return presenceKeyword;
 }
 
 <INITIAL>range/{delim} {
-	yylval.id = yytext;
+	yylval.text = "range";
 	return rangeKeyword;
 }
 
 <INITIAL>reference/{delim} {
-	yylval.id = yytext;
+	yylval.text = "reference";
 	return referenceKeyword;
 }
 
 <INITIAL>refine/{delim} {
-	yylval.id = yytext;
+	yylval.text = "refine";
 	return refineKeyword;
 }
 
 <INITIAL>require-instance/{delim} {
-	yylval.id = yytext;
+	yylval.text = "require-instance";
 	return requireInstanceKeyword;
 }
 
 <INITIAL>revision/{delim} {
-	yylval.id = yytext;
+	yylval.text = "revision";
 	return revisionKeyword;
 }
 
 <INITIAL>rpc/{delim} {
-	yylval.id = yytext;
+	yylval.text = "rpc";
 	return rpcKeyword;
 }
 
 <INITIAL>status/{delim} {
-	yylval.id = yytext;
+	yylval.text = "status";
 	return statusKeyword;
 }
 
 <INITIAL>submodule/{delim} {
-	yylval.id = yytext;
+	yylval.text = "submodule";
 	return submoduleKeyword;
 }
 
 <INITIAL>type/{delim} {
-	yylval.id = yytext;
+	yylval.text = "type";
 	return typeKeyword;
 }
 
 <INITIAL>typedef/{delim} {
-	yylval.id = yytext;
+	yylval.text = "typedef";
 	return typedefKeyword;
 }
 
 <INITIAL>unique/{delim} {
-	yylval.id = yytext;
+	yylval.text = "unique";
 	return uniqueKeyword;
 }
 
 <INITIAL>units/{delim} {
-	yylval.id = yytext;
+	yylval.text = "units";
 	return unitsKeyword;
 }
 
 <INITIAL>uses/{delim} {
-	yylval.id = yytext;
+	yylval.text = "uses";
 	return usesKeyword;
 }
 
 <INITIAL>value/{delim} {
-	yylval.id = yytext;
+	yylval.text = "value";
 	return valueKeyword;
 }
 
 <INITIAL>when/{delim} {
-	yylval.id = yytext;
+	yylval.text = "when";
 	return whenKeyword;
 }
 
 <INITIAL>yang-version/{delim} {
-	yylval.id = yytext;
+	yylval.text = "yang-version";
 	return yangversionKeyword;
 }
 
 <INITIAL>yin-element/{delim} {
-	yylval.id = yytext;
+	yylval.text = "yin-element";
 	return yinElementKeyword;
 }
 
+<INITIAL>{identifier}:complex-type/{delim} {
+	yylval.text = smiStrdup(yytext);
+	return complexTypeKeyword;
+}
+
+<INITIAL>{identifier}:extends/{delim} {
+	yylval.text = smiStrdup(yytext);
+	return extendsKeyword;
+}
+
+<INITIAL>{identifier}:abstract/{delim} {
+	yylval.text = smiStrdup(yytext);
+	return abstractKeyword;
+}
+
+<INITIAL>{identifier}:instance/{delim} {
+	yylval.text = smiStrdup(yytext);
+	return instanceKeyword;
+}
+
+<INITIAL>{identifier}:instance-list/{delim} {
+	yylval.text = smiStrdup(yytext);
+	return instanceListKeyword;
+}
+
+<INITIAL>{identifier}:instance-type/{delim} {
+	yylval.text = smiStrdup(yytext);
+	return instanceTypeKeyword;
+}
  /*
   * Lex rules for other keywords
   */
 
 <INITIAL>({currentKeyword}|\"{currentKeyword}\"|\'{currentKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return currentKeyword;
 }
 
 <INITIAL>({deprecatedKeyword}|\"{deprecatedKeyword}\"|\'{deprecatedKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return deprecatedKeyword;
 }
 
 <INITIAL>({falseKeyword}|\"{falseKeyword}\"|\'{falseKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return falseKeyword;
 }
 
 <INITIAL>({obsoleteKeyword}|\"{obsoleteKeyword}\"|\'{obsoleteKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return obsoleteKeyword;
 }
 
 <INITIAL>({trueKeyword}|\"{trueKeyword}\"|\'{trueKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return trueKeyword;
 }
 
 <INITIAL>({notSupported}|\"{notSupported}\"|\'{notSupported}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return notSupportedKeyword;
 }
 
 <INITIAL>({addKeyword}|\"{addKeyword}\"|\'{addKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return addKeyword;
 }
 
 <INITIAL>({deleteKeyword}|\"{deleteKeyword}\"|\'{deleteKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return deleteKeyword;
 }
 
 <INITIAL>({replaceKeyword}|\"{replaceKeyword}\"|\'{replaceKeyword}\')/{delim} {
-	yylval.id = yytext;
+	yylval.text = yytext;
 	return replaceKeyword;
 }
 

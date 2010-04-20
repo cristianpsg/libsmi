@@ -1,0 +1,14 @@
+module imported {
+    namespace "urn:org:example:xml:ct:im";
+    prefix "im";
+    
+    import complex-types { prefix "ct";} 
+
+    ct:complex-type ct {
+        container c;
+    }
+
+    ct:instance i {
+        ct:instance-type ct;
+    }
+}

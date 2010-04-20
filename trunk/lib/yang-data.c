@@ -255,6 +255,9 @@ _YangNode *findYangModuleByPrefix(_YangNode *module, const char *prefix)
  */
 _YangNode* findChildNodeByType(_YangNode *nodePtr, YangDecl nodeKind) {
     _YangNode *childPtr = NULL;
+    if (nodePtr == NULL) {
+        return NULL;
+    }
     for (childPtr = nodePtr->firstChildPtr; childPtr; childPtr = childPtr->nextSiblingPtr) {
         if (childPtr->export.nodeKind == nodeKind) {
             return childPtr;
@@ -346,10 +349,12 @@ _YangNode* resolveNodeByTypeAndValue(_YangNode *nodePtr, YangDecl nodeKind, char
  */
 _YangNode* resolveReference(_YangNode *currentNodePtr, YangDecl nodeKind, char* prefix, char* identifierName) {
     if (prefix && strcmp(getModuleInfo(currentNodePtr->modulePtr)->prefix, prefix)) {
+        /* this is a reference to another module */
         _YangNode *modulePtr = findYangModuleByPrefix(currentNodePtr->modulePtr, prefix);
         if (!modulePtr) return NULL;
         return resolveNodeByTypeAndValue(modulePtr, nodeKind, identifierName, 1);
     } else {
+        /* local reference */
         return resolveNodeByTypeAndValue(currentNodePtr, nodeKind, identifierName, 1);
     }
     return NULL;
@@ -401,16 +406,17 @@ void createIdentifierRef(_YangNode *node, char* prefix, char* ident) {
     infoPtr->identifierName = ident;
     infoPtr->resolvedNode = NULL;
     infoPtr->marker = NULL;
+    infoPtr->loop = 0;
     
-    node->info = infoPtr;   
+    node->info = infoPtr;
 }
 
-_YangTypeInfo createTypeInfo(_YangNode *node) {
+void createTypeInfo(_YangNode *node) {
     _YangTypeInfo *infoPtr = smiMalloc(sizeof(_YangTypeInfo));
 
     infoPtr->builtinType        = getBuiltInType(node->export.value);
     infoPtr->baseTypeNodePtr    = NULL;
-    node->typeInfo              = infoPtr;   
+    node->typeInfo              = infoPtr;
 }
 
 _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPtr)
@@ -586,10 +592,10 @@ _YangNode *loadYangModule(const char *modulename, const char * revision, Parser 
 	smiDepth--;
 	fclose(parser->file);
 	smiHandle->parserPtr = parentParserPtr;
-
     if (parser->yangModulePtr) {
         ((_YangModuleInfo*)(parser->yangModulePtr->info))->conformance = parser->modulePtr->export.conformance;
         ((_YangModuleInfo*)(parser->yangModulePtr->info))->parser = parser;
+
         return parser->yangModulePtr;
     } else {
         smiFree(path);
@@ -599,7 +605,7 @@ _YangNode *loadYangModule(const char *modulename, const char * revision, Parser 
 #else
 	smiPrintError(parserPtr, ERR_YANG_NOT_SUPPORTED, path);
 	smiFree(path);
-    fclose(file);
+        fclose(file);
    
 	return NULL;
 #endif
@@ -725,13 +731,13 @@ _YangNode *externalModule(_YangNode *importNode) {
 
 _YangNode *copyModule(_YangNode *nodePtr) {
     if (!nodePtr) return NULL;  
-	_YangNode *node = (_YangNode*) smiMalloc(sizeof(_YangNode));
+    _YangNode *node = (_YangNode*) smiMalloc(sizeof(_YangNode));
     node->nodeType              = YANG_NODE_ORIGINAL;
-	node->export.value          = smiStrdup(nodePtr->export.value);
-	node->export.nodeKind       = nodePtr->export.nodeKind;
+    node->export.value          = smiStrdup(nodePtr->export.value);
+    node->export.nodeKind       = nodePtr->export.nodeKind;
     node->export.description	= smiStrdup(nodePtr->export.description);
     node->export.reference		= smiStrdup(nodePtr->export.reference);
-    node->export.extra  		= NULL;
+    node->export.extra  		= nodePtr->export.extra;
     node->export.config         = nodePtr->export.config;
     node->export.status         = nodePtr->export.status;
     node->line                  = 0;
@@ -852,6 +858,45 @@ void freeYangNode(_YangNode *nodePtr) {
     nodePtr = NULL;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * removeYangNode --
+ *
+ *      Remove a Yang Node.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+int removeYangNode(_YangNode* target, _YangNode* child) {
+    _YangNode *cur = target->firstChildPtr;
+    if (cur == child) {
+        target->firstChildPtr = cur->nextSiblingPtr;
+        if (!target->firstChildPtr) {
+            target->lastChildPtr = NULL;
+        }
+        freeYangNode(cur);
+        return 1;
+    } else {
+        while (cur) {
+            _YangNode* nextNode = cur->nextSiblingPtr;
+            if (nextNode == child) {
+                cur->nextSiblingPtr = nextNode->nextSiblingPtr;
+                if (!nextNode->nextSiblingPtr) {
+                    target->lastChildPtr = cur;
+                }
+                freeYangNode(nextNode);
+                return 1;
+            }
+            cur = nextNode;
+        }
+    }
+    return 0;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -879,7 +924,9 @@ int isDataDefNode(_YangNode* nodePtr) {
            kind == YANG_DECL_LIST ||
            kind == YANG_DECL_CHOICE ||
            kind == YANG_DECL_ANYXML ||
-           kind == YANG_DECL_USES;
+           kind == YANG_DECL_USES ||
+           kind == YANG_DECL_INSTANCE ||
+           kind == YANG_DECL_INSTANCE_LIST;
     
 }
 
@@ -1237,6 +1284,75 @@ _YangList* processUniqueList(_YangNode *nodePtr, YangList* il) {
         cur =  cur->next;
     }
     return ret;
+}
+
+int isDataDefinitionNode(_YangNode *node)
+{
+    if (!node) return;
+    YangDecl kind = node->export.nodeKind;
+    return (kind == YANG_DECL_CONTAINER ||
+            kind == YANG_DECL_LEAF ||
+            kind == YANG_DECL_LEAF_LIST ||
+            kind == YANG_DECL_LIST ||
+            kind == YANG_DECL_CHOICE ||
+            kind == YANG_DECL_ANYXML ||
+            kind == YANG_DECL_USES ||
+            kind == YANG_DECL_INSTANCE ||
+            kind == YANG_DECL_INSTANCE_LIST);
+}
+
+_YangNode *createReferenceNode(_YangNode *parentPtr, _YangNode *reference, YangNodeType nodeType, int inheritNamespace)
+{
+    _YangNode *node = (_YangNode*) smiMalloc(sizeof(_YangNode));
+    node->nodeType              = nodeType;
+    node->export.value          = reference->export.value;
+    node->export.nodeKind       = reference->export.nodeKind;
+    node->export.config 	= reference->export.config;
+    node->export.status 	= reference->export.status;
+    node->line                  = reference->line;
+    node->export.description	= NULL;
+    node->export.reference	= NULL;
+    node->export.extra  	= reference->export.extra;
+    node->info                  = reference->info;
+    node->typeInfo              = NULL;
+    node->ctInfo                = NULL;
+
+    node->nextSiblingPtr        = NULL;
+    node->firstChildPtr         = NULL;
+    node->lastChildPtr          = NULL;
+    node->parentPtr             = parentPtr;
+    if (!inheritNamespace) {
+        node->modulePtr             = parentPtr->modulePtr;
+    } else {
+        node->modulePtr             = reference->modulePtr;
+    }
+
+    if(parentPtr->lastChildPtr)
+    {
+        (parentPtr->lastChildPtr)->nextSiblingPtr = node;
+        parentPtr->lastChildPtr = node;
+    }
+    else //first child
+    {
+        parentPtr->firstChildPtr = node;
+        parentPtr->lastChildPtr = node;
+    }
+    return node;
+}
+
+void copySubtree(_YangNode *destPtr, _YangNode *subtreePtr, YangNodeType nodeType, int skipMandatory, int line, int inheritNamespace) {
+    if (skipMandatory && isMandatory(subtreePtr)) {
+        smiPrintErrorAtLine(currentParser, ERR_AUGMENTATION_BY_MANDATORY_NODE, subtreePtr->line);
+    }
+    _YangNode *reference = createReferenceNode(destPtr, subtreePtr, nodeType, inheritNamespace);
+    if (line) {
+        reference->line = line;
+    }
+    _YangNode* childPtr = subtreePtr->firstChildPtr;
+    while (childPtr) {
+        copySubtree(reference, childPtr, nodeType, skipMandatory, line, inheritNamespace);
+        childPtr = childPtr->nextSiblingPtr;
+    }
 }
 
 #endif

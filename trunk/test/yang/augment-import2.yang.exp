@@ -1,3 +1,2 @@
 augment-import2.yang:7: warning: import statement should be used with a specified revision
-augment-import2.yang:10: augment instantiotion causes duplication of identifier 'ifEntry'
-augment-import2.yang:19: augment instantiotion causes duplication of identifier 'test2'
+augment-import2.yang:9: the target node of the augmentation is in another module, the nodes added by the augmentation MUST NOT be mandatory nodes

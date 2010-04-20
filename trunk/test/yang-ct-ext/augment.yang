@@ -1,0 +1,31 @@
+module importing2 {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "im2";
+    
+    import complex-types { prefix "ct";} 
+
+    import imported { prefix im;}
+
+    ct:complex-type test {
+        ct:extends im:ct;
+        container c;
+    }
+  
+    ct:instance i {
+        ct:instance-type test;
+      
+        augment "im:c" {
+            leaf l {
+                type int8;
+            }
+        }
+    }
+
+    augment "/i/c" {
+        container "bad";
+    }
+
+    augment "/i" {
+        container "bad2";
+    }
+}

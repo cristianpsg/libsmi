@@ -1,0 +1,7 @@
+key.yang:5: warning: import statement should be used with a specified revision
+key.yang:21: the key 'l' must not be listed more than once
+key.yang:39: circular dependency for typedef identifier 'r1'
+key.yang:13: the key 'c' does not reference an existing leaf
+key.yang:21: key for complex type "complex" is already defined in base type "base-ct"
+key.yang:36: the type empty cannot be part of a key, used by leaf 'l'
+key.yang:61: complex type "ct-il" referred by instance-list "il" with config "true" has to have a defined key

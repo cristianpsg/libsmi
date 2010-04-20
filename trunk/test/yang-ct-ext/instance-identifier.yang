@@ -1,0 +1,33 @@
+module unique {
+
+   namespace "urn:org:example:xml:ct:unique";
+   prefix "u";
+
+   import complex-types {
+       prefix "ct"; 
+   }
+
+   leaf l {
+       type instance-identifier {
+           ct:instance-type ct1;
+       }
+   }
+
+   ct:complex-type ct1 {
+       container c {
+       }
+   }
+
+   leaf-list connectedPort {
+       type leafref {
+           ct:instance-type aaa;
+       }
+       min-elements 2;
+   }
+
+   leaf ll {
+       type instance-identifier {
+           ct:instance-type ct2;
+       }
+   }
+}

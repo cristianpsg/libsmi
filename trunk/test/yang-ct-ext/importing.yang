@@ -1,0 +1,18 @@
+module reference {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "ref";
+    
+    import complex-types { prefix "ct";} 
+
+    import imported { prefix "im";}
+
+    ct:complex-type test {
+        ct:extends im:ct;
+        container c;
+
+        refine im:c {
+            config true;
+        }
+    }
+   
+}

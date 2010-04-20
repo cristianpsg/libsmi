@@ -1,0 +1,48 @@
+module importing2 {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "im2";
+    
+    import complex-types { prefix "ct";} 
+
+    import imported { prefix im;}
+
+    ct:complex-type test {
+        ct:extends im:ct;
+        container c;
+        ct:instance itest {
+            ct:instance-type test;
+        }
+    }
+  
+    ct:instance i {
+        ct:instance-type test;
+    }
+
+    deviation "/i/c" {
+        deviate not-supported;
+    }
+
+    deviation "/i" {
+        deviate add {
+            config true;
+            mandatory true;
+            must "as";
+            min-elements 2;
+        }
+    }
+
+    deviation "/i" {
+        deviate delete {
+            must "as";
+        }
+    }
+
+    deviation "/i/itest/itest/c" {
+        deviate not-supported;
+    }
+
+    deviation "/i/c1" {
+        deviate not-supported;
+    }
+   
+}

@@ -1,0 +1,30 @@
+module reference {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "ref";
+    
+    import complex-types { prefix "ct";} 
+
+    import imported { prefix "im";}
+
+    ct:complex-type loop1 {
+        ct:abstract true;
+        ct:extends loop2;
+    }
+
+    ct:complex-type loop2 {
+        ct:extends loop3;
+    }
+
+    ct:complex-type loop3 {
+    }
+
+    ct:complex-type abstract {
+        ct:abstract true;
+        ct:extends non-abstract;
+    }
+
+    ct:complex-type non-abstract {
+        ct:abstract false;
+    }
+
+}
