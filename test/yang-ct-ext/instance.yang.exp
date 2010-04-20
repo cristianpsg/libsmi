@@ -1,0 +1,2 @@
+instance.yang:5: warning: import statement should be used with a specified revision
+instance.yang:45: identifier 'ia' is already defined within the namespace

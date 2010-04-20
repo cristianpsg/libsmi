@@ -1,0 +1,36 @@
+module unique1 {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "ref";
+    
+    import complex-types { prefix "ct";} 
+
+    import imported { prefix "im";}
+
+    include unique1-sub;
+
+    ct:complex-type name1 {
+        ct:abstract true;
+        
+    }
+
+    ct:complex-type name1 {
+    }
+
+    container c {
+        ct:complex-type name1 {
+        }
+    }
+
+    ct:complex-type baset {
+        container c { }
+    }
+
+    ct:complex-type ext {
+        ct:extends baset;  
+        leaf c {
+            type int8;
+        }
+    }
+
+
+}

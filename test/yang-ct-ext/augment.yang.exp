@@ -1,0 +1,5 @@
+augment.yang:5: warning: import statement should be used with a specified revision
+imported.yang:5: warning: import statement should be used with a specified revision
+augment.yang:7: warning: import statement should be used with a specified revision
+c' does not specify a valid target node
+i' does not specify a valid target node

@@ -1,0 +1,5 @@
+deviation.yang:5: warning: import statement should be used with a specified revision
+imported.yang:5: warning: import statement should be used with a specified revision
+deviation.yang:7: warning: import statement should be used with a specified revision
+deviation.yang:30: bad deviation type - node "min-elements" can not be a child of "instance"
+c1' does not specify a valid target node

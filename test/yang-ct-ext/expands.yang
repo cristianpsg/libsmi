@@ -1,0 +1,25 @@
+module extends {
+    namespace "urn:org:example:xml:ct:ext";
+    prefix "ext";
+    
+    import complex-types { prefix "ct";} 
+
+    ct:complex-type base-ct {
+        container c {}
+        ct:instance i {
+            ct:instance-type base-ct;
+        }
+    }
+
+    ct:complex-type complex {
+        ct:extends base-ct;
+
+        container c {}
+        uses g;
+    }
+
+    grouping g {
+        container c2{}
+    }
+
+}

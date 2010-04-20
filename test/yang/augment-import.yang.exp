@@ -1,11 +1,10 @@
 augment.yang:8: anyxml 'test' is not allowed as a child node of the target container 'interfaces'
 augment.yang:22: case 'test' is not allowed as a child node of the target container 'c'
 augment.yang:26: leaf 'test' is not allowed as a child node of the target choice 'test-choice'
-as:d' can not be resolved
-as:tets' can not be resolved
+as:d' does not specify a valid target node
+as:tets' does not specify a valid target node
 augment.yang:51: augment instantiotion causes duplication of identifier 'ifIndex'
 ifIndex' must be either a  container, list, choice, case, input, output, or notification node.
-ifEntry2' can not be resolved
+ifEntry2' does not specify a valid target node
 augment-import.yang:7: warning: import statement should be used with a specified revision
-augment-import.yang:11: augment instantiotion causes duplication of identifier 'ifEntry'
-as:test' can not be resolved
+as:test' does not specify a valid target node

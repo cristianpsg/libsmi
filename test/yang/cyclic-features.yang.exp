@@ -1,2 +1,2 @@
 cyclic-features.yang:6: circular dependency for feature identifier 'local'
-cyclic-features.yang:24: circular dependency for feature identifier 'f2'
+cyclic-features.yang:20: circular dependency for feature identifier 'f1'

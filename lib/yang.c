@@ -29,7 +29,7 @@
 #include <pwd.h>
 #endif
 
-#define ONLY_ORIGINAL 0
+#define ONLY_ORIGINAL 1
         
 #include "yang.h"
 #include "error.h"
@@ -100,7 +100,13 @@ const char* yandDeclKeyword[] = {   "unknown",
                                     "unique",
                                     "refine",
                                     "deviation",
-                                    "deviate"
+                                    "deviate",
+                                    "complex-type",
+                                    "abstract",
+                                    "extends",
+                                    "instance",
+                                    "instance-list",
+                                    "instance-type"
                                };
 
 const char* statusKeywords[] = {  "default",

@@ -1,0 +1,50 @@
+module reference {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "ref";
+    
+    import complex-types { prefix "ct";} 
+
+    import imported { prefix "im";}
+
+    ct:complex-type c2 {
+        ct:extends im:c;
+        ct:abstract true;
+    }
+
+    ct:complex-type c3 {
+        ct:extends ref:c2;
+    }
+
+    ct:complex-type loop1 {
+        ct:extends loop2;
+    }
+
+    ct:complex-type loop2 {
+        ct:extends loop3;
+    }
+
+    ct:complex-type loop3 {
+        ct:extends loop1;
+    }
+
+ 
+
+    ct:instance i {
+        ct:instance-type non-existing;
+    }
+
+    ct:instance i2 {
+        ct:instance-type im:ct2;
+    }
+
+    ct:instance i333 {
+        ct:instance-type im:ct;
+        container c;
+    }
+
+    ct:complex-type test {
+        ct:extends im:ct;
+        container c;
+    }
+   
+}

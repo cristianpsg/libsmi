@@ -1,0 +1,2 @@
+expands.yang:5: warning: import statement should be used with a specified revision
+expands.yang:15: identifier 'c' clashes with the identifier of one of the inherited nodes

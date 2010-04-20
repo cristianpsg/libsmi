@@ -1,0 +1,26 @@
+module instance {
+    namespace "urn:org:example:xml:ct:inst";
+    prefix "inst";
+    
+    import complex-types { prefix "ct";} 
+
+    ct:complex-type base-ct {
+        container c {
+            config false;
+            container c1 {
+                config true;
+            }
+        }
+
+    }
+
+    container c {
+        config false;
+        ct:complex-type complex {
+            container c {
+                config true;
+            }
+        }
+    }
+
+}

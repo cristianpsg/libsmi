@@ -1,0 +1,66 @@
+module instance {
+    namespace "urn:org:example:xml:ct:inst";
+    prefix "inst";
+    
+    import complex-types { prefix "ct";} 
+
+    ct:complex-type base-ct {
+        container c {}
+
+        ct:instance ii {
+            ct:instance-type base-ct;
+        }
+        key c;
+    }
+
+    ct:complex-type complex {
+        ct:extends base-ct;
+        leaf l {
+            type int8;
+        }
+        key "l l";
+    }
+
+    typedef t1 {
+        type t2;
+    }
+
+    typedef t2 {
+        type empty;
+    }
+
+    ct:complex-type complex2 {
+        leaf l {
+            type t1;
+        }
+        key "l";
+    }
+
+    typedef r1 {
+        type r2;
+    }
+
+    typedef r2 {
+        type r3;
+    }
+
+    typedef r3 {
+        type r1;
+    }
+
+    ct:complex-type complex3 {
+        leaf l {
+            type r3;
+        }
+        key "l";
+    }
+
+    ct:complex-type ct-il {
+    }
+
+    ct:instance-list il {
+        config true;
+        ct:instance-type ct-il;
+    }
+
+}

@@ -1,0 +1,69 @@
+module abstract {
+    namespace "urn:org:example:xml:ct:abstract";
+    prefix "abstract";
+    
+    import complex-types { prefix "ct";} 
+
+    import ct { prefix c;}
+
+    typedef t {
+        ct:complex-type ct {
+        }
+        ct:instance ct {
+        }
+        type int8;
+    }
+
+    c:instance-list i {
+        c:instance-type c;
+    }
+
+    container c {
+        container c1 {}
+        ct:complex-type ct {
+        }
+        container c2 {}
+    }
+
+    ct:complex-type c3 {
+         grouping g {}  
+         anyxml test;
+         container c {
+         }
+         ct:extends c3  ; 
+         container c2 {}
+
+         ct:instance i1 {
+            ct:instance-type non-existing;
+            ct:instance-type it;
+            container c {
+            }
+         }
+         ct:instance-list i2 {
+         }
+    }
+
+   
+    ct:complex-type c1 {
+        ct:abstract false;
+        ct:extends c3 {
+            reference "ref";
+            description "ddd";
+        }
+        anyxml test;
+        grouping g {}
+        container c {
+        }
+
+    }
+
+    c:complex-type c2 {
+        ct:extends c1;
+        ct:abstract true;
+        anyxml test;
+        container c {
+        }
+    }
+
+
+}

@@ -1,0 +1,23 @@
+module grammar-test {
+
+   namespace "urn:org:example:xml:ct:grammar-test";
+   prefix "gr";
+
+   import complex-types { prefix "ct"; }
+
+   // ct nested into a module
+   ct:complex-type ct1;
+
+   leaf ct-ref {
+       type instance-identifier {
+           ct:instance-type ct1;
+       }
+   }
+
+   leaf inst1 {
+       type int8 {
+           ct:instance-type ct1;
+       }
+   }
+
+}

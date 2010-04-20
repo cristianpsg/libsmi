@@ -48,13 +48,27 @@ typedef enum YangNodeType {
     YANG_NODE_ORIGINAL          = 0,
     YANG_NODE_EXPANDED_USES     = 1,
     YANG_NODE_EXPANDED_AUGMENT  = 2,
-    YANG_NODE_REFINED           = 3
+    YANG_NODE_REFINED           = 3,
+    YANG_NODE_INHERITED         = 4,
+    YANG_NODE_INSTANCE          = 5,
+    YANG_NODE_DEVIATION         = 6
 } YangNodeType;
 
 typedef struct _YangTypeInfo {
     YangBuiltInType   builtinType;
     struct _YangNode   *baseTypeNodePtr;
 } _YangTypeInfo;
+
+/* _YangParseState -- reflects the current state of the module processing state      */
+typedef enum _YangParsingState {
+    YANG_PARSING_IN_PROGRESS       = 0,  /* should not occur            */
+    YANG_PARSING_DONE              = 1
+} _YangParsingState;
+
+typedef struct _YangComplexTypeInfo {
+    _YangParsingState state;
+    int labeled;
+} _YangComplexTypeInfo;
 
 typedef struct _YangNode {
     YangNode            export;
@@ -64,7 +78,10 @@ typedef struct _YangNode {
 
     /* used only for type statements */
     struct _YangTypeInfo *typeInfo;
-    
+
+    /* used only for complext-type statements */
+    struct _YangComplexTypeInfo *ctInfo;
+
     struct _YangNode  	*firstChildPtr;
     struct _YangNode  	*lastChildPtr;    
     struct _YangNode  	*nextSiblingPtr;
@@ -81,12 +98,6 @@ typedef struct _YangList {
     struct _YangList    *next;    
 } _YangList;
 
-
-/* _YangParseState -- reflects the current state of the module processing state      */
-typedef enum _YangParsingState {
-    YANG_PARSING_IN_PROGRESS       = 0,  /* should not occur            */
-    YANG_PARSING_DONE              = 1
-} _YangParsingState;
 
 typedef struct _YangModuleInfo {
     char		*prefix;
@@ -105,9 +116,10 @@ typedef struct _YangModuleInfo {
 
 typedef struct _YangIdentifierRefInfo {
     char		*prefix;
-	char		*identifierName;
+    char		*identifierName;
     _YangNode   *resolvedNode;
     _YangNode   *marker;
+    int loop;
 } _YangIdentifierRefInfo;
 
 typedef struct _YangGroupingInfo {
@@ -148,9 +160,11 @@ _YangIdentifierRef  *listIdentifierRef(YangList *e);
  */
 _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPtr);
 
+int removeYangNode(_YangNode* target, _YangNode* child);
+
 _YangModuleInfo *createModuleInfo(_YangNode *modulePtr);
 
-_YangTypeInfo createTypeInfo(_YangNode *node);
+void createTypeInfo(_YangNode *node);
 
 _YangNode *findYangModuleByName(const char *modulename, char* revision);
 
@@ -215,5 +229,10 @@ void yangFreeData();
 
 _YangModuleInfo* getModuleInfo(_YangNode* module);
 
-#endif /* _YANG_DATA_H */
+int isDataDefinitionNode(_YangNode *node);
 
+_YangNode *createReferenceNode(_YangNode *parentPtr, _YangNode *reference, YangNodeType nodeType, int inheritNamespace);
+
+void copySubtree(_YangNode *destPtr, _YangNode *subtreePtr, YangNodeType nodeType, int skipMandatory, int line, int inheritNamespace);
+
+#endif /* _YANG_DATA_H */

@@ -1,0 +1,8 @@
+unique1.yang:5: warning: import statement should be used with a specified revision
+imported.yang:5: warning: import statement should be used with a specified revision
+unique1.yang:7: warning: import statement should be used with a specified revision
+unique1-sub.yang:7: warning: import statement should be used with a specified revision
+unique1.yang:11: identifier 'name1' is already defined within the namespace
+unique1.yang:16: identifier 'name1' is already defined within the namespace
+unique1.yang:20: identifier 'name1' is already defined within the namespace
+unique1.yang:29: identifier 'c' clashes with the identifier of one of the inherited nodes

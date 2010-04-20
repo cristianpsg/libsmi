@@ -97,8 +97,13 @@ typedef enum YangDecl {
     YANG_DECL_UNIQUE                    = 61,
     YANG_DECL_REFINE                    = 62,
     YANG_DECL_DEVIATION                 = 63,
-    YANG_DECL_DEVIATE                   = 64
-            
+    YANG_DECL_DEVIATE                   = 64,
+    YANG_DECL_COMPLEX_TYPE              = 65,
+    YANG_DECL_ABSTRACT                  = 66,
+    YANG_DECL_EXTENDS                   = 67,
+    YANG_DECL_INSTANCE                  = 68,
+    YANG_DECL_INSTANCE_LIST             = 69,
+    YANG_DECL_INSTANCE_TYPE             = 70
 } YangDecl;
 
 
@@ -133,9 +138,9 @@ typedef enum YangBoolean {
 typedef struct YangNode {
     YangString      value;       // 'name' or 'argument' of the statement
     YangString      extra;       // extra data, used to store some additional information, e.g. for the 'unknown' statement
-    YangDecl		nodeKind;
-    YangStatus		status;
-    YangConfig		config;
+    YangDecl        nodeKind;
+    YangStatus      status;
+    YangConfig      config;
     char            *description;
     char            *reference;
 } YangNode;

@@ -1,0 +1,13 @@
+submodule unique1-sub {
+   
+    belongs-to unique1 {
+        prefix u;
+    }
+
+    import complex-types { prefix "ct";} 
+
+    ct:complex-type name1 {
+        ct:abstract true;
+    }
+
+}

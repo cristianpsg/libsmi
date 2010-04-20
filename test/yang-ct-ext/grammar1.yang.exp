@@ -1,0 +1,22 @@
+grammar1.yang:5: warning: import statement should be used with a specified revision
+grammar1.yang:7: warning: import statement should be used with a specified revision
+grammar1.yang:10: a "complex-type" node can not be defined within the node "typedef"
+grammar1.yang:12: a "instance" node can not be defined within the node "typedef"
+grammar1.yang:12: cardinality of the element 'instance-type' is wrong (must be 1)
+grammar1.yang:38: instance-type has been already defined
+grammar1.yang:42: cardinality of the element 'instance-type' is wrong (must be 1)
+grammar1.yang:61: a "extends" node can not be defined within the node "unknown-statement"
+grammar1.yang:62: a "abstract" node can not be defined within the node "unknown-statement"
+grammar1.yang:61: unexpected keyword extends
+grammar1.yang:62: unexpected keyword abstract
+grammar1.yang:63: unexpected keyword anyxml
+grammar1.yang:64: unexpected keyword container
+grammar1.yang:17: reference to 'c:instance-list' can not be resolved
+grammar1.yang:17: unexpected argument for extension 'c:instance-list'
+grammar1.yang:18: reference to 'c:instance-type' can not be resolved
+grammar1.yang:18: unexpected argument for extension 'c:instance-type'
+grammar1.yang:28: circular dependency for complex-type identifier 'c3'
+grammar1.yang:37: reference to 'abstract:non-existing' can not be resolved
+grammar1.yang:38: reference to 'abstract:it' can not be resolved
+grammar1.yang:49: identifier 'test' clashes with the identifier of one of the inherited nodes
+grammar1.yang:49: identifier 'c' clashes with the identifier of one of the inherited nodes

@@ -1,0 +1,7 @@
+references.yang:5: warning: import statement should be used with a specified revision
+imported.yang:5: warning: import statement should be used with a specified revision
+references.yang:7: warning: import statement should be used with a specified revision
+references.yang:10: reference to 'im:c' can not be resolved
+references.yang:18: circular dependency for complex-type identifier 'loop1'
+references.yang:33: reference to 'ref:non-existing' can not be resolved
+references.yang:37: reference to 'im:ct2' can not be resolved

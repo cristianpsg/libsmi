@@ -1,0 +1,2 @@
+grammar2.yang:6: warning: import statement should be used with a specified revision
+grammar2.yang:19: a "instance-type" node can not be defined within the node "type with the argument not instance-identifier"

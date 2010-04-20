@@ -1,0 +1,5 @@
+abstract.yang:5: warning: import statement should be used with a specified revision
+imported.yang:5: warning: import statement should be used with a specified revision
+abstract.yang:7: warning: import statement should be used with a specified revision
+abstract.yang:10: abstract complex type "loop1" can not extend non-abstract "loop2"
+abstract.yang:22: abstract complex type "abstract" can not extend non-abstract "non-abstract"

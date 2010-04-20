@@ -1,0 +1,26 @@
+module importing2 {
+    namespace "urn:org:example:xml:ct:ref";
+    prefix "im2";
+    
+    import complex-types { prefix "ct";} 
+
+    ct:complex-type test {
+    }
+  
+    ct:instance i {
+        ct:instance-type test;
+    }
+
+    deviation "/i" {
+        deviate add {
+            mandatory true;
+        }
+    }
+
+    deviation "/i" {
+        deviate "replace" {
+            mandatory false;
+        }
+    }
+
+}

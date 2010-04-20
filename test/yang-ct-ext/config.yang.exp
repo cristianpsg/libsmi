@@ -1,0 +1,3 @@
+config.yang:5: warning: import statement should be used with a specified revision
+config.yang:10: config true cannot be set for node 'c1' when the parent node has config false
+config.yang:20: config true cannot be set for node 'c' when the parent node has config false

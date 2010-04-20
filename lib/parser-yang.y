@@ -35,6 +35,7 @@
 #include "yang-data.h"
 #include "parser-yang.h"
 #include "scanner-yang.h"
+#include "yang-complex-types.h"
 #include "util.h"
 #include "error.h"
 #include "errormacros.h"
@@ -169,6 +170,17 @@ char* getIdentifier(char* identifierRef) {
     return smiStrdup(colonIndex + 1);
 }
 
+void checkUnknownStatement() {
+    if (topNode()->export.nodeKind == YANG_DECL_UNKNOWN_STATEMENT) {
+        _YangNode *childPtr = NULL;
+        for (childPtr = topNode()->firstChildPtr; childPtr; childPtr = childPtr->nextSiblingPtr) {
+            if (childPtr->export.nodeKind != YANG_DECL_UNKNOWN_STATEMENT) {
+                smiPrintErrorAtLine(currentParser, ERR_UNEXPECTED_KEYWORD, childPtr->line, yandDeclKeyword[childPtr->export.nodeKind]);
+            }
+        }
+    }
+}
+
 %}
 
 /*
@@ -186,7 +198,6 @@ char* getIdentifier(char* identifierRef) {
  * The attributes.
  */
 %union {
-    char            *id;				/* identifier name           */
     int             rc;                 /* >=0: ok, <0: error    */
     char            *text;
 }
@@ -194,78 +205,85 @@ char* getIdentifier(char* identifierRef) {
 /*
  * Tokens and their attributes.
  */
-%token <rc>augmentKeyword
-%token <rc>belongs_toKeyword
-%token <rc>choiceKeyword
-%token <rc>configKeyword
-%token <rc>contactKeyword
-%token <rc>containerKeyword
-%token <rc>defaultKeyword
-%token <rc>descriptionKeyword
-%token <rc>enumKeyword
-%token <rc>error_app_tagKeyword
-%token <rc>error_messageKeyword
-%token <rc>extensionKeyword
-%token <rc>groupingKeyword
-%token <rc>importKeyword
-%token <rc>includeKeyword
-%token <rc>keyKeyword
-%token <rc>leafKeyword
-%token <rc>leaf_listKeyword
-%token <rc>lengthKeyword
-%token <rc>listKeyword
-%token <rc>mandatoryKeyword
-%token <rc>max_elementsKeyword
-%token <rc>min_elementsKeyword
-%token <rc>moduleKeyword
-%token <rc>submoduleKeyword
-%token <rc>mustKeyword
-%token <rc>namespaceKeyword
-%token <rc>ordered_byKeyword
-%token <rc>organizationKeyword
-%token <rc>prefixKeyword
-%token <rc>rangeKeyword
-%token <rc>referenceKeyword
-%token <rc>patternKeyword
-%token <rc>revisionKeyword
-%token <rc>statusKeyword
-%token <rc>typeKeyword
-%token <rc>typedefKeyword
-%token <rc>uniqueKeyword
-%token <rc>unitsKeyword
-%token <rc>usesKeyword
-%token <rc>valueKeyword
-%token <rc>whenKeyword
-%token <rc>bitKeyword
-%token <rc>pathKeyword
-%token <rc>anyXMLKeyword
-%token <rc>deprecatedKeyword
-%token <rc>currentKeyword
-%token <rc>obsoleteKeyword
-%token <rc>trueKeyword
-%token <rc>falseKeyword
-%token <rc>caseKeyword
-%token <rc>inputKeyword
-%token <rc>outputKeyword
-%token <rc>rpcKeyword
-%token <rc>notificationKeyword
-%token <rc>argumentKeyword
-%token <rc>yangversionKeyword
-%token <rc>baseKeyword
-%token <rc>deviationKeyword
-%token <rc>deviateKeyword
-%token <rc>featureKeyword
-%token <rc>identityKeyword
-%token <rc>ifFeatureKeyword
-%token <rc>positionKeyword
-%token <rc>presenceKeyword
-%token <rc>refineKeyword
-%token <rc>requireInstanceKeyword
-%token <rc>yinElementKeyword
-%token <rc>notSupportedKeyword
-%token <rc>addKeyword
-%token <rc>deleteKeyword
-%token <rc>replaceKeyword
+%token <text>augmentKeyword
+%token <text>belongs_toKeyword
+%token <text>choiceKeyword
+%token <text>configKeyword
+%token <text>contactKeyword
+%token <text>containerKeyword
+%token <text>defaultKeyword
+%token <text>descriptionKeyword
+%token <text>enumKeyword
+%token <text>error_app_tagKeyword
+%token <text>error_messageKeyword
+%token <text>extensionKeyword
+%token <text>groupingKeyword
+%token <text>importKeyword
+%token <text>includeKeyword
+%token <text>keyKeyword
+%token <text>leafKeyword
+%token <text>leaf_listKeyword
+%token <text>lengthKeyword
+%token <text>listKeyword
+%token <text>mandatoryKeyword
+%token <text>max_elementsKeyword
+%token <text>min_elementsKeyword
+%token <text>moduleKeyword
+%token <text>submoduleKeyword
+%token <text>mustKeyword
+%token <text>namespaceKeyword
+%token <text>ordered_byKeyword
+%token <text>organizationKeyword
+%token <text>prefixKeyword
+%token <text>rangeKeyword
+%token <text>referenceKeyword
+%token <text>patternKeyword
+%token <text>revisionKeyword
+%token <text>statusKeyword
+%token <text>typeKeyword
+%token <text>typedefKeyword
+%token <text>uniqueKeyword
+%token <text>unitsKeyword
+%token <text>usesKeyword
+%token <text>valueKeyword
+%token <text>whenKeyword
+%token <text>bitKeyword
+%token <text>pathKeyword
+%token <text>anyXMLKeyword
+%token <text>deprecatedKeyword
+%token <text>currentKeyword
+%token <text>obsoleteKeyword
+%token <text>trueKeyword
+%token <text>falseKeyword
+%token <text>caseKeyword
+%token <text>inputKeyword
+%token <text>outputKeyword
+%token <text>rpcKeyword
+%token <text>notificationKeyword
+%token <text>argumentKeyword
+%token <text>yangversionKeyword
+%token <text>baseKeyword
+%token <text>deviationKeyword
+%token <text>deviateKeyword
+%token <text>featureKeyword
+%token <text>identityKeyword
+%token <text>ifFeatureKeyword
+%token <text>positionKeyword
+%token <text>presenceKeyword
+%token <text>refineKeyword
+%token <text>requireInstanceKeyword
+%token <text>yinElementKeyword
+%token <text>notSupportedKeyword
+%token <text>addKeyword
+%token <text>deleteKeyword
+%token <text>replaceKeyword
+
+%token <text>complexTypeKeyword
+%token <text>extendsKeyword
+%token <text>abstractKeyword
+%token <text>instanceKeyword
+%token <text>instanceListKeyword
+%token <text>instanceTypeKeyword
 
 %token <text>identifier
 %token <text>identifierRefArg
@@ -343,7 +361,7 @@ char* getIdentifier(char* identifierRef) {
 %type <rc>identitySubstatement
 %type <rc>booleanValue
 
-%type <text>numRestriction
+%type <rc>numRestriction
 %type <rc>stringRestriction
 %type <rc>stringRestriction_0n
 %type <rc>optionalRestrictionSpec
@@ -375,6 +393,12 @@ char* getIdentifier(char* identifierRef) {
 %type <rc>stmtEnd
 %type <rc>unknownStatement0_n
 %type <rc>unknownStatement
+%type <rc>complexTypeStatement
+%type <rc>instanceStatement
+%type <rc>instanceListStatement
+%type <rc>instanceTypeStatement
+%type <rc>abstractStatement
+%type <rc>extendsStatement
 %type <rc>errorAppTagStatement
 %type <rc>errorMessageStatement
 %type <rc>path
@@ -391,6 +415,7 @@ char* getIdentifier(char* identifierRef) {
 %type <rc>leaf_listSubstatement
 %type <rc>leaf_listSubstatement_0n
 %type <rc>listStatement
+
 %type <rc>listSubstatement
 %type <rc>listSubstatement_0n
 %type <rc>min_elementsStatement
@@ -453,7 +478,10 @@ char* getIdentifier(char* identifierRef) {
 %type <rc>deviateReplaceSpec
 %type <rc>deviateReplaceSubstatement_0n
 %type <rc>deviateReplaceSubstatement
-
+%type <rc>yangVersionStatement
+%type <rc>namespaceStatement
+%type <rc>mandatoryStatement
+%type <rc>outputStatement
 %%
 
 /*
@@ -573,7 +601,7 @@ moduleHeaderStatement:	yangVersionStatement stmtSep
                         prefixStatement stmtSep
 		;
 
-moduleMetaStatement_0n:	
+moduleMetaStatement_0n:	{}
 		|
 			moduleMetaStatement_0n moduleMetaStatement stmtSep
 		;
@@ -610,7 +638,7 @@ belongsToStatement: belongs_toKeyword identifierStr
                     }
                     ;
 
-linkageStatement_0n:
+linkageStatement_0n: {}
 		|
 			linkageStatement_0n linkageStatement
 		;
@@ -620,12 +648,12 @@ linkageStatement:       includeStatement stmtSep
                         importStatement stmtSep
 		;
 
-revisionStatement_0n:
+revisionStatement_0n: {}
 		|
 			revisionStatement_0n revisionStatement stmtSep
 		;
 
-bodyStatement_0n:	
+bodyStatement_0n: {}
 		|
 			bodyStatement_0n bodyStatement stmtSep
 		;
@@ -802,7 +830,7 @@ revisionStatement:	revisionKeyword date ';'
 			}
     ;
 
-revisionSubstatement_On:
+revisionSubstatement_On: {}
                     |
                        revisionSubstatement_On revisionSubstatement stmtSep
                     ;
@@ -842,7 +870,7 @@ importStatement: importKeyword identifierStr
 		}
         ;
 
-optionalRevision:
+optionalRevision: {}
                     |
                       revisionStatement stmtSep 
                     ;
@@ -863,12 +891,12 @@ includeStatement: includeKeyword identifierStr
 		}
         ;
 
-includeStatementBody:         ';'
+includeStatementBody:         ';' {}
                 |
                     '{'
                         stmtSep
                         optionalRevision
-                    '}'
+                    '}' {}
                 ;
 
 featureStatement: featureKeyword identifierStr
@@ -882,15 +910,16 @@ featureStatement: featureKeyword identifierStr
                 }
                 ;
 
-featureSpec:    ';'
+
+featureSpec:    ';' {}
             |   
                 '{'
                     stmtSep
                     featureSubstatement_0n
-                '}'
+                '}' {}
                 ;
 
-featureSubstatement_0n:
+featureSubstatement_0n: {}
                 |
                    featureSubstatement_0n featureSubstatement stmtSep
                 ;
@@ -920,15 +949,15 @@ identityStatement: identityKeyword identifierStr
                     pop();
                 };
 
-identitySpec:    ';'
+identitySpec:    ';' {}
             |   
                 '{'
                         stmtSep
                         identitySubstatement_0n
-                '}'
+                '}' {}
                 ;
 
-identitySubstatement_0n:
+identitySubstatement_0n: {}
                 |
                    identitySubstatement_0n identitySubstatement stmtSep
                 ;
@@ -961,7 +990,7 @@ typedefStatement:   typedefKeyword identifierStr
                 }
         ;
 
-typedefSubstatement_0n:	
+typedefSubstatement_0n:	{}
                 |
                        typedefSubstatement_0n typedefSubstatement stmtSep
                 ;				
@@ -995,12 +1024,12 @@ typeStatement: typeKeyword identifierRef
                }
             ;
 
-optionalTypeBodyStatements: ';'
+optionalTypeBodyStatements: ';' {}
                         |   
                             '{'
                                     stmtSep
                                     typeBodyStmts
-                            '}'
+                            '}' {}
                         ;
 
 typeBodyStmts:  numRestriction
@@ -1032,7 +1061,7 @@ range:	rangeKeyword string
 	;
 
 
-stringRestriction_0n:
+stringRestriction_0n: {}
                 |
                     stringRestriction_0n stringRestriction
                 ;
@@ -1055,7 +1084,7 @@ length:	lengthKeyword string
 	;
 
 
-pattern:	patternKeyword string 
+pattern: patternKeyword string
         {
             node = addYangNode($2, YANG_DECL_PATTERN, topNode());
             pushNode(node);
@@ -1089,14 +1118,15 @@ enum:   enumKeyword string
         }
 	;
 
-enumSubstatementSpec: ';'
+enumSubstatementSpec: ';' {}
         |
           '{'
                 stmtSep
                 enumSubstatement_0n
-          '}';
+          '}' {}
+        ;
 
-enumSubstatement_0n: 
+enumSubstatement_0n: {}
                 |
                     enumSubstatement_0n enumSubstatement stmtSep
                 ;
@@ -1116,15 +1146,15 @@ valueStatement: valueKeyword string stmtEnd
             }
             ;
 
-optionalRestrictionSpec: ';' 
+optionalRestrictionSpec: ';' {}
             |
                  '{'
                         stmtSep
                         restrictionSpec_0n
-                 '}'
+                 '}' {}
             ;
 
-restrictionSpec_0n: 
+restrictionSpec_0n: {}
                 |
                     restrictionSpec_0n restrictionSpec stmtSep
                 ;
@@ -1217,14 +1247,15 @@ bitsStatement: bitKeyword identifier
             }
             ;
 
-bitsSubstatementSpec:   ';'
+bitsSubstatementSpec:   ';' {}
             |
                '{'
                     stmtSep
                     bitsSubstatement_0n
-               '}';
+               '}' {}
+            ;
 
-bitsSubstatement_0n:
+bitsSubstatement_0n: {}
         |
            bitsSubstatement_0n bitsSubstatement stmtSep
         ;
@@ -1267,22 +1298,219 @@ unionSpec: typeStatement stmtSep
            unionSpec typeStatement stmtSep
         ;
 
-stmtEnd:    ';'
+stmtEnd:    ';' {}
          |
             '{'
                     unknownStatement0_n
-            '}'
+            '}' {}
         ;
 
-stmtSep:
+stmtSep: {}
 	|
         unknownStatement0_n
 	;
 
-unknownStatement0_n:
+unknownStatement0_n: {}
 	|
-        unknownStatement unknownStatement0_n;
+        unknownStatement unknownStatement0_n
+        |
+        complexTypeStatement unknownStatement0_n
+        |
+        instanceStatement unknownStatement0_n
+        |
+        instanceListStatement unknownStatement0_n
+        |
+        instanceTypeStatement unknownStatement0_n
+        |
+        abstractStatement unknownStatement0_n
+        |
+        extendsStatement unknownStatement0_n
 	;
+
+complexTypeStatement: complexTypeKeyword identifierStr
+                    {
+                        node = addCTExtNode(thisModulePtr, YANG_DECL_COMPLEX_TYPE, 0, topNode(), getPrefix($1), getIdentifier($1), $1, $2);
+                        pushNode(node);
+                    }
+                    complexTypeSpec
+                    {
+                        checkUnknownStatement();
+                        pop();
+                    }
+	;
+
+complexTypeSpec:  ';' {}
+                |
+                '{'
+                    stmtSep
+                    complexTypeSubstatement_0n
+                '}'
+
+
+complexTypeSubstatement_0n: {}
+		|
+		       complexTypeSubstatement stmtSep complexTypeSubstatement_0n
+	;
+
+complexTypeSubstatement:                     
+                        groupingStatement
+                    |
+                        ifFeatureStatement
+                    |
+                        dataDefStatement
+                    |
+                        mustStatement
+                    |
+                        typedefStatement
+                    |
+                        keyStatement
+                    |
+                        ordered_byStatement
+                    |
+                        refineStatement
+                    |
+                        descriptionStatement
+                    |
+                        statusStatement
+                    |
+                        referenceStatement
+                    ;
+
+abstractStatement: abstractKeyword trueKeyword stmtEnd
+                {
+                    node = addCTExtNode(thisModulePtr, YANG_DECL_ABSTRACT, 1, topNode(), getPrefix($1), getIdentifier($1), $1, "true");
+                }
+            |
+                   abstractKeyword falseKeyword stmtEnd
+                {
+                    node = addCTExtNode(thisModulePtr, YANG_DECL_ABSTRACT, 1, topNode(), getPrefix($1), getIdentifier($1), $1, "false");
+                }
+            ;
+
+extendsStatement: extendsKeyword identifierRef 
+                {
+                    node = addCTExtNode(thisModulePtr, YANG_DECL_EXTENDS, 1, topNode(), getPrefix($1), getIdentifier($1), $1, $2);
+                    if (node->export.nodeKind == YANG_DECL_EXTENDS) {
+                        createIdentifierRef(node, getPrefix($2), getIdentifier($2));
+                    }
+                    pushNode(node);
+                }
+                extendsStatementSpec
+                {
+                     pop();
+                }
+            ;
+
+extendsStatementSpec: ';' {}
+                    |
+                        '{'
+                            stmtSep
+                            extendsSubstatement_0n
+                        '}'
+                    ;
+
+extendsSubstatement_0n: {}
+		|
+		       extendsSubstatement stmtSep extendsSubstatement_0n
+                ;
+
+extendsSubstatement: descriptionStatement
+                |
+                    statusStatement
+                |
+                    referenceStatement
+                ;
+
+instanceStatement: instanceKeyword identifierStr
+                {
+                    node = addCTExtNode(thisModulePtr, YANG_DECL_INSTANCE, 0, topNode(), getPrefix($1), getIdentifier($1), $1, $2);
+                    pushNode(node);
+                }
+                '{'
+                    stmtSep
+                    instanceSubstatement_0n
+                '}'
+                {
+                    checkUnknownStatement();
+                    if (topNode()->export.nodeKind != YANG_DECL_UNKNOWN_STATEMENT && getCardinality(topNode(), YANG_DECL_INSTANCE_TYPE) == 0) {
+                        smiPrintErrorAtLine(currentParser, ERR_WRONG_CARDINALITY, topNode()->line, yandDeclKeyword[YANG_DECL_INSTANCE_TYPE], "1");
+                    }
+                    pop();
+                }
+            ;
+
+instanceSubstatement_0n: {}
+		|
+		    instanceSubstatement stmtSep instanceSubstatement_0n
+                ;
+
+instanceSubstatement:
+                        ifFeatureStatement
+                    |
+                        commonStatement
+                    |
+                        dataDefStatement
+                    |
+                        mustStatement
+                    |
+                        whenStatement
+                    |
+                        mandatoryStatement
+                    |
+                        augmentStatement
+                ;
+
+instanceListStatement: instanceListKeyword identifierStr
+                {
+                    node = addCTExtNode(thisModulePtr, YANG_DECL_INSTANCE_LIST, 0, topNode(), getPrefix($1), getIdentifier($1), $1, $2);
+                    pushNode(node);
+                }
+                '{'
+                    stmtSep
+                    instanceListSubstatement_0n
+                '}'
+                {
+                    checkUnknownStatement();
+                    if (topNode()->export.nodeKind != YANG_DECL_UNKNOWN_STATEMENT && getCardinality(topNode(), YANG_DECL_INSTANCE_TYPE) == 0) {
+                        smiPrintErrorAtLine(currentParser, ERR_WRONG_CARDINALITY, topNode()->line, yandDeclKeyword[YANG_DECL_INSTANCE_TYPE], "1");
+                    }
+                    pop();
+                }
+            ;
+
+instanceListSubstatement_0n: {}
+		|
+		    instanceListSubstatement stmtSep instanceListSubstatement_0n
+                ;
+
+instanceListSubstatement:
+                        ifFeatureStatement
+                    |
+                        commonStatement
+                    |
+                        dataDefStatement
+                    |
+                        mustStatement
+                    |
+                        whenStatement
+                    |
+                        augmentStatement
+                    |
+                        max_elementsStatement
+                    |
+                        min_elementsStatement
+                    |
+                        ordered_byStatement
+                ;
+
+
+instanceTypeStatement: instanceTypeKeyword identifierRef stmtEnd
+                    {
+                        node = addCTExtNode(thisModulePtr, YANG_DECL_INSTANCE_TYPE, 1, topNode(), getPrefix($1), getIdentifier($1), $1, $2);
+                        if (node->export.nodeKind == YANG_DECL_INSTANCE_TYPE) {
+                            createIdentifierRef(node, getPrefix($2), getIdentifier($2));
+                        }
+                    }
 
 unknownStatement:   identifierRefArg 
                     {
@@ -1313,18 +1541,23 @@ containerStatement: containerKeyword identifierStr
                             node = addYangNode($2, YANG_DECL_CONTAINER, topNode());
                             pushNode(node);
 			}
-			'{'
-				containerSubstatement_0n
-			'}'
+                        containerSpec
 			{
-				pop();
+                            pop();
 			}
 	;
 
+containerSpec:  ';' {}
+            |
+                '{'
+                    stmtSep
+                    containerSubstatement_0n
+                '}'
+            ;
 
-containerSubstatement_0n:	
+containerSubstatement_0n: {}
 		|
-		       containerSubstatement containerSubstatement_0n
+		       containerSubstatement stmtSep containerSubstatement_0n
 	;
 
 containerSubstatement:	ifFeatureStatement
@@ -1362,7 +1595,7 @@ mustStatement: mustKeyword string
 		}
 	;
 
-mustSubstatement_0n:
+mustSubstatement_0n: {}
             |
 		       mustSubstatement_0n mustSubstatement stmtSep
         ;
@@ -1383,16 +1616,16 @@ presenceStatement: presenceKeyword string stmtEnd
                 }
                 ;
 			
-configStatement: 	configKeyword trueKeyword stmtEnd
+configStatement: configKeyword trueKeyword stmtEnd
                 {
-                    uniqueNodeKind(topNode(), YANG_CONFIG_TRUE);
+                    uniqueNodeKind(topNode(), YANG_DECL_CONFIG);
                     setConfig(topNode(), YANG_CONFIG_TRUE);
                     node = addYangNode("true", YANG_DECL_CONFIG, topNode());
                 }
             |
                     configKeyword falseKeyword stmtEnd
                 {
-                    uniqueNodeKind(topNode(), YANG_CONFIG_TRUE);
+                    uniqueNodeKind(topNode(), YANG_DECL_CONFIG);
                     setConfig(topNode(), YANG_CONFIG_FALSE);
                     node = addYangNode("false", YANG_DECL_CONFIG, topNode());
                 }
@@ -1428,7 +1661,7 @@ leafStatement: leafKeyword identifierStr
 			}
 		;
 			
-leafSubstatement_0n:
+leafSubstatement_0n: {}
             |
                    leafSubstatement_0n leafSubstatement stmtSep
         ;
@@ -1467,7 +1700,7 @@ leaf_listStatement: leaf_listKeyword identifierStr
 			}
 		;
 			
-leaf_listSubstatement_0n:
+leaf_listSubstatement_0n: {}
 		|
 		       leaf_listSubstatement_0n leaf_listSubstatement stmtSep
         ;
@@ -1505,7 +1738,7 @@ listStatement: listKeyword identifierStr
 			}
 		;
 
-listSubstatement_0n:
+listSubstatement_0n: {}
                 |
 		       listSubstatement_0n listSubstatement stmtSep
         	;
@@ -1594,15 +1827,15 @@ choiceStatement: choiceKeyword identifierStr
 		}
 		;
  
-choiceSpec: ';'
+choiceSpec: ';' {}
         |
             '{'
                 stmtSep
                 choiceSubstatement_0n			
-            '}'
+            '}' {}
         ;
 
-choiceSubstatement_0n:
+choiceSubstatement_0n: {}
 		|
 		       choiceSubstatement_0n choiceSubstatement stmtSep
         ;
@@ -1645,15 +1878,15 @@ caseStatement: 	caseKeyword identifierStr
                 anyXMLStatement
             ;
 
-caseSpec:   ';'
+caseSpec:   ';' {}
         |
             '{'
                 stmtSep
                 caseSubstatement_0n
-            '}'
+            '}' {}
         ;
 
-caseSubstatement_0n:
+caseSubstatement_0n: {}
             |
                 caseSubstatement_0n caseSubstatement  stmtSep
             ;
@@ -1700,7 +1933,7 @@ groupingStatement: groupingKeyword identifierStr
 		}
 		;
 
-groupingSubstatement_0n:	
+groupingSubstatement_0n: {}
 		|
                     groupingSubstatement_0n groupingSubstatement stmtSep
             ;
@@ -1731,15 +1964,14 @@ usesStatement:  usesKeyword identifierRef
                 pop();
             }
         |
-            usesKeyword identifierRef
+            usesKeyword identifierRef ';'
             {
                 node = addYangNode($2, YANG_DECL_USES, topNode());
                 createIdentifierRef(node, getPrefix($2), getIdentifier($2));
             }
-            ';'
             ;
 
-usesSubstatement_0n:
+usesSubstatement_0n: {}
 		|
 		       usesSubstatement_0n usesSubstatement stmtSep
         ;
@@ -1774,19 +2006,19 @@ refineStatement:    refineKeyword string
                     }
                     ;
 
-refineSpec: ';'
+refineSpec: ';' {}
         |   
             '{'
                 stmtSep
                 refineSubstatement
-            '}'
+            '}' {}
         ;
 
 refineSubstatement: refine_0n;
 
-refine_0n: 
-                |
-                    refine_0n refine stmtSep;
+refine_0n:  {}
+         |
+            refine_0n refine stmtSep;
 
 refine: mustStatement
     |
@@ -1805,13 +2037,12 @@ refine: mustStatement
         min_elementsStatement
     |
         max_elementsStatement
-    |
-        defaultStatement
+
     ;
 
 augmentStatement: augmentKeyword string 
 		{
-                    if (topDecl() == YANG_DECL_USES) {
+                    if (topDecl() == YANG_DECL_USES || topDecl() == YANG_DECL_INSTANCE || topDecl() == YANG_DECL_INSTANCE_LIST) {
                         if (!isDescendantSchemaNodeid($2)) {
                             smiPrintError(thisParserPtr, ERR_DESCEDANT_FORM, $2);
                         }
@@ -1845,7 +2076,7 @@ augmentStatement: augmentKeyword string
 		}
 		;
 
-augmentSubstatement_0n:	augmentSubstatement stmtSep
+augmentSubstatement_0n:	stmtSep {}
                 |
                         augmentSubstatement_0n augmentSubstatement stmtSep
                 ;
@@ -1884,15 +2115,15 @@ rpcStatement: rpcKeyword identifierStr
             }
             ;
 
-rpcSpec:    ';'
+rpcSpec:    ';' {}
         |
             '{'
                 stmtSep
                 rpcSubstatement_0n
-            '}'
+            '}' {}
         ;
 
-rpcSubstatement_0n:	
+rpcSubstatement_0n: {}
 		|
 		       rpcSubstatement_0n rpcSubstatement  stmtSep
         	;
@@ -1990,16 +2221,16 @@ notificationStatement: notificationKeyword identifierStr
                 }
                 ;
 
-notificationSpec:   ';'
+notificationSpec:   ';' {}
                 |
                     '{'
                         stmtSep
                         notificationSubstatement_0n
-                    '}'
+                    '}' {}
                     ;
 
 
-notificationSubstatement_0n:
+notificationSubstatement_0n: {}
 		|
 		       notificationSubstatement_0n notificationSubstatement stmtSep
                 ;
@@ -2074,15 +2305,15 @@ deviateAddStatement:    deviateKeyword addKeyword
                     }
                     ;
 
-deviateAddSpec: ';'
+deviateAddSpec: ';' {}
             |
                 '{'
                     stmtSep
                     deviateAddSubstatement_0n
-                '}'
+                '}' {}
             ;
 
-deviateAddSubstatement_0n:
+deviateAddSubstatement_0n: {}
                     |
                         deviateAddSubstatement_0n deviateAddSubstatement stmtSep;
 
@@ -2114,15 +2345,15 @@ deviateDeleteStatement:    deviateKeyword deleteKeyword
                     }
                     ;
 
-deviateDeleteSpec: ';'
+deviateDeleteSpec: ';' {}
             |
                 '{'
                     stmtSep
                     deviateDeleteSubstatement_0n
-                '}'
+                '}' {}
             ;
 
-deviateDeleteSubstatement_0n:
+deviateDeleteSubstatement_0n: {}
                     |
                         deviateDeleteSubstatement_0n deviateDeleteSubstatement stmtSep;
 
@@ -2145,15 +2376,15 @@ deviateReplaceStatement: deviateKeyword replaceKeyword
                     }
                     ;
 
-deviateReplaceSpec: ';'
+deviateReplaceSpec: ';' {}
             |
                 '{'
                     stmtSep
                     deviateReplaceSubstatement_0n
-                '}'
+                '}' {}
             ;
 
-deviateReplaceSubstatement_0n:
+deviateReplaceSubstatement_0n: {}
                     |
                         deviateReplaceSubstatement_0n deviateReplaceSubstatement stmtSep;
 
@@ -2184,15 +2415,15 @@ anyXMLStatement: anyXMLKeyword identifierStr
 		}
 		;
 
-anyXMLSpec: ';'
+anyXMLSpec: ';' {}
         |
             '{'
                 stmtSep
                 anyXMLSubstatement_0n
-            '}'
+            '}' {}
         ;
 
-anyXMLSubstatement_0n:
+anyXMLSubstatement_0n: {}
     		|
 		       anyXMLSubstatement_0n anyXMLSubstatement stmtSep
             ;
@@ -2218,12 +2449,12 @@ extensionStatement: extensionKeyword identifierStr
                     pop();
 		}
 		
-extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}'
+extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}' {}
                     |
-                         ';'
+                         ';' {}
                     ;                       
 
-extensionSubstatement_0n:	
+extensionSubstatement_0n: {}
 		|
                     extensionSubstatement_0n extensionSubstatement stmtSep
 		;
@@ -2249,12 +2480,12 @@ argumentStatement:  argumentKeyword identifierStr
                     }
                 ;
 
-argumentStatementBody:  '{' stmtSep yinElementOptional '}'
+argumentStatementBody:  '{' stmtSep yinElementOptional '}' {}
                     |
-                         ';'
+                         ';' {}
                     ;                       
 
-yinElementOptional: 
+yinElementOptional: {}
                 |
                     yinElementKeyword trueKeyword stmtEnd stmtSep
                     {
@@ -2288,20 +2519,32 @@ identifierRef:  identifierRefArg
             |
                 identifierRefArgStr 
             |
-                identifierStr 
+                identifierStr
+            |
+                complexTypeKeyword
+            |
+                extendsKeyword 
+            |
+                abstractKeyword
+            |
+                instanceKeyword
+            |
+                instanceListKeyword
+            |
+                instanceTypeKeyword
             ;
-identifierStr:    identifier
-                | augmentKeyword | belongs_toKeyword | choiceKeyword | configKeyword | contactKeyword | containerKeyword | defaultKeyword | descriptionKeyword
-                | enumKeyword | error_app_tagKeyword | error_messageKeyword | extensionKeyword | groupingKeyword | importKeyword | includeKeyword | keyKeyword
-                | leafKeyword | leaf_listKeyword | lengthKeyword | listKeyword | mandatoryKeyword | max_elementsKeyword | min_elementsKeyword | moduleKeyword
-                | submoduleKeyword | mustKeyword | namespaceKeyword | ordered_byKeyword | organizationKeyword | prefixKeyword | rangeKeyword | referenceKeyword
-                | patternKeyword | revisionKeyword | statusKeyword | typeKeyword | typedefKeyword | uniqueKeyword | unitsKeyword | usesKeyword | valueKeyword
-                | whenKeyword | bitKeyword | pathKeyword | anyXMLKeyword | deprecatedKeyword | currentKeyword | obsoleteKeyword | trueKeyword | falseKeyword
-                | caseKeyword | inputKeyword | outputKeyword | rpcKeyword | notificationKeyword | argumentKeyword | yangversionKeyword | baseKeyword
-                | deviationKeyword | deviateKeyword | featureKeyword | identityKeyword | ifFeatureKeyword | positionKeyword | presenceKeyword | refineKeyword
-                | requireInstanceKeyword | yinElementKeyword | notSupportedKeyword | addKeyword | deleteKeyword | replaceKeyword
-                ;
 
+identifierStr:    identifier
+                | augmentKeyword {$$ = $1;} | belongs_toKeyword {$$ = $1;} | choiceKeyword {$$ = $1;} | configKeyword {$$ = $1;} | contactKeyword {$$ = $1;} | containerKeyword {$$ = $1;} | defaultKeyword {$$ = $1;} | descriptionKeyword {$$ = $1;}
+                | enumKeyword {$$ = $1;} | error_app_tagKeyword  {$$ = $1;} | error_messageKeyword  {$$ = $1;} | extensionKeyword  {$$ = $1;} | groupingKeyword  {$$ = $1;} | importKeyword  {$$ = $1;} | includeKeyword  {$$ = $1;} | keyKeyword  {$$ = $1;} 
+                | leafKeyword  {$$ = $1;} | leaf_listKeyword  {$$ = $1;} | lengthKeyword  {$$ = $1;} | listKeyword  {$$ = $1;} | mandatoryKeyword  {$$ = $1;} | max_elementsKeyword  {$$ = $1;} | min_elementsKeyword  {$$ = $1;} | moduleKeyword  {$$ = $1;} 
+                | submoduleKeyword  {$$ = $1;} | mustKeyword  {$$ = $1;} | namespaceKeyword  {$$ = $1;} | ordered_byKeyword  {$$ = $1;} | organizationKeyword  {$$ = $1;} | prefixKeyword  {$$ = $1;} | rangeKeyword  {$$ = $1;} | referenceKeyword  {$$ = $1;} 
+                | patternKeyword  {$$ = $1;} | revisionKeyword  {$$ = $1;} | statusKeyword  {$$ = $1;} | typeKeyword  {$$ = $1;} | typedefKeyword  {$$ = $1;} | uniqueKeyword  {$$ = $1;} | unitsKeyword  {$$ = $1;} | usesKeyword  {$$ = $1;} | valueKeyword  {$$ = $1;} 
+                | whenKeyword  {$$ = $1;} | bitKeyword  {$$ = $1;} | pathKeyword  {$$ = $1;} | anyXMLKeyword  {$$ = $1;} | deprecatedKeyword  {$$ = $1;} | currentKeyword  {$$ = $1;} | obsoleteKeyword  {$$ = $1;} | trueKeyword  {$$ = $1;} | falseKeyword  {$$ = $1;} 
+                | caseKeyword  {$$ = $1;} | inputKeyword  {$$ = $1;} | outputKeyword  {$$ = $1;} | rpcKeyword  {$$ = $1;} | notificationKeyword  {$$ = $1;} | argumentKeyword  {$$ = $1;} | yangversionKeyword  {$$ = $1;} | baseKeyword  {$$ = $1;}
+                | deviationKeyword  {$$ = $1;} | deviateKeyword  {$$ = $1;} | featureKeyword  {$$ = $1;} | identityKeyword  {$$ = $1;} | ifFeatureKeyword  {$$ = $1;} | positionKeyword  {$$ = $1;} | presenceKeyword  {$$ = $1;} | refineKeyword  {$$ = $1;}
+                | requireInstanceKeyword  {$$ = $1;} | yinElementKeyword  {$$ = $1;} | notSupportedKeyword  {$$ = $1;} | addKeyword  {$$ = $1;} | deleteKeyword  {$$ = $1;} | replaceKeyword  {$$ = $1;} 
+                ;
 
 booleanValue:   trueKeyword
                 {
