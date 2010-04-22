@@ -692,6 +692,10 @@ replaceKeyword      replace
 	return yinElementKeyword;
 }
 
+ /*
+  * Complex-type extension definitions. Nokia Siemens Networks Oy contribution.
+  */
+
 <INITIAL>{identifier}:complex-type/{delim} {
 	yylval.text = smiStrdup(yytext);
 	return complexTypeKeyword;
