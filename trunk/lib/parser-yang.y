@@ -1310,6 +1310,9 @@ stmtSep: {}
         unknownStatement0_n
 	;
 
+ /*
+  * Complex-type extension definitions. Nokia Siemens Networks Oy contribution.
+  */        
 unknownStatement0_n: {}
 	|
         unknownStatement unknownStatement0_n
@@ -1511,6 +1514,9 @@ instanceTypeStatement: instanceTypeKeyword identifierRef stmtEnd
                             createIdentifierRef(node, getPrefix($2), getIdentifier($2));
                         }
                     }
+ /*
+  * End complex-type extension definitions. Nokia Siemens Networks Oy contribution.
+  */
 
 unknownStatement:   identifierRefArg 
                     {
