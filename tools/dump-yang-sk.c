@@ -26,6 +26,131 @@
 
 static int INDENT = 2;		/* indent factor */
 
+static void fprintString(FILE *f, int indent, YangNode* nodePtr) {
+	int i;
+	int prev = 0;
+	for (i = 0; i < strlen(nodePtr->value); i++) {
+		if (nodePtr->value[i] == '\n') {
+			char* str = malloc(i - prev + 1);
+			memcpy(str, &nodePtr->value[prev], i - prev);
+
+			str[i - prev] = 0;
+			if (!prev) {
+				fprint(f, "%*c", indent + 2);
+				fprint(f, "\"%s", str);
+			} else {
+				fprint(f, "\n");
+				fprint(f, "%*c", indent + 3);
+				fprint(f, "%s", str);
+			}
+			free(str);
+			prev = i + 1;
+		}
+	}
+	if (i != prev) {
+		char* str = malloc(i - prev + 1);
+		memcpy(str, &nodePtr->value[prev], i - prev);
+		str[i - prev] = 0;
+
+		if (!prev) {
+			fprint(f, "%*c", indent + 2);
+			fprint(f, "\"%s", str);
+		} else {
+			fprint(f, "\n");
+			fprint(f, "%*c", indent + 3);
+			fprint(f, "%s", str);
+		}
+		free(str);
+	}
+	fprint(f, "\"");
+}
+
+static void fprintPattern(FILE *f, int indent, YangNode* nodePtr) {
+	int i;
+	int prev = 0;
+	for (i = 0; i < strlen(nodePtr->value); i++) {
+		if (nodePtr->value[i] == '\n') {
+			char* str = malloc(i - prev + 1);
+			memcpy(str, &nodePtr->value[prev], i - prev);
+
+			str[i - prev] = 0;
+			if (!prev) {
+				fprint(f, "'%s'", str);
+			} else {
+				fprint(f, "\n");
+				fprint(f, "%*c", indent);
+				fprint(f, "+ '%s'", str);
+			}
+			free(str);
+			prev = i + 1;
+		}
+	}
+	if (i != prev) {
+		char* str = malloc(i - prev + 1);
+		memcpy(str, &nodePtr->value[prev], i - prev);
+		str[i - prev] = 0;
+
+		if (!prev) {
+			fprint(f, "'%s'", str);
+		} else {
+			fprint(f, "\n");
+			fprint(f, "%*c", indent);
+			fprint(f, "+ '%s'", str);
+		}
+		free(str);
+	}
+}
+
+static void fprintArgument(FILE *f, int indent, YangNode* nodePtr) {
+    switch (nodePtr->nodeKind) {
+        case YANG_DECL_ORGANIZATION:
+        case YANG_DECL_CONTACT:
+        case YANG_DECL_DESCRIPTION:
+        case YANG_DECL_REFERENCE:
+			fprint(f, "\n");
+			fprintString(f, indent, nodePtr);
+            break;
+		case YANG_DECL_PATTERN:
+			fprint(f, " ");
+			fprintPattern(f, indent + 7, nodePtr);
+            break;
+        case YANG_DECL_MODULE:
+        case YANG_DECL_SUBMODULE:
+        case YANG_DECL_TYPE:
+        case YANG_DECL_REVISION:
+        case YANG_DECL_IMPORT:
+        case YANG_DECL_INCLUDE:
+        case YANG_DECL_NOTIFICATION:
+        case YANG_DECL_RPC:
+        case YANG_DECL_USES:
+        case YANG_DECL_ANYXML:
+        case YANG_DECL_CHOICE:
+        case YANG_DECL_LIST:
+        case YANG_DECL_LEAF_LIST:
+        case YANG_DECL_LEAF:
+        case YANG_DECL_CONTAINER:
+        case YANG_DECL_GROUPING:
+        case YANG_DECL_BIT:
+        case YANG_DECL_STATUS:
+        case YANG_DECL_CONFIG:
+        case YANG_DECL_MANDATORY:
+        case YANG_DECL_TYPEDEF:
+        case YANG_DECL_IF_FEATURE:
+        case YANG_DECL_FEATURE:
+        case YANG_DECL_BASE:
+        case YANG_DECL_IDENTITY:
+		case YANG_DECL_ARGUMENT:
+		case YANG_DECL_EXTENSION:
+		case YANG_DECL_BELONGS_TO:
+		case YANG_DECL_YANGVERSION:
+			fprint(f, " %s", nodePtr->value);
+            break;
+
+        default: 
+			fprint(f, " \"%s\"", nodePtr->value);
+    }
+}
+
 static void fprintYangNode(FILE *f, int indent, YangNode* nodePtr)
 {
     switch (nodePtr->nodeKind) {
@@ -36,7 +161,7 @@ static void fprintYangNode(FILE *f, int indent, YangNode* nodePtr)
         case YANG_DECL_ABSTRACT:
         case YANG_DECL_EXTENDS:       
             fprintSegment(f, indent, nodePtr->extra, 0);
-            fprint(f, " \"%s\"", nodePtr->value);
+            fprint(f, " %s", nodePtr->value);
             break;
    
         case YANG_DECL_UNKNOWN_STATEMENT:
@@ -53,7 +178,7 @@ static void fprintYangNode(FILE *f, int indent, YangNode* nodePtr)
                 fprint(f, "%s", yandDeclKeyword[nodePtr->nodeKind]);
             }
             if (nodePtr->value) {
-                fprint(f, " \"%s\"", nodePtr->value);
+				fprintArgument(f, indent, nodePtr);
             }
     }
     
@@ -62,11 +187,16 @@ static void fprintYangNode(FILE *f, int indent, YangNode* nodePtr)
     if (childPtr) {
         fprint(f, " {\n");
         for (; childPtr; childPtr = yangGetNextSibling(childPtr)) {
-            if (!first) {
-                fprint(f, "\n");
-            }
-            first = 0;
+			if (first && !indent) {
+	            fprint(f, "\n");
+			}
+			first = 0;
+
             fprintYangNode(f, indent + INDENT, childPtr);
+
+			if (!indent && childPtr->nodeKind != YANG_DECL_NAMESPACE) {
+	            fprint(f, "\n");
+			}
         }
         if (indent) {
             fprintSegment(f, indent, "}\n", 0);
