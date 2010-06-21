@@ -33,7 +33,7 @@
 
 #include "yang-data.h"
 
-_YangNode* addCTExtNode(_YangNode* module, int nodeType, int isUnique, _YangNode* parent, char* prefix, char* identifier, char* extra, char* value);
+_YangNode* addCTExtNode(_YangNode* module, int nodeType, int isUnique, _YangNode* parent, char* prefix, char* identifier_, char* extra, char* value);
 
 void abstractValidation(_YangNode* node);
 
