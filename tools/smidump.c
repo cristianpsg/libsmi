@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 			    argv[i]);
 		}
 	    }
-	    fprintf(stderr, "** %d **\n", smiModule->language);
+
 	    if (smiModule->language == SMI_LANGUAGE_YANG
 		&& (driver->ignflags & SMIDUMP_DRIVER_CANT_YANG)) {
 		matching_driver = 0;
