@@ -430,7 +430,7 @@ _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPt
     node->export.extra  	= NULL;
     node->export.config         = YANG_CONFIG_DEFAULT_TRUE;
     node->export.status         = YANG_STATUS_DEFAULT_CURRENT;
-    node->line                  = currentParser->line;
+    node->line                  = currentParser ? currentParser->line : 0;
     
     node->info                  = NULL;    
     node->typeInfo              = NULL;
