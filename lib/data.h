@@ -298,7 +298,7 @@ typedef struct Parser {
     int		   line;
     int		   lcline;		/* for SMI comment warning */
     Module	   *modulePtr;
-    _YangNode *yangModulePtr;
+    _YangNode      *yangModulePtr;	/* only for the YANG parser */
     ParserFlags	   flags;
     List	   *firstIndexlabelPtr; /* only for the SMIng parser */
     char	   *identityObjectName; /* only for the SMIng parser */

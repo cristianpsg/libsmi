@@ -25,15 +25,17 @@
 #endif
 #include <time.h>
 
+#include <smi.h>
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-/* YangDecl -- type or statement that leads to a definition                   */
+/* YangDecl -- type or statement that leads to a definition                  */
 typedef enum YangDecl {
-    YANG_DECL_UNKNOWN                   = 0,  /* should not occur                    */
+    YANG_DECL_UNKNOWN                   = 0,  /* should not occur            */
     YANG_DECL_MODULE                    = 1,
     YANG_DECL_SUBMODULE                 = 2,
     YANG_DECL_REVISION                  = 3,
@@ -188,6 +190,5 @@ int yangIsTrueConf(YangConfig conf);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* _YANG_H */

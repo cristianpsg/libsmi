@@ -15,7 +15,7 @@ EXTRA_DIST		= parser-yang.y parser-sming.y parser-smi.y \
 			  scanner-yang.l scanner-sming.l scanner-smi.l \
 			  errormacros.h data.h check.h error.h util.h \
 			  yang.h yang-data.h yang-check.h yang-complex-types.h \
-			  common.h snprintf.h \
+			  common.h smi2yang.h snprintf.h \
 			  scanner-smi.h parser-smi.h parser-smi.tab.h \
 			  scanner-sming.h parser-sming.h parser-sming.tab.h \
 			  scanner-yang.h parser-yang.h parser-yang.tab.h \
@@ -34,7 +34,7 @@ man_MANS		= libsmi.3 smi_config.3 smi_module.3 smi_macro.3 \
 lib_LTLIBRARIES		= libsmi.la
 libsmi_la_SOURCES	= data.c check.c error.c util.c snprintf.c smi.c \
 			  yang.c yang-data.c yang-check.c yang-complex-types.c \
-			  common.c \
+			  common.c smi2yang.c \
 		  	  parser-smi.c scanner-smi.c \
 		  	  parser-sming.c scanner-sming.c \
 		  	  parser-yang.c scanner-yang.c
