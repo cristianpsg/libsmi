@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "smi.h"
+#include "smi2yang.h"
 #include "smidump.h"
 #include "fprint.h"
 #include "fortopat.h"
@@ -230,6 +231,7 @@ static void
 dumpYangSK(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiModule   *smiModule;
+    YangNode    *yangModule;
     int		i;
     FILE	*f = stdout;
 
@@ -244,8 +246,15 @@ dumpYangSK(int modc, SmiModule **modv, int flags, char *output)
 
     for (i = 0; i < modc; i++) {        
         smiModule = modv[i];
-        YangNode *module = yangGetModule(smiModule->name);
-        fprintYangNode(f, 0, module);        
+	yangModule = NULL;
+	if (smiModule->language == SMI_LANGUAGE_SMIV1
+	    ||smiModule->language == SMI_LANGUAGE_SMIV2) {
+	    yangModule = yangGetModuleFromSmiModule(smiModule);
+	}
+	if (smiModule->language == SMI_LANGUAGE_YANG) {
+	    yangModule = yangGetModule(smiModule->name);
+	}
+	if (yangModule) fprintYangNode(f, 0, yangModule);
     }
 
     if (fflush(f) || ferror(f)) {
@@ -272,8 +281,8 @@ void initYangSK()
 	"yang-sk",
 	dumpYangSK,
 	0,
-	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_SMI | SMIDUMP_DRIVER_CANT_SPPI,
-	"YANG format",
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_SPPI,
+	"YANG (draft-ietf-netmod-yang-13)",
 	opt,
 	NULL
     };
