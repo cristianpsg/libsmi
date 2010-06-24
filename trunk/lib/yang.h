@@ -115,7 +115,7 @@ extern const char* statusKeywords[];
 
 typedef char    *YangString;
 
-/* the truth value of Yang config statement              */
+/* the truth value of Yang config statement */
 typedef enum YangConfig {
      YANG_CONFIG_DEFAULT_FALSE          = 0, 
      YANG_CONFIG_DEFAULT_TRUE           = 1,    
@@ -130,7 +130,7 @@ typedef enum YangStatus {
     YANG_STATUS_OBSOLETE         = 5  /* for compatibility with SMI */
 } YangStatus;
 
-/* the truth value of Yang config statement              */
+/* the truth value of Yang config statement */
 typedef enum YangBoolean {
      YANG_BOOLEAN_FALSE                  = 2,
      YANG_BOOLEAN_TRUE                   = 3
@@ -138,8 +138,10 @@ typedef enum YangBoolean {
 
 
 typedef struct YangNode {
-    YangString      value;       // 'name' or 'argument' of the statement
-    YangString      extra;       // extra data, used to store some additional information, e.g. for the 'unknown' statement
+    YangString      value;	/* 'name' or 'argument' of the statement */
+    YangString      extra;      /* extra data, used to store some additional
+				   information, e.g., for the 'unknown'
+				   statement */
     YangDecl        nodeKind;
     YangStatus      status;
     YangConfig      config;

@@ -128,12 +128,12 @@ SmiLanguage getLanguage(FILE *file) {
             break;
         } else if (c == '/' || c == 'm' || c == 's')  {
             i = c;
-            while(c = fgetc(file)) { 	   //check for statement termination
-                if(i == '}' && c == ';') { //"};" means sming "}" means yang
+            while(c = fgetc(file)) { 	 /* check for statement termination */
+                if(i == '}' && c == ';') { /* "};" means sming "}" means yang */
                     ret = SMI_LANGUAGE_SMING;
                     break;
                 } else if(i == '}' && c != ';') {
-                    ret = SMI_LANGUAGE_YANG; //yang
+                    ret = SMI_LANGUAGE_YANG;
                     break;
                 } else if (c == EOF) {
                        return SMI_LANGUAGE_UNKNOWN;

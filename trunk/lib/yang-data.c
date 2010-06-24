@@ -375,7 +375,7 @@ _YangNode* resolveReference(_YangNode *currentNodePtr, YangDecl nodeKind, char* 
  */
 _YangModuleInfo *createModuleInfo(_YangNode *modulePtr)
 {
-    if (!modulePtr) return NULL;
+    if (! modulePtr) return NULL;
     
     _YangModuleInfo *infoPtr = smiMalloc(sizeof(_YangModuleInfo));
     modulePtr->info = infoPtr;
@@ -388,8 +388,13 @@ _YangModuleInfo *createModuleInfo(_YangNode *modulePtr)
     infoPtr->parsingState  = YANG_PARSING_IN_PROGRESS;
     infoPtr->originalModule = NULL;
     infoPtr->submodules    = NULL;
-    // create a corresponding Module wrapper to maintain interface compatibility
-    Module *module = addModule(smiStrdup(modulePtr->export.value), smiStrdup(currentParser->path), 0, currentParser);
+
+    /* create a corresponding Module wrapper to maintain interface
+     * compatibility */
+    
+    Module *module = addModule(smiStrdup(modulePtr->export.value),
+			       smiStrdup(currentParser->path), 0,
+			       currentParser);
     module->export.language = SMI_LANGUAGE_YANG;
     currentParser->modulePtr = module;
     return (infoPtr);
@@ -443,7 +448,10 @@ _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPt
     if (parentPtr)
     {
         node->modulePtr         = parentPtr->modulePtr;
-        //inherit Config value. This is changed later, if there is config statement, for this node
+
+        /* inherit Config value. This is changed later, if there is
+	 * config statement, for this node */
+	
         if (yangIsTrueConf(parentPtr->export.config)) {
             node->export.config = YANG_CONFIG_DEFAULT_TRUE;
         } else {
@@ -455,13 +463,13 @@ _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPt
                 (parentPtr->lastChildPtr)->nextSiblingPtr = node;
                 parentPtr->lastChildPtr = node;
         }
-        else //first child
+        else /* first child */
         {
                 parentPtr->firstChildPtr = node;
                 parentPtr->lastChildPtr = node;
         }
     } else {
-        // it's a module node
+        /*  it's a module node */
         node->modulePtr         = node;
     }
     return node;
@@ -1332,7 +1340,7 @@ _YangNode *createReferenceNode(_YangNode *parentPtr, _YangNode *reference, YangN
         (parentPtr->lastChildPtr)->nextSiblingPtr = node;
         parentPtr->lastChildPtr = node;
     }
-    else //first child
+    else /* first child */
     {
         parentPtr->firstChildPtr = node;
         parentPtr->lastChildPtr = node;

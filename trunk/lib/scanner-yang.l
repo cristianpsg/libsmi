@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-//#define DEBUG
+/* #define DEBUG */
 
 #ifdef DEBUG 
 #define debug(args...) fprintf (stderr, "[%s=%s]\n", args);
@@ -160,7 +160,7 @@ char *s, *d;		/* the source and destination pointer */
 	}
     }
     d[0] = '\0';
-        //clean trailing spaces
+        /* clean trailing spaces */
     for (d = yytext, s = yytext; s[0] ; s++, d++) {
 	if (isspace((int)(unsigned char)s[0]))
 	{
@@ -238,7 +238,7 @@ void cleanDQString()
 	}
     }
     d[0] = '\0';
-    //clean trailing spaces
+    /* clean trailing spaces */
     for (d = yytext, s = yytext; s[0] ; s++, d++) {
 	if (isspace((int)(unsigned char)s[0]))
 	{
@@ -874,7 +874,7 @@ replaceKeyword      replace
   */
 <FindPlus>([^+]) {
 	BEGIN(INITIAL);
-	yyless(0); // returns the character of the current token back to the input stream
+	yyless(0); /* returns the character of the current token back to the input stream */
 	yylval.text = smiStrdup(concatTmp);
 	smiFree(concatTmp);
         _debug("qSring");

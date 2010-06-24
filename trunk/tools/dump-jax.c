@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-jax.c,v 1.39 2002/07/22 17:06:19 schoenw Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -560,7 +560,7 @@ static void dumpEntry(SmiNode *smiNode)
          element;
          element = smiGetNextElement(element)) {
         if (cnt) {
-            fprintf(f, ",\n%*s", 4 + 7 + 1 + strlen(smiNode->name), " ");
+            fprintf(f, ",\n%*s", (int) (4 + 7 + 1 + strlen(smiNode->name)), " ");
         }
         cnt++;
         indexNode = smiGetElementNode(element);
@@ -771,7 +771,7 @@ static void dumpEntryImpl(SmiNode *smiNode)
          element;
          element = smiGetNextElement(element)) {
         if (cnt) {
-            fprintf(f, ",\n%*s", 4 + 7 + 1 + strlen(smiNode->name), " ");
+            fprintf(f, ",\n%*s", (int) (4 + 7 + 1 + strlen(smiNode->name)), " ");
         }
         cnt++;
         indexNode = smiGetElementNode(element);
@@ -786,7 +786,7 @@ static void dumpEntryImpl(SmiNode *smiNode)
          element;
          element = smiGetNextElement(element)) {
         if (cnt) {
-            fprintf(f, ",\n%*s", 2 + strlen(smiNode->name), " ");
+            fprintf(f, ",\n%*s", (int) (2 + strlen(smiNode->name)), " ");
         }
         cnt++;
         indexNode = smiGetElementNode(element);

@@ -1,7 +1,7 @@
 /*
  * scanner-yang.h --
  *
- *      Definition of lexical tokens of the SMIv1/v2 MIB module language.
+ *      Definition of lexical tokens of the YANG language.
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
@@ -21,7 +21,10 @@
 #define YY_NO_UNPUT
 
 extern char *yytext;
+#if 0
+/* this does not seem to be needed with flex 2.5.35 and in fact conflicts */
 extern int yyleng;
+#endif
 
 extern int yangEnterLexRecursion(FILE *file);
 extern void yangLeaveLexRecursion();
