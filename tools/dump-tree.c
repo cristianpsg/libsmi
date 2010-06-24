@@ -117,7 +117,7 @@ static void fprintIndex(FILE *f, SmiNode *smiNode)
 	 smiElement; smiElement = smiGetNextElement(smiElement), i++) {
 	if (i > 0) fprintf(f, ",");
 	if (indexname) {
-	    fprintf(f, indexname);
+	    fprintf(f, "%s", indexname);
 	}
 	indexname = smiGetElementNode(smiElement)->name;
     }
@@ -143,7 +143,7 @@ static void fprintObjects(FILE *f, SmiNode *smiNode)
 	 smiElement = smiGetNextElement(smiElement), i++) {
 	if (i > 0) fprintf(f, ",");
 	if (objectname) {
-	    fprintf(f, objectname);
+	    fprintf(f, "%s", objectname);
 	}
 	objectname = smiGetElementNode(smiElement)->name;
     }
@@ -291,7 +291,7 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		fprintf(f, "%s-- %s %-*s %s(%u)\n",
 			prefix,
 			getFlags(smiNode),
-			typefieldlen,
+			(int) typefieldlen,
 			type_name,
 			smiNode->name,
 			smiNode->oid[smiNode->oidlen-1]);

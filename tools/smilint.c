@@ -70,10 +70,10 @@ static void fold(FILE *f, int indent, const char *msg)
     for (s = msg; *s; s++) {
 	for (p = s; *p && *p != '\n'; p++) ;
 	if (*p) {
-	    fprintf(f, "%.*s\n%*s", p - s, s, indent, "");
+	    fprintf(f, "%.*s\n%*s", (int) (p - s), s, indent, "");
 	    s = p;
 	} else {
-	    fprintf(f, "%.*s\n", p - s, s);
+	    fprintf(f, "%.*s\n", (int) (p - s), s);
 	    break;
 	}
     }

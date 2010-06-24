@@ -804,7 +804,7 @@ prefixStatement:	prefixKeyword prefix stmtEnd
 
                                     break;
                                 default:
-                                    //TODO print error
+                                    /* TODO print error */
                                     debug("DEBUGG: OOPS wrong prefix DECL %d, at line %d\n", topDecl(), currentParser->line);
                                     break;
                             }
