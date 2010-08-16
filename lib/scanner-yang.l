@@ -1,4 +1,4 @@
-/*
+    /*
  * scanner-yang.l --
  *
  *      Lexical rules for scanning the Yang modules.
@@ -476,6 +476,12 @@ replaceKeyword      replace
 	yylval.text = "feature";
 	return featureKeyword;
 }
+
+<INITIAL>fraction-digits/{delim} {
+	yylval.text = "fraction-digits";
+	return fractionDigitsKeyword;
+}
+
 
 <INITIAL>grouping/{delim} {
 	yylval.text = "grouping";

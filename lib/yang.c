@@ -106,7 +106,8 @@ const char* yandDeclKeyword[] = {   "unknown",
                                     "extends",
                                     "instance",
                                     "instance-list",
-                                    "instance-type"
+                                    "instance-type",
+                                    "fraction-digits"
                                };
 
 const char* statusKeywords[] = {  "default",
@@ -195,7 +196,7 @@ YangNode *yangGetNextModule(YangNode *yangModulePtr) {
 }
 
 int yangIsTrueConf(YangConfig conf) {
-    return conf == YANG_CONFIG_DEFAULT_TRUE || conf == YANG_CONFIG_TRUE;
+    return conf == YANG_CONFIG_TRUE;
 }
 
 #endif
