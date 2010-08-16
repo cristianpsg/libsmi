@@ -937,29 +937,32 @@ void expandDeviation(_YangNode* node) {
  *  If a node has "config" "false", no node underneath it can have "config" set to "true".
  *  If a "config" statement is present for any node in the input, output or notification tree, it is ignored.
  */
-void validateConfigProperties(_YangNode *nodePtr, int isConfigTrue, int ignore) {
-    if (ignore) {
-        if (nodePtr->export.nodeKind == YANG_DECL_CONFIG) {
-            smiPrintErrorAtLine(currentParser, ERR_IGNORED_CONFIG, nodePtr->line);
-        }
-    } else if (!isConfigTrue) {
-        if (nodePtr->export.config == YANG_CONFIG_TRUE) {
-            smiPrintErrorAtLine(currentParser, ERR_INVALID_CONFIG, nodePtr->line, nodePtr->export.value);
-            nodePtr->export.config = YANG_CONFIG_DEFAULT_FALSE;
-        }
-        if (nodePtr->export.config == YANG_CONFIG_DEFAULT_TRUE) {
-            nodePtr->export.config = YANG_CONFIG_DEFAULT_FALSE;
-        }
-    }
+void validateConfigProperties(_YangNode *nodePtr, YangConfig configValue, int ignore) {
     int ignoreFlag = ignore;
-    if (nodePtr->export.nodeKind == YANG_DECL_INPUT ||
-        nodePtr->export.nodeKind == YANG_DECL_OUTPUT ||
-        nodePtr->export.nodeKind == YANG_DECL_NOTIFICATION) {
-        ignoreFlag = 1;
+    if (nodePtr->export.nodeKind != YANG_DECL_GROUPING) {
+        if (ignore) {
+            if (nodePtr->export.nodeKind == YANG_DECL_CONFIG) {
+                smiPrintErrorAtLine(currentParser, ERR_IGNORED_CONFIG, nodePtr->line);
+            }
+        } else if (configValue == YANG_CONFIG_FALSE) {
+            if (nodePtr->export.config == YANG_CONFIG_TRUE) {
+                smiPrintErrorAtLine(currentParser, ERR_INVALID_CONFIG, nodePtr->line, nodePtr->export.value);
+            }
+            nodePtr->export.config = YANG_CONFIG_FALSE;
+        } else if (configValue == YANG_CONFIG_TRUE) {
+            if (nodePtr->export.config == YANG_CONFIG_DEFAULT) {
+                nodePtr->export.config = YANG_CONFIG_TRUE;
+            }
+        }
+        if (nodePtr->export.nodeKind == YANG_DECL_INPUT ||
+            nodePtr->export.nodeKind == YANG_DECL_OUTPUT ||
+            nodePtr->export.nodeKind == YANG_DECL_NOTIFICATION) {
+            ignoreFlag = 1;
+        }
     }
     _YangNode *childPtr = NULL;
     for (childPtr = nodePtr->firstChildPtr; childPtr; childPtr = childPtr->nextSiblingPtr) {
-        validateConfigProperties(childPtr, yangIsTrueConf(nodePtr->export.config), ignoreFlag);
+        validateConfigProperties(childPtr, nodePtr->export.config, ignoreFlag);
     }
 }
 
@@ -1162,6 +1165,11 @@ void typeHandler(_YangNode* nodePtr) {
                     smiPrintErrorAtLine(currentParser, ERR_CHILD_REQUIRED, nodePtr->line, "union", "type");
                 }
                 break;
+            case YANG_TYPE_DECIMAL64:
+                if (!findChildNodeByType(nodePtr, YANG_DECL_FRACTION_DIGITS)) {
+                    smiPrintErrorAtLine(currentParser, ERR_CHILD_REQUIRED, nodePtr->line, "decimal64", "fraction-digits");
+                }
+                break;
         }
     }
 
@@ -1171,6 +1179,11 @@ void typeHandler(_YangNode* nodePtr) {
             case YANG_DECL_RANGE:
                 if (!isNumericalType(nodePtr->typeInfo->builtinType)) {
                    smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "range");
+                }
+                break;
+            case YANG_DECL_FRACTION_DIGITS:
+                if (nodePtr->typeInfo->builtinType != YANG_TYPE_DECIMAL64) {
+                    smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "fraction-digits");
                 }
                 break;
             case YANG_DECL_LENGTH:
@@ -1284,7 +1297,7 @@ void semanticAnalysis(_YangNode *module) {
      *  1      - current config value;
      *  0      - don't ignore config value (it may be used for 'input', 'output' or 'notification' nodes, for which the 'config' value should be ignored;
      */
-    validateConfigProperties(module, 1, 0);
+    validateConfigProperties(module, YANG_CONFIG_TRUE, 0);
     validateDefaultStatements(module);
 
     validateLists(module);

@@ -433,7 +433,7 @@ _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPt
     node->export.description	= NULL;
     node->export.reference	= NULL;
     node->export.extra  	= NULL;
-    node->export.config         = YANG_CONFIG_DEFAULT_TRUE;
+    node->export.config         = YANG_CONFIG_DEFAULT;
     node->export.status         = YANG_STATUS_DEFAULT_CURRENT;
     node->line                  = currentParser ? currentParser->line : 0;
     
@@ -448,15 +448,6 @@ _YangNode *addYangNode(const char *value, YangDecl nodeKind, _YangNode *parentPt
     if (parentPtr)
     {
         node->modulePtr         = parentPtr->modulePtr;
-
-        /* inherit Config value. This is changed later, if there is
-	 * config statement, for this node */
-	
-        if (yangIsTrueConf(parentPtr->export.config)) {
-            node->export.config = YANG_CONFIG_DEFAULT_TRUE;
-        } else {
-            node->export.config = YANG_CONFIG_DEFAULT_FALSE;
-        }
 		
         if(parentPtr->lastChildPtr)
         {

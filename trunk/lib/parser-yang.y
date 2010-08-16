@@ -213,6 +213,7 @@ void checkUnknownStatement() {
 %token <text>containerKeyword
 %token <text>defaultKeyword
 %token <text>descriptionKeyword
+%token <text>fractionDigitsKeyword
 %token <text>enumKeyword
 %token <text>error_app_tagKeyword
 %token <text>error_messageKeyword
@@ -432,6 +433,7 @@ void checkUnknownStatement() {
 %type <rc>caseSubstatement
 %type <rc>caseSubstatement_0n
 %type <rc>caseDataDef
+%type <rc>fractionDigitsStatement
 %type <rc>groupingStatement
 %type <rc>groupingSubstatement
 %type <rc>groupingSubstatement_0n
@@ -1047,10 +1049,21 @@ typeBodyStmts:  numRestriction
                 unionSpec
             ;
 
-numRestriction: range stmtSep;
+
+numRestriction: range stmtSep
+                fractionDigitsStatement
+            |
+                fractionDigitsStatement
+                range stmtSep
+            |
+                fractionDigitsStatement
+            |
+                range stmtSep
+            ;
 
 range:	rangeKeyword string
 		{
+                    uniqueNodeKind(topNode(), YANG_DECL_RANGE);
                     node = addYangNode($2, YANG_DECL_RANGE, topNode());
                     pushNode(node);
 		}
@@ -1060,6 +1073,12 @@ range:	rangeKeyword string
 		}
 	;
 
+fractionDigitsStatement: fractionDigitsKeyword string stmtEnd
+		{
+                    uniqueNodeKind(topNode(), YANG_DECL_FRACTION_DIGITS);
+                    node = addYangNode($2, YANG_DECL_FRACTION_DIGITS, topNode());
+		}
+	;
 
 stringRestriction_0n: {}
                 |

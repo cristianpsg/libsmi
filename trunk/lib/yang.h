@@ -105,7 +105,8 @@ typedef enum YangDecl {
     YANG_DECL_EXTENDS                   = 67,
     YANG_DECL_INSTANCE                  = 68,
     YANG_DECL_INSTANCE_LIST             = 69,
-    YANG_DECL_INSTANCE_TYPE             = 70
+    YANG_DECL_INSTANCE_TYPE             = 70,
+    YANG_DECL_FRACTION_DIGITS           = 71
 } YangDecl;
 
 
@@ -117,8 +118,7 @@ typedef char    *YangString;
 
 /* the truth value of Yang config statement */
 typedef enum YangConfig {
-     YANG_CONFIG_DEFAULT_FALSE          = 0, 
-     YANG_CONFIG_DEFAULT_TRUE           = 1,    
+     YANG_CONFIG_DEFAULT                = 1,    
      YANG_CONFIG_FALSE                  = 2, 
      YANG_CONFIG_TRUE                   = 3
 } YangConfig;
