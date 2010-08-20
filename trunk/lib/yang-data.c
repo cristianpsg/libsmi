@@ -42,7 +42,7 @@
 
 #include "common.h"
 #include "error.h"
-#include "data.h"
+#include "smi-data.h"
 #include "util.h"
 #include "yang.h"
 #include "yang-check.h"
@@ -56,8 +56,6 @@
  * Current parser defined in parser-yang. Workaround - can't include data.h
  */
 extern Parser *currentParser;
-
-const int builtInTypeCount = 19;
 
 const char* yangBuiltInTypeNames[] = {  "binary",
                                         "bits",
@@ -77,13 +75,14 @@ const char* yangBuiltInTypeNames[] = {  "binary",
                                         "uint8",
                                         "uint16",
                                         "uint32",
-                                        "uint64"
+                                        "uint64",
+					NULL
 };
 
 
 YangBuiltInType getBuiltInType(const char *name) {
     int i;
-    for (i = 0; i <  builtInTypeCount; i++) {
+    for (i = 0; yangBuiltInTypeNames[i]; i++) {
         if (!strcmp(yangBuiltInTypeNames[i], name)) {
             return i;
         }
@@ -118,33 +117,37 @@ void setStatus(_YangNode *nodePtr, YangStatus status)
 
 void setDescription(_YangNode *nodePtr, char *description)
 {
-    if (nodePtr->export.description)
+    if (nodePtr->export.description) {
         smiFree(nodePtr->export.description);
+    }
     nodePtr->export.description = smiStrdup(description);
 }
 
 void setReference(_YangNode *nodePtr, char *reference)
 {
-    if (nodePtr->export.reference)
+    if (nodePtr->export.reference) {
         smiFree(nodePtr->export.reference);
+    }
     nodePtr->export.reference = smiStrdup(reference);
 }
 
 /*
  * Node uniqueness validation
  */
-void uniqueNodeKind(_YangNode *nodePtr, YangDecl nodeKind) 
+void uniqueNodeKind(_YangNode *nodePtr, YangDecl decl) 
 {
-    if (findChildNodeByType(nodePtr, nodeKind)) {
-        smiPrintError(currentParser, ERR_REDEFINED_ELEMENT, yandDeclKeyword[nodeKind]);
+    if (findChildNodeByType(nodePtr, decl)) {
+        smiPrintError(currentParser, ERR_REDEFINED_ELEMENT,
+		      yangDeclAsString(decl));
     }
 }
 
 
-void presenceNodeKind(_YangNode *nodePtr, YangDecl nodeKind) 
+void presenceNodeKind(_YangNode *nodePtr, YangDecl decl) 
 {
-    if (!findChildNodeByType(nodePtr, nodeKind)) {
-        smiPrintError(currentParser, ERR_REQUIRED_ELEMENT, yandDeclKeyword[nodeKind]);
+    if (!findChildNodeByType(nodePtr, decl)) {
+        smiPrintError(currentParser, ERR_REQUIRED_ELEMENT,
+		      yangDeclAsString(decl));
     }
 }
 
@@ -389,14 +392,14 @@ _YangModuleInfo *createModuleInfo(_YangNode *modulePtr)
     infoPtr->originalModule = NULL;
     infoPtr->submodules    = NULL;
 
-    /* create a corresponding Module wrapper to maintain interface
+    /* Create a corresponding Module wrapper to maintain interface
      * compatibility */
     
     Module *module = addModule(smiStrdup(modulePtr->export.value),
-			       smiStrdup(currentParser->path), 0,
-			       currentParser);
+			       smiStrdup(currentParser ? currentParser->path : ""),
+			       0, currentParser);
     module->export.language = SMI_LANGUAGE_YANG;
-    currentParser->modulePtr = module;
+    if (currentParser) currentParser->modulePtr = module;
     return (infoPtr);
 }
 
@@ -500,7 +503,7 @@ _YangNode *loadYangModule(const char *modulename, const char * revision, Parser 
     
     int nameIndex = 0;
     while (nameIndex < index) {        
-        path = getModulePath(name[nameIndex]);
+        path = smiGetModulePath(name[nameIndex]);
         if (path && revision) {
             smiAsprintf(&path, "%s%s", path, revisionPart);
         }
@@ -551,7 +554,7 @@ _YangNode *loadYangModule(const char *modulename, const char * revision, Parser 
         smiFree(path);
         return NULL;
     }
-    lang = getLanguage(file);
+    lang = smiGuessFileLanguage(file);
 
     if (lang != SMI_LANGUAGE_YANG) {
         smiPrintError(parserPtr, ERR_ILLEGAL_INPUTFILE, path);
@@ -1287,7 +1290,7 @@ _YangList* processUniqueList(_YangNode *nodePtr, YangList* il) {
 
 int isDataDefinitionNode(_YangNode *node)
 {
-    if (!node) return;
+    if (!node) return 0;
     YangDecl kind = node->export.nodeKind;
     return (kind == YANG_DECL_CONTAINER ||
             kind == YANG_DECL_LEAF ||

@@ -101,7 +101,7 @@ typedef struct _YangList {
 
 typedef struct _YangModuleInfo {
     char		*prefix;
-	char		*version;
+    char		*version;
     char		*namespace;
     char        *organization;
     char        *contact;

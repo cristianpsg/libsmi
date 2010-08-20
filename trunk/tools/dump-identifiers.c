@@ -33,24 +33,6 @@ static int showpath = 0;
 static int ctagfmt = 0;
 
 
-static char *smiStringNodekind(SmiNodekind nodekind)
-{
-    return
-        (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<unknown>" :
-        (nodekind == SMI_NODEKIND_NODE)         ? "node" :
-        (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
-        (nodekind == SMI_NODEKIND_TABLE)        ? "table" :
-        (nodekind == SMI_NODEKIND_ROW)          ? "row" :
-        (nodekind == SMI_NODEKIND_COLUMN)       ? "column" :
-        (nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
-        (nodekind == SMI_NODEKIND_GROUP)        ? "group" :
-        (nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
-        (nodekind == SMI_NODEKIND_CAPABILITIES) ? "capabilities" :
-                                                  "<UNDEFINED>";
-}
-
-
-
 static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 {
     SmiNode      *smiNode;
@@ -67,7 +49,7 @@ static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 		    fprintf(f, " %d", smiGetNodeLine(smiNode));
 		    fprintf(f, " %*s", -moduleLen, modv[i]->path);
 		    fprintf(f, " %s OBJECT-TYPE -- %s\n", smiNode->name,
-			    smiStringNodekind(smiNode->nodekind));
+			    smiNodekindAsString(smiNode->nodekind));
 		} else {
 		    fprintf(f, "%*s",
 			    -moduleLen, showpath ? modv[i]->path : modv[i]->name);
@@ -75,7 +57,7 @@ static void fprintNodeIdentifiers(FILE *f, int modc, SmiModule **modv)
 			    fprintf(f, ":%d:", smiGetNodeLine(smiNode));
 		    }
 		    fprintf(f, " %*s %-12s ", -identifierLen, smiNode->name,
-			    smiStringNodekind(smiNode->nodekind));
+			    smiNodekindAsString(smiNode->nodekind));
 		    for (j = 0; j < smiNode->oidlen; j++) {
 			    fprintf(f, j ? ".%u" : "%u", smiNode->oid[j]);
 		    }

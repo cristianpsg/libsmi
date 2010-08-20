@@ -80,6 +80,8 @@ typedef enum SmiLanguage {
     SMI_LANGUAGE_YANG                   = 5
 } SmiLanguage;
 
+extern char *smiLanguageAsString(SmiLanguage language);
+
 /* SmiBasetype -- base types of all languages                                */
 typedef enum SmiBasetype {
     SMI_BASETYPE_UNKNOWN                = 0,  /* should not occur            */
@@ -96,6 +98,8 @@ typedef enum SmiBasetype {
     SMI_BASETYPE_BITS                   = 11, /* SMIv2, SMIng and SPPI       */
     SMI_BASETYPE_POINTER		= 12  /* only SMIng                  */
 } SmiBasetype;
+
+extern char *smiBasetypeAsString(SmiBasetype basetype);
 
 #ifdef INT32_MIN
 #define SMI_BASETYPE_INTEGER32_MIN  INT32_MIN
@@ -128,6 +132,8 @@ typedef enum SmiStatus {
     SMI_STATUS_OBSOLETE         = 5  /* SMIv1, SMIv2, SMIng and SPPI         */
 } SmiStatus;
 
+extern char *smiStatusAsString(SmiStatus status);
+
 /* SmiAccess -- values of access levels                                      */
 typedef enum SmiAccess {
     SMI_ACCESS_UNKNOWN          = 0, /* should not occur                     */
@@ -142,6 +148,8 @@ typedef enum SmiAccess {
     SMI_ACCESS_EVENT_ONLY      	= 9	 /* this entry is valid only for SMIng	 */
 } SmiAccess;
 
+extern char *smiAccessAsString(SmiAccess access);
+
 /* SmiNodekind -- type or statement that leads to a definition               */
 typedef unsigned int SmiNodekind;
 #define SMI_NODEKIND_UNKNOWN      0x0000     /* should not occur             */
@@ -155,6 +163,8 @@ typedef unsigned int SmiNodekind;
 #define SMI_NODEKIND_COMPLIANCE   0x0080
 #define SMI_NODEKIND_CAPABILITIES 0x0100
 #define SMI_NODEKIND_ANY          0xffff
+
+extern char *smiNodekindAsString(SmiNodekind nodekind);
 
 /* SmiDecl -- type or statement that leads to a definition                   */
 typedef enum SmiDecl {
@@ -195,6 +205,8 @@ typedef enum SmiDecl {
     SMI_DECL_ATTRIBUTE		= 46,
     SMI_DECL_EVENT		= 47
 } SmiDecl;
+
+extern char *smiDeclAsString(SmiDecl decl);
 
 /* SmiIndexkind -- actual kind of a table row's index method                 */
 typedef enum SmiIndexkind {

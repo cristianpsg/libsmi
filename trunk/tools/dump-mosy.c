@@ -128,46 +128,6 @@ static char *getOidString(SmiNode *smiNode, int importedParent)
 
 
 
-static char *getValueString(SmiValue *valuePtr)
-{
-    static char    s[1024];
-
-    s[0] = 0;
-    
-    switch (valuePtr->basetype) {
-    case SMI_BASETYPE_UNSIGNED32:
-	sprintf(s, "%lu", valuePtr->value.unsigned32);
-	break;
-    case SMI_BASETYPE_INTEGER32:
-	sprintf(s, "%ld", valuePtr->value.integer32);
-	break;
-    case SMI_BASETYPE_UNSIGNED64:
-	sprintf(s, UINT64_FORMAT, valuePtr->value.unsigned64);
-	break;
-    case SMI_BASETYPE_INTEGER64:
-	sprintf(s, INT64_FORMAT, valuePtr->value.integer64);
-	break;
-    case SMI_BASETYPE_FLOAT32:
-    case SMI_BASETYPE_FLOAT64:
-    case SMI_BASETYPE_FLOAT128:
-	break;
-    case SMI_BASETYPE_ENUM:
-    case SMI_BASETYPE_OCTETSTRING:
-    case SMI_BASETYPE_BITS:
-    case SMI_BASETYPE_OBJECTIDENTIFIER:
-	/* not required in MOSY format */
-	break;
-    case SMI_BASETYPE_UNKNOWN:
-	break;
-    case SMI_BASETYPE_POINTER:
-	break;
-    }
-
-    return s;
-}
-
-
-
 static void printIndex(FILE *f, SmiNode *smiNode)
 {
     char *indexname;
@@ -251,7 +211,7 @@ static void printTypedefs(FILE *f, SmiModule *smiModule)
 	     nn ; i++, nn = smiGetNextNamedNumber(nn)) {
 	    fprintf(f, "%%%-19s %-16s %-15s %s\n", "es",
 		    smiType->name, nn->name,
-		    getValueString(&nn->value));
+		    smiValueAsString(&nn->value, smiType, SMI_LANGUAGE_SMIV2));
 	}
     }
 }
@@ -360,7 +320,8 @@ static void printObjects(FILE *f, SmiModule *smiModule)
 		i++, smiNamedNumber = smiGetNextNamedNumber(smiNamedNumber)) {
 		fprintf(f, "%%%-19s %-16s %-15s %s\n", "ev",
 			smiNode->name, smiNamedNumber->name,
-			getValueString(&smiNamedNumber->value));
+			smiValueAsString(&smiNamedNumber->value, smiType,
+					 SMI_LANGUAGE_SMIV2));
 	    }
 
 	    for (ignore = 0, j = 0; ignoreTypeRanges[j]; j++) {
@@ -376,8 +337,11 @@ static void printObjects(FILE *f, SmiModule *smiModule)
 		     smiRange = smiGetNextRange(smiRange)) {
 		    fprintf(f, "%%%-19s %-16s %-15s ", "er",
 			    smiNode->name,
-			    getValueString(&smiRange->minValue));
-		    fprintf(f, "%s\n", getValueString(&smiRange->maxValue));
+			    smiValueAsString(&smiRange->minValue, smiType,
+					     SMI_LANGUAGE_SMIV2));
+		    fprintf(f, "%s\n", smiValueAsString(&smiRange->maxValue,
+							smiType,
+							SMI_LANGUAGE_SMIV2));
 		}
 	    }
 	}

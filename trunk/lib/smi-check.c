@@ -27,8 +27,8 @@
 
 #include "error.h"
 #include "util.h"
-#include "data.h"
-#include "check.h"
+#include "smi-data.h"
+#include "smi-check.h"
 #include "smi.h"
 
 #ifdef HAVE_DMALLOC_H
@@ -2251,10 +2251,10 @@ smiCheckModuleIdentityRegistration(Parser *parser, Object *object)
  */
 void smiyyerror(char *msg, Parser *parserPtr)
 {
-	if (parserPtr->line == parserPtr->lcline &&
-	    parserPtr->modulePtr &&
-	    (parserPtr->modulePtr->export.language == SMI_LANGUAGE_SMIV1 ||
-	     parserPtr->modulePtr->export.language == SMI_LANGUAGE_SMIV2))
-		smiPrintError(parserPtr, ERR_COMMENT_TERMINATES);
-	smiPrintError(parserPtr, ERR_OTHER_ERROR, msg);
+    if (parserPtr->line == parserPtr->lcline &&
+	parserPtr->modulePtr &&
+	(parserPtr->modulePtr->export.language == SMI_LANGUAGE_SMIV1 ||
+	 parserPtr->modulePtr->export.language == SMI_LANGUAGE_SMIV2))
+	smiPrintError(parserPtr, ERR_COMMENT_TERMINATES);
+    smiPrintError(parserPtr, ERR_OTHER_ERROR, msg);
 }

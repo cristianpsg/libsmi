@@ -30,7 +30,7 @@
 #include "error.h"
 #include "common.h"
 #include "util.h"
-#include "data.h"
+#include "smi-data.h"
 #include "smi.h"
 
 #ifdef HAVE_DMALLOC_H
@@ -450,8 +450,9 @@ void setModuleDescription(Module *modulePtr, char *description,
 
 void setModuleReference(Module *modulePtr, char *reference, Parser *parserPtr)
 {
-    if (modulePtr->export.reference)
+    if (modulePtr->export.reference) {
 	smiFree(modulePtr->export.reference);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(reference);
 	modulePtr->export.reference = NULL;
@@ -1504,8 +1505,9 @@ void setObjectDescription(Object *objectPtr, char *description,
 
 void setObjectReference(Object *objectPtr, char *reference, Parser *parserPtr)
 {
-    if (objectPtr->export.reference)
+    if (objectPtr->export.reference) {
 	smiFree(objectPtr->export.reference);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(reference);
 	objectPtr->export.reference = NULL;
@@ -2620,8 +2622,9 @@ void setTypeBasetype(Type *typePtr, SmiBasetype basetype)
 
 void setTypeDescription(Type *typePtr, char *description, Parser *parserPtr)
 {
-    if (typePtr->export.description)
+    if (typePtr->export.description) {
 	smiFree(typePtr->export.description);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(description);
 	typePtr->export.description = NULL;
@@ -2650,8 +2653,9 @@ void setTypeDescription(Type *typePtr, char *description, Parser *parserPtr)
 
 void setTypeReference(Type *typePtr, char *reference, Parser *parserPtr)
 {
-    if (typePtr->export.reference)
+    if (typePtr->export.reference) {
 	smiFree(typePtr->export.reference);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(reference);
 	typePtr->export.reference = NULL;
@@ -3148,7 +3152,9 @@ void setIdentityStatus(Identity *identityPtr, SmiStatus status)
 
 void setIdentityDescription(Identity *identityPtr, char *description, Parser *parserPtr)
 {
-    if (identityPtr->export.description) smiFree(identityPtr->export.description);
+    if (identityPtr->export.description) {
+	smiFree(identityPtr->export.description);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(description);
 	identityPtr->export.description = NULL;
@@ -3177,8 +3183,9 @@ void setIdentityDescription(Identity *identityPtr, char *description, Parser *pa
 
 void setIdentityReference(Identity *identityPtr, char *reference, Parser *parserPtr)
 {
-    if (identityPtr->export.reference)
+    if (identityPtr->export.reference) {
 	smiFree(identityPtr->export.reference);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(reference);
 	identityPtr->export.reference = NULL;
@@ -3432,7 +3439,9 @@ void setClassStatus(Class *classPtr, SmiStatus status)
 
 void setClassDescription(Class *classPtr, char *description, Parser *parserPtr)
 {
-    if (classPtr->export.description) smiFree(classPtr->export.description);
+    if (classPtr->export.description) {
+	smiFree(classPtr->export.description);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(description);
 	classPtr->export.description = NULL;
@@ -3461,8 +3470,9 @@ void setClassDescription(Class *classPtr, char *description, Parser *parserPtr)
 
 void setClassReference(Class *classPtr, char *reference, Parser *parserPtr)
 {
-    if (classPtr->export.reference)
+    if (classPtr->export.reference) {
 	smiFree(classPtr->export.reference);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(reference);
 	classPtr->export.reference = NULL;
@@ -3941,7 +3951,9 @@ void setMacroStatus(Macro *macroPtr, SmiStatus status)
 
 void setMacroDescription(Macro *macroPtr, char *description, Parser *parserPtr)
 {
-    if (macroPtr->export.description) smiFree(macroPtr->export.description);
+    if (macroPtr->export.description) {
+	smiFree(macroPtr->export.description);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(description);
 	macroPtr->export.description = NULL;
@@ -3970,8 +3982,9 @@ void setMacroDescription(Macro *macroPtr, char *description, Parser *parserPtr)
 
 void setMacroReference(Macro *macroPtr, char *reference, Parser *parserPtr)
 {
-    if (macroPtr->export.reference)
+    if (macroPtr->export.reference) {
 	smiFree(macroPtr->export.reference);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(reference);
 	macroPtr->export.reference = NULL;
@@ -3998,8 +4011,9 @@ void setMacroReference(Macro *macroPtr, char *reference, Parser *parserPtr)
 
 void setMacroAbnf(Macro *macroPtr, char *abnf, Parser *parserPtr)
 {
-    if (macroPtr->export.abnf)
+    if (macroPtr->export.abnf) {
 	smiFree(macroPtr->export.abnf);
+    }
     if (parserPtr->flags & SMI_FLAG_NODESCR) {
 	smiFree(abnf);
 	macroPtr->export.abnf = NULL;
@@ -4588,8 +4602,8 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
     char	    *path = NULL;
     SmiLanguage lang = 0;
     FILE	    *file;
-    path = getModulePath(modulename);
-    
+
+    path = smiGetModulePath(modulename);
     if (!path) {
         smiPrintError(parserPtr, ERR_MODULE_NOT_FOUND, modulename);
         return NULL;
@@ -4608,7 +4622,7 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
         return NULL;
     }
 
-    lang = getLanguage(file);
+    lang = smiGuessFileLanguage(file);
 
     if (lang != SMI_LANGUAGE_SMIV2 && lang != SMI_LANGUAGE_SMING) {
         smiPrintError(parserPtr, ERR_ILLEGAL_INPUTFILE, path);

@@ -34,92 +34,271 @@
 #include "yang.h"
 #include "error.h"
 #include "util.h"
-#include "snprintf.h"
 
-const char* yandDeclKeyword[] = {   "unknown",
-                                    "module",
-                                    "submodule",
-                                    "revision",
-                                    "import",
-                                    "range",
-                                    "pattern",
-                                    "container",
-                                    "must",
-                                    "leaf",
-                                    "leaf-list",
-                                    "list",
-                                    "case",
-                                    "uses",
-                                    "augument",
-                                    "grouping",
-                                    "choice",
-                                    "argument",
-                                    "rpc",
-                                    "input",
-                                    "output",
-                                    "anyxml",
-                                    "include",
-                                    "organization",
-                                    "contact",
-                                    "namespace",
-                                    "yang-version",
-                                    "prefix",
-                                    "typedef",
-                                    "path",
-                                    "length",
-                                    "type",
-                                    "error-message",
-                                    "error-app-tag",
-                                    "mandatory",
-                                    "notification",
-                                    "extension",
-                                    "belongs-to",
-                                    "yin-element",
-                                    "unknown-statement",
-                                    "description",
-                                    "reference",
-                                    "status",
-                                    "config",
-                                    "enum",
-                                    "value",
-                                    "require-instance",
-                                    "base",
-                                    "bit",
-                                    "position",
-                                    "units",
-                                    "default",
-                                    "feature",
-                                    "if-feature",
-                                    "identity",
-                                    "presence",
-                                    "when",
-                                    "min-elements",
-                                    "max-elements",
-                                    "ordered-by",
-                                    "key",
-                                    "unique",
-                                    "refine",
-                                    "deviation",
-                                    "deviate",
-                                    "complex-type",
-                                    "abstract",
-                                    "extends",
-                                    "instance",
-                                    "instance-list",
-                                    "instance-type",
-                                    "fraction-digits"
-                               };
-
-const char* statusKeywords[] = {  "default",
-                                  "current",
-                                  "deprecated",
-                                  "",
-                                  "",
-                                  "obsolete"
-                                };
 /*
  * YANG API
  */
+
+/*
+ * Stringification functions. We are using verbose switch statements
+ * since this allows the compiler to check completeness and we like
+ * to handle invalid values gracefully.
+ */
+
+char *yangDeclAsString(YangDecl decl)
+{
+    char *s = "<DECL-UNDEFINED>";
+
+    switch (decl) {
+    case YANG_DECL_UNKNOWN:
+	s = "<unknown>";
+	break;
+    case YANG_DECL_MODULE:
+	s = "module";
+	break;
+    case YANG_DECL_SUBMODULE:
+	s = "submodule";
+	break;
+    case YANG_DECL_REVISION:
+	s = "revision";
+	break;
+    case YANG_DECL_IMPORT:
+	s = "import";
+	break;
+    case YANG_DECL_RANGE:
+	s = "range";
+	break;
+    case YANG_DECL_PATTERN:
+	s = "pattern";
+	break;
+    case YANG_DECL_CONTAINER:
+	s = "container";
+	break;
+    case YANG_DECL_MUST:
+	s = "must";
+	break;
+    case YANG_DECL_LEAF:
+	s = "leaf";
+	break;
+    case YANG_DECL_LEAF_LIST:
+	s = "leaf-list";
+	break;
+    case YANG_DECL_LIST:
+	s = "list";
+	break;
+    case YANG_DECL_CASE:
+	s = "case";
+	break;
+    case YANG_DECL_USES:
+	s = "uses";
+	break;
+    case YANG_DECL_AUGMENT:
+	s = "augment";
+	break;
+    case YANG_DECL_GROUPING:
+	s = "grouping";
+	break;
+    case YANG_DECL_CHOICE:
+	s = "choice";
+	break;
+    case YANG_DECL_ARGUMENT:
+	s = "argument";
+	break;
+    case YANG_DECL_RPC:
+	s = "rpc";
+	break;
+    case YANG_DECL_INPUT:
+	s = "input";
+	break;
+    case YANG_DECL_OUTPUT:
+	s = "output";
+	break;
+    case YANG_DECL_ANYXML:
+	s = "anyxml";
+	break;
+    case YANG_DECL_INCLUDE:
+	s = "include";
+	break;
+    case YANG_DECL_ORGANIZATION:
+	s = "organization";
+	break; 
+    case YANG_DECL_CONTACT:
+	s = "contact";
+	break; 
+    case YANG_DECL_NAMESPACE:
+	s = "namespace";
+	break; 
+    case YANG_DECL_YANG_VERSION:
+	s = "yang-version";
+	break; 
+    case YANG_DECL_PREFIX:
+	s = "prefix";
+	break; 
+    case YANG_DECL_TYPEDEF:
+	s = "typedef";
+	break; 
+    case YANG_DECL_PATH:
+	s = "path";
+	break; 
+    case YANG_DECL_LENGTH:
+	s = "length";
+	break; 
+    case YANG_DECL_TYPE:
+	s = "type";
+	break; 
+    case YANG_DECL_ERROR_MESSAGE:
+	s = "error-message";
+	break; 
+    case YANG_DECL_ERROR_APP_TAG:
+	s = "error-app-tag";
+	break; 
+    case YANG_DECL_MANDATORY:
+	s = "mandatory";
+	break; 
+    case YANG_DECL_NOTIFICATION:
+	s = "notification";
+	break; 
+    case YANG_DECL_EXTENSION:
+	s = "extension";
+	break; 
+    case YANG_DECL_BELONGS_TO:
+	s = "belongs-to";
+	break; 
+    case YANG_DECL_YIN_ELEMENT:
+	s = "yin-element";
+	break; 
+    case YANG_DECL_UNKNOWN_STATEMENT:
+	s = "unknown-statement";
+	break;
+    case YANG_DECL_DESCRIPTION:
+	s = "description";
+	break;
+    case YANG_DECL_REFERENCE:
+	s = "reference";
+	break;
+    case YANG_DECL_STATUS:
+	s = "status";
+	break;
+    case YANG_DECL_CONFIG:
+	s = "config";
+	break;
+    case YANG_DECL_ENUM:
+	s = "enum";
+	break;
+    case YANG_DECL_VALUE:
+	s = "value";
+	break;
+    case YANG_DECL_REQUIRE_INSTANCE:
+	s = "require-instance";
+	break;
+    case YANG_DECL_BASE:
+	s = "base";
+	break;
+    case YANG_DECL_BIT:
+	s = "bit";
+	break;
+    case YANG_DECL_POSITION:
+	s = "position";
+	break;
+    case YANG_DECL_UNITS:
+	s = "units";
+	break;
+    case YANG_DECL_DEFAULT:
+	s = "default";
+	break;
+    case YANG_DECL_FEATURE:
+	s = "feature";
+	break;
+    case YANG_DECL_IF_FEATURE:
+	s = "if-feature";
+	break;
+    case YANG_DECL_IDENTITY:
+	s = "identity";
+	break;
+    case YANG_DECL_PRESENCE:
+	s = "presence";
+	break;
+    case YANG_DECL_WHEN:
+	s = "when";
+	break;
+    case YANG_DECL_MIN_ELEMENTS:
+	s = "min-elements";
+	break;
+    case YANG_DECL_MAX_ELEMENTS:
+	s = "max-elements";
+	break;
+    case YANG_DECL_ORDERED_BY:
+	s = "ordered-by";
+	break;
+    case YANG_DECL_KEY:
+	s = "key";
+	break;
+    case YANG_DECL_UNIQUE:
+	s = "unique";
+	break;
+    case YANG_DECL_REFINE:
+	s = "refine";
+	break;
+    case YANG_DECL_DEVIATION:
+	s = "deviation";
+	break;
+    case YANG_DECL_DEVIATE:
+	s = "deviate";
+	break;
+    case YANG_DECL_COMPLEX_TYPE:
+	s = "complex-type";
+	break;
+    case YANG_DECL_ABSTRACT:
+	s = "abstract";
+	break;
+    case YANG_DECL_EXTENDS:
+	s = "extends";
+	break;
+    case YANG_DECL_INSTANCE:
+	s = "instance";
+	break;
+    case YANG_DECL_INSTANCE_LIST:
+	s = "instance-list";
+	break;
+    case YANG_DECL_INSTANCE_TYPE:
+	s = "instance-type";
+	break;
+    case YANG_DECL_FRACTION_DIGITS:
+	s = "fraction-digits";
+	break;
+    case YANG_DECL_SMI_OID:
+	s = "smi:oid";
+	break;
+    case YANG_DECL_SMI_DISPLAY_HINT:
+	s = "smi:display-hint";
+	break;
+    case YANG_DECL_SMI_DEFAULT:
+	s = "smi:default";
+	break;
+    }
+    return s;
+}
+
+char *yangStatusAsString(YangStatus status)
+{
+    char *s = "<STATUS-UNDEFINED>";
+
+    switch (status) {
+    case YANG_STATUS_DEFAULT_CURRENT:
+	s = "<default-current>";
+	break;
+    case YANG_STATUS_CURRENT:
+	s = "current";
+	break;
+    case YANG_STATUS_DEPRECATED:
+	s = "deprecated";
+	break;
+    case YANG_STATUS_OBSOLETE:
+	s = "obsolete";
+	break;
+    }
+    return s;
+}
 
 /*
  * Determines whether a module with a certain name is a YANG module
@@ -153,7 +332,7 @@ YangNode *yangGetFirstChildNode(YangNode *yangNodePtr) {
     }
 }
 
-YangNode *yangGetNextSibling(YangNode *yangNodePtr) {
+YangNode *yangGetNextChildNode(YangNode *yangNodePtr) {
     _YangNode *nodePtr = (_YangNode *)yangNodePtr;
     if (!nodePtr) return NULL;
     nodePtr = nodePtr->nextSiblingPtr;

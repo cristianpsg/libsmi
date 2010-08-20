@@ -43,7 +43,7 @@ typedef enum YangDecl {
     YANG_DECL_RANGE                     = 5,
     YANG_DECL_PATTERN                   = 6,
     YANG_DECL_CONTAINER                 = 7,
-    YANG_DECL_MUST_STATEMENT            = 8,
+    YANG_DECL_MUST                      = 8,
     YANG_DECL_LEAF                      = 9,
     YANG_DECL_LEAF_LIST                 = 10,
     YANG_DECL_LIST                      = 11,
@@ -58,23 +58,23 @@ typedef enum YangDecl {
     YANG_DECL_OUTPUT                    = 20,
     YANG_DECL_ANYXML                    = 21,
     YANG_DECL_INCLUDE                   = 22,
-    YANG_DECL_ORGANIZATION              = 23,                /* organization */
-    YANG_DECL_CONTACT                   = 24,                /* contact */
-    YANG_DECL_NAMESPACE                 = 25,                /* namespace */
-    YANG_DECL_YANGVERSION               = 26,                /* yang-version */
-    YANG_DECL_PREFIX                    = 27,                /* prefix */
-    YANG_DECL_TYPEDEF                   = 28,                /* typedef */
-    YANG_DECL_PATH                      = 29,                /* path */
-    YANG_DECL_LENGTH                    = 30,                /* length */
-    YANG_DECL_TYPE                      = 31,                /* type */
-    YANG_DECL_ERROR_MESSAGE             = 32,                /* error-message */
-    YANG_DECL_ERROR_APP_TAG             = 33,                /* error-app-tag */
-    YANG_DECL_MANDATORY                 = 34,                /* mandatory */
-    YANG_DECL_NOTIFICATION              = 35,                /* notification */
-    YANG_DECL_EXTENSION                 = 36,                /* extention */
-    YANG_DECL_BELONGS_TO                = 37,                /* belongs-to */
-    YANG_DECL_YIN_ELEMENT               = 38,                /* yin-element */
-    YANG_DECL_UNKNOWN_STATEMENT         = 39,                /* user-defined extensions */
+    YANG_DECL_ORGANIZATION              = 23, 
+    YANG_DECL_CONTACT                   = 24, 
+    YANG_DECL_NAMESPACE                 = 25, 
+    YANG_DECL_YANG_VERSION              = 26, 
+    YANG_DECL_PREFIX                    = 27, 
+    YANG_DECL_TYPEDEF                   = 28, 
+    YANG_DECL_PATH                      = 29, 
+    YANG_DECL_LENGTH                    = 30, 
+    YANG_DECL_TYPE                      = 31, 
+    YANG_DECL_ERROR_MESSAGE             = 32, 
+    YANG_DECL_ERROR_APP_TAG             = 33, 
+    YANG_DECL_MANDATORY                 = 34, 
+    YANG_DECL_NOTIFICATION              = 35, 
+    YANG_DECL_EXTENSION                 = 36, 
+    YANG_DECL_BELONGS_TO                = 37, 
+    YANG_DECL_YIN_ELEMENT               = 38, 
+    YANG_DECL_UNKNOWN_STATEMENT         = 39,  /* user-defined extensions */
     YANG_DECL_DESCRIPTION               = 40,
     YANG_DECL_REFERENCE                 = 41,
     YANG_DECL_STATUS                    = 42,
@@ -100,19 +100,20 @@ typedef enum YangDecl {
     YANG_DECL_REFINE                    = 62,
     YANG_DECL_DEVIATION                 = 63,
     YANG_DECL_DEVIATE                   = 64,
-    YANG_DECL_COMPLEX_TYPE              = 65,
-    YANG_DECL_ABSTRACT                  = 66,
-    YANG_DECL_EXTENDS                   = 67,
-    YANG_DECL_INSTANCE                  = 68,
-    YANG_DECL_INSTANCE_LIST             = 69,
-    YANG_DECL_INSTANCE_TYPE             = 70,
-    YANG_DECL_FRACTION_DIGITS           = 71
+    YANG_DECL_FRACTION_DIGITS           = 65,
+    YANG_DECL_COMPLEX_TYPE              = 66,	/* YANG CT EXTENSION */
+    YANG_DECL_ABSTRACT                  = 67,	/* YANG CT EXTENSION */
+    YANG_DECL_EXTENDS                   = 68,	/* YANG CT EXTENSION */
+    YANG_DECL_INSTANCE                  = 69,	/* YANG CT EXTENSION */
+    YANG_DECL_INSTANCE_LIST             = 70,	/* YANG CT EXTENSION */
+    YANG_DECL_INSTANCE_TYPE             = 71,	/* YANG CT EXTENSION */
+    YANG_DECL_SMI_OID			= 73,	/* YANG SMI EXTENSION */
+    YANG_DECL_SMI_DISPLAY_HINT		= 74,	/* YANG SMI EXTENSION */
+    YANG_DECL_SMI_DEFAULT		= 75	/* YANG SMI EXTENSION */
 } YangDecl;
 
 
-extern const char* yandDeclKeyword[];
-
-extern const char* statusKeywords[];
+extern char* yangDeclAsString(YangDecl decl);
 
 typedef char    *YangString;
 
@@ -129,6 +130,8 @@ typedef enum YangStatus {
     YANG_STATUS_DEPRECATED       = 2,
     YANG_STATUS_OBSOLETE         = 5  /* for compatibility with SMI */
 } YangStatus;
+
+extern char *yangStatusAsString(YangStatus status);
 
 /* the truth value of Yang config statement */
 typedef enum YangBoolean {
@@ -173,7 +176,7 @@ extern YangNode *yangGetFirstChildNode(YangNode *yangNodePtr);
  * returns a pointer to the struct YangNode that represents the next sibling node of the yangNodePtr node
  * or NULL if that node does have child nodes.
  */
-extern YangNode *yangGetNextSibling(YangNode *yangNodePtr);
+extern YangNode *yangGetNextChildNode(YangNode *yangNodePtr);
 
 /*
  * returns a pointer to the struct YangNode that represents the first loaded YANG module

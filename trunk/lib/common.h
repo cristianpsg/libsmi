@@ -1,7 +1,7 @@
 /*
  * common.h --
  *
- *      Common functionality.
+ *      Common internal functionality.
  *
  * Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
  *
@@ -17,8 +17,8 @@
 #include "util.h"
 #include "error.h"
 
-char* getModulePath(const char *modulename);
-SmiLanguage getLanguage(FILE *file);
-SmiLanguage guessLanguage(const char *modulename);
+extern char* smiGetModulePath(const char *modulename);
+extern SmiLanguage smiGuessFileLanguage(FILE *file);
+extern SmiLanguage smiGuessModuleLanguage(const char *modulename);
 
 #endif /* _COMMON_H */

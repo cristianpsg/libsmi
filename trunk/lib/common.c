@@ -29,7 +29,8 @@
 
 #include "common.h"
 
-char* getModulePath(const char *modulename) {
+char* smiGetModulePath(const char *modulename)
+{
     char	    *path = NULL, *dir, *smipath;
     char	    sep[2];
     int         i;
@@ -90,7 +91,9 @@ char* getModulePath(const char *modulename) {
 
 #if !defined(_MSC_VER) && !defined(__MINGW32__)
     if (!path && smiHandle->cache && smiHandle->cacheProg) {
-        /* Not found in the path; now try to fetch & cache the module. */
+        /*
+	 * Not found in the path; now try to fetch & cache the module.
+	 */
         int  pid;
         char *argv[4];
         char *cmd;
@@ -119,24 +122,30 @@ char* getModulePath(const char *modulename) {
 }
 
 
-SmiLanguage getLanguage(FILE *file) {
-    int		    ret = 0;
-    int         i, c;    
+SmiLanguage smiGuessFileLanguage(FILE *file)
+{
+    int i, c, ret = 0;
+    
     while ((c = fgetc(file))) {
         if (c == '-' || isupper(c)) {
             ret = SMI_LANGUAGE_SMIV2;
             break;
         } else if (c == '/' || c == 'm' || c == 's')  {
             i = c;
-            while(c = fgetc(file)) { 	 /* check for statement termination */
-                if(i == '}' && c == ';') { /* "};" means sming "}" means yang */
+            while ((c = fgetc(file))) {
+		/*
+		 * Check for statement termination:
+		 *   "};" means sming
+		 *   "}"  means yang
+		 */
+                if (i == '}' && c == ';') {
                     ret = SMI_LANGUAGE_SMING;
                     break;
                 } else if(i == '}' && c != ';') {
                     ret = SMI_LANGUAGE_YANG;
                     break;
                 } else if (c == EOF) {
-                       return SMI_LANGUAGE_UNKNOWN;
+		    return SMI_LANGUAGE_UNKNOWN;
                 }
                 i = c;
             }
@@ -150,13 +159,14 @@ SmiLanguage getLanguage(FILE *file) {
 }
 
 
-SmiLanguage guessLanguage(const char *modulename) {
-    char	    *path = NULL;    
-    FILE	    *file;    
+SmiLanguage smiGuessModuleLanguage(const char *modulename)
+{
+    char *path = NULL;
+    FILE *file;
+    SmiLanguage lang;
     
-    path = getModulePath(modulename);
-    
-    if (!path) {
+    path = smiGetModulePath(modulename);
+    if (! path) {
         return SMI_LANGUAGE_UNKNOWN;
     }
     
@@ -165,5 +175,7 @@ SmiLanguage guessLanguage(const char *modulename) {
         return SMI_LANGUAGE_UNKNOWN;
     }
 
-    return getLanguage(file);    
+    lang = smiGuessFileLanguage(file);
+    fclose(file);
+    return lang;
 }

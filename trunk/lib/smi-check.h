@@ -15,7 +15,7 @@
 #define _CHECK_H
 
 
-#include "data.h"
+#include "smi-data.h"
 #include "smi.h"
 
 

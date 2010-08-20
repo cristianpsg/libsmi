@@ -188,13 +188,14 @@ AC_ARG_ENABLE(smi,
 [  --disable-smi           disable SMIv1/v2 parser support],
 AC_DEFINE(BACKEND_SMI, 1, ""))
 
+AC_DEFINE(BACKEND_YANG, 1, "")
+AC_ARG_ENABLE(yang,
+[  --disable-yang          disable YANG parser support],
+AC_DEFINE(BACKEND_YANG, 1, ""))
+
 AC_ARG_ENABLE(sming,
 [  --enable-sming          enable SMIng parser support],
 AC_DEFINE(BACKEND_SMING, 0, ""))
-
-AC_ARG_ENABLE(yang,
-[  --enable-yang           enable Yang parser support],
-AC_DEFINE(BACKEND_YANG, 0, ""))
 
 AC_PATH_PROG(FLEX, "flex")
 if test -z "${FLEX}" ; then
@@ -311,6 +312,7 @@ lib/smi_class.3
 lib/smi_attribute.3
 lib/smi_event.3
 lib/smi_identity.3
+lib/yang_node.3
 tools/smistrip
 tools/smicache
 tools/smiquery.1
