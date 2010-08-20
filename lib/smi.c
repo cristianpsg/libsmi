@@ -28,7 +28,7 @@
 
 #include "smi.h"
 #include "common.h"
-#include "data.h"
+#include "smi-data.h"
 #include "yang-data.h"
 #include "error.h"
 #include "util.h"
@@ -180,6 +180,485 @@ static Object *getNextChildObject(Node *startNodePtr, Module *modulePtr,
     return objectPtr;
 }
 
+
+/*
+ * Stringification functions. We are using verbose switch statements
+ * since this allows the compiler to check completeness and we like
+ * to handle invalid values gracefully.
+ */
+
+char *smiLanguageAsString(SmiLanguage language)
+{
+    char *s = "<LANGUAGE-UNDEFINED>";
+
+    switch (language) {
+    case SMI_LANGUAGE_UNKNOWN:
+	s = "<unknown>";
+	break;
+    case SMI_LANGUAGE_SMIV1:
+	s = "SMIv1";
+	break;
+    case SMI_LANGUAGE_SMIV2:
+	s = "SMIv2";
+	break;
+    case SMI_LANGUAGE_SMING:
+	s = "SMIng";
+	break;
+    case SMI_LANGUAGE_SPPI:
+	s = "SPPI";
+	break;
+    case SMI_LANGUAGE_YANG:
+	s = "YANG";
+	break;
+    }
+    return s;
+}
+
+char *smiBasetypeAsString(SmiBasetype basetype)
+{
+    char *s = "<BASETYPE-UNDEFINED>";
+
+    switch (basetype) {
+    case SMI_BASETYPE_UNKNOWN:
+	s = "<unknown>";
+ 	break;
+    case SMI_BASETYPE_OCTETSTRING:
+	s = "OctetString";
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	s = "ObjectIdentifier";
+	break;
+    case SMI_BASETYPE_UNSIGNED32:
+        s = "Unsigned32";
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	s = "Integer32";
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+        s = "Unsigned64";
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	s = "Integer64";
+	break;
+    case SMI_BASETYPE_FLOAT32:
+	s = "Float32";
+	break;
+    case SMI_BASETYPE_FLOAT64:
+	s = "Float64";
+	break;
+    case SMI_BASETYPE_FLOAT128:
+	s = "Float128";
+	break;
+    case SMI_BASETYPE_ENUM:
+	s = "Enumeration";
+	break;
+    case SMI_BASETYPE_BITS:
+	s = "Bits";
+	break;
+    case SMI_BASETYPE_POINTER:
+	s = "Pointer";
+	break;
+    }
+    return s;
+}
+
+char *smiStatusAsString(SmiStatus status)
+{
+    char *s = "<STATUS-UNDEFINED>";
+    
+    switch (status) {
+    case SMI_STATUS_UNKNOWN:
+	s = "<unknown>";
+	break;
+    case SMI_STATUS_CURRENT:
+	s = "current";
+	break;
+    case SMI_STATUS_DEPRECATED:
+	s = "deprecated";
+	break;
+    case SMI_STATUS_OBSOLETE:
+	s = "obsolete";
+	break;
+    case SMI_STATUS_MANDATORY:
+	s = "mandatory";
+	break;
+    case SMI_STATUS_OPTIONAL:
+	s = "optional";
+	break;
+    }
+    return s;
+}
+
+char *smiAccessAsString(SmiAccess access)
+{
+    char *s = "<ACCESS-UNDEFINED>";
+
+    switch (access) {
+    case SMI_ACCESS_UNKNOWN:
+	s = "<unknown>";
+	break;
+    case SMI_ACCESS_NOT_IMPLEMENTED:
+	s = "not-implemented";
+	break;
+    case SMI_ACCESS_NOT_ACCESSIBLE:
+	s = "not-accessible";
+	break;
+    case SMI_ACCESS_NOTIFY:
+	s = "accessible-for-notify";
+	break;
+    case SMI_ACCESS_READ_ONLY:
+	s = "read-only";
+	break;
+    case SMI_ACCESS_READ_WRITE:
+	s = "read-write";
+	break;
+    case SMI_ACCESS_INSTALL:
+	s = "install";
+	break;
+    case SMI_ACCESS_INSTALL_NOTIFY:
+	s = "notify";
+	break;
+    case SMI_ACCESS_REPORT_ONLY:
+	s = "report-only";
+	break;
+    case SMI_ACCESS_EVENT_ONLY:
+	s = "event-only";
+	break;
+    }
+    return s;
+}
+
+char *smiNodekindAsString(SmiNodekind nodekind)
+{
+    char *s = "<NODEKIND-UNDEFINED>";
+
+    switch (nodekind) {
+    case SMI_NODEKIND_UNKNOWN:
+	s = "<unknown>";
+	break;
+    case SMI_NODEKIND_NODE:
+	s = "node";
+	break;
+    case SMI_NODEKIND_SCALAR:
+	s = "scalar";
+	break;
+    case SMI_NODEKIND_TABLE:
+        s = "table";
+	break;
+    case SMI_NODEKIND_ROW:
+	s = "row";
+	break;
+    case SMI_NODEKIND_COLUMN:
+	s = "column";
+	break;
+    case SMI_NODEKIND_NOTIFICATION:
+	s = "notification";
+	break;
+    case SMI_NODEKIND_GROUP:
+	s = "group";
+	break;
+    case SMI_NODEKIND_COMPLIANCE:
+	s = "compliance";
+	break;
+    case SMI_NODEKIND_CAPABILITIES:
+	s = "capabilities";
+	break;
+    }
+    return s;
+}
+
+char *smiDeclAsString(SmiDecl decl)
+{
+    char *s = "<DECL-UNDEFINED>";
+
+    switch (decl) {
+    case SMI_DECL_UNKNOWN:
+	s = "<unknown>";
+	break;
+    case SMI_DECL_IMPLICIT_TYPE:
+	s = "<implicit>";
+	break;
+    case SMI_DECL_TYPEASSIGNMENT:
+	s = "<type-assignment>";
+	break;
+    case SMI_DECL_IMPL_SEQUENCEOF:
+	s = "<implicit-sequence-of>";
+	break;
+    case SMI_DECL_VALUEASSIGNMENT:
+	s = "<value-assignment>";
+	break;
+    case SMI_DECL_OBJECTTYPE:
+        s = "OBJECT-TYPE";
+	break;
+    case SMI_DECL_OBJECTIDENTITY:
+	s = "OBJECT-IDENTITY";
+	break;
+    case SMI_DECL_MODULEIDENTITY:
+	s = "MODULE-IDENTITY";
+	break;
+    case SMI_DECL_NOTIFICATIONTYPE:
+	s = "NOTIFICATIONTYPE";
+	break;
+    case SMI_DECL_TRAPTYPE:
+	s = "TRAP-TYPE";
+	break;
+    case SMI_DECL_OBJECTGROUP:
+	s = "OBJECT-GROUP";
+	break;
+    case SMI_DECL_NOTIFICATIONGROUP:
+	s = "NOTIFICATION-GROUP";
+	break;
+    case SMI_DECL_MODULECOMPLIANCE:
+	s = "MODULE-COMPLIANCE";
+	break;
+    case SMI_DECL_AGENTCAPABILITIES:
+	s = "AGENT-CAPABILITIES";
+	break;
+    case SMI_DECL_TEXTUALCONVENTION:
+	s = "TEXTUAL-CONVENTION";
+	break;
+    case SMI_DECL_MACRO:
+	s = "MACRO";
+	break;
+    case SMI_DECL_COMPL_GROUP:
+	s = "GROUP";
+	break;
+    case SMI_DECL_COMPL_OBJECT:
+	s = "OBJECT";
+	break;
+    case SMI_DECL_MODULE:
+	s = "module";
+	break;
+    case SMI_DECL_EXTENSION:
+	s = "extension";
+	break;
+    case SMI_DECL_TYPEDEF:
+	s = "typedef";
+	break;
+    case SMI_DECL_NODE:
+	s = "node";
+	break;
+    case SMI_DECL_SCALAR:
+	s = "scalar";
+	break;
+    case SMI_DECL_TABLE:
+	s = "table";
+	break;
+    case SMI_DECL_ROW:
+	s = "row";
+	break;
+    case SMI_DECL_COLUMN:
+	s = "column";
+	break;
+    case SMI_DECL_NOTIFICATION:
+	s = "notification";
+	break;
+    case SMI_DECL_GROUP:
+	s = "group";
+	break;
+    case SMI_DECL_COMPLIANCE:
+        s = "compliance";
+	break;
+    case SMI_DECL_IDENTITY:
+        s = "identity";
+	break;
+    case SMI_DECL_CLASS:
+	s = "class";
+	break;
+    case SMI_DECL_ATTRIBUTE:
+	s = "attribute";
+	break;
+    case SMI_DECL_EVENT:
+	s = "event";
+	break;
+    case SMI_DECL_IMPL_OBJECT:
+	s = "<implicit object>";
+	break;
+    }
+    return s;
+}
+
+char *smiValueAsString(SmiValue *smiValue,
+		       SmiType *smiType, SmiLanguage smiLanguage)
+{
+    static char    s[1024];
+    char           ss[9];
+    int		   n;
+    unsigned int   i;
+    size_t	   len;
+    SmiNamedNumber *nn;
+    SmiNode        *nodePtr;
+    
+    s[0] = 0;
+    
+    switch (smiValue->basetype) {
+    case SMI_BASETYPE_UNSIGNED32:
+	snprintf(s, sizeof(s), "%lu", smiValue->value.unsigned32);
+	break;
+    case SMI_BASETYPE_INTEGER32:
+	snprintf(s, sizeof(s), "%ld", smiValue->value.integer32);
+	break;
+    case SMI_BASETYPE_UNSIGNED64:
+	snprintf(s, sizeof(s), UINT64_FORMAT, smiValue->value.unsigned64);
+	break;
+    case SMI_BASETYPE_INTEGER64:
+	snprintf(s, sizeof(s), INT64_FORMAT, smiValue->value.integer64);
+	break;
+    case SMI_BASETYPE_FLOAT32:
+    case SMI_BASETYPE_FLOAT64:
+    case SMI_BASETYPE_FLOAT128:
+	break;
+    case SMI_BASETYPE_ENUM:
+	for (nn = smiGetFirstNamedNumber(smiType); nn;
+	     nn = smiGetNextNamedNumber(nn)) {
+	    if (nn->value.value.unsigned32 == smiValue->value.unsigned32)
+		break;
+	}
+	if (nn) {
+	    snprintf(s, sizeof(s), "%s", nn->name);
+	} else {
+	    snprintf(s, sizeof(s), "%ld", smiValue->value.integer32);
+	}
+	break;
+    case SMI_BASETYPE_OCTETSTRING:
+	/* xxx - this may need to be language specific? see dump-smi.c */
+	for (i = 0; i < smiValue->len; i++) {
+	    if (!isprint((int)smiValue->value.ptr[i])) break;
+	}
+	/* xxx - is the choice below reasonable? */
+	if (i == smiValue->len) {
+	    snprintf(s, sizeof(s), "\"%s\"", smiValue->value.ptr);
+	} else {
+	    /* xxx - buffer overrun? */
+            sprintf(s, "0x%*s", 2 * smiValue->len, "");
+            for (i=0; i < smiValue->len; i++) {
+                sprintf(ss, "%02x", smiValue->value.ptr[i]);
+                strncpy(&s[2+2*i], ss, 2);
+            }
+	}
+	break;
+    case SMI_BASETYPE_BITS:
+	/* xxx - return NULL if we run out of space? */
+	switch (smiLanguage) {
+	case SMI_LANGUAGE_SMIV1:
+	    strcpy(s, "'");
+            for (i = 0, len = 1; i < smiValue->len; i++, len = strlen(s)) {
+                snprintf(s + len, sizeof(s)-len-1,
+			 "%02x", smiValue->value.ptr[i]);
+            }
+	    snprintf(s + len, sizeof(s)-len-3, "'H");
+	    break;
+	case SMI_LANGUAGE_SMIV2:
+	case SMI_LANGUAGE_SPPI:
+	    strcpy(s, "{");
+	    for (i = 0, n = 0, len = 1; i < smiValue->len * 8; i++, len = strlen(s)) {
+		if (smiValue->value.ptr[i/8] & (1 << (7-(i%8)))) {
+		    if (n) {
+			snprintf(s + len, sizeof(s)-len-3, "%s", ", ");
+			len = strlen(s);
+		    }
+		    n++;
+		    for (nn = smiGetFirstNamedNumber(smiType); nn;
+			 nn = smiGetNextNamedNumber(nn)) {
+			if (nn->value.value.unsigned32 == i)
+			    break;
+		    }
+		    if (nn) {
+			snprintf(s + len, sizeof(s)-len-1, "%s", nn->name);
+		    }
+		}
+	    }
+	    snprintf(s + len, sizeof(s)-len-2, "}");
+	    break;
+	case SMI_LANGUAGE_SMING:
+	    strcpy(s, "(");
+	    for (i = 0, n = 0, len = 1; i < smiValue->len * 8; i++, len = strlen(s)) {
+		if (smiValue->value.ptr[i/8] & (1 << i%8)) {
+		    if (n) {
+			snprintf(s + len, sizeof(s)-len-3, "%s", ", ");
+			len = strlen(s);
+		    }
+		    n++;
+		    for (nn = smiGetFirstNamedNumber(smiType); nn;
+			 nn = smiGetNextNamedNumber(nn)) {
+			if (nn->value.value.unsigned32 == i)
+			    break;
+		    }
+		    if (nn) {
+			snprintf(s + len, sizeof(s)-len-1, "%s", nn->name);
+		    } else {
+			snprintf(s + len, sizeof(s)-len-1, "%d", i);
+		    }
+		}
+	    }
+	    snprintf(s + len, sizeof(s)-len-2, ")");
+	    break;
+	default:
+	    s[0] = 0;
+	    for (i = 0, n = 0, len = 0; i < smiValue->len * 8; i++, len = strlen(s)) {
+		if (smiValue->value.ptr[i/8] & (1 << i%8)) {
+		    if (n) {
+			snprintf(s + len, sizeof(s)-len-2, "%s", " ");
+			len = strlen(s);
+		    }
+		    n++;
+		    for (nn = smiGetFirstNamedNumber(smiType); nn;
+			 nn = smiGetNextNamedNumber(nn)) {
+			if (nn->value.value.unsigned32 == i)
+			    break;
+		    }
+		    if (nn) {
+			snprintf(s + len, sizeof(s)-len-1, "%s", nn->name);
+		    } else {
+			snprintf(s + len, sizeof(s)-len-1, "%d", i);
+		    }
+		}
+	    }
+	    break;
+	}
+    case SMI_BASETYPE_UNKNOWN:
+	break;
+    case SMI_BASETYPE_POINTER:
+	break;
+    case SMI_BASETYPE_OBJECTIDENTIFIER:
+	/* xxx - return NULL if we run out of space? */
+	nodePtr = smiGetNodeByOID(smiValue->len, smiValue->value.oid);
+	if (nodePtr) {
+	    snprintf(s, sizeof(s), "%s", nodePtr->name);
+	} else {
+	    switch (smiLanguage) {
+	    case SMI_LANGUAGE_SMIV1:
+	    case SMI_LANGUAGE_SMIV2:
+	    case SMI_LANGUAGE_SPPI:
+		strcpy(s, "{");
+		for (i = 0, len = 1; i < smiValue->len; i++, len = strlen(s)) {
+		    if (i && len < sizeof(s)-2) {
+			strcat(s, " ");
+			len++;
+		    }
+		    snprintf(s + len, sizeof(s)-len-2,
+			     "%u", smiValue->value.oid[i]);
+		}
+		snprintf(s + len, sizeof(s)-len-2, "}");
+		break;
+	    default:
+		strcpy(s, "");
+		for (i = 0, len = 0; i < smiValue->len; i++, len = strlen(s)) {
+		    if (i && len < sizeof(s)-2) {
+			strcat(s, ".");
+			len++;
+		    }
+		    snprintf(s + len, sizeof(s)-len-2,
+			     "%u", smiValue->value.oid[i]);
+		}
+		break;
+	    }
+	}
+	break;
+    }
+
+    return s;
+}
 
 
 /*
@@ -416,7 +895,7 @@ char *smiLoadModule(const char *module)
     
     if (!smiHandle) smiInit(NULL);
     
-    lang = guessLanguage(module);
+    lang = smiGuessModuleLanguage(module);
 
 #ifdef BACKEND_YANG
     if (lang == SMI_LANGUAGE_YANG) {

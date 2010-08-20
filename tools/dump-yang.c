@@ -412,9 +412,6 @@ createImportList(SmiModule *smiModule)
 	}
 
 	if (! impModule || ! impName) continue;
-#if 0	
-	fprintf(stderr, "%s\t%s\n", impModule, impName);
-#endif
 	addImport(impModule, impName);
     }
 
@@ -520,7 +517,7 @@ fprintRevisions(FILE *f, int indent, SmiModule *smiModule)
     int i;
     SmiRevision *smiRevision;
     
-    for(i = 0, smiRevision = smiGetFirstRevision(smiModule);
+    for (i = 0, smiRevision = smiGetFirstRevision(smiModule);
 	smiRevision; smiRevision = smiGetNextRevision(smiRevision)) {
 	fprintSegment(f, indent, "revision ", 0);
 	fprint(f, "\"%s\" {\n", getStringDate(smiRevision->date));
@@ -579,7 +576,7 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
     SmiRange       *range;
     SmiNamedNumber *nn;
     char	   s[1024];
-    char	   *tkw, *lkw, *vkw;
+    char	   *lkw, *vkw;
     int		   i = 0;
     int		   len = 4;
 
@@ -595,7 +592,6 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 	    if (! i) {
 		fprint(f, " {\n");
 	    }
-	    tkw = (smiType->basetype == SMI_BASETYPE_BITS) ? "bits" : "enumeration";
 	    lkw = (smiType->basetype == SMI_BASETYPE_BITS) ? "bit" : "enum";
 	    vkw = (smiType->basetype == SMI_BASETYPE_BITS) ? "position" : "value";
 	    sprintf(s, "%s %-*s { %s %s; }\n",
@@ -604,8 +600,8 @@ fprintSubtype(FILE *f, int indent, SmiType *smiType)
 	    fprintSegment(f, indent + INDENT, s, 0);
 	}
     } else {
-	for(i = 0, range = smiGetFirstRange(smiType);
-	    range ; i++, range = smiGetNextRange(range)) {
+	for (i = 0, range = smiGetFirstRange(smiType);
+	     range ; i++, range = smiGetNextRange(range)) {
 	    if (i) {
 		fprint(f, " | ");
 	    } else {
@@ -1009,7 +1005,7 @@ fprintList(FILE *f, int indent, SmiNode *smiNode)
     fprint(f, "\n");
 
     fprintSegment(f, indent, "list", 0);
-    fprint(f, " %s {\n\n", entryNode->name);
+    fprint(f, " %s {\n", entryNode->name);
 
     fprintKey(f, indent + INDENT, entryNode);
     fprintStatus(f, indent + INDENT, entryNode->status);
@@ -1058,10 +1054,10 @@ fprintAugment(FILE *f, int indent, SmiNode *smiNode)
     fprintStatus(f, indent + INDENT, smiNode->status);
     fprintDescription(f, indent + INDENT, smiNode->description);
     fprintReference(f, indent + INDENT, smiNode->reference);
-
-    fprintLeafs(f, indent + INDENT, smiNode);
     fprintObjectIdentifier(f, indent + INDENT,
 			   smiNode->oid, smiNode->oidlen);
+
+    fprintLeafs(f, indent + INDENT, smiNode);
     fprintSegment(f, indent, "}\n\n", 0);
 }
 
@@ -1091,6 +1087,8 @@ fprintContainer(FILE *f, int indent, SmiNode *smiNode)
 
     fprintSegment(f, indent, "container", 0);
     fprint(f, " %s {\n\n", smiNode->name);
+    fprintObjectIdentifier(f, indent + INDENT,
+			   smiNode->oid, smiNode->oidlen);
 
     for (c = 0, childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
@@ -1113,12 +1111,6 @@ fprintContainer(FILE *f, int indent, SmiNode *smiNode)
 			fprintList(f, indent + INDENT, childNode);
 			c++;
 			break;
-#if 0
-		case SMI_INDEX_AUGMENT:
-			fprintAugment(f, indent + INDENT, childNode);
-			c++;
-			break;
-#endif
 		default:
 			break;
 		}
@@ -1126,9 +1118,6 @@ fprintContainer(FILE *f, int indent, SmiNode *smiNode)
 	} 
     }
 
-    fprintObjectIdentifier(f, indent + INDENT,
-			   smiNode->oid, smiNode->oidlen);
-    
     fprintSegment(f, indent, "}\n\n", 0);
 }
 

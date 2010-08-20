@@ -753,7 +753,7 @@ extern int smiInitData(void);
 
 extern void smiFreeData(void);
 
-extern SmiLanguage guessLanguage(const char *modulename);
+extern SmiLanguage smiGuessModuleLanguage(const char *modulename);
 
 extern Module *loadModule(const char *modulename, Parser *parserPtr);
 

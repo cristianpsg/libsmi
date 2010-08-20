@@ -1105,12 +1105,12 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	}
 	if (isIndex) {
 	    fprintf(f, "    guint32  %s[%u];", cName, maxSize);
-	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+2, "");
+	    fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+2), "");
 	    printHeaderTypedefMemberComment(f, smiNode, smiType);
 	    fprintf(f, " */\n");
 	} else {
 	    fprintf(f, "    guint32  *%s;", cName);
-	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	    fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+5), "");
 	    printHeaderTypedefMemberComment(f, smiNode, smiType);
 	    fprintf(f, " */\n");
 	}
@@ -1138,12 +1138,12 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
 	}
 	if (isIndex) {
 	    fprintf(f, "    guchar   %s[%u];", cName, maxSize);
-	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+2, "");
+	    fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+2), "");
 	    printHeaderTypedefMemberComment(f, smiNode, smiType);
 	    fprintf(f, " */\n");
 	} else {
 	    fprintf(f, "    guchar   *%s;", cName);
-	    fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	    fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+5), "");
 	    printHeaderTypedefMemberComment(f, smiNode, smiType);
 	    fprintf(f, " */\n");
 	}
@@ -1165,25 +1165,25 @@ printHeaderTypedefMember(FILE *f, SmiNode *smiNode,
     case SMI_BASETYPE_ENUM:
     case SMI_BASETYPE_INTEGER32:
 	fprintf(f, "    gint32   %s%s;", isIndex ? "" : "*", cName);
-	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5+isIndex, "");
+	fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+5+isIndex), "");
 	printHeaderTypedefMemberComment(f, smiNode, smiType);
 	fprintf(f, " */\n");
 	break;
     case SMI_BASETYPE_UNSIGNED32:
 	fprintf(f, "    guint32  %s%s;", isIndex ? "" : "*", cName);
-	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5+isIndex, "");
+	fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+5+isIndex), "");
 	printHeaderTypedefMemberComment(f, smiNode, smiType);
 	fprintf(f, " */\n");
 	break;
     case SMI_BASETYPE_INTEGER64:
 	fprintf(f, "    gint64   *%s;", cName);
-	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+5), "");
 	printHeaderTypedefMemberComment(f, smiNode, smiType);
 	fprintf(f, " */\n");
 	break;
     case SMI_BASETYPE_UNSIGNED64:
 	fprintf(f, "    guint64  *%s;", cName);
-	fprintf(f, "%*s/* ", maxlen-strlen(cName)+5, "");
+	fprintf(f, "%*s/* ", (int) (maxlen-strlen(cName)+5), "");
 	printHeaderTypedefMemberComment(f, smiNode, smiType);
 	fprintf(f, " */\n");
 	break;
@@ -1443,7 +1443,7 @@ printStubEnumeration(FILE *f, SmiModule *smiModule,
 	char *dEnum = translateUpper(nn->name);
 	fprintf(f, "    { %s_%s_%s,%*s \"%s\" },\n",
 		dModuleName, dName, dEnum,
-		len - strlen(dEnum), "", nn->name);
+		(int) (len - strlen(dEnum)), "", nn->name);
 	xfree(dEnum);
     }
     fprintf(f,

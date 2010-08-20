@@ -41,37 +41,6 @@
 
 
 
-char *smiStringStatus(SmiStatus status)
-{
-    return
-	(status == SMI_STATUS_CURRENT)     ? "current" :
-	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
-	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
-	(status == SMI_STATUS_MANDATORY)   ? "mandatory" :
-	(status == SMI_STATUS_OPTIONAL)    ? "optional" :
-					     "<unknown>";
-}
-
-char *smiStringAccess(SmiAccess access)
-{
-    return
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
-	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
-	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
-	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-						"<unknown>";
-}
-
-char *smiStringLanguage(SmiLanguage language)
-{
-    return
-	(language == SMI_LANGUAGE_UNKNOWN)    ? "<UNKNOWN>" :
-	(language == SMI_LANGUAGE_SMIV1)      ? "SMIv1" :
-	(language == SMI_LANGUAGE_SMIV2)      ? "SMIv2" :
-	(language == SMI_LANGUAGE_SMING)      ? "SMIng" :
-						"<unknown>";
-}
-
 char *smiStringDecl(SmiDecl macro)
 {
     return
@@ -100,41 +69,6 @@ char *smiStringDecl(SmiDecl macro)
         (macro == SMI_DECL_COMPLIANCE)	      ? "compliance" :
                                                 "<unknown>";
 }
-
-char *smiStringNodekind(SmiNodekind nodekind)
-{
-    return
-        (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<UNKNOWN>" :
-        (nodekind == SMI_NODEKIND_NODE)         ? "node" :
-        (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
-        (nodekind == SMI_NODEKIND_TABLE)        ? "table" :
-        (nodekind == SMI_NODEKIND_ROW)          ? "row" :
-        (nodekind == SMI_NODEKIND_COLUMN)       ? "column" :
-        (nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
-        (nodekind == SMI_NODEKIND_GROUP)        ? "group" :
-        (nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
-                                                  "<unknown>";
-}
-
-char *smiStringBasetype(SmiBasetype basetype)
-{
-    return
-        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<UNKNOWN>" :
-        (basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
-        (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
-        (basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :
-        (basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" :
-        (basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" :
-        (basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" :
-        (basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" :
-        (basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" :
-        (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
-        (basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
-        (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
-                                                   "<unknown>";
-}
-
-
 
 int prefix(char *gaga, char *ga)
 {
@@ -232,18 +166,18 @@ void work(int fd, char *buf)
 		    }
 		    if (smiNode->nodekind != SMI_NODEKIND_UNKNOWN) {
 			print(fd, 113, "%s",
-			      smiStringNodekind(smiNode->nodekind));
+			      smiNodekindAsString(smiNode->nodekind));
 		    }
 		    if (smiNode->format) {
 			print(fd, 114, "%s", smiNode->format);
 		    }
 		    if (smiNode->status != SMI_STATUS_UNKNOWN) {
 			print(fd, 115, "%s",
-			      smiStringStatus(smiNode->status));
+			      smiStatusAsString(smiNode->status));
 		    }
 		    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
 			print(fd, 116, "%s",
-			      smiStringAccess(smiNode->access));
+			      smiAccessAsString(smiNode->access));
 		    }
 		} else {
 		    while (elem) {
@@ -273,7 +207,7 @@ void work(int fd, char *buf)
 			} else if (prefix("nodekind", elem)) {
 			    if (smiNode->nodekind != SMI_NODEKIND_UNKNOWN) {
 				print(fd, 113, "%s",
-				      smiStringNodekind(smiNode->nodekind));
+				      smiNodekindAsString(smiNode->nodekind));
 			    } else {
 				print(fd, 413, "no nodekind");
 			    }
@@ -286,14 +220,14 @@ void work(int fd, char *buf)
 			} else if (prefix("status", elem)) {
 			    if (smiNode->status != SMI_STATUS_UNKNOWN) {
 				print(fd, 115, "%s",
-				      smiStringStatus(smiNode->status));
+				      smiStatusAsString(smiNode->status));
 			    } else {
 				print(fd, 415, "no status");
 			    }
 			} else if (prefix("access", elem)) {
 			    if (smiNode->access != SMI_ACCESS_UNKNOWN) {
 				print(fd, 116, "%s",
-				      smiStringAccess(smiNode->access));
+				      smiAccessAsString(smiNode->access));
 			    } else {
 				print(fd, 416, "no access");
 			    }

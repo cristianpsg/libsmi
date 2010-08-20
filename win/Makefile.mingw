@@ -58,11 +58,11 @@ INCLUDES = -I. -I../lib -I../tools
 ##
 LIBSMIOBJS = \
 	win.o \
-	data.o \
-	check.o \
 	error.o \
 	util.o \
 	smi.o \
+	smi-data.o \
+	smi-check.o \
 	parser-smi.o \
 	scanner-smi.o \
 	parser-sming.o \

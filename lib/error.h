@@ -8,13 +8,13 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: error.h,v 1.19 2000/12/15 13:52:29 strauss Exp $
+ * @(#) $Id$
  */
 
 #ifndef _ERROR_H
 #define _ERROR_H
 
-#include "data.h"
+#include "smi-data.h"
 #include "errormacros.h" /* list of error macros generated from error.c */
 
 

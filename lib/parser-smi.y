@@ -33,8 +33,8 @@
 #include "error.h"
 #include "parser-smi.h"
 #include "scanner-smi.h"
-#include "data.h"
-#include "check.h"
+#include "smi-data.h"
+#include "smi-check.h"
 #include "util.h"
     
 #ifdef HAVE_DMALLOC_H
@@ -181,6 +181,7 @@ checkModuleName(Parser *parserPtr, Module *modulePtr)
 	     smiPrintError(parserPtr, ERR_PIB_MODULENAME_SUFFIX, name);
 	 }
 	 break;
+     case SMI_LANGUAGE_YANG:
      case SMI_LANGUAGE_UNKNOWN:
 	 break;
      }

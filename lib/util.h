@@ -57,7 +57,7 @@ extern int smiIsPath(const char *s);
 time_t timegm(struct tm *tm);
 #endif
 
-int smiTypeDerivedFrom(Type *typePtr, Type *parentTypePtr);
+extern int smiTypeDerivedFrom(Type *typePtr, Type *parentTypePtr);
 
 #endif /* _UTIL_H */
 

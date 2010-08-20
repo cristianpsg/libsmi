@@ -30,105 +30,6 @@
 
 
 
-static char *smiStringStatus(SmiStatus status)
-{
-    return
-	(status == SMI_STATUS_CURRENT)     ? "current" :
-	(status == SMI_STATUS_DEPRECATED)  ? "deprecated" :
-	(status == SMI_STATUS_OBSOLETE)    ? "obsolete" :
-	(status == SMI_STATUS_MANDATORY)   ? "mandatory" :
-	(status == SMI_STATUS_OPTIONAL)    ? "optional" :
-					     "<UNDEFINED>";
-}
-
-static char *smiStringAccess(SmiAccess access)
-{
-    return
-	(access == SMI_ACCESS_NOT_ACCESSIBLE) ? "not-accessible" :
-	(access == SMI_ACCESS_NOTIFY)	      ? "accessible-for-notify" :
-	(access == SMI_ACCESS_READ_ONLY)      ? "read-only" :
-	(access == SMI_ACCESS_READ_WRITE)     ? "read-write" :
-						"<UNDEFINED>";
-}
-
-static char *smiStringLanguage(SmiLanguage language)
-{
-    return
-	(language == SMI_LANGUAGE_UNKNOWN)    ? "<unknown>" :
-	(language == SMI_LANGUAGE_SMIV1)      ? "SMIv1" :
-	(language == SMI_LANGUAGE_SMIV2)      ? "SMIv2" :
-	(language == SMI_LANGUAGE_SMING)      ? "SMIng" :
-						"<UNDEFINED>";
-}
-
-static char *smiStringDecl(SmiDecl macro)
-{
-    return
-        (macro == SMI_DECL_UNKNOWN)           ? "<unknown>" :
-        (macro == SMI_DECL_IMPLICIT_TYPE)     ? "<implicit>" :
-        (macro == SMI_DECL_TYPEASSIGNMENT)    ? "<type-assignment>" :
-        (macro == SMI_DECL_IMPL_SEQUENCEOF)   ? "<implicit-sequence-of>" :
-        (macro == SMI_DECL_VALUEASSIGNMENT)   ? "<value-assignment>" :
-        (macro == SMI_DECL_OBJECTTYPE)        ? "OBJECT-TYPE" :
-        (macro == SMI_DECL_OBJECTIDENTITY)    ? "OBJECT-IDENTITY" :
-        (macro == SMI_DECL_MODULEIDENTITY)    ? "MODULE-IDENTITY" :
-        (macro == SMI_DECL_NOTIFICATIONTYPE)  ? "NOTIFICATIONTYPE" :
-        (macro == SMI_DECL_TRAPTYPE)          ? "TRAP-TYPE" :
-        (macro == SMI_DECL_OBJECTGROUP)       ? "OBJECT-GROUP" :
-        (macro == SMI_DECL_NOTIFICATIONGROUP) ? "NOTIFICATION-GROUP" :
-        (macro == SMI_DECL_MODULECOMPLIANCE)  ? "MODULE-COMPLIANCE" :
-        (macro == SMI_DECL_AGENTCAPABILITIES) ? "AGENT-CAPABILITIES" :
-        (macro == SMI_DECL_TEXTUALCONVENTION) ? "TEXTUAL-CONVENTION" :
-        (macro == SMI_DECL_MODULE)	      ? "module" :
-        (macro == SMI_DECL_TYPEDEF)	      ? "typedef" :
-        (macro == SMI_DECL_NODE)	      ? "node" :
-        (macro == SMI_DECL_SCALAR)	      ? "scalar" :
-        (macro == SMI_DECL_TABLE)	      ? "table" :
-        (macro == SMI_DECL_ROW)		      ? "row" :
-        (macro == SMI_DECL_COLUMN)	      ? "column" :
-        (macro == SMI_DECL_NOTIFICATION)      ? "notification" :
-        (macro == SMI_DECL_GROUP)	      ? "group" :
-        (macro == SMI_DECL_COMPLIANCE)	      ? "compliance" :
-        (macro == SMI_DECL_IMPL_OBJECT)	      ? "<implicit object>" :
-                                                "<UNDEFINED>";
-}
-
-static char *smiStringNodekind(SmiNodekind nodekind)
-{
-    return
-        (nodekind == SMI_NODEKIND_UNKNOWN)      ? "<unknown>" :
-        (nodekind == SMI_NODEKIND_NODE)         ? "node" :
-        (nodekind == SMI_NODEKIND_SCALAR)       ? "scalar" :
-        (nodekind == SMI_NODEKIND_TABLE)        ? "table" :
-        (nodekind == SMI_NODEKIND_ROW)          ? "row" :
-        (nodekind == SMI_NODEKIND_COLUMN)       ? "column" :
-        (nodekind == SMI_NODEKIND_NOTIFICATION) ? "notification" :
-        (nodekind == SMI_NODEKIND_GROUP)        ? "group" :
-        (nodekind == SMI_NODEKIND_COMPLIANCE)   ? "compliance" :
-        (nodekind == SMI_NODEKIND_CAPABILITIES) ? "capabilities" :
-                                                  "<UNDEFINED>";
-}
-
-static char *smiStringBasetype(SmiBasetype basetype)
-{
-    return
-        (basetype == SMI_BASETYPE_UNKNOWN)           ? "<unknown>" :
-        (basetype == SMI_BASETYPE_OCTETSTRING)       ? "OctetString" :
-        (basetype == SMI_BASETYPE_OBJECTIDENTIFIER)  ? "ObjectIdentifier" :
-        (basetype == SMI_BASETYPE_UNSIGNED32)        ? "Unsigned32" :
-        (basetype == SMI_BASETYPE_INTEGER32)         ? "Integer32" :
-        (basetype == SMI_BASETYPE_UNSIGNED64)        ? "Unsigned64" :
-        (basetype == SMI_BASETYPE_INTEGER64)         ? "Integer64" :
-        (basetype == SMI_BASETYPE_FLOAT32)           ? "Float32" :
-        (basetype == SMI_BASETYPE_FLOAT64)           ? "Float64" :
-        (basetype == SMI_BASETYPE_FLOAT128)          ? "Float128" :
-        (basetype == SMI_BASETYPE_ENUM)              ? "Enumeration" :
-        (basetype == SMI_BASETYPE_BITS)              ? "Bits" :
-                                                   "<UNDEFINED>";
-}
-
-
-
 static char *format(const char *s)
 {
     static char ss[20000];
@@ -243,7 +144,7 @@ int main(int argc, char *argv[])
 		    printf(" Description: %s\n", format(module->description));
 		if (module->reference)
 		    printf("   Reference: %s\n", format(module->reference));
-		printf("    Language: %s\n", smiStringLanguage(module->language));
+		printf("    Language: %s\n", smiLanguageAsString(module->language));
 		printf(" Conformance: %d\n", module->conformance);
 		printf("      Loaded: %s\n", smiIsLoaded(name) ? "yes" : "no");
 
@@ -287,8 +188,8 @@ int main(int argc, char *argv[])
 		    printf("     Default: %s\n", smiRenderValue(&node->value, type,
 								SMI_RENDER_ALL));
 		if (node->decl != SMI_DECL_UNKNOWN)
-		    printf(" Declaration: %s\n", smiStringDecl(node->decl));
-		printf("    NodeKind: %s\n", smiStringNodekind(node->nodekind));
+		    printf(" Declaration: %s\n", smiDeclAsString(node->decl));
+		printf("    NodeKind: %s\n", smiNodekindAsString(node->nodekind));
 		if (node->nodekind == SMI_NODEKIND_ROW) {
 		    printf ("   Creatable: %s\n", node->create ? "yes" : "no");
 		    printf ("     Implied: %s\n", node->implied ? "yes" : "no");
@@ -315,9 +216,9 @@ int main(int argc, char *argv[])
 		    printf("\n");
 		}
 		if (node->access != SMI_ACCESS_UNKNOWN)
-		    printf("      Access: %s\n", smiStringAccess(node->access));
+		    printf("      Access: %s\n", smiAccessAsString(node->access));
 		if (node->status != SMI_STATUS_UNKNOWN)
-		    printf("      Status: %s\n", smiStringStatus(node->status));
+		    printf("      Status: %s\n", smiStatusAsString(node->status));
 		if (node->format)
 		    printf("      Format: %s\n", format(node->format));
 		if (node->units)
@@ -374,7 +275,7 @@ int main(int argc, char *argv[])
 			}
 			if (refinement->access != SMI_ACCESS_UNKNOWN) {
 			    printf("      Access: %s\n",
-				   smiStringAccess(refinement->access));
+				   smiAccessAsString(refinement->access));
 			}
 			if (refinement->description)
 			    printf(" Description: %s\n",
@@ -419,7 +320,7 @@ int main(int argc, char *argv[])
 	    if (type) {
 		parenttype = smiGetParentType(type);
 		printf("        Type: %s\n", smiRenderType(type, SMI_RENDER_ALL));
-		printf("    Basetype: %s\n", smiStringBasetype(type->basetype));
+		printf("    Basetype: %s\n", smiBasetypeAsString(type->basetype));
 		if (parenttype)
 		    printf(" Parent Type: %s\n",
 			   smiRenderType(parenttype, SMI_RENDER_ALL));
@@ -450,9 +351,9 @@ int main(int argc, char *argv[])
 			printf("\n");
 		    }
 		}
-		printf(" Declaration: %s\n", smiStringDecl(type->decl));
+		printf(" Declaration: %s\n", smiDeclAsString(type->decl));
 		if (type->status != SMI_STATUS_UNKNOWN)
-		    printf("      Status: %s\n", smiStringStatus(type->status));
+		    printf("      Status: %s\n", smiStatusAsString(type->status));
 		if (type->format)
 		    printf("      Format: %s\n", format(type->format));
 		if (type->units)
@@ -467,7 +368,7 @@ int main(int argc, char *argv[])
 	    if (macro) {
 		printf("       Macro: %s\n", format(macro->name));
 		if (macro->status != SMI_STATUS_UNKNOWN)
-		    printf("      Status: %s\n", smiStringStatus(macro->status));
+		    printf("      Status: %s\n", smiStatusAsString(macro->status));
 		if (macro->description)
 		    printf(" Description: %s\n", format(macro->description));
 		if (macro->reference)

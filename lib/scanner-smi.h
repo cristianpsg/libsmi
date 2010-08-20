@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: scanner-smi.h,v 1.4 1999/05/31 11:58:34 strauss Exp $
+ * @(#) $Id$
  */
 
 #ifndef _SCANNER_SMI_H
@@ -21,7 +21,9 @@
 #define YY_NO_UNPUT
 
 extern char *yytext;
+#if 0
 extern int yyleng;
+#endif
 
 extern int smiEnterLexRecursion(FILE *file);
 extern void smiLeaveLexRecursion();

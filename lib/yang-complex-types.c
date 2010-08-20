@@ -29,6 +29,8 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+
 #include "error.h"
 #include "yang-complex-types.h"
 
@@ -37,19 +39,61 @@
  */
 extern Parser *currentParser;
 
-static const int parents_complex_type[]= {YANG_DECL_MODULE, YANG_DECL_SUBMODULE, YANG_DECL_CONTAINER, YANG_DECL_LIST, YANG_DECL_RPC, YANG_DECL_INPUT,
-                                YANG_DECL_OUTPUT, YANG_DECL_NOTIFICATION};
+static const int parents_complex_type[] = {
+    YANG_DECL_MODULE, YANG_DECL_SUBMODULE, YANG_DECL_CONTAINER,
+    YANG_DECL_LIST, YANG_DECL_RPC, YANG_DECL_INPUT,
+    YANG_DECL_OUTPUT, YANG_DECL_NOTIFICATION
+};
 static const int parents_complex_type_len = 8;
 
-static const int parents_instance[]= {YANG_DECL_MODULE, YANG_DECL_SUBMODULE, YANG_DECL_CONTAINER, YANG_DECL_LIST, YANG_DECL_GROUPING,
-                                YANG_DECL_INPUT, YANG_DECL_OUTPUT, YANG_DECL_NOTIFICATION, YANG_DECL_AUGMENT, YANG_DECL_CHOICE, YANG_DECL_CASE,
-                                YANG_DECL_COMPLEX_TYPE, YANG_DECL_INSTANCE, YANG_DECL_INSTANCE_LIST};
+static const int parents_instance[] = {
+    YANG_DECL_MODULE, YANG_DECL_SUBMODULE, YANG_DECL_CONTAINER,
+    YANG_DECL_LIST, YANG_DECL_GROUPING, YANG_DECL_INPUT,
+    YANG_DECL_OUTPUT, YANG_DECL_NOTIFICATION, YANG_DECL_AUGMENT,
+    YANG_DECL_CHOICE, YANG_DECL_CASE, YANG_DECL_COMPLEX_TYPE,
+    YANG_DECL_INSTANCE, YANG_DECL_INSTANCE_LIST
+};
 static const int parents_instance_len = 14;
+
+
+static int
+listContains(int value, const int* list, const int listLen)
+{
+    int i;
+    for (i = 0; i < listLen; i++) {
+        if (value == list[i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int
+isComplexTypeParent(int parentNode)
+{
+    return listContains(parentNode,
+			parents_complex_type,
+			parents_complex_type_len);
+}
+
+static int
+isInstanceParent(int parentNode)
+{
+    return listContains(parentNode, parents_instance, parents_instance_len);
+}
+
+static int
+isInstanceTypeParent(int parentNode)
+{
+    return (parentNode == YANG_DECL_INSTANCE
+	    || parentNode == YANG_DECL_INSTANCE_LIST);
+}
+
 
 /*
  * Create a complex type info
  */
-void createComplexTypeInfo(_YangNode *node) {
+static void createComplexTypeInfo(_YangNode *node) {
     _YangComplexTypeInfo *infoPtr = smiMalloc(sizeof(_YangComplexTypeInfo));
 
     node->ctInfo             = infoPtr;
@@ -71,14 +115,14 @@ _YangNode* addCTExtNode(_YangNode* module, int nodeType, int isUnique, _YangNode
         switch (nodeType) {
             case YANG_DECL_COMPLEX_TYPE:
                 if (!isComplexTypeParent(parent->export.nodeKind)) {
-                    smiPrintError(currentParser, ERR_BAD_PARENT, "complex-type", yandDeclKeyword[parent->export.nodeKind]);
+                    smiPrintError(currentParser, ERR_BAD_PARENT, "complex-type", yangDeclAsString(parent->export.nodeKind));
                 }
                 createComplexTypeInfo(ret);
                 break;
             case YANG_DECL_INSTANCE:
             case YANG_DECL_INSTANCE_LIST:
                 if (!isInstanceParent(parent->export.nodeKind)) {
-                    smiPrintError(currentParser, ERR_BAD_PARENT, (nodeType == YANG_DECL_INSTANCE ? "instance" : "instance-list"), yandDeclKeyword[parent->export.nodeKind]);
+                    smiPrintError(currentParser, ERR_BAD_PARENT, (nodeType == YANG_DECL_INSTANCE ? "instance" : "instance-list"), yangDeclAsString(parent->export.nodeKind));
                 }
                 break;
             case YANG_DECL_INSTANCE_TYPE:
@@ -87,13 +131,13 @@ _YangNode* addCTExtNode(_YangNode* module, int nodeType, int isUnique, _YangNode
                         smiPrintError(currentParser, ERR_BAD_PARENT, "instance-type", "type with the argument not instance-identifier");
                     }
                 } else if (!isInstanceTypeParent(parent->export.nodeKind)) {
-                    smiPrintError(currentParser, ERR_BAD_PARENT, "instance-type", yandDeclKeyword[parent->export.nodeKind]);
+                    smiPrintError(currentParser, ERR_BAD_PARENT, "instance-type", yangDeclAsString(parent->export.nodeKind));
                 }
                 break;
             case YANG_DECL_EXTENDS:
             case YANG_DECL_ABSTRACT:
                 if (parent->export.nodeKind != YANG_DECL_COMPLEX_TYPE) {
-                    smiPrintError(currentParser, ERR_BAD_PARENT, (nodeType == YANG_DECL_ABSTRACT ? "abstract" : "extends"), yandDeclKeyword[parent->export.nodeKind]);
+                    smiPrintError(currentParser, ERR_BAD_PARENT, (nodeType == YANG_DECL_ABSTRACT ? "abstract" : "extends"), yangDeclAsString(parent->export.nodeKind));
                 }
                 break;
         }
@@ -301,23 +345,3 @@ void expandInstance(_YangNode* nodePtr, int  forced) {
     }
 }
 
-int listContains(int value, const int* list, const int listLen) {
-    int i;
-    for (i = 0; i < listLen; i++)
-        if (value == list[i]) {
-            return 1;
-        }
-    return 0;
-}
-
-int isComplexTypeParent(int parentNode) {
-    return listContains(parentNode, parents_complex_type, parents_complex_type_len);
-}
-
-int isInstanceParent(int parentNode) {
-    return listContains(parentNode, parents_instance, parents_instance_len);
-}
-
-int isInstanceTypeParent(int parentNode) {
-    return (parentNode == YANG_DECL_INSTANCE || parentNode == YANG_DECL_INSTANCE_LIST);
-}

@@ -175,7 +175,7 @@ void checkUnknownStatement() {
         _YangNode *childPtr = NULL;
         for (childPtr = topNode()->firstChildPtr; childPtr; childPtr = childPtr->nextSiblingPtr) {
             if (childPtr->export.nodeKind != YANG_DECL_UNKNOWN_STATEMENT) {
-                smiPrintErrorAtLine(currentParser, ERR_UNEXPECTED_KEYWORD, childPtr->line, yandDeclKeyword[childPtr->export.nodeKind]);
+                smiPrintErrorAtLine(currentParser, ERR_UNEXPECTED_KEYWORD, childPtr->line, yangDeclAsString(childPtr->export.nodeKind));
             }
         }
     }
@@ -747,7 +747,7 @@ statusStatement:	statusKeyword status stmtEnd
 			{
                             uniqueNodeKind(topNode(), YANG_DECL_STATUS);
                             setStatus(topNode(), $2);
-                            node = addYangNode(statusKeywords[$2], YANG_DECL_STATUS, topNode());
+                            node = addYangNode(yangStatusAsString($2), YANG_DECL_STATUS, topNode());
 			}
         	;
 
@@ -762,10 +762,10 @@ namespaceStatement:	namespaceKeyword string stmtEnd
 			}
             ;
 
-yangVersionStatement:  yangversionKeyword yangVersion stmtEnd
+yangVersionStatement:   yangversionKeyword yangVersion stmtEnd
 		  	{
                             if (!thisModuleInfoPtr->version) {
-                                node = addYangNode($2, YANG_DECL_YANGVERSION, topNode());
+                                node = addYangNode($2, YANG_DECL_YANG_VERSION, topNode());
                                 thisModuleInfoPtr->version = node->export.value;
                             } else {
                                 smiPrintError(currentParser, ERR_REDEFINED_YANGVERSION, NULL);
@@ -986,7 +986,7 @@ typedefStatement:   typedefKeyword identifierStr
                 '}'
                 {                                
                     if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
-                        smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+                        smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yangDeclAsString(YANG_DECL_TYPE), "1");
                     }
                     pop();
                 }
@@ -1455,7 +1455,7 @@ instanceStatement: instanceKeyword identifierStr
                 {
                     checkUnknownStatement();
                     if (topNode()->export.nodeKind != YANG_DECL_UNKNOWN_STATEMENT && getCardinality(topNode(), YANG_DECL_INSTANCE_TYPE) == 0) {
-                        smiPrintErrorAtLine(currentParser, ERR_WRONG_CARDINALITY, topNode()->line, yandDeclKeyword[YANG_DECL_INSTANCE_TYPE], "1");
+                        smiPrintErrorAtLine(currentParser, ERR_WRONG_CARDINALITY, topNode()->line, yangDeclAsString(YANG_DECL_INSTANCE_TYPE), "1");
                     }
                     pop();
                 }
@@ -1494,7 +1494,7 @@ instanceListStatement: instanceListKeyword identifierStr
                 {
                     checkUnknownStatement();
                     if (topNode()->export.nodeKind != YANG_DECL_UNKNOWN_STATEMENT && getCardinality(topNode(), YANG_DECL_INSTANCE_TYPE) == 0) {
-                        smiPrintErrorAtLine(currentParser, ERR_WRONG_CARDINALITY, topNode()->line, yandDeclKeyword[YANG_DECL_INSTANCE_TYPE], "1");
+                        smiPrintErrorAtLine(currentParser, ERR_WRONG_CARDINALITY, topNode()->line, yangDeclAsString(YANG_DECL_INSTANCE_TYPE), "1");
                     }
                     pop();
                 }
@@ -1604,7 +1604,7 @@ containerSubstatement:	ifFeatureStatement
 
 mustStatement: mustKeyword string
 		{
-                    node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
+                    node = addYangNode($2, YANG_DECL_MUST, topNode());
                     pushNode(node);
 		}
 		'{'
@@ -1616,7 +1616,7 @@ mustStatement: mustKeyword string
 	|
 		mustKeyword string ';'
 		{
-                    node = addYangNode($2, YANG_DECL_MUST_STATEMENT, topNode());
+                    node = addYangNode($2, YANG_DECL_MUST, topNode());
 		}
 	;
 
@@ -1680,7 +1680,7 @@ leafStatement: leafKeyword identifierStr
 			'}'
 			{
                             if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
-                                smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+                                smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yangDeclAsString(YANG_DECL_TYPE), "1");
                             }
                             pop();
 			}
@@ -1719,7 +1719,7 @@ leaf_listStatement: leaf_listKeyword identifierStr
 			'}'
 			{
                             if (getCardinality(topNode(), YANG_DECL_TYPE) != 1) {
-                                    smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yandDeclKeyword[YANG_DECL_TYPE], "1");
+				smiPrintError(currentParser, ERR_WRONG_CARDINALITY, yangDeclAsString(YANG_DECL_TYPE), "1");
                             }
                             pop();
 			}

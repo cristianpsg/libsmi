@@ -123,7 +123,7 @@ time_t checkDate(Parser *parserPtr, char *date)
             smiPrintError(parserPtr, ERR_DATE_IN_FUTURE, date);
 	    }
 	}
-}
+    }
     
     return (anytime == (time_t) -1) ? 0 : anytime;
 }
@@ -136,7 +136,7 @@ void validateInclude(_YangNode *module, _YangNode *extModule) {
             if (strcmp(node->export.value, module->export.value)) {
                 smiPrintError(currentParser, ERR_SUBMODULE_BELONGS_TO_ANOTHER_MODULE, extModule->export.value, module->export.value);
             }
-        } else if (module->export.nodeKind = YANG_DECL_SUBMODULE) {
+        } else if (module->export.nodeKind == YANG_DECL_SUBMODULE) {
             _YangNode* node1 = findChildNodeByType(module, YANG_DECL_BELONGS_TO);
             if (strcmp(node->export.value, node1->export.value)) {
                 smiPrintError(currentParser, ERR_SUBMODULE_BELONGS_TO_ANOTHER_MODULE, extModule->export.value, node1->export.value);
@@ -406,9 +406,9 @@ void applyRefine(_YangNode* target, _YangNode* refinement, int* allowedStmts, in
     
     while (child) {
         if (!isAllowedStatement(child->export.nodeKind, allowedStmts, len)) {
-            smiPrintErrorAtLine(currentParser, ERR_INVALID_REFINE, child->line, yandDeclKeyword[target->export.nodeKind], target->export.value, yandDeclKeyword[child->export.nodeKind]);
+            smiPrintErrorAtLine(currentParser, ERR_INVALID_REFINE, child->line, yangDeclAsString(target->export.nodeKind), target->export.value, yangDeclAsString(child->export.nodeKind));
         } else {
-            if (child->export.nodeKind == YANG_DECL_MUST_STATEMENT) {
+            if (child->export.nodeKind == YANG_DECL_MUST) {
                 copySubtree(target, child, YANG_NODE_REFINED, 0, refinement->line, 0);
             } else if (child->export.nodeKind == YANG_DECL_DESCRIPTION || 
                 child->export.nodeKind == YANG_DECL_REFERENCE) {
@@ -460,13 +460,13 @@ void applyRefinements(_YangNode* node) {
                         smiPrintErrorAtLine(currentParser, ERR_CT_REFINE, refinement->line, targetNodePtr->export.value);
                     } else {
                         if (targetNodePtr->export.nodeKind == YANG_DECL_CONTAINER) {
-                            int types[] = {YANG_DECL_MUST_STATEMENT, YANG_DECL_PRESENCE, YANG_DECL_CONFIG, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
+                            int types[] = {YANG_DECL_MUST, YANG_DECL_PRESENCE, YANG_DECL_CONFIG, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
                             applyRefine(targetNodePtr, refinement, types, 4);
                         } else if (targetNodePtr->export.nodeKind == YANG_DECL_LEAF) {
-                            int types[] = {YANG_DECL_MUST_STATEMENT, YANG_DECL_DEFAULT, YANG_DECL_CONFIG, YANG_DECL_MANDATORY, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
+                            int types[] = {YANG_DECL_MUST, YANG_DECL_DEFAULT, YANG_DECL_CONFIG, YANG_DECL_MANDATORY, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
                             applyRefine(targetNodePtr, refinement, types, 6);
                         } else if (targetNodePtr->export.nodeKind == YANG_DECL_LEAF_LIST || targetNodePtr->export.nodeKind == YANG_DECL_LIST) {
-                            int types[] = {YANG_DECL_MUST_STATEMENT, YANG_DECL_CONFIG, YANG_DECL_MIN_ELEMENTS, YANG_DECL_MAX_ELEMENTS, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
+                            int types[] = {YANG_DECL_MUST, YANG_DECL_CONFIG, YANG_DECL_MIN_ELEMENTS, YANG_DECL_MAX_ELEMENTS, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
                             applyRefine(targetNodePtr, refinement, types, 6);
                         } else if (targetNodePtr->export.nodeKind == YANG_DECL_CHOICE) {
                             int types[] = {YANG_DECL_DEFAULT, YANG_DECL_CONFIG, YANG_DECL_MANDATORY, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
@@ -478,10 +478,10 @@ void applyRefinements(_YangNode* node) {
                             int types[] = {YANG_DECL_CONFIG, YANG_DECL_MANDATORY, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE};
                             applyRefine(targetNodePtr, refinement, types, 4);
                         } else if (targetNodePtr->export.nodeKind == YANG_DECL_INSTANCE) {
-                            int types[] = {YANG_DECL_CONFIG, YANG_DECL_MANDATORY, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE, YANG_DECL_MUST_STATEMENT};
+                            int types[] = {YANG_DECL_CONFIG, YANG_DECL_MANDATORY, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE, YANG_DECL_MUST};
                             applyRefine(targetNodePtr, refinement, types, 5);
                         } else if (targetNodePtr->export.nodeKind == YANG_DECL_INSTANCE_LIST) {
-                            int types[] = {YANG_DECL_CONFIG, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE, YANG_DECL_MUST_STATEMENT, YANG_DECL_MIN_ELEMENTS, YANG_DECL_MAX_ELEMENTS};
+                            int types[] = {YANG_DECL_CONFIG, YANG_DECL_DESCRIPTION, YANG_DECL_REFERENCE, YANG_DECL_MUST, YANG_DECL_MIN_ELEMENTS, YANG_DECL_MAX_ELEMENTS};
                             applyRefine(targetNodePtr, refinement, types, 6);
                         }
                     }
@@ -508,7 +508,7 @@ int expandGroupings(_YangNode *node) {
         if (node->info) {
             _YangGroupingInfo *info = (_YangGroupingInfo*)node->info;
             if (info->state == YANG_PARSING_IN_PROGRESS) {
-                smiPrintErrorAtLine(currentParser, ERR_CYCLIC_REFERENCE_CHAIN, node->line, yandDeclKeyword[node->export.nodeKind], node->export.value);
+                smiPrintErrorAtLine(currentParser, ERR_CYCLIC_REFERENCE_CHAIN, node->line, yangDeclAsString(node->export.nodeKind), node->export.value);
                 return 0;
             }
             return 1;
@@ -623,7 +623,7 @@ void resolveReferences(_YangNode* node) {
         nodeKind == YANG_DECL_EXTENDS ||
         nodeKind == YANG_DECL_INSTANCE_TYPE) {            
             _YangIdentifierRefInfo* identifierRef = (_YangIdentifierRefInfo*)node->info;
-            if (!identifierRef->resolvedNode) {
+            if (identifierRef && !identifierRef->resolvedNode) {
                 _YangNode *reference = resolveReference(node->parentPtr, map[nodeKind], identifierRef->prefix, identifierRef->identifierName);
                 if (!reference) {                    
                     smiPrintErrorAtLine(currentParser, ERR_REFERENCE_NOT_RESOLVED, node->line, identifierRef->prefix, identifierRef->identifierName);
@@ -666,7 +666,7 @@ void resolveReferences(_YangNode* node) {
                                         cur = info->resolvedNode;
                                 } else {
                                     if (info->marker == node) {
-                                        smiPrintErrorAtLine(currentParser, ERR_CYCLIC_REFERENCE_CHAIN, node->parentPtr->line, yandDeclKeyword[map[nodeKind]], node->parentPtr->export.value);
+                                        smiPrintErrorAtLine(currentParser, ERR_CYCLIC_REFERENCE_CHAIN, node->parentPtr->line, yangDeclAsString(map[nodeKind]), node->parentPtr->export.value);
                                         info->loop = 1;
                                     }
                                     break;
@@ -758,7 +758,6 @@ void expandAugment(_YangNode* node, int allowInstance) {
             isAnotherModule = 0;
         }
         while (child) {
-            int isAllowed = 1;
             if (isAnotherModule) {
                 if (isMandatory(child)) {
                     smiPrintErrorAtLine(currentParser, ERR_AUGMENTATION_BY_MANDATORY_NODE, node->line);
@@ -780,10 +779,10 @@ void expandAugment(_YangNode* node, int allowInstance) {
              * If the target node is a choice node, the "case" statement can be used within the "augment" statement.
              */
             if (child->export.nodeKind == YANG_DECL_ANYXML) {
-                smiPrintErrorAtLine(currentParser, ERR_NODE_KIND_NOT_ALLOWED, child->line, yandDeclKeyword[YANG_DECL_ANYXML], child->export.value, yandDeclKeyword[targetNodePtr->export.nodeKind], targetNodePtr->export.value);
+                smiPrintErrorAtLine(currentParser, ERR_NODE_KIND_NOT_ALLOWED, child->line, yangDeclAsString(YANG_DECL_ANYXML), child->export.value, yangDeclAsString(targetNodePtr->export.nodeKind), targetNodePtr->export.value);
             } else if (isDataDefNode(child)) {
                 if (targetNodePtr->export.nodeKind == YANG_DECL_CHOICE) {
-                    smiPrintErrorAtLine(currentParser, ERR_NODE_KIND_NOT_ALLOWED, child->line, yandDeclKeyword[child->export.nodeKind], child->export.value, yandDeclKeyword[targetNodePtr->export.nodeKind], targetNodePtr->export.value);
+                    smiPrintErrorAtLine(currentParser, ERR_NODE_KIND_NOT_ALLOWED, child->line, yangDeclAsString(child->export.nodeKind), child->export.value, yangDeclAsString(targetNodePtr->export.nodeKind), targetNodePtr->export.value);
                 }
                 /*
                  *  If the target node is in the external module we should check whether adding this node does not break uniqueness
@@ -792,7 +791,7 @@ void expandAugment(_YangNode* node, int allowInstance) {
                 copySubtree(targetNodePtr, child, YANG_NODE_EXPANDED_AUGMENT, isAnotherModule, 0, 0);
             } else if (child->export.nodeKind == YANG_DECL_CASE) {
                 if (targetNodePtr->export.nodeKind != YANG_DECL_CHOICE) {
-                    smiPrintErrorAtLine(currentParser, ERR_NODE_KIND_NOT_ALLOWED, child->line, yandDeclKeyword[child->export.nodeKind], child->export.value, yandDeclKeyword[targetNodePtr->export.nodeKind], targetNodePtr->export.value);
+                    smiPrintErrorAtLine(currentParser, ERR_NODE_KIND_NOT_ALLOWED, child->line, yangDeclAsString(child->export.nodeKind), child->export.value, yangDeclAsString(targetNodePtr->export.nodeKind), targetNodePtr->export.value);
                 }
                 copySubtree(targetNodePtr, child, YANG_NODE_EXPANDED_AUGMENT, isAnotherModule, 0, 0);
             }
@@ -872,7 +871,7 @@ int isValidDeviation(int nodeType, int deviationNodeType) {
                 return 1;
             }
             break;
-        case YANG_DECL_MUST_STATEMENT:
+        case YANG_DECL_MUST:
             if (nodeType == YANG_DECL_LEAF || nodeType == YANG_DECL_CHOICE
                     || nodeType == YANG_DECL_CONTAINER || nodeType == YANG_DECL_LIST
                     || nodeType == YANG_DECL_LEAF_LIST || nodeType == YANG_DECL_INSTANCE ||
@@ -902,26 +901,26 @@ void expandDeviation(_YangNode* node) {
                 if (isSingleton(child)) {
                     _YangNode* existingNode = findChildNodeByType(targetNodePtr, child->export.nodeKind);
                     if (existingNode) {
-                        smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_ADD, child->line, yandDeclKeyword[child->export.nodeKind]);
+                        smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_ADD, child->line, yangDeclAsString(child->export.nodeKind));
                         return;
                     }
                 }
                 if (!isValidDeviation(targetNodePtr->export.nodeKind, child->export.nodeKind)) {
-                    smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_TYPE, child->line, yandDeclKeyword[child->export.nodeKind], yandDeclKeyword[targetNodePtr->export.nodeKind]);
+                    smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_TYPE, child->line, yangDeclAsString(child->export.nodeKind), yangDeclAsString(targetNodePtr->export.nodeKind));
                     return;
                 }
                 copySubtree(targetNodePtr, child, YANG_NODE_DEVIATION, 0, child->line, 0);
             } else if (!strcmp(deviateNode->export.value, "delete")) {
                 _YangNode* old = findChildNodeByTypeAndValue(targetNodePtr, child->export.nodeKind, child->export.value);
                 if (!old) {
-                    smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_DEL, child->line, yandDeclKeyword[child->export.nodeKind]);
+                    smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_DEL, child->line, yangDeclAsString(child->export.nodeKind));
                 } else {
                     removeYangNode(targetNodePtr, old);
                 }
             } else  if (!strcmp(deviateNode->export.value, "replace")) {
                 _YangNode* old = findChildNodeByType(targetNodePtr, child->export.nodeKind);
                 if (!old) {
-                    smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_DEL, child->line, yandDeclKeyword[child->export.nodeKind]);
+                    smiPrintErrorAtLine(currentParser, ERR_BAD_DEVIATION_DEL, child->line, yangDeclAsString(child->export.nodeKind));
                 } else {
                     removeYangNode(targetNodePtr, old);
                     copySubtree(targetNodePtr, child, YANG_NODE_DEVIATION, 0, child->line, 0);
@@ -1119,14 +1118,17 @@ void typeHandler(_YangNode* nodePtr) {
     if (nodePtr->nodeType != YANG_NODE_ORIGINAL) return;
     /* resolve built-in type */
     _YangNode* curNode = nodePtr;
-    while (curNode->typeInfo->baseTypeNodePtr != NULL) {
+    while (curNode->typeInfo && curNode->typeInfo->baseTypeNodePtr != NULL) {
         curNode = findChildNodeByType(curNode->typeInfo->baseTypeNodePtr, YANG_DECL_TYPE);
         if (curNode == nodePtr) {
             /* loop */
             return;
         }
     }
-    nodePtr->typeInfo->builtinType = curNode->typeInfo->builtinType;
+
+    if (nodePtr->typeInfo && curNode->typeInfo) {
+	nodePtr->typeInfo->builtinType = curNode->typeInfo->builtinType;
+    }
 
     /* Validate union subtypes.
        A member type can be of any built-in or derived type, except it MUST NOT be one of the built-in types "empty" or "leafref". */
@@ -1138,7 +1140,7 @@ void typeHandler(_YangNode* nodePtr) {
         }
     }
 
-    if (!nodePtr->typeInfo->baseTypeNodePtr) {
+    if (nodePtr->typeInfo && !nodePtr->typeInfo->baseTypeNodePtr) {
         switch (nodePtr->typeInfo->builtinType) {
             case YANG_TYPE_ENUMERATION:
                 if (!findChildNodeByType(nodePtr, YANG_DECL_ENUM)) {
@@ -1177,48 +1179,57 @@ void typeHandler(_YangNode* nodePtr) {
     while (curNode) {
         switch (curNode->export.nodeKind) {
             case YANG_DECL_RANGE:
-                if (!isNumericalType(nodePtr->typeInfo->builtinType)) {
+                if (nodePtr->typeInfo
+		    && !isNumericalType(nodePtr->typeInfo->builtinType)) {
                    smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "range");
                 }
                 break;
             case YANG_DECL_FRACTION_DIGITS:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_DECIMAL64) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_DECIMAL64) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "fraction-digits");
                 }
                 break;
             case YANG_DECL_LENGTH:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_STRING &&
-                    nodePtr->typeInfo->builtinType != YANG_TYPE_BINARY) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_STRING
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_BINARY) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "length");
                 }
                 break;
             case YANG_DECL_PATTERN:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_STRING) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_STRING) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "pattern");
                 }
                 break;
             case YANG_DECL_ENUM:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_ENUMERATION) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_ENUMERATION) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "enum");
                 }
                 break;
             case YANG_DECL_BIT:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_BITS) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_BITS) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "bit");
                 }
                 break;
             case YANG_DECL_PATH:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_LEAFREF) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_LEAFREF) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "path");
                 }
                 break;
             case YANG_DECL_BASE:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_IDENTITY) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_IDENTITY) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "base");
                 }
                 break;
             case YANG_DECL_TYPE:
-                if (nodePtr->typeInfo->builtinType != YANG_TYPE_UNION) {
+                if (nodePtr->typeInfo
+		    && nodePtr->typeInfo->builtinType != YANG_TYPE_UNION) {
                     smiPrintErrorAtLine(currentParser, ERR_RESTRICTION_NOT_ALLOWED, curNode->line, "union");
                 }
                 break;
