@@ -520,7 +520,7 @@ static void printSVGObject(GraphNode *node, int *classNr,
     SmiElement *smiElement;
     float textXOffset, textYOffset, xOrigin, yOrigin;
     size_t length = 1;
-    char *tooltip, *tooltipTable, *tooltipEntry;
+    char *tooltip, *tooltipTable = NULL, *tooltipEntry = NULL;
     const char *blankLine = "\\n-- -- --\\n";
     
     if (!node) return;

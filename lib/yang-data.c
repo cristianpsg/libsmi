@@ -1229,14 +1229,12 @@ void freeList(_YangList* listPtr) {
 }
 
 void freeUniqueList(_YangList* listPtr) {
-    _YangList* tmp;
     while (listPtr) {
         YangList *il = (YangList*)listPtr->data;
         freeIdentiferList(il);
         smiFree(listPtr->additionalInfo);
         listPtr = listPtr->next;
     }   
-    freeList(tmp);
 }
 
 _YangList* processUniqueList(_YangNode *nodePtr, YangList* il) {
