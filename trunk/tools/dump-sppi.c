@@ -357,7 +357,7 @@ static void createImportList(SmiModule *smiModule)
 	}
 
 	if ((smiNode->value.basetype == SMI_BASETYPE_OBJECTIDENTIFIER) &&
-	    (!strcmp(smiNode->value.value.ptr, "zeroDotZero"))) {
+	    (!strcmp((char *) smiNode->value.value.ptr, "zeroDotZero"))) {
 	    addImport("SNMPv2-SMI", "zeroDotZero");
 	}
     }
