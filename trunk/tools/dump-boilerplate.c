@@ -23,9 +23,30 @@
 #include "smi.h"
 #include "smidump.h"
 
+static int xml = 0;
 
 static int moduleLen = 0;
 static int identifierLen = 0;
+
+static void fprintParagraph(FILE *f, char *txt)
+{
+    if (xml) {
+	fprintf(f, "<t>\n%s</t>\n", txt);
+    } else {
+	fprintf(f, "%s\n\n", txt);
+    }
+}
+
+
+static void fprintComment(FILE *f, char *txt)
+{
+    if (xml) {
+	fprintf(f, "<!--\n%s-->\n", txt);
+    } else {
+	fprintf(f, "%s\n\n", txt);
+    }
+}
+
 
 static void fprintBoilerplate(FILE *f, int modc, SmiModule **modv)
 {
@@ -49,11 +70,11 @@ static void fprintBoilerplate(FILE *f, int modc, SmiModule **modv)
     }
 
     if (roobjs == 0 && rwobjs == 0) {
-	fprintf(f,
+	fprintParagraph(f,
 		"This module does not define any management objects.  Instead, it\n"
 		"defines a set of textual conventions which may be used by other MIB\n"
-		"modules to define management objects.\n"
-		"\n"
+			"modules to define management objects.\n");
+	fprintParagraph(f,
 		"Meaningful security considerations can only be written in the MIB\n"
 		"modules that define management objects.  This document has therefore\n"
 		"no impact on the security of the Internet.\n");
@@ -61,57 +82,63 @@ static void fprintBoilerplate(FILE *f, int modc, SmiModule **modv)
     }
 
     if (rwobjs) {
-	fprintf(f,
-		"# if you have any read-write and/or read-create objects, please\n"
-		"# describe their specific sensitivity or vulnerability.\n"
-		"# RFC 2669 has a very good example.\n"
-		"\n"
+	fprintComment(f,
+		    "# if you have any read-write and/or read-create objects, please\n"
+		    "# describe their specific sensitivity or vulnerability.\n"
+		    "# RFC 2669 has a very good example.\n");
+	fprintParagraph(f,
 		"There are a number of management objects defined in this MIB module\n"
 		"with a MAX-ACCESS clause of read-write and/or read-create.  Such\n"
 		"objects may be considered sensitive or vulnerable in some network\n"
 		"environments.  The support for SET operations in a non-secure\n"
 		"environment without proper protection can have a negative effect on\n"
 		"network operations.  These are the tables and objects and their\n"
-		"sensitivity/vulnerability:\n"
-		"\n");
+		"sensitivity/vulnerability:");
+
+	if (xml) fprintf(f, "<t><list style=\"symbols\">\n");
 	for (i = 0; i < modc; i++) {
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_ANY);
 		 smiNode;
 		 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 		if (smiNode->access == SMI_ACCESS_READ_WRITE
 		    && smiNode->name) {
-		    fprintf(f, "  %-*s # explain sensitivity\n",
-			    identifierLen, smiNode->name);
+		    if (xml) {
+			fprintf(f, "<t>%s: [TBD] explain sensitivity</t>\n",
+				smiNode->name);
+		    } else {
+			fprintf(f, "  %-*s # explain sensitivity\n",
+				identifierLen, smiNode->name);
+		    }
 		}
 	    }
 	    fprintf(f, "\n");
 	}
+	if (xml) fprintf(f, "</list></t>\n");
     } else {
-	fprintf(f,
+	fprintParagraph(f,
 		"There are no management objects defined in this MIB module that have\n"
 		"a MAX-ACCESS clause of read-write and/or read-create.  So, if this\n"
 		"MIB module is implemented correctly, then there is no risk that an\n"
 		"intruder can alter or create any management objects of this MIB\n"
-		"module via direct SNMP SET operations.\n"
-		"\n");
+		"module via direct SNMP SET operations.\n");
     }
 
     if (roobjs) {
-	fprintf(f,
+	fprintComment(f,
 		"# for all MIB modules you must evaluate whether any readable objects\n"
 		"# are sensitive or vulnerable (for instance, if they might reveal\n"
 		"# customer information or violate personal privacy laws such as\n"
-		"# those of the European Union if exposed to unathorized parties)\n"
-		"\n"
+  	        "# those of the European Union if exposed to unathorized parties)\n");
+	fprintParagraph(f,
 		"Some of the readable objects in this MIB module (i.e., objects with a\n"
 		"MAX-ACCESS other than not-accessible) may be considered sensitive or\n"
 		"vulnerable in some network environments.  It is thus important to\n"
 		"control even GET and/or NOTIFY access to these objects and possibly\n"
 		"to even encrypt the values of these objects when sending them over\n"
 		"the network via SNMP.  These are the tables and objects and their\n"
-		"sensitivity/vulnerability:\n"
-		"\n");
+		"sensitivity/vulnerability:\n");
 
+	if (xml) fprintf(f, "<t><list style=\"symbols\">\n");
 	for (i = 0; i < modc; i++) {
 	    for (smiNode = smiGetFirstNode(modv[i], SMI_NODEKIND_ANY);
 		 smiNode;
@@ -120,33 +147,38 @@ static void fprintBoilerplate(FILE *f, int modc, SmiModule **modv)
 		     || smiNode->access == SMI_ACCESS_READ_ONLY
 		     || smiNode->access == SMI_ACCESS_NOTIFY)
 		    && smiNode->name) {
-		    fprintf(f, "  %-*s # explain sensitivity\n",
-			    identifierLen, smiNode->name);
+		    if (xml) {
+			fprintf(f, "<t>%s: [TBD] explain sensitivity</t>\n",
+			    smiNode->name);
+		    } else {
+			fprintf(f, "  %-*s # explain sensitivity\n",
+				identifierLen, smiNode->name);
+		    }
 		}
 	    }
 	    fprintf(f, "\n");
 	}
+	if (xml) fprintf(f, "</list></t>\n");
 
-	fprintf(f,
+	fprintParagraph(f,
 		"SNMP versions prior to SNMPv3 did not include adequate security.\n"
 		"Even if the network itself is secure (for example by using IPsec),\n"
 		"even then, there is no control as to who on the secure network is\n"
 		"allowed to access and GET/SET (read/change/create/delete) the objects\n"
-		"in this MIB module.\n"
-		"\n"
+		"in this MIB module.\n");
+	fprintParagraph(f,
 		"It is RECOMMENDED that implementers consider the security features as\n"
 		"provided by the SNMPv3 framework (see [RFC3410], section 8),\n"
 		"including full support for the SNMPv3 cryptographic mechanisms (for\n"
-		"authentication and privacy).\n"
-		"\n"
-		"Further, deployment of SNMP versions prior to SNMPv3 is NOT\n"
+		"authentication and privacy).\n");
+	fprintParagraph(f,
+                "Further, deployment of SNMP versions prior to SNMPv3 is NOT\n"
 		"RECOMMENDED.  Instead, it is RECOMMENDED to deploy SNMPv3 and to\n"
 		"enable cryptographic security.  It is then a customer/operator\n"
 		"responsibility to ensure that the SNMP entity giving access to an\n"
 		"instance of this MIB module is properly configured to give access to\n"
 		"the objects only to those principals (users) that have legitimate\n"
-		"rights to indeed GET or SET (change/create/delete) them.\n"
-		"\n");
+		"rights to indeed GET or SET (change/create/delete) them.\n");
     }
 }
 
@@ -226,6 +258,12 @@ static void dumpBoilerplate(int modc, SmiModule **modv, int flags,
 
 void initBoilerplate()
 {
+    static SmidumpDriverOption opt[] = {
+	{ "xml", OPT_FLAG, &xml, 0,
+	  "generate xml2rfc input"},
+        { 0, OPT_END, 0, 0 }
+    };
+    
    
     static SmidumpDriver driver = {
 	"boilerplate",
@@ -233,7 +271,7 @@ void initBoilerplate()
 	SMI_FLAG_NODESCR,
 	0,
 	"generate security considerations boilerplate text",
-	NULL,
+	opt,
 	NULL
     };
     
