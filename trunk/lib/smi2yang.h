@@ -22,7 +22,10 @@
 extern "C" {
 #endif
 
-extern YangNode *yangGetModuleFromSmiModule(SmiModule *smiModule);
+#define SMI_TO_YANG_FLAG_SMI_EXTENSIONS	0x01
+
+extern YangNode *yangGetModuleFromSmiModule(SmiModule *smiModule,
+					    int flags);
 
 #ifdef __cplusplus
 }

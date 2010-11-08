@@ -30,11 +30,6 @@
  * - reconsider the format to pattern translation
  */
 
-/*
- * TODO:
- * - how to translate SMI status values to YANG config values?
- */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -69,7 +64,7 @@ static const char *convertType[] = {
     "",		  "OctetString", NULL,	     "binary",
     "",		  "Enumeration", NULL,	     "enumeration",
     "",		  "Bits",	 NULL,	     "bits",
-    "",		  "ObjectIdentifier", "yang-types", "object-identifier",
+    "",		  "ObjectIdentifier", "ietf-yang-types", "object-identifier",
 
     /*
      * We want to do these translations as well in order to retire the
@@ -81,21 +76,21 @@ static const char *convertType[] = {
     "SNMPv2-SMI", "Integer64",  NULL,        "int64",
     "SNMPv2-SMI", "Unsigned32", NULL,        "uint32",
     "SNMPv2-SMI", "Opaque",    NULL,	     "binary",
-    "SNMPv2-SMI", "Counter32", "yang-types", "counter32",
-    "SNMPv2-SMI", "Counter64", "yang-types", "counter64",
-    "SNMPv2-SMI", "Gauge32",   "yang-types", "gauge32",
-    "SNMPv2-SMI", "TimeTicks", "yang-types", "timeticks",
-    "SNMPv2-SMI", "IpAddress", "inet-types", "ipv4-address",
+    "SNMPv2-SMI", "Counter32", "ietf-yang-types", "counter32",
+    "SNMPv2-SMI", "Counter64", "ietf-yang-types", "counter64",
+    "SNMPv2-SMI", "Gauge32",   "ietf-yang-types", "gauge32",
+    "SNMPv2-SMI", "TimeTicks", "ietf-yang-types", "timeticks",
+    "SNMPv2-SMI", "IpAddress", "ietf-inet-types", "ipv4-address",
 
     /*
      * And we like to do the same for RFC1155-SMI definitions...
      */
 
     "RFC1155-SMI", "Opaque",    NULL,	     "binary",
-    "RFC1155-SMI", "Counter",   "yang-types", "counter32",
-    "RFC1155-SMI", "Gauge",     "yang-types", "gauge32",
-    "RFC1155-SMI", "TimeTicks", "yang-types", "timeticks",
-    "RFC1155-SMI", "IpAddress", "inet-types", "ipv4-address",
+    "RFC1155-SMI", "Counter",   "ietf-yang-types", "counter32",
+    "RFC1155-SMI", "Gauge",     "ietf-yang-types", "gauge32",
+    "RFC1155-SMI", "TimeTicks", "ietf-yang-types", "timeticks",
+    "RFC1155-SMI", "IpAddress", "ietf-inet-types", "ipv4-address",
     
     /*
      * We also translate frequently used SNMPv2-TCs that have a YANG
@@ -103,9 +98,9 @@ static const char *convertType[] = {
      * the ISO profile used by date-and-time.
      */
 
-    "SNMPv2-TC",  "PhysAddress", "yang-types", "phys-address",
-    "SNMPv2-TC",  "MacAddress",  "ieee-types", "mac-address",
-    "SNMPv2-TC",  "TimeStamp",   "yang-types", "timestamp",
+    "SNMPv2-TC",  "PhysAddress", "ietf-yang-types", "phys-address",
+    "SNMPv2-TC",  "MacAddress",  "ietf-ieee-types", "mac-address",
+    "SNMPv2-TC",  "TimeStamp",   "ietf-yang-types", "timestamp",
 
     NULL, NULL, NULL, NULL
 };
@@ -153,6 +148,12 @@ typedef struct Import {
 
 static Import *importList = NULL;
 
+/*
+ * The current translation flags. May be different between translation
+ * calls.
+ */
+
+static int smi2yangFlags;
 
 static char*
 getStringDate(time_t t)
@@ -231,11 +232,9 @@ guessNicePrefix(const char *moduleName)
     int i, d;
 
     char *specials[] = {
-	"yang-smi", "smi",
-	"yang-types", "yang",
-	"inet-types", "inet",
-	"ieee-types", "ieee",
-	"SNMPv2-TC", "smiv2",
+	"ietf-yang-smiv2", "smiv2",
+	"ietf-yang-types", "yang",
+	"ietf-inet-types", "inet",
 	NULL, NULL
     };
 
@@ -356,7 +355,7 @@ createImportList(SmiModule *smiModule)
     /*
      * Add import for the smi:oid extension and friends.
      */
-    addImport("yang-smi", "smi");
+    addImport("ietf-yang-smiv2", "smiv2");
 
     /*
      * Add import for yang-types that were originally ASN.1
@@ -367,7 +366,7 @@ createImportList(SmiModule *smiModule)
 	 smiType; smiType = smiGetNextType(smiType)) {
 	SmiType *parentType = smiGetParentType(smiType);
 	if (parentType && strcmp(parentType->name, "ObjectIdentifier") == 0) {
-	    addImport("yang-types", "object-identifier");
+	    addImport("ietf-yang-types", "object-identifier");
 	}
     }
 
@@ -381,7 +380,7 @@ createImportList(SmiModule *smiModule)
 	    smiType = smiGetParentType(smiType);
 	}
 	if (smiType && strcmp(smiType->name, "ObjectIdentifier") == 0) {
-	    addImport("yang-types", "object-identifier");
+	    addImport("ietf-yang-types", "object-identifier");
 	}
     }
 }
@@ -553,7 +552,11 @@ static void
 smi2yangDefault(_YangNode *node, SmiValue *smiValue, SmiType *smiType)
 {
     char *s;
-    
+
+    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
+	return;
+    }
+
     if (smiValue->basetype != SMI_BASETYPE_UNKNOWN) {
 	s = smiValueAsString(smiValue, smiType, SMI_LANGUAGE_YANG);
 	if (s) {
@@ -618,10 +621,30 @@ smi2yangConfig(_YangNode *node, SmiAccess access)
 
 
 static void
+smi2yangAccess(_YangNode *node, SmiAccess access)
+{
+    char *s;
+
+    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
+	return;
+    }
+
+    s = smiAccessAsString(access);
+    if (s) {
+	(void) addYangNode(s, YANG_DECL_SMI_MAX_ACCESS, node);
+    }
+}
+
+
+static void
 smi2yangOID(_YangNode *node, SmiSubid *oid, unsigned int oidlen)
 {
     char *s;
     
+    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
+	return;
+    }
+
     s = smiRenderOID(oidlen, oid, 0);
     (void) addYangNode(s, YANG_DECL_SMI_OID, node);
     smiFree(s);
@@ -631,6 +654,10 @@ smi2yangOID(_YangNode *node, SmiSubid *oid, unsigned int oidlen)
 static void
 smi2yangFormat(_YangNode *node, const char *format)
 {
+    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
+	return;
+    }
+
     if (format) {
 	(void) addYangNode(format, YANG_DECL_SMI_DISPLAY_HINT, node);
     }
@@ -807,6 +834,7 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
 	smi2yangSubtype(typeNode, smiType);
     }
     smi2yangUnits(node, smiNode->units);
+#if 0
     if (! (flags & FLAG_CONFIG_NONE)) {
 	if (flags & FLAG_CONFIG_FALSE) {
 	    config = SMI_ACCESS_READ_ONLY;
@@ -815,11 +843,13 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
 	}
 	smi2yangConfig(node, config);
     }
+#endif
     smi2yangStatus(node, smiNode->status);
     smi2yangDescription(node, smiNode->description);
     smi2yangReference(node, smiNode->reference);
     smi2yangFormat(node, smiNode->format);
     smi2yangDefault(node, &smiNode->value, smiType);
+    smi2yangAccess(node, smiNode->access);
     smi2yangOID(node, smiNode->oid, smiNode->oidlen);
 }
 
@@ -840,7 +870,7 @@ smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, int flags)
     s = smi2yangPath(smiNode);
     (void) addYangNode(s, YANG_DECL_PATH, typeNode);
     smiFree(s);
-    
+#if 0    
     if (! (flags & FLAG_CONFIG_NONE)) {
 	if (flags & FLAG_CONFIG_FALSE) {
 	    config = SMI_ACCESS_READ_ONLY;
@@ -850,6 +880,7 @@ smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, int flags)
 	}
 	smi2yangConfig(leafNode, config);
     }
+#endif
     smi2yangStatus(leafNode, smiNode->status);
     smi2yangDescription(leafNode, "[Automagically generated leafref leaf.]");
 }
@@ -980,7 +1011,7 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
     SmiNode *childNode;
 
     node = addYangNode(smiNode->name, YANG_DECL_CONTAINER, yangModulePtr);
-
+    (void) addYangNode("false", YANG_DECL_CONFIG, node);
     smi2yangOID(node, smiNode->oid, smiNode->oidlen);
 
     for (childNode = smiGetFirstChildNode(smiNode);
@@ -1142,10 +1173,12 @@ smi2yangNotifications(SmiModule *smiModule, _YangNode *yangModulePtr)
 }
 
 
-YangNode *yangGetModuleFromSmiModule(SmiModule *smiModule)
+YangNode *yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
 {
     _YangNode       *yangModulePtr = NULL;
     _YangModuleInfo *yangModuleInfoPtr = NULL;
+
+    smi2yangFlags = flags;
 
     createImportList(smiModule);
 

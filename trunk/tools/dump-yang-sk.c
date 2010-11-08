@@ -25,6 +25,7 @@
 #include "fprint.h"
 #include "fortopat.h"
 
+static int sflag = 0;           /* generate smi: extensions */
 static int INDENT = 2;		/* indent factor */
 
 static
@@ -275,7 +276,11 @@ dumpYangSK(int modc, SmiModule **modv, int flags, char *output)
 	yangModule = NULL;
 	if (smiModule->language == SMI_LANGUAGE_SMIV1
 	    ||smiModule->language == SMI_LANGUAGE_SMIV2) {
-	    yangModule = yangGetModuleFromSmiModule(smiModule);
+	    int smi2yangFlags = 0;
+	    if (sflag) {
+		smi2yangFlags |= SMI_TO_YANG_FLAG_SMI_EXTENSIONS;
+	    }
+	    yangModule = yangGetModuleFromSmiModule(smiModule, smi2yangFlags);
 	}
 	if (smiModule->language == SMI_LANGUAGE_YANG) {
 	    yangModule = yangGetModule(smiModule->name);
@@ -298,6 +303,8 @@ dumpYangSK(int modc, SmiModule **modv, int flags, char *output)
 void initYangSK()
 {
     static SmidumpDriverOption opt[] = {
+	{ "smi-extensions", OPT_FLAG, &sflag, 0,
+	  "generate smi extensions (smi to yang translation)" },
 	{ "indent", OPT_INT, &INDENT, 0,
 	  "indentation (default 2)" },
         { 0, OPT_END, 0, 0 }
@@ -308,7 +315,7 @@ void initYangSK()
 	dumpYangSK,
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_SPPI,
-	"YANG (draft-ietf-netmod-yang-13)",
+	"YANG (RFC 6020, RFC 6021)",
 	opt,
 	NULL
     };
