@@ -255,7 +255,7 @@ fprintYangModule(FILE *f, SmiModule *smiModule, YangNode *yangModule, int flags)
 }
 
 static void
-dumpYangSK(int modc, SmiModule **modv, int flags, char *output)
+dumpYang(int modc, SmiModule **modv, int flags, char *output)
 {
     SmiModule   *smiModule;
     YangNode    *yangModule;
@@ -300,7 +300,7 @@ dumpYangSK(int modc, SmiModule **modv, int flags, char *output)
 
 
 
-void initYangSK()
+void initYang()
 {
     static SmidumpDriverOption opt[] = {
 	{ "smi-extensions", OPT_FLAG, &sflag, 0,
@@ -311,8 +311,8 @@ void initYangSK()
     };
 
     static SmidumpDriver driver = {
-	"yang-sk",
-	dumpYangSK,
+	"yang",
+	dumpYang,
 	0,
 	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_SPPI,
 	"YANG (RFC 6020, RFC 6021)",

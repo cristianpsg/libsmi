@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
     initXsd();
     initCompliances();
 #ifdef BACKEND_YANG
-    initYangSK();
+    initYang();
 #endif
     initBoilerplate();
     
