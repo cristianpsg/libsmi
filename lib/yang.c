@@ -267,13 +267,16 @@ char *yangDeclAsString(YangDecl decl)
 	s = "fraction-digits";
 	break;
     case YANG_DECL_SMI_OID:
-	s = "smi:oid";
+	s = "smiv2:oid";
 	break;
     case YANG_DECL_SMI_DISPLAY_HINT:
-	s = "smi:display-hint";
+	s = "smiv2:display-hint";
 	break;
     case YANG_DECL_SMI_DEFAULT:
-	s = "smi:default";
+	s = "smiv2:default";
+	break;
+    case YANG_DECL_SMI_MAX_ACCESS:
+	s = "smiv2:max-access";
 	break;
     }
     return s;
