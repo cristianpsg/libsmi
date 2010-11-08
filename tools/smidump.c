@@ -369,7 +369,6 @@ int main(int argc, char *argv[])
     initXml();
     initXsd();
     initCompliances();
-    initYang();
 #ifdef BACKEND_YANG
     initYangSK();
 #endif

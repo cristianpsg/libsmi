@@ -105,7 +105,6 @@ extern void initScli(void);
 extern void initXsd(void);
 extern void initSizes(void);
 extern void initCompliances(void);
-extern void initYang(void);
 extern void initYangSK(void);
 extern void initBoilerplate(void);
 

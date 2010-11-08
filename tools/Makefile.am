@@ -41,7 +41,7 @@ dump-svg-script.h: dump-svg-script.js
 dump-svg.o: dump-svg-script.h
 
 smidump_SOURCES		= smidump.c smidump.h shhopt.c \
-			  dump-sming.c dump-smi.c dump-yang.c dump-yang-sk.c \
+			  dump-sming.c dump-smi.c dump-yang-sk.c \
 			  dump-imports.c dump-types.c dump-tree.c \
 			  dump-mosy.c dump-corba.c dump-netsnmp.c \
 			  dump-jax.c dump-xml.c dump-identifiers.c \
