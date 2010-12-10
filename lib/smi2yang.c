@@ -99,7 +99,7 @@ static const char *convertType[] = {
      */
 
     "SNMPv2-TC",  "PhysAddress", "ietf-yang-types", "phys-address",
-    "SNMPv2-TC",  "MacAddress",  "ietf-ieee-types", "mac-address",
+    "SNMPv2-TC",  "MacAddress",  "ietf-yang-types", "mac-address",
     "SNMPv2-TC",  "TimeStamp",   "ietf-yang-types", "timestamp",
 
     NULL, NULL, NULL, NULL
@@ -167,7 +167,7 @@ getStringDate(time_t t)
     return s;
 }
 
-
+#if 0
 static int
 isGroup(SmiNode *smiNode)
 {
@@ -184,6 +184,30 @@ isGroup(SmiNode *smiNode)
     }
 
     return 0;
+}
+#endif
+
+static int
+smi2yangPrune(SmiNode *smiNode)
+{
+    SmiNode *childNode;
+
+    switch (smiNode->nodekind) {
+    case SMI_NODEKIND_CAPABILITIES:
+    case SMI_NODEKIND_COMPLIANCE:
+    case SMI_NODEKIND_GROUP:
+	return 1;
+    case SMI_NODEKIND_SCALAR:
+    case SMI_NODEKIND_COLUMN:
+	return 0;
+    default:
+	for (childNode = smiGetFirstChildNode(smiNode);
+	     childNode;
+	     childNode = smiGetNextChildNode(childNode)) {
+	    if (! smi2yangPrune(childNode)) return 0;
+	}
+	return 1;
+    }
 }
 
 
@@ -355,7 +379,9 @@ createImportList(SmiModule *smiModule)
     /*
      * Add import for the smi:oid extension and friends.
      */
-    addImport("ietf-yang-smiv2", "smiv2");
+    if (smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
+	addImport("ietf-yang-smiv2", "smiv2");
+    }
 
     /*
      * Add import for yang-types that were originally ASN.1
@@ -608,7 +634,7 @@ smi2yangReference(_YangNode *node, char *reference)
     }
 }
 
-
+#if 0
 static void
 smi2yangConfig(_YangNode *node, SmiAccess access)
 {
@@ -618,7 +644,7 @@ smi2yangConfig(_YangNode *node, SmiAccess access)
 	(void) addYangNode("false", YANG_DECL_CONFIG, node);
     }
 }
-
+#endif
 
 static void
 smi2yangAccess(_YangNode *node, SmiAccess access)
@@ -823,7 +849,6 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
 {
     _YangNode *node, *typeNode;
     SmiType *smiType;
-    SmiAccess config;
     
     smiType = smiGetNodeType(smiNode);
 
@@ -836,6 +861,7 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
     smi2yangUnits(node, smiNode->units);
 #if 0
     if (! (flags & FLAG_CONFIG_NONE)) {
+	SmiAccess config;
 	if (flags & FLAG_CONFIG_FALSE) {
 	    config = SMI_ACCESS_READ_ONLY;
 	} else {
@@ -858,7 +884,6 @@ static void
 smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, int flags)
 {
     SmiNode *entryNode;
-    SmiAccess config;
     _YangNode *leafNode, *typeNode;
     char *s;
 
@@ -872,6 +897,7 @@ smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, int flags)
     smiFree(s);
 #if 0    
     if (! (flags & FLAG_CONFIG_NONE)) {
+	SmiAccess config;
 	if (flags & FLAG_CONFIG_FALSE) {
 	    config = SMI_ACCESS_READ_ONLY;
 	} else {
@@ -1010,6 +1036,10 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
     _YangNode *node;
     SmiNode *childNode;
 
+    if (smi2yangPrune(smiNode)) {
+	return;
+    }
+
     node = addYangNode(smiNode->name, YANG_DECL_CONTAINER, yangModulePtr);
     (void) addYangNode("false", YANG_DECL_CONFIG, node);
     smi2yangOID(node, smiNode->oid, smiNode->oidlen);
@@ -1020,6 +1050,7 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
 
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
 	    smi2yangLeaf(node, childNode, 0);
+	    continue;
 	}
 
 	if (childNode->nodekind == SMI_NODEKIND_TABLE) {
@@ -1036,6 +1067,11 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
 			break;
 		}
 	    }
+	    continue;
+	}
+
+	if (childNode->nodekind == SMI_NODEKIND_NODE) {
+	    smi2yangContainer(node, childNode);
 	}
     }
 }
@@ -1045,7 +1081,8 @@ static void
 smi2yangContainers(SmiModule *smiModule, _YangNode *yangModulePtr)
 {
     SmiNode *smiNode;
-    
+
+#if 0
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
@@ -1053,6 +1090,12 @@ smi2yangContainers(SmiModule *smiModule, _YangNode *yangModulePtr)
 	    smi2yangContainer(yangModulePtr, smiNode);
 	}
     }
+#else
+    smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+    if (smiNode) {
+	smi2yangContainer(yangModulePtr, smiNode);
+    }
+#endif
 }
 
 
