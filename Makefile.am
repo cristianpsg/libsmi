@@ -20,7 +20,7 @@ EXTRA_DIST		= ANNOUNCE \
 			  win/Makefile.mingw win/README.mingw \
 			  smi.conf-example libsmi.m4 libsmi.pc
 
-SUBDIRS			= lib tools mibs pibs test doc
+SUBDIRS			= lib tools mibs pibs yang test doc
 
 m4datadir		= $(datadir)/aclocal
 m4data_DATA		= libsmi.m4
