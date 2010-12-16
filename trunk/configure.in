@@ -83,9 +83,13 @@ AC_ARG_WITH(pibdir,
 [  --with-pibdir=DIR       use DIR to install libsmi PIB modules [DATADIR/pibs]],
 pibdir="$withval", pibdir="$prefix/share/pibs")
 
+AC_ARG_WITH(yangdir,
+[  --with-yangdir=DIR      use DIR to install libsmi YANG modules [DATADIR/yang]],
+yangdir="$withval", yangdir="$prefix/share/yang")
+
 AC_ARG_WITH(smipath,
 [  --with-smipath=DIR:DIR  default DIRs to search for MIB/PIB modules [MIBDIR...]],
-smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site:$mibdir/tubs:$pibdir/ietf:$pibdir/site:$pibdir/tubs")
+smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site:$mibdir/tubs:$pibdir/ietf:$pibdir/site:$pibdir/tubs:$yangdir/ietf:$yangdir/site")
 
 AC_DEFINE_UNQUOTED([DEFAULT_SMIPATH], "$smipath",
 [The default search path to lookup SMI module files.])
@@ -259,6 +263,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(srcdir)
 AC_SUBST(mibdir)
 AC_SUBST(pibdir)
+AC_SUBST(yangdir)
 AC_SUBST(smipath)
 
 AC_OUTPUT([
@@ -275,6 +280,9 @@ pibs/Makefile
 pibs/ietf/Makefile
 pibs/tubs/Makefile
 pibs/site/Makefile
+yang/Makefile
+yang/ietf/Makefile
+yang/site/Makefile
 test/Makefile
 test/mibs/Makefile
 test/smidiff/Makefile
