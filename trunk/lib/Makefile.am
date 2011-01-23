@@ -45,13 +45,13 @@ libsmi_la_SOURCES	= common.c error.c util.c snprintf.c \
 		  	  parser-yang.c scanner-yang.c
 libsmi_la_LDFLAGS	= -version-info @VERSION_LIBTOOL@
 
-parser-smi.c parser-smi.tab.h: parser-smi.y scanner-smi.h parser-smi.h
+parser-smi.c parser-smi.tab.h: parser-smi.y scanner-smi.h parser-smi.h error.h
 	$(BISON) --defines=parser-smi.tab.h -t -psmi -o parser-smi.c parser-smi.y
 
-parser-sming.c: parser-sming.y scanner-sming.h parser-sming.h
+parser-sming.c: parser-sming.y scanner-sming.h parser-sming.h error.h
 	$(BISON) --defines=parser-sming.tab.h -t -psming -o parser-sming.c parser-sming.y
 
-parser-yang.c: parser-yang.y scanner-yang.h parser-yang.h
+parser-yang.c: parser-yang.y scanner-yang.h parser-yang.h error.h
 	$(BISON) --defines=parser-yang.tab.h -t -pyang -o parser-yang.c parser-yang.y
 
 scanner-smi.c: scanner-smi.l scanner-smi.h parser-smi.tab.h

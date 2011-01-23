@@ -38,7 +38,6 @@
 #include "yang-complex-types.h"
 #include "util.h"
 #include "error.h"
-#include "errormacros.h"
     
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
