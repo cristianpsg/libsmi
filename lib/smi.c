@@ -26,12 +26,10 @@
 #include <pwd.h>
 #endif
 
-#include "smi.h"
 #include "common.h"
+#include "smi.h"
 #include "smi-data.h"
 #include "yang-data.h"
-#include "error.h"
-#include "util.h"
 #include "snprintf.h"
 
 #ifdef BACKEND_SMI

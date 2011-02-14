@@ -30,10 +30,9 @@
 #endif
 
 #define ONLY_ORIGINAL 1
-        
+
+#include "common.h"
 #include "yang.h"
-#include "error.h"
-#include "util.h"
 
 /*
  * YANG API

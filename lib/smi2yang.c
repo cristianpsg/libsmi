@@ -37,7 +37,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "smi.h"
 #include "smi2yang.h"
 #include "yang-data.h"
 

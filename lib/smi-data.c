@@ -27,9 +27,7 @@
 #include "win.h"
 #endif
 
-#include "error.h"
 #include "common.h"
-#include "util.h"
 #include "smi-data.h"
 #include "smi.h"
 
