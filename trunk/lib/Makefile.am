@@ -63,9 +63,14 @@ scanner-sming.c: scanner-sming.l scanner-sming.h parser-sming.tab.h
 scanner-yang.c: scanner-yang.l scanner-yang.h parser-yang.tab.h
 	$(FLEX) -Cfe -Pyang -t -o scanner-yang.c scanner-yang.l > scanner-yang.c
 
-error.h data.lo: errormacros.h
+common.c smi.c smi-data.c yang.c yang-data.c: common.h
+
+common.h: util.h error.h
+
+error.h: errormacros.h
 
 errormacros.h: error.c
 	cat error.c | grep ERR_ | \
 	sed -e 's/^.*\(ERR_[a-zA-Z0-9_]*\).*$$/\1/' | \
 	awk '{printf "#define %-50s %d\n", $$1, NR-1}' > errormacros.h
+

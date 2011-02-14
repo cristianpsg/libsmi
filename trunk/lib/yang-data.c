@@ -41,9 +41,7 @@
 #endif
 
 #include "common.h"
-#include "error.h"
 #include "smi-data.h"
-#include "util.h"
 #include "yang.h"
 #include "yang-check.h"
 #include "scanner-yang.h"
