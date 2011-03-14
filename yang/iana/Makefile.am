@@ -1,7 +1,7 @@
 #
 # Makefile.am --
 #
-#      Template to generate the yang/site Makefile.in using automake.
+#      Template to generate the yang/iana Makefile.in using automake.
 #
 # Copyright (c) 2011 Juergen Schoenwaelder, Jacobs University Bremen
 #
