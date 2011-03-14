@@ -28,7 +28,6 @@ static SmiModule **pmodv = NULL;
 static int ignoreconformance = 0;
 static int ignoreleafs = 0;
 static int full = 0;
-static int compact = 0;
 
 static char *getFlags(SmiNode *smiNode)
 {
@@ -396,15 +395,6 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		continue;
 	    }
 	    i++;
-	    if (! compact &&
-		((childNode->nodekind != SMI_NODEKIND_COLUMN
-		  && childNode->nodekind != SMI_NODEKIND_SCALAR
-		  && childNode->nodekind != SMI_NODEKIND_GROUP
-		  && childNode->nodekind != SMI_NODEKIND_COMPLIANCE
-		  && childNode->nodekind != SMI_NODEKIND_NOTIFICATION)
-		 || (lastNodeKind != childNode->nodekind))) {
-		fprintf(f, "%s  |\n", prefix);
-	    }
 	    newprefix = xmalloc(strlen(prefix)+10);
 	    strcpy(newprefix, prefix);
 	    if (cnt == 1 || cnt == i) {
@@ -546,12 +536,6 @@ static void fprintYangTree(FILE *f, YangNode *node, char *prefix, int flags)
 		typeNode ? typeNode->value : "",
 		childNode->value,
 		yangDeclAsString(childNode->nodeKind));
-	if (! compact &&
-	    ((childNode->nodeKind == YANG_DECL_CONTAINER
-	      || childNode->nodeKind == YANG_DECL_LIST)
-	     || (lastNodeKind != childNode->nodeKind))) {
-	    fprintf(f, "%s  |\n", prefix);
-	}
 	i++;
 	newprefix = xmalloc(strlen(prefix)+10);
 	strcpy(newprefix, prefix);
@@ -642,8 +626,6 @@ void initTree()
 	  "do not show leaf nodes"},
 	{ "full-root", OPT_FLAG, &full, 0,
 	  "generate the full path to the root"},
-	{ "compact", OPT_FLAG, &compact, 0,
-	  "generate a more compact representation"},
         { 0, OPT_END, 0, 0 }
     };
     
