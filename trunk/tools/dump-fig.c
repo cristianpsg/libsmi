@@ -28,6 +28,29 @@
 
 
 
+static char *getSmiTypeName(SmiNode *smiNode)
+{
+    char *type;
+    SmiType *smiType, *parentType;
+
+    smiType = smiGetNodeType(smiNode);
+
+    if (!smiType || smiNode->nodekind == SMI_NODEKIND_TABLE)
+	return NULL;
+
+    if (smiType->decl == SMI_DECL_IMPLICIT_TYPE) {
+	parentType = smiGetParentType(smiType);
+	if (!parentType)
+	    return NULL;
+	smiType = parentType;
+    }
+
+    type = smiStrdup(smiType->name);
+    return type;
+}
+
+
+
 static void setupPage(FILE *f)
 {
     fprintf(f,
@@ -155,7 +178,7 @@ static void dumpFigTree(int modc, SmiModule **modv, int flags, char *output)
 static void printClass(FILE *f, int *x, int *y, SmiNode *smiNode)
 {
     SmiNode *childNode;
-    SmiType *smiType;
+    char *type;
     char string[4096];
 
     *y += Y_OFFSET;
@@ -167,11 +190,12 @@ static void printClass(FILE *f, int *x, int *y, SmiNode *smiNode)
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR
 	    || childNode->nodekind == SMI_NODEKIND_COLUMN) {
 	    if (childNode->status != SMI_STATUS_OBSOLETE) {
-		smiType = smiGetNodeType(childNode);
+		type = getSmiTypeName(childNode);
 		*y += Y_OFFSET;
 		snprintf(string, sizeof(string), "%s : %s",
-			 childNode->name, smiType->name);
+			 childNode->name, type ? type : "?");
 		printString(f, *x + X_INDENT, *y, 0, string);
+		if (type) smiFree(type);
 	    }
 	}
     }
