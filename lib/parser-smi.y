@@ -4578,13 +4578,17 @@ ApplicationSyntax:	IPADDRESS anySubType
 				}
 			    }
 			}
-	|		UNSIGNED32 integerSubType
+	|		UNSIGNED32
+			{
+			    defaultBasetype = SMI_BASETYPE_UNSIGNED32;
+			}
+			integerSubType
 			{
 			    Import *importPtr;
 			    
 			    $$ = duplicateType(smiHandle->typeUnsigned32Ptr, 0,
 					       thisParserPtr);
-			    setTypeList($$, $2);
+			    setTypeList($$, $3);
 			    smiCheckTypeRanges(thisParserPtr, $$);
 
 			    importPtr = findImportByName("Unsigned32",
