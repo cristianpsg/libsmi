@@ -633,10 +633,12 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 	
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
-	    if( smiRange->minValue.value.unsigned64 < min ) {
+	    if( min == SMI_BASETYPE_UNSIGNED64_MIN ||
+                smiRange->minValue.value.unsigned64 < min ) {
 		min = smiRange->minValue.value.unsigned64;
 	    }
-	    if( smiRange->maxValue.value.unsigned64 > max ) {
+	    if( max == SMI_BASETYPE_UNSIGNED64_MAX ||
+                smiRange->maxValue.value.unsigned64 > max ) {
 		max = smiRange->maxValue.value.unsigned64;
 	    }
 	    smiRange = smiGetNextRange( smiRange );
@@ -656,17 +658,19 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
     {
 	SmiUnsigned32 min, max;
 
-	min = 0;
-	max = 4294967295UL;
+	min = SMI_BASETYPE_UNSIGNED32_MIN;
+	max = SMI_BASETYPE_UNSIGNED32_MAX;
 
 	fprintStdRestHead( f, smiType );
 	
 	smiRange = smiGetFirstRange( smiType );
 	while( smiRange ) {
-	    if( smiRange->minValue.value.unsigned32 < min ) {
+	    if( min == SMI_BASETYPE_UNSIGNED32_MIN ||
+                smiRange->minValue.value.unsigned32 < min ) {
 		min = smiRange->minValue.value.unsigned32;
 	    }
-	    if( smiRange->maxValue.value.unsigned32 > max ) {
+	    if( max == SMI_BASETYPE_UNSIGNED32_MAX ||
+                smiRange->maxValue.value.unsigned32 > max ) {
 		max = smiRange->maxValue.value.unsigned32;
 	    }
 	    smiRange = smiGetNextRange( smiRange );
