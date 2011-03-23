@@ -1351,7 +1351,10 @@ SmiRange *smiGetNextRange(SmiRange *smiRangePtr)
  
     for (listPtr = typePtr->listPtr; listPtr; listPtr = listPtr->nextPtr) {
 	if (!memcmp(&((Range *)listPtr->ptr)->export.minValue,
-		    &smiRangePtr->minValue, sizeof(struct SmiValue)))
+		    &smiRangePtr->minValue, sizeof(struct SmiValue))
+	    && !memcmp(&((Range *)listPtr->ptr)->export.maxValue,
+		       &smiRangePtr->maxValue, sizeof(struct SmiValue))
+	    && smiRangePtr == &((Range *)listPtr->ptr)->export)
 	    break;
     }
 
@@ -1398,7 +1401,10 @@ SmiRange *smiGetAttributeNextRange(SmiRange *smiRangePtr)
  
     for (listPtr = attributePtr->listPtr; listPtr; listPtr = listPtr->nextPtr) {
 	if (!memcmp(&((Range *)listPtr->ptr)->export.minValue,
-		    &smiRangePtr->minValue, sizeof(struct SmiValue)))
+		    &smiRangePtr->minValue, sizeof(struct SmiValue))
+	    && !memcmp(&((Range *)listPtr->ptr)->export.maxValue,
+		       &smiRangePtr->maxValue, sizeof(struct SmiValue))
+	    && smiRangePtr == &((Range *)listPtr->ptr)->export)
 	    break;
     }
 
