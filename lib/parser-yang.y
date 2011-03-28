@@ -857,9 +857,10 @@ importStatement: importKeyword identifierStr
                     prefixStatement stmtSep
                     optionalRevision
 		'}'
-		{            
+		{
+		    _YangNode* importNode;
                     externalModule(topNode());
-                    _YangNode* importNode = topNode();
+                    importNode = topNode();
                     pop();
                     if (topNode() != thisModulePtr) {
                         importNode = topNode();
@@ -1289,14 +1290,15 @@ bitsSubstatement:   positionStatement
 
 positionStatement: positionKeyword string stmtEnd 
                 {
-                    if (!isNonNegativeInteger($2)) {                            
+		    _YangNode* typePtr, *childPtr;
+                    if (!isNonNegativeInteger($2)) {
                         smiPrintError(currentParser, ERR_ARG_VALUE, $2, "non-negative-integer");
                     }                    
                     uniqueNodeKind(topNode(), YANG_DECL_POSITION);
 
                     /* position values must be unique within the type */
-                    _YangNode* typePtr = topNode()->parentPtr;
-                    _YangNode* childPtr = typePtr->firstChildPtr;
+                    typePtr = topNode()->parentPtr;
+                    childPtr = typePtr->firstChildPtr;
                     while (childPtr) {
                         if (childPtr->export.nodeKind == YANG_DECL_BIT) {
                             _YangNode* positionPtr = findChildNodeByTypeAndValue(childPtr, YANG_DECL_POSITION, $2);
@@ -1833,8 +1835,9 @@ keyStatement: keyKeyword string stmtEnd
 	
 uniqueStatement: uniqueKeyword string stmtEnd
 		{
+		    YangList *il;
                     node = addYangNode($2, YANG_DECL_UNIQUE, topNode());
-                    YangList *il = getUniqueList($2);
+                    il = getUniqueList($2);
                     node->info = processUniqueList(node, il);
                     freeIdentiferList(il);
 		}
@@ -2083,8 +2086,8 @@ augmentStatement: augmentKeyword string
                     augmentSubstatement_0n
                 '}'
 		{
-                    node = topNode()->firstChildPtr;
                     int count = 0;
+		    node = topNode()->firstChildPtr;
                     while (node) {
                         if (node->export.nodeKind == YANG_DECL_CASE ||
                             isDataDefNode(node)) {

@@ -310,8 +310,8 @@ _YangNode* findChildNodeByTypeAndValue(_YangNode *nodePtr, YangDecl nodeKind, ch
  *----------------------------------------------------------------------
  */
 _YangNode* resolveNodeByTypeAndValue(_YangNode *nodePtr, YangDecl nodeKind, char* value, int depth) {
-    if (depth < 0) return NULL;
     _YangNode *childPtr = NULL;
+    if (depth < 0) return NULL;
     for (childPtr = nodePtr->firstChildPtr; childPtr; childPtr = childPtr->nextSiblingPtr) {
         if (childPtr->export.nodeKind == nodeKind && !strcmp(childPtr->export.value, value)) {
             return childPtr;
@@ -376,9 +376,12 @@ _YangNode* resolveReference(_YangNode *currentNodePtr, YangDecl nodeKind, char* 
  */
 _YangModuleInfo *createModuleInfo(_YangNode *modulePtr)
 {
+    Module *module;
+    _YangModuleInfo *infoPtr;
+
     if (! modulePtr) return NULL;
     
-    _YangModuleInfo *infoPtr = smiMalloc(sizeof(_YangModuleInfo));
+    infoPtr = smiMalloc(sizeof(_YangModuleInfo));
     modulePtr->info = infoPtr;
     
     infoPtr->namespace     = NULL;
@@ -393,9 +396,9 @@ _YangModuleInfo *createModuleInfo(_YangNode *modulePtr)
     /* Create a corresponding Module wrapper to maintain interface
      * compatibility */
     
-    Module *module = addModule(smiStrdup(modulePtr->export.value),
-			       smiStrdup(currentParser ? currentParser->path : ""),
-			       0, currentParser);
+    module = addModule(smiStrdup(modulePtr->export.value),
+		       smiStrdup(currentParser ? currentParser->path : ""),
+		       0, currentParser);
     module->export.language = SMI_LANGUAGE_YANG;
     if (currentParser) currentParser->modulePtr = module;
     return (infoPtr);
@@ -491,6 +494,7 @@ _YangNode *loadYangModule(const char *modulename, const char * revision, Parser 
     FILE	*file;
     char* name[2], *revisionPart = NULL;
     int index = 1;
+    int nameIndex = 0;
 
     if (revision) {
         smiAsprintf(&name[0], "%s%s", modulename, "%s");
@@ -499,7 +503,7 @@ _YangNode *loadYangModule(const char *modulename, const char * revision, Parser 
     }
     name[index - 1] = smiStrdup(modulename);
     
-    int nameIndex = 0;
+    nameIndex = 0;
     while (nameIndex < index) {        
         path = smiGetModulePath(name[nameIndex]);
         if (path && revision) {
@@ -657,6 +661,8 @@ void addSubmodule(_YangNode *module, _YangNode *submodule) {
  *----------------------------------------------------------------------
  */
 void addImportedModule(_YangNode *importNode, _YangNode *importedModule) {
+    YangList* cur;
+    _YangImport *import;
     char* prefix = getModuleInfo(importNode->modulePtr)->prefix;
     char* importPrefix = findChildNodeByType(importNode, YANG_DECL_PREFIX)->export.value;
 
@@ -664,15 +670,14 @@ void addImportedModule(_YangNode *importNode, _YangNode *importedModule) {
         smiPrintError(currentParser, ERR_DUPLICATED_PREFIX, importPrefix);
     }
     
-    YangList* cur = ((_YangModuleInfo*)importNode->modulePtr->info)->imports;
-    while (cur) {
+    for (cur = ((_YangModuleInfo*)importNode->modulePtr->info)->imports;
+	 cur;  cur = cur->next) {
         if (!strcmp(listImport(cur)->prefix, importPrefix)) {
             smiPrintError(currentParser, ERR_DUPLICATED_PREFIX, importPrefix);
         }
-        cur = cur->next;
     }
 
-    _YangImport *import = smiMalloc(sizeof(_YangImport));
+    import = smiMalloc(sizeof(_YangImport));
     import->prefix = importPrefix;
     import->modulePtr = importedModule;
     ((_YangModuleInfo*)importNode->modulePtr->info)->imports = addElementToList(((_YangModuleInfo*)importNode->modulePtr->info)->imports, import);
@@ -730,8 +735,11 @@ _YangNode *externalModule(_YangNode *importNode) {
 
 
 _YangNode *copyModule(_YangNode *nodePtr) {
+    _YangNode *node;
+    _YangNode *childPtr;
+    
     if (!nodePtr) return NULL;  
-    _YangNode *node = (_YangNode*) smiMalloc(sizeof(_YangNode));
+    node = (_YangNode*) smiMalloc(sizeof(_YangNode));
     node->nodeType              = YANG_NODE_ORIGINAL;
     node->export.value          = smiStrdup(nodePtr->export.value);
     node->export.nodeKind       = nodePtr->export.nodeKind;
@@ -748,10 +756,9 @@ _YangNode *copyModule(_YangNode *nodePtr) {
     node->parentPtr             = NULL;
     node->modulePtr             = NULL;
 
-    _YangNode *childPtr         = nodePtr->firstChildPtr;
-    while (childPtr) {
+    for (childPtr = nodePtr->firstChildPtr;
+	 childPtr; childPtr = childPtr->nextSiblingPtr) {
         _YangNode* c = copyModule(childPtr);
-
         if (!node->firstChildPtr) {
             node->firstChildPtr = c;
             node->lastChildPtr = c;
@@ -759,7 +766,6 @@ _YangNode *copyModule(_YangNode *nodePtr) {
             node->lastChildPtr->nextSiblingPtr = c;            
             node->lastChildPtr = c;
         }
-        childPtr = childPtr->nextSiblingPtr;
     }
     return node;
     
@@ -779,6 +785,8 @@ void freeUniqueList(_YangList* listPtr);
  *----------------------------------------------------------------------
  */
 void freeYangNode(_YangNode *nodePtr) {
+    _YangNode *currentNode, *nextNode;
+
     if (!nodePtr) return;
 
     /* free only original node's memory, because references hold only pointers to other node's fields */
@@ -847,11 +855,10 @@ void freeYangNode(_YangNode *nodePtr) {
         nodePtr->export.reference = NULL;        
     }
 
-    _YangNode *currentNode= nodePtr->firstChildPtr, *nextNode;
-    while (currentNode) {
-        nextNode = currentNode->nextSiblingPtr;
-        freeYangNode(currentNode);
-        currentNode = nextNode;
+    for (currentNode= nodePtr->firstChildPtr;
+	 currentNode; currentNode = nextNode) {
+	nextNode = currentNode->nextSiblingPtr;
+	freeYangNode(currentNode);
     }
 
     smiFree(nodePtr);
@@ -981,11 +988,11 @@ int isDigit(char ch) {
 }
 
 int isPositiveInteger(char *s) {
+    int i;
     if (!s) return 0;
     if (!(s[0] > '0' && s[0] <= '9')) {
         return 0;
     }
-    int i;
     for (i = 1; i < strlen(s); i++) {
         if (!isDigit(s[i]))
             return 0;
@@ -1004,9 +1011,9 @@ int isNonNegativeInteger(char *s) {
 }
 
 int buildIdentifier(char *s) {
+    int ret = 1;
     if (!s || strlen(s) == 0) return 0;
     if (!isAlpha(s[0]) && s[0] != '_') return 0;
-    int ret = 1;
     while (ret < strlen(s) && (isAlpha(s[ret]) || isDigit(s[ret]) || s[ret] == '_' || s[ret] == '-' || s[ret] == '.')) {
         ret++;
     }
@@ -1014,8 +1021,10 @@ int buildIdentifier(char *s) {
 }
 
 int nodeIdentifier(char* s) {
+    int ret;
+    
     if (!s || strlen(s) == 0) return 0;
-    int ret = buildIdentifier(s);
+    ret = buildIdentifier(s);
     if (!ret || ret == strlen(s)) return ret;
     if (s[ret] == ':') {
         int ret1 = buildIdentifier(s + ret + 1);
@@ -1025,11 +1034,12 @@ int nodeIdentifier(char* s) {
 }
 
 int absoluteSchemaNodeid(char *s) {
+    int ret = 0;
     if (!s || strlen(s) == 0) return 0;
-    int ret = 0;    
     while (ret < strlen(s)) {
+	int cur;
         if (s[ret] != '/') return ret;        
-        int cur = nodeIdentifier(s + ret + 1);
+        cur = nodeIdentifier(s + ret + 1);
         if (cur > 0) {
             ret += cur + 1;
         } else {
@@ -1040,8 +1050,9 @@ int absoluteSchemaNodeid(char *s) {
 }
 
 int descendantSchemaNodeid(char *s) {
+    int ret;
     if (!s || strlen(s) == 0) return 0;
-    int ret = nodeIdentifier(s);
+    ret = nodeIdentifier(s);
     if (!ret) return 0;
     return ret + absoluteSchemaNodeid(s + ret);
 }
@@ -1113,9 +1124,9 @@ YangList *getKeyList(char* s) {
         if (i < strlen(s)) {
             int i1 = buildIdentifier(s + i);
             if (i1) {
+                int isNew = 1;
                 char* key = smiStrndup(s + i, i1);
                 i += i1;
-                int isNew = 1;
                 item = ret;
                 while (item) {
                     if (!strcmp(listIdentifierRef(item)->ident, key)) {
@@ -1286,8 +1297,10 @@ _YangList* processUniqueList(_YangNode *nodePtr, YangList* il) {
 
 int isDataDefinitionNode(_YangNode *node)
 {
+    YangDecl kind;
+    
     if (!node) return 0;
-    YangDecl kind = node->export.nodeKind;
+    kind = node->export.nodeKind;
     return (kind == YANG_DECL_CONTAINER ||
             kind == YANG_DECL_LEAF ||
             kind == YANG_DECL_LEAF_LIST ||

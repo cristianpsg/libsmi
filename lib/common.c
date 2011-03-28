@@ -31,8 +31,8 @@
 
 char* smiGetModulePath(const char *modulename)
 {
-    char	    *path = NULL, *dir, *smipath;
-    char	    sep[2];
+    char	*path = NULL, *dir, *smipath, *newmodulename;
+    char	sep[2];
     int         i;
     
     static const char *ext[] = {
@@ -64,7 +64,7 @@ char* smiGetModulePath(const char *modulename)
             }
             if (ext[i]) break;
             
-            char *newmodulename = smiStrdup(modulename);
+            newmodulename = smiStrdup(modulename);
             for (i = 0; newmodulename[i]; i++) {
                 newmodulename[i] = tolower(newmodulename[i]);
             }
