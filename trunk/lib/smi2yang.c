@@ -26,7 +26,6 @@
  * TODO:
  * - fix addYangNode to pick up a suitable line number?
  * - should createModuleInfo set the correct path?
- * - add calls to createIdentifierRef() to make the sem. analysis work
  * - reconsider the format to pattern translation
  */
 
@@ -432,14 +431,21 @@ smi2yangNamespace(SmiModule *smiModule, _YangNode *yangModulePtr,
 		  _YangModuleInfo *yangModuleInfoPtr)
 {
     char *s;
+    const char *p;
     _YangNode *node = NULL;
 
     smiAsprintf(&s, "%s%s", URNBASE, smiModule->name);
     node = addYangNode(s, YANG_DECL_NAMESPACE, yangModulePtr);
     smiFree(s);
-    yangModuleInfoPtr->namespace = node->export.value;
-    (void) addYangNode(getModulePrefix(smiModule->name),
-		       YANG_DECL_PREFIX, yangModulePtr);
+    if (yangModuleInfoPtr) {
+	yangModuleInfoPtr->namespace = node->export.value;
+    }
+
+    p = getModulePrefix(smiModule->name);
+    (void) addYangNode(p, YANG_DECL_PREFIX, yangModulePtr);
+    if (yangModuleInfoPtr) {
+	yangModuleInfoPtr->prefix = smiStrdup(p);
+    }
 }
 
 
@@ -1242,9 +1248,7 @@ YangNode *yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
     yangModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
     freeImportList();
 
-#if 0
     semanticAnalysis(yangModulePtr);
-#endif
 
     return &(yangModulePtr->export);
 }
