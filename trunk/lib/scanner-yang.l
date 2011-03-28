@@ -888,9 +888,10 @@ replaceKeyword      replace
 }
 
 <ConcatString>\"([^\"]|(\\\"))*\" {
+	char *tmp;
     	cleanDQString();
 	thisParser.line += lineAdjust;
-	char *tmp = (char*)smiMalloc(strlen(concatTmp) + strlen(yytext) + 1);
+	tmp = (char*)smiMalloc(strlen(concatTmp) + strlen(yytext) + 1);
 	strcpy(tmp, concatTmp);
 	smiFree(concatTmp);
 	concatTmp = tmp;
@@ -899,9 +900,10 @@ replaceKeyword      replace
 }
 
 <ConcatString>\'([^\']|(\\\'))*\' {
-    cleanSQString();
+        char *tmp;
+        cleanSQString();
 	thisParser.line += lineAdjust;
-	char *tmp = (char*)smiMalloc(strlen(concatTmp) + strlen(yytext) + 2);
+	tmp = (char*)smiMalloc(strlen(concatTmp) + strlen(yytext) + 2);
 	strcpy(tmp, concatTmp);
 	smiFree(concatTmp);
 	concatTmp = tmp;

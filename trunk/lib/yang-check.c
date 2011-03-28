@@ -129,8 +129,9 @@ time_t checkDate(Parser *parserPtr, char *date)
 }
 
 void validateInclude(_YangNode *module, _YangNode *extModule) {
+    _YangNode* node;
     if (!extModule) return;
-    _YangNode* node = findChildNodeByType(extModule, YANG_DECL_BELONGS_TO);
+    node = findChildNodeByType(extModule, YANG_DECL_BELONGS_TO);
     if (node) {
         if (module->export.nodeKind == YANG_DECL_MODULE) {
             if (strcmp(node->export.value, module->export.value)) {
@@ -315,10 +316,11 @@ _YangNode* findTargetNode(_YangNode *nodePtr, char* prefix, char* value) {
  *  Resolves a node in the current or imported module by an XPath expression.
  */
 _YangNode *resolveXPath(_YangNode *nodePtr, int allowInstance) {
+    _YangNode *cur = NULL, *tmpNode;
     YangList *listPtr = getXPathNode(nodePtr->export.value), *tmp;
     if (!listPtr) return NULL;
     
-    _YangNode *cur = NULL, *tmpNode;
+    cur = NULL;
     if (nodePtr->parentPtr->export.nodeKind == YANG_DECL_COMPLEX_TYPE) {
         cur = nodePtr->parentPtr;
     } else if (nodePtr->parentPtr->export.nodeKind == YANG_DECL_INSTANCE ||
@@ -502,8 +504,9 @@ void applyRefinements(_YangNode* node) {
 
  */
 int expandGroupings(_YangNode *node) {
+    YangDecl nodeKind;
     if (!node || node->nodeType != YANG_NODE_ORIGINAL) return;
-    YangDecl nodeKind = node->export.nodeKind;
+    nodeKind = node->export.nodeKind;
     if (nodeKind == YANG_DECL_GROUPING) {
         if (node->info) {
             _YangGroupingInfo *info = (_YangGroupingInfo*)node->info;
@@ -806,8 +809,8 @@ void expandAugments(_YangNode* node) {
         expandAugments(child);
         child = child->nextSiblingPtr;
     }
-    YangDecl nodeKind = node->export.nodeKind;
-    if (nodeKind == YANG_DECL_AUGMENT && (node->parentPtr->export.nodeKind != YANG_DECL_INSTANCE && 
+    if (node->export.nodeKind == YANG_DECL_AUGMENT
+	&& (node->parentPtr->export.nodeKind != YANG_DECL_INSTANCE && 
             node->parentPtr->export.nodeKind != YANG_DECL_INSTANCE_LIST)) {
         expandAugment(node, 0);
     }
@@ -1266,9 +1269,10 @@ void _iterate(_YangNode *nodePtr, void* handler, int* nodeKindList) {
  * The last argument should be the YANG_DECL_UNKNOWN value
  */
 void iterate(_YangNode *nodePtr, void* handler, ...) {
-    va_list ap;
-    va_start(ap, handler);    
     int cnt = 0, value;
+    va_list ap;
+    
+    va_start(ap, handler);    
     while ((value = va_arg(ap, int)) != YANG_DECL_UNKNOWN) {
         cnt++;
     }
