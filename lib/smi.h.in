@@ -636,8 +636,8 @@ extern int smiPack(SmiNode *row, SmiValue *vals, int valslen,
 		   SmiSubid **oid, unsigned int *oidlen);
 
 /*
- * Two printf functions that allocate memory dynamically. The call has
- * to free the allocated memory.
+ * Two printf functions that allocate memory dynamically. The caller
+ * has to free the allocated memory using smiFree().
  */
 
 extern int smiAsprintf(char **strp, const char *format, ...);

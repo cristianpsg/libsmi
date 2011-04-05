@@ -272,7 +272,7 @@ char *yangDeclAsString(YangDecl decl)
 	s = "smiv2:display-hint";
 	break;
     case YANG_DECL_SMI_DEFAULT:
-	s = "smiv2:default";
+	s = "smiv2:defval";
 	break;
     case YANG_DECL_SMI_MAX_ACCESS:
 	s = "smiv2:max-access";
