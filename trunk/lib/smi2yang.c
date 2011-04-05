@@ -3,7 +3,7 @@
  *
  *      Conversion of SMIv2 modules to YANG modules
  *
- * Copyright (c) 2007-2010 J. Schoenwaelder, Jacobs University Bremen.
+ * Copyright (c) 2007-2011 J. Schoenwaelder, Jacobs University Bremen
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -14,19 +14,17 @@
 
 /*
  * TODO:
- * - reproduce the table comment text as a yang comment
- * - fix the format strings to xsd pattern algorithm so that it
- *   produces more accurate results
- * - compute proper boundaries for binary/string length restrictions
- * - translate notifications properly (whatever that means ;-)
  * - handle opaque in a reasonable way (test case AGGREGATE-MIB)
- */
-
-/*
- * TODO:
  * - fix addYangNode to pick up a suitable line number?
  * - should createModuleInfo set the correct path?
  * - reconsider the format to pattern translation
+ */
+
+/*
+ * TODO: (draft-ietf-netmod-smi-yang-00.txt)
+ * - create container representing augmenting tables -- oops illegal!
+ * - create container for all nodes (optional flag?)
+ * - special handling of accessible-for-notify objects
  */
 
 #include <config.h>
@@ -171,9 +169,9 @@ isGroup(SmiNode *smiNode)
 {
     SmiNode *childNode;
     
-    for(childNode = smiGetFirstChildNode(smiNode);
-	childNode;
-	childNode = smiGetNextChildNode(childNode)) {
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
 	if ((childNode->nodekind == SMI_NODEKIND_SCALAR
 	     || childNode->nodekind == SMI_NODEKIND_TABLE)
 	    && childNode->status == SMI_STATUS_CURRENT) {
@@ -210,6 +208,36 @@ smi2yangPrune(SmiNode *smiNode)
 
 
 static int
+hasObjects(SmiNode *smiNode)
+{
+    SmiNode *childNode;
+
+    switch (smiNode->nodekind) {
+    case SMI_NODEKIND_SCALAR:
+    case SMI_NODEKIND_COLUMN:
+	/* XXX we may want to prune accessible-for-notify objects */
+	return 1;
+    case SMI_NODEKIND_TABLE:
+    case SMI_NODEKIND_ROW:
+	return 1;
+    default:
+	break;
+    }
+
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if (hasObjects(childNode)) {
+	    return 1;
+	}
+    }
+
+    return 0;
+}
+
+
+#if 0
+static int
 isIndex(SmiNode *groupNode, SmiNode *smiNode)
 {
     SmiElement *smiElement;
@@ -230,6 +258,7 @@ isIndex(SmiNode *groupNode, SmiNode *smiNode)
 
     return cnt;
 }
+#endif
 
 
 static int
@@ -376,6 +405,8 @@ createImportList(SmiModule *smiModule)
 
     /*
      * Add import for the smi:oid extension and friends.
+     *
+     * XXX: We also need this import if we have an OBJECT-IDENTITY!
      */
     if (smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
 	addImport("ietf-yang-smiv2", "smiv2");
@@ -537,18 +568,24 @@ smi2yangMeta(SmiModule *smiModule, _YangNode *yangModulePtr,
 	     _YangModuleInfo *yangModuleInfoPtr)
 {
     _YangNode *node;
-    
-    node = addYangNode(smiModule->organization,
-		       YANG_DECL_ORGANIZATION, yangModulePtr);
-    yangModuleInfoPtr->organization = node->export.value;
 
-    node = addYangNode(smiModule->contactinfo,
-		       YANG_DECL_CONTACT, yangModulePtr);
-    yangModuleInfoPtr->contact = node->export.value;
+    if (smiModule->organization) {
+	node = addYangNode(smiModule->organization,
+			   YANG_DECL_ORGANIZATION, yangModulePtr);
+	yangModuleInfoPtr->organization = node->export.value;
+    }
 
-    node = addYangNode(smiModule->description,
-		       YANG_DECL_DESCRIPTION, yangModulePtr);
-    setDescription(yangModulePtr, smiModule->description);
+    if (smiModule->contactinfo) {
+	node = addYangNode(smiModule->contactinfo,
+			   YANG_DECL_CONTACT, yangModulePtr);
+	yangModuleInfoPtr->contact = node->export.value;
+    }
+
+    if (smiModule->description) {
+	node = addYangNode(smiModule->description,
+			   YANG_DECL_DESCRIPTION, yangModulePtr);
+	setDescription(yangModulePtr, smiModule->description);
+    }
 }
 
 
@@ -742,9 +779,9 @@ smi2yangSubtype(_YangNode *node, SmiType *smiType)
 	}
 	if (so) {
 	    if (smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
-		addYangNode(so, YANG_DECL_LENGTH, node);
+		(void) addYangNode(so, YANG_DECL_LENGTH, node);
 	    } else {
-		addYangNode(so, YANG_DECL_RANGE, node);
+		(void) addYangNode(so, YANG_DECL_RANGE, node);
 	    }
 	    free(so);
 	}
@@ -757,7 +794,7 @@ smi2yangSubtype(_YangNode *node, SmiType *smiType)
 	pattern = smiFormatToPattern(smiType->format,
 				     smiGetFirstRange(smiType));
 	if (pattern) {
-	    addYangNode(pattern, YANG_DECL_PATTERN, node);
+	    (void) addYangNode(pattern, YANG_DECL_PATTERN, node);
 	}
     }
 #endif
@@ -850,6 +887,32 @@ smi2yangTypedefs(SmiModule *smiModule, _YangNode *yangModulePtr)
 
 
 static void
+smi2yangIdentities(SmiModule *smiModule, _YangNode *yangModulePtr)
+{
+    SmiNode *smiNode;
+    _YangNode *node;
+
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
+	
+	if (smiNode == smiGetModuleIdentityNode(smiModule)) {
+	    continue;
+	}
+	
+	if (smiNode->status != SMI_STATUS_UNKNOWN) {
+	    node = addYangNode(smiNode->name, YANG_DECL_IDENTITY,
+			       yangModulePtr);
+	    (void) addYangNode("smiv2:object-identity", YANG_DECL_BASE, node);
+	    smi2yangStatus(node, smiNode->status);
+	    smi2yangDescription(node, smiNode->description);
+	    smi2yangReference(node, smiNode->reference);
+	}
+    }
+}
+
+
+static void
 smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
 {
     _YangNode *node, *typeNode;
@@ -933,7 +996,7 @@ smi2yangKey(_YangNode *node, SmiNode *smiNode)
     }
 
     if (s) {
-	addYangNode(s, YANG_DECL_KEY, node);
+	(void) addYangNode(s, YANG_DECL_KEY, node);
 	smiFree(s);
     }
 }
@@ -947,6 +1010,7 @@ smi2yangLeafs(_YangNode *node, SmiNode *smiNode)
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
+	/* XXX we have want to skip accessible-for-notify objects*/ 
 	if (childNode->nodekind == SMI_NODEKIND_COLUMN) {
 	    smi2yangLeaf(node, childNode, 0);
 	}
@@ -961,11 +1025,19 @@ smi2yangList(_YangNode *node, SmiNode *smiNode)
     SmiNode *childNode;
     SmiNode *parentNode;
     SmiElement *smiElement;
-    _YangNode *listNode;
+    _YangNode *listNode, *tableNode;
 
     entryNode = smiGetFirstChildNode(smiNode);
+    if (!entryNode) return;
 
-    listNode = addYangNode(entryNode->name, YANG_DECL_LIST, node);
+    tableNode = addYangNode(smiNode->name, YANG_DECL_CONTAINER, node);
+
+    smi2yangStatus(tableNode, smiNode->status);
+    smi2yangDescription(tableNode, smiNode->description);
+    smi2yangReference(tableNode, smiNode->reference);
+    smi2yangOID(tableNode, smiNode->oid, smiNode->oidlen);
+
+    listNode = addYangNode(entryNode->name, YANG_DECL_LIST, tableNode);
 
     smi2yangKey(listNode, entryNode);
     smi2yangStatus(listNode, entryNode->status);
@@ -994,44 +1066,35 @@ smi2yangList(_YangNode *node, SmiNode *smiNode)
 static void
 smi2yangAugment(_YangNode *node, SmiNode *smiNode)
 {
-    SmiNode *baseEntryNode = NULL;
-    _YangNode *listNode;
+    SmiNode *entryNode, *baseEntryNode = NULL;
+    _YangNode *augmentNode, *tableNode;
     char *s;
 
-    if (smiNode) {
-        baseEntryNode = smiGetRelatedNode(smiNode);
+    entryNode = smiGetFirstChildNode(smiNode);
+    if (entryNode) {
+        baseEntryNode = smiGetRelatedNode(entryNode);
     }
-    if (! smiNode || ! baseEntryNode) {
+    if (! smiNode || ! entryNode || ! baseEntryNode) {
         return;
     }
 
+    tableNode = addYangNode(smiNode->name, YANG_DECL_CONTAINER, node);
+
+    smi2yangStatus(tableNode, smiNode->status);
+    smi2yangDescription(tableNode, smiNode->description);
+    smi2yangReference(tableNode, smiNode->reference);
+    smi2yangOID(tableNode, smiNode->oid, smiNode->oidlen);
+
     s = smi2yangPath(baseEntryNode);
-    listNode = addYangNode(s, YANG_DECL_AUGMENT, node);
+    augmentNode = addYangNode(s, YANG_DECL_AUGMENT, tableNode);
     smiFree(s);
 
-    smi2yangStatus(listNode, smiNode->status);
-    smi2yangDescription(listNode, smiNode->description);
-    smi2yangReference(listNode, smiNode->reference);
-    smi2yangOID(listNode, smiNode->oid, smiNode->oidlen);
+    smi2yangStatus(augmentNode, entryNode->status);
+    smi2yangDescription(augmentNode, entryNode->description);
+    smi2yangReference(augmentNode, entryNode->reference);
+    smi2yangOID(augmentNode, entryNode->oid, entryNode->oidlen);
 
-    smi2yangLeafs(listNode, smiNode);
-}
-
-
-static void
-smi2yangAugments(SmiModule *smiModule, _YangNode *node)
-{
-    SmiNode *smiNode;
-    
-    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-	smiNode;
-	smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (smiNode->nodekind == SMI_NODEKIND_ROW
-	    && smiNode->indexkind == SMI_INDEX_AUGMENT) {
-	    smi2yangAugment(node, smiNode);
-	}
-    }
-
+    smi2yangLeafs(augmentNode, entryNode);
 }
 
 
@@ -1054,6 +1117,7 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
 	 childNode = smiGetNextChildNode(childNode)) {
 
 	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
+	    /* XXX we may want to skip accessible-for-notify leafs */
 	    smi2yangLeaf(node, childNode, 0);
 	    continue;
 	}
@@ -1067,6 +1131,9 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
 		case SMI_INDEX_SPARSE:
 		case SMI_INDEX_EXPAND:
 			smi2yangList(node, childNode);
+			break;
+		case SMI_INDEX_AUGMENT:
+   		        smi2yangAugment(node, childNode);
 			break;
 		default:
 			break;
@@ -1090,15 +1157,28 @@ smi2yangContainers(SmiModule *smiModule, _YangNode *yangModulePtr)
 #if 0
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
-	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	if (isGroup(smiNode)) {
+	 smiNode = smiGetNextChildNode(smiNode)) {
+	fprintf(stderr, "** considering node %s\n", smiNode->name);
+	if (smiGetNodeModule(smiNode) != smiModule) {
+	    continue;
+	}
+	fprintf(stderr, "** considering top-level %s\n", smiNode->name);
+	if (hasObjects(smiNode)) {
 	    smi2yangContainer(yangModulePtr, smiNode);
 	}
     }
 #else
-    smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
-    if (smiNode) {
-	smi2yangContainer(yangModulePtr, smiNode);
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	SmiNode *parentNode = smiGetParentNode(smiNode);
+	if (smiGetNodeModule(smiNode) != smiModule) {
+	    continue;
+	}
+	if (smiGetNodeModule(parentNode) != smiModule
+	    && hasObjects(smiNode)) {
+	    smi2yangContainer(yangModulePtr, smiNode);
+	}
     }
 #endif
 }
@@ -1198,12 +1278,16 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 		break;
 	    }
 	}
-	
+
+#if 0
 	if (entryNode && isIndex(entryNode, vbNode)) {
 	    smi2yangLeafrefLeaf(conti, vbNode, FLAG_CONFIG_NONE);
 	} else {
 	    smi2yangLeaf(conti, vbNode, FLAG_CONFIG_NONE);
 	}
+#else
+	smi2yangLeafrefLeaf(conti, vbNode, FLAG_CONFIG_NONE);
+#endif
     }
 }
 
@@ -1221,7 +1305,8 @@ smi2yangNotifications(SmiModule *smiModule, _YangNode *yangModulePtr)
 }
 
 
-YangNode *yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
+YangNode*
+yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
 {
     _YangNode       *yangModulePtr = NULL;
     _YangModuleInfo *yangModuleInfoPtr = NULL;
@@ -1241,8 +1326,8 @@ YangNode *yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
     /* body statements */
 
     smi2yangTypedefs(smiModule, yangModulePtr);
+    smi2yangIdentities(smiModule, yangModulePtr);
     smi2yangContainers(smiModule, yangModulePtr);
-    smi2yangAugments(smiModule, yangModulePtr);
     smi2yangNotifications(smiModule, yangModulePtr);
     
     yangModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
