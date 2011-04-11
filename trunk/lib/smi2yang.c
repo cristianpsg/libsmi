@@ -24,7 +24,6 @@
  * TODO: (draft-ietf-netmod-smi-yang-00.txt)
  * - create container representing augmenting tables -- oops illegal!
  * - create container for all nodes (optional flag?)
- * - special handling of accessible-for-notify objects
  */
 
 #include <config.h>
@@ -42,9 +41,6 @@
 #endif
 
 #define  URNBASE        "urn:ietf:params:xml:ns:yang:smiv2:"
-
-#define FLAG_CONFIG_FALSE 0x01
-#define FLAG_CONFIG_NONE  0x02
 
 static const char *convertType[] = {
 
@@ -208,6 +204,15 @@ smi2yangPrune(SmiNode *smiNode)
 
 
 static int
+isAccessibleLeaf(SmiNode *smiNode)
+{
+    return (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE
+	    || smiNode->access == SMI_ACCESS_READ_ONLY
+	    || smiNode->access == SMI_ACCESS_READ_WRITE);
+}
+
+
+static int
 hasObjects(SmiNode *smiNode)
 {
     SmiNode *childNode;
@@ -215,8 +220,7 @@ hasObjects(SmiNode *smiNode)
     switch (smiNode->nodekind) {
     case SMI_NODEKIND_SCALAR:
     case SMI_NODEKIND_COLUMN:
-	/* XXX we may want to prune accessible-for-notify objects */
-	return 1;
+	return isAccessibleLeaf(smiNode);
     case SMI_NODEKIND_TABLE:
     case SMI_NODEKIND_ROW:
 	return 1;
@@ -667,6 +671,7 @@ smi2yangDescription(_YangNode *node, char *description)
     }
 }
 
+
 static void
 smi2yangReference(_YangNode *node, char *reference)
 {
@@ -676,17 +681,6 @@ smi2yangReference(_YangNode *node, char *reference)
     }
 }
 
-#if 0
-static void
-smi2yangConfig(_YangNode *node, SmiAccess access)
-{
-    if (access == SMI_ACCESS_READ_WRITE) {
-	(void) addYangNode("true", YANG_DECL_CONFIG, node);
-    } else {
-	(void) addYangNode("false", YANG_DECL_CONFIG, node);
-    }
-}
-#endif
 
 static void
 smi2yangAccess(_YangNode *node, SmiAccess access)
@@ -913,7 +907,7 @@ smi2yangIdentities(SmiModule *smiModule, _YangNode *yangModulePtr)
 
 
 static void
-smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
+smi2yangLeaf(_YangNode *container, SmiNode *smiNode)
 {
     _YangNode *node, *typeNode;
     SmiType *smiType;
@@ -927,17 +921,6 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
 	smi2yangSubtype(typeNode, smiType);
     }
     smi2yangUnits(node, smiNode->units);
-#if 0
-    if (! (flags & FLAG_CONFIG_NONE)) {
-	SmiAccess config;
-	if (flags & FLAG_CONFIG_FALSE) {
-	    config = SMI_ACCESS_READ_ONLY;
-	} else {
-	    config = smiNode->access;
-	}
-	smi2yangConfig(node, config);
-    }
-#endif
     smi2yangStatus(node, smiNode->status);
     smi2yangDescription(node, smiNode->description);
     smi2yangReference(node, smiNode->reference);
@@ -949,7 +932,7 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode, int flags)
 
 
 static void
-smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, int flags)
+smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode)
 {
     SmiNode *entryNode;
     _YangNode *leafNode, *typeNode;
@@ -963,18 +946,6 @@ smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, int flags)
     s = smi2yangPath(smiNode);
     (void) addYangNode(s, YANG_DECL_PATH, typeNode);
     smiFree(s);
-#if 0    
-    if (! (flags & FLAG_CONFIG_NONE)) {
-	SmiAccess config;
-	if (flags & FLAG_CONFIG_FALSE) {
-	    config = SMI_ACCESS_READ_ONLY;
-	} else {
-	    config = entryNode->create
-		? SMI_ACCESS_READ_WRITE : SMI_ACCESS_READ_ONLY;
-	}
-	smi2yangConfig(leafNode, config);
-    }
-#endif
     smi2yangStatus(leafNode, smiNode->status);
     smi2yangDescription(leafNode, "[Automagically generated leafref leaf.]");
 }
@@ -1010,9 +981,9 @@ smi2yangLeafs(_YangNode *node, SmiNode *smiNode)
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
-	/* XXX we have want to skip accessible-for-notify objects*/ 
-	if (childNode->nodekind == SMI_NODEKIND_COLUMN) {
-	    smi2yangLeaf(node, childNode, 0);
+	if (childNode->nodekind == SMI_NODEKIND_COLUMN
+	    && isAccessibleLeaf(childNode)) {
+	    smi2yangLeaf(node, childNode);
 	}
     }
 }
@@ -1055,7 +1026,7 @@ smi2yangList(_YangNode *node, SmiNode *smiNode)
 	parentNode = smiGetParentNode(childNode);
         if (childNode->nodekind == SMI_NODEKIND_COLUMN
             && parentNode != entryNode) {
-	    smi2yangLeafrefLeaf(listNode, childNode, 0);
+	    smi2yangLeafrefLeaf(listNode, childNode);
 	}
     }
     
@@ -1116,9 +1087,9 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
 
-	if (childNode->nodekind == SMI_NODEKIND_SCALAR) {
-	    /* XXX we may want to skip accessible-for-notify leafs */
-	    smi2yangLeaf(node, childNode, 0);
+	if (childNode->nodekind == SMI_NODEKIND_SCALAR
+	    && isAccessibleLeaf(childNode)) {
+	    smi2yangLeaf(node, childNode);
 	    continue;
 	}
 
@@ -1197,7 +1168,7 @@ smi2yangNotificationIndex(_YangNode *node,
 	childNode = smiGetElementNode(smiElement);
 	parentNode = smiGetParentNode(childNode);
 	if (childNode != ignoreNode) {
-	    smi2yangLeafrefLeaf(node, childNode, FLAG_CONFIG_NONE);
+	    smi2yangLeafrefLeaf(node, childNode);
 	}
     }
 }
@@ -1244,7 +1215,11 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 	    }
 	}
 
-	smi2yangLeafrefLeaf(conti, vbNode, FLAG_CONFIG_NONE);
+	if (isAccessibleLeaf(vbNode)) {
+	    smi2yangLeafrefLeaf(conti, vbNode);
+	} else {
+	    smi2yangLeaf(conti, vbNode);
+	}
     }
 }
 
