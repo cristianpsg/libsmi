@@ -1203,36 +1203,6 @@ smi2yangNotificationIndex(_YangNode *node,
 }
 
 
-static int
-getPosition(SmiElement *startElement, SmiElement *thisElement)
-{
-    SmiElement *smiElement;
-    SmiNode *smiNode;
-    SmiNode *thisNode = smiGetElementNode(thisElement);
-    int cnt = 0;
-    
-    for (smiElement = startElement, cnt = 0;
-	 smiElement; smiElement = smiGetNextElement(smiElement)) {
-	smiNode = smiGetElementNode(smiElement);
-	if (smiNode == thisNode) cnt++;
-    }
-
-    if (cnt <= 1) {
-	return 0;
-    }
-
-    for (smiElement = startElement, cnt = 0;
-	 smiElement; smiElement = smiGetNextElement(smiElement)) {
-	smiNode = smiGetElementNode(smiElement);
-	if (smiNode == thisNode) cnt++;
-	if (smiElement == thisElement) {
-	    break;
-	}
-    }
-    return cnt;
-}
-
-
 static void
 smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 {
@@ -1248,20 +1218,15 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
     smi2yangReference(node, smiNode->reference);
     smi2yangOID(node, smiNode->oid, smiNode->oidlen);
 
-    for (smiElement = smiGetFirstElement(smiNode); smiElement;
-	 smiElement = smiGetNextElement(smiElement)) {
+    for (smiElement = smiGetFirstElement(smiNode), cnt = 1; smiElement;
+	 smiElement = smiGetNextElement(smiElement), cnt++) {
 	vbNode = smiGetElementNode(smiElement);
 	if (! vbNode) continue;
 
 	entryNode = (vbNode->nodekind == SMI_NODEKIND_COLUMN)
 	    ? smiGetParentNode(vbNode) : NULL;
 
-	cnt = getPosition(smiGetFirstElement(smiNode), smiElement);
-	if (cnt) {
-	    smiAsprintf(&s, "%s-%s-%d", smiNode->name, vbNode->name, cnt);
-	} else {
-	    smiAsprintf(&s, "%s-%s", smiNode->name, vbNode->name);
-	}
+	smiAsprintf(&s, "object-%d", cnt);
 	conti = addYangNode(s, YANG_DECL_CONTAINER, node);
 	smiFree(s);
 
@@ -1279,15 +1244,7 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 	    }
 	}
 
-#if 0
-	if (entryNode && isIndex(entryNode, vbNode)) {
-	    smi2yangLeafrefLeaf(conti, vbNode, FLAG_CONFIG_NONE);
-	} else {
-	    smi2yangLeaf(conti, vbNode, FLAG_CONFIG_NONE);
-	}
-#else
 	smi2yangLeafrefLeaf(conti, vbNode, FLAG_CONFIG_NONE);
-#endif
     }
 }
 
