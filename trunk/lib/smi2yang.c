@@ -881,10 +881,27 @@ smi2yangTypedefs(SmiModule *smiModule, _YangNode *yangModulePtr)
 
 
 static void
+smi2yangIdentity(_YangNode *node, SmiNode *smiNode)
+{
+    _YangNode *identityNode;
+
+    if (! smiNode) {
+	return;
+    }
+
+    identityNode = addYangNode(smiNode->name, YANG_DECL_IDENTITY, node);
+    (void) addYangNode("smiv2:object-identity", YANG_DECL_BASE, identityNode);
+    smi2yangStatus(identityNode, smiNode->status);
+    smi2yangDescription(identityNode, smiNode->description);
+    smi2yangReference(identityNode, smiNode->reference);
+    smi2yangOID(identityNode, smiNode->oid, smiNode->oidlen);
+}
+
+
+static void
 smi2yangIdentities(SmiModule *smiModule, _YangNode *yangModulePtr)
 {
     SmiNode *smiNode;
-    _YangNode *node;
 
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
 	 smiNode;
@@ -895,12 +912,7 @@ smi2yangIdentities(SmiModule *smiModule, _YangNode *yangModulePtr)
 	}
 	
 	if (smiNode->status != SMI_STATUS_UNKNOWN) {
-	    node = addYangNode(smiNode->name, YANG_DECL_IDENTITY,
-			       yangModulePtr);
-	    (void) addYangNode("smiv2:object-identity", YANG_DECL_BASE, node);
-	    smi2yangStatus(node, smiNode->status);
-	    smi2yangDescription(node, smiNode->description);
-	    smi2yangReference(node, smiNode->reference);
+	    smi2yangIdentity(yangModulePtr, smiNode);
 	}
     }
 }
