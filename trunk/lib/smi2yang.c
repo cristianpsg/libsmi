@@ -1037,35 +1037,44 @@ smi2yangList(_YangNode *node, SmiNode *smiNode)
 static void
 smi2yangAugment(_YangNode *node, SmiNode *smiNode)
 {
-    SmiNode *entryNode, *baseEntryNode = NULL;
-    _YangNode *augmentNode, *tableNode;
+    SmiNode *baseEntryNode = NULL;
+    _YangNode *augmentNode;
     char *s;
 
-    entryNode = smiGetFirstChildNode(smiNode);
-    if (entryNode) {
-        baseEntryNode = smiGetRelatedNode(entryNode);
+    if (! smiNode) {
+	return;
     }
-    if (! smiNode || ! entryNode || ! baseEntryNode) {
+    
+    baseEntryNode = smiGetRelatedNode(smiNode);
+    if (! baseEntryNode) {
         return;
     }
 
-    tableNode = addYangNode(smiNode->name, YANG_DECL_CONTAINER, node);
-
-    smi2yangStatus(tableNode, smiNode->status);
-    smi2yangDescription(tableNode, smiNode->description);
-    smi2yangReference(tableNode, smiNode->reference);
-    smi2yangOID(tableNode, smiNode->oid, smiNode->oidlen);
-
     s = smi2yangPath(baseEntryNode);
-    augmentNode = addYangNode(s, YANG_DECL_AUGMENT, tableNode);
-    smiFree(s);
+    augmentNode = addYangNode(s, YANG_DECL_AUGMENT, node);
+    smiFree(s); 
 
-    smi2yangStatus(augmentNode, entryNode->status);
-    smi2yangDescription(augmentNode, entryNode->description);
-    smi2yangReference(augmentNode, entryNode->reference);
-    smi2yangOID(augmentNode, entryNode->oid, entryNode->oidlen);
+    smi2yangStatus(augmentNode, smiNode->status);
+    smi2yangDescription(augmentNode, smiNode->description);
+    smi2yangReference(augmentNode, smiNode->reference);
+    smi2yangOID(augmentNode, smiNode->oid, smiNode->oidlen);
 
-    smi2yangLeafs(augmentNode, entryNode);
+    smi2yangLeafs(augmentNode, smiNode);
+}
+
+
+static void
+smi2yangAugments(SmiModule *smiModule, _YangNode *node)
+{
+    SmiNode *smiNode;
+
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ROW)) {
+	if (smiNode->indexkind == SMI_INDEX_AUGMENT) {
+	    smi2yangAugment(node, smiNode);
+	}
+    }
 }
 
 
@@ -1102,9 +1111,6 @@ smi2yangContainer(_YangNode *yangModulePtr, SmiNode *smiNode)
 		case SMI_INDEX_SPARSE:
 		case SMI_INDEX_EXPAND:
 			smi2yangList(node, childNode);
-			break;
-		case SMI_INDEX_AUGMENT:
-   		        smi2yangAugment(node, childNode);
 			break;
 		default:
 			break;
@@ -1260,6 +1266,7 @@ yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
     smi2yangTypedefs(smiModule, yangModulePtr);
     smi2yangIdentities(smiModule, yangModulePtr);
     smi2yangContainers(smiModule, yangModulePtr);
+    smi2yangAugments(smiModule, yangModulePtr);
     smi2yangNotifications(smiModule, yangModulePtr);
     
     yangModuleInfoPtr->parsingState  = YANG_PARSING_DONE;
