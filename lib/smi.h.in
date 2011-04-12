@@ -145,7 +145,7 @@ typedef enum SmiAccess {
     SMI_ACCESS_INSTALL          = 6, /* these three entries are only valid   */
     SMI_ACCESS_INSTALL_NOTIFY   = 7, /* for SPPI                             */
     SMI_ACCESS_REPORT_ONLY      = 8,
-    SMI_ACCESS_EVENT_ONLY      	= 9	 /* this entry is valid only for SMIng	 */
+    SMI_ACCESS_EVENT_ONLY      	= 9  /* this entry is valid only for SMIng   */
 } SmiAccess;
 
 extern char *smiAccessAsString(SmiAccess access);
