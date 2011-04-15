@@ -330,13 +330,29 @@ createImportList(SmiModule *smiModule)
     }
 
     /*
-     * Add import for the smi:oid extension and friends.
-     *
-     * XXX: We also need this import if we have an OBJECT-IDENTITY!
+     * Add an import for the smiv2:oid extension and friends.
      */
     if (smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
 	addImport("ietf-yang-smiv2", "smiv2");
-    }
+    } else {
+	/*
+	 * We also need this import if we have an OBJECT-IDENTITY to
+	 * translate. So search for a node that has a known status.
+	 */
+	for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
+	     smiNode;
+	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
+	    if (smiNode == smiGetModuleIdentityNode(smiModule)) {
+		continue;
+	    }
+	    if (smiNode->status != SMI_STATUS_UNKNOWN) {
+		break;
+	    }
+	}
+	if (smiNode) {
+	    addImport("ietf-yang-smiv2", "smiv2");
+	}
+     }
 
     /*
      * Add import for yang-types that were originally ASN.1
