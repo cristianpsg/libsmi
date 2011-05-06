@@ -448,6 +448,7 @@ smi2yangLeafPath(SmiNode *smiNode)
 {
     SmiModule *smiModule;
     SmiNode *smiIdentityNode, *smiEntryNode, *smiTableNode;
+    char *toplevel = NULL;
     char *s = NULL;
     const char *prefix;
 
@@ -458,12 +459,13 @@ smi2yangLeafPath(SmiNode *smiNode)
     prefix = getModulePrefix(smiModule->name);
 
     smiIdentityNode = smiGetModuleIdentityNode(smiModule);
+    toplevel = smiIdentityNode ? smiIdentityNode->name : smiModule->name;
     
     switch (smiNode->nodekind) {
     case SMI_NODEKIND_SCALAR:
 	if (smiIdentityNode) {
 	    smiAsprintf(&s, "/%s:%s/%s:%s",
-			prefix, smiIdentityNode->name,
+			prefix, toplevel,
 			prefix, smiNode->name);
 	} else {
 	    smiAsprintf(&s, "/%s:%s",
@@ -476,7 +478,8 @@ smi2yangLeafPath(SmiNode *smiNode)
 	    smiTableNode = smiGetParentNode(smiEntryNode);
 	}
 	if (smiEntryNode && smiTableNode) {
-	    smiAsprintf(&s, "/%s:%s/%s:%s/%s:%s",
+	    smiAsprintf(&s, "/%s:%s/%s:%s/%s:%s/%s:%s",
+			prefix, toplevel,
 			prefix, smiTableNode->name,
 			prefix, smiEntryNode->name,
 			prefix, smiNode->name);
@@ -494,6 +497,8 @@ smi2yangListPath(SmiNode *smiEntryNode)
 {
     SmiModule *smiModule;
     SmiNode *smiTableNode;
+    SmiNode *smiIdentityNode;
+    char *toplevel = NULL;
     char *s = NULL;
     const char *prefix;
 
@@ -503,9 +508,13 @@ smi2yangListPath(SmiNode *smiEntryNode)
     }
     prefix = getModulePrefix(smiModule->name);
 
+    smiIdentityNode = smiGetModuleIdentityNode(smiModule);
+    toplevel = smiIdentityNode ? smiIdentityNode->name : smiModule->name;
+
     smiTableNode = smiGetParentNode(smiEntryNode);
     if (smiTableNode) {
-	smiAsprintf(&s, "/%s:%s/%s:%s",
+	smiAsprintf(&s, "/%s:%s/%s:%s/%s:%s",
+		    prefix, toplevel,
 		    prefix, smiTableNode->name,
 		    prefix, smiEntryNode->name);
     }
@@ -934,6 +943,33 @@ smi2yangKey(_YangNode *node, SmiNode *smiNode)
 }
 
 
+static _YangNode*
+smi2yangToplevel(SmiModule *smiModule, _YangNode *node)
+{
+    SmiNode *smiNode;
+    
+    /* Generate the top-level container. If there is a module identity
+     * node (SMIv2), we use the module identity node. Otherwise
+     * (SMIv1), we artificially create a suitable toplevel node
+     * derived from the module name. */
+
+    smiNode = smiGetModuleIdentityNode(smiModule);
+    if (smiNode) {
+	node = addYangNode(smiNode->name, YANG_DECL_CONTAINER, node);
+    } else {
+	node = addYangNode(smiModule->name, YANG_DECL_CONTAINER, node);
+    }
+    (void) addYangNode("false", YANG_DECL_CONFIG, node);
+    smi2yangDescription(node,
+			"[Automatically generated top-level container.]");
+    if (smiNode) {
+	smi2yangOID(node, smiNode->oid, smiNode->oidlen);
+    }
+
+    return node;
+}
+
+
 static void
 smi2yangLeafs(_YangNode *node, SmiNode *smiNode)
 {
@@ -954,16 +990,6 @@ static void
 smi2yangScalars(SmiModule *smiModule, _YangNode *node)
 {
     SmiNode *smiNode;
-
-    /* Put everything into a container if there is a module identity
-     * node - otherwise (SMIv1) we keep the scalars flat. */
-
-    smiNode = smiGetModuleIdentityNode(smiModule);
-    if (smiNode) {
-	node = addYangNode(smiNode->name, YANG_DECL_CONTAINER, node);
-	(void) addYangNode("false", YANG_DECL_CONFIG, node);
-	smi2yangOID(node, smiNode->oid, smiNode->oidlen);
-    }
 
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_SCALAR);
 	 smiNode;
@@ -1137,6 +1163,8 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 	smiAsprintf(&s, "object-%d", cnt);
 	conti = addYangNode(s, YANG_DECL_CONTAINER, node);
 	smiFree(s);
+	smi2yangDescription(conti,
+	    "[Automatically generated container for a notification object.");
 
 	if (entryNode) {
 	    switch (entryNode->indexkind) {
@@ -1179,6 +1207,7 @@ YangNode*
 yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
 {
     _YangNode       *yangModulePtr = NULL;
+    _YangNode	    *yangToplevelPtr = NULL;
     _YangModuleInfo *yangModuleInfoPtr = NULL;
 
     smi2yangFlags = flags;
@@ -1197,8 +1226,11 @@ yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
 
     smi2yangTypedefs(smiModule, yangModulePtr);
     smi2yangIdentities(smiModule, yangModulePtr);
-    smi2yangScalars(smiModule, yangModulePtr);
-    smi2yangTables(smiModule, yangModulePtr);
+    
+    yangToplevelPtr = smi2yangToplevel(smiModule, yangModulePtr);
+    smi2yangScalars(smiModule, yangToplevelPtr);
+    smi2yangTables(smiModule, yangToplevelPtr);
+    
     smi2yangAugments(smiModule, yangModulePtr);
     smi2yangNotifications(smiModule, yangModulePtr);
     
