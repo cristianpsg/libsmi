@@ -1013,7 +1013,6 @@ smi2yangTable(_YangNode *node, SmiNode *smiTableNode, SmiNode *smiEntryNode)
     }
     
     tableNode = addYangNode(smiTableNode->name, YANG_DECL_CONTAINER, node);
-    (void) addYangNode("false", YANG_DECL_CONFIG, tableNode);
     
     smi2yangStatus(tableNode, smiTableNode->status);
     smi2yangDescription(tableNode, smiTableNode->description);
