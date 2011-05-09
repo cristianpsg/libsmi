@@ -4656,8 +4656,20 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	smiDepth++;
 	parser.line			= 1;
 	smiparse((void *)&parser);
+#if 0
+	/*
+	 * These nodes seem to be referenced in certain situations and
+	 * thus freeing them causes problems. So we better do not free
+	 * until we have sorted out how to free safely.
+	 *
+	 * http://www.ibr.cs.tu-bs.de/pipermail/libsmi/2010-August/001214.html
+	 * http://www.ibr.cs.tu-bs.de/pipermail/libsmi/2011-May/001249.html
+	 *
+	 * (see also below for the sming version)
+	 */
 	freeNodeTree(parser.pendingNodePtr);
 	smiFree(parser.pendingNodePtr);
+#endif
 	smiLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);
@@ -4699,8 +4711,20 @@ Module *loadModule(const char *modulename, Parser *parserPtr)
 	smiDepth++;
 	parser.line			= 1;
 	smingparse((void *)&parser);
+#if 0
+	/*
+	 * These nodes seem to be referenced in certain situations and
+	 * thus freeing them causes problems. So we better do not free
+	 * until we have sorted out how to free safely.
+	 *
+	 * http://www.ibr.cs.tu-bs.de/pipermail/libsmi/2010-August/001214.html
+	 * http://www.ibr.cs.tu-bs.de/pipermail/libsmi/2011-May/001249.html
+	 *
+	 * (see also above for the smi version)
+	 */
 	freeNodeTree(parser.pendingNodePtr);
 	smiFree(parser.pendingNodePtr);
+#endif
 	smingLeaveLexRecursion();
 	smiDepth--;
 	fclose(parser.file);

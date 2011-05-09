@@ -702,6 +702,7 @@ checkObjects(Parser *parserPtr, Module *modulePtr)
 		     nodePtr->parentPtr != thisParserPtr->pendingNodePtr &&
 			 nodePtr->parentPtr != smiHandle->rootNodePtr &&
 			 nodePtr != nodePtr->parentPtr &&
+			 nodePtr->parentPtr != NULL &&
 			 i <= 128;
 		     nodePtr = nodePtr->parentPtr, i++);
 		if ((objectPtr->export.name) &&
