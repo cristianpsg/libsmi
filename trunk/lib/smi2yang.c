@@ -668,6 +668,21 @@ smi2yangOID(_YangNode *node, SmiSubid *oid, unsigned int oidlen)
     smiFree(s);
 }
 
+static void
+smi2yangAlias(_YangNode *node, SmiNode *smiNode)
+{
+    _YangNode *alias;
+
+    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
+	return;
+    }
+
+    if (smiNode && smiNode->name) {
+	alias = addYangNode(smiNode->name, YANG_DECL_SMI_ALIAS, node);
+	smi2yangOID(alias, smiNode->oid, smiNode->oidlen);
+    }
+}
+
 
 static void
 smi2yangFormat(_YangNode *node, const char *format)
@@ -1202,6 +1217,19 @@ smi2yangNotifications(SmiModule *smiModule, _YangNode *yangModulePtr)
 }
 
 
+static void
+smi2yangAliases(SmiModule *smiModule, _YangNode *node)
+{
+    SmiNode *smiNode;
+
+    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
+	smi2yangAlias(node, smiNode);
+    }
+}
+
+
 YangNode*
 yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
 {
@@ -1232,6 +1260,8 @@ yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
     
     smi2yangAugments(smiModule, yangModulePtr);
     smi2yangNotifications(smiModule, yangModulePtr);
+
+    smi2yangAliases(smiModule, yangModulePtr);
     
     yangModuleInfoPtr->parsingState = YANG_PARSING_DONE;
     freeImportList();

@@ -277,6 +277,9 @@ char *yangDeclAsString(YangDecl decl)
     case YANG_DECL_SMI_MAX_ACCESS:
 	s = "smiv2:max-access";
 	break;
+    case YANG_DECL_SMI_ALIAS:
+	s = "smiv2:alias";
+	break;
     }
     return s;
 }
