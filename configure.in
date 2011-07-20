@@ -89,7 +89,7 @@ yangdir="$withval", yangdir="$prefix/share/yang")
 
 AC_ARG_WITH(smipath,
 [  --with-smipath=DIR:DIR  default DIRs to search for MIB/PIB/YANG modules [MIBDIR...]],
-smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site:$mibdir/tubs:$pibdir/ietf:$pibdir/site:$pibdir/tubs:$yangdir/ietf:$yangdir/iana:$yangdir/site")
+smipath="$withval", smipath="$mibdir/ietf:$mibdir/iana:$mibdir/irtf:$mibdir/site:$mibdir/jacobs:$mibdir/tubs:$pibdir/ietf:$pibdir/site:$pibdir/tubs:$yangdir/ietf:$yangdir/iana:$yangdir/site")
 
 AC_DEFINE_UNQUOTED([DEFAULT_SMIPATH], "$smipath",
 [The default search path to lookup SMI module files.])
@@ -274,6 +274,7 @@ mibs/Makefile
 mibs/iana/Makefile
 mibs/ietf/Makefile
 mibs/irtf/Makefile
+mibs/jacobs/Makefile
 mibs/tubs/Makefile
 mibs/site/Makefile
 pibs/Makefile
