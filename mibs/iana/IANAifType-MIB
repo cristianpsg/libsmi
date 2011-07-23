@@ -5,7 +5,7 @@
        TEXTUAL-CONVENTION          FROM SNMPv2-TC;
 
    ianaifType MODULE-IDENTITY
-       LAST-UPDATED "201009210000Z"  -- September 21, 2010
+       LAST-UPDATED "201107220000Z"  -- July 22, 2011
        ORGANIZATION "IANA"
        CONTACT-INFO "        Internet Assigned Numbers Authority
 
@@ -19,6 +19,12 @@
        DESCRIPTION  "This MIB module defines the IANAifType Textual
                      Convention, and thus the enumerated values of
                      the ifType object defined in MIB-II's ifTable."
+
+       REVISION     "201107220000Z"  -- July 22, 2011
+       DESCRIPTION  "Registration of new IANAifType 259."
+
+       REVISION     "201106030000Z"  -- June 03, 2011
+       DESCRIPTION  "Registration of new IANAifType 258."
 
        REVISION     "201009210000Z"  -- September 21, 2010
        DESCRIPTION  "Registration of new IANAifTypes 256 and 257."
@@ -558,7 +564,9 @@
                    capwapWtpVirtualRadio (254), -- WTP Virtual Radio Interface
                    bits (255), -- bitsport
                    docsCableUpstreamRfPort (256), -- DOCSIS CATV Upstream RF Port
-                   cableDownstreamRfPort (257) -- CATV downstream RF port
+                   cableDownstreamRfPort (257), -- CATV downstream RF port
+                   vmwareVirtualNic (258), -- VMware Virtual Network Interface
+                   ieee802154 (259) -- IEEE 802.15.4 WPAN interface
                    }
 
 IANAtunnelType ::= TEXTUAL-CONVENTION
