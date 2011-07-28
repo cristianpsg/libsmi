@@ -304,8 +304,11 @@ _YangNode* findTargetNode(_YangNode *nodePtr, char* prefix, char* value) {
 
     for (childPtr = nodePtr->firstChildPtr; childPtr; childPtr = childPtr->nextSiblingPtr) {
         char* childModuleName = getModuleName(childPtr->modulePtr);
-        if (isSchemaNode(childPtr->export.nodeKind) && !strcmp(childPtr->export.value, value) &&
-                !strcmp(childModuleName, moduleName)) {
+        if (isSchemaNode(childPtr->export.nodeKind) 
+	    && ((childPtr->export.value && !strcmp(childPtr->export.value, value)) 
+		|| childPtr->export.nodeKind == YANG_DECL_INPUT && !strcmp("input", value)
+		|| childPtr->export.nodeKind == YANG_DECL_OUTPUT && !strcmp("output", value))
+	    && !strcmp(childModuleName, moduleName)) {
             return childPtr;
         }
     }
