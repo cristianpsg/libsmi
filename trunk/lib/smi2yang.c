@@ -49,7 +49,7 @@ static const char *convertType[] = {
     "",		  "OctetString", NULL,	     "binary",
     "",		  "Enumeration", NULL,	     "enumeration",
     "",		  "Bits",	 NULL,	     "bits",
-    "",		  "ObjectIdentifier", "ietf-yang-types", "object-identifier",
+    "",		  "ObjectIdentifier", "ietf-yang-types", "object-identifier-128",
 
     /*
      * We want to do these translations as well in order to retire the
@@ -1178,7 +1178,7 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 	conti = addYangNode(s, YANG_DECL_CONTAINER, node);
 	smiFree(s);
 	smi2yangDescription(conti,
-	    "[Automatically generated container for a notification object.");
+	    "[Automatically generated container for a notification object.]");
 
 	if (entryNode) {
 	    switch (entryNode->indexkind) {
