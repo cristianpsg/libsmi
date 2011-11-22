@@ -649,10 +649,6 @@ smi2yangAlias(_YangNode *node, SmiNode *smiNode)
 {
     _YangNode *alias;
 
-    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
-	return;
-    }
-
     if (smiNode && smiNode->name) {
 	alias = addYangNode(smiNode->name, YANG_DECL_SMI_ALIAS, node);
 	smi2yangOID(alias, smiNode->oid, smiNode->oidlen);
@@ -670,10 +666,10 @@ smi2yangFormat(_YangNode *node, const char *format)
 
 
 static void
-smi2yangImplied(_YangNode *node, const char *node)
+smi2yangImplied(_YangNode *node, const char *object)
 {
-    if (format) {
-	(void) addYangNode(format, YANG_DECL_SMI_IMPLIED, node);
+    if (object) {
+	(void) addYangNode(object, YANG_DECL_SMI_IMPLIED, node);
     }
 }
 
@@ -921,6 +917,7 @@ static void
 smi2yangKey(_YangNode *node, SmiNode *smiNode)
 {
     SmiElement *smiElement;
+    SmiElement *lastElement;
     char *s = NULL, *o = NULL;
     int c;
 
@@ -930,11 +927,16 @@ smi2yangKey(_YangNode *node, SmiNode *smiNode)
 	smiAsprintf(&s, "%s%s%s", o ? o : "", c ? " " : "",
 		    smiGetElementNode(smiElement)->name);
 	if (o) smiFree(o);
+	lastElement = smiElement;
     }
 
     if (s) {
 	(void) addYangNode(s, YANG_DECL_KEY, node);
 	smiFree(s);
+    }
+
+    if (s && smiNode->implied && lastElement) {
+	smi2yangImplied(node, smiGetElementNode(lastElement)->name);
     }
 }
 
