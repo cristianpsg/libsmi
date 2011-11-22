@@ -280,6 +280,9 @@ char *yangDeclAsString(YangDecl decl)
     case YANG_DECL_SMI_ALIAS:
 	s = "smiv2:alias";
 	break;
+    case YANG_DECL_SMI_IMPLIED:
+	s = "smiv2:implied";
+	break;
     }
     return s;
 }
