@@ -60,7 +60,7 @@ static const char *convertType[] = {
     "SNMPv2-SMI", "Integer32",  NULL,        "int32",
     "SNMPv2-SMI", "Integer64",  NULL,        "int64",
     "SNMPv2-SMI", "Unsigned32", NULL,        "uint32",
-    "SNMPv2-SMI", "Opaque",    NULL,	     "binary",
+    "SNMPv2-SMI", "Opaque",    "ietf-yang-smiv2", "opaque",
     "SNMPv2-SMI", "Counter32", "ietf-yang-types", "counter32",
     "SNMPv2-SMI", "Counter64", "ietf-yang-types", "counter64",
     "SNMPv2-SMI", "Gauge32",   "ietf-yang-types", "gauge32",
@@ -71,7 +71,7 @@ static const char *convertType[] = {
      * And we like to do the same for RFC1155-SMI definitions...
      */
 
-    "RFC1155-SMI", "Opaque",    NULL,	     "binary",
+    "RFC1155-SMI", "Opaque",    "ietf-yang-smiv2", "opaque",
     "RFC1155-SMI", "Counter",   "ietf-yang-types", "counter32",
     "RFC1155-SMI", "Gauge",     "ietf-yang-types", "gauge32",
     "RFC1155-SMI", "TimeTicks", "ietf-yang-types", "timeticks",
@@ -83,9 +83,25 @@ static const char *convertType[] = {
      * the ISO profile used by date-and-time.
      */
 
-    "SNMPv2-TC",  "PhysAddress", "ietf-yang-types", "phys-address",
-    "SNMPv2-TC",  "MacAddress",  "ietf-yang-types", "mac-address",
-    "SNMPv2-TC",  "TimeStamp",   "ietf-yang-types", "timestamp",
+    "SNMPv2-TC", "PhysAddress", "ietf-yang-types", "phys-address",
+    "SNMPv2-TC", "MacAddress",  "ietf-yang-types", "mac-address",
+    "SNMPv2-TC", "TruthValue",  NULL,              "boolean",
+    "SNMPv2-TC", "TimeStamp",   "ietf-yang-types", "timestamp",
+
+    "RMON2-MIB", "ZeroBasedCounter32",  "ietf-yang-types", "zero-based-counter32",
+
+    "HCNUM-TC", "ZeroBasedCounter64",  "ietf-yang-types", "zero-based-counter64",
+    "HCNUM-TC", "CounterBasedGauge64", "ietf-yang-types", "gauge64",
+
+    "INET-ADDRESS-MIB", "InetVersion",                "ietf-inet-types", "ip-version",
+    "INET-ADDRESS-MIB", "InetPortNumber",             "ietf-inet-types", "port-number",
+    "INET-ADDRESS-MIB", "InetAutonomousSystemNumber", "ietf-inet-types", "as-number",
+
+    "DIFFSERV-DSCP-TC", "Dscp", "ietf-inet-types", "dscp",
+
+    "IPV6-FLOW-LABEL-MIB", "IPv6FlowLabel", "ietf-inet-types", "ipv6-flow-label",
+
+    "URI-TC-MIB", "Uri", "ietf-inet-types", "uri",
 
     NULL, NULL, NULL, NULL
 };
