@@ -149,14 +149,6 @@ typedef struct Import {
 
 static Import *importList = NULL;
 
-/*
- * The current translation flags. May be different between translation
- * calls.
- */
-
-static int smi2yangFlags;
-
-
 static char*
 getStringDate(time_t t)
 {
@@ -348,27 +340,7 @@ createImportList(SmiModule *smiModule)
     /*
      * Add an import for the smiv2:oid extension and friends.
      */
-    if (smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
-	addImport("ietf-yang-smiv2", "smiv2");
-    } else {
-	/*
-	 * We also need this import if we have an OBJECT-IDENTITY to
-	 * translate. So search for a node that has a known status.
-	 */
-	for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_NODE);
-	     smiNode;
-	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_NODE)) {
-	    if (smiNode == smiGetModuleIdentityNode(smiModule)) {
-		continue;
-	    }
-	    if (smiNode->status != SMI_STATUS_UNKNOWN) {
-		break;
-	    }
-	}
-	if (smiNode) {
-	    addImport("ietf-yang-smiv2", "smiv2");
-	}
-     }
+    addImport("ietf-yang-smiv2", "smiv2");
 
     /*
      * Add import for yang-types that were originally ASN.1
@@ -597,10 +569,6 @@ smi2yangDefault(_YangNode *node, SmiValue *smiValue, SmiType *smiType)
 {
     char *s;
 
-    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
-	return;
-    }
-
     if (smiValue->basetype != SMI_BASETYPE_UNKNOWN) {
 	s = smiValueAsString(smiValue, smiType, SMI_LANGUAGE_YANG);
 	if (s) {
@@ -659,10 +627,6 @@ smi2yangAccess(_YangNode *node, SmiAccess access)
 {
     char *s;
 
-    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
-	return;
-    }
-
     s = smiAccessAsString(access);
     if (s) {
 	(void) addYangNode(s, YANG_DECL_SMI_MAX_ACCESS, node);
@@ -675,10 +639,6 @@ smi2yangOID(_YangNode *node, SmiSubid *oid, unsigned int oidlen)
 {
     char *s;
     
-    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
-	return;
-    }
-
     s = smiRenderOID(oidlen, oid, 0);
     (void) addYangNode(s, YANG_DECL_SMI_OID, node);
     smiFree(s);
@@ -703,12 +663,17 @@ smi2yangAlias(_YangNode *node, SmiNode *smiNode)
 static void
 smi2yangFormat(_YangNode *node, const char *format)
 {
-    if (! smi2yangFlags & SMI_TO_YANG_FLAG_SMI_EXTENSIONS) {
-	return;
-    }
-
     if (format) {
 	(void) addYangNode(format, YANG_DECL_SMI_DISPLAY_HINT, node);
+    }
+}
+
+
+static void
+smi2yangImplied(_YangNode *node, const char *node)
+{
+    if (format) {
+	(void) addYangNode(format, YANG_DECL_SMI_IMPLIED, node);
     }
 }
 
@@ -1252,8 +1217,6 @@ yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
     _YangNode       *yangModulePtr = NULL;
     _YangNode	    *yangToplevelPtr = NULL;
     _YangModuleInfo *yangModuleInfoPtr = NULL;
-
-    smi2yangFlags = flags;
 
     createImportList(smiModule);
 
