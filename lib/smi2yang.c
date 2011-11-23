@@ -13,6 +13,21 @@
  */
 
 /*
+ * Generate smiv2:alias statements for table augmentations and make
+ * sure what we produce matches what is in the I-D.
+ */
+
+/*
+ * Rewrite the code to generate imports following the algorithm in
+ * the I-D.
+ */
+
+/*
+ * Generate proper nesting of scalars following the to be written text
+ * in the I-D. ;-)
+ */
+
+/*
  * TODO:
  * - fix addYangNode to pick up a suitable line number?
  * - should createModuleInfo set the correct path?
@@ -435,7 +450,7 @@ static char*
 smi2yangLeafPath(SmiNode *smiNode)
 {
     SmiModule *smiModule;
-    SmiNode *smiIdentityNode, *smiEntryNode, *smiTableNode;
+    SmiNode *smiEntryNode, *smiTableNode;
     char *toplevel = NULL;
     char *s = NULL;
     const char *prefix;
@@ -446,12 +461,11 @@ smi2yangLeafPath(SmiNode *smiNode)
     }
     prefix = getModulePrefix(smiModule->name);
 
-    smiIdentityNode = smiGetModuleIdentityNode(smiModule);
-    toplevel = smiIdentityNode ? smiIdentityNode->name : smiModule->name;
+    toplevel = smiModule->name;
     
     switch (smiNode->nodekind) {
     case SMI_NODEKIND_SCALAR:
-	if (smiIdentityNode) {
+	if (toplevel) {
 	    smiAsprintf(&s, "/%s:%s/%s:%s",
 			prefix, toplevel,
 			prefix, smiNode->name);
@@ -485,7 +499,6 @@ smi2yangListPath(SmiNode *smiEntryNode)
 {
     SmiModule *smiModule;
     SmiNode *smiTableNode;
-    SmiNode *smiIdentityNode;
     char *toplevel = NULL;
     char *s = NULL;
     const char *prefix;
@@ -496,8 +509,7 @@ smi2yangListPath(SmiNode *smiEntryNode)
     }
     prefix = getModulePrefix(smiModule->name);
 
-    smiIdentityNode = smiGetModuleIdentityNode(smiModule);
-    toplevel = smiIdentityNode ? smiIdentityNode->name : smiModule->name;
+    toplevel = smiModule->name;
 
     smiTableNode = smiGetParentNode(smiEntryNode);
     if (smiTableNode) {
@@ -651,6 +663,8 @@ smi2yangAlias(_YangNode *node, SmiNode *smiNode)
 
     if (smiNode && smiNode->name) {
 	alias = addYangNode(smiNode->name, YANG_DECL_SMI_ALIAS, node);
+	smi2yangDescription(alias, smiNode->description);
+	smi2yangReference(alias, smiNode->reference);
 	smi2yangOID(alias, smiNode->oid, smiNode->oidlen);
     }
 }
@@ -892,7 +906,7 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode)
 
 
 static void
-smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, char *description)
+smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, char *altname)
 {
     SmiNode *entryNode;
     _YangNode *leafNode, *typeNode;
@@ -900,32 +914,50 @@ smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, char *description)
 
     entryNode = smiGetParentNode(smiNode);
 
-    leafNode = addYangNode(smiNode->name, YANG_DECL_LEAF, node);
+    if (! altname) altname = smiNode->name;
+    leafNode = addYangNode(altname, YANG_DECL_LEAF, node);
 
     typeNode = addYangNode("leafref", YANG_DECL_TYPE, leafNode);
     s = smi2yangLeafPath(smiNode);
     (void) addYangNode(s, YANG_DECL_PATH, typeNode);
     smiFree(s);
     smi2yangStatus(leafNode, smiNode->status);
-    if (description) {
-	smi2yangDescription(leafNode, description);
-    }
 }
 
 
 static void
 smi2yangKey(_YangNode *node, SmiNode *smiNode)
 {
-    SmiElement *smiElement;
+    SmiElement *smiElement, *chkElement;
     SmiElement *lastElement;
     char *s = NULL, *o = NULL;
-    int c;
+    int i, c, n;
+
+    /*
+     * We need to detect duplicate names and translate them so that
+     * they are unique.
+     */
 
     for (c = 0, smiElement = smiGetFirstElement(smiNode); smiElement;
 	 smiElement = smiGetNextElement(smiElement), c++) {
+
+	for (i = 0, n = 0, chkElement = smiGetFirstElement(smiNode);
+	     chkElement && i < c;
+	     chkElement = smiGetNextElement(chkElement), i++) {
+	    if (strcmp(smiGetElementNode(smiElement)->name,
+		       smiGetElementNode(chkElement)->name) == 0) {
+		n++;
+	    }
+	}
+	
 	o = s;
-	smiAsprintf(&s, "%s%s%s", o ? o : "", c ? " " : "",
-		    smiGetElementNode(smiElement)->name);
+	if (n > 0) {
+	    smiAsprintf(&s, "%s%s%s_%d", o ? o : "", c ? " " : "",
+			smiGetElementNode(smiElement)->name, n+1);
+	} else {
+	    smiAsprintf(&s, "%s%s%s", o ? o : "", c ? " " : "",
+			smiGetElementNode(smiElement)->name);
+	}
 	if (o) smiFree(o);
 	lastElement = smiElement;
     }
@@ -944,26 +976,12 @@ smi2yangKey(_YangNode *node, SmiNode *smiNode)
 static _YangNode*
 smi2yangToplevel(SmiModule *smiModule, _YangNode *node)
 {
-    SmiNode *smiNode;
-    
-    /* Generate the top-level container. If there is a module identity
-     * node (SMIv2), we use the module identity node. Otherwise
-     * (SMIv1), we artificially create a suitable toplevel node
-     * derived from the module name. */
+    /* Generate the top-level container. We always use the module
+     * name since this works both for SMIv1 and SMIv2 and does not
+     * cause issues if an SMIv1 modules gets converted to SMIv2. */
 
-    smiNode = smiGetModuleIdentityNode(smiModule);
-    if (smiNode) {
-	node = addYangNode(smiNode->name, YANG_DECL_CONTAINER, node);
-    } else {
-	node = addYangNode(smiModule->name, YANG_DECL_CONTAINER, node);
-    }
+    node = addYangNode(smiModule->name, YANG_DECL_CONTAINER, node);
     (void) addYangNode("false", YANG_DECL_CONFIG, node);
-    smi2yangDescription(node,
-			"[Automatically generated top-level container.]");
-    if (smiNode) {
-	smi2yangOID(node, smiNode->oid, smiNode->oidlen);
-    }
-
     return node;
 }
 
@@ -1003,8 +1021,9 @@ static void
 smi2yangTable(_YangNode *node, SmiNode *smiTableNode, SmiNode *smiEntryNode)
 {
     _YangNode *tableNode, *listNode;
-    SmiElement *smiElement;
+    SmiElement *smiElement, *chkElement;
     SmiNode *childNode, *parentNode;
+    int i, c, n;
 
     if (!smiTableNode || !smiEntryNode) {
 	return;
@@ -1026,18 +1045,36 @@ smi2yangTable(_YangNode *node, SmiNode *smiTableNode, SmiNode *smiEntryNode)
     smi2yangOID(listNode, smiEntryNode->oid, smiEntryNode->oidlen);
 
     /*
-     * Add leafref nodes for foreign key elements.
+     * Add leafref nodes for foreign key elements. We have to be
+     * careful with leafref nodes appearing multiple times and
+     * disambiguate the names.
      */
 
-    for (smiElement = smiGetFirstElement(smiEntryNode);
+    for (c = 0, smiElement = smiGetFirstElement(smiEntryNode);
 	 smiElement;
-	 smiElement = smiGetNextElement(smiElement)) {
+	 smiElement = smiGetNextElement(smiElement), c++) {
+
+	for (i = 0, n = 0, chkElement = smiGetFirstElement(smiEntryNode);
+	     chkElement && i < c;
+	     chkElement = smiGetNextElement(chkElement), i++) {
+	    if (strcmp(smiGetElementNode(smiElement)->name,
+		       smiGetElementNode(chkElement)->name) == 0) {
+		n++;
+	    }
+	}
+	
 	childNode = smiGetElementNode(smiElement);
 	parentNode = smiGetParentNode(childNode);
         if (childNode->nodekind == SMI_NODEKIND_COLUMN
             && parentNode != smiEntryNode) {
-	    smi2yangLeafrefLeaf(listNode, childNode,
-		"[Automatically generated leaf for a foreign index.]");
+	    if (n > 0) {
+		char *s = NULL;
+		smiAsprintf(&s, "%s_%d", childNode->name, n+1);
+		smi2yangLeafrefLeaf(listNode, childNode, s);
+		smiFree(s);
+	    } else {
+		smi2yangLeafrefLeaf(listNode, childNode, NULL);
+	    }
 	}
     }
     
@@ -1127,8 +1164,7 @@ smi2yangNotificationIndex(_YangNode *node,
 	childNode = smiGetElementNode(smiElement);
 	parentNode = smiGetParentNode(childNode);
 	if (childNode != ignoreNode) {
-	    smi2yangLeafrefLeaf(node, childNode,
-		"[Automatically generated leaf for a notification object index.]");
+	    smi2yangLeafrefLeaf(node, childNode, NULL);
 	}
     }
 }
@@ -1160,8 +1196,6 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 	smiAsprintf(&s, "object-%d", cnt);
 	conti = addYangNode(s, YANG_DECL_CONTAINER, node);
 	smiFree(s);
-	smi2yangDescription(conti,
-	    "[Automatically generated container for a notification object.]");
 
 	if (entryNode) {
 	    switch (entryNode->indexkind) {
@@ -1178,8 +1212,7 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 	}
 
 	if (isAccessibleLeaf(vbNode)) {
-	    smi2yangLeafrefLeaf(conti, vbNode,
-		"[Automatically generated leaf for a notification object.]");
+	    smi2yangLeafrefLeaf(conti, vbNode, NULL);
 	} else {
 	    smi2yangLeaf(conti, vbNode);
 	}
@@ -1208,7 +1241,16 @@ smi2yangAliases(SmiModule *smiModule, _YangNode *node)
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	smi2yangAlias(node, smiNode);
+	switch (smiNode->nodekind) {
+	case SMI_NODEKIND_NODE:
+	case SMI_NODEKIND_GROUP:
+	case SMI_NODEKIND_COMPLIANCE:
+	case SMI_NODEKIND_CAPABILITIES:
+	    smi2yangAlias(node, smiNode);
+	    break;
+	default:
+	    break;
+	}
     }
 }
 
