@@ -844,6 +844,8 @@ static Error errors[] = {
       "bad deviation type - node \"%s\" can not be a child of \"%s\"", NULL},
     { 2, ERR_BAD_DEVIATION_DEL, "bad-deviation-del",
       "node \"%s\" has to be defined under the deviation target node", NULL},
+    { 2, ERR_SMI2YANG_NON_UNIQUE_NAME, "smi2yang-non-unique-name",
+      "node \"%s\" is also known as \"%s\" - picking name \"%s\"", NULL },
     { 0, 0, NULL, NULL, NULL }
 };
 
