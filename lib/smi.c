@@ -3154,3 +3154,51 @@ int smiGetMinMaxRange(SmiType *smiType, SmiValue *min, SmiValue *max)
 
     return 0;
 }
+
+
+SmiNode *smiGetFirstAlias(SmiNode *smiNodePtr)
+{
+    Object *objectPtr;
+    Node *nodePtr;
+
+    if (! smiNodePtr) {
+	return NULL;
+    }
+
+    objectPtr = (Object *) smiNodePtr;
+    nodePtr = objectPtr->nodePtr;
+
+    if (!nodePtr || !nodePtr->firstChildPtr) {
+	return NULL;
+    }
+
+    return &(nodePtr->firstObjectPtr->export);
+}
+
+SmiNode *smiGetNextAlias(SmiNode *smiNodePtr)
+{
+    Object *objectPtr;
+    Node *nodePtr;
+
+    if (!smiNodePtr) {
+	return NULL;
+    }
+
+    objectPtr = (Object *) smiNodePtr;
+    nodePtr = objectPtr->nodePtr;
+
+    if (!nodePtr) {
+	return NULL;
+    }
+
+    for (objectPtr = nodePtr->firstObjectPtr;
+	 objectPtr && &objectPtr->export != smiNodePtr;
+	 objectPtr = objectPtr->nextSameNodePtr) {
+    }
+
+    if (!objectPtr || !objectPtr->nextSameNodePtr) {
+	return NULL;
+    }
+
+    return &objectPtr->nextSameNodePtr->export;
+}

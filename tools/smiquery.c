@@ -178,6 +178,12 @@ int main(int argc, char *argv[])
 		printf("     MibNode: %s\n", smiRenderNode(node, SMI_RENDER_ALL));
 		printf("         OID: %s\n", smiRenderOID(node->oidlen, node->oid,
 							  0));
+		for (node2 = smiGetFirstAlias(node);
+		     node2; node2 = smiGetNextAlias(node2)) {
+		    if (node2 == node) continue;
+		    printf("       Alias: %s\n", smiRenderNode(node2, SMI_RENDER_ALL));
+		}
+		
 		if (parent)
 		    printf("  ParentNode: %s\n",
 			   smiRenderNode(parent, SMI_RENDER_ALL));
