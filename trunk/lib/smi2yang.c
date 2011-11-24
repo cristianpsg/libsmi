@@ -1038,7 +1038,7 @@ smi2yangScalars(SmiModule *smiModule, _YangNode *node)
 		    break;
 		}
 	    }
-	    if (! i < cnt) groups[cnt++] = parentNode;
+	    if (! (i < cnt)) groups[cnt++] = parentNode;
 	}
     }
 
