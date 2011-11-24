@@ -13,18 +13,8 @@
  */
 
 /*
- * Generate smiv2:alias statements for table augmentations and make
- * sure what we produce matches what is in the I-D.
- */
-
-/*
  * Rewrite the code to generate imports following the algorithm in
  * the I-D.
- */
-
-/*
- * Generate proper nesting of scalars following the to be written text
- * in the I-D. ;-)
  */
 
 /*
@@ -43,6 +33,7 @@
 
 #include "smi2yang.h"
 #include "yang-data.h"
+#include "error.h"
 
 #ifdef HAVE_DMALLOC_H
 #include <dmalloc.h>
@@ -91,6 +82,7 @@ static const char *convertType[] = {
     "RFC1155-SMI", "Gauge",     "ietf-yang-types", "gauge32",
     "RFC1155-SMI", "TimeTicks", "ietf-yang-types", "timeticks",
     "RFC1155-SMI", "IpAddress", "ietf-inet-types", "ipv4-address",
+    "RFC1155-SMI", "NetworkAddress", "ietf-inet-types", "ipv4-address",
     
     /*
      * We also translate frequently used SNMPv2-TCs that have a YANG
@@ -148,21 +140,20 @@ static const char *convertImport[] = {
  */
 
 static const char *ignoreImports[] = {
-    "RFC1155-SMI", "SNMPv2-SMI", "SNMPv2-CONF", NULL
+    "SNMPv2-SMI", "SNMPv2-CONF", NULL
 };
-
 
 /*
  * Structure used to build a list of imported types.
  */
 
-typedef struct Import {
-    char          *module;
-    char	  *prefix;
-    struct Import *nextPtr;
-} Import;
+typedef struct syImport {
+    char            *module;
+    char	    *prefix;
+    struct syImport *nextPtr;
+} syImport;
 
-static Import *importList = NULL;
+static syImport *importList = NULL;
 
 static char*
 getStringDate(time_t t)
@@ -178,30 +169,6 @@ getStringDate(time_t t)
 
 
 static int
-smi2yangPrune(SmiNode *smiNode)
-{
-    SmiNode *childNode;
-
-    switch (smiNode->nodekind) {
-    case SMI_NODEKIND_CAPABILITIES:
-    case SMI_NODEKIND_COMPLIANCE:
-    case SMI_NODEKIND_GROUP:
-	return 1;
-    case SMI_NODEKIND_SCALAR:
-    case SMI_NODEKIND_COLUMN:
-	return 0;
-    default:
-	for (childNode = smiGetFirstChildNode(smiNode);
-	     childNode;
-	     childNode = smiGetNextChildNode(childNode)) {
-	    if (! smi2yangPrune(childNode)) return 0;
-	}
-	return 1;
-    }
-}
-
-
-static int
 isAccessibleLeaf(SmiNode *smiNode)
 {
     return (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE
@@ -213,7 +180,7 @@ isAccessibleLeaf(SmiNode *smiNode)
 static int
 isPrefixUnique(const char *prefix)
 {
-    Import *import;
+    syImport *import;
 
     for (import = importList; import; import = import->nextPtr) {
          if (strcmp(prefix, import->prefix) == 0) {
@@ -271,7 +238,7 @@ guessNicePrefix(const char *moduleName)
 static const char*
 getModulePrefix(const char *moduleName)
 {
-    Import *import;
+    syImport *import;
     static char *prefix = NULL;
 
     for (import = importList; import; import = import->nextPtr) {
@@ -286,10 +253,10 @@ getModulePrefix(const char *moduleName)
 }
 
 
-static Import*
-addImport(char *module, char *name)
+static syImport*
+syaddImport(char *module, char *name)
 {
-    Import **import, *newImport;
+    syImport **import, *newImport;
     
     if (!module || !name) {
 	return NULL;
@@ -349,13 +316,13 @@ createImportList(SmiModule *smiModule)
 	}
 
 	if (! impModule || ! impName) continue;
-	addImport(impModule, impName);
+	syaddImport(impModule, impName);
     }
 
     /*
      * Add an import for the smiv2:oid extension and friends.
      */
-    addImport("ietf-yang-smiv2", "smiv2");
+    syaddImport("ietf-yang-smiv2", "smiv2");
 
     /*
      * Add import for yang-types that were originally ASN.1
@@ -366,7 +333,7 @@ createImportList(SmiModule *smiModule)
 	 smiType; smiType = smiGetNextType(smiType)) {
 	SmiType *parentType = smiGetParentType(smiType);
 	if (parentType && strcmp(parentType->name, "ObjectIdentifier") == 0) {
-	    addImport("ietf-yang-types", "object-identifier");
+	    syaddImport("ietf-yang-types", "object-identifier");
 	}
     }
 
@@ -380,7 +347,7 @@ createImportList(SmiModule *smiModule)
 	    smiType = smiGetParentType(smiType);
 	}
 	if (smiType && strcmp(smiType->name, "ObjectIdentifier") == 0) {
-	    addImport("ietf-yang-types", "object-identifier");
+	    syaddImport("ietf-yang-types", "object-identifier");
 	}
     }
 }
@@ -390,7 +357,7 @@ createImportList(SmiModule *smiModule)
 static void
 freeImportList(void)
 {
-    Import *import, *freeme;
+    syImport *import, *freeme;
 
     for (import = importList; import; ) {
         smiFree(import->prefix);
@@ -429,7 +396,7 @@ static void
 smi2yangImports(SmiModule *smiModule, _YangNode *yangModulePtr)
 {
     int i;
-    Import *import;
+    syImport *import;
     _YangNode *node;
     
     for (import = importList; import; import = import->nextPtr) {
@@ -663,6 +630,7 @@ smi2yangAlias(_YangNode *node, SmiNode *smiNode)
 
     if (smiNode && smiNode->name) {
 	alias = addYangNode(smiNode->name, YANG_DECL_SMI_ALIAS, node);
+	smi2yangStatus(alias, smiNode->status);
 	smi2yangDescription(alias, smiNode->description);
 	smi2yangReference(alias, smiNode->reference);
 	smi2yangOID(alias, smiNode->oid, smiNode->oidlen);
@@ -1001,7 +969,22 @@ smi2yangLeafs(_YangNode *node, SmiNode *smiNode)
     }
 }
 
+static void
+smi2yangScalarLeafs(_YangNode *node, SmiNode *smiNode)
+{
+    SmiNode *childNode;
 
+    for (childNode = smiGetFirstChildNode(smiNode);
+	 childNode;
+	 childNode = smiGetNextChildNode(childNode)) {
+	if (childNode->nodekind == SMI_NODEKIND_SCALAR
+	    && isAccessibleLeaf(childNode)) {
+	    smi2yangLeaf(node, childNode);
+	}
+    }
+}
+
+#if 0
 static void
 smi2yangScalars(SmiModule *smiModule, _YangNode *node)
 {
@@ -1015,6 +998,63 @@ smi2yangScalars(SmiModule *smiModule, _YangNode *node)
 	}
     }
 }
+#else
+static void
+smi2yangScalars(SmiModule *smiModule, _YangNode *node)
+{
+    SmiNode *smiNode, *parentNode, *aliasNode;
+    _YangNode *container;
+    int i, cnt;
+    SmiNode **groups = NULL;
+
+    for (cnt = 0, smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_SCALAR);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_SCALAR)) {
+	cnt++;
+    }
+
+    if (cnt == 0) {
+	return;
+    }
+
+    groups = (SmiNode **) smiMalloc(sizeof(SmiNode) * cnt);
+    memset(groups, 0, sizeof(SmiNode) * cnt);
+    
+    for (cnt = 0, smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_SCALAR);
+	 smiNode;
+	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_SCALAR)) {
+	parentNode = smiGetParentNode(smiNode);
+	for (aliasNode = smiGetFirstAlias(parentNode);
+	     aliasNode; aliasNode = smiGetNextAlias(aliasNode)) {
+	    if (aliasNode != parentNode) {
+		smiPrintError(NULL, ERR_SMI2YANG_NON_UNIQUE_NAME,
+			      parentNode->name, aliasNode->name,
+			      parentNode->name);
+	    }
+	}
+	if (parentNode && isAccessibleLeaf(smiNode)) {
+	    for (i = 0; i < cnt; i++) {
+		if (groups[i] == parentNode) {
+		    break;
+		}
+	    }
+	    if (! i < cnt) groups[cnt++] = parentNode;
+	}
+    }
+
+    for (cnt = 0; groups[cnt]; cnt++) {
+	smiNode = groups[cnt];
+	container = addYangNode(smiNode->name, YANG_DECL_CONTAINER, node);
+	smi2yangStatus(container, smiNode->status);
+	smi2yangDescription(container, smiNode->description);
+	smi2yangReference(container, smiNode->reference);
+	smi2yangOID(container, smiNode->oid, smiNode->oidlen);
+	smi2yangScalarLeafs(container, smiNode);
+    }
+
+    smiFree(groups);
+}
+#endif
 
 
 static void
@@ -1111,6 +1151,7 @@ static void
 smi2yangAugment(_YangNode *node, SmiNode *smiNode)
 {
     SmiNode *baseEntryNode = NULL;
+    SmiNode *parentNode = NULL;
     _YangNode *augmentNode;
     char *s;
 
@@ -1122,6 +1163,14 @@ smi2yangAugment(_YangNode *node, SmiNode *smiNode)
     if (! baseEntryNode) {
         return;
     }
+
+    parentNode = smiGetParentNode(smiNode);
+    if (! parentNode) {
+	return;
+    }
+
+    smi2yangAlias(node, parentNode);
+    smi2yangAlias(node, smiNode);
 
     s = smi2yangListPath(baseEntryNode);
     augmentNode = addYangNode(s, YANG_DECL_AUGMENT, node);
@@ -1243,9 +1292,6 @@ smi2yangAliases(SmiModule *smiModule, _YangNode *node)
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
 	switch (smiNode->nodekind) {
 	case SMI_NODEKIND_NODE:
-	case SMI_NODEKIND_GROUP:
-	case SMI_NODEKIND_COMPLIANCE:
-	case SMI_NODEKIND_CAPABILITIES:
 	    smi2yangAlias(node, smiNode);
 	    break;
 	default:
