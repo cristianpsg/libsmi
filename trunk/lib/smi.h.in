@@ -553,7 +553,9 @@ extern SmiType *smiGetNodeType(SmiNode *smiNodePtr);
 
 extern int smiGetNodeLine(SmiNode *smiNodePtr);
 
+extern SmiNode *smiGetFirstAlias(SmiNode *smiNode);
 
+extern SmiNode *smiGetNextAlias(SmiNode *smiNode);
 
 
 extern SmiElement *smiGetFirstElement(SmiNode *smiNodePtr);
