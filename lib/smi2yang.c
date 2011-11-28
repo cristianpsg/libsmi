@@ -944,6 +944,29 @@ smi2yangKey(_YangNode *node, SmiNode *smiNode)
 static _YangNode*
 smi2yangToplevel(SmiModule *smiModule, _YangNode *node)
 {
+    SmiNode *smiNode;
+
+    /*
+     * Check whether we have any scalars or non augmenting tables
+     * defined in the SMIv2 module - otherwise we can prune the
+     * container.
+     */
+
+    smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_SCALAR);
+    if (! smiNode) {
+	for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ROW);
+	     smiNode;
+	     smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ROW)) {
+	    if (smiNode->indexkind != SMI_INDEX_AUGMENT) {
+		break;
+	    }
+	}
+    }
+
+    if (! smiNode) {
+	return NULL;
+    }
+    
     /* Generate the top-level container. We always use the module
      * name since this works both for SMIv1 and SMIv2 and does not
      * cause issues if an SMIv1 modules gets converted to SMIv2. */
@@ -1324,8 +1347,10 @@ yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
     smi2yangIdentities(smiModule, yangModulePtr);
     
     yangToplevelPtr = smi2yangToplevel(smiModule, yangModulePtr);
-    smi2yangScalars(smiModule, yangToplevelPtr);
-    smi2yangTables(smiModule, yangToplevelPtr);
+    if (yangToplevelPtr) {
+	smi2yangScalars(smiModule, yangToplevelPtr);
+	smi2yangTables(smiModule, yangToplevelPtr);
+    }
     
     smi2yangAugments(smiModule, yangModulePtr);
     smi2yangNotifications(smiModule, yangModulePtr);
