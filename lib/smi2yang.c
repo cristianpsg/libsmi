@@ -333,7 +333,7 @@ createImportList(SmiModule *smiModule)
 	 smiType; smiType = smiGetNextType(smiType)) {
 	SmiType *parentType = smiGetParentType(smiType);
 	if (parentType && strcmp(parentType->name, "ObjectIdentifier") == 0) {
-	    syaddImport("ietf-yang-types", "object-identifier");
+	    syaddImport("ietf-yang-types", "object-identifier-128");
 	}
     }
 
@@ -347,7 +347,7 @@ createImportList(SmiModule *smiModule)
 	    smiType = smiGetParentType(smiType);
 	}
 	if (smiType && strcmp(smiType->name, "ObjectIdentifier") == 0) {
-	    syaddImport("ietf-yang-types", "object-identifier");
+	    syaddImport("ietf-yang-types", "object-identifier-128");
 	}
     }
 }
