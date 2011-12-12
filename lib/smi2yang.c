@@ -343,7 +343,7 @@ createImportList(SmiModule *smiModule)
 	 smiNode = smiGetNextNode(smiNode,
 				  SMI_NODEKIND_SCALAR | SMI_NODEKIND_COLUMN)) {
 	smiType = smiGetNodeType(smiNode);
-	if (! smiType->name) {
+	if (smiType && !smiType->name) {
 	    smiType = smiGetParentType(smiType);
 	}
 	if (smiType && strcmp(smiType->name, "ObjectIdentifier") == 0) {
