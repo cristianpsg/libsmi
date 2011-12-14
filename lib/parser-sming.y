@@ -39,8 +39,8 @@
 #include "error.h"
 #include "parser-sming.h"
 #include "scanner-sming.h"
-#include "data.h"
-#include "check.h"
+#include "smi-data.h"
+#include "smi-check.h"
 #include "util.h"
     
 #ifdef HAVE_DMALLOC_H

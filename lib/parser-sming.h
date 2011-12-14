@@ -8,7 +8,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: parser-sming.h,v 1.4 1999/06/03 20:37:15 strauss Exp $
+ * @(#) $Id$
  */
 
 #ifndef _PARSER_SMING_H
@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 
-#include "data.h"
+#include "smi-data.h"
 
 
 
