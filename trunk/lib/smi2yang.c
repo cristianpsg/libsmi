@@ -876,11 +876,8 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode)
 static void
 smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, char *altname)
 {
-    SmiNode *entryNode;
     _YangNode *leafNode, *typeNode;
     char *s;
-
-    entryNode = smiGetParentNode(smiNode);
 
     if (! altname) altname = smiNode->name;
     leafNode = addYangNode(altname, YANG_DECL_LEAF, node);
@@ -897,7 +894,7 @@ static void
 smi2yangKey(_YangNode *node, SmiNode *smiNode)
 {
     SmiElement *smiElement, *chkElement;
-    SmiElement *lastElement;
+    SmiElement *lastElement = NULL;
     char *s = NULL, *o = NULL;
     int i, c, n;
 
@@ -1229,12 +1226,10 @@ smi2yangNotificationIndex(_YangNode *node,
 {
     SmiElement *smiElement;
     SmiNode *childNode;
-    SmiNode *parentNode;
 
     for (smiElement = smiGetFirstElement(entryNode); smiElement;
 	 smiElement = smiGetNextElement(smiElement)) {
 	childNode = smiGetElementNode(smiElement);
-	parentNode = smiGetParentNode(childNode);
 	if (childNode != ignoreNode) {
 	    smi2yangLeafrefLeaf(node, childNode, NULL);
 	}
