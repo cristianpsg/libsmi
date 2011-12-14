@@ -235,4 +235,8 @@ _YangNode *createReferenceNode(_YangNode *parentPtr, _YangNode *reference, YangN
 
 void copySubtree(_YangNode *destPtr, _YangNode *subtreePtr, YangNodeType nodeType, int skipMandatory, int line, int inheritNamespace);
 
+int isWSP(char ch);
+
+int isMandatory(_YangNode *nodePtr);
+
 #endif /* _YANG_DATA_H */

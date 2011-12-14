@@ -20,12 +20,12 @@
 #include "yang-data.h"
 #include "yang.h"
 
+void yangValidateInclude(_YangNode *module, _YangNode *extModule);
 
-time_t checkDate(Parser *parserPtr, char *date);
+void yangSemanticAnalysis(_YangNode *module);
 
-void validateInclude(_YangNode *module, _YangNode *extModule);
+void expandAugment(_YangNode *node, int allowInstance);
 
-void semanticAnalysis(_YangNode *module);
+void applyRefinements(_YangNode* node);
 
-int isWSP(char ch);
 #endif /* _YANG_CHECK_H */

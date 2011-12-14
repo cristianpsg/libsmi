@@ -42,93 +42,41 @@
 #include "yang-complex-types.h"
 
 
-#define SMI_EPOCH	631152000	/* 01 Jan 1990 00:00:00 */ 
-
 /*
  * Current parser defined in parser-yang. Workaround - can't include data.h
  */
 extern Parser *currentParser;
 
 
-time_t checkDate(Parser *parserPtr, char *date)
-{
-    struct tm	tm;
-    time_t	anytime;
-    int		i, len;
-    char	*p;
-
-    memset(&tm, 0, sizeof(tm));
-    anytime = 0;
-
-    len = strlen(date);
-    if (len == 10 || len == 16) {
-        for (i = 0; i < len; i++) {
-            if (((i < 4 || i == 5 || i == 6 || i == 8 || i == 9 || i == 11
-              || i == 12 || i == 14 || i == 15) && ! isdigit((int)date[i]))
-            || ((i == 4 || i == 7) && date[i] != '-')
-            || (i == 10 && date[i] != ' ')
-            || (i == 13 && date[i] != ':')) {
-            smiPrintError(parserPtr, ERR_DATE_CHARACTER, date);
-            anytime = (time_t) -1;
-            break;
-            }
-        }
-    } else {
-        smiPrintError(parserPtr, ERR_DATE_LENGTH, date);
-        anytime = (time_t) -1;
-    }
-    
-    if (anytime == 0) {
-	for (i = 0, p = date, tm.tm_year = 0; i < 4; i++, p++) {
-	    tm.tm_year = tm.tm_year * 10 + (*p - '0');
-	}
-	p++;
-	tm.tm_mon = (p[0]-'0') * 10 + (p[1]-'0');
-	p += 3;
-	tm.tm_mday = (p[0]-'0') * 10 + (p[1]-'0');
-	p += 2;
-	if (len == 16) {
-	    p++;
-	    tm.tm_hour = (p[0]-'0') * 10 + (p[1]-'0');
-	    p += 3;
-	    tm.tm_min = (p[0]-'0') * 10 + (p[1]-'0');
-	}
-	
-	if (tm.tm_mon < 1 || tm.tm_mon > 12) {
-	    smiPrintError(parserPtr, ERR_DATE_MONTH, date);
-	}
-	if (tm.tm_mday < 1 || tm.tm_mday > 31) {
-	    smiPrintError(parserPtr, ERR_DATE_DAY, date);
-	}
-	if (tm.tm_hour < 0 || tm.tm_hour > 23) {
-	    smiPrintError(parserPtr, ERR_DATE_HOUR, date);
-	}
-	if (tm.tm_min < 0 || tm.tm_min > 59) {
-	    smiPrintError(parserPtr, ERR_DATE_MINUTES, date);
-	}
-	
-	tm.tm_year -= 1900;
-	tm.tm_mon -= 1;
-	tm.tm_isdst = 0;
-
-	anytime = timegm(&tm);
-
-	if (anytime == (time_t) -1) {
-	    smiPrintError(parserPtr, ERR_DATE_VALUE, date);
-	} else {
-	    if (anytime < SMI_EPOCH) {
-            smiPrintError(parserPtr, ERR_DATE_IN_PAST, date);
-	    }
-	    if (anytime > time(NULL)) {
-            smiPrintError(parserPtr, ERR_DATE_IN_FUTURE, date);
-	    }
-	}
-    }
-    
-    return (anytime == (time_t) -1) ? 0 : anytime;
+static int isPossibleAugmentTargetNode(YangDecl kind) {
+    return kind == YANG_DECL_CONTAINER ||
+           kind == YANG_DECL_LIST ||
+           kind == YANG_DECL_CHOICE ||
+           kind == YANG_DECL_CASE ||
+           kind == YANG_DECL_INPUT ||
+           kind == YANG_DECL_OUTPUT ||
+           kind == YANG_DECL_NOTIFICATION ||
+           kind == YANG_DECL_INSTANCE ||
+           kind == YANG_DECL_INSTANCE_LIST;
 }
 
-void validateInclude(_YangNode *module, _YangNode *extModule) {
+static int isSchemaNode(YangDecl kind) {
+    return kind == YANG_DECL_CONTAINER ||
+           kind == YANG_DECL_LEAF ||
+           kind == YANG_DECL_LEAF_LIST ||
+           kind == YANG_DECL_LIST ||
+           kind == YANG_DECL_CHOICE ||
+           kind == YANG_DECL_CASE ||
+           kind == YANG_DECL_RPC ||
+           kind == YANG_DECL_INPUT ||
+           kind == YANG_DECL_OUTPUT ||
+           kind == YANG_DECL_ANYXML ||
+           kind == YANG_DECL_NOTIFICATION ||
+           kind == YANG_DECL_INSTANCE ||
+           kind == YANG_DECL_INSTANCE_LIST;
+}
+
+void yangValidateInclude(_YangNode *module, _YangNode *extModule) {
     _YangNode* node;
     if (!extModule) return;
     node = findChildNodeByType(extModule, YANG_DECL_BELONGS_TO);
@@ -160,7 +108,7 @@ typedef enum YangIdentifierGroup {
      YANG_IDGR_COMPLEX_TYPE
 } YangIdentifierGroup;
 
-int getIdentifierGroup(YangDecl kind) {
+static int getIdentifierGroup(YangDecl kind) {
     if (kind == YANG_DECL_EXTENSION) {
         return YANG_IDGR_EXTENSION;
     } else if (kind == YANG_DECL_FEATURE) {
@@ -190,7 +138,7 @@ int getIdentifierGroup(YangDecl kind) {
     return YANG_IDGR_NONE;
 }
 
-char* getModuleName(_YangNode* m1) {
+static char* getModuleName(_YangNode* m1) {
     if (m1->export.nodeKind == YANG_DECL_SUBMODULE) {
         _YangNode *belongsPtr = findChildNodeByType(m1, YANG_DECL_BELONGS_TO);
         if (!belongsPtr) {
@@ -202,11 +150,11 @@ char* getModuleName(_YangNode* m1) {
     }
 }
 
-int sameModules(_YangNode* m1, _YangNode* m2) {
+static int sameModules(_YangNode* m1, _YangNode* m2) {
     return !strcmp(getModuleName(m1), getModuleName(m2));
 }
 
-int countChildNodesByTypeAndValue(_YangNode *nodePtr, _YangNode *curNode, YangIdentifierGroup group, _YangNode* namespace, char* value) {
+static int countChildNodesByTypeAndValue(_YangNode *nodePtr, _YangNode *curNode, YangIdentifierGroup group, _YangNode* namespace, char* value) {
     _YangNode *childPtr = NULL;
     int ret = 0;
     for (childPtr = nodePtr->firstChildPtr; childPtr && childPtr != curNode; childPtr = childPtr->nextSiblingPtr) {       
@@ -217,7 +165,7 @@ int countChildNodesByTypeAndValue(_YangNode *nodePtr, _YangNode *curNode, YangId
     return ret;
 }
 
-int countChoiceChildNodesByTypeAndValue(_YangNode *nodePtr, _YangNode *curNode, YangIdentifierGroup group, _YangNode* namespace, char* value) {
+static int countChoiceChildNodesByTypeAndValue(_YangNode *nodePtr, _YangNode *curNode, YangIdentifierGroup group, _YangNode* namespace, char* value) {
     _YangNode *childPtr = NULL;
     int ret = 0;
     for (childPtr = nodePtr->firstChildPtr; childPtr && childPtr != curNode; childPtr = childPtr->nextSiblingPtr) {
@@ -238,7 +186,7 @@ int countChoiceChildNodesByTypeAndValue(_YangNode *nodePtr, _YangNode *curNode, 
     return ret;
 }
 
-int validateNodeUniqueness(_YangNode *nodePtr) {
+static int validateNodeUniqueness(_YangNode *nodePtr) {
     YangIdentifierGroup ig = getIdentifierGroup(nodePtr->export.nodeKind);
     _YangNode *cur = nodePtr->parentPtr;
     while (cur) {
@@ -270,15 +218,7 @@ int validateNodeUniqueness(_YangNode *nodePtr) {
     return 1;
 }
 
-int isMandatory(_YangNode *nodePtr) {
-    _YangNode *mandatory = findChildNodeByType(nodePtr, YANG_DECL_MANDATORY);
-    if (mandatory && !strcmp(mandatory->export.value, "true")) {
-        return 1;
-    }
-    return 0;
-}
-
-_YangNode* findTargetNode(_YangNode *nodePtr, char* prefix, char* value) {
+static _YangNode* findTargetNode(_YangNode *nodePtr, char* prefix, char* value) {
     _YangNode *childPtr = NULL;
     /* get module name by prefix */
     char* moduleName = NULL;
@@ -315,10 +255,26 @@ _YangNode* findTargetNode(_YangNode *nodePtr, char* prefix, char* value) {
     return NULL;
 }
 
+static int validatePrefixes(YangList *listPtr, char* modulePrefix, int prefixRequired) {
+    YangList *c = listPtr;
+    while (c) {
+        if (listIdentifierRef(c)->prefix && strcmp(listIdentifierRef(c)->prefix, modulePrefix)) {
+            return 0;
+        }
+        if (!listIdentifierRef(c)->prefix && prefixRequired) {
+            return 0;
+        }
+        c = c->next;
+    }
+    return 1;
+}
+
 /*
- *  Resolves a node in the current or imported module by an XPath expression.
+ * Resolves a node in the current or imported module by an XPath
+ * expression.
  */
-_YangNode *resolveXPath(_YangNode *nodePtr, int allowInstance) {
+
+static _YangNode *resolveXPath(_YangNode *nodePtr, int allowInstance) {
     _YangNode *cur = NULL, *tmpNode;
     YangList *listPtr = getXPathNode(nodePtr->export.value), *tmp;
     if (!listPtr) return NULL;
@@ -397,7 +353,7 @@ _YangNode *resolveXPath(_YangNode *nodePtr, int allowInstance) {
     return cur;
 }
 
-int isAllowedStatement(int stmt, int *allowedStmts, int len) {
+static int isAllowedStatement(int stmt, int *allowedStmts, int len) {
     int i = 0;
     for (; i < len; i++)
         if (allowedStmts[i] == stmt) {
@@ -406,7 +362,7 @@ int isAllowedStatement(int stmt, int *allowedStmts, int len) {
     return 0;
 }
 
-void applyRefine(_YangNode* target, _YangNode* refinement, int* allowedStmts, int len) {
+static void applyRefine(_YangNode* target, _YangNode* refinement, int* allowedStmts, int len) {
     _YangNode *child = refinement->firstChildPtr;
     
     while (child) {
@@ -499,14 +455,18 @@ void applyRefinements(_YangNode* node) {
 
 /*
  * From the specification:
- *  1. The effect of a "uses" reference to a grouping is that the nodes defined by the grouping 
- *      are copied into the current schema tree and then updated according to the refinement statements. 
+ *  1. The effect of a "uses" reference to a grouping is that the
+ *      nodes defined by the grouping are copied into the current
+ *      schema tree and then updated according to the refinement
+ *      statements.
  *
- *  2. Once a grouping is defined, it can be referenced in a "uses"  statement (see Section 7.12).  
- *      A grouping MUST NOT reference itself,   neither directly nor indirectly through a chain of other groupings. 
-
+ *  2. Once a grouping is defined, it can be referenced in a "uses"
+ *      statement (see Section 7.12).  A grouping MUST NOT reference
+ *      itself, neither directly nor indirectly through a chain of
+ *      other groupings.
  */
-int expandGroupings(_YangNode *node) {
+
+static int expandGroupings(_YangNode *node) {
     YangDecl nodeKind;
     if (!node || node->nodeType != YANG_NODE_ORIGINAL) return;
     nodeKind = node->export.nodeKind;
@@ -551,9 +511,10 @@ int expandGroupings(_YangNode *node) {
 }
 
 /*
- * Verifies that all identifiers are unique within all namespaces
+ * Verifies that all identifiers are unique within all namespaces.
  */
-void uniqueNames(_YangNode* nodePtr) { 
+
+static void uniqueNames(_YangNode* nodePtr) { 
     /* go over all child nodes */
     _YangNode* cur = nodePtr->firstChildPtr;
     while (cur) {
@@ -577,9 +538,11 @@ void uniqueNames(_YangNode* nodePtr) {
 }
 
 /*
- *  Should be reimplemented in a more efficient way by using some appropriate datastructures, like HashTable
+ * Should be reimplemented in a more efficient way by using some
+ * appropriate datastructures, like HashTable
  */
-void uniqueSubmoduleDefinitions(_YangNode* modulePtr) {
+
+static void uniqueSubmoduleDefinitions(_YangNode* modulePtr) {
     /* validate name uniqueness of the top level definitions in all submodules */
     YangList* submodulePtr = ((_YangModuleInfo*)modulePtr->info)->submodules, *firstSubmodulePtr;
     firstSubmodulePtr = submodulePtr;
@@ -604,7 +567,7 @@ void uniqueSubmoduleDefinitions(_YangNode* modulePtr) {
 
 static int map[YANG_DECL_LAST];
 
-void initMap() {
+static void initMap() {
     map[YANG_DECL_UNKNOWN_STATEMENT] = YANG_DECL_EXTENSION;
     map[YANG_DECL_IF_FEATURE] = YANG_DECL_FEATURE;
     map[YANG_DECL_TYPE] = YANG_DECL_TYPEDEF;
@@ -616,10 +579,12 @@ void initMap() {
 }
 
  /* 
-  *  Resolves references to extensions, features, defined types, groupings and identities.
-  *  Validates whether there are no circular dependencies between these nodes.
+  * Resolves references to extensions, features, defined types,
+  * groupings and identities.  Validates whether there are no circular
+  * dependencies between these nodes.
   */  
-void resolveReferences(_YangNode* node) {
+
+static void resolveReferences(_YangNode* node) {
     YangDecl nodeKind = node->export.nodeKind;
     if (nodeKind == YANG_DECL_UNKNOWN_STATEMENT ||
         nodeKind == YANG_DECL_IF_FEATURE ||
@@ -693,48 +658,6 @@ void resolveReferences(_YangNode* node) {
     }
 }
 
-int validatePrefixes(YangList *listPtr, char* modulePrefix, int prefixRequired) {
-    YangList *c = listPtr;
-    while (c) {
-        if (listIdentifierRef(c)->prefix && strcmp(listIdentifierRef(c)->prefix, modulePrefix)) {
-            return 0;
-        }
-        if (!listIdentifierRef(c)->prefix && prefixRequired) {
-            return 0;
-        }
-        c = c->next;
-    }
-    return 1;
-}
-
-int isPossibleAugmentTargetNode(YangDecl kind) {
-    return kind == YANG_DECL_CONTAINER ||
-           kind == YANG_DECL_LIST ||
-           kind == YANG_DECL_CHOICE ||
-           kind == YANG_DECL_CASE ||
-           kind == YANG_DECL_INPUT ||
-           kind == YANG_DECL_OUTPUT ||
-           kind == YANG_DECL_NOTIFICATION ||
-           kind == YANG_DECL_INSTANCE ||
-           kind == YANG_DECL_INSTANCE_LIST;
-}
-
-int isSchemaNode(YangDecl kind) {
-    return kind == YANG_DECL_CONTAINER ||
-           kind == YANG_DECL_LEAF ||
-           kind == YANG_DECL_LEAF_LIST ||
-           kind == YANG_DECL_LIST ||
-           kind == YANG_DECL_CHOICE ||
-           kind == YANG_DECL_CASE ||
-           kind == YANG_DECL_RPC ||
-           kind == YANG_DECL_INPUT ||
-           kind == YANG_DECL_OUTPUT ||
-           kind == YANG_DECL_ANYXML ||
-           kind == YANG_DECL_NOTIFICATION ||
-           kind == YANG_DECL_INSTANCE ||
-           kind == YANG_DECL_INSTANCE_LIST;
-}
-
 /*
  * Expands all augment statements.
  */
@@ -806,7 +729,7 @@ void expandAugment(_YangNode* node, int allowInstance) {
    }
 }
 
-void expandAugments(_YangNode* node) {
+static void expandAugments(_YangNode* node) {
     _YangNode *child = node->firstChildPtr;
     while (child) {
         expandAugments(child);
@@ -819,7 +742,7 @@ void expandAugments(_YangNode* node) {
     }
 }
 
-int isSingleton(_YangNode* node) {
+static int isSingleton(_YangNode* node) {
     int kind = node->export.nodeKind;
     return kind == YANG_DECL_CONFIG ||
            kind == YANG_DECL_UNITS ||
@@ -830,7 +753,7 @@ int isSingleton(_YangNode* node) {
            kind == YANG_DECL_DEFAULT;
 }
 
-int isValidDeviation(int nodeType, int deviationNodeType) {
+static int isValidDeviation(int nodeType, int deviationNodeType) {
     switch (deviationNodeType) {
         case YANG_DECL_TYPE:
             if (nodeType == YANG_DECL_LEAF || nodeType == YANG_DECL_LEAF_LIST) {
@@ -889,7 +812,7 @@ int isValidDeviation(int nodeType, int deviationNodeType) {
     return 0;
 }
 
-void expandDeviation(_YangNode* node) {
+static void expandDeviation(_YangNode* node) {
     /* resolve XPath to get the target node */
     _YangNode *targetNodePtr = resolveXPath(node, 1);
 
@@ -938,11 +861,13 @@ void expandDeviation(_YangNode* node) {
 }
 
 /*
- *  From the specification:
- *  If a node has "config" "false", no node underneath it can have "config" set to "true".
- *  If a "config" statement is present for any node in the input, output or notification tree, it is ignored.
+ * From the specification:
+ * If a node has "config" "false", no node underneath it can have
+ * "config" set to "true".  If a "config" statement is present for
+ * any node in the input, output or notification tree, it is ignored.
  */
-void validateConfigProperties(_YangNode *nodePtr, YangConfig configValue, int ignore) {
+
+static void validateConfigProperties(_YangNode *nodePtr, YangConfig configValue, int ignore) {
     int ignoreFlag = ignore;
     if (nodePtr->export.nodeKind != YANG_DECL_GROUPING) {
         if (ignore) {
@@ -971,7 +896,7 @@ void validateConfigProperties(_YangNode *nodePtr, YangConfig configValue, int ig
     }
 }
 
-void validateLists(_YangNode *nodePtr) {
+static void validateLists(_YangNode *nodePtr) {
     if (nodePtr->export.nodeKind == YANG_DECL_LIST) {
         /*
          *  From the specification:
@@ -1060,7 +985,7 @@ void validateLists(_YangNode *nodePtr) {
     }    
 }
 
-void validateDefaultStatements(_YangNode *nodePtr) {
+static void validateDefaultStatements(_YangNode *nodePtr) {
     YangDecl nodeKind = nodePtr->export.nodeKind;
     if (nodeKind == YANG_DECL_DEFAULT) {
         YangDecl parentKind = nodePtr->parentPtr->export.nodeKind;
@@ -1120,7 +1045,7 @@ void validateDefaultStatements(_YangNode *nodePtr) {
     }        
 }
 
-void typeHandler(_YangNode* nodePtr) {
+static void typeHandler(_YangNode* nodePtr) {
     if (nodePtr->nodeType != YANG_NODE_ORIGINAL) return;
     /* resolve built-in type */
     _YangNode* curNode = nodePtr;
@@ -1247,7 +1172,7 @@ void typeHandler(_YangNode* nodePtr) {
 }
 
 
-int isInList(int value, int* list) {
+static int isInList(int value, int* list) {
     int i;
     for (i = 1; i <= list[0]; i++) {
         if (value == list[i]) {
@@ -1257,7 +1182,7 @@ int isInList(int value, int* list) {
     return 0;
 }
 
-void _iterate(_YangNode *nodePtr, void* handler, int* nodeKindList) {
+static void _iterate(_YangNode *nodePtr, void* handler, int* nodeKindList) {
     if (isInList(nodePtr->export.nodeKind, nodeKindList)) {
         void (*handlerPtr)(_YangNode*);
         handlerPtr = handler;
@@ -1271,7 +1196,7 @@ void _iterate(_YangNode *nodePtr, void* handler, int* nodeKindList) {
 /*
  * The last argument should be the YANG_DECL_UNKNOWN value
  */
-void iterate(_YangNode *nodePtr, void* handler, ...) {
+static void iterate(_YangNode *nodePtr, void* handler, ...) {
     int cnt = 0, value;
     va_list ap;
     
@@ -1291,7 +1216,7 @@ void iterate(_YangNode *nodePtr, void* handler, ...) {
     _iterate(nodePtr, handler, nodeKindList);
 }
 
-void semanticAnalysis(_YangNode *module) {
+void yangSemanticAnalysis(_YangNode *module) {
     getModuleInfo(module)->originalModule = copyModule(module);
     initMap();
     resolveReferences(module);
