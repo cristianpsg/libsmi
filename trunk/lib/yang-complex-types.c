@@ -32,6 +32,8 @@
 #include <string.h>
 
 #include "error.h"
+#include "yang-data.h"
+#include "yang-check.h"
 #include "yang-complex-types.h"
 
 /*
@@ -245,8 +247,6 @@ void abstractValidation(_YangNode* node) {
     }
 }
 
-extern void applyRefinements(_YangNode* node);
-
 /*
  * Expand 'extends' statements
  */
@@ -288,10 +288,10 @@ int isComplexTypeDefinition(_YangNode* node) {
     return 0;
 }
 
-extern void expandAugment(_YangNode* node, int allowInstance);
 /*
  * Expand 'instance/instance-list' statements
  */
+
 void expandInstance(_YangNode* nodePtr, int  forced) {
     int nodeKind = nodePtr->export.nodeKind;
     if (nodeKind == YANG_DECL_COMPLEX_TYPE) {

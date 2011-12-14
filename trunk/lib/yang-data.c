@@ -1366,5 +1366,13 @@ void copySubtree(_YangNode *destPtr, _YangNode *subtreePtr, YangNodeType nodeTyp
     }
 }
 
+int isMandatory(_YangNode *nodePtr) {
+    _YangNode *mandatory = findChildNodeByType(nodePtr, YANG_DECL_MANDATORY);
+    if (mandatory && !strcmp(mandatory->export.value, "true")) {
+        return 1;
+    }
+    return 0;
+}
+
 #endif
 
