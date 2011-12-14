@@ -2407,8 +2407,8 @@ char *smiRenderValue(SmiValue *smiValuePtr, SmiType *smiTypePtr, int flags)
     SmiUnsigned64 vv;
     int xlen;
     SmiNamedNumber *nn;
-    char *s, *ss;
-    char f[8];
+    char *s = NULL, *ss;
+    char f[10];
     SmiUnsigned32 v32;
     SmiUnsigned64 v64;
     
