@@ -1449,7 +1449,7 @@ complexTypeSpec:  ';' {}
                     stmtSep
                     complexTypeSubstatement_0n
                 '}'
-
+	;
 
 complexTypeSubstatement_0n: {}
 		|
@@ -1615,6 +1615,7 @@ instanceTypeStatement: instanceTypeKeyword identifierRef stmtEnd
                             createIdentifierRef(node, getPrefix($2), getIdentifier($2));
                         }
                     }
+	;
  /*
   * End complex-type extension definitions. Nokia Siemens Networks Oy contribution.
   */
@@ -2556,11 +2557,12 @@ extensionStatement: extensionKeyword identifierStr
 		{
                     pop();
 		}
+		;
 		
 extensionStatementBody:  '{' stmtSep extensionSubstatement_0n '}' {}
-                    |
-                         ';' {}
-                    ;                       
+                |
+                     ';' {}
+                ;                       
 
 extensionSubstatement_0n: {}
 		|

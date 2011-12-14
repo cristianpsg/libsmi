@@ -58,6 +58,7 @@ INCLUDES = -I. -I../lib -I../tools
 ##
 LIBSMIOBJS = \
 	win.o \
+	common.o \
 	error.o \
 	util.o \
 	smi.o \
@@ -67,6 +68,13 @@ LIBSMIOBJS = \
 	scanner-smi.o \
 	parser-sming.o \
 	scanner-sming.o \
+	parser-yang.o \
+	scanner-yang.o \
+	yang.o \
+	yang-data.o \
+	yang-check.o \
+	yang-complex-types.o \
+	smi2yang.o \
 	snprintf.o
 
 TOOLSOBJS = \
@@ -102,7 +110,8 @@ TOOLSOBJS = \
 	dump-svg.o \
 	dump-compliance.o \
 	dump-yang.o \
-	dump-boilerplate.o
+	dump-boilerplate.o \
+	dump-yang.o
 #	dump-smiv3.o
 #	dump-fig.o
 
