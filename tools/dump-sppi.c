@@ -1048,7 +1048,7 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
     SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode, *relatedNode;
     SmiType	 *smiType;
     SmiNodekind  nodekinds;
-    int		 i, invalid, create, assignement, indentsequence, addinstanceid;
+    int		 i, invalid, assignement, indentsequence;
     
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
 	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR;
@@ -1058,8 +1058,6 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 
 	smiType = smiGetNodeType(smiNode);
 	smiParentNode = smiGetParentNode(smiNode);
-	
-	create = smiParentNode ? smiParentNode->create : 0;
 	
 	invalid = !smiType ? 0 : invalidType(smiType->basetype);
 	assignement = 0;
@@ -1215,10 +1213,7 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 	fprint(f, "{ %s }\n\n", getOidString(smiNode, 0));
 
 	smiType = smiGetNodeType(smiNode);
-        addinstanceid = 0;
 	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-            if (mibtopib)
-                addinstanceid = 1;
 	    if (smiType) {
 		fprint(f, "%s ::= SEQUENCE {", smiType->name);
 	    } else {

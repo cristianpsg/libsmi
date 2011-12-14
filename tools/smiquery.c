@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     SmiRefinement *refinement;
     SmiElement *element;
     char *command, *name, *p;
-    int flags, i;
+    int i;
     char s1[40], s2[40];
 
     static optStruct opt[] = {
@@ -111,8 +111,6 @@ int main(int argc, char *argv[])
 	smiInit("smiquery");
     else
 	smiInit(NULL);
-
-    flags = smiGetFlags();
 
     optParseOptions(&argc, argv, opt, 0);
 

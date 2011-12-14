@@ -269,7 +269,6 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 			  char *prefix, size_t typefieldlen)
 {
     SmiNode     *childNode, *indexNode;
-    SmiNodekind lastNodeKind = SMI_NODEKIND_UNKNOWN;
     SmiType     *type;
     int         i = 0, cnt, prefixlen;
     size_t      newtypefieldlen = 9;
@@ -404,7 +403,6 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 	    }
 	    fprintSubTree(f, childNode, newprefix, newtypefieldlen);
 	    xfree(newprefix);
-	    lastNodeKind = childNode->nodekind;
 	}
     }
 }
@@ -491,7 +489,6 @@ static void fprintYangTree(FILE *f, YangNode *node, char *prefix, int flags)
     int i = 0, cnt = 0;
     YangNode *childNode, *c;
     YangNode *typeNode = NULL;
-    YangDecl lastNodeKind = YANG_DECL_UNKNOWN;
 
     for (c = yangGetFirstChildNode(node), cnt = 0;
 	 c; c = yangGetNextChildNode(c)) {
@@ -546,7 +543,6 @@ static void fprintYangTree(FILE *f, YangNode *node, char *prefix, int flags)
 	}
 	fprintYangTree(f, childNode, newprefix, flags);
 	xfree(newprefix);
-	lastNodeKind = childNode->nodeKind;
     }
 }
 
