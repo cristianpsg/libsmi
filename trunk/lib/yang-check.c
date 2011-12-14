@@ -602,7 +602,7 @@ void uniqueSubmoduleDefinitions(_YangNode* modulePtr) {
     }   
 }
 
-int map[71];
+static int map[YANG_DECL_LAST];
 
 void initMap() {
     map[YANG_DECL_UNKNOWN_STATEMENT] = YANG_DECL_EXTENSION;

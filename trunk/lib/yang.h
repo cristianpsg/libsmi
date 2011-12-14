@@ -112,7 +112,8 @@ typedef enum YangDecl {
     YANG_DECL_SMI_DEFAULT		= 75,	/* YANG SMI EXTENSION */
     YANG_DECL_SMI_MAX_ACCESS		= 76,	/* YANG SMI EXTENSION */
     YANG_DECL_SMI_ALIAS			= 77,	/* YANG SMI EXTENSION */
-    YANG_DECL_SMI_IMPLIED               = 78	/* YANG SMI EXTENSION */
+    YANG_DECL_SMI_IMPLIED               = 78,	/* YANG SMI EXTENSION */
+    YANG_DECL_LAST			= 79	/* end marker */
 } YangDecl;
 
 
