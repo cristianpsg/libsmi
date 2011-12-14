@@ -1356,7 +1356,7 @@ yangGetModuleFromSmiModule(SmiModule *smiModule, int flags)
     freeImportList();
 #if 0
     /* oops - this expands as a side effect augments */
-    semanticAnalysis(yangModulePtr);
+    yangSemanticAnalysis(yangModulePtr);
 #endif
     return &(yangModulePtr->export);
 }

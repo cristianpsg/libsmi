@@ -280,7 +280,7 @@ static Error errors[] = {
       "named number `%s' changed to `%s' at type used in `%s'", NULL },
     { 3, ERR_NAMED_BIT_ADDED_OLD_BYTE, "named-bit-added-old-byte",
       "named bit `%s' added without starting in a new byte in type used in `%s'", NULL },
-     { 3, ERR_LENGTH_REMOVED, "range-removed",
+    { 3, ERR_LENGTH_REMOVED, "range-removed",
       "size `%s' removed from type used in `%s'", NULL },
     { 2, ERR_NODEKIND_CHANGED, "nodekind-changed",
       "node kind of `%s' changed", NULL },

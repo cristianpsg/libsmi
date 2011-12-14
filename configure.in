@@ -187,19 +187,29 @@ AC_ARG_ENABLE(dmalloc,
 LIBS="$LIBS -ldmalloc"
 AC_DEFINE([HAVE_DMALLOC_H], 1, ""))
 
-AC_DEFINE(BACKEND_SMI, 1, "")
 AC_ARG_ENABLE(smi,
-[  --disable-smi           disable SMIv1/v2 parser support],
-AC_DEFINE(BACKEND_SMI, 1, ""))
+  [  --disable-smi           disable SMIv1/v2 parser support],
+  [libsmi_enable_smi=$enableval],
+  [libsmi_enable_smi="yes"])
+if test x"$libsmi_enable_smi" = xyes; then
+  AC_DEFINE(BACKEND_SMI, 1, "")
+fi
 
-AC_DEFINE(BACKEND_YANG, 1, "")
 AC_ARG_ENABLE(yang,
-[  --disable-yang          disable YANG parser support],
-AC_DEFINE(BACKEND_YANG, 1, ""))
+  [  --disable-yang        disable YANG parser support],
+  [libsmi_enable_yang=$enableval],
+  [libsmi_enable_yang="yes"])
+if test x"$libsmi_enable_yang" = xyes; then
+  AC_DEFINE(BACKEND_YANG, 1, "")
+fi
 
 AC_ARG_ENABLE(sming,
-[  --enable-sming          enable SMIng parser support],
-AC_DEFINE(BACKEND_SMING, 0, ""))
+  [  --enable-sming          enable SMIng parser support],
+  [libsmi_enable_sming=$enableval],
+  [libsmi_enable_sming="no"])
+if test x"$libsmi_enable_sming" = xyes; then
+  AC_DEFINE(BACKEND_SMING, 1, "")
+fi
 
 AC_PATH_PROG(FLEX, "flex")
 if test -z "${FLEX}" ; then
