@@ -1249,7 +1249,7 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
     SmiNode	 *smiNode, *rowNode, *colNode, *smiParentNode, *relatedNode;
     SmiType	 *smiType;
     SmiNodekind  nodekinds;
-    int		 i, invalid, create, assignement, indentsequence, addrowstatus;
+    int		 i, invalid, create, assignement, indentsequence;
     
     nodekinds =  SMI_NODEKIND_NODE | SMI_NODEKIND_TABLE |
 	SMI_NODEKIND_ROW | SMI_NODEKIND_COLUMN | SMI_NODEKIND_SCALAR |
@@ -1449,11 +1449,8 @@ static void fprintObjects(FILE *f, SmiModule *smiModule)
 	fprint(f, "{ %s }\n\n", getOidString(smiNode, 0));
 
 	smiType = smiGetNodeType(smiNode);
-        addrowstatus = 0;
 	if (smiNode->nodekind == SMI_NODEKIND_ROW) {
-            if (pibtomib)
-                addrowstatus = 1;
-	    if (smiType) {
+ 	    if (smiType) {
 		fprint(f, "%s ::= SEQUENCE {", smiType->name);
 	    } else {
 		/* guess type name is uppercase row name */

@@ -101,7 +101,6 @@ static void fprintGroup(FILE *f, SmiNode *smiNode, char c,
 {
     SmiElement *smiElement;
     SmiNode *smiObject;
-    SmiModule *smiModule;
     char *type_name;
     int tlen = 9, nlen = 9;
 
@@ -111,7 +110,6 @@ static void fprintGroup(FILE *f, SmiNode *smiNode, char c,
 	     smiElement;
 	     smiElement = smiGetNextElement(smiElement)) {
 	    smiObject = smiGetElementNode(smiElement);
-	    smiModule = smiGetNodeModule(smiNode);
 	    type_name = getTypeName(smiObject);
 	    if (pass == 1) {
 		if (type_name) {

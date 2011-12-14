@@ -200,7 +200,7 @@ static int isAccessible(SmiNode *groupNode)
 }
 
 
-
+#if 0
 static unsigned int getMaxSize(SmiType *smiType)
 {
     SmiRange *smiRange;
@@ -238,7 +238,7 @@ static unsigned int getMaxSize(SmiType *smiType)
 
     return size;
 }
-
+#endif
 
 
 static void dumpTable(SmiNode *smiNode)
@@ -1180,9 +1180,6 @@ static void dumpNotifications(SmiNode *smiNode)
     unsigned int i;
     SmiElement *element;
     SmiNode *elementNode;
-
-    SmiType *snt;
-    snt = smiGetNodeType(smiNode);
 
     f = createFile(translate1Upper(smiNode->name), ".java");
     if (! f) {

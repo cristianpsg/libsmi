@@ -1052,12 +1052,10 @@ addMetrics(Metrics *metrics, SmiModule *smiModule)
 {
     SmiNode *smiNode;
     SmiType *smiType;
-    size_t len;
 
     for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_ANY);
 	 smiNode;
 	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_ANY)) {
-	len = smiNode->description ? strlen(smiNode->description) : 0;
 	switch (smiNode->nodekind) {
 	case SMI_NODEKIND_TABLE:
 	    incrStatusCounter(&metrics->statusTables, smiNode->status);

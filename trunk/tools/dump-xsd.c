@@ -546,8 +546,6 @@ static void fprintRestriction(FILE *f, SmiType *smiType)
 		
 		else if( smiType->name &&
 			 ! strcmp( smiType->name, "IpAddress" ) ) {
-		    SmiUnsigned32 lengths[] = {4, 4};
-		    lengths[0] = 4; lengths[1] = 4;
 		    fprintSegment( f, 1, "<xsd:restriction base=\"xsd:string\">\n" );
 		    fprintSegment( f, 0, "<xsd:pattern "
 				   "value=\"(0|[1-9](([0-9]){0,2}))."
@@ -1291,7 +1289,6 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
 			       SmiNode *parent )
 {
     SmiNode *iterNode;
-    int numChildren;
     
     if( name ) {
 	fprintSegment( f, 1, "<xsd:complexType name=\"%sType\">\n",
@@ -1301,8 +1298,6 @@ static void fprintComplexType( FILE *f, SmiNode *smiNode, const char *name,
     }
 
 /*    fprintAnnotationElem( f, smiNode ); */
-
-    numChildren = hasChildren( smiNode, SMI_NODEKIND_ANY );
 
     fprintSegment( f, 1, "<xsd:sequence>\n");
 
