@@ -3,7 +3,7 @@
  *
  *      Operations to dump MIB modules in the YANG output format.
  *
- * Copyright (c) 2007 J. Schoenwaelder, Jacobs University Bremen.
+ * Copyright (c) 2007-2011 J. Schoenwaelder, Jacobs University Bremen
  *
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
