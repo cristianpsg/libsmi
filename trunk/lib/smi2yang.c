@@ -549,8 +549,17 @@ smi2yangDefault(_YangNode *node, SmiValue *smiValue, SmiType *smiType)
     char *s;
 
     if (smiValue->basetype != SMI_BASETYPE_UNKNOWN) {
-	s = smiValueAsString(smiValue, smiType, SMI_LANGUAGE_YANG);
+	s = smiValueAsString(smiValue, smiType, SMI_LANGUAGE_SMIV2);
 	if (s) {
+	    /* Note that printable OCTET STRING values are returned as
+	       a quoted string. In this case, we drop the quotes since
+	       we only care about the string value itself. */
+	    int len = strlen(s);
+	    if (smiValue->basetype == SMI_BASETYPE_OCTETSTRING
+		&& len && s[0] == '"' && s[len-1] == '"') {
+		s[len-1] = '\0';
+		s++;
+	    }
 	    (void) addYangNode(s, YANG_DECL_SMI_DEFAULT, node);
 	}
     }
