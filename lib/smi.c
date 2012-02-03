@@ -519,32 +519,52 @@ char *smiValueAsString(SmiValue *smiValue,
 	}
 	break;
     case SMI_BASETYPE_OCTETSTRING:
-	/* xxx - this may need to be language specific? see dump-smi.c */
-	for (i = 0; i < smiValue->len; i++) {
-	    if (!isprint((int)smiValue->value.ptr[i])) break;
-	}
-	/* xxx - is the choice below reasonable? */
-	if (i == smiValue->len) {
-	    snprintf(s, sizeof(s), "\"%s\"", smiValue->value.ptr);
-	} else {
-	    /* xxx - buffer overrun? */
-            sprintf(s, "0x%*s", 2 * smiValue->len, "");
-            for (i=0; i < smiValue->len; i++) {
-                sprintf(ss, "%02x", smiValue->value.ptr[i]);
-                strncpy(&s[2+2*i], ss, 2);
-            }
+	switch (smiLanguage) {
+	case SMI_LANGUAGE_SMIV1:
+	case SMI_LANGUAGE_SMIV2:
+	case SMI_LANGUAGE_SPPI:
+	    for (i = 0; i < smiValue->len; i++) {
+		if (!isprint((int)smiValue->value.ptr[i])) break;
+	    }
+	    if (i == smiValue->len) {
+		snprintf(s, sizeof(s), "\"%s\"", smiValue->value.ptr);
+	    } else {
+		snprintf(s, sizeof(s), "'%*s'H", 2 * smiValue->len, "");
+		for (i=0; i < smiValue->len; i++) {
+		    sprintf(ss, "%02x", smiValue->value.ptr[i]);
+		    strncpy(&s[1+2*i], ss, 2);
+		}
+	    }
+	    break;
+	case SMI_LANGUAGE_SMING:
+	    for (i = 0; i < smiValue->len; i++) {
+		if (!isprint((int)smiValue->value.ptr[i])) break;
+	    }
+	    if (i == smiValue->len) {
+		snprintf(s, sizeof(s), "\"%s\"", smiValue->value.ptr);
+	    } else {
+		snprintf(s, sizeof(s), "0x%*s", 2 * smiValue->len, "");
+		for (i=0; i < smiValue->len; i++) {
+		    sprintf(ss, "%02x", smiValue->value.ptr[i]);
+		    strncpy(&s[2+2*i], ss, 2);
+		}
+	    }
+	    break;
+	case SMI_LANGUAGE_YANG:
+	    /* xxx we need to handle UTF8 and what do we do about
+	       octet strings that contain true binary data? */
+	    break;
 	}
 	break;
     case SMI_BASETYPE_BITS:
 	/* xxx - return NULL if we run out of space? */
 	switch (smiLanguage) {
 	case SMI_LANGUAGE_SMIV1:
-	    strcpy(s, "'");
-            for (i = 0, len = 1; i < smiValue->len; i++, len = strlen(s)) {
-                snprintf(s + len, sizeof(s)-len-1,
-			 "%02x", smiValue->value.ptr[i]);
+	    sprintf(s, "'%*s'H", 2 * smiValue->len, "");
+            for (i = 0; i < smiValue->len; i++) {
+		sprintf(ss, "%02x", smiValue->value.ptr[i]);
+		strncpy(&s[1+2*i], ss, 2);
             }
-	    snprintf(s + len, sizeof(s)-len-3, "'H");
 	    break;
 	case SMI_LANGUAGE_SMIV2:
 	case SMI_LANGUAGE_SPPI:
