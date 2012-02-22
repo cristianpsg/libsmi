@@ -416,8 +416,8 @@ smi2yangImports(SmiModule *smiModule, _YangNode *yangModulePtr)
 static char*
 smi2yangLeafPath(SmiNode *smiNode)
 {
-    SmiModule *smiModule;
-    SmiNode *smiEntryNode, *smiTableNode;
+    SmiModule *smiModule, *parentModule = NULL;
+    SmiNode *smiEntryNode, *smiTableNode, *smiParentNode = NULL;
     char *toplevel = NULL;
     char *s = NULL;
     const char *prefix;
@@ -432,13 +432,27 @@ smi2yangLeafPath(SmiNode *smiNode)
     
     switch (smiNode->nodekind) {
     case SMI_NODEKIND_SCALAR:
+	smiParentNode = smiGetParentNode(smiNode);
 	if (toplevel) {
-	    smiAsprintf(&s, "/%s:%s/%s:%s",
-			prefix, toplevel,
-			prefix, smiNode->name);
+	    if (smiParentNode && smiParentNode->name) {
+		smiAsprintf(&s, "/%s:%s/%s:%s/%s:%s",
+			    prefix, toplevel,
+			    prefix, smiParentNode->name,
+			    prefix, smiNode->name);
+	    } else {
+		smiAsprintf(&s, "/%s:%s/%s:%s",
+			    prefix, toplevel,
+			    prefix, smiNode->name);
+	    }
 	} else {
-	    smiAsprintf(&s, "/%s:%s",
-			prefix, smiNode->name);
+	    if (smiParentNode && smiParentNode->name) {
+		smiAsprintf(&s, "/%s:%s/%s:%s",
+			    prefix, smiParentNode->name,
+			    prefix, smiNode->name);
+	    } else {
+		smiAsprintf(&s, "/%s:%s",
+			    prefix, smiNode->name);
+	    }
 	}
 	break;
     case SMI_NODEKIND_COLUMN:
