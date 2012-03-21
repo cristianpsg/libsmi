@@ -5,7 +5,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
            FROM SNMPv2-SMI;
 
    ianaIppmMetricsRegistry MODULE-IDENTITY
-   LAST-UPDATED "201009070000Z"    -- September 7, 2010
+   LAST-UPDATED "201104140000Z"    -- April 14, 2011
    ORGANIZATION "IANA"
    CONTACT-INFO "Internet Assigned Numbers Authority
 
@@ -18,7 +18,15 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
 
    DESCRIPTION
 
-      "This module defines a registry for IP Performance Metrics.
+      "With the approval and publication of RFC6248, this module is
+      designated Obsolete.
+
+      The registry will no longer be updated, and the current contents will
+      be maintained as-is on the day that RFC6248 was published.
+
+      The original Description text follows below:
+
+      This module defines a registry for IP Performance Metrics.
 
       Registrations are done sequentially by IANA in the ianaIppmMetrics
       subtree on the bases of 'Specification Required' as defined in
@@ -46,7 +54,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
 
     REVISION      "201009070000Z"    -- September 7, 2010
    DESCRIPTION
-             "Added values 71-83 as published in RFC-ietf-ippm-spatial-composition-16."
+             "Added values 71-83 as published in RFC6049."
 
     REVISION      "200909020000Z"    -- September 2, 2009
    DESCRIPTION
@@ -518,7 +526,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-Spatial-One-way-Delay-Vector"
        REFERENCE
-          "Reference "RFC5644, section 5.1."
+          "Reference RFC5644, section 5.1."
        ::= { ianaIppmMetrics 52 }
 
    ietfSpatialPacketLossVector OBJECT-IDENTITY
@@ -526,7 +534,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-Spatial-Packet-Loss-Vector"
        REFERENCE
-          "Reference "RFC5644, section 5.2."
+          "Reference RFC5644, section 5.2."
        ::= { ianaIppmMetrics 53 } 
 
    ietfSpatialOneWayIpdvVector OBJECT-IDENTITY
@@ -534,7 +542,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-Spatial-One-way-ipdv-Vector"
        REFERENCE
-          "Reference "RFC5644, section 5.3."
+          "Reference RFC5644, section 5.3."
        ::= { ianaIppmMetrics 54 }
       
    ietfSegmentOneWayDelayStream OBJECT-IDENTITY
@@ -542,7 +550,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-Segment-One-way-Delay-Stream"
        REFERENCE
-          "Reference "RFC5644, section 6.1."
+          "Reference RFC5644, section 6.1."
        ::= { ianaIppmMetrics 55 } 
 
    ietfSegmentPacketLossStream OBJECT-IDENTITY
@@ -550,7 +558,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-Segment-Packet-Loss-Stream"
        REFERENCE
-          "Reference "RFC5644, section 6.2."
+          "Reference RFC5644, section 6.2."
        ::= { ianaIppmMetrics 56 }
 
    ietfSegmentIpdvPrevStream OBJECT-IDENTITY
@@ -558,7 +566,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-Segment-ipdv-prev-Stream"
        REFERENCE
-          "Reference "RFC5644, section 6.3."
+          "Reference RFC5644, section 6.3."
        ::= { ianaIppmMetrics 57 } 
 
    ietfSegmentIpdvMinStream OBJECT-IDENTITY
@@ -566,7 +574,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-Segment-ipdv-min-Stream"
        REFERENCE
-          "Reference "RFC5644, section 6.4."
+          "Reference RFC5644, section 6.4."
        ::= { ianaIppmMetrics 58 }
 
    -- One-to-group metrics
@@ -576,7 +584,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Delay-Vector"
        REFERENCE
-          "Reference "RFC5644, section 7.1."
+          "Reference RFC5644, section 7.1."
        ::= { ianaIppmMetrics 59 }
    
    ietfOneToGroupPacketLossVector OBJECT-IDENTITY
@@ -584,7 +592,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Packet-Loss-Vector"
        REFERENCE
-          "Reference "RFC5644, section 7.2."
+          "Reference RFC5644, section 7.2."
        ::= { ianaIppmMetrics 60 } 
    
    ietfOneToGroupIpdvVector OBJECT-IDENTITY
@@ -592,7 +600,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-ipdv-Vector"
        REFERENCE
-          "Reference "RFC5644, section 7.3."
+          "Reference RFC5644, section 7.3."
        ::= { ianaIppmMetrics 61 } 
 
    -- One to group statistics
@@ -604,7 +612,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Receiver-n-Mean-Delay"
        REFERENCE
-          "Reference "RFC5644, section 8.3.1."
+          "Reference RFC5644, section 8.3.1."
        ::= { ianaIppmMetrics 62 } 
 
    ietfOneToGroupMeanDelay OBJECT-IDENTITY
@@ -612,7 +620,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Mean-Delay"
        REFERENCE
-       "Reference "RFC5644, section 8.3.2."
+       "Reference RFC5644, section 8.3.2."
        ::= { ianaIppmMetrics 63 } 
 
    ietfOneToGroupRangeMeanDelay OBJECT-IDENTITY
@@ -620,7 +628,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Range-Mean-Delay"
        REFERENCE
-          "Reference "RFC5644, section 8.3.3."
+          "Reference RFC5644, section 8.3.3."
        ::= { ianaIppmMetrics 64 } 
    
    ietfOneToGroupMaxMeanDelay OBJECT-IDENTITY
@@ -628,7 +636,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Max-Mean-Delay"
        REFERENCE
-          "Reference "RFC5644, section 8.3.4."
+          "Reference RFC5644, section 8.3.4."
        ::= { ianaIppmMetrics 65 } 
 
    ietfOneToGroupReceiverNLossRatio OBJECT-IDENTITY
@@ -636,7 +644,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Receiver-n-Loss-Ratio"
        REFERENCE
-          "Reference "RFC5644, section 8.4.1."
+          "Reference RFC5644, section 8.4.1."
        ::= { ianaIppmMetrics 66 }
    --
 
@@ -645,7 +653,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Receiver-n-Comp-Loss-Ratio"
        REFERENCE
-          "Reference "RFC5644, section 8.4.2."
+          "Reference RFC5644, section 8.4.2."
        ::= { ianaIppmMetrics 67 } 
    
    ietfOneToGroupLossRatio OBJECT-IDENTITY
@@ -653,7 +661,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Loss-Ratio"
        REFERENCE
-          "Reference "RFC5644, section 8.4.3."
+          "Reference RFC5644, section 8.4.3."
        ::= { ianaIppmMetrics 68 } 
    --
 
@@ -662,7 +670,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Range-Loss-Ratio"
        REFERENCE
-          "Reference "RFC5644, section 8.4.4."
+          "Reference RFC5644, section 8.4.4."
        ::= { ianaIppmMetrics 69 } 
 
    ietfOneToGroupRangeDelayVariation OBJECT-IDENTITY
@@ -670,11 +678,42 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
        DESCRIPTION
           "Type-P-One-to-group-Range-Delay-Variation"
        REFERENCE
-          "Reference "RFC5644, section 8.5.1."
+          "Reference RFC5644, section 8.5.1."
        ::= { ianaIppmMetrics 70 } 
 
    --
-   -- RFC-ietf-ippm-spatial-composition-16, "Spatial Composition of Metrics"
+   -- RFC6049, "Spatial Composition of Metrics"
+   --
+   -- Copyright (c) 2010 IETF Trust and the persons identified as
+   -- authors of the code. All rights reserved.
+   --
+   -- Redistribution and use in source and binary forms, with or
+   -- without modification, are permitted provided that the following
+   -- conditions are met:
+   -- * Redistributions of source code must retain the above copyright
+   --   notice, this list of conditions and the following disclaimer.
+   -- * Redistributions in binary form must reproduce the above
+   --   copyright notice, this list of conditions and the following
+   --   disclaimer in the documentation and/or other materials provided
+   --   with the distribution.
+   -- * Neither the name of Internet Society, IETF or IETF Trust, nor
+   --   the names of specific contributors, may be used to endorse or
+   --   promote products derived from this software without specific
+   --   prior written permission.
+   --
+   -- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+   -- CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+   -- INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+   -- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   -- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   -- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   -- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+   -- NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+   -- LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   -- HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+   -- CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+   -- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+   -- EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    --
         
    ietfFiniteOneWayDelayStream OBJECT-IDENTITY
@@ -682,7 +721,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-Finite-One-way-Delay-Stream"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 4.1."
+         "Reference RFC6049, section 4.1."
       ::= { ianaIppmMetrics 71 }
 
 
@@ -691,7 +730,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-Finite-One-way-Delay-Mean"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 4.2.2."
+         "Reference RFC6049, section 4.2.2."
       ::= { ianaIppmMetrics 72 }
 
 
@@ -701,7 +740,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-Finite-Composite-One-way-Delay-Mean"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 4.2.5."
+         "Reference RFC6049, section 4.2.5."
       ::= { ianaIppmMetrics 73 } 
 
 
@@ -711,7 +750,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-Finite-One-way-Delay-Minimum"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 4.3.2."
+         "Reference RFC6049, section 4.3.2."
       ::= { ianaIppmMetrics 74 } 
 
 
@@ -721,7 +760,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-Finite-Composite-One-way-Delay-Minimum"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 4.3.5."
+         "Reference RFC6049, section 4.3.5."
       ::= { ianaIppmMetrics 75 } 
 
 
@@ -730,7 +769,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-One-way-Packet-Loss-Empirical-Probability"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 5.1.4"
+         "Reference RFC6049, section 5.1.4"
       ::= { ianaIppmMetrics 76 } 
 
 
@@ -739,7 +778,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-Composite-One-way-Packet-Loss-Empirical-Probability"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 5.1.5."
+         "Reference RFC6049, section 5.1.5."
       ::= { ianaIppmMetrics 77 }
 
 
@@ -749,7 +788,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-One-way-pdv-refmin-Stream"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 6.1."
+         "Reference RFC6049, section 6.1."
       ::= { ianaIppmMetrics 78 }
 
 
@@ -758,7 +797,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-One-way-pdv-refmin-Mean"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 6.1.4."
+         "Reference RFC6049, section 6.1.4."
       ::= { ianaIppmMetrics 79 } 
 
 
@@ -767,7 +806,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-One-way-pdv-refmin-Variance"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 6.1.4."
+         "Reference RFC6049, section 6.1.4."
       ::= { ianaIppmMetrics 80 } 
 
 
@@ -777,7 +816,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-One-way-pdv-refmin-Skewness"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 6.1.4."
+         "Reference RFC6049, section 6.1.4."
       ::= { ianaIppmMetrics 81 } 
 
 
@@ -787,7 +826,7 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-Composite-One-way-pdv-refmin-quantile-a"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 6.1.5.1."
+         "Reference RFC6049, section 6.1.5.1."
       ::= { ianaIppmMetrics 82 }
 
 
@@ -797,12 +836,9 @@ IANA-IPPM-METRICS-REGISTRY-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
          "Type-P-One-way-Composite-pdv-refmin-NPA"
       REFERENCE
-         "Reference "RFC-ietf-ippm-spatial-composition-16, section 6.1.5.2."
+         "Reference RFC6049, section 6.1.5.2."
       ::= { ianaIppmMetrics 83 } 
 
 
 
    END
-
-
-
