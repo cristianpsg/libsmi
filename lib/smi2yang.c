@@ -881,8 +881,8 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode)
 
     node = addYangNode(smiNode->name, YANG_DECL_LEAF, container);
 
-    typeNode = smi2yangType(node, smiType, smiType->format != NULL);
-    if (! smiType->name) {
+    typeNode = smi2yangType(node, smiType, smiType && smiType->format != NULL);
+    if (smiType && ! smiType->name) {
 	smi2yangSubtype(typeNode, smiType);
     }
     smi2yangUnits(node, smiNode->units);
