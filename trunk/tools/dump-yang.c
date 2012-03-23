@@ -34,14 +34,15 @@ void fprintString(FILE *f, int indent, YangNode* nodePtr)
     int i;
     int prev = 0;
 
+    fprint(f, "%*c\"", indent + 1, ' ');
+
     for (i = 0; i < strlen(nodePtr->value); i++) {
 	if (nodePtr->value[i] == '\n') {
 	    str = xmalloc(i - prev + 1);
 	    memcpy(str, &nodePtr->value[prev], i - prev);	    
 	    str[i - prev] = 0;
 	    if (!prev) {
-		fprint(f, "%*c", indent + 1, ' ');
-		fprint(f, "\"%s", str);
+		fprint(f, "%s", str);
 	    } else {
 		fprint(f, "\n");
 		fprint(f, "%*c", indent + 2, ' ');
@@ -56,8 +57,7 @@ void fprintString(FILE *f, int indent, YangNode* nodePtr)
 	memcpy(str, &nodePtr->value[prev], i - prev);
 	str[i - prev] = 0;
 	if (!prev) {
-	    fprint(f, "%*c", indent + 1, ' ');
-	    fprint(f, "\"%s", str);
+	    fprint(f, "%s", str);
 	} else {
 	    fprint(f, "\n");
 	    fprint(f, "%*c", indent + 2, ' ');
@@ -65,11 +65,8 @@ void fprintString(FILE *f, int indent, YangNode* nodePtr)
 	}
 	xfree(str);
     }
-    if (! prev) {
-	fprint(f, "%*c\"\"", indent + 1, ' ');
-    } else {
-	fprint(f, "\"");
-    }
+    
+    fprint(f, "\"");
 }
 
 static void
