@@ -883,20 +883,16 @@ printHeaderNotifications(FILE *f, SmiModule *smiModule)
 static void
 printParam(FILE *f, SmiNode *smiNode)
 {
-    char *cName, *dNodeName, *dModuleName;
+    char *cName;
     unsigned minSize, maxSize;
     SmiType *smiType;
-    SmiModule *smiModule;
 
-    smiModule = smiGetNodeModule(smiNode);
     smiType = smiGetNodeType(smiNode);
     if (! smiType) {
 	return;
     }
 
     cName = translate(smiNode->name);
-    dNodeName = translateUpper(smiNode->name);
-    dModuleName = translateUpper(smiModule ? smiModule->name : "");
     switch (smiType->basetype) {
     case SMI_BASETYPE_OBJECTIDENTIFIER:
 	maxSize = smiGetMaxSize(smiType);
