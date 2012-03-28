@@ -8,7 +8,10 @@
 #define BACKEND_SMI
 
 /* Define if the SMIng parser shall be active. */
-#define BACKEND_SMING
+/* #define BACKEND_SMING */
+
+/* Define if the SMIng parser shall be active. */
+#define BACKEND_YANG
 
 /* The default error level at libsmi initialization. */
 #define DEFAULT_ERRORLEVEL 3
