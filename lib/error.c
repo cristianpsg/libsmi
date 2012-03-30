@@ -1120,8 +1120,7 @@ printError(Parser *parser, int id, int line, va_list ap)
 
         if ((errors[i].level <= smiHandle->errorLevel) &&
             (parser->flags & SMI_FLAG_ERRORS) &&
-            ((smiDepth != 0) || (parser->flags & SMI_FLAG_RECURSIVE))) {
-
+            ((smiDepth == 1) || (parser->flags & SMI_FLAG_RECURSIVE))) {
                         smiVasprintf(&buffer, errors[i].fmt, ap);
                         (smiHandle->errorHandler) (parser->path, line,
                         errors[i].level, buffer, errors[i].tag);
