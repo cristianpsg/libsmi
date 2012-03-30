@@ -136,7 +136,7 @@ typedef struct ifMauEntry {
     int32_t   __ifMauTypeList;
     uint32_t  __ifMauDefaultType[128];
     int32_t   __ifMauAutoNegSupported;
-    u_char    __ifMauTypeListBits[9];
+    u_char    __ifMauTypeListBits[10];
     uint64_t  __ifMauHCFalseCarriers; 
 } ifMauEntry_t;
 
