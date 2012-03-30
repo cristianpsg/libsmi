@@ -1,6 +1,6 @@
 ./Printer-MIB.new:11 warning: organization of `Printer-MIB' changed
 ./Printer-MIB.new:11 warning: contact of `Printer-MIB' changed
-./Printer-MIB.new:11 warning: description of module identity definition `Printer-MIB' changed
+./Printer-MIB.new:11 warning: description of MODULE-IDENTITY `Printer-MIB' changed
 ../../mibs/ietf/Printer-MIB:47 revision `2004-06-02 00:00' removed
 ./Printer-MIB.new:22 warning: revision `2001-08-30 00:00' added
 ../../mibs/ietf/Printer-MIB:20 info: previous definition of `Printer-MIB'
@@ -10,7 +10,7 @@
 ../../mibs/ietf/Printer-MIB:291 type `PrtLocalizedDescriptionStringTC' has been deleted
 ../../mibs/ietf/Printer-MIB:300 type `PrtConsoleDescriptionStringTC' has been deleted
 ./Printer-MIB.new:159 status change from `deprecated' to `current' for `CodedCharSet'
-./Printer-MIB.new:159 warning: description of textual convention definition `CodedCharSet' changed
+./Printer-MIB.new:159 warning: description of TEXTUAL-CONVENTION `CodedCharSet' changed
 ../../mibs/ietf/Printer-MIB:309 info: previous definition of `CodedCharSet'
 ./Printer-MIB.new:90 warning: type `PrtCoverStatusTC' has been added
 ./Printer-MIB.new:201 warning: type `LocalizedDescriptionStringTC' has been added
@@ -29,57 +29,57 @@
 ./Printer-MIB.new:1333 warning: type `PrtAlertGroupTC' has been added
 ./Printer-MIB.new:1380 warning: type `PrtAlertCodeTC' has been added
 ../../mibs/ietf/Printer-MIB:4586 node `prtMIB2Groups' has been deleted
-./Printer-MIB.new:1616 warning: description of object definition `prtGeneralEntry' changed
+./Printer-MIB.new:1616 warning: description of OBJECT-TYPE `prtGeneralEntry' changed
 ../../mibs/ietf/Printer-MIB:552 info: previous definition of `prtGeneralEntry'
-./Printer-MIB.new:1662 warning: description of object definition `prtGeneralConfigChanges' changed
+./Printer-MIB.new:1662 warning: description of OBJECT-TYPE `prtGeneralConfigChanges' changed
 ../../mibs/ietf/Printer-MIB:604 info: previous definition of `prtGeneralConfigChanges'
-./Printer-MIB.new:1697 warning: description of object definition `prtGeneralCurrentLocalization' changed
+./Printer-MIB.new:1697 warning: description of OBJECT-TYPE `prtGeneralCurrentLocalization' changed
 ../../mibs/ietf/Printer-MIB:645 info: previous definition of `prtGeneralCurrentLocalization'
-./Printer-MIB.new:1735 warning: description of object definition `prtGeneralCurrentOperator' changed
+./Printer-MIB.new:1735 warning: description of OBJECT-TYPE `prtGeneralCurrentOperator' changed
 ../../mibs/ietf/Printer-MIB:686 info: previous definition of `prtGeneralCurrentOperator'
-./Printer-MIB.new:1757 warning: description of object definition `prtGeneralServicePerson' changed
+./Printer-MIB.new:1757 warning: description of OBJECT-TYPE `prtGeneralServicePerson' changed
 ../../mibs/ietf/Printer-MIB:711 info: previous definition of `prtGeneralServicePerson'
 ./Printer-MIB.new:1785 warning: type `Integer32' replaces implicit type for `prtInputDefaultIndex'
 ../../mibs/ietf/Printer-MIB:744 info: previous definition of `prtInputDefaultIndex'
 ./Printer-MIB.new:1785 range `(1..65535)' removed from type used in `prtInputDefaultIndex'
 ../../mibs/ietf/Printer-MIB:744 info: previous definition of `prtInputDefaultIndex'
-./Printer-MIB.new:1785 warning: description of object definition `prtInputDefaultIndex' changed
+./Printer-MIB.new:1785 warning: description of OBJECT-TYPE `prtInputDefaultIndex' changed
 ../../mibs/ietf/Printer-MIB:744 info: previous definition of `prtInputDefaultIndex'
 ./Printer-MIB.new:1802 warning: type `Integer32' replaces implicit type for `prtOutputDefaultIndex'
 ../../mibs/ietf/Printer-MIB:754 info: previous definition of `prtOutputDefaultIndex'
 ./Printer-MIB.new:1802 range `(1..65535)' removed from type used in `prtOutputDefaultIndex'
 ../../mibs/ietf/Printer-MIB:754 info: previous definition of `prtOutputDefaultIndex'
-./Printer-MIB.new:1802 warning: description of object definition `prtOutputDefaultIndex' changed
+./Printer-MIB.new:1802 warning: description of OBJECT-TYPE `prtOutputDefaultIndex' changed
 ../../mibs/ietf/Printer-MIB:754 info: previous definition of `prtOutputDefaultIndex'
-./Printer-MIB.new:1845 warning: description of object definition `prtConsoleLocalization' changed
+./Printer-MIB.new:1845 warning: description of OBJECT-TYPE `prtConsoleLocalization' changed
 ../../mibs/ietf/Printer-MIB:795 info: previous definition of `prtConsoleLocalization'
 ./Printer-MIB.new:1880 warning: named number `enabled' changed to `operatorConsoleEnabled' at type used in `prtConsoleDisable'
 ./Printer-MIB.new:1880 warning: named number `disabled' changed to `operatorConsoleDisabled' at type used in `prtConsoleDisable'
-./Printer-MIB.new:1880 warning: description of object definition `prtConsoleDisable' changed
+./Printer-MIB.new:1880 warning: description of OBJECT-TYPE `prtConsoleDisable' changed
 ../../mibs/ietf/Printer-MIB:835 info: previous definition of `prtConsoleDisable'
-./Printer-MIB.new:2129 warning: description of object definition `prtStorageRefTable' changed
+./Printer-MIB.new:2129 warning: description of OBJECT-TYPE `prtStorageRefTable' changed
 ../../mibs/ietf/Printer-MIB:1117 info: previous definition of `prtStorageRefTable'
-./Printer-MIB.new:2137 warning: description of object definition `prtStorageRefEntry' changed
+./Printer-MIB.new:2137 warning: description of OBJECT-TYPE `prtStorageRefEntry' changed
 ../../mibs/ietf/Printer-MIB:1129 info: previous definition of `prtStorageRefEntry'
 ./Printer-MIB.new:2154 range of type used in `prtStorageRefSeqNumber' changed from `(1..65535)' to `(0..65535)'
 ./Printer-MIB.new:2165 range of type used in `prtStorageRefIndex' changed from `(0..2147483647)' to `(0..65535)'
-./Printer-MIB.new:2174 warning: description of object definition `prtDeviceRefTable' changed
+./Printer-MIB.new:2174 warning: description of OBJECT-TYPE `prtDeviceRefTable' changed
 ../../mibs/ietf/Printer-MIB:1176 info: previous definition of `prtDeviceRefTable'
-./Printer-MIB.new:2182 warning: description of object definition `prtDeviceRefEntry' changed
+./Printer-MIB.new:2182 warning: description of OBJECT-TYPE `prtDeviceRefEntry' changed
 ../../mibs/ietf/Printer-MIB:1191 info: previous definition of `prtDeviceRefEntry'
 ./Printer-MIB.new:2199 range of type used in `prtDeviceRefSeqNumber' changed from `(1..65535)' to `(0..65535)'
 ./Printer-MIB.new:2210 range of type used in `prtDeviceRefIndex' changed from `(0..2147483647)' to `(0..65535)'
-./Printer-MIB.new:1993 warning: description of object definition `prtCoverEntry' changed
+./Printer-MIB.new:1993 warning: description of OBJECT-TYPE `prtCoverEntry' changed
 ../../mibs/ietf/Printer-MIB:955 info: previous definition of `prtCoverEntry'
-./Printer-MIB.new:2010 warning: description of object definition `prtCoverIndex' changed
+./Printer-MIB.new:2010 warning: description of OBJECT-TYPE `prtCoverIndex' changed
 ../../mibs/ietf/Printer-MIB:975 info: previous definition of `prtCoverIndex'
 ./Printer-MIB.new:2031 named number `unknown' removed from type used in `prtCoverStatus'
-./Printer-MIB.new:2060 warning: description of object definition `prtLocalizationEntry' changed
+./Printer-MIB.new:2060 warning: description of OBJECT-TYPE `prtLocalizationEntry' changed
 ../../mibs/ietf/Printer-MIB:1042 info: previous definition of `prtLocalizationEntry'
-./Printer-MIB.new:2078 warning: description of object definition `prtLocalizationIndex' changed
+./Printer-MIB.new:2078 warning: description of OBJECT-TYPE `prtLocalizationIndex' changed
 ../../mibs/ietf/Printer-MIB:1063 info: previous definition of `prtLocalizationIndex'
 ./Printer-MIB.new:2092 size of type used in `prtLocalizationLanguage' changed from `(2)' to `(0..2)'
-./Printer-MIB.new:2091 warning: description of object definition `prtLocalizationLanguage' changed
+./Printer-MIB.new:2091 warning: description of OBJECT-TYPE `prtLocalizationLanguage' changed
 ../../mibs/ietf/Printer-MIB:1078 info: previous definition of `prtLocalizationLanguage'
 ./Printer-MIB.new:2101 size of type used in `prtLocalizationCountry' changed from `(2)' to `(0..2)'
 ./Printer-MIB.new:2110 named number `unknown' removed from type used in `prtLocalizationCharacterSet'
@@ -337,11 +337,11 @@
 ./Printer-MIB.new:2110 named number `cswindows1258' removed from type used in `prtLocalizationCharacterSet'
 ./Printer-MIB.new:2110 named number `csTIS620' removed from type used in `prtLocalizationCharacterSet'
 ./Printer-MIB.new:2110 named number `reserved' removed from type used in `prtLocalizationCharacterSet'
-./Printer-MIB.new:2243 warning: description of object definition `prtInputEntry' changed
+./Printer-MIB.new:2243 warning: description of OBJECT-TYPE `prtInputEntry' changed
 ../../mibs/ietf/Printer-MIB:1260 info: previous definition of `prtInputEntry'
-./Printer-MIB.new:2283 warning: description of object definition `prtInputIndex' changed
+./Printer-MIB.new:2283 warning: description of OBJECT-TYPE `prtInputIndex' changed
 ../../mibs/ietf/Printer-MIB:1305 info: previous definition of `prtInputIndex'
-./Printer-MIB.new:2295 warning: description of object definition `prtInputType' changed
+./Printer-MIB.new:2295 warning: description of OBJECT-TYPE `prtInputType' changed
 ../../mibs/ietf/Printer-MIB:1320 info: previous definition of `prtInputType'
 ./Printer-MIB.new:2316 warning: type `Integer32' replaces implicit type for `prtInputMediaDimFeedDirDeclared'
 ../../mibs/ietf/Printer-MIB:1345 info: previous definition of `prtInputMediaDimFeedDirDeclared'
@@ -367,17 +367,17 @@
 ../../mibs/ietf/Printer-MIB:1461 info: previous definition of `prtInputCurrentLevel'
 ./Printer-MIB.new:2422 range `(-3..2147483647)' removed from type used in `prtInputCurrentLevel'
 ../../mibs/ietf/Printer-MIB:1461 info: previous definition of `prtInputCurrentLevel'
-./Printer-MIB.new:2447 warning: description of object definition `prtInputMediaName' changed
+./Printer-MIB.new:2447 warning: description of OBJECT-TYPE `prtInputMediaName' changed
 ./Printer-MIB.new:2447 warning: reference of `prtInputMediaName' changed
 ../../mibs/ietf/Printer-MIB:1487 info: previous definition of `prtInputMediaName'
 ./Printer-MIB.new:2558 warning: type `Integer32' replaces implicit type for `prtInputMediaWeight'
 ../../mibs/ietf/Printer-MIB:1604 info: previous definition of `prtInputMediaWeight'
 ./Printer-MIB.new:2558 range `(-2..2147483647)' removed from type used in `prtInputMediaWeight'
 ../../mibs/ietf/Printer-MIB:1604 info: previous definition of `prtInputMediaWeight'
-./Printer-MIB.new:2567 warning: description of object definition `prtInputMediaType' changed
+./Printer-MIB.new:2567 warning: description of OBJECT-TYPE `prtInputMediaType' changed
 ../../mibs/ietf/Printer-MIB:1614 reference removed from `prtInputMediaType'
 ../../mibs/ietf/Printer-MIB:1614 info: previous definition of `prtInputMediaType'
-./Printer-MIB.new:2609 warning: description of object definition `prtInputMediaColor' changed
+./Printer-MIB.new:2609 warning: description of OBJECT-TYPE `prtInputMediaColor' changed
 ../../mibs/ietf/Printer-MIB:1633 reference removed from `prtInputMediaColor'
 ../../mibs/ietf/Printer-MIB:1633 info: previous definition of `prtInputMediaColor'
 ./Printer-MIB.new:2635 warning: type `Integer32' replaces implicit type for `prtInputMediaFormParts'
@@ -392,9 +392,9 @@
 ../../mibs/ietf/Printer-MIB:1698 info: previous definition of `prtInputNextIndex'
 ./Printer-MIB.new:2680 range `(-3..2147483647)' removed from type used in `prtInputNextIndex'
 ../../mibs/ietf/Printer-MIB:1698 info: previous definition of `prtInputNextIndex'
-./Printer-MIB.new:2721 warning: description of object definition `prtOutputEntry' changed
+./Printer-MIB.new:2721 warning: description of OBJECT-TYPE `prtOutputEntry' changed
 ../../mibs/ietf/Printer-MIB:1737 info: previous definition of `prtOutputEntry'
-./Printer-MIB.new:2761 warning: description of object definition `prtOutputIndex' changed
+./Printer-MIB.new:2761 warning: description of OBJECT-TYPE `prtOutputIndex' changed
 ../../mibs/ietf/Printer-MIB:1782 info: previous definition of `prtOutputIndex'
 ./Printer-MIB.new:2793 warning: type `Integer32' replaces implicit type for `prtOutputMaxCapacity'
 ../../mibs/ietf/Printer-MIB:1819 info: previous definition of `prtOutputMaxCapacity'
@@ -404,61 +404,61 @@
 ../../mibs/ietf/Printer-MIB:1837 info: previous definition of `prtOutputRemainingCapacity'
 ./Printer-MIB.new:2810 range `(-3..2147483647)' removed from type used in `prtOutputRemainingCapacity'
 ../../mibs/ietf/Printer-MIB:1837 info: previous definition of `prtOutputRemainingCapacity'
-./Printer-MIB.new:2872 warning: description of object definition `prtOutputModel' changed
+./Printer-MIB.new:2872 warning: description of OBJECT-TYPE `prtOutputModel' changed
 ../../mibs/ietf/Printer-MIB:1902 info: previous definition of `prtOutputModel'
 ./Printer-MIB.new:2929 warning: type `Integer32' replaces implicit type for `prtOutputMaxDimFeedDir'
 ../../mibs/ietf/Printer-MIB:1964 info: previous definition of `prtOutputMaxDimFeedDir'
 ./Printer-MIB.new:2929 range `(-2..2147483647)' removed from type used in `prtOutputMaxDimFeedDir'
 ../../mibs/ietf/Printer-MIB:1964 info: previous definition of `prtOutputMaxDimFeedDir'
-./Printer-MIB.new:2929 warning: description of object definition `prtOutputMaxDimFeedDir' changed
+./Printer-MIB.new:2929 warning: description of OBJECT-TYPE `prtOutputMaxDimFeedDir' changed
 ../../mibs/ietf/Printer-MIB:1964 info: previous definition of `prtOutputMaxDimFeedDir'
 ./Printer-MIB.new:2943 warning: type `Integer32' replaces implicit type for `prtOutputMaxDimXFeedDir'
 ../../mibs/ietf/Printer-MIB:1985 info: previous definition of `prtOutputMaxDimXFeedDir'
 ./Printer-MIB.new:2943 range `(-2..2147483647)' removed from type used in `prtOutputMaxDimXFeedDir'
 ../../mibs/ietf/Printer-MIB:1985 info: previous definition of `prtOutputMaxDimXFeedDir'
-./Printer-MIB.new:2943 warning: description of object definition `prtOutputMaxDimXFeedDir' changed
+./Printer-MIB.new:2943 warning: description of OBJECT-TYPE `prtOutputMaxDimXFeedDir' changed
 ../../mibs/ietf/Printer-MIB:1985 info: previous definition of `prtOutputMaxDimXFeedDir'
 ./Printer-MIB.new:2958 warning: type `Integer32' replaces implicit type for `prtOutputMinDimFeedDir'
 ../../mibs/ietf/Printer-MIB:2008 info: previous definition of `prtOutputMinDimFeedDir'
 ./Printer-MIB.new:2958 range `(-2..2147483647)' removed from type used in `prtOutputMinDimFeedDir'
 ../../mibs/ietf/Printer-MIB:2008 info: previous definition of `prtOutputMinDimFeedDir'
-./Printer-MIB.new:2958 warning: description of object definition `prtOutputMinDimFeedDir' changed
+./Printer-MIB.new:2958 warning: description of OBJECT-TYPE `prtOutputMinDimFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2008 info: previous definition of `prtOutputMinDimFeedDir'
 ./Printer-MIB.new:2972 warning: type `Integer32' replaces implicit type for `prtOutputMinDimXFeedDir'
 ../../mibs/ietf/Printer-MIB:2029 info: previous definition of `prtOutputMinDimXFeedDir'
 ./Printer-MIB.new:2972 range `(-2..2147483647)' removed from type used in `prtOutputMinDimXFeedDir'
 ../../mibs/ietf/Printer-MIB:2029 info: previous definition of `prtOutputMinDimXFeedDir'
-./Printer-MIB.new:2972 warning: description of object definition `prtOutputMinDimXFeedDir' changed
+./Printer-MIB.new:2972 warning: description of OBJECT-TYPE `prtOutputMinDimXFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2029 info: previous definition of `prtOutputMinDimXFeedDir'
-./Printer-MIB.new:3044 warning: description of object definition `prtOutputPageCollated' changed
+./Printer-MIB.new:3044 warning: description of OBJECT-TYPE `prtOutputPageCollated' changed
 ../../mibs/ietf/Printer-MIB:2114 info: previous definition of `prtOutputPageCollated'
-./Printer-MIB.new:3055 warning: description of object definition `prtOutputOffsetStacking' changed
+./Printer-MIB.new:3055 warning: description of OBJECT-TYPE `prtOutputOffsetStacking' changed
 ../../mibs/ietf/Printer-MIB:2128 info: previous definition of `prtOutputOffsetStacking'
-./Printer-MIB.new:3087 warning: description of object definition `prtMarkerTable' changed
+./Printer-MIB.new:3087 warning: description of OBJECT-TYPE `prtMarkerTable' changed
 ../../mibs/ietf/Printer-MIB:2164 info: previous definition of `prtMarkerTable'
-./Printer-MIB.new:3096 warning: description of object definition `prtMarkerEntry' changed
+./Printer-MIB.new:3096 warning: description of OBJECT-TYPE `prtMarkerEntry' changed
 ../../mibs/ietf/Printer-MIB:2176 info: previous definition of `prtMarkerEntry'
-./Printer-MIB.new:3124 warning: description of object definition `prtMarkerIndex' changed
+./Printer-MIB.new:3124 warning: description of OBJECT-TYPE `prtMarkerIndex' changed
 ../../mibs/ietf/Printer-MIB:2210 info: previous definition of `prtMarkerIndex'
-./Printer-MIB.new:3159 warning: description of object definition `prtMarkerLifeCount' changed
+./Printer-MIB.new:3159 warning: description of OBJECT-TYPE `prtMarkerLifeCount' changed
 ../../mibs/ietf/Printer-MIB:2250 info: previous definition of `prtMarkerLifeCount'
-./Printer-MIB.new:3179 warning: description of object definition `prtMarkerProcessColorants' changed
+./Printer-MIB.new:3179 warning: description of OBJECT-TYPE `prtMarkerProcessColorants' changed
 ../../mibs/ietf/Printer-MIB:2276 info: previous definition of `prtMarkerProcessColorants'
-./Printer-MIB.new:3191 warning: description of object definition `prtMarkerSpotColorants' changed
+./Printer-MIB.new:3191 warning: description of OBJECT-TYPE `prtMarkerSpotColorants' changed
 ../../mibs/ietf/Printer-MIB:2290 info: previous definition of `prtMarkerSpotColorants'
-./Printer-MIB.new:3201 warning: description of object definition `prtMarkerAddressabilityUnit' changed
+./Printer-MIB.new:3201 warning: description of OBJECT-TYPE `prtMarkerAddressabilityUnit' changed
 ../../mibs/ietf/Printer-MIB:2303 info: previous definition of `prtMarkerAddressabilityUnit'
 ./Printer-MIB.new:3211 warning: type `Integer32' replaces implicit type for `prtMarkerAddressabilityFeedDir'
 ../../mibs/ietf/Printer-MIB:2320 info: previous definition of `prtMarkerAddressabilityFeedDir'
 ./Printer-MIB.new:3211 range `(-2..2147483647)' removed from type used in `prtMarkerAddressabilityFeedDir'
 ../../mibs/ietf/Printer-MIB:2320 info: previous definition of `prtMarkerAddressabilityFeedDir'
-./Printer-MIB.new:3211 warning: description of object definition `prtMarkerAddressabilityFeedDir' changed
+./Printer-MIB.new:3211 warning: description of OBJECT-TYPE `prtMarkerAddressabilityFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2320 info: previous definition of `prtMarkerAddressabilityFeedDir'
 ./Printer-MIB.new:3222 warning: type `Integer32' replaces implicit type for `prtMarkerAddressabilityXFeedDir'
 ../../mibs/ietf/Printer-MIB:2335 info: previous definition of `prtMarkerAddressabilityXFeedDir'
 ./Printer-MIB.new:3222 range `(-2..2147483647)' removed from type used in `prtMarkerAddressabilityXFeedDir'
 ../../mibs/ietf/Printer-MIB:2335 info: previous definition of `prtMarkerAddressabilityXFeedDir'
-./Printer-MIB.new:3222 warning: description of object definition `prtMarkerAddressabilityXFeedDir' changed
+./Printer-MIB.new:3222 warning: description of OBJECT-TYPE `prtMarkerAddressabilityXFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2335 info: previous definition of `prtMarkerAddressabilityXFeedDir'
 ./Printer-MIB.new:3234 warning: type `Integer32' replaces implicit type for `prtMarkerNorthMargin'
 ../../mibs/ietf/Printer-MIB:2350 info: previous definition of `prtMarkerNorthMargin'
@@ -476,15 +476,15 @@
 ../../mibs/ietf/Printer-MIB:2393 info: previous definition of `prtMarkerEastMargin'
 ./Printer-MIB.new:3271 range `(-2..2147483647)' removed from type used in `prtMarkerEastMargin'
 ../../mibs/ietf/Printer-MIB:2393 info: previous definition of `prtMarkerEastMargin'
-./Printer-MIB.new:3306 warning: description of object definition `prtMarkerSuppliesEntry' changed
+./Printer-MIB.new:3306 warning: description of OBJECT-TYPE `prtMarkerSuppliesEntry' changed
 ../../mibs/ietf/Printer-MIB:2428 info: previous definition of `prtMarkerSuppliesEntry'
-./Printer-MIB.new:3329 warning: description of object definition `prtMarkerSuppliesIndex' changed
+./Printer-MIB.new:3329 warning: description of OBJECT-TYPE `prtMarkerSuppliesIndex' changed
 ../../mibs/ietf/Printer-MIB:2452 info: previous definition of `prtMarkerSuppliesIndex'
-./Printer-MIB.new:3350 warning: description of object definition `prtMarkerSuppliesColorantIndex' changed
+./Printer-MIB.new:3350 warning: description of OBJECT-TYPE `prtMarkerSuppliesColorantIndex' changed
 ../../mibs/ietf/Printer-MIB:2479 info: previous definition of `prtMarkerSuppliesColorantIndex'
-./Printer-MIB.new:3361 warning: description of object definition `prtMarkerSuppliesClass' changed
+./Printer-MIB.new:3361 warning: description of OBJECT-TYPE `prtMarkerSuppliesClass' changed
 ../../mibs/ietf/Printer-MIB:2492 info: previous definition of `prtMarkerSuppliesClass'
-./Printer-MIB.new:3390 warning: description of object definition `prtMarkerSuppliesSupplyUnit' changed
+./Printer-MIB.new:3390 warning: description of OBJECT-TYPE `prtMarkerSuppliesSupplyUnit' changed
 ../../mibs/ietf/Printer-MIB:2530 info: previous definition of `prtMarkerSuppliesSupplyUnit'
 ./Printer-MIB.new:3399 warning: type `Integer32' replaces implicit type for `prtMarkerSuppliesMaxCapacity'
 ../../mibs/ietf/Printer-MIB:2543 info: previous definition of `prtMarkerSuppliesMaxCapacity'
@@ -494,21 +494,21 @@
 ../../mibs/ietf/Printer-MIB:2559 info: previous definition of `prtMarkerSuppliesLevel'
 ./Printer-MIB.new:3415 range `(-3..2147483647)' removed from type used in `prtMarkerSuppliesLevel'
 ../../mibs/ietf/Printer-MIB:2559 info: previous definition of `prtMarkerSuppliesLevel'
-./Printer-MIB.new:3415 warning: description of object definition `prtMarkerSuppliesLevel' changed
+./Printer-MIB.new:3415 warning: description of OBJECT-TYPE `prtMarkerSuppliesLevel' changed
 ../../mibs/ietf/Printer-MIB:2559 info: previous definition of `prtMarkerSuppliesLevel'
-./Printer-MIB.new:3447 warning: description of object definition `prtMarkerColorantEntry' changed
+./Printer-MIB.new:3447 warning: description of OBJECT-TYPE `prtMarkerColorantEntry' changed
 ../../mibs/ietf/Printer-MIB:2592 info: previous definition of `prtMarkerColorantEntry'
-./Printer-MIB.new:3467 warning: description of object definition `prtMarkerColorantIndex' changed
+./Printer-MIB.new:3467 warning: description of OBJECT-TYPE `prtMarkerColorantIndex' changed
 ../../mibs/ietf/Printer-MIB:2616 info: previous definition of `prtMarkerColorantIndex'
 ./Printer-MIB.new:3520 warning: type `Integer32' replaces implicit type for `prtMarkerColorantTonality'
 ../../mibs/ietf/Printer-MIB:2676 info: previous definition of `prtMarkerColorantTonality'
 ./Printer-MIB.new:3520 range `(2..2147483647)' removed from type used in `prtMarkerColorantTonality'
 ../../mibs/ietf/Printer-MIB:2676 info: previous definition of `prtMarkerColorantTonality'
-./Printer-MIB.new:3544 warning: description of object definition `prtMediaPathTable' changed
+./Printer-MIB.new:3544 warning: description of OBJECT-TYPE `prtMediaPathTable' changed
 ../../mibs/ietf/Printer-MIB:2699 info: previous definition of `prtMediaPathTable'
-./Printer-MIB.new:3553 warning: description of object definition `prtMediaPathEntry' changed
+./Printer-MIB.new:3553 warning: description of OBJECT-TYPE `prtMediaPathEntry' changed
 ../../mibs/ietf/Printer-MIB:2711 info: previous definition of `prtMediaPathEntry'
-./Printer-MIB.new:3578 warning: description of object definition `prtMediaPathIndex' changed
+./Printer-MIB.new:3578 warning: description of OBJECT-TYPE `prtMediaPathIndex' changed
 ../../mibs/ietf/Printer-MIB:2744 info: previous definition of `prtMediaPathIndex'
 ./Printer-MIB.new:3610 warning: type `Integer32' replaces implicit type for `prtMediaPathMaxSpeed'
 ../../mibs/ietf/Printer-MIB:2783 info: previous definition of `prtMediaPathMaxSpeed'
@@ -518,32 +518,32 @@
 ../../mibs/ietf/Printer-MIB:2793 info: previous definition of `prtMediaPathMaxMediaFeedDir'
 ./Printer-MIB.new:3619 range `(-2..2147483647)' removed from type used in `prtMediaPathMaxMediaFeedDir'
 ../../mibs/ietf/Printer-MIB:2793 info: previous definition of `prtMediaPathMaxMediaFeedDir'
-./Printer-MIB.new:3619 warning: description of object definition `prtMediaPathMaxMediaFeedDir' changed
+./Printer-MIB.new:3619 warning: description of OBJECT-TYPE `prtMediaPathMaxMediaFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2793 info: previous definition of `prtMediaPathMaxMediaFeedDir'
 ./Printer-MIB.new:3630 warning: type `Integer32' replaces implicit type for `prtMediaPathMaxMediaXFeedDir'
 ../../mibs/ietf/Printer-MIB:2808 info: previous definition of `prtMediaPathMaxMediaXFeedDir'
 ./Printer-MIB.new:3630 range `(-2..2147483647)' removed from type used in `prtMediaPathMaxMediaXFeedDir'
 ../../mibs/ietf/Printer-MIB:2808 info: previous definition of `prtMediaPathMaxMediaXFeedDir'
-./Printer-MIB.new:3630 warning: description of object definition `prtMediaPathMaxMediaXFeedDir' changed
+./Printer-MIB.new:3630 warning: description of OBJECT-TYPE `prtMediaPathMaxMediaXFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2808 info: previous definition of `prtMediaPathMaxMediaXFeedDir'
 ./Printer-MIB.new:3640 warning: type `Integer32' replaces implicit type for `prtMediaPathMinMediaFeedDir'
 ../../mibs/ietf/Printer-MIB:2824 info: previous definition of `prtMediaPathMinMediaFeedDir'
 ./Printer-MIB.new:3640 range `(-2..2147483647)' removed from type used in `prtMediaPathMinMediaFeedDir'
 ../../mibs/ietf/Printer-MIB:2824 info: previous definition of `prtMediaPathMinMediaFeedDir'
-./Printer-MIB.new:3640 warning: description of object definition `prtMediaPathMinMediaFeedDir' changed
+./Printer-MIB.new:3640 warning: description of OBJECT-TYPE `prtMediaPathMinMediaFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2824 info: previous definition of `prtMediaPathMinMediaFeedDir'
 ./Printer-MIB.new:3651 warning: type `Integer32' replaces implicit type for `prtMediaPathMinMediaXFeedDir'
 ../../mibs/ietf/Printer-MIB:2838 info: previous definition of `prtMediaPathMinMediaXFeedDir'
 ./Printer-MIB.new:3651 range `(-2..2147483647)' removed from type used in `prtMediaPathMinMediaXFeedDir'
 ../../mibs/ietf/Printer-MIB:2838 info: previous definition of `prtMediaPathMinMediaXFeedDir'
-./Printer-MIB.new:3651 warning: description of object definition `prtMediaPathMinMediaXFeedDir' changed
+./Printer-MIB.new:3651 warning: description of OBJECT-TYPE `prtMediaPathMinMediaXFeedDir' changed
 ../../mibs/ietf/Printer-MIB:2838 info: previous definition of `prtMediaPathMinMediaXFeedDir'
-./Printer-MIB.new:3778 warning: description of object definition `prtChannelTable' changed
+./Printer-MIB.new:3778 warning: description of OBJECT-TYPE `prtChannelTable' changed
 ../../mibs/ietf/Printer-MIB:2977 info: previous definition of `prtChannelTable'
-./Printer-MIB.new:3787 warning: description of object definition `prtChannelEntry' changed
+./Printer-MIB.new:3787 warning: description of OBJECT-TYPE `prtChannelEntry' changed
 ../../mibs/ietf/Printer-MIB:2990 info: previous definition of `prtChannelEntry'
 ./Printer-MIB.new:3810 range of type used in `prtChannelIndex' changed from `(1..65535)' to `(1..2147483647)'
-./Printer-MIB.new:3809 warning: description of object definition `prtChannelIndex' changed
+./Printer-MIB.new:3809 warning: description of OBJECT-TYPE `prtChannelIndex' changed
 ../../mibs/ietf/Printer-MIB:3018 info: previous definition of `prtChannelIndex'
 ./Printer-MIB.new:3821 named number `unknown' removed from type used in `prtChannelType'
 ./Printer-MIB.new:3821 warning: named number `chDPMF' changed to `chPSM' at type used in `prtChannelType'
@@ -552,25 +552,25 @@
 ../../mibs/ietf/Printer-MIB:3059 info: previous definition of `prtChannelCurrentJobCntlLangIndex'
 ./Printer-MIB.new:3842 range `(0..65535)' removed from type used in `prtChannelCurrentJobCntlLangIndex'
 ../../mibs/ietf/Printer-MIB:3059 info: previous definition of `prtChannelCurrentJobCntlLangIndex'
-./Printer-MIB.new:3842 warning: description of object definition `prtChannelCurrentJobCntlLangIndex' changed
+./Printer-MIB.new:3842 warning: description of OBJECT-TYPE `prtChannelCurrentJobCntlLangIndex' changed
 ../../mibs/ietf/Printer-MIB:3059 info: previous definition of `prtChannelCurrentJobCntlLangIndex'
 ./Printer-MIB.new:3856 warning: type `Integer32' replaces implicit type for `prtChannelDefaultPageDescLangIndex'
 ../../mibs/ietf/Printer-MIB:3079 info: previous definition of `prtChannelDefaultPageDescLangIndex'
 ./Printer-MIB.new:3856 range `(0..65535)' removed from type used in `prtChannelDefaultPageDescLangIndex'
 ../../mibs/ietf/Printer-MIB:3079 info: previous definition of `prtChannelDefaultPageDescLangIndex'
-./Printer-MIB.new:3856 warning: description of object definition `prtChannelDefaultPageDescLangIndex' changed
+./Printer-MIB.new:3856 warning: description of OBJECT-TYPE `prtChannelDefaultPageDescLangIndex' changed
 ../../mibs/ietf/Printer-MIB:3079 info: previous definition of `prtChannelDefaultPageDescLangIndex'
 ./Printer-MIB.new:3883 range `(0..2147483647)' removed from type used in `prtChannelIfIndex'
 ../../mibs/ietf/Printer-MIB:3110 info: previous definition of `prtChannelIfIndex'
-./Printer-MIB.new:3883 warning: description of object definition `prtChannelIfIndex' changed
+./Printer-MIB.new:3883 warning: description of OBJECT-TYPE `prtChannelIfIndex' changed
 ../../mibs/ietf/Printer-MIB:3110 info: previous definition of `prtChannelIfIndex'
-./Printer-MIB.new:3904 warning: description of object definition `prtChannelInformation' changed
+./Printer-MIB.new:3904 warning: description of OBJECT-TYPE `prtChannelInformation' changed
 ../../mibs/ietf/Printer-MIB:3137 info: previous definition of `prtChannelInformation'
-./Printer-MIB.new:4047 warning: description of object definition `prtInterpreterTable' changed
+./Printer-MIB.new:4047 warning: description of OBJECT-TYPE `prtInterpreterTable' changed
 ../../mibs/ietf/Printer-MIB:3281 info: previous definition of `prtInterpreterTable'
-./Printer-MIB.new:4055 warning: description of object definition `prtInterpreterEntry' changed
+./Printer-MIB.new:4055 warning: description of OBJECT-TYPE `prtInterpreterEntry' changed
 ../../mibs/ietf/Printer-MIB:3294 info: previous definition of `prtInterpreterEntry'
-./Printer-MIB.new:4081 warning: description of object definition `prtInterpreterIndex' changed
+./Printer-MIB.new:4081 warning: description of OBJECT-TYPE `prtInterpreterIndex' changed
 ../../mibs/ietf/Printer-MIB:3325 info: previous definition of `prtInterpreterIndex'
 ./Printer-MIB.new:4095 named number `langCGM' removed from type used in `prtInterpreterLangFamily'
 ./Printer-MIB.new:4095 named number `langJPEG' removed from type used in `prtInterpreterLangFamily'
@@ -578,19 +578,19 @@
 ./Printer-MIB.new:4095 named number `langCALS2' removed from type used in `prtInterpreterLangFamily'
 ./Printer-MIB.new:4095 named number `langNIRS' removed from type used in `prtInterpreterLangFamily'
 ./Printer-MIB.new:4095 named number `langC4' removed from type used in `prtInterpreterLangFamily'
-./Printer-MIB.new:4095 warning: description of object definition `prtInterpreterLangFamily' changed
+./Printer-MIB.new:4095 warning: description of OBJECT-TYPE `prtInterpreterLangFamily' changed
 ../../mibs/ietf/Printer-MIB:3345 info: previous definition of `prtInterpreterLangFamily'
 ./Printer-MIB.new:4165 warning: type `Integer32' replaces implicit type for `prtInterpreterFeedAddressability'
 ../../mibs/ietf/Printer-MIB:3423 info: previous definition of `prtInterpreterFeedAddressability'
 ./Printer-MIB.new:4165 range `(-2..2147483647)' removed from type used in `prtInterpreterFeedAddressability'
 ../../mibs/ietf/Printer-MIB:3423 info: previous definition of `prtInterpreterFeedAddressability'
-./Printer-MIB.new:4165 warning: description of object definition `prtInterpreterFeedAddressability' changed
+./Printer-MIB.new:4165 warning: description of OBJECT-TYPE `prtInterpreterFeedAddressability' changed
 ../../mibs/ietf/Printer-MIB:3423 info: previous definition of `prtInterpreterFeedAddressability'
 ./Printer-MIB.new:4177 warning: type `Integer32' replaces implicit type for `prtInterpreterXFeedAddressability'
 ../../mibs/ietf/Printer-MIB:3443 info: previous definition of `prtInterpreterXFeedAddressability'
 ./Printer-MIB.new:4177 range `(-2..2147483647)' removed from type used in `prtInterpreterXFeedAddressability'
 ../../mibs/ietf/Printer-MIB:3443 info: previous definition of `prtInterpreterXFeedAddressability'
-./Printer-MIB.new:4177 warning: description of object definition `prtInterpreterXFeedAddressability' changed
+./Printer-MIB.new:4177 warning: description of OBJECT-TYPE `prtInterpreterXFeedAddressability' changed
 ../../mibs/ietf/Printer-MIB:3443 info: previous definition of `prtInterpreterXFeedAddressability'
 ./Printer-MIB.new:4189 named number `unknown' removed from type used in `prtInterpreterDefaultCharSetIn'
 ./Printer-MIB.new:4189 named number `csASCII' removed from type used in `prtInterpreterDefaultCharSetIn'
@@ -847,7 +847,7 @@
 ./Printer-MIB.new:4189 named number `cswindows1258' removed from type used in `prtInterpreterDefaultCharSetIn'
 ./Printer-MIB.new:4189 named number `csTIS620' removed from type used in `prtInterpreterDefaultCharSetIn'
 ./Printer-MIB.new:4189 named number `reserved' removed from type used in `prtInterpreterDefaultCharSetIn'
-./Printer-MIB.new:4189 warning: description of object definition `prtInterpreterDefaultCharSetIn' changed
+./Printer-MIB.new:4189 warning: description of OBJECT-TYPE `prtInterpreterDefaultCharSetIn' changed
 ../../mibs/ietf/Printer-MIB:3460 info: previous definition of `prtInterpreterDefaultCharSetIn'
 ./Printer-MIB.new:4202 named number `unknown' removed from type used in `prtInterpreterDefaultCharSetOut'
 ./Printer-MIB.new:4202 named number `csASCII' removed from type used in `prtInterpreterDefaultCharSetOut'
@@ -1104,40 +1104,40 @@
 ./Printer-MIB.new:4202 named number `cswindows1258' removed from type used in `prtInterpreterDefaultCharSetOut'
 ./Printer-MIB.new:4202 named number `csTIS620' removed from type used in `prtInterpreterDefaultCharSetOut'
 ./Printer-MIB.new:4202 named number `reserved' removed from type used in `prtInterpreterDefaultCharSetOut'
-./Printer-MIB.new:4202 warning: description of object definition `prtInterpreterDefaultCharSetOut' changed
+./Printer-MIB.new:4202 warning: description of OBJECT-TYPE `prtInterpreterDefaultCharSetOut' changed
 ../../mibs/ietf/Printer-MIB:3472 info: previous definition of `prtInterpreterDefaultCharSetOut'
-./Printer-MIB.new:4236 warning: description of object definition `prtConsoleDisplayBufferTable' changed
+./Printer-MIB.new:4236 warning: description of OBJECT-TYPE `prtConsoleDisplayBufferTable' changed
 ../../mibs/ietf/Printer-MIB:3508 info: previous definition of `prtConsoleDisplayBufferTable'
-./Printer-MIB.new:4246 warning: description of object definition `prtConsoleDisplayBufferEntry' changed
+./Printer-MIB.new:4246 warning: description of OBJECT-TYPE `prtConsoleDisplayBufferEntry' changed
 ../../mibs/ietf/Printer-MIB:3520 info: previous definition of `prtConsoleDisplayBufferEntry'
-./Printer-MIB.new:4263 warning: description of object definition `prtConsoleDisplayBufferIndex' changed
+./Printer-MIB.new:4263 warning: description of OBJECT-TYPE `prtConsoleDisplayBufferIndex' changed
 ../../mibs/ietf/Printer-MIB:3543 info: previous definition of `prtConsoleDisplayBufferIndex'
-./Printer-MIB.new:4299 warning: description of object definition `prtConsoleLightTable' changed
+./Printer-MIB.new:4299 warning: description of OBJECT-TYPE `prtConsoleLightTable' changed
 ../../mibs/ietf/Printer-MIB:3585 info: previous definition of `prtConsoleLightTable'
-./Printer-MIB.new:4307 warning: description of object definition `prtConsoleLightEntry' changed
+./Printer-MIB.new:4307 warning: description of OBJECT-TYPE `prtConsoleLightEntry' changed
 ../../mibs/ietf/Printer-MIB:3597 info: previous definition of `prtConsoleLightEntry'
-./Printer-MIB.new:4325 warning: description of object definition `prtConsoleLightIndex' changed
+./Printer-MIB.new:4325 warning: description of OBJECT-TYPE `prtConsoleLightIndex' changed
 ../../mibs/ietf/Printer-MIB:3618 info: previous definition of `prtConsoleLightIndex'
 ./Printer-MIB.new:4338 warning: type `Integer32' replaces implicit type for `prtConsoleOnTime'
 ../../mibs/ietf/Printer-MIB:3636 info: previous definition of `prtConsoleOnTime'
 ./Printer-MIB.new:4338 range `(0..2147483647)' removed from type used in `prtConsoleOnTime'
 ../../mibs/ietf/Printer-MIB:3636 info: previous definition of `prtConsoleOnTime'
-./Printer-MIB.new:4338 warning: description of object definition `prtConsoleOnTime' changed
+./Printer-MIB.new:4338 warning: description of OBJECT-TYPE `prtConsoleOnTime' changed
 ../../mibs/ietf/Printer-MIB:3636 info: previous definition of `prtConsoleOnTime'
 ./Printer-MIB.new:4353 warning: type `Integer32' replaces implicit type for `prtConsoleOffTime'
 ../../mibs/ietf/Printer-MIB:3655 info: previous definition of `prtConsoleOffTime'
 ./Printer-MIB.new:4353 range `(0..2147483647)' removed from type used in `prtConsoleOffTime'
 ../../mibs/ietf/Printer-MIB:3655 info: previous definition of `prtConsoleOffTime'
-./Printer-MIB.new:4353 warning: description of object definition `prtConsoleOffTime' changed
+./Printer-MIB.new:4353 warning: description of OBJECT-TYPE `prtConsoleOffTime' changed
 ../../mibs/ietf/Printer-MIB:3655 info: previous definition of `prtConsoleOffTime'
-./Printer-MIB.new:4413 warning: description of object definition `prtAlertTable' changed
+./Printer-MIB.new:4413 warning: description of OBJECT-TYPE `prtAlertTable' changed
 ../../mibs/ietf/Printer-MIB:3716 info: previous definition of `prtAlertTable'
-./Printer-MIB.new:4421 warning: description of object definition `prtAlertEntry' changed
+./Printer-MIB.new:4421 warning: description of OBJECT-TYPE `prtAlertEntry' changed
 ../../mibs/ietf/Printer-MIB:3732 info: previous definition of `prtAlertEntry'
 ./Printer-MIB.new:4444 warning: access of `prtAlertIndex' changed from `read-only' to `not-accessible'
-./Printer-MIB.new:4444 warning: description of object definition `prtAlertIndex' changed
+./Printer-MIB.new:4444 warning: description of OBJECT-TYPE `prtAlertIndex' changed
 ../../mibs/ietf/Printer-MIB:3760 info: previous definition of `prtAlertIndex'
-./Printer-MIB.new:4488 warning: description of object definition `prtAlertTrainingLevel' changed
+./Printer-MIB.new:4488 warning: description of OBJECT-TYPE `prtAlertTrainingLevel' changed
 ../../mibs/ietf/Printer-MIB:3815 info: previous definition of `prtAlertTrainingLevel'
 ./Printer-MIB.new:4497 named number `unknown' removed from type used in `prtAlertGroup'
 ./Printer-MIB.new:4497 warning: named number `finAttribute' changed to `finAttributeTable' at type used in `prtAlertGroup'
@@ -1145,29 +1145,29 @@
 ../../mibs/ietf/Printer-MIB:3845 info: previous definition of `prtAlertGroupIndex'
 ./Printer-MIB.new:4510 range `(-1..2147483647)' removed from type used in `prtAlertGroupIndex'
 ../../mibs/ietf/Printer-MIB:3845 info: previous definition of `prtAlertGroupIndex'
-./Printer-MIB.new:4510 warning: description of object definition `prtAlertGroupIndex' changed
+./Printer-MIB.new:4510 warning: description of OBJECT-TYPE `prtAlertGroupIndex' changed
 ../../mibs/ietf/Printer-MIB:3845 info: previous definition of `prtAlertGroupIndex'
 ./Printer-MIB.new:4528 warning: type `Integer32' replaces implicit type for `prtAlertLocation'
 ../../mibs/ietf/Printer-MIB:3866 info: previous definition of `prtAlertLocation'
 ./Printer-MIB.new:4528 range `(-2..2147483647)' removed from type used in `prtAlertLocation'
 ../../mibs/ietf/Printer-MIB:3866 info: previous definition of `prtAlertLocation'
-./Printer-MIB.new:4528 warning: description of object definition `prtAlertLocation' changed
+./Printer-MIB.new:4528 warning: description of OBJECT-TYPE `prtAlertLocation' changed
 ../../mibs/ietf/Printer-MIB:3866 info: previous definition of `prtAlertLocation'
 ./Printer-MIB.new:4541 warning: named number `mediaPathCannotDuplexMediaSelected' changed to `mediaPathcannotDuplexMediaSelected' at type used in `prtAlertCode'
-./Printer-MIB.new:4541 warning: description of object definition `prtAlertCode' changed
+./Printer-MIB.new:4541 warning: description of OBJECT-TYPE `prtAlertCode' changed
 ../../mibs/ietf/Printer-MIB:3883 info: previous definition of `prtAlertCode'
-./Printer-MIB.new:4565 warning: description of object definition `prtAlertTime' changed
+./Printer-MIB.new:4565 warning: description of OBJECT-TYPE `prtAlertTime' changed
 ../../mibs/ietf/Printer-MIB:3915 info: previous definition of `prtAlertTime'
-./Printer-MIB.new:4584 warning: description of notification definition `printerV2Alert' changed
+./Printer-MIB.new:4584 warning: description of NOTIFICATION-TYPE `printerV2Alert' changed
 ../../mibs/ietf/Printer-MIB:3933 info: previous definition of `printerV2Alert'
-./Printer-MIB.new:5139 warning: description of object group definition `prtAlertTableGroup' changed
+./Printer-MIB.new:5139 warning: description of OBJECT-GROUP `prtAlertTableGroup' changed
 ../../mibs/ietf/Printer-MIB:4569 info: previous definition of `prtAlertTableGroup'
-./Printer-MIB.new:5149 warning: description of object group definition `prtAlertTimeGroup' changed
+./Printer-MIB.new:5149 warning: description of OBJECT-GROUP `prtAlertTimeGroup' changed
 ../../mibs/ietf/Printer-MIB:4578 info: previous definition of `prtAlertTimeGroup'
-./Printer-MIB.new:5179 warning: description of object group definition `prtAlertTableV2Group' changed
+./Printer-MIB.new:5179 warning: description of OBJECT-GROUP `prtAlertTableV2Group' changed
 ../../mibs/ietf/Printer-MIB:4614 member `prtAlertIndex' removed from group `prtAlertTableV2Group'
 ../../mibs/ietf/Printer-MIB:4614 info: previous definition of `prtAlertTableV2Group'
-./Printer-MIB.new:4614 warning: description of module compliance definition `prtMIBCompliance' changed
+./Printer-MIB.new:4614 warning: description of MODULE-COMPLIANCE `prtMIBCompliance' changed
 ../../mibs/ietf/Printer-MIB:3971 info: previous definition of `prtMIBCompliance'
 ./Printer-MIB.new:4874 optional group `prtResponsiblePartyGroup' added to `prtMIBCompliance'
 ./Printer-MIB.new:4878 optional group `prtExtendedInputGroup' added to `prtMIBCompliance'
