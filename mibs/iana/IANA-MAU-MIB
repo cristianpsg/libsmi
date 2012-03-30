@@ -17,7 +17,7 @@ IANA-MAU-MIB DEFINITIONS ::= BEGIN
                              Marina del Rey, CA 90292
 
                         Tel: +1-310-823-9358
-                      EMail: iana&iana.org"
+                      EMail: iana@iana.org"
 
        DESCRIPTION
          "This MIB module defines dot3MauType OBJECT-IDENTITIES and
@@ -170,13 +170,13 @@ IANA-MAU-MIB DEFINITIONS ::= BEGIN
               b10GbasePRD3(67),   -- 10GBASE-PR-D3
               b10GbasePRU1(68),   -- 10GBASE-PR-U1
               b10GbasePRU3(69),   -- 10GBASE-PR-U3
-              b40GbaseKR4(70)     -- 40GBASE-KR4
-              b40GbaseCR4(71)     -- 40GBASE-CR4
-              b40GbaseSR4(72)     -- 40GBASE-SR4
-              b40GbaseFR(73)      -- 40GBASE-FR
-              b40GbaseLR4(74)     -- 40GBASE-LR4
-              b100GbaseCR10(75)   -- 100GBASE-CR10
-              b100GbaseSR10(76)   -- 100GBASE-SR10
+              b40GbaseKR4(70),    -- 40GBASE-KR4
+              b40GbaseCR4(71),    -- 40GBASE-CR4
+              b40GbaseSR4(72),    -- 40GBASE-SR4
+              b40GbaseFR(73),     -- 40GBASE-FR
+              b40GbaseLR4(74),    -- 40GBASE-LR4
+              b100GbaseCR10(75),  -- 100GBASE-CR10
+              b100GbaseSR10(76),  -- 100GBASE-SR10
               b100GbaseLR4(77),   -- 100GBASE-LR4
               b100GbaseER4(78)    -- 100GBASE-ER4
          }
@@ -403,7 +403,7 @@ IANA-MAU-MIB DEFINITIONS ::= BEGIN
               b10GbaseKR(19),     -- 10GBASE-KR
               b40GbaseKR4(20),    -- 40GBASE-KR4
               b40GbaseCR4(21),    -- 40GBASE-CR4
-              b100GbaseCR10(22),  -- 100GBASE-CR10
+              b100GbaseCR10(22)   -- 100GBASE-CR10
          }
 
      IANAifJackType ::= TEXTUAL-CONVENTION
