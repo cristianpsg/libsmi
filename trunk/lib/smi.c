@@ -395,7 +395,7 @@ char *smiDeclAsString(SmiDecl decl)
 	s = "MODULE-IDENTITY";
 	break;
     case SMI_DECL_NOTIFICATIONTYPE:
-	s = "NOTIFICATIONTYPE";
+	s = "NOTIFICATION-TYPE";
 	break;
     case SMI_DECL_TRAPTYPE:
 	s = "TRAP-TYPE";
