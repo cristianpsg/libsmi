@@ -1515,7 +1515,9 @@ void initJax()
 	"jax",
 	dumpJax,
 	SMI_FLAG_NODESCR,
-	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_OUTPUT
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"Java AgentX sub-agent classes in separate files",
 	opt,
 	NULL

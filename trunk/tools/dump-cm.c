@@ -1199,7 +1199,8 @@ void initCm()
 	"cm",
 	dumpCm,
 	SMI_FLAG_NODESCR,
-	SMIDUMP_DRIVER_CANT_OUTPUT,
+	SMIDUMP_DRIVER_CANT_OUTPUT
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"reverse engineered conceptual model",
 	opt,
 	NULL

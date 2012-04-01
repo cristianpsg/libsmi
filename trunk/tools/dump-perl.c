@@ -1117,7 +1117,8 @@ void initPerl()
         "perl",
         dumpPerl,
         0,
-        SMIDUMP_DRIVER_CANT_UNITE,
+        SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
         "Perl MIB dictionaries",
         NULL,
         NULL

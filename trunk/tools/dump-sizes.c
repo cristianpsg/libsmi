@@ -1335,7 +1335,7 @@ initSizes()
 	"sizes",
 	dumpSizes,
 	SMI_FLAG_NODESCR,
-	0,
+	SMIDUMP_DRIVER_CANT_YANG,
 	"RFC 3416 PDU sizes excluding message / transport headers",
 	opt,
 	NULL

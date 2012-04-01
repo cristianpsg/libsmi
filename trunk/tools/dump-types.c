@@ -591,7 +591,7 @@ void initTypes()
 	"types",
 	dumpTypes,
 	SMI_FLAG_NODESCR,
-	0,
+	SMIDUMP_DRIVER_CANT_YANG,
 	"recursive list of all derived types",
 	opt,
 	NULL

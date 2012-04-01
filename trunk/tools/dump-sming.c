@@ -1685,8 +1685,9 @@ void initSming()
 	"sming",
 	dumpSming,
 	0,
-	SMIDUMP_DRIVER_CANT_UNITE,
-	"SMIng",
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
+	"SMIng (RFC xxxx)",
 	NULL,
 	NULL
     };

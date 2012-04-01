@@ -2152,7 +2152,8 @@ void initXsd()
 	"xsd",
 	dumpXsd,
 	0,
-	SMIDUMP_DRIVER_CANT_UNITE,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"XML schema definitions",
 	opt,
 	NULL

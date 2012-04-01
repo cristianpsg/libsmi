@@ -1020,7 +1020,8 @@ void initXml()
 	"xml",
 	dumpXml,
 	0,
-	SMIDUMP_DRIVER_CANT_UNITE,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"intermediate SMI XML exchange format",
 	opt,
 	NULL

@@ -1102,7 +1102,8 @@ void initPython()
 	"python",
 	dumpPython,
 	0,
-	SMIDUMP_DRIVER_CANT_UNITE,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"Python MIB dictionaries",
 	NULL,
 	NULL
