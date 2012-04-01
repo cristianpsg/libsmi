@@ -1333,7 +1333,7 @@ void initNetsnmp()
 	"netsnmp",
 	dumpNetSnmp,
 	SMI_FLAG_NODESCR,
-	SMIDUMP_DRIVER_CANT_UNITE,
+	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_YANG,
 	"ANSI C code for the NET-SNMP package",
 	opt,
 	NULL

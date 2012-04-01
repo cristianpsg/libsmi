@@ -286,7 +286,8 @@ void initCompliances()
 	"compliances",
 	dumpCompliances,
 	SMI_FLAG_NODESCR,
-	SMIDUMP_DRIVER_CANT_UNITE,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"compliances with all included objects / notifications",
 	/* opt, */ NULL,
 	NULL

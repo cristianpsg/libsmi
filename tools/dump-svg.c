@@ -3346,7 +3346,7 @@ void initSvg()
 	"svg",
 	dumpSvg,
 	0,
-	0,
+	SMIDUMP_DRIVER_CANT_YANG,
 	"SVG diagram",
 	opt,
 	NULL

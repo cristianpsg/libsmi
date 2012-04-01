@@ -9,7 +9,7 @@
  * See the file "COPYING" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * @(#) $Id: dump-sql.c,v 1.5 2000/07/04 10:07:10 strauss Exp $
+ * @(#) $Id$
  */
 
 #include <config.h>
@@ -167,7 +167,9 @@ void init_sql()
 	"sql",
 	dumpSql,
 	SMI_FLAG_NODESCR,
-	SMIDUMP_DRIVER_CANT_UNITE | SMIDUMP_DRIVER_CANT_OUTPUT,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_OUTPUT
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"SQL data model definitions",
 	NULL,
 	NULL

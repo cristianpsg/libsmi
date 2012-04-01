@@ -3399,7 +3399,8 @@ void initScli()
 	"scli",
 	dumpScli,
 	0,
-	SMIDUMP_DRIVER_CANT_UNITE,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"ANSI C manager stubs for the gsnmp package",
 	opt,
 	NULL

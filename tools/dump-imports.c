@@ -189,7 +189,8 @@ void initImports()
 	"imports",
 	dumpImports,
 	SMI_FLAG_NODESCR,
-	SMIDUMP_DRIVER_CANT_UNITE,
+	SMIDUMP_DRIVER_CANT_UNITE
+	| SMIDUMP_DRIVER_CANT_YANG,
 	"recursive list of all imports",
 	NULL,
 	NULL
