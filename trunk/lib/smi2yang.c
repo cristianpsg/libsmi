@@ -726,7 +726,13 @@ smi2yangSubtype(_YangNode *node, SmiType *smiType)
 	}
 	if (so) {
 	    if (smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
-		(void) addYangNode(so, YANG_DECL_LENGTH, node);
+		/*
+		 * We should try to translate meaningfully here if
+		 * possible, at least for frequent simple cases.
+		 */
+		if (!smiType->format) {
+		    (void) addYangNode(so, YANG_DECL_LENGTH, node);
+		}
 	    } else {
 		(void) addYangNode(so, YANG_DECL_RANGE, node);
 	    }
@@ -735,6 +741,10 @@ smi2yangSubtype(_YangNode *node, SmiType *smiType)
     }
 
 #if 0
+    /*
+     * We should try to translate meaningfully here if
+     * possible, at least for frequent simple cases.
+     */
     if (smiType->format
 	&& smiType->basetype == SMI_BASETYPE_OCTETSTRING) {
 	char *pattern;
