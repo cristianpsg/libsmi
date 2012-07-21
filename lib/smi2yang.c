@@ -891,9 +891,28 @@ smi2yangLeaf(_YangNode *container, SmiNode *smiNode)
 
     node = addYangNode(smiNode->name, YANG_DECL_LEAF, container);
 
-    typeNode = smi2yangType(node, smiType, smiType && smiType->format != NULL);
     if (smiType && ! smiType->name) {
-	smi2yangSubtype(typeNode, smiType);
+	SmiType *baseType;
+	/*
+	 * YANG (RFC 6020) does not allow subtyping of enumerations
+	 * and bits. Hence, we have to special case them here. Ugly.
+	 */
+	if (smiType->basetype == SMI_BASETYPE_ENUM
+	    || smiType->basetype == SMI_BASETYPE_BITS) {
+	    for (baseType = smiType;
+		 smiGetParentType(baseType);
+		 baseType = smiGetParentType(baseType)) ;
+	    typeNode = smi2yangType(node, baseType, 1);
+	} else {
+	    typeNode = smi2yangType(node, smiType,
+				    smiType && smiType->format != NULL);
+	}
+	if (smiType && ! smiType->name) {
+	    smi2yangSubtype(typeNode, smiType);
+	}
+    } else {
+	typeNode = smi2yangType(node, smiType,
+				smiType && smiType->format != NULL);
     }
     smi2yangUnits(node, smiNode->units);
     smi2yangStatus(node, smiNode->status);
