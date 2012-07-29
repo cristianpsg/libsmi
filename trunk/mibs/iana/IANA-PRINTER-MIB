@@ -9,7 +9,7 @@ IMPORTS
             FROM SNMPv2-TC;                              -- [RFC2579]
 
 ianaPrinterMIB MODULE-IDENTITY
-    LAST-UPDATED  "201111040000Z" -- November 4, 2011
+    LAST-UPDATED  "201207190000Z" -- July 19, 2012
 
     ORGANIZATION  "IANA"
     CONTACT-INFO  "Internet Assigned Numbers Authority
@@ -38,6 +38,9 @@ ianaPrinterMIB MODULE-IDENTITY
                   itself or see:
                   http://www.ietf.org/copyrights/ianamib.html"
     
+    REVISION      "201207190000Z" -- July 19, 2012
+    DESCRIPTION   "Added 84-85 in PrtInterpreterLangFamilyTC."
+
     REVISION      "201111040000Z" -- November 4, 2011
     DESCRIPTION   "Added 35-36 in PrtMarkerSuppliesTypeTC."
 
@@ -953,12 +956,20 @@ PrtInterpreterLangFamilyTC ::= TEXTUAL-CONVENTION
                              --   support/SupportManual/bpl13210/
                              --   bpl13210.pdf
                              -- See also 'langPCL'
-        langPCL5c(83)        -- Not in RFC 3805
+        langPCL5c(83),       -- Not in RFC 3805
                              -- HP Printer Command Language 5 Color
                              -- http://h20000.www2.hp.com/bc/docs/
                              --   support/SupportManual/bpl13212/
                              --   bpl13212.pdf
                              -- See also 'langPCL'
+        langPWGRaster(84),   -- Not in RFC 1759
+                             -- PWG 5102.4: PWG Raster Format
+                             -- ftp://ftp.pwg.org/pub/pwg/candidates/
+                             --   cs-ippraster10-20120420-5102.4.pdf
+                             -- MIME type "image/pwg-raster"
+        langAppleRaster(85)  -- Not in RFC 1759
+                             -- Apple raster format for printing
+                             -- No public specifications available at this time.
 }
 
 --

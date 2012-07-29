@@ -5,7 +5,7 @@
        TEXTUAL-CONVENTION          FROM SNMPv2-TC;
 
    ianaifType MODULE-IDENTITY
-       LAST-UPDATED "201201110000Z"  -- January 11, 2012
+       LAST-UPDATED "201205170000Z"  -- May 17, 2012
        ORGANIZATION "IANA"
        CONTACT-INFO "        Internet Assigned Numbers Authority
 
@@ -19,6 +19,9 @@
        DESCRIPTION  "This MIB module defines the IANAifType Textual
                      Convention, and thus the enumerated values of
                      the ifType object defined in MIB-II's ifTable."
+
+       REVISION     "201205170000Z"  -- May 17, 2012
+       DESCRIPTION  "Registration of new IANAifType 272."
 
        REVISION     "201201110000Z"  -- January 11, 2012
        DESCRIPTION  "Registration of new IANAifTypes 266-271."
@@ -590,7 +593,8 @@
                    aluEponPhysicalUni (268), -- EPON physical User to Network interface
                    aluEponLogicalLink (269), -- The emulation of a point-to-point link over the EPON layer
                    aluGponOnu (270), -- GPON Optical Network Unit
-                   aluGponPhysicalUni (271) -- GPON physical User to Network interface
+                   aluGponPhysicalUni (271), -- GPON physical User to Network interface
+                   vmwareNicTeam (272) -- VMware NIC Team
                    }
 
 IANAtunnelType ::= TEXTUAL-CONVENTION
