@@ -458,7 +458,12 @@ smi2yangLeafPath(SmiNode *smiNode)
     case SMI_NODEKIND_COLUMN:
 	smiEntryNode = smiGetParentNode(smiNode);
 	if (smiEntryNode) {
-	    smiTableNode = smiGetParentNode(smiEntryNode);
+	    if (smiEntryNode->indexkind == SMI_INDEX_AUGMENT) {
+		smiEntryNode = smiGetRelatedNode(smiEntryNode);
+	    }
+	    if (smiEntryNode) {
+		smiTableNode = smiGetParentNode(smiEntryNode);
+	    }
 	}
 	if (smiEntryNode && smiTableNode) {
 	    smiAsprintf(&s, "/%s:%s/%s:%s/%s:%s/%s:%s",
