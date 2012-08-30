@@ -417,7 +417,7 @@ static char*
 smi2yangLeafPath(SmiNode *smiNode)
 {
     SmiModule *smiModule, *parentModule = NULL;
-    SmiNode *smiEntryNode, *smiTableNode, *smiParentNode = NULL;
+    SmiNode *smiEntryNode = NULL, *smiTableNode = NULL, *smiParentNode = NULL;
     char *toplevel = NULL;
     char *s = NULL;
     const char *prefix;
@@ -427,7 +427,6 @@ smi2yangLeafPath(SmiNode *smiNode)
 	return NULL;
     }
     prefix = getModulePrefix(smiModule->name);
-
     toplevel = smiModule->name;
     
     switch (smiNode->nodekind) {
@@ -466,10 +465,18 @@ smi2yangLeafPath(SmiNode *smiNode)
 	    }
 	}
 	if (smiEntryNode && smiTableNode) {
+	    const char *parent_prefix = prefix;
+	    if (smiTableNode) {
+		SmiModule *m = smiGetNodeModule(smiTableNode);
+		if (m) {
+		    toplevel = m->name;
+		    parent_prefix = getModulePrefix(m->name);
+		}
+	    }
 	    smiAsprintf(&s, "/%s:%s/%s:%s/%s:%s/%s:%s",
-			prefix, toplevel,
-			prefix, smiTableNode->name,
-			prefix, smiEntryNode->name,
+			parent_prefix, toplevel,
+			parent_prefix, smiTableNode->name,
+			parent_prefix, smiEntryNode->name,
 			prefix, smiNode->name);
 	}
 	break;
