@@ -894,14 +894,15 @@ smi2yangIdentities(SmiModule *smiModule, _YangNode *yangModulePtr)
 
 
 static void
-smi2yangLeaf(_YangNode *container, SmiNode *smiNode)
+smi2yangLeaf(_YangNode *container, SmiNode *smiNode, const char *altname)
 {
     _YangNode *node, *typeNode;
     SmiType *smiType;
     
     smiType = smiGetNodeType(smiNode);
 
-    node = addYangNode(smiNode->name, YANG_DECL_LEAF, container);
+    if (! altname) altname = smiNode->name;
+    node = addYangNode(altname, YANG_DECL_LEAF, container);
 
     if (smiType && ! smiType->name) {
 	SmiType *baseType;
@@ -1039,16 +1040,57 @@ smi2yangToplevel(SmiModule *smiModule, _YangNode *node)
 
 
 static void
-smi2yangLeafs(_YangNode *node, SmiNode *smiNode)
+smi2yangColumnarLeafs(_YangNode *node, SmiNode *smiNode)
 {
     SmiNode *childNode;
+    SmiElement *smiElement;
+    int c, i;
+    char *s = NULL;
     
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
-	if (childNode->nodekind == SMI_NODEKIND_COLUMN
-	    && isAccessibleLeaf(childNode)) {
-	    smi2yangLeaf(node, childNode);
+	if (childNode->nodekind != SMI_NODEKIND_COLUMN) {
+	    continue;
+	}
+
+	/*
+	 * Check whether this column belongs to the table index. If
+	 * so, we have to create a leaf regardless of the max-access;
+	 * there apparently are tables with accessible-for-notify
+	 * index objects. Furthermore, we have to handle tables where
+	 * the same column appears multiple times in the index by
+	 * creating multiple leafs. Hence, we first count how many
+	 * times the column appears in the index.
+	 */
+
+	for (c = 0, smiElement = smiGetFirstElement(smiNode);
+	     smiElement;
+	     smiElement = smiGetNextElement(smiElement)) {
+	    if (childNode->name && smiGetElementNode(smiElement)->name
+		&& strcmp(childNode->name,
+			  smiGetElementNode(smiElement)->name) == 0) {
+		c++;
+	    }
+	}
+
+	/*
+	 * If the column is not in the index but it is accessible,
+	 * we have to create a single leaf. This is the default case.
+	 */
+
+	if (c == 0 && isAccessibleLeaf(childNode)) {
+	    c = 1;
+	}
+
+	for (i = 0; i < c; i++) {
+	    if (i) {
+		smiAsprintf(&s, "%s_%d", childNode->name, i+1);
+		smi2yangLeaf(node, childNode, s);
+		smiFree(s);
+	    } else {
+		smi2yangLeaf(node, childNode, NULL);
+	    }
 	}
     }
 }
@@ -1061,28 +1103,16 @@ smi2yangScalarLeafs(_YangNode *node, SmiNode *smiNode)
     for (childNode = smiGetFirstChildNode(smiNode);
 	 childNode;
 	 childNode = smiGetNextChildNode(childNode)) {
-	if (childNode->nodekind == SMI_NODEKIND_SCALAR
-	    && isAccessibleLeaf(childNode)) {
-	    smi2yangLeaf(node, childNode);
+	if (childNode->nodekind != SMI_NODEKIND_SCALAR) {
+	    continue;
+	}
+	if (isAccessibleLeaf(childNode)) {
+	    smi2yangLeaf(node, childNode, NULL);
 	}
     }
 }
 
-#if 0
-static void
-smi2yangScalars(SmiModule *smiModule, _YangNode *node)
-{
-    SmiNode *smiNode;
 
-    for (smiNode = smiGetFirstNode(smiModule, SMI_NODEKIND_SCALAR);
-	 smiNode;
-	 smiNode = smiGetNextNode(smiNode, SMI_NODEKIND_SCALAR)) {
-	if (isAccessibleLeaf(smiNode)) {
-	    smi2yangLeaf(node, smiNode);
-	}
-    }
-}
-#else
 static void
 smi2yangScalars(SmiModule *smiModule, _YangNode *node)
 {
@@ -1138,7 +1168,6 @@ smi2yangScalars(SmiModule *smiModule, _YangNode *node)
 
     smiFree(groups);
 }
-#endif
 
 
 static void
@@ -1202,7 +1231,7 @@ smi2yangTable(_YangNode *node, SmiNode *smiTableNode, SmiNode *smiEntryNode)
 	}
     }
     
-    smi2yangLeafs(listNode, smiEntryNode);
+    smi2yangColumnarLeafs(listNode, smiEntryNode);
 }
 
 
@@ -1265,7 +1294,7 @@ smi2yangAugment(_YangNode *node, SmiNode *smiNode)
     smi2yangReference(augmentNode, smiNode->reference);
     smi2yangOID(augmentNode, smiNode->oid, smiNode->oidlen);
 
-    smi2yangLeafs(augmentNode, smiNode);
+    smi2yangColumnarLeafs(augmentNode, smiNode);
 }
 
 
@@ -1345,7 +1374,7 @@ smi2yangNotification(_YangNode *container, SmiNode *smiNode)
 	if (isAccessibleLeaf(vbNode)) {
 	    smi2yangLeafrefLeaf(conti, vbNode, NULL);
 	} else {
-	    smi2yangLeaf(conti, vbNode);
+	    smi2yangLeaf(conti, vbNode, NULL);
 	}
     }
 }
