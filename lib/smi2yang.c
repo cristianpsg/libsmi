@@ -171,8 +171,7 @@ getStringDate(time_t t)
 static int
 isAccessibleLeaf(SmiNode *smiNode)
 {
-    return (smiNode->access == SMI_ACCESS_NOT_ACCESSIBLE
-	    || smiNode->access == SMI_ACCESS_READ_ONLY
+    return (smiNode->access == SMI_ACCESS_READ_ONLY
 	    || smiNode->access == SMI_ACCESS_READ_WRITE);
 }
 
