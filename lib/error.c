@@ -506,6 +506,8 @@ static Error errors[] = {
       "%s compliance statement `%s' includes %s group `%s'", NULL},
     { 4, ERR_COMPLIANCE_OBJECT_STATUS, "compliance-object-status",
       "%s compliance statement `%s' includes %s object `%s'", NULL},
+    { 3, ERR_COMPLIANCE_GROUP_INVALID, "compliance-group-invalid",
+      "group '%s' is both mandatory and optional in `%s'", NULL},
     { 5, ERR_GROUP_UNREF, "group-unref",
       "%s group `%s' is not referenced in this module", NULL},
     { 5, ERR_TYPE_UNREF, "type-unref",

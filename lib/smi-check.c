@@ -1769,6 +1769,18 @@ smiCheckComplianceStatus(Parser *parser, Object *compliance)
 				status[memberPtr->export.status],
 				memberPtr->export.name);
 	}
+
+	for (groupListPtr = compliance->listPtr;
+	     groupListPtr; groupListPtr = groupListPtr->nextPtr) {
+	    
+	    group = (Object *) groupListPtr->ptr;
+	    if (strcmp(group->export.name, memberPtr->export.name) == 0) {
+		smiPrintErrorAtLine(parser, ERR_COMPLIANCE_GROUP_INVALID,
+				    ((Option *) listPtr->ptr)->line,
+				    group->export.name,
+				    compliance->export.name);
+	    }
+	}
     }
     for (listPtr = compliance->refinementlistPtr;
 	 listPtr; listPtr = listPtr->nextPtr) {
