@@ -39,6 +39,7 @@ ipfixMIB MODULE-IDENTITY
 
 
 
+
           Phone: +49 6221 4342-128
           Email: Thomas.Dietz@neclab.eu
 
@@ -87,6 +88,7 @@ ipfixMIB MODULE-IDENTITY
 
     REVISION     "201206110000Z"         -- 11 June 2012
     DESCRIPTION
+
 
 
         "Fixed errata from RFC 5815.  Published as RFC 6615."
@@ -139,6 +141,7 @@ IpfixTransportSessionEntry ::=
        ipfixTransportSessionSourceAddressType      InetAddressType,
 
 
+
        ipfixTransportSessionSourceAddress          InetAddress,
        ipfixTransportSessionDestinationAddressType InetAddressType,
        ipfixTransportSessionDestinationAddress     InetAddress,
@@ -187,6 +190,7 @@ ipfixTransportSessionSourceAddressType OBJECT-TYPE
     DESCRIPTION
         "The type of address used for the source address,
         as specified in RFC 4001.  The InetAddressType supported
+
 
 
         values are ipv4(1) and ipv6(2).  This object is used with
@@ -239,6 +243,7 @@ ipfixTransportSessionDestinationAddress OBJECT-TYPE
         Transport Session.  This value is interpreted according to
 
 
+
         the value of ipfixTransportSessionAddressType, as specified
         in RFC 4001.  This object is used with protocols
         (specified in ipfixTransportSessionProtocol) like TCP (6)
@@ -286,6 +291,7 @@ ipfixTransportSessionDestinationPort OBJECT-TYPE
         ports is used, the object MUST be set to zero."
 
     ::= { ipfixTransportSessionEntry 8 }
+
 
 
 
@@ -339,6 +345,7 @@ ipfixTransportSessionTemplateRefreshTimeout OBJECT-TYPE
 
 
 
+
         On Collectors, this object contains the lifetime in seconds
         after which a Template becomes invalid when it is not
         received again within this lifetime.
@@ -384,6 +391,7 @@ ipfixTransportSessionTemplateRefreshPacket OBJECT-TYPE
         "On Exporters, this object contains the number of exported
         IPFIX Messages after which IPFIX Templates are resent
         by the Exporter.
+
 
 
 
@@ -439,6 +447,7 @@ ipfixTransportSessionIpfixVersion OBJECT-TYPE
         IPFIX protocol it receives for this Transport Session.
 
 
+
         If IPFIX Messages of different IPFIX protocol versions are
         transmitted or received in this Transport Session, this
         object contains the maximum version number."
@@ -476,6 +485,7 @@ ipfixTransportSessionStatus OBJECT-TYPE
             This value MUST be used for Transport Sessions that are
             currently active and transmitting or receiving data."
     ::= { ipfixTransportSessionEntry 16 }
+
 
 
 
@@ -539,6 +549,7 @@ ipfixTemplateObservationDomainId OBJECT-TYPE
         is defined.  This value is used when sending IPFIX Messages.
 
 
+
         The special value of 0 indicates that the Data Records
         exported with this (Options Template) cannot be applied to a
         single Observation Domain."
@@ -587,6 +598,7 @@ ipfixTemplateAccessTime OBJECT-TYPE
         "If the Transport Session is in exporting mode
         (ipfixTransportSessionDeviceMode) the time when this
         (Options) Template was last sent to the Collector(s).
+
 
 
         In the specific case of UDP as transport protocol, this
@@ -639,6 +651,7 @@ IpfixTemplateDefinitionEntry ::=
         ipfixTemplateDefinitionIeId             Unsigned32,
 
 
+
         ipfixTemplateDefinitionIeLength         Unsigned32,
         ipfixTemplateDefinitionEnterpriseNumber Unsigned32,
         ipfixTemplateDefinitionFlags            BITS
@@ -684,6 +697,7 @@ ipfixTemplateDefinitionIeLength OBJECT-TYPE
     SYNTAX      Unsigned32 (0..65535)
     MAX-ACCESS  read-only
     STATUS      current
+
 
 
 
@@ -739,6 +753,7 @@ ipfixTemplateDefinitionFlags OBJECT-TYPE
             This Information Element is used for scope.
 
 
+
         flowKey(1)
             This Information Element is a Flow Key.
 
@@ -785,6 +800,7 @@ ipfixExportTable  OBJECT-TYPE
         Session grouping, then each ipfixExportIndex contains a
         single ipfixMeteringProcessCacheId, and thus a single
         Transport Session; this session MUST have a member type
+
 
 
 
@@ -839,6 +855,7 @@ ipfixExportMemberType OBJECT-TYPE
                     secondary(2),
 
 
+
                     parallel(3),
                     loadBalancing(4)
                 }
@@ -889,6 +906,7 @@ ipfixExportMemberType OBJECT-TYPE
     ::= { ipfixExportEntry 2 }
 
 
+
 --------------------------------------------------------------------
 -- 1.1.5: Metering Process Table
 --------------------------------------------------------------------
@@ -934,6 +952,7 @@ ipfixMeteringProcessCacheId OBJECT-TYPE
         constant from a re-initialization of the entity's network
         management agent to the next re-initialization."
     ::= { ipfixMeteringProcessEntry 1 }
+
 
 
 
@@ -989,6 +1008,7 @@ ipfixMeteringProcessCacheIdleTimeout OBJECT-TYPE
 
 
 
+
 --------------------------------------------------------------------
 -- 1.1.6: Observation Point Table
 --------------------------------------------------------------------
@@ -1036,6 +1056,7 @@ ipfixObservationPointGroupId OBJECT-TYPE
         ipfixObservationPointTable.  The value is expected to remain
         constant from a re-initialization of the entity's network
         management agent to the next re-initialization.
+
 
 
 
@@ -1089,6 +1110,7 @@ ipfixObservationPointPhysicalEntity OBJECT-TYPE
         Observation Point.  If such a physical entity cannot be
 
 
+
         specified or is not known, then the object is zero."
     ::= { ipfixObservationPointEntry 4 }
 
@@ -1139,6 +1161,7 @@ ipfixObservationPointPhysicalEntityDirection OBJECT-TYPE
         both(3)
 
 
+
             This value is used for monitoring incoming and outgoing
             Flows on the given physical entity."
     ::= { ipfixObservationPointEntry 6 }
@@ -1184,6 +1207,7 @@ ipfixSelectionProcessTable OBJECT-TYPE
         ...
         |
         +- ipfixFuncFn...
+
 
 
 
@@ -1239,6 +1263,7 @@ ipfixSelectionProcessSelectorIndex OBJECT-TYPE
 
 
 
+
 ipfixSelectionProcessSelectorFunction OBJECT-TYPE
     SYNTAX      OBJECT IDENTIFIER
     MAX-ACCESS  read-only
@@ -1287,6 +1312,7 @@ IpfixTransportSessionStatsEntry ::=
         ipfixTransportSessionMessages          Counter64,
         ipfixTransportSessionDiscardedMessages Counter64,
         ipfixTransportSessionRecords           Counter64,
+
 
 
         ipfixTransportSessionTemplates         Counter64,
@@ -1339,6 +1365,7 @@ ipfixTransportSessionMessages OBJECT-TYPE
     MAX-ACCESS  read-only
 
 
+
     STATUS      current
     DESCRIPTION
         "The number of IPFIX Messages received by the
@@ -1389,6 +1416,7 @@ ipfixTransportSessionTemplates OBJECT-TYPE
         Discontinuities in the value of this counter can occur at
 
 
+
         re-initialization of the management system and at other
         times as indicated by the value of
         ipfixTransportSessionDiscontinuityTime."
@@ -1436,6 +1464,7 @@ ipfixTemplateStatsEntry OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "Defines an entry in the ipfixTemplateStatsTable."
+
 
 
 
@@ -1489,6 +1518,7 @@ ipfixMeteringProcessStatsTable  OBJECT-TYPE
 
 
 
+
 ipfixMeteringProcessStatsEntry OBJECT-TYPE
     SYNTAX      IpfixMeteringProcessStatsEntry
     MAX-ACCESS  not-accessible
@@ -1537,6 +1567,7 @@ ipfixMeteringProcessCacheDataRecords OBJECT-TYPE
 ipfixMeteringProcessCacheDiscontinuityTime OBJECT-TYPE
     SYNTAX      TimeStamp
     MAX-ACCESS  read-only
+
 
 
     STATUS      current
@@ -1589,6 +1620,7 @@ ipfixSelectionProcessStatsPacketsObserved OBJECT-TYPE
         the exit point of another Selector Function.
 
 
+
         Discontinuities in the value of this counter can occur at
         re-initialization of the management system and at other
         times as indicated by the value of
@@ -1635,6 +1667,7 @@ ipfixCollectorCompliance MODULE-COMPLIANCE
         "An implementation that builds an IPFIX Collector
         that complies with this module MUST implement the objects
         defined in the mandatory group ipfixCommonGroup.
+
 
 
 
@@ -1689,6 +1722,7 @@ ipfixExporterCompliance MODULE-COMPLIANCE
 
 
 
+
 --------------------------------------------------------------------
 -- 2.2: MIB Grouping
 --------------------------------------------------------------------
@@ -1737,6 +1771,7 @@ ipfixCommonStatsGroup OBJECT-GROUP
 
         ipfixTemplateDataRecords,
         ipfixTemplateDiscontinuityTime
+
 
 
     }
