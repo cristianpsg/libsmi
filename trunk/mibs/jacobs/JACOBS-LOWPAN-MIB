@@ -1,0 +1,409 @@
+JACOBS-LOWPAN-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Unsigned32, Counter32, mib-2
+        FROM SNMPv2-SMI                                 -- RFC 2578
+    OBJECT-GROUP, MODULE-COMPLIANCE
+        FROM SNMPv2-CONF                                -- RFC 2580
+    cnds
+	FROM JACOBS-SMI;
+
+lowpanMIB    MODULE-IDENTITY
+    LAST-UPDATED    "201301090000Z"
+    ORGANIZATION
+        "Jacobs University Bremen"
+    CONTACT-INFO
+        "Juergen Schoenwaelder
+         Jacobs University Bremen
+         Email: j.schoenwaelder@jacobs-university.de
+
+         Anuj Sehgal
+         Jacobs University Bremen
+         Email: s.anuj@jacobs-university.de
+
+         Tina Tsou
+         Huawei Technologies
+         Email: tina.tsou.zouting@huawei.com
+
+         Cathy Zhou
+         Huawei Technologies
+         Email: cathyzhou@huawei.com"
+    DESCRIPTION
+        "The MIB module for monitoring nodes implementing the IPv6
+         over Low-Power Wireless Personal Area Networks (6LoWPAN)
+         protocol.
+
+         Copyright (c) 2013 IETF Trust and the persons identified as
+
+
+
+         authors of the code.  All rights reserved.
+
+         Redistribution and use in source and binary forms, with or
+         without modification, is permitted pursuant to, and subject
+         to the license terms contained in, the Simplified BSD
+         License set forth in Section 4.c of the IETF Trust's
+         Legal Provisions Relating to IETF Documents
+         (http://trustee.ietf.org/license-info)."
+
+    REVISION "201301090000Z"
+    DESCRIPTION
+        "Initial version, published as RFC XXXX."
+    -- RFC Ed.: replace XXXX with actual RFC number and remove this note
+
+    ::= { cnds 3 }
+
+-- object definitions
+
+lowpanNotifications        OBJECT IDENTIFIER ::= { lowpanMIB 0 }
+lowpanObjects              OBJECT IDENTIFIER ::= { lowpanMIB 1 }
+lowpanConformance          OBJECT IDENTIFIER ::= { lowpanMIB 2 }
+
+lowpanReasmTimeout OBJECT-TYPE
+    SYNTAX     Unsigned32
+    UNITS      "seconds"
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The maximum number of seconds that received fragments are
+         held while they are awaiting reassembly at this entity."
+    ::= { lowpanObjects 1 }
+
+lowpanInReceives OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The total number of 6LoWPAN datagrams received, including
+         those received in error."
+    ::= { lowpanObjects 2 }
+
+lowpanInHdrErrors OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of received 6LoWPAN datagrams discarded due to
+         errors in their headers, including unknown dispatch values,
+
+
+
+         errors discovered during any decompression attempts, etc."
+    ::= { lowpanObjects 3 }
+
+lowpanInMeshReceives OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of received 6LoWPAN datagrams with a MESH header."
+    ::= { lowpanObjects 4 }
+
+lowpanInMeshForwds OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of received 6LoWPAN datagrams requiring MESH
+         forwarding."
+    ::= { lowpanObjects 5 }
+
+lowpanInMeshDelivers OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of received 6LoWPAN datagrams with a MESH header
+         delivered to the local system."
+    ::= { lowpanObjects 6 }
+
+lowpanInReasmReqds OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of received 6LoWPAN fragments that needed to
+         be reassembled. This includes both FRAG1 and FRAGN 6LoWPAN
+         datagrams."
+    ::= { lowpanObjects 7 }
+
+lowpanInReasmFails OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of failures detected by the re-assembly algorithm
+        (e.g., timeouts). Note that this is not necessarily a count of
+        discarded 6LoWPAN fragments since implementations can lose
+        track of the number of fragments by combining them as
+
+
+
+        received."
+    ::= { lowpanObjects 8 }
+
+lowpanInReasmOKs OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of IPv6 packets successfully reassembled."
+    ::= { lowpanObjects 9 }
+
+lowpanInCompReqds OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams requiring header
+         decompression."
+    ::= { lowpanObjects 10 }
+
+lowpanInCompFails OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams where header decompression
+         failed (e.g., because the necessary context information is
+         not available)."
+    ::= { lowpanObjects 11 }
+
+lowpanInCompOKs OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams where header decompression
+         was successful."
+    ::= { lowpanObjects 12 }
+
+lowpanInDiscards OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of received 6LoWPAN datagrams for which no
+        problems were encountered to prevent their continued
+        processing, but were discarded (e.g., for lack of buffer
+        space).  Note that this counter does not include any
+
+
+
+        datagrams discarded due to a reassembly failure."
+    ::= { lowpanObjects 13 }
+
+lowpanInDelivers OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The total number of IPv6 packets successfully delivered
+         to the IPv6 layer."
+    ::= { lowpanObjects 14 }
+
+lowpanOutRequests OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The total number of IPv6 packets supplied by the IPv6 layer."
+    ::= { lowpanObjects 15 }
+
+lowpanOutCompReqds OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The total number of IPv6 packets for which header compression
+         was attempted."
+    ::= { lowpanObjects 16 }
+
+lowpanOutCompFails OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The total number of IPv6 packets for which header compression
+         failed (e.g., because the UDP checksum check failed while
+         performing UDP header compression)."
+    ::= { lowpanObjects 17 }
+
+lowpanOutCompOKs OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The total number of IPv6 packets for which header compression
+         was successful."
+    ::= { lowpanObjects 18 }
+
+
+
+
+lowpanOutFragReqds OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of IPv6 packets that require fragmentation
+         in order to be transmitted."
+    ::= { lowpanObjects 19 }
+
+lowpanOutFragFails OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of IPv6 packets that have been discarded because
+         they needed to be fragmented but could not be."
+    ::= { lowpanObjects 20 }
+
+lowpanOutFragOKs OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of IPv6 packets that have been successfully
+         fragmented."
+    ::= { lowpanObjects 21 }
+
+lowpanOutFragCreates OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN fragments that have been
+         generated as a result of fragmentation. This includes
+         both FRAG1 and FRAGN 6LoWPAN datagrams."
+    ::= { lowpanObjects 22 }
+
+lowpanOutMeshHopLimitExceeds OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams with a MESH header that
+         were dropped because the hop limit has been exceeded."
+    ::= { lowpanObjects 23 }
+
+lowpanOutMeshNoRoutes OBJECT-TYPE
+    SYNTAX     Counter32
+
+
+
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams with a MESH header that
+         were dropped because there was no forwarding information
+         available."
+    ::= { lowpanObjects 24 }
+
+lowpanOutMeshRequests OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams requiring MESH header
+         encapsulation."
+    ::= { lowpanObjects 25 }
+
+lowpanOutMeshForwds OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams with a MESH header for
+         which suitable forwarding information was available."
+    ::= { lowpanObjects 26 }
+
+lowpanOutMeshTransmits OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of 6LoWPAN datagrams with a MESH header
+         created."
+    ::= { lowpanObjects 27 }
+
+lowpanOutDiscards OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of IPv6 packets for which no problem was
+         encountered to prevent their transmission to their
+         destination, but were discarded (e.g., for lack of
+         buffer space)."
+    ::= { lowpanObjects 28 }
+
+lowpanOutTransmits OBJECT-TYPE
+    SYNTAX     Counter32
+
+
+
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The total number of 6LoWPAN datagrams that this entity
+         supplied to the lower layers for transmission."
+    ::= { lowpanObjects 29 }
+
+-- conformance definitions
+
+lowpanGroups      OBJECT IDENTIFIER ::= { lowpanConformance 1 }
+lowpanCompliances OBJECT IDENTIFIER ::= { lowpanConformance 2 }
+
+lowpanCompliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "Compliance statement for systems that implement 6LoWPAN."
+    MODULE      -- this module
+    MANDATORY-GROUPS {
+        lowpanCoreGroup
+    }
+    ::= { lowpanCompliances 1 }
+
+lowpanCoreGroup OBJECT-GROUP
+    OBJECTS {
+        lowpanReasmTimeout,
+        lowpanInReceives,
+        lowpanInHdrErrors,
+        lowpanInMeshReceives,
+        lowpanInMeshForwds,
+        lowpanInMeshDelivers,
+        lowpanInReasmReqds,
+        lowpanInReasmFails,
+        lowpanInReasmOKs,
+        lowpanInCompReqds,
+        lowpanInCompFails,
+        lowpanInCompOKs,
+        lowpanInDiscards,
+        lowpanInDelivers,
+        lowpanOutRequests,
+        lowpanOutCompReqds,
+        lowpanOutCompFails,
+        lowpanOutCompOKs,
+        lowpanOutFragReqds,
+        lowpanOutFragFails,
+        lowpanOutFragOKs,
+        lowpanOutFragCreates,
+        lowpanOutMeshHopLimitExceeds,
+        lowpanOutMeshNoRoutes,
+
+
+
+        lowpanOutMeshRequests,
+        lowpanOutMeshForwds,
+        lowpanOutMeshTransmits,
+        lowpanOutDiscards,
+        lowpanOutTransmits
+    }
+    STATUS      current
+    DESCRIPTION
+        "A collection of objects providing information and
+         statistics about the processing of 6LoWPAN datagrams."
+    ::= { lowpanGroups 1 }
+
+END

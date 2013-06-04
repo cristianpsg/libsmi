@@ -1,7 +1,7 @@
 #
 # Makefile.am --
 #
-#      Template to generate the mibs/tubs Makefile.in using automake.
+#      Template to generate the mibs/jacobs Makefile.in using automake.
 #
 # Copyright (c) 1999 Frank Strauss, Technical University of Braunschweig.
 #
