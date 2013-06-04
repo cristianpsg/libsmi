@@ -1,0 +1,109 @@
+Thoughts on Estimating the Complexity of MIBs
+
+Implementation of MIBs is usually considered to be a cost factor. So
+the question comes up whether it is possible to roughly estimate the
+costs for implementing a MIB. Based on experience with implementing
+several MIBs, we propose a simple complexity metric for MIBs. It is
+based on the following observations:
+
+(a) Readonly scalars are usually simple to implement. All that is
+    needed is fetch a value from the instrumentation and to return it
+    to the agent toolkit.
+
+(b) Readwrite scalars are slightly more complex since there needs to
+    be code which implements undo/redo mechanism for a potential
+    rollback. This is again fairly simple for scalars since storing
+    backup values does not require any special support - a static
+    buffer usually works fine. Readwrite scalars score 2.
+
+(c) Readonly columns are slightly more expensive to implement than
+    scalars since the method routine has to identity the right value
+    to fetch from the instrumentation. Readonly columns score 2.
+
+(d) Readwrite columns are like (b) and (c). Readwrite columns score 3.
+
+(e) Readcreate tables are like (d) but also require row creation
+    support. Readcreate tables score 5 additional points.
+
+(f) The indexing complexity of tables has some impact on the
+    lexicographic ordering logic. For each table, the index complexity
+    ic of an index i consisting of the k components is defined as
+
+        ic = sum [ c[j] ]		j = 1,...,k
+
+    where c[k] is the index component complexity. The index component
+    complexity c[j] for the index component j depends on the
+    underlying base type:
+
+	    {	1	INTEGER valued
+    c[i] = {    2	OCTET STRING fixed length
+            {	3	OCTET STRING/OBJECT IDENTIFIER variable length
+
+The overall complexity of a module is the sum of the node scores plus
+the table readcreate scores plus the table index complexity scores.
+
+? notifications ?
+
+? noaccess columns ?
+
+? probably the indexing complexity is not expensive enough ?
+
+Added a scaling factor of 3 for the indexing complexity since tools
+can make a serious difference here (scale 1..5). Good tools should be
+able to lower this factor.
+
+? other table relationships / pointers ?
+
+--
+
+Dave> Since you determined the reference counts, I assume you must
+Dave> have calculated the pairs of referee,reference relationships
+Dave> between mib modules. Could you list the referencing modules
+Dave> under each referenced mib listing, so implementors could
+Dave> determine which pairs are relevant to them? (this of course
+Dave> could be done in a separate listing).
+
+I have to think about this.
+
+Mike> I'm curious as to why Integer32 and Unsigned32 are missing from
+Mike> this table.  (It might also be useful to include predefined
+Mike> ASN.1 types such as INTEGER, OCTET STRING, and OBJECT IDENTIFIER
+Mike> also.)
+
+Perhaps I should also count base type usage, but then the references
+to SNMPv2-SMI would probably go up somewhere into the 90% region.
+
+js> CATEGORY        TOTAL   COMPLEXITY
+js> Scalars (ro):     569        795
+js> Scalars (rw):     175
+js> Columns (ro):
+js> Columns (rw):
+js> Tables  (rc):
+js> Index   (ic):
+js> Summary:         43432       4324
+js> 
+js> # Table index component complexity distribution:
+js> 
+js> CATEGORY        TOTAL
+js> Simple:           12
+js> Fixed Length:      3
+js> Variable Length:   0
+js> Summary:         324
+
+
+Generate unrolled readable compliance information:
+
+ifCompliance {
+    mandatory  {
+        +r-n DisplayString ifDescr
+        +r-n IANAifType    ifType
+    }
+    conditional {
+        +r-n DisplayString ifDescr
+        +r-n IANAifType    ifType
+    }
+    refined {
+        +r-n DisplayString ifDescr
+        +r-n IANAifType    ifType
+    }
+}
