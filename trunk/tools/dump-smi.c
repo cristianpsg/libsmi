@@ -1730,22 +1730,30 @@ static void fprintModuleCompliances(FILE *f, SmiModule *smiModule)
 
 			smiType = smiGetRefinementType(smiRefinement);
 			if (smiType) {
+  			    SmiType *parentType = smiGetParentType(smiType);
+			    if (! parentType->name) {
+			        parentType = smiGetParentType(parentType);
+			    }
 			    fprintSegment(f, 2 * INDENT, "SYNTAX", INDENTVALUE,
 					  smiv1);
 			    fprint(f, "%s",
-				   getTypeString(smiType->basetype,
-						 smiGetParentType(smiType)));
+				   getTypeString(smiType->basetype, 
+						 parentType));
 			    fprintSubtype(f, smiType, smiv1);
 			    fprint(f, "\n");
 			}
 			
 			smiType = smiGetRefinementWriteType(smiRefinement);
 			if (smiType) {
+			    SmiType *parentType = smiGetParentType(smiType);
+			    if (! parentType->name) {
+			        parentType = smiGetParentType(parentType);
+			    }
 			    fprintSegment(f, 2 * INDENT, "WRITE-SYNTAX",
 					  INDENTVALUE, smiv1);
 			    fprint(f, "%s",
 				   getTypeString(smiType->basetype,
-						 smiGetParentType(smiType)));
+						 parentType));
 			    fprintSubtype(f, smiType, smiv1);
 			    fprint(f, "\n");
 			}
