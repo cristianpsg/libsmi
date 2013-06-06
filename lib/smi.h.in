@@ -610,6 +610,7 @@ extern char *smiRenderType(SmiType *smiTypePtr, int flags);
 				     string if all octets are isprint() */
 #define SMI_RENDER_UNKNOWN   0x20 /* render even unknown items as strings
   				     ("<unknown>") so that we never get NULL */
+#define SMI_RENDER_TYPE_RECURSIVE 0x40 /* iterate up the type derivation chain */
 #define SMI_RENDER_ALL       0xff /* render as `human friendly' as possible */
 
 #define SMI_UNKNOWN_LABEL "<unknown>"
