@@ -2873,6 +2873,9 @@ char *smiRenderType(SmiType *smiTypePtr, int flags)
     SmiModule *modulePtr;
     
     if ((!smiTypePtr) || (smiTypePtr->name == NULL)) {
+        if (smiTypePtr && (flags & SMI_RENDER_TYPE_RECURSIVE)) {
+	    return smiRenderType(smiGetParentType(smiTypePtr), flags);
+	}
 	if (flags & SMI_RENDER_UNKNOWN) {
 	    smiAsprintf(&s, SMI_UNKNOWN_LABEL);
 	} else {
