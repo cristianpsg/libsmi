@@ -13,7 +13,7 @@
 
 TESTMIBTOPDIR		= ../../mibs
 TESTMIBDIR		= $(TESTMIBTOPDIR)/ietf:$(TESTMIBTOPDIR)/iana:$(TESTMIBTOPDIR)/irtf:$(TESTMIBTOPDIR)/site:$(TESTMIBTOPDIR)/tubs
-TESTMIBS		= SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB
+TESTMIBS		= SNMPv2-MIB IF-MIB MAU-MIB RMON2-MIB BRIDGE-MIB
 
 # smilint-smiv2.test has to be the first test. It initializes the
 # sync-dumps script that is extended by subsequent tests.
