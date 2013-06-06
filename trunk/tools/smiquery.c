@@ -288,7 +288,6 @@ int main(int argc, char *argv[])
 			}
 			type = smiGetRefinementWriteType(refinement);
 			if (type) {
-			    module = smiGetTypeModule(type);
 			    print_key_val("Write-Type",
 				  smiRenderType(type, SMI_RENDER_ALL));
 			}
