@@ -2852,6 +2852,7 @@ objectTypeClause:	LOWERCASE_IDENTIFIER
 				}
 			    }
                             indexFlag = 0;
+			    variationkind = SMI_NODEKIND_UNKNOWN;
 			}
 			SYNTAX Syntax                /* old $6, new $6 */
 		        UnitsPart                    /* old $7, new $7 */
@@ -5737,6 +5738,11 @@ Entry:			ObjectName
 
 DefValPart:		DEFVAL '{' Value '}'
 			{
+			    /* must not be present in notification variations */
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				smiPrintError(thisParserPtr,
+					      ERR_NOTIFICATION_VARIATION_DEFVAL);
+			    }
 			    $$ = $3;
 			    if ((defaultBasetype == SMI_BASETYPE_BITS) &&
 				($$->basetype != SMI_BASETYPE_BITS)) {
@@ -6854,6 +6860,7 @@ ComplianceGroup:	GROUP
 ComplianceObject:	OBJECT
 			{
 			    thisParserPtr->firstNestedStatementLine = thisParserPtr->line;
+			    variationkind = SMI_NODEKIND_UNKNOWN;
 			}
 			ObjectName
 			SyntaxPart
@@ -6900,6 +6907,11 @@ ComplianceObject:	OBJECT
 
 SyntaxPart:		SYNTAX Syntax
 			{
+			    /* must not be present in notification variations */
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				smiPrintError(thisParserPtr,
+				      ERR_NOTIFICATION_VARIATION_SYNTAX);
+			    }
 			    if ($2->export.name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
 			    } else {
@@ -6915,8 +6927,14 @@ SyntaxPart:		SYNTAX Syntax
 WriteSyntaxPart:	WRITE_SYNTAX WriteSyntax
 			{
                             /* must not be present in PIBs */
-                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI)
+                            if (thisParserPtr->modulePtr->export.language == SMI_LANGUAGE_SPPI) {
                                 smiPrintError(thisParserPtr, ERR_SMI_CONSTRUCT_IN_PIB, "WRITE-SYNTAX");
+			    }
+			    /* must not be present in notification variations */
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				smiPrintError(thisParserPtr,
+				      ERR_NOTIFICATION_VARIATION_WRITESYNTAX);
+			    }
 			    if ($2->export.name) {
 				$$ = duplicateType($2, 0, thisParserPtr);
 			    } else {
@@ -7135,38 +7153,17 @@ Variation:		VARIATION ObjectName
 			    }
 			}
 			SyntaxPart
-			{
-			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				smiPrintError(thisParserPtr,
-				      ERR_NOTIFICATION_VARIATION_SYNTAX);
-			    }
-			}
 			WriteSyntaxPart
-			{
-			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				smiPrintError(thisParserPtr,
-				      ERR_NOTIFICATION_VARIATION_WRITESYNTAX);
-			    }
-			}
 			VariationAccessPart
 			CreationPart
-			{
-			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				smiPrintError(thisParserPtr,
-				      ERR_NOTIFICATION_VARIATION_CREATION);
-			    }
-			}
 			DefValPart
 			{
-			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
-				smiPrintError(thisParserPtr,
-				      ERR_NOTIFICATION_VARIATION_DEFVAL);
-			    } else if ($11) {
+			    if ($8) {
 				adjustDefval(thisParserPtr,
-					     $11, $2->typePtr,
+					     $8, $2->typePtr,
 					     thisParserPtr->line);
 				smiCheckValueType(thisParserPtr,
-						  $11, $2->typePtr,
+						  $8, $2->typePtr,
 						  thisParserPtr->line);
 			    }
 			}
@@ -7176,7 +7173,7 @@ Variation:		VARIATION ObjectName
 			    $$ = 0;
 			    variationkind = SMI_NODEKIND_UNKNOWN;
 
-			    checkDescr(thisParserPtr, $14);
+			    checkDescr(thisParserPtr, $10);
 			}
 	;
 
@@ -7252,7 +7249,14 @@ VariationAccess:	LOWERCASE_IDENTIFIER
         ;
 
 CreationPart:		CREATION_REQUIRES '{' Cells '}'
-			{ $$ = 0; }
+			{
+			    /* must not be present in notification variations */
+			    if (variationkind == SMI_NODEKIND_NOTIFICATION) {
+				smiPrintError(thisParserPtr,
+				      ERR_NOTIFICATION_VARIATION_CREATION);
+			    }
+			    $$ = 0;
+			}
 	|		/* empty */
 			{ $$ = 0; }
 	;
