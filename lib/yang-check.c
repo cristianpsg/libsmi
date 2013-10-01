@@ -468,7 +468,7 @@ void applyRefinements(_YangNode* node) {
 
 static int expandGroupings(_YangNode *node) {
     YangDecl nodeKind;
-    if (!node || node->nodeType != YANG_NODE_ORIGINAL) return;
+    if (!node || node->nodeType != YANG_NODE_ORIGINAL) return 0;
     nodeKind = node->export.nodeKind;
     if (nodeKind == YANG_DECL_GROUPING) {
         if (node->info) {
