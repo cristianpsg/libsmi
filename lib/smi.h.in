@@ -329,9 +329,10 @@ typedef struct SmiNode {
 
 /* SmiElement -- an item in a list (row index column, notification object)   */
 typedef struct SmiElement {
-#ifndef __GNUC__
-    char dummy;		/* many compilers are unhappy with empty structures. */
-#endif
+    char dummy;		/* C99 does not allow empty structs; some compilers
+			   accept them (gcc) but there are size differences
+			   between C and C++. So for portability reasons,
+			   we have this unused struct member. */
     /* no visible attributes */
 } SmiElement;
 
