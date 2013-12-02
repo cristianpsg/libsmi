@@ -466,7 +466,7 @@ static int getConPoint(GraphNode *snode, GraphNode *enode)
     y2 = enode->dia.y;    
 
     if (x1 == x2 && y1 < y2) con = 6;
-    if (x1 == x2 && y1 > y1) con = 1;
+    if (x1 == x2 && y1 > y2) con = 1;
     if (x1 > x2 && y1 == y2) con = 3;
     if (x1 < x2 && y1 == y2) con = 4;
     if (x1 > x2 && y1 > y2)  con = 0;
