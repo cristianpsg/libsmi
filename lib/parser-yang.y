@@ -11,6 +11,9 @@
  *  Authors: Kaloyan Kanev, Siarhei Kuryla
  */
 
+%parse-param { struct Parser *parserPtr }
+%lex-param { struct Parser *parserPtr }
+    
 %{
 
 #include <config.h>
@@ -44,13 +47,6 @@
 #endif
 
 
-/*
- * These arguments are passed to yyparse() and yylex().
- */
-#define YYPARSE_PARAM parserPtr
-#define YYLEX_PARAM   parserPtr
- 
-    
 #define thisParserPtr      ((Parser *)parserPtr)
 #define thisModulePtr      (((Parser *)parserPtr)->yangModulePtr)
 #define thisModuleInfoPtr  ((_YangModuleInfo*)((Parser *)parserPtr)->yangModulePtr->info)
