@@ -29,10 +29,13 @@ static SmiModule **pmodv = NULL;
 static int ignoreconformance = 0;
 static int ignoreleafs = 0;
 static int full = 0;
+static int noids = 0;
 
 static char *getSmiFlags(SmiNode *smiNode)
 {
+    SmiNode *parentNode = smiGetParentNode(smiNode);
 
+#if 0
     switch (smiNode->access) {
     case SMI_ACCESS_UNKNOWN:
 	return "---";
@@ -45,7 +48,7 @@ static char *getSmiFlags(SmiNode *smiNode)
     case SMI_ACCESS_READ_ONLY:
 	return "r-n";
     case SMI_ACCESS_READ_WRITE:
-	return "rwn";
+	return (parentNode && parentNode->create) ? "rcn" : "rwn";
     case SMI_ACCESS_NOT_IMPLEMENTED:
 	return "---";
     case SMI_ACCESS_INSTALL:
@@ -55,6 +58,30 @@ static char *getSmiFlags(SmiNode *smiNode)
     case SMI_ACCESS_REPORT_ONLY:
 	return "--r";
     }
+#else
+    switch (smiNode->access) {
+    case SMI_ACCESS_UNKNOWN:
+	return "---";
+    case SMI_ACCESS_NOT_ACCESSIBLE:
+	return "---";
+    case SMI_ACCESS_EVENT_ONLY:
+	return "---";
+    case SMI_ACCESS_NOTIFY:
+	return "-n-";
+    case SMI_ACCESS_READ_ONLY:
+	return "-r-";
+    case SMI_ACCESS_READ_WRITE:
+	return (parentNode && parentNode->create) ? "-rc" : "-rw";
+    case SMI_ACCESS_NOT_IMPLEMENTED:
+	return "---";
+    case SMI_ACCESS_INSTALL:
+	return "-i-";
+    case SMI_ACCESS_INSTALL_NOTIFY:
+	return "-in";
+    case SMI_ACCESS_REPORT_ONLY:
+	return "--r";
+    }
+#endif
 
     return "";
 }
@@ -163,13 +190,18 @@ static char *getYangTypeName(YangNode *yangNode)
 static char *getSmiLabel(SmiNode *smiNode)
 {
     char *label;
-    
-    if (smiNode->oid) {
-	smiAsprintf(&label, "%s(%u)",
-		    smiNode->name,
-		    smiNode->oid[smiNode->oidlen-1]);
+
+    if (noids) {
+	label = smiStrdup(smiNode->name);
     } else {
-	smiAsprintf(&label, "%s(?)", smiNode->name);
+	
+	if (smiNode->oid) {
+	    smiAsprintf(&label, "%s(%u)",
+			smiNode->name,
+			smiNode->oid[smiNode->oidlen-1]);
+	} else {
+	    smiAsprintf(&label, "%s(?)", smiNode->name);
+	}
     }
 
     return label;
@@ -378,9 +410,9 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getSmiStatusChar(smiNode->status);
 	    }
-	    fprintf(f, "%s---- %s(%u) [", prefix,
-		    smiNode->name,
-		    smiNode->oid[smiNode->oidlen-1]);
+	    label = getSmiLabel(smiNode);
+	    fprintf(f, "%s---- %s [", prefix, label);
+	    smiFree(label);
 	    switch (smiNode->indexkind) {
 	    case SMI_INDEX_INDEX:
 	    case SMI_INDEX_REORDER:
@@ -408,11 +440,11 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		c = prefix[prefixlen-1];
 		prefix[prefixlen-1] = getSmiStatusChar(smiNode->status);
 	    }
-	    fprintf(f, "%s---- %s(%u) [", prefix,
-		    smiNode->name,
-		    smiNode->oid[smiNode->oidlen-1]);
+	    label = getSmiLabel(smiNode);
+	    fprintf(f, "%s---- %s {", prefix, label);
+	    smiFree(label);
 	    fprintObjects(f, smiNode);
-	    fprintf(f, "]\n");
+	    fprintf(f, "}\n");
 	    if (prefixlen > 0 && c) {
 		prefix[prefixlen-1] = c;
 	    }
@@ -429,12 +461,16 @@ static void fprintSubTree(FILE *f, SmiNode *smiNode,
 		    smiFree(label);
 		} else {
 		    unsigned int j;
-		    fprintf(f, "%s---- %s(", prefix,
+		    fprintf(f, "%s---- %s", prefix,
 			    smiNode->name ? smiNode->name : " ");
-		    for (j = 0; j < smiNode->oidlen; j++) {
-			fprintf(f, "%s%u", j ? "." : "", smiNode->oid[j]);
+		    if (! noids) {
+			fprintf(f, "(");
+			for (j = 0; j < smiNode->oidlen; j++) {
+			    fprintf(f, "%s%u", j ? "." : "", smiNode->oid[j]);
+			}
+			fprintf(f, ")");
 		    }
-		    fprintf(f, ")\n");
+		    fprintf(f, "\n");
 		}
 	    } else {
 		label = getSmiLabel(smiNode);
@@ -731,6 +767,8 @@ void initTree()
 	  "do not show leaf nodes"},
 	{ "full-root", OPT_FLAG, &full, 0,
 	  "generate the full path to the root"},
+	{ "no-ids", OPT_FLAG, &noids, 0,
+	  "do not show (sub-)identifiers"},
         { 0, OPT_END, 0, 0 }
     };
     
