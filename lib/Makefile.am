@@ -14,10 +14,10 @@
 EXTRA_DIST		= parser-yang.y parser-sming.y parser-smi.y \
 			  scanner-yang.l scanner-sming.l scanner-smi.l \
 			  common.h errormacros.h error.h util.h snprintf.h \
-			  smi.h smi-data.h smi-check.h
+			  smi.h smi-data.h smi-check.h \
 			  yang.h yang-data.h yang-check.h \
 			  yang-complex-types.h \
-			  smi2yang.h snprintf.h \
+			  smi2yang.h \
 			  scanner-smi.h parser-smi.h parser-smi.tab.h \
 			  scanner-sming.h parser-sming.h parser-sming.tab.h \
 			  scanner-yang.h parser-yang.h parser-yang.tab.h \
