@@ -31,3 +31,7 @@ $(pkgconfig_DATA):	config.status
 
 anoncvs:
 	RSYNC_RSH=ssh rsync -rlt --delete $(HOME)/.cvs-repository/libsmi anoncvs@anoncvs:/var/lib/cvs
+
+ChangeLog:
+#	svn2cl --ignore-message-starting='***' -o $@
+	svn2cl -i -a -o $@
