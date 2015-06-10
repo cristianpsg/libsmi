@@ -533,7 +533,7 @@ static Error errors[] = {
     { 5, ERR_TADDRESS_WITHOUT_TDOMAIN, "taddress-tdomain", 
       "`TAddress' object should have an accompanied `TDomain' object", NULL},
     { 5, ERR_INETADDRESS_WITHOUT_TYPE, "inetaddress-inetaddresstype", 
-      "`InetAddress' object should have an accompanied preceding `InetAdressType' object", NULL},
+      "`InetAddress' object should have an accompanied preceding `InetAddressType' object", NULL},
     { 5, ERR_INETADDRESSTYPE_SUBTYPED, "inetaddresstype-subtyped", 
       "`InetAddressType' should not be subtyped", NULL},
     { 5, ERR_INETADDRESS_SPECIFIC, "inetaddress-specific", 
