@@ -30,7 +30,8 @@ MIBURLS			= $(IANA)/ianaaddressfamilynumbers-mib/ianaaddressfamilynumbers-mib \
 			  $(IANA)/ianaitualarmtc-mib/ianaitualarmtc-mib \
 			  $(IANA)/ianamau-mib/ianamau-mib \
 			  $(IANA)/ianabfdtcstd-mib/ianabfdtcstd-mib \
-			  $(IANA)/ianaentity-mib/ianaentity-mib
+			  $(IANA)/ianaentity-mib/ianaentity-mib \
+			  $(IANA)/ianastoragemediatype-mib/ianastoragemediatype-mib
 
 download:
 	mkdir tmp ; cd tmp ; for m in $(MIBURLS) ; do curl -s -O $$m ; b=`basename $$m` ; f=`head -5 $$b | grep DEFINITIONS | awk '{print $$1}'` ; cmp -s $$b ../$$f || cp -v $$b ../$$f ; done ; cd .. ; rm -rf tmp
