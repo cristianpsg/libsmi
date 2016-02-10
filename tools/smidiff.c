@@ -941,15 +941,17 @@ getStringRange(SmiType *smiType)
     SmiRange *range;
     int i;
     char *str, *subRange;
+    size_t strLen;
 
     str = NULL;
     for(i = 0, range = smiGetFirstRange(smiType);
 	range; i++, range = smiGetNextRange(range)) {
 	
 	if (i) {
-	    str = realloc( str, strlen( str ) +2 );
+	    strLen = strlen( str );
+	    str = realloc( str, strLen +2 );
 	    if( str ) {
-		sprintf(str, "%s|", str);
+		sprintf(str + strLen, "|");
 	    }
 	    
 	}
@@ -961,16 +963,18 @@ getStringRange(SmiType *smiType)
 	if( !subRange ) {
 	    return NULL;
 	}
-	str = realloc( str, strlen( str ) + strlen( subRange ) + 1 );
+	strLen = strlen( str );
+	str = realloc( str, strLen + strlen( subRange ) + 1 );
 	if( !str ) {
 	    return NULL;
 	}
-	sprintf( str, "%s%s", str, subRange );
+	sprintf( str + strLen, "%s", subRange );
 	
     }
-    str = realloc( str, strlen( str ) + 2 );
+    strLen = strlen( str );
+    str = realloc( str, strLen + 2 );
     if( str ) {
-	sprintf(str, "%s)", str);
+	sprintf(str + strLen, ")");
     }
     return str;
 }
@@ -1613,6 +1617,7 @@ getStringIndexList( SmiNode *smiNode )
     SmiNode *indexNode;
     SmiElement *smiElement;
     char *strIdxLst;
+    size_t strIdxLstLen;
 
     smiElement = smiGetFirstElement( smiNode );
     indexNode = smiGetElementNode( smiElement );
@@ -1623,10 +1628,11 @@ getStringIndexList( SmiNode *smiNode )
     smiElement = smiGetNextElement( smiElement );
     while ( smiElement ) {
 	indexNode = smiGetElementNode( smiElement );
+	strIdxLstLen = strlen( strIdxLst );
 	strIdxLst = (char *)realloc( strIdxLst,
-				     strlen( strIdxLst ) +
+				     strIdxLstLen +
 				     strlen( indexNode->name ) + 4 );
-	sprintf( strIdxLst, "%s, `%s'", strIdxLst, indexNode->name );
+	sprintf( strIdxLst + strIdxLstLen, ", `%s'", indexNode->name );
 	smiElement = smiGetNextElement( smiElement );
     }
     return strIdxLst;
