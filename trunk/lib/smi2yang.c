@@ -156,6 +156,30 @@ typedef struct syImport {
 static syImport *importList = NULL;
 
 static char*
+quoteBackslashes(char *s)
+{
+    int i, j, count = 0;
+    char *quoted = NULL;
+
+    for (i = 0; s && s[i]; i++) {
+        count += (s[i] == '\\');
+    }
+    if (count == 0) {
+        return NULL;
+    }
+    
+    quoted = smiMalloc(strlen(s)+count+1);
+    for (i = 0, j = 0; s[i]; i++, j++) {
+        quoted[j] = s[i];
+        if (s[i] == '\\') {
+            quoted[++j] = s[i];
+        }
+    }
+    quoted[i] = 0;
+    return quoted;
+}
+
+static char*
 getStringDate(time_t t)
 {
     static char   s[27];
@@ -619,8 +643,13 @@ static void
 smi2yangDescription(_YangNode *node, char *description)
 {
     if (description) {
-	(void) addYangNode(description, YANG_DECL_DESCRIPTION, node);
-	setDescription(node, description);
+        char *quoted = quoteBackslashes(description);
+	(void) addYangNode(quoted ? quoted : description,
+                           YANG_DECL_DESCRIPTION, node);
+        setDescription(node, quoted ? quoted : description);
+        if (quoted) {
+            smiFree(quoted);
+        }
     }
 }
 
@@ -629,8 +658,13 @@ static void
 smi2yangReference(_YangNode *node, char *reference)
 {
     if (reference) {
-	(void) addYangNode(reference, YANG_DECL_REFERENCE, node);
-	setDescription(node, reference);
+        char *quoted = quoteBackslashes(reference);
+	(void) addYangNode(quoted ? quoted : reference,
+                           YANG_DECL_REFERENCE, node);
+	setDescription(node, quoted ? quoted : reference);
+        if (quoted) {
+            smiFree(quoted);
+        }
     }
 }
 
@@ -941,6 +975,10 @@ smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, char *altname)
     _YangNode *leafNode, *typeNode;
     char *s;
 
+    char *desc =
+        "See the definition of the leaf the leafref path points to.\n"
+        "[This leaf has been added by the SMIv2 to YANG conversion.]";
+
     if (! altname) altname = smiNode->name;
     leafNode = addYangNode(altname, YANG_DECL_LEAF, node);
 
@@ -948,6 +986,7 @@ smi2yangLeafrefLeaf(_YangNode *node, SmiNode *smiNode, char *altname)
     s = smi2yangLeafPath(smiNode);
     (void) addYangNode(s, YANG_DECL_PATH, typeNode);
     smiFree(s);
+    smi2yangDescription(leafNode, desc);
     smi2yangStatus(leafNode, smiNode->status);
 }
 

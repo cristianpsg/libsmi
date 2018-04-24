@@ -744,8 +744,8 @@ _YangNode *copyModule(_YangNode *nodePtr) {
     node->export.value          = smiStrdup(nodePtr->export.value);
     node->export.nodeKind       = nodePtr->export.nodeKind;
     node->export.description	= smiStrdup(nodePtr->export.description);
-    node->export.reference		= smiStrdup(nodePtr->export.reference);
-    node->export.extra  		= nodePtr->export.extra;
+    node->export.reference      = smiStrdup(nodePtr->export.reference);
+    node->export.extra          = nodePtr->export.extra;
     node->export.config         = nodePtr->export.config;
     node->export.status         = nodePtr->export.status;
     node->line                  = 0;
