@@ -1631,7 +1631,7 @@ getStringIndexList( SmiNode *smiNode )
 	strIdxLstLen = strlen( strIdxLst );
 	strIdxLst = (char *)realloc( strIdxLst,
 				     strIdxLstLen +
-				     strlen( indexNode->name ) + 4 );
+				     strlen( indexNode->name ) + 5 );
 	sprintf( strIdxLst + strIdxLstLen, ", `%s'", indexNode->name );
 	smiElement = smiGetNextElement( smiElement );
     }
